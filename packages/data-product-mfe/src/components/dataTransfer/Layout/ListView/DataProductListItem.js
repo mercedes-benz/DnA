@@ -7,7 +7,7 @@ import Styles from './DataProductListItem.styles.scss';
 
 import ConfirmModal from 'dna-container/ConfirmModal';
 
-import { dataTransferApi } from '../../../../apis/dataproducts.api';
+import { dataTransferApi } from '../../../../apis/datatransfers.api';
 import { GetDataProducts } from '../../redux/dataProduct.services';
 
 import ProgressIndicator from '../../../../common/modules/uilab/js/src/progress-indicator';
@@ -41,7 +41,7 @@ const DataProductListItem = ({ product, history, user }) => {
 
   const deleteDataProductContent = (
     <div>
-      <h3>Are you sure you want to delete {product?.dataProductName} ? </h3>
+      <h3>Are you sure you want to delete {product?.dataTransferName} ? </h3>
     </div>
   );
   const deleteDataProductAccept = () => {
@@ -91,9 +91,9 @@ const DataProductListItem = ({ product, history, user }) => {
           <button
             className={classNames('btn btn-text arrow', Styles.arrowBtn)}
             type="submit"
-            onClick={() => history.push(`/summary/${product?.dataProductId}`)}
+            onClick={() => history.push(`/summary/${product?.dataTransferId}`)}
           >
-            {product?.dataProductName}
+            {product?.dataTransferName}
           </button>
           <div className={classNames(Styles.contextMenu, showContextMenu ? Styles.open : '')}>
             <span onClick={toggleContextMenu} className={classNames('trigger', Styles.contextMenuTrigger)}>
@@ -110,7 +110,7 @@ const DataProductListItem = ({ product, history, user }) => {
                 {isCreator ? (
                   <>
                     <li className="contextListItem">
-                      <span onClick={() => history.push(`/datasharing/edit/${product?.dataProductId}`)}>Edit</span>
+                      <span onClick={() => history.push(`/datasharing/edit/${product?.dataTransferId}`)}>Edit</span>
                     </li>
                     <li className="contextListItem">
                       <span onClick={() => setShowDeleteModal(true)}>Delete</span>
@@ -120,7 +120,7 @@ const DataProductListItem = ({ product, history, user }) => {
                 <li className="contextListItem">
                   <span
                     onClick={() =>
-                      history.push({ pathname: '/datasharing/create', state: { copyId: product?.dataProductId } })
+                      history.push({ pathname: '/datasharing/create', state: { copyId: product?.dataTransferId } })
                     }
                   >
                     Create Copy
@@ -130,7 +130,7 @@ const DataProductListItem = ({ product, history, user }) => {
                   <span
                     disabled={!isProviderFormSubmitted}
                     onClick={() => {
-                      isProviderFormSubmitted && onShare(product?.dataProductId);
+                      isProviderFormSubmitted && onShare(product?.dataTransferId);
                     }}
                   >
                     Share
@@ -147,7 +147,7 @@ const DataProductListItem = ({ product, history, user }) => {
               <div>
                 <div>
                   <label className={Styles.label}>Data Transfer ID</label>
-                  <span>{product?.dataProductId}</span>
+                  <span>{product?.dataTransferId}</span>
                 </div>
                 <div>
                   <label className={Styles.label}>Data Classification</label>
