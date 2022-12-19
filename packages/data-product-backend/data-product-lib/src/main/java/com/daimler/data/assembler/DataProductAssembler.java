@@ -131,6 +131,7 @@ public class DataProductAssembler implements GenericAssembler<DataProductVO, Dat
 					}
 
 					contactInformationVO.setName(toTeamMemberVO(providerContactInformation.getName()));
+					contactInformationVO.setInformationOwner(toTeamMemberVO(providerContactInformation.getInformationOwner()));
 					providerVO.setContactInformation(contactInformationVO);
 				}
 
@@ -268,6 +269,7 @@ public class DataProductAssembler implements GenericAssembler<DataProductVO, Dat
 						contactInformation.setDivision(division);
 					}
 					contactInformation.setName(toTeamMemberJson(providerContactInformationVO.getName()));
+					contactInformation.setInformationOwner(toTeamMemberJson(providerContactInformationVO.getInformationOwner()));
 					provider.setContactInformation(contactInformation);
 				}
 
