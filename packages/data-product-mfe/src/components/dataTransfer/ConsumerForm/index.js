@@ -19,7 +19,7 @@ import ContactInformation from './ContactInformation';
 import PersonalRelatedData from './PersonalRelatedData';
 import TourGuide from '../TourGuide';
 import ProviderSummary from './ProviderSummary';
-import { dataTransferApi } from '../../../apis/dataproducts.api';
+import { dataTransferApi } from '../../../apis/datatransfers.api';
 import { useParams, withRouter } from 'react-router-dom';
 import { setDataProduct, setDivisionList } from '../redux/dataProductSlice';
 
@@ -63,7 +63,7 @@ const ConsumerForm = ({ user, history }) => {
   const dispatch = useDispatch();
   const provideDataProducts = useSelector((state) => state.provideDataProducts);
   const divisionList = useSelector((state) => state.provideDataProducts.divisionList);
-  const { id: dataProductId } = useParams();
+  const { id: dataTransferId } = useParams();
 
   useEffect(() => {
     if (user?.roles?.length) {
@@ -113,19 +113,17 @@ const ConsumerForm = ({ user, history }) => {
   const getDataProductById = () => {
     ProgressIndicator.show();
     dataTransferApi
-      .getDataProductById(dataProductId)
+      .getDataProductById(dataTransferId)
       .then((res) => {
-        // const isCreator = res.data?.providerInformation?.createdBy?.id === user.id;
-        // const isValidUser =
-        //   res.data.providerInformation?.users?.find((item) => user.id === item.shortId || user.eMail === item.email) ||
-        //   false;
+        const isCreator = res.data?.providerInformation?.createdBy?.id === user.id;
+        const isValidUser =
+          res.data.providerInformation?.users?.find((item) => user.id === item.shortId || user.eMail === item.email) ||
+          false;
         if (res.status === 204) {
           return history.push('/NotFound');
-        }
-        // else if (isCreator || (res.data.providerInformation?.users?.length > 0 && !isValidUser)) {
-        //   return history.push('/Unauthorized');
-        // }
-        else {
+        } else if (isCreator || (res.data.providerInformation?.users?.length > 0 && !isValidUser)) {
+          return history.push('/Unauthorized');
+        } else {
           const data = deserializeFormData(res.data, 'consumer');
           dispatch(setDataProduct(data));
           setIsEditing(data.publish);

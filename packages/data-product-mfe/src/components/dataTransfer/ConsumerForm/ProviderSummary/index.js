@@ -44,7 +44,7 @@ const ProviderSummary = ({ onSave, providerFormIsDraft }) => {
             </div>
             <div className={classNames(Styles.flexLayout, Styles.fourColumn)}>
               <div>
-                <label className="input-label summary">Data Product Name</label>
+                <label className="input-label summary">Data Product Name / Short description of data transfer</label>
                 <br />
                 {providerInformation.productName}
               </div>

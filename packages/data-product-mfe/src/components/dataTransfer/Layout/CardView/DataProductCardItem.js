@@ -5,7 +5,7 @@ import { withRouter } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 
 import { regionalDateFormat, setTooltipIfEllipsisShown } from '../../../../Utility/utils';
-import { dataTransferApi } from '../../../../apis/dataproducts.api';
+import { dataTransferApi } from '../../../../apis/datatransfers.api';
 import { GetDataProducts } from '../../redux/dataProduct.services';
 
 import ConfirmModal from 'dna-container/ConfirmModal';
@@ -35,7 +35,7 @@ const DataProductCardItem = ({ product, history, user, isDataProduct = false }) 
 
   const deleteDataProductContent = (
     <div>
-      <h3>Are you sure you want to delete {product?.dataProductName} ? </h3>
+      <h3>Are you sure you want to delete {product?.dataTransferName} ? </h3>
     </div>
   );
 
@@ -62,12 +62,12 @@ const DataProductCardItem = ({ product, history, user, isDataProduct = false }) 
         <div
           className={Styles.cardHead}
           onClick={() => {
-            !isDataProduct && history.push(`/datasharing/summary/${product?.dataProductId}`);
+            !isDataProduct && history.push(`/datasharing/summary/${product?.dataTransferId}`);
           }}
         >
           <div className={Styles.cardHeadInfo}>
             <div>
-              <div className={Styles.cardHeadTitle}>{product?.dataProductName}</div>
+              <div className={Styles.cardHeadTitle}>{product?.dataTransferName}</div>
               <div className="btn btn-text forward arrow"></div>
             </div>
           </div>
@@ -77,7 +77,7 @@ const DataProductCardItem = ({ product, history, user, isDataProduct = false }) 
           <div>
             <div>
               <div>Data Transfer ID</div>
-              <div>{product?.dataProductId}</div>
+              <div>{product?.dataTransferId}</div>
             </div>
             <div>
               <div>Data Classification</div>
@@ -138,7 +138,7 @@ const DataProductCardItem = ({ product, history, user, isDataProduct = false }) 
                   </button>
                   <button
                     className="btn btn-primary"
-                    onClick={() => history.push(`/datasharing/edit/${product?.dataProductId}`)}
+                    onClick={() => history.push(`/datasharing/edit/${product?.dataTransferId}`)}
                   >
                     <i className="icon mbc-icon edit fill" tooltip-data="Edit"></i>
                   </button>
@@ -147,7 +147,7 @@ const DataProductCardItem = ({ product, history, user, isDataProduct = false }) 
               <button
                 className="btn btn-primary"
                 onClick={() =>
-                  history.push({ pathname: '/datasharing/create', state: { copyId: product?.dataProductId } })
+                  history.push({ pathname: '/datasharing/create', state: { copyId: product?.dataTransferId } })
                 }
               >
                 <i className="icon mbc-icon copy-new" tooltip-data="Create Copy"></i>
@@ -155,7 +155,7 @@ const DataProductCardItem = ({ product, history, user, isDataProduct = false }) 
               <button
                 className={classNames('btn btn-primary', !isProviderFormSubmitted ? Styles.disabled : '')}
                 disabled={!isProviderFormSubmitted}
-                onClick={() => onShare(product?.dataProductId)}
+                onClick={() => onShare(product?.dataTransferId)}
               >
                 <i className={'icon mbc-icon share'} tooltip-data="Share"></i>
               </button>

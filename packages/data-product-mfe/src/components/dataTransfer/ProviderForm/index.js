@@ -11,7 +11,7 @@ import ProgressIndicator from '../../../common/modules/uilab/js/src/progress-ind
 import Notification from '../../../common/modules/uilab/js/src/notification';
 
 import { hostServer } from '../../../server/api';
-import { dataTransferApi } from '../../../apis/dataproducts.api';
+import { dataTransferApi } from '../../../apis/datatransfers.api';
 
 import { setDataProduct, setDivisionList } from '../redux/dataProductSlice';
 import { SetDataProducts, UpdateDataProducts } from '../redux/dataProduct.services';
@@ -76,7 +76,7 @@ const ProviderForm = ({ user, history }) => {
   const elementRef = useRef(Object.keys(tabs)?.map(() => createRef()));
   const dispatch = useDispatch();
 
-  const { id: dataProductId } = useParams();
+  const { id: dataTransferId } = useParams();
   const createCopyId = history.location?.state?.copyId;
 
   // set default value of "Name" field as logged in user name
@@ -95,7 +95,7 @@ const ProviderForm = ({ user, history }) => {
   };
 
   const getDataProductById = () => {
-    const id = createCopyId || dataProductId || provideDataProducts?.selectedDataProduct?.id;
+    const id = createCopyId || dataTransferId || provideDataProducts?.selectedDataProduct?.id;
     ProgressIndicator.show();
     dataTransferApi
       .getDataProductById(id)
@@ -103,7 +103,7 @@ const ProviderForm = ({ user, history }) => {
         if (createCopyId) {
           // creating copy of existing data product
           // below properties needs to be reset to new ones for the copy
-          res.data.dataProductId = '';
+          res.data.dataTransferId = '';
           res.data.id = '';
           res.data.providerInformation.contactInformation.name = userInfo;
           res.data.notifyUsers = false;
