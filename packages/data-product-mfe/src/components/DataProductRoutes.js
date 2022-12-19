@@ -51,22 +51,22 @@ export const protectedRoutes = [
   {
     component: ProviderForm,
     exact: true,
-    path: '/create',
+    path: '/datasharing/create',
   },
   {
     component: ProviderForm,
     exact: true,
-    path: '/edit/:id',
+    path: '/datasharing/edit/:id',
   },
   {
     component: ConsumerForm,
     exact: true,
-    path: '/consume/:id',
+    path: '/datasharing/consume/:id',
   },
   {
     component: Summary,
     exact: true,
-    path: '/summary/:id',
+    path: '/datasharing/summary/:id',
   },
   {
     component: DataComplianceNetworkList,

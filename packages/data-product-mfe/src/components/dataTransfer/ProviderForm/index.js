@@ -58,8 +58,8 @@ export const tabs = {
 };
 
 const ProviderForm = ({ user, history }) => {
-  const isCreatePage = history.location.pathname === '/create';
-  const isEditPage = /^\/edit/.test(history?.location?.pathname);
+  const isCreatePage = history.location.pathname === '/datasharing/create';
+  const isEditPage = /^\/datasharing\/edit/.test(history?.location?.pathname);
 
   const provideDataProducts = useSelector((state) => state.provideDataProducts);
 

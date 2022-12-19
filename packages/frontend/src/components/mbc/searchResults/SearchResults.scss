@@ -1,9 +1,9 @@
 .mainPanel {
-  padding: 72px 0 30px 114px;
+  padding: 72px 0 30px 75px;
   display: flex;
 
   &.hasRightPanel {
-    margin-right: 184px;
+    margin-right: 75px;
     transition: margin-right 85ms cubic-bezier(0.2, 0.2, 0.38, 0.9) 0s;
 
     &.righPanelOpened {
