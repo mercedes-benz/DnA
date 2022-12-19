@@ -15,7 +15,7 @@ export const serializeFormData = ({ values, division, type = 'provider' }) => {
         openSegments: values.openSegments,
       },
       id: values.id,
-      dataProductName: values.productName,
+      dataTransferName: values.productName,
       notifyUsers: false,
       publish: false,
     };
@@ -61,7 +61,7 @@ export const serializeFormData = ({ values, division, type = 'provider' }) => {
       }),
       ...(!isProviderForm && values.consumerFormValues),
       notifyUsers: values.notifyUsers || false,
-      dataProductName: values.productName,
+      dataTransferName: values.productName,
       id: values.id,
       publish: values.publish || false,
 
@@ -80,7 +80,7 @@ export const deserializeFormData = (item, type = 'provider') => {
   const isProvider = type === 'provider';
   return {
     id: item.id,
-    productName: item.dataProductName,
+    productName: item.dataTransferName,
     publish: item.publish,
     name: item.providerInformation?.contactInformation?.name,
     informationOwner: item.providerInformation?.contactInformation?.informationOwner,

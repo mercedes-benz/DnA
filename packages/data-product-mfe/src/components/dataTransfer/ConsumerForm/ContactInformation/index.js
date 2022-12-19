@@ -12,7 +12,7 @@ import TypeAheadBox from 'dna-container/TypeAheadBox';
 
 import { useFormContext, Controller } from 'react-hook-form';
 import { hostServer } from '../../../../server/api';
-import { dataTransferApi } from '../../../../apis/dataproducts.api';
+import { dataTransferApi } from '../../../../apis/datatransfers.api';
 
 import ProgressIndicator from '../../../../common/modules/uilab/js/src/progress-indicator';
 import { useSelector } from 'react-redux';
@@ -406,7 +406,13 @@ const ContactInformation = ({ onSave, divisions, setSubDivisions, subDivisions, 
               </div>
             </div>
             <div className={Styles.flexLayout}>
-              <div className={classNames('input-field-group include-error', errors.complianceOfficer ? 'error' : '')}>
+              <div
+                className={classNames(
+                  'input-field-group include-error',
+                  errors.complianceOfficer ? 'error' : '',
+                  lcoNeeded === 'No' ? 'disabled' : '',
+                )}
+              >
                 <Controller
                   control={control}
                   name="complianceOfficer"
@@ -430,6 +436,7 @@ const ContactInformation = ({ onSave, divisions, setSubDivisions, subDivisions, 
                           <span className={Styles.optionText}>LCO: {item?.name}</span>
                         </div>
                       )}
+                      disabled={lcoNeeded === 'No'}
                     />
                   )}
                 />
