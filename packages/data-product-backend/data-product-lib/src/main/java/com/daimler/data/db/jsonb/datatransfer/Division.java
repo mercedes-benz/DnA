@@ -25,13 +25,7 @@
  * LICENSE END 
  */
 
-package com.daimler.data.db.jsonb.dataproduct;
-
-import java.util.Date;
-import java.util.List;
-
-import com.daimler.data.db.jsonb.CreatedBy;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+package com.daimler.data.db.jsonb.datatransfer;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -40,18 +34,8 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@JsonIgnoreProperties(ignoreUnknown = true)
-public class Provider {
-	private boolean providerFormSubmitted;
-	private List<TeamMember> users;
-	private Date createdDate;
-	private Date lastModifiedDate;
-	private CreatedBy createdBy;
-	private CreatedBy modifiedBy;
-	private ProviderContactInformation contactInformation;
-	private ProviderClassificationConfidentiality classificationConfidentiality;
-	private ProviderPersonalRelatedData personalRelatedData;
-	private ProviderTransnationalDataTransfer transnationalDataTransfer;
-	private ProviderDeletionRequirement deletionRequirement;
-	private List<String> openSegments;
+public class Division {
+	private String id;
+	private String name;
+	private Subdivision subdivision;
 }

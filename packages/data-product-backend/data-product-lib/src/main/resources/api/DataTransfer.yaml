@@ -26,7 +26,7 @@
 #
 #-----------------------------------------------------------------------------------------------------
 #  **
-#  ** File Name  : dataproduct.yaml
+#  ** File Name  : datatransfer.yaml
 #  **
 #  ** Module     : core
 #  **
@@ -46,46 +46,46 @@
 swagger: "2.0"
 info:
   version: "1.0.0"
-  title: "core dataproduct Service"
-host: "localhost:7171"
+  title: "core datatransfer Service"
+host: "localhost:7184"
 basePath: "/api/1.0"
 consumes:
   - "application/json"
 produces:
   - "application/json"
 tags:
-  - name: "dataproducts"
-    description: "This service is used for dataproducts maintenance."
+  - name: "datatransfers"
+    description: "This service is used for datatransfers maintenance."
 
 schemes:
   - "https"
 
 paths:
-  # path to create, update dataproduct provider form
+  # path to create, update datatransfer provider form
   #
   #  supported http methods PUT, POST
   #
-  # path example ../dataproducts/provider
+  # path example ../datatransfers/provider
 
-  /dataproducts/provider:
+  /datatransfers/provider:
     post:
       tags:
-        - "dataproducts"
-      summary: "Add a new dataproduct provider form"
-      description: "Adds a new non existing dataproduct provider form"
+        - "datatransfers"
+      summary: "Add a new datatransfer provider form"
+      description: "Adds a new non existing datatransfer provider form"
       operationId: "create"
       parameters:
-        - name: "dataProductProviderRequestVO"
+        - name: "dataTransferProviderRequestVO"
           in: "body"
-          description: "Request Body that contains data required for creating a new dataproduct provider form"
+          description: "Request Body that contains data required for creating a new datatransfer provider form"
           required: true
           schema:
-            $ref: "#/definitions/DataProductProviderRequestVO"    
+            $ref: "#/definitions/DataTransferProviderRequestVO"    
       responses:
         201:
           description: "Returns message of success"
           schema:
-            $ref: "#/definitions/DataProductProviderResponseVO"
+            $ref: "#/definitions/DataTransferProviderResponseVO"
         400:
           description: "Bad Request"
           schema:
@@ -101,22 +101,22 @@ paths:
     
     put:
       tags:
-        - "dataproducts"
-      summary: "Update existing dataproduct provider form"
-      description: "Update an existing dataproduct provider form"
+        - "datatransfers"
+      summary: "Update existing dataTransfer provider form"
+      description: "Update an existing datatransfer provider form"
       operationId: "update"
       parameters:
-        - name: "dataProductProviderRequestVO"
+        - name: "dataTransferProviderRequestVO"
           in: "body"
-          description: "Request Body that contains data required for updating dataproduct provider form"
+          description: "Request Body that contains data required for updating datatransfer provider form"
           required: true
           schema:
-            $ref: "#/definitions/DataProductProviderRequestVO"    
+            $ref: "#/definitions/DataTransferProviderRequestVO"    
       responses:
         200:
           description: "Returns message of success"
           schema:
-            $ref: "#/definitions/DataProductProviderResponseVO"
+            $ref: "#/definitions/DataTransferProviderResponseVO"
         400:
           description: "Bad Request"
           schema:
@@ -130,31 +130,31 @@ paths:
         500:
           description: "Internal error"
           
-  # path to create, update dataproduct consumer form
+  # path to create, update datatransfer consumer form
   #
   #  supported http methods PUT, POST
   #
-  # path example ../dataproducts/consume
+  # path example ../datatransfers/consume
 
-  /dataproducts/consume:
+  /datatransfers/consume:
     put:
       tags:
-        - "dataproducts"
-      summary: "Update existing dataproduct consumer form"
-      description: "Update an existing dataproduct consumer form"
+        - "datatransfers"
+      summary: "Update existing datatransfer consumer form"
+      description: "Update an existing datatransfer consumer form"
       operationId: "update"
       parameters:
-        - name: "dataProductConsumerRequestVO"
+        - name: "dataTransferConsumerRequestVO"
           in: "body"
-          description: "Request Body that contains data required for updating dataproduct consumer form"
+          description: "Request Body that contains data required for updating datatransfer consumer form"
           required: true
           schema:
-            $ref: "#/definitions/DataProductConsumerRequestVO"    
+            $ref: "#/definitions/DataTransferConsumerRequestVO"    
       responses:
         200:
           description: "Returns message of success"
           schema:
-            $ref: "#/definitions/DataProductConsumerResponseVO"
+            $ref: "#/definitions/DataTransferConsumerResponseVO"
         400:
           description: "Bad Request"
           schema:
@@ -168,44 +168,44 @@ paths:
         500:
           description: "Internal error"          
           
-  # path to getAll dataproducts
+  # path to getAll datatransfers
   #
   #  supported http method GET
   #
-  # path example ../dataproducts
+  # path example ../datatransfers
 
-  /dataproducts:
+  /datatransfers:
     get:
       tags:
-        - "dataproducts"
-      summary: "Get all available dataproducts."
-      description: "Get all dataproducts. This endpoints will be used to get all valid available dataproduct records."
+        - "datatransfers"
+      summary: "Get all available datatransfers."
+      description: "Get all datatransfers. This endpoints will be used to get all valid available datatransfer records."
       operationId: "getAll"
       parameters:
         - name: published
           in: query
-          description: Filtering dataproducts based on publish state. Draft or published, values true or false
+          description: Filtering datatransfer based on publish state. Draft or published, values true or false
           required: false
           type: boolean   
         - name: offset
           in: query
-          description: page number from which listing of dataproducts should start.
+          description: page number from which listing of datatransfers should start.
           required: false
           type: integer
         - name: limit
           in: query
-          description: page size to limit the number of dataproducts.
+          description: page size to limit the number of datatransfers.
           required: false
           type: integer
         - name: sortBy
           in: query
-          description: Sort dataproducts by a given variable.
+          description: Sort datatransfers by a given variable.
           required: false
           type: string
-          enum: [dataProductName,dataProductId]
+          enum: [dataTransferName,dataTransferId]
         - name: sortOrder
           in: query
-          description: Sort dataproducts based on the given order, example asc,desc
+          description: Sort datatransfers based on the given order, example asc,desc
           required: false
           type: string
           enum: [asc,desc]             
@@ -213,7 +213,7 @@ paths:
         200:
           description: "Returns message of success or failure"
           schema:
-            $ref: "#/definitions/DataProductCollection"
+            $ref: "#/definitions/DataTransferCollection"
         204:
           description: "Fetch complete, no content found."
         400:
@@ -227,29 +227,29 @@ paths:
         500:
           description: "Internal error"          
 
-  # path to get and delete dataproduct by id
+  # path to get and delete datatransfer by id
   #
   #  Supported http methods GET, DELETE
   #
-  # path example ../dataproducts
-  /dataproducts/{id}:
+  # path example ../datatransfers
+  /datatransfers/{id}:
     get:
       tags:
-        - "dataproducts"
-      summary: "Get dataProduct for a given Id."
-      description: "Get dataproduct for a given identifier. This endpoints will be used to get a dataproduct for a given identifier."
+        - "datatransfers"
+      summary: "Get datatransfer for a given Id."
+      description: "Get datatransfer for a given identifier. This endpoints will be used to get a datatransfer for a given identifier."
       operationId: "getById"
       parameters:
         - name: "id"
           in: "path"
-          description: "DataProduct ID to be fetched"
+          description: "datatransfer ID to be fetched"
           required: true
           type: "string"
       responses:
         200:
           description: "Returns message of success or failure"
           schema:
-            $ref: "#/definitions/DataProductVO"
+            $ref: "#/definitions/DataTransferVO"
         204:
           description: "Fetch complete, no content found."
         400:
@@ -264,14 +264,14 @@ paths:
           description: "Internal error"
     delete:
       tags:
-        - "dataproducts"
-      summary: "Delete dataProduct for a given Id."
-      description: "Delete dataproduct for a given identifier."
+        - "datatransfers"
+      summary: "Delete datatransfer for a given Id."
+      description: "Delete datatransfer for a given identifier."
       operationId: "delete"
       parameters:
         - name: "id"
           in: "path"
-          description: "DataProduct ID to be deleted"
+          description: "DataTransfer ID to be deleted"
           required: true
           type: "string"
       responses:
@@ -300,14 +300,14 @@ definitions:
         type: string
         format: date
       informationOwner:
-        $ref: "#/definitions/DataProductTeamMemberVO"
+        $ref: "#/definitions/DataTransferTeamMemberVO"
       name:
-        $ref: "#/definitions/DataProductTeamMemberVO"           
+        $ref: "#/definitions/DataTransferTeamMemberVO"           
       division:
         $ref: "#/definitions/DivisionVO"
       department:
         type: string
-        description: "Department of the dataproduct"
+        description: "Department of the datatransfer"
         minLength: 1                           
       localComplianceOfficer:
         type: string
@@ -398,7 +398,7 @@ definitions:
         type: boolean
         description: "Is LCO/LCR needed to be involved to check legal basis of usage of personal data"
       ownerName:
-        $ref: "#/definitions/DataProductTeamMemberVO"
+        $ref: "#/definitions/DataTransferTeamMemberVO"
       division:
         $ref: "#/definitions/DivisionVO"
       department:
@@ -447,12 +447,12 @@ definitions:
       id:
         type: string
         description: "TechnicalId  which used as primary key"
-      dataProductId:
+      dataTransferId:
         type: string
         description: "Functional Id"                         
-      dataProductName:
+      dataTransferName:
         type: string
-        description: "Name of the DataProduct"
+        description: "Name of the datatransfer"
         minLength: 1
       recordStatus:
         type: string
@@ -463,7 +463,7 @@ definitions:
       providerInformation:
         $ref: "#/definitions/ProviderResponseVO"
     required:
-      - dataProductName
+      - dataTransferName
       - providerInformation    
       
   ProviderResponseVO:
@@ -475,7 +475,7 @@ definitions:
       users:
         type: array
         items:
-          $ref: "#/definitions/DataProductTeamMemberVO"               
+          $ref: "#/definitions/DataTransferTeamMemberVO"               
       createdDate:
         type: string
         format: date
@@ -498,7 +498,7 @@ definitions:
         $ref: "#/definitions/ProviderDeletionRequirementVO"                             
       openSegments:
         type: array
-        description: "This attribute stores all the open/input sections that user has completed in the dataproduct provider process"
+        description: "This attribute stores all the open/input sections that user has completed in the datatransfer provider process"
         items:
           type: string
           enum:
@@ -519,17 +519,17 @@ definitions:
       id:
         type: string
         description: "TechnicalId  which used as primary key"
-      dataProductId:
+      dataTransferId:
         type: string
         description: "Functional Id" 
-      dataProductName:
+      dataTransferName:
         type: string
-        description: "Name of the DataProduct"                
+        description: "Name of the DataTransfer"                
       consumerInformation:
         $ref: "#/definitions/ConsumerResponseVO"
       publish:
         type: boolean
-        description: "Flag to identify if dataproduct consumer form is in draft stage or in published state."
+        description: "Flag to identify if datatransfer consumer form is in draft stage or in published state."
       recordStatus:
         type: string
         description: "Record is open or deleted"
@@ -559,7 +559,7 @@ definitions:
         $ref: "#/definitions/CreatedByVO"                                     
       openSegments:
         type: array
-        description: "This attribute stores all the open/input sections that user has completed in the dataproduct consume process"
+        description: "This attribute stores all the open/input sections that user has completed in the datatransfer consume process"
         items:
           type: string
           enum:
@@ -570,18 +570,18 @@ definitions:
     required:
       - contactInformation                                                                                                              
 
-  DataProductVO:
+  DataTransferVO:
     type: object
     properties: 
       id:
         type: string
         description: "TechnicalId  which used as primary key"
-      dataProductId:
+      dataTransferId:
         type: string
         description: "Functional Id" 
-      dataProductName:
+      dataTransferName:
         type: string
-        description: "Name of the DataProduct"
+        description: "Name of the DataTransfer"
       recordStatus:
         type: string
         description: "Record is open or deleted"
@@ -594,22 +594,22 @@ definitions:
         $ref: "#/definitions/ConsumerResponseVO"
       publish:
         type: boolean
-        description: "Flag to identify if dataproduct consumer form is in draft stage or in published state."        
+        description: "Flag to identify if datatransfer consumer form is in draft stage or in published state."        
                              
         
-  DataProductProviderRequestVO:
+  DataTransferProviderRequestVO:
     type: object
     properties:
       data:
         $ref: "#/definitions/ProviderVO"
         
-  DataProductConsumerRequestVO:
+  DataTransferConsumerRequestVO:
     type: object
     properties:
       data:
         $ref: "#/definitions/ConsumerVO"                
           
-  DataProductProviderResponseVO:
+  DataTransferProviderResponseVO:
     type: object
     properties:
       data:
@@ -619,7 +619,7 @@ definitions:
         items:
           $ref: "#/definitions/MessageDescription"
           
-  DataProductConsumerResponseVO:
+  DataTransferConsumerResponseVO:
     type: object
     properties:
       data:
@@ -629,8 +629,8 @@ definitions:
         items:
           $ref: "#/definitions/MessageDescription"                    
           
-  DataProductCollection:
-    description: "Collection of DataProducts."
+  DataTransferCollection:
+    description: "Collection of datatransfers."
     type: object
     properties:
       totalCount:
@@ -639,7 +639,7 @@ definitions:
       records:
         type: array
         items:
-          $ref: "#/definitions/DataProductVO"
+          $ref: "#/definitions/DataTransferVO"
       
   DivisionVO:
     type: object
@@ -666,7 +666,7 @@ definitions:
         type: string
         description: name of subdivision
         
-  DataProductTeamMemberVO:
+  DataTransferTeamMemberVO:
     type: object
     properties:
       shortId:
@@ -741,7 +741,7 @@ definitions:
       
   ChangeLogVO:
     type: object
-    description: "Describes a single change log record done on the data product"
+    description: "Describes a single change log record"
     properties:
       changeDate:
         type: string

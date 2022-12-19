@@ -25,28 +25,15 @@
  * LICENSE END 
  */
 
-package com.daimler.data.db.entities;
+package com.daimler.data.db.repo.datatransfer;
 
-import java.io.Serializable;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 
-import javax.persistence.Entity;
-import javax.persistence.Table;
+import com.daimler.data.db.entities.DataTransferNsql;
 
-import com.daimler.data.db.jsonb.dataproduct.DataProduct;
+public interface DataTransferRepository extends JpaRepository<DataTransferNsql, String> {
 
-@Entity
-@Table(name = "dataproduct_nsql")
-public class DataProductNsql extends BaseEntity<DataProduct> implements Serializable {
-
-	private static final long serialVersionUID = 4857908075537600169L;
-
-	public DataProductNsql() {
-		super();
-	}
-
-	public DataProductNsql(String id, DataProduct data) {
-		this.setId(id);
-		this.setData(data);
-	}
-
+	@Query(value = "SELECT nextval('datatransfer_seq')", nativeQuery = true)
+	Long getNextSeqId();
 }
