@@ -11,19 +11,19 @@ import IconWrapper from 'components/icons/IconWrapper';
 const classNames = cn.bind(Styles);
 
 export interface IDNACardProps {
-    isDisabled: boolean;
-    title: string;
-    description: string;
-    url: string;
-    isTextAlignLeft: boolean;
-    isSmallCard?: boolean;
-    isMediumCard?: boolean;
-    tags?: string[];
-    isExternalLink?: boolean;
-    svgIcon?: JSX.Element;
+  isDisabled: boolean;
+  title: string;
+  description: string;
+  url: string;
+  isTextAlignLeft: boolean;
+  isSmallCard?: boolean;
+  isMediumCard?: boolean;
+  tags?: string[];
+  isExternalLink?: boolean;
+  svgIcon?: JSX.Element;
+  className?: string; 
 }
 const DNACard = (props: IDNACardProps) => {
- 
   useEffect(() => {
     // Tooltip.defaultSetup();
   }, []);
@@ -32,43 +32,49 @@ const DNACard = (props: IDNACardProps) => {
 
   return (
     <>
-      <div className={classNames(Styles.cardWrapper, props.isMediumCard ? Styles.mediumCard : '', props.isSmallCard ? Styles.smallCard : '', props.isDisabled ?Styles.disabled : '')}
+      <div
+        className={classNames(
+          Styles.cardWrapper,
+          props.isMediumCard ? Styles.mediumCard : '',
+          props.isSmallCard ? Styles.smallCard : '',
+          props.isDisabled ? Styles.disabled: '',
+          props.className
+        )}
         onClick={() => {
-            props.isExternalLink ? window.open(props.url) : history.push(props.url);
+          props.isExternalLink ? window.open(props.url) : history.push(props.url);
         }}
       >
         <div className={Styles.cardHeaderSection}>
-            {props.isDisabled ? (
-                <button className={'btn btn-primary '+Styles.comingSoonBtn}>Coming Soon</button>
-                ) : 
-                props.isExternalLink ? <i
-                  className={classNames('icon mbc-icon new-tab', Styles.OpenNewTabIcon)}
-                />  : ''   
-            }    
+          {props.isDisabled ? (
+            <button className={'btn btn-primary ' + Styles.comingSoonBtn}>Coming Soon</button>
+          ) : props.isExternalLink ? (
+            <i className={classNames('icon mbc-icon new-tab', Styles.OpenNewTabIcon)} />
+          ) : (
+            ''
+          )}
         </div>
-        <div className={Styles.cardIconSection}>
-          {props.svgIcon ? props.svgIcon : <IconWrapper />}
-        </div>
-        <div className={props.isTextAlignLeft ? Styles.cardDescriptonSection : (Styles.cardDescriptonSection+' '+Styles.textCenter)}>
-          <div className={Styles.titleSection}> 
-            {props.title}
-          </div>
-          <div className={Styles.descriptionSection}>
-            {props.description}
-          </div>
+        <div className={Styles.cardIconSection}>{props.svgIcon ? props.svgIcon : <IconWrapper />}</div>
+        <div
+          className={
+            props.isTextAlignLeft
+              ? Styles.cardDescriptonSection
+              : Styles.cardDescriptonSection + ' ' + Styles.textCenter
+          }
+        >
+          <div className={Styles.titleSection}>{props.title}</div>
+          <div className={Styles.descriptionSection}>{props.description}</div>
         </div>
         <div className={Styles.tagSection}>
-            {props.tags?.slice(0, maxTagItem)?.map((item: any) => {
-                return (
-                <span className={Styles.tagItem} key={item}>
-                    {item}
-                </span>
-                );
-            })}
-            {props?.tags?.length > maxTagItem ? <span className={Styles.tagItem}>...</span> : null}
+          {props.tags?.slice(0, maxTagItem)?.map((item: any) => {
+            return (
+              <span className={Styles.tagItem} key={item}>
+                {item}
+              </span>
+            );
+          })}
+          {props?.tags?.length > maxTagItem ? <span className={Styles.tagItem}>...</span> : null}
         </div>
       </div>
-      
     </>
   );
 };
