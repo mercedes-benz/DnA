@@ -25,11 +25,7 @@
  * LICENSE END 
  */
 
-package com.daimler.data.db.jsonb.dataproduct;
-
-import java.util.Date;
-
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+package com.daimler.data.db.jsonb.datatransfer;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -38,14 +34,11 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@JsonIgnoreProperties(ignoreUnknown = true)
-public class ProviderContactInformation {
+public class ConsumerPersonalRelatedData {
 
-	private Date dataTransferDate;
-	private TeamMember name;
-	private TeamMember informationOwner;
-	private String appId;
-	private String localComplianceOfficer;
-	private String department;
-	private Division division;
+	private boolean personalRelatedData;
+	private String lcoChecked;
+	private String purpose;
+	private String legalBasis;
+	private String comment;
 }
