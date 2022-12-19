@@ -33,7 +33,7 @@
   background-image: url("../../../assets/images/Home.jpg");
   background-repeat: no-repeat;
   background-size: cover;
-  background-position: 0 -55px;
+  background-position: center;
 }
 .datmdcBanner:before {
   background: linear-gradient(270deg, transparent 20%, #000000 100%);
@@ -58,7 +58,7 @@
   }
 }
 .bannerDesc {
-  padding: 80px 60px 140px 60px;
+  padding: 80px 60px 80px 60px;
   z-index: 99;
 }
 .quicklinkCard {
@@ -309,6 +309,38 @@
     > div > div {
       width: 100% !important;
       max-width: unset;
+    }
+  }
+}
+.newsSection {
+  padding-top: 30px;
+  padding-bottom: 30px;
+  display: flex;
+  flex-wrap: wrap;
+  margin-left: -10px;
+  margin-right: -10px;
+
+  .newsContainer {
+    border-right: 1px solid #343940;
+    margin-left: 10px;
+    margin-right: 10px;
+    padding-right: 20px;
+    max-width: 185px;
+
+    &:last-child {
+      border-right: 0;
+    }
+  }
+
+  .newsItem {
+    h3 {
+      font-size: 16px;
+      color: #c0c8d0;
+    }
+    p {
+      margin-bottom: 0;
+      color: #99a5b3;
+      font-size: var(--font-size-smallest);
     }
   }
 }
