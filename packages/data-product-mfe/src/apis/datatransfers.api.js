@@ -1,13 +1,13 @@
 import { server } from '../server/api';
 
 const getAllDataProducts = (sortBy, sortOrder) => {
-  return server.get(`/dataproducts?limit=0&offset=0&sortBy=${sortBy}&sortOrder=${sortOrder}`, {
+  return server.get(`/datatransfers?limit=0&offset=0&sortBy=${sortBy}&sortOrder=${sortOrder}`, {
     data: {},
   });
 };
 
 const getDataProductById = (id) => {
-  return server.get(`/dataproducts/${id}`, {
+  return server.get(`/datatransfers/${id}`, {
     data: {},
   });
 };
@@ -19,25 +19,25 @@ const getDepartments = () => {
 };
 
 const createDataProduct = (data) => {
-  return server.post('/dataproducts/provider', {
+  return server.post('/datatransfers/provider', {
     data,
   });
 };
 
 const updateProvider = (data) => {
-  return server.put('/dataproducts/provider', {
+  return server.put('/datatransfers/provider', {
     data,
   });
 };
 
 const updateConsumer = (data) => {
-  return server.put('/dataproducts/consume', {
+  return server.put('/datatransfers/consume', {
     data,
   });
 };
 
 const deleteDataProduct = (id) => {
-  return server.delete(`/dataproducts/${id}`, {
+  return server.delete(`/datatransfers/${id}`, {
     data: {},
   });
 };
