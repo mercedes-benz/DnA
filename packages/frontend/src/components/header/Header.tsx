@@ -233,7 +233,8 @@ const Header:React.FC<IHeaderProps> = (props) => {
       </div>
     </header>
     {
-      !props.isHome &&
+      // !props.isHome &&
+      false &&
         <div className={Styles.levelTwoNav}>
           <div className={Styles.navItemContainer}>
             <div className={Styles.navItem}>
