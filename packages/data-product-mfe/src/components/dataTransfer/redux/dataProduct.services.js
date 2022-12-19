@@ -1,5 +1,5 @@
 import { createAsyncThunk } from '@reduxjs/toolkit';
-import { dataTransferApi } from '../../../apis/dataproducts.api';
+import { dataTransferApi } from '../../../apis/datatransfers.api';
 import Notification from '../../../common/modules/uilab/js/src/notification';
 import ProgressIndicator from '../../../common/modules/uilab/js/src/progress-indicator';
 import { deserializeFormData, serializeDivisionSubDivision, serializeFormData } from '../../../Utility/formData';
@@ -7,7 +7,7 @@ import { deserializeFormData, serializeDivisionSubDivision, serializeFormData } 
 export const GetDataProducts = createAsyncThunk('products/GetDataProducts', async (arg, { getState }) => {
   ProgressIndicator.show();
   try {
-    const res = await dataTransferApi.getAllDataProducts('dataProductId', 'desc');
+    const res = await dataTransferApi.getAllDataProducts('dataTransferId', 'desc');
     ProgressIndicator.hide();
     const {
       provideDataProducts: { pagination },
