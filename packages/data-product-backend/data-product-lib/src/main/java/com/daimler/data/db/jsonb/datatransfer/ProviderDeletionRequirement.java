@@ -25,7 +25,9 @@
  * LICENSE END 
  */
 
-package com.daimler.data.db.jsonb.dataproduct;
+package com.daimler.data.db.jsonb.datatransfer;
+
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -34,10 +36,10 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class ProviderPersonalRelatedData {
+@JsonIgnoreProperties(ignoreUnknown = true)
+public class ProviderDeletionRequirement {
 
-	private boolean personalRelatedData;
+	private boolean deletionRequirements;
 	private String description;
-	private String purpose;
-	private String legalBasis;
+	private String otherRelevantInformation;
 }

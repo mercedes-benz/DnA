@@ -25,20 +25,33 @@
  * LICENSE END 
  */
 
-package com.daimler.data.db.jsonb.dataproduct;
+package com.daimler.data.service.datatransfer;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import java.util.List;
 
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-public class ProviderTransnationalDataTransfer {
+import org.springframework.http.ResponseEntity;
 
-	private boolean dataTransferred;
-	private boolean notWithinEU;
-	private String approved;
-	private String insiderInformation;
-	private boolean dataFromChina;
+import com.daimler.data.controller.exceptions.GenericMessage;
+import com.daimler.data.db.entities.DataTransferNsql;
+import com.daimler.data.dto.datatransfer.*;
+import com.daimler.data.service.common.CommonService;
+
+public interface DataTransferService extends CommonService<DataTransferVO, DataTransferNsql, String> {
+
+	enum CATEGORY {
+
+	}
+
+	List<DataTransferVO> getAllWithFilters(Boolean published, int offset, int limit, String sortBy, String sortOrder,
+			String recordStatus);
+
+	Long getCount(Boolean published, String recordStatus);
+
+	ResponseEntity<DataTransferProviderResponseVO> createDataTransferProvider(ProviderVO providerVO);
+
+	ResponseEntity<DataTransferProviderResponseVO> updateDataTransferProvider(ProviderVO providerVO);
+
+	ResponseEntity<DataTransferConsumerResponseVO> updateDataTransferConsumer(ConsumerVO consumerVO);
+
+	ResponseEntity<GenericMessage> deleteDataTransfer(String id);
 }

@@ -25,20 +25,17 @@
  * LICENSE END 
  */
 
-package com.daimler.data.db.repo.dataproduct;
+package com.daimler.data.db.jsonb.datatransfer;
 
-import java.util.List;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-import com.daimler.data.db.entities.DataProductNsql;
-import com.daimler.data.db.repo.common.CommonDataRepository;
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class ProviderClassificationConfidentiality {
 
-public interface DataProductCustomRepository extends CommonDataRepository<DataProductNsql, String> {
-
-	List<DataProductNsql> getAllWithFiltersUsingNativeQuery(Boolean published, int offset, int limit, String sortBy,
-			String sortOrder, String recordStatus);
-
-	Long getCountUsingNativeQuery(Boolean published, String recordStatus);
-
-	List<DataProductNsql> getExistingDataProduct(String uniqueProductName, String status);
-
+	private String description;
+	private String confidentiality;
 }
