@@ -61,45 +61,45 @@ const TagSection = (props: ITagsProps) => {
     const listToDisplay = props?.selectedTags.concat(subtractedArray);
 
     const modalContent: React.ReactNode = (
-        <>
-            <span className={classNames(Styles.tagItem, selectAll ? Styles.selectedItem : '')} onClick={()=>selectDeselectAllTags('all')}>
+        <ul>
+            <li className={classNames(Styles.tagItem, selectAll ? Styles.selectedItem : '')} onClick={()=>selectDeselectAllTags('all')}>
                 All ({props?.tags?.length})
-            </span>
+            </li>
             {props?.tags?.map((tag, index: number) => {
                 const shouldHighlightItem = (props?.selectedTags.includes(tag));
                 return (
-                    <span key={index} className={classNames(Styles.tagItem, shouldHighlightItem ? Styles.selectedItem : '')}
+                    <li key={index} className={classNames(Styles.tagItem, shouldHighlightItem ? Styles.selectedItem : '')}
                     onClick={()=>selectDeselectTagsFilter(tag)}>
                         {tag}
-                    </span>)
+                    </li>)
             })}
-        </>
+        </ul>
     );
 
     const threeDotContent: React.ReactNode = (
-        <span className={Styles.threeDots} onClick={()=>setShowModal(true)}>
+        <li className={Styles.threeDots} onClick={()=>setShowModal(true)}>
         more...
-        </span>
+        </li>
     );
 
     const content: React.ReactNode = (
-        <>
-            <span className={classNames(Styles.tagItem, selectAll ? Styles.selectedItem : '')} onClick={()=>selectDeselectAllTags('all')}>
+        <ul>
+            <li className={classNames(Styles.tagItem, selectAll ? Styles.selectedItem : '')} onClick={()=>selectDeselectAllTags('all')}>
                 All ({props?.tags?.length})
-            </span>
+            </li>
             {listToDisplay?.reduce((result, tag, index: number) => {
                 const shouldHighlightItem = (props?.selectedTags.includes(tag));
                 if(index <= 15){
                 result.push(
-                    <span key={index} className={classNames(Styles.tagItem, shouldHighlightItem ? Styles.selectedItem : '')}
+                    <li key={index} className={classNames(Styles.tagItem, shouldHighlightItem ? Styles.selectedItem : '')}
                     onClick={()=>selectDeselectTagsFilter(tag)}>
                         {tag}
-                    </span>)
+                    </li>)
                 }
                 return result;    
             },[])}
             {props?.tags.length > 15 ? threeDotContent : ''}
-        </>
+        </ul>
     );
     
     return (
