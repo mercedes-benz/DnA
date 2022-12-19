@@ -46,38 +46,38 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
-import com.daimler.data.db.entities.DataProductNsql;
+import com.daimler.data.db.entities.DataTransferNsql;
 import com.daimler.data.db.jsonb.CreatedBy;
-import com.daimler.data.db.jsonb.dataproduct.Consumer;
-import com.daimler.data.db.jsonb.dataproduct.ConsumerContactInformation;
-import com.daimler.data.db.jsonb.dataproduct.ConsumerPersonalRelatedData;
-import com.daimler.data.db.jsonb.dataproduct.DataProduct;
-import com.daimler.data.db.jsonb.dataproduct.Division;
-import com.daimler.data.db.jsonb.dataproduct.Provider;
-import com.daimler.data.db.jsonb.dataproduct.ProviderClassificationConfidentiality;
-import com.daimler.data.db.jsonb.dataproduct.ProviderContactInformation;
-import com.daimler.data.db.jsonb.dataproduct.ProviderDeletionRequirement;
-import com.daimler.data.db.jsonb.dataproduct.ProviderPersonalRelatedData;
-import com.daimler.data.db.jsonb.dataproduct.ProviderTransnationalDataTransfer;
-import com.daimler.data.db.jsonb.dataproduct.Subdivision;
-import com.daimler.data.db.jsonb.dataproduct.TeamMember;
+import com.daimler.data.db.jsonb.datatransfer.Consumer;
+import com.daimler.data.db.jsonb.datatransfer.ConsumerContactInformation;
+import com.daimler.data.db.jsonb.datatransfer.ConsumerPersonalRelatedData;
+import com.daimler.data.db.jsonb.datatransfer.DataTranfer;
+import com.daimler.data.db.jsonb.datatransfer.Division;
+import com.daimler.data.db.jsonb.datatransfer.Provider;
+import com.daimler.data.db.jsonb.datatransfer.ProviderClassificationConfidentiality;
+import com.daimler.data.db.jsonb.datatransfer.ProviderContactInformation;
+import com.daimler.data.db.jsonb.datatransfer.ProviderDeletionRequirement;
+import com.daimler.data.db.jsonb.datatransfer.ProviderPersonalRelatedData;
+import com.daimler.data.db.jsonb.datatransfer.ProviderTransnationalDataTransfer;
+import com.daimler.data.db.jsonb.datatransfer.Subdivision;
+import com.daimler.data.db.jsonb.datatransfer.TeamMember;
 import com.daimler.data.dto.datacompliance.CreatedByVO;
-import com.daimler.data.dto.dataproduct.ChangeLogVO;
-import com.daimler.data.dto.dataproduct.ConsumerContactInformationVO;
-import com.daimler.data.dto.dataproduct.ConsumerPersonalRelatedDataVO;
-import com.daimler.data.dto.dataproduct.ConsumerResponseVO;
-import com.daimler.data.dto.dataproduct.DataProductTeamMemberVO;
-import com.daimler.data.dto.dataproduct.DataProductTeamMemberVO.UserTypeEnum;
-import com.daimler.data.dto.dataproduct.DataProductVO;
-import com.daimler.data.dto.dataproduct.DivisionVO;
-import com.daimler.data.dto.dataproduct.ProviderClassificationConfidentialityVO;
-import com.daimler.data.dto.dataproduct.ProviderContactInformationVO;
-import com.daimler.data.dto.dataproduct.ProviderDeletionRequirementVO;
-import com.daimler.data.dto.dataproduct.ProviderPersonalRelatedDataVO;
-import com.daimler.data.dto.dataproduct.ProviderResponseVO;
-import com.daimler.data.dto.dataproduct.ProviderTransnationalDataTransferVO;
-import com.daimler.data.dto.dataproduct.SubdivisionVO;
-import com.daimler.data.dto.dataproduct.TeamMemberVO;
+import com.daimler.data.dto.datatransfer.ChangeLogVO;
+import com.daimler.data.dto.datatransfer.ConsumerContactInformationVO;
+import com.daimler.data.dto.datatransfer.ConsumerPersonalRelatedDataVO;
+import com.daimler.data.dto.datatransfer.ConsumerResponseVO;
+import com.daimler.data.dto.datatransfer.DataTransferTeamMemberVO;
+import com.daimler.data.dto.datatransfer.DataTransferTeamMemberVO.UserTypeEnum;
+import com.daimler.data.dto.datatransfer.DataTransferVO;
+import com.daimler.data.dto.datatransfer.DivisionVO;
+import com.daimler.data.dto.datatransfer.ProviderClassificationConfidentialityVO;
+import com.daimler.data.dto.datatransfer.ProviderContactInformationVO;
+import com.daimler.data.dto.datatransfer.ProviderDeletionRequirementVO;
+import com.daimler.data.dto.datatransfer.ProviderPersonalRelatedDataVO;
+import com.daimler.data.dto.datatransfer.ProviderResponseVO;
+import com.daimler.data.dto.datatransfer.ProviderTransnationalDataTransferVO;
+import com.daimler.data.dto.datatransfer.SubdivisionVO;
+import com.daimler.data.dto.datatransfer.TeamMemberVO;
 import com.google.common.collect.MapDifference;
 import com.google.common.collect.MapDifference.ValueDifference;
 import com.google.common.collect.Maps;
@@ -85,17 +85,17 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
 @Component
-public class DataProductAssembler implements GenericAssembler<DataProductVO, DataProductNsql> {
+public class DataTransferAssembler implements GenericAssembler<DataTransferVO, DataTransferNsql> {
 
 	@Override
-	public DataProductVO toVo(DataProductNsql entity) {
-		DataProductVO vo = null;
+	public DataTransferVO toVo(DataTransferNsql entity) {
+		DataTransferVO vo = null;
 		if (entity != null && entity.getData() != null) {
-			vo = new DataProductVO();
+			vo = new DataTransferVO();
 			vo.setId(entity.getId());
-			DataProduct dataProduct = entity.getData();
-			BeanUtils.copyProperties(dataProduct, vo);
-			Provider provider = dataProduct.getProviderInformation();
+			DataTranfer dataTransfer = entity.getData();
+			BeanUtils.copyProperties(dataTransfer, vo);
+			Provider provider = dataTransfer.getProviderInformation();
 			if (provider != null) {
 				ProviderResponseVO providerVO = new ProviderResponseVO();
 				BeanUtils.copyProperties(provider, providerVO);
@@ -110,7 +110,7 @@ public class DataProductAssembler implements GenericAssembler<DataProductVO, Dat
 					providerVO.setModifiedBy(updatedByVO);
 				}
 				if (!ObjectUtils.isEmpty(provider.getUsers())) {
-					List<DataProductTeamMemberVO> users = provider.getUsers().stream().map(n -> toTeamMemberVO(n))
+					List<DataTransferTeamMemberVO> users = provider.getUsers().stream().map(n -> toTeamMemberVO(n))
 							.collect(Collectors.toList());
 					providerVO.setUsers(users);
 				}
@@ -168,7 +168,7 @@ public class DataProductAssembler implements GenericAssembler<DataProductVO, Dat
 				vo.setProviderInformation(providerVO);
 			}
 
-			Consumer consumer = dataProduct.getConsumerInformation();
+			Consumer consumer = dataTransfer.getConsumerInformation();
 			if (consumer != null) {
 				ConsumerResponseVO consumerVO = new ConsumerResponseVO();
 				BeanUtils.copyProperties(consumer, consumerVO);
@@ -221,18 +221,18 @@ public class DataProductAssembler implements GenericAssembler<DataProductVO, Dat
 	}
 
 	@Override
-	public DataProductNsql toEntity(DataProductVO vo) {
-		DataProductNsql entity = null;
+	public DataTransferNsql toEntity(DataTransferVO vo) {
+		DataTransferNsql entity = null;
 		if (vo != null) {
-			entity = new DataProductNsql();
+			entity = new DataTransferNsql();
 			String id = vo.getId();
 			if (StringUtils.hasText(id)) {
 				entity.setId(id);
 			}
-			DataProduct dataProduct = new DataProduct();
-			BeanUtils.copyProperties(vo, dataProduct);
-			dataProduct.setNotifyUsers(vo.isNotifyUsers());
-			dataProduct.setPublish(vo.isPublish());
+			DataTranfer dataTransfer = new DataTranfer();
+			BeanUtils.copyProperties(vo, dataTransfer);
+			dataTransfer.setNotifyUsers(vo.isNotifyUsers());
+			dataTransfer.setPublish(vo.isPublish());
 			ProviderResponseVO providerVO = vo.getProviderInformation();
 			if (providerVO != null) {
 				Provider provider = new Provider();
@@ -314,7 +314,7 @@ public class DataProductAssembler implements GenericAssembler<DataProductVO, Dat
 					});
 					provider.setOpenSegments(openSegmentList);
 				}
-				dataProduct.setProviderInformation(provider);
+				dataTransfer.setProviderInformation(provider);
 			}
 			ConsumerResponseVO consumerVO = vo.getConsumerInformation();
 			if (consumerVO != null) {
@@ -366,18 +366,18 @@ public class DataProductAssembler implements GenericAssembler<DataProductVO, Dat
 					});
 					consumer.setOpenSegments(openSegmentList);
 				}
-				dataProduct.setConsumerInformation(consumer);
+				dataTransfer.setConsumerInformation(consumer);
 			}
-			entity.setData(dataProduct);
+			entity.setData(dataTransfer);
 		}
 
 		return entity;
 	}
 
-	private DataProductTeamMemberVO toTeamMemberVO(TeamMember teamMember) {
-		DataProductTeamMemberVO vo = null;
+	private DataTransferTeamMemberVO toTeamMemberVO(TeamMember teamMember) {
+		DataTransferTeamMemberVO vo = null;
 		if (teamMember != null) {
-			vo = new DataProductTeamMemberVO();
+			vo = new DataTransferTeamMemberVO();
 			BeanUtils.copyProperties(teamMember, vo);
 			if (StringUtils.hasText(teamMember.getUserType())) {
 				vo.setUserType(UserTypeEnum.valueOf(teamMember.getUserType()));
@@ -386,7 +386,7 @@ public class DataProductAssembler implements GenericAssembler<DataProductVO, Dat
 		return vo;
 	}
 
-	private TeamMember toTeamMemberJson(DataProductTeamMemberVO vo) {
+	private TeamMember toTeamMemberJson(DataTransferTeamMemberVO vo) {
 		TeamMember teamMember = null;
 		if (vo != null) {
 			teamMember = new TeamMember();
@@ -414,8 +414,8 @@ public class DataProductAssembler implements GenericAssembler<DataProductVO, Dat
 		Map<String, Object> leftMap = gson.fromJson(gson.toJson(existing), type);
 		Map<String, Object> rightMap = gson.fromJson(gson.toJson(request), type);
 
-		Map<String, Object> leftFlatMap = DataProductAssembler.flatten(leftMap);
-		Map<String, Object> rightFlatMap = DataProductAssembler.flatten(rightMap);
+		Map<String, Object> leftFlatMap = DataTransferAssembler.flatten(leftMap);
+		Map<String, Object> rightFlatMap = DataTransferAssembler.flatten(rightMap);
 
 		MapDifference<String, Object> difference = Maps.difference(leftFlatMap, rightFlatMap);
 
@@ -483,7 +483,7 @@ public class DataProductAssembler implements GenericAssembler<DataProductVO, Dat
 		if (null == map || map.isEmpty()) {
 			return new HashMap<String, Object>();
 		} else {
-			return map.entrySet().stream().flatMap(DataProductAssembler::flatten).collect(LinkedHashMap::new,
+			return map.entrySet().stream().flatMap(DataTransferAssembler::flatten).collect(LinkedHashMap::new,
 					(m, e) -> m.put("/" + e.getKey(), e.getValue()), LinkedHashMap::putAll);
 		}
 	}
@@ -510,7 +510,7 @@ public class DataProductAssembler implements GenericAssembler<DataProductVO, Dat
 			List<?> list = (List<?>) entry.getValue();
 			return IntStream.range(0, list.size())
 					.mapToObj(i -> new SimpleEntry<String, Object>(entry.getKey() + "/" + i, list.get(i)))
-					.flatMap(DataProductAssembler::flatten);
+					.flatMap(DataTransferAssembler::flatten);
 		}
 
 		return Stream.of(entry);
