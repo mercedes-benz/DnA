@@ -1,4 +1,4 @@
-export const serializeFormData = (values, division, type = 'provider') => {
+export const serializeFormData = ({ values, division, type = 'provider' }) => {
   const isProviderForm = type === 'provider';
   if (isProviderForm && values.openSegments?.length === 1 && values.openSegments?.includes('ContactInformation')) {
     return {
@@ -10,6 +10,7 @@ export const serializeFormData = (values, division, type = 'provider') => {
           division,
           localComplianceOfficer: values.complianceOfficer?.toString(),
           name: values.name,
+          informationOwner: values.informationOwner,
         },
         openSegments: values.openSegments,
       },
@@ -33,6 +34,7 @@ export const serializeFormData = (values, division, type = 'provider') => {
             division,
             localComplianceOfficer: values.complianceOfficer?.toString(),
             name: values.name,
+            informationOwner: values.informationOwner,
           },
           deletionRequirement: {
             deletionRequirements: values.deletionRequirement === 'Yes' ? true : false,
@@ -81,6 +83,7 @@ export const deserializeFormData = (item, type = 'provider') => {
     productName: item.dataProductName,
     publish: item.publish,
     name: item.providerInformation?.contactInformation?.name,
+    informationOwner: item.providerInformation?.contactInformation?.informationOwner,
     planningIT: item.providerInformation?.contactInformation?.appId,
     dateOfDataTransfer: item.providerInformation?.contactInformation?.dataTransferDate,
     department: item.providerInformation?.contactInformation?.department?.split(),
@@ -111,7 +114,7 @@ export const deserializeFormData = (item, type = 'provider') => {
     carLAFunction: item?.carLAFunction,
     corportateDataCatalog: item?.corportateDataCatalog,
     dateOfDataProduct: item?.dateOfDataProduct,
-    informationOwner: item?.informationOwner,
+    // informationOwner: item?.informationOwner,
     dataProductId: item?.dataProductId,
     ...((!isProvider || item.consumerInformation) && {
       consumer: {
