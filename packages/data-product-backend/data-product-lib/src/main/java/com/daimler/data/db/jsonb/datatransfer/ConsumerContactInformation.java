@@ -25,45 +25,24 @@
  * LICENSE END 
  */
 
-package com.daimler.data.service.common;
+package com.daimler.data.db.jsonb.datatransfer;
 
-import java.util.List;
+import java.util.Date;
 
-import com.daimler.data.db.repo.common.CommonDataRepositoryImpl;
-import com.daimler.data.dto.datacompliance.CreatedByVO;
-import com.daimler.data.dto.datatransfer.ChangeLogVO;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-public interface CommonService<V, T, ID> {
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class ConsumerContactInformation {
 
-	List<V> getAll();
-
-	List<V> getAll(int limit, int offset);
-
-	V getById(ID id);
-
-	V getByUniqueliteral(String uniqueLiteral, String value);
-
-	List<V> getAllSortedByUniqueLiteralAsc(String uniqueLiteral);
-
-	List<V> getAllSortedByUniqueLiteralDesc(String uniqueLiteral);
-
-	List<V> getAllSortedByUniqueLiteral(int limit, int offset, String uniqueLiteral,
-			CommonDataRepositoryImpl.SORT_TYPE sortOrder);
-
-	V create(V vo);
-
-	void insertAll(List<V> voList);
-
-	void deleteAll();
-
-	void deleteById(ID id);
-
-	Long getCount();
-
-	String currentUserName(CreatedByVO currentUser);
-
-	boolean verifyUserRoles();
-
-	void notifyAllAdminUsers(String eventType, String resourceId, String message, String triggeringUser,
-			List<ChangeLogVO> changeLogs);
+	private boolean lcoNeeded;
+	private TeamMember ownerName;
+	private Division division;
+	private String department;
+	private String localComplianceOfficer;
+	private String appId;
+	private Date agreementDate;
 }
