@@ -176,7 +176,7 @@ const OtherRelevantInfo = ({ onSave, history, user, isDataProduct }) => {
   );
 
   const handleCancel = () => {
-    history.push('/');
+    history.push('/datasharing');
     setShowAddConsumersModal(false);
   };
 

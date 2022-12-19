@@ -37,7 +37,7 @@ export const SetData = createAsyncThunk('data/SetDatas', async (data, { rejectWi
   values['id'] = id;
   values['dataProductId'] = id;
 
-  const requestBody = serializeFormData(values, division);
+  const requestBody = serializeFormData({ values, division });
   ProgressIndicator.show();
   try {
     const res = await dataProductApi.createDataProduct(requestBody);
@@ -71,7 +71,7 @@ export const UpdateData = createAsyncThunk('data/UpdateData', async (data, { rej
   if (isProviderForm && values.consumer) {
     values.consumer['serializedDivision'] = serializeDivisionSubDivision(divisionList, values?.consumer);
   }
-  const requestBody = serializeFormData(values, division, type);
+  const requestBody = serializeFormData({ values, division, type });
   ProgressIndicator.show();
 
   try {
