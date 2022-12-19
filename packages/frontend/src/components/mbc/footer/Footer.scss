@@ -20,14 +20,13 @@
 }
 
 .flexLayout {
-  margin: 30px 185px 0 112px;
+  margin: 30px 75px 0 75px;
   border-top: 1px solid #383F49;
   display: flex;
   justify-content: space-between;
 
   &.forSummary {
     margin-top: 60px;
-    margin-left: 184px;
     padding: 0 0 var(--header-size) 0;
   }
 }
@@ -49,4 +48,15 @@
 .lpFooter a {
   color: #c5c5c5;
   text-decoration: underline;
+}
+.termsBtn {
+  background-color: unset;
+  color: #00adef;
+  border: 0;
+  &:focus {
+    outline: 0;
+  }
+  &:hover {
+    text-decoration: underline;
+  }
 }
