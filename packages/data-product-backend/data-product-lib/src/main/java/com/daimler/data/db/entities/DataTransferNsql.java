@@ -25,20 +25,28 @@
  * LICENSE END 
  */
 
-package com.daimler.data.db.jsonb.dataproduct;
+package com.daimler.data.db.entities;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import java.io.Serializable;
 
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-public class ConsumerPersonalRelatedData {
+import javax.persistence.Entity;
+import javax.persistence.Table;
 
-	private boolean personalRelatedData;
-	private String lcoChecked;
-	private String purpose;
-	private String legalBasis;
-	private String comment;
+import com.daimler.data.db.jsonb.datatransfer.DataTranfer;
+
+@Entity
+@Table(name = "datatransfer_nsql")
+public class DataTransferNsql extends BaseEntity<DataTranfer> implements Serializable {
+
+	private static final long serialVersionUID = 4857908075537600169L;
+
+	public DataTransferNsql() {
+		super();
+	}
+
+	public DataTransferNsql(String id, DataTranfer data) {
+		this.setId(id);
+		this.setData(data);
+	}
+
 }
