@@ -10,7 +10,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.daimler.data.dto.dataproduct.ChangeLogVO;
+import com.daimler.data.dto.datatransfer.ChangeLogVO;
 import com.daimler.data.notifications.common.event.config.GenericEventRecord;
 
 import lombok.extern.slf4j.Slf4j;
