@@ -17,7 +17,7 @@ import ProgressIndicator from '../../../../common/modules/uilab/js/src/progress-
 import Notification from '../../../../common/modules/uilab/js/src/notification';
 
 import { useSelector } from 'react-redux';
-import { dataTransferApi } from '../../../../apis/dataproducts.api';
+import { dataTransferApi } from '../../../../apis/datatransfers.api';
 
 import dayjs from 'dayjs';
 import { debounce } from 'lodash';

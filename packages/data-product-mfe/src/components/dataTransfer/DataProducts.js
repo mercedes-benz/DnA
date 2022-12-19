@@ -91,15 +91,15 @@ const DataProducts = ({ user, history }) => {
                 <div className={Styles.listContent}>
                   <div className={Styles.emptyProducts}>
                     <span>
-                      You don&apos;t have any data products at this time.
+                      You don&apos;t have any data transfers at this time.
                       <br /> Please create a new one.
                     </span>
                   </div>
                   <div className={Styles.subscriptionListEmpty}>
                     <br />
-                    <Link to="create">
+                    <Link to="datasharing/create">
                       <button className={'btn btn-tertiary'} type="button">
-                        <span>Provide Data Product</span>
+                        <span>Provide new data transferr</span>
                       </button>
                     </Link>
                   </div>

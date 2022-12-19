@@ -20,6 +20,7 @@ export interface IRowItemProps {
   render?: (item: any) => React.ReactNode;
   showError: boolean;
   onInputChange?: (value: any, showSpinner: (val: boolean) => void) => void;
+  disabled?: boolean;
 }
 
 const TypeAheadBox: React.FC<IRowItemProps> = (props: IRowItemProps) => {
@@ -166,7 +167,13 @@ const TypeAheadBox: React.FC<IRowItemProps> = (props: IRowItemProps) => {
 
   return (
     <div className={classNames(Styles.searchWrapper)}>
-      <div className={classNames('input-field-group include-error', props.showError && errorText ? 'error' : '')}>
+      <div
+        className={classNames(
+          'input-field-group include-error',
+          props.showError && errorText ? 'error' : '',
+          props.disabled ? 'disabled' : '',
+        )}
+      >
         <label htmlFor={props.controlId} className="input-label">
           {props.label}
           {props.required && <span> *</span>}
@@ -186,6 +193,7 @@ const TypeAheadBox: React.FC<IRowItemProps> = (props: IRowItemProps) => {
             onKeyDown={onSearchInputKeyDown}
             maxLength={200}
             autoComplete="off"
+            disabled={props.disabled || false}
           />
           {showSpinner && <div className={classNames('progress infinite', Styles.spinner)} />}
           {selectedItem?.length > 0 ? (
