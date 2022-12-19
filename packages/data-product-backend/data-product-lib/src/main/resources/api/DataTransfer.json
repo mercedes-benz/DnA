@@ -2,9 +2,9 @@
   "library": "spring-mvc",
   "dateLibrary": "legacy",
   "hideGenerationTimestamp": true,
-  "modelPackage": "com.daimler.data.dto.dataproduct",
-  "apiPackage": "com.daimler.data.api.dataproduct",
-  "invokerPackage": "com.daimler.data.service.dataproduct",
+  "modelPackage": "com.daimler.data.dto.datatransfer",
+  "apiPackage": "com.daimler.data.api.datatransfer",
+  "invokerPackage": "com.daimler.data.service.datatransfer",
   "importMappings": {
     "BindingResult": "org.springframework.validation.BindingResult",
     "GenericMessage": "com.daimler.data.controller.exceptions.GenericMessage",

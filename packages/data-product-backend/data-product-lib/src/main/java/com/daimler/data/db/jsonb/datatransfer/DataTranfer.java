@@ -25,7 +25,9 @@
  * LICENSE END 
  */
 
-package com.daimler.data.db.jsonb.dataproduct;
+package com.daimler.data.db.jsonb.datatransfer;
+
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -34,8 +36,14 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class Division {
-	private String id;
-	private String name;
-	private Subdivision subdivision;
+@JsonIgnoreProperties(ignoreUnknown = true)
+public class DataTranfer {
+	
+	private String dataTransferId;
+	private String dataTransferName;
+	private String recordStatus;
+	private boolean publish;
+	private boolean notifyUsers;
+	private Provider providerInformation;
+	private Consumer consumerInformation;
 }
