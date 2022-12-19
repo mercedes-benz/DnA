@@ -299,6 +299,8 @@ definitions:
       dataTransferDate:
         type: string
         format: date
+      informationOwner:
+        $ref: "#/definitions/DataProductTeamMemberVO"
       name:
         $ref: "#/definitions/DataProductTeamMemberVO"           
       division:
