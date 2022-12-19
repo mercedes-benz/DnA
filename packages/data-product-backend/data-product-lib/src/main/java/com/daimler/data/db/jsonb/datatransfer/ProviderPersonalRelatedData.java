@@ -25,9 +25,7 @@
  * LICENSE END 
  */
 
-package com.daimler.data.db.jsonb.dataproduct;
-
-import java.util.Date;
+package com.daimler.data.db.jsonb.datatransfer;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -36,13 +34,10 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class ConsumerContactInformation {
+public class ProviderPersonalRelatedData {
 
-	private boolean lcoNeeded;
-	private TeamMember ownerName;
-	private Division division;
-	private String department;
-	private String localComplianceOfficer;
-	private String appId;
-	private Date agreementDate;
+	private boolean personalRelatedData;
+	private String description;
+	private String purpose;
+	private String legalBasis;
 }
