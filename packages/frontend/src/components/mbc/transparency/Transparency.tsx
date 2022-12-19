@@ -31,6 +31,7 @@ const Transparency = () => {
               isDisabled={card.isDisabled}
               isSmallCard={card.isSmallCard}
               isMediumCard={card.isMediumCard}
+              className="transparency"
             />
           );
         })}

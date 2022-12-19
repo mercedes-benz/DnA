@@ -1,11 +1,12 @@
 import cn from 'classnames';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useContext } from 'react';
 import { Envs } from 'globals/Envs';
 import InfoModal from 'components/formElements/modal/infoModal/InfoModal';
 import About from 'components/mbc/About/About';
 // import { getTranslatedLabel } from '../../../globals/i18n/TranslationsProvider';
 import { history } from '../../../router/History';
 import Styles from './HeaderContactPanel.scss';
+import AppContext from 'components/context/ApplicationContext';
 
 const classNames = cn.bind(Styles);
 
@@ -60,6 +61,9 @@ export default function HeaderContactPanel(props: IHeaderContactPanelProps) {
     }
   };
 
+  const context = useContext(AppContext);
+  const { setShowTermsModal } = context;
+
   return (
     <div id="helpMenuContentWrapper" className={classNames(props.show ? Styles.userContexMenu : 'hide')}>
       <div className={Styles.upArrow} />
@@ -88,6 +92,13 @@ export default function HeaderContactPanel(props: IHeaderContactPanelProps) {
             </a>
           </li>
         )}
+        <li
+          onClick={() => {
+            setShowTermsModal(true);
+          }}
+        >
+          Terms of Use
+        </li>
       </ul>
       <InfoModal
         title={showContactModal ? 'Contact Us' : 'About'}

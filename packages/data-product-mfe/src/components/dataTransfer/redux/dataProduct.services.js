@@ -50,7 +50,7 @@ export const SetDataProducts = createAsyncThunk('products/SetDataProducts', asyn
   }
 });
 
-export const UpdateDataProducts = createAsyncThunk('products/SetDataProducts', async (data, { rejectWithValue }) => {
+export const UpdateDataProducts = createAsyncThunk('products/UpdateDataProducts', async (data, { rejectWithValue }) => {
   const {
     values,
     onSave,
@@ -78,6 +78,7 @@ export const UpdateDataProducts = createAsyncThunk('products/SetDataProducts', a
     onSave();
     const responseData = res?.data?.data;
     const data = deserializeFormData(responseData, type);
+
     // Provider Form
     if (isProviderForm) {
       if (responseData?.providerInformation?.providerFormSubmitted) {

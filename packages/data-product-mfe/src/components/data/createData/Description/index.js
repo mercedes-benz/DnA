@@ -1,12 +1,13 @@
 import classNames from 'classnames';
 import React, { useEffect, useState } from 'react';
 import Styles from './styles.scss';
+import MDEditor from '@uiw/react-md-editor';
 
 // components from container app
 import SelectBox from 'dna-container/SelectBox';
 import InfoModal from 'dna-container/InfoModal';
 
-import { useFormContext } from 'react-hook-form';
+import { useFormContext, Controller } from 'react-hook-form';
 
 const Description = ({ onSave, artList, carlaFunctionList, dataCatalogList }) => {
   const {
@@ -15,6 +16,7 @@ const Description = ({ onSave, artList, carlaFunctionList, dataCatalogList }) =>
     watch,
     handleSubmit,
     reset,
+    control,
   } = useFormContext();
   const [showInfoModal, setShowInfoModal] = useState(false);
 
@@ -22,6 +24,15 @@ const Description = ({ onSave, artList, carlaFunctionList, dataCatalogList }) =>
     SelectBox.defaultSetup();
     reset(watch());
     //eslint-disable-next-line
+  }, []);
+
+  useEffect(() => {
+    // update colors for the markdown editor
+    const mdEditor = document.querySelector('[data-color-mode="dark"]>div.wmde-markdown-var');
+
+    mdEditor.style.setProperty('--color-canvas-default', '#1c2026');
+    mdEditor.style.setProperty('--color-accent-fg', '#00adef');
+    mdEditor.style.setProperty('--color-fg-default', '#c0c8d0');
   }, []);
 
   return (
@@ -134,17 +145,31 @@ const Description = ({ onSave, artList, carlaFunctionList, dataCatalogList }) =>
                 <span className={classNames('error-message')}>{errors?.description?.message}</span>
               </div>
             </div>
-            <div className={Styles.flexLayout}>
+          </div>
+        </div>
+      </div>
+      <div className={Styles.wrapper}>
+        <div className={Styles.firstPanel}>
+          <div>
+            <h3>How to access</h3>
+          </div>
+          <div className={Styles.formWrapper}>
+            <div className={Styles.flexLayout1}>
               <div className={classNames('input-field-group include-error area', errors.howToAccess ? 'error' : '')}>
-                <label id="howToAccess" className="input-label" htmlFor="howToAccess">
-                  How to access
-                </label>
-                <textarea
-                  id="description"
-                  className="input-field-area"
-                  type="text"
-                  {...register('howToAccess')}
-                  rows={50}
+                <Controller
+                  control={control}
+                  name="howToAccess"
+                  rules={{ required: '*Missing entry' }}
+                  render={({ field }) => (
+                    <>
+                      <label id="howToAccess" className="input-label" htmlFor="howToAccess">
+                        How to access
+                      </label>
+                      <div data-color-mode="dark">
+                        <MDEditor value={field.value} onChange={field.onChange} />
+                      </div>
+                    </>
+                  )}
                 />
                 <span className={classNames('error-message')}>{errors?.howToAccess?.message}</span>
               </div>
