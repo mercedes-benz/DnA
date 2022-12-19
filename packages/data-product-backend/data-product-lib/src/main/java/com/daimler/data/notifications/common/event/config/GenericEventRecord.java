@@ -3,7 +3,7 @@ package com.daimler.data.notifications.common.event.config;
 import java.io.Serializable;
 import java.util.List;
 
-import com.daimler.data.dto.dataproduct.ChangeLogVO;
+import com.daimler.data.dto.datatransfer.ChangeLogVO;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
