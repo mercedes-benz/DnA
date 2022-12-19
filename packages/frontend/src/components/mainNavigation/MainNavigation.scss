@@ -77,6 +77,9 @@
           &.active {
             border-left: none !important;
 
+            > .nav-link i {
+              color: #00adef;
+            }
             // > .nav-link {
             //   border-left: 4px solid #00adef !important;
             // }
@@ -160,4 +163,20 @@
 .disableSubLink {
   color: #777d84!important;
   pointer-events: none;
+}
+// .dnaNavItem {
+//   display: flex;
+//   padding-left: 17px!important;
+// }
+.navLink {
+  position: relative;
+  .navIcon {
+    position: absolute;
+  }
+  span {
+    padding-left: 37px;
+  }
+}
+.navActive {
+  color: #00adef;
 }
