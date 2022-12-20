@@ -17,7 +17,7 @@ import { history } from '../store';
 
 import ProgressIndicator from '../common/modules/uilab/js/src/progress-indicator';
 import SessionExpired from './SessionExpired';
-import DataProducts from './dataTransfer/DataProducts';
+import DataProducts from './dataTransfer/DataTransfers';
 import Summary from './dataTransfer/Summary';
 import DataComplianceNetworkList from './DataComplianceNetworkList';
 
