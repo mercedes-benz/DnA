@@ -13,8 +13,8 @@ import Notification from '../../../common/modules/uilab/js/src/notification';
 import { hostServer } from '../../../server/api';
 import { dataTransferApi } from '../../../apis/datatransfers.api';
 
-import { setDataProduct, setDivisionList } from '../redux/dataProductSlice';
-import { SetDataProducts, UpdateDataProducts } from '../redux/dataProduct.services';
+import { setDataProduct, setDivisionList } from '../redux/dataTransferSlice';
+import { SetDataProducts, UpdateDataProducts } from '../redux/dataTransfer.services';
 import { deserializeFormData, mapOpenSegments } from '../../../Utility/formData';
 
 import ConfirmModal from 'dna-container/ConfirmModal';
@@ -62,7 +62,7 @@ const ProviderForm = ({ user, history }) => {
   const isCreatePage = history.location.pathname === '/datasharing/create';
   const isEditPage = /^\/datasharing\/edit/.test(history?.location?.pathname);
 
-  const provideDataProducts = useSelector((state) => state.provideDataProducts);
+  const provideDataTransfers = useSelector((state) => state.provideDataTransfers);
 
   const [currentTab, setCurrentTab] = useState('contact-info');
   const [savedTabs, setSavedTabs] = useState([]);
@@ -95,7 +95,7 @@ const ProviderForm = ({ user, history }) => {
   };
 
   const getDataProductById = () => {
-    const id = createCopyId || dataTransferId || provideDataProducts?.selectedDataProduct?.id;
+    const id = createCopyId || dataTransferId || provideDataTransfers?.selectedDataTransfer?.id;
     ProgressIndicator.show();
     dataTransferApi
       .getDataProductById(id)
@@ -154,10 +154,10 @@ const ProviderForm = ({ user, history }) => {
   }, [user]);
 
   useEffect(() => {
-    const { id } = provideDataProducts.selectedDataProduct;
+    const { id } = provideDataTransfers.selectedDataTransfer;
     if (isCreatePage && !createCopyId) {
       if (id) {
-        let defaultValues = { ...provideDataProducts.selectedDataProduct };
+        let defaultValues = { ...provideDataTransfers.selectedDataTransfer };
         reset(defaultValues); // setting default values
       } else {
         const data = tabs['contact-info'];
@@ -166,7 +166,7 @@ const ProviderForm = ({ user, history }) => {
       }
     }
     //eslint-disable-next-line
-  }, [dispatch, provideDataProducts.selectedDataProduct, isCreatePage]);
+  }, [dispatch, provideDataTransfers.selectedDataTransfer, isCreatePage]);
 
   useEffect(() => {
     ProgressIndicator.show();
@@ -215,12 +215,12 @@ const ProviderForm = ({ user, history }) => {
 
   const onSave = (currentTab, values, callbackFn) => {
     const saveSegments = mapOpenSegments[currentTab];
-    const openSegments = provideDataProducts.selectedDataProduct?.openSegments || [];
+    const openSegments = provideDataTransfers.selectedDataTransfer?.openSegments || [];
     values.openSegments = [...openSegments];
     if (
       isCreatePage &&
       !createCopyId &&
-      !provideDataProducts?.selectedDataProduct?.id &&
+      !provideDataTransfers?.selectedDataTransfer?.id &&
       currentTab === 'contact-info'
     ) {
       values.openSegments = ['ContactInformation'];
@@ -233,10 +233,10 @@ const ProviderForm = ({ user, history }) => {
         switchTabs(currentTab);
         if (typeof callbackFn === 'function') callbackFn();
       },
-      provideDataProducts,
+      provideDataTransfers,
     };
     if (isCreatePage) {
-      const { id } = provideDataProducts.selectedDataProduct;
+      const { id } = provideDataTransfers.selectedDataTransfer;
       if (id) {
         data.values['id'] = id;
         data.type = 'provider';
