@@ -173,6 +173,11 @@ public class BaseStorageService implements StorageService {
 			boolean authFlag = chronosUserToken!=null && dataBricksAuth.equals(chronosUserToken);
 			if(chronosUserToken!=null && dataBricksAuth.equals(chronosUserToken)) {
 				currentUser = dataBricksUser;
+				CreatedByVO pidAsCreator = new CreatedByVO();
+				pidAsCreator.setId(currentUser);
+				pidAsCreator.setFirstName("Pool-ID");
+				pidAsCreator.setLastName("CHRONOS_POOLUSER");
+				bucketVo.setCreatedBy(pidAsCreator);
 			}
 			LOGGER.info("authflag {} currentUser {}",authFlag,currentUser);
 		
