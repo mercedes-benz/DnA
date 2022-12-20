@@ -59,7 +59,7 @@ const ContactInformation = ({ onSave, divisions, setSubDivisions, subDivisions, 
 
   const minDate = dayjs().format();
 
-  const provideDataProducts = useSelector((state) => state.provideDataProducts);
+  const provideDataTransfers = useSelector((state) => state.provideDataTransfers);
 
   useEffect(() => {
     if (lcoNeeded === 'No') {
@@ -76,7 +76,7 @@ const ContactInformation = ({ onSave, divisions, setSubDivisions, subDivisions, 
       hostServer.get('/subdivisions/' + id).then((res) => {
         setSubDivisions(res?.data || []);
         if (!dirtyFields.division && !dirtyFields.subDivision) {
-          setValue('subDivision', provideDataProducts.selectedDataProduct.consumer.subDivision);
+          setValue('subDivision', provideDataTransfers.selectedDataTransfer.consumer.subDivision);
         } else {
           setValue('subDivision', '0');
         }
