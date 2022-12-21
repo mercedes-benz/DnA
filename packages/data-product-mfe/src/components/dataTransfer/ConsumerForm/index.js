@@ -23,6 +23,8 @@ import { dataTransferApi } from '../../../apis/datatransfers.api';
 import { useParams, withRouter } from 'react-router-dom';
 import { setDataProduct, setDivisionList } from '../redux/dataTransferSlice';
 
+import { omit } from 'lodash';
+
 const tabs = {
   'provider-summary': {},
   'consumer-contact-info': {
@@ -44,8 +46,8 @@ const tabs = {
   },
 };
 
-const ConsumerForm = ({ user, history }) => {
-  const [currentTab, setCurrentTab] = useState('provider-summary');
+const ConsumerForm = ({ user, history, isDataProduct = false }) => {
+  const [currentTab, setCurrentTab] = useState(isDataProduct ? 'consumer-contact-info' : 'provider-summary');
   const [savedTabs, setSavedTabs] = useState([]);
   const methods = useForm();
   const { formState, reset } = methods;
@@ -58,7 +60,8 @@ const ConsumerForm = ({ user, history }) => {
   const [isFormMounted, setFormMounted] = useState(false);
   const [providerFormIsDraft, setProviderDraftState] = useState(false);
 
-  const elementRef = useRef(Object.keys(tabs)?.map(() => createRef()));
+  const tabNames = isDataProduct ? omit(tabs, ['provider-summary']) : tabs;
+  const elementRef = useRef(Object.keys(tabNames)?.map(() => createRef()));
 
   const dispatch = useDispatch();
   const provideDataTransfers = useSelector((state) => state.provideDataTransfers);
@@ -95,7 +98,7 @@ const ConsumerForm = ({ user, history }) => {
   }, [dispatch]);
 
   useEffect(() => {
-    getDataProductById();
+    if (!isDataProduct) getDataProductById();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -152,8 +155,12 @@ const ConsumerForm = ({ user, history }) => {
     const id = e.target.id;
     if (currentTab !== id) {
       const isFieldsDirty = formState.isDirty || Object.keys(formState.dirtyFields).length > 0;
-      if (isFieldsDirty) {
-        setShowChangeAlert({ modal: true, switchingTab: id });
+      if (!isDataProduct) {
+        if (isFieldsDirty) {
+          setShowChangeAlert({ modal: true, switchingTab: id });
+        } else {
+          setCurrentTab(id);
+        }
       } else {
         setCurrentTab(id);
       }
@@ -161,10 +168,10 @@ const ConsumerForm = ({ user, history }) => {
   };
 
   const switchTabs = (currentTab) => {
-    const tabIndex = Object.keys(tabs).indexOf(currentTab) + 1;
+    const tabIndex = Object.keys(tabNames).indexOf(currentTab) + 1;
     setSavedTabs([...new Set([...savedTabs, currentTab])]);
     if (currentTab !== 'consumer-personal-data') {
-      setCurrentTab(Object.keys(tabs)[tabIndex]);
+      setCurrentTab(Object.keys(tabNames)[tabIndex]);
       elementRef.current[tabIndex].click();
     }
   };
@@ -214,50 +221,57 @@ const ConsumerForm = ({ user, history }) => {
       provideDataTransfers,
       type: 'consumer',
       state: isEditing ? 'edit' : 'create',
+      isDataProduct,
     };
 
     dispatch(UpdateDataProducts(data));
   };
-
+  console.log(currentTab, savedTabs);
   return (
     <>
-      <button
-        className={classNames('btn btn-text back arrow', Styles.backBtn)}
-        type="submit"
-        onClick={() => history.push('/')}
-      >
-        Back
-      </button>
+      {!isDataProduct ? (
+        <button
+          className={classNames('btn btn-text back arrow', Styles.backBtn)}
+          type="submit"
+          onClick={() => history.push('/')}
+        >
+          Back
+        </button>
+      ) : null}
       <FormProvider {...methods}>
         <div className={classNames(Styles.mainPanel)}>
-          <h3 className={classNames(Styles.title)}>Data Receiving Side</h3>
+          {!isDataProduct ? <h3 className={classNames(Styles.title)}>Data Receiving Side</h3> : null}
           <div id="data-product-tabs" className="tabs-panel">
             <div className="tabs-wrapper">
               <nav>
                 <ul className="tabs">
-                  <li
-                    className={
-                      savedTabs?.includes('provider-summary') ||
-                      provideDataTransfers.selectedDataTransfer?.consumer?.openSegments?.length
-                        ? 'tab valid'
-                        : 'tab active'
-                    }
-                  >
-                    <a
-                      href="#tab-content-1"
-                      id="provider-summary"
-                      ref={(ref) => {
-                        if (elementRef.current) elementRef.current[0] = ref;
-                      }}
-                      onClick={setTab}
+                  {!isDataProduct ? (
+                    <li
+                      className={
+                        savedTabs?.includes('provider-summary') ||
+                        provideDataTransfers.selectedDataTransfer?.consumer?.openSegments?.length
+                          ? 'tab valid'
+                          : 'tab active'
+                      }
                     >
-                      Provider Summary
-                    </a>
-                  </li>
+                      <a
+                        href="#tab-content-1"
+                        id="provider-summary"
+                        ref={(ref) => {
+                          if (elementRef.current) elementRef.current[0] = ref;
+                        }}
+                        onClick={setTab}
+                      >
+                        Provider Summary
+                      </a>
+                    </li>
+                  ) : null}
                   <li
                     className={
                       savedTabs?.includes('consumer-contact-info') && !providerFormIsDraft
                         ? 'tab valid'
+                        : isDataProduct
+                        ? 'tab active'
                         : 'tab disabled'
                     }
                   >
@@ -265,7 +279,9 @@ const ConsumerForm = ({ user, history }) => {
                       href="#tab-content-2"
                       id="consumer-contact-info"
                       ref={(ref) => {
-                        if (elementRef.current) elementRef.current[1] = ref;
+                        if (elementRef.current) {
+                          isDataProduct ? (elementRef.current[0] = ref) : (elementRef.current[1] = ref);
+                        }
                       }}
                       onClick={setTab}
                     >
@@ -283,7 +299,9 @@ const ConsumerForm = ({ user, history }) => {
                       href="#tab-content-3"
                       id="consumer-personal-data"
                       ref={(ref) => {
-                        if (elementRef.current) elementRef.current[2] = ref;
+                        if (elementRef.current) {
+                          isDataProduct ? (elementRef.current[1] = ref) : (elementRef.current[2] = ref);
+                        }
                       }}
                       onClick={setTab}
                     >
@@ -294,12 +312,14 @@ const ConsumerForm = ({ user, history }) => {
               </nav>
             </div>
             <div className="tabs-content-wrapper">
-              <div id="tab-content-1" className="tab-content">
-                <ProviderSummary
-                  onSave={() => switchTabs('provider-summary')}
-                  providerFormIsDraft={providerFormIsDraft}
-                />
-              </div>
+              {!isDataProduct ? (
+                <div id="tab-content-1" className="tab-content">
+                  <ProviderSummary
+                    onSave={() => switchTabs('provider-summary')}
+                    providerFormIsDraft={providerFormIsDraft}
+                  />
+                </div>
+              ) : null}
               <div id="tab-content-2" className="tab-content">
                 {currentTab === 'consumer-contact-info' && (
                   <ContactInformation
@@ -316,6 +336,7 @@ const ConsumerForm = ({ user, history }) => {
                   <PersonalRelatedData
                     onSave={(values, callbackFn) => onSave('consumer-personal-data', values, callbackFn)}
                     setIsEditing={(val) => setIsEditing(val)}
+                    isDataProduct={isDataProduct}
                   />
                 )}
               </div>
@@ -338,12 +359,12 @@ const ConsumerForm = ({ user, history }) => {
             onCancel={() => {
               getDataProductById();
               setCurrentTab(showChangeAlert.switchingTab);
-              elementRef.current[Object.keys(tabs).indexOf(showChangeAlert.switchingTab)].click();
+              elementRef.current[Object.keys(tabNames).indexOf(showChangeAlert.switchingTab)].click();
               setShowChangeAlert({ modal: false, switchingTab: '' });
             }}
             onAccept={() => {
               setShowChangeAlert({ modal: false, switchingTab: '' });
-              elementRef.current[Object.keys(tabs).indexOf(currentTab)].click();
+              elementRef.current[Object.keys(tabNames).indexOf(currentTab)].click();
             }}
           />
         </div>
