@@ -17,12 +17,15 @@ import { regionalDateFormat } from '../../../Utility/utils';
 import mockData from '../data.json';
 
 import InfoModal from 'dna-container/InfoModal';
+import Modal from 'dna-container/Modal';
 
 import ProgressIndicator from '../../../common/modules/uilab/js/src/progress-indicator';
 import Tabs from '../../../common/modules/uilab/js/src/tabs';
 
 import lockIcon from '../../../assets/lockIcon.png';
 import selfserviceImg from '../../../assets/selfservice.png';
+
+import ConsumerForm from '../../dataTransfer/ConsumerForm';
 
 const Summary = ({ history, user }) => {
   const { selectedData: data, data: dataList } = useSelector((state) => state.data);
@@ -33,6 +36,9 @@ const Summary = ({ history, user }) => {
 
   const [showInfoModal, setShowInfoModal] = useState(false);
   const [step, setStep] = useState(0);
+
+  const [showRequestAccessModal, setShowRequestAccessModal] = useState(false);
+  const [accessRequested, setAccessRequest] = useState(false);
 
   const isCreator = data.providerInformation?.createdBy?.id === user?.id || true;
 
@@ -123,7 +129,7 @@ const Summary = ({ history, user }) => {
           </div>
         </div>
       </div>
-      <hr className={Styles.line} />
+      {/* <hr className={Styles.line} />
       <div className={Styles.modalContent}>
         <div>
           {' '}
@@ -140,7 +146,7 @@ const Summary = ({ history, user }) => {
             to set up a Data Transfer within our Data Sharing Space.
           </div>
         </div>
-      </div>
+      </div> */}
       <hr className={Styles.line} />
       <div className={Styles.modalContent}>
         <div>
@@ -150,6 +156,12 @@ const Summary = ({ history, user }) => {
         </div>
       </div>
       <hr className={Styles.line} />
+    </>
+  );
+
+  const requestAccessModalContent = (
+    <>
+      <ConsumerForm isDataProduct={true} />
     </>
   );
 
@@ -474,9 +486,15 @@ const Summary = ({ history, user }) => {
         </div>
       </div>
       <div className={'accessBtn'}>
-        <button className="btn btn-tertiary" type="button" onClick={() => setShowInfoModal(true)}>
-          How to access
-        </button>
+        {accessRequested ? (
+          <button className="btn btn-tertiary" type="button" onClick={() => setShowInfoModal(true)}>
+            How to access
+          </button>
+        ) : (
+          <button className="btn btn-tertiary" type="button" onClick={() => setShowRequestAccessModal(true)}>
+            Request access
+          </button>
+        )}
       </div>
       {showInfoModal && (
         <InfoModal
@@ -484,7 +502,25 @@ const Summary = ({ history, user }) => {
           show={showInfoModal}
           customHeader={infoModalHeaderContent}
           content={infoModalContent}
-          onCancel={() => setShowInfoModal(false)}
+          onCancel={() => {
+            setShowInfoModal(false);
+            setAccessRequest(true);
+          }}
+        />
+      )}
+      {showRequestAccessModal && (
+        <Modal
+          title="Request access"
+          show={showRequestAccessModal}
+          showAcceptButton={false}
+          showCancelButton={false}
+          scrollableContent={true}
+          modalWidth={'90%'}
+          content={requestAccessModalContent}
+          onCancel={() => {
+            setAccessRequest(true);
+            setShowRequestAccessModal(false);
+          }}
         />
       )}
     </div>

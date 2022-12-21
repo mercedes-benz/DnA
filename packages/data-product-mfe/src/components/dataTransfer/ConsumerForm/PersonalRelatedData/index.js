@@ -11,7 +11,7 @@ import { Envs } from '../../../../Utility/envs';
 import { useDispatch, useSelector } from 'react-redux';
 import { getLegalBasis } from '../../redux/getDropdowns.services';
 
-const PersonalRelatedData = ({ onSave, setIsEditing }) => {
+const PersonalRelatedData = ({ onSave, setIsEditing, isDataProduct }) => {
   const {
     register,
     handleSubmit,
@@ -40,11 +40,15 @@ const PersonalRelatedData = ({ onSave, setIsEditing }) => {
       setValue('LCOComments', '');
     }
     //eslint-disable-next-line
-  }, [provideDataTransfers.selectedDataTransfer.consumer.personalRelatedData]);
+  }, [provideDataTransfers.selectedDataTransfer.consumer?.personalRelatedData]);
 
   useEffect(() => {
     dispatch(getLegalBasis());
   }, [dispatch]);
+
+  useEffect(() => {
+    if (isDataProduct) setValue('personalRelatedData', 'No');
+  }, [isDataProduct, setValue]);
 
   return (
     <>
