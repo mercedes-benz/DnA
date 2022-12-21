@@ -154,7 +154,7 @@
     .nav-list {
       .nav-item:not(.sub-nav-item) {
         height: 43px !important;
-        border-left: 6px solid transparent;
+        border-left: 6px solid transparent!important;
       }
     }
   }
