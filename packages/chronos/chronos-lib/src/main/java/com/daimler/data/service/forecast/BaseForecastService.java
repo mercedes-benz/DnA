@@ -257,8 +257,8 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 									newState.setResult_state(updatedState.getResultState().name());
 									if("SUCCESS".equalsIgnoreCase(updatedState.getResultState().name())) {
 										//check if .SUCCESS file exists
-										resultsPrefix += updatedRunDetail.getId()+"-"+updatedRunDetail.getRunName()+"/";
-										Boolean successFileFlag = storageClient.isSuccessFilePresent(bucketName, resultsPrefix);
+										String resultFolderPathForRun = resultsPrefix + updatedRunDetail.getId()+"-"+updatedRunDetail.getRunName()+"/";
+										Boolean successFileFlag = storageClient.isSuccessFilePresent(bucketName, resultFolderPathForRun);
 										log.info("Run state is success from databricks and isSuccessFilePresent value is {}, for bucket {} and prefix {} ", successFileFlag, bucketName, resultsPrefix);
 										if(!successFileFlag)
 											newState.setResult_state(ResultStateEnum.FAILED.name());
