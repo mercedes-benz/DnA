@@ -151,7 +151,7 @@ const Summary = ({ history, user }) => {
       <div className={Styles.modalContent}>
         <div>
           {' '}
-          <h5>Step 3 - Get started</h5>
+          <h5>Step 2 - Get started</h5>
           <div>We will notify you via E-Mail as soon as you can access and use the data product.</div>
         </div>
       </div>
