@@ -3,7 +3,7 @@ import { createHashHistory } from 'history';
 
 import logger from 'redux-logger';
 
-import provideDataProducts from './components/dataTransfer/redux/dataProductSlice';
+import provideDataTransfers from './components/dataTransfer/redux/dataTransferSlice';
 import dropdownsSlice from './components/dataTransfer/redux/getDropdownsSlice';
 
 import dataSlice from './components/data/redux/dataSlice';
@@ -16,7 +16,7 @@ const isDev = process.env.NODE_ENV === 'development';
 
 export default configureStore({
   reducer: {
-    provideDataProducts: provideDataProducts,
+    provideDataTransfers: provideDataTransfers,
     dropdowns: dropdownsSlice,
     data: dataSlice,
   },

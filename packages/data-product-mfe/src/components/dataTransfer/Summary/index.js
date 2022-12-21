@@ -7,7 +7,7 @@ import ProgressIndicator from '../../../common/modules/uilab/js/src/progress-ind
 import Tabs from '../../../common/modules/uilab/js/src/tabs';
 import { hostServer } from '../../../server/api';
 import { deserializeFormData, serializeDivisionSubDivision } from '../../../Utility/formData';
-import { setDataProduct, setDivisionList } from '../redux/dataProductSlice';
+import { setDataProduct, setDivisionList } from '../redux/dataTransferSlice';
 
 import Styles from './styles.scss';
 
@@ -16,7 +16,7 @@ import { regionalDateFormat } from '../../../Utility/utils';
 
 const Summary = ({ history }) => {
   const { id: dataTransferId } = useParams();
-  const { selectedDataProduct: data, divisionList } = useSelector((state) => state.provideDataProducts);
+  const { selectedDataTransfer: data, divisionList } = useSelector((state) => state.provideDataTransfers);
 
   const division = serializeDivisionSubDivision(divisionList, {
     division: data.division,

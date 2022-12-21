@@ -1,9 +1,9 @@
 {
     "result":[
         {
-            "dataProductId": "0059",
+            "dataTransferId": "0059",
             "id":"0059",
-            "dataProductName":"Universal Journey Entries Sample test",
+            "dataTransferName":"Universal Journey Entries Sample test",
             "productName": "Universal Journey Entries Sample test",
             "description":
             "Exploration Self Service: Contains all OneERP Universal Journal Entry documents reflecting Balance Sheet, P&L and Profitability Analysis. Database table ACDOCA is the source for Universal Journal Entries.",
@@ -86,9 +86,9 @@
             "isCarlaCertified": true
         },
         {
-            "dataProductId": "0060",
+            "dataTransferId": "0060",
             "id":"0060",
-            "dataProductName":"Data Product 1",
+            "dataTransferName":"Data Product 1",
             "productName": "Data Product 1",
             "description":"Exploration Self Service: Contains all OneERP Universal Journal Entry documents reflecting Balance Sheet, P&L and Profitability Analysis.",
             "confidentiality": "Public",

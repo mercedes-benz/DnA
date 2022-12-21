@@ -9,7 +9,7 @@ import { Link, withRouter } from 'react-router-dom';
 import { dataProductApi } from '../../../apis/data.api';
 import { hostServer } from '../../../server/api';
 
-import DataTranferCardLayout from '../../dataTransfer/Layout/CardView/DataProductCardItem';
+import DataTranferCardLayout from '../../dataTransfer/Layout/CardView/DataTransferCardItem';
 
 import { setSelectedData, setDivisionList } from '../redux/dataSlice';
 
@@ -33,6 +33,8 @@ const Summary = ({ history, user }) => {
 
   const [showInfoModal, setShowInfoModal] = useState(false);
   const [step, setStep] = useState(0);
+
+  const isCreator = data.providerInformation?.createdBy?.id === user?.id || true;
 
   useEffect(() => {
     ProgressIndicator.show();
@@ -62,6 +64,26 @@ const Summary = ({ history, user }) => {
       Tabs.defaultSetup();
     });
   };
+
+  useEffect(() => {
+    const mainPanel = document.getElementById('mainPanel');
+    const accessBtnDiv = document.querySelector('.accessBtn');
+    const handleScroll = () => {
+      if (window.scrollY + window.innerHeight >= mainPanel.scrollHeight) {
+        accessBtnDiv.classList.remove('accessBtn');
+        accessBtnDiv.classList.add('accessBtnFixed');
+      } else {
+        accessBtnDiv.classList.add('accessBtn');
+        accessBtnDiv.classList.remove('accessBtnFixed');
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll);
+
+    return () => window.removeEventListener('scroll', handleScroll);
+
+    //eslint-disable-next-line
+  }, []);
 
   const setTab = (e) => {
     // e.preventDefault();
@@ -132,12 +154,28 @@ const Summary = ({ history, user }) => {
   );
 
   return (
-    <>
-      <div className={Styles.mainPanel}>
+    <div className="dataproductSummary">
+      <div id="mainPanel" className={Styles.mainPanel}>
         <div>
           <button className="btn btn-text back arrow" type="submit" onClick={() => history.goBack()}>
             Back
           </button>
+          {isCreator ? (
+            <div className={Styles.actionBtns}>
+              <button className="btn btn-primary" onClick={() => {}}>
+                <i className="icon mbc-icon delete-new" tooltip-data="Delete"></i>Delete
+              </button>
+              <button
+                className="btn btn-primary"
+                onClick={
+                  () => {}
+                  // history.push(`/data/edit/${product?.dataTransferId}`)
+                }
+              >
+                <i className="icon mbc-icon edit fill" tooltip-data="Edit"></i>Edit
+              </button>
+            </div>
+          ) : null}
           <div className={Styles.summaryBannerTitle}>
             <h2>{data?.productName}</h2>
           </div>
@@ -433,22 +471,12 @@ const Summary = ({ history, user }) => {
               return <DataTranferCardLayout key={index} product={product} user={user} isDataProduct={true} />;
             })}
           </div>
-          <div className={Styles.actionBtns}>
-            <div className="btn-set">
-              <button className="btn btn-primary" type="button">
-                Edit
-              </button>
-              <button className="btn btn-primary" type="button">
-                Delete
-              </button>
-            </div>
-            <div style={{ alignSelf: 'flex-end' }}>
-              <button className="btn btn-tertiary" type="button" onClick={() => setShowInfoModal(true)}>
-                How to access
-              </button>
-            </div>
-          </div>
         </div>
+      </div>
+      <div className={'accessBtn'}>
+        <button className="btn btn-tertiary" type="button" onClick={() => setShowInfoModal(true)}>
+          How to access
+        </button>
       </div>
       {showInfoModal && (
         <InfoModal
@@ -459,7 +487,7 @@ const Summary = ({ history, user }) => {
           onCancel={() => setShowInfoModal(false)}
         />
       )}
-    </>
+    </div>
   );
 };
 

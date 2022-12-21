@@ -1,12 +1,12 @@
 import classNames from 'classnames';
 import React, { useEffect, useState } from 'react';
-import Styles from './DataProductCardItem.styles.scss';
+import Styles from './DataTransferCardItem.styles.scss';
 import { withRouter } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 
 import { regionalDateFormat, setTooltipIfEllipsisShown } from '../../../../Utility/utils';
 import { dataTransferApi } from '../../../../apis/datatransfers.api';
-import { GetDataProducts } from '../../redux/dataProduct.services';
+import { GetDataProducts } from '../../redux/dataTransfer.services';
 
 import ConfirmModal from 'dna-container/ConfirmModal';
 

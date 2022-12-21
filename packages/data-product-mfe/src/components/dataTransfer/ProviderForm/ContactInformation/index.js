@@ -35,7 +35,7 @@ const ContactInformation = ({ onSave, divisions, setSubDivisions, subDivisions, 
     getValues,
   } = useFormContext();
   const [showInfoModal, setShowInfoModal] = useState(false);
-  const provideDataProducts = useSelector((state) => (!isDataProduct ? state.provideDataProducts : state.data));
+  const provideDataTransfers = useSelector((state) => (!isDataProduct ? state.provideDataTransfers : state.data));
 
   const {
     division,
@@ -72,7 +72,7 @@ const ContactInformation = ({ onSave, divisions, setSubDivisions, subDivisions, 
       hostServer.get('/subdivisions/' + id).then((res) => {
         setSubDivisions(res?.data || []);
         if (!dirtyFields.division && !dirtyFields.subDivision) {
-          let selected = isDataProduct ? provideDataProducts?.selectedData : provideDataProducts.selectedDataProduct;
+          let selected = isDataProduct ? provideDataTransfers?.selectedData : provideDataTransfers.selectedDataTransfer;
           setValue('subDivision', selected.subDivision);
         } else {
           setValue('subDivision', '0');

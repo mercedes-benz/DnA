@@ -6,7 +6,7 @@ import { regionalDateFormat } from '../../../../Utility/utils';
 import Styles from './styles.scss';
 
 const ProviderSummary = ({ onSave, providerFormIsDraft }) => {
-  const { selectedDataProduct: data, divisionList } = useSelector((state) => state.provideDataProducts);
+  const { selectedDataTransfer: data, divisionList } = useSelector((state) => state.provideDataTransfers);
 
   const isMounted = useRef(false);
   const [providerInformation, setProviderInformation] = useState({});
