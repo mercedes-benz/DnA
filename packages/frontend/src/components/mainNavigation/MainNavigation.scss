@@ -109,13 +109,14 @@
         .nav-link {
           line-height: 43px !important;
           border: none !important;
-          padding-left: 17px !important;
+          padding-left: 52px !important;
           height: 43px !important;
 
           i {
             margin-right: 15px;
             font-size: var(--font-size-icon-nav);
             vertical-align: top;
+            margin-left: -37px;
           }
 
           &:before,
@@ -140,6 +141,7 @@
 
             .nav-link {
               line-height: 43px;
+              padding-left: 17px!important;
             }
           }
         }
