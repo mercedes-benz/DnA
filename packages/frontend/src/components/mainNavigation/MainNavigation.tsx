@@ -302,8 +302,8 @@ const MainNavigation: React.FC<IMainNavigationProps> = (props) => {
               title={navItem.title}
             >
               <a className={classNames('nav-link', navItem.enabled ? '' : Styles.disableLink, Styles.navLink)}>
-                <i className={classNames('icon', 'mbc-icon', navItem.icon, Styles.navIcon, getPath().includes(navItem.route) ? Styles.navActive : '')} onClick={() => history.push(navItem.route)} />
-                <span>{getTranslatedLabel(navItem.title)}</span>
+                <i className={classNames('icon', 'mbc-icon', navItem.icon, Styles.navIcon, getPath().includes(navItem.route) ? Styles.navActive : '')} onClick={() => { props.onNavClose(); history.push(navItem.route) }} />
+                {getTranslatedLabel(navItem.title)}
               </a>
               <ul className="sub-nav-list">
                 {navItem.subNavItems.map((subNavItem:any, subIndex:number) => {
@@ -339,8 +339,8 @@ const MainNavigation: React.FC<IMainNavigationProps> = (props) => {
                   pathname: navItem.route,
                 }}
               >
-                <i className={classNames('icon', 'mbc-icon', navItem.icon, Styles.navIcon, getPath().includes(navItem.route) ? Styles.navActive : '')} onClick={() => history.push(navItem.route)} />
-                <span>{getTranslatedLabel(navItem.title)}</span>
+                <i className={classNames('icon', 'mbc-icon', navItem.icon, Styles.navIcon, getPath().includes(navItem.route) ? Styles.navActive : '')} onClick={() => { props.onNavClose(); history.push(navItem.route) }} />
+                {getTranslatedLabel(navItem.title)}
               </Link>
             </li>
           );
