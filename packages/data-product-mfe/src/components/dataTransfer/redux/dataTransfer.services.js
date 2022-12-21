@@ -10,7 +10,7 @@ export const GetDataProducts = createAsyncThunk('products/GetDataProducts', asyn
     const res = await dataTransferApi.getAllDataProducts('dataTransferId', 'desc');
     ProgressIndicator.hide();
     const {
-      provideDataProducts: { pagination },
+      provideDataTransfers: { pagination },
     } = getState(); // redux store method
     return {
       data: res.data.records,
@@ -26,7 +26,7 @@ export const SetDataProducts = createAsyncThunk('products/SetDataProducts', asyn
   const {
     values,
     onSave,
-    provideDataProducts: { divisionList, pagination },
+    provideDataTransfers: { divisionList, pagination },
   } = data;
 
   const division = serializeDivisionSubDivision(divisionList, values);
@@ -54,7 +54,7 @@ export const UpdateDataProducts = createAsyncThunk('products/UpdateDataProducts'
   const {
     values,
     onSave,
-    provideDataProducts: { divisionList, pagination },
+    provideDataTransfers: { divisionList, pagination },
     type, // "provider" form or "consumer" form
     state, // "edit" or "create"
   } = data;

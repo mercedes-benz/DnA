@@ -6,7 +6,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { hostServer } from '../../../server/api';
 import { useForm, FormProvider } from 'react-hook-form';
 import { deserializeFormData, consumerOpenSegments, serializeDivisionSubDivision } from '../../../Utility/formData';
-import { UpdateDataProducts } from '../redux/dataProduct.services';
+import { UpdateDataProducts } from '../redux/dataTransfer.services';
 
 import ConfirmModal from 'dna-container/ConfirmModal';
 import SelectBox from 'dna-container/SelectBox';
@@ -21,7 +21,7 @@ import TourGuide from '../TourGuide';
 import ProviderSummary from './ProviderSummary';
 import { dataTransferApi } from '../../../apis/datatransfers.api';
 import { useParams, withRouter } from 'react-router-dom';
-import { setDataProduct, setDivisionList } from '../redux/dataProductSlice';
+import { setDataProduct, setDivisionList } from '../redux/dataTransferSlice';
 
 const tabs = {
   'provider-summary': {},
@@ -61,8 +61,8 @@ const ConsumerForm = ({ user, history }) => {
   const elementRef = useRef(Object.keys(tabs)?.map(() => createRef()));
 
   const dispatch = useDispatch();
-  const provideDataProducts = useSelector((state) => state.provideDataProducts);
-  const divisionList = useSelector((state) => state.provideDataProducts.divisionList);
+  const provideDataTransfers = useSelector((state) => state.provideDataTransfers);
+  const divisionList = useSelector((state) => state.provideDataTransfers.divisionList);
   const { id: dataTransferId } = useParams();
 
   useEffect(() => {
@@ -76,13 +76,13 @@ const ConsumerForm = ({ user, history }) => {
   }, [user]);
 
   useEffect(() => {
-    const { id } = provideDataProducts.selectedDataProduct;
+    const { id } = provideDataTransfers.selectedDataTransfer;
     if (id) {
-      let defaultValues = { ...provideDataProducts.selectedDataProduct.consumer };
+      let defaultValues = { ...provideDataTransfers.selectedDataTransfer.consumer };
       reset(defaultValues); // setting default values
     }
     //eslint-disable-next-line
-  }, [dispatch, provideDataProducts.selectedDataProduct]);
+  }, [dispatch, provideDataTransfers.selectedDataTransfer]);
 
   useEffect(() => {
     ProgressIndicator.show();
@@ -178,7 +178,7 @@ const ConsumerForm = ({ user, history }) => {
     }
 
     const division = serializeDivisionSubDivision(divisionList, values);
-    const value = { ...provideDataProducts.selectedDataProduct };
+    const value = { ...provideDataTransfers.selectedDataTransfer };
 
     value.notifyUsers = values.notifyUsers || false;
     value.publish = values.publish || false;
@@ -211,7 +211,7 @@ const ConsumerForm = ({ user, history }) => {
         switchTabs(currentTab);
         if (typeof callbackFn === 'function') callbackFn();
       },
-      provideDataProducts,
+      provideDataTransfers,
       type: 'consumer',
       state: isEditing ? 'edit' : 'create',
     };
@@ -238,7 +238,7 @@ const ConsumerForm = ({ user, history }) => {
                   <li
                     className={
                       savedTabs?.includes('provider-summary') ||
-                      provideDataProducts.selectedDataProduct?.consumer?.openSegments?.length
+                      provideDataTransfers.selectedDataTransfer?.consumer?.openSegments?.length
                         ? 'tab valid'
                         : 'tab active'
                     }

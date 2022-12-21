@@ -1,22 +1,22 @@
 import classNames from 'classnames';
 import React, { useEffect, useState } from 'react';
-import Styles from './DataProducts.style.scss';
+import Styles from './DataTransfers.style.scss';
 import { Link, withRouter } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 
 // import from DNA Container
 import Pagination from 'dna-container/Pagination';
-import { setDataProducts, setPagination } from './redux/dataProductSlice';
-import { GetDataProducts } from './redux/dataProduct.services';
-import DataProductCardItem from './Layout/CardView/DataProductCardItem';
-import DataProductListItem from './Layout/ListView/DataProductListItem';
+import { setDataProducts, setPagination } from './redux/dataTransferSlice';
+import { GetDataProducts } from './redux/dataTransfer.services';
+import DataProductCardItem from './Layout/CardView/DataTransferCardItem';
+import DataProductListItem from './Layout/ListView/DataTransferListItem';
 
 const DataProducts = ({ user, history }) => {
   const dispatch = useDispatch();
   const {
     dataProducts,
     pagination: { dataProductListResponse, totalNumberOfPages, currentPageNumber, maxItemsPerPage },
-  } = useSelector((state) => state.provideDataProducts);
+  } = useSelector((state) => state.provideDataTransfers);
 
   const [cardViewMode, setCardViewMode] = useState(true);
   const [listViewMode, setListViewMode] = useState(false);
