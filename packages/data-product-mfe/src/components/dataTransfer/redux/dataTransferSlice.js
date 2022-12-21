@@ -1,6 +1,6 @@
 import { createSlice } from '@reduxjs/toolkit';
 import { SESSION_STORAGE_KEYS } from '../../../Utility/constants';
-import { GetDataProducts, SetDataProducts, UpdateDataProducts } from './dataProduct.services';
+import { GetDataProducts, SetDataProducts, UpdateDataProducts } from './dataTransfer.services';
 
 const dataProductsInitialState = {
   dataProducts: [],
@@ -12,11 +12,11 @@ const dataProductsInitialState = {
     currentPageNumber: 1,
     maxItemsPerPage: parseInt(sessionStorage.getItem(SESSION_STORAGE_KEYS.PAGINATION_MAX_ITEMS_PER_PAGE), 10) || 15,
   },
-  selectedDataProduct: {},
+  selectedDataTransfer: {},
   divisionList: [],
 };
 
-export const provideDataProductSlice = createSlice({
+export const provideDataTransferSlice = createSlice({
   name: 'products',
   initialState: dataProductsInitialState,
   extraReducers: {
@@ -45,7 +45,7 @@ export const provideDataProductSlice = createSlice({
     },
     [SetDataProducts.fulfilled]: (state, action) => {
       state.isLoading = false;
-      state.selectedDataProduct = action.payload?.data;
+      state.selectedDataTransfer = action.payload?.data;
       state.errors = '';
     },
     [SetDataProducts.rejected]: (state, action) => {
@@ -57,7 +57,7 @@ export const provideDataProductSlice = createSlice({
     },
     [UpdateDataProducts.fulfilled]: (state, action) => {
       state.isLoading = false;
-      state.selectedDataProduct = action.payload.data;
+      state.selectedDataTransfer = action.payload.data;
       state.errors = '';
     },
     [UpdateDataProducts.rejected]: (state, action) => {
@@ -73,7 +73,7 @@ export const provideDataProductSlice = createSlice({
       state.dataProducts = action.payload;
     },
     setDataProduct: (state, action) => {
-      state.selectedDataProduct = action.payload;
+      state.selectedDataTransfer = action.payload;
     },
     setPagination: (state, action) => {
       state.pagination = {
@@ -84,5 +84,5 @@ export const provideDataProductSlice = createSlice({
   },
 });
 
-export const { setDivisionList, setDataProducts, setDataProduct, setPagination } = provideDataProductSlice.actions;
-export default provideDataProductSlice.reducer;
+export const { setDivisionList, setDataProducts, setDataProduct, setPagination } = provideDataTransferSlice.actions;
+export default provideDataTransferSlice.reducer;

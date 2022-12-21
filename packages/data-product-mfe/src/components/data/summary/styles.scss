@@ -108,7 +108,18 @@ hr {
 
 .actionBtns {
     display: flex;
-    justify-content: space-between;
+    justify-content: flex-end;
+    button {
+        background-color: transparent;
+        border: none;
+        padding: 0 15px;
+        color: #c0c8d0;
+        margin: 0 2px;
+        font-size: var(--font-size-default);
+        &:hover {
+            background-color: transparent;
+        }
+    }
 }
 
 .titleContainer {
@@ -145,28 +156,55 @@ hr {
 }
 
 :global {
-    #data-summary-tabs {
-        min-width: 540px;
-    }
-
-    #data-summary-tabs .scrollable.tabs-wrapper {
-        height: 44px;
-    }
-
-    #data-summary-tabs .scrollable.tabs-wrapper nav {
-        height: 44px;
-    }
-
-    #data-summary-tabs .tab {
-        min-width: max-content;
-        > a {
-            position: relative;
-            padding: 10px 50px 12px 40px;
+    .dataproductSummary {
+        #data-summary-tabs {
+            min-width: 540px;
         }
-    }
-    label.input-label.summary {
-        color: #99a5b3;
-        font-size: var(--font-size-small);
-        font-weight: bold;
+
+        #data-summary-tabs .scrollable.tabs-wrapper {
+            height: 44px;
+        }
+
+        #data-summary-tabs .scrollable.tabs-wrapper nav {
+            height: 44px;
+        }
+
+        #data-summary-tabs .tab {
+            min-width: max-content;
+            > a {
+                position: relative;
+                padding: 10px 50px 12px 40px;
+            }
+        }
+        label.input-label.summary {
+            color: #99a5b3;
+            font-size: var(--font-size-small);
+            font-weight: bold;
+        }
+
+        .accessBtn {
+            position: fixed;
+            bottom: 0;
+            height: 55px;
+            width: 100%;
+            background: #1c2026;
+            button {
+                position: fixed;
+                right: 5vw;
+                margin: 8px 0;
+            }
+        }
+
+        .accessBtnFixed {
+            position: unset;
+            width: auto;
+            background-color: transparent;
+            display: flex;
+            justify-content: flex-end;
+            padding: 0 75px;
+            button {
+                position: unset;
+            }
+        }
     }
 }

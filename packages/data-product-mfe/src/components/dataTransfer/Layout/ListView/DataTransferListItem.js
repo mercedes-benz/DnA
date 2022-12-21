@@ -3,12 +3,12 @@ import React, { useState, useEffect } from 'react';
 import { withRouter } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { regionalDateFormat, setTooltipIfEllipsisShown } from '../../../../Utility/utils';
-import Styles from './DataProductListItem.styles.scss';
+import Styles from './DataTransferListItem.styles.scss';
 
 import ConfirmModal from 'dna-container/ConfirmModal';
 
 import { dataTransferApi } from '../../../../apis/datatransfers.api';
-import { GetDataProducts } from '../../redux/dataProduct.services';
+import { GetDataProducts } from '../../redux/dataTransfer.services';
 
 import ProgressIndicator from '../../../../common/modules/uilab/js/src/progress-indicator';
 import Notification from '../../../../common/modules/uilab/js/src/notification';
