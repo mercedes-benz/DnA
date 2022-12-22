@@ -81,7 +81,7 @@ import com.daimler.data.dto.Permission;
 import com.daimler.data.dto.UserInfoVO;
 import com.daimler.data.dto.solution.ChangeLogVO;
 import com.daimler.data.minio.client.DnaMinioClient;
-import com.daimler.data.util.CacheUtil;
+import com.daimler.data.util.RedisCacheUtil;
 import com.daimler.data.util.ConstantsUtility;
 import com.daimler.data.util.StorageUtility;
 import com.daimler.dna.notifications.common.producer.KafkaProducerService;
@@ -117,7 +117,7 @@ public class BaseStorageService implements StorageService {
 	private String minioClientApi;
 	
 	@Autowired
-	private CacheUtil cacheUtil;
+	private RedisCacheUtil cacheUtil;
 	
 	@Autowired
 	private UserStore userStore;
