@@ -14,8 +14,8 @@ MinIO&reg; can be accessed via port {{ .Values.service.port }} on the following 
 
 To get your credentials run:
 
-   export ROOT_USER=$(kubectl get secret --namespace {{ .Release.Namespace }} {{ include "minio.secretName" . }} -o jsonpath="{.data.root-user}" | base64 -d)
-   export ROOT_PASSWORD=$(kubectl get secret --namespace {{ .Release.Namespace }} {{ include "minio.secretName" . }} -o jsonpath="{.data.root-password}" | base64 -d)
+   export ROOT_USER=$(kubectl get secret --namespace {{ .Release.Namespace }} {{ include "minio.secretName" . }} -o jsonpath="{.data.root-user}" | base64 --decode)
+   export ROOT_PASSWORD=$(kubectl get secret --namespace {{ .Release.Namespace }} {{ include "minio.secretName" . }} -o jsonpath="{.data.root-password}" | base64 --decode)
 
 To connect to your MinIO&reg; server using a client:
 
@@ -87,5 +87,3 @@ To access the MinIO&reg; web UI:
   {{- $requiredPasswords = append $requiredPasswords $requiredRootUser -}}
   {{- $requiredPasswords = append $requiredPasswords $requiredRootPassword -}}
 {{- end -}}
-{{- $requiredMinioPasswordErrors := include "common.validations.values.multiple.empty" (dict "required" $requiredPasswords "context" $) -}}
-{{- include "common.errors.upgrade.passwords.empty" (dict "validationErrors" (list $requiredMinioPasswordErrors) "context" $) -}}
