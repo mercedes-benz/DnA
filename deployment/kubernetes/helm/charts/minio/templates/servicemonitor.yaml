@@ -1,12 +1,12 @@
 {{- if .Values.metrics.serviceMonitor.enabled }}
-apiVersion: monitoring.coreos.com/v1
+apiVersion: {{ default "monitoring.coreos.com/v1" .Values.metrics.serviceMonitor.apiVersion }}
 kind: ServiceMonitor
 metadata:
   name: {{ include "common.names.fullname" . }}
   {{- if .Values.metrics.serviceMonitor.namespace }}
-  namespace: {{ .Values.metrics.serviceMonitor.namespace }}
+  namespace: {{ .Values.metrics.serviceMonitor.namespace | quote }}
   {{- else }}
-  namespace: {{ .Values.namespace }}
+  namespace: {{ .Release.Namespace | quote }}
   {{- end }}
   labels: {{- include "common.labels.standard" . | nindent 4 }}
     {{- if .Values.metrics.serviceMonitor.labels }}
@@ -42,7 +42,7 @@ spec:
   {{- end }}
   namespaceSelector:
     matchNames:
-      - {{ .Release.Namespace }}
+      - {{ .Release.Namespace | quote }}
   selector:
     matchLabels: {{- include "common.labels.matchLabels" . | nindent 6 }}
       {{- if .Values.metrics.serviceMonitor.selector }}
