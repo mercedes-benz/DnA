@@ -228,22 +228,22 @@ const ReportsFilter = ({
         });
   }, [userPreference]);
 
-  useEffect(() => {
-    if (reportsDataLoaded && focusedItems['division']) {
-      ProgressIndicator.show();
-      const values = getIdValuesInArray(divisionFilterValues);
-      ApiClient.getSubDivisionsDataWithDivision(values).then((list) => {
-        queryParams.subDivision = divisionFilterValues.length
-          ? [].concat(...list)?.map((l: ISubDivisionSolution) => {
-              return l.id;
-            })
-          : [];
-        setQueryParams(queryParams);
-        setSubDivisions(divisionFilterValues.length ? [].concat(list) : []);
-        applyFilter('division', values);
-      });
-    }
-  }, [divisionFilterValues.length]);
+  // useEffect(() => {
+  //   if (reportsDataLoaded && focusedItems['division']) {
+  //     ProgressIndicator.show();
+  //     const values = getIdValuesInArray(divisionFilterValues);
+  //     ApiClient.getSubDivisionsDataWithDivision(values).then((list) => {
+  //       queryParams.subDivision = divisionFilterValues.length
+  //         ? [].concat(...list)?.map((l: ISubDivisionSolution) => {
+  //             return l.id;
+  //           })
+  //         : [];
+  //       setQueryParams(queryParams);
+  //       setSubDivisions(divisionFilterValues.length ? [].concat(list) : []);
+  //       applyFilter('division', values);
+  //     });
+  //   }
+  // }, [divisionFilterValues.length]);
 
   useEffect(() => {
     typeof getDropdownValues === 'function' &&
@@ -270,21 +270,18 @@ const ReportsFilter = ({
       });
   }, [arts, divisions, subDivisions, departments, processOwners, productOwners, tagFilterValues]);
 
-//   const onFilterIconClick = () => {
-//     setFilterPanel(!openFilterPanel);
-//   };
 
   const setPortfolioFilterValuesInSession = (queryParams: IReportFilterParams) => {
     sessionStorage.setItem(SESSION_STORAGE_KEYS.REPORT_FILTER_VALUES, JSON.stringify(queryParams));
   };
 
-  function getIdValuesInArray(arrayValue: any) {
-    const ids: string[] = [];
-    Array.from(arrayValue).forEach((item: any) => {
-      ids.push(item.id);
-    });
-    return ids;
-  }
+  // function getIdValuesInArray(arrayValue: any) {
+  //   const ids: string[] = [];
+  //   Array.from(arrayValue).forEach((item: any) => {
+  //     ids.push(item.id);
+  //   });
+  //   return ids;
+  // }
 
   const showErrorNotification = (message: string) => {
     ProgressIndicator.hide();
@@ -298,7 +295,7 @@ const ReportsFilter = ({
       queryParams[filterName] = values;
       setPortfolioFilterValuesInSession(queryParams);
       getReportsByQueryParams(queryParams);
-      if (filterName === 'division') SelectBox.defaultSetup();
+      if (filterName === 'division') SelectBox.defaultSetup(true);
       trackEvent(`All Reports`, 'Filter Chart Data', 'From Filter Panel - ' + filterName);
     }
   };
@@ -340,6 +337,7 @@ const ReportsFilter = ({
         ids.push(option.value);
       });
     }
+    focusedItems['division'] && applyFilter('division', ids);
     setDivisionFilterValues(selectedValues);
   };
 
@@ -473,7 +471,7 @@ const ReportsFilter = ({
 
     const filterPreferences: IReportFilterPreferences = {
       divisions: divisionsWithSubDivisions,
-      subDivision: subDivisionFilterValues,
+      subDivisions: subDivisionFilterValues,
       arts: arts?.filter((item) => artFilterValues?.map((art: IART) => art.name).indexOf(item.name) > -1),
       departments: departmentFilterValues?.map((department) => department.name),
       productOwners: productOwnerFilterValues?.map((productOwner) => productOwner.id),
@@ -510,13 +508,8 @@ const ReportsFilter = ({
   };
 
   const resetDataFilters = () => {
-    setArtFilterValues([]);
-    setProcessOwnerFilterValues([]);
-    setDivisionFilterValues([]);
-    setSubDivisionFilterValues([]);
-    setDepartmentFilterValues([]);
     setTagFilterValues([]);
-    const newQueryParams = queryParams;
+    const newQueryParams = JSON.parse(JSON.stringify(queryParams));
     newQueryParams.agileReleaseTrains = arts?.map((phase: IART) => {
       return phase.name;
     });
@@ -529,30 +522,33 @@ const ReportsFilter = ({
     ApiClient.getSubDivisionsData(divisions).then((subDivisionsList) => {
       const subDivisionsToReset = [].concat(...subDivisionsList);
       setSubDivisions(subDivisionsToReset);
-      queryParams.subDivision = subDivisionsToReset?.map((subDivision: ISubDivisionSolution) => {
+      newQueryParams.subDivision = subDivisionsToReset?.map((subDivision: ISubDivisionSolution) => {
         return subDivision.id;
       });
 
-      queryParams.departments = departments?.map((department: IDepartment) => {
+      newQueryParams.departments = departments?.map((department: IDepartment) => {
         return department.name;
       });
 
-      queryParams.tag = [];
+      newQueryParams.tag = [];
 
-      setTimeout(() => sessionStorage.removeItem(SESSION_STORAGE_KEYS.REPORT_FILTER_VALUES), 50);
+      setTimeout(() => {
+        sessionStorage.removeItem(SESSION_STORAGE_KEYS.REPORT_FILTER_VALUES)
+      }, 500);
+
       ProgressIndicator.show();
 
-      if (userPreferenceDataId) {
-        ReportsApiClient.removeUserPreference(userPreferenceDataId)
-          .then((res) => {
-            onResetFilterCompleted(newQueryParams, true);
-          })
-          .catch((error: Error) => {
-            showErrorNotification(error.message ? error.message : 'Some Error Occured');
-          });
-      } else {
-        onResetFilterCompleted(newQueryParams);
-      }
+        if (userPreferenceDataId) {
+          ReportsApiClient.removeUserPreference(userPreferenceDataId)
+            .then((res) => {
+              onResetFilterCompleted(newQueryParams, true);
+            })
+            .catch((error: Error) => {
+              showErrorNotification(error.message ? error.message : 'Some Error Occured');
+            });
+        } else {
+          onResetFilterCompleted(newQueryParams);
+        }
     });
   };
 
