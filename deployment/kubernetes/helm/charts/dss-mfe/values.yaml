@@ -92,7 +92,7 @@ affinity: {}
 ## Inject the application environment variable from vault service
 # If you enable vault injector, the environment variables specified above will be will be override from vault
 vaultInjector:
-  enable: true
+  enable: false
   annotations:
     vault.hashicorp.com/agent-inject: 'true'
     vault.hashicorp.com/role: 'dna'
