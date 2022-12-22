@@ -440,7 +440,7 @@ const ReportsFilter = ({
 
     const filterPreferences: IReportFilterPreferences = {
       divisions: divisionsWithSubDivisions,
-      subDivision: subDivisionFilterValues,
+      subDivisions: subDivisionFilterValues,
       arts: arts?.filter((item) => artFilterValues?.map((art: IART) => art.name).indexOf(item.name) > -1),
       departments: departmentFilterValues?.map((department) => department.name),
       productOwners: productOwnerFilterValues?.map((productOwner) => productOwner.id),
