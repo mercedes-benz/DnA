@@ -838,6 +838,9 @@ definitions:
         number_in_job:
             type: string
             description: number in the job
+        resultFolderPath:
+            type: string
+            description: "result folder path"
         error_code:
             type: string
             description: error code if fails
