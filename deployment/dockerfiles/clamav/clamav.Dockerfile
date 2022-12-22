@@ -24,16 +24,16 @@ RUN echo "deb http://http.debian.net/debian/ $DEBIAN_VERSION main contrib non-fr
     rm -rf /var/lib/apt/lists/*
 
 # initial update of av databases
-# RUN wget -O /var/lib/clamav/main.cvd http://database.clamav.net/main.cvd && \
-#     wget -O /var/lib/clamav/daily.cvd http://database.clamav.net/daily.cvd && \
-#     wget -O /var/lib/clamav/bytecode.cvd http://database.clamav.net/bytecode.cvd && \
-#     chown clamav:clamav /var/lib/clamav/*.cvd
+RUN wget --user-agent='CVDUPDATE/0' -O /var/lib/clamav/main.cvd https://database.clamav.net/main.cvd || true
+RUN wget --user-agent='CVDUPDATE/0' -O /var/lib/clamav/daily.cvd https://database.clamav.net/daily.cvd || true
+RUN wget --user-agent='CVDUPDATE/0' -O /var/lib/clamav/bytecode.cvd https://database.clamav.net/bytecode.cvd || true
+RUN chown clamav:clamav /var/lib/clamav/*.cvd
 
 # Local copy - for testing
 #COPY --chown=clamav:clamav ./db/*.cvd /var/lib/clamav/
 
 # Copy from runner
-COPY --chown=clamav:clamav ./runner-db/*.cvd /var/lib/clamav/
+# COPY --chown=clamav:clamav ./runner-db/*.cvd /var/lib/clamav/
 # COPY --chown=clamav:clamav ./runner-db/daily.cld /var/lib/clamav/
 
 # av configuration update
