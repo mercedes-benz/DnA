@@ -10,7 +10,8 @@ ENV ARTIFACT_NAME=storage-lib-1.0.0.jar
 
 #Install Minio Client
 # WORKDIR /usr/local/bin/
-# RUN sudo wget https://dl.min.io/client/mc/release/linux-amd64/mc
+# RUN sudo wget https://dl.min.io/client/mc/release/linux-amd64/mc 
+
 COPY ./mc /usr/local/bin/
 RUN sudo chmod +x /usr/local/bin/mc
 
