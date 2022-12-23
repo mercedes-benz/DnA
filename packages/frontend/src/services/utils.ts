@@ -237,7 +237,7 @@ export const getDivisionsQueryValue = (divisions: string[], subDivisions: string
   }
   if (divisions.length === 0) {
     divisionIds = '';
-  }
+  }  
   return divisionIds;
 };
 
