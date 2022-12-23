@@ -31,7 +31,7 @@ const DownloadFiles = defineFileAction({
   id: 'download_files',
   requiresSelection: true,
   button: {
-    name: 'Download files',
+    name: 'Download files/folders',
     toolbar: true,
     contextMenu: true,
     group: 'Actions',
@@ -45,7 +45,7 @@ const DeleteFiles = defineFileAction({
   requiresSelection: true,
   hotkeys: ['delete'],
   button: {
-    name: 'Delete files',
+    name: 'Delete files/folders',
     toolbar: true,
     contextMenu: true,
     group: 'Actions',
