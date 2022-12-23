@@ -8,10 +8,6 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import com.daimler.data.auth.vault.VaultAuthClientImpl;
-import com.daimler.data.db.json.UserDetails;
-import com.daimler.data.dto.forecast.*;
-import com.daimler.data.dto.storage.DeleteBucketResponseWrapperDto;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -23,16 +19,29 @@ import org.springframework.web.multipart.MultipartFile;
 import com.daimler.data.application.client.DataBricksClient;
 import com.daimler.data.application.client.StorageServicesClient;
 import com.daimler.data.assembler.ForecastAssembler;
+import com.daimler.data.auth.vault.VaultAuthClientImpl;
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
 import com.daimler.data.db.entities.ForecastNsql;
 import com.daimler.data.db.json.RunDetails;
 import com.daimler.data.db.json.RunState;
+import com.daimler.data.db.json.UserDetails;
 import com.daimler.data.db.repo.forecast.ForecastCustomRepository;
 import com.daimler.data.db.repo.forecast.ForecastRepository;
 import com.daimler.data.dto.databricks.RunNowNotebookParamsDto;
+import com.daimler.data.dto.forecast.ApiKeyVO;
+import com.daimler.data.dto.forecast.DataBricksErrorResponseVO;
+import com.daimler.data.dto.forecast.ForecastProjectUpdateRequestVO;
+import com.daimler.data.dto.forecast.ForecastRunResponseVO;
+import com.daimler.data.dto.forecast.ForecastVO;
+import com.daimler.data.dto.forecast.RunDetailsVO;
+import com.daimler.data.dto.forecast.RunNowResponseVO;
+import com.daimler.data.dto.forecast.RunStateVO;
 import com.daimler.data.dto.forecast.RunStateVO.ResultStateEnum;
+import com.daimler.data.dto.forecast.RunVO;
+import com.daimler.data.dto.forecast.RunVisualizationVO;
 import com.daimler.data.dto.storage.CreateBucketResponseWrapperDto;
+import com.daimler.data.dto.storage.DeleteBucketResponseWrapperDto;
 import com.daimler.data.dto.storage.FileDownloadResponseDto;
 import com.daimler.data.dto.storage.FileUploadResponseDto;
 import com.daimler.data.service.common.BaseCommonService;
@@ -170,9 +179,10 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 				newRunState.setLife_cycle_state("PENDING");
 				newRunState.setUser_cancelled_or_timedout(false);
 				currentRun.setRunState(newRunState);
+				currentRun.setResultFolderPath(resultFolder);
+				runNowResponse.setResultFolderPath(resultFolder);;
 				existingRuns.add(currentRun);
 				entity.getData().setRuns(existingRuns);
-				entity.getData().setResultFolderPath(resultFolder);
 				try {
 					this.jpaRepo.save(entity);
 				}catch(Exception e) {
@@ -242,8 +252,6 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 								updatedRunDetail.setEndTime(updatedRunResponse.getEndTime().longValue());
 							if(updatedRunResponse.getExecutionDuration()!=null) 
 								updatedRunDetail.setExecutionDuration(updatedRunResponse.getExecutionDuration().longValue());
-							if(entity.getData().getResultFolderPath()!=null)
-							 	updatedRunDetail.setResultFolderPath(entity.getData().getResultFolderPath());
 							if(updatedRunResponse.getSetupDuration()!=null) 
 								updatedRunDetail.setSetupDuration(updatedRunResponse.getSetupDuration().longValue());
 							if(updatedRunResponse.getStartTime()!=null)
