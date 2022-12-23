@@ -334,39 +334,36 @@ const SolutionsFilter = ({
     projectTypes,
   ]);
 
-  useEffect(() => {
-    if (solutionsDataLoaded && focusedItems['division']) {
-      ProgressIndicator.show();
-      const values = getIdValuesInArray(divisionFilterValues);
-      ApiClient.getSubDivisionsDataWithDivision(values).then((list) => {
-        queryParams.subDivision = divisionFilterValues.length
-          ? [].concat(...list).map((l: ISubDivisionSolution) => {
-              return l.id;
-            })
-          : [];
-        setQueryParams(queryParams);
-        setSubDivisions(divisionFilterValues.length ? [].concat(list) : []);
-        typeof getValuesFromFilter === 'function' && getValuesFromFilter({ subDivisionFilterValues: [].concat(list) });
-        applyFilter('division', values);
-      });
-    }
-  }, [divisionFilterValues.length]);
+  // useEffect(() => {
+  //   if (solutionsDataLoaded && focusedItems['division']) {
+  //     ProgressIndicator.show();
+  //     const values = getIdValuesInArray(divisionFilterValues);
+  //     ApiClient.getSubDivisionsDataWithDivision(values).then((list) => {
+  //       queryParams.subDivision = divisionFilterValues.length
+  //         ? [].concat(...list).map((l: ISubDivisionSolution) => {
+  //             return l.id;
+  //           })
+  //         : [];
+  //       setQueryParams(queryParams);
+  //       setSubDivisions(divisionFilterValues.length ? [].concat(list) : []);
+  //       typeof getValuesFromFilter === 'function' && getValuesFromFilter({ subDivisionFilterValues: [].concat(list) });
+  //       applyFilter('division', values);
+  //     });
+  //   }
+  // }, [divisionFilterValues.length]);
 
-//   const onFilterIconClick = () => {
-//     setFilterPanel(!openFilterPanel);
-//   };
 
   const setPortfolioFilterValuesInSession = (queryParams: IFilterParams) => {
     sessionStorage.setItem(SESSION_STORAGE_KEYS.PORTFOLIO_FILTER_VALUES, JSON.stringify(queryParams));
   };
 
-  function getIdValuesInArray(arrayValue: any) {
-    const ids: string[] = [];
-    Array.from(arrayValue).forEach((item: any) => {
-      ids.push(item.id);
-    });
-    return ids;
-  }
+  // function getIdValuesInArray(arrayValue: any) {
+  //   const ids: string[] = [];
+  //   Array.from(arrayValue).forEach((item: any) => {
+  //     ids.push(item.id);
+  //   });
+  //   return ids;
+  // }
 
   const showErrorNotification = (message: string) => {
     ProgressIndicator.hide();
@@ -427,6 +424,7 @@ const SolutionsFilter = ({
         ids.push(option.value);
       });
     }
+    focusedItems['division'] && applyFilter('division', ids);
     setDivisionFilterValues(selectedValues);
   };
 

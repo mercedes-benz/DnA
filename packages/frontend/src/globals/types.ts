@@ -1130,7 +1130,7 @@ export interface IReportFilterParams {
 export interface IReportFilterPreferences {
   arts: IART[];
   divisions: IDivision[];
-  subDivision: string[];
+  subDivisions: string[];
   departments: IDepartment[];
   productOwners: ITeams[];
   processOwners: ITeams[];
