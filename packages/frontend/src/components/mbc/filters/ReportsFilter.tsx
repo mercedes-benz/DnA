@@ -295,7 +295,7 @@ const ReportsFilter = ({
       queryParams[filterName] = values;
       setPortfolioFilterValuesInSession(queryParams);
       getReportsByQueryParams(queryParams);
-      if (filterName === 'division') SelectBox.defaultSetup(true);
+      // if (filterName === 'division') SelectBox.defaultSetup(true);
       trackEvent(`All Reports`, 'Filter Chart Data', 'From Filter Panel - ' + filterName);
     }
   };
