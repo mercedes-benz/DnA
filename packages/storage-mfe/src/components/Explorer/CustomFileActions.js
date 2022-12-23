@@ -51,7 +51,6 @@ const DeleteFiles = defineFileAction({
     group: 'Actions',
     icon: 'trash',
   },
-  fileFilter: (file) => file && !file.isDir,
 });
 
 export const CustomActions = {
