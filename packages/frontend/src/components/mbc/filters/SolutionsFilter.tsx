@@ -377,7 +377,7 @@ const SolutionsFilter = ({
       queryParams[filterName] = values;
       setPortfolioFilterValuesInSession(queryParams);
       getSolutionsByQueryParams(queryParams);
-      if (filterName === 'division') SelectBox.defaultSetup();
+      // if (filterName === 'division') SelectBox.defaultSetup(true);
       trackEvent(
         `${isAllSolutionsPage ? 'All Solutions' : 'Portfolio'}`,
         'Filter Chart Data',
