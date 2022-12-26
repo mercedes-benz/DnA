@@ -43,6 +43,7 @@ import com.daimler.data.minio.client.DnaMinioClient;
 import com.daimler.data.util.RedisCacheUtil;
 
 import io.minio.admin.UserInfo;
+import io.minio.admin.UserInfo.Status;
 
 
 @Component
@@ -78,7 +79,7 @@ public class CacheUpdateEventListener {
 			 users = new HashMap<String, UserInfo>();
 			 List<String> policies = new ArrayList<>();
 			 policies.add("dummy policy");
-			 UserInfo dummyuser = new UserInfo(null, "secretkey", "policyname", policies);
+			 UserInfo dummyuser = new UserInfo(Status.ENABLED, "secretkey", "policyname", policies);
 			 users.put("dummy", dummyuser);
 		}
 		cacheUtil.updateCache(cacheName, users);
