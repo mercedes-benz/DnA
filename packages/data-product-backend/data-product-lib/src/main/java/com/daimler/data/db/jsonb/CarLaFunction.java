@@ -25,16 +25,9 @@
  * LICENSE END 
  */
 
-package com.daimler.data.db.jsonb.dataproduct;
+package com.daimler.data.db.jsonb;
 
-import java.util.Date;
-import java.util.List;
-
-import com.daimler.data.db.jsonb.AgileReleaseTrain;
-import com.daimler.data.db.jsonb.CarLaFunction;
-import com.daimler.data.db.jsonb.CorporateDataCatalog;
-import com.daimler.data.db.jsonb.CreatedBy;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import java.io.Serializable;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -43,27 +36,12 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@JsonIgnoreProperties(ignoreUnknown = true)
-public class DataProduct {
-	
-	private String dataProductId;
-	private String dataProductName;
-	private String recordStatus;
-	private String description;
-	private String howToAccessText;
-	private Boolean publish;
-	private Boolean notifyUsers;
-	private Date createdDate;
-	private Date lastModifiedDate;
-	private CarLaFunction carLaFunction;
-	private AgileReleaseTrain agileReleaseTrain;
-	private CorporateDataCatalog corporateDataCatalog;
-	private CreatedBy createdBy;
-	private CreatedBy modifiedBy;
-	private DataProductContactInformation contactInformation;
-	private DataProductClassificationConfidentiality classificationConfidentiality;
-	private DataProductPersonalRelatedData personalRelatedData;
-	private DataProductTransnationalDataTransfer transnationalDataTransfer;
-	private DataProductDeletionRequirement deletionRequirement;
-	private List<String> openSegments;
+public class CarLaFunction implements Serializable {
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -5738422653465193729L;
+	private String id;
+	private String name;
 }
