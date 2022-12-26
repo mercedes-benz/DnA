@@ -452,10 +452,12 @@ export default class AllSolutions extends React.Component<
                   <div className={Styles.allsolutioncontent}>
                     {this.state.cardViewMode && (
                       <div className={classNames('cardSolutions', Styles.allsolutionCardviewContent)}>
+                        {this.state.solutions.length > 0 ?
                         <div className={Styles.cardViewContainer} onClick={() => history.push('/createnewsolution')}>
                           <div className={Styles.addicon}> &nbsp; </div>
                           <label className={Styles.addlabel}>Create new solution</label>
-                        </div>
+                        </div> 
+                        : ''}
                         {this.state.solutions.map((solution, index) => {
                           return (
                             <SolutionCardItem
