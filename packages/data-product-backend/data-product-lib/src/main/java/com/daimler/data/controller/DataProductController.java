@@ -264,7 +264,9 @@ public class DataProductController implements DataproductsApi{
 				dataProductVO =  service.getById(id);
 			}
 		}
-		if(dataProductVO!=null) {
+		if (dataProductVO!=null
+				&& dataProductVO.getId()!= null
+				&& ConstantsUtility.OPEN.equalsIgnoreCase(dataProductVO.getRecordStatus())) {
 			log.info("DataProduct {} fetched successfully", id);
 			return new ResponseEntity<>(dataProductVO, HttpStatus.OK);
 		}else {
