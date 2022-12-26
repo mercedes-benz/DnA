@@ -404,6 +404,7 @@ definitions:
           type: string
           enum:
             [
+              "Description",
               "ContactInformation",
               "ClassificationAndConfidentiality",
               "IdentifyingPersonalRelatedData",
