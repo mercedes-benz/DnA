@@ -346,3 +346,32 @@ export const DataLandingPageElements = [
     svgIconId: 'IconDataGovernance',
   },
 ];
+
+export const TrainingsLandingPageElements = [
+  {
+    name: 'Udemy',
+    description:
+      'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. eiusmod tempor incididunt ut labore et dolore magna aliqua.',
+    tags: ['Self Service', 'FOSS'],
+    url: Envs.UDEMY_URL,
+    isExternalLink: true,
+    isTextAlignLeft: false,
+    isDisabled: false,
+    isSmallCard: false,
+    isMediumCard: false,
+    svgIconId: 'IconDataProducts',
+  },
+  {
+    name: 'LinkedIn Learning',
+    description:
+      'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. eiusmod tempor incididunt ut labore et dolore magna aliqua.',
+    tags: ['Self Service', 'FOSS'],
+    url: Envs.LINKEDIN_LEARNING_URL,
+    isExternalLink: true,
+    isTextAlignLeft: false,
+    isDisabled: false,
+    isSmallCard: false,
+    isMediumCard: false,
+    svgIconId: 'IconDataLayer',
+  },
+];
