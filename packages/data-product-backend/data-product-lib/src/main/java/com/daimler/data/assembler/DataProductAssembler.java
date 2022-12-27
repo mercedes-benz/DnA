@@ -28,19 +28,17 @@
 package com.daimler.data.assembler;
 
 import java.lang.reflect.Type;
+import java.util.*;
 import java.util.AbstractMap.SimpleEntry;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
+import com.daimler.data.db.jsonb.AgileReleaseTrain;
+import com.daimler.data.db.jsonb.CarLaFunction;
+import com.daimler.data.db.jsonb.CorporateDataCatalog;
+import com.daimler.data.dto.dataproduct.*;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ObjectUtils;
@@ -58,18 +56,7 @@ import com.daimler.data.db.jsonb.dataproduct.Division;
 import com.daimler.data.db.jsonb.dataproduct.Subdivision;
 import com.daimler.data.db.jsonb.dataproduct.TeamMember;
 import com.daimler.data.dto.datacompliance.CreatedByVO;
-import com.daimler.data.dto.dataproduct.ChangeLogVO;
-import com.daimler.data.dto.dataproduct.DataProductClassificationConfidentialityVO;
-import com.daimler.data.dto.dataproduct.DataProductContactInformationVO;
-import com.daimler.data.dto.dataproduct.DataProductDeletionRequirementVO;
-import com.daimler.data.dto.dataproduct.DataProductPersonalRelatedDataVO;
-import com.daimler.data.dto.dataproduct.DataProductTeamMemberVO;
 import com.daimler.data.dto.dataproduct.DataProductTeamMemberVO.UserTypeEnum;
-import com.daimler.data.dto.dataproduct.DataProductTransnationalDataTransferVO;
-import com.daimler.data.dto.dataproduct.DataProductVO;
-import com.daimler.data.dto.dataproduct.DivisionVO;
-import com.daimler.data.dto.dataproduct.SubdivisionVO;
-import com.daimler.data.dto.dataproduct.TeamMemberVO;
 import com.google.common.collect.MapDifference;
 import com.google.common.collect.MapDifference.ValueDifference;
 import com.google.common.collect.Maps;
@@ -88,6 +75,7 @@ public class DataProductAssembler implements GenericAssembler<DataProductVO, Dat
 			DataProduct dataProduct = entity.getData();
 			if (dataProduct != null) {
 				BeanUtils.copyProperties(dataProduct, vo);
+				vo.setIsPublish(entity.getData().getPublish());
 				if (Objects.nonNull(dataProduct.getCreatedBy())) {
 					CreatedByVO createdByVO = new CreatedByVO();
 					BeanUtils.copyProperties(dataProduct.getCreatedBy(), createdByVO);
@@ -97,6 +85,21 @@ public class DataProductAssembler implements GenericAssembler<DataProductVO, Dat
 					CreatedByVO updatedByVO = new CreatedByVO();
 					BeanUtils.copyProperties(dataProduct.getModifiedBy(), updatedByVO);
 					vo.setModifiedBy(updatedByVO);
+				}
+				if (Objects.nonNull(dataProduct.getCarLaFunction())) {
+					CarLaFunctionVO carLaFunctionVO = new CarLaFunctionVO();
+					BeanUtils.copyProperties(dataProduct.getCarLaFunction(), carLaFunctionVO);
+					vo.setCarLaFunction(carLaFunctionVO);
+				}
+				if (Objects.nonNull(dataProduct.getAgileReleaseTrain())) {
+					AgileReleaseTrainVO agileReleaseTrain = new AgileReleaseTrainVO();
+					BeanUtils.copyProperties(dataProduct.getAgileReleaseTrain(), agileReleaseTrain);
+					vo.setAgileReleaseTrain(agileReleaseTrain);
+				}
+				if (Objects.nonNull(dataProduct.getCorporateDataCatalog())) {
+					CorporateDataCatalogVO corporateDataCatalog = new CorporateDataCatalogVO();
+					BeanUtils.copyProperties(dataProduct.getCorporateDataCatalog(), corporateDataCatalog);
+					vo.setCorporateDataCatalog(corporateDataCatalog);
 				}
 				
 				DataProductContactInformation dataProductContactInformation = dataProduct.getContactInformation();
@@ -143,12 +146,12 @@ public class DataProductAssembler implements GenericAssembler<DataProductVO, Dat
 					BeanUtils.copyProperties(dataProduct.getDeletionRequirement(), deletionRequirementVO);
 					vo.setDeletionRequirement(deletionRequirementVO);
 				}
-//				if (!ObjectUtils.isEmpty(dataProduct.getOpenSegments())) {
-//					List<DataProductVO.OpenSegmentsEnum> openSegmentsEnumList = new ArrayList<>();
-//					dataProduct.getOpenSegments().forEach(openSegment -> openSegmentsEnumList
-//							.add(DataProductVO.OpenSegmentsEnum.valueOf(openSegment)));
-//					dataProduct.setOpenSegments(openSegmentsEnumList);
-//				}
+				if (!ObjectUtils.isEmpty(dataProduct.getOpenSegments())) {
+					List<DataProductVO.OpenSegmentsEnum> openSegmentsEnumList = new ArrayList<>();
+					dataProduct.getOpenSegments().forEach(openSegment -> openSegmentsEnumList
+							.add(DataProductVO.OpenSegmentsEnum.valueOf(openSegment)));
+					vo.setOpenSegments(openSegmentsEnumList);
+				}
 			}
 		}
 		return vo;
@@ -178,6 +181,21 @@ public class DataProductAssembler implements GenericAssembler<DataProductVO, Dat
 					CreatedBy userDetails = new CreatedBy();
 					BeanUtils.copyProperties(vo.getModifiedBy(), userDetails);
 					dataProduct.setModifiedBy(userDetails);
+				}
+				if (Objects.nonNull(vo.getCarLaFunction())) {
+					CarLaFunction carLaFunction = new CarLaFunction();
+					BeanUtils.copyProperties(vo.getCarLaFunction(), carLaFunction);
+					dataProduct.setCarLaFunction(carLaFunction);
+				}
+				if (Objects.nonNull(vo.getAgileReleaseTrain())) {
+					AgileReleaseTrain agileReleaseTrain = new AgileReleaseTrain();
+					BeanUtils.copyProperties(vo.getAgileReleaseTrain(), agileReleaseTrain);
+					dataProduct.setAgileReleaseTrain(agileReleaseTrain);
+				}
+				if (Objects.nonNull(vo.getCorporateDataCatalog())) {
+					CorporateDataCatalog corporateDataCatalog = new CorporateDataCatalog();
+					BeanUtils.copyProperties(vo.getCorporateDataCatalog(), corporateDataCatalog);
+					dataProduct.setCorporateDataCatalog(corporateDataCatalog);
 				}
 //				if (!ObjectUtils.isEmpty(vo.getUsers())) {
 //					List<TeamMember> users = vo.getUsers().stream().map(n -> toTeamMemberJson(n))
