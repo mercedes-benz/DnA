@@ -374,4 +374,42 @@ export const TrainingsLandingPageElements = [
     isMediumCard: false,
     svgIconId: 'IconDataLayer',
   },
+  {
+    name: 'Dataiku',
+    description:
+      'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. eiusmod tempor incididunt ut labore et dolore magna aliqua.',
+    tags: ['Self Service', 'FOSS'],
+    url: Envs.DATAIKU_TRAINING_APP_URL,
+    isExternalLink: true,
+    isTextAlignLeft: false,
+    isDisabled: false,
+    isSmallCard: false,
+    isMediumCard: false,
+    svgIconId: 'IconDataLayer',
+  },
+  {
+    name: 'PowerBI',
+    description:
+      'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. eiusmod tempor incididunt ut labore et dolore magna aliqua.',
+    tags: ['Self Service', 'FOSS'],
+    url: Envs.POWERBI_TRAINING_URL,
+    isExternalLink: true,
+    isTextAlignLeft: false,
+    isDisabled: false,
+    isSmallCard: false,
+    isMediumCard: false,
+    svgIconId: 'IconDataLayer',
+  },
+  {
+    name: 'SAC',
+    description:
+      'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. eiusmod tempor incididunt ut labore et dolore magna aliqua.',
+    tags: ['Self Service', 'FOSS'],
+    url: sapAnalyticsUrl,
+    isExternalLink: true,
+    isTextAlignLeft: false,
+    isDisabled: !enableSapAnalyticsCloud,
+    isSmallCard: false,
+    isMediumCard: true,
+  },
 ];
