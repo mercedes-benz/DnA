@@ -157,4 +157,6 @@ export const Envs = {
       : EnvParser.parseBool(process.env.ENABLE_CHRONOS_FORECASTING_SERVICE, false),
   
   DATA_GOVERNANCE_INFO_LINK: getInjectedEnv('DATA_GOVERNANCE_INFO_LINK') || process.env.DATA_GOVERNANCE_INFO_LINK,
+  UDEMY_URL: getInjectedEnv('UDEMY_URL') || process.env.UDEMY_URL,
+  LINKEDIN_LEARNING_URL: getInjectedEnv('LINKEDIN_LEARNING_URL') || process.env.LINKEDIN_LEARNING_URL,
 };
