@@ -160,4 +160,5 @@ export const Envs = {
   UDEMY_URL: getInjectedEnv('UDEMY_URL') || process.env.UDEMY_URL,
   LINKEDIN_LEARNING_URL: getInjectedEnv('LINKEDIN_LEARNING_URL') || process.env.LINKEDIN_LEARNING_URL,
   POWERBI_TRAINING_URL: getInjectedEnv('POWERBI_TRAINING_URL') || process.env.POWERBI_TRAINING_URL,
+  SAC_TRAINING_URL: getInjectedEnv('SAC_TRAINING_URL') || process.env.SAC_TRAINING_URL,
 };
