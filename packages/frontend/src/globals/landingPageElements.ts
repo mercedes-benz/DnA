@@ -405,10 +405,10 @@ export const TrainingsLandingPageElements = [
     description:
       'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. eiusmod tempor incididunt ut labore et dolore magna aliqua.',
     tags: ['Self Service', 'FOSS'],
-    url: sapAnalyticsUrl,
+    url: Envs.SAC_TRAINING_URL,
     isExternalLink: true,
     isTextAlignLeft: false,
-    isDisabled: !enableSapAnalyticsCloud,
+    isDisabled: false,
     isSmallCard: false,
     isMediumCard: true,
   },
