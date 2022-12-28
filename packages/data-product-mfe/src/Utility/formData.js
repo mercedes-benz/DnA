@@ -27,7 +27,6 @@ export const serializeFormData = ({ values, division, type = 'provider', isDataP
         : {
             id: values.id,
             dataProductName: values.productName,
-            dataProductId: values.dataProductId,
             description: values.description,
             howToAccessText: values.howToAccessText,
             isPublish: values.publish || false,
@@ -93,7 +92,6 @@ export const serializeFormData = ({ values, division, type = 'provider', isDataP
             description: values.description,
             howToAccessText: values.howToAccessText,
             id: values.id,
-            dataProductId: values.dataProductId,
             isPublish: values.publish || false,
             notifyUsers: values.notifyUsers || false,
             openSegments: values.openSegments,
@@ -245,6 +243,10 @@ export const deserializeFormData = ({ item, type = 'provider', isDataProduct = f
           transnationalDataTransferNotWithinEU: item?.transnationalDataTransfer?.notWithinEU ? 'Yes' : '',
           insiderInformation: item?.transnationalDataTransfer?.insiderInformation,
           dataOriginatedFromChina: item?.transnationalDataTransfer?.dataFromChina ? 'Yes' : 'No',
+
+          deletionRequirement: item?.deletionRequirement?.deletionRequirements ? 'Yes' : 'No',
+          deletionRequirementDescription: item?.deletionRequirement?.description,
+          otherRelevantInfo: item?.deletionRequirement?.otherRelevantInformation,
         }),
   };
 };
