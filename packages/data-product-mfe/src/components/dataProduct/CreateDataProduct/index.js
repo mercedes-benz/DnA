@@ -15,7 +15,7 @@ import ConfirmModal from 'dna-container/ConfirmModal';
 import SelectBox from 'dna-container/SelectBox';
 
 import { hostServer } from '../../../server/api';
-import { dataProductApi } from '../../../apis/data.api';
+import { dataProductApi } from '../../../apis/dataproducts.api';
 
 import { deserializeFormData, mapOpenSegments } from '../../../Utility/formData';
 
@@ -26,15 +26,16 @@ import Classification from '../../dataTransfer/ProviderForm/ClassificationAndCon
 import PersonalRelatedData from '../../dataTransfer/ProviderForm/PersonalRelatedData';
 import TransNationalDataTransfer from '../../dataTransfer/ProviderForm/TransNationalDataTransfer';
 import DeletionRequirements from '../../dataTransfer/ProviderForm/DeletionRequirements';
-import { setData, setDivisionList, setSelectedData } from '../redux/dataSlice';
-import { UpdateData, SetData } from '../redux/data.services';
+import { setDivisionList, setSelectedData } from '../redux/dataProductSlice';
+import { UpdateDataProduct, SetDataProduct } from '../redux/dataProduct.services';
+import { getAgileReleaseTrains, getCarlaFunctions, getCorporateDataCatalogs } from '../../redux/getDropdowns.services';
 
 const dataForms = {
   description: {
     dataProductName: '',
     carLAFunction: '',
     ART: '',
-    corportateDataCatalog: '',
+    corporateDataCatalog: '',
     description: '',
     dateOfDataProduct: '',
   },
@@ -42,13 +43,13 @@ const dataForms = {
 };
 
 const CreateDataProduct = ({ user, history }) => {
-  const isCreatePage = history.location.pathname === '/createData';
-  const isEditPage = /^\/editData/.test(history?.location?.pathname);
+  const isCreatePage = history.location.pathname === '/dataproduct/create';
+  const isEditPage = /^\/dataproduct\/edit/.test(history?.location?.pathname);
 
   const [currentTab, setCurrentTab] = useState('description');
   const [savedTabs, setSavedTabs] = useState([]);
 
-  const data = useSelector((state) => state.data);
+  const data = useSelector((state) => state.dataProduct);
 
   const elementRef = useRef(Object.keys(dataForms)?.map(() => createRef()));
   const methods = useForm();
@@ -58,13 +59,15 @@ const CreateDataProduct = ({ user, history }) => {
   const [subDivisions, setSubDivisions] = useState([]);
   const [showChangeAlert, setShowChangeAlert] = useState({ modal: false, switchingTab: '' });
 
-  const [artList, setArtList] = useState([]);
-  const [carlaFunctionList, setCarlaFunctionList] = useState([]);
-  const [dataCatalogList, setDataCatalogList] = useState([]);
+  // const [artList, setArtList] = useState([]);
+  // const [carlaFunctionList, setCarlaFunctionList] = useState([]);
+  // const [dataCatalogList, setDataCatalogList] = useState([]);
 
   const dispatch = useDispatch();
+  const { agileReleaseTrains, carLAFunctions, corporateDataCatalogs } = useSelector((state) => state.dropdowns);
 
   const { id: dataProductId } = useParams();
+  const createCopyId = history.location?.state?.copyId;
 
   const userInfo = {
     addedByProvider: true,
@@ -80,19 +83,33 @@ const CreateDataProduct = ({ user, history }) => {
   };
 
   const getDataProductById = () => {
-    const id = dataProductId || data?.selectedData?.id;
+    const id = createCopyId || dataProductId || data?.selectedData?.id;
     ProgressIndicator.show();
     dataProductApi
-      .getDataById(data?.data, id)
+      .getDataProductById(id)
       .then((res) => {
+        if (createCopyId) {
+          // creating copy of existing data product
+          // below properties needs to be reset to new ones for the copy
+          res.data.dataProductId = '';
+          res.data.id = '';
+          res.data.notifyUsers = false;
+          res.data.publish = false;
+          res.data.contactInformation.name = userInfo;
+          delete res.data.createdBy;
+          delete res.data.createdDate;
+          delete res.data.lastModifiedDate;
+          delete res.data.modifiedBy;
+        }
+
         if (res.status === 204) {
           return history.push('/NotFound');
         } else {
-          const data = deserializeFormData(res.data);
-          dispatch(setData(data));
+          const data = deserializeFormData({ item: res.data, isDataProduct: true });
+          dispatch(setSelectedData(data));
           reset(data);
           let segments = [];
-          res.data.providerInformation?.openSegments?.map((seg) => {
+          res.data?.openSegments?.map((seg) => {
             for (let key in mapOpenSegments) {
               if (mapOpenSegments[key] === seg) {
                 segments.push(key);
@@ -124,16 +141,17 @@ const CreateDataProduct = ({ user, history }) => {
 
   useEffect(() => {
     const { id } = data.selectedData;
-    if (isCreatePage) {
+    if (isCreatePage && !createCopyId) {
       if (id) {
         let defaultValues = { ...data.selectedData };
         reset(defaultValues); // setting default values
       } else {
         const data = dataForms['description'];
-        data.name = userInfo;
-        reset(data); // setting default values
+        dataForms['contact-info'].name = userInfo;
+        reset({ ...data, ...dataForms['contact-info'] }); // setting default values
       }
     }
+
     //eslint-disable-next-line
   }, [dispatch, data.selectedData, isCreatePage]);
 
@@ -149,7 +167,7 @@ const CreateDataProduct = ({ user, history }) => {
   }, [dispatch]);
 
   useEffect(() => {
-    if (isEditPage) {
+    if (isEditPage || createCopyId) {
       divisions.length > 0 && getDataProductById();
     }
     //eslint-disable-next-line
@@ -163,20 +181,23 @@ const CreateDataProduct = ({ user, history }) => {
 
   // Mock data
   useEffect(() => {
-    setArtList([
-      { id: 'ART1', name: 'ART 1' },
-      { id: 'ART2', name: 'ART 2' },
-    ]);
-    setCarlaFunctionList([
-      { id: '1', name: 'carLA 1' },
-      { id: '2', name: 'carLA 2' },
-    ]);
-    setDataCatalogList([
-      { id: '1', name: 'oneAPI' },
-      { id: '2', name: 'DDX' },
-      { id: '3', name: 'eXtollo' },
-    ]);
-  }, []);
+    dispatch(getAgileReleaseTrains());
+    dispatch(getCarlaFunctions());
+    dispatch(getCorporateDataCatalogs());
+    // setArtList([
+    //   { id: '1', name: 'ART 1' },
+    //   { id: '2', name: 'ART 2' },
+    // ]);
+    // setCarlaFunctionList([
+    //   { id: '1', name: 'carLA 1' },
+    //   { id: '2', name: 'carLA 2' },
+    // ]);
+    // setDataCatalogList([
+    //   { id: '1', name: 'oneAPI' },
+    //   { id: '2', name: 'DDX' },
+    //   { id: '3', name: 'eXtollo' },
+    // ]);
+  }, [dispatch]);
 
   const setTab = (e) => {
     const id = e.target.id;
@@ -203,7 +224,8 @@ const CreateDataProduct = ({ user, history }) => {
     const saveSegments = mapOpenSegments[currentTab];
     const openSegments = data.selectedData?.openSegments || [];
     values.openSegments = [...openSegments];
-    if (isCreatePage && !data?.selectedData?.id && currentTab === 'description') {
+
+    if (isCreatePage && !createCopyId && !data?.selectedData?.id && currentTab === 'description') {
       values.openSegments = ['Description'];
     } else if (values?.openSegments?.indexOf(saveSegments) === -1) {
       values.openSegments.push(saveSegments);
@@ -223,12 +245,12 @@ const CreateDataProduct = ({ user, history }) => {
       if (id) {
         dataObj.values['id'] = id;
         dataObj.type = 'provider';
-        dispatch(UpdateData(dataObj));
-      } else dispatch(SetData(dataObj));
+        dispatch(UpdateDataProduct(dataObj));
+      } else dispatch(SetDataProduct(dataObj));
     } else if (isEditPage) {
       dataObj.type = 'provider';
       dataObj.state = 'edit';
-      dispatch(UpdateData(dataObj));
+      dispatch(UpdateDataProduct(dataObj));
     }
   };
 
@@ -327,9 +349,10 @@ const CreateDataProduct = ({ user, history }) => {
               <div id="tab-content-1" className="tab-content">
                 <Description
                   onSave={(values) => onSave('description', values)}
-                  artList={artList}
-                  carlaFunctionList={carlaFunctionList}
-                  dataCatalogList={dataCatalogList}
+                  artList={agileReleaseTrains}
+                  carlaFunctionList={carLAFunctions}
+                  dataCatalogList={corporateDataCatalogs}
+                  userInfo={userInfo}
                 />
               </div>
               <div id="tab-content-2" className="tab-content">
@@ -340,6 +363,7 @@ const CreateDataProduct = ({ user, history }) => {
                     setSubDivisions={setSubDivisions}
                     subDivisions={subDivisions}
                     isDataProduct={true}
+                    userInfo={userInfo}
                   />
                 )}
               </div>
@@ -384,7 +408,7 @@ const CreateDataProduct = ({ user, history }) => {
               </div>
             }
             onCancel={() => {
-              // getDataProductById();
+              getDataProductById();
               setCurrentTab(showChangeAlert.switchingTab);
               elementRef.current[Object.keys(dataForms).indexOf(showChangeAlert.switchingTab)].click();
               setShowChangeAlert({ modal: false, switchingTab: '' });
