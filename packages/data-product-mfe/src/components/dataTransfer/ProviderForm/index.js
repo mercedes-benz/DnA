@@ -13,8 +13,8 @@ import Notification from '../../../common/modules/uilab/js/src/notification';
 import { hostServer } from '../../../server/api';
 import { dataTransferApi } from '../../../apis/datatransfers.api';
 
-import { setDataProduct, setDivisionList } from '../redux/dataTransferSlice';
-import { SetDataProducts, UpdateDataProducts } from '../redux/dataTransfer.services';
+import { setSelectedDataTransfer, setDivisionList } from '../redux/dataTransferSlice';
+import { SetDataTransfers, UpdateDataTransfers } from '../redux/dataTransfer.services';
 import { deserializeFormData, mapOpenSegments } from '../../../Utility/formData';
 
 import ConfirmModal from 'dna-container/ConfirmModal';
@@ -98,7 +98,7 @@ const ProviderForm = ({ user, history }) => {
     const id = createCopyId || dataTransferId || provideDataTransfers?.selectedDataTransfer?.id;
     ProgressIndicator.show();
     dataTransferApi
-      .getDataProductById(id)
+      .getDataTransferById(id)
       .then((res) => {
         if (createCopyId) {
           // creating copy of existing data product
@@ -119,8 +119,8 @@ const ProviderForm = ({ user, history }) => {
         if (res.status === 204) {
           return history.push('/NotFound');
         } else {
-          const data = deserializeFormData(res.data);
-          dispatch(setDataProduct(data));
+          const data = deserializeFormData({ item: res.data });
+          dispatch(setSelectedDataTransfer(data));
           reset(data);
           let segments = [];
           res.data.providerInformation?.openSegments?.map((seg) => {
@@ -188,7 +188,7 @@ const ProviderForm = ({ user, history }) => {
 
   useEffect(() => {
     return () => {
-      dispatch(setDataProduct({}));
+      dispatch(setSelectedDataTransfer({}));
     };
   }, [dispatch]);
 
@@ -240,12 +240,12 @@ const ProviderForm = ({ user, history }) => {
       if (id) {
         data.values['id'] = id;
         data.type = 'provider';
-        dispatch(UpdateDataProducts(data));
-      } else dispatch(SetDataProducts(data));
+        dispatch(UpdateDataTransfers(data));
+      } else dispatch(SetDataTransfers(data));
     } else if (isEditPage) {
       data.type = 'provider';
       data.state = 'edit';
-      dispatch(UpdateDataProducts(data));
+      dispatch(UpdateDataTransfers(data));
     }
   };
 

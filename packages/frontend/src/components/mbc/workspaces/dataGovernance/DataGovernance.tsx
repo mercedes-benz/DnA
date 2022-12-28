@@ -31,6 +31,7 @@ const DataGovernance = () => {
               isDisabled={card.isDisabled}
               isSmallCard={card.isSmallCard}
               isMediumCard={card.isMediumCard}
+              svgIcon={card.svgIcon ? card.svgIcon : 'dataproduct'}
               className="data"
             />
           );

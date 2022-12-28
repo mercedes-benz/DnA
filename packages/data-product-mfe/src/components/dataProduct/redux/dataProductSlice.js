@@ -1,6 +1,6 @@
 import { createSlice } from '@reduxjs/toolkit';
 import { SESSION_STORAGE_KEYS } from '../../../Utility/constants';
-import { GetData, SetData, UpdateData } from './data.services';
+import { GetDataProducts, SetDataProduct, UpdateDataProduct } from './dataProduct.services';
 
 const dataInitialState = {
   data: [],
@@ -17,54 +17,53 @@ const dataInitialState = {
 };
 
 export const dataSlice = createSlice({
-  name: 'data',
+  name: 'products',
   initialState: dataInitialState,
   extraReducers: {
-    [GetData.pending]: (state) => {
+    [GetDataProducts.pending]: (state) => {
       state.isLoading = true;
     },
-    [GetData.fulfilled]: (state, action) => {
-      const totalNumberOfPages = Math.ceil(action.payload.data?.length / action.payload.pagination.maxItemsPerPage);
-      const modifiedData = action.payload.data
+    [GetDataProducts.fulfilled]: (state, action) => {
+      const totalNumberOfPages = Math.ceil(action.payload?.data?.length / action.payload?.pagination.maxItemsPerPage);
+      const modifiedData = action.payload?.data
         ? action.payload.data?.slice(0, action.payload.pagination.maxItemsPerPage)
         : [];
-      let objectArr = [...state.data, ...modifiedData];
-      state.data = [...new Set(objectArr.map((o) => JSON.stringify(o)))].map((str) => JSON.parse(str));
+      // let objectArr = [...state.data, ...modifiedData];
+      // state.data = [...new Set(objectArr.map((o) => JSON.stringify(o)))].map((str) => JSON.parse(str));
+      state.data = modifiedData;
       state.isLoading = false;
       state.errors = '';
-      state.pagination.dataListResponse = action.payload.data;
+      state.pagination.dataListResponse = action.payload?.data || [];
       state.pagination.totalNumberOfPages = totalNumberOfPages;
       state.pagination.currentPageNumber = 1;
     },
-    [GetData.rejected]: (state, action) => {
+    [GetDataProducts.rejected]: (state, action) => {
       state.data = [];
       state.isLoading = false;
       state.errors = action.payload;
     },
-    [SetData.pending]: (state) => {
+    [SetDataProduct.pending]: (state) => {
       state.isLoading = true;
     },
-    [SetData.fulfilled]: (state, action) => {
+    [SetDataProduct.fulfilled]: (state, action) => {
       state.isLoading = false;
       state.data = [...state.data, action.payload.data];
       state.selectedData = action.payload?.data;
       state.errors = '';
     },
-    [SetData.rejected]: (state, action) => {
+    [SetDataProduct.rejected]: (state, action) => {
       state.isLoading = false;
       state.errors = action.payload;
     },
-    [UpdateData.pending]: (state) => {
+    [UpdateDataProduct.pending]: (state) => {
       state.isLoading = true;
     },
-    [UpdateData.fulfilled]: (state, action) => {
+    [UpdateDataProduct.fulfilled]: (state, action) => {
       state.isLoading = false;
-      let filteredData = state.data.filter((item) => item.id !== action.payload.data.id);
-      state.data = [...filteredData, action.payload.data];
       state.selectedData = action.payload.data;
       state.errors = '';
     },
-    [UpdateData.rejected]: (state, action) => {
+    [UpdateDataProduct.rejected]: (state, action) => {
       state.isLoading = false;
       state.errors = action.payload;
     },
@@ -73,7 +72,7 @@ export const dataSlice = createSlice({
     setDivisionList: (state, action) => {
       state.divisionList = action.payload;
     },
-    setData: (state, action) => {
+    setDataProductList: (state, action) => {
       state.data = action.payload;
     },
     setSelectedData: (state, action) => {
@@ -88,5 +87,5 @@ export const dataSlice = createSlice({
   },
 });
 
-export const { setPagination, setData, setSelectedData, setDivisionList } = dataSlice.actions;
+export const { setPagination, setDataProductList, setSelectedData, setDivisionList } = dataSlice.actions;
 export default dataSlice.reducer;

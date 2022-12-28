@@ -7,7 +7,7 @@ import ProgressIndicator from '../../../common/modules/uilab/js/src/progress-ind
 import Tabs from '../../../common/modules/uilab/js/src/tabs';
 import { hostServer } from '../../../server/api';
 import { deserializeFormData, serializeDivisionSubDivision } from '../../../Utility/formData';
-import { setDataProduct, setDivisionList } from '../redux/dataTransferSlice';
+import { setSelectedDataTransfer, setDivisionList } from '../redux/dataTransferSlice';
 
 import Styles from './styles.scss';
 
@@ -55,18 +55,18 @@ const Summary = ({ history }) => {
     getDataProductById();
 
     return () => {
-      dispatch(setDataProduct({}));
+      dispatch(setSelectedDataTransfer({}));
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const getDataProductById = () => {
-    dataTransferApi.getDataProductById(dataTransferId).then((res) => {
+    dataTransferApi.getDataTransferById(dataTransferId).then((res) => {
       if (res.status === 204) {
         return history.push('/NotFound');
       } else {
-        const data = deserializeFormData(res.data);
-        dispatch(setDataProduct(data));
+        const data = deserializeFormData({ item: res.data });
+        dispatch(setSelectedDataTransfer(data));
         Tabs.defaultSetup();
       }
     });
