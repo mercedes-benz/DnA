@@ -276,124 +276,124 @@ public class DataProductController implements DataproductsApi{
     }
 
 	@Override
-	@ApiOperation(value = "update dataproduct for a given Id.", nickname = "updateById", notes = "update dataproduct for a given identifier. This endpoints will be used to get a dataproduct for a given identifier.", response = DataProductVO.class, tags={ "dataproducts", })
+	@ApiOperation(value = "Update an existing dataproduct.", nickname = "update", notes = "Update an existing dataproduct.", response = DataProductVO.class, tags = {"dataproducts",})
 	@ApiResponses(value = {
 			@ApiResponse(code = 200, message = "Returns message of success or failure", response = DataProductVO.class),
 			@ApiResponse(code = 400, message = "Bad request."),
 			@ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
 			@ApiResponse(code = 403, message = "Request is not authorized."),
 			@ApiResponse(code = 405, message = "Method not allowed"),
-			@ApiResponse(code = 500, message = "Internal error") })
-	@RequestMapping(value = "/dataproducts/{id}",
-			produces = { "application/json" },
-			consumes = { "application/json" },
+			@ApiResponse(code = 500, message = "Internal error")})
+	@RequestMapping(value = "/dataproducts",
+			produces = {"application/json"},
+			consumes = {"application/json"},
 			method = RequestMethod.PUT)
-	public ResponseEntity<DataProductResponseVO> updateById(
-			@ApiParam(value = "dataproduct ID to be updated", required = true) @PathVariable("id") String id,
+	public ResponseEntity<DataProductResponseVO> update(
 			@ApiParam(value = "Request Body that contains data required for updating a new dataproduct", required = true)
 			@Valid @RequestBody DataProductRequestVO dataProductRequestVO) {
-			DataProductVO existingVO = null;
-		if (StringUtils.hasText(id)) {
+		DataProductVO existingVO = null;
+		DataProductVO requestVO = dataProductRequestVO.getData();
+		if (requestVO != null && requestVO.getId() != null) {
+			String id = requestVO.getId();
 			existingVO = service.getById(id);
-			DataProductVO requestVO = dataProductRequestVO.getData();
 			DataProductResponseVO responseVO = new DataProductResponseVO();
 
-				if (existingVO != null
-			        && ConstantsUtility.OPEN.equalsIgnoreCase(existingVO.getRecordStatus())
+			if (existingVO != null
+					&& ConstantsUtility.OPEN.equalsIgnoreCase(existingVO.getRecordStatus())
 					&& existingVO.getId().equals(dataProductRequestVO.getData().getId())) {
 
-					CreatedByVO requestUser = this.userStore.getVO();
-					CreatedByVO createdBy = existingVO.getCreatedBy();
-					if (requestUser.getId().equalsIgnoreCase(createdBy.getId())) {
-						existingVO.setDescription(requestVO.getDescription());
+				CreatedByVO requestUser = this.userStore.getVO();
+				CreatedByVO createdBy = existingVO.getCreatedBy();
+				if (requestUser.getId().equalsIgnoreCase(createdBy.getId())) {
+					existingVO.setDescription(requestVO.getDescription());
 
-						// To update data productName.
-						if (!requestVO.getDataProductName().equals(existingVO.getDataProductName())) {
-							String uniqueProductName = requestVO.getDataProductName();
-							List<DataProductVO> dataProductVOs = service.getExistingDataProduct(uniqueProductName, ConstantsUtility.OPEN);
-							if (!ObjectUtils.isEmpty(dataProductVOs) && (dataProductVOs.size()>0)) {
-								responseVO.setData(dataProductVOs.get(0));
-								List<MessageDescription> messages = new ArrayList<>();
-								MessageDescription message = new MessageDescription();
-								message.setMessage("DataProduct name already exists.");
-								messages.add(message);
-								responseVO.setErrors(messages);
-								log.info("DataProduct name {} already exists, returning as BAD_REQUEST", uniqueProductName);
-								return new ResponseEntity<>(responseVO, HttpStatus.BAD_REQUEST);
-							} else {
-								existingVO.setDataProductName(uniqueProductName);
-							}
-						}
-
-						// throw error if product id is changed.
-						if (!existingVO.getDataProductId().equals(requestVO.getDataProductId())) {
+					// To update data productName.
+					if (!requestVO.getDataProductName().equals(existingVO.getDataProductName())) {
+						String uniqueProductName = requestVO.getDataProductName();
+						List<DataProductVO> dataProductVOs = service.getExistingDataProduct(uniqueProductName, ConstantsUtility.OPEN);
+						if (!ObjectUtils.isEmpty(dataProductVOs) && (dataProductVOs.size() > 0)) {
+							responseVO.setData(dataProductVOs.get(0));
 							List<MessageDescription> messages = new ArrayList<>();
 							MessageDescription message = new MessageDescription();
-							message.setMessage("DataProduct Id not allowed to edit.");
+							message.setMessage("DataProduct name already exists.");
 							messages.add(message);
 							responseVO.setErrors(messages);
-							log.info("DataProduct id is not allowed to be modified" + requestVO.getDataProductId());
+							log.info("DataProduct name {} already exists, returning as BAD_REQUEST", uniqueProductName);
 							return new ResponseEntity<>(responseVO, HttpStatus.BAD_REQUEST);
+						} else {
+							existingVO.setDataProductName(uniqueProductName);
 						}
-						existingVO.setHowToAccessText(requestVO.getHowToAccessText());
-						existingVO.setCarLaFunction(requestVO.getCarLaFunction());
-						existingVO.setAgileReleaseTrain(requestVO.getAgileReleaseTrain());
-						existingVO.setCorporateDataCatalog(requestVO.getCorporateDataCatalog());
-						// For is Publish the below condition.
-						// 1) only "false" can become "true".
-						// 2) There will be no "null".
-						// 3) If "false" then "false".
-						// 4) from "true" can not become "false".
-						if (!existingVO.isIsPublish() && requestVO.isIsPublish()) {
-							existingVO.setIsPublish(requestVO.isIsPublish());
-						}
-						existingVO.setNotifyUsers(requestVO.isNotifyUsers());
-						existingVO.setOpenSegments(requestVO.getOpenSegments());
-						existingVO.lastModifiedDate(new Date());
-						existingVO.setModifiedBy(requestUser);
-						existingVO.setContactInformation(requestVO.getContactInformation());
-						existingVO.setClassificationConfidentiality(requestVO.getClassificationConfidentiality());
-						existingVO.setPersonalRelatedData(requestVO.getPersonalRelatedData());
-						existingVO.setTransnationalDataTransfer(requestVO.getTransnationalDataTransfer());
-						existingVO.setDeletionRequirement(requestVO.getDeletionRequirement());
-						existingVO.setOpenSegments(requestVO.getOpenSegments());
+					}
 
-						try {
-							DataProductVO vo = service.updateByID(existingVO);
-							if (vo != null && vo.getId() != null) {
-								responseVO.setData(vo);
-								log.info("id {} updated successfully", id);
-								return new ResponseEntity<>(responseVO, HttpStatus.OK);
-							} else {
-								List<MessageDescription> messages = new ArrayList<>();
-								MessageDescription message = new MessageDescription();
-								message.setMessage("Failed to save due to internal error");
-								messages.add(message);
-								responseVO.setData(requestVO);
-								responseVO.setErrors(messages);
-								log.error("id {} , failed to update", id);
-								return new ResponseEntity<>(responseVO, HttpStatus.INTERNAL_SERVER_ERROR);
-							}
-						} catch (Exception e) {
-							log.error("Exception occurred:{} while updating DataProduct {} ", e.getMessage(),
-									requestVO.getDataProductName());
+					// throw error if product id is changed.
+					if (!existingVO.getDataProductId().equals(requestVO.getDataProductId())) {
+						List<MessageDescription> messages = new ArrayList<>();
+						MessageDescription message = new MessageDescription();
+						message.setMessage("DataProduct Id not allowed to edit.");
+						messages.add(message);
+						responseVO.setErrors(messages);
+						log.info("DataProduct id is not allowed to be modified" + requestVO.getDataProductId());
+						return new ResponseEntity<>(responseVO, HttpStatus.BAD_REQUEST);
+					}
+					existingVO.setHowToAccessText(requestVO.getHowToAccessText());
+					existingVO.setCarLaFunction(requestVO.getCarLaFunction());
+					existingVO.setAgileReleaseTrain(requestVO.getAgileReleaseTrain());
+					existingVO.setCorporateDataCatalog(requestVO.getCorporateDataCatalog());
+					// For is Publish the below condition.
+					// 1) only "false" can become "true".
+					// 2) There will be no "null".
+					// 3) If "false" then "false".
+					// 4) from "true" can not become "false".
+					if (!existingVO.isIsPublish() && requestVO.isIsPublish()) {
+						existingVO.setIsPublish(requestVO.isIsPublish());
+					}
+					existingVO.setNotifyUsers(requestVO.isNotifyUsers());
+					existingVO.setOpenSegments(requestVO.getOpenSegments());
+					existingVO.lastModifiedDate(new Date());
+					existingVO.setModifiedBy(requestUser);
+					existingVO.setContactInformation(requestVO.getContactInformation());
+					existingVO.setClassificationConfidentiality(requestVO.getClassificationConfidentiality());
+					existingVO.setPersonalRelatedData(requestVO.getPersonalRelatedData());
+					existingVO.setTransnationalDataTransfer(requestVO.getTransnationalDataTransfer());
+					existingVO.setDeletionRequirement(requestVO.getDeletionRequirement());
+					existingVO.setOpenSegments(requestVO.getOpenSegments());
+
+					try {
+						DataProductVO vo = service.updateByID(existingVO);
+						if (vo != null && vo.getId() != null) {
+							responseVO.setData(vo);
+							log.info("id {} updated successfully", id);
+							return new ResponseEntity<>(responseVO, HttpStatus.OK);
+						} else {
 							List<MessageDescription> messages = new ArrayList<>();
 							MessageDescription message = new MessageDescription();
-							message.setMessage(e.getMessage());
+							message.setMessage("Failed to save due to internal error");
 							messages.add(message);
 							responseVO.setData(requestVO);
 							responseVO.setErrors(messages);
+							log.error("id {} , failed to update", id);
 							return new ResponseEntity<>(responseVO, HttpStatus.INTERNAL_SERVER_ERROR);
 						}
-					} else {
+					} catch (Exception e) {
+						log.error("Exception occurred:{} while updating DataProduct {} ", e.getMessage(),
+								requestVO.getDataProductName());
 						List<MessageDescription> messages = new ArrayList<>();
 						MessageDescription message = new MessageDescription();
-						message.setMessage("Not authorized to update the dataproduct.");
+						message.setMessage(e.getMessage());
 						messages.add(message);
+						responseVO.setData(requestVO);
 						responseVO.setErrors(messages);
-						log.info("DataProduct with id {} cannot be updated. User not authorized", id);
-						return new ResponseEntity<>(responseVO, HttpStatus.FORBIDDEN);
+						return new ResponseEntity<>(responseVO, HttpStatus.INTERNAL_SERVER_ERROR);
 					}
+				} else {
+					List<MessageDescription> messages = new ArrayList<>();
+					MessageDescription message = new MessageDescription();
+					message.setMessage("Not authorized to update the dataproduct.");
+					messages.add(message);
+					responseVO.setErrors(messages);
+					log.info("DataProduct with id {} cannot be updated. User not authorized", id);
+					return new ResponseEntity<>(responseVO, HttpStatus.FORBIDDEN);
+				}
 			} else {
 				return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
 			}
