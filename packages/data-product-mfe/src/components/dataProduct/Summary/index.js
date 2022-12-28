@@ -275,17 +275,17 @@ const Summary = ({ history, user }) => {
                       <div>
                         <label className="input-label summary">Agile Release Train</label>
                         <br />
-                        {data.ART?.name}
+                        {data.ART?.name || '-'}
                       </div>
                       <div>
                         <label className="input-label summary">CarLA Function</label>
                         <br />
-                        {data.carLAFunction?.name}
+                        {data.carLAFunction?.name || '-'}
                       </div>
                       <div>
                         <label className="input-label summary">Corporate Data Catalog</label>
                         <br />
-                        {data.corporateDataCatalog?.name}
+                        {data.corporateDataCatalog?.name || '-'}
                       </div>
                     </div>
                     <div className={Styles.flexLayout}>
@@ -376,7 +376,7 @@ const Summary = ({ history, user }) => {
                         <div>
                           <label className="input-label summary">Confidentiality</label>
                           <br />
-                          {data?.providerInformation?.classificationConfidentiality?.confidentiality}
+                          {data?.confidentiality}
                         </div>
                       </div>
                     </div>
