@@ -99,6 +99,37 @@ paths:
         500:
           description: "Internal error"      
    
+    put:
+      tags:
+        - "dataproducts"
+      summary: "Update an existing dataproduct."
+      description: "Update an existing dataproduct."
+      operationId: "update"
+      parameters:
+        - name: "DataProductRequestVO"
+          in: "body"
+          description: "Request Body that contains data required for updating a dataproduct form"
+          required: true
+          schema:
+            $ref: "#/definitions/DataProductRequestVO"
+      responses:
+        200:
+          description: "Returns message of success or failure"
+          schema:
+            $ref: "#/definitions/DataProductResponseVO"
+        204:
+          description: "Fetch complete, no content found."
+        400:
+          description: "Bad request."
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
+
     get:
       tags:
         - "dataproducts"
@@ -157,42 +188,6 @@ paths:
   #
   # path example ../dataproducts
   /dataproducts/{id}:
-    put:
-      tags:
-        - "dataproducts"
-      summary: "Get dataproduct for a given Id."
-      description: "Get dataproduct for a given identifier. This endpoints will be used to get a dataproduct for a given identifier."
-      operationId: "updateById"
-      parameters:
-        - name: "id"
-          in: "path"
-          description: "dataproduct ID to be fetched"
-          required: true
-          type: "string"
-        - name: "DataProductRequestVO"
-          in: "body"
-          description: "Request Body that contains data required for creating a new dataproduct"
-          required: true
-          schema:
-            $ref: "#/definitions/DataProductRequestVO"
-      responses:
-        200:
-          description: "Returns message of success or failure"
-          schema:
-            $ref: "#/definitions/DataProductResponseVO"
-        204:
-          description: "Fetch complete, no content found."
-        400:
-          description: "Bad request."
-        401:
-          description: "Request does not have sufficient credentials."
-        403:
-          description: "Request is not authorized."
-        405:
-          description: "Method not allowed"
-        500:
-          description: "Internal error"
-
     get:
       tags:
         - "dataproducts"
