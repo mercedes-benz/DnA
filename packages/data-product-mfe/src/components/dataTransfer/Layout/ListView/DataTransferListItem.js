@@ -8,7 +8,7 @@ import Styles from './DataTransferListItem.styles.scss';
 import ConfirmModal from 'dna-container/ConfirmModal';
 
 import { dataTransferApi } from '../../../../apis/datatransfers.api';
-import { GetDataProducts } from '../../redux/dataTransfer.services';
+import { GetDataTransfers } from '../../redux/dataTransfer.services';
 
 import ProgressIndicator from '../../../../common/modules/uilab/js/src/progress-indicator';
 import Notification from '../../../../common/modules/uilab/js/src/notification';
@@ -46,8 +46,8 @@ const DataProductListItem = ({ product, history, user }) => {
   );
   const deleteDataProductAccept = () => {
     ProgressIndicator.show();
-    dataTransferApi.deleteDataProduct(product?.id).then(() => {
-      dispatch(GetDataProducts());
+    dataTransferApi.deleteDataTransfer(product?.id).then(() => {
+      dispatch(GetDataTransfers());
       setShowContextMenu(false);
       setShowDeleteModal(false);
     });

@@ -21,9 +21,9 @@ import DataProducts from './dataTransfer/DataTransfers';
 import Summary from './dataTransfer/Summary';
 import DataComplianceNetworkList from './DataComplianceNetworkList';
 
-import DataList from './data/dataList';
-import CreateData from './data/createData';
-import DataSummary from './data/summary';
+import DataList from './dataProduct/dataProductList';
+import CreateData from './dataProduct/CreateDataProduct';
+import DataSummary from './dataProduct/Summary';
 
 export const protectedRoutes = [
   {
@@ -76,22 +76,22 @@ export const protectedRoutes = [
   {
     component: DataList,
     exact: true,
-    path: '/dataproductlist',
+    path: '/dataproducts',
   },
   {
     component: CreateData,
     exact: true,
-    path: '/createData',
+    path: '/dataproduct/create',
   },
   {
     component: CreateData,
     exact: true,
-    path: '/editData/:id',
+    path: '/dataproduct/edit/:id',
   },
   {
     component: DataSummary,
     exact: true,
-    path: '/dataSummary/:id',
+    path: '/dataproduct/summary/:id',
   },
 ];
 
