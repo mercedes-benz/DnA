@@ -128,34 +128,18 @@ public class DataProductAssembler implements GenericAssembler<DataProductVO, Dat
 					BeanUtils.copyProperties(dataProduct.getClassificationConfidentiality(),
 							classificationConfidentialityVO);
 					vo.setClassificationConfidentiality(classificationConfidentialityVO);
-					if (dataProduct.getClassificationConfidentiality() != null
-							&& dataProduct.getClassificationConfidentiality().getConfidentiality() !=null) {
-						vo.getClassificationConfidentiality().setConfidentiality(
-								DataProductClassificationConfidentialityVO.ConfidentialityEnum.valueOf(
-										dataProduct.getClassificationConfidentiality().getConfidentiality().toUpperCase())
-						);
-					}
 				}
 
 				if (dataProduct.getPersonalRelatedData() != null) {
 					DataProductPersonalRelatedDataVO personalRelatedDataVO = new DataProductPersonalRelatedDataVO();
 					BeanUtils.copyProperties(dataProduct.getPersonalRelatedData(), personalRelatedDataVO);
 					vo.setPersonalRelatedData(personalRelatedDataVO);
-					if (dataProduct.getPersonalRelatedData().getLegalBasis() !=null ) {
-						vo.getPersonalRelatedData().setLegalBasis(DataProductPersonalRelatedDataVO.LegalBasisEnum.valueOf(
-								dataProduct.getPersonalRelatedData().getLegalBasis().toUpperCase()
-						));
-					}
-
 				}
 
 				if (dataProduct.getTransnationalDataTransfer() != null) {
 					DataProductTransnationalDataTransferVO transnationalDataTransferVO = new DataProductTransnationalDataTransferVO();
 					BeanUtils.copyProperties(dataProduct.getTransnationalDataTransfer(), transnationalDataTransferVO);
 					vo.setTransnationalDataTransfer(transnationalDataTransferVO);
-					if (dataProduct.getTransnationalDataTransfer().getInsiderInformation() != null) {
-						vo.getTransnationalDataTransfer().setInsiderInformation(Boolean.valueOf(dataProduct.getTransnationalDataTransfer().getInsiderInformation()));
-					}
 				}
 
 				if (dataProduct.getDeletionRequirement() != null) {
@@ -245,11 +229,6 @@ public class DataProductAssembler implements GenericAssembler<DataProductVO, Dat
 					BeanUtils.copyProperties(vo.getClassificationConfidentiality(),
 							classificationConfidentiality);
 					dataProduct.setClassificationConfidentiality(classificationConfidentiality);
-					if (vo.getClassificationConfidentiality() != null && vo.getClassificationConfidentiality().getConfidentiality() !=null) {
-						dataProduct.getClassificationConfidentiality().setConfidentiality(
-								String.valueOf(vo.getClassificationConfidentiality().getConfidentiality())
-						);
-					}
 				}
 
 				DataProductPersonalRelatedDataVO personalRelatedDataVO = vo.getPersonalRelatedData();
@@ -258,9 +237,6 @@ public class DataProductAssembler implements GenericAssembler<DataProductVO, Dat
 					BeanUtils.copyProperties(personalRelatedDataVO, personalRelatedData);
 					personalRelatedData.setPersonalRelatedData(personalRelatedDataVO.isPersonalRelatedData());
 					dataProduct.setPersonalRelatedData(personalRelatedData);
-					dataProduct.getPersonalRelatedData().setLegalBasis(
-							String.valueOf(personalRelatedDataVO.getLegalBasis())
-					);
 				}
 
 				DataProductTransnationalDataTransferVO transnationalDataTransferVO = vo
@@ -271,7 +247,6 @@ public class DataProductAssembler implements GenericAssembler<DataProductVO, Dat
 					transnationalDataTransfer.setDataTransferred(transnationalDataTransferVO.isDataTransferred());
 					transnationalDataTransfer.setNotWithinEU(transnationalDataTransferVO.isNotWithinEU());
 					transnationalDataTransfer.setDataFromChina(transnationalDataTransferVO.isDataFromChina());
-					transnationalDataTransfer.setInsiderInformation(String.valueOf(transnationalDataTransferVO.isInsiderInformation()));
 					dataProduct.setTransnationalDataTransfer(transnationalDataTransfer);
 				}
 

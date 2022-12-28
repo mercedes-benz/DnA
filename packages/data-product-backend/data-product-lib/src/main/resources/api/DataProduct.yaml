@@ -314,7 +314,6 @@ definitions:
       confidentiality: 
         description: "Confidentiality level"
         type: string
-        enum: ["Public","Confidential","Internal","Secret"]
     required:
       - description
       - confidentiality
@@ -334,7 +333,6 @@ definitions:
       legalBasis: 
         description: "Legal basis for processing this personal related data"
         type: string     
-        enum: ["Consent","Vital Interest", "Contract fulfillment","Public interests","Legal Obligation","Legitimate Interests"]             
     required:
       - personalRelatedData  
           
@@ -352,7 +350,7 @@ definitions:
         type: string
       insiderInformation: 
         description: "Does product contain insider information"
-        type: boolean         
+        type: string         
       dataFromChina:
         type: boolean
         description: "Is data from China included"                
