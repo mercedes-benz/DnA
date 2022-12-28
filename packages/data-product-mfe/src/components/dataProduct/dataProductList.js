@@ -1,35 +1,35 @@
 import classNames from 'classnames';
 import React, { useEffect, useState } from 'react';
-import Styles from './dataList.style.scss';
+import Styles from './dataProductList.style.scss';
 import { Link, withRouter } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 
 // import from DNA Container
 import Pagination from 'dna-container/Pagination';
-import { setData, setPagination } from './redux/dataSlice';
-import { GetData } from './redux/data.services';
-import DataCardItem from './Layout/CardView/DataCardItem';
-import DataListItem from './Layout/ListView/DataListItem';
+import { setDataProductList, setPagination } from './redux/dataProductSlice';
+import { GetDataProducts } from './redux/dataProduct.services';
+import DataCardItem from './Layout/CardView/DataProductCardItem';
+import DataListItem from './Layout/ListView/DataProductListItem';
 
-const DataList = ({ user, history }) => {
+const DataProductList = ({ user, history }) => {
   const dispatch = useDispatch();
   const {
     data,
     pagination: { dataListResponse, totalNumberOfPages, currentPageNumber, maxItemsPerPage },
-  } = useSelector((state) => state.data);
+  } = useSelector((state) => state.dataProduct);
 
   const [cardViewMode, setCardViewMode] = useState(true);
   const [listViewMode, setListViewMode] = useState(false);
 
   useEffect(() => {
-    dispatch(GetData());
+    dispatch(GetDataProducts());
   }, [dispatch]);
 
   const onPaginationPreviousClick = () => {
     const currentPageNumberTemp = currentPageNumber - 1;
     const currentPageOffset = (currentPageNumberTemp - 1) * maxItemsPerPage;
     const modifiedData = dataListResponse.slice(currentPageOffset, maxItemsPerPage * currentPageNumberTemp);
-    dispatch(setData(modifiedData));
+    dispatch(setDataProductList(modifiedData));
     dispatch(setPagination({ currentPageNumber: currentPageNumberTemp }));
   };
   const onPaginationNextClick = () => {
@@ -37,13 +37,13 @@ const DataList = ({ user, history }) => {
     const currentPageOffset = currentPageNumber * maxItemsPerPage;
     currentPageNumberTemp = currentPageNumber + 1;
     const modifiedData = dataListResponse.slice(currentPageOffset, maxItemsPerPage * currentPageNumberTemp);
-    dispatch(setData(modifiedData));
+    dispatch(setDataProductList(modifiedData));
     dispatch(setPagination({ currentPageNumber: currentPageNumberTemp }));
   };
   const onViewByPageNum = (pageNum) => {
     const totalNumberOfPages = Math.ceil(dataListResponse?.length / pageNum);
     const modifiedData = dataListResponse.slice(0, pageNum);
-    dispatch(setData(modifiedData));
+    dispatch(setDataProductList(modifiedData));
     dispatch(
       setPagination({
         totalNumberOfPages,
@@ -97,7 +97,7 @@ const DataList = ({ user, history }) => {
                   </div>
                   <div className={Styles.subscriptionListEmpty}>
                     <br />
-                    <Link to="create">
+                    <Link to="/dataproduct/create">
                       <button className={'btn btn-tertiary'} type="button">
                         <span>Create Data Product</span>
                       </button>
@@ -111,7 +111,7 @@ const DataList = ({ user, history }) => {
                   <div className={classNames(Styles.allDataproductCardviewContent)}>
                     {cardViewMode ? (
                       <>
-                        <div className={Styles.cardViewContainer} onClick={() => history.push('/createData')}>
+                        <div className={Styles.cardViewContainer} onClick={() => history.push('/dataproduct/create')}>
                           <div className={Styles.addicon}> &nbsp; </div>
                           <label className={Styles.addlabel}>Create new data product</label>
                         </div>
@@ -127,7 +127,7 @@ const DataList = ({ user, history }) => {
                         <div className={classNames('ul-table dataproducts', data?.length === 0 ? 'hide' : '')}>
                           <div
                             className={classNames('data-row', Styles.listViewContainer)}
-                            onClick={() => history.push('/createData')}
+                            onClick={() => history.push('/dataproduct/create')}
                           >
                             <span className={Styles.addicon}> &nbsp; </span>
                             <label className={Styles.addlabel}>Create new data product</label>
@@ -158,4 +158,4 @@ const DataList = ({ user, history }) => {
     </div>
   );
 };
-export default withRouter(DataList);
+export default withRouter(DataProductList);

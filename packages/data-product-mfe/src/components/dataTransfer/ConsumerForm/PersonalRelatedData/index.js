@@ -9,7 +9,7 @@ import InfoModal from 'dna-container/InfoModal';
 
 import { Envs } from '../../../../Utility/envs';
 import { useDispatch, useSelector } from 'react-redux';
-import { getLegalBasis } from '../../redux/getDropdowns.services';
+import { getLegalBasis } from '../../../redux/getDropdowns.services';
 
 const PersonalRelatedData = ({ onSave, setIsEditing, isDataProduct }) => {
   const {
