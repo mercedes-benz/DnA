@@ -6,7 +6,7 @@ import { useFormContext } from 'react-hook-form';
 
 import InfoModal from 'dna-container/InfoModal';
 import { useDispatch, useSelector } from 'react-redux';
-import { getLegalBasis } from '../../redux/getDropdowns.services';
+import { getLegalBasis } from '../../../redux/getDropdowns.services';
 
 const PersonalRelatedData = ({ onSave }) => {
   const {

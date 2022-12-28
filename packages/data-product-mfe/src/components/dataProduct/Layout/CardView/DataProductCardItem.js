@@ -1,34 +1,22 @@
 import classNames from 'classnames';
-import React, { useState } from 'react';
-import Styles from './DataCardItem.styles.scss';
+import React from 'react';
+import Styles from './DataProductCardItem.styles.scss';
 import { withRouter } from 'react-router-dom';
-import ConfirmModal from 'dna-container/ConfirmModal';
 
 const DataCardItem = ({ product, history }) => {
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const tags =
-    product?.tags || [product?.ART, product?.carLAFunction, product?.corportateDataCatalog].filter((x) => !!x);
+  const tags = [
+    product?.agileReleaseTrain?.name,
+    product?.carLaFunction?.name,
+    product?.corporateDataCatalog?.name,
+  ].filter((x) => !!x);
   const maxTagItem = 4;
-
-  const deleteDataProductContent = (
-    <div>
-      <h3>Are you sure you want to delete {product?.dataProductName} ? </h3>
-    </div>
-  );
-
-  const deleteDataProductAccept = () => {
-    setShowDeleteModal(false);
-  };
-  const deleteDataProductClose = () => {
-    setShowDeleteModal(false);
-  };
 
   return (
     <>
       <div
         className={Styles.dataProductCard}
         onClick={() => {
-          history.push(`/dataSummary/${product?.dataProductId}`);
+          history.push(`/dataproduct/summary/${product?.dataProductId}`);
         }}
       >
         {product?.isCarlaCertified ? (
@@ -37,7 +25,7 @@ const DataCardItem = ({ product, history }) => {
           </div>
         ) : null}
         <div className={Styles.cardBodySection}>
-          <div className={Styles.title}>{product?.productName}</div>
+          <div className={Styles.title}>{product?.dataProductName}</div>
           <div className={Styles.description}>{product?.description}</div>
         </div>
         <div className={Styles.cardFooter}>
@@ -53,17 +41,6 @@ const DataCardItem = ({ product, history }) => {
           </div>
         </div>
       </div>
-      <ConfirmModal
-        title={''}
-        acceptButtonTitle="Yes"
-        cancelButtonTitle="No"
-        showAcceptButton={true}
-        showCancelButton={true}
-        show={showDeleteModal}
-        content={deleteDataProductContent}
-        onCancel={deleteDataProductClose}
-        onAccept={deleteDataProductAccept}
-      />
     </>
   );
 };

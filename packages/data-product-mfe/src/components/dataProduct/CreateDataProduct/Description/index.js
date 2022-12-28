@@ -1,7 +1,12 @@
 import classNames from 'classnames';
 import React, { useEffect, useState } from 'react';
 import Styles from './styles.scss';
+
 import MDEditor from '@uiw/react-md-editor';
+import rehypeSanitize from 'rehype-sanitize';
+import { unified } from 'unified';
+import rehypeParse from 'rehype-parse';
+import rehypeStringify from 'rehype-stringify';
 
 // components from container app
 import SelectBox from 'dna-container/SelectBox';
@@ -17,8 +22,11 @@ const Description = ({ onSave, artList, carlaFunctionList, dataCatalogList }) =>
     handleSubmit,
     reset,
     control,
+    setValue,
   } = useFormContext();
   const [showInfoModal, setShowInfoModal] = useState(false);
+
+  const { ART, carLAFunction, corporateDataCatalog, howToAccessText } = watch();
 
   useEffect(() => {
     SelectBox.defaultSetup();
@@ -34,6 +42,38 @@ const Description = ({ onSave, artList, carlaFunctionList, dataCatalogList }) =>
     mdEditor.style.setProperty('--color-accent-fg', '#00adef');
     mdEditor.style.setProperty('--color-fg-default', '#c0c8d0');
   }, []);
+
+  useEffect(() => {
+    if (ART?.name?.length) {
+      setValue('ART', ART.name);
+    }
+    SelectBox.defaultSetup();
+  }, [ART, setValue]);
+
+  useEffect(() => {
+    if (carLAFunction?.name?.length) {
+      setValue('carLAFunction', carLAFunction.name);
+    }
+    SelectBox.defaultSetup();
+  }, [carLAFunction, setValue]);
+
+  useEffect(() => {
+    if (corporateDataCatalog?.name?.length) {
+      setValue('corporateDataCatalog', corporateDataCatalog.name);
+    }
+    SelectBox.defaultSetup();
+  }, [corporateDataCatalog, setValue]);
+
+  useEffect(() => {
+    if (howToAccessText?.length) {
+      // sanitize HTML
+      const processor = async () =>
+        await unified().use(rehypeParse).use(rehypeSanitize).use(rehypeStringify).process(watch('howToAccessText'));
+      processor().then((res) => {
+        setValue('howToAccessText', res.value);
+      });
+    }
+  }, [howToAccessText, setValue, watch]);
 
   return (
     <>
@@ -67,7 +107,7 @@ const Description = ({ onSave, artList, carlaFunctionList, dataCatalogList }) =>
                 </div>
                 <div className={classNames('input-field-group include-error', errors.carLAFunction ? 'error' : '')}>
                   <label id="connectionTypeLabel" htmlFor="connectionTypeInput" className="input-label">
-                    carLA Function
+                    CarLA Function
                   </label>
                   <div className={`custom-select`}>
                     <select id="connectionTypeField" name="connectionType" {...register('carLAFunction')}>
@@ -113,7 +153,7 @@ const Description = ({ onSave, artList, carlaFunctionList, dataCatalogList }) =>
                     Corporate Data Catalog
                   </label>
                   <div id="CorporateDataCatalog" className="custom-select">
-                    <select id="CorporateDataCatalogField" multiple={false} {...register('corportateDataCatalog')}>
+                    <select id="CorporateDataCatalogField" multiple={false} {...register('corporateDataCatalog')}>
                       <option id="CorporateDataCatalogFieldOption" value={''}>
                         Choose
                       </option>
@@ -124,8 +164,8 @@ const Description = ({ onSave, artList, carlaFunctionList, dataCatalogList }) =>
                       ))}
                     </select>
                   </div>
-                  <span className={classNames('error-message', errors.corportateDataCatalog?.message ? '' : 'hide')}>
-                    {errors.corportateDataCatalog?.message}
+                  <span className={classNames('error-message', errors.corporateDataCatalog?.message ? '' : 'hide')}>
+                    {errors.corporateDataCatalog?.message}
                   </span>
                 </div>
               </div>
@@ -155,22 +195,30 @@ const Description = ({ onSave, artList, carlaFunctionList, dataCatalogList }) =>
           </div>
           <div className={Styles.formWrapper}>
             <div className={Styles.flexLayout1}>
-              <div className={classNames('input-field-group include-error area', errors.howToAccess ? 'error' : '')}>
+              <div
+                className={classNames('input-field-group include-error area', errors.howToAccessText ? 'error' : '')}
+              >
                 <Controller
                   control={control}
-                  name="howToAccess"
+                  name="howToAccessText"
                   render={({ field }) => (
                     <>
-                      <label id="howToAccess" className="input-label" htmlFor="howToAccess">
+                      <label id="howToAccessText" className="input-label" htmlFor="howToAccessText">
                         How to access
                       </label>
                       <div data-color-mode="dark">
-                        <MDEditor value={field.value} onChange={field.onChange} />
+                        <MDEditor
+                          value={field.value}
+                          onChange={field.onChange}
+                          previewOptions={{
+                            rehypePlugins: [[rehypeSanitize]],
+                          }}
+                        />
                       </div>
                     </>
                   )}
                 />
-                <span className={classNames('error-message')}>{errors?.howToAccess?.message}</span>
+                <span className={classNames('error-message')}>{errors?.howToAccessText?.message}</span>
               </div>
             </div>
           </div>
