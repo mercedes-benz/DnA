@@ -326,7 +326,7 @@ public class DataProductController implements DataproductsApi{
 					}
 
 					// throw error if product id is changed.
-					if (!existingVO.getDataProductId().equals(requestVO.getDataProductId())) {
+					if (requestVO.getDataProductId() != null && !existingVO.getDataProductId().equals(requestVO.getDataProductId())) {
 						List<MessageDescription> messages = new ArrayList<>();
 						MessageDescription message = new MessageDescription();
 						message.setMessage("DataProduct Id not allowed to edit.");
