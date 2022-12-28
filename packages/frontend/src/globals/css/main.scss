@@ -942,7 +942,6 @@
     }
   }
 
-
   /* CSS for Upload Progress */
   .upload-progress-wrapper {
     position: fixed;
@@ -959,7 +958,7 @@
     max-height: 100%;
 
     .upload-progress.toast {
-      background-color: #383F49;
+      background-color: #383f49;
       padding: 0 72px;
       font-size: 13px;
       line-height: 18px;
@@ -968,11 +967,12 @@
       display: flex;
       vertical-align: middle;
       background-size: 17px;
-      color: #C0C8D0;
+      color: #c0c8d0;
       position: relative;
-      transition: height 400ms ease, opacity 400ms ease, padding-top 400ms ease, padding-bottom 400ms ease, margin 400ms ease;
+      transition: height 400ms ease, opacity 400ms ease, padding-top 400ms ease, padding-bottom 400ms ease,
+        margin 400ms ease;
       opacity: 0;
-      box-shadow: 0 5px 20px 0 rgba(0,0,0,0.08);
+      box-shadow: 0 5px 20px 0 rgba(0, 0, 0, 0.08);
 
       &.show {
         margin: 7px 0;
@@ -1000,13 +1000,13 @@
         span {
           margin-right: 8px;
           &::after {
-            content: ',';
+            content: ",";
           }
 
           &:last-child {
             &::after {
               content: none;
-            } 
+            }
           }
         }
       }
@@ -1019,7 +1019,7 @@
       }
 
       .icon.close {
-        color: #99A5B3;
+        color: #99a5b3;
         right: 25px;
         position: absolute;
         cursor: pointer;
@@ -1030,7 +1030,7 @@
       .level-wrapper {
         width: 100%;
         height: 5px;
-        background-color: #1C2026;
+        background-color: #1c2026;
         position: absolute;
         left: 0;
         top: 0;
@@ -1038,7 +1038,7 @@
         .level {
           height: 5px;
           width: 50%;
-          background-color: #00ADEF;
+          background-color: #00adef;
         }
       }
     }
@@ -1102,7 +1102,7 @@
     }
 
     &.portfolio::before {
-      content: "\e938";
+      content: "\e97b";
     }
     &.dashboard::before {
       content: "\e929";
@@ -1116,14 +1116,14 @@
     &.help::before {
       content: "\e934";
     }
-    &.solutions-1::before {
+    &.solutions::before {
       content: "\e93c";
     }
-    &.solutions::before {
+    &.solutions-1::before {
       content: "\e928";
     }
     &.reports::before {
-      content: "\e936";
+      content: "\e97d";
     }
     &.widgets::before {
       content: "\e954";
@@ -1165,8 +1165,12 @@
       content: "\e932";
     }
 
-    &.delete-new::before {
+    &.delete-new1::before {
       content: "\e946";
+    }
+
+    &.delete-new::before {
+      content: "\e925";
     }
 
     &.error.circle::before {
@@ -1328,6 +1332,42 @@
     }
     &.share::before {
       content: "\e94e";
+    }
+    &.datasharing::before {
+      content: "\e96f";
+    }
+    &.dataproduct::before {
+      content: "\e96d";
+    }
+    &.datagovernance::before {
+      content: "\e967";
+    }
+    &.datagovernancesocialintranet::before {
+      content: "\e968";
+    }
+    &.solutionoverview::before {
+      content: "\e983";
+    }
+    &.dataproductoverview::before {
+      content: "\e96e";
+    }
+    &.datamodel::before {
+      content: "\e96b";
+    }
+    &.a22minimuminformation::before {
+      content: "\e95a";
+    }
+    &.transparency::before {
+      content: "\e98a";
+    }
+    &.data::before {
+      content: "\e966";
+    }
+    &.tools::before {
+      content: "\e985";
+    }
+    &.trainings::before {
+      content: "\e987";
     }
   }
   .airflowexpansionPanel {

@@ -7,12 +7,16 @@
   height: 300px;
   display: flex;
   align-items: flex-end;
-  background-image: url("../../../../assets/dataproduct.png");
-  background-repeat: no-repeat;
-  background-size: 50% auto;
-  background-position: top center;
-  background-position-y: 40px;
   cursor: pointer;
+
+  &::after {
+    content: "\e96d";
+    font-family: "dna-icons";
+    position: absolute;
+    left: calc(50% - 45px);
+    top: calc(50% - 90px);
+    font-size: 75px;
+  }
 
   .cardBodySection {
     padding: 15px 30px 20px;
@@ -27,7 +31,7 @@
       font-size: var(--font-size-small);
     }
     .title {
-      font-size: var(--font-size-sub-headline);
+      font-size: var(--font-size-headline);
       margin-bottom: 11px;
       color: #99a5b3;
       text-overflow: ellipsis;
@@ -57,9 +61,9 @@
       content: " ";
       width: 100%;
       height: 100%;
-      background-color: #2CB0BC;
-      background-image: linear-gradient(198deg, #2CB0BC 5%, #252A33 100%);
-      opacity: 0.9;
+      background-color: #2cb0bc;
+      background-image: linear-gradient(198deg, #2cb0bc 5%, #252a33 100%);
+      // opacity: 0.9;
       top: 0;
     }
     .description {
@@ -80,6 +84,10 @@
     }
     .cardFooter {
       display: block;
+    }
+    &::after {
+      top: 10px;
+      opacity: 0.3;
     }
   }
 }
