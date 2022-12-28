@@ -106,6 +106,9 @@ public class UserInfoCustomRepositoryImpl extends CommonDataRepositoryImpl<UserI
 			case "email":
 				sortQueryString = " order by lower(jsonb_extract_path_text(data,'email')) ";
 				break;
+			case "roles":
+				sortQueryString = " order by lower(jsonb_array_elements(data -> 'roles') ->> 'name') ";
+				break;	
 			default:
 				sortQueryString = "";
 				break;
