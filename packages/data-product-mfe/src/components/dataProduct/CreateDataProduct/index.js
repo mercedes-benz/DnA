@@ -59,10 +59,6 @@ const CreateDataProduct = ({ user, history }) => {
   const [subDivisions, setSubDivisions] = useState([]);
   const [showChangeAlert, setShowChangeAlert] = useState({ modal: false, switchingTab: '' });
 
-  // const [artList, setArtList] = useState([]);
-  // const [carlaFunctionList, setCarlaFunctionList] = useState([]);
-  // const [dataCatalogList, setDataCatalogList] = useState([]);
-
   const dispatch = useDispatch();
   const { agileReleaseTrains, carLAFunctions, corporateDataCatalogs } = useSelector((state) => state.dropdowns);
 
@@ -179,24 +175,10 @@ const CreateDataProduct = ({ user, history }) => {
     };
   }, [dispatch]);
 
-  // Mock data
   useEffect(() => {
     dispatch(getAgileReleaseTrains());
     dispatch(getCarlaFunctions());
     dispatch(getCorporateDataCatalogs());
-    // setArtList([
-    //   { id: '1', name: 'ART 1' },
-    //   { id: '2', name: 'ART 2' },
-    // ]);
-    // setCarlaFunctionList([
-    //   { id: '1', name: 'carLA 1' },
-    //   { id: '2', name: 'carLA 2' },
-    // ]);
-    // setDataCatalogList([
-    //   { id: '1', name: 'oneAPI' },
-    //   { id: '2', name: 'DDX' },
-    //   { id: '3', name: 'eXtollo' },
-    // ]);
   }, [dispatch]);
 
   const setTab = (e) => {
