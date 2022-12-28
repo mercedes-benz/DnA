@@ -41,24 +41,17 @@
     }
     &:hover {
         width: 100%;
-        background-color: #00adef;
-        opacity: 0.9;
+        background: linear-gradient(198deg, #2cb0bc 5%, #252a33 100%);
         .titleSection,
         .dataProductContent,
         .heading {
             color: #ffffff;
         }
-        .imgContainer {
-            bottom: 0px;
-            img {
-                opacity: 0.5;
-            }
-        }
 
         .tagItem {
-            background: #697582;
-            opacity: 0.5;
-            border-color: #ffffff !important;
+            background: #00adef;
+            opacity: 0.8;
+            border: 1px solid #00adef !important;
             color: #ffffff;
             font-weight: bold;
         }
@@ -68,12 +61,14 @@
 .dataProductContent {
     display: flex;
     color: #c0c8d0;
-    .imgContainer {
+    .iconContainer {
         position: relative;
         margin: 0 30px;
-        bottom: 10px;
-        img {
-            height: 100px;
+        bottom: 5px;
+        &::after {
+            content: "\e96d";
+            font-family: "dna-icons";
+            font-size: 55px;
         }
     }
 
@@ -88,31 +83,8 @@
         font-size: var(--font-size-headline);
         margin-bottom: 10px;
     }
-}
-
-.contextMenu {
-    align-self: center;
-    z-index: 1;
-    &.locations {
-        display: inline-block;
-    }
-
-    &.open .contextMenuTrigger {
-        z-index: 10;
-    }
-
-    .contextMenuTrigger {
-        padding: 12px 10px;
-        cursor: pointer;
-
-        &:hover {
-            color: #ffffff;
-        }
-    }
-}
-.contextOpened {
-    .contextMenuTrigger {
-        position: relative;
+    .description {
+        font-size: var(--font-size-small);
     }
 }
 

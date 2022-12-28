@@ -6,7 +6,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { hostServer } from '../../../server/api';
 import { useForm, FormProvider } from 'react-hook-form';
 import { deserializeFormData, consumerOpenSegments, serializeDivisionSubDivision } from '../../../Utility/formData';
-import { UpdateDataProducts } from '../redux/dataTransfer.services';
+import { UpdateDataTransfers } from '../redux/dataTransfer.services';
 
 import ConfirmModal from 'dna-container/ConfirmModal';
 import SelectBox from 'dna-container/SelectBox';
@@ -21,7 +21,7 @@ import TourGuide from '../TourGuide';
 import ProviderSummary from './ProviderSummary';
 import { dataTransferApi } from '../../../apis/datatransfers.api';
 import { useParams, withRouter } from 'react-router-dom';
-import { setDataProduct, setDivisionList } from '../redux/dataTransferSlice';
+import { setSelectedDataTransfer, setDivisionList } from '../redux/dataTransferSlice';
 
 import { omit } from 'lodash';
 
@@ -104,7 +104,7 @@ const ConsumerForm = ({ user, history, isDataProduct = false }) => {
 
   useEffect(() => {
     return () => {
-      dispatch(setDataProduct({}));
+      dispatch(setSelectedDataTransfer({}));
     };
   }, [dispatch]);
 
@@ -116,7 +116,7 @@ const ConsumerForm = ({ user, history, isDataProduct = false }) => {
   const getDataProductById = () => {
     ProgressIndicator.show();
     dataTransferApi
-      .getDataProductById(dataTransferId)
+      .getDataTransferById(dataTransferId)
       .then((res) => {
         const isCreator = res.data?.providerInformation?.createdBy?.id === user.id;
         const isValidUser =
@@ -127,8 +127,8 @@ const ConsumerForm = ({ user, history, isDataProduct = false }) => {
         } else if (isCreator || (res.data.providerInformation?.users?.length > 0 && !isValidUser)) {
           return history.push('/Unauthorized');
         } else {
-          const data = deserializeFormData(res.data, 'consumer');
-          dispatch(setDataProduct(data));
+          const data = deserializeFormData({ item: res.data, type: 'consumer' });
+          dispatch(setSelectedDataTransfer(data));
           setIsEditing(data.publish);
           setFormMounted(true);
           setProviderDraftState(!res.data.providerInformation?.providerFormSubmitted);
@@ -224,16 +224,16 @@ const ConsumerForm = ({ user, history, isDataProduct = false }) => {
       isDataProduct,
     };
 
-    dispatch(UpdateDataProducts(data));
+    dispatch(UpdateDataTransfers(data));
   };
-  console.log(currentTab, savedTabs);
+
   return (
     <>
       {!isDataProduct ? (
         <button
           className={classNames('btn btn-text back arrow', Styles.backBtn)}
           type="submit"
-          onClick={() => history.push('/')}
+          onClick={() => history.push('/datasharing')}
         >
           Back
         </button>
