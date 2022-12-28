@@ -79,7 +79,7 @@ const MainNavigation: React.FC<IMainNavigationProps> = (props) => {
     props.isMaximized && activeNavItem?.setAttribute('style', `height: auto !important`);
   }, [props.isMaximized]);
 
-  const navItems:any = [
+  const navItems: any = [
     {
       allowedRoles: UserAndAdminRole,
       id: 0,
@@ -149,7 +149,7 @@ const MainNavigation: React.FC<IMainNavigationProps> = (props) => {
         {
           allowedRoles: UserAndAdminRole,
           id: 1,
-          route: `/data/dataproductlist`,
+          route: `/data/dataproducts`,
           title: 'DataProducts',
           enabled: true,
         },
@@ -291,7 +291,7 @@ const MainNavigation: React.FC<IMainNavigationProps> = (props) => {
         })}
       </ul> */}
       <ul className="nav-list mbc-scroll sub">
-        {navItems.map((navItem:any, index:number) => {
+        {navItems.map((navItem: any, index: number) => {
           return navItem.subNavItems ? (
             <li
               key={index}
@@ -302,18 +302,32 @@ const MainNavigation: React.FC<IMainNavigationProps> = (props) => {
               title={navItem.title}
             >
               <a className={classNames('nav-link', navItem.enabled ? '' : Styles.disableLink, Styles.navLink)}>
-                <i className={classNames('icon', 'mbc-icon', navItem.icon, Styles.navIcon, getPath().includes(navItem.route) ? Styles.navActive : '')} onClick={() => { props.onNavClose(); history.push(navItem.route) }} />
+                <i
+                  className={classNames(
+                    'icon',
+                    'mbc-icon',
+                    navItem.icon,
+                    Styles.navIcon,
+                    getPath().includes(navItem.route) ? Styles.navActive : '',
+                  )}
+                  onClick={() => {
+                    props.onNavClose();
+                    history.push(navItem.route);
+                  }}
+                />
                 {getTranslatedLabel(navItem.title)}
               </a>
               <ul className="sub-nav-list">
-                {navItem.subNavItems.map((subNavItem:any, subIndex:number) => {
+                {navItem.subNavItems.map((subNavItem: any, subIndex: number) => {
                   return (
                     <li
                       key={`${index}${subIndex}`}
                       className={classNames('nav-item sub-nav-item', {
                         active: getPath().includes(subNavItem.route),
                       })}
-                      onClick={() => { props.onNavClose(); }}
+                      onClick={() => {
+                        props.onNavClose();
+                      }}
                     >
                       <Link
                         className={classNames('nav-link', subNavItem.enabled ? '' : Styles.disableSubLink)}
@@ -331,7 +345,9 @@ const MainNavigation: React.FC<IMainNavigationProps> = (props) => {
               key={index}
               className={classNames('nav-item', { active: getPath().includes(navItem.route) })}
               title={navItem.title}
-              onClick={() => { props.onNavClose(); }}
+              onClick={() => {
+                props.onNavClose();
+              }}
             >
               <Link
                 className={classNames('nav-link', navItem.enabled ? '' : Styles.disableLink, Styles.navLink)}
@@ -339,7 +355,19 @@ const MainNavigation: React.FC<IMainNavigationProps> = (props) => {
                   pathname: navItem.route,
                 }}
               >
-                <i className={classNames('icon', 'mbc-icon', navItem.icon, Styles.navIcon, getPath().includes(navItem.route) ? Styles.navActive : '')} onClick={() => { props.onNavClose(); history.push(navItem.route) }} />
+                <i
+                  className={classNames(
+                    'icon',
+                    'mbc-icon',
+                    navItem.icon,
+                    Styles.navIcon,
+                    getPath().includes(navItem.route) ? Styles.navActive : '',
+                  )}
+                  onClick={() => {
+                    props.onNavClose();
+                    history.push(navItem.route);
+                  }}
+                />
                 {getTranslatedLabel(navItem.title)}
               </Link>
             </li>

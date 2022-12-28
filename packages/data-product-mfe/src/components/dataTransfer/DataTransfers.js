@@ -6,15 +6,15 @@ import { useDispatch, useSelector } from 'react-redux';
 
 // import from DNA Container
 import Pagination from 'dna-container/Pagination';
-import { setDataProducts, setPagination } from './redux/dataTransferSlice';
-import { GetDataProducts } from './redux/dataTransfer.services';
+import { setDataTransferList, setPagination } from './redux/dataTransferSlice';
+import { GetDataTransfers } from './redux/dataTransfer.services';
 import DataProductCardItem from './Layout/CardView/DataTransferCardItem';
 import DataProductListItem from './Layout/ListView/DataTransferListItem';
 
 const DataProducts = ({ user, history }) => {
   const dispatch = useDispatch();
   const {
-    dataProducts,
+    dataTransfers,
     pagination: { dataProductListResponse, totalNumberOfPages, currentPageNumber, maxItemsPerPage },
   } = useSelector((state) => state.provideDataTransfers);
 
@@ -22,14 +22,14 @@ const DataProducts = ({ user, history }) => {
   const [listViewMode, setListViewMode] = useState(false);
 
   useEffect(() => {
-    dispatch(GetDataProducts());
+    dispatch(GetDataTransfers());
   }, [dispatch]);
 
   const onPaginationPreviousClick = () => {
     const currentPageNumberTemp = currentPageNumber - 1;
     const currentPageOffset = (currentPageNumberTemp - 1) * maxItemsPerPage;
     const modifiedData = dataProductListResponse.slice(currentPageOffset, maxItemsPerPage * currentPageNumberTemp);
-    dispatch(setDataProducts(modifiedData));
+    dispatch(setDataTransferList(modifiedData));
     dispatch(setPagination({ currentPageNumber: currentPageNumberTemp }));
   };
   const onPaginationNextClick = () => {
@@ -37,13 +37,13 @@ const DataProducts = ({ user, history }) => {
     const currentPageOffset = currentPageNumber * maxItemsPerPage;
     currentPageNumberTemp = currentPageNumber + 1;
     const modifiedData = dataProductListResponse.slice(currentPageOffset, maxItemsPerPage * currentPageNumberTemp);
-    dispatch(setDataProducts(modifiedData));
+    dispatch(setDataTransferList(modifiedData));
     dispatch(setPagination({ currentPageNumber: currentPageNumberTemp }));
   };
   const onViewByPageNum = (pageNum) => {
     const totalNumberOfPages = Math.ceil(dataProductListResponse?.length / pageNum);
     const modifiedData = dataProductListResponse.slice(0, pageNum);
-    dispatch(setDataProducts(modifiedData));
+    dispatch(setDataTransferList(modifiedData));
     dispatch(
       setPagination({
         totalNumberOfPages,
@@ -86,7 +86,7 @@ const DataProducts = ({ user, history }) => {
         </div>
         <div>
           <div>
-            {dataProducts?.length === 0 ? (
+            {dataTransfers?.length === 0 ? (
               <div className={classNames(Styles.content)}>
                 <div className={Styles.listContent}>
                   <div className={Styles.emptyProducts}>
@@ -115,7 +115,7 @@ const DataProducts = ({ user, history }) => {
                           <div className={Styles.addicon}> &nbsp; </div>
                           <label className={Styles.addlabel}>Provide new data transfer</label>
                         </div>
-                        {dataProducts?.map((product, index) => {
+                        {dataTransfers?.map((product, index) => {
                           return <DataProductCardItem key={index} product={product} user={user} />;
                         })}
                       </>
@@ -124,7 +124,7 @@ const DataProducts = ({ user, history }) => {
                   <div>
                     {listViewMode ? (
                       <>
-                        <div className={classNames('ul-table dataproducts', dataProducts?.length === 0 ? 'hide' : '')}>
+                        <div className={classNames('ul-table dataproducts', dataTransfers?.length === 0 ? 'hide' : '')}>
                           <div
                             className={classNames('data-row', Styles.listViewContainer)}
                             onClick={() => history.push('/datasharing/create')}
@@ -132,7 +132,7 @@ const DataProducts = ({ user, history }) => {
                             <span className={Styles.addicon}> &nbsp; </span>
                             <label className={Styles.addlabel}>Provide new data transfer</label>
                           </div>
-                          {dataProducts?.map((product, index) => {
+                          {dataTransfers?.map((product, index) => {
                             return <DataProductListItem key={index} product={product} user={user} />;
                           })}
                         </div>
@@ -140,7 +140,7 @@ const DataProducts = ({ user, history }) => {
                     ) : null}
                   </div>
                 </div>
-                {dataProducts?.length ? (
+                {dataTransfers?.length ? (
                   <Pagination
                     totalPages={totalNumberOfPages}
                     pageNumber={currentPageNumber}

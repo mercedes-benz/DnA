@@ -191,7 +191,7 @@ const ContactInformation = ({ onSave, divisions, setSubDivisions, subDivisions, 
           : null;
       return (value === isValidDate && value !== isBefore) || error;
     } else {
-      return value !== '' || '*Missing entry';
+      return (value !== '' && value !== undefined) || '*Missing entry';
     }
   };
 

@@ -1,9 +1,6 @@
 import React from 'react';
 import Styles from './Data.scss';
 import DNACard from 'components/card/Card';
-import IconDataProducts from 'components/icons/IconDataProducts';
-import IconDataLayer from 'components/icons/IconDataLayer';
-import IconDataGovernance from 'components/icons/IconDataGovernance';
 import headerImageURL from '../../../assets/images/Data-Landing.png';
 import { DataLandingPageElements } from 'globals/landingPageElements';
 import LandingSummary from '../shared/landingSummary/LandingSummary';
@@ -14,21 +11,6 @@ export interface DataLandingPageIconsType {
 }
 
 const Data = () => {
-  const DataLandingPageIcons: DataLandingPageIconsType[] = [
-    {
-      svgIconId: 'IconDataProducts',
-      svgIcon: <IconDataProducts />,
-    },
-    {
-      svgIconId: 'IconDataLayer',
-      svgIcon: <IconDataLayer />,
-    },
-    {
-      svgIconId: 'IconDataGovernance',
-      svgIcon: <IconDataGovernance />,
-    },
-  ];
-
   const cards = DataLandingPageElements;
   return (
     <LandingSummary
@@ -42,9 +24,6 @@ const Data = () => {
     >
       <div className={Styles.workspacesWrapper}>
         {cards.map((card, index) => {
-          const iconValue = DataLandingPageIcons.filter(
-            (item: DataLandingPageIconsType) => card.svgIconId === item.svgIconId,
-          )[0].svgIcon;
           return (
             <DNACard
               key={index}
@@ -56,7 +35,7 @@ const Data = () => {
               isDisabled={card.isDisabled}
               isSmallCard={card.isSmallCard}
               isMediumCard={card.isMediumCard}
-              svgIcon={iconValue}
+              svgIcon={card.svgIcon}
               className="data"
             />
           );
