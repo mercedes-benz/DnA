@@ -87,7 +87,7 @@ export const UpdateDataProduct = createAsyncThunk(
 
       const data = deserializeFormData({ item: responseData, type, isDataProduct: true });
 
-      if (responseData?.publish) {
+      if (responseData?.isPublish) {
         Notification.show(`Information saved and published sucessfully.`);
       } else {
         Notification.show('Draft saved successfully.');
