@@ -35,7 +35,9 @@ const ContactInformation = ({ onSave, divisions, setSubDivisions, subDivisions, 
     getValues,
   } = useFormContext();
   const [showInfoModal, setShowInfoModal] = useState(false);
-  const provideDataTransfers = useSelector((state) => (!isDataProduct ? state.provideDataTransfers : state.data));
+  const provideDataTransfers = useSelector((state) =>
+    !isDataProduct ? state.provideDataTransfers : state.dataProduct,
+  );
 
   const {
     division,
@@ -91,7 +93,7 @@ const ContactInformation = ({ onSave, divisions, setSubDivisions, subDivisions, 
   }, [division]);
 
   useEffect(() => {
-    SelectBox.defaultSetup();
+    !isDataProduct && SelectBox.defaultSetup();
     reset(watch());
     //eslint-disable-next-line
   }, []);

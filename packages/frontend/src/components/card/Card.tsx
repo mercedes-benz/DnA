@@ -8,6 +8,7 @@ import Styles from './Card.scss';
 
 import { history } from '../../router/History';
 import IconWrapper from 'components/icons/IconWrapper';
+import IconNameRenderer from 'components/icons/IconNameRenderer';
 const classNames = cn.bind(Styles);
 
 export interface IDNACardProps {
@@ -20,8 +21,8 @@ export interface IDNACardProps {
   isMediumCard?: boolean;
   tags?: string[];
   isExternalLink?: boolean;
-  svgIcon?: JSX.Element;
-  className?: string; 
+  svgIcon?: JSX.Element | string;
+  className?: string;
 }
 const DNACard = (props: IDNACardProps) => {
   useEffect(() => {
@@ -37,8 +38,8 @@ const DNACard = (props: IDNACardProps) => {
           Styles.cardWrapper,
           props.isMediumCard ? Styles.mediumCard : '',
           props.isSmallCard ? Styles.smallCard : '',
-          props.isDisabled ? Styles.disabled: '',
-          props.className
+          props.isDisabled ? Styles.disabled : '',
+          props.className,
         )}
         onClick={() => {
           props.isExternalLink ? window.open(props.url) : history.push(props.url);
@@ -53,7 +54,17 @@ const DNACard = (props: IDNACardProps) => {
             ''
           )}
         </div>
-        <div className={Styles.cardIconSection}>{props.svgIcon ? props.svgIcon : <IconWrapper />}</div>
+        <div className={Styles.cardIconSection}>
+          {props.svgIcon ? (
+            typeof props.svgIcon === 'string' ? (
+              <IconNameRenderer name={props.svgIcon} />
+            ) : (
+              props.svgIcon
+            )
+          ) : (
+            <IconWrapper />
+          )}
+        </div>
         <div
           className={
             props.isTextAlignLeft
