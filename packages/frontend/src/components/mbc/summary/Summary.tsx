@@ -117,6 +117,15 @@ export default class Summary extends React.Component<{ user: IUserInfo }, ISumma
           },
           resultUrl: '',
         },
+        marketing: {
+          customerJourneyPhases: [],
+          marketingCommunicationChannels: [],
+          personalization: {
+              isChecked: false,
+              description: ''
+          },
+          personas: []
+        },
         datacompliance: {
           quickCheck: false,
           expertGuidelineNeeded: false,
