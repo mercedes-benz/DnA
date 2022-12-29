@@ -1,6 +1,6 @@
 import classNames from 'classnames';
 import React, { useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useHistory } from 'react-router-dom';
 // @ts-ignore
 import Navigation from './../../assets/modules/uilab/js/src/navigation';
 import { getTranslatedLabel } from 'globals/i18n/TranslationsProvider';
@@ -22,8 +22,7 @@ const MainNavigation: React.FC<IMainNavigationProps> = (props) => {
   let isTouch = false;
   let mainNavContainer: HTMLDivElement;
 
-  // const [showNavigation, setShowNavigation] = useState<boolean>(false);
-  // const [showUserPanel, setShowUserPanel] = useState<boolean>(false);
+  const history = useHistory();
 
   useEffect(() => {
     document.addEventListener('touchend', handleMainMenuClickOutside, true);
@@ -80,26 +79,7 @@ const MainNavigation: React.FC<IMainNavigationProps> = (props) => {
     props.isMaximized && activeNavItem?.setAttribute('style', `height: auto !important`);
   }, [props.isMaximized]);
 
-  // const reportNav = {
-  //   id: 3,
-  //   title: 'Reports',
-  //   icon: 'reports',
-  //   subNavItems: [
-  //     {
-  //       allowedRoles: UserAndAdminRole,
-  //       id: 1,
-  //       route: `/createnewreport`,
-  //       title: 'CreateNewReport',
-  //     },
-  //     {
-  //       allowedRoles: UserAndAdminRole,
-  //       id: 2,
-  //       route: `/allreports`,
-  //       title: 'AllReports',
-  //     },
-  //   ],
-  // };
-  const navItems = [
+  const navItems: any = [
     {
       allowedRoles: UserAndAdminRole,
       id: 0,
@@ -110,6 +90,7 @@ const MainNavigation: React.FC<IMainNavigationProps> = (props) => {
     },
     {
       id: 1,
+      route: `/transparency`,
       title: 'Transparency',
       icon: 'reports',
       enabled: true,
@@ -160,6 +141,7 @@ const MainNavigation: React.FC<IMainNavigationProps> = (props) => {
     },
     {
       id: 2,
+      route: `/data`,
       title: 'Data',
       icon: 'solutions',
       enabled: true,
@@ -167,7 +149,7 @@ const MainNavigation: React.FC<IMainNavigationProps> = (props) => {
         {
           allowedRoles: UserAndAdminRole,
           id: 1,
-          route: `/data/dataproductlist`,
+          route: `/data/dataproducts`,
           title: 'DataProducts',
           enabled: true,
         },
@@ -189,6 +171,7 @@ const MainNavigation: React.FC<IMainNavigationProps> = (props) => {
     },
     {
       id: 3,
+      route: `/tools`,
       title: 'Tools',
       icon: 'dashboard',
       enabled: true,
@@ -218,6 +201,7 @@ const MainNavigation: React.FC<IMainNavigationProps> = (props) => {
     },
     {
       id: 4,
+      route: `/trainings`,
       title: 'Trainings',
       icon: 'training',
       enabled: Envs.ENABLE_TRAININGS,
@@ -245,49 +229,7 @@ const MainNavigation: React.FC<IMainNavigationProps> = (props) => {
         },
       ],
     },
-    // {
-    //   id: 2,
-    //   title: 'Solutions',
-    //   icon: 'solutions',
-    //   subNavItems: [
-    //     {
-    //       allowedRoles: UserAndAdminRole,
-    //       id: 1,
-    //       route: `/createnewsolution`,
-    //       title: 'CreateNewSolution',
-    //     },
-    //     {
-    //       allowedRoles: UserAndAdminRole,
-    //       id: 2,
-    //       route: `/allsolutions`,
-    //       title: 'AllSolutions',
-    //     },
-    //   ],
-    // },
-    // {
-    //   id: 4,
-    //   title: 'MyWorkspace',
-    //   icon: 'workspace',
-    //   subNavItems: [
-    //     {
-    //       allowedRoles: UserAndAdminRole,
-    //       id: 1,
-    //       route: `/workspaces`,
-    //       title: 'Workspaces',
-    //     },
-    //     {
-    //       allowedRoles: UserAndAdminRole,
-    //       id: 2,
-    //       route: `/services`,
-    //       title: 'Services',
-    //     },
-    //   ],
-    // },
   ];
-
-  // if (Envs.ENABLE_REPORTS) {
-  //   navItems.splice(3, 0, reportNav);
-  // }
 
   const setReferenceMainNav = (element: HTMLDivElement) => {
     mainNavContainer = element;
@@ -302,18 +244,6 @@ const MainNavigation: React.FC<IMainNavigationProps> = (props) => {
     });
     return oneOfChildNavSelected;
   };
-
-  // const closeUserPanel = () => {
-  //   setShowUserPanel(false);
-  // };
-
-  // const toggleUserPanel = () => {
-  //   setShowUserPanel(!showUserPanel);
-  // };
-
-  // const toggleNavigation = () => {
-  //   setShowNavigation(!showNavigation);
-  // };
 
   const handleMainMenuClickOutside = (event: MouseEvent | TouchEvent) => {
     if (event.type === 'touchend') {
@@ -361,7 +291,7 @@ const MainNavigation: React.FC<IMainNavigationProps> = (props) => {
         })}
       </ul> */}
       <ul className="nav-list mbc-scroll sub">
-        {navItems.map((navItem, index) => {
+        {navItems.map((navItem: any, index: number) => {
           return navItem.subNavItems ? (
             <li
               key={index}
@@ -371,19 +301,33 @@ const MainNavigation: React.FC<IMainNavigationProps> = (props) => {
               })}
               title={navItem.title}
             >
-              <a className={classNames('nav-link', navItem.enabled ? '' : Styles.disableLink)}>
-                <i className={classNames('icon', 'mbc-icon', navItem.icon)} />
+              <a className={classNames('nav-link', navItem.enabled ? '' : Styles.disableLink, Styles.navLink)}>
+                <i
+                  className={classNames(
+                    'icon',
+                    'mbc-icon',
+                    navItem.icon,
+                    Styles.navIcon,
+                    getPath().includes(navItem.route) ? Styles.navActive : '',
+                  )}
+                  onClick={() => {
+                    props.onNavClose();
+                    history.push(navItem.route);
+                  }}
+                />
                 {getTranslatedLabel(navItem.title)}
               </a>
               <ul className="sub-nav-list">
-                {navItem.subNavItems.map((subNavItem, subIndex) => {
+                {navItem.subNavItems.map((subNavItem: any, subIndex: number) => {
                   return (
                     <li
                       key={`${index}${subIndex}`}
                       className={classNames('nav-item sub-nav-item', {
                         active: getPath().includes(subNavItem.route),
                       })}
-                      onClick={() => { props.onNavClose(); }}
+                      onClick={() => {
+                        props.onNavClose();
+                      }}
                     >
                       <Link
                         className={classNames('nav-link', subNavItem.enabled ? '' : Styles.disableSubLink)}
@@ -401,15 +345,29 @@ const MainNavigation: React.FC<IMainNavigationProps> = (props) => {
               key={index}
               className={classNames('nav-item', { active: getPath().includes(navItem.route) })}
               title={navItem.title}
-              onClick={() => { props.onNavClose(); }}
+              onClick={() => {
+                props.onNavClose();
+              }}
             >
               <Link
-                className={classNames('nav-link', navItem.enabled ? '' : Styles.disableLink)}
+                className={classNames('nav-link', navItem.enabled ? '' : Styles.disableLink, Styles.navLink)}
                 to={{
                   pathname: navItem.route,
                 }}
               >
-                <i className={classNames('icon', 'mbc-icon', navItem.icon)} />
+                <i
+                  className={classNames(
+                    'icon',
+                    'mbc-icon',
+                    navItem.icon,
+                    Styles.navIcon,
+                    getPath().includes(navItem.route) ? Styles.navActive : '',
+                  )}
+                  onClick={() => {
+                    props.onNavClose();
+                    history.push(navItem.route);
+                  }}
+                />
                 {getTranslatedLabel(navItem.title)}
               </Link>
             </li>

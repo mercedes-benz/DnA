@@ -75,6 +75,51 @@ swaggerSources {
         }
     }
     
+    carlafunction {
+        def carlafunctionyaml = "${rootDir}/data-product-lib/src/main/resources/api/Carlafunction.yaml"
+        def carlafunctionJson = "${rootDir}/data-product-lib/src/main/resources/api/Carlafunction.json"
+        inputFile = file(carlafunctionyaml)
+
+        def ignoreFile = "${rootDir}/data-product-lib/src/main/resources/api/.swagger-codegen-ignore"
+
+        code {
+            language = 'spring'
+            configFile = file(carlafunctionJson)
+            rawOptions = ['--ignore-file-override', ignoreFile]
+            components = ['models', 'apis']
+        }
+    }
+    
+    corporateDataCatalog {
+        def corporateDataCatalogyaml = "${rootDir}/data-product-lib/src/main/resources/api/CorporateDataCatalog.yaml"
+        def corporateDataCatalogJson = "${rootDir}/data-product-lib/src/main/resources/api/CorporateDataCatalog.json"
+        inputFile = file(corporateDataCatalogyaml)
+
+        def ignoreFile = "${rootDir}/data-product-lib/src/main/resources/api/.swagger-codegen-ignore"
+
+        code {
+            language = 'spring'
+            configFile = file(corporateDataCatalogJson)
+            rawOptions = ['--ignore-file-override', ignoreFile]
+            components = ['models', 'apis']
+        }
+    }
+    
+    agileReleaseTrain {
+        def agileReleaseTrainyaml = "${rootDir}/data-product-lib/src/main/resources/api/AgileReleaseTrain.yaml"
+        def agileReleaseTrainJson = "${rootDir}/data-product-lib/src/main/resources/api/AgileReleaseTrain.json"
+        inputFile = file(agileReleaseTrainyaml)
+
+        def ignoreFile = "${rootDir}/data-product-lib/src/main/resources/api/.swagger-codegen-ignore"
+
+        code {
+            language = 'spring'
+            configFile = file(agileReleaseTrainJson)
+            rawOptions = ['--ignore-file-override', ignoreFile]
+            components = ['models', 'apis']
+        }
+    }
+    
     datacomplianceAudit {
         def datacomplianceAudityaml = "${rootDir}/data-product-lib/src/main/resources/api/DataComplianceAudit.yaml"
         def datacomplianceAuditJson = "${rootDir}/data-product-lib/src/main/resources/api/DataComplianceAudit.json"
@@ -104,6 +149,21 @@ swaggerSources {
             components = ['models', 'apis']
         }
     }  
+    
+    datatransfer {
+        def datatransferyaml = "${rootDir}/data-product-lib/src/main/resources/api/DataTransfer.yaml"
+        def datatransferJson = "${rootDir}/data-product-lib/src/main/resources/api/DataTransfer.json"
+        inputFile = file(datatransferyaml)
+
+        def ignoreFile = "${rootDir}/data-product-lib/src/main/resources/api/.swagger-codegen-ignore"
+
+        code {
+            language = 'spring'
+            configFile = file(datatransferJson)
+            rawOptions = ['--ignore-file-override', ignoreFile]
+            components = ['models', 'apis']
+        }
+    }
     
     dataproduct {
         def dataproductyaml = "${rootDir}/data-product-lib/src/main/resources/api/DataProduct.yaml"
@@ -180,10 +240,18 @@ compileJava {
     dependsOn processResources
     dependsOn swaggerSources.datacompliance.code
     source "${swaggerSources.datacompliance.code.outputDir}/src/main/java" 
+    dependsOn swaggerSources.carlafunction.code
+    source "${swaggerSources.carlafunction.code.outputDir}/src/main/java" 
+    dependsOn swaggerSources.agileReleaseTrain.code
+    source "${swaggerSources.agileReleaseTrain.code.outputDir}/src/main/java" 
+    dependsOn swaggerSources.corporateDataCatalog.code
+    source "${swaggerSources.corporateDataCatalog.code.outputDir}/src/main/java"
     dependsOn swaggerSources.datacomplianceAudit.code
     source "${swaggerSources.datacomplianceAudit.code.outputDir}/src/main/java"
     dependsOn swaggerSources.entityid.code
     source "${swaggerSources.entityid.code.outputDir}/src/main/java"  
+    dependsOn swaggerSources.datatransfer.code
+    source "${swaggerSources.datatransfer.code.outputDir}/src/main/java" 
     dependsOn swaggerSources.dataproduct.code
     source "${swaggerSources.dataproduct.code.outputDir}/src/main/java" 
     dependsOn swaggerSources.department.code
@@ -204,8 +272,12 @@ sourceSets {
     }
     main {
     	  java { srcDirs += "${swaggerSources.datacompliance.code.outputDir}/src/main/java" }
+    	  java { srcDirs += "${swaggerSources.carlafunction.code.outputDir}/src/main/java" }
+    	  java { srcDirs += "${swaggerSources.agileReleaseTrain.code.outputDir}/src/main/java" }
+    	  java { srcDirs += "${swaggerSources.corporateDataCatalog.code.outputDir}/src/main/java" }
     	  java { srcDirs += "${swaggerSources.datacomplianceAudit.code.outputDir}/src/main/java" }
     	  java { srcDirs += "${swaggerSources.entityid.code.outputDir}/src/main/java" }
+    	  java { srcDirs += "${swaggerSources.datatransfer.code.outputDir}/src/main/java" }
     	  java { srcDirs += "${swaggerSources.dataproduct.code.outputDir}/src/main/java" }
     	  java { srcDirs += "${swaggerSources.department.code.outputDir}/src/main/java" }
     	  java { srcDirs += "${swaggerSources.classification.code.outputDir}/src/main/java"}

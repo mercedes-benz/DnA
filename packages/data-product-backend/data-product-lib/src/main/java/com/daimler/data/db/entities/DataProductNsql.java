@@ -38,7 +38,7 @@ import com.daimler.data.db.jsonb.dataproduct.DataProduct;
 @Table(name = "dataproduct_nsql")
 public class DataProductNsql extends BaseEntity<DataProduct> implements Serializable {
 
-	private static final long serialVersionUID = 4857908075537600169L;
+	private static final long serialVersionUID = -3389182956000126945L;
 
 	public DataProductNsql() {
 		super();
