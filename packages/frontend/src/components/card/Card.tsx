@@ -23,6 +23,7 @@ export interface IDNACardProps {
   isExternalLink?: boolean;
   svgIcon?: JSX.Element | string;
   className?: string;
+  upperTag?: string;
 }
 const DNACard = (props: IDNACardProps) => {
   useEffect(() => {
@@ -50,6 +51,11 @@ const DNACard = (props: IDNACardProps) => {
             <button className={'btn btn-primary ' + Styles.comingSoonBtn}>Coming Soon</button>
           ) : props.isExternalLink ? (
             <i className={classNames('icon mbc-icon new-tab', Styles.OpenNewTabIcon)} />
+          ) : (
+            ''
+          )}
+          {props.upperTag ? (
+            <p className={Styles.upperTag}>{props.upperTag}</p>
           ) : (
             ''
           )}
