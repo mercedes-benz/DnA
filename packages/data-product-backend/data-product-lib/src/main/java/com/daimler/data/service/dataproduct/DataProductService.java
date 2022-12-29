@@ -29,33 +29,18 @@ package com.daimler.data.service.dataproduct;
 
 import java.util.List;
 
-import org.springframework.http.ResponseEntity;
-
-import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.db.entities.DataProductNsql;
-import com.daimler.data.dto.dataproduct.ConsumerVO;
-import com.daimler.data.dto.dataproduct.DataProductConsumerResponseVO;
-import com.daimler.data.dto.dataproduct.DataProductProviderResponseVO;
 import com.daimler.data.dto.dataproduct.DataProductVO;
-import com.daimler.data.dto.dataproduct.ProviderVO;
 import com.daimler.data.service.common.CommonService;
 
 public interface DataProductService extends CommonService<DataProductVO, DataProductNsql, String> {
-
-	enum CATEGORY {
-
-	}
 
 	List<DataProductVO> getAllWithFilters(Boolean published, int offset, int limit, String sortBy, String sortOrder,
 			String recordStatus);
 
 	Long getCount(Boolean published, String recordStatus);
 
-	ResponseEntity<DataProductProviderResponseVO> createDataProductProvider(ProviderVO providerVO);
+	List<DataProductVO> getExistingDataProduct(String uniqueProductName, String status);
 
-	ResponseEntity<DataProductProviderResponseVO> updateDataProductProvider(ProviderVO providerVO);
-
-	ResponseEntity<DataProductConsumerResponseVO> updateDataProductConsumer(ConsumerVO consumerVO);
-
-	ResponseEntity<GenericMessage> deleteDataProduct(String id);
+	String getNextSeqId();
 }

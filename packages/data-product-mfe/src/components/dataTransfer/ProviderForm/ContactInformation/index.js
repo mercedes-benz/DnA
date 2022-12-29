@@ -17,7 +17,7 @@ import ProgressIndicator from '../../../../common/modules/uilab/js/src/progress-
 import Notification from '../../../../common/modules/uilab/js/src/notification';
 
 import { useSelector } from 'react-redux';
-import { dataTransferApi } from '../../../../apis/dataproducts.api';
+import { dataTransferApi } from '../../../../apis/datatransfers.api';
 
 import dayjs from 'dayjs';
 import { debounce } from 'lodash';
@@ -35,7 +35,9 @@ const ContactInformation = ({ onSave, divisions, setSubDivisions, subDivisions, 
     getValues,
   } = useFormContext();
   const [showInfoModal, setShowInfoModal] = useState(false);
-  const provideDataProducts = useSelector((state) => (!isDataProduct ? state.provideDataProducts : state.data));
+  const provideDataTransfers = useSelector((state) =>
+    !isDataProduct ? state.provideDataTransfers : state.dataProduct,
+  );
 
   const {
     division,
@@ -72,7 +74,7 @@ const ContactInformation = ({ onSave, divisions, setSubDivisions, subDivisions, 
       hostServer.get('/subdivisions/' + id).then((res) => {
         setSubDivisions(res?.data || []);
         if (!dirtyFields.division && !dirtyFields.subDivision) {
-          let selected = isDataProduct ? provideDataProducts?.selectedData : provideDataProducts.selectedDataProduct;
+          let selected = isDataProduct ? provideDataTransfers?.selectedData : provideDataTransfers.selectedDataTransfer;
           setValue('subDivision', selected.subDivision);
         } else {
           setValue('subDivision', '0');
@@ -91,7 +93,7 @@ const ContactInformation = ({ onSave, divisions, setSubDivisions, subDivisions, 
   }, [division]);
 
   useEffect(() => {
-    SelectBox.defaultSetup();
+    !isDataProduct && SelectBox.defaultSetup();
     reset(watch());
     //eslint-disable-next-line
   }, []);
@@ -288,10 +290,14 @@ const ContactInformation = ({ onSave, divisions, setSubDivisions, subDivisions, 
                   <Controller
                     control={control}
                     name="informationOwner"
-                    // rules={{ required: '*Missing entry' }}
+                    rules={{ required: '*Missing entry' }}
                     render={({ field }) => (
                       <TeamSearch
-                        label={<>Information Owner {/*<sup>*</sup> */}</>}
+                        label={
+                          <>
+                            Information Owner <sup>*</sup>
+                          </>
+                        }
                         fieldMode={true}
                         fieldValue={informationOwnerFieldValue}
                         setFieldValue={(val) => setInformationOwnerFieldValue(val)}

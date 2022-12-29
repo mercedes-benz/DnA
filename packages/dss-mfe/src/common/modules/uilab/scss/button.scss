@@ -1,0 +1,200 @@
+//
+// Base styles
+//
+
+.btn {
+  display: inline-block;
+  font-family: "Roboto-Regular";
+  font-weight: normal;
+  color: #ffffff;
+  text-align: center;
+  vertical-align: middle;
+  user-select: none;
+  background-color: #1c2026;
+  border: 1px solid transparent;
+  padding: 0px 35px;
+  height: 40px;
+  transition: background-color 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms,
+    box-shadow 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms,
+    border 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms,
+    color .15s linear;
+
+  &.big {
+    height: 50px;
+    padding: 10px 40px;
+  }
+
+  &.btn-secondary {
+    background-color: transparent;
+    color: #1c2026;
+    border: 1px solid #1c2026;
+
+    &:hover {
+      background-color: transparent;
+      color: #76797c;
+      border: 1px solid #76797c;
+    }
+
+    &.disabled,
+    &:disabled {
+      background-color: transparent;
+      color: #99a5b3;
+      border: 1px solid #d5d9de;
+    }
+  }
+
+  &.btn-text {
+    background-color: transparent;
+    color: #1c2026;
+    padding: 0;
+
+    &:hover {
+      background-color: transparent;
+      color: #76797c;
+    }
+
+    &.disabled,
+    &:disabled {
+      background-color: transparent;
+      color: #99a5b3;
+    }
+  }
+
+  &.arrow {
+    padding: 0;
+    width: 40px;
+
+    &.big {
+      width: 50px;
+
+      &::before {
+        content: "\e900";
+        font-size: 20px;
+        line-height: 49px;
+        padding-left: 1px;
+      }
+    }
+
+    &.btn-text {
+      width: auto;
+      &::before {
+        float: right;
+        font-size: 18px;
+        padding-left: 16px;
+        line-height: 24px;
+
+        transition: transform 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms,
+                    color .15s linear;
+      }
+
+      &:hover:not(:disabled) {
+        &::before {
+          color: #76797c;
+          transform: translateX(5px)
+        }
+      }
+
+      &.back {
+        &::before {
+          content: "\e914";
+          float: left;
+          padding-right: 16px;
+          padding-left: 0;
+          line-height: 23px;
+        }
+
+        &:hover:not(:disabled) {
+          &::before {
+            transform: translateX(-5px)
+          }
+        }
+      }
+    }
+
+    &::before {
+      font-family: "icomoon";
+      content: "\e915";
+      font-size: 15px;
+      line-height: 39px;
+    }
+  }
+
+  &:hover {
+    background-color: #3d4146;
+    text-decoration: none;
+  }
+
+  &:focus,
+  &.focus {
+    outline: 0;
+  }
+
+  &.disabled,
+  &:disabled {
+    color: #99a5b3;
+    background-color: #d5d9de;
+  }
+
+  &.btn-icon-circle {
+    padding: 0;
+    background-color: transparent;
+    color: #00adef;
+    border: none;
+    border-radius: 50%;
+    &:hover {
+      background-color: rgba(0, 173, 239, 0.08);
+    }
+  }
+}
+
+.btn-set {
+  .btn {
+    margin-right: 16px;
+    margin-top: 16px;
+    &:last-child {
+      margin-right: 0;
+    }
+  }
+}
+
+/* Ripple magic */
+/*.btn {
+  position: relative;
+  overflow: hidden;
+
+  &:after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 5px;
+    height: 5px;
+    background: rgba(255, 255, 255, 0.5);
+    opacity: 0;
+    transform: scale(1, 1) translate(-50%);
+    transform-origin: 50% 50%;
+  }
+
+  &.btn-secondary:after {
+    background: rgba(28, 32, 38, 0.5);
+  }
+}
+
+@keyframes ripple {
+  0% {
+    transform: scale(0, 0);
+    opacity: 1;
+  }
+  20% {
+    transform: scale(25, 25);
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: scale(40, 40);
+  }
+}
+
+.btn:focus:not(:active)::after {
+  animation: ripple 1s ease-out;
+} */

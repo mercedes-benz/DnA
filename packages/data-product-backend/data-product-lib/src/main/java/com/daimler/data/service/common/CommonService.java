@@ -31,7 +31,7 @@ import java.util.List;
 
 import com.daimler.data.db.repo.common.CommonDataRepositoryImpl;
 import com.daimler.data.dto.datacompliance.CreatedByVO;
-import com.daimler.data.dto.dataproduct.ChangeLogVO;
+import com.daimler.data.dto.datatransfer.ChangeLogVO;
 
 public interface CommonService<V, T, ID> {
 
@@ -40,6 +40,8 @@ public interface CommonService<V, T, ID> {
 	List<V> getAll(int limit, int offset);
 
 	V getById(ID id);
+
+    V updateByID(V vo);
 
 	V getByUniqueliteral(String uniqueLiteral, String value);
 
