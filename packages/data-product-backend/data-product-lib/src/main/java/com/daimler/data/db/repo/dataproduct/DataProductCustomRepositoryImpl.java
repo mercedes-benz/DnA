@@ -57,7 +57,12 @@ public class DataProductCustomRepositoryImpl extends CommonDataRepositoryImpl<Da
 			String sortBy, String sortOrder, String recordStatus) {
 		Query q = getNativeQueryWithFilters("", published, offset, limit, sortBy, sortOrder, recordStatus);
 		ObjectMapper mapper = new ObjectMapper();
-		List<Object[]> results = q.getResultList();
+		List<Object[]> results = null;
+		try {
+			results = q.getResultList();
+		}catch(Exception e){
+			e.printStackTrace();
+		}
 		List<DataProductNsql> convertedResults = results.stream().map(temp -> {
 			DataProductNsql entity = new DataProductNsql();
 			try {
@@ -175,21 +180,21 @@ public class DataProductCustomRepositoryImpl extends CommonDataRepositoryImpl<Da
 				// occurrence of comma(,)
 				String[] divList = divSubdiv.trim().split(",", 2);
 				if (divList.length > 1) {
-					query += "(jsonb_extract_path_text(data, 'providerInformation', 'contactInformation', 'division', 'id') in ('"
+					query += "(jsonb_extract_path_text(data, 'contactInformation', 'division', 'id') in ('"
 							+ divList[0] + "')";
 					String commaSeparatedinSubdivisions = Arrays.asList(divList[1].split(",")).stream()
 							.collect(Collectors.joining("','", "'", "'"));
 					if (isEmptySubdivision) {
-						query += " and (jsonb_extract_path_text(data,'providerInformation','contactInformation', 'division','subdivision','id') in ("
+						query += " and (jsonb_extract_path_text(data,'contactInformation', 'division','subdivision','id') in ("
 								+ commaSeparatedinSubdivisions + ")";
-						query += " or jsonb_extract_path_text(data, 'providerInformation', 'contactInformation','division','subdivision','id') is null)";
+						query += " or jsonb_extract_path_text(data, 'contactInformation','division','subdivision','id') is null)";
 					} else {
-						query += " and jsonb_extract_path_text(data, 'providerInformation','contactInformation','division','subdivision','id') in ("
+						query += " and jsonb_extract_path_text(data, 'contactInformation','division','subdivision','id') in ("
 								+ commaSeparatedinSubdivisions + ")";
 					}
 					query += ")";
 				} else {
-					query += "jsonb_extract_path_text(data,'providerInformation','contactInformation','division','id') in ('"
+					query += "jsonb_extract_path_text(data,'contactInformation','division','id') in ('"
 							+ divList[0] + "')";
 				}
 				if (divisionSplit.length > 1 && !consolidatedQuery.toString().isEmpty()) {
@@ -227,7 +232,6 @@ public class DataProductCustomRepositoryImpl extends CommonDataRepositoryImpl<Da
 
 	@Override
 	public List<DataProductNsql> getExistingDataProduct(String uniqueProductName, String status) {
-
 		Query q = getNativeQueryWithFilters("select cast (data as text) from ", uniqueProductName,status);
 		ObjectMapper mapper = new ObjectMapper();
 		List<Object[]> results = q.getResultList();				

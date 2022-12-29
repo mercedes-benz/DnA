@@ -6,7 +6,7 @@ import { regionalDateFormat } from '../../../../Utility/utils';
 import Styles from './styles.scss';
 
 const ProviderSummary = ({ onSave, providerFormIsDraft }) => {
-  const { selectedDataProduct: data, divisionList } = useSelector((state) => state.provideDataProducts);
+  const { selectedDataTransfer: data, divisionList } = useSelector((state) => state.provideDataTransfers);
 
   const isMounted = useRef(false);
   const [providerInformation, setProviderInformation] = useState({});
@@ -44,7 +44,7 @@ const ProviderSummary = ({ onSave, providerFormIsDraft }) => {
             </div>
             <div className={classNames(Styles.flexLayout, Styles.fourColumn)}>
               <div>
-                <label className="input-label summary">Data Product Name</label>
+                <label className="input-label summary">Data Product Name / Short description of data transfer</label>
                 <br />
                 {providerInformation.productName}
               </div>
@@ -59,12 +59,17 @@ const ProviderSummary = ({ onSave, providerFormIsDraft }) => {
                 {providerInformation.name?.firstName} {providerInformation.name?.lastName}
               </div>
               <div>
+                <label className="input-label summary">Information Owner</label>
+                <br />
+                {providerInformation.informationOwner?.firstName} {providerInformation.informationOwner?.lastName}
+              </div>
+            </div>
+            <div className={classNames(Styles.flexLayout, Styles.fourColumn)}>
+              <div>
                 <label className="input-label summary">Division</label>
                 <br />
                 {division?.name}
               </div>
-            </div>
-            <div className={classNames(Styles.flexLayout, Styles.fourColumn)}>
               <div>
                 <label className="input-label summary">Sub Division</label>
                 <br />
@@ -80,6 +85,8 @@ const ProviderSummary = ({ onSave, providerFormIsDraft }) => {
                 <br />
                 {providerInformation.planningIT || '-'}
               </div>
+            </div>
+            <div className={classNames(Styles.flexLayout, Styles.fourColumn)}>
               <div>
                 <label className="input-label summary">Compliance Officer / Responsible (LCO/LCR) </label>
                 <br />

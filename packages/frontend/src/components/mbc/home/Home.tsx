@@ -4,10 +4,6 @@ import { IUserInfo } from 'globals/types';
 import Styles from './Home.scss';
 import { Envs } from 'globals/Envs';
 import DNACard from 'components/card/Card';
-import IconTransparency from 'components/icons/IconTransparency';
-import IconData from 'components/icons/IconData';
-import IconTools from 'components/icons/IconTools';
-import IconTrainings from 'components/icons/IconTrainings';
 
 export interface ILandingpageProps {
   user: IUserInfo;
@@ -41,7 +37,7 @@ const Home: React.FC<ILandingpageProps> = () => {
                   url={'/transparency'}
                   isTextAlignLeft={false}
                   isDisabled={false}
-                  svgIcon={<IconTransparency />}
+                  svgIcon={'transparency'}
                   className="transparency"
                 />
               </div>
@@ -57,7 +53,7 @@ const Home: React.FC<ILandingpageProps> = () => {
                     url={'/data'}
                     isTextAlignLeft={false}
                     isDisabled={false}
-                    svgIcon={<IconData />}
+                    svgIcon={'data'}
                     className="data"
                   />
                   <DNACard
@@ -66,7 +62,7 @@ const Home: React.FC<ILandingpageProps> = () => {
                     url={'/tools'}
                     isTextAlignLeft={false}
                     isDisabled={false}
-                    svgIcon={<IconTools />}
+                    svgIcon={'tools'}
                     className="tools"
                   />
                   <DNACard
@@ -75,9 +71,44 @@ const Home: React.FC<ILandingpageProps> = () => {
                     url={'/trainings'}
                     isTextAlignLeft={false}
                     isDisabled={!Envs.ENABLE_TRAININGS}
-                    svgIcon={<IconTrainings />}
+                    svgIcon={'trainings'}
                     className="trainings"
                   />
+                </div>
+              </div>
+              <div className={Styles.newsSection}>
+                <div className={Styles.newsContainer}>
+                  <div className={Styles.newsItem}>
+                    <h3>V1.1 coming soon!</h3>
+                    <p>
+                      Follow our social intranet page to see pro...{' '}
+                      <a href="#" target="_blank" rel="noreferrer noopener">
+                        read more
+                      </a>
+                    </p>
+                  </div>
+                </div>
+                <div className={Styles.newsContainer}>
+                  <div className={Styles.newsItem}>
+                    <h3>News Lorem</h3>
+                    <p>
+                      Follow our social intranet page to see pro...{' '}
+                      <a href="#" target="_blank" rel="noreferrer noopener">
+                        read more
+                      </a>
+                    </p>
+                  </div>
+                </div>
+                <div className={Styles.newsContainer}>
+                  <div className={Styles.newsItem}>
+                    <h3>News Lorem</h3>
+                    <p>
+                      Follow our social intranet page to see pro...{' '}
+                      <a href="#" target="_blank" rel="noreferrer noopener">
+                        read more
+                      </a>
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>

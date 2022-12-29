@@ -67,7 +67,7 @@ import com.daimler.data.dto.storage.BucketObjectVO;
 import com.daimler.data.dto.storage.ObjectMetadataVO;
 import com.daimler.data.dto.storage.PermissionVO;
 import com.daimler.data.dto.storage.UserVO;
-import com.daimler.data.util.CacheUtil;
+import com.daimler.data.util.RedisCacheUtil;
 import com.daimler.data.util.ConstantsUtility;
 import com.daimler.data.util.PolicyUtility;
 import com.daimler.data.util.StorageUtility;
@@ -111,7 +111,7 @@ public class DnaMinioClientImp implements DnaMinioClient {
 	private VaultConfig vaultConfig;
 	
 	@Autowired
-	private CacheUtil cacheUtil;
+	private RedisCacheUtil cacheUtil;
 
 	@Override
 	public MinioGenericResponse createBucket(String bucketName) {

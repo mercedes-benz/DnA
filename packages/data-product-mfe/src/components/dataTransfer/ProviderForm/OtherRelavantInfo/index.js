@@ -24,7 +24,7 @@ const OtherRelevantInfo = ({ onSave, history, user, isDataProduct }) => {
     setValue,
     watch,
   } = useFormContext();
-  const provideDataProducts = useSelector((state) => state.provideDataProducts);
+  const provideDataTransfers = useSelector((state) => state.provideDataTransfers);
 
   const [showInfoModal, setShowInfoModal] = useState(false);
   const [showAddConsumersModal, setShowAddConsumersModal] = useState(false);
@@ -45,7 +45,7 @@ const OtherRelevantInfo = ({ onSave, history, user, isDataProduct }) => {
   const [editTeamMember, setEditTeamMember] = useState(false);
   const [editTeamMemberIndex, setEditTeamMemberIndex] = useState(-1);
 
-  const isDisabled = !teamMembers.length && !provideDataProducts.selectedDataProduct.users?.length ? true : false;
+  const isDisabled = !teamMembers.length && !provideDataTransfers.selectedDataTransfer.users?.length ? true : false;
   const hasUsers = watch('users');
 
   const [isCreator, setIsCreator] = useState(false);
@@ -176,7 +176,7 @@ const OtherRelevantInfo = ({ onSave, history, user, isDataProduct }) => {
   );
 
   const handleCancel = () => {
-    history.push('/');
+    history.push('/datasharing');
     setShowAddConsumersModal(false);
   };
 
@@ -269,7 +269,7 @@ const OtherRelevantInfo = ({ onSave, history, user, isDataProduct }) => {
                 setValue('publish', true);
                 setValue('providerFormSubmitted', true);
                 onSave(watch());
-                history.push('/dataproductlist');
+                history.push('/dataproducts');
                 reset(data, {
                   keepDirty: false,
                 });
