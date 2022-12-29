@@ -1,8 +1,8 @@
-.cardWrapper{
+.cardWrapper {
     padding: 40px;
     background: #252a33;
     flex: 1 1 0px;
-    width: 0;
+    // width: 100%;
     margin: 0 15px 15px 0;
     max-width: 327px;
     min-width: calc(25% - 15px);
@@ -11,15 +11,16 @@
         text-align: center;
         margin-top: 30px;
 
-      i {
-        height: 125px;
-        width: 125px;
-      }
+        i {
+            height: 125px;
+            width: 125px;
+            background: transparent;
+        }
     }
-    .cardDescriptonSection{
+    .cardDescriptonSection {
         margin-top: 40px;
         max-width: 200px;
-        .titleSection{
+        .titleSection {
             font-size: var(--font-size-headline);
             text-overflow: ellipsis;
             overflow: hidden;
@@ -27,7 +28,7 @@
             -webkit-line-clamp: 1;
             -webkit-box-orient: vertical;
         }
-        .descriptionSection{
+        .descriptionSection {
             color: #99a5b3;
             margin-top: 15px;
             text-overflow: ellipsis;
@@ -42,44 +43,44 @@
         cursor: pointer;
         background-color: #00adef;
         color: #fff;
-        .cardDescriptonSection{
-            .descriptionSection{
+        .cardDescriptonSection {
+            .descriptionSection {
                 color: #fff;
             }
         }
         .cardIconSection i svg path[fill] {
-            fill: #fff!important;
+            fill: #fff !important;
         }
-        .cardIconSection i svg g g[fill]  {
-            fill: #fff!important;
+        .cardIconSection i svg g g[fill] {
+            fill: #fff !important;
         }
-        .cardIconSection i svg g g[stroke]  {
-          stroke: #fff!important;
+        .cardIconSection i svg g g[stroke] {
+            stroke: #fff !important;
         }
         .cardIconSection i svg g circle[stroke] {
-            stroke: #fff!important;
+            stroke: #fff !important;
         }
     }
 }
 
-.mediumCard{
-  width: calc(25% - 15px);
-  .cardIconSection i {
-      height: 90px;
-  }
+.mediumCard {
+    width: calc(25% - 15px);
+    .cardIconSection i {
+        height: 90px;
+    }
 }
 
-.smallCard{
+.smallCard {
     width: calc(25% - 15px);
     padding: 40px 20px;
     height: 300px;
     // display: flex;
-    .cardIconSection{
+    .cardIconSection {
         margin-top: 24px;
     }
-    .cardDescriptonSection{
+    .cardDescriptonSection {
         margin-top: 20px;
-        .descriptionSection{
+        .descriptionSection {
             margin-top: 10px;
             -webkit-line-clamp: 2;
         }
@@ -103,18 +104,18 @@
     &:hover {
         background-position: 50% 0%;
         &::before {
-        position: absolute;
-        content: " ";
-        // width: 100%;
-        height: 100%;
-        background-color: #00adef;
-        opacity: 0.7;
-        top: 0;
+            position: absolute;
+            content: " ";
+            // width: 100%;
+            height: 100%;
+            background-color: #00adef;
+            opacity: 0.7;
+            top: 0;
         }
-        .cardIconSection{
+        .cardIconSection {
             margin-top: 0px;
         }
-        .cardDescriptonSection{
+        .cardDescriptonSection {
             color: white;
             display: block;
             position: absolute;
@@ -122,7 +123,7 @@
             box-shadow: 0px -17px 30px 0px #00adef;
             background-color: #00adef;
             width: 100%;
-            .descriptionSection{
+            .descriptionSection {
                 -webkit-line-clamp: 6;
                 min-height: 100px;
             }
@@ -140,26 +141,28 @@
     background-color: rgba(37, 42, 51, 0.5);
     cursor: not-allowed;
     pointer-events: none;
-    .cardIconSection, .cardDescriptonSection, .tagSection {
-      opacity: 0.5;
+    .cardIconSection,
+    .cardDescriptonSection,
+    .tagSection {
+        opacity: 0.5;
     }
 
     .cardIconSection svg g g[stroke] {
-      stroke: #979797;
+        stroke: #979797;
     }
     .cardIconSection svg g g[fill] {
-      fill: #979797;
+        fill: #979797;
     }
 }
 
-.textCenter{
+.textCenter {
     text-align: center;
     max-width: 165px;
     margin: auto;
 }
 
-.comingSoonBtn{
-    background: #0089BE;
+.comingSoonBtn {
+    background: #0089be;
     padding: 0 15px;
     font-size: var(--font-size-small);
     height: 27px;
@@ -169,7 +172,7 @@
     right: 20px;
 }
 
-.OpenNewTabIcon{
+.OpenNewTabIcon {
     position: absolute;
     top: 24px;
     right: 20px;
@@ -177,20 +180,19 @@
 
 :global {
     .transparency:hover {
-        background-color: #5465D0;
-        background-image: linear-gradient(198deg, #5465D0 5%, #000000 100%);
+        background-color: #5465d0;
+        background-image: linear-gradient(198deg, #5465d0 5%, #000000 100%);
     }
     .data:hover {
-        background-color: #2CB0BC;
-        background-image: linear-gradient(198deg, #2CB0BC 5%, #000000 100%);
+        background-color: #2cb0bc;
+        background-image: linear-gradient(198deg, #2cb0bc 5%, #000000 100%);
     }
     .tools:hover {
-        background-color: #00ADEF;
-        background-image: linear-gradient(198deg, #00ADEF 5%, #000000 100%);
+        background-color: #00adef;
+        background-image: linear-gradient(198deg, #00adef 5%, #000000 100%);
     }
     .trainings:hover {
-        background-color: #5465D0;
-        background-image: linear-gradient(198deg, #5465D0 5%, #000000 100%);
+        background-color: #5c3493;
+        background-image: linear-gradient(198deg, #5c3493 5%, #000000 100%);
     }
 }
-

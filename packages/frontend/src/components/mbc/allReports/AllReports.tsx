@@ -366,11 +366,12 @@ export default class AllReports extends React.Component<
                   <div className={Styles.allReportContent}>
                     {this.state.cardViewMode && (
                       <div className={classNames('cardSolutions', Styles.allReportCardViewContent)}>
-                        
-                        <div className={Styles.cardViewContainer} onClick={() => history.push('/createnewreport')}>
-                          <div className={Styles.addicon}> &nbsp; </div>
-                          <label className={Styles.addlabel}>Create new report</label>
-                        </div>
+                        {this.state.reports.length > 0 ?
+                          <div className={Styles.cardViewContainer} onClick={() => history.push('/createnewreport')}>
+                            <div className={Styles.addicon}> &nbsp; </div>
+                            <label className={Styles.addlabel}>Create new report</label>
+                          </div>
+                        : ''}
                         {this.state.reports?.map((report) => {
                           // const isProductOwner = report.members.reportOwners?.find(
                           //   (teamMember: ITeams) => teamMember.shortId === userInfo.id,

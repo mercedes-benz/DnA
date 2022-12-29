@@ -5,7 +5,7 @@ import Styles from '../Form.common.styles.scss';
 import { useFormContext } from 'react-hook-form';
 import InfoModal from 'dna-container/InfoModal';
 import { useDispatch, useSelector } from 'react-redux';
-import { getClassificationTypes } from '../../redux/getDropdowns.services';
+import { getClassificationTypes } from '../../../redux/getDropdowns.services';
 
 const Classification = ({ onSave }) => {
   const {
