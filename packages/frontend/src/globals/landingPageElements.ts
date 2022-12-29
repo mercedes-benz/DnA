@@ -1,9 +1,5 @@
 import { Envs } from 'globals/Envs';
 
-// import IconDataProducts from 'components/icons/IconDataProducts';
-// import IconDataLayer from 'components/icons/IconDataLayer';
-// import IconDataGovernance from 'components/icons/IconDataGovernance';
-
 const enableMalwareScanService = Envs.ENABLE_MALWARE_SCAN_SERVICE;
 const enableDataPipelineService = Envs.ENABLE_DATA_PIPELINE_SERVICE;
 const enableMyModelRegistryService = Envs.ENABLE_MY_MODEL_REGISTRY_SERVICE;
@@ -104,6 +100,7 @@ export const DataGovernanceElements = [
     isDisabled: false,
     isSmallCard: false,
     isMediumCard: true,
+    svgIcon: 'datagovernancesocialintranet',
   },
   {
     name: 'Minimum Information',
@@ -116,6 +113,7 @@ export const DataGovernanceElements = [
     isDisabled: false,
     isSmallCard: false,
     isMediumCard: true,
+    svgIcon: 'a22minimuminformation',
   },
   {
     name: 'LCO/LCR Contacts',
@@ -266,6 +264,7 @@ export const TranparencyLandingPageElements = [
     isDisabled: false,
     isSmallCard: false,
     isMediumCard: true,
+    svgIcon: 'portfolio',
   },
   {
     name: 'Solutions',
@@ -278,6 +277,7 @@ export const TranparencyLandingPageElements = [
     isDisabled: false,
     isSmallCard: false,
     isMediumCard: true,
+    svgIcon: 'solutionoverview',
   },
   {
     name: 'Reports',
@@ -290,6 +290,7 @@ export const TranparencyLandingPageElements = [
     isDisabled: false,
     isSmallCard: false,
     isMediumCard: true,
+    svgIcon: 'reports',
   },
   {
     name: 'Data Sharing',
@@ -302,6 +303,7 @@ export const TranparencyLandingPageElements = [
     isDisabled: false,
     isSmallCard: false,
     isMediumCard: true,
+    svgIcon: 'datasharing',
   },
 ];
 
@@ -311,13 +313,13 @@ export const DataLandingPageElements = [
     description:
       'Data is one of the most valuable assets in our company, therefore we treat our data as a product! We offer you a growing selection of intuitive to use and well documented data products - check it out!',
     tags: ['Self Service', 'FOSS'],
-    url: '/data/dataproductlist',
+    url: '/data/dataproducts',
     isExternalLink: false,
     isTextAlignLeft: false,
     isDisabled: false,
     isSmallCard: false,
     isMediumCard: false,
-    svgIconId: 'IconDataProducts',
+    svgIcon: 'dataproductoverview',
   },
   {
     name: 'Data Layer',
@@ -330,7 +332,7 @@ export const DataLandingPageElements = [
     isDisabled: false,
     isSmallCard: false,
     isMediumCard: false,
-    svgIconId: 'IconDataLayer',
+    svgIcon: 'datamodel',
   },
   {
     name: 'Data Governance',
@@ -343,6 +345,73 @@ export const DataLandingPageElements = [
     isDisabled: false,
     isSmallCard: false,
     isMediumCard: false,
-    svgIconId: 'IconDataGovernance',
+    svgIcon: 'datagovernance',
+  },
+];
+
+export const TrainingsLandingPageElements = [
+  {
+    name: 'Udemy',
+    description:
+      'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. eiusmod tempor incididunt ut labore et dolore magna aliqua.',
+    tags: ['Self Service', 'FOSS'],
+    url: Envs.UDEMY_URL,
+    isExternalLink: true,
+    isTextAlignLeft: false,
+    isDisabled: false,
+    isSmallCard: false,
+    isMediumCard: false,
+    svgIconId: 'IconDataProducts',
+  },
+  {
+    name: 'LinkedIn Learning',
+    description:
+      'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. eiusmod tempor incididunt ut labore et dolore magna aliqua.',
+    tags: ['Self Service', 'FOSS'],
+    url: Envs.LINKEDIN_LEARNING_URL,
+    isExternalLink: true,
+    isTextAlignLeft: false,
+    isDisabled: false,
+    isSmallCard: false,
+    isMediumCard: false,
+    svgIconId: 'IconDataLayer',
+  },
+  {
+    name: 'Dataiku',
+    description:
+      'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. eiusmod tempor incididunt ut labore et dolore magna aliqua.',
+    tags: ['Self Service', 'FOSS'],
+    url: Envs.DATAIKU_TRAINING_APP_URL,
+    isExternalLink: true,
+    isTextAlignLeft: false,
+    isDisabled: false,
+    isSmallCard: false,
+    isMediumCard: false,
+    svgIconId: 'IconDataLayer',
+  },
+  {
+    name: 'PowerBI',
+    description:
+      'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. eiusmod tempor incididunt ut labore et dolore magna aliqua.',
+    tags: ['Self Service', 'FOSS'],
+    url: Envs.POWERBI_TRAINING_URL,
+    isExternalLink: true,
+    isTextAlignLeft: false,
+    isDisabled: false,
+    isSmallCard: false,
+    isMediumCard: false,
+    svgIconId: 'IconDataLayer',
+  },
+  {
+    name: 'SAC',
+    description:
+      'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. eiusmod tempor incididunt ut labore et dolore magna aliqua.',
+    tags: ['Self Service', 'FOSS'],
+    url: Envs.SAC_TRAINING_URL,
+    isExternalLink: true,
+    isTextAlignLeft: false,
+    isDisabled: false,
+    isSmallCard: false,
+    isMediumCard: true,
   },
 ];
