@@ -76,6 +76,11 @@ public class Solution {
 	private String gitUrl;
 	private String resultUrl;
 	private SolutionResult result;
+	
+	private List<String> personas;
+	private Personalization personalization;
+	private List<CustomerJourneyPhase> customerJourneyPhases;
+	private List<MarketingCommunicationChannel> marketingCommunicationChannels ;
 
 	private SolutionDigitalValue digitalValueDetails;
 	private SolutionDataCompliance dataComplianceDetails;
