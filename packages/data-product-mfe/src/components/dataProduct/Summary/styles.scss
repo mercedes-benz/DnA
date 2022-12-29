@@ -1,0 +1,210 @@
+.mainPanel {
+    padding: 50px 75px 0px 75px;
+    .summaryBannerTitle {
+        min-width: 260px;
+        margin: 19px 0 70px 0;
+        h2 {
+            font-size: var(--font-size-headline-big);
+            line-height: 33px;
+        }
+    }
+    .summaryBannerimg {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+    }
+}
+.firstPanel {
+    background: #252a33;
+    margin-bottom: 15px;
+
+    .flexLayout {
+        display: flex;
+        justify-content: space-between;
+        margin: 40px;
+        > div {
+            width: calc(50% - 7px);
+        }
+        &.fourColumn {
+            > div {
+                width: calc(25% - 7px);
+            }
+        }
+        &.threeColumn {
+            > div {
+                width: calc(33% - 7px);
+            }
+        }
+    }
+
+    .formWrapper {
+        margin: 60px 0px 0;
+    }
+}
+
+.sectionWrapper {
+    background: #252a33;
+    flex: 1 auto;
+    padding: 25px 0px;
+    margin: 15px 0;
+    h5 {
+        color: #99a5b3;
+    }
+    .flexLayout {
+        display: flex;
+        justify-content: space-between;
+        margin: 20px 40px;
+        > div {
+            width: calc(50% - 7px);
+        }
+        &.fourColumn {
+            > div {
+                width: calc(25% - 7px);
+            }
+        }
+        &.threeColumn {
+            > div {
+                width: calc(33% - 7px);
+            }
+        }
+    }
+}
+
+hr {
+    background-color: #697582;
+    margin-left: 40px;
+    margin-right: 40px;
+}
+
+.line {
+    margin: 0;
+}
+
+.dataTransferSection {
+    display: flex;
+    justify-content: space-between;
+    margin: 20px;
+    div {
+        align-self: center;
+    }
+    a {
+        color: #c0c8d0;
+        &:hover {
+            color: #00adef;
+        }
+        i {
+            margin-left: 5px;
+            font-size: 10px;
+        }
+    }
+}
+.allDataproductCardviewContent {
+    flex-wrap: wrap;
+    display: flex;
+    justify-content: left;
+    margin-right: -30px;
+}
+
+.actionBtns {
+    display: flex;
+    justify-content: flex-end;
+    button {
+        background-color: transparent;
+        border: none;
+        padding: 0 15px;
+        color: #c0c8d0;
+        margin: 0 2px;
+        font-size: var(--font-size-default);
+        &:hover {
+            background-color: transparent;
+        }
+    }
+}
+
+.titleContainer {
+    display: flex;
+    color: #c0c8d0;
+}
+
+.modalContent {
+    display: flex;
+    margin: 25px 0px;
+    color: #c0c8d0;
+    .imgGuide {
+        width: 450px;
+        border: 1px solid #99a5b3;
+    }
+}
+
+.bullets {
+    display: flex;
+    justify-content: space-around;
+    width: 100px;
+    margin: 10px auto;
+    span {
+        height: 8px;
+        width: 8px;
+        background: #697582;
+        display: block;
+        border-radius: 50%;
+        cursor: pointer;
+    }
+    .activeBullet {
+        background: #00adef;
+    }
+}
+
+:global {
+    .dataproductSummary {
+        #data-summary-tabs {
+            min-width: 540px;
+        }
+
+        #data-summary-tabs .scrollable.tabs-wrapper {
+            height: 44px;
+        }
+
+        #data-summary-tabs .scrollable.tabs-wrapper nav {
+            height: 44px;
+        }
+
+        #data-summary-tabs .tab {
+            min-width: max-content;
+            > a {
+                position: relative;
+                padding: 10px 50px 12px 40px;
+            }
+        }
+        label.input-label.summary {
+            color: #99a5b3;
+            font-size: var(--font-size-small);
+            font-weight: bold;
+        }
+
+        .accessBtn {
+            position: fixed;
+            bottom: 0;
+            height: 55px;
+            width: 100%;
+            background: #1c2026;
+            button {
+                position: fixed;
+                right: 5vw;
+                margin: 8px 0;
+            }
+        }
+
+        .accessBtnFixed {
+            position: unset;
+            width: auto;
+            background-color: transparent;
+            display: flex;
+            justify-content: flex-end;
+            padding: 0 75px;
+            button {
+                position: unset;
+            }
+        }
+    }
+}

@@ -1,6 +1,6 @@
 import { server } from '../server/api';
 
-const getAllDataProducts = (sortBy, sortOrder) => {
+const getAllDataProductList = (sortBy, sortOrder) => {
   return server.get(`/dataproducts?limit=0&offset=0&sortBy=${sortBy}&sortOrder=${sortOrder}`, {
     data: {},
   });
@@ -12,26 +12,14 @@ const getDataProductById = (id) => {
   });
 };
 
-const getDepartments = () => {
-  return server.get('/departments', {
-    data: {},
-  });
-};
-
 const createDataProduct = (data) => {
-  return server.post('/dataproducts/provider', {
+  return server.post('/dataproducts', {
     data,
   });
 };
 
-const updateProvider = (data) => {
-  return server.put('/dataproducts/provider', {
-    data,
-  });
-};
-
-const updateConsumer = (data) => {
-  return server.put('/dataproducts/consume', {
+const updateDataProduct = (data) => {
+  return server.put('/dataproducts', {
     data,
   });
 };
@@ -42,34 +30,25 @@ const deleteDataProduct = (id) => {
   });
 };
 
-const getDataComplianceList = (offset, limit, sortBy, sortOrder) => {
-  return server.get(`datacompliance?offset=${offset}&limit=${limit}&sortBy=${sortBy}&sortOrder=${sortOrder}`, {
-    data: {},
-  });
+const getAllAgileReleaseTrains = () => {
+  return server.get('/agileReleaseTrains', { data: {} });
 };
 
-const getAllClassificationTypes = () => {
-  return server.get('/classifications', { data: {} });
+const getAllCarlaFunctions = () => {
+  return server.get('/carlafunctions', { data: {} });
 };
 
-const getAllLegalBasis = () => {
-  return server.get('/legalbasis', { data: {} });
+const getAllCorporateDataCatalogs = () => {
+  return server.get('/corporateDataCatalogs', { data: {} });
 };
 
-const getPlanningIT = (searchTerm = '') => {
-  return server.get(`/planningit?searchTerm=${searchTerm}`, { data: {} });
-};
-
-export const dataTransferApi = {
-  getAllDataProducts,
-  createDataProduct,
-  getDepartments,
-  updateProvider,
-  updateConsumer,
-  deleteDataProduct,
+export const dataProductApi = {
+  getAllDataProductList,
   getDataProductById,
-  getDataComplianceList,
-  getAllClassificationTypes,
-  getAllLegalBasis,
-  getPlanningIT,
+  createDataProduct,
+  updateDataProduct,
+  deleteDataProduct,
+  getAllAgileReleaseTrains,
+  getAllCarlaFunctions,
+  getAllCorporateDataCatalogs,
 };

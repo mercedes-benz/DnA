@@ -1,0 +1,54 @@
+.container {
+  background-color: #252a33;
+  padding: 60px;
+}
+.heading {
+  font-size: var(--font-size-headline-medium);
+  margin-bottom: 20px;
+  color: #00adef;
+}
+.personaContainer {
+  padding-left: 60px;
+}
+.persona {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid #155a74;
+  padding-bottom: 5px;
+  padding-top: 5px;
+  position: relative;
+  > * {
+    flex: 1;
+  }
+  .personaAvatar {
+    display: flex;
+    align-items: center;
+    img {
+      border-radius: 100%;
+      border: 2px solid #ffffff;
+      width: 60px;
+      margin-left: -60px;
+    }
+    p {
+      margin-bottom: 0;
+      color: #00adef;
+      font-size: var(--font-size-headline);
+      padding-left: 10px;
+    }
+  }
+  .desc {
+    flex: 2;
+    p {
+      margin-bottom: 0;
+      font-size: var(--font-size-sub-headline);
+    }
+  }
+  .personaSelect {
+    .checkboxItem {
+      position: absolute;
+      right: 0;
+      top: calc(50% - 18px);
+    }
+  }
+}

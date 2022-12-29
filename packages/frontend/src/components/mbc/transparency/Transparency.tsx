@@ -32,6 +32,7 @@ const Transparency = () => {
               isSmallCard={card.isSmallCard}
               isMediumCard={card.isMediumCard}
               className="transparency"
+              svgIcon={card.svgIcon}
             />
           );
         })}

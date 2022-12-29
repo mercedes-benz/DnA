@@ -9,9 +9,9 @@ import InfoModal from 'dna-container/InfoModal';
 
 import { Envs } from '../../../../Utility/envs';
 import { useDispatch, useSelector } from 'react-redux';
-import { getLegalBasis } from '../../redux/getDropdowns.services';
+import { getLegalBasis } from '../../../redux/getDropdowns.services';
 
-const PersonalRelatedData = ({ onSave, setIsEditing }) => {
+const PersonalRelatedData = ({ onSave, setIsEditing, isDataProduct }) => {
   const {
     register,
     handleSubmit,
@@ -24,7 +24,7 @@ const PersonalRelatedData = ({ onSave, setIsEditing }) => {
 
   const dispatch = useDispatch();
   const { legalBasisList } = useSelector((state) => state.dropdowns);
-  const provideDataProducts = useSelector((state) => state.provideDataProducts);
+  const provideDataTransfers = useSelector((state) => state.provideDataTransfers);
 
   const isValid = (value) =>
     !watch('personalRelatedData') || watch('personalRelatedData') === 'No' || value?.length > 0 || '*Missing entry';
@@ -32,19 +32,23 @@ const PersonalRelatedData = ({ onSave, setIsEditing }) => {
   const isDisabled = watch('personalRelatedData') === 'No';
 
   useEffect(() => {
-    setValue('personalRelatedData', provideDataProducts.selectedDataProduct.personalRelatedData);
-    if (provideDataProducts.selectedDataProduct.personalRelatedData === 'No') {
+    setValue('personalRelatedData', provideDataTransfers.selectedDataTransfer.personalRelatedData);
+    if (provideDataTransfers.selectedDataTransfer.personalRelatedData === 'No') {
       setValue('personalRelatedDataPurpose', '');
       setValue('personalRelatedDataLegalBasis', '');
       setValue('LCOCheckedLegalBasis', '');
       setValue('LCOComments', '');
     }
     //eslint-disable-next-line
-  }, [provideDataProducts.selectedDataProduct.consumer.personalRelatedData]);
+  }, [provideDataTransfers.selectedDataTransfer.consumer?.personalRelatedData]);
 
   useEffect(() => {
     dispatch(getLegalBasis());
   }, [dispatch]);
+
+  useEffect(() => {
+    if (isDataProduct) setValue('personalRelatedData', 'No');
+  }, [isDataProduct, setValue]);
 
   return (
     <>

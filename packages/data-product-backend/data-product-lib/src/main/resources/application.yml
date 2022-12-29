@@ -48,6 +48,10 @@ dna:
 dataproduct:
   base:
     url: ${DATAPRODUCT_BASE_URL:XXXXXX}   
+
+datatransfer:
+  base:
+    url: ${DATATRANSFER_BASE_URL:XXXXXX} 
   
 
 server:
