@@ -37,8 +37,8 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.TreeMap;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -61,9 +61,12 @@ import com.daimler.data.db.jsonb.solution.CostDriver;
 import com.daimler.data.db.jsonb.solution.CostFactorSummary;
 import com.daimler.data.db.jsonb.solution.CreatedBy;
 import com.daimler.data.db.jsonb.solution.CurrentPhase;
+import com.daimler.data.db.jsonb.solution.CustomerJourneyPhase;
 import com.daimler.data.db.jsonb.solution.Factor;
 import com.daimler.data.db.jsonb.solution.FileDetails;
 import com.daimler.data.db.jsonb.solution.LogoDetails;
+import com.daimler.data.db.jsonb.solution.MarketingCommunicationChannel;
+import com.daimler.data.db.jsonb.solution.Personalization;
 import com.daimler.data.db.jsonb.solution.RampUpYear;
 import com.daimler.data.db.jsonb.solution.SkillSummary;
 import com.daimler.data.db.jsonb.solution.Solution;
@@ -110,12 +113,16 @@ import com.daimler.data.dto.solution.SkillSummaryVO;
 import com.daimler.data.dto.solution.SolutionAnalyticsVO;
 import com.daimler.data.dto.solution.SolutionCollection;
 import com.daimler.data.dto.solution.SolutionCurrentPhase;
+import com.daimler.data.dto.solution.SolutionCustomerJourneyPhaseVO;
 import com.daimler.data.dto.solution.SolutionDataComplianceVO;
 import com.daimler.data.dto.solution.SolutionDataSourceVO;
 import com.daimler.data.dto.solution.SolutionDigitalValueVO;
 import com.daimler.data.dto.solution.SolutionDivisionVO;
 import com.daimler.data.dto.solution.SolutionLocationVO;
+import com.daimler.data.dto.solution.SolutionMarketingCommunicationChannelVO;
+import com.daimler.data.dto.solution.SolutionMarketingVO;
 import com.daimler.data.dto.solution.SolutionMilestonePhaseVO;
+import com.daimler.data.dto.solution.SolutionPersonalizationVO;
 import com.daimler.data.dto.solution.SolutionPhaseVO;
 import com.daimler.data.dto.solution.SolutionPortfolioVO;
 import com.daimler.data.dto.solution.SolutionProjectStatusVO;
@@ -341,6 +348,46 @@ public class SolutionAssembler implements GenericAssembler<SolutionVO, SolutionN
 			sharingVO.setResultUrl(solution.getResultUrl());
 			sharingVO.setGitUrl(solution.getGitUrl());
 			vo.setSharing(sharingVO);
+			
+			//setting marketing tab details
+			SolutionMarketingVO marketingVO = new SolutionMarketingVO();
+			
+			List<CustomerJourneyPhase> customerJourneyPhases = solution.getCustomerJourneyPhases();
+			List<SolutionCustomerJourneyPhaseVO> customerJourneyPhasesVO = new ArrayList<>();
+			if (customerJourneyPhases != null && !customerJourneyPhases.isEmpty()) {
+				for (CustomerJourneyPhase customerJourneyPhase : customerJourneyPhases) {
+					if (customerJourneyPhase != null) {
+						SolutionCustomerJourneyPhaseVO customerJourneyPhaseVO = new SolutionCustomerJourneyPhaseVO();
+						BeanUtils.copyProperties(customerJourneyPhase, customerJourneyPhaseVO);
+						customerJourneyPhasesVO.add(customerJourneyPhaseVO);
+					}
+				}
+				marketingVO.setCustomerJourneyPhases(customerJourneyPhasesVO);
+			}			
+			
+			List<SolutionMarketingCommunicationChannelVO> marketingCommunicationChannelsVO = new ArrayList<>();
+			List<MarketingCommunicationChannel> marketingCommunicationChannels = solution.getMarketingCommunicationChannels();
+			if (marketingCommunicationChannels != null && !marketingCommunicationChannels.isEmpty()) {
+				for (MarketingCommunicationChannel marketingCommunicationChannel : marketingCommunicationChannels) {
+					if (marketingCommunicationChannel != null) {
+						SolutionMarketingCommunicationChannelVO marketingCommunicationChannelVO = new SolutionMarketingCommunicationChannelVO();
+						BeanUtils.copyProperties(marketingCommunicationChannel, marketingCommunicationChannelVO);
+						marketingCommunicationChannelsVO.add(marketingCommunicationChannelVO);
+					}
+				}
+				marketingVO.setMarketingCommunicationChannels(marketingCommunicationChannelsVO);
+			}
+			
+			Personalization personalization = solution.getPersonalization();
+			SolutionPersonalizationVO personalizationVO = new SolutionPersonalizationVO();
+			if (personalization != null) {
+				personalizationVO.setDescription(personalization.getDescription());
+				personalizationVO.setIsChecked(personalization.isChecked());
+			}
+			marketingVO.setPersonalization(personalizationVO);
+			
+			marketingVO.setPersonas(solution.getPersonas());
+			vo.setMarketing(marketingVO);
 
 			// Setting attachments
 			List<FileDetails> solutionFileDetailsList = solution.getAttachments();
@@ -976,6 +1023,46 @@ public class SolutionAssembler implements GenericAssembler<SolutionVO, SolutionN
 					BeanUtils.copyProperties(resultVO, result);
 					solution.setResult(result);
 				}
+			}
+			
+			//setting marketing tab details
+			SolutionMarketingVO marketingVO = vo.getMarketing();
+			if (marketingVO != null) {
+				solution.setPersonas(marketingVO.getPersonas());
+				SolutionPersonalizationVO personalizationVO = marketingVO.getPersonalization();
+				if (personalizationVO != null) {
+					Personalization personalization = new Personalization();
+					personalization.setChecked(personalizationVO.isIsChecked());
+					personalization.setDescription(personalizationVO.getDescription());
+					solution.setPersonalization(personalization);
+				}
+				List<SolutionCustomerJourneyPhaseVO> customerJourneyPhasesVO = marketingVO.getCustomerJourneyPhases();
+				if (customerJourneyPhasesVO != null && !customerJourneyPhasesVO.isEmpty()) {
+					List<CustomerJourneyPhase> customerJourneyPhases = new ArrayList<>();
+					for (SolutionCustomerJourneyPhaseVO customerJourneyPhaseVO : customerJourneyPhasesVO) {
+						if (customerJourneyPhaseVO != null) {
+							CustomerJourneyPhase customerJourneyPhase = new CustomerJourneyPhase();
+							BeanUtils.copyProperties(customerJourneyPhaseVO, customerJourneyPhase);
+							customerJourneyPhases.add(customerJourneyPhase);
+						}
+					}
+					solution.setCustomerJourneyPhases(customerJourneyPhases);
+				}
+
+				List<SolutionMarketingCommunicationChannelVO> marketingCommunicationChannelsVO = marketingVO
+						.getMarketingCommunicationChannels();
+				if (marketingCommunicationChannelsVO != null && !marketingCommunicationChannelsVO.isEmpty()) {
+					List<MarketingCommunicationChannel> marketingCommunicationChannels = new ArrayList<>();
+					for (SolutionMarketingCommunicationChannelVO marketingCommunicationChannelVO : marketingCommunicationChannelsVO) {
+						if (marketingCommunicationChannelVO != null) {
+							MarketingCommunicationChannel marketingCommunicationChannel = new MarketingCommunicationChannel();
+							BeanUtils.copyProperties(marketingCommunicationChannelVO, marketingCommunicationChannel);
+							marketingCommunicationChannels.add(marketingCommunicationChannel);
+						}
+					}
+					solution.setMarketingCommunicationChannels(marketingCommunicationChannels);
+				}
+
 			}
 
 			// Setting attachments
