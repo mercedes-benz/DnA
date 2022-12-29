@@ -269,7 +269,7 @@ const OtherRelevantInfo = ({ onSave, history, user, isDataProduct }) => {
                 setValue('publish', true);
                 setValue('providerFormSubmitted', true);
                 onSave(watch());
-                history.push('/dataproductlist');
+                history.push('/dataproducts');
                 reset(data, {
                   keepDirty: false,
                 });
