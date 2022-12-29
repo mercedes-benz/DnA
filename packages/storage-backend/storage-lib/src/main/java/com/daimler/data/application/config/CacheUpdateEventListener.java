@@ -27,6 +27,9 @@
 
 package com.daimler.data.application.config;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.annotation.PostConstruct;
@@ -37,9 +40,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.daimler.data.minio.client.DnaMinioClient;
-import com.daimler.data.util.CacheUtil;
+import com.daimler.data.util.RedisCacheUtil;
 
 import io.minio.admin.UserInfo;
+import io.minio.admin.UserInfo.Status;
 
 
 @Component
@@ -51,7 +55,7 @@ public class CacheUpdateEventListener {
 	DnaMinioClient dnaMinioClient;
 
 	@Autowired
-	private CacheUtil cacheUtil;
+	private RedisCacheUtil cacheUtil;
 
 	@PostConstruct
 	public void init() {
@@ -65,12 +69,19 @@ public class CacheUpdateEventListener {
 		String cacheName = "minioUsersCache";
 		
 		LOGGER.info("Creating cache for Minio users.");
-		cacheUtil.createCache(cacheName);
+		cacheUtil.getCache(cacheName);
 		
 		LOGGER.info("listing Users from minio.");
 		Map<String, UserInfo> users = dnaMinioClient.listUsers();
-		//Adding data to cache
-		cacheUtil.updateCache(cacheName, users);
 		
+		//Adding data to cache
+		if(users==null) {
+			 users = new HashMap<String, UserInfo>();
+			 List<String> policies = new ArrayList<>();
+			 policies.add("dummy policy");
+			 UserInfo dummyuser = new UserInfo(Status.ENABLED, "secretkey", "policyname", policies);
+			 users.put("dummy", dummyuser);
+		}
+		cacheUtil.updateCache(cacheName, users);
 	}
 }

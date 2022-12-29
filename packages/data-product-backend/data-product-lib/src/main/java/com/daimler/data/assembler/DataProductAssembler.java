@@ -28,19 +28,17 @@
 package com.daimler.data.assembler;
 
 import java.lang.reflect.Type;
+import java.util.*;
 import java.util.AbstractMap.SimpleEntry;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
+import com.daimler.data.db.jsonb.AgileReleaseTrain;
+import com.daimler.data.db.jsonb.CarLaFunction;
+import com.daimler.data.db.jsonb.CorporateDataCatalog;
+import com.daimler.data.dto.dataproduct.*;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ObjectUtils;
@@ -48,36 +46,17 @@ import org.springframework.util.StringUtils;
 
 import com.daimler.data.db.entities.DataProductNsql;
 import com.daimler.data.db.jsonb.CreatedBy;
-import com.daimler.data.db.jsonb.dataproduct.Consumer;
-import com.daimler.data.db.jsonb.dataproduct.ConsumerContactInformation;
-import com.daimler.data.db.jsonb.dataproduct.ConsumerPersonalRelatedData;
 import com.daimler.data.db.jsonb.dataproduct.DataProduct;
+import com.daimler.data.db.jsonb.dataproduct.DataProductClassificationConfidentiality;
+import com.daimler.data.db.jsonb.dataproduct.DataProductContactInformation;
+import com.daimler.data.db.jsonb.dataproduct.DataProductDeletionRequirement;
+import com.daimler.data.db.jsonb.dataproduct.DataProductPersonalRelatedData;
+import com.daimler.data.db.jsonb.dataproduct.DataProductTransnationalDataTransfer;
 import com.daimler.data.db.jsonb.dataproduct.Division;
-import com.daimler.data.db.jsonb.dataproduct.Provider;
-import com.daimler.data.db.jsonb.dataproduct.ProviderClassificationConfidentiality;
-import com.daimler.data.db.jsonb.dataproduct.ProviderContactInformation;
-import com.daimler.data.db.jsonb.dataproduct.ProviderDeletionRequirement;
-import com.daimler.data.db.jsonb.dataproduct.ProviderPersonalRelatedData;
-import com.daimler.data.db.jsonb.dataproduct.ProviderTransnationalDataTransfer;
 import com.daimler.data.db.jsonb.dataproduct.Subdivision;
 import com.daimler.data.db.jsonb.dataproduct.TeamMember;
 import com.daimler.data.dto.datacompliance.CreatedByVO;
-import com.daimler.data.dto.dataproduct.ChangeLogVO;
-import com.daimler.data.dto.dataproduct.ConsumerContactInformationVO;
-import com.daimler.data.dto.dataproduct.ConsumerPersonalRelatedDataVO;
-import com.daimler.data.dto.dataproduct.ConsumerResponseVO;
-import com.daimler.data.dto.dataproduct.DataProductTeamMemberVO;
 import com.daimler.data.dto.dataproduct.DataProductTeamMemberVO.UserTypeEnum;
-import com.daimler.data.dto.dataproduct.DataProductVO;
-import com.daimler.data.dto.dataproduct.DivisionVO;
-import com.daimler.data.dto.dataproduct.ProviderClassificationConfidentialityVO;
-import com.daimler.data.dto.dataproduct.ProviderContactInformationVO;
-import com.daimler.data.dto.dataproduct.ProviderDeletionRequirementVO;
-import com.daimler.data.dto.dataproduct.ProviderPersonalRelatedDataVO;
-import com.daimler.data.dto.dataproduct.ProviderResponseVO;
-import com.daimler.data.dto.dataproduct.ProviderTransnationalDataTransferVO;
-import com.daimler.data.dto.dataproduct.SubdivisionVO;
-import com.daimler.data.dto.dataproduct.TeamMemberVO;
 import com.google.common.collect.MapDifference;
 import com.google.common.collect.MapDifference.ValueDifference;
 import com.google.common.collect.Maps;
@@ -94,33 +73,41 @@ public class DataProductAssembler implements GenericAssembler<DataProductVO, Dat
 			vo = new DataProductVO();
 			vo.setId(entity.getId());
 			DataProduct dataProduct = entity.getData();
-			BeanUtils.copyProperties(dataProduct, vo);
-			Provider provider = dataProduct.getProviderInformation();
-			if (provider != null) {
-				ProviderResponseVO providerVO = new ProviderResponseVO();
-				BeanUtils.copyProperties(provider, providerVO);
-				if (Objects.nonNull(provider.getCreatedBy())) {
+			if (dataProduct != null) {
+				BeanUtils.copyProperties(dataProduct, vo);
+				vo.setIsPublish(entity.getData().getPublish());
+				if (Objects.nonNull(dataProduct.getCreatedBy())) {
 					CreatedByVO createdByVO = new CreatedByVO();
-					BeanUtils.copyProperties(provider.getCreatedBy(), createdByVO);
-					providerVO.setCreatedBy(createdByVO);
+					BeanUtils.copyProperties(dataProduct.getCreatedBy(), createdByVO);
+					vo.setCreatedBy(createdByVO);
 				}
-				if (Objects.nonNull(provider.getModifiedBy())) {
+				if (Objects.nonNull(dataProduct.getModifiedBy())) {
 					CreatedByVO updatedByVO = new CreatedByVO();
-					BeanUtils.copyProperties(provider.getModifiedBy(), updatedByVO);
-					providerVO.setModifiedBy(updatedByVO);
+					BeanUtils.copyProperties(dataProduct.getModifiedBy(), updatedByVO);
+					vo.setModifiedBy(updatedByVO);
 				}
-				if (!ObjectUtils.isEmpty(provider.getUsers())) {
-					List<DataProductTeamMemberVO> users = provider.getUsers().stream().map(n -> toTeamMemberVO(n))
-							.collect(Collectors.toList());
-					providerVO.setUsers(users);
+				if (Objects.nonNull(dataProduct.getCarLaFunction())) {
+					CarLaFunctionVO carLaFunctionVO = new CarLaFunctionVO();
+					BeanUtils.copyProperties(dataProduct.getCarLaFunction(), carLaFunctionVO);
+					vo.setCarLaFunction(carLaFunctionVO);
 				}
-
-				ProviderContactInformation providerContactInformation = provider.getContactInformation();
-				if (providerContactInformation != null) {
-					ProviderContactInformationVO contactInformationVO = new ProviderContactInformationVO();
-					BeanUtils.copyProperties(providerContactInformation, contactInformationVO);
+				if (Objects.nonNull(dataProduct.getAgileReleaseTrain())) {
+					AgileReleaseTrainVO agileReleaseTrain = new AgileReleaseTrainVO();
+					BeanUtils.copyProperties(dataProduct.getAgileReleaseTrain(), agileReleaseTrain);
+					vo.setAgileReleaseTrain(agileReleaseTrain);
+				}
+				if (Objects.nonNull(dataProduct.getCorporateDataCatalog())) {
+					CorporateDataCatalogVO corporateDataCatalog = new CorporateDataCatalogVO();
+					BeanUtils.copyProperties(dataProduct.getCorporateDataCatalog(), corporateDataCatalog);
+					vo.setCorporateDataCatalog(corporateDataCatalog);
+				}
+				
+				DataProductContactInformation dataProductContactInformation = dataProduct.getContactInformation();
+				if (dataProductContactInformation != null) {
+					DataProductContactInformationVO contactInformationVO = new DataProductContactInformationVO();
+					BeanUtils.copyProperties(dataProductContactInformation, contactInformationVO);
 					DivisionVO divisionvo = new DivisionVO();
-					Division division = providerContactInformation.getDivision();
+					Division division = dataProductContactInformation.getDivision();
 					if (division != null) {
 						BeanUtils.copyProperties(division, divisionvo);
 						SubdivisionVO subdivisionVO = new SubdivisionVO();
@@ -130,92 +117,44 @@ public class DataProductAssembler implements GenericAssembler<DataProductVO, Dat
 						contactInformationVO.setDivision(divisionvo);
 					}
 
-					contactInformationVO.setName(toTeamMemberVO(providerContactInformation.getName()));
-					providerVO.setContactInformation(contactInformationVO);
+					contactInformationVO.setName(toTeamMemberVO(dataProductContactInformation.getName()));
+					contactInformationVO.setDataProductDate(dataProductContactInformation.getDataTransferDate());
+					contactInformationVO.setInformationOwner(toTeamMemberVO(dataProductContactInformation.getInformationOwner()));
+					vo.setContactInformation(contactInformationVO);
 				}
 
-				if (provider.getClassificationConfidentiality() != null) {
-					ProviderClassificationConfidentialityVO classificationConfidentialityVO = new ProviderClassificationConfidentialityVO();
-					BeanUtils.copyProperties(provider.getClassificationConfidentiality(),
+				if (dataProduct.getClassificationConfidentiality() != null) {
+					DataProductClassificationConfidentialityVO classificationConfidentialityVO = new DataProductClassificationConfidentialityVO();
+					BeanUtils.copyProperties(dataProduct.getClassificationConfidentiality(),
 							classificationConfidentialityVO);
-					providerVO.setClassificationConfidentiality(classificationConfidentialityVO);
+					vo.setClassificationConfidentiality(classificationConfidentialityVO);
 				}
 
-				if (provider.getPersonalRelatedData() != null) {
-					ProviderPersonalRelatedDataVO personalRelatedDataVO = new ProviderPersonalRelatedDataVO();
-					BeanUtils.copyProperties(provider.getPersonalRelatedData(), personalRelatedDataVO);
-					providerVO.setPersonalRelatedData(personalRelatedDataVO);
+				if (dataProduct.getPersonalRelatedData() != null) {
+					DataProductPersonalRelatedDataVO personalRelatedDataVO = new DataProductPersonalRelatedDataVO();
+					BeanUtils.copyProperties(dataProduct.getPersonalRelatedData(), personalRelatedDataVO);
+					vo.setPersonalRelatedData(personalRelatedDataVO);
 				}
 
-				if (provider.getTransnationalDataTransfer() != null) {
-					ProviderTransnationalDataTransferVO transnationalDataTransferVO = new ProviderTransnationalDataTransferVO();
-					BeanUtils.copyProperties(provider.getTransnationalDataTransfer(), transnationalDataTransferVO);
-					providerVO.setTransnationalDataTransfer(transnationalDataTransferVO);
+				if (dataProduct.getTransnationalDataTransfer() != null) {
+					DataProductTransnationalDataTransferVO transnationalDataTransferVO = new DataProductTransnationalDataTransferVO();
+					BeanUtils.copyProperties(dataProduct.getTransnationalDataTransfer(), transnationalDataTransferVO);
+					vo.setTransnationalDataTransfer(transnationalDataTransferVO);
 				}
 
-				if (provider.getDeletionRequirement() != null) {
-					ProviderDeletionRequirementVO deletionRequirementVO = new ProviderDeletionRequirementVO();
-					BeanUtils.copyProperties(provider.getDeletionRequirement(), deletionRequirementVO);
-					providerVO.setDeletionRequirement(deletionRequirementVO);
+				if (dataProduct.getDeletionRequirement() != null) {
+					DataProductDeletionRequirementVO deletionRequirementVO = new DataProductDeletionRequirementVO();
+					BeanUtils.copyProperties(dataProduct.getDeletionRequirement(), deletionRequirementVO);
+					vo.setDeletionRequirement(deletionRequirementVO);
 				}
-				if (!ObjectUtils.isEmpty(provider.getOpenSegments())) {
-					List<ProviderResponseVO.OpenSegmentsEnum> openSegmentsEnumList = new ArrayList<>();
-					provider.getOpenSegments().forEach(openSegment -> openSegmentsEnumList
-							.add(ProviderResponseVO.OpenSegmentsEnum.valueOf(openSegment)));
-					providerVO.setOpenSegments(openSegmentsEnumList);
+				if (dataProduct.getOpenSegments() != null && !ObjectUtils.isEmpty(dataProduct.getOpenSegments())) {
+					List<DataProductVO.OpenSegmentsEnum> openSegmentsEnumList = new ArrayList<>();
+					dataProduct.getOpenSegments().forEach(openSegment -> openSegmentsEnumList
+							.add(DataProductVO.OpenSegmentsEnum.valueOf(openSegment)));
+					vo.setOpenSegments(openSegmentsEnumList);
 				}
-				vo.setProviderInformation(providerVO);
 			}
-
-			Consumer consumer = dataProduct.getConsumerInformation();
-			if (consumer != null) {
-				ConsumerResponseVO consumerVO = new ConsumerResponseVO();
-				BeanUtils.copyProperties(consumer, consumerVO);
-				if (Objects.nonNull(consumer.getCreatedBy())) {
-					CreatedByVO createdByVO = new CreatedByVO();
-					BeanUtils.copyProperties(consumer.getCreatedBy(), createdByVO);
-					consumerVO.setCreatedBy(createdByVO);
-				}
-				if (Objects.nonNull(consumer.getModifiedBy())) {
-					CreatedByVO updatedByVO = new CreatedByVO();
-					BeanUtils.copyProperties(consumer.getModifiedBy(), updatedByVO);
-					consumerVO.setModifiedBy(updatedByVO);
-				}
-				ConsumerContactInformation consumerContactInformation = consumer.getContactInformation();
-				if (consumerContactInformation != null) {
-					ConsumerContactInformationVO contactInformationVO = new ConsumerContactInformationVO();
-					BeanUtils.copyProperties(consumerContactInformation, contactInformationVO);
-					DivisionVO divisionvo = new DivisionVO();
-					Division division = consumerContactInformation.getDivision();
-					if (division != null) {
-						BeanUtils.copyProperties(division, divisionvo);
-						SubdivisionVO subdivisionVO = new SubdivisionVO();
-						if (division.getSubdivision() != null)
-							BeanUtils.copyProperties(division.getSubdivision(), subdivisionVO);
-						divisionvo.setSubdivision(subdivisionVO);
-						contactInformationVO.setDivision(divisionvo);
-					}
-					contactInformationVO.setOwnerName(toTeamMemberVO(consumerContactInformation.getOwnerName()));
-					consumerVO.setContactInformation(contactInformationVO);
-				}
-
-				if (consumer.getPersonalRelatedData() != null) {
-					ConsumerPersonalRelatedDataVO personalRelatedDataVO = new ConsumerPersonalRelatedDataVO();
-					BeanUtils.copyProperties(consumer.getPersonalRelatedData(), personalRelatedDataVO);
-					consumerVO.setPersonalRelatedData(personalRelatedDataVO);
-				}
-
-				if (!ObjectUtils.isEmpty(consumer.getOpenSegments())) {
-					List<ConsumerResponseVO.OpenSegmentsEnum> openSegmentsEnumList = new ArrayList<>();
-					consumer.getOpenSegments().forEach(openSegment -> openSegmentsEnumList
-							.add(ConsumerResponseVO.OpenSegmentsEnum.valueOf(openSegment)));
-					consumerVO.setOpenSegments(openSegmentsEnumList);
-				}
-				vo.setConsumerInformation(consumerVO);
-			}
-
 		}
-
 		return vo;
 	}
 
@@ -229,34 +168,46 @@ public class DataProductAssembler implements GenericAssembler<DataProductVO, Dat
 				entity.setId(id);
 			}
 			DataProduct dataProduct = new DataProduct();
-			BeanUtils.copyProperties(vo, dataProduct);
-			dataProduct.setNotifyUsers(vo.isNotifyUsers());
-			dataProduct.setPublish(vo.isPublish());
-			ProviderResponseVO providerVO = vo.getProviderInformation();
-			if (providerVO != null) {
-				Provider provider = new Provider();
-				BeanUtils.copyProperties(providerVO, provider);
-				provider.setProviderFormSubmitted(providerVO.isProviderFormSubmitted());
-				if (Objects.nonNull(providerVO.getCreatedBy())) {
+			
+			if (vo != null) {
+				BeanUtils.copyProperties(vo, dataProduct);
+				dataProduct.setNotifyUsers(vo.isNotifyUsers());
+				dataProduct.setPublish(vo.isIsPublish());
+				if (Objects.nonNull(vo.getCreatedBy())) {
 					CreatedBy userDetails = new CreatedBy();
-					BeanUtils.copyProperties(providerVO.getCreatedBy(), userDetails);
-					provider.setCreatedBy(userDetails);
+					BeanUtils.copyProperties(vo.getCreatedBy(), userDetails);
+					dataProduct.setCreatedBy(userDetails);
 				}
-				if (Objects.nonNull(providerVO.getModifiedBy())) {
+				if (Objects.nonNull(vo.getModifiedBy())) {
 					CreatedBy userDetails = new CreatedBy();
-					BeanUtils.copyProperties(providerVO.getModifiedBy(), userDetails);
-					provider.setModifiedBy(userDetails);
+					BeanUtils.copyProperties(vo.getModifiedBy(), userDetails);
+					dataProduct.setModifiedBy(userDetails);
 				}
-				if (!ObjectUtils.isEmpty(providerVO.getUsers())) {
-					List<TeamMember> users = providerVO.getUsers().stream().map(n -> toTeamMemberJson(n))
-							.collect(Collectors.toList());
-					provider.setUsers(users);
+				if (Objects.nonNull(vo.getCarLaFunction())) {
+					CarLaFunction carLaFunction = new CarLaFunction();
+					BeanUtils.copyProperties(vo.getCarLaFunction(), carLaFunction);
+					dataProduct.setCarLaFunction(carLaFunction);
 				}
-				ProviderContactInformationVO providerContactInformationVO = providerVO.getContactInformation();
-				if (providerContactInformationVO != null) {
-					ProviderContactInformation contactInformation = new ProviderContactInformation();
-					BeanUtils.copyProperties(providerContactInformationVO, contactInformation);
-					DivisionVO divisionVO = providerContactInformationVO.getDivision();
+				if (Objects.nonNull(vo.getAgileReleaseTrain())) {
+					AgileReleaseTrain agileReleaseTrain = new AgileReleaseTrain();
+					BeanUtils.copyProperties(vo.getAgileReleaseTrain(), agileReleaseTrain);
+					dataProduct.setAgileReleaseTrain(agileReleaseTrain);
+				}
+				if (Objects.nonNull(vo.getCorporateDataCatalog())) {
+					CorporateDataCatalog corporateDataCatalog = new CorporateDataCatalog();
+					BeanUtils.copyProperties(vo.getCorporateDataCatalog(), corporateDataCatalog);
+					dataProduct.setCorporateDataCatalog(corporateDataCatalog);
+				}
+//				if (!ObjectUtils.isEmpty(vo.getUsers())) {
+//					List<TeamMember> users = vo.getUsers().stream().map(n -> toTeamMemberJson(n))
+//							.collect(Collectors.toList());
+//					dataProduct.setUsers(users);
+//				}
+				DataProductContactInformationVO dataProductContactInformationVO = vo.getContactInformation();
+				if (dataProductContactInformationVO != null) {
+					DataProductContactInformation contactInformation = new DataProductContactInformation();
+					BeanUtils.copyProperties(dataProductContactInformationVO, contactInformation);
+					DivisionVO divisionVO = dataProductContactInformationVO.getDivision();
 					if (divisionVO != null) {
 						Division division = new Division();
 						BeanUtils.copyProperties(divisionVO, division);
@@ -267,104 +218,53 @@ public class DataProductAssembler implements GenericAssembler<DataProductVO, Dat
 						}
 						contactInformation.setDivision(division);
 					}
-					contactInformation.setName(toTeamMemberJson(providerContactInformationVO.getName()));
-					provider.setContactInformation(contactInformation);
+					contactInformation.setName(toTeamMemberJson(dataProductContactInformationVO.getName()));
+					contactInformation.setDataTransferDate(dataProductContactInformationVO.getDataProductDate());
+					contactInformation.setInformationOwner(toTeamMemberJson(dataProductContactInformationVO.getInformationOwner()));
+					dataProduct.setContactInformation(contactInformation);
 				}
 
-				if (providerVO.getClassificationConfidentiality() != null) {
-					ProviderClassificationConfidentiality classificationConfidentiality = new ProviderClassificationConfidentiality();
-					BeanUtils.copyProperties(providerVO.getClassificationConfidentiality(),
+				if (vo.getClassificationConfidentiality() != null) {
+					DataProductClassificationConfidentiality classificationConfidentiality = new DataProductClassificationConfidentiality();
+					BeanUtils.copyProperties(vo.getClassificationConfidentiality(),
 							classificationConfidentiality);
-					provider.setClassificationConfidentiality(classificationConfidentiality);
+					dataProduct.setClassificationConfidentiality(classificationConfidentiality);
 				}
 
-				ProviderPersonalRelatedDataVO personalRelatedDataVO = providerVO.getPersonalRelatedData();
+				DataProductPersonalRelatedDataVO personalRelatedDataVO = vo.getPersonalRelatedData();
 				if (personalRelatedDataVO != null) {
-					ProviderPersonalRelatedData personalRelatedData = new ProviderPersonalRelatedData();
+					DataProductPersonalRelatedData personalRelatedData = new DataProductPersonalRelatedData();
 					BeanUtils.copyProperties(personalRelatedDataVO, personalRelatedData);
 					personalRelatedData.setPersonalRelatedData(personalRelatedDataVO.isPersonalRelatedData());
-					provider.setPersonalRelatedData(personalRelatedData);
+					dataProduct.setPersonalRelatedData(personalRelatedData);
 				}
 
-				ProviderTransnationalDataTransferVO transnationalDataTransferVO = providerVO
+				DataProductTransnationalDataTransferVO transnationalDataTransferVO = vo
 						.getTransnationalDataTransfer();
 				if (transnationalDataTransferVO != null) {
-					ProviderTransnationalDataTransfer transnationalDataTransfer = new ProviderTransnationalDataTransfer();
+					DataProductTransnationalDataTransfer transnationalDataTransfer = new DataProductTransnationalDataTransfer();
 					BeanUtils.copyProperties(transnationalDataTransferVO, transnationalDataTransfer);
 					transnationalDataTransfer.setDataTransferred(transnationalDataTransferVO.isDataTransferred());
 					transnationalDataTransfer.setNotWithinEU(transnationalDataTransferVO.isNotWithinEU());
 					transnationalDataTransfer.setDataFromChina(transnationalDataTransferVO.isDataFromChina());
-					provider.setTransnationalDataTransfer(transnationalDataTransfer);
+					dataProduct.setTransnationalDataTransfer(transnationalDataTransfer);
 				}
 
-				ProviderDeletionRequirementVO deletionRequirementVO = providerVO.getDeletionRequirement();
+				DataProductDeletionRequirementVO deletionRequirementVO = vo.getDeletionRequirement();
 				if (deletionRequirementVO != null) {
-					ProviderDeletionRequirement deletionRequirement = new ProviderDeletionRequirement();
+					DataProductDeletionRequirement deletionRequirement = new DataProductDeletionRequirement();
 					BeanUtils.copyProperties(deletionRequirementVO, deletionRequirement);
 					deletionRequirement.setDeletionRequirements(deletionRequirementVO.isDeletionRequirements());
-					provider.setDeletionRequirement(deletionRequirement);
+					dataProduct.setDeletionRequirement(deletionRequirement);
 				}
 
-				if (!ObjectUtils.isEmpty(providerVO.getOpenSegments())) {
+				if (!ObjectUtils.isEmpty(vo.getOpenSegments())) {
 					List<String> openSegmentList = new ArrayList<>();
-					providerVO.getOpenSegments().forEach(openSegmentsEnum -> {
+					vo.getOpenSegments().forEach(openSegmentsEnum -> {
 						openSegmentList.add(openSegmentsEnum.name());
 					});
-					provider.setOpenSegments(openSegmentList);
+					dataProduct.setOpenSegments(openSegmentList);
 				}
-				dataProduct.setProviderInformation(provider);
-			}
-			ConsumerResponseVO consumerVO = vo.getConsumerInformation();
-			if (consumerVO != null) {
-				Consumer consumer = new Consumer();
-				BeanUtils.copyProperties(consumerVO, consumer);
-
-				if (Objects.nonNull(consumerVO.getCreatedBy())) {
-					CreatedBy userDetails = new CreatedBy();
-					BeanUtils.copyProperties(consumerVO.getCreatedBy(), userDetails);
-					consumer.setCreatedBy(userDetails);
-				}
-				if (Objects.nonNull(consumerVO.getModifiedBy())) {
-					CreatedBy userDetails = new CreatedBy();
-					BeanUtils.copyProperties(consumerVO.getModifiedBy(), userDetails);
-					consumer.setModifiedBy(userDetails);
-				}
-				ConsumerContactInformationVO consumerContactInformationVO = consumerVO.getContactInformation();
-				if (consumerContactInformationVO != null) {
-					ConsumerContactInformation contactInformation = new ConsumerContactInformation();
-					BeanUtils.copyProperties(consumerContactInformationVO, contactInformation);
-					contactInformation.setLcoNeeded(consumerContactInformationVO.isLcoNeeded());
-					DivisionVO divisionVO = consumerContactInformationVO.getDivision();
-					if (divisionVO != null) {
-						Division division = new Division();
-						BeanUtils.copyProperties(divisionVO, division);
-						if (divisionVO.getSubdivision() != null) {
-							Subdivision subdivision = new Subdivision();
-							BeanUtils.copyProperties(divisionVO.getSubdivision(), subdivision);
-							division.setSubdivision(subdivision);
-						}
-						contactInformation.setDivision(division);
-					}
-					contactInformation.setOwnerName(toTeamMemberJson(consumerContactInformationVO.getOwnerName()));
-					consumer.setContactInformation(contactInformation);
-				}
-
-				ConsumerPersonalRelatedDataVO personalRelatedDataVO = consumerVO.getPersonalRelatedData();
-				if (personalRelatedDataVO != null) {
-					ConsumerPersonalRelatedData personalRelatedData = new ConsumerPersonalRelatedData();
-					BeanUtils.copyProperties(personalRelatedDataVO, personalRelatedData);
-					personalRelatedData.setPersonalRelatedData(personalRelatedDataVO.isPersonalRelatedData());
-					consumer.setPersonalRelatedData(personalRelatedData);
-				}
-
-				if (!ObjectUtils.isEmpty(consumerVO.getOpenSegments())) {
-					List<String> openSegmentList = new ArrayList<>();
-					consumerVO.getOpenSegments().forEach(openSegmentsEnum -> {
-						openSegmentList.add(openSegmentsEnum.name());
-					});
-					consumer.setOpenSegments(openSegmentList);
-				}
-				dataProduct.setConsumerInformation(consumer);
 			}
 			entity.setData(dataProduct);
 		}

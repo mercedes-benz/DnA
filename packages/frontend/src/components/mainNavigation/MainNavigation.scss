@@ -77,6 +77,9 @@
           &.active {
             border-left: none !important;
 
+            > .nav-link i {
+              color: #00adef;
+            }
             // > .nav-link {
             //   border-left: 4px solid #00adef !important;
             // }
@@ -106,13 +109,14 @@
         .nav-link {
           line-height: 43px !important;
           border: none !important;
-          padding-left: 17px !important;
+          padding-left: 52px !important;
           height: 43px !important;
 
           i {
             margin-right: 15px;
             font-size: var(--font-size-icon-nav);
             vertical-align: top;
+            margin-left: -37px;
           }
 
           &:before,
@@ -137,6 +141,7 @@
 
             .nav-link {
               line-height: 43px;
+              padding-left: 17px!important;
             }
           }
         }
@@ -149,7 +154,7 @@
     .nav-list {
       .nav-item:not(.sub-nav-item) {
         height: 43px !important;
-        border-left: 6px solid transparent;
+        border-left: 6px solid transparent!important;
       }
     }
   }
@@ -160,4 +165,20 @@
 .disableSubLink {
   color: #777d84!important;
   pointer-events: none;
+}
+// .dnaNavItem {
+//   display: flex;
+//   padding-left: 17px!important;
+// }
+.navLink {
+  position: relative;
+  .navIcon {
+    position: absolute;
+  }
+  span {
+    padding-left: 37px;
+  }
+}
+.navActive {
+  color: #00adef;
 }

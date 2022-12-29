@@ -96,13 +96,13 @@ public class JWTAuthenticationFilter implements Filter {
 			if (chronosUserToken!=null && dataBricksAuth.equals(chronosUserToken)) {
 				JSONObject userdetails = new JSONObject();
 				userdetails.put("id", dataBricksUser);
-				userdetails.put("firstName", dataBricksUser);
-				userdetails.put("lastName", dataBricksUser);
+				userdetails.put("firstName", "Pool-ID");
+				userdetails.put("lastName", "CHRONOS_POOLUSER");
 				userdetails.put("mobileNumber", "");
 
 				JSONObject role = new JSONObject();
 				role.put("name", "Admin");
-				role.put("id", "1");
+				role.put("id", "3");
 
 				JSONArray roleArray = new JSONArray();
 				roleArray.put(role);

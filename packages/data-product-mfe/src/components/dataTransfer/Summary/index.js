@@ -2,12 +2,12 @@ import classNames from 'classnames';
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useParams, withRouter } from 'react-router-dom';
-import { dataTransferApi } from '../../../apis/dataproducts.api';
+import { dataTransferApi } from '../../../apis/datatransfers.api';
 import ProgressIndicator from '../../../common/modules/uilab/js/src/progress-indicator';
 import Tabs from '../../../common/modules/uilab/js/src/tabs';
 import { hostServer } from '../../../server/api';
 import { deserializeFormData, serializeDivisionSubDivision } from '../../../Utility/formData';
-import { setDataProduct, setDivisionList } from '../redux/dataProductSlice';
+import { setSelectedDataTransfer, setDivisionList } from '../redux/dataTransferSlice';
 
 import Styles from './styles.scss';
 
@@ -15,8 +15,8 @@ import ShowTeamMemberList from 'dna-container/ShowTeamMemberList';
 import { regionalDateFormat } from '../../../Utility/utils';
 
 const Summary = ({ history }) => {
-  const { id: dataProductId } = useParams();
-  const { selectedDataProduct: data, divisionList } = useSelector((state) => state.provideDataProducts);
+  const { id: dataTransferId } = useParams();
+  const { selectedDataTransfer: data, divisionList } = useSelector((state) => state.provideDataTransfers);
 
   const division = serializeDivisionSubDivision(divisionList, {
     division: data.division,
@@ -55,18 +55,18 @@ const Summary = ({ history }) => {
     getDataProductById();
 
     return () => {
-      dispatch(setDataProduct({}));
+      dispatch(setSelectedDataTransfer({}));
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const getDataProductById = () => {
-    dataTransferApi.getDataProductById(dataProductId).then((res) => {
+    dataTransferApi.getDataTransferById(dataTransferId).then((res) => {
       if (res.status === 204) {
         return history.push('/NotFound');
       } else {
-        const data = deserializeFormData(res.data);
-        dispatch(setDataProduct(data));
+        const data = deserializeFormData({ item: res.data });
+        dispatch(setSelectedDataTransfer(data));
         Tabs.defaultSetup();
       }
     });
@@ -135,7 +135,9 @@ const Summary = ({ history }) => {
                     </div>
                     <div className={classNames(Styles.flexLayout, Styles.fourColumn)}>
                       <div>
-                        <label className="input-label summary">Data Product Name</label>
+                        <label className="input-label summary">
+                          Data Product Name / Short description of data transfer
+                        </label>
                         <br />
                         {data.productName}
                       </div>
@@ -150,12 +152,17 @@ const Summary = ({ history }) => {
                         {data.name?.firstName} {data.name?.lastName}
                       </div>
                       <div>
+                        <label className="input-label summary">Information Owner</label>
+                        <br />
+                        {data.informationOwner?.firstName} {data.informationOwner?.lastName}
+                      </div>
+                    </div>
+                    <div className={classNames(Styles.flexLayout, Styles.fourColumn)}>
+                      <div>
                         <label className="input-label summary">Division</label>
                         <br />
                         {division?.name}
                       </div>
-                    </div>
-                    <div className={classNames(Styles.flexLayout, Styles.fourColumn)}>
                       <div>
                         <label className="input-label summary">Sub Division</label>
                         <br />
@@ -171,6 +178,8 @@ const Summary = ({ history }) => {
                         <br />
                         {data.planningIT || '-'}
                       </div>
+                    </div>
+                    <div className={classNames(Styles.flexLayout, Styles.fourColumn)}>
                       <div>
                         <label className="input-label summary">Compliance Officer / Responsible (LCO/LCR) </label>
                         <br />

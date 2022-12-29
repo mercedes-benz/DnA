@@ -48,7 +48,7 @@ import com.daimler.data.auth.client.DnaAuthClient;
 import com.daimler.data.db.repo.common.CommonDataRepository;
 import com.daimler.data.db.repo.common.CommonDataRepositoryImpl;
 import com.daimler.data.dto.datacompliance.CreatedByVO;
-import com.daimler.data.dto.dataproduct.ChangeLogVO;
+import com.daimler.data.dto.datatransfer.ChangeLogVO;
 import com.daimler.data.dto.userinfo.UserInfoVO;
 import com.daimler.data.dto.userinfo.UsersCollection;
 import com.daimler.data.notifications.common.producer.KafkaProducerService;
@@ -93,6 +93,14 @@ public class BaseCommonService<V, T, ID> implements CommonService<V, T, ID> {
 		Optional<T> entityOptional = jpaRepo.findById(id);
 		T entity = !entityOptional.isEmpty() ? entityOptional.get() : null;
 		return assembler.toVo(entity);
+	}
+
+	@Override
+	@Transactional
+	public V updateByID(V vo) {
+		T entity = assembler.toEntity(vo);
+		T savedEntity = jpaRepo.save(entity);
+		return assembler.toVo(savedEntity);
 	}
 
 	@Override
