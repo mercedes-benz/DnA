@@ -3,7 +3,7 @@ import React, { useEffect } from 'react';
 import { Provider } from 'react-redux';
 import store, { history } from './store';
 
-import Routes, { protectedRoutes } from './components/DataProductRoutes';
+import Routes, { protectedRoutes } from './components/DataRoutes';
 
 const App = ({ user, ...rest }) => {
   useEffect(() => {

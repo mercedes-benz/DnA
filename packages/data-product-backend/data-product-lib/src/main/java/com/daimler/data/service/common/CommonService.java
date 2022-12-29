@@ -41,6 +41,8 @@ public interface CommonService<V, T, ID> {
 
 	V getById(ID id);
 
+    V updateByID(V vo);
+
 	V getByUniqueliteral(String uniqueLiteral, String value);
 
 	List<V> getAllSortedByUniqueLiteralAsc(String uniqueLiteral);

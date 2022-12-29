@@ -6,7 +6,7 @@ const getAllDataProducts = (sortBy, sortOrder) => {
   });
 };
 
-const getDataProductById = (id) => {
+const getDataTransferById = (id) => {
   return server.get(`/datatransfers/${id}`, {
     data: {},
   });
@@ -36,7 +36,7 @@ const updateConsumer = (data) => {
   });
 };
 
-const deleteDataProduct = (id) => {
+const deleteDataTransfer = (id) => {
   return server.delete(`/datatransfers/${id}`, {
     data: {},
   });
@@ -66,8 +66,8 @@ export const dataTransferApi = {
   getDepartments,
   updateProvider,
   updateConsumer,
-  deleteDataProduct,
-  getDataProductById,
+  deleteDataTransfer,
+  getDataTransferById,
   getDataComplianceList,
   getAllClassificationTypes,
   getAllLegalBasis,
