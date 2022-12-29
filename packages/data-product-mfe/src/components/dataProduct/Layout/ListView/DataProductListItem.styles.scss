@@ -1,0 +1,93 @@
+.listContainer {
+    display: flex;
+    flex-direction: column;
+    background-color: #252a33;
+    padding: 15px;
+    margin: 15px 0;
+    cursor: pointer;
+
+    .titleSection {
+        display: flex;
+        justify-content: flex-end;
+        margin-left: 40px;
+        margin-bottom: 10px;
+        color: #c0c8d0;
+        li {
+            &.disabled {
+                background: transparent !important;
+                cursor: not-allowed;
+                color: #697582;
+                span:hover {
+                    cursor: not-allowed;
+                    color: #697582;
+                }
+            }
+        }
+    }
+    .tags {
+        color: #697582;
+        align-self: center;
+        flex-wrap: wrap;
+        display: inline-flex;
+        margin-left: auto;
+        .tagItem {
+            border: 1px solid #697582;
+            margin: 5px;
+            font-size: var(--font-size-smallest);
+            border-radius: 20px;
+            padding: 10px 20px;
+            font-weight: bold;
+        }
+    }
+    &:hover {
+        width: 100%;
+        background: linear-gradient(198deg, #2cb0bc 5%, #252a33 100%);
+        .titleSection,
+        .dataProductContent,
+        .heading {
+            color: #ffffff;
+        }
+
+        .tagItem {
+            background: #00adef;
+            opacity: 0.8;
+            border: 1px solid #00adef !important;
+            color: #ffffff;
+            font-weight: bold;
+        }
+    }
+}
+
+.dataProductContent {
+    display: flex;
+    color: #c0c8d0;
+    .iconContainer {
+        position: relative;
+        margin: 0 30px;
+        bottom: 5px;
+        &::after {
+            content: "\e96d";
+            font-family: "dna-icons";
+            font-size: 55px;
+        }
+    }
+
+    .heading {
+        display: -webkit-box;
+        -webkit-line-clamp: 1;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        margin-right: 20px;
+        color: #c0c8d0;
+        font-weight: 700;
+        font-size: var(--font-size-headline);
+        margin-bottom: 10px;
+    }
+    .description {
+        font-size: var(--font-size-small);
+    }
+}
+
+.flexItem {
+    width: calc(100% / 2);
+}

@@ -97,6 +97,14 @@ public class BaseCommonService<V, T, ID> implements CommonService<V, T, ID> {
 
 	@Override
 	@Transactional
+	public V updateByID(V vo) {
+		T entity = assembler.toEntity(vo);
+		T savedEntity = jpaRepo.save(entity);
+		return assembler.toVo(savedEntity);
+	}
+
+	@Override
+	@Transactional
 	public V getByUniqueliteral(String uniqueLiteral, String value) {
 		if (value != null) {
 			T entity = customRepo.findbyUniqueLiteral(uniqueLiteral, value);
