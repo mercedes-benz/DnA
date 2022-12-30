@@ -699,7 +699,7 @@ export const SummaryPdfDoc = (props: SummaryPdfDocProps) => (
             <Text>
               {props.solution.description.location
                 ? props.solution.description.location.length > 0
-                  ? props.solution.description.location.map((item: any) => item.name).join(', ')
+                  ? props.solution.description.location.length === totalLocationsCount ? 'All' : props.solution.description.location.map((item: any) => item.name).join(', ')
                   : 'NA'
                 : 'NA'}
             </Text>
