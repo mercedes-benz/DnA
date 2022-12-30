@@ -10,7 +10,7 @@ import { getParams } from '../../../router/RouterUtils';
 
 import ConfirmModal from 'components/formElements/modal/confirmModal/ConfirmModal';
 import { USER_ROLE, SOLUTION_LOGO_IMAGE_TYPES } from 'globals/constants';
-import { IBookMarks, ICreateNewSolutionResult, IPhase, IRole, IUserInfo, INotebookInfo, IDataiku } from 'globals/types';
+import { IBookMarks, ICreateNewSolutionResult, IPhase, IRole, IUserInfo, INotebookInfo, IDataiku, IDepartment } from 'globals/types';
 import { history } from '../../../router/History';
 import { ApiClient } from '../../../services/ApiClient';
 import { ICreateNewSolutionData } from '../createNewSolution/CreateNewSolution';
@@ -45,6 +45,7 @@ export interface ISummaryState {
   dnaDataIkuProjectEnabled: boolean;
   notebookAndDataIkuNotEnabled: boolean;
   dataSources: any;
+  departmentTags: IDepartment[];
 }
 export interface IAllSolutionsListItem {
   id?: string;
@@ -99,6 +100,7 @@ export default class Summary extends React.Component<{ user: IUserInfo }, ISumma
           dataStrategyDomain: '',
           requestedFTECount: 0,
           additionalResource: '',
+          department: ''
         },
         openSegments: [],
         team: { team: [] },
@@ -199,6 +201,7 @@ export default class Summary extends React.Component<{ user: IUserInfo }, ISumma
       dnaDataIkuProjectEnabled: false,
       notebookAndDataIkuNotEnabled: true,
       dataSources: '',
+      departmentTags: []
     };
   }
 

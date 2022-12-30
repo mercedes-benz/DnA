@@ -319,6 +319,13 @@ export default class DescriptionSummary extends React.Component<IDescriptionSumm
                     <br />
                     {this.props.createdDate ? regionalDateAndTimeConversionSolution(this.props.createdDate) : '-'}
                   </div>
+                  <div id="department">
+                    <label className="input-label summary">Department</label>
+                    <br />
+                    {description.department ? description.department : 'N/A'}
+                  </div>
+                </div>
+                <div className={classNames(Styles.flexLayout, Styles.threeColumn)}>  
                   <div id="lastModifiedAt">
                     <label className="input-label summary">Last Modified On</label>
                     <br />
