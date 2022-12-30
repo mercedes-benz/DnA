@@ -209,9 +209,9 @@ export const deserializeFormData = ({ item, type = 'provider', isDataProduct = f
         }
       : {
           description: item.description,
-          ART: item?.agileReleaseTrain,
-          carLAFunction: item?.carLaFunction,
-          corporateDataCatalog: item?.corporateDataCatalog,
+          ART: item?.agileReleaseTrain || '',
+          carLAFunction: item?.carLaFunction || '',
+          corporateDataCatalog: item?.corporateDataCatalog || '',
 
           dataProductId: item?.dataProductId,
           productName: item?.dataProductName,
@@ -225,7 +225,7 @@ export const deserializeFormData = ({ item, type = 'provider', isDataProduct = f
           dateOfDataProduct: item?.contactInformation?.dataProductDate,
           department: item?.contactInformation?.department?.split(),
           name: item?.contactInformation?.name,
-          division: item?.contactInformation?.division?.id,
+          division: item?.contactInformation?.division?.id || '0',
           subDivision: item?.contactInformation?.division?.subdivision?.id || '0',
           complianceOfficer: item?.contactInformation?.localComplianceOfficer?.split(),
           planningIT: item?.contactInformation?.appId,
