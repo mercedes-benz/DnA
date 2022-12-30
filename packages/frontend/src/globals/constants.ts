@@ -133,3 +133,5 @@ export const RolesInfoList = [
       'DUMMY 2 Description',
   },
 ];
+
+export const totalLocationsCount = 162;
