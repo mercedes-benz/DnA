@@ -92,7 +92,7 @@ const MainNavigation: React.FC<IMainNavigationProps> = (props) => {
       id: 1,
       route: `/transparency`,
       title: 'Transparency',
-      icon: 'reports',
+      icon: 'transparency',
       enabled: true,
       subNavItems: [
         {
@@ -143,7 +143,7 @@ const MainNavigation: React.FC<IMainNavigationProps> = (props) => {
       id: 2,
       route: `/data`,
       title: 'Data',
-      icon: 'solutions',
+      icon: 'data',
       enabled: true,
       subNavItems: [
         {
@@ -173,7 +173,7 @@ const MainNavigation: React.FC<IMainNavigationProps> = (props) => {
       id: 3,
       route: `/tools`,
       title: 'Tools',
-      icon: 'dashboard',
+      icon: 'tools',
       enabled: true,
       subNavItems: [
         {
@@ -203,7 +203,7 @@ const MainNavigation: React.FC<IMainNavigationProps> = (props) => {
       id: 4,
       route: `/trainings`,
       title: 'Trainings',
-      icon: 'training',
+      icon: 'trainings',
       enabled: Envs.ENABLE_TRAININGS,
       subNavItems: [
         {
