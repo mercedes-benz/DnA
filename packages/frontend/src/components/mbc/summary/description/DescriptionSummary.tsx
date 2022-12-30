@@ -10,6 +10,7 @@ import { IDescriptionRequest } from '../../createNewSolution/description/Descrip
 import AttachmentsListItem from '../datacompliance/attachments/AttachmentsListItems';
 import { regionalDateAndTimeConversionSolution } from '../../../../services/utils';
 import Styles from './DescriptionSummary.scss';
+import {totalLocationsCount} from 'globals/constants';
 
 const classNames = cn.bind(Styles);
 
@@ -270,7 +271,7 @@ export default class DescriptionSummary extends React.Component<IDescriptionSumm
                   <div id="locations">
                     <label className="input-label summary">Location</label>
                     <br />
-                    {locations.join(', ')}
+                    {locations.length === totalLocationsCount ? 'All' :locations.join(', ')}
                   </div>
                 </div>
                 <div className={classNames(Styles.flexLayout, Styles.threeColumn)}>
