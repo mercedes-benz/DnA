@@ -31,6 +31,7 @@ import {
   IDataCompliance,
   IDataSource,
   IDataVolume,
+  IDepartment,
   // ILanguage,
   IDigitalValue,
   IDivision,
@@ -103,6 +104,7 @@ export interface ICreateNewSolutionState {
   benefitRelevancesList: IBenefitRelevance[];
   strategicRelevancesList: IStrategicRelevance[];
   isProvision: boolean;
+  departmentTags: IDepartment[];
 }
 
 export interface ICreateNewSolutionProps {
@@ -159,6 +161,7 @@ export interface IDescriptionRequest {
   dataStrategyDomain: string;
   requestedFTECount: number;
   additionalResource: string;
+  department: string;
 }
 
 export default class CreateNewSolution extends React.Component<ICreateNewSolutionProps, ICreateNewSolutionState> {
@@ -242,6 +245,7 @@ export default class CreateNewSolution extends React.Component<ICreateNewSolutio
           dataStrategyDomain: '',
           requestedFTECount: 0,
           additionalResource: '',
+          department: ''
         },
         openSegments: [],
         team: { team: [] },
@@ -312,6 +316,7 @@ export default class CreateNewSolution extends React.Component<ICreateNewSolutio
       benefitRelevancesList: [],
       strategicRelevancesList: [],
       isProvision: false,
+      departmentTags: []
     };
   }
   public componentWillReceiveProps(nextProps: any) {
@@ -651,6 +656,7 @@ export default class CreateNewSolution extends React.Component<ICreateNewSolutio
                   projectStatuses={this.state.projectStatuses}
                   relatedProductsMaster={this.state.relatedProductsMaster}
                   businessGoalsList={this.state.businessGoalsList}
+                  departmentTags={this.state.departmentTags}
                   description={this.state.solution.description}
                   modfifyDescription={this.modifySolutionDescription}
                   onSaveDraft={this.onSaveDraft}

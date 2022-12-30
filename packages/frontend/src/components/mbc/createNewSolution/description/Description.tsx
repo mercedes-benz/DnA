@@ -12,6 +12,7 @@ import AttachmentUploader from '../AttachmentUploader/AttachmentUploader';
 import {
   IAttachment,
   IBusinessGoal,
+  IDepartment,
   IDivision,
   IDivisionAndSubDivision,
   IInfoItem,
@@ -48,6 +49,7 @@ export interface IDescriptionProps {
   attachments: IAttachment[];
   businessGoalsList: IBusinessGoal[];
   description: IDescriptionRequest;
+  departmentTags: IDepartment[];
   modfifyDescription: (description: IDescriptionRequest) => void;
   onSaveDraft: (tabToBeSaved: string) => void;
   // onStateChange: () => void;
@@ -106,6 +108,7 @@ export interface IDescriptionState {
   showExistingSolutionInfo: boolean;
   additionalResourcesMasterList: IRelatedProduct[];
   additionalResource: string;
+  departmentTags: string[];
 }
 
 export interface IDescriptionRequest {
@@ -126,6 +129,7 @@ export interface IDescriptionRequest {
   dataStrategyDomain: string;
   requestedFTECount: number;
   additionalResource: string;
+  department: string,
 }
 
 export default class Description extends React.Component<IDescriptionProps, IDescriptionState> {
@@ -152,6 +156,7 @@ export default class Description extends React.Component<IDescriptionProps, IDes
       dataStrategyDomain: props.description.dataStrategyDomain,
       numberOfRequestedFTE: props.description.requestedFTECount,
       additionalResource: props.description.additionalResource,
+      departmentTags: props.description.department,
     };
   }
 
@@ -207,6 +212,7 @@ export default class Description extends React.Component<IDescriptionProps, IDes
       dataStrategyDomainMaster: [],
       additionalResourcesMasterList: [],
       additionalResource: 'No',
+      departmentTags: []
     };
 
     // this.onProductNameOnChange = this.onProductNameOnChange.bind(this);
@@ -528,6 +534,8 @@ export default class Description extends React.Component<IDescriptionProps, IDes
     // Used Data Compliance variable to hide specific to company
     const enableDataStatergyInfo = Envs.ENABLE_DATA_COMPLIANCE;
 
+    const departmentValue = this.state.departmentTags?.map((department) => department?.toUpperCase());
+
     return (
       <React.Fragment>
         <div className={classNames(this.props.isProvision && Styles.provisionStyles)}>
@@ -741,47 +749,18 @@ export default class Description extends React.Component<IDescriptionProps, IDes
                   {this.props.isProvision ? (
                     ''
                   ) : (
+                  <>
                     <div className={Styles.flexLayout}>
-                      <div id="relatedProductWrapper">
-                        <div
-                          id="relatedProductContainer"
-                          className={classNames('input-field-group')}
-                          // className={classNames('input-field-group', relatedProductsError.length ? 'error' : '')}
-                        >
-                          <label id="relatedProductLable" className="input-label" htmlFor="relatedProductSelect">
-                            Related Products
-                          </label>
-                          <div id="relatedProduct" className="custom-select">
-                            <select
-                              id="relatedProductSelect"
-                              multiple={true}
-                              required={false}
-                              // required-error={requiredError}
-                              onChange={this.onRelatedProductChange}
-                              value={relatedProductValues}
-                            >
-                              {relatedProdcutList.map((obj) => (
-                                <option id={obj.name} key={obj.name} value={obj.name}>
-                                  {obj.name}
-                                </option>
-                              ))}
-                            </select>
-                          </div>
-                          {/* <span className={classNames('error-message', relatedProductsError.length ? '' : 'hide')}>
-                        {relatedProductsError}
-                        </span>
-                            */}
-                          <div>
-                            <button
-                              className={classNames(Styles.relatedPrdEdit)}
-                              onClick={this.showAddRelatedProductModalView}
-                            >
-                              <i className="icon mbc-icon plus" />
-                              &nbsp;
-                              <span>Add new related products</span>
-                            </button>
-                          </div>
-                        </div>
+                      <div className={Styles.departmentTags}>
+                        <Tags
+                          title={'Department'}
+                          max={1}
+                          chips={departmentValue}
+                          tags={this.props.departmentTags}
+                          setTags={this.setDepartment}
+                          isMandatory={false}
+                          showMissingEntryError={false}
+                        />
                       </div>
 
                       <div
@@ -825,6 +804,51 @@ export default class Description extends React.Component<IDescriptionProps, IDes
                         </span> */}
                       </div>
                     </div>
+                    <div className={Styles.flexLayout}>
+                      <div id="relatedProductWrapper">
+                        <div
+                          id="relatedProductContainer"
+                          className={classNames('input-field-group')}
+                          // className={classNames('input-field-group', relatedProductsError.length ? 'error' : '')}
+                        >
+                          <label id="relatedProductLable" className="input-label" htmlFor="relatedProductSelect">
+                            Related Products
+                          </label>
+                          <div id="relatedProduct" className="custom-select">
+                            <select
+                              id="relatedProductSelect"
+                              multiple={true}
+                              required={false}
+                              // required-error={requiredError}
+                              onChange={this.onRelatedProductChange}
+                              value={relatedProductValues}
+                            >
+                              {relatedProdcutList.map((obj) => (
+                                <option id={obj.name} key={obj.name} value={obj.name}>
+                                  {obj.name}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                          {/* <span className={classNames('error-message', relatedProductsError.length ? '' : 'hide')}>
+                        {relatedProductsError}
+                        </span>
+                            */}
+                          <div>
+                            <button
+                              className={classNames(Styles.relatedPrdEdit)}
+                              onClick={this.showAddRelatedProductModalView}
+                            >
+                              <i className="icon mbc-icon plus" />
+                              &nbsp;
+                              <span>Add new related products</span>
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                      <div></div>
+                    </div>
+                  </>
                   )}
                 </div>
 
@@ -1105,5 +1129,11 @@ export default class Description extends React.Component<IDescriptionProps, IDes
 
   protected onDataStrategyDomainsInfoModalCancel = () => {
     this.setState({ showDataStrategyDomainsInfo: false });
+  };
+
+  protected setDepartment = (arr: string[]) => {
+    const description = this.props.description;
+    description.department = arr?.map((item) => item.toUpperCase())[0];
+    // this.setState({ showDepartmentMissingError: arr.length === 0 });
   };
 }
