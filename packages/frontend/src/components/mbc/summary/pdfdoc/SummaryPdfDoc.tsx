@@ -37,6 +37,7 @@ import ImgProfessionalization from '../../../../assets/images/professionalizatio
 import ImgRollout from '../../../../assets/images/rollout.jpg';
 import jupeterImg from '../../../../assets/images/jupyter-icon.jpg';
 import dataIkuimg from '../../../../assets/images/dataiku-icon.jpg';
+import {totalLocationsCount} from 'globals/constants';
 
 import {
   IAttachment,
@@ -721,6 +722,12 @@ export const SummaryPdfDoc = (props: SummaryPdfDocProps) => (
           <View style={[styles.flexCol2, styles.firstCol]}>
             <Text style={styles.sectionTitle}>Created On</Text>
             <Text>{props.createdDate ? getDateTimeFromTimestamp(props.createdDate) : '-'}</Text>
+          </View>
+          <View style={[styles.flexCol2]}>
+            <Text style={styles.sectionTitle}>Department</Text>
+            <Text>
+              {props.solution.description?.department ? props.solution.description?.department : 'N/A'}
+            </Text>
           </View>
           <View style={[styles.flexCol2, styles.wideCol]}>
             <Text style={styles.sectionTitle}>Last Modified On</Text>
