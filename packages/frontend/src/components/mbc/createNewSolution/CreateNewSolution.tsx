@@ -480,7 +480,7 @@ export default class CreateNewSolution extends React.Component<ICreateNewSolutio
               solution.analytics = res.analytics;
               solution.portfolio = res.portfolio;
               solution.sharing = res.sharing;
-              solution.marketing = res.marketing;
+              // solution.marketing = res?.marketing;
               solution.datacompliance = res.dataCompliance;
               solution.openSegments = res.openSegments;
               solution.publish = res.publish;
