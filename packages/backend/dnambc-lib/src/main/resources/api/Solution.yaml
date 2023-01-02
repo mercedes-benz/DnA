@@ -463,6 +463,8 @@ definitions:
         $ref: "#/definitions/SolutionAnalyticsVO"
       sharing:
         $ref: "#/definitions/SolutionSharingVO"
+      marketing:
+        $ref: "#/definitions/SolutionMarketingVO"  
       digitalValue:
         $ref: "#/definitions/SolutionDigitalValueVO"
       dataCompliance:
@@ -486,6 +488,7 @@ definitions:
               "Platform",
               "Analytics",
               "Sharing",
+              "Marketing",
               "DigitalValue",
               "DataCompliance"
             ]
@@ -844,6 +847,55 @@ definitions:
         description: result URL for the solution. Example - tableau,onednatableau, internal workbench urls etc
       result:
         $ref: "#/definitions/ResultVO"
+        
+  SolutionMarketingVO:
+    type: object
+    properties:
+      personas:
+        type: array
+        items:
+          type: string
+      personalization:
+        $ref: "#/definitions/SolutionPersonalizationVO"
+      customerJourneyPhases:
+        type: array
+        items:
+          $ref: "#/definitions/SolutionCustomerJourneyPhaseVO"
+      marketingCommunicationChannels:
+        type: array
+        items:
+          $ref: "#/definitions/SolutionMarketingCommunicationChannelVO"  
+          
+  SolutionPersonalizationVO:
+    type: object
+    properties:
+      isChecked: 
+        type: boolean
+        description: Indicidates whether personalization is selected or not. Boolean value true/false
+      description: 
+        type: string
+        description: Describes the type of personalization being activated with user's usecase and the 
+                      segmentation used to identify the target audience for the marketing activitiy
+  
+  SolutionCustomerJourneyPhaseVO:
+    type: object
+    properties:
+      id:
+        type: string
+        description: "ID of the Customer Journey Phase"
+      name:
+        type: string
+        description: "Name of the Customer Journey Phase"
+  
+  SolutionMarketingCommunicationChannelVO:
+    type: object
+    properties:
+      id:
+        type: string
+        description: "ID of the Marketing Communication Channel"
+      name:
+        type: string
+        description: "Name of the Marketing Communication Channel"        
 
   SolutionDigitalValueVO:
     type: object
