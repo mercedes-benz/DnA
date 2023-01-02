@@ -32,7 +32,6 @@ type SolutionVO {
     dataSources: SolutionDatasourceVO,
     analytics: SolutionAnalyticsVO,
     sharing: SolutionSharingVO,
-    marketing: SolutionMarketingVO,
     digitalValue: SolutionDigitalValueVO,
     dataCompliance: SolutionDataComplianceVO,
     portfolio: SolutionPortfolioVO,
@@ -80,28 +79,6 @@ type SolutionSharingVO{
 }
 
 type ResultVO{
-	id: ID!,
-    name: String
-}
-
-type SolutionMarketingVO{
-	personas: [String],
-	personalization: PersonalizationVO,
-	customerJourneyPhases: [SolutionCustomerJourneyPhaseVO],
-	marketingCommunicationChannels: [SolutionMarketingCommunicationChannelVO]
-}
-
-type PersonalizationVO{
-	isChecked: Boolean,
-    description: String
-}
-
-type SolutionCustomerJourneyPhaseVO{
-	id: ID!,
-    name: String
-}
-
-type SolutionMarketingCommunicationChannelVO{
 	id: ID!,
     name: String
 }
