@@ -1,315 +1,133 @@
-.datmdcBanner {
-  margin-top: 0;
-  min-height: calc(100vh - 5rem);
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-start;
-  margin-bottom: -5rem;
-}
-
-.lpHeadermbdbenzlogo {
-  img {
-    width: 50px;
-    width: 127px;
-  }
-}
-.lpHeadermbdlogo {
-  display: flex;
-  align-items: center;
-  img {
-    width: 42px;
-  }
-  a {
-    display: block;
-  }
-  h6 {
-    margin: 0;
-    padding-right: 10px;
-    font-size: var(--font-size-smallest);
-  }
-}
-
-.landingPage {
+.dnaContainer {
+  width: 100%;
+  padding-top: 80px;
+  padding-right: 60px;
+  padding-left: 60px;
   background-image: url("../../../assets/images/Home.jpg");
   background-repeat: no-repeat;
   background-size: cover;
   background-position: center;
-}
-.datmdcBanner:before {
-  background: linear-gradient(270deg, transparent 20%, #000000 100%);
-  bottom: 0;
-  content: "";
-  height: 100%;
-  opacity: 0.91;
-  position: absolute;
-  right: 0;
-  width: 100%;
-}
-.bannerQuickLinks {
-  display: flex;
-  justify-content: space-between;
-  padding: 0 50px;
-  margin-bottom: 40px;
-  &.noReportsSection {
-    justify-content: initial;
-    .quicklinkCard {
-      max-width: 33%;
-    }
-  }
-}
-.bannerDesc {
-  padding: 80px 60px 80px 60px;
-  z-index: 99;
-}
-.quicklinkCard {
-  text-transform: capitalize;
-  margin: 0px 8px;
-  padding: 0 0px 0 0;
+  min-height: calc(100vh - 5rem);
+  margin-bottom: -5rem;
   position: relative;
-  min-width: 32%;
-  .isDisable {
-    a {
-      opacity: 0.4;
-      pointer-events: none;
-    }
-    &:hover {
-      i {
-        margin-left: 0px;
-      }
-    }
-  }
 }
-.quicklinkCard {
-  height: auto;
-  overflow: hidden;
-}
-.quicklinkCardNav {
-  padding: 0px 30px;
-  position: relative;
-  min-height: 100px;
-}
-
-.quicklinkCardtitle {
-  height: 100px;
-  display: flex;
-  font-size: var(--font-size-smallest);
-  height: 125px;
-  padding: 10px 30px;
-  z-index: 99;
-  position: relative;
-  background-position: center;
-  background-repeat: no-repeat;
-  background-size: cover;
-  overflow: hidden;
-  color: #d9dfe4;
-  flex-direction: row;
-  justify-content: flex-start;
-  text-align: left;
-  align-items: center;
-  h6 {
-    font-size: var(--font-size-headline-mobile);
-    color: #d9dfe4;
-    margin-bottom: 3px;
-  }
-  p {
-    color: #99a5b3;
-    font-size: var(--font-size-smallest);
-    line-height: 16px;
-    text-transform: initial !important;
-    font-family: var(--font-family-medium);
-  }
-  i {
-    font-size: var(--font-size-icon-tile);
-    line-height: 20px;
-    margin: 0 25px 0 0 !important;
-  }
-}
-.qcardThree:before {
-  bottom: 0;
-  content: "";
-  height: 5px;
-  opacity: 0.5;
-  position: absolute;
-  width: 84%;
-  left: 30px;
-}
-.quicklinkCard .quicklinkCardtitle:after {
-  content: "";
-  position: absolute;
-  width: 100px;
-  height: 100px;
-  background-color: #fff;
-  right: -20px;
-  bottom: -20px;
-  transition: 0.5s;
-  border-radius: 50%;
-  transform: scale(0);
-  background: -moz-linear-gradient(#363e47, #191d22);
-  background: -webkit-linear-gradient(#363e47, #191d22);
-  background: linear-gradient(#363e47, #191d22);
-}
-.BgTrans .quicklinkCardNav {
-  background: transparent !important;
-}
-.BgTrans:before {
-  background: transparent !important;
-}
-
-.quicklinkCard:hover .quicklinkCardtitle:after {
-  content: "";
-  position: absolute;
-  width: 100px;
-  height: 100px;
-  transition: 0.5s;
-}
-
-.Portfolio_quicklinkCardtitle_3ollf.Portfolio_qcardOne_45lmL {
-  overflow: hidden;
-}
-
-.quicklinkCardNav ul {
-  display: flex;
-  margin: 0;
-  justify-content: space-between;
-  padding: 0;
-  font-size: var(--font-size-smallest);
-  flex-wrap: wrap;
-  &.qcardTwoli {
-    flex-direction: column;
-  }
-}
-
-.quicklinkCard {
-  width: 100%;
-}
-
-.quicklinkCard:before {
-  content: "";
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  left: 0;
-  top: 0;
-  background: -moz-linear-gradient(#363e47, #191d22);
-  background: -webkit-linear-gradient(#363e47, #191d22);
-  background: linear-gradient(#363e47, #191d22);
-}
-
-.quicklinkCardNav ul li {
-  list-style: none;
-  margin: 0 10px 0 0;
-  min-width: 40%;
-  font-size: var(--font-size-default);
-}
-.quicklinkCardNav ul li a {
-  color: #c0c8d0;
-  padding: 10px 0;
-  display: inline-block;
-  text-decoration: none;
-  cursor: pointer;
-  font-size: var(--font-size-medium);
-}
-.quicklinkCardNav ul li a span {
-  display: flex;
-  align-items: center;
-}
-.quicklinkCardNav ul li a:hover {
-  color: #00adef !important;
-}
-.btnPrimary {
-  font-size: var(--font-size-small);
-  cursor: pointer;
-}
-.quicklinkCardNav ul li i {
-  transition: 0.5s;
-  font-size: var(--font-size-default);
-  margin-top: -5px !important;
-}
-.quicklinkCardNav ul li:hover i {
-  margin-left: 5px;
-  transition: 0.5s;
-}
-.modelsm {
-  min-width: 0vw !important;
-  max-width: 40vw !important;
-}
-
-.appName {
-  color: #989ea2;
-  font-size: var(--font-size-medium);
-  margin-bottom: 26px;
-}
-.appDesc {
-  font-size: 32px;
-  color: #d9dfe5;
-}
-.dnaContainer {
-  width: 100%;
-  padding-right: 60px;
-  padding-left: 60px;
-  margin-right: auto;
-  margin-left: auto;
-  z-index: 99;
+.moreSpaceRow {
+  margin-left: -15px;
+  margin-right: -15px;
 }
 .dnaRow {
   display: flex;
   flex-wrap: wrap;
+  margin-left: -6px;
+  margin-right: -6px;
 }
-.headline {
-  font-size: var(--font-size-default);
-  margin-bottom: 20px;
-  > span {
-    display: inline-block;
-    border: 1px solid #697582;
-    border-radius: 80px;
-    color: #99a5b3;
-    margin-right: 10px;
-    padding: 10px 22px;
-  }
-}
-.transparencyCol {
-  width: calc(25% - 40px);
-  margin-right: 40px;
+.dnaCol6 {
+  flex: 0 0 auto;
+  width: calc(50% - 12px);
+  margin-left: 6px;
+  margin-right: 6px;
+  margin-bottom: 12px;
 
   > div {
-    width: 100% !important;
-    max-width: unset;
-    height: calc(100% - 4.6rem);
+    max-width: unset!important;
+    width: 100%;
+    margin: unset;
+    height: 100%;
   }
 }
-.selfServiceCol {
-  width: 75%;
-
-  > div > div {
-    width: calc(33.33% - 15px) !important;
-    max-width: unset;
+.colDivider {
+  margin-left: 15px;
+  margin-right: 15px;
+  width: calc(50% - 30px);
+  margin-bottom: 0;
+}
+.transparencyCol {
+  height: 50%!important;
+}
+.transparencyCol > div {
+  height: calc(100% - 6px)!important;
+}
+.bannerDesc {
+  padding-left: 60px;
+  padding-top: 30px;
+  height: 50%!important;
+  .appName {
+    color: #989ea2;
+    font-size: var(--font-size-medium);
+    margin-bottom: 26px;
+  }
+  .appDesc {
+    font-size: 32px;
+    color: #d9dfe5;
+    margin-bottom: 30px;
+  }
+  .poweredBy {
+    background-color: #0487b9;
+    border-radius: 200px;
+    color: #ffffff;
+    display: inline-block;
+    padding: 5px 10px;
+    font-size: var(--font-size-smallest);
+    margin-bottom: 0;
+    line-height: 1;
   }
 }
-
-@media (max-width: 1200px) {
+@media(min-width:1940px) {
+  .bannerDesc {
+    .appName {
+      font-size: 18px;
+    }
+    .appDesc {
+      font-size: 42px;
+    }
+    .poweredBy {
+      font-size: 14px;
+    }
+  }
+}
+@media(max-width:1120px) {
+  .colDivider {
+    width: 100%;
+  }
+  .bannerDesc {
+    height: auto!important;
+    padding-bottom: 30px;
+    padding-left: 10px;
+  }
   .transparencyCol {
-    width: 100%;
-    margin-right: 0;
-    margin-bottom: 20px;
-  }
-  .selfServiceCol {
-    width: 100%;
-    > div {
-      margin-right: -15px;
-      > div {
-        width: calc(50% - 15px) !important;
-        max-width: unset;
-      }
-    }
+    flex-direction: row-reverse;
+    height: auto!important;
   }
 }
-
-@media (max-width: 630px) {
-  .selfServiceCol {
-    > div > div {
-      width: 100% !important;
-      max-width: unset;
-    }
+@media(max-width:780px) {
+  .bannerDesc {
+    height: auto!important;
+    padding-left: 0;
+    padding-top: 0;
+  }
+  .transparencyCol {
+    height: auto!important;
+  }
+}
+@media(max-width:550px) {
+  .dnaContainer {
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+  .dnaCol6 {
+    margin-left: 0;
+    margin-right: 0;
+    width: 100%;
+  }
+  .colDivider {
+    margin-left: 0;
+    margin-right: 0;
+  }
+  .bannerDesc {
+    height: auto!important;
+  }
+  .transparencyCol {
+    height: auto!important;
   }
 }
 .newsSection {
