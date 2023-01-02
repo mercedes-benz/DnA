@@ -60,6 +60,10 @@
         .cardIconSection i svg g circle[stroke] {
             stroke: #fff !important;
         }
+        .upperTag {
+            color: #fff;
+            border-color: #fff;
+        }
     }
 }
 
@@ -170,6 +174,20 @@
     position: absolute;
     top: 24px;
     right: 20px;
+}
+
+.upperTag {
+    border: 1px solid #697582;
+    border-radius: 80px;
+    color: #99a5b3;
+    display: inline-block;
+    margin-right: 10px;
+    padding: 8px 16px;
+    position: absolute;
+    right: 7px;
+    top: 17px;
+    font-size: var(--font-size-smallest);
+    line-height: 1;
 }
 
 .OpenNewTabIcon {
