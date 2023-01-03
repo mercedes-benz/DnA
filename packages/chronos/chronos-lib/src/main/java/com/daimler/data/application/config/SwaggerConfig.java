@@ -108,7 +108,7 @@ public class SwaggerConfig {
 	}
 
 	private ApiInfo apiEndPointsInfo() {
-		return new ApiInfoBuilder().title("Code-Server REST API Documentation.").description(
+		return new ApiInfoBuilder().title("Chronos-Forecasting REST API Documentation.").description(
 				"REST API uri document management. Description of all the available APIs along with request and response formats. Also provides "
 						+ " options to try calling to execute running APIs and check")
 				.license("Daimler AG 2020").licenseUrl("https://github.com/Daimler/DnA/blob/master/LICENSE")
