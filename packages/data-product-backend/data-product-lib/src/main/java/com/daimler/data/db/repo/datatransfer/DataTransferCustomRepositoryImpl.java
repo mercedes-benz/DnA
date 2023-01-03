@@ -54,8 +54,8 @@ public class DataTransferCustomRepositoryImpl extends CommonDataRepositoryImpl<D
 
 	@Override
 	public List<DataTransferNsql> getAllWithFiltersUsingNativeQuery(Boolean published, int offset, int limit,
-			String sortBy, String sortOrder, String recordStatus) {
-		Query q = getNativeQueryWithFilters("", published, offset, limit, sortBy, sortOrder, recordStatus);
+			String sortBy, String sortOrder, String recordStatus, String datatransferIds) {
+		Query q = getNativeQueryWithFilters("", published, offset, limit, sortBy, sortOrder, recordStatus, datatransferIds);
 		ObjectMapper mapper = new ObjectMapper();
 		List<Object[]> results = q.getResultList();
 		List<DataTransferNsql> convertedResults = results.stream().map(temp -> {
@@ -75,15 +75,15 @@ public class DataTransferCustomRepositoryImpl extends CommonDataRepositoryImpl<D
 	}
 
 	@Override
-	public Long getCountUsingNativeQuery(Boolean published, String recordStatus) {
+	public Long getCountUsingNativeQuery(Boolean published, String recordStatus, String datatransferIds) {
 
-		Query q = getNativeQueryWithFilters("select count(*) ", published, 0, 0, "", "asc", recordStatus);
+		Query q = getNativeQueryWithFilters("select count(*) ", published, 0, 0, "", "asc", recordStatus, datatransferIds);
 		BigInteger results = (BigInteger) q.getSingleResult();
 		return results.longValue();
 	}
 
 	private Query getNativeQueryWithFilters(String selectFieldsString, Boolean published, int offset, int limit,
-			String sortBy, String sortOrder, String recordStatus) {
+			String sortBy, String sortOrder, String recordStatus, String datatransferIds) {
 
 		String prefix = selectFieldsString != null && !"".equalsIgnoreCase(selectFieldsString) ? selectFieldsString
 				: "select cast(id as text), cast(data as text) ";
@@ -91,6 +91,10 @@ public class DataTransferCustomRepositoryImpl extends CommonDataRepositoryImpl<D
 		String basicpredicate = " where (id is not null)";
 		String consolidatedPredicates = buildPredicateString(published, recordStatus);
 		String query = prefix + basicpredicate + consolidatedPredicates;
+		if (datatransferIds != null && datatransferIds.length() > 0) {
+			String dataTransferId = " and (jsonb_extract_path_text(data,'dataTransferId') in (" + datatransferIds + ")) ";
+			query += dataTransferId;
+		}
 		String sortQueryString = "";
 		if (StringUtils.hasText(sortBy)) {
 			switch (sortBy) {

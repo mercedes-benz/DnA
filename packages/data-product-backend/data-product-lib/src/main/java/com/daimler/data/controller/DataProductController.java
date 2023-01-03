@@ -1,41 +1,28 @@
 package com.daimler.data.controller;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-
-import javax.validation.Valid;
-
+import com.daimler.data.api.dataproduct.DataproductsApi;
+import com.daimler.data.application.auth.UserStore;
+import com.daimler.data.assembler.DataProductAssembler;
+import com.daimler.data.controller.exceptions.GenericMessage;
+import com.daimler.data.controller.exceptions.MessageDescription;
+import com.daimler.data.dto.datacompliance.CreatedByVO;
+import com.daimler.data.dto.dataproduct.*;
+import com.daimler.data.dto.datatransfer.*;
+import com.daimler.data.service.dataproduct.DataProductService;
+import com.daimler.data.util.ConstantsUtility;
+import io.swagger.annotations.*;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
-import com.daimler.data.api.dataproduct.DataproductsApi;
-import com.daimler.data.application.auth.UserStore;
-import com.daimler.data.controller.exceptions.GenericMessage;
-import com.daimler.data.controller.exceptions.MessageDescription;
-import com.daimler.data.dto.datacompliance.CreatedByVO;
-import com.daimler.data.dto.dataproduct.DataProductCollection;
-import com.daimler.data.dto.dataproduct.DataProductRequestVO;
-import com.daimler.data.dto.dataproduct.DataProductResponseVO;
-import com.daimler.data.dto.dataproduct.DataProductVO;
-import com.daimler.data.service.dataproduct.DataProductService;
-import com.daimler.data.util.ConstantsUtility;
-
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
-import lombok.extern.slf4j.Slf4j;
+import javax.validation.Valid;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 
 @RestController
 @Api(value = "Dataproduct API", tags = { "dataproducts" })
@@ -49,6 +36,9 @@ public class DataProductController implements DataproductsApi{
 	
 	@Autowired
 	private UserStore userStore;
+
+	@Autowired
+	private DataProductAssembler assembler;
 	
 	@ApiOperation(value = "Add a new dataproduct", nickname = "create", notes = "Adds a new non existing dataproduct", response = DataProductResponseVO.class, tags={ "dataproducts", })
     @ApiResponses(value = { 
@@ -274,6 +264,108 @@ public class DataProductController implements DataproductsApi{
 			return new ResponseEntity<>(new DataProductVO(), HttpStatus.NO_CONTENT);
 		}
     }
+
+	@Override
+	@ApiOperation(value = "Request of Data product Access.", nickname = "requestAccess", notes = "Request of Data product Access.", response = DataProductResponseVO.class, tags = {"dataproducts",})
+	@ApiResponses(value = {
+			@ApiResponse(code = 201, message = "Returns message of success", response = DataProductResponseVO.class),
+			@ApiResponse(code = 400, message = "Bad request."),
+			@ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+			@ApiResponse(code = 403, message = "Request is not authorized."),
+			@ApiResponse(code = 405, message = "Method not allowed"),
+			@ApiResponse(code = 500, message = "Internal error")})
+	@RequestMapping(value = "/dataproducts/{id}/datatransfer",
+			produces = {"application/json"},
+			consumes = {"application/json"},
+			method = RequestMethod.POST)
+	public ResponseEntity<DataProductResponseVO> requestAccess(
+			@ApiParam(value = "dataproduct ID to fill the Provider form", required = true) @PathVariable("id") String id,
+			@ApiParam(value = "Request Body that contains data required for updating the datatransfer consumer form", required = true)
+			@Valid @RequestBody DataTransferConsumerRequestInfoVO dataTransferConsumerRequestVO) {
+		DataProductVO existingDataProduct = null;
+		DataProductResponseVO responseVO = new DataProductResponseVO();
+		if (dataTransferConsumerRequestVO != null && id != null) {
+			existingDataProduct = service.getById(id);
+			if (existingDataProduct != null && ConstantsUtility.OPEN.equalsIgnoreCase(existingDataProduct.getRecordStatus())) {
+				try {
+					ProviderVO providerVO = new ProviderVO();
+					providerVO = assembler.convertDatatransferProviderForm(existingDataProduct);
+					providerVO.setDataTransferName(dataTransferConsumerRequestVO.getData().getDataTransferName());
+					providerVO.setNotifyUsers(dataTransferConsumerRequestVO.getData().isNotifyUsers());
+
+					// To call Data transfer provider API.
+					DataTransferProviderResponseVO dataTransferProviderResponseVO = service.createDataTransferProvider(providerVO).getBody();
+					if (dataTransferProviderResponseVO.getErrors() != null) {
+						String errorMessage = dataTransferProviderResponseVO.getErrors().get(0).getMessage();
+						List<MessageDescription> messages = new ArrayList<>();
+						MessageDescription message = new MessageDescription();
+						message.setMessage(errorMessage);
+						messages.add(message);
+						responseVO.setErrors(messages);
+						log.error("Exception occurred:{} while creating Data transfer provider form for DataProduct ID {} ", errorMessage,
+								id);
+						return new ResponseEntity<>(responseVO, HttpStatus.INTERNAL_SERVER_ERROR);
+					} else {
+						// To call Data transfer consumer API after successful of provider form.
+						DataTransferConsumerRequestVO dataTransferConsumerRequestForm = new DataTransferConsumerRequestVO();
+						dataTransferConsumerRequestForm = assembler.convertDatatransferConsumerForm(dataTransferConsumerRequestVO);
+						dataTransferConsumerRequestForm.getData().setId(dataTransferProviderResponseVO.getData().getId());
+
+						DataTransferConsumerResponseVO dataTransferConsumerResponseVO = service.updateDataTransferConsumer(dataTransferConsumerRequestForm.getData()).getBody();
+						if (dataTransferConsumerResponseVO.getErrors() != null) {
+							String errorMessage = dataTransferConsumerResponseVO.getErrors().get(0).getMessage();
+							List<MessageDescription> messages = new ArrayList<>();
+							MessageDescription message = new MessageDescription();
+							message.setMessage(errorMessage);
+							messages.add(message);
+							responseVO.setErrors(messages);
+							log.error("Exception occurred:{} while creating Data transfer consumer form for DataProduct ID {} ", errorMessage,
+									id);
+							return new ResponseEntity<>(responseVO, HttpStatus.INTERNAL_SERVER_ERROR);
+						} else {
+							ArrayList dataTransferAssociated = new ArrayList<>();
+							DatatransfersAssociatedVO datatransfersAssociatedVO = new DatatransfersAssociatedVO();
+							datatransfersAssociatedVO.setId(dataTransferProviderResponseVO.getData().getId());
+							datatransfersAssociatedVO.setDatatransferId(dataTransferProviderResponseVO.getData().getDataTransferId());
+							datatransfersAssociatedVO.setDatatrandferName(dataTransferProviderResponseVO.getData().getDataTransferName());
+							dataTransferAssociated.add(datatransfersAssociatedVO);
+							existingDataProduct.getDatatransfersAssociated().add(datatransfersAssociatedVO);
+
+							DataProductVO vo = service.updateByID(existingDataProduct);
+							if (vo != null && vo.getId() != null) {
+								responseVO.setData(vo);
+								log.info("for id {} request access has been created successfully", id);
+								return new ResponseEntity<>(responseVO, HttpStatus.OK);
+							} else {
+								List<MessageDescription> messages = new ArrayList<>();
+								MessageDescription message = new MessageDescription();
+								message.setMessage("Failed to create request access due to internal error");
+								messages.add(message);
+								responseVO.setErrors(messages);
+								log.error("id {} , failed to update", id);
+								return new ResponseEntity<>(responseVO, HttpStatus.INTERNAL_SERVER_ERROR);
+							}
+						}
+					}
+				} catch (Exception e) {
+					log.error("Exception occurred:{} while creating request access for DataProduct ID {} ", e.getMessage(),
+							id);
+					List<MessageDescription> messages = new ArrayList<>();
+					MessageDescription message = new MessageDescription();
+					message.setMessage(e.getMessage());
+					messages.add(message);
+					responseVO.setErrors(messages);
+					return new ResponseEntity<>(responseVO, HttpStatus.INTERNAL_SERVER_ERROR);
+				}
+			} else {
+				log.error("DataProduct with the id {} is not found", id);
+				return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
+			}
+		} else {
+			log.error("DataProduct id and body is empty");
+			return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
+		}
+	}
 
 	@Override
 	@ApiOperation(value = "Update an existing dataproduct.", nickname = "update", notes = "Update an existing dataproduct.", response = DataProductVO.class, tags = {"dataproducts",})
