@@ -160,6 +160,7 @@ export const serializeFormData = ({ values, division, type = 'provider', isDataP
 
 export const deserializeFormData = ({ item, type = 'provider', isDataProduct = false }) => {
   const isProvider = type === 'provider';
+  const isConsumerForm = type === 'consumer';
   return {
     ...(!isDataProduct
       ? {
@@ -263,7 +264,7 @@ export const deserializeFormData = ({ item, type = 'provider', isDataProduct = f
           datatransfersAssociated: item?.datatransfersAssociated,
           dataTransferName: item?.dataTransferName,
 
-          ...(!isProvider && {
+          ...(isConsumerForm && {
             consumer: {
               planningIT: item.consumerFormValues?.consumerInformation?.contactInformation?.appId,
               department: item.consumerFormValues?.consumerInformation?.contactInformation?.department?.split(),
