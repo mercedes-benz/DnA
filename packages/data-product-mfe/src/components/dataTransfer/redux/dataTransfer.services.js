@@ -68,7 +68,8 @@ export const UpdateDataTransfers = createAsyncThunk(
     if (isProviderForm && values.consumer) {
       values.consumer['serializedDivision'] = serializeDivisionSubDivision(divisionList, values?.consumer);
     }
-    const requestBody = serializeFormData({ values, division, type });
+    const requestBody = serializeFormData({ values, division, type, isDataProduct });
+
     if (!isDataProduct) {
       ProgressIndicator.show();
       try {
@@ -120,9 +121,6 @@ export const UpdateDataTransfers = createAsyncThunk(
         Notification.show(e?.response?.data?.errors[0]?.message, 'alert');
         return rejectWithValue(e?.response?.data?.errors[0]?.message);
       }
-    } else {
-      onSave();
-      return;
     }
   },
 );

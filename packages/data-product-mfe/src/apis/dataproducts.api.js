@@ -30,6 +30,21 @@ const deleteDataProduct = (id) => {
   });
 };
 
+const createDataTransfer = (id, data) => {
+  return server.post(`/dataproducts/${id}/datatransfer`, {
+    data,
+  });
+};
+
+const getDataTransfers = (dataTransferIds, sortBy, sortOrder) => {
+  return server.get(
+    `/datatransfers?limit=0&offset=0&datatransferIds=${dataTransferIds}&sortBy=${sortBy}&sortOrder=${sortOrder}`,
+    {
+      data: {},
+    },
+  );
+};
+
 const getAllAgileReleaseTrains = () => {
   return server.get('/agileReleaseTrains', { data: {} });
 };
@@ -48,6 +63,8 @@ export const dataProductApi = {
   createDataProduct,
   updateDataProduct,
   deleteDataProduct,
+  createDataTransfer,
+  getDataTransfers,
   getAllAgileReleaseTrains,
   getAllCarlaFunctions,
   getAllCorporateDataCatalogs,

@@ -79,7 +79,7 @@ const CreateDataProduct = ({ user, history }) => {
   };
 
   const getDataProductById = () => {
-    const id = createCopyId || dataProductId || data?.selectedData?.id;
+    const id = createCopyId || dataProductId || data?.selectedDataProduct?.id;
     ProgressIndicator.show();
     dataProductApi
       .getDataProductById(id)
@@ -136,10 +136,10 @@ const CreateDataProduct = ({ user, history }) => {
   }, [user]);
 
   useEffect(() => {
-    const { id } = data.selectedData;
+    const { id } = data.selectedDataProduct;
     if (isCreatePage && !createCopyId) {
       if (id) {
-        let defaultValues = { ...data.selectedData };
+        let defaultValues = { ...data.selectedDataProduct };
         reset(defaultValues); // setting default values
       } else {
         const data = dataForms['description'];
@@ -149,7 +149,7 @@ const CreateDataProduct = ({ user, history }) => {
     }
 
     //eslint-disable-next-line
-  }, [dispatch, data.selectedData, isCreatePage]);
+  }, [dispatch, data.selectedDataProduct, isCreatePage]);
 
   useEffect(() => {
     ProgressIndicator.show();
@@ -204,10 +204,10 @@ const CreateDataProduct = ({ user, history }) => {
 
   const onSave = (currentTab, values, callbackFn) => {
     const saveSegments = mapOpenSegments[currentTab];
-    const openSegments = data.selectedData?.openSegments || [];
+    const openSegments = data.selectedDataProduct?.openSegments || [];
     values.openSegments = [...openSegments];
 
-    if (isCreatePage && !createCopyId && !data?.selectedData?.id && currentTab === 'description') {
+    if (isCreatePage && !createCopyId && !data?.selectedDataProduct?.id && currentTab === 'description') {
       values.openSegments = ['Description'];
     } else if (values?.openSegments?.indexOf(saveSegments) === -1) {
       values.openSegments.push(saveSegments);
@@ -222,7 +222,7 @@ const CreateDataProduct = ({ user, history }) => {
       data,
     };
     if (isCreatePage) {
-      const { id } = data.selectedData;
+      const { id } = data.selectedDataProduct;
 
       if (id) {
         dataObj.values['id'] = id;
@@ -247,7 +247,9 @@ const CreateDataProduct = ({ user, history }) => {
       </button>
       <FormProvider {...methods}>
         <div className={classNames(Styles.mainPanel)}>
-          <h3 className={classNames(Styles.title)}>Add a new Data Product</h3>
+          <h3 className={classNames(Styles.title)}>
+            {isEditPage ? data?.selectedDataProduct?.productName : 'Add a new Data Product'}
+          </h3>
           <div id="data-product-tabs" className="tabs-panel">
             <div className="tabs-wrapper">
               <nav>

@@ -62,7 +62,7 @@ const DataProductCardItem = ({ product, history, user, isDataProduct = false }) 
         <div
           className={Styles.cardHead}
           onClick={() => {
-            !isDataProduct && history.push(`/datasharing/summary/${product?.dataTransferId}`);
+            history.push(`/datasharing/summary/${product?.dataTransferId}`);
           }}
         >
           <div className={Styles.cardHeadInfo}>
