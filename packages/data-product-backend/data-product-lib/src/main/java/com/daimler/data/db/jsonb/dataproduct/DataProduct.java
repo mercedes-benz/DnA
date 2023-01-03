@@ -34,6 +34,7 @@ import com.daimler.data.db.jsonb.AgileReleaseTrain;
 import com.daimler.data.db.jsonb.CarLaFunction;
 import com.daimler.data.db.jsonb.CorporateDataCatalog;
 import com.daimler.data.db.jsonb.CreatedBy;
+import com.daimler.data.dto.dataproduct.DatatransfersAssociatedVO;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import lombok.AllArgsConstructor;
@@ -65,5 +66,6 @@ public class DataProduct {
 	private DataProductPersonalRelatedData personalRelatedData;
 	private DataProductTransnationalDataTransfer transnationalDataTransfer;
 	private DataProductDeletionRequirement deletionRequirement;
+	private List<DatatransfersAssociatedVO> datatransfersAssociated;
 	private List<String> openSegments;
 }
