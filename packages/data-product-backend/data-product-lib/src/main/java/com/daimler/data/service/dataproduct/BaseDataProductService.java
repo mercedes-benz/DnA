@@ -31,10 +31,16 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.daimler.data.dto.datatransfer.ConsumerVO;
+import com.daimler.data.dto.datatransfer.DataTransferConsumerResponseVO;
+import com.daimler.data.dto.datatransfer.DataTransferProviderResponseVO;
+import com.daimler.data.dto.datatransfer.ProviderVO;
+import com.daimler.data.service.datatransfer.DataTransferService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ObjectUtils;
@@ -75,6 +81,9 @@ public class BaseDataProductService extends BaseCommonService<DataProductVO, Dat
 		
 		@Autowired
 		private DataProductRepository dataProductRepository;
+
+		@Autowired
+		private DataTransferService dataTransferService;
 		
 		public BaseDataProductService() {
 			super();
@@ -91,7 +100,17 @@ public class BaseDataProductService extends BaseCommonService<DataProductVO, Dat
 				return new ArrayList<>();
 		}
 
-		@Override
+	@Override
+	public ResponseEntity<DataTransferProviderResponseVO> createDataTransferProvider(ProviderVO providerVO) {
+		return dataTransferService.createDataTransferProvider(providerVO, true);
+	}
+
+	@Override
+	public ResponseEntity<DataTransferConsumerResponseVO> updateDataTransferConsumer(ConsumerVO consumerVO) {
+		return dataTransferService.updateDataTransferConsumer(consumerVO);
+	}
+
+	@Override
 		public Long getCount(Boolean published, String recordStatus) {
 			return dataProductCustomRepository.getCountUsingNativeQuery(published, recordStatus);
 		}

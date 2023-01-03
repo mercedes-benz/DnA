@@ -29,14 +29,24 @@ package com.daimler.data.service.dataproduct;
 
 import java.util.List;
 
+import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.db.entities.DataProductNsql;
 import com.daimler.data.dto.dataproduct.DataProductVO;
+import com.daimler.data.dto.datatransfer.ConsumerVO;
+import com.daimler.data.dto.datatransfer.DataTransferConsumerResponseVO;
+import com.daimler.data.dto.datatransfer.DataTransferProviderResponseVO;
+import com.daimler.data.dto.datatransfer.ProviderVO;
 import com.daimler.data.service.common.CommonService;
+import org.springframework.http.ResponseEntity;
 
 public interface DataProductService extends CommonService<DataProductVO, DataProductNsql, String> {
 
 	List<DataProductVO> getAllWithFilters(Boolean published, int offset, int limit, String sortBy, String sortOrder,
 			String recordStatus);
+
+	ResponseEntity<DataTransferProviderResponseVO> createDataTransferProvider(ProviderVO providerVO);
+
+	ResponseEntity<DataTransferConsumerResponseVO> updateDataTransferConsumer(ConsumerVO consumerVO);
 
 	Long getCount(Boolean published, String recordStatus);
 
