@@ -108,9 +108,9 @@ public class BaseDataTransferService extends BaseCommonService<DataTransferVO, D
 
 	@Override
 	public List<DataTransferVO> getAllWithFilters(Boolean published, int offset, int limit, String sortBy,
-			String sortOrder, String recordStatus) {
+			String sortOrder, String recordStatus, String datatransferIds) {
 		List<DataTransferNsql> dataTransferEntities = dataTransferCustomRepository
-				.getAllWithFiltersUsingNativeQuery(published, offset, limit, sortBy, sortOrder, recordStatus);
+				.getAllWithFiltersUsingNativeQuery(published, offset, limit, sortBy, sortOrder, recordStatus, datatransferIds);
 		if (!ObjectUtils.isEmpty(dataTransferEntities))
 			return dataTransferEntities.stream().map(n -> dataTransferAssembler.toVo(n)).collect(Collectors.toList());
 		else
@@ -118,8 +118,8 @@ public class BaseDataTransferService extends BaseCommonService<DataTransferVO, D
 	}
 
 	@Override
-	public Long getCount(Boolean published, String recordStatus) {
-		return dataTransferCustomRepository.getCountUsingNativeQuery(published, recordStatus);
+	public Long getCount(Boolean published, String recordStatus, String datatransferIds) {
+		return dataTransferCustomRepository.getCountUsingNativeQuery(published, recordStatus, datatransferIds);
 	}
 
 	private void updateDepartments(String department) {
@@ -139,7 +139,7 @@ public class BaseDataTransferService extends BaseCommonService<DataTransferVO, D
 
 	@Override
 	@Transactional
-	public ResponseEntity<DataTransferProviderResponseVO> createDataTransferProvider(ProviderVO requestVO) {
+	public ResponseEntity<DataTransferProviderResponseVO> createDataTransferProvider(ProviderVO requestVO, Boolean isDataProductService) {
 		DataTransferProviderResponseVO responseVO = new DataTransferProviderResponseVO();
 		DataTransferVO dataTransferVO = new DataTransferVO();
 		try {
@@ -170,7 +170,11 @@ public class BaseDataTransferService extends BaseCommonService<DataTransferVO, D
 				LOGGER.debug("DataTransfer {} already exists, returning as CONFLICT", uniqueTransferName);
 				return new ResponseEntity<>(responseVO, HttpStatus.CONFLICT);
 			}
-			providerResponseVO.setCreatedBy(this.userStore.getVO());
+			if (requestVO.getProviderInformation().getCreatedBy() != null && isDataProductService) {
+				providerResponseVO.setCreatedBy(requestVO.getProviderInformation().getCreatedBy());
+			} else {
+				providerResponseVO.setCreatedBy(this.userStore.getVO());
+			}
 			providerResponseVO.setCreatedDate(new Date());
 			if (providerResponseVO.isProviderFormSubmitted() == null) {
 				providerResponseVO.setProviderFormSubmitted(false);
