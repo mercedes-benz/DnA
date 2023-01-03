@@ -247,6 +247,41 @@ paths:
         500:
           description: "Internal error"
 
+  /dataproducts/{id}/datatransfer:
+    post:
+      tags:
+        - "dataproducts"
+      summary: "Request of Data product Access."
+      description: "Request of Data product Access."
+      operationId: "requestAccess"
+      parameters:
+        - name: "id"
+          in: "path"
+          description: "dataproduct ID to fill the Provider form"
+          required: true
+          type: "string"
+        - name: "dataTransferConsumerRequestInfoVO"
+          in: "body"
+          description: "Request Body that contains data required for updating the datatransfer consumer form"
+          required: true
+          schema:
+            $ref: "#/definitions/DataTransferConsumerRequestInfoVO"  
+      responses:
+        201:
+          description: "Returns message of success or failure"
+          schema:
+            $ref: "#/definitions/DataProductResponseVO"
+        400:
+          description: "Bad request."
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
+
 definitions:
 
   CarLaFunctionVO:
@@ -256,7 +291,37 @@ definitions:
         type: string
       name:
         type: string
-        
+  
+  DataTransferConsumerRequestInfoVO:
+    type: object
+    properties:
+      data:
+        $ref: "#/definitions/ConsumerRequestVO"
+  
+  ConsumerRequestVO:
+    type: object
+    properties: 
+      dataTransferName:
+        type: string
+        description: "Name of the DataTransfer"                
+      consumerInformation:
+        $ref: "#/definitions/ConsumerResponseVO"
+      notifyUsers:
+        type: boolean
+        description: "Flag to notify users."                        
+    required:
+      - consumerInformation
+
+  ConsumerResponseVO:
+    type: object
+    properties:        
+      contactInformation:
+        $ref: "#/definitions/ConsumerContactInformationVO"
+      personalRelatedData:
+        $ref: "#/definitions/ConsumerPersonalRelatedDataVO"
+    required:
+      - contactInformation
+
   CorporateDataCatalogVO:
     type: object
     properties:  
@@ -426,6 +491,11 @@ definitions:
         $ref: "#/definitions/DataProductTransnationalDataTransferVO"    
       deletionRequirement:
         $ref: "#/definitions/DataProductDeletionRequirementVO"
+      datatransfersAssociated:
+        type: array
+        description: "The list of associated datatransfer for the given dataproduct"
+        items:
+          $ref: "#/definitions/DatatransfersAssociatedVO"
       openSegments:
         type: array
         description: "This attribute stores all the open/input sections that user has completed in the datatransfer provider process"
@@ -449,6 +519,19 @@ definitions:
     properties:
       data:
         $ref: "#/definitions/DataProductVO"
+  
+  DatatransfersAssociatedVO:
+    type: object
+    properties:
+      id:
+        type: string
+        description: "id"
+      datatransferId:
+        type: string
+        description: "datatransfer Id"
+      datatrandferName:
+        type: string
+        description: "datatrandfer Name"
           
   DataProductResponseVO:
     type: object
