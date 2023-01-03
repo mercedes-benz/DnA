@@ -74,7 +74,9 @@ const ContactInformation = ({ onSave, divisions, setSubDivisions, subDivisions, 
       hostServer.get('/subdivisions/' + id).then((res) => {
         setSubDivisions(res?.data || []);
         if (!dirtyFields.division && !dirtyFields.subDivision) {
-          let selected = isDataProduct ? provideDataTransfers?.selectedData : provideDataTransfers.selectedDataTransfer;
+          let selected = isDataProduct
+            ? provideDataTransfers?.selectedDataProduct
+            : provideDataTransfers.selectedDataTransfer;
           setValue('subDivision', selected.subDivision);
         } else {
           setValue('subDivision', '0');

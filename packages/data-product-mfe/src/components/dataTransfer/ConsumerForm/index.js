@@ -24,6 +24,7 @@ import { useParams, withRouter } from 'react-router-dom';
 import { setSelectedDataTransfer, setDivisionList } from '../redux/dataTransferSlice';
 
 import { omit } from 'lodash';
+import { CompleteDataProductMinimumInfo } from '../../dataProduct/redux/dataProduct.services';
 
 const tabs = {
   'provider-summary': {},
@@ -46,7 +47,7 @@ const tabs = {
   },
 };
 
-const ConsumerForm = ({ user, history, isDataProduct = false }) => {
+const ConsumerForm = ({ user, history, isDataProduct = false, callbackFn }) => {
   const [currentTab, setCurrentTab] = useState(isDataProduct ? 'consumer-contact-info' : 'provider-summary');
   const [savedTabs, setSavedTabs] = useState([]);
   const methods = useForm();
@@ -64,8 +65,12 @@ const ConsumerForm = ({ user, history, isDataProduct = false }) => {
   const elementRef = useRef(Object.keys(tabNames)?.map(() => createRef()));
 
   const dispatch = useDispatch();
-  const provideDataTransfers = useSelector((state) => state.provideDataTransfers);
-  const divisionList = useSelector((state) => state.provideDataTransfers.divisionList);
+  const provideDataTransfers = useSelector((state) =>
+    !isDataProduct ? state.provideDataTransfers : state.dataProduct,
+  );
+  const divisionList = useSelector((state) =>
+    !isDataProduct ? state.provideDataTransfers.divisionList : state.dataProduct.divisionList,
+  );
   const { id: dataTransferId } = useParams();
 
   useEffect(() => {
@@ -79,13 +84,18 @@ const ConsumerForm = ({ user, history, isDataProduct = false }) => {
   }, [user]);
 
   useEffect(() => {
-    const { id } = provideDataTransfers.selectedDataTransfer;
+    const { id } = !isDataProduct
+      ? provideDataTransfers.selectedDataTransfer
+      : provideDataTransfers.selectedDataProduct;
     if (id) {
-      let defaultValues = { ...provideDataTransfers.selectedDataTransfer.consumer };
+      const data = !isDataProduct
+        ? provideDataTransfers.selectedDataTransfer.consumer
+        : provideDataTransfers.selectedDataProduct.consumer;
+      let defaultValues = { ...data };
       reset(defaultValues); // setting default values
     }
     //eslint-disable-next-line
-  }, [dispatch, provideDataTransfers.selectedDataTransfer]);
+  }, [dispatch, provideDataTransfers.selectedDataTransfer, isDataProduct, provideDataTransfers.selectedDataProduct]);
 
   useEffect(() => {
     ProgressIndicator.show();
@@ -185,11 +195,22 @@ const ConsumerForm = ({ user, history, isDataProduct = false }) => {
     }
 
     const division = serializeDivisionSubDivision(divisionList, values);
-    const value = { ...provideDataTransfers.selectedDataTransfer };
+
+    const selectedData = !isDataProduct
+      ? provideDataTransfers.selectedDataTransfer
+      : provideDataTransfers.selectedDataProduct;
+    const value = { ...selectedData };
 
     value.notifyUsers = values.notifyUsers || false;
     value.publish = values.publish || false;
 
+    if (isDataProduct) {
+      value.dataTransferName = `${value.productName} - ${values.dataTransferName || value.dataTransferName}`;
+    }
+
+    const openSegments = !isDataProduct
+      ? values.openSegments
+      : ['ContactInformation', currentTab === 'consumer-personal-data' && 'IdentifyingPersonalRelatedData'];
     const consumerFormValues = {
       consumerInformation: {
         contactInformation: {
@@ -201,13 +222,13 @@ const ConsumerForm = ({ user, history, isDataProduct = false }) => {
           ownerName: values.businessOwnerName,
           agreementDate: new Date(values.dateOfAgreement),
         },
-        openSegments: values.openSegments,
+        openSegments,
         personalRelatedData: {
-          comment: values.LCOComments,
-          lcoChecked: values.LCOCheckedLegalBasis,
-          legalBasis: values.personalRelatedDataLegalBasis,
+          comment: values.LCOComments || '',
+          lcoChecked: values.LCOCheckedLegalBasis || '',
+          legalBasis: values.personalRelatedDataLegalBasis || '',
           personalRelatedData: values.personalRelatedData === 'Yes' ? true : false, //boolean,
-          purpose: values.personalRelatedDataPurpose,
+          purpose: values.personalRelatedDataPurpose || '',
         },
       },
     };
@@ -224,7 +245,11 @@ const ConsumerForm = ({ user, history, isDataProduct = false }) => {
       isDataProduct,
     };
 
-    dispatch(UpdateDataTransfers(data));
+    if (isDataProduct) {
+      dispatch(CompleteDataProductMinimumInfo(data));
+    } else {
+      dispatch(UpdateDataTransfers(data));
+    }
   };
 
   return (
@@ -328,6 +353,7 @@ const ConsumerForm = ({ user, history, isDataProduct = false }) => {
                     setSubDivisions={setSubDivisions}
                     subDivisions={subDivisions}
                     isFormMounted={isFormMounted}
+                    isDataProduct={isDataProduct}
                   />
                 )}
               </div>
@@ -337,6 +363,7 @@ const ConsumerForm = ({ user, history, isDataProduct = false }) => {
                     onSave={(values, callbackFn) => onSave('consumer-personal-data', values, callbackFn)}
                     setIsEditing={(val) => setIsEditing(val)}
                     isDataProduct={isDataProduct}
+                    callbackFn={callbackFn}
                   />
                 )}
               </div>
