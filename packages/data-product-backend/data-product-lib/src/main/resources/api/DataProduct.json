@@ -9,6 +9,16 @@
     "BindingResult": "org.springframework.validation.BindingResult",
     "GenericMessage": "com.daimler.data.controller.exceptions.GenericMessage",
     "MessageDescription": "com.daimler.data.controller.exceptions.MessageDescription",
-    "CreatedByVO": "com.daimler.data.dto.datacompliance.CreatedByVO"
+    "CreatedByVO": "com.daimler.data.dto.datacompliance.CreatedByVO",
+    "ConsumerContactInformationVO": "com.daimler.data.dto.datatransfer.ConsumerContactInformationVO",
+    "ConsumerPersonalRelatedDataVO": "com.daimler.data.dto.datatransfer.ConsumerPersonalRelatedDataVO",
+    "providerResponseVO": "com.daimler.data.dto.datatransfer.providerResponseVO",
+    "ProviderClassificationConfidentialityVO":  "com.daimler.data.dto.datatransfer.ProviderClassificationConfidentialityVO",
+    "ProviderContactInformationVO": "com.daimler.data.dto.datatransfer.ProviderContactInformationVO",
+    "DataTransferTeamMemberVO": "com.daimler.data.dto.datatransfer.DataTransferTeamMemberVO",
+    "ProviderPersonalRelatedDataVO": "com.daimler.data.dto.datatransfer.ProviderPersonalRelatedDataVO",
+    "ProviderTransnationalDataTransferVO": "com.daimler.data.dto.datatransfer.ProviderTransnationalDataTransferVO",
+    "ProviderDeletionRequirementVO": "com.daimler.data.dto.datatransfer.ProviderDeletionRequirementVO",
+    "DataTransferVO": "com.daimler.data.dto.datatransfer.DataTransferVO"
   }
 }

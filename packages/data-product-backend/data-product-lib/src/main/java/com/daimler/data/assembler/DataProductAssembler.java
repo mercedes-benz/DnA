@@ -38,7 +38,15 @@ import java.util.stream.Stream;
 import com.daimler.data.db.jsonb.AgileReleaseTrain;
 import com.daimler.data.db.jsonb.CarLaFunction;
 import com.daimler.data.db.jsonb.CorporateDataCatalog;
+import com.daimler.data.db.jsonb.dataproduct.*;
 import com.daimler.data.dto.dataproduct.*;
+import com.daimler.data.dto.dataproduct.ChangeLogVO;
+import com.daimler.data.dto.dataproduct.DivisionVO;
+import com.daimler.data.dto.dataproduct.SubdivisionVO;
+import com.daimler.data.dto.dataproduct.TeamMemberVO;
+import com.daimler.data.dto.datatransfer.*;
+import com.daimler.data.dto.datatransfer.ConsumerResponseVO;
+import com.daimler.data.dto.datatransfer.DataTransferConsumerRequestVO;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ObjectUtils;
@@ -46,15 +54,6 @@ import org.springframework.util.StringUtils;
 
 import com.daimler.data.db.entities.DataProductNsql;
 import com.daimler.data.db.jsonb.CreatedBy;
-import com.daimler.data.db.jsonb.dataproduct.DataProduct;
-import com.daimler.data.db.jsonb.dataproduct.DataProductClassificationConfidentiality;
-import com.daimler.data.db.jsonb.dataproduct.DataProductContactInformation;
-import com.daimler.data.db.jsonb.dataproduct.DataProductDeletionRequirement;
-import com.daimler.data.db.jsonb.dataproduct.DataProductPersonalRelatedData;
-import com.daimler.data.db.jsonb.dataproduct.DataProductTransnationalDataTransfer;
-import com.daimler.data.db.jsonb.dataproduct.Division;
-import com.daimler.data.db.jsonb.dataproduct.Subdivision;
-import com.daimler.data.db.jsonb.dataproduct.TeamMember;
 import com.daimler.data.dto.datacompliance.CreatedByVO;
 import com.daimler.data.dto.dataproduct.DataProductTeamMemberVO.UserTypeEnum;
 import com.google.common.collect.MapDifference;
@@ -152,6 +151,12 @@ public class DataProductAssembler implements GenericAssembler<DataProductVO, Dat
 					dataProduct.getOpenSegments().forEach(openSegment -> openSegmentsEnumList
 							.add(DataProductVO.OpenSegmentsEnum.valueOf(openSegment)));
 					vo.setOpenSegments(openSegmentsEnumList);
+				}
+
+				if (!ObjectUtils.isEmpty(dataProduct.getDatatransfersAssociated())) {
+					vo.setDatatransfersAssociated(dataProduct.getDatatransfersAssociated());
+				} else {
+					vo.setDatatransfersAssociated(new ArrayList<>());
 				}
 			}
 		}
@@ -264,6 +269,12 @@ public class DataProductAssembler implements GenericAssembler<DataProductVO, Dat
 						openSegmentList.add(openSegmentsEnum.name());
 					});
 					dataProduct.setOpenSegments(openSegmentList);
+				}
+
+				if (!ObjectUtils.isEmpty(vo.getDatatransfersAssociated())) {
+					dataProduct.setDatatransfersAssociated(vo.getDatatransfersAssociated());
+				} else {
+					dataProduct.setDatatransfersAssociated(new ArrayList<>());
 				}
 			}
 			entity.setData(dataProduct);
@@ -471,4 +482,125 @@ public class DataProductAssembler implements GenericAssembler<DataProductVO, Dat
 		return changeDescription.toString();
 	}
 
+	public ProviderVO convertDatatransferProviderForm(DataProductVO existingDataProduct) {
+		ProviderVO providerVO = new ProviderVO();
+		DataProductContactInformationVO contactInformation = existingDataProduct.getContactInformation();
+		providerVO.setRecordStatus(existingDataProduct.getRecordStatus());
+		providerVO.setDataTransferId(existingDataProduct.getDataProductId());
+		providerVO.setNotifyUsers(existingDataProduct.isNotifyUsers());
+
+		ProviderResponseVO providerResponseVO = new ProviderResponseVO();
+		providerResponseVO.setContactInformation(new ProviderContactInformationVO());
+		providerResponseVO.getContactInformation().setDivision(new com.daimler.data.dto.datatransfer.DivisionVO());
+		providerResponseVO.getContactInformation().getDivision().setSubdivision(new com.daimler.data.dto.datatransfer.SubdivisionVO());
+		providerResponseVO.getContactInformation().setInformationOwner(new DataTransferTeamMemberVO());
+		providerResponseVO.getContactInformation().setName(new DataTransferTeamMemberVO());
+		providerResponseVO.setClassificationConfidentiality(new ProviderClassificationConfidentialityVO());
+		providerResponseVO.setPersonalRelatedData(new ProviderPersonalRelatedDataVO());
+		providerResponseVO.setTransnationalDataTransfer(new ProviderTransnationalDataTransferVO());
+		providerResponseVO.setDeletionRequirement(new ProviderDeletionRequirementVO());
+		providerResponseVO.setCreatedBy(existingDataProduct.getCreatedBy());
+		providerResponseVO.setCreatedDate(existingDataProduct.getCreatedDate());
+
+		providerResponseVO.getContactInformation().setDataTransferDate(contactInformation.getDataProductDate());
+		BeanUtils.copyProperties(existingDataProduct, providerResponseVO);
+		BeanUtils.copyProperties(contactInformation, providerResponseVO.getContactInformation());
+		BeanUtils.copyProperties(contactInformation.getDivision(), providerResponseVO.getContactInformation().getDivision());
+		BeanUtils.copyProperties(contactInformation.getDivision().getSubdivision(), providerResponseVO.getContactInformation().getDivision().getSubdivision());
+		BeanUtils.copyProperties(contactInformation.getInformationOwner(), providerResponseVO.getContactInformation().getInformationOwner());
+		BeanUtils.copyProperties(contactInformation.getName(), providerResponseVO.getContactInformation().getName());
+		BeanUtils.copyProperties(existingDataProduct.getClassificationConfidentiality(), providerResponseVO.getClassificationConfidentiality());
+		BeanUtils.copyProperties(existingDataProduct.getPersonalRelatedData(), providerResponseVO.getPersonalRelatedData());
+		BeanUtils.copyProperties(existingDataProduct.getTransnationalDataTransfer(), providerResponseVO.getTransnationalDataTransfer());
+		BeanUtils.copyProperties(existingDataProduct.getDeletionRequirement(), providerResponseVO.getDeletionRequirement());
+
+		if (contactInformation.getInformationOwner().getUserType() != null) {
+			providerResponseVO.getContactInformation().getInformationOwner().setUserType(DataTransferTeamMemberVO.UserTypeEnum.valueOf(contactInformation.getInformationOwner().getUserType().toString().toUpperCase()));
+		}
+		if (contactInformation.getName().getUserType() != null) {
+			providerResponseVO.getContactInformation().getName().setUserType(DataTransferTeamMemberVO.UserTypeEnum.valueOf(contactInformation.getName().getUserType().toString().toUpperCase()));
+		}
+		if (contactInformation.getInformationOwner().isAddedByProvider() != null) {
+			providerResponseVO.getContactInformation().getInformationOwner().setAddedByProvider(contactInformation.getInformationOwner().isAddedByProvider());
+		}
+		if (contactInformation.getName().isAddedByProvider() != null) {
+			providerResponseVO.getContactInformation().getName().setAddedByProvider(contactInformation.getInformationOwner().isAddedByProvider());
+		}
+		if (existingDataProduct.getPersonalRelatedData().isPersonalRelatedData() != null) {
+			providerResponseVO.getPersonalRelatedData().setPersonalRelatedData(existingDataProduct.getPersonalRelatedData().isPersonalRelatedData());
+		}
+		if (existingDataProduct.getTransnationalDataTransfer().isDataTransferred() != null) {
+			providerResponseVO.getTransnationalDataTransfer().setDataTransferred(existingDataProduct.getTransnationalDataTransfer().isDataTransferred());
+		}
+		if (existingDataProduct.getTransnationalDataTransfer().isNotWithinEU() != null) {
+			providerResponseVO.getTransnationalDataTransfer().setNotWithinEU(existingDataProduct.getTransnationalDataTransfer().isNotWithinEU());
+		}
+		if (existingDataProduct.getTransnationalDataTransfer().isDataFromChina() != null) {
+			providerResponseVO.getTransnationalDataTransfer().setDataFromChina(existingDataProduct.getTransnationalDataTransfer().isDataFromChina());
+		}
+		if (existingDataProduct.getDeletionRequirement().isDeletionRequirements() != null) {
+			providerResponseVO.getDeletionRequirement().setDeletionRequirements(existingDataProduct.getDeletionRequirement().isDeletionRequirements());
+		}
+		providerResponseVO.setProviderFormSubmitted(true);
+		providerVO.setProviderInformation(providerResponseVO);
+
+		List<ProviderResponseVO.OpenSegmentsEnum> openSegmentsEnumList = new ArrayList<>();
+		openSegmentsEnumList.add(ProviderResponseVO.OpenSegmentsEnum.valueOf("CONTACTINFORMATION"));
+		openSegmentsEnumList.add(ProviderResponseVO.OpenSegmentsEnum.valueOf("CLASSIFICATIONANDCONFIDENTIALITY"));
+		openSegmentsEnumList.add(ProviderResponseVO.OpenSegmentsEnum.valueOf("IDENTIFYINGPERSONALRELATEDDATA"));
+		openSegmentsEnumList.add(ProviderResponseVO.OpenSegmentsEnum.valueOf("IDENTIFIYINGTRANSNATIONALDATATRANSFER"));
+		openSegmentsEnumList.add(ProviderResponseVO.OpenSegmentsEnum.valueOf("SPECIFYDELETIONREQUIREMENTS"));
+		providerVO.getProviderInformation().setOpenSegments(List.copyOf(openSegmentsEnumList));
+
+		return providerVO;
+	}
+
+	public DataTransferConsumerRequestVO convertDatatransferConsumerForm(DataTransferConsumerRequestInfoVO dataTransferConsumerRequestInfoVO) {
+		DataTransferConsumerRequestVO dataTransferConsumerRequestVO = new DataTransferConsumerRequestVO();
+
+		dataTransferConsumerRequestVO.setData(new ConsumerVO());
+		dataTransferConsumerRequestVO.getData().setId(dataTransferConsumerRequestVO.getData().getId());
+		dataTransferConsumerRequestVO.getData().setConsumerInformation(new ConsumerResponseVO());
+		dataTransferConsumerRequestVO.getData().getConsumerInformation().setContactInformation(new ConsumerContactInformationVO());
+		dataTransferConsumerRequestVO.getData().getConsumerInformation().getContactInformation().setDivision(new com.daimler.data.dto.datatransfer.DivisionVO());
+		dataTransferConsumerRequestVO.getData().getConsumerInformation().getContactInformation().getDivision().setSubdivision(new com.daimler.data.dto.datatransfer.SubdivisionVO());
+		dataTransferConsumerRequestVO.getData().getConsumerInformation().getContactInformation().setOwnerName(new DataTransferTeamMemberVO());
+		dataTransferConsumerRequestVO.getData().getConsumerInformation().setPersonalRelatedData(new ConsumerPersonalRelatedDataVO());
+
+		com.daimler.data.dto.dataproduct.ConsumerRequestVO dataproductConsumerData = dataTransferConsumerRequestInfoVO.getData();
+		ConsumerVO datatransferConsumerData = dataTransferConsumerRequestVO.getData();
+
+		BeanUtils.copyProperties(dataproductConsumerData, datatransferConsumerData);
+		BeanUtils.copyProperties(dataproductConsumerData.getConsumerInformation(), datatransferConsumerData.getConsumerInformation());
+		BeanUtils.copyProperties(dataproductConsumerData.getConsumerInformation().getContactInformation(), datatransferConsumerData.getConsumerInformation().getContactInformation());
+		BeanUtils.copyProperties(dataproductConsumerData.getConsumerInformation().getContactInformation().getOwnerName(), datatransferConsumerData.getConsumerInformation().getContactInformation().getOwnerName());
+		BeanUtils.copyProperties(dataproductConsumerData.getConsumerInformation().getContactInformation().getDivision(), datatransferConsumerData.getConsumerInformation().getContactInformation().getDivision());
+		BeanUtils.copyProperties(dataproductConsumerData.getConsumerInformation().getContactInformation().getDivision().getSubdivision(), datatransferConsumerData.getConsumerInformation().getContactInformation().getDivision().getSubdivision());
+		BeanUtils.copyProperties(dataproductConsumerData.getConsumerInformation().getPersonalRelatedData(), datatransferConsumerData.getConsumerInformation().getPersonalRelatedData());
+
+		if (dataproductConsumerData.getConsumerInformation().getContactInformation().isLcoNeeded() != null) {
+			datatransferConsumerData.getConsumerInformation().getContactInformation().setLcoNeeded(dataproductConsumerData.getConsumerInformation().getContactInformation().isLcoNeeded());
+		}
+		if (dataproductConsumerData.getConsumerInformation().getContactInformation().getOwnerName().getUserType() != null) {
+			datatransferConsumerData.getConsumerInformation().getContactInformation().getOwnerName().setUserType(DataTransferTeamMemberVO.UserTypeEnum.valueOf(dataproductConsumerData.getConsumerInformation().getContactInformation().getOwnerName().getUserType().toString().toUpperCase()));
+		}
+		if (dataproductConsumerData.getConsumerInformation().getContactInformation().getOwnerName().isAddedByProvider() != null) {
+			datatransferConsumerData.getConsumerInformation().getContactInformation().getOwnerName().setAddedByProvider(dataproductConsumerData.getConsumerInformation().getContactInformation().getOwnerName().isAddedByProvider());
+		}
+		if (dataproductConsumerData.getConsumerInformation().getPersonalRelatedData().isPersonalRelatedData() != null) {
+			datatransferConsumerData.getConsumerInformation().getPersonalRelatedData().setPersonalRelatedData(dataproductConsumerData.getConsumerInformation().getPersonalRelatedData().isPersonalRelatedData());
+		}
+		if (dataproductConsumerData.isNotifyUsers() != null) {
+			datatransferConsumerData.setNotifyUsers(dataproductConsumerData.isNotifyUsers());
+		}
+
+		datatransferConsumerData.getConsumerInformation().setCreatedDate(new Date());
+
+		List<ConsumerResponseVO.OpenSegmentsEnum> openSegmentsEnumList = new ArrayList<>();
+		openSegmentsEnumList.add(ConsumerResponseVO.OpenSegmentsEnum.valueOf("CONTACTINFORMATION"));
+		openSegmentsEnumList.add(ConsumerResponseVO.OpenSegmentsEnum.valueOf("IDENTIFYINGPERSONALRELATEDDATA"));
+		datatransferConsumerData.getConsumerInformation().setOpenSegments(List.copyOf(openSegmentsEnumList));
+
+		return dataTransferConsumerRequestVO;
+	}
 }

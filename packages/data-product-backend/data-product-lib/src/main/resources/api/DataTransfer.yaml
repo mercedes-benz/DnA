@@ -182,6 +182,11 @@ paths:
       description: "Get all datatransfers. This endpoints will be used to get all valid available datatransfer records."
       operationId: "getAll"
       parameters:
+        - name: datatransferIds
+          in: query
+          description: "datatransfer ID to be fetched (send id's with comma separated eg: 'DTF-00019', 'DTF-00020'..)"
+          required: false
+          type: string
         - name: published
           in: query
           description: Filtering datatransfer based on publish state. Draft or published, values true or false
