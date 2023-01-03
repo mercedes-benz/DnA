@@ -12,10 +12,9 @@ import { hostServer } from '../../../server/api';
 
 import DataTranferCardLayout from '../../dataTransfer/Layout/CardView/DataTransferCardItem';
 
-import { setSelectedData, setDivisionList } from '../redux/dataProductSlice';
+import { setSelectedData, setDivisionList, resetDataTransferList } from '../redux/dataProductSlice';
 
 import { regionalDateFormat } from '../../../Utility/utils';
-import mockData from '../data.json';
 
 import InfoModal from 'dna-container/InfoModal';
 import Modal from 'dna-container/Modal';
@@ -29,10 +28,16 @@ import selfserviceImg from '../../../assets/selfservice.png';
 
 import ConsumerForm from '../../dataTransfer/ConsumerForm';
 import { deserializeFormData, serializeDivisionSubDivision } from '../../../Utility/formData';
+import { SetAllAssociatedDataTransfers } from '../redux/dataProduct.services';
 
 const Summary = ({ history, user }) => {
   const { id: dataProductId } = useParams();
-  const { selectedData: data, data: dataList, divisionList } = useSelector((state) => state.dataProduct);
+  const {
+    selectedDataProduct,
+    data: dataList,
+    divisionList,
+    allDataTransfer,
+  } = useSelector((state) => state.dataProduct);
 
   const dispatch = useDispatch();
 
@@ -46,17 +51,19 @@ const Summary = ({ history, user }) => {
   const [showRequestAccessModal, setShowRequestAccessModal] = useState(false);
   const [accessRequested, setAccessRequest] = useState(false);
 
-  const isCreator = data.providerInformation?.createdBy?.id === user?.id || true;
+  // const [dataTransferList, setDataTransferList] = useState({ totalCount: 0, records: [] });
 
-  const showContactInformation = data?.openSegments?.includes('ContactInformation');
-  const showConfidentiality = data?.openSegments?.includes('ClassificationAndConfidentiality');
-  const showPersonalData = data?.openSegments?.includes('IdentifyingPersonalRelatedData');
-  const showTransNationalData = data?.openSegments?.includes('IdentifiyingTransnationalDataTransfer');
-  const showDeletionRequirements = data?.openSegments?.includes('SpecifyDeletionRequirements');
+  const isCreator = selectedDataProduct.providerInformation?.createdBy?.id === user?.id || true;
+
+  const showContactInformation = selectedDataProduct?.openSegments?.includes('ContactInformation');
+  const showConfidentiality = selectedDataProduct?.openSegments?.includes('ClassificationAndConfidentiality');
+  const showPersonalData = selectedDataProduct?.openSegments?.includes('IdentifyingPersonalRelatedData');
+  const showTransNationalData = selectedDataProduct?.openSegments?.includes('IdentifiyingTransnationalDataTransfer');
+  const showDeletionRequirements = selectedDataProduct?.openSegments?.includes('SpecifyDeletionRequirements');
 
   const division = serializeDivisionSubDivision(divisionList, {
-    division: data.division,
-    subDivision: data.subDivision,
+    division: selectedDataProduct.division,
+    subDivision: selectedDataProduct.subDivision,
   });
 
   useEffect(() => {
@@ -75,6 +82,12 @@ const Summary = ({ history, user }) => {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dataList]);
+
+  useEffect(() => {
+    return () => {
+      dispatch(resetDataTransferList());
+    };
+  }, [dispatch]);
 
   const getDataProductById = () => {
     dataProductApi.getDataProductById(dataProductId).then((res) => {
@@ -116,6 +129,12 @@ const Summary = ({ history, user }) => {
     mdEditor.style.setProperty('font-size', 'inherit');
   }, []);
 
+  useEffect(() => {
+    if (selectedDataProduct?.datatransfersAssociated?.length) {
+      dispatch(SetAllAssociatedDataTransfers(selectedDataProduct?.datatransfersAssociated));
+    }
+  }, [dispatch, selectedDataProduct?.datatransfersAssociated]);
+
   const setTab = (e) => {
     // e.preventDefault();
     setCurrentTab(e.target.id);
@@ -123,7 +142,7 @@ const Summary = ({ history, user }) => {
 
   const deleteDataProductAccept = () => {
     ProgressIndicator.show();
-    dataProductApi.deleteDataProduct(data?.id).then(() => {
+    dataProductApi.deleteDataProduct(selectedDataProduct?.id).then(() => {
       history.push('/dataproducts');
       setShowDeleteModal(false);
     });
@@ -134,7 +153,7 @@ const Summary = ({ history, user }) => {
 
   const deleteDataProductContent = (
     <div>
-      <h3>Are you sure you want to delete {data?.productName} ? </h3>
+      <h3>Are you sure you want to delete {selectedDataProduct?.productName} ? </h3>
     </div>
   );
 
@@ -185,7 +204,7 @@ const Summary = ({ history, user }) => {
 
   const requestAccessModalContent = (
     <>
-      <ConsumerForm isDataProduct={true} />
+      <ConsumerForm isDataProduct={true} callbackFn={() => setShowRequestAccessModal(false)} />
     </>
   );
 
@@ -201,7 +220,10 @@ const Summary = ({ history, user }) => {
               <button
                 className="btn btn-primary"
                 onClick={() =>
-                  history.push({ pathname: '/dataproduct/create', state: { copyId: data?.dataProductId } })
+                  history.push({
+                    pathname: '/dataproduct/create',
+                    state: { copyId: selectedDataProduct?.dataProductId },
+                  })
                 }
               >
                 <i className="icon mbc-icon copy" tooltip-data="Create Copy"></i>Copy & Create New
@@ -211,14 +233,14 @@ const Summary = ({ history, user }) => {
               </button>
               <button
                 className="btn btn-primary"
-                onClick={() => history.push(`/dataproduct/edit/${data?.dataProductId}`)}
+                onClick={() => history.push(`/dataproduct/edit/${selectedDataProduct?.dataProductId}`)}
               >
                 <i className="icon mbc-icon edit fill" tooltip-data="Edit"></i>Edit
               </button>
             </div>
           ) : null}
           <div className={Styles.summaryBannerTitle}>
-            <h2>{data?.productName}</h2>
+            <h2>{selectedDataProduct?.productName}</h2>
           </div>
           <div id="data-product-summary-tabs" className="tabs-panel">
             <div className="tabs-wrapper">
@@ -270,36 +292,36 @@ const Summary = ({ history, user }) => {
                       <div>
                         <label className="input-label summary">Data Product Name</label>
                         <br />
-                        {data.productName}
+                        {selectedDataProduct.productName}
                       </div>
                       <div>
                         <label className="input-label summary">Agile Release Train</label>
                         <br />
-                        {data.ART?.name || '-'}
+                        {selectedDataProduct.ART?.name || '-'}
                       </div>
                       <div>
                         <label className="input-label summary">CarLA Function</label>
                         <br />
-                        {data.carLAFunction?.name || '-'}
+                        {selectedDataProduct.carLAFunction?.name || '-'}
                       </div>
                       <div>
                         <label className="input-label summary">Corporate Data Catalog</label>
                         <br />
-                        {data.corporateDataCatalog?.name || '-'}
+                        {selectedDataProduct.corporateDataCatalog?.name || '-'}
                       </div>
                     </div>
                     <div className={Styles.flexLayout}>
                       <div>
                         <label className="input-label summary">Data Product Description</label>
                         <br />
-                        {data.description}
+                        {selectedDataProduct.description}
                       </div>
                     </div>
                     <div className={Styles.flexLayout}>
                       <div data-color-mode="dark">
                         <label className="input-label summary">How to access data catalog</label>
                         <br />
-                        <MDEditor.Markdown source={data.howToAccessText} />
+                        <MDEditor.Markdown source={selectedDataProduct.howToAccessText} />
                       </div>
                     </div>
                   </div>
@@ -316,17 +338,18 @@ const Summary = ({ history, user }) => {
                         <div>
                           <label className="input-label summary">Information Owner</label>
                           <br />
-                          {data.informationOwner?.firstName} {data.informationOwner?.lastName}
+                          {selectedDataProduct.informationOwner?.firstName}{' '}
+                          {selectedDataProduct.informationOwner?.lastName}
                         </div>
                         <div>
                           <label className="input-label summary">Publish Date of Data Product</label>
                           <br />
-                          {regionalDateFormat(data.dateOfDataProduct)}
+                          {regionalDateFormat(selectedDataProduct.dateOfDataProduct)}
                         </div>
                         <div>
                           <label className="input-label summary">Name</label>
                           <br />
-                          {data?.name?.firstName} {data?.name?.lastName}
+                          {selectedDataProduct?.name?.firstName} {selectedDataProduct?.name?.lastName}
                         </div>
                         <div>
                           <label className="input-label summary">Division</label>
@@ -343,17 +366,17 @@ const Summary = ({ history, user }) => {
                         <div>
                           <label className="input-label summary">Department</label>
                           <br />
-                          {data.department}
+                          {selectedDataProduct.department}
                         </div>
                         <div>
                           <label className="input-label summary">PlanningIT App-ID</label>
                           <br />
-                          {data.planningIT || '-'}
+                          {selectedDataProduct.planningIT || '-'}
                         </div>
                         <div>
                           <label className="input-label summary">Compliance Officer / Responsible (LCO/LCR) </label>
                           <br />
-                          {data.complianceOfficer}
+                          {selectedDataProduct.complianceOfficer}
                         </div>
                       </div>
                     </div>
@@ -371,12 +394,12 @@ const Summary = ({ history, user }) => {
                         <div>
                           <label className="input-label summary">Description & Classification of transfered data</label>
                           <br />
-                          {data.classificationOfTransferedData}
+                          {selectedDataProduct.classificationOfTransferedData}
                         </div>
                         <div>
                           <label className="input-label summary">Confidentiality</label>
                           <br />
-                          {data?.confidentiality}
+                          {selectedDataProduct?.confidentiality}
                         </div>
                       </div>
                     </div>
@@ -394,29 +417,29 @@ const Summary = ({ history, user }) => {
                         <div>
                           <label className="input-label summary">Is data personal related</label>
                           <br />
-                          {data.personalRelatedData}
+                          {selectedDataProduct.personalRelatedData}
                         </div>
                       </div>
-                      {data.personalRelatedData === 'Yes' ? (
+                      {selectedDataProduct.personalRelatedData === 'Yes' ? (
                         <div className={classNames(Styles.flexLayout, Styles.fourColumn)}>
                           <div>
                             <label className="input-label summary">Description</label>
                             <br />
-                            {data.personalRelatedDataDescription}
+                            {selectedDataProduct.personalRelatedDataDescription}
                           </div>
                           <div>
                             <label className="input-label summary">
                               Original (business) purpose of processing this personal related data
                             </label>
                             <br />
-                            {data.personalRelatedDataPurpose}
+                            {selectedDataProduct.personalRelatedDataPurpose}
                           </div>
                           <div>
                             <label className="input-label summary">
                               Original legal basis for processing this personal related data
                             </label>
                             <br />
-                            {data.personalRelatedDataLegalBasis}
+                            {selectedDataProduct.personalRelatedDataLegalBasis}
                           </div>
                           <div></div>
                         </div>
@@ -438,34 +461,34 @@ const Summary = ({ history, user }) => {
                             Is data being transferred from one country to another?
                           </label>
                           <br />
-                          {data.transnationalDataTransfer}
+                          {selectedDataProduct.transnationalDataTransfer}
                         </div>
-                        {data.transnationalDataTransfer == 'Yes' ? (
+                        {selectedDataProduct.transnationalDataTransfer == 'Yes' ? (
                           <div>
                             <label className="input-label summary">Is one of these countries not within the EU?</label>
                             <br />
-                            {data.transnationalDataTransferNotWithinEU || 'No'}
+                            {selectedDataProduct.transnationalDataTransferNotWithinEU || 'No'}
                           </div>
                         ) : null}
-                        {data.transnationalDataTransfer == 'Yes' &&
-                        data.transnationalDataTransferNotWithinEU == 'Yes' ? (
+                        {selectedDataProduct.transnationalDataTransfer == 'Yes' &&
+                        selectedDataProduct.transnationalDataTransferNotWithinEU == 'Yes' ? (
                           <div>
                             <label className="input-label summary">Has LCO/LCR approved this data transfer?</label>
                             <br />
-                            {data.LCOApprovedDataTransfer}
+                            {selectedDataProduct.LCOApprovedDataTransfer}
                           </div>
                         ) : null}
                         <div>
                           <label className="input-label summary">Does product contain insider information?</label>
                           <br />
-                          {data.insiderInformation}
+                          {selectedDataProduct.insiderInformation}
                         </div>
                       </div>
                       <div className={Styles.flexLayout}>
                         <div>
                           <label className="input-label summary">Is data from China included?</label>
                           <br />
-                          {data.dataOriginatedFromChina}
+                          {selectedDataProduct.dataOriginatedFromChina}
                         </div>
                       </div>
                     </div>
@@ -485,13 +508,13 @@ const Summary = ({ history, user }) => {
                             Are there specific deletion requirements for this data?
                           </label>
                           <br />
-                          {data.deletionRequirement}
+                          {selectedDataProduct.deletionRequirement}
                         </div>
-                        {data.deletionRequirement === 'Yes' ? (
+                        {selectedDataProduct.deletionRequirement === 'Yes' ? (
                           <div>
                             <label className="input-label summary">Describe deletion requirements</label>
                             <br />
-                            {data.deletionRequirementDescription}
+                            {selectedDataProduct.deletionRequirementDescription}
                           </div>
                         ) : null}
                         <div></div>
@@ -500,7 +523,7 @@ const Summary = ({ history, user }) => {
                         <div>
                           <label className="input-label summary">Other relevant information </label>
                           <br />
-                          {data.otherRelevantInfo || '-'}
+                          {selectedDataProduct.otherRelevantInfo || '-'}
                         </div>
                       </div>
                     </div>
@@ -511,7 +534,7 @@ const Summary = ({ history, user }) => {
           </div>
           <hr className={Styles.line} />
           <div className={Styles.dataTransferSection}>
-            <h3>{`Data Transfer ${mockData?.result?.length ? `(${mockData?.result?.length})` : null}`}</h3>
+            <h3>{`Data Transfer ${allDataTransfer?.totalCount ? `(${allDataTransfer?.totalCount})` : '(0)'}`}</h3>
             <div>
               <Link to={'/datasharing'} target="_blank" rel="noreferrer noopener">
                 Show in Data Sharing
@@ -520,7 +543,7 @@ const Summary = ({ history, user }) => {
             </div>
           </div>
           <div className={classNames(Styles.allDataproductCardviewContent)}>
-            {mockData.result?.map((product, index) => {
+            {allDataTransfer?.records?.map((product, index) => {
               return <DataTranferCardLayout key={index} product={product} user={user} isDataProduct={true} />;
             })}
           </div>
@@ -532,7 +555,12 @@ const Summary = ({ history, user }) => {
             How to access
           </button>
         ) : (
-          <button className="btn btn-tertiary" type="button" onClick={() => setShowRequestAccessModal(true)}>
+          <button
+            className={!selectedDataProduct.isPublish ? 'btn' : 'btn btn-tertiary'}
+            disabled={!selectedDataProduct.isPublish}
+            type="button"
+            onClick={() => setShowRequestAccessModal(true)}
+          >
             Request access
           </button>
         )}
@@ -559,7 +587,6 @@ const Summary = ({ history, user }) => {
           modalWidth={'90%'}
           content={requestAccessModalContent}
           onCancel={() => {
-            setAccessRequest(true);
             setShowRequestAccessModal(false);
           }}
         />
