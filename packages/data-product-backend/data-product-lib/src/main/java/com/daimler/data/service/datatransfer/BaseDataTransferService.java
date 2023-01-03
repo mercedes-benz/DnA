@@ -108,9 +108,9 @@ public class BaseDataTransferService extends BaseCommonService<DataTransferVO, D
 
 	@Override
 	public List<DataTransferVO> getAllWithFilters(Boolean published, int offset, int limit, String sortBy,
-			String sortOrder, String recordStatus, String datatransferIds) {
+			String sortOrder, String recordStatus, String datatransferIds, Boolean isCreator) {
 		List<DataTransferNsql> dataTransferEntities = dataTransferCustomRepository
-				.getAllWithFiltersUsingNativeQuery(published, offset, limit, sortBy, sortOrder, recordStatus, datatransferIds);
+				.getAllWithFiltersUsingNativeQuery(published, offset, limit, sortBy, sortOrder, recordStatus, datatransferIds, isCreator);
 		if (!ObjectUtils.isEmpty(dataTransferEntities))
 			return dataTransferEntities.stream().map(n -> dataTransferAssembler.toVo(n)).collect(Collectors.toList());
 		else
@@ -118,8 +118,8 @@ public class BaseDataTransferService extends BaseCommonService<DataTransferVO, D
 	}
 
 	@Override
-	public Long getCount(Boolean published, String recordStatus, String datatransferIds) {
-		return dataTransferCustomRepository.getCountUsingNativeQuery(published, recordStatus, datatransferIds);
+	public Long getCount(Boolean published, String recordStatus, String datatransferIds, Boolean isCreator) {
+		return dataTransferCustomRepository.getCountUsingNativeQuery(published, recordStatus, datatransferIds, isCreator);
 	}
 
 	private void updateDepartments(String department) {
