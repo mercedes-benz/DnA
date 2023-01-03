@@ -27,39 +27,22 @@
 
 package com.daimler.data.controller;
 
-import java.util.List;
-
-import javax.validation.Valid;
-
+import com.daimler.data.api.datatransfer.DatatransfersApi;
+import com.daimler.data.controller.exceptions.GenericMessage;
+import com.daimler.data.dto.datatransfer.*;
+import com.daimler.data.service.datatransfer.DataTransferService;
+import com.daimler.data.util.ConstantsUtility;
+import io.swagger.annotations.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.ObjectUtils;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
-import com.daimler.data.api.datatransfer.DatatransfersApi;
-import com.daimler.data.controller.exceptions.GenericMessage;
-import com.daimler.data.dto.datatransfer.DataTransferCollection;
-import com.daimler.data.dto.datatransfer.DataTransferConsumerRequestVO;
-import com.daimler.data.dto.datatransfer.DataTransferConsumerResponseVO;
-import com.daimler.data.dto.datatransfer.DataTransferProviderRequestVO;
-import com.daimler.data.dto.datatransfer.DataTransferProviderResponseVO;
-import com.daimler.data.dto.datatransfer.DataTransferVO;
-import com.daimler.data.service.datatransfer.DataTransferService;
-import com.daimler.data.util.ConstantsUtility;
-
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
+import javax.validation.Valid;
+import java.util.List;
 
 @RestController
 @Api(value = "DataTransfer API", tags = { "datatransfers" })
@@ -85,7 +68,7 @@ public class DataTransferController implements DatatransfersApi {
         consumes = { "application/json" },
         method = RequestMethod.POST)
     public ResponseEntity<DataTransferProviderResponseVO> create(@ApiParam(value = "Request Body that contains data required for creating a new datatransfer provider form" ,required=true )  @Valid @RequestBody DataTransferProviderRequestVO dataTransferProviderRequestVO){
-		return dataTransferService.createDataTransferProvider(dataTransferProviderRequestVO.getData());
+		return dataTransferService.createDataTransferProvider(dataTransferProviderRequestVO.getData(), false);
 	}
 
 	@Override
@@ -121,7 +104,8 @@ public class DataTransferController implements DatatransfersApi {
         consumes = { "application/json" },
         method = RequestMethod.GET)
     public ResponseEntity<DataTransferCollection> getAll(
-    		@ApiParam(value = "Filtering datatransfer based on publish state. Draft or published, values true or false") @Valid @RequestParam(value = "published", required = false) Boolean published,
+			@ApiParam(value = "datatransfer ID to be fetched (send id's with comma separated eg: 'DTF-00019', 'DTF-00020'..)") @Valid @RequestParam(value = "datatransferIds", required = false) String datatransferIds,
+			@ApiParam(value = "Filtering datatransfer based on publish state. Draft or published, values true or false") @Valid @RequestParam(value = "published", required = false) Boolean published,
     		@ApiParam(value = "page number from which listing of datatransfers should start.") @Valid @RequestParam(value = "offset", required = false) Integer offset,
     		@ApiParam(value = "page size to limit the number of datatransfers.") @Valid @RequestParam(value = "limit", required = false) Integer limit,
     		@ApiParam(value = "Sort datatransfers by a given variable.", allowableValues = "dataTransferName, dataTransferId") @Valid @RequestParam(value = "sortBy", required = false) String sortBy,
@@ -144,12 +128,12 @@ public class DataTransferController implements DatatransfersApi {
 
 			String recordStatus = ConstantsUtility.OPEN;
 
-			Long count = dataTransferService.getCount(published, recordStatus);
+			Long count = dataTransferService.getCount(published, recordStatus, datatransferIds);
 			if (count < offset)
 				offset = 0;
 
 			List<DataTransferVO> dataTransfers = dataTransferService.getAllWithFilters(published, offset, limit, sortBy,
-					sortOrder, recordStatus);
+					sortOrder, recordStatus, datatransferIds);
 			LOGGER.info("DataTransfers fetched successfully");
 			if (!ObjectUtils.isEmpty(dataTransfers)) {
 				dataTransferCollection.setTotalCount(count.intValue());
