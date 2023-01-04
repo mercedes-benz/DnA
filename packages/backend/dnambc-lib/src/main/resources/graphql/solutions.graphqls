@@ -32,6 +32,7 @@ type SolutionVO {
     dataSources: SolutionDatasourceVO,
     analytics: SolutionAnalyticsVO,
     sharing: SolutionSharingVO,
+    marketing: SolutionMarketingVO,
     digitalValue: SolutionDigitalValueVO,
     dataCompliance: SolutionDataComplianceVO,
     portfolio: SolutionPortfolioVO,
@@ -70,6 +71,28 @@ type AlgorithmVO{
 type VisualizationVO{
 	id: ID!,
     name: String
+}
+
+type SolutionMarketingVO{
+	customerJourneyPhases: [CustomerJourneyPhaseVO],
+	marketingCommunicationChannels: [MarketingCommunicationChannelVO],
+	personas: [String],
+	personalization: PersonalizationVO
+}
+
+type CustomerJourneyPhaseVO{
+	id: ID!,
+    name: String
+}
+
+type MarketingCommunicationChannelVO{
+	id: ID!,
+    name: String
+}
+
+type PersonalizationVO{
+	isChecked: Boolean,
+    description: String
 }
 
 type SolutionSharingVO{
