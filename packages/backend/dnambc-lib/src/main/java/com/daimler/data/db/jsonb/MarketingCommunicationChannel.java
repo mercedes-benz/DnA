@@ -25,15 +25,18 @@
  * LICENSE END 
  */
 
-package com.daimler.data.db.repo.datasource;
+package com.daimler.data.db.jsonb;
 
-import java.util.List;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-import com.daimler.data.db.entities.DataSourceNsql;
-import com.daimler.data.db.repo.common.CommonDataRepository;
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class MarketingCommunicationChannel {
 
-public interface DataSourceCustomRepository extends CommonDataRepository<DataSourceNsql, String> {
-
-	List<DataSourceNsql> getAllDataCatalogs(String source, String sortBy, String sortOrder);
+	private String id;
+	private String name;
 
 }
