@@ -1,0 +1,12 @@
+{
+	"library": "spring-mvc",
+	"dateLibrary": "legacy",
+	"hideGenerationTimestamp": true,
+	"modelPackage": "com.daimler.data.dto.customerJourneyPhase",
+	"apiPackage": "com.daimler.data.api.customerJourneyPhase",
+	"invokerPackage": "com.daimler.data.service.customerJourneyPhase",
+	"importMappings": {
+		"GenericMessage": "com.daimler.data.controller.exceptions.GenericMessage",
+		"MessageDescription": "com.daimler.data.controller.exceptions.MessageDescription"
+	}
+}
