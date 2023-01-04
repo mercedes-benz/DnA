@@ -98,6 +98,9 @@ hr {
             font-size: 10px;
         }
     }
+    h4 {
+        font-size: var(--font-size-headline);
+    }
 }
 .allDataproductCardviewContent {
     flex-wrap: wrap;

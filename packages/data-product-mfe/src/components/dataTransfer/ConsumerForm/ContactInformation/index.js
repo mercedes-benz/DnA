@@ -1,6 +1,6 @@
 import classNames from 'classnames';
 import React, { useEffect, useState } from 'react';
-import Styles from '../common.styles.scss';
+import Styles from './styles.scss';
 
 // components from container app
 import SelectBox from 'dna-container/SelectBox';
@@ -19,7 +19,14 @@ import { useSelector } from 'react-redux';
 import dayjs from 'dayjs';
 import { debounce } from 'lodash';
 
-const ContactInformation = ({ onSave, divisions, setSubDivisions, subDivisions, isFormMounted }) => {
+const ContactInformation = ({
+  onSave,
+  divisions,
+  setSubDivisions,
+  subDivisions,
+  isFormMounted,
+  isDataProduct = false,
+}) => {
   const {
     register,
     formState: { errors, isSubmitting, dirtyFields },
@@ -59,7 +66,9 @@ const ContactInformation = ({ onSave, divisions, setSubDivisions, subDivisions, 
 
   const minDate = dayjs().format();
 
-  const provideDataTransfers = useSelector((state) => state.provideDataTransfers);
+  const provideDataTransfers = useSelector((state) =>
+    !isDataProduct ? state.provideDataTransfers : state.dataProduct,
+  );
 
   useEffect(() => {
     if (lcoNeeded === 'No') {
@@ -230,6 +239,30 @@ const ContactInformation = ({ onSave, divisions, setSubDivisions, subDivisions, 
             )}
           </div>
           <div className={Styles.formWrapper}>
+            {!!isDataProduct && (
+              <div className={Styles.flexLayout}>
+                <div className={classNames('input-field-group include-error', errors.dataTransferName ? 'error' : '')}>
+                  <label id="dataTransferNameLabel" htmlFor="dataTransferNameInput" className="input-label">
+                    Short description of the data transfer <sup>*</sup>
+                  </label>
+                  <div className={Styles.dataTransferName}>
+                    <span>{`${provideDataTransfers?.selectedDataProduct?.productName}`}</span>
+                    <input
+                      {...register('dataTransferName', {
+                        required: '*Missing entry',
+                      })}
+                      type="text"
+                      className="input-field"
+                      id="dataTransferNameInput"
+                      maxLength={200}
+                      placeholder="Type here"
+                      autoComplete="off"
+                    />
+                  </div>
+                  <span className={classNames('error-message')}>{errors.dataTransferName?.message}</span>
+                </div>
+              </div>
+            )}
             <div className={Styles.flexLayout}>
               <div className={classNames('input-field-group include-error', errors.businessOwnerName ? 'error' : '')}>
                 <Controller
@@ -409,8 +442,8 @@ const ContactInformation = ({ onSave, divisions, setSubDivisions, subDivisions, 
               <div
                 className={classNames(
                   'input-field-group include-error',
-                  errors.complianceOfficer ? 'error' : '',
-                  lcoNeeded === 'No' ? 'disabled' : '',
+                  lcoNeeded && errors.complianceOfficer ? 'error' : '',
+                  lcoNeeded === 'No' || !lcoNeeded ? 'disabled' : '',
                 )}
               >
                 <Controller
@@ -436,7 +469,7 @@ const ContactInformation = ({ onSave, divisions, setSubDivisions, subDivisions, 
                           <span className={Styles.optionText}>LCO: {item?.name}</span>
                         </div>
                       )}
-                      disabled={lcoNeeded === 'No'}
+                      disabled={lcoNeeded === 'No' || !lcoNeeded}
                     />
                   )}
                 />
