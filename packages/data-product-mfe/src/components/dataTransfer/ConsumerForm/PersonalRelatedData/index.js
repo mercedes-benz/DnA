@@ -11,7 +11,7 @@ import { Envs } from '../../../../Utility/envs';
 import { useDispatch, useSelector } from 'react-redux';
 import { getLegalBasis } from '../../../redux/getDropdowns.services';
 
-const PersonalRelatedData = ({ onSave, setIsEditing, isDataProduct }) => {
+const PersonalRelatedData = ({ onSave, setIsEditing, isDataProduct, callbackFn }) => {
   const {
     register,
     handleSubmit,
@@ -273,20 +273,22 @@ const PersonalRelatedData = ({ onSave, setIsEditing, isDataProduct }) => {
       </div>
       <div className="btnContainer">
         <div className="btn-set">
-          <button
-            className="btn btn-primary"
-            type="button"
-            onClick={handleSubmit((data) => {
-              const isPublished = watch('publish');
-              setValue('notifyUsers', isPublished ? true : false);
-              onSave(watch());
-              reset(data, {
-                keepDirty: false,
-              });
-            })}
-          >
-            Save
-          </button>
+          {!isDataProduct ? (
+            <button
+              className="btn btn-primary"
+              type="button"
+              onClick={handleSubmit((data) => {
+                const isPublished = watch('publish');
+                setValue('notifyUsers', isPublished ? true : false);
+                onSave(watch());
+                reset(data, {
+                  keepDirty: false,
+                });
+              })}
+            >
+              Save
+            </button>
+          ) : null}
           <button
             className="btn btn-tertiary"
             type="button"
@@ -298,6 +300,9 @@ const PersonalRelatedData = ({ onSave, setIsEditing, isDataProduct }) => {
               reset(data, {
                 keepDirty: false,
               });
+              if (typeof callbackFn === 'function') {
+                callbackFn();
+              }
             })}
           >
             Finalize Minimum Information Documentation

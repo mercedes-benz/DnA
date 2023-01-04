@@ -1,6 +1,13 @@
 import { createSlice } from '@reduxjs/toolkit';
 import { SESSION_STORAGE_KEYS } from '../../../Utility/constants';
-import { GetDataProducts, SetDataProduct, UpdateDataProduct } from './dataProduct.services';
+import {
+  GetDataProducts,
+  SetDataProduct,
+  UpdateDataProduct,
+  CompleteDataProductMinimumInfo,
+  SetAllAssociatedDataTransfers,
+  SetMyAssociatedDataTransfers,
+} from './dataProduct.services';
 
 const dataInitialState = {
   data: [],
@@ -12,8 +19,16 @@ const dataInitialState = {
     currentPageNumber: 1,
     maxItemsPerPage: parseInt(sessionStorage.getItem(SESSION_STORAGE_KEYS.PAGINATION_MAX_ITEMS_PER_PAGE), 10) || 15,
   },
-  selectedData: {},
+  selectedDataProduct: {},
   divisionList: [],
+  allDataTransfer: {
+    totalCount: 0,
+    records: [],
+  },
+  myDataTransfer: {
+    totalCount: 0,
+    records: [],
+  },
 };
 
 export const dataSlice = createSlice({
@@ -48,7 +63,7 @@ export const dataSlice = createSlice({
     [SetDataProduct.fulfilled]: (state, action) => {
       state.isLoading = false;
       state.data = [...state.data, action.payload.data];
-      state.selectedData = action.payload?.data;
+      state.selectedDataProduct = action.payload?.data;
       state.errors = '';
     },
     [SetDataProduct.rejected]: (state, action) => {
@@ -60,10 +75,46 @@ export const dataSlice = createSlice({
     },
     [UpdateDataProduct.fulfilled]: (state, action) => {
       state.isLoading = false;
-      state.selectedData = action.payload.data;
+      state.selectedDataProduct = action.payload.data;
       state.errors = '';
     },
     [UpdateDataProduct.rejected]: (state, action) => {
+      state.isLoading = false;
+      state.errors = action.payload;
+    },
+    [CompleteDataProductMinimumInfo.pending]: (state) => {
+      state.isLoading = true;
+    },
+    [CompleteDataProductMinimumInfo.fulfilled]: (state, action) => {
+      state.isLoading = false;
+      state.selectedDataProduct = action.payload.data;
+      state.errors = '';
+    },
+    [CompleteDataProductMinimumInfo.rejected]: (state, action) => {
+      state.isLoading = false;
+      state.errors = action.payload;
+    },
+    [SetAllAssociatedDataTransfers.pending]: (state) => {
+      state.isLoading = true;
+    },
+    [SetAllAssociatedDataTransfers.fulfilled]: (state, action) => {
+      state.isLoading = false;
+      state.allDataTransfer = action.payload?.data;
+      state.errors = '';
+    },
+    [SetAllAssociatedDataTransfers.rejected]: (state, action) => {
+      state.isLoading = false;
+      state.errors = action.payload;
+    },
+    [SetMyAssociatedDataTransfers.pending]: (state) => {
+      state.isLoading = true;
+    },
+    [SetMyAssociatedDataTransfers.fulfilled]: (state, action) => {
+      state.isLoading = false;
+      state.myDataTransfer = action.payload?.data;
+      state.errors = '';
+    },
+    [SetMyAssociatedDataTransfers.rejected]: (state, action) => {
       state.isLoading = false;
       state.errors = action.payload;
     },
@@ -76,7 +127,7 @@ export const dataSlice = createSlice({
       state.data = action.payload;
     },
     setSelectedData: (state, action) => {
-      state.selectedData = action.payload;
+      state.selectedDataProduct = action.payload;
     },
     setPagination: (state, action) => {
       state.pagination = {
@@ -84,8 +135,13 @@ export const dataSlice = createSlice({
         ...action.payload,
       };
     },
+    resetDataTransferList: (state) => {
+      state.allDataTransfer = [];
+      state.myDataTransfer = [];
+    },
   },
 });
 
-export const { setPagination, setDataProductList, setSelectedData, setDivisionList } = dataSlice.actions;
+export const { setPagination, setDataProductList, setSelectedData, setDivisionList, resetDataTransferList } =
+  dataSlice.actions;
 export default dataSlice.reducer;
