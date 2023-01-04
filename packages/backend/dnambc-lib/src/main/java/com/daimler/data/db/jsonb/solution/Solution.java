@@ -72,6 +72,14 @@ public class Solution {
 	private List<SolutionAlgorithm> algorithms;
 
 	private List<SolutionVisualization> visualizations;
+	
+	private List<SolutionCustomerJourneyPhase> customerJourneyPhases;
+	
+	private List<SolutionMarketingCommunicationChannel> marketingCommunicationChannels;
+	
+	private SolutionPersonalization personalization;
+	
+	private List<String> personas;
 
 	private String gitUrl;
 	private String resultUrl;
