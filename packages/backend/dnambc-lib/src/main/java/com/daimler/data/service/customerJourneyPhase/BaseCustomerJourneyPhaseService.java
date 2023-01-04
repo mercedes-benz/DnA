@@ -25,15 +25,20 @@
  * LICENSE END 
  */
 
-package com.daimler.data.db.repo.datasource;
+package com.daimler.data.service.customerJourneyPhase;
 
-import java.util.List;
+import com.daimler.data.db.entities.CustomerJourneyPhaseNsql;
+import com.daimler.data.dto.customerJourneyPhase.CustomerJourneyPhaseVO;
+import com.daimler.data.service.common.BaseCommonService;
+import org.springframework.stereotype.Service;
 
-import com.daimler.data.db.entities.DataSourceNsql;
-import com.daimler.data.db.repo.common.CommonDataRepository;
+@Service
+public class BaseCustomerJourneyPhaseService extends BaseCommonService<CustomerJourneyPhaseVO, CustomerJourneyPhaseNsql, String>
+		implements CustomerJourneyPhaseService {
 
-public interface DataSourceCustomRepository extends CommonDataRepository<DataSourceNsql, String> {
 
-	List<DataSourceNsql> getAllDataCatalogs(String source, String sortBy, String sortOrder);
+	public BaseCustomerJourneyPhaseService() {
+		super();
+	}
 
 }

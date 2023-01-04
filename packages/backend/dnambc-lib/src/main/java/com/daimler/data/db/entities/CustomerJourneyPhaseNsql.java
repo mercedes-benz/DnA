@@ -25,15 +25,23 @@
  * LICENSE END 
  */
 
-package com.daimler.data.db.repo.datasource;
+package com.daimler.data.db.entities;
 
-import java.util.List;
+import java.io.Serializable;
 
-import com.daimler.data.db.entities.DataSourceNsql;
-import com.daimler.data.db.repo.common.CommonDataRepository;
+import javax.persistence.Entity;
+import javax.persistence.Table;
 
-public interface DataSourceCustomRepository extends CommonDataRepository<DataSourceNsql, String> {
+import com.daimler.data.db.jsonb.CustomerJourneyPhase;
 
-	List<DataSourceNsql> getAllDataCatalogs(String source, String sortBy, String sortOrder);
+@Entity
+@Table(name = "customerjourneyphase_nsql")
+public class CustomerJourneyPhaseNsql extends BaseEntity<CustomerJourneyPhase> implements Serializable {
+
+	private static final long serialVersionUID = 9164735609853555417L;
+
+	public CustomerJourneyPhaseNsql() {
+		super();
+	}
 
 }

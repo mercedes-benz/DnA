@@ -69,6 +69,7 @@ import com.daimler.data.db.jsonb.solution.SkillSummary;
 import com.daimler.data.db.jsonb.solution.Solution;
 import com.daimler.data.db.jsonb.solution.SolutionAlgorithm;
 import com.daimler.data.db.jsonb.solution.SolutionComplianceLink;
+import com.daimler.data.db.jsonb.solution.SolutionCustomerJourneyPhase;
 import com.daimler.data.db.jsonb.solution.SolutionDataCompliance;
 import com.daimler.data.db.jsonb.solution.SolutionDataVolume;
 import com.daimler.data.db.jsonb.solution.SolutionDatasource;
@@ -76,7 +77,9 @@ import com.daimler.data.db.jsonb.solution.SolutionDigitalValue;
 import com.daimler.data.db.jsonb.solution.SolutionDivision;
 import com.daimler.data.db.jsonb.solution.SolutionLanguage;
 import com.daimler.data.db.jsonb.solution.SolutionLocation;
+import com.daimler.data.db.jsonb.solution.SolutionMarketingCommunicationChannel;
 import com.daimler.data.db.jsonb.solution.SolutionMilestone;
+import com.daimler.data.db.jsonb.solution.SolutionPersonalization;
 import com.daimler.data.db.jsonb.solution.SolutionPhase;
 import com.daimler.data.db.jsonb.solution.SolutionPlatform;
 import com.daimler.data.db.jsonb.solution.SolutionProjectStatus;
@@ -90,8 +93,10 @@ import com.daimler.data.db.jsonb.solution.ValueDriver;
 import com.daimler.data.db.jsonb.solution.ValueFactorSummary;
 import com.daimler.data.dto.algorithm.AlgorithmVO;
 import com.daimler.data.dto.attachment.FileDetailsVO;
+import com.daimler.data.dto.customerJourneyPhase.CustomerJourneyPhaseVO;
 import com.daimler.data.dto.datavolume.DataVolumeVO;
 import com.daimler.data.dto.language.LanguageVO;
+import com.daimler.data.dto.marketingCommunicationChannel.MarketingCommunicationChannelVO;
 import com.daimler.data.dto.platform.PlatformVO;
 import com.daimler.data.dto.result.ResultVO;
 import com.daimler.data.dto.solution.AssessmentDetailsVO;
@@ -106,6 +111,7 @@ import com.daimler.data.dto.solution.DataSourceSummaryVO;
 import com.daimler.data.dto.solution.LinkVO;
 import com.daimler.data.dto.solution.LogoDetailsVO;
 import com.daimler.data.dto.solution.MilestoneVO;
+import com.daimler.data.dto.solution.PersonalizationVO;
 import com.daimler.data.dto.solution.SkillSummaryVO;
 import com.daimler.data.dto.solution.SolutionAnalyticsVO;
 import com.daimler.data.dto.solution.SolutionCollection;
@@ -115,6 +121,7 @@ import com.daimler.data.dto.solution.SolutionDataSourceVO;
 import com.daimler.data.dto.solution.SolutionDigitalValueVO;
 import com.daimler.data.dto.solution.SolutionDivisionVO;
 import com.daimler.data.dto.solution.SolutionLocationVO;
+import com.daimler.data.dto.solution.SolutionMarketingVO;
 import com.daimler.data.dto.solution.SolutionMilestonePhaseVO;
 import com.daimler.data.dto.solution.SolutionPhaseVO;
 import com.daimler.data.dto.solution.SolutionPortfolioVO;
@@ -324,7 +331,46 @@ public class SolutionAssembler implements GenericAssembler<SolutionVO, SolutionN
 					}
 				}
 			}
-
+									
+			List<SolutionCustomerJourneyPhase> customerJourneyPhases = solution.getCustomerJourneyPhases();
+			List<CustomerJourneyPhaseVO> customerJourneyPhasesVO = new ArrayList<>();
+			if(customerJourneyPhases != null && !customerJourneyPhases.isEmpty()) {
+				for (SolutionCustomerJourneyPhase customerJourneyPhase : customerJourneyPhases) {
+					if(customerJourneyPhase != null) {
+						CustomerJourneyPhaseVO customerJourneyPhaseVO = new CustomerJourneyPhaseVO();
+						BeanUtils.copyProperties(customerJourneyPhase,customerJourneyPhaseVO);
+						customerJourneyPhasesVO.add(customerJourneyPhaseVO);
+					}
+				}
+			}
+			
+			List<SolutionMarketingCommunicationChannel> marketingCommunicationChannels = solution.getMarketingCommunicationChannels();
+			List<MarketingCommunicationChannelVO> marketingCommunicationChannelsVO = new ArrayList<>();
+			if(marketingCommunicationChannels != null && !marketingCommunicationChannels.isEmpty()) {
+				for(SolutionMarketingCommunicationChannel marketingCommunicationChannel : marketingCommunicationChannels) {
+					if(marketingCommunicationChannel != null) {
+						MarketingCommunicationChannelVO marketingCommunicationChannelVO = new MarketingCommunicationChannelVO();
+						BeanUtils.copyProperties(marketingCommunicationChannel, marketingCommunicationChannelVO);
+						marketingCommunicationChannelsVO.add(marketingCommunicationChannelVO);
+					}
+				}
+				
+			}
+			
+			SolutionPersonalization personalization = solution.getPersonalization(); 
+			PersonalizationVO personalizationVO = new PersonalizationVO();			
+			if(personalization != null) {
+				personalizationVO.setIsChecked(personalization.isChecked());
+				personalizationVO.setDescription(personalization.getDescription());
+			}				
+			
+			SolutionMarketingVO marketingVO = new SolutionMarketingVO();
+			marketingVO.setCustomerJourneyPhases(customerJourneyPhasesVO);
+			marketingVO.setMarketingCommunicationChannels(marketingCommunicationChannelsVO);
+			marketingVO.setPersonalization(personalizationVO);
+			marketingVO.setPersonas(solution.getPersonas());
+			vo.setMarketing(marketingVO);	
+			
 			SolutionAnalyticsVO analyticsVO = new SolutionAnalyticsVO();
 			analyticsVO.setAlgorithms(algorithmsVO);
 			analyticsVO.setLanguages(languagesVO);
@@ -925,6 +971,42 @@ public class SolutionAssembler implements GenericAssembler<SolutionVO, SolutionN
 			}
 			solution.setTotalDataVolume(totalDataVolume);
 			solution.setDataSources(datasources);
+			
+			SolutionMarketingVO marketingVO = vo.getMarketing();
+			if(marketingVO != null) {
+				solution.setPersonas(marketingVO.getPersonas());
+				PersonalizationVO personalizationVO = marketingVO.getPersonalization();
+				SolutionPersonalization personalization = new SolutionPersonalization();
+				if(personalizationVO != null) {
+					personalization.setChecked(personalizationVO.isIsChecked());
+					personalization.setDescription(personalizationVO.getDescription());
+					solution.setPersonalization(personalization);
+				}
+				List<CustomerJourneyPhaseVO> customerJourneyPhasesVO = marketingVO.getCustomerJourneyPhases();
+				if (customerJourneyPhasesVO != null && !customerJourneyPhasesVO.isEmpty()) {
+					List<SolutionCustomerJourneyPhase> customerJourneyPhases = new ArrayList<>();
+					for (CustomerJourneyPhaseVO customerJourneyPhaseVO : customerJourneyPhasesVO) {
+						if (customerJourneyPhaseVO != null) {
+							SolutionCustomerJourneyPhase customerJourneyPhase = new SolutionCustomerJourneyPhase();
+							BeanUtils.copyProperties(customerJourneyPhaseVO, customerJourneyPhase);
+							customerJourneyPhases.add(customerJourneyPhase);
+						}
+					}
+					solution.setCustomerJourneyPhases(customerJourneyPhases);
+				}
+				List<MarketingCommunicationChannelVO> marketingCommunicationChannelsVO = marketingVO.getMarketingCommunicationChannels();
+				if (marketingCommunicationChannelsVO != null && !marketingCommunicationChannelsVO.isEmpty()) {
+					List<SolutionMarketingCommunicationChannel> marketingCommunicationChannels = new ArrayList<>();
+					for (MarketingCommunicationChannelVO marketingCommunicationChannelVO : marketingCommunicationChannelsVO) {
+						if (marketingCommunicationChannelVO != null) {
+							SolutionMarketingCommunicationChannel marketingCommunicationChannel = new SolutionMarketingCommunicationChannel();
+							BeanUtils.copyProperties(marketingCommunicationChannelVO, marketingCommunicationChannel);
+							marketingCommunicationChannels.add(marketingCommunicationChannel);
+						}
+					}
+					solution.setMarketingCommunicationChannels(marketingCommunicationChannels);
+				}
+			}
 
 			SolutionAnalyticsVO analyticsVO = vo.getAnalytics();
 			if (analyticsVO != null) {

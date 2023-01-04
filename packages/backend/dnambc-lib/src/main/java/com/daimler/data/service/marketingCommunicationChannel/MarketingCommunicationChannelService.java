@@ -25,15 +25,11 @@
  * LICENSE END 
  */
 
-package com.daimler.data.db.repo.datasource;
+package com.daimler.data.service.marketingCommunicationChannel;
 
-import java.util.List;
+import com.daimler.data.db.entities.MarketingCommunicationChannelNsql;
+import com.daimler.data.dto.marketingCommunicationChannel.MarketingCommunicationChannelVO;
+import com.daimler.data.service.common.CommonService;
 
-import com.daimler.data.db.entities.DataSourceNsql;
-import com.daimler.data.db.repo.common.CommonDataRepository;
-
-public interface DataSourceCustomRepository extends CommonDataRepository<DataSourceNsql, String> {
-
-	List<DataSourceNsql> getAllDataCatalogs(String source, String sortBy, String sortOrder);
-
+public interface MarketingCommunicationChannelService extends CommonService<MarketingCommunicationChannelVO, MarketingCommunicationChannelNsql, String> {
 }

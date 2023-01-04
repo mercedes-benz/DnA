@@ -116,6 +116,40 @@ swaggerSources {
             //dependsOn validation
         }
     }
+    
+    customerJourneyPhase {
+        def customerJourneyPhaseyaml = "${rootDir}/dnambc-lib/src/main/resources/api/CustomerJourneyPhase.yaml"
+        def customerJourneyPhaseJson = "${rootDir}/dnambc-lib/src/main/resources/api/CustomerJourneyPhase.json"
+        inputFile = file(customerJourneyPhaseyaml)
+
+        def ignoreFile = "${rootDir}/dnambc-lib/src/main/resources/api/.swagger-codegen-ignore"
+
+        code {
+            language = 'spring'
+            configFile = file(customerJourneyPhaseJson)
+            rawOptions = ['--ignore-file-override', ignoreFile]
+
+            components = ['models', 'apis']
+            //dependsOn validation
+        }
+    }
+    
+    marketingCommunicationChannel {
+        def marketingCommunicationChannelyaml = "${rootDir}/dnambc-lib/src/main/resources/api/MarketingCommunicationChannel.yaml"
+        def marketingCommunicationChannelJson = "${rootDir}/dnambc-lib/src/main/resources/api/MarketingCommunicationChannel.json"
+        inputFile = file(marketingCommunicationChannelyaml)
+
+        def ignoreFile = "${rootDir}/dnambc-lib/src/main/resources/api/.swagger-codegen-ignore"
+
+        code {
+            language = 'spring'
+            configFile = file(marketingCommunicationChannelJson)
+            rawOptions = ['--ignore-file-override', ignoreFile]
+
+            components = ['models', 'apis']
+            //dependsOn validation
+        }
+    }
 
     datasource {
         def datasourceyaml = "${rootDir}/dnambc-lib/src/main/resources/api/DataSource.yaml"
@@ -560,6 +594,10 @@ compileJava {
     source "${swaggerSources.location.code.outputDir}/src/main/java"
     dependsOn swaggerSources.algorithm.code
     source "${swaggerSources.algorithm.code.outputDir}/src/main/java"
+    dependsOn swaggerSources.customerJourneyPhase.code
+    source "${swaggerSources.customerJourneyPhase.code.outputDir}/src/main/java"
+    dependsOn swaggerSources.marketingCommunicationChannel.code
+    source "${swaggerSources.marketingCommunicationChannel.code.outputDir}/src/main/java"
     dependsOn swaggerSources.datasource.code
     source "${swaggerSources.datasource.code.outputDir}/src/main/java"
     dependsOn swaggerSources.datavolume.code
@@ -624,6 +662,8 @@ sourceSets {
         java { srcDirs += "${swaggerSources.language.code.outputDir}/src/main/java" }
         java { srcDirs += "${swaggerSources.location.code.outputDir}/src/main/java" }
         java { srcDirs += "${swaggerSources.algorithm.code.outputDir}/src/main/java" }
+        java { srcDirs += "${swaggerSources.customerJourneyPhase.code.outputDir}/src/main/java" }
+        java { srcDirs += "${swaggerSources.marketingCommunicationChannel.code.outputDir}/src/main/java" }
         java { srcDirs += "${swaggerSources.datasource.code.outputDir}/src/main/java" }
         java { srcDirs += "${swaggerSources.datavolume.code.outputDir}/src/main/java" }
         java { srcDirs += "${swaggerSources.division.code.outputDir}/src/main/java" }
