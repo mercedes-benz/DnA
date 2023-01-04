@@ -109,9 +109,12 @@ public class BaseDataTransferService extends BaseCommonService<DataTransferVO, D
 	@Override
 	public List<DataTransferVO> getAllWithFilters(Boolean published, int offset, int limit, String sortBy,
 			String sortOrder, String recordStatus, String datatransferIds, Boolean isCreator) {
-		String userId = this.userStore.getUserInfo().getId();
+		String userId = null;
+		if (isCreator && this.userStore.getUserInfo() != null) {
+			userId = this.userStore.getUserInfo().getId();
+		}
 		List<DataTransferNsql> dataTransferEntities = dataTransferCustomRepository
-				.getAllWithFiltersUsingNativeQuery(published, offset, limit, sortBy, sortOrder, recordStatus, datatransferIds, isCreator, userId);
+				.getAllWithFiltersUsingNativeQuery(published, offset, limit, sortBy, sortOrder, recordStatus, datatransferIds, userId);
 		if (!ObjectUtils.isEmpty(dataTransferEntities))
 			return dataTransferEntities.stream().map(n -> dataTransferAssembler.toVo(n)).collect(Collectors.toList());
 		else
@@ -120,8 +123,11 @@ public class BaseDataTransferService extends BaseCommonService<DataTransferVO, D
 
 	@Override
 	public Long getCount(Boolean published, String recordStatus, String datatransferIds, Boolean isCreator) {
-		String userId = this.userStore.getUserInfo().getId();
-		return dataTransferCustomRepository.getCountUsingNativeQuery(published, recordStatus, datatransferIds, isCreator, userId);
+		String userId = null;
+		if (isCreator && this.userStore.getUserInfo() != null) {
+			userId = this.userStore.getUserInfo().getId();
+		}
+		return dataTransferCustomRepository.getCountUsingNativeQuery(published, recordStatus, datatransferIds, userId);
 	}
 
 	private void updateDepartments(String department) {
