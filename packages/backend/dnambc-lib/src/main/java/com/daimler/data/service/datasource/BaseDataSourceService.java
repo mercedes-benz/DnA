@@ -136,6 +136,19 @@ public class BaseDataSourceService extends BaseCommonService<DataSourceVO, DataS
 		}
 		return validAccessToken;
 	}
+
+	@Override
+	public List<DataSourceVO> getAllDataCatalogs(String source, String sortBy,String sortOrder) {
+		// TODO Auto-generated method stub
+		logger.info("Fetching data catalog information from table for getAllDataCatalogs.");
+		List<DataSourceNsql> dataCatalogInfoEntities = customRepo.getAllDataCatalogs(source,sortBy,sortOrder);
+		logger.info("Success from get information from table.");
+		if (!ObjectUtils.isEmpty(dataCatalogInfoEntities)) {
+			return dataCatalogInfoEntities.stream().map(n -> assembler.toVo(n)).toList();
+		} else {
+			return new ArrayList<>();
+		}
+	}
 	
 	
 }
