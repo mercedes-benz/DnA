@@ -187,6 +187,11 @@ paths:
           description: "datatransfer ID to be fetched (send id's with comma separated eg: 'DTF-00019', 'DTF-00020'..)"
           required: false
           type: string
+        - name: isCreator
+          in: query
+          description: "if true then sends datatransfer which are created by the logged In users"
+          required: false
+          type: boolean
         - name: published
           in: query
           description: Filtering datatransfer based on publish state. Draft or published, values true or false
