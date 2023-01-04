@@ -56,4 +56,6 @@ public interface DataSourceService extends CommonService<DataSourceVO, DataSourc
 	 * @return isValidAccessToken
 	 */
 	boolean accessTokenIntrospection(String token);
+
+	List<DataSourceVO> getAllDataCatalogs(String source, String sortBy, String sortOrder);
 }

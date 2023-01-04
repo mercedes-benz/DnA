@@ -73,53 +73,53 @@ paths:
 
  /corporateDataCatalogs:
   
-  get:
-   tags:
-    - "corporateDataCatalogs"
-   summary: "Get all available corporateDataCatalogs."
-   description:  "Get all corporateDataCatalogs. This endpoints will be used to Get all valid available corporateDataCatalogs maintenance records."
-   operationId: "getAll"
-   parameters:
-        - name: sortBy
-          in: query
-          description: Sort corporateDataCatalogs by a given variable like name
-          required: false
-          type: string
-          enum: [name]
-        - name: sortOrder
-          in: query
-          description: Sort corporateDataCatalogs based on the given order, example asc,desc
-          required: false
-          type: string   
-          enum: [asc,desc]
-        - name: offset
-          in: query
-          description: page number from which listing of corporateDataCatalogs should start. Offset. Example 2
-          required: false
-          type: integer  
-        - name: limit
-          in: query
-          description: size to limit the number of corporateDataCatalogs, Example 10
-          required: false
-          type: integer
-      
-   responses:
-    201:
-     description: "Returns message of succes or failure"
-     schema:
-       $ref: "#/definitions/CorporateDataCatalogCollection"
-    204:
-      description: "Fetch complete, no content found."
-    400:
-     description: "Bad request."
-    401:
-     description: "Request does not have sufficient credentials."
-    403:
-     description: "Request is not authorized."
-    405:
-     description: "Method not allowed"
-    500:
-     description: "Internal error"
+#  get:
+#   tags:
+#    - "corporateDataCatalogs"
+#   summary: "Get all available corporateDataCatalogs."
+#   description:  "Get all corporateDataCatalogs. This endpoints will be used to Get all valid available corporateDataCatalogs maintenance records."
+#   operationId: "getAll"
+#   parameters:
+#        - name: sortBy
+#          in: query
+#          description: Sort corporateDataCatalogs by a given variable like name
+#          required: false
+#          type: string
+#          enum: [name]
+#        - name: sortOrder
+#          in: query
+#          description: Sort corporateDataCatalogs based on the given order, example asc,desc
+#          required: false
+#          type: string   
+#          enum: [asc,desc]
+#        - name: offset
+#          in: query
+#          description: page number from which listing of corporateDataCatalogs should start. Offset. Example 2
+#          required: false
+#          type: integer  
+#        - name: limit
+#          in: query
+#          description: size to limit the number of corporateDataCatalogs, Example 10
+#          required: false
+#          type: integer
+#      
+#   responses:
+#    201:
+#     description: "Returns message of succes or failure"
+#     schema:
+#       $ref: "#/definitions/CorporateDataCatalogCollection"
+#    204:
+#      description: "Fetch complete, no content found."
+#    400:
+#     description: "Bad request."
+#    401:
+#     description: "Request does not have sufficient credentials."
+#    403:
+#     description: "Request is not authorized."
+#    405:
+#     description: "Method not allowed"
+#    500:
+#     description: "Internal error"
 
 # path to get existing corporateDataCatalogs
 #
