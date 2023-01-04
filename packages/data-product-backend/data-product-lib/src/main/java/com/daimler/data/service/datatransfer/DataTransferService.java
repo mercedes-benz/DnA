@@ -43,9 +43,9 @@ public interface DataTransferService extends CommonService<DataTransferVO, DataT
 	}
 
 	List<DataTransferVO> getAllWithFilters(Boolean published, int offset, int limit, String sortBy, String sortOrder,
-			String recordStatus, String datatransferIds);
+			String recordStatus, String datatransferIds, Boolean isCreator);
 
-	Long getCount(Boolean published, String recordStatus, String datatransferIds);
+	Long getCount(Boolean published, String recordStatus, String datatransferIds, Boolean isCreator);
 
 	ResponseEntity<DataTransferProviderResponseVO> createDataTransferProvider(ProviderVO providerVO, Boolean isDataProductService);
 
