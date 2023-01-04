@@ -19,6 +19,7 @@ import { regionalDateFormat } from '../../../Utility/utils';
 import InfoModal from 'dna-container/InfoModal';
 import Modal from 'dna-container/Modal';
 import ConfirmModal from 'dna-container/ConfirmModal';
+import SelectBox from 'dna-container/SelectBox';
 
 import ProgressIndicator from '../../../common/modules/uilab/js/src/progress-indicator';
 import Tabs from '../../../common/modules/uilab/js/src/tabs';
@@ -28,7 +29,7 @@ import selfserviceImg from '../../../assets/selfservice.png';
 
 import ConsumerForm from '../../dataTransfer/ConsumerForm';
 import { deserializeFormData, serializeDivisionSubDivision } from '../../../Utility/formData';
-import { SetAllAssociatedDataTransfers } from '../redux/dataProduct.services';
+import { SetAllAssociatedDataTransfers, SetMyAssociatedDataTransfers } from '../redux/dataProduct.services';
 
 const Summary = ({ history, user }) => {
   const { id: dataProductId } = useParams();
@@ -37,6 +38,7 @@ const Summary = ({ history, user }) => {
     data: dataList,
     divisionList,
     allDataTransfer,
+    myDataTransfer,
   } = useSelector((state) => state.dataProduct);
 
   const dispatch = useDispatch();
@@ -51,7 +53,7 @@ const Summary = ({ history, user }) => {
   const [showRequestAccessModal, setShowRequestAccessModal] = useState(false);
   const [accessRequested, setAccessRequest] = useState(false);
 
-  // const [dataTransferList, setDataTransferList] = useState({ totalCount: 0, records: [] });
+  const [showMyDataTransfers, setShowMyDataTransfers] = useState(false);
 
   const isCreator = selectedDataProduct.providerInformation?.createdBy?.id === user?.id || true;
 
@@ -73,6 +75,10 @@ const Summary = ({ history, user }) => {
       ProgressIndicator.hide();
     });
   }, [dispatch]);
+
+  useEffect(() => {
+    SelectBox.defaultSetup();
+  }, []);
 
   useEffect(() => {
     getDataProductById();
@@ -132,12 +138,17 @@ const Summary = ({ history, user }) => {
   useEffect(() => {
     if (selectedDataProduct?.datatransfersAssociated?.length) {
       dispatch(SetAllAssociatedDataTransfers(selectedDataProduct?.datatransfersAssociated));
+      dispatch(SetMyAssociatedDataTransfers(selectedDataProduct?.datatransfersAssociated));
     }
   }, [dispatch, selectedDataProduct?.datatransfersAssociated]);
 
   const setTab = (e) => {
     // e.preventDefault();
     setCurrentTab(e.target.id);
+  };
+
+  const handleSwitch = () => {
+    setShowMyDataTransfers(!showMyDataTransfers);
   };
 
   const deleteDataProductAccept = () => {
@@ -534,7 +545,7 @@ const Summary = ({ history, user }) => {
           </div>
           <hr className={Styles.line} />
           <div className={Styles.dataTransferSection}>
-            <h3>{`Data Transfer ${allDataTransfer?.totalCount ? `(${allDataTransfer?.totalCount})` : '(0)'}`}</h3>
+            <h3>{`Data Transfer ${allDataTransfer?.totalCount ? `( ${allDataTransfer?.totalCount} )` : '( 0 )'}`}</h3>
             <div>
               <Link to={'/datasharing'} target="_blank" rel="noreferrer noopener">
                 Show in Data Sharing
@@ -542,11 +553,46 @@ const Summary = ({ history, user }) => {
               </Link>
             </div>
           </div>
-          <div className={classNames(Styles.allDataproductCardviewContent)}>
-            {allDataTransfer?.records?.map((product, index) => {
-              return <DataTranferCardLayout key={index} product={product} user={user} isDataProduct={true} />;
-            })}
+          <div className={Styles.dataTransferSection}>
+            <label className="switch">
+              <span className="label" style={{ marginRight: '5px' }}>
+                Show My Data Transfers
+              </span>
+              <span className="wrapper">
+                <input
+                  value={showMyDataTransfers}
+                  type="checkbox"
+                  className="ff-only"
+                  onChange={handleSwitch}
+                  checked={showMyDataTransfers}
+                />
+              </span>
+            </label>
           </div>
+          {showMyDataTransfers ? (
+            myDataTransfer?.totalCount > 0 ? (
+              <>
+                <div className={Styles.dataTransferSection}>
+                  <h4>{`My Data Transfers ( ${myDataTransfer?.totalCount} / ${allDataTransfer?.totalCount} )`}</h4>
+                </div>
+                <div className={classNames(Styles.allDataproductCardviewContent)}>
+                  {myDataTransfer?.records?.map((product, index) => {
+                    return <DataTranferCardLayout key={index} product={product} user={user} isDataProduct={true} />;
+                  })}
+                </div>
+              </>
+            ) : (
+              <div className={Styles.dataTransferSection}>You have not requested access for the data product</div>
+            )
+          ) : null}
+
+          {!showMyDataTransfers ? (
+            <div className={classNames(Styles.allDataproductCardviewContent)}>
+              {allDataTransfer?.records?.map((product, index) => {
+                return <DataTranferCardLayout key={index} product={product} user={user} isDataProduct={true} />;
+              })}
+            </div>
+          ) : null}
         </div>
       </div>
       <div className={'accessBtn'}>
