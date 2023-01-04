@@ -122,6 +122,12 @@ paths:
           required: false
           type: string   
           enum: [asc,desc]
+        - name: source
+          in: query
+          description: Filter datasources based on the given source like sourceName, example cdc
+          required: false
+          type: string   
+          enum: [cdc]
    responses:
     201:
      description: "Returns message of success or failure"

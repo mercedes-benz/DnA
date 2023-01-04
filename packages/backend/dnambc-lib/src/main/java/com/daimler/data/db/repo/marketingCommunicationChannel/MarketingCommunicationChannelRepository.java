@@ -25,15 +25,12 @@
  * LICENSE END 
  */
 
-package com.daimler.data.db.repo.datasource;
+package com.daimler.data.db.repo.marketingCommunicationChannel;
 
-import java.util.List;
+import org.springframework.data.jpa.repository.JpaRepository;
 
-import com.daimler.data.db.entities.DataSourceNsql;
-import com.daimler.data.db.repo.common.CommonDataRepository;
+import com.daimler.data.db.entities.MarketingCommunicationChannelNsql;
 
-public interface DataSourceCustomRepository extends CommonDataRepository<DataSourceNsql, String> {
-
-	List<DataSourceNsql> getAllDataCatalogs(String source, String sortBy, String sortOrder);
+public interface MarketingCommunicationChannelRepository extends JpaRepository<MarketingCommunicationChannelNsql, String> {
 
 }
