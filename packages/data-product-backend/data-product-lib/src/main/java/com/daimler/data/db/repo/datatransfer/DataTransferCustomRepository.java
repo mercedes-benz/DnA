@@ -35,9 +35,9 @@ import com.daimler.data.db.repo.common.CommonDataRepository;
 public interface DataTransferCustomRepository extends CommonDataRepository<DataTransferNsql, String> {
 
 	List<DataTransferNsql> getAllWithFiltersUsingNativeQuery(Boolean published, int offset, int limit, String sortBy,
-			String sortOrder, String recordStatus, String datatransferIds);
+			String sortOrder, String recordStatus, String datatransferIds, String userId);
 
-	Long getCountUsingNativeQuery(Boolean published, String recordStatus, String datatransferIds);
+	Long getCountUsingNativeQuery(Boolean published, String recordStatus, String datatransferIds, String userId);
 
 	List<DataTransferNsql> getExistingDataTransfer(String uniqueTransferName, String status);
 
