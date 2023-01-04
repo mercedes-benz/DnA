@@ -175,7 +175,7 @@ const DataProductListItem = ({ product, history, user }) => {
                 {!isProviderFormSubmitted ? (
                   <span className={Styles.draft}>Draft</span>
                 ) : (
-                  <span>{product.providerInformation?.contactInformation?.appId}</span>
+                  <span>{product.providerInformation?.contactInformation?.appId || '-'}</span>
                 )}
               </div>
               {isProviderFormSubmitted && !product?.publish ? (
@@ -197,7 +197,7 @@ const DataProductListItem = ({ product, history, user }) => {
               <div className={!product.publish ? Styles.disabled : ''}>
                 <label>Consumer</label>
                 {product.publish ? (
-                  <span>{product.consumerInformation?.contactInformation?.appId}</span>
+                  <span>{product.consumerInformation?.contactInformation?.appId || '-'}</span>
                 ) : (
                   <span>pending...</span>
                 )}
