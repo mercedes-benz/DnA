@@ -169,7 +169,33 @@ export const SetAllAssociatedDataTransfers = createAsyncThunk(
 
     ProgressIndicator.show();
     try {
-      const res = await dataProductApi.getDataTransfers(ids, 'dataTransferId', 'desc');
+      const res = await dataProductApi.getAllDataTransfers(ids, 'dataTransferId', 'desc');
+      ProgressIndicator.hide();
+      return {
+        data: res?.data,
+        pagination,
+      };
+    } catch (e) {
+      ProgressIndicator.hide();
+      Notification.show(e.response?.data?.errors?.[0]?.message || 'Error while fetching data products', 'alert');
+    }
+  },
+);
+
+export const SetMyAssociatedDataTransfers = createAsyncThunk(
+  'products/SetMyAssociatedDataTransfers',
+  async (data, { getState }) => {
+    const {
+      dataProduct: { pagination },
+    } = getState(); // redux store method
+    const ids = data?.reduce((acc, curr, index, arr) => {
+      acc += `'${curr.datatransferId}'${index === arr.length - 1 ? '' : ','}`;
+      return acc;
+    }, '');
+
+    ProgressIndicator.show();
+    try {
+      const res = await dataProductApi.getMyDataTransfers(ids, 'dataTransferId', 'desc');
       ProgressIndicator.hide();
       return {
         data: res?.data,

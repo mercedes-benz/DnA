@@ -108,7 +108,11 @@ const ConsumerForm = ({ user, history, isDataProduct = false, callbackFn }) => {
   }, [dispatch]);
 
   useEffect(() => {
-    if (!isDataProduct) getDataProductById();
+    if (!isDataProduct) {
+      getDataProductById();
+    } else {
+      setFormMounted(true);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
