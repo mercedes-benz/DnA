@@ -27,9 +27,13 @@
 
 package com.daimler.data.db.repo.datasource;
 
+import java.util.List;
+
 import com.daimler.data.db.entities.DataSourceNsql;
 import com.daimler.data.db.repo.common.CommonDataRepository;
 
 public interface DataSourceCustomRepository extends CommonDataRepository<DataSourceNsql, String> {
+
+	List<DataSourceNsql> getAllDataCatalogs(String source, String sortBy, String sortOrder);
 
 }
