@@ -95,11 +95,9 @@ public class DataTransferCustomRepositoryImpl extends CommonDataRepositoryImpl<D
 			String dataTransferId = " and (jsonb_extract_path_text(data,'dataTransferId') in (" + datatransferIds + ")) ";
 			query += dataTransferId;
 		}
-		if (isCreator!=null && isCreator) {
-			if (userId!= null) {
+		if (isCreator != null && isCreator && userId != null) {
 				String creator = " and (jsonb_extract_path_text(data, 'consumerInformation', 'createdBy', 'id') in ('" + userId + "')) ";
 				query += creator;
-			}
 		}
 		String sortQueryString = "";
 		if (StringUtils.hasText(sortBy)) {
