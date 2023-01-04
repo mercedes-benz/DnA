@@ -74,7 +74,7 @@ export const getCorporateDataCatalogs = createAsyncThunk('dropdowns/getCorporate
     const res = await dataProductApi.getAllCorporateDataCatalogs();
     ProgressIndicator.hide();
     return {
-      data: res.data?.data,
+      data: res.data,
     };
   } catch (e) {
     ProgressIndicator.hide();
