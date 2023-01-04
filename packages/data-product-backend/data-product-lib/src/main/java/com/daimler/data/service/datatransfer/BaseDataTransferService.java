@@ -110,7 +110,7 @@ public class BaseDataTransferService extends BaseCommonService<DataTransferVO, D
 	public List<DataTransferVO> getAllWithFilters(Boolean published, int offset, int limit, String sortBy,
 			String sortOrder, String recordStatus, String datatransferIds, Boolean isCreator) {
 		String userId = null;
-		if (isCreator && this.userStore.getUserInfo() != null) {
+		if (isCreator != null && isCreator && this.userStore.getUserInfo() != null) {
 			userId = this.userStore.getUserInfo().getId();
 		}
 		List<DataTransferNsql> dataTransferEntities = dataTransferCustomRepository
@@ -124,7 +124,7 @@ public class BaseDataTransferService extends BaseCommonService<DataTransferVO, D
 	@Override
 	public Long getCount(Boolean published, String recordStatus, String datatransferIds, Boolean isCreator) {
 		String userId = null;
-		if (isCreator && this.userStore.getUserInfo() != null) {
+		if (isCreator != null && isCreator  && this.userStore.getUserInfo() != null) {
 			userId = this.userStore.getUserInfo().getId();
 		}
 		return dataTransferCustomRepository.getCountUsingNativeQuery(published, recordStatus, datatransferIds, userId);
