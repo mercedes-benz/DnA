@@ -155,6 +155,21 @@ public class BaseDataTransferService extends BaseCommonService<DataTransferVO, D
 			String userId = currentUser != null ? currentUser.getId() : "";
 			ProviderResponseVO providerResponseVO = requestVO.getProviderInformation();
 			String uniqueTransferName = requestVO.getDataTransferName();
+
+			if (isDataProductService != null && isDataProductService) {
+				CreatedByVO createdBy = requestVO.getProviderInformation().getCreatedBy();
+
+				if (createdBy != null && hasProviderAccess(createdBy)) {
+					List<MessageDescription> notAuthorizedMsgs = new ArrayList<>();
+					MessageDescription notAuthorizedMsg = new MessageDescription();
+					notAuthorizedMsg.setMessage("Not authorized to create dataTransfer provider form.");
+					notAuthorizedMsgs.add(notAuthorizedMsg);
+					responseVO.setErrors(notAuthorizedMsgs);
+					LOGGER.debug("DataTransfer provider form with id {} cannot be created. User not authorized", userId);
+					return new ResponseEntity<>(responseVO, HttpStatus.FORBIDDEN);
+				}
+			}
+
 			if (!ObjectUtils.isEmpty(providerResponseVO.getUsers())) {
 				if (providerResponseVO.getUsers().stream().anyMatch(n -> userId.equalsIgnoreCase(n.getShortId()))) {
 					List<MessageDescription> messages = new ArrayList<>();
@@ -178,7 +193,9 @@ public class BaseDataTransferService extends BaseCommonService<DataTransferVO, D
 				LOGGER.debug("DataTransfer {} already exists, returning as CONFLICT", uniqueTransferName);
 				return new ResponseEntity<>(responseVO, HttpStatus.CONFLICT);
 			}
-			if (requestVO.getProviderInformation().getCreatedBy() != null && isDataProductService) {
+			if (isDataProductService !=null && isDataProductService && 
+				requestVO.getProviderInformation() != null && 
+				requestVO.getProviderInformation().getCreatedBy() != null) {
 				providerResponseVO.setCreatedBy(requestVO.getProviderInformation().getCreatedBy());
 			} else {
 				providerResponseVO.setCreatedBy(this.userStore.getVO());
