@@ -1,4 +1,4 @@
-import { server } from '../server/api';
+import { hostServer, server } from '../server/api';
 
 const getAllDataProductList = (sortBy, sortOrder) => {
   return server.get(`/dataproducts?limit=0&offset=0&sortBy=${sortBy}&sortOrder=${sortOrder}`, {
@@ -36,9 +36,18 @@ const createDataTransfer = (id, data) => {
   });
 };
 
-const getDataTransfers = (dataTransferIds, sortBy, sortOrder) => {
+const getAllDataTransfers = (dataTransferIds, sortBy, sortOrder) => {
   return server.get(
     `/datatransfers?limit=0&offset=0&datatransferIds=${dataTransferIds}&sortBy=${sortBy}&sortOrder=${sortOrder}`,
+    {
+      data: {},
+    },
+  );
+};
+
+const getMyDataTransfers = (dataTransferIds, sortBy, sortOrder) => {
+  return server.get(
+    `/datatransfers?limit=0&offset=0&isCreator=true&datatransferIds=${dataTransferIds}&sortBy=${sortBy}&sortOrder=${sortOrder}`,
     {
       data: {},
     },
@@ -54,7 +63,7 @@ const getAllCarlaFunctions = () => {
 };
 
 const getAllCorporateDataCatalogs = () => {
-  return server.get('/corporateDataCatalogs', { data: {} });
+  return hostServer.get('/datasources?source=CDC', { data: {} });
 };
 
 export const dataProductApi = {
@@ -64,7 +73,8 @@ export const dataProductApi = {
   updateDataProduct,
   deleteDataProduct,
   createDataTransfer,
-  getDataTransfers,
+  getAllDataTransfers,
+  getMyDataTransfers,
   getAllAgileReleaseTrains,
   getAllCarlaFunctions,
   getAllCorporateDataCatalogs,

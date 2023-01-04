@@ -6,6 +6,7 @@ import {
   UpdateDataProduct,
   CompleteDataProductMinimumInfo,
   SetAllAssociatedDataTransfers,
+  SetMyAssociatedDataTransfers,
 } from './dataProduct.services';
 
 const dataInitialState = {
@@ -102,6 +103,18 @@ export const dataSlice = createSlice({
       state.errors = '';
     },
     [SetAllAssociatedDataTransfers.rejected]: (state, action) => {
+      state.isLoading = false;
+      state.errors = action.payload;
+    },
+    [SetMyAssociatedDataTransfers.pending]: (state) => {
+      state.isLoading = true;
+    },
+    [SetMyAssociatedDataTransfers.fulfilled]: (state, action) => {
+      state.isLoading = false;
+      state.myDataTransfer = action.payload?.data;
+      state.errors = '';
+    },
+    [SetMyAssociatedDataTransfers.rejected]: (state, action) => {
       state.isLoading = false;
       state.errors = action.payload;
     },
