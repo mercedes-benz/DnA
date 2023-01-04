@@ -461,6 +461,8 @@ definitions:
         $ref: "#/definitions/SolutionDataSourceVO"
       analytics:
         $ref: "#/definitions/SolutionAnalyticsVO"
+      marketing:
+        $ref: "#/definitions/SolutionMarketingVO"  
       sharing:
         $ref: "#/definitions/SolutionSharingVO"
       digitalValue:
@@ -486,6 +488,7 @@ definitions:
               "Platform",
               "Analytics",
               "Sharing",
+              "Marketing",
               "DigitalValue",
               "DataCompliance"
             ]
@@ -790,6 +793,64 @@ definitions:
         type: array
         items:
           $ref: "#/definitions/VisualizationVO"
+  
+  SolutionMarketingVO:
+    type: object
+    properties:
+      customerJourneyPhases:
+        type: array
+        items:
+          $ref: "#/definitions/CustomerJourneyPhaseVO"
+      marketingCommunicationChannels:
+        type: array
+        items:
+          $ref: "#/definitions/MarketingCommunicationChannelVO"
+      personas:
+        type: array
+        items:
+          type: string
+      personalization:
+        $ref: "#/definitions/PersonalizationVO"    
+      
+  
+  PersonalizationVO:
+    type: object
+    properties:
+      isChecked: 
+        type: boolean
+        description: Indicidates whether personalization is selected or not. Boolean value true/false
+      description: 
+        type: string
+        description: Describes the type of personalization being activated with user's usecase and the 
+                      segmentation used to identify the target audience for the marketing activitiy                
+          
+  CustomerJourneyPhaseVO:
+    type: object
+    properties:
+      id:
+        type: string
+        description: "ID of CustomerJourneyPhase"
+      name:
+        type: string
+        description: "Name of the CustomerJourneyPhase"
+        minLength: 1
+    #     pattern: '[a-zA-Z\s]+'
+    required:
+      - name    
+      
+  MarketingCommunicationChannelVO:
+    type: object
+    properties:
+      id:
+        type: string
+        description: "ID of MarketingCommunicationChannel"
+      name:
+        type: string
+        description: "Name of the MarketingCommunicationChannel"
+        minLength: 1
+    #     pattern: '[a-zA-Z\s]+'
+    required:
+      - name                                 
 
   LanguageVO:
     type: object
