@@ -6,6 +6,8 @@
   "apiPackage": "com.daimler.data.api.solution",
   "invokerPackage": "com.daimler.data.service.solution",
   "importMappings": {
+  	"CustomerJourneyPhaseVO": "com.daimler.data.dto.customerJourneyPhase.CustomerJourneyPhaseVO",
+  	"MarketingCommunicationChannelVO": "com.daimler.data.dto.marketingCommunicationChannel.MarketingCommunicationChannelVO",
     "LanguageVO": "com.daimler.data.dto.language.LanguageVO",
     "AlgorithmVO": "com.daimler.data.dto.algorithm.AlgorithmVO",
     "DataVolumeVO": "com.daimler.data.dto.datavolume.DataVolumeVO",
