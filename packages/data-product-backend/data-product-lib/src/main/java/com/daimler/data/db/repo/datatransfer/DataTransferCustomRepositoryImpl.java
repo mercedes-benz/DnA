@@ -54,8 +54,8 @@ public class DataTransferCustomRepositoryImpl extends CommonDataRepositoryImpl<D
 
 	@Override
 	public List<DataTransferNsql> getAllWithFiltersUsingNativeQuery(Boolean published, int offset, int limit,
-			String sortBy, String sortOrder, String recordStatus, String datatransferIds) {
-		Query q = getNativeQueryWithFilters("", published, offset, limit, sortBy, sortOrder, recordStatus, datatransferIds);
+			String sortBy, String sortOrder, String recordStatus, String datatransferIds, String userId) {
+		Query q = getNativeQueryWithFilters("", published, offset, limit, sortBy, sortOrder, recordStatus, datatransferIds, userId);
 		ObjectMapper mapper = new ObjectMapper();
 		List<Object[]> results = q.getResultList();
 		List<DataTransferNsql> convertedResults = results.stream().map(temp -> {
@@ -75,15 +75,15 @@ public class DataTransferCustomRepositoryImpl extends CommonDataRepositoryImpl<D
 	}
 
 	@Override
-	public Long getCountUsingNativeQuery(Boolean published, String recordStatus, String datatransferIds) {
+	public Long getCountUsingNativeQuery(Boolean published, String recordStatus, String datatransferIds, String userId) {
 
-		Query q = getNativeQueryWithFilters("select count(*) ", published, 0, 0, "", "asc", recordStatus, datatransferIds);
+		Query q = getNativeQueryWithFilters("select count(*) ", published, 0, 0, "", "asc", recordStatus, datatransferIds, userId);
 		BigInteger results = (BigInteger) q.getSingleResult();
 		return results.longValue();
 	}
 
 	private Query getNativeQueryWithFilters(String selectFieldsString, Boolean published, int offset, int limit,
-			String sortBy, String sortOrder, String recordStatus, String datatransferIds) {
+			String sortBy, String sortOrder, String recordStatus, String datatransferIds, String userId) {
 
 		String prefix = selectFieldsString != null && !"".equalsIgnoreCase(selectFieldsString) ? selectFieldsString
 				: "select cast(id as text), cast(data as text) ";
@@ -94,6 +94,10 @@ public class DataTransferCustomRepositoryImpl extends CommonDataRepositoryImpl<D
 		if (datatransferIds != null && datatransferIds.length() > 0) {
 			String dataTransferId = " and (jsonb_extract_path_text(data,'dataTransferId') in (" + datatransferIds + ")) ";
 			query += dataTransferId;
+		}
+		if (userId != null) {
+				String creator = " and (jsonb_extract_path_text(data, 'consumerInformation', 'createdBy', 'id') in ('" + userId + "')) ";
+				query += creator;
 		}
 		String sortQueryString = "";
 		if (StringUtils.hasText(sortBy)) {
