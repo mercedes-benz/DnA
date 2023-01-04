@@ -28,11 +28,75 @@
 package com.daimler.data.db.repo.datasource;
 
 import com.daimler.data.db.entities.DataSourceNsql;
+import com.daimler.data.db.jsonb.DataSource;
 import com.daimler.data.db.repo.common.CommonDataRepositoryImpl;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import java.util.List;
+import java.util.stream.Collectors;
+
+import javax.persistence.Query;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Repository;
+import org.springframework.util.StringUtils;
 
 @Repository
 public class DataSourceCustomRepositoryImpl extends CommonDataRepositoryImpl<DataSourceNsql, String>
 		implements DataSourceCustomRepository {
+
+	private static Logger LOGGER = LoggerFactory.getLogger(DataSourceCustomRepositoryImpl.class);
+	private static final String DATASOURCE_NSQL = "datasource_nsql";
+	@Override
+	public List<DataSourceNsql> getAllDataCatalogs(String source,String sortBy,String sortOrder) {		
+		Query q = getNativeQueryWithFilters("select cast(id as text), cast(data as text) from ", source,sortBy,sortOrder);
+		ObjectMapper mapper = new ObjectMapper();
+		List<Object[]> results = q.getResultList();		
+		List<DataSourceNsql> convertedResults = results.stream().map(temp -> {
+			DataSourceNsql entity = new DataSourceNsql();
+			try {
+				String id = temp[0] != null ? temp[0].toString() : "";				
+				String jsonData = temp[1] != null ? temp[1].toString() : "";
+				entity.setId(id);
+				if (StringUtils.hasText(jsonData)) {
+					DataSource dataSource = mapper.readValue(jsonData, DataSource.class);
+					entity.setData(dataSource);
+				}
+			} catch (Exception e) {
+				LOGGER.error("Failed while fetching data catalogs for solutions using native {} ", e.getMessage());
+			}
+			return entity;
+		}).collect(Collectors.toList());	
+		
+		return convertedResults;
+	
+	}
+	
+	public Query getNativeQueryWithFilters(String selectFieldsString, String source, String sortBy, String sortOrder) {
+
+		String prefix = selectFieldsString != null && !"".equalsIgnoreCase(selectFieldsString) ? selectFieldsString
+				: "select cast(id as text), cast(data as text) ";
+		prefix = prefix + DATASOURCE_NSQL;
+		String basicpredicate = " where (id is not null)";
+		String consolidatedPredicate = buildPredicateString(source);
+		String query = prefix + basicpredicate + consolidatedPredicate;		
+		String sortQueryString = " order by lower(jsonb_extract_path_text(data,'name')) ";
+		if ("desc".equalsIgnoreCase(sortOrder))
+			sortQueryString = sortQueryString + " desc ";
+		else
+			sortQueryString = sortQueryString + " asc ";
+		query = query + sortQueryString;
+		
+		Query q = em.createNativeQuery(query);
+		return q;
+	}
+	
+	private String buildPredicateString(String source) {
+		if (source != null && !source.isEmpty()) {			
+			return " and (lower(jsonb_extract_path_text(data,'source')) = (" +"'"+ source.toLowerCase() +"'"+ "))";
+		}
+		return "";
+	}
 
 }

@@ -25,15 +25,24 @@
  * LICENSE END 
  */
 
-package com.daimler.data.db.repo.datasource;
+package com.daimler.data.db.entities;
 
-import java.util.List;
+import java.io.Serializable;
 
-import com.daimler.data.db.entities.DataSourceNsql;
-import com.daimler.data.db.repo.common.CommonDataRepository;
+import javax.persistence.Entity;
+import javax.persistence.Table;
 
-public interface DataSourceCustomRepository extends CommonDataRepository<DataSourceNsql, String> {
+import com.daimler.data.db.jsonb.MarketingCommunicationChannel;
 
-	List<DataSourceNsql> getAllDataCatalogs(String source, String sortBy, String sortOrder);
+@Entity
+@Table(name = "marketingcommunicationchannel_nsql")
+public class MarketingCommunicationChannelNsql extends BaseEntity<MarketingCommunicationChannel> implements Serializable {
+
+
+	private static final long serialVersionUID = -7452492896519218118L;
+
+	public MarketingCommunicationChannelNsql() {
+		super();
+	}
 
 }

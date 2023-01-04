@@ -27,6 +27,7 @@
 
 package com.daimler.data.controller;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
@@ -193,10 +194,16 @@ public class DataSourceController implements DatasourcesApi {
 	@RequestMapping(value = "/datasources", produces = { "application/json" }, method = RequestMethod.GET)
 	public ResponseEntity<DataSourceCollection> getAll(
 			@ApiParam(value = "Sort datasources by a given variable like datasourceName", allowableValues = "datasourceName") @Valid @RequestParam(value = "sortBy", required = false) String sortBy,
-			@ApiParam(value = "Sort datasources based on the given order, example asc,desc", allowableValues = "asc, desc") @Valid @RequestParam(value = "sortOrder", required = false) String sortOrder) {
-		final List<DataSourceVO> datasources = datasourceService.getAll();		
+			@ApiParam(value = "Sort datasources based on the given order, example asc,desc", allowableValues = "asc, desc") @Valid @RequestParam(value = "sortOrder", required = false) String sortOrder,
+			@ApiParam(value = "Filter datasources based on the given source like sourceName, example cdc", allowableValues = "cdc") @Valid @RequestParam(value = "source", required = false) String source) {
+		
+		List<DataSourceVO> datasources = new ArrayList<>();		
 		DataSourceCollection datasourceCollection = new DataSourceCollection();
-		if (!ObjectUtils.isEmpty(datasources)) {
+		if(source != null && source.equalsIgnoreCase("cdc")) {
+			datasources = datasourceService.getAllDataCatalogs(source,sortBy,sortOrder);	
+		}
+		else {
+			datasources = datasourceService.getAll();
 			if( sortOrder == null || sortOrder.equalsIgnoreCase("asc")) {
 				Comparator<DataSourceVO> comparator = (d1, d2) ->(d1.getName().compareTo(d2.getName()));
 				Collections.sort(datasources, comparator);
@@ -205,6 +212,8 @@ public class DataSourceController implements DatasourcesApi {
 				Comparator<DataSourceVO> comparator = (d1, d2) ->(d2.getName().compareTo(d1.getName()));
 				Collections.sort(datasources, comparator);
 			}
+		}
+		if (!ObjectUtils.isEmpty(datasources)) {
 			datasourceCollection.addAll(datasources);
 			log.debug("Returning all available datasources");
 			return new ResponseEntity<>(datasourceCollection, HttpStatus.OK);
