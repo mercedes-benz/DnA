@@ -442,8 +442,8 @@ const ContactInformation = ({
               <div
                 className={classNames(
                   'input-field-group include-error',
-                  errors.complianceOfficer ? 'error' : '',
-                  lcoNeeded === 'No' ? 'disabled' : '',
+                  lcoNeeded && errors.complianceOfficer ? 'error' : '',
+                  lcoNeeded === 'No' || !lcoNeeded ? 'disabled' : '',
                 )}
               >
                 <Controller
@@ -469,7 +469,7 @@ const ContactInformation = ({
                           <span className={Styles.optionText}>LCO: {item?.name}</span>
                         </div>
                       )}
-                      disabled={lcoNeeded === 'No'}
+                      disabled={lcoNeeded === 'No' || !lcoNeeded}
                     />
                   )}
                 />

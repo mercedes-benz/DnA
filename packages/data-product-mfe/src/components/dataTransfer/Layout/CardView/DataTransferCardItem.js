@@ -99,7 +99,7 @@ const DataProductCardItem = ({ product, history, user, isDataProduct = false }) 
               {!isProviderFormSubmitted ? (
                 <span className={Styles.draft}>Draft</span>
               ) : (
-                <span>{product.providerInformation?.contactInformation?.appId}</span>
+                <span>{product.providerInformation?.contactInformation?.appId || '-'}</span>
               )}
             </div>
             <div>
@@ -121,7 +121,7 @@ const DataProductCardItem = ({ product, history, user, isDataProduct = false }) 
             <div className={!product.publish ? Styles.disabled : ''}>
               <label>Consumer</label>
               {product.publish ? (
-                <span>{product.consumerInformation?.contactInformation?.appId}</span>
+                <span>{product.consumerInformation?.contactInformation?.appId || '-'}</span>
               ) : (
                 <span>pending...</span>
               )}
