@@ -1,4 +1,4 @@
-import { server } from '../server/api';
+import { hostServer, server } from '../server/api';
 
 const getAllDataProductList = (sortBy, sortOrder) => {
   return server.get(`/dataproducts?limit=0&offset=0&sortBy=${sortBy}&sortOrder=${sortOrder}`, {
@@ -30,6 +30,30 @@ const deleteDataProduct = (id) => {
   });
 };
 
+const createDataTransfer = (id, data) => {
+  return server.post(`/dataproducts/${id}/datatransfer`, {
+    data,
+  });
+};
+
+const getAllDataTransfers = (dataTransferIds, sortBy, sortOrder) => {
+  return server.get(
+    `/datatransfers?limit=0&offset=0&datatransferIds=${dataTransferIds}&sortBy=${sortBy}&sortOrder=${sortOrder}`,
+    {
+      data: {},
+    },
+  );
+};
+
+const getMyDataTransfers = (dataTransferIds, sortBy, sortOrder) => {
+  return server.get(
+    `/datatransfers?limit=0&offset=0&isCreator=true&datatransferIds=${dataTransferIds}&sortBy=${sortBy}&sortOrder=${sortOrder}`,
+    {
+      data: {},
+    },
+  );
+};
+
 const getAllAgileReleaseTrains = () => {
   return server.get('/agileReleaseTrains', { data: {} });
 };
@@ -39,7 +63,7 @@ const getAllCarlaFunctions = () => {
 };
 
 const getAllCorporateDataCatalogs = () => {
-  return server.get('/corporateDataCatalogs', { data: {} });
+  return hostServer.get('/datasources?source=CDC', { data: {} });
 };
 
 export const dataProductApi = {
@@ -48,6 +72,9 @@ export const dataProductApi = {
   createDataProduct,
   updateDataProduct,
   deleteDataProduct,
+  createDataTransfer,
+  getAllDataTransfers,
+  getMyDataTransfers,
   getAllAgileReleaseTrains,
   getAllCarlaFunctions,
   getAllCorporateDataCatalogs,

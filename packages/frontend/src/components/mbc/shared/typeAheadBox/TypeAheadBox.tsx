@@ -170,7 +170,7 @@ const TypeAheadBox: React.FC<IRowItemProps> = (props: IRowItemProps) => {
       <div
         className={classNames(
           'input-field-group include-error',
-          props.showError && errorText ? 'error' : '',
+          !props.disabled && props.showError && errorText ? 'error' : '',
           props.disabled ? 'disabled' : '',
         )}
       >
@@ -214,7 +214,7 @@ const TypeAheadBox: React.FC<IRowItemProps> = (props: IRowItemProps) => {
             </ul>
           )}
         </div>
-        {props.showError && errorText && <span className="error-message">{errorText}</span>}
+        {!props.disabled && props.showError && errorText && <span className="error-message">{errorText}</span>}
       </div>
     </div>
   );

@@ -1,0 +1,15 @@
+@import "../common.styles.scss";
+
+.dataTransferName {
+    display: flex;
+    align-items: center;
+    color: #acb8c4;
+
+    span {
+        margin-right: 10px;
+        white-space: pre;
+        &::after {
+            content: " - ";
+        }
+    }
+}

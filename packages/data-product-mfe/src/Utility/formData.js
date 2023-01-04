@@ -1,5 +1,6 @@
 export const serializeFormData = ({ values, division, type = 'provider', isDataProduct = false, dropdowns }) => {
   const isProviderForm = type === 'provider';
+  const isConsumerForm = type === 'consumer';
   if (
     (isProviderForm && values.openSegments?.length === 1 && values.openSegments?.includes('ContactInformation')) ||
     (isDataProduct && values.openSegments?.length === 1 && values.openSegments?.includes('Description'))
@@ -88,59 +89,70 @@ export const serializeFormData = ({ values, division, type = 'provider', isDataP
             ...(!isProviderForm && values.consumerFormValues),
           }
         : {
-            dataProductName: values.productName,
-            description: values.description,
-            howToAccessText: values.howToAccessText,
-            id: values.id,
-            isPublish: values.publish || false,
-            notifyUsers: values.notifyUsers || false,
-            openSegments: values.openSegments,
-            agileReleaseTrain: dropdowns.agileReleaseTrains?.find((item) => item.name === values.ART),
-            carLaFunction: dropdowns.carLAFunctions?.find((item) => item.name === values.carLAFunction),
-            corporateDataCatalog: dropdowns.corporateDataCatalogs?.find(
-              (item) => item.name === values.corporateDataCatalog,
-            ),
-            contactInformation: {
-              appId: values.planningIT,
-              dataProductDate: new Date(values.dateOfDataProduct),
-              department: values.department?.toString(),
-              division,
-              informationOwner: values.informationOwner,
-              localComplianceOfficer: values.complianceOfficer?.toString(),
-              name: values.name,
-            },
-            ...(values.openSegments.includes('ClassificationAndConfidentiality') && {
-              classificationConfidentiality: {
-                confidentiality: values.confidentiality,
-                description: values.classificationOfTransferedData || '',
-              },
-            }),
-            ...(values.openSegments.includes('IdentifyingPersonalRelatedData') && {
-              personalRelatedData: {
-                personalRelatedData: values.personalRelatedData === 'Yes' ? true : false,
-                ...(values.personalRelatedData === 'Yes' && {
-                  description: values.personalRelatedDataDescription,
-                  legalBasis: values.personalRelatedDataLegalBasis,
-                  purpose: values.personalRelatedDataPurpose,
+            ...(isConsumerForm
+              ? {
+                  ...values.consumerFormValues,
+                  ...{
+                    notifyUsers: values.notifyUsers || false,
+                    dataTransferName: values.dataTransferName,
+                    publish: values.publish || false,
+                  },
+                }
+              : {
+                  dataProductName: values.productName,
+                  description: values.description,
+                  howToAccessText: values.howToAccessText,
+                  id: values.id,
+                  isPublish: values.publish || false,
+                  notifyUsers: values.notifyUsers || false,
+                  openSegments: values.openSegments,
+                  agileReleaseTrain: dropdowns?.agileReleaseTrains?.find((item) => item.name === values.ART),
+                  carLaFunction: dropdowns?.carLAFunctions?.find((item) => item.name === values.carLAFunction),
+                  corporateDataCatalog: dropdowns?.corporateDataCatalogs?.find(
+                    (item) => item.name === values.corporateDataCatalog,
+                  ),
+                  contactInformation: {
+                    appId: values.planningIT,
+                    dataProductDate: new Date(values.dateOfDataProduct),
+                    department: values.department?.toString(),
+                    division,
+                    informationOwner: values.informationOwner,
+                    localComplianceOfficer: values.complianceOfficer?.toString(),
+                    name: values.name,
+                  },
+                  ...(values?.openSegments?.includes('ClassificationAndConfidentiality') && {
+                    classificationConfidentiality: {
+                      confidentiality: values.confidentiality,
+                      description: values.classificationOfTransferedData || '',
+                    },
+                  }),
+                  ...(values?.openSegments?.includes('IdentifyingPersonalRelatedData') && {
+                    personalRelatedData: {
+                      personalRelatedData: values.personalRelatedData === 'Yes' ? true : false,
+                      ...(values.personalRelatedData === 'Yes' && {
+                        description: values.personalRelatedDataDescription,
+                        legalBasis: values.personalRelatedDataLegalBasis,
+                        purpose: values.personalRelatedDataPurpose,
+                      }),
+                    },
+                  }),
+                  ...(values?.openSegments?.includes('IdentifiyingTransnationalDataTransfer') && {
+                    transnationalDataTransfer: {
+                      approved: values.LCOApprovedDataTransfer,
+                      dataFromChina: values.dataOriginatedFromChina === 'Yes' ? true : false,
+                      dataTransferred: values.transnationalDataTransfer === 'Yes' ? true : false,
+                      insiderInformation: values.insiderInformation,
+                      notWithinEU: values.transnationalDataTransferNotWithinEU === 'Yes' ? true : false,
+                    },
+                  }),
+                  ...(values?.openSegments?.includes('SpecifyDeletionRequirements') && {
+                    deletionRequirement: {
+                      deletionRequirements: values.deletionRequirement === 'Yes' ? true : false,
+                      description: values.deletionRequirementDescription,
+                      otherRelevantInformation: values.otherRelevantInfo,
+                    },
+                  }),
                 }),
-              },
-            }),
-            ...(values.openSegments.includes('IdentifiyingTransnationalDataTransfer') && {
-              transnationalDataTransfer: {
-                approved: values.LCOApprovedDataTransfer,
-                dataFromChina: values.dataOriginatedFromChina === 'Yes' ? true : false,
-                dataTransferred: values.transnationalDataTransfer === 'Yes' ? true : false,
-                insiderInformation: values.insiderInformation,
-                notWithinEU: values.transnationalDataTransferNotWithinEU === 'Yes' ? true : false,
-              },
-            }),
-            ...(values.openSegments.includes('SpecifyDeletionRequirements') && {
-              deletionRequirement: {
-                deletionRequirements: values.deletionRequirement === 'Yes' ? true : false,
-                description: values.deletionRequirementDescription,
-                otherRelevantInformation: values.otherRelevantInfo,
-              },
-            }),
           }),
     };
   }
@@ -148,6 +160,7 @@ export const serializeFormData = ({ values, division, type = 'provider', isDataP
 
 export const deserializeFormData = ({ item, type = 'provider', isDataProduct = false }) => {
   const isProvider = type === 'provider';
+  const isConsumerForm = type === 'consumer';
   return {
     ...(!isDataProduct
       ? {
@@ -247,6 +260,35 @@ export const deserializeFormData = ({ item, type = 'provider', isDataProduct = f
           deletionRequirement: item?.deletionRequirement?.deletionRequirements ? 'Yes' : 'No',
           deletionRequirementDescription: item?.deletionRequirement?.description,
           otherRelevantInfo: item?.deletionRequirement?.otherRelevantInformation,
+
+          datatransfersAssociated: item?.datatransfersAssociated,
+          dataTransferName: item?.dataTransferName,
+
+          ...(isConsumerForm && {
+            consumer: {
+              planningIT: item.consumerFormValues?.consumerInformation?.contactInformation?.appId,
+              department: item.consumerFormValues?.consumerInformation?.contactInformation?.department?.split(),
+              division: item.consumerFormValues?.consumerInformation?.contactInformation?.division.id,
+              subDivision:
+                item.consumerFormValues?.consumerInformation?.contactInformation.division.subdivision.id || '0',
+              dateOfAgreement: item.consumerFormValues?.consumerInformation?.contactInformation.agreementDate || '',
+              lcoNeeded: item.consumerFormValues?.consumerInformation?.contactInformation.lcoNeeded ? 'Yes' : 'No',
+              complianceOfficer: item.consumerFormValues?.consumerInformation?.contactInformation.localComplianceOfficer
+                ?.split()
+                .filter(Boolean),
+              businessOwnerName: item.consumerFormValues?.consumerInformation?.contactInformation.ownerName,
+              openSegments: item.consumerFormValues?.consumerInformation?.openSegments,
+              LCOComments: item.consumerFormValues?.consumerInformation?.personalRelatedData.comment,
+              LCOCheckedLegalBasis: item.consumerFormValues?.consumerInformation?.personalRelatedData.lcoChecked,
+              personalRelatedDataLegalBasis:
+                item.consumerFormValues?.consumerInformation?.personalRelatedData.legalBasis,
+              personalRelatedData: item.consumerFormValues?.consumerInformation?.personalRelatedData.personalRelatedData
+                ? 'Yes'
+                : 'No',
+              personalRelatedDataPurpose: item.consumerFormValues?.consumerInformation?.personalRelatedData.purpose,
+              dataTransferName: item?.dataTransferName,
+            },
+          }),
         }),
   };
 };
