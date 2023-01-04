@@ -45,22 +45,18 @@ import com.daimler.data.db.entities.DataTransferNsql;
 import com.daimler.data.db.jsonb.datatransfer.DataTranfer;
 import com.daimler.data.db.repo.common.CommonDataRepositoryImpl;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.daimler.data.application.auth.UserStore;
 
 @Repository
 public class DataTransferCustomRepositoryImpl extends CommonDataRepositoryImpl<DataTransferNsql, String>
 		implements DataTransferCustomRepository {
-
-	@Autowired
-	private UserStore userStore;
 
 	private static Logger LOGGER = LoggerFactory.getLogger(DataTransferCustomRepositoryImpl.class);
 	private static String REGEX = "[\\[+\\]+:{}^~?\\\\/()><=\"!]";
 
 	@Override
 	public List<DataTransferNsql> getAllWithFiltersUsingNativeQuery(Boolean published, int offset, int limit,
-			String sortBy, String sortOrder, String recordStatus, String datatransferIds, Boolean isCreator) {
-		Query q = getNativeQueryWithFilters("", published, offset, limit, sortBy, sortOrder, recordStatus, datatransferIds, isCreator);
+			String sortBy, String sortOrder, String recordStatus, String datatransferIds, Boolean isCreator, String userId) {
+		Query q = getNativeQueryWithFilters("", published, offset, limit, sortBy, sortOrder, recordStatus, datatransferIds, isCreator, userId);
 		ObjectMapper mapper = new ObjectMapper();
 		List<Object[]> results = q.getResultList();
 		List<DataTransferNsql> convertedResults = results.stream().map(temp -> {
@@ -80,15 +76,15 @@ public class DataTransferCustomRepositoryImpl extends CommonDataRepositoryImpl<D
 	}
 
 	@Override
-	public Long getCountUsingNativeQuery(Boolean published, String recordStatus, String datatransferIds, Boolean isCreator) {
+	public Long getCountUsingNativeQuery(Boolean published, String recordStatus, String datatransferIds, Boolean isCreator, String userId) {
 
-		Query q = getNativeQueryWithFilters("select count(*) ", published, 0, 0, "", "asc", recordStatus, datatransferIds, isCreator);
+		Query q = getNativeQueryWithFilters("select count(*) ", published, 0, 0, "", "asc", recordStatus, datatransferIds, isCreator, userId);
 		BigInteger results = (BigInteger) q.getSingleResult();
 		return results.longValue();
 	}
 
 	private Query getNativeQueryWithFilters(String selectFieldsString, Boolean published, int offset, int limit,
-			String sortBy, String sortOrder, String recordStatus, String datatransferIds, Boolean isCreator) {
+			String sortBy, String sortOrder, String recordStatus, String datatransferIds, Boolean isCreator, String userId) {
 
 		String prefix = selectFieldsString != null && !"".equalsIgnoreCase(selectFieldsString) ? selectFieldsString
 				: "select cast(id as text), cast(data as text) ";
@@ -101,8 +97,8 @@ public class DataTransferCustomRepositoryImpl extends CommonDataRepositoryImpl<D
 			query += dataTransferId;
 		}
 		if (isCreator!=null && isCreator) {
-			if (this.userStore.getUserInfo()!= null && this.userStore.getUserInfo().getId() !=null) {
-				String creator = " and (jsonb_extract_path_text(data, 'consumerInformation', 'createdBy', 'id') in ('" + this.userStore.getUserInfo().getId() + "')) ";
+			if (userId!= null) {
+				String creator = " and (jsonb_extract_path_text(data, 'consumerInformation', 'createdBy', 'id') in ('" + userId + "')) ";
 				query += creator;
 			}
 		}

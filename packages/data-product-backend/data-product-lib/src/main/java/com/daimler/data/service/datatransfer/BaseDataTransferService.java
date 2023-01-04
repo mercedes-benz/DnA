@@ -109,8 +109,9 @@ public class BaseDataTransferService extends BaseCommonService<DataTransferVO, D
 	@Override
 	public List<DataTransferVO> getAllWithFilters(Boolean published, int offset, int limit, String sortBy,
 			String sortOrder, String recordStatus, String datatransferIds, Boolean isCreator) {
+		String userId = this.userStore.getUserInfo().getId();
 		List<DataTransferNsql> dataTransferEntities = dataTransferCustomRepository
-				.getAllWithFiltersUsingNativeQuery(published, offset, limit, sortBy, sortOrder, recordStatus, datatransferIds, isCreator);
+				.getAllWithFiltersUsingNativeQuery(published, offset, limit, sortBy, sortOrder, recordStatus, datatransferIds, isCreator, userId);
 		if (!ObjectUtils.isEmpty(dataTransferEntities))
 			return dataTransferEntities.stream().map(n -> dataTransferAssembler.toVo(n)).collect(Collectors.toList());
 		else
@@ -119,7 +120,8 @@ public class BaseDataTransferService extends BaseCommonService<DataTransferVO, D
 
 	@Override
 	public Long getCount(Boolean published, String recordStatus, String datatransferIds, Boolean isCreator) {
-		return dataTransferCustomRepository.getCountUsingNativeQuery(published, recordStatus, datatransferIds, isCreator);
+		String userId = this.userStore.getUserInfo().getId();
+		return dataTransferCustomRepository.getCountUsingNativeQuery(published, recordStatus, datatransferIds, isCreator, userId);
 	}
 
 	private void updateDepartments(String department) {
@@ -182,7 +184,7 @@ public class BaseDataTransferService extends BaseCommonService<DataTransferVO, D
 			dataTransferVO.setProviderInformation(providerResponseVO);
 			dataTransferVO.setDataTransferName(uniqueTransferName);
 			dataTransferVO.setNotifyUsers(requestVO.isNotifyUsers());
-			dataTransferVO.setPublish(false);
+			dataTransferVO.setPublish(true);
 			dataTransferVO.setDataTransferId("DTF-" + String.format("%05d", dataTransferRepository.getNextSeqId()));
 			dataTransferVO.setRecordStatus(ConstantsUtility.OPEN);
 			dataTransferVO.setId(null);
@@ -378,7 +380,7 @@ public class BaseDataTransferService extends BaseCommonService<DataTransferVO, D
 			DataTransferVO existingVO = super.getById(id);
 			DataTransferVO mergedVO = null;
 			if (requestVO.isPublish() == null) {
-				requestVO.setPublish(false);
+				requestVO.setPublish(true);
 			}
 			if (existingVO != null && existingVO.getRecordStatus() != null
 					&& !existingVO.getRecordStatus().equalsIgnoreCase(ConstantsUtility.DELETED)) {
