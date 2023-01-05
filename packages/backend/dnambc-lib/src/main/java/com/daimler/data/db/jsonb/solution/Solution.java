@@ -80,6 +80,8 @@ public class Solution {
 	private SolutionPersonalization personalization;
 	
 	private List<String> personas;
+	
+	private String department;
 
 	private String gitUrl;
 	private String resultUrl;
