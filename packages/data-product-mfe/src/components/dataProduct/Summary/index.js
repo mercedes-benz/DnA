@@ -573,7 +573,13 @@ const Summary = ({ history, user }) => {
         </div>
       </div>
       {!isCreator ? (
-        <div className={classNames('accessBtnSet', !selectedDataProduct.isPublish ? 'indraft' : '')}>
+        <div
+          className={classNames(
+            'accessBtnSet',
+            !selectedDataProduct.isPublish ? 'indraft' : '',
+            myDataTransfer?.totalCount === 0 ? 'nomargin' : '',
+          )}
+        >
           {showHowToAccessModal ? (
             <button className="btn btn-tertiary" type="button" onClick={() => setShowInfoModal(true)}>
               How to access
