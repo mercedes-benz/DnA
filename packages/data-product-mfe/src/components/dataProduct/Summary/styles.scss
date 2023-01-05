@@ -185,20 +185,33 @@ hr {
             font-weight: bold;
         }
 
-        .accessBtn {
+        .accessBtnSet {
             position: fixed;
-            bottom: 0;
-            height: 55px;
+            bottom: 0px;
+            height: 60px;
             width: 100%;
             background: #1c2026;
             button {
                 position: fixed;
                 right: 5vw;
                 margin: 8px 0;
+                &:first-child:not(:disabled) {
+                    display: block;
+                    margin-right: 13vw;
+                }
+                &.indraft {
+                    margin: 5px 0;
+                }
+            }
+            &.indraft {
+                height: 65px;
+                &.fixed {
+                    height: 50px;
+                }
             }
         }
 
-        .accessBtnFixed {
+        .accessBtnSet.fixed {
             position: unset;
             width: auto;
             background-color: transparent;
@@ -207,6 +220,38 @@ hr {
             padding: 0 75px;
             button {
                 position: unset;
+                &:first-child {
+                    margin-right: 15px;
+                }
+            }
+        }
+
+        .accessRequestInfo {
+            position: fixed;
+            bottom: 2px;
+            right: 0vw;
+            display: flex;
+            justify-content: flex-end;
+            font-size: var(--font-size-tiny);
+            color: #697582;
+            padding: 0px 60px;
+        }
+
+        .accessRequestInfo.fixed {
+            display: flex;
+            justify-content: flex-end;
+            font-size: var(--font-size-tiny);
+            color: #697582;
+            padding: 0px 75px;
+            margin-top: 5px;
+            position: relative;
+        }
+
+        @media (max-width: 1024px) {
+            .accessBtnSet button {
+                &:first-child:not(:disabled) {
+                    margin-right: 19vw;
+                }
             }
         }
     }
