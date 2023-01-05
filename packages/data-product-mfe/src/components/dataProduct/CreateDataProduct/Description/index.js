@@ -50,21 +50,21 @@ const Description = ({ onSave, artList, carlaFunctionList, dataCatalogList }) =>
       setValue('ART', ART.name);
     }
     SelectBox.defaultSetup();
-  }, [ART, setValue]);
+  }, [ART, setValue, artList]);
 
   useEffect(() => {
     if (carLAFunction?.name?.length) {
       setValue('carLAFunction', carLAFunction.name);
     }
     SelectBox.defaultSetup();
-  }, [carLAFunction, setValue]);
+  }, [carLAFunction, setValue, carlaFunctionList]);
 
   useEffect(() => {
     if (corporateDataCatalog?.name?.length) {
       setValue('corporateDataCatalog', corporateDataCatalog.name);
     }
     SelectBox.defaultSetup();
-  }, [corporateDataCatalog, setValue]);
+  }, [corporateDataCatalog, setValue, dataCatalogList]);
 
   useEffect(() => {
     if (howToAccessText?.length) {
