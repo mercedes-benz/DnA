@@ -24,7 +24,7 @@ const DataProductCardItem = ({ product, history, user, isDataProduct = false }) 
   const name = product?.providerInformation?.contactInformation?.name;
   const productOwnerName = `${name?.firstName} ${name?.lastName}`;
 
-  const consumerFormCreatedBy = product?.consumerInformation?.consumerInformation?.createdBy;
+  const consumerFormCreatedBy = product?.consumerInformation?.createdBy;
   const consumerName = `${consumerFormCreatedBy?.firstName} ${consumerFormCreatedBy?.lastName}`;
 
   useEffect(() => {
