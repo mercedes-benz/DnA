@@ -209,6 +209,9 @@ hr {
                     height: 50px;
                 }
             }
+            &.nomargin button:first-child:not(:disabled) {
+                margin-right: 0;
+            }
         }
 
         .accessBtnSet.fixed {

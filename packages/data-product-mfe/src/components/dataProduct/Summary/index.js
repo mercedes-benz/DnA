@@ -113,11 +113,11 @@ const Summary = ({ history, user }) => {
 
     const handleScroll = () => {
       if (window.scrollY + window.innerHeight >= mainPanel.scrollHeight) {
-        accessBtnSetDiv.classList.add('fixed');
-        accessRequestDiv.classList.add('fixed');
+        accessBtnSetDiv?.classList.add('fixed');
+        accessRequestDiv?.classList.add('fixed');
       } else {
-        accessBtnSetDiv.classList.remove('fixed');
-        accessRequestDiv.classList.remove('fixed');
+        accessBtnSetDiv?.classList.remove('fixed');
+        accessRequestDiv?.classList.remove('fixed');
       }
     };
 
@@ -573,7 +573,13 @@ const Summary = ({ history, user }) => {
         </div>
       </div>
       {!isCreator ? (
-        <div className={classNames('accessBtnSet', !selectedDataProduct.isPublish ? 'indraft' : '')}>
+        <div
+          className={classNames(
+            'accessBtnSet',
+            !selectedDataProduct.isPublish ? 'indraft' : '',
+            myDataTransfer?.totalCount === 0 ? 'nomargin' : '',
+          )}
+        >
           {showHowToAccessModal ? (
             <button className="btn btn-tertiary" type="button" onClick={() => setShowInfoModal(true)}>
               How to access
