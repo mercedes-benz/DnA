@@ -371,6 +371,9 @@ public class SolutionAssembler implements GenericAssembler<SolutionVO, SolutionN
 			marketingVO.setPersonas(solution.getPersonas());
 			vo.setMarketing(marketingVO);	
 			
+			//setting Department details
+			vo.setDepartment(solution.getDepartment());
+			
 			SolutionAnalyticsVO analyticsVO = new SolutionAnalyticsVO();
 			analyticsVO.setAlgorithms(algorithmsVO);
 			analyticsVO.setLanguages(languagesVO);
@@ -971,6 +974,9 @@ public class SolutionAssembler implements GenericAssembler<SolutionVO, SolutionN
 			}
 			solution.setTotalDataVolume(totalDataVolume);
 			solution.setDataSources(datasources);
+			
+			//setting Department details
+			solution.setDepartment(vo.getDepartment());
 			
 			SolutionMarketingVO marketingVO = vo.getMarketing();
 			if(marketingVO != null) {
