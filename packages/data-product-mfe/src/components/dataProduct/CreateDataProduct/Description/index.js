@@ -13,6 +13,7 @@ import SelectBox from 'dna-container/SelectBox';
 import InfoModal from 'dna-container/InfoModal';
 
 import { useFormContext, Controller } from 'react-hook-form';
+import Tooltip from '../../../../common/modules/uilab/js/src/tooltip';
 
 const Description = ({ onSave, artList, carlaFunctionList, dataCatalogList }) => {
   const {
@@ -30,6 +31,7 @@ const Description = ({ onSave, artList, carlaFunctionList, dataCatalogList }) =>
 
   useEffect(() => {
     SelectBox.defaultSetup();
+    Tooltip.defaultSetup();
     reset(watch());
     //eslint-disable-next-line
   }, []);
@@ -196,15 +198,24 @@ const Description = ({ onSave, artList, carlaFunctionList, dataCatalogList }) =>
           <div className={Styles.formWrapper}>
             <div className={Styles.flexLayout1}>
               <div
-                className={classNames('input-field-group include-error area', errors.howToAccessText ? 'error' : '')}
+                className={classNames(
+                  'input-field-group include-error area',
+                  errors.howToAccessText ? 'error' : '',
+                  Styles.howToAccess,
+                )}
               >
                 <Controller
                   control={control}
                   name="howToAccessText"
+                  rules={{ required: '*Missing entry' }}
                   render={({ field }) => (
                     <>
                       <label id="howToAccessText" className="input-label" htmlFor="howToAccessText">
-                        How to access
+                        How to access <sup>*</sup>
+                        <i
+                          className="icon mbc-icon info"
+                          tooltip-data={'The content will be displayed under "How to Access" modal \n in Summary page'}
+                        />
                       </label>
                       <div data-color-mode="dark">
                         <MDEditor

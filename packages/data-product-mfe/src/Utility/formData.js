@@ -264,6 +264,8 @@ export const deserializeFormData = ({ item, type = 'provider', isDataProduct = f
           datatransfersAssociated: item?.datatransfersAssociated,
           dataTransferName: item?.dataTransferName,
 
+          createdBy: item?.createdBy,
+
           ...(isConsumerForm && {
             consumer: {
               planningIT: item.consumerFormValues?.consumerInformation?.contactInformation?.appId,
