@@ -113,11 +113,11 @@ const Summary = ({ history, user }) => {
 
     const handleScroll = () => {
       if (window.scrollY + window.innerHeight >= mainPanel.scrollHeight) {
-        accessBtnSetDiv.classList.add('fixed');
-        accessRequestDiv.classList.add('fixed');
+        accessBtnSetDiv?.classList.add('fixed');
+        accessRequestDiv?.classList.add('fixed');
       } else {
-        accessBtnSetDiv.classList.remove('fixed');
-        accessRequestDiv.classList.remove('fixed');
+        accessBtnSetDiv?.classList.remove('fixed');
+        accessRequestDiv?.classList.remove('fixed');
       }
     };
 
