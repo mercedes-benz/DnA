@@ -25,7 +25,6 @@ import ProgressIndicator from '../../../common/modules/uilab/js/src/progress-ind
 import Tabs from '../../../common/modules/uilab/js/src/tabs';
 
 import lockIcon from '../../../assets/lockIcon.png';
-import selfserviceImg from '../../../assets/selfservice.png';
 
 import ConsumerForm from '../../dataTransfer/ConsumerForm';
 import { deserializeFormData, serializeDivisionSubDivision } from '../../../Utility/formData';
@@ -48,14 +47,13 @@ const Summary = ({ history, user }) => {
   const [currentTab, setCurrentTab] = useState('provider');
 
   const [showInfoModal, setShowInfoModal] = useState(false);
-  const [step, setStep] = useState(0);
 
   const [showRequestAccessModal, setShowRequestAccessModal] = useState(false);
-  const [accessRequested, setAccessRequest] = useState(false);
+  const [showHowToAccessModal, setShowHowToAccessModal] = useState(false);
 
   const [showMyDataTransfers, setShowMyDataTransfers] = useState(false);
 
-  const isCreator = selectedDataProduct.providerInformation?.createdBy?.id === user?.id || true;
+  const isCreator = selectedDataProduct?.createdBy?.id === user?.id;
 
   const showContactInformation = selectedDataProduct?.openSegments?.includes('ContactInformation');
   const showConfidentiality = selectedDataProduct?.openSegments?.includes('ClassificationAndConfidentiality');
@@ -109,14 +107,17 @@ const Summary = ({ history, user }) => {
 
   useEffect(() => {
     const mainPanel = document.getElementById('mainPanel');
-    const accessBtnDiv = document.querySelector('.accessBtn');
+    const accessBtnSetDiv = document.querySelector('.accessBtnSet');
+
+    const accessRequestDiv = document.querySelector('.accessRequestInfo');
+
     const handleScroll = () => {
       if (window.scrollY + window.innerHeight >= mainPanel.scrollHeight) {
-        accessBtnDiv.classList.remove('accessBtn');
-        accessBtnDiv.classList.add('accessBtnFixed');
+        accessBtnSetDiv.classList.add('fixed');
+        accessRequestDiv.classList.add('fixed');
       } else {
-        accessBtnDiv.classList.add('accessBtn');
-        accessBtnDiv.classList.remove('accessBtnFixed');
+        accessBtnSetDiv.classList.remove('fixed');
+        accessRequestDiv.classList.remove('fixed');
       }
     };
 
@@ -125,15 +126,17 @@ const Summary = ({ history, user }) => {
     return () => window.removeEventListener('scroll', handleScroll);
 
     //eslint-disable-next-line
-  }, []);
+  }, [isCreator]);
 
   useEffect(() => {
-    // update colors for the markdown editor
-    const mdEditor = document.querySelector('[data-color-mode="dark"]>div.wmde-markdown');
+    if (showInfoModal) {
+      // update colors for the markdown editor
+      const mdEditor = document.querySelector('.mbc-modal [data-color-mode="dark"]>div.wmde-markdown');
 
-    mdEditor.style.setProperty('--color-canvas-default', 'transparent');
-    mdEditor.style.setProperty('font-size', 'inherit');
-  }, []);
+      mdEditor.style.setProperty('--color-canvas-default', 'transparent');
+      mdEditor.style.setProperty('font-size', 'inherit');
+    }
+  }, [showInfoModal]);
 
   useEffect(() => {
     if (selectedDataProduct?.datatransfersAssociated?.length) {
@@ -141,6 +144,12 @@ const Summary = ({ history, user }) => {
       dispatch(SetMyAssociatedDataTransfers(selectedDataProduct?.datatransfersAssociated));
     }
   }, [dispatch, selectedDataProduct?.datatransfersAssociated]);
+
+  useEffect(() => {
+    if (myDataTransfer?.totalCount > 0) {
+      setShowHowToAccessModal(true);
+    }
+  }, [myDataTransfer?.totalCount]);
 
   const setTab = (e) => {
     // e.preventDefault();
@@ -181,36 +190,9 @@ const Summary = ({ history, user }) => {
   );
 
   const infoModalContent = (
-    <>
-      <hr className={Styles.line} />
-      <div className={Styles.modalContent}>
-        <div>
-          {' '}
-          <h5>Step 1 - Role Request</h5>
-          <div>
-            First visit the Role Request Self Service and request the &ldquo;Exploration Self Service ACDOCA Full Scope
-            (OneERP)&rdquo; - role in SBISS/CarLA/Core as shown on the right.{' '}
-          </div>
-        </div>
-        <div>
-          <img src={selfserviceImg} className={Styles.imgGuide} />
-          <div className={Styles.bullets}>
-            {[...Array(4)].map((i, ind) => (
-              <span onClick={() => setStep(ind)} className={ind === step ? Styles.activeBullet : ''} key={ind}></span>
-            ))}
-          </div>
-        </div>
-      </div>
-      <hr className={Styles.line} />
-      <div className={Styles.modalContent}>
-        <div>
-          {' '}
-          <h5>Step 2 - Get started</h5>
-          <div>We will notify you via E-Mail as soon as you can access and use the data product.</div>
-        </div>
-      </div>
-      <hr className={Styles.line} />
-    </>
+    <div data-color-mode="dark">
+      <MDEditor.Markdown source={selectedDataProduct.howToAccessText} />
+    </div>
   );
 
   const requestAccessModalContent = (
@@ -326,13 +308,6 @@ const Summary = ({ history, user }) => {
                         <label className="input-label summary">Data Product Description</label>
                         <br />
                         {selectedDataProduct.description}
-                      </div>
-                    </div>
-                    <div className={Styles.flexLayout}>
-                      <div data-color-mode="dark">
-                        <label className="input-label summary">How to access data catalog</label>
-                        <br />
-                        <MDEditor.Markdown source={selectedDataProduct.howToAccessText} />
                       </div>
                     </div>
                   </div>
@@ -553,22 +528,24 @@ const Summary = ({ history, user }) => {
               </Link>
             </div>
           </div>
-          <div className={Styles.dataTransferSection}>
-            <label className="switch">
-              <span className="label" style={{ marginRight: '5px' }}>
-                Show My Data Transfers
-              </span>
-              <span className="wrapper">
-                <input
-                  value={showMyDataTransfers}
-                  type="checkbox"
-                  className="ff-only"
-                  onChange={handleSwitch}
-                  checked={showMyDataTransfers}
-                />
-              </span>
-            </label>
-          </div>
+          {!isCreator ? (
+            <div className={Styles.dataTransferSection}>
+              <label className="switch">
+                <span className="label" style={{ marginRight: '5px' }}>
+                  Show My Data Transfers
+                </span>
+                <span className="wrapper">
+                  <input
+                    value={showMyDataTransfers}
+                    type="checkbox"
+                    className="ff-only"
+                    onChange={handleSwitch}
+                    checked={showMyDataTransfers}
+                  />
+                </span>
+              </label>
+            </div>
+          ) : null}
           {showMyDataTransfers ? (
             myDataTransfer?.totalCount > 0 ? (
               <>
@@ -595,22 +572,31 @@ const Summary = ({ history, user }) => {
           ) : null}
         </div>
       </div>
-      <div className={'accessBtn'}>
-        {accessRequested ? (
-          <button className="btn btn-tertiary" type="button" onClick={() => setShowInfoModal(true)}>
-            How to access
-          </button>
-        ) : (
+      {!isCreator ? (
+        <div className={classNames('accessBtnSet', !selectedDataProduct.isPublish ? 'indraft' : '')}>
+          {showHowToAccessModal ? (
+            <button className="btn btn-tertiary" type="button" onClick={() => setShowInfoModal(true)}>
+              How to access
+            </button>
+          ) : null}
           <button
-            className={!selectedDataProduct.isPublish ? 'btn' : 'btn btn-tertiary'}
+            className={classNames(!selectedDataProduct.isPublish ? 'btn indraft' : 'btn btn-tertiary')}
             disabled={!selectedDataProduct.isPublish}
             type="button"
             onClick={() => setShowRequestAccessModal(true)}
           >
             Request access
           </button>
-        )}
-      </div>
+        </div>
+      ) : null}
+      {!isCreator && !selectedDataProduct.isPublish ? (
+        <div className="accessRequestInfo">
+          <span>
+            <i className="icon mbc-icon info" />
+          </span>
+          Unable to Request Access as Data Product is in Draft state.
+        </div>
+      ) : null}
       {showInfoModal && (
         <InfoModal
           title="How to access data"
@@ -619,7 +605,6 @@ const Summary = ({ history, user }) => {
           content={infoModalContent}
           onCancel={() => {
             setShowInfoModal(false);
-            setAccessRequest(true);
           }}
         />
       )}
