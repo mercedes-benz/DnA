@@ -40,7 +40,7 @@ export const getAgileReleaseTrains = createAsyncThunk('dropdowns/getAgileRelease
     const res = await dataProductApi.getAllAgileReleaseTrains();
     ProgressIndicator.hide();
     return {
-      data: res.data?.data,
+      data: res.data?.data || [],
     };
   } catch (e) {
     ProgressIndicator.hide();
@@ -57,7 +57,7 @@ export const getCarlaFunctions = createAsyncThunk('dropdowns/getCarlaFunctions',
     const res = await dataProductApi.getAllCarlaFunctions();
     ProgressIndicator.hide();
     return {
-      data: res.data?.data,
+      data: res.data?.data || [],
     };
   } catch (e) {
     ProgressIndicator.hide();
@@ -74,7 +74,7 @@ export const getCorporateDataCatalogs = createAsyncThunk('dropdowns/getCorporate
     const res = await dataProductApi.getAllCorporateDataCatalogs();
     ProgressIndicator.hide();
     return {
-      data: res.data,
+      data: res.data || [],
     };
   } catch (e) {
     ProgressIndicator.hide();
