@@ -24,6 +24,9 @@ const DataProductCardItem = ({ product, history, user, isDataProduct = false }) 
   const name = product?.providerInformation?.contactInformation?.name;
   const productOwnerName = `${name?.firstName} ${name?.lastName}`;
 
+  const consumerFormCreatedBy = product?.consumerInformation?.consumerInformation?.createdBy;
+  const consumerName = `${consumerFormCreatedBy?.firstName} ${consumerFormCreatedBy?.lastName}`;
+
   useEffect(() => {
     const dataProductList = document.querySelectorAll('[class*="cardHeadTitle"]');
     setTooltipIfEllipsisShown(dataProductList);
@@ -91,6 +94,12 @@ const DataProductCardItem = ({ product, history, user, isDataProduct = false }) 
               <div>Created on</div>
               <div>{regionalDateFormat(product?.providerInformation?.createdDate)}</div>
             </div>
+            {isDataProduct ? (
+              <div>
+                <div>Consumed by</div>
+                <div>{consumerName}</div>
+              </div>
+            ) : null}
           </div>
           <hr />
           <div className={Styles.stagesInfo}>
