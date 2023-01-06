@@ -758,6 +758,9 @@ public class SolutionCustomRepositoryImpl extends CommonDataRepositoryImpl<Solut
 				Predicate tempTagCondition = cb.like(cb.lower(
 						cb.function("jsonb_extract_path_text", String.class, root.get("data"), cb.literal("tags"))),
 						"%" + searchTerm + "%");
+				Predicate tempDepartmentCondition = cb.like(cb.lower(
+						cb.function("jsonb_extract_path_text", String.class, root.get("data"), cb.literal("department"))),
+						"%" + searchTerm + "%");
 				Predicate tempDSCondition = cb.like(cb.lower(cb.function("jsonb_extract_path_text", String.class,
 						root.get("data"), cb.literal("dataSources"))), "%" + searchTerm + "%");
 				Predicate tempPlatformCondition = cb.like(cb.lower(cb.function("jsonb_extract_path_text", String.class,
@@ -774,7 +777,7 @@ public class SolutionCustomRepositoryImpl extends CommonDataRepositoryImpl<Solut
 				Predicate tempSkillCondition = cb.like(cb.lower(
 						cb.function("jsonb_extract_path_text", String.class, root.get("data"), cb.literal("skills"))),
 						"%" + searchTerm + "%");
-				Predicate consolidateTempKeyCondition = cb.or(tempProductNameCondition, tempTagCondition,
+				Predicate consolidateTempKeyCondition = cb.or(tempProductNameCondition, tempTagCondition,tempDepartmentCondition,
 						tempDSCondition, tempPlatformCondition, tempLangCondition, tempAlgoCondition,
 						tempVisualizationCondition, tempSkillCondition, divisionCondition);
 				if (anySearchTermConsolidate == null)
