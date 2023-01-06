@@ -27,18 +27,37 @@
 
 package com.daimler.data.service.department;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.daimler.data.db.entities.DepartmentNsql;
+import com.daimler.data.db.repo.department.DepartmentRepository;
 import com.daimler.data.dto.department.DepartmentVO;
 import com.daimler.data.service.common.BaseCommonService;
+import com.daimler.data.service.solution.SolutionService;
 
 @Service
 public class BaseDepartmentService extends BaseCommonService<DepartmentVO, DepartmentNsql, String>
 		implements DepartmentService {
+	
+	@Autowired
+	private DepartmentRepository jpRepo;
+	
+	@Autowired
+	private SolutionService solutionService;
 
 	public BaseDepartmentService() {
 		super();
 	}
 	
+	@Transactional
+	@Override
+	public boolean deleteDepartment(final String departmentIdToDelete) {
+		DepartmentNsql departmentEntity = jpRepo.getOne(departmentIdToDelete);		
+			String departmentName = departmentEntity.getData().getName();
+			solutionService.deleteTagForEachSolution(departmentName, null, SolutionService.TAG_CATEGORY.DEPARTMENT);
+			return deleteById(departmentIdToDelete);		
+				
+	}
 }

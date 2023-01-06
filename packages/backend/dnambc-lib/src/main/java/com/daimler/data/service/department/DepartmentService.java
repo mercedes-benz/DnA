@@ -33,5 +33,7 @@ import com.daimler.data.service.common.CommonService;
 
 public interface DepartmentService extends CommonService<DepartmentVO, DepartmentNsql, String> {
 
+	boolean deleteDepartment(String id);
+
 
 }
