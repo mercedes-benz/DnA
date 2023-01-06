@@ -57,6 +57,7 @@ public class ForecastAssembler implements GenericAssembler<ForecastVO, ForecastN
 					List<RunVO> runs = toRunsVO(data.getRuns());
 					vo.setRuns(runs);
 				}
+				vo.setBucketId(entity.getData().getBucketId());
 			}
 		}
 		return vo;
@@ -152,6 +153,7 @@ public class ForecastAssembler implements GenericAssembler<ForecastVO, ForecastN
 						}).collect(Collectors.toList());
 				data.setRuns(runs);
 			}
+			data.setBucketId(vo.getBucketId());
 			entity.setData(data);
 		}
 		return entity;
