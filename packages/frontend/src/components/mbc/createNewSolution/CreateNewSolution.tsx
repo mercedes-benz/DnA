@@ -357,7 +357,7 @@ export default class CreateNewSolution extends React.Component<ICreateNewSolutio
         const strategicRelevancesList = response[17].data;
         const customerJourneyPhasesLOV = response[18];
         const marketingCommunicationChannelsLOV =response[19];
-
+        const departmentTags =response[20];
         phases.forEach((phase) => {
           switch (phase.id) {
             case '1':
@@ -403,7 +403,8 @@ export default class CreateNewSolution extends React.Component<ICreateNewSolutio
             benefitRelevancesList,
             strategicRelevancesList,
             customerJourneyPhasesLOV,
-            marketingCommunicationChannelsLOV
+            marketingCommunicationChannelsLOV,
+            departmentTags
           },
           () => {
             Button.defaultSetup();
@@ -480,6 +481,7 @@ export default class CreateNewSolution extends React.Component<ICreateNewSolutio
               solution.description.reasonForHoldOrClose = res.reasonForHoldOrClose;
               solution.description.dataStrategyDomain = res.dataStrategyDomain;
               solution.description.additionalResource = res.additionalResource;
+              solution.description.department = res.department;
               // solution.description.neededRoles = res.skills;
               solution.description.requestedFTECount = res.requestedFTECount;
               solution.milestones = res.milestones;
@@ -1007,6 +1009,7 @@ export default class CreateNewSolution extends React.Component<ICreateNewSolutio
         tags: solution.description.tags,
         logoDetails: solution.description.logoDetails,
         attachments: solution.description.attachments,
+        department: solution.description.department,
         team: solution.team.team,
         currentPhase: solution.currentPhase,
         milestones: solution.milestones,
