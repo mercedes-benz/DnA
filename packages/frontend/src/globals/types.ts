@@ -933,6 +933,7 @@ export interface IAllSolutionsListItemCSV {
   skills: INeededRoleObject[];
   existingSolution: boolean;
   additionalResource: string;
+  marketing: IMarketing;
 }
 
 export interface IAllReportsListItemCSV {
