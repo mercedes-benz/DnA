@@ -150,6 +150,23 @@ swaggerSources {
             //dependsOn validation
         }
     }
+    
+    department {
+        def departmentyaml = "${rootDir}/dnambc-lib/src/main/resources/api/Department.yaml"
+        def departmentJson = "${rootDir}/dnambc-lib/src/main/resources/api/Department.json"
+        inputFile = file(departmentyaml)
+
+        def ignoreFile = "${rootDir}/dnambc-lib/src/main/resources/api/.swagger-codegen-ignore"
+
+        code {
+            language = 'spring'
+            configFile = file(departmentJson)
+            rawOptions = ['--ignore-file-override', ignoreFile]
+
+            components = ['models', 'apis']
+            //dependsOn validation
+        }
+    }
 
     datasource {
         def datasourceyaml = "${rootDir}/dnambc-lib/src/main/resources/api/DataSource.yaml"
@@ -598,6 +615,8 @@ compileJava {
     source "${swaggerSources.customerJourneyPhase.code.outputDir}/src/main/java"
     dependsOn swaggerSources.marketingCommunicationChannel.code
     source "${swaggerSources.marketingCommunicationChannel.code.outputDir}/src/main/java"
+    dependsOn swaggerSources.department.code
+    source "${swaggerSources.department.code.outputDir}/src/main/java"
     dependsOn swaggerSources.datasource.code
     source "${swaggerSources.datasource.code.outputDir}/src/main/java"
     dependsOn swaggerSources.datavolume.code
@@ -664,6 +683,7 @@ sourceSets {
         java { srcDirs += "${swaggerSources.algorithm.code.outputDir}/src/main/java" }
         java { srcDirs += "${swaggerSources.customerJourneyPhase.code.outputDir}/src/main/java" }
         java { srcDirs += "${swaggerSources.marketingCommunicationChannel.code.outputDir}/src/main/java" }
+        java { srcDirs += "${swaggerSources.department.code.outputDir}/src/main/java" }
         java { srcDirs += "${swaggerSources.datasource.code.outputDir}/src/main/java" }
         java { srcDirs += "${swaggerSources.datavolume.code.outputDir}/src/main/java" }
         java { srcDirs += "${swaggerSources.division.code.outputDir}/src/main/java" }

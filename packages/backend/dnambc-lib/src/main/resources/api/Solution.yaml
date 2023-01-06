@@ -432,6 +432,10 @@ definitions:
         type: array
         items:
           type: string
+      department:
+        type: string
+        description: "Department of the solution"
+        minLength: 1    
       projectStatus:
         $ref: "#/definitions/SolutionProjectStatusVO"
       division:
