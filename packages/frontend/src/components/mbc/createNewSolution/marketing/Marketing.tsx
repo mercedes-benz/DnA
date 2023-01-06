@@ -1,6 +1,6 @@
 import cn from 'classnames';
 import * as React from 'react';
-import { IResult, IMarketing, IMarketingCustomerJourney } from 'globals/types';
+import { IMarketing, IMarketingCustomerJourney, IMarketingCommunicationChannel } from 'globals/types';
 import Styles from './Marketing.scss';
 import SelectBox from 'components/formElements/SelectBox/SelectBox';
 import TextArea from 'components/mbc/shared/textArea/TextArea';
@@ -44,7 +44,8 @@ export interface IMarketingProps {
   onSaveDraft: (tabToBeSaved: string) => void;
   marketing: IMarketing;
   modifyMarketing: (analytics: IMarketing) => void;
-  results: IResult[];
+  marketingCommunicationChannelsLOV: IMarketingCommunicationChannel[];
+  customerJourneyPhasesLOV: IMarketingCustomerJourney[];
 }
 
 export interface IMarketingState {
@@ -69,7 +70,7 @@ export default class Marketing extends React.Component<IMarketingProps, IMarketi
             personalization: {isChecked: false,description: ''},
             personas: []
           },
-        showDescription: false  
+        showDescription: false,
     };
   }
 
@@ -84,83 +85,89 @@ export default class Marketing extends React.Component<IMarketingProps, IMarketi
             <div className={classNames(Styles.firstPanel)}>
                 <h3>Marketing</h3>
                 <div className={classNames(Styles.formWrapper)}>
-                    <div className={Styles.flexLayout}>   
-                        <div>
-                            <div id="customerJourneyPhaseContainer" className={classNames('input-field-group')}>
-                                <label id="customerJourneyPhaselabel" className="input-label" htmlFor="customerJourneyPhaseSelect">
-                                Customer Journey Phase
-                                </label>
-                                <div id="customerJourneyPhase" className="custom-select">
-                                    <select 
-                                    id="customerJourneyPhaseSelect" 
-                                    multiple={true}
-                                    onChange={this.onCustomerJourneyChange} 
-                                    value={this.state.marketing.customerJourneyPhases.map(item => item.name)}>
-                                    {this.props.results.map((obj) => (
-                                        <option id={obj.name + obj.id} key={obj.id} value={obj.id}>
-                                        {obj.name}
-                                        </option>
-                                    ))}
-                                    </select>
-                                </div>
-                            </div>
-
-                            <div id="marketingCommunicationChannelContainer" className={classNames('input-field-group')}>
-                                <label id="marketingCommunicationChannellabel" className="input-label" htmlFor="marketingCommunicationChannelSelect">
-                                Marketing Communication Channel
-                                </label>
-                                <div id="marketingCommunicationChannel" className="custom-select">
-                                    <select id="marketingCommunicationChannelSelect" 
-                                    multiple={true}
-                                    onChange={this.onMarketingCommunicationChannelChange} 
-                                    value={this.state.marketing.marketingCommunicationChannels.map(item => item.name)}>
-                                    {this.props.results.map((obj) => (
-                                        <option id={obj.name + obj.id} key={obj.id} value={obj.id}>
-                                        {obj.name}
-                                        </option>
-                                    ))}
-                                    </select>
-                                </div>
-                            </div>
-                        </div>   
-                        <div>                
-                            <div>
-                                <label className="checkbox">
-                                    <span className="wrapper">
-                                    <input
-                                        type="checkbox"
-                                        className="ff-only"
-                                        checked={this.state.marketing.personalization.isChecked}
-                                        onChange={this.onPersonalizationCheckBoxChange}
-                                    />
-                                    </span>
-                                    <span className={classNames("label")}>Personalized customer experience</span>
-                                </label>
-                            </div>
-                            {
-                                this.state.marketing.personalization.isChecked ? 
-                                <div className={Styles.description}>
-                                    <TextArea
-                                        controlId={'description'}
-                                        containerId={'descriptionContainer'}
-                                        labelId={'descriptionLabel'}
-                                        label={'Please describe the type of personalization being activated with your use case and the segmentation used to identify the target audience for the marketing activitiy.'}
-                                        rows={50}
-                                        value={''}
-                                        required={true}
-                                        onChange={()=>this.onDescriptionChange}
-                                    />
-                                </div>
-                                : ''
-                            }
-                        </div>                      
+                  <div className={Styles.flexLayout}>   
+                      
+                    <div id="customerJourneyPhaseContainer" className={classNames('input-field-group')}>
+                        <label id="customerJourneyPhaselabel" className="input-label" htmlFor="customerJourneyPhaseSelect">
+                        Customer Journey Phase
+                        </label>
+                        <div id="customerJourneyPhase" className="custom-select">
+                            <select 
+                            id="customerJourneyPhaseSelect" 
+                            multiple={true}
+                            onChange={this.onCustomerJourneyChange} 
+                            value={this.state.marketing.customerJourneyPhases.map(item => item.name)}>
+                            {this.props?.customerJourneyPhasesLOV?.map((obj) => (
+                                <option id={obj.name + obj.id} key={obj.id} value={obj.name}>
+                                {obj.name}
+                                </option>
+                            ))}
+                            </select>
+                        </div>
                     </div>
+
+                    <div id="marketingCommunicationChannelContainer" className={classNames('input-field-group')}>
+                        <label id="marketingCommunicationChannellabel" className="input-label" htmlFor="marketingCommunicationChannelSelect">
+                        Marketing Communication Channel
+                        </label>
+                        <div id="marketingCommunicationChannel" className="custom-select">
+                            <select id="marketingCommunicationChannelSelect" 
+                            multiple={true}
+                            onChange={this.onMarketingCommunicationChannelChange} 
+                            value={this.state.marketing.marketingCommunicationChannels.map(item => item.name)}>
+                            {this.props?.marketingCommunicationChannelsLOV?.map((obj) => (
+                                <option id={obj.name + obj.id} key={obj.id} value={obj.name}>
+                                {obj.name}
+                                </option>
+                            ))}
+                            </select>
+                        </div>
+                    </div>
+                                           
+                  </div>
                 </div>
             </div>
         </div>
+        <div className={classNames(Styles.personalizedExperienceWrapper)}>
+          <div className={classNames(Styles.firstPanel)}>
+            <h3>Personalization</h3>
+            <div className={classNames(Styles.formWrapper)}>
+              <div className={Styles.checkboxWrapper}>
+                  <label className="checkbox">
+                      <span className="wrapper">
+                      <input
+                          type="checkbox"
+                          className="ff-only"
+                          checked={this.state.marketing.personalization.isChecked}
+                          onChange={this.onPersonalizationCheckBoxChange}
+                      />
+                      </span>
+                      <span className={classNames("label")}>Personalized customer experience</span>
+                  </label>
+              </div>
+              {
+                this.state.marketing.personalization.isChecked ? 
+                <div className={Styles.description}>
+                    <TextArea
+                        controlId={'description'}
+                        containerId={'descriptionContainer'}
+                        labelId={'descriptionLabel'}
+                        label={'Please describe the type of personalization being activated with your use case and the segmentation used to identify the target audience for the marketing activitiy.'}
+                        rows={50}
+                        value={this.state.marketing.personalization.description}
+                        required={true}
+                        onChange={this.onDescriptionChange}
+                    />
+                </div>
+                : ''
+              }
+            </div>  
+          </div>              
+        </div> 
         <div className={classNames(Styles.personaWrapper)}>
             <PersonaSelect 
             personas={personas}
+            selectedPersonasList={this.props.marketing.personas}
             onChangePersonas={this.onPersonaChange}></PersonaSelect>
         </div>
         <div className="btnConatiner">
@@ -187,47 +194,52 @@ export default class Marketing extends React.Component<IMarketingProps, IMarketi
 
   protected onCustomerJourneyChange = (e: React.FormEvent<HTMLSelectElement>) => {
     const selectedOptions = e.currentTarget.selectedOptions;
-    const customerJourneyPhase: IMarketingCustomerJourney = { id: null, name: null };
+    const customerJourneyPhases: IMarketingCustomerJourney[] = [];
     if (selectedOptions.length) {
       Array.from(selectedOptions).forEach((option) => {
+        const customerJourneyPhase: IMarketingCustomerJourney = { id: null, name: null };
         customerJourneyPhase.id = option.value;
         customerJourneyPhase.name = option.label;
+        customerJourneyPhases.push(customerJourneyPhase);
       });
     }
     const marketing = this.state.marketing;
-    marketing.customerJourneyPhases.push(customerJourneyPhase);
+    marketing.customerJourneyPhases = customerJourneyPhases;
     this.setState({ marketing });
-    this.props.modifyMarketing(marketing);
   };
   
 
   protected onMarketingCommunicationChannelChange = (e: React.FormEvent<HTMLSelectElement>) => {
     const selectedOptions = e.currentTarget.selectedOptions;
-    const customerJourneyPhase: IMarketingCustomerJourney = { id: null, name: null };
+    const marketingCommunicationChannels: IMarketingCommunicationChannel[] = [];
     if (selectedOptions.length) {
       Array.from(selectedOptions).forEach((option) => {
-        customerJourneyPhase.id = option.value;
-        customerJourneyPhase.name = option.label;
+        const marketingCommunicationChannel: IMarketingCommunicationChannel = { id: null, name: null };
+        marketingCommunicationChannel.id = option.value;
+        marketingCommunicationChannel.name = option.label;
+        marketingCommunicationChannels.push(marketingCommunicationChannel);
       });
     }
     const marketing = this.state.marketing;
-    marketing.customerJourneyPhases.push(customerJourneyPhase);
+    marketing.marketingCommunicationChannels = marketingCommunicationChannels;
     this.setState({ marketing });
-    this.props.modifyMarketing(marketing);
   };
 
-  protected onDescriptionChange = (e: React.FormEvent<HTMLInputElement>) => {
-    const resultUrl = e.currentTarget.value;
-    const marketing = this.state.marketing;
-    marketing.personalization.description = resultUrl;
+  protected onDescriptionChange = (e: React.FormEvent<HTMLTextAreaElement>) => {
+    const desc = e.currentTarget.value;
+    const marketing = this.props.marketing;
+    marketing.personalization.description = desc;
+    this.setState({
+        marketing
+    });
+  };
+
+  protected onPersonaChange = (personas: string[]) => {
+    const marketing = this.props.marketing;
+    marketing.personas = personas;
     this.setState({
         marketing,
-    });
-    this.props.modifyMarketing(marketing);
-  };
-
-  protected onPersonaChange = () => {
-      
+    });  
   }
 
   protected onPersonalizationCheckBoxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
