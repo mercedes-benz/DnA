@@ -1165,7 +1165,7 @@ export interface IMarketing {
   customerJourneyPhases: IMarketingCustomerJourney[];
   marketingCommunicationChannels: IMarketingCommunicationChannel[];
   personalization: IMarketingPersonalization;
-  personas: string[]
+  personas: string[];
 }
 
 export interface IMarketingCommunicationChannel {
