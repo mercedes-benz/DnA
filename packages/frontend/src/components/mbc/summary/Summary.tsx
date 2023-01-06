@@ -25,6 +25,7 @@ import TeamSummary from './team/TeamSummary';
 import Platform from './platform/PlatformSummary';
 
 import LogoImage from '../createNewSolution/description/logoManager/LogoImage/LogoImage';
+import MarketingSummary from './marketing/MarketingSummary';
 
 export interface ISummaryState {
   response?: ICreateNewSolutionResult;
@@ -378,6 +379,9 @@ export default class Summary extends React.Component<{ user: IUserInfo }, ISumma
                     {canShowComplianceSummary ? (
                       <DataComplianceSummary dataCompliance={this.state.solution.datacompliance} />
                     ) : null}
+                    
+                    <MarketingSummary marketing={this.state.solution.marketing} />
+                    
                   </React.Fragment>
                 ) : (
                   ''
@@ -501,6 +505,7 @@ export default class Summary extends React.Component<{ user: IUserInfo }, ISumma
             solution.analytics = res.analytics;
             solution.portfolio = res.portfolio;
             solution.sharing = res.sharing;
+            solution.marketing = res.marketing;
             solution.openSegments = res.openSegments;
             solution.publish = res.publish;
             solution.createdBy = res.createdBy;
