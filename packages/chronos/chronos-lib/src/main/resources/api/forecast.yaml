@@ -753,6 +753,9 @@ definitions:
         bucketName:
             type: string
             description: returns the name of storage bucket where forecast artifacts are stored
+        bucketId:
+          type: string
+          description: returns the id of the storage bucket.
         permission:
             $ref: "#/definitions/ForecastPermissionVO"
         collaborators:
