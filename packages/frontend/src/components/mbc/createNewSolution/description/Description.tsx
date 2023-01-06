@@ -156,7 +156,7 @@ export default class Description extends React.Component<IDescriptionProps, IDes
       dataStrategyDomain: props.description.dataStrategyDomain,
       numberOfRequestedFTE: props.description.requestedFTECount,
       additionalResource: props.description.additionalResource,
-      departmentTags: props.description.department,
+      departmentTags: props.description.department ? [props.description.department] : [],
     };
   }
 
