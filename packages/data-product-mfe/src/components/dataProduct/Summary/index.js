@@ -577,7 +577,7 @@ const Summary = ({ history, user }) => {
           className={classNames(
             'accessBtnSet',
             !selectedDataProduct.isPublish ? 'indraft' : '',
-            myDataTransfer?.totalCount === 0 ? 'nomargin' : '',
+            myDataTransfer?.totalCount === 0 ? 'nomargin' : 'hasmargin',
           )}
         >
           {showHowToAccessModal ? (
