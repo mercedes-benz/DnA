@@ -571,6 +571,7 @@ export interface ICreateNewSolution {
   requestedFTECount: number;
   skills: INeededRoleObject[];
   additionalResource: string;
+  department: string;
 }
 
 export interface INeededRoleObject {
@@ -934,6 +935,7 @@ export interface IAllSolutionsListItemCSV {
   existingSolution: boolean;
   additionalResource: string;
   marketing: IMarketing;
+  department: string;
 }
 
 export interface IAllReportsListItemCSV {
