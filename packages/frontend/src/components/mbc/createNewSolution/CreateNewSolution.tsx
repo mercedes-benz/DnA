@@ -39,6 +39,8 @@ import {
   ILocation,
   ILogoDetails,
   IMarketing,
+  IMarketingCommunicationChannel,
+  IMarketingCustomerJourney,
   IMaturityLevel,
   IMilestonesList,
   IPhase,
@@ -105,6 +107,8 @@ export interface ICreateNewSolutionState {
   strategicRelevancesList: IStrategicRelevance[];
   isProvision: boolean;
   departmentTags: IDepartment[];
+  customerJourneyPhasesLOV: IMarketingCustomerJourney[];
+  marketingCommunicationChannelsLOV: IMarketingCommunicationChannel[];
 }
 
 export interface ICreateNewSolutionProps {
@@ -316,7 +320,9 @@ export default class CreateNewSolution extends React.Component<ICreateNewSolutio
       benefitRelevancesList: [],
       strategicRelevancesList: [],
       isProvision: false,
-      departmentTags: []
+      departmentTags: [],
+      customerJourneyPhasesLOV: [],
+      marketingCommunicationChannelsLOV: []
     };
   }
   public componentWillReceiveProps(nextProps: any) {
@@ -349,6 +355,8 @@ export default class CreateNewSolution extends React.Component<ICreateNewSolutio
         const maturityLevelsList = response[15].data;
         const benefitRelevancesList = response[16].data;
         const strategicRelevancesList = response[17].data;
+        const customerJourneyPhasesLOV = response[18];
+        const marketingCommunicationChannelsLOV =response[19];
 
         phases.forEach((phase) => {
           switch (phase.id) {
@@ -394,6 +402,8 @@ export default class CreateNewSolution extends React.Component<ICreateNewSolutio
             maturityLevelsList,
             benefitRelevancesList,
             strategicRelevancesList,
+            customerJourneyPhasesLOV,
+            marketingCommunicationChannelsLOV
           },
           () => {
             Button.defaultSetup();
@@ -485,7 +495,7 @@ export default class CreateNewSolution extends React.Component<ICreateNewSolutio
               solution.analytics = res.analytics;
               solution.portfolio = res.portfolio;
               solution.sharing = res.sharing;
-              // solution.marketing = res?.marketing;
+              solution.marketing = res?.marketing;
               solution.datacompliance = res.dataCompliance;
               solution.openSegments = res.openSegments;
               solution.publish = res.publish;
@@ -754,7 +764,8 @@ export default class CreateNewSolution extends React.Component<ICreateNewSolutio
                   <Marketing
                     marketing={this.state.solution.marketing}
                     modifyMarketing={this.modifyMarketing}
-                    results={this.state.results}
+                    marketingCommunicationChannelsLOV={this.state.marketingCommunicationChannelsLOV}
+                    customerJourneyPhasesLOV={this.state.customerJourneyPhasesLOV}
                     onSaveDraft={this.onSaveDraft}
                     ref={this.MarketingComponent}
                   />
@@ -960,7 +971,7 @@ export default class CreateNewSolution extends React.Component<ICreateNewSolutio
     this.callApiToSave(this.state.solution.publish, 'marketing');
   };
   protected saveMarketing = () => {
-    this.state.solution.openSegments.push('Sharing');
+    this.state.solution.openSegments.push('Marketing');
     this.setState({ publishFlag: false });
     this.callApiToSave(this.state.solution.publish, 'digitalvalue');
   };

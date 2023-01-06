@@ -332,6 +332,8 @@ export class ApiClient {
       this.get('lov/maturitylevels'),
       this.get('lov/benefitrelevances'),
       this.get('lov/strategicrelevances'),
+      this.get('customerJourneyPhases'),
+      this.get('marketingCommunicationChannels')
     ]);
   }
 
