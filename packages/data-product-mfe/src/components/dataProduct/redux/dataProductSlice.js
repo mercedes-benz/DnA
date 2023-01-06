@@ -136,8 +136,14 @@ export const dataSlice = createSlice({
       };
     },
     resetDataTransferList: (state) => {
-      state.allDataTransfer = [];
-      state.myDataTransfer = [];
+      state.allDataTransfer = {
+        totalCount: 0,
+        records: [],
+      };
+      state.myDataTransfer = {
+        totalCount: 0,
+        records: [],
+      };
     },
   },
 });
