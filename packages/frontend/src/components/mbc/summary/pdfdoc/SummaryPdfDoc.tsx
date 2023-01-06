@@ -1048,6 +1048,57 @@ export const SummaryPdfDoc = (props: SummaryPdfDocProps) => (
               <View />
             )}
             <View style={styles.seperatorLine} />
+            {props.solution.marketing &&
+            (props.solution.marketing.customerJourneyPhases.length > 0 ||
+            props.solution.marketing.marketingCommunicationChannels.length > 0 ||
+            props.solution.marketing.personas > 0 ||
+            props.solution.marketing.personalization.isChecked    
+              ) ? (
+              <View wrap={false}>
+                <Text style={[styles.subTitle, styles.setMarginTop]}>Marketing</Text>
+                <View style={styles.flexLayout}>
+                  <View style={[styles.flexCol4, styles.firstCol]}>
+                    <Text style={styles.sectionTitle}>Customer Journey Phases</Text>
+                    {props.solution.marketing.customerJourneyPhases.length > 0 ? (
+                      <Text>{props.solution.marketing.customerJourneyPhases.map(item=>item.name).join(', ')}</Text>
+                    ) : (
+                      <Text>NA</Text>
+                    )}
+                  </View>
+                  <View style={styles.flexCol4}>
+                    <Text style={styles.sectionTitle}>Marketing Communication Channels</Text>
+                    {props.solution.marketing.marketingCommunicationChannels.length > 0 ? (
+                      <Text>{props.solution.marketing.marketingCommunicationChannels.map(item=>item.name).join(', ')}</Text>
+                    ) : (
+                      <Text>NA</Text>
+                    )}
+                  </View>
+                  <View style={styles.flexCol4}>
+                    <Text style={styles.sectionTitle}>Personas</Text>
+                    {props.solution.marketing.personas.length > 0 ? (
+                      <Text>{props.solution.marketing.personas.join(', ')}</Text>
+                    ) : (
+                      <Text>NA</Text>
+                    )}
+                  </View>
+                  
+                </View>
+                <View style={styles.flexLayout}>
+                  <View style={[styles.flexCol4, styles.firstCol]}>
+                    <Text style={styles.sectionTitle}>Personalisation</Text>
+                    {props.solution.marketing.personalization.isChecked ? (
+                      <Text>{props.solution.marketing.personalization.description}</Text>
+                    ) : (
+                      <Text>NA</Text>
+                    )}
+                  </View>
+                </View>
+                <View style={styles.seperatorLineLight} />
+              </View>
+            ) : (
+              <View />
+            )}
+            <View style={styles.seperatorLine} />
           </View>
         ) : (
           <View />
