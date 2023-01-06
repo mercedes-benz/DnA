@@ -31,11 +31,13 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
+import javax.persistence.EntityNotFoundException;
 import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -43,11 +45,19 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.daimler.data.api.department.DepartmentsApi;
+import com.daimler.data.application.auth.UserStore;
 import com.daimler.data.controller.exceptions.GenericMessage;
+import com.daimler.data.controller.exceptions.MessageDescription;
 import com.daimler.data.dto.department.DepartmentCollection;
 import com.daimler.data.dto.department.DepartmentRequestVO;
 import com.daimler.data.dto.department.DepartmentVO;
+import com.daimler.data.dto.solution.CreatedByVO;
+import com.daimler.data.dto.userinfo.UserInfoVO;
+import com.daimler.data.dto.userinfo.UserRoleVO;
 import com.daimler.data.service.department.DepartmentService;
+import com.daimler.data.service.userinfo.UserInfoService;
+import com.daimler.data.util.ConstantsUtility;
+
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -63,6 +73,12 @@ public class DepartmentController implements DepartmentsApi {
 	
 	@Autowired
 	private DepartmentService departmentService;
+	
+	@Autowired
+	private UserStore userStore;
+	
+	@Autowired
+	private UserInfoService userInfoService;
 
 	@Override
 	@ApiOperation(value = "Adds a new department.", nickname = "create", notes = "Adds a new non existing department which is used in providing solution.", response = DepartmentVO.class, tags={ "departments", })
@@ -137,4 +153,67 @@ public class DepartmentController implements DepartmentsApi {
 		}
 	}
 
+	@Override
+	 @ApiOperation(value = "Deletes the department identified by given ID.", nickname = "delete", notes = "Deletes the department identified by given ID", response = GenericMessage.class, tags={ "departments", })
+    @ApiResponses(value = { 
+        @ApiResponse(code = 200, message = "Successfully deleted.", response = GenericMessage.class),
+        @ApiResponse(code = 400, message = "Bad request"),
+        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+        @ApiResponse(code = 403, message = "Request is not authorized."),
+        @ApiResponse(code = 404, message = "Invalid id, record not found."),
+        @ApiResponse(code = 500, message = "Internal error") })
+    @RequestMapping(value = "/departments/{id}",
+        produces = { "application/json" }, 
+        consumes = { "application/json" },
+        method = RequestMethod.DELETE)
+    public ResponseEntity<GenericMessage> delete(
+			@ApiParam(value = "Id of the department", required = true) @PathVariable("id") String id) {
+		CreatedByVO currentUser = this.userStore.getVO();		
+		try {
+			String userId = currentUser != null ? currentUser.getId() : "";
+			if (userId != null && !"".equalsIgnoreCase(userId)) {
+				UserInfoVO userInfoVO = userInfoService.getById(userId);
+				if (userInfoVO != null) {
+					List<UserRoleVO> userRoleVOs = userInfoVO.getRoles();
+					if (userRoleVOs != null && !userRoleVOs.isEmpty()) {
+						boolean isAdmin = userRoleVOs.stream().anyMatch(n -> "Admin".equalsIgnoreCase(n.getName()));
+						if (userId == null || !isAdmin) {
+							MessageDescription notAuthorizedMsg = new MessageDescription();
+							notAuthorizedMsg.setMessage(
+									"Not authorized to delete department. User does not have admin privileges.");
+							log.debug("User not authorized to delete department. Doesnt have admin privileges");
+							GenericMessage errorMessage = new GenericMessage();
+							errorMessage.addErrors(notAuthorizedMsg);
+							return new ResponseEntity<>(errorMessage, HttpStatus.FORBIDDEN);
+						}
+					}
+				}
+			}
+			DepartmentVO department = departmentService.getById(id);
+			String departmentName = department != null ? department.getName() : "";
+			String userName = departmentService.currentUserName(currentUser);
+			String eventMessage = "department  " + departmentName + " has been deleted by Admin " + userName;
+			departmentService.deleteDepartment(id);
+			userInfoService.notifyAllAdminUsers(ConstantsUtility.SOLUTION_MDM, id, eventMessage, userId, null);
+			GenericMessage successMsg = new GenericMessage();
+			log.info("department with id {} deleted successfully", id);
+			successMsg.setSuccess("success");
+			return new ResponseEntity<>(successMsg, HttpStatus.OK);
+		} catch (EntityNotFoundException e) {
+			log.error("Exception {} while deleting department with id {}, ID not found", e.getLocalizedMessage(), id);
+			MessageDescription invalidMsg = new MessageDescription("No department with the given id");
+			GenericMessage errorMessage = new GenericMessage();
+			errorMessage.addErrors(invalidMsg);
+			return new ResponseEntity<>(errorMessage, HttpStatus.NOT_FOUND);
+		} catch (Exception e) {
+			log.error("Failed to delete department with id {} with exception {} ", id, e.getLocalizedMessage());
+			MessageDescription exceptionMsg = new MessageDescription(
+					"Failed to delete department due to internal error.");
+			GenericMessage errorMessage = new GenericMessage();
+			errorMessage.addErrors(exceptionMsg);
+			return new ResponseEntity<>(errorMessage, HttpStatus.INTERNAL_SERVER_ERROR);
+
+		}
+
+	}
 }
