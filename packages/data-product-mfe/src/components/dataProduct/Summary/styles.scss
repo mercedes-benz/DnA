@@ -191,9 +191,11 @@ hr {
             height: 60px;
             width: 100%;
             background: #1c2026;
+            display: flex;
+            justify-content: flex-end;
+            right: 5vw;
             button {
                 position: fixed;
-                right: 5vw;
                 margin: 8px 0;
                 &:first-child:not(:disabled) {
                     display: block;
@@ -211,6 +213,12 @@ hr {
             }
             &.nomargin button:first-child:not(:disabled) {
                 margin-right: 0;
+            }
+            &.hasmargin button:not(:disabled) {
+                position: relative;
+                &:first-child {
+                    margin-right: 15px;
+                }
             }
         }
 
