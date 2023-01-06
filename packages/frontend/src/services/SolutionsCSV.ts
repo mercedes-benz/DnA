@@ -35,6 +35,7 @@ export const getDataForCSV = (
     { label: 'AttachedFiles', key: 'attachedFiles' },
     { label: 'Bookmarked', key: 'bookmarked' },
     { label: 'Location', key: 'location' },
+    { label: 'Department', key: 'department' },
     { label: 'Expected Benefits', key: 'expectedBenefits' },
     { label: 'Business Need', key: 'businessNeed' },
     { label: 'Register support of additional resources', key: 'additionalResource' },
@@ -102,6 +103,7 @@ export const getDataForCSV = (
     { label: 'AttachedFiles', key: 'attachedFiles' },
     { label: 'Bookmarked', key: 'bookmarked' },
     { label: 'Location', key: 'location' },
+    { label: 'Department', key: 'department' },
     { label: 'Expected Benefits', key: 'expectedBenefits' },
     { label: 'Business Need', key: 'businessNeed' },
     { label: 'Register support of additional resources', key: 'additionalResource' },
@@ -266,6 +268,7 @@ export const getDataForCSV = (
               solution.locations && solution.locations.length > 0
                 ? solution.locations.map((location) => location.name).join('|')
                 : 'NA',
+            department: solution.department ? solution.department : 'NA',    
             expectedBenefits: solution.expectedBenefits ? sanitize(solution.expectedBenefits) : 'NA',
             businessNeed: solution.businessNeed ? sanitize(solution.businessNeed) : 'NA',
             additionalResource: solution.additionalResource ? solution.additionalResource : 'NA',

@@ -523,6 +523,7 @@ export default class Provisionsolution extends React.Component<IProvisionSolutio
         requestedFTECount: solution.description.requestedFTECount,
         skills: solution.neededRoles,
         additionalResource: solution.description.additionalResource,
+        department: solution.description.department
       },
     };
     ProgressIndicator.show();
