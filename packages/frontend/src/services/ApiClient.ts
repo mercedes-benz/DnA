@@ -333,7 +333,8 @@ export class ApiClient {
       this.get('lov/benefitrelevances'),
       this.get('lov/strategicrelevances'),
       this.get('customerJourneyPhases'),
-      this.get('marketingCommunicationChannels')
+      this.get('marketingCommunicationChannels'),
+      this.get('departments')
     ]);
   }
 
