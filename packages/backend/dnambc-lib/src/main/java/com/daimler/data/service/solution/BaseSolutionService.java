@@ -546,6 +546,18 @@ public class BaseSolutionService extends BaseCommonService<SolutionVO, SolutionN
 						soldivision.setSubdivision(null);
 						customRepo.update(solutionNsql);
 					}
+				} else if (category.equals(TAG_CATEGORY.DEPARTMENT)) {
+					changeLog.setChangeDescription("Departments: Department '" + tagName + "' removed.");
+					changeLog.setFieldChanged("/departments/");
+					message = "Department " + tagName + " has been deleted by Admin " + userName
+							+ ". Cascading update to Solution " + solutionName
+							+ " has been applied to remove references.";
+					LOGGER.debug("Deleting Department:{} from solutions.", tagName);
+					String department = solutionNsql.getData().getDepartment();
+					if (StringUtils.hasText(department) && department.equals(tagName)) {
+						solutionNsql.getData().setDepartment(null);
+						customRepo.update(solutionNsql);
+					}					
 				}
 				changeLogs.add(changeLog);
 				LOGGER.debug(
