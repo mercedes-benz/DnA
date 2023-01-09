@@ -9,26 +9,21 @@ export interface IPersonaSelectProps {
 }
 
 const PersonaSelect = (props: IPersonaSelectProps) => {
-  const [selectedPersona, setSelectedPersona] = useState([]);
+  const {selectedPersonasList} = props;
+  const [selectedPersona, setSelectedPersona] = useState(selectedPersonasList !== null ? selectedPersonasList : []);
 
   const handleOnChange = (e:any) => {
     const { value, checked } = e.target;
     if (checked) {
-      setSelectedPersona([...selectedPersona?selectedPersona:[], value]);
+      setSelectedPersona([...selectedPersona, value]);
     } else {
       setSelectedPersona(selectedPersona.filter((persona:any) => persona !== value));
     }
   }
 
-  const {selectedPersonasList} = props;
-
   useEffect(() => {
     props.onChangePersonas(selectedPersona);
   }, [selectedPersona]); 
-
-  useEffect(() => {
-    setSelectedPersona(selectedPersonasList);
-  },[]); 
 
   return (
     <div className={Styles.container}>
@@ -53,7 +48,7 @@ const PersonaSelect = (props: IPersonaSelectProps) => {
                         className="ff-only"
                         id={persona.id}
                         value={persona.value}
-                        checked={selectedPersonasList?.includes(persona.value)}
+                        checked={selectedPersona.length > 0 ? selectedPersona?.includes(persona.value) : false}
                         onChange={(e) => handleOnChange(e)}
                       />
                     </span>
