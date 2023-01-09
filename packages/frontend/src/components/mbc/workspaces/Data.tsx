@@ -16,7 +16,7 @@ const Data = () => {
     <LandingSummary
       title={'Data'}
       subTitle={
-        'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. eiusmod tempor incididunt ut labore et dolore magna aliqua.'
+        'From Data Products to Data Governance - all you need to work is here.'
       }
       tags={['Lorem Ipsum', 'ABC', 'XYZ']}
       headerImage={headerImageURL}

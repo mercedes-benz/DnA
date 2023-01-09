@@ -28,7 +28,7 @@ const Home: React.FC<ILandingpageProps> = () => {
                 <br />
                 analytics - all in one place.
               </h5>
-              <p className={Styles.poweredBy}>powered by CARLA</p>
+              <p className={Styles.poweredBy}>powered by CarLA</p>
             </div>
             <div className={classNames(Styles.dnaRow, Styles.transparencyCol)}>
               <div className={classNames(Styles.dnaCol6, Styles.transparencyCol)}>
@@ -62,7 +62,7 @@ const Home: React.FC<ILandingpageProps> = () => {
               <div className={Styles.dnaCol6}>
                 <DNACard
                   title={'Data'}
-                  description={'From Data Products to Data Governance - all you need to work is here'}
+                  description={'From Data Products to Data Governance - all you need to work is here.'}
                   url={'/data'}
                   isTextAlignLeft={false}
                   isDisabled={false}
