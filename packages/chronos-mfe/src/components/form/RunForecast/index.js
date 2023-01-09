@@ -308,7 +308,7 @@ const RunForecast = ({ onRunClick }) => {
                   <Link to="/help">forecasting guidelines</Link>.
                 </p>
                 <p>
-                  For a quick start you can download the default template (.xlsx) <a href={`/chronos-templates/Chronos_Forecasting_Template.xltx`} download={true}>right here</a>.
+                  For a quick start you can download the default template (.xlsx) <a href={`/chronos-templates/Chronos_Forecasting_Template.xlsx`} download={true}>right here</a>.
                 </p>
               </div>
               {!isSelectedFile ? (
