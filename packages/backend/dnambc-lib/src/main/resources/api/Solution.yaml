@@ -434,8 +434,7 @@ definitions:
           type: string
       department:
         type: string
-        description: "Department of the solution"
-        minLength: 1    
+        description: "Department of the solution"    
       projectStatus:
         $ref: "#/definitions/SolutionProjectStatusVO"
       division:
