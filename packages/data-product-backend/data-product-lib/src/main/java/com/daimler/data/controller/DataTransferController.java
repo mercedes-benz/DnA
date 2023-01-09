@@ -207,7 +207,7 @@ public class DataTransferController implements DatatransfersApi {
         consumes = { "application/json" },
         method = RequestMethod.PUT)
     public ResponseEntity<DataTransferConsumerResponseVO> update(@ApiParam(value = "Request Body that contains data required for updating datatransfer consumer form" ,required=true )  @Valid @RequestBody DataTransferConsumerRequestVO dataTransferConsumerRequestVO){
-		return dataTransferService.updateDataTransferConsumer(dataTransferConsumerRequestVO.getData());
+		return dataTransferService.updateDataTransferConsumer(dataTransferConsumerRequestVO.getData(), false);
 	}
 
 }
