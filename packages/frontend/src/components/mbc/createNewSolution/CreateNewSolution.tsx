@@ -993,6 +993,9 @@ export default class CreateNewSolution extends React.Component<ICreateNewSolutio
       solution.description.division.subdivision.id = null;
       solution.description.division.subdivision.name = null;
     }
+    if (solution.marketing.personalization.isChecked === null){
+      solution.marketing.personalization.isChecked = false;
+    }
     const data: ICreateNewSolutionRequest = {
       data: {
         productName: solution.description.productName,
