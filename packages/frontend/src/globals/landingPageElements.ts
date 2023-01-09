@@ -415,3 +415,58 @@ export const TrainingsLandingPageElements = [
     isMediumCard: true,
   },
 ];
+
+export const CarlaLandingPageElements = [
+  {
+    name: 'Architecture',
+    description:
+      'Amet consetetur lorem ipsum dolor sit amet.',
+    tags: ['Self Service', 'FOSS'],
+    url: '/',
+    isExternalLink: false,
+    isTextAlignLeft: false,
+    isDisabled: false,
+    isSmallCard: false,
+    isMediumCard: false,
+    svgIconId: 'IconDataProducts',
+  },
+  {
+    name: 'Solutions',
+    description:
+      'Amet consetetur lorem ipsum dolor sit amet.',
+    tags: ['Self Service', 'FOSS'],
+    url: '/',
+    isExternalLink: false,
+    isTextAlignLeft: false,
+    isDisabled: false,
+    isSmallCard: false,
+    isMediumCard: false,
+    svgIconId: 'IconDataLayer',
+  },
+  {
+    name: 'Data',
+    description:
+      'Amet consetetur lorem ipsum dolor sit amet.',
+    tags: ['Self Service', 'FOSS'],
+    url: '/',
+    isExternalLink: false,
+    isTextAlignLeft: false,
+    isDisabled: false,
+    isSmallCard: false,
+    isMediumCard: false,
+    svgIconId: 'IconDataLayer',
+  },
+  {
+    name: 'Transactional Data',
+    description:
+      'Amet consetetur lorem ipsum dolor sit amet.',
+    tags: ['Self Service', 'FOSS'],
+    url: '/',
+    isExternalLink: false,
+    isTextAlignLeft: false,
+    isDisabled: false,
+    isSmallCard: false,
+    isMediumCard: false,
+    svgIconId: 'IconDataLayer',
+  },
+];
