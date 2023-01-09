@@ -247,8 +247,11 @@ const CreateDataProduct = ({ user, history }) => {
       </button>
       <FormProvider {...methods}>
         <div className={classNames(Styles.mainPanel)}>
-          <h3 className={classNames(Styles.title)}>
-            {isEditPage ? data?.selectedDataProduct?.productName : 'Add a new Data Product'}
+          <div className={classNames(Styles.screenLabel)}>
+            {isEditPage ? 'Edit Data Product' : 'Add a new Data Product'}
+          </div>
+          <h3 className={classNames(Styles.title, currentTab !== 'description' ? '' : 'hidden')}>
+            {data?.selectedDataProduct?.productName}
           </h3>
           <div id="data-product-tabs" className="tabs-panel">
             <div className="tabs-wrapper">
