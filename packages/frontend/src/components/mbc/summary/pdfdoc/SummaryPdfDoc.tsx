@@ -37,7 +37,6 @@ import ImgProfessionalization from '../../../../assets/images/professionalizatio
 import ImgRollout from '../../../../assets/images/rollout.jpg';
 import jupeterImg from '../../../../assets/images/jupyter-icon.jpg';
 import dataIkuimg from '../../../../assets/images/dataiku-icon.jpg';
-import {totalLocationsCount} from 'globals/constants';
 
 import {
   IAttachment,
@@ -55,7 +54,7 @@ import {
   INotebookInfo,
   IDataiku,
 } from 'globals/types';
-import { TEAMS_PROFILE_LINK_URL_PREFIX } from 'globals/constants';
+import { TEAMS_PROFILE_LINK_URL_PREFIX, TOTAL_LOCATIONS_COUNT } from 'globals/constants';
 import { Envs } from 'globals/Envs';
 import { getDateTimeFromTimestamp, regionalForMonthAndYear } from '../../../../services/utils';
 import { ICreateNewSolutionData } from '../../createNewSolution/CreateNewSolution';
@@ -700,7 +699,7 @@ export const SummaryPdfDoc = (props: SummaryPdfDocProps) => (
             <Text>
               {props.solution.description.location
                 ? props.solution.description.location.length > 0
-                  ? props.solution.description.location.length === totalLocationsCount ? 'All' : props.solution.description.location.map((item: any) => item.name).join(', ')
+                  ? props.solution.description.location.length === TOTAL_LOCATIONS_COUNT ? 'All' : props.solution.description.location.map((item: any) => item.name).join(', ')
                   : 'NA'
                 : 'NA'}
             </Text>
@@ -1048,35 +1047,35 @@ export const SummaryPdfDoc = (props: SummaryPdfDocProps) => (
               <View />
             )}
             <View style={styles.seperatorLine} />
-            {props.solution.marketing &&
-            (props.solution.marketing.customerJourneyPhases.length > 0 ||
-            props.solution.marketing.marketingCommunicationChannels.length > 0 ||
-            props.solution.marketing.personas > 0 ||
-            props.solution.marketing.personalization.isChecked    
+            {props.solution?.marketing &&
+            (props.solution?.marketing?.customerJourneyPhases?.length > 0 ||
+            props.solution?.marketing?.marketingCommunicationChannels?.length > 0 ||
+            props.solution?.marketing?.personas?.length > 0 ||
+            props.solution?.marketing?.personalization?.isChecked    
               ) ? (
               <View wrap={false}>
                 <Text style={[styles.subTitle, styles.setMarginTop]}>Marketing</Text>
                 <View style={styles.flexLayout}>
                   <View style={[styles.flexCol4, styles.firstCol]}>
                     <Text style={styles.sectionTitle}>Customer Journey Phases</Text>
-                    {props.solution.marketing.customerJourneyPhases.length > 0 ? (
-                      <Text>{props.solution.marketing.customerJourneyPhases.map(item=>item.name).join(', ')}</Text>
+                    {props.solution?.marketing?.customerJourneyPhases?.length > 0 ? (
+                      <Text>{props.solution?.marketing?.customerJourneyPhases?.map(item=>item.name).join(', ')}</Text>
                     ) : (
                       <Text>NA</Text>
                     )}
                   </View>
                   <View style={styles.flexCol4}>
                     <Text style={styles.sectionTitle}>Marketing Communication Channels</Text>
-                    {props.solution.marketing.marketingCommunicationChannels.length > 0 ? (
-                      <Text>{props.solution.marketing.marketingCommunicationChannels.map(item=>item.name).join(', ')}</Text>
+                    {props.solution?.marketing?.marketingCommunicationChannels?.length > 0 ? (
+                      <Text>{props.solution?.marketing?.marketingCommunicationChannels?.map(item=>item.name).join(', ')}</Text>
                     ) : (
                       <Text>NA</Text>
                     )}
                   </View>
                   <View style={styles.flexCol4}>
                     <Text style={styles.sectionTitle}>Personas</Text>
-                    {props.solution.marketing.personas.length > 0 ? (
-                      <Text>{props.solution.marketing.personas.join(', ')}</Text>
+                    {props.solution?.marketing?.personas?.length > 0 ? (
+                      <Text>{props.solution?.marketing?.personas?.join(', ')}</Text>
                     ) : (
                       <Text>NA</Text>
                     )}
@@ -1086,8 +1085,8 @@ export const SummaryPdfDoc = (props: SummaryPdfDocProps) => (
                 <View style={styles.flexLayout}>
                   <View style={[styles.flexCol4, styles.firstCol]}>
                     <Text style={styles.sectionTitle}>Personalisation</Text>
-                    {props.solution.marketing.personalization.isChecked ? (
-                      <Text>{props.solution.marketing.personalization.description}</Text>
+                    {props.solution?.marketing?.personalization?.isChecked ? (
+                      <Text>{props.solution?.marketing?.personalization?.description}</Text>
                     ) : (
                       <Text>NA</Text>
                     )}
