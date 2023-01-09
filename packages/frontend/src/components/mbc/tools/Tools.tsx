@@ -18,7 +18,9 @@ const Tools = () => {
       tags={['SAP', 'Self Service', 'No/Low Code', 'FOSS', 'Automation']}
       headerImage={headerImageURL}
       isBackButton={false}
+      isTagsFilter={true}
     >
+      <>
       <div className={Styles.toolsWrapper}>
         {cards.map((card, index) => {
           return (
@@ -32,11 +34,13 @@ const Tools = () => {
               isDisabled={card.isDisabled}
               isSmallCard={card.isSmallCard}
               isMediumCard={card.isMediumCard}
+              svgIcon={card.svgIcon}
               className="tools"
             />
           );
         })}
       </div>
+      </>
     </LandingSummary>
   );
 };
