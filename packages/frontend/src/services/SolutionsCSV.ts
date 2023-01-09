@@ -343,7 +343,7 @@ export const getDataForCSV = (
             comment: solution.sharing ? sanitize(solution.sharing.resultUrl) : 'NA',
             customerJourneyPhases: solution.marketing ? solution.marketing?.customerJourneyPhases.map(item=>item.name).join('|') : 'NA',
             marketingCommunicationChannel: solution.marketing ? solution.marketing?.marketingCommunicationChannels.map(item=>item.name).join('|') : 'NA',
-            personas: solution.marketing ? solution.marketing?.personas.join('|') : 'NA',
+            personas: solution.marketing ? solution.marketing?.personas?.length > 0 ? solution.marketing?.personas?.join('|') : 'NA': 'NA',
             personalization: solution.marketing?.personalization.isChecked,
             personalizationDescription: solution.marketing?.personalization.description ? solution.marketing?.personalization.description : 'NA',
             publish: solution.publish ? 'Yes' : 'No',
