@@ -101,7 +101,7 @@ public class StorageServicesClient {
 				
 				CreatedByVO creatorChronosSystemUser = new CreatedByVO();
 				creatorChronosSystemUser.setId(dataBricksUser);
-				data.setCreator(creatorChronosSystemUser);
+				data.setCreatedBy(creatorChronosSystemUser);
 				
 				requestWrapper.setData(data);
 				HttpEntity<CreateBucketRequestWrapperDto> requestEntity = new HttpEntity<>(requestWrapper,headers);
@@ -192,7 +192,7 @@ public class StorageServicesClient {
 
 			CreatedByVO creatorChronosSystemUser = new CreatedByVO();
 			creatorChronosSystemUser.setId(dataBricksUser);
-			data.setCreator(creatorChronosSystemUser);
+			data.setCreatedBy(creatorChronosSystemUser);
 
 			requestWrapper.setData(data);
 			HttpEntity<UpdateBucketRequestWrapperDto> requestEntity = new HttpEntity<>(requestWrapper, headers);
