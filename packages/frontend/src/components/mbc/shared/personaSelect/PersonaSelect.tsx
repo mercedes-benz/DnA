@@ -53,7 +53,7 @@ const PersonaSelect = (props: IPersonaSelectProps) => {
                         className="ff-only"
                         id={persona.id}
                         value={persona.value}
-                        checked={selectedPersonasList.includes(persona.value)}
+                        checked={selectedPersonasList?.includes(persona.value)}
                         onChange={(e) => handleOnChange(e)}
                       />
                     </span>
