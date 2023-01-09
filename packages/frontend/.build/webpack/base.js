@@ -175,6 +175,7 @@ const base = {
         './DataLayer': './src/components/mbc/workspaces/dataLayer/DataLayer.tsx',
         './DataGovernance': './src/components/mbc/workspaces/dataGovernance/DataGovernance.tsx',
         './Dataiku': './src/components/mbc/dataiku/ListProjects',
+        './HeadingSection': './src/components/mbc/shared/landingSummary/headingSection/HeadingSection.tsx',
       },
       remotes: {
         // object key is used to import
