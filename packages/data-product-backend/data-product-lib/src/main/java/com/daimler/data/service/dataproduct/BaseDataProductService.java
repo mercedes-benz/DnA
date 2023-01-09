@@ -107,7 +107,7 @@ public class BaseDataProductService extends BaseCommonService<DataProductVO, Dat
 
 	@Override
 	public ResponseEntity<DataTransferConsumerResponseVO> updateDataTransferConsumer(ConsumerVO consumerVO) {
-		return dataTransferService.updateDataTransferConsumer(consumerVO);
+		return dataTransferService.updateDataTransferConsumer(consumerVO, true);
 	}
 
 	@Override
