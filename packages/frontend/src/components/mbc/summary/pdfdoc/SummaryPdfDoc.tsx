@@ -54,7 +54,7 @@ import {
   INotebookInfo,
   IDataiku,
 } from 'globals/types';
-import { TEAMS_PROFILE_LINK_URL_PREFIX } from 'globals/constants';
+import { TEAMS_PROFILE_LINK_URL_PREFIX, TOTAL_LOCATIONS_COUNT } from 'globals/constants';
 import { Envs } from 'globals/Envs';
 import { getDateTimeFromTimestamp, regionalForMonthAndYear } from '../../../../services/utils';
 import { ICreateNewSolutionData } from '../../createNewSolution/CreateNewSolution';
@@ -699,7 +699,7 @@ export const SummaryPdfDoc = (props: SummaryPdfDocProps) => (
             <Text>
               {props.solution.description.location
                 ? props.solution.description.location.length > 0
-                  ? props.solution.description.location.map((item: any) => item.name).join(', ')
+                  ? props.solution.description.location.length === TOTAL_LOCATIONS_COUNT ? 'All' : props.solution.description.location.map((item: any) => item.name).join(', ')
                   : 'NA'
                 : 'NA'}
             </Text>
@@ -721,6 +721,12 @@ export const SummaryPdfDoc = (props: SummaryPdfDocProps) => (
           <View style={[styles.flexCol2, styles.firstCol]}>
             <Text style={styles.sectionTitle}>Created On</Text>
             <Text>{props.createdDate ? getDateTimeFromTimestamp(props.createdDate) : '-'}</Text>
+          </View>
+          <View style={[styles.flexCol2]}>
+            <Text style={styles.sectionTitle}>Department</Text>
+            <Text>
+              {props.solution.description?.department ? props.solution.description?.department : 'N/A'}
+            </Text>
           </View>
           <View style={[styles.flexCol2, styles.wideCol]}>
             <Text style={styles.sectionTitle}>Last Modified On</Text>
@@ -1030,6 +1036,57 @@ export const SummaryPdfDoc = (props: SummaryPdfDocProps) => (
                       <Link src={props.solution.sharing.resultUrl}>
                         <Text>{props.solution.sharing.resultUrl}</Text>
                       </Link>
+                    ) : (
+                      <Text>NA</Text>
+                    )}
+                  </View>
+                </View>
+                <View style={styles.seperatorLineLight} />
+              </View>
+            ) : (
+              <View />
+            )}
+            <View style={styles.seperatorLine} />
+            {props.solution?.marketing &&
+            (props.solution?.marketing?.customerJourneyPhases?.length > 0 ||
+            props.solution?.marketing?.marketingCommunicationChannels?.length > 0 ||
+            props.solution?.marketing?.personas?.length > 0 ||
+            props.solution?.marketing?.personalization?.isChecked    
+              ) ? (
+              <View wrap={false}>
+                <Text style={[styles.subTitle, styles.setMarginTop]}>Marketing</Text>
+                <View style={styles.flexLayout}>
+                  <View style={[styles.flexCol4, styles.firstCol]}>
+                    <Text style={styles.sectionTitle}>Customer Journey Phases</Text>
+                    {props.solution?.marketing?.customerJourneyPhases?.length > 0 ? (
+                      <Text>{props.solution?.marketing?.customerJourneyPhases?.map(item=>item.name).join(', ')}</Text>
+                    ) : (
+                      <Text>NA</Text>
+                    )}
+                  </View>
+                  <View style={styles.flexCol4}>
+                    <Text style={styles.sectionTitle}>Marketing Communication Channels</Text>
+                    {props.solution?.marketing?.marketingCommunicationChannels?.length > 0 ? (
+                      <Text>{props.solution?.marketing?.marketingCommunicationChannels?.map(item=>item.name).join(', ')}</Text>
+                    ) : (
+                      <Text>NA</Text>
+                    )}
+                  </View>
+                  <View style={styles.flexCol4}>
+                    <Text style={styles.sectionTitle}>Personas</Text>
+                    {props.solution?.marketing?.personas?.length > 0 ? (
+                      <Text>{props.solution?.marketing?.personas?.join(', ')}</Text>
+                    ) : (
+                      <Text>NA</Text>
+                    )}
+                  </View>
+                  
+                </View>
+                <View style={styles.flexLayout}>
+                  <View style={[styles.flexCol4, styles.firstCol]}>
+                    <Text style={styles.sectionTitle}>Personalisation</Text>
+                    {props.solution?.marketing?.personalization?.isChecked ? (
+                      <Text>{props.solution?.marketing?.personalization?.description}</Text>
                     ) : (
                       <Text>NA</Text>
                     )}
