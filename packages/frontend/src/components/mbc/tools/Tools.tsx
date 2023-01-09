@@ -17,7 +17,7 @@ const Tools = () => {
       }
       tags={['SAP', 'Self Service', 'No/Low Code', 'FOSS', 'Automation']}
       headerImage={headerImageURL}
-      isBackButton={false}
+      isBackButton={true}
       isTagsFilter={true}
     >
       <>
