@@ -51,6 +51,7 @@ export interface IMarketingProps {
 export interface IMarketingState {
   marketing: IMarketing;
   showDescription: boolean;
+  descriptionError: string;
 }
 
 export default class Marketing extends React.Component<IMarketingProps, IMarketingState> {
@@ -71,6 +72,7 @@ export default class Marketing extends React.Component<IMarketingProps, IMarketi
             personas: []
           },
         showDescription: false,
+        descriptionError: null
     };
   }
 
@@ -79,6 +81,7 @@ export default class Marketing extends React.Component<IMarketingProps, IMarketi
   }
 
   public render() {
+    const descriptionError = this.state.descriptionError || '';
     return (
       <React.Fragment>
         <div className={classNames(Styles.marketingWrapper)}>
@@ -138,7 +141,7 @@ export default class Marketing extends React.Component<IMarketingProps, IMarketi
                       <input
                           type="checkbox"
                           className="ff-only"
-                          checked={this.state.marketing.personalization.isChecked}
+                          checked={this.state.marketing?.personalization?.isChecked ? this.state.marketing?.personalization?.isChecked : false}
                           onChange={this.onPersonalizationCheckBoxChange}
                       />
                       </span>
@@ -155,6 +158,7 @@ export default class Marketing extends React.Component<IMarketingProps, IMarketi
                         label={'Please describe the type of personalization being activated with your use case and the segmentation used to identify the target audience for the marketing activitiy.'}
                         rows={50}
                         value={this.state.marketing.personalization.description}
+                        errorText={descriptionError}
                         required={true}
                         onChange={this.onDescriptionChange}
                     />
@@ -187,9 +191,26 @@ export default class Marketing extends React.Component<IMarketingProps, IMarketi
       marketing.personas = this.props?.marketing?.personas;
     }
   };
+  protected validateMarketingForm = () => {
+    let formValid = true;
+    const errorMissingEntry = '*Missing entry';
+    if(this.state.marketing.personalization.isChecked){
+      if(!this.state.marketing.personalization.description || this.state.marketing.personalization.description === ''){
+        this.setState({ descriptionError: errorMissingEntry });
+        formValid = false;
+      }       
+    }
+    setTimeout(() => {
+      const anyErrorDetected = document.querySelector('.error');
+      anyErrorDetected?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 100);
+    return formValid;
+  };
   protected onMarketingSubmit = () => {
-    this.props.modifyMarketing(this.state.marketing);
-    this.props.onSaveDraft('marketing');
+    if (this.validateMarketingForm()) {
+      this.props.modifyMarketing(this.state.marketing);
+      this.props.onSaveDraft('marketing');
+    }
   };
 
   protected onCustomerJourneyChange = (e: React.FormEvent<HTMLSelectElement>) => {
@@ -229,6 +250,11 @@ export default class Marketing extends React.Component<IMarketingProps, IMarketi
     const desc = e.currentTarget.value;
     const marketing = this.props.marketing;
     marketing.personalization.description = desc;
+    if (desc === '' || desc === null) {
+      this.setState({ descriptionError: '*Missing Entry' });
+    } else {
+      this.setState({ descriptionError: '' });
+    }
     this.setState({
         marketing
     });
