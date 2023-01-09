@@ -33,6 +33,7 @@ type SolutionVO {
     analytics: SolutionAnalyticsVO,
     sharing: SolutionSharingVO,
     marketing: SolutionMarketingVO,
+    department: String,
     digitalValue: SolutionDigitalValueVO,
     dataCompliance: SolutionDataComplianceVO,
     portfolio: SolutionPortfolioVO,
