@@ -207,7 +207,11 @@ public class BaseDataTransferService extends BaseCommonService<DataTransferVO, D
 			dataTransferVO.setProviderInformation(providerResponseVO);
 			dataTransferVO.setDataTransferName(uniqueTransferName);
 			dataTransferVO.setNotifyUsers(requestVO.isNotifyUsers());
-			dataTransferVO.setPublish(true);
+			if (isDataProductService != null && isDataProductService) {
+				dataTransferVO.setPublish(true);
+			} else {
+				dataTransferVO.setPublish(false);
+			}
 			dataTransferVO.setDataTransferId("DTF-" + String.format("%05d", dataTransferRepository.getNextSeqId()));
 			dataTransferVO.setRecordStatus(ConstantsUtility.OPEN);
 			dataTransferVO.setId(null);
@@ -393,7 +397,7 @@ public class BaseDataTransferService extends BaseCommonService<DataTransferVO, D
 
 	@Override
 	@Transactional
-	public ResponseEntity<DataTransferConsumerResponseVO> updateDataTransferConsumer(ConsumerVO requestVO) {
+	public ResponseEntity<DataTransferConsumerResponseVO> updateDataTransferConsumer(ConsumerVO requestVO, Boolean isDataProductService) {
 		DataTransferConsumerResponseVO responseVO = new DataTransferConsumerResponseVO();
 		DataTransferVO dataTransferVO = new DataTransferVO();
 		ConsumerVO consumerVO = new ConsumerVO();
@@ -403,7 +407,11 @@ public class BaseDataTransferService extends BaseCommonService<DataTransferVO, D
 			DataTransferVO existingVO = super.getById(id);
 			DataTransferVO mergedVO = null;
 			if (requestVO.isPublish() == null) {
-				requestVO.setPublish(true);
+				if (isDataProductService != null && isDataProductService) {
+					dataTransferVO.setPublish(true);
+				} else {
+					dataTransferVO.setPublish(false);
+				}
 			}
 			if (existingVO != null && existingVO.getRecordStatus() != null
 					&& !existingVO.getRecordStatus().equalsIgnoreCase(ConstantsUtility.DELETED)) {
