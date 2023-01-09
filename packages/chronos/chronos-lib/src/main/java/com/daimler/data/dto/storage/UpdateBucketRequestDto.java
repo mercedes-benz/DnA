@@ -20,7 +20,7 @@ public class UpdateBucketRequestDto {
 	private List<CollaboratorsDto> collaborators;
 	private String classificationType;
 	private Boolean piiData;
-	private CreatedByVO creator;
+	private CreatedByVO createdBy;
 	private Boolean termsOfUse;
 	
 }
