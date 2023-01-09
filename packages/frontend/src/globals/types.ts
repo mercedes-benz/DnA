@@ -554,6 +554,7 @@ export interface ICreateNewSolution {
   milestones?: IMilestonesList;
   analytics?: IAnalytics;
   sharing?: ISharing;
+  marketing?: IMarketing;
   productName: string;
   projectStatus: IProjectStatus;
   openSegments: string[];
@@ -570,6 +571,7 @@ export interface ICreateNewSolution {
   requestedFTECount: number;
   skills: INeededRoleObject[];
   additionalResource: string;
+  department: string;
 }
 
 export interface INeededRoleObject {
@@ -932,6 +934,8 @@ export interface IAllSolutionsListItemCSV {
   skills: INeededRoleObject[];
   existingSolution: boolean;
   additionalResource: string;
+  marketing: IMarketing;
+  department: string;
 }
 
 export interface IAllReportsListItemCSV {
@@ -1158,6 +1162,28 @@ export interface ISharing {
   gitUrl: string;
   result: IResult;
   resultUrl: string;
+}
+
+export interface IMarketing {
+  customerJourneyPhases: IMarketingCustomerJourney[];
+  marketingCommunicationChannels: IMarketingCommunicationChannel[];
+  personalization: IMarketingPersonalization;
+  personas: string[];
+}
+
+export interface IMarketingCommunicationChannel {
+  id: string;
+  name: string;
+}
+
+export interface IMarketingCustomerJourney {
+  id: string;
+  name: string;
+}
+
+export interface IMarketingPersonalization {
+  isChecked: boolean;
+  description: string;
 }
 
 export interface IAttachment {

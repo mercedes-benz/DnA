@@ -10,6 +10,7 @@ import { IDescriptionRequest } from '../../createNewSolution/description/Descrip
 import AttachmentsListItem from '../datacompliance/attachments/AttachmentsListItems';
 import { regionalDateAndTimeConversionSolution } from '../../../../services/utils';
 import Styles from './DescriptionSummary.scss';
+import {TOTAL_LOCATIONS_COUNT} from 'globals/constants';
 
 const classNames = cn.bind(Styles);
 
@@ -270,7 +271,7 @@ export default class DescriptionSummary extends React.Component<IDescriptionSumm
                   <div id="locations">
                     <label className="input-label summary">Location</label>
                     <br />
-                    {locations.join(', ')}
+                    {locations.length === TOTAL_LOCATIONS_COUNT ? 'All' :locations.join(', ')}
                   </div>
                 </div>
                 <div className={classNames(Styles.flexLayout, Styles.threeColumn)}>
@@ -318,6 +319,13 @@ export default class DescriptionSummary extends React.Component<IDescriptionSumm
                     <br />
                     {this.props.createdDate ? regionalDateAndTimeConversionSolution(this.props.createdDate) : '-'}
                   </div>
+                  <div id="department">
+                    <label className="input-label summary">Department</label>
+                    <br />
+                    {description.department ? description.department : 'N/A'}
+                  </div>
+                </div>
+                <div className={classNames(Styles.flexLayout, Styles.threeColumn)}>  
                   <div id="lastModifiedAt">
                     <label className="input-label summary">Last Modified On</label>
                     <br />

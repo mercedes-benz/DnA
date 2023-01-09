@@ -4,6 +4,7 @@ import Styles from './PersonaSelect.scss';
 
 export interface IPersonaSelectProps {
   personas: any;
+  selectedPersonasList: string[];
   onChangePersonas: (e:any) => void;
 }
 
@@ -19,9 +20,15 @@ const PersonaSelect = (props: IPersonaSelectProps) => {
     }
   }
 
+  const {selectedPersonasList} = props;
+
   useEffect(() => {
     props.onChangePersonas(selectedPersona);
-  }, [selectedPersona]);  
+  }, [selectedPersona]); 
+
+  useEffect(() => {
+    setSelectedPersona(selectedPersonasList);
+  },[]); 
 
   return (
     <div className={Styles.container}>
@@ -45,7 +52,8 @@ const PersonaSelect = (props: IPersonaSelectProps) => {
                         type="checkbox"
                         className="ff-only"
                         id={persona.id}
-                        value={persona.id}
+                        value={persona.value}
+                        checked={selectedPersonasList?.includes(persona.value)}
                         onChange={(e) => handleOnChange(e)}
                       />
                     </span>
