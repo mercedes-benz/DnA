@@ -10,7 +10,7 @@ import { getParams } from '../../../router/RouterUtils';
 
 import ConfirmModal from 'components/formElements/modal/confirmModal/ConfirmModal';
 import { USER_ROLE, SOLUTION_LOGO_IMAGE_TYPES } from 'globals/constants';
-import { IBookMarks, ICreateNewSolutionResult, IPhase, IRole, IUserInfo, INotebookInfo, IDataiku } from 'globals/types';
+import { IBookMarks, ICreateNewSolutionResult, IPhase, IRole, IUserInfo, INotebookInfo, IDataiku, IDepartment } from 'globals/types';
 import { history } from '../../../router/History';
 import { ApiClient } from '../../../services/ApiClient';
 import { ICreateNewSolutionData } from '../createNewSolution/CreateNewSolution';
@@ -25,6 +25,7 @@ import TeamSummary from './team/TeamSummary';
 import Platform from './platform/PlatformSummary';
 
 import LogoImage from '../createNewSolution/description/logoManager/LogoImage/LogoImage';
+import MarketingSummary from './marketing/MarketingSummary';
 
 export interface ISummaryState {
   response?: ICreateNewSolutionResult;
@@ -45,6 +46,7 @@ export interface ISummaryState {
   dnaDataIkuProjectEnabled: boolean;
   notebookAndDataIkuNotEnabled: boolean;
   dataSources: any;
+  departmentTags: IDepartment[];
 }
 export interface IAllSolutionsListItem {
   id?: string;
@@ -99,6 +101,7 @@ export default class Summary extends React.Component<{ user: IUserInfo }, ISumma
           dataStrategyDomain: '',
           requestedFTECount: 0,
           additionalResource: '',
+          department: ''
         },
         openSegments: [],
         team: { team: [] },
@@ -116,6 +119,15 @@ export default class Summary extends React.Component<{ user: IUserInfo }, ISumma
             name: '',
           },
           resultUrl: '',
+        },
+        marketing: {
+          customerJourneyPhases: [],
+          marketingCommunicationChannels: [],
+          personalization: {
+              isChecked: false,
+              description: ''
+          },
+          personas: []
         },
         datacompliance: {
           quickCheck: false,
@@ -190,6 +202,7 @@ export default class Summary extends React.Component<{ user: IUserInfo }, ISumma
       dnaDataIkuProjectEnabled: false,
       notebookAndDataIkuNotEnabled: true,
       dataSources: '',
+      departmentTags: []
     };
   }
 
@@ -366,6 +379,9 @@ export default class Summary extends React.Component<{ user: IUserInfo }, ISumma
                     {canShowComplianceSummary ? (
                       <DataComplianceSummary dataCompliance={this.state.solution.datacompliance} />
                     ) : null}
+                    
+                    <MarketingSummary marketing={this.state.solution.marketing} />
+                    
                   </React.Fragment>
                 ) : (
                   ''
@@ -478,6 +494,7 @@ export default class Summary extends React.Component<{ user: IUserInfo }, ISumma
             solution.description.dataStrategyDomain = res.dataStrategyDomain;
             solution.description.additionalResource = res.additionalResource;
             solution.description.requestedFTECount = res.requestedFTECount;
+            solution.description.department = res.department;
             solution.milestones = res.milestones;
             solution.currentPhase = res.currentPhase;
             solution.team.team = res.team;
@@ -489,6 +506,7 @@ export default class Summary extends React.Component<{ user: IUserInfo }, ISumma
             solution.analytics = res.analytics;
             solution.portfolio = res.portfolio;
             solution.sharing = res.sharing;
+            solution.marketing = res.marketing;
             solution.openSegments = res.openSegments;
             solution.publish = res.publish;
             solution.createdBy = res.createdBy;
