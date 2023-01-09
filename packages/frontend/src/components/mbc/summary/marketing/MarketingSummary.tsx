@@ -34,17 +34,17 @@ export default class MarketingSummary extends React.Component<IMarketingProps, a
                             <div id="customerJourneyPhase">
                                 <label className="input-label summary">Customer Journey Phases</label>
                                 <br />
-                                {this.props.marketing.customerJourneyPhases.length > 0 ? this.props.marketing.customerJourneyPhases.map(item=>item.name).join(', ') : 'N/A'}
+                                {this.props?.marketing?.customerJourneyPhases?.length > 0 ? this.props?.marketing?.customerJourneyPhases?.map(item=>item.name).join(', ') : 'N/A'}
                             </div>
                             <div id="marketingCommunicationChannel">
                                 <label className="input-label summary">Marketing Communication Channels</label>
                                 <br />
-                                {this.props.marketing.marketingCommunicationChannels.length > 0 ? this.props.marketing.marketingCommunicationChannels.map(item=>item.name).join(', ') : 'N/A'}
+                                {this.props?.marketing?.marketingCommunicationChannels?.length > 0 ? this.props?.marketing?.marketingCommunicationChannels?.map(item=>item.name).join(', ') : 'N/A'}
                             </div>
                             <div id="personas">
                                 <label className="input-label summary">Personas</label>
                                 <br />
-                                {this.props.marketing.personas.length > 0 ? this.props.marketing.personas.join(', ') : 'N/A'}
+                                {this.props?.marketing?.personas?.length > 0 ? this.props?.marketing?.personas?.join(', ') : 'N/A'}
                             </div>                            
                         </div>
                         <div className={classNames(Styles.flexLayout, Styles.threeColumn)}>
@@ -53,7 +53,7 @@ export default class MarketingSummary extends React.Component<IMarketingProps, a
                                 <br />                    
                                 <div className={Styles.solutionDescription}>
                                     <pre className={Styles.solutionPre}>
-                                        {this.props.marketing.personalization.description}
+                                        {this.props?.marketing?.personalization?.description}
                                     </pre>
                                 </div>
                             </div>
