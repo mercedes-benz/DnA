@@ -8,6 +8,8 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import com.daimler.data.dto.forecast.*;
+import com.daimler.data.dto.storage.*;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -29,21 +31,7 @@ import com.daimler.data.db.json.UserDetails;
 import com.daimler.data.db.repo.forecast.ForecastCustomRepository;
 import com.daimler.data.db.repo.forecast.ForecastRepository;
 import com.daimler.data.dto.databricks.RunNowNotebookParamsDto;
-import com.daimler.data.dto.forecast.ApiKeyVO;
-import com.daimler.data.dto.forecast.DataBricksErrorResponseVO;
-import com.daimler.data.dto.forecast.ForecastProjectUpdateRequestVO;
-import com.daimler.data.dto.forecast.ForecastRunResponseVO;
-import com.daimler.data.dto.forecast.ForecastVO;
-import com.daimler.data.dto.forecast.RunDetailsVO;
-import com.daimler.data.dto.forecast.RunNowResponseVO;
-import com.daimler.data.dto.forecast.RunStateVO;
 import com.daimler.data.dto.forecast.RunStateVO.ResultStateEnum;
-import com.daimler.data.dto.forecast.RunVO;
-import com.daimler.data.dto.forecast.RunVisualizationVO;
-import com.daimler.data.dto.storage.CreateBucketResponseWrapperDto;
-import com.daimler.data.dto.storage.DeleteBucketResponseWrapperDto;
-import com.daimler.data.dto.storage.FileDownloadResponseDto;
-import com.daimler.data.dto.storage.FileUploadResponseDto;
 import com.daimler.data.service.common.BaseCommonService;
 import com.google.gson.JsonArray;
 
@@ -104,6 +92,7 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 		CreateBucketResponseWrapperDto bucketCreationResponse = storageClient.createBucket(vo.getBucketName(),vo.getCreatedBy(),vo.getCollaborators());
 		if(bucketCreationResponse!= null && "SUCCESS".equalsIgnoreCase(bucketCreationResponse.getStatus())) {
 			// To store data on minio once bucket is created.
+			vo.setBucketId(bucketCreationResponse.getData().getId());
 			new ForecastVO();
 			ForecastVO forecastVO = super.create(vo);
 			return forecastVO;
@@ -466,6 +455,48 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 				}
 
 				entity.getData().setCollaborators(exstingcollaborators);
+				List<CollaboratorVO> addCollabratorsList = exstingcollaborators.stream().map(n -> {
+					CollaboratorVO collaborator = new CollaboratorVO();
+					BeanUtils.copyProperties(n, collaborator);
+					return collaborator;
+				}).collect(Collectors.toList());
+
+				if (entity.getData().getBucketId() != null) {
+					UpdateBucketResponseWrapperDto updateBucketResponse = storageClient.updateBucket(entity.getData().getBucketName(), entity.getData().getBucketId(), existingForecast.getCreatedBy(), addCollabratorsList);
+					if (updateBucketResponse.getErrors() != null) {
+						log.error("Failed while saving details of collaborator {} Caused due to Exception {}", existingForecast.getName(), updateBucketResponse.getErrors().get(0).getMessage());
+						MessageDescription msg = new MessageDescription("Failed to save collaborator details.");
+						errors.add(msg);
+						responseMessage.setSuccess("FAILED");
+						responseMessage.setErrors(errors);
+						return responseMessage;
+					}
+				} else {
+					GetBucketByNameResponseWrapperDto getBucketBynameResponse = storageClient.getBucketDetailsByName(entity.getData().getBucketName());
+					if (getBucketBynameResponse != null && getBucketBynameResponse.getId() != null) {
+						// setting bucket Id for the entity.
+						entity.getData().setBucketId(getBucketBynameResponse.getId());
+						UpdateBucketResponseWrapperDto updateBucketResponse = storageClient.updateBucket(entity.getData().getBucketName(), getBucketBynameResponse.getId(), existingForecast.getCreatedBy(), addCollabratorsList);
+						if (updateBucketResponse.getErrors() != null) {
+							log.error("Failed while saving details of collaborator {} Caused due to Exception {}", existingForecast.getName(), updateBucketResponse.getErrors().get(0).getMessage());
+							MessageDescription msg = new MessageDescription("Failed to save collaborator details.");
+							errors.add(msg);
+							responseMessage.setSuccess("FAILED");
+							responseMessage.setErrors(errors);
+							return responseMessage;
+						}
+					} else {
+						if (getBucketBynameResponse.getErrors() != null) {
+							log.error("Failed while saving details of collaborator {} Caused due to Exception {}", existingForecast.getName(), getBucketBynameResponse.getErrors().get(0).getMessage());
+							MessageDescription msg = new MessageDescription("Failed to save collaborator details.");
+							errors.add(msg);
+							responseMessage.setSuccess("FAILED");
+							responseMessage.setErrors(errors);
+							return responseMessage;
+						}
+					}
+				}
+
 				this.jpaRepo.save(entity);
 				responseMessage.setSuccess("SUCCESS");
 			} catch (Exception e) {

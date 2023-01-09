@@ -842,6 +842,7 @@ public class BaseStorageService implements StorageService {
 		String currentUser = userStore.getUserInfo().getId();
 
 		LOGGER.info("Validating Bucket before update.");
+
 		List<MessageDescription> errors = validateUpdateBucket(bucketVo);
 		if (!ObjectUtils.isEmpty(errors)) {
 			responseVO.setStatus(ConstantsUtility.FAILURE);

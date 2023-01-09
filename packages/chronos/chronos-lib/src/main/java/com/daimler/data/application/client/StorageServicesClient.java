@@ -101,7 +101,7 @@ public class StorageServicesClient {
 				
 				CreatedByVO creatorChronosSystemUser = new CreatedByVO();
 				creatorChronosSystemUser.setId(dataBricksUser);
-				data.setCreator(creatorChronosSystemUser);
+				data.setCreatedBy(creatorChronosSystemUser);
 				
 				requestWrapper.setData(data);
 				HttpEntity<CreateBucketRequestWrapperDto> requestEntity = new HttpEntity<>(requestWrapper,headers);
@@ -118,6 +118,96 @@ public class StorageServicesClient {
 					createBucketResponse.setStatus("FAILED");
 				}
 			return createBucketResponse;
+	}
+
+	public GetBucketByNameResponseWrapperDto getBucketDetailsByName(String bucketName) {
+		GetBucketByNameResponseWrapperDto getBucketByNameResonse = new GetBucketByNameResponseWrapperDto();
+		List<MessageDescription> errors = new ArrayList<>();
+		try {
+			HttpHeaders headers = new HttpHeaders();
+			String jwt = httpRequest.getHeader("Authorization");
+			headers.set("Accept", "application/json");
+			headers.set("Authorization", jwt);
+			headers.set("chronos-api-key", dataBricksAuth);
+			headers.setContentType(MediaType.APPLICATION_JSON);
+			String getBucketByNameUrl = storageBaseUri + BUCKETS_PATH + "/" + bucketName;
+
+			HttpEntity<GetBucketByNameRequestWrapperDto> requestEntity = new HttpEntity<>(headers);
+			ResponseEntity<GetBucketByNameResponseWrapperDto> response = restTemplate.exchange(getBucketByNameUrl, HttpMethod.GET, requestEntity, GetBucketByNameResponseWrapperDto.class);
+			if (response.hasBody()) {
+				getBucketByNameResonse = response.getBody();
+			}
+		} catch (Exception e) {
+			log.error("Failed while getting the bucket details of {} with exception {}", bucketName, e.getMessage());
+			MessageDescription errMsg = new MessageDescription("Failed while getting the bucket with name details with exception " + e.getMessage());
+			errors.add(errMsg);
+			getBucketByNameResonse.setErrors(errors);
+			getBucketByNameResonse.setStatus("FAILED");
+		}
+		return getBucketByNameResonse;
+	}
+
+	public UpdateBucketResponseWrapperDto updateBucket(String bucketName, String bucketId, CreatedByVO creator, List<CollaboratorVO> collaborators) {
+		UpdateBucketResponseWrapperDto updateBucketResponse = new UpdateBucketResponseWrapperDto();
+		List<MessageDescription> errors = new ArrayList<>();
+		try {
+			HttpHeaders headers = new HttpHeaders();
+			String jwt = httpRequest.getHeader("Authorization");
+			headers.set("Accept", "application/json");
+			headers.set("Authorization", jwt);
+			headers.set("chronos-api-key", dataBricksAuth);
+			headers.setContentType(MediaType.APPLICATION_JSON);
+
+			String uploadFileUrl = storageBaseUri + BUCKETS_PATH;
+			UpdateBucketRequestWrapperDto requestWrapper = new UpdateBucketRequestWrapperDto();
+			UpdateBucketRequestDto data = new UpdateBucketRequestDto();
+			PermissionsDto permissions = new PermissionsDto();
+			permissions.setRead(true);
+			permissions.setWrite(false);
+			data.setBucketName(bucketName);
+			data.setId(bucketId);
+			data.setClassificationType(BUCKET_CLASSIFICATION);
+			data.setPiiData(PII_DATE_DEFAULT);
+			data.setTermsOfUse(TERMS_OF_USE);
+			if (collaborators != null && !collaborators.isEmpty()) {
+				List<CollaboratorsDto> bucketCollaborators = collaborators.stream().map(n -> {
+					CollaboratorsDto collaborator = new CollaboratorsDto();
+					BeanUtils.copyProperties(n, collaborator);
+					collaborator.setAccesskey(n.getId());
+					collaborator.setPermission(permissions);
+					return collaborator;
+				}).collect(Collectors.toList());
+				data.setCollaborators(bucketCollaborators);
+
+			} else {
+				List<CollaboratorsDto> bucketCollaborators = new ArrayList<>();
+				data.setCollaborators(bucketCollaborators);
+			}
+
+			CollaboratorsDto creatorAsCollab = new CollaboratorsDto();
+			BeanUtils.copyProperties(creator, creatorAsCollab);
+			creatorAsCollab.setAccesskey(creator.getId());
+			creatorAsCollab.setPermission(permissions);
+			data.getCollaborators().add(creatorAsCollab);
+
+			CreatedByVO creatorChronosSystemUser = new CreatedByVO();
+			creatorChronosSystemUser.setId(dataBricksUser);
+			data.setCreatedBy(creatorChronosSystemUser);
+
+			requestWrapper.setData(data);
+			HttpEntity<UpdateBucketRequestWrapperDto> requestEntity = new HttpEntity<>(requestWrapper, headers);
+			ResponseEntity<UpdateBucketResponseWrapperDto> response = restTemplate.exchange(uploadFileUrl, HttpMethod.PUT, requestEntity, UpdateBucketResponseWrapperDto.class);
+			if (response.hasBody()) {
+				updateBucketResponse = response.getBody();
+			}
+		} catch (Exception e) {
+			log.error("Failed while updating the bucket {} with exception {}", bucketName, e.getMessage());
+			MessageDescription errMsg = new MessageDescription("Failed while updating the bucket with exception " + e.getMessage());
+			errors.add(errMsg);
+			updateBucketResponse.setErrors(errors);
+			updateBucketResponse.setStatus("FAILED");
+		}
+		return updateBucketResponse;
 	}
 	
 	public FileUploadResponseDto uploadFile(MultipartFile file,String bucketName) {
