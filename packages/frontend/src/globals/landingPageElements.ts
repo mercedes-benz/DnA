@@ -414,6 +414,18 @@ export const TrainingsLandingPageElements = [
     isSmallCard: false,
     isMediumCard: true,
   },
+  {
+    name: 'Databricks',
+    description:
+      'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. eiusmod tempor incididunt ut labore et dolore magna aliqua.',
+    tags: ['Self Service', 'FOSS'],
+    url: Envs.DATABRICKS_TRAINING_URL,
+    isExternalLink: true,
+    isTextAlignLeft: false,
+    isDisabled: false,
+    isSmallCard: false,
+    isMediumCard: true,
+  },
 ];
 
 export const CarlaLandingPageElements = [
