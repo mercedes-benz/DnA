@@ -358,7 +358,7 @@ export default class AllSolutions extends React.Component<
           tags={['Lorem Ipsum', 'ABC', 'XYZ']}
           headerImage={headerImageURL}
           isBackButton={enablePortfolioSolutionsView}
-          isTagsFilter={!enablePortfolioSolutionsView}>
+          isTagsFilter={false}>
             <div className={Styles.Workspaces}>
               <div
                 className={classNames(
