@@ -134,4 +134,4 @@ export const RolesInfoList = [
   },
 ];
 
-export const totalLocationsCount = 162;
+export const TOTAL_LOCATIONS_COUNT = 162;
