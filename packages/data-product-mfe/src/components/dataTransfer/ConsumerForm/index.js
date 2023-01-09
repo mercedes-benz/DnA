@@ -269,7 +269,14 @@ const ConsumerForm = ({ user, history, isDataProduct = false, callbackFn }) => {
       ) : null}
       <FormProvider {...methods}>
         <div className={classNames(Styles.mainPanel)}>
-          {!isDataProduct ? <h3 className={classNames(Styles.title)}>Data Receiving Side</h3> : null}
+          {!isDataProduct ? (
+            <>
+              <div className={classNames(Styles.screenLabel)}>Data Receiving Side</div>
+              <h3 className={classNames(Styles.title, currentTab !== 'provider-summary' ? '' : 'hidden')}>
+                {provideDataTransfers.selectedDataTransfer?.productName}
+              </h3>{' '}
+            </>
+          ) : null}
           <div id="data-product-tabs" className="tabs-panel">
             <div className="tabs-wrapper">
               <nav>
