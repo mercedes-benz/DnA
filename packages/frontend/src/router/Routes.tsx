@@ -37,6 +37,7 @@ const UserSettings = React.lazy(() => import('components/mbc/userSettings/userSe
 const CodeSpace = React.lazy(() => import('components/mbc/codeSpace/CodeSpace'));
 const AllCodeSpaces = React.lazy(() => import('components/mbc/codeSpace/AllCodeSpaces'));
 const Trainings = React.lazy(() => import('components/mbc/trainings/Trainings'));
+const Carla = React.lazy(() => import('components/mbc/carla/Carla'));
 
 // Micro Front End Component
 const StorageComponent = React.lazy(() => import('storage-mfe/Bucket'));
@@ -226,6 +227,13 @@ const protectedRoutes = [
     exact: false,
     path: '/trainings',
     title: 'Trainings',
+  },
+  {
+    allowedRoles: UserAndAdminRole,
+    component: Carla,
+    exact: false,
+    path: '/carla',
+    title: 'Carla',
   },
   {
     allowedRoles: UserAndAdminRole,
