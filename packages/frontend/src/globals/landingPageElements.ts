@@ -18,7 +18,7 @@ export const DataLayerElements = [
   {
     name: 'Data Model',
     description:
-      'Data is one of the most valuable assets in our company, therefore we treat our data as a product! We offer you a growing selection of intuitive to use and well documented data products - check it out!',
+      'The Data Model shows the most important Master data dimensions and how they relate to each other.',
     tags: ['Self Service', 'FOSS'],
     url: '',
     isExternalLink: false,
@@ -31,7 +31,7 @@ export const DataLayerElements = [
   {
     name: 'KPI Wiki',
     description:
-      'Data is one of the most valuable assets in our company, therefore we treat our data as a product! We offer you a growing selection of intuitive to use and well documented data products - check it out!',
+      'Find approved definitions of the most commonly used KPIs.',
     tags: ['Self Service', 'FOSS'],
     url: '',
     isExternalLink: true,
@@ -44,7 +44,7 @@ export const DataLayerElements = [
   {
     name: 'CarLA Economic Model',
     description:
-      'Data is one of the most valuable assets in our company, therefore we treat our data as a product! We offer you a growing selection of intuitive to use and well documented data products - check it out!',
+      'The CarLA Economic Model is the orientation guide for all functions of the CarLA. This CarLA-City-Map gives you a first overview about the functions of the CarLA, which are clustered in 5 focus areas.',
     tags: ['Self Service', 'FOSS'],
     url: '',
     isExternalLink: false,
@@ -57,7 +57,7 @@ export const DataLayerElements = [
   {
     name: 'Corporate Data Catalogue',
     description:
-      'Data is one of the most valuable assets in our company, therefore we treat our data as a product! We offer you a growing selection of intuitive to use and well documented data products - check it out!',
+      'Catalog of Mercedes-Benz data assets. If you never logged in the CDC before, a user will be generated for your this can take a while. CarLA systems can be found by searching for CarLA.',
     tags: ['Self Service', 'FOSS'],
     url: '',
     isExternalLink: false,
@@ -70,7 +70,7 @@ export const DataLayerElements = [
   {
     name: 'SAP Connection Book',
     description:
-      'Data is one of the most valuable assets in our company, therefore we treat our data as a product! We offer you a growing selection of intuitive to use and well documented data products - check it out!',
+      'List of all source systems connected to the CarLA Core Datawarehouse and the names of the targets where the data from the source system is written to.',
     tags: ['Self Service', 'FOSS'],
     url: '',
     isExternalLink: false,
@@ -83,7 +83,7 @@ export const DataLayerElements = [
   {
     name: 'Smart Data Governance',
     description:
-      'Data is one of the most valuable assets in our company, therefore we treat our data as a product! We offer you a growing selection of intuitive to use and well documented data products - check it out!',
+      'Information on the compliance with architecture guidelines and the data volume in the CarLA Core Datawarehouse.',
     tags: ['Self Service', 'FOSS'],
     url: '',
     isExternalLink: false,
@@ -99,7 +99,7 @@ export const DataGovernanceElements = [
   {
     name: 'DGO Social Intranet',
     description:
-      'Data is one of the most valuable assets in our company, therefore we treat our data as a product! We offer you a growing selection of intuitive to use and well documented data products - check it out!',
+      'The Data Governance Office is your single point of contact around Data Compliance & Data Protection, Data Management, (Business) Information Security and Data@Cloud questions.',
     tags: ['Self Service', 'FOSS'],
     url: Envs.DATA_GOVERNANCE_INFO_LINK,
     isExternalLink: true,
@@ -112,7 +112,7 @@ export const DataGovernanceElements = [
   {
     name: 'Minimum Information',
     description:
-      'Data is one of the most valuable assets in our company, therefore we treat our data as a product! We offer you a growing selection of intuitive to use and well documented data products - check it out!',
+      'Sharing Data? Fill out the required Minimum Information (Policy A22) to let the receiving side know of any restriction when using the data.',
     tags: ['Self Service', 'FOSS'],
     url: '/data/datasharing/create',
     isExternalLink: false,
@@ -125,7 +125,7 @@ export const DataGovernanceElements = [
   {
     name: 'LCO/LCR Contacts',
     description:
-      'Data is one of the most valuable assets in our company, therefore we treat our data as a product! We offer you a growing selection of intuitive to use and well documented data products - check it out!',
+      'The Local Compliance Officers/Responsibles are your primary contacts on all compliance topics.',
     tags: ['Self Service', 'FOSS'],
     url: '/data/datacompliancenetworklist',
     isExternalLink: false,
@@ -364,7 +364,7 @@ export const TranparencyLandingPageElements = [
   {
     name: 'Portfolio',
     description:
-      'Data is one of the most valuable assets in our company, therefore we treat our data as a product! We offer you a growing selection of intuitive to use and well documented data products - check it out!',
+      'All your solutions at a glance and visualized for steering.',
     tags: ['Self Service', 'FOSS'],
     url: '/portfolio',
     isExternalLink: false,
@@ -377,7 +377,7 @@ export const TranparencyLandingPageElements = [
   {
     name: 'Solutions',
     description:
-      'Data is one of the most valuable assets in our company, therefore we treat our data as a product! We offer you a growing selection of intuitive to use and well documented data products - check it out!',
+      'Central place to search, find and create all MB Data & Analytics Solutions.',
     tags: ['Self Service', 'FOSS'],
     url: '/allsolutions',
     isExternalLink: false,
@@ -390,7 +390,7 @@ export const TranparencyLandingPageElements = [
   {
     name: 'Reports',
     description:
-      'Data is one of the most valuable assets in our company, therefore we treat our data as a product! We offer you a growing selection of intuitive to use and well documented data products - check it out!',
+      'Full transparency about reports from various sources. Process of collection to be defined.',
     tags: ['Self Service', 'FOSS'],
     url: '/allreports',
     isExternalLink: false,
@@ -403,7 +403,7 @@ export const TranparencyLandingPageElements = [
   {
     name: 'Data Sharing',
     description:
-      'Data is one of the most valuable assets in our company, therefore we treat our data as a product! We offer you a growing selection of intuitive to use and well documented data products - check it out!',
+      'Leverage the value of Data by sharing them in a fully compliant way.',
     tags: ['Self Service', 'FOSS'],
     url: '/data/datasharing',
     isExternalLink: false,
@@ -432,7 +432,7 @@ export const DataLandingPageElements = [
   {
     name: 'Data Layer',
     description:
-      'Data is one of the most valuable assets in our company, therefore we treat our data as a product! We offer you a growing selection of intuitive to use and well documented data products - check it out!',
+      'Official information and definitions of CarLA applications, key figures and FC data.',
     tags: ['Self Service', 'FOSS'],
     url: '/data/datalayer',
     isExternalLink: false,
@@ -445,7 +445,7 @@ export const DataLandingPageElements = [
   {
     name: 'Data Governance',
     description:
-      'Data is one of the most valuable assets in our company, therefore we treat our data as a product! We offer you a growing selection of intuitive to use and well documented data products - check it out!',
+      'Understanding & fulfilling ever more complex Legal & Compliance requirements can be challenging. Data Governance helps you to navigate through these requirements and supports on you data journey.',
     tags: ['Self Service', 'FOSS'],
     url: '/data/datagovernance',
     isExternalLink: false,
@@ -461,7 +461,7 @@ export const TrainingsLandingPageElements = [
   {
     name: 'Udemy',
     description:
-      'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. eiusmod tempor incididunt ut labore et dolore magna aliqua.',
+      'If you\'re an IT employee or want to build IT knowledge, there are more than 18,000 courses available in Udemy Business. You can also orient yourself on specially defined learning paths for special skills and roles.',
     tags: ['Self Service', 'FOSS'],
     url: Envs.UDEMY_URL,
     isExternalLink: true,
@@ -469,12 +469,12 @@ export const TrainingsLandingPageElements = [
     isDisabled: false,
     isSmallCard: false,
     isMediumCard: false,
-    svgIconId: 'IconDataProducts',
+    svgIconId: 'tools-mini',
   },
   {
     name: 'LinkedIn Learning',
     description:
-      'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. eiusmod tempor incididunt ut labore et dolore magna aliqua.',
+      'The learning platform LinkedIn Learning enables employees as well as leaders to individualize their learning experience and become lifelong learners. Following the Turn2Learn idea of voluntary participation and self-motivation of all learners.',
     tags: ['Self Service', 'FOSS'],
     url: Envs.LINKEDIN_LEARNING_URL,
     isExternalLink: true,
@@ -482,12 +482,12 @@ export const TrainingsLandingPageElements = [
     isDisabled: false,
     isSmallCard: false,
     isMediumCard: false,
-    svgIconId: 'IconDataLayer',
+    svgIconId: 'tools-mini',
   },
   {
     name: 'Dataiku',
     description:
-      'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. eiusmod tempor incididunt ut labore et dolore magna aliqua.',
+      'To support your continuous learning and development on DSS, Dataiku provides a free online Academy, a safe place to learn at your own pace with detailed concept videos and step-by-step tutorials.',
     tags: ['Self Service', 'FOSS'],
     url: Envs.DATAIKU_TRAINING_APP_URL,
     isExternalLink: true,
@@ -495,12 +495,12 @@ export const TrainingsLandingPageElements = [
     isDisabled: false,
     isSmallCard: false,
     isMediumCard: false,
-    svgIconId: 'IconDataLayer',
+    svgIconId: 'dataiku-new',
   },
   {
     name: 'PowerBI',
     description:
-      'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. eiusmod tempor incididunt ut labore et dolore magna aliqua.',
+      'Learn new skills and discover the power of Microsoft Power BI with step-by-step guidance. Start your journey today by exploring the Microsoft learning paths and modules for free.',
     tags: ['Self Service', 'FOSS'],
     url: Envs.POWERBI_TRAINING_URL,
     isExternalLink: true,
@@ -508,12 +508,12 @@ export const TrainingsLandingPageElements = [
     isDisabled: false,
     isSmallCard: false,
     isMediumCard: false,
-    svgIconId: 'IconDataLayer',
+    svgIconId: 'powerbi',
   },
   {
     name: 'SAC',
     description:
-      'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. eiusmod tempor incididunt ut labore et dolore magna aliqua.',
+      'To support your continuous learning and development in the SAP Analytics Cloud, we offer SAC Basic Training Modules as web trainings and a self-service track with selected videos and screencasts of the SAC Basic Training Module content.',
     tags: ['Self Service', 'FOSS'],
     url: Envs.SAC_TRAINING_URL,
     isExternalLink: true,
@@ -521,11 +521,12 @@ export const TrainingsLandingPageElements = [
     isDisabled: false,
     isSmallCard: false,
     isMediumCard: true,
+    svgIconId: 'sac',
   },
   {
     name: 'Databricks',
     description:
-      'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. eiusmod tempor incididunt ut labore et dolore magna aliqua.',
+      'On the Databricks Lakehouse Platform you have the opportunity to carry out tailor-made learning paths for different roles and career paths. These pathways include self-paced courses, instructor-led training, and certifications or accreditations where appropriate.',
     tags: ['Self Service', 'FOSS'],
     url: Envs.DATABRICKS_TRAINING_URL,
     isExternalLink: true,
@@ -533,14 +534,15 @@ export const TrainingsLandingPageElements = [
     isDisabled: false,
     isSmallCard: false,
     isMediumCard: true,
+    svgIconId: 'tools-mini',
   },
 ];
 
-export const CarlaLandingPageElements = [
+export const CarLALandingPageElements = [
   {
     name: 'Architecture',
     description:
-      'Amet consetetur lorem ipsum dolor sit amet.',
+      'Within our CarLA we use several governance tools to ensure that we achieve our goals of a redundancy free and efficient functions and data architecture for Finance and Controlling. An overview of the content and data flows can be found in the Economic Model CarLA.',
     tags: ['Self Service', 'FOSS'],
     url: '/',
     isExternalLink: false,
@@ -553,7 +555,7 @@ export const CarlaLandingPageElements = [
   {
     name: 'Solutions',
     description:
-      'Amet consetetur lorem ipsum dolor sit amet.',
+      'CarLA Solutions are at the heart of our landscape and provide data and functions to business users to answer their questions and create their plannings or reports.',
     tags: ['Self Service', 'FOSS'],
     url: '/allsolutions',
     isExternalLink: false,
@@ -566,7 +568,7 @@ export const CarlaLandingPageElements = [
   {
     name: 'Data',
     description:
-      'Amet consetetur lorem ipsum dolor sit amet.',
+      'Data is the foundation for the CarLA solutions. Ready to share data products and data governance can be found here.',
     tags: ['Self Service', 'FOSS'],
     url: '/data',
     isExternalLink: false,
@@ -579,7 +581,7 @@ export const CarlaLandingPageElements = [
   {
     name: 'Transactional Data',
     description:
-      'Amet consetetur lorem ipsum dolor sit amet.',
+      'A large part of the relevant data in Finance Controlling will be generated by OneERP. OneERP will be the single source of truth for actuals data for major plants. The methods and process for OneERP can be found in the Economic Model OneERP.',
     tags: ['Self Service', 'FOSS'],
     url: '/',
     isExternalLink: false,
