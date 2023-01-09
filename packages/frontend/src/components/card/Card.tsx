@@ -54,7 +54,7 @@ const DNACard = (props: IDNACardProps) => {
           ) : (
             ''
           )}
-          {props.upperTag ? (
+          {props.upperTag && !props.isDisabled ? (
             <p className={Styles.upperTag}>{props.upperTag}</p>
           ) : (
             ''
@@ -68,7 +68,7 @@ const DNACard = (props: IDNACardProps) => {
               props.svgIcon
             )
           ) : (
-            <IconWrapper />
+            <IconWrapper size="100"/>
           )}
         </div>
         <div
