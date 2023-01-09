@@ -260,7 +260,10 @@ const ProviderForm = ({ user, history }) => {
       </button>
       <FormProvider {...methods}>
         <div className={classNames(Styles.mainPanel)}>
-          <h3 className={classNames(Styles.title)}>Data Providing Side</h3>
+          <div className={classNames(Styles.screenLabel)}>Data Providing Side</div>
+          <h3 className={classNames(Styles.title, currentTab !== 'contact-info' ? '' : 'hidden')}>
+            {provideDataTransfers.selectedDataTransfer?.productName}
+          </h3>
           <div id="data-product-tabs" className="tabs-panel">
             <div className="tabs-wrapper">
               <nav>
