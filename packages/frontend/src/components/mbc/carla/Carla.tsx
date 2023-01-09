@@ -2,7 +2,7 @@ import React from 'react';
 import Styles from './Carla.scss';
 import DNACard from 'components/card/Card';
 import LandingSummary from '../shared/landingSummary/LandingSummary';
-import headerImageURL from '../../../assets/images/Tools-Landing.png';
+import headerImageURL from '../../../assets/images/CarLA-Landing.png';
 
 import { CarlaLandingPageElements } from 'globals/landingPageElements';
 
@@ -31,7 +31,8 @@ const Carla = () => {
               isDisabled={card.isDisabled}
               isSmallCard={card.isSmallCard}
               isMediumCard={card.isMediumCard}
-              className="transparency"
+              svgIcon={card.svgIconId}
+              className="carla"
             />
           );
         })}
