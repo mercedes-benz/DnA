@@ -14,7 +14,7 @@ const PersonaSelect = (props: IPersonaSelectProps) => {
   const handleOnChange = (e:any) => {
     const { value, checked } = e.target;
     if (checked) {
-      setSelectedPersona([...selectedPersona, value]);
+      setSelectedPersona([...selectedPersona?selectedPersona:[], value]);
     } else {
       setSelectedPersona(selectedPersona.filter((persona:any) => persona !== value));
     }
