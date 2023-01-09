@@ -2,13 +2,16 @@
     padding: 50px 75px 0px 75px;
 }
 
+.screenLabel {
+    line-height: 40px;
+    font-size: 20px;
+}
 .title {
-    justify-content: center;
+    text-align: center;
     font-size: var(--font-size-section-headline);
     margin-bottom: 40px;
     min-height: 30px;
 }
-
 .backBtn {
     position: relative;
     top: 35px;
