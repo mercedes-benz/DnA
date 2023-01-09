@@ -856,6 +856,16 @@ export class ApiClient {
             name
           }
         },
+        department,
+        marketing {
+          customerJourneyPhases{id, name},
+          marketingCommunicationChannels{id, name},
+          personalization {
+            isChecked,
+            description
+          },
+          personas
+        },
         dataCompliance {
           expertGuidelineNeeded,
           readyForImplementation,
