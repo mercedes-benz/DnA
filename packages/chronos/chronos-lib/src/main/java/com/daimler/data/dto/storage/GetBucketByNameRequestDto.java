@@ -13,13 +13,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class CreateBucketRequestDto {
+public class GetBucketByNameRequestDto {
 
 	private String bucketName;
-	private List<CollaboratorsDto> collaborators;
-	private String classificationType;
-	private Boolean piiData;
-	private CreatedByVO createdBy;
-	private Boolean termsOfUse;
-	
+	private String id;	
 }
