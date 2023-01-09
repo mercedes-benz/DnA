@@ -25,6 +25,7 @@ import {
   IDataCompliance,
   IDataSource,
   IDataVolume,
+  IDepartment,
   // ILanguage,
   IDigitalValue,
   IDivision,
@@ -80,6 +81,7 @@ export interface IProvisionSolutionState {
   benefitRelevancesList: IBenefitRelevance[];
   strategicRelevancesList: IStrategicRelevance[];
   isProvision: boolean;
+  departmentTags: IDepartment[];
 }
 
 export interface IProvisionSolutionProps {
@@ -125,6 +127,7 @@ export interface IDescriptionRequest {
   dataStrategyDomain: string;
   requestedFTECount: number;
   additionalResource: string;
+  department: string;
 }
 
 export default class Provisionsolution extends React.Component<IProvisionSolutionProps, IProvisionSolutionState> {
@@ -193,6 +196,7 @@ export default class Provisionsolution extends React.Component<IProvisionSolutio
           dataStrategyDomain: '',
           requestedFTECount: 0,
           additionalResource: '',
+          department: ''
         },
         openSegments: [],
         team: [],
@@ -251,6 +255,7 @@ export default class Provisionsolution extends React.Component<IProvisionSolutio
       benefitRelevancesList: [],
       strategicRelevancesList: [],
       isProvision: true,
+      departmentTags: []
     };
   }
   public render() {
@@ -273,6 +278,7 @@ export default class Provisionsolution extends React.Component<IProvisionSolutio
               projectStatuses={this.state.projectStatuses}
               relatedProductsMaster={this.state.relatedProductsMaster}
               businessGoalsList={this.state.businessGoalsList}
+              departmentTags={this.state.departmentTags}
               description={this.state.solution.description}
               modfifyDescription={this.modifySolutionDescription}
               onSaveDraft={this.onSaveDraft}
@@ -517,6 +523,7 @@ export default class Provisionsolution extends React.Component<IProvisionSolutio
         requestedFTECount: solution.description.requestedFTECount,
         skills: solution.neededRoles,
         additionalResource: solution.description.additionalResource,
+        department: solution.description.department
       },
     };
     ProgressIndicator.show();
