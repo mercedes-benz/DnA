@@ -172,8 +172,8 @@ export default class AllReports extends React.Component<
       csvHeader: [],
       clickedCsvDownload: false,
       flagForSubDivision: 0,
-      listViewMode: true,
-      cardViewMode: false,
+      listViewMode: false,
+      cardViewMode: true,
       showReportsFilter: false,
       openFilters: false,
       selectedTags: [],
@@ -190,13 +190,13 @@ export default class AllReports extends React.Component<
   public componentDidMount() {
     if (sessionStorage.getItem(SESSION_STORAGE_KEYS.LISTVIEW_MODE_ENABLE) == null) {
       this.setState({
-        cardViewMode: false,
-        listViewMode: true,
+        cardViewMode: true,
+        listViewMode: false,
       });
     } else {
       this.setState({
-        cardViewMode: false,
-        listViewMode: true,
+        cardViewMode: true,
+        listViewMode: false,
       });
     }
     ProgressIndicator.show();
