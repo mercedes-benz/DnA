@@ -1363,11 +1363,74 @@
     &.data::before {
       content: "\e966";
     }
+    &.data-mini::before {
+      content: "\e96a";
+    }
     &.tools::before {
       content: "\e985";
     }
     &.trainings::before {
       content: "\e987";
+    }
+    &.carla::before {
+      content: "\e955";
+    }
+    &.carla-mini::before {
+      content: "\e961";
+    }
+    &.malwarescan::before {
+      content: "\e978";
+    }
+    &.airflow::before {
+      content: "\e95c";
+    }
+    &.kubeflow::before {
+      content: "\e976";
+    }
+    &.storage::before {
+      content: "\e939";
+    }
+    &.modelregistry::before {
+      content: "\e979";
+    }
+    &.chronos::before {
+      content: "\e962";
+    }
+    &.dataiku-new::before {
+      content: "\e969";
+    }
+    &.sac::before {
+      content: "\e97e";
+    }
+    &.codespace::before {
+      content: "\e964";
+    }
+    &.architecture::before {
+      content: "\e95d";
+    }
+    &.transactionaldata::before {
+      content: "\e989";
+    }
+    &.powerbi::before {
+      content: "\e97c";
+    }
+    &.data-oasis::before {
+      content: "\e96c";
+    }
+    &.afo::before {
+      content: "\e95b";
+    }
+    &.extollo::before {
+      content: "\e972";
+    }
+    &.btp::before {
+      content: "\e95e";
+    }
+    &.tools-mini::before {
+      content: "\e986";
+    }
+    &.sbiss::before {
+      content: "\e981";
     }
   }
   .airflowexpansionPanel {
