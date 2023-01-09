@@ -31,12 +31,16 @@ import {
   IDataCompliance,
   IDataSource,
   IDataVolume,
+  IDepartment,
   // ILanguage,
   IDigitalValue,
   IDivision,
   IDivisionAndSubDivision,
   ILocation,
   ILogoDetails,
+  IMarketing,
+  IMarketingCommunicationChannel,
+  IMarketingCustomerJourney,
   IMaturityLevel,
   IMilestonesList,
   IPhase,
@@ -64,6 +68,7 @@ import Platform from './platform/Platform';
 import Sharing from './sharing/Sharing';
 import Teams from './teams/Teams';
 import { trackEvent } from '../../../services/utils';
+import Marketing from './marketing/Marketing';
 
 const classNames = cn.bind(Styles);
 export interface ICreateNewSolutionState {
@@ -101,6 +106,9 @@ export interface ICreateNewSolutionState {
   benefitRelevancesList: IBenefitRelevance[];
   strategicRelevancesList: IStrategicRelevance[];
   isProvision: boolean;
+  departmentTags: IDepartment[];
+  customerJourneyPhasesLOV: IMarketingCustomerJourney[];
+  marketingCommunicationChannelsLOV: IMarketingCommunicationChannel[];
 }
 
 export interface ICreateNewSolutionProps {
@@ -117,6 +125,7 @@ export interface ICreateNewSolutionData {
   openSegments: string[];
   analytics: IAnalytics;
   sharing: ISharing;
+  marketing: IMarketing;
   datacompliance: IDataCompliance;
   digitalValue: IDigitalValue;
   portfolio: IPortfolio;
@@ -156,6 +165,7 @@ export interface IDescriptionRequest {
   dataStrategyDomain: string;
   requestedFTECount: number;
   additionalResource: string;
+  department: string;
 }
 
 export default class CreateNewSolution extends React.Component<ICreateNewSolutionProps, ICreateNewSolutionState> {
@@ -166,6 +176,7 @@ export default class CreateNewSolution extends React.Component<ICreateNewSolutio
   private digitalValueComponent = React.createRef<DigitalValue>();
   private platformComponent = React.createRef<Platform>();
   private dataComplianceComponent = React.createRef<DataCompliance>();
+  private MarketingComponent = React.createRef<Marketing>();
   constructor(props: ICreateNewSolutionProps) {
     super(props);
     this.milestoneComponent = React.createRef<Milestones>();
@@ -238,6 +249,7 @@ export default class CreateNewSolution extends React.Component<ICreateNewSolutio
           dataStrategyDomain: '',
           requestedFTECount: 0,
           additionalResource: '',
+          department: ''
         },
         openSegments: [],
         team: { team: [] },
@@ -255,6 +267,15 @@ export default class CreateNewSolution extends React.Component<ICreateNewSolutio
             name: '',
           },
           resultUrl: '',
+        },
+        marketing: {
+          customerJourneyPhases: [],
+          marketingCommunicationChannels: [],
+          personalization: {
+              isChecked: false,
+              description: ''
+          },
+          personas: []
         },
         datacompliance: {
           quickCheck: false,
@@ -299,6 +320,9 @@ export default class CreateNewSolution extends React.Component<ICreateNewSolutio
       benefitRelevancesList: [],
       strategicRelevancesList: [],
       isProvision: false,
+      departmentTags: [],
+      customerJourneyPhasesLOV: [],
+      marketingCommunicationChannelsLOV: []
     };
   }
   public componentWillReceiveProps(nextProps: any) {
@@ -331,7 +355,9 @@ export default class CreateNewSolution extends React.Component<ICreateNewSolutio
         const maturityLevelsList = response[15].data;
         const benefitRelevancesList = response[16].data;
         const strategicRelevancesList = response[17].data;
-
+        const customerJourneyPhasesLOV = response[18];
+        const marketingCommunicationChannelsLOV =response[19];
+        const departmentTags =response[20];
         phases.forEach((phase) => {
           switch (phase.id) {
             case '1':
@@ -376,6 +402,9 @@ export default class CreateNewSolution extends React.Component<ICreateNewSolutio
             maturityLevelsList,
             benefitRelevancesList,
             strategicRelevancesList,
+            customerJourneyPhasesLOV,
+            marketingCommunicationChannelsLOV,
+            departmentTags
           },
           () => {
             Button.defaultSetup();
@@ -452,6 +481,7 @@ export default class CreateNewSolution extends React.Component<ICreateNewSolutio
               solution.description.reasonForHoldOrClose = res.reasonForHoldOrClose;
               solution.description.dataStrategyDomain = res.dataStrategyDomain;
               solution.description.additionalResource = res.additionalResource;
+              solution.description.department = res.department;
               // solution.description.neededRoles = res.skills;
               solution.description.requestedFTECount = res.requestedFTECount;
               solution.milestones = res.milestones;
@@ -467,6 +497,7 @@ export default class CreateNewSolution extends React.Component<ICreateNewSolutio
               solution.analytics = res.analytics;
               solution.portfolio = res.portfolio;
               solution.sharing = res.sharing;
+              solution.marketing = res?.marketing;
               solution.datacompliance = res.dataCompliance;
               solution.openSegments = res.openSegments;
               solution.publish = res.publish;
@@ -604,12 +635,21 @@ export default class CreateNewSolution extends React.Component<ICreateNewSolutio
                   )}
                   <li
                     className={
+                      this.state.tabClassNames.has('Marketing') ? this.state.tabClassNames.get('Marketing') : 'tab disabled'
+                    }
+                  >
+                    <a href="#tab-content-9" id="marketing" onClick={this.setCurrentTab}>
+                      Marketing
+                    </a>
+                  </li>
+                  <li
+                    className={
                       this.state.tabClassNames.has('DigitalValue')
                         ? this.state.tabClassNames.get('DigitalValue')
                         : 'tab disabled'
                     }
                   >
-                    <a href="#tab-content-9" id="digitalvalue" onClick={this.setCurrentTab}>
+                    <a href="#tab-content-10" id="digitalvalue" onClick={this.setCurrentTab}>
                       Digital Value
                     </a>
                   </li>
@@ -628,6 +668,7 @@ export default class CreateNewSolution extends React.Component<ICreateNewSolutio
                   projectStatuses={this.state.projectStatuses}
                   relatedProductsMaster={this.state.relatedProductsMaster}
                   businessGoalsList={this.state.businessGoalsList}
+                  departmentTags={this.state.departmentTags}
                   description={this.state.solution.description}
                   modfifyDescription={this.modifySolutionDescription}
                   onSaveDraft={this.onSaveDraft}
@@ -721,6 +762,18 @@ export default class CreateNewSolution extends React.Component<ICreateNewSolutio
                 ''
               )}
               <div id="tab-content-9" className="tab-content">
+                {currentTab === 'marketing' && (
+                  <Marketing
+                    marketing={this.state.solution.marketing}
+                    modifyMarketing={this.modifyMarketing}
+                    marketingCommunicationChannelsLOV={this.state.marketingCommunicationChannelsLOV}
+                    customerJourneyPhasesLOV={this.state.customerJourneyPhasesLOV}
+                    onSaveDraft={this.onSaveDraft}
+                    ref={this.MarketingComponent}
+                  />
+                )}
+              </div>
+              <div id="tab-content-10" className="tab-content">
                 {currentTab === 'digitalvalue' && (
                   <DigitalValue
                     digitalValue={this.state.solution.digitalValue}
@@ -777,6 +830,7 @@ export default class CreateNewSolution extends React.Component<ICreateNewSolutio
       tabClasses.set('DataSources', 'tab valid');
       tabClasses.set('Platform', 'tab valid');
       tabClasses.set('DataCompliance', 'tab valid');
+      tabClasses.set('Marketing', 'tab valid');
       tabClasses.set('DigitalValue', 'tab valid');
       tabClasses.set('Analytics', 'tab valid');
       this.setState({ tabClassNames: tabClasses });
@@ -831,6 +885,8 @@ export default class CreateNewSolution extends React.Component<ICreateNewSolutio
       this.saveAnalytics();
     } else if (currentTab === 'sharing') {
       this.saveSharing();
+    } else if (currentTab === 'marketing') {
+      this.saveMarketing();  
     } else if (currentTab === 'datacompliance') {
       this.saveDataCompliance();
     } else if (currentTab === 'digitalvalue') {
@@ -908,11 +964,16 @@ export default class CreateNewSolution extends React.Component<ICreateNewSolutio
   protected saveSharing = () => {
     this.state.solution.openSegments.push('Sharing');
     this.setState({ publishFlag: false });
-    const nextTab = Envs.ENABLE_DATA_COMPLIANCE ? 'datacompliance' : 'digitalvalue';
+    const nextTab = Envs.ENABLE_DATA_COMPLIANCE ? 'datacompliance' : 'marketing';
     this.callApiToSave(this.state.solution.publish, nextTab);
   };
   protected saveDataCompliance = () => {
     this.state.solution.openSegments.push('DataCompliance');
+    this.setState({ publishFlag: false });
+    this.callApiToSave(this.state.solution.publish, 'marketing');
+  };
+  protected saveMarketing = () => {
+    this.state.solution.openSegments.push('Marketing');
     this.setState({ publishFlag: false });
     this.callApiToSave(this.state.solution.publish, 'digitalvalue');
   };
@@ -948,6 +1009,7 @@ export default class CreateNewSolution extends React.Component<ICreateNewSolutio
         tags: solution.description.tags,
         logoDetails: solution.description.logoDetails,
         attachments: solution.description.attachments,
+        department: solution.description.department,
         team: solution.team.team,
         currentPhase: solution.currentPhase,
         milestones: solution.milestones,
@@ -959,6 +1021,7 @@ export default class CreateNewSolution extends React.Component<ICreateNewSolutio
         publish: isPublished,
         analytics: solution.analytics,
         sharing: solution.sharing,
+        marketing: solution.marketing,
         dataStrategyDomain: solution.description.dataStrategyDomain,
         requestedFTECount: solution.description.requestedFTECount,
         skills: solution.neededRoles,
@@ -1084,6 +1147,14 @@ export default class CreateNewSolution extends React.Component<ICreateNewSolutio
   protected modifySharing = (sharing: ISharing) => {
     const currentSolutionObject = this.state.solution;
     currentSolutionObject.sharing = sharing;
+    this.setState({
+      solution: currentSolutionObject,
+    });
+  };
+
+  protected modifyMarketing = (marketing: IMarketing) => {
+    const currentSolutionObject = this.state.solution;
+    currentSolutionObject.marketing = marketing;
     this.setState({
       solution: currentSolutionObject,
     });
