@@ -521,12 +521,14 @@ const Summary = ({ history, user }) => {
           <hr className={Styles.line} />
           <div className={Styles.dataTransferSection}>
             <h3>{`Data Transfer ${allDataTransfer?.totalCount ? `( ${allDataTransfer?.totalCount} )` : '( 0 )'}`}</h3>
-            <div>
-              <Link to={'/datasharing'} target="_blank" rel="noreferrer noopener">
-                Show in Data Sharing
-                <i tooltip-data="Open in New Tab" className={'icon mbc-icon new-tab'} />
-              </Link>
-            </div>
+            {allDataTransfer?.totalCount > 0 ? (
+              <div>
+                <Link to={'/datasharing'} target="_blank" rel="noreferrer noopener">
+                  Show in Data Sharing
+                  <i tooltip-data="Open in New Tab" className={'icon mbc-icon new-tab'} />
+                </Link>
+              </div>
+            ) : null}
           </div>
           {!isCreator ? (
             <div className={Styles.dataTransferSection}>
