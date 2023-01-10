@@ -7,6 +7,7 @@ import LogoImage from 'components/mbc/createNewSolution/description/logoManager/
 import { SOLUTION_LOGO_IMAGE_TYPES } from 'globals/constants';
 import { DataFormater } from '../../../../services/utils';
 import { Envs } from 'globals/Envs';
+import {TOTAL_LOCATIONS_COUNT} from 'globals/constants';
 
 const classNames = cn.bind(Styles);
 
@@ -196,8 +197,10 @@ export default class SolutionListRowItem extends React.Component<ISolutionListRo
           ) : null}
           <td>
             <div className={Styles.locationDataWrapper}>
-              {locations[0] ? locations[0] : ''}
-              {locations.length > 1 ? (
+              {locations[0] ? locations.length === TOTAL_LOCATIONS_COUNT ? '' : locations[0] : ''}
+              {locations.length > 1 ? 
+                locations.length == TOTAL_LOCATIONS_COUNT ? 'All' : 
+              (
                 <div
                   className={classNames(
                     Styles.contextMenu,
