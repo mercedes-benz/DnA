@@ -187,7 +187,7 @@ const OtherRelevantInfo = ({ onSave, history, user, isDataProduct }) => {
     setValue('users', teamMembers);
     onSave(watch(), () => {
       setShowAddConsumersModal(false);
-      history.push('/');
+      history.push('/datasharing');
     });
   };
 

@@ -53,6 +53,7 @@
     padding: 2px 4px;
     margin-right: 5px;
     font-size: var(--font-size-small);
+    line-height: 25px;
   }
   &:hover {
     background-position: 50% 0%;
@@ -67,9 +68,11 @@
       top: 0;
     }
     .description {
-      overflow: visible;
       color: white;
-      display: block;
+      overflow: hidden;
+      display: -webkit-box;
+      -webkit-line-clamp: 5;
+      -webkit-box-orient: vertical;
     }
     .title {
       color: white;

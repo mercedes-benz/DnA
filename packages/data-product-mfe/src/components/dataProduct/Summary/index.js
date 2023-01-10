@@ -23,6 +23,7 @@ import SelectBox from 'dna-container/SelectBox';
 
 import ProgressIndicator from '../../../common/modules/uilab/js/src/progress-indicator';
 import Tabs from '../../../common/modules/uilab/js/src/tabs';
+import Notification from '../../../common/modules/uilab/js/src/notification';
 
 import lockIcon from '../../../assets/lockIcon.png';
 
@@ -165,6 +166,7 @@ const Summary = ({ history, user }) => {
     dataProductApi.deleteDataProduct(selectedDataProduct?.id).then(() => {
       history.push('/dataproducts');
       setShowDeleteModal(false);
+      Notification.show(`${selectedDataProduct?.productName} deleted successfully.`);
     });
   };
   const deleteDataProductClose = () => {
