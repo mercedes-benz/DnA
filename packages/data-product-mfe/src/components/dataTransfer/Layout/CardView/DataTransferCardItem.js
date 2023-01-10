@@ -36,20 +36,21 @@ const DataProductCardItem = ({ product, history, user, isDataProduct = false }) 
     Tooltip.defaultSetup();
   }, []);
 
-  const deleteDataProductContent = (
+  const deleteDataTransferContent = (
     <div>
       <h3>Are you sure you want to delete {product?.dataTransferName} ? </h3>
     </div>
   );
 
-  const deleteDataProductAccept = () => {
+  const deleteDataTransferAccept = () => {
     ProgressIndicator.show();
     dataTransferApi.deleteDataTransfer(product?.id).then(() => {
       dispatch(GetDataTransfers());
       setShowDeleteModal(false);
+      Notification.show(`${product?.dataTransferName} deleted successfully.`);
     });
   };
-  const deleteDataProductClose = () => {
+  const deleteDataTransferClose = () => {
     setShowDeleteModal(false);
   };
 
@@ -179,9 +180,9 @@ const DataProductCardItem = ({ product, history, user, isDataProduct = false }) 
         showAcceptButton={true}
         showCancelButton={true}
         show={showDeleteModal}
-        content={deleteDataProductContent}
-        onCancel={deleteDataProductClose}
-        onAccept={deleteDataProductAccept}
+        content={deleteDataTransferContent}
+        onCancel={deleteDataTransferClose}
+        onAccept={deleteDataTransferAccept}
       />
     </>
   );
