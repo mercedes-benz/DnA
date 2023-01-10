@@ -17,6 +17,7 @@ public class Forecast {
 
 	private String name;
 	private String bucketName;
+	private String bucketId;
 	private UserDetails createdBy;
 	//private String resultFolderPath;
 	private Date createdOn;

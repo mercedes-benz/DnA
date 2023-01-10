@@ -13,10 +13,10 @@ const Trainings = () => {
     <LandingSummary
       title={'Trainings'}
       subTitle={
-        'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. eiusmod tempor incididunt ut labore et dolore magna aliqua.'
+        'Data and Tools are not enough - here we enable you to become even more productive.'
       }
       headerImage={headerImageURL}
-      isBackButton={false}
+      isBackButton={true}
     >
       <div className={Styles.trainingsWrapper}>
         {cards.map((card, index) => {
@@ -31,7 +31,8 @@ const Trainings = () => {
               isDisabled={card.isDisabled}
               isSmallCard={card.isSmallCard}
               isMediumCard={card.isMediumCard}
-              className="trainings"
+              svgIcon={card.svgIconId}
+              className="tools"
             />
           );
         })}

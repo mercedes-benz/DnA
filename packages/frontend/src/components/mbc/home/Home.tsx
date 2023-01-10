@@ -4,6 +4,7 @@ import { IUserInfo } from 'globals/types';
 import Styles from './Home.scss';
 import { Envs } from 'globals/Envs';
 import DNACard from 'components/card/Card';
+import IconCarla from 'components/icons/IconCarla';
 
 export interface ILandingpageProps {
   user: IUserInfo;
@@ -27,7 +28,7 @@ const Home: React.FC<ILandingpageProps> = () => {
                 <br />
                 analytics - all in one place.
               </h5>
-              <p className={Styles.poweredBy}>powered by CARLA</p>
+              <p className={Styles.poweredBy}>powered by CarLA</p>
             </div>
             <div className={classNames(Styles.dnaRow, Styles.transparencyCol)}>
               <div className={classNames(Styles.dnaCol6, Styles.transparencyCol)}>
@@ -41,7 +42,6 @@ const Home: React.FC<ILandingpageProps> = () => {
                   isTextAlignLeft={false}
                   isDisabled={false}
                   svgIcon={'transparency'}
-                  className="transparency"
                   upperTag="MB"
                 />
               </div>
@@ -56,19 +56,17 @@ const Home: React.FC<ILandingpageProps> = () => {
                   url={'/carla'}
                   isTextAlignLeft={false}
                   isDisabled={false}
-                  svgIcon={'data'}
-                  className="transparency"
+                  svgIcon={<IconCarla size="80"/>}
                 />
               </div>
               <div className={Styles.dnaCol6}>
                 <DNACard
                   title={'Data'}
-                  description={'From Data Products to Data Governance - all you need to work is here'}
+                  description={'From Data Products to Data Governance - all you need to work is here.'}
                   url={'/data'}
                   isTextAlignLeft={false}
                   isDisabled={false}
                   svgIcon={'data'}
-                  className="data"
                   upperTag="FC"
                 />
               </div>
@@ -80,7 +78,6 @@ const Home: React.FC<ILandingpageProps> = () => {
                   isTextAlignLeft={false}
                   isDisabled={false}
                   svgIcon={'tools'}
-                  className="tools"
                   upperTag="FC"
                 />
               </div>
@@ -92,13 +89,12 @@ const Home: React.FC<ILandingpageProps> = () => {
                   isTextAlignLeft={false}
                   isDisabled={!Envs.ENABLE_TRAININGS}
                   svgIcon={'trainings'}
-                  className="trainings"
                   upperTag="FC"
                 />
               </div>
             </div>
           </div>
-        </div>
+        </div>  
         {/* <div className={Styles.dnaRow}>
           <div className={Styles.newsSection}>
             <div className={Styles.newsContainer}>
