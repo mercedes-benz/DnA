@@ -33,7 +33,7 @@ const PersonaSelect = (props: IPersonaSelectProps) => {
         {
           props.personas.map((persona:any) => {
             return (
-              <div key={persona.id} className={classNames(Styles.persona, selectedPersona.length > 0 ? selectedPersona?.includes(persona.value) && Styles.selected : '')}>
+              <div key={persona.id} className={classNames(Styles.persona, selectedPersona.length > 0 ? props.isSummary ? selectedPersona?.includes(persona.value) : selectedPersona?.includes(persona.value) && Styles.selected : '')}>
                 <div className={Styles.personaAvatar}>
                   <img src={persona.avatar} />
                   <p>{persona.name}</p>
