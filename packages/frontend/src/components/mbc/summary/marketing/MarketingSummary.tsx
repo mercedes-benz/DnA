@@ -8,35 +8,39 @@ import ProgressIndicator from '../../../../assets/modules/uilab/js/src/progress-
 import { IMarketing } from 'globals/types';
 import Styles from './MarketingSummary.scss';
 import PersonaSelect from './../../shared/personaSelect/PersonaSelect';
-import PersonaAvatar from '../../../../assets/images/team-internal-avatar.jpg';
+// import PersonaAvatar from '../../../../assets/images/team-internal-avatar.jpg';
+import LiAvatar from '../../../../assets/images/li.png';
+import HenryAvatar from '../../../../assets/images/henry.png';
+import VictoriaAvatar from '../../../../assets/images/victoria.png';
+import TomAvatar from '../../../../assets/images/tom.png';
 
 const classNames = cn.bind(Styles);
 
 const personas = [
   {
     id: 1,
-    avatar: PersonaAvatar,
+    avatar: LiAvatar,
     name: 'Li',
     description: 'The digital Mercedes-Benz enthusiast',
     value: 'enthusiast'
   },
   {
     id: 2,
-    avatar: PersonaAvatar,
+    avatar: HenryAvatar,
     name: 'Henry',
     description: 'The demanding quality-seeker',
     value: 'quality-seeker'
   },
   {
     id: 3,
-    avatar: PersonaAvatar,
+    avatar: VictoriaAvatar,
     name: 'Victoria',
     description: 'The ambitious self-optimizer',
     value: 'self-optimizer'
   },
   {
     id: 4,
-    avatar: PersonaAvatar,
+    avatar: TomAvatar,
     name: 'Tom',
     description: 'The price-conscious tech-enthusiast',
     value: 'tech-enthusiast'
@@ -61,7 +65,7 @@ export default class MarketingSummary extends React.Component<IMarketingProps, a
   }
 
   public render() {
-    const personasToShow = personas.filter(item=> this.props.marketing.personas.includes(item.value));
+    const personasToShow = personas.filter(item=> this.props.marketing?.personas?.includes(item.value));
     return (
       <React.Fragment>
         <div className={classNames(Styles.flexLayout, Styles.mainPanel, 'mainPanelSection')}>
