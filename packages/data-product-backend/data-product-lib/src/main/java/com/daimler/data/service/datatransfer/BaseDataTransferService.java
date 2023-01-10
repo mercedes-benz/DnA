@@ -408,9 +408,9 @@ public class BaseDataTransferService extends BaseCommonService<DataTransferVO, D
 			DataTransferVO mergedVO = null;
 			if (requestVO.isPublish() == null) {
 				if (isDataProductService != null && isDataProductService) {
-					dataTransferVO.setPublish(true);
+					requestVO.setPublish(true);
 				} else {
-					dataTransferVO.setPublish(false);
+					requestVO.setPublish(false);
 				}
 			}
 			if (existingVO != null && existingVO.getRecordStatus() != null
