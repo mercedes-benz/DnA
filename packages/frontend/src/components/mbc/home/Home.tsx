@@ -52,7 +52,7 @@ const Home: React.FC<ILandingpageProps> = () => {
               <div className={Styles.dnaCol6}>
                 <DNACard
                   title={'CarLA'}
-                  description={'More Infos about the Cars Analysis Reporting Landscape'}
+                  description={'More Infos about the Cars Analysis Reporting Landscape.'}
                   url={'/carla'}
                   isTextAlignLeft={false}
                   isDisabled={false}
@@ -73,7 +73,7 @@ const Home: React.FC<ILandingpageProps> = () => {
               <div className={Styles.dnaCol6}>
                 <DNACard
                   title={'Tools'}
-                  description={'Our standard Data & Analytics for both FC Users and Pro Developers'}
+                  description={'Our standard Data & Analytics for both FC Users and Pro Developers.'}
                   url={'/tools'}
                   isTextAlignLeft={false}
                   isDisabled={false}
