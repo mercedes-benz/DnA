@@ -4,7 +4,7 @@ import { IMarketing, IMarketingCustomerJourney, IMarketingCommunicationChannel }
 import Styles from './Marketing.scss';
 import SelectBox from 'components/formElements/SelectBox/SelectBox';
 import TextArea from 'components/mbc/shared/textArea/TextArea';
-import PersonaSelect from './../../shared/personaSelect/PersonaSelect'
+import PersonaSelect from './../../shared/personaSelect/PersonaSelect';
 import PersonaAvatar from '../../../../assets/images/team-internal-avatar.jpg';
 
 const classNames = cn.bind(Styles);
@@ -172,6 +172,7 @@ export default class Marketing extends React.Component<IMarketingProps, IMarketi
             <PersonaSelect 
             personas={personas}
             selectedPersonasList={this.props.marketing.personas}
+            isSummary={false}
             onChangePersonas={this.onPersonaChange}></PersonaSelect>
         </div>
         <div className="btnConatiner">
