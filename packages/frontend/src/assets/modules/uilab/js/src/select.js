@@ -33,12 +33,12 @@ class Select {
         valuesSpan.setAttribute('class', 'values');
         a.appendChild(valuesSpan);
         a.setAttribute('class', 'select-selected multiple');
-        b.setAttribute('class', 'select-items multiple select-hide');
+        b.setAttribute('class', 'select-items multiple mbc-scroll select-hide');
         labelWrapper.innerHTML =
           '<label class="checkbox"><span class="wrapper"><input type="checkbox" value="label"/></span><span class="label">All</span></label>';
       } else {
         a.setAttribute('class', 'select-selected');
-        b.setAttribute('class', 'select-items select-hide');
+        b.setAttribute('class', 'select-items mbc-scroll select-hide');
         labelWrapper.innerHTML = selElmnt.options[selElmnt.selectedIndex]?.innerHTML;
       }
 
