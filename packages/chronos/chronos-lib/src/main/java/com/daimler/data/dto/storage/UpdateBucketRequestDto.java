@@ -13,9 +13,10 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class CreateBucketRequestDto {
+public class UpdateBucketRequestDto {
 
 	private String bucketName;
+	private String id;
 	private List<CollaboratorsDto> collaborators;
 	private String classificationType;
 	private Boolean piiData;
