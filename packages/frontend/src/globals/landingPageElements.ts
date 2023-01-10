@@ -12,7 +12,15 @@ const sapAnalyticsUrl = Envs.SAP_ANALYTICS_CLOUD_URL;
 const enableCodeSpace = Envs.ENABLE_CODE_SPACE;
 const enableJupiyterNoteWorkspace = Envs.ENABLE_JUPYTER_WORKSPACE;
 const enableDataikuWorkspace = Envs.ENABLE_DATAIKU_WORKSPACE;
-const powerBIUrl = '', dataOasisUrl = '', afoUrl= '', extolloUrl = '', btpUrl = '', dwcUrl = '', sbissUrl = '';
+const afoUrl= Envs.AFO_TOOL_URL;
+const btpUrl = Envs.BPT_TOOL_URL;
+const dataOasisUrl = Envs.DATA_OASIS_TOOL_URL;
+const dwcUrl = Envs.DWC_TOOL_URL;
+const extolloUrl = Envs.EXTOLLO_TOOL_URL;
+const powerBIUrl = Envs.POWER_BI_TOOL_URL;
+const sbissUrl = Envs.SBISS_LAUNCHPAD_TOOL_URL;
+const sbissPortalUrl = Envs.SBISS_PORTAL_TOOL_URL;
+const sbissHanaUrl = Envs.SBISS_HANA_LAUNCHPAD_TOOL_URL;
 
 export const DataLayerElements = [
   {
@@ -247,7 +255,7 @@ export const ToolsLandingPageElements = [
       'Digital Oasis is an intergrated data platform, which is to drive and support the FG Digital Transformation with 6 modules (Mall, Factory, Workflow, Logistics, Data Warehouse, College) for 6 transformation scenarios.',
     tags: ['Frontend Reporting', 'Data Storage', 'Onprem'],
     url: dataOasisUrl,
-    isExternalLink: false,
+    isExternalLink: true,
     isTextAlignLeft: false,
     isDisabled: !dataOasisUrl,
     isSmallCard: false,
@@ -273,7 +281,7 @@ export const ToolsLandingPageElements = [
       'SAP Analysis for Office (AfO) is an office add-in that enables multidimensional ad-hoc analyzes on OLAP data sources in Excel. In addition, the product enables workbook-based application design and the creation of BI presentations in PowerPoint. Connectivity to our SBISS platform is fully supported.',
     tags: ['Frontend Reporting', 'FOSS', 'SAP', 'No / Low Code', 'Onprem'],
     url: afoUrl,
-    isExternalLink: false,
+    isExternalLink: true,
     isTextAlignLeft: false,
     isDisabled: !afoUrl,
     isSmallCard: false,
@@ -299,7 +307,7 @@ export const ToolsLandingPageElements = [
     tags: ['Frontend Reporting', 'Data Engineering', 'Data Pipeline', 'Data Science', 'Data Storage', 'Machine Learning', 'No / Low Code', 'Coding', 'Cloud'],
     url: extolloUrl
     ,
-    isExternalLink: false,
+    isExternalLink: true,
     isTextAlignLeft: false,
     isDisabled: !extolloUrl,
     isSmallCard: false,
@@ -312,7 +320,7 @@ export const ToolsLandingPageElements = [
     tags: ['Frontend Reporting', 'Data Storage', 'SAP', 'No / Low Code', 'Coding', 'Cloud'],
     url: btpUrl
     ,
-    isExternalLink: false,
+    isExternalLink: true,
     isTextAlignLeft: false,
     isDisabled: !btpUrl,
     isSmallCard: false,
@@ -325,7 +333,7 @@ export const ToolsLandingPageElements = [
     tags: ['Data Engineering', 'Data Storage', 'SAP', 'No / Low Code', 'Cloud'],
     url: dwcUrl
     ,
-    isExternalLink: false,
+    isExternalLink: true,
     isTextAlignLeft: false,
     isDisabled: !dwcUrl,
     isSmallCard: false,
@@ -341,6 +349,32 @@ export const ToolsLandingPageElements = [
     isExternalLink: false,
     isTextAlignLeft: false,
     isDisabled: !sbissUrl,
+    isSmallCard: false,
+    isMediumCard: true,
+    svgIcon: 'sbiss',
+  },
+  {
+    name: 'SBISS Portal',
+    description: 'The SBISS Portal is the singe point of entry for endusers accessing applications based on SBISSonHANA',
+    tags: ['Frontend Reporting', 'SAP', 'Onprem'],
+    url: sbissPortalUrl
+    ,
+    isExternalLink: true,
+    isTextAlignLeft: false,
+    isDisabled: !sbissPortalUrl,
+    isSmallCard: false,
+    isMediumCard: true,
+    svgIcon: 'sbiss',
+  },
+  {
+    name: 'SBISSonHANA Launchpad',
+    description: 'SBISSonHANA Launchpad is the central entry point to all applications based on the BW-Platform.',
+    tags: ['SAP', 'Onprem'],
+    url: sbissHanaUrl
+    ,
+    isExternalLink: true,
+    isTextAlignLeft: false,
+    isDisabled: !sbissHanaUrl,
     isSmallCard: false,
     isMediumCard: true,
     svgIcon: 'sbiss',
