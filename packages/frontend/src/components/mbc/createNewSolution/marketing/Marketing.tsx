@@ -5,35 +5,39 @@ import Styles from './Marketing.scss';
 import SelectBox from 'components/formElements/SelectBox/SelectBox';
 import TextArea from 'components/mbc/shared/textArea/TextArea';
 import PersonaSelect from './../../shared/personaSelect/PersonaSelect';
-import PersonaAvatar from '../../../../assets/images/team-internal-avatar.jpg';
+// import PersonaAvatar from '../../../../assets/images/team-internal-avatar.jpg';
+import LiAvatar from '../../../../assets/images/li.png';
+import HenryAvatar from '../../../../assets/images/henry.png';
+import VictoriaAvatar from '../../../../assets/images/victoria.png';
+import TomAvatar from '../../../../assets/images/tom.png';
 
 const classNames = cn.bind(Styles);
 
 const personas = [
     {
       id: 1,
-      avatar: PersonaAvatar,
+      avatar: LiAvatar,
       name: 'Li',
       description: 'The digital Mercedes-Benz enthusiast',
       value: 'enthusiast'
     },
     {
       id: 2,
-      avatar: PersonaAvatar,
+      avatar: HenryAvatar,
       name: 'Henry',
       description: 'The demanding quality-seeker',
       value: 'quality-seeker'
     },
     {
       id: 3,
-      avatar: PersonaAvatar,
+      avatar: VictoriaAvatar,
       name: 'Victoria',
       description: 'The ambitious self-optimizer',
       value: 'self-optimizer'
     },
     {
       id: 4,
-      avatar: PersonaAvatar,
+      avatar: TomAvatar,
       name: 'Tom',
       description: 'The price-conscious tech-enthusiast',
       value: 'tech-enthusiast'
