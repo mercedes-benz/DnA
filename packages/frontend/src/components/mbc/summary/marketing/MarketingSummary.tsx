@@ -83,11 +83,6 @@ export default class MarketingSummary extends React.Component<IMarketingProps, a
                                 <br />
                                 {this.props?.marketing?.marketingCommunicationChannels?.length > 0 ? this.props?.marketing?.marketingCommunicationChannels?.map(item=>item.name).join(', ') : 'N/A'}
                             </div>
-                            {/* <div id="personas">
-                                <label className="input-label summary">Personas</label>
-                                <br />
-                                {this.props?.marketing?.personas?.length > 0 ? this.props?.marketing?.personas?.join(', ') : 'N/A'}
-                            </div>  */}
                             <div id="personalization">
                                 <label className="input-label summary">Personalization Description</label>
                                 <br />                    
