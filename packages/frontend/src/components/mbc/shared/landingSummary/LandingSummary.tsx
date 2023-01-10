@@ -11,6 +11,7 @@ export interface ILandingSummaryProps {
   headerImage?: string;
   isBackButton?: boolean;
   isTagsFilter?: boolean;
+  onTagsFilterSelected?: (selectedTags: string[]) => void;
 }
 
 const LandingSummary = (props: ILandingSummaryProps) => {
@@ -20,6 +21,7 @@ const LandingSummary = (props: ILandingSummaryProps) => {
 
   const setSelectedFilter = (values: string[]) => {
     setSelectedTags(values);
+    props.onTagsFilterSelected && props.onTagsFilterSelected(values);
   };
 
   return (
