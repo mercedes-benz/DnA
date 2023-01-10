@@ -13,9 +13,9 @@ const Tools = () => {
     <LandingSummary
       title={'Tools'}
       subTitle={
-        'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. eiusmod tempor incididunt ut labore et dolore magna aliqua.'
+        'Our standard Data & Analytics for both FC Users and Pro Developers.'
       }
-      tags={['SAP', 'Self Service', 'No/Low Code', 'FOSS', 'Automation']}
+      tags={['Frontend Reporting', 'Data Engineering', 'Data Pipeline', 'Data Science', 'Data Storage', 'Machine Learning', 'No / Low Code', 'Coding', 'Cloud', 'Onprem']}
       headerImage={headerImageURL}
       isBackButton={true}
       isTagsFilter={true}
