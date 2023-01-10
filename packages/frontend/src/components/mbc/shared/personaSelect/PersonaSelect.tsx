@@ -5,6 +5,7 @@ import Styles from './PersonaSelect.scss';
 export interface IPersonaSelectProps {
   personas: any;
   selectedPersonasList: string[];
+  isSummary: boolean;
   onChangePersonas: (e:any) => void;
 }
 
@@ -27,12 +28,12 @@ const PersonaSelect = (props: IPersonaSelectProps) => {
 
   return (
     <div className={Styles.container}>
-      <h2 className={Styles.heading}>Personas</h2>
+      <h2 className={classNames(Styles.heading, props.isSummary? Styles.summaryHeading : '')}>Personas</h2>
       <div className={Styles.personaContainer}>
         {
           props.personas.map((persona:any) => {
             return (
-              <div key={persona.id} className={Styles.persona}>
+              <div key={persona.id} className={classNames(Styles.persona, selectedPersona.length > 0 ? props.isSummary ? selectedPersona?.includes(persona.value) : selectedPersona?.includes(persona.value) && Styles.selected : '')}>
                 <div className={Styles.personaAvatar}>
                   <img src={persona.avatar} />
                   <p>{persona.name}</p>
@@ -40,20 +41,23 @@ const PersonaSelect = (props: IPersonaSelectProps) => {
                 <div className={Styles.desc}>
                   <p>{persona.description}</p>
                 </div>
-                <div className={Styles.personaSelect}>
-                  <label className={classNames('checkbox', Styles.checkboxItem)}>
-                    <span className={classNames('wrapper', Styles.thCheckbox)}>
-                      <input
-                        type="checkbox"
-                        className="ff-only"
-                        id={persona.id}
-                        value={persona.value}
-                        checked={selectedPersona.length > 0 ? selectedPersona?.includes(persona.value) : false}
-                        onChange={(e) => handleOnChange(e)}
-                      />
-                    </span>
-                  </label>
-                </div>
+                {!props.isSummary? 
+                  <div className={Styles.personaSelect}>
+                    <label className={classNames('checkbox', Styles.checkboxItem)}>
+                      <span className={classNames('wrapper', Styles.thCheckbox)}>
+                        <input
+                          type="checkbox"
+                          className="ff-only"
+                          id={persona.id}
+                          value={persona.value}
+                          checked={selectedPersona.length > 0 ? selectedPersona?.includes(persona.value) : false}
+                          onChange={(e) => handleOnChange(e)}
+                        />
+                      </span>
+                    </label>
+                  </div>
+                :''}
+                
               </div>
             )
           })

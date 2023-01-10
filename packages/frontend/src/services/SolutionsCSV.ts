@@ -6,6 +6,7 @@ import { getDivisionsQueryValue,
   regionalDateAndTimeConversionSolution,
   regionalForMonthAndYear 
 } from './utils';
+import {TOTAL_LOCATIONS_COUNT} from 'globals/constants';
 
 export const getDataForCSV = (
   queryParams: IFilterParams,
@@ -266,7 +267,7 @@ export const getDataForCSV = (
             bookmarked: solution.bookmarked ? 'Yes' : 'No',
             location:
               solution.locations && solution.locations.length > 0
-                ? solution.locations.map((location) => location.name).join('|')
+                ? solution.locations.length === TOTAL_LOCATIONS_COUNT ? 'All' : solution.locations.map((location) => location.name).join('|')
                 : 'NA',
             department: solution.department ? solution.department : 'NA',    
             expectedBenefits: solution.expectedBenefits ? sanitize(solution.expectedBenefits) : 'NA',
