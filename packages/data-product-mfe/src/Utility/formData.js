@@ -95,7 +95,7 @@ export const serializeFormData = ({ values, division, type = 'provider', isDataP
                   ...{
                     notifyUsers: values.notifyUsers || false,
                     dataTransferName: values.dataTransferName,
-                    publish: values.publish || false,
+                    isPublish: values.publish || false,
                   },
                 }
               : {
