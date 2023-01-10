@@ -8,6 +8,7 @@ import { history } from '../../../..//router/History';
 import { attachEllipsis } from '../../../../services/utils';
 import { Envs } from 'globals/Envs';
 import { DataFormater } from '../../../../services/utils';
+import {TOTAL_LOCATIONS_COUNT} from 'globals/constants';
 
 const classNames = cn.bind(Styles);
 
@@ -223,8 +224,10 @@ const SolutionCardItem = (props: ISolutionCardItemProps) => {
         <div className={Styles.solRegin}>
           <span>{solution.division?.name && solution.division?.name !== 'Choose' ? solution.division?.name : 'N/A'}</span>
           <span className={Styles.locationDataWrapper}>
-            {locations[0] ? locations[0] : ''}
-            {locations.length > 1 ? (
+            {locations[0] ? locations.length === TOTAL_LOCATIONS_COUNT ? '' : locations[0] : ''}
+            {locations.length > 1 ? 
+              locations.length === TOTAL_LOCATIONS_COUNT ? 'All' : 
+            (
               <div
                 className={classNames(
                   Styles.contextMenu,
