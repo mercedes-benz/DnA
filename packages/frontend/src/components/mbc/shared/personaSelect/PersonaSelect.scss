@@ -6,6 +6,9 @@
   margin-bottom: 20px;
   color: #ffffff;
 }
+.summaryHeading{
+  padding: 0 38px;
+}
 .personaContainer {
   padding-left: 60px;
   margin: 60px 70px 60px;
@@ -14,7 +17,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  border-bottom: 1px solid #155a74;
+  border-bottom: 1px solid #383f49;
   padding-bottom: 5px;
   padding-top: 5px;
   position: relative;
@@ -34,7 +37,7 @@
       margin-bottom: 0;
       color: #00adef;
       font-size: var(--font-size-headline);
-      padding-left: 10px;
+      padding-left: 20px;
     }
   }
   .desc {
@@ -47,8 +50,11 @@
   .personaSelect {
     .checkboxItem {
       position: absolute;
-      right: 0;
+      right: 14px;
       top: calc(50% - 18px);
     }
   }
+}
+.selected {
+  background-color: #1c2026;
 }
