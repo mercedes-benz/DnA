@@ -38,6 +38,13 @@ import ImgRollout from '../../../../assets/images/rollout.jpg';
 import jupeterImg from '../../../../assets/images/jupyter-icon.jpg';
 import dataIkuimg from '../../../../assets/images/dataiku-icon.jpg';
 
+import PersonaSelect from './../../shared/personaSelect/PersonaSelect';
+// import PersonaAvatar from '../../../../assets/images/team-internal-avatar.jpg';
+import LiAvatar from '../../../../assets/images/li.png';
+import HenryAvatar from '../../../../assets/images/henry.png';
+import VictoriaAvatar from '../../../../assets/images/victoria.png';
+import TomAvatar from '../../../../assets/images/tom.png';
+
 import {
   IAttachment,
   ICostFactor,
@@ -639,6 +646,60 @@ const neededRoles = (neededRoles: INeededRoleObject[]) => {
   });
 };
 
+const personas = [
+  {
+    id: 1,
+    avatar: LiAvatar,
+    name: 'Li',
+    description: 'The digital Mercedes-Benz enthusiast',
+    value: 'enthusiast'
+  },
+  {
+    id: 2,
+    avatar: HenryAvatar,
+    name: 'Henry',
+    description: 'The demanding quality-seeker',
+    value: 'quality-seeker'
+  },
+  {
+    id: 3,
+    avatar: VictoriaAvatar,
+    name: 'Victoria',
+    description: 'The ambitious self-optimizer',
+    value: 'self-optimizer'
+  },
+  {
+    id: 4,
+    avatar: TomAvatar,
+    name: 'Tom',
+    description: 'The price-conscious tech-enthusiast',
+    value: 'tech-enthusiast'
+  },
+];
+
+const personasList = (selectedPersonas: any[]) => {
+  const selectedPersonasToShow = personas.filter(item => selectedPersonas.includes(item.value))
+  return selectedPersonasToShow.map((persona: any, index: number) => {
+    return (
+      <View key={index} style={{ display: 'flex', flexDirection: 'row', width: '50%', marginBottom: 15 }}>
+        <View style={{ width: 45 }}>          
+          <Image style={{ width: 30 }} src={persona.avatar} />
+        </View>
+        <View>
+          <Text style={[styles.sectionTitle, { marginBottom: 5 }]}>
+            {persona.name}
+          </Text>
+          <View>
+            <Text>{persona.description}</Text>
+            <Text>&nbsp;</Text>
+          </View>
+          
+        </View>
+      </View>
+    );
+  });
+};
+
 interface SummaryPdfDocProps {
   solution: ICreateNewSolutionData;
   dataSources?: any;
@@ -1072,17 +1133,6 @@ export const SummaryPdfDoc = (props: SummaryPdfDocProps) => (
                       <Text>NA</Text>
                     )}
                   </View>
-                  <View style={styles.flexCol4}>
-                    <Text style={styles.sectionTitle}>Personas</Text>
-                    {props.solution?.marketing?.personas?.length > 0 ? (
-                      <Text>{props.solution?.marketing?.personas?.join(', ')}</Text>
-                    ) : (
-                      <Text>NA</Text>
-                    )}
-                  </View>
-                  
-                </View>
-                <View style={styles.flexLayout}>
                   <View style={[styles.flexCol4, styles.firstCol]}>
                     <Text style={styles.sectionTitle}>Personalisation</Text>
                     {props.solution?.marketing?.personalization?.isChecked ? (
@@ -1091,13 +1141,18 @@ export const SummaryPdfDoc = (props: SummaryPdfDocProps) => (
                       <Text>NA</Text>
                     )}
                   </View>
+                  
                 </View>
-                <View style={styles.seperatorLineLight} />
+                <View style={styles.flexLayout}>
+                  <Text style={styles.sectionTitle}>Personas</Text>
+                  <View style={styles.flexLayout}>
+                    {personasList(props.solution?.marketing?.personas)}
+                  </View>
+                </View>
               </View>
             ) : (
               <View />
             )}
-            <View style={styles.seperatorLine} />
           </View>
         ) : (
           <View />
