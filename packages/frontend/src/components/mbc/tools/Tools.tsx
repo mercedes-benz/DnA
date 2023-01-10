@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import Styles from './Tools.scss';
 import DNACard from 'components/card/Card';
 import LandingSummary from '../shared/landingSummary/LandingSummary';
@@ -7,7 +7,13 @@ import headerImageURL from '../../../assets/images/Tools-Landing.png';
 import { ToolsLandingPageElements } from 'globals/landingPageElements';
 
 const Tools = () => {
-  const cards = ToolsLandingPageElements;
+  const [cards, setcards] = useState(ToolsLandingPageElements);
+
+  const allTags = Array.from(new Set(Array.prototype.concat.apply([], ToolsLandingPageElements.map((item: any) => item.tags)))) as string[];
+
+  const onTagsFilterSelected = (selectedTags: string[]) => {
+    setcards(ToolsLandingPageElements.filter((item: any) => item.tags.some((tag: any) => selectedTags.includes(tag))));
+  };
 
   return (
     <LandingSummary
@@ -15,10 +21,11 @@ const Tools = () => {
       subTitle={
         'Our standard Data & Analytics for both FC Users and Pro Developers.'
       }
-      tags={['Frontend Reporting', 'Data Engineering', 'Data Pipeline', 'Data Science', 'Data Storage', 'Machine Learning', 'No / Low Code', 'Coding', 'Cloud', 'Onprem']}
+      tags={allTags}
       headerImage={headerImageURL}
       isBackButton={true}
       isTagsFilter={true}
+      onTagsFilterSelected={onTagsFilterSelected}
     >
       <>
       <div className={Styles.toolsWrapper}>
