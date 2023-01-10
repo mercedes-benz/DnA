@@ -24,7 +24,9 @@ const PersonalRelatedData = ({ onSave, setIsEditing, isDataProduct, callbackFn }
 
   const dispatch = useDispatch();
   const { legalBasisList } = useSelector((state) => state.dropdowns);
-  const provideDataTransfers = useSelector((state) => state.provideDataTransfers);
+  const provideDataTransfers = useSelector((state) =>
+    !isDataProduct ? state.provideDataTransfers : state.dataProduct,
+  );
 
   const isValid = (value) =>
     !watch('personalRelatedData') || watch('personalRelatedData') === 'No' || value?.length > 0 || '*Missing entry';
@@ -32,15 +34,18 @@ const PersonalRelatedData = ({ onSave, setIsEditing, isDataProduct, callbackFn }
   const isDisabled = watch('personalRelatedData') === 'No';
 
   useEffect(() => {
-    setValue('personalRelatedData', provideDataTransfers.selectedDataTransfer.personalRelatedData);
-    if (provideDataTransfers.selectedDataTransfer.personalRelatedData === 'No') {
+    const data = !isDataProduct
+      ? provideDataTransfers.selectedDataTransfer.personalRelatedData
+      : provideDataTransfers.selectedDataProduct.personalRelatedData;
+    setValue('personalRelatedData', data);
+    if (data === 'No') {
       setValue('personalRelatedDataPurpose', '');
       setValue('personalRelatedDataLegalBasis', '');
       setValue('LCOCheckedLegalBasis', '');
       setValue('LCOComments', '');
     }
     //eslint-disable-next-line
-  }, [provideDataTransfers.selectedDataTransfer.consumer?.personalRelatedData]);
+  }, [isDataProduct, provideDataTransfers]);
 
   useEffect(() => {
     dispatch(getLegalBasis());
