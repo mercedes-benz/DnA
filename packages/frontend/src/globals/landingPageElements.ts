@@ -12,7 +12,7 @@ const sapAnalyticsUrl = Envs.SAP_ANALYTICS_CLOUD_URL;
 const enableCodeSpace = Envs.ENABLE_CODE_SPACE;
 const enableJupiyterNoteWorkspace = Envs.ENABLE_JUPYTER_WORKSPACE;
 const enableDataikuWorkspace = Envs.ENABLE_DATAIKU_WORKSPACE;
-const powerBIUrl = '', dataOasisUrl = '', afoUrl= '', extolloUrl = '', btpUrl = '', dcwUrl = '', sbissUrl = '';
+const powerBIUrl = '', dataOasisUrl = '', afoUrl= '', extolloUrl = '', btpUrl = '', dwcUrl = '', sbissUrl = '';
 
 export const DataLayerElements = [
   {
@@ -141,7 +141,7 @@ export const ToolsLandingPageElements = [
     name: 'Chronos Forecasting',
     description:
       'Chronos is a self-service tool that provides accurate and explainable forecasts based on Machine Learning for any KPI.',
-    tags: ['Self Service', 'FOSS'],
+    tags: ['Frontend Reporting', 'Data Engineering', 'Data Pipeline', 'Data Science', 'Machine Learning', 'No / Low Code', 'Coding', 'Cloud', 'Onprem'],
     url: '/chronos',
     isExternalLink: false,
     isTextAlignLeft: false,
@@ -154,7 +154,7 @@ export const ToolsLandingPageElements = [
     name: 'Kubeflow',
     description:
       'Kubeflow is a platform for data scientists who want to build and experiment with Machine Learning [ML] pipelines. Kubeflow is also for ML engineers and operational teams who want to deploy ML systems to various environments for development, testing, and production-level serving.',
-    tags: ['Self Service', 'FOSS'],
+    tags: ['Data Pipeline', 'Data Science', 'Machine Learning', 'FOSS', 'No / Low Code', 'Coding', 'Cloud', 'Onprem'],
     url: mLPipelineUrl,
     isExternalLink: true,
     isTextAlignLeft: false,
@@ -164,10 +164,10 @@ export const ToolsLandingPageElements = [
     svgIcon: 'kubeflow',
   },
   {
-    name: 'Dataiku',
+    name: 'Dataiku DSS',
     description:
       'Dataiku Data Science Studio is a low-code/ no-code data wrangling and machine learning platform. Typical use cases are data preparation, analysis and the development of machine learning models',
-    tags: ['Self Service', 'FOSS'],
+    tags: ['Frontend Reporting', 'Data Engineering', 'Data Pipeline', 'Data Science', 'Data Storage', 'Machine Learning', 'No / Low Code', 'Coding', 'Cloud', 'Onprem'],
     url: '/mydataiku',
     isExternalLink: false,
     isTextAlignLeft: false,
@@ -180,7 +180,7 @@ export const ToolsLandingPageElements = [
     name: 'SAC',
     description:
       'SAP Analytics Cloud is an end-to-end cloud solution that brings together business intelligence, augmented analytics, and enterprise planning in a single system. SAC is the strategic Frontend tool to build dashboards (stories), explore data and build planning applications.',
-    tags: ['Self Service', 'FOSS'],
+    tags: ['Frontend Reporting', 'SAP', 'No / Low Code', 'Cloud'],
     url: sapAnalyticsUrl,
     isExternalLink: true,
     isTextAlignLeft: false,
@@ -193,7 +193,7 @@ export const ToolsLandingPageElements = [
     name: 'Power BI',
     description:
       'Power BI Desktop is an application you install on your local computer that lets you connect to, transform, and visualize your data. With Power BI Desktop, you can connect to multiple different sources on data, and combine them into a data model. This data model lets you build visuals, and collections of visuals you can share as reports, with other people inside your organization. You get Power BI in the ITShop. Most users who work on business intelligence projects use Power BI Desktop to create reports, and then use the Power BI service called PBOS to share their reports with others.',
-    tags: ['Self Service', 'FOSS'],
+    tags: ['Frontend Reporting', 'No / Low Code', 'Onprem'],
     url: powerBIUrl,
     isExternalLink: true,
     isTextAlignLeft: false,
@@ -206,7 +206,7 @@ export const ToolsLandingPageElements = [
     name: 'Malware Scan',
     description:
       'Malware Scan as a Service is an API for scanning files for malicious code.',
-    tags: ['Self Service', 'FOSS'],
+    tags: ['FOSS'],
     url: '/malwarescanservice',
     isExternalLink: false,
     isTextAlignLeft: false,
@@ -216,10 +216,10 @@ export const ToolsLandingPageElements = [
     svgIcon: 'malwarescan',
   },
   {
-    name: 'Data Storage',
+    name: 'Storage Bucket',
     description:
       'Storage Buckets provide data file storage that can be shared and connected to many tools. the storage buckets are based on a FOSS solution called minIO and provide a standard API for accessing file stores: S3.',
-    tags: ['Self Service', 'FOSS'],
+    tags: ['Data Storage', 'FOSS', 'Onprem'],
     url: '/storage',
     isExternalLink: false,
     isTextAlignLeft: false,
@@ -232,7 +232,7 @@ export const ToolsLandingPageElements = [
     name: 'Code Spaces (Beta)',
     description:
       'Code spaces provides developers with one click developer workspace customizable based on the technology used. Developers can collaborate on the team developing same solution but also deploy solution to different staging environments with click of the mouse.',
-    tags: ['Self Service', 'FOSS'],
+    tags: ['FOSS', 'Coding', 'Cloud', 'Onprem'],
     url: '/codespaces',
     isExternalLink: false,
     isTextAlignLeft: false,
@@ -245,7 +245,7 @@ export const ToolsLandingPageElements = [
     name: 'Data Oasis',
     description:
       'Digital Oasis is an intergrated data platform, which is to drive and support the FG Digital Transformation with 6 modules (Mall, Factory, Workflow, Logistics, Data Warehouse, College) for 6 transformation scenarios.',
-    tags: ['Self Service', 'FOSS'],
+    tags: ['Frontend Reporting', 'Data Storage', 'Onprem'],
     url: dataOasisUrl,
     isExternalLink: false,
     isTextAlignLeft: false,
@@ -258,7 +258,7 @@ export const ToolsLandingPageElements = [
     name: 'Jupyter',
     description:
       'Jupyter is a web-based interactive computational environment for creating data analysis in notebook like documents. At FC it is mainly used for Python Data Analysis.',
-    tags: ['Self Service', 'FOSS'],
+    tags: ['Data Science', 'Data Storage', 'FOSS', 'Coding', 'Cloud', 'Onprem'],
     url: '/notebook',
     isExternalLink: false,
     isTextAlignLeft: false,
@@ -271,7 +271,7 @@ export const ToolsLandingPageElements = [
     name: 'AFO',
     description:
       'SAP Analysis for Office (AfO) is an office add-in that enables multidimensional ad-hoc analyzes on OLAP data sources in Excel. In addition, the product enables workbook-based application design and the creation of BI presentations in PowerPoint. Connectivity to our SBISS platform is fully supported.',
-    tags: ['Self Service', 'FOSS'],
+    tags: ['Frontend Reporting', 'FOSS', 'SAP', 'No / Low Code', 'Onprem'],
     url: afoUrl,
     isExternalLink: false,
     isTextAlignLeft: false,
@@ -283,8 +283,8 @@ export const ToolsLandingPageElements = [
   {
     name: 'Airflow',
     description:
-      'Data is one of the most valuable assets in our company, therefore we treat our data as a product! We offer you a growing selection of intuitive to use and well documented data products - check it out!',
-    tags: ['Self Service', 'FOSS'],
+      'Apache Airflow is an open-source platform for developing, scheduling, and monitoring batch-oriented workflows. Airflow’s extensible Python framework enables you to build workflows connecting with virtually any technology. A web interface helps manage the state of your workflows. Airflow is deployable in many ways, varying from a single process on your laptop to a distributed setup to support even the biggest workflows.',
+    tags: ['Data Engineering', 'Data Pipeline', 'FOSS', 'Coding', 'Cloud', 'Onprem'],
     url: '/pipeline',
     isExternalLink: false,
     isTextAlignLeft: false,
@@ -296,7 +296,7 @@ export const ToolsLandingPageElements = [
   {
     name: 'eXtollo',
     description: 'eXtollo helps Mercedes business units to perform advanced analytics and AI use cases on very large amounts of data (big data) with high flexibility. eXtollo\'s main building blocks are the Data Lake, which serves data from the whole company, and the eXtollo Instances, which provide an Azure-based toolset for Big Data and Machine Learning use cases.',
-    tags: ['Self Service', 'FOSS'],
+    tags: ['Frontend Reporting', 'Data Engineering', 'Data Pipeline', 'Data Science', 'Data Storage', 'Machine Learning', 'No / Low Code', 'Coding', 'Cloud'],
     url: extolloUrl
     ,
     isExternalLink: false,
@@ -309,7 +309,7 @@ export const ToolsLandingPageElements = [
   {
     name: 'BTP',
     description: 'Business Technology Platform is a set of data integration, analytics, AI, application development and automation tools in the cloud. The Platform is managed by the SBISS team.',
-    tags: ['Self Service', 'FOSS'],
+    tags: ['Frontend Reporting', 'Data Storage', 'SAP', 'No / Low Code', 'Coding', 'Cloud'],
     url: btpUrl
     ,
     isExternalLink: false,
@@ -320,14 +320,14 @@ export const ToolsLandingPageElements = [
     svgIcon: 'btp',
   },
   {
-    name: 'DCW',
+    name: 'DWC',
     description: 'SAP Data Warehouse Cloud is a cloud based data warehouse designed for self service data integration, modelling and analysis.It provides access to FC Data products and is connected to our SAP Analytics Cloud Frontend.',
-    tags: ['Self Service', 'FOSS'],
-    url: dcwUrl
+    tags: ['Data Engineering', 'Data Storage', 'SAP', 'No / Low Code', 'Cloud'],
+    url: dwcUrl
     ,
     isExternalLink: false,
     isTextAlignLeft: false,
-    isDisabled: !dcwUrl,
+    isDisabled: !dwcUrl,
     isSmallCard: false,
     isMediumCard: true,
     svgIcon: 'tools-mini',
@@ -335,7 +335,7 @@ export const ToolsLandingPageElements = [
   {
     name: 'SBISS4',
     description: 'The SBISS/4 Launchpad is the entry Point to access Finance Functions for MBC based on CarLA as well as functions on Corporate FC DWH.',
-    tags: ['Self Service', 'FOSS'],
+    tags: ['Frontend Reporting', 'SAP', 'Onprem'],
     url: sbissUrl
     ,
     isExternalLink: false,
@@ -346,10 +346,10 @@ export const ToolsLandingPageElements = [
     svgIcon: 'sbiss',
   },
   {
-    name: 'My Model Registry',
+    name: 'Model Registry',
     description:
-      'Data is one of the most valuable assets in our company, therefore we treat our data as a product! We offer you a growing selection of intuitive to use and well documented data products - check it out!',
-    tags: ['Self Service', 'FOSS'],
+      'Model registry provides access to published models resulting out of kubeflow model development.',
+    tags: ['Data Science', 'Machine Learning', 'FOSS', 'Cloud', 'Onprem'],
     url: '/modelregistry',
     isExternalLink: false,
     isTextAlignLeft: false,
