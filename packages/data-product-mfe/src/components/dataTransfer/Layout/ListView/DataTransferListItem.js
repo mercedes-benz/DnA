@@ -14,7 +14,7 @@ import ProgressIndicator from '../../../../common/modules/uilab/js/src/progress-
 import Notification from '../../../../common/modules/uilab/js/src/notification';
 import Tooltip from '../../../../common/modules/uilab/js/src/tooltip';
 
-const DataProductListItem = ({ product, history, user }) => {
+const DataTransferListItem = ({ product, history, user }) => {
   const dispatch = useDispatch();
   const isProviderFormSubmitted = product?.providerInformation?.providerFormSubmitted;
   const isCreator = product.providerInformation?.createdBy?.id === user?.id;
@@ -39,20 +39,21 @@ const DataProductListItem = ({ product, history, user }) => {
     setShowContextMenu(!showContextMenu);
   };
 
-  const deleteDataProductContent = (
+  const deleteDataTransferContent = (
     <div>
       <h3>Are you sure you want to delete {product?.dataTransferName} ? </h3>
     </div>
   );
-  const deleteDataProductAccept = () => {
+  const deleteDataTransferAccept = () => {
     ProgressIndicator.show();
     dataTransferApi.deleteDataTransfer(product?.id).then(() => {
       dispatch(GetDataTransfers());
       setShowContextMenu(false);
       setShowDeleteModal(false);
+      Notification.show(`${product?.dataTransferName} deleted successfully.`);
     });
   };
-  const deleteDataProductClose = () => {
+  const deleteDataTransferClose = () => {
     setShowDeleteModal(false);
   };
 
@@ -71,8 +72,8 @@ const DataProductListItem = ({ product, history, user }) => {
   };
 
   useEffect(() => {
-    const dataProductList = document.querySelectorAll('[class*="arrowBtn"]');
-    setTooltipIfEllipsisShown(dataProductList);
+    const dataTransferList = document.querySelectorAll('[class*="arrowBtn"]');
+    setTooltipIfEllipsisShown(dataTransferList);
   }, []);
 
   useEffect(() => {
@@ -213,11 +214,11 @@ const DataProductListItem = ({ product, history, user }) => {
         showAcceptButton={true}
         showCancelButton={true}
         show={showDeleteModal}
-        content={deleteDataProductContent}
-        onCancel={deleteDataProductClose}
-        onAccept={deleteDataProductAccept}
+        content={deleteDataTransferContent}
+        onCancel={deleteDataTransferClose}
+        onAccept={deleteDataTransferAccept}
       />
     </React.Fragment>
   );
 };
-export default withRouter(DataProductListItem);
+export default withRouter(DataTransferListItem);
