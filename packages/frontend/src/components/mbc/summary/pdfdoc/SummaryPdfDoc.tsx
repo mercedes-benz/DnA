@@ -38,7 +38,6 @@ import ImgRollout from '../../../../assets/images/rollout.jpg';
 import jupeterImg from '../../../../assets/images/jupyter-icon.jpg';
 import dataIkuimg from '../../../../assets/images/dataiku-icon.jpg';
 
-import PersonaSelect from './../../shared/personaSelect/PersonaSelect';
 // import PersonaAvatar from '../../../../assets/images/team-internal-avatar.jpg';
 import LiAvatar from '../../../../assets/images/li.png';
 import HenryAvatar from '../../../../assets/images/henry.png';
