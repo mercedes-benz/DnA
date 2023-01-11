@@ -35,7 +35,7 @@ const tabs = {
     department: '',
     dateOfAgreement: '',
     planningIT: '',
-    lcoNeeded: '',
+    lcoNeeded: 'No',
     complianceOfficer: '',
   },
   'consumer-personal-data': {
@@ -90,7 +90,7 @@ const ConsumerForm = ({ user, history, isDataProduct = false, callbackFn }) => {
     if (id) {
       const data = !isDataProduct
         ? provideDataTransfers.selectedDataTransfer.consumer
-        : provideDataTransfers.selectedDataProduct.consumer;
+        : provideDataTransfers.selectedDataProduct.consumer || tabs['consumer-contact-info'];
       let defaultValues = { ...data };
       reset(defaultValues); // setting default values
     }
