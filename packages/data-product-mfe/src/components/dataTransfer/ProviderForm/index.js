@@ -136,7 +136,7 @@ const ProviderForm = ({ user, history }) => {
       })
       .catch((e) => {
         Notification.show(
-          e?.response?.data?.errors?.[0]?.message || 'Error while fetching selected data product',
+          e?.response?.data?.errors?.[0]?.message || 'Error while fetching selected data transfer',
           'alert',
         );
         ProgressIndicator.hide();
