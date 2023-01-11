@@ -222,9 +222,9 @@ export const deserializeFormData = ({ item, type = 'provider', isDataProduct = f
         }
       : {
           description: item.description,
-          ART: item?.agileReleaseTrain || '',
-          carLAFunction: item?.carLaFunction || '',
-          corporateDataCatalog: item?.corporateDataCatalog || '',
+          ART: item?.agileReleaseTrain?.name || '',
+          carLAFunction: item?.carLaFunction?.name || '',
+          corporateDataCatalog: item?.corporateDataCatalog?.name || '',
 
           dataProductId: item?.dataProductId,
           productName: item?.dataProductName,
