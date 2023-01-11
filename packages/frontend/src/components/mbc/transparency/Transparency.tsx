@@ -12,7 +12,7 @@ const Transparency = () => {
     <LandingSummary
       title={'Transparency'}
       subTitle={
-        'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. eiusmod tempor incididunt ut labore et dolore magna aliqua.'
+        'Explore all Data & AI Solutions in MB and view your Portfolio.'
       }
       tags={['Lorem Ipsum', 'ABC', 'XYZ']}
       headerImage={headerImageURL}
