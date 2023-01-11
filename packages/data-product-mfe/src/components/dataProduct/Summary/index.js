@@ -210,30 +210,32 @@ const Summary = ({ history, user }) => {
           <button className="btn btn-text back arrow" type="submit" onClick={() => history.goBack()}>
             Back
           </button>
-          {isCreator ? (
-            <div className={Styles.actionBtns}>
-              <button
-                className="btn btn-primary"
-                onClick={() =>
-                  history.push({
-                    pathname: '/dataproduct/create',
-                    state: { copyId: selectedDataProduct?.dataProductId },
-                  })
-                }
-              >
-                <i className="icon mbc-icon copy" tooltip-data="Create Copy"></i>Copy & Create New
-              </button>
-              <button className="btn btn-primary" onClick={() => setShowDeleteModal(true)}>
-                <i className="icon mbc-icon delete-new" tooltip-data="Delete"></i>Delete
-              </button>
-              <button
-                className="btn btn-primary"
-                onClick={() => history.push(`/dataproduct/edit/${selectedDataProduct?.dataProductId}`)}
-              >
-                <i className="icon mbc-icon edit fill" tooltip-data="Edit"></i>Edit
-              </button>
-            </div>
-          ) : null}
+          <div className={Styles.actionBtns}>
+            <button
+              className="btn btn-primary"
+              onClick={() =>
+                history.push({
+                  pathname: '/dataproduct/create',
+                  state: { copyId: selectedDataProduct?.dataProductId },
+                })
+              }
+            >
+              <i className="icon mbc-icon copy" tooltip-data="Create Copy"></i>Copy & Create New
+            </button>
+            {isCreator ? (
+              <>
+                <button className={classNames('btn btn-primary')} onClick={() => setShowDeleteModal(true)}>
+                  <i className="icon mbc-icon delete-new" tooltip-data="Delete"></i>Delete
+                </button>
+                <button
+                  className="btn btn-primary"
+                  onClick={() => history.push(`/dataproduct/edit/${selectedDataProduct?.dataProductId}`)}
+                >
+                  <i className="icon mbc-icon edit fill" tooltip-data="Edit"></i>Edit
+                </button>
+              </>
+            ) : null}
+          </div>
           <div className={Styles.summaryBannerTitle}>
             <h2>{selectedDataProduct?.productName}</h2>
           </div>
