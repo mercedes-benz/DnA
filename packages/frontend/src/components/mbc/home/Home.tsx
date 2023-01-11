@@ -54,6 +54,7 @@ const Home: React.FC<ILandingpageProps> = () => {
                   url={'/carla'}
                   isTextAlignLeft={false}
                   isDisabled={false}
+                  upperTag="FC"
                   svgIcon={<IconCarla size="80"/>}
                 />
               </div>
