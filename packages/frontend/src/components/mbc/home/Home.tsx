@@ -54,6 +54,7 @@ const Home: React.FC<ILandingpageProps> = () => {
                   url={'/carla'}
                   isTextAlignLeft={false}
                   isDisabled={false}
+                  upperTag="FC"
                   svgIcon={<IconCarla size="80"/>}
                 />
               </div>
@@ -82,7 +83,7 @@ const Home: React.FC<ILandingpageProps> = () => {
               <div className={Styles.dnaCol6}>
                 <DNACard
                   title={'Trainings'}
-                  description={'Data and Tools are not enough - here we enable you to become even more productive'}
+                  description={'Data and Tools are not enough - here we enable you to become even more productive.'}
                   url={'/trainings'}
                   isTextAlignLeft={false}
                   isDisabled={!Envs.ENABLE_TRAININGS}

@@ -15,9 +15,8 @@ const DataLayer = () => {
     <LandingSummary
       title={'Data Layer'}
       subTitle={
-        'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. eiusmod tempor incididunt ut labore et dolore magna aliqua.'
+        'Official information and definitions of CarLA applications, key figures and FC data.'
       }
-      tags={['Lorem Ipsum', 'ABC', 'XYZ']}
       headerImage={headerImageURL}
       isBackButton={true}
     >
