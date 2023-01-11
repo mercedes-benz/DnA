@@ -26,7 +26,7 @@ import Classification from '../../dataTransfer/ProviderForm/ClassificationAndCon
 import PersonalRelatedData from '../../dataTransfer/ProviderForm/PersonalRelatedData';
 import TransNationalDataTransfer from '../../dataTransfer/ProviderForm/TransNationalDataTransfer';
 import DeletionRequirements from '../../dataTransfer/ProviderForm/DeletionRequirements';
-import { setDivisionList, setSelectedData } from '../redux/dataProductSlice';
+import { setDivisionList, setSelectedDataProduct } from '../redux/dataProductSlice';
 import { UpdateDataProduct, SetDataProduct } from '../redux/dataProduct.services';
 import { getAgileReleaseTrains, getCarlaFunctions, getCorporateDataCatalogs } from '../../redux/getDropdowns.services';
 
@@ -91,7 +91,8 @@ const CreateDataProduct = ({ user, history }) => {
           res.data.id = '';
           res.data.notifyUsers = false;
           res.data.publish = false;
-          res.data.contactInformation.name = userInfo;
+          if (res.data.contactInformation?.name) res.data.contactInformation.name = userInfo;
+          else res.data['contactInformation'] = { name: userInfo };
           delete res.data.createdBy;
           delete res.data.createdDate;
           delete res.data.lastModifiedDate;
@@ -102,7 +103,7 @@ const CreateDataProduct = ({ user, history }) => {
           return history.push('/NotFound');
         } else {
           const data = deserializeFormData({ item: res.data, isDataProduct: true });
-          dispatch(setSelectedData(data));
+          dispatch(setSelectedDataProduct(data));
           reset(data);
           let segments = [];
           res.data?.openSegments?.map((seg) => {
@@ -117,6 +118,7 @@ const CreateDataProduct = ({ user, history }) => {
         ProgressIndicator.hide();
       })
       .catch((e) => {
+        console.log(e);
         Notification.show(
           e?.response?.data?.errors?.[0]?.message || 'Error while fetching selected data product',
           'alert',
@@ -171,7 +173,7 @@ const CreateDataProduct = ({ user, history }) => {
 
   useEffect(() => {
     return () => {
-      dispatch(setSelectedData({}));
+      dispatch(setSelectedDataProduct({}));
     };
   }, [dispatch]);
 

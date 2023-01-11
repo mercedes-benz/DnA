@@ -126,7 +126,7 @@ export const dataSlice = createSlice({
     setDataProductList: (state, action) => {
       state.data = action.payload;
     },
-    setSelectedData: (state, action) => {
+    setSelectedDataProduct: (state, action) => {
       state.selectedDataProduct = action.payload;
     },
     setPagination: (state, action) => {
@@ -148,6 +148,6 @@ export const dataSlice = createSlice({
   },
 });
 
-export const { setPagination, setDataProductList, setSelectedData, setDivisionList, resetDataTransferList } =
+export const { setPagination, setDataProductList, setSelectedDataProduct, setDivisionList, resetDataTransferList } =
   dataSlice.actions;
 export default dataSlice.reducer;
