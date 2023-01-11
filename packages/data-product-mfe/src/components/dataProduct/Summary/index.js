@@ -292,17 +292,17 @@ const Summary = ({ history, user }) => {
                       <div>
                         <label className="input-label summary">Agile Release Train</label>
                         <br />
-                        {selectedDataProduct.ART?.name || '-'}
+                        {selectedDataProduct?.ART || '-'}
                       </div>
                       <div>
                         <label className="input-label summary">CarLA Function</label>
                         <br />
-                        {selectedDataProduct.carLAFunction?.name || '-'}
+                        {selectedDataProduct?.carLAFunction || '-'}
                       </div>
                       <div>
                         <label className="input-label summary">Corporate Data Catalog</label>
                         <br />
-                        {selectedDataProduct.corporateDataCatalog?.name || '-'}
+                        {selectedDataProduct?.corporateDataCatalog || '-'}
                       </div>
                     </div>
                     <div className={Styles.flexLayout}>
