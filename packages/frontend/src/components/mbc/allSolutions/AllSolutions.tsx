@@ -354,8 +354,7 @@ export default class AllSolutions extends React.Component<
     return (
       <React.Fragment>
         <LandingSummary title={pageTitle} 
-          subTitle={'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. eiusmod tempor incididunt ut labore et dolore magna aliqua.'}
-          tags={['Lorem Ipsum', 'ABC', 'XYZ']}
+          subTitle={'Central place to search, find and create all MB Data & Analytics Solutions.'}
           headerImage={headerImageURL}
           isBackButton={enablePortfolioSolutionsView}
           isTagsFilter={false}>
