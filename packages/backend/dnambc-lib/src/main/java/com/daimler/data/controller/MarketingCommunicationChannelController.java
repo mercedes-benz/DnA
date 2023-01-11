@@ -27,6 +27,8 @@
 
 package com.daimler.data.controller;
 
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,6 +37,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.daimler.data.api.marketingCommunicationChannel.MarketingCommunicationChannelsApi;
@@ -112,12 +115,22 @@ public class MarketingCommunicationChannelController implements MarketingCommuni
         produces = { "application/json" }, 
         consumes = { "application/json" },
         method = RequestMethod.GET)
-	public ResponseEntity<MarketingCommunicationChannelCollection> getAll() {
+	public ResponseEntity<MarketingCommunicationChannelCollection> getAll(
+			@ApiParam(value = "Sort marketingCommunicationChannels by a given variable like marketingCommunicationChannelName", allowableValues = "marketingCommunicationChannelName") @RequestParam(value = "sortBy", required = false) String sortBy,
+			@ApiParam(value = "Sort marketingCommunicationChannels based on the given order, example asc,desc", allowableValues = "asc, desc") @RequestParam(value = "sortOrder", required = false) String sortOrder) {
 
 		final List<MarketingCommunicationChannelVO> marketingCommunicationChannels = marketingCommunicationChannelService.getAll();		
 		MarketingCommunicationChannelCollection marketingCommunicationChannelCollection = new MarketingCommunicationChannelCollection();
 		log.debug("Sending all marketingCommunicationChannels");
 		if (marketingCommunicationChannels != null && marketingCommunicationChannels.size() > 0) {
+			if (sortOrder == null || sortOrder.equalsIgnoreCase("asc")) {
+				Comparator<MarketingCommunicationChannelVO> comparator = (a1, a2) -> (a1.getName().compareTo(a2.getName()));
+				Collections.sort(marketingCommunicationChannels, comparator);
+			}
+			if (sortOrder != null && sortOrder.equalsIgnoreCase("desc")) {
+				Comparator<MarketingCommunicationChannelVO> comparator = (a1, a2) -> (a2.getName().compareTo(a1.getName()));
+				Collections.sort(marketingCommunicationChannels, comparator);
+			}
 			
 			marketingCommunicationChannelCollection.addAll(marketingCommunicationChannels);
 			return new ResponseEntity<>(marketingCommunicationChannelCollection, HttpStatus.OK);
