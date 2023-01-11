@@ -12,9 +12,8 @@ const DataGovernance = () => {
     <LandingSummary
       title={'Data Governance'}
       subTitle={
-        'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. eiusmod tempor incididunt ut labore et dolore magna aliqua.'
+        'Understanding & fulfilling ever more complex Legal & Compliance requirements can be challenging. Data Governance helps you to navigate through these requirements and supports on you data journey.'
       }
-      tags={['Lorem Ipsum', 'ABC', 'XYZ']}
       headerImage={headerImageURL}
       isBackButton={true}
     >
