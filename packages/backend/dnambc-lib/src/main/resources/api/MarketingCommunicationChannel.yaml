@@ -108,6 +108,19 @@ paths:
    summary: "Get all available marketingCommunicationChannels."
    description:  "Get all marketingCommunicationChannels. This endpoints will be used to Get all valid available marketingCommunicationChannels maintenance records."
    operationId: "getAll"
+   parameters:
+        - name: sortBy
+          in: query
+          description: Sort marketingCommunicationChannels by a given variable like marketingCommunicationChannelName
+          required: false
+          type: string
+          enum: [marketingCommunicationChannelName]
+        - name: sortOrder
+          in: query
+          description: Sort marketingCommunicationChannels based on the given order, example asc,desc
+          required: false
+          type: string   
+          enum: [asc,desc]
    responses:
     201:
      description: "Returns message of succes or failure"
