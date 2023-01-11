@@ -346,7 +346,7 @@ export const ToolsLandingPageElements = [
     tags: ['Frontend Reporting', 'SAP', 'Onprem'],
     url: sbissUrl
     ,
-    isExternalLink: false,
+    isExternalLink: true,
     isTextAlignLeft: false,
     isDisabled: !sbissUrl,
     isSmallCard: false,
