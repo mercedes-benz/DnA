@@ -14,9 +14,7 @@ const Home: React.FC<ILandingpageProps> = () => {
   return (
     <>
       <div className={Styles.marqueeContainer}>
-        <div className={Styles.marquee}>
-          <p>coming soon: trainings, lorem ipsum and more features +++ stay up to date and follow our social intranet page +++</p>
-        </div>
+        <div className={Styles.marquee} dangerouslySetInnerHTML={{ __html: Envs.COMING_SOON_CONTENT }}></div>
       </div>
       <div className={Styles.dnaContainer}>
         <div className={classNames(Styles.dnaRow, Styles.moreSpaceRow)}>
