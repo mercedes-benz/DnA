@@ -12,7 +12,7 @@ import { hostServer } from '../../../server/api';
 
 import DataTranferCardLayout from '../../dataTransfer/Layout/CardView/DataTransferCardItem';
 
-import { setSelectedData, setDivisionList, resetDataTransferList } from '../redux/dataProductSlice';
+import { setSelectedDataProduct, setDivisionList, resetDataTransferList } from '../redux/dataProductSlice';
 
 import { regionalDateFormat } from '../../../Utility/utils';
 
@@ -83,7 +83,7 @@ const Summary = ({ history, user }) => {
     getDataProductById();
 
     return () => {
-      dispatch(setSelectedData({}));
+      dispatch(setSelectedDataProduct({}));
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dataList]);
@@ -100,7 +100,7 @@ const Summary = ({ history, user }) => {
         return history.push('/NotFound');
       } else {
         const data = deserializeFormData({ item: res.data, isDataProduct: true });
-        dispatch(setSelectedData(data));
+        dispatch(setSelectedDataProduct(data));
         Tabs.defaultSetup();
       }
     });
