@@ -244,6 +244,11 @@ export const Translations = {
     ExploreTrainings: 'Erkunden Sie Schulungen',
     KnowledgeBase: 'Wissensbasis',
     Udemy: 'Udemy',
+    CarLA: 'CarLA',
+    Architecture: 'Architecture',
+    TransactionalData: 'Transactional Data',
+    CarLASolutions: 'Solutions',
+    CarLAData: 'Data',
   },
   en: {
     '360° Connectivity': '360° Connectivity',
@@ -532,5 +537,10 @@ export const Translations = {
     ExploreTrainings: 'Explore Trainings',
     KnowledgeBase: 'Knowledge Base',
     Udemy: 'Udemy',
+    CarLA: 'CarLA',
+    Architecture: 'Architecture',
+    TransactionalData: 'Transactional Data',
+    CarLASolutions: 'Solutions',
+    CarLAData: 'Data',
   },
 };
