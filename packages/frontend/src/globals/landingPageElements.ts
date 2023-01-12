@@ -350,7 +350,7 @@ export const ToolsLandingPageElements = [
     ,
     isExternalLink: true,
     isTextAlignLeft: false,
-    isDisabled: !dwcUrl,
+    isDisabled: true,
     isSmallCard: false,
     isMediumCard: true,
     svgIcon: 'tools-mini',
