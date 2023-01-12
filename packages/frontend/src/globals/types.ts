@@ -1364,6 +1364,7 @@ export interface ISubsriptionExpiryObject {
   appId: string;
   description: string;
   expiryDays: number | null;
+  timeZone: string;
 }
 
 export interface ISubsriptionExpiryObjectData {
