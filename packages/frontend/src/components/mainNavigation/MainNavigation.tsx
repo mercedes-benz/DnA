@@ -209,9 +209,10 @@ const MainNavigation: React.FC<IMainNavigationProps> = (props) => {
         {
           allowedRoles: UserAndAdminRole,
           id: 1,
-          route: `/explore-trainings`,
+          route: `/trainings`,
           title: 'ExploreTrainings',
           enabled: Envs.ENABLE_TRAININGS,
+          isExternalLink: false,
         },
         {
           allowedRoles: UserAndAdminRole,
@@ -219,13 +220,15 @@ const MainNavigation: React.FC<IMainNavigationProps> = (props) => {
           route: `/knowledge-base`,
           title: 'KnowledgeBase',
           enabled: Envs.ENABLE_TRAININGS,
+          isExternalLink: false,
         },
         {
           allowedRoles: UserAndAdminRole,
           id: 3,
-          route: `/udemy`,
+          route: Envs.UDEMY_URL,
           title: 'Udemy',
           enabled: Envs.ENABLE_TRAININGS,
+          isExternalLink: true,
         },
       ],
     },
@@ -329,12 +332,19 @@ const MainNavigation: React.FC<IMainNavigationProps> = (props) => {
                         props.onNavClose();
                       }}
                     >
-                      <Link
-                        className={classNames('nav-link', subNavItem.enabled ? '' : Styles.disableSubLink)}
-                        to={subNavItem.route}
-                      >
-                        {getTranslatedLabel(subNavItem.title)}
-                      </Link>
+                      { subNavItem.isExternalLink ?
+                      
+                        <a href={subNavItem.route} target="_blank" rel="noopener noreferrer" className={classNames('nav-link', subNavItem.enabled ? '' : Styles.disableSubLink)} >
+                          {getTranslatedLabel(subNavItem.title)}
+                        </a>
+                        :
+                        <Link
+                          className={classNames('nav-link', subNavItem.enabled ? '' : Styles.disableSubLink)}
+                          to={subNavItem.route}
+                        >
+                          {getTranslatedLabel(subNavItem.title)}
+                        </Link>
+                      }
                     </li>
                   );
                 })}

@@ -98,7 +98,7 @@ export const DataLayerElements = [
     url: sapConnectionBookUrl,
     isExternalLink: true,
     isTextAlignLeft: false,
-    isDisabled: false,
+    isDisabled: true,
     isSmallCard: false,
     isMediumCard: true,
     svgIcon: 'dataproduct',
