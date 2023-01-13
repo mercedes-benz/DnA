@@ -12,7 +12,7 @@ import { hostServer } from '../../../server/api';
 
 import DataTranferCardLayout from '../../dataTransfer/Layout/CardView/DataTransferCardItem';
 
-import { setSelectedData, setDivisionList, resetDataTransferList } from '../redux/dataProductSlice';
+import { setSelectedDataProduct, setDivisionList, resetDataTransferList } from '../redux/dataProductSlice';
 
 import { regionalDateFormat } from '../../../Utility/utils';
 
@@ -83,7 +83,7 @@ const Summary = ({ history, user }) => {
     getDataProductById();
 
     return () => {
-      dispatch(setSelectedData({}));
+      dispatch(setSelectedDataProduct({}));
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dataList]);
@@ -100,7 +100,7 @@ const Summary = ({ history, user }) => {
         return history.push('/NotFound');
       } else {
         const data = deserializeFormData({ item: res.data, isDataProduct: true });
-        dispatch(setSelectedData(data));
+        dispatch(setSelectedDataProduct(data));
         Tabs.defaultSetup();
       }
     });
@@ -210,30 +210,32 @@ const Summary = ({ history, user }) => {
           <button className="btn btn-text back arrow" type="submit" onClick={() => history.goBack()}>
             Back
           </button>
-          {isCreator ? (
-            <div className={Styles.actionBtns}>
-              <button
-                className="btn btn-primary"
-                onClick={() =>
-                  history.push({
-                    pathname: '/dataproduct/create',
-                    state: { copyId: selectedDataProduct?.dataProductId },
-                  })
-                }
-              >
-                <i className="icon mbc-icon copy" tooltip-data="Create Copy"></i>Copy & Create New
-              </button>
-              <button className="btn btn-primary" onClick={() => setShowDeleteModal(true)}>
-                <i className="icon mbc-icon delete-new" tooltip-data="Delete"></i>Delete
-              </button>
-              <button
-                className="btn btn-primary"
-                onClick={() => history.push(`/dataproduct/edit/${selectedDataProduct?.dataProductId}`)}
-              >
-                <i className="icon mbc-icon edit fill" tooltip-data="Edit"></i>Edit
-              </button>
-            </div>
-          ) : null}
+          <div className={Styles.actionBtns}>
+            <button
+              className="btn btn-primary"
+              onClick={() =>
+                history.push({
+                  pathname: '/dataproduct/create',
+                  state: { copyId: selectedDataProduct?.dataProductId },
+                })
+              }
+            >
+              <i className="icon mbc-icon copy" tooltip-data="Create Copy"></i>Copy & Create New
+            </button>
+            {isCreator ? (
+              <>
+                <button className={classNames('btn btn-primary')} onClick={() => setShowDeleteModal(true)}>
+                  <i className="icon mbc-icon delete-new" tooltip-data="Delete"></i>Delete
+                </button>
+                <button
+                  className="btn btn-primary"
+                  onClick={() => history.push(`/dataproduct/edit/${selectedDataProduct?.dataProductId}`)}
+                >
+                  <i className="icon mbc-icon edit fill" tooltip-data="Edit"></i>Edit
+                </button>
+              </>
+            ) : null}
+          </div>
           <div className={Styles.summaryBannerTitle}>
             <h2>{selectedDataProduct?.productName}</h2>
           </div>
@@ -292,17 +294,17 @@ const Summary = ({ history, user }) => {
                       <div>
                         <label className="input-label summary">Agile Release Train</label>
                         <br />
-                        {selectedDataProduct.ART?.name || '-'}
+                        {selectedDataProduct?.ART || '-'}
                       </div>
                       <div>
                         <label className="input-label summary">CarLA Function</label>
                         <br />
-                        {selectedDataProduct.carLAFunction?.name || '-'}
+                        {selectedDataProduct?.carLAFunction || '-'}
                       </div>
                       <div>
                         <label className="input-label summary">Corporate Data Catalog</label>
                         <br />
-                        {selectedDataProduct.corporateDataCatalog?.name || '-'}
+                        {selectedDataProduct?.corporateDataCatalog || '-'}
                       </div>
                     </div>
                     <div className={Styles.flexLayout}>

@@ -14,9 +14,7 @@ const Home: React.FC<ILandingpageProps> = () => {
   return (
     <>
       <div className={Styles.marqueeContainer}>
-        <div className={Styles.marquee}>
-          <p>coming soon: trainings, lorem ipsum and more features +++ stay up to date and follow our social intranet page +++</p>
-        </div>
+        <div className={Styles.marquee} dangerouslySetInnerHTML={{ __html: Envs.COMING_SOON_CONTENT }}></div>
       </div>
       <div className={Styles.dnaContainer}>
         <div className={classNames(Styles.dnaRow, Styles.moreSpaceRow)}>
@@ -56,6 +54,7 @@ const Home: React.FC<ILandingpageProps> = () => {
                   url={'/carla'}
                   isTextAlignLeft={false}
                   isDisabled={false}
+                  upperTag="FC"
                   svgIcon={<IconCarla size="80"/>}
                 />
               </div>
@@ -84,7 +83,7 @@ const Home: React.FC<ILandingpageProps> = () => {
               <div className={Styles.dnaCol6}>
                 <DNACard
                   title={'Trainings'}
-                  description={'Data and Tools are not enough - here we enable you to become even more productive'}
+                  description={'Data and Tools are not enough - here we enable you to become even more productive.'}
                   url={'/trainings'}
                   isTextAlignLeft={false}
                   isDisabled={!Envs.ENABLE_TRAININGS}

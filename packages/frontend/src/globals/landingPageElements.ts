@@ -12,7 +12,30 @@ const sapAnalyticsUrl = Envs.SAP_ANALYTICS_CLOUD_URL;
 const enableCodeSpace = Envs.ENABLE_CODE_SPACE;
 const enableJupiyterNoteWorkspace = Envs.ENABLE_JUPYTER_WORKSPACE;
 const enableDataikuWorkspace = Envs.ENABLE_DATAIKU_WORKSPACE;
-const powerBIUrl = '', dataOasisUrl = '', afoUrl= '', extolloUrl = '', btpUrl = '', dwcUrl = '', sbissUrl = '';
+const udemyUrl = Envs.UDEMY_URL;
+const linkedinLearningUrl = Envs.LINKEDIN_LEARNING_URL;
+const dataikuTrainingUrl = Envs.DATAIKU_TRAINING_URL;
+const powerbiTrainingUrl = Envs.POWERBI_TRAINING_URL;
+const sacTrainingUrl = Envs.SAC_TRAINING_URL;
+const databricksTrainingUrl = Envs.DATABRICKS_TRAINING_URL;
+const digitalCaseProgramUrl = Envs.DIGITAL_CASE_PROGRAM_URL;
+const afoUrl= Envs.AFO_TOOL_URL;
+const btpUrl = Envs.BPT_TOOL_URL;
+const dataOasisUrl = Envs.DATA_OASIS_TOOL_URL;
+const dwcUrl = Envs.DWC_TOOL_URL;
+const extolloUrl = Envs.EXTOLLO_TOOL_URL;
+const powerBIUrl = Envs.POWER_BI_TOOL_URL;
+const sbissUrl = Envs.SBISS_LAUNCHPAD_TOOL_URL;
+const sbissPortalUrl = Envs.SBISS_PORTAL_TOOL_URL;
+const sbissHanaUrl = Envs.SBISS_HANA_LAUNCHPAD_TOOL_URL;
+const dataModelUrl = Envs.DATA_MODEL_URL;
+const kpiWikiUrl = Envs.KPI_WIKI_URL;
+const carlaEconomicModelUrl = Envs.CARLA_ECONOMIC_MODEL_URL;
+const corporateDataCatalogUrl = Envs.CORPORATE_DATA_CATALOG_URL;
+const sapConnectionBookUrl = Envs.SAP_CONNECTION_BOOK_URL;
+const smartDataGovernanceUrl = Envs.SMART_DATA_GOVERNANCE_URL;
+const transactionalDataUrl = Envs.TRANSACTIONAL_DATA_URL;
+const carlaArchitectureUrl = Envs.CARLA_ARCHITECTURE_URL;
 
 export const DataLayerElements = [
   {
@@ -20,10 +43,10 @@ export const DataLayerElements = [
     description:
       'The Data Model shows the most important Master data dimensions and how they relate to each other.',
     tags: ['Self Service', 'FOSS'],
-    url: '',
-    isExternalLink: false,
+    url: dataModelUrl,
+    isExternalLink: true,
     isTextAlignLeft: false,
-    isDisabled: true,
+    isDisabled: false,
     isSmallCard: false,
     isMediumCard: true,
     svgIcon: 'dataproduct',
@@ -33,10 +56,10 @@ export const DataLayerElements = [
     description:
       'Find approved definitions of the most commonly used KPIs.',
     tags: ['Self Service', 'FOSS'],
-    url: '',
+    url: kpiWikiUrl,
     isExternalLink: true,
     isTextAlignLeft: false,
-    isDisabled: true,
+    isDisabled: false,
     isSmallCard: false,
     isMediumCard: true,
     svgIcon: 'dataproduct',
@@ -46,10 +69,10 @@ export const DataLayerElements = [
     description:
       'The CarLA Economic Model is the orientation guide for all functions of the CarLA. This CarLA-City-Map gives you a first overview about the functions of the CarLA, which are clustered in 5 focus areas.',
     tags: ['Self Service', 'FOSS'],
-    url: '',
-    isExternalLink: false,
+    url: carlaEconomicModelUrl,
+    isExternalLink: true,
     isTextAlignLeft: false,
-    isDisabled: true,
+    isDisabled: false,
     isSmallCard: false,
     isMediumCard: true,
     svgIcon: 'dataproduct',
@@ -59,10 +82,10 @@ export const DataLayerElements = [
     description:
       'Catalog of Mercedes-Benz data assets. If you never logged in the CDC before, a user will be generated for your this can take a while. CarLA systems can be found by searching for CarLA.',
     tags: ['Self Service', 'FOSS'],
-    url: '',
-    isExternalLink: false,
+    url: corporateDataCatalogUrl,
+    isExternalLink: true,
     isTextAlignLeft: false,
-    isDisabled: true,
+    isDisabled: false,
     isSmallCard: false,
     isMediumCard: true,
     svgIcon: 'dataproduct',
@@ -72,8 +95,8 @@ export const DataLayerElements = [
     description:
       'List of all source systems connected to the CarLA Core Datawarehouse and the names of the targets where the data from the source system is written to.',
     tags: ['Self Service', 'FOSS'],
-    url: '',
-    isExternalLink: false,
+    url: sapConnectionBookUrl,
+    isExternalLink: true,
     isTextAlignLeft: false,
     isDisabled: true,
     isSmallCard: false,
@@ -85,10 +108,10 @@ export const DataLayerElements = [
     description:
       'Information on the compliance with architecture guidelines and the data volume in the CarLA Core Datawarehouse.',
     tags: ['Self Service', 'FOSS'],
-    url: '',
-    isExternalLink: false,
+    url: smartDataGovernanceUrl,
+    isExternalLink: true,
     isTextAlignLeft: false,
-    isDisabled: true,
+    isDisabled: false,
     isSmallCard: false,
     isMediumCard: true,
     svgIcon: 'dataproduct',
@@ -247,7 +270,7 @@ export const ToolsLandingPageElements = [
       'Digital Oasis is an intergrated data platform, which is to drive and support the FG Digital Transformation with 6 modules (Mall, Factory, Workflow, Logistics, Data Warehouse, College) for 6 transformation scenarios.',
     tags: ['Frontend Reporting', 'Data Storage', 'Onprem'],
     url: dataOasisUrl,
-    isExternalLink: false,
+    isExternalLink: true,
     isTextAlignLeft: false,
     isDisabled: !dataOasisUrl,
     isSmallCard: false,
@@ -273,7 +296,7 @@ export const ToolsLandingPageElements = [
       'SAP Analysis for Office (AfO) is an office add-in that enables multidimensional ad-hoc analyzes on OLAP data sources in Excel. In addition, the product enables workbook-based application design and the creation of BI presentations in PowerPoint. Connectivity to our SBISS platform is fully supported.',
     tags: ['Frontend Reporting', 'FOSS', 'SAP', 'No / Low Code', 'Onprem'],
     url: afoUrl,
-    isExternalLink: false,
+    isExternalLink: true,
     isTextAlignLeft: false,
     isDisabled: !afoUrl,
     isSmallCard: false,
@@ -299,7 +322,7 @@ export const ToolsLandingPageElements = [
     tags: ['Frontend Reporting', 'Data Engineering', 'Data Pipeline', 'Data Science', 'Data Storage', 'Machine Learning', 'No / Low Code', 'Coding', 'Cloud'],
     url: extolloUrl
     ,
-    isExternalLink: false,
+    isExternalLink: true,
     isTextAlignLeft: false,
     isDisabled: !extolloUrl,
     isSmallCard: false,
@@ -312,7 +335,7 @@ export const ToolsLandingPageElements = [
     tags: ['Frontend Reporting', 'Data Storage', 'SAP', 'No / Low Code', 'Coding', 'Cloud'],
     url: btpUrl
     ,
-    isExternalLink: false,
+    isExternalLink: true,
     isTextAlignLeft: false,
     isDisabled: !btpUrl,
     isSmallCard: false,
@@ -325,9 +348,9 @@ export const ToolsLandingPageElements = [
     tags: ['Data Engineering', 'Data Storage', 'SAP', 'No / Low Code', 'Cloud'],
     url: dwcUrl
     ,
-    isExternalLink: false,
+    isExternalLink: true,
     isTextAlignLeft: false,
-    isDisabled: !dwcUrl,
+    isDisabled: true,
     isSmallCard: false,
     isMediumCard: true,
     svgIcon: 'tools-mini',
@@ -338,9 +361,35 @@ export const ToolsLandingPageElements = [
     tags: ['Frontend Reporting', 'SAP', 'Onprem'],
     url: sbissUrl
     ,
-    isExternalLink: false,
+    isExternalLink: true,
     isTextAlignLeft: false,
     isDisabled: !sbissUrl,
+    isSmallCard: false,
+    isMediumCard: true,
+    svgIcon: 'sbiss',
+  },
+  {
+    name: 'SBISS Portal',
+    description: 'The SBISS Portal is the singe point of entry for endusers accessing applications based on SBISSonHANA',
+    tags: ['Frontend Reporting', 'SAP', 'Onprem'],
+    url: sbissPortalUrl
+    ,
+    isExternalLink: true,
+    isTextAlignLeft: false,
+    isDisabled: !sbissPortalUrl,
+    isSmallCard: false,
+    isMediumCard: true,
+    svgIcon: 'sbiss',
+  },
+  {
+    name: 'SBISSonHANA Launchpad',
+    description: 'SBISSonHANA Launchpad is the central entry point to all applications based on the BW-Platform.',
+    tags: ['SAP', 'Onprem'],
+    url: sbissHanaUrl
+    ,
+    isExternalLink: true,
+    isTextAlignLeft: false,
+    isDisabled: !sbissHanaUrl,
     isSmallCard: false,
     isMediumCard: true,
     svgIcon: 'sbiss',
@@ -463,7 +512,7 @@ export const TrainingsLandingPageElements = [
     description:
       'If you\'re an IT employee or want to build IT knowledge, there are more than 18,000 courses available in Udemy Business. You can also orient yourself on specially defined learning paths for special skills and roles.',
     tags: ['Self Service', 'FOSS'],
-    url: Envs.UDEMY_URL,
+    url: udemyUrl,
     isExternalLink: true,
     isTextAlignLeft: false,
     isDisabled: false,
@@ -476,7 +525,7 @@ export const TrainingsLandingPageElements = [
     description:
       'The learning platform LinkedIn Learning enables employees as well as leaders to individualize their learning experience and become lifelong learners. Following the Turn2Learn idea of voluntary participation and self-motivation of all learners.',
     tags: ['Self Service', 'FOSS'],
-    url: Envs.LINKEDIN_LEARNING_URL,
+    url: linkedinLearningUrl,
     isExternalLink: true,
     isTextAlignLeft: false,
     isDisabled: false,
@@ -489,7 +538,7 @@ export const TrainingsLandingPageElements = [
     description:
       'To support your continuous learning and development on DSS, Dataiku provides a free online Academy, a safe place to learn at your own pace with detailed concept videos and step-by-step tutorials.',
     tags: ['Self Service', 'FOSS'],
-    url: Envs.DATAIKU_TRAINING_APP_URL,
+    url: dataikuTrainingUrl,
     isExternalLink: true,
     isTextAlignLeft: false,
     isDisabled: false,
@@ -502,7 +551,7 @@ export const TrainingsLandingPageElements = [
     description:
       'Learn new skills and discover the power of Microsoft Power BI with step-by-step guidance. Start your journey today by exploring the Microsoft learning paths and modules for free.',
     tags: ['Self Service', 'FOSS'],
-    url: Envs.POWERBI_TRAINING_URL,
+    url: powerbiTrainingUrl,
     isExternalLink: true,
     isTextAlignLeft: false,
     isDisabled: false,
@@ -515,7 +564,7 @@ export const TrainingsLandingPageElements = [
     description:
       'To support your continuous learning and development in the SAP Analytics Cloud, we offer SAC Basic Training Modules as web trainings and a self-service track with selected videos and screencasts of the SAC Basic Training Module content.',
     tags: ['Self Service', 'FOSS'],
-    url: Envs.SAC_TRAINING_URL,
+    url: sacTrainingUrl,
     isExternalLink: true,
     isTextAlignLeft: false,
     isDisabled: false,
@@ -528,7 +577,20 @@ export const TrainingsLandingPageElements = [
     description:
       'On the Databricks Lakehouse Platform you have the opportunity to carry out tailor-made learning paths for different roles and career paths. These pathways include self-paced courses, instructor-led training, and certifications or accreditations where appropriate.',
     tags: ['Self Service', 'FOSS'],
-    url: Envs.DATABRICKS_TRAINING_URL,
+    url: databricksTrainingUrl,
+    isExternalLink: true,
+    isTextAlignLeft: false,
+    isDisabled: false,
+    isSmallCard: false,
+    isMediumCard: true,
+    svgIconId: 'tools-mini',
+  },
+  {
+    name: 'Digital Case Program',
+    description:
+      'The Digital Case Program is available to all colleagues in Finance & Controlling worldwide and helps us to build the right skills for digitization.',
+    tags: ['Self Service', 'FOSS'],
+    url: digitalCaseProgramUrl,
     isExternalLink: true,
     isTextAlignLeft: false,
     isDisabled: false,
@@ -544,8 +606,8 @@ export const CarLALandingPageElements = [
     description:
       'Within our CarLA we use several governance tools to ensure that we achieve our goals of a redundancy free and efficient functions and data architecture for Finance and Controlling. An overview of the content and data flows can be found in the Economic Model CarLA.',
     tags: ['Self Service', 'FOSS'],
-    url: '/',
-    isExternalLink: false,
+    url: carlaArchitectureUrl,
+    isExternalLink: true,
     isTextAlignLeft: false,
     isDisabled: false,
     isSmallCard: false,
@@ -583,8 +645,8 @@ export const CarLALandingPageElements = [
     description:
       'A large part of the relevant data in Finance Controlling will be generated by OneERP. OneERP will be the single source of truth for actuals data for major plants. The methods and process for OneERP can be found in the Economic Model OneERP.',
     tags: ['Self Service', 'FOSS'],
-    url: '/',
-    isExternalLink: false,
+    url: transactionalDataUrl,
+    isExternalLink: true,
     isTextAlignLeft: false,
     isDisabled: false,
     isSmallCard: false,

@@ -8,6 +8,7 @@ import { USER_ROLE } from 'globals/constants';
 import { getPath } from './../../router/RouterUtils';
 import Styles from './MainNavigation.scss';
 import { Envs } from 'globals/Envs';
+import IconCarla from 'components/icons/IconCarla';
 
 export interface IMainNavigationProps {
   showExpandEffect: boolean;
@@ -141,6 +142,45 @@ const MainNavigation: React.FC<IMainNavigationProps> = (props) => {
     },
     {
       id: 2,
+      route: `/carla`,
+      title: 'CarLA',
+      icon: 'data',
+      enabled: true,
+      subNavItems: [
+        {
+          allowedRoles: UserAndAdminRole,
+          id: 1,
+          route: Envs.CARLA_ARCHITECTURE_URL,
+          title: 'Architecture',
+          enabled: true,
+          isExternalLink: true,
+        },
+        {
+          allowedRoles: UserAndAdminRole,
+          id: 2,
+          route: `/allsolutions`,
+          title: 'CarLASolutions',
+          enabled: true,
+        },
+        {
+          allowedRoles: UserAndAdminRole,
+          id: 3,
+          route: `/data/dataproduct`,
+          title: 'CarLAData',
+          enabled: true,
+        },
+        {
+          allowedRoles: UserAndAdminRole,
+          id: 4,
+          route: Envs.TRANSACTIONAL_DATA_URL,
+          title: 'TransactionalData',
+          enabled: true,
+          isExternalLink: true,
+        },
+      ],
+    },
+    {
+      id: 3,
       route: `/data`,
       title: 'Data',
       icon: 'data',
@@ -170,7 +210,7 @@ const MainNavigation: React.FC<IMainNavigationProps> = (props) => {
       ],
     },
     {
-      id: 3,
+      id: 4,
       route: `/tools`,
       title: 'Tools',
       icon: 'tools',
@@ -200,7 +240,7 @@ const MainNavigation: React.FC<IMainNavigationProps> = (props) => {
       ],
     },
     {
-      id: 4,
+      id: 5,
       route: `/trainings`,
       title: 'Trainings',
       icon: 'trainings',
@@ -209,9 +249,10 @@ const MainNavigation: React.FC<IMainNavigationProps> = (props) => {
         {
           allowedRoles: UserAndAdminRole,
           id: 1,
-          route: `/explore-trainings`,
+          route: `/trainings`,
           title: 'ExploreTrainings',
           enabled: Envs.ENABLE_TRAININGS,
+          isExternalLink: false,
         },
         {
           allowedRoles: UserAndAdminRole,
@@ -219,13 +260,15 @@ const MainNavigation: React.FC<IMainNavigationProps> = (props) => {
           route: `/knowledge-base`,
           title: 'KnowledgeBase',
           enabled: Envs.ENABLE_TRAININGS,
+          isExternalLink: false,
         },
         {
           allowedRoles: UserAndAdminRole,
           id: 3,
-          route: `/udemy`,
+          route: Envs.UDEMY_URL,
           title: 'Udemy',
           enabled: Envs.ENABLE_TRAININGS,
+          isExternalLink: true,
         },
       ],
     },
@@ -302,11 +345,24 @@ const MainNavigation: React.FC<IMainNavigationProps> = (props) => {
               title={navItem.title}
             >
               <a className={classNames('nav-link', navItem.enabled ? '' : Styles.disableLink, Styles.navLink)}>
-                <i
-                  className={classNames(
+                { navItem.id !== 2 ?
+                  <i
+                    className={classNames(
+                      'icon',
+                      'mbc-icon',
+                      navItem.icon,
+                      Styles.navIcon,
+                      getPath().includes(navItem.route) ? Styles.navActive : '',
+                    )}
+                    onClick={() => {
+                      props.onNavClose();
+                      history.push(navItem.route);
+                    }}
+                  />
+                  :
+                  <div className={classNames(
                     'icon',
                     'mbc-icon',
-                    navItem.icon,
                     Styles.navIcon,
                     getPath().includes(navItem.route) ? Styles.navActive : '',
                   )}
@@ -314,7 +370,10 @@ const MainNavigation: React.FC<IMainNavigationProps> = (props) => {
                     props.onNavClose();
                     history.push(navItem.route);
                   }}
-                />
+                  >
+                    <IconCarla size="80"/>
+                  </div>
+                }
                 {getTranslatedLabel(navItem.title)}
               </a>
               <ul className="sub-nav-list">
@@ -329,12 +388,19 @@ const MainNavigation: React.FC<IMainNavigationProps> = (props) => {
                         props.onNavClose();
                       }}
                     >
-                      <Link
-                        className={classNames('nav-link', subNavItem.enabled ? '' : Styles.disableSubLink)}
-                        to={subNavItem.route}
-                      >
-                        {getTranslatedLabel(subNavItem.title)}
-                      </Link>
+                      { subNavItem.isExternalLink ?
+                      
+                        <a href={subNavItem.route} target="_blank" rel="noopener noreferrer" className={classNames('nav-link', subNavItem.enabled ? '' : Styles.disableSubLink)} >
+                          {getTranslatedLabel(subNavItem.title)}
+                        </a>
+                        :
+                        <Link
+                          className={classNames('nav-link', subNavItem.enabled ? '' : Styles.disableSubLink)}
+                          to={subNavItem.route}
+                        >
+                          {getTranslatedLabel(subNavItem.title)}
+                        </Link>
+                      }
                     </li>
                   );
                 })}
