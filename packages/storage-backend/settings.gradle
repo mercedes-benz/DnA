@@ -7,5 +7,18 @@
  * in the user manual at https://docs.gradle.org/7.0.2/userguide/multi_project_builds.html
  */
 
+pluginManagement {
+    repositories {
+        mavenCentral()
+        gradlePluginPortal()
+        maven {
+            url "https://plugins.gradle.org/m2/"
+        }
+    }
+    plugins {
+        id 'org.hidetake.swagger.generator' version '2.18.2'
+        id 'maven' version '3.1.2'
+    }
+}
 rootProject.name = 'storage-backend'
 include('storage-lib')
