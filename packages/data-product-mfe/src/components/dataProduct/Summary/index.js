@@ -1,5 +1,5 @@
 import classNames from 'classnames';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import Styles from './styles.scss';
 import MDEditor from '@uiw/react-md-editor';
 
@@ -24,12 +24,15 @@ import SelectBox from 'dna-container/SelectBox';
 import ProgressIndicator from '../../../common/modules/uilab/js/src/progress-indicator';
 import Tabs from '../../../common/modules/uilab/js/src/tabs';
 import Notification from '../../../common/modules/uilab/js/src/notification';
+import Tooltip from '../../../common/modules/uilab/js/src/tooltip';
 
 import lockIcon from '../../../assets/lockIcon.png';
 
 import ConsumerForm from '../../dataTransfer/ConsumerForm';
 import { deserializeFormData, serializeDivisionSubDivision } from '../../../Utility/formData';
 import { SetAllAssociatedDataTransfers, SetMyAssociatedDataTransfers } from '../redux/dataProduct.services';
+import { Envs } from '../../../Utility/envs';
+import { getCorporateDataCatalogs } from '../../redux/getDropdowns.services';
 
 const Summary = ({ history, user }) => {
   const { id: dataProductId } = useParams();
@@ -40,6 +43,8 @@ const Summary = ({ history, user }) => {
     allDataTransfer,
     myDataTransfer,
   } = useSelector((state) => state.dataProduct);
+
+  const { corporateDataCatalogs } = useSelector((state) => state.dropdowns);
 
   const dispatch = useDispatch();
 
@@ -53,6 +58,8 @@ const Summary = ({ history, user }) => {
   const [showHowToAccessModal, setShowHowToAccessModal] = useState(false);
 
   const [showMyDataTransfers, setShowMyDataTransfers] = useState(false);
+
+  const [CDC_URL, setCDCURL] = useState('');
 
   const isCreator = selectedDataProduct?.createdBy?.id === user?.id;
 
@@ -68,6 +75,19 @@ const Summary = ({ history, user }) => {
   });
 
   useEffect(() => {
+    dispatch(getCorporateDataCatalogs());
+  }, [dispatch]);
+
+  useMemo(() => {
+    const CDC_URL = Envs.CORPORATE_DATA_CATALOG_URL;
+    const URL = CDC_URL.substring(0, CDC_URL.indexOf('data') + 4);
+    const refId = corporateDataCatalogs?.find(
+      (item) => item.name === selectedDataProduct?.corporateDataCatalog,
+    )?.externalRefId;
+    setCDCURL(`${URL}/${refId}`);
+  }, [corporateDataCatalogs, selectedDataProduct?.corporateDataCatalog]);
+
+  useEffect(() => {
     ProgressIndicator.show();
     hostServer.get('/divisions').then((res) => {
       dispatch(setDivisionList(res.data));
@@ -77,6 +97,7 @@ const Summary = ({ history, user }) => {
 
   useEffect(() => {
     SelectBox.defaultSetup();
+    Tooltip.defaultSetup();
   }, []);
 
   useEffect(() => {
@@ -304,7 +325,16 @@ const Summary = ({ history, user }) => {
                       <div>
                         <label className="input-label summary">Corporate Data Catalog</label>
                         <br />
-                        {selectedDataProduct?.corporateDataCatalog || '-'}
+                        {selectedDataProduct?.corporateDataCatalog ? (
+                          <>
+                            <a href={CDC_URL} target="_blank" rel="noopener noreferrer">
+                              {selectedDataProduct?.corporateDataCatalog}
+                              <i tooltip-data="Open in New Tab" className={'icon mbc-icon new-tab'} />
+                            </a>{' '}
+                          </>
+                        ) : (
+                          '-'
+                        )}
                       </div>
                     </div>
                     <div className={Styles.flexLayout}>
