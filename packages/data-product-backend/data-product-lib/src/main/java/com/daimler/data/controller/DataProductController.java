@@ -126,11 +126,17 @@ public class DataProductController implements DataproductsApi{
 			if (existingVO != null && existingVO.getId() != null && ConstantsUtility.OPEN.equalsIgnoreCase(existingVO.getRecordStatus())) {
 				CreatedByVO createdBy = existingVO.getCreatedBy();
 				CreatedByVO requestUser = this.userStore.getVO();
-				DataProductTeamMemberVO nameUser =  existingVO.getContactInformation().getName();
-				DataProductTeamMemberVO informationOwner =  existingVO.getContactInformation().getInformationOwner();
+				DataProductTeamMemberVO nameUser = new DataProductTeamMemberVO();
+				DataProductTeamMemberVO informationOwner = new DataProductTeamMemberVO();
+				if (existingVO.getContactInformation() != null && existingVO.getContactInformation().getName() != null) {
+					nameUser = existingVO.getContactInformation().getName();
+				}
+				if (existingVO.getContactInformation() != null && existingVO.getContactInformation().getName() != null) {
+					informationOwner =  existingVO.getContactInformation().getInformationOwner();
+				}
 				if (requestUser.getId().equalsIgnoreCase(createdBy.getId())
-						|| requestUser.getId().equalsIgnoreCase(informationOwner.getShortId())
-						|| requestUser.getId().equalsIgnoreCase(nameUser.getShortId())
+						|| (informationOwner !=null && requestUser.getId().equalsIgnoreCase(informationOwner.getShortId()))
+						|| (nameUser !=null && requestUser.getId().equalsIgnoreCase(nameUser.getShortId()))
 				) {
 					existingVO.lastModifiedDate(new Date());
 					existingVO.setModifiedBy(requestUser);
@@ -401,11 +407,17 @@ public class DataProductController implements DataproductsApi{
 
 				CreatedByVO requestUser = this.userStore.getVO();
 				CreatedByVO createdBy = existingVO.getCreatedBy();
-				DataProductTeamMemberVO nameUser =  existingVO.getContactInformation().getName();
-				DataProductTeamMemberVO informationOwner =  existingVO.getContactInformation().getInformationOwner();
+				DataProductTeamMemberVO nameUser = new DataProductTeamMemberVO();
+				DataProductTeamMemberVO informationOwner = new DataProductTeamMemberVO();
+				if (existingVO.getContactInformation() != null && existingVO.getContactInformation().getName() != null) {
+					nameUser = existingVO.getContactInformation().getName();
+				}
+				if (existingVO.getContactInformation() != null && existingVO.getContactInformation().getName() != null) {
+					informationOwner =  existingVO.getContactInformation().getInformationOwner();
+				}
 				if (requestUser.getId().equalsIgnoreCase(createdBy.getId())
-						|| requestUser.getId().equalsIgnoreCase(informationOwner.getShortId())
-						|| requestUser.getId().equalsIgnoreCase(nameUser.getShortId())
+						|| (informationOwner != null && requestUser.getId().equalsIgnoreCase(informationOwner.getShortId()))
+						|| (nameUser != null && requestUser.getId().equalsIgnoreCase(nameUser.getShortId()))
 				) {
 					existingVO.setDescription(requestVO.getDescription());
 
