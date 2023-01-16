@@ -126,7 +126,12 @@ public class DataProductController implements DataproductsApi{
 			if (existingVO != null && existingVO.getId() != null && ConstantsUtility.OPEN.equalsIgnoreCase(existingVO.getRecordStatus())) {
 				CreatedByVO createdBy = existingVO.getCreatedBy();
 				CreatedByVO requestUser = this.userStore.getVO();
-				if (requestUser.getId().equalsIgnoreCase(createdBy.getId())) {
+				DataProductTeamMemberVO nameUser =  existingVO.getContactInformation().getName();
+				DataProductTeamMemberVO informationOwner =  existingVO.getContactInformation().getInformationOwner();
+				if (requestUser.getId().equalsIgnoreCase(createdBy.getId())
+						|| requestUser.getId().equalsIgnoreCase(informationOwner.getShortId())
+						|| requestUser.getId().equalsIgnoreCase(nameUser.getShortId())
+				) {
 					existingVO.lastModifiedDate(new Date());
 					existingVO.setModifiedBy(requestUser);
 					existingVO.setRecordStatus(ConstantsUtility.DELETED);
@@ -396,7 +401,12 @@ public class DataProductController implements DataproductsApi{
 
 				CreatedByVO requestUser = this.userStore.getVO();
 				CreatedByVO createdBy = existingVO.getCreatedBy();
-				if (requestUser.getId().equalsIgnoreCase(createdBy.getId())) {
+				DataProductTeamMemberVO nameUser =  existingVO.getContactInformation().getName();
+				DataProductTeamMemberVO informationOwner =  existingVO.getContactInformation().getInformationOwner();
+				if (requestUser.getId().equalsIgnoreCase(createdBy.getId())
+						|| requestUser.getId().equalsIgnoreCase(informationOwner.getShortId())
+						|| requestUser.getId().equalsIgnoreCase(nameUser.getShortId())
+				) {
 					existingVO.setDescription(requestVO.getDescription());
 
 					// To update data productName.
