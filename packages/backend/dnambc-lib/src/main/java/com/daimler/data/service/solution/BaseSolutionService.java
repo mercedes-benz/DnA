@@ -574,15 +574,39 @@ public class BaseSolutionService extends BaseCommonService<SolutionVO, SolutionN
 	@Transactional
 	public void updateForEachSolution(String oldValue, String newValue, TAG_CATEGORY category, Object updateObject) {
 		List<SolutionNsql> solutionNsqlList = null;
+		String eventType = "Solution_update";		
+		CreatedByVO currentUser = this.userStore.getVO();
+		TeamMemberVO ModifyingteamMemberVO = new TeamMemberVO();
+		BeanUtils.copyProperties(currentUser, ModifyingteamMemberVO);
+		ModifyingteamMemberVO.setShortId(currentUser.getId());		
+		String userId = currentUser != null ? currentUser.getId() : "dna_system";
+		String userName = this.currentUserName(currentUser);
+		ChangeLogVO changeLog = new ChangeLogVO();
+		changeLog.setChangeDate(new Date());
+		changeLog.setModifiedBy(ModifyingteamMemberVO);
+		changeLog.setNewValue(null);
+		changeLog.setOldValue(oldValue);
 		if (StringUtils.hasText(oldValue)) {
 			solutionNsqlList = customRepo.getAllWithFilters(null, null, null, null, null, null, null, null, true, null,
 					Arrays.asList(oldValue), null, null, 0, 999999999, null, null);
 		}
 		if (!ObjectUtils.isEmpty(solutionNsqlList)) {
-			solutionNsqlList.forEach(solutionNsql -> {
-				if (category.equals(TAG_CATEGORY.DIVISION)) {
+			solutionNsqlList.forEach(solutionNsql -> {				
+				List<String> teamMembers = new ArrayList<>();
+				List<String> teamMembersEmails = new ArrayList<>();
+				Solution solutionJson = solutionNsql.getData();
+				List<ChangeLogVO> changeLogs = new ArrayList<>();						
+				List<SolutionTeamMember> solutionTeamMembers = solutionJson.getTeamMembers();
+				for (SolutionTeamMember user : solutionTeamMembers) {
+					teamMembers.add(user.getShortId());
+					teamMembersEmails.add(user.getEmail());
+				}
+				if (category.equals(TAG_CATEGORY.DIVISION)) {					
 					SolutionDivision soldivision = solutionNsql.getData().getDivision();
 					DivisionVO divisionVO = (DivisionVO) updateObject;
+					changeLog.setChangeDescription("Divisions: Division '" + divisionVO.getName() + "' updated.");
+					changeLog.setFieldChanged("/divisions/");
+					changeLogs.add(changeLog);
 					if (Objects.nonNull(soldivision) && StringUtils.hasText(soldivision.getId())
 							&& soldivision.getId().equals(divisionVO.getId())) {
 						soldivision.setName(divisionVO.getName().toUpperCase());
@@ -612,7 +636,9 @@ public class BaseSolutionService extends BaseCommonService<SolutionVO, SolutionN
 						customRepo.update(solutionNsql);
 					}
 				}
-
+				log.info("Solution Updated after Admin action");	
+				this.publishEventMessages(eventType, solutionNsql.getId(), changeLogs, 
+						solutionNsql.getData().getProductName(), teamMembers, teamMembersEmails);
 			});
 		}
 	}
