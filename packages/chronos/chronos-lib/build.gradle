@@ -49,7 +49,7 @@ repositories {
 }
 
 group 'com.daimler.data'
-version = releaseVersion
+version = releaseVersion;
 
 sourceCompatibility = 1.17
 targetCompatibility = 1.17

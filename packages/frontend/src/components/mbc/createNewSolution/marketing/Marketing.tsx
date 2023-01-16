@@ -96,7 +96,7 @@ export default class Marketing extends React.Component<IMarketingProps, IMarketi
                       
                     <div id="customerJourneyPhaseContainer" className={classNames('input-field-group')}>
                         <label id="customerJourneyPhaselabel" className="input-label" htmlFor="customerJourneyPhaseSelect">
-                        Customer Journey Phase
+                        Customer Journey Phase, Core Needs and Use Cases
                         </label>
                         <div id="customerJourneyPhase" className="custom-select">
                             <select 

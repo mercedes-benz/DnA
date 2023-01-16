@@ -49,7 +49,7 @@ repositories {
 }
 
 group 'com.daimler.data'
-version = releaseVersion
+version = releaseVersion;
 
 sourceCompatibility = 1.17
 targetCompatibility = 1.17
@@ -96,7 +96,7 @@ sourceSets {
 
 
 dependencies {
-
+    implementation group: 'org.yaml', name: 'snakeyaml', version: '1.30'
 	implementation group: 'org.flywaydb', name: 'flyway-core', version: '8.4.2'
 	implementation group: 'org.springframework.boot', name: 'spring-boot-starter-data-jpa', version: '2.5.0'
 	implementation group: 'org.postgresql', name: 'postgresql', version: '42.2.20'
