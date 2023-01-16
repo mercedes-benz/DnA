@@ -265,6 +265,7 @@ export const deserializeFormData = ({ item, type = 'provider', isDataProduct = f
           dataTransferName: item?.dataTransferName,
 
           createdBy: item?.createdBy,
+          modifiedBy: item?.modifiedBy,
 
           ...(isConsumerForm && {
             consumer: {
