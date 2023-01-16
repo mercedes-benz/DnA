@@ -1102,6 +1102,7 @@ export interface INoticationModules {
   persistenceNotificationPref: INotificationEnableDisable;
   dataProductNotificationPref: INotificationEnableDisable;
   dataComplianceNotificationPref: INotificationEnableDisable;
+  termsOfUse: string;
   userId: string;
 }
 
