@@ -62,6 +62,8 @@ const Summary = ({ history, user }) => {
   const [CDC_URL, setCDCURL] = useState('');
 
   const isCreator = selectedDataProduct?.createdBy?.id === user?.id;
+  const usersAllowedToModify =
+    selectedDataProduct?.informationOwner === user?.id || selectedDataProduct?.name === user?.id;
 
   const showContactInformation = selectedDataProduct?.openSegments?.includes('ContactInformation');
   const showConfidentiality = selectedDataProduct?.openSegments?.includes('ClassificationAndConfidentiality');
@@ -243,7 +245,7 @@ const Summary = ({ history, user }) => {
             >
               <i className="icon mbc-icon copy" tooltip-data="Create Copy"></i>Copy & Create New
             </button>
-            {isCreator ? (
+            {isCreator || usersAllowedToModify ? (
               <>
                 <button className={classNames('btn btn-primary')} onClick={() => setShowDeleteModal(true)}>
                   <i className="icon mbc-icon delete-new" tooltip-data="Delete"></i>Delete
