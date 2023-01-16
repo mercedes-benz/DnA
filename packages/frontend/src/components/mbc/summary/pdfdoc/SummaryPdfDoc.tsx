@@ -329,11 +329,11 @@ const teamMembersList = (members: ITeams[]) => {
     const isInternalMember = member.userType === TeamMemberType.INTERNAL;
     return (
       <View key={index} style={{ display: 'flex', flexDirection: 'row', width: '50%', marginBottom: 15 }}>
-        <View style={{ width: 45 }}>
+        <View style={{ width: 30, height: 30, marginRight: 10 }}>
           {isInternalMember ? (
-            <Image style={{ width: 30 }} src={ImgTeamInternalAvatar} />
+            <Image style={{ width: 'auto', height: 'auto' }} src={ImgTeamInternalAvatar} />
           ) : (
-            <Image style={{ width: 30 }} src={ImgTeamExternalAvatar} />
+            <Image style={{ width: 'auto', height: 'auto' }} src={ImgTeamExternalAvatar} />
           )}
         </View>
         <View>
@@ -342,7 +342,7 @@ const teamMembersList = (members: ITeams[]) => {
           }`}</Text>
           {isInternalMember ? (
             <View>
-              <Text>
+              <Text style={{marginBottom: 15, marginTop: 5}}>
                 <Link src={TEAMS_PROFILE_LINK_URL_PREFIX + member.shortId}>
                   <Text>
                     {member.firstName} {member.lastName}
@@ -367,8 +367,8 @@ const linkList = (links: ILink[]) => {
   return links.map((link: ILink, index: number) => {
     return (
       <View key={index} style={{ display: 'flex', flexDirection: 'row', width: '50%', marginBottom: 15 }}>
-        <View style={{ width: 25 }}>
-          <Image style={{ width: 10 }} src={ImgLink} />
+        <View style={{ width: 10, height: 10, marginRight: 10 }}>
+          <Image style={{ width: 'auto', height: 'auto' }} src={ImgLink} />
         </View>
         <Text>
           <Link src={link.link}>
@@ -384,8 +384,8 @@ const attachmentList = (attachments: IAttachment[]) => {
   return attachments.map((attachment: IAttachment, index: number) => {
     return (
       <View key={index} style={{ display: 'flex', flexDirection: 'row', width: '50%', marginBottom: 15 }}>
-        <View style={{ width: 25 }}>
-          <Image style={{ width: 10 }} src={ImgAttachment} />
+        <View style={{ width: 10, height: 10, marginRight: 10 }}>
+          <Image style={{ width: 'auto', height: 'auto' }} src={ImgAttachment} />
         </View>
         <Text>{attachment.fileName}</Text>
       </View>
@@ -681,8 +681,8 @@ const personasList = (selectedPersonas: any[]) => {
   return selectedPersonasToShow.map((persona: any, index: number) => {
     return (
       <View key={index} style={{ display: 'flex', flexDirection: 'row', width: '50%', marginBottom: 15 }}>
-        <View style={{ width: 45 }}>          
-          <Image style={{ width: 30 }} src={persona.avatar} />
+        <View style={{ width: 30, height: 30, marginRight: 10 }}>          
+          <Image style={{ width: 'auto', height: 'auto' }} src={persona.avatar} />
         </View>
         <View>
           <Text style={[styles.sectionTitle, { marginBottom: 5 }]}>
@@ -813,13 +813,13 @@ export const SummaryPdfDoc = (props: SummaryPdfDocProps) => (
           </View>
         </View>
         <View style={styles.seperatorLine} />
-        <View style={styles.flexLayout} wrap={false}>
+        <View style={styles.flexLayout}>
           <View style={styles.flexCol1}>
             <Text style={styles.sectionTitle}>Expected Benefits</Text>
             <Text>{props.solution.description.expectedBenefits}</Text>
           </View>
         </View>
-        <View style={[styles.flexLayout, styles.noMarginTop]} wrap={false}>
+        <View style={[styles.flexLayout]}>
           <View style={styles.flexCol1}>
             <Text style={styles.sectionTitle}>Business Need</Text>
             <Text>{props.solution.description.businessNeeds}</Text>
@@ -937,8 +937,8 @@ export const SummaryPdfDoc = (props: SummaryPdfDocProps) => (
               <View style={styles.flexLayout}>{teamMembersList(props.solution.team.team)}</View>
               <View style={styles.seperatorLine} />
             </View>
-            <View wrap={false}>
-              <Text style={[styles.subTitle, styles.setMarginTop]}>Needed Roles/Skills</Text>
+            <View>
+              <Text style={[styles.subTitle, styles.setMarginTop, { marginBottom: 10 }]}>Needed Roles/Skills</Text>
               <View style={styles.flexLayout}>
                 {props.solution.neededRoles ? (
                   props.solution.neededRoles && props.solution.neededRoles.length ? (
