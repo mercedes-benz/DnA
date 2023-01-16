@@ -2,7 +2,7 @@ spring:
   mvc.pathmatch.matching-strategy: ant_path_matcher
   application:
     name: model-registry-service
-    version: 4.0.0
+    version: 1.1.0
     
   cloud:
     vault:
