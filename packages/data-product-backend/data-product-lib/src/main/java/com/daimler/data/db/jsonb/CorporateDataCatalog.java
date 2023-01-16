@@ -30,12 +30,14 @@ package com.daimler.data.db.jsonb;
 import java.io.Serializable;
 
 import lombok.AllArgsConstructor;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class CorporateDataCatalog implements Serializable {
 
 	/**
