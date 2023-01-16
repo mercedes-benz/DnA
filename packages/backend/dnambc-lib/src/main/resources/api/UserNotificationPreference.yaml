@@ -142,6 +142,9 @@ definitions:
     userId:
      type: string
      description: "short Identifier of user"
+    termsOfUse:
+      type: boolean
+      description: "Enable termsOfUse or not. By default all users would have this enabled." 
     solutionNotificationPref:
       $ref: "#/definitions/NotificationPreferenceVO"
     notebookNotificationPref:
@@ -156,6 +159,7 @@ definitions:
       $ref: "#/definitions/NotificationPreferenceVO"            
   required:
      - userId
+     - termsOfUse
      - solutionNotificationPref
      - notebookNotificationPref
      - persistenceNotificationPref
