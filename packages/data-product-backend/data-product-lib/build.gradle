@@ -49,7 +49,8 @@ repositories {
 }
 
 group 'com.daimler.data'
-version = releaseVersion
+def applicationYaml = new org.yaml.snakeyaml.Yaml().load( new File("${rootDir}/data-product-lib/src/main/resources/application.yml").newInputStream() )
+version = applicationYaml.spring.application.version ? applicationYaml.spring.application.version : releaseVersion;
 
 sourceCompatibility = 1.17
 targetCompatibility = 1.17
