@@ -42,6 +42,6 @@ public class CorporateDataCatalog implements Serializable {
 	 * 
 	 */
 	private static final long serialVersionUID = -5738422653465193729L;
-	private String id;
+
 	private String name;
 }
