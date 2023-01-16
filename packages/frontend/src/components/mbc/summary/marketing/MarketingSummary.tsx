@@ -78,7 +78,7 @@ export default class MarketingSummary extends React.Component<IMarketingProps, a
                     <div className={Styles.formWrapper}>
                         <div className={classNames(Styles.flexLayout, Styles.threeColumn)}>
                             <div id="customerJourneyPhase">
-                                <label className="input-label summary">Customer Journey Phases</label>
+                                <label className="input-label summary">Customer Journey Phase, Core Needs and Use Cases</label>
                                 <br />
                                 {this.props?.marketing?.customerJourneyPhases?.length > 0 ? this.props?.marketing?.customerJourneyPhases?.map(item=>item.name).join(', ') : 'N/A'}
                             </div>
