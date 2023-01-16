@@ -86,7 +86,7 @@ export default class Platform extends React.Component<IPlatformProps, IPlatformS
             ref={this.notebookInfoRef}
             notebookId={dnaNotebookId}
             solutionId={this.props.solutionId}
-            userFirstName={this.props.user.firstName}
+            userFirstName={this.props?.user?.firstName}
             onNoteBookCreationSuccess={this.onNoteBookCreationSuccess}
             onNoteBookLinkRemove={this.onNoteBookLinkRemove}
           />
