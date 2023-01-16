@@ -164,6 +164,13 @@ hr {
     }
 }
 
+.modifyByLabel {
+    color: #99a5b3;
+    display: flex;
+    justify-content: flex-end;
+    font-size: var(--font-size-small);
+}
+
 :global {
     .dataproductSummary {
         #data-summary-tabs {
