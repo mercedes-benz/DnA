@@ -69,6 +69,12 @@
             }
         }
     }
+    a i {
+        &::before {
+            margin-left: 2px;
+        }
+        font-size: var(--font-size-icon-small);
+    }
 }
 
 hr {
