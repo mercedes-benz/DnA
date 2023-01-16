@@ -42,7 +42,7 @@ repositories {
 }
 
 group 'com.daimler.mbc.dna'
-version = releaseVersion
+version = releaseVersion;
 
 sourceCompatibility = 1.17
 targetCompatibility = 1.17
@@ -92,8 +92,8 @@ sourceSets {
 
 
 dependencies {
-	
-	implementation group: 'org.springframework.boot', name: 'spring-boot-starter-actuator', version: '2.4.0'
+    implementation group: 'org.yaml', name: 'snakeyaml', version: '1.30'
+    implementation group: 'org.springframework.boot', name: 'spring-boot-starter-actuator', version: '2.4.0'
 	
 	//2nd level caching dependency 
 	implementation group: 'org.springframework.boot', name: 'spring-boot-starter-cache', version: '2.7.2'
