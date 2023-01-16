@@ -35,9 +35,9 @@ const TagSection = (props: ITagsProps) => {
     }
 
     const selectDeselectAllTags = (tag: string) => {
-        const allTags = props?.tags;
-        const shallowCloneAllTags = [ ...allTags ]; //Shallow cloning so that refernces will not be copied
-        props.setSeletedTags(shallowCloneAllTags);
+        // const allTags = props?.tags;
+        // const shallowCloneAllTags = [ ...allTags ]; //Shallow cloning so that refernces will not be copied
+        props.setSeletedTags([]);
     }
 
     const selectAll = props?.tags?.length > 0 
@@ -54,11 +54,12 @@ const TagSection = (props: ITagsProps) => {
 
     // Following line we are filtering list which are already selected so that we can concatenate
     // selected tags with not selected tags
-    const subtractedArray = props?.tags.filter( ( el ) => !props?.selectedTags.includes( el ) );
+    // const subtractedArray = props?.tags.filter( ( el ) => !props?.selectedTags.includes( el ) );
 
     // In following line we are concatenating selected with not selected tags so that we can 
     // show selected tags first
-    const listToDisplay = props?.selectedTags.concat(subtractedArray);
+
+    // const listToDisplay = props?.selectedTags.concat(subtractedArray);
 
     const modalContent: React.ReactNode = (
         <ul>
@@ -78,7 +79,7 @@ const TagSection = (props: ITagsProps) => {
 
     const threeDotContent: React.ReactNode = (
         <li className={Styles.threeDots} onClick={()=>setShowModal(true)}>
-        more...
+        more... {props?.selectedTags?.length > 0 ? '( '+props?.selectedTags?.length+' selected )' : ''}
         </li>
     );
 
@@ -87,7 +88,7 @@ const TagSection = (props: ITagsProps) => {
             <li className={classNames(Styles.tagItem, selectAll ? Styles.selectedItem : '')} onClick={()=>selectDeselectAllTags('all')}>
                 All ({props?.tags?.length})
             </li>
-            {listToDisplay?.reduce((result, tag, index: number) => {
+            {props?.tags?.reduce((result, tag, index: number) => {
                 const shouldHighlightItem = (props?.selectedTags.includes(tag));
                 if(index <= 15){
                 result.push(
