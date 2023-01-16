@@ -131,12 +131,12 @@ public class DataProductController implements DataproductsApi{
 				if (existingVO.getContactInformation() != null && existingVO.getContactInformation().getName() != null) {
 					nameUser = existingVO.getContactInformation().getName();
 				}
-				if (existingVO.getContactInformation() != null && existingVO.getContactInformation().getName() != null) {
+				if (existingVO.getContactInformation() != null && existingVO.getContactInformation().getInformationOwner() != null) {
 					informationOwner =  existingVO.getContactInformation().getInformationOwner();
 				}
 				if (requestUser.getId().equalsIgnoreCase(createdBy.getId())
-						|| (informationOwner !=null && requestUser.getId().equalsIgnoreCase(informationOwner.getShortId()))
-						|| (nameUser !=null && requestUser.getId().equalsIgnoreCase(nameUser.getShortId()))
+						|| (informationOwner.getShortId() != null && requestUser.getId().equalsIgnoreCase(informationOwner.getShortId()))
+						|| (nameUser.getShortId() != null && requestUser.getId().equalsIgnoreCase(nameUser.getShortId()))
 				) {
 					existingVO.lastModifiedDate(new Date());
 					existingVO.setModifiedBy(requestUser);
@@ -412,12 +412,12 @@ public class DataProductController implements DataproductsApi{
 				if (existingVO.getContactInformation() != null && existingVO.getContactInformation().getName() != null) {
 					nameUser = existingVO.getContactInformation().getName();
 				}
-				if (existingVO.getContactInformation() != null && existingVO.getContactInformation().getName() != null) {
+				if (existingVO.getContactInformation() != null && existingVO.getContactInformation().getInformationOwner() != null) {
 					informationOwner =  existingVO.getContactInformation().getInformationOwner();
 				}
 				if (requestUser.getId().equalsIgnoreCase(createdBy.getId())
-						|| (informationOwner != null && requestUser.getId().equalsIgnoreCase(informationOwner.getShortId()))
-						|| (nameUser != null && requestUser.getId().equalsIgnoreCase(nameUser.getShortId()))
+						|| (informationOwner.getShortId() != null && requestUser.getId().equalsIgnoreCase(informationOwner.getShortId()))
+						|| (nameUser.getShortId() != null && requestUser.getId().equalsIgnoreCase(nameUser.getShortId()))
 				) {
 					existingVO.setDescription(requestVO.getDescription());
 
