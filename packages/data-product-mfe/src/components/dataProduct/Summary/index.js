@@ -65,6 +65,8 @@ const Summary = ({ history, user }) => {
   const usersAllowedToModify =
     selectedDataProduct?.informationOwner?.shortId === user?.id || selectedDataProduct?.name?.shortId === user?.id;
 
+  const lastModifiedBy = `${selectedDataProduct?.modifiedBy?.firstName} ${selectedDataProduct?.modifiedBy?.lastName}`;
+
   const showContactInformation = selectedDataProduct?.openSegments?.includes('ContactInformation');
   const showConfidentiality = selectedDataProduct?.openSegments?.includes('ClassificationAndConfidentiality');
   const showPersonalData = selectedDataProduct?.openSegments?.includes('IdentifyingPersonalRelatedData');
@@ -262,6 +264,7 @@ const Summary = ({ history, user }) => {
           <div className={Styles.summaryBannerTitle}>
             <h2>{selectedDataProduct?.productName}</h2>
           </div>
+          <div className={Styles.modifyByLabel}>Last modified by: {lastModifiedBy}</div>
           <div id="data-product-summary-tabs" className="tabs-panel">
             <div className="tabs-wrapper">
               <nav>
