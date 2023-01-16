@@ -2,6 +2,7 @@ spring:
   mvc.pathmatch.matching-strategy: ant_path_matcher
   application:
     name: trinio-registry-service
+    version: 4.0.0    
 
 dna:
   uri: ${DNA_URI:XXXXXX}
