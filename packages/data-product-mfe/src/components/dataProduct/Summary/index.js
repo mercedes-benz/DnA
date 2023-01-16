@@ -63,7 +63,7 @@ const Summary = ({ history, user }) => {
 
   const isCreator = selectedDataProduct?.createdBy?.id === user?.id;
   const usersAllowedToModify =
-    selectedDataProduct?.informationOwner === user?.id || selectedDataProduct?.name === user?.id;
+    selectedDataProduct?.informationOwner?.shortId === user?.id || selectedDataProduct?.name?.shortId === user?.id;
 
   const showContactInformation = selectedDataProduct?.openSegments?.includes('ContactInformation');
   const showConfidentiality = selectedDataProduct?.openSegments?.includes('ClassificationAndConfidentiality');
