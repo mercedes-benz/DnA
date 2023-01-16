@@ -49,8 +49,7 @@ repositories {
 }
 
 group 'com.daimler.data'
-def applicationYaml = new org.yaml.snakeyaml.Yaml().load( new File("${rootDir}/chronos-lib/src/main/resources/application.yml").newInputStream() )
-version = applicationYaml.spring.application.version ? applicationYaml.spring.application.version : releaseVersion;
+version = releaseVersion;
 
 sourceCompatibility = 1.17
 targetCompatibility = 1.17
