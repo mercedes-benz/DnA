@@ -65,7 +65,6 @@ import { Envs } from 'globals/Envs';
 import { getDateTimeFromTimestamp, regionalForMonthAndYear } from '../../../../services/utils';
 import { ICreateNewSolutionData } from '../../createNewSolution/CreateNewSolution';
 import { IntlProvider, FormattedNumber } from 'react-intl';
-import { autocompleteClasses } from '@mui/material';
 
 Font.register({
   family: 'Roboto-Regular',
