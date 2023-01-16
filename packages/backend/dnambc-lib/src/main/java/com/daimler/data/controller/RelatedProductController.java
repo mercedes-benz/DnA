@@ -214,13 +214,11 @@ public class RelatedProductController implements RelatedProductsApi {
 		
 		RelatedProductVOCollection relatedProductVOCollection = new RelatedProductVOCollection();
 		if (relatedProducts != null && relatedProducts.size() > 0) {
-			if( sortOrder == null || sortOrder.equalsIgnoreCase("asc")) {
-				Comparator<RelatedProductVO> comparator = (r1, r2) ->(r1.getName().compareTo(r2.getName()));
-				Collections.sort(relatedProducts, comparator);
+			if( sortOrder == null || sortOrder.equalsIgnoreCase("asc")) {	
+				relatedProducts.sort(Comparator.comparing(RelatedProductVO :: getName, String.CASE_INSENSITIVE_ORDER));
 			}
 			if(sortOrder != null && sortOrder.equalsIgnoreCase("desc")) {
-				Comparator<RelatedProductVO> comparator = (r1, r2) ->(r2.getName().compareTo(r1.getName()));
-				Collections.sort(relatedProducts, comparator);
+				relatedProducts.sort(Comparator.comparing(RelatedProductVO :: getName, String.CASE_INSENSITIVE_ORDER).reversed());
 			}
 			relatedProductVOCollection.addAll(relatedProducts);
 			log.debug("Returning all available related-products");
