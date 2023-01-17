@@ -27,9 +27,17 @@ public class PlatformController implements PlatformsApi {
     private static Logger log = LoggerFactory.getLogger(PlatformController.class);
 
     @ApiOperation(value = "Get all available platforms.", nickname = "getAll", notes = "Get all platforms. This endpoints will be used to Get all valid available platforms maintenance records.", response = PlatformCollection.class, tags = {"platforms",})
-    @ApiResponses(value = {@ApiResponse(code = 201, message = "Returns message of succes or failure", response = PlatformCollection.class), @ApiResponse(code = 204, message = "Fetch complete, no content found."), @ApiResponse(code = 400, message = "Bad request."), @ApiResponse(code = 401, message = "Request does not have sufficient credentials."), @ApiResponse(code = 403, message = "Request is not authorized."), @ApiResponse(code = 405, message = "Method not allowed"), @ApiResponse(code = 500, message = "Internal error")})
-    @RequestMapping(value = "/platforms", produces = {"application/json"}, consumes = {"application/json"}, method = RequestMethod.GET)
-
+    @ApiResponses(value = {
+        @ApiResponse(code = 201, message = "Returns message of succes or failure", response = PlatformCollection.class),
+        @ApiResponse(code = 204, message = "Fetch complete, no content found."), @ApiResponse(code = 400, message = "Bad request."),
+        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+        @ApiResponse(code = 403, message = "Request is not authorized."),
+        @ApiResponse(code = 405, message = "Method not allowed"),
+        @ApiResponse(code = 500, message = "Internal error")})
+    @RequestMapping(value = "/platforms",
+    produces = {"application/json"},
+    consumes = {"application/json"},
+    method = RequestMethod.GET)
     public ResponseEntity<PlatformCollection> getAll(@ApiParam(value = "Sort platforms by a given variable like name", allowableValues = "name") @Valid @RequestParam(value = "sortBy", required = false) String sortBy, @ApiParam(value = "Sort platforms based on the given order, example asc,desc", allowableValues = "asc, desc") @Valid @RequestParam(value = "sortOrder", required = false) String sortOrder, @ApiParam(value = "page number from which listing of platforms should start. Offset. Example 2") @Valid @RequestParam(value = "offset", required = false) Integer offset, @ApiParam(value = "size to limit the number of platforms, Example 10") @Valid @RequestParam(value = "limit", required = false) Integer limit) {
 
         try {
@@ -59,8 +67,17 @@ public class PlatformController implements PlatformsApi {
     }
 
     @ApiOperation(value = "get the platforms  by given ID.", nickname = "getByID", notes = "get the platforms  by given ID", response = PlatformCollection.class, tags = {"platforms",})
-    @ApiResponses(value = {@ApiResponse(code = 200, message = "Returns message of success or failure", response = PlatformCollection.class), @ApiResponse(code = 400, message = "Bad request"), @ApiResponse(code = 401, message = "Request does not have sufficient credentials."), @ApiResponse(code = 403, message = "Request is not authorized."), @ApiResponse(code = 404, message = "Invalid id, record not found."), @ApiResponse(code = 500, message = "Internal error")})
-    @RequestMapping(value = "/platforms/{id}", produces = {"application/json"}, consumes = {"application/json"}, method = RequestMethod.GET)
+    @ApiResponses(value = {
+        @ApiResponse(code = 200, message = "Returns message of success or failure", response = PlatformCollection.class),
+        @ApiResponse(code = 400, message = "Bad request"),
+        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+        @ApiResponse(code = 403, message = "Request is not authorized."),
+        @ApiResponse(code = 404, message = "Invalid id, record not found."),
+        @ApiResponse(code = 500, message = "Internal error")})
+    @RequestMapping(value = "/platforms/{id}",
+    produces = {"application/json"},
+    consumes = {"application/json"},
+    method = RequestMethod.GET)
     public ResponseEntity<PlatformVO> getByID(@ApiParam(value = "Id of the platform", required = true) @PathVariable("id") String id) {
 
         PlatformVO platformVO = null;
