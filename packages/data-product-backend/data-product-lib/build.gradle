@@ -75,6 +75,36 @@ swaggerSources {
         }
     }
     
+    platform {
+        def platformyaml = "${rootDir}/data-product-lib/src/main/resources/api/Platform.yaml"
+        def platformyJson = "${rootDir}/data-product-lib/src/main/resources/api/Platform.json"
+        inputFile = file(platformyaml)
+
+        def ignoreFile = "${rootDir}/data-product-lib/src/main/resources/api/.swagger-codegen-ignore"
+
+        code {
+            language = 'spring'
+            configFile = file(platformyJson)
+            rawOptions = ['--ignore-file-override', ignoreFile]
+            components = ['models', 'apis']
+        }
+    }
+    
+    frontendtools {
+        def frontEndToolsyaml = "${rootDir}/data-product-lib/src/main/resources/api/FrontEndTools.yaml"
+        def frontEndToolsJson = "${rootDir}/data-product-lib/src/main/resources/api/FrontEndTools.json"
+        inputFile = file(frontEndToolsyaml)
+
+        def ignoreFile = "${rootDir}/data-product-lib/src/main/resources/api/.swagger-codegen-ignore"
+
+        code {
+            language = 'spring'
+            configFile = file(frontEndToolsJson)
+            rawOptions = ['--ignore-file-override', ignoreFile]
+            components = ['models', 'apis']
+        }
+    }
+    
     carlafunction {
         def carlafunctionyaml = "${rootDir}/data-product-lib/src/main/resources/api/Carlafunction.yaml"
         def carlafunctionJson = "${rootDir}/data-product-lib/src/main/resources/api/Carlafunction.json"
@@ -240,6 +270,10 @@ compileJava {
     dependsOn processResources
     dependsOn swaggerSources.datacompliance.code
     source "${swaggerSources.datacompliance.code.outputDir}/src/main/java" 
+    dependsOn swaggerSources.platform.code
+    source "${swaggerSources.platform.code.outputDir}/src/main/java"
+    dependsOn swaggerSources.frontendtools.code
+    source "${swaggerSources.frontendtools.code.outputDir}/src/main/java"
     dependsOn swaggerSources.carlafunction.code
     source "${swaggerSources.carlafunction.code.outputDir}/src/main/java" 
     dependsOn swaggerSources.agileReleaseTrain.code
@@ -272,6 +306,8 @@ sourceSets {
     }
     main {
     	  java { srcDirs += "${swaggerSources.datacompliance.code.outputDir}/src/main/java" }
+    	  java { srcDirs += "${swaggerSources.platform.code.outputDir}/src/main/java" }
+    	  java { srcDirs += "${swaggerSources.frontendtools.code.outputDir}/src/main/java" }
     	  java { srcDirs += "${swaggerSources.carlafunction.code.outputDir}/src/main/java" }
     	  java { srcDirs += "${swaggerSources.agileReleaseTrain.code.outputDir}/src/main/java" }
     	  java { srcDirs += "${swaggerSources.corporateDataCatalog.code.outputDir}/src/main/java" }

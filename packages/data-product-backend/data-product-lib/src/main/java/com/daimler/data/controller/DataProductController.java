@@ -30,18 +30,18 @@ import java.util.List;
 @Slf4j
 @SuppressWarnings(value = "unused")
 public class DataProductController implements DataproductsApi{
-	
+
 	@Autowired
 	private DataProductService service;
-	
+
 	@Autowired
 	private UserStore userStore;
 
 	@Autowired
 	private DataProductAssembler assembler;
-	
+
 	@ApiOperation(value = "Add a new dataproduct", nickname = "create", notes = "Adds a new non existing dataproduct", response = DataProductResponseVO.class, tags={ "dataproducts", })
-    @ApiResponses(value = { 
+    @ApiResponses(value = {
         @ApiResponse(code = 201, message = "Returns message of success", response = DataProductResponseVO.class),
         @ApiResponse(code = 400, message = "Bad Request", response = GenericMessage.class),
         @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
@@ -49,7 +49,7 @@ public class DataProductController implements DataproductsApi{
         @ApiResponse(code = 405, message = "Method not allowed"),
         @ApiResponse(code = 500, message = "Internal error") })
     @RequestMapping(value = "/dataproducts",
-        produces = { "application/json" }, 
+        produces = { "application/json" },
         consumes = { "application/json" },
         method = RequestMethod.POST)
     public ResponseEntity<DataProductResponseVO> create(@ApiParam(value = "Request Body that contains data required for creating a new dataproduct" ,required=true )  @Valid @RequestBody DataProductRequestVO dataProductRequestVO){
@@ -107,7 +107,7 @@ public class DataProductController implements DataproductsApi{
 
 
     @ApiOperation(value = "Delete dataproduct for a given Id.", nickname = "delete", notes = "Delete dataproduct for a given identifier.", response = GenericMessage.class, tags={ "dataproducts", })
-    @ApiResponses(value = { 
+    @ApiResponses(value = {
         @ApiResponse(code = 200, message = "Returns message of success or failure", response = GenericMessage.class),
         @ApiResponse(code = 204, message = "Fetch complete, no content found."),
         @ApiResponse(code = 400, message = "Bad request."),
@@ -116,7 +116,7 @@ public class DataProductController implements DataproductsApi{
         @ApiResponse(code = 405, message = "Method not allowed"),
         @ApiResponse(code = 500, message = "Internal error") })
     @RequestMapping(value = "/dataproducts/{id}",
-        produces = { "application/json" }, 
+        produces = { "application/json" },
         consumes = { "application/json" },
         method = RequestMethod.DELETE)
     public ResponseEntity<GenericMessage> delete(@ApiParam(value = "DataProduct ID to be deleted",required=true) @PathVariable("id") String id){
@@ -183,7 +183,7 @@ public class DataProductController implements DataproductsApi{
 
 
     @ApiOperation(value = "Get all available dataproducts.", nickname = "getAll", notes = "Get all dataproducts. This endpoints will be used to get all valid available dataproduct records.", response = DataProductCollection.class, tags={ "dataproducts", })
-    @ApiResponses(value = { 
+    @ApiResponses(value = {
         @ApiResponse(code = 200, message = "Returns message of success or failure", response = DataProductCollection.class),
         @ApiResponse(code = 204, message = "Fetch complete, no content found."),
         @ApiResponse(code = 400, message = "Bad request."),
@@ -192,7 +192,7 @@ public class DataProductController implements DataproductsApi{
         @ApiResponse(code = 405, message = "Method not allowed"),
         @ApiResponse(code = 500, message = "Internal error") })
     @RequestMapping(value = "/dataproducts",
-        produces = { "application/json" }, 
+        produces = { "application/json" },
         consumes = { "application/json" },
         method = RequestMethod.GET)
     public ResponseEntity<DataProductCollection> getAll(@ApiParam(value = "Filtering dataproduct based on publish state. Draft or published, values true or false") @Valid @RequestParam(value = "published", required = false) Boolean published,
@@ -238,12 +238,12 @@ public class DataProductController implements DataproductsApi{
 			log.error("Failed to fetch dataProducts with exception {} ", e.getMessage());
 			return new ResponseEntity<>(new DataProductCollection(), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
-    	
+
 	}
 
 
     @ApiOperation(value = "Get dataproduct for a given Id.", nickname = "getById", notes = "Get dataproduct for a given identifier. This endpoints will be used to get a dataproduct for a given identifier.", response = DataProductVO.class, tags={ "dataproducts", })
-    @ApiResponses(value = { 
+    @ApiResponses(value = {
         @ApiResponse(code = 200, message = "Returns message of success or failure", response = DataProductVO.class),
         @ApiResponse(code = 204, message = "Fetch complete, no content found."),
         @ApiResponse(code = 400, message = "Bad request."),
@@ -252,7 +252,7 @@ public class DataProductController implements DataproductsApi{
         @ApiResponse(code = 405, message = "Method not allowed"),
         @ApiResponse(code = 500, message = "Internal error") })
     @RequestMapping(value = "/dataproducts/{id}",
-        produces = { "application/json" }, 
+        produces = { "application/json" },
         consumes = { "application/json" },
         method = RequestMethod.GET)
     public ResponseEntity<DataProductVO> getById(@ApiParam(value = "dataproduct ID to be fetched",required=true) @PathVariable("id") String id){
@@ -451,6 +451,11 @@ public class DataProductController implements DataproductsApi{
 					}
 					existingVO.setHowToAccessText(requestVO.getHowToAccessText());
 					existingVO.setCarLaFunction(requestVO.getCarLaFunction());
+					existingVO.setDdx(requestVO.getDdx());
+					existingVO.setKafka(requestVO.getKafka());
+					existingVO.setOpenApi(requestVO.getOpenApi());
+					existingVO.setPlatform(requestVO.getPlatform());
+					existingVO.setFrontEndTools(requestVO.getFrontEndTools());
 					existingVO.setAgileReleaseTrain(requestVO.getAgileReleaseTrain());
 					existingVO.setCorporateDataCatalog(requestVO.getCorporateDataCatalog());
 					// For is Publish the below condition.

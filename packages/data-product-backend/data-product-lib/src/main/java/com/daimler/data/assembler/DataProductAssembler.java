@@ -35,9 +35,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-import com.daimler.data.db.jsonb.AgileReleaseTrain;
-import com.daimler.data.db.jsonb.CarLaFunction;
-import com.daimler.data.db.jsonb.CorporateDataCatalog;
+import com.daimler.data.db.jsonb.*;
 import com.daimler.data.db.jsonb.dataproduct.*;
 import com.daimler.data.dto.dataproduct.*;
 import com.daimler.data.dto.dataproduct.ChangeLogVO;
@@ -53,7 +51,6 @@ import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
 import com.daimler.data.db.entities.DataProductNsql;
-import com.daimler.data.db.jsonb.CreatedBy;
 import com.daimler.data.dto.datacompliance.CreatedByVO;
 import com.daimler.data.dto.dataproduct.DataProductTeamMemberVO.UserTypeEnum;
 import com.google.common.collect.MapDifference;
@@ -90,6 +87,33 @@ public class DataProductAssembler implements GenericAssembler<DataProductVO, Dat
 					BeanUtils.copyProperties(dataProduct.getCarLaFunction(), carLaFunctionVO);
 					vo.setCarLaFunction(carLaFunctionVO);
 				}
+
+				List<PlatformVO> platforms = dataProduct.getPlatform();
+				List<PlatformVO> platformsVO = new ArrayList<>();
+				if (platforms != null && !platforms.isEmpty()) {
+					for (PlatformVO platform : platforms) {
+						if (platform != null) {
+							PlatformVO platformVO = new PlatformVO();
+							BeanUtils.copyProperties(platform, platformVO);
+							platformsVO.add(platformVO);
+						}
+					}
+					vo.setPlatform(platformsVO);
+				}
+
+				List<FrontendToolsVO> frontEndTools = dataProduct.getFrontEndTools();
+				List<FrontendToolsVO> frontEndToolsVo = new ArrayList<>();
+				if (platforms != null && !platforms.isEmpty()) {
+					for (FrontendToolsVO frontEndTool : frontEndTools) {
+						if (frontEndTool != null) {
+							FrontendToolsVO frontEndToolVo = new FrontendToolsVO();
+							BeanUtils.copyProperties(frontEndTool, frontEndToolVo);
+							frontEndToolsVo.add(frontEndToolVo);
+						}
+					}
+					vo.setFrontEndTools(frontEndToolsVo);
+				}
+
 				if (Objects.nonNull(dataProduct.getAgileReleaseTrain())) {
 					AgileReleaseTrainVO agileReleaseTrain = new AgileReleaseTrainVO();
 					BeanUtils.copyProperties(dataProduct.getAgileReleaseTrain(), agileReleaseTrain);
@@ -193,6 +217,33 @@ public class DataProductAssembler implements GenericAssembler<DataProductVO, Dat
 					BeanUtils.copyProperties(vo.getCarLaFunction(), carLaFunction);
 					dataProduct.setCarLaFunction(carLaFunction);
 				}
+
+				List<PlatformVO> platforms = vo.getPlatform();
+				List<PlatformVO> platformsVO = new ArrayList<>();
+				if (platforms != null && !platforms.isEmpty()) {
+					for (PlatformVO platform : platforms) {
+						if (platform != null) {
+							PlatformVO platformVO = new PlatformVO();
+							BeanUtils.copyProperties(platform, platformVO);
+							platformsVO.add(platformVO);
+						}
+					}
+					dataProduct.setPlatform(platformsVO);
+				}
+
+				List<FrontendToolsVO> frontEndTools = vo.getFrontEndTools();
+				List<FrontendToolsVO> frontEndToolsVo = new ArrayList<>();
+				if (platforms != null && !platforms.isEmpty()) {
+					for (FrontendToolsVO frontEndTool : frontEndTools) {
+						if (frontEndTool != null) {
+							FrontendToolsVO frontEndToolVo = new FrontendToolsVO();
+							BeanUtils.copyProperties(frontEndTool, frontEndToolVo);
+							frontEndToolsVo.add(frontEndToolVo);
+						}
+					}
+					dataProduct.setFrontEndTools(frontEndToolsVo);
+				}
+
 				if (Objects.nonNull(vo.getAgileReleaseTrain())) {
 					AgileReleaseTrain agileReleaseTrain = new AgileReleaseTrain();
 					BeanUtils.copyProperties(vo.getAgileReleaseTrain(), agileReleaseTrain);
