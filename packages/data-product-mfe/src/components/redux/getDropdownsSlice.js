@@ -5,6 +5,8 @@ import {
   getClassificationTypes,
   getCorporateDataCatalogs,
   getLegalBasis,
+  getPlatforms,
+  getFrontEndTools,
 } from './getDropdowns.services';
 
 const consumerProductsInitialState = {
@@ -18,6 +20,10 @@ const consumerProductsInitialState = {
   carLAFunctions: [],
   isCorporateDataCatalogLoading: false,
   corporateDataCatalogs: [],
+  isPlatformsLoading: false,
+  platforms: [],
+  isFrontEndToolsLoading: false,
+  frontEndTools: [],
 };
 
 export const getDropdownsSlice = createSlice({
@@ -58,6 +64,20 @@ export const getDropdownsSlice = createSlice({
     [getCorporateDataCatalogs.fulfilled]: (state, action) => {
       state.isCorporateDataCatalogLoading = false;
       state.corporateDataCatalogs = action.payload.data;
+    },
+    [getPlatforms.pending]: (state) => {
+      state.isPlatformsLoading = true;
+    },
+    [getPlatforms.fulfilled]: (state, action) => {
+      state.isPlatformsLoading = false;
+      state.platforms = action.payload.data;
+    },
+    [getFrontEndTools.pending]: (state) => {
+      state.isFrontEndToolsLoading = true;
+    },
+    [getFrontEndTools.fulfilled]: (state, action) => {
+      state.isFrontEndToolsLoading = false;
+      state.frontEndTools = action.payload.data;
     },
   },
 });
