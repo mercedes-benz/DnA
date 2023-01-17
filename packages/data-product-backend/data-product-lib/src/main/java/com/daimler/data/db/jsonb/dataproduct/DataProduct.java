@@ -63,7 +63,7 @@ public class DataProduct {
 	private CorporateDataCatalog corporateDataCatalog;
 	private String ddx;
 	private String kafka;
-	private String openApi;
+	private String oneApi;
 	private List<PlatformVO> platform;
 	private List<FrontendToolsVO> frontEndTools;
 	private CreatedBy createdBy;
