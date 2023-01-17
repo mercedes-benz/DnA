@@ -37,3 +37,5 @@ export const setTooltipIfEllipsisShown = (list) => {
     }
   });
 };
+
+export const isValidURL = (value) => /^http(s)?:\/\/[a-zA-Z\d]/g.test(value);
