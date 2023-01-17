@@ -90,7 +90,7 @@ export default function HeaderUserPanel(props: IHeaderUserPanelProps) {
   };
 
   const navigateToMyBookmarks = (event: React.MouseEvent<HTMLElement>) => {
-    history.push(`/bookmarks`);
+    history.push(`/bookmarks?page=1`);
     props.onClose();
   };
 
@@ -100,7 +100,7 @@ export default function HeaderUserPanel(props: IHeaderUserPanelProps) {
   };
 
   const navigateToMySolutions = (event: React.MouseEvent<HTMLElement>) => {
-    history.push(`/mysolutions`);
+    history.push(`/mysolutions?page=1`);
     props.onClose();
   };
 
