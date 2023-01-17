@@ -8,7 +8,6 @@ import { USER_ROLE } from 'globals/constants';
 import { getPath } from './../../router/RouterUtils';
 import Styles from './MainNavigation.scss';
 import { Envs } from 'globals/Envs';
-import IconCarla from 'components/icons/IconCarla';
 
 export interface IMainNavigationProps {
   showExpandEffect: boolean;
@@ -144,7 +143,7 @@ const MainNavigation: React.FC<IMainNavigationProps> = (props) => {
       id: 2,
       route: `/carla`,
       title: 'CarLA',
-      icon: 'data',
+      icon: 'carla-mini',
       enabled: true,
       subNavItems: [
         {
@@ -345,24 +344,11 @@ const MainNavigation: React.FC<IMainNavigationProps> = (props) => {
               title={navItem.title}
             >
               <a className={classNames('nav-link', navItem.enabled ? '' : Styles.disableLink, Styles.navLink)}>
-                { navItem.id !== 2 ?
-                  <i
-                    className={classNames(
-                      'icon',
-                      'mbc-icon',
-                      navItem.icon,
-                      Styles.navIcon,
-                      getPath().includes(navItem.route) ? Styles.navActive : '',
-                    )}
-                    onClick={() => {
-                      props.onNavClose();
-                      history.push(navItem.route);
-                    }}
-                  />
-                  :
-                  <div className={classNames(
+                <i
+                  className={classNames(
                     'icon',
                     'mbc-icon',
+                    navItem.icon,
                     Styles.navIcon,
                     getPath().includes(navItem.route) ? Styles.navActive : '',
                   )}
@@ -370,10 +356,7 @@ const MainNavigation: React.FC<IMainNavigationProps> = (props) => {
                     props.onNavClose();
                     history.push(navItem.route);
                   }}
-                  >
-                    <IconCarla size="80"/>
-                  </div>
-                }
+                />
                 {getTranslatedLabel(navItem.title)}
               </a>
               <ul className="sub-nav-list">
