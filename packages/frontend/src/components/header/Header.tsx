@@ -80,8 +80,9 @@ const Header:React.FC<IHeaderProps> = (props) => {
     ApiClient.getNotificationPreferences(props.user.id)
       .then((response: any) => {
         setUserPreferences(response);
-        setIsTouChecked(response.termsOfUse);
-        setShowTermsModal(!response.termsOfUse)
+        const touVal = (response.termsOfUse === false) ? false : true;
+        setIsTouChecked(touVal);
+        setShowTermsModal(!touVal);
       })
       .catch(() => {
         
@@ -164,7 +165,7 @@ const Header:React.FC<IHeaderProps> = (props) => {
           }}
         ></div>
         {
-          !isTouChecked &&
+          userPreferences?.termsOfUse === false ?
             <div> 
               <label className={classNames('checkbox', Styles.checkbox)}>
                 <span className="wrapper">
@@ -181,12 +182,14 @@ const Header:React.FC<IHeaderProps> = (props) => {
                 I have read and agree to the Terms of Use
               </label>
             </div>
+            : ''
         }
       </div>
       <div className={Styles.touFooter}>
         {
-          !isTouChecked &&
-            <button className={classNames('btn btn-tertiary')} onClick={handleTouAccept}>Accept & Enter</button>
+          userPreferences?.termsOfUse === false ?
+            <button className={classNames('btn', isTouChecked && Styles.btnAgree)} onClick={handleTouAccept} disabled={!isTouChecked}>Accept & Enter</button>
+            : ''
         }
       </div>
     </div>
