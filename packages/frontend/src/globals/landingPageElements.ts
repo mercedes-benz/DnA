@@ -428,7 +428,7 @@ export const TranparencyLandingPageElements = [
     description:
       'Central place to search, find and create all MB Data & Analytics Solutions.',
     tags: ['Self Service', 'FOSS'],
-    url: '/allsolutions',
+    url: '/allsolutions?page=1',
     isExternalLink: false,
     isTextAlignLeft: false,
     isDisabled: false,
@@ -619,7 +619,7 @@ export const CarLALandingPageElements = [
     description:
       'CarLA Solutions are at the heart of our landscape and provide data and functions to business users to answer their questions and create their plannings or reports.',
     tags: ['Self Service', 'FOSS'],
-    url: '/allsolutions',
+    url: '/allsolutions?page=1',
     isExternalLink: false,
     isTextAlignLeft: false,
     isDisabled: false,
