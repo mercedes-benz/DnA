@@ -284,6 +284,32 @@ paths:
 
 definitions:
 
+  PlatformVO:
+    type: object
+    properties:
+      id:
+        type: string
+        description: "ID of platform"
+      name:
+        type: string
+        description: "Name of the platform"
+    required:
+      - id
+      - name
+
+  FrontendToolsVO:
+    type: object
+    properties:
+      id:
+        type: string
+        description: "ID of front-end tools"
+      name:
+        type: string
+        description: "Name of the front-end tools"
+    required:
+      - id
+      - name
+
   CarLaFunctionVO:
     type: object
     properties:  
@@ -458,6 +484,23 @@ definitions:
         description: "Description of steps to access data product"
       carLaFunction:
         $ref: "#/definitions/CarLaFunctionVO"
+      ddx:
+        type: string
+        description: "DDX of data"
+      kafka:
+        type: string
+        description: "Kafka of data"
+      openApi:
+        type: string
+        description: "openAPI of data"
+      platform:
+        type: array
+        items:
+          $ref: "#/definitions/PlatformVO"
+      frontEndTools:
+        type: array
+        items:
+          $ref: "#/definitions/FrontendToolsVO"
       agileReleaseTrain:
         $ref: "#/definitions/AgileReleaseTrainVO"
       corporateDataCatalog:
