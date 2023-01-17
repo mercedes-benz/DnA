@@ -453,7 +453,7 @@ public class DataProductController implements DataproductsApi{
 					existingVO.setCarLaFunction(requestVO.getCarLaFunction());
 					existingVO.setDdx(requestVO.getDdx());
 					existingVO.setKafka(requestVO.getKafka());
-					existingVO.setOpenApi(requestVO.getOpenApi());
+					existingVO.setOneApi(requestVO.getOneApi());
 					existingVO.setPlatform(requestVO.getPlatform());
 					existingVO.setFrontEndTools(requestVO.getFrontEndTools());
 					existingVO.setAgileReleaseTrain(requestVO.getAgileReleaseTrain());
