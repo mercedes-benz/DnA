@@ -288,7 +288,7 @@ export default class AllReports extends React.Component<
           subTitle={'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. eiusmod tempor incididunt ut labore et dolore magna aliqua.'}
           tags={['Lorem Ipsum', 'ABC', 'XYZ']}
           headerImage={headerImageURL}
-          isBackButton={false}
+          isBackButton={true}
           isTagsFilter={false}>
             <div className={Styles.Workspaces}>
               <div
