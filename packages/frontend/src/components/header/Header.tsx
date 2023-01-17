@@ -81,9 +81,8 @@ const Header:React.FC<IHeaderProps> = (props) => {
     ApiClient.getNotificationPreferences(props.user.id)
       .then((response: any) => {
         setUserPreferences(response);
-        const touVal = (response.termsOfUse === false) ? false : true;
-        setIsTouChecked(touVal);
-        setShowTermsModal(!touVal);
+        setIsTouChecked(response.termsOfUse);
+        setShowTermsModal(!response.termsOfUse);
       })
       .catch(() => {
         
@@ -157,7 +156,7 @@ const Header:React.FC<IHeaderProps> = (props) => {
         </div>
         <h2>
           Terms of Use
-          <span>{userPreferences?.termsOfUse === false ? "Please agree to our terms of use before you start." : "Agreed to terms of use"}</span>
+          <span>{userPreferences?.termsOfUse ? "Agreed to terms of use" : "Please agree to our terms of use before you start."}</span>
         </h2>
       </div>
       <div className={Styles.touContent}>
@@ -167,7 +166,8 @@ const Header:React.FC<IHeaderProps> = (props) => {
           }}
         ></div>
         {
-          userPreferences?.termsOfUse === false ?
+          userPreferences?.termsOfUse ?
+            '' :
             <div> 
               <label className={classNames('checkbox', Styles.checkbox)}>
                 <span className="wrapper">
@@ -184,14 +184,13 @@ const Header:React.FC<IHeaderProps> = (props) => {
                 I have read and agree to the Terms of Use
               </label>
             </div>
-            : ''
         }
       </div>
       <div className={Styles.touFooter}>
         {
-          userPreferences?.termsOfUse === false ?
+          userPreferences?.termsOfUse ?
+            '' :
             <button className={classNames('btn', isTouChecked && Styles.btnAgree)} onClick={handleTouAccept} disabled={!isTouChecked}>Accept & Enter</button>
-            : ''
         }
       </div>
     </div>
