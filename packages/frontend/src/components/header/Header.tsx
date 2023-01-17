@@ -152,7 +152,6 @@ const Header:React.FC<IHeaderProps> = (props) => {
       <div className={Styles.touTitle}>
         <div className={Styles.touIcon}>
           <IconToU size='80'/>
-          {/* <i className="icon mbc-icon reports"></i> */}
         </div>
         <h2>
           Terms of Use

@@ -25,7 +25,7 @@ export default class SvgIcon extends React.Component<ISvgIconProps, {}> {
     const iconClass = classNames(Styles.icon, this.props.className);
 
     return (
-      <i className={iconClass}>
+      <i className={iconClass} style={{width: size + 'px', height: size + 'px'}}>
         <svg
           xmlns="http://www.w3.org/2000/svg"
           width={size}
