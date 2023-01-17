@@ -490,9 +490,9 @@ definitions:
       kafka:
         type: string
         description: "Kafka of data"
-      openApi:
+      oneApi:
         type: string
-        description: "openAPI of data"
+        description: "oneApi of data"
       platform:
         type: array
         items:
