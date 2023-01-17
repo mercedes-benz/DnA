@@ -28,7 +28,13 @@ import TransNationalDataTransfer from '../../dataTransfer/ProviderForm/TransNati
 import DeletionRequirements from '../../dataTransfer/ProviderForm/DeletionRequirements';
 import { setDivisionList, setSelectedDataProduct } from '../redux/dataProductSlice';
 import { UpdateDataProduct, SetDataProduct } from '../redux/dataProduct.services';
-import { getAgileReleaseTrains, getCarlaFunctions, getCorporateDataCatalogs } from '../../redux/getDropdowns.services';
+import {
+  getAgileReleaseTrains,
+  getCarlaFunctions,
+  getCorporateDataCatalogs,
+  getFrontEndTools,
+  getPlatforms,
+} from '../../redux/getDropdowns.services';
 
 const dataForms = {
   description: {
@@ -60,7 +66,9 @@ const CreateDataProduct = ({ user, history }) => {
   const [showChangeAlert, setShowChangeAlert] = useState({ modal: false, switchingTab: '' });
 
   const dispatch = useDispatch();
-  const { agileReleaseTrains, carLAFunctions, corporateDataCatalogs } = useSelector((state) => state.dropdowns);
+  const { agileReleaseTrains, carLAFunctions, corporateDataCatalogs, platforms, frontEndTools } = useSelector(
+    (state) => state.dropdowns,
+  );
 
   const { id: dataProductId } = useParams();
   const createCopyId = history.location?.state?.copyId;
@@ -181,6 +189,8 @@ const CreateDataProduct = ({ user, history }) => {
     dispatch(getAgileReleaseTrains());
     dispatch(getCarlaFunctions());
     dispatch(getCorporateDataCatalogs());
+    dispatch(getPlatforms());
+    dispatch(getFrontEndTools());
   }, [dispatch]);
 
   const setTab = (e) => {
@@ -342,6 +352,8 @@ const CreateDataProduct = ({ user, history }) => {
                   carlaFunctionList={carLAFunctions}
                   dataCatalogList={corporateDataCatalogs}
                   userInfo={userInfo}
+                  platformList={platforms}
+                  frontEndToolList={frontEndTools}
                 />
               </div>
               <div id="tab-content-2" className="tab-content">
