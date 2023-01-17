@@ -2,7 +2,12 @@ import { createAsyncThunk } from '@reduxjs/toolkit';
 import { dataProductApi } from '../../../apis/dataproducts.api';
 import Notification from '../../../common/modules/uilab/js/src/notification';
 import ProgressIndicator from '../../../common/modules/uilab/js/src/progress-indicator';
-import { deserializeFormData, serializeDivisionSubDivision, serializeFormData } from '../../../Utility/formData';
+import {
+  deserializeFormData,
+  serializeDivisionSubDivision,
+  serializeFormData,
+  stringArrayToObjectArray,
+} from '../../../Utility/formData';
 
 export const GetDataProducts = createAsyncThunk('products/GetDataProducts', async (arg, { getState }) => {
   ProgressIndicator.show();
@@ -36,6 +41,13 @@ export const SetDataProduct = createAsyncThunk(
     const division = serializeDivisionSubDivision(divisionList, values);
     const { dropdowns } = getState();
 
+    const platforms = stringArrayToObjectArray(values.platform, dropdowns.platforms);
+    const frontEndTools = stringArrayToObjectArray(values.frontEndTools, dropdowns.frontEndTools);
+
+    // Update few of the values
+    values['platform'] = platforms;
+    values['frontEndTools'] = frontEndTools;
+
     const requestBody = serializeFormData({ values, division, isDataProduct: true, dropdowns });
 
     ProgressIndicator.show();
@@ -68,13 +80,21 @@ export const UpdateDataProduct = createAsyncThunk(
     } = data;
 
     const isProviderForm = type === 'provider';
+    const { dropdowns } = getState();
 
     const division = serializeDivisionSubDivision(divisionList, values);
+
+    const platforms = stringArrayToObjectArray(values.platform, dropdowns.platforms);
+    const frontEndTools = stringArrayToObjectArray(values.frontEndTools, dropdowns.frontEndTools);
 
     if (isProviderForm && values.consumer) {
       values.consumer['serializedDivision'] = serializeDivisionSubDivision(divisionList, values?.consumer);
     }
-    const { dropdowns } = getState();
+
+    // Update few of the values
+    values['platform'] = platforms;
+    values['frontEndTools'] = frontEndTools;
+
     const requestBody = serializeFormData({ values, division, type, isDataProduct: true, dropdowns });
     ProgressIndicator.show();
 

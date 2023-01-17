@@ -14,8 +14,9 @@ import InfoModal from 'dna-container/InfoModal';
 
 import { useFormContext, Controller } from 'react-hook-form';
 import Tooltip from '../../../../common/modules/uilab/js/src/tooltip';
+import { isValidURL } from '../../../../Utility/utils';
 
-const Description = ({ onSave, artList, carlaFunctionList, dataCatalogList }) => {
+const Description = ({ onSave, artList, carlaFunctionList, dataCatalogList, platformList, frontEndToolList }) => {
   const {
     register,
     formState: { errors, isSubmitting },
@@ -27,7 +28,7 @@ const Description = ({ onSave, artList, carlaFunctionList, dataCatalogList }) =>
   } = useFormContext();
   const [showInfoModal, setShowInfoModal] = useState(false);
 
-  const { ART, carLAFunction, corporateDataCatalog, howToAccessText } = watch();
+  const { ART, carLAFunction, corporateDataCatalog, howToAccessText, platform, frontEndTools } = watch();
 
   useEffect(() => {
     SelectBox.defaultSetup();
@@ -65,6 +66,26 @@ const Description = ({ onSave, artList, carlaFunctionList, dataCatalogList }) =>
     }
     SelectBox.defaultSetup();
   }, [corporateDataCatalog, setValue, dataCatalogList]);
+
+  useEffect(() => {
+    if (platform?.length) {
+      setValue('platform', platform);
+    }
+    SelectBox.defaultSetup();
+    //eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [platform?.length, platformList]);
+
+  useEffect(() => {
+    if (frontEndTools?.length) {
+      setValue('frontEndTools', frontEndTools);
+    }
+    SelectBox.defaultSetup();
+    //eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [frontEndTools?.length, frontEndToolList]);
+
+  const validateURL = (value) => {
+    return !value || isValidURL(value) || 'Not a valid URL';
+  };
 
   useEffect(() => {
     if (howToAccessText?.length) {
@@ -168,6 +189,102 @@ const Description = ({ onSave, artList, carlaFunctionList, dataCatalogList }) =>
                   </div>
                   <span className={classNames('error-message', errors.corporateDataCatalog?.message ? '' : 'hide')}>
                     {errors.corporateDataCatalog?.message}
+                  </span>
+                </div>
+              </div>
+            </div>
+            <div className={Styles.flexLayout}>
+              <div className={Styles.flexLayout}>
+                <div className={classNames('input-field-group include-error', errors.platform ? 'error' : '')}>
+                  <label id="platformLabel" htmlFor="platformInput" className="input-label">
+                    Platform
+                  </label>
+                  <div className={`custom-select`}>
+                    <select id="platformField" name="platform" multiple={true} {...register('platform')}>
+                      {platformList?.map((item, ind) => (
+                        <option id={item + ind} key={item.id} value={item.name}>
+                          {item.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <span className={classNames('error-message', errors.platform?.message ? '' : 'hide')}>
+                    {errors.platform?.message}
+                  </span>
+                </div>
+                <div className={classNames('input-field-group include-error', errors.frontendTools ? 'error' : '')}>
+                  <label id="frontendToolsLabel" htmlFor="frontendToolsInput" className="input-label">
+                    Front-End Tools
+                  </label>
+                  <div className={`custom-select`}>
+                    <select id="frontendToolsField" name="frontendTools" multiple={true} {...register('frontEndTools')}>
+                      {frontEndToolList?.map((item, ind) => (
+                        <option id={item + ind} key={item.id} value={item.name}>
+                          {item.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <span className={classNames('error-message', errors.frontendTools?.message ? '' : 'hide')}>
+                    {errors.frontendTools?.message}
+                  </span>
+                </div>
+              </div>
+              <div className={Styles.flexLayout}>
+                <div className={classNames('input-field-group include-error', errors.ddx ? 'error' : '')}>
+                  <label id="ddxLabel" htmlFor="ddxInput" className="input-label">
+                    DDX
+                  </label>
+                  <input
+                    {...register('ddx', {
+                      validate: validateURL,
+                    })}
+                    type="text"
+                    className="input-field"
+                    id="ddxInput"
+                    maxLength={200}
+                    placeholder="https://example@example.com"
+                    autoComplete="off"
+                  />
+                  <span className={classNames('error-message', errors.ddx?.message ? '' : 'hide')}>
+                    {errors.ddx?.message}
+                  </span>
+                </div>
+                <div className={classNames('input-field-group include-error', errors.kafka ? 'error' : '')}>
+                  <label id="kafkaLabel" htmlFor="kafkaInput" className="input-label">
+                    Kafka
+                  </label>
+                  <input
+                    {...register('kafka')}
+                    type="text"
+                    className="input-field"
+                    id="kafkaInput"
+                    maxLength={200}
+                    placeholder="Type here"
+                    autoComplete="off"
+                  />
+                </div>
+              </div>
+            </div>
+            <div className={Styles.flexLayout}>
+              <div className={Styles.flexLayout}>
+                <div className={classNames('input-field-group include-error', errors.oneAPI ? 'error' : '')}>
+                  <label id="oneAPILabel" htmlFor="oneAPIInput" className="input-label">
+                    oneAPI
+                  </label>
+                  <input
+                    {...register('oneApi', {
+                      validate: validateURL,
+                    })}
+                    type="text"
+                    className="input-field"
+                    id="oneAPIInput"
+                    maxLength={200}
+                    placeholder="https://example@example.com"
+                    autoComplete="off"
+                  />
+                  <span className={classNames('error-message', errors.oneApi?.message ? '' : 'hide')}>
+                    {errors.oneApi?.message}
                   </span>
                 </div>
               </div>
