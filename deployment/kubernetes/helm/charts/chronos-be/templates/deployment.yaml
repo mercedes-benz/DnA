@@ -45,15 +45,22 @@ spec:
           {{- end }}          
           ports:
             - name: http
-              containerPort: 7979
+              containerPort: 8989
               protocol: TCP
           livenessProbe:
+            initialDelaySeconds: 60
+            timeoutSeconds: 30
+            periodSeconds: 30
+            failureThreshold: 3
             httpGet:
-              path: /
+              path: /actuator/health/liveness
               port: http
           readinessProbe:
+            timeoutSeconds: 30
+            periodSeconds: 30
+            failureThreshold: 3
             httpGet:
-              path: /
+              path: /actuator/health/readiness
               port: http
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
