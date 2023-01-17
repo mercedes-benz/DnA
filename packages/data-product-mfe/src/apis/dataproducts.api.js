@@ -55,15 +55,23 @@ const getMyDataTransfers = (dataTransferIds, sortBy, sortOrder) => {
 };
 
 const getAllAgileReleaseTrains = () => {
-  return server.get('/agileReleaseTrains', { data: {} });
+  return server.get('/agileReleaseTrains?limit=0&offset=0', { data: {} });
 };
 
 const getAllCarlaFunctions = () => {
-  return server.get('/carlafunctions', { data: {} });
+  return server.get('/carlafunctions?limit=0&offset=0', { data: {} });
 };
 
 const getAllCorporateDataCatalogs = () => {
   return hostServer.get('/datasources?source=CDC', { data: {} });
+};
+
+const getAllPlatforms = () => {
+  return server.get('/platforms?limit=0&offset=0', { data: {} });
+};
+
+const getAllFrontEndTools = () => {
+  return server.get('/frontEndTools?limit=0&offset=0', { data: {} });
 };
 
 export const dataProductApi = {
@@ -78,4 +86,6 @@ export const dataProductApi = {
   getAllAgileReleaseTrains,
   getAllCarlaFunctions,
   getAllCorporateDataCatalogs,
+  getAllPlatforms,
+  getAllFrontEndTools,
 };
