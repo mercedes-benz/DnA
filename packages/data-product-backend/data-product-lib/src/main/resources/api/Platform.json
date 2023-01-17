@@ -1,0 +1,11 @@
+{
+    "library": "spring-mvc",
+    "dateLibrary": "legacy",
+    "hideGenerationTimestamp": true,
+    "useTags": true,
+    "modelPackage": "com.daimler.data.dto.dataproductlov",
+    "apiPackage": "com.daimler.data.api.dataproductlov",
+    "invokerPackage": "com.daimler.data.service.dataproductlov"
+    
+  }
+  
