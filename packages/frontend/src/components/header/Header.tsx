@@ -16,6 +16,7 @@ import { getPath } from './../../router/RouterUtils';
 import Modal from 'components/formElements/modal/Modal';
 import { ApiClient } from '../../services/ApiClient';
 import Notification from '../../assets/modules/uilab/js/src/notification';
+import IconToU from 'components/icons/IconToU';
 
 export interface IHeaderProps {
   user: IUserInfo;
@@ -151,7 +152,8 @@ const Header:React.FC<IHeaderProps> = (props) => {
     <div className={Styles.touContainer}>
       <div className={Styles.touTitle}>
         <div className={Styles.touIcon}>
-          <i className="icon mbc-icon reports"></i>
+          <IconToU size='80'/>
+          {/* <i className="icon mbc-icon reports"></i> */}
         </div>
         <h2>
           Terms of Use
