@@ -586,9 +586,9 @@ export const TrainingsLandingPageElements = [
     svgIconId: 'tools-mini',
   },
   {
-    name: 'Digital Case Program',
+    name: 'Digital College',
     description:
-      'The Digital Case Program is available to all colleagues in Finance & Controlling worldwide and helps us to build the right skills for digitization.',
+      'The Digital College is available to all colleagues in Finance & Controlling worldwide and helps us to build the right skills for digitization.',
     tags: ['Self Service', 'FOSS'],
     url: digitalCaseProgramUrl,
     isExternalLink: true,
