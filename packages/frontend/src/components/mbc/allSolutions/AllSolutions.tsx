@@ -356,7 +356,7 @@ export default class AllSolutions extends React.Component<
         <LandingSummary title={pageTitle} 
           subTitle={'Central place to search, find and create all MB Data & Analytics Solutions.'}
           headerImage={headerImageURL}
-          isBackButton={enablePortfolioSolutionsView}
+          isBackButton={true}
           isTagsFilter={false}>
             <div className={Styles.Workspaces}>
               <div
