@@ -155,7 +155,7 @@ const Header:React.FC<IHeaderProps> = (props) => {
         </div>
         <h2>
           Terms of Use
-          <span>Please agree to our terms of use before you start.</span>
+          <span>{userPreferences?.termsOfUse === false ? "Please agree to our terms of use before you start." : "Agreed to terms of use"}</span>
         </h2>
       </div>
       <div className={Styles.touContent}>
