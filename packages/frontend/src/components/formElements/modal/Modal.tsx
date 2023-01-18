@@ -20,6 +20,7 @@ export interface IModalProps {
   modalStyle?: React.CSSProperties;
   footer?: React.ReactNode;
   customHeader?: React.ReactNode;
+  hideCloseButton?: boolean;
 }
 
 const Modal = (props: IModalProps) => {
@@ -51,9 +52,12 @@ const Modal = (props: IModalProps) => {
               {props.title}
             </h4>
           )}
-          <button className="modal-close-button" onClick={props.onCancel}>
-            <i className="icon mbc-icon close thin" />
-          </button>
+          {props.hideCloseButton ? 
+            '' :
+            <button className="modal-close-button" onClick={props.onCancel}>
+              <i className="icon mbc-icon close thin" />
+            </button>
+          }
         </header>
         <div className={props.scrollableContent ? 'modal-content scrollable mbc-scroll' : 'modal-content'}>
           {' '}
