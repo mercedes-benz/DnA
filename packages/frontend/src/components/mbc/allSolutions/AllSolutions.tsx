@@ -357,8 +357,8 @@ export default class AllSolutions extends React.Component<
       <React.Fragment>
         <LandingSummary
           title={pageTitle}
-          subTitle={'Central place to search, find and create all MB Data & Analytics Solutions.'}
-          headerImage={headerImageURL}
+          subTitle={!enablePortfolioSolutionsView && 'Central place to search, find and create all MB Data & Analytics Solutions.'}
+          headerImage={!enablePortfolioSolutionsView && headerImageURL}
           isBackButton={true}
           isTagsFilter={false}
         >
