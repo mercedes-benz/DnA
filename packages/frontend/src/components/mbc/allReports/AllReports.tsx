@@ -303,7 +303,7 @@ export default class AllReports extends React.Component<
                   <div className={ classNames(Styles.caption, Styles.filterSection)}>
                     {/* <h3>{pageTitle}</h3> */}
                     <div>                      
-                      <TagSection tags={this.state.tagValues.map(item=>item.name)} selectedTags={this.state.selectedTags} setSeletedTags={this.setSelectedFilter}></TagSection>
+                      <TagSection tags={this.state?.tagValues?.map(item=>item.name)} selectedTags={this.state.selectedTags} setSeletedTags={this.setSelectedFilter}></TagSection>
                     </div>
                     <div className={Styles.allSolExport}>
                       <CSVLink
