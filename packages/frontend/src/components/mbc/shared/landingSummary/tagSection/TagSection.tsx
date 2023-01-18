@@ -35,9 +35,9 @@ const TagSection = (props: ITagsProps) => {
     }
 
     const selectDeselectAllTags = (tag: string) => {
-        // const allTags = props?.tags;
-        // const shallowCloneAllTags = [ ...allTags ]; //Shallow cloning so that refernces will not be copied
-        props.setSeletedTags([]);
+        const allTags = props?.tags;
+        const shallowCloneAllTags = [ ...allTags ]; //Shallow cloning so that refernces will not be copied
+        props.setSeletedTags(shallowCloneAllTags);
     }
 
     const selectAll = props?.tags?.length > 0 
