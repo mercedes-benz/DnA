@@ -348,44 +348,59 @@ public class LoginController {
 		headers.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));
 		headers.set("Authorization", "Bearer " + accessToken);
 		HttpEntity<String> request = new HttpEntity<String>(headers);
+		String id = "";
+		UserInfo userInfo = new UserInfo();
 
-		ResponseEntity<String> response = restTemplate.exchange(userInfoUrl, HttpMethod.GET, request, String.class);
-		ObjectMapper mapper = new ObjectMapper();
 		try {
-			UserInfo userInfo = mapper.readValue(response.getBody(), UserInfo.class);
-			LOGGER.info("Fetching user:{} from database.",userId);
-			UserInfoVO userVO = userInfoService.getById(userInfo.getId());
-			if(Objects.isNull(userVO)){
-				LOGGER.info("User not found, adding the user:{}",userInfo.getId());
-				LOGGER.debug("Setting default role as 'User' for: {}",userInfo.getId());
-				UserRoleNsql roleEntity = userRoleService.getRoleUser();
-				UserInfoRole userRole = new UserInfoRole();
-				userRole.setId(roleEntity.getId());
-				userRole.setName(roleEntity.getData().getName());
-				List<UserInfoRole> userRoleList = new ArrayList<>();
-				userRoleList.add(userRole);
-				//Setting entity to add new user
-				UserInfoNsql userEntity = userInfoAssembler.toEntity(userInfo, userRoleList);
-				userEntity.setIsLoggedIn("Y");
-				LOGGER.debug("Onboarding new user:{}",userId);
-				userInfoService.addUser(userEntity);
-				userVO = userInfoAssembler.toVo(userEntity);
+			ResponseEntity<String> response = restTemplate.exchange(userInfoUrl, HttpMethod.GET, request, String.class);
+			ObjectMapper mapper = new ObjectMapper();
+			userInfo = mapper.readValue(response.getBody(), UserInfo.class);
+			LOGGER.info("Fetching user:{} from database.", userId);
+			id = userInfo.getId();
+		} catch (Exception e) {
+			if (userId != null && userId.toLowerCase().startsWith("TE".toLowerCase())) {
+				log.debug("Technical user {} , bypassed OIDC userinfo fetch", userId);
+				id = userId;
+			} else {
+				log.error("Failed to fetch OIDC User info", e.getMessage());
 			}
-
-			List<UserRoleVO> rolesVO = userVO.getRoles();
-			List<UserRole> userRoles = userInfoAssembler.toUserRoles(rolesVO);
-			List<UserRole> existingRoles = userInfo.getDigiRole();
-			if (userRoles != null && !userRoles.isEmpty() && existingRoles != null) {
-				existingRoles.addAll(userRoles);
-				userInfo.setDigiRole(existingRoles);
-			}
-			userInfo.setDivisionAdmins(userVO.getDivisionAdmins());
-			return userInfo;
-		} catch (IOException e) {
-			log.error(e.getMessage());
-			return null;
 		}
-	}
+		UserInfoVO userVO = userInfoService.getById(id);		
+		if (Objects.isNull(userVO)) {
+			LOGGER.info("User not found, adding the user:{}", id);
+			LOGGER.debug("Setting default role as 'User' for: {}", id);
+			UserRoleNsql roleEntity = userRoleService.getRoleUser();
+			UserInfoRole userRole = new UserInfoRole();
+			userRole.setId(roleEntity.getId());
+			userRole.setName(roleEntity.getData().getName());
+			List<UserInfoRole> userRoleList = new ArrayList<>();
+			userRoleList.add(userRole);
+			// Setting entity to add new user
+			UserInfoNsql userEntity = userInfoAssembler.toEntity(userInfo, userRoleList);
+			userEntity.setIsLoggedIn("Y");
+			LOGGER.debug("Onboarding new user:{}", userId);
+			userInfoService.addUser(userEntity);
+			userVO = userInfoAssembler.toVo(userEntity);
+		}
+
+		List<UserRoleVO> rolesVO = userVO.getRoles();
+		List<UserRole> userRoles = userInfoAssembler.toUserRoles(rolesVO);
+		List<UserRole> existingRoles = userInfo.getDigiRole();
+		if (userRoles != null && !userRoles.isEmpty() && existingRoles != null) {
+			existingRoles.addAll(userRoles);
+			userInfo.setDigiRole(existingRoles);
+		}
+		userInfo.setDivisionAdmins(userVO.getDivisionAdmins());
+		userInfo.setDepartment(userVO.getDepartment());
+		userInfo.setEmail(userVO.getEmail());
+		userInfo.setFirstName(userVO.getFirstName());
+		userInfo.setId(userVO.getId());
+		userInfo.setLastName(userVO.getLastName());
+		userInfo.setMobileNumber(userVO.getMobileNumber());
+		userInfo.setDigiRole(userRoles);
+		return userInfo;
+	} 
+	
 	
 	private UserInfo fetchOKTAUserInfo(String accessToken, String userId) {
 		HttpHeaders headers = new HttpHeaders();
@@ -493,7 +508,7 @@ public class LoginController {
 		ObjectMapper objectMapper = new ObjectMapper();
 		try {
 			IntrospectionResponse introspectionResponse = objectMapper.readValue(response.getBody(),
-					IntrospectionResponse.class);
+					IntrospectionResponse.class);			
 			log.debug("Introspection Response:" + introspectionResponse);
 			return introspectionResponse;
 		} catch (IOException e) {
