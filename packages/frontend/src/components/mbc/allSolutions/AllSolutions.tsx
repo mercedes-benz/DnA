@@ -1015,7 +1015,7 @@ export default class AllSolutions extends React.Component<
           break;
         case 'tag':
           const tag = this.state.tagValues.find((item: ITag) => item.name.toLocaleLowerCase() === value.toLocaleLowerCase());
-          pageTitle = (tag ? `${tag.name} Solutions ` : `${value} Solutions `) + `(${solutionsCount})`;
+          pageTitle = (tag ? tag.name : value) + ` Solutions (${solutionsCount})`;
           break;  
         default:
           break;
