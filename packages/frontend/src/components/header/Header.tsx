@@ -348,6 +348,7 @@ const Header:React.FC<IHeaderProps> = (props) => {
               width: '65%',
               maxWidth: '65%'
             }}
+            hideCloseButton={!userPreferences?.termsOfUse}
           />
       }
     </>
