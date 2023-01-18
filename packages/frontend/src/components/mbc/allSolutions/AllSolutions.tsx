@@ -175,15 +175,15 @@ export default class AllSolutions extends React.Component<
       showSolutionsFilter: false,
       openFilters: false,
       selectedTags: [],
-      selectedTagsToPass: []
+      selectedTagsToPass: [],
     };
   }
 
-  public componentWillReceiveProps(nextProps: any) {
-    if (!nextProps.location.search) {
-      window.location.reload();
-    }
-  }
+  // public componentWillReceiveProps(nextProps: any) {
+  //   if (!nextProps.location.search) {
+  //     window.location.reload();
+  //   }
+  // }
 
   // public componentWillMount() {
   //   document.addEventListener('touchend', this.handleContextMenuOutside, true);
@@ -300,8 +300,8 @@ export default class AllSolutions extends React.Component<
   }
 
   protected setSelectedFilter = (values: string[]) => {
-    this.setState({selectedTags:values, selectedTagsToPass: values});
-  }
+    this.setState({ selectedTags: values, selectedTagsToPass: values });
+  };
 
   public render() {
     const userInfo = this.props.user;
@@ -338,7 +338,9 @@ export default class AllSolutions extends React.Component<
       window.location.href.indexOf('mysolutions') !== -1;
 
     const exportCSVIcon = () => {
-      const element = hideFilterView ? '' : (
+      const element = hideFilterView ? (
+        ''
+      ) : (
         <span className={classNames(filterStyle.iconTrigger)} onClick={this.triggerDownloadCSVData}>
           <i tooltip-data="Export to CSV" className="icon download" />
         </span>
@@ -350,68 +352,68 @@ export default class AllSolutions extends React.Component<
       // return container ? createPortal(element, container) : null;
       return element;
     };
-    
+
     return (
       <React.Fragment>
-        <LandingSummary title={pageTitle} 
+        <LandingSummary
+          title={pageTitle}
           subTitle={'Central place to search, find and create all MB Data & Analytics Solutions.'}
           headerImage={headerImageURL}
           isBackButton={true}
-          isTagsFilter={false}>
-            <div className={Styles.Workspaces}>
-              <div
-                className={classNames(
-                  Styles.mainPanel,
-                  Styles.hasRightPanel,
-                  openFilterPanel ? Styles.righPanelOpened : '',
-                  'mainPanel',
-                )}
-              >
-                <div className={Styles.wrapper}>
-
-
-
-
-
-
-                  <div className={classNames(Styles.caption, Styles.filterSection)}>
-                    <div>
-                      {!hideFilterView ?
-                        <TagSection tags={this.state.tagValues.map(item=>item.name)} selectedTags={this.state.selectedTags} setSeletedTags={this.setSelectedFilter}></TagSection>
-                      : ''}
-                    </div>
-                    <div className={Styles.allSolExport}>
-                      <CSVLink
-                        data={this.state.csvData}
-                        headers={this.state.csvHeader}
-                        ref={(r: any) => (this.csvLink = r)}
-                        filename={`Solutions.csv`}
-                        target="_blank"
-                        separator={csvSeparator(navigator.language)}
-                      />
-                      <div className={Styles.solutionsViewMode}>
-                        <div tooltip-data="Card View">
-                          <span
-                            className={this.state.cardViewMode ? Styles.iconactive : ''}
-                            onClick={this.solSetCardViewMode}
-                          >
-                            <i className="icon mbc-icon widgets" />
-                          </span>
-                        </div>
-                        <span className={Styles.dividerLine}> &nbsp; </span>
-                        <div tooltip-data="List View">
-                          <span
-                            className={this.state.listViewMode ? Styles.iconactive : ''}
-                            onClick={this.solSetListViewMode}
-                          >
-                            <i className="icon mbc-icon listview big" />
-                          </span>
-                        </div>
-                        {!hideFilterView ?
-                        <span className={Styles.dividerLine}> &nbsp; </span>
-                        : ''}
-                        {exportCSVIcon()}
-                        {!hideFilterView ? 
+          isTagsFilter={false}
+        >
+          <div className={Styles.Workspaces}>
+            <div
+              className={classNames(
+                Styles.mainPanel,
+                Styles.hasRightPanel,
+                openFilterPanel ? Styles.righPanelOpened : '',
+                'mainPanel',
+              )}
+            >
+              <div className={Styles.wrapper}>
+                <div className={classNames(Styles.caption, Styles.filterSection)}>
+                  <div>
+                    {!hideFilterView ? (
+                      <TagSection
+                        tags={this.state.tagValues.map((item) => item.name)}
+                        selectedTags={this.state.selectedTags}
+                        setSeletedTags={this.setSelectedFilter}
+                      ></TagSection>
+                    ) : (
+                      ''
+                    )}
+                  </div>
+                  <div className={Styles.allSolExport}>
+                    <CSVLink
+                      data={this.state.csvData}
+                      headers={this.state.csvHeader}
+                      ref={(r: any) => (this.csvLink = r)}
+                      filename={`Solutions.csv`}
+                      target="_blank"
+                      separator={csvSeparator(navigator.language)}
+                    />
+                    <div className={Styles.solutionsViewMode}>
+                      <div tooltip-data="Card View">
+                        <span
+                          className={this.state.cardViewMode ? Styles.iconactive : ''}
+                          onClick={this.solSetCardViewMode}
+                        >
+                          <i className="icon mbc-icon widgets" />
+                        </span>
+                      </div>
+                      <span className={Styles.dividerLine}> &nbsp; </span>
+                      <div tooltip-data="List View">
+                        <span
+                          className={this.state.listViewMode ? Styles.iconactive : ''}
+                          onClick={this.solSetListViewMode}
+                        >
+                          <i className="icon mbc-icon listview big" />
+                        </span>
+                      </div>
+                      {!hideFilterView ? <span className={Styles.dividerLine}> &nbsp; </span> : ''}
+                      {exportCSVIcon()}
+                      {!hideFilterView ? (
                         <>
                           <span className={Styles.dividerLine}> &nbsp; </span>
                           <div tooltip-data="Filters">
@@ -423,12 +425,14 @@ export default class AllSolutions extends React.Component<
                             </span>
                           </div>
                         </>
-                        : ''}
-                      </div>
+                      ) : (
+                        ''
+                      )}
                     </div>
                   </div>
+                </div>
 
-                  <SolutionsFilter
+                <SolutionsFilter
                   userId={this.props.user.id}
                   getFilterQueryParams={(queryParams: IFilterParams) =>
                     this.getFilteredSolutions(queryParams, this.state.showSolutionsFilter ? false : true)
@@ -437,190 +441,196 @@ export default class AllSolutions extends React.Component<
                   setSolutionsDataLoaded={(value: boolean) => this.setState({ allSolutiosFirstTimeDataLoaded: value })}
                   showSolutionsFilter={this.state.showSolutionsFilter}
                   openFilters={this.state.openFilters}
-                  getAllTags={(tags: any)=>{this.setState({tagValues: tags})}}
+                  getAllTags={(tags: any) => {
+                    this.setState({ tagValues: tags });
+                  }}
                   getValuesFromFilter={(value: any) => {
-                    this.setState({ tagFilterValues: value.tagFilterValues ? value.tagFilterValues : [],
-                      selectedTags: value.tagFilterValues ? value.tagFilterValues.map((item: any)=>item.name) : []});
+                    this.setState({
+                      tagFilterValues: value.tagFilterValues ? value.tagFilterValues : [],
+                      selectedTags: value.tagFilterValues ? value.tagFilterValues.map((item: any) => item.name) : [],
+                    });
                   }}
                   setSelectedTags={this.state.selectedTagsToPass}
-                  />
+                />
 
-
-
-
-                  <div className={Styles.allsolutioncontent}>
-                    {this.state.cardViewMode && (
-                      <div className={classNames('cardSolutions', Styles.allsolutionCardviewContent)}>
-                        {this.state.solutions.length > 0 ?
+                <div className={Styles.allsolutioncontent}>
+                  {this.state.cardViewMode && (
+                    <div className={classNames('cardSolutions', Styles.allsolutionCardviewContent)}>
+                      {this.state.solutions.length > 0 ? (
                         <div className={Styles.cardViewContainer} onClick={() => history.push('/createnewsolution')}>
                           <div className={Styles.addicon}> &nbsp; </div>
                           <label className={Styles.addlabel}>Create new solution</label>
-                        </div> 
-                        : ''}
-                        {this.state.solutions.map((solution, index) => {
-                          return (
-                            <SolutionCardItem
-                              key={index}
-                              solution={solution}
-                              solutionId={solution.id}
-                              bookmarked={solution.bookmarked}
-                              canEdit={
-                                isAdmin !== undefined || userInfo.id === this.checkUserCanEditSolution(userInfo, solution)
-                              }
-                              onEdit={this.onEditSolution}
-                              onDelete={this.onDeleteSolution}
-                              updateBookmark={this.updateBookmark}
-                              showDigitalValue={enablePortfolioSolutionsView}
-                              noteBookData={this.state.noteBookData}
-                            />
-                          );
-                        })}
-                      </div>
-                    )}
-                    {this.state.listViewMode && (
-                      <div className={Styles.allsolutionListviewContent}>
-                        <table
-                          className={classNames(
-                            'ul-table solutions',
-                            Styles.solutionsMarginnone,
-                            this.state.solutions.length === 0 ? 'hide' : '',
-                          )}
-                        >
-                          <thead>
-                            <tr className="header-row">
-                              <th onClick={this.sortSolutions.bind(null, 'productName', this.state.sortBy.nextSortType)}>
-                                <label
-                                  className={
-                                    'sortable-column-header ' +
-                                    (this.state.sortBy.name === 'productName' ? this.state.sortBy.currentSortType : '')
-                                  }
-                                >
-                                  <i className="icon sort" />
-                                  Name
-                                </label>
-                              </th>
-                              <th>&nbsp;</th>
-                              <th onClick={this.sortSolutions.bind(null, 'currentPhase', this.state.sortBy.nextSortType)}>
-                                <label
-                                  className={
-                                    'sortable-column-header ' +
-                                    (this.state.sortBy.name === 'currentPhase' ? this.state.sortBy.currentSortType : '')
-                                  }
-                                >
-                                  <i className="icon sort" />
-                                  Phase
-                                </label>
-                              </th>
-                              <th onClick={this.sortSolutions.bind(null, 'division', this.state.sortBy.nextSortType)}>
-                                <label
-                                  className={
-                                    'sortable-column-header ' +
-                                    (this.state.sortBy.name === 'division' ? this.state.sortBy.currentSortType : '')
-                                  }
-                                >
-                                  <i className="icon sort" />
-                                  Division
-                                </label>
-                              </th>
-                              {enablePortfolioSolutionsView ? (
-                                <th onClick={this.sortSolutions.bind(null, 'digitalValue', this.state.sortBy.nextSortType)}>
-                                  <label
-                                    className={
-                                      'sortable-column-header ' +
-                                      (this.state.sortBy.name === 'digitalValue' ? this.state.sortBy.currentSortType : '')
-                                    }
-                                  >
-                                    <i className="icon sort" />
-                                    Digital Value (€)
-                                  </label>
-                                </th>
-                              ) : (
-                                <React.Fragment />
-                              )}
-                              <th onClick={this.sortSolutions.bind(null, 'locations', this.state.sortBy.nextSortType)}>
-                                <label
-                                  className={
-                                    'sortable-column-header ' +
-                                    (this.state.sortBy.name === 'locations' ? this.state.sortBy.currentSortType : '')
-                                  }
-                                >
-                                  <i className="icon sort" />
-                                  Location
-                                </label>
-                              </th>
-                              <th onClick={this.sortSolutions.bind(null, 'projectStatus', this.state.sortBy.nextSortType)}>
-                                <label
-                                  className={
-                                    'sortable-column-header ' +
-                                    (this.state.sortBy.name === 'projectStatus' ? this.state.sortBy.currentSortType : '')
-                                  }
-                                >
-                                  <i className="icon sort" />
-                                  Status
-                                </label>
-                              </th>
-                              <th className="actionColumn">&nbsp;</th>
-                            </tr>
-                            <tr>
-                              <th colSpan={enablePortfolioSolutionsView ? 8 : 7}
-                                className={classNames(Styles.listViewContainer)}
-                                onClick={() => history.push('/createnewsolution')}
+                        </div>
+                      ) : (
+                        ''
+                      )}
+                      {this.state.solutions.map((solution, index) => {
+                        return (
+                          <SolutionCardItem
+                            key={index}
+                            solution={solution}
+                            solutionId={solution.id}
+                            bookmarked={solution.bookmarked}
+                            canEdit={
+                              isAdmin !== undefined || userInfo.id === this.checkUserCanEditSolution(userInfo, solution)
+                            }
+                            onEdit={this.onEditSolution}
+                            onDelete={this.onDeleteSolution}
+                            updateBookmark={this.updateBookmark}
+                            showDigitalValue={enablePortfolioSolutionsView}
+                            noteBookData={this.state.noteBookData}
+                          />
+                        );
+                      })}
+                    </div>
+                  )}
+                  {this.state.listViewMode && (
+                    <div className={Styles.allsolutionListviewContent}>
+                      <table
+                        className={classNames(
+                          'ul-table solutions',
+                          Styles.solutionsMarginnone,
+                          this.state.solutions.length === 0 ? 'hide' : '',
+                        )}
+                      >
+                        <thead>
+                          <tr className="header-row">
+                            <th onClick={this.sortSolutions.bind(null, 'productName', this.state.sortBy.nextSortType)}>
+                              <label
+                                className={
+                                  'sortable-column-header ' +
+                                  (this.state.sortBy.name === 'productName' ? this.state.sortBy.currentSortType : '')
+                                }
                               >
-                                <div className={Styles.addicon}> &nbsp; </div>
-                                <label className={Styles.addlabel}>Create new solution</label>
+                                <i className="icon sort" />
+                                Name
+                              </label>
+                            </th>
+                            <th>&nbsp;</th>
+                            <th onClick={this.sortSolutions.bind(null, 'currentPhase', this.state.sortBy.nextSortType)}>
+                              <label
+                                className={
+                                  'sortable-column-header ' +
+                                  (this.state.sortBy.name === 'currentPhase' ? this.state.sortBy.currentSortType : '')
+                                }
+                              >
+                                <i className="icon sort" />
+                                Phase
+                              </label>
+                            </th>
+                            <th onClick={this.sortSolutions.bind(null, 'division', this.state.sortBy.nextSortType)}>
+                              <label
+                                className={
+                                  'sortable-column-header ' +
+                                  (this.state.sortBy.name === 'division' ? this.state.sortBy.currentSortType : '')
+                                }
+                              >
+                                <i className="icon sort" />
+                                Division
+                              </label>
+                            </th>
+                            {enablePortfolioSolutionsView ? (
+                              <th
+                                onClick={this.sortSolutions.bind(null, 'digitalValue', this.state.sortBy.nextSortType)}
+                              >
+                                <label
+                                  className={
+                                    'sortable-column-header ' +
+                                    (this.state.sortBy.name === 'digitalValue' ? this.state.sortBy.currentSortType : '')
+                                  }
+                                >
+                                  <i className="icon sort" />
+                                  Digital Value (€)
+                                </label>
                               </th>
-                            </tr>
-                          </thead>
-                          <tbody>{solutionData}</tbody>
-                        </table>
-                      </div>
-                    )}
-                    {this.state.totalNumberOfRecords ? (
-                      <Pagination
-                        totalPages={this.state.totalNumberOfPages}
-                        pageNumber={this.state.currentPageNumber}
-                        onPreviousClick={this.onPaginationPreviousClick}
-                        onNextClick={this.onPaginationNextClick}
-                        onViewByNumbers={this.onViewByPageNum}
-                        displayByPage={true}
-                      />
-                    ) : (
-                      ''
-                    )}
-                    {this.state.solutions.length === 0 ? (
-                      <div className={Styles.solutionIsEmpty}>
-                        <p>
-                          There is no solution available, please create solution&nbsp;
-                          <a
-                            target="_blank"
-                            className={Styles.linkStyle}
-                            onClick={() => history.push('/createnewsolution/')}
-                            rel="noreferrer"
-                          >
-                            here.
-                          </a>
-                        </p>
-                      </div>
-                    ) : (
-                      ''
-                    )}
-                  </div>  
-
-
-
-                  <ConfirmModal
-                    title="Delete Solution"
-                    acceptButtonTitle="Delete"
-                    cancelButtonTitle="Cancel"
-                    showAcceptButton={true}
-                    showCancelButton={true}
-                    show={this.state.showDeleteSolutionModal}
-                    content={deleteModalContent}
-                    onCancel={this.onCancellingDeleteChanges}
-                    onAccept={this.onAcceptDeleteChanges}
-                  />
+                            ) : (
+                              <React.Fragment />
+                            )}
+                            <th onClick={this.sortSolutions.bind(null, 'locations', this.state.sortBy.nextSortType)}>
+                              <label
+                                className={
+                                  'sortable-column-header ' +
+                                  (this.state.sortBy.name === 'locations' ? this.state.sortBy.currentSortType : '')
+                                }
+                              >
+                                <i className="icon sort" />
+                                Location
+                              </label>
+                            </th>
+                            <th
+                              onClick={this.sortSolutions.bind(null, 'projectStatus', this.state.sortBy.nextSortType)}
+                            >
+                              <label
+                                className={
+                                  'sortable-column-header ' +
+                                  (this.state.sortBy.name === 'projectStatus' ? this.state.sortBy.currentSortType : '')
+                                }
+                              >
+                                <i className="icon sort" />
+                                Status
+                              </label>
+                            </th>
+                            <th className="actionColumn">&nbsp;</th>
+                          </tr>
+                          <tr>
+                            <th
+                              colSpan={enablePortfolioSolutionsView ? 8 : 7}
+                              className={classNames(Styles.listViewContainer)}
+                              onClick={() => history.push('/createnewsolution')}
+                            >
+                              <div className={Styles.addicon}> &nbsp; </div>
+                              <label className={Styles.addlabel}>Create new solution</label>
+                            </th>
+                          </tr>
+                        </thead>
+                        <tbody>{solutionData}</tbody>
+                      </table>
+                    </div>
+                  )}
+                  {this.state.totalNumberOfRecords ? (
+                    <Pagination
+                      totalPages={this.state.totalNumberOfPages}
+                      pageNumber={this.state.currentPageNumber}
+                      onPreviousClick={this.onPaginationPreviousClick}
+                      onNextClick={this.onPaginationNextClick}
+                      onViewByNumbers={this.onViewByPageNum}
+                      displayByPage={true}
+                    />
+                  ) : (
+                    ''
+                  )}
+                  {this.state.solutions.length === 0 ? (
+                    <div className={Styles.solutionIsEmpty}>
+                      <p>
+                        There is no solution available, please create solution&nbsp;
+                        <a
+                          target="_blank"
+                          className={Styles.linkStyle}
+                          onClick={() => history.push('/createnewsolution/')}
+                          rel="noreferrer"
+                        >
+                          here.
+                        </a>
+                      </p>
+                    </div>
+                  ) : (
+                    ''
+                  )}
                 </div>
-                {/* <SolutionsFilter
+
+                <ConfirmModal
+                  title="Delete Solution"
+                  acceptButtonTitle="Delete"
+                  cancelButtonTitle="Cancel"
+                  showAcceptButton={true}
+                  showCancelButton={true}
+                  show={this.state.showDeleteSolutionModal}
+                  content={deleteModalContent}
+                  onCancel={this.onCancellingDeleteChanges}
+                  onAccept={this.onAcceptDeleteChanges}
+                />
+              </div>
+              {/* <SolutionsFilter
                   userId={this.props.user.id}
                   getFilterQueryParams={(queryParams: IFilterParams) =>
                     this.getFilteredSolutions(queryParams, this.state.showSolutionsFilter ? false : true)
@@ -635,10 +645,10 @@ export default class AllSolutions extends React.Component<
                   //   this.setState({ projectTypes: value.projectTypes ? value.projectTypes : [] });
                   // }}
                 /> */}
-              </div>
             </div>
-          </LandingSummary>
-        </React.Fragment>
+          </div>
+        </LandingSummary>
+      </React.Fragment>
     );
   }
   protected openCloseFilter = () => {
@@ -860,6 +870,10 @@ export default class AllSolutions extends React.Component<
               this.showErrorNotification(error.message ? error.message : 'Some Error Occured');
             });
           break;
+        case 'tag':
+          const tag = this.state.tagValues.find((item: ITag) => item.name.toLocaleLowerCase() === value.toLocaleLowerCase());
+          queryParams.tag = [tag ? tag.name : value];
+          break;
         default:
           break;
       }
@@ -999,6 +1013,10 @@ export default class AllSolutions extends React.Component<
           const location = this.state.locations.find((item: ILocation) => item.id === value);
           pageTitle += location ? ` in «${location.name}»` : '';
           break;
+        case 'tag':
+          const tag = this.state.tagValues.find((item: ITag) => item.name.toLocaleLowerCase() === value.toLocaleLowerCase());
+          pageTitle = (tag ? tag.name : value) + ` Solutions (${solutionsCount})`;
+          break;  
         default:
           break;
       }
