@@ -362,7 +362,7 @@ export default class AllSolutions extends React.Component<
           isBackButton={true}
           isTagsFilter={false}
         >
-          <div className={Styles.Workspaces}>
+          <div className={classNames(!enablePortfolioSolutionsView && Styles.Workspaces)}>
             <div
               className={classNames(
                 Styles.mainPanel,
