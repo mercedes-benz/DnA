@@ -360,14 +360,14 @@ const Summary = ({ history, user }) => {
                       <div>
                         <label className="input-label summary">Platforms</label>
                         <br />
-                        {selectedDataProduct?.platform
+                        {selectedDataProduct?.platform?.length > 0
                           ? selectedDataProduct?.platform?.map((item) => <ExternalLink key={item} item={item} />)
                           : '-'}
                       </div>
                       <div>
                         <label className="input-label summary">Front-End Tools</label>
                         <br />
-                        {selectedDataProduct?.frontEndTools
+                        {selectedDataProduct?.frontEndTools?.length > 0
                           ? selectedDataProduct?.frontEndTools?.map((item) => <ExternalLink key={item} item={item} />)
                           : '-'}
                       </div>
