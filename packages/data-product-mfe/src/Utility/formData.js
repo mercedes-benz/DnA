@@ -38,6 +38,11 @@ export const serializeFormData = ({ values, division, type = 'provider', isDataP
             corporateDataCatalog: dropdowns.corporateDataCatalogs?.find(
               (item) => item.name === values.corporateDataCatalog,
             ),
+            platform: values.platform,
+            frontEndTools: values.frontEndTools,
+            ddx: values.ddx,
+            kafka: values.kafka,
+            oneApi: values.oneApi,
           }),
     };
   } else {
@@ -111,6 +116,11 @@ export const serializeFormData = ({ values, division, type = 'provider', isDataP
                   corporateDataCatalog: dropdowns?.corporateDataCatalogs?.find(
                     (item) => item.name === values.corporateDataCatalog,
                   ),
+                  platform: values.platform,
+                  frontEndTools: values.frontEndTools,
+                  ddx: values.ddx,
+                  kafka: values.kafka,
+                  oneApi: values.oneApi,
                   contactInformation: {
                     appId: values.planningIT,
                     dataProductDate: new Date(values.dateOfDataProduct),
@@ -225,6 +235,11 @@ export const deserializeFormData = ({ item, type = 'provider', isDataProduct = f
           ART: item?.agileReleaseTrain?.name || '',
           carLAFunction: item?.carLaFunction?.name || '',
           corporateDataCatalog: item?.corporateDataCatalog?.name || '',
+          platform: item?.platform?.map((item) => item.name) || [],
+          frontEndTools: item?.frontEndTools?.map((item) => item.name) || [],
+          ddx: item?.ddx,
+          kafka: item?.kafka,
+          oneApi: item?.oneApi,
 
           dataProductId: item?.dataProductId,
           productName: item?.dataProductName,
@@ -308,6 +323,18 @@ export const serializeDivisionSubDivision = (divisions, values) => {
     }
     return acc;
   }, {});
+};
+
+export const stringArrayToObjectArray = (values, dataList) => {
+  const result = [];
+  values?.map((value) => {
+    dataList?.forEach((data) => {
+      if (data?.name === value) {
+        return result.push(data);
+      }
+    });
+  });
+  return result;
 };
 
 export const mapOpenSegments = {

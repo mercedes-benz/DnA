@@ -84,3 +84,34 @@ export const getCorporateDataCatalogs = createAsyncThunk('dropdowns/getCorporate
     );
   }
 });
+
+export const getPlatforms = createAsyncThunk('dropdowns/getPlatforms', async () => {
+  ProgressIndicator.show();
+  try {
+    const res = await dataProductApi.getAllPlatforms();
+    ProgressIndicator.hide();
+    return {
+      data: res.data?.data || [],
+    };
+  } catch (e) {
+    ProgressIndicator.hide();
+    Notification.show(e.response?.data?.errors?.[0]?.message || 'Error while fetching list of platforms', 'alert');
+  }
+});
+
+export const getFrontEndTools = createAsyncThunk('dropdowns/getFrontEndTools', async () => {
+  ProgressIndicator.show();
+  try {
+    const res = await dataProductApi.getAllFrontEndTools();
+    ProgressIndicator.hide();
+    return {
+      data: res.data?.data || [],
+    };
+  } catch (e) {
+    ProgressIndicator.hide();
+    Notification.show(
+      e.response?.data?.errors?.[0]?.message || 'Error while fetching list of front end tools',
+      'alert',
+    );
+  }
+});
