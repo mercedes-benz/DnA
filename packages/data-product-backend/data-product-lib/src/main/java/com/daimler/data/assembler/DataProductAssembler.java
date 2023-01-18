@@ -103,7 +103,7 @@ public class DataProductAssembler implements GenericAssembler<DataProductVO, Dat
 
 				List<FrontendToolsVO> frontEndTools = dataProduct.getFrontEndTools();
 				List<FrontendToolsVO> frontEndToolsVo = new ArrayList<>();
-				if (platforms != null && !platforms.isEmpty()) {
+				if (frontEndTools != null && !frontEndTools.isEmpty()) {
 					for (FrontendToolsVO frontEndTool : frontEndTools) {
 						if (frontEndTool != null) {
 							FrontendToolsVO frontEndToolVo = new FrontendToolsVO();
@@ -233,7 +233,7 @@ public class DataProductAssembler implements GenericAssembler<DataProductVO, Dat
 
 				List<FrontendToolsVO> frontEndTools = vo.getFrontEndTools();
 				List<FrontendToolsVO> frontEndToolsVo = new ArrayList<>();
-				if (platforms != null && !platforms.isEmpty()) {
+				if (frontEndTools != null && !frontEndTools.isEmpty()) {
 					for (FrontendToolsVO frontEndTool : frontEndTools) {
 						if (frontEndTool != null) {
 							FrontendToolsVO frontEndToolVo = new FrontendToolsVO();

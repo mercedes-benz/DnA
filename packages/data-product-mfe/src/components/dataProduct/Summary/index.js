@@ -14,7 +14,7 @@ import DataTranferCardLayout from '../../dataTransfer/Layout/CardView/DataTransf
 
 import { setSelectedDataProduct, setDivisionList, resetDataTransferList } from '../redux/dataProductSlice';
 
-import { regionalDateFormat } from '../../../Utility/utils';
+import { isValidURL, regionalDateFormat } from '../../../Utility/utils';
 
 import InfoModal from 'dna-container/InfoModal';
 import Modal from 'dna-container/Modal';
@@ -33,6 +33,7 @@ import { deserializeFormData, serializeDivisionSubDivision } from '../../../Util
 import { SetAllAssociatedDataTransfers, SetMyAssociatedDataTransfers } from '../redux/dataProduct.services';
 import { Envs } from '../../../Utility/envs';
 import { getCorporateDataCatalogs } from '../../redux/getDropdowns.services';
+import { MAP_URLS } from '../../../Utility/constants';
 
 const Summary = ({ history, user }) => {
   const { id: dataProductId } = useParams();
@@ -180,6 +181,19 @@ const Summary = ({ history, user }) => {
   const setTab = (e) => {
     // e.preventDefault();
     setCurrentTab(e.target.id);
+  };
+
+  const isURL = (value) => {
+    if (isValidURL(value)) {
+      return (
+        <a href={value} target="_blank" rel="noopener noreferrer">
+          {value}
+          <i tooltip-data="Open in New Tab" className={'icon mbc-icon new-tab'} />
+        </a>
+      );
+    } else {
+      return value;
+    }
   };
 
   const handleSwitch = () => {
@@ -340,6 +354,39 @@ const Summary = ({ history, user }) => {
                         ) : (
                           '-'
                         )}
+                      </div>
+                    </div>
+                    <div className={classNames(Styles.flexLayout, Styles.fourColumn)}>
+                      <div>
+                        <label className="input-label summary">Platforms</label>
+                        <br />
+                        {selectedDataProduct?.platform?.length > 0
+                          ? selectedDataProduct?.platform?.map((item) => <ExternalLink key={item} item={item} />)
+                          : '-'}
+                      </div>
+                      <div>
+                        <label className="input-label summary">Front-End Tools</label>
+                        <br />
+                        {selectedDataProduct?.frontEndTools?.length > 0
+                          ? selectedDataProduct?.frontEndTools?.map((item) => <ExternalLink key={item} item={item} />)
+                          : '-'}
+                      </div>
+                      <div>
+                        <label className="input-label summary">DDX</label>
+                        <br />
+                        {isURL(selectedDataProduct?.ddx) || '-'}
+                      </div>
+                      <div>
+                        <label className="input-label summary">Kafka</label>
+                        <br />
+                        {isURL(selectedDataProduct?.kafka) || '-'}
+                      </div>
+                    </div>
+                    <div className={classNames(Styles.flexLayout, Styles.fourColumn)}>
+                      <div>
+                        <label className="input-label summary">oneAPI</label>
+                        <br />
+                        {isURL(selectedDataProduct?.oneApi) || '-'}
                       </div>
                     </div>
                     <div className={Styles.flexLayout}>
@@ -685,3 +732,14 @@ const Summary = ({ history, user }) => {
 };
 
 export default withRouter(Summary);
+
+function ExternalLink({ item }) {
+  return (
+    <React.Fragment>
+      <a href={MAP_URLS[item]} target="_blank" rel="noopener noreferrer">
+        {item}
+        {MAP_URLS[item] ? <i tooltip-data="Open in New Tab" className={'icon mbc-icon new-tab'} /> : null}
+      </a>{' '}
+    </React.Fragment>
+  );
+}
