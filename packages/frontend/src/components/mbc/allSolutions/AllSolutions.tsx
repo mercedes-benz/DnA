@@ -870,6 +870,10 @@ export default class AllSolutions extends React.Component<
               this.showErrorNotification(error.message ? error.message : 'Some Error Occured');
             });
           break;
+        case 'tag':
+          const tag = this.state.tagValues.find((item: ITag) => item.name.toLocaleLowerCase() === value.toLocaleLowerCase());
+          queryParams.tag = [tag ? tag.name : value];
+          break;
         default:
           break;
       }
@@ -1009,6 +1013,10 @@ export default class AllSolutions extends React.Component<
           const location = this.state.locations.find((item: ILocation) => item.id === value);
           pageTitle += location ? ` in «${location.name}»` : '';
           break;
+        case 'tag':
+          const tag = this.state.tagValues.find((item: ITag) => item.name.toLocaleLowerCase() === value.toLocaleLowerCase());
+          pageTitle = (tag ? tag.name : value) + ` Solutions (${solutionsCount})`;
+          break;  
         default:
           break;
       }
