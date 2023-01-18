@@ -119,7 +119,7 @@ const SolutionsFilter = ({
   const [dataFilterApplied, setFilterApplied] = useState(false);
 
   const isPortfolioPage = pathname === '/portfolio';
-  const isAllSolutionsPage = pathname === '/allsolutions?page=1';
+  const isAllSolutionsPage = pathname === '/allsolutions';
 
   useEffect(()=>{
     onsetTags(setSelectedTags);
