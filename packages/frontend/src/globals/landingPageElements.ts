@@ -619,7 +619,7 @@ export const CarLALandingPageElements = [
     description:
       'CarLA Solutions are at the heart of our landscape and provide data and functions to business users to answer their questions and create their plannings or reports.',
     tags: ['Self Service', 'FOSS'],
-    url: '/allsolutions',
+    url: '/viewsolutions/tag/CarLA',
     isExternalLink: false,
     isTextAlignLeft: false,
     isDisabled: false,
