@@ -99,7 +99,7 @@ const TagSection = (props: ITagsProps) => {
                 }
                 return result;    
             },[])}
-            {props?.tags.length > 15 ? threeDotContent : ''}
+            {props?.tags?.length > 15 ? threeDotContent : ''}
         </ul>
     );
     
