@@ -157,7 +157,7 @@ const MainNavigation: React.FC<IMainNavigationProps> = (props) => {
         {
           allowedRoles: UserAndAdminRole,
           id: 2,
-          route: `/allsolutions`,
+          route: `/viewsolutions/tag/CarLA`,
           title: 'CarLASolutions',
           enabled: true,
         },
