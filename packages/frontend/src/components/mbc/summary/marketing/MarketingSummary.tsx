@@ -64,6 +64,12 @@ export default class MarketingSummary extends React.Component<IMarketingProps, a
     });  
   }
 
+  protected formattedTitleOfCustomerPhase = (text: string) => {
+    const tempText = text.split('<')[0];
+    const strRegExp = new RegExp(tempText.trim(), 'g');
+    return text.replace(strRegExp, `<b>${tempText}</b>`);
+  }
+
   public render() {
     const personasToShow = personas.filter(item=> this.props.marketing?.personas?.includes(item.value));
     return (
@@ -80,7 +86,8 @@ export default class MarketingSummary extends React.Component<IMarketingProps, a
                             <div id="customerJourneyPhase">
                                 <label className="input-label summary">Customer Journey Phase, Core Needs and Use Cases</label>
                                 <br />
-                                {this.props?.marketing?.customerJourneyPhases?.length > 0 ? this.props?.marketing?.customerJourneyPhases?.map(item=>item.name).join(', ') : 'N/A'}
+                                {this.props?.marketing?.customerJourneyPhases?.length > 0 ? this.props?.marketing?.customerJourneyPhases?.map((item, index)=>
+                                  {return (<div key={index} dangerouslySetInnerHTML={{__html: this.formattedTitleOfCustomerPhase(item.name)}}></div>)}) : 'N/A'}
                             </div>
                             <div id="marketingCommunicationChannel">
                                 <label className="input-label summary">Marketing Communication Channels</label>
