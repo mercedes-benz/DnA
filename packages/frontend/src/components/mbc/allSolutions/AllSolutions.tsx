@@ -357,7 +357,10 @@ export default class AllSolutions extends React.Component<
       <React.Fragment>
         <LandingSummary
           title={pageTitle}
-          subTitle={!enablePortfolioSolutionsView && 'Central place to search, find and create all MB Data & Analytics Solutions.'}
+          subTitle={
+            !enablePortfolioSolutionsView &&
+            'Central place to search, find and create all MB Data & Analytics Solutions.'
+          }
           headerImage={!enablePortfolioSolutionsView && headerImageURL}
           isBackButton={true}
           isTagsFilter={false}
@@ -871,7 +874,9 @@ export default class AllSolutions extends React.Component<
             });
           break;
         case 'tag':
-          const tag = this.state.tagValues.find((item: ITag) => item.name.toLocaleLowerCase() === value.toLocaleLowerCase());
+          const tag = this.state.tagValues.find(
+            (item: ITag) => item.name.toLocaleLowerCase() === value.toLocaleLowerCase(),
+          );
           queryParams.tag = [tag ? tag.name : value];
           break;
         default:
@@ -1014,9 +1019,11 @@ export default class AllSolutions extends React.Component<
           pageTitle += location ? ` in «${location.name}»` : '';
           break;
         case 'tag':
-          const tag = this.state.tagValues.find((item: ITag) => item.name.toLocaleLowerCase() === value.toLocaleLowerCase());
+          const tag = this.state.tagValues.find(
+            (item: ITag) => item.name.toLocaleLowerCase() === value.toLocaleLowerCase(),
+          );
           pageTitle = (tag ? tag.name : value) + ` Solutions (${solutionsCount})`;
-          break;  
+          break;
         default:
           break;
       }
