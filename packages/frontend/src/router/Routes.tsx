@@ -310,7 +310,7 @@ const protectedRoutes = [
     component: DataProductComponent,
     exact: false,
     path: '/data',
-    title: 'Data Product',
+    title: 'Data',
   },
   {
     allowedRoles: UserAndAdminRole,
