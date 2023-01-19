@@ -160,7 +160,12 @@ spec:
                     job = session.query(SchedulerJob).filter_by(hostname=get_hostname()).order_by(
                         SchedulerJob.latest_heartbeat.desc()).limit(1).first()
 
-                sys.exit(0 if job.is_alive() else 1)             
+                sys.exit(0 if job.is_alive() else 1)  
+          timeoutSeconds: 10
+          periodSeconds: 20
+          initialDelaySeconds: 60
+          successThreshold: 1
+          failureThreshold: 3                           
       - name: git-sync-container
         image: {{ .Values.gitSync.image }}
         volumeMounts:
