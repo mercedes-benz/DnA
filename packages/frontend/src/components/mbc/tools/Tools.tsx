@@ -42,6 +42,7 @@ const Tools = () => {
               isSmallCard={card.isSmallCard}
               isMediumCard={card.isMediumCard}
               svgIcon={card.svgIcon}
+              animation={card.animation}
               className="tools"
             />
           );
