@@ -77,7 +77,7 @@ const Header:React.FC<IHeaderProps> = (props) => {
     }
   }
 
-  useEffect(() => {
+  const getUserPreferences = () => {
     ApiClient.getNotificationPreferences(props.user.id)
       .then((response: any) => {
         setUserPreferences(response);
@@ -87,6 +87,10 @@ const Header:React.FC<IHeaderProps> = (props) => {
       .catch(() => {
         
       });
+  }
+
+  useEffect(() => {
+    getUserPreferences();
   }, []);
 
   const closeUserPanel = () => {
@@ -141,6 +145,7 @@ const Header:React.FC<IHeaderProps> = (props) => {
     ApiClient.enableEmailNotifications({...userPreferences, termsOfUse: isTouChecked})
       .then(() => {
         Notification.show('Terms of Use accepted successfully');
+        getUserPreferences();
       })
       .catch(() => {
         Notification.show('Error while accepting Terms of Use', 'alert');
