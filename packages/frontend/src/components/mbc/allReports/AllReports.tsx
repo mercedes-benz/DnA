@@ -285,7 +285,7 @@ export default class AllReports extends React.Component<
         <LandingSummary
           title={pageTitle}
           subTitle={
-            'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. eiusmod tempor incididunt ut labore et dolore magna aliqua.'
+            'Full transparency about reports from various sources. Process of collection to be defined.'
           }
           tags={['Lorem Ipsum', 'ABC', 'XYZ']}
           headerImage={headerImageURL}
