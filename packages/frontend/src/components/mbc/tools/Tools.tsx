@@ -6,13 +6,35 @@ import headerImageURL from '../../../assets/images/Tools-Landing.png';
 
 import { ToolsLandingPageElements } from 'globals/landingPageElements';
 
-const Tools = () => {
-  const [cards, setcards] = useState(ToolsLandingPageElements);
+const Tools = (props: any) => {
+  const tag = props.match.params.tag;
+  
+  console.log(tag);
+  let toolsToShowOnLoad: any[] = [];
+  let selectedTags: string[] = [];
+  switch (tag) {
+    case 'lowcode':
+      selectedTags = ['No / Low Code'];
+      toolsToShowOnLoad = ToolsLandingPageElements.filter((item: any) => item.tags.some((tag: any) => selectedTags.includes(tag)));
+      break;
+    case 'prodev':
+      selectedTags = ['Coding'];
+      toolsToShowOnLoad = ToolsLandingPageElements.filter((item: any) => item.tags.some((tag: any) => selectedTags.includes(tag)));
+      break;
+    default:
+      toolsToShowOnLoad = ToolsLandingPageElements
+      break;    
+  }
+  const [cards, setcards] = useState(toolsToShowOnLoad);
 
   const allTags = Array.from(new Set(Array.prototype.concat.apply([], ToolsLandingPageElements.map((item: any) => item.tags)))) as string[];
 
   const onTagsFilterSelected = (selectedTags: string[]) => {
-    setcards(ToolsLandingPageElements.filter((item: any) => item.tags.some((tag: any) => selectedTags.includes(tag))));
+    if(selectedTags.length) {
+      setcards(ToolsLandingPageElements.filter((item: any) => item.tags.some((tag: any) => selectedTags.includes(tag))));
+    } else {
+      setcards(ToolsLandingPageElements);
+    }
   };
 
   return (
@@ -21,6 +43,7 @@ const Tools = () => {
       subTitle={
         'Our standard Data & Analytics for both FC Users and Pro Developers.'
       }
+      selectedTags={selectedTags}
       tags={allTags}
       headerImage={headerImageURL}
       isBackButton={true}
