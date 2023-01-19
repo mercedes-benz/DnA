@@ -44,7 +44,7 @@
 .tabsContentWrapper {
   margin-top: 0px !important;
   .connectionCode {
-    white-space: pre-wrap;
+    white-space: pre-line;
     margin-left: 15px !important;
     margin-bottom: 15px !important;
     color: #d9dfe4 !important;
@@ -124,7 +124,7 @@
   &:disabled {
     background-color: #697582;
     color: #99a5b3;
-    border-color: #697582; 
+    border-color: #697582;
     cursor: not-allowed;
   }
 }
