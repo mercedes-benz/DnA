@@ -98,10 +98,10 @@ const RowItem = (props) => {
     <tr id={item.id} className="data-row">
       <td className="wrap-text">{item.entityId}</td>
       <td className="wrap-text">{item.entityName}</td>
-      <td className="wrap-text">{item.localComplianceOfficer !== undefined && (item.localComplianceOfficer.length > 0 ? item.localComplianceOfficer.map((item) => item + '; ') : 'N/A')}</td>
-      <td className="wrap-text">{item.localComplianceResponsible !== undefined && (item.localComplianceResponsible.length > 0 ? item.localComplianceResponsible.map((item) => item + '; ') : 'N/A')}</td>
-      <td className="wrap-text">{item.dataProtectionCoordinator !== undefined && (item.dataProtectionCoordinator.length > 0 ? item.dataProtectionCoordinator.map((item) => item + '; ') : 'N/A')}</td>
-      <td className="wrap-text">{item.localComplianceSpecialist !== undefined && (item.localComplianceSpecialist.length > 0 ? item.localComplianceSpecialist.map((item) => item + '; ') : 'N/A')}</td>
+      <td className="wrap-text">{item.localComplianceOfficer !== undefined && (item.localComplianceOfficer.length > 0 ? item.localComplianceOfficer.join('; ') : 'N/A')}</td>
+      <td className="wrap-text">{item.localComplianceResponsible !== undefined && (item.localComplianceResponsible.length > 0 ? item.localComplianceResponsible.join('; ') : 'N/A')}</td>
+      <td className="wrap-text">{item.dataProtectionCoordinator !== undefined && (item.dataProtectionCoordinator.length > 0 ? item.dataProtectionCoordinator.join('; ') : 'N/A')}</td>
+      <td className="wrap-text">{item.localComplianceSpecialist !== undefined && (item.localComplianceSpecialist.length > 0 ? item.localComplianceSpecialist.join('; ') : 'N/A')}</td>
       {
         props.isAdmin &&
           <td className={'wrap-text ' + classNames(Styles.actionLinksTD)}>
