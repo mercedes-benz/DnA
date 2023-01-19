@@ -37,4 +37,5 @@ export const Envs = {
     getDNAInjectedEnv('SBISS_HANA_LAUNCHPAD_TOOL_URL') || process.env.SBISS_HANA_LAUNCHPAD_TOOL_URL,
   SAP_ANALYTICS_CLOUD_URL: getDNAInjectedEnv('SAP_ANALYTICS_CLOUD_URL') || process.env.SAP_ANALYTICS_CLOUD_URL,
   AFO_TOOL_URL: getDNAInjectedEnv('AFO_TOOL_URL') || process.env.AFO_TOOL_URL,
+  POWERBI_TRAINING_URL: getDNAInjectedEnv('POWERBI_TRAINING_URL') || process.env.POWERBI_TRAINING_URL,
 };
