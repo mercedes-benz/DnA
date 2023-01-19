@@ -111,11 +111,11 @@ data:
 
   {{- if .Values.immuta.enabled }}
   immuta-access-control.properties: |
-    access-control.name= {{ .Vaules.immuta.name }}
-    access-control.config-files= {{ .Values.server.config.path }}/access-rules.json
-    immuta.endpoint= {{ .Values.immuta.endpoint }}
-    immuta.apikey= {{ .Values.immuta.apikey }}
-    immuta.allowed.non.immuta.datasource.operations= {{ .Values.immuta.nonImmutaUserPermission }}
+    access-control.name={{ .Values.immuta.name }}
+    access-control.config-files={{ .Values.server.config.path }}/access-rules.json
+    immuta.endpoint={{ .Values.immuta.endpoint }}
+    immuta.apikey={{ .Values.immuta.apiKey }}
+    immuta.allowed.non.immuta.datasource.operations={{ .Values.immuta.nonImmutaUserPermission }}
   {{- end }}
 
   access-rules.json: |
