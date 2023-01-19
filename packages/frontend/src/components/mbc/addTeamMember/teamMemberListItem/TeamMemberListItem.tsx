@@ -169,7 +169,7 @@ export default class TeamMemberListItem extends React.Component<ITeamMemberListI
             </div>
             <div className={Styles.details}>
               <h6>
-                {teamMember?.teamMemberPosition} {teamMember.userType ? `(${teamMember?.userType})` : null}
+                {teamMember?.teamMemberPosition} {teamMember?.userType ? `(${teamMember?.userType})` : null}
               </h6>
               <div className={Styles.memberDetails}>
                 {teamMember?.company ? (
@@ -183,15 +183,15 @@ export default class TeamMemberListItem extends React.Component<ITeamMemberListI
                   </>
                 ) : (
                   <div>
-                    {teamMember.shortId ? (
-                      <a href={TEAMS_PROFILE_LINK_URL_PREFIX + teamMember.shortId}>
-                        {teamMember.firstName} {teamMember.lastName}
+                    {teamMember?.shortId ? (
+                      <a href={TEAMS_PROFILE_LINK_URL_PREFIX + teamMember?.shortId}>
+                        {teamMember?.firstName} {teamMember?.lastName}
                       </a>
                     ) : (
                       <>
-                        {teamMember.firstName} {teamMember.lastName}
+                        {teamMember?.firstName} {teamMember?.lastName}
                         <br />
-                        {this.props.companyName ? this.props.companyName : teamMember.email}
+                        {this.props?.companyName ? this.props?.companyName : teamMember?.email}
                         {/* {teamMember.email} */}
                       </>
                     )}
