@@ -8,8 +8,6 @@ import { ToolsLandingPageElements } from 'globals/landingPageElements';
 
 const Tools = (props: any) => {
   const tag = props.match.params.tag;
-  
-  console.log(tag);
   let toolsToShowOnLoad: any[] = [];
   let selectedTags: string[] = [];
   switch (tag) {

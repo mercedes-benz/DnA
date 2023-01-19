@@ -110,6 +110,12 @@ const CreateDataProduct = ({ user, history }) => {
         if (res.status === 204) {
           return history.push('/NotFound');
         } else {
+          if (isEditPage) {
+            if (!res.data?.contactInformation) {
+              // set logged in user name as default value
+              res.data['contactInformation'] = { name: userInfo };
+            }
+          }
           const data = deserializeFormData({ item: res.data, isDataProduct: true });
           dispatch(setSelectedDataProduct(data));
           reset(data);
