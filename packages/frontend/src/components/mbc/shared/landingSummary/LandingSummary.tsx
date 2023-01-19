@@ -7,6 +7,7 @@ export interface ILandingSummaryProps {
   title: string;
   subTitle?: string;
   children: any;
+  selectedTags?: string[];
   tags?: string[];
   headerImage?: string;
   isBackButton?: boolean;
@@ -15,7 +16,7 @@ export interface ILandingSummaryProps {
 }
 
 const LandingSummary = (props: ILandingSummaryProps) => {
-  const [selectedTags, setSelectedTags] = useState([]);
+  const [selectedTags, setSelectedTags] = useState(props.selectedTags ? props.selectedTags : []);
 
   useEffect(() => {}, []);
 
