@@ -249,7 +249,7 @@ export default class CreateNewSolution extends React.Component<ICreateNewSolutio
           dataStrategyDomain: '',
           requestedFTECount: 0,
           additionalResource: '',
-          department: ''
+          department: '',
         },
         openSegments: [],
         team: { team: [] },
@@ -272,10 +272,10 @@ export default class CreateNewSolution extends React.Component<ICreateNewSolutio
           customerJourneyPhases: [],
           marketingCommunicationChannels: [],
           personalization: {
-              isChecked: false,
-              description: ''
+            isChecked: false,
+            description: '',
           },
-          personas: []
+          personas: [],
         },
         datacompliance: {
           quickCheck: false,
@@ -322,14 +322,14 @@ export default class CreateNewSolution extends React.Component<ICreateNewSolutio
       isProvision: false,
       departmentTags: [],
       customerJourneyPhasesLOV: [],
-      marketingCommunicationChannelsLOV: []
+      marketingCommunicationChannelsLOV: [],
     };
   }
-  public componentWillReceiveProps(nextProps: any) {
-    if (nextProps.location.pathname.indexOf('createnewsolution')) {
-      window.location.reload();
-    }
-  }
+  // public componentWillReceiveProps(nextProps: any) {
+  //   if (nextProps.location.pathname.indexOf('createnewsolution')) {
+  //     window.location.reload();
+  //   }
+  // }
   public componentDidMount() {
     Tabs.defaultSetup();
     InputFields.defaultSetup();
@@ -356,8 +356,8 @@ export default class CreateNewSolution extends React.Component<ICreateNewSolutio
         const benefitRelevancesList = response[16].data;
         const strategicRelevancesList = response[17].data;
         const customerJourneyPhasesLOV = response[18];
-        const marketingCommunicationChannelsLOV =response[19];
-        const departmentTags =response[20];
+        const marketingCommunicationChannelsLOV = response[19];
+        const departmentTags = response[20];
         phases.forEach((phase) => {
           switch (phase.id) {
             case '1':
@@ -404,7 +404,7 @@ export default class CreateNewSolution extends React.Component<ICreateNewSolutio
             strategicRelevancesList,
             customerJourneyPhasesLOV,
             marketingCommunicationChannelsLOV,
-            departmentTags
+            departmentTags,
           },
           () => {
             Button.defaultSetup();
@@ -635,7 +635,9 @@ export default class CreateNewSolution extends React.Component<ICreateNewSolutio
                   )}
                   <li
                     className={
-                      this.state.tabClassNames.has('Marketing') ? this.state.tabClassNames.get('Marketing') : 'tab disabled'
+                      this.state.tabClassNames.has('Marketing')
+                        ? this.state.tabClassNames.get('Marketing')
+                        : 'tab disabled'
                     }
                   >
                     <a href="#tab-content-9" id="marketing" onClick={this.setCurrentTab}>
@@ -886,7 +888,7 @@ export default class CreateNewSolution extends React.Component<ICreateNewSolutio
     } else if (currentTab === 'sharing') {
       this.saveSharing();
     } else if (currentTab === 'marketing') {
-      this.saveMarketing();  
+      this.saveMarketing();
     } else if (currentTab === 'datacompliance') {
       this.saveDataCompliance();
     } else if (currentTab === 'digitalvalue') {
@@ -993,7 +995,7 @@ export default class CreateNewSolution extends React.Component<ICreateNewSolutio
       solution.description.division.subdivision.id = null;
       solution.description.division.subdivision.name = null;
     }
-    if (solution.marketing.personalization.isChecked === null){
+    if (solution.marketing.personalization.isChecked === null) {
       solution.marketing.personalization.isChecked = false;
     }
     const data: ICreateNewSolutionRequest = {
