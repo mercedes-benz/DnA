@@ -177,15 +177,15 @@ export default class AllReports extends React.Component<
       showReportsFilter: false,
       openFilters: false,
       selectedTags: [],
-      selectedTagsToPass: []
+      selectedTagsToPass: [],
     };
   }
 
-  public componentWillReceiveProps(nextProps: any) {
-    if (!nextProps.location.search) {
-      window.location.reload();
-    }
-  }
+  // public componentWillReceiveProps(nextProps: any) {
+  //   if (!nextProps.location.search) {
+  //     window.location.reload();
+  //   }
+  // }
 
   public componentDidMount() {
     if (sessionStorage.getItem(SESSION_STORAGE_KEYS.LISTVIEW_MODE_ENABLE) == null) {
@@ -214,16 +214,14 @@ export default class AllReports extends React.Component<
   }
 
   protected openCloseFilter = () => {
-    this.setState(
-      {
-        openFilters: !this.state.openFilters,
-      }
-    );
+    this.setState({
+      openFilters: !this.state.openFilters,
+    });
   };
 
   protected setSelectedFilter = (values: string[]) => {
-    this.setState({selectedTags:values, selectedTagsToPass: values});
-  }
+    this.setState({ selectedTags: values, selectedTagsToPass: values });
+  };
 
   public render() {
     const userInfo = this.props.user;
@@ -248,8 +246,8 @@ export default class AllReports extends React.Component<
             // isProductOwner !== undefined ||
             userInfo.id === this.checkUserCanEditReport(userInfo, report)
           }
-          onEdit={()=>this.onEditReport(report?.reportId)}
-          onDelete={()=>this.onDeleteReport(report?.id)}
+          onEdit={() => this.onEditReport(report?.reportId)}
+          onDelete={() => this.onDeleteReport(report?.id)}
         />
       );
     });
@@ -284,155 +282,167 @@ export default class AllReports extends React.Component<
 
     return (
       <React.Fragment>
-        <LandingSummary title={pageTitle} 
-          subTitle={'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. eiusmod tempor incididunt ut labore et dolore magna aliqua.'}
+        <LandingSummary
+          title={pageTitle}
+          subTitle={
+            'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. eiusmod tempor incididunt ut labore et dolore magna aliqua.'
+          }
           tags={['Lorem Ipsum', 'ABC', 'XYZ']}
           headerImage={headerImageURL}
           isBackButton={true}
-          isTagsFilter={false}>
-            <div className={Styles.Workspaces}>
-              <div
-                className={classNames(
-                  Styles.mainPanel,
-                  Styles.hasRightPanel,
-                  openFilterPanel ? Styles.righPanelOpened : '',
-                  'mainPanel',
-                )}
-              >
-                <div className={Styles.wrapper}>
-                  <div className={ classNames(Styles.caption, Styles.filterSection)}>
-                    {/* <h3>{pageTitle}</h3> */}
-                    <div>                      
-                      <TagSection tags={this.state?.tagValues?.map(item=>item.name)} selectedTags={this.state.selectedTags} setSeletedTags={this.setSelectedFilter}></TagSection>
-                    </div>
-                    <div className={Styles.allSolExport}>
-                      <CSVLink
-                        data={this.state.csvData}
-                        headers={this.state.csvHeader}
-                        ref={(r: any) => (this.csvLink = r)}
-                        filename={`Reports.csv`}
-                        target="_blank"
-                      />
-                      <div className={Styles.reportsViewMode}>
-                        <div tooltip-data="Card View">
-                          <span
-                            className={this.state.cardViewMode ? Styles.iconactive : ''}
-                            onClick={this.setCardViewMode}
-                          >
-                            <i className="icon mbc-icon widgets" />
-                          </span>
-                        </div>
-                        <span className={Styles.dividerLine}> &nbsp; </span>
-                        <div tooltip-data="List View">
-                          <span
-                            className={this.state.listViewMode ? Styles.iconactive : ''}
-                            onClick={this.setListViewMode}
-                          >
-                            <i className="icon mbc-icon listview big" />
-                          </span>
-                        </div>
-                        <span className={Styles.dividerLine}> &nbsp; </span>
-                        <div className='triggerWrapper'>
-                          {exportCSVIcon()}
-                        </div>
-                        <span className={Styles.dividerLine}> &nbsp; </span>
-                        <div tooltip-data="Filters">
-                          <span
-                            className={this.state.openFilters ? Styles.activeFilters : ''}
-                            onClick={this.openCloseFilter}
-                          >
-                            <i className="icon mbc-icon filter big" />
-                          </span>
-                        </div>
+          isTagsFilter={false}
+        >
+          <div className={Styles.Workspaces}>
+            <div
+              className={classNames(
+                Styles.mainPanel,
+                Styles.hasRightPanel,
+                openFilterPanel ? Styles.righPanelOpened : '',
+                'mainPanel',
+              )}
+            >
+              <div className={Styles.wrapper}>
+                <div className={classNames(Styles.caption, Styles.filterSection)}>
+                  {/* <h3>{pageTitle}</h3> */}
+                  <div>
+                    <TagSection
+                      tags={this.state?.tagValues?.map((item) => item.name)}
+                      selectedTags={this.state.selectedTags}
+                      setSeletedTags={this.setSelectedFilter}
+                    ></TagSection>
+                  </div>
+                  <div className={Styles.allSolExport}>
+                    <CSVLink
+                      data={this.state.csvData}
+                      headers={this.state.csvHeader}
+                      ref={(r: any) => (this.csvLink = r)}
+                      filename={`Reports.csv`}
+                      target="_blank"
+                    />
+                    <div className={Styles.reportsViewMode}>
+                      <div tooltip-data="Card View">
+                        <span
+                          className={this.state.cardViewMode ? Styles.iconactive : ''}
+                          onClick={this.setCardViewMode}
+                        >
+                          <i className="icon mbc-icon widgets" />
+                        </span>
+                      </div>
+                      <span className={Styles.dividerLine}> &nbsp; </span>
+                      <div tooltip-data="List View">
+                        <span
+                          className={this.state.listViewMode ? Styles.iconactive : ''}
+                          onClick={this.setListViewMode}
+                        >
+                          <i className="icon mbc-icon listview big" />
+                        </span>
+                      </div>
+                      <span className={Styles.dividerLine}> &nbsp; </span>
+                      <div className="triggerWrapper">{exportCSVIcon()}</div>
+                      <span className={Styles.dividerLine}> &nbsp; </span>
+                      <div tooltip-data="Filters">
+                        <span
+                          className={this.state.openFilters ? Styles.activeFilters : ''}
+                          onClick={this.openCloseFilter}
+                        >
+                          <i className="icon mbc-icon filter big" />
+                        </span>
                       </div>
                     </div>
                   </div>
+                </div>
 
-                    <ReportsFilter
-                      userId={this.props.user.id}
-                      reportsDataLoaded={this.state.allReportsFirstTimeDataLoaded}
-                      setReportsDataLoaded={(value: boolean) => this.setState({ allReportsFirstTimeDataLoaded: value })}
-                      getFilterQueryParams={(queryParams: IReportFilterParams) => this.getFilteredReports(queryParams)}
-                      getDropdownValues={getFilterDropdownValues}
-                      openFilters={this.state.openFilters}
-                      getAllTags={(tags: any)=>{this.setState({tagValues: tags})}}
-                      getValuesFromFilter={(value: any) => {
-                        this.setState({ tagFilterValues: value.tagFilterValues ? value.tagFilterValues : [],
-                          selectedTags: value.tagFilterValues ? value.tagFilterValues.map((item: any)=>item.name) : []});
-                      }}
-                      setSelectedTags={this.state.selectedTagsToPass}
-                    />
+                <ReportsFilter
+                  userId={this.props.user.id}
+                  reportsDataLoaded={this.state.allReportsFirstTimeDataLoaded}
+                  setReportsDataLoaded={(value: boolean) => this.setState({ allReportsFirstTimeDataLoaded: value })}
+                  getFilterQueryParams={(queryParams: IReportFilterParams) => this.getFilteredReports(queryParams)}
+                  getDropdownValues={getFilterDropdownValues}
+                  openFilters={this.state.openFilters}
+                  getAllTags={(tags: any) => {
+                    this.setState({ tagValues: tags });
+                  }}
+                  getValuesFromFilter={(value: any) => {
+                    this.setState({
+                      tagFilterValues: value.tagFilterValues ? value.tagFilterValues : [],
+                      selectedTags: value.tagFilterValues ? value.tagFilterValues.map((item: any) => item.name) : [],
+                    });
+                  }}
+                  setSelectedTags={this.state.selectedTagsToPass}
+                />
 
-                  <div className={Styles.allReportContent}>
-                    {this.state.cardViewMode && (
-                      <div className={classNames('cardSolutions', Styles.allReportCardViewContent)}>
-                        {this.state.reports.length > 0 ?
-                          <div className={Styles.cardViewContainer} onClick={() => history.push('/createnewreport')}>
-                            <div className={Styles.addicon}> &nbsp; </div>
-                            <label className={Styles.addlabel}>Create new report</label>
-                          </div>
-                        : ''}
-                        {this.state.reports?.map((report) => {
-                          // const isProductOwner = report.members.reportOwners?.find(
-                          //   (teamMember: ITeams) => teamMember.shortId === userInfo.id,
-                          // )?.shortId;
-                          return (
-                            <ReportCardItem
-                              key={report?.id}
-                              report={report}
-                              reportId={report?.id}
-                              bookmarked={false}
-                              canEdit={
-                                isReportAdmin !== undefined ||
-                                isSuperAdmin !== undefined ||
-                                // isProductOwner !== undefined ||
-                                userInfo.id === this.checkUserCanEditReport(userInfo, report)
-                              }
-                              onEdit={()=>this.onEditReport(report?.reportId)}
-                              onDelete={()=>this.onDeleteReport(report?.id)}
-                            />
-                          );
-                        })}
-                      </div>
-                    )}
-                    {this.state.listViewMode && (
-                      <div className={Styles.allReportListViewContent}>
-                        <table
-                          className={classNames(
-                            'ul-table reports',
-                            Styles.reportsMarginNone,
-                            this.state.reports?.length === 0 ? 'hide' : '',
-                          )}
-                        >
-                          <thead>
-                            <tr className="header-row">
-                              <th onClick={this.sortReports.bind(null, 'productName', this.state.sortBy.nextSortType)}>
-                                <label
-                                  className={
-                                    'sortable-column-header ' +
-                                    (this.state.sortBy.name === 'productName' ? this.state.sortBy.currentSortType : '')
-                                  }
-                                >
-                                  <i className="icon sort" />
-                                  Name
-                                </label>
-                              </th>
-                              <th>&nbsp;</th>
-                              <th
-                                style={{ minWidth: '115px' }}
-                                onClick={this.sortReports.bind(null, 'department', this.state.sortBy.nextSortType)}
+                <div className={Styles.allReportContent}>
+                  {this.state.cardViewMode && (
+                    <div className={classNames('cardSolutions', Styles.allReportCardViewContent)}>
+                      {this.state.reports.length > 0 ? (
+                        <div className={Styles.cardViewContainer} onClick={() => history.push('/createnewreport')}>
+                          <div className={Styles.addicon}> &nbsp; </div>
+                          <label className={Styles.addlabel}>Create new report</label>
+                        </div>
+                      ) : (
+                        ''
+                      )}
+                      {this.state.reports?.map((report) => {
+                        // const isProductOwner = report.members.reportOwners?.find(
+                        //   (teamMember: ITeams) => teamMember.shortId === userInfo.id,
+                        // )?.shortId;
+                        return (
+                          <ReportCardItem
+                            key={report?.id}
+                            report={report}
+                            reportId={report?.id}
+                            bookmarked={false}
+                            canEdit={
+                              isReportAdmin !== undefined ||
+                              isSuperAdmin !== undefined ||
+                              // isProductOwner !== undefined ||
+                              userInfo.id === this.checkUserCanEditReport(userInfo, report)
+                            }
+                            onEdit={() => this.onEditReport(report?.reportId)}
+                            onDelete={() => this.onDeleteReport(report?.id)}
+                          />
+                        );
+                      })}
+                    </div>
+                  )}
+                  {this.state.listViewMode && (
+                    <div className={Styles.allReportListViewContent}>
+                      <table
+                        className={classNames(
+                          'ul-table reports',
+                          Styles.reportsMarginNone,
+                          this.state.reports?.length === 0 ? 'hide' : '',
+                        )}
+                      >
+                        <thead>
+                          <tr className="header-row">
+                            <th onClick={this.sortReports.bind(null, 'productName', this.state.sortBy.nextSortType)}>
+                              <label
+                                className={
+                                  'sortable-column-header ' +
+                                  (this.state.sortBy.name === 'productName' ? this.state.sortBy.currentSortType : '')
+                                }
                               >
-                                <label
-                                  className={
-                                    'sortable-column-header ' +
-                                    (this.state.sortBy.name === 'department' ? this.state.sortBy.currentSortType : '')
-                                  }
-                                >
-                                  <i className="icon sort" />
-                                  E2-Department
-                                </label>
-                              </th>
-                              {/* <th onClick={this.sortReports.bind(null, 'productOwner', this.state.sortBy.nextSortType)}>
+                                <i className="icon sort" />
+                                Name
+                              </label>
+                            </th>
+                            <th>&nbsp;</th>
+                            <th
+                              style={{ minWidth: '115px' }}
+                              onClick={this.sortReports.bind(null, 'department', this.state.sortBy.nextSortType)}
+                            >
+                              <label
+                                className={
+                                  'sortable-column-header ' +
+                                  (this.state.sortBy.name === 'department' ? this.state.sortBy.currentSortType : '')
+                                }
+                              >
+                                <i className="icon sort" />
+                                E2-Department
+                              </label>
+                            </th>
+                            {/* <th onClick={this.sortReports.bind(null, 'productOwner', this.state.sortBy.nextSortType)}>
                                 <label
                                   className={
                                     'sortable-column-header ' +
@@ -443,92 +453,91 @@ export default class AllReports extends React.Component<
                                   Report Owner
                                 </label>
                               </th> */}
-                              <th onClick={this.sortReports.bind(null, 'art', this.state.sortBy.nextSortType)}>
-                                <label
-                                  className={
-                                    'sortable-column-header ' +
-                                    (this.state.sortBy.name === 'art' ? this.state.sortBy.currentSortType : '')
-                                  }
-                                >
-                                  <i className="icon sort" />
-                                  ART
-                                </label>
-                              </th>
-                              <th
-                                style={{ minWidth: '90px' }}
-                                onClick={this.sortReports.bind(null, 'status', this.state.sortBy.nextSortType)}
+                            <th onClick={this.sortReports.bind(null, 'art', this.state.sortBy.nextSortType)}>
+                              <label
+                                className={
+                                  'sortable-column-header ' +
+                                  (this.state.sortBy.name === 'art' ? this.state.sortBy.currentSortType : '')
+                                }
                               >
-                                <label
-                                  className={
-                                    'sortable-column-header ' +
-                                    (this.state.sortBy.name === 'status' ? this.state.sortBy.currentSortType : '')
-                                  }
-                                >
-                                  <i className="icon sort" />
-                                  Status
-                                </label>
-                              </th>
-                              <th className="actionColumn">&nbsp;</th>
-                            </tr>
-                            <tr>
-                              <th colSpan={6}
-                                className={classNames(Styles.listViewContainer)}
-                                onClick={() => history.push('/createnewreport')}
+                                <i className="icon sort" />
+                                ART
+                              </label>
+                            </th>
+                            <th
+                              style={{ minWidth: '90px' }}
+                              onClick={this.sortReports.bind(null, 'status', this.state.sortBy.nextSortType)}
+                            >
+                              <label
+                                className={
+                                  'sortable-column-header ' +
+                                  (this.state.sortBy.name === 'status' ? this.state.sortBy.currentSortType : '')
+                                }
                               >
-                                <div className={Styles.addicon}> &nbsp; </div>
-                                <label className={Styles.addlabel}>Create new report</label>
-                              </th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {reportData}
-                          </tbody>
-                        </table>
-                      </div>
-                    )}
-                    {this.state.totalNumberOfRecords ? (
-                      <Pagination
-                        totalPages={this.state.totalNumberOfPages}
-                        pageNumber={this.state.currentPageNumber}
-                        onPreviousClick={this.onPaginationPreviousClick}
-                        onNextClick={this.onPaginationNextClick}
-                        onViewByNumbers={this.onViewByPageNum}
-                        displayByPage={true}
-                      />
-                    ) : (
-                      ''
-                    )}
-                    {this.state.reports?.length === 0 ? (
-                      <div className={Styles.reportIsEmpty}>
-                        <p>
-                          There is no report available, please create report&nbsp;
-                          <a
-                            target="_blank"
-                            className={Styles.linkStyle}
-                            onClick={() => history.push('/createnewreport/')}
-                            rel="noreferrer"
-                          >
-                            here.
-                          </a>
-                        </p>
-                      </div>
-                    ) : (
-                      ''
-                    )}
-                  </div>
-                  <ConfirmModal
-                    title="Delete Report"
-                    acceptButtonTitle="Delete"
-                    cancelButtonTitle="Cancel"
-                    showAcceptButton={true}
-                    showCancelButton={true}
-                    show={this.state.showDeleteReportModal}
-                    content={deleteModalContent}
-                    onCancel={this.onCancellingDeleteChanges}
-                    onAccept={this.onAcceptDeleteChanges}
-                  />
+                                <i className="icon sort" />
+                                Status
+                              </label>
+                            </th>
+                            <th className="actionColumn">&nbsp;</th>
+                          </tr>
+                          <tr>
+                            <th
+                              colSpan={6}
+                              className={classNames(Styles.listViewContainer)}
+                              onClick={() => history.push('/createnewreport')}
+                            >
+                              <div className={Styles.addicon}> &nbsp; </div>
+                              <label className={Styles.addlabel}>Create new report</label>
+                            </th>
+                          </tr>
+                        </thead>
+                        <tbody>{reportData}</tbody>
+                      </table>
+                    </div>
+                  )}
+                  {this.state.totalNumberOfRecords ? (
+                    <Pagination
+                      totalPages={this.state.totalNumberOfPages}
+                      pageNumber={this.state.currentPageNumber}
+                      onPreviousClick={this.onPaginationPreviousClick}
+                      onNextClick={this.onPaginationNextClick}
+                      onViewByNumbers={this.onViewByPageNum}
+                      displayByPage={true}
+                    />
+                  ) : (
+                    ''
+                  )}
+                  {this.state.reports?.length === 0 ? (
+                    <div className={Styles.reportIsEmpty}>
+                      <p>
+                        There is no report available, please create report&nbsp;
+                        <a
+                          target="_blank"
+                          className={Styles.linkStyle}
+                          onClick={() => history.push('/createnewreport/')}
+                          rel="noreferrer"
+                        >
+                          here.
+                        </a>
+                      </p>
+                    </div>
+                  ) : (
+                    ''
+                  )}
                 </div>
-                {/* {this.state.showReportsFilter && (
+                <ConfirmModal
+                  title="Delete Report"
+                  acceptButtonTitle="Delete"
+                  cancelButtonTitle="Cancel"
+                  showAcceptButton={true}
+                  showCancelButton={true}
+                  show={this.state.showDeleteReportModal}
+                  content={deleteModalContent}
+                  onCancel={this.onCancellingDeleteChanges}
+                  onAccept={this.onAcceptDeleteChanges}
+                />
+              </div>
+              {/* {this.state.showReportsFilter && (
                   <>
                     <ReportsFilter
                       userId={this.props.user.id}
@@ -539,8 +548,8 @@ export default class AllReports extends React.Component<
                     />
                   </>
                 )} */}
-              </div>
             </div>
+          </div>
         </LandingSummary>
       </React.Fragment>
     );
