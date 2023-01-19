@@ -246,14 +246,14 @@ const MainNavigation: React.FC<IMainNavigationProps> = (props) => {
         {
           allowedRoles: UserAndAdminRole,
           id: 2,
-          route: `/low-no-code-tools`,
+          route: `/tools/lowcode`,
           title: 'LowNoCodeTools',
           enabled: true,
         },
         {
           allowedRoles: UserAndAdminRole,
           id: 3,
-          route: `/tools-for-pro-developer`,
+          route: `/tools/prodev`,
           title: 'ToolsforProDeveloper',
           enabled: true,
         },
