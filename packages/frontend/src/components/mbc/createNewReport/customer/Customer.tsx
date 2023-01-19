@@ -1588,8 +1588,8 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
       }),
       () => {
         this.setState({
-          nameToDisplay: name.firstName ? name.firstName +' '+ name.lastName : '',
-          processOwnerToDisplay: processOwner.firstName ? processOwner.firstName +' '+ processOwner.lastName : ''
+          nameToDisplay: name?.firstName ? name?.firstName +' '+ name?.lastName : '',
+          processOwnerToDisplay: processOwner?.firstName ? processOwner?.firstName +' '+ processOwner?.lastName : ''
         });
         SelectBox.defaultSetup();
       },
