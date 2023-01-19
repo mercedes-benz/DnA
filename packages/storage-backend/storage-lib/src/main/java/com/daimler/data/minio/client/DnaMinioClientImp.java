@@ -692,7 +692,7 @@ public class DnaMinioClientImp implements DnaMinioClient {
 				ProcessBuilder secondBuilder = new ProcessBuilder();
 
 				String url = storageHttpMethod + storageConnectHost;
-				String env = "Storagebeminioclient ";
+				String env = "storagebeminioclient ";
 				String flag = "--insecure";
 				String firstCommand = "mc alias set " + env + url + " " + minioAdminAccessKey + " " + minioAdminSecretKey + " " + flag;
 				String secondCommand = "mc admin user list " + env + " --json " + flag;
@@ -706,6 +706,8 @@ public class DnaMinioClientImp implements DnaMinioClient {
 				}
 
 				firstBuilder.redirectErrorStream(true);
+				Process p2 = firstBuilder.start();
+				BufferedReader r2 = new BufferedReader(new InputStreamReader(p2.getInputStream()));
 				Process p = secondBuilder.start();
 				BufferedReader r = new BufferedReader(new InputStreamReader(p.getInputStream()));
 
