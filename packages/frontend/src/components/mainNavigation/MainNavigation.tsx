@@ -97,6 +97,13 @@ const MainNavigation: React.FC<IMainNavigationProps> = (props) => {
       subNavItems: [
         {
           allowedRoles: UserAndAdminRole,
+          id: 0,
+          route: `/transparency`,
+          title: 'Overview',
+          enabled: true,
+        },
+        {
+          allowedRoles: UserAndAdminRole,
           id: 1,
           route: `/portfolio`,
           title: 'Portfolio',
@@ -106,30 +113,30 @@ const MainNavigation: React.FC<IMainNavigationProps> = (props) => {
           allowedRoles: UserAndAdminRole,
           id: 2,
           route: `/allsolutions`,
-          title: 'ExploreSolutions',
+          title: 'Solutions',
           enabled: true,
         },
-        {
-          allowedRoles: UserAndAdminRole,
-          id: 3,
-          route: `/createnewsolution`,
-          title: 'CreateSolution',
-          enabled: true,
-        },
+        // {
+        //   allowedRoles: UserAndAdminRole,
+        //   id: 3,
+        //   route: `/createnewsolution`,
+        //   title: 'CreateSolution',
+        //   enabled: true,
+        // },
         {
           allowedRoles: UserAndAdminRole,
           id: 4,
           route: `/allreports`,
-          title: 'ExploreReports',
+          title: 'Reports',
           enabled: Envs.ENABLE_REPORTS,
         },
-        {
-          allowedRoles: UserAndAdminRole,
-          id: 5,
-          route: `/createnewreport`,
-          title: 'CreateReport',
-          enabled: Envs.ENABLE_REPORTS,
-        },
+        // {
+        //   allowedRoles: UserAndAdminRole,
+        //   id: 5,
+        //   route: `/createnewreport`,
+        //   title: 'CreateReport',
+        //   enabled: Envs.ENABLE_REPORTS,
+        // },
         {
           allowedRoles: UserAndAdminRole,
           id: 6,
@@ -146,6 +153,13 @@ const MainNavigation: React.FC<IMainNavigationProps> = (props) => {
       icon: 'carla-mini',
       enabled: true,
       subNavItems: [
+        {
+          allowedRoles: UserAndAdminRole,
+          id: 0,
+          route: `/carla`,
+          title: 'Overview',
+          enabled: true,
+        },
         {
           allowedRoles: UserAndAdminRole,
           id: 1,
@@ -185,6 +199,13 @@ const MainNavigation: React.FC<IMainNavigationProps> = (props) => {
       icon: 'data',
       enabled: true,
       subNavItems: [
+        {
+          allowedRoles: UserAndAdminRole,
+          id: 0,
+          route: `/data`,
+          title: 'Overview',
+          enabled: true,
+        },
         {
           allowedRoles: UserAndAdminRole,
           id: 1,
