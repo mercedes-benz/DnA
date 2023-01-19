@@ -218,7 +218,7 @@ const protectedRoutes = [
     allowedRoles: UserAndAdminRole,
     component: Tools,
     exact: false,
-    path: '/tools',
+    path: '/tools/:tag?',
     title: 'Tools',
   },
   {

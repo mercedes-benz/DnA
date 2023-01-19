@@ -78,6 +78,35 @@
     }
 }
 
+.animatedMediumCard {
+    width: calc(25% - 15px);
+    .cardIconSection i {
+        height: 90px;
+    }
+    .cardDescriptonSection {
+        max-width: 100%;
+    }
+    &:hover {
+        .cardIconSection {
+            opacity: .5;
+            height: 90px;
+            margin-top: 0px;
+        }      
+        .cardDescriptonSection {
+            color: white;
+            display: block;
+            position: absolute;
+            top: 20%;
+            padding-right: 30px;
+            .descriptionSection {
+                -webkit-line-clamp: 8;
+                min-height: 100px;
+            }
+        }
+        
+    }
+}
+
 .smallCard {
     width: calc(25% - 15px);
     padding: 40px 20px;
