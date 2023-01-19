@@ -23,3 +23,8 @@ export const hostServer = axios.create({
   baseURL: Envs.API_BASEURL ? Envs.API_BASEURL : `http://${window.location.hostname}:7171/api`,
   headers,
 });
+
+export const reportsServer = axios.create({
+  baseURL: Envs.REPORTS_API_BASEURL ? Envs.REPORTS_API_BASEURL : `http://${window.location.hostname}:7173/api`,
+  headers,
+});
