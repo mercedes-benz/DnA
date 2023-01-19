@@ -1,4 +1,4 @@
-import { server } from '../server/api';
+import { reportsServer, server } from '../server/api';
 
 const getAllDataProducts = (sortBy, sortOrder) => {
   return server.get(`/datatransfers?limit=0&offset=0&sortBy=${sortBy}&sortOrder=${sortOrder}`, {
@@ -13,7 +13,7 @@ const getDataTransferById = (id) => {
 };
 
 const getDepartments = () => {
-  return server.get('/departments', {
+  return reportsServer.get('/departments', {
     data: {},
   });
 };
