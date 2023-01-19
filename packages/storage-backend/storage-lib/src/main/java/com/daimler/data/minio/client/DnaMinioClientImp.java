@@ -27,26 +27,30 @@
 
 package com.daimler.data.minio.client;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URLDecoder;
-import java.nio.charset.StandardCharsets;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Objects;
-import java.util.UUID;
-import java.util.stream.Collectors;
-
+import com.daimler.data.application.config.MinioConfig;
+import com.daimler.data.application.config.UserInfoDto;
+import com.daimler.data.application.config.UserInfoWrapperDto;
+import com.daimler.data.application.config.VaultConfig;
+import com.daimler.data.dto.ErrorDTO;
+import com.daimler.data.dto.MinioGenericResponse;
+import com.daimler.data.dto.storage.BucketObjectVO;
+import com.daimler.data.dto.storage.ObjectMetadataVO;
+import com.daimler.data.dto.storage.PermissionVO;
+import com.daimler.data.dto.storage.UserVO;
+import com.daimler.data.util.ConstantsUtility;
+import com.daimler.data.util.PolicyUtility;
+import com.daimler.data.util.RedisCacheUtil;
+import com.daimler.data.util.StorageUtility;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.minio.*;
+import io.minio.admin.MinioAdminClient;
+import io.minio.admin.UserInfo;
+import io.minio.admin.UserInfo.Status;
+import io.minio.errors.*;
+import io.minio.messages.Bucket;
+import io.minio.messages.DeleteError;
+import io.minio.messages.DeleteObject;
+import io.minio.messages.Item;
 import org.bouncycastle.crypto.InvalidCipherTextException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -59,33 +63,14 @@ import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.daimler.data.application.config.MinioConfig;
-import com.daimler.data.application.config.VaultConfig;
-import com.daimler.data.dto.ErrorDTO;
-import com.daimler.data.dto.MinioGenericResponse;
-import com.daimler.data.dto.storage.BucketObjectVO;
-import com.daimler.data.dto.storage.ObjectMetadataVO;
-import com.daimler.data.dto.storage.PermissionVO;
-import com.daimler.data.dto.storage.UserVO;
-import com.daimler.data.util.RedisCacheUtil;
-import com.daimler.data.util.ConstantsUtility;
-import com.daimler.data.util.PolicyUtility;
-import com.daimler.data.util.StorageUtility;
-
-import io.minio.admin.MinioAdminClient;
-import io.minio.admin.UserInfo;
-import io.minio.admin.UserInfo.Status;
-import io.minio.errors.ErrorResponseException;
-import io.minio.errors.InsufficientDataException;
-import io.minio.errors.InternalException;
-import io.minio.errors.InvalidResponseException;
-import io.minio.errors.MinioException;
-import io.minio.errors.ServerException;
-import io.minio.errors.XmlParserException;
-import io.minio.messages.Bucket;
-import io.minio.messages.DeleteError;
-import io.minio.messages.DeleteObject;
-import io.minio.messages.Item;
+import java.io.*;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.util.*;
+import java.util.Map.Entry;
+import java.util.stream.Collectors;
 
 @Component
 public class DnaMinioClientImp implements DnaMinioClient {
@@ -103,6 +88,12 @@ public class DnaMinioClientImp implements DnaMinioClient {
 
 	@Value("${minio.secretKey}")
 	private String minioAdminSecretKey;
+
+	@Value("${storage.connect.host}")
+	private String storageConnectHost;
+
+	@Value("${storage.httpMethod}")
+	private String storageHttpMethod;
 
 	@Autowired
 	private MinioConfig minioConfig;
@@ -692,8 +683,59 @@ public class DnaMinioClientImp implements DnaMinioClient {
 			MinioAdminClient minioAdminClient = minioConfig.getMinioAdminClient();
 			LOGGER.info("Fetching users info from minio.");
 			users = minioAdminClient.listUsers();
-		} catch (InvalidKeyException | NoSuchAlgorithmException | InvalidCipherTextException | IOException e) {
-			LOGGER.error("Error occured while listing users from Minio:{}", e.getMessage());
+		} catch (Exception e) {
+			LOGGER.info("listing user from minio Admin client is filed with Exception :{} retrying with MC client", e.getMessage());
+			try {
+				boolean isWindows = System.getProperty("os.name").toLowerCase().startsWith("windows");
+				ObjectMapper mapper = new ObjectMapper();
+				ProcessBuilder firstBuilder = new ProcessBuilder();
+				ProcessBuilder secondBuilder = new ProcessBuilder();
+
+				String url = storageHttpMethod + storageConnectHost;
+				String env = "Storagebeminioclient ";
+				String flag = "--insecure";
+				String firstCommand = "mc alias set " + env + url + " " + minioAdminAccessKey + " " + minioAdminSecretKey + " " + flag;
+				String secondCommand = "mc admin user list " + env + " --json " + flag;
+
+				if (isWindows) {
+					firstBuilder = new ProcessBuilder("cmd.exe", "/c", firstCommand);
+					secondBuilder = new ProcessBuilder("cmd.exe", "/c", secondCommand);
+				} else {
+					firstBuilder = new ProcessBuilder("sh", "-c", firstCommand);
+					secondBuilder = new ProcessBuilder("sh", "-c", secondCommand);
+				}
+
+				firstBuilder.redirectErrorStream(true);
+				Process p = secondBuilder.start();
+				BufferedReader r = new BufferedReader(new InputStreamReader(p.getInputStream()));
+
+				String line;
+				String prefix = "{\"data\":[";
+				String suffix = "]}";
+				String data = "";
+				while (true) {
+					line = r.readLine();
+					if (line == null) {
+						break;
+					} else {
+						data = data.concat(line).concat(",");
+					}
+				}
+				data = prefix.concat(data.substring(0, data.length() - 1)).concat(suffix);
+				users = new HashMap<>();
+				List<UserInfoDto> userInfoDto = new ArrayList<>();
+				UserInfoWrapperDto userInfoWrapperDto = mapper.readValue(data, UserInfoWrapperDto.class);
+				userInfoDto = userInfoWrapperDto.getData();
+				if (userInfoDto != null && !userInfoDto.isEmpty()) {
+					for (int i = 0; i < userInfoDto.size(); i++) {
+						UserInfoDto sample = userInfoDto.get(i);
+						UserInfo tempUser = new UserInfo(Status.fromString(sample.getUserStatus()), null, sample.getPolicyName(), null);
+						users.put(sample.getAccessKey(), tempUser);
+					}
+				}
+			} catch (Exception exception) {
+				LOGGER.error("Error occurred while listing users from Minio:{}", exception.getMessage());
+			}
 		}
 		return users;
 	}
@@ -728,7 +770,7 @@ public class DnaMinioClientImp implements DnaMinioClient {
 			LOGGER.info("Fetching secrets from vault for user:{}", userId);
 			String userSecretKey = vaultConfig.validateUserInVault(userId);
 			if(StringUtils.hasText(userSecretKey)) {
-				LOGGER.debug("Fetch secret from vault successfull for user:{}",userId);
+				LOGGER.debug("Fetch secret from vault successful for user:{}",userId);
 				MinioClient minioClient = MinioClient.builder().endpoint(minioBaseUri).credentials(userId, userSecretKey)
 						.build();
 				LOGGER.debug("Setting object list to be deleted");
@@ -783,10 +825,10 @@ public class DnaMinioClientImp implements DnaMinioClient {
 		} catch (InvalidKeyException | ErrorResponseException | InsufficientDataException | InternalException
 				| InvalidResponseException | NoSuchAlgorithmException | ServerException | XmlParserException
 				| IllegalArgumentException | IOException e) {
-			LOGGER.error("Error occured while removing object from Minio:{} ", e.getMessage());
+			LOGGER.error("Error occurred while removing object from Minio:{} ", e.getMessage());
 			minioGenericResponse.setStatus(ConstantsUtility.FAILURE);
 			minioGenericResponse
-					.setErrors(Arrays.asList(new ErrorDTO(null, "Error occured while removing object from Minio: " + e.getMessage())));
+					.setErrors(Arrays.asList(new ErrorDTO(null, "Error occurred while removing object from Minio: " + e.getMessage())));
 		}
 
 		return minioGenericResponse;
