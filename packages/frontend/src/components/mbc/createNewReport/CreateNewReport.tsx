@@ -133,9 +133,11 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
       designGuideImplemented: [],
       tags: [],
       connectionTypes: [],
-      dataClassifications: [{id: 'Confidential', name: 'Confidential'},
-      {id: 'Internal', name: 'Internal'},
-      {id: 'Public', name: 'Public'}],
+      dataClassifications: [
+        { id: 'Confidential', name: 'Confidential' },
+        { id: 'Internal', name: 'Internal' },
+        { id: 'Public', name: 'Public' },
+      ],
       dataWarehouses: [],
       commonFunctions: [],
       departmentTags: [],
@@ -170,7 +172,7 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
           tags: [],
           reportLink: '',
           reportType: null,
-          piiData: ''
+          piiData: '',
         },
         kpis: [],
         customer: {
@@ -196,11 +198,11 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
       fieldsMissing: false,
     };
   }
-  public componentWillReceiveProps(nextProps: any) {
-    if (nextProps.location.pathname.indexOf('createnewreport')) {
-      window.location.reload();
-    }
-  }
+  // public componentWillReceiveProps(nextProps: any) {
+  //   if (nextProps.location.pathname.indexOf('createnewreport')) {
+  //     window.location.reload();
+  //   }
+  // }
   public componentDidMount() {
     // Tabs.defaultSetup();
     InputFields.defaultSetup();
@@ -223,7 +225,7 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
         const divisions: IDivision[] = response[12];
         const departmentTags: IDepartment[] = response[13].data;
         const commonFunctions: ICommonFunctions[] = response[14].data;
-        const dataClassifications: IDataClassification[] =  response[15].data;
+        const dataClassifications: IDataClassification[] = response[15].data;
         const creatorInfo = this.props.user;
         const teamMemberObj: ITeams = {
           department: creatorInfo.department,
@@ -269,17 +271,19 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
             ApiClient.getMasterDataSources().then((response) => {
               if (response) {
                 const dataSourcesTags: ITag[] = response;
-                this.setState({
-                  dataSources: dataSourcesTags
-                },()=>{
-                  Button.defaultSetup();
-                  SelectBox.defaultSetup();
-                  ProgressIndicator.hide();
-                  this.getReportById(() => {});
-                });
+                this.setState(
+                  {
+                    dataSources: dataSourcesTags,
+                  },
+                  () => {
+                    Button.defaultSetup();
+                    SelectBox.defaultSetup();
+                    ProgressIndicator.hide();
+                    this.getReportById(() => {});
+                  },
+                );
               }
             });
-            
           },
         );
       } else {
@@ -295,7 +299,7 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
     //     });
     //   }
     // });
-  }  
+  }
 
   protected setupEditReportData(
     subDivisions: ISubDivision[],
@@ -310,7 +314,6 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
         report,
       },
       () => {
-        
         this.setOpenTabs(report.openSegments);
         SelectBox.defaultSetup();
         Tabs.defaultSetup();
@@ -388,14 +391,14 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
               report.kpis = res.kpis || [];
               report.dataAndFunctions.dataWarehouseInUse = res.dataAndFunctions?.dataWarehouseInUse || [];
               report.dataAndFunctions.singleDataSources = res.dataAndFunctions?.singleDataSources || [];
-                // res.dataAndFunctions?.singleDataSources?.map((item: ISingleDataSources) => {
-                //   item.dataSources =
-                //     dataSources?.filter((subItem: any) => item.dataSources.indexOf(subItem.name) > -1) || [];
-                //   item.connectionTypes =
-                //     connectionTypes?.filter((subItem: any) => item.connectionTypes.indexOf(subItem.name) > -1) || []; 
-                //   item.dataClassification   
-                //   return item;
-                // }) || [];
+              // res.dataAndFunctions?.singleDataSources?.map((item: ISingleDataSources) => {
+              //   item.dataSources =
+              //     dataSources?.filter((subItem: any) => item.dataSources.indexOf(subItem.name) > -1) || [];
+              //   item.connectionTypes =
+              //     connectionTypes?.filter((subItem: any) => item.connectionTypes.indexOf(subItem.name) > -1) || [];
+              //   item.dataClassification
+              //   return item;
+              // }) || [];
               // report.members.developers = res.members.developers || [];
               report.members.reportOwners = res.members.reportOwners || [];
               report.members.reportAdmins = res.members.reportAdmins || [];
@@ -435,24 +438,24 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
   }
 
   public changeQuickPath = () => {
-    const report = {...this.state.report};
+    const report = { ...this.state.report };
     // report.usingQuickPath = !value;
     report.usingQuickPath = false;
-    
+
     // Following two if's are mentioned because when we switch quickview then its state gets changed
     if (report.description.division.subdivision.id === null) {
       report.description.division.subdivision.id = '0';
       report.description.division.subdivision.name = 'Choose';
-      this.setState({currentState: JSON.parse(JSON.stringify(report))});
+      this.setState({ currentState: JSON.parse(JSON.stringify(report)) });
     }
     if (report.description.division.subdivision.id === '0') {
       report.description.division.subdivision.id = '0';
       report.description.division.subdivision.name = 'Choose';
-      this.setState({currentState: JSON.parse(JSON.stringify(report))});
+      this.setState({ currentState: JSON.parse(JSON.stringify(report)) });
     }
-    this.setState({report},()=>{
+    this.setState({ report }, () => {
       Tabs.defaultSetup();
-      if(!this.state.report.usingQuickPath){
+      if (!this.state.report.usingQuickPath) {
         document.getElementById('description').click();
       }
     });

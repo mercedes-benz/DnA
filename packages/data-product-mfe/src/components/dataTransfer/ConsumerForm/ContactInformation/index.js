@@ -110,7 +110,9 @@ const ContactInformation = ({
         .getDataComplianceList(0, 0, 'entityId', 'asc')
         .then((res) => {
           res.data?.records?.map((item) => {
-            item['name'] = item.localComplianceOfficer.toString();
+            const localComplianceOfficers = item.localComplianceOfficer.join(', ');
+            const localComplianceResponsibles = item.localComplianceResponsible.join(', ');
+            item['name'] = item.entityId + ' ' + item.entityName + ' ' + localComplianceOfficers + ' ' + localComplianceResponsibles;
             return item;
           });
           setComplianceOfficerList(res.data);
@@ -457,8 +459,8 @@ const ContactInformation = ({
                       defaultValue={complianceOfficer}
                       list={complianceOfficerList.records}
                       setSelected={(selectedTags) => {
-                        setComplianceOfficer(selectedTags.localComplianceOfficer || []);
-                        field.onChange(selectedTags.localComplianceOfficer);
+                        setComplianceOfficer(selectedTags.localComplianceOfficer !== undefined && selectedTags.localComplianceOfficer.concat(selectedTags.localComplianceResponsible).join(', ') || []);
+                        field.onChange(selectedTags.localComplianceOfficer !== undefined && selectedTags.localComplianceOfficer.concat(selectedTags.localComplianceResponsible).join(', '));
                       }}
                       required={watch('lcoNeeded') === 'Yes'}
                       showError={errors.complianceOfficer?.message}
@@ -466,7 +468,7 @@ const ContactInformation = ({
                         <div className={Styles.optionContainer}>
                           <span className={Styles.optionText}>Entity ID: {item?.entityId}</span>
                           <span className={Styles.optionText}>Entiry Name: {item?.entityName}</span>
-                          <span className={Styles.optionText}>LCO: {item?.name}</span>
+                          <span className={Styles.optionText}>LCO: {item?.localComplianceOfficer.concat(item?.localComplianceResponsible).join(', ')}</span>
                         </div>
                       )}
                       disabled={lcoNeeded === 'No' || !lcoNeeded}
