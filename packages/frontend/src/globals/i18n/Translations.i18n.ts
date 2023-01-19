@@ -249,6 +249,7 @@ export const Translations = {
     TransactionalData: 'Transactional Data',
     CarLASolutions: 'Solutions',
     CarLAData: 'Data',
+    Overview: 'Overview',
   },
   en: {
     '360° Connectivity': '360° Connectivity',
@@ -542,5 +543,6 @@ export const Translations = {
     TransactionalData: 'Transactional Data',
     CarLASolutions: 'Solutions',
     CarLAData: 'Data',
+    Overview: 'Overview',
   },
 };
