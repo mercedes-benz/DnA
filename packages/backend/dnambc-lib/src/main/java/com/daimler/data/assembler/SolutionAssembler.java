@@ -39,6 +39,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.TreeMap;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -359,10 +360,14 @@ public class SolutionAssembler implements GenericAssembler<SolutionVO, SolutionN
 			
 			SolutionPersonalization personalization = solution.getPersonalization(); 
 			PersonalizationVO personalizationVO = new PersonalizationVO();			
-			if(personalization != null) {
+			if(personalization != null && Objects.nonNull(personalization) ) {
 				personalizationVO.setIsChecked(personalization.isChecked());
 				personalizationVO.setDescription(personalization.getDescription());
-			}				
+			}	
+			else {
+				personalizationVO.setIsChecked(false);
+				personalizationVO.setDescription("");
+			}
 			
 			SolutionMarketingVO marketingVO = new SolutionMarketingVO();
 			marketingVO.setCustomerJourneyPhases(customerJourneyPhasesVO);
@@ -983,9 +988,14 @@ public class SolutionAssembler implements GenericAssembler<SolutionVO, SolutionN
 				solution.setPersonas(marketingVO.getPersonas());
 				PersonalizationVO personalizationVO = marketingVO.getPersonalization();
 				SolutionPersonalization personalization = new SolutionPersonalization();
-				if(personalizationVO != null) {
+				if(personalizationVO != null && Objects.nonNull(personalizationVO)) {
 					personalization.setChecked(personalizationVO.isIsChecked());
 					personalization.setDescription(personalizationVO.getDescription());
+					solution.setPersonalization(personalization);
+				}
+				else{
+					personalization.setChecked(false);
+					personalization.setDescription("");
 					solution.setPersonalization(personalization);
 				}
 				List<CustomerJourneyPhaseVO> customerJourneyPhasesVO = marketingVO.getCustomerJourneyPhases();
