@@ -356,6 +356,7 @@ const Header:React.FC<IHeaderProps> = (props) => {
             hideCloseButton={!userPreferences?.termsOfUse}
           />
       }
+      { props.showMenuCloseIcon && <div className={Styles.backdrop} onClick={props.onHamburgerIconClick}>&nbsp;</div> }
     </>
   );
 }
