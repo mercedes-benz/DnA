@@ -24,6 +24,7 @@ export interface IDNACardProps {
   svgIcon?: JSX.Element | string;
   className?: string;
   upperTag?: string;
+  animation?: boolean;
 }
 const DNACard = (props: IDNACardProps) => {
   useEffect(() => {
@@ -37,7 +38,7 @@ const DNACard = (props: IDNACardProps) => {
       <div
         className={classNames(
           Styles.cardWrapper,
-          props.isMediumCard ? Styles.mediumCard : '',
+          props.isMediumCard ? props.animation ? Styles.animatedMediumCard : Styles.mediumCard : '',
           props.isSmallCard ? Styles.smallCard : '',
           props.isDisabled ? Styles.disabled : '',
           props.className,
@@ -74,7 +75,7 @@ const DNACard = (props: IDNACardProps) => {
         <div
           className={
             props.isTextAlignLeft
-              ? Styles.cardDescriptonSection
+              ?Styles.cardDescriptonSection
               : Styles.cardDescriptonSection + ' ' + Styles.textCenter
           }
         >
