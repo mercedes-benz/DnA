@@ -140,6 +140,27 @@ spec:
           - name: client-secret
             mountPath: /usr/local/airflow/client-secret.json
             subPath: client-secret.json
+        livenessProbe:
+          exec:
+            command:
+              - python
+              - '-Wignore'
+              - '-c'
+              - |
+                import os
+                os.environ['AIRFLOW__CORE__LOGGING_LEVEL'] = 'INFO'
+                os.environ['AIRFLOW__LOGGING__LOGGING_LEVEL'] = 'INFO'
+
+                from airflow.jobs.scheduler_job import SchedulerJob
+                from airflow.utils.db import create_session
+                from airflow.utils.net import get_hostname
+                import sys
+
+                with create_session() as session:
+                    job = session.query(SchedulerJob).filter_by(hostname=get_hostname()).order_by(
+                        SchedulerJob.latest_heartbeat.desc()).limit(1).first()
+
+                sys.exit(0 if job.is_alive() else 1)             
       - name: git-sync-container
         image: {{ .Values.gitSync.image }}
         volumeMounts:
