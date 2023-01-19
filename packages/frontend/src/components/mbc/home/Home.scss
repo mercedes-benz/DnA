@@ -1,6 +1,5 @@
 .dnaContainer {
   width: 100%;
-  padding-top: 80px;
   padding-right: 60px;
   padding-left: 60px;
   background-image: url("../../../assets/images/Home.jpg");
@@ -10,6 +9,9 @@
   min-height: calc(100vh - 5rem);
   margin-bottom: -5rem;
   position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 .moreSpaceRow {
   margin-left: -15px;
@@ -20,6 +22,7 @@
   flex-wrap: wrap;
   margin-left: -6px;
   margin-right: -6px;
+  width: 100%;
 }
 .dnaCol6 {
   flex: 0 0 auto;
@@ -85,7 +88,16 @@
     }
   }
 }
+@media(max-width:1560px) {
+  .dnaContainer {
+    padding-top: 80px;
+  }
+}
 @media(max-width:1120px) {
+  .dnaContainer {
+    padding-top: 80px;
+    display: block;
+  }
   .colDivider {
     width: 100%;
   }
@@ -100,6 +112,10 @@
   }
 }
 @media(max-width:780px) {
+  .dnaContainer {
+    padding-top: 80px;
+    display: block;
+  }
   .bannerDesc {
     height: auto!important;
     padding-left: 0;
@@ -111,6 +127,8 @@
 }
 @media(max-width:550px) {
   .dnaContainer {
+    padding-top: 60px;
+    display: block;
     padding-left: 20px;
     padding-right: 20px;
   }
