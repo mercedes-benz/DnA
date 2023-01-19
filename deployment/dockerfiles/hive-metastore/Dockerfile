@@ -28,7 +28,7 @@ cp ${HADOOP_HOME}/share/hadoop/tools/lib/aws-java-sdk* ${HADOOP_HOME}/share/hado
 # Download and install the standalone metastore binary
 # (Standalone Metastore is available after 3.0.0 version)
 
-RUN curl -s http://apache.uvigo.es/hive/hive-standalone-metastore-3.0.0/hive-standalone-metastore-3.0.0-bin.tar.gz \                           
+RUN curl -s https://downloads.apache.org/hive/hive-standalone-metastore-3.0.0/hive-standalone-metastore-3.0.0-bin.tar.gz \                           
 | tar xz -C /opt/ \
 && ln -s /opt/apache-hive-metastore-3.0.0-bin ${METASTORE_HOME}
 
