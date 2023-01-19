@@ -18,7 +18,9 @@ export interface ILandingSummaryProps {
 const LandingSummary = (props: ILandingSummaryProps) => {
   const [selectedTags, setSelectedTags] = useState(props.selectedTags ? props.selectedTags : []);
 
-  useEffect(() => {}, []);
+  useEffect(() => {
+    setSelectedTags(props.selectedTags)
+  }, [props.selectedTags]);
 
   const setSelectedFilter = (values: string[]) => {
     setSelectedTags(values);
