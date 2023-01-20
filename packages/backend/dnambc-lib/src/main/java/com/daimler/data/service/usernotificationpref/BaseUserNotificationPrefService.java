@@ -77,6 +77,7 @@ public class BaseUserNotificationPrefService extends BaseCommonService<UserNotif
 				log.debug("Couldnt find user preferences for user {} , sending default preference", value);
 				preferencesVO = new UserNotificationPrefVO();
 				preferencesVO.setUserId(value);
+				preferencesVO.setTermsOfUse(false);
 				NotificationPreferenceVO notebookNotificationPref = new NotificationPreferenceVO();
 				notebookNotificationPref.setEnableAppNotifications(true);
 				notebookNotificationPref.setEnableEmailNotifications(false);

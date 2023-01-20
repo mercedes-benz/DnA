@@ -144,7 +144,7 @@ definitions:
      description: "short Identifier of user"
     termsOfUse:
       type: boolean
-      description: "Enable termsOfUse or not. By default all users would have this enabled." 
+      description: "Enable termsOfUse or not. By default all users would have this disabled." 
     solutionNotificationPref:
       $ref: "#/definitions/NotificationPreferenceVO"
     notebookNotificationPref:
