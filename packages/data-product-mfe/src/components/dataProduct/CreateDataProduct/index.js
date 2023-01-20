@@ -130,6 +130,7 @@ const CreateDataProduct = ({ user, history }) => {
           setSavedTabs(segments);
         }
         ProgressIndicator.hide();
+        SelectBox.defaultSetup();
       })
       .catch((e) => {
         console.log(e);
@@ -198,6 +199,12 @@ const CreateDataProduct = ({ user, history }) => {
     dispatch(getPlatforms());
     dispatch(getFrontEndTools());
   }, [dispatch]);
+
+  useEffect(() => {
+    if (isCreatePage) {
+      SelectBox.defaultSetup();
+    }
+  }, [isCreatePage, agileReleaseTrains, carLAFunctions, corporateDataCatalogs, platforms, frontEndTools]);
 
   const setTab = (e) => {
     const id = e.target.id;
