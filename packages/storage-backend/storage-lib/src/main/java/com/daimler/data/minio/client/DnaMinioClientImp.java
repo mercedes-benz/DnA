@@ -692,7 +692,7 @@ public class DnaMinioClientImp implements DnaMinioClient {
 				ProcessBuilder secondBuilder = new ProcessBuilder();
 
 				String url = storageHttpMethod + storageConnectHost;
-				String env = "Storagebeminioclient ";
+				String env = "storagebeminioclient ";
 				String flag = "--insecure";
 				String firstCommand = "mc alias set " + env + url + " " + minioAdminAccessKey + " " + minioAdminSecretKey + " " + flag;
 				String secondCommand = "mc admin user list " + env + " --json " + flag;
@@ -706,6 +706,8 @@ public class DnaMinioClientImp implements DnaMinioClient {
 				}
 
 				firstBuilder.redirectErrorStream(true);
+				Process p2 = firstBuilder.start();
+				BufferedReader r2 = new BufferedReader(new InputStreamReader(p2.getInputStream()));
 				Process p = secondBuilder.start();
 				BufferedReader r = new BufferedReader(new InputStreamReader(p.getInputStream()));
 
@@ -729,8 +731,9 @@ public class DnaMinioClientImp implements DnaMinioClient {
 				if (userInfoDto != null && !userInfoDto.isEmpty()) {
 					for (int i = 0; i < userInfoDto.size(); i++) {
 						UserInfoDto sample = userInfoDto.get(i);
-						UserInfo tempUser = new UserInfo(Status.fromString(sample.getUserStatus()), null, sample.getPolicyName(), null);
+						UserInfo tempUser = new UserInfo(Status.ENABLED, null, sample.getPolicyName(), null);
 						users.put(sample.getAccessKey(), tempUser);
+						LOGGER.debug("User info details: Access key: {}, policy Name:{}", sample.getAccessKey(), sample.getPolicyName());
 					}
 				}
 			} catch (Exception exception) {

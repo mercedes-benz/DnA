@@ -1,4 +1,4 @@
-import { hostServer, server } from '../server/api';
+import { hostServer, reportsServer, server } from '../server/api';
 
 const getAllDataProductList = (sortBy, sortOrder) => {
   return server.get(`/dataproducts?limit=0&offset=0&sortBy=${sortBy}&sortOrder=${sortOrder}`, {
@@ -55,7 +55,7 @@ const getMyDataTransfers = (dataTransferIds, sortBy, sortOrder) => {
 };
 
 const getAllAgileReleaseTrains = () => {
-  return server.get('/agileReleaseTrains?limit=0&offset=0', { data: {} });
+  return reportsServer.get('/lov/agilereleasetrains', { data: {} });
 };
 
 const getAllCarlaFunctions = () => {
@@ -71,7 +71,7 @@ const getAllPlatforms = () => {
 };
 
 const getAllFrontEndTools = () => {
-  return server.get('/frontEndTools?limit=0&offset=0', { data: {} });
+  return reportsServer.get('/lov/frontendtechnologies', { data: {} });
 };
 
 export const dataProductApi = {
