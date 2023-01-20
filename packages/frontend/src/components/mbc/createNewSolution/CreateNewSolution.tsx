@@ -357,7 +357,7 @@ export default class CreateNewSolution extends React.Component<ICreateNewSolutio
         const strategicRelevancesList = response[17].data;
         const customerJourneyPhasesLOV = response[18];
         const marketingCommunicationChannelsLOV = response[19];
-        const departmentTags = response[20];
+        const departmentTags = response[20].data;
         phases.forEach((phase) => {
           switch (phase.id) {
             case '1':
