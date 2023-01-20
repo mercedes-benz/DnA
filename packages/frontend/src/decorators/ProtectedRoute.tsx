@@ -11,6 +11,7 @@ import Progress from 'components/progress/Progress';
 import { trackPageView } from '../services/utils';
 import AppContext from 'components/context/ApplicationContext';
 import ErrorBoundary from '../utils/ErrorBoundary';
+import { history } from '../router/History';
 
 interface IProtectedRouteProps extends RouteProps {
   component: React.LazyExoticComponent<{ user: IUserInfo } | any>;
@@ -114,7 +115,7 @@ export class ProtectedRoute extends React.Component<IProtectedRouteProps, IProte
               /* @ts-ignore */
               <ErrorBoundary>
                 <Layout user={this.state.user} {...props}>
-                  <Component {...props} user={this.state.user} />
+                  <Component {...props} user={this.state.user} hostHistory={history} />
                 </Layout>
               </ErrorBoundary>
             ) : this.state.loading ? (
