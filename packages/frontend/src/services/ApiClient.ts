@@ -37,6 +37,7 @@ import {
   IManageDivisionRequest,
 } from '../globals/types';
 import { Pkce } from './Pkce';
+import { ReportsApiClient } from './ReportsApiClient';
 
 export interface IResponse<T> {
   meta?: {
@@ -334,7 +335,7 @@ export class ApiClient {
       this.get('lov/strategicrelevances'),
       this.get('customerJourneyPhases'),
       this.get('marketingCommunicationChannels'),
-      this.get('departments')
+      ReportsApiClient.get('departments'),
     ]);
   }
 
