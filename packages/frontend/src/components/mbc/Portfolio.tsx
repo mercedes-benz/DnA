@@ -224,7 +224,7 @@ export default class Portfolio extends React.Component<IPortfolioProps, IPortfol
       tagValues: [],
       tagFilterValues: [],
       selectedTags: [],
-      selectedTagsToPass: []
+      selectedTagsToPass: [],
     };
   }
 
@@ -523,19 +523,23 @@ export default class Portfolio extends React.Component<IPortfolioProps, IPortfol
     return (
       <div className={Styles.pageWrapper}>
         <div className={classNames(Styles.mainPanel)}>
+          <button
+            className={classNames('btn btn-text back arrow', Styles.backBtn)}
+            type="submit"
+            onClick={() => history.push('/transparency')}
+          >
+            Back
+          </button>
           <div className={Styles.caption}>
             <h3>My Portfolio</h3>
             <div className={Styles.allSolExport}>
               <div tooltip-data="Filters">
-                <span
-                  className={this.state.openFilters ? Styles.activeFilters : ''}
-                  onClick={this.openCloseFilter}
-                >
+                <span className={this.state.openFilters ? Styles.activeFilters : ''} onClick={this.openCloseFilter}>
                   <i className="icon mbc-icon filter big" />
                 </span>
               </div>
             </div>
-          </div>         
+          </div>
           <SolutionsFilter
             userId={this.props.user.id}
             getSolutions={(
@@ -550,10 +554,14 @@ export default class Portfolio extends React.Component<IPortfolioProps, IPortfol
             solutionsDataLoaded={this.state.portfolioFirstTimeDataLoaded}
             setSolutionsDataLoaded={(value: boolean) => this.setState({ portfolioFirstTimeDataLoaded: value })}
             openFilters={this.state.openFilters}
-            getAllTags={(tags: any)=>{this.setState({tagValues: tags})}}
+            getAllTags={(tags: any) => {
+              this.setState({ tagValues: tags });
+            }}
             getValuesFromFilter={(value: any) => {
-              this.setState({ tagFilterValues: value.tagFilterValues ? value.tagFilterValues : [],
-                selectedTags: value.tagFilterValues ? value.tagFilterValues.map((item: any)=>item.name) : []});
+              this.setState({
+                tagFilterValues: value.tagFilterValues ? value.tagFilterValues : [],
+                selectedTags: value.tagFilterValues ? value.tagFilterValues.map((item: any) => item.name) : [],
+              });
             }}
             setSelectedTags={this.state.selectedTagsToPass}
           />

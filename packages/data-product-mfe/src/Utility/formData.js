@@ -203,7 +203,7 @@ export const deserializeFormData = ({ item, type = 'provider', isDataProduct = f
           transnationalDataTransferNotWithinEU: item.providerInformation?.transnationalDataTransfer?.notWithinEU
             ? 'Yes'
             : '',
-          insiderInformation: item.providerInformation?.transnationalDataTransfer?.insiderInformation,
+          insiderInformation: item.providerInformation?.transnationalDataTransfer?.insiderInformation || 'N.A',
           notifyUsers: item?.notifyUsers,
           users: item.providerInformation?.users,
           providerFormSubmitted: item.providerInformation?.providerFormSubmitted,
@@ -269,7 +269,7 @@ export const deserializeFormData = ({ item, type = 'provider', isDataProduct = f
           LCOApprovedDataTransfer: item?.transnationalDataTransfer?.approved,
           transnationalDataTransfer: item?.transnationalDataTransfer?.dataTransferred ? 'Yes' : 'No',
           transnationalDataTransferNotWithinEU: item?.transnationalDataTransfer?.notWithinEU ? 'Yes' : '',
-          insiderInformation: item?.transnationalDataTransfer?.insiderInformation,
+          insiderInformation: item?.transnationalDataTransfer?.insiderInformation || 'N.A',
           dataOriginatedFromChina: item?.transnationalDataTransfer?.dataFromChina ? 'Yes' : 'No',
 
           deletionRequirement: item?.deletionRequirement?.deletionRequirements ? 'Yes' : 'No',
