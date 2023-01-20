@@ -66,7 +66,8 @@ const Summary = ({ history, user }) => {
   const usersAllowedToModify =
     selectedDataProduct?.informationOwner?.shortId === user?.id || selectedDataProduct?.name?.shortId === user?.id;
 
-  const lastModifiedBy = `${selectedDataProduct?.modifiedBy?.firstName} ${selectedDataProduct?.modifiedBy?.lastName}`;
+  const updatedBy = selectedDataProduct?.modifiedBy ? selectedDataProduct.modifiedBy : selectedDataProduct.createdBy;
+  const lastModifiedBy = `${updatedBy?.firstName} ${updatedBy?.lastName}`;
 
   const showContactInformation = selectedDataProduct?.openSegments?.includes('ContactInformation');
   const showConfidentiality = selectedDataProduct?.openSegments?.includes('ClassificationAndConfidentiality');
@@ -242,6 +243,21 @@ const Summary = ({ history, user }) => {
     </>
   );
 
+  const externalLink = (list) => {
+    return list.map((item, index) => {
+      const lastIndex = list.length - 1 === index;
+      return (
+        <React.Fragment key={index}>
+          <a href={MAP_URLS[item]} target="_blank" rel="noopener noreferrer">
+            {item}
+            {MAP_URLS[item] ? <i tooltip-data="Open in New Tab" className={'icon mbc-icon new-tab'} /> : null}
+          </a>
+          &nbsp;{!lastIndex && `\u002F\xa0`}
+        </React.Fragment>
+      );
+    });
+  };
+
   return (
     <div className="dataproductSummary">
       <div id="mainPanel" className={Styles.mainPanel}>
@@ -360,15 +376,13 @@ const Summary = ({ history, user }) => {
                       <div>
                         <label className="input-label summary">Platforms</label>
                         <br />
-                        {selectedDataProduct?.platform?.length > 0
-                          ? selectedDataProduct?.platform?.map((item) => <ExternalLink key={item} item={item} />)
-                          : '-'}
+                        {selectedDataProduct?.platform?.length > 0 ? externalLink(selectedDataProduct?.platform) : '-'}
                       </div>
                       <div>
                         <label className="input-label summary">Front-End Tools</label>
                         <br />
                         {selectedDataProduct?.frontEndTools?.length > 0
-                          ? selectedDataProduct?.frontEndTools?.map((item) => <ExternalLink key={item} item={item} />)
+                          ? externalLink(selectedDataProduct?.frontEndTools)
                           : '-'}
                       </div>
                       <div>
@@ -732,14 +746,3 @@ const Summary = ({ history, user }) => {
 };
 
 export default withRouter(Summary);
-
-function ExternalLink({ item }) {
-  return (
-    <React.Fragment>
-      <a href={MAP_URLS[item]} target="_blank" rel="noopener noreferrer">
-        {item}
-        {MAP_URLS[item] ? <i tooltip-data="Open in New Tab" className={'icon mbc-icon new-tab'} /> : null}
-      </a>{' '}
-    </React.Fragment>
-  );
-}

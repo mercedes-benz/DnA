@@ -3,7 +3,7 @@ import React, { useRef, useEffect, useState } from 'react';
 import Styles from './styles.scss';
 
 import { useFormContext } from 'react-hook-form';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 
 // components from container app
 import InfoModal from 'dna-container/InfoModal';
@@ -14,6 +14,7 @@ import IconAvatarNew from 'dna-container/IconAvatarNew';
 
 import { Envs } from '../../../../Utility/envs';
 import { withRouter } from 'react-router-dom';
+import { setSelectedDataProduct } from '../../../dataProduct/redux/dataProductSlice';
 
 const OtherRelevantInfo = ({ onSave, history, user, isDataProduct }) => {
   const {
@@ -49,6 +50,8 @@ const OtherRelevantInfo = ({ onSave, history, user, isDataProduct }) => {
   const hasUsers = watch('users');
 
   const [isCreator, setIsCreator] = useState(false);
+
+  const dispatch = useDispatch();
 
   const onTeamMemberMoveUp = (index) => {
     const teamMembersTemp = [...teamMembers];
@@ -268,8 +271,10 @@ const OtherRelevantInfo = ({ onSave, history, user, isDataProduct }) => {
                 setValue('notifyUsers', true);
                 setValue('publish', true);
                 setValue('providerFormSubmitted', true);
-                onSave(watch());
-                history.push('/dataproducts');
+                onSave(watch(), () => {
+                  dispatch(setSelectedDataProduct({}));
+                  history.push('/dataproducts');
+                });
                 reset(data, {
                   keepDirty: false,
                 });
