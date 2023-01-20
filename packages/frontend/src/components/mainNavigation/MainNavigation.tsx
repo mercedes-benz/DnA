@@ -178,7 +178,7 @@ const MainNavigation: React.FC<IMainNavigationProps> = (props) => {
         {
           allowedRoles: UserAndAdminRole,
           id: 3,
-          route: `/data/dataproduct`,
+          route: `/data/dataproducts`,
           title: 'CarLAData',
           enabled: true,
         },
