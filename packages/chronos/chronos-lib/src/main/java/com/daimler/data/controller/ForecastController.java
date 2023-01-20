@@ -563,6 +563,9 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 			 return new ResponseEntity<>(responseMessage, HttpStatus.UNAUTHORIZED);
 		}
 		GenericMessage responseMessage = service.deletRunByUUID(id,rid);
+		if (responseMessage != null && "FAILED".equalsIgnoreCase(responseMessage.getSuccess())) {
+			return new ResponseEntity<>(responseMessage, HttpStatus.INTERNAL_SERVER_ERROR);
+		}
 		return new ResponseEntity<>(responseMessage, HttpStatus.OK);
 	}
 

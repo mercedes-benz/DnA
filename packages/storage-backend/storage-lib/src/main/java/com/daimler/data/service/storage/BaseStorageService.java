@@ -103,7 +103,7 @@ public class BaseStorageService implements StorageService {
 	@Value("${storage.connect.host}")
 	private String storageConnectHost;
 	
-    	@Autowired
+    @Autowired
 	HttpServletRequest httpRequest;
 	
 	@Value("${databricks.userid}")
