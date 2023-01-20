@@ -2,7 +2,7 @@ import React from 'react';
 import Styles from './Trainings.scss';
 import DNACard from 'components/card/Card';
 import LandingSummary from '../shared/landingSummary/LandingSummary';
-import headerImageURL from '../../../assets/images/Tools-Landing.png';
+import headerImageURL from '../../../assets/images/Trainings-Landing.png';
 
 import { TrainingsLandingPageElements } from 'globals/landingPageElements';
 
@@ -32,7 +32,7 @@ const Trainings = () => {
               isSmallCard={card.isSmallCard}
               isMediumCard={card.isMediumCard}
               svgIcon={card.svgIconId}
-              className="tools"
+              className="trainings"
             />
           );
         })}
