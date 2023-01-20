@@ -26,6 +26,7 @@ const getDNAInjectedEnv = (key) => {
 export const Envs = {
   DATA_PRODUCT_API_BASEURL: getInjectedEnv('DATA_PRODUCT_API_BASEURL') || process.env.DATA_PRODUCT_API_BASEURL,
   API_BASEURL: getDNAInjectedEnv('API_BASEURL') || process.env.API_BASEURL,
+  REPORTS_API_BASEURL: getDNAInjectedEnv('DASHBOARD_API_BASEURL') || process.env.DASHBOARD_API_BASEURL,
   DATA_GOVERNANCE_HTML_FOR_CHINA_DATA:
     getInjectedEnv('DATA_GOVERNANCE_HTML_FOR_CHINA_DATA') || process.env.DATA_GOVERNANCE_HTML_FOR_CHINA_DATA,
   DATA_PRODUCT_TOU_HTML: getInjectedEnv('DATA_PRODUCT_TOU_HTML') || process.env.DATA_PRODUCT_TOU_HTML,
@@ -36,4 +37,5 @@ export const Envs = {
     getDNAInjectedEnv('SBISS_HANA_LAUNCHPAD_TOOL_URL') || process.env.SBISS_HANA_LAUNCHPAD_TOOL_URL,
   SAP_ANALYTICS_CLOUD_URL: getDNAInjectedEnv('SAP_ANALYTICS_CLOUD_URL') || process.env.SAP_ANALYTICS_CLOUD_URL,
   AFO_TOOL_URL: getDNAInjectedEnv('AFO_TOOL_URL') || process.env.AFO_TOOL_URL,
+  POWER_BI_TOOL_URL: getDNAInjectedEnv('POWER_BI_TOOL_URL') || process.env.POWER_BI_TOOL_URL,
 };
