@@ -5,6 +5,9 @@
   .mainPanel {
     padding: 72px 75px 30px 75px;
     width: 100%;
+    .backBtn {
+      margin: 0 0 15px 0px;
+    }
     .caption {
       display: flex;
       justify-content: space-between;
@@ -136,7 +139,7 @@
           }
         }
 
-        .KPILoader{
+        .KPILoader {
           min-width: 305px;
           display: flex;
           justify-content: center;
@@ -228,7 +231,7 @@
             text-align: center;
           }
 
-          .widgetLoader{
+          .widgetLoader {
             height: 90%;
             min-height: 350px;
             display: flex;
