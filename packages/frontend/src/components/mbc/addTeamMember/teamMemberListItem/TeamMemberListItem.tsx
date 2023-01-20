@@ -116,8 +116,8 @@ export default class TeamMemberListItem extends React.Component<ITeamMemberListI
                   {this.props.division ? (this.props.division+' / '+this.props.department) : teamMember?.department}
                 </div>
                 <div>
-                  <a href={`mailto:${teamMember.email}`}>{teamMember.email}</a>
-                  {this.props?.showInfoStacked && <div>{teamMember.mobileNumber}</div>}
+                  <a href={`mailto:${teamMember?.email}`}>{teamMember?.email}</a>
+                  {this.props?.showInfoStacked && <div>{teamMember?.mobileNumber}</div>}
                 </div>
                 { this.props?.relation && 
                   <div className={Styles.relationSection}>
@@ -125,10 +125,10 @@ export default class TeamMemberListItem extends React.Component<ITeamMemberListI
                   </div>
                 }
                 
-                {!this.props?.showInfoStacked && <div>{teamMember.mobileNumber}</div>}
+                {!this.props?.showInfoStacked && <div>{teamMember?.mobileNumber}</div>}
                 {Envs.ENABLE_INTERNAL_USER_INFO && !this.props?.showInfoStacked ? (
                   <div>
-                    <a href={TEAMS_PROFILE_LINK_URL_PREFIX + teamMember.shortId}>Teams Profile</a>
+                    <a href={TEAMS_PROFILE_LINK_URL_PREFIX + teamMember?.shortId}>Teams Profile</a>
                   </div>
                 ) : (
                   ''
