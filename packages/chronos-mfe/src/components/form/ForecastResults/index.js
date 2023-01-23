@@ -253,9 +253,14 @@ const ForecastResults = () => {
         ProgressIndicator.show();
         chronosApi.deleteForecastRun(projectId, runToBeDeleted.id).then((res) => {
           console.log(res);
-          Notification.show('Run deleted');
-          ProgressIndicator.hide();
-          getProjectForecastRuns();
+          if(res.data.success === 'FAILED') {
+            Notification.show(res?.data?.erros[0]?.message, 'alert');
+            ProgressIndicator.hide();
+          } else {
+            Notification.show('Run deleted');
+            ProgressIndicator.hide();
+            getProjectForecastRuns();
+          }
         }).catch(error => {
           Notification.show(
             error?.response?.data?.response?.errors?.[0]?.message || error?.response?.data?.response?.warnings?.[0]?.message || error?.response?.data?.errors?.[0]?.message || 'Error while creating forecast project',
