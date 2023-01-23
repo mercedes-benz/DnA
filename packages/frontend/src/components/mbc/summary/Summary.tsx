@@ -246,6 +246,11 @@ export default class Summary extends React.Component<{ user: IUserInfo }, ISumma
       (isAdmin !== undefined || userInfo.id === this.checkUserCanViewDigitalValue(userInfo)) &&
       this.state.solution?.digitalValue?.maturityLevel;
 
+    const canShowMarketing  = this.state.solution?.marketing?.customerJourneyPhases?.length > 0 ||
+    this.state.solution?.marketing?.marketingCommunicationChannels?.length > 0 ||
+    this.state.solution?.marketing?.personas?.length > 0 ||
+    this.state.solution?.marketing?.personalization?.isChecked;
+
     const pdfContent = canShowDescription ? (
       <SummaryPdfDoc
         solution={this.state.solution}
@@ -379,8 +384,10 @@ export default class Summary extends React.Component<{ user: IUserInfo }, ISumma
                     {canShowComplianceSummary ? (
                       <DataComplianceSummary dataCompliance={this.state.solution.datacompliance} />
                     ) : null}
-                    
-                    <MarketingSummary marketing={this.state.solution.marketing} />
+
+                    {canShowMarketing && (                  
+                      <MarketingSummary marketing={this.state.solution.marketing} />
+                    )}
                     
                   </React.Fragment>
                 ) : (
