@@ -25,20 +25,20 @@ export default class TeamMemberListItem extends React.Component<ITeamMemberListI
 
     return (
       <React.Fragment>
-        {teamMember.userType === TeamMemberType.INTERNAL ? (
+        {teamMember?.userType === TeamMemberType.INTERNAL ? (
           <div className={classNames(Styles.memberListWrapper, this.props.useFullWidth ? Styles.useFullWidth : null)}>
             <div className={Styles.avatar}>
               <IconAvatar className={Styles.avatarIcon} />
             </div>
             <div className={Styles.details}>
-              <h6>{teamMember.teamMemberPosition}</h6>
+              <h6>{teamMember?.teamMemberPosition}</h6>
               <div className={Styles.memberDetails}>
                 <div>
-                  <a href={TEAMS_PROFILE_LINK_URL_PREFIX + teamMember.shortId}>
-                    {teamMember.firstName} {teamMember.lastName}
+                  <a href={TEAMS_PROFILE_LINK_URL_PREFIX + teamMember?.shortId}>
+                    {teamMember?.firstName} {teamMember?.lastName}
                   </a>{' '}
                   <br />
-                  {teamMember.department}
+                  {teamMember?.department}
                 </div>
               </div>
             </div>
@@ -50,22 +50,22 @@ export default class TeamMemberListItem extends React.Component<ITeamMemberListI
             </div>
             <div className={Styles.details}>
               <h6>
-                {teamMember.teamMemberPosition} {teamMember.userType ? `(${teamMember.userType})` : null}
+                {teamMember?.teamMemberPosition} {teamMember?.userType ? `(${teamMember?.userType})` : null}
               </h6>
               <div className={Styles.memberDetails}>
-                {teamMember.company ? (
-                  <div>{teamMember.company}</div>
+                {teamMember?.company ? (
+                  <div>{teamMember?.company}</div>
                 ) : (
                   <div>
-                    {teamMember.shortId ? (
-                      <a href={TEAMS_PROFILE_LINK_URL_PREFIX + teamMember.shortId}>
-                        {teamMember.firstName} {teamMember.lastName}
+                    {teamMember?.shortId ? (
+                      <a href={TEAMS_PROFILE_LINK_URL_PREFIX + teamMember?.shortId}>
+                        {teamMember?.firstName} {teamMember?.lastName}
                       </a>
                     ) : (
                       <>
-                        {teamMember.firstName} {teamMember.lastName}
+                        {teamMember?.firstName} {teamMember?.lastName}
                         <br />
-                        {teamMember.email}
+                        {teamMember?.email}
                       </>
                     )}
                   </div>
