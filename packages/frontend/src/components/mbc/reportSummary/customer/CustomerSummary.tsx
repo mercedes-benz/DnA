@@ -45,12 +45,12 @@ export default class CustomerSummary extends React.Component<ICustomerSummaryPro
                             <div id="name">
                               <label className="input-label summary">Name</label>
                               <br />
-                              <div className={Styles.breakWords}>{customerName}</div>
+                              <div className={Styles.breakWords+' '+Styles.removeGap}>{customerName}</div>
                             </div>
                             <div id="processOwner">
                               <label className="input-label summary">Process Owner</label>
                               <br />
-                              <div className={Styles.breakWords}>{processOwner}</div>
+                              <div className={Styles.breakWords+' '+Styles.removeGap}>{processOwner}</div>
                             </div>
                           </div>
                           <div className={Styles.flexLayout}>  
