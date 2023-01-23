@@ -73,11 +73,11 @@ const MainNavigation: React.FC<IMainNavigationProps> = (props) => {
     }
   }, []);
 
-  useEffect(() => {
-    // set height of the active side nav item
-    const activeNavItem = document?.querySelectorAll('.nav-item.has-sub-nav.active.opened')?.[0];
-    props.isMaximized && activeNavItem?.setAttribute('style', `height: auto !important`);
-  }, [props.isMaximized]);
+  // useEffect(() => {
+  //   // set height of the active side nav item
+  //   const activeNavItem = document?.querySelectorAll('.nav-item.has-sub-nav.active.opened')?.[0];
+  //   props.isMaximized && activeNavItem?.setAttribute('style', `height: auto !important`);
+  // }, [props.isMaximized]);
 
   const navItems: any = [
     {
