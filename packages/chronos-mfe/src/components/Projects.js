@@ -354,6 +354,7 @@ const ForeCastingProjects = ({ user, history }) => {
                       id="projectName"
                       placeholder="Type here"
                       autoComplete="off"
+                      maxLength={63}
                       {...register('name', { required: '*Missing entry', pattern: /^[a-z0-9-.]+$/ })}
                     />
                     <span className={classNames('error-message')}>{errors?.name?.message}{errors.name?.type === 'pattern' && 'Project names can consist only of lowercase letters, numbers, dots ( . ), and hyphens ( - ).'}</span>
