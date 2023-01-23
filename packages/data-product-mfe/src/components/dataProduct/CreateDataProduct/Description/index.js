@@ -9,7 +9,6 @@ import rehypeParse from 'rehype-parse';
 import rehypeStringify from 'rehype-stringify';
 
 // components from container app
-import SelectBox from 'dna-container/SelectBox';
 import InfoModal from 'dna-container/InfoModal';
 
 import { useFormContext, Controller } from 'react-hook-form';
@@ -28,10 +27,9 @@ const Description = ({ onSave, artList, carlaFunctionList, dataCatalogList, plat
   } = useFormContext();
   const [showInfoModal, setShowInfoModal] = useState(false);
 
-  const { ART, carLAFunction, corporateDataCatalog, howToAccessText, platform, frontEndTools } = watch();
+  const { howToAccessText } = watch();
 
   useEffect(() => {
-    SelectBox.defaultSetup();
     Tooltip.defaultSetup();
     reset(watch());
     //eslint-disable-next-line
@@ -45,43 +43,6 @@ const Description = ({ onSave, artList, carlaFunctionList, dataCatalogList, plat
     mdEditor.style.setProperty('--color-accent-fg', '#00adef');
     mdEditor.style.setProperty('--color-fg-default', '#c0c8d0');
   }, []);
-
-  useEffect(() => {
-    if (ART?.name?.length) {
-      setValue('ART', ART.name);
-    }
-    SelectBox.defaultSetup();
-  }, [ART, setValue, artList]);
-
-  useEffect(() => {
-    if (carLAFunction?.name?.length) {
-      setValue('carLAFunction', carLAFunction.name);
-    }
-    SelectBox.defaultSetup();
-  }, [carLAFunction, setValue, carlaFunctionList]);
-
-  useEffect(() => {
-    if (corporateDataCatalog?.name?.length) {
-      setValue('corporateDataCatalog', corporateDataCatalog.name);
-    }
-    SelectBox.defaultSetup();
-  }, [corporateDataCatalog, setValue, dataCatalogList]);
-
-  useEffect(() => {
-    if (platform?.length) {
-      setValue('platform', platform);
-    }
-    SelectBox.defaultSetup();
-    //eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [platform?.length, platformList]);
-
-  useEffect(() => {
-    if (frontEndTools?.length) {
-      setValue('frontEndTools', frontEndTools);
-    }
-    SelectBox.defaultSetup();
-    //eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [frontEndTools?.length, frontEndToolList]);
 
   const validateURL = (value) => {
     return !value || isValidURL(value) || 'Not a valid URL';
