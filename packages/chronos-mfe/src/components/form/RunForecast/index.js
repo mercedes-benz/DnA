@@ -348,6 +348,7 @@ const RunForecast = ({ onRunClick }) => {
                           className={Styles.browseHelperText}
                           onClick={(e) => {
                             e.stopPropagation();
+                            getInputFiles();
                             setShowExistingFiles(true);
                             setKeepExistingFiles(false);
                             setIsExistingFile(true);
@@ -402,6 +403,7 @@ const RunForecast = ({ onRunClick }) => {
                     className="ff-only"
                     onChange={handleSetExpertView}
                     checked={expertView}
+                    maxLength={63}
                   />
                 </span>
               </label>
