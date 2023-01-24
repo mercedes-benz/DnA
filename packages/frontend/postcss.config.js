@@ -18,7 +18,7 @@ module.exports = (cfg) => {
       (process.env.build === 'dev' || process.env.build === 'prod' || process.env.build === 'multi') &&
         postcssPresetEnv({
           browsers: '> 1%, last 2 versions, Firefox ESR, ie >= 11',
-          stage: 1,
+          stage: 3,
           features: {
             'custom-properties': {
               appendVariables: true,
