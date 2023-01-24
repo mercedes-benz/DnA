@@ -459,8 +459,7 @@ const DataComplianceNetworkList = (props) => {
       };
       dataComplianceNetworkListApi
         .saveDataComplianceNetworkList(data)
-        .then((response) => {
-          console.log(response);
+        .then(() => {
           getResults('add');
           ProgressIndicator.hide();
           Notification.show('Legal entity saved successfully.');
@@ -469,7 +468,7 @@ const DataComplianceNetworkList = (props) => {
         })
         .catch((error) => {
           ProgressIndicator.hide();
-          Notification.show(error.message, 'alert');
+          error.response.status === 409 ? Notification.show(error.response.data.errors[0].message, 'alert') : Notification.show(error.message, 'alert');          
         });
     } else {
       Notification.show(errorMessage, 'alert');
@@ -560,8 +559,8 @@ const DataComplianceNetworkList = (props) => {
               placeholder={'Search Entity ID or Entity Name'}
               required={true}
               defaultValue={
-                updateMode && entity.entityId.length > 0 && entity.entityName.length > 0
-                  ? entity.entityId + ' - ' + entity.entityName
+                updateMode && entity?.entityId?.length > 0 && entity?.entityName?.length > 0
+                  ? entity?.entityId + ' - ' + entity?.entityName
                   : ''
               }
               list={entityList.records}
