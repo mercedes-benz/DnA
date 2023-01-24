@@ -7,8 +7,8 @@
 // };
 
 const getInjectedEnv = (key) => {
-  if (window.DATAIKU_INJECTED_ENVIRONMENT) {
-    return window.DATAIKU_INJECTED_ENVIRONMENT[key];
+  if (window.DSS_INJECTED_ENVIRONMENT) {
+    return window.DSS_INJECTED_ENVIRONMENT[key];
   }
   return undefined;
 };
