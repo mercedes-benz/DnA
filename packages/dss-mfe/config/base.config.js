@@ -129,7 +129,7 @@ module.exports = {
         './Dataiku': './src/App',
       },
       remotes: {
-        'dna-container': `dna_container@[(window.DATAIKU_INJECTED_ENVIRONMENT && window.DATAIKU_INJECTED_ENVIRONMENT.CONTAINER_APP_URL)]/remoteEntry.js?[(new Date()).getTime()]`,
+        'dna-container': `dna_container@[(window.DSS_INJECTED_ENVIRONMENT && window.DSS_INJECTED_ENVIRONMENT.CONTAINER_APP_URL)]/remoteEntry.js?[(new Date()).getTime()]`,
       },
       shared: {
         ...deps,
