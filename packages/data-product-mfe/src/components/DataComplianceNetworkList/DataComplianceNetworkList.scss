@@ -3,13 +3,12 @@
     // display: flex;
   
     .caption {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
       padding: 10px 0;
       margin-bottom: 10px;
+      margin-top: -10px;
       h3 {
         color: #dee3e8;
+        padding-top: 30px;
       }
     }
   
