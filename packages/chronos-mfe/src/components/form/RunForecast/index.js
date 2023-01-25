@@ -25,7 +25,7 @@ const SelectedFile = ({ selectedFile, setSelected }) => {
       <div className={Styles.selectedFile}>
         <div>
           <span>Input File</span>
-          <span>{selectedFile.name}</span>
+          <span>{selectedFile?.name}</span>
         </div>
         <div className={Styles.msgContainer}>
           <i className={classNames('icon mbc-icon check circle', Styles.checkCircle)} />
@@ -440,6 +440,7 @@ const RunForecast = ({ onRunClick }) => {
                       <select
                         id="configurationField"
                         required={true}
+                        required-error={'*Missing entry'}
                         {...register('configurationFile', {
                           required: '*Missing entry',
                           validate: (value) => value !== '0' || '*Missing entry',
@@ -487,6 +488,7 @@ const RunForecast = ({ onRunClick }) => {
                       <select
                         id="frequencyField"
                         required={true}
+                        required-error={'*Missing entry'}
                         {...register('frequency', {
                           required: '*Missing entry',
                           validate: (value) => value !== '0' || '*Missing entry',
