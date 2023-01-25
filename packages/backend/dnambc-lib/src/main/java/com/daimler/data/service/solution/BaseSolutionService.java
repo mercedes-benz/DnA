@@ -55,6 +55,7 @@ import org.springframework.util.StringUtils;
 import com.daimler.data.application.auth.UserStore;
 import com.daimler.data.application.config.AVScannerClient;
 import com.daimler.data.assembler.SolutionAssembler;
+import com.daimler.data.client.dashboard.DashboardClient;
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
 import com.daimler.data.db.entities.DataikuNsql;
@@ -74,7 +75,6 @@ import com.daimler.data.db.repo.solution.SolutionCustomRepository;
 import com.daimler.data.db.repo.solution.SolutionRepository;
 import com.daimler.data.dto.algorithm.AlgorithmVO;
 import com.daimler.data.dto.datasource.DataSourceVO;
-import com.daimler.data.dto.department.DepartmentVO;
 import com.daimler.data.dto.divisions.DivisionVO;
 import com.daimler.data.dto.divisions.SubdivisionVO;
 import com.daimler.data.dto.language.LanguageVO;
@@ -95,7 +95,6 @@ import com.daimler.data.service.algorithm.AlgorithmService;
 import com.daimler.data.service.common.BaseCommonService;
 import com.daimler.data.service.dataiku.DataikuService;
 import com.daimler.data.service.datasource.DataSourceService;
-import com.daimler.data.service.department.DepartmentService;
 import com.daimler.data.service.language.LanguageService;
 import com.daimler.data.service.notebook.NotebookService;
 import com.daimler.data.service.platform.PlatformService;
@@ -169,7 +168,7 @@ public class BaseSolutionService extends BaseCommonService<SolutionVO, SolutionN
 	private AVScannerClient aVScannerClient;
 	
 	@Autowired
-	private DepartmentService departmentService;
+	private DashboardClient dashboardClient;	
 
 	public BaseSolutionService() {
 		super();
@@ -236,8 +235,9 @@ public class BaseSolutionService extends BaseCommonService<SolutionVO, SolutionN
 		updateDataSources(vo);
 		updateRelatedProducts(vo);
 		
-		LOGGER.debug("Updating departments if not available.");
-		updateDepartments(vo);
+		LOGGER.debug("Calling dashboardService to update departments {}", vo.getDepartment());	
+		dashboardClient.updateDepartments(vo);
+		
 		LOGGER.debug("Updating Skills if not available.");
 		updateSkills(vo);
 		SolutionAnalyticsVO analyticsVO = vo.getAnalytics();
@@ -326,21 +326,7 @@ public class BaseSolutionService extends BaseCommonService<SolutionVO, SolutionN
 	}
 
 	
-	private void updateDepartments(SolutionVO vo) {
-		String department = vo.getDepartment();
-		if (Strings.hasText(department)) {
-			DepartmentVO existingDepartmentVO = departmentService.getByUniqueliteral("name", department);
-			if (existingDepartmentVO != null && existingDepartmentVO.getName() != null)
-				return;
-			else {
-				DepartmentVO newDepartmentVO = new DepartmentVO();
-				newDepartmentVO.setName(department);
-				departmentService.create(newDepartmentVO);
-			}
-
-		}
-		
-	}
+	
 
 	@Transactional
 	@Override
