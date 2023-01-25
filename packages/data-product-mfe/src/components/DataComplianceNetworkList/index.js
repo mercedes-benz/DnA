@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { debounce } from 'lodash';
+import { useHistory } from "react-router-dom";
 import cn from 'classnames';
 import Styles from './DataComplianceNetworkList.scss';
 
@@ -25,6 +26,7 @@ import { regionalDateAndTimeConversionSolution, validateEmail } from '../../Util
 const classNames = cn.bind(Styles);
 
 const DataComplianceNetworkList = (props) => {
+  let history = useHistory();
   const isAdmin =
     props.user.roles.find((role) => role.id === USER_ROLE.ADMIN || role.id === USER_ROLE.DATACOMPLIANCEADMIN) !==
     undefined;
@@ -740,9 +742,16 @@ const DataComplianceNetworkList = (props) => {
     setShowChangeLog(false);
   };
 
+  const goback = () => {
+    history.goBack();
+  };
+
   return (
     <div className={Styles.mainPanel}>
       <div className={Styles.caption}>
+          <button className={classNames('btn btn-text back arrow', Styles.backBtn)} type="submit" onClick={goback}>
+            Back
+          </button>
         <h3>Data Compliance Network List</h3>
       </div>
       <div className={Styles.wrapper}>
