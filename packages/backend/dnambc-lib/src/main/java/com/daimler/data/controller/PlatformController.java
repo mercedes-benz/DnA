@@ -183,18 +183,15 @@ public class PlatformController implements PlatformsApi {
 			@ApiResponse(code = 500, message = "Internal error") })
 	@RequestMapping(value = "/platforms", produces = { "application/json" }, method = RequestMethod.GET)
 	public ResponseEntity<PlatformCollection> getAll(
-			@ApiParam(value = "Sort platforms by a given variable like platformName", allowableValues = "platformName") @Valid @RequestParam(value = "sortBy", required = false) String sortBy,
 			@ApiParam(value = "Sort platforms based on the given order, example asc,desc", allowableValues = "asc, desc") @Valid @RequestParam(value = "sortOrder", required = false) String sortOrder) {
 		final List<PlatformVO> platforms = platformService.getAll();		
 		PlatformCollection platformCollection = new PlatformCollection();
 		if (platforms != null && platforms.size() > 0) {
 			if( sortOrder == null || sortOrder.equalsIgnoreCase("asc")) {
-				Comparator<PlatformVO> comparator = (p1, p2) ->(p1.getName().compareTo(p2.getName()));
-				Collections.sort(platforms, comparator);
+				platforms.sort(Comparator.comparing(PlatformVO :: getName, String.CASE_INSENSITIVE_ORDER));
 			}
 			if(sortOrder != null && sortOrder.equalsIgnoreCase("desc")) {
-				Comparator<PlatformVO> comparator = (p1, p2) ->(p2.getName().compareTo(p1.getName()));
-				Collections.sort(platforms, comparator);
+				platforms.sort(Comparator.comparing(PlatformVO :: getName, String.CASE_INSENSITIVE_ORDER).reversed());
 			}
 			platformCollection.addAll(platforms);
 			log.debug("Returning all available platforms");
