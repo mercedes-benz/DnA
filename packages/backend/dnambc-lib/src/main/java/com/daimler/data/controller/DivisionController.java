@@ -85,7 +85,6 @@ public class DivisionController implements DivisionsApi, SubdivisionsApi {
 	@RequestMapping(value = "/divisions", produces = { "application/json" }, method = RequestMethod.GET)
 	public ResponseEntity<DivisionCollection> getAll(
 			@ApiParam(value = "Ids of the division for which sub-divisions are to be fetched") @Valid @RequestParam(value = "ids", required = false) List<String> ids,
-			@ApiParam(value = "Sort divisions by a given variable like divisionName", allowableValues = "divisionName") @Valid @RequestParam(value = "sortBy", required = false) String sortBy,
 			@ApiParam(value = "Sort divisions based on the given order, example asc,desc", allowableValues = "asc, desc") @Valid @RequestParam(value = "sortOrder", required = false) String sortOrder) {
 		try {
 			DivisionCollection divisionCollection = new DivisionCollection();
@@ -93,12 +92,10 @@ public class DivisionController implements DivisionsApi, SubdivisionsApi {
 			List<DivisionVO> divisions = divisionService.getDivisionsByIds(ids);
 			if (!ObjectUtils.isEmpty(divisions)) {
 				if( sortOrder == null || sortOrder.equalsIgnoreCase("asc")) {
-					Comparator<DivisionVO> comparator = (d1, d2) ->(d1.getName().compareTo(d2.getName()));
-					Collections.sort(divisions, comparator);
+					divisions.sort(Comparator.comparing(DivisionVO :: getName, String.CASE_INSENSITIVE_ORDER));
 				}
 				if(sortOrder != null && sortOrder.equalsIgnoreCase("desc")) {
-					Comparator<DivisionVO> comparator = (d1, d2) ->(d2.getName().compareTo(d1.getName()));
-					Collections.sort(divisions, comparator);
+					divisions.sort(Comparator.comparing(DivisionVO :: getName, String.CASE_INSENSITIVE_ORDER).reversed());
 				}
 				divisionCollection.addAll(divisions);
 				return new ResponseEntity<>(divisionCollection, HttpStatus.OK);

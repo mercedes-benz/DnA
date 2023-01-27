@@ -182,19 +182,16 @@ public class AlgorithmController implements AlgorithmsApi {
 			@ApiResponse(code = 500, message = "Internal error") })
 	@RequestMapping(value = "/algorithms", produces = { "application/json" }, method = RequestMethod.GET)
 	public ResponseEntity<AlgorithmCollection> getAll(
-			@ApiParam(value = "Sort algorithms by a given variable like algorithmName") @Valid @RequestParam(value = "sortBy", required = false) String sortBy,
 			@ApiParam(value = "Sort algorithms based on the given order, example asc,desc", allowableValues = "asc, desc") @Valid @RequestParam(value = "sortOrder", required = false) String sortOrder) {
 		final List<AlgorithmVO> algorithms = algorithmService.getAll();		
 		AlgorithmCollection algorithmCollection = new AlgorithmCollection();
 		log.debug("Sending all algorithms");
 		if (algorithms != null && algorithms.size() > 0) {
 			if (sortOrder == null || sortOrder.equalsIgnoreCase("asc")) {
-				Comparator<AlgorithmVO> comparator = (a1, a2) -> (a1.getName().compareTo(a2.getName()));
-				Collections.sort(algorithms, comparator);
+				algorithms.sort(Comparator.comparing(AlgorithmVO :: getName, String.CASE_INSENSITIVE_ORDER));
 			}
 			if (sortOrder != null && sortOrder.equalsIgnoreCase("desc")) {
-				Comparator<AlgorithmVO> comparator = (a1, a2) -> (a2.getName().compareTo(a1.getName()));
-				Collections.sort(algorithms, comparator);
+				algorithms.sort(Comparator.comparing(AlgorithmVO :: getName, String.CASE_INSENSITIVE_ORDER).reversed());
 			}
 			algorithmCollection.addAll(algorithms);
 			return new ResponseEntity<>(algorithmCollection, HttpStatus.OK);

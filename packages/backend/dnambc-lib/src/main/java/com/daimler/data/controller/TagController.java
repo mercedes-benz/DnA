@@ -180,18 +180,15 @@ public class TagController implements TagsApi {
 			@ApiResponse(code = 500, message = "Internal error") })
 	@RequestMapping(value = "/tags", produces = { "application/json" }, method = RequestMethod.GET)
 	public ResponseEntity<TagCollection> getAll(
-			@ApiParam(value = "Sort tags by a given variable like tagName", allowableValues = "tagName") @Valid @RequestParam(value = "sortBy", required = false) String sortBy,
 			@ApiParam(value = "Sort tags based on the given order, example asc,desc", allowableValues = "asc, desc") @Valid @RequestParam(value = "sortOrder", required = false) String sortOrder) {
 		final List<TagVO> tags = tagService.getAll();		
 		TagCollection tagCollection = new TagCollection();
 		if (tags != null && tags.size() > 0) {
 			if( sortOrder == null || sortOrder.equalsIgnoreCase("asc")) {
-				Comparator<TagVO> comparator = (t1, t2) ->(t1.getName().compareTo(t2.getName()));
-				Collections.sort(tags, comparator);
+				tags.sort(Comparator.comparing(TagVO :: getName, String.CASE_INSENSITIVE_ORDER));
 			}
 			if(sortOrder != null && sortOrder.equalsIgnoreCase("desc")) {
-				Comparator<TagVO> comparator = (t1, t2) ->(t2.getName().compareTo(t1.getName()));
-				Collections.sort(tags, comparator);
+				tags.sort(Comparator.comparing(TagVO :: getName, String.CASE_INSENSITIVE_ORDER).reversed());
 			}
 			tagCollection.addAll(tags);
 			log.debug("Returning available tags");
