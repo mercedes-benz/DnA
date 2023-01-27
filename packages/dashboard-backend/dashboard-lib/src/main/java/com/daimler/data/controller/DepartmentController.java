@@ -104,10 +104,9 @@ public class DepartmentController implements DepartmentsApi {
 			@ApiResponse(code = 500, message = "Internal error") })
 	@RequestMapping(value = "/departments", produces = { "application/json" }, consumes = {
 			"application/json" }, method = RequestMethod.GET)
-	public ResponseEntity<DepartmentCollection> getAll(
-			@ApiParam(value = "Sort departments by a given variable like departmentName") @Valid @RequestParam(value = "sortBy", required = false) String sortBy,
+	public ResponseEntity<DepartmentCollection> getAll(			
 			@ApiParam(value = "Sort departments based on the given order, example asc,desc", allowableValues = "asc, desc") @Valid @RequestParam(value = "sortOrder", required = false) String sortOrder) {
-		return departmentService.getAllDepartments(sortBy,sortOrder);
+		return departmentService.getAllDepartments(sortOrder);
 	}
 
 	@Override
