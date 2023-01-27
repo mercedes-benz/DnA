@@ -81,19 +81,17 @@ public class BaseDepartmentService extends BaseCommonService<DepartmentVO, Depar
 	}
 
 	@Override
-	public ResponseEntity<DepartmentCollection> getAllDepartments(String sortBy,String sortOrder) {
+	public ResponseEntity<DepartmentCollection> getAllDepartments(String sortOrder) {
 		DepartmentCollection departmentCollection = new DepartmentCollection();
 		try {
 			List<DepartmentVO> departments = super.getAll();
 			LOGGER.debug("Departments fetched successfully");
 			if (!ObjectUtils.isEmpty(departments)) {
 				if (sortOrder == null || sortOrder.equalsIgnoreCase("asc")) {
-					Comparator<DepartmentVO> comparator = (d1, d2) -> (d1.getName().compareTo(d2.getName()));
-					Collections.sort(departments, comparator);
+					departments.sort(Comparator.comparing(DepartmentVO :: getName, String.CASE_INSENSITIVE_ORDER));
 				}
 				if (sortOrder != null && sortOrder.equalsIgnoreCase("desc")) {
-					Comparator<DepartmentVO> comparator = (d1, d2) -> (d2.getName().compareTo(d1.getName()));
-					Collections.sort(departments, comparator);
+					departments.sort(Comparator.comparing(DepartmentVO :: getName, String.CASE_INSENSITIVE_ORDER).reversed());
 				}
 				departmentCollection.setData(departments);
 				return new ResponseEntity<>(departmentCollection, HttpStatus.OK);

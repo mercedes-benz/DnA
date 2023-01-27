@@ -49,8 +49,8 @@ public class DataSourceCustomRepositoryImpl extends CommonDataRepositoryImpl<Dat
 	private static Logger LOGGER = LoggerFactory.getLogger(DataSourceCustomRepositoryImpl.class);
 	private static final String DATASOURCE_NSQL = "datasource_nsql";
 	@Override
-	public List<DataSourceNsql> getAllDataCatalogs(String source,String sortBy,String sortOrder) {		
-		Query q = getNativeQueryWithFilters("select cast(id as text), cast(data as text) from ", source,sortBy,sortOrder);
+	public List<DataSourceNsql> getAllDataCatalogs(String source,String sortOrder) {		
+		Query q = getNativeQueryWithFilters("select cast(id as text), cast(data as text) from ", source,sortOrder);
 		ObjectMapper mapper = new ObjectMapper();
 		List<Object[]> results = q.getResultList();		
 		List<DataSourceNsql> convertedResults = results.stream().map(temp -> {
@@ -73,7 +73,7 @@ public class DataSourceCustomRepositoryImpl extends CommonDataRepositoryImpl<Dat
 	
 	}
 	
-	public Query getNativeQueryWithFilters(String selectFieldsString, String source, String sortBy, String sortOrder) {
+	public Query getNativeQueryWithFilters(String selectFieldsString, String source, String sortOrder) {
 
 		String prefix = selectFieldsString != null && !"".equalsIgnoreCase(selectFieldsString) ? selectFieldsString
 				: "select cast(id as text), cast(data as text) ";
