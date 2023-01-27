@@ -109,12 +109,6 @@ paths:
    description:  "Get all languages. This endpoints will be used to Get all valid available languages maintenance records."
    operationId: "getAll"
    parameters:
-        - name: sortBy
-          in: query
-          description: Sort languages by a given variable like languageName
-          required: false
-          type: string
-          enum: [languageName]
         - name: sortOrder
           in: query
           description: Sort languages based on the given order, example asc,desc

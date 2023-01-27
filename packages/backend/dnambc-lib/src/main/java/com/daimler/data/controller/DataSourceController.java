@@ -193,24 +193,21 @@ public class DataSourceController implements DatasourcesApi {
 			@ApiResponse(code = 500, message = "Internal error") })
 	@RequestMapping(value = "/datasources", produces = { "application/json" }, method = RequestMethod.GET)
 	public ResponseEntity<DataSourceCollection> getAll(
-			@ApiParam(value = "Sort datasources by a given variable like datasourceName", allowableValues = "datasourceName") @Valid @RequestParam(value = "sortBy", required = false) String sortBy,
 			@ApiParam(value = "Sort datasources based on the given order, example asc,desc", allowableValues = "asc, desc") @Valid @RequestParam(value = "sortOrder", required = false) String sortOrder,
 			@ApiParam(value = "Filter datasources based on the given source like sourceName, example cdc", allowableValues = "cdc") @Valid @RequestParam(value = "source", required = false) String source) {
 		
 		List<DataSourceVO> datasources = new ArrayList<>();		
 		DataSourceCollection datasourceCollection = new DataSourceCollection();
 		if(source != null && source.equalsIgnoreCase("cdc")) {
-			datasources = datasourceService.getAllDataCatalogs(source,sortBy,sortOrder);	
+			datasources = datasourceService.getAllDataCatalogs(source,sortOrder);	
 		}
 		else {
 			datasources = datasourceService.getAll();
 			if( sortOrder == null || sortOrder.equalsIgnoreCase("asc")) {
-				Comparator<DataSourceVO> comparator = (d1, d2) ->(d1.getName().compareTo(d2.getName()));
-				Collections.sort(datasources, comparator);
+				datasources.sort(Comparator.comparing(DataSourceVO :: getName, String.CASE_INSENSITIVE_ORDER));
 			}
 			if(sortOrder != null && sortOrder.equalsIgnoreCase("desc")) {
-				Comparator<DataSourceVO> comparator = (d1, d2) ->(d2.getName().compareTo(d1.getName()));
-				Collections.sort(datasources, comparator);
+				datasources.sort(Comparator.comparing(DataSourceVO :: getName, String.CASE_INSENSITIVE_ORDER).reversed());
 			}
 		}
 		if (!ObjectUtils.isEmpty(datasources)) {
