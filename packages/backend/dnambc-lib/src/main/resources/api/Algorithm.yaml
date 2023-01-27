@@ -108,13 +108,7 @@ paths:
    summary: "Get all available algorithms."
    description:  "Get all algorithms. This endpoints will be used to Get all valid available algorithms maintenance records."
    operationId: "getAll"
-   parameters:
-        - name: sortBy
-          in: query
-          description: Sort algorithms by a given variable like algorithmName
-          required: false
-          type: string
-          enum: [algorithmName]
+   parameters:       
         - name: sortOrder
           in: query
           description: Sort algorithms based on the given order, example asc,desc
