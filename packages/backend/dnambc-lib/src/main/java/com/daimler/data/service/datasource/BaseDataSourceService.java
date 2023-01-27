@@ -138,10 +138,10 @@ public class BaseDataSourceService extends BaseCommonService<DataSourceVO, DataS
 	}
 
 	@Override
-	public List<DataSourceVO> getAllDataCatalogs(String source, String sortBy,String sortOrder) {
+	public List<DataSourceVO> getAllDataCatalogs(String source,String sortOrder) {
 		// TODO Auto-generated method stub
 		logger.info("Fetching data catalog information from table for getAllDataCatalogs.");
-		List<DataSourceNsql> dataCatalogInfoEntities = customRepo.getAllDataCatalogs(source,sortBy,sortOrder);
+		List<DataSourceNsql> dataCatalogInfoEntities = customRepo.getAllDataCatalogs(source,sortOrder);
 		logger.info("Success from get information from table.");
 		if (!ObjectUtils.isEmpty(dataCatalogInfoEntities)) {
 			return dataCatalogInfoEntities.stream().map(n -> assembler.toVo(n)).toList();
