@@ -116,7 +116,6 @@ public class MarketingCommunicationChannelController implements MarketingCommuni
         consumes = { "application/json" },
         method = RequestMethod.GET)
 	public ResponseEntity<MarketingCommunicationChannelCollection> getAll(
-			@ApiParam(value = "Sort marketingCommunicationChannels by a given variable like marketingCommunicationChannelName", allowableValues = "marketingCommunicationChannelName") @RequestParam(value = "sortBy", required = false) String sortBy,
 			@ApiParam(value = "Sort marketingCommunicationChannels based on the given order, example asc,desc", allowableValues = "asc, desc") @RequestParam(value = "sortOrder", required = false) String sortOrder) {
 
 		final List<MarketingCommunicationChannelVO> marketingCommunicationChannels = marketingCommunicationChannelService.getAll();		
@@ -124,12 +123,10 @@ public class MarketingCommunicationChannelController implements MarketingCommuni
 		log.debug("Sending all marketingCommunicationChannels");
 		if (marketingCommunicationChannels != null && marketingCommunicationChannels.size() > 0) {
 			if (sortOrder == null || sortOrder.equalsIgnoreCase("asc")) {
-				Comparator<MarketingCommunicationChannelVO> comparator = (a1, a2) -> (a1.getName().compareTo(a2.getName()));
-				Collections.sort(marketingCommunicationChannels, comparator);
+				marketingCommunicationChannels.sort(Comparator.comparing(MarketingCommunicationChannelVO :: getName, String.CASE_INSENSITIVE_ORDER));
 			}
 			if (sortOrder != null && sortOrder.equalsIgnoreCase("desc")) {
-				Comparator<MarketingCommunicationChannelVO> comparator = (a1, a2) -> (a2.getName().compareTo(a1.getName()));
-				Collections.sort(marketingCommunicationChannels, comparator);
+				marketingCommunicationChannels.sort(Comparator.comparing(MarketingCommunicationChannelVO :: getName, String.CASE_INSENSITIVE_ORDER).reversed());
 			}
 			
 			marketingCommunicationChannelCollection.addAll(marketingCommunicationChannels);
