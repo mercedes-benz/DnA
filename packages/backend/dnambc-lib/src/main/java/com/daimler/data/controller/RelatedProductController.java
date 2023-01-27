@@ -208,7 +208,6 @@ public class RelatedProductController implements RelatedProductsApi {
 	@RequestMapping(value = "/relatedproducts", produces = { "application/json" }, consumes = {
 			"application/json" }, method = RequestMethod.GET)
 	public ResponseEntity<RelatedProductVOCollection> getAll(
-			@ApiParam(value = "Sort relatedproducts by a given variable like relatedproductName", allowableValues = "relatedproductName") @Valid @RequestParam(value = "sortBy", required = false) String sortBy,
 			@ApiParam(value = "Sort relatedproducts based on the given order, example asc,desc", allowableValues = "asc, desc") @Valid @RequestParam(value = "sortOrder", required = false) String sortOrder) {
 		final List<RelatedProductVO> relatedProducts = relatedProductService.getAll();
 		
