@@ -187,18 +187,15 @@ public class LanguageController implements LanguagesApi {
 			@ApiResponse(code = 500, message = "Internal error") })
 	@RequestMapping(value = "/languages", produces = { "application/json" }, method = RequestMethod.GET)
 	public ResponseEntity<LanguageCollection> getAll(
-			@ApiParam(value = "Sort languages by a given variable like languageName", allowableValues = "languageName") @Valid @RequestParam(value = "sortBy", required = false) String sortBy,
 			@ApiParam(value = "Sort languages based on the given order, example asc,desc", allowableValues = "asc, desc") @Valid @RequestParam(value = "sortOrder", required = false) String sortOrder) {
 		final List<LanguageVO> languages = languageService.getAll();		
 		LanguageCollection languageCollection = new LanguageCollection();
 		if (languages != null && languages.size() > 0) {
 			if (sortOrder == null || sortOrder.equalsIgnoreCase("asc")) {
-				Comparator<LanguageVO> comparator = (l1, l2) -> (l1.getName().compareTo(l2.getName()));
-				Collections.sort(languages, comparator);
+				languages.sort(Comparator.comparing(LanguageVO :: getName, String.CASE_INSENSITIVE_ORDER));
 			}
 			if (sortOrder != null && sortOrder.equalsIgnoreCase("desc")) {
-				Comparator<LanguageVO> comparator = (l1, l2) -> (l2.getName().compareTo(l1.getName()));
-				Collections.sort(languages, comparator);
+				languages.sort(Comparator.comparing(LanguageVO :: getName, String.CASE_INSENSITIVE_ORDER).reversed());
 			}
 			languageCollection.addAll(languages);
 			log.debug("Returning all available languages");
