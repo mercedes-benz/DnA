@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { debounce } from 'lodash';
-import { useHistory } from "react-router-dom";
+import { useHistory } from 'react-router-dom';
 import cn from 'classnames';
 import Styles from './DataComplianceNetworkList.scss';
 
@@ -98,7 +98,7 @@ const DataComplianceNetworkList = (props) => {
   const [entityError, setEntityError] = useState(false);
   const [localComplianceOfficerError, setLocalComplianceOfficerError] = useState(false);
   const [localComplianceResponsibleError, setLocalComplianceResponsibleError] = useState(false);
-  const [dataProtectionCoordinatorError, setDataProtectionCoordinatorError] = useState(false);
+  // const [dataProtectionCoordinatorError, setDataProtectionCoordinatorError] = useState(false);
   const [localComplianceSpecialistError, setLocalComplianceSpecialistError] = useState(false);
 
   const [entitySearch, setEntitySearch] = useState(true);
@@ -126,17 +126,17 @@ const DataComplianceNetworkList = (props) => {
     });
     setEntity({ ...entity, localComplianceResponsible: arr });
   };
-  const setDataProtectionCoordinator = (arr) => {
-    setDataProtectionCoordinatorError(false);
-    arr.map((item) => {
-      if (validateEmail(item)) {
-        return item;
-      } else {
-        setDataProtectionCoordinatorError(true);
-      }
-    });
-    setEntity({ ...entity, dataProtectionCoordinator: arr });
-  };
+  // const setDataProtectionCoordinator = (arr) => {
+  //   setDataProtectionCoordinatorError(false);
+  //   arr.map((item) => {
+  //     if (validateEmail(item)) {
+  //       return item;
+  //     } else {
+  //       setDataProtectionCoordinatorError(true);
+  //     }
+  //   });
+  //   setEntity({ ...entity, dataProtectionCoordinator: arr });
+  // };
   const setLocalComplianceSpecialist = (arr) => {
     setLocalComplianceSpecialistError(false);
     arr.map((item) => {
@@ -197,14 +197,14 @@ const DataComplianceNetworkList = (props) => {
       results = results.filter((result) => {
         const localComplianceOfficers = result.localComplianceOfficer.toString();
         const localComplianceResponsibles = result.localComplianceResponsible.toString();
-        const dataProtectionCoordinators = result.dataProtectionCoordinator.toString();
+        // const dataProtectionCoordinators = result.dataProtectionCoordinator.toString();
         const localComplianceSpecialists = result.localComplianceSpecialist.toString();
         return (
           result.entityName.toLowerCase().includes(searchTerm) ||
           result.entityId.toLowerCase().includes(searchTerm) ||
           localComplianceOfficers.includes(searchTerm) ||
           localComplianceResponsibles.includes(searchTerm) ||
-          dataProtectionCoordinators.includes(searchTerm) ||
+          // dataProtectionCoordinators.includes(searchTerm) ||
           localComplianceSpecialists.includes(searchTerm)
         );
       });
@@ -384,7 +384,7 @@ const DataComplianceNetworkList = (props) => {
     if (
       localComplianceOfficerError ||
       localComplianceResponsibleError ||
-      dataProtectionCoordinatorError ||
+      // dataProtectionCoordinatorError ||
       localComplianceSpecialistError
     ) {
       formValid = false;
@@ -442,7 +442,7 @@ const DataComplianceNetworkList = (props) => {
     if (
       localComplianceOfficerError ||
       localComplianceResponsibleError ||
-      dataProtectionCoordinatorError ||
+      // dataProtectionCoordinatorError ||
       localComplianceSpecialistError
     ) {
       formValid = false;
@@ -470,7 +470,9 @@ const DataComplianceNetworkList = (props) => {
         })
         .catch((error) => {
           ProgressIndicator.hide();
-          error.response.status === 409 ? Notification.show(error.response.data.errors[0].message, 'alert') : Notification.show(error.message, 'alert');          
+          error.response.status === 409
+            ? Notification.show(error.response.data.errors[0].message, 'alert')
+            : Notification.show(error.message, 'alert');
         });
     } else {
       Notification.show(errorMessage, 'alert');
@@ -624,7 +626,7 @@ const DataComplianceNetworkList = (props) => {
             <span className={classNames('error-message', Styles.tagError)}>Please enter valid email address.</span>
           )}
         </div>
-        <div className={Styles.tagControl}>
+        {/* <div className={Styles.tagControl}>
           <Tags
             title={'Data Protection Coordinator (DPC)'}
             max={100}
@@ -637,7 +639,7 @@ const DataComplianceNetworkList = (props) => {
           {dataProtectionCoordinatorError && (
             <span className={classNames('error-message', Styles.tagError)}>Please enter valid email address.</span>
           )}
-        </div>
+        </div> */}
         <div className={Styles.tagControl}>
           <Tags
             title={'Local Compliance Support / Specialist (LCS)'}
@@ -749,9 +751,9 @@ const DataComplianceNetworkList = (props) => {
   return (
     <div className={Styles.mainPanel}>
       <div className={Styles.caption}>
-          <button className={classNames('btn btn-text back arrow', Styles.backBtn)} type="submit" onClick={goback}>
-            Back
-          </button>
+        <button className={classNames('btn btn-text back arrow', Styles.backBtn)} type="submit" onClick={goback}>
+          Back
+        </button>
         <h3>Data Compliance Network List</h3>
       </div>
       <div className={Styles.wrapper}>
@@ -838,7 +840,7 @@ const DataComplianceNetworkList = (props) => {
                         Local Compliance Responsible (LCR)
                       </label>
                     </th>
-                    <th>
+                    {/* <th>
                       <label>
                         <i
                           className={classNames('icon mbc-icon info iconsmd', Styles.infoIcon)}
@@ -847,7 +849,7 @@ const DataComplianceNetworkList = (props) => {
                         />
                         Data Protection Coordinator (DPC)
                       </label>
-                    </th>
+                    </th> */}
                     <th>
                       <label>
                         <i
