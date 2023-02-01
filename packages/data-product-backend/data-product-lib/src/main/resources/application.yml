@@ -63,6 +63,12 @@ allowedCorsOriginPatternUrl: ${CORS_ORIGIN_URL:http://*}
 jwt:
   secret:
     key: ${JWT_SECRET_KEY:xxxxxx}
+
+graphql:
+  servlet:
+    mapping: /api/minified
+    enabled: true
+    corsEnabled: true
       
 swagger.headers.authorization.token: ${SWAGGER_HEADER_AUTH:XXXXXX}
 management.endpoints.web.exposure.include: loggers,health
