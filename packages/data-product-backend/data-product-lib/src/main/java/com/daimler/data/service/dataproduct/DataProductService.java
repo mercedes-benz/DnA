@@ -42,13 +42,16 @@ import org.springframework.http.ResponseEntity;
 public interface DataProductService extends CommonService<DataProductVO, DataProductNsql, String> {
 
 	List<DataProductVO> getAllWithFilters(Boolean published, int offset, int limit, String sortBy, String sortOrder,
-			String recordStatus);
+			String recordStatus, List<String> artsList, List<String> carlafunctionsList,
+			List<String> platformsList, List<String> frontendToolsList, List<String> productOwnerList);
 
 	ResponseEntity<DataTransferProviderResponseVO> createDataTransferProvider(ProviderVO providerVO);
 
 	ResponseEntity<DataTransferConsumerResponseVO> updateDataTransferConsumer(ConsumerVO consumerVO);
 
-	Long getCount(Boolean published, String recordStatus);
+	Long getCount(Boolean published, String recordStatus,
+				  List<String> artsList, List<String> carlafunctionsList,
+				  List<String> platformsList, List<String> frontendToolsList, List<String> productOwnerList);
 
 	List<DataProductVO> getExistingDataProduct(String uniqueProductName, String status);
 
