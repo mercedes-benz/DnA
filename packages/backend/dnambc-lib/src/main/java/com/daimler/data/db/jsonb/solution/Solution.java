@@ -113,6 +113,7 @@ public class Solution {
 	private LogoDetails logoDetails;
 	
 	private List<SkillSummary> skills;
+	private List<MarketingRoleSummary> marketingRoles;
 	private String dataStrategyDomain;
 	private String additionalResource;
 	private BigDecimal requestedFTECount;
