@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { debounce } from 'lodash';
-import { useHistory } from 'react-router-dom';
 import cn from 'classnames';
 import Styles from './DataComplianceNetworkList.scss';
 
@@ -12,6 +11,7 @@ import TextBox from 'dna-container/TextBox';
 import Spinner from 'dna-container/Spinner';
 import TypeAheadBox from 'dna-container/TypeAheadBox';
 import Tags from 'dna-container/Tags';
+import Caption from 'dna-container/Caption';
 
 import RowItem from './rowItem/RowItem';
 import Tooltip from '../../common/modules/uilab/js/src/tooltip';
@@ -26,7 +26,6 @@ import { regionalDateAndTimeConversionSolution, validateEmail } from '../../Util
 const classNames = cn.bind(Styles);
 
 const DataComplianceNetworkList = (props) => {
-  let history = useHistory();
   const isAdmin =
     props.user.roles.find((role) => role.id === USER_ROLE.ADMIN || role.id === USER_ROLE.DATACOMPLIANCEADMIN) !==
     undefined;
@@ -744,18 +743,9 @@ const DataComplianceNetworkList = (props) => {
     setShowChangeLog(false);
   };
 
-  const goback = () => {
-    history.goBack();
-  };
-
   return (
     <div className={Styles.mainPanel}>
-      <div className={Styles.caption}>
-        <button className={classNames('btn btn-text back arrow', Styles.backBtn)} type="submit" onClick={goback}>
-          Back
-        </button>
-        <h3>Data Compliance Network List</h3>
-      </div>
+      <Caption title="Data Compliance Network List" />
       <div className={Styles.wrapper}>
         <div className={Styles.searchPanel}>
           <div className={`input-field-group search-field ${loading ? 'disabled' : ''}`}>
