@@ -15,6 +15,7 @@ import InfoModal from 'components/formElements/modal/infoModal/InfoModal';
 import ModelRegistryList from './modelRegistryList/ModelRegistryList';
 import { ModelRegistryApiClient } from '../../../services/ModelRegistryApiClient';
 import { Envs } from 'globals/Envs';
+import Caption from '../shared/caption/Caption';
 
 const MyModelRegistry = (props: any) => {
   const [modelsList, setModelsList] = useState([]);
@@ -58,9 +59,7 @@ const MyModelRegistry = (props: any) => {
     <React.Fragment>
       <div className={classNames(Styles.mainPanel)}>
         <div className={Styles.wrapper}>
-          <div className={Styles.caption}>
-            <h3>My Model Registry</h3>
-          </div>
+          <Caption title="My Model Registry" />
         </div>
         {modelsList === null || modelsList === undefined || modelsList.length === 0 ? null : (
           <React.Fragment>
