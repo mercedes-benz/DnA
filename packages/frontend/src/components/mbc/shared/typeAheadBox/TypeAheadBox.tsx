@@ -58,9 +58,9 @@ const TypeAheadBox: React.FC<IRowItemProps> = (props: IRowItemProps) => {
     if (props.onInputChange) {
       setFilteredList(props.list);
       setShowNoResultsError(props.list?.length === 0 ? true : false);
-      setTimeout(() => {
-        setShowNoResultsError(false);
-      }, 3000);
+      // setTimeout(() => {
+      //   setShowNoResultsError(false);
+      // }, 3000);
       setHideSuggestion(props.list?.length === 0);
       setCursor(-1);
     } else {
