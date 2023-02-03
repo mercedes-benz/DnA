@@ -235,7 +235,7 @@ public class BaseSolutionService extends BaseCommonService<SolutionVO, SolutionN
 		updateDataSources(vo);
 		updateRelatedProducts(vo);
 		
-		LOGGER.debug("Calling dashboardService to update departments {}", vo.getDepartment());	
+		LOGGER.info("Calling dashboardService to update departments {}", vo.getDepartment());	
 		dashboardClient.updateDepartments(vo);
 		
 		LOGGER.debug("Updating Skills if not available.");

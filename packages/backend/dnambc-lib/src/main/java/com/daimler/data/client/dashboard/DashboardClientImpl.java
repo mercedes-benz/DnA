@@ -149,14 +149,17 @@ public class DashboardClientImpl implements DashboardClient {
 		String dashboardUri = dashboardBaseUri + UPDATE_DEPARTMENT;
 		HttpEntity entity = new HttpEntity<>(reqWrapperDto, headers);	
 		try {
+			LOGGER.info("Calling dashboard client url from DashboardClientImpl");
 			ResponseEntity<String> response = restTemplate.exchange(dashboardUri, HttpMethod.POST, entity, String.class);
+			LOGGER.info("Called dashboard client from DashboardClientImpl");
 			if (response != null && response.hasBody()) {
 				status = response.getStatusCode().toString();
 			}
 			return status;
 
 		} catch (Exception e) {
-			return status= "409";
+			LOGGER.error(e.getMessage());
+			return status= e.getMessage();			
 		}
 		
 
