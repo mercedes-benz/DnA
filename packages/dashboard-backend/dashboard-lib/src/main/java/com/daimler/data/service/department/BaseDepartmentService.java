@@ -108,8 +108,7 @@ public class BaseDepartmentService extends BaseCommonService<DepartmentVO, Depar
 	@Transactional
 	public ResponseEntity<DepartmentResponseVO> createDepartment(DepartmentRequestVO requestVO) {
 		DepartmentResponseVO responseVO = new DepartmentResponseVO();
-		try {
-			if (verifyUserRoles()) {
+		try {			
 				DepartmentNameVO departmentNameVO = requestVO.getData();
 				String uniqueDepartmentName = departmentNameVO.getName();
 				DepartmentVO existingDepartmentVO = findDepartmentByName(uniqueDepartmentName);
@@ -129,17 +128,7 @@ public class BaseDepartmentService extends BaseCommonService<DepartmentVO, Depar
 				} else {
 					LOGGER.error("Department {} , failed to create", uniqueDepartmentName);
 					return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
-				}
-
-			} else {
-				List<MessageDescription> notAuthorizedMsgs = new ArrayList<>();
-				MessageDescription notAuthorizedMsg = new MessageDescription();
-				notAuthorizedMsg
-						.setMessage("Not authorized to create department. Only user with admin role can create.");
-				notAuthorizedMsgs.add(notAuthorizedMsg);
-				responseVO.setErrors(notAuthorizedMsgs);
-				return new ResponseEntity<>(responseVO, HttpStatus.FORBIDDEN);
-			}
+				} 
 		} catch (Exception e) {
 			LOGGER.error("Exception occurred:{} while creating department ", e.getMessage());
 			return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
