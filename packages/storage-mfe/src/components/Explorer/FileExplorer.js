@@ -911,7 +911,7 @@ const FileExplorer = () => {
             onFileAction={handleAction}
             folderChain={folderChain}
             darkMode={true}
-            defaultFileViewActionId={ChonkyActions.EnableListView.id}
+            defaultFileViewActionId={ChonkyActions.EnableGridView.id}
             disableDragAndDrop={true}
             i18n={i18n}
           />
