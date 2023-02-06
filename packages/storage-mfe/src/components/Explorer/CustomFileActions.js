@@ -53,9 +53,24 @@ const DeleteFiles = defineFileAction({
   },
 });
 
+const CopyPath = defineFileAction({
+  id: 'copy_files',
+  hotkeys: ['ctrl+c'],
+  button: {
+    name: 'Copy file path',
+    toolbar: true,
+    contextMenu: true,
+    tooltip: 'Copy Path',
+    icon: 'copy',
+  },
+  requiresSelection: true,
+  fileFilter: (file, index, selectedList) => selectedList?.length === 1 && file && !file.isDir,
+});
+
 export const CustomActions = {
   PublishFolder,
   UploadFolder,
   DownloadFiles,
   DeleteFiles,
+  CopyPath,
 };
