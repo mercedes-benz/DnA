@@ -61,6 +61,7 @@ import com.daimler.data.controller.exceptions.MessageDescription;
 import com.daimler.data.db.entities.DataikuNsql;
 import com.daimler.data.db.entities.SolutionNsql;
 import com.daimler.data.db.jsonb.SubDivision;
+import com.daimler.data.db.jsonb.solution.MarketingRoleSummary;
 import com.daimler.data.db.jsonb.solution.SkillSummary;
 import com.daimler.data.db.jsonb.solution.Solution;
 import com.daimler.data.db.jsonb.solution.SolutionAlgorithm;
@@ -515,6 +516,19 @@ public class BaseSolutionService extends BaseCommonService<SolutionVO, SolutionN
 						List<SkillSummary> skills = solutionNsql.getData().getSkills().stream()
 								.filter(x -> !x.getNeededSkill().equals(tagName)).collect(Collectors.toList());
 						solutionNsql.getData().setSkills(skills);
+						customRepo.update(solutionNsql);
+					}
+				} else if (category.equals(TAG_CATEGORY.MARKETINGROLE)) {
+					changeLog.setChangeDescription("MArketing Roles: Marketing role '" + tagName + "' removed.");
+					changeLog.setFieldChanged("/marketingRoles/");
+					message = "MarketingRole " + tagName + " has been deleted by Admin " + userName
+							+ ". Cascading update to Solution " + solutionName
+							+ " has been applied to remove references.";
+					LOGGER.info("Deleting MArketingRole:{} from solutions.", tagName);
+					if (!ObjectUtils.isEmpty(solutionNsql.getData().getMarketingRoles())) {
+						List<MarketingRoleSummary> marketingRoles = solutionNsql.getData().getMarketingRoles().stream()
+								.filter(x -> !x.getRole().equals(tagName)).collect(Collectors.toList());
+						solutionNsql.getData().setMarketingRoles(marketingRoles);
 						customRepo.update(solutionNsql);
 					}
 				} else if (category.equals(TAG_CATEGORY.DIVISION)) {
