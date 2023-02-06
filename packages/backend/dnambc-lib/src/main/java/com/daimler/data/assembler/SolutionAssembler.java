@@ -377,11 +377,13 @@ public class SolutionAssembler implements GenericAssembler<SolutionVO, SolutionN
 			marketingVO.setPersonalization(personalizationVO);
 			marketingVO.setPersonas(solution.getPersonas());
 			//setting MarketingRoleSummaryVO
+			List<MarketingRoleSummaryVO> rolesVO = new ArrayList<>();
 			if(!ObjectUtils.isEmpty(solution.getMarketingRoles())) {
-				List<MarketingRoleSummaryVO> rolesVO = solution.getMarketingRoles().stream().map(n -> toMarketingRoleSummaryVO(n))
-						.collect(Collectors.toList());		
-				marketingVO.setMarketingRoles(rolesVO);;
+				rolesVO = solution.getMarketingRoles().stream().map(n -> toMarketingRoleSummaryVO(n))
+						.collect(Collectors.toList());	
 			}
+			marketingVO.setMarketingRoles(rolesVO);;
+			
 			vo.setMarketing(marketingVO);	
 			
 			//setting Department details
@@ -1006,13 +1008,14 @@ public class SolutionAssembler implements GenericAssembler<SolutionVO, SolutionN
 			solution.setDepartment(vo.getDepartment());
 			
 			SolutionMarketingVO marketingVO = vo.getMarketing();
+			List<MarketingRoleSummary> roleSummary = new ArrayList<>();
 			if(marketingVO != null) {
 				List<MarketingRoleSummaryVO> marketingRoles = marketingVO.getMarketingRoles();
 				if (marketingRoles != null && marketingRoles.size() > 0) {
-					List<MarketingRoleSummary> roleSummary = marketingRoles.stream().map(n -> toMarketingRoleSummary(n))
+					roleSummary = marketingRoles.stream().map(n -> toMarketingRoleSummary(n))
 							.collect(Collectors.toList());
-					solution.setMarketingRoles(roleSummary);
 				}
+				solution.setMarketingRoles(roleSummary);				
 				solution.setPersonas(marketingVO.getPersonas());
 				PersonalizationVO personalizationVO = marketingVO.getPersonalization();
 				SolutionPersonalization personalization = new SolutionPersonalization();
