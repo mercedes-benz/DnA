@@ -114,7 +114,8 @@ const RunForecast = ({ onRunClick }) => {
 
   const getConfigurationFiles = () => {
     chronosApi.getConfigurationFiles().then((res) => {
-      setConfigurationFiles(res.data.data.bucketObjects);
+      const filteredConfigFiles = res.data.data.bucketObjects.filter(file => file.objectName !== 'configs/default_config.yml');
+      setConfigurationFiles(filteredConfigFiles);
       SelectBox.defaultSetup();
     }).catch(error => {
       if(error?.response?.data?.errors[0]?.message) {
@@ -439,8 +440,6 @@ const RunForecast = ({ onRunClick }) => {
                       >
                       <select
                         id="configurationField"
-                        required={true}
-                        required-error={'*Missing entry'}
                         {...register('configurationFile', {
                           required: '*Missing entry',
                           validate: (value) => value !== '0' || '*Missing entry',
@@ -453,13 +452,13 @@ const RunForecast = ({ onRunClick }) => {
                             </option>
                             ) : (
                               <>
-                                <option id="configurationOption" value={0}>
-                                  Choose
+                                <option key={'configs/default_config.yml'} value={'chronos-core/configs/default_config.yml'}>
+                                  default_config.yml
                                 </option>
                                 {configurationFiles.map((file) => (
-                                  <option key={file.objectName} value={'chronos-core/' + file.objectName}>
-                                    {file.objectName.split("/")[1]}
-                                  </option>
+                                    <option key={file.objectName} value={'chronos-core/' + file.objectName}>
+                                      {file.objectName.split("/")[1]}
+                                    </option>
                                 ))}
                               </>
                             )
@@ -521,6 +520,7 @@ const RunForecast = ({ onRunClick }) => {
                       defaultValue={12}
                       placeholder="eg. 1"
                       autoComplete="off"
+                      onWheel={(e) => e.target.blur()}
                     />
                     <span className={classNames('error-message')}>{errors.forecastHorizon?.message}</span>
                   </div>
