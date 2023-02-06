@@ -110,10 +110,18 @@ export default class MarketingSummary extends React.Component<IMarketingProps, a
                             selectedPersonasList={this.props.marketing.personas}
                             isSummary={true}
                             onChangePersonas={this.onPersonaChange}></PersonaSelect>
-                        </div> 
-                                          
+                        </div>              
                     </div>
                 </div>              
+            </div>
+            <div>
+              <h3>Marketing Roles</h3>
+              <div id="marketingRoles" className={Styles.firstPanel}>
+                <div className={classNames(Styles.flexLayout)}>
+                {this.props?.marketing?.marketingRoles?.length > 0 ? this.props?.marketing?.marketingRoles?.map((item, index)=>
+                      {return (<div key={index}>{item.role}</div>)}) : 'N/A'}
+                </div>
+              </div>
             </div>
           </div>
         </div>{' '}
