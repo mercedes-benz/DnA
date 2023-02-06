@@ -276,6 +276,7 @@ export default class CreateNewSolution extends React.Component<ICreateNewSolutio
             description: '',
           },
           personas: [],
+          marketingRoles: [],
         },
         datacompliance: {
           quickCheck: false,

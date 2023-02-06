@@ -10,6 +10,8 @@ import LiAvatar from '../../../../assets/images/li.png';
 import HenryAvatar from '../../../../assets/images/henry.png';
 import VictoriaAvatar from '../../../../assets/images/victoria.png';
 import TomAvatar from '../../../../assets/images/tom.png';
+import RoleSelect from 'components/mbc/shared/roleSelect/RoleSelect';
+import { ApiClient } from '../../../../services/ApiClient';
 
 const classNames = cn.bind(Styles);
 
@@ -56,6 +58,7 @@ export interface IMarketingState {
   marketing: IMarketing;
   showDescription: boolean;
   descriptionError: string;
+  neededRoleMaster: any;
 }
 
 export default class Marketing extends React.Component<IMarketingProps, IMarketingState> {
@@ -73,15 +76,32 @@ export default class Marketing extends React.Component<IMarketingProps, IMarketi
             customerJourneyPhases: [],
             marketingCommunicationChannels: [],
             personalization: {isChecked: false,description: ''},
-            personas: []
+            personas: [],
+            marketingRoles: []
           },
         showDescription: false,
-        descriptionError: null
+        descriptionError: null,
+        neededRoleMaster: []
     };
   }
 
-  public componentDidMount() {
-    SelectBox.defaultSetup();
+  // public componentDidMount() {
+    
+  // }
+  componentDidMount() {
+    // SelectBox.defaultSetup();
+    ApiClient.getSkills().then((response: any) => {
+      if (response) {
+        this.setState(
+          {
+            neededRoleMaster: response,
+          },
+          () => {
+            SelectBox.defaultSetup();
+          },
+        );
+      }
+    });
   }
 
   public render() {
@@ -179,6 +199,13 @@ export default class Marketing extends React.Component<IMarketingProps, IMarketi
             isSummary={false}
             onChangePersonas={this.onPersonaChange}></PersonaSelect>
         </div>
+        <div className={classNames(Styles.personaWrapper)}>
+          <RoleSelect 
+          neededRoleMaster={this.state.neededRoleMaster} 
+          onRoleChange={this.onRoleChange}
+          neededRoles={this.state.marketing.marketingRoles}
+          ></RoleSelect>
+        </div>
         <div className="btnConatiner">
           <button className="btn btn-primary" type="button" onClick={this.onMarketingSubmit}>
             Save & Next
@@ -186,6 +213,13 @@ export default class Marketing extends React.Component<IMarketingProps, IMarketi
         </div>
       </React.Fragment>
     );
+  }
+
+  protected onRoleChange = (roles: any) => {
+    console.log(roles,'===============');
+    const {marketing} = this.state;
+    marketing.marketingRoles = roles;
+    this.setState({marketing});
   }
   public resetChanges = () => {
     if (this.props?.marketing) {
