@@ -62,6 +62,7 @@ const CopyPath = defineFileAction({
     contextMenu: true,
     tooltip: 'Copy Path',
     icon: 'copy',
+    group: 'Actions',
   },
   requiresSelection: true,
   fileFilter: (file, index, selectedList) => selectedList?.length === 1 && file && !file.isDir,
