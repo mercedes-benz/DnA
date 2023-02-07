@@ -1,6 +1,6 @@
 import cn from 'classnames';
 import * as React from 'react';
-import { TEAMS_PROFILE_LINK_URL_PREFIX } from 'globals/constants';
+import { TEAMS_PROFILE_APP_NAME, TEAMS_PROFILE_LINK_URL_PREFIX } from 'globals/constants';
 import { TeamMemberType } from 'globals/Enums';
 import { ITeams } from 'globals/types';
 import { IconAvatar } from 'components/icons/IconAvatar';
@@ -128,7 +128,7 @@ export default class TeamMemberListItem extends React.Component<ITeamMemberListI
                 {!this.props?.showInfoStacked && <div>{teamMember?.mobileNumber}</div>}
                 {Envs.ENABLE_INTERNAL_USER_INFO && !this.props?.showInfoStacked ? (
                   <div>
-                    <a href={TEAMS_PROFILE_LINK_URL_PREFIX + teamMember?.shortId}>Teams Profile</a>
+                    <a href={TEAMS_PROFILE_LINK_URL_PREFIX + teamMember?.shortId}>{TEAMS_PROFILE_APP_NAME} Profile</a>
                   </div>
                 ) : (
                   ''
