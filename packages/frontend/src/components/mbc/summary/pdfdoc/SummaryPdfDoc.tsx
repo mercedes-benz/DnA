@@ -1150,7 +1150,7 @@ export const SummaryPdfDoc = (props: SummaryPdfDocProps) => (
                     {personasList(props.solution?.marketing?.personas)}
                   </View>
                 </View>
-                <View style={styles.flexLayout}>
+                <View>
                   <Text style={styles.sectionTitle}>Marketing Roles</Text>
                     {props.solution?.marketing?.marketingRoles?.length > 0 ? (
                       <View>{props.solution?.marketing?.marketingRoles?.map((item, index)=>

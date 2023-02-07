@@ -1,6 +1,6 @@
 import cn from 'classnames';
 import * as React from 'react';
-import { IMarketing, IMarketingCustomerJourney, IMarketingCommunicationChannel } from 'globals/types';
+import { IMarketing, IMarketingCustomerJourney, IMarketingCommunicationChannel, IMarketingRole } from 'globals/types';
 import Styles from './Marketing.scss';
 import SelectBox from 'components/formElements/SelectBox/SelectBox';
 import TextArea from 'components/mbc/shared/textArea/TextArea';
@@ -11,7 +11,7 @@ import HenryAvatar from '../../../../assets/images/henry.png';
 import VictoriaAvatar from '../../../../assets/images/victoria.png';
 import TomAvatar from '../../../../assets/images/tom.png';
 import RoleSelect from 'components/mbc/shared/roleSelect/RoleSelect';
-import { ApiClient } from '../../../../services/ApiClient';
+// import { ApiClient } from '../../../../services/ApiClient';
 
 const classNames = cn.bind(Styles);
 
@@ -47,6 +47,7 @@ const personas = [
   ];
 
 export interface IMarketingProps {
+  marketingRolesLOV: IMarketingRole[];
   onSaveDraft: (tabToBeSaved: string) => void;
   marketing: IMarketing;
   modifyMarketing: (analytics: IMarketing) => void;
@@ -89,19 +90,29 @@ export default class Marketing extends React.Component<IMarketingProps, IMarketi
     
   // }
   componentDidMount() {
-    // SelectBox.defaultSetup();
-    ApiClient.getSkills().then((response: any) => {
-      if (response) {
-        this.setState(
-          {
-            neededRoleMaster: response,
-          },
-          () => {
-            SelectBox.defaultSetup();
-          },
-        );
-      }
-    });
+    SelectBox.defaultSetup();
+
+    // ApiClient.getSkills().then((response: any) => {
+    //   if (response) {
+    //     this.setState(
+    //       {
+    //         neededRoleMaster: response,
+    //       },
+    //       () => {
+    //         SelectBox.defaultSetup();
+    //       },
+    //     );
+    //   }
+    // });
+
+    // this.setState(
+    //   {
+    //     neededRoleMaster: this.props.marketingRolesLOV,
+    //   },
+    //   () => {
+    //     SelectBox.defaultSetup();
+    //   },
+    // );
   }
 
   public render() {
@@ -201,7 +212,7 @@ export default class Marketing extends React.Component<IMarketingProps, IMarketi
         </div>
         <div className={classNames(Styles.personaWrapper)}>
           <RoleSelect 
-          neededRoleMaster={this.state.neededRoleMaster} 
+          neededRoleMaster={this.props.marketingRolesLOV} 
           onRoleChange={this.onRoleChange}
           neededRoles={this.state.marketing.marketingRoles}
           ></RoleSelect>
@@ -216,7 +227,6 @@ export default class Marketing extends React.Component<IMarketingProps, IMarketi
   }
 
   protected onRoleChange = (roles: any) => {
-    console.log(roles,'===============');
     const {marketing} = this.state;
     marketing.marketingRoles = roles;
     this.setState({marketing});
