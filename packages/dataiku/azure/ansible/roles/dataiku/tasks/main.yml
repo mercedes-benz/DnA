@@ -421,6 +421,15 @@
     group: "{{dss_system_user}}"
   tags: [ training, prod, automation_node ]
 
+- name: Downloading api connect Plugin
+  become_user: "{{dss_system_user}}"
+  get_url:
+    url: "{{dss_api_connect_plugin_url}}"
+    dest: "{{dss_data_directory}}/plugins"
+    owner: "{{dss_system_user}}"
+    group: "{{dss_system_user}}"
+  tags: [ training, prod, automation_node ]  
+
 - name: Downloading Model Drift Plugin
   become_user: "{{dss_system_user}}"
   get_url:
@@ -488,7 +497,7 @@
     settings:
       - key: "presets"
         value: "{{ lookup('template', 'ad_sync_config.json') }}"
-  tags: [ training, prod, automation_node ]
+  tags: [ training, prod, automation_node]
 
 - name: Install Azure AD Project Plugin
   dataiku_install_plugin:
@@ -518,6 +527,15 @@
   dataiku_install_plugin:
     name: "timeseries-forecast"
     archive_path: "{{dss_data_directory}}/plugins/{{dss_timeseries_forecast_plugin_name}}"
+    api_host: "http://localhost:{{dss_port}}"
+    api_key: "{{dataiku_api_key.stdout}}"
+    force_update: true
+  tags: [ training, prod, automation_node ]
+
+- name: Install api-connect Plugin
+  dataiku_install_plugin:
+    name: "api-connect"
+    archive_path: "{{dss_data_directory}}/plugins/dss-plugin-api-connect-1.1.1.zip"
     api_host: "http://localhost:{{dss_port}}"
     api_key: "{{dataiku_api_key.stdout}}"
     force_update: true
