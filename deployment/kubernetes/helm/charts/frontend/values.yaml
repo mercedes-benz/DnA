@@ -125,6 +125,7 @@ configJs: |
       CHRONOS_API_BASEURL: "",
       ENABLE_CHRONOS_ONEAPI: false, 
       CHRONOS_ONEAPI_URL: "YOUR_CHRONOS_ONEAPI_URL",
+      STORAGE_MFE_APP_URL: 'http://localhost:8083',
     };
     
 probes:

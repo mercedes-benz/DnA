@@ -5,6 +5,8 @@ import Tooltip from '../../../../common/modules/uilab/js/src/tooltip';
 import CircularProgressBar from '../../../shared/circularProgressBar/CircularProgressBar';
 import ContextMenu from '../../../shared/contextMenu/ContextMenu';
 import { regionalDateAndTimeConversionSolution } from '../../../../Utility/utils';
+import Notification from '../../../../common/modules/uilab/js/src/notification';
+import { Envs } from '../../../../Utility/envs';
 
 const classNames = classnames.bind(Styles);
 
@@ -51,10 +53,23 @@ const RowItem = (props) => {
     props.showDeleteConfirmModal(props.item);
   };
 
+  const onBrowseClick = () => {
+    if(props.item.resultFolderPath) {
+      window.open(`${Envs.STORAGE_MFE_APP_URL}/explorer/${props.item.resultFolderPath}`);
+    } else {
+      Notification.show('No folder path available for the given run', 'alert');
+    }
+  }
+
   const contextMenuItems = [
     {
       title: 'Delete Run/Results',
       onClickFn: onItemDelete
+    },
+    {
+      title: 'Browse in Storage',
+      onClickFn: onBrowseClick,
+      disable: props.item.result_state === 'FAILED'
     }
   ];
 
