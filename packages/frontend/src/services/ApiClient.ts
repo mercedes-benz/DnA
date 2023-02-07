@@ -336,6 +336,7 @@ export class ApiClient {
       this.get('customerJourneyPhases'),
       this.get('marketingCommunicationChannels'),
       ReportsApiClient.get('departments'),
+      this.get('marketingRoles'),
     ]);
   }
 
@@ -865,7 +866,13 @@ export class ApiClient {
             isChecked,
             description
           },
-          personas
+          personas,
+          marketingRoles {
+            fromDate,
+            role,
+            requestedFTECount,
+            toDate,
+          }
         },
         dataCompliance {
           expertGuidelineNeeded,
