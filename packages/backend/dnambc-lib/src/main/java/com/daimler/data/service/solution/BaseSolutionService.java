@@ -79,6 +79,7 @@ import com.daimler.data.dto.datasource.DataSourceVO;
 import com.daimler.data.dto.divisions.DivisionVO;
 import com.daimler.data.dto.divisions.SubdivisionVO;
 import com.daimler.data.dto.language.LanguageVO;
+import com.daimler.data.dto.marketingRole.MarketingRoleVO;
 import com.daimler.data.dto.notebook.NotebookVO;
 import com.daimler.data.dto.platform.PlatformVO;
 import com.daimler.data.dto.relatedProduct.RelatedProductVO;
@@ -97,6 +98,7 @@ import com.daimler.data.service.common.BaseCommonService;
 import com.daimler.data.service.dataiku.DataikuService;
 import com.daimler.data.service.datasource.DataSourceService;
 import com.daimler.data.service.language.LanguageService;
+import com.daimler.data.service.marketingRoles.MarketingRoleService;
 import com.daimler.data.service.notebook.NotebookService;
 import com.daimler.data.service.platform.PlatformService;
 import com.daimler.data.service.relatedproduct.RelatedProductService;
@@ -170,6 +172,9 @@ public class BaseSolutionService extends BaseCommonService<SolutionVO, SolutionN
 	
 	@Autowired
 	private DashboardClient dashboardClient;	
+	
+	@Autowired
+	private MarketingRoleService marketingRoleService;
 
 	public BaseSolutionService() {
 		super();
@@ -241,6 +246,10 @@ public class BaseSolutionService extends BaseCommonService<SolutionVO, SolutionN
 		
 		LOGGER.debug("Updating Skills if not available.");
 		updateSkills(vo);
+		
+		LOGGER.debug("Updating Roles if not available.");
+		updateRoles(vo);
+		
 		SolutionAnalyticsVO analyticsVO = vo.getAnalytics();
 		if (analyticsVO != null) {
 			SolutionAnalyticsVO analyticsWithIdsInfo = new SolutionAnalyticsVO();
@@ -713,6 +722,31 @@ public class BaseSolutionService extends BaseCommonService<SolutionVO, SolutionN
 					newSkillVO.setId(null);
 					newSkillVO.setName(skill);
 					skillService.create(newSkillVO);
+				}
+			});
+		}
+	}
+	
+	/*
+	 * To create a new Roles if not exist
+	 * 
+	 */
+	private void updateRoles(SolutionVO vo) {		
+		List<String> roles = vo.getMarketing().getMarketingRoles() != null ? vo.getMarketing().getMarketingRoles().stream().filter(Objects :: nonNull)
+				.map(n->n.getRole()).collect(Collectors.toList()) : null;
+		if (!ObjectUtils.isEmpty(roles)) {
+			roles.forEach(role -> {
+				LOGGER.info("Checking if Role:{} already exists", role);
+				MarketingRoleVO existingRoleVO = marketingRoleService.getByUniqueliteral("name", role);
+				if (existingRoleVO != null && existingRoleVO.getName() != null
+						&& existingRoleVO.getName().equalsIgnoreCase(role))
+					return;
+				else {
+					LOGGER.info("Adding new Role:{} in db", role);
+					MarketingRoleVO newRoleVO = new MarketingRoleVO();
+					newRoleVO.setId(null);
+					newRoleVO.setName(role);					
+					marketingRoleService.create(newRoleVO);
 				}
 			});
 		}
