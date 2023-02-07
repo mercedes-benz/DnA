@@ -266,7 +266,7 @@ paths:
         201:
           description: "Returns message of success or failure"
           schema:
-            $ref: "#/definitions/CodeServerWorkspaceVO"
+            $ref: "#/definitions/GenericMessage"
         204:
           description: "Fetch complete, no content found."
         400:
@@ -302,7 +302,7 @@ paths:
         201:
           description: "Returns message of success or failure"
           schema:
-            $ref: "#/definitions/CodeServerWorkspaceVO"
+            $ref: "#/definitions/GenericMessage"
         204:
           description: "Fetch complete, no content found."
         400:
