@@ -813,8 +813,13 @@ definitions:
         items:
           type: string
       personalization:
-        $ref: "#/definitions/PersonalizationVO"    
-      
+        $ref: "#/definitions/PersonalizationVO"   
+      marketingRoles:
+        description: "Marketing Roles for the solution"
+        type: array
+        items:
+          $ref: "#/definitions/MarketingRoleSummaryVO"   
+
   
   PersonalizationVO:
     type: object
@@ -1324,3 +1329,24 @@ definitions:
         type: number
         minimum: 0
         description: "Number of FTE requested for the needed Role/Skill."     
+   
+  MarketingRoleSummaryVO:
+    description: "Summary of needed skills and requested FTE."
+    type: object
+    properties:
+      role:
+        type: string
+        description: "Needed Role."
+      fromDate:
+        type: string
+        format: date
+        description: "Start date for needed roles." 
+      toDate:
+        type: string
+        format: date
+        description: "End date for needed roles." 
+      requestedFTECount:
+        type: number
+        minimum: 0
+        description: "Number of FTE requested for the needed Role."     
+    
