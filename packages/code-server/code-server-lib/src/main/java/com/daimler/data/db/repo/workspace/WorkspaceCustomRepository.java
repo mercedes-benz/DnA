@@ -51,6 +51,8 @@ public interface WorkspaceCustomRepository extends CommonDataRepository<CodeServ
 
 	List<Object[]> getWorkspaceIdsForProjectMembers(String projectName);
 
+	String getWorkspaceTechnicalId(String userId, String projectName);
+
 	void updateDeletedStatusForProject(String projectName);
 
 }
