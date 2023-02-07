@@ -1180,6 +1180,11 @@ export interface INeededMarketingRoleObject {
   toDate: string;
 }
 
+export interface IMarketingRole {
+  id: string;
+  name: string;
+}
+
 export interface IMarketingCommunicationChannel {
   id: string;
   name: string;

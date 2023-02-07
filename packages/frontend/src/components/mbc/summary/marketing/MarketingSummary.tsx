@@ -117,7 +117,7 @@ export default class MarketingSummary extends React.Component<IMarketingProps, a
             <div>
               <h3>Marketing Roles</h3>
               <div id="marketingRoles" className={Styles.firstPanel}>
-                <div className={classNames(Styles.flexLayout)}>
+                <div className={classNames(Styles.marketingRoleWrapper)}>
                 {this.props?.marketing?.marketingRoles?.length > 0 ? this.props?.marketing?.marketingRoles?.map((item, index)=>
                       {return (<div key={index}>{item.role}</div>)}) : 'N/A'}
                 </div>

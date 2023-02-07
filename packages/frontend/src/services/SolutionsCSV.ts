@@ -349,7 +349,7 @@ export const getDataForCSV = (
             personas: solution.marketing ? solution.marketing?.personas?.length > 0 ? solution.marketing?.personas?.join('|') : 'NA': 'NA',
             personalization: solution.marketing?.personalization.isChecked,
             personalizationDescription: solution.marketing?.personalization.description ? solution.marketing?.personalization.description : 'NA',
-            marketingRoles: solution.marketing ? solution.marketing?.marketingRoles.map(item=>item.role).join('|') : 'NA',
+            marketingRoles: solution.marketing ? solution.marketing?.marketingRoles?.map(item=>item.role).join('|') : 'NA',
             publish: solution.publish ? 'Yes' : 'No',
             reasonForHoldOrClose: solution.reasonForHoldOrClose ? sanitize(solution.reasonForHoldOrClose) : 'NA',
             ...dataComplianceOBJ,
