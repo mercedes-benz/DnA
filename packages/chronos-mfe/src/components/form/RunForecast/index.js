@@ -114,8 +114,28 @@ const RunForecast = ({ onRunClick }) => {
 
   const getConfigurationFiles = () => {
     chronosApi.getConfigurationFiles().then((res) => {
-      const filteredConfigFiles = res.data.data.bucketObjects.filter(file => file.objectName !== 'configs/default_config.yml');
-      setConfigurationFiles(filteredConfigFiles);
+      const bucketObjects = res.data.data.bucketObjects ? [...res.data.data.bucketObjects] : [];
+      bucketObjects.sort((a, b) => {
+        let fa = a.objectName.toLowerCase(),
+            fb = b.objectName.toLowerCase();
+        if (fa < fb) {
+          return -1;
+        }
+        if (fa > fb) {
+          return 1;
+        }
+        return 0;
+      });
+      const filteredConfigFiles = bucketObjects.filter(file => file.objectName === 'configs/default_config.yml');
+      if(filteredConfigFiles.length === 1) {
+        bucketObjects.sort((a, b) => {
+          let fa = a.objectName.toLowerCase(),
+              fb = b.objectName.toLowerCase();
+          const first = 'configs/default_config.yml';
+          return fa == first ? -1 : fb == first ? 1 : 0;
+        });
+      }
+      setConfigurationFiles(bucketObjects);
       SelectBox.defaultSetup();
     }).catch(error => {
       if(error?.response?.data?.errors[0]?.message) {
@@ -452,9 +472,6 @@ const RunForecast = ({ onRunClick }) => {
                             </option>
                             ) : (
                               <>
-                                <option key={'configs/default_config.yml'} value={'chronos-core/configs/default_config.yml'}>
-                                  default_config.yml
-                                </option>
                                 {configurationFiles.map((file) => (
                                     <option key={file.objectName} value={'chronos-core/' + file.objectName}>
                                       {file.objectName.split("/")[1]}
@@ -486,8 +503,6 @@ const RunForecast = ({ onRunClick }) => {
                       >
                       <select
                         id="frequencyField"
-                        required={true}
-                        required-error={'*Missing entry'}
                         {...register('frequency', {
                           required: '*Missing entry',
                           validate: (value) => value !== '0' || '*Missing entry',
