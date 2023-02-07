@@ -60,14 +60,18 @@ const ForecastingResults = () => {
         if(res.data.y.charAt(0) === ',') {
           y = 'date' + res.data.y;
         } else {
-          y = res.data.y;
+          const numOfCharsToDelete = res.data.y.indexOf(',');
+          const newDataString = res.data.y.slice(numOfCharsToDelete);
+          y = 'date' + newDataString;
         }
         const yObj = csvToJSON(y);
         let yPred = '';
         if(res.data.yPred.charAt(0) === ',') {
           yPred = 'date' + res.data.yPred;
         } else {
-          yPred = res.data.yPred;
+          const numOfCharsToDelete = res.data.yPred.indexOf(',');
+          const newDataString = res.data.yPred.slice(numOfCharsToDelete);
+          yPred = 'date' + newDataString;
         }
         const yPredObj = csvToJSON(yPred);
         const forecastObj = [...yObj, ...yPredObj].filter(obj => obj.date !== '');
