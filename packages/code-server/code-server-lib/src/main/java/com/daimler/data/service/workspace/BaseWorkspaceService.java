@@ -34,6 +34,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -569,7 +570,134 @@ public class BaseWorkspaceService implements WorkspaceService {
 		responseMessage.setSuccess(status);
 		return responseMessage;
 	}
-	
+
+	@Override
+	public GenericMessage removeCollabById(String userId, CodeServerWorkspaceVO vo, UserInfoVO userRequestDto) {
+		GenericMessage responseVO = new GenericMessage();
+		List<MessageDescription> errors = new ArrayList<>();
+		List<MessageDescription> warnings = new ArrayList<>();
+		GenericMessage responseMessage = new GenericMessage();
+		CodeServerWorkspaceNsql entity = workspaceCustomRepository.findById(userId, vo.getId());
+		boolean isProjectOwner = false;
+
+		String projectOwnerId = entity.getData().getProjectDetails().getProjectOwner().getId();
+		if (projectOwnerId.equalsIgnoreCase(userId)) {
+			isProjectOwner = true;
+		}
+
+		if (isProjectOwner) {
+			List<UserInfo> exstingcollaborators = entity.getData().getProjectDetails().getProjectCollaborators();
+			String projectName = entity.getData().getProjectDetails().getProjectName();
+
+			if (exstingcollaborators != null) {
+				for (UserInfo usr : exstingcollaborators) {
+					if (usr.getId().equalsIgnoreCase(userRequestDto.getId())) {
+						exstingcollaborators.remove(usr);
+						break;
+					}
+				}
+				entity.getData().getProjectDetails().setProjectCollaborators(exstingcollaborators);
+			}
+
+			String technincalId = workspaceCustomRepository.getWorkspaceTechnicalId(userRequestDto.getId(), projectName);
+			entity.getData().getProjectDetails().setProjectCollaborators(exstingcollaborators);
+			responseMessage = deleteById(userRequestDto.getId(), technincalId);
+			jpaRepo.save(entity);
+		} else {
+			log.error("Failed to remove collaborator details as requested user is not a project owner " + entity.getData().getWorkspaceId());
+			MessageDescription msg = new MessageDescription("Failed to remove collaborator details as requested user is not a project owner");
+			errors.add(msg);
+			responseMessage.setSuccess("FAILED");
+			responseMessage.setErrors(errors);
+			return responseMessage;
+		}
+
+		return responseMessage;
+	}
+
+	@Override
+	public GenericMessage addCollabById(String userId, CodeServerWorkspaceVO vo, UserInfoVO userRequestDto) {
+		GenericMessage responseVO = new GenericMessage();
+		List<MessageDescription> errors = new ArrayList<>();
+		List<MessageDescription> warnings = new ArrayList<>();
+		GenericMessage responseMessage = new GenericMessage();
+		CodeServerWorkspaceNsql entity = workspaceCustomRepository.findById(userId, vo.getId());
+		boolean isProjectOwner = false;
+
+		String projectOwnerId = entity.getData().getProjectDetails().getProjectOwner().getId();
+		if (projectOwnerId.equalsIgnoreCase(userId)) {
+			isProjectOwner = true;
+		}
+
+		if (isProjectOwner) {
+			try {
+				String repoName = entity.getData().getProjectDetails().getGitRepoName();
+				CodeServerWorkspaceNsql ownerEntity = workspaceAssembler.toEntity(vo);
+
+				UserInfo collaborator = new UserInfo();
+				BeanUtils.copyProperties(userRequestDto, collaborator);
+
+				List<UserInfo> addCollabrators = entity.getData().getProjectDetails().getProjectCollaborators();
+				if (addCollabrators != null) {
+					entity.getData().getProjectDetails().getProjectCollaborators().add(collaborator);
+				} else {
+					List<UserInfo> userInfoList = new ArrayList<>();
+					userInfoList.add(collaborator);
+					entity.getData().getProjectDetails().setProjectCollaborators(userInfoList);
+				}
+
+				String gitUser = userRequestDto.getGitUserName();
+				HttpStatus addGitUser = gitClient.addUserToRepo(gitUser, repoName);
+				if (addGitUser.is2xxSuccessful()) {
+					List<CodeServerWorkspaceNsql> entities = new ArrayList<>();
+					CodeServerWorkspaceNsql collabEntity = new CodeServerWorkspaceNsql();
+					CodeServerWorkspace collabData = new CodeServerWorkspace();
+					collabData.setDescription(ownerEntity.getData().getDescription());
+					collabData.setGitUserName(collaborator.getGitUserName());
+					collabData.setIntiatedOn(null);
+					collabData.setPassword("");
+					collabData.setProjectDetails(ownerEntity.getData().getProjectDetails());
+					collabData.setStatus(ConstantsUtility.COLLABREQUESTEDSTATE);
+					Long collabWsSeqId = jpaRepo.getNextWorkspaceSeqId();
+					String collabWsId = ConstantsUtility.WORKSPACEPREFIX + String.valueOf(collabWsSeqId);
+					collabData.setWorkspaceId(collabWsId);
+					UserInfo collabUser = workspaceAssembler.toUserInfo(userRequestDto);
+					collabData.setWorkspaceOwner(collabUser);
+					collabData.setWorkspaceUrl("");
+					collabEntity.setId(null);
+					collabEntity.setData(collabData);
+					entities.add(collabEntity);
+
+					entities.add(entity);
+					jpaRepo.saveAllAndFlush(entities);
+					responseMessage.setSuccess("SUCCESS");
+				} else {
+					log.info("Failed while adding {} as collaborator with status {}", repoName, userRequestDto.getGitUserName(), addGitUser.name());
+					MessageDescription errMsg = new MessageDescription("Failed while adding " + userRequestDto.getGitUserName() + " as collaborator . Please make " + userRequestDto.getGitUserName() + " is valid git user. Unable to delete repository because of " + ", please delete repository manually and retry");
+					errors.add(errMsg);
+					responseVO.setErrors(errors);
+					return responseVO;
+				}
+			} catch (Exception e) {
+				log.error("Failed to add collaborator details as requested with Exception: {} ", e.getMessage());
+				MessageDescription msg = new MessageDescription("Failed to add collaborator details");
+				errors.add(msg);
+				responseMessage.setSuccess("FAILED");
+				responseMessage.setErrors(errors);
+				return responseMessage;
+			}
+		} else {
+			log.error("Failed to add collaborator details as requested user is not a project owner " + entity.getData().getWorkspaceId());
+			MessageDescription msg = new MessageDescription("Failed to add collaborator details as requested user is not a project owner");
+			errors.add(msg);
+			responseMessage.setSuccess("FAILED");
+			responseMessage.setErrors(errors);
+			return responseMessage;
+		}
+
+		return responseMessage;
+	}
+
 	@Override
 	@Transactional
 	public GenericMessage undeployWorkspace(String userId,String id,String environment, String branch) {

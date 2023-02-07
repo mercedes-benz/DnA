@@ -189,6 +189,24 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 		}
 		return records;
 	}
+
+	public String getWorkspaceTechnicalId(String userId, String projectName) {
+		String id = "";
+		String getQuery = "select id "
+				+ " from workspace_nsql "
+				+ " where lower(jsonb_extract_path_text(data,'projectDetails','projectName'))" + "= '" + projectName.toLowerCase() + "' and lower(jsonb_extract_path_text(data,'workspaceOwner','id')) = '" + userId.toLowerCase() + "'"
+				+ " and lower(jsonb_extract_path_text(data,'status')) <> 'deleted'";
+		try {
+			Query q = em.createNativeQuery(getQuery);
+			id = (String) q.getSingleResult();
+			if (id != null && !id.isEmpty()) {
+				log.info("Found {} workspaces in project {} which are not in deleted state", id, projectName);
+			}
+		} catch (Exception e) {
+			log.error("Failed to query workspaces under project {} , which are not in deleted state", projectName);
+		}
+		return id;
+	}
 	
 	@Override
 	public GenericMessage updateDeploymentDetails(String projectName, String environment, CodeServerDeploymentDetails deploymentDetails) {
