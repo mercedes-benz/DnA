@@ -492,6 +492,9 @@ const FileExplorer = () => {
         modal: true,
         data,
       });
+    } else if (data.id === CustomActions.CopyPath.id) {
+      const filePath = bucketName + '/' + data.state?.selectedFiles?.[0]?.objectName;
+      navigator.clipboard.writeText(filePath).then(() => Notification.show('File path copied to clipboard'));
     }
   };
 
