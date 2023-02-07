@@ -1,5 +1,5 @@
 import classNames from 'classnames';
-import { INeededMarketingRoleObject, IRelatedProduct } from 'globals/types';
+import { IMarketingRole, INeededMarketingRoleObject, IRelatedProduct } from 'globals/types';
 import React, { useState, useEffect } from 'react';
 import Styles from './RoleSelect.scss';
 import { InputFields } from '../../../../assets/modules/uilab/bundle/js/uilab.bundle';
@@ -10,15 +10,15 @@ import AddRelatedProductModal from 'components/mbc/createNewSolution/description
 import ConfirmModal from 'components/formElements/modal/confirmModal/ConfirmModal';
 
 export interface IPersonaSelectProps {
-    neededRoleMaster: any;
+    neededRoleMaster: IMarketingRole[];
     neededRoles: INeededMarketingRoleObject[];
     onRoleChange?: (e:any) => void;
 }
 
 const RoleSelect = (props: IPersonaSelectProps) => {
-  const [roleCountFieldList, setRoleCountFieldList] = useState(props.neededRoles);
-  const [neededRoleMaster, setNeededRoleMaster] = useState([]);
-  const [neededRoleValue, setNeededRoleValue]  = useState([]);
+  const [roleCountFieldList, setRoleCountFieldList] = useState([]);
+  const [neededRoleMaster, setNeededRoleMaster] = useState(props?.neededRoleMaster);
+  const [neededRoleValue, setNeededRoleValue]  = useState(props?.neededRoles?.map(item => item.role));
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [roleToDelete, setRoleToDelete] = useState({});
   const [showAddNeededRoleModal, setShowAddNeededRoleModal] = useState(false);
@@ -27,9 +27,14 @@ const RoleSelect = (props: IPersonaSelectProps) => {
 
   useEffect(() => {
     props.onRoleChange(roleCountFieldList);
-    // setRoleCountFieldList(props.neededRoles);
-    setNeededRoleMaster(props.neededRoleMaster);
+    setNeededRoleMaster(neededRoleMaster);
+    setNeededRoleValue(neededRoleValue);
   }, [neededRoleValue]); 
+
+  useEffect(() => {
+    SelectBox.defaultSetup();
+    setRoleCountFieldList(props.neededRoles);
+  },[]);
 
   
   const onNeededRoleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -87,26 +92,12 @@ const RoleSelect = (props: IPersonaSelectProps) => {
       roleCountFieldList.push(...result);
       setRoleCountFieldList(roleCountFieldList);
       setNeededRoleValue(selectedValues);
-    //   this.setState({ roleCountFieldList, neededRoleValue: selectedValues }, () => {
-    //     const tempTeamsObj = { team: this.state.teamMembers };
-    //     this.props.modifyTeam(tempTeamsObj, this.state.roleCountFieldList);
-    //   });
     } else {
       /************** Setting default value when loads while edit ***************/
       setRoleCountFieldList(tempRoleCountFieldList.length > 0 ? tempRoleCountFieldList : roleCountFieldList);
       setNeededRoleValue(selectedValues);
       InputFields.defaultSetup();
-    //   this.setState(
-    //     {
-    //       roleCountFieldList: tempRoleCountFieldList.length > 0 ? tempRoleCountFieldList : roleCountFieldList,
-    //       neededRoleValue: selectedValues,
-    //     },
-    //     () => {
-    //       InputFields.defaultSetup();
-    //       const tempTeamsObj = { team: this.state.teamMembers };
-    //       if (tempRoleCountFieldList.length > 0) this.props.modifyTeam(tempTeamsObj, this.state.roleCountFieldList);
-    //     },
-    //   );
+    
     }
   }
 
@@ -121,23 +112,25 @@ const RoleSelect = (props: IPersonaSelectProps) => {
   const onAccept = () => {
     deleteRole(roleToDelete);
     setShowDeleteModal(false);
-    // this.setState({ showDeleteModal: false });
   };
 
   const onInfoModalCancel = () => {
     setShowDeleteModal(false);
-    // this.setState({ showDeleteModal: false });
   };
 
   const deleteRole = (selectedRole: any) => {
-    // const { neededRoleValue } = this.state;
     const tempArr = neededRoleValue.filter((item, index) => {
-      if (selectedRole.marketingRole != item) {
+      if (selectedRole.role != item) {
         return item;
       }
     });
     setNeededRoleValue(tempArr);
-    SelectBox.defaultSetup(false);
+    /** following timeout is the substitute of callback function of setState()
+     * where setting up select box as default after updating master role list
+     */
+     setTimeout(()=>{
+      SelectBox.defaultSetup(false);
+    }, 10);
     changeInRoleCount(tempArr);
     // this.setState({ neededRoleValue: tempArr }, () => {
     //   SelectBox.defaultSetup(false);
@@ -167,43 +160,28 @@ const RoleSelect = (props: IPersonaSelectProps) => {
     });
 
     const selectedValues: string[] = selectedNeededRoles;
-    // const { neededRoleValue } = this.state;
     neededRoleValue.push(...selectedValues);
-    // this.setState({ neededRoleValue });
     setNeededRoleValue(neededRoleValue);
     InputFieldsUtils.resetErrors('#roleWrapper'); // reseting the parent filed //
     setNeededRoleMaster(neededRoleMaster);
-    SelectBox.defaultSetup(false);
+    /** following timeout is the substitute of callback function of setState()
+     * where setting up select box as default after updating master role list
+     */
+    setTimeout(()=>{
+      SelectBox.defaultSetup(false);
+    }, 10);
+    
     changeInRoleCount(neededRoleValue);
-    // this.setState(
-    //   {
-    //     neededRoleMaster: this.state.neededRoleMaster,
-    //   },
-    //   () => {
-    //     SelectBox.defaultSetup(false);
-    //     this.changeInRoleCount(neededRoleValue);
-    //   },
-    // );
   };
 
   const showAddNeededRoleModalView = () => {
     setShowAddNeededRoleModal(true);
-    // this.setState({ showAddNeededRoleModal: true });
   };
 
   const onAddNeededRoleModalCancel = () => {
     setShowAddNeededRoleModal(false);
-    // this.setState({ showAddNeededRoleModal: false }, () => {
-    //   // this.resetTeamsState();
-    // });
   };
-
-  const neededRoleValues = neededRoleValue
-      ? neededRoleValue.map((neededRole: string) => {
-          return neededRole;
-        })
-      : [];
-
+  
 //   const handleChange = (values: any, sourceInfo: any) => {
 //         const { value } = values;
 //         const name: string = sourceInfo?.event?.target?.name;
@@ -221,7 +199,7 @@ const RoleSelect = (props: IPersonaSelectProps) => {
 //         //   const tempTeamsObj = { team: this.state.teamMembers };
 //         //   this.props.modifyTeam(tempTeamsObj, this.state.roleCountFieldList);
 //         // });
-//       };    
+//       };  
 
   return (
     <>        
@@ -240,10 +218,10 @@ const RoleSelect = (props: IPersonaSelectProps) => {
                     multiple={true}
                     required={false}
                     onChange={onNeededRoleChange}
-                    value={neededRoleValues}
+                    value={neededRoleValue}
                   >
-                    {props.neededRoleMaster
-                      ? props.neededRoleMaster.map((obj:any) => (
+                    {neededRoleMaster
+                      ? neededRoleMaster?.map((obj:any) => (
                           <option id={obj.name} key={obj.name} value={obj.name}>
                             {obj.name}
                           </option>
