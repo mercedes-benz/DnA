@@ -127,7 +127,8 @@ export default class Summary extends React.Component<{ user: IUserInfo }, ISumma
               isChecked: false,
               description: ''
           },
-          personas: []
+          personas: [],
+          marketingRoles: []
         },
         datacompliance: {
           quickCheck: false,
