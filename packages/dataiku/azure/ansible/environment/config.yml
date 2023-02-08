@@ -1,6 +1,6 @@
 ---
 
-dss_version: "11.0.3"
+dss_version: "11.1.4"
 dss_install_archive_name: "dataiku-dss-{{dss_version}}"
 dss_install_archive_name_with_extension: "{{dss_install_archive_name}}.tar.gz"
 dss_download_url: "https://cdn.downloads.dataiku.com/public/dss/{{dss_version}}/{{dss_install_archive_name_with_extension}}"
@@ -33,6 +33,10 @@ dss_plugin_url: "https://update.dataiku.com/dss/{{dss_plugin_version}}/plugins"
 dss_timeseries_forecast_plugin_version: "1.1.0"
 dss_timeseries_forecast_plugin_name: "dss-plugin-timeseries-forecast-{{dss_timeseries_forecast_plugin_version}}.zip"
 dss_timeseries_forecast_plugin_url: "{{dss_plugin_url}}/timeseries-forecast/{{dss_timeseries_forecast_plugin_version}}/{{dss_timeseries_forecast_plugin_name}}"
+
+dss_api_connect_plugin_version: "1.1.1"
+dss_api_connect_plugin_name: "dss-plugin-api-connect-{{dss_api_connect_plugin_version}}.zip"
+dss_api_connect_plugin_url: "https://cdn.downloads.dataiku.com/public/dss-plugins/api-connect/dss-11/{{dss_api_connect_plugin_name}}"
 
 dss_model_drift_plugin_version: "3.0.0"
 dss_model_drift_plugin_name: "dss-plugin-model-drift-{{dss_model_drift_plugin_version}}.zip"

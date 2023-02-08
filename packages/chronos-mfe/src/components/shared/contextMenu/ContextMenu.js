@@ -106,7 +106,7 @@ const ContextMenu = (props) => {
           <ul className="contextList">
             {
               props.items.length > 0 && props.items.map((item) => (
-                <li key={item.title} className="contextListItem" onClick={item.onClickFn}>
+                <li key={item.title} className={classNames('contextListItem', item.disable && Styles.disableLink)} onClick={item.onClickFn}>
                   <span>{item.title}</span>
                 </li>
               ))

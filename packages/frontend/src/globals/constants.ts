@@ -61,6 +61,7 @@ export const MALWARE_SCAN_SERVICE_ONE_API_LINK = 'https://your-malware-scan-one-
 
 export const SUPPORT_EMAIL_ID = 'support@your-domain.com';
 
+export const TEAMS_PROFILE_APP_NAME = 'Teams';
 export const TEAMS_PROFILE_LINK_URL_PREFIX = 'https://your-team-profile-url-prefix/';
 
 export const ATTACH_FILES_TO_ACCEPT =
