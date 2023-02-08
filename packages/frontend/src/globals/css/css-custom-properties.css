@@ -32,6 +32,8 @@
   --font-size-big-double: calc(var(--rem) * 5.1);
 
   --font-weight-regular: 400;
+  --font-weight-bold: 700;
+  --font-height: 14px;
 
   --font-default: var(--font-weight-regular) var(--font-size-default) / var(--font-height) var(--font-family-roboto);
   --font-default-bold: var(--font-weight-bold) var(--font-size-default) / var(--font-height)
@@ -55,6 +57,16 @@
   --color-rating-warning: var(--color-orange);
   --color-rating-info: var(--color-petrol);
   --color-rating-default: var(--color-coolgrey-40k);
+
+  --color-coolgrey-60k: #D9DFE4;
+  --color-petrol: #F3E537;
+  --color-green: #0AE6AB;
+  --color-signalred: #E84D47;
+  --color-orange: #F3E537;
+  --color-coolgrey-40k: #383F49;
+  --color-white: #FFFFFF;
+  --color-catskill: #35ADAC;
+  --color-black: #1C2026;
 
   --color-highlight: #00adef;
 
