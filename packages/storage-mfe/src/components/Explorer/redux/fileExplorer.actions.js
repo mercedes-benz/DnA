@@ -226,6 +226,7 @@ export const setActionButtons = (bucketPermission, bucketObjects, showPublish = 
           ? [CustomActions.PublishFolder]
           : []),
         CustomActions.CopyPath,
+        CustomActions.ResetSearchInput,
       ],
     });
   };
