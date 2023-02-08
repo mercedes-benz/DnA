@@ -114,7 +114,28 @@ const RunForecast = ({ onRunClick }) => {
 
   const getConfigurationFiles = () => {
     chronosApi.getConfigurationFiles().then((res) => {
-      setConfigurationFiles(res.data.data.bucketObjects);
+      const bucketObjects = res.data.data.bucketObjects ? [...res.data.data.bucketObjects] : [];
+      bucketObjects.sort((a, b) => {
+        let fa = a.objectName.toLowerCase(),
+            fb = b.objectName.toLowerCase();
+        if (fa < fb) {
+          return -1;
+        }
+        if (fa > fb) {
+          return 1;
+        }
+        return 0;
+      });
+      const filteredConfigFiles = bucketObjects.filter(file => file.objectName === 'configs/default_config.yml');
+      if(filteredConfigFiles.length === 1) {
+        bucketObjects.sort((a, b) => {
+          let fa = a.objectName.toLowerCase(),
+              fb = b.objectName.toLowerCase();
+          const first = 'configs/default_config.yml';
+          return fa == first ? -1 : fb == first ? 1 : 0;
+        });
+      }
+      setConfigurationFiles(bucketObjects);
       SelectBox.defaultSetup();
     }).catch(error => {
       if(error?.response?.data?.errors[0]?.message) {
@@ -439,8 +460,6 @@ const RunForecast = ({ onRunClick }) => {
                       >
                       <select
                         id="configurationField"
-                        required={true}
-                        required-error={'*Missing entry'}
                         {...register('configurationFile', {
                           required: '*Missing entry',
                           validate: (value) => value !== '0' || '*Missing entry',
@@ -453,13 +472,10 @@ const RunForecast = ({ onRunClick }) => {
                             </option>
                             ) : (
                               <>
-                                <option id="configurationOption" value={0}>
-                                  Choose
-                                </option>
                                 {configurationFiles.map((file) => (
-                                  <option key={file.objectName} value={'chronos-core/' + file.objectName}>
-                                    {file.objectName.split("/")[1]}
-                                  </option>
+                                    <option key={file.objectName} value={'chronos-core/' + file.objectName}>
+                                      {file.objectName.split("/")[1]}
+                                    </option>
                                 ))}
                               </>
                             )
@@ -487,8 +503,6 @@ const RunForecast = ({ onRunClick }) => {
                       >
                       <select
                         id="frequencyField"
-                        required={true}
-                        required-error={'*Missing entry'}
                         {...register('frequency', {
                           required: '*Missing entry',
                           validate: (value) => value !== '0' || '*Missing entry',
@@ -521,6 +535,7 @@ const RunForecast = ({ onRunClick }) => {
                       defaultValue={12}
                       placeholder="eg. 1"
                       autoComplete="off"
+                      onWheel={(e) => e.target.blur()}
                     />
                     <span className={classNames('error-message')}>{errors.forecastHorizon?.message}</span>
                   </div>
