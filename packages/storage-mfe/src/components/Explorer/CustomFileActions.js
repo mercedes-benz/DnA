@@ -77,8 +77,8 @@ const ResetSearchInput = defineFileAction(
     reduxDispatch(reduxActions.setSearchString(''));
 
     // clear search text
-    const element = document.querySelector('.chonky-searchFieldContainer input');
-    element.dispatchEvent(new KeyboardEvent('keyup', { key: 'Escape', bubbles: true, code: 'Escape' }));
+    const searchInput = document.querySelector('.chonky-searchFieldContainer input');
+    searchInput.dispatchEvent(new KeyboardEvent('keyup', { key: 'Escape', bubbles: true, code: 'Escape' }));
   },
 );
 
