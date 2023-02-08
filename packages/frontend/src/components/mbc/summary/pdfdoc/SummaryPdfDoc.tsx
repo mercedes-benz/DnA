@@ -1111,7 +1111,8 @@ export const SummaryPdfDoc = (props: SummaryPdfDocProps) => (
             (props.solution?.marketing?.customerJourneyPhases?.length > 0 ||
             props.solution?.marketing?.marketingCommunicationChannels?.length > 0 ||
             props.solution?.marketing?.personas?.length > 0 ||
-            props.solution?.marketing?.personalization?.isChecked    
+            props.solution?.marketing?.personalization?.isChecked ||
+            props.solution?.marketing?.marketingRoles?.length > 0     
               ) ? (
               <View wrap={false}>
                 <Text style={[styles.subTitle, styles.setMarginTop]}>Marketing</Text>
@@ -1148,6 +1149,15 @@ export const SummaryPdfDoc = (props: SummaryPdfDocProps) => (
                   <View style={styles.flexLayout}>
                     {personasList(props.solution?.marketing?.personas)}
                   </View>
+                </View>
+                <View>
+                  <Text style={styles.sectionTitle}>Marketing Roles</Text>
+                    {props.solution?.marketing?.marketingRoles?.length > 0 ? (
+                      <View>{props.solution?.marketing?.marketingRoles?.map((item, index)=>
+                        {return (<Text key={index}>{item.role}</Text>)})}</View>
+                    ) : (
+                      <Text>NA</Text>
+                    )}
                 </View>
               </View>
             ) : (
