@@ -76,6 +76,7 @@ const FileExplorer = () => {
   const [showCreateNewFolderModal, setShowCreateNewFolderModal] = useState(false);
 
   const [pdfDocsNumPages, setPDFDocsNumPages] = useState(0);
+  const fileBrowserRef = useRef();
 
   // pdf password protected states
   const [pdfPassword, setPdfPassword] = useState('');
@@ -399,6 +400,10 @@ const FileExplorer = () => {
       }
     }
     setNewlyCreatedFolder('');
+
+    // reset the search input
+    fileBrowserRef.current.requestFileAction(CustomActions.ResetSearchInput);
+
     return;
   };
 
@@ -914,6 +919,7 @@ const FileExplorer = () => {
             defaultFileViewActionId={ChonkyActions.EnableListView.id}
             disableDragAndDrop={true}
             i18n={i18n}
+            ref={fileBrowserRef}
           />
           {showPreview.modal && (
             <Modal
