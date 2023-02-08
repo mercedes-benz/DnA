@@ -19,6 +19,7 @@ const ForecastResults = () => {
 
   const [loading, setLoading] = useState(true);
   const [forecastRuns, setForecastRuns] = useState([]);
+  const [originalResults, setOriginalResults] = useState([]);
   useEffect(() => {
     getProjectForecastRuns();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -29,8 +30,10 @@ const ForecastResults = () => {
     chronosApi.getForecastRuns(projectId).then((res) => {
       if(res.status === 204) {
         setForecastRuns([]);
+        setOriginalResults([]);
       } else {
         setForecastRuns(res.data.records);
+        setOriginalResults([...res.data.records]);
       }
       setLoading(false);
       ProgressIndicator.hide();
@@ -51,33 +54,12 @@ const ForecastResults = () => {
   const [maxItemsPerPage, setMaxItemsPerPage] = useState(15);
 
   /* getResults */
-  const getResults = async (action) => {
+  const getResults = (action) => {
     const showProgressIndicator = ['pagination'].includes(action);
-    console.log(action);
 
     showProgressIndicator && ProgressIndicator.show();
 
-    let results = [];
-
-    await chronosApi.getForecastRuns(projectId)
-      .then((res) => {
-        if(res.status === 204) {
-          results = [];
-        } else {
-          if (res.data.records) {
-            results = [...res.data.records];
-          }
-        }
-        setLoading(false);
-        ProgressIndicator.hide();
-      })
-      .catch((err) => {
-        Notification.show(
-          err?.response?.data?.errors?.[0]?.message || 'Error while fetching forecast projects',
-          'alert',
-        );
-        setForecastRuns([]);
-      });
+    let results = originalResults;
 
     if (sortBy) {
       if (sortBy.name === 'runName') {
