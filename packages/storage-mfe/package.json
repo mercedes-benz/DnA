@@ -82,7 +82,15 @@
     },
     "rules": {
       "react/prop-types": "off",
-      "react/no-unknown-property": ["error", { "ignore": ["tooltip-data", "required-error"] }]
+      "react/no-unknown-property": [
+        "error",
+        {
+          "ignore": [
+            "tooltip-data",
+            "required-error"
+          ]
+        }
+      ]
     }
   },
   "browserslist": {
