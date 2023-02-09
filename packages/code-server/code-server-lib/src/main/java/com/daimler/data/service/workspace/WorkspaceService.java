@@ -60,6 +60,6 @@ public interface WorkspaceService {
 
 	GenericMessage addCollabById(String userId,  CodeServerWorkspaceVO vo, UserInfoVO userRequestDto);
 
-	GenericMessage removeCollabById(String userId,  CodeServerWorkspaceVO vo, UserInfoVO userRequestDto);
+	GenericMessage removeCollabById(String currentUserUserId,  CodeServerWorkspaceVO vo, String userRequestDto);
 
 }
