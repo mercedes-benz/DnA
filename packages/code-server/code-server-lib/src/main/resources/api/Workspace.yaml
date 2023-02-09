@@ -279,7 +279,8 @@ paths:
           description: "Method not allowed"
         500:
           description: "Internal error"
-          
+
+  /workspaces/{id}/collaborator/{userid}:
     delete:
       tags:
         - "code-server"
@@ -292,12 +293,11 @@ paths:
           description: "Workspace ID to be fetched"
           required: true
           type: "string"
-        - name: "userRequestDto"
-          in: "body"
-          description: "User info to remove collaborator from project"
+        - name: "userid"
+          in: "path"
+          description: "User ID to be deleted"
           required: true
-          schema:
-            $ref: "#/definitions/UserInfoVO"
+          type: "string"
       responses:
         201:
           description: "Returns message of success or failure"
