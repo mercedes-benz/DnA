@@ -238,6 +238,19 @@ public class BaseWorkspaceService implements WorkspaceService {
 				workspaceCustomRepository.updateDeletedStatusForProject(projectName);
 			}else {
 				entity.getData().setStatus("DELETED");
+
+				UserInfo removeUser = new UserInfo();
+				if (entity.getData().getProjectDetails().getProjectCollaborators() != null) {
+					for (UserInfo collaborator : entity.getData().getProjectDetails().getProjectCollaborators()) {
+						if (userId != null) {
+							if (collaborator.getId().equalsIgnoreCase(userId)) {
+								removeUser = collaborator;
+								break;
+							}
+						}
+					}
+				}
+				workspaceCustomRepository.updateCollaboratorDetails(projectName, removeUser, true);
 				jpaRepo.save(entity);
 			}
 			responseMessage.setSuccess("SUCCESS");
@@ -572,37 +585,24 @@ public class BaseWorkspaceService implements WorkspaceService {
 	}
 
 	@Override
-	public GenericMessage removeCollabById(String userId, CodeServerWorkspaceVO vo, UserInfoVO userRequestDto) {
+	@Transactional
+	public GenericMessage removeCollabById(String currentUserUserId, CodeServerWorkspaceVO vo, String removeUserId) {
 		GenericMessage responseVO = new GenericMessage();
 		List<MessageDescription> errors = new ArrayList<>();
 		List<MessageDescription> warnings = new ArrayList<>();
 		GenericMessage responseMessage = new GenericMessage();
-		CodeServerWorkspaceNsql entity = workspaceCustomRepository.findById(userId, vo.getId());
+		CodeServerWorkspaceNsql entity = workspaceCustomRepository.findById(currentUserUserId, vo.getId());
 		boolean isProjectOwner = false;
 
 		String projectOwnerId = entity.getData().getProjectDetails().getProjectOwner().getId();
-		if (projectOwnerId.equalsIgnoreCase(userId)) {
+		if (projectOwnerId.equalsIgnoreCase(currentUserUserId)) {
 			isProjectOwner = true;
 		}
 
 		if (isProjectOwner) {
-			List<UserInfo> exstingcollaborators = entity.getData().getProjectDetails().getProjectCollaborators();
 			String projectName = entity.getData().getProjectDetails().getProjectName();
-
-			if (exstingcollaborators != null) {
-				for (UserInfo usr : exstingcollaborators) {
-					if (usr.getId().equalsIgnoreCase(userRequestDto.getId())) {
-						exstingcollaborators.remove(usr);
-						break;
-					}
-				}
-				entity.getData().getProjectDetails().setProjectCollaborators(exstingcollaborators);
-			}
-
-			String technincalId = workspaceCustomRepository.getWorkspaceTechnicalId(userRequestDto.getId(), projectName);
-			entity.getData().getProjectDetails().setProjectCollaborators(exstingcollaborators);
-			responseMessage = deleteById(userRequestDto.getId(), technincalId);
-			jpaRepo.save(entity);
+			String technincalId = workspaceCustomRepository.getWorkspaceTechnicalId(removeUserId, projectName);
+			responseMessage = deleteById(removeUserId, technincalId);
 		} else {
 			log.error("Failed to remove collaborator details as requested user is not a project owner " + entity.getData().getWorkspaceId());
 			MessageDescription msg = new MessageDescription("Failed to remove collaborator details as requested user is not a project owner");
@@ -616,6 +616,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 	}
 
 	@Override
+	@Transactional
 	public GenericMessage addCollabById(String userId, CodeServerWorkspaceVO vo, UserInfoVO userRequestDto) {
 		GenericMessage responseVO = new GenericMessage();
 		List<MessageDescription> errors = new ArrayList<>();
@@ -633,23 +634,14 @@ public class BaseWorkspaceService implements WorkspaceService {
 			try {
 				String repoName = entity.getData().getProjectDetails().getGitRepoName();
 				CodeServerWorkspaceNsql ownerEntity = workspaceAssembler.toEntity(vo);
+				String projectName = entity.getData().getProjectDetails().getProjectName();
 
 				UserInfo collaborator = new UserInfo();
 				BeanUtils.copyProperties(userRequestDto, collaborator);
 
-				List<UserInfo> addCollabrators = entity.getData().getProjectDetails().getProjectCollaborators();
-				if (addCollabrators != null) {
-					entity.getData().getProjectDetails().getProjectCollaborators().add(collaborator);
-				} else {
-					List<UserInfo> userInfoList = new ArrayList<>();
-					userInfoList.add(collaborator);
-					entity.getData().getProjectDetails().setProjectCollaborators(userInfoList);
-				}
-
 				String gitUser = userRequestDto.getGitUserName();
 				HttpStatus addGitUser = gitClient.addUserToRepo(gitUser, repoName);
 				if (addGitUser.is2xxSuccessful()) {
-					List<CodeServerWorkspaceNsql> entities = new ArrayList<>();
 					CodeServerWorkspaceNsql collabEntity = new CodeServerWorkspaceNsql();
 					CodeServerWorkspace collabData = new CodeServerWorkspace();
 					collabData.setDescription(ownerEntity.getData().getDescription());
@@ -666,10 +658,9 @@ public class BaseWorkspaceService implements WorkspaceService {
 					collabData.setWorkspaceUrl("");
 					collabEntity.setId(null);
 					collabEntity.setData(collabData);
-					entities.add(collabEntity);
 
-					entities.add(entity);
-					jpaRepo.saveAllAndFlush(entities);
+					jpaRepo.save(collabEntity);
+					workspaceCustomRepository.updateCollaboratorDetails(projectName, collaborator, false);
 					responseMessage.setSuccess("SUCCESS");
 				} else {
 					log.info("Failed while adding {} as collaborator with status {}", repoName, userRequestDto.getGitUserName(), addGitUser.name());
