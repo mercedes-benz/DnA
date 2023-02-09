@@ -32,6 +32,7 @@ import java.util.List;
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.db.entities.CodeServerWorkspaceNsql;
 import com.daimler.data.db.json.CodeServerDeploymentDetails;
+import com.daimler.data.db.json.UserInfo;
 import com.daimler.data.db.repo.common.CommonDataRepository;
 
 public interface WorkspaceCustomRepository extends CommonDataRepository<CodeServerWorkspaceNsql, String> {
@@ -48,6 +49,8 @@ public interface WorkspaceCustomRepository extends CommonDataRepository<CodeServ
 
 	GenericMessage updateDeploymentDetails(String projectName, String environment,
 			CodeServerDeploymentDetails deploymentDetails);
+
+	GenericMessage updateCollaboratorDetails(String projectName, UserInfo updatedcollaborators, boolean removeUser);
 
 	List<Object[]> getWorkspaceIdsForProjectMembers(String projectName);
 

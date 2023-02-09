@@ -76,25 +76,28 @@ public class WorkspaceController  implements CodeServerApi{
 
 	@Autowired
 	private UserStore userStore;
-	
+
+
 	@Override
 	@ApiOperation(value = "remove collaborator from workspace project for a given Id.", nickname = "removeCollab", notes = "remove collaborator from workspace project for a given identifier.", response = CodeServerWorkspaceVO.class, tags={ "code-server", })
-    @ApiResponses(value = { 
-        @ApiResponse(code = 201, message = "Returns message of success or failure", response = CodeServerWorkspaceVO.class),
-        @ApiResponse(code = 204, message = "Fetch complete, no content found."),
-        @ApiResponse(code = 400, message = "Bad request."),
-        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
-        @ApiResponse(code = 403, message = "Request is not authorized."),
-        @ApiResponse(code = 405, message = "Method not allowed"),
-        @ApiResponse(code = 500, message = "Internal error") })
-    @RequestMapping(value = "/workspaces/{id}/collaborator",
-        produces = { "application/json" }, 
-        consumes = { "application/json" },
-        method = RequestMethod.DELETE)
-	public ResponseEntity<GenericMessage> removeCollab(@ApiParam(value = "Workspace ID for the project", required = true) @PathVariable("id") String id, @ApiParam(value = "User info to remove collaborator from project", required = true) @Valid @RequestBody UserInfoVO userRequestDto) {
+	@ApiResponses(value = {
+			@ApiResponse(code = 201, message = "Returns message of success or failure", response = CodeServerWorkspaceVO.class),
+			@ApiResponse(code = 204, message = "Fetch complete, no content found."),
+			@ApiResponse(code = 400, message = "Bad request."),
+			@ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+			@ApiResponse(code = 403, message = "Request is not authorized."),
+			@ApiResponse(code = 405, message = "Method not allowed"),
+			@ApiResponse(code = 500, message = "Internal error") })
+	@RequestMapping(value = "/workspaces/{id}/collaborator/{userid}",
+			produces = { "application/json" },
+			consumes = { "application/json" },
+			method = RequestMethod.DELETE)
+	public ResponseEntity<GenericMessage> removeCollab(
+			@ApiParam(value = "Workspace ID for the project", required = true) @PathVariable("id")String id,
+			@ApiParam(value = "User ID to be deleted", required = true) @PathVariable("userid") String userid) {
 		CreatedByVO currentUser = this.userStore.getVO();
-		String userId = currentUser != null ? currentUser.getId() : null;
-		CodeServerWorkspaceVO vo = service.getById(userId, id);
+		String currentUserUserId = currentUser != null ? currentUser.getId() : null;
+		CodeServerWorkspaceVO vo = service.getById(currentUserUserId, id);
 		GenericMessage responseMessage = new GenericMessage();
 
 		if (vo == null || vo.getWorkspaceId() == null) {
@@ -110,22 +113,23 @@ public class WorkspaceController  implements CodeServerApi{
 			return new ResponseEntity<>(emptyResponse, HttpStatus.NOT_FOUND);
 		}
 
-		if (!(vo != null && vo.getWorkspaceOwner() != null && vo.getWorkspaceOwner().getId().equalsIgnoreCase(userId))) {
+		if (!(vo != null && vo.getWorkspaceOwner() != null && vo.getWorkspaceOwner().getId().equalsIgnoreCase(currentUserUserId))) {
 			MessageDescription notAuthorizedMsg = new MessageDescription();
 			notAuthorizedMsg.setMessage(
 					"Not authorized to update workspace. User does not have privileges.");
 			GenericMessage errorMessage = new GenericMessage();
 			errorMessage.addErrors(notAuthorizedMsg);
-			log.info("User {} cannot update workspace, insufficient privileges. Workspace name: {}", userId, vo.getWorkspaceId());
+			log.info("User {} cannot update workspace, insufficient privileges. Workspace name: {}", currentUserUserId, vo.getWorkspaceId());
 			return new ResponseEntity<>(errorMessage, HttpStatus.FORBIDDEN);
 		}
+
 
 		// To check is user is already a part of workspace.
 		boolean isCollabroratorAlreadyExits = false;
 		if (vo.getProjectDetails().getProjectCollaborators() != null) {
 			for (UserInfoVO collaborator : vo.getProjectDetails().getProjectCollaborators()) {
-				if (userRequestDto.getId() != null) {
-					if (collaborator.getId().equalsIgnoreCase(userRequestDto.getId())) {
+				if (userid != null) {
+					if (collaborator.getId().equalsIgnoreCase(userid)) {
 						isCollabroratorAlreadyExits = true;
 					}
 				}
@@ -133,7 +137,7 @@ public class WorkspaceController  implements CodeServerApi{
 		}
 
 		if (isCollabroratorAlreadyExits) {
-			responseMessage = service.removeCollabById(userId, vo, userRequestDto);
+			responseMessage = service.removeCollabById(currentUserUserId, vo, userid);
 		} else {
 			log.error("User is not part of a collaborator list");
 			GenericMessage emptyResponse = new GenericMessage();
@@ -270,7 +274,7 @@ public class WorkspaceController  implements CodeServerApi{
 		InitializeWorkspaceResponseVO responseData = service.initiateWorkspace(collabUserVO, pat, password);
 		return new ResponseEntity<>(responseData, responseStatus);
 	}
-    
+
 	@ApiOperation(value = "Create Workbench for user in code-server.", nickname = "createWorkspace", notes = "Create workspace for user in code-server with given password", response = InitializeWorkspaceResponseVO.class, tags={ "code-server", })
     @ApiResponses(value = { 
         @ApiResponse(code = 201, message = "Returns message of success or failure ", response = InitializeWorkspaceResponseVO.class),
