@@ -41,6 +41,7 @@ import {
   IMarketing,
   IMarketingCommunicationChannel,
   IMarketingCustomerJourney,
+  IMarketingRole,
   IMaturityLevel,
   IMilestonesList,
   IPhase,
@@ -109,6 +110,7 @@ export interface ICreateNewSolutionState {
   departmentTags: IDepartment[];
   customerJourneyPhasesLOV: IMarketingCustomerJourney[];
   marketingCommunicationChannelsLOV: IMarketingCommunicationChannel[];
+  marketingRolesLOV: IMarketingRole[];
 }
 
 export interface ICreateNewSolutionProps {
@@ -276,6 +278,7 @@ export default class CreateNewSolution extends React.Component<ICreateNewSolutio
             description: '',
           },
           personas: [],
+          marketingRoles: [],
         },
         datacompliance: {
           quickCheck: false,
@@ -323,6 +326,7 @@ export default class CreateNewSolution extends React.Component<ICreateNewSolutio
       departmentTags: [],
       customerJourneyPhasesLOV: [],
       marketingCommunicationChannelsLOV: [],
+      marketingRolesLOV: [],
     };
   }
   // public componentWillReceiveProps(nextProps: any) {
@@ -358,6 +362,7 @@ export default class CreateNewSolution extends React.Component<ICreateNewSolutio
         const customerJourneyPhasesLOV = response[18];
         const marketingCommunicationChannelsLOV = response[19];
         const departmentTags = response[20].data;
+        const marketingRolesLOV = response[21];
         phases.forEach((phase) => {
           switch (phase.id) {
             case '1':
@@ -405,6 +410,7 @@ export default class CreateNewSolution extends React.Component<ICreateNewSolutio
             customerJourneyPhasesLOV,
             marketingCommunicationChannelsLOV,
             departmentTags,
+            marketingRolesLOV,
           },
           () => {
             Button.defaultSetup();
@@ -770,6 +776,7 @@ export default class CreateNewSolution extends React.Component<ICreateNewSolutio
                     modifyMarketing={this.modifyMarketing}
                     marketingCommunicationChannelsLOV={this.state.marketingCommunicationChannelsLOV}
                     customerJourneyPhasesLOV={this.state.customerJourneyPhasesLOV}
+                    marketingRolesLOV={this.state.marketingRolesLOV}
                     onSaveDraft={this.onSaveDraft}
                     ref={this.MarketingComponent}
                   />
