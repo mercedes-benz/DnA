@@ -224,10 +224,10 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 						+ "case when (select count(x) from jsonb_array_elements(data->'projectDetails'->'projectCollaborators')"
 						+ " x where x->>'id' != " + "'" + updatedcollaborators.getId() + "'" + ") = 0 "
 						+ "then '[]' "
-						+ "else (select jsonb_build_array(x) from jsonb_array_elements(data->'projectDetails'->'projectCollaborators')"
-						+ " x where x->>'id' != " + "'" + updatedcollaborators.getId() + "'" + "limit 1) "
+						+ "else (select jsonb_agg(x) from jsonb_array_elements(data->'projectDetails'->'projectCollaborators')"
+						+ " x where x->>'id' != " + "'" + updatedcollaborators.getId() + "'" + ") "
 						+ "end )"
-						+ "where data->'projectDetails'->>'projectName' = '" + projectName + "'";
+						+ "where data->'projectDetails'->>'projectName' = '" + projectName + "'" + " and lower(jsonb_extract_path_text(data,'status')) <> 'deleted'";
 			} else {
 				updateQuery = "update workspace_nsql\r\n"
 						+ "set data = jsonb_set(data,'{projectDetails, projectCollaborators}', \r\n"
@@ -239,7 +239,7 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 						+ " \"department\": " + addQuotes(updatedcollaborators.getDepartment()) + ","
 						+ " \"gitUserName\": " + addQuotes(updatedcollaborators.getGitUserName()) + ","
 						+ " \"mobileNumber\": " + addQuotes(updatedcollaborators.getMobileNumber()) + "}' )\n"
-						+ "where data->'projectDetails'->>'projectName' = '" + projectName + "'";
+						+ "where data->'projectDetails'->>'projectName' = '" + projectName + "'" + " and lower(jsonb_extract_path_text(data,'status')) <> 'deleted'";
 			}
 			try {
 				Query q = em.createNativeQuery(updateQuery);
