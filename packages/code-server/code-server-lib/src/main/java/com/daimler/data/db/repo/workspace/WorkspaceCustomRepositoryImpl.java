@@ -38,6 +38,7 @@ import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 
+import com.daimler.data.db.json.UserInfo;
 import org.springframework.stereotype.Repository;
 
 import com.daimler.data.controller.exceptions.GenericMessage;
@@ -190,6 +191,7 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 		return records;
 	}
 
+	@Override
 	public String getWorkspaceTechnicalId(String userId, String projectName) {
 		String id = "";
 		String getQuery = "select id "
@@ -207,6 +209,54 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 		}
 		return id;
 	}
+
+	@Override
+	public GenericMessage updateCollaboratorDetails(String projectName, UserInfo updatedcollaborators, boolean removeUser) {
+		GenericMessage updateResponse = new GenericMessage();
+		updateResponse.setSuccess("FAILED");
+		List<MessageDescription> errors = new ArrayList<>();
+		List<MessageDescription> warnings = new ArrayList<>();
+		if (updatedcollaborators != null) {
+			String updateQuery = "";
+			if (removeUser) {
+				updateQuery = "update workspace_nsql\r\n"
+						+ "set data = jsonb_set(data,'{projectDetails, projectCollaborators}', \r\n"
+						+ "case when (select count(x) from jsonb_array_elements(data->'projectDetails'->'projectCollaborators')"
+						+ " x where x->>'id' != " + "'" + updatedcollaborators.getId() + "'" + ") = 0 "
+						+ "then '[]' "
+						+ "else (select jsonb_build_array(x) from jsonb_array_elements(data->'projectDetails'->'projectCollaborators')"
+						+ " x where x->>'id' != " + "'" + updatedcollaborators.getId() + "'" + "limit 1) "
+						+ "end )"
+						+ "where data->'projectDetails'->>'projectName' = '" + projectName + "'";
+			} else {
+				updateQuery = "update workspace_nsql\r\n"
+						+ "set data = jsonb_set(data,'{projectDetails, projectCollaborators}', \r\n"
+						+ "COALESCE(jsonb_extract_path_text(data, 'projectDetails','projectCollaborators'), '[]')" + "\\:" + "\\:" + "jsonb || \n"
+						+ " '{\"id\": " + addQuotes(updatedcollaborators.getId()) + ","
+						+ " \"email\": " + addQuotes(updatedcollaborators.getEmail()) + ","
+						+ " \"lastName\": " + addQuotes(updatedcollaborators.getLastName()) + ","
+						+ " \"firstName\": " + addQuotes(updatedcollaborators.getFirstName()) + ","
+						+ " \"department\": " + addQuotes(updatedcollaborators.getDepartment()) + ","
+						+ " \"gitUserName\": " + addQuotes(updatedcollaborators.getGitUserName()) + ","
+						+ " \"mobileNumber\": " + addQuotes(updatedcollaborators.getMobileNumber()) + "}' )\n"
+						+ "where data->'projectDetails'->>'projectName' = '" + projectName + "'";
+			}
+			try {
+				Query q = em.createNativeQuery(updateQuery);
+				q.executeUpdate();
+				updateResponse.setSuccess("SUCCESS");
+				updateResponse.setErrors(new ArrayList<>());
+				updateResponse.setWarnings(new ArrayList<>());
+				log.info("collaborator details updated successfully for project {} ", projectName);
+			} catch (Exception e) {
+				MessageDescription errMsg = new MessageDescription("Failed while updating the collaborator details.");
+				errors.add(errMsg);
+				log.error("projectCollaborators details Failed while updating the collaborator with Exception {} ", e.getMessage());
+			}
+		}
+		return updateResponse;
+	}
+
 	
 	@Override
 	public GenericMessage updateDeploymentDetails(String projectName, String environment, CodeServerDeploymentDetails deploymentDetails) {
