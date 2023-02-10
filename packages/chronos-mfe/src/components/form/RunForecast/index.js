@@ -440,7 +440,7 @@ const RunForecast = ({ onRunClick }) => {
                     type="text"
                     className="input-field"
                     id="runNameInput"
-                    maxLength={200}
+                    maxLength={55}
                     placeholder="Type here"
                     autoComplete="off"
                   />
