@@ -1118,7 +1118,7 @@ export const SummaryPdfDoc = (props: SummaryPdfDocProps) => (
                 <Text style={[styles.subTitle, styles.setMarginTop]}>Marketing</Text>
                 <View style={styles.flexLayout}>
                   <View style={[styles.flexCol4, styles.firstCol]}>
-                    <Text style={styles.sectionTitle}>Customer Journey Phase, Core Needs and Use Cases</Text>
+                    <Text style={styles.sectionTitle}>Use Case, Core Needs and Customer Journey Phase</Text>
                     {props.solution?.marketing?.customerJourneyPhases?.length > 0 ? (
                       <View>{props.solution?.marketing?.customerJourneyPhases?.map((item, index)=>
                         {return (<Text key={index}>{item.name}</Text>)})}</View>
