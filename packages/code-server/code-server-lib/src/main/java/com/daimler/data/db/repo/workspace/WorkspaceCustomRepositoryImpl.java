@@ -211,6 +211,39 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 	}
 
 	@Override
+	public GenericMessage updateProjectOwnerDetails(String projectName, UserInfo updatedProjectOwnerDetails) {
+		GenericMessage updateResponse = new GenericMessage();
+		updateResponse.setSuccess("FAILED");
+		List<MessageDescription> errors = new ArrayList<>();
+		List<MessageDescription> warnings = new ArrayList<>();
+
+		String updateQuery = "update workspace_nsql\r\n"
+				+ "set data = jsonb_set(data, '{projectDetails,projectOwner}', \r\n"
+				+ " '{\"id\": " + addQuotes(updatedProjectOwnerDetails.getId()) + ","
+				+ " \"email\": " + addQuotes(updatedProjectOwnerDetails.getEmail()) + ","
+				+ " \"lastName\": " + addQuotes(updatedProjectOwnerDetails.getLastName()) + ","
+				+ " \"firstName\": " + addQuotes(updatedProjectOwnerDetails.getFirstName()) + ","
+				+ " \"department\": " + addQuotes(updatedProjectOwnerDetails.getDepartment()) + ","
+				+ " \"gitUserName\": " + addQuotes(updatedProjectOwnerDetails.getGitUserName()) + ","
+				+ " \"mobileNumber\": " + addQuotes(updatedProjectOwnerDetails.getMobileNumber()) + "}' )\n" + "\\:" + "\\:" + "jsonb \n"
+				+ "where data->'projectDetails'->>'projectName' = '" + projectName + "'" + " and lower(jsonb_extract_path_text(data,'status')) <> 'deleted'";
+		try {
+			Query q = em.createNativeQuery(updateQuery);
+			q.executeUpdate();
+			updateResponse.setSuccess("SUCCESS");
+			updateResponse.setErrors(new ArrayList<>());
+			updateResponse.setWarnings(new ArrayList<>());
+			log.info("collaborator details updated successfully for project {} ", projectName);
+		} catch (Exception e) {
+			e.printStackTrace();
+			MessageDescription errMsg = new MessageDescription("Failed while updating the collaborator details.");
+			errors.add(errMsg);
+			log.error("projectCollaborators details Failed while updating the collaborator with Exception {} ", e.getMessage());
+		}
+		return updateResponse;
+	}
+
+		@Override
 	public GenericMessage updateCollaboratorDetails(String projectName, UserInfo updatedcollaborators, boolean removeUser) {
 		GenericMessage updateResponse = new GenericMessage();
 		updateResponse.setSuccess("FAILED");

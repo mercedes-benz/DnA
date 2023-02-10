@@ -31,6 +31,7 @@ import java.util.List;
 
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.dto.workspace.CodeServerWorkspaceVO;
+import com.daimler.data.dto.workspace.CreatedByVO;
 import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 import com.daimler.data.dto.workspace.UserInfoVO;
 
@@ -61,5 +62,7 @@ public interface WorkspaceService {
 	GenericMessage addCollabById(String userId,  CodeServerWorkspaceVO vo, UserInfoVO userRequestDto);
 
 	GenericMessage removeCollabById(String currentUserUserId,  CodeServerWorkspaceVO vo, String userRequestDto);
+
+	GenericMessage reassignOwner(CreatedByVO currentUser, CodeServerWorkspaceVO vo, UserInfoVO newOwnerDeatils);
 
 }
