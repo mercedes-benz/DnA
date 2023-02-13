@@ -97,6 +97,7 @@ const RowItem = (props) => {
     <tr id={item.id} className="data-row">
       <td className="wrap-text">{item.entityId}</td>
       <td className="wrap-text">{item.entityName}</td>
+      <td className="wrap-text">{item.entityCountry}</td>
       <td className="wrap-text">
         {item.localComplianceOfficer !== undefined &&
           (item.localComplianceOfficer.length > 0 ? item.localComplianceOfficer.join('; ') : 'N/A')}
