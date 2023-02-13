@@ -138,6 +138,7 @@ const TypeAheadBox: React.FC<IRowItemProps> = (props: IRowItemProps) => {
           setCursor(-1);
           setSelectedItem(filteredList[cursor].name);
           setSearchTerm('');
+          props.setSelected(filteredList[cursor]);
         }
       }
     } else if (keyPressed === KEY_CODE.upArrow && cursor > 0) {
