@@ -58,7 +58,7 @@ public class DataBricksClient {
 	HttpServletRequest httpRequest;
 	
 	@Autowired
-	private RestTemplate proxyRestTemplate;
+	private RestTemplate restTemplate;
 	
 	
 	public RunNowResponseVO runNow(String runCorrelationUUID, RunNowNotebookParamsDto notebookParams, boolean runOnPowerfulMachines) {
@@ -86,7 +86,7 @@ public class DataBricksClient {
 					log.error("Failed to parse runnow request with exception {} ",e.getMessage());
 				}
 				HttpEntity<DatabricksJobRunNowRequestDto> requestEntity = new HttpEntity<>(requestWrapper,headers);
-				ResponseEntity<RunNowResponseVO> response = proxyRestTemplate.exchange(runNowUrl, HttpMethod.POST,
+				ResponseEntity<RunNowResponseVO> response = restTemplate.exchange(runNowUrl, HttpMethod.POST,
 						requestEntity, RunNowResponseVO.class);
 				if (response.hasBody()) {
 					runNowResponse = response.getBody();
@@ -110,7 +110,7 @@ public class DataBricksClient {
 				DatabricksRunGenericRequestDto requestWrapper = new DatabricksRunGenericRequestDto();
 				requestWrapper.setRun_id(runId);
 				HttpEntity<DatabricksRunGenericRequestDto> requestEntity = new HttpEntity<>(requestWrapper,headers);
-				ResponseEntity<DataBricksErrorResponseVO> response = proxyRestTemplate.exchange(deleteRunUrl, HttpMethod.POST,
+				ResponseEntity<DataBricksErrorResponseVO> response = restTemplate.exchange(deleteRunUrl, HttpMethod.POST,
 						requestEntity, DataBricksErrorResponseVO.class);
 				if (response.hasBody()) {
 					deleteRunResponse = response.getBody();
@@ -133,7 +133,7 @@ public class DataBricksClient {
 				
 				String getSingleRunUrl = dataBricksBaseUri + dataBricksJobGetRunPath + "?run_id=" + runId;
 				HttpEntity requestEntity = new HttpEntity<>(headers);
-				ResponseEntity<RunDetailsVO> response = proxyRestTemplate.exchange(getSingleRunUrl, HttpMethod.GET,
+				ResponseEntity<RunDetailsVO> response = restTemplate.exchange(getSingleRunUrl, HttpMethod.GET,
 						requestEntity, RunDetailsVO.class);
 				if (response.hasBody()) {
 					getSingleRunResponse = response.getBody();
@@ -155,7 +155,7 @@ public class DataBricksClient {
 				headers.setContentType(MediaType.APPLICATION_JSON);
 				String getJobRunsUrl = dataBricksBaseUri + dataBricksJobRunList + "?active_only=true&expand_tasks=false&run_type=JOB_RUN&job_id="+dataBricksJobidForRun;
 				HttpEntity requestEntity = new HttpEntity<>(headers);
-				ResponseEntity<JobRunsListVO> response = proxyRestTemplate.exchange(getJobRunsUrl, HttpMethod.POST,
+				ResponseEntity<JobRunsListVO> response = restTemplate.exchange(getJobRunsUrl, HttpMethod.POST,
 						requestEntity, JobRunsListVO.class);
 				if (response.hasBody()) {
 					getJobRunsResponse = response.getBody();
