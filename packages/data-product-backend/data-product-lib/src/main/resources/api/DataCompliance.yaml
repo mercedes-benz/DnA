@@ -85,6 +85,11 @@ paths:
           description: Filtering data compliance details based on entityName
           required: false
           type: string
+        - name: entityCountry
+          in: query
+          description: Filtering data compliance details based on entityCountry
+          required: false
+          type: string  
         - name: localComplianceOfficer
           in: query
           description: Filter using localComplianceOfficer. localComplianceOfficer is comma seperated search keywords.
@@ -95,11 +100,6 @@ paths:
           description: Filter using localComplianceResponsible. localComplianceResponsible is comma seperated search keywords.
           required: false
           type: string
-        - name: dataProtectionCoordinator
-          in: query
-          description: Filter using dataProtectionCoordinator. dataProtectionCoordinator is comma seperated search keywords.
-          required: false
-          type: string 
         - name: localComplianceSpecialist
           in: query
           description: Filter using localComplianceSpecialist. localComplianceSpecialist is comma seperated search keywords.
@@ -117,10 +117,10 @@ paths:
           type: integer
         - name: sortBy
           in: query
-          description: Sort records by a given variable like entityId, entityName, localComplianceOfficer, etc
+          description: Sort records by a given variable like entityId, entityName, entityCountry, localComplianceOfficer, etc
           required: false
           type: string
-          enum: [entityId, entityName, localComplianceOfficer, localComplianceResponsible, dataProtectionCoordinator, localComplianceSpecialist]
+          enum: [entityId, entityName, entityCountry, localComplianceOfficer, localComplianceResponsible, localComplianceSpecialist]
         - name: sortOrder
           in: query
           description: Sort records based on the given order, example asc,desc
@@ -257,7 +257,11 @@ definitions:
       entityName:
         type: string
         description: "Name of the Entity"
-        minLength: 1        
+        minLength: 1
+      entityCountry:
+        type: string
+        description: "Name of the Country"
+        minLength: 1          
       localComplianceOfficer:
         type: array
         description: "First point of contact for data compliance question"
@@ -267,10 +271,6 @@ definitions:
         type: array
         items:
           type: string
-      dataProtectionCoordinator:
-        type: array
-        items:
-          type: string 
       localComplianceSpecialist:
         type: array
         items:
@@ -287,7 +287,8 @@ definitions:
         $ref: "#/definitions/CreatedByVO"        
     required:
       - entityId
-      - entityName                      
+      - entityName      
+      - entityCountry                
 
   DataComplianceRequestVO:
     type: object
