@@ -822,9 +822,6 @@ export interface IDataikuCheckListItem {
 export interface ICreateNewSolutionRequest {
   data: ICreateNewSolution;
 }
-export interface IDataComplianceRequest {
-  data: IEntity;
-}
 export interface ICreateNewReportRequest {
   data: ICreateNewReport;
 }
@@ -884,20 +881,6 @@ export interface INeededRoleObject {
   neededSkill: string;
   requestedFTECount: string;
   toDate: string;
-}
-
-export interface IEntity {
-  dataProtectionCoordinator: string[];
-  entityId: string;
-  entityName: string;
-  localComplianceOfficer: string[];
-  localComplianceResponsible: string[];
-  localComplianceSpecialist: string[];
-  createdDate?: string;
-  id?: string;
-  lastModifiedDate?: string;
-  createdBy?: IUserInfo;
-  modifiedBy?: IUserInfo;
 }
 
 export interface IAllSolutionsListItemCSV {

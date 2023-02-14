@@ -65,9 +65,9 @@ const DataComplianceNetworkList = (props) => {
     id: '',
     entityId: '',
     entityName: '',
+    entityCountry: '',
     localComplianceOfficer: [],
     localComplianceResponsible: [],
-    dataProtectionCoordinator: [],
     localComplianceSpecialist: [],
     createdDate: '',
     createdBy: {
@@ -94,10 +94,10 @@ const DataComplianceNetworkList = (props) => {
   /* error states */
   const [entityIdError, setEntityIdError] = useState('');
   const [entityNameError, setEntityNameError] = useState('');
+  const [entityCountryError, setEntityCountryError] = useState('');
   const [entityError, setEntityError] = useState(false);
   const [localComplianceOfficerError, setLocalComplianceOfficerError] = useState(false);
   const [localComplianceResponsibleError, setLocalComplianceResponsibleError] = useState(false);
-  // const [dataProtectionCoordinatorError, setDataProtectionCoordinatorError] = useState(false);
   const [localComplianceSpecialistError, setLocalComplianceSpecialistError] = useState(false);
 
   const [entitySearch, setEntitySearch] = useState(true);
@@ -125,17 +125,6 @@ const DataComplianceNetworkList = (props) => {
     });
     setEntity({ ...entity, localComplianceResponsible: arr });
   };
-  // const setDataProtectionCoordinator = (arr) => {
-  //   setDataProtectionCoordinatorError(false);
-  //   arr.map((item) => {
-  //     if (validateEmail(item)) {
-  //       return item;
-  //     } else {
-  //       setDataProtectionCoordinatorError(true);
-  //     }
-  //   });
-  //   setEntity({ ...entity, dataProtectionCoordinator: arr });
-  // };
   const setLocalComplianceSpecialist = (arr) => {
     setLocalComplianceSpecialistError(false);
     arr.map((item) => {
@@ -196,14 +185,13 @@ const DataComplianceNetworkList = (props) => {
       results = results.filter((result) => {
         const localComplianceOfficers = result.localComplianceOfficer.toString();
         const localComplianceResponsibles = result.localComplianceResponsible.toString();
-        // const dataProtectionCoordinators = result.dataProtectionCoordinator.toString();
         const localComplianceSpecialists = result.localComplianceSpecialist.toString();
         return (
           result.entityName.toLowerCase().includes(searchTerm) ||
+          result.entityCountry.toLowerCase().includes(searchTerm) ||
           result.entityId.toLowerCase().includes(searchTerm) ||
           localComplianceOfficers.includes(searchTerm) ||
           localComplianceResponsibles.includes(searchTerm) ||
-          // dataProtectionCoordinators.includes(searchTerm) ||
           localComplianceSpecialists.includes(searchTerm)
         );
       });
@@ -224,6 +212,14 @@ const DataComplianceNetworkList = (props) => {
             return a.entityName.toLowerCase() === b.entityName.toLowerCase() ? 0 : -1;
           } else {
             return a.entityName.toLowerCase() === b.entityName.toLowerCase() ? -1 : 0;
+          }
+        });
+      } else if (sortBy.name === 'entityCountry') {
+        results = results.sort((a, b) => {
+          if (sortBy.currentSortType === 'asc') {
+            return a.entityCountry.toLowerCase() === b.entityCountry.toLowerCase() ? 0 : -1;
+          } else {
+            return a.entityCountry.toLowerCase() === b.entityCountry.toLowerCase() ? -1 : 0;
           }
         });
       }
@@ -310,9 +306,9 @@ const DataComplianceNetworkList = (props) => {
       id: entity.id,
       entityId: entity.entityId,
       entityName: entity.entityName,
+      entityCountry: entity.entityCountry,
       localComplianceOfficer: entity.localComplianceOfficer,
       localComplianceResponsible: entity.localComplianceResponsible,
-      dataProtectionCoordinator: entity.dataProtectionCoordinator,
       localComplianceSpecialist: entity.localComplianceSpecialist,
       createdDate: entity.createdDate,
       createdBy: entity.createdBy,
@@ -320,6 +316,7 @@ const DataComplianceNetworkList = (props) => {
 
     setEntityIdError(null);
     setEntityNameError(null);
+    setEntityCountryError(null);
   };
   const onCancelDeleteChanges = () => {
     setShowDeleteEntityConfirmModal(false);
@@ -360,7 +357,7 @@ const DataComplianceNetworkList = (props) => {
     let errorMessage = 'Please fill Entity ID and Entity Name';
 
     if (entitySearch) {
-      if (entity.entityId.length === 0 && entity.entityName.length === 0) {
+      if (!entity.entityId && entity.entityId.length === 0 && entity.entityName.length === 0) {
         errorMessage = 'Please select entity';
         formValid = false;
         setEntityError(true);
@@ -379,11 +376,15 @@ const DataComplianceNetworkList = (props) => {
         formValid = false;
       }
     }
-
+    if (entity.entityCountry.length > 0) {
+      setEntityCountryError(null);
+    } else {
+      setEntityCountryError('*Missing entry');
+      formValid = false;
+    }
     if (
       localComplianceOfficerError ||
       localComplianceResponsibleError ||
-      // dataProtectionCoordinatorError ||
       localComplianceSpecialistError
     ) {
       formValid = false;
@@ -405,21 +406,21 @@ const DataComplianceNetworkList = (props) => {
       entityName: '',
       localComplianceOfficer: [],
       localComplianceResponsible: [],
-      dataProtectionCoordinator: [],
       localComplianceSpecialist: [],
     });
 
     setEntityError(false);
     setEntityIdError(null);
     setEntityNameError(null);
-
+    setEntityCountryError(null);
+    
     setEntitySearch(true);
   };
   const onEntityAdd = () => {
     let formValid = true;
     let errorMessage = 'Please fill Entity ID and Entity Name';
     if (entitySearch) {
-      if (entity.entityId.length === 0 && entity.entityName.length === 0) {
+      if (!entity.entityId && entity.entityId.length === 0 && entity.entityName.length === 0) {
         errorMessage = 'Please select entity';
         formValid = false;
         setEntityError(true);
@@ -438,10 +439,15 @@ const DataComplianceNetworkList = (props) => {
         formValid = false;
       }
     }
+    if (entity.entityCountry.length > 0) {
+      setEntityCountryError(null);
+    } else {
+      setEntityCountryError('*Missing entry');
+      formValid = false;
+    }
     if (
       localComplianceOfficerError ||
       localComplianceResponsibleError ||
-      // dataProtectionCoordinatorError ||
       localComplianceSpecialistError
     ) {
       formValid = false;
@@ -451,9 +457,9 @@ const DataComplianceNetworkList = (props) => {
       ProgressIndicator.show();
       setUpdateConfirmModalOverlay(false);
       const data = {
-        dataProtectionCoordinator: entity.dataProtectionCoordinator,
         entityId: entity.entityId,
         entityName: entity.entityName,
+        entityCountry: entity.entityCountry,
         localComplianceOfficer: entity.localComplianceOfficer,
         localComplianceResponsible: entity.localComplianceResponsible,
         localComplianceSpecialist: entity.localComplianceSpecialist,
@@ -488,9 +494,9 @@ const DataComplianceNetworkList = (props) => {
           id: entity.id,
           entityId: entity.entityId,
           entityName: entity.entityName,
+          entityCountry: entity.entityCountry,
           localComplianceOfficer: entity.localComplianceOfficer,
           localComplianceResponsible: entity.localComplianceResponsible,
-          dataProtectionCoordinator: entity.dataProtectionCoordinator,
           localComplianceSpecialist: entity.localComplianceSpecialist,
         };
       }
@@ -498,11 +504,11 @@ const DataComplianceNetworkList = (props) => {
     });
     const data = {
       id: entity.id,
-      dataProtectionCoordinator: entity.dataProtectionCoordinator,
       createdDate: entity.createdDate,
       createdBy: entity.createdBy,
       entityId: entity.entityId,
       entityName: entity.entityName,
+      entityCountry: entity.entityCountry,
       localComplianceOfficer: entity.localComplianceOfficer,
       localComplianceResponsible: entity.localComplianceResponsible,
       localComplianceSpecialist: entity.localComplianceSpecialist,
@@ -536,6 +542,15 @@ const DataComplianceNetworkList = (props) => {
       setEntityNameError(null);
     } else {
       setEntityNameError('*Missing entry');
+    }
+  };
+
+  const onChangeEntityCountry = (e) => {
+    setEntity({ ...entity, entityCountry: e.currentTarget.value });
+    if (e.currentTarget.value.length > 0) {
+      setEntityCountryError(null);
+    } else {
+      setEntityCountryError('*Missing entry');
     }
   };
 
@@ -597,6 +612,17 @@ const DataComplianceNetworkList = (props) => {
             />
           </>
         )}
+        <TextBox
+          type="text"
+          controlId={'entity-country'}
+          label={'Country'}
+          placeholder={'Type here'}
+          value={entity.entityCountry}
+          errorText={entityCountryError}
+          required={true}
+          maxLength={200}
+          onChange={onChangeEntityCountry}
+        />
         <div className={Styles.tagControl}>
           <Tags
             title={'Local Compliance Officer (LCO)'}
@@ -625,20 +651,6 @@ const DataComplianceNetworkList = (props) => {
             <span className={classNames('error-message', Styles.tagError)}>Please enter valid email address.</span>
           )}
         </div>
-        {/* <div className={Styles.tagControl}>
-          <Tags
-            title={'Data Protection Coordinator (DPC)'}
-            max={100}
-            chips={entity.dataProtectionCoordinator}
-            setTags={setDataProtectionCoordinator}
-            tags={dummyTags}
-            isMandatory={false}
-            showMissingEntryError={false}
-          />
-          {dataProtectionCoordinatorError && (
-            <span className={classNames('error-message', Styles.tagError)}>Please enter valid email address.</span>
-          )}
-        </div> */}
         <div className={Styles.tagControl}>
           <Tags
             title={'Local Compliance Support / Specialist (LCS)'}
@@ -808,6 +820,16 @@ const DataComplianceNetworkList = (props) => {
                       >
                         <i className="icon sort" />
                         Entity Name
+                      </label>
+                    </th>
+                    <th onClick={() => sortEntities('entityCountry', sortBy.nextSortType)}>
+                      <label
+                        className={
+                          'sortable-column-header ' + (sortBy.name === 'entityCountry' ? sortBy.currentSortType : '')
+                        }
+                      >
+                        <i className="icon sort" />
+                        Country
                       </label>
                     </th>
                     <th>
