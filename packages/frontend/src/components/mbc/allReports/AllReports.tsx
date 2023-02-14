@@ -258,7 +258,9 @@ export default class AllReports extends React.Component<
       </div>
     );
 
-    const pageTitle = 'All Reports';
+    const reportCount = this.state.totalNumberOfRecords;
+
+    const pageTitle = 'All Reports ('+ reportCount +')';
 
     const exportCSVIcon = () => {
       const element = (
