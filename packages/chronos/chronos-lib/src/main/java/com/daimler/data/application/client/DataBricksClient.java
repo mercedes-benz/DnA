@@ -29,38 +29,38 @@ public class DataBricksClient {
 
 	@Value("${databricks.uri.base}")
 	private String dataBricksBaseUri;
-	
+
 	@Value("${databricks.uri.runnow}")
 	private String dataBricksJobTriggerRunNowPath;
-	
+
 	@Value("${databricks.uri.deleterun}")
 	private String dataBricksJobDeleteRunPath;
-	
+
 	@Value("${databricks.uri.getrun}")
 	private String dataBricksJobGetRunPath;
-	
+
 	@Value("${databricks.uri.jobrunlist}")
 	private String dataBricksJobRunList;
-	
+
 	@Value("${databricks.jobId}")
 	private String dataBricksJobId;
 
 	@Value("${databricks.powerfulMachinesJobId}")
 	private String dataBricksPowerfulMachinesJobId;
-	
+
 	@Value("${databricks.defaultConfigYml}")
 	private String dataBricksJobDefaultConfigYml;
-	
+
 	@Value("${databricks.pat}")
 	private String dataBricksPAT;
-	
+
 	@Autowired
 	HttpServletRequest httpRequest;
-	
+
 	@Autowired
-	private RestTemplate restTemplate;
-	
-	
+	private RestTemplate proxyRestTemplate;
+
+
 	public RunNowResponseVO runNow(String runCorrelationUUID, RunNowNotebookParamsDto notebookParams, boolean runOnPowerfulMachines) {
 		RunNowResponseVO runNowResponse = null;
 		try {
@@ -69,7 +69,7 @@ public class DataBricksClient {
 				headers.set("Accept", "application/json");
 				headers.set("Authorization", "Bearer "+dataBricksPAT);
 				headers.setContentType(MediaType.APPLICATION_JSON);
-				
+
 				String runNowUrl = dataBricksBaseUri + dataBricksJobTriggerRunNowPath;
 				DatabricksJobRunNowRequestDto requestWrapper = new DatabricksJobRunNowRequestDto();
 				if(notebookParams.getConfig()==null || "".equalsIgnoreCase(notebookParams.getConfig()))
@@ -86,7 +86,7 @@ public class DataBricksClient {
 					log.error("Failed to parse runnow request with exception {} ",e.getMessage());
 				}
 				HttpEntity<DatabricksJobRunNowRequestDto> requestEntity = new HttpEntity<>(requestWrapper,headers);
-				ResponseEntity<RunNowResponseVO> response = restTemplate.exchange(runNowUrl, HttpMethod.POST,
+				ResponseEntity<RunNowResponseVO> response = proxyRestTemplate.exchange(runNowUrl, HttpMethod.POST,
 						requestEntity, RunNowResponseVO.class);
 				if (response.hasBody()) {
 					runNowResponse = response.getBody();
@@ -96,8 +96,8 @@ public class DataBricksClient {
 				}
 			return runNowResponse;
 	}
-	
-	
+
+
 	public DataBricksErrorResponseVO deleteRun(String runId) {
 		DataBricksErrorResponseVO deleteRunResponse = null;
 		try {
@@ -105,12 +105,12 @@ public class DataBricksClient {
 				headers.set("Accept", "application/json");
 				headers.set("Authorization", "Bearer "+dataBricksPAT);
 				headers.setContentType(MediaType.APPLICATION_JSON);
-				
+
 				String deleteRunUrl = dataBricksBaseUri + dataBricksJobDeleteRunPath;
 				DatabricksRunGenericRequestDto requestWrapper = new DatabricksRunGenericRequestDto();
 				requestWrapper.setRun_id(runId);
 				HttpEntity<DatabricksRunGenericRequestDto> requestEntity = new HttpEntity<>(requestWrapper,headers);
-				ResponseEntity<DataBricksErrorResponseVO> response = restTemplate.exchange(deleteRunUrl, HttpMethod.POST,
+				ResponseEntity<DataBricksErrorResponseVO> response = proxyRestTemplate.exchange(deleteRunUrl, HttpMethod.POST,
 						requestEntity, DataBricksErrorResponseVO.class);
 				if (response.hasBody()) {
 					deleteRunResponse = response.getBody();
@@ -121,8 +121,8 @@ public class DataBricksClient {
 				}
 			return deleteRunResponse;
 	}
-	
-	
+
+
 	public RunDetailsVO getSingleRun(String runId) {
 		RunDetailsVO getSingleRunResponse = null;
 		try {
@@ -130,10 +130,10 @@ public class DataBricksClient {
 				headers.set("Accept", "application/json");
 				headers.set("Authorization", "Bearer "+dataBricksPAT);
 				headers.setContentType(MediaType.APPLICATION_JSON);
-				
+
 				String getSingleRunUrl = dataBricksBaseUri + dataBricksJobGetRunPath + "?run_id=" + runId;
 				HttpEntity requestEntity = new HttpEntity<>(headers);
-				ResponseEntity<RunDetailsVO> response = restTemplate.exchange(getSingleRunUrl, HttpMethod.GET,
+				ResponseEntity<RunDetailsVO> response = proxyRestTemplate.exchange(getSingleRunUrl, HttpMethod.GET,
 						requestEntity, RunDetailsVO.class);
 				if (response.hasBody()) {
 					getSingleRunResponse = response.getBody();
@@ -143,8 +143,8 @@ public class DataBricksClient {
 				}
 			return getSingleRunResponse;
 	}
-	
-	
+
+
 	public JobRunsListVO getJobRuns() {
 		JobRunsListVO getJobRunsResponse = null;
 		try {
@@ -155,7 +155,7 @@ public class DataBricksClient {
 				headers.setContentType(MediaType.APPLICATION_JSON);
 				String getJobRunsUrl = dataBricksBaseUri + dataBricksJobRunList + "?active_only=true&expand_tasks=false&run_type=JOB_RUN&job_id="+dataBricksJobidForRun;
 				HttpEntity requestEntity = new HttpEntity<>(headers);
-				ResponseEntity<JobRunsListVO> response = restTemplate.exchange(getJobRunsUrl, HttpMethod.POST,
+				ResponseEntity<JobRunsListVO> response = proxyRestTemplate.exchange(getJobRunsUrl, HttpMethod.POST,
 						requestEntity, JobRunsListVO.class);
 				if (response.hasBody()) {
 					getJobRunsResponse = response.getBody();
@@ -165,8 +165,8 @@ public class DataBricksClient {
 				}
 			return getJobRunsResponse;
 	}
-	
-	
-	
+
+
+
 
 }
