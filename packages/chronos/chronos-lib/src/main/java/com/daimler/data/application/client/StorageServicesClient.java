@@ -210,7 +210,7 @@ public class StorageServicesClient {
 		return updateBucketResponse;
 	}
 	
-	public FileUploadResponseDto uploadFile(MultipartFile file,String bucketName) {
+	public FileUploadResponseDto uploadFile(String prefix,MultipartFile file,String bucketName) {
 		FileUploadResponseDto uploadResponse = new FileUploadResponseDto();
 		List<MessageDescription> errors = new ArrayList<>();
 		try {
@@ -231,7 +231,7 @@ public class StorageServicesClient {
 			String uploadFileUrl = storageBaseUri + BUCKETS_PATH + "/" + bucketName + UPLOADFILE_PATH;
 			HttpEntity<ByteArrayResource> attachmentPart = new HttpEntity<>(fileAsResource);
 			multipartRequest.set("file",attachmentPart);
-			multipartRequest.set("prefix",INPUTS_PREFIX_PATH);
+			multipartRequest.set("prefix",prefix);
 			HttpEntity<LinkedMultiValueMap<String,Object>> requestEntity = new HttpEntity<>(multipartRequest,headers);
 			ResponseEntity<FileUploadResponseDto> response = restTemplate.exchange(uploadFileUrl, HttpMethod.POST,
 					requestEntity, FileUploadResponseDto.class);
@@ -260,9 +260,11 @@ public class StorageServicesClient {
 			headers.setContentType(MediaType.APPLICATION_JSON);
 			headers.set("chronos-api-key",dataBricksAuth);
 			HttpEntity requestEntity = new HttpEntity<>(headers);
-			
+
 			String getFileUrl = storageBaseUri + BUCKETS_PATH + "/" + bucketName + "/objects/metadata?prefix=" + path;
+
 			ResponseEntity<ByteArrayResource> response = restTemplate.exchange(getFileUrl, HttpMethod.GET,requestEntity, ByteArrayResource.class);
+
 			if (response.hasBody()) {
 				data = response.getBody();
 				downloadResponse.setData(data);
@@ -273,6 +275,7 @@ public class StorageServicesClient {
 				errors.add(errMsg);
 				downloadResponse.setErrors(errors);
 				downloadResponse.setData(data);
+
 			}
 		return downloadResponse;
 	}
