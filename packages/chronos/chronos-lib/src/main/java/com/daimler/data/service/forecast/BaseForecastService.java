@@ -14,6 +14,8 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -103,7 +105,7 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 	
 	@Override
 	@Transactional
-	public ForecastRunResponseVO createJobRun(String savedInputPath, Boolean saveRequestPart, String runName,
+	public ForecastRunResponseVO createJobRun(MultipartFile file,String savedInputPath, Boolean saveRequestPart, String runName,
 			String configurationFile, String frequency, BigDecimal forecastHorizon, String hierarchy, String comment, Boolean runOnPowerfulMachines,
 			ForecastVO existingForecast,String triggeredBy, Date triggeredOn) {
 		
@@ -114,6 +116,23 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 		RunNowNotebookParamsDto noteboookParams = new RunNowNotebookParamsDto();
 		String correlationId = UUID.randomUUID().toString();
 		String bucketName = existingForecast.getBucketName();
+		String resultFolder = bucketName+"/results/"+correlationId + "-" + runName;
+		String inputOrginalFolder= "/results/"+correlationId + "-" + runName + "/input_original";
+
+		FileUploadResponseDto fileUploadResponse = this.saveFile(inputOrginalFolder,file, existingForecast.getBucketName());
+		if(fileUploadResponse==null || (fileUploadResponse!=null && (fileUploadResponse.getErrors()!=null || !"SUCCESS".equalsIgnoreCase(fileUploadResponse.getStatus())))) {
+
+			log.error("Error in uploading file to {} for forecast project {}",inputOrginalFolder,existingForecast.getName() );
+			MessageDescription msg = new MessageDescription("Failed to  upload file to " + inputOrginalFolder + "for" + existingForecast.getName() );
+			List<MessageDescription> errors = new ArrayList<>();
+			errors.add(msg);
+			responseMessage.setErrors(errors);
+			responseWrapper.setData(null);
+			responseWrapper.setResponse(responseMessage);
+
+		return responseWrapper;
+
+		}
 		noteboookParams.setConfig(configurationFile);
 		noteboookParams.setCorrelationId(correlationId);
 		if(savedInputPath!=null) {
@@ -130,10 +149,11 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 		noteboookParams.setFh(forecastHorizon.toString());
 		noteboookParams.setHierarchy(hierarchy);
 		noteboookParams.setFreq(this.toFrequencyParam(frequency));
-		String resultFolder = bucketName+"/results/"+correlationId + "-" + runName;
+
 		noteboookParams.setResults_folder(resultFolder);
 		noteboookParams.setX("");
 		noteboookParams.setX_pred("");
+
 		RunNowResponseVO runNowResponse = dataBricksClient.runNow(correlationId, noteboookParams, runOnPowerfulMachines);
 		if(runNowResponse!=null) {
 			if(runNowResponse.getErrorCode()!=null || runNowResponse.getRunId()==null) 
@@ -200,8 +220,8 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 	}
 
 	@Override
-	public FileUploadResponseDto saveFile(MultipartFile file, String bucketName) {
-		FileUploadResponseDto uploadResponse = storageClient.uploadFile(file,bucketName);
+	public FileUploadResponseDto saveFile(String prefix, MultipartFile file, String bucketName) {
+		FileUploadResponseDto uploadResponse = storageClient.uploadFile(prefix,file,bucketName);
 		return uploadResponse;
 	}
 
@@ -318,13 +338,16 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 			String yPrefix = commonPrefix +"/y.csv";
 			String yPredPrefix = commonPrefix +"/y_pred.csv";
 			String edaJsonPrefix = commonPrefix +"/eda.json";
+			String warningsPrefix= commonPrefix +"/WARNINGS.txt";
 			FileDownloadResponseDto yDownloadResponse = storageClient.getFileContents(bucketName, yPrefix);
 			FileDownloadResponseDto yPredDownloadResponse = storageClient.getFileContents(bucketName, yPredPrefix);
 			FileDownloadResponseDto edaJsonDownloadResponse = storageClient.getFileContents(bucketName, edaJsonPrefix);
+			FileDownloadResponseDto warningsTextDownloadResponse = storageClient.getFileContents(bucketName, warningsPrefix);
 			JsonArray jsonArray = new JsonArray();
 			String yResult = "";
 			String yPredResult = "";
 			String edaResult = "";
+			String warningsResult = "";
 			if(yDownloadResponse!= null && yDownloadResponse.getData()!=null && (yDownloadResponse.getErrors()==null || yDownloadResponse.getErrors().isEmpty())) {
 				 yResult = new String(yDownloadResponse.getData().getByteArray()); 
 			 }
@@ -334,9 +357,14 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 			if(edaJsonDownloadResponse!= null && edaJsonDownloadResponse.getData()!=null && (edaJsonDownloadResponse.getErrors()==null || edaJsonDownloadResponse.getErrors().isEmpty())) {
 				edaResult = new String(edaJsonDownloadResponse.getData().getByteArray()); 
 			 }
+			if(warningsTextDownloadResponse!= null && warningsTextDownloadResponse.getData()!=null && (warningsTextDownloadResponse.getErrors()==null || warningsTextDownloadResponse.getErrors().isEmpty())) {
+				warningsResult = new String(warningsTextDownloadResponse.getData().getByteArray());
+
+			}
 			visualizationVO.setEda(edaResult);
 			visualizationVO.setY(yResult);
 			visualizationVO.setYPred(yPredResult);
+			visualizationVO.setWarnings(warningsResult);
 		}catch(Exception e) {
 			log.error("Failed while parsing results data for run rid {} with exception {} ",rid, e.getMessage());
 		}
