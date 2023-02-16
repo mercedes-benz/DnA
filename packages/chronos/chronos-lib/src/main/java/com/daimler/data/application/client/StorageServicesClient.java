@@ -311,7 +311,17 @@ public class StorageServicesClient {
 	}
 	
 	
-	public Boolean isSuccessFilePresent(String bucketName,String prefix) {
+	public Boolean isSuccessFilePresent(String fileNamePrefix,List<BucketObjectDetailsDto> bucketObjectDetails) {
+		Boolean flag = false;
+		if(bucketObjectDetails!=null && !bucketObjectDetails.isEmpty() && bucketObjectDetails.size()>0) {
+			List<BucketObjectDetailsDto> filteredList=bucketObjectDetails.stream().filter(str -> (fileNamePrefix).equalsIgnoreCase(str.getObjectName())).collect(Collectors.toList());
+			if(filteredList!=null && !filteredList.isEmpty() && filteredList.size()>0)
+				flag = true;
+		}
+		return flag;
+	}
+
+	public List<BucketObjectDetailsDto> getFilesPresent(String bucketName,String prefix) {
 		Boolean flag = false;
 		BucketObjectsCollectionWrapperDto filesList = new BucketObjectsCollectionWrapperDto();
 		ByteArrayResource data = null;
@@ -331,18 +341,20 @@ public class StorageServicesClient {
 						&& !response.getBody().getData().getBucketObjects().isEmpty()) {
 					filesList = response.getBody();
 					List<BucketObjectDetailsDto> filteredBucketObjects = filesList.getData().getBucketObjects().stream().
-						filter(str -> (prefix+"SUCCESS").equalsIgnoreCase(str.getObjectName())).collect(Collectors.toList());
-					if(filteredBucketObjects!=null && !filteredBucketObjects.isEmpty() && filteredBucketObjects.size()>0)
-						flag = true;
+							collect(Collectors.toList());
+					return filteredBucketObjects;
+
 				}
+
 			}
-			}catch(Exception e) {
-				log.error("Failed while getting SUCCESS file from results path {}  with exception {}", bucketName+"/"+prefix, e.getMessage());
-			}
-		return flag;
+		}catch(Exception e) {
+			log.error("Failed while getting  files from results path {}  with exception {}", bucketName+"/"+prefix, e.getMessage());
+		}
+		return null;
+
 	}
- 
-	
+
+
 	public DeleteBucketResponseWrapperDto deleteBucket(String bucketName) {
 		DeleteBucketResponseWrapperDto deleteBucketResponse = new DeleteBucketResponseWrapperDto();
 		List<MessageDescription> errors = new ArrayList<>();

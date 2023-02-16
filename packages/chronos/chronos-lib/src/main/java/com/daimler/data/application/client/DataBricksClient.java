@@ -96,7 +96,8 @@ public class DataBricksClient {
 				runNowResponse = response.getBody();
 			}
 		}catch(Exception e) {
-			e.printStackTrace();
+			log.error("Failed to invoke databricks run {} with {} ", runCorrelationUUID,e.getMessage());
+			log.debug("Failed to invoke databricks run {} with {} ", runCorrelationUUID,e.getStackTrace());
 		}
 		return runNowResponse;
 	}
@@ -135,6 +136,7 @@ public class DataBricksClient {
 			headers.setContentType(MediaType.APPLICATION_JSON);
 
 			String getSingleOutputRunUrl = dataBricksBaseUri + dataBricksJobRunOutputUri + "?run_id=" + runId;
+			log.info("getSingleOutputRunUrl" + getSingleOutputRunUrl);
 			HttpEntity requestEntity = new HttpEntity<>(headers);
 			ResponseEntity<DataBricksJobRunOutputResponseWrapperDto> response = proxyRestTemplate.exchange(getSingleOutputRunUrl, HttpMethod.GET,
 					requestEntity, DataBricksJobRunOutputResponseWrapperDto.class);
@@ -142,7 +144,8 @@ public class DataBricksClient {
 				getSingleRunOutputResponse = response.getBody();
 			}
 		}catch(Exception e) {
-			e.printStackTrace();
+			log.error("Failed to invoke databricks get run output {} with {} ", runId,e.getMessage());
+			log.debug("Failed to invoke databricks get run output with {} with {}", runId,e.getStackTrace());
 		}
 		return getSingleRunOutputResponse;
 	}
@@ -164,7 +167,8 @@ public class DataBricksClient {
 				getSingleRunResponse = response.getBody();
 			}
 		}catch(Exception e) {
-			e.printStackTrace();
+			log.error("Failed to invoke databricks get run  {} with {} ", runId,e.getMessage());
+			log.debug("Failed to invoke databricks get run  with {} with {}", runId,e.getStackTrace());
 		}
 		return getSingleRunResponse;
 	}
@@ -186,7 +190,8 @@ public class DataBricksClient {
 				getJobRunsResponse = response.getBody();
 			}
 		}catch(Exception e) {
-			e.printStackTrace();
+			log.error("Failed to invoke databricks get run {}", e.getMessage());
+			log.debug("Failed to invoke databricks get run {}", e.getStackTrace());
 		}
 		return getJobRunsResponse;
 	}
