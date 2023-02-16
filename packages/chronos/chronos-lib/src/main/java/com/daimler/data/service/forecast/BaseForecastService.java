@@ -234,14 +234,14 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 	@Override
 	@Transactional
 	public List<RunVO> getAllRunsForProject(int limit, int offset, ForecastVO existingForecast) {
-		
+		log.info("getAllRunsForProject");
 		List<RunDetails> updatedRuns = new ArrayList<>();
 		List<RunVO> updatedRunVOList = new ArrayList<>();
-		
+
 		Optional<ForecastNsql> entityOptional = jpaRepo.findById(existingForecast.getId());
 		if(entityOptional!=null) {
 			ForecastNsql entity = entityOptional.get();
-			if(entity!=null && entity.getData()!=null && 
+			if(entity!=null && entity.getData()!=null &&
 					entity.getData().getRuns()!=null && !entity.getData().getRuns().isEmpty()) {
 				List<RunDetails> existingRuns = entity.getData().getRuns();
 				String bucketName = entity.getData().getBucketName();
@@ -249,20 +249,24 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 				for(RunDetails run: existingRuns) {
 					RunState state = run.getRunState();
 					String runId = run.getRunId();
-					if(runId!=null && (run.getIsDelete() == null || !run.getIsDelete()) && 
+					String correlationId= run.getId();
+					log.info("runId" + runId);
+					log.info("id correlation" + correlationId );
+					if(runId!=null && (run.getIsDelete() == null || !run.getIsDelete()) &&
 							(state==null || state.getResult_state()==null || state.getLife_cycle_state()==null ||
-							"PENDING".equalsIgnoreCase(state.getLife_cycle_state()) || 
-							"RUNNING".equalsIgnoreCase(state.getLife_cycle_state()))) {
+									"PENDING".equalsIgnoreCase(state.getLife_cycle_state()) ||
+									"RUNNING".equalsIgnoreCase(state.getLife_cycle_state()))) {
+						log.info("inside first if cond");
 						RunDetailsVO updatedRunResponse = this.dataBricksClient.getSingleRun(runId);
 						if(updatedRunResponse!=null && runId.equals(updatedRunResponse.getRunId())) {
 							RunDetails updatedRunDetail = new RunDetails();
 							BeanUtils.copyProperties(run, updatedRunDetail);
 							updatedRunDetail.setCreatorUserName(updatedRunResponse.getCreatorUserName());
-							if(updatedRunResponse.getEndTime()!=null) 
+							if(updatedRunResponse.getEndTime()!=null)
 								updatedRunDetail.setEndTime(updatedRunResponse.getEndTime().longValue());
-							if(updatedRunResponse.getExecutionDuration()!=null) 
+							if(updatedRunResponse.getExecutionDuration()!=null)
 								updatedRunDetail.setExecutionDuration(updatedRunResponse.getExecutionDuration().longValue());
-							if(updatedRunResponse.getSetupDuration()!=null) 
+							if(updatedRunResponse.getSetupDuration()!=null)
 								updatedRunDetail.setSetupDuration(updatedRunResponse.getSetupDuration().longValue());
 							if(updatedRunResponse.getStartTime()!=null)
 								updatedRunDetail.setStartTime(updatedRunResponse.getStartTime().longValue());
@@ -276,82 +280,104 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 									if("SUCCESS".equalsIgnoreCase(updatedState.getResultState().name())) {
 										//check if .SUCCESS file exists
 										String resultFolderPathForRun = resultsPrefix + updatedRunDetail.getId()+"-"+updatedRunDetail.getRunName()+"/";
-										Boolean successFileFlag = storageClient.isSuccessFilePresent(bucketName, resultFolderPathForRun);
-										log.info("Run state is success from databricks and isSuccessFilePresent value is {}, for bucket {} and prefix {} ", successFileFlag, bucketName, resultFolderPathForRun);
-										if(!successFileFlag)
-											newState.setResult_state(ResultStateEnum.FAILED.name());
+										List<BucketObjectDetailsDto> bucketObjectDetails=storageClient.getFilesPresent(bucketName,resultFolderPathForRun);
+										Boolean successFileFlag = storageClient.isSuccessFilePresent(resultFolderPathForRun+ "SUCCESS", bucketObjectDetails);
+										Boolean warningsFileFlag = storageClient.isSuccessFilePresent(resultFolderPathForRun+ "WARNINGS.txt", bucketObjectDetails);
+										log.info("Run state is success from databricks and successFileFlag value is {} and warningsFileFlag is {} , for bucket {} and prefix {} ", successFileFlag, warningsFileFlag, bucketName, resultFolderPathForRun);
+										if(warningsFileFlag){
+											newState.setResult_state(ResultStateEnum.WARNINGS.name());
+											//fetch file content from warnings.txt file
+											String commonPrefix = "/results/"+run.getId() + "-" + run.getRunName();
+											String warningsPrefix = commonPrefix +"/WARNINGS.txt";
+											String warningsResult = "";
+											FileDownloadResponseDto warningsTextDownloadResponse = storageClient.getFileContents(bucketName, warningsPrefix);
+											if(warningsTextDownloadResponse!= null && warningsTextDownloadResponse.getData()!=null && (warningsTextDownloadResponse.getErrors()==null || warningsTextDownloadResponse.getErrors().isEmpty())) {
+												warningsResult = new String(warningsTextDownloadResponse.getData().getByteArray());
+
+											}
+											updatedRunDetail.setWarnings(warningsResult);
+										}
+										else{
+											if(!successFileFlag) {
+												newState.setResult_state(ResultStateEnum.FAILED.name());
+											}
+
+										}
+									}else {
+										String taskRunId=updatedRunResponse.getTasks().get(0).getRunId();
+										String errorMessage=processErrorMessages(taskRunId);
+										updatedRunDetail.setError(errorMessage);
+										updatedRunDetail.setTaskRunId(taskRunId);
 									}
 								}
 								String updatedStateMsg = "";
 								if(updatedRunResponse.getState().getStateMessage()!=null) {
-									updatedStateMsg = updatedRunResponse.getState().getStateMessage() + ". " + updatedState.getStateMessage();
+									updatedStateMsg = updatedState.getStateMessage();
 								}
 								newState.setState_message(updatedStateMsg);
 								newState.setUser_cancelled_or_timedout(updatedState.isUserCancelledOrTimedout());
 								updatedRunDetail.setRunState(newState);
+								updatedRuns.add(updatedRunDetail);
 							}
 							updatedRuns.add(updatedRunDetail);
-						}else {
-							updatedRuns.add(run);
-						}
-					}
-					else if (runId != null && (run.getIsDelete() == null || !run.getIsDelete()) &&
-							(state == null || state.getResult_state() == null || state.getLife_cycle_state() == null
-									|| "FAILED".equalsIgnoreCase(state.getResult_state()))) {
-						DataBricksJobRunOutputResponseWrapperDto updatedRunResponse = this.dataBricksClient.getSingleRunOutput(runId);
-						if (updatedRunResponse != null && runId.equals(updatedRunResponse.getMetadata().getRunId())) {
-							RunDetails updatedRunDetail = new RunDetails();
-							BeanUtils.copyProperties(run, updatedRunDetail);
-							updatedRunDetail.setCreatorUserName(updatedRunResponse.getMetadata().getCreatorUserName());
-							if (updatedRunResponse.getMetadata().getEndTime() != null)
-								updatedRunDetail.setEndTime(updatedRunResponse.getMetadata().getEndTime().longValue());
-							if (updatedRunResponse.getMetadata().getExecutionDuration() != null)
-								updatedRunDetail.setExecutionDuration(updatedRunResponse.getMetadata().getExecutionDuration().longValue());
-							if (updatedRunResponse.getMetadata().getSetupDuration() != null)
-								updatedRunDetail.setSetupDuration(updatedRunResponse.getMetadata().getSetupDuration().longValue());
-							if (updatedRunResponse.getMetadata().getStartTime() != null)
-								updatedRunDetail.setStartTime(updatedRunResponse.getMetadata().getStartTime().longValue());
-							if (updatedRunResponse.getMetadata().getState() != null) {
-								RunStateVO updatedState = updatedRunResponse.getMetadata().getState();
-								RunState newState = new RunState();
-								if (updatedState.getLifeCycleState() != null)
-									newState.setLife_cycle_state(updatedState.getLifeCycleState().name());
-								if (updatedState.getResultState() != null) {
-									newState.setResult_state(updatedState.getResultState().name());
-									if ("SUCCESS".equalsIgnoreCase(updatedState.getResultState().name())) {
-										//check if .SUCCESS file exists
-										String resultFolderPathForRun = resultsPrefix + updatedRunDetail.getId() + "-" + updatedRunDetail.getRunName() + "/";
-										Boolean successFileFlag = storageClient.isSuccessFilePresent(bucketName, resultFolderPathForRun);
-										log.info("Run state is success from databricks and isSuccessFilePresent value is {}, for bucket {} and prefix {} ", successFileFlag, bucketName, resultFolderPathForRun);
-										if (!successFileFlag)
-											newState.setResult_state(ResultStateEnum.FAILED.name());
-									}
-								}
-								String updatedStateMsg = "";
-								if (updatedRunResponse.getMetadata().getState().getStateMessage() != null) {
-									updatedStateMsg = updatedRunResponse.getError();
-								}
-								newState.setState_message(updatedStateMsg);
-								newState.setUser_cancelled_or_timedout(updatedState.isUserCancelledOrTimedout());
-								updatedRunDetail.setRunState(newState);
-							}
-							updatedRuns.add(updatedRunDetail);
+
 						}else {
 							updatedRuns.add(run);
 						}
 					}
 					else {
-						updatedRuns.add(run);
+
+						log.info("inside second if cond");
+						RunDetails updatedRunDetail = new RunDetails();
+						if (runId != null && (run.getIsDelete() == null || !run.getIsDelete()) && (state != null ||
+								"TERMINATED".equalsIgnoreCase(state.getLife_cycle_state()) ||
+								"INTERNAL_ERROR".equalsIgnoreCase(state.getLife_cycle_state()) ||
+								"SKIPPED".equalsIgnoreCase(state.getLife_cycle_state())) &&
+								!"SUCCESS".equalsIgnoreCase(state.getResult_state()) && run.getError()!=null
+						){
+							log.info("inside TERMINATED");
+							RunDetailsVO updatedRunResponse = this.dataBricksClient.getSingleRun(runId);
+							if(updatedRunResponse!=null && runId.equals(updatedRunResponse.getRunId())) {
+								BeanUtils.copyProperties(run, updatedRunDetail);
+								String taskRunId=updatedRunResponse.getTasks().get(0).getRunId();
+								log.info("taskRunId" + taskRunId);
+								String errorMessage=processErrorMessages(taskRunId);
+								log.info("errorMessage" + errorMessage);
+								updatedRunDetail.setError(errorMessage);
+								updatedRunDetail.setTaskRunId(taskRunId);
+								updatedRuns.add(updatedRunDetail);
+							}
+							else {
+								updatedRuns.add(run);
+							}
+						} else {
+							updatedRuns.add(run);
+						}
 					}
-						
 				}
 				entity.getData().setRuns(updatedRuns);
 				this.jpaRepo.save(entity);
 				updatedRunVOList = this.assembler.toRunsVO(updatedRuns);
 			}
-					
+
 		}
 		return updatedRunVOList;
+	}
+
+
+	private String processErrorMessages(String taskRunId) {
+		DataBricksJobRunOutputResponseWrapperDto updatedRunOutputResponse = this.dataBricksClient.getSingleRunOutput(taskRunId);
+		String errMessage=null;
+		if(updatedRunOutputResponse!=null){
+			if(updatedRunOutputResponse.getError()!=null && !"".equalsIgnoreCase(updatedRunOutputResponse.getError())){
+				errMessage=updatedRunOutputResponse.getError();
+			}
+			else {
+				errMessage = updatedRunOutputResponse.getMetadata().getState().getStateMessage();
+			}
+		}
+
+		return errMessage;
 	}
 
 	@Override
@@ -385,7 +411,7 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 			String yPrefix = commonPrefix +"/y.csv";
 			String yPredPrefix = commonPrefix +"/y_pred.csv";
 			String edaJsonPrefix = commonPrefix +"/eda.json";
-			String warningsPrefix= commonPrefix +"/WARNINGS.txt";
+			String warningsPrefix = commonPrefix +"/WARNINGS.txt";
 			FileDownloadResponseDto yDownloadResponse = storageClient.getFileContents(bucketName, yPrefix);
 			FileDownloadResponseDto yPredDownloadResponse = storageClient.getFileContents(bucketName, yPredPrefix);
 			FileDownloadResponseDto edaJsonDownloadResponse = storageClient.getFileContents(bucketName, edaJsonPrefix);
@@ -411,7 +437,7 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 			visualizationVO.setEda(edaResult);
 			visualizationVO.setY(yResult);
 			visualizationVO.setYPred(yPredResult);
-			visualizationVO.setWarnings(warningsResult);
+			/*visualizationVO.setWarnings(warningsResult);*/
 		}catch(Exception e) {
 			log.error("Failed while parsing results data for run rid {} with exception {} ",rid, e.getMessage());
 		}
