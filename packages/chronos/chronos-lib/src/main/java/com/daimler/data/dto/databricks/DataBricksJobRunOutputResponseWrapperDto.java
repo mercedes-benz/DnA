@@ -20,6 +20,7 @@ public class DataBricksJobRunOutputResponseWrapperDto implements Serializable{
     private static final long serialVersionUID = 1L;
     private String status;
     private RunDetailsVO metadata;
+    private String error;
     private List<MessageDescription> errors;
     private List<MessageDescription> warnings;
 
