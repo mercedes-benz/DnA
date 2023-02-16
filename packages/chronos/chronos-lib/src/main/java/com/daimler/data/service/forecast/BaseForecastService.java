@@ -411,16 +411,13 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 			String yPrefix = commonPrefix +"/y.csv";
 			String yPredPrefix = commonPrefix +"/y_pred.csv";
 			String edaJsonPrefix = commonPrefix +"/eda.json";
-			String warningsPrefix = commonPrefix +"/WARNINGS.txt";
 			FileDownloadResponseDto yDownloadResponse = storageClient.getFileContents(bucketName, yPrefix);
 			FileDownloadResponseDto yPredDownloadResponse = storageClient.getFileContents(bucketName, yPredPrefix);
 			FileDownloadResponseDto edaJsonDownloadResponse = storageClient.getFileContents(bucketName, edaJsonPrefix);
-			FileDownloadResponseDto warningsTextDownloadResponse = storageClient.getFileContents(bucketName, warningsPrefix);
 			JsonArray jsonArray = new JsonArray();
 			String yResult = "";
 			String yPredResult = "";
 			String edaResult = "";
-			String warningsResult = "";
 			if(yDownloadResponse!= null && yDownloadResponse.getData()!=null && (yDownloadResponse.getErrors()==null || yDownloadResponse.getErrors().isEmpty())) {
 				 yResult = new String(yDownloadResponse.getData().getByteArray()); 
 			 }
@@ -430,14 +427,9 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 			if(edaJsonDownloadResponse!= null && edaJsonDownloadResponse.getData()!=null && (edaJsonDownloadResponse.getErrors()==null || edaJsonDownloadResponse.getErrors().isEmpty())) {
 				edaResult = new String(edaJsonDownloadResponse.getData().getByteArray()); 
 			 }
-			if(warningsTextDownloadResponse!= null && warningsTextDownloadResponse.getData()!=null && (warningsTextDownloadResponse.getErrors()==null || warningsTextDownloadResponse.getErrors().isEmpty())) {
-				warningsResult = new String(warningsTextDownloadResponse.getData().getByteArray());
-
-			}
 			visualizationVO.setEda(edaResult);
 			visualizationVO.setY(yResult);
 			visualizationVO.setYPred(yPredResult);
-			/*visualizationVO.setWarnings(warningsResult);*/
 		}catch(Exception e) {
 			log.error("Failed while parsing results data for run rid {} with exception {} ",rid, e.getMessage());
 		}
