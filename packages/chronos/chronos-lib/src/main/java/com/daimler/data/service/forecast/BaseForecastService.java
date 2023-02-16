@@ -298,14 +298,10 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 					else if (runId != null && (run.getIsDelete() == null || !run.getIsDelete()) &&
 							(state == null || state.getResult_state() == null || state.getLife_cycle_state() == null
 									|| "FAILED".equalsIgnoreCase(state.getResult_state()))) {
-						log.info("inside second if condition");
 						DataBricksJobRunOutputResponseWrapperDto updatedRunResponse = this.dataBricksClient.getSingleRunOutput(runId);
-						log.info("get updated response" + updatedRunResponse );
 						if (updatedRunResponse != null && runId.equals(updatedRunResponse.getMetadata().getRunId())) {
-							log.info("inside updatedRunResponse");
 							RunDetails updatedRunDetail = new RunDetails();
 							BeanUtils.copyProperties(run, updatedRunDetail);
-							log.info("inext line");
 							updatedRunDetail.setCreatorUserName(updatedRunResponse.getMetadata().getCreatorUserName());
 							if (updatedRunResponse.getMetadata().getEndTime() != null)
 								updatedRunDetail.setEndTime(updatedRunResponse.getMetadata().getEndTime().longValue());
@@ -333,7 +329,7 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 								}
 								String updatedStateMsg = "";
 								if (updatedRunResponse.getMetadata().getState().getStateMessage() != null) {
-									updatedStateMsg = updatedRunResponse.getMetadata().getState().getStateMessage() + ". " + updatedState.getStateMessage();
+									updatedStateMsg = updatedRunResponse.getError();
 								}
 								newState.setState_message(updatedStateMsg);
 								newState.setUser_cancelled_or_timedout(updatedState.isUserCancelledOrTimedout());
