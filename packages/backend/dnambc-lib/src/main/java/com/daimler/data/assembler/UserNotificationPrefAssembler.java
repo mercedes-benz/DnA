@@ -43,6 +43,10 @@ public class UserNotificationPrefAssembler  implements GenericAssembler<UserNoti
 				NotificationPreferenceVO dataProductNotificationPrefVO = this.toNotificationPrefVO(dataProductNotificationPrefJson);
 				vo.setDataProductNotificationPref(dataProductNotificationPrefVO);
 				
+				NotificationPreference chronosNotificationPrefJson = data.getChronosNotificationPref();
+				NotificationPreferenceVO chronosNotificationPrefVO = this.toNotificationPrefVO(chronosNotificationPrefJson);
+				vo.setChronosNotificationPref(chronosNotificationPrefVO);
+				
 				vo.setUserId(data.getUserId());
 			}
 		}
@@ -82,6 +86,8 @@ public class UserNotificationPrefAssembler  implements GenericAssembler<UserNoti
 			NotificationPreference dataProductPreference = this.toNotificationPrefJson(vo.getDataProductNotificationPref());
 			userNotificationPreferenceJsonb.setDataProductNotificationPref(dataProductPreference);
 			userNotificationPreferenceJsonb.setTermsOfUse(vo.isTermsOfUse());
+			NotificationPreference chronosNotificationPreference = this.toNotificationPrefJson(vo.getChronosNotificationPref());
+			userNotificationPreferenceJsonb.setChronosNotificationPref(chronosNotificationPreference);
 			entity.setId(vo.getId());
 		}
 		entity.setData(userNotificationPreferenceJsonb);
