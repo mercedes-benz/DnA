@@ -24,5 +24,6 @@ public class UserNotificationPreference implements Serializable{
 	private NotificationPreference dashboardNotificationPref;
 	private NotificationPreference dataComplianceNotificationPref;
 	private NotificationPreference dataProductNotificationPref;
+	private NotificationPreference chronosNotificationPref;
 	
 }
