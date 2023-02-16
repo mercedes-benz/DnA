@@ -40,8 +40,11 @@ public class UserNotificationPrefVO   {
 
   @JsonProperty("dataProductNotificationPref")
   private NotificationPreferenceVO dataProductNotificationPref = null;
+  
+  @JsonProperty("chronosNotificationPref")
+  private NotificationPreferenceVO chronosNotificationPref = null;
 
-  public UserNotificationPrefVO id(String id) {
+public UserNotificationPrefVO id(String id) {
     this.id = id;
     return this;
   }
@@ -214,8 +217,24 @@ public class UserNotificationPrefVO   {
     this.dataProductNotificationPref = dataProductNotificationPref;
   }
 
+  /**
+   * Get chronosNotificationPref
+   * @return chronosNotificationPref
+  **/
+  @ApiModelProperty(required = true, value = "")
+  @NotNull
 
-  @Override
+  @Valid
+
+	public NotificationPreferenceVO getChronosNotificationPref() {
+		return chronosNotificationPref;
+	}
+
+	public void setChronosNotificationPref(NotificationPreferenceVO chronosNotificationPref) {
+		this.chronosNotificationPref = chronosNotificationPref;
+	}
+
+@Override
   public boolean equals(java.lang.Object o) {
     if (this == o) {
       return true;
