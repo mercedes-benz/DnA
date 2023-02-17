@@ -234,7 +234,6 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 	@Override
 	@Transactional
 	public List<RunVO> getAllRunsForProject(int limit, int offset, ForecastVO existingForecast) {
-		log.info("getAllRunsForProject");
 		List<RunDetails> updatedRuns = new ArrayList<>();
 		List<RunVO> updatedRunVOList = new ArrayList<>();
 
@@ -250,15 +249,13 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 					RunState state = run.getRunState();
 					String runId = run.getRunId();
 					String correlationId= run.getId();
-					log.info("runId" + runId);
-					log.info("id correlation" + correlationId );
 					if(runId!=null && (run.getIsDelete() == null || !run.getIsDelete()) &&
 							(state==null || state.getResult_state()==null || state.getLife_cycle_state()==null ||
 									"PENDING".equalsIgnoreCase(state.getLife_cycle_state()) ||
 									"RUNNING".equalsIgnoreCase(state.getLife_cycle_state()))) {
-						log.info("inside first if cond");
 						RunDetailsVO updatedRunResponse = this.dataBricksClient.getSingleRun(runId);
 						if(updatedRunResponse!=null && runId.equals(updatedRunResponse.getRunId())) {
+							log.info("Able to fetch updated run details for forecast {} and correlation {} which was in {}", existingForecast.getId(),correlationId,state.getLife_cycle_state());
 							RunDetails updatedRunDetail = new RunDetails();
 							BeanUtils.copyProperties(run, updatedRunDetail);
 							updatedRunDetail.setCreatorUserName(updatedRunResponse.getCreatorUserName());
@@ -281,8 +278,8 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 										//check if .SUCCESS file exists
 										String resultFolderPathForRun = resultsPrefix + updatedRunDetail.getId()+"-"+updatedRunDetail.getRunName()+"/";
 										List<BucketObjectDetailsDto> bucketObjectDetails=storageClient.getFilesPresent(bucketName,resultFolderPathForRun);
-										Boolean successFileFlag = storageClient.isSuccessFilePresent(resultFolderPathForRun+ "SUCCESS", bucketObjectDetails);
-										Boolean warningsFileFlag = storageClient.isSuccessFilePresent(resultFolderPathForRun+ "WARNINGS.txt", bucketObjectDetails);
+										Boolean successFileFlag = storageClient.isFilePresent(resultFolderPathForRun+ "SUCCESS", bucketObjectDetails);
+										Boolean warningsFileFlag = storageClient.isFilePresent(resultFolderPathForRun+ "WARNINGS.txt", bucketObjectDetails);
 										log.info("Run state is success from databricks and successFileFlag value is {} and warningsFileFlag is {} , for bucket {} and prefix {} ", successFileFlag, warningsFileFlag, bucketName, resultFolderPathForRun);
 										if(warningsFileFlag){
 											newState.setResult_state(ResultStateEnum.WARNINGS.name());
@@ -293,7 +290,8 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 											FileDownloadResponseDto warningsTextDownloadResponse = storageClient.getFileContents(bucketName, warningsPrefix);
 											if(warningsTextDownloadResponse!= null && warningsTextDownloadResponse.getData()!=null && (warningsTextDownloadResponse.getErrors()==null || warningsTextDownloadResponse.getErrors().isEmpty())) {
 												warningsResult = new String(warningsTextDownloadResponse.getData().getByteArray());
-
+												log.info("successfully retrieved warnings.txt file contents for forecast {} and correaltionid{} and runname{}",
+														bucketName, correlationId, run.getRunName());
 											}
 											updatedRunDetail.setWarnings(warningsResult);
 										}
@@ -301,7 +299,6 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 											if(!successFileFlag) {
 												newState.setResult_state(ResultStateEnum.FAILED.name());
 											}
-
 										}
 									}else {
 										String taskRunId=updatedRunResponse.getTasks().get(0).getRunId();
@@ -317,7 +314,7 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 								newState.setState_message(updatedStateMsg);
 								newState.setUser_cancelled_or_timedout(updatedState.isUserCancelledOrTimedout());
 								updatedRunDetail.setRunState(newState);
-								updatedRuns.add(updatedRunDetail);
+
 							}
 							updatedRuns.add(updatedRunDetail);
 
@@ -326,8 +323,6 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 						}
 					}
 					else {
-
-						log.info("inside second if cond");
 						RunDetails updatedRunDetail = new RunDetails();
 						if (runId != null && (run.getIsDelete() == null || !run.getIsDelete()) && (state != null ||
 								"TERMINATED".equalsIgnoreCase(state.getLife_cycle_state()) ||
@@ -335,14 +330,12 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 								"SKIPPED".equalsIgnoreCase(state.getLife_cycle_state())) &&
 								!"SUCCESS".equalsIgnoreCase(state.getResult_state()) && run.getError()!=null
 						){
-							log.info("inside TERMINATED");
 							RunDetailsVO updatedRunResponse = this.dataBricksClient.getSingleRun(runId);
 							if(updatedRunResponse!=null && runId.equals(updatedRunResponse.getRunId())) {
+								log.info(" Updating error msg for old run {} of forecast project {}", run.getRunName(), bucketName);
 								BeanUtils.copyProperties(run, updatedRunDetail);
 								String taskRunId=updatedRunResponse.getTasks().get(0).getRunId();
-								log.info("taskRunId" + taskRunId);
 								String errorMessage=processErrorMessages(taskRunId);
-								log.info("errorMessage" + errorMessage);
 								updatedRunDetail.setError(errorMessage);
 								updatedRunDetail.setTaskRunId(taskRunId);
 								updatedRuns.add(updatedRunDetail);
@@ -351,6 +344,7 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 								updatedRuns.add(run);
 							}
 						} else {
+							log.info("Updating results for success for terminated lifeCycleState and Success resultState");
 							updatedRuns.add(run);
 						}
 					}
