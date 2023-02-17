@@ -36,6 +36,7 @@ import com.daimler.data.db.repo.forecast.ForecastRepository;
 import com.daimler.data.dto.databricks.RunNowNotebookParamsDto;
 import com.daimler.data.dto.forecast.RunStateVO.ResultStateEnum;
 import com.daimler.data.service.common.BaseCommonService;
+import com.daimler.dna.notifications.common.producer.KafkaProducerService;
 import com.google.gson.JsonArray;
 
 import lombok.extern.slf4j.Slf4j;
@@ -70,6 +71,9 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 	@Lazy
 	@Autowired
 	private VaultAuthClientImpl vaultAuthClient;
+	
+	@Autowired
+	private KafkaProducerService kafkaProducer;
 
 	public BaseForecastService() {
 		super();
@@ -233,14 +237,16 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 
 	@Override
 	@Transactional
-	public List<RunVO> getAllRunsForProject(int limit, int offset, ForecastVO existingForecast) {
+	public List<RunVO> getAllRunsForProject(int limit, int offset, String forecastId) {
+		
 		List<RunDetails> updatedRuns = new ArrayList<>();
 		List<RunVO> updatedRunVOList = new ArrayList<>();
-
-		Optional<ForecastNsql> entityOptional = jpaRepo.findById(existingForecast.getId());
+		
+		Optional<ForecastNsql> entityOptional = jpaRepo.findById(forecastId);
 		if(entityOptional!=null) {
 			ForecastNsql entity = entityOptional.get();
-			if(entity!=null && entity.getData()!=null &&
+			String forecastName = entity.getData().getName();
+			if(entity!=null && entity.getData()!=null && 	
 					entity.getData().getRuns()!=null && !entity.getData().getRuns().isEmpty()) {
 				List<RunDetails> existingRuns = entity.getData().getRuns();
 				String bucketName = entity.getData().getBucketName();
@@ -249,13 +255,14 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 					RunState state = run.getRunState();
 					String runId = run.getRunId();
 					String correlationId= run.getId();
+          String existingLifecycleState = run.getRunState().getLife_cycle_state();   
 					if(runId!=null && (run.getIsDelete() == null || !run.getIsDelete()) &&
 							(state==null || state.getResult_state()==null || state.getLife_cycle_state()==null ||
 									"PENDING".equalsIgnoreCase(state.getLife_cycle_state()) ||
 									"RUNNING".equalsIgnoreCase(state.getLife_cycle_state()))) {
 						RunDetailsVO updatedRunResponse = this.dataBricksClient.getSingleRun(runId);
 						if(updatedRunResponse!=null && runId.equals(updatedRunResponse.getRunId())) {
-							log.info("Able to fetch updated run details for forecast {} and correlation {} which was in {}", existingForecast.getId(),correlationId,state.getLife_cycle_state());
+							log.info("Able to fetch updated run details for forecast {} and correlation {} which was in {}", forecastId,correlationId,state.getLife_cycle_state());
 							RunDetails updatedRunDetail = new RunDetails();
 							BeanUtils.copyProperties(run, updatedRunDetail);
 							updatedRunDetail.setCreatorUserName(updatedRunResponse.getCreatorUserName());
@@ -270,6 +277,21 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 							if(updatedRunResponse.getState()!=null) {
 								RunStateVO updatedState = updatedRunResponse.getState();
 								RunState newState = new RunState();
+								String updatedLifecycleState = updatedState.getLifeCycleState().name();
+								if(!existingLifecycleState.equalsIgnoreCase(updatedLifecycleState)) {
+									List<String> memberIds = new ArrayList<>();
+									List<String> memberEmails = new ArrayList<>();
+									if(entity.getData().getCollaborators() != null) {
+										memberIds = entity.getData().getCollaborators().stream().map(UserDetails :: getId).collect(Collectors.toList());
+										memberEmails = entity.getData().getCollaborators().stream().map(UserDetails :: getEmail).collect(Collectors.toList());
+									}
+									
+									String ownerId = entity.getData().getCreatedBy().getId();
+									memberIds.add(ownerId);									
+									String ownerEmail = entity.getData().getCreatedBy().getEmail();
+									memberEmails.add(ownerEmail);
+									notifyUsers(forecastId,run,memberIds,memberEmails,forecastName);
+								}
 								if(updatedState.getLifeCycleState()!=null)
 									newState.setLife_cycle_state(updatedState.getLifeCycleState().name());
 								if(updatedState.getResultState()!=null) {
@@ -356,6 +378,15 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 
 		}
 		return updatedRunVOList;
+	}
+	
+	private void notifyUsers(String forecastId, RunDetails run, List<String> memberIds, List<String> memberEmails,String forecastName) {
+		// TODO Auto-generated method stub
+		String message ="";
+		message="Run " + run.getRunName() + " triggered by " + run.getCreatorUserName() +" for project "+ forecastName + " is " + run.getRunState().getLife_cycle_state() +". Please check run results for more details";		
+		kafkaProducer.send("Chronos Forecast Run LifeCylceStatus update", forecastId, "", "DnaSystemUser", message,
+				true, memberIds, memberEmails, null);
+		
 	}
 
 
@@ -706,5 +737,9 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 		return storageClient.isBucketExists(bucketName);
 	}	
 	
-	
+	@Override
+	public List<String> getAllForecastIds() {
+		// TODO Auto-generated method stub
+		return customRepo.getAllForecastIds();
+	}	
 }
