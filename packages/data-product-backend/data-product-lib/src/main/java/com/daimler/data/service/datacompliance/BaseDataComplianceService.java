@@ -284,7 +284,7 @@ public class BaseDataComplianceService extends BaseCommonService<DataComplianceV
 						auditNsqls.add(auditNsql);
 						complianceAuditRepository.saveAll(auditNsqls);
 						LOGGER.info("Audit logs of Data Compliance entry {} sent successfully",mergedDataComplianceVO.getEntityName());
-						// super.notifyAllAdminUsers(eventType, id, eventMessage, userId, changeLogs);
+						super.notifyAllAdminUsers(eventType, id, eventMessage, userId, changeLogs);
 						response.setData(mergedDataComplianceVO);
 						response.setErrors(null);
 						LOGGER.info("DataCompliance with id {} updated successfully", id);

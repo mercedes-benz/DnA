@@ -38,6 +38,7 @@ import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 
+import com.daimler.data.db.json.UserInfo;
 import org.springframework.stereotype.Repository;
 
 import com.daimler.data.controller.exceptions.GenericMessage;
@@ -189,6 +190,106 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 		}
 		return records;
 	}
+
+	@Override
+	public String getWorkspaceTechnicalId(String userId, String projectName) {
+		String id = "";
+		String getQuery = "select id "
+				+ " from workspace_nsql "
+				+ " where lower(jsonb_extract_path_text(data,'projectDetails','projectName'))" + "= '" + projectName.toLowerCase() + "' and lower(jsonb_extract_path_text(data,'workspaceOwner','id')) = '" + userId.toLowerCase() + "'"
+				+ " and lower(jsonb_extract_path_text(data,'status')) <> 'deleted'";
+		try {
+			Query q = em.createNativeQuery(getQuery);
+			id = (String) q.getSingleResult();
+			if (id != null && !id.isEmpty()) {
+				log.info("Found {} workspaces in project {} which are not in deleted state", id, projectName);
+			}
+		} catch (Exception e) {
+			log.error("Failed to query workspaces under project {} , which are not in deleted state", projectName);
+		}
+		return id;
+	}
+
+	@Override
+	public GenericMessage updateProjectOwnerDetails(String projectName, UserInfo updatedProjectOwnerDetails) {
+		GenericMessage updateResponse = new GenericMessage();
+		updateResponse.setSuccess("FAILED");
+		List<MessageDescription> errors = new ArrayList<>();
+		List<MessageDescription> warnings = new ArrayList<>();
+
+		String updateQuery = "update workspace_nsql\r\n"
+				+ "set data = jsonb_set(data, '{projectDetails,projectOwner}', \r\n"
+				+ " '{\"id\": " + addQuotes(updatedProjectOwnerDetails.getId()) + ","
+				+ " \"email\": " + addQuotes(updatedProjectOwnerDetails.getEmail()) + ","
+				+ " \"lastName\": " + addQuotes(updatedProjectOwnerDetails.getLastName()) + ","
+				+ " \"firstName\": " + addQuotes(updatedProjectOwnerDetails.getFirstName()) + ","
+				+ " \"department\": " + addQuotes(updatedProjectOwnerDetails.getDepartment()) + ","
+				+ " \"gitUserName\": " + addQuotes(updatedProjectOwnerDetails.getGitUserName()) + ","
+				+ " \"mobileNumber\": " + addQuotes(updatedProjectOwnerDetails.getMobileNumber()) + "}' )\n" + "\\:" + "\\:" + "jsonb \n"
+				+ "where data->'projectDetails'->>'projectName' = '" + projectName + "'" + " and lower(jsonb_extract_path_text(data,'status')) <> 'deleted'";
+		try {
+			Query q = em.createNativeQuery(updateQuery);
+			q.executeUpdate();
+			updateResponse.setSuccess("SUCCESS");
+			updateResponse.setErrors(new ArrayList<>());
+			updateResponse.setWarnings(new ArrayList<>());
+			log.info("collaborator details updated successfully for project {} ", projectName);
+		} catch (Exception e) {
+			e.printStackTrace();
+			MessageDescription errMsg = new MessageDescription("Failed while updating the collaborator details.");
+			errors.add(errMsg);
+			log.error("projectCollaborators details Failed while updating the collaborator with Exception {} ", e.getMessage());
+		}
+		return updateResponse;
+	}
+
+		@Override
+	public GenericMessage updateCollaboratorDetails(String projectName, UserInfo updatedcollaborators, boolean removeUser) {
+		GenericMessage updateResponse = new GenericMessage();
+		updateResponse.setSuccess("FAILED");
+		List<MessageDescription> errors = new ArrayList<>();
+		List<MessageDescription> warnings = new ArrayList<>();
+		if (updatedcollaborators != null) {
+			String updateQuery = "";
+			if (removeUser) {
+				updateQuery = "update workspace_nsql\r\n"
+						+ "set data = jsonb_set(data,'{projectDetails, projectCollaborators}', \r\n"
+						+ "case when (select count(x) from jsonb_array_elements(data->'projectDetails'->'projectCollaborators')"
+						+ " x where x->>'id' != " + "'" + updatedcollaborators.getId() + "'" + ") = 0 "
+						+ "then '[]' "
+						+ "else (select jsonb_agg(x) from jsonb_array_elements(data->'projectDetails'->'projectCollaborators')"
+						+ " x where x->>'id' != " + "'" + updatedcollaborators.getId() + "'" + ") "
+						+ "end )"
+						+ "where data->'projectDetails'->>'projectName' = '" + projectName + "'" + " and lower(jsonb_extract_path_text(data,'status')) <> 'deleted'";
+			} else {
+				updateQuery = "update workspace_nsql\r\n"
+						+ "set data = jsonb_set(data,'{projectDetails, projectCollaborators}', \r\n"
+						+ "COALESCE(jsonb_extract_path_text(data, 'projectDetails','projectCollaborators'), '[]')" + "\\:" + "\\:" + "jsonb || \n"
+						+ " '{\"id\": " + addQuotes(updatedcollaborators.getId()) + ","
+						+ " \"email\": " + addQuotes(updatedcollaborators.getEmail()) + ","
+						+ " \"lastName\": " + addQuotes(updatedcollaborators.getLastName()) + ","
+						+ " \"firstName\": " + addQuotes(updatedcollaborators.getFirstName()) + ","
+						+ " \"department\": " + addQuotes(updatedcollaborators.getDepartment()) + ","
+						+ " \"gitUserName\": " + addQuotes(updatedcollaborators.getGitUserName()) + ","
+						+ " \"mobileNumber\": " + addQuotes(updatedcollaborators.getMobileNumber()) + "}' )\n"
+						+ "where data->'projectDetails'->>'projectName' = '" + projectName + "'" + " and lower(jsonb_extract_path_text(data,'status')) <> 'deleted'";
+			}
+			try {
+				Query q = em.createNativeQuery(updateQuery);
+				q.executeUpdate();
+				updateResponse.setSuccess("SUCCESS");
+				updateResponse.setErrors(new ArrayList<>());
+				updateResponse.setWarnings(new ArrayList<>());
+				log.info("collaborator details updated successfully for project {} ", projectName);
+			} catch (Exception e) {
+				MessageDescription errMsg = new MessageDescription("Failed while updating the collaborator details.");
+				errors.add(errMsg);
+				log.error("projectCollaborators details Failed while updating the collaborator with Exception {} ", e.getMessage());
+			}
+		}
+		return updateResponse;
+	}
+
 	
 	@Override
 	public GenericMessage updateDeploymentDetails(String projectName, String environment, CodeServerDeploymentDetails deploymentDetails) {
