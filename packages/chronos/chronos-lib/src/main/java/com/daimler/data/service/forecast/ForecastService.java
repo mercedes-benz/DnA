@@ -28,7 +28,7 @@ public interface ForecastService extends CommonService<ForecastVO, ForecastNsql,
 
 	Long getRunsCount(String id);
 
-	List<RunVO> getAllRunsForProject( int limit,  int offset, ForecastVO existingForecast);
+	List<RunVO> getAllRunsForProject( int limit,  int offset, String forecastId);
 
 	GenericMessage deletRunByUUID(String id, String rid);
 
@@ -43,4 +43,6 @@ public interface ForecastService extends CommonService<ForecastVO, ForecastNsql,
 	ApiKeyVO getApiKey(String id);
 
 	Boolean isBucketExists(String bucketName);
+	
+	List<String> getAllForecastIds();
 }
