@@ -1154,6 +1154,19 @@ export interface IMarketing {
   marketingCommunicationChannels: IMarketingCommunicationChannel[];
   personalization: IMarketingPersonalization;
   personas: string[];
+  marketingRoles: INeededMarketingRoleObject[];
+}
+
+export interface INeededMarketingRoleObject {
+  fromDate: string;
+  role: any;
+  requestedFTECount: string;
+  toDate: string;
+}
+
+export interface IMarketingRole {
+  id: string;
+  name: string;
 }
 
 export interface IMarketingCommunicationChannel {
