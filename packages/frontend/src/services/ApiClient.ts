@@ -35,6 +35,7 @@ import {
   INoticationModules,
   IManageDivision,
   IManageDivisionRequest,
+  IManageMarketingTabRequest,
 } from '../globals/types';
 import { Pkce } from './Pkce';
 import { ReportsApiClient } from './ReportsApiClient';
@@ -300,6 +301,31 @@ export class ApiClient {
   public static deleterelatedProductList(id: string): Promise<any> {
     return this.delete(`relatedProducts/${id}`);
   }
+
+  public static getMarketingCommunicationChannels(): Promise<IVisualization[]> {
+    return this.get('marketingCommunicationChannels');
+  }
+
+  public static createMarketingCommunicationChannels(data: IManageMarketingTabRequest): Promise<IManageDivision[]> {
+    return this.post('marketingCommunicationChannels', data);
+  }
+
+  public static deleteCommunicationChannels(id: string): Promise<any> {
+    return this.delete(`marketingCommunicationChannels/${id}`);
+  }
+
+  public static getCustomerJourneyPhases(): Promise<IVisualization[]> {
+    return this.get('customerJourneyPhases');
+  }
+
+  public static createCustomerJourneyPhases(data: IManageMarketingTabRequest): Promise<IManageDivision[]> {
+    return this.post('customerJourneyPhases', data);
+  }
+
+  public static deleteCustomerJourneyPhases(id: string): Promise<any> {
+    return this.delete(`customerJourneyPhases/${id}`);
+  }
+
 
   public static getDescriptionLovData(): Promise<any[]> {
     return Promise.all([
