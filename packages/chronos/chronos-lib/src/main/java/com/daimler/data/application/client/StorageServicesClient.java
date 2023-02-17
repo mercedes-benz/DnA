@@ -311,7 +311,7 @@ public class StorageServicesClient {
 	}
 	
 	
-	public Boolean isSuccessFilePresent(String fileNamePrefix,List<BucketObjectDetailsDto> bucketObjectDetails) {
+	public Boolean isFilePresent(String fileNamePrefix,List<BucketObjectDetailsDto> bucketObjectDetails) {
 		Boolean flag = false;
 		if(bucketObjectDetails!=null && !bucketObjectDetails.isEmpty() && bucketObjectDetails.size()>0) {
 			List<BucketObjectDetailsDto> filteredList=bucketObjectDetails.stream().filter(str -> (fileNamePrefix).equalsIgnoreCase(str.getObjectName())).collect(Collectors.toList());
