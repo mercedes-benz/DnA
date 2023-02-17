@@ -22,9 +22,10 @@ public class ChronosNotificationTask {
 	private ForecastService forecastService;
 
 	
-	@Scheduled(cron = "*/10 * * * * *")
+	@Scheduled(cron = "* 2 * * * *")
 	public void notificationsCron() {
 		List<String> forecastIds = forecastCustomRepository.getAllForecastIds();
+		log.info("Chronos Notification triggered");
 
 		// calling for each forecast project
 		for (String forecastId : forecastIds) {
