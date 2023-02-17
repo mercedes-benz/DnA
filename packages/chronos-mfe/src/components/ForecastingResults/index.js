@@ -600,7 +600,7 @@ const ForecastingResults = () => {
           <div className={Styles.firstPanel} ref={printRef}>
             { htmlLoading && <Spinner /> }
             { !htmlLoading && html.length === 0 && <p>No visualization for the given data.</p> }
-            { !htmlLoading &&
+            { !htmlLoading && html.length > 0 &&
                 <div className={Styles.chartContainer}>
                   <iframe 
                     className={Styles.iframe}
