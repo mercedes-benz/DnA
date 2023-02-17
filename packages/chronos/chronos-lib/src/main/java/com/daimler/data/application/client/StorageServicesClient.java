@@ -253,6 +253,7 @@ public class StorageServicesClient {
 		ByteArrayResource data = null;
 		List<MessageDescription> errors = new ArrayList<>();
 		try {
+			log.info("inside try of getFileContents");
 			HttpHeaders headers = new HttpHeaders();
 			String jwt = httpRequest.getHeader("Authorization");
 			headers.set("Accept", "application/json");
@@ -260,9 +261,9 @@ public class StorageServicesClient {
 			headers.setContentType(MediaType.APPLICATION_JSON);
 			headers.set("chronos-api-key",dataBricksAuth);
 			HttpEntity requestEntity = new HttpEntity<>(headers);
-
+            log.info("++++");
 			String getFileUrl = storageBaseUri + BUCKETS_PATH + "/" + bucketName + "/objects/metadata?prefix=" + path;
-
+            log.info("getFileUrl" + getFileUrl);
 			ResponseEntity<ByteArrayResource> response = restTemplate.exchange(getFileUrl, HttpMethod.GET,requestEntity, ByteArrayResource.class);
 
 			if (response.hasBody()) {
