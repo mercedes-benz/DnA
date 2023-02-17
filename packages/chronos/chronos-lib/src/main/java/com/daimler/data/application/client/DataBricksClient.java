@@ -83,12 +83,6 @@ public class DataBricksClient {
 			}
 			requestWrapper.setJob_id(dataBricksJobidForRun);
 			requestWrapper.setNotebook_params(notebookParams);
-			try {
-				ObjectMapper mapper = new ObjectMapper();
-				System.out.println(mapper.writeValueAsString(requestWrapper));
-			}catch(Exception e) {
-				log.error("Failed to parse runnow request with exception {} ",e.getMessage());
-			}
 			HttpEntity<DatabricksJobRunNowRequestDto> requestEntity = new HttpEntity<>(requestWrapper,headers);
 			ResponseEntity<RunNowResponseVO> response = proxyRestTemplate.exchange(runNowUrl, HttpMethod.POST,
 					requestEntity, RunNowResponseVO.class);
