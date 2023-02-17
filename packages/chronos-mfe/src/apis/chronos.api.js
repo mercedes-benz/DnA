@@ -1,4 +1,4 @@
-import { server } from '../server/api';
+import { server, storageServer } from '../server/api';
 import { formServer } from '../server/formApi';
 
 const getAllForecastProjects = () => {
@@ -79,6 +79,12 @@ const getApiKeyById = (id) => {
   });
 };
 
+const getHTML = (projectName, resultFolderName, fileName) => {
+  return storageServer.get(`/buckets/${projectName}/objects/metadata?prefix=results%2F${resultFolderName}%2Fvisuals%2F${fileName}`, {
+    data: {},
+  });
+};
+
 export const chronosApi = {
     getAllForecastProjects,
     getForecastProjectById,
@@ -93,5 +99,6 @@ export const chronosApi = {
     deleteForecastRuns,
     getConfigurationFiles,
     generateApiKeyById,
-    getApiKeyById
+    getApiKeyById,
+    getHTML,
 };
