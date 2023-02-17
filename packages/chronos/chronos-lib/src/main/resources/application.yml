@@ -74,7 +74,7 @@ databricks:
     deleterun: ${DATABRICKS_DELETERUN_URI:/api/2.1/jobs/runs/delete}
     getrun: ${DATABRICKS_GETRUN_URI:/api/2.1/jobs/runs/get}
     jobrunlist: ${DATABRICKS_JOBRUNLIST_URI:/api/2.1/jobs/get}
-   
+    jobrunoutput: ${DATABRICKS_GETRUNOUTPUT_URI:/api/2.1/jobs/runs/get-output}
 dna:
   uri: ${DNA_URI:XXXXXX}
   dnaAuthEnable: ${DNA_AUTH_ENABLE:false}
