@@ -14,14 +14,14 @@ spring:
       mountpath: ${VAULT_MOUNTPATH:kv}
       vaultpath: ${VAULT_PATH:dna/chronos}
       kv:
-        enabled: true
+       enabled: true
 
   flyway:
-    enabled: ${FLYWAY_ENABLED:false}
-    baseline-on-migrate: ${FLYWAY_BASELINE_ON_MIGRATE:false}
+    enabled: ${FLYWAY_ENABLED:true}
+    baseline-on-migrate: ${FLYWAY_BASELINE_ON_MIGRATE:true}
     baselineVersion: ${FLYWAY_BASELINEVERSION:0}
-    schemas: ${FLYWAY_SCHEMA:public}
-
+    schemas: ${FLYWAY_SCHEMA:public}   
+        
   jpa:
     database: POSTGRESQL
     show-sql: false
@@ -37,23 +37,23 @@ spring:
     hikari:
       connection-timeout: 4000
     platform: postgres
-    url: ${API_DB_URL:jdbc:postgresql://localhost:65482/storage}
-    username: ${API_DB_USER:storage}
-    password: ${API_DB_PASS:abcf02d283e9be06ea55ba189a2a00a77d35d12a}
+    url: ${API_DB_URL:jdbc:postgresql://localhost:5432/dbname}
+    username: ${API_DB_USER:username_XXXXX}
+    password: ${API_DB_PASS:password_XXXXX}
 
     driverClassName: org.postgresql.Driver
-
+    
   servlet:
     multipart:
       max-file-size: 5MB
       max-request-size: 5MB
-
+      
 #  cloud:
 #    stream:
 #      default-binder: kafka
 #      kafka:
 #        binder:
-#          brokers: ${NAAS_BROKER:hostXXXX:portXXXX}
+#          brokers: ${NAAS_BROKER:hostXXXX:portXXXX}   
 #
 #
 #kafka:
@@ -62,35 +62,34 @@ spring:
 
 
 databricks:
-  userid: ${DATABRICKS_USERID:PID4A91}
-  userauth: ${DATABRICKS_USER_AUTH:***REMOVED***}
-  pat: ${DATABRICKS_PAT:dapi900b2a3c18c0389ebec36fed74010fb2}
-  jobId: ${DATABRICKS_JOBID:880249523242944}
-  powerfulMachinesJobId: ${DATABRICKS_POWERFULMACHINESJOBID:93437937072820}
+  userid: ${DATABRICKS_USERID:XXXXXX}
+  userauth: ${DATABRICKS_USER_AUTH:XXXXX}
+  pat: ${DATABRICKS_PAT:XXXXX}
+  jobId: ${DATABRICKS_JOBID:XXXXX}
+  powerfulMachinesJobId: ${DATABRICKS_POWERFULMACHINESJOBID:XXXXX}
   defaultConfigYml: ${DATABRICKS_DEFAULTCONFIGYML_PATH:chronos-core/objects?prefix=configs/}
   uri:
-    base: ${DATABRICKS_BASE_URI:https://adb-2518131549527911.11.azuredatabricks.net}
+    base: ${DATABRICKS_BASE_URI:XXXXX}
     runnow: ${DATABRICKS_RUNNOW_URI:/api/2.1/jobs/run-now}
     deleterun: ${DATABRICKS_DELETERUN_URI:/api/2.1/jobs/runs/delete}
     getrun: ${DATABRICKS_GETRUN_URI:/api/2.1/jobs/runs/get}
     jobrunlist: ${DATABRICKS_JOBRUNLIST_URI:/api/2.1/jobs/get}
     jobrunoutput: ${DATABRICKS_GETRUNOUTPUT_URI:/api/2.1/jobs/runs/get-output}
-
 dna:
-  uri: ${DNA_URI:https://***REMOVED***/}
-  dnaAuthEnable: ${DNA_AUTH_ENABLE:true}
+  uri: ${DNA_URI:XXXXXX}
+  dnaAuthEnable: ${DNA_AUTH_ENABLE:false}
 
-
+  
 jwt:
   secret:
-    key: ${JWT_SECRET_KEY:oeRaYY7Wo24sDqKSX3IM9ASGmdGPmkTd9jo1QTy4b7P9Ze5_9hKolVX8xNrQDcNRfVEdTZNOuOyqEGhXEbdJI-ZQ19k_o9MI0y3eZN2lp9jow55FfXMiINEdt1XR85VipRLSOkT6kSpzs2x-jbLDiz9iFVzkd81YKxMgPA7VfZeQUm4n-mOmnWMaVX30zGFU4L3oPBctYKkl4dYfqYWqRNfrgPJVi5DGFjywgxx0ASEiJHtV72paI3fDR2XwlSkyhhmY-ICjCRmsJN4fX1pdoL8a18-aQrvyu4j0Os6dVPYIoPvvY0SAZtWYKHfM15g7A3HD4cVREf9cUsprCRK93w}
+    key: ${JWT_SECRET_KEY:XXXXXX}
 
 server:
   port: 8989
 
-storage.uri : ${STORAGE_API_BASE_URL:https://storage.***REMOVED***/}
+storage.uri : ${STORAGE_API_BASE_URL:XXXXXX}
 
-#Cors Filter origin Domains
+#Cors Filter origin Domains  
 allowedCorsOriginPatternUrl: ${CORS_ORIGIN_URL:http://*}
 
 swagger.headers.authorization.token: ${SWAGGER_HEADER_AUTH:XXXXXX}
@@ -101,10 +100,10 @@ management.endpoint.loggers.enabled: true
 management.endpoint.health.probes.enabled: true
 management.endpoint.health.show-details: always
 
-proxy:
-  port: ${CUSTOMPROXY_PORT:3128}
-  host: ${CUSTOMPROXY_HOST:***REMOVED***}
-
+proxy: 
+  port: ${CUSTOMPROXY_PORT:XXXX}
+  host: ${CUSTOMPROXY_HOST:XXXX}
+  
 logging:
   service:
     environment: ${LOGGING_ENVIRONMENT:DEV}
