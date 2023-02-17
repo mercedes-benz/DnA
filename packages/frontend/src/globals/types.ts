@@ -392,6 +392,14 @@ export interface IManageDivision {
   subdivisions: ISubDivision[];
 }
 
+export interface IManageMarketingTabRequest {
+  data: IManageMarketingTab;
+}
+
+export interface IManageMarketingTab {
+  name: string;
+}
+
 export interface IDivisionFilterPreference {
   id: string;
   name: string;
