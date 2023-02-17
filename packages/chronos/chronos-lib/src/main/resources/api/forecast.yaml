@@ -1002,6 +1002,9 @@ definitions:
         warnings:
           type: string
           description: "warnings"
+        error:
+          type: string
+          description: "error"
   
   ForecastRunResponseVO:
     type: object
