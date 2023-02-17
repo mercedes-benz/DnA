@@ -29,4 +29,5 @@ export const Envs = {
   ENABLE_CHRONOS_ONEAPI: getInjectedEnv('ENABLE_CHRONOS_ONEAPI') || process.env.ENABLE_CHRONOS_ONEAPI, 
   CHRONOS_ONEAPI_URL: getInjectedEnv('CHRONOS_ONEAPI_URL') || process.env.CHRONOS_ONEAPI_URL,
   STORAGE_MFE_APP_URL: getInjectedEnv('STORAGE_MFE_APP_URL') || process.env.STORAGE_MFE_APP_URL,
+  STORAGE_API_BASEURL: getInjectedEnv('STORAGE_API_BASEURL') || process.env.STORAGE_API_BASEURL,
 };
