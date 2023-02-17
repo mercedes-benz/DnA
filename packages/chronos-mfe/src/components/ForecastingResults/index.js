@@ -19,7 +19,10 @@ const ForecastingResults = () => {
   }
   const { projectid: projectId, runid: runId } = useParams();
 
-  const [nerd, setNerd] = useState(false);
+  const [nerdStats, setNerdStats] = useState(false);
+  const [html, setHtml] = useState('');
+  const [htmlLoading, setHtmlLoading] = useState(true);
+  const [bucketName, setBucketName] = useState('');
 
   const [columns, setColumns] = useState([]);
 
@@ -32,6 +35,12 @@ const ForecastingResults = () => {
     getForecastRun();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    chronosApi.getForecastProjectById(projectId).then((res) => {
+      setBucketName(res.data.bucketName);
+    }).catch(() => { });
+  }, [projectId]);
 
   const csvToJSON = (csv) => {
     let lines=csv.split("\n");
@@ -116,7 +125,6 @@ const ForecastingResults = () => {
         let trendData = [];
         let count = 0;
         for (let [key, value] of Object.entries(trend)) {
-          console.log(`${key}: ${value}`);
           trendData.push({
             date: key,
             [newCols[0]]: forecastObj[count][newCols[0]],
@@ -146,6 +154,18 @@ const ForecastingResults = () => {
       ProgressIndicator.hide();
     });
   };
+
+  const handleNerdStats = () => {
+    setNerdStats(!nerdStats);
+    if(forecastRun) {
+      chronosApi.getHTML(`${bucketName}`, `${forecastRun.id}-${forecastRun.name}`, 'results.html').then((res) => {
+        setHtml(res.data);
+        setHtmlLoading(false);
+      }).catch(() => {
+        setHtmlLoading(false);
+      });
+    }
+  }
 
   const exportToPdf = async () => {
     const element = printRef.current;
@@ -228,7 +248,7 @@ const ForecastingResults = () => {
       remove: ["lasso", "lasso2d"]
     },
     hovermode: "x unified",
-    dragmode: "pan",
+    // dragmode: "pan",
     shapes: [
       {
         type: 'rect',
@@ -315,7 +335,7 @@ const ForecastingResults = () => {
       remove: ["lasso", "lasso2d"]
     },
     hovermode: "x unified",
-    dragmode: "pan",
+    // dragmode: "pan",
   };
 
   const layoutDecomposition = {  
@@ -362,7 +382,7 @@ const ForecastingResults = () => {
       remove: ["lasso", "lasso2d"]
     },
     hovermode: "x unified",
-    dragmode: "pan",
+    // dragmode: "pan",
   };
 
   const addTracesTrend = (data) => {
@@ -476,16 +496,16 @@ const ForecastingResults = () => {
         <div className={Styles.summeryBannerTitle}>
           <h2>Forecasting Results &quot;{!loading && forecastRun?.runName}&quot;</h2>
           <div className={Styles.switch}>
-            <label className={classNames('switch', nerd && 'on')}>
+            <label className={classNames('switch', nerdStats && 'on')}>
               <span className="label" style={{ marginRight: '5px' }}>
                 Stats for Nerds
               </span>
               <span className="wrapper">
                 <input
-                  value={nerd}
+                  value={nerdStats}
                   type="checkbox"
                   className="ff-only"
-                  onChange={() => setNerd(!nerd)}
+                  onChange={handleNerdStats}
                   // checked={nerd}
                 />
               </span>
@@ -511,7 +531,7 @@ const ForecastingResults = () => {
                     data={addTraces(forecastData)}
                     layout={layout}
                     useResizeHandler
-                    config={{ scrollZoom: true, displaylogo: false }}
+                    config={{ displaylogo: false }}
                     style={{width: '100%', height: '450px'}}
                   />
                 </div>
@@ -536,7 +556,7 @@ const ForecastingResults = () => {
                   data={addTracesTrend(trendData)}
                   layout={layoutTrend}
                   useResizeHandler
-                  config={{ scrollZoom: true, displaylogo: false }}
+                  config={{ displaylogo: false }}
                   style={{width: '100%', height: '450px'}}
                 />
               </div>
@@ -560,13 +580,40 @@ const ForecastingResults = () => {
                   data={addTracesDecomposition(decompositionData)}
                   layout={layoutDecomposition}
                   useResizeHandler
-                  config={{ scrollZoom: true, displaylogo: false }}
+                  config={{ displaylogo: false }}
                   style={{width: '100%', height: '450px'}}
                 />
               </div>
           }
         </div>
       </div>
+
+      {
+        nerdStats &&
+        <div className={Styles.content}>
+          <div className={Styles.header}>
+            <h3>Stats for Nerds</h3>
+            {/* <div className={Styles.actionMenu}>
+              <ContextMenu id={'decomposition'} items={contextMenuItems} />
+            </div> */}
+          </div>
+          <div className={Styles.firstPanel} ref={printRef}>
+            { htmlLoading && <Spinner /> }
+            { !htmlLoading && html.length === 0 && <p>No visualization for the given data.</p> }
+            { !htmlLoading &&
+                <div className={Styles.chartContainer}>
+                  <iframe 
+                    className={Styles.iframe}
+                    srcDoc={html}
+                    width="100%"
+                    height="450px"
+                  ></iframe>
+                </div>
+            }
+          </div>
+        </div>
+      }
+      
     </div>
   );
 }
