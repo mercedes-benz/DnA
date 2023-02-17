@@ -333,7 +333,7 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 								"TERMINATED".equalsIgnoreCase(state.getLife_cycle_state()) ||
 								"INTERNAL_ERROR".equalsIgnoreCase(state.getLife_cycle_state()) ||
 								"SKIPPED".equalsIgnoreCase(state.getLife_cycle_state())) &&
-								!"SUCCESS".equalsIgnoreCase(state.getResult_state())
+								!"SUCCESS".equalsIgnoreCase(state.getResult_state()) && run.getError()!=null
 						){
 							log.info("inside TERMINATED");
 							RunDetailsVO updatedRunResponse = this.dataBricksClient.getSingleRun(runId);
@@ -351,7 +351,6 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 								updatedRuns.add(run);
 							}
 						} else {
-							log.info("inside third if cond");
 							updatedRuns.add(run);
 						}
 					}
