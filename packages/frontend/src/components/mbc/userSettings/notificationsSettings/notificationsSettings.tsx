@@ -63,6 +63,9 @@ const NotificationsSettings = (props: INotificationSettings) => {
           case 'dataComplianceNotificationPref':
             temp.title = 'Configure Notification for Data Compliance';
             break;
+          case 'chronosNotificationPref':
+            temp.title = 'Configure Notification for Chronos Forecasting';
+            break;
         }
         tempArr.push(temp);
       }
@@ -130,6 +133,16 @@ const NotificationsSettings = (props: INotificationSettings) => {
     callToUpdatePreference(messageForNotification);
   };
 
+  const onChangeEmailNotificationForChronos = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const target = notificationPreferences?.chronosNotificationPref;
+    target['enableEmailNotifications'] = e.target.checked;
+    setNotificationPreferences(notificationPreferences);
+    const messageForNotification = e.target.checked
+      ? 'Enabled Email Notification Successfully'
+      : 'Disabled Email Notification Successfully';
+    callToUpdatePreference(messageForNotification);
+  };
+
   const callToUpdatePreference = (message: string) => {
     ProgressIndicator.show();
     ApiClient.enableEmailNotifications(notificationPreferences)
@@ -167,7 +180,10 @@ const NotificationsSettings = (props: INotificationSettings) => {
         break;
       case 'dataComplianceNotificationPref':
         onChangeEmailNotificationForDataCompliance(e);
-        break;  
+        break;
+      case 'chronosNotificationPref':
+        onChangeEmailNotificationForChronos(e);
+        break;   
     }
   };
 
