@@ -17,7 +17,7 @@ import { ApiClient } from '../../../../services/ApiClient';
 import { ISortField } from 'components/mbc/allSolutions/AllSolutions';
 
 import SelectBox from 'components/formElements/SelectBox/SelectBox';
-import { SESSION_STORAGE_KEYS } from 'globals/constants';
+import { SESSION_STORAGE_KEYS, USER_ROLE } from 'globals/constants';
 import Modal from 'components/formElements/modal/Modal';
 import classNames from 'classnames';
 import { debounce } from 'lodash';
@@ -27,6 +27,7 @@ export interface IUserRoleManagementState {
   totalNumberOfPages: number;
   roles: IRole[];
   updatedRole: IRole;
+  moduleRoles: IRole[];
   currentUserRole: string;
   sortBy: ISortField;
   users: IUserInfo[];
@@ -55,6 +56,7 @@ export class UserRoleManagement extends React.Component<any, IUserRoleManagement
       currentPageOffset: 0,
       users: [],
       roles: [],
+      moduleRoles: [],
       searchText: null,
       currentUserToEdit: null,
       currentUserRole: '',
@@ -234,61 +236,112 @@ export class UserRoleManagement extends React.Component<any, IUserRoleManagement
     const userData = this.state.users.map((user) => {
       return <UserInfoRowItem key={user.id} user={user} roles={this.state.roles} showEditModal={this.showEditModal} />;
     });
+    const hasUserRole = this.state.updatedRole?.id === USER_ROLE.USER;
+    const hasAdminRole = this.state.updatedRole?.id === USER_ROLE.ADMIN;
+    const hasPrivilegedRole = !hasUserRole && !hasAdminRole;
+    const moduleAdminRoles = this.state.roles.filter((role: IRole) => role.id !== USER_ROLE.USER && role.id !== USER_ROLE.ADMIN);
+    const moduleRoleValues = this.state.moduleRoles.map((role: IRole) => {
+      return role.id;
+    });
     const editModalContent: React.ReactNode = (
       <div id="contentparentdiv" className={Styles.modalContent}>
         Select a User Role for {this.state.currentUserToEdit ? this.state.currentUserToEdit.firstName : ''}{' '}
         {this.state.currentUserToEdit ? this.state.currentUserToEdit.lastName : ''} and Press &laquo;Save&raquo; to
         confirm.
         <div className={Styles.roleContent}>
-          <div className={classNames(Styles.flexLayout)}>
-            <div id="roleContainer" className="input-field-group include-error">
-              <label id="roleLabel" className="input-label" htmlFor="roleSelect">
-                User Role
+          <div>
+            <div id="roleSelectContainer" className="input-field-group include-error">
+              <label className="radio">
+                <span className="wrapper">
+                  <input
+                    type="radio"
+                    className="ff-only"
+                    name="role"
+                    value={USER_ROLE.USER}
+                    checked={hasUserRole}
+                    onChange={this.onMainRoleChange}
+                  />
+                </span>
+                <span className="label">User(Defualt)</span>
               </label>
-              <div id="role" className="custom-select">
-                <select
-                  id="roleSelect"
-                  multiple={false}
-                  onChange={this.onRoleChange}
-                  value={this.state.updatedRole?.id}
-                >
-                  {this.state.roles.map((obj) => (
-                    <option id={obj.name + obj.id} key={obj.id} value={obj.id}>
-                      {obj.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              {/* <span className={classNames('error-message', divisionError.length ? '' : 'hide')}>{divisionError}</span> */}
-            </div>
-            {this.state.updatedRole && this.state.updatedRole?.name == 'DivisionAdmin' ? (
-              <div
-                id="divisionContainer"
-                className={classNames('input-field-group include-error', divisionError.length ? 'error' : '')}
-              >
-                <label id="divisionLabel" className="input-label" htmlFor="divisionSelect">
-                  Division<sup>*</sup>
+              <label className="radio">
+                <span className="wrapper">
+                  <input
+                    type="radio"
+                    className="ff-only"
+                    name="role"
+                    value={USER_ROLE.ADMIN}
+                    checked={hasAdminRole}
+                    onChange={this.onMainRoleChange}
+                  />
+                </span>
+                <span className="label">Admin(Complete Access to Management)</span>
+              </label>
+              <br />
+              <label className="radio">
+                <span className="wrapper">
+                  <input
+                    type="radio"
+                    className="ff-only"
+                    name="role"
+                    value="-1"
+                    checked={hasPrivilegedRole}
+                    onChange={this.onMainRoleChange}
+                  />
+                </span>
+                <span className="label">Privileged Roles(Access based on Modules)</span>
+              </label>
+            </div>  
+            <div className={classNames(Styles.flexLayout, hasPrivilegedRole ? '' : 'hide')}>
+              <div id="roleContainer" className="input-field-group include-error">
+                <label id="roleLabel" className="input-label" htmlFor="roleSelect">
+                  Select Module Admin Roles
                 </label>
-                <div id="division" className="custom-select">
+                <div id="role" className="custom-select">
                   <select
-                    id="divisionSelect"
-                    required={true}
+                    id="roleSelect"
                     multiple={true}
-                    onChange={this.onDivisionChange}
-                    value={this.state.selectedDivisions}
+                    onChange={this.onModuleRoleChange}
+                    value={moduleRoleValues}
                   >
-                    {this.state.divisionList.map((obj) => (
-                      <option id={obj.name + obj.id} key={obj.id} value={obj.name}>
+                    {moduleAdminRoles.map((obj) => (
+                      <option id={obj.name + obj.id} key={obj.id} value={obj.id}>
                         {obj.name}
                       </option>
                     ))}
                   </select>
                 </div>
-                <span className={classNames('error-message', divisionError.length ? '' : 'hide')}>{divisionError}</span>
+                {/* <span className={classNames('error-message', roleError.length ? '' : 'hide')}>{roleError}</span> */}
               </div>
-            ) : (
-              ''
-            )}
+              {this.state.moduleRoles.some((role: IRole) => role.id === USER_ROLE.DIVISIONADMIN) ? (
+                <div
+                  id="divisionContainer"
+                  className={classNames('input-field-group include-error', divisionError.length ? 'error' : '')}
+                >
+                  <label id="divisionLabel" className="input-label" htmlFor="divisionSelect">
+                    Division<sup>*</sup>
+                  </label>
+                  <div id="division" className="custom-select">
+                    <select
+                      id="divisionSelect"
+                      required={true}
+                      multiple={true}
+                      onChange={this.onDivisionChange}
+                      value={this.state.selectedDivisions}
+                    >
+                      {this.state.divisionList.map((obj) => (
+                        <option id={obj.name + obj.id} key={obj.id} value={obj.name}>
+                          {obj.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <span className={classNames('error-message', divisionError.length ? '' : 'hide')}>{divisionError}</span>
+                </div>
+              ) : (
+                ''
+              )}
+            </div>
           </div>
         </div>
       </div>
@@ -411,7 +464,7 @@ export class UserRoleManagement extends React.Component<any, IUserRoleManagement
         <Modal
           title={
             this.state.currentUserToEdit
-              ? 'Edit ' + this.state.currentUserToEdit.lastName + ',' + this.state.currentUserToEdit.firstName
+              ? 'Edit ' + this.state.currentUserToEdit.lastName + ', ' + this.state.currentUserToEdit.firstName
               : ''
           }
           buttonAlignment="center"
@@ -430,61 +483,78 @@ export class UserRoleManagement extends React.Component<any, IUserRoleManagement
     const roleValue = user.roles.map((userRole: IRole) => {
       return userRole;
     });
+    const hasPrivilegedRole = roleValue.some((role:IRole) => role.id !== USER_ROLE.USER && role.id !== USER_ROLE.ADMIN);
     this.setState(
       {
         showEditUsersModal: true,
         currentUserToEdit: user,
-        updatedRole: roleValue[0],
-        selectedDivisions: user.divisionAdmins,
+        updatedRole: hasPrivilegedRole ? undefined : roleValue[0],
+        moduleRoles: hasPrivilegedRole ? roleValue : [],
+        selectedDivisions: user.divisionAdmins ? user.divisionAdmins : [],
       },
       () => {
         SelectBox.defaultSetup(true);
       },
     );
   };
-  public onRoleChange = (e: React.FormEvent<HTMLSelectElement>) => {
-    const selectedOptions = e.currentTarget.selectedOptions;
 
-    if (selectedOptions.length) {
-      Array.from(selectedOptions).forEach((option) => {
-        let label = option.label;
-        if (label === 'ADMIN') {
-          label = 'Admin';
-        } else if (label === 'EXTENDED') {
-          label = 'Extended';
-        } else if (label === 'USER') {
-          label = 'User';
-        }
-        this.setState({ updatedRole: { id: option.value, name: label } }, () => {
-          SelectBox.defaultSetup(true);
-        });
-      });
-    }
+  protected onMainRoleChange = (event: React.FormEvent<HTMLInputElement>) => {
+    // this.setState({ dnaComputeMode: event.currentTarget.value });
+    const selectedValue = event.currentTarget.value;
+    this.setState(
+      {
+        updatedRole: this.state.roles.find((item: IRole) => item.id === selectedValue),
+        moduleRoles: [],
+        selectedDivisions: [],
+      },
+      () => {
+        SelectBox.defaultSetup(true);
+      },
+    );
+  };
+
+  public onModuleRoleChange = (e: React.FormEvent<HTMLSelectElement>) => {
+    const selectedOptions = e.currentTarget.selectedOptions;
+    const selectedValues: IRole[] = [];
+    Array.from(selectedOptions).forEach((option) => {
+      // let label = option.label;
+      // if (label === 'ADMIN') {
+      //   label = 'Admin';
+      // } else if (label === 'EXTENDED') {
+      //   label = 'Extended';
+      // } else if (label === 'USER') {
+      //   label = 'User';
+      // }
+
+      selectedValues.push(this.state.roles.find((role: IRole) => role.id === option.value));
+    });
+
+    this.setState({ moduleRoles: selectedValues }, () => {
+      SelectBox.defaultSetup(true);
+    });
   };
 
   public onDivisionChange = (e: React.FormEvent<HTMLSelectElement>) => {
     const selectedOptions = e.currentTarget.selectedOptions;
     const selectedValues: any[] = [];
-    if (selectedOptions.length) {
-      Array.from(selectedOptions).forEach((option) => {
-        // const location: any = { id: null, name: null };
-        // location.id = option.value;
-        // location.name = option.label;
-        selectedValues.push(option.label);
-      });
-      this.setState({ selectedDivisions: selectedValues });
-    }
+    Array.from(selectedOptions).forEach((option) => {
+      // const location: any = { id: null, name: null };
+      // location.id = option.value;
+      // location.name = option.label;
+      selectedValues.push(option.label);
+    });
+    this.setState({ selectedDivisions: selectedValues });
   };
 
   protected onAcceptRoleChanges = () => {
-    if (this.state.currentUserToEdit && this.state.updatedRole) {
-      const roleChanged = this.state.currentUserToEdit.roles.filter((userCurrentRole: IRole) => {
+    if (this.state.currentUserToEdit && (this.state.updatedRole || this.state.moduleRoles.length)) {
+      const roleChanged = this.state.updatedRole ? this.state.currentUserToEdit.roles.filter((userCurrentRole: IRole) => {
         return userCurrentRole.id !== this.state.updatedRole.id;
-      });
+      }) : this.state.moduleRoles;
       const isDivisionChanged =
         JSON.stringify(this.state.currentUserToEdit.divisionAdmins) !== JSON.stringify(this.state.selectedDivisions);
 
-      if (this.state.updatedRole.name === 'DivisionAdmin') {
+      if (this.state.moduleRoles.some((role:IRole) => role.id === USER_ROLE.DIVISIONADMIN)) {
         if (this.validateUserRoleForm()) {
           this.callApiToUpdateUser();
         }
@@ -511,8 +581,8 @@ export class UserRoleManagement extends React.Component<any, IUserRoleManagement
         eMail: userToEdit.eMail,
         mobileNumber: userToEdit.mobileNumber,
         favoriteUsecases: userToEdit.favoriteUsecases,
-        roles: [this.state.updatedRole], // TODO may need to change for multi role scenario
-        divisionAdmins: this.state.updatedRole.name === 'DivisionAdmin' ? this.state.selectedDivisions : [],
+        roles: this.state.updatedRole ? [this.state.updatedRole] : this.state.moduleRoles,
+        divisionAdmins: this.state.moduleRoles.some((role:IRole) => role.id === USER_ROLE.DIVISIONADMIN) ? this.state.selectedDivisions : [],
       },
     };
     ProgressIndicator.show();
@@ -521,7 +591,7 @@ export class UserRoleManagement extends React.Component<any, IUserRoleManagement
         if (response) {
           const users = this.state.users.map((user) => {
             if (user.id === userToEdit.id) {
-              user.roles = [this.state.updatedRole];
+              user.roles = this.state.updatedRole ? [this.state.updatedRole] : this.state.moduleRoles;
               user.divisionAdmins = response.divisionAdmins;
             }
             return user;
