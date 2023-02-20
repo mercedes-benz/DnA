@@ -78,6 +78,5 @@ public class CacheUpdateEventListener {
 		if(users != null) {
 			cacheUtil.updateCache(cacheName, users);
 		}
-		return;
 	}
 }
