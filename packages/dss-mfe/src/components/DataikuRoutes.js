@@ -5,8 +5,9 @@ import { Route, Router, Switch } from 'react-router-dom';
 import Progress from 'dna-container/Progress';
 import NotFoundPage from 'dna-container/NotFound';
 import UnAuthorised from 'dna-container/UnAuthorised';
-import Dataiku from 'dna-container/Dataiku';
+// import Dataiku from 'dna-container/Dataiku';
 
+import ListProjects from './ListProjects';
 import { ProtectedRoute } from './ProtectedRoutes';
 import { history } from '../store';
 
@@ -15,7 +16,7 @@ import SessionExpired from './SessionExpired';
 
 export const protectedRoutes = [
   {
-    component: Dataiku,
+    component: ListProjects,
     exact: true,
     path: '/',
   },
