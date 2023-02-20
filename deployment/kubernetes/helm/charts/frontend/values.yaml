@@ -128,6 +128,8 @@ configJs: |
       STORAGE_MFE_APP_URL: 'http://localhost:8083',
       STORAGE_API_BASEURL: 'http://localhost:7175/api',
     };
+
+    
     
 probes:
   initialDelaySeconds: 30
@@ -182,6 +184,17 @@ vaultInjector:
       {{- end }}
       {{- with secret "kv/dna/kubernetesSecret/dataProductMFE" -}}
           window["DATA_PRODUCT_INJECTED_ENVIRONMENT"]={
+          {{- range $k, $v := .Data.data }}
+          {{- if or (eq $v "true") (eq $v "false") (regexMatch "^[0-9]+$" $v) }}
+                  {{ $k }}:{{ $v }},
+          {{ else }}
+                  {{ $k }}:'{{ $v }}',
+          {{- end }}
+          {{- end }}
+              };
+      {{- end }}  
+      {{- with secret "kv/dna/kubernetesSecret/dssMFE" -}}
+          window["DSS_INJECTED_ENVIRONMENT"]={
           {{- range $k, $v := .Data.data }}
           {{- if or (eq $v "true") (eq $v "false") (regexMatch "^[0-9]+$" $v) }}
                   {{ $k }}:{{ $v }},
