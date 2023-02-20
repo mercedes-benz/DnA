@@ -101,7 +101,7 @@ vaultInjector:
     vault.hashicorp.com/agent-inject-file-configjs: "config.js"
     vault.hashicorp.com/agent-inject-template-configjs: | 
       {{- with secret "kv/dna/kubernetesSecret/dssMFE" -}}
-          window["STORAGE_INJECTED_ENVIRONMENT"]={
+          window["DSS_INJECTED_ENVIRONMENT"]={
           {{- range $k, $v := .Data.data }}
           {{- if or (eq $v "true") (eq $v "false") (regexMatch "^[0-9]+$" $v) }}
                   {{ $k }}:{{ $v }},
