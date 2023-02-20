@@ -63,6 +63,7 @@ import { ReportsApiClient } from '../../../services/ReportsApiClient';
 import { serializeReportRequestBody } from './utility/Utility';
 import { USER_ROLE } from 'globals/constants';
 import { TeamMemberType } from 'globals/Enums';
+import Caption from '../shared/caption/Caption';
 
 const classNames = cn.bind(Styles);
 export interface ICreateNewReportState {
@@ -468,7 +469,7 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
         <div className={classNames(Styles.mainPanel)}>
           <div className={Styles.flexLayout}>
             <div>
-              <div className={Styles.screenLabel}>{this.state.report.reportId ? 'Edit Report' : 'Create Report'}</div>
+              <Caption title={this.state.report.reportId ? 'Edit Report' : 'Create Report'} />
             </div>
             {!this.state.report.reportId && currentTab === 'description' ? (
               <div className={Styles.switchButton}>
