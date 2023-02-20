@@ -84,7 +84,7 @@ export const UpdateDataTransfers = createAsyncThunk(
         onSave();
         const responseData = res?.data?.data;
         let data;
-        if (type === 'consumer') {
+        if (!isProviderForm) {
           // access provider info from the store
           const producerData = omit(getState().provideDataTransfers.selectedDataTransfer, ['consumer']);
           // deserialize response and extract only the consumer details
