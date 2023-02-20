@@ -28,6 +28,7 @@
 package com.daimler.data.db.repo.forecast;
 
 import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -93,5 +94,28 @@ public class ForecastCustomRepositoryImpl extends CommonDataRepositoryImpl<Forec
 		BigInteger results = (BigInteger) q.getSingleResult();
 		return results.longValue();
 	}
+	
+	@Override
+	public List<String> getAllForecastIds() {
+		String query = "select cast(id as text) from forecast_nsql"; 
+		Query q = em.createNativeQuery(query);		
+		ObjectMapper mapper = new ObjectMapper();
+		List<Object[]> results = q.getResultList();		
+		List<String> convertedResults = new ArrayList<>();
+		if(results != null && !results.isEmpty()) {
+			for(Object result : results) {                 
+	            try {
+					String jsonData = result.toString() != null ? result.toString() : "";										
+					convertedResults.add(jsonData);
+				}
+				catch(Exception e) {
+					log.error("Exception Occured: {}", e.getMessage());
+				}
+	        }	
+		}			
+		
+		return convertedResults;
+	}
+
 
 }
