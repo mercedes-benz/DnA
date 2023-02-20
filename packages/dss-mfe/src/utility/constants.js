@@ -12,3 +12,9 @@ export const USER_ROLE = {
   DIVISIONADMIN: '5',
   DATACOMPLIANCEADMIN: '6',
 };
+
+export const ProvisionSource = {
+  DATAIKU: 'dataiku',
+};
+
+export const SUPPORT_EMAIL_ID = 'support@your-domain.com';

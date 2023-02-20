@@ -177,6 +177,7 @@ const base = {
         './Dataiku': './src/components/mbc/dataiku/ListProjects',
         './HeadingSection': './src/components/mbc/shared/landingSummary/headingSection/HeadingSection.tsx',
         './Caption': './src/components/mbc/shared/caption/Caption.tsx',
+        './ProvisionSolution': './src/components/mbc/provisionsolution/Provisionsolution.tsx',
       },
       remotes: {
         // object key is used to import
