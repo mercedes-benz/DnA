@@ -278,6 +278,7 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 								RunStateVO updatedState = updatedRunResponse.getState();
 								RunState newState = new RunState();
 								String updatedLifecycleState = updatedState.getLifeCycleState().name();
+								String updatedResultState = updatedState.getResultState().name();
 								if(!existingLifecycleState.equalsIgnoreCase(updatedLifecycleState) &&
 										(!updatedLifecycleState.equalsIgnoreCase("PENDING") ||
 										 !updatedLifecycleState.equalsIgnoreCase("RUNNING") ||
@@ -293,7 +294,7 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 									memberIds.add(ownerId);									
 									String ownerEmail = entity.getData().getCreatedBy().getEmail();
 									memberEmails.add(ownerEmail);
-									notifyUsers(forecastId,run,memberIds,memberEmails,forecastName,updatedLifecycleState);
+									notifyUsers(forecastId,run,memberIds,memberEmails,forecastName,updatedResultState);
 								}
 								if(updatedState.getLifeCycleState()!=null)
 									newState.setLife_cycle_state(updatedState.getLifeCycleState().name());
@@ -384,10 +385,10 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 		return updatedRunVOList;
 	}
 	
-	private void notifyUsers(String forecastId, RunDetails run, List<String> memberIds, List<String> memberEmails,String forecastName, String updatedLifecycleState) {
+	private void notifyUsers(String forecastId, RunDetails run, List<String> memberIds, List<String> memberEmails,String forecastName, String updatedResultState) {
 		// TODO Auto-generated method stub
 		String message ="";
-		message="Run " + run.getRunName() + " triggered by " + run.getTriggeredBy() +" for chronos-project "+ forecastName + " completed with LifeCycleState " + updatedLifecycleState +". Please check forecast-results for more details";		
+		message="Run " + run.getRunName() + " triggered by " + run.getTriggeredBy() +" for chronos-project "+ forecastName + " completed with ResultState " + updatedResultState +". Please check forecast-results for more details";		
 		kafkaProducer.send("Chronos Forecast Run LifeCylceStatus update", forecastId, "", "DnaSystemUser", message,
 				true, memberIds, memberEmails, null);
 		
