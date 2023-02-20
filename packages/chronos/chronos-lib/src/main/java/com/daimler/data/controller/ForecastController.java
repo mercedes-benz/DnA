@@ -815,7 +815,7 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 										savedInputs.add(currentInput);
 										existingForecast.setSavedInputs(savedInputs);
 									}
-								savedInputPath = existingForecast.getBucketName()+"/inputs/"+file.getOriginalFilename();
+								savedInputPath = "/inputs/"+file.getOriginalFilename();
 							}
 						}
 				}
