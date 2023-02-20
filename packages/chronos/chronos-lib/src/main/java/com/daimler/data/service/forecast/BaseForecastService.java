@@ -277,24 +277,29 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 							if(updatedRunResponse.getState()!=null) {
 								RunStateVO updatedState = updatedRunResponse.getState();
 								RunState newState = new RunState();
-								String updatedLifecycleState = updatedState.getLifeCycleState().name();
-								String updatedResultState = updatedState.getResultState().name();
-								if(!existingLifecycleState.equalsIgnoreCase(updatedLifecycleState) &&
-										(!updatedLifecycleState.equalsIgnoreCase("PENDING") ||
-										 !updatedLifecycleState.equalsIgnoreCase("RUNNING") ||
-										 !updatedLifecycleState.equalsIgnoreCase("TERMINATING"))) {
-									List<String> memberIds = new ArrayList<>();
-									List<String> memberEmails = new ArrayList<>();
-									if(entity.getData().getCollaborators() != null) {
-										memberIds = entity.getData().getCollaborators().stream().map(UserDetails :: getId).collect(Collectors.toList());
-										memberEmails = entity.getData().getCollaborators().stream().map(UserDetails :: getEmail).collect(Collectors.toList());
+								if (updatedState.getLifeCycleState() != null && updatedState.getResultState() != null) {
+									String updatedLifecycleState = updatedState.getLifeCycleState().name();
+									String updatedResultState = updatedState.getResultState().name();
+									if (!existingLifecycleState.equalsIgnoreCase(updatedLifecycleState)
+											&& (!updatedLifecycleState.equalsIgnoreCase("PENDING")
+													|| !updatedLifecycleState.equalsIgnoreCase("RUNNING")
+													|| !updatedLifecycleState.equalsIgnoreCase("TERMINATING"))) {
+										List<String> memberIds = new ArrayList<>();
+										List<String> memberEmails = new ArrayList<>();
+										if (entity.getData().getCollaborators() != null) {
+											memberIds = entity.getData().getCollaborators().stream()
+													.map(UserDetails::getId).collect(Collectors.toList());
+											memberEmails = entity.getData().getCollaborators().stream()
+													.map(UserDetails::getEmail).collect(Collectors.toList());
+										}
+
+										String ownerId = entity.getData().getCreatedBy().getId();
+										memberIds.add(ownerId);
+										String ownerEmail = entity.getData().getCreatedBy().getEmail();
+										memberEmails.add(ownerEmail);
+										notifyUsers(forecastId, run, memberIds, memberEmails, forecastName,
+												updatedResultState);
 									}
-									
-									String ownerId = entity.getData().getCreatedBy().getId();
-									memberIds.add(ownerId);									
-									String ownerEmail = entity.getData().getCreatedBy().getEmail();
-									memberEmails.add(ownerEmail);
-									notifyUsers(forecastId,run,memberIds,memberEmails,forecastName,updatedResultState);
 								}
 								if(updatedState.getLifeCycleState()!=null)
 									newState.setLife_cycle_state(updatedState.getLifeCycleState().name());
