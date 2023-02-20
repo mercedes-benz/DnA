@@ -281,9 +281,9 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 									String updatedLifecycleState = updatedState.getLifeCycleState().name();
 									String updatedResultState = updatedState.getResultState().name();
 									if (!existingLifecycleState.equalsIgnoreCase(updatedLifecycleState)
-											&& (!updatedLifecycleState.equalsIgnoreCase("PENDING")
-													|| !updatedLifecycleState.equalsIgnoreCase("RUNNING")
-													|| !updatedLifecycleState.equalsIgnoreCase("TERMINATING"))) {
+											&& (updatedLifecycleState.equalsIgnoreCase("TERMINATED")
+													|| updatedLifecycleState.equalsIgnoreCase("INTERNAL_ERROR")
+													|| updatedLifecycleState.equalsIgnoreCase("SKIPPED"))) {
 										List<String> memberIds = new ArrayList<>();
 										List<String> memberEmails = new ArrayList<>();
 										if (entity.getData().getCollaborators() != null) {
@@ -303,6 +303,10 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 								}
 								if(updatedState.getLifeCycleState()!=null)
 									newState.setLife_cycle_state(updatedState.getLifeCycleState().name());
+								String updatedStateMsg = "";
+								if(updatedRunResponse.getState().getStateMessage()!=null) {
+									updatedStateMsg = updatedState.getStateMessage();
+								}
 								if(updatedState.getResultState()!=null) {
 									newState.setResult_state(updatedState.getResultState().name());
 									if("SUCCESS".equalsIgnoreCase(updatedState.getResultState().name())) {
@@ -325,10 +329,14 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 														bucketName, correlationId, run.getRunName());
 											}
 											updatedRunDetail.setWarnings(warningsResult);
+											updatedStateMsg = "Run was completed with warnings."; 
 										}
 										else{
 											if(!successFileFlag) {
 												newState.setResult_state(ResultStateEnum.FAILED.name());
+												String errMsg = "Run failed as there was no SUCCESS file under results folder.";
+												updatedRunDetail.setError(errMsg);
+												updatedStateMsg = errMsg;
 											}
 										}
 									}else {
@@ -336,34 +344,34 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 										String errorMessage=processErrorMessages(taskRunId);
 										updatedRunDetail.setError(errorMessage);
 										updatedRunDetail.setTaskRunId(taskRunId);
+										updatedStateMsg = errorMessage;
 									}
 								}
-								String updatedStateMsg = "";
-								if(updatedRunResponse.getState().getStateMessage()!=null) {
-									updatedStateMsg = updatedState.getStateMessage();
-								}
+								
 								newState.setState_message(updatedStateMsg);
 								newState.setUser_cancelled_or_timedout(updatedState.isUserCancelledOrTimedout());
 								updatedRunDetail.setRunState(newState);
 
 							}
+							log.info("updating new pending run {} of project {} ", run.getRunName(), forecastName);
 							updatedRuns.add(updatedRunDetail);
 
 						}else {
+							log.info("Adding pending run {} of project {} without update, since getrun response is failed or null ", run.getRunName(), forecastName);
 							updatedRuns.add(run);
 						}
 					}
 					else {
 						RunDetails updatedRunDetail = new RunDetails();
-						if (runId != null && (run.getIsDelete() == null || !run.getIsDelete()) && (state != null ||
-								"TERMINATED".equalsIgnoreCase(state.getLife_cycle_state()) ||
+						if (runId != null && (run.getIsDelete() == null || !run.getIsDelete()) && (state != null &&
+								("TERMINATED".equalsIgnoreCase(state.getLife_cycle_state()) ||
 								"INTERNAL_ERROR".equalsIgnoreCase(state.getLife_cycle_state()) ||
-								"SKIPPED".equalsIgnoreCase(state.getLife_cycle_state())) &&
-								!"SUCCESS".equalsIgnoreCase(state.getResult_state()) && run.getError()!=null && "".equalsIgnoreCase(run.getError())
+								"SKIPPED".equalsIgnoreCase(state.getLife_cycle_state()))) &&
+								!"SUCCESS".equalsIgnoreCase(state.getResult_state()) && (run.getError() == null && "".equalsIgnoreCase(run.getError()))
 						){
 							RunDetailsVO updatedRunResponse = this.dataBricksClient.getSingleRun(runId);
 							if(updatedRunResponse!=null && runId.equals(updatedRunResponse.getRunId())) {
-								log.info(" Updating error msg for old run {} of forecast project {}", run.getRunName(), bucketName);
+								log.info(" Updating error msg for failed old run {} of forecast project {} after getting errorMessage from output", run.getRunName(), bucketName);
 								BeanUtils.copyProperties(run, updatedRunDetail);
 								String taskRunId=updatedRunResponse.getTasks().get(0).getRunId();
 								String errorMessage=processErrorMessages(taskRunId);
@@ -373,10 +381,11 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 								updatedRuns.add(updatedRunDetail);
 							}
 							else {
+								log.info("Adding old failed run {} of project {} without update, since getSingleRun response is null ", run.getRunName(), forecastName);
 								updatedRuns.add(run);
 							}
 						} else {
-							log.info("Updating results for success for terminated lifeCycleState and Success resultState");
+							log.info("Adding old success run {} of project {} without update ", run.getRunName(), forecastName);
 							updatedRuns.add(run);
 						}
 					}
