@@ -1,7 +1,7 @@
-import { server } from '../server/api';
+import { hostServer } from '../server/api';
 
 const getDataikuProjectsList = (live) => {
-  return server.get(`/dataiku/projects?live=${live}`, {
+  return hostServer.get(`/dataiku/projects?live=${live}`, {
     data: {},
   });
 };
