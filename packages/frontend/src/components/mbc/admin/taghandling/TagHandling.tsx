@@ -537,27 +537,13 @@ export class TagHandling extends React.Component<any, ITagHandlingState> {
     );
   };
   public showUpdateConfirmModal = (tagItem: ITagResult) => {
-    // this.setState(
-    //   {
-    //     itemToUpdate: tagItem.category.name,
-    //     addNewItem: true,
-    //     chips: tagItem.subdivisions.map((item: ISubDivision) => item.name),
-    //     updateItemMode: true,
-    //     tagToBeUpdatedLocal: Object.assign({}, tagItem),
-    //     newItemNameError: null,
-    //     newItemNameCategoryError: null,
-    //   },
-    //   () => {
-    //     InputFieldsUtils.resetErrors('#solutionAddOrUpdateFormWrapper');
-    //     SelectBox.defaultSetup(true);
-    //   },
-    // );
     this.setState(
       {
         itemToUpdate: tagItem.category.name,
-        addNewMarketingItem: false,
-        updateMarketingItem: true,
-        tagToBeUpdatedLocal: tagItem,
+        addNewItem: true,
+        chips: tagItem.subdivisions.map((item: ISubDivision) => item.name),
+        updateItemMode: true,
+        tagToBeUpdatedLocal: Object.assign({}, tagItem),
         newItemNameError: null,
         newItemNameCategoryError: null,
       },
@@ -566,6 +552,20 @@ export class TagHandling extends React.Component<any, ITagHandlingState> {
         SelectBox.defaultSetup(true);
       },
     );
+    // this.setState(
+    //   {
+    //     itemToUpdate: tagItem.category.name,
+    //     addNewMarketingItem: false,
+    //     updateMarketingItem: true,
+    //     tagToBeUpdatedLocal: tagItem,
+    //     newItemNameError: null,
+    //     newItemNameCategoryError: null,
+    //   },
+    //   () => {
+    //     InputFieldsUtils.resetErrors('#solutionAddOrUpdateFormWrapper');
+    //     SelectBox.defaultSetup(true);
+    //   },
+    // );
   };
 
   public showDeleteConfirmModal = (tagItem: ITagResult) => {
@@ -1211,7 +1211,7 @@ export class TagHandling extends React.Component<any, ITagHandlingState> {
             content={contentForAddNewItem}
             onCancel={this.onAddItemModalCancel}
           />
-          <InfoModal
+          {/* <InfoModal
             title={!this.state.addNewMarketingItem ? 
               this.state.currentFilterCategory.id === 9 ? 'Update Marketing Communication Channel' : 'Update Customer Journey Phase' : 
             this.state.currentFilterCategory.id === 9 ? 'Add Marketing Communication Channel' : 'Add Customer Journey Phase'}
@@ -1219,7 +1219,7 @@ export class TagHandling extends React.Component<any, ITagHandlingState> {
             show={this.state.addNewMarketingItem}
             content={contentForAddNewItem}
             onCancel={this.onAddMarketingModalCancel}
-          />
+          /> */}
           <InfoModal
             title={'Change Logs'}
             show={this.state.showDivisionChangeLogModal}
