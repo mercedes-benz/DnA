@@ -141,6 +141,12 @@ spec:
       {{- else }}
         emptyDir: {}
       {{- end -}}
+## PALANSA Extra vol for db service      
+      {{- if .Values.persistence.db.enabled }}
+      - name: db      
+        persistentVolumeClaim:
+          claimName: {{ include "code-server.fullname" . }}-db       
+      {{- end -}}      
       {{- range .Values.extraSecretMounts }}
       - name: {{ .name }}
         secret:
