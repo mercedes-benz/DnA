@@ -1,15 +1,25 @@
 FROM codercom/code-server:4.5.1
 COPY proxy.conf /etc/apt/apt.conf.d/proxy.conf
+USER root
+
+    
 RUN sudo apt-get update \
  && sudo apt-get install -y \
  openjdk-17-jre \
  openjdk-17-jdk \
- nodejs \
- npm \ 
  unzip \
  wget \
  python3-pip 
 
+## Install Nodejs 
+RUN sudo curl -fsSL https://deb.nodesource.com/setup_18.x | bash - &&\
+    sudo apt-get install -y nodejs
+
+RUN sudo apt-get update
+RUN sudo apt-get install nodejs
+
+RUN npm install --global yarn
+RUN npm install -g @angular/cli
 
 RUN sudo mkdir /opt/gradle
 WORKDIR /opt/gradle
@@ -24,6 +34,6 @@ WORKDIR /usr/local/bin/
 # RUN sudo wget https://dl.min.io/client/mc/release/linux-amd64/mc
 COPY ./mc .
 RUN sudo chmod +x mc
-
+USER 1000
 WORKDIR /home/coder
 RUN chown -R 1000:1000 /home/coder
