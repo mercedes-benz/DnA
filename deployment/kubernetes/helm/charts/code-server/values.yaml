@@ -133,6 +133,11 @@ persistence:
   annotations: {}
   # existingClaim: ""
   # hostPath: /data
+  ## ***REMOVED***: Added for provide db service  
+  db:
+    enabled: false
+    accessMode: ReadWriteOnce
+    size: 150Mi    
 
 ## Enable an Specify container in extraContainers.
 ## This is meant to allow adding code-server dependencies, like docker-dind.

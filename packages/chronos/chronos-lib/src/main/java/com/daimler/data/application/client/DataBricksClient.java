@@ -2,6 +2,7 @@ package com.daimler.data.application.client;
 
 import javax.servlet.http.HttpServletRequest;
 
+import com.daimler.data.dto.databricks.DataBricksJobRunOutputResponseWrapperDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
@@ -29,144 +30,167 @@ public class DataBricksClient {
 
 	@Value("${databricks.uri.base}")
 	private String dataBricksBaseUri;
-	
+
 	@Value("${databricks.uri.runnow}")
 	private String dataBricksJobTriggerRunNowPath;
-	
+
 	@Value("${databricks.uri.deleterun}")
 	private String dataBricksJobDeleteRunPath;
-	
+
 	@Value("${databricks.uri.getrun}")
 	private String dataBricksJobGetRunPath;
-	
+
 	@Value("${databricks.uri.jobrunlist}")
 	private String dataBricksJobRunList;
-	
+
+	@Value("${databricks.uri.jobrunoutput}")
+	private String dataBricksJobRunOutputUri;
+
 	@Value("${databricks.jobId}")
 	private String dataBricksJobId;
 
 	@Value("${databricks.powerfulMachinesJobId}")
 	private String dataBricksPowerfulMachinesJobId;
-	
+
 	@Value("${databricks.defaultConfigYml}")
 	private String dataBricksJobDefaultConfigYml;
-	
+
 	@Value("${databricks.pat}")
 	private String dataBricksPAT;
-	
+
 	@Autowired
 	HttpServletRequest httpRequest;
-	
+
 	@Autowired
 	private RestTemplate proxyRestTemplate;
-	
-	
+
+
 	public RunNowResponseVO runNow(String runCorrelationUUID, RunNowNotebookParamsDto notebookParams, boolean runOnPowerfulMachines) {
 		RunNowResponseVO runNowResponse = null;
 		try {
-				String dataBricksJobidForRun = dataBricksJobId;
-				HttpHeaders headers = new HttpHeaders();
-				headers.set("Accept", "application/json");
-				headers.set("Authorization", "Bearer "+dataBricksPAT);
-				headers.setContentType(MediaType.APPLICATION_JSON);
-				
-				String runNowUrl = dataBricksBaseUri + dataBricksJobTriggerRunNowPath;
-				DatabricksJobRunNowRequestDto requestWrapper = new DatabricksJobRunNowRequestDto();
-				if(notebookParams.getConfig()==null || "".equalsIgnoreCase(notebookParams.getConfig()))
-					notebookParams.setConfig(dataBricksJobDefaultConfigYml);
-				if(runOnPowerfulMachines) {
-					dataBricksJobidForRun = dataBricksPowerfulMachinesJobId;
-				}
-				requestWrapper.setJob_id(dataBricksJobidForRun);
-				requestWrapper.setNotebook_params(notebookParams);
-				try {
-				ObjectMapper mapper = new ObjectMapper();
-				System.out.println(mapper.writeValueAsString(requestWrapper));
-				}catch(Exception e) {
-					log.error("Failed to parse runnow request with exception {} ",e.getMessage());
-				}
-				HttpEntity<DatabricksJobRunNowRequestDto> requestEntity = new HttpEntity<>(requestWrapper,headers);
-				ResponseEntity<RunNowResponseVO> response = proxyRestTemplate.exchange(runNowUrl, HttpMethod.POST,
-						requestEntity, RunNowResponseVO.class);
-				if (response.hasBody()) {
-					runNowResponse = response.getBody();
-				}
-				}catch(Exception e) {
-					e.printStackTrace();
-				}
-			return runNowResponse;
+			String dataBricksJobidForRun = dataBricksJobId;
+			HttpHeaders headers = new HttpHeaders();
+			headers.set("Accept", "application/json");
+			headers.set("Authorization", "Bearer "+dataBricksPAT);
+			headers.setContentType(MediaType.APPLICATION_JSON);
+
+			String runNowUrl = dataBricksBaseUri + dataBricksJobTriggerRunNowPath;
+			DatabricksJobRunNowRequestDto requestWrapper = new DatabricksJobRunNowRequestDto();
+			if(notebookParams.getConfig()==null || "".equalsIgnoreCase(notebookParams.getConfig()))
+				notebookParams.setConfig(dataBricksJobDefaultConfigYml);
+			if(runOnPowerfulMachines) {
+				dataBricksJobidForRun = dataBricksPowerfulMachinesJobId;
+			}
+			requestWrapper.setJob_id(dataBricksJobidForRun);
+			requestWrapper.setNotebook_params(notebookParams);
+			HttpEntity<DatabricksJobRunNowRequestDto> requestEntity = new HttpEntity<>(requestWrapper,headers);
+			ResponseEntity<RunNowResponseVO> response = proxyRestTemplate.exchange(runNowUrl, HttpMethod.POST,
+					requestEntity, RunNowResponseVO.class);
+			if (response.hasBody()) {
+				runNowResponse = response.getBody();
+			}
+		}catch(Exception e) {
+			log.error("Failed to invoke databricks run {} with {} ", runCorrelationUUID,e.getMessage());
+			log.debug("Failed to invoke databricks run {} with {} ", runCorrelationUUID,e.getStackTrace());
+		}
+		return runNowResponse;
 	}
-	
-	
+
+
 	public DataBricksErrorResponseVO deleteRun(String runId) {
 		DataBricksErrorResponseVO deleteRunResponse = null;
 		try {
-				HttpHeaders headers = new HttpHeaders();
-				headers.set("Accept", "application/json");
-				headers.set("Authorization", "Bearer "+dataBricksPAT);
-				headers.setContentType(MediaType.APPLICATION_JSON);
-				
-				String deleteRunUrl = dataBricksBaseUri + dataBricksJobDeleteRunPath;
-				DatabricksRunGenericRequestDto requestWrapper = new DatabricksRunGenericRequestDto();
-				requestWrapper.setRun_id(runId);
-				HttpEntity<DatabricksRunGenericRequestDto> requestEntity = new HttpEntity<>(requestWrapper,headers);
-				ResponseEntity<DataBricksErrorResponseVO> response = proxyRestTemplate.exchange(deleteRunUrl, HttpMethod.POST,
-						requestEntity, DataBricksErrorResponseVO.class);
-				if (response.hasBody()) {
-					deleteRunResponse = response.getBody();
-				}
-				}catch(Exception e) {
-					deleteRunResponse = new DataBricksErrorResponseVO();
-					deleteRunResponse.setMessage(e.getMessage());
-				}
-			return deleteRunResponse;
+			HttpHeaders headers = new HttpHeaders();
+			headers.set("Accept", "application/json");
+			headers.set("Authorization", "Bearer "+dataBricksPAT);
+			headers.setContentType(MediaType.APPLICATION_JSON);
+
+			String deleteRunUrl = dataBricksBaseUri + dataBricksJobDeleteRunPath;
+			DatabricksRunGenericRequestDto requestWrapper = new DatabricksRunGenericRequestDto();
+			requestWrapper.setRun_id(runId);
+			HttpEntity<DatabricksRunGenericRequestDto> requestEntity = new HttpEntity<>(requestWrapper,headers);
+			ResponseEntity<DataBricksErrorResponseVO> response = proxyRestTemplate.exchange(deleteRunUrl, HttpMethod.POST,
+					requestEntity, DataBricksErrorResponseVO.class);
+			if (response.hasBody()) {
+				deleteRunResponse = response.getBody();
+			}
+		}catch(Exception e) {
+			deleteRunResponse = new DataBricksErrorResponseVO();
+			deleteRunResponse.setMessage(e.getMessage());
+		}
+		return deleteRunResponse;
 	}
-	
-	
+
+	public DataBricksJobRunOutputResponseWrapperDto getSingleRunOutput(String runId) {
+		DataBricksJobRunOutputResponseWrapperDto getSingleRunOutputResponse = null;
+		try {
+			HttpHeaders headers = new HttpHeaders();
+			headers.set("Accept", "application/json");
+			headers.set("Authorization", "Bearer "+dataBricksPAT);
+			headers.setContentType(MediaType.APPLICATION_JSON);
+
+			String getSingleOutputRunUrl = dataBricksBaseUri + dataBricksJobRunOutputUri + "?run_id=" + runId;
+			log.info("getSingleOutputRunUrl" + getSingleOutputRunUrl);
+			HttpEntity requestEntity = new HttpEntity<>(headers);
+			ResponseEntity<DataBricksJobRunOutputResponseWrapperDto> response = proxyRestTemplate.exchange(getSingleOutputRunUrl, HttpMethod.GET,
+					requestEntity, DataBricksJobRunOutputResponseWrapperDto.class);
+			if (response.hasBody()) {
+				getSingleRunOutputResponse = response.getBody();
+			}
+		}catch(Exception e) {
+			log.error("Failed to invoke databricks get run output {} with {} ", runId,e.getMessage());
+			log.debug("Failed to invoke databricks get run output with {} with {}", runId,e.getStackTrace());
+		}
+		return getSingleRunOutputResponse;
+	}
+
 	public RunDetailsVO getSingleRun(String runId) {
 		RunDetailsVO getSingleRunResponse = null;
 		try {
-				HttpHeaders headers = new HttpHeaders();
-				headers.set("Accept", "application/json");
-				headers.set("Authorization", "Bearer "+dataBricksPAT);
-				headers.setContentType(MediaType.APPLICATION_JSON);
-				
-				String getSingleRunUrl = dataBricksBaseUri + dataBricksJobGetRunPath + "?run_id=" + runId;
-				HttpEntity requestEntity = new HttpEntity<>(headers);
-				ResponseEntity<RunDetailsVO> response = proxyRestTemplate.exchange(getSingleRunUrl, HttpMethod.GET,
-						requestEntity, RunDetailsVO.class);
-				if (response.hasBody()) {
-					getSingleRunResponse = response.getBody();
-				}
-				}catch(Exception e) {
-					e.printStackTrace();
-				}
-			return getSingleRunResponse;
+			HttpHeaders headers = new HttpHeaders();
+			headers.set("Accept", "application/json");
+			headers.set("Authorization", "Bearer "+dataBricksPAT);
+			headers.setContentType(MediaType.APPLICATION_JSON);
+
+			String getSingleRunUrl = dataBricksBaseUri + dataBricksJobGetRunPath + "?run_id=" + runId;
+			HttpEntity requestEntity = new HttpEntity<>(headers);
+			ResponseEntity<RunDetailsVO> response = proxyRestTemplate.exchange(getSingleRunUrl, HttpMethod.GET,
+					requestEntity, RunDetailsVO.class);
+
+			if (response.hasBody()) {
+				getSingleRunResponse = response.getBody();
+			}
+		}catch(Exception e) {
+			log.error("Failed to invoke databricks get run  {} with {} ", runId,e.getMessage());
+			log.debug("Failed to invoke databricks get run  with {} with {}", runId,e.getStackTrace());
+		}
+		return getSingleRunResponse;
 	}
-	
-	
+
+
 	public JobRunsListVO getJobRuns() {
 		JobRunsListVO getJobRunsResponse = null;
 		try {
-				String dataBricksJobidForRun = dataBricksJobId;
-				HttpHeaders headers = new HttpHeaders();
-				headers.set("Accept", "application/json");
-				headers.set("Authorization", "Bearer "+dataBricksPAT);
-				headers.setContentType(MediaType.APPLICATION_JSON);
-				String getJobRunsUrl = dataBricksBaseUri + dataBricksJobRunList + "?active_only=true&expand_tasks=false&run_type=JOB_RUN&job_id="+dataBricksJobidForRun;
-				HttpEntity requestEntity = new HttpEntity<>(headers);
-				ResponseEntity<JobRunsListVO> response = proxyRestTemplate.exchange(getJobRunsUrl, HttpMethod.POST,
-						requestEntity, JobRunsListVO.class);
-				if (response.hasBody()) {
-					getJobRunsResponse = response.getBody();
-				}
-				}catch(Exception e) {
-					e.printStackTrace();
-				}
-			return getJobRunsResponse;
+			String dataBricksJobidForRun = dataBricksJobId;
+			HttpHeaders headers = new HttpHeaders();
+			headers.set("Accept", "application/json");
+			headers.set("Authorization", "Bearer "+dataBricksPAT);
+			headers.setContentType(MediaType.APPLICATION_JSON);
+			String getJobRunsUrl = dataBricksBaseUri + dataBricksJobRunList + "?active_only=true&expand_tasks=false&run_type=JOB_RUN&job_id="+dataBricksJobidForRun;
+			HttpEntity requestEntity = new HttpEntity<>(headers);
+			ResponseEntity<JobRunsListVO> response = proxyRestTemplate.exchange(getJobRunsUrl, HttpMethod.POST,
+					requestEntity, JobRunsListVO.class);
+			if (response.hasBody()) {
+				getJobRunsResponse = response.getBody();
+			}
+		}catch(Exception e) {
+			log.error("Failed to invoke databricks get run {}", e.getMessage());
+			log.debug("Failed to invoke databricks get run {}", e.getStackTrace());
+		}
+		return getJobRunsResponse;
 	}
-	
-	
-	
+
+
+
 
 }
