@@ -70,6 +70,7 @@ import Sharing from './sharing/Sharing';
 import Teams from './teams/Teams';
 import { trackEvent } from '../../../services/utils';
 import Marketing from './marketing/Marketing';
+import Caption from '../shared/caption/Caption';
 
 const classNames = cn.bind(Styles);
 export interface ICreateNewSolutionState {
@@ -544,9 +545,7 @@ export default class CreateNewSolution extends React.Component<ICreateNewSolutio
     return (
       <React.Fragment>
         <div className={classNames(Styles.mainPanel)}>
-          <h3 className={classNames(Styles.title, this.state.currentTab !== 'description' ? '' : 'hidden')}>
-            {this.state.solution.description.productName}
-          </h3>
+          <Caption title={this.state.currentTab !== 'description' ? 'Create Solution' : this.state.solution.description.productName} />
           <div id="create-solution-tabs" className="tabs-panel">
             <div className="tabs-wrapper">
               <nav>
