@@ -75,6 +75,12 @@ extraArgs: []
   # because both the parameter and value are specified as a single argument,
   # rather than two separate arguments (e.g. "- --param value" on a line).
 
+custCmd: []
+  # - /bin/sh
+  # - '-c'
+  # - |
+  #   /usr/bin/entrypoint.sh --bind-addr 0.0.0.0:8080 .
+
 # Optional additional environment variables
 extraVars: []
 #  - name: DISABLE_TELEMETRY
