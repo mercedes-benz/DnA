@@ -769,7 +769,7 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 					if(file!=null) {
 						String fileName = file.getOriginalFilename();
 						if (!isValidAttachment(fileName)) {
-							log.error("Invalid file type {} attached for project name {} and id {} ", existingForecast.getName(), id ,fileName);
+							log.error("Invalid file type {} attached for project name {} and id {} ", fileName, existingForecast.getName(), id);
 							MessageDescription invalidMsg = new MessageDescription("Invalid File type attached. Supported only xlxs and csv extensions");
 							GenericMessage errorMessage = new GenericMessage();
 							errorMessage.setSuccess("FAILED");
@@ -795,7 +795,7 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 								}else
 									savedInputs = new ArrayList<>();
 							}
-							FileUploadResponseDto fileUploadResponse = service.saveFile(INPUT_FILE_PREFIX,file, existingForecast.getBucketName());
+							FileUploadResponseDto fileUploadResponse = storageClient.uploadFile(INPUT_FILE_PREFIX,file, existingForecast.getBucketName());
 							if(fileUploadResponse==null || (fileUploadResponse!=null && (fileUploadResponse.getErrors()!=null || !"SUCCESS".equalsIgnoreCase(fileUploadResponse.getStatus())))) {
 								GenericMessage errorMessage = new GenericMessage();
 								errorMessage.setSuccess("FAILED");
@@ -815,7 +815,7 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 										savedInputs.add(currentInput);
 										existingForecast.setSavedInputs(savedInputs);
 									}
-								savedInputPath = "/inputs/"+file.getOriginalFilename();
+								savedInputPath = existingForecast.getBucketName() + "/inputs/"+ file.getOriginalFilename();
 							}
 						}
 				}
