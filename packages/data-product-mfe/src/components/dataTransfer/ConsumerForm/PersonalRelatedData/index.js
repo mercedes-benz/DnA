@@ -37,7 +37,7 @@ const PersonalRelatedData = ({ onSave, setIsEditing, isDataProduct, callbackFn }
     const data = !isDataProduct
       ? provideDataTransfers.selectedDataTransfer.personalRelatedData
       : provideDataTransfers.selectedDataProduct.personalRelatedData;
-    setValue('personalRelatedData', data);
+    setTimeout(() => setValue('personalRelatedData', data), 10);
     if (data === 'No') {
       setValue('personalRelatedDataPurpose', '');
       setValue('personalRelatedDataLegalBasis', '');
