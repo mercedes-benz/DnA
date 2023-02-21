@@ -255,7 +255,7 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 					RunState state = run.getRunState();
 					String runId = run.getRunId();
 					String correlationId= run.getId();
-          String existingLifecycleState = run.getRunState().getLife_cycle_state();   
+					String existingLifecycleState = run.getRunState().getLife_cycle_state();             			
 					if(runId!=null && (run.getIsDelete() == null || !run.getIsDelete()) &&
 							(state==null || state.getResult_state()==null || state.getLife_cycle_state()==null ||
 									"PENDING".equalsIgnoreCase(state.getLife_cycle_state()) ||
@@ -362,6 +362,15 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 						}
 					}
 					else {
+						if(runId != null && (run.getIsDelete() == null || !run.getIsDelete()) && (state != null &&
+								("TERMINATED".equalsIgnoreCase(state.getLife_cycle_state()) ||
+								"INTERNAL_ERROR".equalsIgnoreCase(state.getLife_cycle_state()) ||
+								"SKIPPED".equalsIgnoreCase(state.getLife_cycle_state()))) &&
+								(run.getResultFolderPath() == null && "".equalsIgnoreCase(run.getResultFolderPath()))
+						) {							
+							String resultFolderPathForRun = bucketName + "/" + resultsPrefix + run.getId()+"-"+run.getRunName();
+							run.setResultFolderPath(resultFolderPathForRun);
+	          			}
 						RunDetails updatedRunDetail = new RunDetails();
 						if (runId != null && (run.getIsDelete() == null || !run.getIsDelete()) && (state != null &&
 								("TERMINATED".equalsIgnoreCase(state.getLife_cycle_state()) ||
