@@ -287,7 +287,7 @@ const ForecastResults = () => {
                 <React.Fragment>
                   <div className={Styles.forecastResultList}>
                     <div className={Styles.refreshContainer}>
-                      <button className='btn btn-primary' onClick={() => getResults('pagination')}>
+                      <button className='btn btn-primary' onClick={() => { getProjectForecastRuns(); }}>
                         <i className="icon mbc-icon refresh" />
                         <span>Refresh</span>   
                       </button>
