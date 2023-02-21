@@ -402,7 +402,9 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 								("TERMINATED".equalsIgnoreCase(state.getLife_cycle_state()) ||
 								"INTERNAL_ERROR".equalsIgnoreCase(state.getLife_cycle_state()) ||
 								"SKIPPED".equalsIgnoreCase(state.getLife_cycle_state()))) &&
-								!"SUCCESS".equalsIgnoreCase(state.getResult_state()) && (run.getError() == null || "".equalsIgnoreCase(run.getError()))
+								!"SUCCESS".equalsIgnoreCase(state.getResult_state()) && (run.getError() == null || "".equalsIgnoreCase(run.getError())
+								|| run.getRunState().getState_message() == null || "".equalsIgnoreCase(run.getRunState().getState_message())
+								|| ". ".equalsIgnoreCase(run.getRunState().getState_message()))
 						){
 							RunDetailsVO updatedRunResponse = this.dataBricksClient.getSingleRun(runId);
 							if(updatedRunResponse!=null && runId.equals(updatedRunResponse.getRunId())) {
