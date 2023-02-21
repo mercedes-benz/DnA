@@ -825,7 +825,7 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 						Date date = new Date();
 						runName = "run-" + runNameDate.format(date);
 					}
-
+					log.info("Passed all validations for create run in controller, calling service for project {} ", id);
 					ForecastRunResponseVO createRunResponse = service.createJobRun(file,savedInputPath, saveRequestPart, runName, configurationFile,
 							frequency, forecastHorizon, hierarchy, comment, runOnPowerfulMachines, existingForecast,requestUser.getId(),createdOn);
 					if(createRunResponse!= null && "SUCCESS".equalsIgnoreCase(createRunResponse.getResponse().getSuccess())
