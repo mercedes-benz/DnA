@@ -531,6 +531,7 @@ export default class Provisionsolution extends React.Component<IProvisionSolutio
         publish: isPublished,
         analytics: solution.analytics,
         sharing: solution.sharing,
+        marketing: solution.marketing,
         dataStrategyDomain: solution.description.dataStrategyDomain,
         requestedFTECount: solution.description.requestedFTECount,
         skills: solution.neededRoles,
