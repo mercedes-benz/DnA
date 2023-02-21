@@ -250,7 +250,8 @@ export default class Summary extends React.Component<{ user: IUserInfo }, ISumma
     const canShowMarketing  = this.state.solution?.marketing?.customerJourneyPhases?.length > 0 ||
     this.state.solution?.marketing?.marketingCommunicationChannels?.length > 0 ||
     this.state.solution?.marketing?.personas?.length > 0 ||
-    this.state.solution?.marketing?.personalization?.isChecked;
+    this.state.solution?.marketing?.personalization?.isChecked ||
+    this.state.solution?.marketing?.marketingRoles.length > 0;
 
     const pdfContent = canShowDescription ? (
       <SummaryPdfDoc
