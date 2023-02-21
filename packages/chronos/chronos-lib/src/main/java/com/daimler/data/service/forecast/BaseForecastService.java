@@ -366,7 +366,7 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 								("TERMINATED".equalsIgnoreCase(state.getLife_cycle_state()) ||
 								"INTERNAL_ERROR".equalsIgnoreCase(state.getLife_cycle_state()) ||
 								"SKIPPED".equalsIgnoreCase(state.getLife_cycle_state()))) &&
-								(run.getResultFolderPath() == null && "".equalsIgnoreCase(run.getResultFolderPath()))
+								(run.getResultFolderPath() == null || "".equalsIgnoreCase(run.getResultFolderPath()))
 						) {							
 							String resultFolderPathForRun = bucketName + "/" + resultsPrefix + run.getId()+"-"+run.getRunName();
 							run.setResultFolderPath(resultFolderPathForRun);
