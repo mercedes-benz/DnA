@@ -63,6 +63,10 @@ spec:
           securityContext:
             runAsUser: {{ .Values.securityContext.runAsUser }}
           {{- end }}
+          {{- if .Values.custCmd }}
+          command:
+{{ toYaml .Values.custCmd | indent 11 }}
+          {{- end }}
           env:
         {{- if .Values.extraVars }}
 {{ toYaml .Values.extraVars | indent 10 }}
@@ -140,13 +144,7 @@ spec:
         {{- end -}}
       {{- else }}
         emptyDir: {}
-      {{- end -}}
-## ***REMOVED*** Extra vol for db service      
-      {{- if .Values.persistence.db.enabled }}
-      - name: db      
-        persistentVolumeClaim:
-          claimName: {{ include "code-server.fullname" . }}-db       
-      {{- end -}}      
+      {{- end -}}    
       {{- range .Values.extraSecretMounts }}
       - name: {{ .name }}
         secret:
