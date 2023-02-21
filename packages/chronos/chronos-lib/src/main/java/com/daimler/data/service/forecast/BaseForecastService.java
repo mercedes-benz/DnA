@@ -123,10 +123,42 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 		String bucketName = existingForecast.getBucketName();
 		String resultFolder = bucketName+"/results/"+correlationId + "-" + runName;
 		String inputOrginalFolder= "/results/"+correlationId + "-" + runName + "/input_original";
-
-		FileUploadResponseDto fileUploadResponse = this.saveFile(inputOrginalFolder,file, existingForecast.getBucketName());
+		FileUploadResponseDto fileUploadResponse =  null;
+		if(file!=null) {
+			fileUploadResponse = storageClient.uploadFile(inputOrginalFolder, file,existingForecast.getBucketName());
+		}else {
+				if(savedInputPath!=null && savedInputPath.contains("/")) {
+					try {
+						String path = savedInputPath;
+						String[] SavedfileDetails = path.split("/",2);
+						FileDownloadResponseDto savedFileResponse = storageClient.getFileContents(SavedfileDetails[0], "/"+SavedfileDetails[1]);
+						if(savedFileResponse!=null && savedFileResponse.getData()!=null && 
+								(savedFileResponse.getErrors()==null || savedFileResponse.getErrors().size()<1)) {
+							fileUploadResponse = storageClient.uploadFile(inputOrginalFolder, savedFileResponse.getData(),existingForecast.getBucketName());
+						}
+					}catch(Exception e) {
+						log.error("Failed while reusing savedinputfile {} attached for project name {} and id {} ",savedInputPath, existingForecast.getName(), existingForecast.getId());
+						MessageDescription invalidMsg = new MessageDescription("Failed while reusing savedinputfile " + savedInputPath);
+						List<MessageDescription> errors = new ArrayList<>();
+						errors.add(invalidMsg);
+						responseMessage.setErrors(errors);
+						responseWrapper.setData(null);
+						responseWrapper.setResponse(responseMessage);
+						return responseWrapper;	
+					}
+					
+				}else {
+					log.error("Invalid savedinputfilepath {} attached for project name {} and id {} ",savedInputPath, existingForecast.getName(), existingForecast.getId());
+					MessageDescription invalidMsg = new MessageDescription("Invalid saved file path attached.");
+					List<MessageDescription> errors = new ArrayList<>();
+					errors.add(invalidMsg);
+					responseMessage.setErrors(errors);
+					responseWrapper.setData(null);
+					responseWrapper.setResponse(responseMessage);
+					return responseWrapper;	
+				}
+		}
 		if(fileUploadResponse==null || (fileUploadResponse!=null && (fileUploadResponse.getErrors()!=null || !"SUCCESS".equalsIgnoreCase(fileUploadResponse.getStatus())))) {
-
 			log.error("Error in uploading file to {} for forecast project {}",inputOrginalFolder,existingForecast.getName() );
 			MessageDescription msg = new MessageDescription("Failed to  upload file to " + inputOrginalFolder + "for" + existingForecast.getName() );
 			List<MessageDescription> errors = new ArrayList<>();
@@ -222,12 +254,6 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 		case "Yearly" : return "Y";
 		default: return "";
 		}
-	}
-
-	@Override
-	public FileUploadResponseDto saveFile(String prefix, MultipartFile file, String bucketName) {
-		FileUploadResponseDto uploadResponse = storageClient.uploadFile(prefix,file,bucketName);
-		return uploadResponse;
 	}
 
 	@Override
@@ -376,7 +402,9 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 								("TERMINATED".equalsIgnoreCase(state.getLife_cycle_state()) ||
 								"INTERNAL_ERROR".equalsIgnoreCase(state.getLife_cycle_state()) ||
 								"SKIPPED".equalsIgnoreCase(state.getLife_cycle_state()))) &&
-								!"SUCCESS".equalsIgnoreCase(state.getResult_state()) && (run.getError() == null || "".equalsIgnoreCase(run.getError()))
+								!"SUCCESS".equalsIgnoreCase(state.getResult_state()) && (run.getError() == null || "".equalsIgnoreCase(run.getError())
+								|| run.getRunState().getState_message() == null || "".equalsIgnoreCase(run.getRunState().getState_message())
+								|| ". ".equalsIgnoreCase(run.getRunState().getState_message()))
 						){
 							RunDetailsVO updatedRunResponse = this.dataBricksClient.getSingleRun(runId);
 							if(updatedRunResponse!=null && runId.equals(updatedRunResponse.getRunId())) {
