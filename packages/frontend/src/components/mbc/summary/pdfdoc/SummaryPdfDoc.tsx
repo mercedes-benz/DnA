@@ -1020,6 +1020,10 @@ export const SummaryPdfDoc = (props: SummaryPdfDocProps) => (
             ) : (
               <View />
             )}
+          </View>
+        ) : (
+          <View />
+        )}  
 
             {(props.solution.analytics &&
               props.solution.analytics.algorithms &&
@@ -1163,10 +1167,7 @@ export const SummaryPdfDoc = (props: SummaryPdfDocProps) => (
             ) : (
               <View />
             )}
-          </View>
-        ) : (
-          <View />
-        )}
+          
         {props.canShowComplianceSummary ? (
           <View wrap={false}>
             <View wrap={false}>
