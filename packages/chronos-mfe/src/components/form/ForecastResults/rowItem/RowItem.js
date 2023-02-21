@@ -69,7 +69,7 @@ const RowItem = (props) => {
     {
       title: 'Browse in Storage',
       onClickFn: onBrowseClick,
-      disable: props.item.state.result_state === 'FAILED' || props.item.state.result_state === 'TIMEDOUT' || props.item.state.result_state === 'CANCELED'
+      // disable: props.item.state.result_state === 'FAILED' || props.item.state.result_state === 'TIMEDOUT' || props.item.state.result_state === 'CANCELED'
     }
   ];
 
