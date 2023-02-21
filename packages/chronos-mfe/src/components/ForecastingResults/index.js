@@ -158,7 +158,7 @@ const ForecastingResults = () => {
   const handleNerdStats = () => {
     setNerdStats(!nerdStats);
     if(forecastRun) {
-      chronosApi.getHTML(`${bucketName}`, `${forecastRun.id}-${forecastRun.name}`, 'results.html').then((res) => {
+      chronosApi.getHTML(`${bucketName}`, `${forecastRun.id}-${forecastRun.runName}`, 'results.html').then((res) => {
         setHtml(res.data);
         setHtmlLoading(false);
       }).catch(() => {
