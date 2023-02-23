@@ -22,6 +22,9 @@ const RowItem = (props) => {
     if (props.checkedAllCount > 0 && !props.checkedAll) {
       setIsChecked(false);
     }
+    return () => {
+      Tooltip.clear();
+    }
   }, [props, isChecked]);
 
   // const onChangeCheck = (event) => {
