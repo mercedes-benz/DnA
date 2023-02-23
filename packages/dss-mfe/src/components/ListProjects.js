@@ -756,11 +756,12 @@ export default class ListProjects extends React.Component {
     dataikuApi
       .getDataikuProjectsList(true)
       .then((response) => {
+        const data = response.data;
         this.setState(
           {
-            productionList: response,
-            totalNumberOfRecords: response.totalCount,
-            totalNumberOfPages: Math.ceil(response.totalCount / this.state.maxItemsPerPage),
+            productionList: data,
+            totalNumberOfRecords: data.totalCount,
+            totalNumberOfPages: Math.ceil(data.totalCount / this.state.maxItemsPerPage),
             currentPageNumber: 1,
             currentPageOffset: 0,
             productionListToDisplayAfterSearch: [],
@@ -792,13 +793,14 @@ export default class ListProjects extends React.Component {
     dataikuApi
       .getDataikuProjectsList(false)
       .then((response) => {
+        const data = response.data;
         this.setState(
           {
-            trainingList: response,
-            totalNumberOfRecords: response.totalCount,
+            trainingList: data,
+            totalNumberOfRecords: data.totalCount,
             currentPageNumber: 1,
             currentPageOffset: 0,
-            totalNumberOfPages: Math.ceil(response.totalCount / this.state.maxItemsPerPage),
+            totalNumberOfPages: Math.ceil(data.totalCount / this.state.maxItemsPerPage),
             trainingListToDisplayAfterSearch: [],
             searchTerm: '',
           },
@@ -1020,7 +1022,7 @@ export default class ListProjects extends React.Component {
         : this.state.trainingList.data
         ? this.state.trainingList.data
         : [];
-    if (this.state.currentTab === 'production') {
+    if (this.state.currentTab === 'production' && productionList.length) {
       sortedProductionList = productionList.sort((a, b) => {
         const nameA = a.name.toUpperCase(); // ignore upper and lowercase
         const nameB = b.name.toUpperCase(); // ignore upper and lowercase
@@ -1033,7 +1035,7 @@ export default class ListProjects extends React.Component {
         // names must be equal
         return 0;
       });
-    } else {
+    } else if (trainingList.length) {
       sortedTrainingList = trainingList.sort((a, b) => {
         const nameA = a.name.toUpperCase(); // ignore upper and lowercase
         const nameB = b.name.toUpperCase(); // ignore upper and lowercase
