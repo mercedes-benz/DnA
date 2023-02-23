@@ -745,13 +745,13 @@ export default class DataFunction extends React.Component<IDataFunctionProps, ID
         formValid = false;
       }
     } else {
-      if (
-        !this.state.singleDataSourceInfo.connectionType ||
-        this.state.singleDataSourceInfo.connectionType === 'Choose'
-      ) {
-        singleDataSourceErrors.connectionType = errorMissingEntry;
-        formValid = false;
-      }
+      // if (
+      //   !this.state.singleDataSourceInfo.connectionType ||
+      //   this.state.singleDataSourceInfo.connectionType === 'Choose'
+      // ) {
+      //   singleDataSourceErrors.connectionType = errorMissingEntry;
+      //   formValid = false;
+      // }
       if (
         !this.state.singleDataSourceInfo.dataClassification ||
         this.state.singleDataSourceInfo.dataClassification === 'Choose'
