@@ -202,7 +202,7 @@ export const SingleDataSourceList = ({
                             </li>
                           
                             <li className="contextListItem">
-                              <span onClick={() => onDelete(true, index)}>Delete Single Data Source</span>
+                              <span onClick={() => onDelete(false, index)}>Delete Single Data Source</span>
                             </li>
                           </ul>
                         </div>

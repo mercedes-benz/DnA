@@ -530,6 +530,14 @@ export default class DataFunction extends React.Component<IDataFunctionProps, ID
     );
   };
 
+  protected onDeleteSingleDatasource = (isDataWarehouseSection: boolean, index: number) => {
+    this.setState({
+      showDeleteModal: true,
+      isDataWarehouseSection: isDataWarehouseSection,
+      editDataSourceIndex: index,
+    });
+  };
+
   protected onEditSingleDataSource = () => {
     const { editDataSourceIndex } = this.state;
     const { connectionType, dataSources, dataClassification } = this.state.singleDataSourceInfo;
@@ -1008,7 +1016,7 @@ export default class DataFunction extends React.Component<IDataFunctionProps, ID
                 currentColumnToSort={this.state.currentColumnToSort}
                 currentSortOrder={this.state.currentSortOrder}
                 onEdit={this.onEditSingleDataSourceOpen}
-                onDelete={this.onDeleteDatasource}
+                onDelete={this.onDeleteSingleDatasource}
                 showDataSourceModal={this.showDataSourceModal}
                 isDataWarehouseContextMenuOpened = {this.state.isDataWarehouseContextMenuOpened}
                 setSingleDataSourceContextMenuStatus = {this.setSingleDataSourceContextMenuStatus}
