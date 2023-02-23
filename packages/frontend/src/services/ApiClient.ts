@@ -36,6 +36,8 @@ import {
   IManageDivision,
   IManageDivisionRequest,
   IManageMarketingTabRequest,
+  IMarketingCommunicationChannel,
+  IMarketingCustomerJourney,
 } from '../globals/types';
 import { Pkce } from './Pkce';
 import { ReportsApiClient } from './ReportsApiClient';
@@ -302,24 +304,32 @@ export class ApiClient {
     return this.delete(`relatedProducts/${id}`);
   }
 
-  public static getMarketingCommunicationChannels(): Promise<IVisualization[]> {
+  public static getMarketingCommunicationChannels(): Promise<IMarketingCommunicationChannel[]> {
     return this.get('marketingCommunicationChannels');
   }
 
-  public static createMarketingCommunicationChannels(data: IManageMarketingTabRequest): Promise<IManageDivision[]> {
+  public static createMarketingCommunicationChannels(data: IManageMarketingTabRequest): Promise<[]> {
     return this.post('marketingCommunicationChannels', data);
   }
 
-  public static deleteCommunicationChannels(id: string): Promise<any> {
+  public static putMarketingCommunicationChannels(data: IManageMarketingTabRequest): Promise<[]> {
+    return this.put('marketingCommunicationChannels', data);
+  }
+
+  public static deleteMarketingCommunicationChannels(id: string): Promise<any> {
     return this.delete(`marketingCommunicationChannels/${id}`);
   }
 
-  public static getCustomerJourneyPhases(): Promise<IVisualization[]> {
+  public static getCustomerJourneyPhases(): Promise<IMarketingCustomerJourney[]> {
     return this.get('customerJourneyPhases');
   }
 
-  public static createCustomerJourneyPhases(data: IManageMarketingTabRequest): Promise<IManageDivision[]> {
+  public static createCustomerJourneyPhases(data: IManageMarketingTabRequest): Promise<[]> {
     return this.post('customerJourneyPhases', data);
+  }
+
+  public static putCustomerJourneyPhases(data: IManageMarketingTabRequest): Promise<[]> {
+    return this.put('customerJourneyPhases', data);
   }
 
   public static deleteCustomerJourneyPhases(id: string): Promise<any> {
