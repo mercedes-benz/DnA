@@ -91,7 +91,7 @@ export default class Tags extends React.Component<ITagsFieldProps, ITagsFiledSta
 
       return (
         <div className="chips" key={index}>
-          <label className="name">
+          <label className={"name "+Styles.chipName}>
             {this.props.isDataSource ? (
               <>
                 {chip} <span className={Styles.badge}>{dsBadge}</span>
