@@ -708,7 +708,7 @@ interface SummaryPdfDocProps {
   canShowPlatform: boolean;
   canShowMilestones: boolean;
   canShowDataSources: boolean;
-  canShowDigitalValue: string;
+  canShowDigitalValue: boolean;
   canShowComplianceSummary: number | boolean;
   user: IUserInfo;
   noteBookInfo: INotebookInfo;
