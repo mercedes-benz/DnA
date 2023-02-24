@@ -529,7 +529,9 @@ export class UserRoleManagement extends React.Component<any, IUserRoleManagement
       selectedValues.push(this.state.roles.find((role: IRole) => role.id === option.value));
     });
 
-    this.setState({ moduleRoles: selectedValues }, () => {
+    const hasDivisionAdminRole = selectedValues.some((role: IRole) => role.id === USER_ROLE.DIVISIONADMIN);
+
+    this.setState({ moduleRoles: selectedValues, selectedDivisions: hasDivisionAdminRole ? this.state.selectedDivisions : [] }, () => {
       SelectBox.defaultSetup(true);
     });
   };
