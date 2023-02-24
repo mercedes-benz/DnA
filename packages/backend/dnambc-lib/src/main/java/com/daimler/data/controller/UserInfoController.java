@@ -37,6 +37,8 @@ import javax.validation.constraints.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.ObjectUtils;
@@ -86,6 +88,9 @@ public class UserInfoController implements UsersApi {
 
 	@Autowired
 	private UserStore userStore;
+	
+	@Value("${dna.user.techUserPrefix}")
+	private String techUserPrefix;
 
 	@Override
 	@ApiOperation(value = "Get all available users.", nickname = "getAll", notes = "Get all users. This endpoints will be used to Get all valid available user maintenance records.", response = UsersCollection.class, tags = {
@@ -278,6 +283,60 @@ public class UserInfoController implements UsersApi {
 			return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
 		}
 
+	}
+	
+	@ApiOperation(value = "create technical User", nickname = "onboardTechnicalUser", notes = "create technical User. This endpoint can be used to onboard technical User", response = UserInfoVO.class, tags={ "users", })
+    @ApiResponses(value = { 
+        @ApiResponse(code = 201, message = "Returns message of success or failure", response = UserInfoVO.class),
+        @ApiResponse(code = 204, message = "Fetch complete, no content found."),
+        @ApiResponse(code = 400, message = "Bad request."),
+        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+        @ApiResponse(code = 403, message = "Request is not authorized."),
+        @ApiResponse(code = 405, message = "Method not allowed"),
+        @ApiResponse(code = 500, message = "Internal error") })
+    @RequestMapping(value = "/users",
+        produces = { "application/json" }, 
+        consumes = { "application/json" },
+        method = RequestMethod.POST)
+	@ConditionalOnExpression("${dna.feature.technicalUserOnboarding}")
+    public ResponseEntity<UserInfoVO> onboardTechnicalUser(@ApiParam(value = "Request body contains the details of the updated user" ,required=true )  @Valid @RequestBody UserRequestVO userRequestVO) {
+		try {
+
+			if (userRequestVO.getData() != null && userRequestVO.getData().getId() != null) {
+				UserInfoVO userInfoVO = userRequestVO.getData();
+				if(userInfoVO == null || userInfoVO.getId() == null ||  (userInfoVO != null && userInfoVO.getId() != null && userInfoVO.getId().startsWith(techUserPrefix))) {
+					logger.info("Invalid data provided, please check the user request data.");
+					return new ResponseEntity<>(userInfoVO, HttpStatus.BAD_REQUEST);
+				}
+				
+				Boolean isAdmin = false;
+				CreatedByVO loggedInUser = this.userStore.getVO();
+				String userId = loggedInUser != null ? loggedInUser.getId() : null;
+				if (userId != null && !"".equalsIgnoreCase(userId)) {
+						UserInfoVO loggedInUserData = userInfoService.getById(userId);
+						List<UserRoleVO> userRoles = loggedInUserData.getRoles();
+						if (userRoles != null && !userRoles.isEmpty())
+							isAdmin = userRoles.stream().anyMatch(role -> "admin".equalsIgnoreCase(role.getName()));
+				}
+				if (!isAdmin) {
+					logger.info("Only user with Admin role can change roles");
+					return new ResponseEntity<>(userInfoVO, HttpStatus.UNAUTHORIZED);
+				}
+
+				userInfoService.create(userInfoVO);
+				log.debug("user details updated successfully for userid {}", userRequestVO.getData().getId());
+				return new ResponseEntity<>(userInfoVO, HttpStatus.OK);
+			} else {
+				log.debug("user details update failed for userid {}. Bad request", userRequestVO.getData().getId());
+				return new ResponseEntity<>(userRequestVO.getData(), HttpStatus.BAD_REQUEST);
+			}
+		
+			
+		}catch(Exception e) {
+			
+		}
+		return null;
+		
 	}
 
 	private boolean rolesUpdated(UserRequestVO updatedUser, UserInfoVO currentUser) {
