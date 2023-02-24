@@ -13,7 +13,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class HasuraGenericResponse extends HasuraGenericErrorResponseDto{
+public class HasuraUserInfoInsertGenericResponse extends HasuraGenericErrorResponseDto {
 	
 	private HttpStatus status;
 	private String errorMessage;
