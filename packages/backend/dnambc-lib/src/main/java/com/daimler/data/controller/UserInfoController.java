@@ -54,6 +54,7 @@ import com.daimler.data.api.userinfo.UsersApi;
 import com.daimler.data.application.auth.UserStore;
 import com.daimler.data.assembler.UserInfoAssembler;
 import com.daimler.data.controller.exceptions.MessageDescription;
+import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.dto.solution.CreatedByVO;
 import com.daimler.data.dto.solution.SolutionCollectionResponseVO;
 import com.daimler.data.dto.solution.SolutionVO;

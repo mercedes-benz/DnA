@@ -55,7 +55,7 @@ dna:
       technicalUserOnboarding: ${TECH_USER_ONBOARD:false}
   user:
     role: ${USER_ROLE:Admin}
-    techUserPrefix: ${TECH_USER_PREFIX:TE}
+    techUserPrefix: ${TECH_USER_PREFIX:XXXX}
   #Access token to access datasource bulk create from external source
   dataSource:
      bulkCreate:
