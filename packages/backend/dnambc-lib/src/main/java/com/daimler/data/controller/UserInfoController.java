@@ -34,9 +34,12 @@ import java.util.NoSuchElementException;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
+import com.daimler.data.adapter.hasura.HasuraClient;
+import com.daimler.data.adapter.hasura.HasuraUserInfoInsertGenericResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.ObjectUtils;
@@ -50,8 +53,8 @@ import org.springframework.web.bind.annotation.RestController;
 import com.daimler.data.api.userinfo.UsersApi;
 import com.daimler.data.application.auth.UserStore;
 import com.daimler.data.assembler.UserInfoAssembler;
-import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
+import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.dto.solution.CreatedByVO;
 import com.daimler.data.dto.solution.SolutionCollectionResponseVO;
 import com.daimler.data.dto.solution.SolutionVO;
@@ -86,6 +89,15 @@ public class UserInfoController implements UsersApi {
 
 	@Autowired
 	private UserStore userStore;
+
+	@Autowired
+	private HasuraClient hasuraClient;
+	
+	@Value("${dna.user.techUserPrefix}")
+	private String techUserPrefix;
+	
+	@Value("${dna.feature.technicalUserOnboarding}")
+	private boolean isTechUserOnboarding;
 
 	@Override
 	@ApiOperation(value = "Get all available users.", nickname = "getAll", notes = "Get all users. This endpoints will be used to Get all valid available user maintenance records.", response = UsersCollection.class, tags = {
@@ -278,6 +290,67 @@ public class UserInfoController implements UsersApi {
 			return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
 		}
 
+	}
+	
+	@ApiOperation(value = "create technical User", nickname = "onboardTechnicalUser", notes = "create technical User. This endpoint can be used to onboard technical User", response = UserInfoVO.class, tags={ "users", })
+    @ApiResponses(value = { 
+        @ApiResponse(code = 201, message = "Returns message of success or failure", response = UserInfoVO.class),
+        @ApiResponse(code = 204, message = "Fetch complete, no content found."),
+        @ApiResponse(code = 400, message = "Bad request."),
+        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+        @ApiResponse(code = 403, message = "Request is not authorized."),
+        @ApiResponse(code = 405, message = "Method not allowed"),
+        @ApiResponse(code = 500, message = "Internal error") })
+    @RequestMapping(value = "/users",
+        produces = { "application/json" }, 
+        consumes = { "application/json" },
+        method = RequestMethod.POST)
+    public ResponseEntity<UserInfoVO> onboardTechnicalUser(@ApiParam(value = "Request body contains the details of the updated user" ,required=true )  @Valid @RequestBody UserRequestVO userRequestVO) {
+		try {
+			
+			if(!isTechUserOnboarding) {
+				logger.info("Techuser onboading disabled.");
+				return new ResponseEntity<>(userRequestVO.getData(), HttpStatus.SERVICE_UNAVAILABLE);
+			}
+			if (userRequestVO.getData() != null && userRequestVO.getData().getId() != null) {
+				UserInfoVO userInfoVO = userRequestVO.getData();
+				if(userInfoVO == null || userInfoVO.getId() == null ||  !(userInfoVO != null && userInfoVO.getId() != null && userInfoVO.getId().toLowerCase().startsWith(techUserPrefix.toLowerCase()))) {
+					logger.info("Invalid data provided, please check the user request data.");
+					return new ResponseEntity<>(userInfoVO, HttpStatus.BAD_REQUEST);
+				}
+				
+				Boolean isAdmin = false;
+				CreatedByVO loggedInUser = this.userStore.getVO();
+				String userId = loggedInUser != null ? loggedInUser.getId() : null;
+				if (userId != null && !"".equalsIgnoreCase(userId)) {
+						UserInfoVO loggedInUserData = userInfoService.getById(userId);
+						List<UserRoleVO> userRoles = loggedInUserData.getRoles();
+						if (userRoles != null && !userRoles.isEmpty())
+							isAdmin = userRoles.stream().anyMatch(role -> "admin".equalsIgnoreCase(role.getName()));
+				}
+				if (!isAdmin) {
+					logger.info("Only user with Admin role can change roles");
+					return new ResponseEntity<>(userInfoVO, HttpStatus.UNAUTHORIZED);
+				}
+				UserInfoVO existingUser = userInfoService.getById(userInfoVO.getId());
+				if(existingUser!=null && existingUser.getId()!= null) {
+					logger.info("Failed to onboarding already existing user {} ", existingUser.getId());
+					return new ResponseEntity<>(userInfoVO, HttpStatus.CONFLICT);
+				}
+				HasuraUserInfoInsertGenericResponse response  = hasuraClient.createTechnicalUser(userInfoVO);
+				if (response != null) {
+					log.info("Completed process {} with the response status {}", userRequestVO.getData().getId(), response.getStatus());
+					return new ResponseEntity<>(response.getUserInfoVO(), response.getStatus());
+				}
+			} else {
+				log.debug("user details update failed for userid {}. Bad request", userRequestVO.getData().getId());
+				return new ResponseEntity<>(userRequestVO.getData(), HttpStatus.BAD_REQUEST);
+			}
+		}catch(Exception e) {
+			log.error("Failed to add user {} with exception {}", userRequestVO.getData().getId(), e.getMessage());
+			return new ResponseEntity<>(userRequestVO.getData(), HttpStatus.BAD_REQUEST);
+		}
+		return null;
 	}
 
 	private boolean rolesUpdated(UserRequestVO updatedUser, UserInfoVO currentUser) {

@@ -52,14 +52,21 @@ dna:
       itsmm: ${ITSMM:false}
       attachmentMalwareScan: ${ATTACHMENT_MALWARE_SCAN:false}
       internal-user-enabled: ${DRD_INTERNAL_USER_ENABLED:false}
+      technicalUserOnboarding: ${TECH_USER_ONBOARD:false}
   user:
     role: ${USER_ROLE:Admin}
+    techUserPrefix: ${TECH_USER_PREFIX:XXXX}
   #Access token to access datasource bulk create from external source
   dataSource:
      bulkCreate:
         api:
            accessToken: ${DATASOURCE_BULKCREATE_API_ACCESS_TOKEN:***REMOVED***} 
       
+hasura:
+  baseuri: ${HASURA_BASE_URI:xxxxx}
+  token: ${HASURA_TOKEN:xxxxx}
+  createTechUserUri: ${HASURA_TECHUSER_URI:xxx}
+
 graphql:
   servlet:
     mapping: /api/minified
