@@ -40,7 +40,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.ObjectUtils;
@@ -95,6 +94,9 @@ public class UserInfoController implements UsersApi {
 	
 	@Value("${dna.user.techUserPrefix}")
 	private String techUserPrefix;
+	
+	@Value("${dna.feature.technicalUserOnboarding}")
+	private boolean isTechUserOnboarding;
 
 	@Override
 	@ApiOperation(value = "Get all available users.", nickname = "getAll", notes = "Get all users. This endpoints will be used to Get all valid available user maintenance records.", response = UsersCollection.class, tags = {
@@ -302,13 +304,16 @@ public class UserInfoController implements UsersApi {
         produces = { "application/json" }, 
         consumes = { "application/json" },
         method = RequestMethod.POST)
-	@ConditionalOnExpression("${dna.feature.technicalUserOnboarding}")
     public ResponseEntity<UserInfoVO> onboardTechnicalUser(@ApiParam(value = "Request body contains the details of the updated user" ,required=true )  @Valid @RequestBody UserRequestVO userRequestVO) {
 		try {
-
+			
+			if(!isTechUserOnboarding) {
+				logger.info("Techuser onboading disabled.");
+				return new ResponseEntity<>(userRequestVO.getData(), HttpStatus.SERVICE_UNAVAILABLE);
+			}
 			if (userRequestVO.getData() != null && userRequestVO.getData().getId() != null) {
 				UserInfoVO userInfoVO = userRequestVO.getData();
-				if(userInfoVO == null || userInfoVO.getId() == null ||  (userInfoVO != null && userInfoVO.getId() != null && userInfoVO.getId().startsWith(techUserPrefix))) {
+				if(userInfoVO == null || userInfoVO.getId() == null ||  !(userInfoVO != null && userInfoVO.getId() != null && userInfoVO.getId().toLowerCase().startsWith(techUserPrefix.toLowerCase()))) {
 					logger.info("Invalid data provided, please check the user request data.");
 					return new ResponseEntity<>(userInfoVO, HttpStatus.BAD_REQUEST);
 				}
@@ -325,6 +330,11 @@ public class UserInfoController implements UsersApi {
 				if (!isAdmin) {
 					logger.info("Only user with Admin role can change roles");
 					return new ResponseEntity<>(userInfoVO, HttpStatus.UNAUTHORIZED);
+				}
+				UserInfoVO existingUser = userInfoService.getById(userInfoVO.getId());
+				if(existingUser!=null && existingUser.getId()!= null) {
+					logger.info("Failed to onboarding already existing user {} ", existingUser.getId());
+					return new ResponseEntity<>(userInfoVO, HttpStatus.CONFLICT);
 				}
 				HasuraUserInfoInsertGenericResponse response  = hasuraClient.createTechnicalUser(userInfoVO);
 				if (response != null) {

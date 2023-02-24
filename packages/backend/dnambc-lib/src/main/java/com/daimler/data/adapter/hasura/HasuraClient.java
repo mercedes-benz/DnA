@@ -51,10 +51,7 @@ public class HasuraClient {
 			headers.set("x-hasura-admin-secret", authToken);
 			
 			String hasuraUri = baseUri + createTechUserUri;
-			
-			UserInfoNsql userInfoEntity = userInfoAssembler.toEntity(userInfoVO);
-			UserInfo userInfo = userInfoEntity.getData();
-
+			UserInfo userInfo = new UserInfo();
 			UserInfoRole role = new UserInfoRole();
 			role.setId("1");
 			role.setName("User");
