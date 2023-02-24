@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class HasuraUserInfoInsertResponseDto {
+public class HasuraUserInfoInsertResponseDto extends HasuraGenericErrorResponseDto {
 	private HasuraUserInfoInsertResponseContentDto insert_userinfo_nsql;
 
 }

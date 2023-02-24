@@ -34,6 +34,8 @@ import java.util.NoSuchElementException;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
+import com.daimler.data.adapter.hasura.HasuraClient;
+import com.daimler.data.adapter.hasura.HasuraUserInfoInsertGenericResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,7 +54,6 @@ import org.springframework.web.bind.annotation.RestController;
 import com.daimler.data.api.userinfo.UsersApi;
 import com.daimler.data.application.auth.UserStore;
 import com.daimler.data.assembler.UserInfoAssembler;
-import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
 import com.daimler.data.dto.solution.CreatedByVO;
 import com.daimler.data.dto.solution.SolutionCollectionResponseVO;
@@ -88,6 +89,9 @@ public class UserInfoController implements UsersApi {
 
 	@Autowired
 	private UserStore userStore;
+
+	@Autowired
+	private HasuraClient hasuraClient;
 	
 	@Value("${dna.user.techUserPrefix}")
 	private String techUserPrefix;
@@ -322,21 +326,20 @@ public class UserInfoController implements UsersApi {
 					logger.info("Only user with Admin role can change roles");
 					return new ResponseEntity<>(userInfoVO, HttpStatus.UNAUTHORIZED);
 				}
-
-				userInfoService.create(userInfoVO);
-				log.debug("user details updated successfully for userid {}", userRequestVO.getData().getId());
-				return new ResponseEntity<>(userInfoVO, HttpStatus.OK);
+				HasuraUserInfoInsertGenericResponse response  = hasuraClient.createTechnicalUser(userInfoVO);
+				if (response != null) {
+					log.info("Completed process {} with the response status {}", userRequestVO.getData().getId(), response.getStatus());
+					return new ResponseEntity<>(response.getUserInfoVO(), response.getStatus());
+				}
 			} else {
 				log.debug("user details update failed for userid {}. Bad request", userRequestVO.getData().getId());
 				return new ResponseEntity<>(userRequestVO.getData(), HttpStatus.BAD_REQUEST);
 			}
-		
-			
 		}catch(Exception e) {
-			
+			log.error("Failed to add user {} with exception {}", userRequestVO.getData().getId(), e.getMessage());
+			return new ResponseEntity<>(userRequestVO.getData(), HttpStatus.BAD_REQUEST);
 		}
 		return null;
-		
 	}
 
 	private boolean rolesUpdated(UserRequestVO updatedUser, UserInfoVO currentUser) {
