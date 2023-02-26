@@ -483,6 +483,10 @@ export class ApiClient {
     return this.get(`users?offset=${offset}&limit=${limit}&sortBy=${sortBy}&sortOrder=${sortOrder}`);
   }
 
+  public static obboardTechnicalUser(data: IUserRequestVO): Promise<IUserInfo> {
+    return this.post('users', data);
+  }
+
   public static updateUser(data: IUserRequestVO): Promise<IUserInfo> {
     return this.put('users', data);
   }
