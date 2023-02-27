@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.daimler.data.db.jsonb.UserInfoRole;
-import com.daimler.data.dto.userinfo.UserRoleVO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,7 +25,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 @Component
 public class HasuraClient {
-	
+
 	private static Logger LOGGER = LoggerFactory.getLogger(HasuraClient.class);
 
 	@Value("${hasura.baseuri}")
@@ -34,39 +33,40 @@ public class HasuraClient {
 
 	@Value("${hasura.token}")
 	private String authToken;
-	
+
 	@Value("${hasura.createTechUserUri}")
 	private String createTechUserUri;
 
 	@Autowired
 	RestTemplate restTemplate;
-	
+
 	@Autowired
 	private UserInfoAssembler userInfoAssembler;
-	
+
 	public HasuraUserInfoInsertGenericResponse createTechnicalUser(UserInfoVO userInfoVO) {
 		try {
 			HttpHeaders headers = new HttpHeaders();
 			headers.set("Accept", "application/json");
 			headers.set("Content-Type", "application/json");
 			headers.set("x-hasura-admin-secret", authToken);
-			
+
 			String hasuraUri = baseUri + createTechUserUri;
-			UserRoleVO role = new UserRoleVO();
+			UserInfo userInfo = new UserInfo();
+			UserInfoRole role = new UserInfoRole();
 			role.setId("1");
 			role.setName("User");
-			List<UserRoleVO> roles = new ArrayList<>();
+			List<UserInfoRole> roles = new ArrayList<>();
 			roles.add(role);
-			userInfoVO.setDivisionAdmins(null);
-			userInfoVO.setDepartment("NA");
-			userInfoVO.setEmail("");
-			userInfoVO.setFirstName("Tech User");
-			userInfoVO.setRoles(roles);
-			userInfoVO.setLastName(userInfoVO.getId());
-			userInfoVO.setMobileNumber("NA");
-			userInfoVO.setFavoriteUsecases(new ArrayList<>());
+			userInfo.setDivisionAdmins(null);
+			userInfo.setDepartment("NA");
+			userInfo.setEmail("");
+			userInfo.setFirstName("Tech User");
+			userInfo.setRoles(roles);
+			userInfo.setLastName(userInfoVO.getId());
+			userInfo.setMobileNumber("NA");
+			userInfo.setFavoriteUsecases(new ArrayList<>());
 			ObjectMapper mapper = new ObjectMapper();
-			String data = mapper.writeValueAsString(userInfoVO);
+			String data = mapper.writeValueAsString(userInfo);
 			HasuraUserInfoRequestDto tempTechnicalUser = new HasuraUserInfoRequestDto();
 			tempTechnicalUser.setData(data);
 			tempTechnicalUser.setId(userInfoVO.getId());
@@ -80,7 +80,12 @@ public class HasuraClient {
 					HasuraUserInfoInsertGenericResponse startSuccessResponse = new HasuraUserInfoInsertGenericResponse();
 					startSuccessResponse.setErrorMessage(null);
 					startSuccessResponse.setStatus(HttpStatus.OK);
-					startSuccessResponse.setUserInfoVO(userInfoVO);
+					UserInfoNsql userInfoEntity = new UserInfoNsql();
+					userInfoEntity.setData(userInfo);
+					userInfoEntity.setId(userInfoVO.getId());
+					UserInfoVO createdUserVo = new UserInfoVO();
+					createdUserVo = userInfoAssembler.toVo(userInfoEntity);
+					startSuccessResponse.setUserInfoVO(createdUserVo);
 					LOGGER.info(
 							"Technical user created successfully with id {} ",
 							userInfoVO.getId());
