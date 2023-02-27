@@ -25,7 +25,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 @Component
 public class HasuraClient {
-	
+
 	private static Logger LOGGER = LoggerFactory.getLogger(HasuraClient.class);
 
 	@Value("${hasura.baseuri}")
@@ -33,23 +33,23 @@ public class HasuraClient {
 
 	@Value("${hasura.token}")
 	private String authToken;
-	
+
 	@Value("${hasura.createTechUserUri}")
 	private String createTechUserUri;
 
 	@Autowired
 	RestTemplate restTemplate;
-	
+
 	@Autowired
 	private UserInfoAssembler userInfoAssembler;
-	
+
 	public HasuraUserInfoInsertGenericResponse createTechnicalUser(UserInfoVO userInfoVO) {
 		try {
 			HttpHeaders headers = new HttpHeaders();
 			headers.set("Accept", "application/json");
 			headers.set("Content-Type", "application/json");
 			headers.set("x-hasura-admin-secret", authToken);
-			
+
 			String hasuraUri = baseUri + createTechUserUri;
 			UserInfo userInfo = new UserInfo();
 			UserInfoRole role = new UserInfoRole();
@@ -80,7 +80,12 @@ public class HasuraClient {
 					HasuraUserInfoInsertGenericResponse startSuccessResponse = new HasuraUserInfoInsertGenericResponse();
 					startSuccessResponse.setErrorMessage(null);
 					startSuccessResponse.setStatus(HttpStatus.OK);
-					startSuccessResponse.setUserInfoVO(userInfoVO);
+					UserInfoNsql userInfoEntity = new UserInfoNsql();
+					userInfoEntity.setData(userInfo);
+					userInfoEntity.setId(userInfoVO.getId());
+					UserInfoVO createdUserVo = new UserInfoVO();
+					createdUserVo = userInfoAssembler.toVo(userInfoEntity);
+					startSuccessResponse.setUserInfoVO(createdUserVo);
 					LOGGER.info(
 							"Technical user created successfully with id {} ",
 							userInfoVO.getId());
