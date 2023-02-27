@@ -844,7 +844,7 @@ export class UserRoleManagement extends React.Component<any, IUserRoleManagement
       };
 
       ProgressIndicator.show();
-      ApiClient.obboardTechnicalUser(postData)
+      ApiClient.onboardTechnicalUser(postData)
         .then((response) => {
           ProgressIndicator.hide();
           if (response) {
