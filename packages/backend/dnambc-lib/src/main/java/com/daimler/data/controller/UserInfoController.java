@@ -292,7 +292,7 @@ public class UserInfoController implements UsersApi {
 
 	}
 	
-	@ApiOperation(value = "create technical User", nickname = "onboardTechnicalUser", notes = "create technical User. This endpoint can be used to onboard technical User", response = UserInfoVO.class, tags={ "users", })
+	@ApiOperation(value = "create technical User", nickname = "onboardTechnicalUser", notes = "create technical User. This endpoint can be used to onboard technical User (userid of technical user to be onboarded is mandatory, system will default the other properties)", response = UserInfoVO.class, tags={ "users", })
     @ApiResponses(value = { 
         @ApiResponse(code = 201, message = "Returns message of success or failure", response = UserInfoVO.class),
         @ApiResponse(code = 204, message = "Fetch complete, no content found."),
