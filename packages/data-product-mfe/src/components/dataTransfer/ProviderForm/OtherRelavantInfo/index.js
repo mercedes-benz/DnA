@@ -50,6 +50,32 @@ const OtherRelevantInfo = ({ onSave, history, user, isDataProduct }) => {
   const hasUsers = watch('users');
 
   const [isCreator, setIsCreator] = useState(false);
+  const [isInformationOwner, setIsInformationOwner] = useState(false);
+  const [isCreatedBy, setIsCreatedBy] = useState(false);
+
+  const creator = provideDataTransfers.selectedDataTransfer?.name;
+  const informationOwner = provideDataTransfers.selectedDataTransfer?.informationOwner;
+  const createdBy = provideDataTransfers.selectedDataTransfer?.createdBy;
+
+  const errorValidationMsg = () => {
+    let userInfo = isCreator || isCreatedBy ? 'Creator' : isInformationOwner ? 'Information Owner' : '';
+    let loggedInUser = false;
+
+    if (isCreator && creator.shortId === user.id) {
+      loggedInUser = true;
+    } else if (isInformationOwner && informationOwner.shortId === user.id) {
+      loggedInUser = true;
+    } else if (isCreatedBy && createdBy.id === user.id) {
+      loggedInUser = true;
+    } else {
+      loggedInUser = false;
+    }
+    if (loggedInUser) {
+      return `You are the ${userInfo} and not allowed to consume the data product`;
+    } else {
+      return `User is already ${userInfo} and can not be allowed to consume the data product`;
+    }
+  };
 
   const dispatch = useDispatch();
 
@@ -116,9 +142,13 @@ const OtherRelevantInfo = ({ onSave, history, user, isDataProduct }) => {
   const validateMembersList = (teamMemberObj) => {
     let duplicateMember = false;
     duplicateMember = teamMembers?.filter((member) => member.shortId === teamMemberObj.shortId)?.length ? true : false;
-    const isCreator = teamMemberObj.shortId === user.id;
+    const isCreatedBy = teamMemberObj.shortId === createdBy.id;
+    const isCreator = teamMemberObj.shortId === creator.shortId;
+    const isInformationOwner = teamMemberObj.shortId === informationOwner.shortId;
+    setIsInformationOwner(isInformationOwner);
     setIsCreator(isCreator);
-    return isCreator || duplicateMember;
+    setIsCreatedBy(isCreatedBy);
+    return isCreator || duplicateMember || isInformationOwner || isCreatedBy;
   };
 
   const teamMembersList = teamMembers?.map((member, index) => {
@@ -341,7 +371,7 @@ const OtherRelevantInfo = ({ onSave, history, user, isDataProduct }) => {
         onUpdateTeamMemberList={updateTeamMemberList}
         onAddTeamMemberModalCancel={onAddTeamMemberModalCancel}
         validateMemebersList={validateMembersList}
-        customUserErrorMsg={isCreator ? 'You are the creator and not allowed to consume data product' : ''}
+        customUserErrorMsg={isCreator || isInformationOwner || isCreatedBy ? errorValidationMsg() : ''}
       />
     </>
   );
