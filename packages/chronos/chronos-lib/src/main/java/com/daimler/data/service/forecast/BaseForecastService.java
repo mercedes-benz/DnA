@@ -341,6 +341,11 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 										List<BucketObjectDetailsDto> bucketObjectDetails=storageClient.getFilesPresent(bucketName,resultFolderPathForRun);
 										Boolean successFileFlag = storageClient.isFilePresent(resultFolderPathForRun+ "SUCCESS", bucketObjectDetails);
 										Boolean warningsFileFlag = storageClient.isFilePresent(resultFolderPathForRun+ "WARNINGS.txt", bucketObjectDetails);
+										Boolean exogenousFileFlag = storageClient.isFilePresent(resultFolderPathForRun+ "X.csv", bucketObjectDetails);
+										//check if exogenous data is present
+										if(exogenousFileFlag){
+											run.setExogenData(true);
+										}
 										log.info("Run state is success from databricks and successFileFlag value is {} and warningsFileFlag is {} , for bucket {} and prefix {} ", successFileFlag, warningsFileFlag, bucketName, resultFolderPathForRun);
 										if(warningsFileFlag){
 											newState.setResult_state(ResultStateEnum.WARNINGS.name());
@@ -393,7 +398,7 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 								"INTERNAL_ERROR".equalsIgnoreCase(state.getLife_cycle_state()) ||
 								"SKIPPED".equalsIgnoreCase(state.getLife_cycle_state()))) &&
 								(run.getResultFolderPath() == null || "".equalsIgnoreCase(run.getResultFolderPath()))
-						) {							
+						) {
 							String resultFolderPathForRun = bucketName + "/" + resultsPrefix + run.getId()+"-"+run.getRunName();
 							run.setResultFolderPath(resultFolderPathForRun);
 	          			}
@@ -422,6 +427,13 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 								updatedRuns.add(run);
 							}
 						} else {
+							//check if exogenous data is present
+							String resultFolderPathForRun = resultsPrefix + run.getId()+"-"+run.getRunName()+"/";
+							List<BucketObjectDetailsDto> bucketObjectDetails=storageClient.getFilesPresent(bucketName,resultFolderPathForRun);
+							Boolean exogenousFilePresent = storageClient.isFilePresent(resultFolderPathForRun+ "X.csv", bucketObjectDetails);
+							if(exogenousFilePresent){
+								run.setExogenData(true);
+							}
 							log.info("Adding old success run {} of project {} without update ", run.getRunName(), forecastName);
 							updatedRuns.add(run);
 						}
