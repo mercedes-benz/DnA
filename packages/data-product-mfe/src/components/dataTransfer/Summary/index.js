@@ -198,7 +198,7 @@ const Summary = ({ history }) => {
                       </div>
                       <div className={classNames(Styles.flexLayout, Styles.threeColumn)}>
                         <div>
-                          <label className="input-label summary">Description & Classification of transfered data</label>
+                          <label className="input-label summary">Description of transfered data</label>
                           <br />
                           {data.classificationOfTransferedData}
                         </div>
