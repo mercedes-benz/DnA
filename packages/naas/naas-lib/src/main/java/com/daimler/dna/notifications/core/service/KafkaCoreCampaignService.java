@@ -81,6 +81,7 @@ public class KafkaCoreCampaignService {
 	private static String DATAPRODUCT_NOTIFICATION_KEY = "DataProduct";
 	private static String DATACOMPLIANCE_NOTIFICATION_KEY = "DataCompliance";
 	private static String STORAGE_URI_PATH = "/#/storage/explorer/";
+	private static String CHRONOS_NOTIFICATION_KEY = "Chronos";
 	
 	/*
 	 * @KafkaListener(topics = "dnaCentralEventTopic") public void
@@ -129,6 +130,10 @@ public class KafkaCoreCampaignService {
 					if(message.getEventType().contains(DATACOMPLIANCE_NOTIFICATION_KEY)) {
 						appNotificationPreferenceFlag = preferenceVO.getDataComplianceNotificationPref().isEnableAppNotifications();
 						emailNotificationPreferenceFlag =  preferenceVO.getDataComplianceNotificationPref().isEnableEmailNotifications();
+					}
+					if(message.getEventType().contains(CHRONOS_NOTIFICATION_KEY)) {
+						appNotificationPreferenceFlag = preferenceVO.getChronosNotificationPref().isEnableAppNotifications();
+						emailNotificationPreferenceFlag =  preferenceVO.getChronosNotificationPref().isEnableEmailNotifications();
 					}
 
 					NotificationVO vo = new NotificationVO();
