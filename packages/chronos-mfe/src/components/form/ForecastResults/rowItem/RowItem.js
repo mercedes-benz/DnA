@@ -58,7 +58,8 @@ const RowItem = (props) => {
 
   const onBrowseClick = () => {
     if(props.item.resultFolderPath) {
-      window.open(`${Envs.STORAGE_MFE_APP_URL}/explorer/${props.item.resultFolderPath}`);
+      const resultFolderPath = item.resultFolderPath.split('/');
+      window.open(`${Envs.STORAGE_MFE_APP_URL}/explorer/${resultFolderPath[0]}/${resultFolderPath[2]}`);
     } else {
       Notification.show('No folder path available for the given run', 'alert');
     }
