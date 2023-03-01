@@ -53,6 +53,8 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 	
 	@Value("${databricks.defaultConfigYml}")
 	private String dataBricksJobDefaultConfigYml;
+
+	private static final String EXOGENOUS_FILE_NAME = "X.csv";
 	
 	@Autowired
 	private StorageServicesClient storageClient;
@@ -341,7 +343,7 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 										List<BucketObjectDetailsDto> bucketObjectDetails=storageClient.getFilesPresent(bucketName,resultFolderPathForRun);
 										Boolean successFileFlag = storageClient.isFilePresent(resultFolderPathForRun+ "SUCCESS", bucketObjectDetails);
 										Boolean warningsFileFlag = storageClient.isFilePresent(resultFolderPathForRun+ "WARNINGS.txt", bucketObjectDetails);
-										Boolean exogenousFileFlag = storageClient.isFilePresent(resultFolderPathForRun+ "X.csv", bucketObjectDetails);
+										Boolean exogenousFileFlag = storageClient.isFilePresent(resultFolderPathForRun+ EXOGENOUS_FILE_NAME, bucketObjectDetails);
 										//check if exogenous data is present
 										if(exogenousFileFlag){
 											run.setExogenData(true);
@@ -430,7 +432,7 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 							//check if exogenous data is present
 							String resultFolderPathForRun = resultsPrefix + run.getId()+"-"+run.getRunName()+"/";
 							List<BucketObjectDetailsDto> bucketObjectDetails=storageClient.getFilesPresent(bucketName,resultFolderPathForRun);
-							Boolean exogenousFilePresent = storageClient.isFilePresent(resultFolderPathForRun+ "X.csv", bucketObjectDetails);
+							Boolean exogenousFilePresent = storageClient.isFilePresent(resultFolderPathForRun+ EXOGENOUS_FILE_NAME, bucketObjectDetails);
 							if(exogenousFilePresent){
 								run.setExogenData(true);
 							}
