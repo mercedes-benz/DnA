@@ -223,6 +223,7 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 				currentRun.setTriggeredBy(triggeredBy);
 				currentRun.setTriggeredOn(triggeredOn);
 				currentRun.setIsDelete(false);
+				currentRun.setExogenData(false);
 				RunState newRunState = new RunState();
 				newRunState.setLife_cycle_state("PENDING");
 				newRunState.setUser_cancelled_or_timedout(false);
