@@ -49,7 +49,7 @@ const Classification = ({ onSave }) => {
                 className="input-label"
                 htmlFor="classificationOfTransferedData"
               >
-                Description & classification of the transfered data <sup>*</sup>
+                Description of transfered data <sup>*</sup>
               </label>
               <textarea
                 id="classificationOfTransferedData"
