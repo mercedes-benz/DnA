@@ -283,7 +283,9 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 					RunState state = run.getRunState();
 					String runId = run.getRunId();
 					String correlationId= run.getId();
-					String existingLifecycleState = run.getRunState().getLife_cycle_state();             			
+					String existingLifecycleState = run.getRunState().getLife_cycle_state();  
+					if(run.getExogenData()==null)
+						run.setExogenData(false);
 					if(runId!=null && (run.getIsDelete() == null || !run.getIsDelete()) &&
 							(state==null || state.getResult_state()==null || state.getLife_cycle_state()==null ||
 									"PENDING".equalsIgnoreCase(state.getLife_cycle_state()) ||
