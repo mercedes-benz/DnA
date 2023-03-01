@@ -66,7 +66,25 @@ hasura:
   baseuri: ${HASURA_BASE_URI:xxxxx}
   token: ${HASURA_TOKEN:xxxxx}
   createTechUserUri: ${HASURA_TECHUSER_URI:xxx}
-
+  
+notification:
+  email:      
+      solutionNotificationPref: ${SOLUTION_NOTIFICATION_PREF:false}
+      notebookNotificationPref: ${NOTEBOOK_NOTIFICATION_PREF:false}
+      persistenceNotificationPref: ${PERSISTENCE_NOTIFICATION_PREF:false}
+      dashboardNotificationPref: ${DASHBOARD_NOTIFICATION_PREF:false}
+      dataComplianceNotificationPref: ${DATA_COMPLIANCE_NOTIFICATION_PREF:true}
+      dataProductNotificationPref: ${DATA_PRODUCT_NOTIFICATION_PREF:true}
+      chronosNotificationPref: ${CHRONOS_NOTIFICATION_PREF:false}
+  app:
+      solutionNotificationPref: ${SOLUTION_NOTIFICATION_PREF:true}
+      notebookNotificationPref: ${NOTEBOOK_NOTIFICATION_PREF:true}
+      persistenceNotificationPref: ${PERSISTENCE_NOTIFICATION_PREF:true}
+      dashboardNotificationPref: ${DASHBOARD_NOTIFICATION_PREF:true}
+      dataComplianceNotificationPref: ${DATA_COMPLIANCE_NOTIFICATION_PREF:true}
+      dataProductNotificationPref: ${DATA_PRODUCT_NOTIFICATION_PREF:true}
+      chronosNotificationPref: ${CHRONOS_NOTIFICATION_PREF:true}      
+      
 graphql:
   servlet:
     mapping: /api/minified
