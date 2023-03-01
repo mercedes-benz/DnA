@@ -53,6 +53,8 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 	
 	@Value("${databricks.defaultConfigYml}")
 	private String dataBricksJobDefaultConfigYml;
+
+	private static final String EXOGENOUS_FILE_NAME = "X.csv";
 	
 	@Autowired
 	private StorageServicesClient storageClient;
@@ -221,6 +223,7 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 				currentRun.setTriggeredBy(triggeredBy);
 				currentRun.setTriggeredOn(triggeredOn);
 				currentRun.setIsDelete(false);
+				currentRun.setExogenData(false);
 				RunState newRunState = new RunState();
 				newRunState.setLife_cycle_state("PENDING");
 				newRunState.setUser_cancelled_or_timedout(false);
@@ -281,7 +284,9 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 					RunState state = run.getRunState();
 					String runId = run.getRunId();
 					String correlationId= run.getId();
-					String existingLifecycleState = run.getRunState().getLife_cycle_state();             			
+					String existingLifecycleState = run.getRunState().getLife_cycle_state();  
+					if(run.getExogenData()==null)
+						run.setExogenData(false);
 					if(runId!=null && (run.getIsDelete() == null || !run.getIsDelete()) &&
 							(state==null || state.getResult_state()==null || state.getLife_cycle_state()==null ||
 									"PENDING".equalsIgnoreCase(state.getLife_cycle_state()) ||
@@ -341,6 +346,11 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 										List<BucketObjectDetailsDto> bucketObjectDetails=storageClient.getFilesPresent(bucketName,resultFolderPathForRun);
 										Boolean successFileFlag = storageClient.isFilePresent(resultFolderPathForRun+ "SUCCESS", bucketObjectDetails);
 										Boolean warningsFileFlag = storageClient.isFilePresent(resultFolderPathForRun+ "WARNINGS.txt", bucketObjectDetails);
+										Boolean exogenousFileFlag = storageClient.isFilePresent(resultFolderPathForRun+ EXOGENOUS_FILE_NAME, bucketObjectDetails);
+										//check if exogenous data is present
+										if(exogenousFileFlag){
+											run.setExogenData(true);
+										}
 										log.info("Run state is success from databricks and successFileFlag value is {} and warningsFileFlag is {} , for bucket {} and prefix {} ", successFileFlag, warningsFileFlag, bucketName, resultFolderPathForRun);
 										if(warningsFileFlag){
 											newState.setResult_state(ResultStateEnum.WARNINGS.name());
@@ -393,7 +403,7 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 								"INTERNAL_ERROR".equalsIgnoreCase(state.getLife_cycle_state()) ||
 								"SKIPPED".equalsIgnoreCase(state.getLife_cycle_state()))) &&
 								(run.getResultFolderPath() == null || "".equalsIgnoreCase(run.getResultFolderPath()))
-						) {							
+						) {
 							String resultFolderPathForRun = bucketName + "/" + resultsPrefix + run.getId()+"-"+run.getRunName();
 							run.setResultFolderPath(resultFolderPathForRun);
 	          			}
@@ -422,6 +432,13 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 								updatedRuns.add(run);
 							}
 						} else {
+							//check if exogenous data is present
+							String resultFolderPathForRun = resultsPrefix + run.getId()+"-"+run.getRunName()+"/";
+							List<BucketObjectDetailsDto> bucketObjectDetails=storageClient.getFilesPresent(bucketName,resultFolderPathForRun);
+							Boolean exogenousFilePresent = storageClient.isFilePresent(resultFolderPathForRun+ EXOGENOUS_FILE_NAME, bucketObjectDetails);
+							if(exogenousFilePresent){
+								run.setExogenData(true);
+							}
 							log.info("Adding old success run {} of project {} without update ", run.getRunName(), forecastName);
 							updatedRuns.add(run);
 						}

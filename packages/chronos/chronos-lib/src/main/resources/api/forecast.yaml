@@ -1005,6 +1005,9 @@ definitions:
         error:
           type: string
           description: "error"
+        exogenData:
+          type: boolean
+          description: "flag to check if exogenous data is present"
   
   ForecastRunResponseVO:
     type: object
