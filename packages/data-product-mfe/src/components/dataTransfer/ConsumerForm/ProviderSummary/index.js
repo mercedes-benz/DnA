@@ -59,7 +59,7 @@ const ProviderSummary = ({ onSave, providerFormIsDraft }) => {
                 {providerInformation.name?.firstName} {providerInformation.name?.lastName}
               </div>
               <div>
-                <label className="input-label summary">Information Owner</label>
+                <label className="input-label summary">Data responsible IO and/or Business Owner for application</label>
                 <br />
                 {providerInformation.informationOwner?.firstName} {providerInformation.informationOwner?.lastName}
               </div>
@@ -101,7 +101,7 @@ const ProviderSummary = ({ onSave, providerFormIsDraft }) => {
           <div className={Styles.firstPanel}>
             <div className={Styles.flexLayout}>
               <div>
-                <label className="input-label summary">Data Description & Classification</label>
+                <label className="input-label summary">Data Description &amp; Classification</label>
               </div>
             </div>
             <div className={classNames(Styles.flexLayout, Styles.threeColumn)}>
