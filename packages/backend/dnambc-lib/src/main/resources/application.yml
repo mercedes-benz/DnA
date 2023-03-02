@@ -69,21 +69,21 @@ hasura:
   
 notification:
   email:      
-      solutionNotificationPref: ${SOLUTION_NOTIFICATION_PREF:false}
-      notebookNotificationPref: ${NOTEBOOK_NOTIFICATION_PREF:false}
-      persistenceNotificationPref: ${PERSISTENCE_NOTIFICATION_PREF:false}
-      dashboardNotificationPref: ${DASHBOARD_NOTIFICATION_PREF:false}
-      dataComplianceNotificationPref: ${DATA_COMPLIANCE_NOTIFICATION_PREF:true}
-      dataProductNotificationPref: ${DATA_PRODUCT_NOTIFICATION_PREF:true}
-      chronosNotificationPref: ${CHRONOS_NOTIFICATION_PREF:false}
+      solutionNotificationPref: ${DEFAULT_EMAIL_SOLUTION_NOTIFICATION_PREF:xxx}
+      notebookNotificationPref: ${DEFAULT_EMAIL_NOTEBOOK_NOTIFICATION_PREF:xxx}
+      persistenceNotificationPref: ${DEFAULT_EMAIL_PERSISTENCE_NOTIFICATION_PREF:xxx}
+      dashboardNotificationPref: ${DEFAULT_EMAIL_DASHBOARD_NOTIFICATION_PREF:xxx}
+      dataComplianceNotificationPref: ${DEFAULT_EMAIL_DATA_COMPLIANCE_NOTIFICATION_PREF:xxx}
+      dataProductNotificationPref: ${DEFAULT_EMAIL_DATA_PRODUCT_NOTIFICATION_PREF:xxx}
+      chronosNotificationPref: ${DEFAULT_EMAIL_CHRONOS_NOTIFICATION_PREF:xxx}
   app:
-      solutionNotificationPref: ${SOLUTION_NOTIFICATION_PREF:true}
-      notebookNotificationPref: ${NOTEBOOK_NOTIFICATION_PREF:true}
-      persistenceNotificationPref: ${PERSISTENCE_NOTIFICATION_PREF:true}
-      dashboardNotificationPref: ${DASHBOARD_NOTIFICATION_PREF:true}
-      dataComplianceNotificationPref: ${DATA_COMPLIANCE_NOTIFICATION_PREF:true}
-      dataProductNotificationPref: ${DATA_PRODUCT_NOTIFICATION_PREF:true}
-      chronosNotificationPref: ${CHRONOS_NOTIFICATION_PREF:true}      
+      solutionNotificationPref: ${DEFAULT_APP_SOLUTION_NOTIFICATION_PREF:xxx}
+      notebookNotificationPref: ${DEFAULT_APP_NOTEBOOK_NOTIFICATION_PREF:xxx}
+      persistenceNotificationPref: ${DEFAULT_APP_PERSISTENCE_NOTIFICATION_PREF:xxx}
+      dashboardNotificationPref: ${DEFAULT_APP_DASHBOARD_NOTIFICATION_PREF:xxx}
+      dataComplianceNotificationPref: ${DEFAULT_APP_DATA_COMPLIANCE_NOTIFICATION_PREF:xxx}
+      dataProductNotificationPref: ${DEFAULT_APP_DATA_PRODUCT_NOTIFICATION_PREF:xxx}
+      chronosNotificationPref: ${DEFAULT_APP_CHRONOS_NOTIFICATION_PREF:xxx}      
       
 graphql:
   servlet:
