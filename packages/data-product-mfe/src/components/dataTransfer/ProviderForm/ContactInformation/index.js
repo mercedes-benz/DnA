@@ -257,7 +257,7 @@ const ContactInformation = ({ onSave, divisions, setSubDivisions, subDivisions, 
                     <TeamSearch
                       label={
                         <>
-                          Information Owner <sup>*</sup>
+                          Data responsible IO and/ or Business Owner for application <sup>*</sup>
                         </>
                       }
                       fieldMode={true}
@@ -300,7 +300,7 @@ const ContactInformation = ({ onSave, divisions, setSubDivisions, subDivisions, 
                       <TeamSearch
                         label={
                           <>
-                            Information Owner <sup>*</sup>
+                            Data responsible IO and/or Business Owner for application <sup>*</sup>
                           </>
                         }
                         fieldMode={true}
@@ -329,7 +329,7 @@ const ContactInformation = ({ onSave, divisions, setSubDivisions, subDivisions, 
                     <TeamSearch
                       label={
                         <>
-                          Your Name <sup>*</sup>
+                          Point of contact for data transfer e.g. Data Steward <sup>*</sup>
                         </>
                       }
                       fieldMode={true}
