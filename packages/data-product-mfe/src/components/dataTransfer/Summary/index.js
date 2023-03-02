@@ -152,7 +152,7 @@ const Summary = ({ history }) => {
                         {data.name?.firstName} {data.name?.lastName}
                       </div>
                       <div>
-                        <label className="input-label summary">Information Owner</label>
+                        <label className="input-label summary">Data responsible IO and/or Business Owner for application</label>
                         <br />
                         {data.informationOwner?.firstName} {data.informationOwner?.lastName}
                       </div>
@@ -193,7 +193,7 @@ const Summary = ({ history }) => {
                     <div className={Styles.firstPanel}>
                       <div className={Styles.flexLayout}>
                         <div>
-                          <h5>Data Description & Classification</h5>
+                          <h5>Data Description &amp; Classification</h5>
                         </div>
                       </div>
                       <div className={classNames(Styles.flexLayout, Styles.threeColumn)}>

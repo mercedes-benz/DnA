@@ -30,7 +30,7 @@ const Classification = ({ onSave }) => {
       <div className={Styles.wrapper}>
         <div className={Styles.firstPanel}>
           <div>
-            <h3>Data Description & Classification</h3>
+            <h3>Data Description &amp; Classification</h3>
             {showInfoModal && (
               <div className={Styles.infoIcon}>
                 <i className={'icon mbc-icon info'} onClick={() => {}} />
@@ -57,6 +57,7 @@ const Classification = ({ onSave }) => {
                 type="text"
                 {...register('classificationOfTransferedData', { required: '*Missing entry' })}
                 rows={50}
+                placeholder="Please describe brieﬂy (1-2 sentences) what data is to be transferred (e.g. accounting, controlling, year-end reporting etc.) from a business point of view"
               />
               <span className={classNames('error-message')}>{errors?.classificationOfTransferedData?.message}</span>
             </div>

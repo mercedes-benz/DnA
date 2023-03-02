@@ -289,7 +289,7 @@ const ProviderForm = ({ user, history }) => {
                       }}
                       onClick={setTab}
                     >
-                      Data Description & Classification
+                      Data Description &amp; Classification
                     </a>
                   </li>
                   <li className={savedTabs?.includes('personal-data') ? 'tab valid' : 'tab disabled'}>
