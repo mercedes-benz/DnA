@@ -1,5 +1,5 @@
 import React from 'react';
-import Styles from './Breadcrumb.scss';
+import Styles from './breadcrumb.scss';
 
 const Breadcrumb = (props) => {
   return (
