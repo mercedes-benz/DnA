@@ -4,7 +4,7 @@
 
 import classNames from 'classnames';
 import * as React from 'react';
-import styles from './svg-icon.scss';
+import Styles from './svg-icon.scss';
 
 /**
  * scaled svg icon
@@ -14,7 +14,7 @@ export default class SvgIcon extends React.Component {
   render() {
     const size = this.props.size ? this.props.size : '24';
     const viewBox = `0 0 ${size} ${size}`;
-    const iconClass = classNames(styles.icon, this.props.className);
+    const iconClass = classNames(Styles.icon, this.props.className);
 
     return (
       <i className={iconClass}>
@@ -26,7 +26,7 @@ export default class SvgIcon extends React.Component {
           enableBackground={`new ${viewBox}`}
           id={this.props.id}
           preserveAspectRatio="xMidYMin slice"
-          className={styles.svg}
+          className={Styles.svg}
         >
           {this.props.children}
         </svg>

@@ -1,6 +1,6 @@
 import classNames from 'classnames';
 import React, { useState, useEffect } from 'react';
-import styles from './forecast-results-tab.scss';
+import Styles from './forecast-results-tab.scss';
 
 // Container Components
 import Modal from 'dna-container/Modal';
@@ -180,16 +180,14 @@ const ForecastResultsTab = () => {
   const removeSelected = () => {
     ProgressIndicator.show();
     chronosApi.deleteForecastRuns(selectedRuns, projectId)
-      .then((res) => {
-        console.log(res);
+      .then(() => {
         setSelectedRuns([]);
         setCheckAll(false);
         getProjectForecastRuns();
         Notification.show('Run(s) deleted successfully.');
         ProgressIndicator.hide();
       })
-      .catch((err) => {
-        console.log(err);
+      .catch(() => {
         Notification.show('Something went wrong', 'alert');
         ProgressIndicator.hide();
       });
@@ -223,7 +221,6 @@ const ForecastResultsTab = () => {
       if(runToBeDeleted.id !== '' || runToBeDeleted.id !== null) {
         ProgressIndicator.show();
         chronosApi.deleteForecastRun(projectId, runToBeDeleted.id).then((res) => {
-          console.log(res);
           if(res.data.success === 'FAILED') {
             Notification.show(res?.data?.erros[0]?.message, 'alert');
             ProgressIndicator.hide();
@@ -255,16 +252,14 @@ const ForecastResultsTab = () => {
   const [errorItem, setErrorItem] = useState();
   const handleOpenErrorModal = (item) => {
     setShowErrorModal(true);
-    console.log('item');
-    console.log(item);
     setErrorItem({...item});
   }
 
   return (
     <React.Fragment>
-        <div className={styles.content}>
+        <div className={Styles.content}>
           <div>
-            <div className={styles.removeBlock} 
+            <div className={Styles.removeBlock} 
               onClick={showDeleteConfirmModal}
               >
                 {checkAll || selectedRuns.length > 0 ? (
@@ -276,17 +271,17 @@ const ForecastResultsTab = () => {
             </div>
           </div>
 
-          <div className={styles.forecastResultListWrapper}>
-            <div className={styles.listContent}>
+          <div className={Styles.forecastResultListWrapper}>
+            <div className={Styles.listContent}>
               {loading && <Spinner />}
               {!loading && (
                 forecastRuns?.length === 0 &&
-                  <div className={styles.forecastResultListEmpty}>Forecast Runs are not available</div>
+                  <div className={Styles.forecastResultListEmpty}>Forecast Runs are not available</div>
               )}
               {!loading && forecastRuns?.length > 0 &&
                 <React.Fragment>
-                  <div className={styles.forecastResultList}>
-                    <div className={styles.refreshContainer}>
+                  <div className={Styles.forecastResultList}>
+                    <div className={Styles.refreshContainer}>
                       <button className='btn btn-primary' onClick={() => { getProjectForecastRuns(); }}>
                         <i className="icon mbc-icon refresh" />
                         <span>Refresh</span>   
@@ -297,8 +292,8 @@ const ForecastResultsTab = () => {
                         <tr className="header-row">
                           {/* <th>
                             <div>
-                              <label className={classNames('checkbox', styles.checkboxItem)}>
-                                <span className={classNames('wrapper', styles.thCheckbox)}>
+                              <label className={classNames('checkbox', Styles.checkboxItem)}>
+                                <span className={classNames('wrapper', Styles.thCheckbox)}>
                                   <input
                                     type="checkbox"
                                     className="ff-only"
@@ -464,15 +459,15 @@ const ForecastResultsTab = () => {
               showIcon={false}
               showCloseIcon={true}
               content={
-                <div className={styles.deleteForecastResult}>
-                  <div className={styles.closeIcon}>
+                <div className={Styles.deleteForecastResult}>
+                  <div className={Styles.closeIcon}>
                     <i className={classNames('icon mbc-icon close thin')} />
                   </div>
                   <div>
                     You are going to delete the Results.<br />
                     Are you sure you want to proceed?
                   </div>
-                  <div className={styles.deleteBtn}>
+                  <div className={Styles.deleteBtn}>
                     <button
                       className={'btn btn-secondary'}
                       type="button"
@@ -496,14 +491,14 @@ const ForecastResultsTab = () => {
               buttonAlignment="right"
               show={showErrorModal}
               content={
-                <div className={styles.modalContent}>
+                <div className={Styles.modalContent}>
                   {errorItem.state.result_state === 'WARNINGS' ? 
-                    <div className={styles.errorDiv}>
-                      <i className={classNames('icon mbc-icon alert circle', styles.alertCircle)} />
+                    <div className={Styles.errorDiv}>
+                      <i className={classNames('icon mbc-icon alert circle', Styles.alertCircle)} />
                       <span>{errorItem.warnings}</span>
                     </div> :
-                    <div className={styles.errorDiv}>
-                      <i className={classNames('icon mbc-icon close circle', styles.closeCircle)} />
+                    <div className={Styles.errorDiv}>
+                      <i className={classNames('icon mbc-icon close circle', Styles.closeCircle)} />
                       <span>{errorItem.state.state_message}</span>
                     </div>
                   }
