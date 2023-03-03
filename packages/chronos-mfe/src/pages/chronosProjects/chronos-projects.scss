@@ -1,0 +1,150 @@
+.mainPanel {
+    padding: 72px 75px 30px 75px;
+
+    .wrapper {
+        width: 100%;
+        .caption {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0px;
+            margin-bottom: 10px;
+            h3 {
+                color: #dee3e8;
+            }
+        }
+    }
+    .content {
+        background-color: #252a33;
+        padding: 0;
+        min-width: 518px;
+        .listContent {
+            min-height: 435px;
+            display: flex;
+            width: 100%;
+            flex-direction: column;
+            padding: 25px 31px 25px 38px;
+            align-items: flex-start;
+        }
+        .emptyProducts {
+            text-align: center;
+            margin-left: auto;
+            margin-right: auto;
+            margin-top: 20px;
+            margin-bottom: 20px;
+        }
+        .subscriptionListEmpty {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            justify-content: center;
+            height: 300px;
+            position: relative;
+            border: 1px solid #383f49;
+            width: 100%;
+        }
+    }
+
+    .listHeader {
+        align-items: flex-start;
+        display: flex;
+        justify-content: space-between;
+        margin: 0px;
+        position: relative;
+        background-color: #0a0b0e;
+
+        i {
+            font-size: var(--font-size-icon-content);
+            color: #00adef;
+        }
+        button {
+            background: none;
+            border: none;
+            color: #c0c8d0;
+            height: auto;
+            margin: 0px;
+            outline: none;
+            padding: 0 2px;
+            i {
+                margin-top: 2px;
+            }
+            a {
+                color: #c0c8d0;
+            }
+            &:hover {
+                color: #00adef;
+            }
+        }
+    }
+}
+
+.allProjectContent {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  margin: -7px;
+
+  .newProjectCard {
+    width: calc(33.33% - 14px);
+    margin: 7px;
+    min-width: 250px;
+    position: relative;
+    border: 1px solid #383F49;
+    cursor: pointer;
+    min-height: 259px;
+
+    .addicon {
+      top: calc(50% - 41px);
+      width: 63px;
+      height: 63px;
+      border: 1px solid #fff;
+      border-radius: 50%;
+      position: relative;
+      display: flex;
+      align-items: center;
+      margin: 0 auto;
+      &:after {
+        content: '';
+        position: absolute;
+        width: 50%;
+        height: 1px;
+        background-color: #00ADEF;
+        left: 25%;
+        transform: rotate(90deg);
+      }
+      &:before {
+        content: '';
+        position: absolute;
+        width: 50%;
+        height: 1px;
+        background-color: #00ADEF;
+        left: 25%;
+        margin: 0 auto;
+        transform: rotate(180deg);
+        top: 49%;
+      }
+    }
+    .addlabel {
+      font-size: var(--font-size-headline);
+      line-height: 23px;
+      position: absolute;
+      word-break: break-word;
+      display: block;
+      width: 100%;
+      text-align: center;
+      bottom: 20px;
+    }
+
+    &:hover .addlabel {
+      color: #00adef;
+    }
+  }
+}
+
+:global {
+  #pagination-container {
+    padding-left: 0;
+    padding-right: 0;
+  }
+}
