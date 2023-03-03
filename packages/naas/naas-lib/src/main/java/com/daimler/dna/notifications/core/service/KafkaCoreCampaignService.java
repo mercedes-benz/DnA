@@ -82,6 +82,7 @@ public class KafkaCoreCampaignService {
 	private static String DATACOMPLIANCE_NOTIFICATION_KEY = "DataCompliance";
 	private static String STORAGE_URI_PATH = "/#/storage/explorer/";
 	private static String CHRONOS_NOTIFICATION_KEY = "Chronos";
+	private static String CHRONOS_URI_PATH = "#/chronos/project/";
 	
 	/*
 	 * @KafkaListener(topics = "dnaCentralEventTopic") public void
@@ -146,20 +147,40 @@ public class KafkaCoreCampaignService {
 					vo.setIsRead("false");
 					vo.setMessage(message.getMessage());
 					String emailBody = "<br/>"+ message.getMessage() + "<br/>";
-					String bucketURL = dnaBaseUri + STORAGE_URI_PATH + message.getResourceId();
-					if(!ObjectUtils.isEmpty(message.getChangeLogs())) {
-						for (ChangeLogVO changeLog : message.getChangeLogs()) {
-							emailBody += "<br/>" + "\u2022" + " " + changeLog.getChangeDescription() + "<br/>";
+					if(message.getEventType().contains(STORAGE_NOTIFICATION_KEY)) {
+						String bucketURL = dnaBaseUri + STORAGE_URI_PATH + message.getResourceId();
+						if(!ObjectUtils.isEmpty(message.getChangeLogs())) {
+							for (ChangeLogVO changeLog : message.getChangeLogs()) {
+								emailBody += "<br/>" + "\u2022" + " " + changeLog.getChangeDescription() + "<br/>";
+							}
+						}
+						if(!ObjectUtils.isEmpty(message.getResourceId()) && message.getEventType().contains(STORAGE_NOTIFICATION_KEY)) {
+								
+								emailBody += "<p> Please use " + " <a href=\"" + bucketURL +"\">link</a> to access the bucket. <p/> <br/>";
+								if(!user.equalsIgnoreCase(publishingUser)) {
+									emailBody +=  message.getMessageDetails() + "<br/>";
+								}
+							
 						}
 					}
-					if(!ObjectUtils.isEmpty(message.getResourceId()) && message.getEventType().contains(STORAGE_NOTIFICATION_KEY)) {
-							
-							emailBody += "<p> Please use " + " <a href=\"" + bucketURL +"\">link</a> to access the bucket. <p/> <br/>";
-							if(!user.equalsIgnoreCase(publishingUser)) {
-								emailBody +=  message.getMessageDetails() + "<br/>";
+					if(message.getEventType().contains(CHRONOS_NOTIFICATION_KEY)) {						
+						//chronos email notification
+						String forecastURL = dnaBaseUri + CHRONOS_URI_PATH + message.getResourceId();
+						if(!ObjectUtils.isEmpty(message.getChangeLogs())) {
+							for (ChangeLogVO changeLog : message.getChangeLogs()) {
+								emailBody += "<br/>" + "\u2022" + " " + changeLog.getChangeDescription() + "<br/>";
 							}
-						
+						}
+						if(!ObjectUtils.isEmpty(message.getResourceId()) && message.getEventType().contains(CHRONOS_NOTIFICATION_KEY)) {
+								
+								emailBody += "<p> Please use " + " <a href=\"" + forecastURL +"\">link</a> to access the chronos forecast project. <p/> <br/>";
+								if(!user.equalsIgnoreCase(publishingUser)) {
+									emailBody +=  message.getMessageDetails() + "<br/>";
+								}
+							
+						}
 					}
+
 					if(appNotificationPreferenceFlag) {
 						cacheUtil.addEntry(user, vo);
 						LOGGER.info("New message with details- user {}, eventType {}, uuid {} added to user notifications", user,
