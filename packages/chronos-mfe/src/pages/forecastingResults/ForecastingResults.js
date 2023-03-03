@@ -1,7 +1,7 @@
 import classNames from 'classnames';
 import React, { useState, useEffect } from 'react';
 import { useHistory, useParams } from 'react-router-dom';
-import styles from './forecasting-results.scss';
+import Styles from './forecasting-results.scss';
 import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indicator';
 import { chronosApi } from '../../apis/chronos.api';
 import Spinner from '../../components/spinner/Spinner';
@@ -442,14 +442,14 @@ const ForecastingResults = () => {
   }
 
   return (
-    <div className={classNames(styles.mainPanel)}>
-      <div className={styles.backButtonWapper}>
+    <div className={classNames(Styles.mainPanel)}>
+      <div className={Styles.backButtonWapper}>
         <button className="btn btn-text back arrow" type="submit" onClick={goback}>
           Result Overview
         </button>
-        <div className={styles.summeryBannerTitle}>
+        <div className={Styles.summeryBannerTitle}>
           <h2>Forecasting Results &quot;{!loading && forecastRun?.runName}&quot;</h2>
-          <div className={styles.switch}>
+          <div className={Styles.switch}>
             <label className={classNames('switch', nerdStats && 'on')}>
               <span className="label" style={{ marginRight: '5px' }}>
                 Stats for Nerds
@@ -500,20 +500,20 @@ const ForecastingResults = () => {
 
       {
         nerdStats &&
-        <div className={styles.content}>
-          <div className={styles.header}>
+        <div className={Styles.content}>
+          <div className={Styles.header}>
             <h3>Stats for Nerds</h3>
-            {/* <div className={styles.actionMenu}>
+            {/* <div className={Styles.actionMenu}>
               <ContextMenu id={'decomposition'} items={contextMenuItems} />
             </div> */}
           </div>
-          <div className={styles.firstPanel} ref={printRef}>
+          <div className={Styles.firstPanel} ref={printRef}>
             { htmlLoading && <Spinner /> }
             { !htmlLoading && html.length === 0 && <p>No visualization for the given data.</p> }
             { !htmlLoading && html.length > 0 &&
-                <div className={styles.chartContainer}>
+                <div className={Styles.chartContainer}>
                   <iframe 
-                    className={styles.iframe}
+                    className={Styles.iframe}
                     srcDoc={html}
                     width="100%"
                     height="450px"
