@@ -1,5 +1,5 @@
 import React from 'react';
-import styles from './visual-container.scss';
+import Styles from './visual-container.scss';
 import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
 import ContextMenu from '../contextMenu/ContextMenu';
@@ -50,20 +50,20 @@ const VisualContainer = ({title, forecastRun, printRef, loading, forecastData, a
     }
   ];
   return (
-    <div className={styles.content}>
-      <div className={styles.header}>
+    <div className={Styles.content}>
+      <div className={Styles.header}>
         <h3>{title}</h3>
-        <div className={styles.actionMenu}>
+        <div className={Styles.actionMenu}>
           <ContextMenu id={'visual'} items={contextMenuItems} />
         </div>
       </div>
-      <div className={styles.firstPanel} ref={printRef}>
+      <div className={Styles.firstPanel} ref={printRef}>
         { loading && <Spinner /> }
         { !loading && forecastData.length === 0 && <p>No visualization for the given data.</p> }
         { !loading && forecastData.length > 0 &&
             <>
-              <p className={styles.chartLabel}>Forecast</p>
-              <div className={styles.chartContainer}>
+              <p className={Styles.chartLabel}>Forecast</p>
+              <div className={Styles.chartContainer}>
                 <Plot
                   data={addTraces(forecastData)}
                   layout={layout}

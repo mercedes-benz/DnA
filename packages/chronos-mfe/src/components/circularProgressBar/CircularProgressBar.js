@@ -1,12 +1,12 @@
 import classnames from 'classnames';
 import React from 'react';
-import styles from './circular-progress-bar.scss';
+import Styles from './circular-progress-bar.scss';
 
-const classNames = classnames.bind(styles);
+const classNames = classnames.bind(Styles);
 
 const CircularProgressBar = () => {
   return (
-    <div className={classNames('text-center', styles.spinner)}>
+    <div className={classNames('text-center', Styles.spinner)}>
       <div className="progress infinite" />
     </div>
   )

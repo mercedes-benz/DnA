@@ -4,7 +4,7 @@ import { useFormContext } from 'react-hook-form';
 // Container components
 import Modal from 'dna-container/Modal';
 import Notification from '../../../common/modules/uilab/js/src/notification';
-import styles from './input-file-area.scss';
+import Styles from './input-file-area.scss';
 import IconUpload from '../../../assets/icon_upload.png';
 import ExistingFilesView from '../existingFilesView/ExistingFilesView';
 import { Link } from 'react-router-dom';
@@ -36,13 +36,13 @@ const InputFileArea = ({projectId, inputFile, setInputFile}) => {
   
   const [keepFileForFuture, setKeepFileForFuture] = useState(false);
   return (
-    <div className={styles.wrapper}>
-      <div className={styles.firstPanel}>
+    <div className={Styles.wrapper}>
+      <div className={Styles.firstPanel}>
         <h3>Input File</h3>
-        <div className={styles.infoIcon}>
+        <div className={Styles.infoIcon}>
           <i className="icon mbc-icon info" onClick={() => {}} />
         </div>
-        <div className={styles.formWrapper}>
+        <div className={Styles.formWrapper}>
           <div>
             <p>
               Please upload your Input File and make sure it&apos;s structured according to our{' '}
@@ -55,12 +55,12 @@ const InputFileArea = ({projectId, inputFile, setInputFile}) => {
           { inputFile ? 
             <SelectedFileView selectedFile={inputFile[0]} setSelected={setInputFile} setIsExistingInputFile={setIsExistingInputFile} /> :
             <>
-            <div className={styles.container}>
+            <div className={Styles.container}>
               <div
                 onDrop={onFileDrop}
                 onDragOver={onFileDrop}
                 onDragLeave={onFileDrop}
-                className={classNames('upload-container', styles.uploadContainer)}
+                className={classNames('upload-container', Styles.uploadContainer)}
               >
                 <input type="file" id="file" name="file" 
                   {...register('file', { required: '*Missing entry', onChange: (e) => {
@@ -74,19 +74,19 @@ const InputFileArea = ({projectId, inputFile, setInputFile}) => {
                   }})}
                   accept=".csv, .xlsx"
                   />
-                <div className={styles.rcUpload}>
-                  <div className={styles.dragDrop}>
-                    <div className={styles.icon}>
+                <div className={Styles.rcUpload}>
+                  <div className={Styles.dragDrop}>
+                    <div className={Styles.icon}>
                       <img src={IconUpload} />
                     </div>
                     <h4>Drag & Drop your Input File here to upload</h4>
                   </div>
-                  <div className={styles.helperTextContainer}>
-                    <div className={styles.browseHelperText}>
-                      You can also <label htmlFor="file" className={styles.selectExisitingFiles}>browse local files</label> (.xlsx)
+                  <div className={Styles.helperTextContainer}>
+                    <div className={Styles.browseHelperText}>
+                      You can also <label htmlFor="file" className={Styles.selectExisitingFiles}>browse local files</label> (.xlsx)
                     </div>
                     <div
-                      className={styles.browseHelperText}
+                      className={Styles.browseHelperText}
                       onClick={(e) => {
                         e.stopPropagation();
                         setShowExistingFiles(true);
@@ -94,14 +94,14 @@ const InputFileArea = ({projectId, inputFile, setInputFile}) => {
                       }}
                     >
                       <p>
-                        or<button className={styles.selectExisitingFiles}>select an existing file</button>to run
+                        or<button className={Styles.selectExisitingFiles}>select an existing file</button>to run
                         forecast
                       </p>
                     </div>
                   </div>
                 </div>
               </div>
-              {errors.file && <span className={styles.errorMessage}>{errors.file?.message}</span>}
+              {errors.file && <span className={Styles.errorMessage}>{errors.file?.message}</span>}
             </div>
             
             {showExistingFiles &&
@@ -122,7 +122,7 @@ const InputFileArea = ({projectId, inputFile, setInputFile}) => {
           </>
           }
 
-          <div className={styles.checkbox}>
+          <div className={Styles.checkbox}>
             <label className="checkbox">
               <span className="wrapper">
                 <input
