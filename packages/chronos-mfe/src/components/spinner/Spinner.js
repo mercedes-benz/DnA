@@ -1,6 +1,6 @@
 import cn from 'classnames';
 import React from 'react';
-import Styles from './Spinner.scss';
+import Styles from './spinner.scss';
 
 const classNames = cn.bind(Styles);
 
