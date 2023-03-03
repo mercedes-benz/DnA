@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import styles from './ChronosAccessDetails.scss';
+import Styles from './ChronosAccessDetails.scss';
 // import from DNA Container
 import Modal from 'dna-container/Modal';
 // app components
@@ -57,13 +57,13 @@ const ChronosAccessDetails = ({project}) => {
   };
 
   const generateNewApiKeyContent = (
-    <div className={styles.modalContent}>
-      <div className={styles.projectWrapper}>
+    <div className={Styles.modalContent}>
+      <div className={Styles.projectWrapper}>
         <div>
           Old API Key will be invalidated once you proceed. Do you want to continue?.
         </div>
         <br />
-        <div className={styles.btnContainer}>
+        <div className={Styles.btnContainer}>
           <button
             className="btn btn-tertiary"
             type="button"
@@ -82,39 +82,39 @@ const ChronosAccessDetails = ({project}) => {
   return (
     <>
       { loading && <Spinner /> }
-      <div className={styles.firstPanel}>
-          <div className={styles.flexLayout}>
+      <div className={Styles.firstPanel}>
+          <div className={Styles.flexLayout}>
       { !loading && apiKey && <div>
-        <div className={styles.apiId}>
-            <div className={styles.appIdParentDiv}>
-              <div className={styles.refreshedAppId}>
-              Api Id: <span className={styles.refreshedAppId}>{project?.id}</span>
+        <div className={Styles.apiId}>
+            <div className={Styles.appIdParentDiv}>
+              <div className={Styles.refreshedAppId}>
+              Api Id: <span className={Styles.refreshedAppId}>{project?.id}</span>
               </div>
-              <div className={styles.refreshedKeyIcon}>
+              <div className={Styles.refreshedKeyIcon}>
                 <i
-                  className={styles.cpyStyle + ' icon mbc-icon copy'}
+                  className={Styles.cpyStyle + ' icon mbc-icon copy'}
                   onClick={copyApiID}
                   tooltip-data="Copy"
                 />
               </div>
             </div>
           </div>
-          <div className={styles.apiKey}>
-            <div className={styles.appIdParentDiv}>
-              <div className={styles.refreshedKey}>
+          <div className={Styles.apiKey}>
+            <div className={Styles.appIdParentDiv}>
+              <div className={Styles.refreshedKey}>
               Api Key: { showApiKey ? (
-                  <span className={styles.refreshedKey}>{apiKey}</span>
+                  <span className={Styles.refreshedKey}>{apiKey}</span>
                 ) : (
                   <React.Fragment>
-                      <span className={styles.refreshedKey}>&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;</span>
+                      <span className={Styles.refreshedKey}>&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;</span>
                   </React.Fragment>
                 )}
               </div>
-              <div className={styles.refreshedKeyIcon}>
+              <div className={Styles.refreshedKeyIcon}>
                 {showApiKey ? (
                   <React.Fragment>
                     <i
-                      className={styles.showAppId + ' icon mbc-icon visibility-hide'}
+                      className={Styles.showAppId + ' icon mbc-icon visibility-hide'}
                       onClick={() => { setShowApiKey(!showApiKey) }}
                       tooltip-data="Hide"
                     />
@@ -122,14 +122,14 @@ const ChronosAccessDetails = ({project}) => {
                 ) : (
                   <React.Fragment>
                     <i
-                      className={styles.showAppId + ' icon mbc-icon visibility-show ' + styles.visiblityshow}
+                      className={Styles.showAppId + ' icon mbc-icon visibility-show ' + Styles.visiblityshow}
                       onClick={() => { setShowApiKey(!showApiKey) }}
                       tooltip-data="Show"
                     />
                   </React.Fragment>
                 )}
                 <i
-                  className={styles.cpyStyle + ' icon mbc-icon copy'}
+                  className={Styles.cpyStyle + ' icon mbc-icon copy'}
                   onClick={copyApiKey}
                   tooltip-data="Copy"
                 />
@@ -139,20 +139,20 @@ const ChronosAccessDetails = ({project}) => {
         </div> }
         { !loading &&
         <div>
-          <div className={styles.apiKey}>
+          <div className={Styles.apiKey}>
             { apiKey ? 
-            <button className={styles.generateApiKeyBtn} onClick={() => setGenerateNewApiKey(true)}>
+            <button className={Styles.generateApiKeyBtn} onClick={() => setGenerateNewApiKey(true)}>
               Generate a New API Key
             </button> : 
-            <button className={styles.generateApiKeyBtn} onClick={() => generateApiKey()}>
+            <button className={Styles.generateApiKeyBtn} onClick={() => generateApiKey()}>
               Generate a API Key
             </button> }
-            { Envs.ENABLE_CHRONOS_ONEAPI && <p className={styles.oneApiLink}>or go to <a href="#">oneAPI</a></p> }
+            { Envs.ENABLE_CHRONOS_ONEAPI && <p className={Styles.oneApiLink}>or go to <a href="#">oneAPI</a></p> }
           </div>
         </div>
         }
         </div>
-        {/* <div className={styles.infoSection}>
+        {/* <div className={Styles.infoSection}>
           <i className="icon mbc-icon info" /> 
           <span>Some info here</span>
         </div> */}

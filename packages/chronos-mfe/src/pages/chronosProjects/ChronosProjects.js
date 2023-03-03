@@ -1,6 +1,6 @@
 import classNames from 'classnames';
 import React, { useEffect, useState } from 'react';
-import styles from './chronos-projects.scss';
+import Styles from './chronos-projects.scss';
 // import from DNA Container
 import Modal from 'dna-container/Modal';
 // App components
@@ -52,8 +52,8 @@ const ChronosProjects = ({ user }) => {
 
   return (
     <>
-      <div className={classNames(styles.mainPanel)}>
-        <div className={classNames(styles.wrapper)}>
+      <div className={classNames(Styles.mainPanel)}>
+        <div className={classNames(Styles.wrapper)}>
           {loading ? <Spinner /> : null}
           {(!loading && forecastProjects.length === 0) ? <FirstRun openCreateProjectModal={() => setCreateProject(true)} user={user} /> : null}
           {(!loading && forecastProjects.length !== 0) ?
@@ -62,9 +62,9 @@ const ChronosProjects = ({ user }) => {
                 <li>Chronos Forecasting</li>
               </Breadcrumb>
 
-              <div className={classNames(styles.caption)}>
+              <div className={classNames(Styles.caption)}>
                 <h3>My Forecasting Projects</h3>
-                <div className={classNames(styles.listHeader)}>
+                <div className={classNames(Styles.listHeader)}>
                   {forecastProjects?.length ? (
                     <React.Fragment>
                       <button
@@ -80,10 +80,10 @@ const ChronosProjects = ({ user }) => {
                 </div>
               </div>
 
-              <div className={styles.allProjectContent}>
-                <div className={styles.newProjectCard} onClick={() => setCreateProject(true)}>
-                  <div className={styles.addicon}> &nbsp; </div>
-                  <label className={styles.addlabel}>Create new project</label>
+              <div className={Styles.allProjectContent}>
+                <div className={Styles.newProjectCard} onClick={() => setCreateProject(true)}>
+                  <div className={Styles.addicon}> &nbsp; </div>
+                  <label className={Styles.addlabel}>Create new project</label>
                 </div>
                 {forecastProjects?.map((project, index) => {
                   return (

@@ -1,6 +1,6 @@
 import classnames from 'classnames';
 import React, { useState } from 'react';
-import styles from './forecast-run-row.scss';
+import Styles from './forecast-run-row.scss';
 // import from DNA Container
 import CircularProgressBar from '../../circularProgressBar/CircularProgressBar';
 import ContextMenu from '../../contextMenu/ContextMenu';
@@ -8,7 +8,7 @@ import { regionalDateAndTimeConversionSolution } from '../../../utilities/utils'
 import Notification from '../../../common/modules/uilab/js/src/notification';
 import { Envs } from '../../../utilities/envs';
 
-const classNames = classnames.bind(styles);
+const classNames = classnames.bind(Styles);
 
 const ForecastRunRow = (props) => {
   const item = props.item;
@@ -57,19 +57,19 @@ const ForecastRunRow = (props) => {
       <tr
         key={item.id}
         onClick={showContextMenu ? undefined : onRowClick}
-        className={classNames('data-row', styles.dataRow)}
+        className={classNames('data-row', Styles.dataRow)}
       >
         <td>
-          {/* { item.new && <span className={styles.badge}>New</span> }  */}
+          {/* { item.new && <span className={Styles.badge}>New</span> }  */}
           { item.comment === '' && <span>{item.runName}</span> }
           { item.comment !== '' && <span tooltip-data={item.comment}>{item.runName}</span> }
         </td>
         <td>
-          {item.state.result_state === 'SUCCESS' && <i className={classNames('icon mbc-icon check circle', styles.checkCircle)} tooltip-data={item.state.result_state} />}
-          {item.state.result_state === 'CANCELED' && <i className={classNames('icon mbc-icon close circle', styles.closeCircle)}  onClick={(e) => handleStatusClick(e, item)} tooltip-data={'Click to View the Error'} />}
-          {item.state.result_state === 'FAILED' && <i className={classNames('icon mbc-icon close circle', styles.closeCircle)}  onClick={(e) => handleStatusClick(e, item)} tooltip-data={'Click to View the Error'} />}
-          {item.state.result_state === 'TIMEDOUT' && <i className={classNames('icon mbc-icon close circle', styles.closeCircle)}  onClick={(e) => handleStatusClick(e, item)} tooltip-data={'Click to View the Error'} />}
-          {item.state.result_state === 'WARNINGS' && <i className={classNames('icon mbc-icon alert circle', styles.alertCircle)}  onClick={(e) => handleStatusClick(e, item)} tooltip-data={'Click to View the Warning'} />}
+          {item.state.result_state === 'SUCCESS' && <i className={classNames('icon mbc-icon check circle', Styles.checkCircle)} tooltip-data={item.state.result_state} />}
+          {item.state.result_state === 'CANCELED' && <i className={classNames('icon mbc-icon close circle', Styles.closeCircle)}  onClick={(e) => handleStatusClick(e, item)} tooltip-data={'Click to View the Error'} />}
+          {item.state.result_state === 'FAILED' && <i className={classNames('icon mbc-icon close circle', Styles.closeCircle)}  onClick={(e) => handleStatusClick(e, item)} tooltip-data={'Click to View the Error'} />}
+          {item.state.result_state === 'TIMEDOUT' && <i className={classNames('icon mbc-icon close circle', Styles.closeCircle)}  onClick={(e) => handleStatusClick(e, item)} tooltip-data={'Click to View the Error'} />}
+          {item.state.result_state === 'WARNINGS' && <i className={classNames('icon mbc-icon alert circle', Styles.alertCircle)}  onClick={(e) => handleStatusClick(e, item)} tooltip-data={'Click to View the Warning'} />}
           {item.state.result_state === null && <div tooltip-data={'IN PROGRESS'} ><CircularProgressBar /></div>}
         </td>
         <td>

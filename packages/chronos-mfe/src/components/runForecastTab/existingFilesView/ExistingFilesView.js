@@ -1,7 +1,7 @@
 import classNames from 'classnames';
 import React, { useState, useEffect } from 'react';
 import { useFormContext } from 'react-hook-form';
-import styles from './existing-files-view.scss';
+import Styles from './existing-files-view.scss';
 // Container components
 import SelectBox from 'dna-container/SelectBox';
 import { regionalDateAndTimeConversionSolution } from '../../../utilities/utils';
@@ -42,8 +42,8 @@ const ExistingFilesView = ({projectId, setShowExistingFiles, setInputFile, setIs
   }
   
   return (
-    <div className={styles.existingFilesContainer}>
-      <div className={styles.flexLayout}>
+    <div className={Styles.existingFilesContainer}>
+      <div className={Styles.flexLayout}>
         {
           savedFiles.length !== 0 ? 
           <div className={classNames(`input-field-group include-error ${error ? 'error' : ''}`)}>
@@ -77,13 +77,13 @@ const ExistingFilesView = ({projectId, setShowExistingFiles, setInputFile, setIs
         selectedInputFile?.path !== undefined &&
           <>
             <p>{selectedInputFile?.name}</p>
-            <div className={styles.flexLayout}>
-              <div className={styles.fullWidth}>
-                <div className={styles.uploadInfo}>
+            <div className={Styles.flexLayout}>
+              <div className={Styles.fullWidth}>
+                <div className={Styles.uploadInfo}>
                   <span>Uploaded On</span>
                   <span>{regionalDateAndTimeConversionSolution(selectedInputFile?.createdOn)}</span>
                 </div>
-                <div className={styles.uploadInfo}>
+                <div className={Styles.uploadInfo}>
                   <span>Uploaded By</span>
                   <span>{selectedInputFile?.createdBy}</span>
                 </div>
@@ -94,7 +94,7 @@ const ExistingFilesView = ({projectId, setShowExistingFiles, setInputFile, setIs
       { savedFiles.length !== 0 && 
         <>
           <hr />
-          <div className={styles.btnContinue}>
+          <div className={Styles.btnContinue}>
             <button
               className="btn btn-primary"
               type="submit"
