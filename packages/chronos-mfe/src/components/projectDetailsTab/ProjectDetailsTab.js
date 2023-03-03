@@ -1,6 +1,6 @@
 import classNames from 'classnames';
 import React, { useState, useEffect } from 'react';
-import styles from './project-details-tab.scss';
+import Styles from './project-details-tab.scss';
 // import from DNA Container
 import TeamMemberListItem from 'dna-container/TeamMemberListItem';
 import Modal from 'dna-container/Modal';
@@ -38,16 +38,16 @@ const ProjectDetailsTab = ({project}) => {
 
   return (
     <React.Fragment>
-      <div className={styles.content}>
-        <div className={classNames(styles.contextMenu)}>
-          <span className={classNames('trigger', styles.contextMenuTrigger)} onClick={() => setEditProject(true)}>
+      <div className={Styles.content}>
+        <div className={classNames(Styles.contextMenu)}>
+          <span className={classNames('trigger', Styles.contextMenuTrigger)} onClick={() => setEditProject(true)}>
             <i className="icon mbc-icon edit context" />
           </span>
         </div>
         <h3 id="productName">Project Details</h3>
-        <div className={styles.firstPanel}>
-          <div className={styles.formWrapper}>
-            <div className={classNames(styles.flexLayout, styles.threeColumn)}>
+        <div className={Styles.firstPanel}>
+          <div className={Styles.formWrapper}>
+            <div className={classNames(Styles.flexLayout, Styles.threeColumn)}>
               <div id="productDescription">
                 <label className="input-label summary">Project Name</label>
                 <br />                    
@@ -67,14 +67,14 @@ const ProjectDetailsTab = ({project}) => {
           </div>
         </div>
       </div>
-      <div className={styles.content}>
+      <div className={Styles.content}>
         <h3 id="productName">Collaborators</h3>
-        <div className={styles.firstPanel}>
-        <div className={styles.collabAvatar}>
-          <div className={styles.teamListWrapper}>
-            {teamMembers.length === 0 ? <p className={styles.noCollaborator}>No Collaborators</p> : null}
+        <div className={Styles.firstPanel}>
+        <div className={Styles.collabAvatar}>
+          <div className={Styles.teamListWrapper}>
+            {teamMembers.length === 0 ? <p className={Styles.noCollaborator}>No Collaborators</p> : null}
             {teamMembers.length !== 0 ?
-              <div className={styles.membersList}>
+              <div className={Styles.membersList}>
                 {teamMembersList}
               </div> : null
             }
@@ -82,7 +82,7 @@ const ProjectDetailsTab = ({project}) => {
         </div>
         </div>
       </div>
-      <div className={styles.content}>
+      <div className={Styles.content}>
         <h3 id="productName">Access Details for Chronos Forecasting</h3>
         <ChronosAccessDetails />
       </div>
