@@ -172,8 +172,7 @@ export default class Tags extends React.Component<ITagsFieldProps, ITagsFiledSta
         )}
       >
         <label htmlFor="tag" className="input-label">
-          {this.props.title}
-          {this.props.isMandatory ? <sup>*</sup> : ''}
+          {this.props.title}&nbsp;{this.props.isMandatory ? <sup>*</sup> : ''}
         </label>
         <div
           className={classNames(
