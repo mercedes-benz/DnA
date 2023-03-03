@@ -1,7 +1,7 @@
 import classNames from 'classnames';
 import React, { createRef, useEffect, useRef, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import styles from './chronos-project-details.scss';
+import Styles from './chronos-project-details.scss';
 // App components
 import Tabs from '../../common/modules/uilab/js/src/tabs';
 import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indicator';
@@ -67,12 +67,12 @@ const ChronosProjectDetails = ({ user }) => {
 
   return (
     <>
-      <div className={classNames(styles.mainPanel)}>
+      <div className={classNames(Styles.mainPanel)}>
         <Breadcrumb>
           <li><Link to='/'>Chronos Forecasting</Link></li>
           <li>{project?.name}</li>
         </Breadcrumb>
-        <h3 className={classNames(styles.title)}>{project?.name}</h3>
+        <h3 className={classNames(Styles.title)}>{project?.name}</h3>
         <div id="data-product-tabs" className="tabs-panel">
           <div className="tabs-wrapper">
             <nav>
@@ -126,7 +126,7 @@ const ChronosProjectDetails = ({ user }) => {
           </div>
         </div>
       </div>
-      <div className={styles.mandatoryInfo}>* mandatory fields</div>
+      <div className={Styles.mandatoryInfo}>* mandatory fields</div>
     </>
   );
 };
