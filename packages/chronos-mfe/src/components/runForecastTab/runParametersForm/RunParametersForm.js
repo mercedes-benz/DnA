@@ -1,7 +1,7 @@
 import classNames from 'classnames';
 import React, { useState, useEffect } from 'react';
 import { useFormContext } from 'react-hook-form';
-import styles from './run-parameters-form.scss';
+import Styles from './run-parameters-form.scss';
 // Container components
 import SelectBox from 'dna-container/SelectBox';
 import Tooltip from '../../../common/modules/uilab/js/src/tooltip';
@@ -71,10 +71,10 @@ const RunParametersForm = () => {
   }, [expertView]);
   
   return (
-    <div className={styles.wrapper}>
-      <div className={styles.firstPanel}>
+    <div className={Styles.wrapper}>
+      <div className={Styles.firstPanel}>
         <h3>Run Parameters</h3>
-      <div className={styles.infoIcon}>
+      <div className={Styles.infoIcon}>
         <label className="switch">
           <span className="label" style={{ marginRight: '5px' }}>
             Enable Expert View
@@ -91,8 +91,8 @@ const RunParametersForm = () => {
           </span>
         </label>
       </div>
-      <div className={styles.formWrapper}>
-        <div className={styles.flexLayout}>
+      <div className={Styles.formWrapper}>
+        <div className={Styles.flexLayout}>
           <div className={classNames('input-field-group include-error', errors.runName ? 'error' : '')}>
             <label id="runNameLabel" htmlFor="runNameInput" className="input-label">
               Run Name
@@ -108,7 +108,7 @@ const RunParametersForm = () => {
             />
             <span className={classNames('error-message')}>{errors.runName?.type === 'pattern' && 'Run names can consist only of lowercase letters, numbers, dots ( . ), and hyphens ( - ).'}</span>
           </div>
-          <div className={styles.configurationContainer}>
+          <div className={Styles.configurationContainer}>
             <div
               className={classNames(
                 `input-field-group include-error ${errors?.configurationFile ? 'error' : ''}`,
@@ -148,12 +148,12 @@ const RunParametersForm = () => {
             </div>
           </div>
         </div>
-        <div className={styles.flexLayout}>
-          <div className={styles.frequencyContainer}>
+        <div className={Styles.flexLayout}>
+          <div className={Styles.frequencyContainer}>
             <div
               className={classNames(
                 `input-field-group include-error ${errors?.frequency ? 'error' : ''}`,
-                styles.tooltipIcon,
+                Styles.tooltipIcon,
               )}
             >
               <label id="frequencyLabel" htmlFor="frequencyField" className="input-label">
@@ -183,8 +183,8 @@ const RunParametersForm = () => {
               <span className={classNames('error-message')}>{errors?.frequency?.message}</span>
             </div>
           </div>
-          <div className={styles.forecastHorizonContainer}>
-            <div className={classNames('input-field-group include-error', errors.forecastHorizon ? 'error' : '', styles.tooltipIcon)}>
+          <div className={Styles.forecastHorizonContainer}>
+            <div className={classNames('input-field-group include-error', errors.forecastHorizon ? 'error' : '', Styles.tooltipIcon)}>
               <label id="forecastHorizonLabel" htmlFor="forecastHorizonField" className="input-label">
                 Forecast Horizon <sup>*</sup>
                 <i className="icon mbc-icon info" tooltip-data={forecastHorizonTooltipContent} />
@@ -205,12 +205,12 @@ const RunParametersForm = () => {
         </div>
           {
             expertView ? 
-            <div className={styles.flexLayout}>
-            <div className={styles.hierarchyContainer}>
+            <div className={Styles.flexLayout}>
+            <div className={Styles.hierarchyContainer}>
               <div
                 className={classNames(
                   `input-field-group`,
-                  styles.tooltipIcon
+                  Styles.tooltipIcon
                 )}
               >
                 <label id="hierarchyLabel" htmlFor="hierarchyField" className="input-label">
@@ -248,7 +248,7 @@ const RunParametersForm = () => {
                 </div>
               </div>
             </div>
-            <div className={styles.runOnPowerfulMachinesContainer}>
+            <div className={Styles.runOnPowerfulMachinesContainer}>
             <div
               className={classNames(
                 `input-field-group`

@@ -1,9 +1,9 @@
 import classnames from 'classnames';
 import React, { useState, useEffect } from 'react';
-import styles from './context-menu.scss';
+import Styles from './context-menu.scss';
 import Tooltip from '../../common/modules/uilab/js/src/tooltip';
 
-const classNames = classnames.bind(styles);
+const classNames = classnames.bind(Styles);
 let isTouch = false;
 
 const ContextMenu = (props) => {
@@ -91,9 +91,9 @@ const ContextMenu = (props) => {
   };
 
   return (
-    <div id={'card-' + props.id} className={styles.actionMenus}>
-      <div className={classNames(styles.contextMenu, showContextMenu ? styles.open : '')}>
-        <span onClick={toggleContextMenu} className={classNames('trigger', styles.contextMenuTrigger)} tooltip-data="More Action">
+    <div id={'card-' + props.id} className={Styles.actionMenus}>
+      <div className={classNames(Styles.contextMenu, showContextMenu ? Styles.open : '')}>
+        <span onClick={toggleContextMenu} className={classNames('trigger', Styles.contextMenuTrigger)} tooltip-data="More Action">
           <i className="icon mbc-icon listItem context" />
         </span>
         <div
@@ -101,12 +101,12 @@ const ContextMenu = (props) => {
             top: contextMenuOffsetTop + 'px',
             left: contextMenuOffsetLeft + 'px',
           }}
-          className={classNames('contextMenuWrapper', showContextMenu ? styles.showMenu : 'hide')}
+          className={classNames('contextMenuWrapper', showContextMenu ? Styles.showMenu : 'hide')}
         >
           <ul className="contextList">
             {
               props.items.length > 0 && props.items.map((item) => (
-                <li key={item.title} className={classNames('contextListItem', item.disable && styles.disableLink)} onClick={item.onClickFn}>
+                <li key={item.title} className={classNames('contextListItem', item.disable && Styles.disableLink)} onClick={item.onClickFn}>
                   <span>{item.title}</span>
                 </li>
               ))
