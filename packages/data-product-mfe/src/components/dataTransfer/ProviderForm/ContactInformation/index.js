@@ -495,7 +495,7 @@ const ContactInformation = ({ onSave, divisions, setSubDivisions, subDivisions, 
                   render={({ field }) => (
                     <TypeAheadBox
                       label={'Corresponding Compliance Officer / Responsible (LCO/LCR)'}
-                      placeholder={'Select your (LCO/LCR)'}
+                      placeholder={'Search for country, department etc.'}
                       defaultValue={complianceOfficer}
                       list={complianceOfficerList.records}
                       setSelected={(selectedTags) => {
