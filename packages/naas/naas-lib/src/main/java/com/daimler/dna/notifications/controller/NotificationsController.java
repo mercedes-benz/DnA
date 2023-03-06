@@ -57,9 +57,11 @@ import com.daimler.data.dto.userinfo.UsersCollection;
 import com.daimler.dna.notifications.api.NotificationsApi;
 import com.daimler.dna.notifications.common.dna.client.DnaNotificationPreferenceClient;
 import com.daimler.dna.notifications.common.event.config.GenericEventRecord;
+import com.daimler.dna.notifications.common.user.UserStore;
 import com.daimler.dna.notifications.controller.exceptions.GenericMessage;
 import com.daimler.dna.notifications.controller.exceptions.MessageDescription;
 import com.daimler.dna.notifications.core.service.NotificationsService;
+import com.daimler.dna.notifications.dto.CreatedByVO;
 import com.daimler.dna.notifications.dto.MarkedSelection;
 //import com.daimler.dna.notifications.dto.EventCategoriesCollectionVO;
 import com.daimler.dna.notifications.dto.NotificationCollectionVO;
@@ -87,6 +89,9 @@ public class NotificationsController implements NotificationsApi {
 	
 	@Autowired
 	private DnaNotificationPreferenceClient dnaClient;
+	
+	@Autowired
+	private UserStore userStore;
 
 	@ApiOperation(value = "Get all notifications with filters.", nickname = "getAll", notes = "Get all notifications based on filter values", response = NotificationCollectionVO.class, tags = {
 			"notifications", })
@@ -116,8 +121,22 @@ public class NotificationsController implements NotificationsApi {
 				offset = 0;
 			if (limit == null)
 				limit = 0;
+			CreatedByVO currentUser = this.userStore.getVO();
+			String currentUserId = currentUser != null ? currentUser.getId() : "";
+			NotificationCollectionVO notAuthorizedCollection = new NotificationCollectionVO();			
 			NotificationCollectionVO collectResult = notificationService.getAll(userId, eventCategory, readType,
 					searchTerm, offset, limit);
+			if (currentUserId.toLowerCase() != userId.toLowerCase()) {
+				List<MessageDescription> notAuthorizedMsgs = new ArrayList<>();
+				MessageDescription notAuthorizedMsg = new MessageDescription();
+				notAuthorizedMsg.setMessage("Not authorized to view all notifications. Only current user's notifications can be viewed.");
+				notAuthorizedMsgs.add(notAuthorizedMsg);
+				notAuthorizedCollection.setErrors(notAuthorizedMsgs);
+				notAuthorizedCollection.setCategories(collectResult.getCategories());
+				notAuthorizedCollection.setRecords(null);
+				notAuthorizedCollection.setTotalRecordCount(0);
+				return new ResponseEntity<>(notAuthorizedCollection, HttpStatus.FORBIDDEN);
+			}
 			List<NotificationVO> list = collectResult.getRecords();
 			DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss");
 			Comparator<NotificationVO> compareByDateTime = (NotificationVO r1, NotificationVO r2) -> LocalDateTime
