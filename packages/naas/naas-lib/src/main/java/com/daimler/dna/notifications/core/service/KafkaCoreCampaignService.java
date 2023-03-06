@@ -133,6 +133,7 @@ public class KafkaCoreCampaignService {
 						emailNotificationPreferenceFlag =  preferenceVO.getDataComplianceNotificationPref().isEnableEmailNotifications();
 					}
 					if(message.getEventType().contains(CHRONOS_NOTIFICATION_KEY)) {
+						LOGGER.info("Chronos message details " + message.getMessageDetails());
 						appNotificationPreferenceFlag = preferenceVO.getChronosNotificationPref().isEnableAppNotifications();
 						emailNotificationPreferenceFlag =  preferenceVO.getChronosNotificationPref().isEnableEmailNotifications();
 					}
@@ -165,6 +166,7 @@ public class KafkaCoreCampaignService {
 					}
 					if(message.getEventType().contains(CHRONOS_NOTIFICATION_KEY)) {						
 						//chronos email notification
+						LOGGER.info("Chronos email details inside format email block " + message.getMessageDetails());
 						String forecastURL = dnaBaseUri + CHRONOS_URI_PATH + message.getResourceId();
 						if(!ObjectUtils.isEmpty(message.getChangeLogs())) {
 							for (ChangeLogVO changeLog : message.getChangeLogs()) {
@@ -175,6 +177,7 @@ public class KafkaCoreCampaignService {
 								
 								emailBody += "<p> Please use " + " <a href=\"" + forecastURL +"\">link</a> to access the chronos forecast project. <p/> <br/>";
 								if(!user.equalsIgnoreCase(publishingUser)) {
+									LOGGER.info("Email Body " + emailBody);
 									emailBody +=  message.getMessageDetails() + "<br/>";
 								}
 							
