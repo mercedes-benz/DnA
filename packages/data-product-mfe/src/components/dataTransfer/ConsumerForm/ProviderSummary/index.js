@@ -54,7 +54,7 @@ const ProviderSummary = ({ onSave, providerFormIsDraft }) => {
                 {regionalDateFormat(providerInformation.dateOfDataTransfer)}
               </div>
               <div>
-                <label className="input-label summary">Name</label>
+                <label className="input-label summary">Point of contact for data transfer</label>
                 <br />
                 {providerInformation.name?.firstName} {providerInformation.name?.lastName}
               </div>
