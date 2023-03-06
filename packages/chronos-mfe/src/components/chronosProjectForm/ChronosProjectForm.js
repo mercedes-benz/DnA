@@ -55,9 +55,10 @@ const ChronosProjectForm = ({edit, project, onSave}) => {
     }).catch(error => {
       ProgressIndicator.hide();
       Notification.show(
-        error?.response?.data?.response?.errors?.[0]?.message || error?.response?.data?.response?.warnings?.[0]?.message || 'Error while creating forecast project',
+        error?.response?.data?.response?.errors[0]?.message || error?.response?.data?.response?.warnings[0]?.message || 'Error while creating forecast project',
         'alert',
       );
+      onSave();
     });
   };
   const handleEditProject = () => {
