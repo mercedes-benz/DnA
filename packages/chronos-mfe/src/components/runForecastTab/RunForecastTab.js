@@ -41,7 +41,7 @@ const RunForecastTab = ({ onRunClick }) => {
     formData.append('hierarchy', data.hierarchy === undefined ? '' : data.hierarchy);
     formData.append('runOnPowerfulMachines', data.runOnPowerfulMachines === undefined ? false : data.runOnPowerfulMachines);
     formData.append('comment', data.comment);
-    formData.append('saveRequestPart', data.saveRequestPart.toString());
+    formData.append('saveRequestPart', data.saveRequestPart === undefined ? 'false' : data.saveRequestPart + '');
     formData.append('savedInputPath', data.savedInputPath === undefined ? null : data.savedInputPath);
 
     ProgressIndicator.show();
