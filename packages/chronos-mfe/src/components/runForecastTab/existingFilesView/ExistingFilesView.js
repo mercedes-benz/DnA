@@ -6,12 +6,14 @@ import Styles from './existing-files-view.scss';
 import SelectBox from 'dna-container/SelectBox';
 import { regionalDateAndTimeConversionSolution } from '../../../utilities/utils';
 import { chronosApi } from '../../../apis/chronos.api';
+import Spinner from '../../spinner/Spinner';
 
 
 const ExistingFilesView = ({projectId, setShowExistingFiles, setInputFile, setIsExistingInputFile}) => {
   const {register} = useFormContext();
   const [savedFiles, setSavedFiles] = useState([]);
   const [selectedInputFile, setSelectedInputFile] = useState();
+  const [loading, setLoading] = useState(true);
   const [error] = useState(false);
 
   useEffect(() => {
@@ -26,11 +28,13 @@ const ExistingFilesView = ({projectId, setShowExistingFiles, setInputFile, setIs
       }
       // setSavedFiles(savedInputs);
       SelectBox.defaultSetup();
+      setLoading(false);
     }).catch(error => {
       Notification.show(
         error?.response?.data?.response?.errors?.[0]?.message || error?.response?.data?.response?.warnings?.[0]?.message || 'Error while fetching input files',
         'alert',
       );
+      setLoading(false);
     });
     //eslint-disable-next-line
   }, [projectId]);
@@ -44,8 +48,10 @@ const ExistingFilesView = ({projectId, setShowExistingFiles, setInputFile, setIs
   return (
     <div className={Styles.existingFilesContainer}>
       <div className={Styles.flexLayout}>
+        {!loading && <Spinner />}
+        {!loading && savedFiles.length === 0 && <span>No saved input files</span>}
         {
-          savedFiles.length !== 0 ? 
+          !loading && savedFiles.length !== 0 ? 
           <div className={classNames(`input-field-group include-error ${error ? 'error' : ''}`)}>
             <label id="savedInputPathLabel" htmlFor="existingFilenField" className="input-label">
               Input File <sup>*</sup>
@@ -72,7 +78,6 @@ const ExistingFilesView = ({projectId, setShowExistingFiles, setInputFile, setIs
           </div> : null
         }
       </div>
-      {savedFiles.length === 0 && <span>No saved input files</span>}
       {
         selectedInputFile?.path !== undefined &&
           <>
