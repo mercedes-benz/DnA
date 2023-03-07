@@ -1,4 +1,4 @@
-# Default values for husura.
+# Default values for hasura.
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
@@ -11,9 +11,9 @@ image:
   tag: "v2.16.1"
 
 imagePullSecrets: []
-nameOverride: "husura"
-fullnameOverride: "husura"
-namespace: "husura"
+nameOverride: "hasura"
+fullnameOverride: "hasura"
+namespace: "hasura"
 
 #Add new env as array value with name/value field. Keep one tab indentation.
 envs:
