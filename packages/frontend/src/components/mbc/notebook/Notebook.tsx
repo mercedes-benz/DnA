@@ -79,7 +79,7 @@ export default class Notebook extends React.Component<INotebookProps, INotebookS
           ''
         ) : (
           <React.Fragment>
-            <Caption title="Jupyter Notebook Workspace" disableTitle={true} />
+            {!this.state.fsNeed && <Caption title="Jupyter Notebook Workspace" disableTitle={true} />}
             <div className={Styles.nbheader}>
               <div className={Styles.headerdetails}>
                 <img src={Envs.DNA_BRAND_LOGO_URL} className={Styles.Logo} />
