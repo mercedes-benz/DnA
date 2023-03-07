@@ -261,7 +261,7 @@ const ContactInformation = ({
                     <TeamSearch
                       label={
                         <>
-                          Information Owner <sup>*</sup>
+                          Data responsible IO and/ or Business Owner for application <sup>*</sup>
                         </>
                       }
                       fieldMode={true}
@@ -304,7 +304,7 @@ const ContactInformation = ({
                       <TeamSearch
                         label={
                           <>
-                            Information Owner <sup>*</sup>
+                            Data responsible IO and/or Business Owner for application <sup>*</sup>
                           </>
                         }
                         fieldMode={true}
@@ -333,7 +333,7 @@ const ContactInformation = ({
                     <TeamSearch
                       label={
                         <>
-                          Your Name <sup>*</sup>
+                          Point of contact for data transfer e.g. Data Steward <sup>*</sup>
                         </>
                       }
                       fieldMode={true}
@@ -499,7 +499,7 @@ const ContactInformation = ({
                   render={({ field }) => (
                     <TypeAheadBox
                       label={'Corresponding Compliance Officer / Responsible (LCO/LCR)'}
-                      placeholder={'Select your (LCO/LCR)'}
+                      placeholder={'Search for country, department etc.'}
                       defaultValue={complianceOfficer}
                       list={complianceOfficerList.records}
                       setSelected={(selectedTags) => {

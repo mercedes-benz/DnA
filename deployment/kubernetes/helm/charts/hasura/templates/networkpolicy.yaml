@@ -1,0 +1,43 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "hasura.fullname" . }}
+  namespace: {{ .Values.namespace }}
+  labels:
+    {{- include "hasura.labels" . | nindent 4 }}  
+spec:
+  ingress:
+    - ports:
+        - port: {{ .Values.service.port }}
+          protocol: TCP
+  podSelector:
+    matchLabels:
+      {{- include "hasura.selectorLabels" . | nindent 6 }}
+  policyTypes:
+    - Ingress
+---
+kind: NetworkPolicy
+apiVersion: networking.k8s.io/v1
+metadata:
+  name: allow-acme-http01-solver
+  namespace: {{ .Values.namespace }}
+spec:
+  podSelector:
+    matchLabels:
+      acme.cert-manager.io/http01-solver: "true"
+  ingress:
+    - ports:
+        - protocol: TCP
+          port: 8089
+    - from:
+        - podSelector:
+            matchLabels:
+              app: traefik
+          namespaceSelector:
+            matchExpressions:
+              - key: name
+                operator: In
+                values:
+                  - ingress
+  policyTypes:
+    - Ingress
