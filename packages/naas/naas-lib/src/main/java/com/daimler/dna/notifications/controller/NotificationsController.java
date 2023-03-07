@@ -123,20 +123,20 @@ public class NotificationsController implements NotificationsApi {
 				limit = 0;
 			CreatedByVO currentUser = this.userStore.getVO();
 			String currentUserId = currentUser != null ? currentUser.getId() : "";
-			NotificationCollectionVO notAuthorizedCollection = new NotificationCollectionVO();			
-			NotificationCollectionVO collectResult = notificationService.getAll(userId, eventCategory, readType,
-					searchTerm, offset, limit);
+			NotificationCollectionVO notAuthorizedCollection = new NotificationCollectionVO();						
 			if (currentUserId.toLowerCase() != userId.toLowerCase()) {
 				List<MessageDescription> notAuthorizedMsgs = new ArrayList<>();
 				MessageDescription notAuthorizedMsg = new MessageDescription();
 				notAuthorizedMsg.setMessage("Not authorized to view all notifications. Only current user's notifications can be viewed.");
 				notAuthorizedMsgs.add(notAuthorizedMsg);
 				notAuthorizedCollection.setErrors(notAuthorizedMsgs);
-				notAuthorizedCollection.setCategories(collectResult.getCategories());
-				notAuthorizedCollection.setRecords(null);
+				notAuthorizedCollection.setCategories(new ArrayList<>());
+				notAuthorizedCollection.setRecords(new ArrayList<>());
 				notAuthorizedCollection.setTotalRecordCount(0);
 				return new ResponseEntity<>(notAuthorizedCollection, HttpStatus.FORBIDDEN);
 			}
+			NotificationCollectionVO collectResult = notificationService.getAll(userId, eventCategory, readType,
+					searchTerm, offset, limit);
 			List<NotificationVO> list = collectResult.getRecords();
 			DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss");
 			Comparator<NotificationVO> compareByDateTime = (NotificationVO r1, NotificationVO r2) -> LocalDateTime

@@ -27,9 +27,11 @@
 
 package com.daimler.data.controller;
 
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+
+import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -42,10 +44,12 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.daimler.data.api.marketingCommunicationChannel.MarketingCommunicationChannelsApi;
 import com.daimler.data.controller.exceptions.GenericMessage;
+import com.daimler.data.controller.exceptions.MessageDescription;
 import com.daimler.data.dto.marketingCommunicationChannel.MarketingCommunicationChannelCollection;
 import com.daimler.data.dto.marketingCommunicationChannel.MarketingCommunicationChannelRequestVO;
 import com.daimler.data.dto.marketingCommunicationChannel.MarketingCommunicationChannelVO;
 import com.daimler.data.service.marketingCommunicationChannel.MarketingCommunicationChannelService;
+import com.daimler.data.dto.marketingCommunicationChannel.MarketingCommunicationChannelResponseVO;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -135,6 +139,50 @@ public class MarketingCommunicationChannelController implements MarketingCommuni
 			return new ResponseEntity<>(marketingCommunicationChannelCollection, HttpStatus.NO_CONTENT);
 		}
 	
+	}
+
+	@ApiOperation(value = "Update the marketingCommunicationChannel", nickname = "update", notes = "Update the marketingCommunicationChannel", response = MarketingCommunicationChannelResponseVO.class, tags={ "marketingCommunicationChannels", })
+    @ApiResponses(value = { 
+        @ApiResponse(code = 200, message = "Successfully updated.", response = MarketingCommunicationChannelResponseVO.class),
+        @ApiResponse(code = 400, message = "Bad Request"),
+        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+        @ApiResponse(code = 403, message = "Request is not authorized."),
+        @ApiResponse(code = 405, message = "Method not allowed"),
+        @ApiResponse(code = 500, message = "Internal error") })
+    @RequestMapping(value = "/marketingCommunicationChannels",
+        produces = { "application/json" }, 
+        consumes = { "application/json" },
+        method = RequestMethod.PUT)
+	public ResponseEntity<MarketingCommunicationChannelResponseVO> update(
+			@Valid MarketingCommunicationChannelRequestVO marketingCommunicationChannelRequestVO) {
+		MarketingCommunicationChannelVO marketingCommunicationChannelVO = marketingCommunicationChannelRequestVO.getData();
+		try {
+			return marketingCommunicationChannelService.updateMarketingCommunicationChannel(marketingCommunicationChannelVO);
+		}catch(Exception e) {
+			log.error("MarketingCommunicationChannel with id {} cannot be edited. Failed due to internal error {} ",
+					marketingCommunicationChannelVO.getId(), e.getMessage());
+			List<MessageDescription> messages = new ArrayList<>();
+			MessageDescription message = new MessageDescription();
+			message.setMessage("Failed to update due to internal error. " + e.getMessage());
+			messages.add(message);
+			MarketingCommunicationChannelResponseVO response = new MarketingCommunicationChannelResponseVO();
+			response.setErrors(messages);
+			return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+		}		
+	}
+
+	@Override
+	public ResponseEntity<GenericMessage> delete(String id) {
+		try {
+			return marketingCommunicationChannelService.deleteMarketingCommunicationChannel(id);
+		} catch (Exception e) {
+			log.error("Failed while delete MarketingCommunicationChannel {} with exception {}", id, e.getMessage());
+			MessageDescription exceptionMsg = new MessageDescription(
+					"Failed to delete due to internal error. " + e.getMessage());
+			GenericMessage errorMessage = new GenericMessage();
+			errorMessage.addErrors(exceptionMsg);
+			return new ResponseEntity<>(errorMessage, HttpStatus.INTERNAL_SERVER_ERROR);
+		}
 	}
 
 }
