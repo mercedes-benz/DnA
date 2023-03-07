@@ -340,7 +340,7 @@ const Summary = ({ history }) => {
                     <div className={Styles.firstPanel}>
                       <div className={Styles.flexLayout}>
                         <div>
-                          <h5>Members</h5>
+                          <h5>Point of contact (data receiving side)</h5>
                         </div>
                       </div>
                       {receivingMembers}

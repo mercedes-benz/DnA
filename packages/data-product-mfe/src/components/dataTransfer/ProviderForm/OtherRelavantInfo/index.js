@@ -222,7 +222,7 @@ const OtherRelevantInfo = ({ onSave, onPublish, history, user, isDataProduct }) 
     setValue('notifyUsers', true);
     !watch('providerFormSubmitted') && setValue('providerFormSubmitted', true);
     setValue('users', teamMembers);
-    onSave(watch(), () => {
+    onPublish(watch(), () => {
       setShowAddConsumersModal(false);
       history.push('/datasharing');
     });
@@ -240,13 +240,15 @@ const OtherRelevantInfo = ({ onSave, onPublish, history, user, isDataProduct }) 
             onClick={handleSubmit((data) => {
               const isPublished = watch('publish');
               setValue('notifyUsers', isPublished ? true : false);
-              onSave(watch());
-              reset(data, {
-                keepDirty: false,
+              onSave(watch(),()=>{
+                  reset(data, {
+                  keepDirty: false,
+                });
               });
+              
             })}
           >
-            Save & Next
+            Save
           </button>
           {isDataProduct ? (
             <button
@@ -276,11 +278,11 @@ const OtherRelevantInfo = ({ onSave, onPublish, history, user, isDataProduct }) 
                 setValue('providerFormSubmitted', true);
                 onPublish(watch(),()=>{
                   setShowAddConsumersModal(true);
-                  reset(data, {
+                  
+                });
+                reset(data, {
                     keepDirty: false,
                   });
-                });
-                
               })}
             >
               Save and Forward Minimum Information
