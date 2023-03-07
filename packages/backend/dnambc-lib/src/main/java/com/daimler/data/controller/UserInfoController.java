@@ -34,6 +34,8 @@ import java.util.NoSuchElementException;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
+import com.daimler.data.client.teamsApi.TeamsApiClient;
+import com.daimler.data.client.teamsApi.TeamsApiResponseWrapperDto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -87,6 +89,9 @@ public class UserInfoController implements UsersApi {
 	@Autowired
 	private UserStore userStore;
 
+	@Autowired
+	private TeamsApiClient teamsApiClient;
+
 	@Override
 	@ApiOperation(value = "Get all available users.", nickname = "getAll", notes = "Get all users. This endpoints will be used to Get all valid available user maintenance records.", response = UsersCollection.class, tags = {
 			"users", })
@@ -131,8 +136,8 @@ public class UserInfoController implements UsersApi {
 				log.debug("returning all users details");
 				return new ResponseEntity<>(usersCollection, HttpStatus.OK);
 			} else {
-				log.debug("No users details found");
-				return new ResponseEntity<>(usersCollection, HttpStatus.NO_CONTENT);
+				TeamsApiResponseWrapperDto teamsApiResponseOutput= this.teamsApiClient.getTeamsApiUserInfoDetails(searchTerm);
+				return new ResponseEntity<>(usersCollection, HttpStatus.OK);
 			}
 		} catch (Exception e) {
 			log.error(e.getLocalizedMessage());
@@ -160,7 +165,7 @@ public class UserInfoController implements UsersApi {
 
 			}
 		} catch (NoSuchElementException e) {
-			log.error("Error {} occured while fetching user bookmarks",e.getLocalizedMessage());
+			log.error("Error {} occured while fetching user bookmarks", e.getLocalizedMessage());
 			List<MessageDescription> notFoundMessages = new ArrayList<>();
 			MessageDescription notFoundMessage = new MessageDescription();
 			notFoundMessage.setMessage("Invalid userid!");
@@ -172,15 +177,15 @@ public class UserInfoController implements UsersApi {
 
 	@Override
 	@ApiOperation(value = "Get specific user for a given userid.", nickname = "getById", notes = "Get specific user for a given userid. This endpoints will be used to Get specific user for a given userid.", response = UserInfoVO.class, tags = {
-			"users", })
+			"users",})
 	@ApiResponses(value = {
 			@ApiResponse(code = 201, message = "Returns message of succes or failure", response = UserInfoVO.class),
 			@ApiResponse(code = 400, message = "Malformed syntax."),
 			@ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
 			@ApiResponse(code = 403, message = "Request is not authorized."),
-			@ApiResponse(code = 405, message = "Invalid input"), @ApiResponse(code = 500, message = "Internal error") })
-	@RequestMapping(value = "/users/{id}", produces = { "application/json" }, consumes = {
-			"application/json" }, method = RequestMethod.GET)
+			@ApiResponse(code = 405, message = "Invalid input"), @ApiResponse(code = 500, message = "Internal error")})
+	@RequestMapping(value = "/users/{id}", produces = {"application/json"}, consumes = {
+			"application/json"}, method = RequestMethod.GET)
 	public ResponseEntity<UserInfoVO> getById(
 			@ApiParam(value = "Id of the user for which information to be fetched", required = true) @PathVariable("id") String id) {
 		UserInfoVO userInfoVO = null;
@@ -193,7 +198,7 @@ public class UserInfoController implements UsersApi {
 	}
 
 	@ApiOperation(value = "Update User", nickname = "update", notes = "Update User. This endpoint can be used to update user details", response = UserInfoVO.class, tags = {
-			"users", })
+			"users",})
 	@ApiResponses(value = {
 			@ApiResponse(code = 201, message = "Returns message of success or failure", response = UserInfoVO.class),
 			@ApiResponse(code = 204, message = "Fetch complete, no content found."),
@@ -201,9 +206,9 @@ public class UserInfoController implements UsersApi {
 			@ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
 			@ApiResponse(code = 403, message = "Request is not authorized."),
 			@ApiResponse(code = 405, message = "Method not allowed"),
-			@ApiResponse(code = 500, message = "Internal error") })
-	@RequestMapping(value = "/users", produces = { "application/json" }, consumes = {
-			"application/json" }, method = RequestMethod.PUT)
+			@ApiResponse(code = 500, message = "Internal error")})
+	@RequestMapping(value = "/users", produces = {"application/json"}, consumes = {
+			"application/json"}, method = RequestMethod.PUT)
 	public ResponseEntity<UserInfoVO> update(
 			@ApiParam(value = "Request body contains the details of the updated user", required = true) @Valid @RequestBody UserRequestVO userRequestVO) {
 		try {
@@ -286,7 +291,7 @@ public class UserInfoController implements UsersApi {
 			List<UserRoleVO> currentUserRoles = currentUser.getRoles();
 			if (updatedUserRoles != null && currentUserRoles != null) {
 				if (updatedUserRoles.size() != currentUserRoles.size()) {
-					log.debug("User {} role updated successfully",updatedUser.getData().getId());
+					log.debug("User {} role updated successfully", updatedUser.getData().getId());
 					return true;
 				} else {
 					for (UserRoleVO currentUserRole : currentUserRoles) {
@@ -308,4 +313,4 @@ public class UserInfoController implements UsersApi {
 	}
 	
 
-}
+	}
