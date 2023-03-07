@@ -181,7 +181,7 @@ const Summary = ({ history }) => {
                     </div>
                     <div className={classNames(Styles.flexLayout, Styles.fourColumn)}>
                       <div>
-                        <label className="input-label summary">Compliance Officer / Responsible (LCO/LCR) </label>
+                        <label className="input-label summary">Corresponding Compliance Contact, i.e. Local Compliance Officer/ Responsible or Multiplier </label>
                         <br />
                         {data.complianceOfficer}
                       </div>
@@ -360,7 +360,7 @@ const Summary = ({ history }) => {
                         </div>
                         <div className={classNames(Styles.flexLayout, Styles.fourColumn)}>
                           <div>
-                            <label className="input-label summary">Business and/or Information Owner </label>
+                            <label className="input-label summary">Responsible Manager (E3 +) </label>
                             <br />
                             {data?.consumer?.businessOwnerName?.firstName} {data?.consumer?.businessOwnerName?.lastName}
                           </div>
@@ -399,7 +399,7 @@ const Summary = ({ history }) => {
                             {data?.consumer?.planningIT || '-'}
                           </div>
                           <div>
-                            <label className="input-label summary">Compliance Officer / Responsible (LCO/LCR) </label>
+                            <label className="input-label summary">Corresponding Compliance Contact, i.e. Local Compliance Officer/ Responsible or Multiplier </label>
                             <br />
                             {data?.consumer?.complianceOfficer || '-'}
                           </div>
