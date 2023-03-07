@@ -48,11 +48,17 @@ const DataProductCardItem = ({ product, history, user, isDataProduct = false }) 
 
   const deleteDataTransferAccept = () => {
     ProgressIndicator.show();
-    dataTransferApi.deleteDataTransfer(product?.id).then(() => {
-      dispatch(GetDataTransfers());
-      setShowDeleteModal(false);
-      Notification.show(`${product?.dataTransferName} deleted successfully.`);
-    });
+    dataTransferApi
+      .deleteDataTransfer(product?.id)
+      .then(() => {
+        dispatch(GetDataTransfers());
+        setShowDeleteModal(false);
+        Notification.show(`${product?.dataTransferName} deleted successfully.`);
+      })
+      .catch(() => {
+        ProgressIndicator.hide();
+        Notification.show('Error while deleting the data transfer', 'alert');
+      });
   };
   const deleteDataTransferClose = () => {
     setShowDeleteModal(false);
