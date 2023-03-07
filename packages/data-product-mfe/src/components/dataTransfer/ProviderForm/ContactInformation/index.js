@@ -261,7 +261,7 @@ const ContactInformation = ({
                     <TeamSearch
                       label={
                         <>
-                          Data responsible IO and/ or Business Owner for application <sup>*</sup>
+                          Responsible Manager (E3 +) <sup>*</sup>
                         </>
                       }
                       fieldMode={true}
@@ -498,7 +498,7 @@ const ContactInformation = ({
                   rules={{ required: '*Missing entry' }}
                   render={({ field }) => (
                     <TypeAheadBox
-                      label={'Corresponding Compliance Officer / Responsible (LCO/LCR)'}
+                      label={'Corresponding Compliance Contact, i.e. Local Compliance Officer/ Responsible or Multiplier'}
                       placeholder={'Search for country, department etc.'}
                       defaultValue={complianceOfficer}
                       list={complianceOfficerList.records}
