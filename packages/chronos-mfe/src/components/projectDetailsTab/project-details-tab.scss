@@ -1,0 +1,155 @@
+.content {
+  background: #252a33;
+  margin: 15px 0;
+  padding: 25px 0;
+  position: relative;
+
+  h3,
+  span.description {
+    padding: 0 38px;
+  }
+
+  .contextMenu {
+    float: right;
+    margin: 5px 20px 0 0;
+    &.open .contextMenuTrigger {
+      z-index: 10;
+      position: relative;
+    }
+
+    .contextMenuTrigger {
+      padding: 12px 10px;
+      cursor: pointer;
+
+      &:hover {
+        color: #00adef;
+      }
+    }
+  }
+}
+
+.firstPanel {
+  background: #252a33;
+  margin-bottom: 15px;
+
+  .apiId {
+    min-width: 380px;
+    display: inline-block;
+    margin-bottom: 15px;
+  }
+
+  .refreshedAppId {
+    min-width: 342px;
+    display: inline-block;
+  }
+
+  .flexLayout {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 40px;
+    > div {
+      width: calc(50% - 7px);
+    }
+    &.fourColumn {
+      > div {
+        width: calc(25% - 7px);
+      }
+    }
+    &.threeColumn {
+      > div {
+        width: calc(33% - 7px);
+      }
+    }
+  }
+}
+.membersList {
+  padding: 0 15px 0 0;
+  max-height: 225px;
+  min-height: 225px;
+  overflow-y: auto;
+  overflow-x: hidden;
+
+  &::-webkit-scrollbar-thumb {
+    background: #00adef;
+    border-radius: 10px;
+  }
+  &::-webkit-scrollbar-track {
+    background: #293f55;
+  }
+  &::-webkit-scrollbar {
+    width: 5px;
+    height: 5px;
+  }
+}
+.modalContent {
+  padding-top: 8px;
+  .flexLayout {
+    > div {
+      width: calc(50% - 30px);
+    }
+  }
+  .teamListWrapper {
+    margin: 8px -25px 0 5px;
+  }
+  .teamMemberWrapper {
+    min-height: 68px;
+  }
+  .membersList {
+    padding: 0 15px 0 0;
+    max-height: 100px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    margin-left: -40px;
+  
+    &::-webkit-scrollbar-thumb {
+      background: #00adef;
+      border-radius: 10px;
+    }
+    &::-webkit-scrollbar-track {
+      background: #293f55;
+    }
+    &::-webkit-scrollbar {
+      width: 5px;
+      height: 5px;
+    }
+  }
+  .noMembers p {
+    margin: 0;
+    text-align: center;
+    color: #99a5b3;
+  }
+  .collabAvatar {
+    padding: 0 25px 25px 0;
+    max-height: calc(90vh - 110px);
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
+  .apiKey {
+    display: flex;
+    align-items: center;
+    padding: 16px 0;
+  }
+  .btnContainer {
+    display: flex;
+    justify-content: flex-end;
+  }
+}
+.noCollaborator {
+  padding-left: 40px;
+  color: #99A5B3;
+}
+
+.hide {
+  display: none;
+}
+.projectWrapper {
+  padding: 10px 0;
+}
+.flexLayout {
+  display: flex;
+  justify-content: space-between;
+  > div {
+      width: calc(50% - 30px);
+  }
+}

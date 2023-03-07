@@ -1,0 +1,91 @@
+.apiKey {
+  display: flex;
+  align-items: center;
+
+  p {
+    margin: 0;
+    margin-right: 35px;
+  }
+  .generateApiKeyBtn {
+    background: unset;
+    color: #c0c8d0;
+    border: 2px solid #383f49;
+    padding: 7px 30px;
+  }
+  .label {
+    color: #acb8c4;
+    font-size: var(--font-size-smallest);
+  }
+  .oneApiLink {
+    margin-left: 10px;
+  }
+}
+.appIdParentDiv {
+  display: flex;
+  align-items: center;
+  .refreshedKey {
+    min-width: 300px;
+    display: inline-block;
+  }
+  .appKeySpan {
+    min-width: 218px;
+  }
+  i {
+    font-size: var(--font-size-icon);
+    cursor: pointer;
+    display: block;
+    width: 28px;
+  }
+  div {
+    .copyAppIdDisable {
+      opacity: 0.4;
+      cursor: default;
+      pointer-events: none;
+    }
+    .showAppId {
+      cursor: pointer;
+      margin-left: 0;
+      font-size: var(--font-size-small);
+    }
+    
+  }
+  .refreshedKeyIcon {
+    display: flex;
+    align-items: center;
+    margin-top: -5px;
+    .visiblityshow {
+      font-size: var(--font-size-tiny);
+      margin-top: 2px;
+    }
+  }
+}
+.modalContent {
+  padding-top: 8px;
+  .apiKey {
+    display: flex;
+    align-items: center;
+    padding: 16px 0;
+  }
+  .btnContainer {
+    display: flex;
+    justify-content: flex-end;
+  }
+}
+.firstPanel {
+  background: #252a33;
+  margin-bottom: 15px;
+  margin-top: 15px;
+  padding: 0 38px;
+
+  .flexLayout {
+    display: flex;
+    justify-content: space-between;
+    > div {
+        width: calc(50% - 30px);
+    }
+  }
+}
+.infoSection {
+  margin-top: 15px;
+  color: #99A5B3;
+}
