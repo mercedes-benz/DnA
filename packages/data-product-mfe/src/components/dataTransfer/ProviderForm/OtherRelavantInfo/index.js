@@ -12,15 +12,18 @@ import TeamMemberListItem from 'dna-container/TeamMemberListItem';
 import AddTeamMemberModal from 'dna-container/AddTeamMemberModal';
 import IconAvatarNew from 'dna-container/IconAvatarNew';
 
-import { Envs } from '../../../../Utility/envs';
+// import { Envs } from '../../../../Utility/envs';
 import { withRouter } from 'react-router-dom';
 import { setSelectedDataProduct } from '../../../dataProduct/redux/dataProductSlice';
 
-const OtherRelevantInfo = ({ onSave, history, user, isDataProduct }) => {
+const OtherRelevantInfo = ({ onSave, onPublish, history, user, isDataProduct }) => {
   const {
-    register,
+    // register,
     handleSubmit,
-    formState: { errors },
+    formState: { 
+      // errors,
+      isSubmitting
+     },
     reset,
     setValue,
     watch,
@@ -159,6 +162,7 @@ const OtherRelevantInfo = ({ onSave, history, user, isDataProduct }) => {
         teamMember={member}
         showMoveUp={index !== 0}
         showMoveDown={index + 1 !== teamMembers.length}
+        editOptionText={'Edit point of contact'}
         onMoveUp={onTeamMemberMoveUp}
         onMoveDown={onTeamMemberMoveDown}
         onEdit={onTeamMemberEdit}
@@ -189,7 +193,7 @@ const OtherRelevantInfo = ({ onSave, history, user, isDataProduct }) => {
   const addMembersContent = (
     <div className={Styles.addMembersContainer}>
       <p>
-        Added members will be informed about your initiated Data Transfer to give their information and finalize the
+        Added point of contacts will be informed about your initiated Data Transfer to give their information and finalize the
         Minimum Information Documentation.
       </p>
       <hr />
@@ -199,7 +203,7 @@ const OtherRelevantInfo = ({ onSave, history, user, isDataProduct }) => {
             <IconAvatarNew className={Styles.avatarIcon} />
             <button id="AddTeamMemberBtn" onClick={showAddTeamMemberModalView}>
               <i className="icon mbc-icon plus" />
-              <span>Add team member</span>
+              <span>Add point of contact (data receiving side)</span>
             </button>
           </div>
           {teamMembersList}
@@ -218,7 +222,7 @@ const OtherRelevantInfo = ({ onSave, history, user, isDataProduct }) => {
     setValue('notifyUsers', true);
     !watch('providerFormSubmitted') && setValue('providerFormSubmitted', true);
     setValue('users', teamMembers);
-    onSave(watch(), () => {
+    onPublish(watch(), () => {
       setShowAddConsumersModal(false);
       history.push('/datasharing');
     });
@@ -226,67 +230,22 @@ const OtherRelevantInfo = ({ onSave, history, user, isDataProduct }) => {
 
   return (
     <>
-      <div className={Styles.wrapper}>
-        <div className={Styles.firstPanel}>
-          <div>
-            <h3>Specifying other relevant information</h3>
-            {showInfoModal && (
-              <div className={Styles.infoIcon}>
-                <i className={'icon mbc-icon info'} onClick={() => {}} />
-              </div>
-            )}
-          </div>
-          <div className={Styles.formWrapper}>
-            <div id="otherRelevantInfoDescription" className={classNames('input-field-group area')}>
-              <label className="input-label" htmlFor="otherRelevantInfo">
-                Please provide any other relevant &amp; app specific restrictions that might apply to the corresponding data, examples being antitrust regulations, contractual restrictions etc.
-              </label>
-              <textarea
-                className="input-field-area"
-                type="text"
-                {...register('otherRelevantInfo')}
-                rows={50}
-                id="otherRelevantInfo"
-              />
-            </div>
-          </div>
-        </div>
-      </div>
-      <div className={Styles.wrapper}>
-        <div className={Styles.firstPanel}>
-          <div className={Styles.termsOfUseContainer}>
-            <div className={classNames(Styles.termsOfUseContent)}>
-              <label className={classNames('checkbox', errors?.tou ? 'error' : '')}>
-                <span className="wrapper">
-                  <input {...register('tou', { required: '*Missing entry' })} type="checkbox" className="ff-only" />
-                </span>
-                <div
-                  className={classNames(Styles.termsOfUseText, 'mbc-scroll')}
-                  style={{
-                    ...(errors?.tou ? { color: '#e84d47' } : ''),
-                  }}
-                  dangerouslySetInnerHTML={{
-                    __html: Envs.DATA_PRODUCT_TOU_HTML,
-                  }}
-                ></div>
-              </label>
-            </div>
-            <span className={classNames('error-message', Styles.errorMsg)}>{errors?.tou?.message}</span>
-          </div>
-        </div>
-      </div>
+      
       <div className="btnContainer">
         <div className="btn-set">
           <button
             className={'btn btn-primary'}
             type="button"
+            disabled={isSubmitting}
             onClick={handleSubmit((data) => {
               const isPublished = watch('publish');
               setValue('notifyUsers', isPublished ? true : false);
-              onSave(watch());
-              reset(data, {
-                keepDirty: false,
+              onSave(watch(),()=>{
+                  reset(data, {
+                  keepDirty: false,
+                });
               });
+              
             })}
           >
             Save
@@ -299,7 +258,7 @@ const OtherRelevantInfo = ({ onSave, history, user, isDataProduct }) => {
                 setValue('notifyUsers', true);
                 setValue('publish', true);
                 setValue('providerFormSubmitted', true);
-                onSave(watch(), () => {
+                onPublish(watch(), () => {
                   dispatch(setSelectedDataProduct({}));
                   history.push('/dataproducts');
                 });
@@ -315,12 +274,15 @@ const OtherRelevantInfo = ({ onSave, history, user, isDataProduct }) => {
               className={'btn btn-tertiary'}
               type="button"
               onClick={handleSubmit((data) => {
+                setValue('publish', true);
                 setValue('providerFormSubmitted', true);
-                onSave(watch());
-                setShowAddConsumersModal(true);
-                reset(data, {
-                  keepDirty: false,
+                onPublish(watch(),()=>{
+                  setShowAddConsumersModal(true);
+                  
                 });
+                reset(data, {
+                    keepDirty: false,
+                  });
               })}
             >
               Save and Forward Minimum Information
@@ -338,7 +300,7 @@ const OtherRelevantInfo = ({ onSave, history, user, isDataProduct }) => {
         />
       )}
       <Modal
-        title={'Select members of the data receiving side'}
+        title={'Select point of contacts of the data receiving side'}
         showAcceptButton={false}
         showCancelButton={false}
         buttonAlignment="right"
@@ -363,12 +325,15 @@ const OtherRelevantInfo = ({ onSave, history, user, isDataProduct }) => {
       />
       <AddTeamMemberModal
         ref={addTeamMemberModalRef}
+        modalTitleText={'point of contact'}
         editMode={editTeamMember}
         showAddTeamMemberModal={showAddTeamMemberModal}
         teamMember={teamMemberObj}
         onUpdateTeamMemberList={updateTeamMemberList}
         onAddTeamMemberModalCancel={onAddTeamMemberModalCancel}
         validateMemebersList={validateMembersList}
+        hideTeamPosition={true}
+        showOnlyInteral={true}
         customUserErrorMsg={isCreator || isInformationOwner || isCreatedBy ? errorValidationMsg() : ''}
       />
     </>

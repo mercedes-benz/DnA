@@ -15,12 +15,17 @@ import { useFormContext, Controller } from 'react-hook-form';
 import Tooltip from '../../../../common/modules/uilab/js/src/tooltip';
 import { isValidURL } from '../../../../Utility/utils';
 
-const Description = ({ onSave, artList, carlaFunctionList, dataCatalogList, platformList, frontEndToolList }) => {
+const Description = ({ 
+  // onSave, 
+  artList, carlaFunctionList, dataCatalogList, platformList, 
+  frontEndToolList }) => {
   const {
     register,
-    formState: { errors, isSubmitting },
+    formState: { errors, 
+      // isSubmitting 
+    },
     watch,
-    handleSubmit,
+    // handleSubmit,
     reset,
     control,
     setValue,
@@ -313,7 +318,7 @@ const Description = ({ onSave, artList, carlaFunctionList, dataCatalogList, plat
           </div>
         </div>
       </div>
-      <div className="btnContainer">
+      {/* <div className="btnContainer">
         <button
           className="btn btn-primary"
           type="submit"
@@ -327,7 +332,7 @@ const Description = ({ onSave, artList, carlaFunctionList, dataCatalogList, plat
         >
           Save & Next
         </button>
-      </div>
+      </div> */}
       {showInfoModal && (
         <InfoModal
           title="Info Modal"
