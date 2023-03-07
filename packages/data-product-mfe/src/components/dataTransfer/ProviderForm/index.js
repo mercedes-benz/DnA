@@ -90,6 +90,7 @@ const ProviderForm = ({ user, history }) => {
   });
 
   const [showAllTabsError, setShowAllTabsError] = useState(false);
+  const [showContactInformationTabError, setShowContactInformationTabError] = useState(false);
 
 
   // set default value of "Name" field as logged in user name
@@ -340,6 +341,47 @@ const ProviderForm = ({ user, history }) => {
     return formValid;
   };
 
+  function validateContactInformationTab (reqObj) {
+    let formValid = true;
+    const errorObject = {
+      contactInformationTabError: []
+    }
+    if (reqObj?.informationOwner?.message === '*Missing entry') {
+      errorObject.contactInformationTabError.push('Information Owner');
+      formValid = false;
+    }
+
+    if (reqObj?.name?.firstName?.message === '*Missing entry') {
+      errorObject.contactInformationTabError.push('Your Name');
+      formValid = false;
+    }
+
+    if (reqObj?.division?.message === '*Missing entry') {
+      errorObject.contactInformationTabError.push('Division');
+      formValid = false;
+    }
+
+    if (reqObj?.department?.message === '*Missing entry') {
+      errorObject.contactInformationTabError.push('Department');
+      formValid = false;
+    }
+
+    if (reqObj?.dateOfDataTransfer?.message === '*Missing entry') {
+      errorObject.contactInformationTabError.push('Date of Data Transfer');
+      formValid = false;
+    }
+    
+    if (reqObj?.complianceOfficer?.message === '*Missing entry') {
+      errorObject.contactInformationTabError.push('Corresponding Compliance Officer / Responsible (LCO/LCR)');
+      formValid = false;
+    }
+
+
+    setErrorsInPublish(errorObject);
+
+    return formValid;
+  };
+
   const proceedToSave = (currentTab, values, callbackFn) => {
     const saveSegments = mapOpenSegments[currentTab];
     const openSegments = provideDataTransfers.selectedDataTransfer?.openSegments || [];
@@ -379,7 +421,11 @@ const ProviderForm = ({ user, history }) => {
   const onSave = (currentTab, values, callbackFn) => {
     setShowAllTabsError(false);
     if(!values.publish){
-      proceedToSave(currentTab, values, callbackFn)
+      if(validateContactInformationTab(values)){
+        proceedToSave(currentTab, values, callbackFn)
+      } else {
+        setShowAllTabsError(true);
+      }    
     } else {
       if(validatePublishRequest(values)){
         proceedToSave(currentTab, values, callbackFn)
@@ -392,11 +438,11 @@ const ProviderForm = ({ user, history }) => {
 
   const displayErrorOfAllTabs = (tabTitle, tabErrorsList) => {
     return (
-      tabErrorsList.length > 0 ?
+      tabErrorsList?.length > 0 ?
         <li className={classNames('error-message')}>
         {tabTitle}
           <ul>
-            {tabErrorsList.map((item) => {
+            {tabErrorsList?.map((item) => {
               return (
                 <li className={Styles.errorItem} key={item}>
                   {item}
@@ -530,11 +576,11 @@ const ProviderForm = ({ user, history }) => {
             </div>
             { showAllTabsError && 
               (
-              errorsInPublish.contactInformationTabError.length > 0 ||
-              errorsInPublish.dataDescriptionClassificationTabError.length > 0 ||
-              errorsInPublish.personalRelatedDataTabError.length > 0 ||
-              errorsInPublish.transnationalDataTabError.length > 0 ||
-              errorsInPublish.deletionRequirementsTabError.length > 0)
+              errorsInPublish?.contactInformationTabError?.length > 0 ||
+              errorsInPublish?.dataDescriptionClassificationTabError?.length > 0 ||
+              errorsInPublish?.personalRelatedDataTabError?.length > 0 ||
+              errorsInPublish?.transnationalDataTabError?.length > 0 ||
+              errorsInPublish?.deletionRequirementsTabError?.length > 0)
               ?
               (
                 <div>
@@ -542,15 +588,35 @@ const ProviderForm = ({ user, history }) => {
                     Please fill mandatory fields before publish
                   </h3>
                   <ul>
-                  {displayErrorOfAllTabs('Contact Information Tab', errorsInPublish.contactInformationTabError)}
-                  {displayErrorOfAllTabs('Data Description & Classification Tab', errorsInPublish.dataDescriptionClassificationTabError)}
-                  {displayErrorOfAllTabs('Personal Related Data Tab', errorsInPublish.personalRelatedDataTabError)}
-                  {displayErrorOfAllTabs('Trans-national Data Tab', errorsInPublish.transnationalDataTabError)}
-                  {displayErrorOfAllTabs('Deletion Requirement Tab', errorsInPublish.deletionRequirementsTabError)}  
+                  {displayErrorOfAllTabs('Contact Information Tab', errorsInPublish?.contactInformationTabError)}
+                  {displayErrorOfAllTabs('Data Description & Classification Tab', errorsInPublish?.dataDescriptionClassificationTabError)}
+                  {displayErrorOfAllTabs('Personal Related Data Tab', errorsInPublish?.personalRelatedDataTabError)}
+                  {displayErrorOfAllTabs('Trans-national Data Tab', errorsInPublish?.transnationalDataTabError)}
+                  {displayErrorOfAllTabs('Deletion Requirement Tab', errorsInPublish?.deletionRequirementsTabError)}  
                   </ul>
                 </div>
               ) : ''}
-            <OtherRelevant onSave={(values) => {onSave(currentTab, values)}} onPublish={(values, callbackFn) => {onSave(currentTab, values, callbackFn)}} user={userInfo} isDataProduct={false} />
+              { showContactInformationTabError &&
+                errorsInPublish?.contactInformationTabError?.length > 0 ? 
+              (
+                <div>
+                  <h3 className={classNames('error-message')}>
+                    Please fill Contact Information Tab first
+                  </h3>
+                  <ul>
+                  {displayErrorOfAllTabs('Contact Information Tab', errorsInPublish?.contactInformationTabError)}
+                  </ul>
+                </div>
+              ) : ''} 
+            <OtherRelevant onSave={(values) => {onSave(currentTab, values)}} 
+            onDescriptionTabErrors={(errorObj) => {
+              setShowContactInformationTabError(false);
+              validateContactInformationTab(errorObj) ? 
+              setShowContactInformationTabError(false) : setShowContactInformationTabError(true)}}
+            onPublish={(values, callbackFn) => {
+              setShowContactInformationTabError(false);
+              onSave(currentTab, values, callbackFn)}} 
+            user={userInfo} isDataProduct={false} />
           </div>
           <ConfirmModal
             title="Save Changes?"
@@ -567,7 +633,10 @@ const ProviderForm = ({ user, history }) => {
               </div>
             }
             onCancel={() => {
-              getDataProductById();
+              const id = createCopyId || dataTransferId || provideDataTransfers?.selectedDataTransfer?.id;
+              if(id){
+                getDataProductById();
+              }   
               setCurrentTab(showChangeAlert.switchingTab);
               elementRef.current[Object.keys(tabs).indexOf(showChangeAlert.switchingTab)].click();
               setShowChangeAlert({ modal: false, switchingTab: '' });

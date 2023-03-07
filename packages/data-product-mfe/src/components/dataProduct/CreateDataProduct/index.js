@@ -76,6 +76,7 @@ const CreateDataProduct = ({ user, history }) => {
   });
 
   const [showAllTabsError, setShowAllTabsError] = useState(false);
+  const [showDescriptionTabError, setShowDescriptionTabError] = useState(false);
 
   const dispatch = useDispatch();
   const { agileReleaseTrains, carLAFunctions, corporateDataCatalogs, platforms, frontEndTools } = useSelector(
@@ -368,6 +369,31 @@ const CreateDataProduct = ({ user, history }) => {
     // }, 1000);
     return formValid;
   };
+  
+  function validateDescriptionTab (reqObj) {
+    let formValid = true;
+    const errorObject = {
+      descriptionTabError: []
+    }
+    if (reqObj?.description?.message === '*Missing entry') {
+      errorObject.descriptionTabError.push('Description');
+      formValid = false;
+    }
+
+    if (reqObj?.productName?.message === '*Missing entry') {
+      errorObject.descriptionTabError.push('Name of Data Product');
+      formValid = false;
+    }
+
+    if (reqObj?.howToAccessText?.message === '*Missing entry') {
+      errorObject.descriptionTabError.push('How to access');
+      formValid = false;
+    }
+
+    setErrorsInPublish(errorObject);
+
+    return formValid;
+  };
 
   const proceedToSave = (currentTab, values, callbackFn) => {
     const saveSegments = mapOpenSegments[currentTab];
@@ -406,7 +432,11 @@ const CreateDataProduct = ({ user, history }) => {
   const onSave = (currentTab, values, callbackFn) => {
     setShowAllTabsError(false);
     if(!values.publish){
-      proceedToSave(currentTab, values, callbackFn)
+      if(validateDescriptionTab(values)){
+        proceedToSave(currentTab, values, callbackFn)
+      } else {
+        setShowAllTabsError(true);
+      }      
     } else {
       if(validatePublishRequest(values)){
         proceedToSave(currentTab, values, callbackFn)
@@ -424,11 +454,11 @@ const CreateDataProduct = ({ user, history }) => {
 
   const displayErrorOfAllTabs = (tabTitle, tabErrorsList) => {
     return (
-      tabErrorsList.length > 0 ?
+      tabErrorsList?.length > 0 ?
         <li className={classNames('error-message')}>
         {tabTitle}
           <ul>
-            {tabErrorsList.map((item) => {
+            {tabErrorsList?.map((item) => {
               return (
                 <li className={Styles.errorItem} key={item}>
                   {item}
@@ -593,12 +623,12 @@ const CreateDataProduct = ({ user, history }) => {
               </div>
             </div>
             { showAllTabsError && 
-              (errorsInPublish.descriptionTabError.length > 0 ||
-              errorsInPublish.contactInformationTabError.length > 0 ||
-              errorsInPublish.dataDescriptionClassificationTabError.length > 0 ||
-              errorsInPublish.personalRelatedDataTabError.length > 0 ||
-              errorsInPublish.transnationalDataTabError.length > 0 ||
-              errorsInPublish.deletionRequirementsTabError.length > 0)
+              (errorsInPublish?.descriptionTabError?.length > 0 ||
+              errorsInPublish?.contactInformationTabError?.length > 0 ||
+              errorsInPublish?.dataDescriptionClassificationTabError?.length > 0 ||
+              errorsInPublish?.personalRelatedDataTabError?.length > 0 ||
+              errorsInPublish?.transnationalDataTabError?.length > 0 ||
+              errorsInPublish?.deletionRequirementsTabError?.length > 0)
               ?
               (
                 <div>
@@ -606,16 +636,36 @@ const CreateDataProduct = ({ user, history }) => {
                     Please fill mandatory fields before publish
                   </h3>
                   <ul>
-                  {displayErrorOfAllTabs('Description Tab', errorsInPublish.descriptionTabError)}
-                  {displayErrorOfAllTabs('Contact Information Tab', errorsInPublish.contactInformationTabError)}
-                  {displayErrorOfAllTabs('Data Description & Classification Tab', errorsInPublish.dataDescriptionClassificationTabError)}
-                  {displayErrorOfAllTabs('Personal Related Data Tab', errorsInPublish.personalRelatedDataTabError)}
-                  {displayErrorOfAllTabs('Trans-national Data Tab', errorsInPublish.transnationalDataTabError)}
-                  {displayErrorOfAllTabs('Deletion Requirement Tab', errorsInPublish.deletionRequirementsTabError)}  
+                  {displayErrorOfAllTabs('Description Tab', errorsInPublish?.descriptionTabError)}
+                  {displayErrorOfAllTabs('Contact Information Tab', errorsInPublish?.contactInformationTabError)}
+                  {displayErrorOfAllTabs('Data Description & Classification Tab', errorsInPublish?.dataDescriptionClassificationTabError)}
+                  {displayErrorOfAllTabs('Personal Related Data Tab', errorsInPublish?.personalRelatedDataTabError)}
+                  {displayErrorOfAllTabs('Trans-national Data Tab', errorsInPublish?.transnationalDataTabError)}
+                  {displayErrorOfAllTabs('Deletion Requirement Tab', errorsInPublish?.deletionRequirementsTabError)}  
                   </ul>
                 </div>
               ) : ''}
-            <OtherRelevant onSave={(values) => {onSave(currentTab, values)}} onPublish={(values, callbackFn) => {onSave(currentTab, values, callbackFn)}} user={userInfo} isDataProduct={true} />
+              { showDescriptionTabError &&
+                errorsInPublish?.descriptionTabError?.length > 0 ? 
+              (
+                <div>
+                  <h3 className={classNames('error-message')}>
+                    Please fill Description Tab first
+                  </h3>
+                  <ul>
+                  {displayErrorOfAllTabs('Description Tab', errorsInPublish?.descriptionTabError)}
+                  </ul>
+                </div>
+              ) : ''} 
+            <OtherRelevant onSave={(values) => {onSave(currentTab, values)}} 
+            onDescriptionTabErrors={(errorObj) => {
+              setShowDescriptionTabError(false);
+              validateDescriptionTab(errorObj) ? 
+              setShowDescriptionTabError(false) : setShowDescriptionTabError(true)}}
+            onPublish={(values, callbackFn) => {
+              setShowDescriptionTabError(false);
+              onSave(currentTab, values, callbackFn)}} 
+            user={userInfo} isDataProduct={true} />
           </div>
           <ConfirmModal
             title="Save Changes?"
@@ -632,7 +682,10 @@ const CreateDataProduct = ({ user, history }) => {
               </div>
             }
             onCancel={() => {
-              getDataProductById();
+              const id = createCopyId || dataProductId || data?.selectedDataProduct?.id;
+              if(id){
+                getDataProductById();
+              }              
               setCurrentTab(showChangeAlert.switchingTab);
               elementRef.current[Object.keys(dataForms).indexOf(showChangeAlert.switchingTab)].click();
               setShowChangeAlert({ modal: false, switchingTab: '' });
