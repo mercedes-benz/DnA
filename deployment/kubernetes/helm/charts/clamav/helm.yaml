@@ -1,0 +1,428 @@
+---
+# Source: clamav/templates/clamav-netpol.yaml
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: clamav-tcp-allow-netpol
+  namespace: clamav
+spec:
+  podSelector:
+    matchLabels:
+      name: clamav
+  ingress:
+    - from: []
+    # # - from:
+    # #   - podSelector: 
+    # #       matchLabels:
+    # #         component: jupyter
+    # - ports:
+    #   - port: 3310
+    #   from: []
+  #   - ports:
+  #     - port: 8080
+  #       protocol: TCP
+  # policyTypes:
+  # - Ingress
+---
+# Source: clamav/templates/rest/cert-traefik-netpol.yaml
+kind: NetworkPolicy
+apiVersion: networking.k8s.io/v1
+metadata:
+  name: allow-acme-http01-solver
+  namespace: clamav
+spec:
+  podSelector:
+    matchLabels:
+      acme.cert-manager.io/http01-solver: "true"
+  ingress:
+    - ports:
+        - protocol: TCP
+          port: 8089
+    - from:
+        - podSelector:
+            matchLabels:
+              app: traefik
+          namespaceSelector:
+            matchExpressions:
+              - key: name
+                operator: In
+                values:
+                  - ingress
+  policyTypes:
+    - Ingress
+---
+# Source: clamav/templates/rest/clamav-rest-netpol.yaml
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: clamav-rest-web-allow-netpol
+  namespace: clamav
+spec:
+  podSelector:
+    matchLabels:
+      name: clamav-rest
+  ingress:
+    #- from: []
+    # - from:
+    #   - podSelector: 
+    #       matchLabels:
+    #         component: jupyter
+    - ports:
+      - port: 8181
+    #   from: []
+  #   - ports:
+  #     - port: 8080
+  #       protocol: TCP
+  # policyTypes:
+  # - Ingress
+---
+# Source: clamav/templates/rest/oneapi-secret.yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: oneapi-secrets
+  namespace: clamav
+type: Opaque
+data:
+  onapi.basicauth.token: ""
+  vault.root.token: ""
+  jwt.secret.key: ""
+  postgres.app.username: "bWFsd2FyZQ=="
+  postgres.app.password: ""
+---
+# Source: clamav/templates/clamav-service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: clamav-service
+  namespace: clamav
+  labels:
+    name: clamav-service
+spec:
+  type: ClusterIP
+  selector:
+    name: clamav
+  ports:
+    - name: api
+      protocol: TCP
+      port: 3310
+      targetPort: 3310
+---
+# Source: clamav/templates/rest/clamav-rest-service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: clamav-rest-service
+  namespace: clamav
+  labels:
+    name: clamav-rest-service
+spec:
+  type: ClusterIP
+  selector:
+    name: clamav-rest
+  ports:
+    - name: api-http
+      protocol: TCP
+      port: 8181
+      targetPort: 8181
+---
+# Source: clamav/templates/clamav-deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: clamav
+  namespace: clamav
+  labels:
+    name: clamav
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      name: clamav
+  template:
+    metadata:
+      labels:
+        name: clamav
+    spec:
+      containers:
+        - name: clamd
+          image: 
+          imagePullPolicy: Always
+          # env:
+          #   - name: UPDATE
+          #     value: "false"
+          ports:
+            - containerPort: 3310
+              name: api
+              protocol: TCP
+
+   
+          resources:
+            requests:
+              memory: "3000Mi"
+              cpu: "500m"
+            limits:
+              memory: "3000Mi"
+              cpu: "500m"
+          # volumeMounts:
+          #   - mountPath: /var/lib/clamav
+          #     name: avdata
+          # livenessProbe:
+          #   exec:
+          #     command:
+          #     - /readyness.sh
+          #   initialDelaySeconds: 20
+          #   timeoutSeconds: 2
+        # - name: freshclam
+        #   image: ""
+        #   imagePullPolicy: Always
+        #   env:
+        #     - name: UPDATE_ONLY
+        #       value: "true"
+        #   resources: {}
+        #   volumeMounts:
+        #   - mountPath: /var/lib/clamav
+        #     name: avdata
+        #   livenessProbe:
+        #     exec:
+        #       command:
+        #       - /readyness.sh
+        #     initialDelaySeconds: 20
+        #     timeoutSeconds: 2
+      securityContext:
+        runAsUser: 1000
+      imagePullSecrets:
+        - name: harbor-pull-secrets
+      # volumes:
+      #   - name: avdata
+      #     persistentVolumeClaim:
+      #       claimName: clamav-db-dir
+---
+# Source: clamav/templates/rest/clamav-rest-deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: clamav-rest
+  namespace: clamav
+  labels:
+    name: clamav-rest
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      name: clamav-rest
+  template:
+    metadata:
+      labels:
+        name: clamav-rest    
+    spec:   
+      containers:
+        - name: clamd-rest
+          image:  
+          imagePullPolicy: Always       
+          env:
+            - name: CLAMAV_BACKEND_URL
+              value: clamav-service
+            - name: CLAMAV_BACKEND_PORT
+              value: "3310"
+            - name: MAX_FILE_SIZE
+              value: "10MB"
+            - name: MAX_REQUEST_SIZE
+              value: "11MB"
+            - name: API_REQUEST_LIMIT
+              value: "20"
+            - name: WITH_IN
+              value: "2"
+            - name: TIME_UNIT
+              value: "seconds"
+            - name: RESTRICTED_URL_PATTERN
+              value: "/api/v1/scan.*"
+            - name: ONEAPI_BASICAUTH_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  key: onapi.basicauth.token
+                  name: oneapi-secrets
+            - name: LOGGING_PATH
+              value: "/tmp/clamav/log"
+            - name: LOGGING_ENVIRONMENT
+              value: "dev"
+            - name: CORS_ORIGIN_URL
+              value: ""
+            - name: API_DB_URL
+              value: 
+            - name: API_DB_USER
+              valueFrom:
+                secretKeyRef:
+                  key: postgres.app.username
+                  name: oneapi-secrets
+            - name: API_DB_PASS
+              valueFrom:
+                secretKeyRef:
+                  key: postgres.app.password
+                  name: oneapi-secrets
+            - name: FLYWAY_ENABLED
+              value: "true"
+            - name: FLYWAY_BASELINE_ON_MIGRATE
+              value: "true"
+            - name: FLYWAY_BASELINEVERSION
+              value: "0"
+            - name: FLYWAY_SCHEMA
+              value: "public"
+            - name: VAULT_HOST
+              value: 
+            - name: VAULT_PORT
+              value: ""
+            - name: VAULT_SCHEME
+              value: http
+            - name: VAULT_AUTHENTICATION
+              value: TOKEN
+            - name: VAULT_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  key: vault.root.token
+                  name: oneapi-secrets
+            - name: VAULT_MOUNTPATH
+              value: kv
+            - name: DNA_URI
+              value: 
+            - name: DNA_AUTH_ENABLE
+              value: ""
+            - name: DNA_VERIFY_LOGIN_API
+              value: "/api/verifyLogin"
+            - name: DNA_UNSUBSCRIBE_MALWARE_SCAN_API
+              value: "/api/malwarescan/unsubscribe/" 
+            - name: JWT_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                 key: jwt.secret.key
+                 name: oneapi-secrets
+            - name: NAAS_BROKER
+              value: 
+          ports:
+            - containerPort: 8181
+              name: api
+              protocol: TCP
+          livenessProbe:
+            initialDelaySeconds: 60
+            timeoutSeconds: 10
+            periodSeconds: 10
+            failureThreshold: 3
+            httpGet:
+              path: /actuator/health/liveness
+              port: api
+                
+          readinessProbe:
+            # initialDelaySeconds: 60
+            # Max time it will take to success the readiness probe .
+            timeoutSeconds: 10
+            periodSeconds: 10
+            failureThreshold: 3
+            httpGet:
+              path: /actuator/health/readiness
+              port: api
+          resources:
+            requests:
+              memory: "3000Mi"
+              cpu: "500m"
+            limits:
+              memory: "3000Mi"
+              cpu: "500m"
+          # volumeMounts:
+          #   - mountPath: /var/lib/clamav
+          #     name: avdata
+          # livenessProbe:
+          #   exec:
+          #     command:
+          #     - /readyness.sh
+          #   initialDelaySeconds: 20
+          #   timeoutSeconds: 2
+      securityContext:
+        runAsUser: 1000
+      imagePullSecrets:
+        - name: harbor-pull-secrets
+      # volumes:
+      #   - name: avdata
+      #     persistentVolumeClaim:
+      #       claimName: clamav-db-dir
+---
+# Source: clamav/templates/rest/clamav-rest-ingress.yaml
+## apiVersion: networking.k8s.io/v1
+# kind: Ingress
+# metadata:
+#   name: clamav-rest-ingress
+#   namespace: clamav
+#
+#   annotations:
+#
+    cert-manager.io/cluster-issuer: ""
+    kubernetes.io/ingress.class: traefik
+    traefik.frontend.rule.type: PathPrefix
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+    traefik.ingress.kubernetes.io/router.tls: "true"
+#
+# spec:
+#   rules:
+#     - host: test
+#       http:
+#         paths:
+#           - backend:
+#               service:
+#                 name: clamav-rest-service
+#                 port: 
+#                   name: api-http
+#             path: /
+#             pathType: Prefix
+#   tls:
+#     - hosts:
+#       - test
+#       secretName: clamav-tls       
+#
+---
+# Source: clamav/templates/rest/certificate.yml
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+ name: clamav-rest
+ namespace: clamav
+spec:
+ commonName: test
+ secretName: clamav-rest-tls
+ dnsNames:
+  - test
+ issuerRef:
+  name: test
+  kind: ClusterIssuer
+---
+# Source: clamav/templates/rest/ingress-route.yml
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: clamav-rest
+  namespace: clamav
+spec:
+  entryPoints:
+    - web
+    - websecure
+  routes:
+    - kind: Rule
+      match: Host(`test`) && PathPrefix(`/test`)
+      middlewares:
+        - name: clamav-rest
+      services:
+        - name: clamav-rest-api-http
+          port: http
+  tls:
+    domains:
+      - main: test
+    secretName: clamav-rest-tls
+---
+# Source: clamav/templates/rest/middleware.yml
+apiVersion: traefik.containo.us/v1alpha1
+kind: Middleware
+metadata:
+ name: clamav-rest
+ namespace: clamav
+spec:
+ stripPrefix:
+  prefixes:
+   - /test
