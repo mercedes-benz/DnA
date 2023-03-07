@@ -13,6 +13,7 @@ image:
 imagePullSecrets: []
 nameOverride: "husura"
 fullnameOverride: "husura"
+namespace: "husura"
 
 #Add new env as array value with name/value field. Keep one tab indentation.
 envs:
