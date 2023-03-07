@@ -142,6 +142,31 @@ paths:
           description: Filtering dataproduct based on publish state. Draft or published, values true or false
           required: false
           type: boolean   
+        - name: art
+          in: query
+          description: List of IDs of ART of dataproduct, seperated by comma. Example 1,2,3
+          required: false
+          type: string
+        - name: carlafunction
+          in: query
+          description: List of IDs of Carla Functions of dataproduct, seperated by comma. Example 1,2,3
+          required: false
+          type: string
+        - name: platform
+          in: query
+          description: List of IDs of Platform of dataproduct, seperated by comma. Example 1,2,3
+          required: false
+          type: string
+        - name: frontendTool
+          in: query
+          description: List of IDs of Frontend-Tool of dataproduct, seperated by comma. Example 1,2,3
+          required: false
+          type: string
+        - name: productOwner
+          in: query
+          description: List of Short IDs of Product Owner of dataproduct, seperated by comma. Example 1,2,3
+          required: false
+          type: string
         - name: offset
           in: query
           description: page number from which listing of dataproducts should start.

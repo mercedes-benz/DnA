@@ -2663,3 +2663,6 @@ dss-mfe:
 
 dss-be:
   enabled: true
+
+hasura:
+  enabled: true

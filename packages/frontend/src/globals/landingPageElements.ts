@@ -30,7 +30,7 @@ const sbissPortalUrl = Envs.SBISS_PORTAL_TOOL_URL;
 const sbissHanaUrl = Envs.SBISS_HANA_LAUNCHPAD_TOOL_URL;
 const dataModelUrl = Envs.DATA_MODEL_URL;
 const kpiWikiUrl = Envs.KPI_WIKI_URL;
-const carlaEconomicModelUrl = Envs.CARLA_ECONOMIC_MODEL_URL;
+// const carlaEconomicModelUrl = Envs.CARLA_ECONOMIC_MODEL_URL;
 const corporateDataCatalogUrl = Envs.CORPORATE_DATA_CATALOG_URL;
 const sapConnectionBookUrl = Envs.SAP_CONNECTION_BOOK_URL;
 const smartDataGovernanceUrl = Envs.SMART_DATA_GOVERNANCE_URL;
@@ -64,19 +64,19 @@ export const DataLayerElements = [
     isMediumCard: true,
     svgIcon: 'dataproduct',
   },
-  {
-    name: 'CarLA Economic Model',
-    description:
-      'The CarLA Economic Model is the orientation guide for all functions of the CarLA. This CarLA-City-Map gives you a first overview about the functions of the CarLA, which are clustered in 5 focus areas.',
-    tags: ['Self Service', 'FOSS'],
-    url: carlaEconomicModelUrl,
-    isExternalLink: true,
-    isTextAlignLeft: false,
-    isDisabled: false,
-    isSmallCard: false,
-    isMediumCard: true,
-    svgIcon: 'dataproduct',
-  },
+  // {
+  //   name: 'CarLA Economic Model',
+  //   description:
+  //     'The CarLA Economic Model is the orientation guide for all functions of the CarLA. This CarLA-City-Map gives you a first overview about the functions of the CarLA, which are clustered in 5 focus areas.',
+  //   tags: ['Self Service', 'FOSS'],
+  //   url: carlaEconomicModelUrl,
+  //   isExternalLink: true,
+  //   isTextAlignLeft: false,
+  //   isDisabled: false,
+  //   isSmallCard: false,
+  //   isMediumCard: true,
+  //   svgIcon: 'dataproduct',
+  // },
   {
     name: 'Corporate Data Catalogue',
     description:
@@ -259,7 +259,7 @@ export const ToolsLandingPageElements = [
     svgIcon: 'storage',
   },
   {
-    name: 'Code Spaces (Beta)',
+    name: 'Code Spaces',
     description:
       'Code spaces provides developers with one click developer workspace customizable based on the technology used. Developers can collaborate on the team developing same solution but also deploy solution to different staging environments with click of the mouse.',
     tags: ['FOSS', 'Coding', 'Cloud', 'Onprem'],
