@@ -2664,5 +2664,5 @@ dss-mfe:
 dss-be:
   enabled: true
 
-husura:
+hasura:
   enabled: true
