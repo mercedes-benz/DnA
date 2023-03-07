@@ -3,6 +3,7 @@ apiVersion: autoscaling/v2beta1
 kind: HorizontalPodAutoscaler
 metadata:
   name: {{ include "husura.fullname" . }}
+  namespace: {{ .Values.namespace }}
   labels:
     {{- include "husura.labels" . | nindent 4 }}
 spec:
