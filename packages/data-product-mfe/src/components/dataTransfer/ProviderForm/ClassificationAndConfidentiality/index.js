@@ -7,14 +7,16 @@ import InfoModal from 'dna-container/InfoModal';
 import { useDispatch, useSelector } from 'react-redux';
 import { getClassificationTypes } from '../../../redux/getDropdowns.services';
 
-const Classification = ({ onSave }) => {
+const Classification = (
+  // { onSave }
+  ) => {
   const {
     register,
-    handleSubmit,
+    // handleSubmit,
     formState: { errors },
-    reset,
-    setValue,
-    watch,
+    // reset,
+    // setValue,
+    // watch,
   } = useFormContext();
   const [showInfoModal, setShowInfoModal] = useState(false);
 
@@ -92,7 +94,7 @@ const Classification = ({ onSave }) => {
           </div>
         </div>
       </div>
-      <div className="btnContainer">
+      {/* <div className="btnContainer">
         <button
           className="btn btn-primary"
           type="submit"
@@ -108,7 +110,7 @@ const Classification = ({ onSave }) => {
         >
           Save & Next
         </button>
-      </div>
+      </div> */}
       {showInfoModal && (
         <InfoModal
           title="Info Modal"

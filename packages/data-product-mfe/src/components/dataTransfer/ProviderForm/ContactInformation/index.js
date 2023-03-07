@@ -22,12 +22,16 @@ import { dataTransferApi } from '../../../../apis/datatransfers.api';
 import dayjs from 'dayjs';
 import { debounce } from 'lodash';
 
-const ContactInformation = ({ onSave, divisions, setSubDivisions, subDivisions, isDataProduct = false }) => {
+const ContactInformation = ({ 
+  // onSave, 
+  divisions, setSubDivisions, subDivisions, isDataProduct = false }) => {
   const {
     register,
-    formState: { errors, isSubmitting, dirtyFields },
+    formState: { errors, 
+      // isSubmitting,
+      dirtyFields },
     watch,
-    handleSubmit,
+    // handleSubmit,
     trigger,
     reset,
     setValue,
@@ -564,7 +568,7 @@ const ContactInformation = ({ onSave, divisions, setSubDivisions, subDivisions, 
           </div>
         </div>
       </div>
-      <div className="btnContainer">
+      {/* <div className="btnContainer">
         <button
           className="btn btn-primary"
           type="submit"
@@ -580,7 +584,7 @@ const ContactInformation = ({ onSave, divisions, setSubDivisions, subDivisions, 
         >
           Save & Next
         </button>
-      </div>
+      </div> */}
       {showInfoModal && (
         <InfoModal
           title="Info Modal"
