@@ -124,7 +124,7 @@ public class NotificationsController implements NotificationsApi {
 			CreatedByVO currentUser = this.userStore.getVO();
 			String currentUserId = currentUser != null ? currentUser.getId() : "";
 			NotificationCollectionVO notAuthorizedCollection = new NotificationCollectionVO();						
-			if (currentUserId.toLowerCase() != userId.toLowerCase()) {
+			if (!currentUserId.equalsIgnoreCase(userId)) {
 				List<MessageDescription> notAuthorizedMsgs = new ArrayList<>();
 				MessageDescription notAuthorizedMsg = new MessageDescription();
 				notAuthorizedMsg.setMessage("Not authorized to view all notifications. Only current user's notifications can be viewed.");
