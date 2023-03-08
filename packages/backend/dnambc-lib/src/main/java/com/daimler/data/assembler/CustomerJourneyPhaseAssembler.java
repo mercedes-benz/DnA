@@ -56,9 +56,9 @@ public class CustomerJourneyPhaseAssembler implements GenericAssembler<CustomerJ
 			customerJourneyPhaseNsql = new CustomerJourneyPhaseNsql();
 			CustomerJourneyPhase customerJourneyPhase = new CustomerJourneyPhase();
 			customerJourneyPhase.setName(vo.getName());
+			customerJourneyPhase.setId(vo.getId());
 			customerJourneyPhaseNsql.setData(customerJourneyPhase);
-			if (vo.getId() != null)
-				customerJourneyPhaseNsql.setId(vo.getId());
+			customerJourneyPhaseNsql.setId(vo.getId());
 		}
 		return customerJourneyPhaseNsql;
 	}
