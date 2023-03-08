@@ -16,7 +16,7 @@ import IconAvatarNew from 'dna-container/IconAvatarNew';
 import { withRouter } from 'react-router-dom';
 import { setSelectedDataProduct } from '../../../dataProduct/redux/dataProductSlice';
 
-const OtherRelevantInfo = ({ onSave, onPublish, history, user, isDataProduct }) => {
+const OtherRelevantInfo = ({ onSave, onPublish, onDescriptionTabErrors, history, user, isDataProduct }) => {
   const {
     // register,
     handleSubmit,
@@ -246,7 +246,7 @@ const OtherRelevantInfo = ({ onSave, onPublish, history, user, isDataProduct }) 
                 });
               });
               
-            })}
+            },(errors) => onDescriptionTabErrors(errors))}
           >
             Save
           </button>
@@ -265,7 +265,7 @@ const OtherRelevantInfo = ({ onSave, onPublish, history, user, isDataProduct }) 
                 reset(data, {
                   keepDirty: false,
                 });
-              })}
+              },(errors) => {onDescriptionTabErrors(errors)})}
             >
               Publish
             </button>
@@ -283,7 +283,7 @@ const OtherRelevantInfo = ({ onSave, onPublish, history, user, isDataProduct }) 
                 reset(data, {
                     keepDirty: false,
                   });
-              })}
+              },(errors) => {onDescriptionTabErrors(errors)})}
             >
               Save and Forward Minimum Information
             </button>
