@@ -402,6 +402,15 @@
       sup {
         font-size: var(--font-size-small);
       }
+
+      i.info {
+        font-size: var(--font-size-icon-medium);
+        position: absolute;
+        right: 0;
+        &:hover{
+          cursor: pointer;
+        }
+      }
     }
 
     &.search-field {
@@ -1429,6 +1438,16 @@
       content: "\e981";
     }
   }
+
+  .active-status {
+    position: absolute;
+    background-color: #00adef;
+    display: block;
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    right: 0;
+  } 
   .airflowexpansionPanel {
     .expansion-panel.open .expansion-panel-content {
       max-height: initial;
