@@ -88,7 +88,7 @@ const ProviderSummary = ({ onSave, providerFormIsDraft }) => {
             </div>
             <div className={classNames(Styles.flexLayout, Styles.fourColumn)}>
               <div>
-                <label className="input-label summary">Compliance Officer / Responsible (LCO/LCR) </label>
+                <label className="input-label summary">Corresponding Compliance Contact, i.e. Local Compliance Officer/ Responsible or Multiplier </label>
                 <br />
                 {providerInformation.complianceOfficer}
               </div>
