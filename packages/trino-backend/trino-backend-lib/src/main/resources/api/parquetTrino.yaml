@@ -162,6 +162,8 @@ definitions:
  ParquetUploadResponseVO:
     type: object
     properties:
+      publishedFolderPath:
+        type: string
       data:
         $ref: "#/definitions/TrinoCreateResponseVO"
       message:

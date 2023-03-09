@@ -1,0 +1,23 @@
+{{- if .Values.ingress.enabled -}}
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: {{ .Values.app.backend.name }}
+  namespace: {{ .Values.namespace }}
+spec:
+  entryPoints:
+    - web
+    - websecure
+  routes:
+    - kind: Rule
+      match: Host(`{{ .Values.ingress.host }}`) && PathPrefix(`{{ .Values.ingress.prefix }}`)
+      middlewares:
+        - name: {{ .Values.app.backend.name }}
+      services:
+        - name: {{ .Values.app.backend.name }}-service
+          port: api-http
+  tls:
+    domains:
+      - main: {{ .Values.ingress.host }}
+    secretName: clamav-rest-tls
+{{- end }}    
