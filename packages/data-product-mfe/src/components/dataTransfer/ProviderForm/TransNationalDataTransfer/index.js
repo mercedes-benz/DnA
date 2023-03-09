@@ -55,7 +55,7 @@ const TransNationalDataTransfer = (
       <div className={Styles.wrapper}>
         <div className={Styles.firstPanel}>
           <div>
-            <h3>Identifiying Trans-national Data Transfer</h3>
+            <h3>Identifiying Transnational Data Transfer</h3>
             {showInfoModal && (
               <div className={Styles.infoIcon}>
                 <i className={'icon mbc-icon info'} onClick={() => {}} />
@@ -115,7 +115,7 @@ const TransNationalDataTransfer = (
                 style={{ minHeight: '50px' }}
               >
                 <label className={classNames(Styles.inputLabel, 'input-label')}>
-                  Only if yes, is one of these countries not within the EU?{' '}
+                  Only if yes, is one of these countries outside the EU?{' '}
                   {getValues('transnationalDataTransfer') === 'Yes' ? <sup>*</sup> : null}
                 </label>
                 <div className={Styles.radioBtns}>
@@ -240,7 +240,7 @@ const TransNationalDataTransfer = (
       <div className={Styles.wrapper}>
         <div className={Styles.firstPanel}>
           <div>
-            <h3>Identifiying Insider Information</h3>
+            <h3>Identifying (potential) insider information</h3>
           </div>
           <div className={Styles.formWrapper}>
             <div
@@ -248,23 +248,9 @@ const TransNationalDataTransfer = (
               style={{ minHeight: '50px' }}
             >
               <label className={classNames(Styles.inputLabel, 'input-label')}>
-                Does product contain insider information? <sup>*</sup>
+                Does data product contain (potential) insider information? <sup>*</sup>
               </label>
               <div className={Styles.radioBtns}>
-                <label className={'radio'}>
-                  <span className="wrapper">
-                    <input
-                      {...register('insiderInformation', {
-                        required: '*Missing entry',
-                      })}
-                      type="radio"
-                      className="ff-only"
-                      name="insiderInformation"
-                      value="N.A"
-                    />
-                  </span>
-                  <span className="label">N.A</span>
-                </label>
                 <label className={'radio'}>
                   <span className="wrapper">
                     <input
@@ -288,10 +274,24 @@ const TransNationalDataTransfer = (
                       type="radio"
                       className="ff-only"
                       name="insiderInformation"
+                      value="N.A"
+                    />
+                  </span>
+                  <span className="label">Yes, potential insider information</span>
+                </label>
+                <label className={'radio'}>
+                  <span className="wrapper">
+                    <input
+                      {...register('insiderInformation', {
+                        required: '*Missing entry',
+                      })}
+                      type="radio"
+                      className="ff-only"
+                      name="insiderInformation"
                       value="Yes"
                     />
                   </span>
-                  <span className="label">Yes</span>
+                  <span className="label">Yes, insider information</span>
                 </label>
               </div>
               <span className={classNames('error-message')}>{errors?.insiderInformation?.message}</span>
