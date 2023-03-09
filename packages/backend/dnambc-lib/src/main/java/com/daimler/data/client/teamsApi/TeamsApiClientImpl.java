@@ -17,6 +17,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.ArrayList;
 import java.util.List;
 
 @Component
@@ -48,8 +49,8 @@ public class TeamsApiClientImpl implements TeamsApiClient {
 
     @Override
     public UsersCollection getTeamsApiUserInfoDetails(String searchTerm) {
-        UsersCollection usersCollection = null;
-        List<UserInfoVO> userInfoVOList = null;
+        UsersCollection usersCollection = new UsersCollection();
+        List<UserInfoVO> userInfoVOList = new ArrayList<>();
         Claims claims;
         Integer totalCount = 0;
         TeamsApiResponseWrapperDto teamsApiOutputResponse = null;
@@ -75,8 +76,8 @@ public class TeamsApiClientImpl implements TeamsApiClient {
         } catch (Exception e) {
             LOGGER.error("exception occurred calling teamsApi:{}", e.getMessage());
         }
-        usersCollection.setTotalCount(totalCount);
         usersCollection.setRecords(userInfoVOList);
+        usersCollection.setTotalCount(totalCount);
         return usersCollection;
     }
 
