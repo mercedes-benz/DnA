@@ -549,7 +549,7 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
                       }
                     >
                       <a href="#tab-content-3" id="kpi" onClick={this.setCurrentTab}>
-                        KPIs
+                        Content &amp; Functions
                       </a>
                     </li>
                     <li
@@ -560,7 +560,7 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
                       }
                     >
                       <a href="#tab-content-4" id="datafunction" onClick={this.setCurrentTab}>
-                        Data & Functions
+                        Data
                       </a>
                     </li>
                     <li
@@ -782,7 +782,6 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
     // this.state.report.openSegments.push('Description');
     this.setState({ publishFlag: true });
     this.callApiToSave(true, null);
-    history.push('/allreports');
   };
   protected saveDescription = () => {
     this.state.report.openSegments.push('Description');
@@ -899,14 +898,18 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
                 response,
               },
               () => {
-                this.setState({
-                  // currentStateHash: btoa(unescape(encodeURIComponent(JSON.stringify(this.state.report)))),
-                  // currentStateHash: JSON.stringify(this.state.report),
-                  currentState: JSON.parse(JSON.stringify(this.state.report)),
-                });
-                this.setOpenTabs(report.openSegments);
-                this.setTabsAndClick(nextTab);
                 this.showNotification(isPublished);
+                if (report.usingQuickPath) {
+                  history.push('/allreports');
+                } else {
+                  this.setState({
+                    // currentStateHash: btoa(unescape(encodeURIComponent(JSON.stringify(this.state.report)))),
+                    // currentStateHash: JSON.stringify(this.state.report),
+                    currentState: JSON.parse(JSON.stringify(this.state.report)),
+                  });
+                  this.setOpenTabs(report.openSegments);
+                  this.setTabsAndClick(nextTab);
+                }
               },
             );
           }
