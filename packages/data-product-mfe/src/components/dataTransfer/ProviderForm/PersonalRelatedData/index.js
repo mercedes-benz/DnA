@@ -8,12 +8,14 @@ import InfoModal from 'dna-container/InfoModal';
 import { useDispatch, useSelector } from 'react-redux';
 import { getLegalBasis } from '../../../redux/getDropdowns.services';
 
-const PersonalRelatedData = ({ onSave }) => {
+const PersonalRelatedData = (
+  // { onSave }
+  ) => {
   const {
     register,
-    handleSubmit,
+    // handleSubmit,
     formState: { errors },
-    reset,
+    // reset,
     watch,
     clearErrors,
     setValue,
@@ -174,7 +176,7 @@ const PersonalRelatedData = ({ onSave }) => {
           </div>
         </div>
       </div>
-      <div className="btnContainer">
+      {/* <div className="btnContainer">
         <button
           className="btn btn-primary"
           type="submit"
@@ -189,7 +191,7 @@ const PersonalRelatedData = ({ onSave }) => {
         >
           Save & Next
         </button>
-      </div>
+      </div> */}
       {showInfoModal && (
         <InfoModal
           title="Info Modal"

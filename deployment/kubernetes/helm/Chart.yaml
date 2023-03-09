@@ -131,6 +131,11 @@ dependencies:
   repository: file://charts/dss-be
   version: 0.1.0
   condition: dss-be.enabled  
+
+- name: hasura
+  repository: file://charts/hasura
+  version: 2.16.1
+  condition: hasura.enabled 
  
 # A chart can be either an 'application' or a 'library' chart.
 #
