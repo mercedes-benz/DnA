@@ -261,6 +261,17 @@ public class BaseDataTransferService extends BaseCommonService<DataTransferVO, D
 		return false;
 	}
 
+	private boolean hasProviderAccess(DataTransferTeamMemberVO teamMemberVO) {
+		CreatedByVO currentUser = this.userStore.getVO();
+		String userId = currentUser != null ? currentUser.getId() : "";
+		if (StringUtils.hasText(userId)) {
+			if (userId.equalsIgnoreCase(teamMemberVO.getShortId())) {
+				return true;
+			}
+		}
+		return false;
+	}
+
 	@Override
 	@Transactional
 	public ResponseEntity<DataTransferProviderResponseVO> updateDataTransferProvider(ProviderVO requestVO) {
@@ -279,7 +290,9 @@ public class BaseDataTransferService extends BaseCommonService<DataTransferVO, D
 			if (existingVO != null && existingVO.getRecordStatus() != null
 					&& !existingVO.getRecordStatus().equalsIgnoreCase(ConstantsUtility.DELETED)) {
 				CreatedByVO createdBy = existingVO.getProviderInformation().getCreatedBy();
-				if (hasProviderAccess(createdBy)) {
+				DataTransferTeamMemberVO informationOwner = existingVO.getProviderInformation().getContactInformation().getInformationOwner();
+				DataTransferTeamMemberVO name = existingVO.getProviderInformation().getContactInformation().getName();
+				if (hasProviderAccess(createdBy) || hasProviderAccess(informationOwner) || hasProviderAccess(name)) {
 					if (!ObjectUtils.isEmpty(providerResponseVO.getUsers())) {
 						if (providerResponseVO.getUsers().stream()
 								.anyMatch(n -> userId.equalsIgnoreCase(n.getShortId()))) {
@@ -585,7 +598,9 @@ public class BaseDataTransferService extends BaseCommonService<DataTransferVO, D
 			DataTransferVO dataTransferVO = null;
 			if (existingVO != null && existingVO.getId() != null) {
 				CreatedByVO createdBy = existingVO.getProviderInformation().getCreatedBy();
-				if (hasProviderAccess(createdBy)) {
+				DataTransferTeamMemberVO informationOwner = existingVO.getProviderInformation().getContactInformation().getInformationOwner();
+				DataTransferTeamMemberVO name = existingVO.getProviderInformation().getContactInformation().getName();
+				if (hasProviderAccess(createdBy) || hasProviderAccess(informationOwner) || hasProviderAccess(name)) {
 					ProviderResponseVO providerResponseVO = existingVO.getProviderInformation();
 					providerResponseVO.lastModifiedDate(new Date());
 					providerResponseVO.setModifiedBy(this.userStore.getVO());

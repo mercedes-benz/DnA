@@ -34,6 +34,7 @@
 .tagColumn {
   display: inline-flex;
   flex-wrap: wrap;
+  word-break: break-all;
   > div {
     margin: 5px 5px 5px 0;
   }

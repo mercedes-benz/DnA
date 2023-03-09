@@ -86,6 +86,7 @@ window['INJECTED_ENVIRONMENT'] = {
   CORPORATE_DATA_CATALOG_URL: 'YOUR_CORPORATE_DATA_CATALOG_URL',
   SAP_CONNECTION_BOOK_URL: 'YOUR_SAP_CONNECTION_BOOK_URL',
   SMART_DATA_GOVERNANCE_URL: 'YOUR_SMART_DATA_GOVERNANCE_URL',
+  DATA_PRODUCT_API_BASEURL: 'http://localhost:7184/api',
 };
 
 window['STORAGE_INJECTED_ENVIRONMENT'] = {
@@ -101,8 +102,7 @@ window['STORAGE_INJECTED_ENVIRONMENT'] = {
 window['DATA_PRODUCT_INJECTED_ENVIRONMENT'] = {
   CONTAINER_APP_URL: 'http://localhost:9090',
   DATA_PRODUCT_API_BASEURL: '',
-  DATA_GOVERNANCE_HTML_FOR_CHINA_DATA:
-    '<p>If yes, and due to the complexity of corresponding Data Governance requirements, we recommend you reach out to us at the <a href="#" target="_blank" rel="noopener noreferrer"> Data Governance Office FM </a> directly.</p>',
+  DATA_GOVERNANCE_HTML_FOR_CHINA_DATA: '<p>Your sample content</p>',
   DATA_PRODUCT_TOU_HTML:
     '<div>On behalf of my above mentioned Business Owner, I confirm the corresponding minimum information to be correct and complete to the best of my knowledge. I accept the conditions.</div>',
   INFORMATION_POLICY_LINK: 'YOUR_INFORMATION_POLICY_LINK',
@@ -113,7 +113,7 @@ window['CHRONOS_INJECTED_ENVIRONMENT'] = {
   CHRONOS_API_BASEURL: '',
   ENABLE_CHRONOS_ONEAPI: false,
   CHRONOS_ONEAPI_URL: 'YOUR_CHRONOS_ONEAPI_URL',
-  STORAGE_MFE_APP_URL: 'http://localhost:8083',
+  STORAGE_MFE_APP_URL: 'http://localhost:9090/#/storage',
   STORAGE_API_BASEURL: 'http://localhost:7175/api',
 };
 

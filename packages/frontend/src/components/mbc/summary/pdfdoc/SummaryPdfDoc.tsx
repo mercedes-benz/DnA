@@ -708,7 +708,7 @@ interface SummaryPdfDocProps {
   canShowPlatform: boolean;
   canShowMilestones: boolean;
   canShowDataSources: boolean;
-  canShowDigitalValue: string;
+  canShowDigitalValue: boolean;
   canShowComplianceSummary: number | boolean;
   user: IUserInfo;
   noteBookInfo: INotebookInfo;
@@ -1020,6 +1020,10 @@ export const SummaryPdfDoc = (props: SummaryPdfDocProps) => (
             ) : (
               <View />
             )}
+          </View>
+        ) : (
+          <View />
+        )}  
 
             {(props.solution.analytics &&
               props.solution.analytics.algorithms &&
@@ -1163,10 +1167,7 @@ export const SummaryPdfDoc = (props: SummaryPdfDocProps) => (
             ) : (
               <View />
             )}
-          </View>
-        ) : (
-          <View />
-        )}
+          
         {props.canShowComplianceSummary ? (
           <View wrap={false}>
             <View wrap={false}>

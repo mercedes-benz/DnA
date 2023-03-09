@@ -210,7 +210,29 @@ public class StorageServicesClient {
 		return updateBucketResponse;
 	}
 	
-	public FileUploadResponseDto uploadFile(String prefix,MultipartFile file,String bucketName) {
+	public FileUploadResponseDto uploadFile(String prefix,MultipartFile file, String bucketName) {
+		FileUploadResponseDto uploadResponse = new FileUploadResponseDto();
+		List<MessageDescription> errors = new ArrayList<>();
+		try {
+			ByteArrayResource fileAsResource = new ByteArrayResource(file.getBytes()){
+			    @Override
+			    public String getFilename(){
+			        return file.getOriginalFilename();                                          
+			    }
+			};
+			return this.uploadFile(prefix, fileAsResource, bucketName);
+		}catch(Exception e) {
+			log.error("Failed while uploading file {} to minio bucket {} with exception {}", file.getOriginalFilename(), bucketName,e.getMessage());
+			MessageDescription errMsg = new MessageDescription("Failed while uploading file with exception " + e.getMessage());
+			errors.add(errMsg);
+			uploadResponse.setErrors(errors);
+			uploadResponse.setStatus("FAILED");
+		}
+		return uploadResponse;
+	}
+	
+	
+	public FileUploadResponseDto uploadFile(String prefix,ByteArrayResource file, String bucketName) {
 		FileUploadResponseDto uploadResponse = new FileUploadResponseDto();
 		List<MessageDescription> errors = new ArrayList<>();
 		try {
@@ -221,13 +243,7 @@ public class StorageServicesClient {
 			headers.set("chronos-api-key",dataBricksAuth);
 			headers.setContentType(MediaType.MULTIPART_FORM_DATA);
 			LinkedMultiValueMap<String, Object> multipartRequest = new LinkedMultiValueMap<>();
-	
-			ByteArrayResource fileAsResource = new ByteArrayResource(file.getBytes()){
-			    @Override
-			    public String getFilename(){
-			        return file.getOriginalFilename();                                          
-			    }
-			};
+			ByteArrayResource fileAsResource = file;
 			String uploadFileUrl = storageBaseUri + BUCKETS_PATH + "/" + bucketName + UPLOADFILE_PATH;
 			HttpEntity<ByteArrayResource> attachmentPart = new HttpEntity<>(fileAsResource);
 			multipartRequest.set("file",attachmentPart);
@@ -239,7 +255,7 @@ public class StorageServicesClient {
 				uploadResponse = response.getBody();
 			}
 			}catch(Exception e) {
-				log.error("Failed while uploading file {} to minio bucket {} with exception {}", file.getOriginalFilename(), bucketName,e.getMessage());
+				log.error("Failed while uploading file {} to minio bucket {} with exception {}", file.getFilename(), bucketName,e.getMessage());
 				MessageDescription errMsg = new MessageDescription("Failed while uploading file with exception " + e.getMessage());
 				errors.add(errMsg);
 				uploadResponse.setErrors(errors);
