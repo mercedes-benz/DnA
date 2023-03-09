@@ -1,9 +1,8 @@
 package com.daimler.data.client.teamsApi;
 
-import com.daimler.data.db.jsonb.UserInfo;
 
-import java.util.List;
+import com.daimler.data.dto.userinfo.UsersCollection;
 
 public interface TeamsApiClient {
-    public TeamsApiResponseWrapperDto getTeamsApiUserInfoDetails(String searchTerm);
+    public UsersCollection getTeamsApiUserInfoDetails(String searchTerm);
 }
