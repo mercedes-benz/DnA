@@ -244,13 +244,15 @@ export default class Summary extends React.Component<{ user: IUserInfo }, ISumma
     const canShowDescription = this.state.solution.description.productName !== '';
     const canShowDigitalValue =
       canShowDescription &&
-      (isAdmin !== undefined || userInfo.id === this.checkUserCanViewDigitalValue(userInfo)) &&
-      this.state.solution?.digitalValue?.maturityLevel;
+      (isAdmin !== undefined || (userInfo.id === this.checkUserCanViewDigitalValue(userInfo)))
+      &&
+      (this.state.solution?.digitalValue?.maturityLevel && this.state.solution?.digitalValue?.maturityLevel != null);
 
     const canShowMarketing  = this.state.solution?.marketing?.customerJourneyPhases?.length > 0 ||
     this.state.solution?.marketing?.marketingCommunicationChannels?.length > 0 ||
     this.state.solution?.marketing?.personas?.length > 0 ||
-    this.state.solution?.marketing?.personalization?.isChecked;
+    this.state.solution?.marketing?.personalization?.isChecked ||
+    this.state.solution?.marketing?.marketingRoles.length > 0;
 
     const pdfContent = canShowDescription ? (
       <SummaryPdfDoc
@@ -400,7 +402,7 @@ export default class Summary extends React.Component<{ user: IUserInfo }, ISumma
                   <DigitalValueSummary
                     digitalValue={this.state.solution.digitalValue}
                     solutionName={this.state.solution.description.productName}
-                    canEdit={isAdmin !== undefined || userInfo.id === this.checkUserCanEditSolution(userInfo)}
+                    canEdit={isAdmin !== undefined || (userInfo.id === this.checkUserCanEditSolution(userInfo))}
                     solutionId={this.state.response.data ? this.state.response.data.id : ''}
                     bookmarked={this.state.solution.bookmarked}
                     onEdit={this.onEditSolution}
@@ -546,7 +548,7 @@ export default class Summary extends React.Component<{ user: IUserInfo }, ISumma
                 canShowTeams: solution.team && solution.team.team.length > 0,
                 canShowDigitalValue:
                   solution.digitalValue &&
-                  (isAdmin !== undefined || userInfo.id === this.checkUserCanViewDigitalValue(userInfo))
+                  (isAdmin !== undefined || (userInfo.id === this.checkUserCanViewDigitalValue(userInfo)))
                     ? true
                     : false,
                 canShowMilestones:
@@ -636,16 +638,21 @@ export default class Summary extends React.Component<{ user: IUserInfo }, ISumma
           userId = this.state.solution.team.team.find((teamMember) => teamMember.shortId === userInfo.id).shortId;
         } else if (this.state.solution.createdBy) {
           userId = this.state.solution.createdBy.id;
+        } else if (
+          userInfo?.divisionAdmins &&
+          userInfo?.divisionAdmins.includes(this.state.solution?.description?.division?.name)
+        ) {
+          userId = userInfo.id;
         }
       } else if (this.state.solution.team.team.find((teamMember) => teamMember.shortId === userInfo.id)) {
         userId = this.state.solution.team.team.find((teamMember) => teamMember.shortId === userInfo.id).shortId;
-      } else if (this.state.solution.createdBy) {
-        userId = this.state.solution.createdBy.id;
-      } else if (
+      }  else if (
         userInfo?.divisionAdmins &&
         userInfo?.divisionAdmins.includes(this.state.solution?.description?.division?.name)
       ) {
         userId = userInfo.id;
+      } else if (this.state.solution.createdBy) {
+        userId = this.state.solution.createdBy.id;
       }
     } else {
       userId = '';
