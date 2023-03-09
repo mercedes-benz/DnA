@@ -191,7 +191,7 @@ const ProviderSummary = ({ onSave, providerFormIsDraft }) => {
                 </div>
               ) : null}
               <div>
-                <label className="input-label summary">Does product contain insider information?</label>
+                <label className="input-label summary">Does data product contain (potential) insider information?</label>
                 <br />
                 {providerInformation.insiderInformation}
               </div>
