@@ -206,3 +206,8 @@ logging:
             sql: ERROR
       graphql:
         servlet: ERROR
+teamsApi:
+  team-api-baseurl: ${TEAMS_API_BASE_URI:xxxxxx}
+  person-search-uri: ${PERSON_SEARCH_URI:xxxxxx}
+  teams-api-resultFetchSize: ${TEAMS_API_RESULT_SIZE:xxxxxx}
+  enabled: false
