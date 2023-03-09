@@ -91,6 +91,7 @@ const ProviderForm = ({ user, history }) => {
 
   const [showAllTabsError, setShowAllTabsError] = useState(false);
   const [showContactInformationTabError, setShowContactInformationTabError] = useState(false);
+  const [isTouChecked, setIsTouChecked] = useState(false);
 
 
   // set default value of "Name" field as logged in user name
@@ -183,6 +184,11 @@ const ProviderForm = ({ user, history }) => {
   }, [dispatch, provideDataTransfers.selectedDataTransfer, isCreatePage]);
 
   useEffect(() => {
+    validatePublishRequest(provideDataTransfers.selectedDataTransfer);
+    //eslint-disable-next-line
+  },[provideDataTransfers.selectedDataTransfer])
+
+  useEffect(() => {
     ProgressIndicator.show();
     hostServer.get('/divisions').then((res) => {
       setDivisions(res.data);
@@ -237,13 +243,18 @@ const ProviderForm = ({ user, history }) => {
       deletionRequirementsTabError: []
     }
 
+    if (!reqObj?.productName || reqObj?.productName === '') {
+      errorObject.contactInformationTabError.push('Data Product Name / Short description of the data transfer');
+      formValid = false;
+    }
+
     if (!reqObj?.informationOwner || reqObj?.informationOwner === '') {
-      errorObject.contactInformationTabError.push('Information Owner');
+      errorObject.contactInformationTabError.push('Data responsible IO and/or Business Owner for application');
       formValid = false;
     }
 
     if (!reqObj?.name?.firstName || reqObj?.name?.firstName === '') {
-      errorObject.contactInformationTabError.push('Your Name');
+      errorObject.contactInformationTabError.push('Point of contact for data transfer');
       formValid = false;
     }
 
@@ -327,7 +338,7 @@ const ProviderForm = ({ user, history }) => {
       }
     }
 
-    if (!reqObj?.tou || reqObj?.tou === '') {
+    if (!reqObj?.tou || reqObj?.tou === false) {
       errorObject.deletionRequirementsTabError.push('Terms and conditions acknowledgement');
       formValid = false;
     }
@@ -344,40 +355,74 @@ const ProviderForm = ({ user, history }) => {
   function validateContactInformationTab (reqObj) {
     let formValid = true;
     const errorObject = {
-      contactInformationTabError: []
+      contactInformationTabError: [],
+      deletionRequirementsTabError: [],
+      ...errorsInPublish 
     }
+
+    if (!reqObj?.productName?.message === '*Missing entry') {
+      !errorObject.contactInformationTabError.includes('Data Product Name / Short description of the data transfer') ? 
+      errorObject.contactInformationTabError.push('Data Product Name / Short description of the data transfer')
+      :'';
+      formValid = false;
+    }
+
     if (reqObj?.informationOwner?.message === '*Missing entry') {
-      errorObject.contactInformationTabError.push('Information Owner');
+      !errorObject.contactInformationTabError.includes('Data responsible IO and/or Business Owner for application')?
+      errorObject.contactInformationTabError.push('Data responsible IO and/or Business Owner for application')
+      :'';
       formValid = false;
     }
 
     if (reqObj?.name?.firstName?.message === '*Missing entry') {
-      errorObject.contactInformationTabError.push('Your Name');
+      !errorObject.contactInformationTabError.includes('Point of contact for data transfer')?
+      errorObject.contactInformationTabError.push('Point of contact for data transfer')
+      :'';
       formValid = false;
     }
 
     if (reqObj?.division?.message === '*Missing entry') {
-      errorObject.contactInformationTabError.push('Division');
+      !errorObject.contactInformationTabError.includes('Division')?
+      errorObject.contactInformationTabError.push('Division')
+      :'';
       formValid = false;
     }
 
     if (reqObj?.department?.message === '*Missing entry') {
-      errorObject.contactInformationTabError.push('Department');
+      !errorObject.contactInformationTabError.includes('Department')?
+      errorObject.contactInformationTabError.push('Department')
+      :'';
       formValid = false;
     }
 
     if (reqObj?.dateOfDataTransfer?.message === '*Missing entry') {
-      errorObject.contactInformationTabError.push('Date of Data Transfer');
+      !errorObject.contactInformationTabError.includes('Date of Data Transfer')?
+      errorObject.contactInformationTabError.push('Date of Data Transfer')
+      :'';
       formValid = false;
     }
     
     if (reqObj?.complianceOfficer?.message === '*Missing entry') {
-      errorObject.contactInformationTabError.push('Corresponding Compliance Officer / Responsible (LCO/LCR)');
+      !errorObject.contactInformationTabError.includes('Corresponding Compliance Officer / Responsible (LCO/LCR)')?
+      errorObject.contactInformationTabError.push('Corresponding Compliance Officer / Responsible (LCO/LCR)') : '';
       formValid = false;
+    }
+
+    if (reqObj?.tou?.message === '*Missing entry') {
+      errorObject.deletionRequirementsTabError.push('Terms and conditions acknowledgement');
+      formValid = false;
+    }
+
+    if(reqObj?.tou === true){
+      setIsTouChecked(true)
     }
 
 
     setErrorsInPublish(errorObject);
+
+    if(currentTab === 'contact-info'){
+      validatePublishRequest(reqObj)
+    }
 
     return formValid;
   };
@@ -472,9 +517,10 @@ const ProviderForm = ({ user, history }) => {
           </h3>
           <div id="data-product-tabs" className="tabs-panel">
             <div className="tabs-wrapper">
-              <nav>
+              <nav>              
                 <ul className="tabs">
-                  <li className={savedTabs?.includes('contact-info') ? 'tab valid' : 'tab active'}>
+                  {/* <li className={savedTabs?.includes('contact-info') ? 'tab valid' : 'tab active'}> */}
+                  <li className={errorsInPublish?.contactInformationTabError?.length > 0 ? 'tab' : 'tab valid active'}>  
                     <a
                       href="#tab-content-1"
                       id="contact-info"
@@ -487,7 +533,7 @@ const ProviderForm = ({ user, history }) => {
                     </a>
                   </li>
                   {/* <li className={savedTabs?.includes('classification-confidentiality') ? 'tab valid' : 'tab disabled'}> */}
-                  <li className={'tab valid'}>
+                  <li className={errorsInPublish?.dataDescriptionClassificationTabError?.length > 0 ? 'tab':'tab valid'}>
                     <a
                       href="#tab-content-2"
                       id="classification-confidentiality"
@@ -500,7 +546,7 @@ const ProviderForm = ({ user, history }) => {
                     </a>
                   </li>
                   {/* <li className={savedTabs?.includes('personal-data') ? 'tab valid' : 'tab disabled'}> */}
-                  <li className={'tab valid'}>
+                  <li className={errorsInPublish?.personalRelatedDataTabError?.length > 0 ? 'tab' :'tab valid'}>
                     <a
                       href="#tab-content-3"
                       id="personal-data"
@@ -513,7 +559,7 @@ const ProviderForm = ({ user, history }) => {
                     </a>
                   </li>
                   {/* <li className={savedTabs?.includes('trans-national-data-transfer') ? 'tab valid' : 'tab disabled'}> */}
-                  <li className={'tab valid'}>
+                  <li className={errorsInPublish?.transnationalDataTabError?.length > 0 ? 'tab':'tab valid'}>
                     <a
                       href="#tab-content-4"
                       id="trans-national-data-transfer"
@@ -526,7 +572,10 @@ const ProviderForm = ({ user, history }) => {
                     </a>
                   </li>
                   {/* <li className={savedTabs?.includes('deletion-requirements') ? 'tab valid' : 'tab disabled'}> */}
-                  <li className={'tab valid'}>
+                  <li className={errorsInPublish?.deletionRequirementsTabError?.length > 0
+                    ?  errorsInPublish?.deletionRequirementsTabError?.includes('Terms and conditions acknowledgement') && !isTouChecked
+                        ?'tab': 'tab valid'
+                    :'tab valid'}>
                     <a
                       href="#tab-content-5"
                       id="deletion-requirements"
@@ -610,9 +659,14 @@ const ProviderForm = ({ user, history }) => {
               ) : ''} 
             <OtherRelevant onSave={(values) => {onSave(currentTab, values)}} 
             onDescriptionTabErrors={(errorObj) => {
-              setShowContactInformationTabError(false);
-              validateContactInformationTab(errorObj) ? 
-              setShowContactInformationTabError(false) : setShowContactInformationTabError(true)}}
+                setShowContactInformationTabError(false);
+                (!validateContactInformationTab(errorObj) && (currentTab != 'contact-info')) ? 
+                  setShowContactInformationTabError(true) 
+                :  
+                  setShowContactInformationTabError(false)
+                
+              }
+            }
             onPublish={(values, callbackFn) => {
               setShowContactInformationTabError(false);
               onSave(currentTab, values, callbackFn)}} 
