@@ -20,9 +20,7 @@ public interface ForecastService extends CommonService<ForecastVO, ForecastNsql,
 
 	ForecastVO createForecast(ForecastVO vo) throws Exception;
 
-	FileUploadResponseDto saveFile(String prefix, MultipartFile file, String bucketName);
-
-	ForecastRunResponseVO createJobRun(MultipartFile file,String savedInputPath, Boolean saveRequestPart, String runName,
+	ForecastRunResponseVO createJobRun(MultipartFile file, String savedInputPath, Boolean saveRequestPart, String runName,
 			String configurationFile, String frequency, BigDecimal forecastHorizon, String hierarchy, String comment,
 			Boolean runOnPowerfulMachines, ForecastVO existingForecast, String triggeredBy, Date triggeredOn);
 

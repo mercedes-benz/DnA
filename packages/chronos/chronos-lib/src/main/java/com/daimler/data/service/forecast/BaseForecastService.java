@@ -53,6 +53,8 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 	
 	@Value("${databricks.defaultConfigYml}")
 	private String dataBricksJobDefaultConfigYml;
+
+	private static final String EXOGENOUS_FILE_NAME = "X.csv";
 	
 	@Autowired
 	private StorageServicesClient storageClient;
@@ -123,10 +125,42 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 		String bucketName = existingForecast.getBucketName();
 		String resultFolder = bucketName+"/results/"+correlationId + "-" + runName;
 		String inputOrginalFolder= "/results/"+correlationId + "-" + runName + "/input_original";
-
-		FileUploadResponseDto fileUploadResponse = this.saveFile(inputOrginalFolder,file, existingForecast.getBucketName());
+		FileUploadResponseDto fileUploadResponse =  null;
+		if(file!=null) {
+			fileUploadResponse = storageClient.uploadFile(inputOrginalFolder, file,existingForecast.getBucketName());
+		}else {
+				if(savedInputPath!=null && savedInputPath.contains("/")) {
+					try {
+						String path = savedInputPath;
+						String[] SavedfileDetails = path.split("/",2);
+						FileDownloadResponseDto savedFileResponse = storageClient.getFileContents(SavedfileDetails[0], "/"+SavedfileDetails[1]);
+						if(savedFileResponse!=null && savedFileResponse.getData()!=null && 
+								(savedFileResponse.getErrors()==null || savedFileResponse.getErrors().size()<1)) {
+							fileUploadResponse = storageClient.uploadFile(inputOrginalFolder, savedFileResponse.getData(),existingForecast.getBucketName());
+						}
+					}catch(Exception e) {
+						log.error("Failed while reusing savedinputfile {} attached for project name {} and id {} ",savedInputPath, existingForecast.getName(), existingForecast.getId());
+						MessageDescription invalidMsg = new MessageDescription("Failed while reusing savedinputfile " + savedInputPath);
+						List<MessageDescription> errors = new ArrayList<>();
+						errors.add(invalidMsg);
+						responseMessage.setErrors(errors);
+						responseWrapper.setData(null);
+						responseWrapper.setResponse(responseMessage);
+						return responseWrapper;	
+					}
+					
+				}else {
+					log.error("Invalid savedinputfilepath {} attached for project name {} and id {} ",savedInputPath, existingForecast.getName(), existingForecast.getId());
+					MessageDescription invalidMsg = new MessageDescription("Invalid saved file path attached.");
+					List<MessageDescription> errors = new ArrayList<>();
+					errors.add(invalidMsg);
+					responseMessage.setErrors(errors);
+					responseWrapper.setData(null);
+					responseWrapper.setResponse(responseMessage);
+					return responseWrapper;	
+				}
+		}
 		if(fileUploadResponse==null || (fileUploadResponse!=null && (fileUploadResponse.getErrors()!=null || !"SUCCESS".equalsIgnoreCase(fileUploadResponse.getStatus())))) {
-
 			log.error("Error in uploading file to {} for forecast project {}",inputOrginalFolder,existingForecast.getName() );
 			MessageDescription msg = new MessageDescription("Failed to  upload file to " + inputOrginalFolder + "for" + existingForecast.getName() );
 			List<MessageDescription> errors = new ArrayList<>();
@@ -189,6 +223,7 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 				currentRun.setTriggeredBy(triggeredBy);
 				currentRun.setTriggeredOn(triggeredOn);
 				currentRun.setIsDelete(false);
+				currentRun.setExogenData(false);
 				RunState newRunState = new RunState();
 				newRunState.setLife_cycle_state("PENDING");
 				newRunState.setUser_cancelled_or_timedout(false);
@@ -225,12 +260,6 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 	}
 
 	@Override
-	public FileUploadResponseDto saveFile(String prefix, MultipartFile file, String bucketName) {
-		FileUploadResponseDto uploadResponse = storageClient.uploadFile(prefix,file,bucketName);
-		return uploadResponse;
-	}
-
-	@Override
 	public Long getRunsCount(String id) {
 		return customRepo.getTotalRunsCount(id);
 	}
@@ -255,7 +284,9 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 					RunState state = run.getRunState();
 					String runId = run.getRunId();
 					String correlationId= run.getId();
-          String existingLifecycleState = run.getRunState().getLife_cycle_state();   
+					String existingLifecycleState = run.getRunState().getLife_cycle_state();  
+					if(run.getExogenData()==null)
+						run.setExogenData(false);
 					if(runId!=null && (run.getIsDelete() == null || !run.getIsDelete()) &&
 							(state==null || state.getResult_state()==null || state.getLife_cycle_state()==null ||
 									"PENDING".equalsIgnoreCase(state.getLife_cycle_state()) ||
@@ -315,6 +346,11 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 										List<BucketObjectDetailsDto> bucketObjectDetails=storageClient.getFilesPresent(bucketName,resultFolderPathForRun);
 										Boolean successFileFlag = storageClient.isFilePresent(resultFolderPathForRun+ "SUCCESS", bucketObjectDetails);
 										Boolean warningsFileFlag = storageClient.isFilePresent(resultFolderPathForRun+ "WARNINGS.txt", bucketObjectDetails);
+										Boolean exogenousFileFlag = storageClient.isFilePresent(resultFolderPathForRun+ EXOGENOUS_FILE_NAME, bucketObjectDetails);
+										//check if exogenous data is present
+										if(exogenousFileFlag){
+											run.setExogenData(true);
+										}
 										log.info("Run state is success from databricks and successFileFlag value is {} and warningsFileFlag is {} , for bucket {} and prefix {} ", successFileFlag, warningsFileFlag, bucketName, resultFolderPathForRun);
 										if(warningsFileFlag){
 											newState.setResult_state(ResultStateEnum.WARNINGS.name());
@@ -362,12 +398,23 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 						}
 					}
 					else {
+						if(runId != null && (run.getIsDelete() == null || !run.getIsDelete()) && (state != null &&
+								("TERMINATED".equalsIgnoreCase(state.getLife_cycle_state()) ||
+								"INTERNAL_ERROR".equalsIgnoreCase(state.getLife_cycle_state()) ||
+								"SKIPPED".equalsIgnoreCase(state.getLife_cycle_state()))) &&
+								(run.getResultFolderPath() == null || "".equalsIgnoreCase(run.getResultFolderPath()))
+						) {
+							String resultFolderPathForRun = bucketName + "/" + resultsPrefix + run.getId()+"-"+run.getRunName();
+							run.setResultFolderPath(resultFolderPathForRun);
+	          			}
 						RunDetails updatedRunDetail = new RunDetails();
 						if (runId != null && (run.getIsDelete() == null || !run.getIsDelete()) && (state != null &&
 								("TERMINATED".equalsIgnoreCase(state.getLife_cycle_state()) ||
 								"INTERNAL_ERROR".equalsIgnoreCase(state.getLife_cycle_state()) ||
 								"SKIPPED".equalsIgnoreCase(state.getLife_cycle_state()))) &&
-								!"SUCCESS".equalsIgnoreCase(state.getResult_state()) && (run.getError() == null && "".equalsIgnoreCase(run.getError()))
+								!"SUCCESS".equalsIgnoreCase(state.getResult_state()) && (run.getError() == null || "".equalsIgnoreCase(run.getError())
+								|| run.getRunState().getState_message() == null || "".equalsIgnoreCase(run.getRunState().getState_message())
+								|| ". ".equalsIgnoreCase(run.getRunState().getState_message()))
 						){
 							RunDetailsVO updatedRunResponse = this.dataBricksClient.getSingleRun(runId);
 							if(updatedRunResponse!=null && runId.equals(updatedRunResponse.getRunId())) {
@@ -385,6 +432,13 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 								updatedRuns.add(run);
 							}
 						} else {
+							//check if exogenous data is present
+							String resultFolderPathForRun = resultsPrefix + run.getId()+"-"+run.getRunName()+"/";
+							List<BucketObjectDetailsDto> bucketObjectDetails=storageClient.getFilesPresent(bucketName,resultFolderPathForRun);
+							Boolean exogenousFilePresent = storageClient.isFilePresent(resultFolderPathForRun+ EXOGENOUS_FILE_NAME, bucketObjectDetails);
+							if(exogenousFilePresent){
+								run.setExogenData(true);
+							}
 							log.info("Adding old success run {} of project {} without update ", run.getRunName(), forecastName);
 							updatedRuns.add(run);
 						}
