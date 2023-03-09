@@ -138,6 +138,16 @@ const PersonalRelatedData = (
                 id="personalRelatedDataPurpose"
               />
               <span className={classNames('error-message')}>{errors?.personalRelatedDataPurpose?.message}</span>
+              <div>
+                <p>Possible purpose of processing personal related data would be:</p>
+                <ul>
+                  <li>FC services such as Controlling, Accounting, Treasury, Taxes & Fiscal Matters, GeneralLedger, Planning & Forecast</li>
+                  <li>Product development, improvement, monitoring, Analysis of product usage/behavior,Product lifecycle analysis</li>
+                  <li>Risk/damage prevention, Predictive maintenance, Process optimization</li>
+                  <li>Enhancement of Customer experience, 360 Customer View, Advertising/Promotions,Direct Marketing</li>
+                  <li>Identiﬁcation of trends an market developments, Market analysis, Revenue streamanalysis, Portfolio evaluation, Price analysis and price optimization</li>
+                </ul>
+              </div>
             </div>
             <div
               className={classNames(
