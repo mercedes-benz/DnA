@@ -27,50 +27,31 @@
 
 package com.daimler.data.controller;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.NoSuchElementException;
-
-import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
-
-import com.daimler.data.client.teamsApi.TeamsApiClient;
-import com.daimler.data.client.teamsApi.TeamsApiResponseWrapperDto;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.util.ObjectUtils;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
-
 import com.daimler.data.api.userinfo.UsersApi;
 import com.daimler.data.application.auth.UserStore;
 import com.daimler.data.assembler.UserInfoAssembler;
-import com.daimler.data.controller.exceptions.GenericMessage;
+import com.daimler.data.client.teamsApi.TeamsApiClient;
 import com.daimler.data.controller.exceptions.MessageDescription;
 import com.daimler.data.dto.solution.CreatedByVO;
 import com.daimler.data.dto.solution.SolutionCollectionResponseVO;
 import com.daimler.data.dto.solution.SolutionVO;
-import com.daimler.data.dto.userinfo.BookmarkRequestVO;
-import com.daimler.data.dto.userinfo.BookmarkResponseVO;
-import com.daimler.data.dto.userinfo.UserInfoVO;
-import com.daimler.data.dto.userinfo.UserRequestVO;
-import com.daimler.data.dto.userinfo.UserRoleVO;
-import com.daimler.data.dto.userinfo.UsersCollection;
+import com.daimler.data.dto.userinfo.*;
 import com.daimler.data.service.userinfo.UserInfoService;
-
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
+import io.swagger.annotations.*;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.util.ObjectUtils;
+import org.springframework.web.bind.annotation.*;
+import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.NoSuchElementException;
 
 @RestController
 @Api(value = "UserInfo API", tags = { "users" })
@@ -92,6 +73,9 @@ public class UserInfoController implements UsersApi {
 	@Autowired
 	private TeamsApiClient teamsApiClient;
 
+	@Value("${teamsApi.enabled}")
+	private boolean teamsApiEnabled;
+
 	@Override
 	@ApiOperation(value = "Get all available users.", nickname = "getAll", notes = "Get all users. This endpoints will be used to Get all valid available user maintenance records.", response = UsersCollection.class, tags = {
 			"users", })
@@ -111,6 +95,8 @@ public class UserInfoController implements UsersApi {
 			@ApiParam(value = "page number from which listing of solutions should start. Offset. Example 2") @Valid @RequestParam(value = "offset", required = false) Integer offset,
 			@ApiParam(value = "Sort users based on given column, example name") @Valid @RequestParam(value = "sortBy", required = false) String sortBy,
 			@ApiParam(value = "Sort users based on given order, example asc,desc", allowableValues = "asc, desc") @Valid @RequestParam(value = "sortOrder", required = false) String sortOrder) {
+		  List<UserInfoVO> usersInfo;
+		  UsersCollection usersCollection = new UsersCollection();
 		try {
 			int defaultLimit = 10;
 			if (offset == null || offset < 0)
@@ -125,24 +111,33 @@ public class UserInfoController implements UsersApi {
 			if (sortOrder == null) {
 				sortOrder = "asc";
 			}
-			logger.info("Fetching user information with given identifier.");
-			List<UserInfoVO> usersInfo = userInfoService.getAllWithFilters(searchTerm, limit, offset, sortBy, sortOrder);
-			
-			Long count = userInfoService.getCountWithFilters(searchTerm);
-			UsersCollection usersCollection = new UsersCollection();
-			if (!ObjectUtils.isEmpty(usersInfo)) {
-				usersCollection.setRecords(usersInfo);
-				usersCollection.setTotalCount(count.intValue());
-				log.debug("returning all users details");
-				return new ResponseEntity<>(usersCollection, HttpStatus.OK);
+			if (teamsApiEnabled) {
+				logger.info("Fetching user information with given identifier from teamsApi.");
+				usersCollection = teamsApiClient.getTeamsApiUserInfoDetails(searchTerm);
+				if (!ObjectUtils.isEmpty(usersCollection)) {
+					log.debug("returning all users details from teamsApi");
+					return new ResponseEntity<>(usersCollection, HttpStatus.OK);
+				}
 			} else {
-				TeamsApiResponseWrapperDto teamsApiResponseOutput= this.teamsApiClient.getTeamsApiUserInfoDetails(searchTerm);
-				return new ResponseEntity<>(usersCollection, HttpStatus.OK);
+				logger.info("Fetching user information with given identifier from DB.");
+				usersInfo = userInfoService.getAllWithFilters(searchTerm, limit, offset, sortBy, sortOrder);
+				Long count = userInfoService.getCountWithFilters(searchTerm);
+				if (!ObjectUtils.isEmpty(usersInfo)) {
+					usersCollection.setRecords(usersInfo);
+					usersCollection.setTotalCount(count.intValue());
+					log.debug("returning all users details from DB");
+					return new ResponseEntity<>(usersCollection, HttpStatus.OK);
+				} else {
+					log.debug("No users details found");
+					return new ResponseEntity<>(usersCollection, HttpStatus.NO_CONTENT);
+				}
 			}
+
 		} catch (Exception e) {
 			log.error(e.getLocalizedMessage());
 			return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
+		return null;
 	}
 
 	@Override
