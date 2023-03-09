@@ -317,7 +317,7 @@ const ProviderForm = ({ user, history }) => {
     }
 
     if (!reqObj?.insiderInformation || reqObj?.insiderInformation === '') {
-      errorObject.transnationalDataTabError.push('Does product contain insider information?');
+      errorObject.transnationalDataTabError.push('Does data product contain (potential) insider information?');
       formValid = false;
     }
 

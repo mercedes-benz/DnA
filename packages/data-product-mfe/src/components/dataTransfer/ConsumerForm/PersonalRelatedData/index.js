@@ -199,7 +199,7 @@ const PersonalRelatedData = ({ onSave, setIsEditing, isDataProduct, callbackFn }
               style={{ minHeight: '50px' }}
             >
               <label className={classNames(Styles.inputLabel, 'input-label')}>
-                LCO/LCR checked legal basis of usage of personal data <sup>*</sup>
+                Has corresponding compliance contact checked overall personal data processing <sup>*</sup>
               </label>
               <div className={Styles.radioBtns}>
                 <label className={classNames('radio', isDisabled ? 'disabled' : '')}>
