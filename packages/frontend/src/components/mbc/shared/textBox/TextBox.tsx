@@ -38,7 +38,7 @@ const TextBox:React.FC<ITextBoxProps> = (props: ITextBoxProps) => {
         htmlFor={props.controlId} 
         className="input-label"
       >
-        {props.label}{ props.required && <sup>*</sup> }
+        {props.label} { props.required && <sup>*</sup> }
         {props.infoTip && <i className={classNames('icon mbc-icon info', Styles.infoTip)} tooltip-data={props.infoTip} />}
       </label>
       <input
