@@ -136,6 +136,7 @@ public class UserInfoController implements UsersApi {
 		  List<UserInfoVO> usersInfo;
 		  UsersCollection usersCollection = new UsersCollection();
 		try {
+			boolean showDataFromDb= false;
 			int defaultLimit = 10;
 			if (offset == null || offset < 0)
 				offset = 0;
@@ -153,15 +154,21 @@ public class UserInfoController implements UsersApi {
 				logger.info("Fetching user information with given identifier from teamsApi.");
 				try {
 					usersCollection = teamsApiClient.getTeamsApiUserInfoDetails(searchTerm);
+					if(usersCollection==null){
+						showDataFromDb=true;
+					}
 					if (!ObjectUtils.isEmpty(usersCollection)) {
 						log.debug("returning all users details from teamsApi");
 						return new ResponseEntity<>(usersCollection, HttpStatus.OK);
 					}
 				}catch (Exception e){
 					log.error("Failed to fetch user Information with given identifier from teamsApi. "+e.getLocalizedMessage());
-					usersCollection = new UsersCollection();
+					showDataFromDb=true;
 				}
 			} else {
+				showDataFromDb=true;
+			}
+			if (showDataFromDb){
 				logger.info("Fetching user information with given identifier from DB.");
 				usersInfo = userInfoService.getAllWithFilters(searchTerm, limit, offset, sortBy, sortOrder);
 				Long count = userInfoService.getCountWithFilters(searchTerm);
