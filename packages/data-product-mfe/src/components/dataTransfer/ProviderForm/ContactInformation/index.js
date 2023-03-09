@@ -19,7 +19,7 @@ import Notification from '../../../../common/modules/uilab/js/src/notification';
 import { useSelector } from 'react-redux';
 import { dataTransferApi } from '../../../../apis/datatransfers.api';
 
-import dayjs from 'dayjs';
+// import dayjs from 'dayjs';
 import { debounce } from 'lodash';
 
 const ContactInformation = ({ 
@@ -69,7 +69,7 @@ const ContactInformation = ({
   const [informationOwnerSearchTerm, setInformationOwnerSearchTerm] = useState('');
   const [informationOwnerFieldValue, setInformationOwnerFieldValue] = useState('');
 
-  const minDate = dayjs().format();
+  // const minDate = dayjs().format();
 
   useEffect(() => {
     const id = watch('division');
@@ -204,16 +204,17 @@ const ContactInformation = ({
     const value = getValues(key);
     if (typeof value === 'object') {
       const isValidDate = !isNaN(value?.get('date'));
-      const isBefore = dayjs(value).isBefore(minDate, 'date');
+      // const isBefore = dayjs(value).isBefore(minDate, 'date');
       const error =
         value === null || value === ''
           ? '*Missing entry'
           : !isValidDate
           ? 'Invalid Date Format'
-          : isBefore
-          ? 'Is before the minimum date'
+          // : isBefore
+          // ? 'Is before the minimum date'
           : null;
-      return (value === isValidDate && value !== isBefore) || error;
+      // return (value === isValidDate && value !== isBefore) || error;
+      return (value === isValidDate) || error;
     } else {
       return (value !== '' && value !== undefined) || '*Missing entry';
     }
@@ -261,7 +262,7 @@ const ContactInformation = ({
                     <TeamSearch
                       label={
                         <>
-                          Data responsible IO and/ or Business Owner for application <sup>*</sup>
+                          Responsible Manager (E3 +) <sup>*</sup>
                         </>
                       }
                       fieldMode={true}
@@ -450,7 +451,7 @@ const ContactInformation = ({
                         label="Publish Date of Data Product"
                         value={watch('dateOfDataProduct')}
                         name={field.name}
-                        minDate={minDate}
+                        // minDate={minDate}
                         onChange={(value) => {
                           field.onChange(value);
                         }}
@@ -478,7 +479,7 @@ const ContactInformation = ({
                         label="Date of Data Transfer"
                         value={watch('dateOfDataTransfer')}
                         name={field.name}
-                        minDate={minDate}
+                        // minDate={minDate}
                         onChange={(value) => {
                           field.onChange(value);
                         }}
@@ -498,7 +499,7 @@ const ContactInformation = ({
                   rules={{ required: '*Missing entry' }}
                   render={({ field }) => (
                     <TypeAheadBox
-                      label={'Corresponding Compliance Officer / Responsible (LCO/LCR)'}
+                      label={'Corresponding Compliance Contact, i.e. Local Compliance Officer/ Responsible or Multiplier'}
                       placeholder={'Search for country, department etc.'}
                       defaultValue={complianceOfficer}
                       list={complianceOfficerList.records}
