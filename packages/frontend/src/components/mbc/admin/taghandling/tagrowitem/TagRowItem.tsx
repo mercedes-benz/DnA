@@ -49,18 +49,18 @@ export class TagRowItem extends React.Component<ITagRowItemProps, any> {
           <td className="wrap-text">{tagItem.category.name}</td>
           <td className={'wrap-text ' + classNames(Styles.actionLinksTD)}>
             <div className={Styles.actionCol}>
-              {subdivisions && (
+              { subdivisions || (tagItem.category.id === 9 || tagItem.category.id === 10)? (
                 <div onClick={this.onTagUpdate}>
                   <i className="icon mbc-icon edit small " tooltip-data={'Update Details'} />
                   Update
                 </div>
-              )}
-              {(tagItem.category.id === 9 || tagItem.category.id === 10)? '' : 
+              ) : ''}
+              
                 <div onClick={this.onTagDelete}>
                   <i className="icon mbc-icon trash-outline  small " tooltip-data={'Edit Details'} />
                   Delete
                 </div>
-              }
+              
               
             </div>
           </td>
