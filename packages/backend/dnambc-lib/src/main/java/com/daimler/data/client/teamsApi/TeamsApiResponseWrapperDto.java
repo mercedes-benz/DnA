@@ -13,4 +13,5 @@ import java.util.List;
 @Getter
 public class TeamsApiResponseWrapperDto {
     private List<TeamsApiResponseDto> entries;
+    private Integer totalHits;
 }
