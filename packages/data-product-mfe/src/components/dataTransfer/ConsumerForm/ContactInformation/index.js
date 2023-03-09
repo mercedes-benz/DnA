@@ -275,7 +275,7 @@ const ContactInformation = ({
                     <TeamSearch
                       label={
                         <>
-                          Business and/or Information Owner <sup>*</sup>
+                          Responsible Manager (E3 +) <sup>*</sup>
                         </>
                       }
                       fieldMode={true}
@@ -454,8 +454,8 @@ const ContactInformation = ({
                   rules={{ validate: isLCORequired }}
                   render={({ field }) => (
                     <TypeAheadBox
-                      label={'Corresponding Compliance Officer / Responsible (LCO/LCR)'}
-                      placeholder={'Select your (LCO/LCR)'}
+                      label={'Corresponding Compliance Contact, i.e. Local Compliance Officer/ Responsible or Multiplier'}
+                      placeholder={'Search for country, department etc.'}
                       defaultValue={complianceOfficer}
                       list={complianceOfficerList.records}
                       setSelected={(selectedTags) => {

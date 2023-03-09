@@ -321,7 +321,6 @@ definitions:
       reportLink:
         type: string
         description: "Report Link"   
-        minLength: 1   
       productDescription: 
         description: "Description about the report"
         type: string
@@ -359,7 +358,6 @@ definitions:
       - status
       - frontendTechnologies
       - department
-      - reportLink
   
   CustomerVO:
     type: object
