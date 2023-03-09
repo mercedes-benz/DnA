@@ -47,7 +47,6 @@
       align-items: center;
       .Logo {
         display: none;
-        height: 40px;
       }
       h6 {
         color: #8f969e;
@@ -256,7 +255,8 @@
       }
       .Logo {
         display: block;
-        height: 40px;
+        max-width: 135px;
+        max-height: 40px;
       }
       .nbtitle {
         text-align: center;

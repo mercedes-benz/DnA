@@ -27,9 +27,18 @@
 
 package com.daimler.data.service.marketingCommunicationChannel;
 
+import org.springframework.http.ResponseEntity;
+
+import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.db.entities.MarketingCommunicationChannelNsql;
+import com.daimler.data.dto.marketingCommunicationChannel.MarketingCommunicationChannelResponseVO;
 import com.daimler.data.dto.marketingCommunicationChannel.MarketingCommunicationChannelVO;
 import com.daimler.data.service.common.CommonService;
 
 public interface MarketingCommunicationChannelService extends CommonService<MarketingCommunicationChannelVO, MarketingCommunicationChannelNsql, String> {
+
+	ResponseEntity<MarketingCommunicationChannelResponseVO> updateMarketingCommunicationChannel(
+			MarketingCommunicationChannelVO marketingCommunicationChannelVO);
+
+	ResponseEntity<GenericMessage> deleteMarketingCommunicationChannel(String id);
 }
