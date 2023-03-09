@@ -34,9 +34,7 @@ import com.daimler.data.db.jsonb.AgileReleaseTrain;
 import com.daimler.data.db.jsonb.CarLaFunction;
 import com.daimler.data.db.jsonb.CorporateDataCatalog;
 import com.daimler.data.db.jsonb.CreatedBy;
-import com.daimler.data.dto.dataproduct.DatatransfersAssociatedVO;
-import com.daimler.data.dto.dataproduct.FrontendToolsVO;
-import com.daimler.data.dto.dataproduct.PlatformVO;
+import com.daimler.data.dto.dataproduct.*;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import lombok.AllArgsConstructor;
@@ -58,9 +56,9 @@ public class DataProduct {
 	private Boolean notifyUsers;
 	private Date createdDate;
 	private Date lastModifiedDate;
-	private CarLaFunction carLaFunction;
-	private AgileReleaseTrain agileReleaseTrain;
-	private CorporateDataCatalog corporateDataCatalog;
+	private CarLaFunctionVO carLaFunction;
+	private AgileReleaseTrainVO agileReleaseTrain;
+	private CorporateDataCatalogVO corporateDataCatalog;
 	private String ddx;
 	private String kafka;
 	private String oneApi;

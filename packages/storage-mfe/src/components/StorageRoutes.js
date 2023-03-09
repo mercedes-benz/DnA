@@ -37,7 +37,7 @@ const protectedRoutes = [
   {
     component: FileExplorer,
     exact: false,
-    path: '/explorer/:bucketName',
+    path: '/explorer/:bucketName/:resultFolder?',
   },
 ];
 

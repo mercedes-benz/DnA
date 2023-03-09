@@ -6,15 +6,19 @@ import { useFormContext } from 'react-hook-form';
 import InfoModal from 'dna-container/InfoModal';
 import { Envs } from '../../../../Utility/envs';
 
-const TransNationalDataTransfer = ({ onSave }) => {
+const TransNationalDataTransfer = (
+  // { onSave }
+  ) => {
   const {
     register,
-    formState: { errors, isSubmitting },
+    formState: { errors, 
+      // isSubmitting 
+    },
     watch,
     setValue,
     clearErrors,
-    handleSubmit,
-    reset,
+    // handleSubmit,
+    // reset,
     getValues,
   } = useFormContext();
   const [showInfoModal, setShowInfoModal] = useState(false);
@@ -351,7 +355,7 @@ const TransNationalDataTransfer = ({ onSave }) => {
           </div>
         </div>
       </div>
-      <div className="btnContainer">
+      {/* <div className="btnContainer">
         <button
           className="btn btn-primary"
           type="submit"
@@ -367,7 +371,7 @@ const TransNationalDataTransfer = ({ onSave }) => {
         >
           Save & Next
         </button>
-      </div>
+      </div> */}
       {showInfoModal && (
         <InfoModal
           title="Info Modal"

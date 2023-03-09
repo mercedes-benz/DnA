@@ -1029,3 +1029,6 @@ kongSettings:
     value: "" 
   - key: postgres.schema
     value: ""                
+
+extraIngress:
+  enabled: false 

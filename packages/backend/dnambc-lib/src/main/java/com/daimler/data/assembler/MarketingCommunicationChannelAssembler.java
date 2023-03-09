@@ -56,9 +56,9 @@ public class MarketingCommunicationChannelAssembler implements GenericAssembler<
 			marketingCommunicationChannelNsql = new MarketingCommunicationChannelNsql();
 			MarketingCommunicationChannel marketingCommunicationChannel = new MarketingCommunicationChannel();
 			marketingCommunicationChannel.setName(vo.getName());
+			marketingCommunicationChannel.setId(vo.getId());
 			marketingCommunicationChannelNsql.setData(marketingCommunicationChannel);
-			if (vo.getId() != null)
-				marketingCommunicationChannelNsql.setId(vo.getId());
+			marketingCommunicationChannelNsql.setId(vo.getId());
 		}
 		return marketingCommunicationChannelNsql;
 	}
