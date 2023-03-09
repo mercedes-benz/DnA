@@ -147,7 +147,7 @@ const Summary = ({ history }) => {
                         {regionalDateFormat(data.dateOfDataTransfer)}
                       </div>
                       <div>
-                        <label className="input-label summary">Name</label>
+                        <label className="input-label summary">Point of contact for data transfer</label>
                         <br />
                         {data.name?.firstName} {data.name?.lastName}
                       </div>
@@ -285,7 +285,7 @@ const Summary = ({ history }) => {
                           </div>
                         ) : null}
                         <div>
-                          <label className="input-label summary">Does product contain insider information?</label>
+                          <label className="input-label summary">Does data product contain (potential) insider information?</label>
                           <br />
                           {data.insiderInformation}
                         </div>
@@ -441,7 +441,7 @@ const Summary = ({ history }) => {
                               </div>
                               <div>
                                 <label className="input-label summary">
-                                  LCO/LCR checked legal basis of usage of personal data
+                                  Has corresponding compliance contact checked overall personal data processing
                                 </label>
                                 <br />
                                 {data?.consumer?.LCOCheckedLegalBasis}
