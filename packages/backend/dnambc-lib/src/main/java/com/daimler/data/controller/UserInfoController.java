@@ -113,10 +113,15 @@ public class UserInfoController implements UsersApi {
 			}
 			if (teamsApiEnabled) {
 				logger.info("Fetching user information with given identifier from teamsApi.");
-				usersCollection = teamsApiClient.getTeamsApiUserInfoDetails(searchTerm);
-				if (!ObjectUtils.isEmpty(usersCollection)) {
-					log.debug("returning all users details from teamsApi");
-					return new ResponseEntity<>(usersCollection, HttpStatus.OK);
+				try {
+					usersCollection = teamsApiClient.getTeamsApiUserInfoDetails(searchTerm);
+					if (!ObjectUtils.isEmpty(usersCollection)) {
+						log.debug("returning all users details from teamsApi");
+						return new ResponseEntity<>(usersCollection, HttpStatus.OK);
+					}
+				}catch (Exception e){
+					log.error("Failed to fetch user Information with given identifier from teamsApi. "+e.getLocalizedMessage());
+					usersCollection = new UsersCollection();
 				}
 			} else {
 				logger.info("Fetching user information with given identifier from DB.");
