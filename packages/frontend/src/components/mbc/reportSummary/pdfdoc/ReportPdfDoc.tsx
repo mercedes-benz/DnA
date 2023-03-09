@@ -480,7 +480,7 @@ const KPI = ({ kpis, showKPI }: IKPIProps) => {
     <>
       {showKPI &&
         kpis?.length && 
-        <Text style={[styles.subTitle, styles.setMarginTop]}>KPI</Text>
+        <Text style={[styles.subTitle, styles.setMarginTop]}>Content & Functions</Text>
       }
       {showKPI &&
         kpis?.length &&
@@ -525,7 +525,7 @@ const DataAndFunction = ({ dataAndFunctions, showDataAndFunction, showMembers }:
     <>
       {showDataAndFunction && (
         <View>
-          <Text style={[styles.subTitle, styles.setMarginTop]}>Data Sources & Functions</Text>
+          <Text style={[styles.subTitle, styles.setMarginTop]}>Data</Text>
           {dataAndFunctions.dataWarehouseInUse?.length
             ? dataAndFunctions.dataWarehouseInUse?.map((data: any, index: number) => (
                 <React.Fragment key={index}>
