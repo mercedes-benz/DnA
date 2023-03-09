@@ -568,7 +568,7 @@ const ProviderForm = ({ user, history }) => {
                       }}
                       onClick={setTab}
                     >
-                      Trans-national Data
+                      Transnational Data
                     </a>
                   </li>
                   {/* <li className={savedTabs?.includes('deletion-requirements') ? 'tab valid' : 'tab disabled'}> */}
@@ -584,7 +584,7 @@ const ProviderForm = ({ user, history }) => {
                       }}
                       onClick={setTab}
                     >
-                      Deletion Requirements & Other
+                      Other Data
                     </a>
                   </li>
                 </ul>
