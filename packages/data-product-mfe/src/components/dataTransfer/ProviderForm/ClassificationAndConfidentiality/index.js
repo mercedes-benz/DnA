@@ -7,14 +7,16 @@ import InfoModal from 'dna-container/InfoModal';
 import { useDispatch, useSelector } from 'react-redux';
 import { getClassificationTypes } from '../../../redux/getDropdowns.services';
 
-const Classification = ({ onSave }) => {
+const Classification = (
+  // { onSave }
+  ) => {
   const {
     register,
-    handleSubmit,
+    // handleSubmit,
     formState: { errors },
-    reset,
-    setValue,
-    watch,
+    // reset,
+    // setValue,
+    // watch,
   } = useFormContext();
   const [showInfoModal, setShowInfoModal] = useState(false);
 
@@ -30,7 +32,7 @@ const Classification = ({ onSave }) => {
       <div className={Styles.wrapper}>
         <div className={Styles.firstPanel}>
           <div>
-            <h3>Data Description & Classification</h3>
+            <h3>Data Description &amp; Classification</h3>
             {showInfoModal && (
               <div className={Styles.infoIcon}>
                 <i className={'icon mbc-icon info'} onClick={() => {}} />
@@ -49,7 +51,7 @@ const Classification = ({ onSave }) => {
                 className="input-label"
                 htmlFor="classificationOfTransferedData"
               >
-                Description & classification of the transfered data <sup>*</sup>
+                Description of transfered data <sup>*</sup>
               </label>
               <textarea
                 id="classificationOfTransferedData"
@@ -57,6 +59,7 @@ const Classification = ({ onSave }) => {
                 type="text"
                 {...register('classificationOfTransferedData', { required: '*Missing entry' })}
                 rows={50}
+                placeholder="Please describe brieﬂy (1-2 sentences) what data is to be transferred (e.g. accounting, controlling, year-end reporting etc.) from a business point of view"
               />
               <span className={classNames('error-message')}>{errors?.classificationOfTransferedData?.message}</span>
             </div>
@@ -92,7 +95,7 @@ const Classification = ({ onSave }) => {
           </div>
         </div>
       </div>
-      <div className="btnContainer">
+      {/* <div className="btnContainer">
         <button
           className="btn btn-primary"
           type="submit"
@@ -108,7 +111,7 @@ const Classification = ({ onSave }) => {
         >
           Save & Next
         </button>
-      </div>
+      </div> */}
       {showInfoModal && (
         <InfoModal
           title="Info Modal"

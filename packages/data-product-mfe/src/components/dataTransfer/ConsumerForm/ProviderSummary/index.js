@@ -54,12 +54,12 @@ const ProviderSummary = ({ onSave, providerFormIsDraft }) => {
                 {regionalDateFormat(providerInformation.dateOfDataTransfer)}
               </div>
               <div>
-                <label className="input-label summary">Name</label>
+                <label className="input-label summary">Point of contact for data transfer</label>
                 <br />
                 {providerInformation.name?.firstName} {providerInformation.name?.lastName}
               </div>
               <div>
-                <label className="input-label summary">Information Owner</label>
+                <label className="input-label summary">Data responsible IO and/or Business Owner for application</label>
                 <br />
                 {providerInformation.informationOwner?.firstName} {providerInformation.informationOwner?.lastName}
               </div>
@@ -88,7 +88,7 @@ const ProviderSummary = ({ onSave, providerFormIsDraft }) => {
             </div>
             <div className={classNames(Styles.flexLayout, Styles.fourColumn)}>
               <div>
-                <label className="input-label summary">Compliance Officer / Responsible (LCO/LCR) </label>
+                <label className="input-label summary">Corresponding Compliance Contact, i.e. Local Compliance Officer/ Responsible or Multiplier </label>
                 <br />
                 {providerInformation.complianceOfficer}
               </div>
@@ -101,12 +101,12 @@ const ProviderSummary = ({ onSave, providerFormIsDraft }) => {
           <div className={Styles.firstPanel}>
             <div className={Styles.flexLayout}>
               <div>
-                <label className="input-label summary">Data Description & Classification</label>
+                <label className="input-label summary">Data Description &amp; Classification</label>
               </div>
             </div>
             <div className={classNames(Styles.flexLayout, Styles.threeColumn)}>
               <div>
-                <label className="input-label summary">Description & Classification of transfered data</label>
+                <label className="input-label summary">Description of transfered data</label>
                 <br />
                 {providerInformation.classificationOfTransferedData}
               </div>

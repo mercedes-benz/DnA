@@ -152,7 +152,7 @@ const Summary = ({ history }) => {
                         {data.name?.firstName} {data.name?.lastName}
                       </div>
                       <div>
-                        <label className="input-label summary">Information Owner</label>
+                        <label className="input-label summary">Data responsible IO and/or Business Owner for application</label>
                         <br />
                         {data.informationOwner?.firstName} {data.informationOwner?.lastName}
                       </div>
@@ -181,7 +181,7 @@ const Summary = ({ history }) => {
                     </div>
                     <div className={classNames(Styles.flexLayout, Styles.fourColumn)}>
                       <div>
-                        <label className="input-label summary">Compliance Officer / Responsible (LCO/LCR) </label>
+                        <label className="input-label summary">Corresponding Compliance Contact, i.e. Local Compliance Officer/ Responsible or Multiplier </label>
                         <br />
                         {data.complianceOfficer}
                       </div>
@@ -193,12 +193,12 @@ const Summary = ({ history }) => {
                     <div className={Styles.firstPanel}>
                       <div className={Styles.flexLayout}>
                         <div>
-                          <h5>Data Description & Classification</h5>
+                          <h5>Data Description &amp; Classification</h5>
                         </div>
                       </div>
                       <div className={classNames(Styles.flexLayout, Styles.threeColumn)}>
                         <div>
-                          <label className="input-label summary">Description & Classification of transfered data</label>
+                          <label className="input-label summary">Description of transfered data</label>
                           <br />
                           {data.classificationOfTransferedData}
                         </div>
@@ -340,7 +340,7 @@ const Summary = ({ history }) => {
                     <div className={Styles.firstPanel}>
                       <div className={Styles.flexLayout}>
                         <div>
-                          <h5>Members</h5>
+                          <h5>Point of contact (data receiving side)</h5>
                         </div>
                       </div>
                       {receivingMembers}
@@ -360,7 +360,7 @@ const Summary = ({ history }) => {
                         </div>
                         <div className={classNames(Styles.flexLayout, Styles.fourColumn)}>
                           <div>
-                            <label className="input-label summary">Business and/or Information Owner </label>
+                            <label className="input-label summary">Responsible Manager (E3 +) </label>
                             <br />
                             {data?.consumer?.businessOwnerName?.firstName} {data?.consumer?.businessOwnerName?.lastName}
                           </div>
@@ -399,7 +399,7 @@ const Summary = ({ history }) => {
                             {data?.consumer?.planningIT || '-'}
                           </div>
                           <div>
-                            <label className="input-label summary">Compliance Officer / Responsible (LCO/LCR) </label>
+                            <label className="input-label summary">Corresponding Compliance Contact, i.e. Local Compliance Officer/ Responsible or Multiplier </label>
                             <br />
                             {data?.consumer?.complianceOfficer || '-'}
                           </div>

@@ -422,7 +422,7 @@ const Summary = ({ history, user }) => {
                       </div>
                       <div className={classNames(Styles.flexLayout, Styles.fourColumn)}>
                         <div>
-                          <label className="input-label summary">Information Owner</label>
+                          <label className="input-label summary">Data responsible IO and/or Business Owner for application</label>
                           <br />
                           {selectedDataProduct.informationOwner?.firstName}{' '}
                           {selectedDataProduct.informationOwner?.lastName}
@@ -433,7 +433,7 @@ const Summary = ({ history, user }) => {
                           {regionalDateFormat(selectedDataProduct.dateOfDataProduct)}
                         </div>
                         <div>
-                          <label className="input-label summary">Name</label>
+                          <label className="input-label summary">Point of contact for data transfer</label>
                           <br />
                           {selectedDataProduct?.name?.firstName} {selectedDataProduct?.name?.lastName}
                         </div>
@@ -460,7 +460,7 @@ const Summary = ({ history, user }) => {
                           {selectedDataProduct.planningIT || '-'}
                         </div>
                         <div>
-                          <label className="input-label summary">Compliance Officer / Responsible (LCO/LCR) </label>
+                          <label className="input-label summary">Corresponding Compliance Contact, i.e. Local Compliance Officer/ Responsible or Multiplier </label>
                           <br />
                           {selectedDataProduct.complianceOfficer}
                         </div>
@@ -473,12 +473,12 @@ const Summary = ({ history, user }) => {
                     <div className={Styles.firstPanel}>
                       <div className={Styles.flexLayout}>
                         <div>
-                          <h5>Data Description & Classification</h5>
+                          <h5>Data Description &amp; Classification</h5>
                         </div>
                       </div>
                       <div className={classNames(Styles.flexLayout, Styles.threeColumn)}>
                         <div>
-                          <label className="input-label summary">Description & Classification of transfered data</label>
+                          <label className="input-label summary">Description of transfered data</label>
                           <br />
                           {selectedDataProduct.classificationOfTransferedData}
                         </div>

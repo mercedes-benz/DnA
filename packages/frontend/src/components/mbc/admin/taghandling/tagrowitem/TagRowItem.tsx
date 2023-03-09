@@ -49,7 +49,7 @@ export class TagRowItem extends React.Component<ITagRowItemProps, any> {
           <td className="wrap-text">{tagItem.category.name}</td>
           <td className={'wrap-text ' + classNames(Styles.actionLinksTD)}>
             <div className={Styles.actionCol}>
-              {subdivisions && (
+              { subdivisions && (
                 <div onClick={this.onTagUpdate}>
                   <i className="icon mbc-icon edit small " tooltip-data={'Update Details'} />
                   Update
