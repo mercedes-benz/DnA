@@ -274,7 +274,7 @@ const TransNationalDataTransfer = (
                       type="radio"
                       className="ff-only"
                       name="insiderInformation"
-                      value="N.A"
+                      value="Yes, potential insider information"
                     />
                   </span>
                   <span className="label">Yes, potential insider information</span>
@@ -288,13 +288,14 @@ const TransNationalDataTransfer = (
                       type="radio"
                       className="ff-only"
                       name="insiderInformation"
-                      value="Yes"
+                      value="Yes, insider information"
                     />
                   </span>
                   <span className="label">Yes, insider information</span>
                 </label>
               </div>
               <span className={classNames('error-message')}>{errors?.insiderInformation?.message}</span>
+              <p>For further information and/or if you are unsure if your data product contains (potential) insider information, please contact your corresponding Compliance contact.</p>
             </div>
           </div>
         </div>
