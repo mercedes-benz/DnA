@@ -82,6 +82,7 @@ const Classification = (
                             className="ff-only"
                             name="confidentiality"
                             value={item.name}
+                            defaultChecked={item.name === 'Internal' && true}
                           />
                         </span>
                         <span className="label">{item.name}</span>
@@ -91,6 +92,15 @@ const Classification = (
                 })}
               </div>
               <span className={classNames('error-message')}>{errors?.confidentiality?.message}</span>
+              <div>
+                <p>To ensure the safe and secure handling of information, Mercedes-Benz has standardized the classification of information into one of the following four classifications for CONFIDENTIALITY:</p>
+                <ul>
+                  <li>INTERNAL information is the most common classification at Mercedes-Benz. Distribution of internal information is normally allowed to be shared with larger groups of people.</li>
+                  <li>PUBLIC information is not confidential and is intended for general use inside and outside of Mercedes-Benz. Please note, only MB communications can classify data as public.</li>
+                  <li>CONFIDENTIAL information is the second highest level of information classification. Distribution of confidential information must be restricted to a small group of people.</li>
+                  <li>SECRET information is the most confidential information of Mercedes-Benz. Distribution of secret information must be restricted to a very small group of identified people.</li>
+                </ul>
+              </div>
             </div>
           </div>
         </div>

@@ -258,7 +258,7 @@ const Summary = ({ history }) => {
                     <div className={Styles.firstPanel}>
                       <div className={Styles.flexLayout}>
                         <div>
-                          <h5>Trans-national Data</h5>
+                          <h5>Transnational Data</h5>
                         </div>
                       </div>
                       <div className={classNames(Styles.flexLayout, Styles.threeColumn)}>
@@ -271,7 +271,7 @@ const Summary = ({ history }) => {
                         </div>
                         {data.transnationalDataTransfer == 'Yes' ? (
                           <div>
-                            <label className="input-label summary">Is one of these countries not within the EU?</label>
+                            <label className="input-label summary">Is one of these countries outside the EU?</label>
                             <br />
                             {data.transnationalDataTransferNotWithinEU || 'No'}
                           </div>
@@ -305,7 +305,7 @@ const Summary = ({ history }) => {
                     <div className={Styles.firstPanel}>
                       <div className={Styles.flexLayout}>
                         <div>
-                          <h5>Deletion Requirements & Other</h5>
+                          <h5>Other Data</h5>
                         </div>
                       </div>
                       <div className={classNames(Styles.flexLayout, Styles.threeColumn)}>
