@@ -166,7 +166,7 @@ const ProviderSummary = ({ onSave, providerFormIsDraft }) => {
           <div className={Styles.firstPanel}>
             <div className={Styles.flexLayout}>
               <div>
-                <label className="input-label summary">Trans-national Data</label>
+                <label className="input-label summary">Transnational Data</label>
               </div>
             </div>
             <div className={classNames(Styles.flexLayout, Styles.threeColumn)}>
@@ -177,7 +177,7 @@ const ProviderSummary = ({ onSave, providerFormIsDraft }) => {
               </div>
               {providerInformation.transnationalDataTransfer === 'Yes' ? (
                 <div>
-                  <label className="input-label summary">Is one of these countries not within the EU?</label>
+                  <label className="input-label summary">Is one of these countries outside the EU?</label>
                   <br />
                   {providerInformation.transnationalDataTransferNotWithinEU || 'No'}
                 </div>
@@ -211,7 +211,7 @@ const ProviderSummary = ({ onSave, providerFormIsDraft }) => {
           <div className={Styles.firstPanel}>
             <div className={Styles.flexLayout}>
               <div>
-                <label className="input-label summary">Deletion Requirements & Other</label>
+                <label className="input-label summary">Other Data</label>
               </div>
             </div>
             <div className={classNames(Styles.flexLayout, Styles.threeColumn)}>
