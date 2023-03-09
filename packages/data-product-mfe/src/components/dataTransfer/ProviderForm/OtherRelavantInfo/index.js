@@ -61,7 +61,7 @@ const OtherRelevantInfo = ({ onSave, onPublish, onDescriptionTabErrors, history,
   const createdBy = provideDataTransfers.selectedDataTransfer?.createdBy;
 
   const errorValidationMsg = () => {
-    let userInfo = isCreator || isCreatedBy ? 'Creator' : isInformationOwner ? 'Information Owner' : '';
+    let userInfo = isCreator || isCreatedBy ? 'Creator' : isInformationOwner ? 'Data responsible IO and/or Business Owner for application' : '';
     let loggedInUser = false;
 
     if (isCreator && creator.shortId === user.id) {

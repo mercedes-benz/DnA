@@ -460,7 +460,7 @@ const Summary = ({ history, user }) => {
                           {selectedDataProduct.planningIT || '-'}
                         </div>
                         <div>
-                          <label className="input-label summary">Compliance Officer / Responsible (LCO/LCR) </label>
+                          <label className="input-label summary">Corresponding Compliance Contact, i.e. Local Compliance Officer/ Responsible or Multiplier </label>
                           <br />
                           {selectedDataProduct.complianceOfficer}
                         </div>
