@@ -11,23 +11,22 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.MalformedJwtException;
 import io.jsonwebtoken.SignatureException;
 import io.jsonwebtoken.UnsupportedJwtException;
+import io.micronaut.context.annotation.Bean;
 import io.micronaut.context.annotation.Value;
 
+@Bean
 public class JWTGenerator {
 
 	private static Logger log = LoggerFactory.getLogger(JWTGenerator.class);
 	
-	private static String SECRET_KEY;
-	
 	@Value("${jwt.secret.key}")
-	public void setSecretKey(String secretKey) {
-		SECRET_KEY = secretKey;
-	}
+	private static String secret_key;
 
 	public static Claims decodeJWT(String jwt) {
 		try {
 			// This line will throw an exception if it is not a signed JWS (as expected)
-			Claims claims = Jwts.parser().setSigningKey(DatatypeConverter.parseBase64Binary(SECRET_KEY))
+			secret_key = "oeRaYY7Wo24sDqKSX3IM9ASGmdGPmkTd9jo1QTy4b7P9Ze5_9hKolVX8xNrQDcNRfVEdTZNOuOyqEGhXEbdJI-ZQ19k_o9MI0y3eZN2lp9jow55FfXMiINEdt1XR85VipRLSOkT6kSpzs2x-jbLDiz9iFVzkd81YKxMgPA7VfZeQUm4n-mOmnWMaVX30zGFU4L3oPBctYKkl4dYfqYWqRNfrgPJVi5DGFjywgxx0ASEiJHtV72paI3fDR2XwlSkyhhmY-ICjCRmsJN4fX1pdoL8a18-aQrvyu4j0Os6dVPYIoPvvY0SAZtWYKHfM15g7A3HD4cVREf9cUsprCRK93w";
+			Claims claims = Jwts.parser().setSigningKey(DatatypeConverter.parseBase64Binary(secret_key))
 					.parseClaimsJws(jwt).getBody();
 			return claims;
 		} catch (ExpiredJwtException | MalformedJwtException | SignatureException | UnsupportedJwtException

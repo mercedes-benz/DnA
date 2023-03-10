@@ -14,7 +14,7 @@ import io.micronaut.http.client.annotation.Client;
 public interface DnaClient {
 	
 	@Header(name = "Authorization", value = "{jwt}")
-	@Post("/${dna.verifyLoginUri}")
+	@Post("${dna.verifyLoginUri}")
 	JSONObject verifyLogin(String jwt);
 
 }

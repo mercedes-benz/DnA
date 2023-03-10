@@ -30,17 +30,16 @@ package com.mb.dna.data.application.config.filter;
 import java.io.Serializable;
 import java.util.List;
 
-import com.daimler.data.dto.datacompliance.CreatedByVO;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
-import jakarta.inject.Singleton;
+import io.micronaut.context.annotation.Bean;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
-@Singleton
+@Bean
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -63,6 +62,7 @@ public class UserStore {
 		return vo;
 	}
 
+	@Bean
 	@Data
 	@AllArgsConstructor
 	@Builder
@@ -108,6 +108,7 @@ public class UserStore {
 
 	}
 
+	@Bean
 	@Data
 	@AllArgsConstructor
 	@NoArgsConstructor
