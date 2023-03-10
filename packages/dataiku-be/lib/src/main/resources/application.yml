@@ -1,0 +1,43 @@
+micronaut:
+  application:
+    name: dataiku
+
+  server:
+    port: 7777
+    cors: 
+      enabled: true
+      configurations:
+        web:
+          allowed-origins:
+            - http://*
+          allowedMethods:
+            - POST
+            - PUT
+            - GET
+            - PATCH
+            - OPTIONS
+            - HEAD
+            - DELETE
+    
+  router:
+    static-resources:
+      swagger:
+        paths: classpath:META-INF/swagger
+        mapping: /swagger/**
+      swagger-ui:
+        paths: classpath:META-INF/swagger/views/swagger-ui
+        mapping: /swagger-ui/**
+netty:
+  default:
+    allocator:
+      max-order: 3
+
+jwt:
+  secret:
+    key: ${JWT_SECRET_KEY:xxxxxx}
+        
+dna:
+  uri: ${DNA_URI:https://dev.dna.app.corpintra.net}
+  dnaAuthEnable: ${DNA_AUTH_ENABLE:false}
+  verifyLoginUri: ${DNA_VERIFYLOGIN_URI:api/verifyLogin}
+  getUsersUri: ${DNA_GETUSERS_URI:/api/users?limit=0&offset=0}
