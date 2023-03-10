@@ -27,39 +27,13 @@
 
 package com.daimler.data.controller;
 
-
+import com.daimler.data.adapter.hasura.HasuraClient;
+import com.daimler.data.adapter.hasura.HasuraUserInfoInsertGenericResponse;
 import com.daimler.data.api.userinfo.UsersApi;
 import com.daimler.data.application.auth.UserStore;
 import com.daimler.data.assembler.UserInfoAssembler;
 import com.daimler.data.client.teamsApi.TeamsApiClient;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.NoSuchElementException;
-
-import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
-
-import com.daimler.data.adapter.hasura.HasuraClient;
-import com.daimler.data.adapter.hasura.HasuraUserInfoInsertGenericResponse;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.util.ObjectUtils;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
-
-import com.daimler.data.api.userinfo.UsersApi;
-import com.daimler.data.application.auth.UserStore;
-import com.daimler.data.assembler.UserInfoAssembler;
 import com.daimler.data.controller.exceptions.MessageDescription;
-import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.dto.solution.CreatedByVO;
 import com.daimler.data.dto.solution.SolutionCollectionResponseVO;
 import com.daimler.data.dto.solution.SolutionVO;
@@ -99,7 +73,6 @@ public class UserInfoController implements UsersApi {
 	private UserStore userStore;
 
 	@Autowired
-
 	private TeamsApiClient teamsApiClient;
 
 	@Value("${teamsApi.enabled}")
@@ -136,6 +109,7 @@ public class UserInfoController implements UsersApi {
 		  List<UserInfoVO> usersInfo;
 		  UsersCollection usersCollection = new UsersCollection();
 		try {
+
 			int defaultLimit = 10;
 			if (offset == null || offset < 0)
 				offset = 0;
@@ -151,10 +125,15 @@ public class UserInfoController implements UsersApi {
 			}
 			if (teamsApiEnabled) {
 				logger.info("Fetching user information with given identifier from teamsApi.");
-				usersCollection = teamsApiClient.getTeamsApiUserInfoDetails(searchTerm);
-				if (!ObjectUtils.isEmpty(usersCollection)) {
-					log.debug("returning all users details from teamsApi");
-					return new ResponseEntity<>(usersCollection, HttpStatus.OK);
+				try {
+					usersCollection = teamsApiClient.getTeamsApiUserInfoDetails(searchTerm);
+					if (!ObjectUtils.isEmpty(usersCollection)) {
+						log.debug("returning all users details from teamsApi");
+						return new ResponseEntity<>(usersCollection, HttpStatus.OK);
+					}
+				}catch (Exception e){
+					log.error("Failed to fetch user Information with given identifier from teamsApi. "+e.getLocalizedMessage());
+					usersCollection = new UsersCollection();
 				}
 			} else {
 				logger.info("Fetching user information with given identifier from DB.");
