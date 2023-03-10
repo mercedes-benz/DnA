@@ -5,10 +5,10 @@ import ProgressIndicator from '../../../common/modules/uilab/js/src/progress-ind
 import { deserializeFormData, serializeDivisionSubDivision, serializeFormData } from '../../../Utility/formData';
 import { omit, pick } from 'lodash';
 
-export const GetDataTransfers = createAsyncThunk('transfers/GetDataTransfers', async (arg, { getState }) => {
+export const GetDataTransfers = createAsyncThunk('transfers/GetDataTransfers', async (isCreatorFilter, { getState }) => {
   ProgressIndicator.show();
   try {
-    const res = await dataTransferApi.getAllDataProducts('dataTransferId', 'desc');
+    const res = await dataTransferApi.getAllDataProducts('dataTransferId', 'desc',isCreatorFilter);
     ProgressIndicator.hide();
     const {
       provideDataTransfers: { pagination },
