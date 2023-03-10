@@ -17,6 +17,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.ArrayList;
 import java.util.List;
 
 @Component
@@ -36,9 +37,6 @@ public class TeamsApiClientImpl implements TeamsApiClient {
     @Value("${teamsApi.teams-api-resultFetchSize}")
     private String teamsApiResultFetchSize;
 
-    @Value("${oidc.clientSecret}")
-    private String clientSecret;
-
     @Autowired
     RestTemplate restTemplate;
 
@@ -48,8 +46,8 @@ public class TeamsApiClientImpl implements TeamsApiClient {
 
     @Override
     public UsersCollection getTeamsApiUserInfoDetails(String searchTerm) {
-        UsersCollection usersCollection = null;
-        List<UserInfoVO> userInfoVOList = null;
+        UsersCollection usersCollection =null;
+        List<UserInfoVO> userInfoVOList = new ArrayList<>();
         Claims claims;
         Integer totalCount = 0;
         TeamsApiResponseWrapperDto teamsApiOutputResponse = null;
@@ -68,15 +66,17 @@ public class TeamsApiClientImpl implements TeamsApiClient {
             if (response != null && response.hasBody()) {
                 LOGGER.debug("Successfully fetched user details from teamsApi");
                 if (response.getBody().getEntries()!= null) {
+                    usersCollection= new UsersCollection();
                     userInfoVOList = userInfoAssembler.toUserInfoVo(response.getBody().getEntries());
                     totalCount = response.getBody().getTotalHits();
+                    usersCollection.setRecords(userInfoVOList);
+                    usersCollection.setTotalCount(totalCount);
                 }
             }
         } catch (Exception e) {
             LOGGER.error("exception occurred calling teamsApi:{}", e.getMessage());
         }
-        usersCollection.setTotalCount(totalCount);
-        usersCollection.setRecords(userInfoVOList);
+
         return usersCollection;
     }
 

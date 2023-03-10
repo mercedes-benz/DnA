@@ -211,3 +211,4 @@ teamsApi:
   person-search-uri: ${PERSON_SEARCH_URI:xxxxxx}
   teams-api-resultFetchSize: ${TEAMS_API_RESULT_SIZE:xxxxxx}
   enabled: ${TEAMS_API_ENABLED:xxxxxx}
+
