@@ -37,9 +37,6 @@ public class TeamsApiClientImpl implements TeamsApiClient {
     @Value("${teamsApi.teams-api-resultFetchSize}")
     private String teamsApiResultFetchSize;
 
-    @Value("${oidc.clientSecret}")
-    private String clientSecret;
-
     @Autowired
     RestTemplate restTemplate;
 
@@ -77,7 +74,7 @@ public class TeamsApiClientImpl implements TeamsApiClient {
                 }
             }
         } catch (Exception e) {
-            LOGGER.debug("exception occurred calling teamsApi:{}", e.getMessage());
+            LOGGER.error("exception occurred calling teamsApi:{}", e.getMessage());
         }
 
         return usersCollection;
