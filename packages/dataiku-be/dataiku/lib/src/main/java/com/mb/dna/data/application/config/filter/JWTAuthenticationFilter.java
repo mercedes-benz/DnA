@@ -12,7 +12,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.mb.dna.data.application.adapter.dna.DnaClient;
-import com.mb.dna.data.application.config.filter.UserStore.UserRole;
 
 import io.jsonwebtoken.Claims;
 import io.micronaut.context.ApplicationContext;
@@ -50,12 +49,16 @@ public class JWTAuthenticationFilter implements HttpServerFilter{
 	@Inject
 	ApplicationContext applicationContext;
 	
+	@Inject
+	private DnaHttpClient dnaHttpClient;
+	
 	@SuppressWarnings("unused")
 	@Override
 	public Publisher<MutableHttpResponse<?>> doFilter(HttpRequest<?> request, ServerFilterChain filterChain) {
 		System.out.println("intercepted");
 		//injectMicronautApplicationDependecies(request);
 		String jwt = request.getHeaders().get("Authorization");
+		dnaHttpClient.verifyLogin(jwt);
 		System.out.println("jwt is " + jwt);
 		System.out.println("secret is " + secret_key);
 		if (jwt==null || jwt.isBlank() || jwt.isEmpty()) {
@@ -79,7 +82,7 @@ public class JWTAuthenticationFilter implements HttpServerFilter{
 						try {
 							setUserDetailsToStore(res);
 							filterChain.proceed(request);
-						} finally {
+						} catch(Exception e) {
 							this.userStore.clear();
 						}
 
@@ -95,7 +98,7 @@ public class JWTAuthenticationFilter implements HttpServerFilter{
 								"Request validation successful, set request user details in the store for further access");
 						setUserDetailsToStore(claims);
 						filterChain.proceed(request);
-					} finally {
+					} catch(Exception e) {
 						this.userStore.clear();
 					}
 				}
@@ -109,7 +112,7 @@ public class JWTAuthenticationFilter implements HttpServerFilter{
 	
 	private void setUserDetailsToStore(Claims claims) {
 		// To Set user details for local development
-		UserStore.UserInfo user = UserStore.UserInfo.builder().id((String) claims.get("id"))
+		UserInfo user = UserInfo.builder().id((String) claims.get("id"))
 				.firstName((String) claims.get("firstName")).lastName((String) claims.get("lastName"))
 				.email((String) claims.get("email")).department((String) claims.get("department"))
 				.mobileNumber((String) claims.get("mobileNumber")).build();
@@ -121,6 +124,7 @@ public class JWTAuthenticationFilter implements HttpServerFilter{
 					.build());
 		});
 		user.setUserRole(roles);
+		System.out.println("user id is " + user.getId());
 		this.userStore.setUserInfo(user);
 	}
 
@@ -130,7 +134,7 @@ public class JWTAuthenticationFilter implements HttpServerFilter{
 	 * @param claims
 	 */
 	private void setUserDetailsToStore(JSONObject claims) {
-		UserStore.UserInfo user = UserStore.UserInfo.builder().id((String) claims.get("id"))
+		UserInfo user = UserInfo.builder().id((String) claims.get("id"))
 				.firstName((String) claims.get("firstName")).lastName((String) claims.get("lastName"))
 				.email((String) claims.get("eMail")).department((String) claims.get("department"))
 				.mobileNumber((String) claims.get("mobileNumber")).build();
@@ -148,12 +152,6 @@ public class JWTAuthenticationFilter implements HttpServerFilter{
 		}
 		System.out.println("user id is " + user.getId());
 		this.userStore.setUserInfo(user);
-	}
-
-	private void injectMicronautApplicationDependecies(HttpRequest<?> servletRequest) {
-		ApplicationContext applicationContext = this.applicationContext;
-		userStore = applicationContext.getBean(UserStore.class);
-		System.out.println("got userstorebean");
 	}
 
 }

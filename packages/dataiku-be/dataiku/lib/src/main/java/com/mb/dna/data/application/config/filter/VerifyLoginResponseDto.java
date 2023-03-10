@@ -1,7 +1,5 @@
 package com.mb.dna.data.application.config.filter;
 
-import java.io.Serializable;
-
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import lombok.AllArgsConstructor;
@@ -11,19 +9,15 @@ import lombok.NoArgsConstructor;
 import lombok.ToString;
 
 @Data
+@NoArgsConstructor
 @AllArgsConstructor
 @Builder
 @ToString
 @JsonIgnoreProperties(ignoreUnknown = true)
-@NoArgsConstructor
-public class CreatedByVO implements Serializable {
+public class VerifyLoginResponseDto {
+
+	private UserInfo data;
+	private String loggedIn;
+	private String token;
 	
-  private String id;
-  private String firstName;
-  private String lastName;
-  private String department;
-  private String email;
-  private String mobileNumber;
-
 }
-

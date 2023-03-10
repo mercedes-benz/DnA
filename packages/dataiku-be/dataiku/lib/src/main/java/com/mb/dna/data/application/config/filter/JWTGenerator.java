@@ -11,10 +11,10 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.MalformedJwtException;
 import io.jsonwebtoken.SignatureException;
 import io.jsonwebtoken.UnsupportedJwtException;
-import io.micronaut.context.annotation.Bean;
 import io.micronaut.context.annotation.Value;
+import jakarta.inject.Singleton;
 
-@Bean
+@Singleton
 public class JWTGenerator {
 
 	private static Logger log = LoggerFactory.getLogger(JWTGenerator.class);

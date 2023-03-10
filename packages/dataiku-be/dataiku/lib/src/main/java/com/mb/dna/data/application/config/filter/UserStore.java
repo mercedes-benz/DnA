@@ -27,27 +27,15 @@
 
 package com.mb.dna.data.application.config.filter;
 
-import java.io.Serializable;
-import java.util.List;
+import io.micronaut.runtime.context.scope.ThreadLocal;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-
-import io.micronaut.context.annotation.Bean;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.ToString;
-
-@Bean
-@Data
-@AllArgsConstructor
-@NoArgsConstructor
+@ThreadLocal
 public class UserStore {
 
-	private UserInfo userInfo;
+	private UserInfo userInfo = null;
 
 	public void clear() {
+		System.out.println("clearing user");
 		this.userInfo = null;
 	}
 
@@ -62,61 +50,15 @@ public class UserStore {
 		return vo;
 	}
 
-	@Bean
-	@Data
-	@AllArgsConstructor
-	@Builder
-	@ToString
-	@JsonIgnoreProperties(ignoreUnknown = true)
-	public static class UserInfo {
-		private String id;
-		private String firstName;
-		private String lastName;
-		private String email;
-		private String mobileNumber;
-		private String department;
-
-		private String sub;
-		private boolean email_verified;
-		private String name;
-		private String given_name;
-		private String family_name;
-		private String personal_data_hint;
-		private String updated_at;
-		private List<UserRole> userRole;
-
-		public UserInfo() {
-			this.department = "";
-		}
-
-		public void setSub(String sub) {
-			this.sub = this.id = sub;
-		}
-
-		public void setGiven_name(String given_name) {
-			this.firstName = this.given_name = given_name;
-		}
-
-		public void setFamily_name(String family_name) {
-			this.lastName = this.family_name = family_name;
-		}
-
-		public boolean hasAdminAccess() {
-			return this.getUserRole().stream().anyMatch(
-					n -> "DataComplianceAdmin".equalsIgnoreCase(n.getName()) || "Admin".equalsIgnoreCase(n.getName()));
-		}
-
+	public UserInfo getUserInfo() {
+		System.out.println("in getter userinfo is " + this.userInfo);
+		return this.userInfo;
 	}
 
-	@Bean
-	@Data
-	@AllArgsConstructor
-	@NoArgsConstructor
-	@Builder
-	public static class UserRole implements Serializable {
-		private static final long serialVersionUID = 1L;
-		private String id;
-		private String name;
+	public void setUserInfo(UserInfo userInfo1) {
+		System.out.println("in setter userinfo is " + userInfo1.toString());
+		this.userInfo = userInfo1;
 	}
-
+	
+	
 }

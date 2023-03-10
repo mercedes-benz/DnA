@@ -8,7 +8,7 @@ import io.micronaut.http.annotation.Post;
 import io.micronaut.http.client.annotation.Client;
 
 
-@Client("${dna.uri}")
+@Client("https://dev.dna.app.corpintra.net")
 @Header(name = "Accept", value = "application/json") 
 @Header(name = "Content-Type", value = "application/json") 
 public interface DnaClient {

@@ -98,10 +98,9 @@ dependencies {
     //implementation group: 'io.swagger.codegen.v3', name: 'swagger-generator', version: '3.0.36'
     //implementation group: 'io.swagger.codegen.v3', name: 'swagger-codegen-cli', version: '3.0.36'
 	//swaggerCodegen("io.swagger.core.v3:swagger-codegen-cli:3.0.36")
-	
     
     runtimeOnly("ch.qos.logback:logback-classic")
-    
+
     //implementation("io.micronaut:micronaut-management:4.8.4")
     //annotationProcessor("io.micronaut:micronaut-management:4.8.4")
     implementation group: 'org.json', name: 'json', version: '20190722'
@@ -123,6 +122,8 @@ dependencies {
 	compileOnly("org.projectlombok:lombok")
     //testCompileOnly("org.projectlombok:lombok")
 	
+	//implementation("io.micronaut.serde:micronaut-serde-jackson:2.0.0")
+	//annotationProcessor("io.micronaut.serde:micronaut-serde-processor:2.0.0")
 	annotationProcessor("org.projectlombok:lombok")
 	//testAnnotationProcessor("org.projectlombok:lombok")
 	//("io.micronaut.data:micronaut-data-processor")
@@ -132,6 +133,7 @@ dependencies {
     //annotationProcessor("io.micronaut.openapi:micronaut-openapi")
     //annotationProcessor("io.micronaut.jaxrs:micronaut-jaxrs-processor")
     
-	//implementation group: 'io.projectreactor', name: 'reactor-core', version: '3.5.3'
+	implementation group: 'io.projectreactor', name: 'reactor-core', version: '3.5.3'
 	//implementation("io.micronaut.graphql:micronaut-graphql")
+	
 }
