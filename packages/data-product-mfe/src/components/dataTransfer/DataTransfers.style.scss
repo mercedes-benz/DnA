@@ -13,6 +13,26 @@
                 color: #dee3e8;
             }
         }
+        .tagItem{
+            border: 1px solid #697582;
+            border-radius: 25px;
+            color: #99a5b3;
+            /* line-height: 4; */
+            // margin-right: 10px;
+            padding: 7px 17px;
+            /* word-break: break-all; */
+            font-size: var(--font-size-small);
+            background: transparent;
+            margin-bottom: 20px;
+            outline: none;
+            &:hover,:focus{
+                border-color: #00adef!important;
+                cursor: pointer;
+            }
+        }
+        .selectedItem{
+            border-color: #00adef;
+        }
     }
     .content {
         background-color: #252a33;
