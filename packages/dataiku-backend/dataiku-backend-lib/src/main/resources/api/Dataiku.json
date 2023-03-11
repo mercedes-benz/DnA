@@ -1,0 +1,13 @@
+{
+	"generatorName": "micronaut",
+	"dateLibrary": "legacy",
+	"useTags": true,
+	"hideGenerationTimestamp": true,
+	"modelPackage": "com.mb.data.dto.dataiku",
+	"apiPackage": "com.mb.data.api.dataiku",
+	"invokerPackage": "com.mb.data.service.dataiku",
+	"importMappings": {
+		"GenericMessage": "com.mb.data.exceptions.GenericMessage",
+		"MessageDescription": "com.mb.data.exceptions.MessageDescription"
+	}
+}
