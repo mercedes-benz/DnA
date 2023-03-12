@@ -1,6 +1,16 @@
 micronaut:
   application:
     name: dataiku
+  security:
+    enabled: false
+  router:
+    static-resources:
+      swagger:
+        paths: classpath:META-INF/swagger
+        mapping: /swagger/**
+      swagger-ui:
+        paths: classpath:META-INF/swagger/views/swagger-ui
+        mapping: /swagger-ui/**
   http:
     client:
       ssl:
@@ -21,10 +31,43 @@ micronaut:
             - OPTIONS
             - HEAD
             - DELETE
-
+    
+jpa:
+  default:
+    properties:
+      hibernate:
+        hbm2ddl:
+          auto: update
+        show_sql: false
+        
+datasources:
+  default:
+    url: ${JDBC_URL:`jdbc:postgresql://localhost:5432/dataiku;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE`}
+    username: ${JDBC_USER:XXXX_user}
+    password: ${JDBC_PASSWORD:XXXX_pass}
+    driverClassName: ${JDBC_DRIVER:org.postgresql.Driver}
+                
+flyway:
+  enabled: ${FLYWAY_ENABLED:false}
+  datasources:
+    default:
+      enabled: ${FLYWAY_DEFAULTDATASOURCE_ENABLED:false}
+      baseline-on-migrate: ${FLYWAY_BASELINE_ON_MIGRATE:false}
+      baseline-version: ${FLYWAY_BASELINEVERSION:0}
+      schemas: ${FLYWAY_SCHEMA:public}
+            
 dna:
   uri: ${DNA_URI:XXXX}
   dnaAuthEnable: ${DNA_AUTH_ENABLE:false}
   verifyLoginUri: ${DNA_VERIFYLOGIN_URI:XXXX}
   getUsersUri: ${DNA_GETUSERS_URI:XXXX}
   jwt: ${JWT_SECRET_KEY:XXXXX}
+  
+dataiku:
+  auth: ${DATAIKU_AUTH:XXXX}
+  baseuri: ${DATAIKU_BASEURI:XXXX}
+  scenariosUri: ${DATAIKU_SCENARIOSURI:XXXX}
+  usersUri: ${DATAIKU_USERSURI:XXXX}
+  groupNamePrefix: ${DATAIKU_GROUPNAME_PREFIX:XXXX}
+  environmentProfile: ${DATAIKU_INSTANCE_ENVPROFILE:XXXX}
+  scenarioProjectNameIdentifier: ${DATAIKU_SCENARIO_PROJECTNAME_IDENTIFIER:XXXX}
