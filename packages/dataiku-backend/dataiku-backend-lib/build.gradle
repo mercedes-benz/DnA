@@ -46,7 +46,10 @@ java {
     targetCompatibility = JavaVersion.toVersion("17")
 }
 
-
+tasks.withType(JavaCompile) {
+    options.fork = true
+    options.forkOptions.jvmArgs << '-Dmicronaut.openapi.views.spec=rapidoc.enabled=true,swagger-ui.enabled=true,swagger-ui.theme=flattop'
+}
 
 compileJava {
     dependsOn processResources
@@ -62,6 +65,8 @@ sourceSets {
         java { srcDirs = srcDirs }
     }
 }
+
+
 
 
 graalvmNative.toolchainDetection = false
@@ -101,8 +106,8 @@ dependencies {
     
     runtimeOnly("ch.qos.logback:logback-classic")
 
-    //implementation("io.micronaut:micronaut-management:4.8.4")
-    //annotationProcessor("io.micronaut:micronaut-management:4.8.4")
+    implementation("io.micronaut:micronaut-management")
+    //annotationProcessor("io.micronaut:micronaut-management")
     implementation group: 'org.json', name: 'json', version: '20190722'
     implementation group: 'io.jsonwebtoken', name: 'jjwt', version: '0.9.1'
     implementation("jakarta.annotation:jakarta.annotation-api:2.1.1")
@@ -111,12 +116,13 @@ dependencies {
 	//implementation group: 'io.micronaut.data', name: 'micronaut-data-hibernate-jpa', version: '3.9.6'{
     //    exclude group: "javax.persistence", module: "javax.persistence-api"
     //}
-	implementation("io.micronaut.data:micronaut-data-jdbc")
-    implementation("io.micronaut.sql:micronaut-hibernate-jpa")
-    //implementation("io.micronaut.sql:micronaut-jdbc-hikari")
-    //runtimeOnly("org.postgresql:postgresql")
+	//implementation("io.micronaut.data:micronaut-data-jdbc")
+	implementation("io.micronaut.sql:micronaut-hibernate-jpa")
+    implementation("io.micronaut.sql:micronaut-jdbc-hikari")
+    runtimeOnly("org.postgresql:postgresql")
+	annotationProcessor("io.micronaut.data:micronaut-data-hibernate-jpa")
 	
-	//implementation("io.micronaut.flyway:micronaut-flyway")
+	implementation("io.micronaut.flyway:micronaut-flyway")
 	//runtimeOnly("org.flywaydb:flyway-postgres")
 
 	compileOnly("org.projectlombok:lombok")
@@ -130,7 +136,7 @@ dependencies {
     annotationProcessor("io.micronaut:micronaut-http-validation")
     annotationProcessor("io.micronaut:micronaut-validation")
     //annotationProcessor("jakarta.persistence:jakarta.persistence-api:3.1.0")
-    //annotationProcessor("io.micronaut.openapi:micronaut-openapi")
+    annotationProcessor("io.micronaut.openapi:micronaut-openapi")
     //annotationProcessor("io.micronaut.jaxrs:micronaut-jaxrs-processor")
     
 	implementation group: 'io.projectreactor', name: 'reactor-core', version: '3.5.3'
