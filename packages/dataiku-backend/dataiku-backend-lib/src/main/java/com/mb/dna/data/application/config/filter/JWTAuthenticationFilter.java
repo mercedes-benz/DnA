@@ -9,6 +9,11 @@ import org.reactivestreams.Publisher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.mb.dna.data.application.adapter.dna.DnaHttpClient;
+import com.mb.dna.data.application.adapter.dna.UserInfo;
+import com.mb.dna.data.application.adapter.dna.UserRole;
+import com.mb.dna.data.application.adapter.dna.UserStore;
+
 import io.jsonwebtoken.Claims;
 import io.micronaut.context.ApplicationContext;
 import io.micronaut.context.annotation.Property;
