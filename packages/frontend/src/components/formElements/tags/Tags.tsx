@@ -188,7 +188,7 @@ export default class Tags extends React.Component<ITagsFieldProps, ITagsFiledSta
         >
           <div className={classNames(Styles.row)}>{chips}</div>
           <input
-            className={classNames(Styles.tagInputField)}
+            className={classNames(Styles.tagInputField, (this.props.max && this.props.max === 1) && Styles.fullWidth, isMaxReached && 'hide')}
             type="text"
             id="tag"
             placeholder={!isMaxReached && !this.props.isDisabled ? (this.props.placeholder || 'Type here') : ''}
