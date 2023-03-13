@@ -22,6 +22,7 @@ export interface ITagsFieldProps {
   isDisabled?: boolean;
   removeTag?: (index: number) => void;
   isDataSource?: boolean;
+  placeholder?: string;
 }
 
 export interface ITagsFiledState {
@@ -190,7 +191,7 @@ export default class Tags extends React.Component<ITagsFieldProps, ITagsFiledSta
             className={classNames(Styles.tagInputField)}
             type="text"
             id="tag"
-            placeholder={!isMaxReached && !this.props.isDisabled ? 'Type here' : ''}
+            placeholder={!isMaxReached && !this.props.isDisabled ? (this.props.placeholder || 'Type here') : ''}
             onKeyDown={this.onKeyDown}
             onChange={this.onTextInputChange}
             autoComplete="off"
