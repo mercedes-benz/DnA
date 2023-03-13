@@ -404,21 +404,21 @@ definitions:
       department:
         type: string
         description: "Department of the dataproduct"
-        minLength: 1                           
+#        minLength: 1                           
       localComplianceOfficer:
         type: string
         description: "Local compliance officer"
-        minLength: 1
+#        minLength: 1
       appId:
         type: string
         description: "planning IT App-ID "         
-    required:
-      - informationOwner
-      - name
-      - division
-      - department
-      - dataProductDate
-      - localComplianceOfficer
+#    required:
+#      - informationOwner
+#      - name
+#      - division
+#      - department
+#      - dataProductDate
+#      - localComplianceOfficer
       
   DataProductClassificationConfidentialityVO:
     type: object
@@ -426,13 +426,13 @@ definitions:
       description:
         type: string
         description: "Description and classification of the transfered data"
-        minLength: 1
+#        minLength: 1
       confidentiality: 
         description: "Confidentiality level"
         type: string
-    required:
-      - description
-      - confidentiality
+#    required:
+#      - description
+#      - confidentiality
       
   DataProductPersonalRelatedDataVO:
     type: object
@@ -449,8 +449,8 @@ definitions:
       legalBasis: 
         description: "Legal basis for processing this personal related data"
         type: string     
-    required:
-      - personalRelatedData  
+#    required:
+#      - personalRelatedData  
           
   DataProductTransnationalDataTransferVO:
     type: object
@@ -470,8 +470,8 @@ definitions:
       dataFromChina:
         type: boolean
         description: "Is data from China included"                
-    required:
-      - dataTransferred    
+#    required:
+#      - dataTransferred    
       
   DataProductDeletionRequirementVO:
     type: object
@@ -485,8 +485,8 @@ definitions:
       otherRelevantInformation:
         type: string
         description: "Specifying other relevant information"                         
-    required:
-      - deletionRequirements  
+#    required:
+#      - deletionRequirements  
       
   DataProductVO:
     type: object
@@ -639,9 +639,9 @@ definitions:
         description: name of division
       subdivision:
         $ref: "#/definitions/SubdivisionVO"
-    required:
-      - id
-      - name
+#    required:
+#      - id
+#      - name
       
   SubdivisionVO:
     type: object
