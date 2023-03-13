@@ -3,7 +3,7 @@ package com.mb.dna.data.application.adapter.dataiku;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.mb.dna.data.controller.exceptions.GenericMessage;
+import com.mb.dna.data.api.controller.exceptions.GenericMessage;
 
 import io.micronaut.http.HttpRequest;
 import io.micronaut.http.HttpResponse;
