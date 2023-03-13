@@ -1,4 +1,4 @@
-package com.mb.dna.data.controller.userprivilege;
+package com.mb.dna.data.db.entities;
 
 import java.io.Serializable;
 
@@ -12,12 +12,11 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class UserPrivilegeDto implements Serializable{
+public class CollaboratorDetails implements Serializable{
 
-	private String id;
 	private String userId;
-	private String profile;
 	private String givenName;
 	private String surName;
+	private String permission;
 	
 }

@@ -117,6 +117,7 @@ dependencies {
     //    exclude group: "javax.persistence", module: "javax.persistence-api"
     //}
 	//implementation("io.micronaut.data:micronaut-data-jdbc")
+	implementation group: 'com.vladmihalcea', name: 'hibernate-types-52', version: '2.9.2'
 	implementation("io.micronaut.sql:micronaut-hibernate-jpa")
     implementation("io.micronaut.sql:micronaut-jdbc-hikari")
     runtimeOnly("org.postgresql:postgresql")
