@@ -29,7 +29,7 @@ import io.micronaut.http.filter.ServerFilterChain;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 
-@Filter("/api/**") 
+@Filter("/apii/**") 
 @Singleton
 public class JWTAuthenticationFilter implements HttpServerFilter{
 
