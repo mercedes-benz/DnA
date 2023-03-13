@@ -1,6 +1,8 @@
-package com.mb.dna.data.db.entities;
+package com.mb.dna.data.controller.dataiku;
 
 import java.io.Serializable;
+import java.math.BigInteger;
+import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
@@ -12,10 +14,9 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class UserPrivilege implements Serializable{
+public class DataikuProjectsCollectionDto implements Serializable{
 
-	private static final long serialVersionUID = 1L;
-	private String userId;
-	private String profile;
+	private List<DataikuProjectDto> data;
+	private BigInteger totalcount;
 	
 }
