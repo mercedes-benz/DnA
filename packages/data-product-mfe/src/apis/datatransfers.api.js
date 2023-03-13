@@ -62,7 +62,6 @@ const getPlanningIT = (searchTerm = '') => {
 
 export const dataTransferApi = {
   getAllDataProducts,
-  getAllDataProductsCreatedByUser,
   createDataProduct,
   getDepartments,
   updateProvider,
