@@ -411,6 +411,10 @@
           cursor: pointer;
         }
       }
+
+      a.info:hover {
+        text-decoration: none;
+      }
     }
 
     &.search-field {

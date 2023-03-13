@@ -15,6 +15,7 @@ import { hostServer } from '../../../../server/api';
 
 import ProgressIndicator from '../../../../common/modules/uilab/js/src/progress-indicator';
 import Notification from '../../../../common/modules/uilab/js/src/notification';
+import Tooltip from '../../../../common/modules/uilab/js/src/tooltip';
 
 import { useSelector } from 'react-redux';
 import { dataTransferApi } from '../../../../apis/datatransfers.api';
@@ -99,6 +100,7 @@ const ContactInformation = ({
   }, [division]);
 
   useEffect(() => {
+    Tooltip.defaultSetup();
     !isDataProduct && SelectBox.defaultSetup();
     reset(watch());
     //eslint-disable-next-line
@@ -421,6 +423,7 @@ const ContactInformation = ({
                   render={({ field }) => (
                     <Tags
                       title={'Department'}
+                      placeholder={'Select or Add new Dept'}
                       max={1}
                       chips={selectedDepartment}
                       tags={departments}
@@ -499,7 +502,7 @@ const ContactInformation = ({
                   rules={{ required: '*Missing entry' }}
                   render={({ field }) => (
                     <TypeAheadBox
-                      label={'Corresponding Compliance Contact, i.e. Local Compliance Officer/ Responsible or Multiplier'}
+                      label={<>Corresponding Compliance Contact, i.e. Local Compliance Officer/ Responsible or Multiplier <a className='info' target="_blank" href='#/data/datacompliancenetworklist'><i className="icon mbc-icon info" tooltip-data="Click to view LCO/LCR Contacts" /></a></>}
                       placeholder={'Search for country, department etc.'}
                       defaultValue={complianceOfficer}
                       list={complianceOfficerList.records}
