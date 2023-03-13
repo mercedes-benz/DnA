@@ -10,8 +10,10 @@ import io.micronaut.http.HttpResponse;
 import io.micronaut.http.client.HttpClient;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
+import lombok.extern.slf4j.Slf4j;
 
 @Singleton
+@Slf4j
 public class DataikuClientImpl implements DataikuClient {
 
 	@Inject
@@ -43,6 +45,23 @@ public class DataikuClientImpl implements DataikuClient {
 		return responseBody;
 	}
 	
+	public DataikuUserResponseDto getDataikuUser(String loginName){
+		DataikuUserResponseDto responseBody = new DataikuUserResponseDto();
+		String url =  "https:" + dataikuClientConfig.getBaseuri() + dataikuClientConfig.getUsersUri() + "/" + loginName;
+		HttpRequest<?> req = HttpRequest.GET(url).header("Accept", "application/json")
+		.header("Content-Type", "application/json")
+		.header("Authorization", "Basic "+dataikuClientConfig.getAuth());
+		try {
+			HttpResponse<DataikuUserResponseDto> response = client.toBlocking().exchange(req,DataikuUserResponseDto.class);
+			if(response!=null && response.getBody()!=null) {
+				responseBody = response.getBody().get();
+			}
+		}catch(Exception e) {
+			log.error("Failed to fetch dataiku user for {} with exception {}", loginName, e.getMessage());
+		}
+		return responseBody;
+	}
+	
 	public GenericMessage addDataikuUser(DataikuUserDto userRequest) {
 		GenericMessage responseMessage = new GenericMessage();
 		responseMessage.setSuccess("SUCCESS");
@@ -67,4 +86,9 @@ public class DataikuClientImpl implements DataikuClient {
 		
 		return responseMessage;
 	}
+	
+//	public GenericMessage addGroupToUser(String group, String user) {
+//		
+//	}
+	
 }
