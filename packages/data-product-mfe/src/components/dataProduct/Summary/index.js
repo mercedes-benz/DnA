@@ -483,7 +483,7 @@ const Summary = ({ history, user }) => {
                           {selectedDataProduct.classificationOfTransferedData}
                         </div>
                         <div>
-                          <label className="input-label summary">Confidentiality</label>
+                          <label className="input-label summary">Confidentiality classification of transferred data (based on Information classification)</label>
                           <br />
                           {selectedDataProduct?.confidentiality}
                         </div>

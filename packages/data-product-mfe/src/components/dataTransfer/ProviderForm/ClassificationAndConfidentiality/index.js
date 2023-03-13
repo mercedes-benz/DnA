@@ -68,7 +68,7 @@ const Classification = (
               style={{ minHeight: '50px' }}
             >
               <label className={classNames(Styles.inputLabel, 'input-label')}>
-                Confidentiality <sup>*</sup>
+              Confidentiality classification of transferred data (based on Information classification) <sup>*</sup>
               </label>
               <div className={Styles.radioBtnsGrid}>
                 {classificationTypes?.map((item) => {

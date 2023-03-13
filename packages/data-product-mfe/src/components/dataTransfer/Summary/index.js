@@ -203,7 +203,7 @@ const Summary = ({ history }) => {
                           {data.classificationOfTransferedData}
                         </div>
                         <div>
-                          <label className="input-label summary">Confidentiality</label>
+                          <label className="input-label summary">Confidentiality classification of transferred data (based on Information classification)</label>
                           <br />
                           {data.confidentiality}
                         </div>
