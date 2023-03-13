@@ -1,6 +1,7 @@
-package com.mb.dna.data.controller.userprivilege;
+package com.mb.dna.data.db.entities;
 
 import java.io.Serializable;
+import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
@@ -12,12 +13,10 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class UserPrivilegeDto implements Serializable{
+public class DataikuProjectDetails implements Serializable {
 
-	private String id;
-	private String userId;
-	private String profile;
-	private String givenName;
-	private String surName;
-	
+	private String projectName;
+	private String description;
+	private String cloudProfile;
+	private List<CollaboratorDetails> collaborators;
 }

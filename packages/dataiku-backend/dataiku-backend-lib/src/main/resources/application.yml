@@ -38,14 +38,14 @@ jpa:
       hibernate:
         hbm2ddl:
           auto: update
-        show_sql: false
+        show_sql: true
         
 datasources:
   default:
-    url: ${JDBC_URL:`jdbc:postgresql://localhost:5432/dataiku;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE`}
-    username: ${JDBC_USER:XXXX_user}
-    password: ${JDBC_PASSWORD:XXXX_pass}
-    driverClassName: ${JDBC_DRIVER:org.postgresql.Driver}
+    url: ${JDBC_URL:`jdbc:postgresql://localhost:64000/db`}
+    username: ${JDBC_USER:XXXX_USER}
+    password: ${JDBC_PASSWORD:XXXX_PASSWORD}
+    driver-class-name: ${JDBC_DRIVER:org.postgresql.Driver}
                 
 flyway:
   enabled: ${FLYWAY_ENABLED:false}
