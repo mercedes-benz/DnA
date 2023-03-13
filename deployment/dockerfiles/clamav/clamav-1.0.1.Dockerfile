@@ -4,8 +4,8 @@
 # https://thehackernews.com/2023/02/critical-rce-vulnerability-discovered.html
 ################################################################################
 FROM clamav/clamav:latest
-COPY ./clamd.conf /etc/clamav/
-COPY ./freshclam.conf /etc/clamav/
+COPY ./clamd-1.0.1.conf /etc/clamav/clamd.conf
+COPY ./freshclam-1.0.1.conf /etc/clamav/freshclam.conf
 RUN wget --user-agent='CVDUPDATE/0' -O /var/lib/clamav/main.cvd https://database.clamav.net/main.cvd 
 RUN wget --user-agent='CVDUPDATE/0' -O /var/lib/clamav/daily.cvd https://database.clamav.net/daily.cvd
 RUN wget --user-agent='CVDUPDATE/0' -O /var/lib/clamav/bytecode.cvd https://database.clamav.net/bytecode.cvd
