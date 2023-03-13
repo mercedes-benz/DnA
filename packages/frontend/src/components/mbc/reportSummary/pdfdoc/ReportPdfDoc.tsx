@@ -536,10 +536,10 @@ const DataAndFunction = ({ dataAndFunctions, showDataAndFunction, showMembers }:
                     </View>
                   </View>
                   <View style={[styles.flexLayout, { marginVertical: 5 }]} wrap={false}>
-                    <View style={styles.firstCol}>
+                    {/* <View style={styles.firstCol}>
                       <Text style={styles.sectionTitle}>Common Functions</Text>
                       {data.commonFunctions?.length ? <Text>{data.commonFunctions?.join(', ')}</Text> : <Text>NA</Text>}
-                    </View>
+                    </View> */}
                     <View style={styles.firstCol}>
                       <Text style={styles.sectionTitle}>Data Classification</Text>
                       {data.dataClassification ? <Text>{data.dataClassification}</Text> : <Text>NA</Text>}
