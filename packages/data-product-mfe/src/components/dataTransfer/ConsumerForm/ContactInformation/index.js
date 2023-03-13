@@ -15,6 +15,7 @@ import { hostServer } from '../../../../server/api';
 import { dataTransferApi } from '../../../../apis/datatransfers.api';
 
 import ProgressIndicator from '../../../../common/modules/uilab/js/src/progress-indicator';
+import Tooltip from '../../../../common/modules/uilab/js/src/tooltip';
 import { useSelector } from 'react-redux';
 import dayjs from 'dayjs';
 import { debounce } from 'lodash';
@@ -100,6 +101,7 @@ const ContactInformation = ({
 
   useEffect(() => {
     reset(watch());
+    Tooltip.defaultSetup();
     //eslint-disable-next-line
   }, []);
 
@@ -362,6 +364,7 @@ const ContactInformation = ({
                   render={({ field }) => (
                     <Tags
                       title={'Department'}
+                      placeholder={'Select or Add new Dept'}
                       max={1}
                       chips={selectedDepartment}
                       tags={departments}
@@ -454,7 +457,7 @@ const ContactInformation = ({
                   rules={{ validate: isLCORequired }}
                   render={({ field }) => (
                     <TypeAheadBox
-                      label={'Corresponding Compliance Contact, i.e. Local Compliance Officer/ Responsible or Multiplier'}
+                      label={<>Corresponding Compliance Contact, i.e. Local Compliance Officer/ Responsible or Multiplier <a className='info' target="_blank" href='#/data/datacompliancenetworklist'><i className="icon mbc-icon info" tooltip-data="Click to view LCO/LCR Contacts" /></a></>}
                       placeholder={'Search for country, department etc.'}
                       defaultValue={complianceOfficer}
                       list={complianceOfficerList.records}
