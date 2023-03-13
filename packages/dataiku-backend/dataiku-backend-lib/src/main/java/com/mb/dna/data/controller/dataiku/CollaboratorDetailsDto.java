@@ -1,23 +1,22 @@
-package com.mb.dna.data.application.config.filter;
+package com.mb.dna.data.controller.dataiku;
+
+import java.io.Serializable;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.ToString;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
-@ToString
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class VerifyLoginResponseDto {
+public class CollaboratorDetailsDto implements Serializable{
 
-	private UserInfo data;
-	private String loggedIn;
-	private String token;
+	private String userId;
+	private String givenName;
+	private String surName;
+	private String permission;
 	
 }
