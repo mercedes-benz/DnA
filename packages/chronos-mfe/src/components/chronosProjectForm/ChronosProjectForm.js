@@ -51,15 +51,14 @@ const ChronosProjectForm = ({edit, project, onSave}) => {
       setEditTeamMember(false);
       setEditTeamMemberIndex(0);
       Notification.show('Forecasting Project successfully created');
-      onSave();
     }).catch(error => {
       ProgressIndicator.hide();
       Notification.show(
         error?.response?.data?.response?.errors[0]?.message || error?.response?.data?.response?.warnings[0]?.message || 'Error while creating forecast project',
         'alert',
       );
-      onSave();
     });
+    onSave();
   };
   const handleEditProject = () => {
     const addedCollaboratorsTemp = addedCollaborators.map((member) => {
@@ -186,21 +185,6 @@ const ChronosProjectForm = ({edit, project, onSave}) => {
     setRemovedCollaborators(removedCollaboratorsTemp);
 
     setTeamMembers(teamMembersTemp);
-    setTeamMembers(teamMembersTemp);
-  };
-
-  const onTeamMemberMoveUp = (index) => {
-    const teamMembersTemp = [...teamMembers];
-    const teamMember = teamMembersTemp.splice(index, 1)[0];
-    teamMembersTemp.splice(index - 1, 0, teamMember);
-    setTeamMembers(teamMembersTemp);
-  };
-
-  const onTeamMemberMoveDown = (index) => {
-    const teamMembersTemp = [...teamMembers];
-    const teamMember = teamMembersTemp.splice(index, 1)[0];
-    teamMembersTemp.splice(index + 1, 0, teamMember);
-    setTeamMembers(teamMembersTemp);
   };
 
   const teamMembersList = teamMembers?.map((member, index) => {
@@ -213,8 +197,6 @@ const ChronosProjectForm = ({edit, project, onSave}) => {
         showInfoStacked={true}
         showMoveUp={index !== 0}
         showMoveDown={index + 1 !== teamMembers?.length}
-        onMoveUp={onTeamMemberMoveUp}
-        onMoveDown={onTeamMemberMoveDown}
         onEdit={onTeamMemberEdit}
         onDelete={onTeamMemberDelete}
       />
