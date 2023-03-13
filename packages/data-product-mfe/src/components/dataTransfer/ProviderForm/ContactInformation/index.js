@@ -423,7 +423,7 @@ const ContactInformation = ({
                   render={({ field }) => (
                     <Tags
                       title={'Department'}
-                      placeholder={'Select or Add new Dept'}
+                      placeholder={'Choose from one of the existing or add new department'}
                       max={1}
                       chips={selectedDepartment}
                       tags={departments}
