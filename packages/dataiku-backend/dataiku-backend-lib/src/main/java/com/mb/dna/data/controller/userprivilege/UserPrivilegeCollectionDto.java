@@ -1,6 +1,7 @@
 package com.mb.dna.data.controller.userprivilege;
 
 import java.io.Serializable;
+import java.math.BigInteger;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -16,5 +17,5 @@ import lombok.NoArgsConstructor;
 public class UserPrivilegeCollectionDto  implements Serializable{
 
 	private List<UserPrivilegeDto> data;
-	private Integer totalcount;
+	private BigInteger totalcount;
 }
