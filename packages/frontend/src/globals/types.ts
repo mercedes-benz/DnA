@@ -633,7 +633,7 @@ export interface IExternalCustomerDetails {
 export interface IKpis {
   description: string;
   name: string;
-  reportingCause: string;
+  reportingCause: string[];
   kpiLink: string;
 }
 
@@ -643,7 +643,7 @@ export interface IDataAndFunctions {
 }
 
 export interface IDataWarehouseInUse {
-  commonFunctions: string[];
+  // commonFunctions: string[];
   connectionType: string;
   dataWarehouse: string;
   dataClassification: string;
