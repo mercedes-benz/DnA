@@ -476,6 +476,7 @@ const ForecastingResults = () => {
         forecastData={forecastData}
         addTraces={addTraces}
         layout={layout}
+        bucketName={bucketName}
       />
 
       <VisualContainer
@@ -486,6 +487,7 @@ const ForecastingResults = () => {
         forecastData={trendData}
         addTraces={addTracesTrend}
         layout={layoutTrend}
+        bucketName={bucketName}
       />
 
       <VisualContainer
@@ -496,6 +498,7 @@ const ForecastingResults = () => {
         forecastData={decompositionData}
         addTraces={addTracesDecomposition}
         layout={layoutDecomposition}
+        bucketName={bucketName}
       />
 
       {
