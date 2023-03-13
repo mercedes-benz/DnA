@@ -55,7 +55,7 @@ public class DataikuRepositoryImpl implements DataikuRepository{
 					DataikuProjectDetails tempData = mapper.readValue(jsonData, DataikuProjectDetails.class);
 					entity.setData(tempData);
 				} catch (Exception e) {
-					log.error("Failed while fetching all user records with exception {} ", e.getMessage());
+					log.error("Failed while fetching all dataiku records with exception {} ", e.getMessage());
 				}
 				String id = temp[0] != null ? temp[0].toString() : "";
 				entity.setId(id);
@@ -64,4 +64,6 @@ public class DataikuRepositoryImpl implements DataikuRepository{
 		}
         return convertedResults;
 	}
+	
+	
 }
