@@ -6,7 +6,7 @@ RUN gradle build --no-daemon
 
 #Step-2
 FROM openjdk:17-jdk
-ENV ARTIFACT_NAME=dss-lib-1.0.0.jar
+ENV ARTIFACT_NAME=dataiku-backend-lib-1.0.0.jar
 USER 1000
 COPY --from=TEMP_BUILD_IMAGE /home/gradle/src/dss-lib/build/libs/$ARTIFACT_NAME $ARTIFACT_NAME
 
