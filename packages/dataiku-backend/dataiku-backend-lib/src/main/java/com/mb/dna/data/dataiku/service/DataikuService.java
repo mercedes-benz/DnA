@@ -3,7 +3,7 @@ package com.mb.dna.data.dataiku.service;
 import com.mb.dna.data.api.controller.exceptions.GenericMessage;
 import com.mb.dna.data.dataiku.api.dto.DataikuProjectDto;
 import com.mb.dna.data.dataiku.api.dto.DataikuProjectResponseDto;
-import com.mb.dna.data.dataiku.api.dto.DataikuProjectUpdateDto;
+import com.mb.dna.data.dataiku.api.dto.DataikuProjectUpdateRequestDto;
 import com.mb.dna.data.dataiku.api.dto.DataikuProjectsCollectionDto;
 
 public interface DataikuService {
@@ -17,6 +17,6 @@ public interface DataikuService {
 
 	GenericMessage deleteById(String id);
 
-	DataikuProjectResponseDto updateProject(String id, DataikuProjectUpdateDto updateRequest);
+	DataikuProjectResponseDto updateProject(String id, DataikuProjectUpdateRequestDto updateRequest);
 
 }

@@ -2,6 +2,7 @@ package com.mb.dna.data.assembler;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import com.mb.dna.data.dataiku.api.dto.CollaboratorDetailsDto;
@@ -24,6 +25,7 @@ public class DataikuAssembler {
 			List<CollaboratorDetailsDto> collabsDto = vo.getCollaborators();
 			List<CollaboratorSql> collabs = new ArrayList<>();
 			if(collabsDto!=null) {
+				System.out.println("collabs not null");
 				collabs = collabsDto.stream().map(n -> this.toCollaboratorsData(n,entity.getId())).collect(Collectors.toList());
 			}
 			entity.setCollaborators(collabs);
@@ -56,6 +58,7 @@ public class DataikuAssembler {
 	public CollaboratorDetailsDto toCollaboratorsVO(CollaboratorSql collaborator) {
 		CollaboratorDetailsDto collabDto = new CollaboratorDetailsDto();
 		if(collaborator!=null) {
+			collaborator.getDataikuProject();
 			collabDto.setGivenName(collaborator.getGivenName());
 			collabDto.setPermission(collaborator.getPermission());
 			collabDto.setSurName(collaborator.getSurName());
@@ -67,11 +70,14 @@ public class DataikuAssembler {
 	public CollaboratorSql toCollaboratorsData(CollaboratorDetailsDto collaborator, String id) {
 		CollaboratorSql collabData = new CollaboratorSql();
 		if(collaborator!=null) {
+			String collabId = UUID.randomUUID().toString();
+			collabData.setId(collabId);
 			collabData.setGivenName(collaborator.getGivenName());
 			collabData.setPermission(collaborator.getPermission());
 			collabData.setSurName(collaborator.getSurName());
 			collabData.setUserId(collaborator.getUserId());
 			collabData.setDataikuId(id);
+			System.out.println("constructed collab record");
 		}
 		return collabData;
 	}
