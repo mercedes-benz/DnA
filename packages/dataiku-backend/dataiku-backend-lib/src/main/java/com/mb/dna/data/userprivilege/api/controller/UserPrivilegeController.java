@@ -4,6 +4,7 @@ import static io.micronaut.http.MediaType.APPLICATION_JSON;
 
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
+import javax.ws.rs.HeaderParam;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -48,7 +49,8 @@ public class UserPrivilegeController {
     		@Parameter(description = "offset for records result position", required = false) @QueryParam("offset") int offset,
     		@Parameter(description = "sortBy, possible values userId/profile", required = false) @QueryParam("sortBy") String sortBy,
     		@Parameter(description = "sortOrder, possible values asc/desc", required = false) @QueryParam("sortOrder") String sortOrder,
-    		@Parameter(description = "searchTerm to filter by userId", required = false) @QueryParam("searchTerm") String searchTerm
+    		@Parameter(description = "searchTerm to filter by userId", required = false) @QueryParam("searchTerm") String searchTerm,
+    		@Parameter(description = "The id of the dataiku project to be fetched", required = true) @HeaderParam("Authentication") String token
     		) {
 		UserPrivilegeCollectionDto response = service.getAllUsersProfileDetail(limit, offset, sortBy, sortOrder, searchTerm);
 		if(response!=null && response.getData()!= null && !response.getData().isEmpty())
@@ -68,7 +70,8 @@ public class UserPrivilegeController {
     @ApiResponse(responseCode = "404", description = "User not found")
 	@Tag(name = "userprivileges")
     public Response deleteUser(
-            @Parameter(description = "The id of the userdetails record that needs to be deleted", required = true) @PathParam("id") String id) {
+            @Parameter(description = "The id of the userdetails record that needs to be deleted", required = true) @PathParam("id") String id,
+            @Parameter(description = "The id of the dataiku project to be fetched", required = true) @HeaderParam("Authentication") String token) {
 		GenericMessage responseMsg = service.deleteById(id);
 		return Response.ok().entity(responseMsg).build();
 	}
@@ -83,7 +86,8 @@ public class UserPrivilegeController {
     @ApiResponse(responseCode = "404", description = "User not found")
 	@Tag(name = "userprivileges")
     public Response getUser(
-            @Parameter(description = "user short id for which details has to be fetched", required = true) @QueryParam("userId") String shortId) {
+            @Parameter(description = "user short id for which details has to be fetched", required = true) @QueryParam("userId") String shortId,
+            @Parameter(description = "The id of the dataiku project to be fetched", required = true) @HeaderParam("Authentication") String token) {
 		UserPrivilegeResponseDto responseMsg = service.getByShortId(shortId);
 		return Response.ok().entity(responseMsg).build();
 	}
@@ -99,7 +103,8 @@ public class UserPrivilegeController {
     public Response bulkProcessing(
             @RequestBody(description = "User records collection", required = true,
                     content = @Content(
-                            schema = @Schema(implementation = UserPrivilegeCollectionDto.class))) UserPrivilegeCollectionDto collection) {
+                            schema = @Schema(implementation = UserPrivilegeCollectionDto.class))) UserPrivilegeCollectionDto collection,
+            @Parameter(description = "The id of the dataiku project to be fetched", required = true) @HeaderParam("Authentication") String token) {
 		GenericMessage responseMsg = service.bulkAdd(collection);
 		return Response.ok().entity(responseMsg).build();
 	}

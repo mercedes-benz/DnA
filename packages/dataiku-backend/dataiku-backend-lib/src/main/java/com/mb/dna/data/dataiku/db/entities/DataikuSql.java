@@ -38,7 +38,7 @@ public class DataikuSql implements Serializable{
 	private String cloudProfile;
 	
 	@JsonIgnore
-    @OneToMany(mappedBy = "dataikuProject", cascade = CascadeType.ALL, fetch = FetchType.LAZY,orphanRemoval = true)
+    @OneToMany(mappedBy = "dataiku", cascade = CascadeType.ALL, fetch = FetchType.LAZY,orphanRemoval = true)
 	private List<CollaboratorSql> collaborators;
 	
 	@Column(name = "created_by")
@@ -63,6 +63,7 @@ public class DataikuSql implements Serializable{
 		this.createdBy = createdBy;
 		this.createdOn = createdOn;
 	}
+
 
 	public String getId() {
 		return id;
