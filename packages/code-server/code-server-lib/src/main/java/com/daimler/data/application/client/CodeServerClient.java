@@ -54,6 +54,8 @@ public class CodeServerClient {
 		switch(recipeType) {
 			case "springboot":  deployType = ConstantsUtility.SPRINGBOOT; break;
 			case "py-fastapi" : deployType = ConstantsUtility.PYFASTAPI; break;
+			case "react":  deployType = ConstantsUtility.REACT; break;
+			case "angular" : deployType = ConstantsUtility.ANGULAR; break;
 			default: deployType = ConstantsUtility.DEFAULT; break;
 		}
 		return deployType;
