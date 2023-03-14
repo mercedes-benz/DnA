@@ -835,6 +835,8 @@ public class BaseWorkspaceService implements WorkspaceService {
 			String workspaceName = entity.getData().getWorkspaceId();
 			String defaultRecipeId = RecipeIdEnum.DEFAULT.toString();
 			String pythonRecipeId =  RecipeIdEnum.PY_FASTAPI.toString();
+			String reactRecipeId = RecipeIdEnum.REACT.toString();
+			String angularRecipeId =  RecipeIdEnum.ANGULAR.toString();
 			String projectRecipe = entity.getData().getProjectDetails().getRecipeDetails().getRecipeId();
 			String projectOwner = entity.getData().getProjectDetails().getProjectOwner().getId();
 			if(isCreateDeleteStatuses) {
@@ -870,6 +872,9 @@ public class BaseWorkspaceService implements WorkspaceService {
 				 if(pythonRecipeId.equalsIgnoreCase(projectRecipe)) {
 					 deploymentUrl = codeServerBaseUri+"/"+projectOwnerWsId+"/"+ targetEnv +"/api/docs";
 				 }
+				 if(reactRecipeId.equalsIgnoreCase(projectRecipe) || angularRecipeId.equalsIgnoreCase(projectRecipe)) {
+					 deploymentUrl = codeServerBaseUri+"/"+projectOwnerWsId+"/"+ targetEnv ;
+				 }				 
 				 String environmentJsonbName = "intDeploymentDetails";
 				 CodeServerDeploymentDetails deploymentDetails = new CodeServerDeploymentDetails();
 				 if("int".equalsIgnoreCase(targetEnv)) {
