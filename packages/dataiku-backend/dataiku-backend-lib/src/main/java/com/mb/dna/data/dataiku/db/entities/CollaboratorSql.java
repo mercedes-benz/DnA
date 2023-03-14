@@ -1,18 +1,14 @@
 package com.mb.dna.data.dataiku.db.entities;
 
 import java.io.Serializable;
-import java.util.Objects;
-import java.util.UUID;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
-import javax.persistence.PrePersist;
 import javax.persistence.PrimaryKeyJoinColumn;
 import javax.persistence.Table;
-import javax.validation.constraints.NotNull;
 
 @Entity
 @Table(name = "collaborator_sql")
@@ -24,11 +20,10 @@ public class CollaboratorSql implements Serializable{
 	@Column(name = "id", updatable = false, nullable = false)
 	private String id;
 	
-	@NotNull
     @Column(name = "userid", nullable = false)
 	private String userId;
 	
-    @Column(name = "dataiku_id")
+    @Column(name = "dataiku_id", insertable = false ,updatable = false)
 	private String dataikuId;
 	
 	@Column(name = "givenname")
@@ -42,30 +37,22 @@ public class CollaboratorSql implements Serializable{
 	
 	@ManyToOne(fetch= FetchType.LAZY)
 	@PrimaryKeyJoinColumn(name="dataiku_id",referencedColumnName="id")
-	private DataikuSql dataikuProject;
+	private DataikuSql dataiku;
 
-	@PrePersist
-	public void populateId() {
-		if (Objects.isNull(this.getId()))
-			this.setId(UUID.randomUUID().toString());
-	}
 	public CollaboratorSql() {
 		super();
 	}
-
-	public CollaboratorSql(String id, @NotNull String userId, String dataikuId, String givenName, String surName,
-			String permission, DataikuSql dataikuProject) {
-		super();
-		this.id = id;
-		this.userId = userId;
-		this.dataikuId = dataikuId;
-		this.givenName = givenName;
-		this.surName = surName;
-		this.permission = permission;
-		this.dataikuProject = dataikuProject;
-	}
-
-
+	
+	public CollaboratorSql(String id, String userId, String dataikuId, String givenName, String surName,
+				String permission) {
+			super();
+			this.id = id;
+			this.userId = userId;
+			this.dataikuId = dataikuId;
+			this.givenName = givenName;
+			this.surName = surName;
+			this.permission = permission;
+		}
 
 	public String getId() {
 		return id;
@@ -116,13 +103,11 @@ public class CollaboratorSql implements Serializable{
 	}
 
 	public DataikuSql getDataikuProject() {
-		return dataikuProject;
+		return dataiku;
 	}
 
-	public void setDataikuProject(DataikuSql dataikuProject) {
-		this.dataikuProject = dataikuProject;
+	public void setDataikuProject(DataikuSql dataiku) {
+		this.dataiku = dataiku;
 	}
-	
-	
 	
 }
