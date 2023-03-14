@@ -51,6 +51,7 @@ const ChronosProjectForm = ({edit, project, onSave}) => {
       setEditTeamMember(false);
       setEditTeamMemberIndex(0);
       Notification.show('Forecasting Project successfully created');
+      onSave();
     }).catch(error => {
       ProgressIndicator.hide();
       Notification.show(
@@ -58,7 +59,6 @@ const ChronosProjectForm = ({edit, project, onSave}) => {
         'alert',
       );
     });
-    onSave();
   };
   const handleEditProject = () => {
     const addedCollaboratorsTemp = addedCollaborators.map((member) => {
@@ -94,10 +94,11 @@ const ChronosProjectForm = ({edit, project, onSave}) => {
       setEditTeamMember(false);
       setEditTeamMemberIndex(0);
       Notification.show('Forecasting Project successfully updated');
+      onSave();
     }).catch(error => {
       ProgressIndicator.hide();
       Notification.show(
-        error?.response?.data?.response?.errors?.[0]?.message || error?.response?.data?.response?.warnings?.[0]?.message || 'Error while updating forecast project',
+        error?.response?.data?.response?.errors[0]?.message || error?.response?.data?.response?.warnings[0]?.message || 'Error while updating forecast project',
         'alert',
       );
       setTeamMembers([]);
@@ -107,7 +108,6 @@ const ChronosProjectForm = ({edit, project, onSave}) => {
       setEditTeamMember(false);
       setEditTeamMemberIndex(0);
     });
-    onSave();
   };
   
   const addTeamMemberModalRef = React.createRef();

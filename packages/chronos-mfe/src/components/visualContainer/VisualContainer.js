@@ -1,4 +1,3 @@
-import classNames from 'classnames';
 import React from 'react';
 import Styles from './visual-container.scss';
 import html2canvas from 'html2canvas';
@@ -6,11 +5,8 @@ import { jsPDF } from 'jspdf';
 import ContextMenu from '../contextMenu/ContextMenu';
 import Spinner from '../spinner/Spinner';
 import Plot from 'react-plotly.js';
-import { chronosApi } from '../../apis/chronos.api';
-import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indicator';
-import { Envs } from '../../utilities/envs';
 
-const VisualContainer = ({title, forecastRun, printRef, loading, forecastData, addTraces, layout, bucketName}) => {
+const VisualContainer = ({title, forecastRun, printRef, loading, forecastData, addTraces, layout}) => {
   const exportToPdf = async () => {
     const element = printRef.current;
     const canvas = await html2canvas(element);
@@ -41,33 +37,6 @@ const VisualContainer = ({title, forecastRun, printRef, loading, forecastData, a
       document.body.removeChild(link);
     } else {
       window.open(data);
-    }
-  }
-
-  const downloadPrediction = () => {
-    ProgressIndicator.show();
-    if(forecastRun) {
-      chronosApi.getFile(`${bucketName}`, `${forecastRun.id}-${forecastRun.runName}`, 'y_pred.csv').then((res) => {
-        let csvContent = "data:text/csv;charset=utf-8," + res.data;
-        let encodedUri = encodeURI(csvContent);
-        let link = document.createElement("a");
-        link.setAttribute("href", encodedUri);
-        link.setAttribute("download", "y_pred.csv");
-        document.body.appendChild(link);
-        link.click();
-        link.remove();
-        ProgressIndicator.hide();
-      }).catch(() => {
-        ProgressIndicator.hide();
-      });
-    }
-  }
-
-  const handleBrowseInStorage = () => {
-    if(bucketName) {
-      window.open(`${Envs.STORAGE_MFE_APP_URL}/explorer/${bucketName}/${forecastRun.id}-${forecastRun.runName}`);
-    } else {
-      Notification.show('No folder path available for the given run', 'alert');
     }
   }
 
@@ -107,10 +76,6 @@ const VisualContainer = ({title, forecastRun, printRef, loading, forecastData, a
               </div>
             </>
         }
-      </div>
-      <div className={Styles.footerBtns}>
-        <button className={classNames('btn', Styles.mr)} onClick={handleBrowseInStorage}>Browse in Storage</button>
-        <button className={'btn'} onClick={downloadPrediction}><i className="icon mbc-icon document"></i> .csv</button>
       </div>
     </div>
   );
