@@ -25,7 +25,6 @@ public class DataikuAssembler {
 			List<CollaboratorDetailsDto> collabsDto = vo.getCollaborators();
 			List<CollaboratorSql> collabs = new ArrayList<>();
 			if(collabsDto!=null) {
-				System.out.println("collabs not null");
 				collabs = collabsDto.stream().map(n -> this.toCollaboratorsData(n,entity.getId())).collect(Collectors.toList());
 			}
 			entity.setCollaborators(collabs);
@@ -77,7 +76,6 @@ public class DataikuAssembler {
 			collabData.setSurName(collaborator.getSurName());
 			collabData.setUserId(collaborator.getUserId());
 			collabData.setDataikuId(id);
-			System.out.println("constructed collab record");
 		}
 		return collabData;
 	}

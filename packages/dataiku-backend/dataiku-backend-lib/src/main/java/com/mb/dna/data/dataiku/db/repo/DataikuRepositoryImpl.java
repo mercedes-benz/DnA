@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Optional;
 
 import javax.persistence.EntityManager;
+import javax.persistence.Query;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
@@ -92,12 +93,70 @@ public class DataikuRepositoryImpl implements DataikuRepository{
 	
 	@Override
 	public void save(DataikuSql dataikuProject) {
-		entityManager.persist(dataikuProject);
+		//entityManager.persist(dataikuProject);
+		if(dataikuProject!=null) {
+			insertDataiku(dataikuProject);
+			List<CollaboratorSql> collabs = dataikuProject.getCollaborators();
+			if(collabs!=null && !collabs.isEmpty()) {
+				collabs.forEach(n->this.insertCollab(n));
+			}
+		}
+	}
+	
+	public void insertDataiku(DataikuSql dataikuProject) {
+		String insertStmt = "insert into  dataiku_sql(id,cloud_profile,created_by,created_on,description,project_name) "
+				+ "values (:id, :cloudProfile, :createdBy, :createdOn, :description, :projectName)";
+		Query q = entityManager.createNativeQuery(insertStmt);
+		q.setParameter("id", dataikuProject.getId());
+		q.setParameter("cloudProfile", dataikuProject.getCloudProfile());
+		q.setParameter("createdBy", dataikuProject.getCreatedBy());
+		q.setParameter("createdOn", dataikuProject.getCreatedOn());
+		q.setParameter("description", dataikuProject.getDescription());
+		q.setParameter("projectName", dataikuProject.getProjectName());
+		q.executeUpdate();
+		log.info("successfully ran insert statement for dataiku {}",dataikuProject.getProjectName());
+	}
+	
+	public void insertCollab(CollaboratorSql collaborator) {
+		String insertStmt = "insert into  collaborator_sql(id,userid,dataiku_id,givenname,surname) values (:id, :userId, :dataikuId, :givenname, :surname)";
+		Query q = entityManager.createNativeQuery(insertStmt);
+		q.setParameter("id", collaborator.getId());
+		q.setParameter("userId", collaborator.getUserId());
+		q.setParameter("dataikuId", collaborator.getDataikuId());
+		q.setParameter("givenname", collaborator.getGivenName());
+		q.setParameter("surname", collaborator.getSurName());
+		q.executeUpdate();
+		log.info("successfully ran insert statement for collaborator {} and dataiku id {}",collaborator.getUserId(),collaborator.getDataikuId());
+	}
+	
+	public void deleteExistingCollabs(String dataikuid) {
+		String deleteStmt = "delete from collaborator_sql where dataiku_id = :id";
+		Query q = entityManager.createNativeQuery(deleteStmt);
+		q.setParameter("id", dataikuid);
+		q.executeUpdate();
+		log.info("successfully deleted old collab records for dataiku id {}",dataikuid);
+	}
+	
+	public void updateDataiku(String id,String description) {
+		String updateStmt = "update dataiku_sql set  description = :updatedDescription where id = :id";
+		Query q = entityManager.createNativeQuery(updateStmt);
+		q.setParameter("updatedDescription", description);
+		q.setParameter("id", id);
+		q.executeUpdate();
+		log.info("successfully updated description for dataikuprojectid {} ",id);
 	}
 	
 	@Override
 	public void update(DataikuSql dataikuProject) {
-		entityManager.merge(dataikuProject);
+		//entityManager.merge(dataikuProject);
+		if(dataikuProject!=null) {
+			updateDataiku(dataikuProject.getId(),dataikuProject.getDescription());
+			deleteExistingCollabs(dataikuProject.getId());
+			List<CollaboratorSql> collabs = dataikuProject.getCollaborators();
+			if(collabs!=null && !collabs.isEmpty()) {
+				collabs.forEach(n->this.insertCollab(n));
+			}
+		}
 	}
 
 	@Override
@@ -107,7 +166,12 @@ public class DataikuRepositoryImpl implements DataikuRepository{
 	
 	@Override
 	public Optional<DataikuSql> findById(String id) {
-		return Optional.ofNullable(entityManager.find(DataikuSql.class, id));
+		try {
+			return Optional.ofNullable(entityManager.find(DataikuSql.class, id));
+		}catch(Exception e) {
+			log.error("Dataiku project with id {} not found",id);
+			return null;
+		}
 	}
 	
 }
