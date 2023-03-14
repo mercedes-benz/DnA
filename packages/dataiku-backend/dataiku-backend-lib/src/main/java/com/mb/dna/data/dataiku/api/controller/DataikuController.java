@@ -55,8 +55,8 @@ public class DataikuController {
                             schema = @Schema(implementation = DataikuProjectCreateRequestDto.class))) DataikuProjectCreateRequestDto request,
             @Parameter(description = "The id of the dataiku project to be fetched", required = true) @HeaderParam("Authentication") String token) {
 		DataikuProjectResponseDto responseDto = new DataikuProjectResponseDto();
-		//this.userStore.getUserInfo().getId()
-		responseDto = service.createProject("***REMOVED***", request.getData());
+		String userId = this.userStore.getUserInfo().getId();
+		responseDto = service.createProject(userId, request.getData());
 		return Response.ok().entity(responseDto).build();
 	}
 	
@@ -79,7 +79,7 @@ public class DataikuController {
     		@Parameter(description = "searchTerm to filter by userId", required = false) @QueryParam("projectName") String projectName,
     		@Parameter(description = "The id of the dataiku project to be fetched", required = true) @HeaderParam("Authentication") String token
     		) {
-		String userId = "***REMOVED***";//this.userStore.getUserInfo().getId();
+		String userId = this.userStore.getUserInfo().getId();
 		DataikuProjectsCollectionDto response = service.getAllDataikuProjects(userId, offset, limit, sortBy, sortOrder, projectName);
 		if(response!=null && response.getData()!= null && !response.getData().isEmpty())
 			return Response.ok().entity(response).build();
