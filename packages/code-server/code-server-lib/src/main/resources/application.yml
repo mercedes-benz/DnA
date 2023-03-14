@@ -50,6 +50,7 @@ codeServer:
   gitjob.pat: ${CODE_SERVER_GITJOB_PAT:XXXX}
   git.pat: ${CODE_SERVER_GIT_PAT:XXXX}
   git.orgname: ${CODE_SERVER_ORGNAME:XXXXX}
+  git.orguri: ${CODE_SERVER_ORGURI:XXXXX}
   git.baseuri: ${CODE_SERVER_GIT_BASEURI:XXXXXX}
   base.uri: ${CODE_BASE_URI:XXXX}
   env.ref: ${CODE_SERVER_GIT_ENVREF:dev}
