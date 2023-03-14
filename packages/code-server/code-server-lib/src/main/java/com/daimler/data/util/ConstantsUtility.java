@@ -32,6 +32,8 @@ public class ConstantsUtility {
 	public static final String CREATEACTION = "create";
 	public static final String SPRINGBOOT = "springboot";
 	public static final String PYFASTAPI = "py-fastapi";
+	public static final String REACT = "react";
+	public static final String ANGULAR = "angular";
 	public static final String GRADLE = "gradle";
 	public static final String DEFAULT = "default";
 	public static final String COLLABREQUESTEDSTATE = "COLLABORATION_REQUESTED";
