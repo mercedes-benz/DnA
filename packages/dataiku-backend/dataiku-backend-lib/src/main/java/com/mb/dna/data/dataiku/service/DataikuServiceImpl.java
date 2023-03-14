@@ -67,12 +67,6 @@ public class DataikuServiceImpl implements DataikuService	{
 		Optional<DataikuSql> result = dataikuRepo.findById(id);
 		if(result!=null && result.get()!=null) {
 			dto = assembler.toVo(result.get());
-			try {
-				ObjectMapper mapper = new ObjectMapper();
-				System.out.println(mapper.writeValueAsString(dto));
-			}catch(Exception e) {
-				e.printStackTrace();
-			}
 		}
 		return dto;
 	}
