@@ -31,9 +31,9 @@ const ChronosProjects = ({ user }) => {
             });
             setOriginalProjects(results);
             setForecastProjects(results);
-            setLoading(false);
           }
         }
+        setLoading(false);
       })
       .catch((err) => {
         Notification.show(
