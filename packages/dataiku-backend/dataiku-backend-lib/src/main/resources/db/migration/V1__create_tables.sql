@@ -1,28 +1,25 @@
-CREATE TABLE IF NOT EXISTS dataiku_sql(
-id text NOT NULL PRIMARY KEY,
-project_name text NOT NULL,
-description text ,
-cloud_profile text,
-created_by text,
-created_on date
-);
+CREATE TABLE IF NOT EXIST collaborator_sql(
+ id varchar(255) not null,
+ dataiku_id varchar(255),
+ givenname varchar(255),
+ permission varchar(255),
+ surname varchar(255),
+ userid varchar(255) not null, 
+ primary key (id));
 
-CREATE TABLE IF NOT EXISTS collaborator_sql(
-id text NOT NULL PRIMARY KEY,
-userid text NOT NULL,
-dataiku_id text NOT NULL ,
-givenname text,
-surname text,
-permission text,
-CONSTRAINT fk_dataiku_collab
-      FOREIGN KEY(dataiku_id) 
-	  REFERENCES dataiku_sql(id)
-);
+CREATE TABLE IF NOT EXIST dataiku_sql(
+ id varchar(255) not null,
+ cloud_profile varchar(255),
+ created_by varchar(255),
+ created_on date,
+ description varchar(255),
+ project_name varchar(255) not null, 
+ primary key (id));
 
 CREATE TABLE IF NOT EXISTS userprivilege_sql(
-id text NOT NULL PRIMARY KEY,
-userId text NOT NULL,
-profile text NOT NULL,
-givenName text,
-surName text
+ id text NOT NULL PRIMARY KEY,
+ userId text NOT NULL,
+ profile text NOT NULL,
+ givenName text,
+ surName text
 );
