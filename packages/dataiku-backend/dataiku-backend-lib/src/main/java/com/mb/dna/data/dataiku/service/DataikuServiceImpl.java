@@ -10,12 +10,14 @@ import java.util.stream.Collectors;
 
 import javax.transaction.Transactional;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mb.dna.data.api.controller.exceptions.GenericMessage;
 import com.mb.dna.data.api.controller.exceptions.MessageDescription;
 import com.mb.dna.data.assembler.DataikuAssembler;
 import com.mb.dna.data.dataiku.api.dto.DataikuProjectDto;
 import com.mb.dna.data.dataiku.api.dto.DataikuProjectResponseDto;
 import com.mb.dna.data.dataiku.api.dto.DataikuProjectUpdateDto;
+import com.mb.dna.data.dataiku.api.dto.DataikuProjectUpdateRequestDto;
 import com.mb.dna.data.dataiku.api.dto.DataikuProjectsCollectionDto;
 import com.mb.dna.data.dataiku.db.entities.DataikuSql;
 import com.mb.dna.data.dataiku.db.repo.DataikuRepository;
@@ -65,22 +67,29 @@ public class DataikuServiceImpl implements DataikuService	{
 		Optional<DataikuSql> result = dataikuRepo.findById(id);
 		if(result!=null && result.get()!=null) {
 			dto = assembler.toVo(result.get());
+			try {
+				ObjectMapper mapper = new ObjectMapper();
+				System.out.println(mapper.writeValueAsString(dto));
+			}catch(Exception e) {
+				e.printStackTrace();
+			}
 		}
 		return dto;
 	}
 	
 	@Override
 	@Transactional
-	public DataikuProjectResponseDto updateProject(String id,DataikuProjectUpdateDto updateRequest) {
+	public DataikuProjectResponseDto updateProject(String id,DataikuProjectUpdateRequestDto updateRequest) {
+		DataikuProjectUpdateDto updateData = updateRequest.getData();
 		DataikuProjectResponseDto responseWrapperDto = new DataikuProjectResponseDto();
 		GenericMessage responseMessage = new GenericMessage();
 		responseMessage.setSuccess("FAILED");
 		List<MessageDescription> errors = new ArrayList<>();
 		List<MessageDescription> warnings = new ArrayList<>();
 		DataikuProjectDto existingRecord = this.getById(id);
-		existingRecord.setCollaborators(updateRequest.getCollaborators());
-		if(updateRequest.getDescription()!=null)
-			existingRecord.setDescription(updateRequest.getDescription());
+		existingRecord.setCollaborators(updateData.getCollaborators());
+		if(updateData.getDescription()!=null)
+			existingRecord.setDescription(updateData.getDescription());
 		try {
 			DataikuSql entity = assembler.toEntity(existingRecord);
 			dataikuRepo.update(entity);
@@ -109,12 +118,17 @@ public class DataikuServiceImpl implements DataikuService	{
 		List<MessageDescription> warnings = new ArrayList<>();
 		DataikuProjectDto dto = requestDto;
 		try {
+			ObjectMapper mapper = new ObjectMapper();
 			DataikuSql entity = new DataikuSql();
 			requestDto.setCreatedBy(userId);
 			requestDto.setCreatedOn(new Date());
 			String id = UUID.randomUUID().toString();
 			requestDto.setId(id);
+			System.out.println("requestdto is " + mapper.writeValueAsString(requestDto));
 			entity = assembler.toEntity(requestDto);
+			System.out.println("entity is " + mapper.writeValueAsString(entity));
+			System.out.println(entity.getCollaborators().size());
+			System.out.println("collab is " + mapper.writeValueAsString(entity.getCollaborators().get(0)));
 			dataikuRepo.save(entity);
 			dto = requestDto;
 			responseMessage.setSuccess("SUCCESS");
