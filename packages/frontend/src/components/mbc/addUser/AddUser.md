@@ -13,7 +13,7 @@ import Styles from './AddUser.styleguide.scss';
                 id: 'DEMOUSER',
                 lastName: 'User',
             }
-        }} datId={''}/>
+        }} datId={''} isUserprivilegeSearch={false} />
     </div>
 </div>
 
