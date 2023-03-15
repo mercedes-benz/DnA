@@ -4,7 +4,7 @@ import { debounce } from 'lodash';
 import ProgressIndicator from '../../../assets/modules/uilab/js/src/progress-indicator';
 import { IUserPrivilege } from 'globals/types';
 import { ApiClient } from '../../../services/ApiClient';
-import Styles from './UserprivilegeSearch.scss';
+import Styles from './UserPrivilegeSearch.scss';
 
 const classNames = cn.bind(Styles);
 
