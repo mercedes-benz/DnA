@@ -46,7 +46,7 @@ public class UserPrivilegeServiceImpl implements UserPrivilegeService{
 	public UserPrivilegeCollectionDto getAllUsersProfileDetail(int limit, int offset, String sortBy, String sortOrder, String userId) {
 		UserPrivilegeCollectionDto response = new UserPrivilegeCollectionDto();
 		response.setData(new ArrayList<>());
-		response.setTotalcount(new BigInteger("0"));
+		response.setTotalCount(new BigInteger("0"));
 		List<UserPrivilegeDto> data = new ArrayList<>();
 		try {
 			List<UserPrivilegeSql> usersData = userPrivilegeRepo.findAll(limit, offset, sortBy, sortOrder,userId);
@@ -58,7 +58,7 @@ public class UserPrivilegeServiceImpl implements UserPrivilegeService{
 		}
 		response.setData(data);
 		BigInteger count = userPrivilegeRepo.findCount(userId);
-		response.setTotalcount(count);
+		response.setTotalCount(count);
 		return response;
 	}
 	
