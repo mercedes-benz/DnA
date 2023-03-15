@@ -693,7 +693,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
             <div className={Styles.collaboratorSection}>
               <div className={Styles.collaboratorSectionList}>
                 <div className={Styles.collaboratorSectionListAdd}>
-                  <AddUser getCollabarators={getCollabarators} dagId={''} isRequired={false} />
+                  <AddUser getCollabarators={getCollabarators} dagId={''} isRequired={false} isUserprivilegeSearch={false} />
                 </div>
                 <div className={Styles.collaboratorList}>
                   {codeSpaceCollaborators?.length > 0 ? (
