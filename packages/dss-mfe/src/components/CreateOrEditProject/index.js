@@ -323,12 +323,12 @@ const CreateOrEditProject = (props) => {
                                                                     type="radio"
                                                                     className="ff-only"
                                                                     name={item.userId}
-                                                                    value="adminstrator"
-                                                                    checked={item?.permission === 'adminstrator'}
+                                                                    value="administrator"
+                                                                    checked={item?.permission === 'administrator'}
                                                                     onChange={(e) => onCollaboratorPermission(e, item?.userId)}
                                                                 />
                                                             </span>
-                                                            <span className="label">Adminstrator</span>
+                                                            <span className="label">Administrator</span>
                                                         </label>
                                                     </div>
                                                     &nbsp;&nbsp;&nbsp;
