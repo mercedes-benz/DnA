@@ -17,7 +17,7 @@ import { chronosApi } from '../../apis/chronos.api';
 
 const ChronosProjectForm = ({edit, project, onSave}) => {
   const [teamMembers, setTeamMembers] = useState(edit ? project.collaborators : []);
-  const [teamMembersOriginal, setTeamMembersOriginal] = useState([]);
+  const [teamMembersOriginal, setTeamMembersOriginal] = useState(edit ? project.collaborators : []);
   const [editTeamMember, setEditTeamMember] = useState(false);
   const [selectedTeamMember, setSelectedTeamMember] = useState();
   const [editTeamMemberIndex, setEditTeamMemberIndex] = useState(0);
@@ -28,7 +28,6 @@ const ChronosProjectForm = ({edit, project, onSave}) => {
   const {
     register,
     handleSubmit,
-    reset,
     formState: { errors },
   } = methods;
 
@@ -45,13 +44,7 @@ const ChronosProjectForm = ({edit, project, onSave}) => {
     chronosApi.createForecastProject(data).then((res) => {
       ProgressIndicator.hide();
       history.push(`/project/${res.data.data.id}`);
-      reset({ name: '' });
-      setTeamMembers([]);
-      setTeamMembersOriginal([]);
-      setEditTeamMember(false);
-      setEditTeamMemberIndex(0);
       Notification.show('Forecasting Project successfully created');
-      onSave();
     }).catch(error => {
       ProgressIndicator.hide();
       Notification.show(
@@ -101,12 +94,6 @@ const ChronosProjectForm = ({edit, project, onSave}) => {
         error?.response?.data?.response?.errors[0]?.message || error?.response?.data?.response?.warnings[0]?.message || 'Error while updating forecast project',
         'alert',
       );
-      setTeamMembers([]);
-      setTeamMembersOriginal([]);
-      setAddedCollaborators([]);
-      setRemovedCollaborators([]);
-      setEditTeamMember(false);
-      setEditTeamMemberIndex(0);
     });
   };
   
