@@ -17,20 +17,8 @@ micronaut:
         insecureTrustAllCertificates: true  
   server:
     port: 7777
-    cors: 
+    cors:
       enabled: true
-      configurations:
-        web:
-          allowed-origins:
-            - http://*
-          allowedMethods:
-            - POST
-            - PUT
-            - GET
-            - PATCH
-            - OPTIONS
-            - HEAD
-            - DELETE 
 jpa:
   default:
     properties:
@@ -44,9 +32,9 @@ jpa:
         
 datasources:
   default:
-    url: ${JDBC_URL:`XXXX`}
-    username: ${JDBC_USER:XXXX}
-    password: ${JDBC_PASSWORD:XXXX}
+    url: ${JDBC_URL:XXXX}
+    username: ${JDBC_USER:user_XXXX}
+    password: ${JDBC_PASSWORD:password_XXXX}
     driver-class-name: ${JDBC_DRIVER:org.postgresql.Driver}
                 
 flyway:
@@ -66,10 +54,15 @@ dna:
   jwt: ${JWT_SECRET_KEY:XXXXX}
   
 dataiku:
+  userPrivilegesAccessKey: ${DATAIKU_USERPRIVILEGES_KEY:XXXX}
   auth: ${DATAIKU_AUTH:XXXX}
   baseuri: ${DATAIKU_BASEURI:XXXX}
-  scenariosUri: ${DATAIKU_SCENARIOSURI:XXXX}
-  usersUri: ${DATAIKU_USERSURI:XXXX}
-  groupNamePrefix: ${DATAIKU_GROUPNAME_PREFIX:XXXX}
-  environmentProfile: ${DATAIKU_INSTANCE_ENVPROFILE:XXXX}
-  scenarioProjectNameIdentifier: ${DATAIKU_SCENARIO_PROJECTNAME_IDENTIFIER:XXXX}
+  scenarioProjectKey: ${DATAIKU_SCENARIOS_PROJECTKEY:XXXX}
+  scenarioId: ${DATAIKU_SCENARIOS_ID:XXXX}
+  scenarioUpdateRequest: ${DATAIKU_SCENARIO_UPDATEREQUEST:XXXX}
+  usersUri: ${DATAIKU_USERSURI:/admin/users}
+  environmentProfile: ${DATAIKU_ENV_PREFIX:XXXX}
+  onPremiseGroupNamePrefix: ${DATAIKU_ONPREMISE_PREFIX:XXXX}
+  extolloGroupNamePrefix: ${DATAIKU_EXTOLLO_PREFIX:XXXX}
+  
+allowedCorsOriginPatternUrl: ${CORS_ORIGIN_URL:XXXX}

@@ -12,10 +12,10 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @EqualsAndHashCode(callSuper=false)
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class DataikuUserResponseDto extends DataikuUserDto{
+public class DataikuErrorResponseDto {
 
-		private String errorType;
-		private String message;
-		private String detailedMessage;
-		
+	private String errorType;
+	private String message;
+	private String detailedMessage;
+	
 }

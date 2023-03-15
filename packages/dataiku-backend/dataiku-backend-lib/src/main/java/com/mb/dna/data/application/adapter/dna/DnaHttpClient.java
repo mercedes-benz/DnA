@@ -20,7 +20,7 @@ public class DnaHttpClient {
 	public UserInfo verifyLogin(String jwt) {
 		UserInfo userInfo = null;
 		VerifyLoginResponseDto responseBody = null;
-		String url =  "https:" + dnaClientConfig.getUri() + dnaClientConfig.getVerifyLoginUri();
+		String url =  dnaClientConfig.getUri() + dnaClientConfig.getVerifyLoginUri();
 		HttpRequest<?> req = HttpRequest.POST(url, null).header("Accept", "application/json")
 		.header("Content-Type", "application/json")
 		.header("Authorization", jwt);
