@@ -51,7 +51,7 @@ const Classification = (
                 className="input-label"
                 htmlFor="classificationOfTransferedData"
               >
-                Description of transfered data <sup>*</sup>
+                Description of transferred data <sup>*</sup>
               </label>
               <textarea
                 id="classificationOfTransferedData"
