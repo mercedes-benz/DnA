@@ -8,7 +8,6 @@ import java.util.Optional;
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mb.dna.data.userprivilege.api.dto.UserPrivilegeDto;
 import com.mb.dna.data.userprivilege.db.entities.UserPrivilegeSql;
 
@@ -31,7 +30,29 @@ public class UserPrivilegeRepositoryImpl implements UserPrivilegeRepository{
 	public Optional<UserPrivilegeSql> findById(String id) {
 		return Optional.ofNullable(entityManager.find(UserPrivilegeSql.class, id));
 	}
-
+	
+	@Override
+	public UserPrivilegeSql findByUser(String userId) {
+		UserPrivilegeSql existingRecord = null;
+		List<UserPrivilegeSql> results = new ArrayList<>();
+		try {
+			String queryString = "SELECT id,userId,profile,givenName,surName FROM userprivilege_sql ";
+			if(userId!=null && !userId.isBlank() && !userId.isEmpty()) {
+				queryString += " where LOWER(userId) = '" + userId.toLowerCase() + "' ";
+			}else {
+				return existingRecord;
+			}
+			Query query = entityManager.createNativeQuery(queryString, UserPrivilegeSql.class);
+			List<UserPrivilegeSql> fetchedResults = query.getResultList();
+			if(fetchedResults!=null && !fetchedResults.isEmpty()) {
+				existingRecord = fetchedResults.get(0);
+			}
+		}catch(Exception e) {
+			log.error("Failed to fetch user with shorid {} with exception {}", userId, e.getMessage());
+		}
+        return existingRecord;
+	}
+	
 	@Override
 	public UserPrivilegeSql save(UserPrivilegeSql userinfo) {
 		entityManager.persist(userinfo);
@@ -45,17 +66,17 @@ public class UserPrivilegeRepositoryImpl implements UserPrivilegeRepository{
 
 	@Override
 	public List<UserPrivilegeSql> findAll(int limit, int offset, String sortBy, String sortOrder, String userId) {
-		List<UserPrivilegeSql> convertedResults = new ArrayList<>();
+		List<UserPrivilegeSql> results = new ArrayList<>();
 		String queryString = "SELECT id,userId,profile,givenName,surName FROM userprivilege_sql ";
 		if(userId!=null && !userId.isBlank() && !userId.isEmpty()) {
-			queryString += " where userID like '%" + userId + "%' ";
+			queryString += " where LOWER(userId) like '%" + userId.toLowerCase() + "%' ";
 		}
         if (sortBy==null || "userId".equalsIgnoreCase(sortBy)) {
         	queryString += " order by userId ";
         }else {
         	queryString += " order by profile";
         }
-        if(sortOrder==null || "asc".equalsIgnoreCase(sortOrder)) {
+        if(sortOrder==null || "asc".equalsIgnoreCase(sortOrder) || "".equalsIgnoreCase(sortOrder)) {
         	queryString += " asc";
         }else {
         	queryString += " desc";
@@ -65,17 +86,19 @@ public class UserPrivilegeRepositoryImpl implements UserPrivilegeRepository{
         	query.setMaxResults(limit);
         if(offset>=0)
         query.setFirstResult(offset);
-        ObjectMapper mapper = new ObjectMapper();
-		List<UserPrivilegeSql> results = query.getResultList();
-		if(results!=null && !results.isEmpty()) {
-				convertedResults = results;
+		List<UserPrivilegeSql> fetchedResults = query.getResultList();
+		if(fetchedResults!=null && !fetchedResults.isEmpty()) {
+			results = fetchedResults;
 		}
-        return convertedResults;
+        return results;
 	}
 	
 	@Override
-	public BigInteger findCount() {
+	public BigInteger findCount(String userId) {
 		String queryString = "select count(*) from userprivilege_sql";
+		if(userId!=null && !userId.isBlank() && !userId.isEmpty()) {
+			queryString += " where LOWER(userId) like '%" + userId.toLowerCase() + "%' ";
+		}
 		Query q = entityManager.createNativeQuery(queryString);
 		BigInteger results = (BigInteger) q.getSingleResult();
 		return results;
@@ -98,6 +121,13 @@ public class UserPrivilegeRepositoryImpl implements UserPrivilegeRepository{
 			entityManager.persist(newEntity);
 			log.info("user {} added with profile {}",record.getUserId(),record.getProfile());
 		}
+	}
+
+	@Override
+	public void deleteAll() {
+		String queryString = "delete from userprivilege_sql";
+		Query q = entityManager.createNativeQuery(queryString);
+		q.executeUpdate();
 	}
 	
 }
