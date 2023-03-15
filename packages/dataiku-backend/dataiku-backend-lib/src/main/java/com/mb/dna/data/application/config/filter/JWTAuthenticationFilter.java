@@ -29,7 +29,7 @@ import io.micronaut.http.filter.ServerFilterChain;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 
-@Filter("/apii/**") 
+@Filter("/api/**") 
 @Singleton
 public class JWTAuthenticationFilter implements HttpServerFilter{
 
@@ -60,8 +60,6 @@ public class JWTAuthenticationFilter implements HttpServerFilter{
 			return Publishers.just(response.get());
 		} else {
 			Claims claims = JWTGenerator.decodeJWT(jwt);
-			log.info("Claims:" + claims.toString());
-			String userId = (String) claims.get("id");
 			if (claims == null) {
 				log.error("Invalid  JWT!");
 				Optional<MutableHttpResponse<?>> response = Optional.of(HttpResponse.status(HttpStatus.UNAUTHORIZED));

@@ -6,11 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.MalformedJwtException;
-import io.jsonwebtoken.SignatureException;
-import io.jsonwebtoken.UnsupportedJwtException;
 import io.micronaut.context.annotation.Value;
 import jakarta.inject.Singleton;
 
@@ -27,8 +23,7 @@ public class JWTGenerator {
 			Claims claims = Jwts.parser().setSigningKey(DatatypeConverter.parseBase64Binary(secret_key))
 					.parseClaimsJws(jwt).getBody();
 			return claims;
-		} catch (ExpiredJwtException | MalformedJwtException | SignatureException | UnsupportedJwtException
-				| IllegalArgumentException e) {
+		} catch (Exception e) {
 			log.error("Error parsing JWT:{}", e.getMessage());
 			return null;
 		}

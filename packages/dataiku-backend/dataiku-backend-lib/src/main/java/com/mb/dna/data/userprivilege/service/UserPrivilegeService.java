@@ -14,4 +14,6 @@ public interface UserPrivilegeService {
 
 	UserPrivilegeResponseDto getByShortId(String userId);
 
+	boolean isExist(String id);
+
 }
