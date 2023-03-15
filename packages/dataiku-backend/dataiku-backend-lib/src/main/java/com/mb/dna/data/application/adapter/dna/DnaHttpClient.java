@@ -1,14 +1,17 @@
 package com.mb.dna.data.application.adapter.dna;
 
 import com.mb.dna.data.application.adapter.dna.DnaClientConfig;
+import com.mb.dna.data.dataiku.api.controller.DataikuController;
 
 import io.micronaut.http.HttpRequest;
 import io.micronaut.http.HttpResponse;
 import io.micronaut.http.client.HttpClient;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
+import lombok.extern.slf4j.Slf4j;
 
 @Singleton
+@Slf4j
 public class DnaHttpClient {
 
 	@Inject
@@ -21,6 +24,7 @@ public class DnaHttpClient {
 		UserInfo userInfo = null;
 		VerifyLoginResponseDto responseBody = null;
 		String url =  dnaClientConfig.getUri() + dnaClientConfig.getVerifyLoginUri();
+		log.info("Dna verify login with  {} and jwt {}", url,jwt);
 		HttpRequest<?> req = HttpRequest.POST(url, null).header("Accept", "application/json")
 		.header("Content-Type", "application/json")
 		.header("Authorization", jwt);
@@ -30,8 +34,8 @@ public class DnaHttpClient {
 		}
 		if(responseBody!=null && responseBody.getData()!=null) {
 			userInfo = responseBody.getData();
+			log.info("logged in user is {}",userInfo.getId());
 		}
 		return userInfo;
 	}
-	
 }
