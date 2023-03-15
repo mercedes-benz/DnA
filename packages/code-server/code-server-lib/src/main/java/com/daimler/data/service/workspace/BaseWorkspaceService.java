@@ -879,7 +879,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 					 deploymentUrl = codeServerBaseUri+"/"+projectOwnerWsId+"/"+ targetEnv +"/api/docs";
 				 }
 				 if(reactRecipeId.equalsIgnoreCase(projectRecipe) || angularRecipeId.equalsIgnoreCase(projectRecipe)) {
-					 deploymentUrl = codeServerBaseUri+"/"+projectOwnerWsId+"/"+ targetEnv ;
+					 deploymentUrl = codeServerBaseUri+"/"+projectOwnerWsId+"/"+ targetEnv + "/";
 				 }				 
 				 String environmentJsonbName = "intDeploymentDetails";
 				 CodeServerDeploymentDetails deploymentDetails = new CodeServerDeploymentDetails();
