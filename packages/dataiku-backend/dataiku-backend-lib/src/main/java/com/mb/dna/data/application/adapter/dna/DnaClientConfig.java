@@ -19,5 +19,6 @@ public class DnaClientConfig {
 	private String dnaAuthEnable;
 	private String verifyLoginUri;
 	private String getUsersUri;
+	private String jwt;
 
 }
