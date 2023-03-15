@@ -546,7 +546,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 				deployJobInputDto.setAction("deploy");
 				deployJobInputDto.setBranch(branch);
 				deployJobInputDto.setEnvironment(entity.getData().getProjectDetails().getRecipeDetails().getEnvironment());
-				deployJobInputDto.setRepo(gitOrgUri+gitOrgName+"/"+entity.getData().getProjectDetails().getGitRepoName());
+				deployJobInputDto.setRepo(gitOrgName+"/"+entity.getData().getProjectDetails().getGitRepoName());
 				String projectOwner = entity.getData().getProjectDetails().getProjectOwner().getId();
 				deployJobInputDto.setShortid(projectOwner);
 				deployJobInputDto.setTarget_env(environment);
@@ -774,7 +774,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 				deployJobInputDto.setAction("undeploy");
 				deployJobInputDto.setBranch(branch);
 				deployJobInputDto.setEnvironment(entity.getData().getProjectDetails().getRecipeDetails().getEnvironment());
-				deployJobInputDto.setRepo(gitOrgUri+gitOrgName+"/"+entity.getData().getProjectDetails().getGitRepoName());
+				deployJobInputDto.setRepo(gitOrgName+"/"+entity.getData().getProjectDetails().getGitRepoName());
 				String projectOwner = entity.getData().getProjectDetails().getProjectOwner().getId();
 				deployJobInputDto.setShortid(projectOwner);
 				deployJobInputDto.setTarget_env(environment);
