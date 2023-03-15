@@ -66,7 +66,7 @@ const UserprivilegeSearch = (props: UserPrivilegeSearchProps) => {
         onClick={() => onSuggestionItemClick(index)}
         className={cursor === index ? Styles.active + ' active' : null}
       >
-        {item.lastName}, {item.firstName} - {item.email}
+        {item.userId} - {item.profile}
       </li>
     );
   });
@@ -97,10 +97,10 @@ const UserprivilegeSearch = (props: UserPrivilegeSearchProps) => {
     ApiClient.getUserprivilegeSearchTerm(searchTerm)
       .then((response) => {
         if (response) {
-          if (response.records !== undefined) {
-            setResults(response.records);
-            setShowNoResultsError(response.records.length === 0 ? true : false);
-            setHideSuggestion(response.records.length === 0);
+          if (response.data !== undefined) {
+            setResults(response.data);
+            setShowNoResultsError(response.data.length === 0 ? true : false);
+            setHideSuggestion(response.data.length === 0);
             setCursor(-1);
           } else {
             setResults([]);
@@ -140,28 +140,29 @@ const UserprivilegeSearch = (props: UserPrivilegeSearchProps) => {
   const dRDUserSearch = () => {
     ProgressIndicator.show();
 
-    ApiClient.getDRDUserInfo(searchTerm)
+    ApiClient.getUserprivilegeSearchTerm(searchTerm)
       .then((data: any) => {
-        const teamMemberObj: IUserPrivilege = {
-          id: data.id,
-          userId: data.userId,
-          profile: data.profile,
-          givenName: data.givenName,
-          surName: data.surName,
-        };
+        if (data?.data?.length > 0) {
+          const teamMemberObj: IUserPrivilege = {
+            id: data.data[0].id,
+            userId: data.data[0].userId,
+            profile: data.data[0].profile,
+            givenName: data.data[0].givenName,
+            surName: data.data[0].surName,
+          };
 
-        setTeamMemberObj(teamMemberObj);
-        if (fieldMode) {
-          setHideSuggestion(false);
-          setResults([teamMemberObj]);
-          props.onAddTeamMember(teamMemberObj);
-        } else {
-          setShowUserDetails(true);
-          setHideSuggestion(true);
+          setTeamMemberObj(teamMemberObj);
+          if (fieldMode) {
+            setHideSuggestion(false);
+            setResults([teamMemberObj]);
+            props.onAddTeamMember(teamMemberObj);
+          } else {
+            setShowUserDetails(true);
+            setHideSuggestion(true);
+          }
+          setShowNoResultsError(false);
+          setShowNoUserFoundError(false);
         }
-        setShowNoResultsError(false);
-        setShowNoUserFoundError(false);
-
         ProgressIndicator.hide();
       })
       .catch(() => {
