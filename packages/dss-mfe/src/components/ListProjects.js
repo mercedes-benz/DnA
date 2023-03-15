@@ -127,9 +127,9 @@ export default class ListProjects extends React.Component {
   }
 
   render() {
-    const productionList = this.state.paginatedRecords.length > 0 ? this.state.paginatedRecords : [];
-    const trainingList = this.state.paginatedRecords.length > 0 ? this.state.paginatedRecords : [];
-    const dnaList = this.state.paginatedRecords.length > 0 ? this.state.paginatedRecords : [];
+    const productionList = this.state.productionList?.data?.length > 0 && this.state.paginatedRecords.length > 0 ? this.state.paginatedRecords : [];
+    const trainingList = this.state.trainingList?.data?.length > 0 && this.state.paginatedRecords.length > 0 ? this.state.paginatedRecords : [];
+    const dnaList = this.state.dnaList?.data?.length > 0 && this.state.paginatedRecords.length > 0 ? this.state.paginatedRecords : [];
     const projectsData = trainingList.map((project) => {
       return (
         <ListRowItem
