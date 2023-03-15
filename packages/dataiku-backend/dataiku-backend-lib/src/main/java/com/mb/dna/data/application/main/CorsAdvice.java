@@ -15,8 +15,8 @@ public class CorsAdvice  implements HttpServerFilter {
 		return Publishers.then(chain.proceed(request), resp -> {
 			resp.getHeaders().add("Access-Control-Allow-Credentials","true");
 			resp.getHeaders().add("Access-Control-Allow-Methods","*");
-			resp.getHeaders().add("Access-Control-Allow-Origin","*");
-			resp.getHeaders().add("Access-Control-Allow-Headers","*");
+			//resp.getHeaders().add("Access-Control-Allow-Origin","*");
+			//resp.getHeaders().add("Access-Control-Allow-Headers","*");
       });
 	}
 }
