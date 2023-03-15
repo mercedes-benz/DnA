@@ -9,6 +9,7 @@ import org.reactivestreams.Publisher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.mb.dna.data.application.adapter.dna.DnaClientConfig;
 import com.mb.dna.data.application.adapter.dna.DnaHttpClient;
 import com.mb.dna.data.application.adapter.dna.UserInfo;
 import com.mb.dna.data.application.adapter.dna.UserRole;
@@ -16,8 +17,6 @@ import com.mb.dna.data.application.adapter.dna.UserStore;
 
 import io.jsonwebtoken.Claims;
 import io.micronaut.context.ApplicationContext;
-import io.micronaut.context.annotation.Property;
-import io.micronaut.context.annotation.Value;
 import io.micronaut.core.async.publisher.Publishers;
 import io.micronaut.http.HttpRequest;
 import io.micronaut.http.HttpResponse;
@@ -35,11 +34,8 @@ public class JWTAuthenticationFilter implements HttpServerFilter{
 
 	private Logger log = LoggerFactory.getLogger(JWTAuthenticationFilter.class);
 
-	@Value("${dna.dnaAuthEnable}")
-	private boolean dnaAuthEnable;
-	
-	@Property(name = "${dna.jwt}")
-	private static String secret_key;
+	@Inject
+	DnaClientConfig dnaClientConfig;
 
 	@Inject
 	private UserStore userStore;
@@ -54,12 +50,16 @@ public class JWTAuthenticationFilter implements HttpServerFilter{
 	@Override
 	public Publisher<MutableHttpResponse<?>> doFilter(HttpRequest<?> request, ServerFilterChain filterChain) {
 		String jwt = request.getHeaders().get("Authorization");
+		
+		String secretKey = dnaClientConfig.getJwt();
+		String dnaAuthEnableString = dnaClientConfig.getDnaAuthEnable();
+		boolean dnaAuthEnable = Boolean.valueOf(dnaAuthEnableString);
 		if (jwt==null || jwt.isBlank() || jwt.isEmpty()) {
 			log.error("Request UnAuthorized,No JWT available");
 			Optional<MutableHttpResponse<?>> response = Optional.of(HttpResponse.status(HttpStatus.FORBIDDEN));
 			return Publishers.just(response.get());
 		} else {
-			Claims claims = JWTGenerator.decodeJWT(jwt);
+			Claims claims = JWTGenerator.decodeJWT(jwt,secretKey);
 			if (claims == null) {
 				log.error("Invalid  JWT!");
 				Optional<MutableHttpResponse<?>> response = Optional.of(HttpResponse.status(HttpStatus.UNAUTHORIZED));
@@ -70,7 +70,6 @@ public class JWTAuthenticationFilter implements HttpServerFilter{
 					if (res != null) {
 						try {
 							setUserDetailsToStore(res);
-							filterChain.proceed(request);
 						} catch(Exception e) {
 							this.userStore.clear();
 						}
@@ -86,7 +85,6 @@ public class JWTAuthenticationFilter implements HttpServerFilter{
 						log.info(
 								"Request validation successful, set request user details in the store for further access");
 						setUserDetailsToStore(claims);
-						filterChain.proceed(request);
 					} catch(Exception e) {
 						this.userStore.clear();
 					}
