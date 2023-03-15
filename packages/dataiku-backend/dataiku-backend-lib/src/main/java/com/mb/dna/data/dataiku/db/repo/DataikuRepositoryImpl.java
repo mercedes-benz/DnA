@@ -2,6 +2,7 @@ package com.mb.dna.data.dataiku.db.repo;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -28,6 +29,28 @@ public class DataikuRepositoryImpl implements DataikuRepository{
 	
 	public DataikuRepositoryImpl(EntityManager entityManager) {
 		this.entityManager = entityManager;
+	}
+	
+	@Override
+	public DataikuSql findByProjectName(String projectName) {
+		DataikuSql existingRecord = null;
+		List<DataikuSql> results = new ArrayList<>();
+		try {
+			String queryString = "SELECT id,project_name,description,cloud_profile,created_by,created_on FROM dataiku_sql ";
+			if(projectName!=null && !projectName.isBlank() && !projectName.isEmpty()) {
+				queryString += " where LOWER(project_name) = '" + projectName.toLowerCase() + "' ";
+			}else {
+				return existingRecord;
+			}
+			Query query = entityManager.createNativeQuery(queryString, DataikuSql.class);
+			List<DataikuSql> fetchedResults = query.getResultList();
+			if(fetchedResults!=null && !fetchedResults.isEmpty()) {
+				existingRecord = fetchedResults.get(0);
+			}
+		}catch(Exception e) {
+			log.error("Failed to fetch dataiku project with name {} with exception {}", projectName, e.getMessage());
+		}
+        return existingRecord;
 	}
 	
 	@Override
@@ -84,10 +107,28 @@ public class DataikuRepositoryImpl implements DataikuRepository{
 				}
 			}
 		}
-		if(limit>0)
+		if(sortBy ==null || "".equalsIgnoreCase(sortBy) || "projectName".equalsIgnoreCase(sortBy)) {
+			if(sortOrder==null || "".equalsIgnoreCase(sortOrder) || "asc".equalsIgnoreCase(sortOrder)) {
+				Collections.sort(filteredResults, (DataikuSql a, DataikuSql b) -> a.getProjectName().compareTo(b.getProjectName()));
+			}else {
+				Collections.sort(filteredResults, (DataikuSql a, DataikuSql b) -> b.getProjectName().compareTo(a.getProjectName()));
+			}
+		}else {
+			if(sortOrder==null || "".equalsIgnoreCase(sortOrder) || "asc".equalsIgnoreCase(sortOrder)) {
+				Collections.sort(filteredResults, (DataikuSql a, DataikuSql b) -> a.getCreatedOn().compareTo(b.getCreatedOn()));
+			}else {
+				Collections.sort(filteredResults, (DataikuSql a, DataikuSql b) -> b.getCreatedOn().compareTo(a.getCreatedOn()));
+			}
+		}
+		if(limit>1) {
+			int count = filteredResults.size();
+			if(limit>count)
+				limit = count - offset;
 			limitedFilteredResults = filteredResults.subList(offset, limit);
-		else
+		}
+		else{
 			limitedFilteredResults = filteredResults;
+		}
 		return limitedFilteredResults;
 	}
 	
@@ -118,11 +159,12 @@ public class DataikuRepositoryImpl implements DataikuRepository{
 	}
 	
 	public void insertCollab(CollaboratorSql collaborator) {
-		String insertStmt = "insert into  collaborator_sql(id,userid,dataiku_id,givenname,surname) values (:id, :userId, :dataikuId, :givenname, :surname)";
+		String insertStmt = "insert into  collaborator_sql(id,userid,dataiku_id,permission,givenname,surname) values (:id, :userId, :dataikuId,:permission, :givenname, :surname)";
 		Query q = entityManager.createNativeQuery(insertStmt);
 		q.setParameter("id", collaborator.getId());
 		q.setParameter("userId", collaborator.getUserId());
 		q.setParameter("dataikuId", collaborator.getDataikuId());
+		q.setParameter("permission", collaborator.getPermission());
 		q.setParameter("givenname", collaborator.getGivenName());
 		q.setParameter("surname", collaborator.getSurName());
 		q.executeUpdate();

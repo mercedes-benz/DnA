@@ -17,8 +17,12 @@ public interface UserPrivilegeRepository {
 
 		UserPrivilegeSql save(UserPrivilegeSql userinfo);
 
-		BigInteger findCount();
-
 		void update(UserPrivilegeDto record);
+
+		BigInteger findCount(String userId);
+
+		void deleteAll();
+
+		UserPrivilegeSql findByUser(String userId);
 	    
 }
