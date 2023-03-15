@@ -17,6 +17,6 @@ import lombok.NoArgsConstructor;
 public class DataikuProjectsCollectionDto implements Serializable{
 
 	private List<DataikuProjectDto> data;
-	private BigInteger totalcount;
+	private BigInteger totalCount;
 	
 }

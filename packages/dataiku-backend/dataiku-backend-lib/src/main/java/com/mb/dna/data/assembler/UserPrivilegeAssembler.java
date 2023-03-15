@@ -20,4 +20,15 @@ public class UserPrivilegeAssembler {
 		return data;
 	}
 	
+	public UserPrivilegeSql toUserPrivilegeEntity(UserPrivilegeDto userDetailsDto) {
+		UserPrivilegeSql data = new UserPrivilegeSql();
+		if(userDetailsDto!=null && userDetailsDto.getUserId()!=null) {
+			data.setUserId(userDetailsDto.getUserId().toUpperCase());
+			data.setProfile(userDetailsDto.getProfile());
+			data.setGivenName(userDetailsDto.getGivenName());
+			data.setSurName(userDetailsDto.getSurName());
+		}
+		return data;
+	}
+	
 }

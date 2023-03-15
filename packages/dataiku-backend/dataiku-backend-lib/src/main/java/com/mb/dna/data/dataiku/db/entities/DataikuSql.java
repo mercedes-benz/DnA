@@ -1,6 +1,7 @@
 package com.mb.dna.data.dataiku.db.entities;
 
 import java.io.Serializable;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 
@@ -119,6 +120,13 @@ public class DataikuSql implements Serializable{
 
 	public void setCreatedOn(Date createdOn) {
 		this.createdOn = createdOn;
+	}
+	
+	public class DataikuProjectNameCompartor implements Comparator<DataikuSql> {
+	    @Override
+	    public int compare(DataikuSql o1, DataikuSql o2) {
+	        return o1.getProjectName().compareTo(o2.getProjectName());
+	    }
 	}
 	
 }
