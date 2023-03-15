@@ -7,7 +7,7 @@ const getDataikuProjectsList = (live) => {
 };
 
 const getDnaProjectList = () => {
-  return hostServer.get(`/dataiku?limit=10&offset=0&sortBy=userId&sortOrder=asc&projectName=`, {
+  return hostServer.get(`/dataiku?limit=0&offset=0`, {
     data: {},
   });
 };
