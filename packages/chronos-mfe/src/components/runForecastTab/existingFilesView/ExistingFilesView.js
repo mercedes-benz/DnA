@@ -50,8 +50,8 @@ const ExistingFilesView = ({projectId, setShowExistingFiles, setInputFile, setIs
   
   return (
     <div className={Styles.existingFilesContainer}>
+      {loading && <Spinner />}
       <div className={Styles.mw}>
-        {loading && <Spinner />}
         {!loading && savedFiles.length === 0 && <span>No saved input files</span>}
         {
           !loading && savedFiles.length !== 0 ? 
