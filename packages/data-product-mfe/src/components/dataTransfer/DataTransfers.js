@@ -20,7 +20,9 @@ const DataProducts = ({ user, history, hostHistory }) => {
 
   const [cardViewMode, setCardViewMode] = useState(true);
   const [listViewMode, setListViewMode] = useState(false);
-  const [isCreatorFilter, setIsCreatorFilter] = useState(false);
+  const [isCreatorFilter, 
+    // setIsCreatorFilter
+  ] = useState(false);
 
   useEffect(() => {
     dispatch(GetDataTransfers(isCreatorFilter));
@@ -94,10 +96,10 @@ const DataProducts = ({ user, history, hostHistory }) => {
             </div>
           </div>
           <div>
-            <button className={classNames(Styles.tagItem, 
+            {/* <button className={classNames(Styles.tagItem, 
             isCreatorFilter ? Styles.selectedItem : '')} 
             onClick={() => {setIsCreatorFilter(!isCreatorFilter)}}>
-            My Data Transfers</button>
+            My Data Transfers</button> */}
           </div>
           <div>
             <div>
