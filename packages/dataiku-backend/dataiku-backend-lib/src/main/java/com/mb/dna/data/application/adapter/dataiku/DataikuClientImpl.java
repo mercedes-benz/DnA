@@ -1,9 +1,10 @@
 package com.mb.dna.data.application.adapter.dataiku;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Optional;
 
-import com.mb.dna.data.api.controller.exceptions.GenericMessage;
+import org.json.JSONObject;
+
+import com.mb.dna.data.api.controller.exceptions.MessageDescription;
 
 import io.micronaut.http.HttpRequest;
 import io.micronaut.http.HttpResponse;
@@ -22,37 +23,57 @@ public class DataikuClientImpl implements DataikuClient {
 	@Inject
 	DataikuClientConfig dataikuClientConfig;
 	
-//	getuser/connected
-//	adduser
-//	updateuser
-	
-//	Create DnA Preconfigured Project
-	
-//	update scenario
-//	run scenario
-	
-	
-	public List<DataikuUserDto> getDataikuUsers(){
-		List<DataikuUserDto> responseBody = new ArrayList<>();
-		String url =  "https:" + dataikuClientConfig.getBaseuri() + dataikuClientConfig.getUsersUri();
-		HttpRequest<?> req = HttpRequest.GET(url).header("Accept", "application/json")
-		.header("Content-Type", "application/json")
-		.header("Authorization", "Basic "+dataikuClientConfig.getAuth());
-		HttpResponse<List> response = client.toBlocking().exchange(req,List.class);
-		if(response!=null && response.getBody()!=null) {
-			responseBody = response.getBody().get();
+	@Override
+	public MessageDescription addUser(DataikuUserDto user) {
+		try {
+			String url =  dataikuClientConfig.getBaseuri() + dataikuClientConfig.getUsersUri() ;
+			HttpRequest<DataikuUserDto> req = HttpRequest.POST(url,user).header("Accept", "application/json")
+			.header("Content-Type", "application/json")
+			.header("Authorization", "Basic "+dataikuClientConfig.getAuth());
+			HttpResponse<DataikuResponseDto> response = client.toBlocking().exchange(req,DataikuResponseDto.class);
+			if(response!=null && response.getBody()!=null) {
+				Optional<DataikuResponseDto> responseBody = response.getBody();
+				if(responseBody.isPresent()) {
+					log.info("User {} onboarded on dataiku system with status {}",user.getLogin() , response.getStatus().toString());
+				}
+			}
+			return null;
+		}catch(Exception e) {
+			log.error("Failed while onboarding user {} with exception {} ",user.getLogin(), e.getMessage());
+			return new MessageDescription("Failed while on boarding " + user.getLogin() + " with exception " + e.getMessage());
 		}
-		return responseBody;
 	}
 	
-	public DataikuUserResponseDto getDataikuUser(String loginName){
-		DataikuUserResponseDto responseBody = new DataikuUserResponseDto();
-		String url =  "https:" + dataikuClientConfig.getBaseuri() + dataikuClientConfig.getUsersUri() + "/" + loginName;
+	@Override
+	public MessageDescription updateUser(DataikuUserDto user) {
+		try {
+			String url =  dataikuClientConfig.getBaseuri() + dataikuClientConfig.getUsersUri() + "/" + user.getLogin().toUpperCase();
+			HttpRequest<DataikuUserDto> req = HttpRequest.PUT(url,user).header("Accept", "application/json")
+			.header("Content-Type", "application/json")
+			.header("Authorization", "Basic "+dataikuClientConfig.getAuth());
+			HttpResponse<DataikuResponseDto> response = client.toBlocking().exchange(req,DataikuResponseDto.class);
+			if(response!=null && response.getBody()!=null) {
+				Optional<DataikuResponseDto> responseBody = response.getBody();
+				if(responseBody.isPresent()) {
+					log.info("User {} updated groups on dataiku system with status {}",user.getLogin() , response.getStatus().toString());
+				}
+			}
+			return null;
+		}catch(Exception e) {
+			log.error("Failed while updating groups for user {} with exception {} ",user.getLogin(), e.getMessage());
+			return new MessageDescription("Failed while on updating " + user.getLogin() + " groups with exception " + e.getMessage());
+		}
+	}
+	
+	@Override
+	public DataikuUserDto getDataikuUser(String loginName){
+		DataikuUserDto responseBody = new DataikuUserDto();
+		String url = dataikuClientConfig.getBaseuri() + dataikuClientConfig.getUsersUri() + "/" + loginName;
 		HttpRequest<?> req = HttpRequest.GET(url).header("Accept", "application/json")
 		.header("Content-Type", "application/json")
 		.header("Authorization", "Basic "+dataikuClientConfig.getAuth());
 		try {
-			HttpResponse<DataikuUserResponseDto> response = client.toBlocking().exchange(req,DataikuUserResponseDto.class);
+			HttpResponse<DataikuUserDto> response = client.toBlocking().exchange(req,DataikuUserDto.class);
 			if(response!=null && response.getBody()!=null) {
 				responseBody = response.getBody().get();
 			}
@@ -61,34 +82,72 @@ public class DataikuClientImpl implements DataikuClient {
 		}
 		return responseBody;
 	}
-	
-	public GenericMessage addDataikuUser(DataikuUserDto userRequest) {
-		GenericMessage responseMessage = new GenericMessage();
-		responseMessage.setSuccess("SUCCESS");
-		responseMessage.setErrors(new ArrayList<>());
-		responseMessage.setWarnings(new ArrayList<>());
-		DataikuUserResponseDto responseBody = new DataikuUserResponseDto();
-		String url =  "https:" + dataikuClientConfig.getBaseuri() + dataikuClientConfig.getUsersUri();
-		HttpRequest<DataikuUserDto> req = HttpRequest.POST(url,userRequest).header("Accept", "application/json")
-		.header("Content-Type", "application/json")
-		.header("Authorization", "Basic "+dataikuClientConfig.getAuth());
-		HttpResponse<DataikuUserResponseDto> response = client.toBlocking().exchange(req,DataikuUserResponseDto.class);
-		if(response!=null && response.getBody()!=null) {
-			responseBody = response.getBody().get();
-			if(responseBody!=null) {
-				if(responseBody.getErrorType()!=null || responseBody.getMessage()!=null) {
-					
+
+	@Override
+	public MessageDescription updateScenario(String projectName) {
+		try {
+			String requestJson = dataikuClientConfig.getScenarioUpdateRequest();
+			String updatedRequestJson = requestJson.replaceFirst("XXXXdefaultProjectNameXXXX", projectName);
+			String url =  dataikuClientConfig.getBaseuri() + "/projects/" + dataikuClientConfig.getScenarioProjectKey() + "/scenarios/" + dataikuClientConfig.getScenarioId();
+			HttpRequest<String> req = HttpRequest.PUT(url,updatedRequestJson)
+			.header("Accept", "application/json")
+			.header("Content-Type", "application/json")
+			.header("Authorization", "Basic " + dataikuClientConfig.getAuth())
+			;
+			HttpResponse<DataikuResponseDto> response = client.toBlocking().exchange(req,DataikuResponseDto.class);
+			if(response!=null && response.getBody()!=null) {
+				Optional<DataikuResponseDto> responseBody = response.getBody();
+				if(responseBody.isPresent()) {
+					log.info("Updated scenario for projectName {} with response {} ",projectName, responseBody.get().getMsg());
 				}
 			}
-		}else {
-			
+			return null;
+		}catch(Exception e) {
+			log.error("Failed while updating scenario for project {} with exception {} ",projectName, e.getMessage());
+			return new MessageDescription("Failed while updating scenario for project " + projectName + " with exception " + e.getMessage());
 		}
-		
-		return responseMessage;
+	}
+
+	@Override
+	public MessageDescription runScenario(String projectName) {
+		try {
+			String url =  dataikuClientConfig.getBaseuri() + "/projects/" + dataikuClientConfig.getScenarioProjectKey() + "/scenarios/" + dataikuClientConfig.getScenarioId() + "/run";
+			HttpRequest<?> req = HttpRequest.POST(url,null).header("Accept", "application/json")
+			.header("Content-Type", "application/json")
+			.header("Authorization", "Basic "+dataikuClientConfig.getAuth());
+			HttpResponse<JSONObject> response = client.toBlocking().exchange(req,JSONObject.class);
+			if(response!=null && response.getBody()!=null) {
+				Optional<JSONObject> responseBody = response.getBody();
+				if(responseBody.isPresent()) {
+					log.info("Ran updated scenario for projectName with response status {} ",projectName, response.getStatus().toString());
+				}
+			}
+			return null;
+		}catch(Exception e) {
+			log.error("Failed while calling run scenario after update for project {} with exception {} ",projectName, e.getMessage());
+			return new MessageDescription("Failed while calling run scenario for project " + projectName + " with exception " + e.getMessage());
+		}
 	}
 	
-//	public GenericMessage addGroupToUser(String group, String user) {
-//		
-//	}
+	@Override
+	public MessageDescription deleteProject(String projectName) {
+		try {
+			String url =  dataikuClientConfig.getBaseuri() + "/projects/" + projectName.toUpperCase();
+			HttpRequest<?> req = HttpRequest.DELETE(url,null).header("Accept", "application/json")
+			.header("Content-Type", "application/json")
+			.header("Authorization", "Basic "+dataikuClientConfig.getAuth());
+			HttpResponse<DataikuResponseDto> response = client.toBlocking().exchange(req,DataikuResponseDto.class);
+			if(response!=null && response.getBody()!=null) {
+				Optional<DataikuResponseDto> responseBody = response.getBody();
+				if(responseBody.isPresent()) {
+					log.info("Deleted project at dataiku successfully for key {} with response status {} ",projectName, response.getStatus().toString());
+				}
+			}
+			return null;
+		}catch(Exception e) {
+			log.error("Failed while deleting dataiku project {} with exception {} ",projectName, e.getMessage());
+			return new MessageDescription("Failed while deleting dataiku project " + projectName + " with exception " + e.getMessage());
+		}
+	}
 	
 }

@@ -3,6 +3,7 @@ package com.mb.dna.data.userprivilege.service;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import javax.transaction.Transactional;
@@ -46,10 +47,17 @@ public class UserPrivilegeServiceImpl implements UserPrivilegeService{
 		UserPrivilegeCollectionDto response = new UserPrivilegeCollectionDto();
 		response.setData(new ArrayList<>());
 		response.setTotalcount(new BigInteger("0"));
-		List<UserPrivilegeSql> usersData = userPrivilegeRepo.findAll(limit, offset, sortBy, sortOrder,userId);
-		List<UserPrivilegeDto> data = usersData.stream().map(n -> assembler.toUserPrivilegeVO(n)).collect(Collectors.toList());
+		List<UserPrivilegeDto> data = new ArrayList<>();
+		try {
+			List<UserPrivilegeSql> usersData = userPrivilegeRepo.findAll(limit, offset, sortBy, sortOrder,userId);
+			data = usersData.stream().map(n -> assembler.toUserPrivilegeVO(n)).collect(Collectors.toList());
+			log.info("Fetched userPrivilege records with params limit{} offset{} sortBy{} sortOrder{} userId{} ", limit, offset, sortBy, sortOrder, userId);
+		}catch(Exception e) {
+			log.error("Failed to fetch userprivilege records with params limit{} offset{} sortBy{} sortOrder{} userId{} ",
+					limit, offset, sortBy, sortOrder, userId);
+		}
 		response.setData(data);
-		BigInteger count = userPrivilegeRepo.findCount();
+		BigInteger count = userPrivilegeRepo.findCount(userId);
 		response.setTotalcount(count);
 		return response;
 	}
@@ -62,24 +70,31 @@ public class UserPrivilegeServiceImpl implements UserPrivilegeService{
 		List<MessageDescription> errors = new ArrayList<>();
 		List<MessageDescription> warnings = new ArrayList<>();
 		if(collection!=null && collection.getData()!=null && !collection.getData().isEmpty()) {
+			try {
+				userPrivilegeRepo.deleteAll();
+			}catch(Exception e) {
+				log.error("Failed to delete existing records with exception {}",e.getMessage());
+				MessageDescription noRecordsMsg = new MessageDescription("Failed to delete existing records, might have duplicates. Re-run to cleanup.");
+				warnings.add(noRecordsMsg);
+			}
 			List<UserPrivilegeDto> data = collection.getData();
-			for(UserPrivilegeDto record: data) {
-				System.out.println(record.getId());
+			List<UserPrivilegeSql> entities = new ArrayList<>();
+			entities = data.stream().map(n -> assembler.toUserPrivilegeEntity(n)).collect(Collectors.toList());
+			for(UserPrivilegeSql record: entities) {
 				try {
-					if(record.getUserId()!=null && !record.getUserId().isBlank() && !record.getUserId().isEmpty())
-						userPrivilegeRepo.update(record);
-					else
-						log.warn("Bad request, userid {} was not sent for update", record.getUserId());
+					if(record.getUserId()!=null && !record.getUserId().isBlank() && !record.getUserId().isEmpty()) {
+						userPrivilegeRepo.save(record);
+					}
 				}catch(Exception e) {
-					log.error("Failed to update user {} with exception {}",record.getUserId(),e.getMessage());
-					MessageDescription noRecordsMsg = new MessageDescription("Failed to update user "+record.getUserId());
+					log.error("Failed to insert user {} with exception {}",record.getUserId(),e.getMessage());
+					MessageDescription noRecordsMsg = new MessageDescription("Failed to insert user "+record.getUserId());
 					warnings.add(noRecordsMsg);
 				}
 			}
 			responseMessage.setSuccess("SUCCESS");
 		}else {
 			responseMessage.setSuccess("SUCCESS");
-			MessageDescription noRecordsMsg = new MessageDescription("No content to update records.");
+			MessageDescription noRecordsMsg = new MessageDescription("No content to insert records.");
 			warnings.add(noRecordsMsg);
 		}
 		responseMessage.setErrors(errors);
@@ -87,6 +102,20 @@ public class UserPrivilegeServiceImpl implements UserPrivilegeService{
 		return responseMessage;
 	}
 	
+	@Override
+	@Transactional
+	public boolean isExist(String id) {
+		boolean flag = false;
+		try {
+			Optional<UserPrivilegeSql> recordOptional = userPrivilegeRepo.findById(id);
+			if(recordOptional.isPresent() && recordOptional!= null && recordOptional.get()!= null && "id".equalsIgnoreCase(recordOptional.get().getId())) {
+				flag = true;
+			}
+		}catch(Exception e) {
+			log.error("Failed to fetch if userprivilege record {} exists, with exception {}",id,e.getMessage());
+		}
+		return flag;
+	}
 	
 	@Override
 	@Transactional
@@ -111,12 +140,13 @@ public class UserPrivilegeServiceImpl implements UserPrivilegeService{
 	@Override
 	@Transactional
 	public UserPrivilegeResponseDto getByShortId(String userId) {
+		UserPrivilegeDto dto = null;
 		UserPrivilegeResponseDto responseDto = new UserPrivilegeResponseDto();
 		responseDto.setData(null);
 		responseDto.setCanCreate(false);
-		List<UserPrivilegeSql> usersData = userPrivilegeRepo.findAll(1, 0, null, null,userId);
-		if(usersData!=null && !usersData.isEmpty()) {
-			UserPrivilegeDto dto = assembler.toUserPrivilegeVO(usersData.get(0));
+		UserPrivilegeSql userData = userPrivilegeRepo.findByUser(userId);
+		if(userData!=null && userData.getId()!=null && userData.getUserId().equalsIgnoreCase(userId) && userData.getProfile()!=null) {
+			dto = assembler.toUserPrivilegeVO(userData);
 			if(dto!=null) {
 				responseDto.setData(dto);
 				String profile = dto.getProfile();
@@ -124,7 +154,6 @@ public class UserPrivilegeServiceImpl implements UserPrivilegeService{
 					responseDto.setCanCreate(true);
 				}
 			}
-				
 		}
 		return responseDto;
 	}
