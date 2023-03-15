@@ -17,5 +17,5 @@ import lombok.NoArgsConstructor;
 public class UserPrivilegeCollectionDto  implements Serializable{
 
 	private List<UserPrivilegeDto> data;
-	private BigInteger totalcount;
+	private BigInteger totalCount;
 }

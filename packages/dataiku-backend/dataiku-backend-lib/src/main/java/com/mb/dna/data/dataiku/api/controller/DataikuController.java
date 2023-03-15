@@ -151,9 +151,6 @@ public class DataikuController {
     		@Parameter(description = "searchTerm to filter by projectName",allowEmptyValue= true, required = false) @QueryParam("projectName") String projectName
     		) {
 		String userId = this.userStore.getUserInfo().getId();
-		if(limit==0) {
-			limit = 10;
-		}
 		DataikuProjectsCollectionDto response = service.getAllDataikuProjects(userId, offset, limit, sortBy, sortOrder, projectName);
 		if(response!=null && response.getData()!= null && !response.getData().isEmpty())
 			return Response.ok().entity(response).build();
