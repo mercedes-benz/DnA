@@ -5,9 +5,11 @@ import javax.xml.bind.DatatypeConverter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.mb.dna.data.application.adapter.dna.DnaClientConfig;
+
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
-import io.micronaut.context.annotation.Value;
+import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 
 @Singleton
@@ -15,12 +17,13 @@ public class JWTGenerator {
 
 	private static Logger log = LoggerFactory.getLogger(JWTGenerator.class);
 	
-	@Value("${jwt.secret.key}")
-	private static String secret_key;
+	@Inject
+	static
+	DnaClientConfig dnaClientConfig;
 
 	public static Claims decodeJWT(String jwt) {
 		try {
-			Claims claims = Jwts.parser().setSigningKey(DatatypeConverter.parseBase64Binary(secret_key))
+			Claims claims = Jwts.parser().setSigningKey(DatatypeConverter.parseBase64Binary(dnaClientConfig.getJwt()))
 					.parseClaimsJws(jwt).getBody();
 			return claims;
 		} catch (Exception e) {
