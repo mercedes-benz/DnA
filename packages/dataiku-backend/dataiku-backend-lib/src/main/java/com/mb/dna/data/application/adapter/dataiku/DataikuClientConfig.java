@@ -14,12 +14,17 @@ import lombok.NoArgsConstructor;
 public class DataikuClientConfig {
 	
 	public static final String PREFIX = "dataiku";
-	
+	  
+	private String userPrivilegesAccessKey;
 	private String auth;
 	private String baseuri;
-	private String scenariosUri;
+	private String scenarioProjectKey;
+	private String scenarioId;
+	private String scenarioUpdateRequest;
 	private String usersUri;
 	private String groupNamePrefix;
 	private String environmentProfile;
+	private String onPremiseGroupNamePrefix;
+	private String extolloGroupNamePrefix;
 
 }

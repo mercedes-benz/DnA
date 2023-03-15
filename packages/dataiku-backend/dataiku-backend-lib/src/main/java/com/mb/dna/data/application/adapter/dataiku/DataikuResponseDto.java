@@ -1,6 +1,6 @@
 package com.mb.dna.data.application.adapter.dataiku;
 
-import java.util.List;
+import java.io.Serializable;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
@@ -14,14 +14,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @EqualsAndHashCode(callSuper=false)
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class DataikuUserDto extends DataikuErrorResponseDto{
+public class DataikuResponseDto extends DataikuErrorResponseDto implements Serializable{
 
-	private String login;
-	private String sourceType;
-	private String displayName;
-	private List<String> groups;
-	private String email;
-	private String userProfile;
-	private Boolean enabled;
+	private String msg;
 	
 }
