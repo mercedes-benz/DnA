@@ -23,6 +23,7 @@ public class JWTGenerator {
 
 	public static Claims decodeJWT(String jwt) {
 		try {
+			log.info("Parsing jwt {} with secret {} ",jwt,dnaClientConfig.getJwt());
 			Claims claims = Jwts.parser().setSigningKey(DatatypeConverter.parseBase64Binary(dnaClientConfig.getJwt()))
 					.parseClaimsJws(jwt).getBody();
 			return claims;
