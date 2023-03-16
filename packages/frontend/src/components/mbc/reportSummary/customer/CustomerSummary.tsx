@@ -36,14 +36,14 @@ export default class CustomerSummary extends React.Component<ICustomerSummaryPro
                   const processOwnerDetails: any = customer?.processOwner;
                   const processOwner = <TeamMemberListItem key={'processOwner-1'} itemIndex={1} teamMember={processOwnerDetails} />;
 
-                  const customerName = <TeamMemberListItem key={'processOwner-1'} itemIndex={1} teamMember={customer.name} />;
+                  const customerName = <TeamMemberListItem key={'processOwner-1'} itemIndex={1} teamMember={customer} />;
                     return (
                       <React.Fragment key={index}>
                         <div className={Styles.customerListView}>
                           <span className={Styles.description}>{`Internal Customer ${index + 1}`}</span>
                           <div className={Styles.flexLayout}>
                             <div id="name">
-                              <label className="input-label summary">Name</label>
+                              <label className="input-label summary">Level | Division | E2-Department</label>
                               <br />
                               <div className={Styles.breakWords+' '+Styles.removeGap}>{customerName}</div>
                             </div>
@@ -114,11 +114,11 @@ export default class CustomerSummary extends React.Component<ICustomerSummaryPro
                         <div className={Styles.customerListView}>
                           <span className={Styles.description}>{`External Customer ${index + 1}`}</span>
                           <div className={Styles.flexLayout}>
-                            <div id="nameExternal">
+                            {/* <div id="nameExternal">
                               <label className="input-label summary">Name</label>
                               <br />
                               <div className = {Styles.breakWords}>{customer.name?.firstName || customer.name?.lastName ? customer.name?.firstName+' '+customer.name?.lastName : 'NA'}</div>
-                            </div>
+                            </div> */}
                             <div id="companyName">
                               <label className="input-label summary">Company Name</label>
                               <br />
