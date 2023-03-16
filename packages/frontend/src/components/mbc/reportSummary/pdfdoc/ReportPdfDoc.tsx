@@ -250,9 +250,11 @@ const teamMembersList = (members: ITeams[]) => {
           )}
         </View>
         <View>
+          {member?.teamMemberPosition && (
           <Text style={[styles.sectionTitle, { marginBottom: 5 }]}>{`${member?.teamMemberPosition}${
             !isInternalMember ? ' (' + member?.userType + ')' : ''
           }`}</Text>
+          )}
           {isInternalMember ? (
             <View>
               <Text>
@@ -376,16 +378,16 @@ const Customer = ({ customer, showCustomer }: ICustomerProps) => {
                 <Text style={styles.sectionTitle}>{`Customer ${index + 1}`}</Text>
               </View>
             </View>
-            <View style={[styles.flexLayout, { marginVertical: 5 }]} wrap={false}>
+            {/* <View style={[styles.flexLayout, { marginVertical: 5 }]} wrap={false}>
               <View style={styles.firstCol}>
-                <Text style={styles.sectionTitle}>Level | Division | E2-Department</Text>
+                <Text style={styles.sectionTitle}>Level | E2-Department | MB Legal Entity </Text>
                 <View style={styles.flexLayout}>{teamMembersList([data])}</View>
               </View>
               <View style={styles.firstCol}>
                 <Text style={styles.sectionTitle}>Process Owner</Text>
                 <View style={styles.flexLayout}>{teamMembersList([data?.processOwner])}</View>
               </View>
-            </View>
+            </View> */}
             <View style={[styles.flexLayout, { marginVertical: 15 }]} wrap={false}>  
               <View style={styles.firstCol}>
                 <Text style={styles.sectionTitle}>Level</Text>
@@ -416,10 +418,15 @@ const Customer = ({ customer, showCustomer }: ICustomerProps) => {
               
             </View>
             <View style={[styles.flexLayout, { marginVertical: 15 }]} wrap={false}>
+            <View style={styles.firstCol}>
+                <Text style={styles.sectionTitle}>Process Owner</Text>
+                <View style={styles.flexLayout}>{teamMembersList([data?.processOwner])}</View>
+              </View>
               <View style={styles.flexCol2}>
                 <Text style={styles.sectionTitle}>Comment</Text>
                 <Text>{data.comment || 'NA'}</Text>
               </View>
+              <View style={styles.flexCol2}></View>
             </View>
             {customer.internalCustomers?.length > 0 ? (
               <View style={styles.seperatorLine} />
