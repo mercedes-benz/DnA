@@ -465,7 +465,7 @@ export class ApiClient {
   }
 
   public static getUserprivilegeSearchTerm(searchTerm: string): Promise<any> {
-    return this.fetch(getDataikuUrl(`userprivilege?searchTerm=${searchTerm}&offset=0&limit=0`), HTTP_METHOD.GET);
+    return this.fetch(getDataikuUrl(`userprivilege?limit=0&offset=0&sortBy=&sortOrder=&searchTerm=${searchTerm}`), HTTP_METHOD.GET);
   }
 
   public static getAllSolutions(queryUrl?: string): Promise<ICreateNewSolution[]> {
