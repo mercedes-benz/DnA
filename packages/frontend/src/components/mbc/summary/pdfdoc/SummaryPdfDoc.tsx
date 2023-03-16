@@ -708,7 +708,7 @@ interface SummaryPdfDocProps {
   canShowPlatform: boolean;
   canShowMilestones: boolean;
   canShowDataSources: boolean;
-  canShowDigitalValue: string;
+  canShowDigitalValue: boolean;
   canShowComplianceSummary: number | boolean;
   user: IUserInfo;
   noteBookInfo: INotebookInfo;
@@ -1020,6 +1020,10 @@ export const SummaryPdfDoc = (props: SummaryPdfDocProps) => (
             ) : (
               <View />
             )}
+          </View>
+        ) : (
+          <View />
+        )}  
 
             {(props.solution.analytics &&
               props.solution.analytics.algorithms &&
@@ -1111,13 +1115,14 @@ export const SummaryPdfDoc = (props: SummaryPdfDocProps) => (
             (props.solution?.marketing?.customerJourneyPhases?.length > 0 ||
             props.solution?.marketing?.marketingCommunicationChannels?.length > 0 ||
             props.solution?.marketing?.personas?.length > 0 ||
-            props.solution?.marketing?.personalization?.isChecked    
+            props.solution?.marketing?.personalization?.isChecked ||
+            props.solution?.marketing?.marketingRoles?.length > 0     
               ) ? (
               <View wrap={false}>
                 <Text style={[styles.subTitle, styles.setMarginTop]}>Marketing</Text>
                 <View style={styles.flexLayout}>
                   <View style={[styles.flexCol4, styles.firstCol]}>
-                    <Text style={styles.sectionTitle}>Customer Journey Phase, Core Needs and Use Cases</Text>
+                    <Text style={styles.sectionTitle}>Use Case, Core Needs and Customer Journey Phase</Text>
                     {props.solution?.marketing?.customerJourneyPhases?.length > 0 ? (
                       <View>{props.solution?.marketing?.customerJourneyPhases?.map((item, index)=>
                         {return (<Text key={index}>{item.name}</Text>)})}</View>
@@ -1149,14 +1154,20 @@ export const SummaryPdfDoc = (props: SummaryPdfDocProps) => (
                     {personasList(props.solution?.marketing?.personas)}
                   </View>
                 </View>
+                <View>
+                  <Text style={styles.sectionTitle}>Marketing Roles</Text>
+                    {props.solution?.marketing?.marketingRoles?.length > 0 ? (
+                      <View>{props.solution?.marketing?.marketingRoles?.map((item, index)=>
+                        {return (<Text key={index}>{item.role}</Text>)})}</View>
+                    ) : (
+                      <Text>NA</Text>
+                    )}
+                </View>
               </View>
             ) : (
               <View />
             )}
-          </View>
-        ) : (
-          <View />
-        )}
+          
         {props.canShowComplianceSummary ? (
           <View wrap={false}>
             <View wrap={false}>

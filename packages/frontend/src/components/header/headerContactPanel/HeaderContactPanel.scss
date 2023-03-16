@@ -36,6 +36,14 @@
         text-decoration: none;
         color: #00adef;
       }
+
+      a {
+        color: #c0c8d0;
+        &:hover {
+          text-decoration: none;
+          color: #00adef;
+        }
+      }
     }
   }
 

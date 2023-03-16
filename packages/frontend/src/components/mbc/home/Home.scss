@@ -208,6 +208,7 @@ div[class*="cardIconSection"]i::before {
     font-size: var(--font-size-medium);
     transform: translateX(100%);
     animation: scroll-left 30s linear infinite;
+    white-space: nowrap;
   }
 }
 

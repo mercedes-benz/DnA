@@ -1,7 +1,7 @@
 spring:
   application:
     name: dna-backend-service
-    version: 3.2.0
+    version: 3.2.1
   flyway:
     enabled: ${FLYWAY_ENABLED:true}
     baseline-on-migrate: ${FLYWAY_BASELINE_ON_MIGRATE:true}
@@ -52,13 +52,38 @@ dna:
       itsmm: ${ITSMM:false}
       attachmentMalwareScan: ${ATTACHMENT_MALWARE_SCAN:false}
       internal-user-enabled: ${DRD_INTERNAL_USER_ENABLED:false}
+      technicalUserOnboarding: ${TECH_USER_ONBOARD:false}
   user:
     role: ${USER_ROLE:Admin}
+    techUserPrefix: ${TECH_USER_PREFIX:XXXX}
   #Access token to access datasource bulk create from external source
   dataSource:
      bulkCreate:
         api:
            accessToken: ${DATASOURCE_BULKCREATE_API_ACCESS_TOKEN:***REMOVED***} 
+      
+hasura:
+  baseuri: ${HASURA_BASE_URI:xxxxx}
+  token: ${HASURA_TOKEN:xxxxx}
+  createTechUserUri: ${HASURA_TECHUSER_URI:xxx}
+  
+notification:
+  email:      
+      solutionNotificationPref: ${DEFAULT_EMAIL_SOLUTION_NOTIFICATION_PREF:xxx}
+      notebookNotificationPref: ${DEFAULT_EMAIL_NOTEBOOK_NOTIFICATION_PREF:xxx}
+      persistenceNotificationPref: ${DEFAULT_EMAIL_PERSISTENCE_NOTIFICATION_PREF:xxx}
+      dashboardNotificationPref: ${DEFAULT_EMAIL_DASHBOARD_NOTIFICATION_PREF:xxx}
+      dataComplianceNotificationPref: ${DEFAULT_EMAIL_DATA_COMPLIANCE_NOTIFICATION_PREF:xxx}
+      dataProductNotificationPref: ${DEFAULT_EMAIL_DATA_PRODUCT_NOTIFICATION_PREF:xxx}
+      chronosNotificationPref: ${DEFAULT_EMAIL_CHRONOS_NOTIFICATION_PREF:xxx}
+  app:
+      solutionNotificationPref: ${DEFAULT_APP_SOLUTION_NOTIFICATION_PREF:xxx}
+      notebookNotificationPref: ${DEFAULT_APP_NOTEBOOK_NOTIFICATION_PREF:xxx}
+      persistenceNotificationPref: ${DEFAULT_APP_PERSISTENCE_NOTIFICATION_PREF:xxx}
+      dashboardNotificationPref: ${DEFAULT_APP_DASHBOARD_NOTIFICATION_PREF:xxx}
+      dataComplianceNotificationPref: ${DEFAULT_APP_DATA_COMPLIANCE_NOTIFICATION_PREF:xxx}
+      dataProductNotificationPref: ${DEFAULT_APP_DATA_PRODUCT_NOTIFICATION_PREF:xxx}
+      chronosNotificationPref: ${DEFAULT_APP_CHRONOS_NOTIFICATION_PREF:xxx}      
       
 graphql:
   servlet:
@@ -181,3 +206,9 @@ logging:
             sql: ERROR
       graphql:
         servlet: ERROR
+teamsApi:
+  team-api-baseurl: ${TEAMS_API_BASE_URI:xxxxxx}
+  person-search-uri: ${PERSON_SEARCH_URI:xxxxxx}
+  teams-api-resultFetchSize: ${TEAMS_API_RESULT_SIZE:xxxxxx}
+  enabled: ${TEAMS_API_ENABLED:xxxxxx}
+

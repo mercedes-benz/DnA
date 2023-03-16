@@ -34,13 +34,13 @@ import com.daimler.data.db.repo.common.CommonDataRepository;
 
 public interface DataComplianceCustomRepository extends CommonDataRepository<DataComplianceNsql, String> {
 
-	List<DataComplianceNsql> getAllWithFiltersUsingNativeQuery(String entityId, String entityName,
+	List<DataComplianceNsql> getAllWithFiltersUsingNativeQuery(String entityId, String entityName, String entityCountry,
 			List<String> localComplianceOfficer, List<String> localComplianceResponsible,
-			List<String> dataProtectionCoordinator, List<String> localComplianceSpecialist, int offset, int limit,
+			List<String> localComplianceSpecialist, int offset, int limit,
 			String sortBy, String sortOrder);
 
-	Long getCountUsingNativeQuery(String entityId, String entityName, List<String> localComplianceOfficer,
-			List<String> localComplianceResponsible, List<String> dataProtectionCoordinator,
+	Long getCountUsingNativeQuery(String entityId, String entityName, String entityCountry, List<String> localComplianceOfficer,
+			List<String> localComplianceResponsible,
 			List<String> localComplianceSpecialist);
 
 }

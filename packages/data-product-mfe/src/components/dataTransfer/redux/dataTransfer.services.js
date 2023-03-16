@@ -3,11 +3,12 @@ import { dataTransferApi } from '../../../apis/datatransfers.api';
 import Notification from '../../../common/modules/uilab/js/src/notification';
 import ProgressIndicator from '../../../common/modules/uilab/js/src/progress-indicator';
 import { deserializeFormData, serializeDivisionSubDivision, serializeFormData } from '../../../Utility/formData';
+import { omit, pick } from 'lodash';
 
-export const GetDataTransfers = createAsyncThunk('transfers/GetDataTransfers', async (arg, { getState }) => {
+export const GetDataTransfers = createAsyncThunk('transfers/GetDataTransfers', async (isCreatorFilter, { getState }) => {
   ProgressIndicator.show();
   try {
-    const res = await dataTransferApi.getAllDataProducts('dataTransferId', 'desc');
+    const res = await dataTransferApi.getAllDataProducts('dataTransferId', 'desc',isCreatorFilter);
     ProgressIndicator.hide();
     const {
       provideDataTransfers: { pagination },
@@ -52,7 +53,7 @@ export const SetDataTransfers = createAsyncThunk('transfers/SetDataTransfers', a
 
 export const UpdateDataTransfers = createAsyncThunk(
   'transfers/UpdateDataTransfers',
-  async (data, { rejectWithValue }) => {
+  async (data, { rejectWithValue, getState }) => {
     const {
       values,
       onSave,
@@ -82,7 +83,16 @@ export const UpdateDataTransfers = createAsyncThunk(
         ProgressIndicator.hide();
         onSave();
         const responseData = res?.data?.data;
-        const data = deserializeFormData({ item: responseData, type });
+        let data;
+        if (type === 'consumer') {
+          // access provider info from the store
+          const producerData = omit(getState().provideDataTransfers.selectedDataTransfer, ['consumer']);
+          // deserialize response and extract only the consumer details
+          const consumerData = pick(deserializeFormData({ item: responseData, type }), ['consumer']);
+          data = { ...producerData, ...consumerData };
+        } else {
+          data = deserializeFormData({ item: responseData, type });
+        }
 
         // Provider Form
         if (isProviderForm) {

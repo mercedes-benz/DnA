@@ -128,7 +128,7 @@ export const BucketList = (props) => {
   };
 
   const displayPermission = (item) => {
-    return Object.entries(item)
+    return Object.entries(item || {})
       ?.map(([key, value]) => {
         if (value === true) {
           return key;

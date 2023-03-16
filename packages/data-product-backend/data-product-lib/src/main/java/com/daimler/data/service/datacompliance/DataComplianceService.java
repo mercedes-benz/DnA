@@ -39,13 +39,12 @@ import com.daimler.data.service.common.CommonService;
 
 public interface DataComplianceService extends CommonService<DataComplianceVO, DataComplianceNsql, String> {
 
-	List<DataComplianceVO> getAllWithFilters(String entityId, String entityName, List<String> localComplianceOfficer,
-			List<String> localComplianceResponsible, List<String> dataProtectionCoordinator,
-			List<String> localComplianceSpecialist, int offset, int limit, String sortBy, String sortOrder);
+	List<DataComplianceVO> getAllWithFilters(String entityId, String entityName, String entityCountry, List<String> localComplianceOfficer,
+			List<String> localComplianceResponsible, List<String> localComplianceSpecialist,
+			int offset, int limit, String sortBy, String sortOrder);
 
-	Long getCount(String entityId, String entityName, List<String> localComplianceOfficer,
-			List<String> localComplianceResponsible, List<String> dataProtectionCoordinator,
-			List<String> localComplianceSpecialist);
+	Long getCount(String entityId, String entityName, String entityCountry, List<String> localComplianceOfficer,
+			List<String> localComplianceResponsible, List<String> localComplianceSpecialist);
 
 	ResponseEntity<DataComplianceResponseVO> createDataCompliance(DataComplianceVO requestDataComplianceVO);
 

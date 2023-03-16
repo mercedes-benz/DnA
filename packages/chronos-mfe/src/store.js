@@ -1,7 +1,7 @@
 import { configureStore } from '@reduxjs/toolkit';
 import { createHashHistory } from 'history';
 
-import projects from './components/redux/projectsSlice';
+import projects from './redux/projectsSlice';
 
 import logger from 'redux-logger';
 

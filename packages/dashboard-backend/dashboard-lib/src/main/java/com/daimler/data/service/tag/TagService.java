@@ -40,7 +40,7 @@ import com.daimler.data.service.common.CommonService;
 
 public interface TagService extends CommonService<TagVO, TagSql, Long> {
 
-	ResponseEntity<TagCollection> getAllTags(String sortBy,String sortOrder);
+	ResponseEntity<TagCollection> getAllTags(String sortOrder);
 
 	ResponseEntity<TagResponseVO> createTag(TagRequestVO requestVO);
 

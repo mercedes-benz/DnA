@@ -1,0 +1,154 @@
+scalar ISODate
+
+type DataProductCollection {
+    totalCount: Int,
+    records: [DataProductVO]
+}
+
+type DataProductVO {
+    id: ID!,
+    dataProductId: String,
+    dataProductName: String,
+    description: String,
+    howToAccessText: String,
+    carLaFunction: CarLaFunctionVO,
+    ddx: String,
+    kafka: String,
+    oneApi: String,
+    platform: PlatformVO,
+    frontEndTools: FrontendToolsVO,
+    agileReleaseTrain: AgileReleaseTrainVO,
+    corporateDataCatalog: CorporateDataCatalogVO,
+    recordStatus: String,
+    isPublish: Boolean,
+    notifyUsers: Boolean,
+    createdDate: ISODate,
+    lastModifiedDate: ISODate,
+    createdBy: CreatedByVO,
+    modifiedBy: CreatedByVO,
+    contactInformation: DataProductContactInformationVO,
+    classificationConfidentiality: DataProductClassificationConfidentialityVO,
+    personalRelatedData: DataProductPersonalRelatedDataVO,
+    transnationalDataTransfer: DataProductTransnationalDataTransferVO,
+    deletionRequirement: DataProductDeletionRequirementVO,
+    datatransfersAssociated: DatatransfersAssociatedVO,
+    openSegments: OpenSegmentsEnum,
+}
+
+type Query {
+    dataproducts(published: Boolean, art: String, carlafunction: String,
+        platform: String, frontendTool: String,
+        productOwner: String, offset: Int, limit: Int, sortBy: String,
+        sortOrder: String): DataProductCollection!
+}
+
+type CarLaFunctionVO {
+    id: ID!,
+    name: String
+}
+
+type PlatformVO {
+    id: ID!,
+    name: String
+}
+
+type FrontendToolsVO {
+    id: ID!,
+    name: String
+}
+
+type AgileReleaseTrainVO {
+    id: ID!,
+    name: String
+}
+
+type CorporateDataCatalogVO {
+    id: ID!,
+    name: String
+}
+
+type DataProductContactInformationVO {
+    dataProductDate: ISODate,
+    informationOwner: DataProductTeamMemberVO,
+    name: DataProductTeamMemberVO,
+    division: DivisionVO,
+    department: String,
+    localComplianceOfficer: String,
+    appId: String
+}
+
+type DataProductTeamMemberVO {
+    shortId: String,
+    userType: String,
+    firstName: String,
+    lastName: String,
+    department: String,
+    email: String,
+    mobileNumber: String,
+    company: String,
+    teamMemberPosition: String,
+    addedByProvider: Boolean
+}
+
+type DivisionVO {
+    id: String,
+    name: String,
+    subdivision: SubdivisionVO
+}
+
+type SubdivisionVO {
+    id: String,
+    name: String
+}
+
+type CreatedByVO {
+    id: ID!,
+    name: String,
+    description: String,
+    firstName: String,
+    lastName: String,
+    department: String,
+    email: String,
+    mobileNumber: String
+}
+
+type DataProductClassificationConfidentialityVO {
+    description: String,
+    confidentiality: String
+}
+
+type DataProductPersonalRelatedDataVO {
+    personalRelatedData: Boolean,
+    description: String,
+    purpose: String,
+    legalBasis: String
+}
+
+type DataProductTransnationalDataTransferVO {
+    dataTransferred: Boolean,
+    notWithinEU: Boolean,
+    approved: String,
+    insiderInformation: String,
+    dataFromChina: Boolean
+}
+
+type DataProductDeletionRequirementVO {
+    deletionRequirements: String,
+    description: String,
+    otherRelevantInformation: String
+}
+
+type DatatransfersAssociatedVO {
+    id: String,
+    datatransferId: String,
+    datatrandferName: String
+}
+
+enum OpenSegmentsEnum {
+    Description,
+    ContactInformation,
+    ClassificationAndConfidentiality,
+    IdentifyingPersonalRelatedData,
+    IdentifiyingTransnationalDataTransfer,
+    SpecifyDeletionRequirements
+}

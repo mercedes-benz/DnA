@@ -51,12 +51,12 @@ public class DataComplianceCustomRepositoryImpl extends CommonDataRepositoryImpl
 	private static String REGEX = "[\\[+\\]+:{}^~?\\\\/()><=\"!]";
 
 	@Override
-	public List<DataComplianceNsql> getAllWithFiltersUsingNativeQuery(String entityId, String entityName,
+	public List<DataComplianceNsql> getAllWithFiltersUsingNativeQuery(String entityId, String entityName, String entityCountry,
 			List<String> localComplianceOfficer, List<String> localComplianceResponsible,
-			List<String> dataProtectionCoordinator, List<String> localComplianceSpecialist, int offset, int limit,
+			List<String> localComplianceSpecialist, int offset, int limit,
 			String sortBy, String sortOrder) {
-		Query q = getNativeQueryWithFilters("", entityId, entityName, localComplianceOfficer,
-				localComplianceResponsible, dataProtectionCoordinator, localComplianceSpecialist, offset, limit, sortBy,
+		Query q = getNativeQueryWithFilters("", entityId, entityName, entityCountry, localComplianceOfficer,
+				localComplianceResponsible, localComplianceSpecialist, offset, limit, sortBy,
 				sortOrder);
 		ObjectMapper mapper = new ObjectMapper();
 		List<Object[]> results = q.getResultList();
@@ -77,27 +77,27 @@ public class DataComplianceCustomRepositoryImpl extends CommonDataRepositoryImpl
 	}
 
 	@Override
-	public Long getCountUsingNativeQuery(String entityId, String entityName, List<String> localComplianceOfficer,
-			List<String> localComplianceResponsible, List<String> dataProtectionCoordinator,
+	public Long getCountUsingNativeQuery(String entityId, String entityName, String entityCountry, List<String> localComplianceOfficer,
+			List<String> localComplianceResponsible,
 			List<String> localComplianceSpecialist) {
 
-		Query q = getNativeQueryWithFilters("select count(*) ", entityId, entityName, localComplianceOfficer,
-				localComplianceResponsible, dataProtectionCoordinator, localComplianceSpecialist, 0, 0, "", "asc");
+		Query q = getNativeQueryWithFilters("select count(*) ", entityId, entityName, entityCountry, localComplianceOfficer,
+				localComplianceResponsible, localComplianceSpecialist, 0, 0, "", "asc");
 		BigInteger results = (BigInteger) q.getSingleResult();
 		return results.longValue();
 	}
 
-	private Query getNativeQueryWithFilters(String selectFieldsString, String entityId, String entityName,
+	private Query getNativeQueryWithFilters(String selectFieldsString, String entityId, String entityName, String entityCountry,
 			List<String> localComplianceOfficer, List<String> localComplianceResponsible,
-			List<String> dataProtectionCoordinator, List<String> localComplianceSpecialist, int offset, int limit,
+			List<String> localComplianceSpecialist, int offset, int limit,
 			String sortBy, String sortOrder) {
 
 		String prefix = selectFieldsString != null && !"".equalsIgnoreCase(selectFieldsString) ? selectFieldsString
 				: "select cast(id as text), cast(data as text) ";
 		prefix = prefix + "from datacompliance_nsql";
 		String basicpredicate = " where (id is not null)";
-		String consolidatedPredicates = buildPredicateString(entityId, entityName, localComplianceOfficer,
-				localComplianceResponsible, dataProtectionCoordinator, localComplianceSpecialist);
+		String consolidatedPredicates = buildPredicateString(entityId, entityName, entityCountry, localComplianceOfficer,
+				localComplianceResponsible, localComplianceSpecialist);
 		String query = prefix + basicpredicate + consolidatedPredicates;
 		String sortQueryString = "";
 		if (StringUtils.hasText(sortBy)) {
@@ -108,14 +108,14 @@ public class DataComplianceCustomRepositoryImpl extends CommonDataRepositoryImpl
 			case "entityName":
 				sortQueryString = " order by lower(jsonb_extract_path_text(data,'entityName')) ";
 				break;
+			case "entityCountry":
+				sortQueryString = " order by lower(jsonb_extract_path_text(data,'entityCountry')) ";
+				break;		
 			case "localComplianceOfficer":
 				sortQueryString = " order by lower(jsonb_extract_path_text(data,'localComplianceOfficer')) ";
 				break;
 			case "localComplianceResponsible":
 				sortQueryString = " order by lower(jsonb_extract_path_text(data,'localComplianceResponsible')) ";
-				break;
-			case "dataProtectionCoordinator":
-				sortQueryString = " order by lower(jsonb_extract_path_text(data,'dataProtectionCoordinator')) ";
 				break;
 			case "localComplianceSpecialist":
 				sortQueryString = " order by lower(jsonb_extract_path_text(data,'localComplianceSpecialist')) ";
@@ -141,13 +141,12 @@ public class DataComplianceCustomRepositoryImpl extends CommonDataRepositoryImpl
 		return q;
 	}
 
-	private String buildPredicateString(String entityId, String entityName, List<String> localComplianceOfficer,
-			List<String> localComplianceResponsible, List<String> dataProtectionCoordinator,
-			List<String> localComplianceSpecialist) {
+	private String buildPredicateString(String entityId, String entityName, String entityCountry, List<String> localComplianceOfficer,
+			List<String> localComplianceResponsible, List<String> localComplianceSpecialist) {
 
-		return getEntityIdPredicate(entityId) + "\n" + getEntityNamePredicate(entityName) + "\n"
+		return getEntityIdPredicate(entityId) + "\n" + getEntityNamePredicate(entityName) + "\n" + getEntityCountryPredicate(entityCountry) + "\n"
 				+ getLCOPredicate(localComplianceOfficer) + "\n" + getLCRPredicate(localComplianceResponsible) + "\n"
-				+ getDPCPredicate(dataProtectionCoordinator) + "\n" + getLCSPredicate(localComplianceSpecialist);
+				+ "\n" + getLCSPredicate(localComplianceSpecialist);
 	}
 
 	private String getEntityIdPredicate(String entityId) {
@@ -162,6 +161,14 @@ public class DataComplianceCustomRepositoryImpl extends CommonDataRepositoryImpl
 		if (StringUtils.hasText(entityName)) {
 			return "  and (lower(jsonb_extract_path_text(data,'entityName')) similar to " + "'%"
 					+ entityName.replaceAll(REGEX, "\\\\$0").toLowerCase() + "%'" + " ) ";
+		}
+		return "";
+	}
+
+	private String getEntityCountryPredicate(String entityCountry) {
+		if (StringUtils.hasText(entityCountry)) {
+			return "  and (lower(jsonb_extract_path_text(data,'entityCountry')) similar to " + "'%"
+					+ entityCountry.replaceAll(REGEX, "\\\\$0").toLowerCase() + "%'" + " ) ";
 		}
 		return "";
 	}
@@ -183,17 +190,6 @@ public class DataComplianceCustomRepositoryImpl extends CommonDataRepositoryImpl
 					.map(n -> n.replaceAll(REGEX, "\\\\$0").toLowerCase()).collect(Collectors.joining("%|%", "%", "%"));
 			delimiterSeparatedValue = "'" + delimiterSeparatedValue + "'";
 			return "  and (lower(jsonb_extract_path_text(data,'localComplianceResponsible')) similar to "
-					+ delimiterSeparatedValue + " ) ";
-		}
-		return "";
-	}
-
-	private String getDPCPredicate(List<String> dataProtectionCoordinator) {
-		if (dataProtectionCoordinator != null && !dataProtectionCoordinator.isEmpty()) {
-			String delimiterSeparatedValue = dataProtectionCoordinator.stream()
-					.map(n -> n.replaceAll(REGEX, "\\\\$0").toLowerCase()).collect(Collectors.joining("%|%", "%", "%"));
-			delimiterSeparatedValue = "'" + delimiterSeparatedValue + "'";
-			return "  and (lower(jsonb_extract_path_text(data,'dataProtectionCoordinator')) similar to "
 					+ delimiterSeparatedValue + " ) ";
 		}
 		return "";

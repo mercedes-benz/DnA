@@ -40,6 +40,11 @@ public class RunDetails {
 	 private Long executionDuration;
 	 private Long startTime;
 	 private Long endTime;
+	 private String error;
+
+	private String taskRunId;
+	private String warnings;
+	private Boolean  exogenData;
 	 
 	 
 }

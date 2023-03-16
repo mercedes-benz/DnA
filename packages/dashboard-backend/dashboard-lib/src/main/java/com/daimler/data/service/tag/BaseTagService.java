@@ -80,19 +80,17 @@ public class BaseTagService extends BaseCommonService<TagVO, TagSql, Long> imple
 	}
 
 	@Override
-	public ResponseEntity<TagCollection> getAllTags(String sortBy,String sortOrder) {
+	public ResponseEntity<TagCollection> getAllTags(String sortOrder) {
 		TagCollection tagCollection = new TagCollection();
 		try {
 			List<TagVO> tags = super.getAll();
 			LOGGER.debug("Tags fetched successfully");
 			if (!ObjectUtils.isEmpty(tags)) {
 				if (sortOrder == null || sortOrder.equalsIgnoreCase("asc")) {
-					Comparator<TagVO> comparator = (a1, a2) -> (a1.getName().compareTo(a2.getName()));
-					Collections.sort(tags, comparator);
+					tags.sort(Comparator.comparing(TagVO :: getName, String.CASE_INSENSITIVE_ORDER));
 				}
 				if (sortOrder != null && sortOrder.equalsIgnoreCase("desc")) {
-					Comparator<TagVO> comparator = (a1, a2) -> (a2.getName().compareTo(a1.getName()));
-					Collections.sort(tags, comparator);
+					tags.sort(Comparator.comparing(TagVO :: getName, String.CASE_INSENSITIVE_ORDER).reversed());
 				}
 				tagCollection.setData(tags);
 				return new ResponseEntity<>(tagCollection, HttpStatus.OK);

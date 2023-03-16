@@ -300,6 +300,8 @@ export const recipesMaster = [
   { id: 'default', name: 'Plain or Empty (Debian 11 OS, 1GB RAM, 1CPU)' },
   { id: 'springboot', name: 'Microservice using Spring Boot (Debian 11 OS, 1GB RAM, 1CPU)' },
   { id: 'py-fastapi', name: 'Microservice using Python FastAPI (Debian 11 OS, 1GB RAM, 1CPU)' },
+  { id: 'react', name: 'React SPA (Debian 11 OS, 1GB RAM, 1CPU)' },
+  { id: 'angular', name: 'Angular SPA (Debian 11 OS, 1GB RAM, 1CPU)' },
   { id: 'dna', name: 'DnA Workspace (Coming Soon)' },
   { id: 'chronos', name: 'CHRONOS Workspace (Coming Soon)' },
   { id: 'mean', name: 'MEAN Stack (Coming Soon)' },

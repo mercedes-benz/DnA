@@ -101,6 +101,7 @@ configJs: |
       CORPORATE_DATA_CATALOG_URL = 'YOUR_CORPORATE_DATA_CATALOG_URL',
       SAP_CONNECTION_BOOK_URL = 'YOUR_SAP_CONNECTION_BOOK_URL',
       SMART_DATA_GOVERNANCE_URL = 'YOUR_SMART_DATA_GOVERNANCE_URL',
+      DATA_PRODUCT_API_BASEURL = 'YOUR_DATA_PRODUCT_API_BASEURL',
     };
 
     window["STORAGE_INJECTED_ENVIRONMENT"]={
@@ -115,7 +116,7 @@ configJs: |
         CONTAINER_APP_URL: "http://localhost:9090",
         API_BASEURL: "http://localhost:7171/api",
         DATA_PRODUCT_API_BASEURL: "",
-        DATA_GOVERNANCE_HTML_FOR_CHINA_DATA: "<p>If yes, and due to the complexity of corresponding Data Governance requirements, we recommend you reach out to us at the <a href=\"#\" target=\"_blank\" rel=\"noopener noreferrer\"> Data Governance Office FM </a> directly.</p>"
+        DATA_GOVERNANCE_HTML_FOR_CHINA_DATA: '<p>Your sample content</p>',
         DATA_PRODUCT_TOU_HTML: '<div>I agree to <a href="#" target="_blank" rel="noopener noreferrer">terms of use</a></div>'
     };
 
@@ -125,7 +126,11 @@ configJs: |
       CHRONOS_API_BASEURL: "",
       ENABLE_CHRONOS_ONEAPI: false, 
       CHRONOS_ONEAPI_URL: "YOUR_CHRONOS_ONEAPI_URL",
+      STORAGE_MFE_APP_URL: 'http://localhost:9090/#/storage',
+      STORAGE_API_BASEURL: 'http://localhost:7175/api',
     };
+
+    
     
 probes:
   initialDelaySeconds: 30
@@ -180,6 +185,17 @@ vaultInjector:
       {{- end }}
       {{- with secret "kv/dna/kubernetesSecret/dataProductMFE" -}}
           window["DATA_PRODUCT_INJECTED_ENVIRONMENT"]={
+          {{- range $k, $v := .Data.data }}
+          {{- if or (eq $v "true") (eq $v "false") (regexMatch "^[0-9]+$" $v) }}
+                  {{ $k }}:{{ $v }},
+          {{ else }}
+                  {{ $k }}:'{{ $v }}',
+          {{- end }}
+          {{- end }}
+              };
+      {{- end }}  
+      {{- with secret "kv/dna/kubernetesSecret/dssMFE" -}}
+          window["DSS_INJECTED_ENVIRONMENT"]={
           {{- range $k, $v := .Data.data }}
           {{- if or (eq $v "true") (eq $v "false") (regexMatch "^[0-9]+$" $v) }}
                   {{ $k }}:{{ $v }},

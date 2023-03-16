@@ -95,6 +95,7 @@ frontend:
         CORPORATE_DATA_CATALOG_URL = 'YOUR_CORPORATE_DATA_CATALOG_URL',
         SAP_CONNECTION_BOOK_URL = 'YOUR_SAP_CONNECTION_BOOK_URL',
         SMART_DATA_GOVERNANCE_URL = 'YOUR_SMART_DATA_GOVERNANCE_URL',
+        DATA_PRODUCT_API_BASEURL = 'http://localhost:7184/api',
       };
 
       window["STORAGE_INJECTED_ENVIRONMENT"]={
@@ -2662,4 +2663,7 @@ dss-mfe:
   enabled: true
 
 dss-be:
+  enabled: true
+
+hasura:
   enabled: true

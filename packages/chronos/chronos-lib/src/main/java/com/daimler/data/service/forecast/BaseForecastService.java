@@ -8,12 +8,15 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import com.daimler.data.dto.databricks.DataBricksJobRunOutputResponseWrapperDto;
 import com.daimler.data.dto.forecast.*;
 import com.daimler.data.dto.storage.*;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -33,6 +36,7 @@ import com.daimler.data.db.repo.forecast.ForecastRepository;
 import com.daimler.data.dto.databricks.RunNowNotebookParamsDto;
 import com.daimler.data.dto.forecast.RunStateVO.ResultStateEnum;
 import com.daimler.data.service.common.BaseCommonService;
+import com.daimler.dna.notifications.common.producer.KafkaProducerService;
 import com.google.gson.JsonArray;
 
 import lombok.extern.slf4j.Slf4j;
@@ -49,6 +53,8 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 	
 	@Value("${databricks.defaultConfigYml}")
 	private String dataBricksJobDefaultConfigYml;
+
+	private static final String EXOGENOUS_FILE_NAME = "X.csv";
 	
 	@Autowired
 	private StorageServicesClient storageClient;
@@ -67,6 +73,9 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 	@Lazy
 	@Autowired
 	private VaultAuthClientImpl vaultAuthClient;
+	
+	@Autowired
+	private KafkaProducerService kafkaProducer;
 
 	public BaseForecastService() {
 		super();
@@ -103,7 +112,7 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 	
 	@Override
 	@Transactional
-	public ForecastRunResponseVO createJobRun(String savedInputPath, Boolean saveRequestPart, String runName,
+	public ForecastRunResponseVO createJobRun(MultipartFile file,String savedInputPath, Boolean saveRequestPart, String runName,
 			String configurationFile, String frequency, BigDecimal forecastHorizon, String hierarchy, String comment, Boolean runOnPowerfulMachines,
 			ForecastVO existingForecast,String triggeredBy, Date triggeredOn) {
 		
@@ -114,6 +123,55 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 		RunNowNotebookParamsDto noteboookParams = new RunNowNotebookParamsDto();
 		String correlationId = UUID.randomUUID().toString();
 		String bucketName = existingForecast.getBucketName();
+		String resultFolder = bucketName+"/results/"+correlationId + "-" + runName;
+		String inputOrginalFolder= "/results/"+correlationId + "-" + runName + "/input_original";
+		FileUploadResponseDto fileUploadResponse =  null;
+		if(file!=null) {
+			fileUploadResponse = storageClient.uploadFile(inputOrginalFolder, file,existingForecast.getBucketName());
+		}else {
+				if(savedInputPath!=null && savedInputPath.contains("/")) {
+					try {
+						String path = savedInputPath;
+						String[] SavedfileDetails = path.split("/",2);
+						FileDownloadResponseDto savedFileResponse = storageClient.getFileContents(SavedfileDetails[0], "/"+SavedfileDetails[1]);
+						if(savedFileResponse!=null && savedFileResponse.getData()!=null && 
+								(savedFileResponse.getErrors()==null || savedFileResponse.getErrors().size()<1)) {
+							fileUploadResponse = storageClient.uploadFile(inputOrginalFolder, savedFileResponse.getData(),existingForecast.getBucketName());
+						}
+					}catch(Exception e) {
+						log.error("Failed while reusing savedinputfile {} attached for project name {} and id {} ",savedInputPath, existingForecast.getName(), existingForecast.getId());
+						MessageDescription invalidMsg = new MessageDescription("Failed while reusing savedinputfile " + savedInputPath);
+						List<MessageDescription> errors = new ArrayList<>();
+						errors.add(invalidMsg);
+						responseMessage.setErrors(errors);
+						responseWrapper.setData(null);
+						responseWrapper.setResponse(responseMessage);
+						return responseWrapper;	
+					}
+					
+				}else {
+					log.error("Invalid savedinputfilepath {} attached for project name {} and id {} ",savedInputPath, existingForecast.getName(), existingForecast.getId());
+					MessageDescription invalidMsg = new MessageDescription("Invalid saved file path attached.");
+					List<MessageDescription> errors = new ArrayList<>();
+					errors.add(invalidMsg);
+					responseMessage.setErrors(errors);
+					responseWrapper.setData(null);
+					responseWrapper.setResponse(responseMessage);
+					return responseWrapper;	
+				}
+		}
+		if(fileUploadResponse==null || (fileUploadResponse!=null && (fileUploadResponse.getErrors()!=null || !"SUCCESS".equalsIgnoreCase(fileUploadResponse.getStatus())))) {
+			log.error("Error in uploading file to {} for forecast project {}",inputOrginalFolder,existingForecast.getName() );
+			MessageDescription msg = new MessageDescription("Failed to  upload file to " + inputOrginalFolder + "for" + existingForecast.getName() );
+			List<MessageDescription> errors = new ArrayList<>();
+			errors.add(msg);
+			responseMessage.setErrors(errors);
+			responseWrapper.setData(null);
+			responseWrapper.setResponse(responseMessage);
+
+		return responseWrapper;
+
+		}
 		noteboookParams.setConfig(configurationFile);
 		noteboookParams.setCorrelationId(correlationId);
 		if(savedInputPath!=null) {
@@ -130,10 +188,11 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 		noteboookParams.setFh(forecastHorizon.toString());
 		noteboookParams.setHierarchy(hierarchy);
 		noteboookParams.setFreq(this.toFrequencyParam(frequency));
-		String resultFolder = bucketName+"/results/"+correlationId + "-" + runName;
+
 		noteboookParams.setResults_folder(resultFolder);
 		noteboookParams.setX("");
 		noteboookParams.setX_pred("");
+
 		RunNowResponseVO runNowResponse = dataBricksClient.runNow(correlationId, noteboookParams, runOnPowerfulMachines);
 		if(runNowResponse!=null) {
 			if(runNowResponse.getErrorCode()!=null || runNowResponse.getRunId()==null) 
@@ -164,6 +223,7 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 				currentRun.setTriggeredBy(triggeredBy);
 				currentRun.setTriggeredOn(triggeredOn);
 				currentRun.setIsDelete(false);
+				currentRun.setExogenData(false);
 				RunState newRunState = new RunState();
 				newRunState.setLife_cycle_state("PENDING");
 				newRunState.setUser_cancelled_or_timedout(false);
@@ -200,27 +260,22 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 	}
 
 	@Override
-	public FileUploadResponseDto saveFile(MultipartFile file, String bucketName) {
-		FileUploadResponseDto uploadResponse = storageClient.uploadFile(file,bucketName);
-		return uploadResponse;
-	}
-
-	@Override
 	public Long getRunsCount(String id) {
 		return customRepo.getTotalRunsCount(id);
 	}
 
 	@Override
 	@Transactional
-	public List<RunVO> getAllRunsForProject(int limit, int offset, ForecastVO existingForecast) {
+	public List<RunVO> getAllRunsForProject(int limit, int offset, String forecastId) {
 		
 		List<RunDetails> updatedRuns = new ArrayList<>();
 		List<RunVO> updatedRunVOList = new ArrayList<>();
 		
-		Optional<ForecastNsql> entityOptional = jpaRepo.findById(existingForecast.getId());
+		Optional<ForecastNsql> entityOptional = jpaRepo.findById(forecastId);
 		if(entityOptional!=null) {
 			ForecastNsql entity = entityOptional.get();
-			if(entity!=null && entity.getData()!=null && 
+			String forecastName = entity.getData().getName();
+			if(entity!=null && entity.getData()!=null && 	
 					entity.getData().getRuns()!=null && !entity.getData().getRuns().isEmpty()) {
 				List<RunDetails> existingRuns = entity.getData().getRuns();
 				String bucketName = entity.getData().getBucketName();
@@ -228,63 +283,199 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 				for(RunDetails run: existingRuns) {
 					RunState state = run.getRunState();
 					String runId = run.getRunId();
-					if(runId!=null && (run.getIsDelete() == null || !run.getIsDelete()) && 
+					String correlationId= run.getId();
+					String existingLifecycleState = run.getRunState().getLife_cycle_state();  
+					if(run.getExogenData()==null)
+						run.setExogenData(false);
+					if(runId!=null && (run.getIsDelete() == null || !run.getIsDelete()) &&
 							(state==null || state.getResult_state()==null || state.getLife_cycle_state()==null ||
-							"PENDING".equalsIgnoreCase(state.getLife_cycle_state()) || 
-							"RUNNING".equalsIgnoreCase(state.getLife_cycle_state()))) {
+									"PENDING".equalsIgnoreCase(state.getLife_cycle_state()) ||
+									"RUNNING".equalsIgnoreCase(state.getLife_cycle_state()))) {
 						RunDetailsVO updatedRunResponse = this.dataBricksClient.getSingleRun(runId);
 						if(updatedRunResponse!=null && runId.equals(updatedRunResponse.getRunId())) {
+							log.info("Able to fetch updated run details for forecast {} and correlation {} which was in {}", forecastId,correlationId,state.getLife_cycle_state());
 							RunDetails updatedRunDetail = new RunDetails();
 							BeanUtils.copyProperties(run, updatedRunDetail);
 							updatedRunDetail.setCreatorUserName(updatedRunResponse.getCreatorUserName());
-							if(updatedRunResponse.getEndTime()!=null) 
+							if(updatedRunResponse.getEndTime()!=null)
 								updatedRunDetail.setEndTime(updatedRunResponse.getEndTime().longValue());
-							if(updatedRunResponse.getExecutionDuration()!=null) 
+							if(updatedRunResponse.getExecutionDuration()!=null)
 								updatedRunDetail.setExecutionDuration(updatedRunResponse.getExecutionDuration().longValue());
-							if(updatedRunResponse.getSetupDuration()!=null) 
+							if(updatedRunResponse.getSetupDuration()!=null)
 								updatedRunDetail.setSetupDuration(updatedRunResponse.getSetupDuration().longValue());
 							if(updatedRunResponse.getStartTime()!=null)
 								updatedRunDetail.setStartTime(updatedRunResponse.getStartTime().longValue());
 							if(updatedRunResponse.getState()!=null) {
 								RunStateVO updatedState = updatedRunResponse.getState();
 								RunState newState = new RunState();
+								if (updatedState.getLifeCycleState() != null && updatedState.getResultState() != null) {
+									String updatedLifecycleState = updatedState.getLifeCycleState().name();
+									String updatedResultState = updatedState.getResultState().name();
+									if (!existingLifecycleState.equalsIgnoreCase(updatedLifecycleState)
+											&& (updatedLifecycleState.equalsIgnoreCase("TERMINATED")
+													|| updatedLifecycleState.equalsIgnoreCase("INTERNAL_ERROR")
+													|| updatedLifecycleState.equalsIgnoreCase("SKIPPED"))) {
+										List<String> memberIds = new ArrayList<>();
+										List<String> memberEmails = new ArrayList<>();
+										if (entity.getData().getCollaborators() != null) {
+											memberIds = entity.getData().getCollaborators().stream()
+													.map(UserDetails::getId).collect(Collectors.toList());
+											memberEmails = entity.getData().getCollaborators().stream()
+													.map(UserDetails::getEmail).collect(Collectors.toList());
+										}
+
+										String ownerId = entity.getData().getCreatedBy().getId();
+										memberIds.add(ownerId);
+										String ownerEmail = entity.getData().getCreatedBy().getEmail();
+										memberEmails.add(ownerEmail);
+										notifyUsers(forecastId, run, memberIds, memberEmails, forecastName,
+												updatedResultState);
+									}
+								}
 								if(updatedState.getLifeCycleState()!=null)
 									newState.setLife_cycle_state(updatedState.getLifeCycleState().name());
+								String updatedStateMsg = "";
+								if(updatedRunResponse.getState().getStateMessage()!=null) {
+									updatedStateMsg = updatedState.getStateMessage();
+								}
 								if(updatedState.getResultState()!=null) {
 									newState.setResult_state(updatedState.getResultState().name());
 									if("SUCCESS".equalsIgnoreCase(updatedState.getResultState().name())) {
 										//check if .SUCCESS file exists
 										String resultFolderPathForRun = resultsPrefix + updatedRunDetail.getId()+"-"+updatedRunDetail.getRunName()+"/";
-										Boolean successFileFlag = storageClient.isSuccessFilePresent(bucketName, resultFolderPathForRun);
-										log.info("Run state is success from databricks and isSuccessFilePresent value is {}, for bucket {} and prefix {} ", successFileFlag, bucketName, resultFolderPathForRun);
-										if(!successFileFlag)
-											newState.setResult_state(ResultStateEnum.FAILED.name());
+										List<BucketObjectDetailsDto> bucketObjectDetails=storageClient.getFilesPresent(bucketName,resultFolderPathForRun);
+										Boolean successFileFlag = storageClient.isFilePresent(resultFolderPathForRun+ "SUCCESS", bucketObjectDetails);
+										Boolean warningsFileFlag = storageClient.isFilePresent(resultFolderPathForRun+ "WARNINGS.txt", bucketObjectDetails);
+										Boolean exogenousFileFlag = storageClient.isFilePresent(resultFolderPathForRun+ EXOGENOUS_FILE_NAME, bucketObjectDetails);
+										//check if exogenous data is present
+										if(exogenousFileFlag){
+											run.setExogenData(true);
+										}
+										log.info("Run state is success from databricks and successFileFlag value is {} and warningsFileFlag is {} , for bucket {} and prefix {} ", successFileFlag, warningsFileFlag, bucketName, resultFolderPathForRun);
+										if(warningsFileFlag){
+											newState.setResult_state(ResultStateEnum.WARNINGS.name());
+											//fetch file content from warnings.txt file
+											String commonPrefix = "/results/"+run.getId() + "-" + run.getRunName();
+											String warningsPrefix = commonPrefix +"/WARNINGS.txt";
+											String warningsResult = "";
+											FileDownloadResponseDto warningsTextDownloadResponse = storageClient.getFileContents(bucketName, warningsPrefix);
+											if(warningsTextDownloadResponse!= null && warningsTextDownloadResponse.getData()!=null && (warningsTextDownloadResponse.getErrors()==null || warningsTextDownloadResponse.getErrors().isEmpty())) {
+												warningsResult = new String(warningsTextDownloadResponse.getData().getByteArray());
+												log.info("successfully retrieved warnings.txt file contents for forecast {} and correaltionid{} and runname{}",
+														bucketName, correlationId, run.getRunName());
+											}
+											updatedRunDetail.setWarnings(warningsResult);
+											updatedStateMsg = "Run was completed with warnings."; 
+										}
+										else{
+											if(!successFileFlag) {
+												newState.setResult_state(ResultStateEnum.FAILED.name());
+												String errMsg = "Run failed as there was no SUCCESS file under results folder.";
+												updatedRunDetail.setError(errMsg);
+												updatedStateMsg = errMsg;
+											}
+										}
+									}else {
+										String taskRunId=updatedRunResponse.getTasks().get(0).getRunId();
+										String errorMessage=processErrorMessages(taskRunId);
+										updatedRunDetail.setError(errorMessage);
+										updatedRunDetail.setTaskRunId(taskRunId);
+										updatedStateMsg = errorMessage;
 									}
 								}
-								String updatedStateMsg = "";
-								if(updatedRunResponse.getState().getStateMessage()!=null) {
-									updatedStateMsg = updatedRunResponse.getState().getStateMessage() + ". " + updatedState.getStateMessage();
-								}
+								
 								newState.setState_message(updatedStateMsg);
 								newState.setUser_cancelled_or_timedout(updatedState.isUserCancelledOrTimedout());
 								updatedRunDetail.setRunState(newState);
+
 							}
+							log.info("updating new pending run {} of project {} ", run.getRunName(), forecastName);
 							updatedRuns.add(updatedRunDetail);
+
 						}else {
+							log.info("Adding pending run {} of project {} without update, since getrun response is failed or null ", run.getRunName(), forecastName);
 							updatedRuns.add(run);
 						}
-					}else {
-						updatedRuns.add(run);
 					}
-						
+					else {
+						if(runId != null && (run.getIsDelete() == null || !run.getIsDelete()) && (state != null &&
+								("TERMINATED".equalsIgnoreCase(state.getLife_cycle_state()) ||
+								"INTERNAL_ERROR".equalsIgnoreCase(state.getLife_cycle_state()) ||
+								"SKIPPED".equalsIgnoreCase(state.getLife_cycle_state()))) &&
+								(run.getResultFolderPath() == null || "".equalsIgnoreCase(run.getResultFolderPath()))
+						) {
+							String resultFolderPathForRun = bucketName + "/" + resultsPrefix + run.getId()+"-"+run.getRunName();
+							run.setResultFolderPath(resultFolderPathForRun);
+	          			}
+						RunDetails updatedRunDetail = new RunDetails();
+						if (runId != null && (run.getIsDelete() == null || !run.getIsDelete()) && (state != null &&
+								("TERMINATED".equalsIgnoreCase(state.getLife_cycle_state()) ||
+								"INTERNAL_ERROR".equalsIgnoreCase(state.getLife_cycle_state()) ||
+								"SKIPPED".equalsIgnoreCase(state.getLife_cycle_state()))) &&
+								!"SUCCESS".equalsIgnoreCase(state.getResult_state()) && (run.getError() == null || "".equalsIgnoreCase(run.getError())
+								|| run.getRunState().getState_message() == null || "".equalsIgnoreCase(run.getRunState().getState_message())
+								|| ". ".equalsIgnoreCase(run.getRunState().getState_message()))
+						){
+							RunDetailsVO updatedRunResponse = this.dataBricksClient.getSingleRun(runId);
+							if(updatedRunResponse!=null && runId.equals(updatedRunResponse.getRunId())) {
+								log.info(" Updating error msg for failed old run {} of forecast project {} after getting errorMessage from output", run.getRunName(), bucketName);
+								BeanUtils.copyProperties(run, updatedRunDetail);
+								String taskRunId=updatedRunResponse.getTasks().get(0).getRunId();
+								String errorMessage=processErrorMessages(taskRunId);
+								updatedRunDetail.setError(errorMessage);
+								updatedRunDetail.setTaskRunId(taskRunId);
+								updatedRunDetail.getRunState().setState_message(errorMessage);
+								updatedRuns.add(updatedRunDetail);
+							}
+							else {
+								log.info("Adding old failed run {} of project {} without update, since getSingleRun response is null ", run.getRunName(), forecastName);
+								updatedRuns.add(run);
+							}
+						} else {
+							//check if exogenous data is present
+							String resultFolderPathForRun = resultsPrefix + run.getId()+"-"+run.getRunName()+"/";
+							List<BucketObjectDetailsDto> bucketObjectDetails=storageClient.getFilesPresent(bucketName,resultFolderPathForRun);
+							Boolean exogenousFilePresent = storageClient.isFilePresent(resultFolderPathForRun+ EXOGENOUS_FILE_NAME, bucketObjectDetails);
+							if(exogenousFilePresent){
+								run.setExogenData(true);
+							}
+							log.info("Adding old success run {} of project {} without update ", run.getRunName(), forecastName);
+							updatedRuns.add(run);
+						}
+					}
 				}
 				entity.getData().setRuns(updatedRuns);
 				this.jpaRepo.save(entity);
 				updatedRunVOList = this.assembler.toRunsVO(updatedRuns);
 			}
-					
+
 		}
 		return updatedRunVOList;
+	}
+	
+	private void notifyUsers(String forecastId, RunDetails run, List<String> memberIds, List<String> memberEmails,String forecastName, String updatedResultState) {
+		// TODO Auto-generated method stub
+		String message ="";
+		message="Run " + run.getRunName() + " triggered by " + run.getTriggeredBy() +" for chronos-project "+ forecastName + " completed with ResultState " + updatedResultState +". Please check forecast-results for more details";		
+		kafkaProducer.send("Chronos Forecast Run LifeCylceStatus update", forecastId, "", "DnaSystemUser", message,
+				true, memberIds, memberEmails, null);
+		
+	}
+
+
+	private String processErrorMessages(String taskRunId) {
+		DataBricksJobRunOutputResponseWrapperDto updatedRunOutputResponse = this.dataBricksClient.getSingleRunOutput(taskRunId);
+		String errMessage=null;
+		if(updatedRunOutputResponse!=null){
+			if(updatedRunOutputResponse.getError()!=null && !"".equalsIgnoreCase(updatedRunOutputResponse.getError())){
+				errMessage=updatedRunOutputResponse.getError();
+			}
+			else {
+				errMessage = updatedRunOutputResponse.getMetadata().getState().getStateMessage();
+			}
+		}
+
+		return errMessage;
 	}
 
 	@Override
@@ -619,5 +810,9 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 		return storageClient.isBucketExists(bucketName);
 	}	
 	
-	
+	@Override
+	public List<String> getAllForecastIds() {
+		// TODO Auto-generated method stub
+		return customRepo.getAllForecastIds();
+	}	
 }

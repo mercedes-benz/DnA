@@ -78,7 +78,8 @@ type SolutionMarketingVO{
 	customerJourneyPhases: [CustomerJourneyPhaseVO],
 	marketingCommunicationChannels: [MarketingCommunicationChannelVO],
 	personas: [String],
-	personalization: PersonalizationVO
+	personalization: PersonalizationVO,
+	marketingRoles: [MarketingRoleSummaryVO]
 }
 
 type CustomerJourneyPhaseVO{
@@ -95,6 +96,14 @@ type PersonalizationVO{
 	isChecked: Boolean,
     description: String
 }
+
+type MarketingRoleSummaryVO{
+	role: String,
+	fromDate: ISODate,
+	toDate: ISODate,
+	requestedFTECount: Float
+}
+
 
 type SolutionSharingVO{
 	gitUrl: String,
@@ -202,8 +211,8 @@ type ChangeLogVO{
 }
 
 type SolutionDataComplianceVO{
-    expertGuidelineNeeded: Boolean;
-    readyForImplementation: Boolean;
+    expertGuidelineNeeded: Boolean,
+    readyForImplementation: Boolean,
 	quickCheck: Boolean,
 	useCaseDescAndEval: Boolean,
 	attachments: [FileDetailsVO],

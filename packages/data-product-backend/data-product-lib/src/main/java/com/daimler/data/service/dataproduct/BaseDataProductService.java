@@ -91,9 +91,12 @@ public class BaseDataProductService extends BaseCommonService<DataProductVO, Dat
 
 		@Override
 		public List<DataProductVO> getAllWithFilters(Boolean published, int offset, int limit, String sortBy,
-				String sortOrder, String recordStatus) {
+				String sortOrder, String recordStatus, List<String> artsList,
+				List<String> carlafunctionsList, List<String> platformsList,
+				List<String> frontendToolsList, List<String> productOwnerList) {
 			List<DataProductNsql> dataProductEntities = dataProductCustomRepository
-					.getAllWithFiltersUsingNativeQuery(published, offset, limit, sortBy, sortOrder, recordStatus);
+					.getAllWithFiltersUsingNativeQuery(published, offset, limit, sortBy, sortOrder, recordStatus,
+							artsList, carlafunctionsList, platformsList, frontendToolsList, productOwnerList);
 			if (!ObjectUtils.isEmpty(dataProductEntities))
 				return dataProductEntities.stream().map(n -> dataProductAssembler.toVo(n)).collect(Collectors.toList());
 			else
@@ -111,8 +114,12 @@ public class BaseDataProductService extends BaseCommonService<DataProductVO, Dat
 	}
 
 	@Override
-		public Long getCount(Boolean published, String recordStatus) {
-			return dataProductCustomRepository.getCountUsingNativeQuery(published, recordStatus);
+		public Long getCount(Boolean published, String recordStatus,
+			List<String> artsList, List<String> carlafunctionsList,
+			List<String> platformsList, List<String> frontendToolsList,
+			List<String> productOwnerList) {
+			return dataProductCustomRepository.getCountUsingNativeQuery(published, recordStatus,
+					artsList, carlafunctionsList, platformsList, frontendToolsList, productOwnerList);
 		}
 
 		@Override

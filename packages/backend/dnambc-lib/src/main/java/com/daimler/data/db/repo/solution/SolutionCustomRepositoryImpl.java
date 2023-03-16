@@ -777,9 +777,12 @@ public class SolutionCustomRepositoryImpl extends CommonDataRepositoryImpl<Solut
 				Predicate tempSkillCondition = cb.like(cb.lower(
 						cb.function("jsonb_extract_path_text", String.class, root.get("data"), cb.literal("skills"))),
 						"%" + searchTerm + "%");
+				Predicate tempMarketingRoleCondition = cb.like(cb.lower(
+						cb.function("jsonb_extract_path_text", String.class, root.get("data"), cb.literal("marketingRoles"))),
+						"%" + searchTerm + "%");
 				Predicate consolidateTempKeyCondition = cb.or(tempProductNameCondition, tempTagCondition,tempDepartmentCondition,
 						tempDSCondition, tempPlatformCondition, tempLangCondition, tempAlgoCondition,
-						tempVisualizationCondition, tempSkillCondition, divisionCondition);
+						tempVisualizationCondition, tempSkillCondition, divisionCondition, tempMarketingRoleCondition);
 				if (anySearchTermConsolidate == null)
 					anySearchTermConsolidate = consolidateTempKeyCondition;
 				else

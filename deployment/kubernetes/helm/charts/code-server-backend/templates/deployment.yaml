@@ -37,7 +37,7 @@ spec:
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           {{- if .Values.vaultInjector.enable }}           
           command: ["/bin/sh", "-c"]
-          args: ['source /vault/secrets/envvar && java -jar /{{ .Values.vaultInjector.jarName }}']
+          args: ['source /vault/secrets/envvar && java -jar /usr/app/{{ .Values.vaultInjector.jarName }}']
           {{ else }}          
           {{- with .Values.envs }}            
           env:

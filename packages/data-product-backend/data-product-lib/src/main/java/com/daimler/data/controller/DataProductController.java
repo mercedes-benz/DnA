@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
@@ -195,11 +196,17 @@ public class DataProductController implements DataproductsApi{
         produces = { "application/json" },
         consumes = { "application/json" },
         method = RequestMethod.GET)
-    public ResponseEntity<DataProductCollection> getAll(@ApiParam(value = "Filtering dataproduct based on publish state. Draft or published, values true or false") @Valid @RequestParam(value = "published", required = false) Boolean published,
+    public ResponseEntity<DataProductCollection> getAll(
+		    @ApiParam(value = "Filtering dataproduct based on publish state. Draft or published, values true or false") @Valid @RequestParam(value = "published", required = false) Boolean published,
+			@ApiParam(value = "List of IDs of ART of dataproduct, seperated by comma. Example 1,2,3") @Valid @RequestParam(value = "art", required = false) String art,
+			@ApiParam(value = "List of IDs of Carla Functions of dataproduct, seperated by comma. Example 1,2,3") @Valid @RequestParam(value = "carlafunction", required = false) String carlafunction,
+			@ApiParam(value = "List of IDs of Platform of dataproduct, seperated by comma. Example 1,2,3") @Valid @RequestParam(value = "platform", required = false) String platform,
+			@ApiParam(value = "List of IDs of Frontend-Tools of dataproduct, seperated by comma. Example 1,2,3") @Valid @RequestParam(value = "frontendTools", required = false) String frontendTool,
+			@ApiParam(value = "List of Short IDs of Product Owner of dataproduct, seperated by comma. Example 1,2,3") @Valid @RequestParam(value = "productOwner", required = false) String productOwner,
     		@ApiParam(value = "page number from which listing of dataproducts should start.") @Valid @RequestParam(value = "offset", required = false) Integer offset,
     		@ApiParam(value = "page size to limit the number of dataproducts.") @Valid @RequestParam(value = "limit", required = false) Integer limit,
     		@ApiParam(value = "Sort dataproducts by a given variable.", allowableValues = "dataProductName, dataProductId") @Valid @RequestParam(value = "sortBy", required = false) String sortBy,
-    		@ApiParam(value = "Sort dataproducts based on the given order, example asc,desc", allowableValues = "asc, desc") @Valid @RequestParam(value = "sortOrder", required = false) String sortOrder){
+    		@ApiParam(value = "Sort dataproducts based on the given order, example asc,desc", allowableValues = "asc, desc") @Valid @RequestParam(value = "sortOrder", required = false) String sortOrder ){
     	try {
 			DataProductCollection dataProductCollection = new DataProductCollection();
 
@@ -216,14 +223,49 @@ public class DataProductController implements DataproductsApi{
 				sortOrder = "asc";
 			}
 
+			String[] productOwners = null;
+			List<String> productOwnerList = new ArrayList<>();
+			if (productOwner != null && !"".equals(productOwner))
+				productOwners = productOwner.split(",");
+			if (productOwners != null && productOwners.length > 0)
+				productOwnerList = Arrays.asList(productOwners);
+
+			String[] arts = null;
+			List<String> artsList = new ArrayList<>();
+			if (art != null && !"".equals(art))
+				arts = art.split(",");
+			if (arts != null && arts.length > 0)
+				artsList = Arrays.asList(arts);
+		
+			String[] carlafunctions = null;
+			List<String> carlafunctionsList = new ArrayList<>();
+			if (carlafunction != null && !"".equals(carlafunction))
+				carlafunctions = carlafunction.split(",");
+			if (carlafunctions != null && carlafunctions.length > 0)
+				carlafunctionsList = Arrays.asList(carlafunctions);
+
+			String[] platforms = null;
+			List<String> platformsList = new ArrayList<>();
+			if (platform != null && !"".equals(platform))
+				platforms = platform.split(",");
+			if (platforms != null && platforms.length > 0)
+				platformsList = Arrays.asList(platforms);
+
+			String[] frontendTools = null;
+			List<String> frontendToolsList = new ArrayList<>();
+			if (frontendTool != null && !"".equals(frontendTool))
+				frontendTools = frontendTool.split(",");
+			if (frontendTools != null && frontendTools.length > 0)
+				frontendToolsList = Arrays.asList(frontendTools);
+
 			String recordStatus = ConstantsUtility.OPEN;
 
-			Long count = service.getCount(published, recordStatus);
+			Long count = service.getCount(published, recordStatus, artsList, carlafunctionsList, platformsList, frontendToolsList, productOwnerList);
 			if (count < offset)
 				offset = 0;
 
 			List<DataProductVO> dataProducts = service.getAllWithFilters(published, offset, limit, sortBy,
-					sortOrder, recordStatus);
+					sortOrder, recordStatus, artsList, carlafunctionsList, platformsList, frontendToolsList, productOwnerList);
 			log.info("DataProducts fetched successfully");
 			if (!ObjectUtils.isEmpty(dataProducts)) {
 				dataProductCollection.setTotalCount(count.intValue());

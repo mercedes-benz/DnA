@@ -47,6 +47,7 @@
         &.opened {
           max-height: initial !important;
           transition: height 0.25s;
+          height: auto !important;
 
           > .sub-nav-list {
             opacity: 1;

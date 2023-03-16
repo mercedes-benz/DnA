@@ -109,12 +109,6 @@ paths:
    description:  "Get all department. This endpoints will be used to get all valid available department records."
    operationId: "getAll"
    parameters:
-        - name: sortBy
-          in: query
-          description: Sort departments by a given variable like departmentName
-          required: false
-          type: string
-          enum: [tagName]
         - name: sortOrder
           in: query
           description: Sort departments based on the given order, example asc,desc
