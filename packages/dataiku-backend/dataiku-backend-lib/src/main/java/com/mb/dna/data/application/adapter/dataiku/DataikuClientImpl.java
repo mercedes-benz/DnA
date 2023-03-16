@@ -102,6 +102,7 @@ public class DataikuClientImpl implements DataikuClient {
 					log.info("Updated scenario for projectName {} with response {} ",projectName, responseBody.get().getMsg());
 				}
 			}
+			client.close();
 			return null;
 		}catch(Exception e) {
 			log.error("Failed while updating scenario for project {} with exception {} ",projectName, e.getMessage());
