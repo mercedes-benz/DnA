@@ -19,10 +19,14 @@ const DataProductCardItem = ({ product, history, user, isDataProduct = false }) 
   const dispatch = useDispatch();
 
   const isProviderFormSubmitted = product?.providerInformation?.providerFormSubmitted;
-  const isCreator = product.providerInformation?.createdBy?.id === user?.id;
+  const isCreator = product?.providerInformation?.createdBy?.id === user?.id;
 
   const name = product?.providerInformation?.contactInformation?.name;
   const productOwnerName = `${name?.firstName} ${name?.lastName}`;
+
+  const usersAllowedToModify =
+    product?.providerInformation?.contactInformation?.informationOwner?.shortId === user?.id ||
+    name?.shortId === user?.id;
 
   const consumerFormCreatedBy = product?.consumerInformation?.createdBy;
   const consumerName = `${consumerFormCreatedBy?.firstName} ${consumerFormCreatedBy?.lastName}`;
@@ -44,11 +48,17 @@ const DataProductCardItem = ({ product, history, user, isDataProduct = false }) 
 
   const deleteDataTransferAccept = () => {
     ProgressIndicator.show();
-    dataTransferApi.deleteDataTransfer(product?.id).then(() => {
-      dispatch(GetDataTransfers());
-      setShowDeleteModal(false);
-      Notification.show(`${product?.dataTransferName} deleted successfully.`);
-    });
+    dataTransferApi
+      .deleteDataTransfer(product?.id)
+      .then(() => {
+        dispatch(GetDataTransfers());
+        setShowDeleteModal(false);
+        Notification.show(`${product?.dataTransferName} deleted successfully.`);
+      })
+      .catch(() => {
+        ProgressIndicator.hide();
+        Notification.show('Error while deleting the data transfer', 'alert');
+      });
   };
   const deleteDataTransferClose = () => {
     setShowDeleteModal(false);
@@ -128,10 +138,10 @@ const DataProductCardItem = ({ product, history, user, isDataProduct = false }) 
                 </div>
               )}
             </div>
-            <div className={!product.publish ? Styles.disabled : ''}>
+            <div className={!product?.publish ? Styles.disabled : ''}>
               <label>Consumer</label>
-              {product.publish ? (
-                <span>{product.consumerInformation?.contactInformation?.appId || '-'}</span>
+              {product?.publish ? (
+                <span>{product?.consumerInformation?.contactInformation?.appId || '-'}</span>
               ) : (
                 <span>pending...</span>
               )}
@@ -141,7 +151,7 @@ const DataProductCardItem = ({ product, history, user, isDataProduct = false }) 
         {!isDataProduct ? (
           <div className={Styles.cardFooter}>
             <div className={Styles.btnGrp}>
-              {isCreator ? (
+              {isCreator || usersAllowedToModify ? (
                 <>
                   <button className="btn btn-primary" onClick={() => setShowDeleteModal(true)}>
                     <i className="icon mbc-icon delete-new" tooltip-data="Delete"></i>

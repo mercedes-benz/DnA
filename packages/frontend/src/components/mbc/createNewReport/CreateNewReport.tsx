@@ -63,6 +63,7 @@ import { ReportsApiClient } from '../../../services/ReportsApiClient';
 import { serializeReportRequestBody } from './utility/Utility';
 import { USER_ROLE } from 'globals/constants';
 import { TeamMemberType } from 'globals/Enums';
+import Caption from '../shared/caption/Caption';
 
 const classNames = cn.bind(Styles);
 export interface ICreateNewReportState {
@@ -468,7 +469,7 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
         <div className={classNames(Styles.mainPanel)}>
           <div className={Styles.flexLayout}>
             <div>
-              <div className={Styles.screenLabel}>{this.state.report.reportId ? 'Edit Report' : 'Create Report'}</div>
+              <Caption title={this.state.report.reportId ? 'Edit Report' : 'Create Report'} />
             </div>
             {!this.state.report.reportId && currentTab === 'description' ? (
               <div className={Styles.switchButton}>
@@ -548,7 +549,7 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
                       }
                     >
                       <a href="#tab-content-3" id="kpi" onClick={this.setCurrentTab}>
-                        KPIs
+                        Content &amp; Functions
                       </a>
                     </li>
                     <li
@@ -559,7 +560,7 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
                       }
                     >
                       <a href="#tab-content-4" id="datafunction" onClick={this.setCurrentTab}>
-                        Data & Functions
+                        Data
                       </a>
                     </li>
                     <li
@@ -781,7 +782,6 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
     // this.state.report.openSegments.push('Description');
     this.setState({ publishFlag: true });
     this.callApiToSave(true, null);
-    history.push('/allreports');
   };
   protected saveDescription = () => {
     this.state.report.openSegments.push('Description');
@@ -898,14 +898,18 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
                 response,
               },
               () => {
-                this.setState({
-                  // currentStateHash: btoa(unescape(encodeURIComponent(JSON.stringify(this.state.report)))),
-                  // currentStateHash: JSON.stringify(this.state.report),
-                  currentState: JSON.parse(JSON.stringify(this.state.report)),
-                });
-                this.setOpenTabs(report.openSegments);
-                this.setTabsAndClick(nextTab);
                 this.showNotification(isPublished);
+                if (report.usingQuickPath) {
+                  history.push('/allreports');
+                } else {
+                  this.setState({
+                    // currentStateHash: btoa(unescape(encodeURIComponent(JSON.stringify(this.state.report)))),
+                    // currentStateHash: JSON.stringify(this.state.report),
+                    currentState: JSON.parse(JSON.stringify(this.state.report)),
+                  });
+                  this.setOpenTabs(report.openSegments);
+                  this.setTabsAndClick(nextTab);
+                }
               },
             );
           }

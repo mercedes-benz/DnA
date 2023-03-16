@@ -1,0 +1,116 @@
+.content {
+  padding-top: 8px;
+  .formGroup {
+    .permissionField {
+      display: flex;
+      margin-left: -10px;
+      input[type="checkbox"]::after {
+          border: none;
+      }
+    }
+    .checkBoxDisable {
+      pointer-events: none;
+      opacity: 0.5;
+      cursor: default;
+    }
+    .flexLayout {
+      display: flex;
+      justify-content: space-between;
+      > div {
+        width: calc(50% - 30px);
+      }
+    }
+  }
+}
+.membersList {
+  padding: 0 15px 0 0;
+  max-height: 225px;
+  min-height: 225px;
+  overflow-y: auto;
+  overflow-x: hidden;
+
+  &::-webkit-scrollbar-thumb {
+    background: #00adef;
+    border-radius: 10px;
+  }
+  &::-webkit-scrollbar-track {
+    background: #293f55;
+  }
+  &::-webkit-scrollbar {
+    width: 5px;
+    height: 5px;
+  }
+}
+.noMembers p {
+  margin: 0;
+  text-align: center;
+  color: #99a5b3;
+}
+.btnContainer {
+    display: flex;
+    justify-content: flex-end;
+}
+.modalSubTitle {
+    border-top: 1px solid #383f49;
+    margin: 8px 0 0;
+    padding-top: 18px;
+    font-size: 15px;
+    padding-bottom: 12px;
+}
+
+.teamListWrapper {
+  margin: 8px -25px 0 -35px;
+
+  .avatarIcon {
+    width: 55px;
+    height: 55px;
+  }
+
+  .addTeamMemberWrapper {
+    min-height: 68px;
+    padding-left: 40px;
+
+    button {
+      padding: 0;
+      margin: 0 0 0 30px;
+      background: none;
+      border: none;
+      outline: none;
+      color: #c0c8d0;
+      vertical-align: middle;
+
+      i {
+        vertical-align: top;
+        margin-right: 10px;
+        color: #00adef;
+      }
+
+      &:hover span {
+        text-decoration: underline;
+      }
+    }
+  }
+}
+
+.collabAvatar {
+  padding: 0 25px 25px 0;
+  max-height: calc(90vh - 110px);
+  overflow-y: auto;
+  overflow-x: hidden;
+
+  &::-webkit-scrollbar-thumb {
+    background: #00adef;
+    border-radius: 10px;
+  }
+  &::-webkit-scrollbar-track {
+    background: #293f55;
+  }
+  &::-webkit-scrollbar {
+    width: 5px;
+    height: 5px;
+  }
+}
+
+.projectWrapper {
+  padding: 10px 0;
+}

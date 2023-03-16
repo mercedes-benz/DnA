@@ -36,12 +36,32 @@ public class UserNotificationPrefAssembler  implements GenericAssembler<UserNoti
 				vo.setDashboardNotificationPref(dashboarNotificationPrefVO);
 				
 				NotificationPreference dataComplianceNotificationPrefJson = data.getDataComplianceNotificationPref();
-				NotificationPreferenceVO dataComplianceNotificationPrefVO = this.toNotificationPrefVO(dataComplianceNotificationPrefJson);
+				NotificationPreferenceVO dataComplianceNotificationPrefVO = new NotificationPreferenceVO();
+				if(dataComplianceNotificationPrefJson != null) {
+					dataComplianceNotificationPrefVO.setEnableAppNotifications(dataComplianceNotificationPrefJson.isEnableAppNotifications());
+					dataComplianceNotificationPrefVO.setEnableEmailNotifications(dataComplianceNotificationPrefJson.isEnableEmailNotifications());
+				}
+				else {
+					dataComplianceNotificationPrefVO.setEnableAppNotifications(true);
+					dataComplianceNotificationPrefVO.setEnableEmailNotifications(true);
+				}
 				vo.setDataComplianceNotificationPref(dataComplianceNotificationPrefVO);
 				
 				NotificationPreference dataProductNotificationPrefJson = data.getDataProductNotificationPref();
-				NotificationPreferenceVO dataProductNotificationPrefVO = this.toNotificationPrefVO(dataProductNotificationPrefJson);
+				NotificationPreferenceVO dataProductNotificationPrefVO = new NotificationPreferenceVO();
+				if(dataProductNotificationPrefJson != null) {
+					dataProductNotificationPrefVO.setEnableAppNotifications(dataProductNotificationPrefJson.isEnableAppNotifications());
+					dataProductNotificationPrefVO.setEnableEmailNotifications(dataProductNotificationPrefJson.isEnableEmailNotifications());
+				}
+				else {
+					dataProductNotificationPrefVO.setEnableAppNotifications(true);
+					dataProductNotificationPrefVO.setEnableEmailNotifications(true);
+				}
 				vo.setDataProductNotificationPref(dataProductNotificationPrefVO);
+				
+				NotificationPreference chronosNotificationPrefJson = data.getChronosNotificationPref();
+				NotificationPreferenceVO chronosNotificationPrefVO = this.toNotificationPrefVO(chronosNotificationPrefJson);
+				vo.setChronosNotificationPref(chronosNotificationPrefVO);
 				
 				vo.setUserId(data.getUserId());
 			}
@@ -82,6 +102,8 @@ public class UserNotificationPrefAssembler  implements GenericAssembler<UserNoti
 			NotificationPreference dataProductPreference = this.toNotificationPrefJson(vo.getDataProductNotificationPref());
 			userNotificationPreferenceJsonb.setDataProductNotificationPref(dataProductPreference);
 			userNotificationPreferenceJsonb.setTermsOfUse(vo.isTermsOfUse());
+			NotificationPreference chronosNotificationPreference = this.toNotificationPrefJson(vo.getChronosNotificationPref());
+			userNotificationPreferenceJsonb.setChronosNotificationPref(chronosNotificationPreference);
 			entity.setId(vo.getId());
 		}
 		entity.setData(userNotificationPreferenceJsonb);

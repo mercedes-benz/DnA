@@ -564,7 +564,7 @@ export default class Description extends React.Component<IDescriptionProps, IDes
                           className={classNames('input-field-group include-error', locationError.length ? 'error' : '')}
                         >
                           <label id="locationLabel" className="input-label" htmlFor="locationSelect">
-                            Location<sup>*</sup>
+                            Location <sup>*</sup>
                           </label>
                           <div id="location" className="custom-select">
                             <select
@@ -595,7 +595,7 @@ export default class Description extends React.Component<IDescriptionProps, IDes
                         className={classNames('input-field-group', businessGoalValError.length ? 'error' : '')}
                       >
                         <label id="businessGoalLabel" className="input-label" htmlFor="businessGoalSelect">
-                          Business Goals<sup>*</sup>
+                          Business Goals <sup>*</sup>
                         </label>
                         <div id="businessGoal" className=" custom-select">
                           <select
@@ -653,7 +653,7 @@ export default class Description extends React.Component<IDescriptionProps, IDes
                           className={classNames('input-field-group include-error', divisionError.length ? 'error' : '')}
                         >
                           <label id="divisionLabel" className="input-label" htmlFor="divisionSelect">
-                            Division<sup>*</sup>
+                            Division <sup>*</sup>
                           </label>
                           <div id="division" className="custom-select">
                             <select
@@ -717,7 +717,7 @@ export default class Description extends React.Component<IDescriptionProps, IDes
                           className={classNames('input-field-group include-error', statusError.length ? 'error' : '')}
                         >
                           <label id="statusLabel" className="input-label" htmlFor="statusSelect">
-                            Status<sup>*</sup>
+                            Status <sup>*</sup>
                           </label>
                           <div id="status" className="custom-select">
                             <select

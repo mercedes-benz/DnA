@@ -151,23 +151,23 @@ swaggerSources {
         }
     }
     
-    department {
-        def departmentyaml = "${rootDir}/dnambc-lib/src/main/resources/api/Department.yaml"
-        def departmentJson = "${rootDir}/dnambc-lib/src/main/resources/api/Department.json"
-        inputFile = file(departmentyaml)
+    marketingRole {
+        def marketingRoleyaml = "${rootDir}/dnambc-lib/src/main/resources/api/MarketingRole.yaml"
+        def marketingRoleJson = "${rootDir}/dnambc-lib/src/main/resources/api/MarketingRole.json"
+        inputFile = file(marketingRoleyaml)
 
         def ignoreFile = "${rootDir}/dnambc-lib/src/main/resources/api/.swagger-codegen-ignore"
 
         code {
             language = 'spring'
-            configFile = file(departmentJson)
+            configFile = file(marketingRoleJson)
             rawOptions = ['--ignore-file-override', ignoreFile]
 
             components = ['models', 'apis']
             //dependsOn validation
         }
     }
-
+       
     datasource {
         def datasourceyaml = "${rootDir}/dnambc-lib/src/main/resources/api/DataSource.yaml"
         def datasourceJson = "${rootDir}/dnambc-lib/src/main/resources/api/DataSource.json"
@@ -615,8 +615,8 @@ compileJava {
     source "${swaggerSources.customerJourneyPhase.code.outputDir}/src/main/java"
     dependsOn swaggerSources.marketingCommunicationChannel.code
     source "${swaggerSources.marketingCommunicationChannel.code.outputDir}/src/main/java"
-    dependsOn swaggerSources.department.code
-    source "${swaggerSources.department.code.outputDir}/src/main/java"
+    dependsOn swaggerSources.marketingRole.code
+    source "${swaggerSources.marketingRole.code.outputDir}/src/main/java"    
     dependsOn swaggerSources.datasource.code
     source "${swaggerSources.datasource.code.outputDir}/src/main/java"
     dependsOn swaggerSources.datavolume.code
@@ -683,7 +683,7 @@ sourceSets {
         java { srcDirs += "${swaggerSources.algorithm.code.outputDir}/src/main/java" }
         java { srcDirs += "${swaggerSources.customerJourneyPhase.code.outputDir}/src/main/java" }
         java { srcDirs += "${swaggerSources.marketingCommunicationChannel.code.outputDir}/src/main/java" }
-        java { srcDirs += "${swaggerSources.department.code.outputDir}/src/main/java" }
+        java { srcDirs += "${swaggerSources.marketingRole.code.outputDir}/src/main/java" }
         java { srcDirs += "${swaggerSources.datasource.code.outputDir}/src/main/java" }
         java { srcDirs += "${swaggerSources.datavolume.code.outputDir}/src/main/java" }
         java { srcDirs += "${swaggerSources.division.code.outputDir}/src/main/java" }

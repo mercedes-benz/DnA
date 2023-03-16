@@ -100,7 +100,7 @@
   margin: 10px 0;
 }
 
-.isCarlaCertified {
+.upperTag {
   background: #00adef;
   padding: 0 10px;
   font-size: var(--font-size-small);
@@ -110,4 +110,5 @@
   top: 10px;
   right: 10px;
   border-color: transparent;
+  pointer-events: none;
 }

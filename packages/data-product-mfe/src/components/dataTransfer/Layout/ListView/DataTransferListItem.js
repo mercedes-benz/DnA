@@ -26,6 +26,10 @@ const DataTransferListItem = ({ product, history, user }) => {
   const name = product?.providerInformation?.contactInformation?.name;
   const productOwnerName = `${name?.firstName} ${name?.lastName}`;
 
+  const usersAllowedToModify =
+    product.providerInformation?.contactInformation?.informationOwner?.shortId === user?.id ||
+    name?.shortId === user?.id;
+
   useEffect(() => {
     Tooltip.defaultSetup();
   }, []);
@@ -46,12 +50,18 @@ const DataTransferListItem = ({ product, history, user }) => {
   );
   const deleteDataTransferAccept = () => {
     ProgressIndicator.show();
-    dataTransferApi.deleteDataTransfer(product?.id).then(() => {
-      dispatch(GetDataTransfers());
-      setShowContextMenu(false);
-      setShowDeleteModal(false);
-      Notification.show(`${product?.dataTransferName} deleted successfully.`);
-    });
+    dataTransferApi
+      .deleteDataTransfer(product?.id)
+      .then(() => {
+        dispatch(GetDataTransfers());
+        setShowContextMenu(false);
+        setShowDeleteModal(false);
+        Notification.show(`${product?.dataTransferName} deleted successfully.`);
+      })
+      .catch(() => {
+        ProgressIndicator.hide();
+        Notification.show('Error while deleting the data transfer', 'alert');
+      });
   };
   const deleteDataTransferClose = () => {
     setShowDeleteModal(false);
@@ -108,7 +118,7 @@ const DataTransferListItem = ({ product, history, user }) => {
               className={classNames('contextMenuWrapper', showContextMenu ? '' : 'hide')}
             >
               <ul className="contextList">
-                {isCreator ? (
+                {isCreator || usersAllowedToModify ? (
                   <>
                     <li className="contextListItem">
                       <span onClick={() => history.push(`/datasharing/edit/${product?.dataTransferId}`)}>Edit</span>

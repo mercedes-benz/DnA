@@ -124,7 +124,7 @@ const ConsumerForm = ({ user, history, isDataProduct = false, callbackFn }) => {
 
   useEffect(() => {
     if (providerFormIsDraft)
-      Notification.show('Provider form is still in Draft. Please reach out to Information Owner', 'warning');
+      Notification.show('Provider form is still in Draft. Please reach out to Data responsible IO and/or Business Owner for application', 'warning');
   }, [providerFormIsDraft]);
 
   const getDataProductById = () => {

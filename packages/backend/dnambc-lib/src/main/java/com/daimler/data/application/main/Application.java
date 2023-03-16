@@ -43,7 +43,8 @@ import org.springframework.web.WebApplicationInitializer;
 		"com.daimler.data.task", "com.daimler.data.adapter.jupyter", "com.daimler.data.application.itsmm",
 		"com.daimler.data.application.filter", "com.daimler.data.client.dataiku",
 		"com.daimler.data.application.intercepter", "com.daimler.dna.notifications",
-		"com.daimler.data.application.logging", "com.daimler.data.client.dashboard" })
+		"com.daimler.data.application.logging", "com.daimler.data.client.dashboard",
+		"com.daimler.data.adapter.hasura","com.daimler.data.client.teamsApi"})
 public class Application extends SpringBootServletInitializer implements WebApplicationInitializer {
 
 	private static final Logger LOG = LoggerFactory.getLogger(Application.class);

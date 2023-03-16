@@ -65,6 +65,7 @@ import com.daimler.data.db.jsonb.solution.CurrentPhase;
 import com.daimler.data.db.jsonb.solution.Factor;
 import com.daimler.data.db.jsonb.solution.FileDetails;
 import com.daimler.data.db.jsonb.solution.LogoDetails;
+import com.daimler.data.db.jsonb.solution.MarketingRoleSummary;
 import com.daimler.data.db.jsonb.solution.RampUpYear;
 import com.daimler.data.db.jsonb.solution.SkillSummary;
 import com.daimler.data.db.jsonb.solution.Solution;
@@ -111,6 +112,7 @@ import com.daimler.data.dto.solution.CreatedByVO;
 import com.daimler.data.dto.solution.DataSourceSummaryVO;
 import com.daimler.data.dto.solution.LinkVO;
 import com.daimler.data.dto.solution.LogoDetailsVO;
+import com.daimler.data.dto.solution.MarketingRoleSummaryVO;
 import com.daimler.data.dto.solution.MilestoneVO;
 import com.daimler.data.dto.solution.PersonalizationVO;
 import com.daimler.data.dto.solution.SkillSummaryVO;
@@ -374,6 +376,14 @@ public class SolutionAssembler implements GenericAssembler<SolutionVO, SolutionN
 			marketingVO.setMarketingCommunicationChannels(marketingCommunicationChannelsVO);
 			marketingVO.setPersonalization(personalizationVO);
 			marketingVO.setPersonas(solution.getPersonas());
+			//setting MarketingRoleSummaryVO
+			List<MarketingRoleSummaryVO> rolesVO = new ArrayList<>();
+			if(!ObjectUtils.isEmpty(solution.getMarketingRoles())) {
+				rolesVO = solution.getMarketingRoles().stream().map(n -> toMarketingRoleSummaryVO(n))
+						.collect(Collectors.toList());	
+			}
+			marketingVO.setMarketingRoles(rolesVO);;
+			
 			vo.setMarketing(marketingVO);	
 			
 			//setting Department details
@@ -676,6 +686,20 @@ public class SolutionAssembler implements GenericAssembler<SolutionVO, SolutionN
 		}
 		return skillSummaryVO;
 	}
+	
+	/*
+	 * To convert MArketingRoleSummary to MArketingRoleSummaryVO
+	 */
+	private MarketingRoleSummaryVO toMarketingRoleSummaryVO(MarketingRoleSummary marketingRoleSummary) {
+		MarketingRoleSummaryVO roleSummaryVO = null;
+		if(marketingRoleSummary != null) {
+			roleSummaryVO = new MarketingRoleSummaryVO();
+			BeanUtils.copyProperties(marketingRoleSummary, roleSummaryVO);
+		}
+		return roleSummaryVO;
+	}
+	
+
 
 	private TeamMemberVO toTeamMemberVO(SolutionTeamMember teamMember) {
 		TeamMemberVO teamMemberVO = new TeamMemberVO();
@@ -984,7 +1008,14 @@ public class SolutionAssembler implements GenericAssembler<SolutionVO, SolutionN
 			solution.setDepartment(vo.getDepartment());
 			
 			SolutionMarketingVO marketingVO = vo.getMarketing();
+			List<MarketingRoleSummary> roleSummary = new ArrayList<>();
 			if(marketingVO != null) {
+				List<MarketingRoleSummaryVO> marketingRoles = marketingVO.getMarketingRoles();
+				if (marketingRoles != null && marketingRoles.size() > 0) {
+					roleSummary = marketingRoles.stream().map(n -> toMarketingRoleSummary(n))
+							.collect(Collectors.toList());
+				}
+				solution.setMarketingRoles(roleSummary);				
 				solution.setPersonas(marketingVO.getPersonas());
 				PersonalizationVO personalizationVO = marketingVO.getPersonalization();
 				SolutionPersonalization personalization = new SolutionPersonalization();
@@ -1288,6 +1319,18 @@ public class SolutionAssembler implements GenericAssembler<SolutionVO, SolutionN
 			BeanUtils.copyProperties(skillSummaryVO, skillSummary);
 		}
 		return skillSummary;
+	}
+	
+	/*
+	 * Converting MarketingRoleSummaryVO to SkillSummary (vo to entity)
+	 */
+	private MarketingRoleSummary toMarketingRoleSummary(MarketingRoleSummaryVO marketingRoleSummaryVO) {
+		MarketingRoleSummary marketingRoleSummary = null;
+		if (marketingRoleSummaryVO != null) {
+			marketingRoleSummary = new MarketingRoleSummary();
+			BeanUtils.copyProperties(marketingRoleSummaryVO, marketingRoleSummary);
+		}
+		return marketingRoleSummary;
 	}
 
 	public SolutionCollection applyBookMarkflag(List<SolutionVO> solutionVOListVO, List<String> bookmarkedSolutions,

@@ -16,6 +16,7 @@ import { dataTransferApi } from '../../../apis/datatransfers.api';
 import { setSelectedDataTransfer, setDivisionList } from '../redux/dataTransferSlice';
 import { SetDataTransfers, UpdateDataTransfers } from '../redux/dataTransfer.services';
 import { deserializeFormData, mapOpenSegments } from '../../../Utility/formData';
+import OtherRelevant from '../../dataTransfer/ProviderForm/OtherRelavantInfo';
 
 import ConfirmModal from 'dna-container/ConfirmModal';
 import SelectBox from 'dna-container/SelectBox';
@@ -78,6 +79,20 @@ const ProviderForm = ({ user, history }) => {
 
   const { id: dataTransferId } = useParams();
   const createCopyId = history.location?.state?.copyId;
+
+  const [errorsInPublish, setErrorsInPublish] = useState({
+    descriptionTabError: [],
+    contactInformationTabError: [],
+    dataDescriptionClassificationTabError: [],
+    personalRelatedDataTabError: [],
+    transnationalDataTabError: [],
+    deletionRequirementsTabError: []
+  });
+
+  const [showAllTabsError, setShowAllTabsError] = useState(false);
+  const [showContactInformationTabError, setShowContactInformationTabError] = useState(false);
+  const [isTouChecked, setIsTouChecked] = useState(false);
+
 
   // set default value of "Name" field as logged in user name
 
@@ -169,6 +184,11 @@ const ProviderForm = ({ user, history }) => {
   }, [dispatch, provideDataTransfers.selectedDataTransfer, isCreatePage]);
 
   useEffect(() => {
+    validatePublishRequest(provideDataTransfers.selectedDataTransfer);
+    //eslint-disable-next-line
+  },[provideDataTransfers.selectedDataTransfer])
+
+  useEffect(() => {
     ProgressIndicator.show();
     hostServer.get('/divisions').then((res) => {
       setDivisions(res.data);
@@ -213,7 +233,201 @@ const ProviderForm = ({ user, history }) => {
     }
   };
 
-  const onSave = (currentTab, values, callbackFn) => {
+  function validatePublishRequest (reqObj) {
+    let formValid = true;
+    const errorObject = {
+      contactInformationTabError: [],
+      dataDescriptionClassificationTabError: [],
+      personalRelatedDataTabError: [],
+      transnationalDataTabError: [],
+      deletionRequirementsTabError: []
+    }
+
+    if (!reqObj?.productName || reqObj?.productName === '') {
+      errorObject.contactInformationTabError.push('Data Product Name / Short description of the data transfer');
+      formValid = false;
+    }
+
+    if (!reqObj?.informationOwner || reqObj?.informationOwner === '') {
+      errorObject.contactInformationTabError.push('Data responsible IO and/or Business Owner for application');
+      formValid = false;
+    }
+
+    if (!reqObj?.name?.firstName || reqObj?.name?.firstName === '') {
+      errorObject.contactInformationTabError.push('Point of contact for data transfer');
+      formValid = false;
+    }
+
+    if (!reqObj?.division || reqObj?.division === '0') {
+      errorObject.contactInformationTabError.push('Division');
+      formValid = false;
+    }
+
+    if (!reqObj?.department || reqObj?.department === '') {
+      errorObject.contactInformationTabError.push('Department');
+      formValid = false;
+    }
+
+    if (!reqObj?.dateOfDataTransfer || reqObj?.dateOfDataTransfer === '') {
+      errorObject.contactInformationTabError.push('Date of Data Transfer');
+      formValid = false;
+    }
+    
+    if (!reqObj?.complianceOfficer || reqObj?.complianceOfficer === '') {
+      errorObject.contactInformationTabError.push('Corresponding Compliance Officer / Responsible (LCO/LCR)');
+      formValid = false;
+    }
+
+    if (!reqObj?.classificationOfTransferedData || reqObj?.classificationOfTransferedData === '') {
+      errorObject.dataDescriptionClassificationTabError.push('Description of transfered data');
+      formValid = false;
+    }
+
+    if (!reqObj?.confidentiality || reqObj?.confidentiality === '') {
+      errorObject.dataDescriptionClassificationTabError.push('Confidentiality');
+      formValid = false;
+    }
+
+    if (!reqObj?.personalRelatedData || reqObj?.personalRelatedData === '') {
+      errorObject.personalRelatedDataTabError.push('Is data personal related');
+      formValid = false;
+    }
+
+    if (reqObj?.personalRelatedData === 'Yes') {
+      if (!reqObj?.personalRelatedDataDescription || reqObj?.personalRelatedDataDescription === '') {
+        errorObject.personalRelatedDataTabError.push('Description of personal related data');
+        formValid = false;
+      }
+
+      if (!reqObj?.personalRelatedDataPurpose || reqObj?.personalRelatedDataPurpose === '') {
+        errorObject.personalRelatedDataTabError.push('Original (business) purpose of processing this personal related data');
+        formValid = false;
+      }
+
+      if (!reqObj?.personalRelatedDataLegalBasis || reqObj?.personalRelatedDataLegalBasis === '') {
+        errorObject.personalRelatedDataTabError.push('Original legal basis for processing this personal related data');
+        formValid = false;
+      }
+    }
+
+
+    if (!reqObj?.transnationalDataTransfer || reqObj?.transnationalDataTransfer === '') {
+      errorObject.transnationalDataTabError.push('Is data being transferred from one country to another?');
+      formValid = false;
+    }
+
+    if (!reqObj?.insiderInformation || reqObj?.insiderInformation === '') {
+      errorObject.transnationalDataTabError.push('Does data product contain (potential) insider information?');
+      formValid = false;
+    }
+
+    if (!reqObj?.dataOriginatedFromChina || reqObj?.dataOriginatedFromChina === '') {
+      errorObject.transnationalDataTabError.push('Is data from China included?');
+      formValid = false;
+    }
+
+    if (!reqObj?.deletionRequirement || reqObj?.deletionRequirement === '') {
+      errorObject.deletionRequirementsTabError.push('Are there specific deletion requirements for this data?');
+      formValid = false;
+    }
+
+    if (reqObj?.deletionRequirement === 'Yes') {
+      if (!reqObj?.deletionRequirementDescription || reqObj?.deletionRequirementDescription === '') {
+        errorObject.deletionRequirementsTabError.push('Is data from China included?');
+        formValid = false;
+      }
+    }
+
+    if (!reqObj?.tou || reqObj?.tou === false) {
+      errorObject.deletionRequirementsTabError.push('Terms and conditions acknowledgement');
+      formValid = false;
+    }
+
+    setErrorsInPublish(errorObject);
+    
+    // setTimeout(() => {
+    //   // const anyErrorDetected = document.querySelector('.error');
+    //   // anyErrorDetected?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    // }, 1000);
+    return formValid;
+  };
+
+  function validateContactInformationTab (reqObj) {
+    let formValid = true;
+    const errorObject = {
+      contactInformationTabError: [],
+      deletionRequirementsTabError: [],
+      ...errorsInPublish 
+    }
+
+    if (!reqObj?.productName?.message === '*Missing entry') {
+      !errorObject.contactInformationTabError.includes('Data Product Name / Short description of the data transfer') ? 
+      errorObject.contactInformationTabError.push('Data Product Name / Short description of the data transfer')
+      :'';
+      formValid = false;
+    }
+
+    if (reqObj?.informationOwner?.message === '*Missing entry') {
+      !errorObject.contactInformationTabError.includes('Data responsible IO and/or Business Owner for application')?
+      errorObject.contactInformationTabError.push('Data responsible IO and/or Business Owner for application')
+      :'';
+      formValid = false;
+    }
+
+    if (reqObj?.name?.firstName?.message === '*Missing entry') {
+      !errorObject.contactInformationTabError.includes('Point of contact for data transfer')?
+      errorObject.contactInformationTabError.push('Point of contact for data transfer')
+      :'';
+      formValid = false;
+    }
+
+    if (reqObj?.division?.message === '*Missing entry') {
+      !errorObject.contactInformationTabError.includes('Division')?
+      errorObject.contactInformationTabError.push('Division')
+      :'';
+      formValid = false;
+    }
+
+    if (reqObj?.department?.message === '*Missing entry') {
+      !errorObject.contactInformationTabError.includes('Department')?
+      errorObject.contactInformationTabError.push('Department')
+      :'';
+      formValid = false;
+    }
+
+    if (reqObj?.dateOfDataTransfer?.message === '*Missing entry') {
+      !errorObject.contactInformationTabError.includes('Date of Data Transfer')?
+      errorObject.contactInformationTabError.push('Date of Data Transfer')
+      :'';
+      formValid = false;
+    }
+    
+    if (reqObj?.complianceOfficer?.message === '*Missing entry') {
+      !errorObject.contactInformationTabError.includes('Corresponding Compliance Officer / Responsible (LCO/LCR)')?
+      errorObject.contactInformationTabError.push('Corresponding Compliance Officer / Responsible (LCO/LCR)') : '';
+      formValid = false;
+    }
+
+    if (reqObj?.tou?.message === '*Missing entry') {
+      errorObject.deletionRequirementsTabError.push('Terms and conditions acknowledgement');
+      formValid = false;
+    }
+
+    if(reqObj?.tou === true){
+      setIsTouChecked(true)
+    }
+
+
+    setErrorsInPublish(errorObject);
+
+    if(currentTab === 'contact-info'){
+      validatePublishRequest(reqObj)
+    }
+
+    return formValid;
+  };
+
+  const proceedToSave = (currentTab, values, callbackFn) => {
     const saveSegments = mapOpenSegments[currentTab];
     const openSegments = provideDataTransfers.selectedDataTransfer?.openSegments || [];
     values.openSegments = [...openSegments];
@@ -247,6 +461,43 @@ const ProviderForm = ({ user, history }) => {
       data.state = 'edit';
       dispatch(UpdateDataTransfers(data));
     }
+  }
+
+  const onSave = (currentTab, values, callbackFn) => {
+    setShowAllTabsError(false);
+    if(!values.publish){
+      if(validateContactInformationTab(values)){
+        proceedToSave(currentTab, values, callbackFn)
+      } else {
+        setShowAllTabsError(true);
+      }    
+    } else {
+      if(validatePublishRequest(values)){
+        proceedToSave(currentTab, values, callbackFn)
+      } else {
+        setShowAllTabsError(true);
+      }
+           
+    }
+  };
+
+  const displayErrorOfAllTabs = (tabTitle, tabErrorsList) => {
+    return (
+      tabErrorsList?.length > 0 ?
+        <li className={classNames('error-message')}>
+        {tabTitle}
+          <ul>
+            {tabErrorsList?.map((item) => {
+              return (
+                <li className={Styles.errorItem} key={item}>
+                  {item}
+                </li>
+              );
+            })}
+          </ul>
+        </li>             
+      : ''
+    )
   };
 
   return (
@@ -266,9 +517,10 @@ const ProviderForm = ({ user, history }) => {
           </h3>
           <div id="data-product-tabs" className="tabs-panel">
             <div className="tabs-wrapper">
-              <nav>
+              <nav>              
                 <ul className="tabs">
-                  <li className={savedTabs?.includes('contact-info') ? 'tab valid' : 'tab active'}>
+                  {/* <li className={savedTabs?.includes('contact-info') ? 'tab valid' : 'tab active'}> */}
+                  <li className={errorsInPublish?.contactInformationTabError?.length > 0 ? 'tab' : 'tab valid active'}>  
                     <a
                       href="#tab-content-1"
                       id="contact-info"
@@ -280,7 +532,8 @@ const ProviderForm = ({ user, history }) => {
                       Contact Information
                     </a>
                   </li>
-                  <li className={savedTabs?.includes('classification-confidentiality') ? 'tab valid' : 'tab disabled'}>
+                  {/* <li className={savedTabs?.includes('classification-confidentiality') ? 'tab valid' : 'tab disabled'}> */}
+                  <li className={errorsInPublish?.dataDescriptionClassificationTabError?.length > 0 ? 'tab':'tab valid'}>
                     <a
                       href="#tab-content-2"
                       id="classification-confidentiality"
@@ -289,10 +542,11 @@ const ProviderForm = ({ user, history }) => {
                       }}
                       onClick={setTab}
                     >
-                      Data Description & Classification
+                      Data Description &amp; Classification
                     </a>
                   </li>
-                  <li className={savedTabs?.includes('personal-data') ? 'tab valid' : 'tab disabled'}>
+                  {/* <li className={savedTabs?.includes('personal-data') ? 'tab valid' : 'tab disabled'}> */}
+                  <li className={errorsInPublish?.personalRelatedDataTabError?.length > 0 ? 'tab' :'tab valid'}>
                     <a
                       href="#tab-content-3"
                       id="personal-data"
@@ -304,7 +558,8 @@ const ProviderForm = ({ user, history }) => {
                       Personal Related Data
                     </a>
                   </li>
-                  <li className={savedTabs?.includes('trans-national-data-transfer') ? 'tab valid' : 'tab disabled'}>
+                  {/* <li className={savedTabs?.includes('trans-national-data-transfer') ? 'tab valid' : 'tab disabled'}> */}
+                  <li className={errorsInPublish?.transnationalDataTabError?.length > 0 ? 'tab':'tab valid'}>
                     <a
                       href="#tab-content-4"
                       id="trans-national-data-transfer"
@@ -313,10 +568,14 @@ const ProviderForm = ({ user, history }) => {
                       }}
                       onClick={setTab}
                     >
-                      Trans-national Data
+                      Transnational Data
                     </a>
                   </li>
-                  <li className={savedTabs?.includes('deletion-requirements') ? 'tab valid' : 'tab disabled'}>
+                  {/* <li className={savedTabs?.includes('deletion-requirements') ? 'tab valid' : 'tab disabled'}> */}
+                  <li className={errorsInPublish?.deletionRequirementsTabError?.length > 0
+                    ?  errorsInPublish?.deletionRequirementsTabError?.includes('Terms and conditions acknowledgement') && !isTouChecked
+                        ?'tab': 'tab valid'
+                    :'tab valid'}>
                     <a
                       href="#tab-content-5"
                       id="deletion-requirements"
@@ -325,7 +584,7 @@ const ProviderForm = ({ user, history }) => {
                       }}
                       onClick={setTab}
                     >
-                      Deletion Requirements & Other
+                      Other Data
                     </a>
                   </li>
                 </ul>
@@ -364,6 +623,54 @@ const ProviderForm = ({ user, history }) => {
                 )}
               </div>
             </div>
+            { showAllTabsError && 
+              (
+              errorsInPublish?.contactInformationTabError?.length > 0 ||
+              errorsInPublish?.dataDescriptionClassificationTabError?.length > 0 ||
+              errorsInPublish?.personalRelatedDataTabError?.length > 0 ||
+              errorsInPublish?.transnationalDataTabError?.length > 0 ||
+              errorsInPublish?.deletionRequirementsTabError?.length > 0)
+              ?
+              (
+                <div>
+                  <h3 className={classNames('error-message')}>
+                    Please fill mandatory fields before publish
+                  </h3>
+                  <ul>
+                  {displayErrorOfAllTabs('Contact Information Tab', errorsInPublish?.contactInformationTabError)}
+                  {displayErrorOfAllTabs('Data Description & Classification Tab', errorsInPublish?.dataDescriptionClassificationTabError)}
+                  {displayErrorOfAllTabs('Personal Related Data Tab', errorsInPublish?.personalRelatedDataTabError)}
+                  {displayErrorOfAllTabs('Trans-national Data Tab', errorsInPublish?.transnationalDataTabError)}
+                  {displayErrorOfAllTabs('Deletion Requirement Tab', errorsInPublish?.deletionRequirementsTabError)}  
+                  </ul>
+                </div>
+              ) : ''}
+              { showContactInformationTabError &&
+                errorsInPublish?.contactInformationTabError?.length > 0 ? 
+              (
+                <div>
+                  <h3 className={classNames('error-message')}>
+                    Please fill Contact Information Tab first
+                  </h3>
+                  <ul>
+                  {displayErrorOfAllTabs('Contact Information Tab', errorsInPublish?.contactInformationTabError)}
+                  </ul>
+                </div>
+              ) : ''} 
+            <OtherRelevant onSave={(values) => {onSave(currentTab, values)}} 
+            onDescriptionTabErrors={(errorObj) => {
+                setShowContactInformationTabError(false);
+                (!validateContactInformationTab(errorObj) && (currentTab != 'contact-info')) ? 
+                  setShowContactInformationTabError(true) 
+                :  
+                  setShowContactInformationTabError(false)
+                
+              }
+            }
+            onPublish={(values, callbackFn) => {
+              setShowContactInformationTabError(false);
+              onSave(currentTab, values, callbackFn)}} 
+            user={userInfo} isDataProduct={false} />
           </div>
           <ConfirmModal
             title="Save Changes?"
@@ -380,7 +687,10 @@ const ProviderForm = ({ user, history }) => {
               </div>
             }
             onCancel={() => {
-              getDataProductById();
+              const id = createCopyId || dataTransferId || provideDataTransfers?.selectedDataTransfer?.id;
+              if(id){
+                getDataProductById();
+              }   
               setCurrentTab(showChangeAlert.switchingTab);
               elementRef.current[Object.keys(tabs).indexOf(showChangeAlert.switchingTab)].click();
               setShowChangeAlert({ modal: false, switchingTab: '' });

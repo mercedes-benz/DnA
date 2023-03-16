@@ -1,0 +1,68 @@
+micronaut:
+  application:
+    name: dataiku
+  security:
+    enabled: false
+  router:
+    static-resources:
+      swagger:
+        paths: classpath:META-INF/swagger
+        mapping: /swagger/**
+      swagger-ui:
+        paths: classpath:META-INF/swagger/views/swagger-ui
+        mapping: /swagger-ui/**
+  http:
+    client:
+      ssl:
+        insecureTrustAllCertificates: true  
+  server:
+    port: 7777
+    cors:
+      enabled: true
+jpa:
+  default:
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        temp:
+          use_jdbc_metadata_defaults: false
+        hbm2ddl:
+          auto: update
+        show_sql: true
+        
+datasources:
+  default:
+    url: ${JDBC_URL:XXXX}
+    username: ${JDBC_USER:user_XXXX}
+    password: ${JDBC_PASSWORD:password_XXXX}
+    driver-class-name: ${JDBC_DRIVER:org.postgresql.Driver}
+                
+flyway:
+  enabled: ${FLYWAY_ENABLED:false}
+  datasources:
+    default:
+      enabled: ${FLYWAY_DEFAULTDATASOURCE_ENABLED:false}
+      baseline-on-migrate: ${FLYWAY_BASELINE_ON_MIGRATE:false}
+      baseline-version: ${FLYWAY_BASELINEVERSION:0}
+      schemas: ${FLYWAY_SCHEMA:public}
+            
+dna:
+  uri: ${DNA_URI:XXXX}
+  dnaAuthEnable: ${DNA_AUTH_ENABLE:false}
+  verifyLoginUri: ${DNA_VERIFYLOGIN_URI:XXXX}
+  getUsersUri: ${DNA_GETUSERS_URI:XXXX}
+  jwt: ${JWT_SECRET_KEY:XXXXX}
+  
+dataiku:
+  userPrivilegesAccessKey: ${DATAIKU_USERPRIVILEGES_KEY:XXXX}
+  auth: ${DATAIKU_AUTH:XXXX}
+  baseuri: ${DATAIKU_BASEURI:XXXX}
+  scenarioProjectKey: ${DATAIKU_SCENARIOS_PROJECTKEY:XXXX}
+  scenarioId: ${DATAIKU_SCENARIOS_ID:XXXX}
+  scenarioUpdateRequest: ${DATAIKU_SCENARIO_UPDATEREQUEST:XXXX}
+  usersUri: ${DATAIKU_USERSURI:/admin/users}
+  environmentProfile: ${DATAIKU_ENV_PREFIX:XXXX}
+  onPremiseGroupNamePrefix: ${DATAIKU_ONPREMISE_PREFIX:XXXX}
+  extolloGroupNamePrefix: ${DATAIKU_EXTOLLO_PREFIX:XXXX}
+  
+allowedCorsOriginPatternUrl: ${CORS_ORIGIN_URL:XXXX}

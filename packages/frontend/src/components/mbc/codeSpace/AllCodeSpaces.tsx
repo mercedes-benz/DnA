@@ -8,7 +8,7 @@ import Modal from 'components/formElements/modal/Modal';
 import NewCodeSpace from './newCodeSpace/NewCodeSpace';
 import { IUserInfo } from 'globals/types';
 import ProgressWithMessage from 'components/progressWithMessage/ProgressWithMessage';
-import { history } from '../../../router/History';
+import { useHistory } from "react-router-dom";
 import Notification from '../../../assets/modules/uilab/js/src/notification';
 import { CodeSpaceApiClient } from '../../../services/CodeSpaceApiClient';
 // @ts-ignore
@@ -31,6 +31,10 @@ const AllCodeSpaces = (props: IAllCodeSpacesProps) => {
     [isApiCallTakeTime, setIsApiCallTakeTime] = useState<boolean>(false),
     [onBoardCodeSpace, setOnBoardCodeSpace] = useState<ICodeSpaceData>();
 
+  const history = useHistory();
+  const goback = () => {
+    history.goBack();
+  };
 
   const getCodeSpacesData = () => {
     setLoading(true);
@@ -125,7 +129,10 @@ const AllCodeSpaces = (props: IAllCodeSpacesProps) => {
     <div className={classNames(Styles.mainPanel)}>
       <div className={classNames(Styles.wrapper)}>
         <div className={classNames(Styles.caption)}>
-          <h3>Code Spaces Overview</h3>
+          <div>
+            <button className={classNames('btn btn-text back arrow')} type="submit" onClick={goback}>Back</button>
+            <h3>Code Spaces Overview</h3>
+          </div>
           <div className={classNames(Styles.listHeader)}>
             {codeSpaces?.length ? (
               <>

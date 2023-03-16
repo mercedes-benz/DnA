@@ -95,6 +95,10 @@ export const UpdateDataProduct = createAsyncThunk(
     values['platform'] = platforms;
     values['frontEndTools'] = frontEndTools;
 
+    if(values?.informationOwner == ''){
+      delete values?.informationOwner
+    }
+
     const requestBody = serializeFormData({ values, division, type, isDataProduct: true, dropdowns });
     ProgressIndicator.show();
 

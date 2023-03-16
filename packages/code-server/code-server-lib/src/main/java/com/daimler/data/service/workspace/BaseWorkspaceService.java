@@ -34,6 +34,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.daimler.data.dto.workspace.CreatedByVO;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -76,6 +78,9 @@ public class BaseWorkspaceService implements WorkspaceService {
 	
 	@Value("${codeServer.git.orgname}")
 	private String gitOrgName;
+	
+	@Value("${codeServer.git.orguri}")
+	private String gitOrgUri;
 	
 	@Autowired
 	private WorkspaceAssembler workspaceAssembler;
@@ -124,7 +129,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 				deployJobInputDto.setAction("undeploy");
 				deployJobInputDto.setBranch(branch);
 				deployJobInputDto.setEnvironment(entity.getData().getProjectDetails().getRecipeDetails().getEnvironment());
-				deployJobInputDto.setRepo(gitOrgName+"/"+entity.getData().getProjectDetails().getGitRepoName());
+				deployJobInputDto.setRepo(gitOrgUri+gitOrgName+"/"+entity.getData().getProjectDetails().getGitRepoName());
 				String projectOwner = entity.getData().getProjectDetails().getProjectOwner().getId();
 				deployJobInputDto.setShortid(projectOwner);
 				deployJobInputDto.setTarget_env("int");
@@ -156,7 +161,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 				deployJobInputDto.setAction("undeploy");
 				deployJobInputDto.setBranch(branch);
 				deployJobInputDto.setEnvironment(entity.getData().getProjectDetails().getRecipeDetails().getEnvironment());
-				deployJobInputDto.setRepo(gitOrgName+"/"+entity.getData().getProjectDetails().getGitRepoName());
+				deployJobInputDto.setRepo(gitOrgUri+gitOrgName+"/"+entity.getData().getProjectDetails().getGitRepoName());
 				String projectOwner = entity.getData().getProjectDetails().getProjectOwner().getId();
 				deployJobInputDto.setShortid(projectOwner);
 				deployJobInputDto.setTarget_env("prod");
@@ -221,7 +226,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 				 ownerWorkbenchDeleteInputsDto.setIsCollaborator("false");
 				 ownerWorkbenchDeleteInputsDto.setPassword("");
 				 ownerWorkbenchDeleteInputsDto.setPat("");
-				 String repoNameWithOrg =  gitOrgName + "/" + repoName;
+				 String repoNameWithOrg =  gitOrgUri + gitOrgName + "/" + repoName;
 				 ownerWorkbenchDeleteInputsDto.setRepo(repoNameWithOrg);
 				 String workspaceUserId = record[1].toString();
 				 ownerWorkbenchDeleteInputsDto.setShortid(workspaceUserId);
@@ -237,6 +242,19 @@ public class BaseWorkspaceService implements WorkspaceService {
 				workspaceCustomRepository.updateDeletedStatusForProject(projectName);
 			}else {
 				entity.getData().setStatus("DELETED");
+
+				UserInfo removeUser = new UserInfo();
+				if (entity.getData().getProjectDetails().getProjectCollaborators() != null) {
+					for (UserInfo collaborator : entity.getData().getProjectDetails().getProjectCollaborators()) {
+						if (userId != null) {
+							if (collaborator.getId().equalsIgnoreCase(userId)) {
+								removeUser = collaborator;
+								break;
+							}
+						}
+					}
+				}
+				workspaceCustomRepository.updateCollaboratorDetails(projectName, removeUser, true);
 				jpaRepo.save(entity);
 			}
 			responseMessage.setSuccess("SUCCESS");
@@ -275,7 +293,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 			 ownerWorkbenchCreateInputsDto.setPassword(password);
 			 ownerWorkbenchCreateInputsDto.setPat(pat);
 			 String repoName = entity.getData().getProjectDetails().getGitRepoName();
-			 String repoNameWithOrg =  gitOrgName + "/" + repoName;
+			 String repoNameWithOrg =  gitOrgUri + gitOrgName + "/" + repoName;
 			 ownerWorkbenchCreateInputsDto.setRepo(repoNameWithOrg);
 			 ownerWorkbenchCreateInputsDto.setShortid(entity.getData().getWorkspaceOwner().getId());
 			 ownerWorkbenchCreateInputsDto.setType(client.toDeployType(entity.getData().getProjectDetails().getRecipeDetails().getRecipeId()));
@@ -337,6 +355,9 @@ public class BaseWorkspaceService implements WorkspaceService {
 		List<MessageDescription> errors = new ArrayList<>();
 		List<MessageDescription> warnings = new ArrayList<>();
 		try {
+			RecipeIdEnum recipe = vo.getProjectDetails().getRecipeDetails().getRecipeId();
+			String recipeIdType =  client.toDeployType(recipe.toString());
+			
 			List<String> gitUsers = new ArrayList<>();
 			UserInfoVO owner = vo.getProjectDetails().getProjectOwner();
 			 
@@ -399,7 +420,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 			 ownerWorkbenchCreateInputsDto.setIsCollaborator("false");
 			 ownerWorkbenchCreateInputsDto.setPassword(password);
 			 ownerWorkbenchCreateInputsDto.setPat(pat);
-			 String repoNameWithOrg =  gitOrgName + "/" + repoName;
+			 String repoNameWithOrg =  gitOrgUri + gitOrgName + "/" + repoName;
 			 ownerWorkbenchCreateInputsDto.setRepo(repoNameWithOrg);
 			 String projectOwnerId = ownerEntity.getData().getWorkspaceOwner().getId();
 			 ownerWorkbenchCreateInputsDto.setShortid(projectOwnerId);
@@ -569,7 +590,175 @@ public class BaseWorkspaceService implements WorkspaceService {
 		responseMessage.setSuccess(status);
 		return responseMessage;
 	}
-	
+
+	@Override
+	@Transactional
+	public GenericMessage reassignOwner(CreatedByVO currentUser, CodeServerWorkspaceVO vo, UserInfoVO newOwnerDeatils) {
+		GenericMessage responseVO = new GenericMessage();
+		List<MessageDescription> errors = new ArrayList<>();
+		List<MessageDescription> warnings = new ArrayList<>();
+		GenericMessage responseMessage = new GenericMessage();
+		CodeServerWorkspaceNsql entity = workspaceCustomRepository.findById(currentUser.getId(), vo.getId());
+		boolean isProjectOwner = false;
+		String projectName = entity.getData().getProjectDetails().getProjectName();
+
+		String projectOwnerId = entity.getData().getProjectDetails().getProjectOwner().getId();
+		if (projectOwnerId.equalsIgnoreCase(currentUser.getId())) {
+			isProjectOwner = true;
+		}
+
+		if (isProjectOwner) {
+			UserInfo currentOwnerAsCollab = entity.getData().getProjectDetails().getProjectOwner();
+			UserInfo newOwner = new UserInfo();
+			BeanUtils.copyProperties(newOwnerDeatils, newOwner);
+
+			try {
+				// To update project owner.
+				GenericMessage updateProjectOwnerDetails = workspaceCustomRepository.updateProjectOwnerDetails(projectName, newOwner);
+
+				// To add current owner as collaborator.
+				GenericMessage updateCollaboratorAsOwner = workspaceCustomRepository.updateCollaboratorDetails(projectName, currentOwnerAsCollab, false);
+
+				// To remove new owner from collaborator.
+				GenericMessage removeNewOwnerFromCollab = workspaceCustomRepository.updateCollaboratorDetails(projectName, newOwner, true);
+
+				if ("FAILED".equalsIgnoreCase(updateProjectOwnerDetails.getSuccess())
+						|| "FAILED".equalsIgnoreCase(updateCollaboratorAsOwner.getSuccess())
+						|| "FAILED".equalsIgnoreCase(removeNewOwnerFromCollab.getSuccess())) {
+					log.error("Failed to update project owner details");
+					MessageDescription msg = new MessageDescription("Failed to update project owner details");
+					errors.add(msg);
+					responseMessage.setSuccess("FAILED");
+					responseMessage.setErrors(errors);
+					return responseMessage;
+				}
+				responseMessage.setSuccess("SUCCESS");
+			} catch (Exception e) {
+				log.error("Failed to add collaborator details as requested with Exception: {} ", e.getMessage());
+				MessageDescription msg = new MessageDescription("Failed to add collaborator details");
+				errors.add(msg);
+				responseMessage.setSuccess("FAILED");
+				responseMessage.setErrors(errors);
+				return responseMessage;
+			}
+		} else {
+			log.error("Failed to remove collaborator details as requested user is not a project owner " + entity.getData().getWorkspaceId());
+			MessageDescription msg = new MessageDescription("Failed to remove collaborator details as requested user is not a project owner");
+			errors.add(msg);
+			responseMessage.setSuccess("FAILED");
+			responseMessage.setErrors(errors);
+			return responseMessage;
+		}
+
+		return responseMessage;
+	}
+
+
+	@Override
+	@Transactional
+	public GenericMessage removeCollabById(String currentUserUserId, CodeServerWorkspaceVO vo, String removeUserId) {
+		GenericMessage responseVO = new GenericMessage();
+		List<MessageDescription> errors = new ArrayList<>();
+		List<MessageDescription> warnings = new ArrayList<>();
+		GenericMessage responseMessage = new GenericMessage();
+		CodeServerWorkspaceNsql entity = workspaceCustomRepository.findById(currentUserUserId, vo.getId());
+		boolean isProjectOwner = false;
+
+		String projectOwnerId = entity.getData().getProjectDetails().getProjectOwner().getId();
+		if (projectOwnerId.equalsIgnoreCase(currentUserUserId)) {
+			isProjectOwner = true;
+		}
+
+		if (isProjectOwner) {
+			String projectName = entity.getData().getProjectDetails().getProjectName();
+			String technincalId = workspaceCustomRepository.getWorkspaceTechnicalId(removeUserId, projectName);
+			responseMessage = deleteById(removeUserId, technincalId);
+		} else {
+			log.error("Failed to remove collaborator details as requested user is not a project owner " + entity.getData().getWorkspaceId());
+			MessageDescription msg = new MessageDescription("Failed to remove collaborator details as requested user is not a project owner");
+			errors.add(msg);
+			responseMessage.setSuccess("FAILED");
+			responseMessage.setErrors(errors);
+			return responseMessage;
+		}
+
+		return responseMessage;
+	}
+
+	@Override
+	@Transactional
+	public GenericMessage addCollabById(String userId, CodeServerWorkspaceVO vo, UserInfoVO userRequestDto) {
+		GenericMessage responseVO = new GenericMessage();
+		List<MessageDescription> errors = new ArrayList<>();
+		List<MessageDescription> warnings = new ArrayList<>();
+		GenericMessage responseMessage = new GenericMessage();
+		CodeServerWorkspaceNsql entity = workspaceCustomRepository.findById(userId, vo.getId());
+		boolean isProjectOwner = false;
+
+		String projectOwnerId = entity.getData().getProjectDetails().getProjectOwner().getId();
+		if (projectOwnerId.equalsIgnoreCase(userId)) {
+			isProjectOwner = true;
+		}
+
+		if (isProjectOwner) {
+			try {
+				String repoName = entity.getData().getProjectDetails().getGitRepoName();
+				CodeServerWorkspaceNsql ownerEntity = workspaceAssembler.toEntity(vo);
+				String projectName = entity.getData().getProjectDetails().getProjectName();
+
+				UserInfo collaborator = new UserInfo();
+				BeanUtils.copyProperties(userRequestDto, collaborator);
+
+				String gitUser = userRequestDto.getGitUserName();
+				HttpStatus addGitUser = gitClient.addUserToRepo(gitUser, repoName);
+				if (addGitUser.is2xxSuccessful()) {
+					CodeServerWorkspaceNsql collabEntity = new CodeServerWorkspaceNsql();
+					CodeServerWorkspace collabData = new CodeServerWorkspace();
+					collabData.setDescription(ownerEntity.getData().getDescription());
+					collabData.setGitUserName(collaborator.getGitUserName());
+					collabData.setIntiatedOn(null);
+					collabData.setPassword("");
+					collabData.setProjectDetails(ownerEntity.getData().getProjectDetails());
+					collabData.setStatus(ConstantsUtility.COLLABREQUESTEDSTATE);
+					Long collabWsSeqId = jpaRepo.getNextWorkspaceSeqId();
+					String collabWsId = ConstantsUtility.WORKSPACEPREFIX + String.valueOf(collabWsSeqId);
+					collabData.setWorkspaceId(collabWsId);
+					UserInfo collabUser = workspaceAssembler.toUserInfo(userRequestDto);
+					collabData.setWorkspaceOwner(collabUser);
+					collabData.setWorkspaceUrl("");
+					collabEntity.setId(null);
+					collabEntity.setData(collabData);
+
+					jpaRepo.save(collabEntity);
+					workspaceCustomRepository.updateCollaboratorDetails(projectName, collaborator, false);
+					responseMessage.setSuccess("SUCCESS");
+				} else {
+					log.info("Failed while adding {} as collaborator with status {}", repoName, userRequestDto.getGitUserName(), addGitUser.name());
+					MessageDescription errMsg = new MessageDescription("Failed while adding " + userRequestDto.getGitUserName() + " as collaborator . Please make " + userRequestDto.getGitUserName() + " is valid git user. Unable to delete repository because of " + ", please delete repository manually and retry");
+					errors.add(errMsg);
+					responseVO.setErrors(errors);
+					return responseVO;
+				}
+			} catch (Exception e) {
+				log.error("Failed to add collaborator details as requested with Exception: {} ", e.getMessage());
+				MessageDescription msg = new MessageDescription("Failed to add collaborator details");
+				errors.add(msg);
+				responseMessage.setSuccess("FAILED");
+				responseMessage.setErrors(errors);
+				return responseMessage;
+			}
+		} else {
+			log.error("Failed to add collaborator details as requested user is not a project owner " + entity.getData().getWorkspaceId());
+			MessageDescription msg = new MessageDescription("Failed to add collaborator details as requested user is not a project owner");
+			errors.add(msg);
+			responseMessage.setSuccess("FAILED");
+			responseMessage.setErrors(errors);
+			return responseMessage;
+		}
+
+		return responseMessage;
+	}
+
 	@Override
 	@Transactional
 	public GenericMessage undeployWorkspace(String userId,String id,String environment, String branch) {
@@ -652,6 +841,8 @@ public class BaseWorkspaceService implements WorkspaceService {
 			String workspaceName = entity.getData().getWorkspaceId();
 			String defaultRecipeId = RecipeIdEnum.DEFAULT.toString();
 			String pythonRecipeId =  RecipeIdEnum.PY_FASTAPI.toString();
+			String reactRecipeId = RecipeIdEnum.REACT.toString();
+			String angularRecipeId =  RecipeIdEnum.ANGULAR.toString();
 			String projectRecipe = entity.getData().getProjectDetails().getRecipeDetails().getRecipeId();
 			String projectOwner = entity.getData().getProjectDetails().getProjectOwner().getId();
 			if(isCreateDeleteStatuses) {
@@ -687,6 +878,9 @@ public class BaseWorkspaceService implements WorkspaceService {
 				 if(pythonRecipeId.equalsIgnoreCase(projectRecipe)) {
 					 deploymentUrl = codeServerBaseUri+"/"+projectOwnerWsId+"/"+ targetEnv +"/api/docs";
 				 }
+				 if(reactRecipeId.equalsIgnoreCase(projectRecipe) || angularRecipeId.equalsIgnoreCase(projectRecipe)) {
+					 deploymentUrl = codeServerBaseUri+"/"+projectOwnerWsId+"/"+ targetEnv + "/";
+				 }				 
 				 String environmentJsonbName = "intDeploymentDetails";
 				 CodeServerDeploymentDetails deploymentDetails = new CodeServerDeploymentDetails();
 				 if("int".equalsIgnoreCase(targetEnv)) {

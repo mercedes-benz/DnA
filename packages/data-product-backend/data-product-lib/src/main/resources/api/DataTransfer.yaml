@@ -318,19 +318,19 @@ definitions:
       department:
         type: string
         description: "Department of the datatransfer"
-        minLength: 1                           
+#        minLength: 1                           
       localComplianceOfficer:
         type: string
         description: "Local compliance officer"
-        minLength: 1
+#        minLength: 1
       appId:
         type: string
         description: "planning IT App-ID "         
-    required:
-      - name
-      - division
-      - department
-      - localComplianceOfficer
+#    required:
+#      - name
+#      - division
+#      - department
+#      - localComplianceOfficer
       
   ProviderClassificationConfidentialityVO:
     type: object
@@ -338,14 +338,14 @@ definitions:
       description:
         type: string
         description: "Description and classification of the transfered data"
-        minLength: 1
+#        minLength: 1
       confidentiality: 
         description: "Confidentiality level"
         type: string
-        minLength: 1
-    required:
-      - description
-      - confidentiality
+#        minLength: 1
+#    required:
+#      - description
+#      - confidentiality
       
   ProviderPersonalRelatedDataVO:
     type: object
@@ -362,8 +362,8 @@ definitions:
       legalBasis: 
         description: "Legal basis for processing this personal related data"
         type: string                  
-    required:
-      - personalRelatedData  
+#    required:
+#      - personalRelatedData  
           
   ProviderTransnationalDataTransferVO:
     type: object
@@ -383,8 +383,8 @@ definitions:
       dataFromChina:
         type: boolean
         description: "Is data from China included"                
-    required:
-      - dataTransferred    
+#    required:
+#      - dataTransferred    
       
   ProviderDeletionRequirementVO:
     type: object
@@ -398,8 +398,8 @@ definitions:
       otherRelevantInformation:
         type: string
         description: "Specifying other relevant information"                         
-    required:
-      - deletionRequirements  
+#    required:
+#      - deletionRequirements  
       
   ConsumerContactInformationVO:
     type: object
@@ -414,7 +414,7 @@ definitions:
       department:
         type: string
         description: "Department of the consumer"
-        minLength: 1                           
+#        minLength: 1                           
       localComplianceOfficer:
         type: string
         description: "Local compliance officer"
@@ -424,11 +424,11 @@ definitions:
       agreementDate:
         type: string
         format: date                 
-    required:
-      - lcoNeeded
-      - ownerName
-      - division
-      - department
+#    required:
+#      - lcoNeeded
+#      - ownerName
+#      - division
+#      - department
       
   ConsumerPersonalRelatedDataVO:
     type: object
@@ -448,8 +448,8 @@ definitions:
       comment: 
         description: "LCO/LCR comments to data usage of personal data"
         type: string                              
-    required:
-      - personalRelatedData
+#    required:
+#      - personalRelatedData
       
   ProviderVO:
     type: object
@@ -474,7 +474,7 @@ definitions:
         $ref: "#/definitions/ProviderResponseVO"
     required:
       - dataTransferName
-      - providerInformation    
+#      - providerInformation    
       
   ProviderResponseVO:
     type: object
@@ -519,8 +519,8 @@ definitions:
               "IdentifiyingTransnationalDataTransfer",
               "SpecifyDeletionRequirements"
             ]
-    required:
-      - contactInformation         
+#    required:
+#      - contactInformation         
                      
             
   ConsumerVO:
@@ -548,7 +548,7 @@ definitions:
         description: "Flag to notify users."                        
     required:
       - id
-      - consumerInformation
+#      - consumerInformation
       
   ConsumerResponseVO:
     type: object
@@ -577,8 +577,8 @@ definitions:
               "ContactInformation",
               "IdentifyingPersonalRelatedData"
             ]
-    required:
-      - contactInformation                                                                                                              
+#    required:
+#      - contactInformation                                                                                                              
 
   DataTransferVO:
     type: object
@@ -662,9 +662,9 @@ definitions:
         description: name of division
       subdivision:
         $ref: "#/definitions/SubdivisionVO"
-    required:
-      - id
-      - name
+#    required:
+#      - id
+#      - name
       
   SubdivisionVO:
     type: object

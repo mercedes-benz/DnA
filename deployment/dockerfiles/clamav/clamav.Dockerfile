@@ -24,9 +24,9 @@ RUN echo "deb http://http.debian.net/debian/ $DEBIAN_VERSION main contrib non-fr
     rm -rf /var/lib/apt/lists/*
 
 # initial update of av databases
-RUN wget --user-agent='CVDUPDATE/0' -O /var/lib/clamav/main.cvd https://database.clamav.net/main.cvd || true
-RUN wget --user-agent='CVDUPDATE/0' -O /var/lib/clamav/daily.cvd https://database.clamav.net/daily.cvd || true
-RUN wget --user-agent='CVDUPDATE/0' -O /var/lib/clamav/bytecode.cvd https://database.clamav.net/bytecode.cvd || true
+RUN wget --user-agent='CVDUPDATE/0' -O /var/lib/clamav/main.cvd https://database.clamav.net/main.cvd 
+RUN wget --user-agent='CVDUPDATE/0' -O /var/lib/clamav/daily.cvd https://database.clamav.net/daily.cvd
+RUN wget --user-agent='CVDUPDATE/0' -O /var/lib/clamav/bytecode.cvd https://database.clamav.net/bytecode.cvd
 RUN chown clamav:clamav /var/lib/clamav/*.cvd
 
 # Local copy - for testing
@@ -39,8 +39,8 @@ RUN chown clamav:clamav /var/lib/clamav/*.cvd
 # av configuration update
 RUN sed -i 's/^Foreground .*$/Foreground true/g' /etc/clamav/clamd.conf && \
     echo "TCPSocket 3310" >> /etc/clamav/clamd.conf && \
-    if ! [ -z $HTTPProxyServer ]; then echo "HTTPProxyServer $HTTPProxyServer" >> /etc/clamav/freshclam.conf; fi && \
-    if ! [ -z $HTTPProxyPort   ]; then echo "HTTPProxyPort $HTTPProxyPort" >> /etc/clamav/freshclam.conf; fi && \
+    # if ! [ -z $HTTPProxyServer ]; then echo "HTTPProxyServer $HTTPProxyServer" >> /etc/clamav/freshclam.conf; fi && \
+    # if ! [ -z $HTTPProxyPort   ]; then echo "HTTPProxyPort $HTTPProxyPort" >> /etc/clamav/freshclam.conf; fi && \
     sed -i 's/^Foreground .*$/Foreground true/g' /etc/clamav/freshclam.conf
 
 # permission juggling

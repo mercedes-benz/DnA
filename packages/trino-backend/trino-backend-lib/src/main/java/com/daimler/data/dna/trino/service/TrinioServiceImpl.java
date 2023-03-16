@@ -100,6 +100,7 @@ public class TrinioServiceImpl implements TrinioService {
 		else
 			newParquetObjectPath = "/" + "PublishedParquet-" + newRandFolder + "-" + schemaName + "." + tableName;
 		final String externalLocation = "s3a://"+sourceBucketName+newParquetObjectPath;
+		String publishedFolderPath = newParquetObjectPath;
 		newParquetObjectPath = newParquetObjectPath +"/" + fileName;
 		String s3aFormatParquetPath = "s3a://"+sourceBucketName+newParquetObjectPath;
 		String createTableStatement = createTable + trinoCatalog + "." + schemaName + "." + tableName + " (";	
@@ -236,6 +237,7 @@ public class TrinioServiceImpl implements TrinioService {
 			message.setErrors(null);
 			message.setWarnings(warnings);
 			responseVO.setData(dataVO);
+			responseVO.setPublishedFolderPath(publishedFolderPath);
 			responseVO.setMessage(message);
 			return new ResponseEntity<>(responseVO, HttpStatus.OK);
 		}
@@ -243,6 +245,7 @@ public class TrinioServiceImpl implements TrinioService {
 		message.setSuccess("Successfully copied parquet file, read the metadata and created schema and tables");
 		message.setErrors(null);
 		message.setWarnings(null);
+		responseVO.setPublishedFolderPath(publishedFolderPath);
 		responseVO.setData(dataVO); 
 		responseVO.setMessage(message);
 		return new ResponseEntity<>(responseVO, HttpStatus.OK);

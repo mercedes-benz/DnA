@@ -239,7 +239,7 @@ const styles = StyleSheet.create({
 
 const teamMembersList = (members: ITeams[]) => {
   return members?.map((member: ITeams, index: number) => {
-    const isInternalMember = member.userType === TeamMemberType.INTERNAL;
+    const isInternalMember = member?.userType === TeamMemberType.INTERNAL;
     return (
       <View key={index} style={{ display: 'flex', flexDirection: 'row', width: '50%', marginBottom: 15 }}>
         <View style={{ width: 45 }}>
@@ -250,23 +250,23 @@ const teamMembersList = (members: ITeams[]) => {
           )}
         </View>
         <View>
-          <Text style={[styles.sectionTitle, { marginBottom: 5 }]}>{`${member.teamMemberPosition}${
-            !isInternalMember ? ' (' + member.userType + ')' : ''
+          <Text style={[styles.sectionTitle, { marginBottom: 5 }]}>{`${member?.teamMemberPosition}${
+            !isInternalMember ? ' (' + member?.userType + ')' : ''
           }`}</Text>
           {isInternalMember ? (
             <View>
               <Text>
-                <Link src={TEAMS_PROFILE_LINK_URL_PREFIX + member.shortId}>
+                <Link src={TEAMS_PROFILE_LINK_URL_PREFIX + member?.shortId}>
                   <Text>
-                    {member.firstName} {member.lastName}
+                    {member?.firstName} {member?.lastName}
                   </Text>
                 </Link>
               </Text>
-              <Text>{member.department}</Text>
+              <Text>{member?.department}</Text>
             </View>
           ) : (
             <View>
-              <Text>{member.company}</Text>
+              <Text>{member?.company}</Text>
               <Text>&nbsp;</Text>
             </View>
           )}
@@ -480,7 +480,7 @@ const KPI = ({ kpis, showKPI }: IKPIProps) => {
     <>
       {showKPI &&
         kpis?.length && 
-        <Text style={[styles.subTitle, styles.setMarginTop]}>KPI</Text>
+        <Text style={[styles.subTitle, styles.setMarginTop]}>Content & Functions</Text>
       }
       {showKPI &&
         kpis?.length &&
@@ -525,7 +525,7 @@ const DataAndFunction = ({ dataAndFunctions, showDataAndFunction, showMembers }:
     <>
       {showDataAndFunction && (
         <View>
-          <Text style={[styles.subTitle, styles.setMarginTop]}>Data Sources & Functions</Text>
+          <Text style={[styles.subTitle, styles.setMarginTop]}>Data</Text>
           {dataAndFunctions.dataWarehouseInUse?.length
             ? dataAndFunctions.dataWarehouseInUse?.map((data: any, index: number) => (
                 <React.Fragment key={index}>
