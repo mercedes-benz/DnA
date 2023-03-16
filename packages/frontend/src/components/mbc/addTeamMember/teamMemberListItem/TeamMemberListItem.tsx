@@ -183,7 +183,7 @@ export default class TeamMemberListItem extends React.Component<ITeamMemberListI
                   </>
                 ) : (
                   <div>
-                    {teamMember?.level && <>{teamMember?.level} | {teamMember?.division && teamMember?.division.name} | {teamMember?.department && teamMember?.department}</>}
+                    {teamMember?.level && <>{teamMember?.level} | {teamMember?.department && teamMember?.department} | {teamMember?.legalEntity && teamMember?.legalEntity}</>}
                     {teamMember?.shortId ? (
                       <a href={TEAMS_PROFILE_LINK_URL_PREFIX + teamMember?.shortId}>
                         {teamMember?.firstName} {teamMember?.lastName}
