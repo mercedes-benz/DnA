@@ -18,6 +18,7 @@ import com.mb.dna.data.application.adapter.dna.UserStore;
 import io.jsonwebtoken.Claims;
 import io.micronaut.context.ApplicationContext;
 import io.micronaut.core.async.publisher.Publishers;
+import io.micronaut.http.HttpMethod;
 import io.micronaut.http.HttpRequest;
 import io.micronaut.http.HttpResponse;
 import io.micronaut.http.HttpStatus;
@@ -50,6 +51,9 @@ public class JWTAuthenticationFilter implements HttpServerFilter{
 	@Override
 	public Publisher<MutableHttpResponse<?>> doFilter(HttpRequest<?> request, ServerFilterChain filterChain) {
 		String jwt = request.getHeaders().get("Authorization");
+		if(jwt == null) {
+			jwt = request.getHeaders().get("authorization");
+		}
 		
 		String secretKey = dnaClientConfig.getJwt();
 		String dnaAuthEnableString = dnaClientConfig.getDnaAuthEnable();
@@ -71,6 +75,7 @@ public class JWTAuthenticationFilter implements HttpServerFilter{
 						try {
 							setUserDetailsToStore(res);
 						} catch(Exception e) {
+							log.error("Failed to set UserInfo to Threadlocal UserStore with exception {}", e.getMessage());
 							this.userStore.clear();
 						}
 
@@ -86,6 +91,7 @@ public class JWTAuthenticationFilter implements HttpServerFilter{
 								"Request validation successful, set request user details in the store for further access");
 						setUserDetailsToStore(claims);
 					} catch(Exception e) {
+						log.error("Failed to set UserInfo to Threadlocal UserStore with exception {}", e.getMessage());
 						this.userStore.clear();
 					}
 				}
@@ -121,6 +127,7 @@ public class JWTAuthenticationFilter implements HttpServerFilter{
 	 */
 	private void setUserDetailsToStore(UserInfo loggedInUser) {
 		this.userStore.setUserInfo(loggedInUser);
+		log.info("Threadlocal UserStore user is set successfully with user {} ", loggedInUser.getId());
 	}
 
 }
