@@ -351,6 +351,12 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
       pat: githubToken
     };
 
+    if (recipeValue.startsWith('public')) {
+      const recipe = recipesMaster.find((item: any) => item.id === recipeValue);
+      createCodeSpaceRequest.data.projectDetails.recipeDetails.recipeId = 'public';
+      createCodeSpaceRequest.data.projectDetails.recipeDetails['repodetails'] = recipe.repodetails;
+    }
+
     // const createCodeSpaceRequest = {
     //   data: {
     //     cloudServiceProvider: environment,
@@ -532,7 +538,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
                 type="password"
                 controlId={'githubTokenInput'}
                 labelId={'githubTokenLabel'}
-                label={`Your Github(${Envs.CODE_SPACE_GIT_PAT_APP_URL}) Personal Access Token`}
+                label={`Your Github(${recipeValue.startsWith('public') ? 'https://github.com/' : Envs.CODE_SPACE_GIT_PAT_APP_URL}) Personal Access Token`}
                 infoTip="Not stored only used for Repo Creation"
                 placeholder={'Type here'}
                 value={githubToken}
@@ -675,7 +681,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
                 type="password"
                 controlId={'githubTokenInput'}
                 labelId={'githubTokenLabel'}
-                label={`Your Github(${Envs.CODE_SPACE_GIT_PAT_APP_URL}) Personal Access Token`}
+                label={`Your Github(${recipeValue.startsWith('public') ? 'https://github.com/' : Envs.CODE_SPACE_GIT_PAT_APP_URL}) Personal Access Token`}
                 infoTip="Not stored only used for Repo Creation"
                 placeholder={'Type here'}
                 value={githubToken}
