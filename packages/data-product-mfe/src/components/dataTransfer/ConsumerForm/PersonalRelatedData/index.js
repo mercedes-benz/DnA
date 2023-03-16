@@ -1,5 +1,5 @@
 import classNames from 'classnames';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import Styles from './styles.scss';
 import { withRouter } from 'react-router-dom';
 
@@ -19,6 +19,7 @@ const PersonalRelatedData = ({ onSave, setIsEditing, isDataProduct, callbackFn }
     reset,
     watch,
     setValue,
+    clearErrors,
   } = useFormContext();
   const [showInfoModal, setShowInfoModal] = useState(false);
 
@@ -33,11 +34,20 @@ const PersonalRelatedData = ({ onSave, setIsEditing, isDataProduct, callbackFn }
 
   const isDisabled = watch('personalRelatedData') === 'No';
 
+  const providerPersonalRelatedData = useRef(null);
+  const consumerPersonalRelatedTabSubmitted = watch('openSegments')?.includes('IdentifyingPersonalRelatedData');
+
   useEffect(() => {
     const data = !isDataProduct
       ? provideDataTransfers.selectedDataTransfer.personalRelatedData
       : provideDataTransfers.selectedDataProduct.personalRelatedData;
-    setValue('personalRelatedData', data);
+
+    providerPersonalRelatedData.current = data;
+
+    if (!consumerPersonalRelatedTabSubmitted) {
+      setTimeout(() => setValue('personalRelatedData', data), 10);
+    }
+
     if (data === 'No') {
       setValue('personalRelatedDataPurpose', '');
       setValue('personalRelatedDataLegalBasis', '');
@@ -45,7 +55,7 @@ const PersonalRelatedData = ({ onSave, setIsEditing, isDataProduct, callbackFn }
       setValue('LCOComments', '');
     }
     //eslint-disable-next-line
-  }, [isDataProduct, provideDataTransfers]);
+  }, [isDataProduct, consumerPersonalRelatedTabSubmitted]);
 
   useEffect(() => {
     dispatch(getLegalBasis());
@@ -71,7 +81,7 @@ const PersonalRelatedData = ({ onSave, setIsEditing, isDataProduct, callbackFn }
             <div
               className={classNames(
                 `input-field-group include-error ${errors?.personalRelatedData ? 'error' : ''}`,
-                'disabled',
+                providerPersonalRelatedData.current === 'No' ? 'disabled' : '',
               )}
               style={{ minHeight: '50px' }}
             >
@@ -82,12 +92,25 @@ const PersonalRelatedData = ({ onSave, setIsEditing, isDataProduct, callbackFn }
                 <label className={'radio'}>
                   <span className="wrapper">
                     <input
-                      {...register('personalRelatedData')}
+                      {...register('personalRelatedData', {
+                        onChange: () => {
+                          clearErrors([
+                            'LCOComments',
+                            'personalRelatedDataPurpose',
+                            'personalRelatedDataLegalBasis',
+                            'LCOCheckedLegalBasis',
+                          ]);
+                          setValue('LCOComments', '');
+                          setValue('personalRelatedDataPurpose', '');
+                          setValue('personalRelatedDataLegalBasis', '');
+                          setValue('LCOCheckedLegalBasis', '');
+                        },
+                      })}
                       type="radio"
                       className="ff-only"
                       name="personalRelatedData"
                       value="No"
-                      disabled={true}
+                      disabled={providerPersonalRelatedData.current === 'No'}
                     />
                   </span>
                   <span className="label">No</span>
@@ -100,7 +123,7 @@ const PersonalRelatedData = ({ onSave, setIsEditing, isDataProduct, callbackFn }
                       className="ff-only"
                       name="personalRelatedData"
                       value="Yes"
-                      disabled={true}
+                      disabled={providerPersonalRelatedData.current === 'No'}
                     />
                   </span>
                   <span className="label">Yes</span>
@@ -176,7 +199,7 @@ const PersonalRelatedData = ({ onSave, setIsEditing, isDataProduct, callbackFn }
               style={{ minHeight: '50px' }}
             >
               <label className={classNames(Styles.inputLabel, 'input-label')}>
-                LCO/LCR checked legal basis of usage of personal data <sup>*</sup>
+                Has corresponding compliance contact checked overall personal data processing <sup>*</sup>
               </label>
               <div className={Styles.radioBtns}>
                 <label className={classNames('radio', isDisabled ? 'disabled' : '')}>

@@ -43,6 +43,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
 import com.daimler.data.dto.divisions.DivisionVO;
+import com.daimler.data.dto.solution.SolutionVO;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
@@ -66,6 +67,8 @@ public class DashboardClientImpl implements DashboardClient {
 	private static final String DELETE_DATASOURCE = "/api/datasource/";
 
 	private static final String UPDATE_DIVISION = "/api/divisions";
+	
+	private static final String UPDATE_DEPARTMENT = "/api/departments";
 
 	@Autowired
 	RestTemplate restTemplate;
@@ -129,5 +132,36 @@ public class DashboardClientImpl implements DashboardClient {
 			status = response.getStatusCode().toString();
 		}
 		return status;
+	}
+
+	@Override
+	public String updateDepartments(SolutionVO vo) {
+		UpdateDepartmentRequestWrapperDto reqWrapperDto = new UpdateDepartmentRequestWrapperDto();
+		UpdateDepartmentRequestDto reqDto = new UpdateDepartmentRequestDto();
+		reqDto.setName(vo.getDepartment());
+		reqWrapperDto.setData(reqDto);		
+		String status = "";
+		String jwt = httpRequest.getHeader("Authorization");
+		HttpHeaders headers = new HttpHeaders();
+		headers.set("Accept", "application/json");
+		headers.set("Content-Type", "application/json");
+		headers.set("Authorization", jwt);
+		String dashboardUri = dashboardBaseUri + UPDATE_DEPARTMENT;
+		HttpEntity entity = new HttpEntity<>(reqWrapperDto, headers);	
+		try {
+			LOGGER.info("Calling dashboard client url from DashboardClientImpl");
+			ResponseEntity<String> response = restTemplate.exchange(dashboardUri, HttpMethod.POST, entity, String.class);
+			LOGGER.info("Called dashboard client from DashboardClientImpl");
+			if (response != null && response.hasBody()) {
+				status = response.getStatusCode().toString();
+			}
+			return status;
+
+		} catch (Exception e) {
+			LOGGER.error(e.getMessage());
+			return status= e.getMessage();			
+		}
+		
+
 	}
 }

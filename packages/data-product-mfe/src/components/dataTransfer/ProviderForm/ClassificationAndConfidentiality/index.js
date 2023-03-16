@@ -7,14 +7,16 @@ import InfoModal from 'dna-container/InfoModal';
 import { useDispatch, useSelector } from 'react-redux';
 import { getClassificationTypes } from '../../../redux/getDropdowns.services';
 
-const Classification = ({ onSave }) => {
+const Classification = (
+  // { onSave }
+  ) => {
   const {
     register,
-    handleSubmit,
+    // handleSubmit,
     formState: { errors },
-    reset,
-    setValue,
-    watch,
+    // reset,
+    // setValue,
+    // watch,
   } = useFormContext();
   const [showInfoModal, setShowInfoModal] = useState(false);
 
@@ -30,7 +32,7 @@ const Classification = ({ onSave }) => {
       <div className={Styles.wrapper}>
         <div className={Styles.firstPanel}>
           <div>
-            <h3>Data Description & Classification</h3>
+            <h3>Data Description &amp; Classification</h3>
             {showInfoModal && (
               <div className={Styles.infoIcon}>
                 <i className={'icon mbc-icon info'} onClick={() => {}} />
@@ -49,7 +51,7 @@ const Classification = ({ onSave }) => {
                 className="input-label"
                 htmlFor="classificationOfTransferedData"
               >
-                Description & classification of the transfered data <sup>*</sup>
+                Description of transferred data <sup>*</sup>
               </label>
               <textarea
                 id="classificationOfTransferedData"
@@ -57,6 +59,7 @@ const Classification = ({ onSave }) => {
                 type="text"
                 {...register('classificationOfTransferedData', { required: '*Missing entry' })}
                 rows={50}
+                placeholder="Please describe brieﬂy (1-2 sentences) what data is to be transferred (e.g. accounting, controlling, year-end reporting etc.) from a business point of view"
               />
               <span className={classNames('error-message')}>{errors?.classificationOfTransferedData?.message}</span>
             </div>
@@ -65,7 +68,7 @@ const Classification = ({ onSave }) => {
               style={{ minHeight: '50px' }}
             >
               <label className={classNames(Styles.inputLabel, 'input-label')}>
-                Confidentiality <sup>*</sup>
+              Confidentiality classification of transferred data (based on Information classification) <sup>*</sup>
               </label>
               <div className={Styles.radioBtnsGrid}>
                 {classificationTypes?.map((item) => {
@@ -79,6 +82,7 @@ const Classification = ({ onSave }) => {
                             className="ff-only"
                             name="confidentiality"
                             value={item.name}
+                            defaultChecked={item.name === 'Internal' && true}
                           />
                         </span>
                         <span className="label">{item.name}</span>
@@ -88,11 +92,20 @@ const Classification = ({ onSave }) => {
                 })}
               </div>
               <span className={classNames('error-message')}>{errors?.confidentiality?.message}</span>
+              <div>
+                <p>To ensure the safe and secure handling of information, Mercedes-Benz has standardized the classification of information into one of the following four classifications for CONFIDENTIALITY:</p>
+                <ul>
+                  <li>INTERNAL information is the most common classification at Mercedes-Benz. Distribution of internal information is normally allowed to be shared with larger groups of people.</li>
+                  <li>PUBLIC information is not confidential and is intended for general use inside and outside of Mercedes-Benz. Please note, only MB communications can classify data as public.</li>
+                  <li>CONFIDENTIAL information is the second highest level of information classification. Distribution of confidential information must be restricted to a small group of people.</li>
+                  <li>SECRET information is the most confidential information of Mercedes-Benz. Distribution of secret information must be restricted to a very small group of identified people.</li>
+                </ul>
+              </div>
             </div>
           </div>
         </div>
       </div>
-      <div className="btnContainer">
+      {/* <div className="btnContainer">
         <button
           className="btn btn-primary"
           type="submit"
@@ -108,7 +121,7 @@ const Classification = ({ onSave }) => {
         >
           Save & Next
         </button>
-      </div>
+      </div> */}
       {showInfoModal && (
         <InfoModal
           title="Info Modal"

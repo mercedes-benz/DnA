@@ -86,7 +86,7 @@ const TagSection = (props: ITagsProps) => {
     const content: React.ReactNode = (
         <ul>
             <li className={classNames(Styles.tagItem, selectAll ? Styles.selectedItem : '')} onClick={()=>selectDeselectAllTags('all')}>
-                All ({props?.tags?.length})
+                All {props?.tags?.length && <>({props?.tags?.length})</>}
             </li>
             {props?.tags?.reduce((result, tag, index: number) => {
                 const shouldHighlightItem = (props?.selectedTags.includes(tag));

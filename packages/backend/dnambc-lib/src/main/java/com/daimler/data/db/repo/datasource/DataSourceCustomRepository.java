@@ -34,6 +34,6 @@ import com.daimler.data.db.repo.common.CommonDataRepository;
 
 public interface DataSourceCustomRepository extends CommonDataRepository<DataSourceNsql, String> {
 
-	List<DataSourceNsql> getAllDataCatalogs(String source, String sortBy, String sortOrder);
+	List<DataSourceNsql> getAllDataCatalogs(String source, String sortOrder);
 
 }

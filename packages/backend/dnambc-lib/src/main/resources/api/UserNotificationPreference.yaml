@@ -156,7 +156,9 @@ definitions:
     dataComplianceNotificationPref:
       $ref: "#/definitions/NotificationPreferenceVO"
     dataProductNotificationPref:
-      $ref: "#/definitions/NotificationPreferenceVO"            
+      $ref: "#/definitions/NotificationPreferenceVO"
+    chronosNotificationPref:
+      $ref: "#/definitions/NotificationPreferenceVO"              
   required:
      - userId
      - termsOfUse
@@ -166,6 +168,7 @@ definitions:
      - dashboardNotificationPref
      - dataComplianceNotificationPref
      - dataProductNotificationPref
+     - chronosNotificationPref
      
  NotificationPreferenceVO:
   type: object

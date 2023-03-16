@@ -123,13 +123,13 @@ public class DataComplianceController implements DatacomplianceApi {
 	public ResponseEntity<DataComplianceCollection> getAll(
 			@ApiParam(value = "Filtering data compliance details based on entityId.") @Valid @RequestParam(value = "entityId", required = false) String entityId,
 			@ApiParam(value = "Filtering data compliance details based on entityName") @Valid @RequestParam(value = "entityName", required = false) String entityName,
+			@ApiParam(value = "Filtering data compliance details based on entityCountry") @Valid @RequestParam(value = "entityCountry", required = false) String entityCountry,
 			@ApiParam(value = "Filter using localComplianceOfficer. localComplianceOfficer is comma seperated search keywords.") @Valid @RequestParam(value = "localComplianceOfficer", required = false) String localComplianceOfficer,
 			@ApiParam(value = "Filter using localComplianceResponsible. localComplianceResponsible is comma seperated search keywords.") @Valid @RequestParam(value = "localComplianceResponsible", required = false) String localComplianceResponsible,
-			@ApiParam(value = "Filter using dataProtectionCoordinator. dataProtectionCoordinator is comma seperated search keywords.") @Valid @RequestParam(value = "dataProtectionCoordinator", required = false) String dataProtectionCoordinator,
 			@ApiParam(value = "Filter using localComplianceSpecialist. localComplianceSpecialist is comma seperated search keywords.") @Valid @RequestParam(value = "localComplianceSpecialist", required = false) String localComplianceSpecialist,
 			@ApiParam(value = "page number from which listing of records should start. Offset. Example 2") @Valid @RequestParam(value = "offset", required = false) Integer offset,
 			@ApiParam(value = "page size to limit the number of records. Example 15") @Valid @RequestParam(value = "limit", required = false) Integer limit,
-			@ApiParam(value = "Sort records by a given variable like entityId, entityName, localComplianceOfficer, etc", allowableValues = "entityId, entityName, localComplianceOfficer, localComplianceResponsible, dataProtectionCoordinator, localComplianceSpecialist") @Valid @RequestParam(value = "sortBy", required = false) String sortBy,
+			@ApiParam(value = "Sort records by a given variable like entityId, entityName, entityCountry, localComplianceOfficer, etc", allowableValues = "entityId, entityName, entityCountry, localComplianceOfficer, localComplianceResponsible, localComplianceSpecialist") @Valid @RequestParam(value = "sortBy", required = false) String sortBy,
 			@ApiParam(value = "Sort records based on the given order, example asc,desc", allowableValues = "asc, desc") @Valid @RequestParam(value = "sortOrder", required = false) String sortOrder) {
 		try {
 			DataComplianceCollection dataComplianceCollection = new DataComplianceCollection();
@@ -147,18 +147,16 @@ public class DataComplianceController implements DatacomplianceApi {
 				sortOrder = "asc";
 			}
 
-			Long count = dataComplianceService.getCount(entityId, entityName,
+			Long count = dataComplianceService.getCount(entityId, entityName, entityCountry,
 					dataComplianceAssembler.toList(localComplianceOfficer),
-					dataComplianceAssembler.toList(localComplianceResponsible),
 					dataComplianceAssembler.toList(localComplianceResponsible),
 					dataComplianceAssembler.toList(localComplianceSpecialist));
 			if (count < offset)
 				offset = 0;
 
-			List<DataComplianceVO> dataCompliances = dataComplianceService.getAllWithFilters(entityId, entityName,
+			List<DataComplianceVO> dataCompliances = dataComplianceService.getAllWithFilters(entityId, entityName, entityCountry,
 					dataComplianceAssembler.toList(localComplianceOfficer),
 					dataComplianceAssembler.toList(localComplianceResponsible),
-					dataComplianceAssembler.toList(dataProtectionCoordinator),
 					dataComplianceAssembler.toList(localComplianceSpecialist), offset, limit, sortBy, sortOrder);
 			LOGGER.info("DataCompliances entry fetched successfully");
 			if (!ObjectUtils.isEmpty(dataCompliances)) {

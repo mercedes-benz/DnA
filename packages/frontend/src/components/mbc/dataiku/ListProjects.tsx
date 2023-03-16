@@ -25,6 +25,7 @@ import { getDataForCSV } from '../../../services/DataikuCSV';
 import DataNotExist from 'components/dataNotExist/DataNotExist';
 import InfoModal from 'components/formElements/modal/infoModal/InfoModal';
 import { SUPPORT_EMAIL_ID } from 'globals/constants';
+import Caption from '../../mbc/shared/caption/Caption';
 
 const classNames = cn.bind(Styles);
 
@@ -353,9 +354,7 @@ export default class ListProjects extends React.Component<{ user: IUserInfo }, I
       <React.Fragment>
         <div className={Styles.mainPanel}>
           <div className={Styles.wrapper}>
-            <div className={Styles.caption}>
-              <h3>Dataiku Projects</h3>
-            </div>
+            <Caption title="Dataiku Projects" />
           </div>
           <div className={Styles.content}>
             <div id="dataiku-project-tabs" className="tabs-panel">

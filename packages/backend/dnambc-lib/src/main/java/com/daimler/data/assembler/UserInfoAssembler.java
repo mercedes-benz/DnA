@@ -27,6 +27,8 @@
 
 package com.daimler.data.assembler;
 
+import com.daimler.data.client.teamsApi.TeamsApiResponseDto;
+import com.daimler.data.client.teamsApi.TeamsApiResponseWrapperDto;
 import com.daimler.data.controller.LoginController;
 import com.daimler.data.controller.LoginController.UserRole;
 import com.daimler.data.db.entities.UserInfoNsql;
@@ -46,7 +48,27 @@ import java.util.stream.Collectors;
 
 @Component
 public class UserInfoAssembler implements GenericAssembler<UserInfoVO, UserInfoNsql> {
+	public List<UserInfoVO> toUserInfoVo(List<TeamsApiResponseDto> entries) {
+		List<UserInfoVO> userInfoVOList = new ArrayList<UserInfoVO>();
+		if (entries != null) {
+			for (TeamsApiResponseDto teamsApiResponseDto : entries) {
+				UserInfoVO userInfoVO = new UserInfoVO();
+				userInfoVO.setDepartment(teamsApiResponseDto.getDepartment());
+				userInfoVO.setEmail(teamsApiResponseDto.getMail());
+				userInfoVO.setMobileNumber(teamsApiResponseDto.getMobile());
+				userInfoVO.setFirstName(teamsApiResponseDto.getGiven_name());
+				userInfoVO.setLastName(teamsApiResponseDto.getSurname());
+				userInfoVO.setId(teamsApiResponseDto.getId());
+				userInfoVO.setFavoriteUsecases(new ArrayList<>());
+				userInfoVO.setToken(null);
+				userInfoVO.setRoles(new ArrayList<>());
+				userInfoVO.setDivisionAdmins(new ArrayList<>());
+				userInfoVOList.add(userInfoVO);
+			}
 
+		}
+		return userInfoVOList;
+	}
 	@Override
 	public UserInfoVO toVo(UserInfoNsql entity) {
 		UserInfoVO userInfoVO = null;

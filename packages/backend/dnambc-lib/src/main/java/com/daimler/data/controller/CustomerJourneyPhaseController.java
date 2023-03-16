@@ -27,7 +27,10 @@
 
 package com.daimler.data.controller;
 
+import java.util.ArrayList;
 import java.util.List;
+
+import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -39,8 +42,10 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.daimler.data.api.customerJourneyPhase.CustomerJourneyPhasesApi;
 import com.daimler.data.controller.exceptions.GenericMessage;
+import com.daimler.data.controller.exceptions.MessageDescription;
 import com.daimler.data.dto.customerJourneyPhase.CustomerJourneyPhaseCollection;
 import com.daimler.data.dto.customerJourneyPhase.CustomerJourneyPhaseRequestVO;
+import com.daimler.data.dto.customerJourneyPhase.CustomerJourneyPhaseResponseVO;
 import com.daimler.data.dto.customerJourneyPhase.CustomerJourneyPhaseVO;
 import com.daimler.data.service.customerJourneyPhase.CustomerJourneyPhaseService;
 import io.swagger.annotations.Api;
@@ -122,6 +127,53 @@ public class CustomerJourneyPhaseController implements CustomerJourneyPhasesApi 
 			return new ResponseEntity<>(customerJourneyPhaseCollection, HttpStatus.OK);
 		} else {
 			return new ResponseEntity<>(customerJourneyPhaseCollection, HttpStatus.NO_CONTENT);
+		}
+	}
+
+
+	@Override
+	public ResponseEntity<CustomerJourneyPhaseResponseVO> update(
+			@Valid CustomerJourneyPhaseRequestVO customerJourneyPhaseRequestVO) {
+		CustomerJourneyPhaseVO customerJourneyPhaseVO = customerJourneyPhaseRequestVO.getData();
+		try {
+			return customerJourneyPhaseService.updateCustomerJourneyPhase(customerJourneyPhaseVO);
+		}catch(Exception e) {
+			log.error("CustomerJourneyPhaseVO with id {} cannot be edited. Failed due to internal error {} ",
+					customerJourneyPhaseVO.getId(), e.getMessage());
+			List<MessageDescription> messages = new ArrayList<>();
+			MessageDescription message = new MessageDescription();
+			message.setMessage("Failed to update due to internal error. " + e.getMessage());
+			messages.add(message);
+			CustomerJourneyPhaseResponseVO response = new CustomerJourneyPhaseResponseVO();
+			response.setErrors(messages);
+			return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
+
+
+	@Override
+	 @ApiOperation(value = "Deletes the customerJourneyPhase identified by given ID.", nickname = "delete", notes = "Deletes the customerJourneyPhase identified by given ID", response = GenericMessage.class, tags={ "customerJourneyPhases", })
+    @ApiResponses(value = { 
+        @ApiResponse(code = 200, message = "Successfully deleted.", response = GenericMessage.class),
+        @ApiResponse(code = 400, message = "Bad request"),
+        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+        @ApiResponse(code = 403, message = "Request is not authorized."),
+        @ApiResponse(code = 404, message = "Invalid id, record not found."),
+        @ApiResponse(code = 500, message = "Internal error") })
+    @RequestMapping(value = "/customerJourneyPhases/{id}",
+        produces = { "application/json" }, 
+        consumes = { "application/json" },
+        method = RequestMethod.DELETE)
+	public ResponseEntity<GenericMessage> delete(String id) {
+		try {
+			return customerJourneyPhaseService.deleteCustomerJourneyPhase(id);
+		} catch (Exception e) {
+			log.error("Failed while delete customerJourneyPhase {} with exception {}", id, e.getMessage());
+			MessageDescription exceptionMsg = new MessageDescription(
+					"Failed to delete due to internal error. " + e.getMessage());
+			GenericMessage errorMessage = new GenericMessage();
+			errorMessage.addErrors(exceptionMsg);
+			return new ResponseEntity<>(errorMessage, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 

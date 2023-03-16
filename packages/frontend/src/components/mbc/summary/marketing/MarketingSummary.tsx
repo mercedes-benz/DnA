@@ -84,7 +84,7 @@ export default class MarketingSummary extends React.Component<IMarketingProps, a
                     <div className={Styles.formWrapper}>
                         <div className={classNames(Styles.flexLayout, Styles.threeColumn)}>
                             <div id="customerJourneyPhase">
-                                <label className="input-label summary">Customer Journey Phase, Core Needs and Use Cases</label>
+                                <label className="input-label summary">Use Case, Core Needs and Customer Journey Phase</label>
                                 <br />
                                 {this.props?.marketing?.customerJourneyPhases?.length > 0 ? this.props?.marketing?.customerJourneyPhases?.map((item, index)=>
                                   {return (<div key={index} dangerouslySetInnerHTML={{__html: this.formattedTitleOfCustomerPhase(item.name)}}></div>)}) : 'N/A'}
@@ -95,13 +95,13 @@ export default class MarketingSummary extends React.Component<IMarketingProps, a
                                 {this.props?.marketing?.marketingCommunicationChannels?.length > 0 ? this.props?.marketing?.marketingCommunicationChannels?.map(item=>item.name).join(', ') : 'N/A'}
                             </div>
                             <div id="personalization">
-                                <label className="input-label summary">Personalization Description</label>
-                                <br />                    
-                                <div className={Styles.solutionDescription}>
-                                    <pre className={Styles.solutionPre}>
-                                        {this.props?.marketing?.personalization?.description}
-                                    </pre>
-                                </div>
+                              <label className="input-label summary">Personalization Description</label>
+                              <br />                    
+                              <div className={Styles.solutionDescription}>
+                                  <pre className={Styles.solutionPre}>
+                                      {this.props?.marketing?.personalization?.description ? this.props?.marketing?.personalization?.description : 'N/A'}
+                                  </pre>
+                              </div>
                             </div>                           
                         </div>
                         <div className={classNames(Styles.personaWrapper)}>
@@ -110,10 +110,18 @@ export default class MarketingSummary extends React.Component<IMarketingProps, a
                             selectedPersonasList={this.props.marketing.personas}
                             isSummary={true}
                             onChangePersonas={this.onPersonaChange}></PersonaSelect>
-                        </div> 
-                                          
+                        </div>              
                     </div>
                 </div>              
+            </div>
+            <div>
+              <h3>Marketing Roles</h3>
+              <div id="marketingRoles" className={Styles.firstPanel}>
+                <div className={classNames(Styles.marketingRoleWrapper)}>
+                {this.props?.marketing?.marketingRoles?.length > 0 ? this.props?.marketing?.marketingRoles?.map((item, index)=>
+                      {return (<div key={index}>{item.role}</div>)}) : 'N/A'}
+                </div>
+              </div>
             </div>
           </div>
         </div>{' '}

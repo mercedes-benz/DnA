@@ -20,10 +20,13 @@ const DataProducts = ({ user, history, hostHistory }) => {
 
   const [cardViewMode, setCardViewMode] = useState(true);
   const [listViewMode, setListViewMode] = useState(false);
+  const [isCreatorFilter, 
+    // setIsCreatorFilter
+  ] = useState(false);
 
   useEffect(() => {
-    dispatch(GetDataTransfers());
-  }, [dispatch]);
+    dispatch(GetDataTransfers(isCreatorFilter));
+  }, [dispatch, isCreatorFilter]);
 
   const onPaginationPreviousClick = () => {
     const currentPageNumberTemp = currentPageNumber - 1;
@@ -91,6 +94,12 @@ const DataProducts = ({ user, history, hostHistory }) => {
                 </span>
               </div>
             </div>
+          </div>
+          <div>
+            {/* <button className={classNames(Styles.tagItem, 
+            isCreatorFilter ? Styles.selectedItem : '')} 
+            onClick={() => {setIsCreatorFilter(!isCreatorFilter)}}>
+            My Data Transfers</button> */}
           </div>
           <div>
             <div>

@@ -1,0 +1,13 @@
+{
+	"library": "spring-mvc",
+	"dateLibrary": "legacy",
+	"hideGenerationTimestamp": true,
+	"modelPackage": "com.daimler.data.dto.marketingRole",
+	"apiPackage": "com.daimler.data.api.marketingRole",
+	"invokerPackage": "com.daimler.data.service.marketingRole",
+	"importMappings": {
+		"GenericMessage": "com.daimler.data.controller.exceptions.GenericMessage",
+		"MessageDescription": "com.daimler.data.controller.exceptions.MessageDescription"
+		
+	}
+}

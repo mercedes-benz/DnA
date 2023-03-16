@@ -160,7 +160,6 @@ public class ForecastAssembler implements GenericAssembler<ForecastVO, ForecastN
 	}
 	
 	private String toFrequencyParam(String value) {
-		System.out.println("value is " + value);
 		switch(value) {
 		case "DAILY" : return "Daily";
 		case "WEEKLY" : return "Weekly";

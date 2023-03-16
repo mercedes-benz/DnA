@@ -18,6 +18,7 @@ import Styles from './Notebook.scss';
 import NotebookWorkspace from './NotebookWorkspace';
 import Provisionsolution from '../provisionsolution/Provisionsolution';
 import FullScreenModeIcon from 'components/icons/fullScreenMode/FullScreenModeIcon';
+import Caption from '../shared/caption/Caption';
 
 // @ts-ignore
 import Tooltip from '../../../assets/modules/uilab/js/src/tooltip';
@@ -78,6 +79,7 @@ export default class Notebook extends React.Component<INotebookProps, INotebookS
           ''
         ) : (
           <React.Fragment>
+            {!this.state.fsNeed && <Caption title="Jupyter Notebook Workspace" disableTitle={true} />}
             <div className={Styles.nbheader}>
               <div className={Styles.headerdetails}>
                 <img src={Envs.DNA_BRAND_LOGO_URL} className={Styles.Logo} />

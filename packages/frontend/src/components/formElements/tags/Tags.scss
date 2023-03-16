@@ -15,6 +15,9 @@
   &:read-only {
     cursor: default;
   }
+  &.fullWidth {
+    width: 100%;
+  }
 }
 .tagParent:focus-within {
   border-color: #00adef;
@@ -77,4 +80,8 @@
   right: 0;
   z-index: 9;
   max-height: 300px;
+}
+
+.chipName{
+  word-break: break-all;
 }

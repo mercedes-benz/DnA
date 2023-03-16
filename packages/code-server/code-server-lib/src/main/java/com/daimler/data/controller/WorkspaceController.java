@@ -34,6 +34,7 @@ import java.util.stream.Collectors;
 import javax.persistence.EntityNotFoundException;
 import javax.validation.Valid;
 
+import com.daimler.data.dto.workspace.*;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -49,21 +50,11 @@ import com.daimler.data.api.workspace.CodeServerApi;
 import com.daimler.data.application.auth.UserStore;
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
-import com.daimler.data.dto.workspace.CodeServerDeploymentDetailsVO;
-import com.daimler.data.dto.workspace.CodeServerRecipeDetailsVO;
 import com.daimler.data.dto.workspace.CodeServerRecipeDetailsVO.CloudServiceProviderEnum;
 import com.daimler.data.dto.workspace.CodeServerRecipeDetailsVO.CpuCapacityEnum;
 import com.daimler.data.dto.workspace.CodeServerRecipeDetailsVO.EnvironmentEnum;
 import com.daimler.data.dto.workspace.CodeServerRecipeDetailsVO.OperatingSystemEnum;
 import com.daimler.data.dto.workspace.CodeServerRecipeDetailsVO.RamSizeEnum;
-import com.daimler.data.dto.workspace.CodeServerWorkspaceVO;
-import com.daimler.data.dto.workspace.CreatedByVO;
-import com.daimler.data.dto.workspace.InitializeCollabWorkspaceRequestVO;
-import com.daimler.data.dto.workspace.InitializeWorkspaceRequestVO;
-import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
-import com.daimler.data.dto.workspace.ManageDeployRequestDto;
-import com.daimler.data.dto.workspace.UserInfoVO;
-import com.daimler.data.dto.workspace.WorkspaceCollectionVO;
 import com.daimler.data.service.workspace.WorkspaceService;
 import com.daimler.data.util.ConstantsUtility;
 
@@ -85,24 +76,81 @@ public class WorkspaceController  implements CodeServerApi{
 
 	@Autowired
 	private UserStore userStore;
-	
+
+
 	@Override
 	@ApiOperation(value = "remove collaborator from workspace project for a given Id.", nickname = "removeCollab", notes = "remove collaborator from workspace project for a given identifier.", response = CodeServerWorkspaceVO.class, tags={ "code-server", })
-    @ApiResponses(value = { 
-        @ApiResponse(code = 201, message = "Returns message of success or failure", response = CodeServerWorkspaceVO.class),
-        @ApiResponse(code = 204, message = "Fetch complete, no content found."),
-        @ApiResponse(code = 400, message = "Bad request."),
-        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
-        @ApiResponse(code = 403, message = "Request is not authorized."),
-        @ApiResponse(code = 405, message = "Method not allowed"),
-        @ApiResponse(code = 500, message = "Internal error") })
-    @RequestMapping(value = "/workspaces/{id}/collaborator",
-        produces = { "application/json" }, 
-        consumes = { "application/json" },
-        method = RequestMethod.DELETE)
-    public ResponseEntity<CodeServerWorkspaceVO> removeCollab(@ApiParam(value = "Workspace ID for the project",required=true) @PathVariable("id") String id,@ApiParam(value = "User info to remove collaborator from project" ,required=true )  @Valid @RequestBody UserInfoVO userRequestDto){
-		
-		return null;
+	@ApiResponses(value = {
+			@ApiResponse(code = 201, message = "Returns message of success or failure", response = CodeServerWorkspaceVO.class),
+			@ApiResponse(code = 204, message = "Fetch complete, no content found."),
+			@ApiResponse(code = 400, message = "Bad request."),
+			@ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+			@ApiResponse(code = 403, message = "Request is not authorized."),
+			@ApiResponse(code = 405, message = "Method not allowed"),
+			@ApiResponse(code = 500, message = "Internal error") })
+	@RequestMapping(value = "/workspaces/{id}/collaborator/{userid}",
+			produces = { "application/json" },
+			consumes = { "application/json" },
+			method = RequestMethod.DELETE)
+	public ResponseEntity<GenericMessage> removeCollab(
+			@ApiParam(value = "Workspace ID for the project", required = true) @PathVariable("id")String id,
+			@ApiParam(value = "User ID to be deleted", required = true) @PathVariable("userid") String userid) {
+		CreatedByVO currentUser = this.userStore.getVO();
+		String currentUserUserId = currentUser != null ? currentUser.getId() : null;
+		CodeServerWorkspaceVO vo = service.getById(currentUserUserId, id);
+		GenericMessage responseMessage = new GenericMessage();
+
+		if (vo == null || vo.getWorkspaceId() == null) {
+			log.debug("No workspace found, returning empty");
+			GenericMessage emptyResponse = new GenericMessage();
+			List<MessageDescription> errorMessage = new ArrayList<>();
+			MessageDescription msg = new MessageDescription();
+			msg.setMessage("No workspace found for given id and the user");
+			errorMessage.add(msg);
+			emptyResponse.addErrors(msg);
+			emptyResponse.setSuccess("FAILED");
+			emptyResponse.setErrors(errorMessage);
+			return new ResponseEntity<>(emptyResponse, HttpStatus.NOT_FOUND);
+		}
+
+		if (!(vo != null && vo.getWorkspaceOwner() != null && vo.getWorkspaceOwner().getId().equalsIgnoreCase(currentUserUserId))) {
+			MessageDescription notAuthorizedMsg = new MessageDescription();
+			notAuthorizedMsg.setMessage(
+					"Not authorized to update workspace. User does not have privileges.");
+			GenericMessage errorMessage = new GenericMessage();
+			errorMessage.addErrors(notAuthorizedMsg);
+			log.info("User {} cannot update workspace, insufficient privileges. Workspace name: {}", currentUserUserId, vo.getWorkspaceId());
+			return new ResponseEntity<>(errorMessage, HttpStatus.FORBIDDEN);
+		}
+
+
+		// To check is user is already a part of workspace.
+		boolean isCollabroratorAlreadyExits = false;
+		if (vo.getProjectDetails().getProjectCollaborators() != null) {
+			for (UserInfoVO collaborator : vo.getProjectDetails().getProjectCollaborators()) {
+				if (userid != null) {
+					if (collaborator.getId().equalsIgnoreCase(userid)) {
+						isCollabroratorAlreadyExits = true;
+					}
+				}
+			}
+		}
+
+		if (isCollabroratorAlreadyExits) {
+			responseMessage = service.removeCollabById(currentUserUserId, vo, userid);
+		} else {
+			log.error("User is not part of a collaborator list");
+			GenericMessage emptyResponse = new GenericMessage();
+			List<MessageDescription> errors = new ArrayList<>();
+			MessageDescription msg = new MessageDescription();
+			msg.setMessage("User is not part of a collaborator list");
+			errors.add(msg);
+			emptyResponse.setSuccess("FAILED");
+			emptyResponse.setErrors(errors);
+			return new ResponseEntity<>(emptyResponse, HttpStatus.BAD_REQUEST);
+		}
+
+		return new ResponseEntity<>(responseMessage, HttpStatus.OK);
 	}
 
 	
@@ -120,9 +168,62 @@ public class WorkspaceController  implements CodeServerApi{
         produces = { "application/json" }, 
         consumes = { "application/json" },
         method = RequestMethod.POST)
-    public ResponseEntity<CodeServerWorkspaceVO> addCollab(@ApiParam(value = "Workspace ID for the project",required=true) @PathVariable("id") String id,@ApiParam(value = "Userinfo to add collaborator to project" ,required=true )  @Valid @RequestBody UserInfoVO userRequestDto){
-		
-		return null;
+	public ResponseEntity<GenericMessage> addCollab(@ApiParam(value = "Workspace ID for the project", required = true) @PathVariable("id") String id, @ApiParam(value = "Userinfo to add collaborator to project", required = true) @Valid @RequestBody UserInfoVO userRequestDto) {
+		CreatedByVO currentUser = this.userStore.getVO();
+		String userId = currentUser != null ? currentUser.getId() : null;
+		CodeServerWorkspaceVO vo = service.getById(userId, id);
+		GenericMessage responseMessage = new GenericMessage();
+
+		if (vo == null || vo.getWorkspaceId() == null) {
+			log.debug("No workspace found, returning empty");
+			GenericMessage emptyResponse = new GenericMessage();
+			List<MessageDescription> errorMessage = new ArrayList<>();
+			MessageDescription msg = new MessageDescription();
+			msg.setMessage("No workspace found for given id and the user");
+			errorMessage.add(msg);
+			emptyResponse.addErrors(msg);
+			emptyResponse.setSuccess("FAILED");
+			emptyResponse.setErrors(errorMessage);
+			return new ResponseEntity<>(emptyResponse, HttpStatus.NOT_FOUND);
+		}
+
+		if (!(vo != null && vo.getWorkspaceOwner() != null && vo.getWorkspaceOwner().getId().equalsIgnoreCase(userId))) {
+			MessageDescription notAuthorizedMsg = new MessageDescription();
+			notAuthorizedMsg.setMessage(
+					"Not authorized to update workspace. User does not have privileges.");
+			GenericMessage errorMessage = new GenericMessage();
+			errorMessage.addErrors(notAuthorizedMsg);
+			log.info("User {} cannot update workspace, insufficient privileges. Workspace name: {}", userId, vo.getWorkspaceId());
+			return new ResponseEntity<>(errorMessage, HttpStatus.FORBIDDEN);
+		}
+
+		// To check is user is already a part of workspace.
+		boolean isCollabroratorAlreadyExits = false;
+		if (vo.getProjectDetails().getProjectCollaborators() != null) {
+			for (UserInfoVO collaborator : vo.getProjectDetails().getProjectCollaborators()) {
+				if (userRequestDto.getId() != null) {
+					if (collaborator.getId().equalsIgnoreCase(userRequestDto.getId())) {
+						isCollabroratorAlreadyExits = true;
+					}
+				}
+			}
+		}
+
+		if (isCollabroratorAlreadyExits || userRequestDto.getId() == null) {
+			log.error("User is already part of a collaborator");
+			GenericMessage emptyResponse = new GenericMessage();
+			List<MessageDescription> errors = new ArrayList<>();
+			MessageDescription msg = new MessageDescription();
+			msg.setMessage("User is already part of a collaborator");
+			errors.add(msg);
+			emptyResponse.setErrors(errors);
+			emptyResponse.setSuccess("FAILED");
+			return new ResponseEntity<>(emptyResponse, HttpStatus.BAD_REQUEST);
+		}
+
+		responseMessage = service.addCollabById(userId, vo, userRequestDto);
+
+		return new ResponseEntity<>(responseMessage, HttpStatus.OK);
 	}
 
 	@Override
@@ -173,7 +274,94 @@ public class WorkspaceController  implements CodeServerApi{
 		InitializeWorkspaceResponseVO responseData = service.initiateWorkspace(collabUserVO, pat, password);
 		return new ResponseEntity<>(responseData, responseStatus);
 	}
-    
+
+
+	@ApiOperation(value = "Create Workbench for user in code-server.", nickname = "createWorkspace", notes = "Create workspace for user in code-server with given password", response = InitializeWorkspaceResponseVO.class, tags={ "code-server", })
+	@ApiResponses(value = {
+			@ApiResponse(code = 201, message = "Returns message of success or failure ", response = InitializeWorkspaceResponseVO.class),
+			@ApiResponse(code = 400, message = "Bad Request", response = GenericMessage.class),
+			@ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+			@ApiResponse(code = 403, message = "Request is not authorized."),
+			@ApiResponse(code = 405, message = "Method not allowed"),
+			@ApiResponse(code = 500, message = "Internal error") })
+	@RequestMapping(value = "/workspaces/{id}/projectowner",
+			produces = { "application/json" },
+			consumes = { "application/json" },
+			method = RequestMethod.PATCH)
+	@Override
+	public ResponseEntity<GenericMessage> reassignOwner(@ApiParam(value = "Workspace ID to be fetched",required=true) @PathVariable("id") String id,
+		@ApiParam(value = "UserId to add collaborator as Owner", required = true) @Valid @RequestBody UserIdVO userIdDto) {
+		CreatedByVO currentUser = this.userStore.getVO();
+		String userId = currentUser != null ? currentUser.getId() : null;
+		CodeServerWorkspaceVO vo = service.getById(userId, id);
+		GenericMessage responseMessage = new GenericMessage();
+
+		if (userIdDto.getId() == null) {
+			GenericMessage emptyResponse = new GenericMessage();
+			List<MessageDescription> errorMessage = new ArrayList<>();
+			MessageDescription msg = new MessageDescription();
+			msg.setMessage("User Id is required");
+			errorMessage.add(msg);
+			emptyResponse.addErrors(msg);
+			emptyResponse.setSuccess("FAILED");
+			emptyResponse.setErrors(errorMessage);
+			return new ResponseEntity<>(emptyResponse, HttpStatus.BAD_REQUEST);
+		}
+
+		if (vo == null || vo.getWorkspaceId() == null) {
+			log.debug("No workspace found, returning empty");
+			GenericMessage emptyResponse = new GenericMessage();
+			List<MessageDescription> errorMessage = new ArrayList<>();
+			MessageDescription msg = new MessageDescription();
+			msg.setMessage("No workspace found for given id and the user");
+			errorMessage.add(msg);
+			emptyResponse.addErrors(msg);
+			emptyResponse.setSuccess("FAILED");
+			emptyResponse.setErrors(errorMessage);
+			return new ResponseEntity<>(emptyResponse, HttpStatus.NOT_FOUND);
+		}
+
+		if (!(vo != null && vo.getWorkspaceOwner() != null && vo.getWorkspaceOwner().getId().equalsIgnoreCase(userId))) {
+			MessageDescription notAuthorizedMsg = new MessageDescription();
+			notAuthorizedMsg.setMessage(
+					"Not authorized to reassign owner of workspace. User does not have privileges.");
+			GenericMessage errorMessage = new GenericMessage();
+			errorMessage.addErrors(notAuthorizedMsg);
+			log.info("User {} cannot reassign owner, insufficient privileges. Workspace name: {}", userId, vo.getWorkspaceId());
+			return new ResponseEntity<>(errorMessage, HttpStatus.FORBIDDEN);
+		}
+
+		// To check is user is already a part of workspace.
+		boolean isCollabroratorAlreadyExits = false;
+		UserInfoVO newOwnerDeatils = new UserInfoVO();
+		if (vo.getProjectDetails().getProjectCollaborators() != null) {
+			for (UserInfoVO collaborator : vo.getProjectDetails().getProjectCollaborators()) {
+				if (userIdDto.getId() != null) {
+					if (collaborator.getId().equalsIgnoreCase(userIdDto.getId())) {
+						newOwnerDeatils = collaborator;
+						isCollabroratorAlreadyExits = true;
+					}
+				}
+			}
+		}
+
+		if (isCollabroratorAlreadyExits) {
+			responseMessage = service.reassignOwner(currentUser, vo, newOwnerDeatils);
+		} else {
+			log.error("User is not part of a collaborator list");
+			GenericMessage emptyResponse = new GenericMessage();
+			List<MessageDescription> errors = new ArrayList<>();
+			MessageDescription msg = new MessageDescription();
+			msg.setMessage("User is not part of a collaborator list");
+			errors.add(msg);
+			emptyResponse.setSuccess("FAILED");
+			emptyResponse.setErrors(errors);
+			return new ResponseEntity<>(emptyResponse, HttpStatus.BAD_REQUEST);
+		}
+
+		return new ResponseEntity<>(responseMessage, HttpStatus.OK);
+	}
+
 	@ApiOperation(value = "Create Workbench for user in code-server.", nickname = "createWorkspace", notes = "Create workspace for user in code-server with given password", response = InitializeWorkspaceResponseVO.class, tags={ "code-server", })
     @ApiResponses(value = { 
         @ApiResponse(code = 201, message = "Returns message of success or failure ", response = InitializeWorkspaceResponseVO.class),

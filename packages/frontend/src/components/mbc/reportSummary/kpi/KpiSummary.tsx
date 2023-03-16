@@ -32,7 +32,7 @@ export default class KpiSummary extends React.Component<IKpiProps> {
         <div className={classNames(Styles.mainPanel, 'mainPanelSection')}>
           <div className={Styles.wrapper}>
             <div className={Styles.firstPanel}>
-            <h3 className={Styles.kpiHeading}>KPI</h3>
+            <h3 className={Styles.kpiHeading}>Content & Functions</h3>
               {this.props.kpis?.map((kpi, index) => {
                 return (
                   <React.Fragment key={index}>

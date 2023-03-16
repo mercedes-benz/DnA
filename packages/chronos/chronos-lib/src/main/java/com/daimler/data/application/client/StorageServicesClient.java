@@ -210,7 +210,29 @@ public class StorageServicesClient {
 		return updateBucketResponse;
 	}
 	
-	public FileUploadResponseDto uploadFile(MultipartFile file,String bucketName) {
+	public FileUploadResponseDto uploadFile(String prefix,MultipartFile file, String bucketName) {
+		FileUploadResponseDto uploadResponse = new FileUploadResponseDto();
+		List<MessageDescription> errors = new ArrayList<>();
+		try {
+			ByteArrayResource fileAsResource = new ByteArrayResource(file.getBytes()){
+			    @Override
+			    public String getFilename(){
+			        return file.getOriginalFilename();                                          
+			    }
+			};
+			return this.uploadFile(prefix, fileAsResource, bucketName);
+		}catch(Exception e) {
+			log.error("Failed while uploading file {} to minio bucket {} with exception {}", file.getOriginalFilename(), bucketName,e.getMessage());
+			MessageDescription errMsg = new MessageDescription("Failed while uploading file with exception " + e.getMessage());
+			errors.add(errMsg);
+			uploadResponse.setErrors(errors);
+			uploadResponse.setStatus("FAILED");
+		}
+		return uploadResponse;
+	}
+	
+	
+	public FileUploadResponseDto uploadFile(String prefix,ByteArrayResource file, String bucketName) {
 		FileUploadResponseDto uploadResponse = new FileUploadResponseDto();
 		List<MessageDescription> errors = new ArrayList<>();
 		try {
@@ -221,17 +243,11 @@ public class StorageServicesClient {
 			headers.set("chronos-api-key",dataBricksAuth);
 			headers.setContentType(MediaType.MULTIPART_FORM_DATA);
 			LinkedMultiValueMap<String, Object> multipartRequest = new LinkedMultiValueMap<>();
-	
-			ByteArrayResource fileAsResource = new ByteArrayResource(file.getBytes()){
-			    @Override
-			    public String getFilename(){
-			        return file.getOriginalFilename();                                          
-			    }
-			};
+			ByteArrayResource fileAsResource = file;
 			String uploadFileUrl = storageBaseUri + BUCKETS_PATH + "/" + bucketName + UPLOADFILE_PATH;
 			HttpEntity<ByteArrayResource> attachmentPart = new HttpEntity<>(fileAsResource);
 			multipartRequest.set("file",attachmentPart);
-			multipartRequest.set("prefix",INPUTS_PREFIX_PATH);
+			multipartRequest.set("prefix",prefix);
 			HttpEntity<LinkedMultiValueMap<String,Object>> requestEntity = new HttpEntity<>(multipartRequest,headers);
 			ResponseEntity<FileUploadResponseDto> response = restTemplate.exchange(uploadFileUrl, HttpMethod.POST,
 					requestEntity, FileUploadResponseDto.class);
@@ -239,7 +255,7 @@ public class StorageServicesClient {
 				uploadResponse = response.getBody();
 			}
 			}catch(Exception e) {
-				log.error("Failed while uploading file {} to minio bucket {} with exception {}", file.getOriginalFilename(), bucketName,e.getMessage());
+				log.error("Failed while uploading file {} to minio bucket {} with exception {}", file.getFilename(), bucketName,e.getMessage());
 				MessageDescription errMsg = new MessageDescription("Failed while uploading file with exception " + e.getMessage());
 				errors.add(errMsg);
 				uploadResponse.setErrors(errors);
@@ -260,9 +276,11 @@ public class StorageServicesClient {
 			headers.setContentType(MediaType.APPLICATION_JSON);
 			headers.set("chronos-api-key",dataBricksAuth);
 			HttpEntity requestEntity = new HttpEntity<>(headers);
-			
+
 			String getFileUrl = storageBaseUri + BUCKETS_PATH + "/" + bucketName + "/objects/metadata?prefix=" + path;
+
 			ResponseEntity<ByteArrayResource> response = restTemplate.exchange(getFileUrl, HttpMethod.GET,requestEntity, ByteArrayResource.class);
+
 			if (response.hasBody()) {
 				data = response.getBody();
 				downloadResponse.setData(data);
@@ -273,6 +291,7 @@ public class StorageServicesClient {
 				errors.add(errMsg);
 				downloadResponse.setErrors(errors);
 				downloadResponse.setData(data);
+
 			}
 		return downloadResponse;
 	}
@@ -308,7 +327,17 @@ public class StorageServicesClient {
 	}
 	
 	
-	public Boolean isSuccessFilePresent(String bucketName,String prefix) {
+	public Boolean isFilePresent(String fileNamePrefix,List<BucketObjectDetailsDto> bucketObjectDetails) {
+		Boolean flag = false;
+		if(bucketObjectDetails!=null && !bucketObjectDetails.isEmpty() && bucketObjectDetails.size()>0) {
+			List<BucketObjectDetailsDto> filteredList=bucketObjectDetails.stream().filter(str -> (fileNamePrefix).equalsIgnoreCase(str.getObjectName())).collect(Collectors.toList());
+			if(filteredList!=null && !filteredList.isEmpty() && filteredList.size()>0)
+				flag = true;
+		}
+		return flag;
+	}
+
+	public List<BucketObjectDetailsDto> getFilesPresent(String bucketName,String prefix) {
 		Boolean flag = false;
 		BucketObjectsCollectionWrapperDto filesList = new BucketObjectsCollectionWrapperDto();
 		ByteArrayResource data = null;
@@ -328,18 +357,20 @@ public class StorageServicesClient {
 						&& !response.getBody().getData().getBucketObjects().isEmpty()) {
 					filesList = response.getBody();
 					List<BucketObjectDetailsDto> filteredBucketObjects = filesList.getData().getBucketObjects().stream().
-						filter(str -> (prefix+"SUCCESS").equalsIgnoreCase(str.getObjectName())).collect(Collectors.toList());
-					if(filteredBucketObjects!=null && !filteredBucketObjects.isEmpty() && filteredBucketObjects.size()>0)
-						flag = true;
+							collect(Collectors.toList());
+					return filteredBucketObjects;
+
 				}
+
 			}
-			}catch(Exception e) {
-				log.error("Failed while getting SUCCESS file from results path {}  with exception {}", bucketName+"/"+prefix, e.getMessage());
-			}
-		return flag;
+		}catch(Exception e) {
+			log.error("Failed while getting  files from results path {}  with exception {}", bucketName+"/"+prefix, e.getMessage());
+		}
+		return null;
+
 	}
- 
-	
+
+
 	public DeleteBucketResponseWrapperDto deleteBucket(String bucketName) {
 		DeleteBucketResponseWrapperDto deleteBucketResponse = new DeleteBucketResponseWrapperDto();
 		List<MessageDescription> errors = new ArrayList<>();

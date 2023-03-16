@@ -19,7 +19,13 @@ const DataListItem = ({ product, history }) => {
         className={classNames('data-row', Styles.listContainer)}
         onClick={() => history.push(`/dataproduct/summary/${product?.dataProductId}`)}
       >
-        <div className={Styles.titleSection}></div>
+        <div className={Styles.titleSection}>
+          {!product?.isPublish ? (
+            <div>
+              <button className={classNames('btn btn-primary', Styles.upperTag)}>Coming Soon</button>
+            </div>
+          ) : null}
+        </div>
         <div className={Styles.dataProductContent}>
           <div className={Styles.iconContainer}></div>
           <div className={Styles.flexItem}>

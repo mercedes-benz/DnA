@@ -75,13 +75,8 @@ public class CacheUpdateEventListener {
 		Map<String, UserInfo> users = dnaMinioClient.listUsers();
 		
 		//Adding data to cache
-		if(users==null) {
-			 users = new HashMap<String, UserInfo>();
-			 List<String> policies = new ArrayList<>();
-			 policies.add("dummy policy");
-			 UserInfo dummyuser = new UserInfo(Status.ENABLED, "secretkey", "policyname", policies);
-			 users.put("dummy", dummyuser);
+		if(users != null) {
+			cacheUtil.updateCache(cacheName, users);
 		}
-		cacheUtil.updateCache(cacheName, users);
 	}
 }

@@ -55,11 +55,13 @@ import org.springframework.util.StringUtils;
 import com.daimler.data.application.auth.UserStore;
 import com.daimler.data.application.config.AVScannerClient;
 import com.daimler.data.assembler.SolutionAssembler;
+import com.daimler.data.client.dashboard.DashboardClient;
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
 import com.daimler.data.db.entities.DataikuNsql;
 import com.daimler.data.db.entities.SolutionNsql;
 import com.daimler.data.db.jsonb.SubDivision;
+import com.daimler.data.db.jsonb.solution.MarketingRoleSummary;
 import com.daimler.data.db.jsonb.solution.SkillSummary;
 import com.daimler.data.db.jsonb.solution.Solution;
 import com.daimler.data.db.jsonb.solution.SolutionAlgorithm;
@@ -74,10 +76,10 @@ import com.daimler.data.db.repo.solution.SolutionCustomRepository;
 import com.daimler.data.db.repo.solution.SolutionRepository;
 import com.daimler.data.dto.algorithm.AlgorithmVO;
 import com.daimler.data.dto.datasource.DataSourceVO;
-import com.daimler.data.dto.department.DepartmentVO;
 import com.daimler.data.dto.divisions.DivisionVO;
 import com.daimler.data.dto.divisions.SubdivisionVO;
 import com.daimler.data.dto.language.LanguageVO;
+import com.daimler.data.dto.marketingRole.MarketingRoleVO;
 import com.daimler.data.dto.notebook.NotebookVO;
 import com.daimler.data.dto.platform.PlatformVO;
 import com.daimler.data.dto.relatedProduct.RelatedProductVO;
@@ -95,8 +97,8 @@ import com.daimler.data.service.algorithm.AlgorithmService;
 import com.daimler.data.service.common.BaseCommonService;
 import com.daimler.data.service.dataiku.DataikuService;
 import com.daimler.data.service.datasource.DataSourceService;
-import com.daimler.data.service.department.DepartmentService;
 import com.daimler.data.service.language.LanguageService;
+import com.daimler.data.service.marketingRoles.MarketingRoleService;
 import com.daimler.data.service.notebook.NotebookService;
 import com.daimler.data.service.platform.PlatformService;
 import com.daimler.data.service.relatedproduct.RelatedProductService;
@@ -169,7 +171,10 @@ public class BaseSolutionService extends BaseCommonService<SolutionVO, SolutionN
 	private AVScannerClient aVScannerClient;
 	
 	@Autowired
-	private DepartmentService departmentService;
+	private DashboardClient dashboardClient;	
+	
+	@Autowired
+	private MarketingRoleService marketingRoleService;
 
 	public BaseSolutionService() {
 		super();
@@ -236,10 +241,15 @@ public class BaseSolutionService extends BaseCommonService<SolutionVO, SolutionN
 		updateDataSources(vo);
 		updateRelatedProducts(vo);
 		
-		LOGGER.debug("Updating departments if not available.");
-		updateDepartments(vo);
+		LOGGER.info("Calling dashboardService to update departments {}", vo.getDepartment());	
+		dashboardClient.updateDepartments(vo);
+		
 		LOGGER.debug("Updating Skills if not available.");
 		updateSkills(vo);
+		
+		LOGGER.debug("Updating Roles if not available.");
+		updateRoles(vo);
+		
 		SolutionAnalyticsVO analyticsVO = vo.getAnalytics();
 		if (analyticsVO != null) {
 			SolutionAnalyticsVO analyticsWithIdsInfo = new SolutionAnalyticsVO();
@@ -326,21 +336,7 @@ public class BaseSolutionService extends BaseCommonService<SolutionVO, SolutionN
 	}
 
 	
-	private void updateDepartments(SolutionVO vo) {
-		String department = vo.getDepartment();
-		if (Strings.hasText(department)) {
-			DepartmentVO existingDepartmentVO = departmentService.getByUniqueliteral("name", department);
-			if (existingDepartmentVO != null && existingDepartmentVO.getName() != null)
-				return;
-			else {
-				DepartmentVO newDepartmentVO = new DepartmentVO();
-				newDepartmentVO.setName(department);
-				departmentService.create(newDepartmentVO);
-			}
-
-		}
-		
-	}
+	
 
 	@Transactional
 	@Override
@@ -531,6 +527,19 @@ public class BaseSolutionService extends BaseCommonService<SolutionVO, SolutionN
 						solutionNsql.getData().setSkills(skills);
 						customRepo.update(solutionNsql);
 					}
+				} else if (category.equals(TAG_CATEGORY.MARKETINGROLE)) {
+					changeLog.setChangeDescription("MArketing Roles: Marketing role '" + tagName + "' removed.");
+					changeLog.setFieldChanged("/marketingRoles/");
+					message = "MarketingRole " + tagName + " has been deleted by Admin " + userName
+							+ ". Cascading update to Solution " + solutionName
+							+ " has been applied to remove references.";
+					LOGGER.info("Deleting MArketingRole:{} from solutions.", tagName);
+					if (!ObjectUtils.isEmpty(solutionNsql.getData().getMarketingRoles())) {
+						List<MarketingRoleSummary> marketingRoles = solutionNsql.getData().getMarketingRoles().stream()
+								.filter(x -> !x.getRole().equals(tagName)).collect(Collectors.toList());
+						solutionNsql.getData().setMarketingRoles(marketingRoles);
+						customRepo.update(solutionNsql);
+					}
 				} else if (category.equals(TAG_CATEGORY.DIVISION)) {
 					changeLog.setChangeDescription("Divisions: Division '" + tagName + "' removed.");
 					changeLog.setFieldChanged("/divisions/");
@@ -713,6 +722,31 @@ public class BaseSolutionService extends BaseCommonService<SolutionVO, SolutionN
 					newSkillVO.setId(null);
 					newSkillVO.setName(skill);
 					skillService.create(newSkillVO);
+				}
+			});
+		}
+	}
+	
+	/*
+	 * To create a new Roles if not exist
+	 * 
+	 */
+	private void updateRoles(SolutionVO vo) {		
+		List<String> roles = vo.getMarketing().getMarketingRoles() != null ? vo.getMarketing().getMarketingRoles().stream().filter(Objects :: nonNull)
+				.map(n->n.getRole()).collect(Collectors.toList()) : null;
+		if (!ObjectUtils.isEmpty(roles)) {
+			roles.forEach(role -> {
+				LOGGER.info("Checking if Role:{} already exists", role);
+				MarketingRoleVO existingRoleVO = marketingRoleService.getByUniqueliteral("name", role);
+				if (existingRoleVO != null && existingRoleVO.getName() != null
+						&& existingRoleVO.getName().equalsIgnoreCase(role))
+					return;
+				else {
+					LOGGER.info("Adding new Role:{} in db", role);
+					MarketingRoleVO newRoleVO = new MarketingRoleVO();
+					newRoleVO.setId(null);
+					newRoleVO.setName(role);					
+					marketingRoleService.create(newRoleVO);
 				}
 			});
 		}

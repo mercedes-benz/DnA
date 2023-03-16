@@ -110,12 +110,6 @@ paths:
    description:  "Get all platforms. This endpoints will be used to Get all valid available platforms maintenance records."
    operationId: "getAll"
    parameters:
-        - name: sortBy
-          in: query
-          description: Sort platforms by a given variable like platformName
-          required: false
-          type: string
-          enum: [platformName]
         - name: sortOrder
           in: query
           description: Sort platforms based on the given order, example asc,desc
