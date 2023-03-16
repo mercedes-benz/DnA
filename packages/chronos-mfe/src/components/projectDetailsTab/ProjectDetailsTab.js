@@ -10,7 +10,7 @@ import ChronosAccessDetails from '../chronosAccessDetails/ChronosAccessDetails';
 // utils
 import { regionalDateAndTimeConversionSolution } from '../../utilities/utils';
 
-const ProjectDetailsTab = ({project}) => {
+const ProjectDetailsTab = ({project, onRefresh}) => {
   const [editProject, setEditProject] = useState(false);
   const [teamMembers, setTeamMembers] = useState([]);
 
@@ -94,7 +94,7 @@ const ProjectDetailsTab = ({project}) => {
           modalWidth={'60%'}
           buttonAlignment="right"
           show={editProject}
-          content={<ChronosProjectForm edit={true} project={project} onSave={() => setEditProject(false)} />}
+          content={<ChronosProjectForm edit={true} project={project} onSave={() => {setEditProject(false); onRefresh()}} />}
           scrollableContent={false}
           onCancel={() => setEditProject(false)}
           modalStyle={{
