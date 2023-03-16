@@ -13,9 +13,9 @@ micronaut:
         mapping: /swagger-ui/**
   http:
       client:
-        read-timeout: ${HTTP_CLIENT_READTIMEOUT:120}
-      ssl:
-        insecureTrustAllCertificates: true  
+        read-timeout: ${HTTP_CLIENT_READTIMEOUT:100s}
+        ssl:
+          insecureTrustAllCertificates: true  
   server:
     port: 7777
     cors:
