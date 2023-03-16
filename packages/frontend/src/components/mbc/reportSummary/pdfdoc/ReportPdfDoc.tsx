@@ -378,8 +378,8 @@ const Customer = ({ customer, showCustomer }: ICustomerProps) => {
             </View>
             <View style={[styles.flexLayout, { marginVertical: 5 }]} wrap={false}>
               <View style={styles.firstCol}>
-                <Text style={styles.sectionTitle}>Name</Text>
-                <View style={styles.flexLayout}>{teamMembersList([data?.name])}</View>
+                <Text style={styles.sectionTitle}>Level | Division | E2-Department</Text>
+                <View style={styles.flexLayout}>{teamMembersList([data])}</View>
               </View>
               <View style={styles.firstCol}>
                 <Text style={styles.sectionTitle}>Process Owner</Text>
@@ -437,10 +437,10 @@ const Customer = ({ customer, showCustomer }: ICustomerProps) => {
               </View>
             </View>
             <View style={[styles.flexLayout, { marginVertical: 5 }]} wrap={false}>
-              <View style={styles.firstCol}>
+              {/* <View style={styles.firstCol}>
                 <Text style={styles.sectionTitle}>Name</Text>
                 <Text>{data?.name?.firstName +' '+ data?.name?.lastName || 'NA'}</Text>
-              </View>
+              </View> */}
               <View style={styles.flexCol2}>
                 <Text style={styles.sectionTitle}>Company Name</Text>
                 <Text>{data.companyName || 'NA'}</Text>
