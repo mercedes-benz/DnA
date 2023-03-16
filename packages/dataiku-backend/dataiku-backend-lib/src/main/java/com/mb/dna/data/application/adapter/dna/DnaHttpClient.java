@@ -1,8 +1,5 @@
 package com.mb.dna.data.application.adapter.dna;
 
-import com.mb.dna.data.application.adapter.dna.DnaClientConfig;
-import com.mb.dna.data.dataiku.api.controller.DataikuController;
-
 import io.micronaut.http.HttpRequest;
 import io.micronaut.http.HttpResponse;
 import io.micronaut.http.client.HttpClient;
@@ -25,16 +22,20 @@ public class DnaHttpClient {
 		VerifyLoginResponseDto responseBody = null;
 		String url =  dnaClientConfig.getUri() + dnaClientConfig.getVerifyLoginUri();
 		log.info("Dna verify login with  {}", url);
-		HttpRequest<?> req = HttpRequest.POST(url, null).header("Accept", "application/json")
-		.header("Content-Type", "application/json")
-		.header("Authorization", jwt);
-		HttpResponse<VerifyLoginResponseDto> response = client.toBlocking().exchange(req,VerifyLoginResponseDto.class);
-		if(response!=null && response.getBody()!=null) {
-			responseBody = response.getBody().get();
-		}
-		if(responseBody!=null && responseBody.getData()!=null) {
-			userInfo = responseBody.getData();
-			log.info("logged in user is {}",userInfo.getId());
+		try {
+			HttpRequest<?> req = HttpRequest.POST(url, null).header("Accept", "application/json")
+			.header("Content-Type", "application/json")
+			.header("Authorization", jwt);
+			HttpResponse<VerifyLoginResponseDto> response = client.toBlocking().exchange(req,VerifyLoginResponseDto.class);
+			if(response!=null && response.getBody()!=null) {
+				responseBody = response.getBody().get();
+			}
+			if(responseBody!=null && responseBody.getData()!=null) {
+				userInfo = responseBody.getData();
+				log.info("logged in user is {}",userInfo.getId());
+			}
+		}catch(Exception e) {
+			log.error("Failed to verify User login with exception {} ",e.getMessage());
 		}
 		return userInfo;
 	}
