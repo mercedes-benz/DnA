@@ -103,8 +103,9 @@ export const getDataForCSV = (
               : 'NA',
             internalCustomers: (report.customer?.internalCustomers?.length
               ? report.customer?.internalCustomers?.map((customer) => 
-              'name: ' + (customer?.name?.firstName +' '+ customer?.name?.lastName)
-              + '|' + 'customerRelation: ' + customer?.customerRelation
+              // 'name: ' + (customer?.name?.firstName +' '+ customer?.name?.lastName)
+              // + '|' +
+              'customerRelation: ' + customer?.customerRelation
               + '|' + 'level: ' + customer?.level
               + '|' + 'customerDivision: ' + customer?.division?.name
               + '|' + 'e2-department: ' + customer?.department
@@ -115,8 +116,9 @@ export const getDataForCSV = (
               : 'NA'),
             externalCustomers: report.customer?.externalCustomers?.length
               ? report.customer.externalCustomers?.map((customer) =>               
-              'name: ' + (customer?.name?.firstName +' '+ customer?.name?.lastName)
-              + '|' + 'customerRelation: ' + customer?.customerRelation
+              // 'name: ' + (customer?.name?.firstName +' '+ customer?.name?.lastName)
+              // + '|' + 
+              'customerRelation: ' + customer?.customerRelation
               + '|' + 'companyName: ' + customer?.companyName
               + '|' + 'comment: ' + customer?.comment
               )
