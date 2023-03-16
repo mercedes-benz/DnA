@@ -5,6 +5,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Optional;
 
+import io.micronaut.http.*;
 import org.reactivestreams.Publisher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,10 +19,6 @@ import com.mb.dna.data.application.adapter.dna.UserStore;
 import io.jsonwebtoken.Claims;
 import io.micronaut.context.ApplicationContext;
 import io.micronaut.core.async.publisher.Publishers;
-import io.micronaut.http.HttpRequest;
-import io.micronaut.http.HttpResponse;
-import io.micronaut.http.HttpStatus;
-import io.micronaut.http.MutableHttpResponse;
 import io.micronaut.http.annotation.Filter;
 import io.micronaut.http.filter.HttpServerFilter;
 import io.micronaut.http.filter.ServerFilterChain;
@@ -49,6 +46,12 @@ public class JWTAuthenticationFilter implements HttpServerFilter{
 	@SuppressWarnings("unused")
 	@Override
 	public Publisher<MutableHttpResponse<?>> doFilter(HttpRequest<?> request, ServerFilterChain filterChain) {
+		if (request.getMethod().equals(HttpMethod.OPTIONS)) {
+			return Publishers.just(HttpResponse.ok()
+					.header("Access-Control-Allow-Methods", "*")
+					.header("Access-Control-Allow-Origin","*")
+					.header("Access-Control-Allow-Credentials", "true"));
+		}
 		String jwt = request.getHeaders().get("Authorization");
 		
 		String secretKey = dnaClientConfig.getJwt();
