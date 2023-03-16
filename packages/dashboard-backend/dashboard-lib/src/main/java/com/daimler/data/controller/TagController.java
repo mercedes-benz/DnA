@@ -108,9 +108,8 @@ public class TagController implements TagsApi {
 	@RequestMapping(value = "/tags", produces = { "application/json" }, consumes = {
 			"application/json" }, method = RequestMethod.GET)
 	public ResponseEntity<TagCollection> getAll(
-			@ApiParam(value = "Sort tags by a given variable like tagName") @Valid @RequestParam(value = "sortBy", required = false) String sortBy,
 			@ApiParam(value = "Sort tags based on the given order, example asc,desc", allowableValues = "asc, desc") @Valid @RequestParam(value = "sortOrder", required = false) String sortOrder) {
-		return tagService.getAllTags(sortBy,sortOrder);
+		return tagService.getAllTags(sortOrder);
 	}
 
 	@Override

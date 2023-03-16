@@ -1,6 +1,6 @@
 {
   "name": "storage",
-  "version": "3.2.0",
+  "version": "3.2.1",
   "private": true,
   "dependencies": {
     "@babel/runtime": "^7.17.8",
@@ -82,7 +82,15 @@
     },
     "rules": {
       "react/prop-types": "off",
-      "react/no-unknown-property": ["error", { "ignore": ["tooltip-data", "required-error"] }]
+      "react/no-unknown-property": [
+        "error",
+        {
+          "ignore": [
+            "tooltip-data",
+            "required-error"
+          ]
+        }
+      ]
     }
   },
   "browserslist": {

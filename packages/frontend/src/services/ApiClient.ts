@@ -35,6 +35,9 @@ import {
   INoticationModules,
   IManageDivision,
   IManageDivisionRequest,
+  IManageMarketingTabRequest,
+  IMarketingCommunicationChannel,
+  IMarketingCustomerJourney,
 } from '../globals/types';
 import { Pkce } from './Pkce';
 import { ReportsApiClient } from './ReportsApiClient';
@@ -49,8 +52,13 @@ export interface IResponse<T> {
 }
 
 const baseUrl = Envs.API_BASEURL ? Envs.API_BASEURL : `http://${window.location.hostname}:7171/api`;
+const dataikUrl = Envs.DATAIKU_API_BASEURL ? Envs.DATAIKU_API_BASEURL : `http://${window.location.hostname}:7171/api`;
 const getUrl = (endpoint: string) => {
   return `${baseUrl}/${endpoint}`;
+};
+
+const getDataikuUrl = (endpoint: string) => {
+  return `${dataikUrl}/${endpoint}`;
 };
 
 export class ApiClient {
@@ -301,6 +309,39 @@ export class ApiClient {
     return this.delete(`relatedProducts/${id}`);
   }
 
+  public static getMarketingCommunicationChannels(): Promise<IMarketingCommunicationChannel[]> {
+    return this.get('marketingCommunicationChannels');
+  }
+
+  public static createMarketingCommunicationChannels(data: IManageMarketingTabRequest): Promise<[]> {
+    return this.post('marketingCommunicationChannels', data);
+  }
+
+  public static putMarketingCommunicationChannels(data: IManageMarketingTabRequest): Promise<[]> {
+    return this.put('marketingCommunicationChannels', data);
+  }
+
+  public static deleteMarketingCommunicationChannels(id: string): Promise<any> {
+    return this.delete(`marketingCommunicationChannels/${id}`);
+  }
+
+  public static getCustomerJourneyPhases(): Promise<IMarketingCustomerJourney[]> {
+    return this.get('customerJourneyPhases');
+  }
+
+  public static createCustomerJourneyPhases(data: IManageMarketingTabRequest): Promise<[]> {
+    return this.post('customerJourneyPhases', data);
+  }
+
+  public static putCustomerJourneyPhases(data: IManageMarketingTabRequest): Promise<[]> {
+    return this.put('customerJourneyPhases', data);
+  }
+
+  public static deleteCustomerJourneyPhases(id: string): Promise<any> {
+    return this.delete(`customerJourneyPhases/${id}`);
+  }
+
+
   public static getDescriptionLovData(): Promise<any[]> {
     return Promise.all([
       this.get(`lov/businessgoals`),
@@ -336,6 +377,7 @@ export class ApiClient {
       this.get('customerJourneyPhases'),
       this.get('marketingCommunicationChannels'),
       ReportsApiClient.get('departments'),
+      this.get('marketingRoles'),
     ]);
   }
 
@@ -422,6 +464,10 @@ export class ApiClient {
     return this.get(`users?searchTerm=${searchTerm}&offset=0&limit=0`);
   }
 
+  public static getUserprivilegeSearchTerm(searchTerm: string): Promise<any> {
+    return this.fetch(getDataikuUrl(`userprivilege?limit=0&offset=0&sortBy=&sortOrder=&searchTerm=${searchTerm}`), HTTP_METHOD.GET);
+  }
+
   public static getAllSolutions(queryUrl?: string): Promise<ICreateNewSolution[]> {
     return queryUrl ? this.get(`solutions?${queryUrl}`) : this.get('solutions');
   }
@@ -444,6 +490,10 @@ export class ApiClient {
     sortOrder?: string,
   ): Promise<IUserInfoResponse> {
     return this.get(`users?offset=${offset}&limit=${limit}&sortBy=${sortBy}&sortOrder=${sortOrder}`);
+  }
+
+  public static onboardTechnicalUser(data: IUserRequestVO): Promise<IUserInfo> {
+    return this.post('users', data);
   }
 
   public static updateUser(data: IUserRequestVO): Promise<IUserInfo> {
@@ -865,7 +915,13 @@ export class ApiClient {
             isChecked,
             description
           },
-          personas
+          personas,
+          marketingRoles {
+            fromDate,
+            role,
+            requestedFTECount,
+            toDate,
+          }
         },
         dataCompliance {
           expertGuidelineNeeded,

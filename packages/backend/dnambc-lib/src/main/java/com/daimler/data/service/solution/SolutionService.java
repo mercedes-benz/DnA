@@ -41,7 +41,7 @@ import com.daimler.data.service.common.CommonService;
 public interface SolutionService extends CommonService<SolutionVO, SolutionNsql, String> {
 
 	enum TAG_CATEGORY {
-		TAG, DS, PLATFORM, LANG, ALGO, VISUALIZATION, RELATEDPRODUCT, SKILL, DIVISION, DEPARTMENT;
+		TAG, DS, PLATFORM, LANG, ALGO, VISUALIZATION, RELATEDPRODUCT, SKILL, DIVISION, DEPARTMENT, MARKETINGROLE;
 	}
 
 	List<SolutionVO> getAllWithFilters(Boolean published, List<String> phases, List<String> dataVolumes,

@@ -466,7 +466,7 @@ const CreateBucket = ({ user }) => {
               <div className={Styles.bucketColContent}>
                 <div className={Styles.bucketColContentList}>
                   <div className={Styles.bucketColContentListAdd}>
-                    <AddUser getCollabarators={getCollabarators} dagId={''} isRequired={false} />
+                    <AddUser getCollabarators={getCollabarators} dagId={''} isRequired={false} isUserprivilegeSearch={false} />
                   </div>
                   <div className={Styles.bucketColUsersList}>
                     {bucketCollaborators?.length > 0 ? (

@@ -266,7 +266,7 @@ paths:
         201:
           description: "Returns message of success or failure"
           schema:
-            $ref: "#/definitions/CodeServerWorkspaceVO"
+            $ref: "#/definitions/GenericMessage"
         204:
           description: "Fetch complete, no content found."
         400:
@@ -279,7 +279,8 @@ paths:
           description: "Method not allowed"
         500:
           description: "Internal error"
-          
+
+  /workspaces/{id}/collaborator/{userid}:
     delete:
       tags:
         - "code-server"
@@ -292,17 +293,16 @@ paths:
           description: "Workspace ID to be fetched"
           required: true
           type: "string"
-        - name: "userRequestDto"
-          in: "body"
-          description: "User info to remove collaborator from project"
+        - name: "userid"
+          in: "path"
+          description: "User ID to be deleted"
           required: true
-          schema:
-            $ref: "#/definitions/UserInfoVO"
+          type: "string"
       responses:
         201:
           description: "Returns message of success or failure"
           schema:
-            $ref: "#/definitions/CodeServerWorkspaceVO"
+            $ref: "#/definitions/GenericMessage"
         204:
           description: "Fetch complete, no content found."
         400:
@@ -315,7 +315,44 @@ paths:
           description: "Method not allowed"
         500:
           description: "Internal error"
-          
+
+  /workspaces/{id}/projectowner:
+    patch:
+      tags:
+        - "code-server"
+      summary: "reassign owner from existing collaborator list for a given user Id."
+      description: "reassign owner from existing collaborator list for a given user Id."
+      operationId: "reassignOwner"
+      parameters:
+        - name: "id"
+          in: "path"
+          description: "Workspace ID to be fetched"
+          required: true
+          type: "string"
+        - name: "UserIdDto"
+          in: "body"
+          description: "UserId to add collaborator as Owner"
+          required: true
+          schema:
+            $ref: "#/definitions/UserIdVO"
+      responses:
+        201:
+          description: "Returns message of success or failure"
+          schema:
+            $ref: "#/definitions/GenericMessage"
+        204:
+          description: "Fetch complete, no content found."
+        400:
+          description: "Bad request."
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
+
   /workspaces/{id}/deploy:        
     post:
       tags:
@@ -551,7 +588,7 @@ definitions:
     properties:
       recipeId:
         type: string
-        enum: [default,springboot,py-fastapi]
+        enum: [default,springboot,py-fastapi,react,angular,gradle,public]
         description: "RecipeId of the workspace. Ex: Springboot Microservice"    
       environment:
         type: string
@@ -574,6 +611,15 @@ definitions:
         description: "Operating system required"
       required:
         -recipeId
+
+  UserIdVO:
+    type: object
+    properties:
+      id:
+        type: string
+        description: "ID of user"
+      required:
+        -id
 
   UserInfoVO:
     type: object

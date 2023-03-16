@@ -7,6 +7,7 @@ import Styles from './Buckets.scss';
 
 // import from DNA Container
 import Pagination from 'dna-container/Pagination';
+import Caption from 'dna-container/Caption';
 
 import { bucketActions } from './redux/bucket.actions';
 
@@ -77,9 +78,7 @@ const AllBuckets = (props) => {
     <>
       <div className={classNames(Styles.mainPanel)}>
         <div className={classNames(Styles.wrapper)}>
-          <div className={classNames(Styles.caption)}>
-            <h3>{'My Storage'}</h3>
-          </div>
+          <Caption title="My Storage" />
         </div>
         <div className={classNames(Styles.content)}>
           <div>

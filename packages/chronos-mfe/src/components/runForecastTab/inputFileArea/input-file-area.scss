@@ -1,0 +1,115 @@
+.wrapper {
+    background: #252a33 !important;
+    margin-top: 60px !important;
+    padding: 25px 38px;
+    .firstPanel {
+        background: #252a33;
+        margin-bottom: 15px;
+    }
+    p {
+        color: #c0c8d0;
+        margin: 0;
+    }
+    .infoIcon {
+        text-align: right;
+        font-size: var(--font-size-icon-medium);
+        margin-right: -23px;
+        margin-top: -44px;
+        float: right;
+        i {
+            cursor: pointer;
+            color: #697582;
+  
+            &:hover {
+                color: #00adef;
+            }
+        }
+    }
+    .formWrapper {
+        margin: 60px 70px 0;
+    }
+    .checkbox {
+        margin-left: -10px;
+        margin-top: 20px;
+    }
+  }
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 15px;
+  .uploadContainer {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      width: 100%;
+      border: 2px dotted #697582;
+      height: 500px;
+      .rcUpload {
+          height: 100%;
+      }
+      .dragDrop {
+          position: absolute;
+          top: 45%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          display: block;
+          min-width: 300px;
+          text-align: center;
+      }
+  }
+  .icon {
+      margin-left: auto;
+      margin-right: auto;
+      margin-bottom: 30px;
+      img {
+          max-width: 90px;
+      }
+  }
+  h4 {
+      color: #c0c8d0;
+      display: flex;
+      justify-content: center;
+      margin: 20px 0px;
+  }
+
+  .browseHelperText {
+      display: flex;
+      justify-content: center;
+      color: #c0c8d0;
+      font-size: 1rem;
+  }
+  .helperTextContainer {
+      position: absolute;
+      bottom: 50px;
+      display: block;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: var(--font-size-medium);
+      min-width: 300px;
+  }
+}
+.selectExisitingFiles {
+  background: none;
+  border: none;
+  color: #00adef;
+  padding: 0 5px;
+  cursor: pointer;
+  &:focus {
+      outline: none;
+  }
+}
+input[type=file] {
+  visibility: hidden;
+}
+
+.errorMessage {
+  color: #e84d47;
+  display: block;
+  font-family: Roboto-Medium;
+  font-size: 12px;
+  line-height: 12px;
+  margin-top: 9px;
+  width: 100%;
+}

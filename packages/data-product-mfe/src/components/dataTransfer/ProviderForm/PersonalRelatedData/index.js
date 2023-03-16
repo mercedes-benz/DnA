@@ -8,12 +8,14 @@ import InfoModal from 'dna-container/InfoModal';
 import { useDispatch, useSelector } from 'react-redux';
 import { getLegalBasis } from '../../../redux/getDropdowns.services';
 
-const PersonalRelatedData = ({ onSave }) => {
+const PersonalRelatedData = (
+  // { onSave }
+  ) => {
   const {
     register,
-    handleSubmit,
+    // handleSubmit,
     formState: { errors },
-    reset,
+    // reset,
     watch,
     clearErrors,
     setValue,
@@ -90,6 +92,7 @@ const PersonalRelatedData = ({ onSave }) => {
                 </label>
               </div>
               <span className={classNames('error-message')}>{errors?.personalRelatedData?.message}</span>
+              <p>In case of doubt reach out to your corresponding LCO/R</p>
             </div>
             <div
               id="personalRelatedDataDescription"
@@ -112,6 +115,7 @@ const PersonalRelatedData = ({ onSave }) => {
                 {...register('personalRelatedDataDescription', { required: '*Missing entry', disabled: isDisabled })}
                 rows={50}
                 id="personalRelatedDataDescription"
+                placeholder="Please detail (on data ﬁeld level e.g. user ID, FIN etc.) which personal related data is to be transferred."
               />
               <span className={classNames('error-message')}>{errors?.personalRelatedDataDescription?.message}</span>
             </div>
@@ -134,6 +138,16 @@ const PersonalRelatedData = ({ onSave }) => {
                 id="personalRelatedDataPurpose"
               />
               <span className={classNames('error-message')}>{errors?.personalRelatedDataPurpose?.message}</span>
+              <div>
+                <p>Possible purpose of processing personal related data would be:</p>
+                <ul>
+                  <li>FC services such as Controlling, Accounting, Treasury, Taxes & Fiscal Matters, GeneralLedger, Planning & Forecast</li>
+                  <li>Product development, improvement, monitoring, Analysis of product usage/behavior,Product lifecycle analysis</li>
+                  <li>Risk/damage prevention, Predictive maintenance, Process optimization</li>
+                  <li>Enhancement of Customer experience, 360 Customer View, Advertising/Promotions,Direct Marketing</li>
+                  <li>Identiﬁcation of trends an market developments, Market analysis, Revenue streamanalysis, Portfolio evaluation, Price analysis and price optimization</li>
+                </ul>
+              </div>
             </div>
             <div
               className={classNames(
@@ -170,11 +184,12 @@ const PersonalRelatedData = ({ onSave }) => {
                 })}
               </div>
               <span className={classNames('error-message')}>{errors?.personalRelatedDataLegalBasis?.message}</span>
+              <p>Legal basis is already determined in RoPA, if unsure please check with your LCO/R</p>
             </div>
           </div>
         </div>
       </div>
-      <div className="btnContainer">
+      {/* <div className="btnContainer">
         <button
           className="btn btn-primary"
           type="submit"
@@ -189,7 +204,7 @@ const PersonalRelatedData = ({ onSave }) => {
         >
           Save & Next
         </button>
-      </div>
+      </div> */}
       {showInfoModal && (
         <InfoModal
           title="Info Modal"

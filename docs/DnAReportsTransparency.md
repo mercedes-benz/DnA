@@ -7,8 +7,8 @@ Those Reports metadata includes:
 
 1. Report basic description (what do you want to achieve, for whom and why)
 2. Customer for the report (who is using it and for which purpose) and who is providing it
-3. KPI (which KPI'S are being presented on the report)
-4. Data & functions (which data sources are you using to realize this)
+3. Content & Functions (which Content & KPI'S are being presented on the report)
+4. Data (which data sources are you using to realize this)
 5. Members (who are developers of those report and who can administer this entry)
 
 

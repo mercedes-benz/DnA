@@ -32,6 +32,7 @@ import {
   IDivisionAndSubDivision,
   ILocation,
   ILogoDetails,
+  IMarketing,
   IMaturityLevel,
   IMilestonesList,
   INeededRoleObject,
@@ -101,6 +102,7 @@ export interface IProvisionSolutionData {
   openSegments: string[];
   analytics: IAnalytics;
   sharing: ISharing;
+  marketing: IMarketing;
   datacompliance: IDataCompliance;
   digitalValue: IDigitalValue;
   portfolio: IPortfolio;
@@ -214,6 +216,16 @@ export default class Provisionsolution extends React.Component<IProvisionSolutio
             name: '',
           },
           resultUrl: '',
+        },
+        marketing: {
+          customerJourneyPhases: [],
+          marketingCommunicationChannels: [],
+          personalization: {
+            isChecked: false,
+            description: '',
+          },
+          personas: [],
+          marketingRoles: [],
         },
         datacompliance: {
           quickCheck: false,
@@ -519,6 +531,7 @@ export default class Provisionsolution extends React.Component<IProvisionSolutio
         publish: isPublished,
         analytics: solution.analytics,
         sharing: solution.sharing,
+        marketing: solution.marketing,
         dataStrategyDomain: solution.description.dataStrategyDomain,
         requestedFTECount: solution.description.requestedFTECount,
         skills: solution.neededRoles,

@@ -109,12 +109,6 @@ paths:
    description:  "Get all tag. This endpoints will be used to get all valid available tag records."
    operationId: "getAll"
    parameters:
-        - name: sortBy
-          in: query
-          description: Sort tags by a given variable like tagName
-          required: false
-          type: string
-          enum: [departmentName]
         - name: sortOrder
           in: query
           description: Sort tags based on the given order, example asc,desc

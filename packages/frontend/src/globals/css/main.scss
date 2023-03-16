@@ -24,11 +24,7 @@
   body {
     font-size: var(--font-size-default);
     background-color: #000;
-  }
-
-  body {
     color: #d9dfe4 !important;
-    font-size: var(--font-size-default);
   }
 
   .nav-header .app-info .app-name {
@@ -405,6 +401,19 @@
       color: #acb8c4;
       sup {
         font-size: var(--font-size-small);
+      }
+
+      i.info {
+        font-size: var(--font-size-icon-medium);
+        position: absolute;
+        right: 0;
+        &:hover{
+          cursor: pointer;
+        }
+      }
+
+      a.info:hover {
+        text-decoration: none;
       }
     }
 
@@ -1433,6 +1442,16 @@
       content: "\e981";
     }
   }
+
+  .active-status {
+    position: absolute;
+    background-color: #00adef;
+    display: block;
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    right: 0;
+  } 
   .airflowexpansionPanel {
     .expansion-panel.open .expansion-panel-content {
       max-height: initial;

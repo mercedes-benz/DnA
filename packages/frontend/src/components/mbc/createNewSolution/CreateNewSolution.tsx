@@ -41,6 +41,7 @@ import {
   IMarketing,
   IMarketingCommunicationChannel,
   IMarketingCustomerJourney,
+  IMarketingRole,
   IMaturityLevel,
   IMilestonesList,
   IPhase,
@@ -69,6 +70,7 @@ import Sharing from './sharing/Sharing';
 import Teams from './teams/Teams';
 import { trackEvent } from '../../../services/utils';
 import Marketing from './marketing/Marketing';
+import Caption from '../shared/caption/Caption';
 
 const classNames = cn.bind(Styles);
 export interface ICreateNewSolutionState {
@@ -109,6 +111,7 @@ export interface ICreateNewSolutionState {
   departmentTags: IDepartment[];
   customerJourneyPhasesLOV: IMarketingCustomerJourney[];
   marketingCommunicationChannelsLOV: IMarketingCommunicationChannel[];
+  marketingRolesLOV: IMarketingRole[];
 }
 
 export interface ICreateNewSolutionProps {
@@ -276,6 +279,7 @@ export default class CreateNewSolution extends React.Component<ICreateNewSolutio
             description: '',
           },
           personas: [],
+          marketingRoles: [],
         },
         datacompliance: {
           quickCheck: false,
@@ -323,6 +327,7 @@ export default class CreateNewSolution extends React.Component<ICreateNewSolutio
       departmentTags: [],
       customerJourneyPhasesLOV: [],
       marketingCommunicationChannelsLOV: [],
+      marketingRolesLOV: [],
     };
   }
   // public componentWillReceiveProps(nextProps: any) {
@@ -358,6 +363,7 @@ export default class CreateNewSolution extends React.Component<ICreateNewSolutio
         const customerJourneyPhasesLOV = response[18];
         const marketingCommunicationChannelsLOV = response[19];
         const departmentTags = response[20].data;
+        const marketingRolesLOV = response[21];
         phases.forEach((phase) => {
           switch (phase.id) {
             case '1':
@@ -405,6 +411,7 @@ export default class CreateNewSolution extends React.Component<ICreateNewSolutio
             customerJourneyPhasesLOV,
             marketingCommunicationChannelsLOV,
             departmentTags,
+            marketingRolesLOV,
           },
           () => {
             Button.defaultSetup();
@@ -538,9 +545,7 @@ export default class CreateNewSolution extends React.Component<ICreateNewSolutio
     return (
       <React.Fragment>
         <div className={classNames(Styles.mainPanel)}>
-          <h3 className={classNames(Styles.title, this.state.currentTab !== 'description' ? '' : 'hidden')}>
-            {this.state.solution.description.productName}
-          </h3>
+          <Caption title={this.state.currentTab !== 'description' ? 'Create Solution' : this.state.solution.description.productName} />
           <div id="create-solution-tabs" className="tabs-panel">
             <div className="tabs-wrapper">
               <nav>
@@ -770,6 +775,7 @@ export default class CreateNewSolution extends React.Component<ICreateNewSolutio
                     modifyMarketing={this.modifyMarketing}
                     marketingCommunicationChannelsLOV={this.state.marketingCommunicationChannelsLOV}
                     customerJourneyPhasesLOV={this.state.customerJourneyPhasesLOV}
+                    marketingRolesLOV={this.state.marketingRolesLOV}
                     onSaveDraft={this.onSaveDraft}
                     ref={this.MarketingComponent}
                   />

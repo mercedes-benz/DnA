@@ -8,6 +8,7 @@
     min-height: 75vh;
     .searchPanel {
       display: flex;
+      flex: 0 0 100%;
       > div {
         margin-right: 25px;
       }
@@ -61,6 +62,15 @@
   }
 }
 
+.linksWrapper {
+  padding: 30px 15px 0;
+  flex: 1;
+  text-align: right;
+  button span:hover {
+    text-decoration: underline;
+  }
+}
+
 .flexLayout {
   display: flex;
   justify-content: space-between;
@@ -70,9 +80,10 @@
 }
 
 .modalContent {
-  margin-top: 60px;
+  margin-top: 30px;
+  padding-top: 30px;
   font-size: var(--font-size-sub-headline);
-  .roleContent {
+  .contentWrapper {
     margin-top: 30px;
     margin-bottom: 30px;
   }

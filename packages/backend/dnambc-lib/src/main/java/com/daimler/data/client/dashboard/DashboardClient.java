@@ -28,6 +28,7 @@
 package com.daimler.data.client.dashboard;
 
 import com.daimler.data.dto.divisions.DivisionVO;
+import com.daimler.data.dto.solution.SolutionVO;
 
 public interface DashboardClient {
 
@@ -36,4 +37,7 @@ public interface DashboardClient {
 	public String deleteDataSourceFromEachReport(String dataSource);
 
 	public String updateDivisionFromEachReport(DivisionVO vo);
+	
+	public String updateDepartments(SolutionVO vo);
+
 }

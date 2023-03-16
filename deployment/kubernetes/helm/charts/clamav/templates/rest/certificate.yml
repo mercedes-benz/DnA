@@ -1,0 +1,15 @@
+{{- if .Values.ingress.enabled -}}
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+ name: {{ .Values.app.backend.name }}
+ namespace: {{ .Values.namespace }}
+spec:
+ commonName: {{ .Values.ingress.host }}
+ secretName: clamav-rest-tls
+ dnsNames:
+  - {{ .Values.ingress.host }}
+ issuerRef:
+  name: {{ .Values.ingress.certificateIssuer }}
+  kind: ClusterIssuer
+{{- end }}  

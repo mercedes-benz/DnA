@@ -6,7 +6,7 @@ replicaCount: 1
 
 image:
   repository: codercom/code-server
-  tag: '4.5.1'
+  tag: '4.10.1'
   pullPolicy: Always
 namespace: "code-server"
 # Specifies one or more secrets to be used when pulling images from a
@@ -75,6 +75,12 @@ extraArgs: []
   # because both the parameter and value are specified as a single argument,
   # rather than two separate arguments (e.g. "- --param value" on a line).
 
+custCmd: []
+  # - /bin/sh
+  # - '-c'
+  # - |
+  #   /usr/bin/entrypoint.sh --bind-addr 0.0.0.0:8080 .
+
 # Optional additional environment variables
 extraVars: []
 #  - name: DISABLE_TELEMETRY
@@ -134,6 +140,15 @@ persistence:
   # existingClaim: ""
   # hostPath: /data
 
+lifecycle:
+  enabled: false
+  # postStart:
+  #  exec:
+  #    command:
+  #      - /bin/bash
+  #      - -c
+  #      - curl -s -L SOME_SCRIPT | bash
+
 ## Enable an Specify container in extraContainers.
 ## This is meant to allow adding code-server dependencies, like docker-dind.
 extraContainers: |
@@ -154,10 +169,30 @@ extraContainers: |
 #  - name: DOCKER_DRIVER
 #    value: "overlay2"
 
+extraInitContainers: |
+# - name: customization
+#   image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
+#   imagePullPolicy: IfNotPresent
+#   env:
+#     - name: SERVICE_URL
+#       value: https://open-vsx.org/vscode/gallery
+#     - name: ITEM_URL
+#       value: https://open-vsx.org/vscode/item
+#   command:
+#     - sh
+#     - -c
+#     - |
+#       code-server --install-extension ms-python.python
+#       code-server --install-extension golang.Go
+#   volumeMounts:
+#     - name: data
+#       mountPath: /home/coder
+
 ## Additional code-server secret mounts
 extraSecretMounts: []
   # - name: secret-files
   #   mountPath: /etc/secrets
+  #   subPath: private.key # (optional)
   #   secretName: code-server-secret-files
   #   readOnly: true
 
@@ -175,3 +210,8 @@ extraConfigmapMounts: []
   #   subPath: certificates.crt # (optional)
   #   configMap: certs-configmap
   #   readOnly: true
+
+extraPorts: []
+  # - name: minecraft
+  #   port: 25565
+  #   protocol: tcp

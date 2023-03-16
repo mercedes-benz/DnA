@@ -44,9 +44,9 @@ public class DataCompliance {
 
 	private String entityId;
 	private String entityName;
+	private String entityCountry;
 	private List<String> localComplianceOfficer;
 	private List<String> localComplianceResponsible;
-	private List<String> dataProtectionCoordinator;
 	private List<String> localComplianceSpecialist;
 	private Date createdDate;
 	private Date lastModifiedDate;

@@ -34,10 +34,17 @@ import com.daimler.data.db.repo.common.CommonDataRepository;
 
 public interface DataProductCustomRepository extends CommonDataRepository<DataProductNsql, String> {
 
-	List<DataProductNsql> getAllWithFiltersUsingNativeQuery(Boolean published, int offset, int limit, String sortBy,
-			String sortOrder, String recordStatus);
+	List<DataProductNsql> getAllWithFiltersUsingNativeQuery(
+			Boolean published, int offset, int limit, String sortBy,
+			String sortOrder, String recordStatus,
+			List<String> artsList, List<String> carlafunctionsList,
+			List<String> platformsList, List<String> frontendToolsList,
+			List<String> productOwnerList);
 
-	Long getCountUsingNativeQuery(Boolean published, String recordStatus);
+	Long getCountUsingNativeQuery(Boolean published, String recordStatus,
+		List<String> artsList, List<String> carlafunctionsList,
+		List<String> platformsList, List<String> frontendToolsList,
+		List<String> productOwnerList);
 
 	List<DataProductNsql> getExistingDataProduct(String uniqueProductName, String status);
 

@@ -122,6 +122,38 @@ paths:
           description: "Method not allowed"
         500:
           description: "Internal error"
+          
+    post:
+      tags:
+        - "users"
+      summary: "create technical User"
+      description:  "create technical User. This endpoint can be used to onboard technical User (userid of technical user to be onboarded is mandatory, system will default the other properties)"
+      operationId: "onboardTechnicalUser"
+      parameters:
+        - name: "userRequestVO"
+          in: "body"
+          description: "Request body contains the details of the updated user"
+          required: true
+          schema:
+            $ref: "#/definitions/UserRequestVO"
+      responses:
+        201:
+          description: "Returns message of success or failure"
+          schema:
+            $ref: "#/definitions/UserInfoVO"
+        204:
+          description: "Fetch complete, no content found."
+        400:
+          description: "Bad request."
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
+          
     put:
       tags:
         - "users"

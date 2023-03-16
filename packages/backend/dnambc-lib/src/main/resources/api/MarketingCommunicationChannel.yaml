@@ -109,12 +109,6 @@ paths:
    description:  "Get all marketingCommunicationChannels. This endpoints will be used to Get all valid available marketingCommunicationChannels maintenance records."
    operationId: "getAll"
    parameters:
-        - name: sortBy
-          in: query
-          description: Sort marketingCommunicationChannels by a given variable like marketingCommunicationChannelName
-          required: false
-          type: string
-          enum: [marketingCommunicationChannelName]
         - name: sortOrder
           in: query
           description: Sort marketingCommunicationChannels based on the given order, example asc,desc
@@ -139,8 +133,74 @@ paths:
     500:
      description: "Internal error"
 
-     
+  put:
+    tags:
+    - "marketingCommunicationChannels"
+    summary: "Update the marketingCommunicationChannel"
+    description:  "Update the marketingCommunicationChannel"
+    operationId: "update"
+    parameters:
+      - name: "divisionRequestVO"
+        in: "body" 
+        description: "Request Body that contains data required for updating division." 
+        required: true
+        schema:
+         $ref: "#/definitions/MarketingCommunicationChannelRequestVO"    
+    responses:
+      200:
+       description: "Successfully updated."
+       schema:
+         $ref: "#/definitions/MarketingCommunicationChannelResponseVO"
+      400:
+       description: "Bad Request"
+      401:
+       description: "Request does not have sufficient credentials."
+      403:
+       description: "Request is not authorized."
+      405:
+       description: "Method not allowed"
+      500:
+       description: "Internal error"       
+  
+ /marketingCommunicationChannels/{id}:
+  delete:
+    tags:
+    - "marketingCommunicationChannels"
+    summary: "Deletes the marketingCommunicationChannel identified by given ID."
+    description:  "Deletes the marketingCommunicationChannel identified by given ID"
+    operationId: "delete"
+    parameters:
+      - name: "id"
+        in: "path"
+        description: "Id of the marketingCommunicationChannel"
+        required: true
+        type: "string"
+    responses:
+      200:
+       description: "Successfully deleted."
+       schema:
+         $ref: "#/definitions/GenericMessage"
+      400:
+       description: "Bad request"
+      401:
+       description: "Request does not have sufficient credentials."
+      403:
+       description: "Request is not authorized."
+      404:
+       description: "Invalid id, record not found."
+      500:
+       description: "Internal error"    
 definitions:
+ MarketingCommunicationChannelResponseVO:
+   type: object
+   properties:
+     data:
+       $ref: "#/definitions/MarketingCommunicationChannelVO"
+     errors:
+       type: array
+       items:
+         $ref: "#/definitions/MessageDescription"
+ 
  MarketingCommunicationChannelVO:
   type: object
   properties: 

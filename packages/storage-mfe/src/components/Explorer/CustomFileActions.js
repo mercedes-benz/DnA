@@ -1,4 +1,4 @@
-import { defineFileAction } from 'chonky';
+import { defineFileAction, reduxActions } from 'chonky';
 
 // Define custom file actions for the explorer
 
@@ -53,9 +53,40 @@ const DeleteFiles = defineFileAction({
   },
 });
 
+const CopyPath = defineFileAction({
+  id: 'copy_files',
+  hotkeys: ['ctrl+c'],
+  button: {
+    name: 'Copy file path',
+    toolbar: true,
+    contextMenu: true,
+    tooltip: 'Copy Path',
+    icon: 'copy',
+    group: 'Actions',
+  },
+  requiresSelection: true,
+  fileFilter: (file, index, selectedList) => selectedList?.length === 1 && file && !file.isDir,
+});
+
+const ResetSearchInput = defineFileAction(
+  {
+    id: 'reset_search_input',
+  },
+  ({ reduxDispatch }) => {
+    // dispatch chonky redux action to reset the search key applied on files
+    reduxDispatch(reduxActions.setSearchString(''));
+
+    // clear search text
+    const searchInput = document.querySelector('.chonky-searchFieldContainer input');
+    searchInput.dispatchEvent(new KeyboardEvent('keyup', { key: 'Escape', bubbles: true, code: 'Escape' }));
+  },
+);
+
 export const CustomActions = {
   PublishFolder,
   UploadFolder,
   DownloadFiles,
   DeleteFiles,
+  CopyPath,
+  ResetSearchInput,
 };

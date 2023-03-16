@@ -258,7 +258,9 @@ export default class AllReports extends React.Component<
       </div>
     );
 
-    const pageTitle = 'All Reports';
+    const reportCount = this.state.totalNumberOfRecords;
+
+    const pageTitle = 'All Reports ('+ reportCount +')';
 
     const exportCSVIcon = () => {
       const element = (
@@ -284,9 +286,7 @@ export default class AllReports extends React.Component<
       <React.Fragment>
         <LandingSummary
           title={pageTitle}
-          subTitle={
-            'Full transparency about reports from various sources. Process of collection to be defined.'
-          }
+          subTitle={'Full transparency about reports from various sources. Process of collection to be defined.'}
           tags={['Lorem Ipsum', 'ABC', 'XYZ']}
           headerImage={headerImageURL}
           isBackButton={true}
@@ -303,53 +303,57 @@ export default class AllReports extends React.Component<
             >
               <div className={Styles.wrapper}>
                 <div className={classNames(Styles.caption, Styles.filterSection)}>
-                  {/* <h3>{pageTitle}</h3> */}
-                  <div>
-                    <TagSection
-                      tags={this.state?.tagValues?.map((item) => item.name)}
-                      selectedTags={this.state.selectedTags}
-                      setSeletedTags={this.setSelectedFilter}
-                    ></TagSection>
-                  </div>
-                  <div className={Styles.allSolExport}>
-                    <CSVLink
-                      data={this.state.csvData}
-                      headers={this.state.csvHeader}
-                      ref={(r: any) => (this.csvLink = r)}
-                      filename={`Reports.csv`}
-                      target="_blank"
-                    />
-                    <div className={Styles.reportsViewMode}>
-                      <div tooltip-data="Card View">
-                        <span
-                          className={this.state.cardViewMode ? Styles.iconactive : ''}
-                          onClick={this.setCardViewMode}
-                        >
-                          <i className="icon mbc-icon widgets" />
-                        </span>
-                      </div>
-                      <span className={Styles.dividerLine}> &nbsp; </span>
-                      <div tooltip-data="List View">
-                        <span
-                          className={this.state.listViewMode ? Styles.iconactive : ''}
-                          onClick={this.setListViewMode}
-                        >
-                          <i className="icon mbc-icon listview big" />
-                        </span>
-                      </div>
-                      <span className={Styles.dividerLine}> &nbsp; </span>
-                      <div className="triggerWrapper">{exportCSVIcon()}</div>
-                      <span className={Styles.dividerLine}> &nbsp; </span>
-                      <div tooltip-data="Filters">
-                        <span
-                          className={this.state.openFilters ? Styles.activeFilters : ''}
-                          onClick={this.openCloseFilter}
-                        >
-                          <i className="icon mbc-icon filter big" />
-                        </span>
+                {(reportCount > 0 || this.state.allReportsFilterApplied) && (
+                  <>
+                    <div>
+                      <TagSection
+                        tags={this.state?.tagValues?.map((item) => item.name)}
+                        selectedTags={this.state.selectedTags}
+                        setSeletedTags={this.setSelectedFilter}
+                      ></TagSection>
+                    </div>
+                    <div className={Styles.allSolExport}>
+                      <CSVLink
+                        data={this.state.csvData}
+                        headers={this.state.csvHeader}
+                        ref={(r: any) => (this.csvLink = r)}
+                        filename={`Reports.csv`}
+                        target="_blank"
+                      />
+                      <div className={Styles.reportsViewMode}>
+                        <div tooltip-data="Card View">
+                          <span
+                            className={this.state.cardViewMode ? Styles.iconactive : ''}
+                            onClick={this.setCardViewMode}
+                          >
+                            <i className="icon mbc-icon widgets" />
+                          </span>
+                        </div>
+                        <span className={Styles.dividerLine}> &nbsp; </span>
+                        <div tooltip-data="List View">
+                          <span
+                            className={this.state.listViewMode ? Styles.iconactive : ''}
+                            onClick={this.setListViewMode}
+                          >
+                            <i className="icon mbc-icon listview big" />
+                          </span>
+                        </div>
+                        <span className={Styles.dividerLine}> &nbsp; </span>
+                        <div className="triggerWrapper">{exportCSVIcon()}</div>
+                        <span className={Styles.dividerLine}> &nbsp; </span>
+                        <div tooltip-data="Filters">
+                          <span
+                            className={this.state.openFilters ? Styles.activeFilters : ''}
+                            onClick={this.openCloseFilter}
+                          >
+                            {this.state.allReportsFilterApplied && (<i className="active-status"/>)}
+                            <i className="icon mbc-icon filter big" />
+                          </span>
+                        </div>
                       </div>
                     </div>
-                  </div>
+                  </>
+                )}
                 </div>
 
                 <ReportsFilter
@@ -510,7 +514,7 @@ export default class AllReports extends React.Component<
                   {this.state.reports?.length === 0 ? (
                     <div className={Styles.reportIsEmpty}>
                       <p>
-                        There is no report available, please create report&nbsp;
+                        {this.state.allReportsFilterApplied ? <>No report available for the fillter applied to the report list,</> : <>There is no report available,</>} please create report&nbsp;
                         <a
                           target="_blank"
                           className={Styles.linkStyle}
@@ -697,8 +701,10 @@ export default class AllReports extends React.Component<
           const reports = res.data?.reports as any;
           const { maxItemsPerPage, currentPageNumber } = this.state;
           const totalNumberOfPages = Math.ceil(reports?.totalCount / maxItemsPerPage);
+          
           this.setState(
             {
+              allReportsFilterApplied: this.IsFilterApplied(queryParams),
               reports: reports?.totalCount ? reports.records : [],
               totalNumberOfPages,
               totalNumberOfRecords: reports?.totalCount,
@@ -733,6 +739,41 @@ export default class AllReports extends React.Component<
         );
       });
   };
+
+  protected IsFilterApplied = (queryParams: IReportFilterParams) => {
+    const { division, subDivision, agileReleaseTrains, processOwners, productOwners, departments, tag } = queryParams;
+    let filterApplied = false;
+
+    if (division.length && division.length !== this.state.divisions.length) {
+      filterApplied = true;
+    }
+
+    if (subDivision.length && subDivision.length !== this.state.subDivisions.length) {
+      filterApplied = true;
+    }
+
+    if (agileReleaseTrains.length && agileReleaseTrains.length !== this.state.arts.length) {
+      filterApplied = true;
+    }
+
+    if (processOwners.length && processOwners.length !== this.state.processOwners.length) {
+      filterApplied = true;
+    }
+    
+    if (productOwners.length && productOwners.length !== this.state.productOwners.length) {
+      filterApplied = true;
+    }
+
+    if (departments.length && departments.length !== this.state.departments.length) {
+      filterApplied = true;
+    }
+
+    if (tag.length && tag.length !== this.state.tags.length) {
+      filterApplied = true;
+    }
+
+    return filterApplied;
+  }
 
   protected showErrorNotification(message: string) {
     ProgressIndicator.hide();

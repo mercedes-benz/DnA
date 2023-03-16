@@ -96,25 +96,26 @@ export default class AuthRedirector extends React.Component<{}, IAuthState> {
     if (hasCode && !isCodeInvalid && !hasAccessToken && !hasJwt && !fetchingAccessToken) {
       console.log('Authorizing: Request access token');
       const code = getQueryParameterByName('code');
-      sessionStorage.setItem(SESSION_STORAGE_KEYS.CODE, code);
-      this.setState({
-        fetchingAccessToken: true,
-      });
-      Pkce.getToken(code)
-        .then(() => {
-          const currentUrl = window.location.href;
-          let reloadUrl = removeURLParameter(currentUrl, 'code');
-          reloadUrl = removeURLParameter(reloadUrl, 'state');
-          window.history.replaceState({}, '', reloadUrl);
-          window.location.reload();
-        })
-        .catch(() => {
-          console.log('Authorizing: Request access token FAILED');
-          this.setState({
-            fetchingAccessToken: false,
-            isCodeInvalid: true,
-          });
+      if (code) {
+        sessionStorage.setItem(SESSION_STORAGE_KEYS.CODE, code);
+        this.setState({
+          fetchingAccessToken: true,
         });
+        Pkce.getToken(code)
+          .then(() => {
+            this.reloadPage();
+          })
+          .catch(() => {
+            console.log('Authorizing: Request access token FAILED');
+            this.setState({
+              fetchingAccessToken: false,
+              isCodeInvalid: true,
+            });
+          });
+      } else {
+        sessionStorage.removeItem(SESSION_STORAGE_KEYS.PKCE);
+        this.reloadPage();
+      }
       return;
     }
 
@@ -160,6 +161,14 @@ export default class AuthRedirector extends React.Component<{}, IAuthState> {
       }
     }
   }
+
+  protected reloadPage = () => {
+    const currentUrl = window.location.href;
+    let reloadUrl = removeURLParameter(currentUrl, 'code');
+    reloadUrl = removeURLParameter(reloadUrl, 'state');
+    window.history.replaceState({}, '', reloadUrl);
+    window.location.reload();
+  };
 
   /**
    * Redirects the user to the CD login page and automatically creates a code verifier, which

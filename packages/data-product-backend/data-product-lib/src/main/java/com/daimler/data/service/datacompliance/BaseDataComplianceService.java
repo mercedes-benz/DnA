@@ -100,12 +100,12 @@ public class BaseDataComplianceService extends BaseCommonService<DataComplianceV
 	}
 
 	@Override
-	public List<DataComplianceVO> getAllWithFilters(String entityId, String entityName,
+	public List<DataComplianceVO> getAllWithFilters(String entityId, String entityName, String entityCountry,
 			List<String> localComplianceOfficer, List<String> localComplianceResponsible,
-			List<String> dataProtectionCoordinator, List<String> localComplianceSpecialist, int offset, int limit,
+			List<String> localComplianceSpecialist, int offset, int limit,
 			String sortBy, String sortOrder) {
 		List<DataComplianceNsql> entities = dataComplianceCustomRepository.getAllWithFiltersUsingNativeQuery(entityId,
-				entityName, localComplianceOfficer, localComplianceResponsible, dataProtectionCoordinator,
+				entityName, entityCountry, localComplianceOfficer, localComplianceResponsible,
 				localComplianceSpecialist, offset, limit, sortBy, sortOrder);
 		if (!ObjectUtils.isEmpty(entities))
 			return entities.stream().map(n -> dataComplianceAssembler.toVo(n)).collect(Collectors.toList());
@@ -114,11 +114,10 @@ public class BaseDataComplianceService extends BaseCommonService<DataComplianceV
 	}
 
 	@Override
-	public Long getCount(String entityId, String entityName, List<String> localComplianceOfficer,
-			List<String> localComplianceResponsible, List<String> dataProtectionCoordinator,
-			List<String> localComplianceSpecialist) {
-		return dataComplianceCustomRepository.getCountUsingNativeQuery(entityId, entityName, localComplianceOfficer,
-				localComplianceResponsible, dataProtectionCoordinator, localComplianceSpecialist);
+	public Long getCount(String entityId, String entityName, String entityCountry, List<String> localComplianceOfficer,
+			List<String> localComplianceResponsible, List<String> localComplianceSpecialist) {
+		return dataComplianceCustomRepository.getCountUsingNativeQuery(entityId, entityName, entityCountry, localComplianceOfficer,
+				localComplianceResponsible, localComplianceSpecialist);
 	}
 
 	@Override
@@ -151,18 +150,17 @@ public class BaseDataComplianceService extends BaseCommonService<DataComplianceV
 					String userId = currentUser.getId();
 					String userName = super.currentUserName(currentUser);
 					changeLogs = dataProductAssembler.jsonObjectCompare(dataComplianceVO, null, currentUser);
-					String eventMessage = "DataCompliance with entityID " + dataComplianceVO.getEntityId()
-							+ " and entityName " + dataComplianceVO.getEntityName() + " has been added by Admin "
-							+ userName;
-					String auditMessage =  "Data Compliance with entity ID " + dataComplianceVO.getEntityId()
-					+ " and entity Name " + dataComplianceVO.getEntityName() + " has been added by Admin "
-					+ userName;
+					String eventMessage = "Data Compliance Network List with Entity ID %s and Entity Name %s has been added by Admin %s.".formatted(
+							dataComplianceVO.getEntityId(),
+							dataComplianceVO.getEntityName(),
+							userName
+						);
 					DataComplianceAuditNsql auditNsql = new DataComplianceAuditNsql();
 					DataComplianceAudit audit = new DataComplianceAudit();
 					List<DataComplianceAuditNsql> auditNsqls = new ArrayList<>();
 					audit.setAction("Create");
 					audit.setEntityId(dataComplianceVO.getEntityId());
-					audit.setMessage(auditMessage);
+					audit.setMessage(eventMessage);
 					audit.setCreatedOn(new Date());
 					CreatedBy createdBy = new CreatedBy();
 					createdBy.setId(userId);
@@ -262,18 +260,17 @@ public class BaseDataComplianceService extends BaseCommonService<DataComplianceV
 						String userName = super.currentUserName(currentUser);
 						changeLogs = dataProductAssembler.jsonObjectCompare(mergedDataComplianceVO, existingVO,
 								currentUser);
-						String eventMessage = "DataCompliance with entityID " + existingVO.getEntityId()
-								+ " and entityName " + existingVO.getEntityName()
-								+ " has been updated by Admin " + userName;
-						String auditMessage =  "Data Compliance with entity ID " + mergedDataComplianceVO.getEntityId()
-						+ " and entity Name " + mergedDataComplianceVO.getEntityName() + " has been updated by Admin "
-						+ userName;
+						String eventMessage = "Data Compliance with Entity ID %s and Entity Name %s has been updated by Admin %s.".formatted(
+							mergedDataComplianceVO.getEntityId(),
+							mergedDataComplianceVO.getEntityName(),
+							userName);
+						
 						DataComplianceAuditNsql auditNsql = new DataComplianceAuditNsql();
 						DataComplianceAudit audit = new DataComplianceAudit();
 						List<DataComplianceAuditNsql> auditNsqls = new ArrayList<>();
 						audit.setAction("Update");
 						audit.setEntityId(mergedDataComplianceVO.getEntityId());
-						audit.setMessage(auditMessage);
+						audit.setMessage(eventMessage);
 						audit.setCreatedOn(new Date());
 						CreatedBy createdBy = new CreatedBy();
 						createdBy.setId(userId);

@@ -66,7 +66,7 @@ public interface CommonService<V, T, ID> {
 
 	Long getCount(int limit, int offset);
 
-	ResponseEntity<LovVOCollection> getAllLov(String sortBy, String sortOrder);
+	ResponseEntity<LovVOCollection> getAllLov(String sortOrder);
 
 	ResponseEntity<LovResponseVO> createLov(LovRequestVO vo, T entity);
 
