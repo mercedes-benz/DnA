@@ -1,5 +1,7 @@
 package com.mb.dna.data.application.adapter.dataiku;
 
+import java.net.URI;
+import java.time.Duration;
 import java.util.Optional;
 
 import org.json.JSONObject;
@@ -8,7 +10,10 @@ import com.mb.dna.data.api.controller.exceptions.MessageDescription;
 
 import io.micronaut.http.HttpRequest;
 import io.micronaut.http.HttpResponse;
+import io.micronaut.http.client.DefaultHttpClientConfiguration;
 import io.micronaut.http.client.HttpClient;
+import io.micronaut.http.client.HttpClientConfiguration;
+import io.micronaut.http.client.netty.DefaultHttpClient;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import lombok.extern.slf4j.Slf4j;
@@ -89,14 +94,17 @@ public class DataikuClientImpl implements DataikuClient {
 			String requestJson = dataikuClientConfig.getScenarioUpdateRequest();
 			log.info("update request json template is {} " ,requestJson);
 			String updatedRequestJson = requestJson.replaceFirst("XXXXdefaultProjectNameXXXX", projectName);
+			log.info("Update scenario request for project {} is {}",projectName, updatedRequestJson);
 			String url =  dataikuClientConfig.getBaseuri() + "/projects/" + dataikuClientConfig.getScenarioProjectKey() + "/scenarios/" + dataikuClientConfig.getScenarioId();
-			log.info("Update scenario request for project {} is {} , updateurl is {}",projectName, updatedRequestJson,url);
+			HttpClientConfiguration configuration = new DefaultHttpClientConfiguration();
+			configuration.setReadTimeout(Duration.ofSeconds(120));
+			DefaultHttpClient localClient = new DefaultHttpClient(new URI(url), configuration);
 			HttpRequest<String> req = HttpRequest.PUT(url,updatedRequestJson)
 			.header("Accept", "application/json")
 			.header("Content-Type", "application/json")
 			.header("Authorization", "Basic " + dataikuClientConfig.getAuth())
 			;
-			HttpResponse<DataikuResponseDto> response = client.toBlocking().exchange(req,DataikuResponseDto.class);
+			HttpResponse<DataikuResponseDto> response = localClient.toBlocking().exchange(req,DataikuResponseDto.class);
 			if(response!=null && response.getBody()!=null) {
 				Optional<DataikuResponseDto> responseBody = response.getBody();
 				if(responseBody.isPresent()) {
