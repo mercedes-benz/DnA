@@ -46,12 +46,6 @@ public class JWTAuthenticationFilter implements HttpServerFilter{
 	@SuppressWarnings("unused")
 	@Override
 	public Publisher<MutableHttpResponse<?>> doFilter(HttpRequest<?> request, ServerFilterChain filterChain) {
-		if (request.getMethod().equals(HttpMethod.OPTIONS)) {
-			return Publishers.just(HttpResponse.ok()
-					.header("Access-Control-Allow-Methods", "*")
-					.header("Access-Control-Allow-Origin","*")
-					.header("Access-Control-Allow-Credentials", "true"));
-		}
 		String jwt = request.getHeaders().get("Authorization");
 		
 		String secretKey = dnaClientConfig.getJwt();
