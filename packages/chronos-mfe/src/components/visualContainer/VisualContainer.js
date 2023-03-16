@@ -6,7 +6,7 @@ import ContextMenu from '../contextMenu/ContextMenu';
 import Spinner from '../spinner/Spinner';
 import Plot from 'react-plotly.js';
 
-const VisualContainer = ({title, forecastRun, printRef, loading, forecastData, addTraces, layout}) => {
+const VisualContainer = ({title, forecastRun, printRef, loading, forecastData, addTraces, layout, isForecast}) => {
   const exportToPdf = async () => {
     const element = printRef.current;
     const canvas = await html2canvas(element);
@@ -64,7 +64,7 @@ const VisualContainer = ({title, forecastRun, printRef, loading, forecastData, a
         { !loading && forecastData.length === 0 && <p>No visualization for the given data.</p> }
         { !loading && forecastData.length > 0 &&
             <>
-              <p className={Styles.chartLabel}>Forecast</p>
+              { isForecast && <p className={Styles.chartLabel}>Forecast</p> }
               <div className={Styles.chartContainer}>
                 <Plot
                   data={addTraces(forecastData)}
