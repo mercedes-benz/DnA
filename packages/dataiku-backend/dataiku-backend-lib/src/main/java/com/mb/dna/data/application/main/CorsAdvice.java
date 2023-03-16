@@ -17,7 +17,7 @@ public class CorsAdvice  implements HttpServerFilter {
         MutableHttpResponse<?> response = HttpResponse.ok();
         response.getHeaders().add("Access-Control-Allow-Origin", "*");
         response.getHeaders().add("Access-Control-Allow-Methods", "GET, PUT, POST, DELETE, OPTIONS");
-        response.getHeaders().add("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Requested-With, Accept, Origin");
+        response.getHeaders().add("Access-Control-Allow-Headers", "authorization, Content-Type, Authorization, X-Requested-With, Accept, Origin");
 
         if (request.getMethod().equals(HttpMethod.OPTIONS)) {
             return Publishers.just(response);
@@ -25,7 +25,7 @@ public class CorsAdvice  implements HttpServerFilter {
 
         return Publishers.then(chain.proceed(request), resp -> {
             resp.getHeaders().add("Access-Control-Allow-Methods", "GET, PUT, POST, DELETE, OPTIONS");
-            resp.getHeaders().add("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Requested-With, Accept, Origin");
+            resp.getHeaders().add("Access-Control-Allow-Headers", "authorization, Content-Type, Authorization, X-Requested-With, Accept, Origin");
         });
     }
 }
