@@ -47,6 +47,9 @@ public class JWTAuthenticationFilter implements HttpServerFilter{
 	@Override
 	public Publisher<MutableHttpResponse<?>> doFilter(HttpRequest<?> request, ServerFilterChain filterChain) {
 		String jwt = request.getHeaders().get("Authorization");
+		if(jwt == null) {
+			jwt = request.getHeaders().get("authorization");
+		}
 		
 		String secretKey = dnaClientConfig.getJwt();
 		String dnaAuthEnableString = dnaClientConfig.getDnaAuthEnable();
