@@ -11,7 +11,7 @@ import { Envs } from 'globals/Envs';
 const classNames = cn.bind(Styles);
 
 export interface ITeamMemberListItemProps {
-  teamMember: ITeams;
+  teamMember: ITeams | any;
   itemIndex: number;
   showMoveUp: boolean;
   showMoveDown: boolean;
@@ -183,14 +183,14 @@ export default class TeamMemberListItem extends React.Component<ITeamMemberListI
                   </>
                 ) : (
                   <div>
+                    {teamMember?.level && <>{teamMember?.level} | {teamMember?.division && teamMember?.division.name} | {teamMember?.department && teamMember?.department}</>}
                     {teamMember?.shortId ? (
                       <a href={TEAMS_PROFILE_LINK_URL_PREFIX + teamMember?.shortId}>
                         {teamMember?.firstName} {teamMember?.lastName}
                       </a>
                     ) : (
                       <>
-                        {teamMember?.firstName} {teamMember?.lastName}
-                        <br />
+                        {teamMember?.firstName} {teamMember?.lastName} {teamMember?.lastName && <br />}
                         {this.props?.companyName ? this.props?.companyName : teamMember?.email}
                         {/* {teamMember.email} */}
                       </>
