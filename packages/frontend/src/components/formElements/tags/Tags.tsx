@@ -22,6 +22,7 @@ export interface ITagsFieldProps {
   isDisabled?: boolean;
   removeTag?: (index: number) => void;
   isDataSource?: boolean;
+  placeholder?: string;
 }
 
 export interface ITagsFiledState {
@@ -91,7 +92,7 @@ export default class Tags extends React.Component<ITagsFieldProps, ITagsFiledSta
 
       return (
         <div className="chips" key={index}>
-          <label className="name">
+          <label className={"name "+Styles.chipName}>
             {this.props.isDataSource ? (
               <>
                 {chip} <span className={Styles.badge}>{dsBadge}</span>
@@ -172,8 +173,7 @@ export default class Tags extends React.Component<ITagsFieldProps, ITagsFiledSta
         )}
       >
         <label htmlFor="tag" className="input-label">
-          {this.props.title}
-          {this.props.isMandatory ? <sup>*</sup> : ''}
+          {this.props.title}&nbsp;{this.props.isMandatory ? <sup>*</sup> : ''}
         </label>
         <div
           className={classNames(
@@ -188,10 +188,10 @@ export default class Tags extends React.Component<ITagsFieldProps, ITagsFiledSta
         >
           <div className={classNames(Styles.row)}>{chips}</div>
           <input
-            className={classNames(Styles.tagInputField)}
+            className={classNames(Styles.tagInputField, (this.props.max && this.props.max === 1) && Styles.fullWidth, isMaxReached && 'hide')}
             type="text"
             id="tag"
-            placeholder={!isMaxReached && !this.props.isDisabled ? 'Type here' : ''}
+            placeholder={!isMaxReached && !this.props.isDisabled ? (this.props.placeholder || 'Type here') : ''}
             onKeyDown={this.onKeyDown}
             onChange={this.onTextInputChange}
             autoComplete="off"

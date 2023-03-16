@@ -52,18 +52,19 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 
 	@Autowired
 	private ForecastService service;
-	
+
 	@Autowired
 	private UserStore userStore;
-	
+
 	@Autowired
 	private StorageServicesClient storageClient;
 
 	@Autowired
 	private VaultAuthClientImpl vaultAuthClient;
-	
+
 	private static final String BUCKETS_PREFIX = "chronos-";
-	
+	private static final String INPUT_FILE_PREFIX = "/inputs/";
+
 	private static final List<String> contentTypes = Arrays.asList("xlsx", "csv");
 
 	private boolean isValidAttachment(String fileName) {
@@ -74,10 +75,10 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 		}
 		return isValid;
 	}
-	
+
 	@Override
 	@ApiOperation(value = "Get forecasts config files", nickname = "getConfigFiles", notes = "Get forecasts config files", response = BucketObjectsCollectionWrapperDto.class, tags={ "forecast-projects", })
-    @ApiResponses(value = { 
+    @ApiResponses(value = {
         @ApiResponse(code = 200, message = "Returns message of success or failure", response = BucketObjectsCollectionWrapperDto.class),
         @ApiResponse(code = 204, message = "Fetch complete, no content found."),
         @ApiResponse(code = 400, message = "Bad request."),
@@ -86,7 +87,7 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
         @ApiResponse(code = 405, message = "Method not allowed"),
         @ApiResponse(code = 500, message = "Internal error") })
     @RequestMapping(value = "/forecasts/default-config/files",
-        produces = { "application/json" }, 
+        produces = { "application/json" },
         consumes = { "application/json" },
         method = RequestMethod.GET)
     public ResponseEntity<BucketObjectsCollectionWrapperDto> getConfigFiles(){
@@ -97,7 +98,7 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 
 	@Override
 	@ApiOperation(value = "Get list of saved input files", nickname = "getInputFiles", notes = "Get list of saved input files", response = InputFilesCollectionVO.class, tags={ "forecast-inputs", })
-    @ApiResponses(value = { 
+    @ApiResponses(value = {
         @ApiResponse(code = 201, message = "Returns message of success or failure", response = InputFilesCollectionVO.class),
         @ApiResponse(code = 204, message = "Fetch complete, no content found."),
         @ApiResponse(code = 400, message = "Bad request."),
@@ -106,7 +107,7 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
         @ApiResponse(code = 405, message = "Method not allowed"),
         @ApiResponse(code = 500, message = "Internal error") })
     @RequestMapping(value = "/forecasts/{id}/inputs",
-        produces = { "application/json" }, 
+        produces = { "application/json" },
         consumes = { "application/json" },
         method = RequestMethod.GET)
     public ResponseEntity<InputFilesCollectionVO> getInputFiles(@ApiParam(value = "forecast project ID ",required=true) @PathVariable("id") String id){
@@ -126,7 +127,7 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 		if(forecastProjectUsers!=null && !forecastProjectUsers.isEmpty()) {
 			if(!forecastProjectUsers.contains(requestUser.getId())) {
 				log.warn("User not part of forecast project with id {} and name {}, Not authorized to user other project inputs",id,existingForecast.getName());
-				return new ResponseEntity<>(null, HttpStatus.UNAUTHORIZED);
+				return new ResponseEntity<>(null, HttpStatus.FORBIDDEN);
 			}
 		}
 		List<InputFileVO> files = existingForecast.getSavedInputs();
@@ -138,7 +139,7 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 		return new ResponseEntity<>(collection, responseStatus);
 	}
 
-    
+
 	@Override
 	@ApiOperation(value = "Initialize/Create forecast project for user.", nickname = "createForecastProject", notes = "Create forecast project for user ", response = ForecastProjectResponseVO.class, tags = {
 			"forecast-projects", })
@@ -153,7 +154,7 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 			"application/json" }, method = RequestMethod.POST)
 	public ResponseEntity<ForecastProjectResponseVO> createForecastProject(
 			@ApiParam(value = "Request Body that contains data required for intialize chronos project for user", required = true) @Valid @RequestBody ForecastProjectCreateRequestWrapperVO forecastRequestWrapperVO) {
-		
+
 		ForecastProjectResponseVO responseVO = new ForecastProjectResponseVO();
 		ForecastProjectCreateRequestVO forecastProjectCreateVO = forecastRequestWrapperVO.getData();
 		String name = forecastProjectCreateVO.getName();
@@ -457,7 +458,7 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 	public ResponseEntity<ForecastCollectionVO> getAll(
 			@ApiParam(value = "page number from which listing of forecasts should start. Offset. Example 2") @Valid @RequestParam(value = "offset", required = false) Integer offset,
 			@ApiParam(value = "page size to limit the number of forecasts, Example 15") @Valid @RequestParam(value = "limit", required = false) Integer limit) {
-		
+
 			ForecastCollectionVO collection = new ForecastCollectionVO();
 			int defaultLimit = 10;
 			if (offset == null || offset < 0)
@@ -508,7 +509,7 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 		if(forecastProjectUsers!=null && !forecastProjectUsers.isEmpty()) {
 			if(!forecastProjectUsers.contains(requestUser.getId())) {
 				log.warn("User not part of forecast project with id {} and name {}, Not authorized to user other project inputs",id,existingForecast.getName());
-				return new ResponseEntity<>(null, HttpStatus.UNAUTHORIZED);
+				return new ResponseEntity<>(null, HttpStatus.FORBIDDEN);
 			}else {
 				return new ResponseEntity<>(existingForecast, HttpStatus.OK);
 			}
@@ -532,7 +533,7 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 	public ResponseEntity<GenericMessage> deleteRun(
 			@ApiParam(value = "forecast project ID ", required = true) @PathVariable("id") String id,
 			@ApiParam(value = "DNA correlation Id for the run", required = true) @PathVariable("correlationid") String rid) {
-		
+
 		CreatedByVO requestUser = this.userStore.getVO();
 		String user = requestUser.getId();
 		ForecastVO existingForecast = service.getById(id);
@@ -540,13 +541,24 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 		boolean notAuthorized = true;
 		List<RunVO> runVOList = existingForecast.getRuns();
 		if(runVOList!= null && !runVOList.isEmpty()) {
-			for(RunVO run: runVOList) {
-				if(rid.equalsIgnoreCase(run.getId())) {
+			for (RunVO run : runVOList) {
+				if (rid.equalsIgnoreCase(run.getId())) {
 					notFound = true;
-					if(!user.equalsIgnoreCase(run.getTriggeredBy())) {
-						notAuthorized = false;
+					List<String> forecastProjectUsers = new ArrayList<>();
+					forecastProjectUsers.add(existingForecast.getCreatedBy().getId());
+					List<CollaboratorVO> collaborators = existingForecast.getCollaborators();
+					if (collaborators != null && !collaborators.isEmpty()) {
+						collaborators.forEach(n -> forecastProjectUsers.add(n.getId()));
+					}
+					if (forecastProjectUsers != null && !forecastProjectUsers.isEmpty()) {
+						if (!forecastProjectUsers.contains(requestUser.getId())) {
+							log.warn("User not part of forecast project with id {} and name {}, Not authorized", id, existingForecast.getName());
+							notAuthorized=false;
+
+						}
 					}
 				}
+
 			}
 		}else
 			notFound = false;
@@ -560,7 +572,7 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 			 responseMessage.setSuccess("FAILED");
 			 errMsgs.add(errMsg);
 			 responseMessage.setErrors(errMsgs);
-			 return new ResponseEntity<>(responseMessage, HttpStatus.UNAUTHORIZED);
+			 return new ResponseEntity<>(responseMessage, HttpStatus.FORBIDDEN);
 		}
 		GenericMessage responseMessage = service.deletRunByUUID(id,rid);
 		return new ResponseEntity<>(responseMessage, HttpStatus.OK);
@@ -568,7 +580,7 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 
 	@Override
 	 @ApiOperation(value = "Get visualization data for specific run.", nickname = "getRunVisualizationData", notes = "Get visualization data for specific run.", response = RunVisualizationVO.class, tags={ "forecast-runs", })
-    @ApiResponses(value = { 
+    @ApiResponses(value = {
         @ApiResponse(code = 201, message = "Returns message of success or failure", response = RunVisualizationVO.class),
         @ApiResponse(code = 204, message = "Fetch complete, no content found."),
         @ApiResponse(code = 400, message = "Bad request."),
@@ -577,7 +589,7 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
         @ApiResponse(code = 405, message = "Method not allowed"),
         @ApiResponse(code = 500, message = "Internal error") })
     @RequestMapping(value = "/forecasts/{id}/runs/{correlationid}",
-        produces = { "application/json" }, 
+        produces = { "application/json" },
         consumes = { "application/json" },
         method = RequestMethod.GET)
     public ResponseEntity<RunVisualizationVO> getRunVisualizationData(@ApiParam(value = "forecast project ID ",required=true) @PathVariable("id") String id,@ApiParam(value = "DNA correlation Id for the run",required=true) @PathVariable("correlationid") String rid){
@@ -610,13 +622,13 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 		if(forecastProjectUsers!=null && !forecastProjectUsers.isEmpty()) {
 			if(!forecastProjectUsers.contains(requestUser.getId())) {
 				log.warn("User not part of forecast project with id {} and name {}, Not authorized to user other project inputs",id,existingForecast.getName());
-				return new ResponseEntity<>(null, HttpStatus.UNAUTHORIZED);
+				return new ResponseEntity<>(null, HttpStatus.FORBIDDEN);
 			}
 		}
 		RunVisualizationVO visualizationData = service.getRunVisualizationsByUUID(id, rid);
 		return new ResponseEntity<>(visualizationData, HttpStatus.OK);
 	}
-    
+
 	@Override
 	@ApiOperation(value = "Get all forecast projects for the user.", nickname = "getAllRunsForProject", notes = "Get all forecasts projects for the user.", response = ForecastRunCollectionVO.class, tags = {
 			"forecast-runs", })
@@ -655,9 +667,9 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 		if(forecastProjectUsers!=null && !forecastProjectUsers.isEmpty()) {
 			if(!forecastProjectUsers.contains(requestUser.getId())) {
 				log.error("User not part of forecast project with id {} and name {}, Not authorized to user other project inputs",id,existingForecast.getName());
-				return new ResponseEntity<>(collection, HttpStatus.UNAUTHORIZED);
+				return new ResponseEntity<>(collection, HttpStatus.FORBIDDEN);
 			}else {
-				List<RunVO> records = service.getAllRunsForProject(limit, offset, existingForecast);
+				List<RunVO> records = service.getAllRunsForProject(limit, offset, existingForecast.getId());
 				Long count = service.getRunsCount(id);
 				HttpStatus responseCode = HttpStatus.NO_CONTENT;
 				if(records!=null && !records.isEmpty()) {
@@ -670,7 +682,7 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 		}
 		return new ResponseEntity<>(collection, HttpStatus.NO_CONTENT);
 	}
-		
+
 
 //	@Override
 //	@ApiOperation(value = "Get all forecast project run visualization for the user.", nickname = "getRunVisualizationData", notes = "Get all forecasts projects for the user.", response = RunVisualizationVO.class, tags = {
@@ -693,7 +705,7 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 
 	@Override
 	@ApiOperation(value = "Create new run for forecast project.", nickname = "createForecastRun", notes = "Create run for forecast project", response = ForecastRunResponseVO.class, tags={ "forecast-runs", })
-    @ApiResponses(value = { 
+    @ApiResponses(value = {
         @ApiResponse(code = 201, message = "Returns message of success or failure ", response = ForecastRunResponseVO.class),
         @ApiResponse(code = 400, message = "Bad Request", response = GenericMessage.class),
         @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
@@ -701,7 +713,7 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
         @ApiResponse(code = 405, message = "Method not allowed"),
         @ApiResponse(code = 500, message = "Internal error") })
     @RequestMapping(value = "/forecasts/{id}/runs",
-        produces = { "application/json" }, 
+        produces = { "application/json" },
         consumes = { "multipart/form-data" },
         method = RequestMethod.POST)
     public ResponseEntity<ForecastRunResponseVO> createForecastRun(@ApiParam(value = "forecast project ID ",required=true) @PathVariable("id") String id,
@@ -735,7 +747,7 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 				responseVO.setResponse(errorMessage);
 				return new ResponseEntity<>(responseVO, HttpStatus.NOT_FOUND);
 			}
-			
+
 			CreatedByVO requestUser = this.userStore.getVO();
 			List<String> forecastProjectUsers = new ArrayList<>();
 			forecastProjectUsers.add(existingForecast.getCreatedBy().getId());
@@ -752,12 +764,12 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 					errorMessage.addErrors(invalidMsg);
 					responseVO.setData(null);
 					responseVO.setResponse(errorMessage);
-					return new ResponseEntity<>(responseVO, HttpStatus.UNAUTHORIZED);
+					return new ResponseEntity<>(responseVO, HttpStatus.FORBIDDEN);
 				}else {
 					if(file!=null) {
 						String fileName = file.getOriginalFilename();
 						if (!isValidAttachment(fileName)) {
-							log.error("Invalid file type {} attached for project name {} and id {} ", existingForecast.getName(), id ,fileName);
+							log.error("Invalid file type {} attached for project name {} and id {} ", fileName, existingForecast.getName(), id);
 							MessageDescription invalidMsg = new MessageDescription("Invalid File type attached. Supported only xlxs and csv extensions");
 							GenericMessage errorMessage = new GenericMessage();
 							errorMessage.setSuccess("FAILED");
@@ -783,7 +795,7 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 								}else
 									savedInputs = new ArrayList<>();
 							}
-							FileUploadResponseDto fileUploadResponse = service.saveFile(file, existingForecast.getBucketName());
+							FileUploadResponseDto fileUploadResponse = storageClient.uploadFile(INPUT_FILE_PREFIX,file, existingForecast.getBucketName());
 							if(fileUploadResponse==null || (fileUploadResponse!=null && (fileUploadResponse.getErrors()!=null || !"SUCCESS".equalsIgnoreCase(fileUploadResponse.getStatus())))) {
 								GenericMessage errorMessage = new GenericMessage();
 								errorMessage.setSuccess("FAILED");
@@ -801,9 +813,9 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 										currentInput.setCreatedOn(createdOn);
 										currentInput.setCreatedBy(requestUser.getId());
 										savedInputs.add(currentInput);
-										existingForecast.setSavedInputs(savedInputs);								
+										existingForecast.setSavedInputs(savedInputs);
 									}
-								savedInputPath = existingForecast.getBucketName()+"/inputs/"+file.getOriginalFilename();
+								savedInputPath = existingForecast.getBucketName() + "/inputs/"+ file.getOriginalFilename();
 							}
 						}
 				}
@@ -813,8 +825,8 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 						Date date = new Date();
 						runName = "run-" + runNameDate.format(date);
 					}
-
-					ForecastRunResponseVO createRunResponse = service.createJobRun(savedInputPath, saveRequestPart, runName, configurationFile,
+					log.info("Passed all validations for create run in controller, calling service for project {} ", id);
+					ForecastRunResponseVO createRunResponse = service.createJobRun(file,savedInputPath, saveRequestPart, runName, configurationFile,
 							frequency, forecastHorizon, hierarchy, comment, runOnPowerfulMachines, existingForecast,requestUser.getId(),createdOn);
 					if(createRunResponse!= null && "SUCCESS".equalsIgnoreCase(createRunResponse.getResponse().getSuccess())
 								&& createRunResponse.getData().getRunId()!=null) {
@@ -822,10 +834,10 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 					}else {
 						return new ResponseEntity<>(createRunResponse, HttpStatus.INTERNAL_SERVER_ERROR);
 					}
-						
+
 				}
 			}
 			return new ResponseEntity<>(responseVO, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
-	
+
 }

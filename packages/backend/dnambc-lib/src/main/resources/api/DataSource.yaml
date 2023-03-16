@@ -110,12 +110,6 @@ paths:
    description:  "Get all datasources. This endpoints will be used to Get all valid available datasources maintenance records."
    operationId: "getAll"
    parameters:
-        - name: sortBy
-          in: query
-          description: Sort datasources by a given variable like datasourceName
-          required: false
-          type: string
-          enum: [datasourceName]
         - name: sortOrder
           in: query
           description: Sort datasources based on the given order, example asc,desc

@@ -859,7 +859,7 @@ definitions:
         enum: [PENDING,RUNNING,TERMINATING,TERMINATED,INTERNAL_ERROR,SKIPPED]
       result_state:
         type: string
-        enum: [SUCCESS,FAILED,TIMEDOUT,CANCELED]
+        enum: [SUCCESS,FAILED,TIMEDOUT,CANCELED,WARNINGS]
       state_message:
         type: string
       user_cancelled_or_timedout:
@@ -892,6 +892,14 @@ definitions:
           type: string
         state:
           $ref: "#/definitions/RunStateVO"
+        warnings:
+          type: string
+        error:
+           type: string
+        tasks:
+          type: array
+          items:
+            $ref: "#/definitions/RunTaskVO"
         startTime:
             type: number 
             format: int64
@@ -907,7 +915,16 @@ definitions:
         cleanup_duration:
             type: number
             format: int64
-            
+
+
+  RunTaskVO:
+    type: object
+    properties:
+      run_id:
+        type: string
+      state:
+        $ref: "#/definitions/RunStateVO"
+
   JobRunsListVO:
     type: object
     properties:
@@ -982,6 +999,15 @@ definitions:
         resultFolderPath:
             type: string
             description: "result folder path"
+        warnings:
+          type: string
+          description: "warnings"
+        error:
+          type: string
+          description: "error"
+        exogenData:
+          type: boolean
+          description: "flag to check if exogenous data is present"
   
   ForecastRunResponseVO:
     type: object

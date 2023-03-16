@@ -54,8 +54,11 @@ public class DataProductCustomRepositoryImpl extends CommonDataRepositoryImpl<Da
 
 	@Override
 	public List<DataProductNsql> getAllWithFiltersUsingNativeQuery(Boolean published, int offset, int limit,
-			String sortBy, String sortOrder, String recordStatus) {
-		Query q = getNativeQueryWithFilters("", published, offset, limit, sortBy, sortOrder, recordStatus);
+			String sortBy, String sortOrder, String recordStatus,
+			List<String> artsList, List<String> carlafunctionsList, List<String> platformsList, List<String> frontendToolsList,
+			List<String> productOwnerList) {
+		Query q = getNativeQueryWithFilters("", published, offset, limit, sortBy, sortOrder, recordStatus,
+				artsList, carlafunctionsList, platformsList, frontendToolsList, productOwnerList);
 		ObjectMapper mapper = new ObjectMapper();
 		List<Object[]> results = null;
 		try {
@@ -80,21 +83,31 @@ public class DataProductCustomRepositoryImpl extends CommonDataRepositoryImpl<Da
 	}
 
 	@Override
-	public Long getCountUsingNativeQuery(Boolean published, String recordStatus) {
+	public Long getCountUsingNativeQuery(Boolean published, String recordStatus,
+		List<String> artsList, List<String> carlafunctionsList,
+		List<String> platformsList, List<String> frontendToolsList, List<String> productOwnerList) {
 
-		Query q = getNativeQueryWithFilters("select count(*) ", published, 0, 0, "", "asc", recordStatus);
+		Query q = getNativeQueryWithFilters("select count(*) ", published, 0, 0, "", "asc", recordStatus,
+				artsList, carlafunctionsList, platformsList, frontendToolsList, productOwnerList);
 		BigInteger results = (BigInteger) q.getSingleResult();
 		return results.longValue();
 	}
 
 	private Query getNativeQueryWithFilters(String selectFieldsString, Boolean published, int offset, int limit,
-			String sortBy, String sortOrder, String recordStatus) {
+			String sortBy, String sortOrder, String recordStatus,
+			List<String> artsList, List<String> carlafunctionsList,
+			List<String> platformsList, List<String> frontendToolsLis,
+			List<String> productOwnerList) {
 
 		String prefix = selectFieldsString != null && !"".equalsIgnoreCase(selectFieldsString) ? selectFieldsString
 				: "select cast(id as text), cast(data as text) ";
 		prefix = prefix + "from dataproduct_nsql";
 		String basicpredicate = " where (id is not null)";
-		String consolidatedPredicates = buildPredicateString(published, recordStatus);
+		String consolidatedPredicates = buildPredicateString(
+				published, recordStatus,
+				artsList, carlafunctionsList,
+				platformsList, frontendToolsLis,
+				productOwnerList);
 		String query = prefix + basicpredicate + consolidatedPredicates;
 		String sortQueryString = "";
 		if (StringUtils.hasText(sortBy)) {
@@ -125,9 +138,61 @@ public class DataProductCustomRepositoryImpl extends CommonDataRepositoryImpl<Da
 		return q;
 	}
 
-	private String buildPredicateString(Boolean published, String recordStatus) {
-		return getPublishedAndAccessPredicate(published) + "\n" + getRecordStatusPredicateString(recordStatus);
+	private String buildPredicateString(Boolean published, String recordStatus,
+		List<String> artsList, List<String> carlafunctionsList,
+		List<String> platformsList, List<String> frontendToolsLis,
+		List<String> productOwnerList) {
+		return getArtPredicateString(artsList) + "\n" + getartCarlafunctionString(carlafunctionsList) + "\n"
+				+ getPlatformsListPredicateString(platformsList) + "\n" + getartFrontendToolsString(frontendToolsLis) + "\n"
+				+ getProductOwnerPredicateString(productOwnerList) + "\n"
+				+ getPublishedAndAccessPredicate(published) + "\n" + getRecordStatusPredicateString(recordStatus);
 	}
+
+	private String getProductOwnerPredicateString(List<String> productOwnerList) {
+		if (productOwnerList != null && !productOwnerList.isEmpty()) {
+			String commaSeparatedProductOwner = productOwnerList.stream().map(s -> "%\"" + s + "\"%")
+					.collect(Collectors.joining("|"));
+			return " and (jsonb_extract_path_text(data, 'contactInformation', 'informationOwner') similar to '" + commaSeparatedProductOwner + "' )";
+		}
+		return "";
+	}
+
+	private String getArtPredicateString(List<String> artsList) {
+		if (artsList != null && !artsList.isEmpty()) {
+			String commaSeparatedArts = artsList.stream().map(s -> "%\"" + s + "\"%")
+					.collect(Collectors.joining("|"));
+			return " and (jsonb_extract_path_text(data, 'agileReleaseTrain') similar to '" + commaSeparatedArts + "' )";
+		}
+		return "";
+	}
+
+	private String getartCarlafunctionString(List<String> carlafunctionsList) {
+		if (carlafunctionsList != null && !carlafunctionsList.isEmpty()) {
+			String commaSeparatedCarlafunctions = carlafunctionsList.stream().map(s -> "%\"" + s + "\"%")
+					.collect(Collectors.joining("|"));
+			return " and (jsonb_extract_path_text(data, 'carLaFunction') similar to '" + commaSeparatedCarlafunctions + "' )";
+		}
+		return "";
+	}
+
+	private String getPlatformsListPredicateString(List<String> platformsList) {
+		if (platformsList != null && !platformsList.isEmpty()) {
+			String commaSeparatedPlatforms = platformsList.stream().map(s -> "%\"" + s + "\"%")
+					.collect(Collectors.joining("|"));
+			return " and (jsonb_extract_path_text(data, 'platform') similar to '" + commaSeparatedPlatforms + "' )";
+		}
+		return "";
+	}
+
+	private String getartFrontendToolsString(List<String> frontendToolsLis) {
+		if (frontendToolsLis != null && !frontendToolsLis.isEmpty()) {
+			String commaSeparatedFrontendTool = frontendToolsLis.stream().map(s -> "%\"" + s + "\"%")
+					.collect(Collectors.joining("|"));
+			return " and (jsonb_extract_path_text(data, 'frontEndTools') similar to '" + commaSeparatedFrontendTool + "' )";
+		}
+		return "";
+	}
+
 
 	private String getRecordStatusPredicateString(String recordStatus) {
 		if (StringUtils.hasText(recordStatus)) {

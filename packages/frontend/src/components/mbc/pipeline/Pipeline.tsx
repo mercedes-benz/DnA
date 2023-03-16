@@ -12,6 +12,7 @@ const classNames = cn.bind(Styles);
 // import PipelineSubModel from './pipelineSubModel/PipelineSubModel';
 import PipelineSubList from './pipelineSubList/PipelineSubList';
 import Pagination from '../pagination/Pagination';
+import Caption from '../shared/caption/Caption';
 import { SESSION_STORAGE_KEYS } from 'globals/constants';
 
 // @ts-ignore
@@ -118,9 +119,7 @@ const Pipeline = () => {
     <React.Fragment>
       <div className={classNames(Styles.mainPanel)}>
         <div className={Styles.wrapper}>
-          <div className={Styles.caption}>
-            <h3>Pipeline</h3>
-          </div>
+          <Caption title="Pipeline" />
         </div>
         <div className={Styles.content}>
           <div className={Styles.NoSubscription}>

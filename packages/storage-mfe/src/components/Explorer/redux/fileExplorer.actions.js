@@ -225,6 +225,8 @@ export const setActionButtons = (bucketPermission, bucketObjects, showPublish = 
         ...(bucketPermission.write && Envs.ENABLE_TRINO_PUBLISH && showPublish && hasParquetFile
           ? [CustomActions.PublishFolder]
           : []),
+        CustomActions.CopyPath,
+        CustomActions.ResetSearchInput,
       ],
     });
   };

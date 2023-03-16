@@ -65,7 +65,7 @@ const FileExplorer = () => {
   const dispatch = useDispatch();
   const { bucketPermission } = useSelector((state) => state.fileExplorer);
 
-  const { bucketName } = useParams();
+  const { bucketName, resultFolder } = useParams();
 
   const { files, fileActions, bucketObjects } = useSelector((state) => state.fileExplorer);
 
@@ -76,6 +76,7 @@ const FileExplorer = () => {
   const [showCreateNewFolderModal, setShowCreateNewFolderModal] = useState(false);
 
   const [pdfDocsNumPages, setPDFDocsNumPages] = useState(0);
+  const fileBrowserRef = useRef();
 
   // pdf password protected states
   const [pdfPassword, setPdfPassword] = useState('');
@@ -156,10 +157,26 @@ const FileExplorer = () => {
   }, [newFolderName]);
 
   useEffect(() => {
-    if (!files?.rootFolderId) {
-      dispatch(setFiles(bucketName, false));
+    if(resultFolder !== undefined) {
+      const fileToOpen = {
+          "id": `results${resultFolder}`,
+          "name": resultFolder,
+          "parentId": "results",
+          "isDir": true,
+          "objectName": `results/${resultFolder}/`,
+      }
+      onOpenFolder(fileToOpen);
     }
-  }, [dispatch, bucketName, files]);
+    //eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [resultFolder]);
+
+  useEffect(() => {
+    if(resultFolder === undefined) {
+      if (!files?.rootFolderId) {
+        dispatch(setFiles(bucketName, false));
+      }
+    }
+  }, [dispatch, bucketName, files, resultFolder]);
 
   useEffect(() => {
     showCreateNewFolderModal && inputRef.current.focus();
@@ -399,6 +416,10 @@ const FileExplorer = () => {
       }
     }
     setNewlyCreatedFolder('');
+
+    // reset the search input
+    fileBrowserRef.current.requestFileAction(CustomActions.ResetSearchInput);
+
     return;
   };
 
@@ -492,6 +513,9 @@ const FileExplorer = () => {
         modal: true,
         data,
       });
+    } else if (data.id === CustomActions.CopyPath.id) {
+      const filePath = bucketName + '/' + data.state?.selectedFiles?.[0]?.objectName;
+      navigator.clipboard.writeText(filePath).then(() => Notification.show('File path copied to clipboard'));
     }
   };
 
@@ -911,6 +935,7 @@ const FileExplorer = () => {
             defaultFileViewActionId={ChonkyActions.EnableListView.id}
             disableDragAndDrop={true}
             i18n={i18n}
+            ref={fileBrowserRef}
           />
           {showPreview.modal && (
             <Modal

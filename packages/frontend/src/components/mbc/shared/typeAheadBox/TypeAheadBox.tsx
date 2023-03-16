@@ -11,7 +11,7 @@ interface IList {
 
 export interface IRowItemProps {
   controlId: string;
-  label: string;
+  label: string | React.ReactNode;
   placeholder: string;
   required: boolean;
   defaultValue: string;
@@ -58,9 +58,9 @@ const TypeAheadBox: React.FC<IRowItemProps> = (props: IRowItemProps) => {
     if (props.onInputChange) {
       setFilteredList(props.list);
       setShowNoResultsError(props.list?.length === 0 ? true : false);
-      setTimeout(() => {
-        setShowNoResultsError(false);
-      }, 3000);
+      // setTimeout(() => {
+      //   setShowNoResultsError(false);
+      // }, 3000);
       setHideSuggestion(props.list?.length === 0);
       setCursor(-1);
     } else {
@@ -138,6 +138,7 @@ const TypeAheadBox: React.FC<IRowItemProps> = (props: IRowItemProps) => {
           setCursor(-1);
           setSelectedItem(filteredList[cursor].name);
           setSearchTerm('');
+          props.setSelected(filteredList[cursor]);
         }
       }
     } else if (keyPressed === KEY_CODE.upArrow && cursor > 0) {

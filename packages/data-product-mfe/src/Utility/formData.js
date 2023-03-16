@@ -207,6 +207,8 @@ export const deserializeFormData = ({ item, type = 'provider', isDataProduct = f
           notifyUsers: item?.notifyUsers,
           users: item.providerInformation?.users,
           providerFormSubmitted: item.providerInformation?.providerFormSubmitted,
+          createdBy: item.providerInformation?.createdBy,
+          modifiedBy: item.providerInformation?.modifiedBy,
           ...((!isProvider || item.consumerInformation) && {
             consumer: {
               planningIT: item.consumerInformation?.contactInformation?.appId,

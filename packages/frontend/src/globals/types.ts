@@ -392,6 +392,14 @@ export interface IManageDivision {
   subdivisions: ISubDivision[];
 }
 
+export interface IManageMarketingTabRequest {
+  data: IManageMarketingTab;
+}
+
+export interface IManageMarketingTab {
+  name: string;
+}
+
 export interface IDivisionFilterPreference {
   id: string;
   name: string;
@@ -522,6 +530,15 @@ export interface IUserDetails {
   lastName: string;
   mobileNumber?: string;
 }
+
+export interface IUserPrivilege {
+  id: string;
+  userId: string;
+  profile: string;
+  givenName: string;
+  surName: string;
+}
+
 export interface ICodeCollaborator {
   firstName: string;
   department: string;
@@ -822,9 +839,6 @@ export interface IDataikuCheckListItem {
 export interface ICreateNewSolutionRequest {
   data: ICreateNewSolution;
 }
-export interface IDataComplianceRequest {
-  data: IEntity;
-}
 export interface ICreateNewReportRequest {
   data: ICreateNewReport;
 }
@@ -884,20 +898,6 @@ export interface INeededRoleObject {
   neededSkill: string;
   requestedFTECount: string;
   toDate: string;
-}
-
-export interface IEntity {
-  dataProtectionCoordinator: string[];
-  entityId: string;
-  entityName: string;
-  localComplianceOfficer: string[];
-  localComplianceResponsible: string[];
-  localComplianceSpecialist: string[];
-  createdDate?: string;
-  id?: string;
-  lastModifiedDate?: string;
-  createdBy?: IUserInfo;
-  modifiedBy?: IUserInfo;
 }
 
 export interface IAllSolutionsListItemCSV {
@@ -1102,6 +1102,7 @@ export interface INoticationModules {
   persistenceNotificationPref: INotificationEnableDisable;
   dataProductNotificationPref: INotificationEnableDisable;
   dataComplianceNotificationPref: INotificationEnableDisable;
+  chronosNotificationPref: INotificationEnableDisable;
   termsOfUse: string;
   userId: string;
 }
@@ -1170,6 +1171,19 @@ export interface IMarketing {
   marketingCommunicationChannels: IMarketingCommunicationChannel[];
   personalization: IMarketingPersonalization;
   personas: string[];
+  marketingRoles: INeededMarketingRoleObject[];
+}
+
+export interface INeededMarketingRoleObject {
+  fromDate: string;
+  role: any;
+  requestedFTECount: string;
+  toDate: string;
+}
+
+export interface IMarketingRole {
+  id: string;
+  name: string;
 }
 
 export interface IMarketingCommunicationChannel {

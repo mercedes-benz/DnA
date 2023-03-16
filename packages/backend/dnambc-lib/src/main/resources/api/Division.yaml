@@ -86,12 +86,6 @@ paths:
        type: array
        items:
         type: string
-     - name: sortBy
-       in: query
-       description: Sort divisions by a given variable like name, phase, division, location or status
-       required: false
-       type: string
-       enum: [divisionName]
      - name: sortOrder
        in: query
        description: Sort divisions based on the given order, example asc,desc

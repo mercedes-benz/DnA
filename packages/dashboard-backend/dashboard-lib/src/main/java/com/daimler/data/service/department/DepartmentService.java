@@ -40,7 +40,7 @@ import com.daimler.data.service.common.CommonService;
 
 public interface DepartmentService extends CommonService<DepartmentVO, DepartmentSql, Long> {
 
-	ResponseEntity<DepartmentCollection> getAllDepartments(String sortBy,String sortOrder);
+	ResponseEntity<DepartmentCollection> getAllDepartments(String sortOrder);
 
 	ResponseEntity<DepartmentResponseVO> createDepartment(DepartmentRequestVO requestVO);
 

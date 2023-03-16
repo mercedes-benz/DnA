@@ -2,7 +2,7 @@ spring:
   mvc.pathmatch.matching-strategy: ant_path_matcher
   application:
     name: dna-chronos-service
-    version: 1.1.0
+    version: 1.1.1
 
   cloud:
     vault:
@@ -15,6 +15,11 @@ spring:
       vaultpath: ${VAULT_PATH:dna/chronos}
       kv:
        enabled: true
+    stream:
+      default-binder: kafka
+      kafka:
+        binder:
+          brokers: ${NAAS_BROKER:hostXXXX:portXXXX}   
 
   flyway:
     enabled: ${FLYWAY_ENABLED:true}
@@ -56,9 +61,9 @@ spring:
 #          brokers: ${NAAS_BROKER:hostXXXX:portXXXX}   
 #
 #
-#kafka:
-#  centralTopic:
-#    name: dnaCentralEventTopic
+kafka:
+  centralTopic:
+    name: dnaCentralEventTopic
 
 
 databricks:
@@ -74,7 +79,7 @@ databricks:
     deleterun: ${DATABRICKS_DELETERUN_URI:/api/2.1/jobs/runs/delete}
     getrun: ${DATABRICKS_GETRUN_URI:/api/2.1/jobs/runs/get}
     jobrunlist: ${DATABRICKS_JOBRUNLIST_URI:/api/2.1/jobs/get}
-   
+    jobrunoutput: ${DATABRICKS_GETRUNOUTPUT_URI:/api/2.1/jobs/runs/get-output}
 dna:
   uri: ${DNA_URI:XXXXXX}
   dnaAuthEnable: ${DNA_AUTH_ENABLE:false}

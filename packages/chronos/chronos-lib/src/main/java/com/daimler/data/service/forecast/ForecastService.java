@@ -20,15 +20,13 @@ public interface ForecastService extends CommonService<ForecastVO, ForecastNsql,
 
 	ForecastVO createForecast(ForecastVO vo) throws Exception;
 
-	FileUploadResponseDto saveFile(MultipartFile file, String bucketName);
-
-	ForecastRunResponseVO createJobRun(String savedInputPath, Boolean saveRequestPart, String runName,
+	ForecastRunResponseVO createJobRun(MultipartFile file, String savedInputPath, Boolean saveRequestPart, String runName,
 			String configurationFile, String frequency, BigDecimal forecastHorizon, String hierarchy, String comment,
 			Boolean runOnPowerfulMachines, ForecastVO existingForecast, String triggeredBy, Date triggeredOn);
 
 	Long getRunsCount(String id);
 
-	List<RunVO> getAllRunsForProject( int limit,  int offset, ForecastVO existingForecast);
+	List<RunVO> getAllRunsForProject( int limit,  int offset, String forecastId);
 
 	GenericMessage deletRunByUUID(String id, String rid);
 
@@ -43,4 +41,6 @@ public interface ForecastService extends CommonService<ForecastVO, ForecastNsql,
 	ApiKeyVO getApiKey(String id);
 
 	Boolean isBucketExists(String bucketName);
+	
+	List<String> getAllForecastIds();
 }

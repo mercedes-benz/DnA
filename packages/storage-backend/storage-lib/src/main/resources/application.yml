@@ -1,7 +1,7 @@
 spring:
   application:
     name: dna-storage-service
-    version: 3.2.0
+    version: 3.2.1
   cache:
     type: redis
   redis:

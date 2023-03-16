@@ -31,7 +31,6 @@ import java.lang.reflect.Type;
 import java.util.*;
 import java.util.AbstractMap.SimpleEntry;
 import java.util.Map.Entry;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
@@ -213,9 +212,9 @@ public class DataProductAssembler implements GenericAssembler<DataProductVO, Dat
 					dataProduct.setModifiedBy(userDetails);
 				}
 				if (Objects.nonNull(vo.getCarLaFunction())) {
-					CarLaFunction carLaFunction = new CarLaFunction();
-					BeanUtils.copyProperties(vo.getCarLaFunction(), carLaFunction);
-					dataProduct.setCarLaFunction(carLaFunction);
+					CarLaFunctionVO carLaFunctionVO = new CarLaFunctionVO();
+					BeanUtils.copyProperties(vo.getCarLaFunction(), carLaFunctionVO);
+					dataProduct.setCarLaFunction(carLaFunctionVO);
 				}
 
 				List<PlatformVO> platforms = vo.getPlatform();
@@ -245,12 +244,12 @@ public class DataProductAssembler implements GenericAssembler<DataProductVO, Dat
 				}
 
 				if (Objects.nonNull(vo.getAgileReleaseTrain())) {
-					AgileReleaseTrain agileReleaseTrain = new AgileReleaseTrain();
+					AgileReleaseTrainVO agileReleaseTrain = new AgileReleaseTrainVO();
 					BeanUtils.copyProperties(vo.getAgileReleaseTrain(), agileReleaseTrain);
 					dataProduct.setAgileReleaseTrain(agileReleaseTrain);
 				}
 				if (Objects.nonNull(vo.getCorporateDataCatalog())) {
-					CorporateDataCatalog corporateDataCatalog = new CorporateDataCatalog();
+					CorporateDataCatalogVO corporateDataCatalog = new CorporateDataCatalogVO();
 					BeanUtils.copyProperties(vo.getCorporateDataCatalog(), corporateDataCatalog);
 					dataProduct.setCorporateDataCatalog(corporateDataCatalog);
 				}

@@ -19,9 +19,13 @@ const DataCardItem = ({ product, history }) => {
           history.push(`/dataproduct/summary/${product?.dataProductId}`);
         }}
       >
-        {product?.isCarlaCertified ? (
+        {!product?.isPublish ? (
           <div>
-            <button className={classNames('btn btn-primary', Styles.isCarlaCertified)}>CARLA Certified</button>
+            <button className={classNames('btn btn-primary', Styles.upperTag)}>Coming Soon</button>
+          </div>
+        ) : product?.isCarlaCertified ? (
+          <div>
+            <button className={classNames('btn btn-primary', Styles.upperTag)}>CARLA Certified</button>
           </div>
         ) : null}
         <div className={Styles.cardBodySection}>

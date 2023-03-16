@@ -37,7 +37,7 @@ export default class UserInfoRowItem extends React.Component<IUserInfoRowItemPro
             {user.firstName},&nbsp;{user.lastName}
           </td>
           <td className="wrap-text">{user.id}</td>
-          <td>{roleValue}</td>
+          <td>{roleValue.join(', ')}</td>
           <td className={'wrap-text ' + classNames(Styles.actionLinksTD)} onClick={this.onEditUser}>
             Edit
           </td>

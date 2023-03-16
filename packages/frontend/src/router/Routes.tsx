@@ -13,7 +13,7 @@ const Administration = React.lazy(() => import('components/mbc/admin/Administrat
 const AuthRedirector = React.lazy(() => import('./AuthRedirector'));
 const AllSolutions = React.lazy(() => import('components/mbc/allSolutions/AllSolutions'));
 const CreateNewSolution = React.lazy(() => import('components/mbc/createNewSolution/CreateNewSolution'));
-const DssProjectsList = React.lazy(() => import('components/mbc/dataiku/ListProjects'));
+// const DssProjectsList = React.lazy(() => import('components/mbc/dataiku/ListProjects'));
 const License = React.lazy(() => import('components/mbc/footer/License/License'));
 const Home = React.lazy(() => import('components/mbc/home/Home'));
 const Notebook = React.lazy(() => import('components/mbc/notebook/Notebook'));
@@ -43,7 +43,7 @@ const Carla = React.lazy(() => import('components/mbc/carla/Carla'));
 const StorageComponent = React.lazy(() => import('storage-mfe/Bucket'));
 const DataProductComponent = React.lazy(() => import('data-product-mfe/DataProduct'));
 const ChronosComponent = React.lazy(() => import('chronos-mfe/Chronos'));
-// const DataikuComponent = React.lazy(() => import('dss-mfe/Dataiku'));
+const DataikuComponent = React.lazy(() => import('dss-mfe/Dataiku'));
 
 const UserAndAdminRole = [
   USER_ROLE.USER,
@@ -195,7 +195,7 @@ const protectedRoutes = [
   },
   {
     allowedRoles: UserAndAdminRole,
-    component: DssProjectsList,
+    component: DataikuComponent,
     exact: false,
     path: '/mydataiku',
     title: 'My Dataiku',
