@@ -52,6 +52,8 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
     password: '',
     confirmPassword: '',
   });
+  const [githubUserName, setGithubUserName] = useState('');
+  const [githubUserNameError, setGithubUserNameError] = useState('');
   const [githubToken, setGithubToken] = useState('');
   const [githubTokenError, setGithubTokenError] = useState('');
   const [codeSpaceCollaborators, setCodeSpaceCollaborators] = useState([]);
@@ -93,11 +95,17 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
         : '',
     );
   };
+
+  const onGithubUserNameOnChange = (evnt: React.FormEvent<HTMLInputElement>) => {
+    const githubUserNameVal = evnt.currentTarget.value.trim();
+    setGithubUserName(githubUserNameVal);
+    setGithubUserNameError(githubUserNameVal.length ? '' : requiredError);
+  };
   
   const onGithubTokenOnChange = (evnt: React.FormEvent<HTMLInputElement>) => {
     const githubTokenVal = evnt.currentTarget.value.trim();
     setGithubToken(githubTokenVal);
-    setGithubTokenError(githubTokenVal.length ? '' : githubTokenVal);
+    setGithubTokenError(githubTokenVal.length ? '' : requiredError);
   };
 
   const onEnvironmentChange = (evnt: React.FormEvent<HTMLInputElement>) => {
@@ -225,7 +233,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
     };
   };
 
-  const validateNewCodeSpaceForm = () => {
+  const validateNewCodeSpaceForm = (isPublicRecipeChoosen: boolean) => {
     let formValid = true;
     if (!projectName.length) {
       setProjectNameError(requiredError);
@@ -243,17 +251,23 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
       setConfirmPasswordError(requiredError);
       formValid = false;
     }
+    if (isPublicRecipeChoosen && githubUserName === '') {
+      setGithubUserNameError(requiredError);
+      formValid = false;
+    } else {
+      setGithubUserNameError('');
+    }
     if (githubToken === '') {
       setGithubTokenError(requiredError);
       formValid = false;
     }
-    if (projectNameError !== '' || recipeError !== '' || passwordError !== '' || confirmPasswordError !== '' || githubTokenError !== '') {
+    if (projectNameError !== '' || recipeError !== '' || passwordError !== '' || confirmPasswordError !== '' || githubUserNameError !== '' || githubTokenError !== '') {
       formValid = false;
     }
     return formValid;
   };
 
-  const validateOnBoardCodeSpaceForm = () => {
+  const validateOnBoardCodeSpaceForm = (isPublicRecipeChoosen: boolean) => {
     let formValid = true;
     if (passwordInput.password === '') {
       setPasswordErr(requiredError);
@@ -262,6 +276,12 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
     if (passwordInput.confirmPassword === '') {
       setConfirmPasswordError(requiredError);
       formValid = false;
+    }
+    if (isPublicRecipeChoosen && githubUserName === '') {
+      setGithubUserNameError(requiredError);
+      formValid = false;
+    } else {
+      setGithubUserNameError('');
     }
     if (githubToken === '') {
       setGithubTokenError(requiredError);
@@ -330,43 +350,36 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
   // };
 
   const createCodeSpace = () => {
+    const isPublicRecipeChoosen = recipeValue.startsWith('public');
 
-    const createCodeSpaceRequest = {
-      data: {
-        gitUserName: props.user.id,
-        projectDetails: {
-          projectCollaborators: codeSpaceCollaborators,
-          projectName: projectName,
-          recipeDetails: {
-            cloudServiceProvider: environment,
-            cpuCapacity: '1',
-            environment: 'Development', // Need to handled in backend
-            operatingSystem: 'Debian-OS-11',
-            ramSize: '1',
-            recipeId: recipeValue
+    if (validateNewCodeSpaceForm(isPublicRecipeChoosen)) {
+      const createCodeSpaceRequest = {
+        data: {
+          gitUserName: props.user.id,
+          projectDetails: {
+            projectCollaborators: codeSpaceCollaborators,
+            projectName: projectName,
+            recipeDetails: {
+              cloudServiceProvider: environment,
+              cpuCapacity: '1',
+              environment: 'Development', // Need to handled in backend
+              operatingSystem: 'Debian-OS-11',
+              ramSize: '1',
+              recipeId: recipeValue
+            }
           }
-        }
-      },
-      password: passwordInput.password,
-      pat: githubToken
-    };
+        },
+        password: passwordInput.password,
+        pat: githubToken
+      };
 
-    if (recipeValue.startsWith('public')) {
-      const recipe = recipesMaster.find((item: any) => item.id === recipeValue);
-      createCodeSpaceRequest.data.projectDetails.recipeDetails.recipeId = 'public';
-      createCodeSpaceRequest.data.projectDetails.recipeDetails['repodetails'] = recipe.repodetails;
-    }
+      if (isPublicRecipeChoosen) {
+        const recipe = recipesMaster.find((item: any) => item.id === recipeValue);
+        createCodeSpaceRequest.data.gitUserName = githubUserName;
+        createCodeSpaceRequest.data.projectDetails.recipeDetails.recipeId = 'public';
+        createCodeSpaceRequest.data.projectDetails.recipeDetails['repodetails'] = recipe.repodetails;
+      }
 
-    // const createCodeSpaceRequest = {
-    //   data: {
-    //     cloudServiceProvider: environment,
-    //     name: projectName,
-    //     recipeId: recipeValue,
-    //   },
-    //   password: passwordInput.password,
-    // };
-
-    if (validateNewCodeSpaceForm()) {
       ProgressIndicator.show();
       CodeSpaceApiClient.createCodeSpace(createCodeSpaceRequest)
         .then((res) => {
@@ -425,13 +438,19 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
   };
 
   const onBoardToCodeSpace = () => {
+    const isPublicRecipeChoosen = recipeValue.startsWith('public');
 
-    const onBoardCodeSpaceRequest = {
-      password: passwordInput.password,
-      pat: githubToken
-    };
+    if (validateOnBoardCodeSpaceForm(isPublicRecipeChoosen)) {
 
-    if (validateOnBoardCodeSpaceForm()) {
+      const onBoardCodeSpaceRequest = {
+        password: passwordInput.password,
+        pat: githubToken
+      };
+
+      if (isPublicRecipeChoosen) {
+        onBoardCodeSpaceRequest['gitUserName'] = githubUserName;
+      }
+
       ProgressIndicator.show();
       CodeSpaceApiClient.onBoardCollaborator(props.onBoardingCodeSpace.id, onBoardCodeSpaceRequest)
         .then((res) => {
@@ -465,37 +484,34 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
   };
 
   const projectDetails = props.onBoardingCodeSpace?.projectDetails;
+  const isPublicRecipeChoosen = recipeValue.startsWith('public');
   return (
     <React.Fragment>
       {onBoadingMode ? (
         <div className={Styles.newCodeSpacePanel}>
           <div className={Styles.addicon}> &nbsp; </div>
-          <h3>Hello {namePrefix}, On-board to Code Space - {projectDetails.projectName}</h3>
+          <h3>
+            Hello {namePrefix}, On-board to Code Space - {projectDetails.projectName}
+          </h3>
           <p>Protect your code space with the password of your own.</p>
           <div className={Styles.codeSpaceDetails}>
             <div className={Styles.flexLayout}>
               <div>
                 <label>Name</label>
               </div>
-              <div>
-                {projectDetails.projectName}
-              </div>
+              <div>{projectDetails.projectName}</div>
             </div>
             <div className={Styles.flexLayout}>
               <div>
                 <label>Recipe</label>
               </div>
-              <div>
-                {recipes.find((item: any) => item.id === projectDetails.recipeDetails.recipeId).name}
-              </div>
+              <div>{recipes.find((item: any) => item.id === projectDetails.recipeDetails.recipeId).name}</div>
             </div>
             <div className={Styles.flexLayout}>
               <div>
                 <label>Environment</label>
               </div>
-              <div>
-                {projectDetails.recipeDetails.cloudServiceProvider}
-              </div>
+              <div>{projectDetails.recipeDetails.cloudServiceProvider}</div>
             </div>
           </div>
           <div className={Styles.flexLayout}>
@@ -532,13 +548,34 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
               />
             </div>
           </div>
+          {isPublicRecipeChoosen && (
+            <div>
+              <div>
+                <TextBox
+                  type="password"
+                  controlId={'githubTokenInput'}
+                  labelId={'githubTokenLabel'}
+                  label={`Your Github(https://github.com/) Username or email address`}
+                  infoTip="Not stored only used for Repo Creation"
+                  placeholder={'Type here'}
+                  value={githubUserName}
+                  errorText={githubUserNameError}
+                  required={true}
+                  maxLength={50}
+                  onChange={onGithubUserNameOnChange}
+                />
+              </div>
+            </div>
+          )}
           <div>
             <div>
               <TextBox
                 type="password"
                 controlId={'githubTokenInput'}
                 labelId={'githubTokenLabel'}
-                label={`Your Github(${recipeValue.startsWith('public') ? 'https://github.com/' : Envs.CODE_SPACE_GIT_PAT_APP_URL}) Personal Access Token`}
+                label={`Your Github(${
+                  isPublicRecipeChoosen ? 'https://github.com/' : Envs.CODE_SPACE_GIT_PAT_APP_URL
+                }) Personal Access Token`}
                 infoTip="Not stored only used for Repo Creation"
                 placeholder={'Type here'}
                 value={githubToken}
@@ -675,13 +712,34 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
               />
             </div>
           </div>
+          {isPublicRecipeChoosen && (
+            <div>
+              <div>
+                <TextBox
+                  type="password"
+                  controlId={'githubTokenInput'}
+                  labelId={'githubTokenLabel'}
+                  label={`Your Github(https://github.com/) Username or email address`}
+                  infoTip="Not stored only used for Repo Creation"
+                  placeholder={'Type here'}
+                  value={githubUserName}
+                  errorText={githubUserNameError}
+                  required={true}
+                  maxLength={50}
+                  onChange={onGithubUserNameOnChange}
+                />
+              </div>
+            </div>
+          )}
           <div>
             <div>
               <TextBox
                 type="password"
                 controlId={'githubTokenInput'}
                 labelId={'githubTokenLabel'}
-                label={`Your Github(${recipeValue.startsWith('public') ? 'https://github.com/' : Envs.CODE_SPACE_GIT_PAT_APP_URL}) Personal Access Token`}
+                label={`Your Github(${
+                  isPublicRecipeChoosen ? 'https://github.com/' : Envs.CODE_SPACE_GIT_PAT_APP_URL
+                }) Personal Access Token`}
                 infoTip="Not stored only used for Repo Creation"
                 placeholder={'Type here'}
                 value={githubToken}
@@ -699,7 +757,12 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
             <div className={Styles.collaboratorSection}>
               <div className={Styles.collaboratorSectionList}>
                 <div className={Styles.collaboratorSectionListAdd}>
-                  <AddUser getCollabarators={getCollabarators} dagId={''} isRequired={false} isUserprivilegeSearch={false} />
+                  <AddUser
+                    getCollabarators={getCollabarators}
+                    dagId={''}
+                    isRequired={false}
+                    isUserprivilegeSearch={false}
+                  />
                 </div>
                 <div className={Styles.collaboratorList}>
                   {codeSpaceCollaborators?.length > 0 ? (
@@ -717,32 +780,38 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
                               <div className={Styles.collaboratorTitleCol}>{item.id}</div>
                               <div className={Styles.collaboratorTitleCol}>{item.firstName + ' ' + item.lastName}</div>
                               <div className={Styles.collaboratorTitleCol}>
-                              <div className={classNames('input-field-group include-error ' + Styles.inputGrp)}>
-                                <label className={classNames('checkbox', Styles.checkBoxDisable)}>
-                                  <span className="wrapper">
-                                    <input type="checkbox" className="ff-only" value="develop" checked={true} readOnly />
-                                  </span>
-                                  <span className="label">Develop</span>
-                                </label>
+                                <div className={classNames('input-field-group include-error ' + Styles.inputGrp)}>
+                                  <label className={classNames('checkbox', Styles.checkBoxDisable)}>
+                                    <span className="wrapper">
+                                      <input
+                                        type="checkbox"
+                                        className="ff-only"
+                                        value="develop"
+                                        checked={true}
+                                        readOnly
+                                      />
+                                    </span>
+                                    <span className="label">Develop</span>
+                                  </label>
+                                </div>
+                                &nbsp;&nbsp;&nbsp;
+                                <div className={classNames('input-field-group include-error ' + Styles.inputGrp)}>
+                                  <label className={'checkbox'}>
+                                    <span className="wrapper">
+                                      <input
+                                        type="checkbox"
+                                        className="ff-only"
+                                        value="deploy"
+                                        checked={true}
+                                        readOnly
+                                        // checked={item?.permission !== null ? item?.canDeploy : false}
+                                        onChange={(e) => onCollaboratorPermission(e, item.id)}
+                                      />
+                                    </span>
+                                    <span className="label">Deploy</span>
+                                  </label>
+                                </div>
                               </div>
-                              &nbsp;&nbsp;&nbsp;
-                              <div className={classNames('input-field-group include-error ' + Styles.inputGrp)}>
-                                <label className={'checkbox'}>
-                                  <span className="wrapper">
-                                    <input
-                                      type="checkbox"
-                                      className="ff-only"
-                                      value="deploy"
-                                      checked={true}
-                                      readOnly
-                                      // checked={item?.permission !== null ? item?.canDeploy : false}
-                                      onChange={(e) => onCollaboratorPermission(e, item.id)}
-                                    />
-                                  </span>
-                                  <span className="label">Deploy</span>
-                                </label>
-                              </div>
-                            </div>
                               <div className={Styles.collaboratorTitleCol}>
                                 <div className={Styles.deleteEntry} onClick={onCollabaratorDelete(item.id)}>
                                   <i className="icon mbc-icon trash-outline" />
