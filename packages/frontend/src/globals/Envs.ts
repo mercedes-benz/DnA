@@ -171,6 +171,7 @@ export const Envs = {
   AFO_TOOL_URL: getInjectedEnv('AFO_TOOL_URL') || process.env.AFO_TOOL_URL,
   BPT_TOOL_URL: getInjectedEnv('BPT_TOOL_URL') || process.env.BPT_TOOL_URL,
   DATA_OASIS_TOOL_URL: getInjectedEnv('DATA_OASIS_TOOL_URL') || process.env.DATA_OASIS_TOOL_URL,
+  DATAQ_TOOL_URL: getInjectedEnv('DATAQ_TOOL_URL') || process.env.DATAQ_TOOL_URL,
   DWC_TOOL_URL: getInjectedEnv('DWC_TOOL_URL') || process.env.DWC_TOOL_URL,
   EXTOLLO_TOOL_URL: getInjectedEnv('EXTOLLO_TOOL_URL') || process.env.EXTOLLO_TOOL_URL,
   POWER_BI_TOOL_URL: getInjectedEnv('POWER_BI_TOOL_URL') || process.env.POWER_BI_TOOL_URL,

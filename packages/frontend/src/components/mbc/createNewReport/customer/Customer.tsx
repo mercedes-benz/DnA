@@ -54,7 +54,7 @@ export interface ICustomerState {
   showDeleteModal: boolean;
   searchTerm: string;
   searchTermForName: string;
-  nameToDisplay: string;
+  // nameToDisplay: string;
   processOwnerToDisplay: string;
   customerType: string;
 }
@@ -73,17 +73,17 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
         externalCustomers: [],
       },
       internalCustomerInfo: {
-        name: {
-          company: '',
-          department: '',
-          email: '',
-          firstName: '',
-          shortId: '',
-          lastName: '',
-          mobileNumber: '',
-          teamMemberPosition: '',
-          userType: ''
-        },
+        // name: {
+        //   company: '',
+        //   department: '',
+        //   email: '',
+        //   firstName: '',
+        //   shortId: '',
+        //   lastName: '',
+        //   mobileNumber: '',
+        //   teamMemberPosition: '',
+        //   userType: ''
+        // },
         customerRelation: 'Internal',
         comment: '',
         department: '',
@@ -120,17 +120,17 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
         comment: ''
       },
       internalCustomerErrors: {
-        name: {
-          company: '',
-          department: '',
-          email: '',
-          firstName: '',
-          shortId: '',
-          lastName: '',
-          mobileNumber: '',
-          teamMemberPosition: '',
-          userType: ''
-        },
+        // name: {
+        //   company: '',
+        //   department: '',
+        //   email: '',
+        //   firstName: '',
+        //   shortId: '',
+        //   lastName: '',
+        //   mobileNumber: '',
+        //   teamMemberPosition: '',
+        //   userType: ''
+        // },
         customerRelation: '',
         comment: '',
         department: '',
@@ -192,7 +192,7 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
       showDeleteModal: false,
       searchTerm: '',
       searchTermForName: '',
-      nameToDisplay: '',
+      // nameToDisplay: '',
       processOwnerToDisplay: '',
       customerType: 'Internal',
     };
@@ -204,27 +204,27 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
     ExpansionPanel.defaultSetup();
     Tooltip.defaultSetup();
     this.setState({
-      nameToDisplay: this.state.internalCustomerInfo.name.firstName ? 
-      (this.state.internalCustomerInfo.name.firstName +' '+ this.state.internalCustomerInfo.name.lastName) : '',
-      processOwnerToDisplay: this.state.internalCustomerInfo.name.firstName ? this.state.internalCustomerInfo.name.firstName +' '+ this.state.internalCustomerInfo.name.lastName : ''
+      // nameToDisplay: this.state.internalCustomerInfo.name.firstName ? 
+      // (this.state.internalCustomerInfo.name.firstName +' '+ this.state.internalCustomerInfo.name.lastName) : '',
+      processOwnerToDisplay: this.state.internalCustomerInfo.processOwner.firstName ? this.state.internalCustomerInfo.processOwner.firstName +' '+ this.state.internalCustomerInfo.processOwner.lastName : ''
     });
   }
 
-  public onCustomerNameChange = (e: React.FormEvent<HTMLInputElement>) => {
-    const fieldValue = e.currentTarget.value;
+  // public onCustomerNameChange = (e: React.FormEvent<HTMLInputElement>) => {
+  //   const fieldValue = e.currentTarget.value;
     
-    this.setState((prevState) => ({
-      nameToDisplay: fieldValue,
-      externalCustomerInfo: {
-        ...prevState.externalCustomerInfo,
-        name:{
-          ...prevState.externalCustomerInfo.name,
-        ['firstName']: fieldValue.split(' ')[0],
-        ['lastName']: fieldValue.split(' ')[1],
-        }
-      },
-    }));
-  };
+  //   this.setState((prevState) => ({
+  //     // nameToDisplay: fieldValue,
+  //     externalCustomerInfo: {
+  //       ...prevState.externalCustomerInfo,
+  //       name:{
+  //         ...prevState.externalCustomerInfo.name,
+  //       ['firstName']: fieldValue.split(' ')[0],
+  //       ['lastName']: fieldValue.split(' ')[1],
+  //       }
+  //     },
+  //   }));
+  // };
 
   public onUsRiskChange (e: React.FormEvent<HTMLInputElement>) {
     const name = e.currentTarget.name;
@@ -237,264 +237,302 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
     }));
   }
 
-  public componentWillMount() {
-    
-  }
-
-  
-
-
   public render() {
     const requiredError = '*Missing entry';
     const addCustomerModelContent = (
       <div className={Styles.addCustomerModelContent}>
         <br />
         <div>
-          
-
-          <div className={Styles.flexLayout}>
-            <div>
-            { this.state.customerType === 'Internal'?
-              <div className={classNames('input-field-group include-error')}>
-                <TeamSearch
-                  label={
-                    <>
-                      Name
-                    </>
+          {this.state.customerType === 'Internal' && (
+            <>
+              <div className={Styles.flexLayout}>
+                {/* <div>
+                { this.state.customerType === 'Internal'?
+                  <div className={classNames('input-field-group include-error')}>
+                    <TeamSearch
+                      label={
+                        <>
+                          Name
+                        </>
+                      }
+                      fieldMode={true}
+                      fieldValue={this.state.nameToDisplay}
+                      setFieldValue={(val) => this.setState({nameToDisplay: val})}
+                      onAddTeamMember={(value) => this.addNameFromTeamSearch(value)}
+                      btnText="Save"
+                      searchTerm={this.state.searchTermForName}
+                      setSearchTerm={(value) => this.setState({searchTermForName: value})}
+                      showUserDetails={false}
+                      setShowUserDetails={() => {}}
+                    />    
+                  </div>
+                  : 
+                  <div>
+                    <TextBox
+                      type="text"
+                      name={'name'}
+                      controlId={'customerNameInput'}
+                      labelId={'customerNameLabel'}
+                      label={'Name'}
+                      placeholder={'Type here'}
+                      value={this.state.nameToDisplay}
+                      // errorText={this.state.errors.name}
+                      required={false}
+                      maxLength={200}
+                      onChange={this.onCustomerNameChange}
+                    />
+                  </div>
                   }
-                  fieldMode={true}
-                  fieldValue={this.state.nameToDisplay}
-                  setFieldValue={(val) => this.setState({nameToDisplay: val})}
-                  onAddTeamMember={(value) => this.addNameFromTeamSearch(value)}
-                  btnText="Save"
-                  searchTerm={this.state.searchTermForName}
-                  setSearchTerm={(value) => this.setState({searchTermForName: value})}
-                  showUserDetails={false}
-                  setShowUserDetails={() => {}}
-                />    
-              </div>
-              : 
-              <div>
-                <TextBox
-                  type="text"
-                  name={'name'}
-                  controlId={'customerNameInput'}
-                  labelId={'customerNameLabel'}
-                  label={'Name'}
-                  placeholder={'Type here'}
-                  value={this.state.nameToDisplay}
-                  // errorText={this.state.errors.name}
-                  required={false}
-                  maxLength={200}
-                  onChange={this.onCustomerNameChange}
-                />
-              </div>
-              }
-            </div>
+                </div> */}
 
-            { this.state.customerType === 'Internal'?
-            <div>
-              <div
-                className={classNames('input-field-group include-error', this.state.internalCustomerErrors.customerRelation ? 'error' : '')}
-              >
-                <label id="customerTypeLabel" htmlFor="customerTypeField" className="input-label">
-                  Customer Relation<sup>*</sup>
-                </label>
-                <div className="custom-select">
-                  <select
-                    id="customerTypeField"
-                    name="customerRelation"
-                    multiple={false}
-                    required-error={requiredError}
-                    required={true}
-                    value={this.state.customerType}
-                    onChange={this.internalHandleSelectChange}
+                <div>
+                  <div
+                    className={classNames(
+                      'input-field-group include-error',
+                    )}
                   >
-                    <option value={''}>Choose</option>
-                    <option id={'Internal'} key={'Internal'} value={'Internal'}>Internal</option>
-                    <option id={'External'} key={'External'} value={'External'}>External</option>
-                  </select>
+                    <label id="customerTypeLabel" htmlFor="customerTypeField" className="input-label">
+                      Customer Relation
+                    </label>
+                    <div className="custom-select">
+                      <select
+                        id="customerTypeField"
+                        name="customerRelation"
+                        multiple={false}
+                        value={this.state.customerType}
+                        onChange={this.internalHandleSelectChange}
+                      >
+                        <option id={'Internal'} key={'Internal'} value={'Internal'}>
+                          Internal
+                        </option>
+                        <option id={'External'} key={'External'} value={'External'}>
+                          External
+                        </option>
+                      </select>
+                    </div>
+                  </div>
                 </div>
-                <span className={classNames('error-message', this.state.internalCustomerErrors.customerRelation ? '' : 'hide')}>
-                  {this.state.internalCustomerErrors.customerRelation}
-                </span>
-              </div>
-            </div>
-            :
-            <div>
-              <div
-                className={classNames('input-field-group include-error', this.state.externalCustomerErrors.customerRelation ? 'error' : '')}
-              >
-                <label id="customerTypeLabel" htmlFor="customerTypeField" className="input-label">
-                  Customer Relation<sup>*</sup>
-                </label>
-                <div className="custom-select">
-                  <select
-                    id="customerTypeField"
-                    name="customerRelation"
-                    multiple={false}
-                    required-error={requiredError}
-                    required={true}
-                    value={this.state.customerType}
-                    onChange={this.externalHandleSelectChange}
+                <div>
+                  <div
+                    className={classNames(
+                      'input-field-group include-error',
+                      this.state.internalCustomerErrors.level ? 'error' : '',
+                    )}
                   >
-                    <option value={''}>Choose</option>
-                    <option id={'Internal'} key={'Internal'} value={'Internal'}>Internal</option>
-                    <option id={'External'} key={'External'} value={'External'}>External</option>
-                  </select>
+                    <label id="hirarchyLabel" htmlFor="hierarchyField" className="input-label">
+                      Level<sup>*</sup>
+                    </label>
+                    <div className="custom-select">
+                      <select
+                        id="hierarchyField"
+                        name="level"
+                        multiple={false}
+                        required-error={requiredError}
+                        required={true}
+                        value={this.state.internalCustomerInfo.level}
+                        onChange={this.internalHandleSelectChange}
+                      >
+                        <option value={''}>Choose</option>
+                        {this.props.hierarchies?.map((obj) => (
+                          <option id={obj.name + obj.id} key={obj.id} value={obj.name}>
+                            {obj.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <span
+                      className={classNames('error-message', this.state.internalCustomerErrors.level ? '' : 'hide')}
+                    >
+                      {this.state.internalCustomerErrors.level}
+                    </span>
+                  </div>
                 </div>
-                <span className={classNames('error-message', this.state.externalCustomerErrors.customerRelation ? '' : 'hide')}>
-                  {this.state.externalCustomerErrors.customerRelation}
-                </span>
               </div>
-            </div>
-            }
-          </div>
-          
-          { this.state.customerType === 'Internal'?(
-          <div className={Styles.flexLayout}>
-            <div>
-              <div
-                className={classNames('input-field-group include-error', this.state.internalCustomerErrors.level ? 'error' : '')}
-              >
-                <label id="hirarchyLabel" htmlFor="hierarchyField" className="input-label">
-                  Level<sup>*</sup>
-                </label>
-                <div className="custom-select">
-                  <select
-                    id="hierarchyField"
-                    name="level"
-                    multiple={false}
-                    required-error={requiredError}
-                    required={true}
-                    value={this.state.internalCustomerInfo.level}
-                    onChange={this.internalHandleSelectChange}
+              <div className={Styles.flexLayout}>
+                <div>
+                  <div
+                    className={classNames(
+                      'input-field-group include-error',
+                      this.state.internalCustomerErrors.department ? 'error' : '',
+                    )}
                   >
-                    <option value={''}>Choose</option>
-                    {this.props.hierarchies?.map((obj) => (
-                      <option id={obj.name + obj.id} key={obj.id} value={obj.name}>
-                        {obj.name}
-                      </option>
-                    ))}
-                  </select>
+                    <label id="departmentLabel" htmlFor="departmentField" className="input-label">
+                      Customer E2-Department<sup>*</sup>
+                    </label>
+                    <div className="custom-select">
+                      <select
+                        id="departmentField"
+                        name="department"
+                        multiple={false}
+                        required-error={requiredError}
+                        required={true}
+                        value={this.state.internalCustomerInfo.department || ''}
+                        onChange={this.internalHandleSelectChange}
+                      >
+                        <option value={''}>Choose</option>
+                        {this.props.departments?.map((obj) => (
+                          <option id={obj.name + obj.id} key={obj.id} value={obj.name}>
+                            {obj.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <span
+                      className={classNames(
+                        'error-message',
+                        this.state.internalCustomerErrors.department?.length ? '' : 'hide',
+                      )}
+                    >
+                      {this.state.internalCustomerErrors.department}
+                    </span>
+                  </div>
                 </div>
-                <span className={classNames('error-message', this.state.internalCustomerErrors.level ? '' : 'hide')}>
-                  {this.state.internalCustomerErrors.level}
-                </span>
+                <div>
+                  <div className={Styles.divisionContainer}>
+                    <div
+                      className={classNames(
+                        'input-field-group include-error',
+                        // this.state.internalCustomerInfo.division.id === '0' ? 'error' : '',
+                      )}
+                    >
+                      <label id="divisionLabel" htmlFor="divisionField" className="input-label">
+                        Customer Division
+                      </label>
+                      <div className="custom-select">
+                        <select
+                          id="divisionField"
+                          name="division"
+                          // required={true}
+                          // required-error={requiredError}
+                          onChange={this.onDivisionChange}
+                          value={this.state.internalCustomerInfo?.division?.id}
+                        >
+                          <option id="divisionOption" value={''}>
+                            Choose
+                          </option>
+                          {this.props.divisions?.map((obj) => (
+                            <option id={obj.name + obj.id} key={obj.id} value={obj.id}>
+                              {obj.name}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                      {/* <span className={classNames('error-message', this.state.internalCustomerInfo.division.id === '0' ? '' : 'hide')}>
+                      *Missing entry
+                    </span> */}
+                    </div>
+                  </div>
+                </div>
               </div>
-            </div>
-            <div>
-              <div className={Styles.divisionContainer}>
+              <div className={Styles.flexLayout}>
+                <div>
+                  <div
+                    className={classNames(
+                      'input-field-group include-error',
+                      this.state.internalCustomerErrors.legalEntity ? 'error' : '',
+                    )}
+                  >
+                    <label id="ressortLabel" htmlFor="ressortField" className="input-label">
+                      MB Legal Entity<sup>*</sup>
+                    </label>
+                    <div className="custom-select">
+                      <select
+                        id="ressortField"
+                        name="legalEntity"
+                        multiple={false}
+                        required-error={requiredError}
+                        required={true}
+                        value={this.state.internalCustomerInfo.legalEntity || ''}
+                        onChange={this.internalHandleSelectChange}
+                      >
+                        <option value={''}>Choose</option>
+                        {this.props.ressort?.map((obj) => (
+                          <option id={obj.name + obj.id} key={obj.id} value={obj.name}>
+                            {obj.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <span
+                      className={classNames(
+                        'error-message',
+                        this.state.internalCustomerErrors.legalEntity?.length ? '' : 'hide',
+                      )}
+                    >
+                      {this.state.internalCustomerErrors.legalEntity}
+                    </span>
+                  </div>
+                </div>
+                <div>
+                  <div className={classNames('input-field-group include-error')}>
+                    <label id="usRiskLabel" className={classNames('input-label', Styles.usRiskLabel)}>
+                      US-Risk<sup>*</sup> (US-Access to sensible data)
+                    </label>
+                    <div>
+                      <label className="radio">
+                        <span className="wrapper">
+                          <input
+                            type="radio"
+                            name="accessToSensibleData"
+                            value={'false'}
+                            checked={this.state.internalCustomerInfo.accessToSensibleData?.toString() == 'false'}
+                            onChange={this.onUsRiskChange}
+                          />
+                        </span>
+                        <span className="label">No</span>
+                      </label>
+
+                      <label className="radio">
+                        <span className="wrapper">
+                          <input
+                            type="radio"
+                            name="accessToSensibleData"
+                            value={'true'}
+                            checked={this.state.internalCustomerInfo.accessToSensibleData?.toString() == 'true'}
+                            onChange={this.onUsRiskChange}
+                          />
+                        </span>
+                        <span className="label">Yes</span>
+                      </label>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </>
+          )}
+
+          {this.state.customerType === 'External' && (
+            <div className={Styles.flexLayout}>
+              <div>
                 <div
                   className={classNames(
                     'input-field-group include-error',
-                    // this.state.internalCustomerInfo.division.id === '0' ? 'error' : '',
                   )}
                 >
-                  <label id="divisionLabel" htmlFor="divisionField" className="input-label">
-                    Customer Division
+                  <label id="customerTypeLabel" htmlFor="customerTypeField" className="input-label">
+                    Customer Relation
                   </label>
                   <div className="custom-select">
                     <select
-                      id="divisionField"
-                      name="division"
-                      // required={true}
-                      // required-error={requiredError}
-                      onChange={this.onDivisionChange}
-                      value={this.state.internalCustomerInfo?.division?.id}
+                      id="customerTypeField"
+                      name="customerRelation"
+                      multiple={false}
+                      value={this.state.customerType}
+                      onChange={this.externalHandleSelectChange}
                     >
-                      <option id="divisionOption" value={''}>
-                        Choose
+                      {/* <option value={''}>Choose</option> */}
+                      <option id={'Internal'} key={'Internal'} value={'Internal'}>
+                        Internal
                       </option>
-                      {this.props.divisions?.map((obj) => (
-                        <option id={obj.name + obj.id} key={obj.id} value={obj.id}>
-                          {obj.name}
-                        </option>
-                      ))}
+                      <option id={'External'} key={'External'} value={'External'}>
+                        External
+                      </option>
                     </select>
                   </div>
-                  {/* <span className={classNames('error-message', this.state.internalCustomerInfo.division.id === '0' ? '' : 'hide')}>
-                    *Missing entry
-                  </span> */}
                 </div>
               </div>
-            </div>            
-          </div>
-          ): ''}
-
-
-          { this.state.customerType === 'Internal'?(
-          <div className={Styles.flexLayout}>
-            <div>
-              <div
-                className={classNames('input-field-group include-error', this.state.internalCustomerErrors.department ? 'error' : '')}
-              >
-                <label id="departmentLabel" htmlFor="departmentField" className="input-label">
-                  Customer E2-Department<sup>*</sup>
-                </label>
-                <div className="custom-select">
-                  <select
-                    id="departmentField"
-                    name="department"
-                    multiple={false}
-                    required-error={requiredError}
-                    required={true}
-                    value={this.state.internalCustomerInfo.department || ''}
-                    onChange={this.internalHandleSelectChange}
-                  >
-                    <option value={''}>Choose</option>
-                    {this.props.departments?.map((obj) => (
-                      <option id={obj.name + obj.id} key={obj.id} value={obj.name}>
-                        {obj.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <span className={classNames('error-message', this.state.internalCustomerErrors.department?.length ? '' : 'hide')}>
-                  {this.state.internalCustomerErrors.department}
-                </span>
-              </div>
-            </div>
-            <div>
-              <div
-                className={classNames(
-                  'input-field-group include-error',
-                  this.state.internalCustomerErrors.legalEntity ? 'error' : '',
-                )}
-              >
-                <label id="ressortLabel" htmlFor="ressortField" className="input-label">
-                  MB Legal Entity<sup>*</sup>
-                </label>
-                <div className="custom-select">
-                  <select
-                    id="ressortField"
-                    name="legalEntity"
-                    multiple={false}
-                    required-error={requiredError}
-                    required={true}
-                    value={this.state.internalCustomerInfo.legalEntity || ''}
-                    onChange={this.internalHandleSelectChange}
-                  >
-                    <option value={''}>Choose</option>
-                    {this.props.ressort?.map((obj) => (
-                      <option id={obj.name + obj.id} key={obj.id} value={obj.name}>
-                        {obj.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <span className={classNames('error-message', this.state.internalCustomerErrors.legalEntity?.length ? '' : 'hide')}>
-                  {this.state.internalCustomerErrors.legalEntity}
-                </span>
-              </div>
-            </div>
-          </div>
-          ): ''}
-
-          <div className={Styles.flexLayout}>
-          { this.state.customerType === 'External'?(
-            <div>
-              {/* <div
+              <div>
+                {/* <div
                 className={classNames('input-field-group include-error', this.state.errors.companyName ? 'error' : '')}
               >
                 <label id="companyNameLabel" htmlFor="companyNameField" className="input-label">
@@ -522,88 +560,56 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
                   {this.state.errors.companyName}
                 </span>                
               </div> */}
-              <div>
-                <TextBox
-                  type="text"
-                  name="companyName"
-                  controlId={'companyNameInput'}
-                  labelId={'companyNameLabel'}
-                  label={'Company Name'}
-                  placeholder={'Type here'}
-                  value={this.state.externalCustomerInfo.companyName}
-                  errorText={this.state.externalCustomerErrors.companyName}
-                  required={true}
-                  maxLength={200}
-                  onChange={this.externalHandleChangeInputField}
-                />
+                <div>
+                  <TextBox
+                    type="text"
+                    name="companyName"
+                    controlId={'companyNameInput'}
+                    labelId={'companyNameLabel'}
+                    label={'Company Name'}
+                    placeholder={'Type here'}
+                    value={this.state.externalCustomerInfo.companyName}
+                    errorText={this.state.externalCustomerErrors.companyName}
+                    required={true}
+                    maxLength={200}
+                    onChange={this.externalHandleChangeInputField}
+                  />
+                </div>
               </div>
             </div>
-            ): ''}
-            { this.state.customerType === 'Internal'?(
-            <div>
-              <div id="usRiskLabel" className={classNames("input-label", Styles.usRiskLabel)}>
-                US-Risk<sup>*</sup> (US-Access to sensible data)
-              </div>
-              <label className="radio">
-                <span className="wrapper">
-                  <input type="radio"
-                  name="accessToSensibleData"
-                  value={'false'}
-                  checked={this.state.internalCustomerInfo.accessToSensibleData?.toString() == 'false'}
-                  onChange={this.onUsRiskChange}
-                  />
-                </span>
-                <span className="label">No</span>
-              </label>
-
-              <label className="radio">
-                <span className="wrapper">
-                  <input type="radio" 
-                  name="accessToSensibleData"
-                  value={'true'}
-                  checked={this.state.internalCustomerInfo.accessToSensibleData?.toString() == 'true'}
-                  onChange={this.onUsRiskChange}
-                  />
-                </span>
-                <span className="label">Yes</span>
-              </label>
-            </div>
-            ): ''}
-
-          </div>
-
+          )}
 
           <div>
-          { this.state.customerType === 'Internal'?(
-            <TextArea
-              controlId={'customerComment'}
-              containerId={'customerComment'}
-              name={'comment'}
-              labelId={'customerCommentLabel'}
-              label={'Comment'}
-              rows={50}
-              value={this.state.internalCustomerInfo.comment}
-              required={false}
-              onChange={this.internalHandleChange}
-              // onBlur={this.validateCustomerModal}
-            />
-          ):(
-            <TextArea
-              controlId={'customerComment'}
-              containerId={'customerComment'}
-              name={'comment'}
-              labelId={'customerCommentLabel'}
-              label={'Comment'}
-              rows={50}
-              value={this.state.externalCustomerInfo.comment}
-              required={false}
-              onChange={this.externalHandleChange}
-              // onBlur={this.validateCustomerModal}
-            />
-          )}
-            { this.state.customerType === 'Internal'?(
-            <div className={Styles.flexLayout}>
-              {/* <div>
+            {this.state.customerType === 'Internal' ? (
+              <TextArea
+                controlId={'customerComment'}
+                containerId={'customerComment'}
+                name={'comment'}
+                labelId={'customerCommentLabel'}
+                label={'Comment'}
+                rows={50}
+                value={this.state.internalCustomerInfo.comment}
+                required={false}
+                onChange={this.internalHandleChange}
+                // onBlur={this.validateCustomerModal}
+              />
+            ) : (
+              <TextArea
+                controlId={'customerComment'}
+                containerId={'customerComment'}
+                name={'comment'}
+                labelId={'customerCommentLabel'}
+                label={'Comment'}
+                rows={50}
+                value={this.state.externalCustomerInfo.comment}
+                required={false}
+                onChange={this.externalHandleChange}
+                // onBlur={this.validateCustomerModal}
+              />
+            )}
+            {this.state.customerType === 'Internal' ? (
+              <div className={Styles.flexLayout}>
+                {/* <div>
                 <TextBox
                   type="text"
                   controlId={'processOwnerInput'}
@@ -617,32 +623,30 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
                   onChange={this.onTextOnChange}
                 />
               </div> */}
-              <div className={classNames('input-field-group include-error')}>
-                <TeamSearch
-                  label={
-                    <>
-                      Process Owner
-                    </>
-                  }
-                  fieldMode={true}
-                  fieldValue={this.state.processOwnerToDisplay}
-                  setFieldValue={(val) => this.setState({processOwnerToDisplay: val})}
-                  onAddTeamMember={(value) => this.addMemberFromTeamSearch(value)}
-                  btnText="Save"
-                  searchTerm={this.state.searchTerm}
-                  setSearchTerm={(value) => this.setState({searchTerm: value})}
-                  showUserDetails={false}
-                  setShowUserDetails={() => {}}
-                />                  
-                {/* <span className={classNames('error-message')}>{this.state.internalCustomerErrors.processOwner}</span> */}
+                <div className={classNames('input-field-group include-error')}>
+                  <TeamSearch
+                    label={<>Process Owner</>}
+                    fieldMode={true}
+                    fieldValue={this.state.processOwnerToDisplay}
+                    setFieldValue={(val) => this.setState({ processOwnerToDisplay: val })}
+                    onAddTeamMember={(value) => this.addMemberFromTeamSearch(value)}
+                    btnText="Save"
+                    searchTerm={this.state.searchTerm}
+                    setSearchTerm={(value) => this.setState({ searchTerm: value })}
+                    showUserDetails={false}
+                    setShowUserDetails={() => {}}
+                  />
+                  {/* <span className={classNames('error-message')}>{this.state.internalCustomerErrors.processOwner}</span> */}
+                </div>
+                <div></div>
               </div>
-              <div></div>
-            </div>
-            ): ''}
-            
+            ) : (
+              ''
+            )}
+
             {/* {this.state.duplicateCustomerAdded ? <span className={'error-message'}>Customer already exist</span> : ''} */}
             <div className="btnConatiner">
-              { this.state.customerType === 'Internal'?
+              {this.state.customerType === 'Internal' ? (
                 <button
                   className="btn btn-primary"
                   type="button"
@@ -650,7 +654,7 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
                 >
                   {this.state.addCustomer ? 'Add' : this.state.editCustomer && 'Save'}
                 </button>
-              :
+              ) : (
                 <button
                   className="btn btn-primary"
                   type="button"
@@ -658,7 +662,7 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
                 >
                   {this.state.addCustomer ? 'Add' : this.state.editCustomer && 'Save'}
                 </button>
-              }
+              )}
             </div>
           </div>
         </div>
@@ -694,11 +698,12 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
 
     const internalCustomersList = this.state.customer.internalCustomers
       ? this.state.customer.internalCustomers?.map((member: any, index: number) => {
+          console.log(member);
           return (
             <TeamMemberListItem
               key={'internal'+index}
               itemIndex={index}
-              teamMember={member.name}
+              teamMember={member}
               showMoveUp={false}
               showMoveDown={false}
               division={member?.division?.name}
@@ -1184,35 +1189,35 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
     }));
   };
 
-  protected addNameFromTeamSearch = (value: ITeams) => {
-    this.setState((prevState) => ({
-      nameToDisplay: value?.firstName ? value?.firstName+' '+value?.lastName : '',
-      internalCustomerInfo: {
-        ...prevState.internalCustomerInfo,
-        name: value
-      },
-    }));
-  };
+  // protected addNameFromTeamSearch = (value: ITeams) => {
+  //   this.setState((prevState) => ({
+  //     nameToDisplay: value?.firstName ? value?.firstName+' '+value?.lastName : '',
+  //     internalCustomerInfo: {
+  //       ...prevState.internalCustomerInfo,
+  //       name: value
+  //     },
+  //   }));
+  // };
 
   protected addCustomerModelClose = () => {
     this.setState({
       addCustomer: false,
       editCustomer: false,
       duplicateCustomerAdded: false,
-      nameToDisplay: '',
+      // nameToDisplay: '',
       processOwnerToDisplay: '',
       internalCustomerInfo: {
-        name: {
-          company: '',
-          department: '',
-          email: '',
-          firstName: '',
-          shortId: '',
-          lastName: '',
-          mobileNumber: '',
-          teamMemberPosition: '',
-          userType: ''
-        },
+        // name: {
+        //   company: '',
+        //   department: '',
+        //   email: '',
+        //   firstName: '',
+        //   shortId: '',
+        //   lastName: '',
+        //   mobileNumber: '',
+        //   teamMemberPosition: '',
+        //   userType: ''
+        // },
         customerRelation: 'Internal',
         comment: '',
         department: '',
@@ -1249,17 +1254,17 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
         comment: ''
       },
       internalCustomerErrors: {
-        name: {
-          company: '',
-          department: '',
-          email: '',
-          firstName: '',
-          shortId: '',
-          lastName: '',
-          mobileNumber: '',
-          teamMemberPosition: '',
-          userType: ''
-        },
+        // name: {
+        //   company: '',
+        //   department: '',
+        //   email: '',
+        //   firstName: '',
+        //   shortId: '',
+        //   lastName: '',
+        //   mobileNumber: '',
+        //   teamMemberPosition: '',
+        //   userType: ''
+        // },
         customerRelation: 'Internal',
         comment: '',
         department: '',
@@ -1372,7 +1377,7 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
       legalEntity, 
       department, 
       comment, 
-      name,
+      // name,
       customerRelation,
       division,
       accessToSensibleData,
@@ -1385,7 +1390,7 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
       legalEntity,
       department,
       comment,
-      name,
+      // name,
       customerRelation,
       division : division.id ? division : null,
       accessToSensibleData,
@@ -1402,24 +1407,24 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
         (prevState: any) => ({
           addCustomer: false,
           duplicateCustomerAdded: false,
-          nameToDisplay: '',
+          // nameToDisplay: '',
           processOwnerToDisplay: '',
           customer: {
             ...prevState.customer,
             internalCustomers: [...prevState.customer.internalCustomers, ...selectedValues],
           },
           internalCustomerInfo: {
-            name: {
-              company: '',
-              department: '',
-              email: '',
-              firstName: '',
-              shortId: '',
-              lastName: '',
-              mobileNumber: '',
-              teamMemberPosition: '',
-              userType: ''
-            },
+            // name: {
+            //   company: '',
+            //   department: '',
+            //   email: '',
+            //   firstName: '',
+            //   shortId: '',
+            //   lastName: '',
+            //   mobileNumber: '',
+            //   teamMemberPosition: '',
+            //   userType: ''
+            // },
             customerRelation: 'Internal',
             comment: '',
             department: '',
@@ -1505,10 +1510,10 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
       const customer = this.props.customer;
       customer.externalCustomers = [...customer.externalCustomers, ...selectedValues];
       this.setState(
-        (prevState: any) => ({
+        () => ({
           addCustomer: false,
           duplicateCustomerAdded: false,
-          nameToDisplay: '',
+          // nameToDisplay: '',
           externalCustomerInfo:{
             name: {
               company: '',
@@ -1557,7 +1562,7 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
 
   protected onInternalEditCustomerOpen = (customer: IInternalCustomerDetails) => {
     const { level, department, legalEntity, comment,
-      name,
+      // name,
       customerRelation,
       division,
       accessToSensibleData,
@@ -1588,7 +1593,7 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
       }),
       () => {
         this.setState({
-          nameToDisplay: name?.firstName ? name?.firstName +' '+ name?.lastName : '',
+          // nameToDisplay: name?.firstName ? name?.firstName +' '+ name?.lastName : '',
           processOwnerToDisplay: processOwner?.firstName ? processOwner?.firstName +' '+ processOwner?.lastName : ''
         });
         SelectBox.defaultSetup();
@@ -1620,9 +1625,9 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
         },
       },
       () => {
-        this.setState({
-          nameToDisplay: (name.firstName ? name.firstName : '') +' '+ (name.lastName ? name.lastName : '')
-        });
+        // this.setState({
+        //   nameToDisplay: (name.firstName ? name.firstName : '') +' '+ (name.lastName ? name.lastName : '')
+        // });
         SelectBox.defaultSetup();
       },
     );
@@ -1659,7 +1664,7 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
       department, 
       legalEntity, 
       comment,
-      name,
+      // name,
       customerRelation,
       division,
       accessToSensibleData,
@@ -1678,7 +1683,7 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
           department, 
           legalEntity, 
           comment,
-          name,
+          // name,
           customerRelation,
           division: division.id ? division : null,
           accessToSensibleData,
