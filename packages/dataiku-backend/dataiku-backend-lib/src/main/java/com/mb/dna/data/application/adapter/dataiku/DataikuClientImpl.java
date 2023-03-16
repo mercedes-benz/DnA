@@ -87,8 +87,10 @@ public class DataikuClientImpl implements DataikuClient {
 	public MessageDescription updateScenario(String projectName) {
 		try {
 			String requestJson = dataikuClientConfig.getScenarioUpdateRequest();
+			log.info("update request json template is {} " ,requestJson);
 			String updatedRequestJson = requestJson.replaceFirst("XXXXdefaultProjectNameXXXX", projectName);
 			String url =  dataikuClientConfig.getBaseuri() + "/projects/" + dataikuClientConfig.getScenarioProjectKey() + "/scenarios/" + dataikuClientConfig.getScenarioId();
+			log.info("Update scenario request for project {} is {} , updateurl is {}",projectName, updatedRequestJson,url);
 			HttpRequest<String> req = HttpRequest.PUT(url,updatedRequestJson)
 			.header("Accept", "application/json")
 			.header("Content-Type", "application/json")
