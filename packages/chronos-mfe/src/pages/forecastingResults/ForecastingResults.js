@@ -531,6 +531,7 @@ const ForecastingResults = () => {
         addTraces={addTraces}
         layout={layout}
         bucketName={bucketName}
+        isForecast={true}
       />
 
       <VisualContainer
