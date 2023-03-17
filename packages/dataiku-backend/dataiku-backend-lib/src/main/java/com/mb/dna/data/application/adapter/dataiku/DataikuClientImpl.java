@@ -87,10 +87,9 @@ public class DataikuClientImpl implements DataikuClient {
 	public MessageDescription updateScenario(String projectName) {
 		try {
 			String requestJson = dataikuClientConfig.getScenarioUpdateRequest();
-			log.info("update request json template is {} " ,requestJson);
 			String updatedRequestJson = requestJson.replaceFirst("XXXXdefaultProjectNameXXXX", projectName);
 			String url =  dataikuClientConfig.getBaseuri() + "/projects/" + dataikuClientConfig.getScenarioProjectKey() + "/scenarios/" + dataikuClientConfig.getScenarioId();
-			log.info("Update scenario request for project {} is {} , updateurl is {}",projectName, updatedRequestJson,url);
+			log.info("url is {} and updatescenario json is {} " ,url,updatedRequestJson);
 			HttpRequest<String> req = HttpRequest.PUT(url,updatedRequestJson)
 			.header("Accept", "application/json")
 			.header("Content-Type", "application/json")
@@ -103,6 +102,7 @@ public class DataikuClientImpl implements DataikuClient {
 					log.info("Updated scenario for projectName {} with response {} ",projectName, responseBody.get().getMsg());
 				}
 			}
+			client.close();
 			return null;
 		}catch(Exception e) {
 			log.error("Failed while updating scenario for project {} with exception {} ",projectName, e.getMessage());
