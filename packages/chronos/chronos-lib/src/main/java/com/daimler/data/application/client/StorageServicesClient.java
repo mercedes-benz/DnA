@@ -40,8 +40,8 @@ public class StorageServicesClient {
 	@Value("${databricks.userauth}")
 	private String dataBricksAuth;
 	
-	@Value("${databricks.defaultConfigYml}")
-	private String defaultConfigFolderPath;
+	/*@Value("${databricks.defaultConfigYml}")
+	private String defaultConfigFolderPath;*/
 
 	private static final String BUCKETS_PATH = "/api/buckets";
 	private static final String V1_BUCKETS_PATH = "/api/v1/buckets";
@@ -297,7 +297,7 @@ public class StorageServicesClient {
 	}
 	
 	
-	public BucketObjectsCollectionWrapperDto getBucketObjects() {
+	public BucketObjectsCollectionWrapperDto getBucketObjects(String defaultConfigFolderPath) {
 		BucketObjectsCollectionWrapperDto filesList = new BucketObjectsCollectionWrapperDto();
 		ByteArrayResource data = null;
 		List<MessageDescription> errors = new ArrayList<>();
