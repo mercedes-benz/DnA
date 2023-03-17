@@ -16,7 +16,8 @@ import IconAvatarNew from 'dna-container/IconAvatarNew';
 import { withRouter } from 'react-router-dom';
 import { setSelectedDataProduct } from '../../../dataProduct/redux/dataProductSlice';
 
-const OtherRelevantInfo = ({ onSave, onPublish, onDescriptionTabErrors, history, user, isDataProduct }) => {
+const OtherRelevantInfo = ({ onSave, onPublish, onDescriptionTabErrors, history, user, isDataProduct,
+currentTab }) => {
   const {
     // register,
     handleSubmit,
@@ -248,7 +249,7 @@ const OtherRelevantInfo = ({ onSave, onPublish, onDescriptionTabErrors, history,
               
             },(errors) => onDescriptionTabErrors(errors))}
           >
-            Save
+            {currentTab == 'deletion-requirements' ?'Save':'Save & move to next tab'}
           </button>
           {isDataProduct ? (
             <button
@@ -285,7 +286,7 @@ const OtherRelevantInfo = ({ onSave, onPublish, onDescriptionTabErrors, history,
                   });
               },(errors) => {onDescriptionTabErrors(errors)})}
             >
-              Save and Forward Minimum Information
+              Finalize & forward
             </button>
           )}
         </div>
