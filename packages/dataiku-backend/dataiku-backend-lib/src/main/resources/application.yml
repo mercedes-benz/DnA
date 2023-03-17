@@ -13,9 +13,9 @@ micronaut:
         mapping: /swagger-ui/**
   http:
       client:
-        read-timeout: ${HTTP_CLIENT_READTIMEOUT:100s}
+        #read-timeout: ${HTTP_CLIENT_READTIMEOUT:120s}
         ssl:
-          insecureTrustAllCertificates: true  
+         insecureTrustAllCertificates: true  
   server:
     port: 7777
     cors:
@@ -54,10 +54,13 @@ dna:
   getUsersUri: ${DNA_GETUSERS_URI:XXXX}
   jwt: ${JWT_SECRET_KEY:XXXXX}
   
+  
 dataiku:
   userPrivilegesAccessKey: ${DATAIKU_USERPRIVILEGES_KEY:XXXX}
-  auth: ${DATAIKU_AUTH:XXXX}
-  baseuri: ${DATAIKU_BASEURI:XXXX}
+  extolloAuth: ${DATAIKU_EXTOLLO_AUTH:XXXX}
+  onPremiseAuth: ${DATAIKU_ONPREMISE_AUTH:XXXX}
+  extolloBaseuri: ${DATAIKU_EXTOLLO_BASEURI:XXXX}
+  onPremiseBaseuri: ${DATAIKU_ONPREMISE_BASEURI:XXXX}
   scenarioProjectKey: ${DATAIKU_SCENARIOS_PROJECTKEY:XXXX}
   scenarioId: ${DATAIKU_SCENARIOS_ID:XXXX}
   scenarioUpdateRequest: ${DATAIKU_SCENARIO_UPDATEREQUEST:XXXX}
