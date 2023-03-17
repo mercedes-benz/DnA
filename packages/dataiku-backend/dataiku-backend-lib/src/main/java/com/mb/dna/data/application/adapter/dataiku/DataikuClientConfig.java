@@ -16,8 +16,10 @@ public class DataikuClientConfig {
 	public static final String PREFIX = "dataiku";
 	  
 	private String userPrivilegesAccessKey;
-	private String auth;
-	private String baseuri;
+	private String extolloAuth;
+	private String onPremiseAuth;
+	private String extolloBaseuri;
+	private String onPremiseBaseuri;
 	private String scenarioProjectKey;
 	private String scenarioId;
 	private String scenarioUpdateRequest;
