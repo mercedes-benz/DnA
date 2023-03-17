@@ -297,7 +297,7 @@ public class StorageServicesClient {
 	}
 	
 	
-	public BucketObjectsCollectionWrapperDto getBucketObjects(String defaultConfigFolderPath) {
+	public BucketObjectsCollectionWrapperDto getBucketObjects(String path) {
 		BucketObjectsCollectionWrapperDto filesList = new BucketObjectsCollectionWrapperDto();
 		ByteArrayResource data = null;
 		List<MessageDescription> errors = new ArrayList<>();
@@ -309,7 +309,7 @@ public class StorageServicesClient {
 			headers.set("chronos-api-key",dataBricksAuth);
 			headers.setContentType(MediaType.APPLICATION_JSON);
 			HttpEntity requestEntity = new HttpEntity<>(headers);
-			String getFilesListUrl = storageBaseUri + BUCKETS_PATH + "/" +defaultConfigFolderPath;
+			String getFilesListUrl = storageBaseUri + BUCKETS_PATH + "/" +path;
 			ResponseEntity<BucketObjectsCollectionWrapperDto> response = restTemplate.exchange(getFilesListUrl, HttpMethod.GET,requestEntity, BucketObjectsCollectionWrapperDto.class);
 			if (response.hasBody() && response.getBody()!=null) {
 				if(response.getBody()!=null && response.getBody().getData()!=null && response.getBody().getData().getBucketObjects()!=null

@@ -169,7 +169,7 @@ paths:
 #        500:
 #          description: "Internal error"
     
-  /forecasts/{id}/configfiles:
+  /forecasts/default-config/files:
     get:
       tags:
         - "forecast-projects"
@@ -178,9 +178,9 @@ paths:
       operationId: "getConfigFiles"
       parameters:
         - name: "id"
-          in: "path"
+          in: query
           description: "forecast project ID "
-          required: true
+          required: false
           type: "string"
       responses:
         200:
