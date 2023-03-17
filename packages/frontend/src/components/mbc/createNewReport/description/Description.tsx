@@ -318,7 +318,7 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
     }
     const description = this.props.description;
     description.status = selectedValues;
-    this.setState({ statusValue: selectedValues });
+    this.setState({ statusValue: selectedValues, reportLinkError: '' });
   };
   public onChangePii = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const selectedOptions = e.currentTarget.selectedOptions;
