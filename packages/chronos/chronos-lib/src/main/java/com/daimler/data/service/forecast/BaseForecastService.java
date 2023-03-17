@@ -818,8 +818,8 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 
 	@Override
 	@Transactional
-	public BucketObjectsCollectionWrapperDto getBucketObjects(String defaultConfigFolderPath){
-		return storageClient.getBucketObjects(defaultConfigFolderPath);
+	public BucketObjectsCollectionWrapperDto getBucketObjects(String path){
+		return storageClient.getBucketObjects(path);
 
 	}
 
