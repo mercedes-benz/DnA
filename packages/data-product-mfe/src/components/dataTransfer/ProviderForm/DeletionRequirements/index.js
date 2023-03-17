@@ -125,9 +125,7 @@ const DeletionRequirements = (
             <div className={Styles.formWrapper}>
               <div id="otherRelevantInfoDescription" className={classNames('input-field-group area')}>
                 <label className="input-label" htmlFor="otherRelevantInfo">
-                  Please provide any other relevant & app specific restrictions that might apply to the corresponding
-                  data, examples being individual deletion requirements, antitrust regulations, contractual restrictions
-                  etc.
+                  Please provide any other relevant & app specific restrictions that might apply to the corresponding data, examples being antitrust regulations, contractual restrictions etc.
                 </label>
                 <textarea
                   className="input-field-area"
