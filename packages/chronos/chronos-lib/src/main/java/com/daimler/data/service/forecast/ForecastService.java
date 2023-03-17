@@ -5,6 +5,7 @@ import java.util.Date;
 import java.util.List;
 
 import com.daimler.data.dto.forecast.*;
+import com.daimler.data.dto.storage.BucketObjectsCollectionWrapperDto;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.daimler.data.controller.exceptions.GenericMessage;
@@ -43,4 +44,6 @@ public interface ForecastService extends CommonService<ForecastVO, ForecastNsql,
 	Boolean isBucketExists(String bucketName);
 	
 	List<String> getAllForecastIds();
+
+	public BucketObjectsCollectionWrapperDto getBucketObjects(String defaultConfigFolderPath);
 }

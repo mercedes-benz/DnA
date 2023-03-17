@@ -169,13 +169,19 @@ paths:
 #        500:
 #          description: "Internal error"
     
-  /forecasts/default-config/files:
+  /forecasts/{id}/configfiles:
     get:
       tags:
         - "forecast-projects"
       summary: "Get forecasts config files"
       description: "Get forecasts config files"
       operationId: "getConfigFiles"
+      parameters:
+        - name: "id"
+          in: "path"
+          description: "forecast project ID "
+          required: true
+          type: "string"
       responses:
         200:
           description: "Returns message of success or failure"
