@@ -192,6 +192,11 @@ paths:
           description: "if true then sends datatransfer which are created by the logged In users"
           required: false
           type: boolean
+        - name: isProviderCreator
+          in: query
+          description: "if true then sends dataproduct which are created by the logged In users"
+          required: false
+          type: boolean     
         - name: published
           in: query
           description: Filtering datatransfer based on publish state. Draft or published, values true or false
