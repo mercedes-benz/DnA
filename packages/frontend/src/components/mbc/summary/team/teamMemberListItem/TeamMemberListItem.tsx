@@ -10,7 +10,7 @@ import Styles from './TeamMemberListItem.scss';
 const classNames = cn.bind(Styles);
 
 export interface ITeamMemberListItemProps {
-  teamMember: ITeams;
+  teamMember: ITeams | any;
   itemIndex: number;
   useFullWidth?: boolean;
 }
@@ -57,14 +57,14 @@ export default class TeamMemberListItem extends React.Component<ITeamMemberListI
                   <div>{teamMember?.company}</div>
                 ) : (
                   <div>
+                    {teamMember?.level && <>{teamMember?.level} | {teamMember?.department && teamMember?.department} | {teamMember?.legalEntity && teamMember?.legalEntity}</>}
                     {teamMember?.shortId ? (
                       <a href={TEAMS_PROFILE_LINK_URL_PREFIX + teamMember?.shortId}>
                         {teamMember?.firstName} {teamMember?.lastName}
                       </a>
                     ) : (
                       <>
-                        {teamMember?.firstName} {teamMember?.lastName}
-                        <br />
+                        {teamMember?.firstName} {teamMember?.lastName} {teamMember?.lastName && <br />}
                         {teamMember?.email}
                       </>
                     )}

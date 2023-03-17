@@ -12,9 +12,10 @@ micronaut:
         paths: classpath:META-INF/swagger/views/swagger-ui
         mapping: /swagger-ui/**
   http:
-    client:
-      ssl:
-        insecureTrustAllCertificates: true  
+      client:
+        read-timeout: ${HTTP_CLIENT_READTIMEOUT:100s}
+        ssl:
+          insecureTrustAllCertificates: true  
   server:
     port: 7777
     cors:
