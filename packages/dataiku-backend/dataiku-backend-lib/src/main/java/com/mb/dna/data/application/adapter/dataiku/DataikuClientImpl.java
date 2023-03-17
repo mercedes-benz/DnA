@@ -24,12 +24,14 @@ public class DataikuClientImpl implements DataikuClient {
 	DataikuClientConfig dataikuClientConfig;
 	
 	@Override
-	public MessageDescription addUser(DataikuUserDto user) {
+	public MessageDescription addUser(DataikuUserDto user, String cloudProfile) {
 		try {
-			String url =  dataikuClientConfig.getBaseuri() + dataikuClientConfig.getUsersUri() ;
+			String baseUri = "onPremise".equalsIgnoreCase(cloudProfile) ? dataikuClientConfig.getOnPremiseBaseuri() : dataikuClientConfig.getExtolloBaseuri();
+			String url =  baseUri + dataikuClientConfig.getUsersUri() ;
+			String apiToken = "onPremise".equalsIgnoreCase(cloudProfile) ? dataikuClientConfig.getOnPremiseAuth() : dataikuClientConfig.getExtolloAuth();
 			HttpRequest<DataikuUserDto> req = HttpRequest.POST(url,user).header("Accept", "application/json")
 			.header("Content-Type", "application/json")
-			.header("Authorization", "Basic "+dataikuClientConfig.getAuth());
+			.header("Authorization", "Basic "+apiToken);
 			HttpResponse<DataikuResponseDto> response = client.toBlocking().exchange(req,DataikuResponseDto.class);
 			if(response!=null && response.getBody()!=null) {
 				Optional<DataikuResponseDto> responseBody = response.getBody();
@@ -45,12 +47,14 @@ public class DataikuClientImpl implements DataikuClient {
 	}
 	
 	@Override
-	public MessageDescription updateUser(DataikuUserDto user) {
+	public MessageDescription updateUser(DataikuUserDto user, String cloudProfile) {
 		try {
-			String url =  dataikuClientConfig.getBaseuri() + dataikuClientConfig.getUsersUri() + "/" + user.getLogin().toUpperCase();
+			String baseUri = "onPremise".equalsIgnoreCase(cloudProfile) ? dataikuClientConfig.getOnPremiseBaseuri() : dataikuClientConfig.getExtolloBaseuri();
+			String url =   baseUri  + dataikuClientConfig.getUsersUri() + "/" + user.getLogin().toUpperCase();
+			String apiToken = "onPremise".equalsIgnoreCase(cloudProfile) ? dataikuClientConfig.getOnPremiseAuth() : dataikuClientConfig.getExtolloAuth();
 			HttpRequest<DataikuUserDto> req = HttpRequest.PUT(url,user).header("Accept", "application/json")
 			.header("Content-Type", "application/json")
-			.header("Authorization", "Basic "+dataikuClientConfig.getAuth());
+			.header("Authorization", "Basic "+apiToken);
 			HttpResponse<DataikuResponseDto> response = client.toBlocking().exchange(req,DataikuResponseDto.class);
 			if(response!=null && response.getBody()!=null) {
 				Optional<DataikuResponseDto> responseBody = response.getBody();
@@ -66,12 +70,14 @@ public class DataikuClientImpl implements DataikuClient {
 	}
 	
 	@Override
-	public DataikuUserDto getDataikuUser(String loginName){
+	public DataikuUserDto getDataikuUser(String loginName, String cloudProfile){
 		DataikuUserDto responseBody = new DataikuUserDto();
-		String url = dataikuClientConfig.getBaseuri() + dataikuClientConfig.getUsersUri() + "/" + loginName;
+		String baseUri = "onPremise".equalsIgnoreCase(cloudProfile) ? dataikuClientConfig.getOnPremiseBaseuri() : dataikuClientConfig.getExtolloBaseuri();
+		String url =   baseUri + dataikuClientConfig.getUsersUri() + "/" + loginName;
+		String apiToken = "onPremise".equalsIgnoreCase(cloudProfile) ? dataikuClientConfig.getOnPremiseAuth() : dataikuClientConfig.getExtolloAuth();
 		HttpRequest<?> req = HttpRequest.GET(url).header("Accept", "application/json")
 		.header("Content-Type", "application/json")
-		.header("Authorization", "Basic "+dataikuClientConfig.getAuth());
+		.header("Authorization", "Basic "+apiToken);
 		try {
 			HttpResponse<DataikuUserDto> response = client.toBlocking().exchange(req,DataikuUserDto.class);
 			if(response!=null && response.getBody()!=null) {
@@ -84,17 +90,19 @@ public class DataikuClientImpl implements DataikuClient {
 	}
 
 	@Override
-	public MessageDescription updateScenario(String projectName) {
+	public MessageDescription updateScenario(String projectName, String cloudProfile) {
 		try {
 			String requestJson = dataikuClientConfig.getScenarioUpdateRequest();
+			log.info("update request json template is {} " ,requestJson);
 			String updatedRequestJson = requestJson.replaceFirst("XXXXdefaultProjectNameXXXX", projectName);
-			String url =  dataikuClientConfig.getBaseuri() + "/projects/" + dataikuClientConfig.getScenarioProjectKey() + "/scenarios/" + dataikuClientConfig.getScenarioId();
-			log.info("url is {} and updatescenario json is {} " ,url,updatedRequestJson);
+			log.info("Update scenario request for project {} is {}",projectName, updatedRequestJson);
+			String baseUri = "onPremise".equalsIgnoreCase(cloudProfile) ? dataikuClientConfig.getOnPremiseBaseuri() : dataikuClientConfig.getExtolloBaseuri();
+			String url =  baseUri + "/projects/" + dataikuClientConfig.getScenarioProjectKey() + "/scenarios/" + dataikuClientConfig.getScenarioId();
+			String apiToken = "onPremise".equalsIgnoreCase(cloudProfile) ? dataikuClientConfig.getOnPremiseAuth() : dataikuClientConfig.getExtolloAuth();
 			HttpRequest<String> req = HttpRequest.PUT(url,updatedRequestJson)
 			.header("Accept", "application/json")
 			.header("Content-Type", "application/json")
-			.header("Authorization", "Basic " + dataikuClientConfig.getAuth())
-			;
+			.header("Authorization", "Basic " + apiToken);
 			HttpResponse<DataikuResponseDto> response = client.toBlocking().exchange(req,DataikuResponseDto.class);
 			if(response!=null && response.getBody()!=null) {
 				Optional<DataikuResponseDto> responseBody = response.getBody();
@@ -111,12 +119,15 @@ public class DataikuClientImpl implements DataikuClient {
 	}
 
 	@Override
-	public MessageDescription runScenario(String projectName) {
+	public MessageDescription runScenario(String projectName, String cloudProfile) {
 		try {
-			String url =  dataikuClientConfig.getBaseuri() + "/projects/" + dataikuClientConfig.getScenarioProjectKey() + "/scenarios/" + dataikuClientConfig.getScenarioId() + "/run";
+			String baseUri = "onPremise".equalsIgnoreCase(cloudProfile) ? dataikuClientConfig.getOnPremiseBaseuri() : dataikuClientConfig.getExtolloBaseuri();
+			String url =   baseUri + "/projects/" + dataikuClientConfig.getScenarioProjectKey() + "/scenarios/" + dataikuClientConfig.getScenarioId() + "/run";
+			String apiToken = "onPremise".equalsIgnoreCase(cloudProfile) ? dataikuClientConfig.getOnPremiseAuth() : dataikuClientConfig.getExtolloAuth();
 			HttpRequest<?> req = HttpRequest.POST(url,null).header("Accept", "application/json")
 			.header("Content-Type", "application/json")
-			.header("Authorization", "Basic "+dataikuClientConfig.getAuth());
+			.header("Authorization", "Basic "+ apiToken);
+			log.info("run scenarion with url {}", url);
 			HttpResponse<JSONObject> response = client.toBlocking().exchange(req,JSONObject.class);
 			if(response!=null && response.getBody()!=null) {
 				Optional<JSONObject> responseBody = response.getBody();
@@ -124,6 +135,7 @@ public class DataikuClientImpl implements DataikuClient {
 					log.info("Ran updated scenario for projectName with response status {} ",projectName, response.getStatus().toString());
 				}
 			}
+			client.close();
 			return null;
 		}catch(Exception e) {
 			log.error("Failed while calling run scenario after update for project {} with exception {} ",projectName, e.getMessage());
@@ -132,12 +144,14 @@ public class DataikuClientImpl implements DataikuClient {
 	}
 	
 	@Override
-	public MessageDescription deleteProject(String projectName) {
+	public MessageDescription deleteProject(String projectName, String cloudProfile) {
 		try {
-			String url =  dataikuClientConfig.getBaseuri() + "/projects/" + projectName.toUpperCase();
+			String baseUri = "onPremise".equalsIgnoreCase(cloudProfile) ? dataikuClientConfig.getOnPremiseBaseuri() : dataikuClientConfig.getExtolloBaseuri();
+			String url =   baseUri + "/projects/" + projectName.toUpperCase();
+			String apiToken = "onPremise".equalsIgnoreCase(cloudProfile) ? dataikuClientConfig.getOnPremiseAuth() : dataikuClientConfig.getExtolloAuth();
 			HttpRequest<?> req = HttpRequest.DELETE(url,null).header("Accept", "application/json")
 			.header("Content-Type", "application/json")
-			.header("Authorization", "Basic "+dataikuClientConfig.getAuth());
+			.header("Authorization", "Basic "+ apiToken);
 			HttpResponse<DataikuResponseDto> response = client.toBlocking().exchange(req,DataikuResponseDto.class);
 			if(response!=null && response.getBody()!=null) {
 				Optional<DataikuResponseDto> responseBody = response.getBody();
@@ -151,5 +165,6 @@ public class DataikuClientImpl implements DataikuClient {
 			return new MessageDescription("Failed while deleting dataiku project " + projectName + " with exception " + e.getMessage());
 		}
 	}
+	
 	
 }
