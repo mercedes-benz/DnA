@@ -670,7 +670,7 @@ const ProviderForm = ({ user, history }) => {
             onPublish={(values, callbackFn) => {
               setShowContactInformationTabError(false);
               onSave(currentTab, values, callbackFn)}} 
-            user={userInfo} isDataProduct={false} />
+            user={userInfo} isDataProduct={false} currentTab={currentTab} />
           </div>
           <ConfirmModal
             title="Save Changes?"
