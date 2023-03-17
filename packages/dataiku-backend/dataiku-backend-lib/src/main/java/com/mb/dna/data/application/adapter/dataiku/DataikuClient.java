@@ -4,16 +4,16 @@ import com.mb.dna.data.api.controller.exceptions.MessageDescription;
 
 public interface DataikuClient {
 
-	MessageDescription updateScenario(String projectName);
+	MessageDescription updateScenario(String projectName, String cloudProfile);
 
-	MessageDescription runScenario(String projectName);
+	MessageDescription runScenario(String projectName, String cloudProfile);
 
-	MessageDescription deleteProject(String projectName);
+	MessageDescription deleteProject(String projectName, String cloudProfile);
 
-	DataikuUserDto getDataikuUser(String loginName);
+	DataikuUserDto getDataikuUser(String loginName, String cloudProfile);
 
-	MessageDescription addUser(DataikuUserDto user);
+	MessageDescription addUser(DataikuUserDto user, String cloudProfile);
 
-	MessageDescription updateUser(DataikuUserDto user);
+	MessageDescription updateUser(DataikuUserDto user, String cloudProfile);
 
 }
