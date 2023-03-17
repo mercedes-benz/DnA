@@ -135,33 +135,36 @@ public class DataikuServiceImpl implements DataikuService	{
 		List<MessageDescription> warnings = new ArrayList<>();
 		DataikuProjectDto dto = requestDto;
 		try {
+			String envPrefix = dataikuClientConfig.getEnvironmentProfile();
+			String cloudProfile = dto.getCloudProfile();
+			String groupPrefix = "";
+			if("onPremise".equalsIgnoreCase(cloudProfile)) {
+				groupPrefix = dataikuClientConfig.getOnPremiseGroupNamePrefix();
+			}else {
+				groupPrefix = dataikuClientConfig.getExtolloGroupNamePrefix();
+			}
 			String projectName = requestDto.getProjectName();
-			MessageDescription updateErrMsg = dataikuClient.updateScenario(projectName);
+			MessageDescription updateErrMsg = dataikuClient.updateScenario(projectName,cloudProfile);
 			if(updateErrMsg!=null) {
 				errors.add(updateErrMsg);
 				responseMessage.setErrors(errors);
 				responseMessage.setWarnings(warnings);
 				responseWrapperDto.setResponse(responseMessage);
 				responseWrapperDto.setData(dto);
+				log.info("Failed at updating scenario, returning from Service");
 				return responseWrapperDto;
 			}
-			MessageDescription runErrMsg = dataikuClient.runScenario(projectName);
+			MessageDescription runErrMsg = dataikuClient.runScenario(projectName,cloudProfile);
 			if(runErrMsg!=null) {
 				errors.add(runErrMsg);
 				responseMessage.setErrors(errors);
 				responseMessage.setWarnings(warnings);
 				responseWrapperDto.setResponse(responseMessage);
 				responseWrapperDto.setData(dto);
+				log.info("Failed at updating scenario, returning from Service");
 				return responseWrapperDto;
 			}
-			String envPrefix = dataikuClientConfig.getEnvironmentProfile();
-			String groupPrefix = "";
-			if("onPremise".equalsIgnoreCase(dto.getCloudProfile())) {
-				groupPrefix = dataikuClientConfig.getOnPremiseGroupNamePrefix();
-			}else {
-				groupPrefix = dataikuClientConfig.getExtolloGroupNamePrefix();
-			}
-			DataikuUserDto ownerUserDetails = dataikuClient.getDataikuUser(userId.toUpperCase());
+			DataikuUserDto ownerUserDetails = dataikuClient.getDataikuUser(userId.toUpperCase(),cloudProfile);
 			String projectSpecificAdminAccessGroup = groupPrefix + envPrefix + projectName + "--ADMINISTRATOR";
 			String projectSpecificContributorAccessGroup = groupPrefix + envPrefix + projectName + "--CONTRIBUTOR";
 			String projectSpecificReadAccessGroup = groupPrefix + envPrefix + projectName + "--READ-ONLY";
@@ -176,7 +179,7 @@ public class DataikuServiceImpl implements DataikuService	{
 				ownerUserDetails.setEmail(userId.toUpperCase());
 				ownerUserDetails.setUserProfile(ownerDetails.getData().getProfile());
 				ownerUserDetails.setEnabled(true);
-				MessageDescription onboardOwnerErrMsg = dataikuClient.addUser(ownerUserDetails);
+				MessageDescription onboardOwnerErrMsg = dataikuClient.addUser(ownerUserDetails,cloudProfile);
 				if(onboardOwnerErrMsg!=null) {
 					errors.add(onboardOwnerErrMsg);
 					responseMessage.setErrors(errors);
@@ -187,7 +190,7 @@ public class DataikuServiceImpl implements DataikuService	{
 				}
 			}else {
 				ownerUserDetails.getGroups().add(projectSpecificAdminAccessGroup);
-				MessageDescription UpdateOwnerErrMsg = dataikuClient.updateUser(ownerUserDetails);
+				MessageDescription UpdateOwnerErrMsg = dataikuClient.updateUser(ownerUserDetails,cloudProfile);
 				if(UpdateOwnerErrMsg!=null) {
 					errors.add(UpdateOwnerErrMsg);
 					responseMessage.setErrors(errors);
@@ -200,7 +203,7 @@ public class DataikuServiceImpl implements DataikuService	{
 			List<CollaboratorDetailsDto> projectCollaborators = dto.getCollaborators();
 			if(projectCollaborators!=null && !projectCollaborators.isEmpty()) {
 				for(CollaboratorDetailsDto tempCollab: projectCollaborators) {
-					DataikuUserDto tempCollabUserDetails = dataikuClient.getDataikuUser(tempCollab.getUserId().toUpperCase());
+					DataikuUserDto tempCollabUserDetails = dataikuClient.getDataikuUser(tempCollab.getUserId().toUpperCase(),cloudProfile);
 					String groupName = "";
 					String permission = tempCollab.getPermission();
 					if("Administrator".equalsIgnoreCase(permission)) {
@@ -214,16 +217,16 @@ public class DataikuServiceImpl implements DataikuService	{
 					}
 					if(tempCollabUserDetails == null || tempCollabUserDetails.getLogin()==null) {
 						tempCollabUserDetails = new DataikuUserDto();
-						tempCollabUserDetails.setLogin(userId.toUpperCase());
+						tempCollabUserDetails.setLogin(tempCollab.getUserId().toUpperCase());
 						tempCollabUserDetails.setSourceType("LOCAL_NO_AUTH");
 						tempCollabUserDetails.setDisplayName(tempCollab.getGivenName() + " " + tempCollab.getSurName());
 						List<String> groups =new ArrayList<>();
 						groups.add(groupName);
 						tempCollabUserDetails.setGroups(groups);
-						tempCollabUserDetails.setEmail(userId.toUpperCase());
-						tempCollabUserDetails.setUserProfile(ownerDetails.getData().getProfile());
+						tempCollabUserDetails.setEmail(tempCollab.getUserId().toUpperCase());
+//						tempCollabUserDetails.setUserProfile(tempCollab.get .getProfile());
 						tempCollabUserDetails.setEnabled(true);
-						MessageDescription onboardTempCollabErrMsg = dataikuClient.addUser(tempCollabUserDetails);
+						MessageDescription onboardTempCollabErrMsg = dataikuClient.addUser(tempCollabUserDetails,cloudProfile);
 						if(onboardTempCollabErrMsg!=null) {
 							errors.add(onboardTempCollabErrMsg);
 							responseMessage.setErrors(errors);
@@ -234,7 +237,7 @@ public class DataikuServiceImpl implements DataikuService	{
 						}
 					}else {
 						tempCollabUserDetails.getGroups().add(groupName);
-						MessageDescription UpdateTempCollabErrMsg = dataikuClient.updateUser(tempCollabUserDetails);
+						MessageDescription UpdateTempCollabErrMsg = dataikuClient.updateUser(tempCollabUserDetails,cloudProfile);
 						if(UpdateTempCollabErrMsg!=null) {
 							errors.add(UpdateTempCollabErrMsg);
 							responseMessage.setErrors(errors);
@@ -279,23 +282,25 @@ public class DataikuServiceImpl implements DataikuService	{
 			List<String> users = new ArrayList<>();
 			users.add(existingDto.getCreatedBy());
 			List<CollaboratorDetailsDto> collaborators = existingDto.getCollaborators();
+			String envPrefix = dataikuClientConfig.getEnvironmentProfile();
+			String cloudProfile = existingDto.getCloudProfile();
+			String groupPrefix = "";
+			if("onPremise".equalsIgnoreCase(existingDto.getCloudProfile())) {
+				groupPrefix = dataikuClientConfig.getOnPremiseGroupNamePrefix();
+			}else {
+				groupPrefix = dataikuClientConfig.getExtolloGroupNamePrefix();
+			}
 			if(collaborators!=null && !collaborators.isEmpty())
 				collaborators.forEach(n->users.add(n.getUserId()));
 			for(String record: users) {
-				DataikuUserDto tempUserDetails = dataikuClient.getDataikuUser(record.toUpperCase());
+				DataikuUserDto tempUserDetails = dataikuClient.getDataikuUser(record.toUpperCase(),cloudProfile);
 				List<String> currentGroups = tempUserDetails.getGroups();
-				String envPrefix = dataikuClientConfig.getEnvironmentProfile();
-				String groupPrefix = "";
-				if("onPremise".equalsIgnoreCase(existingDto.getCloudProfile())) {
-					groupPrefix = dataikuClientConfig.getOnPremiseGroupNamePrefix();
-				}else {
-					groupPrefix = dataikuClientConfig.getExtolloGroupNamePrefix();
-				}
+				
 				String projectName = existingDto.getProjectName();
 				String consolidatedPrefix = groupPrefix + envPrefix + projectName;
 				currentGroups.removeIf(n->n.contains(consolidatedPrefix));
 				tempUserDetails.setGroups(currentGroups);
-				MessageDescription UpdateTempCollabErrMsg = dataikuClient.updateUser(tempUserDetails);
+				MessageDescription UpdateTempCollabErrMsg = dataikuClient.updateUser(tempUserDetails,cloudProfile);
 				if(UpdateTempCollabErrMsg!=null) {
 					warnings.add(new MessageDescription("Failed to remove project group for user " + record + ". Please update manually."));
 				}
