@@ -1,9 +1,15 @@
 import { hostServer, reportsServer, server } from '../server/api';
 
-const getAllDataProductList = (sortBy, sortOrder) => {
-  return server.get(`/dataproducts?limit=0&offset=0&sortBy=${sortBy}&sortOrder=${sortOrder}`, {
-    data: {},
-  });
+const getAllDataProductList = (sortBy, sortOrder, queryParams) => {
+  if(queryParams) {
+    return server.get(`/dataproducts?limit=0&offset=0&sortBy=${sortBy}&sortOrder=${sortOrder}${queryParams}`, {
+      data: {},
+    });
+  } else {
+    return server.get(`/dataproducts?limit=0&offset=0&sortBy=${sortBy}&sortOrder=${sortOrder}`, {
+      data: {},
+    });
+  }
 };
 
 const getDataProductById = (id) => {
