@@ -34,25 +34,21 @@ export default class CustomerSummary extends React.Component<ICustomerSummaryPro
               {this.props.customers.internalCustomers?.length
                 ? this.props.customers.internalCustomers?.map((customer, index) => {
                   const processOwnerDetails: any = customer?.processOwner;
-                  const processOwner = <TeamMemberListItem key={'processOwner-1'} itemIndex={1} teamMember={processOwnerDetails} />;
+                  const processOwner = <TeamMemberListItem key={'processOwner-1'} itemIndex={1} teamMember={processOwnerDetails} useFullWidth={true}/>;
 
-                  const customerName = <TeamMemberListItem key={'processOwner-1'} itemIndex={1} teamMember={customer.name} />;
+                  // const customerName = <TeamMemberListItem key={'processOwner-1'} itemIndex={1} teamMember={customer} />;
                     return (
                       <React.Fragment key={index}>
                         <div className={Styles.customerListView}>
                           <span className={Styles.description}>{`Internal Customer ${index + 1}`}</span>
-                          <div className={Styles.flexLayout}>
+                          {/* <div className={Styles.flexLayout}>
                             <div id="name">
-                              <label className="input-label summary">Name</label>
+                              <label className="input-label summary">Level | E2-Department | MB Legal Entity </label>
                               <br />
                               <div className={Styles.breakWords+' '+Styles.removeGap}>{customerName}</div>
                             </div>
-                            <div id="processOwner">
-                              <label className="input-label summary">Process Owner</label>
-                              <br />
-                              <div className={Styles.breakWords+' '+Styles.removeGap}>{processOwner}</div>
-                            </div>
-                          </div>
+                            
+                          </div> */}
                           <div className={Styles.flexLayout}>  
                             <div id="hierarchy">
                               <label className="input-label summary">Level</label>
@@ -90,15 +86,18 @@ export default class CustomerSummary extends React.Component<ICustomerSummaryPro
                             
                           </div>
                           <div className={Styles.flexLayout}>
-                            
+                            <div id="processOwner">
+                              <label className="input-label summary">Process Owner</label>
+                              <br />
+                              <div className={Styles.breakWords+' '+Styles.removeGap}>{processOwner}</div>
+                            </div>
                             <div id="comment">
                               <label className="input-label summary">Comment</label>
                               <p>
                                 <pre className={Styles.commentPre}>{customer.comment ? customer.comment : 'NA'}</pre>
                               </p>
                             </div>
-                            
-                            
+                            <div>&nbsp;</div>
                           </div>
                           {(this.props.customers.internalCustomers?.length > 1 ||
                             this.props.customers.internalCustomers?.length) && <hr className="divider1" />}
@@ -114,11 +113,11 @@ export default class CustomerSummary extends React.Component<ICustomerSummaryPro
                         <div className={Styles.customerListView}>
                           <span className={Styles.description}>{`External Customer ${index + 1}`}</span>
                           <div className={Styles.flexLayout}>
-                            <div id="nameExternal">
+                            {/* <div id="nameExternal">
                               <label className="input-label summary">Name</label>
                               <br />
                               <div className = {Styles.breakWords}>{customer.name?.firstName || customer.name?.lastName ? customer.name?.firstName+' '+customer.name?.lastName : 'NA'}</div>
-                            </div>
+                            </div> */}
                             <div id="companyName">
                               <label className="input-label summary">Company Name</label>
                               <br />
