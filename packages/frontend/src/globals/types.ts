@@ -621,7 +621,7 @@ export interface ICustomers {
 }
 
 export interface IInternalCustomerDetails {
-  name: ITeams;
+  // name: ITeams;
   customerRelation: string;
   comment: string;
   department: string;
