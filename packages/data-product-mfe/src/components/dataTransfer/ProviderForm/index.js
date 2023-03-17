@@ -78,7 +78,7 @@ const ProviderForm = ({ user, history }) => {
   const dispatch = useDispatch();
 
   const { id: dataTransferId } = useParams();
-  const createCopyId = history.location?.state?.copyId;
+  let createCopyId = history.location?.state?.copyId;
 
   const [errorsInPublish, setErrorsInPublish] = useState({
     descriptionTabError: [],
@@ -460,6 +460,12 @@ const ProviderForm = ({ user, history }) => {
       data.type = 'provider';
       data.state = 'edit';
       dispatch(UpdateDataTransfers(data));
+    }
+    if (history.location.state && history.location.state.copyId) {
+      let state = { ...history.location.state };
+      delete state.copyId;
+      history.replace({ ...history.location, state });
+      createCopyId=null;
     }
   }
 
