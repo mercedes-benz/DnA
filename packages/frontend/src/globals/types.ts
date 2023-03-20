@@ -633,7 +633,6 @@ export interface IInternalCustomerDetails {
 }
 
 export interface IExternalCustomerDetails {
-  name: ITeams;
   companyName: string;
   customerRelation: string;
   comment: string;
