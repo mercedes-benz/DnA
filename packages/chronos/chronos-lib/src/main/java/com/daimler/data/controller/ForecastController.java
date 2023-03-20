@@ -13,9 +13,12 @@ import javax.validation.Valid;
 
 import com.daimler.data.auth.vault.VaultAuthClientImpl;
 import com.daimler.data.dto.forecast.*;
+import com.daimler.data.dto.storage.BucketObjectDetailsDto;
+import com.daimler.data.dto.storage.BucketObjectsCollectionDto;
 import com.daimler.data.service.forecast.ForecastService;
 import org.apache.commons.io.FilenameUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -62,8 +65,11 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 	@Autowired
 	private VaultAuthClientImpl vaultAuthClient;
 
+	@Value("${databricks.defaultConfigYml}")
+	private String defaultConfigFolderPath;
 	private static final String BUCKETS_PREFIX = "chronos-";
 	private static final String INPUT_FILE_PREFIX = "/inputs/";
+	private static final String CONFIG_PATH = "/config";
 
 	private static final List<String> contentTypes = Arrays.asList("xlsx", "csv");
 
@@ -77,22 +83,53 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 	}
 
 	@Override
-	@ApiOperation(value = "Get forecasts config files", nickname = "getConfigFiles", notes = "Get forecasts config files", response = BucketObjectsCollectionWrapperDto.class, tags={ "forecast-projects", })
-    @ApiResponses(value = {
-        @ApiResponse(code = 200, message = "Returns message of success or failure", response = BucketObjectsCollectionWrapperDto.class),
-        @ApiResponse(code = 204, message = "Fetch complete, no content found."),
-        @ApiResponse(code = 400, message = "Bad request."),
-        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
-        @ApiResponse(code = 403, message = "Request is not authorized."),
-        @ApiResponse(code = 405, message = "Method not allowed"),
-        @ApiResponse(code = 500, message = "Internal error") })
-    @RequestMapping(value = "/forecasts/default-config/files",
-        produces = { "application/json" },
-        consumes = { "application/json" },
-        method = RequestMethod.GET)
-    public ResponseEntity<BucketObjectsCollectionWrapperDto> getConfigFiles(){
+	@ApiOperation(value = "Get forecasts config files", nickname = "getConfigFiles", notes = "Get forecasts config files", response = BucketObjectsCollectionWrapperDto.class, tags = {"forecast-projects",})
+	@ApiResponses(value = {
+			@ApiResponse(code = 200, message = "Returns message of success or failure", response = BucketObjectsCollectionWrapperDto.class),
+			@ApiResponse(code = 204, message = "Fetch complete, no content found."),
+			@ApiResponse(code = 400, message = "Bad request."),
+			@ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+			@ApiResponse(code = 403, message = "Request is not authorized."),
+			@ApiResponse(code = 405, message = "Method not allowed"),
+			@ApiResponse(code = 500, message = "Internal error")})
+	@RequestMapping(value = "/forecasts/default-config/files",
+			produces = {"application/json"},
+			consumes = {"application/json"},
+			method = RequestMethod.GET)
+	public ResponseEntity<BucketObjectsCollectionWrapperDto> getConfigFiles(@ApiParam(value = "forecast project ID ") @Valid @RequestParam(value = "id", required = false) String id) {
 		BucketObjectsCollectionWrapperDto collection = new BucketObjectsCollectionWrapperDto();
-		collection = storageClient.getBucketObjects();
+		BucketObjectsCollectionWrapperDto projectSpecificBucketCollection = new BucketObjectsCollectionWrapperDto();
+		BucketObjectsCollectionWrapperDto chronosCoreSpecificcollection = new BucketObjectsCollectionWrapperDto();
+
+		ForecastVO existingForecast = new ForecastVO();
+		boolean isValidId = true;
+		if (id != null) {
+			existingForecast = service.getById(id);
+			if (existingForecast == null || !id.equalsIgnoreCase(existingForecast.getId())) {
+				log.warn("No forecast found with id {}, failed to fetch saved inputs for given forecast id", id);
+				isValidId = false;
+			}
+			CreatedByVO requestUser = this.userStore.getVO();
+			List<String> forecastProjectUsers = new ArrayList<>();
+			forecastProjectUsers.add(existingForecast.getCreatedBy().getId());
+			List<CollaboratorVO> collaborators = existingForecast.getCollaborators();
+			if (collaborators != null && !collaborators.isEmpty()) {
+				collaborators.forEach(n -> forecastProjectUsers.add(n.getId()));
+			}
+			if (forecastProjectUsers != null && !forecastProjectUsers.isEmpty()) {
+				if (!forecastProjectUsers.contains(requestUser.getId())) {
+					log.warn("User not part of forecast project with id {} and name {}, Not authorized to user other project inputs", id, existingForecast.getName());
+					return new ResponseEntity<>(null, HttpStatus.FORBIDDEN);
+				}
+			}
+		}
+		collection = service.getBucketObjects(defaultConfigFolderPath);
+		if (isValidId && id != null) {
+			projectSpecificBucketCollection = service.getBucketObjects(existingForecast.getBucketName() + CONFIG_PATH);
+			if (projectSpecificBucketCollection.getData() != null) {
+				collection.getData().getBucketObjects().addAll(projectSpecificBucketCollection.getData().getBucketObjects());
+			}
+		}
 		return new ResponseEntity<>(collection, HttpStatus.OK);
 	}
 
