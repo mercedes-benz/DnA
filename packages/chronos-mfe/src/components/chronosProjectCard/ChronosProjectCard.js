@@ -29,7 +29,7 @@ const ChronosProjectCard = ({project, onRefresh, history}) => {
     }).catch(error => {
       ProgressIndicator.hide();
       Notification.show(
-        error?.response?.data?.response?.errors?.[0]?.message || error?.response?.data?.response?.warnings?.[0]?.message || 'Error while deleting forecast project',
+        error?.response?.data?.errors?.[0]?.message || error?.response?.data?.response?.errors?.[0]?.message || error?.response?.data?.response?.warnings?.[0]?.message || 'Error while deleting forecast project',
         'alert',
       );
       setShowDeleteModal(false);
@@ -85,7 +85,7 @@ const ChronosProjectCard = ({project, onRefresh, history}) => {
           modalWidth={'60%'}
           buttonAlignment="right"
           show={editProject}
-          content={<ChronosProjectForm edit={true} project={project} onSave={() => setEditProject(false)} />}
+          content={<ChronosProjectForm edit={true} project={project} onSave={() => {setEditProject(false); onRefresh()}} />}
           scrollableContent={false}
           onCancel={() => setEditProject(false)}
           modalStyle={{

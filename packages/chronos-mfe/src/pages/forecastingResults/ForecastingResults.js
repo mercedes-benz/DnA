@@ -6,6 +6,7 @@ import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indica
 import { chronosApi } from '../../apis/chronos.api';
 import Spinner from '../../components/spinner/Spinner';
 import VisualContainer from '../../components/visualContainer/VisualContainer';
+import { Envs } from '../../utilities/envs';
 
 const ForecastingResults = () => {
   const printRef = React.useRef();
@@ -441,6 +442,54 @@ const ForecastingResults = () => {
     return traces;
   }
 
+  const downloadPrediction = () => {
+    ProgressIndicator.show();
+    if(forecastRun) {
+      chronosApi.getFile(`${bucketName}`, `${forecastRun.id}-${forecastRun.runName}`, 'y_pred.csv').then((res) => {
+        let csvContent = "data:text/csv;charset=utf-8," + res.data;
+        let encodedUri = encodeURI(csvContent);
+        let link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", "y_pred.csv");
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        ProgressIndicator.hide();
+      }).catch(() => {
+        ProgressIndicator.hide();
+      });
+    }
+  }
+
+  const downloadExcel = () => {
+    ProgressIndicator.show();
+    if(forecastRun) {
+      chronosApi.getExcelFile(`${bucketName}`, `${forecastRun.id}-${forecastRun.runName}`, 'RESULT.xlsx').then((res) => {
+        var excelBlob = new Blob([res.data]);     
+        var url = window.URL.createObjectURL(excelBlob);
+
+        let link = document.createElement("a");
+        link.setAttribute("href", url);
+        link.setAttribute("download", "RESULT.xlsx");
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        ProgressIndicator.hide();
+      }).catch(() => {
+        ProgressIndicator.hide();
+        Notification.show('Unable to download the file', 'alert');
+      });
+    }
+  }
+
+  const handleBrowseInStorage = () => {
+    if(bucketName) {
+      window.open(`${Envs.STORAGE_MFE_APP_URL}/explorer/${bucketName}/${forecastRun.id}-${forecastRun.runName}`);
+    } else {
+      Notification.show('No folder path available for the given run', 'alert');
+    }
+  }
+
   return (
     <div className={classNames(Styles.mainPanel)}>
       <div className={Styles.backButtonWapper}>
@@ -466,6 +515,11 @@ const ForecastingResults = () => {
             </label>
           </div>
         </div>
+        <div className={Styles.footerBtns}>
+          <button className={classNames('btn', Styles.mr)} onClick={handleBrowseInStorage}>Browse in Storage</button>
+          <button className={classNames('btn', Styles.mr)} onClick={downloadExcel}><i className="icon mbc-icon document"></i> .xlsx</button>
+          <button className={'btn'} onClick={downloadPrediction}><i className="icon mbc-icon document"></i> .csv</button>
+        </div>
       </div>
       
       <VisualContainer
@@ -477,6 +531,7 @@ const ForecastingResults = () => {
         addTraces={addTraces}
         layout={layout}
         bucketName={bucketName}
+        isForecast={true}
       />
 
       <VisualContainer

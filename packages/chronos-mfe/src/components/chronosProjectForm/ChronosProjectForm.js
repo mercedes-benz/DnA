@@ -1,6 +1,7 @@
 import classNames from 'classnames';
 import React, { useState } from 'react';
 import { useForm, FormProvider } from 'react-hook-form';
+import { useHistory } from "react-router-dom";
 // styles
 import Styles from './ChronosProjectForm.scss';
 // import from DNA Container
@@ -16,8 +17,9 @@ import { regionalDateAndTimeConversionSolution } from '../../utilities/utils';
 import { chronosApi } from '../../apis/chronos.api';
 
 const ChronosProjectForm = ({edit, project, onSave}) => {
-  const [teamMembers, setTeamMembers] = useState(edit ? project.collaborators : []);
-  const [teamMembersOriginal, setTeamMembersOriginal] = useState([]);
+  let history = useHistory();
+  const [teamMembers, setTeamMembers] = useState(edit && project.collaborators !== null ? project.collaborators : []);
+  const [teamMembersOriginal, setTeamMembersOriginal] = useState(edit && project.collaborators !== null ? project.collaborators : []);
   const [editTeamMember, setEditTeamMember] = useState(false);
   const [selectedTeamMember, setSelectedTeamMember] = useState();
   const [editTeamMemberIndex, setEditTeamMemberIndex] = useState(0);
@@ -28,7 +30,6 @@ const ChronosProjectForm = ({edit, project, onSave}) => {
   const {
     register,
     handleSubmit,
-    reset,
     formState: { errors },
   } = methods;
 
@@ -45,20 +46,14 @@ const ChronosProjectForm = ({edit, project, onSave}) => {
     chronosApi.createForecastProject(data).then((res) => {
       ProgressIndicator.hide();
       history.push(`/project/${res.data.data.id}`);
-      reset({ name: '' });
-      setTeamMembers([]);
-      setTeamMembersOriginal([]);
-      setEditTeamMember(false);
-      setEditTeamMemberIndex(0);
       Notification.show('Forecasting Project successfully created');
     }).catch(error => {
       ProgressIndicator.hide();
       Notification.show(
-        error?.response?.data?.response?.errors[0]?.message || error?.response?.data?.response?.warnings[0]?.message || 'Error while creating forecast project',
+        error?.response?.data?.response?.errors?.[0]?.message || error?.response?.data?.response?.warnings?.[0]?.message || 'Error while creating forecast project',
         'alert',
       );
     });
-    onSave();
   };
   const handleEditProject = () => {
     const addedCollaboratorsTemp = addedCollaborators.map((member) => {
@@ -94,20 +89,14 @@ const ChronosProjectForm = ({edit, project, onSave}) => {
       setEditTeamMember(false);
       setEditTeamMemberIndex(0);
       Notification.show('Forecasting Project successfully updated');
+      onSave();
     }).catch(error => {
       ProgressIndicator.hide();
       Notification.show(
         error?.response?.data?.response?.errors?.[0]?.message || error?.response?.data?.response?.warnings?.[0]?.message || 'Error while updating forecast project',
         'alert',
       );
-      setTeamMembers([]);
-      setTeamMembersOriginal([]);
-      setAddedCollaborators([]);
-      setRemovedCollaborators([]);
-      setEditTeamMember(false);
-      setEditTeamMemberIndex(0);
     });
-    onSave();
   };
   
   const addTeamMemberModalRef = React.createRef();

@@ -137,7 +137,7 @@ const ProviderSummary = ({ onSave, providerFormIsDraft }) => {
             {providerInformation.personalRelatedData === 'Yes' ? (
               <div className={classNames(Styles.flexLayout, Styles.fourColumn)}>
                 <div>
-                  <label className="input-label summary">Description</label>
+                  <label className="input-label summary">Description of personal related data</label>
                   <br />
                   {providerInformation.personalRelatedDataDescription}
                 </div>
