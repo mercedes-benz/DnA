@@ -472,18 +472,25 @@ const ProviderForm = ({ user, history }) => {
   const onSave = (currentTab, values, callbackFn) => {
     setShowAllTabsError(false);
     if(!values.publish){
-      if(validateContactInformationTab(values)){
-        proceedToSave(currentTab, values, callbackFn)
-      } else {
-        setShowAllTabsError(true);
-      }    
+      if(!values.id && values.id!='' && currentTab!='contact-info'){
+        setShowContactInformationTabError(true);
+      } else{
+        if(validateContactInformationTab(values)){
+          proceedToSave(currentTab, values, callbackFn)
+        } else {
+          setShowAllTabsError(true);
+        }  
+      }  
     } else {
-      if(validatePublishRequest(values)){
-        proceedToSave(currentTab, values, callbackFn)
-      } else {
-        setShowAllTabsError(true);
-      }
-           
+      if(!values.id && values.id!='' && currentTab!='contact-info'){
+        setShowContactInformationTabError(true);
+      } else{  
+        if(validatePublishRequest(values)){
+          proceedToSave(currentTab, values, callbackFn)
+        } else {
+          setShowAllTabsError(true);
+        }
+      }           
     }
   };
 
@@ -656,7 +663,7 @@ const ProviderForm = ({ user, history }) => {
               (
                 <div>
                   <h3 className={classNames('error-message')}>
-                    Please fill Contact Information Tab first
+                    Please fill and save Contact Information Tab first
                   </h3>
                   <ul>
                   {displayErrorOfAllTabs('Contact Information Tab', errorsInPublish?.contactInformationTabError)}
