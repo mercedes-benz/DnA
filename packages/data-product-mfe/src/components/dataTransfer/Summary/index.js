@@ -229,7 +229,7 @@ const Summary = ({ history }) => {
                       {data.personalRelatedData === 'Yes' ? (
                         <div className={classNames(Styles.flexLayout, Styles.fourColumn)}>
                           <div>
-                            <label className="input-label summary">Description</label>
+                            <label className="input-label summary">Description of personal related data</label>
                             <br />
                             {data.personalRelatedDataDescription}
                           </div>

@@ -530,6 +530,15 @@ export interface IUserDetails {
   lastName: string;
   mobileNumber?: string;
 }
+
+export interface IUserPrivilege {
+  id: string;
+  userId: string;
+  profile: string;
+  givenName: string;
+  surName: string;
+}
+
 export interface ICodeCollaborator {
   firstName: string;
   department: string;
@@ -612,7 +621,7 @@ export interface ICustomers {
 }
 
 export interface IInternalCustomerDetails {
-  name: ITeams;
+  // name: ITeams;
   customerRelation: string;
   comment: string;
   department: string;

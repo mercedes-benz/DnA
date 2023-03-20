@@ -85,7 +85,7 @@ const CreateDataProduct = ({ user, history }) => {
   );
 
   const { id: dataProductId } = useParams();
-  const createCopyId = history.location?.state?.copyId;
+  let createCopyId = history.location?.state?.copyId;
 
   const userInfo = {
     addedByProvider: true,
@@ -452,6 +452,12 @@ const CreateDataProduct = ({ user, history }) => {
         dataObj.type = 'provider';
         dataObj.state = 'edit';
         dispatch(UpdateDataProduct(dataObj));
+      }
+      if (history.location.state && history.location.state.copyId) {
+        let state = { ...history.location.state };
+        delete state.copyId;
+        history.replace({ ...history.location, state });
+        createCopyId=null;
       }
   }
 
