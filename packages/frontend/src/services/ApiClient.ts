@@ -52,8 +52,13 @@ export interface IResponse<T> {
 }
 
 const baseUrl = Envs.API_BASEURL ? Envs.API_BASEURL : `http://${window.location.hostname}:7171/api`;
+const dataikUrl = Envs.DATAIKU_API_BASEURL ? Envs.DATAIKU_API_BASEURL : `http://${window.location.hostname}:7171/api`;
 const getUrl = (endpoint: string) => {
   return `${baseUrl}/${endpoint}`;
+};
+
+const getDataikuUrl = (endpoint: string) => {
+  return `${dataikUrl}/${endpoint}`;
 };
 
 export class ApiClient {
@@ -457,6 +462,10 @@ export class ApiClient {
 
   public static getUsersBySearchTerm(searchTerm: string): Promise<any> {
     return this.get(`users?searchTerm=${searchTerm}&offset=0&limit=0`);
+  }
+
+  public static getUserprivilegeSearchTerm(searchTerm: string): Promise<any> {
+    return this.fetch(getDataikuUrl(`userprivilege?limit=0&offset=0&sortBy=&sortOrder=&searchTerm=${searchTerm}`), HTTP_METHOD.GET);
   }
 
   public static getAllSolutions(queryUrl?: string): Promise<ICreateNewSolution[]> {
