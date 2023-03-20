@@ -554,15 +554,27 @@ public class DataProductAssembler implements GenericAssembler<DataProductVO, Dat
 
 		providerResponseVO.getContactInformation().setDataTransferDate(contactInformation.getDataProductDate());
 		BeanUtils.copyProperties(existingDataProduct, providerResponseVO);
-		BeanUtils.copyProperties(contactInformation, providerResponseVO.getContactInformation());
-		BeanUtils.copyProperties(contactInformation.getDivision(), providerResponseVO.getContactInformation().getDivision());
-		BeanUtils.copyProperties(contactInformation.getDivision().getSubdivision(), providerResponseVO.getContactInformation().getDivision().getSubdivision());
-		BeanUtils.copyProperties(contactInformation.getInformationOwner(), providerResponseVO.getContactInformation().getInformationOwner());
-		BeanUtils.copyProperties(contactInformation.getName(), providerResponseVO.getContactInformation().getName());
-		BeanUtils.copyProperties(existingDataProduct.getClassificationConfidentiality(), providerResponseVO.getClassificationConfidentiality());
-		BeanUtils.copyProperties(existingDataProduct.getPersonalRelatedData(), providerResponseVO.getPersonalRelatedData());
-		BeanUtils.copyProperties(existingDataProduct.getTransnationalDataTransfer(), providerResponseVO.getTransnationalDataTransfer());
-		BeanUtils.copyProperties(existingDataProduct.getDeletionRequirement(), providerResponseVO.getDeletionRequirement());
+		if(Objects.nonNull(contactInformation)) {
+			BeanUtils.copyProperties(contactInformation, providerResponseVO.getContactInformation());
+			if(Objects.nonNull(contactInformation.getDivision()))
+				BeanUtils.copyProperties(contactInformation.getDivision(), providerResponseVO.getContactInformation().getDivision());
+			if(Objects.nonNull(contactInformation.getDivision().getSubdivision()))
+				BeanUtils.copyProperties(contactInformation.getDivision().getSubdivision(), providerResponseVO.getContactInformation().getDivision().getSubdivision());
+			if(Objects.nonNull(contactInformation.getInformationOwner()))
+				BeanUtils.copyProperties(contactInformation.getInformationOwner(), providerResponseVO.getContactInformation().getInformationOwner());
+			if(Objects.nonNull(contactInformation.getName()))
+				BeanUtils.copyProperties(contactInformation.getName(), providerResponseVO.getContactInformation().getName());
+		}
+		if(Objects.nonNull(existingDataProduct)) {
+			if(Objects.nonNull(existingDataProduct.getClassificationConfidentiality()))
+				BeanUtils.copyProperties(existingDataProduct.getClassificationConfidentiality(), providerResponseVO.getClassificationConfidentiality());
+			if(Objects.nonNull(existingDataProduct.getPersonalRelatedData()))
+				BeanUtils.copyProperties(existingDataProduct.getPersonalRelatedData(), providerResponseVO.getPersonalRelatedData());
+			if(Objects.nonNull(existingDataProduct.getTransnationalDataTransfer()))
+				BeanUtils.copyProperties(existingDataProduct.getTransnationalDataTransfer(), providerResponseVO.getTransnationalDataTransfer());
+			if(Objects.nonNull(existingDataProduct.getDeletionRequirement()))
+				BeanUtils.copyProperties(existingDataProduct.getDeletionRequirement(), providerResponseVO.getDeletionRequirement());
+		}
 
 		if (contactInformation.getInformationOwner().getUserType() != null) {
 			providerResponseVO.getContactInformation().getInformationOwner().setUserType(DataTransferTeamMemberVO.UserTypeEnum.valueOf(contactInformation.getInformationOwner().getUserType().toString().toUpperCase()));
