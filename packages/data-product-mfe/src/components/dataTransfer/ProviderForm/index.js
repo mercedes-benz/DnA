@@ -640,8 +640,8 @@ const ProviderForm = ({ user, history }) => {
                   {displayErrorOfAllTabs('Contact Information Tab', errorsInPublish?.contactInformationTabError)}
                   {displayErrorOfAllTabs('Data Description & Classification Tab', errorsInPublish?.dataDescriptionClassificationTabError)}
                   {displayErrorOfAllTabs('Personal Related Data Tab', errorsInPublish?.personalRelatedDataTabError)}
-                  {displayErrorOfAllTabs('Trans-national Data Tab', errorsInPublish?.transnationalDataTabError)}
-                  {displayErrorOfAllTabs('Deletion Requirement Tab', errorsInPublish?.deletionRequirementsTabError)}  
+                  {displayErrorOfAllTabs('Transnational Data Tab', errorsInPublish?.transnationalDataTabError)}
+                  {displayErrorOfAllTabs('Other Tab', errorsInPublish?.deletionRequirementsTabError)}  
                   </ul>
                 </div>
               ) : ''}
