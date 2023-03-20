@@ -564,11 +564,6 @@ const Summary = ({ history, user }) => {
                             {selectedDataProduct.LCOApprovedDataTransfer}
                           </div>
                         ) : null}
-                        <div>
-                          <label className="input-label summary">Does data product contain (potential) insider information?</label>
-                          <br />
-                          {selectedDataProduct.insiderInformation}
-                        </div>
                       </div>
                       <div className={Styles.flexLayout}>
                         <div>
@@ -589,6 +584,11 @@ const Summary = ({ history, user }) => {
                         </div>
                       </div>
                       <div className={classNames(Styles.flexLayout, Styles.threeColumn)}>
+                        <div>
+                          <label className="input-label summary">Does data product contain (potential) insider information?</label>
+                          <br />
+                          {selectedDataProduct.insiderInformation}
+                        </div>
                         <div>
                           <label className="input-label summary">
                             Are there specific deletion requirements for this data?

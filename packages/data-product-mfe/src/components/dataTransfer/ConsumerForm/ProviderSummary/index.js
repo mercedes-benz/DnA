@@ -190,11 +190,6 @@ const ProviderSummary = ({ onSave, providerFormIsDraft }) => {
                   {providerInformation.LCOApprovedDataTransfer}
                 </div>
               ) : null}
-              <div>
-                <label className="input-label summary">Does data product contain (potential) insider information?</label>
-                <br />
-                {providerInformation.insiderInformation}
-              </div>
             </div>
             <div className={Styles.flexLayout}>
               <div>
@@ -215,6 +210,11 @@ const ProviderSummary = ({ onSave, providerFormIsDraft }) => {
               </div>
             </div>
             <div className={classNames(Styles.flexLayout, Styles.threeColumn)}>
+              <div>
+                <label className="input-label summary">Does data product contain (potential) insider information?</label>
+                <br />
+                {providerInformation.insiderInformation}
+              </div>
               <div>
                 <label className="input-label summary">Are there specific deletion requirements for this data?</label>
                 <br />
