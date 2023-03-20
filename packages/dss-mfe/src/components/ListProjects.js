@@ -30,6 +30,7 @@ import InfoModal from 'dna-container/InfoModal';
 import ProvisionSolution from 'dna-container/ProvisionSolution';
 
 import { dataikuApi } from '../apis/dataiku.api';
+import CreateOrEditProject from './CreateOrEditProject/index';
 
 const classNames = cn.bind(Styles);
 
@@ -37,6 +38,7 @@ export default class ListProjects extends React.Component {
   static child = React.createRef();
   static prodSearchInput;
   static trainingSearchInput;
+  static dnaSearchInput;
   static csvLink = React.createRef();
 
   constructor(props) {
@@ -47,9 +49,12 @@ export default class ListProjects extends React.Component {
       productionListToDisplayAfterSearch: [],
       trainingList: {},
       trainingListToDisplayAfterSearch: [],
+      dnaList: {},
+      dnaListToDisplayAfterSearch: [],
       tabClassNames: new Map(),
       currentTab: 'production',
       showProvisionModal: false,
+      editDataikuProjectModal: false,
       projectTobeProvisioned: null,
       showDetailsModal: false,
       projectData: {
@@ -122,16 +127,21 @@ export default class ListProjects extends React.Component {
   }
 
   render() {
-    const productionList = this.state.paginatedRecords.length > 0 ? this.state.paginatedRecords : [];
-    const trainingList = this.state.paginatedRecords.length > 0 ? this.state.paginatedRecords : [];
+    const productionList = this.state.productionList?.data?.length > 0 && this.state.paginatedRecords.length > 0 ? this.state.paginatedRecords : [];
+    const trainingList = this.state.trainingList?.data?.length > 0 && this.state.paginatedRecords.length > 0 ? this.state.paginatedRecords : [];
+    const dnaList = this.state.dnaList?.data?.length > 0 && this.state.paginatedRecords.length > 0 ? this.state.paginatedRecords : [];
     const projectsData = trainingList.map((project) => {
       return (
         <ListRowItem
           key={project.projectKey}
           project={project}
           projectId={project.projectKey}
+          editDataikuProjectDetail={this.editDataikuProjectDetails}
+          deleteDataikuProject={this.deleteDataikuProject}
           isProduction={false}
+          isDnaProject={false}
           openDetailsModal={this.openDetailsModal}
+          user={this.props.user}
         />
       );
     });
@@ -143,8 +153,29 @@ export default class ListProjects extends React.Component {
           project={project}
           projectId={project.projectKey}
           isProduction={true}
+          isDnaProject={false}
+          editDataikuProjectDetail={this.editDataikuProjectDetails}
+          deleteDataikuProject={this.deleteDataikuProject}
           openProvisionModal={this.openProvisionModal}
           openDetailsModal={this.openDetailsModal}
+          user={this.props.user}
+        />
+      );
+    });
+
+    const dnaData = dnaList.map((project) => {
+      return (
+        <ListRowItem
+          key={project.projectKey}
+          project={project}
+          projectId={project.projectKey}
+          isProduction={false}
+          isDnaProject={true}
+          editDataikuProjectDetail={this.editDataikuProjectDetails}
+          deleteDataikuProject={this.deleteDataikuProject}
+          openProvisionModal={this.openProvisionModal}
+          openDetailsModal={this.openDetailsModal}
+          user={this.props.user}
         />
       );
     });
@@ -282,6 +313,16 @@ export default class ListProjects extends React.Component {
         </a>
       </React.Fragment>
     );
+    const dnaProjectEmpty = (
+      <React.Fragment>
+        There is no DnA project available &nbsp;
+      </React.Fragment>
+    );
+    const dnaProjectSearchEmpty = (
+      <React.Fragment>
+        Searched result could not be found in DnA projects. &nbsp;
+      </React.Fragment>
+    );
     const trainingProjectSearchEmpty = (
       <React.Fragment>
         Searched result could not be found in Training projects, in order to create a new Dataiku Training project you
@@ -346,6 +387,11 @@ export default class ListProjects extends React.Component {
                         Training Projects
                       </a>
                     </li>
+                    <li className={this.state.currentTab === 'createOrEdit' ? 'tab active ' : 'tab '}>
+                      <a href="#tab-dna-dataiku-project" id="createOrEdit" onClick={this.setCurrentTab}>
+                        DnA Dataiku Projects
+                      </a>
+                    </li>
                     <li className={'tab disabled'}>
                       <a id="training2" className={'hidden'}>
                         `
@@ -370,6 +416,13 @@ export default class ListProjects extends React.Component {
                 </nav>
               </div>
               <div className="tabs-content-wrapper">
+                {this.state.currentTab === 'createOrEdit' && <React.Fragment>
+                  <CreateOrEditProject
+                    editDataikuProjectDetail={this.state.projectData}
+                    isEdit={false}
+                    user={this.props.user}
+                    callDnaDataList={this.callDnaDataListApi}
+                  /></React.Fragment>}
                 <div id="tab-project" className={Styles.tabContentStyle + ' tab-content'}>
                   <React.Fragment>
                     <i
@@ -621,6 +674,120 @@ export default class ListProjects extends React.Component {
                     )}
                   </React.Fragment>
                 </div>
+                <br />
+                <div id="tab-dna-dataiku-project" className={Styles.tabContentStyle + ' tab-content'}>
+                  <React.Fragment>
+                    {this.state.dnaList.data ? (
+                      this.state.dnaList.data.length > 0 ? (
+                        <div className={Styles.searchPanel}>
+                          <input
+                            type="text"
+                            className={classNames(Styles.searchInputField, canShowSearch ? '' : Styles.hide)}
+                            ref={(searchInput) => {
+                              this.dnaSearchInput = searchInput;
+                            }}
+                            placeholder="Search Project"
+                            onChange={this.onSearchInputChange}
+                            maxLength={200}
+                            value={this.state.searchTerm}
+                          />
+                          <button className="default-cursor" onClick={this.onDnaSearchIconButtonClick}>
+                            <i className={classNames('icon mbc-icon search', canShowSearch ? Styles.active : '')} />
+                          </button>
+                        </div>
+                      ) : (
+                        ''
+                      )
+                    ) : (
+                      ''
+                    )}
+                    {dnaData.length > 0 ? (
+                      <table className={'ul-table solutions ' + Styles.table}>
+                        <thead>
+                          <tr className="header-row">
+                            <th
+                              onClick={() => {
+                                this.sortByColumn('projectName', this.state.nextSortOrder);
+                              }}
+                            >
+                              <label
+                                className={
+                                  'sortable-column-header ' +
+                                  (this.state.currentColumnToSort == 'projectName' ? this.state.currentSortOrder : 'asc')
+                                }
+                              >
+                                <i className="icon sort" />
+                                Name
+                              </label>
+                            </th>
+                            <th
+                              onClick={() => {
+                                this.sortByColumn('description', this.state.nextSortOrder);
+                              }}
+                            >
+                              <label
+                                className={
+                                  'sortable-column-header ' +
+                                  (this.state.currentColumnToSort == 'description' ? this.state.currentSortOrder : '')
+                                }
+                              >
+                                <i className="icon sort" />
+                                Description
+                              </label>
+                            </th>
+                            <th
+                              onClick={() => {
+                                this.sortByColumn('cloudProfile', this.state.nextSortOrder);
+                              }}
+                            >
+                              <label
+                                className={
+                                  'sortable-column-header ' +
+                                  (this.state.currentColumnToSort == 'cloudProfile'
+                                    ? this.state.currentSortOrder
+                                    : '')
+                                }
+                              >
+                                <i className="icon sort" />
+                                Extollo/On-premise
+                              </label>
+                            </th>
+                            <th>
+                              <label className="sortable-column-header">Action</label>
+                            </th>
+                          </tr>
+                        </thead>
+                        <tbody>{dnaData}</tbody>
+                      </table>
+                    ) : this.state.dnaList.data ? (
+                      this.state.dnaList.data.length > 0 ? (
+                        <div className={Styles.datasNotExisted}>
+                          <DataNotExist message={dnaProjectSearchEmpty} height={'150px'} />
+                        </div>
+                      ) : (
+                        <div className={Styles.datasNotExisted}>
+                          <DataNotExist message={dnaProjectEmpty} height={'150px'} />
+                        </div>
+                      )
+                    ) : (
+                      <div className={Styles.datasNotExisted}>
+                        <DataNotExist message={dnaProjectEmpty} height={'150px'} />
+                      </div>
+                    )}
+                    {this.state.totalNumberOfRecords ? (
+                      <Pagination
+                        totalPages={this.state.totalNumberOfPages}
+                        pageNumber={this.state.currentPageNumber}
+                        onPreviousClick={this.onPaginationPreviousClick}
+                        onNextClick={this.onPaginationNextClick}
+                        onViewByNumbers={this.onViewByPageNum}
+                        displayByPage={true}
+                      />
+                    ) : (
+                      ''
+                    )}
+                  </React.Fragment>
+                </div>
               </div>
             </div>
           </div>
@@ -647,6 +814,25 @@ export default class ListProjects extends React.Component {
           filename={csvFileName}
           target="_blank"
         />
+        {this.state.editDataikuProjectModal && (
+          <Modal
+            title={''}
+            showAcceptButton={false}
+            showCancelButton={false}
+            modalWidth={'80%'}
+            buttonAlignment="right"
+            show={this.state.editDataikuProjectModal}
+            content={
+              <CreateOrEditProject
+                editDataikuProjectDetail={this.state.projectData}
+                isEdit={true}
+                user={this.props.user}
+                callDnaDataList={this.callDnaDataListApi} />
+            }
+            scrollableContent={false}
+            onCancel={this.editDataikuProjectModalCancel}
+          />
+        )}
         {this.state.showProvisionModal && (
           <Modal
             title={''}
@@ -723,6 +909,37 @@ export default class ListProjects extends React.Component {
     });
   };
 
+  callDnaDataListApi = () => {
+    this.getDnaProjects();
+    this.editDataikuProjectModalCancel()
+  };
+
+  deleteDataikuProject = (projectId) => {
+    ProgressIndicator.show();
+    dataikuApi
+      .deleteDnaProjectList(projectId)
+      .then((response) => {
+        const data = response.data;
+        if (data.success === "SUCCESS") {
+          ProgressIndicator.hide();
+          this.getDnaProjects();
+          Notification.show('Dataiku project deleted successfully');
+        } else {
+          ProgressIndicator.hide();
+          this.showErrorNotification('Failed to delete Dataiku project.');
+        }
+      })
+      .catch((err) => {
+        err;
+        this.showErrorNotification('Something went wrong.');
+        ProgressIndicator.hide();
+      });
+  }
+
+  editDataikuProjectDetails = (project) => {
+    this.setState({ editDataikuProjectModal: true, projectData: project });
+  };
+
   createSummaryLink = (provisionedSolutionId) => {
     const span = document.createElement('i');
     const goToSolution = (solutionId) => {
@@ -738,6 +955,10 @@ export default class ListProjects extends React.Component {
 
   onProvisionModalCancel = () => {
     this.setState({ showProvisionModal: false });
+  };
+
+  editDataikuProjectModalCancel = () => {
+    this.setState({ editDataikuProjectModal: false });
   };
 
   openDetailsModal = (project) => {
@@ -824,6 +1045,43 @@ export default class ListProjects extends React.Component {
     //   searchTerm: ''});
   };
 
+  getDnaProjects = () => {
+    ProgressIndicator.show();
+    dataikuApi
+      .getDnaProjectList()
+      .then((response) => {
+        const data = response.data;
+        this.setState(
+          {
+            dnaList: data,
+            totalNumberOfRecords: data.totalCount,
+            currentPageNumber: 1,
+            currentPageOffset: 0,
+            totalNumberOfPages: Math.ceil(data.totalCount / this.state.maxItemsPerPage),
+            dnaListToDisplayAfterSearch: [],
+            searchTerm: '',
+          },
+          () => {
+            this.getPaginatedProjects();
+          },
+        );
+        ProgressIndicator.hide();
+      })
+      .catch((err) => {
+        err;
+        this.getPaginatedProjects();
+        this.showErrorNotification('Something went wrong.');
+        ProgressIndicator.hide();
+      });
+
+    /****************************************
+     * Following line is temporary
+     * *************************************/
+    // this.setState({dnaList: {data: this.temporaryData},
+    //   dnaListToDisplayAfterSearch: this.temporaryData,
+    //   searchTerm: ''});
+  };
+
   showErrorNotification = (message) => {
     ProgressIndicator.hide();
     Notification.show(message, 'alert');
@@ -839,8 +1097,10 @@ export default class ListProjects extends React.Component {
     });
     if (target.id === 'training') {
       this.getTrainingProjects();
-    } else {
+    } else if (target.id === 'production') {
       this.getLiveProjects();
+    } else if (target.id === 'createOrEdit') {
+      this.getDnaProjects();
     }
   };
 
@@ -886,6 +1146,18 @@ export default class ListProjects extends React.Component {
                 currentPageNumber: 1,
                 currentPageOffset: 0,
               });
+            } else if (this.state.currentTab === 'createOrEdit') {
+              const tempList = this.state.dnaList.data.length > 0 ? this.state.dnaList.data : [];
+              const tillRecord = 0 + this.state.maxItemsPerPage;
+              const records = tempList.slice(0, tillRecord);
+              this.setState({
+                totalNumberOfRecords: tempList.length,
+                totalNumberOfPages: Math.ceil(tempList.length / this.state.maxItemsPerPage),
+                paginatedRecords: records,
+                dnaListToDisplayAfterSearch: [],
+                currentPageNumber: 1,
+                currentPageOffset: 0,
+              });
             } else {
               const tempList = this.state.trainingList.data.length > 0 ? this.state.trainingList.data : [];
               const tillRecord = 0 + this.state.maxItemsPerPage;
@@ -910,15 +1182,15 @@ export default class ListProjects extends React.Component {
       const tempList =
         this.state.productionList.data.length > 0
           ? this.state.productionList.data.filter((item) => {
-              if (item.name.toLowerCase().includes(this.state.searchTerm.toLowerCase())) {
+            if (item.name.toLowerCase().includes(this.state.searchTerm.toLowerCase())) {
+              return item;
+            }
+            if (item.shortDesc) {
+              if (item.shortDesc.toLowerCase().includes(this.state.searchTerm.toLowerCase())) {
                 return item;
               }
-              if (item.shortDesc) {
-                if (item.shortDesc.toLowerCase().includes(this.state.searchTerm.toLowerCase())) {
-                  return item;
-                }
-              }
-            })
+            }
+          })
           : [];
       const tillRecord = 0 + this.state.maxItemsPerPage;
       const records = tempList.slice(0, tillRecord);
@@ -930,19 +1202,43 @@ export default class ListProjects extends React.Component {
         currentPageNumber: 1,
         currentPageOffset: 0,
       });
+    } else if (this.state.currentTab === 'createOrEdit') {
+      const tempList =
+        this.state.dnaList.data.length > 0
+          ? this.state.dnaList.data.filter((item) => {
+            if (item.projectName.toLowerCase().includes(this.state.searchTerm.toLowerCase())) {
+              return item;
+            }
+            if (item.description) {
+              if (item.description.toLowerCase().includes(this.state.searchTerm.toLowerCase())) {
+                return item;
+              }
+            }
+          })
+          : [];
+      const tillRecord = 0 + this.state.maxItemsPerPage;
+      const records = tempList.slice(0, tillRecord);
+      this.setState({
+        totalNumberOfRecords: tempList.length,
+        totalNumberOfPages: Math.ceil(tempList.length / this.state.maxItemsPerPage),
+        paginatedRecords: records,
+        dnaListToDisplayAfterSearch: tempList,
+        currentPageNumber: 1,
+        currentPageOffset: 0,
+      });
     } else {
       const tempList =
         this.state.trainingList.data.length > 0
           ? this.state.trainingList.data.filter((item) => {
-              if (item.name.toLowerCase().includes(this.state.searchTerm.toLowerCase())) {
+            if (item.name.toLowerCase().includes(this.state.searchTerm.toLowerCase())) {
+              return item;
+            }
+            if (item.shortDesc) {
+              if (item.shortDesc.toLowerCase().includes(this.state.searchTerm.toLowerCase())) {
                 return item;
               }
-              if (item.shortDesc) {
-                if (item.shortDesc.toLowerCase().includes(this.state.searchTerm.toLowerCase())) {
-                  return item;
-                }
-              }
-            })
+            }
+          })
           : [];
       const tillRecord = 0 + this.state.maxItemsPerPage;
       const records = tempList.slice(0, tillRecord);
@@ -963,6 +1259,10 @@ export default class ListProjects extends React.Component {
 
   onTrainingSearchIconButtonClick = () => {
     this.trainingSearchInput.focus();
+  };
+
+  onDnaSearchIconButtonClick = () => {
+    this.dnaSearchInput.focus();
   };
 
   onPaginationPreviousClick = () => {
@@ -986,7 +1286,7 @@ export default class ListProjects extends React.Component {
     const currentPageOffset = 0;
     const maxItemsPerPage = pageNum;
     this.setState({ currentPageOffset, maxItemsPerPage, currentPageNumber: 1 }, () => {
-      if (this.state.currentTab === 'production')
+      if (this.state.currentTab === 'production') {
         this.setState({
           totalNumberOfPages: Math.ceil(
             (this.state.productionListToDisplayAfterSearch.length > 0
@@ -994,7 +1294,15 @@ export default class ListProjects extends React.Component {
               : this.state.productionList.totalCount) / this.state.maxItemsPerPage,
           ),
         });
-      else
+      } else if (this.state.currentTab === 'createOrEdit') {
+        this.setState({
+          totalNumberOfPages: Math.ceil(
+            (this.state.dnaListToDisplayAfterSearch.length > 0
+              ? this.state.dnaListToDisplayAfterSearch.length
+              : this.state.dnaList.totalCount) / this.state.maxItemsPerPage,
+          ),
+        });
+      } else {
         this.setState({
           totalNumberOfPages: Math.ceil(
             (this.state.trainingListToDisplayAfterSearch.length > 0
@@ -1002,6 +1310,7 @@ export default class ListProjects extends React.Component {
               : this.state.trainingList.totalCount) / this.state.maxItemsPerPage,
           ),
         });
+      }
       this.getPaginatedProjects();
     });
   };
@@ -1010,22 +1319,42 @@ export default class ListProjects extends React.Component {
     const tillRecord = this.state.currentPageOffset + this.state.maxItemsPerPage;
     let sortedProductionList = [];
     let sortedTrainingList = [];
+    let sortedDnaList = [];
     const productionList =
       this.state.productionListToDisplayAfterSearch.length > 0
         ? this.state.productionListToDisplayAfterSearch
         : this.state.productionList.data
-        ? this.state.productionList.data
-        : [];
+          ? this.state.productionList.data
+          : [];
+    const dnaList =
+      this.state.dnaListToDisplayAfterSearch.length > 0
+        ? this.state.dnaListToDisplayAfterSearch
+        : this.state.dnaList.data
+          ? this.state.dnaList.data
+          : [];
     const trainingList =
       this.state.trainingListToDisplayAfterSearch.length > 0
         ? this.state.trainingListToDisplayAfterSearch
         : this.state.trainingList.data
-        ? this.state.trainingList.data
-        : [];
+          ? this.state.trainingList.data
+          : [];
     if (this.state.currentTab === 'production' && productionList.length) {
       sortedProductionList = productionList.sort((a, b) => {
         const nameA = a.name.toUpperCase(); // ignore upper and lowercase
         const nameB = b.name.toUpperCase(); // ignore upper and lowercase
+        if (nameA < nameB) {
+          return -1;
+        }
+        if (nameA > nameB) {
+          return 1;
+        }
+        // names must be equal
+        return 0;
+      });
+    } else if (this.state.currentTab === 'createOrEdit' && dnaList.length) {
+      sortedDnaList = dnaList.sort((a, b) => {
+        const nameA = a.projectName.toUpperCase(); // ignore upper and lowercase
+        const nameB = b.projectName.toUpperCase(); // ignore upper and lowercase
         if (nameA < nameB) {
           return -1;
         }
@@ -1053,7 +1382,9 @@ export default class ListProjects extends React.Component {
     const records =
       this.state.currentTab === 'production'
         ? sortedProductionList.slice(this.state.currentPageOffset, tillRecord)
-        : sortedTrainingList.slice(this.state.currentPageOffset, tillRecord);
+        : this.state.currentTab === 'createOrEdit'
+          ? sortedDnaList.slice(this.state.currentPageOffset, tillRecord)
+          : sortedTrainingList.slice(this.state.currentPageOffset, tillRecord);
     this.setState(
       {
         paginatedRecords: records,
@@ -1069,7 +1400,8 @@ export default class ListProjects extends React.Component {
       sortOrder = 'asc';
     }
     const arrayToSort =
-      this.state.currentTab === 'production' ? this.state.productionList.data : this.state.trainingList.data;
+      this.state.currentTab === 'production' ? this.state.productionList.data :
+        this.state.currentTab === 'createOrEdit' ? this.state.dnaList.data : this.state.trainingList.data;
     const sortedArray = arrayToSort.sort((a, b) => {
       let nameA;
       let nameB;
@@ -1100,6 +1432,8 @@ export default class ListProjects extends React.Component {
     const records = sortedArray.slice(0, tillRecord);
     if (this.state.currentTab === 'production') {
       this.setState({ productionListToDisplayAfterSearch: sortedArray });
+    } else if (this.state.currentTab === 'createOrEdit') {
+      this.setState({ dnaListToDisplayAfterSearch: sortedArray });
     } else {
       this.setState({ trainingListToDisplayAfterSearch: sortedArray });
     }
@@ -1117,7 +1451,8 @@ export default class ListProjects extends React.Component {
 
   sortResult = (columnName, sortOrder) => {
     const arrayToSort =
-      this.state.currentTab === 'production' ? this.state.productionList.data : this.state.trainingList.data;
+      this.state.currentTab === 'production' ? this.state.productionList.data :
+        this.state.currentTab === 'createOrEdit' ? this.state.dnaList.data : this.state.trainingList.data;
     const sortedArray = arrayToSort.sort((a, b) => {
       let nameA;
       let nameB;
@@ -1157,16 +1492,16 @@ export default class ListProjects extends React.Component {
           ? this.state.productionListToDisplayAfterSearch.length > 0
             ? this.state.productionListToDisplayAfterSearch
             : this.state.productionList.data
-            ? this.sortResult('name', 'asc')
-            : []
+              ? this.sortResult('name', 'asc')
+              : []
           : []
         : this.state.trainingListToDisplayAfterSearch
-        ? this.state.trainingListToDisplayAfterSearch.length > 0
-          ? this.state.trainingListToDisplayAfterSearch
-          : this.state.trainingList.data
-          ? this.sortResult('name', 'asc')
-          : []
-        : [];
+          ? this.state.trainingListToDisplayAfterSearch.length > 0
+            ? this.state.trainingListToDisplayAfterSearch
+            : this.state.trainingList.data
+              ? this.sortResult('name', 'asc')
+              : []
+          : [];
 
     if (records.length > 0) {
       getDataForCSV(records, (csvData, csvHeader) => {

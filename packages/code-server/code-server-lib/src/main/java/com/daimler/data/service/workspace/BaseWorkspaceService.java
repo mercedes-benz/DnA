@@ -79,6 +79,9 @@ public class BaseWorkspaceService implements WorkspaceService {
 	@Value("${codeServer.git.orgname}")
 	private String gitOrgName;
 	
+	@Value("${codeServer.git.orguri}")
+	private String gitOrgUri;
+	
 	@Autowired
 	private WorkspaceAssembler workspaceAssembler;
 	@Autowired
@@ -126,7 +129,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 				deployJobInputDto.setAction("undeploy");
 				deployJobInputDto.setBranch(branch);
 				deployJobInputDto.setEnvironment(entity.getData().getProjectDetails().getRecipeDetails().getEnvironment());
-				deployJobInputDto.setRepo(gitOrgName+"/"+entity.getData().getProjectDetails().getGitRepoName());
+				deployJobInputDto.setRepo(gitOrgUri+gitOrgName+"/"+entity.getData().getProjectDetails().getGitRepoName());
 				String projectOwner = entity.getData().getProjectDetails().getProjectOwner().getId();
 				deployJobInputDto.setShortid(projectOwner);
 				deployJobInputDto.setTarget_env("int");
@@ -158,7 +161,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 				deployJobInputDto.setAction("undeploy");
 				deployJobInputDto.setBranch(branch);
 				deployJobInputDto.setEnvironment(entity.getData().getProjectDetails().getRecipeDetails().getEnvironment());
-				deployJobInputDto.setRepo(gitOrgName+"/"+entity.getData().getProjectDetails().getGitRepoName());
+				deployJobInputDto.setRepo(gitOrgUri+gitOrgName+"/"+entity.getData().getProjectDetails().getGitRepoName());
 				String projectOwner = entity.getData().getProjectDetails().getProjectOwner().getId();
 				deployJobInputDto.setShortid(projectOwner);
 				deployJobInputDto.setTarget_env("prod");
@@ -223,7 +226,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 				 ownerWorkbenchDeleteInputsDto.setIsCollaborator("false");
 				 ownerWorkbenchDeleteInputsDto.setPassword("");
 				 ownerWorkbenchDeleteInputsDto.setPat("");
-				 String repoNameWithOrg =  gitOrgName + "/" + repoName;
+				 String repoNameWithOrg =  gitOrgUri + gitOrgName + "/" + repoName;
 				 ownerWorkbenchDeleteInputsDto.setRepo(repoNameWithOrg);
 				 String workspaceUserId = record[1].toString();
 				 ownerWorkbenchDeleteInputsDto.setShortid(workspaceUserId);
@@ -290,7 +293,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 			 ownerWorkbenchCreateInputsDto.setPassword(password);
 			 ownerWorkbenchCreateInputsDto.setPat(pat);
 			 String repoName = entity.getData().getProjectDetails().getGitRepoName();
-			 String repoNameWithOrg =  gitOrgName + "/" + repoName;
+			 String repoNameWithOrg =  gitOrgUri + gitOrgName + "/" + repoName;
 			 ownerWorkbenchCreateInputsDto.setRepo(repoNameWithOrg);
 			 ownerWorkbenchCreateInputsDto.setShortid(entity.getData().getWorkspaceOwner().getId());
 			 ownerWorkbenchCreateInputsDto.setType(client.toDeployType(entity.getData().getProjectDetails().getRecipeDetails().getRecipeId()));
@@ -352,6 +355,9 @@ public class BaseWorkspaceService implements WorkspaceService {
 		List<MessageDescription> errors = new ArrayList<>();
 		List<MessageDescription> warnings = new ArrayList<>();
 		try {
+			RecipeIdEnum recipe = vo.getProjectDetails().getRecipeDetails().getRecipeId();
+			String recipeIdType =  client.toDeployType(recipe.toString());
+			
 			List<String> gitUsers = new ArrayList<>();
 			UserInfoVO owner = vo.getProjectDetails().getProjectOwner();
 			 
@@ -414,7 +420,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 			 ownerWorkbenchCreateInputsDto.setIsCollaborator("false");
 			 ownerWorkbenchCreateInputsDto.setPassword(password);
 			 ownerWorkbenchCreateInputsDto.setPat(pat);
-			 String repoNameWithOrg =  gitOrgName + "/" + repoName;
+			 String repoNameWithOrg =  gitOrgUri + gitOrgName + "/" + repoName;
 			 ownerWorkbenchCreateInputsDto.setRepo(repoNameWithOrg);
 			 String projectOwnerId = ownerEntity.getData().getWorkspaceOwner().getId();
 			 ownerWorkbenchCreateInputsDto.setShortid(projectOwnerId);
@@ -835,6 +841,8 @@ public class BaseWorkspaceService implements WorkspaceService {
 			String workspaceName = entity.getData().getWorkspaceId();
 			String defaultRecipeId = RecipeIdEnum.DEFAULT.toString();
 			String pythonRecipeId =  RecipeIdEnum.PY_FASTAPI.toString();
+			String reactRecipeId = RecipeIdEnum.REACT.toString();
+			String angularRecipeId =  RecipeIdEnum.ANGULAR.toString();
 			String projectRecipe = entity.getData().getProjectDetails().getRecipeDetails().getRecipeId();
 			String projectOwner = entity.getData().getProjectDetails().getProjectOwner().getId();
 			if(isCreateDeleteStatuses) {
@@ -870,6 +878,9 @@ public class BaseWorkspaceService implements WorkspaceService {
 				 if(pythonRecipeId.equalsIgnoreCase(projectRecipe)) {
 					 deploymentUrl = codeServerBaseUri+"/"+projectOwnerWsId+"/"+ targetEnv +"/api/docs";
 				 }
+				 if(reactRecipeId.equalsIgnoreCase(projectRecipe) || angularRecipeId.equalsIgnoreCase(projectRecipe)) {
+					 deploymentUrl = codeServerBaseUri+"/"+projectOwnerWsId+"/"+ targetEnv + "/";
+				 }				 
 				 String environmentJsonbName = "intDeploymentDetails";
 				 CodeServerDeploymentDetails deploymentDetails = new CodeServerDeploymentDetails();
 				 if("int".equalsIgnoreCase(targetEnv)) {

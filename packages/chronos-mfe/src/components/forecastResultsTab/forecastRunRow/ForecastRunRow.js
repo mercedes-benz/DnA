@@ -58,6 +58,28 @@ const ForecastRunRow = (props) => {
     }
   }
 
+  const downloadExcel = () => {
+    ProgressIndicator.show();
+    if(props.item.resultFolderPath) {
+      const resultFolderPath = item.resultFolderPath.split('/');
+      chronosApi.getExcelFile(`${resultFolderPath[0]}`, `${resultFolderPath[2]}`, 'RESULT.xlsx').then((res) => {
+        var excelBlob = new Blob([res.data]);     
+        var url = window.URL.createObjectURL(excelBlob);
+
+        let link = document.createElement("a");
+        link.setAttribute("href", url);
+        link.setAttribute("download", "RESULT.xlsx");
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        ProgressIndicator.hide();
+      }).catch(() => {
+        Notification.show('Unable to download the file', 'alert');
+        ProgressIndicator.hide();
+      });
+    }
+  }
+
   const contextMenuItems = [
     {
       title: 'Delete Run/Results',
@@ -66,6 +88,10 @@ const ForecastRunRow = (props) => {
     {
       title: 'Browse in Storage',
       onClickFn: onBrowseClick,
+    },
+    {
+      title: 'Download as Excel',
+      onClickFn: downloadExcel,
     },
     {
       title: 'Download prediction as .csv',
