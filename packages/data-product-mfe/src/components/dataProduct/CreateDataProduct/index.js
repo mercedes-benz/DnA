@@ -206,8 +206,9 @@ const CreateDataProduct = ({ user, history }) => {
 
   useEffect(() => {
     return () => {
-      dispatch(setSelectedDataProduct({}));
+      dispatch(setSelectedDataProduct({}));     
     };
+    //eslint-disable-next-line
   }, [dispatch]);
 
   useEffect(() => {
@@ -464,17 +465,26 @@ const CreateDataProduct = ({ user, history }) => {
   const onSave = (currentTab, values, callbackFn) => {
     setShowAllTabsError(false);
     if(values?.publish){
-      if(validatePublishRequest(values)){
-        proceedToSave(currentTab, values, callbackFn)
-      } else {
-        setShowAllTabsError(true);
+      if(!values.id && values.id!='' && currentTab!='description'){
+        setShowDescriptionTabError(true);
+      } else{
+        if(validatePublishRequest(values)){
+          proceedToSave(currentTab, values, callbackFn)
+        } else {
+          setShowAllTabsError(true);
+        }
       }
-    } else {      
-      if(validateDescriptionTab(values)){
-        proceedToSave(currentTab, values, callbackFn)
-      } else {
-        setShowAllTabsError(true);
-      }      
+    } else { 
+      if(!values.id && values.id!='' && currentTab!='description'){
+        setShowDescriptionTabError(true);
+      } else{
+        if(validateDescriptionTab(values)){
+          proceedToSave(currentTab, values, callbackFn)
+        } else {
+          setShowAllTabsError(true);
+        }   
+      }
+         
     }
   };
 
@@ -682,7 +692,7 @@ const CreateDataProduct = ({ user, history }) => {
               (
                 <div>
                   <h3 className={classNames('error-message')}>
-                    Please fill Description Tab first
+                    Please fill and save Description Tab first
                   </h3>
                   <ul>
                   {displayErrorOfAllTabs('Description Tab', errorsInPublish?.descriptionTabError)}
