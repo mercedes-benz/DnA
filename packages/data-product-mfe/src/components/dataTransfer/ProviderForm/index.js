@@ -562,7 +562,7 @@ const ProviderForm = ({ user, history }) => {
                 <ul className="tabs">
                   {/* <li className={savedTabs?.includes('contact-info') ? 'tab valid' : 'tab active'}> */}
                   <li className={savedTabs?.includes('contact-info') &&
-                    errorsInPublish?.contactInformationTabError?.length < 1 ? 'tab' : 'tab valid active'}>  
+                    errorsInPublish?.contactInformationTabError?.length < 1 ? 'tab valid active' : 'tab active'}>  
                     <a
                       href="#tab-content-1"
                       id="contact-info"
@@ -576,7 +576,7 @@ const ProviderForm = ({ user, history }) => {
                   </li>
                   {/* <li className={savedTabs?.includes('classification-confidentiality') ? 'tab valid' : 'tab disabled'}> */}
                   <li className={savedTabs?.includes('classification-confidentiality') && 
-                    errorsInPublish?.dataDescriptionClassificationTabError?.length < 1 ? 'tab':'tab valid'}>
+                    errorsInPublish?.dataDescriptionClassificationTabError?.length < 1 ? 'tab valid':'tab'}>
                     <a
                       href="#tab-content-2"
                       id="classification-confidentiality"
@@ -590,7 +590,7 @@ const ProviderForm = ({ user, history }) => {
                   </li>
                   {/* <li className={savedTabs?.includes('personal-data') ? 'tab valid' : 'tab disabled'}> */}
                   <li className={savedTabs?.includes('personal-data') && 
-                  errorsInPublish?.personalRelatedDataTabError?.length < 1 ? 'tab' :'tab valid'}>
+                  errorsInPublish?.personalRelatedDataTabError?.length < 1 ? 'tab valid' :'tab'}>
                     <a
                       href="#tab-content-3"
                       id="personal-data"
@@ -604,7 +604,7 @@ const ProviderForm = ({ user, history }) => {
                   </li>
                   {/* <li className={savedTabs?.includes('trans-national-data-transfer') ? 'tab valid' : 'tab disabled'}> */}
                   <li className={savedTabs?.includes('trans-national-data-transfer') && 
-                  errorsInPublish?.transnationalDataTabError?.length < 1 ? 'tab':'tab valid'}>
+                  errorsInPublish?.transnationalDataTabError?.length < 1 ? 'tab valid':'tab'}>
                     <a
                       href="#tab-content-4"
                       id="trans-national-data-transfer"
@@ -692,6 +692,30 @@ const ProviderForm = ({ user, history }) => {
                   </ul>
                 </div>
               ) : ''}
+
+              { showAllTabsError &&
+                errorsInPublish?.saveTabError?.length > 0 ? 
+              (
+                <div>
+                  <h3 className={classNames('error-message')}>
+                    Please save following tabs details before publish
+                  </h3>
+                  {errorsInPublish?.saveTabError?.length > 0 ?
+                    <li className={classNames('error-message')}>
+                      <ul>
+                        {errorsInPublish?.saveTabError?.map((item) => {
+                          return (
+                            <li className={Styles.errorItem} key={item}>
+                              {item}
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    </li>             
+                  : ''}
+                </div>
+              ) : ''}
+
               { showContactInformationTabError &&
                 errorsInPublish?.contactInformationTabError?.length > 0 ? 
               (
