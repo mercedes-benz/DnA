@@ -761,7 +761,10 @@ const ProviderForm = ({ user, history }) => {
               const id = createCopyId || dataTransferId || provideDataTransfers?.selectedDataTransfer?.id;
               if(id){
                 getDataProductById();
-              }   
+              }else{
+                const data = tabs[currentTab];
+                reset(data);
+              }  
               setCurrentTab(showChangeAlert.switchingTab);
               elementRef.current[Object.keys(tabs).indexOf(showChangeAlert.switchingTab)].click();
               setShowChangeAlert({ modal: false, switchingTab: '' });
