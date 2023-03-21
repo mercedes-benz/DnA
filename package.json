@@ -1,7 +1,7 @@
 {
   "private": true,
   "name": "dna-mbc",
-  "version": "3.2.3",
+  "version": "3.2.4",
   "main": "index.js",
   "workspaces": [
     "packages/*"
