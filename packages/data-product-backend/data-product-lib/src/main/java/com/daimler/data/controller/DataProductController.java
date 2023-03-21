@@ -79,6 +79,11 @@ public class DataProductController implements DataproductsApi{
 				   Objects.isNull(requestVO.getPersonalRelatedData()) ||
 				   Objects.isNull(requestVO.getTransnationalDataTransfer())||
 				   Objects.isNull(requestVO.getDeletionRequirement()) || Objects.isNull(requestVO.getTransnationalDataTransfer().getInsiderInformation())) {
+					List<MessageDescription> messages = new ArrayList<>();
+					MessageDescription message = new MessageDescription();
+					message.setMessage("DataProduct cannot be created as user is not providing the values for one of the tabs.");
+					messages.add(message);
+					responseVO.setErrors(messages);
 					log.info("DataProduct {} cannot be created as user is not providing the values for one of the tabs", uniqueProductName);
 					return new ResponseEntity<>(responseVO, HttpStatus.BAD_REQUEST);
 				}
@@ -523,7 +528,12 @@ public class DataProductController implements DataproductsApi{
 								   Objects.isNull(requestVO.getPersonalRelatedData()) ||
 								   Objects.isNull(requestVO.getTransnationalDataTransfer())||
 								   Objects.isNull(requestVO.getDeletionRequirement()) || Objects.isNull(requestVO.getTransnationalDataTransfer().getInsiderInformation())) {
-									log.info("DataProduct {} cannot be created as user is not providing the values for one of the tabs", id);
+							List<MessageDescription> messages = new ArrayList<>();
+							MessageDescription message = new MessageDescription();
+							message.setMessage("DataProduct cannot be created as user is not providing the values for one of the tabs.");
+							messages.add(message);
+							responseVO.setErrors(messages);		
+							log.info("DataProduct {} cannot be created as user is not providing the values for one of the tabs", id);
 									return new ResponseEntity<>(responseVO, HttpStatus.BAD_REQUEST);
 								}
 					}
@@ -533,6 +543,11 @@ public class DataProductController implements DataproductsApi{
 						   Objects.isNull(requestVO.getPersonalRelatedData()) ||
 						   Objects.isNull(requestVO.getTransnationalDataTransfer())||
 						   Objects.isNull(requestVO.getDeletionRequirement()) || Objects.isNull(requestVO.getTransnationalDataTransfer().getInsiderInformation())) {
+							List<MessageDescription> messages = new ArrayList<>();
+							MessageDescription message = new MessageDescription();
+							message.setMessage("DataProduct cannot be created as user is not providing the values for one of the tabs.");
+							messages.add(message);
+							responseVO.setErrors(messages);
 							log.info("DataProduct {} cannot be created as user is not providing the values for one of the tabs", id);
 							return new ResponseEntity<>(responseVO, HttpStatus.BAD_REQUEST);
 						}
