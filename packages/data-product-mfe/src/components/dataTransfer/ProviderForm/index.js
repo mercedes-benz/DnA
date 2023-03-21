@@ -86,7 +86,8 @@ const ProviderForm = ({ user, history }) => {
     dataDescriptionClassificationTabError: [],
     personalRelatedDataTabError: [],
     transnationalDataTabError: [],
-    deletionRequirementsTabError: []
+    deletionRequirementsTabError: [],
+    saveTabError:[]
   });
 
   const [showAllTabsError, setShowAllTabsError] = useState(false);
@@ -240,7 +241,34 @@ const ProviderForm = ({ user, history }) => {
       dataDescriptionClassificationTabError: [],
       personalRelatedDataTabError: [],
       transnationalDataTabError: [],
-      deletionRequirementsTabError: []
+      deletionRequirementsTabError: [],
+      saveTabError:[]
+    }
+
+
+    if(!savedTabs?.includes('contact-info')){
+      errorObject.saveTabError.push('Contact Information');
+      formValid = false;
+    }
+
+    if(!savedTabs?.includes('classification-confidentiality')){
+      errorObject.saveTabError.push('Data Description & Classification');
+      formValid = false;
+    }
+
+    if(!savedTabs?.includes('personal-data')){
+      errorObject.saveTabError.push('Personal Related Data');
+      formValid = false;
+    }
+    
+    if(!savedTabs?.includes('trans-national-data-transfer')){
+      errorObject.saveTabError.push('Transnational Data');
+      formValid = false;
+    }
+
+    if(!savedTabs?.includes('deletion-requirements')){
+      errorObject.saveTabError.push('Other Data');
+      formValid = false;
     }
 
     if (!reqObj?.productName || reqObj?.productName === '') {
@@ -316,13 +344,13 @@ const ProviderForm = ({ user, history }) => {
       formValid = false;
     }
 
-    if (!reqObj?.insiderInformation || reqObj?.insiderInformation === '') {
-      errorObject.transnationalDataTabError.push('Does data product contain (potential) insider information?');
+    if (!reqObj?.dataOriginatedFromChina || reqObj?.dataOriginatedFromChina === '') {
+      errorObject.transnationalDataTabError.push('Is data from China included?');
       formValid = false;
     }
 
-    if (!reqObj?.dataOriginatedFromChina || reqObj?.dataOriginatedFromChina === '') {
-      errorObject.transnationalDataTabError.push('Is data from China included?');
+    if (!reqObj?.insiderInformation || reqObj?.insiderInformation === '') {
+      errorObject.deletionRequirementsTabError.push('Does data product contain (potential) insider information?');
       formValid = false;
     }
 
@@ -533,7 +561,8 @@ const ProviderForm = ({ user, history }) => {
               <nav>              
                 <ul className="tabs">
                   {/* <li className={savedTabs?.includes('contact-info') ? 'tab valid' : 'tab active'}> */}
-                  <li className={errorsInPublish?.contactInformationTabError?.length > 0 ? 'tab' : 'tab valid active'}>  
+                  <li className={savedTabs?.includes('contact-info') &&
+                    errorsInPublish?.contactInformationTabError?.length < 1 ? 'tab' : 'tab valid active'}>  
                     <a
                       href="#tab-content-1"
                       id="contact-info"
@@ -546,7 +575,8 @@ const ProviderForm = ({ user, history }) => {
                     </a>
                   </li>
                   {/* <li className={savedTabs?.includes('classification-confidentiality') ? 'tab valid' : 'tab disabled'}> */}
-                  <li className={errorsInPublish?.dataDescriptionClassificationTabError?.length > 0 ? 'tab':'tab valid'}>
+                  <li className={savedTabs?.includes('classification-confidentiality') && 
+                    errorsInPublish?.dataDescriptionClassificationTabError?.length < 1 ? 'tab':'tab valid'}>
                     <a
                       href="#tab-content-2"
                       id="classification-confidentiality"
@@ -559,7 +589,8 @@ const ProviderForm = ({ user, history }) => {
                     </a>
                   </li>
                   {/* <li className={savedTabs?.includes('personal-data') ? 'tab valid' : 'tab disabled'}> */}
-                  <li className={errorsInPublish?.personalRelatedDataTabError?.length > 0 ? 'tab' :'tab valid'}>
+                  <li className={savedTabs?.includes('personal-data') && 
+                  errorsInPublish?.personalRelatedDataTabError?.length < 1 ? 'tab' :'tab valid'}>
                     <a
                       href="#tab-content-3"
                       id="personal-data"
@@ -572,7 +603,8 @@ const ProviderForm = ({ user, history }) => {
                     </a>
                   </li>
                   {/* <li className={savedTabs?.includes('trans-national-data-transfer') ? 'tab valid' : 'tab disabled'}> */}
-                  <li className={errorsInPublish?.transnationalDataTabError?.length > 0 ? 'tab':'tab valid'}>
+                  <li className={savedTabs?.includes('trans-national-data-transfer') && 
+                  errorsInPublish?.transnationalDataTabError?.length < 1 ? 'tab':'tab valid'}>
                     <a
                       href="#tab-content-4"
                       id="trans-national-data-transfer"
@@ -585,10 +617,12 @@ const ProviderForm = ({ user, history }) => {
                     </a>
                   </li>
                   {/* <li className={savedTabs?.includes('deletion-requirements') ? 'tab valid' : 'tab disabled'}> */}
-                  <li className={errorsInPublish?.deletionRequirementsTabError?.length > 0
-                    ?  errorsInPublish?.deletionRequirementsTabError?.includes('Terms and conditions acknowledgement') && !isTouChecked
+                  <li className={savedTabs?.includes('deletion-requirements') && 
+                  errorsInPublish?.deletionRequirementsTabError?.length < 1
+                    ?  'tab valid'                    
+                    : errorsInPublish?.deletionRequirementsTabError?.includes('Terms and conditions acknowledgement') && !isTouChecked
                         ?'tab': 'tab valid'
-                    :'tab valid'}>
+                    }>
                     <a
                       href="#tab-content-5"
                       id="deletion-requirements"
