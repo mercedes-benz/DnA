@@ -240,69 +240,6 @@ const TransNationalDataTransfer = (
       <div className={Styles.wrapper}>
         <div className={Styles.firstPanel}>
           <div>
-            <h3>Identifying (potential) insider information</h3>
-          </div>
-          <div className={Styles.formWrapper}>
-            <div
-              className={classNames(`input-field-group include-error ${errors?.insiderInformation ? 'error' : ''}`)}
-              style={{ minHeight: '50px' }}
-            >
-              <label className={classNames(Styles.inputLabel, 'input-label')}>
-                Does data product contain (potential) insider information? <sup>*</sup>
-              </label>
-              <div className={Styles.radioBtns}>
-                <label className={'radio'}>
-                  <span className="wrapper">
-                    <input
-                      {...register('insiderInformation', {
-                        required: '*Missing entry',
-                      })}
-                      type="radio"
-                      className="ff-only"
-                      name="insiderInformation"
-                      value="No"
-                    />
-                  </span>
-                  <span className="label">No</span>
-                </label>
-                <label className={'radio'}>
-                  <span className="wrapper">
-                    <input
-                      {...register('insiderInformation', {
-                        required: '*Missing entry',
-                      })}
-                      type="radio"
-                      className="ff-only"
-                      name="insiderInformation"
-                      value="Yes, potential insider information"
-                    />
-                  </span>
-                  <span className="label">Yes, potential insider information</span>
-                </label>
-                <label className={'radio'}>
-                  <span className="wrapper">
-                    <input
-                      {...register('insiderInformation', {
-                        required: '*Missing entry',
-                      })}
-                      type="radio"
-                      className="ff-only"
-                      name="insiderInformation"
-                      value="Yes, insider information"
-                    />
-                  </span>
-                  <span className="label">Yes, insider information</span>
-                </label>
-              </div>
-              <span className={classNames('error-message')}>{errors?.insiderInformation?.message}</span>
-              <p>For further information and/or if you are unsure if your data product contains (potential) insider information, please contact your corresponding Compliance contact.</p>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div className={Styles.wrapper}>
-        <div className={Styles.firstPanel}>
-          <div>
             <h3>Identifiying data originating from China</h3>
             {showInfoModal && (
               <div className={Styles.infoIcon}>
