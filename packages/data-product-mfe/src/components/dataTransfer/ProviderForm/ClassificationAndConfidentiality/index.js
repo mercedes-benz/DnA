@@ -82,6 +82,7 @@ const Classification = (
                             className="ff-only"
                             name="confidentiality"
                             value={item.name}
+                            defaultChecked={item.name === 'Internal' && true}
                           />
                         </span>
                         <span className="label">{item.name}</span>
