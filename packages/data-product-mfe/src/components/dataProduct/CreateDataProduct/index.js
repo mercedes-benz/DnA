@@ -799,7 +799,10 @@ const CreateDataProduct = ({ user, history }) => {
               const id = createCopyId || dataProductId || data?.selectedDataProduct?.id;
               if(id){
                 getDataProductById();
-              }              
+              }else{
+                const data = tabs[currentTab];
+                reset(data);
+              }                
               setCurrentTab(showChangeAlert.switchingTab);
               elementRef.current[Object.keys(dataForms).indexOf(showChangeAlert.switchingTab)].click();
               setShowChangeAlert({ modal: false, switchingTab: '' });
