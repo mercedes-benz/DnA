@@ -93,7 +93,7 @@ const ProviderForm = ({ user, history }) => {
   const [showAllTabsError, setShowAllTabsError] = useState(false);
   const [showContactInformationTabError, setShowContactInformationTabError] = useState(false);
   const [isTouChecked, setIsTouChecked] = useState(false);
-  const [actionButtonName, setActionButtonName] = useDispatch('');
+  const [actionButtonName, setActionButtonName] = useState('');
 
 
   // set default value of "Name" field as logged in user name
