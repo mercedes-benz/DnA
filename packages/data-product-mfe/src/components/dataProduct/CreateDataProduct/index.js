@@ -453,9 +453,9 @@ const CreateDataProduct = ({ user, history }) => {
 
     setErrorsInPublish(errorObject);
 
-    if(currentTab === 'description'){
-      validatePublishRequest(reqObj)
-    }
+    // if(currentTab === 'description'){
+    //   validatePublishRequest(reqObj)
+    // }
 
     return formValid;
   };
