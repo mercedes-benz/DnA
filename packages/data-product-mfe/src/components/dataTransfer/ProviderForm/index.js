@@ -93,7 +93,7 @@ const ProviderForm = ({ user, history }) => {
   const [showAllTabsError, setShowAllTabsError] = useState(false);
   const [showContactInformationTabError, setShowContactInformationTabError] = useState(false);
   const [isTouChecked, setIsTouChecked] = useState(false);
-  const [actionButtonName, setActionButtonName] = useState('');
+  // const [actionButtonName, setActionButtonName] = useState('');
 
 
   // set default value of "Name" field as logged in user name
@@ -441,10 +441,10 @@ const ProviderForm = ({ user, history }) => {
       formValid = false;
     }
 
-    // if (reqObj?.tou?.message === '*Missing entry') {
-    //   errorObject.deletionRequirementsTabError.push('Terms and conditions acknowledgement');
-    //   formValid = false;
-    // }
+    if (reqObj?.tou?.message === '*Missing entry') {
+      errorObject.deletionRequirementsTabError.push('Terms and conditions acknowledgement');
+      formValid = false;
+    }
 
     if(reqObj?.tou === true){
       setIsTouChecked(true)
@@ -453,9 +453,9 @@ const ProviderForm = ({ user, history }) => {
 
     setErrorsInPublish(errorObject);
 
-    // if(currentTab === 'contact-info'){
-    //   validatePublishRequest(reqObj)
-    // }
+    if(currentTab === 'contact-info'){
+      validatePublishRequest(reqObj)
+    }
 
     return formValid;
   };
@@ -502,9 +502,9 @@ const ProviderForm = ({ user, history }) => {
     }
   }
 
-  const onSave = (currentTab, values, callbackFn) => {
+  const onSave = (currentAction, currentTab, values, callbackFn) => {
     setShowAllTabsError(false);
-    if(values?.publish && actionButtonName === 'publish'){
+    if(values?.publish && currentAction === 'publish'){
       if(!values.id && values.id!='' && currentTab!='contact-info'){
         setShowContactInformationTabError(true);
       } else{  
@@ -514,7 +514,7 @@ const ProviderForm = ({ user, history }) => {
           setShowAllTabsError(true);
         }
       }  
-    } else {
+    } else if(!values?.publish && currentAction === 'save') {
       if(!values.id && values.id!='' && currentTab!='contact-info'){
         setShowContactInformationTabError(true);
       } else{
@@ -734,8 +734,8 @@ const ProviderForm = ({ user, history }) => {
                 </div>
               ) : ''} 
             <OtherRelevant onSave={(values) => { 
-            setActionButtonName('save');
-            onSave(currentTab, values);
+            // setActionButtonName('save');
+            onSave('save',currentTab, values);
             }} 
             onDescriptionTabErrors={(errorObj) => {
                 setShowContactInformationTabError(false);
@@ -747,9 +747,10 @@ const ProviderForm = ({ user, history }) => {
               }
             }
             onPublish={(values, callbackFn) => {
-              setActionButtonName('publish');
+              // setActionButtonName('publish');
               setShowContactInformationTabError(false);
-              onSave(currentTab, values, callbackFn)}} 
+              onSave('publish',currentTab, values, callbackFn);
+              }} 
             user={userInfo} isDataProduct={false} currentTab={currentTab} />
           </div>
           <ConfirmModal
