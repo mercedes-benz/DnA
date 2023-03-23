@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 
 @RestController
 @Api(value = "Dataproduct API", tags = { "dataproducts" })
@@ -71,6 +72,21 @@ public class DataProductController implements DataproductsApi{
 				responseVO.setErrors(messages);
 				log.info("DataProductVO {} already exists, returning as CONFLICT", uniqueProductName);
 				return new ResponseEntity<>(responseVO, HttpStatus.CONFLICT);
+			}
+			if(requestVO.isIsPublish()) {
+				if(Objects.isNull(requestVO.getClassificationConfidentiality()) || 
+				   Objects.isNull(requestVO.getContactInformation()) ||
+				   Objects.isNull(requestVO.getPersonalRelatedData()) ||
+				   Objects.isNull(requestVO.getTransnationalDataTransfer())||
+				   Objects.isNull(requestVO.getDeletionRequirement()) || Objects.isNull(requestVO.getTransnationalDataTransfer().getInsiderInformation())) {
+					List<MessageDescription> messages = new ArrayList<>();
+					MessageDescription message = new MessageDescription();
+					message.setMessage("DataProduct cannot be created as user is not providing the values for one of the tabs.");
+					messages.add(message);
+					responseVO.setErrors(messages);
+					log.info("DataProduct {} cannot be created as user is not providing the values for one of the tabs", uniqueProductName);
+					return new ResponseEntity<>(responseVO, HttpStatus.BAD_REQUEST);
+				}
 			}
 			requestVO.setCreatedBy(this.userStore.getVO());
 			requestVO.setCreatedDate(new Date());
@@ -507,6 +523,34 @@ public class DataProductController implements DataproductsApi{
 					// 4) from "true" can not become "false".
 					if (!existingVO.isIsPublish() && requestVO.isIsPublish()) {
 						existingVO.setIsPublish(requestVO.isIsPublish());
+						if(Objects.isNull(requestVO.getClassificationConfidentiality()) || 
+								   Objects.isNull(requestVO.getContactInformation()) ||
+								   Objects.isNull(requestVO.getPersonalRelatedData()) ||
+								   Objects.isNull(requestVO.getTransnationalDataTransfer())||
+								   Objects.isNull(requestVO.getDeletionRequirement()) || Objects.isNull(requestVO.getTransnationalDataTransfer().getInsiderInformation())) {
+							List<MessageDescription> messages = new ArrayList<>();
+							MessageDescription message = new MessageDescription();
+							message.setMessage("DataProduct cannot be created as user is not providing the values for one of the tabs.");
+							messages.add(message);
+							responseVO.setErrors(messages);		
+							log.info("DataProduct {} cannot be created as user is not providing the values for one of the tabs", id);
+									return new ResponseEntity<>(responseVO, HttpStatus.BAD_REQUEST);
+								}
+					}
+					if(requestVO.isIsPublish()) {
+						if(Objects.isNull(requestVO.getClassificationConfidentiality()) || 
+						   Objects.isNull(requestVO.getContactInformation()) ||
+						   Objects.isNull(requestVO.getPersonalRelatedData()) ||
+						   Objects.isNull(requestVO.getTransnationalDataTransfer())||
+						   Objects.isNull(requestVO.getDeletionRequirement()) || Objects.isNull(requestVO.getTransnationalDataTransfer().getInsiderInformation())) {
+							List<MessageDescription> messages = new ArrayList<>();
+							MessageDescription message = new MessageDescription();
+							message.setMessage("DataProduct cannot be created as user is not providing the values for one of the tabs.");
+							messages.add(message);
+							responseVO.setErrors(messages);
+							log.info("DataProduct {} cannot be created as user is not providing the values for one of the tabs", id);
+							return new ResponseEntity<>(responseVO, HttpStatus.BAD_REQUEST);
+						}
 					}
 					existingVO.setNotifyUsers(requestVO.isNotifyUsers());
 					existingVO.setOpenSegments(requestVO.getOpenSegments());

@@ -185,7 +185,7 @@ export const deserializeFormData = ({ item, type = 'provider', isDataProduct = f
           division: item.providerInformation?.contactInformation?.division?.id,
           subDivision: item.providerInformation?.contactInformation?.division?.subdivision?.id || '0',
           complianceOfficer: item.providerInformation?.contactInformation?.localComplianceOfficer?.split(),
-          confidentiality: item.providerInformation?.classificationConfidentiality?.confidentiality || 'Public',
+          confidentiality: item.providerInformation?.classificationConfidentiality?.confidentiality || 'Internal',
           classificationOfTransferedData: item.providerInformation?.classificationConfidentiality?.description,
           dataOriginatedFromChina: item.providerInformation?.transnationalDataTransfer?.dataFromChina ? 'Yes' : 'No',
           deletionRequirement: item.providerInformation?.deletionRequirement?.deletionRequirements ? 'Yes' : 'No',
@@ -260,7 +260,7 @@ export const deserializeFormData = ({ item, type = 'provider', isDataProduct = f
           complianceOfficer: item?.contactInformation?.localComplianceOfficer?.split(),
           planningIT: item?.contactInformation?.appId,
 
-          confidentiality: item?.classificationConfidentiality?.confidentiality || 'Public',
+          confidentiality: item?.classificationConfidentiality?.confidentiality || 'Internal',
           classificationOfTransferedData: item?.classificationConfidentiality?.description,
 
           personalRelatedDataDescription: item?.personalRelatedData?.description,

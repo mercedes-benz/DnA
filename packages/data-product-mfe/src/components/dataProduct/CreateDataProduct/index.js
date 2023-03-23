@@ -179,6 +179,10 @@ const CreateDataProduct = ({ user, history }) => {
         reset({ ...data, ...dataForms['contact-info'] }); // setting default values
       }
     }
+    if (id) {
+      let defaultValues = { ...data.selectedDataProduct };
+      reset(defaultValues); // setting default values
+    }
 
     //eslint-disable-next-line
   }, [dispatch, data.selectedDataProduct, isCreatePage]);
@@ -769,7 +773,7 @@ const CreateDataProduct = ({ user, history }) => {
               setShowDescriptionTabError(false);
               // validateDescriptionTab(errorObj) ? 
               // setShowDescriptionTabError(false) : setShowDescriptionTabError(true)
-              (!validateDescriptionTab(errorObj) && (currentTab != 'contact-info')) ? 
+              (!validateDescriptionTab(errorObj) && (currentTab != 'description')) ? 
                 setShowDescriptionTabError(true) 
                 :  
                 setShowDescriptionTabError(false)
@@ -799,7 +803,10 @@ const CreateDataProduct = ({ user, history }) => {
               const id = createCopyId || dataProductId || data?.selectedDataProduct?.id;
               if(id){
                 getDataProductById();
-              }              
+              }else{
+                const data = tabs[currentTab];
+                reset(data);
+              }                
               setCurrentTab(showChangeAlert.switchingTab);
               elementRef.current[Object.keys(dataForms).indexOf(showChangeAlert.switchingTab)].click();
               setShowChangeAlert({ modal: false, switchingTab: '' });
