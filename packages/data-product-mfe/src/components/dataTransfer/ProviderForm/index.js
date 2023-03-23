@@ -452,9 +452,9 @@ const ProviderForm = ({ user, history }) => {
 
     setErrorsInPublish(errorObject);
 
-    if(currentTab === 'contact-info'){
-      validatePublishRequest(reqObj)
-    }
+    // if(currentTab === 'contact-info'){
+    //   validatePublishRequest(reqObj)
+    // }
 
     return formValid;
   };
