@@ -516,11 +516,11 @@ const CreateDataProduct = ({ user, history }) => {
       if(!values.id && values.id!='' && currentTab!='description'){
         setShowDescriptionTabError(true);
       } else{
-        if(validateDescriptionTab(values)){
+        // if(validateDescriptionTab(values)){
           proceedToSave(currentTab, values, callbackFn)
-        } else {
-          setShowAllTabsError(true);
-        }   
+        // } else {
+        //   setShowAllTabsError(true);
+        // }   
       }
          
     }
