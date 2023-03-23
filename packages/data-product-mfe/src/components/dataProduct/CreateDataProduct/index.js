@@ -79,7 +79,7 @@ const CreateDataProduct = ({ user, history }) => {
   const [isTouChecked, setIsTouChecked] = useState(false);
   const [showAllTabsError, setShowAllTabsError] = useState(false);
   const [showDescriptionTabError, setShowDescriptionTabError] = useState(false);
-  const [actionButtonName, setActionButtonName] = useState('');
+  // const [actionButtonName, setActionButtonName] = useState('');
 
   const dispatch = useDispatch();
   const { agileReleaseTrains, carLAFunctions, corporateDataCatalogs, platforms, frontEndTools } = useSelector(
@@ -443,10 +443,10 @@ const CreateDataProduct = ({ user, history }) => {
       formValid = false;
     }
 
-    // if (reqObj?.tou?.message === '*Missing entry') {
-    //   errorObject.deletionRequirementsTabError.push('Terms and conditions acknowledgement');
-    //   formValid = false;
-    // }
+    if (reqObj?.tou?.message === '*Missing entry') {
+      errorObject.deletionRequirementsTabError.push('Terms and conditions acknowledgement');
+      formValid = false;
+    }
 
     if(reqObj?.tou === true){
       setIsTouChecked(true)
@@ -454,9 +454,9 @@ const CreateDataProduct = ({ user, history }) => {
 
     setErrorsInPublish(errorObject);
 
-    // if(currentTab === 'description'){
-    //   validatePublishRequest(reqObj)
-    // }
+    if(currentTab === 'description'){
+      validatePublishRequest(reqObj)
+    }
 
     return formValid;
   };
@@ -501,9 +501,9 @@ const CreateDataProduct = ({ user, history }) => {
       }
   }
 
-  const onSave = (currentTab, values, callbackFn) => {
+  const onSave = (currentAction, currentTab, values, callbackFn) => {
     setShowAllTabsError(false);
-    if(values?.publish && actionButtonName === 'publish'){
+    if(values?.publish && currentAction === 'publish'){
       if(!values.id && values.id!='' && currentTab!='description'){
         setShowDescriptionTabError(true);
       } else{
@@ -513,7 +513,7 @@ const CreateDataProduct = ({ user, history }) => {
           setShowAllTabsError(true);
         }
       }
-    } else { 
+    } else if(!values?.publish && currentAction === 'save') { 
       if(!values.id && values.id!='' && currentTab!='description'){
         setShowDescriptionTabError(true);
       } else{
@@ -770,8 +770,8 @@ const CreateDataProduct = ({ user, history }) => {
                 </div>
               ) : ''} 
             <OtherRelevant onSave={(values) => {
-              setActionButtonName('save');
-              onSave(currentTab, values)}} 
+              // setActionButtonName('save');
+              onSave('save',currentTab, values)}} 
             onDescriptionTabErrors={(errorObj) => {
               setShowDescriptionTabError(false);
               // validateDescriptionTab(errorObj) ? 
@@ -784,9 +784,9 @@ const CreateDataProduct = ({ user, history }) => {
               
               }
             onPublish={(values, callbackFn) => {
-              setActionButtonName('publish');
+              // setActionButtonName('publish');
               setShowDescriptionTabError(false);
-              onSave(currentTab, values, callbackFn)}} 
+              onSave('publish',currentTab, values, callbackFn)}} 
             user={userInfo} isDataProduct={true} currentTab={currentTab}/>
           </div>
           <ConfirmModal
