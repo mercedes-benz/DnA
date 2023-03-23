@@ -503,26 +503,26 @@ const CreateDataProduct = ({ user, history }) => {
 
   const onSave = (currentAction, currentTab, values, callbackFn) => {
     setShowAllTabsError(false);
-    if(values?.publish && currentAction === 'publish'){
-      if(!values.id && values.id!='' && currentTab!='description'){
-        setShowDescriptionTabError(true);
-      } else{
+    if(currentAction === 'publish'){
+      // if(!values.id && values.id!='' && currentTab!='description'){
+      //   setShowDescriptionTabError(true);
+      // } else{
         if(validatePublishRequest(values)){
           proceedToSave(currentTab, values, callbackFn)
         } else {
           setShowAllTabsError(true);
         }
-      }
-    } else if(!values?.publish && currentAction === 'save') { 
-      if(!values.id && values.id!='' && currentTab!='description'){
-        setShowDescriptionTabError(true);
-      } else{
-        // if(validateDescriptionTab(values)){
+      // }
+    } else { 
+      // if(!values.id && values.id!='' && currentTab!='description'){
+      //   setShowDescriptionTabError(true);
+      // } else{
+        if(validateDescriptionTab(values)){
           proceedToSave(currentTab, values, callbackFn)
-        // } else {
-        //   setShowAllTabsError(true);
-        // }   
-      }
+        } else {
+          setShowAllTabsError(true);
+        }   
+      // }
          
     }
   };
