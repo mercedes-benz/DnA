@@ -181,6 +181,10 @@ const ProviderForm = ({ user, history }) => {
         reset(data); // setting default values
       }
     }
+    if (id) {
+      let defaultValues = { ...provideDataTransfers.selectedDataTransfer };
+      reset(defaultValues); // setting default values
+    }
     //eslint-disable-next-line
   }, [dispatch, provideDataTransfers.selectedDataTransfer, isCreatePage]);
 
@@ -499,17 +503,7 @@ const ProviderForm = ({ user, history }) => {
 
   const onSave = (currentTab, values, callbackFn) => {
     setShowAllTabsError(false);
-    if(!values.publish){
-      if(!values.id && values.id!='' && currentTab!='contact-info'){
-        setShowContactInformationTabError(true);
-      } else{
-        if(validateContactInformationTab(values)){
-          proceedToSave(currentTab, values, callbackFn)
-        } else {
-          setShowAllTabsError(true);
-        }  
-      }  
-    } else {
+    if(values?.publish){
       if(!values.id && values.id!='' && currentTab!='contact-info'){
         setShowContactInformationTabError(true);
       } else{  
@@ -518,6 +512,16 @@ const ProviderForm = ({ user, history }) => {
         } else {
           setShowAllTabsError(true);
         }
+      }  
+    } else {
+      if(!values.id && values.id!='' && currentTab!='contact-info'){
+        setShowContactInformationTabError(true);
+      } else{
+        if(validateContactInformationTab(values)){
+          proceedToSave(currentTab, values, callbackFn)
+        } else {
+          setShowAllTabsError(true);
+        }  
       }           
     }
   };
