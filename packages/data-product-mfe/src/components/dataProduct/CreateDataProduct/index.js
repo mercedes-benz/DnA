@@ -442,10 +442,10 @@ const CreateDataProduct = ({ user, history }) => {
       formValid = false;
     }
 
-    if (reqObj?.tou?.message === '*Missing entry') {
-      errorObject.deletionRequirementsTabError.push('Terms and conditions acknowledgement');
-      formValid = false;
-    }
+    // if (reqObj?.tou?.message === '*Missing entry') {
+    //   errorObject.deletionRequirementsTabError.push('Terms and conditions acknowledgement');
+    //   formValid = false;
+    // }
 
     if(reqObj?.tou === true){
       setIsTouChecked(true)
