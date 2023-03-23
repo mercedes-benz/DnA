@@ -69,7 +69,7 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 	private String defaultConfigFolderPath;
 	private static final String BUCKETS_PREFIX = "chronos-";
 	private static final String INPUT_FILE_PREFIX = "/inputs/";
-	private static final String CONFIG_PATH = "/config";
+	private static final String CONFIG_PATH = "/objects?prefix=configs/";
 
 	private static final List<String> contentTypes = Arrays.asList("xlsx", "csv");
 
@@ -100,7 +100,7 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 		BucketObjectsCollectionWrapperDto collection = new BucketObjectsCollectionWrapperDto();
 		BucketObjectsCollectionWrapperDto projectSpecificBucketCollection = new BucketObjectsCollectionWrapperDto();
 		BucketObjectsCollectionWrapperDto chronosCoreSpecificcollection = new BucketObjectsCollectionWrapperDto();
-
+        log.info("get inside getConfigFiles");
 		ForecastVO existingForecast = new ForecastVO();
 		boolean isValidId = true;
 		if (id != null) {
@@ -125,6 +125,7 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 		}
 		collection = service.getBucketObjects(defaultConfigFolderPath);
 		if (isValidId && id != null) {
+			log.info("inside if condition");
 			projectSpecificBucketCollection = service.getBucketObjects(existingForecast.getBucketName() + CONFIG_PATH);
 			if (projectSpecificBucketCollection.getData() != null) {
 				collection.getData().getBucketObjects().addAll(projectSpecificBucketCollection.getData().getBucketObjects());
