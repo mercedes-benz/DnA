@@ -517,11 +517,11 @@ const ProviderForm = ({ user, history }) => {
       if(!values.id && values.id!='' && currentTab!='contact-info'){
         setShowContactInformationTabError(true);
       } else{
-        if(validateContactInformationTab(values)){
+        // if(validateContactInformationTab(values)){
           proceedToSave(currentTab, values, callbackFn)
-        } else {
-          setShowAllTabsError(true);
-        }  
+        // } else {
+        //   setShowAllTabsError(true);
+        // }  
       }           
     }
   };
