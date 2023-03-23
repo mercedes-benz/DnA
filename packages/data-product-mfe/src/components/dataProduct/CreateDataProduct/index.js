@@ -79,6 +79,7 @@ const CreateDataProduct = ({ user, history }) => {
   const [isTouChecked, setIsTouChecked] = useState(false);
   const [showAllTabsError, setShowAllTabsError] = useState(false);
   const [showDescriptionTabError, setShowDescriptionTabError] = useState(false);
+  const [actionButtonName, setActionButtonName] = useState('');
 
   const dispatch = useDispatch();
   const { agileReleaseTrains, carLAFunctions, corporateDataCatalogs, platforms, frontEndTools } = useSelector(
@@ -502,7 +503,7 @@ const CreateDataProduct = ({ user, history }) => {
 
   const onSave = (currentTab, values, callbackFn) => {
     setShowAllTabsError(false);
-    if(values?.publish){
+    if(values?.publish && actionButtonName === 'publish'){
       if(!values.id && values.id!='' && currentTab!='description'){
         setShowDescriptionTabError(true);
       } else{
@@ -768,7 +769,9 @@ const CreateDataProduct = ({ user, history }) => {
                   </ul>
                 </div>
               ) : ''} 
-            <OtherRelevant onSave={(values) => {onSave(currentTab, values)}} 
+            <OtherRelevant onSave={(values) => {
+              setActionButtonName('save');
+              onSave(currentTab, values)}} 
             onDescriptionTabErrors={(errorObj) => {
               setShowDescriptionTabError(false);
               // validateDescriptionTab(errorObj) ? 
@@ -781,6 +784,7 @@ const CreateDataProduct = ({ user, history }) => {
               
               }
             onPublish={(values, callbackFn) => {
+              setActionButtonName('publish');
               setShowDescriptionTabError(false);
               onSave(currentTab, values, callbackFn)}} 
             user={userInfo} isDataProduct={true} currentTab={currentTab}/>
