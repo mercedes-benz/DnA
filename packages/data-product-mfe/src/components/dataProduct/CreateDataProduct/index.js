@@ -79,7 +79,7 @@ const CreateDataProduct = ({ user, history }) => {
   const [isTouChecked, setIsTouChecked] = useState(false);
   const [showAllTabsError, setShowAllTabsError] = useState(false);
   const [showDescriptionTabError, setShowDescriptionTabError] = useState(false);
-  const [actionButtonName, setActionButtonName] = useDispatch('');
+  const [actionButtonName, setActionButtonName] = useState('');
 
   const dispatch = useDispatch();
   const { agileReleaseTrains, carLAFunctions, corporateDataCatalogs, platforms, frontEndTools } = useSelector(
