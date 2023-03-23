@@ -79,6 +79,7 @@ const CreateDataProduct = ({ user, history }) => {
   const [isTouChecked, setIsTouChecked] = useState(false);
   const [showAllTabsError, setShowAllTabsError] = useState(false);
   const [showDescriptionTabError, setShowDescriptionTabError] = useState(false);
+  // const [actionButtonName, setActionButtonName] = useState('');
 
   const dispatch = useDispatch();
   const { agileReleaseTrains, carLAFunctions, corporateDataCatalogs, platforms, frontEndTools } = useSelector(
@@ -500,9 +501,9 @@ const CreateDataProduct = ({ user, history }) => {
       }
   }
 
-  const onSave = (currentTab, values, callbackFn) => {
+  const onSave = (currentAction, currentTab, values, callbackFn) => {
     setShowAllTabsError(false);
-    if(values?.publish){
+    if(values?.publish && currentAction === 'publish'){
       if(!values.id && values.id!='' && currentTab!='description'){
         setShowDescriptionTabError(true);
       } else{
@@ -512,15 +513,15 @@ const CreateDataProduct = ({ user, history }) => {
           setShowAllTabsError(true);
         }
       }
-    } else { 
+    } else if(!values?.publish && currentAction === 'save') { 
       if(!values.id && values.id!='' && currentTab!='description'){
         setShowDescriptionTabError(true);
       } else{
-        if(validateDescriptionTab(values)){
+        // if(validateDescriptionTab(values)){
           proceedToSave(currentTab, values, callbackFn)
-        } else {
-          setShowAllTabsError(true);
-        }   
+        // } else {
+        //   setShowAllTabsError(true);
+        // }   
       }
          
     }
@@ -768,7 +769,9 @@ const CreateDataProduct = ({ user, history }) => {
                   </ul>
                 </div>
               ) : ''} 
-            <OtherRelevant onSave={(values) => {onSave(currentTab, values)}} 
+            <OtherRelevant onSave={(values) => {
+              // setActionButtonName('save');
+              onSave('save',currentTab, values)}} 
             onDescriptionTabErrors={(errorObj) => {
               setShowDescriptionTabError(false);
               // validateDescriptionTab(errorObj) ? 
@@ -781,8 +784,9 @@ const CreateDataProduct = ({ user, history }) => {
               
               }
             onPublish={(values, callbackFn) => {
+              // setActionButtonName('publish');
               setShowDescriptionTabError(false);
-              onSave(currentTab, values, callbackFn)}} 
+              onSave('publish',currentTab, values, callbackFn)}} 
             user={userInfo} isDataProduct={true} currentTab={currentTab}/>
           </div>
           <ConfirmModal

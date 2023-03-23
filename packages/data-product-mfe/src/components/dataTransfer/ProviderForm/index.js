@@ -93,6 +93,7 @@ const ProviderForm = ({ user, history }) => {
   const [showAllTabsError, setShowAllTabsError] = useState(false);
   const [showContactInformationTabError, setShowContactInformationTabError] = useState(false);
   const [isTouChecked, setIsTouChecked] = useState(false);
+  // const [actionButtonName, setActionButtonName] = useState('');
 
 
   // set default value of "Name" field as logged in user name
@@ -501,9 +502,9 @@ const ProviderForm = ({ user, history }) => {
     }
   }
 
-  const onSave = (currentTab, values, callbackFn) => {
+  const onSave = (currentAction, currentTab, values, callbackFn) => {
     setShowAllTabsError(false);
-    if(values?.publish){
+    if(values?.publish && currentAction === 'publish'){
       if(!values.id && values.id!='' && currentTab!='contact-info'){
         setShowContactInformationTabError(true);
       } else{  
@@ -513,15 +514,15 @@ const ProviderForm = ({ user, history }) => {
           setShowAllTabsError(true);
         }
       }  
-    } else {
+    } else if(!values?.publish && currentAction === 'save') {
       if(!values.id && values.id!='' && currentTab!='contact-info'){
         setShowContactInformationTabError(true);
       } else{
-        if(validateContactInformationTab(values)){
+        // if(validateContactInformationTab(values)){
           proceedToSave(currentTab, values, callbackFn)
-        } else {
-          setShowAllTabsError(true);
-        }  
+        // } else {
+        //   setShowAllTabsError(true);
+        // }  
       }           
     }
   };
@@ -732,7 +733,10 @@ const ProviderForm = ({ user, history }) => {
                   </ul>
                 </div>
               ) : ''} 
-            <OtherRelevant onSave={(values) => {onSave(currentTab, values)}} 
+            <OtherRelevant onSave={(values) => { 
+            // setActionButtonName('save');
+            onSave('save',currentTab, values);
+            }} 
             onDescriptionTabErrors={(errorObj) => {
                 setShowContactInformationTabError(false);
                 (!validateContactInformationTab(errorObj) && (currentTab != 'contact-info')) ? 
@@ -743,8 +747,10 @@ const ProviderForm = ({ user, history }) => {
               }
             }
             onPublish={(values, callbackFn) => {
+              // setActionButtonName('publish');
               setShowContactInformationTabError(false);
-              onSave(currentTab, values, callbackFn)}} 
+              onSave('publish',currentTab, values, callbackFn);
+              }} 
             user={userInfo} isDataProduct={false} currentTab={currentTab} />
           </div>
           <ConfirmModal
