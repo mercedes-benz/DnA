@@ -133,7 +133,7 @@ const DataProducts = ({ user, history, hostHistory }) => {
                             <label className={Styles.addlabel}>Provide new data transfer</label>
                           </div>
                           {dataTransfers?.map((product, index) => {
-                            return <DataProductCardItem key={index} product={product} user={user} />;
+                            return <DataProductCardItem key={index} product={product} user={user} isProviderCreatorFilter={isProviderCreatorFilter} />;
                           })}
                         </>
                       ) : null}
@@ -152,7 +152,7 @@ const DataProducts = ({ user, history, hostHistory }) => {
                               <label className={Styles.addlabel}>Provide new data transfer</label>
                             </div>
                             {dataTransfers?.map((product, index) => {
-                              return <DataProductListItem key={index} product={product} user={user} />;
+                              return <DataProductListItem key={index} product={product} user={user} isProviderCreatorFilter={isProviderCreatorFilter}/>;
                             })}
                           </div>
                         </>
