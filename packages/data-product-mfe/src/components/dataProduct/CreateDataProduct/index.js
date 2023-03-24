@@ -729,7 +729,7 @@ const CreateDataProduct = ({ user, history }) => {
                   {displayErrorOfAllTabs('Data Description & Classification Tab', errorsInPublish?.dataDescriptionClassificationTabError)}
                   {displayErrorOfAllTabs('Personal Related Data Tab', errorsInPublish?.personalRelatedDataTabError)}
                   {displayErrorOfAllTabs('Transnational Data Tab', errorsInPublish?.transnationalDataTabError)}
-                  {displayErrorOfAllTabs('Other Tab', errorsInPublish?.deletionRequirementsTabError)}  
+                  {displayErrorOfAllTabs('Other Data Tab', errorsInPublish?.deletionRequirementsTabError)}  
                   </ul>
                 </div>
               ) : ''}
