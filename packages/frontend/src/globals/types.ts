@@ -1094,6 +1094,20 @@ export interface IFilterPreferences {
   tags: ITag[];
 }
 
+export interface IDataProductListItem {
+  id: string;
+  name?: string;
+}
+
+export interface IDataProductFilterParams {
+  art: string[];
+  platform: string[];
+  frontendTool: string[];
+  productOwner: string[];
+  carlaFunction: string[];
+  tag: string[];
+}
+
 export interface INoticationModules {
   solutionNotificationPref: INotificationEnableDisable;
   notebookNotificationPref: INotificationEnableDisable;
