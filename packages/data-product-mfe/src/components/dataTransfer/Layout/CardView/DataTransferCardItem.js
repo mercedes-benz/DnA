@@ -14,7 +14,7 @@ import Tooltip from '../../../../common/modules/uilab/js/src/tooltip';
 import ProgressIndicator from '../../../../common/modules/uilab/js/src/progress-indicator';
 import Notification from '../../../../common/modules/uilab/js/src/notification';
 
-const DataProductCardItem = ({ product, history, user, isDataProduct = false }) => {
+const DataProductCardItem = ({ product, history, user, isDataProduct = false, isProviderCreatorFilter }) => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const dispatch = useDispatch();
 
@@ -51,7 +51,7 @@ const DataProductCardItem = ({ product, history, user, isDataProduct = false }) 
     dataTransferApi
       .deleteDataTransfer(product?.id)
       .then(() => {
-        dispatch(GetDataTransfers());
+        dispatch(GetDataTransfers(isProviderCreatorFilter));
         setShowDeleteModal(false);
         Notification.show(`${product?.dataTransferName} deleted successfully.`);
       })
