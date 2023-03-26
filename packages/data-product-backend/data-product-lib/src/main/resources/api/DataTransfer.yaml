@@ -382,9 +382,9 @@ definitions:
       approved: 
         description: "Has LCO/LCR approved this data transfer"
         type: string
-      insiderInformation: 
-        description: "Does product contain insider information"
-        type: string         
+#      insiderInformation: 
+#        description: "Does product contain insider information"
+#        type: string         
       dataFromChina:
         type: boolean
         description: "Is data from China included"                
@@ -402,7 +402,10 @@ definitions:
         type: string
       otherRelevantInformation:
         type: string
-        description: "Specifying other relevant information"                         
+        description: "Specifying other relevant information"
+      insiderInformation: 
+        description: "Does product contain insider information"
+        type: string                           
 #    required:
 #      - deletionRequirements  
       
