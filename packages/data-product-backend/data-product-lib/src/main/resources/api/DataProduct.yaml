@@ -522,9 +522,9 @@ definitions:
       notWithinEU:
         type: boolean
         description: "Is one of these countries not within the EU"
-      insiderInformation:
-        description: "Does product contain insider information"
-        type: string
+#      insiderInformation: 
+#        description: "Does product contain insider information"
+#        type: string         
       dataFromChina:
         type: boolean
         description: "Is data from China included"
@@ -556,10 +556,13 @@ definitions:
         type: string
       otherRelevantInformation:
         type: string
-        description: "Specifying other relevant information"
-      #    required:
-      #      - deletionRequirements
-
+        description: "Specifying other relevant information"  
+      insiderInformation: 
+        description: "Does product contain insider information"
+        type: string                         
+#    required:
+#      - deletionRequirements  
+      
   DataProductVO:
     type: object
     properties:
