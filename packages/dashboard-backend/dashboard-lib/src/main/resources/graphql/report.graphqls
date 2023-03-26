@@ -87,7 +87,7 @@ type ExternalCustomerVO{
 
 type KPIVO{
 	name: String,
-	reportingCause: String,
+	reportingCause: [String],
 	description: String,
 	kpiLink: String
 }
