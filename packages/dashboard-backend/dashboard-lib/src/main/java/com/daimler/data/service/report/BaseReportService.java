@@ -268,11 +268,21 @@ public class BaseReportService extends BaseCommonService<ReportVO, ReportNsql, S
 					List<KPI> kpis = reportNsql.getData().getKpis();
 					if (!ObjectUtils.isEmpty(kpis)) {
 						for (KPI kpi : kpis) {
-							if (StringUtils.hasText(kpi.getReportingCause()) && kpi.getReportingCause().equals(name)) {
-								kpi.setReportingCause(null);
+							List<String> reportingCauses = kpi.getReportingCause();
+							List<String> newReportingCauses = new ArrayList<>();
+							if(reportingCauses != null) {
+							for(String reportingCause : reportingCauses) {
+								if (StringUtils.hasText(reportingCause) && reportingCause.equals(name)) {
+									kpi.setReportingCause(null);
+								}
+								else {
+									newReportingCauses.add(reportingCause);									
+								}
 							}
+							kpi.setReportingCause(newReportingCauses);
+						   }
 						}
-					}
+					}		
 				} else if (category.equals(CATEGORY.DATASOURCE)) {
 					List<SingleDataSource> singleDataSources = reportNsql.getData().getSingleDataSources();
 					if (!ObjectUtils.isEmpty(singleDataSources)) {
@@ -466,10 +476,19 @@ public class BaseReportService extends BaseCommonService<ReportVO, ReportNsql, S
 					List<KPI> kpis = reportNsql.getData().getKpis();
 					if (!ObjectUtils.isEmpty(kpis)) {
 						for (KPI kpi : kpis) {
-							if (StringUtils.hasText(kpi.getReportingCause())
-									&& kpi.getReportingCause().equals(oldValue)) {
-								kpi.setReportingCause(newValue);
+							List<String> reportingCauses = kpi.getReportingCause();
+							List<String> newReportingCauses = new ArrayList<>();
+							if(reportingCauses != null) {
+							for(String reportingCause : reportingCauses) {
+								if (StringUtils.hasText(reportingCause) && reportingCause.equals(oldValue)) {
+									newReportingCauses.add(newValue);									
+								}
+								else {
+									newReportingCauses.add(reportingCause);
+								}
 							}
+							kpi.setReportingCause(newReportingCauses);
+						   }
 						}
 					}
 				} else if (category.equals(CATEGORY.CONNECTION_TYPE)) {
