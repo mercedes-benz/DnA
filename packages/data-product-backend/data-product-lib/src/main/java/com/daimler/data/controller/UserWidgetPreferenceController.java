@@ -46,6 +46,29 @@ public class UserWidgetPreferenceController implements UserWidgetPreferenceApi {
     }
 
     @Override
+    @ApiOperation(value = "Get data for the widget identified by given ID.", nickname = "getWidgetData", notes = "Get data for the widget identified by given ID", response = UserWidgetPreferenceVO.class, tags = {
+            "userWidgetPreference", })
+    @ApiResponses(value = {
+            @ApiResponse(code = 201, message = "Returns message of success or failure", response = UserWidgetPreferenceVO.class),
+            @ApiResponse(code = 204, message = "Fetch complete, no content found."),
+            @ApiResponse(code = 400, message = "Bad request."),
+            @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+            @ApiResponse(code = 403, message = "Request is not authorized."),
+            @ApiResponse(code = 405, message = "Method not allowed"),
+            @ApiResponse(code = 500, message = "Internal error") })
+    @RequestMapping(value = "/widget-data/{id}", produces = { "application/json" }, consumes = {
+            "application/json" }, method = RequestMethod.GET)
+    public ResponseEntity<UserWidgetPreferenceVO> getWidgetData(
+            @ApiParam(value = "Id of the User Widget Preference", required = true) @PathVariable("id") String id) {
+            UserWidgetPreferenceVO userWidgetPreferenceVO = userWidgetPrefService.getById(id);
+            if (userWidgetPreferenceVO == null) {
+                log.info("No user widget data found, returning empty");
+                return new ResponseEntity<>(null, HttpStatus.NO_CONTENT);
+            }
+            return new ResponseEntity<>(userWidgetPreferenceVO, HttpStatus.OK);
+    }
+
+    @Override
     @ApiOperation(value = "Deletes a User Widget Preference identified by given ID.", nickname = "delete", notes = "Deletes the User Widget Preference identified by given ID", response = GenericMessage.class, tags = {
             "userWidgetPreference", })
     @ApiResponses(value = {
