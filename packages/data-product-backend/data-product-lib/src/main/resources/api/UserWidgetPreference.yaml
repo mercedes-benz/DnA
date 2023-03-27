@@ -165,6 +165,35 @@ paths:
         500:
           description: "Internal error"
 
+    get:
+      tags:
+        - "userWidgetPreference"
+      summary: "Get data for the widget identified by given ID."
+      description: "Get data for the widget identified by given ID"
+      operationId: "getWidgetData"
+      parameters:
+        - name: "id"
+          in: "path"
+          description: "Id of the UserWidget  Preference"
+          required: true
+          type: "string"
+      responses:
+        201:
+          description: "Returns message of success or failure"
+          schema:
+            $ref: "#/definitions/UserWidgetPreferenceVO"
+        204:
+          description: "Fetch complete, no content found."
+        400:
+          description: "Bad request"
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        404:
+          description: "Invalid id, record not found."
+        500:
+          description: "Internal error"
   # path to get widget data
   #
   #  supported http methods GET
