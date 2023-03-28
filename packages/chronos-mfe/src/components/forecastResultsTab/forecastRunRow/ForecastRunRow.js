@@ -6,7 +6,9 @@ import CircularProgressBar from '../../circularProgressBar/CircularProgressBar';
 import ContextMenu from '../../contextMenu/ContextMenu';
 import { regionalDateAndTimeConversionSolution } from '../../../utilities/utils';
 import Notification from '../../../common/modules/uilab/js/src/notification';
+import ProgressIndicator from '../../../common/modules/uilab/js/src/progress-indicator';
 import { Envs } from '../../../utilities/envs';
+import { chronosApi } from '../../../apis/chronos.api';
 
 const classNames = classnames.bind(Styles);
 
@@ -18,8 +20,7 @@ const ForecastRunRow = (props) => {
   const handleShowContextMenu = (value) => {
     setShowContextMenu(value);
   }
-  const onRowClick = (event) => {
-    console.log(event)
+  const onRowClick = () => {
     props.openDetails(item);
   };
 
@@ -36,6 +37,49 @@ const ForecastRunRow = (props) => {
     }
   }
 
+  const downloadPrediction = () => {
+    ProgressIndicator.show();
+    if(props.item.resultFolderPath) {
+      const resultFolderPath = item.resultFolderPath.split('/');
+      chronosApi.getFile(`${resultFolderPath[0]}`, `${resultFolderPath[2]}`, 'y_pred.csv').then((res) => {
+        let csvContent = "data:text/csv;charset=utf-8," + res.data;
+        let encodedUri = encodeURI(csvContent);
+        let link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", "y_pred.csv");
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        ProgressIndicator.hide();
+      }).catch(() => {
+        Notification.show('Unable to download the file', 'alert');
+        ProgressIndicator.hide();
+      });
+    }
+  }
+
+  const downloadExcel = () => {
+    ProgressIndicator.show();
+    if(props.item.resultFolderPath) {
+      const resultFolderPath = item.resultFolderPath.split('/');
+      chronosApi.getExcelFile(`${resultFolderPath[0]}`, `${resultFolderPath[2]}`, 'RESULT.xlsx').then((res) => {
+        var excelBlob = new Blob([res.data]);     
+        var url = window.URL.createObjectURL(excelBlob);
+
+        let link = document.createElement("a");
+        link.setAttribute("href", url);
+        link.setAttribute("download", "RESULT.xlsx");
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        ProgressIndicator.hide();
+      }).catch(() => {
+        Notification.show('Unable to download the file', 'alert');
+        ProgressIndicator.hide();
+      });
+    }
+  }
+
   const contextMenuItems = [
     {
       title: 'Delete Run/Results',
@@ -44,6 +88,14 @@ const ForecastRunRow = (props) => {
     {
       title: 'Browse in Storage',
       onClickFn: onBrowseClick,
+    },
+    {
+      title: 'Download as Excel',
+      onClickFn: downloadExcel,
+    },
+    {
+      title: 'Download prediction as .csv',
+      onClickFn: downloadPrediction,
     }
   ];
 

@@ -66,6 +66,17 @@ spec:
           {{- if .Values.custCmd }}
           command:
 {{ toYaml .Values.custCmd | indent 11 }}
+          {{- end }}          
+          {{- if .Values.lifecycle.enabled }}
+          lifecycle:
+            {{- if .Values.lifecycle.postStart }}
+            postStart:
+              {{ toYaml .Values.lifecycle.postStart | nindent 14 }}
+            {{- end }}
+            {{- if .Values.lifecycle.preStop }}
+            preStop:
+              {{ toYaml .Values.lifecycle.preStop | nindent 14 }}
+            {{- end }}
           {{- end }}
           env:
         {{- if .Values.extraVars }}
@@ -96,6 +107,7 @@ spec:
           {{- range .Values.extraSecretMounts }}
           - name: {{ .name }}
             mountPath: {{ .mountPath }}
+            subPath: {{ .subPath | default "" }}
             readOnly: {{ .readOnly }}
           {{- end }}
           {{- range .Values.extraVolumeMounts }}
@@ -108,6 +120,11 @@ spec:
             - name: http
               containerPort: 8080
               protocol: TCP
+          {{- range .Values.extraPorts }}
+            - name: {{ .name }}
+              containerPort: {{ .port }}
+              protocol: {{ .protocol }}
+          {{- end }}
           livenessProbe:
             httpGet:
               path: /
@@ -144,7 +161,7 @@ spec:
         {{- end -}}
       {{- else }}
         emptyDir: {}
-      {{- end -}}    
+      {{- end -}}
       {{- range .Values.extraSecretMounts }}
       - name: {{ .name }}
         secret:

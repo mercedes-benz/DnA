@@ -37,3 +37,9 @@
     justify-content: flex-end;
   }
 }
+
+:global {
+  .contextMenuWrapper {
+    z-index: 9;
+  }
+}
