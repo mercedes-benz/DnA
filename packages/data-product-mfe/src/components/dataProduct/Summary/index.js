@@ -204,7 +204,7 @@ const Summary = ({ history, user }) => {
   const deleteDataProductAccept = () => {
     ProgressIndicator.show();
     dataProductApi.deleteDataProduct(selectedDataProduct?.id).then(() => {
-      history.push('/dataproducts');
+      history.goBack();
       setShowDeleteModal(false);
       Notification.show(`${selectedDataProduct?.productName} deleted successfully.`);
     });
