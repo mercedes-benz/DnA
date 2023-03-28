@@ -61,7 +61,7 @@ const DataProducts = ({ user, history, hostHistory }) => {
       <button
         className={classNames('btn btn-text back arrow', Styles.backBtn)}
         type="submit"
-        onClick={() => hostHistory.push('/transparency')}
+        onClick={() => hostHistory.goBack()}
       >
         Back
       </button>
