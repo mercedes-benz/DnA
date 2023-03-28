@@ -318,7 +318,7 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
     }
     const description = this.props.description;
     description.status = selectedValues;
-    this.setState({ statusValue: selectedValues });
+    this.setState({ statusValue: selectedValues, reportLinkError: '' });
   };
   public onChangePii = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const selectedOptions = e.currentTarget.selectedOptions;
@@ -1007,7 +1007,7 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
     const reportLink = e.currentTarget.value;
     const description = this.props.description;
     description.reportLink = reportLink;
-    if (reportLink === '' || reportLink === null) {
+    if ((reportLink === '' || reportLink === null) && (this.state.statusValue ? this.state.statusValue[0]?.id === 'Active' : false)) {
       this.setState({ reportLinkError: '*Missing Entry' });
     } else {
       this.setState({ reportLinkError: '' });

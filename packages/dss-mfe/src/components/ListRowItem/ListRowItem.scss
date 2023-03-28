@@ -40,6 +40,57 @@
   text-overflow: ellipsis;
 }
 
+.contextMenu {
+  position: relative;
+
+  &.open .contextMenuTrigger {
+    z-index: 10;
+    position: relative;
+  }
+
+  .contextMenuTrigger {
+    padding: 12px 10px;
+    cursor: pointer;
+    margin-right: -14px;
+
+    &:hover {
+      color: #00adef;
+    }
+  }
+}
+
+tr {
+  .actionMenus {
+    width: 40px !important;
+  }
+
+  h6 {
+    font-weight: bold;
+    font-size: var(--font-size-sub-headline);
+    margin-bottom: 2px;
+  }
+
+  p {
+    margin: 0;
+  }
+
+  .showMenu {
+    z-index: 9;
+  }
+
+  td {
+    div {
+      display: flex;
+    }
+
+    word-break: break-all;
+  }
+}
+
+.contextList {
+  text-align: left !important;
+}
+
 :global {
   .ul-table.solutions {
     position: relative;
@@ -79,7 +130,6 @@
         padding: 25px 0 25px 10px;
         font-size: var(--font-size-default);
         max-width: 20%;
-        overflow: hidden;
         text-overflow: ellipsis;
 
         &.wrap-text {

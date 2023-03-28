@@ -1,4 +1,4 @@
-import { server, storageServer } from '../server/api';
+import { server, storageServer, storageServerX } from '../server/api';
 import { formServer } from '../server/formApi';
 
 const getAllForecastProjects = () => {
@@ -85,6 +85,18 @@ const getHTML = (projectName, resultFolderName, fileName) => {
   });
 };
 
+const getFile = (projectName, resultFolderName, fileName) => {
+  return storageServer.get(`/buckets/${projectName}/objects/metadata?prefix=results%2F${resultFolderName}%2F${fileName}`, {
+    data: {},
+  });
+};
+
+const getExcelFile = (projectName, resultFolderName, fileName) => {
+  return storageServerX.get(`/buckets/${projectName}/objects/metadata?prefix=results%2F${resultFolderName}%2F${fileName}`, {
+    data: {},
+  });
+};
+
 export const chronosApi = {
     getAllForecastProjects,
     getForecastProjectById,
@@ -101,4 +113,6 @@ export const chronosApi = {
     generateApiKeyById,
     getApiKeyById,
     getHTML,
+    getFile,
+    getExcelFile,
 };
