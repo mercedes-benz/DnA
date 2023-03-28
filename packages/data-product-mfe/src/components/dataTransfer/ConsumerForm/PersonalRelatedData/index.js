@@ -130,6 +130,7 @@ const PersonalRelatedData = ({ onSave, setIsEditing, isDataProduct, callbackFn }
                 </label>
               </div>
               <span className={classNames('error-message')}>{errors?.personalRelatedData?.message}</span>
+              <p>In case of doubt reach out to your corresponding LCO/R</p>
             </div>
             <div
               id="personalRelatedDataPurpose"
@@ -153,6 +154,16 @@ const PersonalRelatedData = ({ onSave, setIsEditing, isDataProduct, callbackFn }
                 id="personalRelatedDataPurpose"
               />
               <span className={classNames('error-message')}>{errors?.personalRelatedDataPurpose?.message}</span>
+              <div>
+                <p>Possible purpose of processing personal related data would be:</p>
+                <ul>
+                  <li>FC services such as Controlling, Accounting, Treasury, Taxes &amp; Fiscal Matters, GeneralLedger, Planning &amp; Forecast</li>
+                  <li>Product development, improvement, monitoring, Analysis of product usage/behavior,Product lifecycle analysis</li>
+                  <li>Risk/damage prevention, Predictive maintenance, Process optimization</li>
+                  <li>Enhancement of Customer experience, 360 Customer View, Advertising/Promotions,Direct Marketing</li>
+                  <li>Identiﬁcation of trends an market developments, Market analysis, Revenue streamanalysis, Portfolio evaluation, Price analysis and price optimization</li>
+                </ul>
+              </div>
             </div>
             <div
               className={classNames(
@@ -189,6 +200,7 @@ const PersonalRelatedData = ({ onSave, setIsEditing, isDataProduct, callbackFn }
                 })}
               </div>
               <span className={classNames('error-message')}>{errors?.personalRelatedDataLegalBasis?.message}</span>
+              <p>Legal basis is already determined in RoPA, if unsure please check with your LCO/R</p>
             </div>
             <div
               className={classNames(

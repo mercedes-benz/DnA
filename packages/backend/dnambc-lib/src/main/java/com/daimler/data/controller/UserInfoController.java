@@ -54,6 +54,7 @@ import javax.validation.constraints.NotNull;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Objects;
 
 @RestController
 @Api(value = "UserInfo API", tags = { "users" })
@@ -124,34 +125,31 @@ public class UserInfoController implements UsersApi {
 				sortOrder = "asc";
 			}
 			if (teamsApiEnabled) {
-				logger.info("Fetching user information with given identifier from teamsApi.");
-				try {
+				logger.info("Fetching user information with given identifier from TeamsApi.");				
 					usersCollection = teamsApiClient.getTeamsApiUserInfoDetails(searchTerm);
 					if (!ObjectUtils.isEmpty(usersCollection)) {
-						log.debug("returning all users details from teamsApi");
-						return new ResponseEntity<>(usersCollection, HttpStatus.OK);
-					}
-				}catch (Exception e){
-					log.error("Failed to fetch user Information with given identifier from teamsApi. "+e.getLocalizedMessage());
-					usersCollection = new UsersCollection();
+						log.debug("Returning all users details from TeamsApi");
+						return new ResponseEntity<>(usersCollection, HttpStatus.OK);					
 				}
-			} else {
+			} 
+			if (ObjectUtils.isEmpty(usersCollection) || Objects.isNull(usersCollection) || usersCollection.getRecords() == null || usersCollection.getTotalCount() == null) {
+				UsersCollection usersCollection2 = new UsersCollection();
 				logger.info("Fetching user information with given identifier from DB.");
 				usersInfo = userInfoService.getAllWithFilters(searchTerm, limit, offset, sortBy, sortOrder);
 				Long count = userInfoService.getCountWithFilters(searchTerm);
 				if (!ObjectUtils.isEmpty(usersInfo)) {
-					usersCollection.setRecords(usersInfo);
-					usersCollection.setTotalCount(count.intValue());
-					log.debug("returning all users details from DB");
-					return new ResponseEntity<>(usersCollection, HttpStatus.OK);
+					usersCollection2.setRecords(usersInfo);
+					usersCollection2.setTotalCount(count.intValue());
+					log.debug("Returning all users details from DB");
+					return new ResponseEntity<>(usersCollection2, HttpStatus.OK);
 				} else {
-					log.debug("No users details found");
-					return new ResponseEntity<>(usersCollection, HttpStatus.NO_CONTENT);
+					log.debug("No user details found from DB");
+					return new ResponseEntity<>(usersCollection2, HttpStatus.NO_CONTENT);
 				}
 			}
 
 		} catch (Exception e) {
-			log.error(e.getLocalizedMessage());
+			log.error("Failed while fetching users details with exception {}", e.getMessage());
 			return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 		return null;

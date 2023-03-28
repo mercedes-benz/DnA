@@ -191,6 +191,7 @@ const CodeSpace = (props: ICodeSpaceProps) => {
       })
       .catch((err: Error) => {
         Notification.show('Error in validating code space - ' + err.message, 'alert');
+        history.goBack();
       });
     // ApiClient.getCodeSpace().then((res: any) => {
     //   setLoading(false);

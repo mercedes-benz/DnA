@@ -1,6 +1,7 @@
 import classNames from 'classnames';
 import React, { useState } from 'react';
 import { useForm, FormProvider } from 'react-hook-form';
+import { useHistory } from "react-router-dom";
 // styles
 import Styles from './ChronosProjectForm.scss';
 // import from DNA Container
@@ -16,8 +17,9 @@ import { regionalDateAndTimeConversionSolution } from '../../utilities/utils';
 import { chronosApi } from '../../apis/chronos.api';
 
 const ChronosProjectForm = ({edit, project, onSave}) => {
-  const [teamMembers, setTeamMembers] = useState(edit ? project.collaborators : []);
-  const [teamMembersOriginal, setTeamMembersOriginal] = useState([]);
+  let history = useHistory();
+  const [teamMembers, setTeamMembers] = useState(edit && project.collaborators !== null ? project.collaborators : []);
+  const [teamMembersOriginal, setTeamMembersOriginal] = useState(edit && project.collaborators !== null ? project.collaborators : []);
   const [editTeamMember, setEditTeamMember] = useState(false);
   const [selectedTeamMember, setSelectedTeamMember] = useState();
   const [editTeamMemberIndex, setEditTeamMemberIndex] = useState(0);
@@ -28,7 +30,6 @@ const ChronosProjectForm = ({edit, project, onSave}) => {
   const {
     register,
     handleSubmit,
-    reset,
     formState: { errors },
   } = methods;
 
@@ -45,20 +46,13 @@ const ChronosProjectForm = ({edit, project, onSave}) => {
     chronosApi.createForecastProject(data).then((res) => {
       ProgressIndicator.hide();
       history.push(`/project/${res.data.data.id}`);
-      reset({ name: '' });
-      setTeamMembers([]);
-      setTeamMembersOriginal([]);
-      setEditTeamMember(false);
-      setEditTeamMemberIndex(0);
       Notification.show('Forecasting Project successfully created');
-      onSave();
     }).catch(error => {
       ProgressIndicator.hide();
       Notification.show(
-        error?.response?.data?.response?.errors[0]?.message || error?.response?.data?.response?.warnings[0]?.message || 'Error while creating forecast project',
+        error?.response?.data?.response?.errors?.[0]?.message || error?.response?.data?.response?.warnings?.[0]?.message || 'Error while creating forecast project',
         'alert',
       );
-      onSave();
     });
   };
   const handleEditProject = () => {
@@ -95,20 +89,14 @@ const ChronosProjectForm = ({edit, project, onSave}) => {
       setEditTeamMember(false);
       setEditTeamMemberIndex(0);
       Notification.show('Forecasting Project successfully updated');
+      onSave();
     }).catch(error => {
       ProgressIndicator.hide();
       Notification.show(
         error?.response?.data?.response?.errors?.[0]?.message || error?.response?.data?.response?.warnings?.[0]?.message || 'Error while updating forecast project',
         'alert',
       );
-      setTeamMembers([]);
-      setTeamMembersOriginal([]);
-      setAddedCollaborators([]);
-      setRemovedCollaborators([]);
-      setEditTeamMember(false);
-      setEditTeamMemberIndex(0);
     });
-    onSave();
   };
   
   const addTeamMemberModalRef = React.createRef();
@@ -186,21 +174,6 @@ const ChronosProjectForm = ({edit, project, onSave}) => {
     setRemovedCollaborators(removedCollaboratorsTemp);
 
     setTeamMembers(teamMembersTemp);
-    setTeamMembers(teamMembersTemp);
-  };
-
-  const onTeamMemberMoveUp = (index) => {
-    const teamMembersTemp = [...teamMembers];
-    const teamMember = teamMembersTemp.splice(index, 1)[0];
-    teamMembersTemp.splice(index - 1, 0, teamMember);
-    setTeamMembers(teamMembersTemp);
-  };
-
-  const onTeamMemberMoveDown = (index) => {
-    const teamMembersTemp = [...teamMembers];
-    const teamMember = teamMembersTemp.splice(index, 1)[0];
-    teamMembersTemp.splice(index + 1, 0, teamMember);
-    setTeamMembers(teamMembersTemp);
   };
 
   const teamMembersList = teamMembers?.map((member, index) => {
@@ -213,8 +186,6 @@ const ChronosProjectForm = ({edit, project, onSave}) => {
         showInfoStacked={true}
         showMoveUp={index !== 0}
         showMoveDown={index + 1 !== teamMembers?.length}
-        onMoveUp={onTeamMemberMoveUp}
-        onMoveDown={onTeamMemberMoveDown}
         onEdit={onTeamMemberEdit}
         onDelete={onTeamMemberDelete}
       />

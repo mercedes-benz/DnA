@@ -23,12 +23,15 @@ const ExistingFilesView = ({projectId, setShowExistingFiles, setInputFile, setIs
 
   useEffect(() => {
     chronosApi.getAllInputFiles(projectId).then((res) => {
+      if(res.status === 204) {
+        setSavedFiles([]);
+      }
       if(res.data !== '') {
         setSavedFiles(res.data.files);
       }
       // setSavedFiles(savedInputs);
-      SelectBox.defaultSetup();
       setLoading(false);
+      SelectBox.defaultSetup();
     }).catch(error => {
       Notification.show(
         error?.response?.data?.response?.errors?.[0]?.message || error?.response?.data?.response?.warnings?.[0]?.message || 'Error while fetching input files',
@@ -47,8 +50,8 @@ const ExistingFilesView = ({projectId, setShowExistingFiles, setInputFile, setIs
   
   return (
     <div className={Styles.existingFilesContainer}>
-      <div className={Styles.flexLayout}>
-        {!loading && <Spinner />}
+      {loading && <Spinner />}
+      <div className={Styles.mw}>
         {!loading && savedFiles.length === 0 && <span>No saved input files</span>}
         {
           !loading && savedFiles.length !== 0 ? 

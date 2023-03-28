@@ -176,6 +176,12 @@ paths:
       summary: "Get forecasts config files"
       description: "Get forecasts config files"
       operationId: "getConfigFiles"
+      parameters:
+        - name: "id"
+          in: query
+          description: "forecast project ID "
+          required: false
+          type: "string"
       responses:
         200:
           description: "Returns message of success or failure"

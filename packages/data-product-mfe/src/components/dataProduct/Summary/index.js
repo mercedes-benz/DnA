@@ -204,7 +204,7 @@ const Summary = ({ history, user }) => {
   const deleteDataProductAccept = () => {
     ProgressIndicator.show();
     dataProductApi.deleteDataProduct(selectedDataProduct?.id).then(() => {
-      history.push('/dataproducts');
+      history.goBack();
       setShowDeleteModal(false);
       Notification.show(`${selectedDataProduct?.productName} deleted successfully.`);
     });
@@ -483,7 +483,7 @@ const Summary = ({ history, user }) => {
                           {selectedDataProduct.classificationOfTransferedData}
                         </div>
                         <div>
-                          <label className="input-label summary">Confidentiality</label>
+                          <label className="input-label summary">Confidentiality classification of transferred data (based on Information classification)</label>
                           <br />
                           {selectedDataProduct?.confidentiality}
                         </div>
@@ -509,7 +509,7 @@ const Summary = ({ history, user }) => {
                       {selectedDataProduct.personalRelatedData === 'Yes' ? (
                         <div className={classNames(Styles.flexLayout, Styles.fourColumn)}>
                           <div>
-                            <label className="input-label summary">Description</label>
+                            <label className="input-label summary">Description of personal related data</label>
                             <br />
                             {selectedDataProduct.personalRelatedDataDescription}
                           </div>
@@ -564,11 +564,6 @@ const Summary = ({ history, user }) => {
                             {selectedDataProduct.LCOApprovedDataTransfer}
                           </div>
                         ) : null}
-                        <div>
-                          <label className="input-label summary">Does data product contain (potential) insider information?</label>
-                          <br />
-                          {selectedDataProduct.insiderInformation}
-                        </div>
                       </div>
                       <div className={Styles.flexLayout}>
                         <div>
@@ -589,6 +584,11 @@ const Summary = ({ history, user }) => {
                         </div>
                       </div>
                       <div className={classNames(Styles.flexLayout, Styles.threeColumn)}>
+                        <div>
+                          <label className="input-label summary">Does data product contain (potential) insider information?</label>
+                          <br />
+                          {selectedDataProduct.insiderInformation}
+                        </div>
                         <div>
                           <label className="input-label summary">
                             Are there specific deletion requirements for this data?
