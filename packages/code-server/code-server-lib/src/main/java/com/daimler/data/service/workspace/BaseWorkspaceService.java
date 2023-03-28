@@ -374,7 +374,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 			String repoName = vo.getProjectDetails().getGitRepoName();
 			HttpStatus createRepoStatus = gitClient.createRepo(repoName);
 			if(!createRepoStatus.is2xxSuccessful()) {
-				MessageDescription errMsg = new MessageDescription("Failed while initializing git repository " +repoName + " for codespace with status " + createRepoStatus.name() + " . Please verify inputs/permissions and retry.");
+				MessageDescription errMsg = new MessageDescription("Failed while initializing git repository " +repoName + " for codespace" + " . Please verify inputs/permissions/existing repositories and retry.");
 				errors.add(errMsg);
 				responseVO.setErrors(errors);
 				return responseVO;
