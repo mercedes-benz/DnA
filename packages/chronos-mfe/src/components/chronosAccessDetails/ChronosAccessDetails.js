@@ -12,7 +12,7 @@ import { chronosApi } from '../../apis/chronos.api';
 import Spinner from '../spinner/Spinner';
 import { useParams } from 'react-router-dom';
 
-const ChronosAccessDetails = ({project}) => {
+const ChronosAccessDetails = () => {
   const { id: projectId } = useParams();
   const [loading, setLoading] = useState(true);
   const [apiKey, setApiKey] = useState('');
@@ -51,7 +51,7 @@ const ChronosAccessDetails = ({project}) => {
   };
 
   const copyApiID = () => {
-    navigator.clipboard.writeText(project?.id).then(() => {
+    navigator.clipboard.writeText(projectId).then(() => {
       Notification.show('Copied to Clipboard');
     });
   };
@@ -88,7 +88,7 @@ const ChronosAccessDetails = ({project}) => {
         <div className={Styles.apiId}>
             <div className={Styles.appIdParentDiv}>
               <div className={Styles.refreshedAppId}>
-              Api Id: <span className={Styles.refreshedAppId}>{project?.id}</span>
+              Api Id: <span className={Styles.refreshedAppId}>{projectId}</span>
               </div>
               <div className={Styles.refreshedKeyIcon}>
                 <i

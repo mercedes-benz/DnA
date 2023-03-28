@@ -24,14 +24,16 @@ const ChronosProjects = ({ user }) => {
   const getChronosProjects = () => {
     chronosApi.getAllForecastProjects()
       .then((res) => {
-        if (res.data.records) {
-          const results = [...res.data.records].sort((projectA, projectB) => {
-            return projectA.createdOn.toLowerCase() === projectB.createdOn.toLowerCase() ? 0 : -1;
-          });
-          setOriginalProjects(results);
-          setForecastProjects(results);
-          setLoading(false);
+        if(res.status !== 204) {
+          if (res.data.records) {
+            const results = [...res.data.records].sort((projectA, projectB) => {
+              return projectA.createdOn.toLowerCase() === projectB.createdOn.toLowerCase() ? 0 : -1;
+            });
+            setOriginalProjects(results);
+            setForecastProjects(results);
+          }
         }
+        setLoading(false);
       })
       .catch((err) => {
         Notification.show(
@@ -108,7 +110,7 @@ const ChronosProjects = ({ user }) => {
           modalWidth={'60%'}
           buttonAlignment="right"
           show={createProject}
-          content={<ChronosProjectForm edit={false} onSave={() => setCreateProject(false)} />}
+          content={<ChronosProjectForm edit={false} onSave={() => {setCreateProject(false); handleRefresh()}} />}
           scrollableContent={false}
           onCancel={() => setCreateProject(false)}
           modalStyle={{

@@ -120,7 +120,7 @@ const ChronosProjectDetails = ({ user }) => {
             </div>
             <div id="tab-content-3" className="tab-content">
               {currentTab === 'projectDetails' ? (
-                <ProjectDetailsTab project={project} />
+                <ProjectDetailsTab project={project} onRefresh={getProjectById} />
               ) : null}
             </div>
           </div>

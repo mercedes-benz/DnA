@@ -1,4 +1,4 @@
-FROM codercom/code-server:4.5.1
+FROM codercom/code-server:4.10.1
 COPY proxy.conf /etc/apt/apt.conf.d/proxy.conf
 USER root
 

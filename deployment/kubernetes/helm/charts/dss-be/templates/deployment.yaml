@@ -53,14 +53,14 @@ spec:
             periodSeconds: 30
             failureThreshold: 3
             httpGet:
-              path: /actuator/health/liveness
+              path: /health/liveness
               port: http
           readinessProbe:
             timeoutSeconds: 30
             periodSeconds: 30
             failureThreshold: 3
             httpGet:
-              path: /actuator/health/readiness
+              path: /health/readiness
               port: http
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
