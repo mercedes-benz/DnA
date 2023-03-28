@@ -22,6 +22,7 @@ const digitalCaseProgramUrl = Envs.DIGITAL_CASE_PROGRAM_URL;
 const afoUrl= Envs.AFO_TOOL_URL;
 const btpUrl = Envs.BPT_TOOL_URL;
 const dataOasisUrl = Envs.DATA_OASIS_TOOL_URL;
+const dataQToolUrl = Envs.DATAQ_TOOL_URL;
 const dwcUrl = Envs.DWC_TOOL_URL;
 const extolloUrl = Envs.EXTOLLO_TOOL_URL;
 const powerBIUrl = Envs.POWER_BI_TOOL_URL;
@@ -285,6 +286,20 @@ export const ToolsLandingPageElements = [
     isSmallCard: false,
     isMediumCard: true,
     svgIcon: 'data-oasis',
+  },
+  {
+    name: 'DataQ',
+    description:
+      'DataQ is the intelligent IT tool for the simplified application of the Compliance Framework for Data Analytics and the AI Risk Self Assessments.',
+    tags: ['Data Compliance', 'Onprem'],
+    url: dataQToolUrl,
+    isExternalLink: true,
+    isTextAlignLeft: true,
+    animation: true,
+    isDisabled: !dataQToolUrl,
+    isSmallCard: false,
+    isMediumCard: true,
+    svgIcon: 'tools-mini',
   },
   {
     name: 'Jupyter',

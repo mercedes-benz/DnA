@@ -530,6 +530,15 @@ export interface IUserDetails {
   lastName: string;
   mobileNumber?: string;
 }
+
+export interface IUserPrivilege {
+  id: string;
+  userId: string;
+  profile: string;
+  givenName: string;
+  surName: string;
+}
+
 export interface ICodeCollaborator {
   firstName: string;
   department: string;
@@ -612,7 +621,7 @@ export interface ICustomers {
 }
 
 export interface IInternalCustomerDetails {
-  name: ITeams;
+  // name: ITeams;
   customerRelation: string;
   comment: string;
   department: string;
@@ -624,7 +633,6 @@ export interface IInternalCustomerDetails {
 }
 
 export interface IExternalCustomerDetails {
-  name: ITeams;
   companyName: string;
   customerRelation: string;
   comment: string;
@@ -1084,6 +1092,20 @@ export interface IFilterPreferences {
   solutionStatus: IProjectStatus;
   useCaseType?: string;
   tags: ITag[];
+}
+
+export interface IDataProductListItem {
+  id: string;
+  name?: string;
+}
+
+export interface IDataProductFilterParams {
+  art: string[];
+  platform: string[];
+  frontendTool: string[];
+  productOwner: string[];
+  carlaFunction: string[];
+  tag: string[];
 }
 
 export interface INoticationModules {

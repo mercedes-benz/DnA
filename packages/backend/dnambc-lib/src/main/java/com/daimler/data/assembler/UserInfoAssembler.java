@@ -59,6 +59,10 @@ public class UserInfoAssembler implements GenericAssembler<UserInfoVO, UserInfoN
 				userInfoVO.setFirstName(teamsApiResponseDto.getGiven_name());
 				userInfoVO.setLastName(teamsApiResponseDto.getSurname());
 				userInfoVO.setId(teamsApiResponseDto.getId());
+				userInfoVO.setFavoriteUsecases(new ArrayList<>());
+				userInfoVO.setToken(null);
+				userInfoVO.setRoles(new ArrayList<>());
+				userInfoVO.setDivisionAdmins(new ArrayList<>());
 				userInfoVOList.add(userInfoVO);
 			}
 
