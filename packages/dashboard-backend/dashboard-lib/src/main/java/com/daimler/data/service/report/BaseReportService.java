@@ -348,23 +348,6 @@ public class BaseReportService extends BaseCommonService<ReportVO, ReportNsql, S
 							}
 						}
 					}
-				} else if (category.equals(CATEGORY.COMMON_FUNCTION)) {
-					List<DataWarehouse> dataWarehouses = reportNsql.getData().getDataWarehouses();
-					if (!ObjectUtils.isEmpty(dataWarehouses)) {
-						for (DataWarehouse dataWarehouse : dataWarehouses) {
-							List<String> commonFunctions = dataWarehouse.getCommonFunctions();
-							if (!ObjectUtils.isEmpty(commonFunctions)) {
-								Iterator<String> itr = commonFunctions.iterator();
-								while (itr.hasNext()) {
-									String commonFunction = itr.next();
-									if (commonFunction.equals(name)) {
-										itr.remove();
-										break;
-									}
-								}
-							}
-						}
-					}
 				} else if (category.equals(CATEGORY.DIVISION)) {
 					Division reportdivision = reportNsql.getData().getDescription().getDivision();
 					if (Objects.nonNull(reportdivision) && StringUtils.hasText(reportdivision.getId())
@@ -538,23 +521,6 @@ public class BaseReportService extends BaseCommonService<ReportVO, ReportNsql, S
 							if (StringUtils.hasText(dataWarehouse.getDataWarehouse())
 									&& dataWarehouse.getDataWarehouse().equals(oldValue)) {
 								dataWarehouse.setDataWarehouse(newValue);
-							}
-						}
-					}
-				} else if (category.equals(CATEGORY.COMMON_FUNCTION)) {
-					List<DataWarehouse> dataWarehouses = reportNsql.getData().getDataWarehouses();
-					if (!ObjectUtils.isEmpty(dataWarehouses)) {
-						for (DataWarehouse dataWarehouse : dataWarehouses) {
-							List<String> commonFunctions = dataWarehouse.getCommonFunctions();
-							if (!ObjectUtils.isEmpty(commonFunctions)) {
-								ListIterator<String> itr = commonFunctions.listIterator();
-								while (itr.hasNext()) {
-									String commonFunction = itr.next();
-									if (commonFunction.equals(oldValue)) {
-										itr.set(newValue);
-										break;
-									}
-								}
 							}
 						}
 					}
