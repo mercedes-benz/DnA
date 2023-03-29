@@ -67,7 +67,6 @@ type CustomerVO{
 }
 
 type InternalCustomerVO{
-	name: TeamMemberVO,
 	customerRelation: String,
 	level: String,
 	division: DivisionVO,
@@ -79,7 +78,6 @@ type InternalCustomerVO{
 }
 
 type ExternalCustomerVO{
-	name: TeamMemberVO,
 	customerRelation: String,
 	companyName: String,
 	comment: String
@@ -99,7 +97,6 @@ type DataAndFunctionVO{
 
 type DataWarehouseVO{
 	dataWarehouse: String,
-	commonFunctions: [String],
 	dataClassification: String,
 	connectionType: String
 }

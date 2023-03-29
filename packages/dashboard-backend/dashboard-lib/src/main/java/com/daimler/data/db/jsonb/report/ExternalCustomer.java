@@ -39,8 +39,7 @@ import lombok.NoArgsConstructor;
 public class ExternalCustomer implements Serializable {
 
 	private static final long serialVersionUID = 152482308131566126L;
-
-	private TeamMember name;
+	
 	private String customerRelation;
 	private String companyName;
 	private String comment;
