@@ -1,0 +1,17 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "konga.fullname" . }}
+  namespace: {{ .Values.namespace }}
+  labels:
+    {{- include "konga.labels" . | nindent 4 }}
+spec:
+  podSelector:
+    matchLabels:
+      {{- include "konga.selectorLabels" . | nindent 5 }}   
+  ingress:
+    - ports:
+        - protocol: TCP
+          port: {{ .Values.service.port }}
+  policyTypes:
+    - Ingress

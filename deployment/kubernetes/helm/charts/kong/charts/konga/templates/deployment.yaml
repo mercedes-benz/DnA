@@ -1,0 +1,75 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "konga.fullname" . }}
+  namespace: {{ .Values.namespace }}
+  labels:
+    {{- include "konga.labels" . | nindent 4 }}
+spec:
+  {{- if not .Values.autoscaling.enabled }}
+  replicas: {{ .Values.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "konga.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "konga.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "konga.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      volumes: 
+        - name: {{ include "konga.fullname" . }}-userdata
+          configMap:
+            name: {{ include "konga.fullname" . }}      
+        - name: {{ include "konga.fullname" . }}-kongdata
+          configMap:
+            name: {{ include "konga.fullname" . }}             
+      containers:
+        - name: {{ .Chart.Name }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.service.port }}
+              protocol: TCP
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          env:
+            - name: KONGA_SEED_USER_DATA_SOURCE_FILE
+              value: /tmp/userdb.data
+            - name: KONGA_SEED_KONG_NODE_DATA_SOURCE_FILE
+              value: /tmp/kong_node.data
+            - name: NODE_ENV
+              value: production             
+          volumeMounts:
+            - name: {{ include "konga.fullname" . }}-userdata
+              mountPath: /tmp/userdb.data
+              subPath: userdb.data      
+            - name: {{ include "konga.fullname" . }}-kongdata
+              mountPath: /tmp/kong_node.data
+              subPath: kong_node.data            
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
