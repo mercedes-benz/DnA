@@ -6,7 +6,6 @@ import {
   IDataSourceMaster,
   IConnectionType,
   IDataWarehouse,
-  ICommonFunctions,
   IDataWarehouseInUse,
   ISingleDataSources,
   IDataClassification,
@@ -48,7 +47,7 @@ export interface IDataFunctionProps {
   connectionTypes: IConnectionType[];
   dataClassifications: IDataClassification[];
   dataWarehouses: IDataWarehouse[];
-  commonFunctions: ICommonFunctions[];
+  // commonFunctions: ICommonFunctions[];
   modifyDataFunction: (modifyDataFunction: IDataAndFunctions) => void;
   onSaveDraft: (tabToBeSaved: string) => void;
 }
@@ -78,7 +77,7 @@ export interface IDataAndFunctionsState {
 export interface IDataFunction {
   carLaPlatform: string;
   otherDataFunction: string;
-  commonFunctions: string[];
+  // commonFunctions: string[];
   specificFunctions: string[];
   queries: string[];
   daraSources: string[];
@@ -931,7 +930,7 @@ export default class DataFunction extends React.Component<IDataFunctionProps, ID
           // onCommonFunctionsChange={this.onCommonFunctionsChange}
           requiredError={requiredError}
           dataWarehouses={this.props.dataWarehouses}
-          commonFunctions={this.props.commonFunctions.map(item=>item.name)}
+          // commonFunctions={this.props.commonFunctions.map(item=>item.name)}
           connectionTypes={this.props.connectionTypes.map(item=>item.name)}
           dataClassifications={this.props.dataClassifications.map(item=>item.name)}
           // onDataWarehouseChange={()=>this.handleChange} 
