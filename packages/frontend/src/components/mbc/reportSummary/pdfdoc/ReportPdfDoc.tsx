@@ -506,7 +506,7 @@ const KPI = ({ kpis, showKPI }: IKPIProps) => {
                 </View>
                 <View style={styles.flexCol2}>
                   <Text style={styles.sectionTitle}>Reporting Cause</Text>
-                  <Text>{kpi.reportingCause || 'NA'}</Text>
+                  <Text>{kpi.reportingCause ? kpi.reportingCause?.join(', ') : 'NA'}</Text>
                 </View>
                 <View style={styles.flexCol2}>
                   <Text style={styles.sectionTitle}>Link KPI-Wiki</Text>
