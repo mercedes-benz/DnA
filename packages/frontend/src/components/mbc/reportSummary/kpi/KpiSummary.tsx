@@ -47,7 +47,7 @@ export default class KpiSummary extends React.Component<IKpiProps> {
                         <div id="reportingCase">
                           <label className="input-label summary">Reporting Cause</label>
                           <br />
-                          <div>{kpi.reportingCause ? kpi.reportingCause : 'NA'}</div>
+                          <div>{kpi.reportingCause ? kpi.reportingCause?.join(', ') : 'NA'}</div>
                         </div>
                         <div id="kpiLink">
                           <label className="input-label summary">Link KPI-Wiki</label>
