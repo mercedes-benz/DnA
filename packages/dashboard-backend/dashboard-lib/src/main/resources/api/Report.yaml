@@ -374,8 +374,8 @@ definitions:
   InternalCustomerVO:
     type: object
     properties: 
-      name:
-        $ref: "#/definitions/TeamMemberVO"
+#      name:
+#        $ref: "#/definitions/TeamMemberVO"
       customerRelation: 
         type: string
         minLength: 1           
@@ -408,8 +408,8 @@ definitions:
   ExternalCustomerVO:
     type: object
     properties: 
-      name:
-        $ref: "#/definitions/TeamMemberVO"
+#      name:
+#        $ref: "#/definitions/TeamMemberVO"
       customerRelation: 
         type: string
         minLength: 1
@@ -450,10 +450,10 @@ definitions:
       dataWarehouse:
         type: string
         minLength: 1
-      commonFunctions: 
-        type: array
-        items:
-          type: string
+#      commonFunctions: 
+#        type: array
+#        items:
+#          type: string
       dataClassification: 
         type: string
         minLength: 1
