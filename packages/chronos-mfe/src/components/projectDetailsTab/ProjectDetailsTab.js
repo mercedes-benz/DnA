@@ -4,6 +4,7 @@ import { useParams } from 'react-router-dom';
 import Styles from './project-details-tab.scss';
 // import from DNA Container
 import TeamMemberListItem from 'dna-container/TeamMemberListItem';
+import ConfirmModal from 'dna-container/ConfirmModal';
 import Modal from 'dna-container/Modal';
 // App components
 import ChronosProjectForm from '../chronosProjectForm/ChronosProjectForm';
@@ -13,6 +14,7 @@ import { regionalDateAndTimeConversionSolution } from '../../utilities/utils';
 import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indicator';
 import { chronosApi } from '../../apis/chronos.api';
 import Spinner from '../spinner/Spinner';
+import InputFiles from '../inputFiles/InputFiles';
 
 const ProjectDetailsTab = () => {
   const { id: projectId } = useParams();
@@ -60,6 +62,41 @@ const ProjectDetailsTab = () => {
       />
     );
   });
+
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [inputFileToBeDeleted, setInputFileToBeDeleted] = useState();
+
+  const showDeleteConfirmModal = (inputFile) => {
+    setShowDeleteModal(true);
+    setInputFileToBeDeleted(inputFile);
+  };
+  const onCancelDelete = () => {
+    setShowDeleteModal(false);
+  };
+  const onAcceptDelete = () => {
+    // TODO for input file delete
+    console.log(inputFileToBeDeleted.id);
+    // if(inputFileToBeDeleted.id !== '' || inputFileToBeDeleted.id !== null) {
+    //   ProgressIndicator.show();
+    //   chronosApi.deleteForecastRun(projectId, inputFileToBeDeleted.id).then((res) => {
+    //     if(res.data.success === 'FAILED') {
+    //       Notification.show(res?.data?.erros[0]?.message, 'alert');
+    //       ProgressIndicator.hide();
+    //     } else {
+    //       Notification.show('Run deleted');
+    //       ProgressIndicator.hide();
+    //       // getProjectForecastRuns();
+    //     }
+    //   }).catch(error => {
+    //     Notification.show(
+    //       error?.response?.data?.response?.errors[0]?.message || error?.response?.data?.response?.warnings[0]?.message || error?.response?.data?.errors[0]?.message || 'Error while creating forecast project',
+    //       'alert',
+    //     );
+    //     ProgressIndicator.hide();
+    //   });
+    // }
+    setShowDeleteModal(false);
+  }
 
   return (
     <React.Fragment>
@@ -114,6 +151,11 @@ const ProjectDetailsTab = () => {
         </div>
       </div>
       <div className={Styles.content}>
+        <h3 id="productName">Input Files</h3>
+        { loading && <Spinner /> }
+        {!loading && <InputFiles inputFiles={project.savedInputs === null ? [] : project.savedInputs} showModal={showDeleteConfirmModal} /> }
+      </div>
+      <div className={Styles.content}>
         <h3 id="productName">Access Details for Chronos Forecasting</h3>
         <ChronosAccessDetails />
       </div>
@@ -135,6 +177,40 @@ const ProjectDetailsTab = () => {
             maxWidth: '50vw'
           }}
         />
+      }
+      {
+        showDeleteModal && (
+          <ConfirmModal
+            title={'Delete'}
+            showAcceptButton={false}
+            showCancelButton={false}
+            show={showDeleteModal}
+            removalConfirmation={true}
+            showIcon={false}
+            showCloseIcon={true}
+            content={
+              <div className={Styles.deleteForecastResult}>
+                <div className={Styles.closeIcon}>
+                  <i className={classNames('icon mbc-icon close thin')} />
+                </div>
+                <div>
+                  You are going to delete the Input File.<br />
+                  Are you sure you want to proceed?
+                </div>
+                <div className={Styles.deleteBtn}>
+                  <button
+                    className={'btn btn-secondary'}
+                    type="button"
+                    onClick={onAcceptDelete}
+                  >
+                    Delete
+                  </button>
+                </div>
+              </div>
+            }
+            onCancel={onCancelDelete}
+          />
+        )
       }
     </React.Fragment>
   );

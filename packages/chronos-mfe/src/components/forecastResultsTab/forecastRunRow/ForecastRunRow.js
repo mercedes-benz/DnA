@@ -1,11 +1,12 @@
 import classnames from 'classnames';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Styles from './forecast-run-row.scss';
 // import from DNA Container
 import CircularProgressBar from '../../circularProgressBar/CircularProgressBar';
 import ContextMenu from '../../contextMenu/ContextMenu';
 import { regionalDateAndTimeConversionSolution } from '../../../utilities/utils';
 import Notification from '../../../common/modules/uilab/js/src/notification';
+import Tooltip from '../../../common/modules/uilab/js/src/tooltip';
 import ProgressIndicator from '../../../common/modules/uilab/js/src/progress-indicator';
 import { Envs } from '../../../utilities/envs';
 import { chronosApi } from '../../../apis/chronos.api';
@@ -14,6 +15,12 @@ const classNames = classnames.bind(Styles);
 
 const ForecastRunRow = (props) => {
   const item = props.item;
+
+  useEffect(() => {
+    Tooltip.defaultSetup();
+    return Tooltip.clear();
+    //eslint-disable-next-line
+  }, []);
 
   const [showContextMenu, setShowContextMenu] = useState(false);
 
