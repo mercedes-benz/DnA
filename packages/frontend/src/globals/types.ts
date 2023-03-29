@@ -1451,7 +1451,7 @@ export interface IAddNewCategoriesItem {
 export interface IDatawarehouseInItem {
   id: string;
   dataWarehouse: string;
-  commonFunctions: string[];
+  // commonFunctions: string[];
   dataClassification: string;
   connectionType: string;
 }
