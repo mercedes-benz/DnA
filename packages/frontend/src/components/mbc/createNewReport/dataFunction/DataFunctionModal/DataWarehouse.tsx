@@ -14,7 +14,7 @@ interface DataWarehouseProps {
   // onCommonFunctionsChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
   requiredError: string;
   dataWarehouses: IDataWarehouse[];
-  commonFunctions: string[];
+  // commonFunctions: string[];
   connectionTypes: string[];
   dataClassifications: string[];
   dataWarehouseInUseInfo: IDataWarehouseInUse;
