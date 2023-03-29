@@ -320,9 +320,9 @@ export class ReportsApiClient {
   public static getDatawareHouses(): Promise<IReportListItems[]> {
     return this.get('lov/datawarehouses');
   }
-  public static getCommonFunctions(): Promise<IReportListItems[]> {
-    return this.get('lov/commonfunctions');
-  }
+  // public static getCommonFunctions(): Promise<IReportListItems[]> {
+  //   return this.get('lov/commonfunctions');
+  // }
   public static getSpecificFunctions(): Promise<IReportListItems[]> {
     return this.get('lov/specificfunctions');
   }
