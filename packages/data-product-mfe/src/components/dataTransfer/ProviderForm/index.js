@@ -186,6 +186,9 @@ const ProviderForm = ({ user, history }) => {
       let defaultValues = { ...provideDataTransfers.selectedDataTransfer };
       reset(defaultValues); // setting default values
     }
+    if(provideDataTransfers.selectedDataTransfer.publish){
+      setIsTouChecked(true)
+    }
     //eslint-disable-next-line
   }, [dispatch, provideDataTransfers.selectedDataTransfer, isCreatePage]);
 
@@ -446,7 +449,7 @@ const ProviderForm = ({ user, history }) => {
       formValid = false;
     }
 
-    if(reqObj?.tou === true){
+    if(reqObj?.tou === true || provideDataTransfers.publish){
       setIsTouChecked(true)
     }
 
