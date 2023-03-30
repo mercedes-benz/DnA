@@ -21,6 +21,7 @@ const RunParametersForm = () => {
   useEffect(() => {
     SelectBox.defaultSetup();
     Tooltip.defaultSetup();
+    return Tooltip.clear();
     //eslint-disable-next-line
   }, []);
 
