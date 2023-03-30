@@ -443,17 +443,6 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
     // report.usingQuickPath = !value;
     report.usingQuickPath = false;
 
-    // Following two if's are mentioned because when we switch quickview then its state gets changed
-    if (report.description.division.subdivision.id === null) {
-      report.description.division.subdivision.id = '0';
-      report.description.division.subdivision.name = 'Choose';
-      this.setState({ currentState: JSON.parse(JSON.stringify(report)) });
-    }
-    if (report.description.division.subdivision.id === '0') {
-      report.description.division.subdivision.id = '0';
-      report.description.division.subdivision.name = 'Choose';
-      this.setState({ currentState: JSON.parse(JSON.stringify(report)) });
-    }
     this.setState({ report }, () => {
       Tabs.defaultSetup();
       if (!this.state.report.usingQuickPath) {
@@ -892,7 +881,7 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
       ReportsApiClient.createNewReport(requestBody)
         .then((response) => {
           if (response) {
-            this.trackReportEvent('New Report Save as Draft action on tab panel');
+            this.trackReportEvent('New Report Save as ' + (isPublished ? 'Publish' : 'Draft') +' action on tab panel');
             this.setState(
               {
                 response,
@@ -930,7 +919,7 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
 
   protected showNotification(isPublished: boolean) {
     ProgressIndicator.hide();
-    Notification.show((this.state.report.publish ? 'Report saved and published' : 'Draft saved') + ' successfully.');
+    Notification.show((isPublished ? 'Report saved and published' : 'Draft saved') + ' successfully.');
   }
 
   protected showErrorNotification(message: string) {

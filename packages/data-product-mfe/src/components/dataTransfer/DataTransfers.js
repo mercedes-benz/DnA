@@ -20,13 +20,13 @@ const DataProducts = ({ user, history, hostHistory }) => {
 
   const [cardViewMode, setCardViewMode] = useState(true);
   const [listViewMode, setListViewMode] = useState(false);
-  const [isCreatorFilter, 
-    // setIsCreatorFilter
+  const [isProviderCreatorFilter, 
+    setIsProviderCreatorFilter
   ] = useState(false);
 
   useEffect(() => {
-    dispatch(GetDataTransfers(isCreatorFilter));
-  }, [dispatch, isCreatorFilter]);
+    dispatch(GetDataTransfers(isProviderCreatorFilter));
+  }, [dispatch, isProviderCreatorFilter]);
 
   const onPaginationPreviousClick = () => {
     const currentPageNumberTemp = currentPageNumber - 1;
@@ -61,7 +61,7 @@ const DataProducts = ({ user, history, hostHistory }) => {
       <button
         className={classNames('btn btn-text back arrow', Styles.backBtn)}
         type="submit"
-        onClick={() => hostHistory.push('/transparency')}
+        onClick={() => hostHistory.goBack()}
       >
         Back
       </button>
@@ -96,10 +96,10 @@ const DataProducts = ({ user, history, hostHistory }) => {
             </div>
           </div>
           <div>
-            {/* <button className={classNames(Styles.tagItem, 
-            isCreatorFilter ? Styles.selectedItem : '')} 
-            onClick={() => {setIsCreatorFilter(!isCreatorFilter)}}>
-            My Data Transfers</button> */}
+            <button className={classNames(Styles.tagItem, 
+            isProviderCreatorFilter ? Styles.selectedItem : '')} 
+            onClick={() => {setIsProviderCreatorFilter(!isProviderCreatorFilter)}}>
+            My Data Transfers</button>
           </div>
           <div>
             <div>
@@ -133,7 +133,7 @@ const DataProducts = ({ user, history, hostHistory }) => {
                             <label className={Styles.addlabel}>Provide new data transfer</label>
                           </div>
                           {dataTransfers?.map((product, index) => {
-                            return <DataProductCardItem key={index} product={product} user={user} />;
+                            return <DataProductCardItem key={index} product={product} user={user} isProviderCreatorFilter={isProviderCreatorFilter} />;
                           })}
                         </>
                       ) : null}
@@ -152,7 +152,7 @@ const DataProducts = ({ user, history, hostHistory }) => {
                               <label className={Styles.addlabel}>Provide new data transfer</label>
                             </div>
                             {dataTransfers?.map((product, index) => {
-                              return <DataProductListItem key={index} product={product} user={user} />;
+                              return <DataProductListItem key={index} product={product} user={user} isProviderCreatorFilter={isProviderCreatorFilter}/>;
                             })}
                           </div>
                         </>
