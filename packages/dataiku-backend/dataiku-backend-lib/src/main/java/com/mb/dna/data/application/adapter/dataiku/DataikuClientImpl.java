@@ -2,7 +2,7 @@ package com.mb.dna.data.application.adapter.dataiku;
 
 import java.util.Optional;
 
-import org.json.JSONObject;
+import org.reactivestreams.Publisher;
 
 import com.mb.dna.data.api.controller.exceptions.MessageDescription;
 
@@ -124,16 +124,15 @@ public class DataikuClientImpl implements DataikuClient {
 			String baseUri = "onPremise".equalsIgnoreCase(cloudProfile) ? dataikuClientConfig.getOnPremiseBaseuri() : dataikuClientConfig.getExtolloBaseuri();
 			String url =   baseUri + "/projects/" + dataikuClientConfig.getScenarioProjectKey() + "/scenarios/" + dataikuClientConfig.getScenarioId() + "/run";
 			String apiToken = "onPremise".equalsIgnoreCase(cloudProfile) ? dataikuClientConfig.getOnPremiseAuth() : dataikuClientConfig.getExtolloAuth();
-			HttpRequest<?> req = HttpRequest.POST(url,null).header("Accept", "application/json")
-			.header("Content-Type", "application/json")
-			.header("Authorization", "Basic "+ apiToken);
+			HttpRequest<String> req = HttpRequest.POST(url,"{}")
+													.header("Accept", "application/json")
+													.header("Content-Type", "application/json")
+													.header("Authorization", "Basic "+ apiToken);
 			log.info("run scenarion with url {}", url);
-			HttpResponse<JSONObject> response = client.toBlocking().exchange(req,JSONObject.class);
-			if(response!=null && response.getBody()!=null) {
-				Optional<JSONObject> responseBody = response.getBody();
-				if(responseBody.isPresent()) {
-					log.info("Ran updated scenario for projectName with response status {} ",projectName, response.getStatus().toString());
-				}
+			Publisher<HttpResponse<String>> response = 
+					client.exchange(req,String.class);
+			if(response!=null) {
+					log.info("Ran updated scenario for projectName",projectName);
 			}
 			client.close();
 			return null;
