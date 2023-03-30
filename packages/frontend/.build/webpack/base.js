@@ -178,6 +178,8 @@ const base = {
         './HeadingSection': './src/components/mbc/shared/landingSummary/headingSection/HeadingSection.tsx',
         './Caption': './src/components/mbc/shared/caption/Caption.tsx',
         './ProvisionSolution': './src/components/mbc/provisionsolution/Provisionsolution.tsx',
+        './TagSection': './src/components/mbc/shared/landingSummary/tagSection/TagSection.tsx',
+        './DataProductFilter': './src/components/mbc/filters/DataProductFilter.tsx',
       },
       remotes: {
         // object key is used to import

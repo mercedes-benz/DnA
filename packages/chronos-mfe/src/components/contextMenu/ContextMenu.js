@@ -10,6 +10,7 @@ const ContextMenu = (props) => {
 
   useEffect(() => {
     Tooltip.defaultSetup();
+    return Tooltip.clear();
   }, []);
 
   const [showContextMenu, setShowContextMenu] = useState(false);

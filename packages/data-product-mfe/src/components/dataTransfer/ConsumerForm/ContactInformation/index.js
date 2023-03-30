@@ -102,6 +102,7 @@ const ContactInformation = ({
   useEffect(() => {
     reset(watch());
     Tooltip.defaultSetup();
+    SelectBox.defaultSetup();
     //eslint-disable-next-line
   }, []);
 
