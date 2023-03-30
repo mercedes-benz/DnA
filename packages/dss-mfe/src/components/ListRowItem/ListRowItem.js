@@ -130,7 +130,6 @@ const ProjectListRowItem = (props) => {
           className={classNames('data-row')}
         >
           <td className="wrap-text projectName" >{props.project.projectName}</td>
-          <td className="wrap-text projectName" >{props.project.description}</td>
           <td className="wrap-text projectName" >{props.project.cloudProfile}</td>
           {props?.user?.id === props?.project?.createdBy ? <td id={'card-' + props.project.projectKey} key={props.project.projectKey} className={Styles.actionMenus}>
             <div className={classNames(Styles.contextMenu, showContextMenu ? Styles.open : '')}>
