@@ -151,7 +151,7 @@ public class RegistryServiceImpl implements RegistryService {
 
 	private String getServiceName(String[] modelPath) {
 		String serviceName = "";
-		for (int i = 1; i < modelPath.length - 1; i++) {
+		for (int i = 0; i < modelPath.length - 1; i++) {
 			serviceName += modelPath[i] + "-";
 		}
 		if (StringUtils.hasText(serviceName)) {
@@ -170,7 +170,8 @@ public class RegistryServiceImpl implements RegistryService {
 		try {
 			String[] modelPath = modelName.split("/");
 			String namespace = modelPath[0];
-
+			UserInfo currentUser = userStore.getUserInfo();
+			String shortId = currentUser.getId();
 			if (modelPath.length < 2 || namespace.split("-").length != 2) {
 				LOGGER.debug("ModelName :  {} is invalid ", modelName);
 				List<MessageDescription> messages = new ArrayList<>();
@@ -187,7 +188,7 @@ public class RegistryServiceImpl implements RegistryService {
 			String kongServiceName = userId + "-" + serviceName;
 			String kongServiceUrl = "http://" + serviceName + "." + namespace + ".svc.cluster.local/v1/models/"
 					+ serviceName + ":predict";
-			String kongRoutePaths = "/model-serving/v1/models/" + serviceName + ":predict";
+			String kongRoutePaths = "/model-serving/v1/models/" + shortId +"/"+ serviceName + ":predict";
 			String url = "https://" + host + kongRoutePaths;
 			String appId = AppIdGenerator.encrypt(kongServiceName);
 			String appKey = UUID.randomUUID().toString();
