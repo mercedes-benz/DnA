@@ -106,6 +106,7 @@ public class DataTransferController implements DatatransfersApi {
     public ResponseEntity<DataTransferCollection> getAll(
 			@ApiParam(value = "datatransfer ID to be fetched (send id's with comma separated eg: 'DTF-00019', 'DTF-00020'..)") @Valid @RequestParam(value = "datatransferIds", required = false) String datatransferIds,
 			@ApiParam(value = "If true then sends datatransfer which are created by the logged In users") @Valid @RequestParam(value = "isCreator", required = false) Boolean isCreator,
+			@ApiParam(value = "if true then sends dataproduct which are created by the logged In users") @Valid @RequestParam(value = "isProviderCreator", required = false) Boolean isProviderCreator,
 			@ApiParam(value = "Filtering datatransfer based on publish state. Draft or published, values true or false") @Valid @RequestParam(value = "published", required = false) Boolean published,
     		@ApiParam(value = "page number from which listing of datatransfers should start.") @Valid @RequestParam(value = "offset", required = false) Integer offset,
     		@ApiParam(value = "page size to limit the number of datatransfers.") @Valid @RequestParam(value = "limit", required = false) Integer limit,
@@ -129,12 +130,12 @@ public class DataTransferController implements DatatransfersApi {
 
 			String recordStatus = ConstantsUtility.OPEN;
 
-			Long count = dataTransferService.getCount(published, recordStatus, datatransferIds, isCreator);
+			Long count = dataTransferService.getCount(published, recordStatus, datatransferIds, isCreator, isProviderCreator);
 			if (count < offset)
 				offset = 0;
 
 			List<DataTransferVO> dataTransfers = dataTransferService.getAllWithFilters(published, offset, limit, sortBy,
-					sortOrder, recordStatus, datatransferIds, isCreator);
+					sortOrder, recordStatus, datatransferIds, isCreator,isProviderCreator);
 			LOGGER.info("DataTransfers fetched successfully");
 			if (!ObjectUtils.isEmpty(dataTransfers)) {
 				dataTransferCollection.setTotalCount(count.intValue());

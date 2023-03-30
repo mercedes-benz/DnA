@@ -809,10 +809,18 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 	public Boolean isBucketExists(String bucketName) {
 		return storageClient.isBucketExists(bucketName);
 	}	
-	
+
 	@Override
 	public List<String> getAllForecastIds() {
 		// TODO Auto-generated method stub
 		return customRepo.getAllForecastIds();
-	}	
+	}
+
+	@Override
+	@Transactional
+	public BucketObjectsCollectionWrapperDto getBucketObjects(String path){
+		return storageClient.getBucketObjects(path);
+
+	}
+
 }

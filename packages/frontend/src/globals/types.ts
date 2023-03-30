@@ -633,7 +633,6 @@ export interface IInternalCustomerDetails {
 }
 
 export interface IExternalCustomerDetails {
-  name: ITeams;
   companyName: string;
   customerRelation: string;
   comment: string;
@@ -1093,6 +1092,20 @@ export interface IFilterPreferences {
   solutionStatus: IProjectStatus;
   useCaseType?: string;
   tags: ITag[];
+}
+
+export interface IDataProductListItem {
+  id: string;
+  name?: string;
+}
+
+export interface IDataProductFilterParams {
+  art: string[];
+  platform: string[];
+  frontendTool: string[];
+  productOwner: string[];
+  carlaFunction: string[];
+  tag: string[];
 }
 
 export interface INoticationModules {
