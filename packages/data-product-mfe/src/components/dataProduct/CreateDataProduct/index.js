@@ -185,6 +185,10 @@ const CreateDataProduct = ({ user, history }) => {
       reset(defaultValues); // setting default values
     }
 
+    if(data.selectedDataProduct.isPublish){
+      setIsTouChecked(true)
+    }
+
     //eslint-disable-next-line
   }, [dispatch, data.selectedDataProduct, isCreatePage]);
 
@@ -448,7 +452,7 @@ const CreateDataProduct = ({ user, history }) => {
       formValid = false;
     }
 
-    if(reqObj?.tou === true){
+    if(reqObj?.tou === true || data.isPublish){
       setIsTouChecked(true)
     }
 
