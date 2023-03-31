@@ -240,9 +240,12 @@ public class BaseSolutionService extends BaseCommonService<SolutionVO, SolutionN
 		updateTags(vo);
 		updateDataSources(vo);
 		updateRelatedProducts(vo);
+					
+		if(StringUtils.hasText(vo.getDepartment())) {
+			LOGGER.info("Calling dashboardService to update departments {}", vo.getDepartment());
+			dashboardClient.updateDepartments(vo);
+		}
 		
-		LOGGER.info("Calling dashboardService to update departments {}", vo.getDepartment());	
-		dashboardClient.updateDepartments(vo);
 		
 		LOGGER.debug("Updating Skills if not available.");
 		updateSkills(vo);
