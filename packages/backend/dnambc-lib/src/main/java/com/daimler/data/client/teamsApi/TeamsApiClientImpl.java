@@ -37,8 +37,6 @@ public class TeamsApiClientImpl implements TeamsApiClient {
     @Value("${teamsApi.teams-api-resultFetchSize}")
     private String teamsApiResultFetchSize;
 
-    @Value("${teamsApi.teams-api-clientSecret}")
-    private String teamsApiClientSecret;
     @Autowired
     RestTemplate restTemplate;
 
@@ -57,7 +55,7 @@ public class TeamsApiClientImpl implements TeamsApiClient {
             String jwt = httpRequest.getHeader("Authorization");
             claims = JWTGenerator.decodeJWT(jwt);
             String SecretKey = claims.get("authToken", String.class);
-            String oidcAuthontication = "Bearer " + teamsApiClientSecret;
+            String oidcAuthontication = "Bearer " + SecretKey;
             HttpHeaders headers = new HttpHeaders();
             headers.set("Accept", "application/json");
             headers.set("Content-Type", "application/json");
