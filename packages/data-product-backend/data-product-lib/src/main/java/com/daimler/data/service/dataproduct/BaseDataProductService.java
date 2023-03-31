@@ -104,6 +104,14 @@ public class BaseDataProductService extends BaseCommonService<DataProductVO, Dat
 		}
 
 	@Override
+	public List<String> getAllWithDataProductOwners(Boolean published, int offset, int limit, String sortOrder,
+														   String recordStatus) {
+		List<String> dataProductEntities = dataProductCustomRepository
+				.getOwnersAllWithFiltersUsingNativeQuery(published, offset, limit, sortOrder, recordStatus);
+		return dataProductEntities;
+	}
+
+	@Override
 	public ResponseEntity<DataTransferProviderResponseVO> createDataTransferProvider(ProviderVO providerVO) {
 		return dataTransferService.createDataTransferProvider(providerVO, true);
 	}
@@ -120,6 +128,11 @@ public class BaseDataProductService extends BaseCommonService<DataProductVO, Dat
 			List<String> productOwnerList) {
 			return dataProductCustomRepository.getCountUsingNativeQuery(published, recordStatus,
 					artsList, carlafunctionsList, platformsList, frontendToolsList, productOwnerList);
+		}
+
+		@Override
+		public Long getCountOwners(Boolean published, String recordStatus) {
+			return dataProductCustomRepository.getCountOwnersUsingNativeQuery(published, recordStatus);
 		}
 
 		@Override
