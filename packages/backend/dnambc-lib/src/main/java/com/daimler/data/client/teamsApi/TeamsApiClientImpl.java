@@ -37,6 +37,8 @@ public class TeamsApiClientImpl implements TeamsApiClient {
     @Value("${teamsApi.teams-api-resultFetchSize}")
     private String teamsApiResultFetchSize;
 
+    @Value("${teamsApi.teams-api-clientSecret}")
+    private String teamsApiClientSecret;
     @Autowired
     RestTemplate restTemplate;
 
@@ -55,7 +57,7 @@ public class TeamsApiClientImpl implements TeamsApiClient {
             String jwt = httpRequest.getHeader("Authorization");
             claims = JWTGenerator.decodeJWT(jwt);
             String SecretKey = claims.get("authToken", String.class);
-            String oidcAuthontication = "Bearer " + SecretKey;
+            String oidcAuthontication = "Bearer " + teamsApiClientSecret;
             HttpHeaders headers = new HttpHeaders();
             headers.set("Accept", "application/json");
             headers.set("Content-Type", "application/json");
@@ -70,7 +72,7 @@ public class TeamsApiClientImpl implements TeamsApiClient {
             HttpEntity entity = new HttpEntity<>(headers);
             ResponseEntity<TeamsApiResponseWrapperDto> response = restTemplate.exchange(teamsApiUri, HttpMethod.GET, entity, TeamsApiResponseWrapperDto.class);
             if (response != null && response.hasBody()) {
-                LOGGER.debug("Successfully fetched user details from teamsApi");
+                LOGGER.info("Successfully fetched user details from teamsApi");
                 if (response.getBody().getEntries()!= null) {
                     usersCollection= new UsersCollection();
                     userInfoVOList = userInfoAssembler.toUserInfoVo(response.getBody().getEntries());
