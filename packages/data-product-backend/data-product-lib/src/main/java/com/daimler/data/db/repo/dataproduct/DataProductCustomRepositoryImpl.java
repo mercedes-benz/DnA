@@ -93,6 +93,53 @@ public class DataProductCustomRepositoryImpl extends CommonDataRepositoryImpl<Da
 		return results.longValue();
 	}
 
+	@Override
+	public List<String> getOwnersAllWithFiltersUsingNativeQuery(Boolean published, int offset, int limit,
+			   String sortOrder, String recordStatus) {
+		Query q = getNativeQueryWithFiltersForDataProductOwners("", published, offset, limit, sortOrder, recordStatus);
+		List<String> results = null;
+		try {
+			results = q.getResultList();
+		} catch(Exception e){
+			e.printStackTrace();
+		}
+		return results;
+	}
+	@Override
+	public Long getCountOwnersUsingNativeQuery(Boolean published, String recordStatus) {
+
+		Query q = getNativeQueryWithFiltersForDataProductOwners("SELECT COUNT(DISTINCT jsonb_extract_path_text(data, 'createdBy', 'id')) AS total_unique_created_by_ids ", published, 0, 0, "asc", recordStatus);
+		BigInteger results = (BigInteger) q.getSingleResult();
+		return results.longValue();
+	}
+
+	private Query getNativeQueryWithFiltersForDataProductOwners(String selectFieldsString, Boolean published, int offset, int limit, String sortOrder, String recordStatus) {
+
+		String prefix = selectFieldsString != null && !"".equalsIgnoreCase(selectFieldsString) ? selectFieldsString
+				: "SELECT DISTINCT jsonb_extract_path_text(data, 'createdBy', 'id') AS created_by_id ";
+		prefix = prefix + "FROM dataproduct_nsql";
+		String basicpredicate = " where (id is not null)";
+		String consolidatedPredicates = buildPredicateString(published, recordStatus);
+		String query = prefix + basicpredicate + consolidatedPredicates;
+		String sortQueryString = "";
+		if (StringUtils.hasText(sortOrder)) {
+			String sortbyQueryValue =  prefix.split("AS ")[1].split(" ")[0];
+			if ("desc".equalsIgnoreCase(sortOrder)) {
+				sortQueryString =  "ORDER BY " + sortbyQueryValue + " desc ";
+			} else {
+				sortQueryString = "ORDER BY " + sortbyQueryValue + " asc ";
+			}
+
+			query = query + sortQueryString;
+		}
+		if (limit > 0)
+			query = query + " limit " + limit;
+		if (offset >= 0)
+			query = query + " offset " + offset;
+		Query q = em.createNativeQuery(query);
+		return q;
+	}
+
 	private Query getNativeQueryWithFilters(String selectFieldsString, Boolean published, int offset, int limit,
 			String sortBy, String sortOrder, String recordStatus,
 			List<String> artsList, List<String> carlafunctionsList,
@@ -146,6 +193,10 @@ public class DataProductCustomRepositoryImpl extends CommonDataRepositoryImpl<Da
 				+ getPlatformsListPredicateString(platformsList) + "\n" + getartFrontendToolsString(frontendToolsLis) + "\n"
 				+ getProductOwnerPredicateString(productOwnerList) + "\n"
 				+ getPublishedAndAccessPredicate(published) + "\n" + getRecordStatusPredicateString(recordStatus);
+	}
+
+	private String buildPredicateString(Boolean published, String recordStatus) {
+		return getPublishedAndAccessPredicate(published) + "\n" + getRecordStatusPredicateString(recordStatus);
 	}
 
 	private String getProductOwnerPredicateString(List<String> productOwnerList) {

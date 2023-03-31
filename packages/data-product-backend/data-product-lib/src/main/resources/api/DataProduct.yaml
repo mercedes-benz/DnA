@@ -207,6 +207,53 @@ paths:
         500:
           description: "Internal error"          
 
+  /dataproducts/owners:
+    get:
+      tags:
+        - "dataproducts"
+      summary: "Get all available dataproducts owners"
+      description: "Get all dataproducts owner. This endpoints will be used to get all valid available dataproduct owner records."
+      operationId: "getAllDataproductOwners"
+      parameters:
+        - name: published
+          in: query
+          description: Filtering dataproduct owners based on publish state. Draft or published, values true or false
+          required: false
+          type: boolean
+        - name: offset
+          in: query
+          description: page number from which listing of dataproducts should start.
+          required: false
+          type: integer
+        - name: limit
+          in: query
+          description: page size to limit the number of dataproducts.
+          required: false
+          type: integer
+        - name: sortOrder
+          in: query
+          description: Sort dataproducts based on the given order, example asc,desc
+          required: false
+          type: string
+          enum: [asc,desc]
+      responses:
+        200:
+          description: "Returns message of success or failure"
+          schema:
+            $ref: "#/definitions/DataProductOwnerCollection"
+        204:
+          description: "Fetch complete, no content found."
+        400:
+          description: "Bad request."
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
+
   # path to get and delete dataproduct by id
   #
   #  Supported http methods GET
@@ -600,7 +647,19 @@ definitions:
       datatrandferName:
         type: string
         description: "datatrandfer Name"
-          
+
+  DataProductOwnerCollection:
+    description: "Collection of dataproducts owner."
+    type: object
+    properties:
+      totalCount:
+        type: integer
+        description: "Total Record Count"
+      records:
+        type: array
+        items:
+          type: string
+
   DataProductResponseVO:
     type: object
     properties:

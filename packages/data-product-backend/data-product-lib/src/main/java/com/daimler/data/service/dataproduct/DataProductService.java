@@ -45,6 +45,9 @@ public interface DataProductService extends CommonService<DataProductVO, DataPro
 			String recordStatus, List<String> artsList, List<String> carlafunctionsList,
 			List<String> platformsList, List<String> frontendToolsList, List<String> productOwnerList);
 
+	List<String> getAllWithDataProductOwners(Boolean published, int offset, int limit, String sortOrder,
+			String recordStatus);
+
 	ResponseEntity<DataTransferProviderResponseVO> createDataTransferProvider(ProviderVO providerVO);
 
 	ResponseEntity<DataTransferConsumerResponseVO> updateDataTransferConsumer(ConsumerVO consumerVO);
@@ -54,6 +57,8 @@ public interface DataProductService extends CommonService<DataProductVO, DataPro
 				  List<String> platformsList, List<String> frontendToolsList, List<String> productOwnerList);
 
 	List<DataProductVO> getExistingDataProduct(String uniqueProductName, String status);
+
+	Long getCountOwners(Boolean published, String recordStatus);
 
 	String getNextSeqId();
 }

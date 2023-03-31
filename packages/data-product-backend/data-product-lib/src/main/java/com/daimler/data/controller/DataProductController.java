@@ -334,6 +334,63 @@ public class DataProductController implements DataproductsApi{
 		}
     }
 
+
+	@ApiOperation(value = "Get all available dataproducts owners.", nickname = "getAllDataproductOwners", notes = "Get all dataproducts owner. This endpoints will be used to get all valid available dataproduct owner records.", response = DataProductCollection.class, tags={ "dataproducts", })
+	@ApiResponses(value = {
+			@ApiResponse(code = 200, message = "Returns message of success or failure", response = DataProductCollection.class),
+			@ApiResponse(code = 204, message = "Fetch complete, no content found."),
+			@ApiResponse(code = 400, message = "Bad request."),
+			@ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+			@ApiResponse(code = 403, message = "Request is not authorized."),
+			@ApiResponse(code = 405, message = "Method not allowed"),
+			@ApiResponse(code = 500, message = "Internal error") })
+	@RequestMapping(value = "/dataproducts/owners",
+			produces = { "application/json" },
+			consumes = { "application/json" },
+			method = RequestMethod.GET)
+	public ResponseEntity<DataProductOwnerCollection> getAllDataproductOwners(
+			@ApiParam(value = "Filtering dataproduct based on publish state. Draft or published, values true or false") @Valid @RequestParam(value = "published", required = false) Boolean published,
+			@ApiParam(value = "page number from which listing of dataproducts should start.") @Valid @RequestParam(value = "offset", required = false) Integer offset,
+			@ApiParam(value = "page size to limit the number of dataproducts.") @Valid @RequestParam(value = "limit", required = false) Integer limit,
+			@ApiParam(value = "Sort dataproducts based on the given order, example asc,desc", allowableValues = "asc, desc") @Valid @RequestParam(value = "sortOrder", required = false) String sortOrder ){
+		try {
+			DataProductOwnerCollection dataProductCollection = new DataProductOwnerCollection();
+
+			int defaultLimit = 10;
+			if (offset == null || offset < 0)
+				offset = 0;
+			if (limit == null || limit < 0) {
+				limit = defaultLimit;
+			}
+			if (sortOrder != null && !sortOrder.equals("asc") && !sortOrder.equals("desc")) {
+				return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
+			}
+			if (sortOrder == null) {
+				sortOrder = "asc";
+			}
+
+			String recordStatus = ConstantsUtility.OPEN;
+
+			Long count = service.getCountOwners(published, recordStatus);
+			if (count < offset)
+				offset = 0;
+
+			List<String> dataProducts = new ArrayList<String>();
+			dataProducts = service.getAllWithDataProductOwners(published, offset, limit, sortOrder, recordStatus);
+			log.info("DataProducts fetched successfully");
+			if (!dataProducts.isEmpty()) {
+				dataProductCollection.setTotalCount(count.intValue());
+				dataProductCollection.setRecords(dataProducts);
+				return new ResponseEntity<>(dataProductCollection, HttpStatus.OK);
+			} else {
+				return new ResponseEntity<>(dataProductCollection, HttpStatus.NO_CONTENT);
+			}
+		} catch (Exception e) {
+			log.error("Failed to fetch dataProducts owner list with exception {} ", e.getMessage());
+			return new ResponseEntity<>(new DataProductOwnerCollection(), HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
+
 	@Override
 	@ApiOperation(value = "Request of Data product Access.", nickname = "requestAccess", notes = "Request of Data product Access.", response = DataProductResponseVO.class, tags = {"dataproducts",})
 	@ApiResponses(value = {
