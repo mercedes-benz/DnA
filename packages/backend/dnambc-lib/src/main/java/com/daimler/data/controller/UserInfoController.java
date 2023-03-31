@@ -48,6 +48,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.ObjectUtils;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
@@ -124,10 +125,10 @@ public class UserInfoController implements UsersApi {
 			if (sortOrder == null) {
 				sortOrder = "asc";
 			}
-			if (teamsApiEnabled) {
-				logger.info("Fetching user information with given identifier from TeamsApi.");				
-					usersCollection = teamsApiClient.getTeamsApiUserInfoDetails(searchTerm);
-					if (!ObjectUtils.isEmpty(usersCollection)) {
+			if (teamsApiEnabled && StringUtils.hasText(searchTerm)) {
+				logger.info("Fetching user information with given identifier from TeamsApi.");					
+					usersCollection = teamsApiClient.getTeamsApiUserInfoDetails(searchTerm,offset);
+				if (!ObjectUtils.isEmpty(usersCollection)) {
 						log.debug("Returning all users details from TeamsApi");
 						return new ResponseEntity<>(usersCollection, HttpStatus.OK);					
 				}
