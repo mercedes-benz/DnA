@@ -70,7 +70,7 @@ public class TeamsApiClientImpl implements TeamsApiClient {
             HttpEntity entity = new HttpEntity<>(headers);
             ResponseEntity<TeamsApiResponseWrapperDto> response = restTemplate.exchange(teamsApiUri, HttpMethod.GET, entity, TeamsApiResponseWrapperDto.class);
             if (response != null && response.hasBody()) {
-                LOGGER.debug("Successfully fetched user details from teamsApi");
+                LOGGER.info("Successfully fetched user details from teamsApi");
                 if (response.getBody().getEntries()!= null) {
                     usersCollection= new UsersCollection();
                     userInfoVOList = userInfoAssembler.toUserInfoVo(response.getBody().getEntries());
