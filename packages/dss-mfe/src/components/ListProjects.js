@@ -722,21 +722,6 @@ export default class ListProjects extends React.Component {
                             </th>
                             <th
                               onClick={() => {
-                                this.sortByColumn('description', this.state.nextSortOrder);
-                              }}
-                            >
-                              <label
-                                className={
-                                  'sortable-column-header ' +
-                                  (this.state.currentColumnToSort == 'description' ? this.state.currentSortOrder : '')
-                                }
-                              >
-                                <i className="icon sort" />
-                                Description
-                              </label>
-                            </th>
-                            <th
-                              onClick={() => {
                                 this.sortByColumn('cloudProfile', this.state.nextSortOrder);
                               }}
                             >

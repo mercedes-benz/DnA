@@ -13,9 +13,7 @@ const CreateOrEditProject = (props) => {
     const [projectName, setProjectName] = useState('');
     const [isUserCanCreateDataiku, setUserCanCreateDataiku] = useState(false);
     const [dataikuCollaborators, setDataikuCollaborators] = useState(props.isEdit && props?.editDataikuProjectDetail?.collaborators?.length > 0 ? props?.editDataikuProjectDetail.collaborators : []);
-    const [descriptionErrorMessage, setDescriptionErrorMessage] = useState('');
     const [projectGroupErrorMessage, setProjectGroupErrorMessage] = useState('');
-    const [description, setDescription] = useState('');
     const [projectGroup, setProjectGroup] = useState('');
 
     useEffect(() => {
@@ -24,7 +22,7 @@ const CreateOrEditProject = (props) => {
         } else {
             setUserCanCreateDataiku(true);
         }
-    }, [props.user.id, props.isEdit]); // eslint-disable-line react-hooks/exhaustive-deps
+    }, [props.user?.id, props?.isEdit]); // eslint-disable-line react-hooks/exhaustive-deps
 
     const validateUser = (userId) => {
         ProgressIndicator.show();
@@ -44,27 +42,16 @@ const CreateOrEditProject = (props) => {
 
     const handleCreateDataikuSubmit = () => {
         if (!props.isEdit) {
-            if (!projectName && !description) {
-                setDescriptionErrorMessage('description is required *');
+            if (!projectName) {
                 setProjectErrorMessage('Project name is required *');
                 return;
-            } else if (!description && projectName) {
-                setDescriptionErrorMessage('description is required *');
-                setProjectErrorMessage('');
-                return;
-            } else if (description && !projectName) {
-                setProjectErrorMessage('Project name is required *');
-                setDescriptionErrorMessage('');
-                return;
-            }
-
+            } 
             if (!projectGroup) {
                 setProjectGroupErrorMessage('project group is required *');
                 return;
             }
             setProjectGroupErrorMessage('');
             setProjectErrorMessage('');
-            setDescriptionErrorMessage('');
             createDataikuProject();
         } else {
             updtateDataikuProject();
@@ -77,7 +64,6 @@ const CreateOrEditProject = (props) => {
             data: {
                 id: props.editDataikuProjectDetail.id,
                 projectName: props.editDataikuProjectDetail.projectName,
-                description: props.editDataikuProjectDetail.description,
                 cloudProfile: props.editDataikuProjectDetail.cloudProfile,
                 collaborators: dataikuCollaborators,
                 createdBy: props.editDataikuProjectDetail.createdBy,
@@ -91,7 +77,6 @@ const CreateOrEditProject = (props) => {
                 if (data.response.success === 'SUCCESS') {
                     Notification.show('Dataiku project updated successfully');
                     setProjectName('');
-                    setDescription('');
                     setDataikuCollaborators([]);
                     ProgressIndicator.hide();
                     props.callDnaDataList();
@@ -116,7 +101,6 @@ const CreateOrEditProject = (props) => {
             data: {
                 id: "",
                 projectName: projectName,
-                description: description,
                 cloudProfile: projectGroup,
                 collaborators: dataikuCollaborators,
                 createdBy: "",
@@ -130,7 +114,6 @@ const CreateOrEditProject = (props) => {
                 if (data.response.success === 'SUCCESS') {
                     Notification.show('Dataiku project created successfully');
                     setProjectName('');
-                    setDescription('');
                     setDataikuCollaborators([]);
                     ProgressIndicator.hide();
                     props.callDnaDataList();
@@ -223,29 +206,8 @@ const CreateOrEditProject = (props) => {
                             />}
                             <span className={classNames('error-message')}>{projectErrorMessage}</span>
                         </div>
-                        <div className={classNames('input-field-group include-error')}>
-                            <label id="description" className="input-label" htmlFor="description">
-                                Description <sup>*</sup>
-                            </label>
-                            {props.isEdit ? <div>{props.editDataikuProjectDetail.description}</div> : <textarea
-                                type="text"
-                                className="input-field"
-                                id="productNameInput"
-                                maxLength={200}
-                                placeholder="Type here"
-                                autoComplete="off"
-                                value={description}
-                                onChange={(e) => {
-                                    if (e.target.value) {
-                                        setDescriptionErrorMessage('');
-                                    }
-                                    setDescription(e.target.value);
-                                }}
-                            />}
-                            <span className={classNames('error-message')}>{descriptionErrorMessage}</span>
-                        </div>
-                        <div className={classNames('input-field-group include-error')}>
-                            <label id="description" className="input-label" htmlFor="description">
+                        <div className={classNames('input-field-group include-error', Styles.instance)}>
+                            <label id="Instance" className="input-label" htmlFor="Instance">
                                 Instance <sup>*</sup>
                             </label>
                             <div className={Styles.radioBtnsGrid}>
