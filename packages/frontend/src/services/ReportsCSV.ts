@@ -129,7 +129,7 @@ export const getDataForCSV = (
                   ?.map((datawarehouse) => 
                   'datawarehouse: ' + (datawarehouse?.dataWarehouse)
                   + '|' + 'connectionType: ' + datawarehouse?.connectionType
-                  + '|' + 'commonFunctions: ' + datawarehouse?.commonFunctions
+                  // + '|' + 'commonFunctions: ' + datawarehouse?.commonFunctions
                   + '|' + 'dataClassification: ' + datawarehouse?.dataClassification
                   )   
               : 'NA',
