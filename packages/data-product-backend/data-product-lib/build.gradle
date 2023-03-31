@@ -247,10 +247,22 @@ swaggerSources {
             rawOptions = ['--ignore-file-override', ignoreFile]
             components = ['models', 'apis']
            }
-      }   
+      }
+
+    userWidgetPreference {
+        def userWidgetPreferenceyaml = "${rootDir}/data-product-lib/src/main/resources/api/UserWidgetPreference.yaml"
+        def userWidgetPreferenceJson = "${rootDir}/data-product-lib/src/main/resources/api/UserWidgetPreference.json"
+        inputFile = file(userWidgetPreferenceyaml)
+        def ignoreFile = "${rootDir}/data-product-lib/src/main/resources/api/.swagger-codegen-ignore"
+        code {
+            language = 'spring'
+            configFile = file(userWidgetPreferenceJson)
+            rawOptions = ['--ignore-file-override', ignoreFile]
+            components = ['models', 'apis']
+        }
+    }
       
-      
-      planningit {
+    planningit {
         def palnningitYaml = "${rootDir}/data-product-lib/src/main/resources/api/PlanningIT.yaml"
         def palnningitJson = "${rootDir}/data-product-lib/src/main/resources/api/PlanningIT.json"
         inputFile = file(palnningitYaml)
@@ -274,6 +286,8 @@ compileJava {
     source "${swaggerSources.platform.code.outputDir}/src/main/java"
     dependsOn swaggerSources.frontendtools.code
     source "${swaggerSources.frontendtools.code.outputDir}/src/main/java"
+    dependsOn swaggerSources.userWidgetPreference.code
+    source "${swaggerSources.userWidgetPreference.code.outputDir}/src/main/java"
     dependsOn swaggerSources.carlafunction.code
     source "${swaggerSources.carlafunction.code.outputDir}/src/main/java" 
     dependsOn swaggerSources.agileReleaseTrain.code
@@ -308,7 +322,8 @@ sourceSets {
     	  java { srcDirs += "${swaggerSources.datacompliance.code.outputDir}/src/main/java" }
     	  java { srcDirs += "${swaggerSources.platform.code.outputDir}/src/main/java" }
     	  java { srcDirs += "${swaggerSources.frontendtools.code.outputDir}/src/main/java" }
-    	  java { srcDirs += "${swaggerSources.carlafunction.code.outputDir}/src/main/java" }
+          java { srcDirs += "${swaggerSources.userWidgetPreference.code.outputDir}/src/main/java" }
+          java { srcDirs += "${swaggerSources.carlafunction.code.outputDir}/src/main/java" }
     	  java { srcDirs += "${swaggerSources.agileReleaseTrain.code.outputDir}/src/main/java" }
     	  java { srcDirs += "${swaggerSources.corporateDataCatalog.code.outputDir}/src/main/java" }
     	  java { srcDirs += "${swaggerSources.datacomplianceAudit.code.outputDir}/src/main/java" }
