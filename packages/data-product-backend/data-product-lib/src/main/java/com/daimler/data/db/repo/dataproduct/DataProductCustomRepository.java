@@ -46,6 +46,11 @@ public interface DataProductCustomRepository extends CommonDataRepository<DataPr
 		List<String> platformsList, List<String> frontendToolsList,
 		List<String> productOwnerList);
 
+	Long getCountOwnersUsingNativeQuery(Boolean published, String recordStatus);
+
+	List<String> getOwnersAllWithFiltersUsingNativeQuery( Boolean published, int offset, int limit,
+			String sortOrder, String recordStatus);
+
 	List<DataProductNsql> getExistingDataProduct(String uniqueProductName, String status);
 
 }
