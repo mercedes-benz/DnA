@@ -218,6 +218,7 @@ public class BaseUserInfoService extends BaseCommonService<UserInfoVO, UserInfoN
 	}
 
 	public void addUser(UserInfoNsql userinfo) {
+		log.info("Adding new user:{}", userinfo.getId());
 		jpaRepo.save(userinfo);
 	}
 
