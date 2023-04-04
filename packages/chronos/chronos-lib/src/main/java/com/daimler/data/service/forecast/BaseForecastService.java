@@ -8,6 +8,7 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import com.daimler.data.db.json.File;
 import com.daimler.data.dto.databricks.DataBricksJobRunOutputResponseWrapperDto;
 import com.daimler.data.dto.forecast.*;
 import com.daimler.data.dto.storage.*;
@@ -798,6 +799,50 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 				updatedRuns.add(run);
 			}
 			entity.getData().setRuns(updatedRuns);
+			jpaRepo.save(entity);
+		}
+		responseMessage.setSuccess("SUCCESS");
+		return responseMessage;
+	}
+
+	@Override
+	@Transactional
+	public GenericMessage deletInputFileByID(String id, String sid) {
+		GenericMessage responseMessage = new GenericMessage();
+		List<MessageDescription> errors = new ArrayList<>();
+		List<MessageDescription> warnings = new ArrayList<>();
+		Optional<ForecastNsql> entityOptional = jpaRepo.findById(id);
+		if(entityOptional!=null) {
+			ForecastNsql entity = entityOptional.get();
+			String bucketName = entity.getData().getBucketName();
+			List<File> filesList = entity.getData().getSavedInputs();
+			int deletefile =0;
+			if(filesList!= null && !filesList.isEmpty()) {
+				for (File file : filesList) {
+
+						if (sid.equalsIgnoreCase(file.getId())) {
+							filesList.remove(file);
+							deletefile ++;
+							break;
+						}
+				}
+			}
+			else{
+				MessageDescription msg = new MessageDescription("Failed to delete input file");
+				errors.add(msg);
+				responseMessage.setSuccess("FAILED");
+				responseMessage.setErrors(errors);
+				return responseMessage;
+			}
+			if(deletefile ==0){
+				log.info("deletefile" +deletefile);
+				MessageDescription msg = new MessageDescription("No such file present");
+				errors.add(msg);
+				responseMessage.setSuccess("FAILED");
+				responseMessage.setErrors(errors);
+				return responseMessage;
+			}
+			entity.getData().setSavedInputs(filesList);
 			jpaRepo.save(entity);
 		}
 		responseMessage.setSuccess("SUCCESS");
