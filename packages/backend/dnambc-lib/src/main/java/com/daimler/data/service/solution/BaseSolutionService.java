@@ -917,7 +917,7 @@ public class BaseSolutionService extends BaseCommonService<SolutionVO, SolutionN
 			LOGGER.info("Updating Notebook linkage.");
 			NotebookVO availableNotebook = notebookService.getByUniqueliteral("solutionId", id);
 			if (availableNotebook != null) {
-				notebookService.updateSolutionIdofDnaNotebook("unlink", availableNotebook.getId(), null);
+				notebookService.updateSolutionIdofDnaNotebook("unlink", availableNotebook.getId(), id);
 			}
 		}
 
