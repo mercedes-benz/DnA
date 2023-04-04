@@ -46,4 +46,7 @@ public interface ForecastService extends CommonService<ForecastVO, ForecastNsql,
 	List<String> getAllForecastIds();
 
 	public BucketObjectsCollectionWrapperDto getBucketObjects(String path);
+
+	GenericMessage deletInputFileByID(String id, String sid);
+
 }

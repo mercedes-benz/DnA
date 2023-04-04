@@ -177,6 +177,49 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 
 
 	@Override
+	@ApiOperation(value = "delete uploaded input file", nickname = "deleteSavedInputFile", notes = "delete uploaded input file by id", response = GenericMessage.class, tags = {
+			"forecast-inputs", })
+	@ApiResponses(value = {
+			@ApiResponse(code = 201, message = "Returns message of success or failure", response = GenericMessage.class),
+			@ApiResponse(code = 204, message = "Fetch complete, no content found."),
+			@ApiResponse(code = 400, message = "Bad request."),
+			@ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+			@ApiResponse(code = 403, message = "Request is not authorized."),
+			@ApiResponse(code = 405, message = "Method not allowed"),
+			@ApiResponse(code = 500, message = "Internal error") })
+	@RequestMapping(value = "/forecasts/{id}/inputs/{savedinputid}", produces = { "application/json" }, consumes = {
+			"application/json" }, method = RequestMethod.DELETE)
+	public ResponseEntity<GenericMessage> deleteSavedInputFile(
+			@ApiParam(value = "forecast project ID ", required = true) @PathVariable("id") String id,
+			@ApiParam(value = "saved Input file ID", required = true) @PathVariable("savedinputid") String sid) {
+
+		CreatedByVO requestUser = this.userStore.getVO();
+		String user = requestUser.getId();
+		ForecastVO existingForecast = service.getById(id);
+		if(existingForecast==null || !id.equalsIgnoreCase(existingForecast.getId())) {
+			log.warn("No forecast found with id {}, failed to fetch saved inputs for given forecast id", id);
+			return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
+		}
+
+		List<String> forecastProjectUsers = new ArrayList<>();
+		forecastProjectUsers.add(existingForecast.getCreatedBy().getId());
+		List<CollaboratorVO> collaborators = existingForecast.getCollaborators();
+		if(collaborators!=null && !collaborators.isEmpty()) {
+			collaborators.forEach(n-> forecastProjectUsers.add(n.getId()));
+		}
+		if(forecastProjectUsers!=null && !forecastProjectUsers.isEmpty()) {
+			if(!forecastProjectUsers.contains(requestUser.getId())) {
+				log.warn("User not part of forecast project with id {} and name {}, Not authorized to user other project inputs",id,existingForecast.getName());
+				return new ResponseEntity<>(null, HttpStatus.FORBIDDEN);
+			}
+		}
+		GenericMessage responseMessage = service.deletInputFileByID(id,sid);
+		return new ResponseEntity<>(responseMessage, HttpStatus.OK);
+	}
+
+
+
+	@Override
 	@ApiOperation(value = "Initialize/Create forecast project for user.", nickname = "createForecastProject", notes = "Create forecast project for user ", response = ForecastProjectResponseVO.class, tags = {
 			"forecast-projects", })
 	@ApiResponses(value = {
