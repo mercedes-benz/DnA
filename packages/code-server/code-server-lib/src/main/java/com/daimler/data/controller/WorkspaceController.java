@@ -48,6 +48,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.daimler.data.api.workspace.CodeServerApi;
 import com.daimler.data.application.auth.UserStore;
+import com.daimler.data.application.client.GitClient;
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
 import com.daimler.data.dto.workspace.CodeServerRecipeDetailsVO.CloudServiceProviderEnum;
@@ -76,6 +77,9 @@ public class WorkspaceController  implements CodeServerApi{
 
 	@Autowired
 	private UserStore userStore;
+	
+	@Autowired
+	private GitClient gitClient;
 
 
 	@Override
@@ -671,6 +675,9 @@ public class WorkspaceController  implements CodeServerApi{
 		if(limit==null) {
 			limit = 0;
 		}
+		 
+		String pat = "XXXX";		
+		HttpStatus validateUserPatstatus = gitClient.validatePublicGitPat("XXXX", pat, "https://github");
     	final List<CodeServerWorkspaceVO> workspaces = service.getAll(userId,offset,limit);
     	WorkspaceCollectionVO collection = new WorkspaceCollectionVO();
     	collection.setTotalCount(service.getCount(userId));
