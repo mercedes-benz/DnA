@@ -45,7 +45,7 @@ import org.slf4j.LoggerFactory;
 
 public class CommonDataRepositoryImpl<T, ID> implements CommonDataRepository<T, ID> {
 
-	public enum SORT_TYPE {
+	public enum SORT_TYPE 	{
 		ASC, DESC;
 	}
 
