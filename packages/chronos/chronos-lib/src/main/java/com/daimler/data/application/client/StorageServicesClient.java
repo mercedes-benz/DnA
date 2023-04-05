@@ -270,9 +270,9 @@ public class StorageServicesClient {
 		List<MessageDescription> errors = new ArrayList<>();
 		try {
 			HttpHeaders headers = new HttpHeaders();
-			String jwt = httpRequest.getHeader("Authorization");
+//			String jwt = httpRequest.getHeader("Authorization");
 			headers.set("Accept", "application/json");
-			headers.set("Authorization", jwt);
+//			headers.set("Authorization", jwt);
 			headers.setContentType(MediaType.APPLICATION_JSON);
 			headers.set("chronos-api-key",dataBricksAuth);
 			HttpEntity requestEntity = new HttpEntity<>(headers);
@@ -344,9 +344,9 @@ public class StorageServicesClient {
 		List<MessageDescription> errors = new ArrayList<>();
 		try {
 			HttpHeaders headers = new HttpHeaders();
-			String jwt = httpRequest.getHeader("Authorization");
+//			String jwt = httpRequest.getHeader("Authorization");
 			headers.set("Accept", "application/json");
-			headers.set("Authorization", jwt);
+//			headers.set("Authorization", jwt);
 			headers.setContentType(MediaType.APPLICATION_JSON);
 			headers.set("chronos-api-key",dataBricksAuth);
 			HttpEntity requestEntity = new HttpEntity<>(headers);
