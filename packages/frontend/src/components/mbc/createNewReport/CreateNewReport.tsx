@@ -45,7 +45,6 @@ import {
   IDataSourceMaster,
   IConnectionType,
   IDataWarehouse,
-  ICommonFunctions,
   // ISingleDataSources,
   IDivision,
   ISubDivision,
@@ -84,7 +83,7 @@ export interface ICreateNewReportState {
   connectionTypes: IConnectionType[];
   dataClassifications: IDataClassification[];
   dataWarehouses: IDataWarehouse[];
-  commonFunctions: ICommonFunctions[];
+  // commonFunctions: ICommonFunctions[];
   editMode: boolean;
   currentTab: string;
   nextTab: string;
@@ -140,7 +139,7 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
         { id: 'Public', name: 'Public' },
       ],
       dataWarehouses: [],
-      commonFunctions: [],
+      // commonFunctions: [],
       departmentTags: [],
       editMode: false,
       currentTab: 'description',
@@ -225,8 +224,7 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
         const dataWarehouses: IDataWarehouse[] = response[11].data;
         const divisions: IDivision[] = response[12];
         const departmentTags: IDepartment[] = response[13].data;
-        const commonFunctions: ICommonFunctions[] = response[14].data;
-        const dataClassifications: IDataClassification[] = response[15].data;
+        const dataClassifications: IDataClassification[] = response[14].data;
         const creatorInfo = this.props.user;
         const teamMemberObj: ITeams = {
           department: creatorInfo.department,
@@ -259,7 +257,7 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
             divisions,
             connectionTypes,
             dataClassifications,
-            commonFunctions,
+            // commonFunctions,
             report: {
               ...prevState.report,
               members: {
@@ -624,7 +622,7 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
                       connectionTypes={this.state.connectionTypes}
                       dataClassifications={this.state.dataClassifications}
                       dataWarehouses={this.state.dataWarehouses}
-                      commonFunctions={this.state.commonFunctions}
+                      // commonFunctions={this.state.commonFunctions}
                       modifyDataFunction={this.modifyDataFunction}
                       onSaveDraft={this.onSaveDraft}
                       ref={this.dataFunctionComponent}
