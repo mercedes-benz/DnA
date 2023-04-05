@@ -805,15 +805,6 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 		return responseMessage;
 	}
 
-	@Override
-	@Transactional
-	public GenericMessage deletInputFileByID(ForecastVO existingForecast) {
-		GenericMessage responseMessage = new GenericMessage();
-		ForecastNsql entity = this.assembler.toEntity(existingForecast);
-		jpaRepo.save(entity);
-		responseMessage.setSuccess("SUCCESS");
-		return responseMessage;
-	}
 
 	@Override
 	@Transactional
