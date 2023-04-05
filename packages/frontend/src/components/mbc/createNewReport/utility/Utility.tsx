@@ -52,7 +52,7 @@ export const serializeReportRequestBody = (requestBody: ICreateNewReportRequest)
   requestBody.data.dataAndFunctions.dataWarehouseInUse = requestBody.data.dataAndFunctions.dataWarehouseInUse?.map(
     (item: IDatawarehouseInItem) => {
       item.dataWarehouse = item.dataWarehouse || null;
-      item.commonFunctions = item.commonFunctions?.length ? item.commonFunctions : null;
+      // item.commonFunctions = item.commonFunctions?.length ? item.commonFunctions : null;
       item.dataClassification = item.dataClassification ? item.dataClassification : null;
       item.connectionType = item.connectionType ? item.connectionType : null;
       return item;

@@ -1,0 +1,17 @@
+{
+  "library": "spring-mvc",
+  "dateLibrary": "legacy",
+  "hideGenerationTimestamp": true,
+  "useTags": true,
+  "modelPackage": "com.daimler.data.dto.userwidgetpref",
+  "apiPackage": "com.daimler.data.api.userwidgetpref",
+  "invokerPackage": "com.daimler.data.service.userwidgetpref",
+  "importMappings": {
+    "PlatformVO": "com.daimler.data.dto.dataproductlov.PlatformVO",
+    "FrontEndToolsVO": "com.daimler.data.dto.dataproductlov.FrontEndToolsVO",
+    "AgileReleaseTrainVO": "com.daimler.data.dto.dataproductlov.AgileReleaseTrainVO",
+    "CarlaFunctionVO": "com.daimler.data.dto.dataproductlov.CarlaFunctionVO",
+    "GenericMessage": "com.daimler.data.controller.exceptions.GenericMessage",
+    "MessageDescription": "com.daimler.data.controller.exceptions.MessageDescription"
+  }
+}

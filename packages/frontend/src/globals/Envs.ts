@@ -66,7 +66,7 @@ export const Envs = {
   ENABLE_INTERNAL_USER_INFO:
     getInjectedEnv('ENABLE_INTERNAL_USER_INFO') !== undefined
       ? getInjectedEnv('ENABLE_INTERNAL_USER_INFO')
-      : EnvParser.parseBool(process.env.ENABLE_INTERNAL_USER_INFO, false),
+      : EnvParser.parseBool(process.env.ENABLE_INTERNAL_USER_INFO, true),
   ENABLE_DATA_COMPLIANCE:
     getInjectedEnv('ENABLE_DATA_COMPLIANCE') !== undefined
       ? getInjectedEnv('ENABLE_DATA_COMPLIANCE')
