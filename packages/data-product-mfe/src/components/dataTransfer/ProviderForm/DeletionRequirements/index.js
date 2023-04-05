@@ -207,7 +207,9 @@ const DeletionRequirements = (
               <div className={classNames(Styles.termsOfUseContent)}>
                 <label className={classNames('checkbox', errors?.tou ? 'error' : '')}>
                   <span className="wrapper">
-                    <input {...register('tou', { required: '*Missing entry' })} type="checkbox" className="ff-only" />
+                    <input {...register('tou', { required: '*Missing entry' })}
+                    defaultChecked={watch('isPublish') || watch('publish')} 
+                    type="checkbox" className="ff-only" />
                   </span>
                   <div
                     className={classNames(Styles.termsOfUseText, 'mbc-scroll')}
