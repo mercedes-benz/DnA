@@ -576,7 +576,7 @@ public class SolutionController implements SolutionsApi, ChangelogsApi, Malwares
 			String userId = currentUser != null ? currentUser.getId() : "";
 			if (userId != null && !"".equalsIgnoreCase(userId)) {
 				UserInfoVO userInfoVO = userInfoService.getById(userId);
-				 solution = solutionService.getById(id);
+				solution = solutionService.getById(id);
 				if (userInfoVO != null) {
 					List<UserRoleVO> userRoleVOs = userInfoVO.getRoles();
 					if (userRoleVOs != null && !userRoleVOs.isEmpty()) {
@@ -601,12 +601,17 @@ public class SolutionController implements SolutionsApi, ChangelogsApi, Malwares
 					}
 				}
 			}
-			List<FileDetailsVO> files=solution.getAttachments();
-			if(files!=null) {
-				for (FileDetailsVO file : files) {
-					String keyName = file.getId();
-					attachmentService.deleteFileFromS3Bucket(keyName);
+			List<FileDetailsVO> files = solution.getAttachments();
+			String keyName = null;
+			try {
+				if (files != null) {
+					for (FileDetailsVO file : files) {
+						keyName = file.getId();
+						attachmentService.deleteFileFromS3Bucket(keyName);
+					}
 				}
+			} catch (Exception e) {
+				log.error("File {} is failed to delete from solution attachments with exception {}", keyName, e.getMessage());
 			}
 			solutionService.deleteById(id);
 			GenericMessage successMsg = new GenericMessage();
