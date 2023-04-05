@@ -396,6 +396,45 @@ paths:
         500:
           description: "Internal error"
 
+  /forecasts/{id}/inputs/{savedinputid}:
+    delete:
+      tags:
+        - "forecast-inputs"
+      summary: "delete uploaded input file."
+      description: "delete uploaded input file by id."
+      operationId: "deleteSavedInputFile"
+      parameters:
+        - name: "id"
+          in: "path"
+          description: "forecast project ID "
+          required: true
+          type: "string"
+        - name: "savedinputid"
+          in: "path"
+          description: "saved Input file ID"
+          required: true
+          type: "string"
+
+      responses:
+        201:
+          description: "Returns message of success or failure"
+          schema:
+            $ref: "#/definitions/GenericMessage"
+        204:
+          description: "Fetch complete, no content found."
+        400:
+          description: "Bad request."
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
+
+
+
 
   #
   #  supported http methods GET
