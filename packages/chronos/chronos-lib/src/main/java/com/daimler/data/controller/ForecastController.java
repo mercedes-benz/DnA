@@ -189,6 +189,7 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 			@ApiParam(value = "forecast project ID ", required = true) @PathVariable("id") String id,
 			@ApiParam(value = "saved Input file ID", required = true) @PathVariable("savedinputid") String sid) {
 
+		GenericMessage responseMessage = new GenericMessage();
 		CreatedByVO requestUser = this.userStore.getVO();
 		String user = requestUser.getId();
 		ForecastVO existingForecast = service.getById(id);
@@ -226,7 +227,20 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 			return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
 		}
 		existingForecast.setSavedInputs(savedInputs);
-		GenericMessage responseMessage = service.deletInputFileByID(existingForecast);
+
+		try {
+			ForecastVO updatedVO = service.create(existingForecast);
+		}
+		catch (Exception e){
+			List<MessageDescription> errors = new ArrayList<>();
+			log.error("Failed while saving input files for project name {} project id {}",existingForecast.getName(), existingForecast.getId());
+			MessageDescription msg = new MessageDescription("Failed while saving input files for project id" +existingForecast.getId());
+			errors.add(msg);
+			responseMessage.setSuccess("FAILED");
+			responseMessage.setErrors(errors);
+			return new ResponseEntity<>(responseMessage, HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+		responseMessage.setSuccess("SUCCESS");
 		return new ResponseEntity<>(responseMessage, HttpStatus.OK);
 	}
 
