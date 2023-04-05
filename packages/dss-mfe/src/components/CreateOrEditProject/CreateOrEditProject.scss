@@ -129,13 +129,16 @@
 
     .flexLayout {
         display: flex;
-        justify-content: space-between;
         // margin: 40px;
         margin-top: 40px;
         margin-left: 40px;
 
         >div {
             width: calc(33% - 7px);
+        }
+
+        .instance {
+            margin-left: 35px;
         }
 
         &.fourColumn {

@@ -53,7 +53,6 @@ export class ReportsApiClient {
       this.get('lov/datawarehouses'),
       ApiClient.get('divisions'),
       this.get('departments'),
-      this.get('lov/commonfunctions'),
       this.get('lov/dataclassifications'),
     ]);
   }
@@ -132,8 +131,7 @@ export class ReportsApiClient {
         productName,
         description { division { id, name, subdivision { id, name } }, department, status, productDescription, tags, agileReleaseTrain, integratedPortal, frontendTechnologies, reportLink, reportType  },
         customer {
-          internalCustomers {
-            name { firstName, lastName, department, shortId },
+          internalCustomers {            
             customerRelation,
             comment,
             department,
@@ -151,7 +149,6 @@ export class ReportsApiClient {
             processOwner { firstName, lastName, department, shortId }
           },
           externalCustomers {
-            name { firstName, lastName, department, shortId },
             companyName,
             customerRelation,
             comment
@@ -159,7 +156,7 @@ export class ReportsApiClient {
         },
         kpis { name, reportingCause, description, kpiLink },
         dataAndFunctions { 
-          dataWarehouseInUse { dataWarehouse, commonFunctions, connectionType, dataClassification } , 
+          dataWarehouseInUse { dataWarehouse, connectionType, dataClassification } , 
           singleDataSources { 
             dataSources{
               dataSource,
@@ -226,7 +223,7 @@ export class ReportsApiClient {
       },
       kpis { name, reportingCause, description, kpiLink },
       dataAndFunctions { 
-        dataWarehouseInUse { dataWarehouse, commonFunctions, connectionType, dataClassification } , 
+        dataWarehouseInUse { dataWarehouse, connectionType, dataClassification } , 
         singleDataSources { 
           dataSources{
             dataSource,
@@ -320,9 +317,9 @@ export class ReportsApiClient {
   public static getDatawareHouses(): Promise<IReportListItems[]> {
     return this.get('lov/datawarehouses');
   }
-  public static getCommonFunctions(): Promise<IReportListItems[]> {
-    return this.get('lov/commonfunctions');
-  }
+  // public static getCommonFunctions(): Promise<IReportListItems[]> {
+  //   return this.get('lov/commonfunctions');
+  // }
   public static getSpecificFunctions(): Promise<IReportListItems[]> {
     return this.get('lov/specificfunctions');
   }
