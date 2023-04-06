@@ -309,8 +309,8 @@
 					 transnationalDataTransfer.setDataTransferred(transnationalDataTransferVO.isDataTransferred());
 					 transnationalDataTransfer.setNotWithinEU(transnationalDataTransferVO.isNotWithinEU());
 					 transnationalDataTransfer.setDataFromChina(transnationalDataTransferVO.isDataFromChina());
-					 transnationalDataTransfer.setObjectionsToTransfer(transnationalDataTransferVO.isObjectionsToTransfer());
 					 transnationalDataTransfer.setContactAwareTransfer(transnationalDataTransferVO.isContactAwareTransfer());
+					 transnationalDataTransfer.setObjectionsToTransfer(transnationalDataTransferVO.isObjectionsToTransfer());
 					 String insiderInfo = "";
 					 if(vo.getDeletionRequirement() != null) {
 						 insiderInfo = vo.getDeletionRequirement().getInsiderInformation() != null ? vo.getDeletionRequirement().getInsiderInformation() : "";
