@@ -428,7 +428,7 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 								updatedRuns.add(updatedRunDetail);
 							}
 							else {
-								log.info("Adding old failed run {} of project {} without update, since getSingleRun response is null ", run.getRunName(), forecastName);
+								log.debug("Adding old failed run {} of project {} without update, since getSingleRun response is null ", run.getRunName(), forecastName);
 								updatedRuns.add(run);
 							}
 						} else {
@@ -439,7 +439,7 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 							if(exogenousFilePresent){
 								run.setExogenData(true);
 							}
-							log.info("Adding old success run {} of project {} without update ", run.getRunName(), forecastName);
+							log.debug("Adding old success run {} of project {} without update ", run.getRunName(), forecastName);
 							updatedRuns.add(run);
 						}
 					}
