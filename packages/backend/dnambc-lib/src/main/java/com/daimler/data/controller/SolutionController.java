@@ -602,17 +602,21 @@ public class SolutionController implements SolutionsApi, ChangelogsApi, Malwares
 				}
 			}
 			List<FileDetailsVO> files = solution.getAttachments();
+			    String productName =solution.getProductName();
 			String keyName = null;
-			try {
 				if (files != null) {
 					for (FileDetailsVO file : files) {
 						keyName = file.getId();
-						attachmentService.deleteFileFromS3Bucket(keyName);
+						String fileName = file.getFileName();
+						try {
+							attachmentService.deleteFileFromS3Bucket(keyName);
+
+						} catch (Exception e) {
+							log.error("File {} is failed to delete from solution {} with an exception {}",fileName,productName, e.getMessage());
+						}
 					}
 				}
-			} catch (Exception e) {
-				log.error("File {} is failed to delete from solution attachments with exception {}", keyName, e.getMessage());
-			}
+
 			solutionService.deleteById(id);
 			GenericMessage successMsg = new GenericMessage();
 			successMsg.setSuccess("success");
