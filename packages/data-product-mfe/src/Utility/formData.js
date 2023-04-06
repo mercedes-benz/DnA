@@ -72,6 +72,7 @@ export const serializeFormData = ({ values, division, type = 'provider', isDataP
                   deletionRequirements: values.deletionRequirement === 'Yes' ? true : false,
                   description: values.deletionRequirementDescription,
                   otherRelevantInformation: values.otherRelevantInfo,
+                  insiderInformation: values.insiderInformation,
                 },
                 personalRelatedData: {
                   description: values.personalRelatedDataDescription,
@@ -83,7 +84,6 @@ export const serializeFormData = ({ values, division, type = 'provider', isDataP
                   approved: values.LCOApprovedDataTransfer,
                   dataTransferred: values.transnationalDataTransfer === 'Yes' ? true : false, //boolean
                   notWithinEU: values.transnationalDataTransferNotWithinEU === 'Yes' ? true : false, //boolean
-                  insiderInformation: values.insiderInformation,
                   dataFromChina: values.dataOriginatedFromChina === 'Yes' ? true : false,
                 },
                 openSegments: values.openSegments,
@@ -151,7 +151,6 @@ export const serializeFormData = ({ values, division, type = 'provider', isDataP
                       approved: values.LCOApprovedDataTransfer,
                       dataFromChina: values.dataOriginatedFromChina === 'Yes' ? true : false,
                       dataTransferred: values.transnationalDataTransfer === 'Yes' ? true : false,
-                      insiderInformation: values.insiderInformation,
                       notWithinEU: values.transnationalDataTransferNotWithinEU === 'Yes' ? true : false,
                     },
                   }),
@@ -160,6 +159,7 @@ export const serializeFormData = ({ values, division, type = 'provider', isDataP
                       deletionRequirements: values.deletionRequirement === 'Yes' ? true : false,
                       description: values.deletionRequirementDescription,
                       otherRelevantInformation: values.otherRelevantInfo,
+                      insiderInformation: values.insiderInformation,
                     },
                   }),
                 }),
@@ -203,7 +203,7 @@ export const deserializeFormData = ({ item, type = 'provider', isDataProduct = f
           transnationalDataTransferNotWithinEU: item.providerInformation?.transnationalDataTransfer?.notWithinEU
             ? 'Yes'
             : '',
-          insiderInformation: item.providerInformation?.transnationalDataTransfer?.insiderInformation || 'No',
+          insiderInformation: item.providerInformation?.deletionRequirement?.insiderInformation || 'No',
           notifyUsers: item?.notifyUsers,
           users: item.providerInformation?.users,
           providerFormSubmitted: item.providerInformation?.providerFormSubmitted,
@@ -271,9 +271,9 @@ export const deserializeFormData = ({ item, type = 'provider', isDataProduct = f
           LCOApprovedDataTransfer: item?.transnationalDataTransfer?.approved,
           transnationalDataTransfer: item?.transnationalDataTransfer?.dataTransferred ? 'Yes' : 'No',
           transnationalDataTransferNotWithinEU: item?.transnationalDataTransfer?.notWithinEU ? 'Yes' : '',
-          insiderInformation: item?.transnationalDataTransfer?.insiderInformation || 'No',
           dataOriginatedFromChina: item?.transnationalDataTransfer?.dataFromChina ? 'Yes' : 'No',
 
+          insiderInformation: item?.deletionRequirement?.insiderInformation || 'No',
           deletionRequirement: item?.deletionRequirement?.deletionRequirements ? 'Yes' : 'No',
           deletionRequirementDescription: item?.deletionRequirement?.description,
           otherRelevantInfo: item?.deletionRequirement?.otherRelevantInformation,
