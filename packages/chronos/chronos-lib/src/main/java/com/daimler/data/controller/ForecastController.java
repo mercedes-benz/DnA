@@ -2,11 +2,7 @@ package com.daimler.data.controller;
 
 import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import javax.validation.Valid;
@@ -174,6 +170,80 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 		collection.setFiles(files);
 		return new ResponseEntity<>(collection, responseStatus);
 	}
+
+
+	@Override
+	@ApiOperation(value = "delete uploaded input file", nickname = "deleteSavedInputFile", notes = "delete uploaded input file by id", response = GenericMessage.class, tags = {
+			"forecast-inputs",})
+	@ApiResponses(value = {
+			@ApiResponse(code = 201, message = "Returns message of success or failure", response = GenericMessage.class),
+			@ApiResponse(code = 204, message = "Fetch complete, no content found."),
+			@ApiResponse(code = 400, message = "Bad request."),
+			@ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+			@ApiResponse(code = 403, message = "Request is not authorized."),
+			@ApiResponse(code = 405, message = "Method not allowed"),
+			@ApiResponse(code = 500, message = "Internal error")})
+	@RequestMapping(value = "/forecasts/{id}/inputs/{savedinputid}", produces = {"application/json"}, consumes = {
+			"application/json"}, method = RequestMethod.DELETE)
+	public ResponseEntity<GenericMessage> deleteSavedInputFile(
+			@ApiParam(value = "forecast project ID ", required = true) @PathVariable("id") String id,
+			@ApiParam(value = "saved Input file ID", required = true) @PathVariable("savedinputid") String sid) {
+
+		GenericMessage responseMessage = new GenericMessage();
+		CreatedByVO requestUser = this.userStore.getVO();
+		String user = requestUser.getId();
+		ForecastVO existingForecast = service.getById(id);
+		if (existingForecast == null || !id.equalsIgnoreCase(existingForecast.getId())) {
+			log.warn("No forecast found with id {}, failed to fetch saved inputs for given forecast id", id);
+			return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
+		}
+		List<String> forecastProjectUsers = new ArrayList<>();
+		forecastProjectUsers.add(existingForecast.getCreatedBy().getId());
+		List<CollaboratorVO> collaborators = existingForecast.getCollaborators();
+		if (collaborators != null && !collaborators.isEmpty()) {
+			collaborators.forEach(n -> forecastProjectUsers.add(n.getId()));
+		}
+		if (forecastProjectUsers != null && !forecastProjectUsers.isEmpty()) {
+			if (!forecastProjectUsers.contains(requestUser.getId())) {
+				log.warn("User not part of forecast project with id {} and name {}, Not authorized to user other project inputs", id, existingForecast.getName());
+				return new ResponseEntity<>(null, HttpStatus.FORBIDDEN);
+			}
+		}
+		boolean notFound = false;
+		List<InputFileVO> savedInputs = existingForecast.getSavedInputs();
+		if (savedInputs != null && !savedInputs.isEmpty()) {
+			List<String> fileIdList = savedInputs.stream().map(InputFileVO::getId).collect(Collectors.toList());
+			if (fileIdList.contains(sid)) {
+				notFound = true;
+				Optional<InputFileVO> fileObject = savedInputs.stream().
+						filter(x -> x.getId().equals(sid)).
+						findFirst();
+				InputFileVO file = fileObject.get();
+				savedInputs.remove(file);
+			} else
+				notFound = false;
+		}
+		if (!notFound) {
+			return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
+		}
+		existingForecast.setSavedInputs(savedInputs);
+
+		try {
+			ForecastVO updatedVO = service.create(existingForecast);
+		}
+		catch (Exception e){
+			List<MessageDescription> errors = new ArrayList<>();
+			log.error("Failed while saving input files for project name {} project id {}",existingForecast.getName(), existingForecast.getId());
+			MessageDescription msg = new MessageDescription("Failed while saving input files for project id" +existingForecast.getId());
+			errors.add(msg);
+			responseMessage.setSuccess("FAILED");
+			responseMessage.setErrors(errors);
+			return new ResponseEntity<>(responseMessage, HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+		responseMessage.setSuccess("SUCCESS");
+		return new ResponseEntity<>(responseMessage, HttpStatus.OK);
+	}
+
 
 
 	@Override
