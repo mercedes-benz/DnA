@@ -166,9 +166,12 @@ public class DataProductAssembler implements GenericAssembler<DataProductVO, Dat
 
 				if (dataProduct.getDeletionRequirement() != null) {
 					DataProductDeletionRequirementVO deletionRequirementVO = new DataProductDeletionRequirementVO();
-					BeanUtils.copyProperties(dataProduct.getDeletionRequirement(), deletionRequirementVO);
-					String insiderInfo = dataProduct.getTransnationalDataTransfer().getInsiderInformation() != null ? dataProduct.getTransnationalDataTransfer().getInsiderInformation() : "";
-					deletionRequirementVO.setInsiderInformation(insiderInfo);
+					//BeanUtils.copyProperties(dataProduct.getDeletionRequirement(), deletionRequirementVO);
+					String insiderInfo = "";
+					if(dataProduct.getTransnationalDataTransfer() != null) {
+						insiderInfo = dataProduct.getTransnationalDataTransfer().getInsiderInformation() != null ? dataProduct.getTransnationalDataTransfer().getInsiderInformation() : "";
+					}					
+					deletionRequirementVO.setInsiderInformation(insiderInfo);										
 					vo.setDeletionRequirement(deletionRequirementVO);
 				}
 				if (dataProduct.getOpenSegments() != null && !ObjectUtils.isEmpty(dataProduct.getOpenSegments())) {
