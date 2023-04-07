@@ -979,7 +979,10 @@ public class DataProductAssembler implements GenericAssembler<DataProductVO, Dat
 					transnationalDataTransfer.setDataTransferred(transnationalDataTransferVO.isDataTransferred());
 					transnationalDataTransfer.setNotWithinEU(transnationalDataTransferVO.isNotWithinEU());
 					transnationalDataTransfer.setDataFromChina(transnationalDataTransferVO.isDataFromChina());
-					String insiderInfo = vo.getDeletionRequirement().getInsiderInformation() != null ? vo.getDeletionRequirement().getInsiderInformation() : "";
+					String insiderInfo = "";
+					if(vo.getDeletionRequirement() != null) {
+						insiderInfo = vo.getDeletionRequirement().getInsiderInformation() != null ? vo.getDeletionRequirement().getInsiderInformation() : "";
+					}					
 					transnationalDataTransfer.setInsiderInformation(insiderInfo);
 					dataProduct.setTransnationalDataTransfer(transnationalDataTransfer);
 				}

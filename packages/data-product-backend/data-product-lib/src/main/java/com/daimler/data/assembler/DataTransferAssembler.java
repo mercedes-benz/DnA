@@ -159,6 +159,11 @@ public class DataTransferAssembler implements GenericAssembler<DataTransferVO, D
 				if (provider.getDeletionRequirement() != null) {
 					ProviderDeletionRequirementVO deletionRequirementVO = new ProviderDeletionRequirementVO();
 					BeanUtils.copyProperties(provider.getDeletionRequirement(), deletionRequirementVO);
+					String insiderInfo = "";
+					if(provider.getTransnationalDataTransfer() != null) {
+						insiderInfo = provider.getTransnationalDataTransfer().getInsiderInformation() != null ? provider.getTransnationalDataTransfer().getInsiderInformation() : "";
+					}					
+					deletionRequirementVO.setInsiderInformation(insiderInfo);
 					providerVO.setDeletionRequirement(deletionRequirementVO);
 				}
 				if (!ObjectUtils.isEmpty(provider.getOpenSegments())) {
@@ -302,6 +307,11 @@ public class DataTransferAssembler implements GenericAssembler<DataTransferVO, D
 					transnationalDataTransfer.setDataFromChina(transnationalDataTransferVO.isDataFromChina());
 					transnationalDataTransfer.setContactAwareTransfer(transnationalDataTransferVO.isContactAwareTransfer());
 					transnationalDataTransfer.setObjectionsToTransfer(transnationalDataTransferVO.isObjectionsToTransfer());
+					String insiderInfo = "";
+					if(providerVO.getDeletionRequirement() != null) {
+						insiderInfo = providerVO.getDeletionRequirement().getInsiderInformation() != null ? providerVO.getDeletionRequirement().getInsiderInformation() : "";
+					}					
+					transnationalDataTransfer.setInsiderInformation(insiderInfo);
 					provider.setTransnationalDataTransfer(transnationalDataTransfer);
 				}
 
