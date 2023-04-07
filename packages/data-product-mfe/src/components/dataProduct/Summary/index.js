@@ -86,7 +86,7 @@ const Summary = ({ history, user }) => {
 
   useMemo(() => {
     const CDC_URL = Envs.CORPORATE_DATA_CATALOG_URL;
-    const URL = CDC_URL.substring(0, CDC_URL.indexOf('data') + 4);
+    const URL = CDC_URL?.substring(0, CDC_URL.indexOf('data') + 4);
     const refId = corporateDataCatalogs?.find(
       (item) => item.name === selectedDataProduct?.corporateDataCatalog,
     )?.externalRefId;
@@ -531,6 +531,32 @@ const Summary = ({ history, user }) => {
                         </div>
                       ) : null}
                     </div>
+                    {selectedDataProduct.personalRelatedData === 'Yes' ? (<div className={Styles.flexLayout}>
+                      <div>
+                        <label className="input-label summary">Is corresponding Compliance contact aware of this transfer?</label>
+                        <br />
+                        {selectedDataProduct.personalRelatedDataContactAwareTransfer}
+                      </div>
+                    </div>) : null}
+                    {selectedDataProduct.personalRelatedData === 'Yes' && selectedDataProduct.personalRelatedDataContactAwareTransfer === 'Yes'
+                      ? (<div className={classNames(Styles.flexLayout, Styles.fourColumn)}>
+                        <div>
+                          <label className="input-label summary">Has s/he any objections to this transfer?</label>
+                          <br />
+                          {selectedDataProduct.personalRelatedDataObjectionsTransfer}
+                        </div>
+                        <div>
+                          <label className="input-label summary">Please state your reasoning for transfering nonetheless</label>
+                          <br />
+                          {selectedDataProduct.personalRelatedDataTransferingNonetheless}
+                        </div>
+                        <div>
+                          <label className="input-label summary">Please state your objectionss</label>
+                          <br />
+                          {selectedDataProduct.personalRelatedDataTransferingObjections}
+                        </div>
+                        <div></div>
+                      </div>) : null}
                   </div>
                 ) : null}
                 {showTransNationalData ? (
@@ -541,7 +567,7 @@ const Summary = ({ history, user }) => {
                           <h5>Transnational Data</h5>
                         </div>
                       </div>
-                      <div className={classNames(Styles.flexLayout, Styles.threeColumn)}>
+                      <div className={classNames(Styles.flexLayout)}>
                         <div>
                           <label className="input-label summary">
                             Is data being transferred from one country to another?
@@ -556,15 +582,34 @@ const Summary = ({ history, user }) => {
                             {selectedDataProduct.transnationalDataTransferNotWithinEU || 'No'}
                           </div>
                         ) : null}
-                        {selectedDataProduct.transnationalDataTransfer == 'Yes' &&
-                        selectedDataProduct.transnationalDataTransferNotWithinEU == 'Yes' ? (
-                          <div>
-                            <label className="input-label summary">Has LCO/LCR approved this data transfer?</label>
-                            <br />
-                            {selectedDataProduct.LCOApprovedDataTransfer}
-                          </div>
-                        ) : null}
                       </div>
+                      {selectedDataProduct.transnationalDataTransfer == 'Yes' &&
+                        selectedDataProduct.transnationalDataTransferNotWithinEU == 'Yes' ? (<div className={Styles.flexLayout}>
+                          <div>
+                            <label className="input-label summary">Is corresponding Compliance contact aware of this transfer?</label>
+                            <br />
+                            {selectedDataProduct.transnationalDataContactAwareTransfer}
+                          </div>
+                        </div>) : null}
+                      {selectedDataProduct.transnationalDataTransferNotWithinEU === 'Yes' && selectedDataProduct.transnationalDataContactAwareTransfer === 'Yes'
+                        ? (<div className={classNames(Styles.flexLayout, Styles.fourColumn)}>
+                          <div>
+                            <label className="input-label summary">Has s/he any objections to this transfer?</label>
+                            <br />
+                            {selectedDataProduct.transnationalDataObjectionsTransfer}
+                          </div>
+                          <div>
+                            <label className="input-label summary">Please state your reasoning for transfering nonetheless</label>
+                            <br />
+                            {selectedDataProduct.transnationalDataTransferingNonetheless}
+                          </div>
+                          <div>
+                            <label className="input-label summary">Please state your objectionss</label>
+                            <br />
+                            {selectedDataProduct.transnationalDataTransferingObjections}
+                          </div>
+                          <div></div>
+                        </div>) : null}
                       <div className={Styles.flexLayout}>
                         <div>
                           <label className="input-label summary">Is data from China included?</label>
