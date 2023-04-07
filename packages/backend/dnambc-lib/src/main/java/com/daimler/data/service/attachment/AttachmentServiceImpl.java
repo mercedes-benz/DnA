@@ -108,9 +108,9 @@ public class AttachmentServiceImpl implements AttachmentService {
 				fileDetails.setId(keyName);
 				ObjectMetadata metadata = new ObjectMetadata();
 				metadata.setContentLength(fileSize);
-				log.debug("File {} sent to transferManager", multiPartFile.getName());
+				log.info("File {} sent to transferManager", multiPartFile.getName());
 				Upload upload = transferManager.upload(bucketName, keyName, multiPartFile.getInputStream(), metadata);
-				log.debug("TransferManager Started uploading file, with fileName {} and keyName {}", fileName, keyName);
+				log.info("TransferManager Started uploading file, with fileName {} and keyName {}", fileName, keyName);
 //		        upload.waitForCompletion();
 //		        log.debug("Upload completed for file with fileName {} and keyName {} ", fileName, keyName);
 			} else {
@@ -165,7 +165,7 @@ public class AttachmentServiceImpl implements AttachmentService {
 	@Override
 	public void deleteFileFromS3Bucket(String keyName) {
 		s3Client.deleteObject(new DeleteObjectRequest(bucketName, keyName));
-		log.debug("File with keyName {} removed successfully", keyName);
+		log.info("File with keyName {} removed successfully", keyName);
 	}
 
 	@Override
@@ -222,12 +222,12 @@ public class AttachmentServiceImpl implements AttachmentService {
 		logoDetails.setFileSize(formatedSize(fileSize));
 		ObjectMetadata metadata = new ObjectMetadata();
 		metadata.setContentLength(fileSize);
-		log.debug("File {} sent to transferManager", logo.getFileName());
+		log.info("File {} sent to transferManager", logo.getFileName());
 		String path = ConstantsUtility.S3_PATH_TO_UPLOAD_LOGO + keyName;
 		try {
 			InputStream is = new ByteArrayInputStream(logo.getLogo());
 			Upload upload = transferManager.upload(bucketName, path, is, metadata);
-			log.debug("TransferManager Started uploading file, with fileName {} and keyName {}", logo.getFileName(),
+			log.info("TransferManager Started uploading file, with fileName {} and keyName {}", logo.getFileName(),
 					keyName);
 //        upload.waitForCompletion();
 //        log.debug("Upload completed for file with fileName {} and keyName {} ", fileName, keyName);
