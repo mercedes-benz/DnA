@@ -132,11 +132,12 @@ public class BaseNotebookService extends BaseCommonService<NotebookVO, NotebookN
 							LOGGER.debug("Solution {} linked to notebook {} ", solutionId, notebookNsql.getId());
 						}
 					}
-				} else {
-					updateNotebook(null, existingNotebook);
-					sendNotificationForNotebookUnLink = true;
-					LOGGER.debug("Solution {} unlinked from notebook {} ", solutionId, existingNotebook.getId());
-				}
+					else {
+						updateNotebook(null, existingNotebook);
+						sendNotificationForNotebookUnLink = true;
+						LOGGER.info("Solution {} unlinked from notebook {} ", solutionId, existingNotebook.getId());
+					}
+				} 
 			} else {
 				if (dnaNotebookId != null) {
 					Optional<NotebookNsql> notebookOptional = jpaRepo.findById(dnaNotebookId);
@@ -171,7 +172,12 @@ public class BaseNotebookService extends BaseCommonService<NotebookVO, NotebookN
 		Boolean mailRequired = true;
 		List<String> subscribedUsers = new ArrayList<>();
 		List<String> subscribedUsersEmail = new ArrayList<>();
-		String notebookName = notebook != null ? notebook.getName() : "";
+		Optional<NotebookNsql> notebookOptional = jpaRepo.findById(dnaNotebookId);
+		NotebookNsql notebookNsql = (notebookOptional != null && !notebookOptional.isEmpty())
+				? notebookOptional.get()
+				: null;
+		String notebookName = (notebookNsql != null && notebookNsql.getData() != null) ? notebookNsql.getData().getName() : "";		
+		LOGGER.info(notebookNsql.getData().toString());
 		if ("provisioned".equalsIgnoreCase(updateType) && sendNotificationForNotebookLink) {
 			eventType = "Notebook Provisioned";
 			message = "Solution " + solutionName + " provisioned from notebook " + notebookName;
