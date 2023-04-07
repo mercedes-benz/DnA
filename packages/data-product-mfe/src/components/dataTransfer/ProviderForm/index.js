@@ -48,13 +48,20 @@ export const tabs = {
     personalRelatedDataDescription: '',
     personalRelatedDataPurpose: '',
     personalRelatedDataLegalBasis: '',
+    personalRelatedDataContactAwareTransfer: '',
+    personalRelatedDataObjectionsTransfer: '',
+    personalRelatedDataTransferingNonetheless: '',
+    personalRelatedDataTransferingObjections: '',
   },
   'trans-national-data-transfer': {
     transnationalDataTransfer: '',
     transnationalDataTransferNotWithinEU: '',
-    LCOApprovedDataTransfer: '',
     insiderInformation: '',
     dataOriginatedFromChina: '',
+    transnationalDataContactAwareTransfer: '',
+    transnationalDataObjectionsTransfer: '',
+    transnationalDataTransferingNonetheless: '',
+    transnationalDataTransferingObjections: ''
   },
   'deletion-requirements': { deletionRequirement: '', deletionRequirementDescription: '', otherRelevantInfo: '' },
 };
@@ -342,6 +349,29 @@ const ProviderForm = ({ user, history }) => {
 
       if (!reqObj?.personalRelatedDataLegalBasis || reqObj?.personalRelatedDataLegalBasis === '') {
         errorObject.personalRelatedDataTabError.push('Original legal basis for processing this personal related data');
+        formValid = false;
+      }
+    
+      if (!reqObj?.personalRelatedDataContactAwareTransfer || reqObj?.personalRelatedDataContactAwareTransfer === '') {
+        errorObject.personalRelatedDataTabError.push('Is corresponding Compliance contact aware of this transfer?');
+        formValid = false;
+      }
+    }
+
+    if (reqObj?.personalRelatedDataContactAwareTransfer == 'Yes') {
+      if (!reqObj?.personalRelatedDataObjectionsTransfer || reqObj?.personalRelatedDataObjectionsTransfer === '') {
+        errorObject.personalRelatedDataTabError.push('Has s/he any objections to this transfer?');
+        formValid = false;
+      }
+    }
+
+    if (reqObj?.personalRelatedDataObjectionsTransfer === 'Yes') {
+      if (!reqObj.personalRelatedDataTransferingNonetheless || reqObj.personalRelatedDataTransferingNonetheless === '') {
+        errorObject.personalRelatedDataTabError.push('Please state your reasoning for transfering nonetheless');
+        formValid = false;
+      }
+      if (!reqObj.personalRelatedDataTransferingObjections || reqObj.personalRelatedDataTransferingObjections === '') {
+        errorObject.personalRelatedDataTabError.push('Please state your objections');
         formValid = false;
       }
     }
