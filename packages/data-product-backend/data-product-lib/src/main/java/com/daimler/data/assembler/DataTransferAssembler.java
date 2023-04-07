@@ -151,6 +151,8 @@ public class DataTransferAssembler implements GenericAssembler<DataTransferVO, D
 				if (provider.getTransnationalDataTransfer() != null) {
 					ProviderTransnationalDataTransferVO transnationalDataTransferVO = new ProviderTransnationalDataTransferVO();
 					BeanUtils.copyProperties(provider.getTransnationalDataTransfer(), transnationalDataTransferVO);
+					transnationalDataTransferVO.setContactAwareTransfer(provider.getTransnationalDataTransfer().isContactAwareTransfer());
+					transnationalDataTransferVO.setObjectionsToTransfer(provider.getTransnationalDataTransfer().isObjectionsToTransfer());
 					providerVO.setTransnationalDataTransfer(transnationalDataTransferVO);
 				}
 
@@ -285,6 +287,8 @@ public class DataTransferAssembler implements GenericAssembler<DataTransferVO, D
 					ProviderPersonalRelatedData personalRelatedData = new ProviderPersonalRelatedData();
 					BeanUtils.copyProperties(personalRelatedDataVO, personalRelatedData);
 					personalRelatedData.setPersonalRelatedData(personalRelatedDataVO.isPersonalRelatedData());
+					personalRelatedData.setContactAwareTransfer(personalRelatedDataVO.isContactAwareTransfer());
+					personalRelatedData.setObjectionsToTransfer(personalRelatedDataVO.isObjectionsToTransfer());
 					provider.setPersonalRelatedData(personalRelatedData);
 				}
 
@@ -296,6 +300,8 @@ public class DataTransferAssembler implements GenericAssembler<DataTransferVO, D
 					transnationalDataTransfer.setDataTransferred(transnationalDataTransferVO.isDataTransferred());
 					transnationalDataTransfer.setNotWithinEU(transnationalDataTransferVO.isNotWithinEU());
 					transnationalDataTransfer.setDataFromChina(transnationalDataTransferVO.isDataFromChina());
+					transnationalDataTransfer.setContactAwareTransfer(transnationalDataTransferVO.isContactAwareTransfer());
+					transnationalDataTransfer.setObjectionsToTransfer(transnationalDataTransferVO.isObjectionsToTransfer());
 					provider.setTransnationalDataTransfer(transnationalDataTransfer);
 				}
 
@@ -356,8 +362,11 @@ public class DataTransferAssembler implements GenericAssembler<DataTransferVO, D
 					ConsumerPersonalRelatedData personalRelatedData = new ConsumerPersonalRelatedData();
 					BeanUtils.copyProperties(personalRelatedDataVO, personalRelatedData);
 					personalRelatedData.setPersonalRelatedData(personalRelatedDataVO.isPersonalRelatedData());
+					personalRelatedData.setContactAwareTransfer(personalRelatedDataVO.isContactAwareTransfer());
+					personalRelatedData.setObjectionsToTransfer(personalRelatedDataVO.isObjectionsToTransfer());
 					consumer.setPersonalRelatedData(personalRelatedData);
 				}
+
 
 				if (!ObjectUtils.isEmpty(consumerVO.getOpenSegments())) {
 					List<String> openSegmentList = new ArrayList<>();
