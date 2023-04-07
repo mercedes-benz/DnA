@@ -291,6 +291,8 @@ public class DataProductAssembler implements GenericAssembler<DataProductVO, Dat
 					DataProductPersonalRelatedData personalRelatedData = new DataProductPersonalRelatedData();
 					BeanUtils.copyProperties(personalRelatedDataVO, personalRelatedData);
 					personalRelatedData.setPersonalRelatedData(personalRelatedDataVO.isPersonalRelatedData());
+					personalRelatedData.setContactAwareTransfer(personalRelatedDataVO.isContactAwareTransfer());
+					personalRelatedData.setObjectionsToTransfer(personalRelatedDataVO.isObjectionsToTransfer());
 					dataProduct.setPersonalRelatedData(personalRelatedData);
 				}
 
@@ -302,6 +304,8 @@ public class DataProductAssembler implements GenericAssembler<DataProductVO, Dat
 					transnationalDataTransfer.setDataTransferred(transnationalDataTransferVO.isDataTransferred());
 					transnationalDataTransfer.setNotWithinEU(transnationalDataTransferVO.isNotWithinEU());
 					transnationalDataTransfer.setDataFromChina(transnationalDataTransferVO.isDataFromChina());
+					transnationalDataTransfer.setContactAwareTransfer(transnationalDataTransferVO.isContactAwareTransfer());
+					transnationalDataTransfer.setObjectionsToTransfer(transnationalDataTransferVO.isObjectionsToTransfer());
 					dataProduct.setTransnationalDataTransfer(transnationalDataTransfer);
 				}
 
@@ -591,6 +595,12 @@ public class DataProductAssembler implements GenericAssembler<DataProductVO, Dat
 		if (existingDataProduct.getPersonalRelatedData().isPersonalRelatedData() != null) {
 			providerResponseVO.getPersonalRelatedData().setPersonalRelatedData(existingDataProduct.getPersonalRelatedData().isPersonalRelatedData());
 		}
+		if (existingDataProduct.getPersonalRelatedData().isContactAwareTransfer() != null) {
+			providerResponseVO.getPersonalRelatedData().setContactAwareTransfer(existingDataProduct.getPersonalRelatedData().isContactAwareTransfer());
+		}
+		if (existingDataProduct.getPersonalRelatedData().isObjectionsToTransfer() != null) {
+			providerResponseVO.getPersonalRelatedData().setObjectionsToTransfer(existingDataProduct.getPersonalRelatedData().isObjectionsToTransfer());
+		}
 		if (existingDataProduct.getTransnationalDataTransfer().isDataTransferred() != null) {
 			providerResponseVO.getTransnationalDataTransfer().setDataTransferred(existingDataProduct.getTransnationalDataTransfer().isDataTransferred());
 		}
@@ -599,6 +609,12 @@ public class DataProductAssembler implements GenericAssembler<DataProductVO, Dat
 		}
 		if (existingDataProduct.getTransnationalDataTransfer().isDataFromChina() != null) {
 			providerResponseVO.getTransnationalDataTransfer().setDataFromChina(existingDataProduct.getTransnationalDataTransfer().isDataFromChina());
+		}
+		if (existingDataProduct.getTransnationalDataTransfer().isContactAwareTransfer() != null) {
+			providerResponseVO.getTransnationalDataTransfer().setContactAwareTransfer(existingDataProduct.getTransnationalDataTransfer().isContactAwareTransfer());
+		}
+		if (existingDataProduct.getTransnationalDataTransfer().isObjectionsToTransfer() != null) {
+			providerResponseVO.getTransnationalDataTransfer().setObjectionsToTransfer(existingDataProduct.getTransnationalDataTransfer().isObjectionsToTransfer());
 		}
 		if (existingDataProduct.getDeletionRequirement().isDeletionRequirements() != null) {
 			providerResponseVO.getDeletionRequirement().setDeletionRequirements(existingDataProduct.getDeletionRequirement().isDeletionRequirements());
@@ -651,6 +667,12 @@ public class DataProductAssembler implements GenericAssembler<DataProductVO, Dat
 		}
 		if (dataproductConsumerData.getConsumerInformation().getPersonalRelatedData().isPersonalRelatedData() != null) {
 			datatransferConsumerData.getConsumerInformation().getPersonalRelatedData().setPersonalRelatedData(dataproductConsumerData.getConsumerInformation().getPersonalRelatedData().isPersonalRelatedData());
+		}
+		if (dataproductConsumerData.getConsumerInformation().getPersonalRelatedData().isContactAwareTransfer() != null) {
+			datatransferConsumerData.getConsumerInformation().getPersonalRelatedData().setContactAwareTransfer(dataproductConsumerData.getConsumerInformation().getPersonalRelatedData().isContactAwareTransfer());
+		}
+		if (dataproductConsumerData.getConsumerInformation().getPersonalRelatedData().isObjectionsToTransfer() != null) {
+			datatransferConsumerData.getConsumerInformation().getPersonalRelatedData().setObjectionsToTransfer(dataproductConsumerData.getConsumerInformation().getPersonalRelatedData().isObjectionsToTransfer());
 		}
 		if (dataproductConsumerData.isNotifyUsers() != null) {
 			datatransferConsumerData.setNotifyUsers(dataproductConsumerData.isNotifyUsers());
