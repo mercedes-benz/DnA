@@ -262,7 +262,7 @@ public class BaseDataTransferService extends BaseCommonService<DataTransferVO, D
 		CreatedByVO currentUser = this.userStore.getVO();
 		String userId = currentUser != null ? currentUser.getId() : "";
 		if (StringUtils.hasText(userId)) {
-			if (userId.equalsIgnoreCase(createdBy.getId())) {
+			if (createdBy != null && userId.equalsIgnoreCase(createdBy.getId())) {
 				return true;
 			}
 		}
@@ -273,7 +273,7 @@ public class BaseDataTransferService extends BaseCommonService<DataTransferVO, D
 		CreatedByVO currentUser = this.userStore.getVO();
 		String userId = currentUser != null ? currentUser.getId() : "";
 		if (StringUtils.hasText(userId)) {
-			if (userId.equalsIgnoreCase(teamMemberVO.getShortId())) {
+			if (teamMemberVO != null && userId.equalsIgnoreCase(teamMemberVO.getShortId())) {
 				return true;
 			}
 		}
