@@ -395,6 +395,17 @@ public class WorkspaceController  implements CodeServerApi{
 			responseMessage.setSuccess("EXISTING");
 			log.info("workspace {} already exists for User {} ",reqVO.getProjectDetails().getProjectName() , userId);
 			return new ResponseEntity<>(responseMessage, HttpStatus.CONFLICT);
+		}		
+		if(reqVO.getProjectDetails().getRecipeDetails().getRecipeId().name().equalsIgnoreCase("PUBLIC")) {
+			String publicUrl = reqVO.getProjectDetails().getRecipeDetails().getPublicGitUrl();
+			if("".equals(publicUrl) || publicUrl == null) {
+				List<MessageDescription> errorMessage = new ArrayList<>();
+				MessageDescription msg = new MessageDescription();
+				msg.setMessage("No publicUrl found for given public recipe");
+				errorMessage.add(msg);
+				responseMessage.setErrors(errorMessage);
+				return new ResponseEntity<>(responseMessage, HttpStatus.BAD_REQUEST);
+			}
 		}
 		currentUserVO.setGitUserName(reqVO.getGitUserName());
 		reqVO.setWorkspaceOwner(currentUserVO);
@@ -676,8 +687,6 @@ public class WorkspaceController  implements CodeServerApi{
 			limit = 0;
 		}
 		 
-		String pat = "XXXX";		
-		HttpStatus validateUserPatstatus = gitClient.validatePublicGitPat("XXXX", pat, "https://github");
     	final List<CodeServerWorkspaceVO> workspaces = service.getAll(userId,offset,limit);
     	WorkspaceCollectionVO collection = new WorkspaceCollectionVO();
     	collection.setTotalCount(service.getCount(userId));
