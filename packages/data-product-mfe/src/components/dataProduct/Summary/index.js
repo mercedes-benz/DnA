@@ -604,7 +604,7 @@ const Summary = ({ history, user }) => {
                             {selectedDataProduct.transnationalDataTransferingNonetheless}
                           </div>
                           <div>
-                            <label className="input-label summary">Please state your objectionss</label>
+                            <label className="input-label summary">Please state your objections</label>
                             <br />
                             {selectedDataProduct.transnationalDataTransferingObjections}
                           </div>
