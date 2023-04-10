@@ -393,9 +393,9 @@ definitions:
       notWithinEU:
         type: boolean
         description: "Is one of these countries not within the EU"
-#      insiderInformation: 
-#        description: "Does product contain insider information"
-#        type: string         
+#      insiderInformation:
+#      description: "Does product contain insider information"
+#      type: string         
       dataFromChina:
         type: boolean
         description: "Is data from China included"
