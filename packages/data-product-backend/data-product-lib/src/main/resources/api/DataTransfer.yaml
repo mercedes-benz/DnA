@@ -366,7 +366,21 @@ definitions:
         type: string
       legalBasis: 
         description: "Legal basis for processing this personal related data"
-        type: string                  
+        type: string
+      contactAwareTransfer:
+        type: boolean
+        default: false
+        description: "Is corresponding Compliance contact aware of this transfer"
+      objectionsToTransfer:
+        type: boolean
+        default: false
+        description: "Has s/he any objections to this transfer"
+      transferringNonetheless:
+        type: string
+        description: "State your reasoning for transferring nonetheless"
+      objections:
+        type: string
+        description: "State your objections"
 #    required:
 #      - personalRelatedData  
           
@@ -379,15 +393,26 @@ definitions:
       notWithinEU:
         type: boolean
         description: "Is one of these countries not within the EU"
-      approved: 
-        description: "Has LCO/LCR approved this data transfer"
-        type: string
-#      insiderInformation: 
-#        description: "Does product contain insider information"
-#        type: string         
+#      insiderInformation:
+#      description: "Does product contain insider information"
+#      type: string         
       dataFromChina:
         type: boolean
-        description: "Is data from China included"                
+        description: "Is data from China included"
+      contactAwareTransfer:
+        type: boolean
+        default: false
+        description: "Is corresponding Compliance contact aware of this transfer"
+      objectionsToTransfer:
+        type: boolean
+        default: false
+        description: "Has s/he any objections to this transfer"
+      transferringNonetheless:
+        type: string
+        description: "State your reasoning for transferring nonetheless"
+      objections:
+        type: string
+        description: "State your objections"
 #    required:
 #      - dataTransferred    
       
@@ -455,7 +480,21 @@ definitions:
         type: string 
       comment: 
         description: "LCO/LCR comments to data usage of personal data"
-        type: string                              
+        type: string
+      contactAwareTransfer:
+        type: boolean
+        default: false
+        description: "Is corresponding Compliance contact aware of this transfer"
+      objectionsToTransfer:
+        type: boolean
+        default: false
+        description: "Has s/he any objections to this transfer"
+      transferringNonetheless:
+        type: string
+        description: "State your reasoning for transferring nonetheless"
+      objections:
+        type: string
+        description: "State your objections"
 #    required:
 #      - personalRelatedData
       
