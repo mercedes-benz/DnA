@@ -57,6 +57,12 @@ const deleteForecastRun = (id, rid) => {
   });
 };
 
+const deleteSavedInputFile = (id, rid) => {
+  return server.delete(`/forecasts/${id}/inputs/${rid}`, {
+    data: {},
+  });
+};
+
 const deleteForecastRuns = (rids, id) => {
   return server.delete(`/forecasts/${id}/runs`, { ids: rids });
 };
@@ -109,6 +115,7 @@ export const chronosApi = {
     deleteForecastRun,
     getForecastRuns,
     deleteForecastRuns,
+    deleteSavedInputFile,
     getConfigurationFiles,
     generateApiKeyById,
     getApiKeyById,
