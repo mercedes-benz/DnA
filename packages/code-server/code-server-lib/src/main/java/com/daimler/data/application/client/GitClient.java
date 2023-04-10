@@ -159,14 +159,30 @@ public class GitClient {
 			headers.set("Content-Type", "application/json");
 			headers.set("Authorization", "token "+ pat);
 			String userRepoName = "";
-			if(publicGitUrl.endsWith(".git")) {
-				int repoIndexBegin = publicGitUrl.lastIndexOf("/");
-				int repoIndexEnd = publicGitUrl.lastIndexOf(".git");
-				userRepoName = publicGitUrl.substring(repoIndexBegin+1, repoIndexEnd);
+			String[] publicUrlArray = publicGitUrl.split(",");
+			if(publicUrlArray[0].endsWith("/")) {
+				publicUrlArray[0] = publicUrlArray[0].substring(0,publicUrlArray[0].length() - 1);
+				if(publicUrlArray[0].endsWith(".git")) {					
+					int repoIndexBegin = publicUrlArray[0].lastIndexOf("/");
+					int repoIndexEnd = publicUrlArray[0].lastIndexOf(".git");
+					userRepoName = publicUrlArray[0].substring(repoIndexBegin+1, repoIndexEnd);
+				}
+				else {
+					int repoIndexBegin = publicUrlArray[0].lastIndexOf("/");
+					userRepoName = publicUrlArray[0].substring(repoIndexBegin+1);
+				}				
 			}
 			else {
-				int repoIndexBegin = publicGitUrl.lastIndexOf("/");
-				userRepoName = publicGitUrl.substring(repoIndexBegin+1);
+				if(publicUrlArray[0].endsWith(".git")) {
+					int repoIndexBegin = publicUrlArray[0].lastIndexOf("/");
+					int repoIndexEnd = publicUrlArray[0].lastIndexOf(".git");
+					userRepoName = publicUrlArray[0].substring(repoIndexBegin+1,repoIndexEnd);
+				}
+				else {
+					int repoIndexBegin = publicUrlArray[0].lastIndexOf("/");
+					userRepoName = publicUrlArray[0].substring(repoIndexBegin+1);
+				}
+				
 			}		
 			String url = "https://api.github.com/users/"+ gitUserName + "/repos";
 			HttpEntity entity = new HttpEntity<>(headers);
