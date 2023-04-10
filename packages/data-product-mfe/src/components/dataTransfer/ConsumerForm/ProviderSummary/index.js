@@ -204,7 +204,7 @@ const ProviderSummary = ({ onSave, providerFormIsDraft }) => {
                   {providerInformation?.transnationalDataTransferingNonetheless}
                 </div>
                 <div>
-                  <label className="input-label summary">Please state your objectionss</label>
+                  <label className="input-label summary">Please state your objections</label>
                   <br />
                   {providerInformation?.transnationalDataTransferingObjections}
                 </div>
