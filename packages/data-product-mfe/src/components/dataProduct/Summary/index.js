@@ -551,7 +551,7 @@ const Summary = ({ history, user }) => {
                           {selectedDataProduct.personalRelatedDataTransferingNonetheless}
                         </div>
                         <div>
-                          <label className="input-label summary">Please state your objectionss</label>
+                          <label className="input-label summary">Please state your objections</label>
                           <br />
                           {selectedDataProduct.personalRelatedDataTransferingObjections}
                         </div>
