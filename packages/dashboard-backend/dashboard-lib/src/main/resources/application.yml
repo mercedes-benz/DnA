@@ -88,3 +88,5 @@ logging:
             sql: ERROR
       graphql:
         servlet: ERROR
+report:
+  update: ${UPDATE_REPORTDATA:XXXX}

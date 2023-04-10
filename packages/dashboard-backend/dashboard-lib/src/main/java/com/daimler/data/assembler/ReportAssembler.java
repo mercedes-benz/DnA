@@ -196,8 +196,7 @@ public class ReportAssembler implements GenericAssembler<ReportVO, ReportNsql> {
 		if (internalCustomer != null) {
 			vo = new InternalCustomerVO();
 			BeanUtils.copyProperties(internalCustomer, vo);
-			vo.setDivision(toDivisionVO(internalCustomer.getDivision()));
-			vo.setName(toTeamMemberVO(internalCustomer.getName()));
+			vo.setDivision(toDivisionVO(internalCustomer.getDivision()));			
 			vo.setProcessOwner(toTeamMemberVO(internalCustomer.getProcessOwner()));
 		}
 		return vo;
@@ -208,7 +207,6 @@ public class ReportAssembler implements GenericAssembler<ReportVO, ReportNsql> {
 		if (externalCustomer != null) {
 			vo = new ExternalCustomerVO();
 			BeanUtils.copyProperties(externalCustomer, vo);
-			vo.setName(toTeamMemberVO(externalCustomer.getName()));
 		}
 		return vo;
 	}
@@ -368,8 +366,7 @@ public class ReportAssembler implements GenericAssembler<ReportVO, ReportNsql> {
 		InternalCustomer internalCustomer = null;
 		if (vo != null) {
 			internalCustomer = new InternalCustomer();
-			BeanUtils.copyProperties(vo, internalCustomer);
-			internalCustomer.setName(toTeamMemberJson(vo.getName()));
+			BeanUtils.copyProperties(vo, internalCustomer);			
 			internalCustomer.setProcessOwner(toTeamMemberJson(vo.getProcessOwner()));
 			internalCustomer.setDivision(toDivisionJson(vo.getDivision()));
 		}
@@ -381,7 +378,6 @@ public class ReportAssembler implements GenericAssembler<ReportVO, ReportNsql> {
 		if (vo != null) {
 			externalCustomer = new ExternalCustomer();
 			BeanUtils.copyProperties(vo, externalCustomer);
-			externalCustomer.setName(toTeamMemberJson(vo.getName()));
 		}
 		return externalCustomer;
 	}
