@@ -169,7 +169,7 @@ const ProviderSummary = ({ onSave, providerFormIsDraft }) => {
                 <label className="input-label summary">Transnational Data</label>
               </div>
             </div>
-            <div className={classNames(Styles.flexLayout, Styles.threeColumn)}>
+            <div className={classNames(Styles.flexLayout)}>
               <div>
                 <label className="input-label summary">Is data being transferred from one country to another?</label>
                 <br />
@@ -182,15 +182,34 @@ const ProviderSummary = ({ onSave, providerFormIsDraft }) => {
                   {providerInformation.transnationalDataTransferNotWithinEU || 'No'}
                 </div>
               ) : null}
-              {providerInformation.transnationalDataTransfer === 'Yes' &&
-              providerInformation.transnationalDataTransferNotWithinEU === 'Yes' ? (
-                <div>
-                  <label className="input-label summary">Has LCO/LCR approved this data transfer?</label>
-                  <br />
-                  {providerInformation.LCOApprovedDataTransfer}
-                </div>
-              ) : null}
             </div>
+            {providerInformation?.transnationalDataTransfer == 'Yes' &&
+              providerInformation?.transnationalDataTransferNotWithinEU == 'Yes' ? (<div className={Styles.flexLayout}>
+                <div>
+                  <label className="input-label summary">Is corresponding Compliance contact aware of this transfer?</label>
+                  <br />
+                  {providerInformation?.transnationalDataContactAwareTransfer}
+                </div>
+              </div>) : null}
+            {providerInformation?.transnationalDataTransferNotWithinEU === 'Yes' && providerInformation?.transnationalDataContactAwareTransfer === 'Yes'
+              ? (<div className={classNames(Styles.flexLayout, Styles.fourColumn)}>
+                <div>
+                  <label className="input-label summary">Has s/he any objections to this transfer?</label>
+                  <br />
+                  {providerInformation?.transnationalDataObjectionsTransfer}
+                </div>
+                <div>
+                  <label className="input-label summary">Please state your reasoning for transfering nonetheless</label>
+                  <br />
+                  {providerInformation?.transnationalDataTransferingNonetheless}
+                </div>
+                <div>
+                  <label className="input-label summary">Please state your objections</label>
+                  <br />
+                  {providerInformation?.transnationalDataTransferingObjections}
+                </div>
+                <div></div>
+              </div>) : null}
             <div className={Styles.flexLayout}>
               <div>
                 <label className="input-label summary">Is data from China included?</label>
