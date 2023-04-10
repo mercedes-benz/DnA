@@ -78,7 +78,7 @@ public class DataProductController implements DataproductsApi{
 				   Objects.isNull(requestVO.getContactInformation()) ||
 				   Objects.isNull(requestVO.getPersonalRelatedData()) ||
 				   Objects.isNull(requestVO.getTransnationalDataTransfer())||
-				   Objects.isNull(requestVO.getDeletionRequirement()) || Objects.isNull(requestVO.getTransnationalDataTransfer().getInsiderInformation())) {
+				   Objects.isNull(requestVO.getDeletionRequirement()) || Objects.isNull(requestVO.getDeletionRequirement().getInsiderInformation())) {
 					List<MessageDescription> messages = new ArrayList<>();
 					MessageDescription message = new MessageDescription();
 					message.setMessage("DataProduct cannot be created as user is not providing the values for one of the tabs.");
@@ -584,7 +584,7 @@ public class DataProductController implements DataproductsApi{
 								   Objects.isNull(requestVO.getContactInformation()) ||
 								   Objects.isNull(requestVO.getPersonalRelatedData()) ||
 								   Objects.isNull(requestVO.getTransnationalDataTransfer())||
-								   Objects.isNull(requestVO.getDeletionRequirement()) || Objects.isNull(requestVO.getTransnationalDataTransfer().getInsiderInformation())) {
+								   Objects.isNull(requestVO.getDeletionRequirement()) || Objects.isNull(requestVO.getDeletionRequirement().getInsiderInformation())) {
 							List<MessageDescription> messages = new ArrayList<>();
 							MessageDescription message = new MessageDescription();
 							message.setMessage("DataProduct cannot be created as user is not providing the values for one of the tabs.");
@@ -599,7 +599,7 @@ public class DataProductController implements DataproductsApi{
 						   Objects.isNull(requestVO.getContactInformation()) ||
 						   Objects.isNull(requestVO.getPersonalRelatedData()) ||
 						   Objects.isNull(requestVO.getTransnationalDataTransfer())||
-						   Objects.isNull(requestVO.getDeletionRequirement()) || Objects.isNull(requestVO.getTransnationalDataTransfer().getInsiderInformation())) {
+						   Objects.isNull(requestVO.getDeletionRequirement()) || Objects.isNull(requestVO.getDeletionRequirement().getInsiderInformation())) {
 							List<MessageDescription> messages = new ArrayList<>();
 							MessageDescription message = new MessageDescription();
 							message.setMessage("DataProduct cannot be created as user is not providing the values for one of the tabs.");
