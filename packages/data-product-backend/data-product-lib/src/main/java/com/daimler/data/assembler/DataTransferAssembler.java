@@ -310,8 +310,10 @@ public class DataTransferAssembler implements GenericAssembler<DataTransferVO, D
 					String insiderInfo = "";
 					if(providerVO.getDeletionRequirement() != null) {
 						insiderInfo = providerVO.getDeletionRequirement().getInsiderInformation() != null ? providerVO.getDeletionRequirement().getInsiderInformation() : "";
-					}					
+					}
 					transnationalDataTransfer.setInsiderInformation(insiderInfo);
+					transnationalDataTransfer.setContactAwareTransfer(transnationalDataTransferVO.isContactAwareTransfer());
+					transnationalDataTransfer.setObjectionsToTransfer(transnationalDataTransferVO.isObjectionsToTransfer());
 					provider.setTransnationalDataTransfer(transnationalDataTransfer);
 				}
 
