@@ -271,7 +271,7 @@ const Summary = ({ history }) => {
                           {data.personalRelatedDataTransferingNonetheless}
                         </div>
                         <div>
-                          <label className="input-label summary">Please state your objectionss</label>
+                          <label className="input-label summary">Please state your objections</label>
                           <br />
                           {data.personalRelatedDataTransferingObjections}
                         </div>
@@ -324,7 +324,7 @@ const Summary = ({ history }) => {
                             {data?.transnationalDataTransferingNonetheless}
                           </div>
                           <div>
-                            <label className="input-label summary">Please state your objectionss</label>
+                            <label className="input-label summary">Please state your objections</label>
                             <br />
                             {data?.transnationalDataTransferingObjections}
                           </div>
@@ -520,7 +520,7 @@ const Summary = ({ history }) => {
                                 {data?.consumer?.personalRelatedDataTransferingNonetheless}
                               </div>
                               <div>
-                                <label className="input-label summary">Please state your objectionss</label>
+                                <label className="input-label summary">Please state your objections</label>
                                 <br />
                                 {data?.consumer?.personalRelatedDataTransferingObjections}
                               </div>
