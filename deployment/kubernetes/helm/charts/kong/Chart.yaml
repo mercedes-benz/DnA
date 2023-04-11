@@ -3,7 +3,7 @@ appVersion: "2.8"
 dependencies:
 - condition: postgresql.enabled
   name: postgresql
-  repository: https://charts.bitnami.com/bitnami
+  repository: file://charts/postgresql
   version: 11.1.15
 - condition: konga.enabled
   name: konga
