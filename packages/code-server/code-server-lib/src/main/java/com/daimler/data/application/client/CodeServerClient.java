@@ -56,6 +56,7 @@ public class CodeServerClient {
 			case "py-fastapi" : deployType = ConstantsUtility.PYFASTAPI; break;
 			case "react":  deployType = ConstantsUtility.REACT; break;
 			case "angular" : deployType = ConstantsUtility.ANGULAR; break;
+			case "public" : deployType = ConstantsUtility.PUBLIC; break;
 			default: deployType = ConstantsUtility.DEFAULT; break;
 		}
 		return deployType;

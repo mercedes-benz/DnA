@@ -592,7 +592,10 @@ definitions:
         description: "RecipeId of the workspace. Ex: Springboot Microservice"    
       environment:
         type: string
-        enum: [Development, Testing, Production]    
+        enum: [Development, Testing, Production]
+      publicGitUrl:
+        type: string
+        description: "Public Github URL"      
       cloudServiceProvider:
         type: string
         enum: [DHC-CaaS]
