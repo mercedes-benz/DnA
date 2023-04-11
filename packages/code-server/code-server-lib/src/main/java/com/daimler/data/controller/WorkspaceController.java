@@ -51,6 +51,8 @@ import com.daimler.data.application.auth.UserStore;
 import com.daimler.data.application.client.GitClient;
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
+import com.daimler.data.db.entities.CodeServerWorkspaceNsql;
+import com.daimler.data.db.repo.workspace.WorkspaceCustomRepository;
 import com.daimler.data.dto.workspace.CodeServerRecipeDetailsVO.CloudServiceProviderEnum;
 import com.daimler.data.dto.workspace.CodeServerRecipeDetailsVO.CpuCapacityEnum;
 import com.daimler.data.dto.workspace.CodeServerRecipeDetailsVO.EnvironmentEnum;
@@ -80,6 +82,9 @@ public class WorkspaceController  implements CodeServerApi{
 	
 	@Autowired
 	private GitClient gitClient;
+	
+	@Autowired
+	private WorkspaceCustomRepository workspaceCustomRepository;
 
 
 	@Override
@@ -396,7 +401,7 @@ public class WorkspaceController  implements CodeServerApi{
 			log.info("workspace {} already exists for User {} ",reqVO.getProjectDetails().getProjectName() , userId);
 			return new ResponseEntity<>(responseMessage, HttpStatus.CONFLICT);
 		}		
-		if(reqVO.getProjectDetails().getRecipeDetails().getRecipeId().name().equalsIgnoreCase("PUBLIC")) {
+		if(reqVO.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().equalsIgnoreCase("public")){
 			String publicUrl = reqVO.getProjectDetails().getRecipeDetails().getPublicGitUrl();
 			if("".equals(publicUrl) || publicUrl == null) {
 				List<MessageDescription> errorMessage = new ArrayList<>();
@@ -425,6 +430,13 @@ public class WorkspaceController  implements CodeServerApi{
 		newRecipeVO.setRamSize(RamSizeEnum._1);
 		reqVO.getProjectDetails().setRecipeDetails(newRecipeVO);
 		responseMessage = service.createWorkspace(reqVO,pat,password);
+		String name = responseMessage.getData().getWorkspaceId();
+		log.info("WORKSPACE ID: ", name);
+		CodeServerWorkspaceNsql entity = workspaceCustomRepository.findbyUniqueLiteral(userId, "workspaceId", name);		
+		String[] publicUrlArray = entity.getData().getProjectDetails().getGitRepoName().split(",");
+		int index = publicUrlArray[1].lastIndexOf("/");
+		String updateURL = publicUrlArray[1].substring(0,index);
+		log.info("updateURL: ", updateURL);
 		if("SUCCESS".equalsIgnoreCase(responseMessage.getSuccess())) {
 			responseStatus = HttpStatus.CREATED;
 			log.info("User {} created workspace {}", userId,reqVO.getProjectDetails().getProjectName());
