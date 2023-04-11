@@ -906,15 +906,18 @@ public class BaseWorkspaceService implements WorkspaceService {
 			String projectRecipe = entity.getData().getProjectDetails().getRecipeDetails().getRecipeId();
 			String projectOwner = entity.getData().getProjectDetails().getProjectOwner().getId();
 			String[] publicUrlArray = entity.getData().getProjectDetails().getGitRepoName().split(",");
+			log.info("projectRecipe: {}",projectRecipe);
 			if(isCreateDeleteStatuses) {
 				if("CREATED".equalsIgnoreCase(latestStatus)) {
 					String workspaceUrl = codeServerBaseUri+"/"+workspaceName+"/?folder=/home/coder";
 					if(!defaultRecipeId.equalsIgnoreCase(projectRecipe))
 						workspaceUrl += "/app";
 					if(publicRecipeId.toLowerCase().equalsIgnoreCase(projectRecipe.toLowerCase())) {
+						log.info("Project is public recipe");
 						int index = publicUrlArray[1].lastIndexOf("/");
 						String updateURL = publicUrlArray[1].substring(0,index);
 						workspaceUrl = workspaceUrl + "/" + updateURL;
+						log.info("workspaceUrl: {}",workspaceUrl);
 					}
 					entity.getData().setWorkspaceUrl(workspaceUrl);
 					entity.getData().setStatus(latestStatus);
