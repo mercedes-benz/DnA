@@ -588,7 +588,7 @@ definitions:
     properties:
       recipeId:
         type: string
-        enum: [default,springboot,py-fastapi,react,angular,gradle,public]
+        enum: [default,springboot,py-fastapi,react,angular,gradle,public-dna-backend,public-dna-frontend]
         description: "RecipeId of the workspace. Ex: Springboot Microservice"    
       environment:
         type: string

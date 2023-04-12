@@ -902,7 +902,8 @@ public class BaseWorkspaceService implements WorkspaceService {
 			String pythonRecipeId =  RecipeIdEnum.PY_FASTAPI.toString();
 			String reactRecipeId = RecipeIdEnum.REACT.toString();
 			String angularRecipeId =  RecipeIdEnum.ANGULAR.toString();
-			String publicRecipeId = RecipeIdEnum.PUBLIC.toString();
+			String publicDnABackendRecipeId = RecipeIdEnum.PUBLIC_DNA_BACKEND.toString();
+			String publicDnaFrontendRecipeId = RecipeIdEnum.PUBLIC_DNA_FRONTEND.toString();
 			String projectRecipe = entity.getData().getProjectDetails().getRecipeDetails().getRecipeId();
 			String projectOwner = entity.getData().getProjectDetails().getProjectOwner().getId();
 			String[] publicUrlArray = entity.getData().getProjectDetails().getGitRepoName().split(",");
@@ -912,13 +913,16 @@ public class BaseWorkspaceService implements WorkspaceService {
 					String workspaceUrl = codeServerBaseUri+"/"+workspaceName+"/?folder=/home/coder";
 					if(!defaultRecipeId.equalsIgnoreCase(projectRecipe))
 						workspaceUrl += "/app";
-					if(publicRecipeId.toLowerCase().startsWith(projectRecipe.toLowerCase())) {
-						log.info("Project is public recipe");
-						int index = publicUrlArray[1].lastIndexOf("/");
-						String updateURL = publicUrlArray[1].substring(0,index);
-						workspaceUrl = workspaceUrl + "/" + updateURL;
+					if(publicDnABackendRecipeId.toLowerCase().equalsIgnoreCase(projectRecipe.toLowerCase())) {
+						log.info("Project is public recipe");						
+						workspaceUrl = workspaceUrl + "/" + "packages/backend";
 						log.info("workspaceUrl: {}",workspaceUrl);
 					}
+					if(publicDnaFrontendRecipeId.toLowerCase().equalsIgnoreCase(projectRecipe.toLowerCase())) {
+						log.info("Project is public recipe");						
+						workspaceUrl = workspaceUrl + "/" + "packages/frontend";
+						log.info("workspaceUrl: {}",workspaceUrl);
+					}					
 					entity.getData().setWorkspaceUrl(workspaceUrl);
 					entity.getData().setStatus(latestStatus);
 				}
