@@ -567,7 +567,9 @@ public class WorkspaceController  implements CodeServerApi{
 				branch = deployRequestDto.getBranch();
 			}
 			GenericMessage responseMsg = service.deployWorkspace(userId, id, environment, branch);
-			log.info("User {} deployed workspace {} project {}", userId,vo.getWorkspaceId(),vo.getProjectDetails().getRecipeDetails().getRecipeId().name());
+			if(!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public")) {
+				log.info("User {} deployed workspace {} project {}", userId,vo.getWorkspaceId(),vo.getProjectDetails().getRecipeDetails().getRecipeId().name());
+			}			
 			return new ResponseEntity<>(responseMsg, HttpStatus.OK);
 		} catch (EntityNotFoundException e) {
 			log.error(e.getLocalizedMessage());
@@ -648,7 +650,9 @@ public class WorkspaceController  implements CodeServerApi{
 				branch = deployRequestDto.getBranch();
 			}
 			GenericMessage responseMsg = service.undeployWorkspace(userId, id, environment, branch);
-			log.info("User {} undeployed workspace {} project {}", userId,vo.getWorkspaceId(),vo.getProjectDetails().getRecipeDetails().getRecipeId().name());
+			if(!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public")) {
+				log.info("User {} undeployed workspace {} project {}", userId,vo.getWorkspaceId(),vo.getProjectDetails().getRecipeDetails().getRecipeId().name());
+			}		
 			return new ResponseEntity<>(responseMsg, HttpStatus.OK);
 		} catch (EntityNotFoundException e) {
 			log.error(e.getLocalizedMessage());
