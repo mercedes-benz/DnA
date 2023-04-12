@@ -163,52 +163,15 @@ public class GitClient {
 			headers.set("Authorization", "token "+ pat);
 			String userRepoName = "";
 			String[] publicUrlArray = publicGitUrl.split(",");
-			if(publicUrlArray[0].endsWith("/")) {
-				publicUrlArray[0] = publicUrlArray[0].substring(0,publicUrlArray[0].length() - 1);
-				if(publicUrlArray[0].endsWith(".git")) {					
-					int repoIndexBegin = publicUrlArray[0].lastIndexOf("/");
-					int repoIndexEnd = publicUrlArray[0].lastIndexOf(".git");
-					userRepoName = publicUrlArray[0].substring(repoIndexBegin+1, repoIndexEnd);
-				}
-				else {
-					int repoIndexBegin = publicUrlArray[0].lastIndexOf("/");
-					userRepoName = publicUrlArray[0].substring(repoIndexBegin+1);
-				}				
-			}
-			else {
-				if(publicUrlArray[0].endsWith(".git")) {
-					int repoIndexBegin = publicUrlArray[0].lastIndexOf("/");
-					int repoIndexEnd = publicUrlArray[0].lastIndexOf(".git");
-					userRepoName = publicUrlArray[0].substring(repoIndexBegin+1,repoIndexEnd);
-				}
-				else {
-					int repoIndexBegin = publicUrlArray[0].lastIndexOf("/");
-					userRepoName = publicUrlArray[0].substring(repoIndexBegin+1);
-				}
-				
-			}		
-			String url = "https://api.github.com/users/"+ gitUserName + "/repos";
+			String url = "https://api.github.com/users/" + gitUserName;
 			HttpEntity entity = new HttpEntity<>(headers);
 			ResponseEntity<String> response = proxyRestTemplate.exchange(url, HttpMethod.GET, entity, String.class);
-			if (response != null && response.getStatusCode()!=null) {
-				List<String> repoNames = new ArrayList<>();
-				JSONParser jsonParser = new JSONParser();
-				JSONArray jsonArray = (JSONArray) jsonParser.parse(response.getBody());
-				for(int i=0; i<jsonArray.size(); i++) {
-					JSONObject jsonObject = (JSONObject) jsonArray.get(i);
-					String repoName = (String) jsonObject.get("name");
-					String repoDescription = (String) jsonObject.get("description");
-					repoNames.add(repoName);
-				}
-				if(repoNames.contains(userRepoName)) {
-					log.info("Provided user repo exists and completed validating user {} PAT with http status {}", gitUserName, response.getStatusCode().name());
-					return response.getStatusCode();
-				}
-				else {
-					log.info("Provided user repo not found");
-					return HttpStatus.NOT_FOUND;
-				}								
+			if (response != null && response.getStatusCode() != null) {
+				log.info("Completed validating public github user {} PAT with http status {}",
+						gitUserName, response.getStatusCode().name());
+				return response.getStatusCode();
 			}
+
 		} catch (Exception e) {
 			log.error("Error occured while validating user {} PAT with exception {}", gitUserName, e.getMessage());
 		}
