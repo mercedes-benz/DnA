@@ -402,7 +402,7 @@ public class WorkspaceController  implements CodeServerApi{
 			return new ResponseEntity<>(responseMessage, HttpStatus.CONFLICT);
 		}		
 		if(reqVO.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().equalsIgnoreCase("public")){
-			String publicUrl = reqVO.getProjectDetails().getRecipeDetails().getPublicGitUrl();
+			String publicUrl = reqVO.getProjectDetails().getRecipeDetails().getRepodetails();
 			if("".equals(publicUrl) || publicUrl == null) {
 				List<MessageDescription> errorMessage = new ArrayList<>();
 				MessageDescription msg = new MessageDescription();
@@ -431,12 +431,12 @@ public class WorkspaceController  implements CodeServerApi{
 		reqVO.getProjectDetails().setRecipeDetails(newRecipeVO);
 		responseMessage = service.createWorkspace(reqVO,pat,password);
 		String name = responseMessage.getData().getWorkspaceId();
-		log.info("WORKSPACE ID: ", name);
+		log.info("WORKSPACE ID: {}", name);
 		CodeServerWorkspaceNsql entity = workspaceCustomRepository.findbyUniqueLiteral(userId, "workspaceId", name);		
 		String[] publicUrlArray = entity.getData().getProjectDetails().getGitRepoName().split(",");
 		int index = publicUrlArray[1].lastIndexOf("/");
 		String updateURL = publicUrlArray[1].substring(0,index);
-		log.info("updateURL: ", updateURL);
+		log.info("updateURL: {}", updateURL);
 		if("SUCCESS".equalsIgnoreCase(responseMessage.getSuccess())) {
 			responseStatus = HttpStatus.CREATED;
 			log.info("User {} created workspace {}", userId,reqVO.getProjectDetails().getProjectName());
