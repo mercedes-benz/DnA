@@ -363,7 +363,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 			
 			String repoName = vo.getProjectDetails().getGitRepoName();
 			List<UserInfoVO> collabs = new ArrayList<>();
-			if(!"public".equalsIgnoreCase(vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase())) {
+			if(!"public".startsWith(vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase())) {
 			//validate user pat 
 			HttpStatus validateUserPatstatus = gitClient.validateGitPat(owner.getGitUserName(),pat);
 			if(!validateUserPatstatus.is2xxSuccessful()) {
@@ -437,7 +437,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 			 ownerWorkbenchCreateInputsDto.setPassword(password);
 			 ownerWorkbenchCreateInputsDto.setPat(pat);
 			 String repoNameWithOrg = "";
-			 if(!"public".equalsIgnoreCase(vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase())) {
+			 if(!"public".startsWith(vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase())) {
 				 repoNameWithOrg =  gitOrgUri + gitOrgName + "/" + repoName;
 			 }
 			 else {
@@ -455,7 +455,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 				 if(!"SUCCESS".equalsIgnoreCase(createOwnerWSResponse.getSuccess()) || 
 						 	(createOwnerWSResponse.getErrors()!=null && !createOwnerWSResponse.getErrors().isEmpty()) ||
 						 	(createOwnerWSResponse.getWarnings()!=null && !createOwnerWSResponse.getWarnings().isEmpty())) {
-					 if(!"public".equalsIgnoreCase(vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase())) {
+					 if(!"public".startsWith(vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase())) {
 					 	HttpStatus deleteRepoStatus = gitClient.deleteRepo(repoName);
 					 	if(!deleteRepoStatus.is2xxSuccessful()) {
 					 		MessageDescription errMsg = new MessageDescription("Created git repository " + repoName + " successfully and added collaborator(s). Failed to initialize workbench. Deleted repository successfully, please retry");
@@ -486,7 +486,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 			 ownerEntity.getData().setPassword(password);
 			 ownerEntity.getData().setWorkspaceUrl("");//set url
 			 ownerEntity.getData().getProjectDetails().setProjectCreatedOn(now);
-			 if("public".equalsIgnoreCase(vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase())) {
+			 if("public".startsWith(vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase())) {
 				 ownerEntity.getData().getProjectDetails().setProjectCollaborators(new ArrayList<>());
 				 collabs = new ArrayList<>();
 			 }
@@ -568,7 +568,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 		List<MessageDescription> errors = new ArrayList<>();
 		try {
 			CodeServerWorkspaceNsql entity =  workspaceCustomRepository.findById(userId,id);
-			if(entity!=null && !"public".equalsIgnoreCase(entity.getData().getProjectDetails().getRecipeDetails().getRecipeId().toLowerCase())) {
+			if(entity!=null && !"public".startsWith(entity.getData().getProjectDetails().getRecipeDetails().getRecipeId().toLowerCase())) {
 				DeploymentManageDto deploymentJobDto = new DeploymentManageDto();
 				DeploymentManageInputDto deployJobInputDto = new DeploymentManageInputDto();
 				deployJobInputDto.setAction("deploy");
@@ -638,7 +638,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 			isProjectOwner = true;
 		}
 
-		if (isProjectOwner && !"public".equalsIgnoreCase(entity.getData().getProjectDetails().getRecipeDetails().getRecipeId().toLowerCase())) {
+		if (isProjectOwner && !"public".startsWith(entity.getData().getProjectDetails().getRecipeDetails().getRecipeId().toLowerCase())) {
 			UserInfo currentOwnerAsCollab = entity.getData().getProjectDetails().getProjectOwner();
 			UserInfo newOwner = new UserInfo();
 			BeanUtils.copyProperties(newOwnerDeatils, newOwner);
@@ -674,7 +674,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 			}
 		} else {
 			MessageDescription msg = null;
-			if("public".equalsIgnoreCase(entity.getData().getProjectDetails().getRecipeDetails().getRecipeId().toLowerCase())){
+			if("public".startsWith(entity.getData().getProjectDetails().getRecipeDetails().getRecipeId().toLowerCase())){
 				log.error("Cannot reassign owners for this project {} of recipe type - Public " + projectName);
 				 msg = new MessageDescription("Cannot reassign owners for this project of recipe type - Public");
 
@@ -740,7 +740,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 		CodeServerWorkspaceNsql entity = workspaceCustomRepository.findById(userId, vo.getId());
 		boolean isProjectOwner = false;
 
-		if("public".equalsIgnoreCase(vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase())) {
+		if("public".startsWith(vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase())) {
 			log.error("Cannot add collaborator for this project {} of recipe type - Public " + entity.getData().getWorkspaceId());
 			MessageDescription msg = new MessageDescription("Cannot add collaborator for projects of recipe type - Public.");
 			errors.add(msg);
@@ -820,7 +820,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 		List<MessageDescription> errors = new ArrayList<>();
 		try {
 			CodeServerWorkspaceNsql entity =  workspaceCustomRepository.findById(userId,id);
-			if("public".equalsIgnoreCase(entity.getData().getProjectDetails().getRecipeDetails().getRecipeId().toLowerCase())) {
+			if("public".startsWith(entity.getData().getProjectDetails().getRecipeDetails().getRecipeId().toLowerCase())) {
 				log.error("Cannot undeploy workspace for this project {} of recipe type - Public " + entity.getData().getWorkspaceId());
 				MessageDescription msg = new MessageDescription("Cannot undeploy workspace for projects of recipe type - Public.");
 				errors.add(msg);
@@ -912,7 +912,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 					String workspaceUrl = codeServerBaseUri+"/"+workspaceName+"/?folder=/home/coder";
 					if(!defaultRecipeId.equalsIgnoreCase(projectRecipe))
 						workspaceUrl += "/app";
-					if(publicRecipeId.toLowerCase().equalsIgnoreCase(projectRecipe.toLowerCase())) {
+					if(publicRecipeId.toLowerCase().startsWith(projectRecipe.toLowerCase())) {
 						log.info("Project is public recipe");
 						int index = publicUrlArray[1].lastIndexOf("/");
 						String updateURL = publicUrlArray[1].substring(0,index);
@@ -931,7 +931,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 				responseMessage.setWarnings(warnings);
 				return responseMessage;
 			}else {
-				if("public".equalsIgnoreCase(projectRecipe.toLowerCase())) {
+				if("public".startsWith(projectRecipe.toLowerCase())) {
 					log.error("Cannot update public recipe types, deploy n undeploy is disabled");
 					MessageDescription msg = new MessageDescription("Cannot update public recipe types, deploy n undeploy is disabled.");
 					errors.add(msg);
