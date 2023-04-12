@@ -409,7 +409,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 				 }
 			 }
 		}else {
-			repoName = vo.getProjectDetails().getRecipeDetails().getPublicGitUrl();
+			repoName = vo.getProjectDetails().getRecipeDetails().getRepodetails();
 			HttpStatus publicGitPatStatus = gitClient.validatePublicGitPat(vo.getGitUserName(), pat, repoName);
 			//HttpStatus publicGitPatStatus = HttpStatus.CREATED;
 			if(!publicGitPatStatus.is2xxSuccessful()) {
@@ -441,7 +441,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 				 repoNameWithOrg =  gitOrgUri + gitOrgName + "/" + repoName;
 			 }
 			 else {
-				 repoNameWithOrg =  vo.getProjectDetails().getRecipeDetails().getPublicGitUrl();
+				 repoNameWithOrg =  vo.getProjectDetails().getRecipeDetails().getRepodetails();
 			 }
 			 ownerWorkbenchCreateInputsDto.setRepo(repoNameWithOrg);
 			 String projectOwnerId = ownerEntity.getData().getWorkspaceOwner().getId();
