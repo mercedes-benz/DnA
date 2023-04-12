@@ -81,11 +81,7 @@ public class WorkspaceController  implements CodeServerApi{
 	private UserStore userStore;
 	
 	@Autowired
-	private GitClient gitClient;
-	
-	@Autowired
-	private WorkspaceCustomRepository workspaceCustomRepository;
-
+	private GitClient gitClient;	
 
 	@Override
 	@ApiOperation(value = "remove collaborator from workspace project for a given Id.", nickname = "removeCollab", notes = "remove collaborator from workspace project for a given identifier.", response = CodeServerWorkspaceVO.class, tags={ "code-server", })
@@ -401,12 +397,12 @@ public class WorkspaceController  implements CodeServerApi{
 			log.info("workspace {} already exists for User {} ",reqVO.getProjectDetails().getProjectName() , userId);
 			return new ResponseEntity<>(responseMessage, HttpStatus.CONFLICT);
 		}		
-		if(reqVO.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().equalsIgnoreCase("public")){
+		if(reqVO.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public")){
 			String publicUrl = reqVO.getProjectDetails().getRecipeDetails().getRepodetails();
 			if("".equals(publicUrl) || publicUrl == null) {
 				List<MessageDescription> errorMessage = new ArrayList<>();
 				MessageDescription msg = new MessageDescription();
-				msg.setMessage("No publicUrl found for given public recipe");
+				msg.setMessage("No Repodetails found for given public recipe");
 				errorMessage.add(msg);
 				responseMessage.setErrors(errorMessage);
 				return new ResponseEntity<>(responseMessage, HttpStatus.BAD_REQUEST);
@@ -427,16 +423,11 @@ public class WorkspaceController  implements CodeServerApi{
 		newRecipeVO.setCpuCapacity(CpuCapacityEnum._1);
 		newRecipeVO.setEnvironment(EnvironmentEnum.DEVELOPMENT);
 		newRecipeVO.setOperatingSystem(OperatingSystemEnum.DEBIAN_OS_11);
+		newRecipeVO.setRecipeId(reqVO.getProjectDetails().getRecipeDetails().getRecipeId());
+		newRecipeVO.setRepodetails(reqVO.getProjectDetails().getRecipeDetails().getRepodetails());
 		newRecipeVO.setRamSize(RamSizeEnum._1);
 		reqVO.getProjectDetails().setRecipeDetails(newRecipeVO);
-		responseMessage = service.createWorkspace(reqVO,pat,password);
-		String name = responseMessage.getData().getWorkspaceId();
-		log.info("WORKSPACE ID: {}", name);
-		CodeServerWorkspaceNsql entity = workspaceCustomRepository.findbyUniqueLiteral(userId, "workspaceId", name);		
-		String[] publicUrlArray = entity.getData().getProjectDetails().getGitRepoName().split(",");
-		int index = publicUrlArray[1].lastIndexOf("/");
-		String updateURL = publicUrlArray[1].substring(0,index);
-		log.info("updateURL: {}", updateURL);
+		responseMessage = service.createWorkspace(reqVO,pat,password);		
 		if("SUCCESS".equalsIgnoreCase(responseMessage.getSuccess())) {
 			responseStatus = HttpStatus.CREATED;
 			log.info("User {} created workspace {}", userId,reqVO.getProjectDetails().getProjectName());
