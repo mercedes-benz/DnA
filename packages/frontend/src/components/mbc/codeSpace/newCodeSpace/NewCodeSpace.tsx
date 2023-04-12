@@ -552,7 +552,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
             <div>
               <div>
                 <TextBox
-                  type="password"
+                  type="text"
                   controlId={'githubTokenInput'}
                   labelId={'githubTokenLabel'}
                   label={`Your Github(https://github.com/) Username`}
@@ -716,7 +716,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
             <div>
               <div>
                 <TextBox
-                  type="password"
+                  type="text"
                   controlId={'githubTokenInput'}
                   labelId={'githubTokenLabel'}
                   label={`Your Github(https://github.com/) Username`}
