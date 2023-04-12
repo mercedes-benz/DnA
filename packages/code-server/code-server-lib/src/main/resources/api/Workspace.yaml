@@ -593,7 +593,7 @@ definitions:
       environment:
         type: string
         enum: [Development, Testing, Production]
-      publicGitUrl:
+      repodetails:
         type: string
         description: "Public Github URL"      
       cloudServiceProvider:

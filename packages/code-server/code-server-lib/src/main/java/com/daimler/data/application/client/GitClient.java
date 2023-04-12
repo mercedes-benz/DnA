@@ -36,6 +36,9 @@ public class GitClient {
 	@Autowired
 	private RestTemplate restTemplate;
 	
+	@Autowired
+	private RestTemplate proxyRestTemplate;
+	
 	public HttpStatus createRepo(String repoName) {
 		try {
 			HttpHeaders headers = new HttpHeaders();
@@ -186,7 +189,7 @@ public class GitClient {
 			}		
 			String url = "https://api.github.com/users/"+ gitUserName + "/repos";
 			HttpEntity entity = new HttpEntity<>(headers);
-			ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, entity, String.class);
+			ResponseEntity<String> response = proxyRestTemplate.exchange(url, HttpMethod.GET, entity, String.class);
 			if (response != null && response.getStatusCode()!=null) {
 				List<String> repoNames = new ArrayList<>();
 				JSONParser jsonParser = new JSONParser();
