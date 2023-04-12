@@ -222,7 +222,7 @@ const ForecastResultsTab = () => {
         ProgressIndicator.show();
         chronosApi.deleteForecastRun(projectId, runToBeDeleted.id).then((res) => {
           if(res.data.success === 'FAILED') {
-            Notification.show(res?.data?.erros[0]?.message, 'alert');
+            Notification.show(res?.data?.errors[0]?.message, 'alert');
             ProgressIndicator.hide();
           } else {
             Notification.show('Run deleted');
@@ -231,7 +231,7 @@ const ForecastResultsTab = () => {
           }
         }).catch(error => {
           Notification.show(
-            error?.response?.data?.response?.errors[0]?.message || error?.response?.data?.response?.warnings[0]?.message || error?.response?.data?.errors[0]?.message || 'Error while creating forecast project',
+            error?.response?.data?.response?.errors[0]?.message || error?.response?.data?.response?.warnings[0]?.message || error?.response?.data?.errors[0]?.message || 'Error while deleting run',
             'alert',
           );
           ProgressIndicator.hide();
