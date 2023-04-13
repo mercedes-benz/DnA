@@ -13,4 +13,5 @@ public class HasuraUserInfoInsertResponseContentDto {
 
 	private int affected_rows;
 	private List<HasuraUserInfoDto> returning;
+	
 }
