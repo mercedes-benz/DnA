@@ -654,6 +654,11 @@ public class BaseDataTransferService extends BaseCommonService<DataTransferVO, D
 		}
 	}
 
+	@Override
+	public GenericMessage updateDataTransferData() {
+		return dataTransferCustomRepository.updateDataTransferData();
+	}
+
 	private ProviderVO getProviderVOFromDataTransferVO(DataTransferVO vo) {
 		ProviderVO providerVO = new ProviderVO();
 		providerVO.setProviderInformation(vo.getProviderInformation());
