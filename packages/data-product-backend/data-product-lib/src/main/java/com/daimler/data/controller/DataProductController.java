@@ -56,8 +56,8 @@ public class DataProductController implements DataproductsApi{
 	@Value("${dataproduct.refreshdb}")
 	private Boolean datatransferRefreshDb;
 
-	@Value("${xpath.val}")
-	private String xpathVal;
+	@Value("${xapikey.val}")
+	private String xApiKeyValue;
 
 	@Autowired
 	HttpServletRequest httpRequest;
@@ -159,9 +159,9 @@ public class DataProductController implements DataproductsApi{
 		GenericMessage dataproductGenericMessage = new GenericMessage();
 		GenericMessage dataTransferGenericMessage = new GenericMessage();
 		HttpHeaders headers = new HttpHeaders();
-		String xpath = httpRequest.getHeader("xpath");
+		String xApiKey = httpRequest.getHeader("x-api-key");
 
-		if (xpath != null && xpath.equals(xpathVal)) {
+		if (xApiKey != null && xApiKey.equals(xApiKeyValue)) {
 			if (dataproductRefreshDb) {
 				dataproductGenericMessage = service.updateDataProductData();
 				refreshVoResponse.setDataproductGenericMessage(dataproductGenericMessage);

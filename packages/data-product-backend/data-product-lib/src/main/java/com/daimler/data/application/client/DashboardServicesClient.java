@@ -61,9 +61,9 @@ public class DashboardServicesClient {
         List<MessageDescription> errors = new ArrayList<>();
         try {
             HttpHeaders headers = new HttpHeaders();
-//            String jwt = httpRequest.getHeader("Authorization");
+            String jwt = httpRequest.getHeader("Authorization");
             headers.set("Accept", "application/json");
-            headers.set("authorization", "***REMOVED***");
+            headers.set("authorization", jwt);
             headers.setContentType(MediaType.APPLICATION_JSON);
             String getReportUrl = reportBaseUri + FRONTEND_TECHNOLOGIES_LOV_PATH;
 
