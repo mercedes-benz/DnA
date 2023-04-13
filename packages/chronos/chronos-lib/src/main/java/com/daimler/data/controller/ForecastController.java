@@ -63,9 +63,12 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 
 	@Value("${databricks.defaultConfigYml}")
 	private String defaultConfigFolderPath;
+	@Value("${databricks.runsDefaultPageSize}")
+	private String runsDefaultPageSize;
 	private static final String BUCKETS_PREFIX = "chronos-";
 	private static final String INPUT_FILE_PREFIX = "/inputs/";
 	private static final String CONFIG_PATH = "/objects?prefix=configs/";
+	private static final String BUCKET_TYPE = "chronos-core/";
 
 	private static final List<String> contentTypes = Arrays.asList("xlsx", "csv");
 
@@ -118,9 +121,9 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 				}
 			}
 		}
-		collection = service.getBucketObjects(defaultConfigFolderPath);
+		collection = service.getBucketObjects(defaultConfigFolderPath,BUCKET_TYPE);
 		if (isValidId && id != null) {
-			projectSpecificBucketCollection = service.getBucketObjects(existingForecast.getBucketName() + CONFIG_PATH);
+			projectSpecificBucketCollection = service.getBucketObjects(existingForecast.getBucketName() + CONFIG_PATH,existingForecast.getBucketName()+"/");
 			if (projectSpecificBucketCollection.getData() != null) {
 				collection.getData().getBucketObjects().addAll(projectSpecificBucketCollection.getData().getBucketObjects());
 			}
@@ -754,7 +757,7 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 			@ApiParam(value = "page size to limit the number of forecasts, Example 15") @Valid @RequestParam(value = "limit", required = false) Integer limit) {
 
 		ForecastRunCollectionVO collection = new ForecastRunCollectionVO();
-		int defaultLimit = 10;
+		int defaultLimit = Integer.parseInt(runsDefaultPageSize);
 		if (offset == null || offset < 0)
 			offset = 0;
 		if (limit == null || limit < 0) {

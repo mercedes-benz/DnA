@@ -191,7 +191,7 @@ const CodeSpace = (props: ICodeSpaceProps) => {
       })
       .catch((err: Error) => {
         Notification.show('Error in validating code space - ' + err.message, 'alert');
-        history.goBack();
+        history.replace('/codespaces');
       });
     // ApiClient.getCodeSpace().then((res: any) => {
     //   setLoading(false);
@@ -368,6 +368,8 @@ const CodeSpace = (props: ICodeSpaceProps) => {
     setAcceptContinueCodingOnDeployment(e.target.checked);
   };
 
+  const isPublicRecipeChoosen = codeSpaceData?.projectDetails?.recipeDetails?.recipeId.startsWith('public');
+
   return (
     <div className={fullScreenMode ? Styles.codeSpaceWrapperFSmode : '' + ' ' + Styles.codeSpaceWrapper}>
       {codeSpaceData.running && (
@@ -377,7 +379,11 @@ const CodeSpace = (props: ICodeSpaceProps) => {
               <img src={Envs.DNA_BRAND_LOGO_URL} className={Styles.Logo} />
               <div className={Styles.nbtitle}>
                 <button tooltip-data="Go Back" className="btn btn-text back arrow" onClick={goBack}></button>
-                <h2 tooltip-data={recipes.find((item: any) => item.id === codeSpaceData.projectDetails.recipeDetails.recipeId).name}>
+                <h2
+                  tooltip-data={
+                    recipes.find((item: any) => item.id === codeSpaceData.projectDetails.recipeDetails.recipeId).name
+                  }
+                >
                   {props.user.firstName}&apos;s Code Space - {codeSpaceData.projectDetails.projectName}
                 </h2>
               </div>
@@ -385,30 +391,34 @@ const CodeSpace = (props: ICodeSpaceProps) => {
             <div className={Styles.navigation}>
               {codeSpaceData.running && (
                 <div className={Styles.headerright}>
-                  {codeDeployed && (
-                    <div className={Styles.urlLink} tooltip-data="API BASE URL - Staging">
-                      <a href={codeDeployedUrl} target="_blank" rel="noreferrer">
-                        <i className="icon mbc-icon link" /> Staging <br />({codeDeployedBranch})
-                      </a>
-                      &nbsp;
-                    </div>
+                  {!isPublicRecipeChoosen && (
+                    <>
+                      {codeDeployed && (
+                        <div className={Styles.urlLink} tooltip-data="API BASE URL - Staging">
+                          <a href={codeDeployedUrl} target="_blank" rel="noreferrer">
+                            <i className="icon mbc-icon link" /> Staging <br />({codeDeployedBranch})
+                          </a>
+                          &nbsp;
+                        </div>
+                      )}
+                      {prodCodeDeployed && (
+                        <div className={Styles.urlLink} tooltip-data="API BASE URL - Production">
+                          <a href={prodCodeDeployedUrl} target="_blank" rel="noreferrer">
+                            <i className="icon mbc-icon link" /> Production <br />({prodCodeDeployedBranch})
+                          </a>
+                          &nbsp;
+                        </div>
+                      )}
+                      <div>
+                        <button
+                          className={classNames('btn btn-secondary', codeDeploying ? 'disable' : '')}
+                          onClick={onShowCodeDeployModal}
+                        >
+                          {(codeDeployed || prodCodeDeployed) && '(Re)'}Deploy{codeDeploying && 'ing...'}
+                        </button>
+                      </div>
+                    </>
                   )}
-                  {prodCodeDeployed && (
-                    <div className={Styles.urlLink} tooltip-data="API BASE URL - Production">
-                      <a href={prodCodeDeployedUrl} target="_blank" rel="noreferrer">
-                        <i className="icon mbc-icon link" /> Production <br />({prodCodeDeployedBranch})
-                      </a>
-                      &nbsp;
-                    </div>
-                  )}
-                  <div>
-                    <button
-                      className={classNames('btn btn-secondary', codeDeploying ? 'disable' : '')}
-                      onClick={onShowCodeDeployModal}
-                    >
-                      {(codeDeployed || prodCodeDeployed) && '(Re)'}Deploy{codeDeploying && 'ing...'}
-                    </button>
-                  </div>
                   <div tooltip-data="Open New Tab" className={Styles.OpenNewTab} onClick={openInNewtab}>
                     <i className="icon mbc-icon arrow small right" />
                     <span> &nbsp; </span>
@@ -499,9 +509,7 @@ const CodeSpace = (props: ICodeSpaceProps) => {
                 </div>
                 <div>
                   <div id="deployEnvironmentContainer" className="input-field-group">
-                    <label className={classNames(Styles.inputLabel, 'input-label')}>
-                      Deploy Environment
-                    </label>
+                    <label className={classNames(Styles.inputLabel, 'input-label')}>Deploy Environment</label>
                     <div>
                       <label className={classNames('radio')}>
                         <span className="wrapper">
