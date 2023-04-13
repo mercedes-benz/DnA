@@ -56,8 +56,11 @@ public class DataProductController implements DataproductsApi{
 	@Value("${dataproduct.refreshdb}")
 	private Boolean datatransferRefreshDb;
 
-	@Value("${xapikey.val}")
+	@Value("${xapikeydetails.key}")
 	private String xApiKeyValue;
+
+	@Value("${xapikeydetails.header}")
+	private String xApiKeyHeader;
 
 	@Autowired
 	HttpServletRequest httpRequest;
@@ -159,7 +162,7 @@ public class DataProductController implements DataproductsApi{
 		GenericMessage dataproductGenericMessage = new GenericMessage();
 		GenericMessage dataTransferGenericMessage = new GenericMessage();
 		HttpHeaders headers = new HttpHeaders();
-		String xApiKey = httpRequest.getHeader("x-api-key");
+		String xApiKey = httpRequest.getHeader(xApiKeyHeader);
 
 		if (xApiKey != null && xApiKey.equals(xApiKeyValue)) {
 			if (dataproductRefreshDb) {
