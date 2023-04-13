@@ -35,7 +35,13 @@ const CreateOrEditProject = (props) => {
             })
             .catch((err) => {
                 err;
-                showErrorNotification('Something went wrong.');
+                if(err?.response?.data?.response?.errors?.length > 0) {
+                    err?.response?.data?.response?.errors.forEach((err) => {
+                        showErrorNotification(err?.message || 'Something went wrong.');
+                    });
+                } else {
+                    showErrorNotification('Something went wrong.');
+                }
                 ProgressIndicator.hide();
             });
     }
@@ -90,7 +96,13 @@ const CreateOrEditProject = (props) => {
             })
             .catch((err) => {
                 err;
-                showErrorNotification('Something went wrong.');
+                if(err?.response?.data?.response?.errors?.length > 0) {
+                    err?.response?.data?.response?.errors.forEach((err) => {
+                        showErrorNotification(err?.message || 'Something went wrong.');
+                    });
+                } else {
+                    showErrorNotification('Something went wrong.');
+                }
                 ProgressIndicator.hide();
             });
     }
@@ -127,7 +139,13 @@ const CreateOrEditProject = (props) => {
             })
             .catch((err) => {
                 err;
-                showErrorNotification('Something went wrong.');
+                if(err?.response?.data?.response?.errors?.length > 0) {
+                    err?.response?.data?.response?.errors.forEach((err) => {
+                        showErrorNotification(err?.message || 'Something went wrong.');
+                    });
+                } else {
+                    showErrorNotification('Something went wrong.');
+                }
                 ProgressIndicator.hide();
             });
     }
@@ -151,10 +169,17 @@ const CreateOrEditProject = (props) => {
         duplicateMember = dataikuCollaborators?.filter((member) => member.userId === collaborators.userId)?.length
             ? true
             : false;
+        
+        const isCreator = props?.user?.id === collaborators?.userId;
 
         if (duplicateMember) {
             Notification.show('Collaborator Already Exist.', 'warning');
-        } else {
+        } else if (isCreator) {
+            Notification.show(
+              `${collaborators.firstName} ${collaborators.lastName} is a creator. Creator can't be added as collaborator.`,
+              'warning',
+            );
+          } else {
             dataikuCollaborators.push(collabarationData);
             setDataikuCollaborators([...dataikuCollaborators]);
         }
