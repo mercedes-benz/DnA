@@ -54,4 +54,6 @@ public interface DataTransferService extends CommonService<DataTransferVO, DataT
 	ResponseEntity<DataTransferConsumerResponseVO> updateDataTransferConsumer(ConsumerVO consumerVO, Boolean isDataProductService);
 
 	ResponseEntity<GenericMessage> deleteDataTransfer(String id);
+
+	GenericMessage updateDataTransferData();
 }
