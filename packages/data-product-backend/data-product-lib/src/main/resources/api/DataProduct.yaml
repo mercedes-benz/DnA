@@ -80,7 +80,7 @@ paths:
           description: "Request Body that contains data required for creating a new dataproduct"
           required: true
           schema:
-            $ref: "#/definitions/DataProductRequestVO"    
+            $ref: "#/definitions/DataProductRequestVO"
       responses:
         201:
           description: "Returns message of success"
@@ -97,8 +97,8 @@ paths:
         405:
           description: "Method not allowed"
         500:
-          description: "Internal error"      
-   
+          description: "Internal error"
+
     put:
       tags:
         - "dataproducts"
@@ -141,7 +141,7 @@ paths:
           in: query
           description: Filtering dataproduct based on publish state. Draft or published, values true or false
           required: false
-          type: boolean   
+          type: boolean
         - name: art
           in: query
           description: List of IDs of ART of dataproduct, seperated by comma. Example 1,2,3
@@ -188,7 +188,7 @@ paths:
           description: Sort dataproducts based on the given order, example asc,desc
           required: false
           type: string
-          enum: [asc,desc]             
+          enum: [asc,desc]
       responses:
         200:
           description: "Returns message of success or failure"
@@ -205,7 +205,7 @@ paths:
         405:
           description: "Method not allowed"
         500:
-          description: "Internal error"          
+          description: "Internal error"
 
   /dataproducts/owners:
     get:
@@ -254,6 +254,28 @@ paths:
         500:
           description: "Internal error"
 
+  /dataproducts/dbrecords/refresh:
+    get:
+      tags:
+        - "dataproducts"
+      summary: "Refresh DB records for data-product and data-transfer"
+      description: "Refresh DB records for data-product and data-transfer"
+      operationId: "dbRecordsRefresh"
+      responses:
+        200:
+          description: "Returns message of success or failure"
+          schema:
+            $ref: "#/definitions/RefreshVo"
+        400:
+          description: "Bad request."
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
   # path to get and delete dataproduct by id
   #
   #  Supported http methods GET
@@ -337,7 +359,7 @@ paths:
           description: "Request Body that contains data required for updating the datatransfer consumer form"
           required: true
           schema:
-            $ref: "#/definitions/DataTransferConsumerRequestInfoVO"  
+            $ref: "#/definitions/DataTransferConsumerRequestInfoVO"
       responses:
         201:
           description: "Returns message of success or failure"
@@ -355,6 +377,13 @@ paths:
           description: "Internal error"
 
 definitions:
+  RefreshVo:
+    type: object
+    properties:
+      dataproductGenericMessage:
+        $ref: "#/definitions/GenericMessage"
+      datatransferGenericMessage:
+        $ref: "#/definitions/GenericMessage"
 
   PlatformVO:
     type: object
@@ -384,7 +413,7 @@ definitions:
 
   CarLaFunctionVO:
     type: object
-    properties:  
+    properties:
       id:
         type: string
       name:
@@ -398,21 +427,21 @@ definitions:
   
   ConsumerRequestVO:
     type: object
-    properties: 
+    properties:
       dataTransferName:
         type: string
-        description: "Name of the DataTransfer"                
+        description: "Name of the DataTransfer"
       consumerInformation:
         $ref: "#/definitions/ConsumerResponseVO"
       notifyUsers:
         type: boolean
-        description: "Flag to notify users."                        
+        description: "Flag to notify users."
     required:
       - consumerInformation
 
   ConsumerResponseVO:
     type: object
-    properties:        
+    properties:
       contactInformation:
         $ref: "#/definitions/ConsumerContactInformationVO"
       personalRelatedData:
@@ -422,116 +451,144 @@ definitions:
 
   CorporateDataCatalogVO:
     type: object
-    properties:  
+    properties:
       id:
         type: string
       name:
         type: string
-        
+
   AgileReleaseTrainVO:
     type: object
-    properties:  
+    properties:
       id:
         type: string
       name:
         type: string
-        
+
   DataProductContactInformationVO:
     type: object
-    properties:  
+    properties:
       dataProductDate:
         type: string
         format: date
       informationOwner:
         $ref: "#/definitions/DataProductTeamMemberVO"
       name:
-        $ref: "#/definitions/DataProductTeamMemberVO"           
+        $ref: "#/definitions/DataProductTeamMemberVO"
       division:
         $ref: "#/definitions/DivisionVO"
       department:
         type: string
         description: "Department of the dataproduct"
-#        minLength: 1                           
+      #        minLength: 1
       localComplianceOfficer:
         type: string
         description: "Local compliance officer"
-#        minLength: 1
+      #        minLength: 1
       appId:
         type: string
-        description: "planning IT App-ID "         
-#    required:
-#      - informationOwner
-#      - name
-#      - division
-#      - department
-#      - dataProductDate
-#      - localComplianceOfficer
-      
+        description: "planning IT App-ID "
+      #    required:
+      #      - informationOwner
+      #      - name
+      #      - division
+      #      - department
+      #      - dataProductDate
+      #      - localComplianceOfficer
+
   DataProductClassificationConfidentialityVO:
     type: object
-    properties:  
+    properties:
       description:
         type: string
         description: "Description and classification of the transfered data"
-#        minLength: 1
-      confidentiality: 
+      #        minLength: 1
+      confidentiality:
         description: "Confidentiality level"
         type: string
-#    required:
-#      - description
-#      - confidentiality
-      
+      #    required:
+      #      - description
+      #      - confidentiality
+
   DataProductPersonalRelatedDataVO:
     type: object
-    properties:  
+    properties:
       personalRelatedData:
         type: boolean
         description: "Is data personal related"
-      description: 
+      description:
         description: "Description of personal related data"
         type: string
-      purpose: 
+      purpose:
         description: "Purpose of processing this personal related data"
         type: string
-      legalBasis: 
+      legalBasis:
         description: "Legal basis for processing this personal related data"
-        type: string     
-#    required:
-#      - personalRelatedData  
-          
+        type: string
+      contactAwareTransfer:
+        type: boolean
+        default: false
+        description: "Is corresponding Compliance contact aware of this transfer"
+      objectionsToTransfer:
+        type: boolean
+        default: false
+        description: "Has s/he any objections to this transfer"
+      transferringNonetheless:
+        type: string
+        description: "State your reasoning for transferring nonetheless"
+      objections:
+        type: string
+        description: "State your objections"
+          #    required:
+          #      - personalRelatedData
+
   DataProductTransnationalDataTransferVO:
     type: object
-    properties:     
+    properties:
       dataTransferred:
         type: boolean
         description: "Is data being transferred from one country to another"
       notWithinEU:
         type: boolean
         description: "Is one of these countries not within the EU"
-      approved: 
-        description: "Has LCO/LCR approved this data transfer"
-        type: string
-      insiderInformation: 
-        description: "Does product contain insider information"
-        type: string         
+#      insiderInformation: 
+#        description: "Does product contain insider information"
+#        type: string         
       dataFromChina:
         type: boolean
-        description: "Is data from China included"                
-#    required:
-#      - dataTransferred    
-      
+        description: "Is data from China included"
+      contactAwareTransfer:
+        type: boolean
+        default: false
+        description: "Is corresponding Compliance contact aware of this transfer"
+      objectionsToTransfer:
+        type: boolean
+        default: false
+        description: "Has s/he any objections to this transfer"
+      transferringNonetheless:
+        type: string
+        description: "State your reasoning for transferring nonetheless"
+      objections:
+        type: string
+        description: "State your objections"
+      #    required:
+      #      - dataTransferred
+
   DataProductDeletionRequirementVO:
     type: object
-    properties:  
+    properties:
       deletionRequirements:
         type: boolean
         description: "Are there specific deletion requirements for this data"
-      description: 
+      description:
         description: "Describe requirements"
         type: string
       otherRelevantInformation:
         type: string
-        description: "Specifying other relevant information"                         
+        description: "Specifying other relevant information"  
+      insiderInformation: 
+        description: "Does product contain insider information"
+        type: string                         
 #    required:
 #      - deletionRequirements  
       
@@ -543,7 +600,7 @@ definitions:
         description: "TechnicalId  which used as primary key"
       dataProductId:
         type: string
-        description: "Functional Id"                         
+        description: "Functional Id"
       dataProductName:
         type: string
         description: "Name of the dataproduct"
@@ -595,7 +652,7 @@ definitions:
       createdBy:
         $ref: "#/definitions/CreatedByVO"
       modifiedBy:
-        $ref: "#/definitions/CreatedByVO"                               
+        $ref: "#/definitions/CreatedByVO"
       contactInformation:
         $ref: "#/definitions/DataProductContactInformationVO"
       classificationConfidentiality:
@@ -603,7 +660,7 @@ definitions:
       personalRelatedData:
         $ref: "#/definitions/DataProductPersonalRelatedDataVO"
       transnationalDataTransfer:
-        $ref: "#/definitions/DataProductTransnationalDataTransferVO"    
+        $ref: "#/definitions/DataProductTransnationalDataTransferVO"
       deletionRequirement:
         $ref: "#/definitions/DataProductDeletionRequirementVO"
       datatransfersAssociated:
@@ -627,14 +684,14 @@ definitions:
             ]
     required:
       - dataproductName
-      - description    
-        
+      - description
+
   DataProductRequestVO:
     type: object
     properties:
       data:
         $ref: "#/definitions/DataProductVO"
-  
+
   DatatransfersAssociatedVO:
     type: object
     properties:
@@ -673,8 +730,8 @@ definitions:
         type: array
         items:
           $ref: "#/definitions/MessageDescription"
-                         
-          
+
+
   DataProductCollection:
     description: "Collection of dataproducts."
     type: object
@@ -686,7 +743,7 @@ definitions:
         type: array
         items:
           $ref: "#/definitions/DataProductVO"
-      
+
   DivisionVO:
     type: object
     properties:
@@ -698,10 +755,10 @@ definitions:
         description: name of division
       subdivision:
         $ref: "#/definitions/SubdivisionVO"
-#    required:
-#      - id
-#      - name
-      
+      #    required:
+      #      - id
+      #      - name
+
   SubdivisionVO:
     type: object
     properties:
@@ -711,7 +768,7 @@ definitions:
       name:
         type: string
         description: name of subdivision
-        
+
   DataProductTeamMemberVO:
     type: object
     properties:
@@ -748,8 +805,8 @@ definitions:
         type: boolean
         description: "Flag to identify if consumer is added by provider or not."
     required:
-      - shortId 
-      
+      - shortId
+
   TeamMemberVO:
     type: object
     properties:
@@ -783,8 +840,8 @@ definitions:
         type: string
         description: "Position of team member in project"
     required:
-      - shortId            
-      
+      - shortId
+
   ChangeLogVO:
     type: object
     description: "Describes a single change log record"

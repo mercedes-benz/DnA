@@ -30,4 +30,6 @@ package com.daimler.data.util;
 public class ConstantsUtility {
 	public static final String OPEN = "OPEN";
 	public static final String DELETED = "DELETED";
+	public static final String SUCCESS = "SUCCESS";
+	public static final String FAILURE = "FAILURE";
 }

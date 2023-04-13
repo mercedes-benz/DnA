@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import com.daimler.data.db.json.File;
 import com.daimler.data.dto.databricks.DataBricksJobRunOutputResponseWrapperDto;
 import com.daimler.data.dto.forecast.*;
 import com.daimler.data.dto.storage.*;
@@ -343,31 +344,7 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 								updatedRunDetail.setStartTime(updatedRunResponse.getStartTime().longValue());
 							if(updatedRunResponse.getState()!=null) {
 								RunStateVO updatedState = updatedRunResponse.getState();
-								RunState newState = new RunState();
-								if (updatedState.getLifeCycleState() != null && updatedState.getResultState() != null) {
-									String updatedLifecycleState = updatedState.getLifeCycleState().name();
-									String updatedResultState = updatedState.getResultState().name();
-									if (!existingLifecycleState.equalsIgnoreCase(updatedLifecycleState)
-											&& (updatedLifecycleState.equalsIgnoreCase("TERMINATED")
-													|| updatedLifecycleState.equalsIgnoreCase("INTERNAL_ERROR")
-													|| updatedLifecycleState.equalsIgnoreCase("SKIPPED"))) {
-										List<String> memberIds = new ArrayList<>();
-										List<String> memberEmails = new ArrayList<>();
-										if (entity.getData().getCollaborators() != null) {
-											memberIds = entity.getData().getCollaborators().stream()
-													.map(UserDetails::getId).collect(Collectors.toList());
-											memberEmails = entity.getData().getCollaborators().stream()
-													.map(UserDetails::getEmail).collect(Collectors.toList());
-										}
-
-										String ownerId = entity.getData().getCreatedBy().getId();
-										memberIds.add(ownerId);
-										String ownerEmail = entity.getData().getCreatedBy().getEmail();
-										memberEmails.add(ownerEmail);
-										notifyUsers(forecastId, run, memberIds, memberEmails, forecastName,
-												updatedResultState);
-									}
-								}
+								RunState newState = new RunState();								
 								if(updatedState.getLifeCycleState()!=null)
 									newState.setLife_cycle_state(updatedState.getLifeCycleState().name());
 								String updatedStateMsg = "";
@@ -405,10 +382,17 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 										}
 										else{
 											if(!successFileFlag) {
-												newState.setResult_state(ResultStateEnum.FAILED.name());
-												String errMsg = "Run failed as there was no SUCCESS file under results folder.";
-												updatedRunDetail.setError(errMsg);
-												updatedStateMsg = errMsg;
+												if(bucketObjectDetails!=null && !bucketObjectDetails.isEmpty()) {
+													newState.setResult_state(ResultStateEnum.FAILED.name());
+													String errMsg = "Run failed as there was no SUCCESS file under results folder.";
+													updatedRunDetail.setError(errMsg);
+													updatedStateMsg = errMsg;
+												}else {
+													newState.setResult_state(ResultStateEnum.FAILED.name());
+													String errMsg = "Run failed, couldnt find files/connection to validate results at storage";
+													updatedRunDetail.setError(errMsg);
+													updatedStateMsg = errMsg;
+												}
 											}
 										}
 									}else {
@@ -418,6 +402,22 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 										updatedRunDetail.setTaskRunId(taskRunId);
 										updatedStateMsg = errorMessage;
 									}
+									
+									List<String> memberIds = new ArrayList<>();
+									List<String> memberEmails = new ArrayList<>();
+									if (entity.getData().getCollaborators() != null) {
+										memberIds = entity.getData().getCollaborators().stream()
+												.map(UserDetails::getId).collect(Collectors.toList());
+										memberEmails = entity.getData().getCollaborators().stream()
+												.map(UserDetails::getEmail).collect(Collectors.toList());
+									}
+
+									String ownerId = entity.getData().getCreatedBy().getId();
+									memberIds.add(ownerId);
+									String ownerEmail = entity.getData().getCreatedBy().getEmail();
+									memberEmails.add(ownerEmail);
+									notifyUsers(forecastId, run, memberIds, memberEmails, forecastName,
+											newState.getResult_state());
 								}
 								
 								newState.setState_message(updatedStateMsg);
@@ -464,7 +464,7 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 								updatedRuns.add(updatedRunDetail);
 							}
 							else {
-								log.info("Adding old failed run {} of project {} without update, since getSingleRun response is null ", run.getRunName(), forecastName);
+								log.debug("Adding old failed run {} of project {} without update, since getSingleRun response is null ", run.getRunName(), forecastName);
 								updatedRuns.add(run);
 							}
 						} else {
@@ -475,7 +475,7 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 							if(exogenousFilePresent){
 								run.setExogenData(true);
 							}
-							log.info("Adding old success run {} of project {} without update ", run.getRunName(), forecastName);
+							log.debug("Adding old success run {} of project {} without update ", run.getRunName(), forecastName);
 							updatedRuns.add(run);
 						}
 					}
@@ -851,6 +851,7 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 		responseMessage.setSuccess("SUCCESS");
 		return responseMessage;
 	}
+
 
 	@Override
 	@Transactional
