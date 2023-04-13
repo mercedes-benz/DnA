@@ -411,7 +411,6 @@ public class BaseWorkspaceService implements WorkspaceService {
 		}else {
 			repoName = vo.getProjectDetails().getRecipeDetails().getRepodetails();
 			HttpStatus publicGitPatStatus = gitClient.validatePublicGitPat(vo.getGitUserName(), pat, repoName);
-			//HttpStatus publicGitPatStatus = HttpStatus.CREATED;
 			if(!publicGitPatStatus.is2xxSuccessful()) {
 				MessageDescription errMsg = new MessageDescription("Failed while validating GitHub Personal Access Token. Please verify and retry");
 				errors.add(errMsg);
@@ -421,7 +420,6 @@ public class BaseWorkspaceService implements WorkspaceService {
 		}
 			
 			 vo.getProjectDetails().setGitRepoName(repoName);
-			 //vo.getProjectDetails().getRecipeDetails().setPublicGitUrl(repoName);
 			 //add records to db
 			 CodeServerWorkspaceNsql ownerEntity = workspaceAssembler.toEntity(vo);
 			 List<CodeServerWorkspaceNsql> entities = new ArrayList<>();
