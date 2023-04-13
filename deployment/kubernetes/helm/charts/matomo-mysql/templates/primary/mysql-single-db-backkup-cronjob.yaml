@@ -1,0 +1,43 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: mysql-backup-cron-job
+  namespace: matomo
+spec:
+  schedule: 1 0 * * *
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+            - name: mysql-backup
+              image: >-
+                registry.app.corpintra.net/dna/databack/mysql-backup-u1005:dbea4c6457a3df4e7246721757a24f5bea8d4a0c
+              env:
+                - name: DB_SERVER
+                  value: {{ .Values.backupRestore.DB_SERVER }}
+                - name: DB_PORT
+                  value: {{ .Values.backupRestore.DB_PORT }}
+                - name: DB_USER
+                  value: {{ .Values.backupRestore.DB_USER }}
+                - name: DB_PASS
+                  value: {{ .Values.backupRestore.DB_PASS }}
+                - name: DB_DUMP_DEBUG
+                  value: {{ .Values.backupRestore.DB_PASS }}
+                - name: DB_DUMP_TARGET
+                  value: {{ .Values.backupRestore.DB_DUMP_TARGET }}
+                - name: AWS_ACCESS_KEY_ID
+                  value: {{ .Values.backupRestore.AWS_ACCESS_KEY_ID }}
+                - name: AWS_SECRET_ACCESS_KEY
+                  value: {{ .Values.backupRestore.AWS_SECRET_ACCESS_KEY }}
+                - name: RUN_ONCE
+                  value: {{ .Values.backupRestore.RUN_ONCE }}
+                - name: AWS_ENDPOINT_URL
+                  value: {{ .Values.backupRestore.AWS_ENDPOINT_URL }}
+                - name: AWS_CLI_OPTS
+                  value: {{ .Values.backupRestore.AWS_CLI_OPTS }}
+                - name: SINGLE_DATABASE
+                  value: {{ .Values.backupRestore.SINGLE_DATABASE }}
+                - name: DB_NAMES
+                  value: {{ .Values.backupRestore.DB_NAMES }}
+          restartPolicy: Never

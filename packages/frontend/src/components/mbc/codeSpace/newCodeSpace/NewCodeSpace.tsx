@@ -376,7 +376,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
       if (isPublicRecipeChoosen) {
         const recipe = recipesMaster.find((item: any) => item.id === recipeValue);
         createCodeSpaceRequest.data.gitUserName = githubUserName;
-        createCodeSpaceRequest.data.projectDetails.recipeDetails.recipeId = 'public';
+        // createCodeSpaceRequest.data.projectDetails.recipeDetails.recipeId = 'public';
         createCodeSpaceRequest.data.projectDetails.recipeDetails['repodetails'] = recipe.repodetails;
       }
 
@@ -552,10 +552,10 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
             <div>
               <div>
                 <TextBox
-                  type="password"
+                  type="text"
                   controlId={'githubTokenInput'}
                   labelId={'githubTokenLabel'}
-                  label={`Your Github(https://github.com/) Username or email address`}
+                  label={`Your Github(https://github.com/) Username`}
                   infoTip="Not stored only used for Repo Creation"
                   placeholder={'Type here'}
                   value={githubUserName}
@@ -716,10 +716,10 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
             <div>
               <div>
                 <TextBox
-                  type="password"
+                  type="text"
                   controlId={'githubTokenInput'}
                   labelId={'githubTokenLabel'}
-                  label={`Your Github(https://github.com/) Username or email address`}
+                  label={`Your Github(https://github.com/) Username`}
                   infoTip="Not stored only used for Repo Creation"
                   placeholder={'Type here'}
                   value={githubUserName}
@@ -750,88 +750,92 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
               />
             </div>
           </div>
-          <div className={classNames('input-field-group include-error')}>
-            <label htmlFor="userId" className="input-label">
-              Find and add the collaborators you want to work with your code (Optional)
-            </label>
-            <div className={Styles.collaboratorSection}>
-              <div className={Styles.collaboratorSectionList}>
-                <div className={Styles.collaboratorSectionListAdd}>
-                  <AddUser
-                    getCollabarators={getCollabarators}
-                    dagId={''}
-                    isRequired={false}
-                    isUserprivilegeSearch={false}
-                  />
-                </div>
-                <div className={Styles.collaboratorList}>
-                  {codeSpaceCollaborators?.length > 0 ? (
-                    <React.Fragment>
-                      <div className={Styles.collaboratorTitle}>
-                        <div className={Styles.collaboratorTitleCol}>User ID</div>
-                        <div className={Styles.collaboratorTitleCol}>Name</div>
-                        <div className={Styles.collaboratorTitleCol}>Permission</div>
-                        <div className={Styles.collaboratorTitleCol}></div>
-                      </div>
-                      <div className={classNames('mbc-scroll', Styles.collaboratorContent)}>
-                        {codeSpaceCollaborators?.map((item, collIndex) => {
-                          return (
-                            <div key={collIndex} className={Styles.collaboratorContentRow}>
-                              <div className={Styles.collaboratorTitleCol}>{item.id}</div>
-                              <div className={Styles.collaboratorTitleCol}>{item.firstName + ' ' + item.lastName}</div>
-                              <div className={Styles.collaboratorTitleCol}>
-                                <div className={classNames('input-field-group include-error ' + Styles.inputGrp)}>
-                                  <label className={classNames('checkbox', Styles.checkBoxDisable)}>
-                                    <span className="wrapper">
-                                      <input
-                                        type="checkbox"
-                                        className="ff-only"
-                                        value="develop"
-                                        checked={true}
-                                        readOnly
-                                      />
-                                    </span>
-                                    <span className="label">Develop</span>
-                                  </label>
+          {!isPublicRecipeChoosen && (
+            <div className={classNames('input-field-group include-error')}>
+              <label htmlFor="userId" className="input-label">
+                Find and add the collaborators you want to work with your code (Optional)
+              </label>
+              <div className={Styles.collaboratorSection}>
+                <div className={Styles.collaboratorSectionList}>
+                  <div className={Styles.collaboratorSectionListAdd}>
+                    <AddUser
+                      getCollabarators={getCollabarators}
+                      dagId={''}
+                      isRequired={false}
+                      isUserprivilegeSearch={false}
+                    />
+                  </div>
+                  <div className={Styles.collaboratorList}>
+                    {codeSpaceCollaborators?.length > 0 ? (
+                      <React.Fragment>
+                        <div className={Styles.collaboratorTitle}>
+                          <div className={Styles.collaboratorTitleCol}>User ID</div>
+                          <div className={Styles.collaboratorTitleCol}>Name</div>
+                          <div className={Styles.collaboratorTitleCol}>Permission</div>
+                          <div className={Styles.collaboratorTitleCol}></div>
+                        </div>
+                        <div className={classNames('mbc-scroll', Styles.collaboratorContent)}>
+                          {codeSpaceCollaborators?.map((item, collIndex) => {
+                            return (
+                              <div key={collIndex} className={Styles.collaboratorContentRow}>
+                                <div className={Styles.collaboratorTitleCol}>{item.id}</div>
+                                <div className={Styles.collaboratorTitleCol}>
+                                  {item.firstName + ' ' + item.lastName}
                                 </div>
-                                &nbsp;&nbsp;&nbsp;
-                                <div className={classNames('input-field-group include-error ' + Styles.inputGrp)}>
-                                  <label className={'checkbox'}>
-                                    <span className="wrapper">
-                                      <input
-                                        type="checkbox"
-                                        className="ff-only"
-                                        value="deploy"
-                                        checked={true}
-                                        readOnly
-                                        // checked={item?.permission !== null ? item?.canDeploy : false}
-                                        onChange={(e) => onCollaboratorPermission(e, item.id)}
-                                      />
-                                    </span>
-                                    <span className="label">Deploy</span>
-                                  </label>
+                                <div className={Styles.collaboratorTitleCol}>
+                                  <div className={classNames('input-field-group include-error ' + Styles.inputGrp)}>
+                                    <label className={classNames('checkbox', Styles.checkBoxDisable)}>
+                                      <span className="wrapper">
+                                        <input
+                                          type="checkbox"
+                                          className="ff-only"
+                                          value="develop"
+                                          checked={true}
+                                          readOnly
+                                        />
+                                      </span>
+                                      <span className="label">Develop</span>
+                                    </label>
+                                  </div>
+                                  &nbsp;&nbsp;&nbsp;
+                                  <div className={classNames('input-field-group include-error ' + Styles.inputGrp)}>
+                                    <label className={'checkbox'}>
+                                      <span className="wrapper">
+                                        <input
+                                          type="checkbox"
+                                          className="ff-only"
+                                          value="deploy"
+                                          checked={true}
+                                          readOnly
+                                          // checked={item?.permission !== null ? item?.canDeploy : false}
+                                          onChange={(e) => onCollaboratorPermission(e, item.id)}
+                                        />
+                                      </span>
+                                      <span className="label">Deploy</span>
+                                    </label>
+                                  </div>
+                                </div>
+                                <div className={Styles.collaboratorTitleCol}>
+                                  <div className={Styles.deleteEntry} onClick={onCollabaratorDelete(item.id)}>
+                                    <i className="icon mbc-icon trash-outline" />
+                                    Delete Entry
+                                  </div>
                                 </div>
                               </div>
-                              <div className={Styles.collaboratorTitleCol}>
-                                <div className={Styles.deleteEntry} onClick={onCollabaratorDelete(item.id)}>
-                                  <i className="icon mbc-icon trash-outline" />
-                                  Delete Entry
-                                </div>
-                              </div>
-                            </div>
-                          );
-                        })}
+                            );
+                          })}
+                        </div>
+                      </React.Fragment>
+                    ) : (
+                      <div className={Styles.collaboratorSectionEmpty}>
+                        <h6> Collaborators Not Exist!</h6>
                       </div>
-                    </React.Fragment>
-                  ) : (
-                    <div className={Styles.collaboratorSectionEmpty}>
-                      <h6> Collaborators Not Exist!</h6>
-                    </div>
-                  )}
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
+          )}
           <div className={Styles.newCodeSpaceBtn}>
             <button className={' btn btn-tertiary '} onClick={createCodeSpace}>
               Create Code Space
