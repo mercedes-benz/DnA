@@ -52,8 +52,8 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
     password: '',
     confirmPassword: '',
   });
-  const [githubUserName, setGithubUserName] = useState('');
-  const [githubUserNameError, setGithubUserNameError] = useState('');
+  // const [githubUserName, setGithubUserName] = useState('');
+  // const [githubUserNameError, setGithubUserNameError] = useState('');
   const [githubToken, setGithubToken] = useState('');
   const [githubTokenError, setGithubTokenError] = useState('');
   const [codeSpaceCollaborators, setCodeSpaceCollaborators] = useState([]);
@@ -96,11 +96,11 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
     );
   };
 
-  const onGithubUserNameOnChange = (evnt: React.FormEvent<HTMLInputElement>) => {
-    const githubUserNameVal = evnt.currentTarget.value.trim();
-    setGithubUserName(githubUserNameVal);
-    setGithubUserNameError(githubUserNameVal.length ? '' : requiredError);
-  };
+  // const onGithubUserNameOnChange = (evnt: React.FormEvent<HTMLInputElement>) => {
+  //   const githubUserNameVal = evnt.currentTarget.value.trim();
+  //   setGithubUserName(githubUserNameVal);
+  //   setGithubUserNameError(githubUserNameVal.length ? '' : requiredError);
+  // };
   
   const onGithubTokenOnChange = (evnt: React.FormEvent<HTMLInputElement>) => {
     const githubTokenVal = evnt.currentTarget.value.trim();
@@ -251,17 +251,17 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
       setConfirmPasswordError(requiredError);
       formValid = false;
     }
-    if (isPublicRecipeChoosen && githubUserName === '') {
-      setGithubUserNameError(requiredError);
-      formValid = false;
-    } else {
-      setGithubUserNameError('');
-    }
+    // if (isPublicRecipeChoosen && githubUserName === '') {
+    //   setGithubUserNameError(requiredError);
+    //   formValid = false;
+    // } else {
+    //   setGithubUserNameError('');
+    // }
     if (githubToken === '') {
       setGithubTokenError(requiredError);
       formValid = false;
     }
-    if (projectNameError !== '' || recipeError !== '' || passwordError !== '' || confirmPasswordError !== '' || githubUserNameError !== '' || githubTokenError !== '') {
+    if (projectNameError !== '' || recipeError !== '' || passwordError !== '' || confirmPasswordError !== '' || githubTokenError !== '') {
       formValid = false;
     }
     return formValid;
@@ -277,12 +277,12 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
       setConfirmPasswordError(requiredError);
       formValid = false;
     }
-    if (isPublicRecipeChoosen && githubUserName === '') {
-      setGithubUserNameError(requiredError);
-      formValid = false;
-    } else {
-      setGithubUserNameError('');
-    }
+    // if (isPublicRecipeChoosen && githubUserName === '') {
+    //   setGithubUserNameError(requiredError);
+    //   formValid = false;
+    // } else {
+    //   setGithubUserNameError('');
+    // }
     if (githubToken === '') {
       setGithubTokenError(requiredError);
       formValid = false;
@@ -375,7 +375,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
 
       if (isPublicRecipeChoosen) {
         const recipe = recipesMaster.find((item: any) => item.id === recipeValue);
-        createCodeSpaceRequest.data.gitUserName = githubUserName;
+        // createCodeSpaceRequest.data.gitUserName = githubUserName;
         // createCodeSpaceRequest.data.projectDetails.recipeDetails.recipeId = 'public';
         createCodeSpaceRequest.data.projectDetails.recipeDetails['repodetails'] = recipe.repodetails;
       }
@@ -447,9 +447,9 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
         pat: githubToken
       };
 
-      if (isPublicRecipeChoosen) {
-        onBoardCodeSpaceRequest['gitUserName'] = githubUserName;
-      }
+      // if (isPublicRecipeChoosen) {
+      //   onBoardCodeSpaceRequest['gitUserName'] = githubUserName;
+      // }
 
       ProgressIndicator.show();
       CodeSpaceApiClient.onBoardCollaborator(props.onBoardingCodeSpace.id, onBoardCodeSpaceRequest)
@@ -548,7 +548,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
               />
             </div>
           </div>
-          {isPublicRecipeChoosen && (
+          {/* {isPublicRecipeChoosen && (
             <div>
               <div>
                 <TextBox
@@ -556,7 +556,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
                   controlId={'githubTokenInput'}
                   labelId={'githubTokenLabel'}
                   label={`Your Github(https://github.com/) Username`}
-                  infoTip="Not stored only used for Repo Creation"
+                  infoTip="Not stored only used for Code Space initial setup"
                   placeholder={'Type here'}
                   value={githubUserName}
                   errorText={githubUserNameError}
@@ -566,7 +566,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
                 />
               </div>
             </div>
-          )}
+          )} */}
           <div>
             <div>
               <TextBox
@@ -576,7 +576,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
                 label={`Your Github(${
                   isPublicRecipeChoosen ? 'https://github.com/' : Envs.CODE_SPACE_GIT_PAT_APP_URL
                 }) Personal Access Token`}
-                infoTip="Not stored only used for Repo Creation"
+                infoTip="Not stored only used for Code Space initial setup"
                 placeholder={'Type here'}
                 value={githubToken}
                 errorText={githubTokenError}
@@ -712,7 +712,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
               />
             </div>
           </div>
-          {isPublicRecipeChoosen && (
+          {/* {isPublicRecipeChoosen && (
             <div>
               <div>
                 <TextBox
@@ -720,7 +720,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
                   controlId={'githubTokenInput'}
                   labelId={'githubTokenLabel'}
                   label={`Your Github(https://github.com/) Username`}
-                  infoTip="Not stored only used for Repo Creation"
+                  infoTip="Not stored only used for Code Space initial setup"
                   placeholder={'Type here'}
                   value={githubUserName}
                   errorText={githubUserNameError}
@@ -730,7 +730,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
                 />
               </div>
             </div>
-          )}
+          )} */}
           <div>
             <div>
               <TextBox
@@ -740,7 +740,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
                 label={`Your Github(${
                   isPublicRecipeChoosen ? 'https://github.com/' : Envs.CODE_SPACE_GIT_PAT_APP_URL
                 }) Personal Access Token`}
-                infoTip="Not stored only used for Repo Creation"
+                infoTip="Not stored only used for Code Space initial setup"
                 placeholder={'Type here'}
                 value={githubToken}
                 errorText={githubTokenError}
