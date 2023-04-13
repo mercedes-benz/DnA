@@ -141,7 +141,7 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 		}
 		if(!configValidation) {
 			log.error("Failed while fetching config file {} for project name {} and id {} ",configurationFile, existingForecast.getName(), existingForecast.getId());
-			MessageDescription invalidMsg = new MessageDescription("Failed while fetching config file " + configurationFile);
+			MessageDescription invalidMsg = new MessageDescription("Failed while fetching config file " + configurationFile + " unable to trigger run");
 			List<MessageDescription> errors = new ArrayList<>();
 			errors.add(invalidMsg);
 			responseMessage.setErrors(errors);
