@@ -73,6 +73,7 @@ databricks:
   jobId: ${DATABRICKS_JOBID:XXXXX}
   powerfulMachinesJobId: ${DATABRICKS_POWERFULMACHINESJOBID:XXXXX}
   defaultConfigYml: ${DATABRICKS_DEFAULTCONFIGYML_PATH:chronos-core/objects?prefix=configs/}
+  runsDefaultPageSize: ${DATABRICKS_RUNSDEFAULTPAGESIZE_PATH:15}
   uri:
     base: ${DATABRICKS_BASE_URI:XXXXX}
     runnow: ${DATABRICKS_RUNNOW_URI:/api/2.1/jobs/run-now}
@@ -80,6 +81,7 @@ databricks:
     getrun: ${DATABRICKS_GETRUN_URI:/api/2.1/jobs/runs/get}
     jobrunlist: ${DATABRICKS_JOBRUNLIST_URI:/api/2.1/jobs/get}
     jobrunoutput: ${DATABRICKS_GETRUNOUTPUT_URI:/api/2.1/jobs/runs/get-output}
+    
 dna:
   uri: ${DNA_URI:XXXXXX}
   dnaAuthEnable: ${DNA_AUTH_ENABLE:false}
