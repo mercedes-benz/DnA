@@ -55,8 +55,9 @@ datatransfer:
     url: ${DATATRANSFER_BASE_URL:XXXXXX}
   refreshdb: ${DATATRANSFER_REFRESH_DB:false}
 
-xapikey:
-  val: ${XPATH_VALUE:XXXX}
+xapikeydetails:
+  key: ${XPATH_VALUE:XXXX}
+  header: ${XPATH_HEADER:XXXX}
 
 dashboard:
   uri: ${REPORTS_BASE_URL:XXXXXXX}
