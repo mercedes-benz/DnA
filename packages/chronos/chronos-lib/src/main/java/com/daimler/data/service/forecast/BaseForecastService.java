@@ -1,11 +1,7 @@
 package com.daimler.data.service.forecast;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import com.daimler.data.dto.databricks.DataBricksJobRunOutputResponseWrapperDto;
@@ -126,6 +122,32 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 		String resultFolder = bucketName+"/results/"+correlationId + "-" + runName;
 		String inputOrginalFolder= "/results/"+correlationId + "-" + runName + "/input_original";
 		FileUploadResponseDto fileUploadResponse =  null;
+		boolean configValidation = false;
+		if(configurationFile!=null) {
+			try {
+				String[] splits = configurationFile.split("/");
+				if(splits!=null && splits.length>1) {
+					String configFilebucketName = splits[0];
+					String fileNamePrefix = splits[1]+ "/" +splits[2];
+					if("chronos-core".equalsIgnoreCase(configFilebucketName) || bucketName.equalsIgnoreCase(configFilebucketName)) {
+						List<BucketObjectDetailsDto>  configFiles = storageClient.getFilesPresent(configFilebucketName, "configs/");
+						configValidation = storageClient.isFilePresent(fileNamePrefix, configFiles);
+					}
+				}
+			}catch(Exception e)	{
+				log.error("Invalid configuration file");
+			}
+		}
+		if(!configValidation) {
+			log.error("Failed while fetching config file {} for project name {} and id {} ",configurationFile, existingForecast.getName(), existingForecast.getId());
+			MessageDescription invalidMsg = new MessageDescription("Failed while fetching config file " + configurationFile);
+			List<MessageDescription> errors = new ArrayList<>();
+			errors.add(invalidMsg);
+			responseMessage.setErrors(errors);
+			responseWrapper.setData(null);
+			responseWrapper.setResponse(responseMessage);
+			return responseWrapper;
+		}
 		if(file!=null) {
 			fileUploadResponse = storageClient.uploadFile(inputOrginalFolder, file,existingForecast.getBucketName());
 		}else {
@@ -280,7 +302,21 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 				List<RunDetails> existingRuns = entity.getData().getRuns();
 				String bucketName = entity.getData().getBucketName();
 				String resultsPrefix = "results/";
-				for(RunDetails run: existingRuns) {
+				List<RunDetails> newSubList =new ArrayList<>();
+				Collections.sort(existingRuns, new Comparator<RunDetails>() {
+					public int compare(RunDetails run1, RunDetails run2) {
+						return run2.getTriggeredOn().toString().compareTo(run1.getTriggeredOn().toString());
+					}
+				});
+				try {
+					newSubList = existingRuns.subList(offset, offset + limit);
+				}
+				catch(Exception e)	{
+					log.error("Given limit exceeded original existing runs limit");
+				}
+				if(limit==0)
+					newSubList = existingRuns;
+				for(RunDetails run: newSubList) {
 					RunState state = run.getRunState();
 					String runId = run.getRunId();
 					String correlationId= run.getId();
@@ -444,7 +480,19 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 						}
 					}
 				}
-				entity.getData().setRuns(updatedRuns);
+				List<RunDetails> updatedDbRunRecords = new ArrayList<>();
+				if(limit!=0) {
+					for(RunDetails existingrunRecord: existingRuns) {
+						RunDetails updatedRecord = updatedRuns.stream().filter(x -> existingrunRecord.getId().equals(x.getId())).findAny().orElse(null);
+						if(updatedRecord!=null) {
+							updatedDbRunRecords.add(updatedRecord);
+						}
+						else {
+							updatedDbRunRecords.add(existingrunRecord);
+						}
+					}
+				}
+				entity.getData().setRuns(updatedDbRunRecords);
 				this.jpaRepo.save(entity);
 				updatedRunVOList = this.assembler.toRunsVO(updatedRuns);
 			}
@@ -818,8 +866,8 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 
 	@Override
 	@Transactional
-	public BucketObjectsCollectionWrapperDto getBucketObjects(String path){
-		return storageClient.getBucketObjects(path);
+	public BucketObjectsCollectionWrapperDto getBucketObjects(String path, String bucketType){
+		return storageClient.getBucketObjects(path,bucketType) ;
 
 	}
 

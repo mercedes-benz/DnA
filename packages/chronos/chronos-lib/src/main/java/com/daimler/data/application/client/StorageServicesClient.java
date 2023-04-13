@@ -6,6 +6,8 @@ import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
 
+import com.daimler.data.db.json.RunDetails;
+import com.daimler.data.db.json.RunState;
 import com.daimler.data.dto.storage.*;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -297,7 +299,7 @@ public class StorageServicesClient {
 	}
 	
 	
-	public BucketObjectsCollectionWrapperDto getBucketObjects(String path) {
+	public BucketObjectsCollectionWrapperDto getBucketObjects(String path,String bucketType) {
 		BucketObjectsCollectionWrapperDto filesList = new BucketObjectsCollectionWrapperDto();
 		ByteArrayResource data = null;
 		List<MessageDescription> errors = new ArrayList<>();
@@ -315,8 +317,16 @@ public class StorageServicesClient {
 				if(response.getBody()!=null && response.getBody().getData()!=null && response.getBody().getData().getBucketObjects()!=null
 						&& !response.getBody().getData().getBucketObjects().isEmpty()) {
 					filesList = response.getBody();
+					List<BucketObjectDetailsDto> filteredList =filesList.getData().getBucketObjects().stream().map
+							(n -> { BucketObjectDetailsDto fileDetails = new BucketObjectDetailsDto();
+								BeanUtils.copyProperties(n,fileDetails);
+								fileDetails.setObjectName(bucketType +fileDetails.getObjectName());
+								return fileDetails;
+							}).collect(Collectors.toList());
+					filesList.getData().setBucketObjects(filteredList);
 					List<BucketObjectDetailsDto> filteredBucketObjects = filesList.getData().getBucketObjects().stream().
-						filter(str -> str.getObjectName().endsWith(".yml") || str.getObjectName().endsWith(".yaml")).collect(Collectors.toList());
+						filter(str -> str.getObjectName().endsWith(".yml") || str.getObjectName().endsWith(".yaml"))
+							.collect(Collectors.toList());
 					filesList.getData().setBucketObjects(filteredBucketObjects);
 				}
 			}
