@@ -254,6 +254,28 @@ paths:
         500:
           description: "Internal error"
 
+  /dataproducts/dbrecords/refresh:
+    get:
+      tags:
+        - "dataproducts"
+      summary: "Refresh DB records for data-product and data-transfer"
+      description: "Refresh DB records for data-product and data-transfer"
+      operationId: "dbRecordsRefresh"
+      responses:
+        200:
+          description: "Returns message of success or failure"
+          schema:
+            $ref: "#/definitions/RefreshVo"
+        400:
+          description: "Bad request."
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
   # path to get and delete dataproduct by id
   #
   #  Supported http methods GET
@@ -355,6 +377,13 @@ paths:
           description: "Internal error"
 
 definitions:
+  RefreshVo:
+    type: object
+    properties:
+      dataproductGenericMessage:
+        $ref: "#/definitions/GenericMessage"
+      datatransferGenericMessage:
+        $ref: "#/definitions/GenericMessage"
 
   PlatformVO:
     type: object
