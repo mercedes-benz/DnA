@@ -47,12 +47,12 @@ const RunParametersForm = () => {
         }
         return 0;
       });
-      const filteredConfigFiles = bucketObjects.filter(file => file.objectName === 'configs/default_config.yml');
+      const filteredConfigFiles = bucketObjects.filter(file => file.objectName === 'chronos-core/configs/default_config.yml');
       if(filteredConfigFiles.length === 1) {
         bucketObjects.sort((a, b) => {
           let fa = a.objectName.toLowerCase(),
               fb = b.objectName.toLowerCase();
-          const first = 'configs/default_config.yml';
+          const first = 'chronos-core/configs/default_config.yml';
           return fa == first ? -1 : fb == first ? 1 : 0;
         });
       }
@@ -136,8 +136,8 @@ const RunParametersForm = () => {
                       ) : (
                         <>
                           {configurationFiles.map((file) => (
-                              <option key={file.objectName} value={'chronos-core/' + file.objectName}>
-                                {file.objectName.split("/")[1]}
+                              <option key={file.objectName} value={file.objectName}>
+                                {file.objectName.split("/")[2]}
                               </option>
                           ))}
                         </>
