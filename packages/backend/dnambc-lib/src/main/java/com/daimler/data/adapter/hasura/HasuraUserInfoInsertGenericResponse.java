@@ -2,7 +2,7 @@ package com.daimler.data.adapter.hasura;
 
 
 
-import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusss;
 
 import com.daimler.data.dto.userinfo.UserInfoVO;
 
