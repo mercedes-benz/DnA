@@ -255,7 +255,7 @@ const UserprivilegeSearch = (props: UserPrivilegeSearchProps) => {
                 ref={searchInput}
                 id="userId"
                 value={searchTerm || fieldValue || ''}
-                placeholder="Short ID, first name, last name, email"
+                placeholder="Short ID, first name, last name"
                 onChange={onSearchInputChange}
                 onKeyDown={onSearchInputKeyDown}
                 maxLength={200}
