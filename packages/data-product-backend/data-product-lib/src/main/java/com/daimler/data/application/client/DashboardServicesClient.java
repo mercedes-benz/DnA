@@ -61,9 +61,9 @@ public class DashboardServicesClient {
         List<MessageDescription> errors = new ArrayList<>();
         try {
             HttpHeaders headers = new HttpHeaders();
-//            String jwt = httpRequest.getHeader("Authorization");
+            String jwt = httpRequest.getHeader("Authorization");
             headers.set("Accept", "application/json");
-            headers.set("authorization", "eyJhbGciOiJIUzUxMiJ9.eyJmaXJzdE5hbWUiOiJBamF5IiwibGFzdE5hbWUiOiJTaGl2YW5hZ29sIiwibm91bmNlIjowLjAxOTI3ODM1OTQ3NTA2NzUwOCwibW9iaWxlTnVtYmVyIjpudWxsLCJhdXRoVG9rZW4iOiIwMDAxQ2VaT2ZGTnFKVFk4VXdDRDNqR3lQMzE1IiwiZGlnaVJvbGUiOlt7ImlkIjoiMyIsIm5hbWUiOiJBZG1pbiJ9XSwiaWQiOiJBSlNISVZBIiwiZGVwYXJ0bWVudCI6IiIsImV4cCI6MTY4MTIyMzcxMSwiZW1haWwiOiJhamF5LnNoaXZhbmFnb2xAbWVyY2VkZXMtYmVuei5jb20iLCJkaXZpc2lvbkFkbWlucyI6W119.H7TSqxPiwyv5zWg9mD_3QspXyoCU6BvASlR1qc9mHp99qoEAY0QCIYp2KtSpyF9Y7khNSffsTAT16zQeIlUvPA");
+            headers.set("authorization", jwt);
             headers.setContentType(MediaType.APPLICATION_JSON);
             String getReportUrl = reportBaseUri + FRONTEND_TECHNOLOGIES_LOV_PATH;
 
