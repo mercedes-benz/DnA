@@ -38,7 +38,12 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import javax.persistence.EntityNotFoundException;
+import javax.validation.Valid;
 
+import com.daimler.data.db.jsonb.solution.*;
+import com.daimler.data.dto.attachment.FileDetailsVO;
+import com.daimler.data.dto.solution.*;
+import com.daimler.data.service.attachment.AttachmentService;
 import org.apache.commons.lang3.time.DateUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -61,16 +66,6 @@ import com.daimler.data.controller.exceptions.MessageDescription;
 import com.daimler.data.db.entities.DataikuNsql;
 import com.daimler.data.db.entities.SolutionNsql;
 import com.daimler.data.db.jsonb.SubDivision;
-import com.daimler.data.db.jsonb.solution.MarketingRoleSummary;
-import com.daimler.data.db.jsonb.solution.SkillSummary;
-import com.daimler.data.db.jsonb.solution.Solution;
-import com.daimler.data.db.jsonb.solution.SolutionAlgorithm;
-import com.daimler.data.db.jsonb.solution.SolutionDatasource;
-import com.daimler.data.db.jsonb.solution.SolutionDivision;
-import com.daimler.data.db.jsonb.solution.SolutionLanguage;
-import com.daimler.data.db.jsonb.solution.SolutionPlatform;
-import com.daimler.data.db.jsonb.solution.SolutionTeamMember;
-import com.daimler.data.db.jsonb.solution.SolutionVisualization;
 import com.daimler.data.db.repo.dataiku.DataikuCustomRepository;
 import com.daimler.data.db.repo.solution.SolutionCustomRepository;
 import com.daimler.data.db.repo.solution.SolutionRepository;
@@ -84,13 +79,6 @@ import com.daimler.data.dto.notebook.NotebookVO;
 import com.daimler.data.dto.platform.PlatformVO;
 import com.daimler.data.dto.relatedProduct.RelatedProductVO;
 import com.daimler.data.dto.skill.SkillVO;
-import com.daimler.data.dto.solution.ChangeLogVO;
-import com.daimler.data.dto.solution.CreatedByVO;
-import com.daimler.data.dto.solution.DataSourceSummaryVO;
-import com.daimler.data.dto.solution.SolutionAnalyticsVO;
-import com.daimler.data.dto.solution.SolutionPortfolioVO;
-import com.daimler.data.dto.solution.SolutionVO;
-import com.daimler.data.dto.solution.TeamMemberVO;
 import com.daimler.data.dto.tag.TagVO;
 import com.daimler.data.dto.visualization.VisualizationVO;
 import com.daimler.data.service.algorithm.AlgorithmService;
@@ -108,7 +96,6 @@ import com.daimler.data.service.userinfo.UserInfoService;
 import com.daimler.data.service.visualization.VisualizationService;
 import com.daimler.dna.notifications.common.producer.KafkaProducerService;
 
-import io.jsonwebtoken.lang.Strings;
 import lombok.extern.slf4j.Slf4j;
 
 @Service
@@ -176,6 +163,9 @@ public class BaseSolutionService extends BaseCommonService<SolutionVO, SolutionN
 	@Autowired
 	private MarketingRoleService marketingRoleService;
 
+	@Autowired
+	private AttachmentService attachmentService;
+
 	public BaseSolutionService() {
 		super();
 	}
@@ -236,6 +226,37 @@ public class BaseSolutionService extends BaseCommonService<SolutionVO, SolutionN
 //    			else 
 //    				notebookEvent = "unlink old + provisioned to new sol";
 			}
+			 boolean found= false;
+			 String fileName;
+			 List<FileDetailsVO> prevFiles = prevVo.getAttachments();
+			 String productName = prevVo.getProductName();
+			 List<FileDetailsVO> curFile = vo.getAttachments();
+			 if (prevFiles!=null || curFile !=null) {
+				for (FileDetailsVO prevFile : prevFiles) {
+					String prevKeyName = prevFile.getId();
+					fileName=prevFile.getFileName();
+					try {
+						for (FileDetailsVO curFil : curFile) {
+							String curKeyName = curFil.getId();
+							if (prevKeyName.equals(curKeyName)) {
+								found = true;
+								break;
+							}
+						}
+					}catch (Exception e){
+						log.info("currently passing files are null");
+					}
+					if(!found){
+						try{
+							attachmentService.deleteFileFromS3Bucket(prevKeyName);
+						}catch (Exception e){
+							log.error("File {} is failed to delete from solution {} with an exception {}",fileName, productName, e.getMessage());
+						}
+					}
+				}
+			}
+
+
 		}
 		updateTags(vo);
 		updateDataSources(vo);
@@ -917,7 +938,7 @@ public class BaseSolutionService extends BaseCommonService<SolutionVO, SolutionN
 			LOGGER.info("Updating Notebook linkage.");
 			NotebookVO availableNotebook = notebookService.getByUniqueliteral("solutionId", id);
 			if (availableNotebook != null) {
-				notebookService.updateSolutionIdofDnaNotebook("unlink", availableNotebook.getId(), null);
+				notebookService.updateSolutionIdofDnaNotebook("unlink", availableNotebook.getId(), id);
 			}
 		}
 

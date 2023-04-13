@@ -20,6 +20,7 @@ const PersonalRelatedData = ({ onSave, setIsEditing, isDataProduct, callbackFn }
     watch,
     setValue,
     clearErrors,
+    getValues,
   } = useFormContext();
   const [showInfoModal, setShowInfoModal] = useState(false);
 
@@ -37,6 +38,9 @@ const PersonalRelatedData = ({ onSave, setIsEditing, isDataProduct, callbackFn }
   const providerPersonalRelatedData = useRef(null);
   const consumerPersonalRelatedTabSubmitted = watch('openSegments')?.includes('IdentifyingPersonalRelatedData');
 
+  const isDisabledContactAwareTransfer = !watch('personalRelatedDataContactAwareTransfer') || watch('personalRelatedDataContactAwareTransfer') === 'No';
+  const isDisabledTransferingComments =  !watch('personalRelatedDataObjectionsTransfer') || watch('personalRelatedDataObjectionsTransfer') === 'No' ||  watch('personalRelatedDataContactAwareTransfer') === 'No';
+
   useEffect(() => {
     const data = !isDataProduct
       ? provideDataTransfers.selectedDataTransfer.personalRelatedData
@@ -53,6 +57,10 @@ const PersonalRelatedData = ({ onSave, setIsEditing, isDataProduct, callbackFn }
       setValue('personalRelatedDataLegalBasis', '');
       setValue('LCOCheckedLegalBasis', '');
       setValue('LCOComments', '');
+      setValue('personalRelatedDataContactAwareTransfer', '');
+      setValue('personalRelatedDataObjectionsTransfer', '');
+      setValue('personalRelatedDataTransferingNonetheless', '');
+      setValue('personalRelatedDataTransferingObjections', '');
     }
     //eslint-disable-next-line
   }, [isDataProduct, consumerPersonalRelatedTabSubmitted]);
@@ -99,11 +107,19 @@ const PersonalRelatedData = ({ onSave, setIsEditing, isDataProduct, callbackFn }
                             'personalRelatedDataPurpose',
                             'personalRelatedDataLegalBasis',
                             'LCOCheckedLegalBasis',
+                            'personalRelatedDataContactAwareTransfer',
+                            'personalRelatedDataObjectionsTransfer',
+                            'personalRelatedDataTransferingNonetheless',
+                            'personalRelatedDataTransferingObjections',
                           ]);
                           setValue('LCOComments', '');
                           setValue('personalRelatedDataPurpose', '');
                           setValue('personalRelatedDataLegalBasis', '');
                           setValue('LCOCheckedLegalBasis', '');
+                          setValue('personalRelatedDataContactAwareTransfer', '');
+                          setValue('personalRelatedDataObjectionsTransfer', '');
+                          setValue('personalRelatedDataTransferingNonetheless', '');
+                          setValue('personalRelatedDataTransferingObjections', '');
                         },
                       })}
                       type="radio"
@@ -284,6 +300,166 @@ const PersonalRelatedData = ({ onSave, setIsEditing, isDataProduct, callbackFn }
                 id="LCOComments"
               />
               <span className={classNames('error-message')}>{errors?.LCOComments?.message}</span>
+            </div>
+            <div
+              id="personalRelatedDataContactAwareTransfer"
+              className={classNames(
+                'input-field-group include-error',
+                errors.personalRelatedDataContactAwareTransfer ? 'error' : '',
+                isDisabled ? 'disabled' : '',
+              )}
+              style={{ minHeight: '50px' }}
+            >
+              <label className={classNames(Styles.inputLabel, 'input-label')}>
+                Is corresponding Compliance contact aware of this transfer? <sup>*</sup>
+              </label>
+              <div className={Styles.radioBtns}>
+                <label className={'radio'}>
+                  <span className="wrapper">
+                    <input
+                      {...register('personalRelatedDataContactAwareTransfer', {
+                        required: '*Missing entry',
+                        disabled: isDisabled,
+                        onChange: () => {
+                          clearErrors([
+                            'personalRelatedDataObjectionsTransfer',
+                            'personalRelatedDataTransferingNonetheless',
+                            'personalRelatedDataTransferingObjections',
+                          ]);
+                          setValue('personalRelatedDataObjectionsTransfer', '');
+                          setValue('personalRelatedDataTransferingNonetheless', '');
+                          setValue('personalRelatedDataTransferingObjections', '');
+                        },
+                      })}
+                      type="radio"
+                      className="ff-only"
+                      name="personalRelatedDataContactAwareTransfer"
+                      value="No"
+                    />
+                  </span>
+                  <span className="label">No</span>
+                </label>
+                <label className={'radio'}>
+                  <span className="wrapper">
+                    <input
+                      {...register('personalRelatedDataContactAwareTransfer', {
+                        required: '*Missing entry',
+                        disabled: isDisabled,
+                      })}
+                      type="radio"
+                      className="ff-only"
+                      name="personalRelatedDataContactAwareTransfer"
+                      value="Yes"
+                    />
+                  </span>
+                  <span className="label">Yes</span>
+                </label>
+              </div>
+              <span className={classNames('error-message')}>{errors?.personalRelatedDataContactAwareTransfer?.message}</span>
+            </div>
+            <div
+              id="personalRelatedDataObjectionsTransfer"
+              className={classNames(
+                'input-field-group include-error',
+                errors.personalRelatedDataObjectionsTransfer ? 'error' : '',
+                isDisabledContactAwareTransfer ? 'disabled' : '',
+              )}
+            >
+              <label className={classNames(Styles.inputLabel, 'input-label')}>
+                Has s/he any objections to this transfer?{' '}
+                {getValues('personalRelatedDataContactAwareTransfer') === 'Yes' ? <sup>*</sup> : null}
+              </label>
+              <div className={Styles.radioBtns}>
+                <label className={'radio'}>
+                  <span className="wrapper">
+                    <input
+                      {...register('personalRelatedDataObjectionsTransfer', {
+                        required: '*Missing entry',
+                        disabled: isDisabledContactAwareTransfer,
+                        onChange: () => {
+                          clearErrors([
+                            'personalRelatedDataTransferingNonetheless',
+                            'personalRelatedDataTransferingObjections',
+                          ]);
+                          setValue('personalRelatedDataTransferingNonetheless', '');
+                          setValue('personalRelatedDataTransferingObjections', '');
+                        },
+                      })}
+                      type="radio"
+                      className="ff-only"
+                      name="personalRelatedDataObjectionsTransfer"
+                      value="No"
+                    />
+                  </span>
+                  <span className="label">No</span>
+                </label>
+                <label className={'radio'}>
+                  <span className="wrapper">
+                    <input
+                      {...register('personalRelatedDataObjectionsTransfer', {
+                        required: '*Missing entry',
+                        disabled: isDisabledContactAwareTransfer,
+                      })}
+                      type="radio"
+                      className="ff-only"
+                      name="personalRelatedDataObjectionsTransfer"
+                      value="Yes"
+                    />
+                  </span>
+                  <span className="label">Yes</span>
+                </label>
+              </div>
+              <span className={classNames('error-message')}>{errors?.personalRelatedDataObjectionsTransfer?.message}</span>
+            </div>
+            <div
+              id="personalRelatedDataTransferingNonetheless"
+              className={classNames(
+                'input-field-group include-error area',
+                errors.personalRelatedDataTransferingNonetheless ? 'error' : '',
+                isDisabledTransferingComments ? 'disabled' : '',
+              )}
+            >
+              <label
+                id="personalRelatedDataTransferingNonethelessLabel"
+                className="input-label"
+                htmlFor="personalRelatedDataTransferingNonetheless"
+              >
+                Please state your reasoning for transfering nonetheless{' '}
+                {getValues('personalRelatedDataObjectionsTransfer') === 'Yes' ? <sup>*</sup> : null}
+              </label>
+              <textarea
+                className="input-field-area"
+                type="text"
+                {...register('personalRelatedDataTransferingNonetheless', { required: '*Missing entry', disabled: isDisabledTransferingComments })}
+                rows={50}
+                id="personalRelatedDataTransferingNonetheless"
+              />
+              <span className={classNames('error-message')}>{errors?.personalRelatedDataTransferingNonetheless?.message}</span>
+            </div>
+            <div
+              id="personalRelatedDataTransferingObjections"
+              className={classNames(
+                'input-field-group include-error area',
+                errors.personalRelatedDataTransferingObjections ? 'error' : '',
+                isDisabledTransferingComments ? 'disabled' : '',
+              )}
+            >
+              <label
+                id="personalRelatedDataTransferingObjectionsLabel"
+                className="input-label"
+                htmlFor="personalRelatedDataTransferingObjections"
+              >
+                Please state your objections{' '}
+                {getValues('personalRelatedDataObjectionsTransfer') === 'Yes' ? <sup>*</sup> : null}
+              </label>
+              <textarea
+                className="input-field-area"
+                type="text"
+                {...register('personalRelatedDataTransferingObjections', { required: '*Missing entry', disabled: isDisabledTransferingComments })}
+                rows={50}
+                id="personalRelatedDataTransferingObjections"
+              />
+              <span className={classNames('error-message')}>{errors?.personalRelatedDataTransferingObjections?.message}</span>
             </div>
           </div>
         </div>
