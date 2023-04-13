@@ -48,12 +48,15 @@ const CreateOrEditProject = (props) => {
 
     const handleCreateDataikuSubmit = () => {
         if (!props.isEdit) {
-            if (!projectName) {
+            if (!projectName && !projectGroup) {
                 setProjectErrorMessage('Project name is required *');
+                setProjectGroupErrorMessage('Please select dataiku instance *');
                 return;
-            } 
-            if (!projectGroup) {
-                setProjectGroupErrorMessage('project group is required *');
+            } else if (!projectGroup) {
+                setProjectGroupErrorMessage('Please select dataiku instance *');
+                return;
+            } else if (!projectName) {
+                setProjectErrorMessage('Project name is required *');
                 return;
             }
             setProjectGroupErrorMessage('');
@@ -245,10 +248,8 @@ const CreateOrEditProject = (props) => {
                                                 name="projectGroup"
                                                 value={projectGroup}
                                                 onChange={() => {
-                                                    if (projectGroup) {
-                                                        setProjectGroupErrorMessage('');
-                                                    }
                                                     setProjectGroup('onPremise');
+                                                    setProjectGroupErrorMessage('');
                                                 }}
                                                 checked={props.isEdit ? props.editDataikuProjectDetail?.cloudProfile === 'onPremise' : projectGroup === 'onPremise'}
                                                 disabled={props.isEdit}
@@ -266,10 +267,8 @@ const CreateOrEditProject = (props) => {
                                                 name="projectGroup"
                                                 value={projectGroup}
                                                 onChange={() => {
-                                                    if (projectGroup) {
-                                                        setProjectGroupErrorMessage('');
-                                                    }
                                                     setProjectGroup('extollo');
+                                                    setProjectGroupErrorMessage('');
                                                 }}
                                                 checked={props.isEdit ? props.editDataikuProjectDetail?.cloudProfile === 'extollo' : projectGroup === 'extollo'}
                                                 disabled={props.isEdit}
