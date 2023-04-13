@@ -29,6 +29,7 @@ package com.daimler.data.db.repo.datatransfer;
 
 import java.util.List;
 
+import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.db.entities.DataTransferNsql;
 import com.daimler.data.db.repo.common.CommonDataRepository;
 
@@ -40,5 +41,7 @@ public interface DataTransferCustomRepository extends CommonDataRepository<DataT
 	Long getCountUsingNativeQuery(Boolean published, String recordStatus, String datatransferIds, String userId, String providerUserId);
 
 	List<DataTransferNsql> getExistingDataTransfer(String uniqueTransferName, String status);
+
+	GenericMessage updateDataTransferData();
 
 }
