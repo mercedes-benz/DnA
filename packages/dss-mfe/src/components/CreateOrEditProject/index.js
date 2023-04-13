@@ -86,13 +86,14 @@ const CreateOrEditProject = (props) => {
                 if (data.response.success === 'SUCCESS') {
                     Notification.show('Dataiku project updated successfully');
                     setProjectName('');
+                    setProjectGroup('');
                     setDataikuCollaborators([]);
                     ProgressIndicator.hide();
                     props.callDnaDataList();
                 } else {
                     ProgressIndicator.hide();
                     Notification.show(
-                        'Error while creating dataiku project.\n' + data.response.errors[0].message,
+                        'Error while creating dataiku project.\n' + data?.response?.errors[0]?.message,
                         'alert',
                     );
                 }
@@ -229,7 +230,7 @@ const CreateOrEditProject = (props) => {
                                     if (e.target.value) {
                                         setProjectErrorMessage('');
                                     }
-                                    setProjectName(e.target.value);
+                                    setProjectName(e.target.value?.toUpperCase());
                                 }}
                             />}
                             <span className={classNames('error-message')}>{projectErrorMessage}</span>
