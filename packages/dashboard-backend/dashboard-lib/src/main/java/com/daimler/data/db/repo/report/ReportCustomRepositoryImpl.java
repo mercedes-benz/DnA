@@ -31,6 +31,7 @@ import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -82,8 +83,16 @@ public class ReportCustomRepositoryImpl extends CommonDataRepositoryImpl<ReportN
 				List<ReportNsql> results = typedQuery.getResultList();
 				if (results != null && !results.isEmpty()) {
 					for (ReportNsql entity : results) {
-						LOGGER.info("Updating report with id: {}", entity.getId());						
-						em.merge(entity);
+						Report report = entity.getData();
+						report.setLastModifiedDate(new Date());
+						entity.setData(report);
+						LOGGER.info("Updating report with id: {}", entity.getId());
+						try {
+							em.merge(entity);
+						} catch (Exception e) {
+							LOGGER.error("Failed to update data for id {} at startup with exception {}", entity.getId(),
+									e.getMessage());
+						}
 						LOGGER.info("Report updated with id: {}", entity.getId());		
 					}
 				}
