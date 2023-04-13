@@ -176,7 +176,7 @@ const CreateOrEditProject = (props) => {
             Notification.show('Collaborator Already Exist.', 'warning');
         } else if (isCreator) {
             Notification.show(
-              `${collaborators.firstName} ${collaborators.lastName} is a creator. Creator can't be added as collaborator.`,
+              `${collaborators.givenName} ${collaborators.surName} is a creator. Creator can't be added as collaborator.`,
               'warning',
             );
           } else {
