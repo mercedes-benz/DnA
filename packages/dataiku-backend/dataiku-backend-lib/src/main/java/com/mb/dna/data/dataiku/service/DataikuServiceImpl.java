@@ -290,23 +290,33 @@ public class DataikuServiceImpl implements DataikuService	{
 			}else {
 				groupPrefix = dataikuClientConfig.getExtolloGroupNamePrefix();
 			}
-			if(collaborators!=null && !collaborators.isEmpty())
+			if(collaborators!=null && !collaborators.isEmpty()) {
 				collaborators.forEach(n->users.add(n.getUserId()));
+			}
+			String projectName = existingDto.getProjectName();
+			String consolidatedPrefix = groupPrefix + envPrefix + projectName;
 			for(String record: users) {
 				DataikuUserDto tempUserDetails = dataikuClient.getDataikuUser(record.toUpperCase(),cloudProfile);
-				List<String> currentGroups = tempUserDetails.getGroups();
-				
-				String projectName = existingDto.getProjectName();
-				String consolidatedPrefix = groupPrefix + envPrefix + projectName;
-				currentGroups.removeIf(n->n.contains(consolidatedPrefix));
-				tempUserDetails.setGroups(currentGroups);
-				MessageDescription UpdateTempCollabErrMsg = dataikuClient.updateUser(tempUserDetails,cloudProfile);
-				if(UpdateTempCollabErrMsg!=null) {
-					warnings.add(new MessageDescription("Failed to remove project group for user " + record + ". Please update manually."));
+				if(tempUserDetails!=null) {
+					List<String> currentGroups = tempUserDetails.getGroups();
+					
+					
+					currentGroups.removeIf(n->n.contains(consolidatedPrefix));
+					tempUserDetails.setGroups(currentGroups);
+					MessageDescription UpdateTempCollabErrMsg = dataikuClient.updateUser(tempUserDetails,cloudProfile);
+					if(UpdateTempCollabErrMsg!=null) {
+						warnings.add(new MessageDescription("Failed to remove project group with prefix " + consolidatedPrefix + " for user " + record + ". Please update manually."));
+					}
 				}
 			}
-			dataikuRepo.deleteById(id);
-			responseMessage.setSuccess("SUCCESS");
+			MessageDescription dataikuProjectDeleteResponse = dataikuClient.deleteProject(projectName, cloudProfile);
+			if(dataikuProjectDeleteResponse!=null) {
+				log.error("Failed to delete dataiku project with id {}",id);
+				errors.add(dataikuProjectDeleteResponse);
+			}else {
+				dataikuRepo.deleteById(id);
+				responseMessage.setSuccess("SUCCESS");
+			}
 		}catch(Exception e) {
 			log.error("Failed to delete dataiku project with id {} and exception {}",id,e.getMessage());
 			MessageDescription noRecordsMsg = new MessageDescription("Failed to delete dataiku project with exception " + e.getMessage());

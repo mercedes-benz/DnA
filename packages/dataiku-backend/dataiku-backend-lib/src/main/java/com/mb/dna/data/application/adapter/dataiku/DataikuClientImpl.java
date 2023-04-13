@@ -129,10 +129,12 @@ public class DataikuClientImpl implements DataikuClient {
 													.header("Content-Type", "application/json")
 													.header("Authorization", "Basic "+ apiToken);
 			log.info("run scenarion with url {}", url);
-			Publisher<HttpResponse<String>> response = 
-					client.exchange(req,String.class);
-			if(response!=null) {
-					log.info("Ran updated scenario for projectName",projectName);
+			HttpResponse<Object> response = client.toBlocking().exchange(req,Object.class);
+			if(response!=null && response.getBody()!=null) {
+				Optional<Object> responseBody = response.getBody();
+				if(responseBody.isPresent()) {
+					log.info("Ran updated scenario for projectName {} with response status {} ",projectName, response.getStatus().toString());
+				}
 			}
 			client.close();
 			return null;
