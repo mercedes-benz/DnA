@@ -58,6 +58,8 @@ public interface DataProductService extends CommonService<DataProductVO, DataPro
 
 	List<DataProductVO> getExistingDataProduct(String uniqueProductName, String status);
 
+	GenericMessage updateDataProductData();
+
 	Long getCountOwners(Boolean published, String recordStatus);
 
 	String getNextSeqId();
