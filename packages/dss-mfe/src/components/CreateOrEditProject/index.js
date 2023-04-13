@@ -48,12 +48,15 @@ const CreateOrEditProject = (props) => {
 
     const handleCreateDataikuSubmit = () => {
         if (!props.isEdit) {
-            if (!projectName) {
+            if (!projectName && !projectGroup) {
                 setProjectErrorMessage('Project name is required *');
+                setProjectGroupErrorMessage('Please select dataiku instance *');
                 return;
-            } 
-            if (!projectGroup) {
-                setProjectGroupErrorMessage('project group is required *');
+            } else if (!projectGroup) {
+                setProjectGroupErrorMessage('Please select dataiku instance *');
+                return;
+            } else if (!projectName) {
+                setProjectErrorMessage('Project name is required *');
                 return;
             }
             setProjectGroupErrorMessage('');
@@ -83,13 +86,14 @@ const CreateOrEditProject = (props) => {
                 if (data.response.success === 'SUCCESS') {
                     Notification.show('Dataiku project updated successfully');
                     setProjectName('');
+                    setProjectGroup('');
                     setDataikuCollaborators([]);
                     ProgressIndicator.hide();
                     props.callDnaDataList();
                 } else {
                     ProgressIndicator.hide();
                     Notification.show(
-                        'Error while creating dataiku project.\n' + data.response.errors[0].message,
+                        'Error while creating dataiku project.\n' + data?.response?.errors[0]?.message,
                         'alert',
                     );
                 }
@@ -226,7 +230,7 @@ const CreateOrEditProject = (props) => {
                                     if (e.target.value) {
                                         setProjectErrorMessage('');
                                     }
-                                    setProjectName(e.target.value);
+                                    setProjectName(e.target.value?.toUpperCase());
                                 }}
                             />}
                             <span className={classNames('error-message')}>{projectErrorMessage}</span>
@@ -245,10 +249,8 @@ const CreateOrEditProject = (props) => {
                                                 name="projectGroup"
                                                 value={projectGroup}
                                                 onChange={() => {
-                                                    if (projectGroup) {
-                                                        setProjectGroupErrorMessage('');
-                                                    }
                                                     setProjectGroup('onPremise');
+                                                    setProjectGroupErrorMessage('');
                                                 }}
                                                 checked={props.isEdit ? props.editDataikuProjectDetail?.cloudProfile === 'onPremise' : projectGroup === 'onPremise'}
                                                 disabled={props.isEdit}
@@ -266,10 +268,8 @@ const CreateOrEditProject = (props) => {
                                                 name="projectGroup"
                                                 value={projectGroup}
                                                 onChange={() => {
-                                                    if (projectGroup) {
-                                                        setProjectGroupErrorMessage('');
-                                                    }
                                                     setProjectGroup('extollo');
+                                                    setProjectGroupErrorMessage('');
                                                 }}
                                                 checked={props.isEdit ? props.editDataikuProjectDetail?.cloudProfile === 'extollo' : projectGroup === 'extollo'}
                                                 disabled={props.isEdit}
