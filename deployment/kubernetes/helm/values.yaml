@@ -2667,3 +2667,9 @@ dss-be:
 
 hasura:
   enabled: true
+
+matomo:
+  enabled: true
+
+mysql:
+  enabled: true
