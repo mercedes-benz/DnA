@@ -29,8 +29,10 @@ package com.daimler.data.db.repo.dataproduct;
 
 import java.util.List;
 
+import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.db.entities.DataProductNsql;
 import com.daimler.data.db.repo.common.CommonDataRepository;
+import org.springframework.http.ResponseEntity;
 
 public interface DataProductCustomRepository extends CommonDataRepository<DataProductNsql, String> {
 
@@ -52,5 +54,7 @@ public interface DataProductCustomRepository extends CommonDataRepository<DataPr
 			String sortOrder, String recordStatus);
 
 	List<DataProductNsql> getExistingDataProduct(String uniqueProductName, String status);
+
+	GenericMessage updateDataProductData();
 
 }
