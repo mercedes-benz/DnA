@@ -11,9 +11,15 @@ micronaut:
       swagger-ui:
         paths: classpath:META-INF/swagger/views/swagger-ui
         mapping: /swagger-ui/**
+  netty:
+    event-loops:
+      custom-event-loop:
+        num-threads: 20
+          
   http:
       client:
         #read-timeout: ${HTTP_CLIENT_READTIMEOUT:120s}
+        event-loop-group: custom-event-loop
         ssl:
          insecureTrustAllCertificates: true  
   server:

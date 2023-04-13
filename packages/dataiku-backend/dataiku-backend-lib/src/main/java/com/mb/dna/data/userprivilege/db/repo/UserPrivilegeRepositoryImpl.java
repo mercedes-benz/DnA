@@ -32,13 +32,16 @@ public class UserPrivilegeRepositoryImpl implements UserPrivilegeRepository{
 	}
 	
 	@Override
-	public UserPrivilegeSql findByUser(String userId) {
+	public UserPrivilegeSql findByUser(String searchTerm) {
 		UserPrivilegeSql existingRecord = null;
 		List<UserPrivilegeSql> results = new ArrayList<>();
 		try {
 			String queryString = "SELECT id,userId,profile,givenName,surName FROM userprivilege_sql ";
-			if(userId!=null && !userId.isBlank() && !userId.isEmpty()) {
-				queryString += " where LOWER(userId) = '" + userId.toLowerCase() + "' ";
+			if(searchTerm!=null && !searchTerm.isBlank() && !searchTerm.isEmpty()) {
+				queryString += " where LOWER(userId) = '" + searchTerm.toLowerCase() + 
+						"' or LOWER(givenName) = '" + searchTerm.toLowerCase() + 
+						"' or LOWER(surName) = '"+ searchTerm.toLowerCase() + 
+						"'";
 			}else {
 				return existingRecord;
 			}
@@ -48,7 +51,7 @@ public class UserPrivilegeRepositoryImpl implements UserPrivilegeRepository{
 				existingRecord = fetchedResults.get(0);
 			}
 		}catch(Exception e) {
-			log.error("Failed to fetch user with shorid {} with exception {}", userId, e.getMessage());
+			log.error("Failed to fetch user with searchTerm {} with exception {}", searchTerm, e.getMessage());
 		}
         return existingRecord;
 	}

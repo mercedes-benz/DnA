@@ -23,6 +23,6 @@ public interface UserPrivilegeRepository {
 
 		void deleteAll();
 
-		UserPrivilegeSql findByUser(String userId);
+		UserPrivilegeSql findByUser(String searchTerm);
 	    
 }
