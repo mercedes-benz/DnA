@@ -18,4 +18,5 @@ public class HasuraUserInfoInsertGenericResponse extends HasuraGenericErrorRespo
 	private HttpStatus status;
 	private String errorMessage;
 	private UserInfoVO userInfoVO;
+	
 }
