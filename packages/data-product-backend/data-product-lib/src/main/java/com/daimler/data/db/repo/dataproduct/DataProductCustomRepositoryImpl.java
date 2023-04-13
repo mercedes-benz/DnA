@@ -30,13 +30,33 @@ package com.daimler.data.db.repo.dataproduct;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import javax.persistence.Query;
+import javax.persistence.TypedQuery;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Root;
+import javax.transaction.Transactional;
 
+import com.daimler.data.application.client.DashboardServicesClient;
+import com.daimler.data.controller.exceptions.GenericMessage;
+import com.daimler.data.controller.exceptions.MessageDescription;
+import com.daimler.data.db.entities.AgileReleaseTrainNsql;
+import com.daimler.data.db.entities.CarlaFunctionNsql;
+import com.daimler.data.db.entities.CorporateDataCatalogNsql;
+import com.daimler.data.dto.userinfo.dashboard.DashboardServiceLovDto;
+import com.daimler.data.dto.userinfo.dashboard.GetDashboardServiceLovResponseWrapperDto;
+import com.daimler.data.util.ConstantsUtility;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.event.EventListener;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.StringUtils;
 
@@ -51,6 +71,141 @@ public class DataProductCustomRepositoryImpl extends CommonDataRepositoryImpl<Da
 
 	private static Logger LOGGER = LoggerFactory.getLogger(DataProductCustomRepositoryImpl.class);
 	private static String REGEX = "[\\[+\\]+:{}^~?\\\\/()><=\"!]";
+
+	@Autowired
+	private DashboardServicesClient dashboardServicesClient;
+
+	@Transactional
+	@Override
+	public GenericMessage updateDataProductData() {
+		GenericMessage genericMessage = new GenericMessage();
+		List<MessageDescription> errors = new ArrayList<>();
+		try {
+			CriteriaBuilder cb = em.getCriteriaBuilder();
+			CriteriaQuery<DataProductNsql> cq = cb.createQuery(DataProductNsql.class);
+			Root<DataProductNsql> root = cq.from(DataProductNsql.class);
+			TypedQuery<DataProductNsql> typedQuery = em.createQuery(cq);
+			List<DataProductNsql> dataproductResults = typedQuery.getResultList();
+
+			CriteriaQuery<CarlaFunctionNsql> cq1 = cb.createQuery(CarlaFunctionNsql.class);
+			Root<CarlaFunctionNsql> root1 = cq1.from(CarlaFunctionNsql.class);
+			TypedQuery<CarlaFunctionNsql> carlatypedQuery = em.createQuery(cq1);
+			List<CarlaFunctionNsql> carlaResults = carlatypedQuery.getResultList();
+
+			GetDashboardServiceLovResponseWrapperDto agileReleaseTrainsResp = dashboardServicesClient.getAgileReleaseTrain();
+
+			if (dataproductResults != null && !dataproductResults.isEmpty()) {
+				for (DataProductNsql entity : dataproductResults) {
+
+					if (entity.getData() != null) {
+						// Below condition is used for adding id if it's missed in carla Lov of dataProduct.
+						if (entity.getData().getCarLaFunction() != null) {
+							if (entity.getData().getCarLaFunction().getId() == null) {
+								String id = null;
+
+								// To get individual carlaResults.
+								if (carlaResults != null && !carlaResults.isEmpty()) {
+									for (CarlaFunctionNsql carla : carlaResults) {
+										if (entity.getData().getCarLaFunction().getName().equals(carla.getData().getName())) {
+											id = carla.getId();
+											LOGGER.info("carla functions with id: {} and name {}", carla.getId(), carla.getData().getName());
+										}
+									}
+								}
+								if (id != null) {
+									entity.getData().getCarLaFunction().setId(id);
+									LOGGER.info("Updating dataproduct's carlafunctionLov with dataProduct id: {} and CarlaFunction {}", entity.getId(), entity.getData().getCarLaFunction().getName());
+								}
+								try {
+									em.merge(entity);
+								} catch (Exception e) {
+									MessageDescription errMsg = new MessageDescription("failed to update the carla functions for dataproduct id: " + entity.getId() + " with an Exception " + e.getMessage());
+									errors.add(errMsg);
+									LOGGER.error(errMsg.getMessage());
+								}
+							}
+						}
+
+						// Below condition is used for adding id if it's missed in AgileReleseTrain Lov of dataProduct.
+						if (entity.getData().getAgileReleaseTrain() != null) {
+							if (entity.getData().getAgileReleaseTrain().getId() == null) {
+								String id = null;
+
+								// To get individual agileReleaseTrainsResp.
+								if (agileReleaseTrainsResp != null && agileReleaseTrainsResp.getData() != null && !agileReleaseTrainsResp.getData().isEmpty()) {
+									for (DashboardServiceLovDto art : agileReleaseTrainsResp.getData()) {
+										if (entity.getData().getAgileReleaseTrain().getName().equals(art.getName())) {
+											id = art.getId();
+											LOGGER.info("AgileReleaseTrain functions with id: {} and name {}", art.getId(), art.getName());
+										}
+									}
+								}
+								if (id != null) {
+									entity.getData().getAgileReleaseTrain().setId(id);
+									LOGGER.info("Updating dataproduct's AgileReleaseTrainLov with dataProduct id: {} and AgileReleaseTrain {}", entity.getId(), entity.getData().getAgileReleaseTrain().getName());
+								}
+								try {
+									em.merge(entity);
+								} catch (Exception e) {
+									MessageDescription errMsg = new MessageDescription("failed to update the AgileReleaseTrain functions for dataproduct id: " + entity.getId() + " with an Exception " + e.getMessage());
+									errors.add(errMsg);
+									LOGGER.error(errMsg.getMessage());
+								}
+							}
+						}
+
+						// Below condition is used for setting up the values of contactAwareTransfer as false for personal related data.
+						if (entity.getData().getPersonalRelatedData() != null) {
+							if (entity.getData().getPersonalRelatedData().isPersonalRelatedData()) {
+								if (!entity.getData().getPersonalRelatedData().isContactAwareTransfer()) {
+									entity.getData().getPersonalRelatedData().setContactAwareTransfer(false);
+									entity.getData().setLastModifiedDate(new Date());
+									try {
+										em.merge(entity);
+									} catch (Exception e) {
+										MessageDescription errMsg = new MessageDescription("failed to update the getPersonalRelatedData for dataproduct id: " + entity.getId() + " with an Exception " + e.getMessage());
+										errors.add(errMsg);
+										LOGGER.error(errMsg.getMessage());
+									}
+								}
+							}
+						}
+
+						// Below condition is used for setting up the values of contactAwareTransfer as false for personal related data.
+						if (entity.getData().getTransnationalDataTransfer() != null) {
+							if (entity.getData().getTransnationalDataTransfer().isDataTransferred()) {
+								if (entity.getData().getTransnationalDataTransfer().isNotWithinEU()) {
+									if (!entity.getData().getTransnationalDataTransfer().isContactAwareTransfer()) {
+										entity.getData().getTransnationalDataTransfer().setContactAwareTransfer(false);
+										entity.getData().setLastModifiedDate(new Date());
+										try {
+											em.merge(entity);
+										} catch (Exception e) {
+											MessageDescription errMsg = new MessageDescription("failed to update the getTransnationalDataTransfer for dataproduct id: " + entity.getId() + " with an Exception " + e.getMessage());
+											errors.add(errMsg);
+											LOGGER.error(errMsg.getMessage());
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		} catch (Exception e) {
+			MessageDescription errMsg = new MessageDescription("Failed to update the data of dataProduct with an exception " + e.getMessage());
+			errors.add(errMsg);
+			LOGGER.error(errMsg.getMessage());
+		}
+		genericMessage.setErrors(errors);
+		if (errors.size() > 0) {
+			genericMessage.setSuccess(ConstantsUtility.FAILURE);
+			return genericMessage;
+		} else {
+			genericMessage.setSuccess(ConstantsUtility.SUCCESS);
+		}
+		return genericMessage;
+	}
 
 	@Override
 	public List<DataProductNsql> getAllWithFiltersUsingNativeQuery(Boolean published, int offset, int limit,
