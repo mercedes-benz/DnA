@@ -87,3 +87,6 @@ logging:
 proxy: 
   port: ${CUSTOMPROXY_PORT:XXXX}
   host: ${CUSTOMPROXY_HOST:XXXX}
+  
+codespace:
+  recipe: ${DnARECIPE:XXXX}  
