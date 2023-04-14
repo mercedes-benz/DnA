@@ -412,7 +412,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 			repoName = vo.getProjectDetails().getRecipeDetails().getRepodetails();
 			HttpStatus publicGitPatStatus = gitClient.validatePublicGitPat(vo.getGitUserName(), pat, repoName);
 			if(!publicGitPatStatus.is2xxSuccessful()) {
-				MessageDescription errMsg = new MessageDescription("Failed while validating GitHub Personal Access Token. Please verify and retry");
+				MessageDescription errMsg = new MessageDescription("Invalid Personal Access Token. Please verify and retry");
 				errors.add(errMsg);
 				responseVO.setErrors(errors);
 				return responseVO;
