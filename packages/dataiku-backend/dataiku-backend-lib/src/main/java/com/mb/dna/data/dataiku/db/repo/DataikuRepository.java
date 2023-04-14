@@ -20,6 +20,6 @@ public interface DataikuRepository {
 
 	void update(DataikuSql dataikuProject);
 
-	DataikuSql findByProjectName(String projectName);
+	DataikuSql findByProjectName(String projectName, String cloudProfile);
 
 }

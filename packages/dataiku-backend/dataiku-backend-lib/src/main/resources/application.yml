@@ -71,6 +71,7 @@ dataiku:
   scenarioId: ${DATAIKU_SCENARIOS_ID:XXXX}
   scenarioUpdateRequest: ${DATAIKU_SCENARIO_UPDATEREQUEST:XXXX}
   usersUri: ${DATAIKU_USERSURI:/admin/users}
+  projectsUri: ${DATAIKU_PROJECTSURI:/projects/}
   environmentProfile: ${DATAIKU_ENV_PREFIX:XXXX}
   onPremiseGroupNamePrefix: ${DATAIKU_ONPREMISE_PREFIX:XXXX}
   extolloGroupNamePrefix: ${DATAIKU_EXTOLLO_PREFIX:XXXX}
