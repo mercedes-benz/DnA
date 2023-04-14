@@ -59,6 +59,9 @@ spring:
           binder: kafka
           destination: dnaCentralEventTopic
           content-type: text/plain
+proxy: 
+  port: ${CUSTOMPROXY_PORT:XXXX}
+  host: ${CUSTOMPROXY_HOST:XXXX}          
 
 kafka:
   centralTopic:
