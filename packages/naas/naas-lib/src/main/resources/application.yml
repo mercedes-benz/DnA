@@ -58,10 +58,7 @@ spring:
         consume1:
           binder: kafka
           destination: dnaCentralEventTopic
-          content-type: text/plain
-proxy: 
-  port: ${CUSTOMPROXY_PORT:XXXX}
-  host: ${CUSTOMPROXY_HOST:XXXX}          
+          content-type: text/plain     
 
 kafka:
   centralTopic:
