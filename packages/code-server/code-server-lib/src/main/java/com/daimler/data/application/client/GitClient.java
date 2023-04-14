@@ -1,5 +1,8 @@
 package com.daimler.data.application.client;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
@@ -13,6 +16,9 @@ import org.springframework.web.client.RestTemplate;
 import com.daimler.data.dto.GitBranchesCollectionDto;
 
 import lombok.extern.slf4j.Slf4j;
+import net.minidev.json.JSONArray;
+import net.minidev.json.JSONObject;
+import net.minidev.json.parser.JSONParser;
 
 @Component
 @Slf4j
@@ -29,6 +35,12 @@ public class GitClient {
 	
 	@Autowired
 	private RestTemplate restTemplate;
+	
+	@Autowired
+	private RestTemplate proxyRestTemplate;
+	
+	@Value("${codespace.recipe}")
+	private String DnARecipe;
 	
 	public HttpStatus createRepo(String repoName) {
 		try {
@@ -144,6 +156,30 @@ public class GitClient {
 			log.error("Error occured while validating user {} PAT with exception {}", username, e.getMessage());
 		}
 		return HttpStatus.INTERNAL_SERVER_ERROR;
+	}
+
+	public HttpStatus validatePublicGitPat(String gitUserName, String pat, String publicGitUrl) {
+		try {
+			HttpHeaders headers = new HttpHeaders();
+			headers.set("Accept", "application/json");
+			headers.set("Content-Type", "application/json");
+			headers.set("Authorization", "token "+ pat);
+			String userRepoName = "";
+			String[] publicUrlArray = publicGitUrl.split(",");
+			String url = "https://api.github.com/users/" + DnARecipe;
+			HttpEntity entity = new HttpEntity<>(headers);
+			ResponseEntity<String> response = proxyRestTemplate.exchange(url, HttpMethod.GET, entity, String.class);
+			if (response != null && response.getStatusCode() != null) {
+				log.info("Completed validating public github user {} PAT with http status {}",
+						gitUserName, response.getStatusCode().name());
+				return response.getStatusCode();
+			}
+
+		} catch (Exception e) {
+			log.error("Error occured while validating public github user {} PAT with exception {}", gitUserName, e.getMessage());
+		}
+		return HttpStatus.INTERNAL_SERVER_ERROR;
+		
 	}
 	
 	
