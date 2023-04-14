@@ -39,6 +39,9 @@ public class GitClient {
 	@Autowired
 	private RestTemplate proxyRestTemplate;
 	
+	@Value("${codespace.recipe}")
+	private String DnARecipe;
+	
 	public HttpStatus createRepo(String repoName) {
 		try {
 			HttpHeaders headers = new HttpHeaders();
@@ -163,7 +166,7 @@ public class GitClient {
 			headers.set("Authorization", "token "+ pat);
 			String userRepoName = "";
 			String[] publicUrlArray = publicGitUrl.split(",");
-			String url = "https://api.github.com/users/" + gitUserName;
+			String url = "https://api.github.com/users/" + DnARecipe;
 			HttpEntity entity = new HttpEntity<>(headers);
 			ResponseEntity<String> response = proxyRestTemplate.exchange(url, HttpMethod.GET, entity, String.class);
 			if (response != null && response.getStatusCode() != null) {
@@ -173,7 +176,7 @@ public class GitClient {
 			}
 
 		} catch (Exception e) {
-			log.error("Error occured while validating user {} PAT with exception {}", gitUserName, e.getMessage());
+			log.error("Error occured while validating public github user {} PAT with exception {}", gitUserName, e.getMessage());
 		}
 		return HttpStatus.INTERNAL_SERVER_ERROR;
 		
