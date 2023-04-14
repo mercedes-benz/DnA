@@ -14,6 +14,7 @@ import com.mb.dna.data.api.controller.exceptions.GenericMessage;
 import com.mb.dna.data.api.controller.exceptions.MessageDescription;
 import com.mb.dna.data.application.adapter.dataiku.DataikuClient;
 import com.mb.dna.data.application.adapter.dataiku.DataikuClientConfig;
+import com.mb.dna.data.application.adapter.dataiku.DataikuProjectDetailsDto;
 import com.mb.dna.data.application.adapter.dataiku.DataikuUserDto;
 import com.mb.dna.data.assembler.DataikuAssembler;
 import com.mb.dna.data.dataiku.api.dto.CollaboratorDetailsDto;
@@ -22,6 +23,7 @@ import com.mb.dna.data.dataiku.api.dto.DataikuProjectResponseDto;
 import com.mb.dna.data.dataiku.api.dto.DataikuProjectUpdateDto;
 import com.mb.dna.data.dataiku.api.dto.DataikuProjectUpdateRequestDto;
 import com.mb.dna.data.dataiku.api.dto.DataikuProjectsCollectionDto;
+import com.mb.dna.data.dataiku.db.entities.CollaboratorSql;
 import com.mb.dna.data.dataiku.db.entities.DataikuSql;
 import com.mb.dna.data.dataiku.db.repo.DataikuRepository;
 import com.mb.dna.data.userprivilege.api.dto.UserPrivilegeResponseDto;
@@ -85,9 +87,9 @@ public class DataikuServiceImpl implements DataikuService	{
 	
 	@Override
 	@Transactional
-	public DataikuProjectDto getByProjectName(String projectName) {
+	public DataikuProjectDto getByProjectName(String projectName, String cloudProfile) {
 		DataikuProjectDto dto = new DataikuProjectDto();
-		DataikuSql result = dataikuRepo.findByProjectName(projectName);
+		DataikuSql result = dataikuRepo.findByProjectName(projectName,cloudProfile);
 		if(result!=null && projectName.equalsIgnoreCase(result.getProjectName())) {
 			dto = assembler.toVo(result);
 		}
@@ -108,7 +110,76 @@ public class DataikuServiceImpl implements DataikuService	{
 		if(updateData.getDescription()!=null)
 			existingRecord.setDescription(updateData.getDescription());
 		try {
+			List<CollaboratorDetailsDto>  currentCollabs = updateData.getCollaborators();
+			List<CollaboratorDetailsDto>  existingCollabs = existingRecord.getCollaborators();
+			String envPrefix = dataikuClientConfig.getEnvironmentProfile();
+			String cloudProfile = existingRecord.getCloudProfile();
+			String groupPrefix = "";
+			
+			if("onPremise".equalsIgnoreCase(existingRecord.getCloudProfile())) {
+				groupPrefix = dataikuClientConfig.getOnPremiseGroupNamePrefix();
+			}else {
+				groupPrefix = dataikuClientConfig.getExtolloGroupNamePrefix();
+			}
+			String projectName = existingRecord.getProjectName();
+			String consolidatedPrefix = groupPrefix + envPrefix + projectName;
+			String projectSpecificAdminAccessGroup = groupPrefix + envPrefix + projectName + "--ADMINISTRATOR";
+			String projectSpecificContributorAccessGroup = groupPrefix + envPrefix + projectName + "--CONTRIBUTOR";
+			String projectSpecificReadAccessGroup = groupPrefix + envPrefix + projectName + "--READ-ONLY";
+			for(CollaboratorDetailsDto record : existingCollabs) {
+				DataikuUserDto tempUserDetails = dataikuClient.getDataikuUser(record.getUserId().toUpperCase(),cloudProfile);
+				if(tempUserDetails!=null) {
+					List<String> currentGroups = tempUserDetails.getGroups();
+					currentGroups.removeIf(n->n.contains(consolidatedPrefix));
+					tempUserDetails.setGroups(currentGroups);
+					MessageDescription UpdateTempCollabErrMsg = dataikuClient.updateUser(tempUserDetails,cloudProfile);
+					if(UpdateTempCollabErrMsg!=null) {
+						warnings.add(new MessageDescription("Failed to remove project group with prefix " + consolidatedPrefix + " for user " + record.getUserId() + ". Please update manually."));
+					}
+				}
+			}
+			if(currentCollabs!=null && !currentCollabs.isEmpty()) {
+				currentCollabs.forEach(x -> {
+					DataikuUserDto tempCollabUserDetails = dataikuClient.getDataikuUser(x.getUserId().toUpperCase(),cloudProfile);
+					String groupName = "";
+					String permission = x.getPermission();
+					if("Administrator".equalsIgnoreCase(permission)) {
+						groupName = projectSpecificAdminAccessGroup;
+					}
+					if("Contributor".equalsIgnoreCase(permission)) {
+						groupName = projectSpecificContributorAccessGroup;
+					}
+					if("Reader".equalsIgnoreCase(permission)) {
+						groupName = projectSpecificReadAccessGroup;
+					}
+					if(tempCollabUserDetails == null || tempCollabUserDetails.getLogin()==null) {
+						tempCollabUserDetails = new DataikuUserDto();
+						tempCollabUserDetails.setLogin(x.getUserId().toUpperCase());
+						tempCollabUserDetails.setSourceType("LOCAL_NO_AUTH");
+						tempCollabUserDetails.setDisplayName(x.getGivenName() + " " + x.getSurName());
+						List<String> groups =new ArrayList<>();
+						groups.add(groupName);
+						tempCollabUserDetails.setGroups(groups);
+						tempCollabUserDetails.setEmail(x.getUserId().toUpperCase());
+						tempCollabUserDetails.setEnabled(true);
+						MessageDescription onboardTempCollabErrMsg = dataikuClient.addUser(tempCollabUserDetails,cloudProfile);
+						if(onboardTempCollabErrMsg!=null) {
+							warnings.add(onboardTempCollabErrMsg);
+						}
+					}else {
+						List<String> currentGroups = tempCollabUserDetails.getGroups();
+						currentGroups.removeIf(n->n.contains(consolidatedPrefix));
+						currentGroups.add(groupName);
+						MessageDescription UpdateTempCollabErrMsg = dataikuClient.updateUser(tempCollabUserDetails,cloudProfile);
+						if(UpdateTempCollabErrMsg!=null) {
+							warnings.add(UpdateTempCollabErrMsg);
+						}
+					}
+				});
+			}
+			List<CollaboratorSql> updatedCollabs =  currentCollabs.stream().map(n -> assembler.toCollaboratorsData(n,id)).collect(Collectors.toList());
 			DataikuSql entity = assembler.toEntity(existingRecord);
+			entity.setCollaborators(updatedCollabs);
 			dataikuRepo.update(entity);
 			responseMessage.setSuccess("SUCCESS");
 		}catch(Exception e) {
@@ -123,6 +194,21 @@ public class DataikuServiceImpl implements DataikuService	{
 		responseWrapperDto.setData(existingRecord);
 		return responseWrapperDto;
 			
+	}
+	
+	
+	@Override
+	public boolean checkExistingProject(String projectName, String cloudProfile) {
+		boolean isExisting = false;
+		List<DataikuProjectDetailsDto> existingProjects = dataikuClient.getDataikuProjects(cloudProfile);
+		if(existingProjects!=null && !existingProjects.isEmpty()) {
+			
+			Optional<DataikuProjectDetailsDto> projectFound = existingProjects.stream().filter(x -> projectName.equalsIgnoreCase(x.getProjectKey())).findAny();
+	        if (projectFound.isPresent()) {
+	        	isExisting = true;
+	        }
+		}
+		return isExisting;
 	}
 	
 	@Override
@@ -299,8 +385,6 @@ public class DataikuServiceImpl implements DataikuService	{
 				DataikuUserDto tempUserDetails = dataikuClient.getDataikuUser(record.toUpperCase(),cloudProfile);
 				if(tempUserDetails!=null) {
 					List<String> currentGroups = tempUserDetails.getGroups();
-					
-					
 					currentGroups.removeIf(n->n.contains(consolidatedPrefix));
 					tempUserDetails.setGroups(currentGroups);
 					MessageDescription UpdateTempCollabErrMsg = dataikuClient.updateUser(tempUserDetails,cloudProfile);
