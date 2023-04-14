@@ -32,13 +32,13 @@ public class DataikuRepositoryImpl implements DataikuRepository{
 	}
 	
 	@Override
-	public DataikuSql findByProjectName(String projectName) {
+	public DataikuSql findByProjectName(String projectName, String cloudProfile) {
 		DataikuSql existingRecord = null;
 		List<DataikuSql> results = new ArrayList<>();
 		try {
 			String queryString = "SELECT id,project_name,description,cloud_profile,created_by,created_on FROM dataiku_sql ";
 			if(projectName!=null && !projectName.isBlank() && !projectName.isEmpty()) {
-				queryString += " where LOWER(project_name) = '" + projectName.toLowerCase() + "' ";
+				queryString += " where LOWER(project_name) = '" + projectName.toLowerCase() + "' and LOWER(cloud_profile) = '" + cloudProfile.toLowerCase() + "'";
 			}else {
 				return existingRecord;
 			}
