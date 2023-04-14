@@ -84,3 +84,6 @@ logging:
         type:
           descriptor:
             sql: ERROR
+proxy: 
+  port: ${CUSTOMPROXY_PORT:XXXX}
+  host: ${CUSTOMPROXY_HOST:XXXX}
