@@ -24,6 +24,7 @@ public class DataikuClientConfig {
 	private String scenarioId;
 	private String scenarioUpdateRequest;
 	private String usersUri;
+	private String projectsUri;
 	private String groupNamePrefix;
 	private String environmentProfile;
 	private String onPremiseGroupNamePrefix;

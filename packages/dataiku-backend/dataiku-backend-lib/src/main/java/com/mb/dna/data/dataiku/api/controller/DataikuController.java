@@ -4,6 +4,8 @@ import static io.micronaut.http.MediaType.APPLICATION_JSON;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -102,21 +104,36 @@ public class DataikuController {
 				}
 			}
 		}
+        
 		String projectName = requestedData.getProjectName();
+		String cloudProfile = requestedData.getCloudProfile();
+		Pattern pattern = Pattern.compile("[^a-zA-Z0-9]");
+        Matcher matcher = pattern.matcher(projectName);
+        boolean isNameWithSpecialCharacters = matcher.find();
 		if(projectName==null || projectName.isBlank() || projectName.isEmpty() || "".equalsIgnoreCase(projectName)
-				|| projectName.length()>22) {
-			MessageDescription errMsg = new MessageDescription("Bad request. Project name should be non null value of length less than 22.");
-			log.error("Bad request. Project name {} should be non null and should be less than 22 characters.", projectName);
+				|| projectName.length()>22 || isNameWithSpecialCharacters) {
+			MessageDescription errMsg = new MessageDescription("Bad request. Project name should be non null value of length less than 22 without any special characters.");
+			log.error("Bad request. Project name {} should not be empty, or having any special character and should not exceed more than 22 characters.", projectName);
 			errors.add(errMsg);
 			responseMsg.setErrors(errors);
 			responseMsg.setWarnings(warnings);
 			responseDto.setResponse(responseMsg);
 			return Response.status(Status.BAD_REQUEST).entity(responseDto).build();
 		}
-		DataikuProjectDto existingDataikuProject = service.getByProjectName(projectName);
-		if(existingDataikuProject!=null && projectName.equalsIgnoreCase(existingDataikuProject.getProjectName())){
+		DataikuProjectDto existingDataikuProject = service.getByProjectName(projectName,cloudProfile);
+		if(existingDataikuProject!=null && projectName.equalsIgnoreCase(existingDataikuProject.getProjectName())) {
 			MessageDescription errMsg = new MessageDescription("Conflict. Project with name " + projectName + " already exists");
-			log.error("Conflict. Project with name {} already exists", projectName);
+			log.error("Conflict. Project with name {} already exists with cloudprofile {} ", projectName, cloudProfile);
+			errors.add(errMsg);
+			responseMsg.setErrors(errors);
+			responseMsg.setWarnings(warnings);
+			responseDto.setResponse(responseMsg);
+			return Response.status(Status.CONFLICT).entity(responseDto).build();
+		}
+		boolean isExisting = service.checkExistingProject(projectName, cloudProfile);
+		if(isExisting) {
+			MessageDescription errMsg = new MessageDescription("Conflict. Project with name " + projectName + " already exists");
+			log.error("Conflict. Project with name {} already exists at {} ", projectName, cloudProfile);
 			errors.add(errMsg);
 			responseMsg.setErrors(errors);
 			responseMsg.setWarnings(warnings);

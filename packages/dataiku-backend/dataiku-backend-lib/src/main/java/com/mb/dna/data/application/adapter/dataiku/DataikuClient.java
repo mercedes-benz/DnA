@@ -1,5 +1,7 @@
 package com.mb.dna.data.application.adapter.dataiku;
 
+import java.util.List;
+
 import com.mb.dna.data.api.controller.exceptions.MessageDescription;
 
 public interface DataikuClient {
@@ -15,5 +17,7 @@ public interface DataikuClient {
 	MessageDescription addUser(DataikuUserDto user, String cloudProfile);
 
 	MessageDescription updateUser(DataikuUserDto user, String cloudProfile);
+
+	List<DataikuProjectDetailsDto> getDataikuProjects(String cloudProfile);
 
 }
