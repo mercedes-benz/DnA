@@ -63,6 +63,9 @@ public class BaseDataikuService implements DataikuService {
 	@Value("${dataiku.production.adminGroup}")
 	private String prodAdminGroup;
 
+	@Value("${dataiku.production.onPremiseAdminGroup}")
+	private String onPremiseAdminGroup;
+
 	@Value("${dataiku.training.adminGroup}")
 	private String trainingAdminGroup;
 
@@ -87,22 +90,22 @@ public class BaseDataikuService implements DataikuService {
 	 * </p>
 	 * 
 	 * @param userId
-	 * @param isAdmin
-	 * @param environment
+	 * @param live
+	 * @param cloudProfile
 	 * @return List<DataikuProjectVO>
 	 */
 	@Override
 	@Transactional
-	public List<DataikuProjectVO> getAllDataikuProjects(String userId, Boolean live) {
+	public List<DataikuProjectVO> getAllDataikuProjects(String userId, Boolean live, String cloudProfile) {
 		List<DataikuProjectVO> res = null;
 		LOGGER.debug("Calling dataiku for user Role of userId {} ", userId);
-		Optional<DataikuUserRole> userRole = dataikuClient.getDataikuUserRole(userId, live);
+		Optional<DataikuUserRole> userRole = dataikuClient.getDataikuUserRole(userId, live, cloudProfile);
 		LOGGER.debug("Calling dataiku for projects...");
-		Optional<List<DataikuProjectVO>> projects = dataikuClient.getAllDataikuProjects(live);
+		Optional<List<DataikuProjectVO>> projects = dataikuClient.getAllDataikuProjects(live, cloudProfile);
 		if (projects.isPresent() && userRole.isPresent()) {
 			if (live) {
 				LOGGER.debug("Processing for production data..");
-				if (userRole.get().getGroups().contains(prodAdminGroup)) {
+				if (userRole.get().getGroups().contains(prodAdminGroup) || userRole.get().getGroups().contains(onPremiseAdminGroup)) {
 					LOGGER.info("Admin: Returning all projects");
 					res = new ArrayList<DataikuProjectVO>();
 					res = projects.get().stream().peek(project -> project.setRole(DATAIKU_ADMINISTRATOR))
@@ -118,7 +121,7 @@ public class BaseDataikuService implements DataikuService {
 						} else {
 							LOGGER.debug("Fetching permission..");
 							Optional<DataikuPermission> projectPermission = dataikuClient
-									.getDataikuProjectPermission(project.getProjectKey(), live);
+									.getDataikuProjectPermission(project.getProjectKey(), live, cloudProfile);
 							if (projectPermission.isPresent()
 									&& !ObjectUtils.isEmpty(projectPermission.get().getPermissions())) {
 								List<Permission> permissions = projectPermission.get().getPermissions().stream()
@@ -180,8 +183,8 @@ public class BaseDataikuService implements DataikuService {
 	 */
 	@Override
 	@Transactional
-	public DataikuProjectVO getByProjectKey(String projectKey, Boolean live) {
-		return dataikuClient.getDataikuProject(projectKey, live).get();
+	public DataikuProjectVO getByProjectKey(String projectKey, Boolean live, String cloudProfile) {
+		return dataikuClient.getDataikuProject(projectKey, live, cloudProfile).get();
 	}
 
 	@Override
