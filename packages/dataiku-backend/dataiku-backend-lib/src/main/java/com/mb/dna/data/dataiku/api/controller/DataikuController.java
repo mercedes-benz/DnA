@@ -76,7 +76,7 @@ public class DataikuController {
 		responseMsg.setSuccess("FAILED");
 		List<MessageDescription> errors = new ArrayList<>();
 		List<MessageDescription> warnings = new ArrayList<>();
-		String userId = "RAMYRAO";
+		String userId = this.userStore.getUserInfo().getId();
 		UserPrivilegeResponseDto ownerDetails = userPrivilegeService.getByShortId(userId);
 		if(ownerDetails==null || !ownerDetails.getCanCreate()) {
 			MessageDescription errMsg = new MessageDescription("User or privileges not found, cannot create dataiku project");
@@ -167,7 +167,7 @@ public class DataikuController {
     		@Parameter(description = "sortOrder, possible values asc/desc",allowEmptyValue= true, required = false) @QueryParam("sortOrder") String sortOrder,
     		@Parameter(description = "searchTerm to filter by projectName",allowEmptyValue= true, required = false) @QueryParam("projectName") String projectName
     		) {
-		String userId = "RAMYRAO";
+		String userId = this.userStore.getUserInfo().getId();
 		DataikuProjectsCollectionDto response = service.getAllDataikuProjects(userId, offset, limit, sortBy, sortOrder, projectName);
 		if(response!=null && response.getData()!= null && !response.getData().isEmpty())
 			return Response.ok().entity(response).build();
@@ -195,7 +195,7 @@ public class DataikuController {
 		List<MessageDescription> errors = new ArrayList<>();
 		List<MessageDescription> warnings = new ArrayList<>();
 		DataikuProjectDto existingDataikuProject = service.getById(id);
-		String userId = "RAMYRAO";
+		String userId = this.userStore.getUserInfo().getId();
 		if(existingDataikuProject!=null && id.equalsIgnoreCase(existingDataikuProject.getId())){
 			responseDto.setData(existingDataikuProject);
 			if(!userId.equalsIgnoreCase(existingDataikuProject.getCreatedBy())) {
@@ -235,7 +235,7 @@ public class DataikuController {
 		List<MessageDescription> errors = new ArrayList<>();
 		List<MessageDescription> warnings = new ArrayList<>();
 		DataikuProjectDto existingDataikuProject = service.getById(id);
-		String userId = "RAMYRAO";
+		String userId = this.userStore.getUserInfo().getId();
 		if(existingDataikuProject!=null && id.equalsIgnoreCase(existingDataikuProject.getId())){
 			if(!userId.equalsIgnoreCase(existingDataikuProject.getCreatedBy())) {
 				MessageDescription errMsg = new MessageDescription("Forbidden, Project can only be deleted by creator");
@@ -269,7 +269,7 @@ public class DataikuController {
 	@Tag(name = "dataiku")
     public Response fetchDataiku(
             @Parameter(description = "The id of the dataiku project to be fetched", required = true) @PathParam("id") String id) {
-		String userId = "RAMYRAO";
+		String userId = this.userStore.getUserInfo().getId();
 		DataikuProjectDto data = service.getById(id);
 		if(data!=null && id.equalsIgnoreCase(data.getId())) {
 			CollaboratorDetailsDto collabUser = data.getCollaborators().stream().filter(collab -> userId.equalsIgnoreCase(collab.getUserId()))
