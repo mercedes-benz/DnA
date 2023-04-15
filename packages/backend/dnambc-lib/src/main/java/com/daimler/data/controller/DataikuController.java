@@ -29,6 +29,7 @@ package com.daimler.data.controller;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
@@ -105,6 +106,7 @@ public class DataikuController implements DataikuApi {
 		if(extolloprojects != null && !extolloprojects.isEmpty()) consolidateList.addAll(extolloprojects);
 		if(onPremprojects != null && !onPremprojects.isEmpty()) consolidateList.addAll(onPremprojects);
 		if (!ObjectUtils.isEmpty(consolidateList)) {
+			consolidateList.stream().forEach(val -> val.setId(UUID.randomUUID().toString()));
 			col = new DataikuProjectVOCollection();
 			col.setData(consolidateList);
 			col.setTotalCount(consolidateList.size());
