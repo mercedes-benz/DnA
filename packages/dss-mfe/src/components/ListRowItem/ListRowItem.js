@@ -38,7 +38,7 @@ const ProjectListRowItem = (props) => {
 
     const target = event.target;
     const elemClasses = target.classList;
-    const cardDivElement = document.querySelector('#card-' + props.project.projectKey);
+    const cardDivElement = document.querySelector('#card-' + props.project.id);
     const contextMenuWrapper = cardDivElement?.querySelector('.contextMenuWrapper');
     const locationContextMenuWrapper = cardDivElement?.querySelector('.contextMenuWrapper');
 
@@ -125,13 +125,13 @@ const ProjectListRowItem = (props) => {
     return (
       <React.Fragment>
         <tr
-          id={props.project.projectKey}
-          key={props.project.projectKey}
+          id={props.project.id}
+          key={props.project.id}
           className={classNames('data-row')}
         >
           <td className="wrap-text projectName" >{props.project.projectName}</td>
           <td className="wrap-text projectName" >{props.project.cloudProfile}</td>
-          {props?.user?.id === props?.project?.createdBy ? <td id={'card-' + props.project.projectKey} key={props.project.projectKey} className={Styles.actionMenus}>
+          {props?.user?.id === props?.project?.createdBy ? <td id={'card-' + props.project.id} key={props.project.id} className={Styles.actionMenus}>
             <div className={classNames(Styles.contextMenu, showContextMenu ? Styles.open : '')}>
               <span
                 tooltip-data="More Action"
@@ -166,8 +166,8 @@ const ProjectListRowItem = (props) => {
   return (
     <React.Fragment>
       <tr
-        id={props.project.projectKey}
-        key={props.project.projectKey}
+        id={props.project.id}
+        key={props.project.id}
         className={classNames('data-row')}
         onClick={onInfoBtnClick}
       >
@@ -186,7 +186,7 @@ const ProjectListRowItem = (props) => {
         </td>
         <td className={Styles.iconAction}>
           {props.isProduction ? (
-            <span id={'provision' + props.project.projectKey}>
+            <span id={'provision' + props.project.id}>
               {props.project.solutionId ? (
                 <i
                   tooltip-data={'Go to Solution'}
