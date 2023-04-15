@@ -161,7 +161,7 @@ public class DataikuClientImp implements DataikuClient {
 			} catch (Exception e) {
 				LOGGER.error("Error occuried while fetching dataiku user role error:{}", e.getMessage());
 				LOGGER.debug("Fetching details of user {} from apac", userId);
-				response = restTemplate.exchange(dataikuUri + userId.toLowerCase() +"@"+ apacCorpdir, HttpMethod.GET,
+				response = restTemplate.exchange(dataikuUri + userId.toUpperCase(), HttpMethod.GET,
 						entity, String.class);
 			}
 			if (response != null && response.hasBody()) {
