@@ -133,7 +133,7 @@ export default class ListProjects extends React.Component {
     const projectsData = trainingList.map((project) => {
       return (
         <ListRowItem
-          key={project.projectKey}
+          key={project.id}
           project={project}
           projectId={project.projectKey}
           editDataikuProjectDetail={this.editDataikuProjectDetails}
@@ -149,7 +149,7 @@ export default class ListProjects extends React.Component {
     const productionsData = productionList.map((project) => {
       return (
         <ListRowItem
-          key={project.projectKey}
+          key={project.id}
           project={project}
           projectId={project.projectKey}
           isProduction={true}
@@ -166,7 +166,7 @@ export default class ListProjects extends React.Component {
     const dnaData = dnaList.map((project) => {
       return (
         <ListRowItem
-          key={project.projectKey}
+          key={project.id}
           project={project}
           projectId={project.projectKey}
           isProduction={false}
