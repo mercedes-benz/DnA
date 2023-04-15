@@ -149,7 +149,10 @@ paths:
 definitions:
  DataikuProjectVO:
   type: object
-  properties: 
+  properties:
+    id:
+      type: string
+      description: "randomly generated id"
     solutionId: 
       type: string
       description: "Solution id with which project is mapped"
@@ -168,15 +171,15 @@ definitions:
     projectAppType:
      type: string
      description: "projectAppType"
-    tutorialProject:
-     type: boolean
-     description: "tutorialProject"
-    disableAutomaticTriggers:
-     type: boolean
-     description: "disableAutomaticTriggers"
-    commitMode:
-     type: string
-     description: "commitMode"
+#    tutorialProject:
+#     type: boolean
+#     description: "tutorialProject"
+#    disableAutomaticTriggers:
+#     type: boolean
+#     description: "disableAutomaticTriggers"
+#    commitMode:
+#     type: string
+#     description: "commitMode"
     name:
      type: string
      description: "name"
@@ -189,77 +192,77 @@ definitions:
     canReadProjectContent:
      type: boolean
      description: "canReadProjectContent"
-    canWriteProjectContent:
-     type: boolean
-     description: "canWriteProjectContent"
-    canModerateDashboards:
-     type: boolean
-     description: "canModerateDashboards"
-    canWriteDashboards:
-     type: boolean
-     description: "canWriteDashboards"
-    canManageDashboardAuthorizations:
-     type: boolean
-     description: "canManageDashboardAuthorizations"
-    canManageExposedElements:
-     type: boolean
-     description: "canManageExposedElements"
-    canManageAdditionalDashboardUsers:
-     type: boolean
-     description: "canManageAdditionalDashboardUsers"       
-    canExportDatasetsData:
-     type: boolean
-     description: "canExportDatasetsData" 
-    canReadDashboards:
-     type: boolean
-     description: "canReadDashboards" 
-    canRunScenarios:
-     type: boolean
-     description: "canRunScenarios" 
-    canExecuteApp:
-     type: boolean
-     description: "canExecuteApp"    
+#    canWriteProjectContent:
+#     type: boolean
+#     description: "canWriteProjectContent"
+#    canModerateDashboards:
+#     type: boolean
+#     description: "canModerateDashboards"
+#    canWriteDashboards:
+#     type: boolean
+#     description: "canWriteDashboards"
+#    canManageDashboardAuthorizations:
+#     type: boolean
+#     description: "canManageDashboardAuthorizations"
+##    canManageExposedElements:
+#     type: boolean
+#     description: "canManageExposedElements"
+#    canManageAdditionalDashboardUsers:
+#     type: boolean
+#     description: "canManageAdditionalDashboardUsers"
+#    canExportDatasetsData:
+#     type: boolean
+#     description: "canExportDatasetsData"
+#    canReadDashboards:
+#     type: boolean
+#     description: "canReadDashboards"
+#    canRunScenarios:
+#     type: boolean
+#     description: "canRunScenarios"
+#    canExecuteApp:
+#     type: boolean
+#     description: "canExecuteApp"
     ownerDisplayName:
      type: string
      description: "ownerDisplayName"
-    objectImgHash:
-     type: number
-     description: "objectImgHash"
-    isProjectImg:
-     type: boolean
-     description: "isProjectImg"
-    defaultImgColor:
-     type: string
-     description: "defaultImgColor"   
-    imgPattern:
-     type: number
-     description: "imgPattern"
+#    objectImgHash:
+#     type: number
+#     description: "objectImgHash"
+#    isProjectImg:
+#     type: boolean
+#     description: "isProjectImg"
+#    defaultImgColor:
+#     type: string
+#     description: "defaultImgColor"
+#    imgPattern:
+#     type: number
+#     description: "imgPattern"
     contributors: 
      type: array
      items: 
         $ref: "#/definitions/Contributor"
-    metrics:
-     type: object
-     items:
-       $ref: "#/definitions/Metric"
-    metricsChecks:
-     type: object
-     items:
-       $ref: "#/definitions/MetricsCheck"
-    sparkPipelinesEnabled:
-     type: boolean
-     description: "sparkPipelinesEnabled"      
-    sqlPipelinesEnabled:
-     type: boolean
-     description: "sqlPipelinesEnabled"
+#    metrics:
+#     type: object
+#     items:
+#       $ref: "#/definitions/Metric"
+#    metricsChecks:
+#     type: object
+#     items:
+#       $ref: "#/definitions/MetricsCheck"
+#    sparkPipelinesEnabled:
+#     type: boolean
+#     description: "sparkPipelinesEnabled"
+#    sqlPipelinesEnabled:
+#     type: boolean
+#     description: "sqlPipelinesEnabled"
     versionTag:
-     type: object 
+     type: object
      items:
       $ref: "#/definitions/VersionTag"
     creationTag:
      type: object
      items:
-      $ref: "#/definitions/VersionTag"   
+      $ref: "#/definitions/VersionTag"
     shortDesc:
      type: string
      description: "shortDesc"
