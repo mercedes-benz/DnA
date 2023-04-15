@@ -160,6 +160,9 @@ dataiku:
     uri: ${DATAIKU_PROD_URI:xxxxx}
     apiKey: ${DATAIKU_PROD_API_KEY:xxxxx}
     adminGroup: ${DATAIKU_PROD_ADMIN_GROUP:xxxxx}
+    onPremiseUri: ${DATAIKU_PROD_ONPREMISE_URI:xxxxx}
+    onPremiseApiKey: ${DATAIKU_PROD_ONPREMISE_API_KEY:xxxxx}
+    onPremiseAdminGroup: ${DATAIKU_PROD_ONPREMISE_ADMIN_GROUP:xxxxx}
   training:
     uri: ${DATAIKU_TRAINING_URI:xxxxx}
     apiKey: ${DATAIKU_TRAINING_API_KEY:xxxxx}
