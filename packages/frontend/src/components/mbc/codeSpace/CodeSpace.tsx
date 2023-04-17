@@ -142,7 +142,7 @@ const CodeSpace = (props: ICodeSpaceProps) => {
       .then((res: ICodeSpaceData) => {
 
         const loginWindow = window.open(
-          Envs.CODESPACE_OIDC_POPUP_URL,
+          Envs.CODESPACE_OIDC_POPUP_URL + res.workspaceId + '/',
           'codeSpaceSessionWindow',
           'width=100,height=100,location=no,menubar=no,status=no,titlebar=no,toolbar=no',
         );
