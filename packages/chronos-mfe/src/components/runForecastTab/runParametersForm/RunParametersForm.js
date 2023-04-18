@@ -1,6 +1,7 @@
 import classNames from 'classnames';
 import React, { useState, useEffect } from 'react';
 import { useFormContext } from 'react-hook-form';
+import { useParams } from 'react-router-dom';
 import Styles from './run-parameters-form.scss';
 // Container components
 import SelectBox from 'dna-container/SelectBox';
@@ -18,6 +19,8 @@ const RunParametersForm = () => {
   const [configurationFiles, setConfigurationFiles] = useState([]);
   const [expertView, setExpertView] = useState(false);
 
+  const { id: projectId } = useParams();
+
   useEffect(() => {
     SelectBox.defaultSetup();
     Tooltip.defaultSetup();
@@ -33,7 +36,7 @@ const RunParametersForm = () => {
   }
 
   useEffect(() => {
-    chronosApi.getConfigurationFiles().then((res) => {
+    chronosApi.getConfigurationFiles(projectId).then((res) => {
       const bucketObjects = res.data.data.bucketObjects ? [...res.data.data.bucketObjects] : [];
       // const bucketObjects = configFiles.data.bucketObjects ? [...configFiles.data.bucketObjects] : [];
       bucketObjects.sort((a, b) => {
@@ -65,7 +68,7 @@ const RunParametersForm = () => {
         Notification.show(error.message, 'alert');
       }
     });
-  }, []);
+  }, [projectId]);
   
   useEffect(() => {
     expertView && SelectBox.defaultSetup();
