@@ -67,8 +67,8 @@ const deleteForecastRuns = (rids, id) => {
   return server.delete(`/forecasts/${id}/runs`, { ids: rids });
 };
 
-const getConfigurationFiles = () => {
-  return server.get(`/forecasts/default-config/files`, {
+const getConfigurationFiles = (id) => {
+  return server.get(`/forecasts/default-config/files?id=${id}`, {
     data: {},
   });
 };
