@@ -641,6 +641,7 @@ export interface IExternalCustomerDetails {
 export interface IKpis {
   description: string;
   name: string;
+  names?: any[];
   reportingCause: string[];
   kpiLink: string;
 }
@@ -732,6 +733,8 @@ export interface IIntegratedPortal {
 export interface IKpiNames {
   id: string;
   name: string;
+  dataType?: null | string;
+  source?: null | string;
 }
 
 export interface IReportingCauses {
