@@ -229,6 +229,7 @@ const ConsumerForm = ({ user, history, isDataProduct = false, callbackFn }) => {
           localComplianceOfficer: values.complianceOfficer?.toString(),
           ownerName: values.businessOwnerName,
           agreementDate: new Date(values.dateOfAgreement),
+          dateOfDataTransfer: new Date(values.dateOfDataTransfer),
         },
         openSegments,
         personalRelatedData: {
