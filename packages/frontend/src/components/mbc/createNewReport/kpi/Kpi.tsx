@@ -10,6 +10,7 @@ import { ErrorMsg } from 'globals/Enums';
 import ConfirmModal from 'components/formElements/modal/confirmModal/ConfirmModal';
 import TextArea from 'components/mbc/shared/textArea/TextArea';
 import IconAddKPI from 'components/icons/IconAddKPI';
+import Tags from 'components/formElements/tags/Tags';
 // import ReportListRowItem from 'components/mbc/allReports/reportListRowItem/ReportListRowItem';
 
 const classNames = cn.bind(Styles);
@@ -40,7 +41,14 @@ export interface IKpiState {
   contextMenuOffsetTop: number;
   contextMenuOffsetRight: number;
   selectedContextMenu: string;
+  dataSources: IDataSources[];
 }
+
+export interface IDataSources {
+  dataSource: string;
+  // weightage: number;
+}
+
 export interface IKpiList {
   name: string;
   reportingCase: string[];
@@ -68,6 +76,7 @@ export default class Kpi extends React.Component<IKpiProps, IKpiState> {
       kpis: [],
       kpiInfo: {
         name: '',
+        names: [],
         reportingCause: [],
         kpiLink: '',
         description: '',
@@ -92,7 +101,8 @@ export default class Kpi extends React.Component<IKpiProps, IKpiState> {
       showContextMenu: false,
       contextMenuOffsetTop: 0,
       contextMenuOffsetRight: 0,
-      selectedContextMenu: ''
+      selectedContextMenu: '',
+      dataSources: []
     };
   }
 
@@ -149,6 +159,24 @@ export default class Kpi extends React.Component<IKpiProps, IKpiState> {
                       </option>
                     ))}
                   </select>
+                </div>
+                <div>
+                  <Tags
+                    title={'KPI Name'}
+                    max={1}
+                    chips={
+                      this.state.kpiInfo.names
+                        ? this.state.kpiInfo.names.map((item: any) => item.dataSource)
+                        : this.state.dataSources.map((item: any) => item.dataSource)
+                    }
+                    setTags={this.setDataSources}
+                    removeTag={this.removeDataSource}
+                    tags={this.props.kpiNames}
+                    showMissingEntryError={false}
+                    isDataSource={true}
+                    suggestionPopupHeight={300}
+                    {...this.props}
+                  />
                 </div>
                 <span className={classNames('error-message', this.state.errors.name.length ? '' : 'hide')}>
                   {this.state.errors.name}
@@ -759,5 +787,73 @@ export default class Kpi extends React.Component<IKpiProps, IKpiState> {
 
   protected listRow = (element: HTMLTableRowElement) => {
     this.listRowElement = element;
+  };
+
+  protected setDataSources = (arr: string[]) => {
+
+    let dataSources = [...this.state.dataSources];
+
+    arr.forEach((element) => {
+      const result = this.state.dataSources.some((i) => i.dataSource.includes(element));
+      if (result) {
+        dataSources = [...this.state.dataSources];
+      } else {
+        dataSources = dataSources.concat([{ dataSource: element }]);
+      }
+    });
+
+    this.setState((prevState) => ({
+      kpiInfo: {
+        ...prevState.kpiInfo,
+        ['names']: dataSources,
+      },
+      // ...(name === 'kpiLink' && {
+      //   errors: {
+      //     ...prevState.errors,
+      //     kpiLink: value ? (urlRegEx.test(value) ? '' : 'Invalid URL') : '',
+      //   },
+      // }),
+    }));
+
+    // let dataSources = [...this.state.dataSources];
+
+    // arr.forEach((element) => {
+    //   const result = this.state.dataSources.some((i) => i.dataSource.includes(element));
+    //   if (result) {
+    //     dataSources = [...this.state.dataSources];
+    //   } else {
+    //     dataSources = dataSources.concat([{ dataSource: element, weightage: 0 }]);
+    //   }
+    // });
+
+    // const totalWeightage = dataSources.map((i) => i.weightage).reduce((current, next) => current + next);
+    // this.setState({
+    //   totalWeightage,
+    // });
+
+    // this.props.modifyDataSources({
+    //   dataSources,
+    //   dataVolume: this.state.dataVolumeValue,
+    // });
+  };
+
+  protected removeDataSource = (index: number) => {
+    // const dataSources = this.state.kpiInfo?.names.filter((ds, dsIndex) => index !== dsIndex);
+
+    // if (dataSources.length > 0) {
+    //   const totalWeightage = dataSources.map((i) => i.weightage).reduce((current, next) => current + next);
+    //   this.setState({
+    //     totalWeightage,
+    //   });
+    // } else {
+    //   this.setState({
+    //     totalWeightage: 0,
+    //   });
+    // }
+
+    // this.props.modifyDataSources({
+    //   dataSources,
+    //   dataVolume: this.state.dataVolumeValue,
+    // });
   };
 }
