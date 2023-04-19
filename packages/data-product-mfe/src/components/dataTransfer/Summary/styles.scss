@@ -71,6 +71,20 @@
     }
 }
 
+.yellowBorder {
+    border: 2px solid #ff9800;
+    margin-left: 1px;
+    margin-right: 1px;
+    position: relative;
+}
+.warningIcon {
+    color: #ff9800;
+    position: absolute;
+    right: 10px;
+    top: 10px;
+    font-size: 19px;
+}
+
 hr {
     background-color: #697582;
     margin-left: 40px;

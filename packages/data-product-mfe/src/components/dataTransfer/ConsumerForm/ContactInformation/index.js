@@ -403,6 +403,33 @@ const ContactInformation = ({
                   />
                   <span className={classNames('error-message')}>{errors.dateOfAgreement?.message}</span>
                 </div>
+                <div
+                  className={classNames('input-field-group include-error', errors.dateOfDataTransfer ? 'error' : '')}
+                >
+                  <label id="dateOfDataTransferLabel" htmlFor="dateOfDataTransferInput" className="input-label">
+                    Date of Data Transfer <sup>*</sup>
+                  </label>
+                  <Controller
+                    control={control}
+                    name="dateOfDataTransfer"
+                    rules={{
+                      validate: validateDate,
+                    }}
+                    render={({ field }) => (
+                      <DatePicker
+                        label="Date of Data Transfer"
+                        value={watch('dateOfDataTransfer')}
+                        name={field.name}
+                        // minDate={minDate}
+                        onChange={(value) => {
+                          field.onChange(value);
+                        }}
+                        requiredError={errors.dateOfDataTransfer?.message}
+                      />
+                    )}
+                  />
+                  <span className={classNames('error-message')}>{errors.dateOfDataTransfer?.message}</span>
+                </div>
               </div>
             </div>
             <div className={Styles.flexLayout}>
