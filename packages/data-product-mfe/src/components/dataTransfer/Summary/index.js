@@ -212,7 +212,8 @@ const Summary = ({ history }) => {
                   </div>
                 ) : null}
                 {showPersonalData ? (
-                  <div className={Styles.sectionWrapper}>
+                  <div className={classNames(Styles.sectionWrapper, data.personalRelatedData === 'Yes' && Styles.yellowBorder)}>
+                    { data.personalRelatedData === 'Yes' && <i className={classNames('icon mbc-icon alert circle', Styles.warningIcon)} /> }
                     <div className={Styles.firstPanel}>
                       <div className={Styles.flexLayout}>
                         <div>
