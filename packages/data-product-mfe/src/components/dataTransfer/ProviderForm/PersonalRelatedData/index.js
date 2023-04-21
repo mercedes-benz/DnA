@@ -325,6 +325,7 @@ const PersonalRelatedData = (
               <textarea
                 className="input-field-area"
                 type="text"
+                placeholder="Please state your reasoning for transfering nonetheless."
                 {...register('personalRelatedDataTransferingNonetheless', { required: '*Missing entry', disabled: isDisabledTransferingComments })}
                 rows={50}
                 id="personalRelatedDataTransferingNonetheless"
@@ -350,6 +351,7 @@ const PersonalRelatedData = (
               <textarea
                 className="input-field-area"
                 type="text"
+                placeholder="Please state your objections"
                 {...register('personalRelatedDataTransferingObjections', { required: '*Missing entry', disabled: isDisabledTransferingComments })}
                 rows={50}
                 id="personalRelatedDataTransferingObjections"
