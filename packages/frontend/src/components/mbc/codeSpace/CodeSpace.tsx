@@ -141,13 +141,14 @@ const CodeSpace = (props: ICodeSpaceProps) => {
     CodeSpaceApiClient.getCodeSpaceStatus(id)
       .then((res: ICodeSpaceData) => {
 
-        const loginWindow = window.open(
-          Envs.CODESPACE_OIDC_POPUP_URL + res.workspaceId + '/',
-          'codeSpaceSessionWindow',
-          'width=100,height=100,location=no,menubar=no,status=no,titlebar=no,toolbar=no',
-        );
-        setTimeout(() => {
-          loginWindow?.close();
+        // const loginWindow = window.open(
+        //   Envs.CODESPACE_OIDC_POPUP_URL + res.workspaceId + '/',
+        //   'codeSpaceSessionWindow',
+        //   'width=100,height=100,location=no,menubar=no,status=no,titlebar=no,toolbar=no',
+        // );
+
+        // setTimeout(() => {
+        //   loginWindow?.close();
 
           setLoading(false);
           const status = res.status;
@@ -197,7 +198,7 @@ const CodeSpace = (props: ICodeSpaceProps) => {
           } else {
             Notification.show(`Code space ${res.projectDetails.projectName} is getting created. Please try again later.`, 'warning');
           }
-        }, Envs.CODESPACE_OIDC_POPUP_WAIT_TIME);
+        // }, Envs.CODESPACE_OIDC_POPUP_WAIT_TIME);
       })
       .catch((err: Error) => {
         Notification.show('Error in validating code space - ' + err.message, 'alert');
