@@ -231,29 +231,33 @@ public class BaseSolutionService extends BaseCommonService<SolutionVO, SolutionN
 			 List<FileDetailsVO> prevFiles = prevVo.getAttachments();
 			 String productName = prevVo.getProductName();
 			 List<FileDetailsVO> curFile = vo.getAttachments();
-			 if (prevFiles!=null || curFile !=null) {
-				for (FileDetailsVO prevFile : prevFiles) {
-					String prevKeyName = prevFile.getId();
-					fileName=prevFile.getFileName();
-					try {
-						for (FileDetailsVO curFil : curFile) {
-							String curKeyName = curFil.getId();
-							if (prevKeyName.equals(curKeyName)) {
-								found = true;
-								break;
-							}
-						}
-					}catch (Exception e){
-						log.info("currently passing files are null");
-					}
-					if(!found){
-						try{
-							attachmentService.deleteFileFromS3Bucket(prevKeyName);
-						}catch (Exception e){
-							log.error("File {} is failed to delete from solution {} with an exception {}",fileName, productName, e.getMessage());
-						}
-					}
-				}
+			try{
+			 if (prevFiles.size()>0 || curFile.size()>0) {
+				 for (FileDetailsVO prevFile : prevFiles) {
+					 String prevKeyName = prevFile.getId();
+					 fileName = prevFile.getFileName();
+					 try {
+						 for (FileDetailsVO curFil : curFile) {
+							 String curKeyName = curFil.getId();
+							 if (prevKeyName.equals(curKeyName)) {
+								 found = true;
+								 break;
+							 }
+						 }
+					 } catch (Exception e) {
+						 log.info("currently passing files are null");
+					 }
+					 if (!found) {
+						 try {
+							 attachmentService.deleteFileFromS3Bucket(prevKeyName);
+						 } catch (Exception e) {
+							 log.error("File {} is failed to delete from solution {} with an exception {}", fileName, productName, e.getMessage());
+						 }
+					 }
+				 }
+			 }
+			}catch (Exception e){
+				log.error("Empty array with an exception {}" + e.getMessage() );
 			}
 
 
