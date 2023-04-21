@@ -310,6 +310,7 @@ const TransNationalDataTransfer = (
               <textarea
                 className="input-field-area"
                 type="text"
+                placeholder="Please state your reasoning for transfering nonetheless."
                 {...register('transnationalDataTransferingNonetheless', { required: '*Missing entry', disabled: isDisabledTransferingComments })}
                 rows={50}
                 id="transnationalDataTransferingNonetheless"
@@ -335,6 +336,7 @@ const TransNationalDataTransfer = (
               <textarea
                 className="input-field-area"
                 type="text"
+                placeholder="Please state your objections."
                 {...register('transnationalDataTransferingObjections', { required: '*Missing entry', disabled: isDisabledTransferingComments })}
                 rows={50}
                 id="transnationalDataTransferingObjections"
