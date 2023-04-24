@@ -101,6 +101,7 @@ const DataProducts = ({ user, history, hostHistory }) => {
             onClick={() => {setIsProviderCreatorFilter(!isProviderCreatorFilter)}}>
             My Data Transfers</button>
           </div>
+          <p className={'text-center'}>Click on <i className="icon mbc-icon copy-new"></i> to Create Copy</p>
           <div>
             <div>
               {dataTransfers?.length === 0 ? (
