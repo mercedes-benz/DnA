@@ -207,7 +207,9 @@ currentTab }) => {
               <span>Add point of contact (data receiving side)</span>
             </button>
           </div>
-          {teamMembersList}
+          <div className={Styles.teamsList}>
+            {teamMembersList}
+          </div>
         </div>
       </div>
     </div>
