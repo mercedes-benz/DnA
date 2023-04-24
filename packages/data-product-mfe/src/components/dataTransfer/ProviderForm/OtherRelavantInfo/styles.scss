@@ -16,6 +16,8 @@
         .teamsList {
             max-height: 250px;
             overflow-y: auto;
+            padding-right: 20px;
+            margin-right: 20px;
 
             &::-webkit-scrollbar-thumb {
                 background: #00adef;
