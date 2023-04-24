@@ -13,6 +13,23 @@
     .teamListWrapper {
         margin: 50px -38px;
 
+        .teamsList {
+            max-height: 250px;
+            overflow-y: auto;
+
+            &::-webkit-scrollbar-thumb {
+                background: #00adef;
+                border-radius: 10px;
+              }
+              &::-webkit-scrollbar-track {
+                background: #293f55;
+              }
+              &::-webkit-scrollbar {
+                width: 5px;
+                height: 5px;
+              }
+        }
+
         .avatarIcon {
             width: 55px;
             height: 55px;
