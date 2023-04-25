@@ -122,7 +122,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 			//undeploy int if present
 			if(entity.getData().getProjectDetails().getIntDeploymentDetails().getDeploymentUrl()!=null 
 					&& entity.getData().getProjectDetails().getIntDeploymentDetails().getLastDeployedBranch()!=null
-					|| entity.getData().getProjectDetails().getIntDeploymentDetails().getLastDeploymentStatus()!=null){
+					&& entity.getData().getProjectDetails().getIntDeploymentDetails().getLastDeploymentStatus()!=null){
 				String branch = entity.getData().getProjectDetails().getIntDeploymentDetails().getLastDeployedBranch();
 				DeploymentManageDto deploymentJobDto = new DeploymentManageDto();
 				DeploymentManageInputDto deployJobInputDto = new DeploymentManageInputDto();
@@ -153,8 +153,8 @@ public class BaseWorkspaceService implements WorkspaceService {
 			}
 			//undeploy prod if present
 			if(entity.getData().getProjectDetails().getProdDeploymentDetails().getDeploymentUrl()!=null 
-					|| entity.getData().getProjectDetails().getProdDeploymentDetails().getLastDeployedBranch()!=null 
-					|| entity.getData().getProjectDetails().getProdDeploymentDetails().getLastDeploymentStatus()!=null){
+					&& entity.getData().getProjectDetails().getProdDeploymentDetails().getLastDeployedBranch()!=null 
+					&& entity.getData().getProjectDetails().getProdDeploymentDetails().getLastDeploymentStatus()!=null){
 				String branch = entity.getData().getProjectDetails().getProdDeploymentDetails().getLastDeployedBranch();
 				DeploymentManageDto deploymentJobDto = new DeploymentManageDto();
 				DeploymentManageInputDto deployJobInputDto = new DeploymentManageInputDto();
@@ -566,6 +566,11 @@ public class BaseWorkspaceService implements WorkspaceService {
 		List<MessageDescription> errors = new ArrayList<>();
 		try {
 			CodeServerWorkspaceNsql entity =  workspaceCustomRepository.findById(userId,id);
+			if(entity.getData().getProjectDetails().getRecipeDetails().getRecipeId().toLowerCase().startsWith("public")){
+				log.error("Cannot deploy workspace for this project with id {} of recipe type - Public " + id);
+				MessageDescription msg = new MessageDescription("Cannot deploy workspace for this project of recipe type - Public.");
+				errors.add(msg);
+			}
 			if(entity!=null && !entity.getData().getProjectDetails().getRecipeDetails().getRecipeId().toLowerCase().startsWith("public")) {
 				DeploymentManageDto deploymentJobDto = new DeploymentManageDto();
 				DeploymentManageInputDto deployJobInputDto = new DeploymentManageInputDto();
@@ -610,10 +615,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 				MessageDescription error = new MessageDescription();
 				error.setMessage("Failed while deploying codeserver workspace project with exception " + e.getMessage());
 				errors.add(error);
-		}
-		log.error("Cannot deploy workspace for this project with id {} of recipe type - Public " + id);
-		MessageDescription msg = new MessageDescription("Cannot deploy workspace for this project with id {} of recipe type - Public.");
-		errors.add(msg);
+		}		
 		responseMessage.setErrors(errors);
 		responseMessage.setWarnings(warnings);
 		responseMessage.setSuccess(status);
