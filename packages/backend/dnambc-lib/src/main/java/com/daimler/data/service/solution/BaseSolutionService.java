@@ -228,36 +228,33 @@ public class BaseSolutionService extends BaseCommonService<SolutionVO, SolutionN
 			}
 			 boolean found= false;
 			 String fileName;
-			 List<FileDetailsVO> prevFiles = prevVo.getAttachments();
+			 List<FileDetailsVO> prevFileList = prevVo.getAttachments();
 			 String productName = prevVo.getProductName();
-			 List<FileDetailsVO> curFile = vo.getAttachments();
+			 List<FileDetailsVO> curFileList = vo.getAttachments();
 			try{
-			 if (prevFiles.size()>0 || curFile.size()>0) {
-				 for (FileDetailsVO prevFile : prevFiles) {
-					 String prevKeyName = prevFile.getId();
-					 fileName = prevFile.getFileName();
-					 try {
-						 for (FileDetailsVO curFil : curFile) {
-							 String curKeyName = curFil.getId();
-							 if (prevKeyName.equals(curKeyName)) {
-								 found = true;
-								 break;
-							 }
-						 }
-					 } catch (Exception e) {
-						 log.info("currently passing files are null");
-					 }
-					 if (!found) {
-						 try {
-							 attachmentService.deleteFileFromS3Bucket(prevKeyName);
-						 } catch (Exception e) {
-							 log.error("File {} is failed to delete from solution {} with an exception {}", fileName, productName, e.getMessage());
-						 }
-					 }
-				 }
-			 }
+					if ((prevFileList!=null && !prevFileList.isEmpty()) && (curFileList != null && !curFileList.isEmpty())) {
+						for (FileDetailsVO prevFile : prevFileList) {
+							String prevKeyName = prevFile.getId();
+							fileName = prevFile.getFileName();
+							for (FileDetailsVO curFil : curFileList) {
+								String curKeyName = curFil.getId();
+								if (prevKeyName.equals(curKeyName)) {
+									found = true;
+									break;
+								}
+							}
+							if (!found) {
+								try {
+									attachmentService.deleteFileFromS3Bucket(prevKeyName);
+								} catch (Exception e) {
+									log.error("File {} is failed to delete from solution {} with an exception {}", fileName, productName, e.getMessage());
+									throw e;
+								}
+							}
+						}
+					}
 			}catch (Exception e){
-				log.error("Empty array with an exception {}" + e.getMessage() );
+				log.error("Empty attachments array with an exception {}" + e.getMessage() );
 			}
 
 
