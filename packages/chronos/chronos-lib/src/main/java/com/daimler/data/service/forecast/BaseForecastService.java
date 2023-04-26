@@ -309,13 +309,12 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 						return run2.getTriggeredOn().toString().compareTo(run1.getTriggeredOn().toString());
 					}
 				});
-				try {
-					newSubList = existingRuns.subList(offset, offset + limit);
+				int endLimit = offset + limit;
+				if (endLimit > existingRuns.size()) {
+					endLimit = existingRuns.size();
 				}
-				catch(Exception e)	{
-					log.error("Given limit exceeded original existing runs limit");
-				}
-				if(limit==0)
+				newSubList = existingRuns.subList(offset, endLimit);
+				if (limit == 0)
 					newSubList = existingRuns;
 				for(RunDetails run: newSubList) {
 					RunState state = run.getRunState();
@@ -481,7 +480,7 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 					}
 				}
 				List<RunDetails> updatedDbRunRecords = new ArrayList<>();
-				if(limit!=0) {
+
 					for(RunDetails existingrunRecord: existingRuns) {
 						RunDetails updatedRecord = updatedRuns.stream().filter(x -> existingrunRecord.getId().equals(x.getId())).findAny().orElse(null);
 						if(updatedRecord!=null) {
@@ -491,7 +490,6 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 							updatedDbRunRecords.add(existingrunRecord);
 						}
 					}
-				}
 				entity.getData().setRuns(updatedDbRunRecords);
 				this.jpaRepo.save(entity);
 				updatedRunVOList = this.assembler.toRunsVO(updatedRuns);
