@@ -32,7 +32,7 @@ import java.util.List;
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.db.entities.DataProductNsql;
 import com.daimler.data.db.repo.common.CommonDataRepository;
-import org.springframework.http.ResponseEntity;
+import com.daimler.data.dto.dataproduct.DataProductTeamMemberVO;
 
 public interface DataProductCustomRepository extends CommonDataRepository<DataProductNsql, String> {
 
@@ -50,8 +50,8 @@ public interface DataProductCustomRepository extends CommonDataRepository<DataPr
 
 	Long getCountOwnersUsingNativeQuery(Boolean published, String recordStatus);
 
-	List<String> getOwnersAllWithFiltersUsingNativeQuery( Boolean published, int offset, int limit,
-			String sortOrder, String recordStatus);
+	List<DataProductTeamMemberVO> getOwnersAllWithFiltersUsingNativeQuery(Boolean published, int offset, int limit,
+                                                                          String sortOrder, String recordStatus);
 
 	List<DataProductNsql> getExistingDataProduct(String uniqueProductName, String status);
 
