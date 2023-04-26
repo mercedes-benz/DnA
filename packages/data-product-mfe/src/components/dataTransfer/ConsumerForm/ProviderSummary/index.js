@@ -159,6 +159,32 @@ const ProviderSummary = ({ onSave, providerFormIsDraft }) => {
               </div>
             ) : null}
           </div>
+          {providerInformation.personalRelatedData === 'Yes' ? (<div className={Styles.flexLayout}>
+            <div>
+              <label className="input-label summary">Is corresponding Compliance contact aware of this transfer?</label>
+              <br />
+              {providerInformation.personalRelatedDataContactAwareTransfer}
+            </div>
+          </div>) : null}
+          {providerInformation.personalRelatedData === 'Yes' && providerInformation.personalRelatedDataContactAwareTransfer === 'Yes'
+            ? (<div className={classNames(Styles.flexLayout, Styles.fourColumn)}>
+              <div>
+                <label className="input-label summary">Has s/he any objections to this transfer?</label>
+                <br />
+                {providerInformation.personalRelatedDataObjectionsTransfer}
+              </div>
+              <div>
+                <label className="input-label summary">Please state your reasoning for transfering nonetheless</label>
+                <br />
+                {providerInformation.personalRelatedDataTransferingNonetheless}
+              </div>
+              <div>
+                <label className="input-label summary">Please state your objections</label>
+                <br />
+                {providerInformation.personalRelatedDataTransferingObjections}
+              </div>
+              <div></div>
+            </div>) : null}
         </div>
       ) : null}
       {showTransNationalData ? (
