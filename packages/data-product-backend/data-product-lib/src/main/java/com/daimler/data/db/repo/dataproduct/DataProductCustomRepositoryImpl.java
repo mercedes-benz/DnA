@@ -28,6 +28,7 @@
 package com.daimler.data.db.repo.dataproduct;
 
 import java.math.BigInteger;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -42,21 +43,21 @@ import javax.persistence.criteria.Root;
 import javax.transaction.Transactional;
 
 import com.daimler.data.application.client.DashboardServicesClient;
+import com.daimler.data.assembler.DataProductAssembler;
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
-import com.daimler.data.db.entities.AgileReleaseTrainNsql;
 import com.daimler.data.db.entities.CarlaFunctionNsql;
-import com.daimler.data.db.entities.CorporateDataCatalogNsql;
+import com.daimler.data.dto.dataproduct.DataProductTeamMemberVO;
 import com.daimler.data.dto.userinfo.dashboard.DashboardServiceLovDto;
 import com.daimler.data.dto.userinfo.dashboard.GetDashboardServiceLovResponseWrapperDto;
 import com.daimler.data.util.ConstantsUtility;
+import net.minidev.json.parser.JSONParser;
+import net.minidev.json.parser.ParseException;
+import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.context.event.ApplicationReadyEvent;
-import org.springframework.context.event.EventListener;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.StringUtils;
 
@@ -74,6 +75,9 @@ public class DataProductCustomRepositoryImpl extends CommonDataRepositoryImpl<Da
 
 	@Autowired
 	private DashboardServicesClient dashboardServicesClient;
+
+	@Autowired
+	private DataProductAssembler dataProductAssembler;
 
 	@Transactional
 	@Override
@@ -249,14 +253,19 @@ public class DataProductCustomRepositoryImpl extends CommonDataRepositoryImpl<Da
 	}
 
 	@Override
-	public List<String> getOwnersAllWithFiltersUsingNativeQuery(Boolean published, int offset, int limit,
-			   String sortOrder, String recordStatus) {
+	public List<DataProductTeamMemberVO> getOwnersAllWithFiltersUsingNativeQuery(Boolean published, int offset, int limit,
+																				 String sortOrder, String recordStatus) {
 		Query q = getNativeQueryWithFiltersForDataProductOwners("", published, offset, limit, sortOrder, recordStatus);
-		List<String> results = null;
-		try {
-			results = q.getResultList();
-		} catch(Exception e){
-			e.printStackTrace();
+		List<String> resultsList = new ArrayList<>();
+		List<DataProductTeamMemberVO> results = new ArrayList<>();
+		resultsList = q.getResultList();
+		if (resultsList != null && resultsList.size() > 0) {
+			resultsList.forEach(val -> {
+				DataProductTeamMemberVO vo = dataProductAssembler.toParseDataProductTeamMemberVO(val);
+				if(vo!=null) {
+					results.add(vo);
+				}
+			});
 		}
 		return results;
 	}
@@ -271,7 +280,8 @@ public class DataProductCustomRepositoryImpl extends CommonDataRepositoryImpl<Da
 	private Query getNativeQueryWithFiltersForDataProductOwners(String selectFieldsString, Boolean published, int offset, int limit, String sortOrder, String recordStatus) {
 
 		String prefix = selectFieldsString != null && !"".equalsIgnoreCase(selectFieldsString) ? selectFieldsString
-				: "SELECT DISTINCT jsonb_extract_path_text(data, 'createdBy', 'id') AS created_by_id ";
+//				: "SELECT DISTINCT jsonb_extract_path(data, 'createdBy') AS created_by_id ";
+				: "SELECT DISTINCT jsonb_extract_path_text(data, 'createdBy') AS created_by_id ";
 		prefix = prefix + "FROM dataproduct_nsql";
 		String basicpredicate = " where (id is not null)";
 		String consolidatedPredicates = buildPredicateString(published, recordStatus);
@@ -291,7 +301,7 @@ public class DataProductCustomRepositoryImpl extends CommonDataRepositoryImpl<Da
 			query = query + " limit " + limit;
 		if (offset >= 0)
 			query = query + " offset " + offset;
-		Query q = em.createNativeQuery(query);
+			Query q = em.createNativeQuery(query);
 		return q;
 	}
 

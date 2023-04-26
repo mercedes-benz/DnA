@@ -32,6 +32,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import com.daimler.data.controller.exceptions.GenericMessage;
+import com.daimler.data.dto.dataproduct.DataProductTeamMemberVO;
 import com.daimler.data.dto.datatransfer.ConsumerVO;
 import com.daimler.data.dto.datatransfer.DataTransferConsumerResponseVO;
 import com.daimler.data.dto.datatransfer.DataTransferProviderResponseVO;
@@ -105,9 +106,9 @@ public class BaseDataProductService extends BaseCommonService<DataProductVO, Dat
 		}
 
 	@Override
-	public List<String> getAllWithDataProductOwners(Boolean published, int offset, int limit, String sortOrder,
-														   String recordStatus) {
-		List<String> dataProductEntities = dataProductCustomRepository
+	public List<DataProductTeamMemberVO> getAllWithDataProductOwners(Boolean published, int offset, int limit, String sortOrder,
+																	 String recordStatus) {
+		List<DataProductTeamMemberVO> dataProductEntities = dataProductCustomRepository
 				.getOwnersAllWithFiltersUsingNativeQuery(published, offset, limit, sortOrder, recordStatus);
 		return dataProductEntities;
 	}

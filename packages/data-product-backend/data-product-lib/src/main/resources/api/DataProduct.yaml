@@ -715,7 +715,7 @@ definitions:
       records:
         type: array
         items:
-          type: string
+          $ref: "#/definitions/DataProductTeamMemberVO"
 
   DataProductResponseVO:
     type: object
