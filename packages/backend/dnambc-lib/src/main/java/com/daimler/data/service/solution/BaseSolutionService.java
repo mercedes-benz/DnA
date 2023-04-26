@@ -226,38 +226,37 @@ public class BaseSolutionService extends BaseCommonService<SolutionVO, SolutionN
 //    			else 
 //    				notebookEvent = "unlink old + provisioned to new sol";
 			}
-			 boolean found= false;
-			 String fileName;
-			 List<FileDetailsVO> prevFileList = prevVo.getAttachments();
-			 String productName = prevVo.getProductName();
-			 List<FileDetailsVO> curFileList = vo.getAttachments();
+			boolean found = false;
+			String prevFileName, curFileName;
+			List<FileDetailsVO> prevFileList = prevVo.getAttachments();
+			String productName = prevVo.getProductName();
+			List<FileDetailsVO> curFileList = vo.getAttachments();
 			try{
-					if ((prevFileList!=null && !prevFileList.isEmpty()) && (curFileList != null && !curFileList.isEmpty())) {
-						for (FileDetailsVO prevFile : prevFileList) {
-							String prevKeyName = prevFile.getId();
-							fileName = prevFile.getFileName();
-							for (FileDetailsVO curFil : curFileList) {
-								String curKeyName = curFil.getId();
-								if (prevKeyName.equals(curKeyName)) {
-									found = true;
-									break;
-								}
+				if ((prevFileList != null && !prevFileList.isEmpty()) && (curFileList != null && !curFileList.isEmpty())) {
+					for (FileDetailsVO prevFile : prevFileList) {
+						String prevKeyName = prevFile.getId();
+						prevFileName = prevFile.getFileName();
+						for (FileDetailsVO curFile : curFileList) {
+							String curKeyName = curFile.getId();
+							curFileName =curFile.getFileName();
+							if ((prevKeyName.equals(curKeyName)) || (prevFileName.equalsIgnoreCase(curFileName)) ) {
+								found = true;
+								break;
 							}
-							if (!found) {
-								try {
-									attachmentService.deleteFileFromS3Bucket(prevKeyName);
-								} catch (Exception e) {
-									log.error("File {} is failed to delete from solution {} with an exception {}", fileName, productName, e.getMessage());
-									throw e;
-								}
+						}
+						if (!found) {
+							try {
+								attachmentService.deleteFileFromS3Bucket(prevKeyName);
+							} catch (Exception e) {
+								log.error("File {} is failed to delete from solution {} with an exception {}", prevFileName, productName, e.getMessage());
+								throw e;
 							}
 						}
 					}
+				}
 			}catch (Exception e){
-				log.error("Empty attachments array with an exception {}" + e.getMessage() );
+				log.error("Empty attachments in an array with an exception {}" + e.getMessage() );
 			}
-
-
 		}
 		updateTags(vo);
 		updateDataSources(vo);
