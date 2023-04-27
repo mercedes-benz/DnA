@@ -266,16 +266,18 @@ const Summary = ({ history }) => {
                           <br />
                           {data.personalRelatedDataObjectionsTransfer}
                         </div>
-                        <div>
-                          <label className="input-label summary">Please state your reasoning for transfering nonetheless</label>
-                          <br />
-                          {data.personalRelatedDataTransferingNonetheless}
-                        </div>
-                        <div>
-                          <label className="input-label summary">Please state your objections</label>
-                          <br />
-                          {data.personalRelatedDataTransferingObjections}
-                        </div>
+                        {data.personalRelatedDataObjectionsTransfer === 'Yes' && <>
+                          <div>
+                            <label className="input-label summary">Please state your reasoning for transfering nonetheless</label>
+                            <br />
+                            {data.personalRelatedDataTransferingNonetheless}
+                          </div>
+                          <div>
+                            <label className="input-label summary">Please state your objections</label>
+                            <br />
+                            {data.personalRelatedDataTransferingObjections}
+                          </div>
+                        </>}
                         <div></div>
                       </div>) : null}
                   </div>
@@ -296,7 +298,7 @@ const Summary = ({ history }) => {
                           <br />
                           {data.transnationalDataTransfer}
                         </div>
-                        {data.transnationalDataTransfer == 'Yes' ? (
+                        {data.transnationalDataTransfer === 'Yes' ? (
                           <div>
                             <label className="input-label summary">Is one of these countries outside the EU?</label>
                             <br />
@@ -304,8 +306,8 @@ const Summary = ({ history }) => {
                           </div>
                         ) : null}
                       </div>
-                      {data?.transnationalDataTransfer == 'Yes' &&
-                        data?.transnationalDataTransferNotWithinEU == 'Yes' ? (<div className={Styles.flexLayout}>
+                      {data?.transnationalDataTransfer === 'Yes' &&
+                        data?.transnationalDataTransferNotWithinEU === 'Yes' ? (<div className={Styles.flexLayout}>
                           <div>
                             <label className="input-label summary">Is corresponding Compliance contact aware of this transfer?</label>
                             <br />
@@ -319,16 +321,18 @@ const Summary = ({ history }) => {
                             <br />
                             {data?.transnationalDataObjectionsTransfer}
                           </div>
-                          <div>
-                            <label className="input-label summary">Please state your reasoning for transfering nonetheless</label>
-                            <br />
-                            {data?.transnationalDataTransferingNonetheless}
-                          </div>
-                          <div>
-                            <label className="input-label summary">Please state your objections</label>
-                            <br />
-                            {data?.transnationalDataTransferingObjections}
-                          </div>
+                          {data?.transnationalDataObjectionsTransfer === 'Yes' && <>
+                            <div>
+                              <label className="input-label summary">Please state your reasoning for transfering nonetheless</label>
+                              <br />
+                              {data?.transnationalDataTransferingNonetheless}
+                            </div>
+                            <div>
+                              <label className="input-label summary">Please state your objections</label>
+                              <br />
+                              {data?.transnationalDataTransferingObjections}
+                            </div>
+                          </>}
                           <div></div>
                         </div>) : null}
                       <div className={Styles.flexLayout}>
@@ -515,16 +519,18 @@ const Summary = ({ history }) => {
                                 <br />
                                 {data?.consumer?.personalRelatedDataObjectionsTransfer}
                               </div>
-                              <div>
-                                <label className="input-label summary">Please state your reasoning for transfering nonetheless</label>
-                                <br />
-                                {data?.consumer?.personalRelatedDataTransferingNonetheless}
-                              </div>
-                              <div>
-                                <label className="input-label summary">Please state your objections</label>
-                                <br />
-                                {data?.consumer?.personalRelatedDataTransferingObjections}
-                              </div>
+                              {data?.consumer?.personalRelatedDataObjectionsTransfer === 'Yes' && <>
+                                <div>
+                                  <label className="input-label summary">Please state your reasoning for transfering nonetheless</label>
+                                  <br />
+                                  {data?.consumer?.personalRelatedDataTransferingNonetheless}
+                                </div>
+                                <div>
+                                  <label className="input-label summary">Please state your objections</label>
+                                  <br />
+                                  {data?.consumer?.personalRelatedDataTransferingObjections}
+                                </div>
+                              </>}
                               <div></div>
                             </div>) : null}
                         </div>
