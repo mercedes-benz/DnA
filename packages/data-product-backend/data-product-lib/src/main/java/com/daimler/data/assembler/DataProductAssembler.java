@@ -156,8 +156,7 @@ public class DataProductAssembler implements GenericAssembler<DataProductVO, Dat
 						contactInformationVO.setDivision(divisionvo);
 					}
 
-					contactInformationVO.setName(toTeamMemberVO(dataProductContactInformation.getName()));
-					contactInformationVO.setDataProductDate(dataProductContactInformation.getDataTransferDate());
+					contactInformationVO.setName(toTeamMemberVO(dataProductContactInformation.getName()));				
 					contactInformationVO.setInformationOwner(toTeamMemberVO(dataProductContactInformation.getInformationOwner()));
 					vo.setContactInformation(contactInformationVO);
 				}
@@ -295,8 +294,7 @@ public class DataProductAssembler implements GenericAssembler<DataProductVO, Dat
 						}
 						contactInformation.setDivision(division);
 					}
-					contactInformation.setName(toTeamMemberJson(dataProductContactInformationVO.getName()));
-					contactInformation.setDataTransferDate(dataProductContactInformationVO.getDataProductDate());
+					contactInformation.setName(toTeamMemberJson(dataProductContactInformationVO.getName()));					
 					contactInformation.setInformationOwner(toTeamMemberJson(dataProductContactInformationVO.getInformationOwner()));
 					dataProduct.setContactInformation(contactInformation);
 				}
@@ -582,8 +580,7 @@ public class DataProductAssembler implements GenericAssembler<DataProductVO, Dat
 		providerResponseVO.setDeletionRequirement(new ProviderDeletionRequirementVO());
 		providerResponseVO.setCreatedBy(existingDataProduct.getCreatedBy());
 		providerResponseVO.setCreatedDate(existingDataProduct.getCreatedDate());
-
-		providerResponseVO.getContactInformation().setDataTransferDate(contactInformation.getDataProductDate());
+		
 		BeanUtils.copyProperties(existingDataProduct, providerResponseVO);
 		if(Objects.nonNull(contactInformation)) {
 			BeanUtils.copyProperties(contactInformation, providerResponseVO.getContactInformation());
