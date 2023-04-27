@@ -641,7 +641,7 @@ export interface IExternalCustomerDetails {
 export interface IKpis {
   description: string;
   name: string;
-  names?: any[];
+  names: any[];
   reportingCause: string[];
   kpiLink: string;
 }

@@ -17,6 +17,7 @@ const classNames = cn.bind(Styles);
 export interface IKpiProps {
   kpis: IKpis[];
   kpiNames: IKpiNames[];
+  kpiClassifications: any[];
   reportingCause: IReportingCauses[];
   onSaveDraft: (tabToBeSaved: string) => void;
   modifyKpi: (modifyKpi: IKpis[]) => void;
@@ -139,27 +140,6 @@ export default class Kpi extends React.Component<IKpiProps, IKpiState> {
           <div className={Styles.flexLayout}>
             <div>
               <div className={classNames('input-field-group include-error', this.state.errors.name ? 'error' : '')}>
-                <label id="kpinames" htmlFor="kpinames" className="input-label">
-                  KPI Name<sup>*</sup>
-                </label>
-                <div className="custom-select">
-                  <select
-                    id="kpinames"
-                    name="name"
-                    multiple={false}
-                    required-error={requiredError}
-                    required={true}
-                    value={this.state.kpiInfo.name || ''}
-                    onChange={this.handleChange}
-                  >
-                    <option value={''}>Choose</option>
-                    {this.props.kpiNames?.map((obj) => (
-                      <option id={obj.name + obj.id} key={obj.id} value={obj.name}>
-                        {obj.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
                 <div>
                   <Tags
                     title={'KPI Name'}
@@ -170,6 +150,7 @@ export default class Kpi extends React.Component<IKpiProps, IKpiState> {
                         : this.state.dataSources.map((item: any) => item.dataSource)
                     }
                     setTags={this.setDataSources}
+                    isMandatory={true}
                     removeTag={this.removeDataSource}
                     tags={this.props.kpiNames}
                     showMissingEntryError={false}
@@ -181,6 +162,29 @@ export default class Kpi extends React.Component<IKpiProps, IKpiState> {
                 <span className={classNames('error-message', this.state.errors.name.length ? '' : 'hide')}>
                   {this.state.errors.name}
                 </span>
+              </div>
+              <div className={classNames('input-field-group include-error', this.state.errors.name ? 'error' : '')}>
+                <label id="kpinames" htmlFor="kpinames" className="input-label">
+                  KPI Classification<sup>*</sup>
+                </label>
+                <div className="custom-select">
+                  <select
+                    id="kpinames"
+                    name="name"
+                    multiple={false}
+                    required-error={requiredError}
+                    required={true}
+                    value={this.state.kpiInfo?.names.map((item: any) => item.classification) || ''}
+                    onChange={this.handleChange}
+                  >
+                    <option value={''}>Choose</option>
+                    {this.props.kpiClassifications?.map((obj) => (
+                      <option id={obj.name + obj.id} key={obj.id} value={obj.name}>
+                        {obj.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
             </div>
             <div>
@@ -292,7 +296,7 @@ export default class Kpi extends React.Component<IKpiProps, IKpiState> {
           >
             <td className={'wrap-text ' + classNames(Styles.reportName)}>
               <div className={Styles.solIcon}>
-                {kpi?.name}
+                {kpi?.names?.map(item => item.dataSource)}
               </div>
             </td>
             <td className="wrap-text">{kpi?.reportingCause.length > 0? Array(kpi?.reportingCause).join(', ') : 'NA'}</td>
@@ -490,6 +494,7 @@ export default class Kpi extends React.Component<IKpiProps, IKpiState> {
       duplicateKpiAdded: false,
       kpiInfo: {
         name: '',
+        names: [],
         reportingCause: [],
         kpiLink: '',
         description: '',
@@ -518,11 +523,12 @@ export default class Kpi extends React.Component<IKpiProps, IKpiState> {
   };
 
   protected onAddKpi = () => {
-    const { name, reportingCause, kpiLink, description } = this.state.kpiInfo;
+    const { name, names, reportingCause, kpiLink, description } = this.state.kpiInfo;
     const { kpis } = this.state;
     const selectedValues: IKpis[] = [];
     selectedValues.push({
       name,
+      names,
       reportingCause,
       kpiLink,
       description,
@@ -540,6 +546,7 @@ export default class Kpi extends React.Component<IKpiProps, IKpiState> {
           kpis: [...prevState.kpis, ...selectedValues],
           kpiInfo: {
             name: '',
+            names: [],
             reportingCause: [],
             kpiLink: '',
             description: '',
@@ -565,7 +572,7 @@ export default class Kpi extends React.Component<IKpiProps, IKpiState> {
   };
 
   protected onEditKpiOpen = (kpi: IKpis) => {
-    const { name, reportingCause, kpiLink, description } = kpi;
+    const { name, names, reportingCause, kpiLink, description } = kpi;
     const { kpis } = this.state;
     // const selectedItemIndex = kpis.findIndex(item=> item.name === name && item.reportingCause === reportingCause);
     const selectedItemIndex = kpis.findIndex(
@@ -582,6 +589,7 @@ export default class Kpi extends React.Component<IKpiProps, IKpiState> {
         selectedItemIndex,
         kpiInfo: {
           name,
+          names,
           reportingCause,
           kpiLink,
           description,
@@ -632,7 +640,7 @@ export default class Kpi extends React.Component<IKpiProps, IKpiState> {
 
   protected onEditKpi = () => {
     const { selectedItemIndex } = this.state;
-    const { name, reportingCause, kpiLink, description } = this.state.kpiInfo;
+    const { name, names, reportingCause, kpiLink, description } = this.state.kpiInfo;
     const { kpis } = this.state;
     // const kpiExists = this.isKpiExist(kpis);
     // const newIndex = kpis.findIndex(item=>item.name === name && item.reportingCause === reportingCause);
@@ -643,7 +651,7 @@ export default class Kpi extends React.Component<IKpiProps, IKpiState> {
       // || !kpiExists
       // ) {
       const kpiList = [...kpis]; // create copy of original array
-      kpiList[selectedItemIndex] = { name, reportingCause, kpiLink, description }; // modify copied array
+      kpiList[selectedItemIndex] = { name, names, reportingCause, kpiLink, description }; // modify copied array
       this.props.modifyKpi(kpiList);
       this.setState(
         {
@@ -658,6 +666,7 @@ export default class Kpi extends React.Component<IKpiProps, IKpiState> {
           },
           kpiInfo: {
             name: '',
+            names: [],
             reportingCause: [],
             kpiLink: '',
             description: '',
@@ -682,7 +691,7 @@ export default class Kpi extends React.Component<IKpiProps, IKpiState> {
     const errors = this.state.errors;
     const errorMissingEntry = '*Missing entry';
 
-    if (!this.state.kpiInfo.name) {
+    if (this.state.kpiInfo.names.length === 0) {
       errors.name = errorMissingEntry;
       formValid = false;
     }
