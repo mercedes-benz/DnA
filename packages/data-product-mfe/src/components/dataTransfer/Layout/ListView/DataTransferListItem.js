@@ -102,7 +102,7 @@ const DataTransferListItem = ({ product, history, user, isProviderCreatorFilter 
           <button
             className={classNames('btn btn-text arrow', Styles.arrowBtn)}
             type="submit"
-            onClick={() => history.push(`/summary/${product?.dataTransferId}`)}
+            onClick={() => history.push(`/datasharing/summary/${product?.dataTransferId}`)}
           >
             {product?.dataTransferName}
           </button>
