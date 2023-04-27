@@ -173,16 +173,18 @@ const ProviderSummary = ({ onSave, providerFormIsDraft }) => {
                 <br />
                 {providerInformation.personalRelatedDataObjectionsTransfer}
               </div>
-              <div>
-                <label className="input-label summary">Please state your reasoning for transfering nonetheless</label>
-                <br />
-                {providerInformation.personalRelatedDataTransferingNonetheless}
-              </div>
-              <div>
-                <label className="input-label summary">Please state your objections</label>
-                <br />
-                {providerInformation.personalRelatedDataTransferingObjections}
-              </div>
+              {providerInformation.personalRelatedDataObjectionsTransfer === 'Yes' && <>
+                <div>
+                  <label className="input-label summary">Please state your reasoning for transfering nonetheless</label>
+                  <br />
+                  {providerInformation.personalRelatedDataTransferingNonetheless}
+                </div>
+                <div>
+                  <label className="input-label summary">Please state your objections</label>
+                  <br />
+                  {providerInformation.personalRelatedDataTransferingObjections}
+                </div>
+              </>}
               <div></div>
             </div>) : null}
         </div>
@@ -209,8 +211,8 @@ const ProviderSummary = ({ onSave, providerFormIsDraft }) => {
                 </div>
               ) : null}
             </div>
-            {providerInformation?.transnationalDataTransfer == 'Yes' &&
-              providerInformation?.transnationalDataTransferNotWithinEU == 'Yes' ? (<div className={Styles.flexLayout}>
+            {providerInformation?.transnationalDataTransfer === 'Yes' &&
+              providerInformation?.transnationalDataTransferNotWithinEU === 'Yes' ? (<div className={Styles.flexLayout}>
                 <div>
                   <label className="input-label summary">Is corresponding Compliance contact aware of this transfer?</label>
                   <br />
@@ -224,16 +226,17 @@ const ProviderSummary = ({ onSave, providerFormIsDraft }) => {
                   <br />
                   {providerInformation?.transnationalDataObjectionsTransfer}
                 </div>
-                <div>
-                  <label className="input-label summary">Please state your reasoning for transfering nonetheless</label>
-                  <br />
-                  {providerInformation?.transnationalDataTransferingNonetheless}
-                </div>
-                <div>
-                  <label className="input-label summary">Please state your objections</label>
-                  <br />
-                  {providerInformation?.transnationalDataTransferingObjections}
-                </div>
+                {providerInformation?.transnationalDataObjectionsTransfer === 'Yes' && <>
+                  <div>
+                    <label className="input-label summary">Please state your reasoning for transfering nonetheless</label>
+                    <br />
+                    {providerInformation?.transnationalDataTransferingNonetheless}
+                  </div>
+                  <div>
+                    <label className="input-label summary">Please state your objections</label>
+                    <br />
+                    {providerInformation?.transnationalDataTransferingObjections}
+                  </div></>}
                 <div></div>
               </div>) : null}
             <div className={Styles.flexLayout}>
