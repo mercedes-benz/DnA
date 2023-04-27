@@ -41,7 +41,6 @@ import lombok.NoArgsConstructor;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class ProviderContactInformation {
 
-	private Date dataTransferDate;
 	private TeamMember name;
 	private TeamMember informationOwner;
 	private String appId;
