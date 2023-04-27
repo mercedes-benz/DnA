@@ -44,6 +44,7 @@ import com.daimler.data.dto.dataproduct.TeamMemberVO;
 import com.daimler.data.dto.datatransfer.*;
 import com.daimler.data.dto.datatransfer.ConsumerResponseVO;
 import com.daimler.data.dto.datatransfer.DataTransferConsumerRequestVO;
+import org.json.JSONObject;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ObjectUtils;
@@ -60,6 +61,22 @@ import com.google.gson.reflect.TypeToken;
 
 @Component
 public class DataProductAssembler implements GenericAssembler<DataProductVO, DataProductNsql> {
+
+	public DataProductTeamMemberVO toParseDataProductTeamMemberVO(String value) {
+		DataProductTeamMemberVO vo = null;
+
+		if(value != null) {
+			JSONObject jsonObject = new JSONObject(value);
+			vo = new DataProductTeamMemberVO();
+			vo.setFirstName((String) jsonObject.get("firstName"));
+			vo.setLastName((String) jsonObject.get("lastName"));
+			vo.setDepartment((String) jsonObject.get("department"));
+			vo.setMobileNumber((String) jsonObject.get("mobileNumber"));
+			vo.setShortId((String) jsonObject.get("id"));
+			vo.setEmail((String) jsonObject.get("email"));
+		}
+		return vo;
+	}
 
 	@Override
 	public DataProductVO toVo(DataProductNsql entity) {
@@ -139,8 +156,7 @@ public class DataProductAssembler implements GenericAssembler<DataProductVO, Dat
 						contactInformationVO.setDivision(divisionvo);
 					}
 
-					contactInformationVO.setName(toTeamMemberVO(dataProductContactInformation.getName()));
-					contactInformationVO.setDataProductDate(dataProductContactInformation.getDataTransferDate());
+					contactInformationVO.setName(toTeamMemberVO(dataProductContactInformation.getName()));				
 					contactInformationVO.setInformationOwner(toTeamMemberVO(dataProductContactInformation.getInformationOwner()));
 					vo.setContactInformation(contactInformationVO);
 				}
@@ -278,8 +294,7 @@ public class DataProductAssembler implements GenericAssembler<DataProductVO, Dat
 						}
 						contactInformation.setDivision(division);
 					}
-					contactInformation.setName(toTeamMemberJson(dataProductContactInformationVO.getName()));
-					contactInformation.setDataTransferDate(dataProductContactInformationVO.getDataProductDate());
+					contactInformation.setName(toTeamMemberJson(dataProductContactInformationVO.getName()));					
 					contactInformation.setInformationOwner(toTeamMemberJson(dataProductContactInformationVO.getInformationOwner()));
 					dataProduct.setContactInformation(contactInformation);
 				}
@@ -565,8 +580,7 @@ public class DataProductAssembler implements GenericAssembler<DataProductVO, Dat
 		providerResponseVO.setDeletionRequirement(new ProviderDeletionRequirementVO());
 		providerResponseVO.setCreatedBy(existingDataProduct.getCreatedBy());
 		providerResponseVO.setCreatedDate(existingDataProduct.getCreatedDate());
-
-		providerResponseVO.getContactInformation().setDataTransferDate(contactInformation.getDataProductDate());
+		
 		BeanUtils.copyProperties(existingDataProduct, providerResponseVO);
 		if(Objects.nonNull(contactInformation)) {
 			BeanUtils.copyProperties(contactInformation, providerResponseVO.getContactInformation());

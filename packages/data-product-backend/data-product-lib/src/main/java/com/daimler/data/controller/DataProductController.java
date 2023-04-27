@@ -444,10 +444,10 @@ public class DataProductController implements DataproductsApi{
 			if (count < offset)
 				offset = 0;
 
-			List<String> dataProducts = new ArrayList<String>();
+			List<DataProductTeamMemberVO> dataProducts = new ArrayList<DataProductTeamMemberVO>();
 			dataProducts = service.getAllWithDataProductOwners(published, offset, limit, sortOrder, recordStatus);
 			log.info("DataProducts fetched successfully");
-			if (!dataProducts.isEmpty()) {
+			if (!dataProducts.isEmpty() || dataProducts.size() > 0) {
 				dataProductCollection.setTotalCount(count.intValue());
 				dataProductCollection.setRecords(dataProducts);
 				return new ResponseEntity<>(dataProductCollection, HttpStatus.OK);
