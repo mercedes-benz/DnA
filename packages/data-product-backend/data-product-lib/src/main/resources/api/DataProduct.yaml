@@ -468,9 +468,6 @@ definitions:
   DataProductContactInformationVO:
     type: object
     properties:
-      dataProductDate:
-        type: string
-        format: date
       informationOwner:
         $ref: "#/definitions/DataProductTeamMemberVO"
       name:
