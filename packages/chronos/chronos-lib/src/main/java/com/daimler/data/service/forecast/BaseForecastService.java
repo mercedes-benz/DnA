@@ -543,7 +543,7 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 		visualizationVO.setRunName(run.getRunName());
 		RunState state = run.getRunState();
 		if(state!=null) {
-			if(!(state.getResult_state()!=null && "SUCCESS".equalsIgnoreCase(state.getResult_state()))) {
+			if(!(state.getResult_state()!=null && ("SUCCESS".equalsIgnoreCase(state.getResult_state()) ||"WARNINGS".equalsIgnoreCase(state.getResult_state())))) {
 				visualizationVO.setEda("");
 				visualizationVO.setY("");
 				visualizationVO.setYPred("");
