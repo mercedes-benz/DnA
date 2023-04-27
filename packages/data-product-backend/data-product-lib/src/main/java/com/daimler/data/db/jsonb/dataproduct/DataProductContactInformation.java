@@ -40,8 +40,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class DataProductContactInformation {
-
-	private Date dataTransferDate;
+	
 	private TeamMember name;
 	private TeamMember informationOwner;
 	private String appId;
