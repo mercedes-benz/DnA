@@ -17,7 +17,6 @@ import { dataTransferApi } from '../../../../apis/datatransfers.api';
 import ProgressIndicator from '../../../../common/modules/uilab/js/src/progress-indicator';
 import Tooltip from '../../../../common/modules/uilab/js/src/tooltip';
 import { useSelector } from 'react-redux';
-import dayjs from 'dayjs';
 import { debounce } from 'lodash';
 
 const ContactInformation = ({
@@ -64,8 +63,6 @@ const ContactInformation = ({
 
   const [searchTerm, setSearchTerm] = useState('');
   const [fieldValue, setFieldValue] = useState('');
-
-  const minDate = dayjs().format();
 
   const provideDataTransfers = useSelector((state) =>
     !isDataProduct ? state.provideDataTransfers : state.dataProduct,
@@ -191,19 +188,16 @@ const ContactInformation = ({
   };
 
   const validateDate = () => {
-    const value = getValues('dateOfAgreement');
+    const value = getValues('dateOfDataTransfer');
     if (typeof value === 'object') {
       const isValidDate = !isNaN(value?.get('date'));
-      const isBefore = dayjs(value).isBefore(minDate, 'date');
       const error =
         value === null || value === ''
           ? '*Missing entry'
           : !isValidDate
           ? 'Invalid Date Format'
-          : isBefore
-          ? 'Is before the minimum date'
           : null;
-      return (value === isValidDate && value !== isBefore) || error;
+      return (value === isValidDate && value) || error;
     } else {
       return (value !== '' && value !== undefined) || '*Missing entry';
     }
@@ -381,28 +375,6 @@ const ContactInformation = ({
                 />
               </div>
               <div className={Styles.flexLayout}>
-                <div className={classNames('input-field-group include-error', errors.dateOfAgreement ? 'error' : '')}>
-                  <label id="dateOfAgreementLabel" htmlFor="dateOfAgreementInput" className="input-label">
-                    Date of Agreement <sup>*</sup>
-                  </label>
-                  <Controller
-                    control={control}
-                    name="dateOfAgreement"
-                    rules={{
-                      validate: validateDate,
-                    }}
-                    render={({ field }) => (
-                      <DatePicker
-                        label="Date of Agreement"
-                        value={watch('dateOfAgreement')}
-                        minDate={minDate}
-                        onChange={(value) => field.onChange(value)}
-                        requiredError={errors.dateOfAgreement?.message}
-                      />
-                    )}
-                  />
-                  <span className={classNames('error-message')}>{errors.dateOfAgreement?.message}</span>
-                </div>
                 <div
                   className={classNames('input-field-group include-error', errors.dateOfDataTransfer ? 'error' : '')}
                 >
