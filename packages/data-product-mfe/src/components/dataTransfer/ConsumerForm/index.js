@@ -33,7 +33,7 @@ const tabs = {
     division: '0',
     subDivision: '0',
     department: '',
-    dateOfAgreement: '',
+    dateOfDataTransfer: '',
     planningIT: '',
     lcoNeeded: 'No',
     complianceOfficer: '',
@@ -228,8 +228,7 @@ const ConsumerForm = ({ user, history, isDataProduct = false, callbackFn }) => {
           lcoNeeded: values.lcoNeeded === 'Yes' ? true : false,
           localComplianceOfficer: values.complianceOfficer?.toString(),
           ownerName: values.businessOwnerName,
-          agreementDate: new Date(values.dateOfAgreement),
-          dateOfDataTransfer: new Date(values.dateOfDataTransfer),
+          dataTransferDate: new Date(values.dateOfDataTransfer),
         },
         openSegments,
         personalRelatedData: {
