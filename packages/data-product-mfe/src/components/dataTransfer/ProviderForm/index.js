@@ -33,7 +33,6 @@ import TourGuide from '../TourGuide';
 export const tabs = {
   'contact-info': {
     productName: '',
-    dateOfDataTransfer: '',
     name: '',
     division: '0',
     subDivision: '0',
@@ -310,11 +309,6 @@ const ProviderForm = ({ user, history }) => {
       errorObject.contactInformationTabError.push('Department');
       formValid = false;
     }
-
-    if (!reqObj?.dateOfDataTransfer || reqObj?.dateOfDataTransfer === '') {
-      errorObject.contactInformationTabError.push('Date of Data Transfer');
-      formValid = false;
-    }
     
     if (!reqObj?.complianceOfficer || reqObj?.complianceOfficer === '') {
       errorObject.contactInformationTabError.push('Corresponding Compliance Officer / Responsible (LCO/LCR)');
@@ -457,13 +451,6 @@ const ProviderForm = ({ user, history }) => {
     if (reqObj?.department?.message === '*Missing entry') {
       !errorObject.contactInformationTabError.includes('Department')?
       errorObject.contactInformationTabError.push('Department')
-      :'';
-      formValid = false;
-    }
-
-    if (reqObj?.dateOfDataTransfer?.message === '*Missing entry') {
-      !errorObject.contactInformationTabError.includes('Date of Data Transfer')?
-      errorObject.contactInformationTabError.push('Date of Data Transfer')
       :'';
       formValid = false;
     }

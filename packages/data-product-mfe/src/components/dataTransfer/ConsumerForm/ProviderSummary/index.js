@@ -2,7 +2,6 @@ import classNames from 'classnames';
 import React, { useEffect, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { serializeDivisionSubDivision } from '../../../../Utility/formData';
-import { regionalDateFormat } from '../../../../Utility/utils';
 import Styles from './styles.scss';
 
 const ProviderSummary = ({ onSave, providerFormIsDraft }) => {
@@ -47,11 +46,6 @@ const ProviderSummary = ({ onSave, providerFormIsDraft }) => {
                 <label className="input-label summary">Data Product Name / Short description of data transfer</label>
                 <br />
                 {providerInformation.productName}
-              </div>
-              <div>
-                <label className="input-label summary">Date of Data Transfer</label>
-                <br />
-                {regionalDateFormat(providerInformation.dateOfDataTransfer)}
               </div>
               <div>
                 <label className="input-label summary">Point of contact for data transfer</label>
