@@ -311,9 +311,6 @@ definitions:
   ProviderContactInformationVO:
     type: object
     properties:  
-      dataTransferDate:
-        type: string
-        format: date
       informationOwner:
         $ref: "#/definitions/DataTransferTeamMemberVO"
       name:
@@ -454,7 +451,7 @@ definitions:
       appId:
         type: string
         description: "planning IT App-ID "
-      agreementDate:
+      dataTransferDate:
         type: string
         format: date                 
 #    required:
