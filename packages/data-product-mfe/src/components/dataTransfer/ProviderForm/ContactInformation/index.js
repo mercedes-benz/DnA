@@ -202,8 +202,7 @@ const ContactInformation = ({
   };
 
   const validateDate = () => {
-    let key = isDataProduct ? 'dateOfDataProduct' : 'dateOfDataTransfer';
-    const value = getValues(key);
+    const value = getValues('dateOfDataProduct');
     if (typeof value === 'object') {
       const isValidDate = !isNaN(value?.get('date'));
       // const isBefore = dayjs(value).isBefore(minDate, 'date');
@@ -465,33 +464,7 @@ const ContactInformation = ({
                   <span className={classNames('error-message')}>{errors.dateOfDataProduct?.message}</span>
                 </div>
               ) : (
-                <div
-                  className={classNames('input-field-group include-error', errors.dateOfDataTransfer ? 'error' : '')}
-                >
-                  <label id="dateOfDataTransferLabel" htmlFor="dateOfDataTransferInput" className="input-label">
-                    Date of Data Transfer <sup>*</sup>
-                  </label>
-                  <Controller
-                    control={control}
-                    name="dateOfDataTransfer"
-                    rules={{
-                      validate: validateDate,
-                    }}
-                    render={({ field }) => (
-                      <DatePicker
-                        label="Date of Data Transfer"
-                        value={watch('dateOfDataTransfer')}
-                        name={field.name}
-                        // minDate={minDate}
-                        onChange={(value) => {
-                          field.onChange(value);
-                        }}
-                        requiredError={errors.dateOfDataTransfer?.message}
-                      />
-                    )}
-                  />
-                  <span className={classNames('error-message')}>{errors.dateOfDataTransfer?.message}</span>
-                </div>
+                null
               )}
             </div>
             <div className={Styles.flexLayout}>
