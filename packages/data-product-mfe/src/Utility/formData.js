@@ -11,7 +11,6 @@ export const serializeFormData = ({ values, division, type = 'provider', isDataP
             providerInformation: {
               contactInformation: {
                 appId: values.planningIT,
-                dataTransferDate: values.dateOfDataTransfer === null ? undefined : new Date(values.dateOfDataTransfer),
                 department: values.department === '' ? undefined : values.department?.toString(),
                 division,
                 localComplianceOfficer: values.complianceOfficer?.toString(),
@@ -61,7 +60,6 @@ export const serializeFormData = ({ values, division, type = 'provider', isDataP
                 },
                 contactInformation: {
                   appId: values.planningIT,
-                  dataTransferDate: values.dateOfDataTransfer === null ? undefined : new Date(values.dateOfDataTransfer),
                   department: values.department === '' ? undefined : values.department?.toString(),
                   division,
                   localComplianceOfficer: values.complianceOfficer?.toString(),
@@ -194,7 +192,6 @@ export const deserializeFormData = ({ item, type = 'provider', isDataProduct = f
           name: item.providerInformation?.contactInformation?.name,
           informationOwner: item.providerInformation?.contactInformation?.informationOwner,
           planningIT: item.providerInformation?.contactInformation?.appId,
-          dateOfDataTransfer: item.providerInformation?.contactInformation?.dataTransferDate === null ? undefined : item.providerInformation?.contactInformation?.dataTransferDate,
           department: item.providerInformation?.contactInformation?.department === '' ? undefined : item.providerInformation?.contactInformation?.department?.split(),
           division: item.providerInformation?.contactInformation?.division?.id,
           subDivision: item.providerInformation?.contactInformation?.division?.subdivision?.id || '0',
@@ -242,7 +239,7 @@ export const deserializeFormData = ({ item, type = 'provider', isDataProduct = f
               department: item.consumerInformation?.contactInformation?.department === '' ? undefined : item.consumerInformation?.contactInformation?.department?.split(),
               division: item.consumerInformation?.contactInformation?.division.id,
               subDivision: item.consumerInformation?.contactInformation.division.subdivision.id || '0',
-              dateOfAgreement: item.consumerInformation?.contactInformation.agreementDate || '',
+              dateOfDataTransfer: item.consumerInformation?.contactInformation.dataTransferDate || '',
               lcoNeeded: item.consumerInformation?.contactInformation.lcoNeeded ? 'Yes' : 'No',
               complianceOfficer: item.consumerInformation?.contactInformation.localComplianceOfficer
                 ?.split()
@@ -333,7 +330,7 @@ export const deserializeFormData = ({ item, type = 'provider', isDataProduct = f
               division: item.consumerFormValues?.consumerInformation?.contactInformation?.division.id,
               subDivision:
                 item.consumerFormValues?.consumerInformation?.contactInformation.division.subdivision.id || '0',
-              dateOfAgreement: item.consumerFormValues?.consumerInformation?.contactInformation.agreementDate || '',
+              dateOfDataTransfer: item.consumerFormValues?.consumerInformation?.contactInformation.dataTransferDate || '',
               lcoNeeded: item.consumerFormValues?.consumerInformation?.contactInformation.lcoNeeded ? 'Yes' : 'No',
               complianceOfficer: item.consumerFormValues?.consumerInformation?.contactInformation.localComplianceOfficer
                 ?.split()
