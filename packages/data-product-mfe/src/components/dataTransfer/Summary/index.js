@@ -142,11 +142,6 @@ const Summary = ({ history }) => {
                         {data.productName}
                       </div>
                       <div>
-                        <label className="input-label summary">Date of Data Transfer</label>
-                        <br />
-                        {regionalDateFormat(data.dateOfDataTransfer)}
-                      </div>
-                      <div>
                         <label className="input-label summary">Point of contact for data transfer</label>
                         <br />
                         {data.name?.firstName} {data.name?.lastName}
@@ -415,9 +410,9 @@ const Summary = ({ history }) => {
                             {data?.consumer?.businessOwnerName?.firstName} {data?.consumer?.businessOwnerName?.lastName}
                           </div>
                           <div>
-                            <label className="input-label summary">Date of Agreement</label>
+                            <label className="input-label summary">Date of Data Transfer</label>
                             <br />
-                            {regionalDateFormat(data?.consumer?.dateOfAgreement)}
+                            {regionalDateFormat(data?.consumer?.dateOfDataTransfer)}
                           </div>
                           <div>
                             <label className="input-label summary">Division</label>
