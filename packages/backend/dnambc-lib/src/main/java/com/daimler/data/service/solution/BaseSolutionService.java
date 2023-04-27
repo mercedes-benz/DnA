@@ -231,17 +231,20 @@ public class BaseSolutionService extends BaseCommonService<SolutionVO, SolutionN
 			List<FileDetailsVO> prevFileList = prevVo.getAttachments();
 			String productName = prevVo.getProductName();
 			List<FileDetailsVO> curFileList = vo.getAttachments();
-			try{
-				if ((prevFileList != null && !prevFileList.isEmpty()) && (curFileList != null && !curFileList.isEmpty())) {
+			try {
+				if ((prevFileList != null && !prevFileList.isEmpty()) || (curFileList != null && !curFileList.isEmpty())) {
 					for (FileDetailsVO prevFile : prevFileList) {
 						String prevKeyName = prevFile.getId();
 						prevFileName = prevFile.getFileName();
-						for (FileDetailsVO curFile : curFileList) {
-							String curKeyName = curFile.getId();
-							curFileName =curFile.getFileName();
-							if ((prevKeyName.equals(curKeyName)) || (prevFileName.equalsIgnoreCase(curFileName)) ) {
-								found = true;
-								break;
+						if (curFileList != null && !curFileList.isEmpty()) {
+
+							for (FileDetailsVO curFile : curFileList) {
+								String curKeyName = curFile.getId();
+								curFileName = curFile.getFileName();
+								if ((prevKeyName.equals(curKeyName)) || (prevFileName.equalsIgnoreCase(curFileName))) {
+									found = true;
+									break;
+								}
 							}
 						}
 						if (!found) {
@@ -252,10 +255,11 @@ public class BaseSolutionService extends BaseCommonService<SolutionVO, SolutionN
 								throw e;
 							}
 						}
+						found = false;
 					}
 				}
-			}catch (Exception e){
-				log.error("Empty attachments in an array with an exception {}" + e.getMessage() );
+			} catch (Exception e) {
+				log.error("Empty attachments in an array with an exception {}" + e.getMessage());
 			}
 		}
 		updateTags(vo);
