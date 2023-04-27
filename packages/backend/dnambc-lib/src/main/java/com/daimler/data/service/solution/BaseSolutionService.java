@@ -231,31 +231,17 @@ public class BaseSolutionService extends BaseCommonService<SolutionVO, SolutionN
 			List<FileDetailsVO> prevFileList = prevVo.getAttachments();
 			String productName = prevVo.getProductName();
 			List<FileDetailsVO> curFileList = vo.getAttachments();
+			FileDetailsVO tempFile= null;
 			try {
-				if ((prevFileList != null && !prevFileList.isEmpty()) || (curFileList != null && !curFileList.isEmpty())) {
+				if (prevFileList != null && !prevFileList.isEmpty()) {
 					for (FileDetailsVO prevFile : prevFileList) {
-						String prevKeyName = prevFile.getId();
-						prevFileName = prevFile.getFileName();
-						if (curFileList != null && !curFileList.isEmpty()) {
-
-							for (FileDetailsVO curFile : curFileList) {
-								String curKeyName = curFile.getId();
-								curFileName = curFile.getFileName();
-								if ((prevKeyName.equals(curKeyName)) || (prevFileName.equalsIgnoreCase(curFileName))) {
-									found = true;
-									break;
-								}
-							}
+						if (curFileList != null && !curFileList.isEmpty() && prevFile.getId() != null) { //[1,2,3] []
+							tempFile = curFileList.stream().filter(x -> prevFile.getId().equalsIgnoreCase(x.getId())).findAny().orElse(null);
 						}
-						if (!found) {
-							try {
-								attachmentService.deleteFileFromS3Bucket(prevKeyName);
-							} catch (Exception e) {
-								log.error("File {} is failed to delete from solution {} with an exception {}", prevFileName, productName, e.getMessage());
-								throw e;
-							}
+						if (tempFile == null) {
+							attachmentService.deleteFileFromS3Bucket(prevFile.getId());
+							log.info("deleting unused attachment found after solution update");
 						}
-						found = false;
 					}
 				}
 			} catch (Exception e) {
