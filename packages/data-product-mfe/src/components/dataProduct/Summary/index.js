@@ -545,16 +545,19 @@ const Summary = ({ history, user }) => {
                           <br />
                           {selectedDataProduct.personalRelatedDataObjectionsTransfer}
                         </div>
-                        <div>
-                          <label className="input-label summary">Please state your reasoning for transfering nonetheless</label>
-                          <br />
-                          {selectedDataProduct.personalRelatedDataTransferingNonetheless}
-                        </div>
-                        <div>
-                          <label className="input-label summary">Please state your objections</label>
-                          <br />
-                          {selectedDataProduct.personalRelatedDataTransferingObjections}
-                        </div>
+                        {selectedDataProduct.personalRelatedDataObjectionsTransfer === 'Yes' &&
+                        <>
+                          <div>
+                            <label className="input-label summary">Please state your reasoning for transfering nonetheless</label>
+                            <br />
+                            {selectedDataProduct.personalRelatedDataTransferingNonetheless}
+                          </div>
+                          <div>
+                            <label className="input-label summary">Please state your objections</label>
+                            <br />
+                            {selectedDataProduct.personalRelatedDataTransferingObjections}
+                          </div>
+                        </>}
                         <div></div>
                       </div>) : null}
                   </div>
@@ -598,16 +601,18 @@ const Summary = ({ history, user }) => {
                             <br />
                             {selectedDataProduct.transnationalDataObjectionsTransfer}
                           </div>
-                          <div>
-                            <label className="input-label summary">Please state your reasoning for transfering nonetheless</label>
-                            <br />
-                            {selectedDataProduct.transnationalDataTransferingNonetheless}
-                          </div>
-                          <div>
-                            <label className="input-label summary">Please state your objections</label>
-                            <br />
-                            {selectedDataProduct.transnationalDataTransferingObjections}
-                          </div>
+                          {selectedDataProduct.transnationalDataObjectionsTransfer === 'Yes' && <>
+                            <div>
+                              <label className="input-label summary">Please state your reasoning for transfering nonetheless</label>
+                              <br />
+                              {selectedDataProduct.transnationalDataTransferingNonetheless}
+                            </div>
+                            <div>
+                              <label className="input-label summary">Please state your objections</label>
+                              <br />
+                              {selectedDataProduct.transnationalDataTransferingObjections}
+                            </div>
+                          </>}
                           <div></div>
                         </div>) : null}
                       <div className={Styles.flexLayout}>
