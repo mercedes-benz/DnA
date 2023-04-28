@@ -226,37 +226,31 @@ public class BaseSolutionService extends BaseCommonService<SolutionVO, SolutionN
 //    			else 
 //    				notebookEvent = "unlink old + provisioned to new sol";
 			}
-			 boolean found= false;
-			 String fileName;
-			 List<FileDetailsVO> prevFiles = prevVo.getAttachments();
-			 String productName = prevVo.getProductName();
-			 List<FileDetailsVO> curFile = vo.getAttachments();
-			 if (prevFiles!=null || curFile !=null) {
-				for (FileDetailsVO prevFile : prevFiles) {
-					String prevKeyName = prevFile.getId();
-					fileName=prevFile.getFileName();
-					try {
-						for (FileDetailsVO curFil : curFile) {
-							String curKeyName = curFil.getId();
-							if (prevKeyName.equals(curKeyName)) {
-								found = true;
-								break;
-							}
+			boolean found = false;
+			String prevFileName, curFileName;
+			List<FileDetailsVO> prevFileList = prevVo.getAttachments();
+			String productName = prevVo.getProductName();
+			List<FileDetailsVO> curFileList = vo.getAttachments();
+			FileDetailsVO tempFile= null;
+			try {
+				if (prevFileList != null && !prevFileList.isEmpty()) {
+					for (FileDetailsVO prevFile : prevFileList) {
+						if (curFileList != null && !curFileList.isEmpty() && prevFile.getId() != null) {
+							tempFile = curFileList.stream().filter(x -> prevFile.getId().equalsIgnoreCase(x.getId())).findAny().orElse(null);
 						}
-					}catch (Exception e){
-						log.info("currently passing files are null");
-					}
-					if(!found){
-						try{
-							attachmentService.deleteFileFromS3Bucket(prevKeyName);
-						}catch (Exception e){
-							log.error("File {} is failed to delete from solution {} with an exception {}",fileName, productName, e.getMessage());
+						if (tempFile == null) {
+							try {
+								attachmentService.deleteFileFromS3Bucket(prevFile.getId());
+								log.info("Deleting unused attachment found after solution update");
+							}catch (Exception e){
+								log.error("Failed to delete attachment from solution with an exception {}", e.getMessage());
+							}
 						}
 					}
 				}
+			} catch (Exception e) {
+				log.error("Empty attachments in an array with an exception {}", e.getMessage());
 			}
-
-
 		}
 		updateTags(vo);
 		updateDataSources(vo);
