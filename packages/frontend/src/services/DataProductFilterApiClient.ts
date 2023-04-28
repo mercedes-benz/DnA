@@ -3,6 +3,8 @@ import { HTTP_METHOD } from '../globals/constants';
 import { ApiClient } from './ApiClient';
 import {
   IDataProductListItem,
+  IUserPreference,
+  IUserPreferenceRequest
 } from '../globals/types';
 
 const baseUrl = Envs.DATA_PRODUCT_API_BASEURL
@@ -47,12 +49,24 @@ export class DataProductFilterApiClient {
     return this.get(`reports?limit=${limit}&offset=${offset}&sortBy=${sortBy}&sortOrder=${sortOrder}`);
   }
 
+  public static getUserPreference(userId: string): Promise<IUserPreference[]> {
+    return this.get(`widget-preference?userId=${userId}`);
+  }
+
+  public static saveUserPreference(data: IUserPreferenceRequest): Promise<IUserPreference> {
+    return this.post('widget-preference', data);
+  }
+
+  public static removeUserPreference(id: string): Promise<any> {
+    return this.delete(`widget-preference/${id}`);
+  }
+
   public static getFilterMasterData() {
     return Promise.all([
       this.getArts(),
       this.getPlatforms(),
       this.getFrontendTools(),
-      // this.getProductOwners(),
+      this.getProductOwners(),
       this.getCarlaFunctions(),
       // this.getTags(),
     ]);
@@ -68,9 +82,9 @@ export class DataProductFilterApiClient {
   public static getFrontendTools(): Promise<IDataProductListItem[]> {
     return this.getReport('lov/frontendtechnologies');
   }
-  // public static getProductOwners(): Promise<IDataProductListItem[]> {
-  //   return this.getReport('lov/productowners');
-  // }
+  public static getProductOwners(): Promise<IDataProductListItem[]> {
+    return this.get('dataproducts/owners');
+  }
   public static getCarlaFunctions(): Promise<IDataProductListItem[]> {
     return this.get('carlafunctions');
   }
