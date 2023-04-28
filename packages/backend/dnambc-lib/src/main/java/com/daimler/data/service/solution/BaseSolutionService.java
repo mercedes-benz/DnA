@@ -235,17 +235,21 @@ public class BaseSolutionService extends BaseCommonService<SolutionVO, SolutionN
 			try {
 				if (prevFileList != null && !prevFileList.isEmpty()) {
 					for (FileDetailsVO prevFile : prevFileList) {
-						if (curFileList != null && !curFileList.isEmpty() && prevFile.getId() != null) { //[1,2,3] []
+						if (curFileList != null && !curFileList.isEmpty() && prevFile.getId() != null) {
 							tempFile = curFileList.stream().filter(x -> prevFile.getId().equalsIgnoreCase(x.getId())).findAny().orElse(null);
 						}
 						if (tempFile == null) {
-							attachmentService.deleteFileFromS3Bucket(prevFile.getId());
-							log.info("deleting unused attachment found after solution update");
+							try {
+								attachmentService.deleteFileFromS3Bucket(prevFile.getId());
+								log.info("Deleting unused attachment found after solution update");
+							}catch (Exception e){
+								log.error("Failed to delete attachment from solution with an exception {}", e.getMessage());
+							}
 						}
 					}
 				}
 			} catch (Exception e) {
-				log.error("Empty attachments in an array with an exception {}" + e.getMessage());
+				log.error("Empty attachments in an array with an exception {}", e.getMessage());
 			}
 		}
 		updateTags(vo);
