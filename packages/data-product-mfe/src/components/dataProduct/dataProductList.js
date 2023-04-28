@@ -148,6 +148,7 @@ const DataProductList = ({ user, history }) => {
           </div>
           </div>
           <DataProductFilter
+            user={user}
             getFilterQueryParams={(queryParams) =>
               getFilteredSolutions(queryParams)
             }
