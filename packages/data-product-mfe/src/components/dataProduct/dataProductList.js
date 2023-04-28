@@ -82,6 +82,11 @@ const DataProductList = ({ user, history }) => {
     }).catch((err) => {
       console.log(err);
     });
+    if (sessionStorage.getItem('listViewModeEnable') == null) {
+      setCardViewModeFn();
+    } else {
+      setListViewModeFn();
+    }
   }, []);
 
   const [allDataProductsFirstTimeDataLoaded, setAllDataProductsFirstTimeDataLoaded] = useState(false);
@@ -95,6 +100,18 @@ const DataProductList = ({ user, history }) => {
   const [showDataProductsFilter] = useState(false);
 
   // setShowDataProductsFilter(false);
+
+  const setCardViewModeFn = () => {
+    setCardViewMode(true);
+    setListViewMode(false);
+    sessionStorage.removeItem('listViewModeEnable');
+  };
+
+  const setListViewModeFn = () => {
+    setCardViewMode(false);
+    setListViewMode(true);
+    sessionStorage.setItem('listViewModeEnable',true)
+  };
 
   return (
     <>
@@ -117,8 +134,7 @@ const DataProductList = ({ user, history }) => {
                 <span
                   className={cardViewMode ? Styles.iconactive : Styles.iconInActive}
                   onClick={() => {
-                    setCardViewMode(true);
-                    setListViewMode(false);
+                    setCardViewModeFn();
                   }}
                 >
                   <i className="icon mbc-icon widgets" />
@@ -129,8 +145,7 @@ const DataProductList = ({ user, history }) => {
                 <span
                   className={listViewMode ? Styles.iconactive : Styles.iconInActive}
                   onClick={() => {
-                    setCardViewMode(false);
-                    setListViewMode(true);
+                    setListViewModeFn();
                   }}
                 >
                   <i className="icon mbc-icon listview big" />
