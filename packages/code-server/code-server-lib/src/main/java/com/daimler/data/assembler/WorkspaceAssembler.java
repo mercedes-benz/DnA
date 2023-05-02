@@ -110,6 +110,7 @@ public class WorkspaceAssembler implements GenericAssembler<CodeServerWorkspaceV
 			recipeDetails.setOperatingSystem(vo.getOperatingSystem().toString());
 			recipeDetails.setRamSize(vo.getRamSize().toString());
 			recipeDetails.setRecipeId(vo.getRecipeId().toString());
+			recipeDetails.setResource(vo.getResource());
 		}
 		return recipeDetails;
 	}
@@ -123,6 +124,7 @@ public class WorkspaceAssembler implements GenericAssembler<CodeServerWorkspaceV
 			recipeDetailsVO.setOperatingSystem(OperatingSystemEnum.fromValue(recipe.getOperatingSystem()));
 			recipeDetailsVO.setRamSize(RamSizeEnum.fromValue(recipe.getRamSize()));
 			recipeDetailsVO.setRecipeId(RecipeIdEnum.fromValue(recipe.getRecipeId()));
+			recipeDetailsVO.setResource(recipe.getResource());
 		}
 		return recipeDetailsVO;
 	}
