@@ -498,7 +498,7 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 			if (exstingcollaboratorisCreator != null && exstingcollaboratorisCreator.getId() != null) {
 				GenericMessage responseMessg = new GenericMessage();
 				responseMessg.setSuccess("FAILED");
-				MessageDescription errMsg = new MessageDescription(existingForecast.getCreatedBy().getId() + " is a creator can not be added as a collaborator");
+				MessageDescription errMsg = new MessageDescription(existingForecast.getCreatedBy().getId() + " is already a Creator and can not be added as a collaborator");
 				errors.add(errMsg);
 				responseMessg.setErrors(errors);
 				log.error(errMsg.getMessage());
