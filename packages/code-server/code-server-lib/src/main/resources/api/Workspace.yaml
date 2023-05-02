@@ -612,6 +612,9 @@ definitions:
         type: string
         enum: [Debian-OS-11]
         description: "Operating system required"
+      resource:
+        type: string
+        description: "Storage details of recipe"  
       required:
         -recipeId
 

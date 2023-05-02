@@ -446,6 +446,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 			 ownerWorkbenchCreateInputsDto.setShortid(projectOwnerId);
 			 ownerWorkbenchCreateInputsDto.setType(client.toDeployType(ownerEntity.getData().getProjectDetails().getRecipeDetails().getRecipeId()));
 			 ownerWorkbenchCreateInputsDto.setWsid(ownerwsid);
+			 ownerWorkbenchCreateInputsDto.setResource(vo.getProjectDetails().getRecipeDetails().getResource());
 			 ownerWorkbenchCreateDto.setInputs(ownerWorkbenchCreateInputsDto);
 			 
 			 GenericMessage createOwnerWSResponse = client.manageWorkBench(ownerWorkbenchCreateDto);
