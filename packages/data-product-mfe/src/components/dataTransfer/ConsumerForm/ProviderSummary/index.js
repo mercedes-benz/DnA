@@ -114,7 +114,8 @@ const ProviderSummary = ({ onSave, providerFormIsDraft }) => {
         </div>
       ) : null}
       {showPersonalData ? (
-        <div className={Styles.sectionWrapper}>
+        <div className={classNames(Styles.sectionWrapper, providerInformation?.personalRelatedData === 'Yes' && Styles.yellowBorder)}>
+          { providerInformation?.personalRelatedData === 'Yes' && <i className={classNames('icon mbc-icon alert circle', Styles.warningIcon)} /> }
           <div className={Styles.firstPanel}>
             <div className={Styles.flexLayout}>
               <div>
