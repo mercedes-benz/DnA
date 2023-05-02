@@ -297,13 +297,34 @@ export const csvSeparator = (region: string) => {
 }
 
 export const recipesMaster = [
-  { id: 'default', name: 'Plain or Empty (Debian 11 OS, 1GB RAM, 1CPU)', repodetails: '' },
-  { id: 'springboot', name: 'Microservice using Spring Boot (Debian 11 OS, 1GB RAM, 1CPU)' },
-  { id: 'py-fastapi', name: 'Microservice using Python FastAPI (Debian 11 OS, 1GB RAM, 1CPU)' },
-  { id: 'react', name: 'React SPA (Debian 11 OS, 1GB RAM, 1CPU)' },
-  { id: 'angular', name: 'Angular SPA (Debian 11 OS, 1GB RAM, 1CPU)' },
-  { id: 'public-dna-frontend', name: 'DnA Frontend (Debian 11 OS, 1GB RAM, 1CPU)', repodetails: 'github.com/mercedes-benz/DnA.git,packages/frontend/*' },
-  { id: 'public-dna-backend', name: 'DnA Backend (Debian 11 OS, 1GB RAM, 1CPU)', repodetails: 'github.com/mercedes-benz/DnA.git,packages/backend/*' },
+  { id: 'default', resource: '2Gi,1000Mi,500m,2000Mi,1000m', name: 'Plain or Empty (Debian 11 OS, 1GB RAM, 1CPU)', repodetails: '' },
+  { id: 'springboot', resource: '2Gi,1000Mi,500m,2000Mi,1000m', name: 'Microservice using Spring Boot (Debian 11 OS, 1GB RAM, 1CPU)' },
+  { id: 'py-fastapi', resource: '2Gi,1000Mi,500m,2000Mi,1000m', name: 'Microservice using Python FastAPI (Debian 11 OS, 1GB RAM, 1CPU)' },
+  { id: 'react', resource: '4Gi,2000Mi,500m,4000Mi,1000m', name: 'React SPA (Debian 11 OS, 1GB RAM, 1CPU)' },
+  { id: 'angular', resource: '4Gi,2000Mi,500m,4000Mi,1000m', name: 'Angular SPA (Debian 11 OS, 1GB RAM, 1CPU)' },
+
+  { id: 'public-dna-frontend', resource: '4Gi,4000Mi,1000m,6000Mi,2000m', name: 'DnA Frontend (Debian 11 OS, 6GB RAM, 2CPU)', repodetails: 'github.com/mercedes-benz/DnA.git,packages/frontend/*' },
+  { id: 'public-dna-backend', resource: '2Gi,2000Mi,500m,4000Mi,1000m', name: 'DnA Backend (Debian 11 OS, 4GB RAM, 1CPU)', repodetails: 'github.com/mercedes-benz/DnA.git,packages/backend/*' },
+  { id: 'public-dna-report-backend', resource: '2Gi,2000Mi,500m,4000Mi,1000m', name: 'DnA Report Backend (Debian 11 OS, 4GB RAM, 1CPU)', repodetails: 'github.com/mercedes-benz/DnA.git,packages/dashboard-backend/*' },
+  { id: 'public-dna-codespace-backend', resource: '2Gi,2000Mi,500m,4000Mi,1000m', name: 'DnA Code Space Backend (Debian 11 OS, 2GB RAM, 1CPU)', repodetails: 'github.com/mercedes-benz/DnA.git,packages/code-server/*' },
+  { id: 'public-dna-malware-scanner', resource: '2Gi,2000Mi,500m,4000Mi,1000m', name: 'DnA Malware Scanner (Debian 11 OS, 4GB RAM, 1CPU)', repodetails: 'github.com/mercedes-benz/DnA.git,packages/malware-scanner/*' },
+  { id: 'public-dna-dashboard-backend', resource: '2Gi,2000Mi,500m,4000Mi,1000m', name: 'DnA Report Backend (Debian 11 OS, 4GB RAM, 1CPU)', repodetails: 'github.com/mercedes-benz/DnA.git,packages/dashboard-backend/*' },
+  { id: 'public-dna-storage-mfe', resource: '4Gi,4000Mi,1000m,6000Mi,2000m', name: 'DnA Storage Micro Frontend (Debian 11 OS, 6GB RAM, 2CPU)', repodetails: 'github.com/mercedes-benz/DnA.git,packages/storage-mfe/*' },
+  { id: 'public-dna-storage-backend', resource: '2Gi,2000Mi,500m,4000Mi,1000m', name: 'DnA Storage Backend (Debian 11 OS, 4GB RAM, 1CPU)', repodetails: 'github.com/mercedes-benz/DnA.git,packages/storage-backend/*' },
+  { id: 'public-dna-chronos-mfe', resource: '4Gi,4000Mi,1000m,6000Mi,2000m', name: 'DnA Chronos Micro Frontend (Debian 11 OS, 6GB RAM, 2CPU)', repodetails: 'github.com/mercedes-benz/DnA.git,packages/chronos-mfe/*' },
+  { id: 'public-dna-chronos-backend', resource: '2Gi,2000Mi,500m,4000Mi,1000m', name: 'DnA Chronos Backend (Debian 11 OS, 4GB RAM, 1CPU)', repodetails: 'github.com/mercedes-benz/DnA.git,packages/chronos/*' },
+  { id: 'public-dna-data-product-mfe', resource: '4Gi,4000Mi,1000m,6000Mi,2000m', name: 'DnA Data Product Micro Frontend (Debian 11 OS, 6GB RAM, 2CPU)', repodetails: 'github.com/mercedes-benz/DnA.git,packages/data-product-mfe/*' },
+  { id: 'public-dna-data-product-backend', resource: '2Gi,2000Mi,500m,4000Mi,1000m', name: 'DnA Data Product Backend (Debian 11 OS, 4GB RAM, 1CPU)', repodetails: 'github.com/mercedes-benz/DnA.git,packages/data-product-backend/*' },
+  { id: 'public-dna-dss-mfe', resource: '4Gi,4000Mi,1000m,6000Mi,2000m', name: 'DnA DSS Micro Frontend (Debian 11 OS, 6GB RAM, 2CPU)', repodetails: 'github.com/mercedes-benz/DnA.git,packages/data-dss-mfe/*' },
+  { id: 'public-dna-dataiku-backend', resource: '2Gi,2000Mi,500m,4000Mi,1000m', name: 'DnA DSS Backend (Debian 11 OS, 4GB RAM, 1CPU)', repodetails: 'github.com/mercedes-benz/DnA.git,packages/dataiku-backend/*' },
+  { id: 'public-dna-airflow-backend', resource: '2Gi,2000Mi,500m,4000Mi,1000m', name: 'DnA Airflow Backend (Debian 11 OS, 4GB RAM, 1CPU)', repodetails: 'github.com/mercedes-benz/DnA.git,packages/airflow-backend/*' },
+  { id: 'public-dna-modal-registry-backend', resource: '2Gi,2000Mi,500m,4000Mi,1000m', name: 'DnA Modal Registry Backend (Debian 11 OS, 4GB RAM, 1CPU)', repodetails: 'github.com/mercedes-benz/DnA.git,packages/model-registry/*' },
+  { id: 'public-dna-trino-backend', resource: '2Gi,2000Mi,500m,4000Mi,1000m', name: 'DnA Trino Backend (Debian 11 OS, 4GB RAM, 1CPU)', repodetails: 'github.com/mercedes-benz/DnA.git,packages/trino-backend/*' },
+  { id: 'public-dna-nass', resource: '2Gi,2000Mi,500m,4000Mi,1000m', name: 'DnA Notification Backend (Debian 11 OS, 4GB RAM, 1CPU)', repodetails: 'github.com/mercedes-benz/DnA.git,packages/naas/*' },
+  { id: 'public-dna-authenticator-backend', resource: '2Gi,2000Mi,500m,4000Mi,1000m', name: 'DnA Authenticator Backend (Debian 11 OS, 4GB RAM, 1CPU)', repodetails: 'github.com/mercedes-benz/DnA.git,packages/authenticator-service/*' },
+
+
+
   { id: 'chronos', name: 'CHRONOS Workspace (Coming Soon)' },
   { id: 'mean', name: 'MEAN Stack (Coming Soon)' },
   { id: 'mern', name: 'MERN Stack (Coming Soon)' },
