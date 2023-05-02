@@ -351,6 +351,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
 
   const createCodeSpace = () => {
     const isPublicRecipeChoosen = recipeValue.startsWith('public');
+    const recipe = recipesMaster.find((item: any) => item.id === recipeValue);
 
     if (validateNewCodeSpaceForm(isPublicRecipeChoosen)) {
       const createCodeSpaceRequest = {
@@ -365,7 +366,8 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
               environment: 'Development', // Need to handled in backend
               operatingSystem: 'Debian-OS-11',
               ramSize: '1',
-              recipeId: recipeValue
+              recipeId: recipeValue,
+              resource: recipe.resource
             }
           }
         },
@@ -374,7 +376,6 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
       };
 
       if (isPublicRecipeChoosen) {
-        const recipe = recipesMaster.find((item: any) => item.id === recipeValue);
         // createCodeSpaceRequest.data.gitUserName = githubUserName;
         // createCodeSpaceRequest.data.projectDetails.recipeDetails.recipeId = 'public';
         createCodeSpaceRequest.data.projectDetails.recipeDetails['repodetails'] = recipe.repodetails;
