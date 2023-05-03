@@ -277,6 +277,42 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 			responseVO.setResponse(errorMessage);
 			return new ResponseEntity<>(responseVO, HttpStatus.CONFLICT);
 		}
+		CreatedByVO requestUser = this.userStore.getVO();
+		List<MessageDescription> errors = new ArrayList<>();
+		if (forecastProjectCreateVO !=null && forecastProjectCreateVO.getCollaborators() != null && forecastProjectCreateVO.getCollaborators().size() > 0) {
+			// To check if user is collaborator in the getAddCollaborators list.
+			CollaboratorVO exstingcollaboratorisCreator = forecastProjectCreateVO.getCollaborators().stream().filter(x -> requestUser.getId().equalsIgnoreCase(x.getId())).findAny().orElse(null);
+			if (exstingcollaboratorisCreator != null && exstingcollaboratorisCreator.getId() != null) {
+				GenericMessage responseMessg = new GenericMessage();
+				responseMessg.setSuccess("FAILED");
+				MessageDescription errMsg = new MessageDescription(requestUser.getId() + " is already a Creator and can not be added as a collaborator");
+				errors.add(errMsg);
+				responseMessg.setErrors(errors);
+				log.error(errMsg.getMessage());
+				responseVO.setResponse(responseMessg);
+				return new ResponseEntity<>(responseVO, HttpStatus.BAD_REQUEST);
+			}
+
+			if (forecastProjectCreateVO.getCollaborators() != null) {
+				// To check if user is already present in the existingForecast Collaborators list.
+				Set<String> seenIds = new HashSet<>();
+				GenericMessage responseMessg = new GenericMessage();
+				for (CollaboratorVO collaborator : forecastProjectCreateVO.getCollaborators()) {
+					if (seenIds.contains(collaborator.getId())) {
+						// duplicate id found.
+						responseMessg.setSuccess("FAILED");
+						MessageDescription errMsg = new MessageDescription( "Duplicate entry for collaborator " + collaborator.getId());
+						errors.add(errMsg);
+						responseMessg.setErrors(errors);
+						log.error(errMsg.getMessage());
+						responseVO.setResponse(responseMessg);
+						return new ResponseEntity<>(responseVO, HttpStatus.BAD_REQUEST);
+					} else {
+						seenIds.add(collaborator.getId());
+					}
+				}
+			}
+		}
 		if (existingForecast == null) {
 			boolean isBucketExists = service.isBucketExists(BUCKETS_PREFIX + name);
 			if(isBucketExists) {
@@ -289,7 +325,6 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 				return new ResponseEntity<>(responseVO, HttpStatus.CONFLICT);
 			}
 		}
-		CreatedByVO requestUser = this.userStore.getVO();
 		ForecastVO forecastVO = new ForecastVO();
 		forecastVO.setBucketName(BUCKETS_PREFIX + name);
 		forecastVO.setCollaborators(forecastProjectCreateVO.getCollaborators());
