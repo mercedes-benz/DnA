@@ -3,14 +3,13 @@ package com.daimler.data.controller;
 import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 import javax.validation.Valid;
 
 import com.daimler.data.auth.vault.VaultAuthClientImpl;
 import com.daimler.data.dto.forecast.*;
-import com.daimler.data.dto.storage.BucketObjectDetailsDto;
-import com.daimler.data.dto.storage.BucketObjectsCollectionDto;
 import com.daimler.data.service.forecast.ForecastService;
 import org.apache.commons.io.FilenameUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -278,6 +277,42 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 			responseVO.setResponse(errorMessage);
 			return new ResponseEntity<>(responseVO, HttpStatus.CONFLICT);
 		}
+		CreatedByVO requestUser = this.userStore.getVO();
+		List<MessageDescription> errors = new ArrayList<>();
+		if (forecastProjectCreateVO !=null && forecastProjectCreateVO.getCollaborators() != null && forecastProjectCreateVO.getCollaborators().size() > 0) {
+			// To check if user is collaborator in the getAddCollaborators list.
+			CollaboratorVO exstingcollaboratorisCreator = forecastProjectCreateVO.getCollaborators().stream().filter(x -> requestUser.getId().equalsIgnoreCase(x.getId())).findAny().orElse(null);
+			if (exstingcollaboratorisCreator != null && exstingcollaboratorisCreator.getId() != null) {
+				GenericMessage responseMessg = new GenericMessage();
+				responseMessg.setSuccess("FAILED");
+				MessageDescription errMsg = new MessageDescription(requestUser.getId() + " is already a Creator and can not be added as a collaborator");
+				errors.add(errMsg);
+				responseMessg.setErrors(errors);
+				log.error(errMsg.getMessage());
+				responseVO.setResponse(responseMessg);
+				return new ResponseEntity<>(responseVO, HttpStatus.BAD_REQUEST);
+			}
+
+			if (forecastProjectCreateVO.getCollaborators() != null) {
+				// To check if user is already present in the existingForecast Collaborators list.
+				Set<String> seenIds = new HashSet<>();
+				GenericMessage responseMessg = new GenericMessage();
+				for (CollaboratorVO collaborator : forecastProjectCreateVO.getCollaborators()) {
+					if (seenIds.contains(collaborator.getId())) {
+						// duplicate id found.
+						responseMessg.setSuccess("FAILED");
+						MessageDescription errMsg = new MessageDescription( "Duplicate entry for collaborator " + collaborator.getId());
+						errors.add(errMsg);
+						responseMessg.setErrors(errors);
+						log.error(errMsg.getMessage());
+						responseVO.setResponse(responseMessg);
+						return new ResponseEntity<>(responseVO, HttpStatus.BAD_REQUEST);
+					} else {
+						seenIds.add(collaborator.getId());
+					}
+				}
+			}
+		}
 		if (existingForecast == null) {
 			boolean isBucketExists = service.isBucketExists(BUCKETS_PREFIX + name);
 			if(isBucketExists) {
@@ -290,7 +325,6 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 				return new ResponseEntity<>(responseVO, HttpStatus.CONFLICT);
 			}
 		}
-		CreatedByVO requestUser = this.userStore.getVO();
 		ForecastVO forecastVO = new ForecastVO();
 		forecastVO.setBucketName(BUCKETS_PREFIX + name);
 		forecastVO.setCollaborators(forecastProjectCreateVO.getCollaborators());
@@ -493,6 +527,42 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 				}
 			}
 		}
+		if (forecastUpdateRequestVO.getAddCollaborators() != null && forecastUpdateRequestVO.getAddCollaborators().size() > 0) {
+			// To check if user is collaborator in the getAddCollaborators list.
+			CollaboratorVO exstingcollaboratorisCreator = forecastUpdateRequestVO.getAddCollaborators().stream().filter(x -> existingForecast.getCreatedBy().getId().equalsIgnoreCase(x.getId())).findAny().orElse(null);
+			if (exstingcollaboratorisCreator != null && exstingcollaboratorisCreator.getId() != null) {
+				GenericMessage responseMessg = new GenericMessage();
+				responseMessg.setSuccess("FAILED");
+				MessageDescription errMsg = new MessageDescription(existingForecast.getCreatedBy().getId() + " is already a Creator and can not be added as a collaborator");
+				errors.add(errMsg);
+				responseMessg.setErrors(errors);
+				log.error(errMsg.getMessage());
+				responseVO.setResponse(responseMessg);
+				return new ResponseEntity<>(responseVO, HttpStatus.BAD_REQUEST);
+			}
+
+			if (existingForecast.getCollaborators() != null) {
+				// To check if user is already present in the existingForecast Collaborators list.
+				AtomicBoolean isCollabExits = new AtomicBoolean(false);
+				forecastUpdateRequestVO.getAddCollaborators().stream().forEach(collab -> {
+					CollaboratorVO exstingcollaborators = existingForecast.getCollaborators().stream().filter(x -> collab.getId().equalsIgnoreCase(x.getId())).findAny().orElse(null);
+					GenericMessage responseMessg = new GenericMessage();
+					if (exstingcollaborators != null && exstingcollaborators.getId() != null) {
+						isCollabExits.set(true);
+						responseMessg.setSuccess("FAILED");
+						MessageDescription errMsg = new MessageDescription(exstingcollaborators.getId() + " collaborator is already present");
+						errors.add(errMsg);
+						responseMessg.setErrors(errors);
+						log.error(errMsg.getMessage());
+						responseVO.setResponse(responseMessg);
+					}
+				});
+				if (isCollabExits.get()) {
+					return new ResponseEntity<>(responseVO, HttpStatus.BAD_REQUEST);
+				}
+			}
+		}
+
 		responseMessage = service.updateForecastByID(id, forecastUpdateRequestVO, existingForecast);
 		 responseVO.setResponse(responseMessage);
 
