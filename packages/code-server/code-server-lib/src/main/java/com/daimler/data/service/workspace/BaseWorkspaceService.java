@@ -913,13 +913,13 @@ public class BaseWorkspaceService implements WorkspaceService {
 					String workspaceUrl = codeServerBaseUri+"/"+workspaceName+"/?folder=/home/coder";
 					if(!defaultRecipeId.equalsIgnoreCase(projectRecipe))
 						workspaceUrl += "/app";
-					if(publicDnABackendRecipeId.toLowerCase().equalsIgnoreCase(projectRecipe.toLowerCase())) {
-						log.info("Project is public recipe");						
+					if(projectRecipe.toLowerCase().contains("backend")) {
+						log.info("Project is public backend recipe");						
 						workspaceUrl = workspaceUrl + "/" + "packages/backend";
 						log.info("workspaceUrl: {}",workspaceUrl);
 					}
-					if(publicDnaFrontendRecipeId.toLowerCase().equalsIgnoreCase(projectRecipe.toLowerCase())) {
-						log.info("Project is public recipe");						
+					if(projectRecipe.toLowerCase().contains("frontend")) {
+						log.info("Project is public frontend recipe");						
 						workspaceUrl = workspaceUrl + "/" + "packages/frontend";
 						log.info("workspaceUrl: {}",workspaceUrl);
 					}					
