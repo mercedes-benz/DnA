@@ -6,7 +6,6 @@ import Styles from './styles.scss';
 import SelectBox from 'dna-container/SelectBox';
 import InfoModal from 'dna-container/InfoModal';
 import Tags from 'dna-container/Tags';
-import DatePicker from 'dna-container/DatePicker';
 import TeamSearch from 'dna-container/TeamSearch';
 import TypeAheadBox from 'dna-container/TypeAheadBox';
 
@@ -37,7 +36,6 @@ const ContactInformation = ({
     reset,
     setValue,
     control,
-    getValues,
   } = useFormContext();
   const [showInfoModal, setShowInfoModal] = useState(false);
   const provideDataTransfers = useSelector((state) =>
@@ -199,26 +197,6 @@ const ContactInformation = ({
     }
     field.onChange(value);
     setInformationOwnerFieldValue(name);
-  };
-
-  const validateDate = () => {
-    const value = getValues('dateOfDataProduct');
-    if (typeof value === 'object') {
-      const isValidDate = !isNaN(value?.get('date'));
-      // const isBefore = dayjs(value).isBefore(minDate, 'date');
-      const error =
-        value === null || value === ''
-          ? '*Missing entry'
-          : !isValidDate
-          ? 'Invalid Date Format'
-          // : isBefore
-          // ? 'Is before the minimum date'
-          : null;
-      // return (value === isValidDate && value !== isBefore) || error;
-      return (value === isValidDate) || error;
-    } else {
-      return (value !== '' && value !== undefined) || '*Missing entry';
-    }
   };
 
   const handlePlanningITSearch = debounce((searchTerm, showSpinner) => {
@@ -437,35 +415,6 @@ const ContactInformation = ({
                   )}
                 />
               </div>
-              {isDataProduct ? (
-                <div className={classNames('input-field-group include-error', errors.dateOfDataProduct ? 'error' : '')}>
-                  <label id="dateOfDataProductLabel" htmlFor="dateOfDataProductrInput" className="input-label">
-                    Publish Date of Data Product <sup>*</sup>
-                  </label>
-                  <Controller
-                    control={control}
-                    name="dateOfDataProduct"
-                    rules={{
-                      validate: validateDate,
-                    }}
-                    render={({ field }) => (
-                      <DatePicker
-                        label="Publish Date of Data Product"
-                        value={watch('dateOfDataProduct')}
-                        name={field.name}
-                        // minDate={minDate}
-                        onChange={(value) => {
-                          field.onChange(value);
-                        }}
-                        requiredError={errors.dateOfDataProduct?.message}
-                      />
-                    )}
-                  />
-                  <span className={classNames('error-message')}>{errors.dateOfDataProduct?.message}</span>
-                </div>
-              ) : (
-                null
-              )}
             </div>
             <div className={Styles.flexLayout}>
               <div className={classNames('input-field-group include-error', errors.complianceOfficer ? 'error' : '')}>
