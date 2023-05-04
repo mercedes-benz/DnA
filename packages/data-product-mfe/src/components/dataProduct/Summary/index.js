@@ -14,7 +14,7 @@ import DataTranferCardLayout from '../../dataTransfer/Layout/CardView/DataTransf
 
 import { setSelectedDataProduct, setDivisionList, resetDataTransferList } from '../redux/dataProductSlice';
 
-import { isValidURL, regionalDateFormat } from '../../../Utility/utils';
+import { isValidURL } from '../../../Utility/utils';
 
 import InfoModal from 'dna-container/InfoModal';
 import Modal from 'dna-container/Modal';
@@ -426,11 +426,6 @@ const Summary = ({ history, user }) => {
                           <br />
                           {selectedDataProduct.informationOwner?.firstName}{' '}
                           {selectedDataProduct.informationOwner?.lastName}
-                        </div>
-                        <div>
-                          <label className="input-label summary">Publish Date of Data Product</label>
-                          <br />
-                          {regionalDateFormat(selectedDataProduct.dateOfDataProduct)}
                         </div>
                         <div>
                           <label className="input-label summary">Point of contact for data transfer</label>
