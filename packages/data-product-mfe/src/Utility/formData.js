@@ -128,7 +128,6 @@ export const serializeFormData = ({ values, division, type = 'provider', isDataP
                   oneApi: values.oneApi,
                   contactInformation: {
                     appId: values.planningIT,
-                    dataProductDate: values.dateOfDataProduct === null ? undefined : new Date(values.dateOfDataProduct),
                     department: values.department === '' ? undefined : values.department?.toString(),
                     division,
                     informationOwner: values.informationOwner,
@@ -282,7 +281,6 @@ export const deserializeFormData = ({ item, type = 'provider', isDataProduct = f
           notifyUsers: item.notifyUsers,
           openSegments: item?.openSegments,
           informationOwner: item?.contactInformation?.informationOwner,
-          dateOfDataProduct: item?.contactInformation?.dataProductDate === null ? undefined : item?.contactInformation?.dataProductDate,
           department: item?.contactInformation?.department === '' ? undefined : item?.contactInformation?.department?.split(),
           name: item?.contactInformation?.name,
           division: item?.contactInformation?.division?.id || '0',

@@ -44,7 +44,6 @@ const dataForms = {
     ART: '',
     corporateDataCatalog: '',
     description: '',
-    dateOfDataProduct: '',
   },
   ...tabs,
 };
@@ -332,11 +331,6 @@ const CreateDataProduct = ({ user, history }) => {
 
     if (!reqObj?.department || reqObj?.department === '') {
       errorObject.contactInformationTabError.push('Department');
-      formValid = false;
-    }
-
-    if (!reqObj?.dateOfDataProduct || reqObj?.dateOfDataProduct === '') {
-      errorObject.contactInformationTabError.push('Publish Date of Data Product');
       formValid = false;
     }
     
