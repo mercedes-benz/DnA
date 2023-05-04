@@ -588,7 +588,7 @@ definitions:
     properties:
       recipeId:
         type: string
-        enum: [default,springboot,py-fastapi,react,angular,gradle,public-dna-backend,public-dna-frontend]
+        enum: [default,springboot,py-fastapi,react,angular,gradle,public-dna-backend,public-dna-frontend,public-dna-report-backend,public-dna-codespace-backend,public-dna-malware-scanner,public-dna-storage-mfe,public-dna-storage-backend,public-dna-chronos-mfe,public-dna-chronos-backend,public-dna-data-product-mfe,public-dna-data-product-backend,public-dna-dss-mfe,public-dna-dataiku-backend,public-dna-airflow-backend,public-dna-modal-registry-backend,public-dna-trino-backend,public-dna-nass,public-dna-authenticator-backend]
         description: "RecipeId of the workspace. Ex: Springboot Microservice"    
       environment:
         type: string
