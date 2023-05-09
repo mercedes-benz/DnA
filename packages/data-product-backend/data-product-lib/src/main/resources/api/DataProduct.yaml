@@ -646,6 +646,9 @@ definitions:
       lastModifiedDate:
         type: string
         format: date
+      additionalInformation:
+        type: string
+        description: "Additional information for Data product"  
       createdBy:
         $ref: "#/definitions/CreatedByVO"
       modifiedBy:
