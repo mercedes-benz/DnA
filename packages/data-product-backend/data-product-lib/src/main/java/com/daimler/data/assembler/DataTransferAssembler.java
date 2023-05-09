@@ -203,7 +203,6 @@ public class DataTransferAssembler implements GenericAssembler<DataTransferVO, D
 						divisionvo.setSubdivision(subdivisionVO);
 						contactInformationVO.setDivision(divisionvo);
 					}
-					contactInformationVO.setOwnerName(toTeamMemberVO(consumerContactInformation.getOwnerName()));
 					consumerVO.setContactInformation(contactInformationVO);
 				}
 
@@ -363,7 +362,6 @@ public class DataTransferAssembler implements GenericAssembler<DataTransferVO, D
 						}
 						contactInformation.setDivision(division);
 					}
-					contactInformation.setOwnerName(toTeamMemberJson(consumerContactInformationVO.getOwnerName()));
 					consumer.setContactInformation(contactInformation);
 				}
 
