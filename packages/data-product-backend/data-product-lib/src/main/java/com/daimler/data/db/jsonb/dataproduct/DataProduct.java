@@ -51,6 +51,7 @@ public class DataProduct {
 	private String dataProductName;
 	private String recordStatus;
 	private String description;
+	private String additionalInformation;
 	private String howToAccessText;
 	private Boolean publish;
 	private Boolean notifyUsers;

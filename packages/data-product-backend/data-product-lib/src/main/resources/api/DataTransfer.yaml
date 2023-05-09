@@ -437,8 +437,8 @@ definitions:
       lcoNeeded:
         type: boolean
         description: "Is LCO/LCR needed to be involved to check legal basis of usage of personal data"
-      ownerName:
-        $ref: "#/definitions/DataTransferTeamMemberVO"
+      #ownerName:
+      #  $ref: "#/definitions/DataTransferTeamMemberVO"
       division:
         $ref: "#/definitions/DivisionVO"
       department:
