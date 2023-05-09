@@ -88,6 +88,9 @@ public class DataProductAssembler implements GenericAssembler<DataProductVO, Dat
 			if (dataProduct != null) {
 				BeanUtils.copyProperties(dataProduct, vo);
 				vo.setIsPublish(entity.getData().getPublish());
+				if(Objects.nonNull(dataProduct.getAdditionalInformation())) {
+					vo.setAdditionalInformation(dataProduct.getAdditionalInformation());
+				}
 				if (Objects.nonNull(dataProduct.getCreatedBy())) {
 					CreatedByVO createdByVO = new CreatedByVO();
 					BeanUtils.copyProperties(dataProduct.getCreatedBy(), createdByVO);
@@ -221,6 +224,9 @@ public class DataProductAssembler implements GenericAssembler<DataProductVO, Dat
 			if (vo != null) {
 				BeanUtils.copyProperties(vo, dataProduct);
 				dataProduct.setNotifyUsers(vo.isNotifyUsers());
+				if(Objects.nonNull(vo.getAdditionalInformation())) {
+					dataProduct.setAdditionalInformation(vo.getAdditionalInformation());
+				}
 				dataProduct.setPublish(vo.isIsPublish());
 				if (Objects.nonNull(vo.getCreatedBy())) {
 					CreatedBy userDetails = new CreatedBy();
@@ -666,7 +672,6 @@ public class DataProductAssembler implements GenericAssembler<DataProductVO, Dat
 		dataTransferConsumerRequestVO.getData().getConsumerInformation().setContactInformation(new ConsumerContactInformationVO());
 		dataTransferConsumerRequestVO.getData().getConsumerInformation().getContactInformation().setDivision(new com.daimler.data.dto.datatransfer.DivisionVO());
 		dataTransferConsumerRequestVO.getData().getConsumerInformation().getContactInformation().getDivision().setSubdivision(new com.daimler.data.dto.datatransfer.SubdivisionVO());
-		dataTransferConsumerRequestVO.getData().getConsumerInformation().getContactInformation().setOwnerName(new DataTransferTeamMemberVO());
 		dataTransferConsumerRequestVO.getData().getConsumerInformation().setPersonalRelatedData(new ConsumerPersonalRelatedDataVO());
 
 		com.daimler.data.dto.dataproduct.ConsumerRequestVO dataproductConsumerData = dataTransferConsumerRequestInfoVO.getData();
@@ -675,19 +680,12 @@ public class DataProductAssembler implements GenericAssembler<DataProductVO, Dat
 		BeanUtils.copyProperties(dataproductConsumerData, datatransferConsumerData);
 		BeanUtils.copyProperties(dataproductConsumerData.getConsumerInformation(), datatransferConsumerData.getConsumerInformation());
 		BeanUtils.copyProperties(dataproductConsumerData.getConsumerInformation().getContactInformation(), datatransferConsumerData.getConsumerInformation().getContactInformation());
-		BeanUtils.copyProperties(dataproductConsumerData.getConsumerInformation().getContactInformation().getOwnerName(), datatransferConsumerData.getConsumerInformation().getContactInformation().getOwnerName());
 		BeanUtils.copyProperties(dataproductConsumerData.getConsumerInformation().getContactInformation().getDivision(), datatransferConsumerData.getConsumerInformation().getContactInformation().getDivision());
 		BeanUtils.copyProperties(dataproductConsumerData.getConsumerInformation().getContactInformation().getDivision().getSubdivision(), datatransferConsumerData.getConsumerInformation().getContactInformation().getDivision().getSubdivision());
 		BeanUtils.copyProperties(dataproductConsumerData.getConsumerInformation().getPersonalRelatedData(), datatransferConsumerData.getConsumerInformation().getPersonalRelatedData());
 
 		if (dataproductConsumerData.getConsumerInformation().getContactInformation().isLcoNeeded() != null) {
 			datatransferConsumerData.getConsumerInformation().getContactInformation().setLcoNeeded(dataproductConsumerData.getConsumerInformation().getContactInformation().isLcoNeeded());
-		}
-		if (dataproductConsumerData.getConsumerInformation().getContactInformation().getOwnerName().getUserType() != null) {
-			datatransferConsumerData.getConsumerInformation().getContactInformation().getOwnerName().setUserType(DataTransferTeamMemberVO.UserTypeEnum.valueOf(dataproductConsumerData.getConsumerInformation().getContactInformation().getOwnerName().getUserType().toString().toUpperCase()));
-		}
-		if (dataproductConsumerData.getConsumerInformation().getContactInformation().getOwnerName().isAddedByProvider() != null) {
-			datatransferConsumerData.getConsumerInformation().getContactInformation().getOwnerName().setAddedByProvider(dataproductConsumerData.getConsumerInformation().getContactInformation().getOwnerName().isAddedByProvider());
 		}
 		if (dataproductConsumerData.getConsumerInformation().getPersonalRelatedData().isPersonalRelatedData() != null) {
 			datatransferConsumerData.getConsumerInformation().getPersonalRelatedData().setPersonalRelatedData(dataproductConsumerData.getConsumerInformation().getPersonalRelatedData().isPersonalRelatedData());
