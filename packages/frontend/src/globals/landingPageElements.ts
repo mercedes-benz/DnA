@@ -23,7 +23,7 @@ const afoUrl= Envs.AFO_TOOL_URL;
 const btpUrl = Envs.BPT_TOOL_URL;
 const dataOasisUrl = Envs.DATA_OASIS_TOOL_URL;
 const dataQToolUrl = Envs.DATAQ_TOOL_URL;
-const dwcUrl = Envs.DWC_TOOL_URL;
+const datasphereUrl = Envs.DATASPHERE_TOOL_URL;
 const extolloUrl = Envs.EXTOLLO_TOOL_URL;
 const powerBIUrl = Envs.POWER_BI_TOOL_URL;
 const sbissUrl = Envs.SBISS_LAUNCHPAD_TOOL_URL;
@@ -37,6 +37,7 @@ const sapConnectionBookUrl = Envs.SAP_CONNECTION_BOOK_URL;
 const smartDataGovernanceUrl = Envs.SMART_DATA_GOVERNANCE_URL;
 const transactionalDataUrl = Envs.TRANSACTIONAL_DATA_URL;
 const carlaArchitectureUrl = Envs.CARLA_ARCHITECTURE_URL;
+const chatbotUrl = Envs.GPT4ALL_CHATBOT_TOOL_URL;
 
 export const DataLayerElements = [
   {
@@ -372,15 +373,14 @@ export const ToolsLandingPageElements = [
     svgIcon: 'btp',
   },
   {
-    name: 'DWC',
-    description: 'SAP Data Warehouse Cloud is a cloud based data warehouse designed for self service data integration, modelling and analysis.It provides access to FC Data products and is connected to our SAP Analytics Cloud Frontend.',
+    name: 'Datasphere',
+    description: 'SAP Datasphere is a cloud based data warehouse designed for self service data integration, modelling and analysis.It provides access to FC Data products and is connected to our SAP Analytics Cloud Frontend.',
     tags: ['Data Engineering', 'Data Storage', 'SAP', 'No / Low Code', 'Cloud'],
-    url: dwcUrl
-    ,
+    url: datasphereUrl,
     isExternalLink: true,
     isTextAlignLeft: true,
     animation: true,
-    isDisabled: true,
+    isDisabled: !datasphereUrl,
     isSmallCard: false,
     isMediumCard: true,
     svgIcon: 'tools-mini',
@@ -440,6 +440,19 @@ export const ToolsLandingPageElements = [
     isSmallCard: false,
     isMediumCard: true,
     svgIcon: 'modelregistry',
+  },
+  {
+    name: 'Chat GPT4All',
+    description: 'This is an earlybird release of a chatbot based on GPT4 LLM.',
+    tags: ['Data Engineering', 'No / Low Code', 'Cloud', 'Machine Learning', 'FOSS', 'Onprem'],
+    url: chatbotUrl,
+    isExternalLink: true,
+    isTextAlignLeft: true,
+    animation: true,
+    isDisabled: !chatbotUrl,
+    isSmallCard: false,
+    isMediumCard: true,
+    svgIcon: 'tools-mini',
   },
 ];
 
