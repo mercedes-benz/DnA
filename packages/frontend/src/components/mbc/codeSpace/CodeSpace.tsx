@@ -455,6 +455,7 @@ const CodeSpace = (props: ICodeSpaceProps) => {
                         className={fullScreenMode ? Styles.fullscreen : ''}
                         src={codeSpaceData.workspaceUrl}
                         title="Code Space"
+                        allow="clipboard-read; clipboard-write"
                       />
                     </div>
                   )
