@@ -93,7 +93,9 @@ public class DataikuClientImp implements DataikuClient {
 	
 	@Value("${dataiku.projectPermissionUriPath}")
 	private String projectPermissionUriPath;
-	
+
+	@Value("${dataiku.isSearchByShortId}")
+	private boolean isSearchByShortId;
 
 	/**
 	 * <p>
@@ -156,12 +158,14 @@ public class DataikuClientImp implements DataikuClient {
 			ResponseEntity<String> response = null;
 			try {
 				LOGGER.debug("Fetching details of user {} from emea", userId);
-				response = restTemplate.exchange(dataikuUri + userId.toUpperCase(), HttpMethod.GET,
+				String searchBy = isSearchByShortId ? userId.toLowerCase() +"@"+ emeaCorpdir : userId.toUpperCase();
+				response = restTemplate.exchange(dataikuUri + searchBy, HttpMethod.GET,
 						entity, String.class);
 			} catch (Exception e) {
 				LOGGER.error("Error occuried while fetching dataiku user role error:{}", e.getMessage());
 				LOGGER.debug("Fetching details of user {} from apac", userId);
-				response = restTemplate.exchange(dataikuUri + userId.toUpperCase(), HttpMethod.GET,
+				String searchBy = isSearchByShortId ? userId.toLowerCase() +"@"+ apacCorpdir : userId.toUpperCase();
+				response = restTemplate.exchange(dataikuUri + searchBy, HttpMethod.GET,
 						entity, String.class);
 			}
 			if (response != null && response.hasBody()) {
