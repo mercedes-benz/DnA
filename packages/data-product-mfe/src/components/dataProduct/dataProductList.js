@@ -73,10 +73,10 @@ const DataProductList = ({ user, history }) => {
   //   setSelectedTagsToPass(values);
   // }
 
-  useEffect(() => {
-    dispatch(GetDataProducts(`&carlafunction=`+selectedTagsToPass.join(',')));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedTagsToPass]);
+  // useEffect(() => {
+  //   dispatch(GetDataProducts(`&carlafunction=`+selectedTagsToPass.join(',')));
+  //   // eslint-disable-next-line react-hooks/exhaustive-deps
+  // }, [selectedTagsToPass]);
 
   useEffect(() => {
     dataProductApi.getAllCarlaFunctions().then((res) => {
@@ -95,9 +95,9 @@ const DataProductList = ({ user, history }) => {
 
   console.log(setAllDataProductsFirstTimeDataLoaded);
 
-  const getFilteredSolutions = (queryParams) => {
-    dispatch(GetDataProducts(queryParams));
-  }
+  // const getFilteredSolutions = (queryParams) => {
+  //   dispatch(GetDataProducts(queryParams));
+  // }
 
   const [showDataProductsFilter] = useState(false);
 
@@ -167,9 +167,9 @@ const DataProductList = ({ user, history }) => {
           </div>
           <DataProductFilter
             user={user}
-            getFilterQueryParams={(queryParams) =>
-              getFilteredSolutions(queryParams)
-            }
+            // getFilterQueryParams={(queryParams) =>
+            //   getFilteredSolutions(queryParams)
+            // }
             dataProductsDataLoaded={true}
             setDataProductsDataLoaded={(value) => allDataProductsFirstTimeDataLoaded(value)}
             showDataProductsFilter={showDataProductsFilter}
