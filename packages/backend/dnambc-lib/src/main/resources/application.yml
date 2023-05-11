@@ -151,7 +151,7 @@ matomo:
 
   
 dataiku:
-  isSearchByShortId: ${SEARCH_BY_SHORTID:false}
+  isSearchByShortId: ${SEARCH_BY_SHORTID:true}
   apacCorpdir: ${APAC_CORPDIR:xxxxx}
   emeaCorpdir: ${EMEA_CORPDIR:xxxxx}
   projectsUriPath: ${DATAIKU_PROJECTS_URI_PATH:xxxxx}
