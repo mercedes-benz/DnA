@@ -35,7 +35,7 @@ type DataProductsFilterType = {
 
 const DataProductFilter = ({
   user,
-  getValuesFromFilter,
+  // getValuesFromFilter,
   getFilterQueryParams,
   dataProductsDataLoaded,
   openFilters,
