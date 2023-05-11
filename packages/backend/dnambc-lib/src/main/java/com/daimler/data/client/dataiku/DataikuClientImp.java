@@ -158,13 +158,13 @@ public class DataikuClientImp implements DataikuClient {
 			ResponseEntity<String> response = null;
 			try {
 				LOGGER.debug("Fetching details of user {} from emea", userId);
-				String searchBy = isSearchByShortId ? userId.toLowerCase() +"@"+ emeaCorpdir : userId.toUpperCase();
+				String searchBy = isSearchByShortId ? userId.toUpperCase() : userId.toLowerCase() +"@"+ emeaCorpdir;
 				response = restTemplate.exchange(dataikuUri + searchBy, HttpMethod.GET,
 						entity, String.class);
 			} catch (Exception e) {
 				LOGGER.error("Error occuried while fetching dataiku user role error:{}", e.getMessage());
 				LOGGER.debug("Fetching details of user {} from apac", userId);
-				String searchBy = isSearchByShortId ? userId.toLowerCase() +"@"+ apacCorpdir : userId.toUpperCase();
+				String searchBy = isSearchByShortId ? userId.toUpperCase() : userId.toLowerCase() +"@"+ apacCorpdir;
 				response = restTemplate.exchange(dataikuUri + searchBy, HttpMethod.GET,
 						entity, String.class);
 			}
