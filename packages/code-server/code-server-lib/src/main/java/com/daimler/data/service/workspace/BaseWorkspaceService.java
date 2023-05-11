@@ -298,6 +298,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 			 ownerWorkbenchCreateInputsDto.setShortid(entity.getData().getWorkspaceOwner().getId());
 			 ownerWorkbenchCreateInputsDto.setType(client.toDeployType(entity.getData().getProjectDetails().getRecipeDetails().getRecipeId()));
 			 ownerWorkbenchCreateInputsDto.setWsid(entity.getData().getWorkspaceId());
+			ownerWorkbenchCreateInputsDto.setResource(vo.getProjectDetails().getRecipeDetails().getResource());
 			 ownerWorkbenchCreateDto.setInputs(ownerWorkbenchCreateInputsDto);
 			 
 			 GenericMessage createOwnerWSResponse = client.manageWorkBench(ownerWorkbenchCreateDto);
@@ -305,24 +306,15 @@ public class BaseWorkspaceService implements WorkspaceService {
 				 if(!"SUCCESS".equalsIgnoreCase(createOwnerWSResponse.getSuccess()) || 
 						 	(createOwnerWSResponse.getErrors()!=null && !createOwnerWSResponse.getErrors().isEmpty()) ||
 						 	(createOwnerWSResponse.getWarnings()!=null && !createOwnerWSResponse.getWarnings().isEmpty())) {
-					 	HttpStatus deleteRepoStatus = gitClient.deleteRepo(repoName);
-					 	if(!deleteRepoStatus.is2xxSuccessful()) {
-					 		MessageDescription errMsg = new MessageDescription("Created git repository " +repoName + " successfully and added collaborator(s). Failed to initialize workbench. Deleted repository successfully, please retry");
+					 	
+							MessageDescription errMsg = new MessageDescription("Failed to initialize collaborator workbench while creating individual codespaces, please retry.");
 							errors.add(errMsg);
 							errors.addAll(createOwnerWSResponse.getErrors());
 							warnings.addAll(createOwnerWSResponse.getWarnings());
 							responseVO.setErrors(errors);
 							responseVO.setWarnings(warnings);
 							return responseVO;
-					 	}else {
-							MessageDescription errMsg = new MessageDescription("Created git repository " + repoName + " successfully and added collaborator(s). Failed to initialize workbench. Unable to delete repository, please delete repository manually and retry");
-							errors.add(errMsg);
-							errors.addAll(createOwnerWSResponse.getErrors());
-							warnings.addAll(createOwnerWSResponse.getWarnings());
-							responseVO.setErrors(errors);
-							responseVO.setWarnings(warnings);
-							return responseVO;
-					 	}
+					 	
 				 }
 			 }
 			 Date initatedOn = new Date();
