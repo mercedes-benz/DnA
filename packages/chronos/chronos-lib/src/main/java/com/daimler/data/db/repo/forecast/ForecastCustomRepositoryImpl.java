@@ -33,6 +33,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import javax.persistence.Query;
+import javax.persistence.NoResultException;
 
 import org.springframework.stereotype.Repository;
 
@@ -89,10 +90,19 @@ public class ForecastCustomRepositoryImpl extends CommonDataRepositoryImpl<Forec
 	
 	@Override
 	public long getTotalRunsCount(String id) {
-		String getCountStmt = " select count(*) from forecast_nsql where  id = '" + id + "' and (jsonb_extract_path_text(data,'isDelete') is null or  jsonb_extract_path_text(data,'isDelete') in ('true'))";;
+		String getCountStmt = " select jsonb_array_length(data->'runs') from forecast_nsql where  id = '" + id + "' and (jsonb_extract_path_text(data,'isDelete') is null or  jsonb_extract_path_text(data,'isDelete') in ('true'))";;
 		Query q = em.createNativeQuery(getCountStmt);
-		BigInteger results = (BigInteger) q.getSingleResult();
-		return results.longValue();
+		try {
+			Integer results = (Integer) q.getSingleResult();
+			return results.intValue();
+		}
+		catch(NoResultException e) {
+			log.error("No Runs present for given forecast ID: {}", id );
+			return 0;
+		} catch (Exception e) {
+			log.error("Failed while fetching all runs for forecast project: {} using native query with exception {} ", e.getMessage());
+			return 0;
+		}
 	}
 	
 	@Override
