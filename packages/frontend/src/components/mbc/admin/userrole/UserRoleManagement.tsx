@@ -569,7 +569,7 @@ export class UserRoleManagement extends React.Component<any, IUserRoleManagement
               </div>
             </div>
             {Envs.OIDC_PROVIDER === 'INTERNAL' && (
-              <div className={classNames(Styles.linksWrapper, 'hide')}>
+              <div className={classNames(Styles.linksWrapper)}>
                 <button className="btn btn-text" onClick={this.onShowTechnicalUserOnboard}>
                   <i className="icon mbc-icon plus" />
                   <span>Onboard a Technical User</span>
