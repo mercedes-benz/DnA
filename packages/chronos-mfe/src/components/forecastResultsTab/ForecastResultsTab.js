@@ -13,6 +13,7 @@ import { useHistory, useParams } from 'react-router-dom';
 import { chronosApi } from '../../apis/chronos.api';
 import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indicator';
 import Spinner from '../spinner/Spinner';
+import { getQueryParameterByName } from '../../utilities/utils';
 import ForecastRunRow from './forecastRunRow/ForecastRunRow';
 
 const ForecastResultsTab = () => {
@@ -20,22 +21,34 @@ const ForecastResultsTab = () => {
 
   const [loading, setLoading] = useState(true);
   const [forecastRuns, setForecastRuns] = useState([]);
-  const [originalResults, setOriginalResults] = useState([]);
+
+  // Pagination 
+  const [totalNumberOfPages, setTotalNumberOfPages] = useState(1);
+  const [currentPageNumber, setCurrentPageNumber] = useState(1);
+  const [currentPageOffset, setCurrentPageOffset] = useState(0);
+  const [maxItemsPerPage, setMaxItemsPerPage] = useState(15);
+
   useEffect(() => {
-    getProjectForecastRuns();
+    const pageNumberOnQuery = getQueryParameterByName('page');
+    const currentPageNumberTemp = pageNumberOnQuery ? parseInt(getQueryParameterByName('page'), 10) : 1;
+    const currentPageOffsetTemp = pageNumberOnQuery ? (currentPageNumberTemp - 1) * maxItemsPerPage : 0;
+    setCurrentPageOffset(currentPageOffsetTemp);
+    setCurrentPageNumber(currentPageNumberTemp);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
+  
   const getProjectForecastRuns = () => {
     ProgressIndicator.show();
-    chronosApi.getForecastRuns(projectId).then((res) => {
-      if(res.status === 204) {
+    chronosApi.getForecastRuns(projectId, currentPageOffset, maxItemsPerPage).then((res) => {
+      if (res.status === 204) {
         setForecastRuns([]);
-        setOriginalResults([]);
       } else {
         setForecastRuns(res.data.records);
-        setOriginalResults([...res.data.records]);
+        const totalNumberOfPagesTemp = Math.ceil(res.data.totalCount / maxItemsPerPage);
+        setCurrentPageNumber(currentPageNumber > totalNumberOfPagesTemp ? 1 : currentPageNumber);
+        setTotalNumberOfPages(totalNumberOfPagesTemp);
       }
+
       setLoading(false);
       ProgressIndicator.hide();
     }).catch(error => {
@@ -48,19 +61,13 @@ const ForecastResultsTab = () => {
     });
   };
 
-  // Pagination 
-  const [totalNumberOfPages, setTotalNumberOfPages] = useState(1);
-  const [currentPageNumber, setCurrentPageNumber] = useState(1);
-  const [currentPageOffset, setCurrentPageOffset] = useState(0);
-  const [maxItemsPerPage, setMaxItemsPerPage] = useState(15);
-
   /* getResults */
   const getResults = (action) => {
     const showProgressIndicator = ['pagination'].includes(action);
 
     showProgressIndicator && ProgressIndicator.show();
 
-    let results = originalResults;
+    let results = forecastRuns;
 
     if (sortBy) {
       if (sortBy.name === 'runName') {
@@ -120,31 +127,19 @@ const ForecastResultsTab = () => {
         currentPageOffset + maxItemsPerPage < results.length ? currentPageOffset + maxItemsPerPage : results.length,
       ),
     );
-    setTotalNumberOfPages(Math.ceil(results.length / maxItemsPerPage) === 0 ? 1 : Math.ceil(results.length / maxItemsPerPage));
-    setCurrentPageNumber(
-      currentPageNumber > Math.ceil(results.length / maxItemsPerPage)
-        ? Math.ceil(results.length / maxItemsPerPage) > 0
-          ? Math.ceil(results.length / maxItemsPerPage)
-          : 1
-        : currentPageNumber,
-    );
     showProgressIndicator && ProgressIndicator.hide();
   };
 
-  useEffect(() => {
-    getResults('pagination');
-  }, [maxItemsPerPage, currentPageOffset, currentPageNumber]); // eslint-disable-line react-hooks/exhaustive-deps
-
   const onPaginationPreviousClick = () => {
     const currentPageNum = currentPageNumber - 1;
-    const currentPageOffset = (currentPageNum - 1) * maxItemsPerPage;
+    const currentPageOffsetTemp = (currentPageNum - 1) * maxItemsPerPage;
     setCurrentPageNumber(currentPageNum);
-    setCurrentPageOffset(currentPageOffset);
+    setCurrentPageOffset(currentPageOffsetTemp);
   };
   const onPaginationNextClick = () => {
-    const currentPageOffset = currentPageNumber * maxItemsPerPage;
+    const currentPageOffsetTemp = currentPageNumber * maxItemsPerPage;
     setCurrentPageNumber(currentPageNumber + 1);
-    setCurrentPageOffset(currentPageOffset);
+    setCurrentPageOffset(currentPageOffsetTemp);
   };
   const onViewByPageNum = (pageNum) => {
     setCurrentPageNumber(1);
@@ -152,24 +147,29 @@ const ForecastResultsTab = () => {
     setMaxItemsPerPage(pageNum);
   };
 
+  useEffect(() => {
+    getProjectForecastRuns();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [maxItemsPerPage, currentPageNumber, currentPageOffset]);
+
   /* Sort */
   const [sortBy, setSortBy] = useState({
     name: 'triggeredOn',
     currentSortType: 'asc',
     nextSortType: 'desc',
   });
+  useEffect(() => {
+    console.log('sortBy');
+    console.log(sortBy);
+    getResults('sort');
+  }, [sortBy]); // eslint-disable-line react-hooks/exhaustive-deps
   const sortResults = (propName, sortOrder) => {
-    const tempSortBy = {
+    setSortBy({
       name: propName,
       currentSortType: sortOrder,
       nextSortType: sortBy.currentSortType,
-    };
-    setSortBy(tempSortBy);
+    });
   };
-
-  useEffect(() => {
-    getResults('sort');
-  }, [sortBy]); // eslint-disable-line react-hooks/exhaustive-deps
 
   /* Delete */
   const [checkAll, setCheckAll] = useState(false);
