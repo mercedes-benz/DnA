@@ -39,8 +39,8 @@ const createForecastRun = (data, id) => {
   return formServer.post(`/forecasts/${id}/runs`, data);
 };
 
-const getForecastRuns = (id) => {
-  return server.get(`/forecasts/${id}/runs`, {
+const getForecastRuns = (id, offset, limit) => {
+  return server.get(`/forecasts/${id}/runs?offset=${offset}&limit=${limit}`, {
     data: {},
   });
 };
