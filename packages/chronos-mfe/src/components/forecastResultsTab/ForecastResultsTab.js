@@ -159,8 +159,6 @@ const ForecastResultsTab = () => {
     nextSortType: 'desc',
   });
   useEffect(() => {
-    console.log('sortBy');
-    console.log(sortBy);
     getResults('sort');
   }, [sortBy]); // eslint-disable-line react-hooks/exhaustive-deps
   const sortResults = (propName, sortOrder) => {
