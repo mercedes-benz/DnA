@@ -848,8 +848,9 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 				log.error("User not part of forecast project with id {} and name {}, Not authorized to user other project inputs",id,existingForecast.getName());
 				return new ResponseEntity<>(collection, HttpStatus.FORBIDDEN);
 			}else {
-				List<RunVO> records = service.getAllRunsForProject(limit, offset, existingForecast.getId());
-				Long count = service.getRunsCount(id);
+				Object[] runCollectionWrapper = service.getAllRunsForProject(limit, offset, existingForecast.getId());
+				List<RunVO> records = (List<RunVO>) runCollectionWrapper[0];
+				Long count = (Long) runCollectionWrapper[1];
 				HttpStatus responseCode = HttpStatus.NO_CONTENT;
 				if(records!=null && !records.isEmpty()) {
 					collection.setRecords(records);

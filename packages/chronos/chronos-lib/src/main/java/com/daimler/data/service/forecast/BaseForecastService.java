@@ -283,18 +283,15 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 	}
 
 	@Override
-	public Long getRunsCount(String id) {
-		return customRepo.getTotalRunsCount(id);
-	}
-
-	@Override
 	@Transactional
-	public List<RunVO> getAllRunsForProject(int limit, int offset, String forecastId) {
+	public Object[] getAllRunsForProject(int limit, int offset, String forecastId) {
+		Object[] a = new Object[2];
 		
 		List<RunDetails> updatedRuns = new ArrayList<>();
 		List<RunVO> updatedRunVOList = new ArrayList<>();
 		
 		Optional<ForecastNsql> entityOptional = jpaRepo.findById(forecastId);
+		long totalCount = 0L;
 		if(entityOptional!=null) {
 			ForecastNsql entity = entityOptional.get();
 			String forecastName = entity.getData().getName();
@@ -309,6 +306,18 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 						return run2.getTriggeredOn().toString().compareTo(run1.getTriggeredOn().toString());
 					}
 				});
+				//logic to remove all deleted runs from list
+				for(int i=0; i<existingRuns.size(); i++) {
+					RunDetails details= existingRuns.get(i);
+					if(details.getIsDelete() != null) {
+						boolean isDelete = details.getIsDelete();
+						if(isDelete) {
+							existingRuns.remove(details);
+						}
+					}
+										
+				}
+				totalCount = existingRuns.size();
 				int endLimit = offset + limit;
 				if (endLimit > existingRuns.size()) {
 					endLimit = existingRuns.size();
@@ -496,7 +505,9 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 			}
 
 		}
-		return updatedRunVOList;
+		a[0] = updatedRunVOList;
+		a[1] = totalCount;
+		return a;
 	}
 	
 	private void notifyUsers(String forecastId, RunDetails run, List<String> memberIds, List<String> memberEmails,String forecastName, String updatedResultState) {
