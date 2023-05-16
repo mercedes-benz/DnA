@@ -200,7 +200,7 @@ public class DataikuController {
 		if(existingDataikuProject!=null && id.equalsIgnoreCase(existingDataikuProject.getId())){
 			List<CollaboratorDetailsDto> collabs = existingDataikuProject.getCollaborators();
 			Optional<CollaboratorDetailsDto> record = collabs.stream().filter(x-> userId.equalsIgnoreCase(x.getUserId()) && "Administrator".equalsIgnoreCase(x.getPermission())).findAny();
-	        if (record.isPresent()) {
+	        if (!record.isPresent()) {
 				MessageDescription errMsg = new MessageDescription("Forbidden, can only be updated by user with Administrator access to the project");
 				log.error("Forbidden. Only user with Administrator access of the project {} can update details. Current user {} ", id, userId);
 				errors.add(errMsg);
@@ -241,7 +241,7 @@ public class DataikuController {
 		if(existingDataikuProject!=null && id.equalsIgnoreCase(existingDataikuProject.getId())){
 			List<CollaboratorDetailsDto> collabs = existingDataikuProject.getCollaborators();
 			Optional<CollaboratorDetailsDto> record = collabs.stream().filter(x-> userId.equalsIgnoreCase(x.getUserId()) && "Administrator".equalsIgnoreCase(x.getPermission())).findAny();
-	        if (record.isPresent()) {
+	        if (!record.isPresent()) {
 				MessageDescription errMsg = new MessageDescription("Forbidden, Project can only be deleted by creator");
 				log.error("Forbidden. Only Users with Administrator access can delete the project {}. Current user {} ", id, userId);
 				errors.add(errMsg);
