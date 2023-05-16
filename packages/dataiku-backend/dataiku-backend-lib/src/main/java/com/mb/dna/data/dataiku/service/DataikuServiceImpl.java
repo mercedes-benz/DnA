@@ -178,10 +178,19 @@ public class DataikuServiceImpl implements DataikuService	{
 				});
 			}
 			List<CollaboratorSql> updatedCollabs =  currentCollabs.stream().map(n -> assembler.toCollaboratorsData(n,id)).collect(Collectors.toList());
+			existingRecord.setStatus(updateData.getStatus());
+			existingRecord.setClassificationType(updateData.getClassificationType());
+			existingRecord.setHasPii(updateData.getHasPii());
+			existingRecord.setDivisionId(updateData.getDivisionId());
+			existingRecord.setDivisionName(updateData.getDivisionName());
+			existingRecord.setSubdivisionId(updateData.getSubdivisionId());
+			existingRecord.setSubdivisionName(updateData.getSubdivisionName());
+			existingRecord.setDepartment(updateData.getDepartment());
 			DataikuSql entity = assembler.toEntity(existingRecord);
 			entity.setCollaborators(updatedCollabs);
 			dataikuRepo.update(entity);
 			responseMessage.setSuccess("SUCCESS");
+			
 		}catch(Exception e) {
 			log.error("Failed to update dataiku project {} with exception {}", existingRecord.getProjectName(), e.getMessage());
 			MessageDescription errMsg = new MessageDescription("Failed to save new dataiku project " + existingRecord.getProjectName() 
@@ -335,6 +344,14 @@ public class DataikuServiceImpl implements DataikuService	{
 					}
 				}
 			}
+			CollaboratorDetailsDto ownerAsAdminCollab = new CollaboratorDetailsDto();
+			ownerAsAdminCollab.setGivenName(ownerDetails.getData().getGivenName());
+			ownerAsAdminCollab.setPermission("Administrator");
+			ownerAsAdminCollab.setSurName(ownerDetails.getData().getProfile());
+			ownerAsAdminCollab.setUserId(ownerDetails.getData().getId());
+			projectCollaborators.add(ownerAsAdminCollab);
+			requestDto.setCollaborators(projectCollaborators);
+			
 			DataikuSql entity = new DataikuSql();
 			requestDto.setCreatedBy(userId);
 			requestDto.setCreatedOn(new Date());
@@ -366,7 +383,7 @@ public class DataikuServiceImpl implements DataikuService	{
 		List<MessageDescription> warnings = new ArrayList<>();
 		try {
 			List<String> users = new ArrayList<>();
-			users.add(existingDto.getCreatedBy());
+			//createdby is also listed in collaborators. this is not required. users.add(existingDto.getCreatedBy());
 			List<CollaboratorDetailsDto> collaborators = existingDto.getCollaborators();
 			String envPrefix = dataikuClientConfig.getEnvironmentProfile();
 			String cloudProfile = existingDto.getCloudProfile();
