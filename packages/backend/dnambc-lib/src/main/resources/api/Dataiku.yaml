@@ -165,6 +165,9 @@ definitions:
     role:
      type: string
      description: "role" 
+    cloudProfile:
+     type: string
+     description: "Cloud profile describing platform, whether extollo or OnPremise"
     projectType:
      type: string
      description: "projectType"
