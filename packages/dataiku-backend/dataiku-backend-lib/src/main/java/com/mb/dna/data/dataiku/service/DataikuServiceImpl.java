@@ -130,7 +130,8 @@ public class DataikuServiceImpl implements DataikuService	{
 				DataikuUserDto tempUserDetails = dataikuClient.getDataikuUser(record.getUserId().toUpperCase(),cloudProfile);
 				if(tempUserDetails!=null) {
 					List<String> currentGroups = tempUserDetails.getGroups();
-					currentGroups.removeIf(n->n.contains(consolidatedPrefix));
+					if(currentGroups!=null && !currentGroups.isEmpty()) 
+						currentGroups.removeIf(n->n.contains(consolidatedPrefix));
 					tempUserDetails.setGroups(currentGroups);
 					MessageDescription UpdateTempCollabErrMsg = dataikuClient.updateUser(tempUserDetails,cloudProfile);
 					if(UpdateTempCollabErrMsg!=null) {
@@ -168,7 +169,8 @@ public class DataikuServiceImpl implements DataikuService	{
 						}
 					}else {
 						List<String> currentGroups = tempCollabUserDetails.getGroups();
-						currentGroups.removeIf(n->n.contains(consolidatedPrefix));
+						if(currentGroups!=null && !currentGroups.isEmpty()) 
+							currentGroups.removeIf(n->n.contains(consolidatedPrefix));
 						currentGroups.add(groupName);
 						MessageDescription UpdateTempCollabErrMsg = dataikuClient.updateUser(tempCollabUserDetails,cloudProfile);
 						if(UpdateTempCollabErrMsg!=null) {
@@ -402,7 +404,8 @@ public class DataikuServiceImpl implements DataikuService	{
 				DataikuUserDto tempUserDetails = dataikuClient.getDataikuUser(record.toUpperCase(),cloudProfile);
 				if(tempUserDetails!=null) {
 					List<String> currentGroups = tempUserDetails.getGroups();
-					currentGroups.removeIf(n->n.contains(consolidatedPrefix));
+					if(currentGroups!=null && !currentGroups.isEmpty()) 
+						currentGroups.removeIf(n->n.contains(consolidatedPrefix));
 					tempUserDetails.setGroups(currentGroups);
 					MessageDescription UpdateTempCollabErrMsg = dataikuClient.updateUser(tempUserDetails,cloudProfile);
 					if(UpdateTempCollabErrMsg!=null) {
