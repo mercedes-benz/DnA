@@ -18,7 +18,6 @@ export const getDataForCSV = (
   const csvHeaders: string | Data = [
     { label: 'Report ID', key: 'reportId' },
     { label: 'Name', key: 'name' },
-    // { label: 'Phase', key: 'productPhase' },
     { label: 'Report Type', key: 'reportType' },
     { label: 'Description', key: 'description' },
     { label: 'Report Link', key: 'reportLink' },
@@ -29,15 +28,12 @@ export const getDataForCSV = (
     { label: 'Status', key: 'status' },
     { label: 'Integrated In Portal', key: 'integratedPortal' },
     { label: 'Agile Release Train', key: 'agileReleaseTrains' },
-    // { label: 'Design Guide Implemented', key: 'designGuideImplemented' },
     { label: 'Frontend Technologies', key: 'frontendTechnologies' },
     { label: 'Internal Customers', key: 'internalCustomers' },
     { label: 'External Customers', key: 'externalCustomers' },
     { label: 'KPIs', key: 'kpis' },
     { label: 'Data Warehouse', key: 'datawarehouses' },
     { label: 'Single Datasource', key: 'singledatasources' },
-    { label: 'Report Member', key: 'reportMembers' },
-    // { label: 'Developers', key: 'developers' },
     { label: 'Report Admin', key: 'reportAdmins' },
     { label: 'IsPublished', key: 'publish' },
     { label: 'CreatedDate', key: 'createdDate' },
@@ -79,7 +75,6 @@ export const getDataForCSV = (
           reportsCSVData.push({
             reportId: report.reportId ? sanitize(report.reportId) : 'NA', 
             name: report.productName ? sanitize(report.productName) : 'NA',
-            // productPhase: report.description.productPhase ? report.description.productPhase : 'NA',
             reportType: report.description.reportType && report.description?.reportType != '0' ? sanitize(report.description.reportType) : 'NA',
             description: report.description.productDescription ? sanitize(report.description.productDescription) : 'NA',
             reportLink: report.description.reportLink ? sanitize(report.description.reportLink) : 'NA',
@@ -97,14 +92,11 @@ export const getDataForCSV = (
             agileReleaseTrains: report.description.agileReleaseTrain && report?.description.agileReleaseTrain != '0'
               ? report.description.agileReleaseTrain
               : 'NA',
-            // designGuideImplemented: report.description.designGuideImplemented || 'NA',
             frontendTechnologies: report.description.frontendTechnologies?.length
               ? report.description.frontendTechnologies?.join(', ')
               : 'NA',
             internalCustomers: (report.customer?.internalCustomers?.length
               ? report.customer?.internalCustomers?.map((customer) => 
-              // 'name: ' + (customer?.name?.firstName +' '+ customer?.name?.lastName)
-              // + '|' +
               'customerRelation: ' + customer?.customerRelation
               + '|' + 'level: ' + customer?.level
               + '|' + 'customerDivision: ' + customer?.division?.name
@@ -116,8 +108,6 @@ export const getDataForCSV = (
               : 'NA'),
             externalCustomers: report.customer?.externalCustomers?.length
               ? report.customer.externalCustomers?.map((customer) =>               
-              // 'name: ' + (customer?.name?.firstName +' '+ customer?.name?.lastName)
-              // + '|' + 
               'customerRelation: ' + customer?.customerRelation
               + '|' + 'companyName: ' + customer?.companyName
               + '|' + 'comment: ' + customer?.comment
@@ -129,25 +119,17 @@ export const getDataForCSV = (
                   ?.map((datawarehouse) => 
                   'datawarehouse: ' + (datawarehouse?.dataWarehouse)
                   + '|' + 'connectionType: ' + datawarehouse?.connectionType
-                  // + '|' + 'commonFunctions: ' + datawarehouse?.commonFunctions
                   + '|' + 'dataClassification: ' + datawarehouse?.dataClassification
                   )   
               : 'NA',
             singledatasources: report.dataAndFunctions?.singleDataSources?.length
               ? report.dataAndFunctions.singleDataSources
                   ?.map((singledatasource) => 
-                  // Object.values(singledatasource)?.join(' | ')
                   'dataSource: ' + (singledatasource?.dataSources.map(item => item.dataSource ))
                   + '|' + 'connectionType: ' + singledatasource?.connectionType
                   + '|' + 'dataClassification: ' + singledatasource?.dataClassification
                   )
               : 'NA',
-              reportMembers: report.members.reportOwners?.length
-              ? report.members.reportOwners?.map((member) => member.shortId)?.join(', ')
-              : 'NA',
-            // developers: report.members.developers?.length
-            //   ? report.members.developers?.map((member) => member.shortId)?.join(', ')
-            //   : 'NA',
             admin: report.members.reportAdmins?.length
               ? report.members.reportAdmins?.map((member) => member.shortId)?.join(', ')
               : 'NA',
