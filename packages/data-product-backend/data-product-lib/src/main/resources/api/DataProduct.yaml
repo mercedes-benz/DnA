@@ -619,6 +619,10 @@ definitions:
       oneApi:
         type: string
         description: "oneApi of data"
+      tags:
+        type: array
+        items:
+          type: string  
       platform:
         type: array
         items:
