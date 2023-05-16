@@ -4,6 +4,7 @@ import static io.micronaut.http.MediaType.APPLICATION_JSON;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -187,7 +188,7 @@ public class DataikuController {
             @RequestBody(description = "Data to update dataiku project", required = true,
                     content = @Content(
                             schema = @Schema(implementation = DataikuProjectUpdateRequestDto.class))) DataikuProjectUpdateRequestDto request,
-            @Parameter(description = "The id of the dataiku project to be deleted", required = true) @PathParam("id") String id) {
+            @Parameter(description = "The id of the dataiku project to be updated", required = true) @PathParam("id") String id) {
 		DataikuProjectResponseDto responseDto = new DataikuProjectResponseDto();
 		responseDto.setData(null);
 		GenericMessage responseMsg = new GenericMessage();
@@ -197,10 +198,11 @@ public class DataikuController {
 		DataikuProjectDto existingDataikuProject = service.getById(id);
 		String userId = this.userStore.getUserInfo().getId();
 		if(existingDataikuProject!=null && id.equalsIgnoreCase(existingDataikuProject.getId())){
-			responseDto.setData(existingDataikuProject);
-			if(!userId.equalsIgnoreCase(existingDataikuProject.getCreatedBy())) {
-				MessageDescription errMsg = new MessageDescription("Forbidden, Project can only be deleted by creator");
-				log.error("Forbidden. Only creator of the project {} can delete. Current user {} and CreatedBy {}", id, userId,existingDataikuProject.getCreatedBy() );
+			List<CollaboratorDetailsDto> collabs = existingDataikuProject.getCollaborators();
+			Optional<CollaboratorDetailsDto> record = collabs.stream().filter(x-> userId.equalsIgnoreCase(x.getUserId()) && "Administrator".equalsIgnoreCase(x.getPermission())).findAny();
+	        if (record.isPresent()) {
+				MessageDescription errMsg = new MessageDescription("Forbidden, can only be updated by user with Administrator access to the project");
+				log.error("Forbidden. Only user with Administrator access of the project {} can update details. Current user {} ", id, userId);
 				errors.add(errMsg);
 				responseMsg.setErrors(errors);
 				responseMsg.setWarnings(warnings);
@@ -237,9 +239,11 @@ public class DataikuController {
 		DataikuProjectDto existingDataikuProject = service.getById(id);
 		String userId = this.userStore.getUserInfo().getId();
 		if(existingDataikuProject!=null && id.equalsIgnoreCase(existingDataikuProject.getId())){
-			if(!userId.equalsIgnoreCase(existingDataikuProject.getCreatedBy())) {
+			List<CollaboratorDetailsDto> collabs = existingDataikuProject.getCollaborators();
+			Optional<CollaboratorDetailsDto> record = collabs.stream().filter(x-> userId.equalsIgnoreCase(x.getUserId()) && "Administrator".equalsIgnoreCase(x.getPermission())).findAny();
+	        if (record.isPresent()) {
 				MessageDescription errMsg = new MessageDescription("Forbidden, Project can only be deleted by creator");
-				log.error("Forbidden. Only creator of the project {} can delete. Current user {} and CreatedBy {}", id, userId,existingDataikuProject.getCreatedBy() );
+				log.error("Forbidden. Only Users with Administrator access can delete the project {}. Current user {} ", id, userId);
 				errors.add(errMsg);
 				responseMsg.setErrors(errors);
 				responseMsg.setWarnings(warnings);
@@ -272,6 +276,35 @@ public class DataikuController {
 		String userId = this.userStore.getUserInfo().getId();
 		DataikuProjectDto data = service.getById(id);
 		if(data!=null && id.equalsIgnoreCase(data.getId())) {
+			CollaboratorDetailsDto collabUser = data.getCollaborators().stream().filter(collab -> userId.equalsIgnoreCase(collab.getUserId()))
+					  .findAny().orElse(null);
+			if(userId.equalsIgnoreCase(data.getCreatedBy()) || (collabUser!=null && userId.equalsIgnoreCase(collabUser.getUserId()))){
+				return Response.status(Status.FORBIDDEN).entity(null).build();
+			}
+		}else {
+			return Response.status(Status.NOT_FOUND).entity(null).build();
+		}
+		DataikuProjectResponseDto responseDto = new DataikuProjectResponseDto();
+		responseDto.setData(data);
+		return Response.ok().entity(responseDto).build();
+	}
+	
+	@GET
+    @Path("/dataiku/{cloudprofile}/{projectname}")
+    @Operation(summary = "get dataiku project",
+            description = "get dataiku project details from the system based on cloudprofile, projectname")
+    @ApiResponse(responseCode = "200", description = "dataiku project fetched",
+    		content = @Content(mediaType = "application/json"
+            ,schema = @Schema(type="DataikuProjectResponseDto")))
+    @ApiResponse(responseCode = "400", description = "Invalid id supplied")
+    @ApiResponse(responseCode = "404", description = "User not found")
+	@Tag(name = "dataiku")
+    public Response fetchDataiku(
+    		@Parameter(description = "The cloudprofile of the dataiku details to be fetched", required = true) @PathParam("cloudprofile") String cloudprofile,
+            @Parameter(description = "The projectname of the dataiku details to be fetched", required = true) @PathParam("projectname") String projectname) {
+		String userId = this.userStore.getUserInfo().getId();
+		DataikuProjectDto data = service.getByProjectName(projectname, cloudprofile);
+		if(data!=null && projectname.equalsIgnoreCase(data.getProjectName())) {
 			CollaboratorDetailsDto collabUser = data.getCollaborators().stream().filter(collab -> userId.equalsIgnoreCase(collab.getUserId()))
 					  .findAny().orElse(null);
 			if(userId.equalsIgnoreCase(data.getCreatedBy()) || (collabUser!=null && userId.equalsIgnoreCase(collabUser.getUserId()))){
