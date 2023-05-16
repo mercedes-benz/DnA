@@ -8,8 +8,10 @@ import com.daimler.data.controller.exceptions.MessageDescription;
 import com.daimler.data.dto.datacompliance.CreatedByVO;
 import com.daimler.data.dto.dataproduct.*;
 import com.daimler.data.dto.datatransfer.*;
+import com.daimler.data.dto.tag.TagVO;
 import com.daimler.data.service.dataproduct.DataProductService;
 import com.daimler.data.service.datatransfer.DataTransferService;
+import com.daimler.data.service.tag.TagService;
 import com.daimler.data.util.ConstantsUtility;
 import io.swagger.annotations.*;
 import lombok.extern.slf4j.Slf4j;
@@ -49,6 +51,9 @@ public class DataProductController implements DataproductsApi{
 
 	@Autowired
 	private DataProductAssembler assembler;
+	
+	@Autowired
+	private TagService tagService;
 
 	@Value("${dataproduct.refreshdb}")
 	private Boolean dataproductRefreshDb;
@@ -117,6 +122,7 @@ public class DataProductController implements DataproductsApi{
 			requestVO.setRecordStatus(ConstantsUtility.OPEN);
 			requestVO.setDataProductId("DPF-" + service.getNextSeqId());
 			requestVO.setId(null);
+			updateTags(requestVO);
 			DataProductVO vo = service.create(requestVO);
 			if (vo != null && vo.getId() != null) {
 				responseVO.setData(vo);
@@ -730,6 +736,24 @@ public class DataProductController implements DataproductsApi{
 			}
 		} else {
 			return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
+		}
+	}
+	
+	private void updateTags(DataProductVO vo) {
+		List<String> tags = vo.getTags();
+		if (tags != null && !tags.isEmpty()) {
+			tags.forEach(tag -> {
+				TagVO existingTagVO = tagService.getByUniqueliteral("name", tag);
+				if (existingTagVO != null && existingTagVO.getName() != null
+						&& existingTagVO.getName().equalsIgnoreCase(tag))
+					return;
+				else {
+					TagVO newTagVO = new TagVO();
+					newTagVO.setId(null);
+					newTagVO.setName(tag);
+					tagService.create(newTagVO);
+				}
+			});
 		}
 	}
 }
