@@ -642,7 +642,146 @@ paths:
         500:
           description: "Internal error"
 
-          
+#forecst-runs-comparisons
+  /forecasts/{id}/comparisons:
+    post:
+      tags:
+        - "forecast-comparisons"
+      summary: "Create new comparison for forecast project."
+      description: "Create comparison for forecast project"
+      operationId: "createForecastComparison"
+      parameters:
+        - in: "path"
+          name: "id"
+          description: "forecast project ID "
+          required: true
+          type: "string"
+        - name: "forecastComparisonRequestVO"
+          in: "body"
+          description: "Request Body that contains data required for intialize chronos run comparison for user"
+          required: true
+          schema:
+            $ref: "#/definitions/ForecastComparisonRequestVO"
+      responses:
+        201:
+          description: "Returns message of success or failure "
+          schema:
+            $ref: "#/definitions/ForecastComparisonResponseVO"
+        400:
+          description: "Bad Request"
+          schema:
+            $ref: "#/definitions/GenericMessage"
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
+
+    get:
+      tags:
+        - "forecast-comparisons"
+      summary: "Get all forecast comparison runs for the project"
+      description: "Get all forecast comparison runs for the project"
+      operationId: "getForecastComparisons"
+      parameters:
+        - in: "path"
+          name: "id"
+          description: "forecast project ID "
+          required: true
+          type: "string"
+      responses:
+        201:
+          description: "Returns message of success or failure"
+          schema:
+            $ref: "#/definitions/ForecastComparisonsCollectionDto"
+        204:
+          description: "Fetch complete, no content found."
+        400:
+          description: "Bad request."
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
+
+    delete:
+      tags:
+        - "forecast-comparisons"
+      summary: "delete one or more comparisons"
+      description: "delete one or more comparisons"
+      operationId: "deleteComparison"
+      parameters:
+        - in: "path"
+          name: "id"
+          description: "forecast project ID "
+          required: true
+          type: "string"
+        - in: "query"
+          name: "ids"
+          description: "Comma separated forecast comparison IDs that are to be deleted. Ex: ?ids=\"ComparisionX01,ComparisionX02\" "
+          required: true
+          type: "string"
+      responses:
+        201:
+          description: "Returns message of success or failure"
+          schema:
+            $ref: "#/definitions/GenericMessage"
+        204:
+          description: "Fetch complete, no content found."
+        400:
+          description: "Bad request."
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
+
+  # path example ../forecasts/{id}/comparisons/{comparisonId}
+  /forecasts/{id}/comparisons/{comparisonId}:
+    get:
+      tags:
+        - "forecast-comparisons"
+      summary: "Get forecast comparison data for specific run."
+      description: "Get forecast comparison data for specific run."
+      operationId: "getForecastComparisonById"
+      parameters:
+        - in: "path"
+          name: "id"
+          description: "forecast project ID "
+          required: true
+          type: "string"
+        - in: "path"
+          name: "comparisonId"
+          description: "Comparison Id for the run"
+          required: true
+          type: "string"
+      responses:
+        201:
+          description: "Returns message of success or failure"
+          schema:
+            $ref: "#/definitions/ForecastComparisonResponseVO"
+        204:
+          description: "Fetch complete, no content found."
+        400:
+          description: "Bad request."
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
+
 definitions:
 
   InputFilesCollectionVO:
@@ -1072,7 +1211,53 @@ definitions:
             type: array
             items:
                 $ref: "#/definitions/RunVO"
-          
+
+  ForecastComparisonsCollectionDto:
+    type: object
+    properties:
+      totalCount:
+        type: integer
+        description: "Total Record Count"
+      records:
+        type: array
+        items:
+          $ref: "#/definitions/ForecastComparisonResponseVO"
+
+  ForecastComparisonRequestVO:
+    type: object
+    properties:
+      minioEndpoint:
+        type: string
+        description: environment for the forecast run
+      actualFile:
+        type: string
+        description: input file for the forecast run
+      targetFolder:
+        type: string
+        description: target folder for the comparison result
+      runsList:
+        type: array
+        items:
+          $ref: "#/definitions/RunListVO"
+
+  ForecastComparisonResponseVO:
+    type: object
+    properties:
+      comparisonId:
+        type: string
+        description: comparison run id for the forecast project
+      runsList:
+        type: array
+        items:
+          $ref: "#/definitions/RunListVO"
+
+  RunListVO:
+    type: object
+    properties:
+      runs:
+        type: string
+        description: "runs"
+
   BindingResult:
     type: object
 
