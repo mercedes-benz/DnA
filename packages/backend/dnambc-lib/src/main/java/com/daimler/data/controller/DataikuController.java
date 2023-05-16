@@ -106,7 +106,6 @@ public class DataikuController implements DataikuApi {
 		if(extolloprojects != null && !extolloprojects.isEmpty()) consolidateList.addAll(extolloprojects);
 		if(onPremprojects != null && !onPremprojects.isEmpty()) consolidateList.addAll(onPremprojects);
 		if (!ObjectUtils.isEmpty(consolidateList)) {
-			consolidateList.stream().forEach(val -> val.setId(UUID.randomUUID().toString()));
 			col = new DataikuProjectVOCollection();
 			col.setData(consolidateList);
 			col.setTotalCount(consolidateList.size());
