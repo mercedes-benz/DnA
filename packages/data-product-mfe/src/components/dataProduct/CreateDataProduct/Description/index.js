@@ -10,6 +10,7 @@ import rehypeStringify from 'rehype-stringify';
 
 // components from container app
 import InfoModal from 'dna-container/InfoModal';
+import Tags from 'dna-container/Tags';
 
 import { useFormContext, Controller } from 'react-hook-form';
 import Tooltip from '../../../../common/modules/uilab/js/src/tooltip';
@@ -63,6 +64,8 @@ const Description = ({
       });
     }
   }, [howToAccessText, setValue, watch]);
+  
+  const [tags, setTags] = useState([]);
 
   return (
     <>
@@ -269,6 +272,42 @@ const Description = ({
                 />
                 <span className={classNames('error-message')}>{errors?.description?.message}</span>
               </div>
+              <div className={classNames('input-field-group area')}>
+                <label id="additionalInformation" className="input-label" htmlFor="additionalInformation">
+                  Additional Information
+                  <i
+                    className={classNames('icon mbc-icon info iconsmd', Styles.infoIcon)}
+                    tooltip-data="Add additional information or notes about the data product"
+                  />
+                </label>
+                <textarea
+                  id="additionalInformation"
+                  className="input-field-area"
+                  type="text"
+                  {...register('additionalInformation')}
+                  rows={50}
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div id="tagsWrapper" className={classNames(Styles.wrapper)}>
+        <div id="tagsPanel" className={classNames(Styles.firstPanel)}>
+          <div id="tagsContainer" className={classNames(Styles.formWrapper, Styles.tagsWrapper)}>
+            <h3 id="tagHeading">Tags</h3>
+            <span id="tagDesc" className={classNames(Styles.textDesc)}>
+              Use tags to make it easier to find your data product for other people
+            </span>
+            <div>
+              <Tags
+                title={'Tags'}
+                max={100}
+                chips={tags}
+                setTags={setTags}
+                isMandatory={false}
+                // showMissingEntryError={showTagsMissingError}
+              />
             </div>
           </div>
         </div>
