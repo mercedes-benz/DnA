@@ -25,9 +25,8 @@ public interface ForecastService extends CommonService<ForecastVO, ForecastNsql,
 			String configurationFile, String frequency, BigDecimal forecastHorizon, String hierarchy, String comment,
 			Boolean runOnPowerfulMachines, ForecastVO existingForecast, String triggeredBy, Date triggeredOn);
 
-	Long getRunsCount(String id);
 
-	List<RunVO> getAllRunsForProject( int limit,  int offset, String forecastId);
+	Object[] getAllRunsForProject( int limit,  int offset, String forecastId);
 
 	GenericMessage deletRunByUUID(String id, String rid);
 

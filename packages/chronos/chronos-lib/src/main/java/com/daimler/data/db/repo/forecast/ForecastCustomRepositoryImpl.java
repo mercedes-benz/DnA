@@ -87,24 +87,6 @@ public class ForecastCustomRepositoryImpl extends CommonDataRepositoryImpl<Forec
 		return convertedResults;
 	}
 	
-	
-	@Override
-	public long getTotalRunsCount(String id) {
-		String getCountStmt = " select jsonb_array_length(data->'runs') from forecast_nsql where  id = '" + id + "' ";;
-		Query q = em.createNativeQuery(getCountStmt);
-		try {
-			Integer results = (Integer) q.getSingleResult();
-			return results.intValue();
-		}
-		catch(NoResultException e) {
-			log.error("No Runs present for given forecast ID: {}", id );
-			return 0;
-		} catch (Exception e) {
-			log.error("Failed while fetching all runs for forecast project: {} using native query with exception {} ", e.getMessage());
-			return 0;
-		}
-	}
-	
 	@Override
 	public List<String> getAllForecastIds() {
 		String query = "select cast(id as text) from forecast_nsql"; 
