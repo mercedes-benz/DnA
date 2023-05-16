@@ -48,7 +48,7 @@ import filterStyle from '../filters/Filter.scss';
 import { ReportsApiClient } from '../../../services/ReportsApiClient';
 import ReportsFilter from '../filters/ReportsFilter';
 import LandingSummary from '../shared/landingSummary/LandingSummary';
-import headerImageURL from '../../../assets/images/Data-Layer-Landing.png';
+import headerImageURL from '../../../assets/images/Transparency-Landing.png';
 import TagSection from '../shared/landingSummary/tagSection/TagSection';
 
 const classNames = cn.bind(Styles);
@@ -378,7 +378,7 @@ export default class AllReports extends React.Component<
                 <div className={Styles.allReportContent}>
                   {this.state.cardViewMode && (
                     <div className={classNames('cardSolutions', Styles.allReportCardViewContent)}>
-                      {this.state.reports.length > 0 ? (
+                      {this.state.reports?.length > 0 ? (
                         <div className={Styles.cardViewContainer} onClick={() => history.push('/createnewreport')}>
                           <div className={Styles.addicon}> &nbsp; </div>
                           <label className={Styles.addlabel}>Create new report</label>
@@ -756,7 +756,7 @@ export default class AllReports extends React.Component<
       filterApplied = true;
     }
 
-    if (processOwners.length && processOwners.length !== this.state.processOwners.length) {
+    if (processOwners.length) {
       filterApplied = true;
     }
     
