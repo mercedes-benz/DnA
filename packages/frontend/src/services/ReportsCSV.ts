@@ -148,7 +148,7 @@ export const getDataForCSV = (
             // developers: report.members.developers?.length
             //   ? report.members.developers?.map((member) => member.shortId)?.join(', ')
             //   : 'NA',
-            admin: report.members.reportAdmins?.length
+            reportAdmins: report.members.reportAdmins?.length
               ? report.members.reportAdmins?.map((member) => member.shortId)?.join(', ')
               : 'NA',
             publish: report.publish ? 'Yes' : 'No',
