@@ -6,6 +6,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
+import javax.persistence.Column;
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
 import javax.persistence.TypedQuery;
@@ -34,9 +35,12 @@ public class DataikuRepositoryImpl implements DataikuRepository{
 	@Override
 	public DataikuSql findByProjectName(String projectName, String cloudProfile) {
 		DataikuSql existingRecord = null;
+		
 		List<DataikuSql> results = new ArrayList<>();
 		try {
-			String queryString = "SELECT id,project_name,description,cloud_profile,created_by,created_on FROM dataiku_sql ";
+			String queryString = "SELECT id,project_name,description,cloud_profile,created_by,created_on "
+					+ "status,classification_type,has_pii,division_id,division_name,subdivision_id,subdivision_name,department"
+					+ "FROM dataiku_sql ";
 			if(projectName!=null && !projectName.isBlank() && !projectName.isEmpty()) {
 				queryString += " where LOWER(project_name) = '" + projectName.toLowerCase() + "' and LOWER(cloud_profile) = '" + cloudProfile.toLowerCase() + "'";
 			}else {
@@ -144,9 +148,12 @@ public class DataikuRepositoryImpl implements DataikuRepository{
 		}
 	}
 	
+
 	public void insertDataiku(DataikuSql dataikuProject) {
-		String insertStmt = "insert into  dataiku_sql(id,cloud_profile,created_by,created_on,description,project_name) "
-				+ "values (:id, :cloudProfile, :createdBy, :createdOn, :description, :projectName)";
+		String insertStmt = "insert into  dataiku_sql(id,cloud_profile,created_by,created_on,description"
+				+ ",project_name,status,classification_type,has_pii,division_id,division_name,subdivision_id,subdivision_name,department) "
+				+ "values (:id, :cloudProfile, :createdBy, :createdOn, :description, :projectName"
+				+ ",:status,:classification_type,:has_pii,:division_id,:division_name,:subdivision_id,:subdivision_name,:department)";
 		Query q = entityManager.createNativeQuery(insertStmt);
 		q.setParameter("id", dataikuProject.getId());
 		q.setParameter("cloudProfile", dataikuProject.getCloudProfile());
@@ -154,6 +161,16 @@ public class DataikuRepositoryImpl implements DataikuRepository{
 		q.setParameter("createdOn", dataikuProject.getCreatedOn());
 		q.setParameter("description", dataikuProject.getDescription());
 		q.setParameter("projectName", dataikuProject.getProjectName());
+		
+		q.setParameter("status", dataikuProject.getStatus());
+		q.setParameter("classification_type", dataikuProject.getClassificationType());
+		q.setParameter("has_pii", dataikuProject.getHasPii());
+		q.setParameter("division_id", dataikuProject.getDivisionId());
+		q.setParameter("division_name", dataikuProject.getDivisionName());
+		q.setParameter("subdivision_id", dataikuProject.getSubdivisionId());
+		q.setParameter("subdivision_name", dataikuProject.getSubdivisionName());
+		q.setParameter("department", dataikuProject.getDepartment());
+		
 		q.executeUpdate();
 		log.info("successfully ran insert statement for dataiku {}",dataikuProject.getProjectName());
 	}
