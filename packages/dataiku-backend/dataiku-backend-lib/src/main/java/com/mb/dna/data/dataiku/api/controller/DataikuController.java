@@ -271,14 +271,14 @@ public class DataikuController {
     @ApiResponse(responseCode = "400", description = "Invalid id supplied")
     @ApiResponse(responseCode = "404", description = "User not found")
 	@Tag(name = "dataiku")
-    public Response fetchDataiku(
+    public Response fetchDataikuById(
             @Parameter(description = "The id of the dataiku project to be fetched", required = true) @PathParam("id") String id) {
 		String userId = this.userStore.getUserInfo().getId();
 		DataikuProjectDto data = service.getById(id);
 		if(data!=null && id.equalsIgnoreCase(data.getId())) {
 			CollaboratorDetailsDto collabUser = data.getCollaborators().stream().filter(collab -> userId.equalsIgnoreCase(collab.getUserId()))
 					  .findAny().orElse(null);
-			if(userId.equalsIgnoreCase(data.getCreatedBy()) || (collabUser!=null && userId.equalsIgnoreCase(collabUser.getUserId()))){
+			if(!(userId.equalsIgnoreCase(data.getCreatedBy()) || (collabUser!=null && userId.equalsIgnoreCase(collabUser.getUserId())))){
 				return Response.status(Status.FORBIDDEN).entity(null).build();
 			}
 		}else {
@@ -299,7 +299,7 @@ public class DataikuController {
     @ApiResponse(responseCode = "400", description = "Invalid id supplied")
     @ApiResponse(responseCode = "404", description = "User not found")
 	@Tag(name = "dataiku")
-    public Response fetchDataiku(
+    public Response fetchDataikuByProjectName(
     		@Parameter(description = "The cloudprofile of the dataiku details to be fetched", required = true) @PathParam("cloudprofile") String cloudprofile,
             @Parameter(description = "The projectname of the dataiku details to be fetched", required = true) @PathParam("projectname") String projectname) {
 		String userId = this.userStore.getUserInfo().getId();
@@ -307,7 +307,7 @@ public class DataikuController {
 		if(data!=null && projectname.equalsIgnoreCase(data.getProjectName())) {
 			CollaboratorDetailsDto collabUser = data.getCollaborators().stream().filter(collab -> userId.equalsIgnoreCase(collab.getUserId()))
 					  .findAny().orElse(null);
-			if(userId.equalsIgnoreCase(data.getCreatedBy()) || (collabUser!=null && userId.equalsIgnoreCase(collabUser.getUserId()))){
+			if(!(userId.equalsIgnoreCase(data.getCreatedBy()) || (collabUser!=null && userId.equalsIgnoreCase(collabUser.getUserId())))){
 				return Response.status(Status.FORBIDDEN).entity(null).build();
 			}
 		}else {
