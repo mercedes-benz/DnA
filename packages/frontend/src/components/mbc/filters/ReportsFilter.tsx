@@ -155,8 +155,8 @@ const ReportsFilter = ({
               newQueryParams.departments = departments?.map((department: IDepartment) => {
                 return department.name;
               });
-              newQueryParams.processOwners = processOwners?.map((processOwner: ITeams) => processOwner.shortId);
-              newQueryParams.productOwners = productOwners?.map((productOwner: ITeams) => productOwner.shortId);              
+              // newQueryParams.processOwners = processOwners?.map((processOwner: ITeams) => processOwner.shortId);
+              // newQueryParams.productOwners = productOwners?.map((productOwner: ITeams) => productOwner.shortId);              
               setFilterApplied(false);
             }
             setDivisions(divisions);
@@ -518,8 +518,8 @@ const ReportsFilter = ({
     newQueryParams.division = divisions?.map((division: IDivision) => {
       return division.id;
     });
-    newQueryParams.processOwners = processOwners?.map((processOwner: ITeams) => processOwner.shortId);
-    newQueryParams.productOwners = productOwners?.map((productOwner: ITeams) => productOwner.shortId);
+    newQueryParams.processOwners = [];
+    // newQueryParams.productOwners = productOwners?.map((productOwner: ITeams) => productOwner.shortId);
 
     ApiClient.getSubDivisionsData(divisions).then((subDivisionsList) => {
       const subDivisionsToReset = [].concat(...subDivisionsList);
