@@ -38,8 +38,8 @@ public class DataikuRepositoryImpl implements DataikuRepository{
 		
 		List<DataikuSql> results = new ArrayList<>();
 		try {
-			String queryString = "SELECT id,project_name,description,cloud_profile,created_by,created_on "
-					+ "status,classification_type,has_pii,division_id,division_name,subdivision_id,subdivision_name,department"
+			String queryString = "SELECT id,project_name,description,cloud_profile,created_by,created_on, "
+					+ "status,classification_type,has_pii,division_id,division_name,subdivision_id,subdivision_name,department "
 					+ "FROM dataiku_sql ";
 			if(projectName!=null && !projectName.isBlank() && !projectName.isEmpty()) {
 				queryString += " where LOWER(project_name) = '" + projectName.toLowerCase() + "' and LOWER(cloud_profile) = '" + cloudProfile.toLowerCase() + "'";
