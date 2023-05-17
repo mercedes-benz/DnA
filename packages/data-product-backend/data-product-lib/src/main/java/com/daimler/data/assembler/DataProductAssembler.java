@@ -44,6 +44,8 @@ import com.daimler.data.dto.dataproduct.TeamMemberVO;
 import com.daimler.data.dto.datatransfer.*;
 import com.daimler.data.dto.datatransfer.ConsumerResponseVO;
 import com.daimler.data.dto.datatransfer.DataTransferConsumerRequestVO;
+import com.daimler.data.dto.tag.TagVO;
+
 import org.json.JSONObject;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Component;
@@ -132,6 +134,10 @@ public class DataProductAssembler implements GenericAssembler<DataProductVO, Dat
 					}
 					vo.setFrontEndTools(frontEndToolsVo);
 				}
+				
+				if (dataProduct.getTags() != null && !ObjectUtils.isEmpty(dataProduct.getTags())) {
+					BeanUtils.copyProperties(dataProduct.getTags(), vo.getTags());
+				}
 
 				if (Objects.nonNull(dataProduct.getAgileReleaseTrain())) {
 					AgileReleaseTrainVO agileReleaseTrain = new AgileReleaseTrainVO();
@@ -159,8 +165,14 @@ public class DataProductAssembler implements GenericAssembler<DataProductVO, Dat
 						contactInformationVO.setDivision(divisionvo);
 					}
 
+//					TeamMember productOwner = dataProductContactInformation.getProductOwner();
+//					DataProductTeamMemberVO productOwnerVo = new DataProductTeamMemberVO();												
+//					BeanUtils.copyProperties(productOwner,productOwnerVo);
+//					contactInformationVO.setProductOwner(productOwnerVo);
+				
 					contactInformationVO.setName(toTeamMemberVO(dataProductContactInformation.getName()));				
-					contactInformationVO.setInformationOwner(toTeamMemberVO(dataProductContactInformation.getInformationOwner()));
+					contactInformationVO.setInformationOwner(toTeamMemberVO(dataProductContactInformation.getInformationOwner()));	
+					contactInformationVO.setProductOwner(toTeamMemberVO(dataProductContactInformation.getProductOwner()));					
 					vo.setContactInformation(contactInformationVO);
 				}
 
@@ -256,6 +268,14 @@ public class DataProductAssembler implements GenericAssembler<DataProductVO, Dat
 					}
 					dataProduct.setPlatform(platformsVO);
 				}
+				
+				if (!ObjectUtils.isEmpty(vo.getTags())) {
+					List<String> tagsList = new ArrayList<>();
+					vo.getTags().forEach(tag -> {
+						tagsList.add(tag);
+					});
+					dataProduct.setTags(tagsList);
+				}
 
 				List<FrontendToolsVO> frontEndTools = vo.getFrontEndTools();
 				List<FrontendToolsVO> frontEndToolsVo = new ArrayList<>();
@@ -300,8 +320,18 @@ public class DataProductAssembler implements GenericAssembler<DataProductVO, Dat
 						}
 						contactInformation.setDivision(division);
 					}
+//					DataProductTeamMemberVO productOwnerVo = dataProductContactInformationVO.getProductOwner();
+//					TeamMember productOwner = new TeamMember();
+//					BeanUtils.copyProperties(productOwnerVo, productOwner);
+//					contactInformation.setProductOwner(productOwner);
 					contactInformation.setName(toTeamMemberJson(dataProductContactInformationVO.getName()));					
 					contactInformation.setInformationOwner(toTeamMemberJson(dataProductContactInformationVO.getInformationOwner()));
+					if(Objects.nonNull(dataProductContactInformationVO.getProductOwner())) {
+						toTeamMemberJson(dataProductContactInformationVO.getProductOwner());
+					}
+					else {
+						contactInformation.setProductOwner(null);
+					}
 					dataProduct.setContactInformation(contactInformation);
 				}
 
@@ -672,6 +702,7 @@ public class DataProductAssembler implements GenericAssembler<DataProductVO, Dat
 		dataTransferConsumerRequestVO.getData().getConsumerInformation().setContactInformation(new ConsumerContactInformationVO());
 		dataTransferConsumerRequestVO.getData().getConsumerInformation().getContactInformation().setDivision(new com.daimler.data.dto.datatransfer.DivisionVO());
 		dataTransferConsumerRequestVO.getData().getConsumerInformation().getContactInformation().getDivision().setSubdivision(new com.daimler.data.dto.datatransfer.SubdivisionVO());
+		dataTransferConsumerRequestVO.getData().getConsumerInformation().getContactInformation().setOwnerName(new DataTransferTeamMemberVO());
 		dataTransferConsumerRequestVO.getData().getConsumerInformation().setPersonalRelatedData(new ConsumerPersonalRelatedDataVO());
 
 		com.daimler.data.dto.dataproduct.ConsumerRequestVO dataproductConsumerData = dataTransferConsumerRequestInfoVO.getData();
@@ -680,12 +711,19 @@ public class DataProductAssembler implements GenericAssembler<DataProductVO, Dat
 		BeanUtils.copyProperties(dataproductConsumerData, datatransferConsumerData);
 		BeanUtils.copyProperties(dataproductConsumerData.getConsumerInformation(), datatransferConsumerData.getConsumerInformation());
 		BeanUtils.copyProperties(dataproductConsumerData.getConsumerInformation().getContactInformation(), datatransferConsumerData.getConsumerInformation().getContactInformation());
+		BeanUtils.copyProperties(dataproductConsumerData.getConsumerInformation().getContactInformation().getOwnerName(), datatransferConsumerData.getConsumerInformation().getContactInformation().getOwnerName());
 		BeanUtils.copyProperties(dataproductConsumerData.getConsumerInformation().getContactInformation().getDivision(), datatransferConsumerData.getConsumerInformation().getContactInformation().getDivision());
 		BeanUtils.copyProperties(dataproductConsumerData.getConsumerInformation().getContactInformation().getDivision().getSubdivision(), datatransferConsumerData.getConsumerInformation().getContactInformation().getDivision().getSubdivision());
 		BeanUtils.copyProperties(dataproductConsumerData.getConsumerInformation().getPersonalRelatedData(), datatransferConsumerData.getConsumerInformation().getPersonalRelatedData());
 
 		if (dataproductConsumerData.getConsumerInformation().getContactInformation().isLcoNeeded() != null) {
 			datatransferConsumerData.getConsumerInformation().getContactInformation().setLcoNeeded(dataproductConsumerData.getConsumerInformation().getContactInformation().isLcoNeeded());
+		}
+		if (dataproductConsumerData.getConsumerInformation().getContactInformation().getOwnerName().getUserType() != null) {
+			datatransferConsumerData.getConsumerInformation().getContactInformation().getOwnerName().setUserType(DataTransferTeamMemberVO.UserTypeEnum.valueOf(dataproductConsumerData.getConsumerInformation().getContactInformation().getOwnerName().getUserType().toString().toUpperCase()));
+		}
+		if (dataproductConsumerData.getConsumerInformation().getContactInformation().getOwnerName().isAddedByProvider() != null) {
+			datatransferConsumerData.getConsumerInformation().getContactInformation().getOwnerName().setAddedByProvider(dataproductConsumerData.getConsumerInformation().getContactInformation().getOwnerName().isAddedByProvider());
 		}
 		if (dataproductConsumerData.getConsumerInformation().getPersonalRelatedData().isPersonalRelatedData() != null) {
 			datatransferConsumerData.getConsumerInformation().getPersonalRelatedData().setPersonalRelatedData(dataproductConsumerData.getConsumerInformation().getPersonalRelatedData().isPersonalRelatedData());
