@@ -45,6 +45,9 @@ export default class ListProjects extends React.Component {
     super(props);
     this.child = React.createRef();
     this.state = {
+      isUserCanCreateDataiku: false,
+      isCreateEditDataikuModal: false,
+      isEditDataikuProject: false,
       productionList: {},
       productionListToDisplayAfterSearch: [],
       trainingList: {},
@@ -373,6 +376,27 @@ export default class ListProjects extends React.Component {
             <Caption title="Dataiku Projects" />
           </div>
           <div className={Styles.content}>
+            <div className={classNames(Styles.listHeader)}>
+              <React.Fragment>
+                <div className={classNames(Styles.listHeaderContent)}>
+                  <React.Fragment>
+                    <button className={'btn add-dataiku-container btn-primary'} type="button"
+                      disabled={!this.state.isUserCanCreateDataiku}
+                      onClick={(() => {
+                        this.setState({
+                          isCreateEditDataikuModal: true,
+                        });
+                      })}>
+                      <i className="icon mbc-icon plus" />
+                      <span>Create New Dataiku project</span>
+                      &nbsp;
+                      {!this.state.isUserCanCreateDataiku
+                        && <i className="icon mbc-icon info" tooltip-data="users with a access can only create a dataiku project" />}
+                    </button>
+                  </React.Fragment>
+                </div>
+              </React.Fragment>
+            </div>
             <div id="dataiku-project-tabs" className="tabs-panel">
               <div className="tabs-wrapper">
                 <nav>
@@ -385,11 +409,6 @@ export default class ListProjects extends React.Component {
                     <li className={this.state.currentTab === 'training' ? 'tab active ' : 'tab '}>
                       <a href="#tab-training" id="training" onClick={this.setCurrentTab}>
                         Training Projects
-                      </a>
-                    </li>
-                    <li className={this.state.currentTab === 'createOrEdit' ? 'tab active ' : 'tab '}>
-                      <a href="#tab-dna-dataiku-project" id="createOrEdit" onClick={this.setCurrentTab}>
-                        DnA Dataiku Projects
                       </a>
                     </li>
                     <li className={'tab disabled'}>
@@ -416,13 +435,6 @@ export default class ListProjects extends React.Component {
                 </nav>
               </div>
               <div className="tabs-content-wrapper">
-                {this.state.currentTab === 'createOrEdit' && <React.Fragment>
-                  <CreateOrEditProject
-                    editDataikuProjectDetail={this.state.projectData}
-                    isEdit={false}
-                    user={this.props.user}
-                    callDnaDataList={this.callDnaDataListApi}
-                  /></React.Fragment>}
                 <div id="tab-project" className={Styles.tabContentStyle + ' tab-content'}>
                   <React.Fragment>
                     <i
@@ -524,7 +536,27 @@ export default class ListProjects extends React.Component {
                                 Last Used
                               </label>
                             </th>
+                            <th
+                              onClick={() => {
+                                this.sortByColumn('cloudProfile', this.state.nextSortOrder);
+                              }}
+                            >
+                              <label
+                                className={
+                                  'sortable-column-header ' +
+                                  (this.state.currentColumnToSort == 'cloudProfile'
+                                    ? this.state.currentSortOrder
+                                    : '')
+                                }
+                              >
+                                <i className="icon sort" />
+                                Extollo/On-premise
+                              </label>
+                            </th>
                             <th className="actionColumn">&nbsp;</th>
+                            <th>
+                              <label className="sortable-column-header">Action</label>
+                            </th>
                           </tr>
                         </thead>
                         <tbody>{productionsData}</tbody>
@@ -799,23 +831,24 @@ export default class ListProjects extends React.Component {
           filename={csvFileName}
           target="_blank"
         />
-        {this.state.editDataikuProjectModal && (
+        {this.state.isCreateEditDataikuModal && (
           <Modal
-            title={''}
+            title={this.state.editDataikuProjectModal ? 'Edit Dataiku Project' : 'Create a new Dataiku Project'}
             showAcceptButton={false}
             showCancelButton={false}
             modalWidth={'80%'}
             buttonAlignment="right"
-            show={this.state.editDataikuProjectModal}
+            show={this.state.isCreateEditDataikuModal}
             content={
               <CreateOrEditProject
                 editDataikuProjectDetail={this.state.projectData}
-                isEdit={true}
+                isEdit={this.state.editDataikuProjectModal}
+                isUserCanCreateDataiku={this.state.isUserCanCreateDataiku}
                 user={this.props.user}
                 callDnaDataList={this.callDnaDataListApi} />
             }
             scrollableContent={false}
-            onCancel={this.editDataikuProjectModalCancel}
+            onCancel={this.editCreateEditDataikuModal}
           />
         )}
         {this.state.showProvisionModal && (
@@ -869,9 +902,34 @@ export default class ListProjects extends React.Component {
   componentDidMount = () => {
     Tabs.defaultSetup();
     Tooltip.defaultSetup();
-    this.getLiveProjects();
+    this.validateUser();
     this.onViewByPageNum(15);
   };
+
+  // TO check if user is able to create a dataiku project or not.
+  validateUser = () => {
+    ProgressIndicator.show();
+    dataikuApi
+      .validateUserPrivilage(this.props?.user?.id)
+      .then((response) => {
+        if (response?.data && response?.data?.canCreate) {
+          this.setState({ isUserCanCreateDataiku: response.data.canCreate });
+        }
+      })
+      .catch((err) => {
+        err;
+        if (err?.response?.data?.response?.errors?.length > 0) {
+          err?.response?.data?.response?.errors.forEach((err) => {
+            this.showErrorNotification(err?.message || 'Something went wrong.');
+          });
+        } else {
+          this.showErrorNotification('Something went wrong.');
+        }
+      }).finally(() => {
+        // TO get all Live Projects.
+        this.getLiveProjects();
+      });
+  }
 
   provisionedSolutionId = () => {
     this.setState({
@@ -895,8 +953,8 @@ export default class ListProjects extends React.Component {
   };
 
   callDnaDataListApi = () => {
-    this.getDnaProjects();
-    this.editDataikuProjectModalCancel()
+    this.getLiveProjects();
+    this.editCreateEditDataikuModal()
   };
 
   deleteDataikuProject = (projectId) => {
@@ -907,7 +965,7 @@ export default class ListProjects extends React.Component {
         const data = response.data;
         if (data.success === "SUCCESS") {
           ProgressIndicator.hide();
-          this.getDnaProjects();
+          this.getLiveProjects();
           Notification.show('Dataiku project deleted successfully');
         } else {
           ProgressIndicator.hide();
@@ -922,7 +980,7 @@ export default class ListProjects extends React.Component {
   }
 
   editDataikuProjectDetails = (project) => {
-    this.setState({ editDataikuProjectModal: true, projectData: project });
+    this.setState({ editDataikuProjectModal: true, projectData: project, isCreateEditDataikuModal: true });
   };
 
   createSummaryLink = (provisionedSolutionId) => {
@@ -942,8 +1000,8 @@ export default class ListProjects extends React.Component {
     this.setState({ showProvisionModal: false });
   };
 
-  editDataikuProjectModalCancel = () => {
-    this.setState({ editDataikuProjectModal: false });
+  editCreateEditDataikuModal = () => {
+    this.setState({ editDataikuProjectModal: false, isCreateEditDataikuModal:false });
   };
 
   openDetailsModal = (project) => {

@@ -121,69 +121,27 @@ const ProjectListRowItem = (props) => {
     history.push('/summary/' + solutionId);
   };
 
-  if (props.isDnaProject) {
-    return (
-      <React.Fragment>
-        <tr
-          id={props.project.id}
-          key={props.project.id}
-          className={classNames('data-row')}
-        >
-          <td className="wrap-text projectName" >{props.project.projectName}</td>
-          <td className="wrap-text projectName" >{props.project.cloudProfile}</td>
-          {props?.user?.id === props?.project?.createdBy ? <td id={'card-' + props.project.id} key={props.project.id} className={Styles.actionMenus}>
-            <div className={classNames(Styles.contextMenu, showContextMenu ? Styles.open : '')}>
-              <span
-                tooltip-data="More Action"
-                onClick={toggleContextMenu}
-                className={classNames('trigger', Styles.contextMenuTrigger)}
-              >
-                <i className="icon mbc-icon listItem context" />
-              </span>
-              <div
-                style={{
-                  top: contextMenuOffsetTop + 'px',
-                  left: contextMenuOffsetLeft + 'px',
-                }}
-                className={classNames('contextMenuWrapper', showContextMenu ? Styles.showMenu : 'hide')}
-              >
-                <ul className={classNames('contextList', Styles.contextList)}>
-                  <li className="contextListItem" onClick={onEditBtnClick}>
-                    <span>Edit</span>
-                  </li>
-                  <li className="contextListItem" onClick={deleteDataikuProject(props.project.id)}>
-                    <span>Delete</span>
-                  </li>
-                </ul>
-              </div>
-            </div>
-          </td> : <td></td>}
-        </tr>
-      </React.Fragment>
-    )
-  }
-
   return (
     <React.Fragment>
       <tr
         id={props.project.id}
         key={props.project.id}
         className={classNames('data-row')}
-        onClick={onInfoBtnClick}
       >
-        <td className="wrap-text projectName">{props.project.name}</td>
-        <td className="wrap-text">
+        <td className="wrap-text projectName" onClick={onInfoBtnClick}>{props.project.name}</td>
+        <td className="wrap-text" onClick={onInfoBtnClick}>
           <span className={Styles.descriptionColumn}>{props.project.shortDesc}</span>
         </td>
         {props.isProduction ? (
-          <td className="wrap-text">{props.project.role ? props.project.role.toLowerCase() : ''}</td>
+          <td className="wrap-text" onClick={onInfoBtnClick}>{props.project.role ? props.project.role.toLowerCase() : ''}</td>
         ) : (
           ''
         )}
-        <td className="wrap-text">
+        <td className="wrap-text" onClick={onInfoBtnClick}>
           {getDateDifferenceFromToday(getDateFromTimestampForDifference(props?.project?.versionTag?.lastModifiedOn))}{' '}
           days ago
         </td>
+        <td className="wrap-text projectName" onClick={onInfoBtnClick}>{props.project.cloudProfile}</td>
         <td className={Styles.iconAction}>
           {props.isProduction ? (
             <span id={'provision' + props.project.id}>
@@ -210,6 +168,35 @@ const ProjectListRowItem = (props) => {
             onClick={(event) => openProject(event, props.isProduction, props.project.projectKey)}
           />
         </td>
+        {<td id={'card-' + props.project.id} key={props.project.id} className={Styles.actionMenus}>
+          <div className={classNames(Styles.contextMenu, showContextMenu ? Styles.open : '')}>
+            {
+              (props?.project?.role?.toLowerCase()?.includes("dataiku-administrator") ||
+                props?.project?.role?.toLowerCase()?.includes("administrator")) && <span
+                  tooltip-data="More Action"
+                  onClick={toggleContextMenu}
+                  className={classNames('trigger', Styles.contextMenuTrigger)}
+                >
+                <i className="icon mbc-icon listItem context" />
+              </span>}
+            <div
+              style={{
+                top: contextMenuOffsetTop + 'px',
+                left: contextMenuOffsetLeft + 'px',
+              }}
+              className={classNames('contextMenuWrapper', showContextMenu ? Styles.showMenu : 'hide')}
+            >
+              <ul className={classNames('contextList', Styles.contextList)}>
+                <li className="contextListItem" onClick={onEditBtnClick}>
+                  <span>Edit</span>
+                </li>
+                <li className="contextListItem" onClick={deleteDataikuProject(props.project.id)}>
+                  <span>Delete</span>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </td>}
       </tr>
     </React.Fragment>
   );
