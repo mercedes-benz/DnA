@@ -402,12 +402,26 @@ const Summary = ({ history, user }) => {
                         <br />
                         {isURL(selectedDataProduct?.oneApi) || '-'}
                       </div>
+                      <div>
+                        <label className="input-label summary">Product Owner</label>
+                        <br />
+                        {selectedDataProduct?.productOwner || 'N.A'}
+                      </div>
+                      <div>&nbsp;</div>
+                      <div>&nbsp;</div>
                     </div>
                     <div className={Styles.flexLayout}>
                       <div>
                         <label className="input-label summary">Data Product Description</label>
                         <br />
                         {selectedDataProduct.description}
+                      </div>
+                    </div>
+                    <div className={Styles.flexLayout}>
+                      <div>
+                        <label className="input-label summary">Data Product Additional Information</label>
+                        <br />
+                        {selectedDataProduct?.additionalInformation || '-'}
                       </div>
                     </div>
                   </div>
