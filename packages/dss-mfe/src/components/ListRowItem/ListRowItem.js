@@ -127,7 +127,6 @@ const ProjectListRowItem = (props) => {
         id={props.project.id}
         key={props.project.id}
         className={classNames('data-row')}
-      // onClick={onInfoBtnClick}
       >
         <td className="wrap-text projectName" onClick={onInfoBtnClick}>{props.project.name}</td>
         <td className="wrap-text" onClick={onInfoBtnClick}>
