@@ -28,6 +28,7 @@ export const serializeFormData = ({ values, division, type = 'provider', isDataP
             id: values.id,
             dataProductName: values.productName,
             description: values.description,
+            additionalInformation: values.additionalInformation,
             howToAccessText: values.howToAccessText,
             isPublish: values.publish || false,
             notifyUsers: values.notifyUsers || false,
@@ -131,6 +132,7 @@ export const serializeFormData = ({ values, division, type = 'provider', isDataP
                     department: values.department === '' ? undefined : values.department?.toString(),
                     division,
                     informationOwner: values.informationOwner,
+                    productOwner: values.productOwner,
                     localComplianceOfficer: values.complianceOfficer?.toString(),
                     name: values.name,
                   },
@@ -263,6 +265,7 @@ export const deserializeFormData = ({ item, type = 'provider', isDataProduct = f
         }
       : {
           description: item.description,
+          additionalInformation: item.additionalInformation,
           ART: item?.agileReleaseTrain?.name || '',
           carLAFunction: item?.carLaFunction?.name || '',
           corporateDataCatalog: item?.corporateDataCatalog?.name || '',
@@ -281,6 +284,8 @@ export const deserializeFormData = ({ item, type = 'provider', isDataProduct = f
           notifyUsers: item.notifyUsers,
           openSegments: item?.openSegments,
           informationOwner: item?.contactInformation?.informationOwner,
+          productOwner: item?.contactInformation?.productOwner,
+          dateOfDataProduct: item?.contactInformation?.dataProductDate === null ? undefined : item?.contactInformation?.dataProductDate,
           department: item?.contactInformation?.department === '' ? undefined : item?.contactInformation?.department?.split(),
           name: item?.contactInformation?.name,
           division: item?.contactInformation?.division?.id || '0',
