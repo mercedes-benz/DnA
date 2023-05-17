@@ -94,10 +94,10 @@ const ProjectListRowItem = (props) => {
     props.editDataikuProjectDetail(props.project);
   };
 
-  const deleteDataikuProject = (projectId) => {
+  const deleteDataikuProject = (projectKey, cloudProfile) => {
     return () => {
       setShowContextMenu(!showContextMenu);
-      props.deleteDataikuProject(projectId);
+      props.deleteDataikuProject(projectKey, cloudProfile);
     };
   };
   const onProvisionBtnClick = (e) => {
@@ -190,7 +190,7 @@ const ProjectListRowItem = (props) => {
                 <li className="contextListItem" onClick={onEditBtnClick}>
                   <span>Edit</span>
                 </li>
-                <li className="contextListItem" onClick={deleteDataikuProject(props.project.id)}>
+                <li className="contextListItem" onClick={deleteDataikuProject(props.project.projectKey, props.project.cloudProfile)}>
                   <span>Delete</span>
                 </li>
               </ul>

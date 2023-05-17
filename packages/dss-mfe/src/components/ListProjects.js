@@ -957,10 +957,10 @@ export default class ListProjects extends React.Component {
     this.editCreateEditDataikuModal()
   };
 
-  deleteDataikuProject = (projectId) => {
+  deleteDataikuProject = (projectKey, cloudProfile) => {
     ProgressIndicator.show();
     dataikuApi
-      .deleteDnaProjectList(projectId)
+      .deleteDnaProjectByProjectByName(projectKey, cloudProfile)
       .then((response) => {
         const data = response.data;
         if (data.success === "SUCCESS") {

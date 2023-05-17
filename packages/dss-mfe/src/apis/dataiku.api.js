@@ -16,6 +16,10 @@ const deleteDnaProjectList = (id) => {
   return server.delete(`/dataiku/${id}`);
 };
 
+const deleteDnaProjectByProjectByName = (projectKey, cloudProfile) => {
+  return server.delete(`/dataiku/${cloudProfile}/${projectKey}`);
+};
+
 const getDnaDataikuProjectByName = (projectKey, cloudProfile) => {
   return server.get(`/dataiku/${cloudProfile}/${projectKey}`);
 };
@@ -50,6 +54,7 @@ export const dataikuApi = {
   createNewDataikuProjects,
   validateUserPrivilage,
   deleteDnaProjectList,
+  deleteDnaProjectByProjectByName,
   updateDataikuProjects,
   getSubDivisions,
   getLovData,
