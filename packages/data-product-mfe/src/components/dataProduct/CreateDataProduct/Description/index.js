@@ -294,8 +294,8 @@ const Description = ({
       </div>
       <div id="tagsWrapper" className={classNames(Styles.wrapper)}>
         <div id="tagsPanel" className={classNames(Styles.firstPanel)}>
+          <h3 id="tagHeading">Tags</h3>
           <div id="tagsContainer" className={classNames(Styles.formWrapper, Styles.tagsWrapper)}>
-            <h3 id="tagHeading">Tags</h3>
             <span id="tagDesc" className={classNames(Styles.textDesc)}>
               Use tags to make it easier to find your data product for other people
             </span>
