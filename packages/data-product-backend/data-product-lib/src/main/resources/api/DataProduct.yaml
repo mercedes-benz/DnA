@@ -472,6 +472,8 @@ definitions:
         $ref: "#/definitions/DataProductTeamMemberVO"
       name:
         $ref: "#/definitions/DataProductTeamMemberVO"
+      productOwner:
+        $ref: "#/definitions/DataProductTeamMemberVO"  
       division:
         $ref: "#/definitions/DivisionVO"
       department:

@@ -694,7 +694,8 @@ public class DataProductController implements DataproductsApi{
 					existingVO.setTransnationalDataTransfer(requestVO.getTransnationalDataTransfer());
 					existingVO.setDeletionRequirement(requestVO.getDeletionRequirement());
 					existingVO.setOpenSegments(requestVO.getOpenSegments());
-
+					existingVO.setTags(requestVO.getTags());
+					updateTags(existingVO);
 					try {
 						DataProductVO vo = service.updateByID(existingVO);
 						if (vo != null && vo.getId() != null) {
