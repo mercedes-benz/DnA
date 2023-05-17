@@ -197,8 +197,8 @@ public class DataikuRepositoryImpl implements DataikuRepository{
 	
 	public void updateDataiku(String id,String description, String classificationType, String department, String divisionId, String divisionName, Boolean hasPii, String status, String subDivisionId, String subDivisionName) {
 		String updateStmt = "update dataiku_sql set  description = :updatedDescription, "
-				+ "status = :status, classificationType = :classificationType, hasPii = :hasPii, divisionId = :divisionId, divisionName = :divisionName,  "
-				+ "subdivisionId = :subdivisionId, subdivisionName = :subdivisionName, department = :department "
+				+ "status = :status, classification_type = :classificationType, has_pii = :hasPii, division_id = :divisionId, division_name = :divisionName,  "
+				+ "subdivision_id = :subdivisionId, subdivision_name = :subdivisionName, department = :department "
 				+ " where id = :id";
 		Query q = entityManager.createNativeQuery(updateStmt);
 		q.setParameter("updatedDescription", description);
