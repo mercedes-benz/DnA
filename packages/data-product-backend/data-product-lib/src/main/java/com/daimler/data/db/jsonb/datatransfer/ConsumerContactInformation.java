@@ -39,6 +39,7 @@ import lombok.NoArgsConstructor;
 public class ConsumerContactInformation {
 
 	private boolean lcoNeeded;
+	private TeamMember ownerName;
 	private Division division;
 	private String department;
 	private String localComplianceOfficer;

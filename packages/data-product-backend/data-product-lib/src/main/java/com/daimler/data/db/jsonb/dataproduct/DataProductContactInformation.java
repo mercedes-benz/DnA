@@ -43,6 +43,7 @@ public class DataProductContactInformation {
 	
 	private TeamMember name;
 	private TeamMember informationOwner;
+	private TeamMember productOwner;
 	private String appId;
 	private String localComplianceOfficer;
 	private String department;
