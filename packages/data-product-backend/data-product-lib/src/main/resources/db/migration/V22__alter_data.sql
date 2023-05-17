@@ -1,1 +1,0 @@
-update datatransfer_nsql set data = data #- '{consumerInformation,contactInformation,ownerName}';
