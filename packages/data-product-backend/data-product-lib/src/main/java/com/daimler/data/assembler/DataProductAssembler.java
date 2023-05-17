@@ -44,6 +44,8 @@ import com.daimler.data.dto.dataproduct.TeamMemberVO;
 import com.daimler.data.dto.datatransfer.*;
 import com.daimler.data.dto.datatransfer.ConsumerResponseVO;
 import com.daimler.data.dto.datatransfer.DataTransferConsumerRequestVO;
+import com.daimler.data.dto.tag.TagVO;
+
 import org.json.JSONObject;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Component;
@@ -88,6 +90,9 @@ public class DataProductAssembler implements GenericAssembler<DataProductVO, Dat
 			if (dataProduct != null) {
 				BeanUtils.copyProperties(dataProduct, vo);
 				vo.setIsPublish(entity.getData().getPublish());
+				if(Objects.nonNull(dataProduct.getAdditionalInformation())) {
+					vo.setAdditionalInformation(dataProduct.getAdditionalInformation());
+				}
 				if (Objects.nonNull(dataProduct.getCreatedBy())) {
 					CreatedByVO createdByVO = new CreatedByVO();
 					BeanUtils.copyProperties(dataProduct.getCreatedBy(), createdByVO);
@@ -129,6 +134,10 @@ public class DataProductAssembler implements GenericAssembler<DataProductVO, Dat
 					}
 					vo.setFrontEndTools(frontEndToolsVo);
 				}
+				
+				if (dataProduct.getTags() != null && !ObjectUtils.isEmpty(dataProduct.getTags())) {
+					BeanUtils.copyProperties(dataProduct.getTags(), vo.getTags());
+				}
 
 				if (Objects.nonNull(dataProduct.getAgileReleaseTrain())) {
 					AgileReleaseTrainVO agileReleaseTrain = new AgileReleaseTrainVO();
@@ -156,8 +165,14 @@ public class DataProductAssembler implements GenericAssembler<DataProductVO, Dat
 						contactInformationVO.setDivision(divisionvo);
 					}
 
+//					TeamMember productOwner = dataProductContactInformation.getProductOwner();
+//					DataProductTeamMemberVO productOwnerVo = new DataProductTeamMemberVO();												
+//					BeanUtils.copyProperties(productOwner,productOwnerVo);
+//					contactInformationVO.setProductOwner(productOwnerVo);
+				
 					contactInformationVO.setName(toTeamMemberVO(dataProductContactInformation.getName()));				
-					contactInformationVO.setInformationOwner(toTeamMemberVO(dataProductContactInformation.getInformationOwner()));
+					contactInformationVO.setInformationOwner(toTeamMemberVO(dataProductContactInformation.getInformationOwner()));	
+					contactInformationVO.setProductOwner(toTeamMemberVO(dataProductContactInformation.getProductOwner()));					
 					vo.setContactInformation(contactInformationVO);
 				}
 
@@ -221,6 +236,9 @@ public class DataProductAssembler implements GenericAssembler<DataProductVO, Dat
 			if (vo != null) {
 				BeanUtils.copyProperties(vo, dataProduct);
 				dataProduct.setNotifyUsers(vo.isNotifyUsers());
+				if(Objects.nonNull(vo.getAdditionalInformation())) {
+					dataProduct.setAdditionalInformation(vo.getAdditionalInformation());
+				}
 				dataProduct.setPublish(vo.isIsPublish());
 				if (Objects.nonNull(vo.getCreatedBy())) {
 					CreatedBy userDetails = new CreatedBy();
@@ -249,6 +267,14 @@ public class DataProductAssembler implements GenericAssembler<DataProductVO, Dat
 						}
 					}
 					dataProduct.setPlatform(platformsVO);
+				}
+				
+				if (!ObjectUtils.isEmpty(vo.getTags())) {
+					List<String> tagsList = new ArrayList<>();
+					vo.getTags().forEach(tag -> {
+						tagsList.add(tag);
+					});
+					dataProduct.setTags(tagsList);
 				}
 
 				List<FrontendToolsVO> frontEndTools = vo.getFrontEndTools();
@@ -294,8 +320,18 @@ public class DataProductAssembler implements GenericAssembler<DataProductVO, Dat
 						}
 						contactInformation.setDivision(division);
 					}
+//					DataProductTeamMemberVO productOwnerVo = dataProductContactInformationVO.getProductOwner();
+//					TeamMember productOwner = new TeamMember();
+//					BeanUtils.copyProperties(productOwnerVo, productOwner);
+//					contactInformation.setProductOwner(productOwner);
 					contactInformation.setName(toTeamMemberJson(dataProductContactInformationVO.getName()));					
 					contactInformation.setInformationOwner(toTeamMemberJson(dataProductContactInformationVO.getInformationOwner()));
+					if(Objects.nonNull(dataProductContactInformationVO.getProductOwner())) {
+						toTeamMemberJson(dataProductContactInformationVO.getProductOwner());
+					}
+					else {
+						contactInformation.setProductOwner(null);
+					}
 					dataProduct.setContactInformation(contactInformation);
 				}
 
