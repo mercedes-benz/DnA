@@ -32,6 +32,7 @@ const Description = ({
     setValue,
   } = useFormContext();
   const [showInfoModal, setShowInfoModal] = useState(false);
+  const [tags, setTags] = useState([]);
 
   const { howToAccessText } = watch();
 
@@ -63,9 +64,12 @@ const Description = ({
         setValue('howToAccessText', res.value);
       });
     }
-  }, [howToAccessText, setValue, watch]);
+    if (tags?.length) {
+      setValue('tags', tags);
+    }
+  }, [howToAccessText, tags, setValue, watch]);
   
-  const [tags, setTags] = useState([]);
+  
 
   return (
     <>
@@ -304,8 +308,9 @@ const Description = ({
                 title={'Tags'}
                 max={100}
                 chips={tags}
-                setTags={setTags}
+                setTags={(val)=>{setTags(val); setValue('tags', val);}}
                 isMandatory={false}
+                {...register('tags')}
                 // showMissingEntryError={showTagsMissingError}
               />
             </div>
