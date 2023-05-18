@@ -29,7 +29,7 @@ const CreateOrEditProject = (props) => {
 
     const [departmentTags, setDepartmentTags] = useState([]);
     const [selectedDepartmentTags, setSelectedDepartmentTags] = useState([]);
-    const [statusValue, setStatusValue] = useState({});
+    const [statusValue, setStatusValue] = useState('Choose');
     const [statusError, setStatusError] = useState('');
     const [divisionError, setDivisionError] = useState('');
     const departmentValue = selectedDepartmentTags?.map((department) => department?.toUpperCase());
@@ -39,7 +39,7 @@ const CreateOrEditProject = (props) => {
         name: 'Active'
     }, {
         id: 2,
-        name: 'In devevelopment'
+        name: 'In development'
     }, {
         id: 3,
         name: 'Sundowned'
@@ -95,22 +95,33 @@ const CreateOrEditProject = (props) => {
                     }
                     if (data?.divisionId && data?.divisionName) {
                         const division = { id: data.divisionId, name: data.divisionName, subdivision: { id: null, name: null } };
+                        ProgressIndicator.show();
                         dataikuApi.getSubDivisions(division.id).then((subDivisions) => {
                             if (!subDivisions?.data?.length) {
                                 subDivisions = [{ id: '0', name: 'None' }];
                             } else {
                                 subDivisions = subDivisions.data;
                                 division.subdivision = { id: '0', name: 'Choose' };
+                                if (data?.subdivisionId && data?.subdivisionName) {
+                                    division.subdivision.id = data.subdivisionId;
+                                    division.subdivision.name = data.subdivisionName;
+                                }
                             }
                             setSubDivisions(subDivisions);
+                            setDivisionValue(division);
                             SelectBox.defaultSetup();
+                        }).catch((err) => {
+                            ProgressIndicator.hide();
+                            if (err?.response?.data?.response?.errors?.length > 0) {
+                                err?.response?.data?.response?.errors.forEach((err) => {
+                                    showErrorNotification(err?.message || 'Something went wrong.');
+                                });
+                            } else {
+                                showErrorNotification('Something went wrong.');
+                            }
+                        }).finally(() => {
+                            ProgressIndicator.hide();
                         });
-                        if (data?.subdivisionId && data?.subdivisionName) {
-                            division.subdivision.id = data.subdivisionId;
-                            division.subdivision.name = data.subdivisionName;
-                        }
-                        setDivisionValue(division);
-                        SelectBox.defaultSetup();
                     }
 
                     if (data?.department) {
@@ -118,12 +129,7 @@ const CreateOrEditProject = (props) => {
                     }
 
                     if (data?.status) {
-                        // setStatusValue
-                        const statusobj = statuses.filter(status => status.name === data?.status);
-                        if (statusobj) {
-                            setStatusValue(statusobj);
-                            SelectBox.defaultSetup();
-                        }
+                        setStatusValue(data.status);
                     }
 
                     if (data?.cloudProfile) {
@@ -158,24 +164,11 @@ const CreateOrEditProject = (props) => {
                     showErrorNotification('Something went wrong.');
                 }
                 props.callDnaDataList();
-            })
+            });
     }
 
     const onChangeStatus = (e) => {
-        const selectedOptions = e.currentTarget.selectedOptions;
-        const selectedValues = [];
-        if (selectedOptions.length) {
-            Array.from(selectedOptions).forEach((option) => {
-                const status = { id: null, name: null };
-                status.id = option.value;
-                status.name = option.textContent;
-                selectedValues.push(status);
-            });
-        }
-        if (!(selectedValues[0]?.name === 'Choose')) {
-            setStatusError('');
-        }
-        setStatusValue(selectedValues);
+        setStatusValue(e.target.value);
     }
 
     const validateForm = () => {
@@ -183,7 +176,7 @@ const CreateOrEditProject = (props) => {
             setProjectErrorMessage('Project name is required *');
             isFormValid = false;
         }
-        if (!statusValue || statusValue[0]?.name === 'Choose') {
+        if (statusValue === '0') {
             setStatusError(errorMissingEntry)
             isFormValid = false;
         }
@@ -210,7 +203,7 @@ const CreateOrEditProject = (props) => {
 
         if (
             (dataClassification && !(dataClassification === '0'))
-            && (statusValue && !(statusValue[0]?.name === 'Choose'))
+            && (statusValue && !(statusValue === '0'))
             && (divisionValue && !(divisionValue?.name === 'Choose'))
             && projectGroup
             && projectKey
@@ -248,7 +241,7 @@ const CreateOrEditProject = (props) => {
                 createdBy: editDataikuProjectDetails.createdBy,
                 createdOn: editDataikuProjectDetails.createdOn,
                 description: projectDescription,
-                status: statusValue[0]?.name,
+                status: statusValue,
                 classificationType: dataClassification,
                 hasPii: PII,
                 divisionId: divisionValue?.id,
@@ -304,7 +297,7 @@ const CreateOrEditProject = (props) => {
                 collaborators: dataikuCollaborators,
                 createdBy: "",
                 createdOn: "",
-                status: statusValue[0]?.name,
+                status: statusValue,
                 classificationType: dataClassification,
                 hasPii: PII,
                 divisionId: divisionValue?.id,
@@ -552,6 +545,66 @@ const CreateOrEditProject = (props) => {
                     </div>
                 </div>
                 <div className={classNames(Styles.flexLayout, Styles.secondFlexLayout)}>
+                    <div className={Styles.divisionContainer}>
+                        <div
+                            className={classNames('input-field-group include-error', divisionError.length ? 'error' : '')}>
+                            <label id="divisionLabel" htmlFor="divisionField" className="input-label">
+                                Division <sup>*</sup> &nbsp;
+                            </label>
+                            <div className="custom-select">
+                                <select
+                                    id="divisionField"
+                                    required={true}
+                                    required-error={errorMissingEntry}
+                                    onChange={(e) => onDivisionChange(e)}
+                                    value={divisionValue?.id}
+                                >
+                                    <option id="divisionOption" value={0}>
+                                        Choose
+                                    </option>
+                                    {divisions?.map((obj) => (
+                                        <option id={obj.name + obj.id} key={obj.id} value={obj.id}>
+                                            {obj.name}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+                            <span className={classNames('error-message', divisionError.length ? '' : 'hide')}>
+                                {divisionError}
+                            </span>
+                        </div>
+                    </div>&nbsp;&nbsp;&nbsp;
+                    <div className={Styles.subDivisionContainer}>
+                        <div className={classNames('input-field-group')}>
+                            <label id="subDivisionLabel" htmlFor="subDivisionField" className="input-label">
+                                Sub Division &nbsp;
+                            </label>
+                            <div className="custom-select">
+                                <select
+                                    id="subDivisionField"
+                                    onChange={(e) => onSubDivisionChange(e)}
+                                    value={divisionValue?.subdivision?.id || '0'}
+                                >
+                                    {subDivisions.some((item) => item.id === '0' && item.name === 'None') ? (
+                                        <option id="subDivisionDefault" value={0}>
+                                            None
+                                        </option>
+                                    ) : (
+                                        <>
+                                            <option id="subDivisionDefault" value={0}>
+                                                Choose
+                                            </option>
+                                            {subDivisions?.map((obj) => (
+                                                <option id={obj.name + obj.id} key={obj.id} value={obj.id}>
+                                                    {obj.name}
+                                                </option>
+                                            ))}
+                                        </>
+                                    )}
+                                </select>
+                            </div>
+                        </div>
+                    </div>&nbsp;&nbsp;&nbsp;
                     <div className={classNames('input-field-group include-error')}>
                         <label className={classNames(Styles.inputLabel, 'input-label')}>
                             PII (Personally Identifiable Information) <sup>*</sup>
@@ -584,68 +637,6 @@ const CreateOrEditProject = (props) => {
                                 <span className="label">No</span>
                             </label>
                         </div>
-                    </div>&nbsp;&nbsp;&nbsp;
-
-                    <div className={Styles.divisionContainer}>
-                        <div
-                            className={classNames('input-field-group include-error', divisionError.length ? 'error' : '')}>
-                            <label id="divisionLabel" htmlFor="divisionField" className="input-label">
-                                Division <sup>*</sup> &nbsp;
-                            </label>
-                            <div className="custom-select">
-                                <select
-                                    id="divisionField"
-                                    required={true}
-                                    required-error={errorMissingEntry}
-                                    onChange={(e) => onDivisionChange(e)}
-                                    value={divisionValue?.id}
-                                >
-                                    <option id="divisionOption" value={0}>
-                                        Choose
-                                    </option>
-                                    {divisions?.map((obj) => (
-                                        <option id={obj.name + obj.id} key={obj.id} value={obj.id}>
-                                            {obj.name}
-                                        </option>
-                                    ))}
-                                </select>
-                            </div>
-                            <span className={classNames('error-message', divisionError.length ? '' : 'hide')}>
-                                {divisionError}
-                            </span>
-                        </div>
-                    </div>&nbsp;&nbsp;&nbsp;
-
-                    <div className={Styles.subDivisionContainer}>
-                        <div className={classNames('input-field-group')}>
-                            <label id="subDivisionLabel" htmlFor="subDivisionField" className="input-label">
-                                Sub Division &nbsp;
-                            </label>
-                            <div className="custom-select">
-                                <select
-                                    id="subDivisionField"
-                                    onChange={(e) => onSubDivisionChange(e)}
-                                    value={divisionValue?.subdivision?.id || '0'}
-                                >
-                                    {subDivisions.some((item) => item.id === '0' && item.name === 'None') ? (
-                                        <option id="subDivisionDefault" value={0}>
-                                            None
-                                        </option>
-                                    ) : (
-                                        <>
-                                            <option id="subDivisionDefault" value={0}>
-                                                Choose
-                                            </option>
-                                            {subDivisions?.map((obj) => (
-                                                <option id={obj.name + obj.id} key={obj.id} value={obj.id}>
-                                                    {obj.name}
-                                                </option>
-                                            ))}
-                                        </>
-                                    )}
-                                </select>
-                            </div>
-                        </div>
                     </div>
                 </div>
 
@@ -676,7 +667,7 @@ const CreateOrEditProject = (props) => {
                                     required={true}
                                     required-error={errorMissingEntry}
                                     onChange={onChangeStatus}
-                                    value={statusValue?.id}
+                                    value={statusValue}
                                 >
                                     <option id="reportStatusOption" value={0}>
                                         Choose
@@ -699,7 +690,7 @@ const CreateOrEditProject = (props) => {
                             Instance <sup>*</sup>
                         </label>
                         <div className={Styles.radioBtnsGrid}>
-                            <div key={'On-Premise'}>
+                            <div key={'on-Premise'}>
                                 <label className={'radio'}>
                                     <span className="wrapper">
                                         <input
@@ -715,10 +706,10 @@ const CreateOrEditProject = (props) => {
                                             disabled={props.isEdit}
                                         />
                                     </span>
-                                    <span className="label">{'On-Premise'}</span>
+                                    <span className="label">{'on-Premise'}</span>
                                 </label>
                             </div>
-                            <div key={'Extollo'}>
+                            <div key={'eXtollo'}>
                                 <label className={'radio'}>
                                     <span className="wrapper">
                                         <input
@@ -727,14 +718,14 @@ const CreateOrEditProject = (props) => {
                                             name="projectGroup"
                                             value={projectGroup}
                                             onChange={() => {
-                                                setProjectGroup('extollo');
+                                                setProjectGroup('eXtollo');
                                                 setProjectGroupErrorMessage('');
                                             }}
-                                            checked={projectGroup === 'extollo'}
+                                            checked={projectGroup === 'eXtollo'}
                                             disabled={props.isEdit}
                                         />
                                     </span>
-                                    <span className="label">{'Extollo'}</span>
+                                    <span className="label">{'eXtollo'}</span>
                                 </label>
                             </div>
                         </div>
