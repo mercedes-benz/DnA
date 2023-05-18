@@ -479,19 +479,23 @@ const KPI = ({ kpis, showKPI }: IKPIProps) => {
               <View style={[styles.flexLayout, { marginVertical: 5 }]} wrap={false}>
                 <View style={styles.firstCol}>
                   <Text style={styles.sectionTitle}>KPI Name</Text>
-                  <Text>{kpi.name || 'NA'}</Text>
+                  <Text>{kpi?.name?.kpiName || 'NA'}</Text>
+                </View>
+                <View style={styles.flexCol2}>
+                  <Text style={styles.sectionTitle}>KPI Classification</Text>
+                  <Text>{kpi?.name?.kpiClassification || 'NA'}</Text>
                 </View>
                 <View style={styles.flexCol2}>
                   <Text style={styles.sectionTitle}>Reporting Cause</Text>
                   <Text>{kpi.reportingCause ? kpi.reportingCause?.join(', ') : 'NA'}</Text>
                 </View>
-                <View style={styles.flexCol2}>
-                  <Text style={styles.sectionTitle}>Link KPI-Wiki</Text>
-                  {kpi.kpiLink ? <Link src={kpi.kpiLink}>{kpi.kpiLink}</Link> : <Text>NA</Text>}
-                </View>
               </View>
               <View style={[styles.flexLayout, { marginVertical: 15 }]} wrap={false}>
                 <View style={styles.firstCol}>
+                  <Text style={styles.sectionTitle}>Link to KPI Information</Text>
+                  {kpi.kpiLink ? <Link src={kpi.kpiLink}>{kpi.kpiLink}</Link> : <Text>NA</Text>}
+                </View>
+                <View style={styles.flexCol2}>
                   <Text style={styles.sectionTitle}>KPI Description</Text>
                   <Text>{kpi.comment || 'NA'}</Text>
                 </View>
