@@ -555,13 +555,16 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 			String yPrefix = commonPrefix +"/y.csv";
 			String yPredPrefix = commonPrefix +"/y_pred.csv";
 			String edaJsonPrefix = commonPrefix +"/eda.json";
+			String visualsdataJson = commonPrefix +"/visuals/data.json";
 			FileDownloadResponseDto yDownloadResponse = storageClient.getFileContents(bucketName, yPrefix);
 			FileDownloadResponseDto yPredDownloadResponse = storageClient.getFileContents(bucketName, yPredPrefix);
 			FileDownloadResponseDto edaJsonDownloadResponse = storageClient.getFileContents(bucketName, edaJsonPrefix);
+			FileDownloadResponseDto visualsDataJsonDownloadResponse = storageClient.getFileContents(bucketName, visualsdataJson);
 			JsonArray jsonArray = new JsonArray();
 			String yResult = "";
 			String yPredResult = "";
 			String edaResult = "";
+			String visualsDataResult = "";
 			if(yDownloadResponse!= null && yDownloadResponse.getData()!=null && (yDownloadResponse.getErrors()==null || yDownloadResponse.getErrors().isEmpty())) {
 				 yResult = new String(yDownloadResponse.getData().getByteArray()); 
 			 }
@@ -571,9 +574,13 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 			if(edaJsonDownloadResponse!= null && edaJsonDownloadResponse.getData()!=null && (edaJsonDownloadResponse.getErrors()==null || edaJsonDownloadResponse.getErrors().isEmpty())) {
 				edaResult = new String(edaJsonDownloadResponse.getData().getByteArray()); 
 			 }
+				if(visualsDataJsonDownloadResponse!= null && visualsDataJsonDownloadResponse.getData()!=null && (visualsDataJsonDownloadResponse.getErrors()==null || visualsDataJsonDownloadResponse.getErrors().isEmpty())) {
+					visualsDataResult = new String(visualsDataJsonDownloadResponse.getData().getByteArray());
+			}
 			visualizationVO.setEda(edaResult);
 			visualizationVO.setY(yResult);
 			visualizationVO.setYPred(yPredResult);
+			visualizationVO.setVisualsData(visualsDataResult);
 		}catch(Exception e) {
 			log.error("Failed while parsing results data for run rid {} with exception {} ",rid, e.getMessage());
 		}
