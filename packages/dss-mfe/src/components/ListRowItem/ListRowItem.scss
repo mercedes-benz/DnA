@@ -34,7 +34,15 @@
 
 .descriptionColumn {
   display: inline-block;
-  max-width: 300px;
+  max-width: 305px;
+  overflow: hidden !important;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.traningDescriptionColumn {
+  display: inline-block;
+  max-width: 540px;
   overflow: hidden !important;
   white-space: nowrap;
   text-overflow: ellipsis;
@@ -108,23 +116,37 @@ tr {
         color: #99a5b3;
         &:first-child {
           padding-left: 38px;
-          width: 30%;
-          max-width: 30%;
+          width: 23%;
+          max-width: 23%;
           padding: 25px 0 25px 38px;
         }
 
+        &:nth-child(2) {
+          max-width: 22%;
+        }
+
         &:last-child {
-          width: 110px;
+          width: 0% !important;
           padding-right: 38px;
           text-align: right;
         }
 
         &:nth-child(3) {
           text-transform: capitalize;
+          width: 12%;
         }
 
         &:nth-child(4) {
           text-transform: capitalize;
+          width: 12%;
+        }
+
+        &:nth-child(5) {
+          width: 10%;
+        }
+
+        &:nth-child(6) {
+          width: 6%;
         }
 
         padding: 25px 0 25px 10px;
