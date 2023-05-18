@@ -54,6 +54,7 @@ export class ReportsApiClient {
       ApiClient.get('divisions'),
       this.get('departments'),
       this.get('lov/dataclassifications'),
+      // this.get('lov/kpiclassifications'),
     ]);
   }
 
