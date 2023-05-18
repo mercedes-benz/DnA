@@ -663,16 +663,15 @@ paths:
           type: file
           description: The input file for the comparison of forecast runs.
           required: false
-        - in: "path"
-          name: "comparison-name"
+        - in: formData
+          name: "comparisonName"
           type: "string"
           description: "Run Comparison name"
-        - name: "forecastComparisonRequestVO"
-          in: "body"
-          description: "Request Body that contains data required for intialize chronos run comparison for user"
+        - in: formData
+          name: "comparisonIDs"
+          description: "Comma separated forecast comparison IDs."
           required: true
-          schema:
-            $ref: "#/definitions/ForecastComparisonRequestVO"
+          type: "string"
       responses:
         201:
           description: "Returns message of success or failure "
@@ -756,13 +755,13 @@ paths:
         500:
           description: "Internal error"
 
-  # path example ../forecasts/{id}/comparisons/{comparisonId}
-  /forecasts/{id}/comparisons/{comparisonId}:
+  # path example ../forecasts/{id}/comparisons/{comparisonId}/comparisonData
+  /forecasts/{id}/comparisons/{comparisonId}/comparisonData:
     get:
       tags:
         - "forecast-comparisons"
-      summary: "Get forecast comparison data for specific run."
-      description: "Get forecast comparison data for specific run."
+      summary: "Get forecast comparison html for specific comparison."
+      description: "Get forecast comparison html for specific comparison."
       operationId: "getForecastComparisonById"
       parameters:
         - in: "path"
@@ -779,7 +778,7 @@ paths:
         201:
           description: "Returns message of success or failure"
           schema:
-            $ref: "#/definitions/ForecastComparisonVO"
+            $ref: "#/definitions/ForecastComparisonResultVO"
         204:
           description: "Fetch complete, no content found."
         400:
@@ -972,7 +971,12 @@ definitions:
             type: array
             items:
                 $ref: "#/definitions/RunVO"
-     
+        comparisons:
+          type: array
+          items:
+            $ref: "#/definitions/ForecastComparisonVO"
+
+
   ForecastRunRequestVO:
     type: object
     properties:
@@ -1234,64 +1238,24 @@ definitions:
         items:
           $ref: "#/definitions/ForecastComparisonVO"
 
-  ForecastComparisonRequestVO:
-    type: object
-    properties:
-      runsList:
-        type: array
-        items:
-          $ref: "#/definitions/RunListVO"
+
 
   ForecastComparisonResponseVO:
     type: object
     properties:
       data:
-        $ref: "#/definitions/ComparisonResponseVO"
+        $ref: "#/definitions/ForecastComparisonVO"
       response:
         $ref: "#/definitions/GenericMessage"
-
-
-  ComparisonResponseVO:
-    type: object
-    properties:
-      comparison_id:
-        type: string
-        description: "comparison run id for the forecast project"
-      comparison_name:
-        type: string
-        description: "comparison run name"
-      triggeredBy:
-        type: string
-        description: "Short Id of user who triggered the comparison"
-      triggeredOn:
-        type: string
-        format: date
-        description: "Date/Time for the triggered comparison"
-      actuals_file:
-        type: string
-        description: "input file for the comparison of forecast runs"
-      target_folder:
-        type: string
-        description: "target folder to add comparison.html"
-      runs_list:
-        type: array
-        items:
-          $ref: "#/definitions/RunListVO"
-      error_code:
-        type: string
-        description: "error code if fails"
-      message:
-        type: string
-        description: "error message if fails"
 
 
   ForecastComparisonVO:
     type: object
     properties:
-      comparison_id:
+      comparisonId:
         type: string
         description: "comparison run id for the forecast project"
-      comparison_name:
+      comparisonName:
         type: string
         description: "comparison run name"
       triggeredBy:
@@ -1301,28 +1265,36 @@ definitions:
         type: string
         format: date
         description: "Date/Time for the triggered comparison"
-      actuals_file:
+      actualsFile:
         type: string
         description: "input file for the comparison of forecast runs"
-      target_folder:
+      targetFolder:
         type: string
         description: "target folder to add comparison.html"
       runs_list:
         type: array
-        items:
-          $ref: "#/definitions/RunListVO"
+        "items":
+          "type": string
+
       state:
         $ref: "#/definitions/ComparisonStateVO"
 
   ComparisonStateVO:
     type: object
     properties:
-      life_cycle_state:
+      lifeCycleState:
         type: string
         enum: [ PENDING,RUNNING,TERMINATING,TERMINATED,INTERNAL_ERROR,SKIPPED ]
-      state_message:
+      stateMessage:
         type: string
 
+  ForecastComparisonResultVO:
+    type: object
+    properties:
+      comparisonData:
+        type: string
+      response:
+        $ref: "#/definitions/GenericMessage"
 
   RunListVO:
     type: object
