@@ -7,7 +7,7 @@ import { history } from '../../store';
 import Tooltip from '../../common/modules/uilab/js/src/tooltip';
 
 import { Envs } from '../../Utility/envs';
-import { getDateFromTimestampForDifference, getDateDifferenceFromToday } from '../../Utility/utils';
+import { getDifferenceFromToday } from '../../Utility/utils';
 
 const classNames = cn.bind(Styles);
 let isTouch = false;
@@ -110,9 +110,10 @@ const ProjectListRowItem = (props) => {
     props.openDetailsModal(props.project, props.isProduction);
   };
 
-  const openProject = (event, isProduction, projectId) => {
+  const openProject = (event, isProduction, projectId, cloudProfile) => {
     event.stopPropagation();
-    const baseUrl = isProduction ? Envs.DATAIKU_LIVE_APP_URL : Envs.DATAIKU_TRAINING_APP_URL;
+    const instanceURL = cloudProfile?.toLowerCase().includes('extollo') ?  Envs.DATAIKU_LIVE_APP_URL : Envs.DATAIKU_LIVE_ON_PREMISE_APP_URL
+    const baseUrl = isProduction ? instanceURL : Envs.DATAIKU_TRAINING_APP_URL;
     window.open(baseUrl + '/projects/' + projectId + '/');
   };
 
@@ -130,7 +131,7 @@ const ProjectListRowItem = (props) => {
       >
         <td className="wrap-text projectName" onClick={onInfoBtnClick}>{props.project.name}</td>
         <td className="wrap-text" onClick={onInfoBtnClick}>
-          <span className={Styles.descriptionColumn}>{props.project.shortDesc}</span>
+          <span className={props.isProduction ? Styles.descriptionColumn: Styles.traningDescriptionColumn}>{props.project.shortDesc}</span>
         </td>
         {props.isProduction ? (
           <td className="wrap-text" onClick={onInfoBtnClick}>{props.project.role ? props.project.role.toLowerCase() : ''}</td>
@@ -138,10 +139,10 @@ const ProjectListRowItem = (props) => {
           ''
         )}
         <td className="wrap-text" onClick={onInfoBtnClick}>
-          {getDateDifferenceFromToday(getDateFromTimestampForDifference(props?.project?.versionTag?.lastModifiedOn))}{' '}
+          {getDifferenceFromToday(props?.project?.versionTag?.lastModifiedOn)}{' '}
           days ago
         </td>
-        <td className="wrap-text projectName" onClick={onInfoBtnClick}>{props.project.cloudProfile}</td>
+        {props.isProduction && <td className="wrap-text projectName" onClick={onInfoBtnClick}>{props.project.cloudProfile}</td>}
         <td className={Styles.iconAction}>
           {props.isProduction ? (
             <span id={'provision' + props.project.id}>
@@ -165,10 +166,10 @@ const ProjectListRowItem = (props) => {
           <i
             className={classNames('icon mbc-icon new-tab', Styles.OpenNewTabIcon)}
             tooltip-data={'Open in New Tab'}
-            onClick={(event) => openProject(event, props.isProduction, props.project.projectKey)}
+            onClick={(event) => openProject(event, props.isProduction, props.project.projectKey, props.project.cloudProfile)}
           />
         </td>
-        {<td id={'card-' + props.project.id} key={props.project.id} className={Styles.actionMenus}>
+        {props.isProduction && <td id={'card-' + props.project.id} key={props.project.id} className={Styles.actionMenus}>
           <div className={classNames(Styles.contextMenu, showContextMenu ? Styles.open : '')}>
             {
               (props?.project?.role?.toLowerCase()?.includes("dataiku-administrator") ||

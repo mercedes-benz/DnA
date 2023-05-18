@@ -94,9 +94,6 @@ public class DataikuClientImp implements DataikuClient {
 	@Value("${dataiku.projectPermissionUriPath}")
 	private String projectPermissionUriPath;
 
-	@Value("${dataiku.isSearchByShortId}")
-	private boolean isSearchByShortId;
-
 	/**
 	 * <p>
 	 * To get all projects of dataiku PRODUCTION/TRAINING
@@ -158,13 +155,13 @@ public class DataikuClientImp implements DataikuClient {
 			ResponseEntity<String> response = null;
 			try {
 				LOGGER.debug("Fetching details of user {} from emea", userId);
-				String searchBy = isSearchByShortId ? userId.toUpperCase() : userId.toLowerCase() +"@"+ emeaCorpdir;
+				String searchBy = live ? userId.toUpperCase() : userId.toLowerCase() +"@"+ emeaCorpdir;
 				response = restTemplate.exchange(dataikuUri + searchBy, HttpMethod.GET,
 						entity, String.class);
 			} catch (Exception e) {
 				LOGGER.error("Error occuried while fetching dataiku user role error:{}", e.getMessage());
 				LOGGER.debug("Fetching details of user {} from apac", userId);
-				String searchBy = isSearchByShortId ? userId.toUpperCase() : userId.toLowerCase() +"@"+ apacCorpdir;
+				String searchBy = live ? userId.toUpperCase() : userId.toLowerCase() +"@"+ apacCorpdir;
 				response = restTemplate.exchange(dataikuUri + searchBy, HttpMethod.GET,
 						entity, String.class);
 			}
@@ -268,8 +265,8 @@ public class DataikuClientImp implements DataikuClient {
 	private String setDataikuUri(Boolean live, HttpHeaders headers, String uriExtension, String cloudprofile) {
 		String dataikuUri = "";
 		if (live) {
-			if (cloudprofile.equals("extollo")) {
-				LOGGER.debug("Forming uri for production extollo environment");
+			if (cloudprofile.equals("eXtollo")) {
+				LOGGER.debug("Forming uri for production eXtollo environment");
 				headers.setBasicAuth(productionApiKey, "");
 				dataikuUri = productionUri + uriExtension;
 			} else {
@@ -278,7 +275,7 @@ public class DataikuClientImp implements DataikuClient {
 				dataikuUri = onPremProductionUri + uriExtension;
 			}
 		} else {
-			LOGGER.debug("Forming uri for training extollo environment");
+			LOGGER.debug("Forming uri for training eXtollo environment");
 			headers.setBasicAuth(trainingApiKey, "");
 			dataikuUri = trainingUri + uriExtension;
 		}
