@@ -1370,6 +1370,8 @@ definitions:
         type: string
       eda:
         type: string
+      visualsData:
+        type: string
       response:
         $ref: "#/definitions/GenericMessage"
  
