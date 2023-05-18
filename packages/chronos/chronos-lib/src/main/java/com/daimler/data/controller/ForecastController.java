@@ -1022,7 +1022,7 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 
 
 	@Override
-	public ResponseEntity<ForecastComparisonResponseVO> createForecastComparison(String id, ForecastComparisonRequestVO forecastComparisonRequestVO) {
+	public ResponseEntity<ForecastComparisonResponseVO> createForecastComparison(String id, String comparisonName, ForecastComparisonRequestVO forecastComparisonRequestVO, MultipartFile actualFile) {
 		return null;
 	}
 
@@ -1031,12 +1031,11 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 		return null;
 	}
 
-
-
 	@Override
-	public ResponseEntity<ForecastComparisonResponseVO> getForecastComparisonById(String id, String comparisonId) {
+	public ResponseEntity<ForecastComparisonVO> getForecastComparisonById(String id, String comparisonId) {
 		return null;
 	}
+
 
 	@Override
 	public ResponseEntity<ForecastComparisonsCollectionDto> getForecastComparisons(String id) {
