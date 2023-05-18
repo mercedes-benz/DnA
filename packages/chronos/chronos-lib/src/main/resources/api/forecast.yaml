@@ -650,12 +650,23 @@ paths:
       summary: "Create new comparison for forecast project."
       description: "Create comparison for forecast project"
       operationId: "createForecastComparison"
+      consumes:
+        - multipart/form-data
       parameters:
         - in: "path"
           name: "id"
           description: "forecast project ID "
           required: true
           type: "string"
+        - in: formData
+          name: actualFile
+          type: file
+          description: The input file for the comparison of forecast runs.
+          required: false
+        - in: "path"
+          name: "comparison-name"
+          type: "string"
+          description: "Run Comparison name"
         - name: "forecastComparisonRequestVO"
           in: "body"
           description: "Request Body that contains data required for intialize chronos run comparison for user"
@@ -768,7 +779,7 @@ paths:
         201:
           description: "Returns message of success or failure"
           schema:
-            $ref: "#/definitions/ForecastComparisonResponseVO"
+            $ref: "#/definitions/ForecastComparisonVO"
         204:
           description: "Fetch complete, no content found."
         400:
@@ -1221,20 +1232,11 @@ definitions:
       records:
         type: array
         items:
-          $ref: "#/definitions/ForecastComparisonResponseVO"
+          $ref: "#/definitions/ForecastComparisonVO"
 
   ForecastComparisonRequestVO:
     type: object
     properties:
-      minioEndpoint:
-        type: string
-        description: environment for the forecast run
-      actualFile:
-        type: string
-        description: input file for the forecast run
-      targetFolder:
-        type: string
-        description: target folder for the comparison result
       runsList:
         type: array
         items:
@@ -1243,13 +1245,84 @@ definitions:
   ForecastComparisonResponseVO:
     type: object
     properties:
-      comparisonId:
+      data:
+        $ref: "#/definitions/ComparisonResponseVO"
+      response:
+        $ref: "#/definitions/GenericMessage"
+
+
+  ComparisonResponseVO:
+    type: object
+    properties:
+      comparison_id:
         type: string
-        description: comparison run id for the forecast project
-      runsList:
+        description: "comparison run id for the forecast project"
+      comparison_name:
+        type: string
+        description: "comparison run name"
+      triggeredBy:
+        type: string
+        description: "Short Id of user who triggered the comparison"
+      triggeredOn:
+        type: string
+        format: date
+        description: "Date/Time for the triggered comparison"
+      actuals_file:
+        type: string
+        description: "input file for the comparison of forecast runs"
+      target_folder:
+        type: string
+        description: "target folder to add comparison.html"
+      runs_list:
         type: array
         items:
           $ref: "#/definitions/RunListVO"
+      error_code:
+        type: string
+        description: "error code if fails"
+      message:
+        type: string
+        description: "error message if fails"
+
+
+  ForecastComparisonVO:
+    type: object
+    properties:
+      comparison_id:
+        type: string
+        description: "comparison run id for the forecast project"
+      comparison_name:
+        type: string
+        description: "comparison run name"
+      triggeredBy:
+        type: string
+        description: "Short Id of user who triggered the comparison"
+      triggeredOn:
+        type: string
+        format: date
+        description: "Date/Time for the triggered comparison"
+      actuals_file:
+        type: string
+        description: "input file for the comparison of forecast runs"
+      target_folder:
+        type: string
+        description: "target folder to add comparison.html"
+      runs_list:
+        type: array
+        items:
+          $ref: "#/definitions/RunListVO"
+      state:
+        $ref: "#/definitions/ComparisonStateVO"
+
+  ComparisonStateVO:
+    type: object
+    properties:
+      life_cycle_state:
+        type: string
+        enum: [ PENDING,RUNNING,TERMINATING,TERMINATED,INTERNAL_ERROR,SKIPPED ]
+      state_message:
+        type: string
+
 
   RunListVO:
     type: object
