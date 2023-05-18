@@ -29,6 +29,7 @@ export const serializeFormData = ({ values, division, type = 'provider', isDataP
             dataProductName: values.productName,
             description: values.description,
             additionalInformation: values.additionalInformation,
+            tags: values.tags,
             howToAccessText: values.howToAccessText,
             isPublish: values.publish || false,
             notifyUsers: values.notifyUsers || false,
@@ -266,6 +267,7 @@ export const deserializeFormData = ({ item, type = 'provider', isDataProduct = f
       : {
           description: item.description,
           additionalInformation: item.additionalInformation,
+          tags: item.tags,
           ART: item?.agileReleaseTrain?.name || '',
           carLAFunction: item?.carLaFunction?.name || '',
           corporateDataCatalog: item?.corporateDataCatalog?.name || '',
