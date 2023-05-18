@@ -285,7 +285,7 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 	@Override
 	@Transactional
 	public Object[] getAllRunsForProject(int limit, int offset, String forecastId) {
-		Object[] a = new Object[2];
+		Object[] runCollectionWrapper = new Object[2];
 		
 		List<RunDetails> updatedRuns = new ArrayList<>();
 		List<RunVO> updatedRunVOList = new ArrayList<>();
@@ -307,24 +307,25 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 					}
 				});
 				//logic to remove all deleted runs from list
+				List<RunDetails> tempExistingRuns = new ArrayList<>(existingRuns);
 				for(int i=0; i<existingRuns.size(); i++) {
 					RunDetails details= existingRuns.get(i);
 					if(details.getIsDelete() != null) {
 						boolean isDelete = details.getIsDelete();
 						if(isDelete) {
-							existingRuns.remove(details);
+							tempExistingRuns.remove(details);
 						}
 					}
 										
 				}
-				totalCount = existingRuns.size();
+				totalCount = tempExistingRuns.size();
 				int endLimit = offset + limit;
-				if (endLimit > existingRuns.size()) {
-					endLimit = existingRuns.size();
+				if (endLimit > tempExistingRuns.size()) {
+					endLimit = tempExistingRuns.size();
 				}
-				newSubList = existingRuns.subList(offset, endLimit);
+				newSubList = tempExistingRuns.subList(offset, endLimit);
 				if (limit == 0)
-					newSubList = existingRuns;
+					newSubList = tempExistingRuns;
 				for(RunDetails run: newSubList) {
 					RunState state = run.getRunState();
 					String runId = run.getRunId();
@@ -505,9 +506,9 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 			}
 
 		}
-		a[0] = updatedRunVOList;
-		a[1] = totalCount;
-		return a;
+		runCollectionWrapper[0] = updatedRunVOList;
+		runCollectionWrapper[1] = totalCount;
+		return runCollectionWrapper;
 	}
 	
 	private void notifyUsers(String forecastId, RunDetails run, List<String> memberIds, List<String> memberEmails,String forecastName, String updatedResultState) {
