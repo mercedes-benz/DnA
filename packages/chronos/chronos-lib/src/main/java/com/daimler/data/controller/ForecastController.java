@@ -1024,12 +1024,12 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 
 
 	@Override
-	public ResponseEntity<ForecastComparisonResponseVO> createForecastComparison(String id, String ids, MultipartFile actualFile, String comparisonName) {
+	public ResponseEntity<ForecastComparisonCreateResponseVO> createForecastComparison(String id, String ids, MultipartFile actualsFile, String comparisonName) {
 		return null;
 	}
 
 	@Override
-	public ResponseEntity<GenericMessage> deleteComparison(String id, String ids) {
+	public ResponseEntity<GenericMessage> deleteComparison(String id, String comparisonIds) {
 		return null;
 	}
 
