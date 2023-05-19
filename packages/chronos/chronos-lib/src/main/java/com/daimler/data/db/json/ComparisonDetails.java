@@ -20,8 +20,7 @@ public class ComparisonDetails
     private Date triggeredOn;
     private String actualsFile;
     private String targetFolder;
-    private ArrayList<String> runsList;
-
+    private String[] runsList;
     private Boolean isDelete;
     private ComparisonState comparisonState;
 
