@@ -17,6 +17,14 @@
     }
   }
 
+  .clickHereText {
+    &:hover {
+      text-decoration: underline;
+    }
+    color: #00adef;
+    cursor: pointer;
+  }
+
   .content {
     .table {
       margin-top: 0px;
