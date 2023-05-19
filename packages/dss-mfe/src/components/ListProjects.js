@@ -831,8 +831,14 @@ export default class ListProjects extends React.Component {
       })
       .catch((err) => {
         err;
-        this.showErrorNotification('Something went wrong.');
         ProgressIndicator.hide();
+        if (err?.response?.data?.response?.errors?.length > 0) {
+          err?.response?.data?.response?.errors.forEach((err) => {
+            this.showErrorNotification(err?.message || 'Something went wrong.');
+          });
+        } else {
+          this.showErrorNotification('Something went wrong.');
+        }
       });
   }
 
@@ -896,8 +902,14 @@ export default class ListProjects extends React.Component {
       })
       .catch((err) => {
         err;
-        this.showErrorNotification('Something went wrong.');
         ProgressIndicator.hide();
+        if (err?.response?.data?.response?.errors?.length > 0) {
+          err?.response?.data?.response?.errors.forEach((err) => {
+            this.showErrorNotification(err?.message || 'Something went wrong.');
+          });
+        } else {
+          this.showErrorNotification('Something went wrong.');
+        }
       });
 
     /****************************************
@@ -933,8 +945,14 @@ export default class ListProjects extends React.Component {
       })
       .catch((err) => {
         err;
-        this.showErrorNotification('Something went wrong.');
         ProgressIndicator.hide();
+        if (err?.response?.data?.response?.errors?.length > 0) {
+          err?.response?.data?.response?.errors.forEach((err) => {
+            this.showErrorNotification(err?.message || 'Something went wrong.');
+          });
+        } else {
+          this.showErrorNotification('Something went wrong.');
+        }
       });
 
     /****************************************
@@ -970,8 +988,14 @@ export default class ListProjects extends React.Component {
       .catch((err) => {
         err;
         this.getPaginatedProjects();
-        this.showErrorNotification('Something went wrong.');
         ProgressIndicator.hide();
+        if (err?.response?.data?.response?.errors?.length > 0) {
+          err?.response?.data?.response?.errors.forEach((err) => {
+            this.showErrorNotification(err?.message || 'Something went wrong.');
+          });
+        } else {
+          this.showErrorNotification('Something went wrong.');
+        }
       });
 
     /****************************************
