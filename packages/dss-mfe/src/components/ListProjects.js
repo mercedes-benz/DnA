@@ -18,7 +18,6 @@ import { getDateFromTimestamp, convertTextToLink } from '../Utility/utils';
 import ListRowItem from './ListRowItem/ListRowItem';
 
 import { getDataForCSV } from './DataikuCSV';
-import { SUPPORT_EMAIL_ID } from '../Utility/constants';
 
 import DataNotExist from './DataNotExist';
 
@@ -132,7 +131,6 @@ export default class ListProjects extends React.Component {
   render() {
     const productionList = this.state.productionList?.data?.length > 0 && this.state.paginatedRecords.length > 0 ? this.state.paginatedRecords : [];
     const trainingList = this.state.trainingList?.data?.length > 0 && this.state.paginatedRecords.length > 0 ? this.state.paginatedRecords : [];
-    const dnaList = this.state.dnaList?.data?.length > 0 && this.state.paginatedRecords.length > 0 ? this.state.paginatedRecords : [];
     const projectsData = trainingList.map((project) => {
       return (
         <ListRowItem
@@ -157,23 +155,6 @@ export default class ListProjects extends React.Component {
           projectId={project.projectKey}
           isProduction={true}
           isDnaProject={false}
-          editDataikuProjectDetail={this.editDataikuProjectDetails}
-          deleteDataikuProject={this.deleteDataikuProject}
-          openProvisionModal={this.openProvisionModal}
-          openDetailsModal={this.openDetailsModal}
-          user={this.props.user}
-        />
-      );
-    });
-
-    const dnaData = dnaList.map((project) => {
-      return (
-        <ListRowItem
-          key={project.id}
-          project={project}
-          projectId={project.projectKey}
-          isProduction={false}
-          isDnaProject={true}
           editDataikuProjectDetail={this.editDataikuProjectDetails}
           deleteDataikuProject={this.deleteDataikuProject}
           openProvisionModal={this.openProvisionModal}
@@ -218,17 +199,6 @@ export default class ListProjects extends React.Component {
             </div>
           </div>
           <div>
-            <div>
-              <label id="ownerName" className="input-label summary">
-                Owner Name
-              </label>
-              <br />
-              {this.state.projectData.ownerDisplayName
-                ? this.state.projectData.ownerDisplayName
-                : this.state.projectData.ownerLogin || '-NA-'}
-            </div>
-            <br />
-            <br />
             {this.state.currentTab === 'production' ? (
               <React.Fragment>
                 <div>
@@ -295,16 +265,20 @@ export default class ListProjects extends React.Component {
     );
     const liveProjectEmpty = (
       <React.Fragment>
-        There is no Live project available, in order to create a new Dataiku Live project, please send an email to
-        &nbsp;
-        <a href={'mailto:' + SUPPORT_EMAIL_ID}>{SUPPORT_EMAIL_ID}</a>
+        <div>
+          There is no Live project available.&nbsp;
+          {!this.state.isUserCanCreateDataiku &&
+            <span>Currently, you don`t own any licences.&nbsp;
+              <span className={Styles.clickHereText}
+                onClick={() => onFerretInfoModalShow()}>
+                Click here
+              </span>&nbsp;for licence acquisition procedure.</span>}
+        </div>
       </React.Fragment>
     );
     const liveProjectSearchEmpty = (
       <React.Fragment>
-        Searched result could not be found in Live projects, in order to create a new Dataiku Live project, please send
-        an email to &nbsp;
-        <a href={'mailto:' + SUPPORT_EMAIL_ID}>{SUPPORT_EMAIL_ID}</a>
+        Searched result could not be found in Live projects.
       </React.Fragment>
     );
     const trainingProjectEmpty = (
@@ -316,23 +290,9 @@ export default class ListProjects extends React.Component {
         </a>
       </React.Fragment>
     );
-    const dnaProjectEmpty = (
-      <React.Fragment>
-        There is no DnA project available &nbsp;
-      </React.Fragment>
-    );
-    const dnaProjectSearchEmpty = (
-      <React.Fragment>
-        Searched result could not be found in DnA projects. &nbsp;
-      </React.Fragment>
-    );
     const trainingProjectSearchEmpty = (
       <React.Fragment>
-        Searched result could not be found in Training projects, in order to create a new Dataiku Training project you
-        will have to raise a Ferret request &nbsp;
-        <a href={Envs.DATAIKU_FERRET_URL} target="_blank" rel="noreferrer">
-          here.
-        </a>
+        Searched result could not be found in Training projects.
       </React.Fragment>
     );
     const canShowSearch = this.state.showSearchBar;
@@ -350,10 +310,7 @@ export default class ListProjects extends React.Component {
       this.state.currentTab === 'production' ? (
         <div className={Styles.infoPopup}>
           <div className={Styles.modalContent}>
-            <p>
-              In order to create a new Dataiku Live project, please send an email to &nbsp;
-              <a href={'mailto:' + SUPPORT_EMAIL_ID}>{SUPPORT_EMAIL_ID}</a>
-            </p>
+            <div dangerouslySetInnerHTML={{ __html: Envs.DATAIKU_LICENSE_CREATION_CONTENT }}></div>
           </div>
         </div>
       ) : (
@@ -380,19 +337,17 @@ export default class ListProjects extends React.Component {
               <React.Fragment>
                 <div className={classNames(Styles.listHeaderContent)}>
                   <React.Fragment>
-                    <button className={'btn add-dataiku-container btn-primary'} type="button"
-                      disabled={!this.state.isUserCanCreateDataiku}
-                      onClick={(() => {
-                        this.setState({
-                          isCreateEditDataikuModal: true,
-                        });
-                      })}>
-                      <i className="icon mbc-icon plus" />
-                      <span>Create New Dataiku project</span>
-                      &nbsp;
-                      {!this.state.isUserCanCreateDataiku
-                        && <i className="icon mbc-icon info" tooltip-data="users with a access can only create a dataiku project" />}
-                    </button>
+                    {this.state.isUserCanCreateDataiku && this.state.currentTab === 'production' &&
+                      <button className={'btn add-dataiku-container btn-primary'} type="button"
+                        disabled={!this.state.isUserCanCreateDataiku}
+                        onClick={(() => {
+                          this.setState({
+                            isCreateEditDataikuModal: true,
+                          });
+                        })}>
+                        <i className="icon mbc-icon plus" />
+                        <span>Create New Dataiku project</span>
+                      </button>}
                   </React.Fragment>
                 </div>
               </React.Fragment>
@@ -437,11 +392,11 @@ export default class ListProjects extends React.Component {
               <div className="tabs-content-wrapper">
                 <div id="tab-project" className={Styles.tabContentStyle + ' tab-content'}>
                   <React.Fragment>
-                    <i
+                    {!this.state.isUserCanCreateDataiku && <i
                       tooltip-data="Info"
                       className={Styles.iconsmd + ' icon mbc-icon info iconsmd'}
                       onClick={onFerretInfoModalShow}
-                    />
+                    />}
                     {this.state.productionList.data ? (
                       this.state.productionList.data.length > 0 ? (
                         <div className={Styles.searchPanel}>
@@ -550,7 +505,7 @@ export default class ListProjects extends React.Component {
                                 }
                               >
                                 <i className="icon sort" />
-                                Extollo/On-premise
+                                Instance
                               </label>
                             </th>
                             <th className="actionColumn">&nbsp;</th>
@@ -707,104 +662,6 @@ export default class ListProjects extends React.Component {
                   </React.Fragment>
                 </div>
                 <br />
-                <div id="tab-dna-dataiku-project" className={Styles.tabContentStyle + ' tab-content'}>
-                  <React.Fragment>
-                    {this.state.dnaList.data ? (
-                      this.state.dnaList.data.length > 0 ? (
-                        <div className={Styles.searchPanel}>
-                          <input
-                            type="text"
-                            className={classNames(Styles.searchInputField, canShowSearch ? '' : Styles.hide)}
-                            ref={(searchInput) => {
-                              this.dnaSearchInput = searchInput;
-                            }}
-                            placeholder="Search Project"
-                            onChange={this.onSearchInputChange}
-                            maxLength={200}
-                            value={this.state.searchTerm}
-                          />
-                          <button className="default-cursor" onClick={this.onDnaSearchIconButtonClick}>
-                            <i className={classNames('icon mbc-icon search', canShowSearch ? Styles.active : '')} />
-                          </button>
-                        </div>
-                      ) : (
-                        ''
-                      )
-                    ) : (
-                      ''
-                    )}
-                    {dnaData.length > 0 ? (
-                      <table className={'ul-table solutions ' + Styles.table}>
-                        <thead>
-                          <tr className="header-row">
-                            <th
-                              onClick={() => {
-                                this.sortByColumn('projectName', this.state.nextSortOrder);
-                              }}
-                            >
-                              <label
-                                className={
-                                  'sortable-column-header ' +
-                                  (this.state.currentColumnToSort == 'projectName' ? this.state.currentSortOrder : 'asc')
-                                }
-                              >
-                                <i className="icon sort" />
-                                Name
-                              </label>
-                            </th>
-                            <th
-                              onClick={() => {
-                                this.sortByColumn('cloudProfile', this.state.nextSortOrder);
-                              }}
-                            >
-                              <label
-                                className={
-                                  'sortable-column-header ' +
-                                  (this.state.currentColumnToSort == 'cloudProfile'
-                                    ? this.state.currentSortOrder
-                                    : '')
-                                }
-                              >
-                                <i className="icon sort" />
-                                Extollo/On-premise
-                              </label>
-                            </th>
-                            <th>
-                              <label className="sortable-column-header">Action</label>
-                            </th>
-                          </tr>
-                        </thead>
-                        <tbody>{dnaData}</tbody>
-                      </table>
-                    ) : this.state.dnaList.data ? (
-                      this.state.dnaList.data.length > 0 ? (
-                        <div className={Styles.datasNotExisted}>
-                          <DataNotExist message={dnaProjectSearchEmpty} height={'150px'} />
-                        </div>
-                      ) : (
-                        <div className={Styles.datasNotExisted}>
-                          <DataNotExist message={dnaProjectEmpty} height={'150px'} />
-                        </div>
-                      )
-                    ) : (
-                      <div className={Styles.datasNotExisted}>
-                        <DataNotExist message={dnaProjectEmpty} height={'150px'} />
-                      </div>
-                    )}
-                    {this.state.totalNumberOfRecords ? (
-                      <Pagination
-                        totalPages={this.state.totalNumberOfPages}
-                        pageNumber={this.state.currentPageNumber}
-                        onPreviousClick={this.onPaginationPreviousClick}
-                        onNextClick={this.onPaginationNextClick}
-                        onViewByNumbers={this.onViewByPageNum}
-                        displayByPage={true}
-                      />
-                    ) : (
-                      ''
-                    )}
-                  </React.Fragment>
-                </div>
               </div>
             </div>
           </div>
@@ -847,7 +704,7 @@ export default class ListProjects extends React.Component {
                 user={this.props.user}
                 callDnaDataList={this.callDnaDataListApi} />
             }
-            scrollableContent={false}
+            scrollableContent={true}
             onCancel={this.editCreateEditDataikuModal}
           />
         )}
@@ -888,7 +745,7 @@ export default class ListProjects extends React.Component {
 
         {this.state.showInfo && (
           <InfoModal
-            title={'Project Creation Details'}
+            title={this.state.currentTab === 'production' ? 'Details to get license' : 'Project Creation Details'}
             modalWidth={'35vw'}
             show={this.state.showInfo}
             content={contentForInfo}
@@ -1001,7 +858,7 @@ export default class ListProjects extends React.Component {
   };
 
   editCreateEditDataikuModal = () => {
-    this.setState({ editDataikuProjectModal: false, isCreateEditDataikuModal:false });
+    this.setState({ editDataikuProjectModal: false, isCreateEditDataikuModal: false });
   };
 
   openDetailsModal = (project) => {
@@ -1369,12 +1226,6 @@ export default class ListProjects extends React.Component {
         : this.state.productionList.data
           ? this.state.productionList.data
           : [];
-    const dnaList =
-      this.state.dnaListToDisplayAfterSearch.length > 0
-        ? this.state.dnaListToDisplayAfterSearch
-        : this.state.dnaList.data
-          ? this.state.dnaList.data
-          : [];
     const trainingList =
       this.state.trainingListToDisplayAfterSearch.length > 0
         ? this.state.trainingListToDisplayAfterSearch
@@ -1385,19 +1236,6 @@ export default class ListProjects extends React.Component {
       sortedProductionList = productionList.sort((a, b) => {
         const nameA = a.name.toUpperCase(); // ignore upper and lowercase
         const nameB = b.name.toUpperCase(); // ignore upper and lowercase
-        if (nameA < nameB) {
-          return -1;
-        }
-        if (nameA > nameB) {
-          return 1;
-        }
-        // names must be equal
-        return 0;
-      });
-    } else if (this.state.currentTab === 'createOrEdit' && dnaList.length) {
-      sortedDnaList = dnaList.sort((a, b) => {
-        const nameA = a.projectName.toUpperCase(); // ignore upper and lowercase
-        const nameB = b.projectName.toUpperCase(); // ignore upper and lowercase
         if (nameA < nameB) {
           return -1;
         }
