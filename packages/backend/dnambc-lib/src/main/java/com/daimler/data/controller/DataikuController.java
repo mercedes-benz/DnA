@@ -100,8 +100,8 @@ public class DataikuController implements DataikuApi {
 		DataikuProjectVOCollection col = null;
 		CreatedByVO currentUser = this.userStore.getVO();
 		String userId = currentUser != null ? currentUser.getId() : null;
-		List<DataikuProjectVO> extolloprojects = vService.getAllDataikuProjects(userId, live, "extollo");
-		List<DataikuProjectVO> onPremprojects = live ? vService.getAllDataikuProjects(userId, live, "onprem") : null;
+		List<DataikuProjectVO> extolloprojects = vService.getAllDataikuProjects(userId, live, "eXtollo");
+		List<DataikuProjectVO> onPremprojects = live ? vService.getAllDataikuProjects(userId, live, "onPremise") : null;
 		List<DataikuProjectVO> consolidateList = new ArrayList<>();
 		if(extolloprojects != null && !extolloprojects.isEmpty()) consolidateList.addAll(extolloprojects);
 		if(onPremprojects != null && !onPremprojects.isEmpty()) consolidateList.addAll(onPremprojects);
