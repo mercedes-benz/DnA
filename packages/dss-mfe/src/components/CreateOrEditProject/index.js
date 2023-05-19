@@ -59,7 +59,7 @@ const CreateOrEditProject = (props) => {
                 setDepartmentTags(response[2]?.data?.data || []);
                 SelectBox.defaultSetup();
             })
-            .catch(() => {
+            .catch((err) => {
                 ProgressIndicator.hide();
                 SelectBox.defaultSetup();
                 if (err?.response?.data?.response?.errors?.length > 0) {
