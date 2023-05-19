@@ -8,6 +8,7 @@ import java.util.stream.Collectors;
 
 import javax.validation.Valid;
 
+import com.daimler.data.api.forecast.ForecastComparisonsApi;
 import com.daimler.data.auth.vault.VaultAuthClientImpl;
 import com.daimler.data.dto.forecast.*;
 import com.daimler.data.service.forecast.ForecastService;
@@ -46,7 +47,7 @@ import lombok.extern.slf4j.Slf4j;
 @Api(value = "Forecast APIs")
 @RequestMapping("/api")
 @Slf4j
-public class ForecastController implements ForecastRunsApi, ForecastProjectsApi, ForecastInputsApi {
+public class ForecastController implements ForecastRunsApi, ForecastProjectsApi, ForecastInputsApi, ForecastComparisonsApi {
 
 	@Autowired
 	private ForecastService service;
@@ -1020,4 +1021,27 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 			return new ResponseEntity<>(responseVO, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 
+
+
+
+	@Override
+	public ResponseEntity<ForecastComparisonCreateResponseVO> createForecastComparison(String id, String ids, MultipartFile actualsFile, String comparisonName) {
+		return null;
+	}
+
+	@Override
+	public ResponseEntity<GenericMessage> deleteComparison(String id, String comparisonIds) {
+		return null;
+	}
+
+	@Override
+	public ResponseEntity<ForecastComparisonResultVO> getForecastComparisonById(String id, String comparisonId) {
+		return null;
+	}
+
+
+	@Override
+	public ResponseEntity<ForecastComparisonsCollectionDto> getForecastComparisons(String id) {
+		return null;
+	}
 }
