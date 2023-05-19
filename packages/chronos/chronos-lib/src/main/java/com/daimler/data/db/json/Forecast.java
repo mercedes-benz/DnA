@@ -24,5 +24,6 @@ public class Forecast {
 	private List<UserDetails> collaborators;
 	private List<File> savedInputs;
 	private List<RunDetails> runs;
+	private List<ComparisonDetails> comparisons;
 	
 }
