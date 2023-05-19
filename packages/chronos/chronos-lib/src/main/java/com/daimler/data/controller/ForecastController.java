@@ -1022,26 +1022,96 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 		}
 
 
-
-
 	@Override
-	public ResponseEntity<ForecastComparisonCreateResponseVO> createForecastComparison(String id, String ids, MultipartFile actualsFile, String comparisonName) {
+	@ApiOperation(value = "Create new comparison for forecast project.", nickname = "createForecastComparison", notes = "Create comparison for forecast project", response = ForecastComparisonCreateResponseVO.class, tags = {"forecast-comparisons",})
+	@ApiResponses(value = {
+			@ApiResponse(code = 201, message = "Returns message of success or failure ", response = ForecastRunResponseVO.class),
+			@ApiResponse(code = 400, message = "Bad Request", response = GenericMessage.class),
+			@ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+			@ApiResponse(code = 403, message = "Request is not authorized."),
+			@ApiResponse(code = 405, message = "Method not allowed"),
+			@ApiResponse(code = 500, message = "Internal error")})
+	@RequestMapping(value = "/forecasts/{id}/comparisons",
+			produces = {"application/json"},
+			consumes = {"multipart/form-data"},
+			method = RequestMethod.POST)
+	public ResponseEntity<ForecastComparisonCreateResponseVO> createForecastComparison(@ApiParam(value = "forecast project ID ",required=true) @PathVariable("id") String id,
+			@ApiParam(value = "Comma separated forecast run corelation Ids. Maximum 12 Ids can be sent. Please avoid sending duplicates.", required=true) @RequestParam(value="runCorelationIds", required=true)  String runCorelationIds,
+			@ApiParam(value = "The input file for the comparison of forecast runs.") @Valid @RequestPart(value="actualsFile", required=false) MultipartFile actualsFile,
+			@ApiParam(value = "Run Comparison name") @RequestParam(value="comparisonName", required=false)  String comparisonName)
+	{
+		ForecastComparisonCreateResponseVO responseVO = new ForecastComparisonCreateResponseVO();
+		ForecastVO existingForecast = service.getById(id);
+		if(existingForecast==null || existingForecast.getId()==null) {
+			log.error("Forecast project with this id {} doesnt exists , failed to create comparison", id);
+			MessageDescription invalidMsg = new MessageDescription("Forecast project doesnt exists with given id");
+			GenericMessage errorMessage = new GenericMessage();
+			errorMessage.setSuccess("FAILED");
+			errorMessage.addErrors(invalidMsg);
+			responseVO.setData(null);
+			responseVO.setResponse(errorMessage);
+			return new ResponseEntity<>(responseVO, HttpStatus.NOT_FOUND);
+		}
 		return null;
 	}
 
 	@Override
-	public ResponseEntity<GenericMessage> deleteComparison(String id, String comparisonIds) {
+	@ApiOperation(value = "delete one or more comparisons", nickname = "deleteComparison", notes = "delete one or more comparisons", response = GenericMessage.class, tags = {"forecast-comparisons",})
+	@ApiResponses(value = {
+			@ApiResponse(code = 201, message = "Returns message of success or failure", response = GenericMessage.class),
+			@ApiResponse(code = 204, message = "Fetch complete, no content found."),
+			@ApiResponse(code = 400, message = "Bad request."),
+			@ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+			@ApiResponse(code = 403, message = "Request is not authorized."),
+			@ApiResponse(code = 405, message = "Method not allowed"),
+			@ApiResponse(code = 500, message = "Internal error")})
+	@RequestMapping(value = "/forecasts/{id}/comparisons",
+			produces = {"application/json"},
+			consumes = {"application/json"},
+			method = RequestMethod.DELETE)
+	public ResponseEntity<GenericMessage> deleteComparison(@ApiParam(value = "forecast project ID ", required = true) @PathVariable("id") String id,
+			@ApiParam(value = "Comma separated forecast comparison IDs that are to be deleted. Ex: ?comparisonIds=\"ComparisionX01,ComparisionX02\" ", required = true) @Valid @RequestParam(value = "comparisonIds", required = true) String comparisonIds) {
 		return null;
 	}
 
 	@Override
-	public ResponseEntity<ForecastComparisonResultVO> getForecastComparisonById(String id, String comparisonId) {
+	@ApiOperation(value = "Get forecast comparison html for specific comparison.", nickname = "getForecastComparisonById", notes = "Get forecast comparison html for specific comparison.", response = ForecastComparisonResultVO.class, tags = {"forecast-comparisons",})
+	@ApiResponses(value = {
+			@ApiResponse(code = 201, message = "Returns message of success or failure", response = ForecastComparisonResultVO.class),
+			@ApiResponse(code = 204, message = "Fetch complete, no content found."),
+			@ApiResponse(code = 400, message = "Bad request."),
+			@ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+			@ApiResponse(code = 403, message = "Request is not authorized."),
+			@ApiResponse(code = 405, message = "Method not allowed"),
+			@ApiResponse(code = 500, message = "Internal error")})
+	@RequestMapping(value = "/forecasts/{id}/comparisons/{comparisonId}/comparisonData",
+			produces = {"application/json"},
+			consumes = {"application/json"},
+			method = RequestMethod.GET)
+	public ResponseEntity<ForecastComparisonResultVO> getForecastComparisonById(@ApiParam(value = "forecast project ID ",required=true) @PathVariable("id") String id,
+																				@ApiParam(value = "Comparison Id for the run",required=true) @PathVariable("comparisonId") String comparisonId){
+
 		return null;
 	}
 
 
 	@Override
-	public ResponseEntity<ForecastComparisonsCollectionDto> getForecastComparisons(String id) {
+	@ApiOperation(value = "Get all forecast comparison runs for the project", nickname = "getForecastComparisons", notes = "Get all forecast comparison runs for the project", response = ForecastComparisonsCollectionDto.class, tags={ "forecast-comparisons", })
+	@ApiResponses(value = {
+			@ApiResponse(code = 201, message = "Returns message of success or failure", response = ForecastComparisonsCollectionDto.class),
+			@ApiResponse(code = 204, message = "Fetch complete, no content found."),
+			@ApiResponse(code = 400, message = "Bad request."),
+			@ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+			@ApiResponse(code = 403, message = "Request is not authorized."),
+			@ApiResponse(code = 405, message = "Method not allowed"),
+			@ApiResponse(code = 500, message = "Internal error") })
+	@RequestMapping(value = "/forecasts/{id}/comparisons",
+			produces = { "application/json" },
+			consumes = { "application/json" },
+			method = RequestMethod.GET)
+	public ResponseEntity<ForecastComparisonsCollectionDto> getForecastComparisons(@ApiParam(value = "forecast project ID ",required=true) @PathVariable("id") String id)
+	{
 		return null;
 	}
+
 }
