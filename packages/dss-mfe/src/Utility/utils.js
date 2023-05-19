@@ -26,6 +26,13 @@ export const getDateDifferenceFromToday = (dateFrom) => {
   return diffDays;
 };
 
+export const getDifferenceFromToday = (timestamp) => {
+  const currentTimestamp = Date.now();
+  const difference = currentTimestamp - timestamp;
+  const daysAgo = Math.floor(difference / (24 * 60 * 60 * 1000));
+  return daysAgo;
+};
+
 export const getDateFromTimestamp = (givenDate) => {
   const d = new Date(givenDate);
   return regionalDateAndTimeConversionSolution(d);
