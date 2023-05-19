@@ -659,24 +659,23 @@ paths:
           required: true
           type: "string"
         - in: formData
-          name: actualFile
+          name: actualsFile
           type: file
           description: The input file for the comparison of forecast runs.
-          required: false
         - in: formData
           name: "comparisonName"
           type: "string"
           description: "Run Comparison name"
         - in: formData
-          name: "comparisonIDs"
-          description: "Comma separated forecast comparison IDs."
+          name: "runCorelationIds"
+          description: "Comma separated forecast run corelation Ids. Maximum 12 Ids can be sent. Please avoid sending duplicates."
           required: true
           type: "string"
       responses:
         201:
           description: "Returns message of success or failure "
           schema:
-            $ref: "#/definitions/ForecastComparisonResponseVO"
+            $ref: "#/definitions/ForecastComparisonCreateResponseVO"
         400:
           description: "Bad Request"
           schema:
@@ -733,8 +732,8 @@ paths:
           required: true
           type: "string"
         - in: "query"
-          name: "ids"
-          description: "Comma separated forecast comparison IDs that are to be deleted. Ex: ?ids=\"ComparisionX01,ComparisionX02\" "
+          name: "comparisonIds"
+          description: "Comma separated forecast comparison IDs that are to be deleted. Ex: ?comparisonIds=\"ComparisionX01,ComparisionX02\" "
           required: true
           type: "string"
       responses:
@@ -1240,7 +1239,7 @@ definitions:
 
 
 
-  ForecastComparisonResponseVO:
+  ForecastComparisonCreateResponseVO:
     type: object
     properties:
       data:
@@ -1271,7 +1270,7 @@ definitions:
       targetFolder:
         type: string
         description: "target folder to add comparison.html"
-      runs_list:
+      runsList:
         type: array
         "items":
           "type": string
@@ -1284,7 +1283,7 @@ definitions:
     properties:
       lifeCycleState:
         type: string
-        enum: [ PENDING,RUNNING,TERMINATING,TERMINATED,INTERNAL_ERROR,SKIPPED ]
+        enum: [ CREATED,RUNNING,FAILED,SUCCESS]
       stateMessage:
         type: string
 
@@ -1295,13 +1294,6 @@ definitions:
         type: string
       response:
         $ref: "#/definitions/GenericMessage"
-
-  RunListVO:
-    type: object
-    properties:
-      runs:
-        type: string
-        description: "runs"
 
   BindingResult:
     type: object
@@ -1364,12 +1356,12 @@ definitions:
         type: string
       hierarchy:
         type: string
-      y:
-        type: string
-      yPred:
-        type: string
-      eda:
-        type: string
+      #y:
+      #  type: string
+      #yPred:
+      #  type: string
+      #eda:
+      #  type: string
       visualsData:
         type: string
       response:
