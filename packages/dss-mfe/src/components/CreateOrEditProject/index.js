@@ -62,7 +62,13 @@ const CreateOrEditProject = (props) => {
             .catch(() => {
                 ProgressIndicator.hide();
                 SelectBox.defaultSetup();
-                Notification.show('Error while fetching Initial', 'alert');
+                if (err?.response?.data?.response?.errors?.length > 0) {
+                    err?.response?.data?.response?.errors.forEach((err) => {
+                        showErrorNotification(err?.message || 'Something went wrong.');
+                    });
+                } else {
+                    showErrorNotification('Error while fetching Initial', 'alert');
+                }
             })
             .finally(() => {
                 // validateUser(props?.user?.id);
