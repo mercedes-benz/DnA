@@ -279,7 +279,7 @@ public class DataikuController {
 		responseMsg.setSuccess("FAILED");
 		List<MessageDescription> errors = new ArrayList<>();
 		List<MessageDescription> warnings = new ArrayList<>();
-		cloudprofile = "extollo".equalsIgnoreCase(cloudprofile) ? cloudprofile : "onPremise";
+		cloudprofile = "eXtollo".equalsIgnoreCase(cloudprofile) ? cloudprofile : "onPremise";
 		DataikuProjectDto existingDataikuProject = service.getByProjectName(projectname, cloudprofile);
 		String userId = this.userStore.getUserInfo().getId();
 		if(existingDataikuProject!=null && projectname.equalsIgnoreCase(existingDataikuProject.getProjectName())){
@@ -349,7 +349,7 @@ public class DataikuController {
     		@Parameter(description = "The cloudprofile of the dataiku details to be fetched", required = true) @PathParam("cloudprofile") String cloudprofile,
             @Parameter(description = "The projectname of the dataiku details to be fetched", required = true) @PathParam("projectname") String projectname) {
 		String userId = this.userStore.getUserInfo().getId();
-		cloudprofile = "extollo".equalsIgnoreCase(cloudprofile) ? cloudprofile : "onPremise";
+		cloudprofile = "eXtollo".equalsIgnoreCase(cloudprofile) ? cloudprofile : "onPremise";
 		DataikuProjectDto data = service.getByProjectName(projectname, cloudprofile);
 		if(data!=null && projectname.equalsIgnoreCase(data.getProjectName())) {
 			CollaboratorDetailsDto collabUser = data.getCollaborators().stream().filter(collab -> userId.equalsIgnoreCase(collab.getUserId()))
