@@ -950,4 +950,64 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 		return new ForecastComparisonCreateResponseVO();
 	}
 
+	@Override
+	public List<ForecastComparisonVO> getAllForecastComparisons(String id) {
+		long totalCount = 0L;
+		List<ForecastComparisonVO> forecastComparisonsVOList = new ArrayList<>();
+		Optional<ForecastNsql> anyEntity = this.jpaRepo.findById(id);
+		if(anyEntity!=null && anyEntity.isPresent()) {
+			ForecastNsql entity = anyEntity.get();
+			Forecast data = entity.getData();
+			List<ComparisonDetails> existingComparisons = data.getComparisons();
+
+			//logic to remove all deleted runs from list
+			List<ComparisonDetails> tempExistingComparisons = new ArrayList<>(existingComparisons);
+			for(int i=0; i<tempExistingComparisons.size(); i++) {
+				ComparisonDetails details= tempExistingComparisons.get(i);
+				if(details.getIsDelete() != null) {
+					boolean isDelete = details.getIsDelete();
+					if(isDelete) {
+						tempExistingComparisons.remove(details);
+					}
+				}
+			}
+			Collections.sort(tempExistingComparisons, new Comparator<ComparisonDetails>() {
+				public int compare(ComparisonDetails compare1, ComparisonDetails compare2) {
+					return compare2.getTriggeredOn().toString().compareTo(compare2.getTriggeredOn().toString());
+				}
+			});
+			totalCount = tempExistingComparisons.size();
+			entity.getData().setComparisons(tempExistingComparisons);
+			this.jpaRepo.save(entity);
+			forecastComparisonsVOList = this.assembler.toComparisonsVO(tempExistingComparisons);
+		}
+
+		return forecastComparisonsVOList;
+	}
+
+	@Override
+	public GenericMessage deleteComparison(String id, List<String> validComparisonIds) {
+		Optional<ForecastNsql> anyEntity = this.jpaRepo.findById(id);
+		GenericMessage responseMessage = new GenericMessage();
+		if(anyEntity!=null && anyEntity.isPresent()) {
+			ForecastNsql entity = anyEntity.get();
+			Forecast data = entity.getData();
+			List<ComparisonDetails> existingComparisons = data.getComparisons();
+			List<ComparisonDetails> updatedComparisonRecords = new ArrayList<>();
+			ComparisonDetails comparisonDetails = new ComparisonDetails();
+			if(existingComparisons!= null && !existingComparisons.isEmpty()) {
+				for (String comparisonId : validComparisonIds) {
+					Optional<ComparisonDetails> comparison = existingComparisons.stream().filter(x -> comparisonId.equalsIgnoreCase(x.getComparisonId()) && !x.getIsDelete()).findAny();
+					if(comparison!=null && comparison.isPresent()) {
+						comparison.get().setIsDelete(true);
+						existingComparisons.remove(comparison);
+					}
+				}
+			}
+			entity.getData().setComparisons(existingComparisons);
+			this.jpaRepo.save(entity);
+		}
+		responseMessage.setSuccess("SUCCESS");
+		return responseMessage;
+	}
 }

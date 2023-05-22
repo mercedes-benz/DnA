@@ -48,5 +48,9 @@ public interface ForecastService extends CommonService<ForecastVO, ForecastNsql,
 
 	public ForecastComparisonCreateResponseVO createComparison(String id, ForecastVO existingForecast, List<String> validRunsPath, String comparisionId, String comparisonName,
 			String actualsFilePath, String targetFolder, Date createdOn, String requestUser);
+	public List<ForecastComparisonVO>  getAllForecastComparisons(String id);
+	public GenericMessage  deleteComparison(String id,List<String> validComparisonIds);
+
+
 
 }
