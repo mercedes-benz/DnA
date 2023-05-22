@@ -67,6 +67,8 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 	private String runsDefaultPageSize;
 	private static final String BUCKETS_PREFIX = "chronos-";
 	private static final String INPUT_FILE_PREFIX = "/inputs/";
+	private static final String COMPARISON_FOLDER_PREFIX = "/comparisons/";
+	private static final String ACTUALS_FILENAME_PREFIX = "actuals";
 	private static final String CONFIG_PATH = "/objects?prefix=configs/";
 	private static final String BUCKET_TYPE = "chronos-core/";
 
@@ -748,7 +750,7 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 		if(!notAuthorized) {
 			 GenericMessage responseMessage = new GenericMessage();
 			 List<MessageDescription> errMsgs = new ArrayList<>();
-			 MessageDescription errMsg = new MessageDescription("Only user who triggered the run can delete. Unauthorized");
+			 MessageDescription errMsg = new MessageDescription("Only user of this project can delete the run. Unauthorized");
 			 responseMessage.setSuccess("FAILED");
 			 errMsgs.add(errMsg);
 			 responseMessage.setErrors(errMsgs);
@@ -1042,6 +1044,9 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 	{
 		ForecastComparisonCreateResponseVO responseVO = new ForecastComparisonCreateResponseVO();
 		ForecastVO existingForecast = service.getById(id);
+		CreatedByVO requestUser = this.userStore.getVO();
+		String user = requestUser.getId();
+		Boolean notAuthorized = false;
 		if(existingForecast==null || existingForecast.getId()==null) {
 			log.error("Forecast project with this id {} doesnt exists , failed to create comparison", id);
 			MessageDescription invalidMsg = new MessageDescription("Forecast project doesnt exists with given id");
@@ -1052,6 +1057,54 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 			responseVO.setResponse(errorMessage);
 			return new ResponseEntity<>(responseVO, HttpStatus.NOT_FOUND);
 		}
+		List<String> forecastProjectUsers = new ArrayList<>();
+		forecastProjectUsers.add(existingForecast.getCreatedBy().getId());
+		List<CollaboratorVO> collaborators = existingForecast.getCollaborators();
+		if (collaborators != null && !collaborators.isEmpty()) {
+			collaborators.forEach(n -> forecastProjectUsers.add(n.getId()));
+		}
+		if (forecastProjectUsers != null && !forecastProjectUsers.isEmpty()) {
+			if (!forecastProjectUsers.contains(requestUser.getId())) {
+				log.warn("User not part of forecast project with id {} and name {}, Not authorized", id, existingForecast.getName());
+				notAuthorized=true;
+
+			}
+		}
+		if(notAuthorized) {
+			 GenericMessage responseMessage = new GenericMessage();
+			 List<MessageDescription> errMsgs = new ArrayList<>();
+			 MessageDescription errMsg = new MessageDescription("Only user of this project can delete the run. Unauthorized");
+			 responseMessage.setSuccess("FAILED");
+			 errMsgs.add(errMsg);
+			 responseMessage.setErrors(errMsgs);
+			 responseVO.setData(null);
+			 responseVO.setResponse(responseMessage);
+			 return new ResponseEntity<>(responseVO, HttpStatus.FORBIDDEN);
+		}
+//		//validate runids
+//		if(runCorelationIds!=null) {
+//			try {
+//				String[] runCorrIds = runCorelationIds.split(",");
+//				List<String> runIdsList = Arrays.asList(runCorrIds);
+//				if(runIdsList!=null && !runIdsList.isEmpty()) {
+//					List<String> distinctRunIds = runIdsList.stream().distinct().collect(Collectors.toList());
+//					List<String> invalidRunIds = new ArrayList<>();
+//					List<RunVO> existingRuns = existingForecast.getRuns();
+//					for(String runId : distinctRunIds) {
+//						Optional<RunVO> any = existingRuns.stream().filter(x -> { runId.equalsIgnoreCase(x.getId()) && x. }).findAny();
+//					}
+//				}
+//				//do distinct on list
+//				//count not more than 12.
+//				//foreachrun, iterate thru existingruns, if not found or found in deleted state, add to new invalid runIds list. 
+//				// convert the list to comma seperated string 
+//				// create new err msg saying, these ids are invalid, pls send valid ids. and throw 400 badrequest
+//			}catch(Exception e) {
+//				//handle
+//			}
+//		}
+		String comparisionId = UUID.randomUUID().toString();
+		String targetFolder = COMPARISON_FOLDER_PREFIX+comparisionId;
 		if(actualsFile!=null) {
 			String fileName = actualsFile.getOriginalFilename();
 			if (!isValidAttachment(fileName)) {
@@ -1064,7 +1117,9 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 				responseVO.setResponse(errorMessage);
 				return new ResponseEntity<>(responseVO, HttpStatus.BAD_REQUEST);
 			}
-			FileUploadResponseDto fileUploadResponse = storageClient.uploadFile(INPUT_FILE_PREFIX,actualsFile, existingForecast.getBucketName());
+			String actuals_file_extension = FilenameUtils.getExtension(fileName);
+			String actuals_filename = ACTUALS_FILENAME_PREFIX + "." + actuals_file_extension;
+			FileUploadResponseDto fileUploadResponse = storageClient.uploadFile(targetFolder+"/",actualsFile,actuals_filename, existingForecast.getBucketName());
 			if(fileUploadResponse==null || (fileUploadResponse!=null && (fileUploadResponse.getErrors()!=null || !"SUCCESS".equalsIgnoreCase(fileUploadResponse.getStatus())))) {
 				GenericMessage errorMessage = new GenericMessage();
 				errorMessage.setSuccess("FAILED");
@@ -1075,6 +1130,8 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 				return new ResponseEntity<>(responseVO, HttpStatus.INTERNAL_SERVER_ERROR);
 			}
 		}
+		targetFolder = existingForecast.getBucketName() + targetFolder;
+		ForecastComparisonCreateResponseVO createComparisonResponse = service.createComparison(id,existingForecast,runCorelationIds,comparisionId,comparisonName,targetFolder);
 		return null;
 	}
 

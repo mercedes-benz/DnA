@@ -223,7 +223,10 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 			else {
 				responseMessage.setSuccess("SUCCESS");
 				runNowResponse.setCorrelationId(correlationId);
-				ForecastNsql entity = this.assembler.toEntity(existingForecast);
+				Optional<ForecastNsql> anyEntity = this.jpaRepo.findById(existingForecast.getId());
+				ForecastNsql entity = null;
+				if(anyEntity.isPresent())
+					entity = anyEntity.get();
 				List<RunDetails> existingRuns = entity.getData().getRuns();
 				if(existingRuns==null || existingRuns.isEmpty())
 					existingRuns = new ArrayList<>();
@@ -879,7 +882,6 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 
 	@Override
 	public List<String> getAllForecastIds() {
-		// TODO Auto-generated method stub
 		return customRepo.getAllForecastIds();
 	}
 
@@ -888,6 +890,19 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 	public BucketObjectsCollectionWrapperDto getBucketObjects(String path, String bucketType){
 		return storageClient.getBucketObjects(path,bucketType) ;
 
+	}
+
+	@Override
+	@Transactional
+	public ForecastComparisonCreateResponseVO createComparison(String id, ForecastVO existingForecast, String runCorelationIds, String comparisionId, String comparisonName,
+			String targetFolder) {
+		ForecastComparisonCreateResponseVO responseWrapperVO = new ForecastComparisonCreateResponseVO();
+		GenericMessage response = new GenericMessage();
+		ForecastComparisonVO comparisonData = new ForecastComparisonVO();
+		ComparisonStateVO comparisonState = new ComparisonStateVO();
+//		existingForecast
+		
+		return null;
 	}
 
 }

@@ -233,6 +233,27 @@ public class StorageServicesClient {
 		return uploadResponse;
 	}
 	
+	public FileUploadResponseDto uploadFile(String prefix,MultipartFile file,String filename, String bucketName) {
+		FileUploadResponseDto uploadResponse = new FileUploadResponseDto();
+		List<MessageDescription> errors = new ArrayList<>();
+		try {
+			ByteArrayResource fileAsResource = new ByteArrayResource(file.getBytes()){
+			    @Override
+			    public String getFilename(){
+			        return filename;                                          
+			    }
+			};
+			return this.uploadFile(prefix, fileAsResource, bucketName);
+		}catch(Exception e) {
+			log.error("Failed while uploading file {} to minio bucket {} with exception {}", file.getOriginalFilename(), bucketName,e.getMessage());
+			MessageDescription errMsg = new MessageDescription("Failed while uploading file with exception " + e.getMessage());
+			errors.add(errMsg);
+			uploadResponse.setErrors(errors);
+			uploadResponse.setStatus("FAILED");
+		}
+		return uploadResponse;
+	}
+	
 	
 	public FileUploadResponseDto uploadFile(String prefix,ByteArrayResource file, String bucketName) {
 		FileUploadResponseDto uploadResponse = new FileUploadResponseDto();

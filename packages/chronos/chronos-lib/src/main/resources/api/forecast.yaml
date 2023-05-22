@@ -1206,6 +1206,9 @@ definitions:
         exogenData:
           type: boolean
           description: "flag to check if exogenous data is present"
+        isDeleted:
+          type: boolean
+          description: "Field to identify if run is deleted. Deleted run records wont be shown, this is only for system to identify. Not for Users."
   
   ForecastRunResponseVO:
     type: object

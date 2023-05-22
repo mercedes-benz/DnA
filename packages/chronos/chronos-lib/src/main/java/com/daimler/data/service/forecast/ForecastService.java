@@ -46,4 +46,7 @@ public interface ForecastService extends CommonService<ForecastVO, ForecastNsql,
 
 	public BucketObjectsCollectionWrapperDto getBucketObjects(String path, String bucketType);
 
+	public ForecastComparisonCreateResponseVO createComparison(String id, ForecastVO existingForecast, String runCorelationIds, String comparisionId, String comparisonName,
+			String targetFolder);
+
 }
