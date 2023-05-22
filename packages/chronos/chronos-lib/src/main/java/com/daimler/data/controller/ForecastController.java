@@ -1052,6 +1052,29 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 			responseVO.setResponse(errorMessage);
 			return new ResponseEntity<>(responseVO, HttpStatus.NOT_FOUND);
 		}
+		if(actualsFile!=null) {
+			String fileName = actualsFile.getOriginalFilename();
+			if (!isValidAttachment(fileName)) {
+				log.error("Invalid file type {} attached for project name {} and id {} ", fileName, existingForecast.getName(), id);
+				MessageDescription invalidMsg = new MessageDescription("Invalid File type attached. Supported only xlxs and csv extensions");
+				GenericMessage errorMessage = new GenericMessage();
+				errorMessage.setSuccess("FAILED");
+				errorMessage.addErrors(invalidMsg);
+				responseVO.setData(null);
+				responseVO.setResponse(errorMessage);
+				return new ResponseEntity<>(responseVO, HttpStatus.BAD_REQUEST);
+			}
+			FileUploadResponseDto fileUploadResponse = storageClient.uploadFile(INPUT_FILE_PREFIX,actualsFile, existingForecast.getBucketName());
+			if(fileUploadResponse==null || (fileUploadResponse!=null && (fileUploadResponse.getErrors()!=null || !"SUCCESS".equalsIgnoreCase(fileUploadResponse.getStatus())))) {
+				GenericMessage errorMessage = new GenericMessage();
+				errorMessage.setSuccess("FAILED");
+				errorMessage.setErrors(fileUploadResponse.getErrors());
+				errorMessage.setWarnings(fileUploadResponse.getWarnings());
+				responseVO.setData(null);
+				responseVO.setResponse(errorMessage);
+				return new ResponseEntity<>(responseVO, HttpStatus.INTERNAL_SERVER_ERROR);
+			}
+		}
 		return null;
 	}
 
