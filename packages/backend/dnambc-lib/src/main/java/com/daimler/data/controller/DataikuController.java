@@ -119,7 +119,8 @@ public class DataikuController implements DataikuApi {
 		}
 	}
 
-	@ApiOperation(value = "Get dataiku project by given identifier.", nickname = "getByProjectKey", notes = "Get all dataiku project. This endpoints will be used to Get available dataiku project based on given identifier.", response = DataikuProjectVO.class, tags = {
+	@ApiOperation(value = "Get dataiku project by given identifier.", nickname = "
+	yProjectKey", notes = "Get all dataiku project. This endpoints will be used to Get available dataiku project based on given identifier.", response = DataikuProjectVO.class, tags = {
 			"dataiku", })
 	@ApiResponses(value = {
 			@ApiResponse(code = 200, message = "Returns message of succes or failure", response = DataikuProjectVO.class),
@@ -139,12 +140,12 @@ public class DataikuController implements DataikuApi {
 		DataikuProjectVO extolloVo = null;
 		DataikuProjectVO onpremVo = null;
 		try {
-			 extolloVo = vService.getByProjectKey(projectKey, live, "extollo");
+			 extolloVo = vService.getByProjectKey(projectKey, live, "eXtollo");
 		} catch (Exception e) {
 			log.error("Failed to fetch extollo by project key with an exception {} ", e.getMessage());
 		}
 		try {
-			onpremVo = vService.getByProjectKey(projectKey, live, "onprem");
+			onpremVo = live ? vService.getByProjectKey(projectKey, live, "onPremise") : null;
 		} catch (Exception e) {
 			log.error("Failed to fetch onprem by project key with an exception {} ", e.getMessage());
 		}
