@@ -119,8 +119,7 @@ public class DataikuController implements DataikuApi {
 		}
 	}
 
-	@ApiOperation(value = "Get dataiku project by given identifier.", nickname = "
-	yProjectKey", notes = "Get all dataiku project. This endpoints will be used to Get available dataiku project based on given identifier.", response = DataikuProjectVO.class, tags = {
+	@ApiOperation(value = "Get dataiku project by given identifier.", nickname = "getByProjectKey", notes = "Get all dataiku project. This endpoints will be used to Get available dataiku project based on given identifier.", response = DataikuProjectVO.class, tags = {
 			"dataiku", })
 	@ApiResponses(value = {
 			@ApiResponse(code = 200, message = "Returns message of succes or failure", response = DataikuProjectVO.class),
