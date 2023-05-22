@@ -64,6 +64,8 @@ public class ForecastAssembler implements GenericAssembler<ForecastVO, ForecastN
 					BeanUtils.copyProperties(run,runVO);
 					RunStateVO stateVO = toStateVO(run.getRunState());
 					runVO.setState(stateVO);
+					if(run.getIsDelete()!=null) 
+						runVO.setIsDeleted(run.getIsDelete());
 					runVO.setFrequency(toFrequencyEnum(run.getFrequency()));
 					runsVOList.add(runVO);
 				}
@@ -170,6 +172,8 @@ public class ForecastAssembler implements GenericAssembler<ForecastVO, ForecastN
 								RunState state = toState(n.getState());
 								run.setRunState(state);
 								run.setFrequency(toFrequencyParam(n.getFrequency().name()));
+								if(n.isIsDeleted()!=null)
+									run.setIsDelete(n.isIsDeleted());
 								return run;
 						}).collect(Collectors.toList());
 				data.setRuns(runs);

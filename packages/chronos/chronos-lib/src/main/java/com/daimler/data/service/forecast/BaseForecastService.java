@@ -1,19 +1,19 @@
 package com.daimler.data.service.forecast;
 
 import java.math.BigDecimal;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
-import com.daimler.data.db.json.File;
-import com.daimler.data.dto.databricks.DataBricksJobRunOutputResponseWrapperDto;
-import com.daimler.data.dto.forecast.*;
-import com.daimler.data.dto.storage.*;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -25,13 +25,39 @@ import com.daimler.data.auth.vault.VaultAuthClientImpl;
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
 import com.daimler.data.db.entities.ForecastNsql;
+import com.daimler.data.db.json.ComparisonDetails;
+import com.daimler.data.db.json.ComparisonState;
+import com.daimler.data.db.json.Forecast;
 import com.daimler.data.db.json.RunDetails;
 import com.daimler.data.db.json.RunState;
 import com.daimler.data.db.json.UserDetails;
 import com.daimler.data.db.repo.forecast.ForecastCustomRepository;
 import com.daimler.data.db.repo.forecast.ForecastRepository;
+import com.daimler.data.dto.databricks.DataBricksJobRunOutputResponseWrapperDto;
 import com.daimler.data.dto.databricks.RunNowNotebookParamsDto;
+import com.daimler.data.dto.forecast.ApiKeyVO;
+import com.daimler.data.dto.forecast.CollaboratorVO;
+import com.daimler.data.dto.forecast.ComparisonStateVO;
+import com.daimler.data.dto.forecast.DataBricksErrorResponseVO;
+import com.daimler.data.dto.forecast.ForecastComparisonCreateResponseVO;
+import com.daimler.data.dto.forecast.ForecastComparisonVO;
+import com.daimler.data.dto.forecast.ForecastProjectUpdateRequestVO;
+import com.daimler.data.dto.forecast.ForecastRunResponseVO;
+import com.daimler.data.dto.forecast.ForecastVO;
+import com.daimler.data.dto.forecast.RunDetailsVO;
+import com.daimler.data.dto.forecast.RunNowResponseVO;
+import com.daimler.data.dto.forecast.RunStateVO;
 import com.daimler.data.dto.forecast.RunStateVO.ResultStateEnum;
+import com.daimler.data.dto.forecast.RunVO;
+import com.daimler.data.dto.forecast.RunVisualizationVO;
+import com.daimler.data.dto.storage.BucketObjectDetailsDto;
+import com.daimler.data.dto.storage.BucketObjectsCollectionWrapperDto;
+import com.daimler.data.dto.storage.CreateBucketResponseWrapperDto;
+import com.daimler.data.dto.storage.DeleteBucketResponseWrapperDto;
+import com.daimler.data.dto.storage.FileDownloadResponseDto;
+import com.daimler.data.dto.storage.FileUploadResponseDto;
+import com.daimler.data.dto.storage.GetBucketByNameResponseWrapperDto;
+import com.daimler.data.dto.storage.UpdateBucketResponseWrapperDto;
 import com.daimler.data.service.common.BaseCommonService;
 import com.daimler.dna.notifications.common.producer.KafkaProducerService;
 import com.google.gson.JsonArray;
@@ -894,15 +920,34 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 
 	@Override
 	@Transactional
-	public ForecastComparisonCreateResponseVO createComparison(String id, ForecastVO existingForecast, String runCorelationIds, String comparisionId, String comparisonName,
-			String targetFolder) {
+	public ForecastComparisonCreateResponseVO createComparison(String id, ForecastVO existingForecast, List<String> validRunsPath, String comparisionId, String comparisonName,
+			String actualsFilePath, String targetFolder, Date createdOn, String requestUser) {
 		ForecastComparisonCreateResponseVO responseWrapperVO = new ForecastComparisonCreateResponseVO();
 		GenericMessage response = new GenericMessage();
-		ForecastComparisonVO comparisonData = new ForecastComparisonVO();
-		ComparisonStateVO comparisonState = new ComparisonStateVO();
-//		existingForecast
-		
-		return null;
+		Optional<ForecastNsql> anyEntity = this.jpaRepo.findById(id);
+		ComparisonDetails comparisonDetails = new ComparisonDetails();
+		ComparisonState comparisonState = new ComparisonState();
+		comparisonState.setLifeCycleState("CREATED");
+		comparisonState.setStateMessage("Accepted run comparison");
+		if(anyEntity!=null && anyEntity.isPresent()) {
+			ForecastNsql entity = anyEntity.get();
+			Forecast data = entity.getData();
+			 List<ComparisonDetails> existingComparisons = data.getComparisons();
+			 comparisonDetails.setActualsFile(actualsFilePath);
+			 comparisonDetails.setComparisonId(comparisonName);
+			 comparisonDetails.setComparisonName(comparisonName);
+			 comparisonDetails.setComparisonState(comparisonState);
+			 comparisonDetails.setIsDelete(false);
+			 comparisonDetails.setRunsList((String [])validRunsPath.toArray());
+			 comparisonDetails.setTargetFolder(targetFolder);
+			 comparisonDetails.setTriggeredBy(requestUser);
+			 comparisonDetails.setTriggeredOn(createdOn);
+			 existingComparisons.add(comparisonDetails);
+			 data.setComparisons(existingComparisons);
+			 entity.setData(data);
+			 jpaRepo.save(entity);
+		}
+		return new ForecastComparisonCreateResponseVO();
 	}
 
 }

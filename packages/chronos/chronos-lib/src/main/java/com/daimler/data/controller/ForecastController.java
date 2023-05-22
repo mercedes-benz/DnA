@@ -2,16 +2,19 @@ package com.daimler.data.controller;
 
 import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 import javax.validation.Valid;
 
-import com.daimler.data.api.forecast.ForecastComparisonsApi;
-import com.daimler.data.auth.vault.VaultAuthClientImpl;
-import com.daimler.data.dto.forecast.*;
-import com.daimler.data.service.forecast.ForecastService;
 import org.apache.commons.io.FilenameUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -26,15 +29,37 @@ import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.daimler.data.api.forecast.ForecastComparisonsApi;
 import com.daimler.data.api.forecast.ForecastInputsApi;
 import com.daimler.data.api.forecast.ForecastProjectsApi;
 import com.daimler.data.api.forecast.ForecastRunsApi;
 import com.daimler.data.application.auth.UserStore;
 import com.daimler.data.application.client.StorageServicesClient;
+import com.daimler.data.auth.vault.VaultAuthClientImpl;
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
+import com.daimler.data.dto.forecast.ApiKeyResponseVO;
+import com.daimler.data.dto.forecast.ApiKeyVO;
+import com.daimler.data.dto.forecast.CollaboratorVO;
+import com.daimler.data.dto.forecast.CreatedByVO;
+import com.daimler.data.dto.forecast.ForecastCollectionVO;
+import com.daimler.data.dto.forecast.ForecastComparisonCreateResponseVO;
+import com.daimler.data.dto.forecast.ForecastComparisonResultVO;
+import com.daimler.data.dto.forecast.ForecastComparisonsCollectionDto;
+import com.daimler.data.dto.forecast.ForecastProjectCreateRequestVO;
+import com.daimler.data.dto.forecast.ForecastProjectCreateRequestWrapperVO;
+import com.daimler.data.dto.forecast.ForecastProjectResponseVO;
+import com.daimler.data.dto.forecast.ForecastProjectUpdateRequestVO;
+import com.daimler.data.dto.forecast.ForecastRunCollectionVO;
+import com.daimler.data.dto.forecast.ForecastRunResponseVO;
+import com.daimler.data.dto.forecast.ForecastVO;
+import com.daimler.data.dto.forecast.InputFileVO;
+import com.daimler.data.dto.forecast.InputFilesCollectionVO;
+import com.daimler.data.dto.forecast.RunVO;
+import com.daimler.data.dto.forecast.RunVisualizationVO;
 import com.daimler.data.dto.storage.BucketObjectsCollectionWrapperDto;
 import com.daimler.data.dto.storage.FileUploadResponseDto;
+import com.daimler.data.service.forecast.ForecastService;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -1046,6 +1071,8 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 		ForecastVO existingForecast = service.getById(id);
 		CreatedByVO requestUser = this.userStore.getVO();
 		String user = requestUser.getId();
+		Date createdOn = new Date();
+		comparisonName = comparisonName!= null && !"".equalsIgnoreCase(comparisonName) ? comparisonName :  ""; //ISOdate as comparisonname from createdOn
 		Boolean notAuthorized = false;
 		if(existingForecast==null || existingForecast.getId()==null) {
 			log.error("Forecast project with this id {} doesnt exists , failed to create comparison", id);
@@ -1081,32 +1108,47 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 			 responseVO.setResponse(responseMessage);
 			 return new ResponseEntity<>(responseVO, HttpStatus.FORBIDDEN);
 		}
-//		//validate runids
-//		if(runCorelationIds!=null) {
-//			try {
-//				String[] runCorrIds = runCorelationIds.split(",");
-//				List<String> runIdsList = Arrays.asList(runCorrIds);
-//				if(runIdsList!=null && !runIdsList.isEmpty()) {
-//					List<String> distinctRunIds = runIdsList.stream().distinct().collect(Collectors.toList());
-//					List<String> invalidRunIds = new ArrayList<>();
-//					List<RunVO> existingRuns = existingForecast.getRuns();
-//					for(String runId : distinctRunIds) {
-//						Optional<RunVO> any = existingRuns.stream().filter(x -> { runId.equalsIgnoreCase(x.getId()) && x. }).findAny();
-//					}
-//				}
-//				//do distinct on list
-//				//count not more than 12.
-//				//foreachrun, iterate thru existingruns, if not found or found in deleted state, add to new invalid runIds list. 
-//				// convert the list to comma seperated string 
-//				// create new err msg saying, these ids are invalid, pls send valid ids. and throw 400 badrequest
-//			}catch(Exception e) {
-//				//handle
-//			}
-//		}
+		List<String> invalidRunIds = new ArrayList<>();
+		List<String> validRunsPath = new ArrayList<>();
+		List<RunVO> existingRuns = existingForecast.getRuns();
+		if(runCorelationIds!=null) {
+			try {
+				String[] runCorrIds = runCorelationIds.split(",");
+				List<String> runIdsList = Arrays.asList(runCorrIds);
+				List<String> distinctRunIds = runIdsList.stream().distinct().collect(Collectors.toList());
+				if(runIdsList!=null && !runIdsList.isEmpty()) {
+					for(String runId : distinctRunIds) {
+						Optional<RunVO> any = existingRuns.stream().filter(x -> runId.equalsIgnoreCase(x.getId()) && !x.isIsDeleted()).findAny();
+						if(any!=null && any.isPresent()) {
+							validRunsPath.add(any.get().getResultFolderPath());
+						}else {
+							invalidRunIds.add(runId);
+						}
+					}
+					if(invalidRunIds!=null && !invalidRunIds.isEmpty()) {
+						String invalidIdsString = String.join(",", invalidRunIds);
+						log.error("Invalid runCorrelationIds {} sent for comparison {} of project name {} and id {}, by user {} ", 
+								invalidIdsString, comparisonName, existingForecast.getName(), id, requestUser);
+						MessageDescription invalidMsg = new MessageDescription("Invalid runCorrelationIds " +  invalidIdsString + " sent for comparison. Please correct and retry.");
+						GenericMessage errorMessage = new GenericMessage();
+						errorMessage.setSuccess("FAILED");
+						errorMessage.addErrors(invalidMsg);
+						responseVO.setData(null);
+						responseVO.setResponse(errorMessage);
+						return new ResponseEntity<>(responseVO, HttpStatus.BAD_REQUEST);
+					}
+				}
+			}catch(Exception e) {
+				//handle
+			}
+		}
 		String comparisionId = UUID.randomUUID().toString();
 		String targetFolder = COMPARISON_FOLDER_PREFIX+comparisionId;
+		String actualsFilePath = "";
 		if(actualsFile!=null) {
 			String fileName = actualsFile.getOriginalFilename();
+			String actuals_file_extension = FilenameUtils.getExtension(fileName);
+			String actuals_filename = ACTUALS_FILENAME_PREFIX + "." + actuals_file_extension;
 			if (!isValidAttachment(fileName)) {
 				log.error("Invalid file type {} attached for project name {} and id {} ", fileName, existingForecast.getName(), id);
 				MessageDescription invalidMsg = new MessageDescription("Invalid File type attached. Supported only xlxs and csv extensions");
@@ -1117,8 +1159,6 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 				responseVO.setResponse(errorMessage);
 				return new ResponseEntity<>(responseVO, HttpStatus.BAD_REQUEST);
 			}
-			String actuals_file_extension = FilenameUtils.getExtension(fileName);
-			String actuals_filename = ACTUALS_FILENAME_PREFIX + "." + actuals_file_extension;
 			FileUploadResponseDto fileUploadResponse = storageClient.uploadFile(targetFolder+"/",actualsFile,actuals_filename, existingForecast.getBucketName());
 			if(fileUploadResponse==null || (fileUploadResponse!=null && (fileUploadResponse.getErrors()!=null || !"SUCCESS".equalsIgnoreCase(fileUploadResponse.getStatus())))) {
 				GenericMessage errorMessage = new GenericMessage();
@@ -1129,9 +1169,11 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 				responseVO.setResponse(errorMessage);
 				return new ResponseEntity<>(responseVO, HttpStatus.INTERNAL_SERVER_ERROR);
 			}
+			actualsFilePath = existingForecast.getBucketName() + targetFolder + "/" + actuals_filename;
 		}
-		targetFolder = existingForecast.getBucketName() + targetFolder;
-		ForecastComparisonCreateResponseVO createComparisonResponse = service.createComparison(id,existingForecast,runCorelationIds,comparisionId,comparisonName,targetFolder);
+		targetFolder = existingForecast.getBucketName() + "/" + targetFolder;
+		ForecastComparisonCreateResponseVO createComparisonResponse = service.createComparison(id,existingForecast,validRunsPath,comparisionId,comparisonName,actualsFilePath,targetFolder
+				,createdOn, requestUser.getId());
 		return null;
 	}
 
