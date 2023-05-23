@@ -283,18 +283,15 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 	}
 
 	@Override
-	public Long getRunsCount(String id) {
-		return customRepo.getTotalRunsCount(id);
-	}
-
-	@Override
 	@Transactional
-	public List<RunVO> getAllRunsForProject(int limit, int offset, String forecastId) {
+	public Object[] getAllRunsForProject(int limit, int offset, String forecastId) {
+		Object[] runCollectionWrapper = new Object[2];
 		
 		List<RunDetails> updatedRuns = new ArrayList<>();
 		List<RunVO> updatedRunVOList = new ArrayList<>();
 		
 		Optional<ForecastNsql> entityOptional = jpaRepo.findById(forecastId);
+		long totalCount = 0L;
 		if(entityOptional!=null) {
 			ForecastNsql entity = entityOptional.get();
 			String forecastName = entity.getData().getName();
@@ -309,13 +306,26 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 						return run2.getTriggeredOn().toString().compareTo(run1.getTriggeredOn().toString());
 					}
 				});
-				int endLimit = offset + limit;
-				if (endLimit > existingRuns.size()) {
-					endLimit = existingRuns.size();
+				//logic to remove all deleted runs from list
+				List<RunDetails> tempExistingRuns = new ArrayList<>(existingRuns);
+				for(int i=0; i<existingRuns.size(); i++) {
+					RunDetails details= existingRuns.get(i);
+					if(details.getIsDelete() != null) {
+						boolean isDelete = details.getIsDelete();
+						if(isDelete) {
+							tempExistingRuns.remove(details);
+						}
+					}
+										
 				}
-				newSubList = existingRuns.subList(offset, endLimit);
+				totalCount = tempExistingRuns.size();
+				int endLimit = offset + limit;
+				if (endLimit > tempExistingRuns.size()) {
+					endLimit = tempExistingRuns.size();
+				}
+				newSubList = tempExistingRuns.subList(offset, endLimit);
 				if (limit == 0)
-					newSubList = existingRuns;
+					newSubList = tempExistingRuns;
 				for(RunDetails run: newSubList) {
 					RunState state = run.getRunState();
 					String runId = run.getRunId();
@@ -496,7 +506,9 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 			}
 
 		}
-		return updatedRunVOList;
+		runCollectionWrapper[0] = updatedRunVOList;
+		runCollectionWrapper[1] = totalCount;
+		return runCollectionWrapper;
 	}
 	
 	private void notifyUsers(String forecastId, RunDetails run, List<String> memberIds, List<String> memberEmails,String forecastName, String updatedResultState) {
@@ -544,9 +556,10 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 		RunState state = run.getRunState();
 		if(state!=null) {
 			if(!(state.getResult_state()!=null && ("SUCCESS".equalsIgnoreCase(state.getResult_state()) ||"WARNINGS".equalsIgnoreCase(state.getResult_state())))) {
-				visualizationVO.setEda("");
-				visualizationVO.setY("");
-				visualizationVO.setYPred("");
+				visualizationVO.setVisualsData("");
+//				visualizationVO.setEda("");
+//				visualizationVO.setY("");
+//				visualizationVO.setYPred("");
 				return visualizationVO;
 			}
 		}
@@ -555,25 +568,32 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 			String yPrefix = commonPrefix +"/y.csv";
 			String yPredPrefix = commonPrefix +"/y_pred.csv";
 			String edaJsonPrefix = commonPrefix +"/eda.json";
-			FileDownloadResponseDto yDownloadResponse = storageClient.getFileContents(bucketName, yPrefix);
-			FileDownloadResponseDto yPredDownloadResponse = storageClient.getFileContents(bucketName, yPredPrefix);
-			FileDownloadResponseDto edaJsonDownloadResponse = storageClient.getFileContents(bucketName, edaJsonPrefix);
+			String visualsdataJson = commonPrefix +"/visuals/data.json";
+//			FileDownloadResponseDto yDownloadResponse = storageClient.getFileContents(bucketName, yPrefix);
+//			FileDownloadResponseDto yPredDownloadResponse = storageClient.getFileContents(bucketName, yPredPrefix);
+//			FileDownloadResponseDto edaJsonDownloadResponse = storageClient.getFileContents(bucketName, edaJsonPrefix);
+			FileDownloadResponseDto visualsDataJsonDownloadResponse = storageClient.getFileContents(bucketName, visualsdataJson);
 			JsonArray jsonArray = new JsonArray();
-			String yResult = "";
-			String yPredResult = "";
-			String edaResult = "";
-			if(yDownloadResponse!= null && yDownloadResponse.getData()!=null && (yDownloadResponse.getErrors()==null || yDownloadResponse.getErrors().isEmpty())) {
-				 yResult = new String(yDownloadResponse.getData().getByteArray()); 
-			 }
-			if(yPredDownloadResponse!= null && yPredDownloadResponse.getData()!=null && (yPredDownloadResponse.getErrors()==null || yPredDownloadResponse.getErrors().isEmpty())) {
-				  yPredResult = new String(yPredDownloadResponse.getData().getByteArray()); 
-			 }
-			if(edaJsonDownloadResponse!= null && edaJsonDownloadResponse.getData()!=null && (edaJsonDownloadResponse.getErrors()==null || edaJsonDownloadResponse.getErrors().isEmpty())) {
-				edaResult = new String(edaJsonDownloadResponse.getData().getByteArray()); 
-			 }
-			visualizationVO.setEda(edaResult);
-			visualizationVO.setY(yResult);
-			visualizationVO.setYPred(yPredResult);
+//			String yResult = "";
+//			String yPredResult = "";
+//			String edaResult = "";
+			String visualsDataResult = "";
+//			if(yDownloadResponse!= null && yDownloadResponse.getData()!=null && (yDownloadResponse.getErrors()==null || yDownloadResponse.getErrors().isEmpty())) {
+//				 yResult = new String(yDownloadResponse.getData().getByteArray()); 
+//			 }
+//			if(yPredDownloadResponse!= null && yPredDownloadResponse.getData()!=null && (yPredDownloadResponse.getErrors()==null || yPredDownloadResponse.getErrors().isEmpty())) {
+//				  yPredResult = new String(yPredDownloadResponse.getData().getByteArray()); 
+//			 }
+//			if(edaJsonDownloadResponse!= null && edaJsonDownloadResponse.getData()!=null && (edaJsonDownloadResponse.getErrors()==null || edaJsonDownloadResponse.getErrors().isEmpty())) {
+//				edaResult = new String(edaJsonDownloadResponse.getData().getByteArray()); 
+//			 }
+				if(visualsDataJsonDownloadResponse!= null && visualsDataJsonDownloadResponse.getData()!=null && (visualsDataJsonDownloadResponse.getErrors()==null || visualsDataJsonDownloadResponse.getErrors().isEmpty())) {
+					visualsDataResult = new String(visualsDataJsonDownloadResponse.getData().getByteArray());
+			}
+//			visualizationVO.setEda(edaResult);
+//			visualizationVO.setY(yResult);
+//			visualizationVO.setYPred(yPredResult);
+			visualizationVO.setVisualsData(visualsDataResult);
 		}catch(Exception e) {
 			log.error("Failed while parsing results data for run rid {} with exception {} ",rid, e.getMessage());
 		}

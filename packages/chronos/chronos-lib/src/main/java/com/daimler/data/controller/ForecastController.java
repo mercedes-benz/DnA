@@ -8,6 +8,7 @@ import java.util.stream.Collectors;
 
 import javax.validation.Valid;
 
+import com.daimler.data.api.forecast.ForecastComparisonsApi;
 import com.daimler.data.auth.vault.VaultAuthClientImpl;
 import com.daimler.data.dto.forecast.*;
 import com.daimler.data.service.forecast.ForecastService;
@@ -46,7 +47,7 @@ import lombok.extern.slf4j.Slf4j;
 @Api(value = "Forecast APIs")
 @RequestMapping("/api")
 @Slf4j
-public class ForecastController implements ForecastRunsApi, ForecastProjectsApi, ForecastInputsApi {
+public class ForecastController implements ForecastRunsApi, ForecastProjectsApi, ForecastInputsApi, ForecastComparisonsApi {
 
 	@Autowired
 	private ForecastService service;
@@ -848,8 +849,9 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 				log.error("User not part of forecast project with id {} and name {}, Not authorized to user other project inputs",id,existingForecast.getName());
 				return new ResponseEntity<>(collection, HttpStatus.FORBIDDEN);
 			}else {
-				List<RunVO> records = service.getAllRunsForProject(limit, offset, existingForecast.getId());
-				Long count = service.getRunsCount(id);
+				Object[] runCollectionWrapper = service.getAllRunsForProject(limit, offset, existingForecast.getId());
+				List<RunVO> records = (List<RunVO>) runCollectionWrapper[0];
+				Long count = (Long) runCollectionWrapper[1];
 				HttpStatus responseCode = HttpStatus.NO_CONTENT;
 				if(records!=null && !records.isEmpty()) {
 					collection.setRecords(records);
@@ -1019,4 +1021,27 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 			return new ResponseEntity<>(responseVO, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 
+
+
+
+	@Override
+	public ResponseEntity<ForecastComparisonCreateResponseVO> createForecastComparison(String id, String ids, MultipartFile actualsFile, String comparisonName) {
+		return null;
+	}
+
+	@Override
+	public ResponseEntity<GenericMessage> deleteComparison(String id, String comparisonIds) {
+		return null;
+	}
+
+	@Override
+	public ResponseEntity<ForecastComparisonResultVO> getForecastComparisonById(String id, String comparisonId) {
+		return null;
+	}
+
+
+	@Override
+	public ResponseEntity<ForecastComparisonsCollectionDto> getForecastComparisons(String id) {
+		return null;
+	}
 }
