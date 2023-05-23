@@ -214,6 +214,7 @@ const ContactInformation = ({
   const handleProductOwner = (field, value) => {
     let name = '';
     if(value) {
+      value['addedByProvider'] = true;
       name =  `${value.firstName} ${value.lastName}`;
     }
     field.onChange(value);
