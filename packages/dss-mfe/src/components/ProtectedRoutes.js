@@ -52,7 +52,7 @@ export const ProtectedRoute = ({ component: Component, ...rest }) => {
       path={rest.path}
       render={(props) => {
         return rest.user?.roles?.length ? (
-          <Component {...props} user={rest.user} />
+          <Component {...props} user={rest.user} hostHistory={rest.hostHistory} />
         ) : (
           <LocalWrapper>
             <Component {...props} user={rest.user} />
