@@ -22,7 +22,7 @@ export const protectedRoutes = [
   },
 ];
 
-const Routes = ({ user }) => {
+const Routes = ({ user, hostHistory }) => {
   return (
     <Suspense fallback={user?.roles?.length ? <Progress show={true} /> : <>Loading</>}>
       <Router history={history}>
@@ -35,6 +35,7 @@ const Routes = ({ user }) => {
                 exact={route.exact}
                 component={route.component}
                 user={user}
+                hostHistory={hostHistory}
               />
             ))}
             <Route path="/unauthorized" component={UnAuthorised} />
@@ -56,6 +57,7 @@ const Routes = ({ user }) => {
                 exact={route.exact}
                 component={route.component}
                 user={user}
+                hostHistory={hostHistory}
               />
             ))}
             <Route exact path={'/unauthorized'} component={UnAuthorised} />
