@@ -186,7 +186,7 @@ export default class Tags extends React.Component<ITagsFieldProps, ITagsFiledSta
           )}
           onClick={this.focusInput}
         >
-          <div className={classNames(Styles.row)}>{chips}</div>
+          {chips.length > 0 && <div className={classNames(Styles.row)}>{chips}</div>}
           <input
             className={classNames(Styles.tagInputField, (this.props.max && this.props.max === 1) && Styles.fullWidth, isMaxReached && 'hide')}
             type="text"

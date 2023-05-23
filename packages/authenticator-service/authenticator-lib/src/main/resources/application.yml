@@ -1,0 +1,94 @@
+spring:
+  application:
+    name: dna-authenticator-service
+    version: 1.0.0
+    
+  jpa:
+    database: POSTGRESQL
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        temp:
+          use_jdbc_metadata_defaults: false
+    hibernate:
+      ddl-auto: none
+
+  datasource:
+    hikari:
+      connection-timeout: 4000
+    platform: postgres
+    url: ${API_DB_URL:jdbc:postgresql://localhost:5432/db}
+    username: ${API_DB_USER:XXXX_user}
+    password: ${API_DB_PASS:XXXX_pass}
+    driverClassName: org.postgresql.Driver
+
+dna:
+  feature:
+      internal-user-enabled: ${DRD_INTERNAL_USER_ENABLED:false}
+  user:
+    role: ${USER_ROLE:Admin}
+    techUserPrefix: ${TECH_USER_PREFIX:XXXX}
+
+server:
+  port: 8383
+
+#Cors Filter origin Domains  
+allowedCorsOriginPatternUrl: ${CORS_ORIGIN_URL:http://*}
+
+oidc:
+  provider: ${OIDC_PROVIDER:OKTA}
+  token:
+    issuer: ${OIDC_ISSUER:xxxxx}
+    introspection:
+      url: ${OIDC_TOKEN_INTROSPECTION_URL:xxxxx}
+    revocation:
+      url: ${OIDC_TOKEN_REVOCATION_URL:xxxxx}
+  userinfo:
+    url: ${OIDC_USER_INFO_URL:xxxxx}
+  disabled: ${OIDC_DISABLED:true}
+  clientId: ${OIDC_CLIENT_ID:xxxxx}
+  clientSecret: ${OIDC_CLIENT_SECRET:xxxxx}
+
+jwt:
+  secret:
+    key: ${JWT_SECRET_KEY:xxxxxx}
+    byPassUrl: ${BYPASS_JWT_AUTHENTICATION:/api/login;/api/verifyLogin;}
+    tokenExpiry: ${JWT_TOKEN_EXPIRY_TIME_IN_MIN:90}
+
+drd:
+  #DEV
+  request-url: ${INTERNAL_USER_REQUEST_URL:xxxxx}
+  certificate-file: ${INTERNAL_USER_CERT_FILE:xxxxx}
+  certificate-pass: ${INTERNAL_USER_CERT_PASS:xxxxx}
+
+swagger.headers.authorization.token: ${SWAGGER_HEADER_AUTH:XXXXXX}
+management.endpoints.web.exposure.include: loggers,health
+management.endpoint.loggers.enabled: true
+management.endpoint.health.probes.enabled: true
+management.endpoint.health.show-details: always
+
+
+logging:
+  service:
+    environment: ${LOGGING_ENVIRONMENT:DEV}
+    path: ${LOGGING_PATH:/var/log}
+  level:
+    com:
+      daimler:
+        data:
+          application: INFO
+          controller.ItsmmGameController: DEBUG
+    org.springframework.boot.autoconfigure.logging: INFO
+    com.daimler.data.controller.ItsmmGameController: DEBUG
+    com.daimler.data.application.logging.ApplicationLoggingAspect: DEBUG
+    org:
+      springframework:
+        web:
+          client:
+            RestTemplate: INFO
+      hibernate:
+        type:
+          descriptor:
+            sql: ERROR
+

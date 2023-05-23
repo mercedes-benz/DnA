@@ -33,7 +33,7 @@ const tabs = {
     division: '0',
     subDivision: '0',
     department: '',
-    dateOfAgreement: '',
+    dateOfDataTransfer: '',
     planningIT: '',
     lcoNeeded: 'No',
     complianceOfficer: '',
@@ -44,6 +44,10 @@ const tabs = {
     personalRelatedDataLegalBasis: '',
     LCOCheckedLegalBasis: '',
     LCOComments: '',
+    personalRelatedDataContactAwareTransfer: '',
+    personalRelatedDataObjectionsTransfer: '',
+    personalRelatedDataTransferingNonetheless: '',
+    personalRelatedDataTransferingObjections: '',
   },
 };
 
@@ -215,7 +219,7 @@ const ConsumerForm = ({ user, history, isDataProduct = false, callbackFn }) => {
     const openSegments = !isDataProduct
       ? values.openSegments
       : ['ContactInformation', currentTab === 'consumer-personal-data' && 'IdentifyingPersonalRelatedData'];
-    const consumerFormValues = {
+      const consumerFormValues = {
       consumerInformation: {
         contactInformation: {
           appId: values.planningIT,
@@ -224,7 +228,7 @@ const ConsumerForm = ({ user, history, isDataProduct = false, callbackFn }) => {
           lcoNeeded: values.lcoNeeded === 'Yes' ? true : false,
           localComplianceOfficer: values.complianceOfficer?.toString(),
           ownerName: values.businessOwnerName,
-          agreementDate: new Date(values.dateOfAgreement),
+          dataTransferDate: new Date(values.dateOfDataTransfer),
         },
         openSegments,
         personalRelatedData: {
@@ -233,6 +237,10 @@ const ConsumerForm = ({ user, history, isDataProduct = false, callbackFn }) => {
           legalBasis: values.personalRelatedDataLegalBasis || '',
           personalRelatedData: values.personalRelatedData === 'Yes' ? true : false, //boolean,
           purpose: values.personalRelatedDataPurpose || '',
+          contactAwareTransfer: values?.personalRelatedDataContactAwareTransfer === 'Yes' ? true : false, //boolean,
+          objectionsToTransfer: values?.personalRelatedDataObjectionsTransfer === 'Yes' ? true : false, //boolean,
+          transferringNonetheless: values?.personalRelatedDataTransferingNonetheless || '',
+          objections: values?.personalRelatedDataTransferingObjections || '',
         },
       },
     };

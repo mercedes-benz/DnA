@@ -155,8 +155,8 @@ const ReportsFilter = ({
               newQueryParams.departments = departments?.map((department: IDepartment) => {
                 return department.name;
               });
-              newQueryParams.processOwners = processOwners?.map((processOwner: ITeams) => processOwner.shortId);
-              newQueryParams.productOwners = productOwners?.map((productOwner: ITeams) => productOwner.shortId);
+              // newQueryParams.processOwners = processOwners?.map((processOwner: ITeams) => processOwner.shortId);
+              // newQueryParams.productOwners = productOwners?.map((productOwner: ITeams) => productOwner.shortId);              
               setFilterApplied(false);
             }
             setDivisions(divisions);
@@ -185,7 +185,7 @@ const ReportsFilter = ({
             const userPreference = res[0];
             const savedSubDivisionsList: ISubDivisionSolution[] = [];
             const filterPreferences = userPreference.filterPreferences;
-            if (!portfolioFilterValues.current) {
+            // if (!portfolioFilterValues.current) {
               queryParams.agileReleaseTrains = filterPreferences.arts?.map((art: IART) => {
                 return art.name;
               });
@@ -201,18 +201,22 @@ const ReportsFilter = ({
                 return subdivision.id;
               });
               queryParams.departments = departments
-                ?.filter((item: any) => filterPreferences.departments.indexOf(item.name) > -1)
-                ?.map((item) => item.name) as any;
+                ?.filter((item: any) => filterPreferences.departments.includes(item.name))
+                ?.map((item) => item.name) as any || [];
               queryParams.agileReleaseTrains = filterPreferences.arts?.map((art: IART) => art.name);
-              queryParams.processOwners = filterPreferences.processOwners as any;
+              queryParams.processOwners = processOwners
+                ?.filter((item: any) => filterPreferences.processOwners.includes(item.shortId))
+                ?.map((item) => item.shortId) as any || [];
               // queryParams.productOwners = filterPreferences.productOwners as any;
               // populate subDivision dropdown values
-              ApiClient.getSubDivisionsData(filterPreferences.divisions).then((subDivisionsList) => {
-                setSubDivisions(subDivisionsList);
-                SelectBox.defaultSetup();
-              });
-              setFilterApplied(true);
-            }
+              if (!portfolioFilterValues.current) {
+                ApiClient.getSubDivisionsData(filterPreferences.divisions).then((subDivisionsList) => {
+                  setSubDivisions(subDivisionsList);
+                  SelectBox.defaultSetup();
+                });
+                setFilterApplied(true);
+              }
+            //}
             userPreferenceDataId = userPreference.id;
           }
 
@@ -296,7 +300,7 @@ const ReportsFilter = ({
       setPortfolioFilterValuesInSession(queryParams);
       getReportsByQueryParams(queryParams);
       // if (filterName === 'division') SelectBox.defaultSetup(true);
-      trackEvent(`All Reports`, 'Filter Chart Data', 'From Filter Panel - ' + filterName);
+      trackEvent(`All Reports`, 'Filter Reports List', 'From Filter Panel - ' + filterName);
     }
   };
 
@@ -418,7 +422,6 @@ const ReportsFilter = ({
 
   const getReportsByQueryParams = (filterQueryParams: IReportFilterParams) => {
     const queryParams: IReportFilterParams = { ...filterQueryParams };
-
     if (queryParams.division?.length === 0) {
       queryParams.division = [];
       queryParams.subDivision = [];
@@ -437,12 +440,11 @@ const ReportsFilter = ({
     if (queryParams.departments?.length === departments?.length) {
       queryParams.departments = [];
     }
-    if (queryParams.processOwners?.length === processOwners?.length) {
-      queryParams.processOwners = [];
-    }
+    
     if (queryParams.productOwners?.length === productOwners?.length) {
       queryParams.productOwners = [];
     }
+
     typeof getFilterQueryParams === 'function' && getFilterQueryParams(queryParams);
   };
 
@@ -516,8 +518,8 @@ const ReportsFilter = ({
     newQueryParams.division = divisions?.map((division: IDivision) => {
       return division.id;
     });
-    newQueryParams.processOwners = processOwners?.map((processOwner: ITeams) => processOwner.shortId);
-    newQueryParams.productOwners = productOwners?.map((productOwner: ITeams) => productOwner.shortId);
+    newQueryParams.processOwners = [];
+    // newQueryParams.productOwners = productOwners?.map((productOwner: ITeams) => productOwner.shortId);
 
     ApiClient.getSubDivisionsData(divisions).then((subDivisionsList) => {
       const subDivisionsToReset = [].concat(...subDivisionsList);
