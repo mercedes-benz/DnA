@@ -326,12 +326,7 @@ public class DataProductAssembler implements GenericAssembler<DataProductVO, Dat
 //					contactInformation.setProductOwner(productOwner);
 					contactInformation.setName(toTeamMemberJson(dataProductContactInformationVO.getName()));					
 					contactInformation.setInformationOwner(toTeamMemberJson(dataProductContactInformationVO.getInformationOwner()));
-					if(Objects.nonNull(dataProductContactInformationVO.getProductOwner())) {
-						toTeamMemberJson(dataProductContactInformationVO.getProductOwner());
-					}
-					else {
-						contactInformation.setProductOwner(null);
-					}
+					contactInformation.setProductOwner(toTeamMemberJson(dataProductContactInformationVO.getProductOwner()));					
 					dataProduct.setContactInformation(contactInformation);
 				}
 
