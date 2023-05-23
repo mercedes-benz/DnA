@@ -349,7 +349,7 @@ public class DataikuServiceImpl implements DataikuService	{
 			CollaboratorDetailsDto ownerAsAdminCollab = new CollaboratorDetailsDto();
 			ownerAsAdminCollab.setGivenName(ownerDetails.getData().getGivenName());
 			ownerAsAdminCollab.setPermission("administrator");
-			ownerAsAdminCollab.setSurName(ownerDetails.getData().getProfile());
+			ownerAsAdminCollab.setSurName(ownerDetails.getData().getSurName());
 			ownerAsAdminCollab.setUserId(ownerDetails.getData().getUserId());
 			projectCollaborators.add(ownerAsAdminCollab);
 			requestDto.setCollaborators(projectCollaborators);
