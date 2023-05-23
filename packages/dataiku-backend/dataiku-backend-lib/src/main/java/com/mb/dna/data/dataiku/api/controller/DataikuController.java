@@ -4,6 +4,9 @@ import static io.micronaut.http.MediaType.APPLICATION_JSON;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -102,21 +105,36 @@ public class DataikuController {
 				}
 			}
 		}
+        
 		String projectName = requestedData.getProjectName();
+		String cloudProfile = requestedData.getCloudProfile();
+		Pattern pattern = Pattern.compile("[^a-zA-Z0-9]");
+        Matcher matcher = pattern.matcher(projectName);
+        boolean isNameWithSpecialCharacters = matcher.find();
 		if(projectName==null || projectName.isBlank() || projectName.isEmpty() || "".equalsIgnoreCase(projectName)
-				|| projectName.length()>22) {
-			MessageDescription errMsg = new MessageDescription("Bad request. Project name should be non null value of length less than 22.");
-			log.error("Bad request. Project name {} should be non null and should be less than 22 characters.", projectName);
+				|| projectName.length()>22 || isNameWithSpecialCharacters) {
+			MessageDescription errMsg = new MessageDescription("Bad request. Project name should be non null value of length less than 22 without any special characters.");
+			log.error("Bad request. Project name {} should not be empty, or having any special character and should not exceed more than 22 characters.", projectName);
 			errors.add(errMsg);
 			responseMsg.setErrors(errors);
 			responseMsg.setWarnings(warnings);
 			responseDto.setResponse(responseMsg);
 			return Response.status(Status.BAD_REQUEST).entity(responseDto).build();
 		}
-		DataikuProjectDto existingDataikuProject = service.getByProjectName(projectName);
-		if(existingDataikuProject!=null && projectName.equalsIgnoreCase(existingDataikuProject.getProjectName())){
+		DataikuProjectDto existingDataikuProject = service.getByProjectName(projectName,cloudProfile);
+		if(existingDataikuProject!=null && projectName.equalsIgnoreCase(existingDataikuProject.getProjectName())) {
 			MessageDescription errMsg = new MessageDescription("Conflict. Project with name " + projectName + " already exists");
-			log.error("Conflict. Project with name {} already exists", projectName);
+			log.error("Conflict. Project with name {} already exists with cloudprofile {} ", projectName, cloudProfile);
+			errors.add(errMsg);
+			responseMsg.setErrors(errors);
+			responseMsg.setWarnings(warnings);
+			responseDto.setResponse(responseMsg);
+			return Response.status(Status.CONFLICT).entity(responseDto).build();
+		}
+		boolean isExisting = service.checkExistingProject(projectName, cloudProfile);
+		if(isExisting) {
+			MessageDescription errMsg = new MessageDescription("Conflict. Project with name " + projectName + " already exists");
+			log.error("Conflict. Project with name {} already exists at {} ", projectName, cloudProfile);
 			errors.add(errMsg);
 			responseMsg.setErrors(errors);
 			responseMsg.setWarnings(warnings);
@@ -170,7 +188,7 @@ public class DataikuController {
             @RequestBody(description = "Data to update dataiku project", required = true,
                     content = @Content(
                             schema = @Schema(implementation = DataikuProjectUpdateRequestDto.class))) DataikuProjectUpdateRequestDto request,
-            @Parameter(description = "The id of the dataiku project to be deleted", required = true) @PathParam("id") String id) {
+            @Parameter(description = "The id of the dataiku project to be updated", required = true) @PathParam("id") String id) {
 		DataikuProjectResponseDto responseDto = new DataikuProjectResponseDto();
 		responseDto.setData(null);
 		GenericMessage responseMsg = new GenericMessage();
@@ -180,10 +198,11 @@ public class DataikuController {
 		DataikuProjectDto existingDataikuProject = service.getById(id);
 		String userId = this.userStore.getUserInfo().getId();
 		if(existingDataikuProject!=null && id.equalsIgnoreCase(existingDataikuProject.getId())){
-			responseDto.setData(existingDataikuProject);
-			if(!userId.equalsIgnoreCase(existingDataikuProject.getCreatedBy())) {
-				MessageDescription errMsg = new MessageDescription("Forbidden, Project can only be deleted by creator");
-				log.error("Forbidden. Only creator of the project {} can delete. Current user {} and CreatedBy {}", id, userId,existingDataikuProject.getCreatedBy() );
+			List<CollaboratorDetailsDto> collabs = existingDataikuProject.getCollaborators();
+			Optional<CollaboratorDetailsDto> record = collabs.stream().filter(x-> userId.equalsIgnoreCase(x.getUserId()) && "Administrator".equalsIgnoreCase(x.getPermission())).findAny();
+	        if (!record.isPresent()) {
+				MessageDescription errMsg = new MessageDescription("Forbidden, can only be updated by user with Administrator access to the project");
+				log.error("Forbidden. Only user with Administrator access of the project {} can update details. Current user {} ", id, userId);
 				errors.add(errMsg);
 				responseMsg.setErrors(errors);
 				responseMsg.setWarnings(warnings);
@@ -220,9 +239,11 @@ public class DataikuController {
 		DataikuProjectDto existingDataikuProject = service.getById(id);
 		String userId = this.userStore.getUserInfo().getId();
 		if(existingDataikuProject!=null && id.equalsIgnoreCase(existingDataikuProject.getId())){
-			if(!userId.equalsIgnoreCase(existingDataikuProject.getCreatedBy())) {
+			List<CollaboratorDetailsDto> collabs = existingDataikuProject.getCollaborators();
+			Optional<CollaboratorDetailsDto> record = collabs.stream().filter(x-> userId.equalsIgnoreCase(x.getUserId()) && "Administrator".equalsIgnoreCase(x.getPermission())).findAny();
+	        if (!record.isPresent()) {
 				MessageDescription errMsg = new MessageDescription("Forbidden, Project can only be deleted by creator");
-				log.error("Forbidden. Only creator of the project {} can delete. Current user {} and CreatedBy {}", id, userId,existingDataikuProject.getCreatedBy() );
+				log.error("Forbidden. Only Users with Administrator access can delete the project {}. Current user {} ", id, userId);
 				errors.add(errMsg);
 				responseMsg.setErrors(errors);
 				responseMsg.setWarnings(warnings);
@@ -239,6 +260,52 @@ public class DataikuController {
 		responseMsg = service.deleteById(id,existingDataikuProject);
 		return Response.ok().entity(responseMsg).build();
 	}
+	
+	
+	@DELETE
+    @Path("/dataiku/{cloudprofile}/{projectname}")
+    @Operation(summary = "Delete dataiku project",
+            description = "Hard delete dataiku project details from the system")
+    @ApiResponse(responseCode = "200", description = "dataiku project deteled",
+    		content = @Content(mediaType = "application/json"
+            ,schema = @Schema(type="GenericMessage")))
+    @ApiResponse(responseCode = "400", description = "Invalid id supplied")
+    @ApiResponse(responseCode = "404", description = "User not found")
+	@Tag(name = "dataiku")
+    public Response deleteDataikuByCloudProfileAndProjectName(
+            @Parameter(description = "The cloudProfile of the dataiku project to be deleted", required = true) @PathParam("cloudprofile") String cloudprofile, 
+            @Parameter(description = "The name of the dataiku project to be deleted", required = true) @PathParam("projectname") String projectname) {
+		GenericMessage responseMsg = new GenericMessage();
+		responseMsg.setSuccess("FAILED");
+		List<MessageDescription> errors = new ArrayList<>();
+		List<MessageDescription> warnings = new ArrayList<>();
+		cloudprofile = "eXtollo".equalsIgnoreCase(cloudprofile) ? cloudprofile : "onPremise";
+		DataikuProjectDto existingDataikuProject = service.getByProjectName(projectname, cloudprofile);
+		String userId = this.userStore.getUserInfo().getId();
+		if(existingDataikuProject!=null && projectname.equalsIgnoreCase(existingDataikuProject.getProjectName())){
+			List<CollaboratorDetailsDto> collabs = existingDataikuProject.getCollaborators();
+			Optional<CollaboratorDetailsDto> record = collabs.stream().filter(x-> userId.equalsIgnoreCase(x.getUserId()) && "Administrator".equalsIgnoreCase(x.getPermission())).findAny();
+	        if (!record.isPresent()) {
+				MessageDescription errMsg = new MessageDescription("Forbidden, Project can only be deleted by creator");
+				log.error("Forbidden. Only Users with Administrator access can delete the project {}. Current user {} ", projectname, userId);
+				errors.add(errMsg);
+				responseMsg.setErrors(errors);
+				responseMsg.setWarnings(warnings);
+				return Response.status(Status.FORBIDDEN).entity(responseMsg).build();
+			}
+		}else {
+			MessageDescription errMsg = new MessageDescription(" Project with name " + projectname + " does not exists");
+			log.error("Not Found. Project with name {} does not exists", projectname);
+			errors.add(errMsg);
+			responseMsg.setErrors(errors);
+			responseMsg.setWarnings(warnings);
+			return Response.status(Status.NOT_FOUND).entity(responseMsg).build();
+		}
+		String id = existingDataikuProject.getId();
+		responseMsg = service.deleteById(id,existingDataikuProject);
+		return Response.ok().entity(responseMsg).build();
+	}
+	
     
 	@GET
     @Path("/dataiku/{id}")
@@ -250,14 +317,44 @@ public class DataikuController {
     @ApiResponse(responseCode = "400", description = "Invalid id supplied")
     @ApiResponse(responseCode = "404", description = "User not found")
 	@Tag(name = "dataiku")
-    public Response fetchDataiku(
+    public Response fetchDataikuById(
             @Parameter(description = "The id of the dataiku project to be fetched", required = true) @PathParam("id") String id) {
 		String userId = this.userStore.getUserInfo().getId();
 		DataikuProjectDto data = service.getById(id);
 		if(data!=null && id.equalsIgnoreCase(data.getId())) {
 			CollaboratorDetailsDto collabUser = data.getCollaborators().stream().filter(collab -> userId.equalsIgnoreCase(collab.getUserId()))
 					  .findAny().orElse(null);
-			if(userId.equalsIgnoreCase(data.getCreatedBy()) || (collabUser!=null && userId.equalsIgnoreCase(collabUser.getUserId()))){
+			if(!(userId.equalsIgnoreCase(data.getCreatedBy()) || (collabUser!=null && userId.equalsIgnoreCase(collabUser.getUserId())))){
+				return Response.status(Status.FORBIDDEN).entity(null).build();
+			}
+		}else {
+			return Response.status(Status.NOT_FOUND).entity(null).build();
+		}
+		DataikuProjectResponseDto responseDto = new DataikuProjectResponseDto();
+		responseDto.setData(data);
+		return Response.ok().entity(responseDto).build();
+	}
+	
+	@GET
+    @Path("/dataiku/{cloudprofile}/{projectname}")
+    @Operation(summary = "get dataiku project",
+            description = "get dataiku project details from the system based on cloudprofile, projectname")
+    @ApiResponse(responseCode = "200", description = "dataiku project fetched",
+    		content = @Content(mediaType = "application/json"
+            ,schema = @Schema(type="DataikuProjectResponseDto")))
+    @ApiResponse(responseCode = "400", description = "Invalid id supplied")
+    @ApiResponse(responseCode = "404", description = "User not found")
+	@Tag(name = "dataiku")
+    public Response fetchDataikuByProjectName(
+    		@Parameter(description = "The cloudprofile of the dataiku details to be fetched", required = true) @PathParam("cloudprofile") String cloudprofile,
+            @Parameter(description = "The projectname of the dataiku details to be fetched", required = true) @PathParam("projectname") String projectname) {
+		String userId = this.userStore.getUserInfo().getId();
+		cloudprofile = "eXtollo".equalsIgnoreCase(cloudprofile) ? cloudprofile : "onPremise";
+		DataikuProjectDto data = service.getByProjectName(projectname, cloudprofile);
+		if(data!=null && projectname.equalsIgnoreCase(data.getProjectName())) {
+			CollaboratorDetailsDto collabUser = data.getCollaborators().stream().filter(collab -> userId.equalsIgnoreCase(collab.getUserId()))
+					  .findAny().orElse(null);
+			if(!(userId.equalsIgnoreCase(data.getCreatedBy()) || (collabUser!=null && userId.equalsIgnoreCase(collabUser.getUserId())))){
 				return Response.status(Status.FORBIDDEN).entity(null).build();
 			}
 		}else {
@@ -269,3 +366,4 @@ public class DataikuController {
 	}
 	
 }
+

@@ -42,7 +42,6 @@ import org.springframework.web.bind.annotation.RestController;
 import com.daimler.data.api.lov.LovApi;
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.db.entities.lov.AgileReleaseTrainSql;
-import com.daimler.data.db.entities.lov.CommonFunctionSql;
 import com.daimler.data.db.entities.lov.ConnectionTypeSql;
 import com.daimler.data.db.entities.lov.CustomerDepartmentSql;
 import com.daimler.data.db.entities.lov.DataClassificationSql;
@@ -59,7 +58,6 @@ import com.daimler.data.dto.lov.LovResponseVO;
 import com.daimler.data.dto.lov.LovUpdateRequestVO;
 import com.daimler.data.dto.lov.LovVOCollection;
 import com.daimler.data.service.lov.AgileReleaseTrainService;
-import com.daimler.data.service.lov.CommonFunctionService;
 import com.daimler.data.service.lov.ConnectionTypeService;
 import com.daimler.data.service.lov.CustomerDepartmentService;
 import com.daimler.data.service.lov.DataClassificationService;
@@ -112,9 +110,6 @@ public class LovController implements LovApi {
 	private StatusService statusService;
 
 	@Autowired
-	private CommonFunctionService commonFunctionService;
-
-	@Autowired
 	private AgileReleaseTrainService agileReleaseTrainService;
 
 	@Autowired
@@ -161,25 +156,6 @@ public class LovController implements LovApi {
 		entity.setName(lovRequestVO.getData().getName());
 		return customerDepartmentService.createLov(lovRequestVO, entity);
 
-	}
-
-	@Override
-	@ApiOperation(value = "Add a new common function.", nickname = "createCommonFunctionLov", notes = "Add a new non existing common function.", response = LovResponseVO.class, tags = {
-			"lov", })
-	@ApiResponses(value = {
-			@ApiResponse(code = 201, message = "Returns message of succes or failure ", response = LovResponseVO.class),
-			@ApiResponse(code = 400, message = "Bad Request", response = GenericMessage.class),
-			@ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
-			@ApiResponse(code = 403, message = "Request is not authorized."),
-			@ApiResponse(code = 405, message = "Method not allowed"),
-			@ApiResponse(code = 500, message = "Internal error") })
-	@RequestMapping(value = "/commonfunctions", produces = { "application/json" }, consumes = {
-			"application/json" }, method = RequestMethod.POST)
-	public ResponseEntity<LovResponseVO> createCommonFunctionLov(
-			@ApiParam(value = "Request Body that contains data required for creating a new common function.", required = true) @Valid @RequestBody LovRequestVO lovRequestVO) {
-		CommonFunctionSql entity = new CommonFunctionSql();
-		entity.setName(lovRequestVO.getData().getName());
-		return commonFunctionService.createLov(lovRequestVO, entity);
 	}
 
 	@Override
@@ -409,24 +385,6 @@ public class LovController implements LovApi {
 	}
 
 	@Override
-	@ApiOperation(value = "Delete the common function identified by given ID.", nickname = "deleteCommonFunctionLov", notes = "Delete the common function identified by given ID", response = GenericMessage.class, tags = {
-			"lov", })
-	@ApiResponses(value = {
-			@ApiResponse(code = 200, message = "Successfully deleted.", response = GenericMessage.class),
-			@ApiResponse(code = 400, message = "Bad request"),
-			@ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
-			@ApiResponse(code = 403, message = "Request is not authorized."),
-			@ApiResponse(code = 404, message = "Invalid id, record not found."),
-			@ApiResponse(code = 500, message = "Internal error") })
-	@RequestMapping(value = "/commonfunctions/{id}", produces = { "application/json" }, consumes = {
-			"application/json" }, method = RequestMethod.DELETE)
-	public ResponseEntity<GenericMessage> deleteCommonFunctionLov(
-			@ApiParam(value = "Id of the common function", required = true) @PathVariable("id") Long id) {
-		CommonFunctionSql entity = new CommonFunctionSql();
-		return commonFunctionService.deleteLov(id, ReportService.CATEGORY.COMMON_FUNCTION, entity);
-	}
-
-	@Override
 	@ApiOperation(value = "Delete the frontend technology identified by given ID.", nickname = "deleteFrontendTechnologyLov", notes = "Delete the frontend technology identified by given ID", response = GenericMessage.class, tags = {
 			"lov", })
 	@ApiResponses(value = {
@@ -641,23 +599,6 @@ public class LovController implements LovApi {
 	}
 
 	@Override
-	@ApiOperation(value = "Get all common function.", nickname = "getAllCommonFunctionLov", notes = "Get all common function. This endpoints will be used to Get all valid available common function.", response = LovVOCollection.class, tags = {
-			"lov", })
-	@ApiResponses(value = {
-			@ApiResponse(code = 201, message = "Returns message of succes or failure", response = LovVOCollection.class),
-			@ApiResponse(code = 204, message = "No content found."), @ApiResponse(code = 400, message = "Bad request."),
-			@ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
-			@ApiResponse(code = 403, message = "Request is not authorized."),
-			@ApiResponse(code = 405, message = "Method not allowed"),
-			@ApiResponse(code = 500, message = "Internal error") })
-	@RequestMapping(value = "/commonfunctions", produces = { "application/json" }, consumes = {
-			"application/json" }, method = RequestMethod.GET)
-	public ResponseEntity<LovVOCollection> getAllCommonFunctionLov(
-			@ApiParam(value = "Sort commonfunctions based on the given order, example asc,desc", allowableValues = "asc, desc") @Valid @RequestParam(value = "sortOrder", required = false) String sortOrder) {
-		return commonFunctionService.getAllLov(sortOrder);
-	}
-
-	@Override
 	@ApiOperation(value = "Get all frontend technology.", nickname = "getAllFrontEndTechnologyLov", notes = "Get all frontend technology. This endpoints will be used to get all valid available frontend technology.", response = LovVOCollection.class, tags = {
 			"lov", })
 	@ApiResponses(value = {
@@ -861,24 +802,6 @@ public class LovController implements LovApi {
 		CustomerDepartmentSql entity = new CustomerDepartmentSql();
 		BeanUtils.copyProperties(lovUpdateRequestVO.getData(), entity);
 		return customerDepartmentService.updateLov(lovUpdateRequestVO, entity, ReportService.CATEGORY.CUST_DEPARTMENT);
-	}
-
-	@Override
-	@ApiOperation(value = "Update the common function identified by given ID.", nickname = "updateCommonFunctionLov", notes = "Update the common function identified by given ID", response = LovResponseVO.class, tags = {
-			"lov", })
-	@ApiResponses(value = { @ApiResponse(code = 200, message = "Successfully updated.", response = LovResponseVO.class),
-			@ApiResponse(code = 400, message = "Bad request"),
-			@ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
-			@ApiResponse(code = 403, message = "Request is not authorized."),
-			@ApiResponse(code = 404, message = "Invalid id, record not found."),
-			@ApiResponse(code = 500, message = "Internal error") })
-	@RequestMapping(value = "/commonfunctions", produces = { "application/json" }, consumes = {
-			"application/json" }, method = RequestMethod.PUT)
-	public ResponseEntity<LovResponseVO> updateCommonFunctionLov(
-			@ApiParam(value = "Request Body that contains data required for updating common function.", required = true) @Valid @RequestBody LovUpdateRequestVO lovUpdateRequestVO) {
-		CommonFunctionSql entity = new CommonFunctionSql();
-		BeanUtils.copyProperties(lovUpdateRequestVO.getData(), entity);
-		return commonFunctionService.updateLov(lovUpdateRequestVO, entity, ReportService.CATEGORY.COMMON_FUNCTION);
 	}
 
 	@Override

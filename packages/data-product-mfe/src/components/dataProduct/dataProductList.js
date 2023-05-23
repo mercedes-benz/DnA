@@ -7,7 +7,7 @@ import { useDispatch, useSelector } from 'react-redux';
 // import from DNA Container
 import Pagination from 'dna-container/Pagination';
 import HeadingSection from 'dna-container/HeadingSection';
-import TagSection from 'dna-container/TagSection';
+// import TagSection from 'dna-container/TagSection';
 import DataProductFilter from 'dna-container/DataProductFilter';
 
 import { setDataProductList, setPagination } from './redux/dataProductSlice';
@@ -60,21 +60,23 @@ const DataProductList = ({ user, history }) => {
     );
   };
 
-  const [openFilters, setOpenFilters]  = useState(false);
+  // const [openFilters, setOpenFilters]  = useState(false);
+  const [openFilters]  = useState(false);
 
   const [tagValues, setTagValues] = useState([]);
   // const [tagFilterValues, setTagFilterValues] = useState([]);
-  const [selectedTags, setSelectedTags] = useState([]);
-  const [selectedTagsToPass, setSelectedTagsToPass] = useState([]);
-  const setSelectedFilter = (values) => {
-    setSelectedTags(values);
-    setSelectedTagsToPass(values);
-  }
+  // const [selectedTags, setSelectedTags] = useState([]);
+  const [, setSelectedTags] = useState([]);
+  const [selectedTagsToPass] = useState([]);
+  // const setSelectedFilter = (values) => {
+  //   setSelectedTags(values);
+  //   setSelectedTagsToPass(values);
+  // }
 
-  useEffect(() => {
-    dispatch(GetDataProducts(`&carlafunction=`+selectedTagsToPass.join(',')));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedTagsToPass]);
+  // useEffect(() => {
+  //   dispatch(GetDataProducts(`&carlafunction=`+selectedTagsToPass.join(',')));
+  //   // eslint-disable-next-line react-hooks/exhaustive-deps
+  // }, [selectedTagsToPass]);
 
   useEffect(() => {
     dataProductApi.getAllCarlaFunctions().then((res) => {
@@ -82,19 +84,36 @@ const DataProductList = ({ user, history }) => {
     }).catch((err) => {
       console.log(err);
     });
+    if (sessionStorage.getItem('listViewModeEnable') == null) {
+      setCardViewModeFn();
+    } else {
+      setListViewModeFn();
+    }
   }, []);
 
   const [allDataProductsFirstTimeDataLoaded, setAllDataProductsFirstTimeDataLoaded] = useState(false);
 
   console.log(setAllDataProductsFirstTimeDataLoaded);
 
-  const getFilteredSolutions = (queryParams) => {
-    dispatch(GetDataProducts(queryParams));
-  }
+  // const getFilteredSolutions = (queryParams) => {
+  //   dispatch(GetDataProducts(queryParams));
+  // }
 
   const [showDataProductsFilter] = useState(false);
 
   // setShowDataProductsFilter(false);
+
+  const setCardViewModeFn = () => {
+    setCardViewMode(true);
+    setListViewMode(false);
+    sessionStorage.removeItem('listViewModeEnable');
+  };
+
+  const setListViewModeFn = () => {
+    setCardViewMode(false);
+    setListViewMode(true);
+    sessionStorage.setItem('listViewModeEnable',true)
+  };
 
   return (
     <>
@@ -109,16 +128,16 @@ const DataProductList = ({ user, history }) => {
       <div className={classNames(Styles.mainPanel)}>
         <div className={classNames(Styles.wrapper)}>
           <div className={classNames(Styles.caption)}>
-            <div>
+            <h3>Data Products</h3>
+            {/* <div>
               <TagSection tags={tagValues.map(item=>item.name)} selectedTags={selectedTags} setSeletedTags={setSelectedFilter}></TagSection>
-            </div>
+            </div> */}
             <div className={classNames(Styles.listHeader)}>
               <div tooltip-data="Card View">
                 <span
                   className={cardViewMode ? Styles.iconactive : Styles.iconInActive}
                   onClick={() => {
-                    setCardViewMode(true);
-                    setListViewMode(false);
+                    setCardViewModeFn();
                   }}
                 >
                   <i className="icon mbc-icon widgets" />
@@ -129,14 +148,13 @@ const DataProductList = ({ user, history }) => {
                 <span
                   className={listViewMode ? Styles.iconactive : Styles.iconInActive}
                   onClick={() => {
-                    setCardViewMode(false);
-                    setListViewMode(true);
+                    setListViewModeFn();
                   }}
                 >
                   <i className="icon mbc-icon listview big" />
                 </span>
               </div>
-              <span className={Styles.dividerLine}> &nbsp; </span>
+              {/* <span className={Styles.dividerLine}> &nbsp; </span>
               <div tooltip-data="Filters">
                 <span
                   className={openFilters ? Styles.activeFilters : ''}
@@ -144,13 +162,14 @@ const DataProductList = ({ user, history }) => {
                 >
                   <i className="icon mbc-icon filter big" />
                 </span>
-            </div>
+            </div> */}
           </div>
           </div>
           <DataProductFilter
-            getFilterQueryParams={(queryParams) =>
-              getFilteredSolutions(queryParams)
-            }
+            user={user}
+            // getFilterQueryParams={(queryParams) =>
+            //   getFilteredSolutions(queryParams)
+            // }
             dataProductsDataLoaded={true}
             setDataProductsDataLoaded={(value) => allDataProductsFirstTimeDataLoaded(value)}
             showDataProductsFilter={showDataProductsFilter}

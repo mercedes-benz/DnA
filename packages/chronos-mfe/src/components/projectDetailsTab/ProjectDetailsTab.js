@@ -12,6 +12,7 @@ import ChronosAccessDetails from '../chronosAccessDetails/ChronosAccessDetails';
 // utils
 import { regionalDateAndTimeConversionSolution } from '../../utilities/utils';
 import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indicator';
+import Notification from '../../common/modules/uilab/js/src/notification';
 import { chronosApi } from '../../apis/chronos.api';
 import Spinner from '../spinner/Spinner';
 import InputFiles from '../inputFiles/InputFiles';
@@ -63,7 +64,7 @@ const ProjectDetailsTab = () => {
     );
   });
 
-    const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [inputFileToBeDeleted, setInputFileToBeDeleted] = useState();
 
   const showDeleteConfirmModal = (inputFile) => {
@@ -74,27 +75,20 @@ const ProjectDetailsTab = () => {
     setShowDeleteModal(false);
   };
   const onAcceptDelete = () => {
-    // TODO for input file delete
-    console.log(inputFileToBeDeleted.id);
-    // if(inputFileToBeDeleted.id !== '' || inputFileToBeDeleted.id !== null) {
-    //   ProgressIndicator.show();
-    //   chronosApi.deleteForecastRun(projectId, inputFileToBeDeleted.id).then((res) => {
-    //     if(res.data.success === 'FAILED') {
-    //       Notification.show(res?.data?.erros[0]?.message, 'alert');
-    //       ProgressIndicator.hide();
-    //     } else {
-    //       Notification.show('Run deleted');
-    //       ProgressIndicator.hide();
-    //       // getProjectForecastRuns();
-    //     }
-    //   }).catch(error => {
-    //     Notification.show(
-    //       error?.response?.data?.response?.errors[0]?.message || error?.response?.data?.response?.warnings[0]?.message || error?.response?.data?.errors[0]?.message || 'Error while creating forecast project',
-    //       'alert',
-    //     );
-    //     ProgressIndicator.hide();
-    //   });
-    // }
+    if(inputFileToBeDeleted !== '' || inputFileToBeDeleted !== null) {
+      ProgressIndicator.show();
+      chronosApi.deleteSavedInputFile(projectId, inputFileToBeDeleted).then(() => {
+        Notification.show('Saved input file deleted');
+        getProjectById();
+        ProgressIndicator.hide();
+      }).catch(error => {
+        Notification.show(
+          error?.response?.data?.response?.errors[0]?.message || error?.response?.data?.response?.warnings[0]?.message || error?.response?.data?.errors[0]?.message || 'Error while deleting saved input file',
+          'alert',
+        );
+        ProgressIndicator.hide();
+      });
+    }
     setShowDeleteModal(false);
   }
 

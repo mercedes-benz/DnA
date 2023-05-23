@@ -30,11 +30,24 @@ package com.daimler.data.db.repo.datatransfer;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import javax.persistence.Query;
+import javax.persistence.TypedQuery;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Root;
+import javax.transaction.Transactional;
 
+import com.daimler.data.controller.exceptions.GenericMessage;
+import com.daimler.data.controller.exceptions.MessageDescription;
+import com.daimler.data.db.entities.CarlaFunctionNsql;
+import com.daimler.data.db.entities.DataProductNsql;
+import com.daimler.data.dto.userinfo.dashboard.DashboardServiceLovDto;
+import com.daimler.data.dto.userinfo.dashboard.GetDashboardServiceLovResponseWrapperDto;
+import com.daimler.data.util.ConstantsUtility;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Repository;
@@ -259,5 +272,91 @@ public class DataTransferCustomRepositoryImpl extends CommonDataRepositoryImpl<D
 			}
 		}
 		return dataTransferNsqls;				
+	}
+
+	@Transactional
+	@Override
+	public GenericMessage updateDataTransferData() {
+		GenericMessage genericMessage = new GenericMessage();
+		List<MessageDescription> errors = new ArrayList<>();
+		try {
+			CriteriaBuilder cb = em.getCriteriaBuilder();
+			CriteriaQuery<DataTransferNsql> cq = cb.createQuery(DataTransferNsql.class);
+			Root<DataTransferNsql> root = cq.from(DataTransferNsql.class);
+			TypedQuery<DataTransferNsql> typedQuery = em.createQuery(cq);
+			List<DataTransferNsql> datatransferResults = typedQuery.getResultList();
+
+			if (datatransferResults != null && !datatransferResults.isEmpty()) {
+				for (DataTransferNsql entity : datatransferResults) {
+
+					if (entity.getData() != null) {
+						// Below condition is used for setting up the values of contactAwareTransfer as false for personal related data of provider information.
+						if (entity.getData().getProviderInformation() != null && entity.getData().getProviderInformation().getPersonalRelatedData() != null) {
+							if (entity.getData().getProviderInformation().getPersonalRelatedData().isPersonalRelatedData()) {
+								if (!entity.getData().getProviderInformation().getPersonalRelatedData().isContactAwareTransfer()) {
+									entity.getData().getProviderInformation().getPersonalRelatedData().setContactAwareTransfer(false);
+									entity.getData().getProviderInformation().setLastModifiedDate(new Date());
+									try {
+										em.merge(entity);
+									} catch (Exception e) {
+										MessageDescription errMsg = new MessageDescription("failed to update the getPersonalRelatedData for datatransfer id: " + entity.getId() + " with an Exception " + e.getMessage());
+										errors.add(errMsg);
+										LOGGER.error(errMsg.getMessage());
+									}
+								}
+							}
+						}
+
+						// Below condition is used for setting up the values of contactAwareTransfer as false for personal related data of consumer information.
+						if (entity.getData().getConsumerInformation() != null && entity.getData().getConsumerInformation().getPersonalRelatedData() != null) {
+							if (entity.getData().getConsumerInformation().getPersonalRelatedData().isPersonalRelatedData()) {
+								if (!entity.getData().getConsumerInformation().getPersonalRelatedData().isContactAwareTransfer()) {
+									entity.getData().getConsumerInformation().getPersonalRelatedData().setContactAwareTransfer(false);
+									entity.getData().getConsumerInformation().setLastModifiedDate(new Date());
+									try {
+										em.merge(entity);
+									} catch (Exception e) {
+										MessageDescription errMsg = new MessageDescription("failed to update the getPersonalRelatedData for datatransfer id: " + entity.getId() + " with an Exception " + e.getMessage());
+										errors.add(errMsg);
+										LOGGER.error(errMsg.getMessage());
+									}
+								}
+							}
+						}
+
+						// Below condition is used for setting up the values of contactAwareTransfer as false for personal related data of provider information.
+						if (entity.getData().getProviderInformation() != null && entity.getData().getProviderInformation().getTransnationalDataTransfer() != null) {
+							if (entity.getData().getProviderInformation().getTransnationalDataTransfer().isDataTransferred()) {
+								if (entity.getData().getProviderInformation().getTransnationalDataTransfer().isNotWithinEU()) {
+									if (!entity.getData().getProviderInformation().getTransnationalDataTransfer().isContactAwareTransfer()) {
+										entity.getData().getProviderInformation().getTransnationalDataTransfer().setContactAwareTransfer(false);
+										entity.getData().getProviderInformation().setLastModifiedDate(new Date());
+										try {
+											em.merge(entity);
+										} catch (Exception e) {
+											MessageDescription errMsg = new MessageDescription("failed to update the getTransnationalDataTransfer for datatransfer id: " + entity.getId() + " with an Exception " + e.getMessage());
+											errors.add(errMsg);
+											LOGGER.error(errMsg.getMessage());
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		} catch (Exception e) {
+			MessageDescription errMsg = new MessageDescription("Failed to update the data of datatransfer with an exception " + e.getMessage());
+			errors.add(errMsg);
+			LOGGER.error(errMsg.getMessage());
+		}
+		genericMessage.setErrors(errors);
+		if (errors.size() > 0) {
+			genericMessage.setSuccess(ConstantsUtility.FAILURE);
+			return genericMessage;
+		} else {
+			genericMessage.setSuccess(ConstantsUtility.SUCCESS);
+		}
+		return genericMessage;
 	}
 }

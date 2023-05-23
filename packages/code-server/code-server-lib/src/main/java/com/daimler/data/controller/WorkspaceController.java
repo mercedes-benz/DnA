@@ -48,8 +48,11 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.daimler.data.api.workspace.CodeServerApi;
 import com.daimler.data.application.auth.UserStore;
+import com.daimler.data.application.client.GitClient;
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
+import com.daimler.data.db.entities.CodeServerWorkspaceNsql;
+import com.daimler.data.db.repo.workspace.WorkspaceCustomRepository;
 import com.daimler.data.dto.workspace.CodeServerRecipeDetailsVO.CloudServiceProviderEnum;
 import com.daimler.data.dto.workspace.CodeServerRecipeDetailsVO.CpuCapacityEnum;
 import com.daimler.data.dto.workspace.CodeServerRecipeDetailsVO.EnvironmentEnum;
@@ -76,7 +79,9 @@ public class WorkspaceController  implements CodeServerApi{
 
 	@Autowired
 	private UserStore userStore;
-
+	
+	@Autowired
+	private GitClient gitClient;	
 
 	@Override
 	@ApiOperation(value = "remove collaborator from workspace project for a given Id.", nickname = "removeCollab", notes = "remove collaborator from workspace project for a given identifier.", response = CodeServerWorkspaceVO.class, tags={ "code-server", })
@@ -391,6 +396,17 @@ public class WorkspaceController  implements CodeServerApi{
 			responseMessage.setSuccess("EXISTING");
 			log.info("workspace {} already exists for User {} ",reqVO.getProjectDetails().getProjectName() , userId);
 			return new ResponseEntity<>(responseMessage, HttpStatus.CONFLICT);
+		}		
+		if(reqVO.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public")){
+			String publicUrl = reqVO.getProjectDetails().getRecipeDetails().getRepodetails();
+			if("".equals(publicUrl) || publicUrl == null) {
+				List<MessageDescription> errorMessage = new ArrayList<>();
+				MessageDescription msg = new MessageDescription();
+				msg.setMessage("No Repodetails found for given public recipe");
+				errorMessage.add(msg);
+				responseMessage.setErrors(errorMessage);
+				return new ResponseEntity<>(responseMessage, HttpStatus.BAD_REQUEST);
+			}
 		}
 		currentUserVO.setGitUserName(reqVO.getGitUserName());
 		reqVO.setWorkspaceOwner(currentUserVO);
@@ -407,9 +423,11 @@ public class WorkspaceController  implements CodeServerApi{
 		newRecipeVO.setCpuCapacity(CpuCapacityEnum._1);
 		newRecipeVO.setEnvironment(EnvironmentEnum.DEVELOPMENT);
 		newRecipeVO.setOperatingSystem(OperatingSystemEnum.DEBIAN_OS_11);
+		newRecipeVO.setRecipeId(reqVO.getProjectDetails().getRecipeDetails().getRecipeId());
+		newRecipeVO.setRepodetails(reqVO.getProjectDetails().getRecipeDetails().getRepodetails());
 		newRecipeVO.setRamSize(RamSizeEnum._1);
 		reqVO.getProjectDetails().setRecipeDetails(newRecipeVO);
-		responseMessage = service.createWorkspace(reqVO,pat,password);
+		responseMessage = service.createWorkspace(reqVO,pat,password);		
 		if("SUCCESS".equalsIgnoreCase(responseMessage.getSuccess())) {
 			responseStatus = HttpStatus.CREATED;
 			log.info("User {} created workspace {}", userId,reqVO.getProjectDetails().getProjectName());
@@ -549,7 +567,9 @@ public class WorkspaceController  implements CodeServerApi{
 				branch = deployRequestDto.getBranch();
 			}
 			GenericMessage responseMsg = service.deployWorkspace(userId, id, environment, branch);
-			log.info("User {} deployed workspace {} project {}", userId,vo.getWorkspaceId(),vo.getProjectDetails().getRecipeDetails().getRecipeId().name());
+			if(!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public")) {
+				log.info("User {} deployed workspace {} project {}", userId,vo.getWorkspaceId(),vo.getProjectDetails().getRecipeDetails().getRecipeId().name());
+			}			
 			return new ResponseEntity<>(responseMsg, HttpStatus.OK);
 		} catch (EntityNotFoundException e) {
 			log.error(e.getLocalizedMessage());
@@ -630,7 +650,9 @@ public class WorkspaceController  implements CodeServerApi{
 				branch = deployRequestDto.getBranch();
 			}
 			GenericMessage responseMsg = service.undeployWorkspace(userId, id, environment, branch);
-			log.info("User {} undeployed workspace {} project {}", userId,vo.getWorkspaceId(),vo.getProjectDetails().getRecipeDetails().getRecipeId().name());
+			if(!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public")) {
+				log.info("User {} undeployed workspace {} project {}", userId,vo.getWorkspaceId(),vo.getProjectDetails().getRecipeDetails().getRecipeId().name());
+			}		
 			return new ResponseEntity<>(responseMsg, HttpStatus.OK);
 		} catch (EntityNotFoundException e) {
 			log.error(e.getLocalizedMessage());
@@ -671,6 +693,7 @@ public class WorkspaceController  implements CodeServerApi{
 		if(limit==null) {
 			limit = 0;
 		}
+		 
     	final List<CodeServerWorkspaceVO> workspaces = service.getAll(userId,offset,limit);
     	WorkspaceCollectionVO collection = new WorkspaceCollectionVO();
     	collection.setTotalCount(service.getCount(userId));
