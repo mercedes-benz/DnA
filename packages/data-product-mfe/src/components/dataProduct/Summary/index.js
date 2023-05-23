@@ -14,7 +14,7 @@ import DataTranferCardLayout from '../../dataTransfer/Layout/CardView/DataTransf
 
 import { setSelectedDataProduct, setDivisionList, resetDataTransferList } from '../redux/dataProductSlice';
 
-import { isValidURL, regionalDateFormat } from '../../../Utility/utils';
+import { isValidURL } from '../../../Utility/utils';
 
 import InfoModal from 'dna-container/InfoModal';
 import Modal from 'dna-container/Modal';
@@ -258,6 +258,17 @@ const Summary = ({ history, user }) => {
     });
   };
 
+  const tagChips =
+      selectedDataProduct?.tags && selectedDataProduct?.tags?.length
+        ? selectedDataProduct?.tags?.map((chip, index) => {
+            return (
+              <div className="chips read-only" key={index}>
+                <label className="name">{chip}</label>
+              </div>
+            );
+          })
+        : 'N.A';
+
   return (
     <div className="dataproductSummary">
       <div id="mainPanel" className={Styles.mainPanel}>
@@ -402,12 +413,22 @@ const Summary = ({ history, user }) => {
                         <br />
                         {isURL(selectedDataProduct?.oneApi) || '-'}
                       </div>
-                    </div>
-                    <div className={Styles.flexLayout}>
+                      <div id="tags">
+                        <label className="input-label summary">Tags</label>
+                          <br />
+                          <div className={Styles.tagColumn}>
+                            {tagChips}
+                          </div>                          
+                      </div>
                       <div>
                         <label className="input-label summary">Data Product Description</label>
                         <br />
                         {selectedDataProduct.description}
+                      </div>
+                      <div>
+                        <label className="input-label summary">Data Product Additional Information</label>
+                        <br />
+                        {selectedDataProduct?.additionalInformation || '-'}
                       </div>
                     </div>
                   </div>
@@ -428,9 +449,11 @@ const Summary = ({ history, user }) => {
                           {selectedDataProduct.informationOwner?.lastName}
                         </div>
                         <div>
-                          <label className="input-label summary">Publish Date of Data Product</label>
+                          <label className="input-label summary">Product Owner</label>
                           <br />
-                          {regionalDateFormat(selectedDataProduct.dateOfDataProduct)}
+                          {selectedDataProduct.productOwner?  
+                            selectedDataProduct.productOwner?.firstName+' '+selectedDataProduct.productOwner?.lastName
+                          : 'N.A'}
                         </div>
                         <div>
                           <label className="input-label summary">Point of contact for data transfer</label>

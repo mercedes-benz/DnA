@@ -130,7 +130,8 @@ public class DataikuServiceImpl implements DataikuService	{
 				DataikuUserDto tempUserDetails = dataikuClient.getDataikuUser(record.getUserId().toUpperCase(),cloudProfile);
 				if(tempUserDetails!=null) {
 					List<String> currentGroups = tempUserDetails.getGroups();
-					currentGroups.removeIf(n->n.contains(consolidatedPrefix));
+					if(currentGroups!=null && !currentGroups.isEmpty()) 
+						currentGroups.removeIf(n->n.contains(consolidatedPrefix));
 					tempUserDetails.setGroups(currentGroups);
 					MessageDescription UpdateTempCollabErrMsg = dataikuClient.updateUser(tempUserDetails,cloudProfile);
 					if(UpdateTempCollabErrMsg!=null) {
@@ -168,7 +169,8 @@ public class DataikuServiceImpl implements DataikuService	{
 						}
 					}else {
 						List<String> currentGroups = tempCollabUserDetails.getGroups();
-						currentGroups.removeIf(n->n.contains(consolidatedPrefix));
+						if(currentGroups!=null && !currentGroups.isEmpty()) 
+							currentGroups.removeIf(n->n.contains(consolidatedPrefix));
 						currentGroups.add(groupName);
 						MessageDescription UpdateTempCollabErrMsg = dataikuClient.updateUser(tempCollabUserDetails,cloudProfile);
 						if(UpdateTempCollabErrMsg!=null) {
@@ -178,10 +180,19 @@ public class DataikuServiceImpl implements DataikuService	{
 				});
 			}
 			List<CollaboratorSql> updatedCollabs =  currentCollabs.stream().map(n -> assembler.toCollaboratorsData(n,id)).collect(Collectors.toList());
+			existingRecord.setStatus(updateData.getStatus());
+			existingRecord.setClassificationType(updateData.getClassificationType());
+			existingRecord.setHasPii(updateData.getHasPii());
+			existingRecord.setDivisionId(updateData.getDivisionId());
+			existingRecord.setDivisionName(updateData.getDivisionName());
+			existingRecord.setSubdivisionId(updateData.getSubdivisionId());
+			existingRecord.setSubdivisionName(updateData.getSubdivisionName());
+			existingRecord.setDepartment(updateData.getDepartment());
 			DataikuSql entity = assembler.toEntity(existingRecord);
 			entity.setCollaborators(updatedCollabs);
 			dataikuRepo.update(entity);
 			responseMessage.setSuccess("SUCCESS");
+			
 		}catch(Exception e) {
 			log.error("Failed to update dataiku project {} with exception {}", existingRecord.getProjectName(), e.getMessage());
 			MessageDescription errMsg = new MessageDescription("Failed to save new dataiku project " + existingRecord.getProjectName() 
@@ -335,6 +346,14 @@ public class DataikuServiceImpl implements DataikuService	{
 					}
 				}
 			}
+			CollaboratorDetailsDto ownerAsAdminCollab = new CollaboratorDetailsDto();
+			ownerAsAdminCollab.setGivenName(ownerDetails.getData().getGivenName());
+			ownerAsAdminCollab.setPermission("administrator");
+			ownerAsAdminCollab.setSurName(ownerDetails.getData().getProfile());
+			ownerAsAdminCollab.setUserId(ownerDetails.getData().getUserId());
+			projectCollaborators.add(ownerAsAdminCollab);
+			requestDto.setCollaborators(projectCollaborators);
+			
 			DataikuSql entity = new DataikuSql();
 			requestDto.setCreatedBy(userId);
 			requestDto.setCreatedOn(new Date());
@@ -366,7 +385,7 @@ public class DataikuServiceImpl implements DataikuService	{
 		List<MessageDescription> warnings = new ArrayList<>();
 		try {
 			List<String> users = new ArrayList<>();
-			users.add(existingDto.getCreatedBy());
+			//createdby is also listed in collaborators. this is not required. users.add(existingDto.getCreatedBy());
 			List<CollaboratorDetailsDto> collaborators = existingDto.getCollaborators();
 			String envPrefix = dataikuClientConfig.getEnvironmentProfile();
 			String cloudProfile = existingDto.getCloudProfile();
@@ -385,7 +404,8 @@ public class DataikuServiceImpl implements DataikuService	{
 				DataikuUserDto tempUserDetails = dataikuClient.getDataikuUser(record.toUpperCase(),cloudProfile);
 				if(tempUserDetails!=null) {
 					List<String> currentGroups = tempUserDetails.getGroups();
-					currentGroups.removeIf(n->n.contains(consolidatedPrefix));
+					if(currentGroups!=null && !currentGroups.isEmpty()) 
+						currentGroups.removeIf(n->n.contains(consolidatedPrefix));
 					tempUserDetails.setGroups(currentGroups);
 					MessageDescription UpdateTempCollabErrMsg = dataikuClient.updateUser(tempUserDetails,cloudProfile);
 					if(UpdateTempCollabErrMsg!=null) {
