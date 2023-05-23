@@ -258,6 +258,17 @@ const Summary = ({ history, user }) => {
     });
   };
 
+  const tagChips =
+      selectedDataProduct.tags && selectedDataProduct.tags.length
+        ? selectedDataProduct.tags.map((chip, index) => {
+            return (
+              <div className="chips read-only" key={index}>
+                <label className="name">{chip}</label>
+              </div>
+            );
+          })
+        : 'N.A';
+
   return (
     <div className="dataproductSummary">
       <div id="mainPanel" className={Styles.mainPanel}>
@@ -407,7 +418,13 @@ const Summary = ({ history, user }) => {
                         <br />
                         {selectedDataProduct?.productOwner || 'N.A'}
                       </div>
-                      <div>&nbsp;</div>
+                      <div id="tags">
+                        <label className="input-label summary">Tags</label>
+                          <br />
+                          <div className={Styles.tagColumn}>
+                            {tagChips}
+                          </div>                          
+                      </div>
                       <div>&nbsp;</div>
                     </div>
                     <div className={Styles.flexLayout}>
@@ -440,6 +457,13 @@ const Summary = ({ history, user }) => {
                           <br />
                           {selectedDataProduct.informationOwner?.firstName}{' '}
                           {selectedDataProduct.informationOwner?.lastName}
+                        </div>
+                        <div>
+                          <label className="input-label summary">Product Owner</label>
+                          <br />
+                          {selectedDataProduct.productOwner?  
+                            selectedDataProduct.productOwner?.firstName+' '+selectedDataProduct.productOwner?.lastName
+                          : 'N.A'}
                         </div>
                         <div>
                           <label className="input-label summary">Point of contact for data transfer</label>
