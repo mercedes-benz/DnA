@@ -125,6 +125,7 @@ export const serializeFormData = ({ values, division, type = 'provider', isDataP
                   ),
                   platform: values.platform,
                   frontEndTools: values.frontEndTools,
+                  tags: values.tags,
                   ddx: values.ddx,
                   kafka: values.kafka,
                   oneApi: values.oneApi,
