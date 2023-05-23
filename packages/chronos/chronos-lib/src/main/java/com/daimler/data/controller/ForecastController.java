@@ -14,6 +14,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
 
 import com.daimler.data.dto.forecast.*;
 import org.apache.commons.io.FilenameUtils;
@@ -732,6 +733,9 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 		if(runVOList!= null && !runVOList.isEmpty()) {
 			for (RunVO run : runVOList) {
 				if (rid.equalsIgnoreCase(run.getId())) {
+					if(run.isIsDeleted()==true){
+						return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
+					}
 					notFound = true;
 					List<String> forecastProjectUsers = new ArrayList<>();
 					forecastProjectUsers.add(existingForecast.getCreatedBy().getId());
@@ -791,6 +795,9 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 		if(runVOList!= null && !runVOList.isEmpty()) {
 			for(RunVO run: runVOList) {
 				if(rid.equalsIgnoreCase(run.getId())) {
+					if(run.isIsDeleted()==true){
+						return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
+					}
 					notFound = true;
 					if(!user.equalsIgnoreCase(run.getTriggeredBy())) {
 						notAuthorized = false;
@@ -1053,7 +1060,13 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 		ForecastVO existingForecast = service.getById(id);
 		CreatedByVO requestUser = this.userStore.getVO();
 		String user = requestUser.getId();
+		SimpleDateFormat isoFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS+00:00");
 		Date createdOn = new Date();
+		try {
+			createdOn = isoFormat.parse(isoFormat.format(createdOn));
+		}catch(Exception e) {
+			log.warn("Failed to format createdOn date to ISO format");
+		}
 		comparisonName = comparisonName!= null && !"".equalsIgnoreCase(comparisonName) ? comparisonName :  ""; //ISOdate as comparisonname from createdOn
 		Boolean notAuthorized = false;
 		if(existingForecast==null || existingForecast.getId()==null) {
@@ -1121,7 +1134,7 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 					}
 				}
 			}catch(Exception e) {
-				//handle
+				log.error("Exception occurred:{} while creating comparison", e.getMessage());
 			}
 		}
 		String comparisionId = UUID.randomUUID().toString();
@@ -1153,10 +1166,16 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 			}
 			actualsFilePath = existingForecast.getBucketName() + targetFolder + "/" + actuals_filename;
 		}
-		targetFolder = existingForecast.getBucketName() + "/" + targetFolder;
+		targetFolder = existingForecast.getBucketName() +  targetFolder;
 		ForecastComparisonCreateResponseVO createComparisonResponse = service.createComparison(id,existingForecast,validRunsPath,comparisionId,comparisonName,actualsFilePath,targetFolder
 				,createdOn, requestUser.getId());
-		return null;
+		if(createComparisonResponse!= null && "SUCCESS".equalsIgnoreCase(createComparisonResponse.getResponse().getSuccess())
+				&& createComparisonResponse.getData().getComparisonId()!=null) {
+			return new ResponseEntity<>(createComparisonResponse, HttpStatus.CREATED);
+		}else {
+			return new ResponseEntity<>(createComparisonResponse, HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+
 	}
 
 	@Override
@@ -1174,7 +1193,7 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 			consumes = {"application/json"},
 			method = RequestMethod.DELETE)
 	public ResponseEntity<GenericMessage> deleteComparison(@ApiParam(value = "forecast project ID ", required = true) @PathVariable("id") String id,
-			@ApiParam(value = "Comma separated forecast comparison IDs that are to be deleted. Ex: ?comparisonIds=\"ComparisionX01,ComparisionX02\" ", required = true) @Valid @RequestParam(value = "comparisonIds", required = true) String comparisonIds) {
+			@NotNull @ApiParam(value = "Comma separated forecast comparison IDs that are to be deleted. Ex: ?comparisonIds=\"ComparisionX01,ComparisionX02\" ", required = true) @Valid @RequestParam(value = "comparisonIds", required = true) String comparisonIds) {
 		GenericMessage responseMessage = new GenericMessage();
 		ForecastVO existingForecast = service.getById(id);
 		CreatedByVO requestUser = this.userStore.getVO();
@@ -1237,7 +1256,7 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 					}
 				}
 			}catch(Exception e) {
-				//handle
+				log.error("Exception occurred:{} while deleting comparison", e.getMessage());
 			}
 			responseMessage = service.deleteComparison(id,validComparisonIds);
 		}
