@@ -1234,6 +1234,7 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 		List<String> invalidComparisonIds = new ArrayList<>();
 		List<String> validComparisonIds = new ArrayList<>();
 		List<ForecastComparisonVO> existingComparisons = existingForecast.getComparisons();
+
 		if(comparisonIds!=null) {
 			try {
 				String[] comparisonsIds = comparisonIds.split(",");
@@ -1242,7 +1243,11 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 				if(comparisonIdsList!=null && !comparisonIdsList.isEmpty()) {
 					for(String comparisonId : distinctComparisonIds) {
 						Optional<ForecastComparisonVO> any = existingComparisons.stream().filter(x -> comparisonId.equalsIgnoreCase(x.getComparisonId()) && !x.isIsDeleted()).findAny();
-
+						if(any!=null && any.isPresent()) {
+							validComparisonIds.add(comparisonId);
+						}else {
+							invalidComparisonIds.add(comparisonId);
+						}
 					}
 					if(invalidComparisonIds!=null && !invalidComparisonIds.isEmpty()) {
 												String invalidIdsString = String.join(",", invalidComparisonIds);
@@ -1389,11 +1394,10 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 			return new ResponseEntity<>(null, HttpStatus.FORBIDDEN);
 		}
 		List<ForecastComparisonVO> records = service.getAllForecastComparisons(id);
-		Long count = service.getCount(user);
 		HttpStatus responseCode = HttpStatus.NO_CONTENT;
 		if(records!=null && !records.isEmpty()) {
 			collection.setRecords(records);
-			collection.setTotalCount(count.intValue());
+			collection.setTotalCount(records.size());
 			responseCode = HttpStatus.OK;
 		}
 		return new ResponseEntity<>(collection, responseCode);

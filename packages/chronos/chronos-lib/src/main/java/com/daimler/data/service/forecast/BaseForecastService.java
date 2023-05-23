@@ -930,7 +930,6 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 				existingComparisons = new ArrayList<>();
 			 comparisonDetails.setComparisonId(comparisionId);
 			 comparisonDetails.setActualsFile(actualsFilePath);
-			 comparisonDetails.setComparisonId(comparisonName);
 			 comparisonDetails.setComparisonName(comparisonName);
 			 comparisonDetails.setComparisonState(comparisonState);
 			 comparisonDetails.setIsDelete(false);
@@ -942,7 +941,6 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 
 			forecastComparisonsVO.setComparisonId(comparisionId);
 			forecastComparisonsVO.setActualsFile(actualsFilePath);
-			forecastComparisonsVO.setComparisonId(comparisonName);
 			forecastComparisonsVO.setComparisonName(comparisonName);
 			forecastComparisonsVO.setState(state);
 			forecastComparisonsVO.setIsDeleted(false);
@@ -979,7 +977,6 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 			ForecastNsql entity = anyEntity.get();
 			Forecast data = entity.getData();
 			List<ComparisonDetails> existingComparisons = data.getComparisons();
-
 			//logic to remove all deleted comparisons from list
 			List<ComparisonDetails> tempExistingComparisons = new ArrayList<>(existingComparisons);
 			for(int i=0; i<tempExistingComparisons.size(); i++) {
@@ -993,7 +990,7 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 			}
 			Collections.sort(tempExistingComparisons, new Comparator<ComparisonDetails>() {
 				public int compare(ComparisonDetails compare1, ComparisonDetails compare2) {
-					return compare2.getTriggeredOn().toString().compareTo(compare2.getTriggeredOn().toString());
+					return compare2.getTriggeredOn().toString().compareTo(compare1.getTriggeredOn().toString());
 				}
 			});
 			totalCount = tempExistingComparisons.size();
@@ -1015,7 +1012,7 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 			List<ComparisonDetails> existingComparisons = data.getComparisons();
 			List<ComparisonDetails> updatedComparisonRecords = new ArrayList<>();
 			ComparisonDetails comparisonDetails = new ComparisonDetails();
-			if(existingComparisons!= null && !existingComparisons.isEmpty()) {
+			if(existingComparisons!= null && !existingComparisons.isEmpty() && validComparisonIds!= null && !validComparisonIds.isEmpty() ) {
 				for (String comparisonId : validComparisonIds) {
 					Optional<ComparisonDetails> comparison = existingComparisons.stream().filter(x -> comparisonId.equalsIgnoreCase(x.getComparisonId()) && !x.getIsDelete()).findAny();
 					if(comparison!=null && comparison.isPresent()) {

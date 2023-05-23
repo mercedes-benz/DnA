@@ -49,6 +49,10 @@ public class ForecastAssembler implements GenericAssembler<ForecastVO, ForecastN
 					List<RunVO> runs = toRunsVO(data.getRuns());
 					vo.setRuns(runs);
 				}
+				if(data.getComparisons()!=null && !data.getComparisons().isEmpty()) {
+					List<ForecastComparisonVO> comparisons = toComparisonsVO(data.getComparisons());
+					vo.setComparisons(comparisons);
+				}
 				vo.setBucketId(entity.getData().getBucketId());
 			}
 		}
@@ -83,7 +87,8 @@ public class ForecastAssembler implements GenericAssembler<ForecastVO, ForecastN
 					BeanUtils.copyProperties(comparison,comparisonVO);
 					ComparisonStateVO comparisonStateVO = toComparisonStateVO(comparison.getComparisonState());
 					comparisonVO.setState(comparisonStateVO);
-
+					if(comparison.getIsDelete()!=null)
+						comparisonVO.setIsDeleted(comparison.getIsDelete());
 					comparisonsVOList.add(comparisonVO);
 				}
 			}
@@ -184,6 +189,8 @@ public class ForecastAssembler implements GenericAssembler<ForecastVO, ForecastN
 							BeanUtils.copyProperties(n,comparison);
 							ComparisonState comparisonState = toComparisonState(n.getState());
 							comparison.setComparisonState(comparisonState);
+							if(n.isIsDeleted()!=null)
+								comparison.setIsDelete(n.isIsDeleted());
 							return comparison;
 						}).collect(Collectors.toList());
 				data.setComparisons(comparisons);
