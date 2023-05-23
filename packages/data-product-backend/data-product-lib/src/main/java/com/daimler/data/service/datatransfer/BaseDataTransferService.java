@@ -262,7 +262,7 @@ public class BaseDataTransferService extends BaseCommonService<DataTransferVO, D
 		CreatedByVO currentUser = this.userStore.getVO();
 		String userId = currentUser != null ? currentUser.getId() : "";
 		if (StringUtils.hasText(userId)) {
-			if (userId.equalsIgnoreCase(createdBy.getId())) {
+			if (createdBy != null && userId.equalsIgnoreCase(createdBy.getId())) {
 				return true;
 			}
 		}
@@ -273,7 +273,7 @@ public class BaseDataTransferService extends BaseCommonService<DataTransferVO, D
 		CreatedByVO currentUser = this.userStore.getVO();
 		String userId = currentUser != null ? currentUser.getId() : "";
 		if (StringUtils.hasText(userId)) {
-			if (userId.equalsIgnoreCase(teamMemberVO.getShortId())) {
+			if (teamMemberVO != null && userId.equalsIgnoreCase(teamMemberVO.getShortId())) {
 				return true;
 			}
 		}
@@ -652,6 +652,11 @@ public class BaseDataTransferService extends BaseCommonService<DataTransferVO, D
 			LOGGER.error("Failed to delete dataTransfer with id {} , due to internal error.", id);
 			return new ResponseEntity<>(errorMessage, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
+	}
+
+	@Override
+	public GenericMessage updateDataTransferData() {
+		return dataTransferCustomRepository.updateDataTransferData();
 	}
 
 	private ProviderVO getProviderVOFromDataTransferVO(DataTransferVO vo) {

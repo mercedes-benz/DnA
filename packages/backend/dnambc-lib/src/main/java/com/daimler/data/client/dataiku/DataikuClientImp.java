@@ -70,6 +70,12 @@ public class DataikuClientImp implements DataikuClient {
 	@Value("${dataiku.training.apiKey}")
 	private String trainingApiKey;
 
+	@Value("${dataiku.production.onPremiseUri}")
+	private String onPremProductionUri;
+
+	@Value("${dataiku.production.onPremiseApiKey}")
+	private String onPremProductionApiKey;
+
 	@Autowired
 	RestTemplate restTemplate;
 
@@ -87,7 +93,6 @@ public class DataikuClientImp implements DataikuClient {
 	
 	@Value("${dataiku.projectPermissionUriPath}")
 	private String projectPermissionUriPath;
-	
 
 	/**
 	 * <p>
@@ -101,13 +106,13 @@ public class DataikuClientImp implements DataikuClient {
 	 */
 	@SuppressWarnings({ "rawtypes" })
 	@Override
-	public Optional<List<DataikuProjectVO>> getAllDataikuProjects(Boolean live) {
+	public Optional<List<DataikuProjectVO>> getAllDataikuProjects(Boolean live, String cloudProfile) {
 		List<DataikuProjectVO> projects = null;
 		try {
 			HttpHeaders headers = new HttpHeaders();
 			headers.set("Accept", "application/json");
 			headers.set("Content-Type", "application/json");
-			String dataikuUri = setDataikuUri(live, headers, projectsUriPath);
+			String dataikuUri = setDataikuUri(live, headers, projectsUriPath, cloudProfile);
 			HttpEntity entity = new HttpEntity<>(headers);
 			ResponseEntity<String> response = restTemplate.exchange(dataikuUri, HttpMethod.GET, entity, String.class);
 			if (response != null && response.hasBody()) {
@@ -133,29 +138,31 @@ public class DataikuClientImp implements DataikuClient {
 	 * <p>
 	 * To get user role
 	 * </p>
-	 * 
+	 *
 	 * @param userId
 	 * @return DataikuUserRole
 	 */
 	@Override
 	@SuppressWarnings({ "rawtypes" })
-	public Optional<DataikuUserRole> getDataikuUserRole(String userId, Boolean live) {
+	public Optional<DataikuUserRole> getDataikuUserRole(String userId, Boolean live, String cloudProfile) {
 		DataikuUserRole userRole = null;
 		try {
 			HttpHeaders headers = new HttpHeaders();
 			headers.set("Accept", "application/json");
 			headers.set("Content-Type", "application/json");
-			String dataikuUri = setDataikuUri(live, headers, userRoleUriPath);
+			String dataikuUri = setDataikuUri(live, headers, userRoleUriPath, cloudProfile);
 			HttpEntity entity = new HttpEntity<>(headers);
 			ResponseEntity<String> response = null;
 			try {
 				LOGGER.debug("Fetching details of user {} from emea", userId);
-				response = restTemplate.exchange(dataikuUri + userId.toUpperCase(), HttpMethod.GET,
+				String searchBy = live ? userId.toUpperCase() : userId.toLowerCase() +"@"+ emeaCorpdir;
+				response = restTemplate.exchange(dataikuUri + searchBy, HttpMethod.GET,
 						entity, String.class);
 			} catch (Exception e) {
 				LOGGER.error("Error occuried while fetching dataiku user role error:{}", e.getMessage());
 				LOGGER.debug("Fetching details of user {} from apac", userId);
-				response = restTemplate.exchange(dataikuUri + userId.toUpperCase(), HttpMethod.GET,
+				String searchBy = live ? userId.toUpperCase() : userId.toLowerCase() +"@"+ apacCorpdir;
+				response = restTemplate.exchange(dataikuUri + searchBy, HttpMethod.GET,
 						entity, String.class);
 			}
 			if (response != null && response.hasBody()) {
@@ -187,13 +194,13 @@ public class DataikuClientImp implements DataikuClient {
 	 */
 	@Override
 	@SuppressWarnings({ "rawtypes" })
-	public Optional<DataikuPermission> getDataikuProjectPermission(String projectKey, Boolean live) {
+	public Optional<DataikuPermission> getDataikuProjectPermission(String projectKey, Boolean live, String cloudProfile) {
 		DataikuPermission permission = null;
 		try {
 			HttpHeaders headers = new HttpHeaders();
 			headers.set("Accept", "application/json");
 			headers.set("Content-Type", "application/json");
-			String dataikuUri = setDataikuUri(live, headers, projectsUriPath);
+			String dataikuUri = setDataikuUri(live, headers, projectsUriPath, cloudProfile);
 			dataikuUri = dataikuUri + projectKey + projectPermissionUriPath;
 			HttpEntity entity = new HttpEntity<>(headers);
 			ResponseEntity<String> response = restTemplate.exchange(dataikuUri, HttpMethod.GET, entity, String.class);
@@ -218,13 +225,13 @@ public class DataikuClientImp implements DataikuClient {
 	}
 
 	@Override
-	public Optional<DataikuProjectVO> getDataikuProject(String projectKey, Boolean live) {
+	public Optional<DataikuProjectVO> getDataikuProject(String projectKey, Boolean live, String cloudProfile) {
 		DataikuProjectVO project = null;
 		try {
 			HttpHeaders headers = new HttpHeaders();
 			headers.set("Accept", "application/json");
 			headers.set("Content-Type", "application/json");
-			String dataikuUri = setDataikuUri(live, headers, projectsUriPath + projectKey);
+			String dataikuUri = setDataikuUri(live, headers, projectsUriPath + projectKey, cloudProfile);
 			HttpEntity entity = new HttpEntity<>(headers);
 			ResponseEntity<String> response = restTemplate.exchange(dataikuUri, HttpMethod.GET, entity, String.class);
 			if (response != null && response.hasBody()) {
@@ -252,17 +259,23 @@ public class DataikuClientImp implements DataikuClient {
 	 * 
 	 * @param live
 	 * @param headers
-	 * @param dataikuUri
 	 * @param uriExtension
+	 * @param cloudprofile
 	 */
-	private String setDataikuUri(Boolean live, HttpHeaders headers, String uriExtension) {
+	private String setDataikuUri(Boolean live, HttpHeaders headers, String uriExtension, String cloudprofile) {
 		String dataikuUri = "";
 		if (live) {
-			LOGGER.debug("Forming uri for production environment");
-			headers.setBasicAuth(productionApiKey, "");
-			dataikuUri = productionUri + uriExtension;
+			if (cloudprofile.equals("eXtollo")) {
+				LOGGER.debug("Forming uri for production eXtollo environment");
+				headers.setBasicAuth(productionApiKey, "");
+				dataikuUri = productionUri + uriExtension;
+			} else {
+				LOGGER.debug("Forming uri for production on-premise environment");
+				headers.setBasicAuth(onPremProductionApiKey, "");
+				dataikuUri = onPremProductionUri + uriExtension;
+			}
 		} else {
-			LOGGER.debug("Forming uri for training environment");
+			LOGGER.debug("Forming uri for training eXtollo environment");
 			headers.setBasicAuth(trainingApiKey, "");
 			dataikuUri = trainingUri + uriExtension;
 		}

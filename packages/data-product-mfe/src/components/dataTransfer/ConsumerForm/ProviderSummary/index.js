@@ -2,7 +2,6 @@ import classNames from 'classnames';
 import React, { useEffect, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { serializeDivisionSubDivision } from '../../../../Utility/formData';
-import { regionalDateFormat } from '../../../../Utility/utils';
 import Styles from './styles.scss';
 
 const ProviderSummary = ({ onSave, providerFormIsDraft }) => {
@@ -47,11 +46,6 @@ const ProviderSummary = ({ onSave, providerFormIsDraft }) => {
                 <label className="input-label summary">Data Product Name / Short description of data transfer</label>
                 <br />
                 {providerInformation.productName}
-              </div>
-              <div>
-                <label className="input-label summary">Date of Data Transfer</label>
-                <br />
-                {regionalDateFormat(providerInformation.dateOfDataTransfer)}
               </div>
               <div>
                 <label className="input-label summary">Point of contact for data transfer</label>
@@ -120,7 +114,8 @@ const ProviderSummary = ({ onSave, providerFormIsDraft }) => {
         </div>
       ) : null}
       {showPersonalData ? (
-        <div className={Styles.sectionWrapper}>
+        <div className={classNames(Styles.sectionWrapper, providerInformation?.personalRelatedData === 'Yes' && Styles.yellowBorder)}>
+          { providerInformation?.personalRelatedData === 'Yes' && <i className={classNames('icon mbc-icon alert circle', Styles.warningIcon)} /> }
           <div className={Styles.firstPanel}>
             <div className={Styles.flexLayout}>
               <div>
@@ -159,6 +154,34 @@ const ProviderSummary = ({ onSave, providerFormIsDraft }) => {
               </div>
             ) : null}
           </div>
+          {providerInformation.personalRelatedData === 'Yes' ? (<div className={Styles.flexLayout}>
+            <div>
+              <label className="input-label summary">Is corresponding Compliance contact aware of this transfer?</label>
+              <br />
+              {providerInformation.personalRelatedDataContactAwareTransfer}
+            </div>
+          </div>) : null}
+          {providerInformation.personalRelatedData === 'Yes' && providerInformation.personalRelatedDataContactAwareTransfer === 'Yes'
+            ? (<div className={classNames(Styles.flexLayout, Styles.fourColumn)}>
+              <div>
+                <label className="input-label summary">Has s/he any objections to this transfer?</label>
+                <br />
+                {providerInformation.personalRelatedDataObjectionsTransfer}
+              </div>
+              {providerInformation.personalRelatedDataObjectionsTransfer === 'Yes' && <>
+                <div>
+                  <label className="input-label summary">Please state your reasoning for transfering nonetheless</label>
+                  <br />
+                  {providerInformation.personalRelatedDataTransferingNonetheless}
+                </div>
+                <div>
+                  <label className="input-label summary">Please state your objections</label>
+                  <br />
+                  {providerInformation.personalRelatedDataTransferingObjections}
+                </div>
+              </>}
+              <div></div>
+            </div>) : null}
         </div>
       ) : null}
       {showTransNationalData ? (
@@ -169,7 +192,7 @@ const ProviderSummary = ({ onSave, providerFormIsDraft }) => {
                 <label className="input-label summary">Transnational Data</label>
               </div>
             </div>
-            <div className={classNames(Styles.flexLayout, Styles.threeColumn)}>
+            <div className={classNames(Styles.flexLayout)}>
               <div>
                 <label className="input-label summary">Is data being transferred from one country to another?</label>
                 <br />
@@ -182,15 +205,35 @@ const ProviderSummary = ({ onSave, providerFormIsDraft }) => {
                   {providerInformation.transnationalDataTransferNotWithinEU || 'No'}
                 </div>
               ) : null}
-              {providerInformation.transnationalDataTransfer === 'Yes' &&
-              providerInformation.transnationalDataTransferNotWithinEU === 'Yes' ? (
-                <div>
-                  <label className="input-label summary">Has LCO/LCR approved this data transfer?</label>
-                  <br />
-                  {providerInformation.LCOApprovedDataTransfer}
-                </div>
-              ) : null}
             </div>
+            {providerInformation?.transnationalDataTransfer === 'Yes' &&
+              providerInformation?.transnationalDataTransferNotWithinEU === 'Yes' ? (<div className={Styles.flexLayout}>
+                <div>
+                  <label className="input-label summary">Is corresponding Compliance contact aware of this transfer?</label>
+                  <br />
+                  {providerInformation?.transnationalDataContactAwareTransfer}
+                </div>
+              </div>) : null}
+            {providerInformation?.transnationalDataTransferNotWithinEU === 'Yes' && providerInformation?.transnationalDataContactAwareTransfer === 'Yes'
+              ? (<div className={classNames(Styles.flexLayout, Styles.fourColumn)}>
+                <div>
+                  <label className="input-label summary">Has s/he any objections to this transfer?</label>
+                  <br />
+                  {providerInformation?.transnationalDataObjectionsTransfer}
+                </div>
+                {providerInformation?.transnationalDataObjectionsTransfer === 'Yes' && <>
+                  <div>
+                    <label className="input-label summary">Please state your reasoning for transfering nonetheless</label>
+                    <br />
+                    {providerInformation?.transnationalDataTransferingNonetheless}
+                  </div>
+                  <div>
+                    <label className="input-label summary">Please state your objections</label>
+                    <br />
+                    {providerInformation?.transnationalDataTransferingObjections}
+                  </div></>}
+                <div></div>
+              </div>) : null}
             <div className={Styles.flexLayout}>
               <div>
                 <label className="input-label summary">Is data from China included?</label>

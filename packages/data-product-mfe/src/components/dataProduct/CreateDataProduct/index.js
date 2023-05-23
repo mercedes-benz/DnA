@@ -44,7 +44,6 @@ const dataForms = {
     ART: '',
     corporateDataCatalog: '',
     description: '',
-    dateOfDataProduct: '',
   },
   ...tabs,
 };
@@ -334,11 +333,6 @@ const CreateDataProduct = ({ user, history }) => {
       errorObject.contactInformationTabError.push('Department');
       formValid = false;
     }
-
-    if (!reqObj?.dateOfDataProduct || reqObj?.dateOfDataProduct === '') {
-      errorObject.contactInformationTabError.push('Publish Date of Data Product');
-      formValid = false;
-    }
     
     if (!reqObj?.complianceOfficer || reqObj?.complianceOfficer === '') {
       errorObject.contactInformationTabError.push('Corresponding Compliance Officer / Responsible (LCO/LCR)');
@@ -375,8 +369,30 @@ const CreateDataProduct = ({ user, history }) => {
         errorObject.personalRelatedDataTabError.push('Original legal basis for processing this personal related data');
         formValid = false;
       }
+
+      if (!reqObj?.personalRelatedDataContactAwareTransfer || reqObj?.personalRelatedDataContactAwareTransfer === '') {
+        errorObject.personalRelatedDataTabError.push('Is corresponding Compliance contact aware of this transfer?');
+        formValid = false;
+      }
     }
 
+    if (reqObj?.personalRelatedDataContactAwareTransfer == 'Yes' ) {
+      if (!reqObj?.personalRelatedDataObjectionsTransfer || reqObj?.personalRelatedDataObjectionsTransfer === '') {
+        errorObject.personalRelatedDataTabError.push('Has s/he any objections to this transfer?');
+        formValid = false;
+      }
+    }
+
+    if(reqObj?.personalRelatedDataObjectionsTransfer === 'Yes') {
+      if (!reqObj.personalRelatedDataTransferingNonetheless || reqObj.personalRelatedDataTransferingNonetheless === '') {
+        errorObject.personalRelatedDataTabError.push('Please state your reasoning for transfering nonetheless');
+        formValid = false;
+      }
+      if (!reqObj.personalRelatedDataTransferingObjections || reqObj.personalRelatedDataTransferingObjections === '') {
+        errorObject.personalRelatedDataTabError.push('Please state your objections');
+        formValid = false;
+      }
+    }
 
     if (!reqObj?.transnationalDataTransfer || reqObj?.transnationalDataTransfer === '') {
       errorObject.transnationalDataTabError.push('Is data being transferred from one country to another?');

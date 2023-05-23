@@ -1120,8 +1120,8 @@ export interface IDataProductFilterParams {
   platform: string[];
   frontendTool: string[];
   productOwner: string[];
-  carlaFunction: string[];
-  tag: string[];
+  carlaFunction?: string[];
+  tag?: string[];
 }
 
 export interface INoticationModules {

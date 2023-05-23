@@ -11,9 +11,15 @@ micronaut:
       swagger-ui:
         paths: classpath:META-INF/swagger/views/swagger-ui
         mapping: /swagger-ui/**
+  netty:
+    event-loops:
+      custom-event-loop:
+        num-threads: 20
+          
   http:
       client:
         #read-timeout: ${HTTP_CLIENT_READTIMEOUT:120s}
+        event-loop-group: custom-event-loop
         ssl:
          insecureTrustAllCertificates: true  
   server:
@@ -65,6 +71,7 @@ dataiku:
   scenarioId: ${DATAIKU_SCENARIOS_ID:XXXX}
   scenarioUpdateRequest: ${DATAIKU_SCENARIO_UPDATEREQUEST:XXXX}
   usersUri: ${DATAIKU_USERSURI:/admin/users}
+  projectsUri: ${DATAIKU_PROJECTSURI:/projects/}
   environmentProfile: ${DATAIKU_ENV_PREFIX:XXXX}
   onPremiseGroupNamePrefix: ${DATAIKU_ONPREMISE_PREFIX:XXXX}
   extolloGroupNamePrefix: ${DATAIKU_EXTOLLO_PREFIX:XXXX}
