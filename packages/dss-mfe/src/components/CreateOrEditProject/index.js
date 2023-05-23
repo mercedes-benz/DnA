@@ -281,8 +281,8 @@ const CreateOrEditProject = (props) => {
             })
             .catch((err) => {
                 err;
-                if (err?.response?.data?.errors?.length > 0) {
-                    err?.response?.data?.errors.forEach((err) => {
+                if (err?.response?.data?.response?.errors?.length > 0) {
+                    err?.response?.data?.response?.errors.forEach((err) => {
                         showErrorNotification(err?.message || 'Something went wrong.');
                     });
                 } else {
@@ -336,8 +336,8 @@ const CreateOrEditProject = (props) => {
             })
             .catch((err) => {
                 err;
-                if (err?.response?.data?.errors?.length > 0) {
-                    err?.response?.data?.errors.forEach((err) => {
+                if (err?.response?.data?.response?.errors?.length > 0) {
+                    err?.response?.data?.response?.errors.forEach((err) => {
                         showErrorNotification(err?.message || 'Something went wrong.');
                     });
                 } else {
