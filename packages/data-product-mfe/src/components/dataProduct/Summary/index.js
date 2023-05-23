@@ -259,8 +259,8 @@ const Summary = ({ history, user }) => {
   };
 
   const tagChips =
-      selectedDataProduct.tags && selectedDataProduct.tags.length
-        ? selectedDataProduct.tags.map((chip, index) => {
+      selectedDataProduct?.tags && selectedDataProduct?.tags?.length
+        ? selectedDataProduct?.tags?.map((chip, index) => {
             return (
               <div className="chips read-only" key={index}>
                 <label className="name">{chip}</label>
@@ -413,11 +413,6 @@ const Summary = ({ history, user }) => {
                         <br />
                         {isURL(selectedDataProduct?.oneApi) || '-'}
                       </div>
-                      <div>
-                        <label className="input-label summary">Product Owner</label>
-                        <br />
-                        {selectedDataProduct?.productOwner || 'N.A'}
-                      </div>
                       <div id="tags">
                         <label className="input-label summary">Tags</label>
                           <br />
@@ -425,16 +420,11 @@ const Summary = ({ history, user }) => {
                             {tagChips}
                           </div>                          
                       </div>
-                      <div>&nbsp;</div>
-                    </div>
-                    <div className={Styles.flexLayout}>
                       <div>
                         <label className="input-label summary">Data Product Description</label>
                         <br />
                         {selectedDataProduct.description}
                       </div>
-                    </div>
-                    <div className={Styles.flexLayout}>
                       <div>
                         <label className="input-label summary">Data Product Additional Information</label>
                         <br />
