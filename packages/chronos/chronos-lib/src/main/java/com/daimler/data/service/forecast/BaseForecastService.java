@@ -10,6 +10,7 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import com.daimler.data.dto.forecast.*;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -35,21 +36,7 @@ import com.daimler.data.db.repo.forecast.ForecastCustomRepository;
 import com.daimler.data.db.repo.forecast.ForecastRepository;
 import com.daimler.data.dto.databricks.DataBricksJobRunOutputResponseWrapperDto;
 import com.daimler.data.dto.databricks.RunNowNotebookParamsDto;
-import com.daimler.data.dto.forecast.ApiKeyVO;
-import com.daimler.data.dto.forecast.CollaboratorVO;
-import com.daimler.data.dto.forecast.ComparisonStateVO;
-import com.daimler.data.dto.forecast.DataBricksErrorResponseVO;
-import com.daimler.data.dto.forecast.ForecastComparisonCreateResponseVO;
-import com.daimler.data.dto.forecast.ForecastComparisonVO;
-import com.daimler.data.dto.forecast.ForecastProjectUpdateRequestVO;
-import com.daimler.data.dto.forecast.ForecastRunResponseVO;
-import com.daimler.data.dto.forecast.ForecastVO;
-import com.daimler.data.dto.forecast.RunDetailsVO;
-import com.daimler.data.dto.forecast.RunNowResponseVO;
-import com.daimler.data.dto.forecast.RunStateVO;
 import com.daimler.data.dto.forecast.RunStateVO.ResultStateEnum;
-import com.daimler.data.dto.forecast.RunVO;
-import com.daimler.data.dto.forecast.RunVisualizationVO;
 import com.daimler.data.dto.storage.BucketObjectDetailsDto;
 import com.daimler.data.dto.storage.BucketObjectsCollectionWrapperDto;
 import com.daimler.data.dto.storage.CreateBucketResponseWrapperDto;
@@ -1009,5 +996,10 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 		}
 		responseMessage.setSuccess("SUCCESS");
 		return responseMessage;
+	}
+
+	@Override
+	public ForecastComparisonResultVO getForecastComparisonById(String id, String comparisonId) {
+		return null;
 	}
 }

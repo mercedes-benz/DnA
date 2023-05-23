@@ -1268,7 +1268,61 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 			method = RequestMethod.GET)
 	public ResponseEntity<ForecastComparisonResultVO> getForecastComparisonById(@ApiParam(value = "forecast project ID ",required=true) @PathVariable("id") String id,
 			@ApiParam(value = "Comparison Id for the run",required=true) @PathVariable("comparisonId") String comparisonId){
+		ForecastComparisonResultVO responseVO = new ForecastComparisonResultVO();
+		ForecastVO existingForecast = service.getById(id);
+		CreatedByVO requestUser = this.userStore.getVO();
+		String user = requestUser.getId();
+		Date createdOn = new Date();
+		Boolean notAuthorized = false;
+		if(existingForecast==null || existingForecast.getId()==null) {
+			log.error("Forecast project with this id {} doesnt exists , failed to create comparison", id);
+			MessageDescription invalidMsg = new MessageDescription("Forecast project doesnt exists with given id");
+			GenericMessage errorMessage = new GenericMessage();
+			errorMessage.setSuccess("FAILED");
+			errorMessage.addErrors(invalidMsg);
+			responseVO.setResponse(errorMessage);
+			return new ResponseEntity<>(responseVO, HttpStatus.NOT_FOUND);
+		}
+		List<String> forecastProjectUsers = new ArrayList<>();
+		forecastProjectUsers.add(existingForecast.getCreatedBy().getId());
+		List<CollaboratorVO> collaborators = existingForecast.getCollaborators();
+		if (collaborators != null && !collaborators.isEmpty()) {
+			collaborators.forEach(n -> forecastProjectUsers.add(n.getId()));
+		}
+		if (forecastProjectUsers != null && !forecastProjectUsers.isEmpty()) {
+			if (!forecastProjectUsers.contains(requestUser.getId())) {
+				log.warn("User not part of forecast project with id {} and name {}, Not authorized", id, existingForecast.getName());
+				notAuthorized=true;
 
+			}
+		}
+		if(notAuthorized) {
+			GenericMessage responseMessage = new GenericMessage();
+			List<MessageDescription> errMsgs = new ArrayList<>();
+			MessageDescription errMsg = new MessageDescription("Only user of this project can delete the run. Unauthorized");
+			responseMessage.setSuccess("FAILED");
+			errMsgs.add(errMsg);
+			responseMessage.setErrors(errMsgs);
+			responseVO.setResponse(responseMessage);
+			return new ResponseEntity<>(responseVO, HttpStatus.FORBIDDEN);
+		}
+		boolean notFound = false;
+		List<ForecastComparisonVO> comparisonVOList = existingForecast.getComparisons();
+		if(comparisonVOList!= null && !comparisonVOList.isEmpty()) {
+			for(ForecastComparisonVO comparison: comparisonVOList) {
+				if(comparisonId.equalsIgnoreCase(comparison.getComparisonId())) {
+					notFound = true;
+					if(!user.equalsIgnoreCase(comparison.getTriggeredBy())) {
+						notAuthorized = false;
+					}
+				}
+			}
+		}else
+			notFound = false;
+		if(!notFound) {
+			return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
+		}
+		ForecastComparisonResultVO records = service.getForecastComparisonById(id,comparisonId);
 		return null;
 	}
 
