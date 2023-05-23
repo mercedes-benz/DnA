@@ -143,6 +143,7 @@ export default class ListProjects extends React.Component {
           isDnaProject={false}
           openDetailsModal={this.openDetailsModal}
           user={this.props.user}
+          hostHistory={this.props.hostHistory}
         />
       );
     });
@@ -160,6 +161,7 @@ export default class ListProjects extends React.Component {
           openProvisionModal={this.openProvisionModal}
           openDetailsModal={this.openDetailsModal}
           user={this.props.user}
+          hostHistory={this.props.hostHistory}
         />
       );
     });
