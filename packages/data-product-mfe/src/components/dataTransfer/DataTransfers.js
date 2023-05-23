@@ -28,6 +28,14 @@ const DataProducts = ({ user, history, hostHistory }) => {
     dispatch(GetDataTransfers(isProviderCreatorFilter));
   }, [dispatch, isProviderCreatorFilter]);
 
+  useEffect(() => {
+    if (sessionStorage.getItem('listViewModeEnable') == null) {
+      setCardViewModeFn()
+    } else {
+      setListViewModeFn()
+    }
+  },[]);
+
   const onPaginationPreviousClick = () => {
     const currentPageNumberTemp = currentPageNumber - 1;
     const currentPageOffset = (currentPageNumberTemp - 1) * maxItemsPerPage;
@@ -56,6 +64,18 @@ const DataProducts = ({ user, history, hostHistory }) => {
     );
   };
 
+  const setCardViewModeFn = () => {
+    setCardViewMode(true);
+    setListViewMode(false);
+    sessionStorage.removeItem('listViewModeEnable');
+  };
+
+  const setListViewModeFn = () => {
+    setCardViewMode(false);
+    setListViewMode(true);
+    sessionStorage.setItem('listViewModeEnable',true)
+  };
+
   return (
     <>
       <button
@@ -74,8 +94,7 @@ const DataProducts = ({ user, history, hostHistory }) => {
                 <span
                   className={cardViewMode ? Styles.iconactive : Styles.iconInActive}
                   onClick={() => {
-                    setCardViewMode(true);
-                    setListViewMode(false);
+                    setCardViewModeFn();
                   }}
                 >
                   <i className="icon mbc-icon widgets" />
@@ -86,8 +105,7 @@ const DataProducts = ({ user, history, hostHistory }) => {
                 <span
                   className={listViewMode ? Styles.iconactive : Styles.iconInActive}
                   onClick={() => {
-                    setCardViewMode(false);
-                    setListViewMode(true);
+                    setListViewModeFn();
                   }}
                 >
                   <i className="icon mbc-icon listview big" />
@@ -101,6 +119,7 @@ const DataProducts = ({ user, history, hostHistory }) => {
             onClick={() => {setIsProviderCreatorFilter(!isProviderCreatorFilter)}}>
             My Data Transfers</button>
           </div>
+          <p className={'text-center'}>Click on <i className="icon mbc-icon copy-new"></i> to Create Copy</p>
           <div>
             <div>
               {dataTransfers?.length === 0 ? (

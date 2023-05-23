@@ -44,6 +44,9 @@ import com.daimler.data.dto.dataproduct.TeamMemberVO;
 import com.daimler.data.dto.datatransfer.*;
 import com.daimler.data.dto.datatransfer.ConsumerResponseVO;
 import com.daimler.data.dto.datatransfer.DataTransferConsumerRequestVO;
+import com.daimler.data.dto.tag.TagVO;
+
+import org.json.JSONObject;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ObjectUtils;
@@ -61,6 +64,22 @@ import com.google.gson.reflect.TypeToken;
 @Component
 public class DataProductAssembler implements GenericAssembler<DataProductVO, DataProductNsql> {
 
+	public DataProductTeamMemberVO toParseDataProductTeamMemberVO(String value) {
+		DataProductTeamMemberVO vo = null;
+
+		if(value != null) {
+			JSONObject jsonObject = new JSONObject(value);
+			vo = new DataProductTeamMemberVO();
+			vo.setFirstName((String) jsonObject.get("firstName"));
+			vo.setLastName((String) jsonObject.get("lastName"));
+			vo.setDepartment((String) jsonObject.get("department"));
+			vo.setMobileNumber((String) jsonObject.get("mobileNumber"));
+			vo.setShortId((String) jsonObject.get("id"));
+			vo.setEmail((String) jsonObject.get("email"));
+		}
+		return vo;
+	}
+
 	@Override
 	public DataProductVO toVo(DataProductNsql entity) {
 		DataProductVO vo = null;
@@ -71,6 +90,9 @@ public class DataProductAssembler implements GenericAssembler<DataProductVO, Dat
 			if (dataProduct != null) {
 				BeanUtils.copyProperties(dataProduct, vo);
 				vo.setIsPublish(entity.getData().getPublish());
+				if(Objects.nonNull(dataProduct.getAdditionalInformation())) {
+					vo.setAdditionalInformation(dataProduct.getAdditionalInformation());
+				}
 				if (Objects.nonNull(dataProduct.getCreatedBy())) {
 					CreatedByVO createdByVO = new CreatedByVO();
 					BeanUtils.copyProperties(dataProduct.getCreatedBy(), createdByVO);
@@ -112,6 +134,10 @@ public class DataProductAssembler implements GenericAssembler<DataProductVO, Dat
 					}
 					vo.setFrontEndTools(frontEndToolsVo);
 				}
+				
+				if (dataProduct.getTags() != null && !ObjectUtils.isEmpty(dataProduct.getTags())) {
+					BeanUtils.copyProperties(dataProduct.getTags(), vo.getTags());
+				}
 
 				if (Objects.nonNull(dataProduct.getAgileReleaseTrain())) {
 					AgileReleaseTrainVO agileReleaseTrain = new AgileReleaseTrainVO();
@@ -139,9 +165,14 @@ public class DataProductAssembler implements GenericAssembler<DataProductVO, Dat
 						contactInformationVO.setDivision(divisionvo);
 					}
 
-					contactInformationVO.setName(toTeamMemberVO(dataProductContactInformation.getName()));
-					contactInformationVO.setDataProductDate(dataProductContactInformation.getDataTransferDate());
-					contactInformationVO.setInformationOwner(toTeamMemberVO(dataProductContactInformation.getInformationOwner()));
+//					TeamMember productOwner = dataProductContactInformation.getProductOwner();
+//					DataProductTeamMemberVO productOwnerVo = new DataProductTeamMemberVO();												
+//					BeanUtils.copyProperties(productOwner,productOwnerVo);
+//					contactInformationVO.setProductOwner(productOwnerVo);
+				
+					contactInformationVO.setName(toTeamMemberVO(dataProductContactInformation.getName()));				
+					contactInformationVO.setInformationOwner(toTeamMemberVO(dataProductContactInformation.getInformationOwner()));	
+					contactInformationVO.setProductOwner(toTeamMemberVO(dataProductContactInformation.getProductOwner()));					
 					vo.setContactInformation(contactInformationVO);
 				}
 
@@ -167,6 +198,11 @@ public class DataProductAssembler implements GenericAssembler<DataProductVO, Dat
 				if (dataProduct.getDeletionRequirement() != null) {
 					DataProductDeletionRequirementVO deletionRequirementVO = new DataProductDeletionRequirementVO();
 					BeanUtils.copyProperties(dataProduct.getDeletionRequirement(), deletionRequirementVO);
+					String insiderInfo = "";
+					if(dataProduct.getTransnationalDataTransfer() != null) {
+						insiderInfo = dataProduct.getTransnationalDataTransfer().getInsiderInformation() != null ? dataProduct.getTransnationalDataTransfer().getInsiderInformation() : "";
+					}					
+					deletionRequirementVO.setInsiderInformation(insiderInfo);										
 					vo.setDeletionRequirement(deletionRequirementVO);
 				}
 				if (dataProduct.getOpenSegments() != null && !ObjectUtils.isEmpty(dataProduct.getOpenSegments())) {
@@ -200,6 +236,9 @@ public class DataProductAssembler implements GenericAssembler<DataProductVO, Dat
 			if (vo != null) {
 				BeanUtils.copyProperties(vo, dataProduct);
 				dataProduct.setNotifyUsers(vo.isNotifyUsers());
+				if(Objects.nonNull(vo.getAdditionalInformation())) {
+					dataProduct.setAdditionalInformation(vo.getAdditionalInformation());
+				}
 				dataProduct.setPublish(vo.isIsPublish());
 				if (Objects.nonNull(vo.getCreatedBy())) {
 					CreatedBy userDetails = new CreatedBy();
@@ -228,6 +267,14 @@ public class DataProductAssembler implements GenericAssembler<DataProductVO, Dat
 						}
 					}
 					dataProduct.setPlatform(platformsVO);
+				}
+				
+				if (!ObjectUtils.isEmpty(vo.getTags())) {
+					List<String> tagsList = new ArrayList<>();
+					vo.getTags().forEach(tag -> {
+						tagsList.add(tag);
+					});
+					dataProduct.setTags(tagsList);
 				}
 
 				List<FrontendToolsVO> frontEndTools = vo.getFrontEndTools();
@@ -273,9 +320,18 @@ public class DataProductAssembler implements GenericAssembler<DataProductVO, Dat
 						}
 						contactInformation.setDivision(division);
 					}
-					contactInformation.setName(toTeamMemberJson(dataProductContactInformationVO.getName()));
-					contactInformation.setDataTransferDate(dataProductContactInformationVO.getDataProductDate());
+//					DataProductTeamMemberVO productOwnerVo = dataProductContactInformationVO.getProductOwner();
+//					TeamMember productOwner = new TeamMember();
+//					BeanUtils.copyProperties(productOwnerVo, productOwner);
+//					contactInformation.setProductOwner(productOwner);
+					contactInformation.setName(toTeamMemberJson(dataProductContactInformationVO.getName()));					
 					contactInformation.setInformationOwner(toTeamMemberJson(dataProductContactInformationVO.getInformationOwner()));
+					if(Objects.nonNull(dataProductContactInformationVO.getProductOwner())) {
+						toTeamMemberJson(dataProductContactInformationVO.getProductOwner());
+					}
+					else {
+						contactInformation.setProductOwner(null);
+					}
 					dataProduct.setContactInformation(contactInformation);
 				}
 
@@ -291,6 +347,8 @@ public class DataProductAssembler implements GenericAssembler<DataProductVO, Dat
 					DataProductPersonalRelatedData personalRelatedData = new DataProductPersonalRelatedData();
 					BeanUtils.copyProperties(personalRelatedDataVO, personalRelatedData);
 					personalRelatedData.setPersonalRelatedData(personalRelatedDataVO.isPersonalRelatedData());
+					personalRelatedData.setContactAwareTransfer(personalRelatedDataVO.isContactAwareTransfer());
+					personalRelatedData.setObjectionsToTransfer(personalRelatedDataVO.isObjectionsToTransfer());
 					dataProduct.setPersonalRelatedData(personalRelatedData);
 				}
 
@@ -302,6 +360,13 @@ public class DataProductAssembler implements GenericAssembler<DataProductVO, Dat
 					transnationalDataTransfer.setDataTransferred(transnationalDataTransferVO.isDataTransferred());
 					transnationalDataTransfer.setNotWithinEU(transnationalDataTransferVO.isNotWithinEU());
 					transnationalDataTransfer.setDataFromChina(transnationalDataTransferVO.isDataFromChina());
+					transnationalDataTransfer.setContactAwareTransfer(transnationalDataTransferVO.isContactAwareTransfer());
+					transnationalDataTransfer.setObjectionsToTransfer(transnationalDataTransferVO.isObjectionsToTransfer());
+					String insiderInfo = "";
+					if(vo.getDeletionRequirement() != null) {
+						insiderInfo = vo.getDeletionRequirement().getInsiderInformation() != null ? vo.getDeletionRequirement().getInsiderInformation() : "";
+					}					
+					transnationalDataTransfer.setInsiderInformation(insiderInfo);
 					dataProduct.setTransnationalDataTransfer(transnationalDataTransfer);
 				}
 
@@ -551,8 +616,7 @@ public class DataProductAssembler implements GenericAssembler<DataProductVO, Dat
 		providerResponseVO.setDeletionRequirement(new ProviderDeletionRequirementVO());
 		providerResponseVO.setCreatedBy(existingDataProduct.getCreatedBy());
 		providerResponseVO.setCreatedDate(existingDataProduct.getCreatedDate());
-
-		providerResponseVO.getContactInformation().setDataTransferDate(contactInformation.getDataProductDate());
+		
 		BeanUtils.copyProperties(existingDataProduct, providerResponseVO);
 		if(Objects.nonNull(contactInformation)) {
 			BeanUtils.copyProperties(contactInformation, providerResponseVO.getContactInformation());
@@ -591,6 +655,12 @@ public class DataProductAssembler implements GenericAssembler<DataProductVO, Dat
 		if (existingDataProduct.getPersonalRelatedData().isPersonalRelatedData() != null) {
 			providerResponseVO.getPersonalRelatedData().setPersonalRelatedData(existingDataProduct.getPersonalRelatedData().isPersonalRelatedData());
 		}
+		if (existingDataProduct.getPersonalRelatedData().isContactAwareTransfer() != null) {
+			providerResponseVO.getPersonalRelatedData().setContactAwareTransfer(existingDataProduct.getPersonalRelatedData().isContactAwareTransfer());
+		}
+		if (existingDataProduct.getPersonalRelatedData().isObjectionsToTransfer() != null) {
+			providerResponseVO.getPersonalRelatedData().setObjectionsToTransfer(existingDataProduct.getPersonalRelatedData().isObjectionsToTransfer());
+		}
 		if (existingDataProduct.getTransnationalDataTransfer().isDataTransferred() != null) {
 			providerResponseVO.getTransnationalDataTransfer().setDataTransferred(existingDataProduct.getTransnationalDataTransfer().isDataTransferred());
 		}
@@ -599,6 +669,12 @@ public class DataProductAssembler implements GenericAssembler<DataProductVO, Dat
 		}
 		if (existingDataProduct.getTransnationalDataTransfer().isDataFromChina() != null) {
 			providerResponseVO.getTransnationalDataTransfer().setDataFromChina(existingDataProduct.getTransnationalDataTransfer().isDataFromChina());
+		}
+		if (existingDataProduct.getTransnationalDataTransfer().isContactAwareTransfer() != null) {
+			providerResponseVO.getTransnationalDataTransfer().setContactAwareTransfer(existingDataProduct.getTransnationalDataTransfer().isContactAwareTransfer());
+		}
+		if (existingDataProduct.getTransnationalDataTransfer().isObjectionsToTransfer() != null) {
+			providerResponseVO.getTransnationalDataTransfer().setObjectionsToTransfer(existingDataProduct.getTransnationalDataTransfer().isObjectionsToTransfer());
 		}
 		if (existingDataProduct.getDeletionRequirement().isDeletionRequirements() != null) {
 			providerResponseVO.getDeletionRequirement().setDeletionRequirements(existingDataProduct.getDeletionRequirement().isDeletionRequirements());
@@ -651,6 +727,12 @@ public class DataProductAssembler implements GenericAssembler<DataProductVO, Dat
 		}
 		if (dataproductConsumerData.getConsumerInformation().getPersonalRelatedData().isPersonalRelatedData() != null) {
 			datatransferConsumerData.getConsumerInformation().getPersonalRelatedData().setPersonalRelatedData(dataproductConsumerData.getConsumerInformation().getPersonalRelatedData().isPersonalRelatedData());
+		}
+		if (dataproductConsumerData.getConsumerInformation().getPersonalRelatedData().isContactAwareTransfer() != null) {
+			datatransferConsumerData.getConsumerInformation().getPersonalRelatedData().setContactAwareTransfer(dataproductConsumerData.getConsumerInformation().getPersonalRelatedData().isContactAwareTransfer());
+		}
+		if (dataproductConsumerData.getConsumerInformation().getPersonalRelatedData().isObjectionsToTransfer() != null) {
+			datatransferConsumerData.getConsumerInformation().getPersonalRelatedData().setObjectionsToTransfer(dataproductConsumerData.getConsumerInformation().getPersonalRelatedData().isObjectionsToTransfer());
 		}
 		if (dataproductConsumerData.isNotifyUsers() != null) {
 			datatransferConsumerData.setNotifyUsers(dataproductConsumerData.isNotifyUsers());

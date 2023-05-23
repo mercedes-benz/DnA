@@ -39,8 +39,8 @@ const createForecastRun = (data, id) => {
   return formServer.post(`/forecasts/${id}/runs`, data);
 };
 
-const getForecastRuns = (id) => {
-  return server.get(`/forecasts/${id}/runs`, {
+const getForecastRuns = (id, offset, limit) => {
+  return server.get(`/forecasts/${id}/runs?offset=${offset}&limit=${limit}`, {
     data: {},
   });
 };
@@ -57,12 +57,18 @@ const deleteForecastRun = (id, rid) => {
   });
 };
 
+const deleteSavedInputFile = (id, rid) => {
+  return server.delete(`/forecasts/${id}/inputs/${rid}`, {
+    data: {},
+  });
+};
+
 const deleteForecastRuns = (rids, id) => {
   return server.delete(`/forecasts/${id}/runs`, { ids: rids });
 };
 
-const getConfigurationFiles = () => {
-  return server.get(`/forecasts/default-config/files`, {
+const getConfigurationFiles = (id) => {
+  return server.get(`/forecasts/default-config/files?id=${id}`, {
     data: {},
   });
 };
@@ -109,6 +115,7 @@ export const chronosApi = {
     deleteForecastRun,
     getForecastRuns,
     deleteForecastRuns,
+    deleteSavedInputFile,
     getConfigurationFiles,
     generateApiKeyById,
     getApiKeyById,

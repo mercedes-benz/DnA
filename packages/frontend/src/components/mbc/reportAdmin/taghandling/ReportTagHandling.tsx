@@ -189,10 +189,10 @@ export class ReportTagHandling extends React.Component<any, ITagHandlingState> {
           id: 11,
           name: 'Data & Function - Data Warehouse - Data Warehouse',
         },
-        {
-          id: 12,
-          name: 'Data & Function - Data Warehouse - Common Functions',
-        },
+        // {
+        //   id: 12,
+        //   name: 'Data & Function - Data Warehouse - Common Functions',
+        // },
         // {
         //   id: 13,
         //   name: 'Data & Function - Single Data Source - Data Sources',

@@ -2,7 +2,7 @@ spring:
   mvc.pathmatch.matching-strategy: ant_path_matcher
   application:
     name: dna-codeserver-service
-    version: 1.0.2
+    version: 1.0.4
 
   flyway:
     enabled: ${FLYWAY_ENABLED:false}
@@ -84,3 +84,9 @@ logging:
         type:
           descriptor:
             sql: ERROR
+proxy: 
+  port: ${CUSTOMPROXY_PORT:XXXX}
+  host: ${CUSTOMPROXY_HOST:XXXX}
+  
+codespace:
+  recipe: ${DnARECIPE:XXXX}  
