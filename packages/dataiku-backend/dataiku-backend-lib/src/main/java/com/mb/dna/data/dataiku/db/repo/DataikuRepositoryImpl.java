@@ -6,7 +6,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-import javax.persistence.Column;
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
 import javax.persistence.TypedQuery;
@@ -196,10 +195,21 @@ public class DataikuRepositoryImpl implements DataikuRepository{
 		log.info("successfully deleted old collab records for dataiku id {}",dataikuid);
 	}
 	
-	public void updateDataiku(String id,String description) {
-		String updateStmt = "update dataiku_sql set  description = :updatedDescription where id = :id";
+	public void updateDataiku(String id,String description, String classificationType, String department, String divisionId, String divisionName, Boolean hasPii, String status, String subDivisionId, String subDivisionName) {
+		String updateStmt = "update dataiku_sql set  description = :updatedDescription, "
+				+ "status = :status, classification_type = :classificationType, has_pii = :hasPii, division_id = :divisionId, division_name = :divisionName,  "
+				+ "subdivision_id = :subdivisionId, subdivision_name = :subdivisionName, department = :department "
+				+ " where id = :id";
 		Query q = entityManager.createNativeQuery(updateStmt);
 		q.setParameter("updatedDescription", description);
+		q.setParameter("status", status);
+		q.setParameter("classificationType", classificationType);
+		q.setParameter("hasPii", hasPii);
+		q.setParameter("divisionId", divisionId);
+		q.setParameter("divisionName", divisionName);
+		q.setParameter("subdivisionId", subDivisionId);
+		q.setParameter("subdivisionName", subDivisionName);
+		q.setParameter("department", department);
 		q.setParameter("id", id);
 		q.executeUpdate();
 		log.info("successfully updated description for dataikuprojectid {} ",id);
@@ -209,7 +219,8 @@ public class DataikuRepositoryImpl implements DataikuRepository{
 	public void update(DataikuSql dataikuProject) {
 		//entityManager.merge(dataikuProject);
 		if(dataikuProject!=null) {
-			updateDataiku(dataikuProject.getId(),dataikuProject.getDescription());
+			updateDataiku(dataikuProject.getId(),dataikuProject.getDescription(),dataikuProject.getClassificationType(),dataikuProject.getDepartment(),
+					dataikuProject.getDivisionId(),dataikuProject.getDivisionName(),dataikuProject.getHasPii(),dataikuProject.getStatus(),dataikuProject.getSubdivisionId(),dataikuProject.getSubdivisionName());
 			deleteExistingCollabs(dataikuProject.getId());
 			List<CollaboratorSql> collabs = dataikuProject.getCollaborators();
 			if(collabs!=null && !collabs.isEmpty()) {

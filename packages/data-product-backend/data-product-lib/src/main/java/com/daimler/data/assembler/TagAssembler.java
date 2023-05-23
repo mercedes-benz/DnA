@@ -25,27 +25,40 @@
  * LICENSE END 
  */
 
-package com.daimler.data.db.jsonb.dataproduct;
+package com.daimler.data.assembler;
 
-import java.util.Date;
+import com.daimler.data.db.entities.TagNsql;
+import com.daimler.data.db.jsonb.Tag;
+import com.daimler.data.dto.tag.TagVO;
+import org.springframework.stereotype.Component;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import java.util.Objects;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+@Component
+public class TagAssembler implements GenericAssembler<TagVO, TagNsql> {
 
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-@JsonIgnoreProperties(ignoreUnknown = true)
-public class DataProductContactInformation {
-	
-	private TeamMember name;
-	private TeamMember informationOwner;
-	private TeamMember productOwner;
-	private String appId;
-	private String localComplianceOfficer;
-	private String department;
-	private Division division;
+	@Override
+	public TagVO toVo(TagNsql entity) {
+		TagVO tagVO = null;
+		if (Objects.nonNull(entity)) {
+			tagVO = new TagVO();
+			tagVO.setId(entity.getId());
+			tagVO.setName(entity.getData().getName());
+		}
+		return tagVO;
+	}
+
+	@Override
+	public TagNsql toEntity(TagVO vo) {
+		TagNsql tagNsql = null;
+		if (Objects.nonNull(vo)) {
+			tagNsql = new TagNsql();
+			Tag tag = new Tag();
+			tag.setName(vo.getName());
+			tagNsql.setData(tag);
+			if (vo.getId() != null)
+				tagNsql.setId(vo.getId());
+		}
+		return tagNsql;
+	}
 }

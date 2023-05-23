@@ -33,6 +33,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import javax.persistence.Query;
+import javax.persistence.NoResultException;
 
 import org.springframework.stereotype.Repository;
 
@@ -84,15 +85,6 @@ public class ForecastCustomRepositoryImpl extends CommonDataRepositoryImpl<Forec
 			return entity;
 		}).collect(Collectors.toList());
 		return convertedResults;
-	}
-	
-	
-	@Override
-	public long getTotalRunsCount(String id) {
-		String getCountStmt = " select count(*) from forecast_nsql where  id = '" + id + "' and (jsonb_extract_path_text(data,'isDelete') is null or  jsonb_extract_path_text(data,'isDelete') in ('true'))";;
-		Query q = em.createNativeQuery(getCountStmt);
-		BigInteger results = (BigInteger) q.getSingleResult();
-		return results.longValue();
 	}
 	
 	@Override

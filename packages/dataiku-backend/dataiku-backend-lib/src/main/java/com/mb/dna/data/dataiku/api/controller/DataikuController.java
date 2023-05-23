@@ -260,6 +260,52 @@ public class DataikuController {
 		responseMsg = service.deleteById(id,existingDataikuProject);
 		return Response.ok().entity(responseMsg).build();
 	}
+	
+	
+	@DELETE
+    @Path("/dataiku/{cloudprofile}/{projectname}")
+    @Operation(summary = "Delete dataiku project",
+            description = "Hard delete dataiku project details from the system")
+    @ApiResponse(responseCode = "200", description = "dataiku project deteled",
+    		content = @Content(mediaType = "application/json"
+            ,schema = @Schema(type="GenericMessage")))
+    @ApiResponse(responseCode = "400", description = "Invalid id supplied")
+    @ApiResponse(responseCode = "404", description = "User not found")
+	@Tag(name = "dataiku")
+    public Response deleteDataikuByCloudProfileAndProjectName(
+            @Parameter(description = "The cloudProfile of the dataiku project to be deleted", required = true) @PathParam("cloudprofile") String cloudprofile, 
+            @Parameter(description = "The name of the dataiku project to be deleted", required = true) @PathParam("projectname") String projectname) {
+		GenericMessage responseMsg = new GenericMessage();
+		responseMsg.setSuccess("FAILED");
+		List<MessageDescription> errors = new ArrayList<>();
+		List<MessageDescription> warnings = new ArrayList<>();
+		cloudprofile = "eXtollo".equalsIgnoreCase(cloudprofile) ? cloudprofile : "onPremise";
+		DataikuProjectDto existingDataikuProject = service.getByProjectName(projectname, cloudprofile);
+		String userId = this.userStore.getUserInfo().getId();
+		if(existingDataikuProject!=null && projectname.equalsIgnoreCase(existingDataikuProject.getProjectName())){
+			List<CollaboratorDetailsDto> collabs = existingDataikuProject.getCollaborators();
+			Optional<CollaboratorDetailsDto> record = collabs.stream().filter(x-> userId.equalsIgnoreCase(x.getUserId()) && "Administrator".equalsIgnoreCase(x.getPermission())).findAny();
+	        if (!record.isPresent()) {
+				MessageDescription errMsg = new MessageDescription("Forbidden, Project can only be deleted by creator");
+				log.error("Forbidden. Only Users with Administrator access can delete the project {}. Current user {} ", projectname, userId);
+				errors.add(errMsg);
+				responseMsg.setErrors(errors);
+				responseMsg.setWarnings(warnings);
+				return Response.status(Status.FORBIDDEN).entity(responseMsg).build();
+			}
+		}else {
+			MessageDescription errMsg = new MessageDescription(" Project with name " + projectname + " does not exists");
+			log.error("Not Found. Project with name {} does not exists", projectname);
+			errors.add(errMsg);
+			responseMsg.setErrors(errors);
+			responseMsg.setWarnings(warnings);
+			return Response.status(Status.NOT_FOUND).entity(responseMsg).build();
+		}
+		String id = existingDataikuProject.getId();
+		responseMsg = service.deleteById(id,existingDataikuProject);
+		return Response.ok().entity(responseMsg).build();
+	}
+	
     
 	@GET
     @Path("/dataiku/{id}")
@@ -303,6 +349,7 @@ public class DataikuController {
     		@Parameter(description = "The cloudprofile of the dataiku details to be fetched", required = true) @PathParam("cloudprofile") String cloudprofile,
             @Parameter(description = "The projectname of the dataiku details to be fetched", required = true) @PathParam("projectname") String projectname) {
 		String userId = this.userStore.getUserInfo().getId();
+		cloudprofile = "eXtollo".equalsIgnoreCase(cloudprofile) ? cloudprofile : "onPremise";
 		DataikuProjectDto data = service.getByProjectName(projectname, cloudprofile);
 		if(data!=null && projectname.equalsIgnoreCase(data.getProjectName())) {
 			CollaboratorDetailsDto collabUser = data.getCollaborators().stream().filter(collab -> userId.equalsIgnoreCase(collab.getUserId()))
