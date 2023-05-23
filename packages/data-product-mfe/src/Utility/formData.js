@@ -11,7 +11,6 @@ export const serializeFormData = ({ values, division, type = 'provider', isDataP
             providerInformation: {
               contactInformation: {
                 appId: values.planningIT,
-                dataTransferDate: values.dateOfDataTransfer === null ? undefined : new Date(values.dateOfDataTransfer),
                 department: values.department === '' ? undefined : values.department?.toString(),
                 division,
                 localComplianceOfficer: values.complianceOfficer?.toString(),
@@ -29,6 +28,7 @@ export const serializeFormData = ({ values, division, type = 'provider', isDataP
             id: values.id,
             dataProductName: values.productName,
             description: values.description,
+            additionalInformation: values.additionalInformation,
             howToAccessText: values.howToAccessText,
             isPublish: values.publish || false,
             notifyUsers: values.notifyUsers || false,
@@ -61,7 +61,6 @@ export const serializeFormData = ({ values, division, type = 'provider', isDataP
                 },
                 contactInformation: {
                   appId: values.planningIT,
-                  dataTransferDate: values.dateOfDataTransfer === null ? undefined : new Date(values.dateOfDataTransfer),
                   department: values.department === '' ? undefined : values.department?.toString(),
                   division,
                   localComplianceOfficer: values.complianceOfficer?.toString(),
@@ -79,12 +78,19 @@ export const serializeFormData = ({ values, division, type = 'provider', isDataP
                   legalBasis: values.personalRelatedDataLegalBasis,
                   personalRelatedData: values.personalRelatedData === 'Yes' ? true : false, //boolean
                   purpose: values.personalRelatedDataPurpose,
+                  contactAwareTransfer: values.personalRelatedDataContactAwareTransfer === 'Yes' ? true : false, //boolean
+                  objectionsToTransfer: values.personalRelatedDataObjectionsTransfer === 'Yes' ? true : false, //boolean
+                  transferringNonetheless: values.personalRelatedDataTransferingNonetheless,
+                  objections: values.personalRelatedDataTransferingObjections
                 },
                 transnationalDataTransfer: {
-                  approved: values.LCOApprovedDataTransfer,
                   dataTransferred: values.transnationalDataTransfer === 'Yes' ? true : false, //boolean
                   notWithinEU: values.transnationalDataTransferNotWithinEU === 'Yes' ? true : false, //boolean
                   dataFromChina: values.dataOriginatedFromChina === 'Yes' ? true : false,
+                  contactAwareTransfer: values.transnationalDataContactAwareTransfer === 'Yes' ? true : false, //boolean
+                  objectionsToTransfer: values.transnationalDataObjectionsTransfer === 'Yes' ? true : false, //boolean
+                  transferringNonetheless: values.transnationalDataTransferingNonetheless,
+                  objections: values.transnationalDataTransferingObjections
                 },
                 openSegments: values.openSegments,
                 providerFormSubmitted: values.providerFormSubmitted || false,
@@ -123,10 +129,10 @@ export const serializeFormData = ({ values, division, type = 'provider', isDataP
                   oneApi: values.oneApi,
                   contactInformation: {
                     appId: values.planningIT,
-                    dataProductDate: values.dateOfDataProduct === null ? undefined : new Date(values.dateOfDataProduct),
                     department: values.department === '' ? undefined : values.department?.toString(),
                     division,
                     informationOwner: values.informationOwner,
+                    productOwner: values.productOwner,
                     localComplianceOfficer: values.complianceOfficer?.toString(),
                     name: values.name,
                   },
@@ -143,15 +149,22 @@ export const serializeFormData = ({ values, division, type = 'provider', isDataP
                         description: values.personalRelatedDataDescription,
                         legalBasis: values.personalRelatedDataLegalBasis,
                         purpose: values.personalRelatedDataPurpose,
+                        contactAwareTransfer: values.personalRelatedDataContactAwareTransfer === 'Yes' ? true : false, //boolean
+                        objectionsToTransfer: values.personalRelatedDataObjectionsTransfer === 'Yes' ? true : false, //boolean
+                        transferringNonetheless: values.personalRelatedDataTransferingNonetheless,
+                        objections: values.personalRelatedDataTransferingObjections
                       }),
                     },
                   }),
                   ...(values?.openSegments?.includes('IdentifiyingTransnationalDataTransfer') && {
                     transnationalDataTransfer: {
-                      approved: values.LCOApprovedDataTransfer,
                       dataFromChina: values.dataOriginatedFromChina === 'Yes' ? true : false,
                       dataTransferred: values.transnationalDataTransfer === 'Yes' ? true : false,
                       notWithinEU: values.transnationalDataTransferNotWithinEU === 'Yes' ? true : false,
+                      contactAwareTransfer: values.transnationalDataContactAwareTransfer === 'Yes' ? true : false, //boolean
+                      objectionsToTransfer: values.transnationalDataObjectionsTransfer === 'Yes' ? true : false, //boolean
+                      transferringNonetheless: values.transnationalDataTransferingNonetheless,
+                      objections: values.transnationalDataTransferingObjections
                     },
                   }),
                   ...(values?.openSegments?.includes('SpecifyDeletionRequirements') && {
@@ -180,7 +193,6 @@ export const deserializeFormData = ({ item, type = 'provider', isDataProduct = f
           name: item.providerInformation?.contactInformation?.name,
           informationOwner: item.providerInformation?.contactInformation?.informationOwner,
           planningIT: item.providerInformation?.contactInformation?.appId,
-          dateOfDataTransfer: item.providerInformation?.contactInformation?.dataTransferDate === null ? undefined : item.providerInformation?.contactInformation?.dataTransferDate,
           department: item.providerInformation?.contactInformation?.department === '' ? undefined : item.providerInformation?.contactInformation?.department?.split(),
           division: item.providerInformation?.contactInformation?.division?.id,
           subDivision: item.providerInformation?.contactInformation?.division?.subdivision?.id || '0',
@@ -195,14 +207,27 @@ export const deserializeFormData = ({ item, type = 'provider', isDataProduct = f
           personalRelatedDataDescription: item.providerInformation?.personalRelatedData?.description,
           personalRelatedDataLegalBasis: item.providerInformation?.personalRelatedData?.legalBasis,
           personalRelatedData: item.providerInformation?.personalRelatedData?.personalRelatedData ? 'Yes' : 'No',
+          personalRelatedDataContactAwareTransfer: item?.providerInformation?.personalRelatedData?.contactAwareTransfer  ? 'Yes' : item.providerInformation?.personalRelatedData?.personalRelatedData ? 'No' : '',
+          personalRelatedDataObjectionsTransfer: item?.providerInformation?.personalRelatedData?.objectionsToTransfer  ? 'Yes' : item?.providerInformation?.personalRelatedData?.contactAwareTransfer ? 'No' : '',
+          personalRelatedDataTransferingNonetheless: item?.providerInformation?.personalRelatedData?.transferringNonetheless,
+          personalRelatedDataTransferingObjections: item?.providerInformation?.personalRelatedData?.objections,
           personalRelatedDataPurpose: item.providerInformation?.personalRelatedData?.purpose,
-          LCOApprovedDataTransfer: item.providerInformation?.transnationalDataTransfer?.approved,
           transnationalDataTransfer: item.providerInformation?.transnationalDataTransfer?.dataTransferred
             ? 'Yes'
             : 'No',
           transnationalDataTransferNotWithinEU: item.providerInformation?.transnationalDataTransfer?.notWithinEU
             ? 'Yes'
+            : item.providerInformation?.transnationalDataTransfer?.dataTransferred
+            ? 'No'
             : '',
+          transnationalDataContactAwareTransfer: item.providerInformation?.transnationalDataTransfer?.contactAwareTransfer
+            ? 'Yes'
+            : item.providerInformation?.transnationalDataTransfer?.notWithinEU ? 'No' : '',
+          transnationalDataObjectionsTransfer: item.providerInformation?.transnationalDataTransfer?.objectionsToTransfer
+            ? 'Yes'
+            : item.providerInformation?.transnationalDataTransfer?.contactAwareTransfer ? 'No' : '',
+          transnationalDataTransferingNonetheless: item.providerInformation?.transnationalDataTransfer?.transferringNonetheless,
+          transnationalDataTransferingObjections: item.providerInformation?.transnationalDataTransfer?.objections,
           insiderInformation: item.providerInformation?.deletionRequirement?.insiderInformation || 'No',
           notifyUsers: item?.notifyUsers,
           users: item.providerInformation?.users,
@@ -215,7 +240,7 @@ export const deserializeFormData = ({ item, type = 'provider', isDataProduct = f
               department: item.consumerInformation?.contactInformation?.department === '' ? undefined : item.consumerInformation?.contactInformation?.department?.split(),
               division: item.consumerInformation?.contactInformation?.division.id,
               subDivision: item.consumerInformation?.contactInformation.division.subdivision.id || '0',
-              dateOfAgreement: item.consumerInformation?.contactInformation.agreementDate || '',
+              dateOfDataTransfer: item.consumerInformation?.contactInformation.dataTransferDate || '',
               lcoNeeded: item.consumerInformation?.contactInformation.lcoNeeded ? 'Yes' : 'No',
               complianceOfficer: item.consumerInformation?.contactInformation.localComplianceOfficer
                 ?.split()
@@ -227,6 +252,12 @@ export const deserializeFormData = ({ item, type = 'provider', isDataProduct = f
               personalRelatedDataLegalBasis: item.consumerInformation?.personalRelatedData.legalBasis,
               personalRelatedData: item.consumerInformation?.personalRelatedData.personalRelatedData ? 'Yes' : 'No',
               personalRelatedDataPurpose: item.consumerInformation?.personalRelatedData.purpose,
+
+              personalRelatedDataContactAwareTransfer: item?.consumerInformation?.personalRelatedData?.contactAwareTransfer ? 'Yes' : item?.consumerInformation?.personalRelatedData?.personalRelatedData ? 'No' : '',
+              personalRelatedDataObjectionsTransfer: item?.consumerInformation?.personalRelatedData?.objectionsToTransfer  ? 'Yes' : item?.consumerInformation?.personalRelatedData?.contactAwareTransfer ? 'No': '',
+              personalRelatedDataTransferingNonetheless: item?.consumerInformation?.personalRelatedData?.transferringNonetheless,
+              personalRelatedDataTransferingObjections: item?.consumerInformation?.personalRelatedData?.objections,
+
               notifyUsers: item?.notifyUsers,
               publish: item.publish,
             },
@@ -234,6 +265,7 @@ export const deserializeFormData = ({ item, type = 'provider', isDataProduct = f
         }
       : {
           description: item.description,
+          additionalInformation: item.additionalInformation,
           ART: item?.agileReleaseTrain?.name || '',
           carLAFunction: item?.carLaFunction?.name || '',
           corporateDataCatalog: item?.corporateDataCatalog?.name || '',
@@ -252,6 +284,7 @@ export const deserializeFormData = ({ item, type = 'provider', isDataProduct = f
           notifyUsers: item.notifyUsers,
           openSegments: item?.openSegments,
           informationOwner: item?.contactInformation?.informationOwner,
+          productOwner: item?.contactInformation?.productOwner,
           dateOfDataProduct: item?.contactInformation?.dataProductDate === null ? undefined : item?.contactInformation?.dataProductDate,
           department: item?.contactInformation?.department === '' ? undefined : item?.contactInformation?.department?.split(),
           name: item?.contactInformation?.name,
@@ -268,10 +301,19 @@ export const deserializeFormData = ({ item, type = 'provider', isDataProduct = f
           personalRelatedData: item?.personalRelatedData?.personalRelatedData ? 'Yes' : 'No',
           personalRelatedDataPurpose: item?.personalRelatedData?.purpose,
 
-          LCOApprovedDataTransfer: item?.transnationalDataTransfer?.approved,
-          transnationalDataTransfer: item?.transnationalDataTransfer?.dataTransferred ? 'Yes' : 'No',
-          transnationalDataTransferNotWithinEU: item?.transnationalDataTransfer?.notWithinEU ? 'Yes' : '',
+          personalRelatedDataContactAwareTransfer: item?.personalRelatedData?.contactAwareTransfer ? 'Yes' : item?.personalRelatedData?.personalRelatedData ? 'No' : '',
+          personalRelatedDataObjectionsTransfer: item?.personalRelatedData?.objectionsToTransfer  ? 'Yes' : item?.personalRelatedData?.contactAwareTransfer ? 'No': '',
+          personalRelatedDataTransferingNonetheless: item?.personalRelatedData?.transferringNonetheless,
+          personalRelatedDataTransferingObjections: item?.personalRelatedData?.objections,
+
+          transnationalDataTransfer: item?.transnationalDataTransfer?.dataTransferred ? 'Yes' :  'No',
+          transnationalDataTransferNotWithinEU: item?.transnationalDataTransfer?.notWithinEU ? 'Yes' : item?.transnationalDataTransfer?.dataTransferred ? 'No' : '',
           dataOriginatedFromChina: item?.transnationalDataTransfer?.dataFromChina ? 'Yes' : 'No',
+
+          transnationalDataContactAwareTransfer: item?.transnationalDataTransfer?.contactAwareTransfer ? 'Yes' : item?.transnationalDataTransfer?.notWithinEU ? 'No' : '',
+          transnationalDataObjectionsTransfer: item?.transnationalDataTransfer?.objectionsToTransfer ? 'Yes' : item?.transnationalDataTransfer?.contactAwareTransfer ? 'No' : '',
+          transnationalDataTransferingNonetheless: item?.transnationalDataTransfer?.transferringNonetheless,
+          transnationalDataTransferingObjections: item?.transnationalDataTransfer?.objections,
 
           insiderInformation: item?.deletionRequirement?.insiderInformation || 'No',
           deletionRequirement: item?.deletionRequirement?.deletionRequirements ? 'Yes' : 'No',
@@ -291,7 +333,7 @@ export const deserializeFormData = ({ item, type = 'provider', isDataProduct = f
               division: item.consumerFormValues?.consumerInformation?.contactInformation?.division.id,
               subDivision:
                 item.consumerFormValues?.consumerInformation?.contactInformation.division.subdivision.id || '0',
-              dateOfAgreement: item.consumerFormValues?.consumerInformation?.contactInformation.agreementDate || '',
+              dateOfDataTransfer: item.consumerFormValues?.consumerInformation?.contactInformation.dataTransferDate || '',
               lcoNeeded: item.consumerFormValues?.consumerInformation?.contactInformation.lcoNeeded ? 'Yes' : 'No',
               complianceOfficer: item.consumerFormValues?.consumerInformation?.contactInformation.localComplianceOfficer
                 ?.split()
@@ -306,6 +348,18 @@ export const deserializeFormData = ({ item, type = 'provider', isDataProduct = f
                 ? 'Yes'
                 : 'No',
               personalRelatedDataPurpose: item.consumerFormValues?.consumerInformation?.personalRelatedData.purpose,
+
+              personalRelatedDataContactAwareTransfer: item?.consumerFormValues?.consumerInformation?.personalRelatedData?.contactAwareTransfer
+                ? 'Yes'
+                : item?.consumerFormValues?.consumerInformation?.personalRelatedData?.contactAwareTransfer?.personalRelatedData ? 'No' : '',
+              personalRelatedDataObjectionsTransfer: item?.consumerFormValues?.consumerInformation?.personalRelatedData?.contactAwareTransfer?.objectionsToTransfer
+                ? 'Yes'
+                : item?.consumerFormValues?.consumerInformation?.personalRelatedData?.contactAwareTransfer?.contactAwareTransfer ? 'No': '',
+              personalRelatedDataTransferingNonetheless:
+                item?.consumerFormValues?.consumerInformation?.personalRelatedData?.contactAwareTransfer?.transferringNonetheless,
+              personalRelatedDataTransferingObjections:
+                item?.consumerFormValues?.consumerInformation?.personalRelatedData?.contactAwareTransfer?.objections,
+
               dataTransferName: item?.dataTransferName,
             },
           }),

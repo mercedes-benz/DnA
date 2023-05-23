@@ -30,6 +30,15 @@ public class DataikuAssembler {
 			entity.setCollaborators(collabs);
 			entity.setCreatedBy(vo.getCreatedBy());
 			entity.setCreatedOn(vo.getCreatedOn());
+			
+			entity.setStatus(vo.getStatus());
+			entity.setClassificationType(vo.getClassificationType());
+			entity.setHasPii(vo.getHasPii());
+			entity.setDivisionId(vo.getDivisionId());
+			entity.setDivisionName(vo.getDivisionName());
+			entity.setSubdivisionId(vo.getSubdivisionId());
+			entity.setSubdivisionName(vo.getSubdivisionName());
+			entity.setDepartment(vo.getDepartment());
 			}
 		return entity;
 	}
@@ -50,6 +59,15 @@ public class DataikuAssembler {
 			vo.setCollaborators(collabsDto);
 			vo.setCreatedOn(entity.getCreatedOn());
 			vo.setCreatedBy(entity.getCreatedBy());
+			
+			vo.setStatus(entity.getStatus());
+			vo.setClassificationType(entity.getClassificationType());
+			vo.setHasPii(entity.getHasPii());
+			vo.setDivisionId(entity.getDivisionId());
+			vo.setDivisionName(entity.getDivisionName());
+			vo.setSubdivisionId(entity.getSubdivisionId());
+			vo.setSubdivisionName(entity.getSubdivisionName());
+			vo.setDepartment(entity.getDepartment());
 		}
 		return vo;
 	}

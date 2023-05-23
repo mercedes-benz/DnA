@@ -1,0 +1,288 @@
+buildscript {
+    ext {
+        springBootVersion = "2.4.4"
+        releaseVersion = "2.0.0"
+    }
+    repositories {
+        mavenLocal()
+        mavenCentral()
+		gradlePluginPortal()
+		maven {
+		  url "https://plugins.gradle.org/m2/"
+		}
+    }
+    dependencies {
+        classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
+        //classpath("org.sonarsource.scanner.gradle:sonarqube-gradle-plugin:2.6.2")
+		classpath("org.sonarsource.scanner.gradle:sonarqube-gradle-plugin:3.2.0")
+		classpath("gradle.plugin.org.hidetake:gradle-swagger-generator-plugin:2.18.2")
+		classpath("com.commercehub:gradle-cucumber-jvm-plugin:0.14")
+		classpath("org.apache.maven.plugins:maven-dependency-plugin:3.1.2")
+    }
+
+}
+
+
+plugins {
+    // the plugins DSL is replacing apply plugin over time for Java-plugins. It is therefore favoured over the legacy "apply plugin:" approach
+    id "java"
+    id "eclipse"
+    //id 'org.hidetake.swagger.generator' version '2.18.2'
+    id "jacoco"
+    //id "org.sonarqube" version "2.6.2"
+	id "org.sonarqube" version "3.2.0"
+    //id 'com.commercehub.cucumber-jvm' version '0.13'
+	//id "io.freefair.lombok" version "4.1.6"
+}
+
+apply plugin: "io.spring.dependency-management"
+apply plugin: "org.springframework.boot"
+apply plugin: "jacoco"
+apply plugin: "cucumber-jvm"
+//apply plugin: 'maven'
+apply plugin: "maven-publish"
+apply plugin: 'groovy'
+apply plugin: "org.sonarqube"
+apply plugin: "org.hidetake.swagger.generator"
+
+repositories {
+        mavenLocal()
+        mavenCentral()
+		gradlePluginPortal()
+		maven {
+		  url "https://plugins.gradle.org/m2/"
+		}
+}
+
+group 'com.daimler.data'
+version = releaseVersion
+
+sourceCompatibility = 1.17
+targetCompatibility = 1.17
+tasks.withType(JavaCompile) { options.encoding = 'UTF-8' }
+
+compileJava {
+    dependsOn processResources
+}
+
+sourceSets {
+    unitTest {
+        java { srcDir 'src/test/groovy' }
+        resources { srcDir 'src/test/resources' }
+        compileClasspath += sourceSets.main.runtimeClasspath
+    }
+    main {
+       
+        java { srcDirs }
+        
+    }
+}
+
+//__________________________________________________________//
+//_____________ TEST CONFIG SETTINGS AREA __________________//
+test {
+    reports {
+        junitXml.enabled = true
+        html.enabled = true
+    }
+    testLogging { // Show that tests are run in the command-line output
+        events 'passed' // 'started' is also an option
+    }
+}
+
+//Ensure that the HTML reports of unit and integration tests are written to different directories.
+tasks.withType(Test) {
+    reports.html.destination = file("${reporting.baseDir}/${name}")
+}
+
+
+/*
+//__________________________________________________________//
+//_________________ CUCUMBER CONFIG AREA  _________________//
+addCucumberSuite 'cucumberTest'
+
+cucumber {
+	maxParallelForks = 1
+}
+cucumberTest {
+  group = "Verification"
+  description 'Runs the Acceptance Tests via connecting to a running system.'
+  stepDefinitionRoots = ['classpath:daimler/data']
+  junitReport = true
+  tags = ['~@WIP']
+  if (project.hasProperty('cucumberTags')) {
+	  tags = [cucumberTags]
+  }
+  if (project.hasProperty('hostname')) {
+   systemProperties = [ host: hostname, port: port ]
+   }
+   if(project.hasProperty('sshost')){
+   systemProperties['sshost'] = sshost
+   }
+   if(project.hasProperty('ssport')){
+   systemProperties['ssport'] = ssport
+   }
+   if(project.hasProperty('dbhost')){
+   systemProperties['dbhost'] = dbhost
+   }
+   else {
+   if (project.hasProperty('hostname')) {
+   systemProperties['dbhost'] = hostname
+   }
+   }
+   if(project.hasProperty('dbport')){
+   systemProperties['dbport'] = dbport
+   }
+}
+//needed to do this so we only display this message if the cucumberTest task was run
+cucumberTest.doLast {
+	if (tasks.cucumberTest.didWork) {
+		println 'Running Cucumber tests with tag of: ' + tags
+	}
+}
+*/
+
+
+/*
+//__________________________________________________________//
+//___________________ JACOCO PLUGIN CONFIG AREA ____________//
+jacoco { toolVersion = "0.7.9" }
+jacocoTestReport {
+  group = "Reporting"
+  reports {
+    xml.enabled true
+    html.destination "${buildDir}/reports/coverage"
+  }
+}
+*/
+sonarqube {
+    properties {
+        property "sonar.projectName", "Data@MBC Backend"
+        property "sonar.projectKey", "org.sonarqube:java-gradle-simple"
+        property "sonar.jacoco.reportPath", "${project.buildDir}/jacoco/test.exec"
+    }
+}
+
+configurations {
+    cucumberTestCompile.extendsFrom testCompile
+    cucumberTestRuntime.extendsFrom testRuntime
+    /*contractTestCompile.extendsFrom testCompile
+    contractTestRuntime.extendsFrom testRuntime*/
+	//implementation
+}
+
+
+dependencies {
+
+	implementation group: 'org.springframework.boot', name: 'spring-boot-starter-actuator', version: '2.4.0'
+   
+    implementation group: 'org.json', name: 'json', version: '20190722'
+    //implementation group: 'org.flywaydb', name: 'flyway-core', version: '8.4.2'
+    implementation('ch.qos.logback:logback-classic:1.2.3')
+
+    implementation group: 'org.slf4j', name: 'slf4j-api', version: '1.7.30'
+    implementation group: 'org.slf4j', name: 'jcl-over-slf4j', version: '1.7.30'
+    implementation group: 'org.slf4j', name: 'jul-to-slf4j', version: '1.7.30'
+    implementation group: 'org.slf4j', name: 'log4j-over-slf4j', version: '1.7.30'
+
+    implementation('ch.qos.logback:logback-core:1.2.3')
+    //1.5.18
+    implementation 'io.swagger:swagger-annotations:1.6.2'
+
+	// https://mvnrepository.com/artifact/io.swagger/swagger-codegen-cli
+    swaggerCodegen 'io.swagger:swagger-codegen-cli:2.4.20'
+
+	// https://mvnrepository.com/artifact/cglib/cglib-nodep
+    implementation group: 'cglib', name: 'cglib-nodep', version: '3.3.0'
+
+	// https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-data-jpa
+    implementation group: 'org.springframework.boot', name: 'spring-boot-starter-data-jpa', version: '2.5.0'
+
+    implementation group: 'com.vladmihalcea', name: 'hibernate-types-52', version: '2.9.2'
+
+	// https://mvnrepository.com/artifact/org.postgresql/postgresql
+    implementation group: 'org.postgresql', name: 'postgresql', version: '42.2.20'
+
+    implementation('org.springframework.boot:spring-boot-starter-web')
+    // implementation('org.springframework.boot:spring-boot-starter-security')
+    //implementation('org.apache.tomcat.embed:tomcat-embed-jasper:8.0.47')
+	implementation('org.apache.tomcat.embed:tomcat-embed-jasper:10.0.5')
+
+	// https://mvnrepository.com/artifact/io.springfox/springfox-swagger2
+    implementation group: 'io.springfox', name: 'springfox-swagger2', version: '3.0.0'
+	
+    implementation('io.springfox:springfox-swagger-ui:2.9.2')
+	
+	// https://mvnrepository.com/artifact/org.codehaus.mojo/animal-sniffer-annotations
+    implementation group: 'org.codehaus.mojo', name: 'animal-sniffer-annotations', version: '1.20'
+	
+	// https://mvnrepository.com/artifact/org.antlr/antlr4-runtime
+    implementation group: 'org.antlr', name: 'antlr4-runtime', version: '4.9.2'
+
+    implementation group: 'org.apache.httpcomponents', name: 'httpclient', version: '4.5.13'
+
+    implementation 'org.projectlombok:lombok:1.18.22'
+    implementation group: 'io.jsonwebtoken', name: 'jjwt', version: '0.9.1'
+    annotationProcessor 'org.projectlombok:lombok:1.18.22'
+
+    // https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-core
+    implementation group: 'com.fasterxml.jackson.core', name: 'jackson-core', version: '2.12.3'
+
+    implementation group: 'com.google.code.gson', name: 'gson', version: '2.8.7'
+	
+	implementation 'org.springframework.boot:spring-boot-starter-validation'
+	
+	// https://mvnrepository.com/artifact/net.minidev/json-smart
+    implementation group: 'net.minidev', name: 'json-smart', version: '2.4.7'
+
+    testImplementation(group: 'org.springframework.boot', name: 'spring-boot-starter-test', version: "${springBootVersion}") {
+        exclude(module: 'commons-logging')
+    }
+	
+	 testImplementation(group: 'org.spockframework', name: 'spock-core', version: '2.0-groovy-3.0') {    
+        exclude(module: 'groovy-all')
+    }
+	
+	// https://mvnrepository.com/artifact/io.cucumber/cucumber-java
+    implementation group: 'io.cucumber', name: 'cucumber-java', version: '6.10.4'
+
+    // https://mvnrepository.com/artifact/io.cucumber/cucumber-junit
+    testImplementation group: 'io.cucumber', name: 'cucumber-junit', version: '6.10.4'
+	
+    /*testImplementation(
+            'junit:junit:4.12',
+            'org.codehaus.groovy:groovy-all:2.4.10',
+            'info.cukes:cucumber-java:1.2.5',
+            'info.cukes:cucumber-junit:1.2.5',
+            'org.glassfish.jersey.media:jersey-media-json-jackson:2.14',
+            'org.glassfish:javax.json:1.0.4',
+            'javax.json:javax.json-api:1.0'
+    )*/
+    testImplementation(
+            //'junit:junit:4.12',
+            //'junit:junit:4.13.2',
+            'org.junit.jupiter:junit-jupiter-api:5.8.0-M1',
+			'org.apache.ant:ant-junit:1.10.9',
+			'org.codehaus.groovy:groovy-all:3.0.8',
+            //'info.cukes:cucumber-java:1.2.5',
+            //'io.cukes:cucumber-java:6.10.3',
+            //'info.cukes:cucumber-junit:1.2.5',
+            //'io.cukes:cucumber-junit:6.10.3',
+            //'org.glassfish.jersey.media:jersey-media-json-jackson:2.14',
+            'org.glassfish:javax.json:1.0.4',
+            'javax.json:javax.json-api:1.1.4'
+    )
+
+	implementation platform('com.amazonaws:aws-java-sdk-bom:1.11.908')
+    implementation 'com.amazonaws:aws-java-sdk-s3'
+    
+	repositories {
+        mavenLocal()
+        mavenCentral()
+		gradlePluginPortal()
+		maven {
+		  url "https://plugins.gradle.org/m2/"
+		}
+    }
+
+}

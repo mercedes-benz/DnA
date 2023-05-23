@@ -56,6 +56,25 @@ public class CodeServerClient {
 			case "py-fastapi" : deployType = ConstantsUtility.PYFASTAPI; break;
 			case "react":  deployType = ConstantsUtility.REACT; break;
 			case "angular" : deployType = ConstantsUtility.ANGULAR; break;
+			case "public-dna-backend" : deployType = ConstantsUtility.PUBLIC; break;
+			case "public-dna-frontend" : deployType = ConstantsUtility.PUBLIC; break;			
+			case "public-dna-report-backend" : deployType = ConstantsUtility.PUBLIC; break;
+			case "public-dna-codespace-backend" : deployType = ConstantsUtility.PUBLIC; break;
+			case "public-dna-malware-scanner" : deployType = ConstantsUtility.PUBLIC; break;
+			case "public-dna-storage-mfe" : deployType = ConstantsUtility.PUBLIC; break;
+			case "public-dna-storage-backend" : deployType = ConstantsUtility.PUBLIC; break;
+			case "public-dna-chronos-mfe" : deployType = ConstantsUtility.PUBLIC; break;
+			case "public-dna-chronos-backend" : deployType = ConstantsUtility.PUBLIC; break;
+			case "public-dna-data-product-mfe" : deployType = ConstantsUtility.PUBLIC; break;
+			case "public-dna-data-product-backend" : deployType = ConstantsUtility.PUBLIC; break;
+			case "public-dna-dss-mfe" : deployType = ConstantsUtility.PUBLIC; break;
+			case "public-dna-dataiku-backend" : deployType = ConstantsUtility.PUBLIC; break;
+			case "public-dna-airflow-backend" : deployType = ConstantsUtility.PUBLIC; break;
+			case "public-dna-modal-registry-backend" : deployType = ConstantsUtility.PUBLIC; break;
+			case "public-dna-trino-backend" : deployType = ConstantsUtility.PUBLIC; break;
+			case "public-dna-nass" : deployType = ConstantsUtility.PUBLIC; break;			
+			case "public-dna-authenticator-backend" : deployType = ConstantsUtility.PUBLIC; break;
+			
 			default: deployType = ConstantsUtility.DEFAULT; break;
 		}
 		return deployType;

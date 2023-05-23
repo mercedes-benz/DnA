@@ -58,7 +58,7 @@ spring:
         consume1:
           binder: kafka
           destination: dnaCentralEventTopic
-          content-type: text/plain
+          content-type: text/plain     
 
 kafka:
   centralTopic:

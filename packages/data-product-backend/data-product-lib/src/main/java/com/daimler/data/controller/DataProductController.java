@@ -8,17 +8,24 @@ import com.daimler.data.controller.exceptions.MessageDescription;
 import com.daimler.data.dto.datacompliance.CreatedByVO;
 import com.daimler.data.dto.dataproduct.*;
 import com.daimler.data.dto.datatransfer.*;
+import com.daimler.data.dto.tag.TagVO;
 import com.daimler.data.service.dataproduct.DataProductService;
+import com.daimler.data.service.datatransfer.DataTransferService;
+import com.daimler.data.service.tag.TagService;
 import com.daimler.data.util.ConstantsUtility;
 import io.swagger.annotations.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.MultiValueMap;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -37,10 +44,31 @@ public class DataProductController implements DataproductsApi{
 	private DataProductService service;
 
 	@Autowired
+	private DataTransferService dataTransferService;
+
+	@Autowired
 	private UserStore userStore;
 
 	@Autowired
 	private DataProductAssembler assembler;
+	
+	@Autowired
+	private TagService tagService;
+
+	@Value("${dataproduct.refreshdb}")
+	private Boolean dataproductRefreshDb;
+
+	@Value("${dataproduct.refreshdb}")
+	private Boolean datatransferRefreshDb;
+
+	@Value("${xapikeydetails.key}")
+	private String xApiKeyValue;
+
+	@Value("${xapikeydetails.header}")
+	private String xApiKeyHeader;
+
+	@Autowired
+	HttpServletRequest httpRequest;
 
 	@ApiOperation(value = "Add a new dataproduct", nickname = "create", notes = "Adds a new non existing dataproduct", response = DataProductResponseVO.class, tags={ "dataproducts", })
     @ApiResponses(value = {
@@ -78,7 +106,7 @@ public class DataProductController implements DataproductsApi{
 				   Objects.isNull(requestVO.getContactInformation()) ||
 				   Objects.isNull(requestVO.getPersonalRelatedData()) ||
 				   Objects.isNull(requestVO.getTransnationalDataTransfer())||
-				   Objects.isNull(requestVO.getDeletionRequirement()) || Objects.isNull(requestVO.getTransnationalDataTransfer().getInsiderInformation())) {
+				   Objects.isNull(requestVO.getDeletionRequirement()) || Objects.isNull(requestVO.getDeletionRequirement().getInsiderInformation())) {
 					List<MessageDescription> messages = new ArrayList<>();
 					MessageDescription message = new MessageDescription();
 					message.setMessage("DataProduct cannot be created as user is not providing the values for one of the tabs.");
@@ -94,6 +122,7 @@ public class DataProductController implements DataproductsApi{
 			requestVO.setRecordStatus(ConstantsUtility.OPEN);
 			requestVO.setDataProductId("DPF-" + service.getNextSeqId());
 			requestVO.setId(null);
+			updateTags(requestVO);
 			DataProductVO vo = service.create(requestVO);
 			if (vo != null && vo.getId() != null) {
 				responseVO.setData(vo);
@@ -122,8 +151,54 @@ public class DataProductController implements DataproductsApi{
 		}
 	}
 
+	@ApiOperation(value = "Refresh DB records for data-product and data-transfer.", nickname = "dbRecordsRefresh", notes = "Refresh DB records for data-product and data-transfer.", response = DataProductCollection.class, tags={ "dataproducts", })
+	@ApiResponses(value = {
+			@ApiResponse(code = 200, message = "Returns message of success or failure", response = DataProductCollection.class),
+			@ApiResponse(code = 400, message = "Bad request."),
+			@ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+			@ApiResponse(code = 403, message = "Request is not authorized."),
+			@ApiResponse(code = 405, message = "Method not allowed"),
+			@ApiResponse(code = 500, message = "Internal error") })
+	@RequestMapping(value = "/dataproducts/dbrecords/refresh",
+			produces = { "application/json" },
+			consumes = { "application/json" },
+			method = RequestMethod.GET)
+	public ResponseEntity<RefreshVo> dbRecordsRefresh() {
+		RefreshVo refreshVoResponse = new RefreshVo();
+		GenericMessage dataproductGenericMessage = new GenericMessage();
+		GenericMessage dataTransferGenericMessage = new GenericMessage();
+		HttpHeaders headers = new HttpHeaders();
+		String xApiKey = httpRequest.getHeader(xApiKeyHeader);
 
-    @ApiOperation(value = "Delete dataproduct for a given Id.", nickname = "delete", notes = "Delete dataproduct for a given identifier.", response = GenericMessage.class, tags={ "dataproducts", })
+		if (xApiKey != null && xApiKey.equals(xApiKeyValue)) {
+			if (dataproductRefreshDb) {
+				dataproductGenericMessage = service.updateDataProductData();
+				refreshVoResponse.setDataproductGenericMessage(dataproductGenericMessage);
+			} else {
+				dataproductGenericMessage.setSuccess(ConstantsUtility.FAILURE);
+				MessageDescription messageDescription = new MessageDescription();
+				messageDescription.setMessage("dataproduct refresh db setting is not enabled");
+				dataproductGenericMessage.addErrors(messageDescription);
+				refreshVoResponse.setDataproductGenericMessage(dataproductGenericMessage);
+			}
+			if (datatransferRefreshDb) {
+				dataTransferGenericMessage = dataTransferService.updateDataTransferData();
+				refreshVoResponse.setDatatransferGenericMessage(dataTransferGenericMessage);
+			} else {
+				dataTransferGenericMessage.setSuccess(ConstantsUtility.FAILURE);
+				MessageDescription messageDescription = new MessageDescription();
+				messageDescription.setMessage("datatransfer refresh db setting is not enabled");
+				dataTransferGenericMessage.addErrors(messageDescription);
+				refreshVoResponse.setDatatransferGenericMessage(dataTransferGenericMessage);
+			}
+		} else {
+			return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
+		}
+		return new ResponseEntity<>(refreshVoResponse, HttpStatus.OK);
+	}
+
+
+	@ApiOperation(value = "Delete dataproduct for a given Id.", nickname = "delete", notes = "Delete dataproduct for a given identifier.", response = GenericMessage.class, tags={ "dataproducts", })
     @ApiResponses(value = {
         @ApiResponse(code = 200, message = "Returns message of success or failure", response = GenericMessage.class),
         @ApiResponse(code = 204, message = "Fetch complete, no content found."),
@@ -375,10 +450,10 @@ public class DataProductController implements DataproductsApi{
 			if (count < offset)
 				offset = 0;
 
-			List<String> dataProducts = new ArrayList<String>();
+			List<DataProductTeamMemberVO> dataProducts = new ArrayList<DataProductTeamMemberVO>();
 			dataProducts = service.getAllWithDataProductOwners(published, offset, limit, sortOrder, recordStatus);
 			log.info("DataProducts fetched successfully");
-			if (!dataProducts.isEmpty()) {
+			if (!dataProducts.isEmpty() || dataProducts.size() > 0) {
 				dataProductCollection.setTotalCount(count.intValue());
 				dataProductCollection.setRecords(dataProducts);
 				return new ResponseEntity<>(dataProductCollection, HttpStatus.OK);
@@ -584,7 +659,7 @@ public class DataProductController implements DataproductsApi{
 								   Objects.isNull(requestVO.getContactInformation()) ||
 								   Objects.isNull(requestVO.getPersonalRelatedData()) ||
 								   Objects.isNull(requestVO.getTransnationalDataTransfer())||
-								   Objects.isNull(requestVO.getDeletionRequirement()) || Objects.isNull(requestVO.getTransnationalDataTransfer().getInsiderInformation())) {
+								   Objects.isNull(requestVO.getDeletionRequirement()) || Objects.isNull(requestVO.getDeletionRequirement().getInsiderInformation())) {
 							List<MessageDescription> messages = new ArrayList<>();
 							MessageDescription message = new MessageDescription();
 							message.setMessage("DataProduct cannot be created as user is not providing the values for one of the tabs.");
@@ -599,7 +674,7 @@ public class DataProductController implements DataproductsApi{
 						   Objects.isNull(requestVO.getContactInformation()) ||
 						   Objects.isNull(requestVO.getPersonalRelatedData()) ||
 						   Objects.isNull(requestVO.getTransnationalDataTransfer())||
-						   Objects.isNull(requestVO.getDeletionRequirement()) || Objects.isNull(requestVO.getTransnationalDataTransfer().getInsiderInformation())) {
+						   Objects.isNull(requestVO.getDeletionRequirement()) || Objects.isNull(requestVO.getDeletionRequirement().getInsiderInformation())) {
 							List<MessageDescription> messages = new ArrayList<>();
 							MessageDescription message = new MessageDescription();
 							message.setMessage("DataProduct cannot be created as user is not providing the values for one of the tabs.");
@@ -619,7 +694,8 @@ public class DataProductController implements DataproductsApi{
 					existingVO.setTransnationalDataTransfer(requestVO.getTransnationalDataTransfer());
 					existingVO.setDeletionRequirement(requestVO.getDeletionRequirement());
 					existingVO.setOpenSegments(requestVO.getOpenSegments());
-
+					existingVO.setTags(requestVO.getTags());
+					updateTags(existingVO);
 					try {
 						DataProductVO vo = service.updateByID(existingVO);
 						if (vo != null && vo.getId() != null) {
@@ -661,6 +737,24 @@ public class DataProductController implements DataproductsApi{
 			}
 		} else {
 			return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
+		}
+	}
+	
+	private void updateTags(DataProductVO vo) {
+		List<String> tags = vo.getTags();
+		if (tags != null && !tags.isEmpty()) {
+			tags.forEach(tag -> {
+				TagVO existingTagVO = tagService.getByUniqueliteral("name", tag);
+				if (existingTagVO != null && existingTagVO.getName() != null
+						&& existingTagVO.getName().equalsIgnoreCase(tag))
+					return;
+				else {
+					TagVO newTagVO = new TagVO();
+					newTagVO.setId(null);
+					newTagVO.setName(tag);
+					tagService.create(newTagVO);
+				}
+			});
 		}
 	}
 }
