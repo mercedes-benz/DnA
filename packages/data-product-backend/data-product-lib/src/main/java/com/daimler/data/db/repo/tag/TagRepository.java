@@ -25,27 +25,11 @@
  * LICENSE END 
  */
 
-package com.daimler.data.db.jsonb.dataproduct;
+package com.daimler.data.db.repo.tag;
 
-import java.util.Date;
+import com.daimler.data.db.entities.TagNsql;
+import org.springframework.data.jpa.repository.JpaRepository;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+public interface TagRepository extends JpaRepository<TagNsql, String> {
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-@JsonIgnoreProperties(ignoreUnknown = true)
-public class DataProductContactInformation {
-	
-	private TeamMember name;
-	private TeamMember informationOwner;
-	private TeamMember productOwner;
-	private String appId;
-	private String localComplianceOfficer;
-	private String department;
-	private Division division;
 }

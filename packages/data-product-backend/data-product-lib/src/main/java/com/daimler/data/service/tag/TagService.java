@@ -25,27 +25,20 @@
  * LICENSE END 
  */
 
-package com.daimler.data.db.jsonb.dataproduct;
+package com.daimler.data.service.tag;
 
-import java.util.Date;
+import org.springframework.http.ResponseEntity;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.daimler.data.controller.exceptions.GenericMessage;
+import com.daimler.data.db.entities.TagNsql;
+import com.daimler.data.dto.tag.TagRequestVO;
+import com.daimler.data.dto.tag.TagVO;
+import com.daimler.data.service.common.CommonService;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+public interface TagService extends CommonService<TagVO, TagNsql, String> {
 
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-@JsonIgnoreProperties(ignoreUnknown = true)
-public class DataProductContactInformation {
-	
-	private TeamMember name;
-	private TeamMember informationOwner;
-	private TeamMember productOwner;
-	private String appId;
-	private String localComplianceOfficer;
-	private String department;
-	private Division division;
+	ResponseEntity<GenericMessage> deleteTag(String id);
+
+	ResponseEntity<TagVO> updateTag(TagRequestVO tagRequestVO);
+
 }
