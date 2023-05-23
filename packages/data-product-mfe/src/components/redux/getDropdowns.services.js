@@ -115,3 +115,20 @@ export const getFrontEndTools = createAsyncThunk('dropdowns/getFrontEndTools', a
     );
   }
 });
+
+export const getTags = createAsyncThunk('dropdowns/getTags', async () => {
+  ProgressIndicator.show();
+  try {
+    const res = await dataProductApi.getAllTags();
+    ProgressIndicator.hide();
+    return {
+      data: res.data || [],
+    };
+  } catch (e) {
+    ProgressIndicator.hide();
+    Notification.show(
+      e.response?.data?.errors?.[0]?.message || 'Error while fetching list of tags',
+      'alert',
+    );
+  }
+});
