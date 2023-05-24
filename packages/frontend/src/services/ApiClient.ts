@@ -450,7 +450,7 @@ export class ApiClient {
   }
 
   public static getDataikuProjectDetailsByProjectkey(projectKey: any, cloudProfile: any) {
-    return this.fetch(getDataikuUrl(`/dataiku/${cloudProfile}/${projectKey}`), HTTP_METHOD.GET);
+    return this.fetch(getDataikuUrl(`dataiku/${cloudProfile}/${projectKey}`), HTTP_METHOD.GET);
   }
 
   public static updateSolution(data: ICreateNewSolutionRequest): Promise<ICreateNewSolutionResult> {
