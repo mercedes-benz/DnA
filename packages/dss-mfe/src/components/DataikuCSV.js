@@ -5,8 +5,8 @@ export const getDataForCSV = (listData, onDataSuccess) => {
     { label: 'Name', key: 'name' },
     { label: 'Description', key: 'description' },
     { label: 'Tags', key: 'tags' },
-    { label: 'Project Status', key: 'projectStatus' },
-    { label: 'Contributers', key: 'contributers' },
+    { label: 'Status', key: 'status' },
+    { label: 'Collaborators', key: 'collaborators' },
     { label: 'Checklists', key: 'checklists' },
     { label: 'Created Date', key: 'createdDate' },
     { label: 'Last Used', key: 'lastUsed' },
@@ -25,18 +25,18 @@ export const getDataForCSV = (listData, onDataSuccess) => {
         });
       }
     }
-    const contributors = [];
-    if (project?.contributors && project.contributors.length > 0) {
-      project.contributors.forEach((user) => {
-        contributors.push(user?.userId);
+    const collaborators = [];
+    if (project?.collaborators && project.collaborators.length > 0) {
+      project.collaborators.forEach((user) => {
+        collaborators.push(user?.userId);
       })
     }
     projectsCSVData.push({
       name: project.name ? sanitize(project.name) : 'NA',
       description: project.shortDesc ? sanitize(project.shortDesc) : 'NA',
       tags: project?.tags && project?.tags?.length > 0 ? sanitize(project.tags.join(', ')) : 'NA',
-      projectStatus: project.projectStatus ? project.projectStatus : 'NA',
-      contributers: contributors.length > 0 ? contributors : 'NA',
+      status: project.status ? project.status : 'NA',
+      collaborators: collaborators.length > 0 ? collaborators : 'NA',
       checklists: checklistItems.length > 0 ? checklistItems : 'NA',
       createdDate: project?.creationTag
         ? project?.creationTag?.lastModifiedOn
