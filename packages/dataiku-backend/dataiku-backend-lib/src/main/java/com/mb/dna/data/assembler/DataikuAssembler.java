@@ -107,10 +107,10 @@ public class DataikuAssembler {
 	public DataikuProjectSummaryDto toProjectDetails(DataikuProjectDto projectDto, String currentUser) {
 		DataikuProjectSummaryDto summaryDto = new DataikuProjectSummaryDto();
 		if(projectDto!=null) {
-			DataikuProjectCheckListDto checkListDetails = new DataikuProjectCheckListDto();
-			List<String> emptyStringList = new ArrayList<>();
-			checkListDetails.setChecklists(emptyStringList);
-			summaryDto.setChecklists(checkListDetails);
+//			DataikuProjectCheckListDto checkListDetails = new DataikuProjectCheckListDto();
+//			List<String> emptyStringList = new ArrayList<>();
+//			checkListDetails.setChecklists(emptyStringList);
+//			summaryDto.setChecklists(checkListDetails);
 			summaryDto.setClassificationType(projectDto.getClassificationType());
 			summaryDto.setCloudProfile(projectDto.getCloudProfile());
 			summaryDto.setCollaborators(projectDto.getCollaborators());
@@ -121,7 +121,7 @@ public class DataikuAssembler {
 			summaryDto.setShortDesc(projectDto.getDescription());
 			summaryDto.setSolutionId(projectDto.getSolutionId());
 			summaryDto.setStatus(currentUser);
-			summaryDto.setTags(emptyStringList);
+//			summaryDto.setTags(emptyStringList);
 			
 			summaryDto.setIsProjectAdmin(false);
 			if(currentUser!=null && projectDto.getCollaborators()!=null && !projectDto.getCollaborators().isEmpty()) {
