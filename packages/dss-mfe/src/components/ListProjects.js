@@ -192,13 +192,13 @@ export default class ListProjects extends React.Component {
             </div>
             <br />
             <br />
-            <div>
+            {this.state.projectData?.tags?.length > 0 && <div>
               <label id="tags" className="input-label summary">
                 Tags
               </label>
               <br />
               {this.state.projectData?.tags?.length > 0 ? this.state.projectData.tags.join(', ') : '-NA-'}
-            </div>
+            </div>}
           </div>
           <div>
             {this.state.currentTab === 'production' ? (
@@ -226,11 +226,11 @@ export default class ListProjects extends React.Component {
                 Role
               </label>
               <br />
-              {this.state.projectData?.role ? this.state.projectData.role : '-NA-'}
+              <span className={classNames(Styles.permission, 'input-label summary')}>{this.state.projectData?.role ? this.state.projectData.role : '-NA-'} </span>
             </div>
           </div>
           <div>
-            {this.state.projectData?.checklists?.checklists.map((checklist, index) => {
+            {this.state.projectData?.checklists?.checklists?.map((checklist, index) => {
               let totalDone = 0;
               const totalChecklistCount = checklist.items.length;
               totalDone = checklist.items.filter((item) => item.done).length;
@@ -871,7 +871,7 @@ export default class ListProjects extends React.Component {
   getLiveProjects = () => {
     ProgressIndicator.show();
     dataikuApi
-      .getAllDataikuProjects()
+      .getDnaProjectList()
       .then((response) => {
         const data = response.data;
         this.setState(

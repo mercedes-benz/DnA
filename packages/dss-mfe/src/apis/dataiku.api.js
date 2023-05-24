@@ -32,11 +32,6 @@ const updateDataikuProjects = (data, id) => {
   return server.put(`/dataiku/${id}`, data);
 }
 
-const getAllDataikuProjects = () => {
-  return server.get(`/dataiku`, {
-    data: {},
-  });
-};
 
 const validateUserPrivilage = (userID) => {
   return server.get(`/userprivilege/validate?userId=${userID}`);
@@ -56,7 +51,6 @@ const getLovData = () => {
 
 export const dataikuApi = {
   getDataikuProjectsList,
-  getAllDataikuProjects,
   getDnaProjectList,
   createNewDataikuProjects,
   validateUserPrivilage,
