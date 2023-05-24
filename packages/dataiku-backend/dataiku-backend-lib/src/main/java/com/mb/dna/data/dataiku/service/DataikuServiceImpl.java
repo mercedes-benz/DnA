@@ -1,6 +1,7 @@
 package com.mb.dna.data.dataiku.service;
 
 import java.math.BigInteger;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -356,7 +357,13 @@ public class DataikuServiceImpl implements DataikuService	{
 			
 			DataikuSql entity = new DataikuSql();
 			requestDto.setCreatedBy(userId);
-			requestDto.setCreatedOn(new Date());
+			try {
+				SimpleDateFormat isoFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS+00:00");
+				Date createdOn = isoFormat.parse(isoFormat.format(new Date()));
+				requestDto.setCreatedOn(createdOn);
+			}catch(Exception e) {
+				
+			}
 			String id = UUID.randomUUID().toString();
 			requestDto.setId(id);
 			entity = assembler.toEntity(requestDto);

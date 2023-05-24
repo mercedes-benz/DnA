@@ -17,17 +17,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @JsonInclude(Include.ALWAYS)
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class DataikuProjectUpdateDto implements Serializable{
+public class DataikuProjectTimeStampDetailsDto implements Serializable{
 
-	private String description;
-	private List<CollaboratorDetailsDto> collaborators;
-	private String status;
-	private String classificationType;
-	private Boolean hasPii;
-	private String divisionId;
-	private String divisionName;
-	private String subdivisionId;
-	private String subdivisionName;
-	private String department;
+	private Date lastModifiedOn;
 	
 }

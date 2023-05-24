@@ -1,19 +1,20 @@
 package com.daimler.data.service.forecast;
 
 import java.math.BigDecimal;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
-import com.daimler.data.db.json.File;
-import com.daimler.data.dto.databricks.DataBricksJobRunOutputResponseWrapperDto;
 import com.daimler.data.dto.forecast.*;
-import com.daimler.data.dto.storage.*;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -25,13 +26,25 @@ import com.daimler.data.auth.vault.VaultAuthClientImpl;
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
 import com.daimler.data.db.entities.ForecastNsql;
+import com.daimler.data.db.json.ComparisonDetails;
+import com.daimler.data.db.json.ComparisonState;
+import com.daimler.data.db.json.Forecast;
 import com.daimler.data.db.json.RunDetails;
 import com.daimler.data.db.json.RunState;
 import com.daimler.data.db.json.UserDetails;
 import com.daimler.data.db.repo.forecast.ForecastCustomRepository;
 import com.daimler.data.db.repo.forecast.ForecastRepository;
+import com.daimler.data.dto.databricks.DataBricksJobRunOutputResponseWrapperDto;
 import com.daimler.data.dto.databricks.RunNowNotebookParamsDto;
 import com.daimler.data.dto.forecast.RunStateVO.ResultStateEnum;
+import com.daimler.data.dto.storage.BucketObjectDetailsDto;
+import com.daimler.data.dto.storage.BucketObjectsCollectionWrapperDto;
+import com.daimler.data.dto.storage.CreateBucketResponseWrapperDto;
+import com.daimler.data.dto.storage.DeleteBucketResponseWrapperDto;
+import com.daimler.data.dto.storage.FileDownloadResponseDto;
+import com.daimler.data.dto.storage.FileUploadResponseDto;
+import com.daimler.data.dto.storage.GetBucketByNameResponseWrapperDto;
+import com.daimler.data.dto.storage.UpdateBucketResponseWrapperDto;
 import com.daimler.data.service.common.BaseCommonService;
 import com.daimler.dna.notifications.common.producer.KafkaProducerService;
 import com.google.gson.JsonArray;
@@ -223,7 +236,10 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 			else {
 				responseMessage.setSuccess("SUCCESS");
 				runNowResponse.setCorrelationId(correlationId);
-				ForecastNsql entity = this.assembler.toEntity(existingForecast);
+				Optional<ForecastNsql> anyEntity = this.jpaRepo.findById(existingForecast.getId());
+				ForecastNsql entity = null;
+				if(anyEntity.isPresent())
+					entity = anyEntity.get();
 				List<RunDetails> existingRuns = entity.getData().getRuns();
 				if(existingRuns==null || existingRuns.isEmpty())
 					existingRuns = new ArrayList<>();
@@ -879,7 +895,6 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 
 	@Override
 	public List<String> getAllForecastIds() {
-		// TODO Auto-generated method stub
 		return customRepo.getAllForecastIds();
 	}
 
@@ -890,4 +905,152 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 
 	}
 
+	@Override
+	@Transactional
+	public ForecastComparisonCreateResponseVO createComparison(String id, ForecastVO existingForecast, List<String> validRunsPath, String comparisionId, String comparisonName,
+			String actualsFilePath, String targetFolder, Date createdOn, String requestUser) {
+		GenericMessage responseMessage = new GenericMessage();
+		ForecastComparisonVO forecastComparisonsVO = new ForecastComparisonVO();
+		ForecastComparisonCreateResponseVO responseWrapperVO = new ForecastComparisonCreateResponseVO();
+		GenericMessage response = new GenericMessage();
+		Optional<ForecastNsql> anyEntity = this.jpaRepo.findById(id);
+		ComparisonDetails comparisonDetails = new ComparisonDetails();
+		ComparisonState comparisonState = new ComparisonState();
+		comparisonState.setLifeCycleState("CREATED");
+		comparisonState.setStateMessage("Accepted run comparison");
+
+		ComparisonStateVO state= new ComparisonStateVO();
+		state.setLifeCycleState(ComparisonStateVO.LifeCycleStateEnum.CREATED);
+		state.setStateMessage("Accepted run comparison");
+		if(anyEntity!=null && anyEntity.isPresent()) {
+			ForecastNsql entity = anyEntity.get();
+			Forecast data = entity.getData();
+			 List<ComparisonDetails> existingComparisons = data.getComparisons();
+			if(existingComparisons==null || existingComparisons.isEmpty())
+				existingComparisons = new ArrayList<>();
+			 comparisonDetails.setComparisonId(comparisionId);
+			 comparisonDetails.setActualsFile(actualsFilePath);
+			 comparisonDetails.setComparisonName(comparisonName);
+			 comparisonDetails.setComparisonState(comparisonState);
+			 comparisonDetails.setIsDelete(false);
+			 comparisonDetails.setRunsList(validRunsPath);
+			 comparisonDetails.setTargetFolder(targetFolder);
+			 comparisonDetails.setTriggeredBy(requestUser);
+			 comparisonDetails.setTriggeredOn(createdOn);
+			 existingComparisons.add(comparisonDetails);
+
+			forecastComparisonsVO.setComparisonId(comparisionId);
+			forecastComparisonsVO.setActualsFile(actualsFilePath);
+			forecastComparisonsVO.setComparisonName(comparisonName);
+			forecastComparisonsVO.setState(state);
+			forecastComparisonsVO.setIsDeleted(false);
+			forecastComparisonsVO.setRunsList(validRunsPath);
+			forecastComparisonsVO.setTargetFolder(targetFolder);
+			forecastComparisonsVO.setTriggeredBy(requestUser);
+			forecastComparisonsVO.setTriggeredOn(createdOn);
+
+			 data.setComparisons(existingComparisons);
+			 entity.setData(data);
+
+			try {
+				jpaRepo.save(entity);
+				responseMessage.setSuccess("SUCCESS");
+			}catch(Exception e) {
+				log.error("Failed while saving details of comparison {}  to database for project {}",comparisionId, existingForecast.getName());
+				MessageDescription msg = new MessageDescription("Failed to save comparison details to table ");
+				List<MessageDescription> errors = new ArrayList<>();
+				errors.add(msg);
+				responseMessage.setErrors(errors);
+			}
+			responseWrapperVO.setData(forecastComparisonsVO);
+			responseWrapperVO.setResponse(responseMessage);
+		}
+		return responseWrapperVO;
+	}
+
+	@Override
+	public List<ForecastComparisonVO> getAllForecastComparisons(String id) {
+		long totalCount = 0L;
+		List<ForecastComparisonVO> forecastComparisonsVOList = new ArrayList<>();
+		Optional<ForecastNsql> anyEntity = this.jpaRepo.findById(id);
+		if(anyEntity!=null && anyEntity.isPresent()) {
+			ForecastNsql entity = anyEntity.get();
+			Forecast data = entity.getData();
+			List<ComparisonDetails> existingComparisons = data.getComparisons();
+			//logic to remove all deleted comparisons from list
+			List<ComparisonDetails> tempExistingComparisons = new ArrayList<>(existingComparisons);
+			for(int i=0; i<tempExistingComparisons.size(); i++) {
+				ComparisonDetails details= tempExistingComparisons.get(i);
+				if(details.getIsDelete() != null) {
+					boolean isDelete = details.getIsDelete();
+					if(isDelete) {
+						tempExistingComparisons.remove(details);
+					}
+				}
+			}
+			Collections.sort(tempExistingComparisons, new Comparator<ComparisonDetails>() {
+				public int compare(ComparisonDetails compare1, ComparisonDetails compare2) {
+					return compare2.getTriggeredOn().toString().compareTo(compare1.getTriggeredOn().toString());
+				}
+			});
+			totalCount = tempExistingComparisons.size();
+			entity.getData().setComparisons(tempExistingComparisons);
+			this.jpaRepo.save(entity);
+			forecastComparisonsVOList = this.assembler.toComparisonsVO(tempExistingComparisons);
+		}
+
+		return forecastComparisonsVOList;
+	}
+
+	@Override
+	public GenericMessage deleteComparison(String id, List<String> validComparisonIds) {
+		Optional<ForecastNsql> anyEntity = this.jpaRepo.findById(id);
+		GenericMessage responseMessage = new GenericMessage();
+		if(anyEntity!=null && anyEntity.isPresent()) {
+			ForecastNsql entity = anyEntity.get();
+			Forecast data = entity.getData();
+			List<ComparisonDetails> existingComparisons = data.getComparisons();
+			List<ComparisonDetails> updatedComparisonRecords = new ArrayList<>();
+			ComparisonDetails comparisonDetails = new ComparisonDetails();
+			if(existingComparisons!= null && !existingComparisons.isEmpty() && validComparisonIds!= null && !validComparisonIds.isEmpty() ) {
+				for (String comparisonId : validComparisonIds) {
+					Optional<ComparisonDetails> comparison = existingComparisons.stream().filter(x -> comparisonId.equalsIgnoreCase(x.getComparisonId()) && !x.getIsDelete()).findAny();
+					if(comparison!=null && comparison.isPresent()) {
+						comparison.get().setIsDelete(true);
+						existingComparisons.remove(comparison);
+					}
+				}
+			}
+			entity.getData().setComparisons(existingComparisons);
+			this.jpaRepo.save(entity);
+		}
+		responseMessage.setSuccess("SUCCESS");
+		return responseMessage;
+	}
+
+	@Override
+	public ForecastComparisonResultVO getForecastComparisonById(String id, String comparisonId) {
+		ForecastComparisonResultVO forecastComparisonsVO = new ForecastComparisonResultVO();
+		Optional<ForecastNsql> anyEntity = this.jpaRepo.findById(id);
+		if(anyEntity!=null && anyEntity.isPresent()) {
+			ForecastNsql entity = anyEntity.get();
+			Optional<ComparisonDetails>  requestedComparison = entity.getData().getComparisons().stream().filter(x -> comparisonId.equalsIgnoreCase(x.getComparisonId())).findFirst();
+			String bucketName= entity.getData().getBucketName();
+			ComparisonDetails comparison = requestedComparison.get();
+			try{
+			String commonPrefix = "/comparisons/"+comparisonId;
+			String comparisonHTML = commonPrefix +"/comparison.html";
+			FileDownloadResponseDto comparisonHTMLResponse = storageClient.getFileContents(bucketName, comparisonHTML);
+			String comparisonHTMLResult = "";
+			if(comparisonHTMLResponse!= null && comparisonHTMLResponse.getData()!=null && (comparisonHTMLResponse.getErrors()==null || comparisonHTMLResponse.getErrors().isEmpty())) {
+				comparisonHTMLResult = new String(comparisonHTMLResponse.getData().getByteArray());
+			}
+				forecastComparisonsVO.setComparisonData(comparisonHTMLResult);
+		}catch(Exception e) {
+			log.error("Failed while parsing results data for comparison id {} with exception {} ",comparisonId, e.getMessage());
+		}
+
+		}
+		return forecastComparisonsVO;
+	}
 }
