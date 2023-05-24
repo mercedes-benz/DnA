@@ -185,10 +185,10 @@ export default class ListProjects extends React.Component {
             <br />
             <div>
               <label id="projectStatus" className="input-label summary">
-                Project Status
+                Status
               </label>
               <br />
-              {this.state.projectData?.projectStatus ? this.state.projectData.projectStatus : '-NA-'}
+              {this.state.projectData?.status ? this.state.projectData.status : '-NA-'}
             </div>
             <br />
             <br />
@@ -205,11 +205,11 @@ export default class ListProjects extends React.Component {
               <React.Fragment>
                 <div>
                   <label id="cotributors" className="input-label summary">
-                    Contributors
+                    Collaborators
                   </label>
                   <br />
-                  {this.state.projectData.contributors.length > 0 ?
-                    this.state.projectData.contributors.map((user) =>
+                  {this.state.projectData?.collaborators?.length > 0 ?
+                    this.state.projectData?.collaborators.map((user) =>
                       <div key={user?.userId}>
                         <div>{user?.givenName} {user?.surName} (<span className={classNames(Styles.permission)}>{user?.permission}</span>)</div>
                       </div>)
@@ -479,23 +479,6 @@ export default class ListProjects extends React.Component {
                               >
                                 <i className="icon sort" />
                                 User Profile
-                              </label>
-                            </th>
-                            <th
-                              onClick={() => {
-                                this.sortByColumn('lastModifiedOn', this.state.nextSortOrder);
-                              }}
-                            >
-                              <label
-                                className={
-                                  'sortable-column-header ' +
-                                  (this.state.currentColumnToSort == 'lastModifiedOn'
-                                    ? this.state.currentSortOrder
-                                    : '')
-                                }
-                              >
-                                <i className="icon sort" />
-                                Last Used
                               </label>
                             </th>
                             <th
@@ -812,7 +795,7 @@ export default class ListProjects extends React.Component {
 
   openProvisionModal = (project) => {
     this.setState({ showProvisionModal: true, projectData: project }, () => {
-      this.child.current.callDAtaikuProjectDetails(project.projectKey);
+      this.child.current.callDAtaikuProjectDetails(project.projectKey, project.cloudProfile);
     });
   };
 
