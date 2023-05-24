@@ -113,7 +113,6 @@ type DataSourceVO{
 }
 
 type MemberVO{
-	reportOwners: [TeamMemberVO],
     reportAdmins: [TeamMemberVO]
 }
 
