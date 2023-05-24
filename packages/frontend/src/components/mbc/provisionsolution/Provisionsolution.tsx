@@ -434,17 +434,17 @@ export default class Provisionsolution extends React.Component<IProvisionSolutio
   /****************** Following method is introduced temperorily here,                ***********************
    ****************** once project details will start coming there will be no need it ***********************/
 
-  public callDAtaikuProjectDetails(projectKey: string) {
+  public callDAtaikuProjectDetails(projectKey: string, cloudProfile: string) {
     if (this.props.provisionFrom === ProvisionSource.DATAIKU) {
       const tempVar = projectKey;
       ProgressIndicator.show();
-      ApiClient.getDataikuProjectDetails(tempVar, true).then(
+      ApiClient.getDataikuProjectDetailsByProjectkey(tempVar, cloudProfile).then(
         (res) => {
           const solution = this.state.solution;
-          solution.description.productName = res.name;
-          solution.description.description = res.shortDesc ? res.shortDesc : res.name;
+          solution.description.productName = res.projectName;
+          solution.description.description = res.description ? res.description : res.name;
           const portfolio: IPortfolio = {
-            dnaDataikuProjectId: res.projectKey,
+            dnaDataikuProjectId: res.projectName,
             dnaNotebookId: null,
             dnaSubscriptionAppId: null,
             solutionOnCloud: false,
