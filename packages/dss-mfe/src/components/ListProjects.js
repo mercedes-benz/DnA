@@ -816,7 +816,13 @@ export default class ListProjects extends React.Component {
           Notification.show('Dataiku project deleted successfully');
         } else {
           ProgressIndicator.hide();
-          this.showErrorNotification('Failed to delete Dataiku project.');
+          if (data?.errors?.length > 0) {
+            data?.errors?.forEach((err) => {
+              this.showErrorNotification(err?.message || 'Failed to delete Dataiku project.');
+            });
+          } else {
+            this.showErrorNotification('Failed to delete Dataiku project.');
+          }
         }
       })
       .catch((err) => {
