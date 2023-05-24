@@ -96,7 +96,6 @@ export class ReportsApiClient {
         productName,
         description { division { id, name, subdivision { id, name } }, department, productDescription, agileReleaseTrain, status, tags },
         members {
-          reportOwners { firstName, lastName, department, shortId },
           reportAdmins { firstName, lastName, department, shortId }
         },
         publish
@@ -166,7 +165,6 @@ export class ReportsApiClient {
             dataClassification } 
         }
         members {
-          reportOwners { firstName, lastName, department, shortId },
           reportAdmins { firstName, lastName, department, shortId }
         },
         publish,
@@ -233,7 +231,6 @@ export class ReportsApiClient {
           dataClassification } 
       }
       members {
-        reportOwners { firstName, lastName, department, shortId },
         reportAdmins { firstName, lastName, department, shortId }
       },
       publish,
