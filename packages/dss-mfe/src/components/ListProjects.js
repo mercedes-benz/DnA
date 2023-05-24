@@ -1027,9 +1027,19 @@ export default class ListProjects extends React.Component {
       currentSortOrder: 'asc',
     });
     if (target.id === 'training') {
-      this.getTrainingProjects();
+      this.setState({
+        productionList: {},
+        paginatedRecords: []
+      }, ()=> {
+        this.getTrainingProjects();
+      });
     } else if (target.id === 'production') {
-      this.getLiveProjects();
+      this.setState({
+        trainingList: {},
+        paginatedRecords: [],
+      }, ()=> {
+        this.getLiveProjects();
+      });
     } else if (target.id === 'createOrEdit') {
       this.getDnaProjects();
     }
