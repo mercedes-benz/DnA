@@ -25,8 +25,8 @@ public class DataikuProjectSummaryDto implements Serializable{
 	private String projectKey;
 	private String shortDesc;
 	private Boolean isProjectAdmin;
-	private String role;
 	private DataikuProjectCheckListDto checklists;
+	private String role;
 	private String cloudProfile;
 	private List<CollaboratorDetailsDto> collaborators;
 	private String status;
