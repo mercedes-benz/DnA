@@ -2,11 +2,15 @@ package com.mb.dna.data.assembler;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
 import com.mb.dna.data.dataiku.api.dto.CollaboratorDetailsDto;
+import com.mb.dna.data.dataiku.api.dto.DataikuProjectCheckListDto;
 import com.mb.dna.data.dataiku.api.dto.DataikuProjectDto;
+import com.mb.dna.data.dataiku.api.dto.DataikuProjectSummaryDto;
+import com.mb.dna.data.dataiku.api.dto.DataikuProjectTimeStampDetailsDto;
 import com.mb.dna.data.dataiku.db.entities.CollaboratorSql;
 import com.mb.dna.data.dataiku.db.entities.DataikuSql;
 
@@ -39,6 +43,7 @@ public class DataikuAssembler {
 			entity.setSubdivisionId(vo.getSubdivisionId());
 			entity.setSubdivisionName(vo.getSubdivisionName());
 			entity.setDepartment(vo.getDepartment());
+			entity.setSolutionId(vo.getSolutionId());
 			}
 		return entity;
 	}
@@ -68,6 +73,7 @@ public class DataikuAssembler {
 			vo.setSubdivisionId(entity.getSubdivisionId());
 			vo.setSubdivisionName(entity.getSubdivisionName());
 			vo.setDepartment(entity.getDepartment());
+			vo.setSolutionId(entity.getSolutionId());
 		}
 		return vo;
 	}
@@ -96,5 +102,39 @@ public class DataikuAssembler {
 			collabData.setDataikuId(id);
 		}
 		return collabData;
+	}
+	
+	public DataikuProjectSummaryDto toProjectDetails(DataikuProjectDto projectDto, String currentUser) {
+		DataikuProjectSummaryDto summaryDto = new DataikuProjectSummaryDto();
+		if(projectDto!=null) {
+			DataikuProjectCheckListDto checkListDetails = new DataikuProjectCheckListDto();
+			List<String> emptyStringList = new ArrayList<>();
+			checkListDetails.setChecklists(emptyStringList);
+			summaryDto.setChecklists(checkListDetails);
+			summaryDto.setClassificationType(projectDto.getClassificationType());
+			summaryDto.setCloudProfile(projectDto.getCloudProfile());
+			summaryDto.setCollaborators(projectDto.getCollaborators());
+			summaryDto.setCreationTag(new DataikuProjectTimeStampDetailsDto(projectDto.getCreatedOn()));
+			summaryDto.setId(projectDto.getId());
+			summaryDto.setName(projectDto.getProjectName());
+			summaryDto.setProjectKey(projectDto.getProjectName());
+			summaryDto.setShortDesc(projectDto.getDescription());
+			summaryDto.setSolutionId(projectDto.getSolutionId());
+			summaryDto.setStatus(currentUser);
+			summaryDto.setTags(emptyStringList);
+			
+			summaryDto.setIsProjectAdmin(false);
+			if(currentUser!=null && projectDto.getCollaborators()!=null && !projectDto.getCollaborators().isEmpty()) {
+				Optional<CollaboratorDetailsDto> record = projectDto.getCollaborators().stream().filter(x-> currentUser.equalsIgnoreCase(x.getUserId())).findAny();
+		        if (!record.isPresent()) {
+		        	CollaboratorDetailsDto userDetails = record.get();
+		        	summaryDto.setRole(userDetails.getPermission());
+		        	if("Administrator".equalsIgnoreCase(userDetails.getPermission())){
+		        		summaryDto.setIsProjectAdmin(true);
+		        	}
+		        }
+			}
+		}
+		return summaryDto;
 	}
 }
