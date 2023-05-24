@@ -1,7 +1,6 @@
 package com.mb.dna.data.dataiku.api.dto;
 
 import java.io.Serializable;
-import java.util.Date;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -17,17 +16,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @JsonInclude(Include.ALWAYS)
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class DataikuProjectUpdateDto implements Serializable{
+public class DataikuProjectCheckListDto implements Serializable{
 
-	private String description;
-	private List<CollaboratorDetailsDto> collaborators;
-	private String status;
-	private String classificationType;
-	private Boolean hasPii;
-	private String divisionId;
-	private String divisionName;
-	private String subdivisionId;
-	private String subdivisionName;
-	private String department;
-	
+	private List<String> checklists;
 }
