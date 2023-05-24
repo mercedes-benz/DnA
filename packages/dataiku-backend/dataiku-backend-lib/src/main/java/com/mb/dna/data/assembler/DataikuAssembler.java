@@ -126,7 +126,7 @@ public class DataikuAssembler {
 			summaryDto.setIsProjectAdmin(false);
 			if(currentUser!=null && projectDto.getCollaborators()!=null && !projectDto.getCollaborators().isEmpty()) {
 				Optional<CollaboratorDetailsDto> record = projectDto.getCollaborators().stream().filter(x-> currentUser.equalsIgnoreCase(x.getUserId())).findAny();
-		        if (!record.isPresent()) {
+		        if (record.isPresent()) {
 		        	CollaboratorDetailsDto userDetails = record.get();
 		        	summaryDto.setRole(userDetails.getPermission());
 		        	if("Administrator".equalsIgnoreCase(userDetails.getPermission())){
