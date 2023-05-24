@@ -52,3 +52,15 @@
   height: 500px;
   padding-left: 34px;
 }
+
+.customSelect {
+  height: 40px;
+  font-size: var(--font-size-default);
+  outline: none;
+  width: auto;
+  border-color: #697582;
+  padding: 8px 16px 9px;
+  cursor: pointer;
+  background: #252a33;
+  color: #c0c8d0;
+}
