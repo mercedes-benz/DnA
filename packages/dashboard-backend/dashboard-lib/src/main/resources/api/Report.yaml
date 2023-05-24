@@ -509,11 +509,7 @@ definitions:
   MemberVO:
     description: "Team Member."
     type: object
-    properties:  
-      reportOwners:
-        type: array
-        items:
-          $ref: "#/definitions/TeamMemberVO"
+    properties:        
       reportAdmins:
         type: array
         items:

@@ -706,10 +706,7 @@ public class BaseReportService extends BaseCommonService<ReportVO, ReportNsql, S
 								List<TeamMemberVO> members = new ArrayList<>();
 								if (memberVO.getReportAdmins() != null) {
 									members.addAll(memberVO.getReportAdmins());
-								}
-								if (memberVO.getReportOwners() != null) {
-									members.addAll(memberVO.getReportOwners());
-								}
+								}								
 
 								CustomerVO customerVO = mergedReportVO.getCustomer();
 								if (customerVO != null && !ObjectUtils.isEmpty(customerVO.getInternalCustomers())) {
