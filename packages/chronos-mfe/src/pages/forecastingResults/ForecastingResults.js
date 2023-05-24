@@ -52,11 +52,11 @@ const ForecastingResults = () => {
       dataColumns.splice(index, 1);
     }
     setColTwo([...dataColumns]);
-    setCharts(forecastRun.visualsData);
+    setCharts(JSON.parse(forecastRun.visualsData));
   }
 
   const handleColTwo = () => {
-    setCharts(forecastRun.visualsData);
+    setCharts(JSON.parse(forecastRun.visualsData));
   }
 
   const setCharts = (myData) => {
@@ -84,8 +84,6 @@ const ForecastingResults = () => {
        ...colTwoArray[i]
       });
     }    
-    console.log('ForecastDAtaArray');
-    console.log([...forecastDataArray]);
     setForecastDataA([...forecastDataArray]);
 
     // decomposition chart
@@ -121,8 +119,6 @@ const ForecastingResults = () => {
         ...decolTwoArray[i]
         });
       }    
-      console.log('newDecompositionDataArray');
-      console.log(decompositionDataArray);
       setDecompositionDataA([...decompositionDataArray]);
     }
     // outlier chart
@@ -152,14 +148,12 @@ const ForecastingResults = () => {
         ...outlierColTwoArray[i]
         });
       }    
-      console.log('newoutlierDataArray');
-      console.log(outlierDataArray);
       setOutlierDataA([...outlierDataArray]);
     }
   }
 
   const handleDecompositionMethod = (e) => {
-    const myData = {...forecastRun.visualsData};
+    const myData = JSON.parse(forecastRun.visualsData);
     // decomposition chart
     const deMethods = Object.keys(myData[colOneSelect.current.value].decomposition); 
     setDecompositionMethods([...deMethods]);
@@ -192,15 +186,11 @@ const ForecastingResults = () => {
        ...decolTwoArray[i]
       });
     }    
-    console.log('newDecompositionDataArray');
-    console.log(decompositionDataArray);
     setDecompositionDataA([...decompositionDataArray]);
   }
 
   const handleOutlierMethod = (e) => {
-    console.log('outlier method');
-    console.log(e.target.value);
-    const myData = {...forecastRun.visualsData};
+    const myData = JSON.parse(forecastRun.visualsData);
     // outlier chart
     const outMethods = Object.keys(myData[colOneSelect.current.value].anomalies); 
     setOutlierMethods([...outMethods]);
@@ -211,22 +201,14 @@ const ForecastingResults = () => {
       outlierColOneArray.push({date: key, [colOneSelect.current.value]: value});
     }
     for (let [key, value] of Object.entries(myData[colOneSelect.current.value].anomalies[e.target.value])) {
-      console.log('outlier key value');
-      console.log(key + ":" + value);
       outlierColOneArray.push({date: key, outlier: value});
-      console.log('outlierColOneArray');
-      console.log(outlierColOneArray);
     }
     if(colTwoSelect.current.value !== '0') {
       for (let [key, value] of Object.entries(myData[colTwoSelect.current.value].data.actual)) {
         outlierColTwoArray.push({date: key, [colTwoSelect.current.value]: value});
       }
       for (let [key, value] of Object.entries(myData[colTwoSelect.current.value].anomalies[e.target.value])) {
-        console.log('outliertwo key value');
-        console.log(key + ":" + value);
         outlierColTwoArray.push({date: key, outlier2: value});
-        console.log('outlierColTwoArray');
-        console.log(outlierColTwoArray);
       }
     }
     // for(let i=0; i<outlierColOneArray.length; i++) {
@@ -236,8 +218,6 @@ const ForecastingResults = () => {
     //   });
     // }    
     outlierDataArray.push(...outlierColOneArray, ...outlierColTwoArray);
-    console.log('newoutlierDataArray');
-    console.log(outlierDataArray);
     setOutlierDataA([...outlierDataArray]);
   }
 
@@ -253,18 +233,16 @@ const ForecastingResults = () => {
       if(res.status === 204) {
         setForecastRun([]);
       } else {
-        setTimeout(() => {
-          setForecastRun(res.data);
-          const myData = JSON.parse(res.data.visualsData);
-          const dataColumns = Object.keys(myData);
-          setColOne([...dataColumns]);
-          const index = dataColumns.indexOf(dataColumns[0]);
-          if (index > -1) {
-            dataColumns.splice(index, 1);
-          }
-          setColTwo([...dataColumns]);
-          setCharts(myData);
-        }, 2000);
+        setForecastRun(res.data);
+        const myData = JSON.parse(res.data.visualsData);
+        const dataColumns = Object.keys(myData);
+        setColOne([...dataColumns]);
+        const index = dataColumns.indexOf(dataColumns[0]);
+        if (index > -1) {
+          dataColumns.splice(index, 1);
+        }
+        setColTwo([...dataColumns]);
+        setCharts(myData);
       }
       setLoading(false);
       ProgressIndicator.hide();
@@ -344,8 +322,6 @@ const ForecastingResults = () => {
   };
 
   const addTraces = (data) => {
-    console.log('data');
-    console.log(data);
     let traces = [];
     
     let dates = [];
@@ -391,14 +367,6 @@ const ForecastingResults = () => {
         }
       }
     }
-
-    console.log('dates');
-    console.log(dates);
-    console.log('lines');
-    console.log(lines);
-    console.log('traces');
-    console.log(traces);
-    
     return traces;
   }
 
@@ -450,8 +418,6 @@ const ForecastingResults = () => {
   };
 
   const addTracesDecomposition = (data) => {
-    console.log('decomposition data');
-    console.log(data);
     let traces = [];
     
     let dates = [];
@@ -597,8 +563,6 @@ const ForecastingResults = () => {
   };
 
   const addTracesOutlier = (data) => {
-    console.log('data');
-    console.log(data);
     let traces = [];
     
     let dates = [];
