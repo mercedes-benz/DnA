@@ -73,6 +73,9 @@ public class DataikuSql implements Serializable{
 	@Column(name = "department")
 	private String department;
 	
+	@Column(name = "solution_id")
+	private String solutionId;
+	
 	public DataikuSql() {
 		super();
 	}
@@ -80,7 +83,7 @@ public class DataikuSql implements Serializable{
 	public DataikuSql(String id, @NotNull String projectName, String description, String cloudProfile,
 			List<CollaboratorSql> collaborators, String createdBy, Date createdOn, String status,
 			String classificationType, Boolean hasPii, String divisionId, String divisionName, String subdivisionId,
-			String subdivisionName, String department) {
+			String subdivisionName, String department, String solutionId) {
 		super();
 		this.id = id;
 		this.projectName = projectName;
@@ -97,6 +100,16 @@ public class DataikuSql implements Serializable{
 		this.subdivisionId = subdivisionId;
 		this.subdivisionName = subdivisionName;
 		this.department = department;
+		this.solutionId = solutionId;
+	}
+
+
+	public String getSolutionId() {
+		return solutionId;
+	}
+
+	public void setSolutionId(String solutionId) {
+		this.solutionId = solutionId;
 	}
 
 	public String getId() {
