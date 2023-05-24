@@ -143,6 +143,7 @@ export default class ListProjects extends React.Component {
           isDnaProject={false}
           openDetailsModal={this.openDetailsModal}
           user={this.props.user}
+          hostHistory={this.props.hostHistory}
         />
       );
     });
@@ -160,6 +161,7 @@ export default class ListProjects extends React.Component {
           openProvisionModal={this.openProvisionModal}
           openDetailsModal={this.openDetailsModal}
           user={this.props.user}
+          hostHistory={this.props.hostHistory}
         />
       );
     });
@@ -186,7 +188,7 @@ export default class ListProjects extends React.Component {
                 Project Status
               </label>
               <br />
-              {this.state.projectData.projectStatus ? this.state.projectData.projectStatus : '-NA-'}
+              {this.state.projectData?.projectStatus ? this.state.projectData.projectStatus : '-NA-'}
             </div>
             <br />
             <br />
@@ -195,7 +197,7 @@ export default class ListProjects extends React.Component {
                 Tags
               </label>
               <br />
-              {this.state.projectData.tags.length > 0 ? this.state.projectData.tags.join(', ') : '-NA-'}
+              {this.state.projectData?.tags?.length > 0 ? this.state.projectData.tags.join(', ') : '-NA-'}
             </div>
           </div>
           <div>
@@ -206,7 +208,12 @@ export default class ListProjects extends React.Component {
                     Contributors
                   </label>
                   <br />
-                  {this.state.projectData.contributors.length > 0 ? this.state.projectData.contributors : '-NA-'}
+                  {this.state.projectData.contributors.length > 0 ?
+                    this.state.projectData.contributors.map((user) =>
+                      <div key={user?.userId}>
+                        <div>{user?.givenName} {user?.surName} (<span className={classNames(Styles.permission)}>{user?.permission}</span>)</div>
+                      </div>)
+                    : '-NA-'}
                 </div>
                 <br />
                 <br />
@@ -219,11 +226,11 @@ export default class ListProjects extends React.Component {
                 Role
               </label>
               <br />
-              {this.state.projectData.role ? this.state.projectData.role : '-NA-'}
+              {this.state.projectData?.role ? this.state.projectData.role : '-NA-'}
             </div>
           </div>
           <div>
-            {this.state.projectData.checklists.checklists.map((checklist, index) => {
+            {this.state.projectData?.checklists?.checklists.map((checklist, index) => {
               let totalDone = 0;
               const totalChecklistCount = checklist.items.length;
               totalDone = checklist.items.filter((item) => item.done).length;
@@ -832,8 +839,8 @@ export default class ListProjects extends React.Component {
       .catch((err) => {
         err;
         ProgressIndicator.hide();
-        if (err?.response?.data?.response?.errors?.length > 0) {
-          err?.response?.data?.response?.errors.forEach((err) => {
+        if (err?.response?.data?.errors?.length > 0) {
+          err?.response?.data?.errors.forEach((err) => {
             this.showErrorNotification(err?.message || 'Something went wrong.');
           });
         } else {
@@ -903,8 +910,8 @@ export default class ListProjects extends React.Component {
       .catch((err) => {
         err;
         ProgressIndicator.hide();
-        if (err?.response?.data?.response?.errors?.length > 0) {
-          err?.response?.data?.response?.errors.forEach((err) => {
+        if (err?.response?.data?.errors?.length > 0) {
+          err?.response?.data?.errors.forEach((err) => {
             this.showErrorNotification(err?.message || 'Something went wrong.');
           });
         } else {
@@ -946,8 +953,8 @@ export default class ListProjects extends React.Component {
       .catch((err) => {
         err;
         ProgressIndicator.hide();
-        if (err?.response?.data?.response?.errors?.length > 0) {
-          err?.response?.data?.response?.errors.forEach((err) => {
+        if (err?.response?.data?.errors?.length > 0) {
+          err?.response?.data?.errors.forEach((err) => {
             this.showErrorNotification(err?.message || 'Something went wrong.');
           });
         } else {
@@ -989,8 +996,8 @@ export default class ListProjects extends React.Component {
         err;
         this.getPaginatedProjects();
         ProgressIndicator.hide();
-        if (err?.response?.data?.response?.errors?.length > 0) {
-          err?.response?.data?.response?.errors.forEach((err) => {
+        if (err?.response?.data?.errors?.length > 0) {
+          err?.response?.data?.errors.forEach((err) => {
             this.showErrorNotification(err?.message || 'Something went wrong.');
           });
         } else {

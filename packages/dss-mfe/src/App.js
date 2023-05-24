@@ -19,7 +19,7 @@ const App = ({ user, ...rest }) => {
   }, []);
   return (
     <Provider store={store}>
-      <Routes user={user} />
+      <Routes user={user} hostHistory={rest.hostHistory}/>
     </Provider>
   );
 };
