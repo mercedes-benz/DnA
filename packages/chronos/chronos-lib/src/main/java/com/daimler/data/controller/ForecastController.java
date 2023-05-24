@@ -689,6 +689,22 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 			log.warn("No forecast found with id {}, failed to fetch saved inputs for given forecast id", id);
 			return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
 		}
+		//remove deleted runs before returning
+		List<RunVO> existingRuns = existingForecast.getRuns();
+		List<RunVO> tempExistingRuns = new ArrayList<>(existingRuns);
+		if(existingRuns!=null && !existingRuns.isEmpty()) {
+			for (int i = 0; i < existingRuns.size(); i++) {
+				RunVO details = existingRuns.get(i);
+				if (details.isIsDeleted() != null) {
+					boolean isDelete = details.isIsDeleted();
+					if (isDelete) {
+						tempExistingRuns.remove(details);
+					}
+				}
+
+			}
+			existingForecast.setRuns(tempExistingRuns);
+		}
 		CreatedByVO requestUser = this.userStore.getVO();
 		List<String> forecastProjectUsers = new ArrayList<>();
 		forecastProjectUsers.add(existingForecast.getCreatedBy().getId());
