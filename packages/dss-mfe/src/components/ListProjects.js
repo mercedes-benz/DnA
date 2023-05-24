@@ -185,31 +185,31 @@ export default class ListProjects extends React.Component {
             <br />
             <div>
               <label id="projectStatus" className="input-label summary">
-                Project Status
+                Status
               </label>
               <br />
-              {this.state.projectData?.projectStatus ? this.state.projectData.projectStatus : '-NA-'}
+              {this.state.projectData?.status ? this.state.projectData.status : '-NA-'}
             </div>
             <br />
             <br />
-            <div>
+            {this.state.projectData?.tags?.length > 0 && <div>
               <label id="tags" className="input-label summary">
                 Tags
               </label>
               <br />
               {this.state.projectData?.tags?.length > 0 ? this.state.projectData.tags.join(', ') : '-NA-'}
-            </div>
+            </div>}
           </div>
           <div>
             {this.state.currentTab === 'production' ? (
               <React.Fragment>
                 <div>
                   <label id="cotributors" className="input-label summary">
-                    Contributors
+                    Collaborators
                   </label>
                   <br />
-                  {this.state.projectData.contributors.length > 0 ?
-                    this.state.projectData.contributors.map((user) =>
+                  {this.state.projectData?.collaborators?.length > 0 ?
+                    this.state.projectData?.collaborators.map((user) =>
                       <div key={user?.userId}>
                         <div>{user?.givenName} {user?.surName} (<span className={classNames(Styles.permission)}>{user?.permission}</span>)</div>
                       </div>)
@@ -226,11 +226,11 @@ export default class ListProjects extends React.Component {
                 Role
               </label>
               <br />
-              {this.state.projectData?.role ? this.state.projectData.role : '-NA-'}
+              <span className={classNames(Styles.permission, 'input-label summary')}>{this.state.projectData?.role ? this.state.projectData.role : '-NA-'} </span>
             </div>
           </div>
           <div>
-            {this.state.projectData?.checklists?.checklists.map((checklist, index) => {
+            {this.state.projectData?.checklists?.checklists?.map((checklist, index) => {
               let totalDone = 0;
               const totalChecklistCount = checklist.items.length;
               totalDone = checklist.items.filter((item) => item.done).length;
@@ -479,23 +479,6 @@ export default class ListProjects extends React.Component {
                               >
                                 <i className="icon sort" />
                                 User Profile
-                              </label>
-                            </th>
-                            <th
-                              onClick={() => {
-                                this.sortByColumn('lastModifiedOn', this.state.nextSortOrder);
-                              }}
-                            >
-                              <label
-                                className={
-                                  'sortable-column-header ' +
-                                  (this.state.currentColumnToSort == 'lastModifiedOn'
-                                    ? this.state.currentSortOrder
-                                    : '')
-                                }
-                              >
-                                <i className="icon sort" />
-                                Last Used
                               </label>
                             </th>
                             <th
@@ -812,7 +795,7 @@ export default class ListProjects extends React.Component {
 
   openProvisionModal = (project) => {
     this.setState({ showProvisionModal: true, projectData: project }, () => {
-      this.child.current.callDAtaikuProjectDetails(project.projectKey);
+      this.child.current.callDAtaikuProjectDetails(project.projectKey, project.cloudProfile);
     });
   };
 
@@ -888,7 +871,7 @@ export default class ListProjects extends React.Component {
   getLiveProjects = () => {
     ProgressIndicator.show();
     dataikuApi
-      .getDataikuProjectsList(true)
+      .getDnaProjectList()
       .then((response) => {
         const data = response.data;
         this.setState(

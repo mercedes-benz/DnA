@@ -769,6 +769,7 @@ export interface ICommonFunctions {
 
 export interface IDataiku {
   name: string;
+  cloudProfile?: string;
   shortDesc: string;
   projectKey: string;
   tags: string[];
