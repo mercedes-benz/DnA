@@ -871,7 +871,7 @@ export default class ListProjects extends React.Component {
   getLiveProjects = () => {
     ProgressIndicator.show();
     dataikuApi
-      .getDataikuProjectsList(true)
+      .getAllDataikuProjects()
       .then((response) => {
         const data = response.data;
         this.setState(

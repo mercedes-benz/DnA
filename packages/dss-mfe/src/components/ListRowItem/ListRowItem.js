@@ -136,10 +136,14 @@ const ProjectListRowItem = (props) => {
         ) : (
           ''
         )}
-        <td className="wrap-text" onClick={onInfoBtnClick}>
-          {getDifferenceFromToday(props?.project?.versionTag?.lastModifiedOn)}{' '}
-          days ago
-        </td>
+        {props.isProduction ? (
+          ''
+        ) : (
+          <td className="wrap-text" onClick={onInfoBtnClick}>
+            {getDifferenceFromToday(props?.project?.versionTag?.lastModifiedOn)}{' '}
+            days ago
+          </td>
+        )}
         {props.isProduction && <td className="wrap-text projectName" onClick={onInfoBtnClick}>{props.project.cloudProfile}</td>}
         <td className={Styles.iconAction}>
           {props.isProduction ? (
