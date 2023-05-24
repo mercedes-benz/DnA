@@ -441,10 +441,10 @@ export default class Provisionsolution extends React.Component<IProvisionSolutio
       ApiClient.getDataikuProjectDetailsByProjectkey(tempVar, cloudProfile).then(
         (res) => {
           const solution = this.state.solution;
-          solution.description.productName = res.projectName;
-          solution.description.description = res.description ? res.description : res.name;
+          solution.description.productName = res?.data?.projectName;
+          solution.description.description = res?.data?.description ? res?.data?.description : res?.data?.projectName;
           const portfolio: IPortfolio = {
-            dnaDataikuProjectId: res.projectName,
+            dnaDataikuProjectId: res?.data?.projectName,
             dnaNotebookId: null,
             dnaSubscriptionAppId: null,
             solutionOnCloud: false,
