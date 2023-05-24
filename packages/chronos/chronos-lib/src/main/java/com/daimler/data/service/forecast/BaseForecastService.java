@@ -1038,7 +1038,7 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 			String bucketName= entity.getData().getBucketName();
 			ComparisonDetails comparison = requestedComparison.get();
 			try{
-			String commonPrefix = "/results/"+comparisonId;
+			String commonPrefix = "/comparisons/"+comparisonId;
 			String comparisonHTML = commonPrefix +"/comparison.html";
 			FileDownloadResponseDto comparisonHTMLResponse = storageClient.getFileContents(bucketName, comparisonHTML);
 			String comparisonHTMLResult = "";
