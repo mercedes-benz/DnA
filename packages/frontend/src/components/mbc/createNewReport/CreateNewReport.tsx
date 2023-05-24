@@ -184,7 +184,7 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
           singleDataSources: [],
         },
         members: {
-          reportOwners: [],
+          // reportOwners: [],
           reportAdmins: [],
         },
         publish: false,
@@ -340,14 +340,14 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
             const user = this.props.user;
             const isSuperAdmin = user.roles.find((role: IRole) => role.id === USER_ROLE.ADMIN);
             const isReportAdmin = user.roles.find((role: IRole) => role.id === USER_ROLE.REPORTADMIN);
-            const isProductOwner = res.members.reportOwners?.find(
-              (teamMember: ITeams) => teamMember.shortId === user.id,
-            )?.shortId;
+            // const isProductOwner = res.members.reportOwners?.find(
+            //   (teamMember: ITeams) => teamMember.shortId === user.id,
+            // )?.shortId;
 
             if (
               isSuperAdmin !== undefined ||
               isReportAdmin !== undefined ||
-              isProductOwner !== undefined ||
+              // isProductOwner !== undefined ||
               // user.id === (res.createdBy ? res.createdBy.id : '')
               res.members.reportAdmins.find((teamMember) => teamMember.shortId === user.id) !== undefined ||
               (user?.divisionAdmins && user?.divisionAdmins.includes(res?.description?.division?.name))
@@ -399,7 +399,7 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
               //   return item;
               // }) || [];
               // report.members.developers = res.members.developers || [];
-              report.members.reportOwners = res.members.reportOwners || [];
+              // report.members.reportOwners = res.members.reportOwners || [];
               report.members.reportAdmins = res.members.reportAdmins || [];
               report.publish = res.publish;
               report.openSegments = res.openSegments || [];
@@ -955,9 +955,9 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
       report: currentReportObject,
     });
   };
-  protected modifyMember = (productOwners: ITeams[], reportAdmins: ITeams[]) => {
+  protected modifyMember = (reportAdmins: ITeams[]) => {
     const currentReportObject = this.state.report;
-    currentReportObject.members.reportOwners = productOwners;
+    // currentReportObject.members.reportOwners = productOwners;
     currentReportObject.members.reportAdmins = reportAdmins;
     this.setState({
       report: currentReportObject,

@@ -675,7 +675,7 @@ export interface IUserNewInfo {
 }
 
 export interface IMembers {
-  reportOwners: ITeams[];
+  // reportOwners: ITeams[];
   reportAdmins?: ITeams[];
 }
 export interface ICreateNewReport {
