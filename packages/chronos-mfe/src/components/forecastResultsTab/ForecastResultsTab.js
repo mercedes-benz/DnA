@@ -277,8 +277,7 @@ const ForecastResultsTab = ({ onRunClick }) => {
     //     formData.append('actualsFile', data.droppedFile[0]);
     //   }
     // }
-    console.log('fileInput');
-    console.log(actualsFile);
+
     if(actualsFile.length !== 0) {
       formData.append('actualsFile', actualsFile[0]);
     }
