@@ -149,7 +149,7 @@ const ForecastRunRow = (props) => {
                   e.stopPropagation();
                   onChangeCheck(e, item.id);
                 }}
-                disabled={item.state.lifeCycleState === null}
+                disabled={item.state.result_state === null || item.state.result_state === 'FAILED'}
               />
             </span>{' '}
           </label>
