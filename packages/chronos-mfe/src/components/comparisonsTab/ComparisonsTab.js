@@ -1,6 +1,6 @@
 import classNames from 'classnames';
-import React, { useState, useEffect, useRef } from 'react';
-import Styles from './forecast-results-tab.scss';
+import React, { useState, useEffect } from 'react';
+import Styles from './comparisons-tab.scss';
 
 // Container Components
 import Modal from 'dna-container/Modal';
@@ -15,50 +15,25 @@ import { chronosApi } from '../../apis/chronos.api';
 import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indicator';
 import Spinner from '../spinner/Spinner';
 import { getQueryParameterByName } from '../../utilities/utils';
-import ForecastRunRow from './forecastRunRow/ForecastRunRow';
+import ComparisonRow from './comparisonRow/ComparisonRow';
 
-const ForecastResultsTab = ({ onRunClick }) => {
+const ComparisonsTab = () => {
   const { id: projectId } = useParams();
 
   const [loading, setLoading] = useState(true);
-  const [forecastRuns, setForecastRuns] = useState([]);
-
-  const comparisonNameInput = useRef();
-  const fileInput = useRef();
-
-  // Pagination 
-  const [totalNumberOfPages, setTotalNumberOfPages] = useState(1);
-  const [currentPageNumber, setCurrentPageNumber] = useState(1);
-  const [currentPageOffset, setCurrentPageOffset] = useState(0);
-  const [maxItemsPerPage, setMaxItemsPerPage] = useState(15);
-
-  // compare
-  const [showCompareModal, setShowCompareModal] = useState(false);
-  const [actualsFile, setActualsFile] = useState('');
-
-  const isValidFile = (file) => ['csv', 'xlsx'].includes(file?.name?.split('.')[1]);
-  const onDrop = (e) => {
-    const file = e.dataTransfer.files;
-    const isValid = isValidFile(file?.[0]);
-    if (!isValid) {
-      Notification.show('File is not valid. Only .xlsx files allowed.', 'alert');
-    } else {
-      setActualsFile(file);
-      console.log('hehe');
-    }
-  };
-  const onFileDrop = (e) => {
-    e.preventDefault();
-    if (e.type === 'drop') {
-      onDrop?.(e);
-    }
-  };
+  const [forecastComparisons, setForecastComparisons] = useState([]);
 
   useEffect(() => {
     Tooltip.defaultSetup();
     return Tooltip.clear();
     //eslint-disable-next-line
   }, []);
+
+  // Pagination 
+  const [totalNumberOfPages, setTotalNumberOfPages] = useState(1);
+  const [currentPageNumber, setCurrentPageNumber] = useState(1);
+  const [currentPageOffset, setCurrentPageOffset] = useState(0);
+  const [maxItemsPerPage, setMaxItemsPerPage] = useState(15);
 
   useEffect(() => {
     const pageNumberOnQuery = getQueryParameterByName('page');
@@ -69,13 +44,14 @@ const ForecastResultsTab = ({ onRunClick }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   
-  const getProjectForecastRuns = () => {
+  const getProjectForecastComparisons = () => {
     ProgressIndicator.show();
-    chronosApi.getForecastRuns(projectId, currentPageOffset, maxItemsPerPage).then((res) => {
+    chronosApi.getForecastComparisons(projectId, currentPageOffset, maxItemsPerPage).then((res) => {
       if (res.status === 204) {
-        setForecastRuns([]);
+        setForecastComparisons([]);
       } else {
-        setForecastRuns(res.data.records);
+        setForecastComparisons(res.data.records);
+        // setForecastComparisons(comparisons.records);
         const totalNumberOfPagesTemp = Math.ceil(res.data.totalCount / maxItemsPerPage);
         setCurrentPageNumber(currentPageNumber > totalNumberOfPagesTemp ? 1 : currentPageNumber);
         setTotalNumberOfPages(totalNumberOfPagesTemp);
@@ -85,7 +61,7 @@ const ForecastResultsTab = ({ onRunClick }) => {
       ProgressIndicator.hide();
     }).catch(error => {
       Notification.show(
-        error?.response?.data?.errors?.[0]?.message || 'Error while fetching forecast projects',
+        error?.response?.data?.errors?.[0]?.message || 'Error while fetching run comparisons',
         'alert',
       );
       setLoading(false);
@@ -99,7 +75,7 @@ const ForecastResultsTab = ({ onRunClick }) => {
 
     showProgressIndicator && ProgressIndicator.show();
 
-    let results = forecastRuns;
+    let results = forecastComparisons;
 
     if (sortBy) {
       if (sortBy.name === 'runName') {
@@ -153,7 +129,7 @@ const ForecastResultsTab = ({ onRunClick }) => {
       }
     }
 
-    setForecastRuns(
+    setForecastComparisons(
       results.slice(
         currentPageOffset > results.length ? 0 : currentPageOffset,
         currentPageOffset + maxItemsPerPage < results.length ? currentPageOffset + maxItemsPerPage : results.length,
@@ -180,7 +156,7 @@ const ForecastResultsTab = ({ onRunClick }) => {
   };
 
   useEffect(() => {
-    getProjectForecastRuns();
+    getProjectForecastComparisons();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [maxItemsPerPage, currentPageNumber, currentPageOffset]);
 
@@ -202,17 +178,16 @@ const ForecastResultsTab = ({ onRunClick }) => {
   };
 
   /* Delete */
-  const [selectedRuns, setSelectedRuns] = useState([]);
+  const [selectedComparisons, setSelectedComparisons] = useState([]);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [runToBeDeleted, setRunToBeDeleted] = useState();
   
   const removeSelected = () => {
     ProgressIndicator.show();
-    chronosApi.deleteForecastRuns(selectedRuns, projectId)
+    chronosApi.deleteForecastComparisons(selectedComparisons.toString(), projectId)
       .then(() => {
-        setSelectedRuns([]);
-        getProjectForecastRuns();
-        Notification.show('Run(s) deleted successfully.');
+        setSelectedComparisons([]);
+        getProjectForecastComparisons();
+        Notification.show('Comparison(s) deleted successfully.');
         ProgressIndicator.hide();
       })
       .catch(() => {
@@ -221,90 +196,33 @@ const ForecastResultsTab = ({ onRunClick }) => {
       });
   };
 
-  const selectRun = (id) => {
-    const tempNotifId = id.split('box-')[1];
-    setSelectedRuns((prevArray) => [...prevArray, tempNotifId]);
+  const selectComparison = (id) => {
+    const tempComId = id.split('box-')[1];
+    setSelectedComparisons((prevArray) => [...prevArray, tempComId]);
   };
 
-  const deselectRun = (id) => {
-    const tempNotifId = id.split('box-')[1];
-    setSelectedRuns(selectedRuns.filter((item) => item !== tempNotifId));
+  const deselectComparison = (id) => {
+    const tempComId = id.split('box-')[1];
+    setSelectedComparisons(selectedComparisons.filter((item) => item !== tempComId));
   };
 
-  const showDeleteConfirmModal = (run) => {
+  const showDeleteConfirmModal = () => {
     setShowDeleteModal(true);
-    setRunToBeDeleted(run);
   };
   const onCancelDelete = () => {
     setShowDeleteModal(false);
   };
   const onAcceptDelete = () => {
-    if(selectedRuns.length > 0) {
+    if(selectedComparisons.length > 0) {
       removeSelected();
-    } else {
-      if(runToBeDeleted.id !== '' || runToBeDeleted.id !== null) {
-        ProgressIndicator.show();
-        chronosApi.deleteForecastRun(projectId, runToBeDeleted.id).then((res) => {
-          if(res.data.success === 'FAILED') {
-            Notification.show(res?.data?.errors[0]?.message, 'alert');
-            ProgressIndicator.hide();
-          } else {
-            Notification.show('Run deleted');
-            ProgressIndicator.hide();
-            getProjectForecastRuns();
-          }
-        }).catch(error => {
-          Notification.show(
-            error?.response?.data?.response?.errors[0]?.message || error?.response?.data?.response?.warnings[0]?.message || error?.response?.data?.errors[0]?.message || 'Error while deleting run',
-            'alert',
-          );
-          ProgressIndicator.hide();
-        });
-      }
     }
     setShowDeleteModal(false);
   }
 
-  const onSubmit = (e) => {
-    e.preventDefault();
-    const formData = new FormData();
-    // if(data.file !== undefined) {
-    //   formData.append('actualsFile', '');
-    // } else {
-    //   if(data.file.length === 1) {
-    //     formData.append('actualsFile', data.file[0]);
-    //   } else {
-    //     formData.append('actualsFile', data.droppedFile[0]);
-    //   }
-    // }
-    console.log('fileInput');
-    console.log(actualsFile);
-    if(actualsFile.length !== 0) {
-      formData.append('actualsFile', actualsFile[0]);
-    }
-    formData.append('comparisonName', comparisonNameInput.current.value);
-    formData.append('runCorelationIds', selectedRuns.toString());
-
-    ProgressIndicator.show();
-    chronosApi.createForecastComparison(formData, projectId).then(() => {
-        Notification.show('Comparison created successfully');
-        onRunClick();
-        ProgressIndicator.hide();
-        setActualsFile('');
-      }).catch(error => {
-        ProgressIndicator.hide();
-        Notification.show(
-          error?.response?.data?.errors?.[0]?.message || error?.response?.data?.response?.errors?.[0]?.message || error?.response?.data?.response?.warnings?.[0]?.message || 'Error while creating comparison',
-          'alert',
-        );
-        setActualsFile('');
-      });
-  }
-
   /* Row actions */
   const history = useHistory();
-  const openForecastingResults = (runId) => {
-    history.push('/results/' + projectId + '/' + runId);
+  const openComparisonResults = (comparisonId) => {
+    history.push('/comparison-results/' + projectId + '/' + comparisonId);
   }
 
   // Error Modal
@@ -322,14 +240,16 @@ const ForecastResultsTab = ({ onRunClick }) => {
             <div className={Styles.listContent}>
               {loading && <Spinner />}
               {!loading && (
-                forecastRuns?.length === 0 &&
-                  <div className={Styles.forecastResultListEmpty}>Forecast Runs are not available</div>
+                forecastComparisons?.length === 0 &&
+                  <div className={Styles.forecastResultListEmpty}>Forecast Comparisons are not available</div>
               )}
-              {!loading && forecastRuns?.length > 0 &&
+              {!loading && forecastComparisons?.length > 0 &&
                 <React.Fragment>
                   <div className={Styles.refreshContainer}>
-                    <button className={classNames('btn btn-primary', Styles.delBtn, selectedRuns.length > 1 && selectedRuns.length < 13 ? '' : Styles.disableBtn)} tooltip-data={'Compare Runs'} onClick={() => setShowCompareModal(true)}><i className="icon mbc-icon data-sharing"></i></button>
-                    <button className='btn btn-primary' onClick={() => { getProjectForecastRuns(); }}>
+                    { selectedComparisons.length > 0 ?
+                      <button className={classNames('btn btn-primary', Styles.delBtn)} tooltip-data={'Delete'} onClick={() => setShowDeleteModal(true)}><i className="icon delete"></i></button> : <div>&nbsp;</div>
+                    }
+                    <button className='btn btn-primary' onClick={() => { getProjectForecastComparisons(); }}>
                       <i className="icon mbc-icon refresh" />
                       <span>Refresh</span>   
                     </button>
@@ -401,64 +321,22 @@ const ForecastResultsTab = ({ onRunClick }) => {
                               }
                             >
                               <i className="icon sort" />
-                              Input File
+                              Actuals File
                             </label>
-                          </th>
-                          <th 
-                            onClick={() => sortResults('forecastHorizon', sortBy.nextSortType)}
-                            >
-                            <label
-                              className={
-                                'sortable-column-header ' +
-                                (sortBy.name === 'forecastHorizon' ? sortBy.currentSortType : '')
-                              }
-                            >
-                              <i className="icon sort" />
-                              Forecast Horizon
-                            </label>
-                          </th>
-                          <th 
-                            onClick={() => sortResults('exogenousData', sortBy.nextSortType)}
-                            >
-                            <label
-                              className={
-                                'sortable-column-header ' +
-                                (sortBy.name === 'exogenousData' ? sortBy.currentSortType : '')
-                              }
-                            >
-                              <i className="icon sort" />
-                              Exogenous Data
-                            </label>
-                          </th>
-                          <th 
-                            onClick={() => sortResults('hierarchy', sortBy.nextSortType)}
-                            >
-                            <label
-                              className={
-                                'sortable-column-header ' +
-                                (sortBy.name === 'hierarchy' ? sortBy.currentSortType : '')
-                              }
-                            >
-                              <i className="icon sort" />
-                              Levels of Hierarchy
-                            </label>
-                          </th>
-                          <th>
-                            &nbsp;
                           </th>
                         </tr>
                       </thead>
                       <tbody>
-                        {forecastRuns?.map((item) => {
+                        {forecastComparisons?.map((item) => {
                           return (
-                            <ForecastRunRow
+                            <ComparisonRow
                               item={item}
-                              key={item.id}
+                              key={item.comparisonId}
                               showDeleteConfirmModal={showDeleteConfirmModal}
-                              openDetails={() => openForecastingResults(item.id)}
-                              selectedRuns={selectedRuns}
-                              selectRun={selectRun}
-                              deselectRun={deselectRun}
+                              openDetails={() => openComparisonResults(item.comparisonId)}
+                              selectedComparisons={selectedComparisons}
+                              selectComparison={selectComparison}
+                              deselectComparison={deselectComparison}
                               onOpenErrorModal={handleOpenErrorModal}
                             />
                           );
@@ -471,7 +349,7 @@ const ForecastResultsTab = ({ onRunClick }) => {
             </div>
           </div>
         </div>
-        {!loading && forecastRuns?.length > 0 &&
+        {!loading && forecastComparisons?.length > 0 &&
           <Pagination
             totalPages={totalNumberOfPages}
             pageNumber={currentPageNumber}
@@ -497,7 +375,7 @@ const ForecastResultsTab = ({ onRunClick }) => {
                     <i className={classNames('icon mbc-icon close thin')} />
                   </div>
                   <div>
-                    You are going to delete the Results.<br />
+                    You are going to delete the comparisons.<br />
                     Are you sure you want to proceed?
                   </div>
                   <div className={Styles.deleteBtn}>
@@ -517,7 +395,7 @@ const ForecastResultsTab = ({ onRunClick }) => {
         }
         { showErrorModal &&
             <Modal
-              title={errorItem.runName}
+              title={errorItem.comparisonName}
               showAcceptButton={false}
               showCancelButton={false}
               modalWidth={'60%'}
@@ -525,14 +403,14 @@ const ForecastResultsTab = ({ onRunClick }) => {
               show={showErrorModal}
               content={
                 <div className={Styles.modalContent}>
-                  {errorItem.state.result_state === 'WARNINGS' ? 
+                  {errorItem.state.lifeCycleState === 'WARNINGS' ? 
                     <div className={Styles.errorDiv}>
                       <i className={classNames('icon mbc-icon alert circle', Styles.alertCircle)} />
-                      <span>{errorItem.warnings}</span>
+                      <span>{errorItem.state.stateMessage}</span>
                     </div> :
                     <div className={Styles.errorDiv}>
                       <i className={classNames('icon mbc-icon close circle', Styles.closeCircle)} />
-                      <span>{errorItem.state.state_message}</span>
+                      <span>{errorItem.state.stateMessage}</span>
                     </div>
                   }
                 </div>
@@ -549,107 +427,7 @@ const ForecastResultsTab = ({ onRunClick }) => {
               }}
             />
         }
-        
-        { showCompareModal &&
-          <Modal
-            title={''}
-            showAcceptButton={false}
-            showCancelButton={false}
-            modalWidth={'40%'}
-            buttonAlignment="center"
-            show={showCompareModal}
-            content={
-              <div className={Styles.modalContent}>
-                <div className={Styles.mHeader}>
-                  <div className={Styles.circleOutline}>
-                    <i className="icon mbc-icon data-sharing"></i> 
-                  </div>
-                  <h2>Compare Runs</h2>
-                </div>
-                <form>
-                  <div className={Styles.infoBox}>
-                    <i className="icon mbc-icon info"></i>
-                    <div className={Styles.cap}>
-                      <p>Use this feature to compare different forecasts. You can use this to evaluate the forecasts of a KPI over time, or to see upper/lower bounds of different forecasts. All selected forecasting runs should build on the same KPI, otherwise results might be meaningless.</p>
-                      <p>Optionally, you can provide actuals data in the for form of a csv file to get an idea of how Chronos performed. This file should contain the complete history up to the most recent forecast.</p>
-                    </div>
-                  </div>
-                  <div className={Styles.inputBox}>
-                    <div className={classNames('input-field-group')}>
-                      <label id="compareNameLabel" htmlFor="compareNameInput" className="input-label">
-                        Comparison Name
-                      </label>
-                      <input
-                        ref={comparisonNameInput}
-                        type="text"
-                        className="input-field"
-                        id="compareNameInput"
-                        maxLength={55}
-                        placeholder="Type here..."
-                        autoComplete="off"
-                      />
-                      {/* <span className={classNames('error-message')}>{errors.compareName?.type === 'pattern' && 'Compare names can consist only of lowercase letters, numbers, dots ( . ), and hyphens ( - ).'}</span> */}
-                    </div>
-                  </div>
-                  <div className={Styles.fileUploadBox}>
-                    
-                    <div className={actualsFile.length !== 0 ? Styles.hide : ''}>
-                      <p>Upload Actuals (optional)</p>
-                      <div 
-                        onDrop={onFileDrop}
-                        onDragOver={onFileDrop}
-                        onDragLeave={onFileDrop}
-                        className={classNames('upload-container', Styles.uploadContainer)}
-                      >
-                        <input type="file" id="actualsfile" name="actualsfile" 
-                          ref={fileInput}
-                          onInputCapture={(e) => {
-                            const isValid = isValidFile(e.target.files[0]);
-                            if (!isValid) {
-                              Notification.show('File is not valid. Only .xlsx files allowed.', 'alert');
-                            } else {
-                              setActualsFile(e.target.files);
-                            }
-                          }}
-                          accept=".csv, .xlsx"
-                          />
-                        <div className={Styles.dragDrop}>
-                          <div className={Styles.browseHelperText}>
-                            Drag&apos;n&apos;Drop or <label htmlFor="actualsfile" className={Styles.selectExisitingFiles}>select</label> 
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                      <div className={classNames(Styles.selectedFile, actualsFile.length === 0 ? Styles.hide : '')}>
-                        <div>
-                          <span>Actuals File</span>
-                          <span>{actualsFile[0]?.name}</span>
-                        </div>
-                        <div className={Styles.msgContainer}>
-                          <i className={classNames('icon mbc-icon check circle', Styles.checkCircle)} />
-                          <span>File is ready to use.</span>
-                        </div>
-                      </div>
-                  </div>
-                  <div className={Styles.cenBtn}>
-                    <button className={'btn btn-tertiary'} onClick={(e) => onSubmit(e)}>Run Comparison</button>
-                  </div>
-                </form>
-              </div>
-            }
-            scrollableContent={false}
-            onCancel={() => {
-              setShowCompareModal(false)
-            }}
-            modalStyle={{
-              padding: '50px 35px 35px 35px',
-              minWidth: 'unset',
-              width: '40%',
-              maxWidth: '40vw'
-            }}
-          />
-        }
     </React.Fragment>
   );
 }
-export default ForecastResultsTab;
+export default ComparisonsTab;
