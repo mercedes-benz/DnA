@@ -17,6 +17,7 @@ const tabs = {
   runForecast: {},
   forecastResults: {},
   projectDetails: {},
+  comparisons: {},
 };
 
 const ChronosProjectDetails = ({ user }) => {
@@ -66,6 +67,12 @@ const ChronosProjectDetails = ({ user }) => {
     elementRef.current[tabIndex].click();
   };
 
+  const switchToComparisonTab = (currentTab) => {
+    const tabIndex = Object.keys(tabs).indexOf(currentTab) + 2;
+    setCurrentTab(Object.keys(tabs)[tabIndex]);
+    elementRef.current[tabIndex].click();
+  };
+
   return (
     <>
       <div className={classNames(Styles.mainPanel)}>
@@ -100,7 +107,7 @@ const ChronosProjectDetails = ({ user }) => {
                     href="#tab-content-3"
                     id="projectDetails"
                     ref={(ref) => {
-                      if (elementRef.current) elementRef.current[3] = ref;
+                      if (elementRef.current) elementRef.current[2] = ref;
                     }}
                     onClick={setTab}
                   >
@@ -112,7 +119,7 @@ const ChronosProjectDetails = ({ user }) => {
                     href="#tab-content-4"
                     id="comparisons"
                     ref={(ref) => {
-                      if (elementRef.current) elementRef.current[1] = ref;
+                      if (elementRef.current) elementRef.current[3] = ref;
                     }}
                     onClick={setTab}
                   >
@@ -128,7 +135,7 @@ const ChronosProjectDetails = ({ user }) => {
             </div>
             <div id="tab-content-2" className="tab-content">
               {currentTab === 'forecastResults' ? (
-                <ForecastResultsTab />
+                <ForecastResultsTab onRunClick={() => switchToComparisonTab(currentTab)} />
               ) : null}
             </div>
             <div id="tab-content-3" className="tab-content">
@@ -138,7 +145,7 @@ const ChronosProjectDetails = ({ user }) => {
             </div>
             <div id="tab-content-4" className="tab-content">
               {currentTab === 'comparisons' ? (
-                <ComparisonsTab onRunClick={() => switchTabs(currentTab)} />
+                <ComparisonsTab />
               ) : null}
             </div>
           </div>
