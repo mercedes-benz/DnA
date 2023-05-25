@@ -240,12 +240,16 @@ public class ReportController implements ReportsApi {
 	@RequestMapping(value = "/reports/transparency", produces = { "application/json" }, consumes = {
 			"application/json" }, method = RequestMethod.GET)
 	public ResponseEntity<TransparencyVO> getNumberOfPublishedReports() {
-		 Integer count = reportService.getCountBasedPublishReport(true);
-		 LOGGER.info("total count of published report {}",count);
-		TransparencyVO transparencyVO = new TransparencyVO();
-		// int newCount = (int)count;
-		 transparencyVO.setCount(count);
-		return new ResponseEntity<>(transparencyVO, HttpStatus.OK);
+		try {
+			Integer count = reportService.getCountBasedPublishReport(true);
+			LOGGER.info("total count of published report {}", count);
+			TransparencyVO transparencyVO = new TransparencyVO();
+			// int newCount = (int)count;
+			transparencyVO.setCount(count);
+			return new ResponseEntity<>(transparencyVO, HttpStatus.OK);
+		}catch (Exception e){
+			return new ResponseEntity<>(new TransparencyVO(), HttpStatus.INTERNAL_SERVER_ERROR);
+		}
 	}
 
 	@Override
