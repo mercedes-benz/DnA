@@ -10,7 +10,9 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+
 import com.daimler.data.dto.forecast.*;
+
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -19,6 +21,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.daimler.data.application.client.ChronosComparisonClient;
 import com.daimler.data.application.client.DataBricksClient;
 import com.daimler.data.application.client.StorageServicesClient;
 import com.daimler.data.assembler.ForecastAssembler;
@@ -34,9 +37,29 @@ import com.daimler.data.db.json.RunState;
 import com.daimler.data.db.json.UserDetails;
 import com.daimler.data.db.repo.forecast.ForecastCustomRepository;
 import com.daimler.data.db.repo.forecast.ForecastRepository;
+
+import com.daimler.data.dto.comparison.ChronosComparisonRequestDto;
+
 import com.daimler.data.dto.databricks.DataBricksJobRunOutputResponseWrapperDto;
 import com.daimler.data.dto.databricks.RunNowNotebookParamsDto;
+import com.daimler.data.dto.forecast.ApiKeyVO;
+import com.daimler.data.dto.forecast.CollaboratorVO;
+import com.daimler.data.dto.forecast.ComparisonStateVO;
+import com.daimler.data.dto.forecast.DataBricksErrorResponseVO;
+import com.daimler.data.dto.forecast.ForecastComparisonCreateResponseVO;
+import com.daimler.data.dto.forecast.ForecastComparisonResultVO;
+import com.daimler.data.dto.forecast.ForecastComparisonVO;
+import com.daimler.data.dto.forecast.ForecastProjectUpdateRequestVO;
+import com.daimler.data.dto.forecast.ForecastRunResponseVO;
+import com.daimler.data.dto.forecast.ForecastVO;
+import com.daimler.data.dto.forecast.RunDetailsVO;
+import com.daimler.data.dto.forecast.RunNowResponseVO;
+import com.daimler.data.dto.forecast.RunStateVO;
 import com.daimler.data.dto.forecast.RunStateVO.ResultStateEnum;
+
+import com.daimler.data.dto.forecast.RunVO;
+import com.daimler.data.dto.forecast.RunVisualizationVO;
+
 import com.daimler.data.dto.storage.BucketObjectDetailsDto;
 import com.daimler.data.dto.storage.BucketObjectsCollectionWrapperDto;
 import com.daimler.data.dto.storage.CreateBucketResponseWrapperDto;
@@ -86,7 +109,13 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 	
 	@Autowired
 	private KafkaProducerService kafkaProducer;
+	
+	@Value(value = "${kafka.chronosComparisonTopic.name}")
+	private String chronosComparisontopicName;
 
+	@Autowired
+	private ChronosComparisonClient comparisonClient;
+	
 	public BaseForecastService() {
 		super();
 	}
@@ -441,8 +470,10 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 									memberIds.add(ownerId);
 									String ownerEmail = entity.getData().getCreatedBy().getEmail();
 									memberEmails.add(ownerEmail);
-									notifyUsers(forecastId, run, memberIds, memberEmails, forecastName,
-											newState.getResult_state());
+									String message ="";
+									message="Run " + run.getRunName() + " triggered by " + run.getTriggeredBy() +" for chronos-project "+ forecastName + " completed with ResultState " + newState.getResult_state() +". Please check forecast-results for more details";
+									String notificationEventName = "Chronos Forecast Run LifeCycleStatus update";
+									notifyUsers(forecastId, memberIds, memberEmails,message,"",notificationEventName,null);
 								}
 								
 								newState.setState_message(updatedStateMsg);
@@ -527,15 +558,11 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 		return runCollectionWrapper;
 	}
 	
-	private void notifyUsers(String forecastId, RunDetails run, List<String> memberIds, List<String> memberEmails,String forecastName, String updatedResultState) {
-		// TODO Auto-generated method stub
-		String message ="";
-		message="Run " + run.getRunName() + " triggered by " + run.getTriggeredBy() +" for chronos-project "+ forecastName + " completed with ResultState " + updatedResultState +". Please check forecast-results for more details";		
-		kafkaProducer.send("Chronos Forecast Run LifeCylceStatus update", forecastId, "", "DnaSystemUser", message,
-				true, memberIds, memberEmails, null);
-		
+	
+	private void notifyUsers(String forecastId, List<String> memberIds, List<String> memberEmails,String message, String messageDetails, String eventName, String destinationTopicName) {
+		kafkaProducer.send(eventName, forecastId, messageDetails, "DnaSystemUser", message,
+				true, memberIds, memberEmails, null, destinationTopicName);
 	}
-
 
 	private String processErrorMessages(String taskRunId) {
 		DataBricksJobRunOutputResponseWrapperDto updatedRunOutputResponse = this.dataBricksClient.getSingleRunOutput(taskRunId);
@@ -955,8 +982,14 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 			try {
 				jpaRepo.save(entity);
 				responseMessage.setSuccess("SUCCESS");
+
+				String message="Comparison " + comparisonName + " triggered by " + requestUser +" for chronos-project "+ data.getName() + " is created successfully.";
+				String notificationEventName = "Chronos Forecast Comparison LifeCycleStatus update";
+				notifyUsers(entity.getId(), new ArrayList<>(), new ArrayList<>() ,message,comparisionId,notificationEventName, chronosComparisontopicName);
+				
 			}catch(Exception e) {
-				log.error("Failed while saving details of comparison {}  to database for project {}",comparisionId, existingForecast.getName());
+				log.error("Failed while saving details of comparison {} to database for project {}, triggered by {}",comparisonName, existingForecast.getName(), requestUser);
+
 				MessageDescription msg = new MessageDescription("Failed to save comparison details to table ");
 				List<MessageDescription> errors = new ArrayList<>();
 				errors.add(msg);
@@ -967,12 +1000,64 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 		}
 		return responseWrapperVO;
 	}
+	
+	@Override
+	@Transactional
+	public void processForecastComparision(String forecastId, String comparisonId) {
+		Optional<ForecastNsql> anyEntity = this.jpaRepo.findById(forecastId);
+		ComparisonDetails comparisonDetails = new ComparisonDetails();
+		ComparisonState comparisonState = new ComparisonState();
+		if(anyEntity!=null && anyEntity.isPresent()) {
+			ForecastNsql entity = anyEntity.get();
+			Forecast data = entity.getData();
+			 List<ComparisonDetails> existingComparisons = data.getComparisons();
+			 List<ComparisonDetails> updatedComparisons = new ArrayList();
+			if(existingComparisons!=null && !existingComparisons.isEmpty()) {
+				for(ComparisonDetails tempComparison : existingComparisons) {
+					if(comparisonId!=null && comparisonId.equalsIgnoreCase(tempComparison.getComparisonId())) {
+						//process 
+						//construct comaprision request dto from tempComparison
+						ChronosComparisonRequestDto comparisonRequestDto = new ChronosComparisonRequestDto();
+						//fill this dto 
+						//call chronoscomparisionclient.createcomparison. 
+						//get the response -> state and message
+						
+						ComparisonState resultState = new ComparisonState();
+						tempComparison.setComparisonState(comparisonState);
+						List<String> memberIds = new ArrayList<>();
+						List<String> memberEmails = new ArrayList<>();
+						if (entity.getData().getCollaborators() != null) {
+							memberIds = entity.getData().getCollaborators().stream()
+									.map(UserDetails::getId).collect(Collectors.toList());
+							memberEmails = entity.getData().getCollaborators().stream()
+									.map(UserDetails::getEmail).collect(Collectors.toList());
+						}
+						String ownerId = entity.getData().getCreatedBy().getId();
+						memberIds.add(ownerId);
+						String ownerEmail = entity.getData().getCreatedBy().getEmail();
+						memberEmails.add(ownerEmail);
+						String message ="";
+						message="Comparison " + tempComparison.getComparisonName() + " triggered by " + tempComparison.getTriggeredBy() +" for chronos-project "+ data.getName() + " completed with ResultState " + resultState.getLifeCycleState() +". Please check forecast-comparisons for more details";
+						String notificationEventName = "Chronos Forecast Comparison LifeCycleStatus update";
+						notifyUsers(forecastId, memberIds, memberEmails,message,"",notificationEventName,null);
+					}
+					updatedComparisons.add(tempComparison);
+					
+				}
+			}
+			data.setComparisons(updatedComparisons);
+			entity.setData(data);
+			this.jpaRepo.save(entity);
+		}
+	}
 
 	@Override
-	public List<ForecastComparisonVO> getAllForecastComparisons(String id) {
-		long totalCount = 0L;
+	public Object[] getAllForecastComparisons(int limit, int offset, String id) {
+		Object[] getForecastComparisonsArr = new Object[2];
 		List<ForecastComparisonVO> forecastComparisonsVOList = new ArrayList<>();
 		Optional<ForecastNsql> anyEntity = this.jpaRepo.findById(id);
+		Integer totalCount = 0;
+
 		if(anyEntity!=null && anyEntity.isPresent()) {
 			ForecastNsql entity = anyEntity.get();
 			Forecast data = entity.getData();
@@ -988,43 +1073,63 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 					}
 				}
 			}
+
 			Collections.sort(tempExistingComparisons, new Comparator<ComparisonDetails>() {
 				public int compare(ComparisonDetails compare1, ComparisonDetails compare2) {
 					return compare2.getTriggeredOn().toString().compareTo(compare1.getTriggeredOn().toString());
 				}
 			});
-			totalCount = tempExistingComparisons.size();
-			entity.getData().setComparisons(tempExistingComparisons);
-			this.jpaRepo.save(entity);
-			forecastComparisonsVOList = this.assembler.toComparisonsVO(tempExistingComparisons);
-		}
 
-		return forecastComparisonsVOList;
+			//pagination
+			totalCount = tempExistingComparisons.size();
+			int endLimit = offset + limit;
+			if (endLimit > tempExistingComparisons.size()) {
+				endLimit = tempExistingComparisons.size();
+			}
+			List<ComparisonDetails> newSubList =new ArrayList<>();
+			newSubList = tempExistingComparisons.subList(offset, endLimit);
+			if (limit == 0)
+				newSubList = tempExistingComparisons;
+			forecastComparisonsVOList = this.assembler.toComparisonsVO(tempExistingComparisons);
+			getForecastComparisonsArr[0] = forecastComparisonsVOList;
+			getForecastComparisonsArr[1] = totalCount;
+		}
+		return getForecastComparisonsArr;
 	}
 
 	@Override
+	@Transactional
 	public GenericMessage deleteComparison(String id, List<String> validComparisonIds) {
-		Optional<ForecastNsql> anyEntity = this.jpaRepo.findById(id);
 		GenericMessage responseMessage = new GenericMessage();
-		if(anyEntity!=null && anyEntity.isPresent()) {
-			ForecastNsql entity = anyEntity.get();
-			Forecast data = entity.getData();
-			List<ComparisonDetails> existingComparisons = data.getComparisons();
-			List<ComparisonDetails> updatedComparisonRecords = new ArrayList<>();
-			ComparisonDetails comparisonDetails = new ComparisonDetails();
-			if(existingComparisons!= null && !existingComparisons.isEmpty() && validComparisonIds!= null && !validComparisonIds.isEmpty() ) {
-				for (String comparisonId : validComparisonIds) {
-					Optional<ComparisonDetails> comparison = existingComparisons.stream().filter(x -> comparisonId.equalsIgnoreCase(x.getComparisonId()) && !x.getIsDelete()).findAny();
-					if(comparison!=null && comparison.isPresent()) {
-						comparison.get().setIsDelete(true);
-						existingComparisons.remove(comparison);
+		try {
+			Optional<ForecastNsql> anyEntity = this.jpaRepo.findById(id);
+			if(anyEntity!=null && anyEntity.isPresent()) {
+				ForecastNsql entity = anyEntity.get();
+				Forecast data = entity.getData();
+				List<ComparisonDetails> existingComparisons = data.getComparisons();
+				List<ComparisonDetails> updatedComparisons = new ArrayList<>();
+				List<ComparisonDetails> updatedComparisonRecords = new ArrayList<>();
+				ComparisonDetails comparisonDetails = new ComparisonDetails();
+				if(existingComparisons!= null && !existingComparisons.isEmpty() && validComparisonIds!= null && !validComparisonIds.isEmpty() ) {
+					for(ComparisonDetails tempComparison : existingComparisons) {
+						if(validComparisonIds.contains(tempComparison.getComparisonId())){
+								tempComparison.setIsDelete(true);
+						}
+						updatedComparisons.add(tempComparison);
+						log.info("Updated comparison Id {} of project {} as deleted TRUE",tempComparison.getComparisonId(),entity.getId()) ;
 					}
 				}
+				entity.getData().setComparisons(updatedComparisons);
+				this.jpaRepo.save(entity);
 			}
-			entity.getData().setComparisons(existingComparisons);
-			this.jpaRepo.save(entity);
+			responseMessage.setSuccess("SUCCESS");
+		}catch(Exception e) {
+			responseMessage.setSuccess("FAILED");
+			List<MessageDescription> errors = new ArrayList<>();
+			MessageDescription errMsg = new MessageDescription("Failed to delete given comparison ids with exception " + e.getMessage());
+			log.error("Failed to delete given comparison ids with exception ", e.getMessage());
 		}
-		responseMessage.setSuccess("SUCCESS");
+
 		return responseMessage;
 	}
 
@@ -1045,6 +1150,9 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 			if(comparisonHTMLResponse!= null && comparisonHTMLResponse.getData()!=null && (comparisonHTMLResponse.getErrors()==null || comparisonHTMLResponse.getErrors().isEmpty())) {
 				comparisonHTMLResult = new String(comparisonHTMLResponse.getData().getByteArray());
 			}
+
+				forecastComparisonsVO.setComparisonName(comparison.getComparisonName());
+
 				forecastComparisonsVO.setComparisonData(comparisonHTMLResult);
 		}catch(Exception e) {
 			log.error("Failed while parsing results data for comparison id {} with exception {} ",comparisonId, e.getMessage());
