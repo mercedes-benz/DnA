@@ -188,6 +188,31 @@ public class ReportCustomRepositoryImpl extends CommonDataRepositoryImpl<ReportN
 		Query q = em.createNativeQuery(query);
 		return q;
 	}
+	@Override
+	public Integer getCountBasedPublishReport(Boolean published) {
+		Query q = getCountQueryWithFilters("select count(*) from ", published);
+		BigInteger results = (BigInteger) q.getSingleResult();
+		return results.intValue();
+	}
+
+	private Query getCountQueryWithFilters(String selectFieldsString, Boolean published) {
+		String prefix = selectFieldsString != null && !"".equalsIgnoreCase(selectFieldsString) ? selectFieldsString
+				: "select cast(id as text), cast(data as text) ";
+		prefix = prefix + "report_nsql";
+		String basicpredicate = " where (id is not null)";
+		String consolidatedPredicate = buildPredicateBoolen(published);
+		String query = prefix + basicpredicate + consolidatedPredicate;
+		Query q = em.createNativeQuery(query);
+		//LOGGER.info("sql query {} ",q);
+		return q;
+	}
+
+	private String buildPredicateBoolen(Boolean published) {
+		if (published != false) {
+			return " and ((jsonb_extract_path_text(data,'publish')) in (" +"'"+ published +"'"+ "))";
+		}
+		return "";
+	}
 
 	private String buildPredicateString(Boolean published, List<String> statuses, String userId, Boolean isAdmin,
 			List<String> searchTerms, List<String> tags, String division, List<String> department,
@@ -324,6 +349,8 @@ public class ReportCustomRepositoryImpl extends CommonDataRepositoryImpl<ReportN
 		String query = prefix + basicpredicate;
 		return getReportOwners(query);
 	}
+
+
 
 	private List<TeamMemberVO> getReportOwners(String query) {
 		Query q = em.createNativeQuery(query);
