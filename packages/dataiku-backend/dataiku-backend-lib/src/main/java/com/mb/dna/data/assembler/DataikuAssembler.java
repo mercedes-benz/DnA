@@ -138,7 +138,7 @@ public class DataikuAssembler {
 			summaryDto.setProjectKey(projectDto.getProjectName());
 			summaryDto.setShortDesc(projectDto.getDescription());
 			summaryDto.setSolutionId(projectDto.getSolutionId());
-			summaryDto.setStatus(currentUser);
+			summaryDto.setStatus(projectDto.getStatus());
 			summaryDto.setTags(emptyStringList);
 			
 			summaryDto.setIsProjectAdmin(false);
