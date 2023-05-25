@@ -64,6 +64,8 @@ spring:
 kafka:
   centralTopic:
     name: dnaCentralEventTopic
+  comparisonTopic:
+    name: dnaChronosComparisonTopic
 
 
 databricks:

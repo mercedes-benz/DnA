@@ -47,10 +47,14 @@ public class KafkaComparisonEventListner {
 
 	@Value("${kafka.comparisonTopic.name}")
 	private String dnaChronosComparisonTopicName;
+	
+	//autowire forecast service
 
 	@KafkaListener(topics = "dnaChronosComparisonEventTopic")
 	public void chronosComparisonTopicListnerToProcess(GenericEventRecord message) {
 		if (message != null) {
+			
+			//call forecastservice processcomparison (forecast id is resourceid from GenericEventRecord and comparision id is messageDetails from GenericEventRecord)
 			
 		}
 	}

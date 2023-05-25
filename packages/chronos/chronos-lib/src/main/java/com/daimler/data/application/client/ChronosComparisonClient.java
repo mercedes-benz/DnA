@@ -25,9 +25,12 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class ChronosComparisonClient {
 
-	//https://code-spaces.dna.app.corpintra.net/ws106/prod
+	
 	@Value("${chronosComparison.uri}")
 	private String chronosComparisonBaseUri;
+	
+	@Value("${chronosMinio.env}")
+	private String chronosMinioEnv; //"prod"/"dev"/"test"
 	
 	private static final String COMPARISON_PATH = "/api/comparison";
 	
@@ -37,7 +40,7 @@ public class ChronosComparisonClient {
 	public CreateComparisonResponseWrapperDto createComparison(String comparisonName, String requestUser, ChronosComparisonRequestDto requestDto) {
 		CreateComparisonResponseDataDto createComparisonResponse = new CreateComparisonResponseDataDto();
 		ComparisonState data = new ComparisonState();
-		
+		data.setLifeCycleState("FAILED");
 		CreateComparisonResponseWrapperDto createComparisonResponseWrapperDto = new CreateComparisonResponseWrapperDto();
 		createComparisonResponseWrapperDto.setStatus("FAILED");
 		List<MessageDescription> errors = new ArrayList<>();
@@ -46,6 +49,7 @@ public class ChronosComparisonClient {
 				headers.set("Accept", "application/json");
 				headers.setContentType(MediaType.APPLICATION_JSON);
 				String url = chronosComparisonBaseUri + COMPARISON_PATH;
+				requestDto.setMinio_endpoint(chronosMinioEnv);
 				HttpEntity<ChronosComparisonRequestDto> requestEntity = new HttpEntity<>(requestDto,headers);
 				ResponseEntity<CreateComparisonResponseDataDto> response = restTemplate.exchange(url, HttpMethod.POST,
 						requestEntity, CreateComparisonResponseDataDto.class);
@@ -64,7 +68,7 @@ public class ChronosComparisonClient {
 					createComparisonResponseWrapperDto.setErrors(errors);
 					createComparisonResponseWrapperDto.setStatus("FAILED");
 			}
-			createComparisonResponseWrapperDto.setData(createComparisonResponse);
+			createComparisonResponseWrapperDto.setData(data);
 			return createComparisonResponseWrapperDto;
 		}
 	}

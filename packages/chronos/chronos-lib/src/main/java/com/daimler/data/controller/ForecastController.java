@@ -1070,7 +1070,7 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 	public ResponseEntity<ForecastComparisonCreateResponseVO> createForecastComparison(@ApiParam(value = "forecast project ID ",required=true) @PathVariable("id") String id,
 			@ApiParam(value = "Comma separated forecast run corelation Ids. Maximum 12 Ids can be sent. Please avoid sending duplicates.", required=true) @RequestParam(value="runCorelationIds", required=true)  String runCorelationIds,
 			@ApiParam(value = "The input file for the comparison of forecast runs.") @Valid @RequestPart(value="actualsFile", required=false) MultipartFile actualsFile,
-			@ApiParam(value = "Run Comparison name") @RequestParam(value="comparisonName", required=false)  String comparisonName)
+			@ApiParam(value = "Comparison name") @RequestParam(value="comparisonName", required=false)  String comparisonName)
 	{
 		ForecastComparisonCreateResponseVO responseVO = new ForecastComparisonCreateResponseVO();
 		ForecastVO existingForecast = service.getById(id);
@@ -1281,9 +1281,6 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 			}
 			responseMessage = service.deleteComparison(id,validComparisonIds);
 		}
-
-
-
 		if (responseMessage != null && "SUCCESS".equalsIgnoreCase(responseMessage.getSuccess())) {
 			return new ResponseEntity<>(responseMessage, HttpStatus.OK);
 		}
@@ -1353,9 +1350,6 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 				if(comparisonId.equalsIgnoreCase(comparison.getComparisonId())
 				     && !comparison.isIsDeleted()) {
 					notFound = false;
-					//if(!user.equalsIgnoreCase(comparison.getTriggeredBy())) {
-					//	notAuthorized = false;
-					//}
 				}
 			}
 		}else
@@ -1382,8 +1376,18 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 			produces = { "application/json" },
 			consumes = { "application/json" },
 			method = RequestMethod.GET)
-	public ResponseEntity<ForecastComparisonsCollectionDto> getForecastComparisons(@ApiParam(value = "forecast project ID ",required=true) @PathVariable("id") String id)
+	public ResponseEntity<ForecastComparisonsCollectionDto> getForecastComparisons(@ApiParam(value = "forecast project ID ",required=true) @PathVariable("id") String id
+//			,
+//			@ApiParam(value = "forecast project ID ",required=true) @Valid @RequestParam(value = "limit", required = false) int limit,
+//			@ApiParam(value = "forecast project ID ",required=true) @Valid @RequestParam(value = "offset", required = false) int limit,
+			)
 	{
+		int defaultLimit = Integer.parseInt(runsDefaultPageSize);
+//		if (offset == null || offset < 0)
+//			offset = 0;
+//		if (limit == null || limit < 0) {
+//			limit = defaultLimit;
+//		}
 		ForecastComparisonsCollectionDto collection = new ForecastComparisonsCollectionDto();
 		ForecastVO existingForecast = service.getById(id);
 		CreatedByVO requestUser = this.userStore.getVO();
@@ -1410,11 +1414,14 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 			log.error("Only user of this project can view the details. Unauthorized");
 			return new ResponseEntity<>(null, HttpStatus.FORBIDDEN);
 		}
-		List<ForecastComparisonVO> records = service.getAllForecastComparisons(id);
+//		service.getAllForecastComparisons(id);
+		Object[] getComparisonsResultsArr = service.getAllForecastComparisons(0,0,id);
+		List<ForecastComparisonVO> records = (List<ForecastComparisonVO>) getComparisonsResultsArr[0];
+		Integer totalCount = (Integer) getComparisonsResultsArr[1];
 		HttpStatus responseCode = HttpStatus.NO_CONTENT;
 		if(records!=null && !records.isEmpty()) {
 			collection.setRecords(records);
-			collection.setTotalCount(records.size());
+			collection.setTotalCount(totalCount);
 			responseCode = HttpStatus.OK;
 		}
 		return new ResponseEntity<>(collection, responseCode);
