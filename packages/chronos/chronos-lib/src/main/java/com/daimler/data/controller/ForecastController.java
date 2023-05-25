@@ -1376,11 +1376,9 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 			produces = { "application/json" },
 			consumes = { "application/json" },
 			method = RequestMethod.GET)
-	public ResponseEntity<ForecastComparisonsCollectionDto> getForecastComparisons(@ApiParam(value = "forecast project ID ",required=true) @PathVariable("id") String id
-//			,
-//			@ApiParam(value = "forecast project ID ",required=true) @Valid @RequestParam(value = "limit", required = false) int limit,
-//			@ApiParam(value = "forecast project ID ",required=true) @Valid @RequestParam(value = "offset", required = false) int limit,
-			)
+	public ResponseEntity<ForecastComparisonsCollectionDto> getForecastComparisons(@ApiParam(value = "forecast project ID ",required=true) @PathVariable("id") String id,
+			@ApiParam(value = "forecast comparisons page number ") @Valid @RequestParam(value = "offset", required = false) Integer offset,
+			@ApiParam(value = "forecast comparisons page size") @Valid @RequestParam(value = "limit", required = false) Integer limit)
 	{
 		int defaultLimit = Integer.parseInt(runsDefaultPageSize);
 //		if (offset == null || offset < 0)

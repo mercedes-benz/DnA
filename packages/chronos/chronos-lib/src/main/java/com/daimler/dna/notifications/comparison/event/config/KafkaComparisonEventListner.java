@@ -27,6 +27,7 @@
 
 package com.daimler.dna.notifications.comparison.event.config;
 
+import com.daimler.data.service.forecast.ForecastService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,16 +48,17 @@ public class KafkaComparisonEventListner {
 
 	@Value("${kafka.comparisonTopic.name}")
 	private String dnaChronosComparisonTopicName;
-	
-	//autowire forecast service
 
-	@KafkaListener(topics = "dnaChronosComparisonEventTopic")
-	public void chronosComparisonTopicListnerToProcess(GenericEventRecord message) {
-		if (message != null) {
-			
-			//call forecastservice processcomparison (forecast id is resourceid from GenericEventRecord and comparision id is messageDetails from GenericEventRecord)
-			
-		}
-	}
+	@Autowired
+	private ForecastService service;
+
+//	@KafkaListener(topics = "dnaChronosComparisonEventTopic")
+//	public void chronosComparisonTopicListnerToProcess(GenericEventRecord message) {
+//		if (message != null) {
+//			service.processForecastComparision(message.getResourceId(),message.getMessageDetails());
+//			//call forecastservice processcomparison (forecast id is resourceid from GenericEventRecord and comparision id is messageDetails from GenericEventRecord)
+//
+//		}
+//	}
 
 }
