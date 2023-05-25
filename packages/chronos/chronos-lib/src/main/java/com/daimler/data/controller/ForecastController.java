@@ -1083,7 +1083,7 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 		}catch(Exception e) {
 			log.warn("Failed to format createdOn date to ISO format");
 		}
-		comparisonName = comparisonName!= null && !"".equalsIgnoreCase(comparisonName) ? comparisonName :  ""; //ISOdate as comparisonname from createdOn
+		comparisonName = comparisonName!= null && !"".equalsIgnoreCase(comparisonName) ? comparisonName :  "comparison - " + createdOn; //ISOdate as comparisonname from createdOn
 		Boolean notAuthorized = false;
 		if(existingForecast==null || existingForecast.getId()==null) {
 			log.error("Forecast project with this id {} doesnt exists , failed to create comparison", id);
@@ -1363,8 +1363,8 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 		if(notFound) {
 			return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
 		}
-		ForecastComparisonResultVO records = service.getForecastComparisonById(id,comparisonId);
-		return null;
+		ForecastComparisonResultVO comparisonHTMLData = service.getForecastComparisonById(id,comparisonId);
+		return new ResponseEntity<>(comparisonHTMLData, HttpStatus.OK);
 	}
 
 
