@@ -2,8 +2,6 @@ import cn from 'classnames';
 import React, { useEffect, useState } from 'react';
 import Styles from './ListRowItem.scss';
 
-import { history } from '../../store';
-
 import Tooltip from '../../common/modules/uilab/js/src/tooltip';
 
 import { Envs } from '../../Utility/envs';
@@ -119,7 +117,7 @@ const ProjectListRowItem = (props) => {
 
   const goToSolution = (solutionId) => {
     Tooltip.clear();
-    history.push('/summary/' + solutionId);
+    props.hostHistory.push('/summary/' + solutionId);
   };
 
   return (
@@ -138,10 +136,14 @@ const ProjectListRowItem = (props) => {
         ) : (
           ''
         )}
-        <td className="wrap-text" onClick={onInfoBtnClick}>
-          {getDifferenceFromToday(props?.project?.versionTag?.lastModifiedOn)}{' '}
-          days ago
-        </td>
+        {props.isProduction ? (
+          ''
+        ) : (
+          <td className="wrap-text" onClick={onInfoBtnClick}>
+            {getDifferenceFromToday(props?.project?.versionTag?.lastModifiedOn)}{' '}
+            days ago
+          </td>
+        )}
         {props.isProduction && <td className="wrap-text projectName" onClick={onInfoBtnClick}>{props.project.cloudProfile}</td>}
         <td className={Styles.iconAction}>
           {props.isProduction ? (

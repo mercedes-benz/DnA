@@ -675,7 +675,7 @@ export interface IUserNewInfo {
 }
 
 export interface IMembers {
-  reportOwners: ITeams[];
+  // reportOwners: ITeams[];
   reportAdmins?: ITeams[];
 }
 export interface ICreateNewReport {
@@ -769,6 +769,7 @@ export interface ICommonFunctions {
 
 export interface IDataiku {
   name: string;
+  cloudProfile?: string;
   shortDesc: string;
   projectKey: string;
   tags: string[];
