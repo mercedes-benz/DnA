@@ -64,6 +64,16 @@ spring:
 kafka:
   centralTopic:
     name: dnaCentralEventTopic
+  chronosComparisonTopic:
+    name: dnaChronosComparisonTopic
+  comparisonTopic:
+    name: dnaComparisonTopic
+
+chronosComparison:
+  uri: baseUri
+
+chronosMinio:
+  env: "dev"
 
 
 databricks:
