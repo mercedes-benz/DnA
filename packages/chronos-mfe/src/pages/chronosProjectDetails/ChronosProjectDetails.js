@@ -9,6 +9,7 @@ import Notification from '../../common/modules/uilab/js/src/notification';
 import RunForecastTab from '../../components/runForecastTab/RunForecastTab';
 import ForecastResultsTab from '../../components/forecastResultsTab/ForecastResultsTab';
 import ProjectDetailsTab from '../../components/projectDetailsTab/ProjectDetailsTab';
+import ComparisonsTab from '../../components/comparisonsTab/ComparisonsTab';
 import Breadcrumb from '../../components/breadcrumb/Breadcrumb';
 import { chronosApi } from '../../apis/chronos.api';
 
@@ -106,6 +107,18 @@ const ChronosProjectDetails = ({ user }) => {
                     Project Details
                   </a>
                 </li>
+                <li className={'tab'}>
+                  <a
+                    href="#tab-content-4"
+                    id="comparisons"
+                    ref={(ref) => {
+                      if (elementRef.current) elementRef.current[1] = ref;
+                    }}
+                    onClick={setTab}
+                  >
+                    Comparisons
+                  </a>
+                </li>
               </ul>
             </nav>
           </div>
@@ -121,6 +134,11 @@ const ChronosProjectDetails = ({ user }) => {
             <div id="tab-content-3" className="tab-content">
               {currentTab === 'projectDetails' ? (
                 <ProjectDetailsTab project={project} onRefresh={getProjectById} />
+              ) : null}
+            </div>
+            <div id="tab-content-4" className="tab-content">
+              {currentTab === 'comparisons' ? (
+                <ComparisonsTab onRunClick={() => switchTabs(currentTab)} />
               ) : null}
             </div>
           </div>
