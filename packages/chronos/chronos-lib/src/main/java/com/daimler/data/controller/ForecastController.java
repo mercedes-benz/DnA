@@ -1269,7 +1269,7 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 												String invalidIdsString = String.join(",", invalidComparisonIds);
 						log.error("Invalid ComparisonIds {} sent for comparison  of project name {} and id {}, by user {} ",
 								invalidIdsString, existingForecast.getName(), id, requestUser);
-						MessageDescription invalidMsg = new MessageDescription("Invalid runCorrelationIds " +  invalidIdsString + " sent for comparison. Please correct and retry.");
+						MessageDescription invalidMsg = new MessageDescription("Invalid ComparisonIds " +  invalidIdsString + " sent for comparison. Please correct and retry.");
 						GenericMessage errorMessage = new GenericMessage();
 						errorMessage.setSuccess("FAILED");
 						errorMessage.addErrors(invalidMsg);
@@ -1346,20 +1346,21 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 			responseVO.setResponse(responseMessage);
 			return new ResponseEntity<>(responseVO, HttpStatus.FORBIDDEN);
 		}
-		boolean notFound = false;
+		boolean notFound = true;
 		List<ForecastComparisonVO> comparisonVOList = existingForecast.getComparisons();
 		if(comparisonVOList!= null && !comparisonVOList.isEmpty()) {
 			for(ForecastComparisonVO comparison: comparisonVOList) {
-				if(comparisonId.equalsIgnoreCase(comparison.getComparisonId())) {
-					notFound = true;
-					if(!user.equalsIgnoreCase(comparison.getTriggeredBy())) {
-						notAuthorized = false;
-					}
+				if(comparisonId.equalsIgnoreCase(comparison.getComparisonId())
+				     && !comparison.isIsDeleted()) {
+					notFound = false;
+					//if(!user.equalsIgnoreCase(comparison.getTriggeredBy())) {
+					//	notAuthorized = false;
+					//}
 				}
 			}
 		}else
-			notFound = false;
-		if(!notFound) {
+			notFound = true;
+		if(notFound) {
 			return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
 		}
 		ForecastComparisonResultVO records = service.getForecastComparisonById(id,comparisonId);
@@ -1390,7 +1391,7 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 		Date createdOn = new Date();
 		Boolean notAuthorized = false;
 		if(existingForecast==null || existingForecast.getId()==null) {
-			log.error("Forecast project with this id {} doesnt exists , failed to create comparison", id);
+			log.error("Forecast project with this id {} doesnt exists", id);
 			return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
 		}
 		List<String> forecastProjectUsers = new ArrayList<>();
@@ -1406,7 +1407,7 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 			}
 		}
 		if(notAuthorized) {
-			log.error("Only user of this project can delete the run. Unauthorized");
+			log.error("Only user of this project can view the details. Unauthorized");
 			return new ResponseEntity<>(null, HttpStatus.FORBIDDEN);
 		}
 		List<ForecastComparisonVO> records = service.getAllForecastComparisons(id);

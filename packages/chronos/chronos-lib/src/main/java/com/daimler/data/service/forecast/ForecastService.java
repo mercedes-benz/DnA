@@ -53,5 +53,4 @@ public interface ForecastService extends CommonService<ForecastVO, ForecastNsql,
 	public ForecastComparisonResultVO  getForecastComparisonById(String id,String comparisonId);
 
 
-
 }

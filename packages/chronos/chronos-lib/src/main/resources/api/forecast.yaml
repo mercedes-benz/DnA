@@ -1295,6 +1295,8 @@ definitions:
   ForecastComparisonResultVO:
     type: object
     properties:
+      comparisonName:
+        type: string
       comparisonData:
         type: string
       response:
