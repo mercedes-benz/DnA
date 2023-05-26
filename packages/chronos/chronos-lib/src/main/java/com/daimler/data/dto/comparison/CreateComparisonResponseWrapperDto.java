@@ -18,7 +18,6 @@ import lombok.NoArgsConstructor;
 public class CreateComparisonResponseWrapperDto implements Serializable{
 
 	private static final long serialVersionUID = 1L;
-	private String status;
 	private ComparisonState data;
 	private List<MessageDescription> errors;
 	private List<MessageDescription> warnings;
