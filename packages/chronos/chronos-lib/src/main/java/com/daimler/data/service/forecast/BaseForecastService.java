@@ -1005,7 +1005,8 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 			 List<ComparisonDetails> updatedComparisons = new ArrayList();
 			if(existingComparisons!=null && !existingComparisons.isEmpty()) {
 				for(ComparisonDetails tempComparison : existingComparisons) {
-					if(comparisonId!=null && comparisonId.equalsIgnoreCase(tempComparison.getComparisonId()) && "CREATED".equalsIgnoreCase(tempComparison.getComparisonState().getLifeCycleState())) {
+					if((comparisonId!=null && comparisonId.equalsIgnoreCase(tempComparison.getComparisonId()) && "CREATED".equalsIgnoreCase(tempComparison.getComparisonState().getLifeCycleState())) 
+							|| "CREATED".equalsIgnoreCase(tempComparison.getComparisonState().getLifeCycleState())) {
 						ChronosComparisonRequestDto comparisonRequestDto = new ChronosComparisonRequestDto();
 						comparisonRequestDto.setRuns_list(tempComparison.getRunsList());
 						comparisonRequestDto.setActuals_file(tempComparison.getActualsFile());
