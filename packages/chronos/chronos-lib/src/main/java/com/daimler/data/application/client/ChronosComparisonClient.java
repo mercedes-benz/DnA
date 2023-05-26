@@ -52,17 +52,21 @@ public class ChronosComparisonClient {
 				HttpEntity<ChronosComparisonRequestDto> requestEntity = new HttpEntity<>(requestDto,headers);
 				ResponseEntity<CreateComparisonResponseDataDto> response = restTemplate.exchange(url, HttpMethod.POST,
 						requestEntity, CreateComparisonResponseDataDto.class);
+				log.info("Chronos Comparison API {} with minio {} is called for comparison {} , triggeredBy {} ", url, chronosMinioEnv, comparisonName ,requestUser);
 				if (response.hasBody()) {
 					createComparisonResponse = response.getBody();
 					if(response.getStatusCode().is2xxSuccessful()) {
 						data.setLifeCycleState("SUCCESS");
+						log.info("Chronos Comparison API is success for comparison {} , triggeredBy {} ", comparisonName ,requestUser);
 					}
 					data.setStateMessage(createComparisonResponse.getMessage());
+					log.info("Chronos Comparison API result for comparison {} , triggeredBy {} is  {} ", comparisonName ,requestUser, createComparisonResponse.getMessage());
 				}
 			}catch(Exception e) {
 					log.error("Failed while creating comparison {} , triggeredBy {} with exception {}", comparisonName ,requestUser, e.getMessage());
 					MessageDescription errMsg = new MessageDescription("Failed while creating comparison with exception." + e.getMessage());
 					errors.add(errMsg);
+					data.setStateMessage("Failed while creating comparison with exception." + e.getMessage());
 					createComparisonResponseWrapperDto.setErrors(errors);
 			}
 			createComparisonResponseWrapperDto.setData(data);
