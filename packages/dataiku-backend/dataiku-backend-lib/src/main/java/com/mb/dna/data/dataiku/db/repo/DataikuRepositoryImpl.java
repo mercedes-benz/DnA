@@ -34,9 +34,12 @@ public class DataikuRepositoryImpl implements DataikuRepository{
 	@Override
 	public DataikuSql findByProjectName(String projectName, String cloudProfile) {
 		DataikuSql existingRecord = null;
+		
 		List<DataikuSql> results = new ArrayList<>();
 		try {
-			String queryString = "SELECT id,project_name,description,cloud_profile,created_by,created_on FROM dataiku_sql ";
+			String queryString = "SELECT id,project_name,description,cloud_profile,created_by,created_on, "
+					+ "status,classification_type,has_pii,division_id,division_name,subdivision_id,subdivision_name,department,solution_id "
+					+ "FROM dataiku_sql ";
 			if(projectName!=null && !projectName.isBlank() && !projectName.isEmpty()) {
 				queryString += " where LOWER(project_name) = '" + projectName.toLowerCase() + "' and LOWER(cloud_profile) = '" + cloudProfile.toLowerCase() + "'";
 			}else {
@@ -98,11 +101,11 @@ public class DataikuRepositoryImpl implements DataikuRepository{
 					CollaboratorSql collabUser = record.getCollaborators().stream().filter(collab -> userId.equalsIgnoreCase(collab.getUserId()))
 						  .findAny().orElse(null);
 					if(userId.equalsIgnoreCase(record.getCreatedBy()) || collabUser!=null) {
-						if(projectName==null || projectName.isBlank() || projectName.isEmpty() || projectName.equalsIgnoreCase(record.getProjectName()))
+						if(projectName==null || projectName.isBlank() || projectName.isEmpty() || "".equalsIgnoreCase(projectName) || projectName.equalsIgnoreCase(record.getProjectName()))
 							filteredResults.add(record);
 					}
 				}else {
-					if(projectName==null || projectName.isBlank() || projectName.isEmpty() || projectName.equalsIgnoreCase(record.getProjectName()))
+					if(projectName==null || projectName.isBlank() || projectName.isEmpty() || "".equalsIgnoreCase(projectName) || projectName.equalsIgnoreCase(record.getProjectName()))
 						filteredResults.add(record);
 				}
 			}
@@ -144,9 +147,12 @@ public class DataikuRepositoryImpl implements DataikuRepository{
 		}
 	}
 	
+
 	public void insertDataiku(DataikuSql dataikuProject) {
-		String insertStmt = "insert into  dataiku_sql(id,cloud_profile,created_by,created_on,description,project_name) "
-				+ "values (:id, :cloudProfile, :createdBy, :createdOn, :description, :projectName)";
+		String insertStmt = "insert into  dataiku_sql(id,cloud_profile,created_by,created_on,description"
+				+ ",project_name,status,classification_type,has_pii,division_id,division_name,subdivision_id,subdivision_name,department,solution_id) "
+				+ "values (:id, :cloudProfile, :createdBy, :createdOn, :description, :projectName"
+				+ ",:status,:classification_type,:has_pii,:division_id,:division_name,:subdivision_id,:subdivision_name,:department, :solution_id)";
 		Query q = entityManager.createNativeQuery(insertStmt);
 		q.setParameter("id", dataikuProject.getId());
 		q.setParameter("cloudProfile", dataikuProject.getCloudProfile());
@@ -154,6 +160,17 @@ public class DataikuRepositoryImpl implements DataikuRepository{
 		q.setParameter("createdOn", dataikuProject.getCreatedOn());
 		q.setParameter("description", dataikuProject.getDescription());
 		q.setParameter("projectName", dataikuProject.getProjectName());
+		
+		q.setParameter("status", dataikuProject.getStatus());
+		q.setParameter("classification_type", dataikuProject.getClassificationType());
+		q.setParameter("has_pii", dataikuProject.getHasPii());
+		q.setParameter("division_id", dataikuProject.getDivisionId());
+		q.setParameter("division_name", dataikuProject.getDivisionName());
+		q.setParameter("subdivision_id", dataikuProject.getSubdivisionId());
+		q.setParameter("subdivision_name", dataikuProject.getSubdivisionName());
+		q.setParameter("department", dataikuProject.getDepartment());
+		q.setParameter("solution_id", null);
+		
 		q.executeUpdate();
 		log.info("successfully ran insert statement for dataiku {}",dataikuProject.getProjectName());
 	}
@@ -179,10 +196,21 @@ public class DataikuRepositoryImpl implements DataikuRepository{
 		log.info("successfully deleted old collab records for dataiku id {}",dataikuid);
 	}
 	
-	public void updateDataiku(String id,String description) {
-		String updateStmt = "update dataiku_sql set  description = :updatedDescription where id = :id";
+	public void updateDataiku(String id,String description, String classificationType, String department, String divisionId, String divisionName, Boolean hasPii, String status, String subDivisionId, String subDivisionName) {
+		String updateStmt = "update dataiku_sql set  description = :updatedDescription, "
+				+ "status = :status, classification_type = :classificationType, has_pii = :hasPii, division_id = :divisionId, division_name = :divisionName,  "
+				+ "subdivision_id = :subdivisionId, subdivision_name = :subdivisionName, department = :department "
+				+ " where id = :id";
 		Query q = entityManager.createNativeQuery(updateStmt);
 		q.setParameter("updatedDescription", description);
+		q.setParameter("status", status);
+		q.setParameter("classificationType", classificationType);
+		q.setParameter("hasPii", hasPii);
+		q.setParameter("divisionId", divisionId);
+		q.setParameter("divisionName", divisionName);
+		q.setParameter("subdivisionId", subDivisionId);
+		q.setParameter("subdivisionName", subDivisionName);
+		q.setParameter("department", department);
 		q.setParameter("id", id);
 		q.executeUpdate();
 		log.info("successfully updated description for dataikuprojectid {} ",id);
@@ -190,9 +218,9 @@ public class DataikuRepositoryImpl implements DataikuRepository{
 	
 	@Override
 	public void update(DataikuSql dataikuProject) {
-		//entityManager.merge(dataikuProject);
 		if(dataikuProject!=null) {
-			updateDataiku(dataikuProject.getId(),dataikuProject.getDescription());
+			updateDataiku(dataikuProject.getId(),dataikuProject.getDescription(),dataikuProject.getClassificationType(),dataikuProject.getDepartment(),
+					dataikuProject.getDivisionId(),dataikuProject.getDivisionName(),dataikuProject.getHasPii(),dataikuProject.getStatus(),dataikuProject.getSubdivisionId(),dataikuProject.getSubdivisionName());
 			deleteExistingCollabs(dataikuProject.getId());
 			List<CollaboratorSql> collabs = dataikuProject.getCollaborators();
 			if(collabs!=null && !collabs.isEmpty()) {
