@@ -691,8 +691,9 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 		}
 		//remove deleted runs before returning
 		List<RunVO> existingRuns = existingForecast.getRuns();
-		List<RunVO> tempExistingRuns = new ArrayList<>(existingRuns);
+		
 		if(existingRuns!=null && !existingRuns.isEmpty()) {
+			List<RunVO> tempExistingRuns = new ArrayList<>(existingRuns);
 			for (int i = 0; i < existingRuns.size(); i++) {
 				RunVO details = existingRuns.get(i);
 				if (details.isIsDeleted() != null) {
