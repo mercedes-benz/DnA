@@ -30,6 +30,7 @@ package com.daimler.data.service.dataiku;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
@@ -105,18 +106,20 @@ public class BaseDataikuService implements DataikuService {
 		if (projects.isPresent() && userRole.isPresent()) {
 			if (live) {
 				LOGGER.debug("Processing for production data..");
-				if (userRole.get().getGroups().contains(prodAdminGroup) || userRole.get().getGroups().contains(onPremiseAdminGroup)) {
-					LOGGER.info("Admin: Returning all projects");
-					res = new ArrayList<DataikuProjectVO>();
-					res = projects.get().stream().peek(project -> project.setRole(DATAIKU_ADMINISTRATOR))
-							.collect(Collectors.toList());
-				} else {
+//				if (userRole.get().getGroups().contains(prodAdminGroup) || userRole.get().getGroups().contains(onPremiseAdminGroup)) {
+//					LOGGER.info("Admin: Returning all projects");
+//					res = new ArrayList<DataikuProjectVO>();
+//					res = projects.get().stream().peek(project -> project.setRole(DATAIKU_ADMINISTRATOR))
+//							.collect(Collectors.toList());
+//				} else {
 					LOGGER.info("Normal user: Checking for permission");
 					res = new ArrayList<DataikuProjectVO>();
 					for (DataikuProjectVO project : projects.get()) {
 						if (project.getOwnerLogin().contains(userId.toLowerCase())) {
 							LOGGER.debug("Owner of the project");
 							project.setRole(ADMINISTRATOR);
+							project.setId(UUID.randomUUID().toString());
+							project.setCloudProfile(cloudProfile);
 							res.add(project);
 						} else {
 							LOGGER.debug("Fetching permission..");
@@ -137,12 +140,14 @@ public class BaseDataikuService implements DataikuService {
 									} else if (permissions.get(0).getGroup().contains(READ_ONLY)) {
 										project.setRole(READ_ONLY);
 									}
+									project.setId(UUID.randomUUID().toString());
+									project.setCloudProfile(cloudProfile);
 									res.add(project);
 								}
 							}
 						}
 					}
-				}
+//				}
 			} else {
 				LOGGER.debug("Processing for training data..");
 				if (userRole.get().getGroups().contains(trainingAdminGroup)) {

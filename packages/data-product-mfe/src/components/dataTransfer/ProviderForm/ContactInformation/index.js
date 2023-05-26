@@ -49,6 +49,7 @@ const ContactInformation = ({
     name,
     planningIT,
     informationOwner,
+    productOwner,
   } = watch();
 
   const [complianceOfficerList, setComplianceOfficerList] = useState({
@@ -67,6 +68,8 @@ const ContactInformation = ({
 
   const [informationOwnerSearchTerm, setInformationOwnerSearchTerm] = useState('');
   const [informationOwnerFieldValue, setInformationOwnerFieldValue] = useState('');
+  const [productOwnerSearchTerm, setProductOwnerSearchTerm] = useState('');
+  const [productOwnerFieldValue, setProductOwnerFieldValue] = useState('');
 
   // const minDate = dayjs().format();
 
@@ -178,6 +181,15 @@ const ContactInformation = ({
     informationOwner && setInformationOwnerFieldValue(nameStr);
     //eslint-disable-next-line react-hooks/exhaustive-deps
   }, [informationOwner]);
+  
+  useEffect(() => {
+    let nameStr =
+      typeof productOwner === 'string'
+        ? productOwner
+        : `${productOwner?.firstName} ${productOwner?.lastName}`;
+    productOwner && setProductOwnerFieldValue(nameStr);
+    //eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [productOwner]);
 
   const handleName = (field, value) => {
     let name = '';
@@ -198,6 +210,16 @@ const ContactInformation = ({
     field.onChange(value);
     setInformationOwnerFieldValue(name);
   };
+
+  const handleProductOwner = (field, value) => {
+    let name = '';
+    if(value) {
+      value['addedByProvider'] = true;
+      name =  `${value.firstName} ${value.lastName}`;
+    }
+    field.onChange(value);
+    setProductOwnerFieldValue(name);
+  }
 
   const handlePlanningITSearch = debounce((searchTerm, showSpinner) => {
     if (searchTerm.length > 3) {
@@ -232,32 +254,55 @@ const ContactInformation = ({
           </div>
           <div className={Styles.formWrapper}>
             {isDataProduct ? (
-              <div className={classNames('input-field-group include-error', errors.informationOwner ? 'error' : '')}>
-                <Controller
-                  control={control}
-                  name="informationOwner"
-                  rules={{ required: '*Missing entry' }}
-                  render={({ field }) => (
-                    <TeamSearch
-                      label={
-                        <>
-                          Responsible Manager (E3 +) <sup>*</sup>
-                        </>
-                      }
-                      fieldMode={true}
-                      fieldValue={informationOwnerFieldValue}
-                      setFieldValue={(val) => setInformationOwnerFieldValue(val)}
-                      onAddTeamMember={(value) => handleInformationOwner(field, value)}
-                      btnText="Add User"
-                      searchTerm={informationOwnerSearchTerm}
-                      setSearchTerm={(value) => setInformationOwnerSearchTerm(value)}
-                      showUserDetails={false}
-                      setShowUserDetails={() => {}}
+              <>
+                <div className={classNames('input-field-group include-error', errors.informationOwner ? 'error' : '')}>
+                  <Controller
+                    control={control}
+                    name="informationOwner"
+                    rules={{ required: '*Missing entry' }}
+                    render={({ field }) => (
+                      <TeamSearch
+                        label={
+                          <>
+                            Responsible Manager (E3 +) <sup>*</sup>
+                          </>
+                        }
+                        fieldMode={true}
+                        fieldValue={informationOwnerFieldValue}
+                        setFieldValue={(val) => setInformationOwnerFieldValue(val)}
+                        onAddTeamMember={(value) => handleInformationOwner(field, value)}
+                        btnText="Add User"
+                        searchTerm={informationOwnerSearchTerm}
+                        setSearchTerm={(value) => setInformationOwnerSearchTerm(value)}
+                        showUserDetails={false}
+                        setShowUserDetails={() => {}}
+                      />
+                    )}
+                  />
+                  <span className={classNames('error-message')}>{errors.informationOwner?.message}</span>
+                </div>
+                <div className={classNames('input-field-group')}>
+                  <Controller
+                      control={control}
+                      name="productOwner"
+                      // rules={{ required: '*Missing entry' }}
+                      render={({ field }) => (
+                        <TeamSearch
+                          label={<>Product Owner</>}
+                          fieldMode={true}
+                          fieldValue={productOwnerFieldValue}
+                          setFieldValue={(val) => setProductOwnerFieldValue(val)}
+                          onAddTeamMember={(value) => handleProductOwner(field, value)}
+                          btnText="Save"
+                          searchTerm={productOwnerSearchTerm}
+                          setSearchTerm={(value) => setProductOwnerSearchTerm(value)}
+                          showUserDetails={false}
+                          setShowUserDetails={() => {}}
+                        />
+                      )}
                     />
-                  )}
-                />
-                <span className={classNames('error-message')}>{errors.informationOwner?.message}</span>
-              </div>
+                </div>
+              </>
             ) : (
               <div className={Styles.flexLayout}>
                 <div className={classNames('input-field-group include-error', errors.productName ? 'error' : '')}>

@@ -35,6 +35,7 @@ import {
   getCorporateDataCatalogs,
   getFrontEndTools,
   getPlatforms,
+  getTags
 } from '../../redux/getDropdowns.services';
 
 const dataForms = {
@@ -81,8 +82,8 @@ const CreateDataProduct = ({ user, history }) => {
   // const [actionButtonName, setActionButtonName] = useState('');
 
   const dispatch = useDispatch();
-  const { agileReleaseTrains, carLAFunctions, corporateDataCatalogs, platforms, frontEndTools } = useSelector(
-    (state) => state.dropdowns,
+  const { agileReleaseTrains, carLAFunctions, corporateDataCatalogs, platforms, frontEndTools, tags } = useSelector(
+    (state) =>state.dropdowns,
   );
 
   const { id: dataProductId } = useParams();
@@ -203,7 +204,7 @@ const CreateDataProduct = ({ user, history }) => {
       ProgressIndicator.hide();
       dispatch(setDivisionList(res.data));
       SelectBox.defaultSetup();
-    });
+    });    
     //eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dispatch]);
 
@@ -227,13 +228,14 @@ const CreateDataProduct = ({ user, history }) => {
     dispatch(getCorporateDataCatalogs());
     dispatch(getPlatforms());
     dispatch(getFrontEndTools());
+    dispatch(getTags());
   }, [dispatch]);
 
   useEffect(() => {
     if (isCreatePage) {
       SelectBox.defaultSetup();
     }
-  }, [isCreatePage, agileReleaseTrains, carLAFunctions, corporateDataCatalogs, platforms, frontEndTools]);
+  }, [isCreatePage, agileReleaseTrains, carLAFunctions, corporateDataCatalogs, platforms, frontEndTools, tags]);
 
   const setTab = (e) => {
     const id = e.target.id;
@@ -683,13 +685,15 @@ const CreateDataProduct = ({ user, history }) => {
             <div className="tabs-content-wrapper">
               <div id="tab-content-1" className="tab-content">
                 <Description
-                  onSave={(values) => {onSave('description', values)}}
+                  onSave={(values) => {
+                    onSave('description', values)}}
                   artList={agileReleaseTrains}
                   carlaFunctionList={carLAFunctions}
                   dataCatalogList={corporateDataCatalogs}
                   userInfo={userInfo}
                   platformList={platforms}
                   frontEndToolList={frontEndTools}
+                  tagsList={tags}
                   isDataProduct={true}
                 />
               </div>
