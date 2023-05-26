@@ -16,7 +16,6 @@ import java.util.stream.Collectors;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
-import com.daimler.data.dto.forecast.*;
 import org.apache.commons.io.FilenameUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -40,6 +39,26 @@ import com.daimler.data.application.client.StorageServicesClient;
 import com.daimler.data.auth.vault.VaultAuthClientImpl;
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
+import com.daimler.data.dto.forecast.ApiKeyResponseVO;
+import com.daimler.data.dto.forecast.ApiKeyVO;
+import com.daimler.data.dto.forecast.CollaboratorVO;
+import com.daimler.data.dto.forecast.CreatedByVO;
+import com.daimler.data.dto.forecast.ForecastCollectionVO;
+import com.daimler.data.dto.forecast.ForecastComparisonCreateResponseVO;
+import com.daimler.data.dto.forecast.ForecastComparisonResultVO;
+import com.daimler.data.dto.forecast.ForecastComparisonVO;
+import com.daimler.data.dto.forecast.ForecastComparisonsCollectionDto;
+import com.daimler.data.dto.forecast.ForecastProjectCreateRequestVO;
+import com.daimler.data.dto.forecast.ForecastProjectCreateRequestWrapperVO;
+import com.daimler.data.dto.forecast.ForecastProjectResponseVO;
+import com.daimler.data.dto.forecast.ForecastProjectUpdateRequestVO;
+import com.daimler.data.dto.forecast.ForecastRunCollectionVO;
+import com.daimler.data.dto.forecast.ForecastRunResponseVO;
+import com.daimler.data.dto.forecast.ForecastVO;
+import com.daimler.data.dto.forecast.InputFileVO;
+import com.daimler.data.dto.forecast.InputFilesCollectionVO;
+import com.daimler.data.dto.forecast.RunVO;
+import com.daimler.data.dto.forecast.RunVisualizationVO;
 import com.daimler.data.dto.storage.BucketObjectsCollectionWrapperDto;
 import com.daimler.data.dto.storage.FileUploadResponseDto;
 import com.daimler.data.service.forecast.ForecastService;
@@ -691,6 +710,34 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 		}
 		//remove deleted runs before returning
 		List<RunVO> existingRuns = existingForecast.getRuns();
+		if(existingRuns!=null && !existingRuns.isEmpty()) {
+			List<RunVO> tempExistingRuns = new ArrayList<>(existingRuns);
+			for (int i = 0; i < existingRuns.size(); i++) {
+				RunVO details = existingRuns.get(i);
+				if (details.isIsDeleted() != null) {
+					boolean isDelete = details.isIsDeleted();
+					if (isDelete) {
+						tempExistingRuns.remove(details);
+					}
+				}
+
+			}
+			existingForecast.setRuns(tempExistingRuns);
+		}
+		List<ForecastComparisonVO> existingComparisons = existingForecast.getComparisons();
+		if(existingComparisons!=null && !existingComparisons.isEmpty()) {
+			List<ForecastComparisonVO> tempExistingComparisons = new ArrayList<>(existingComparisons);
+			for(int i=0; i<tempExistingComparisons.size(); i++) {
+				ForecastComparisonVO details= tempExistingComparisons.get(i);
+				if(details.isIsDeleted()!= null) {
+					boolean isDelete = details.isIsDeleted();
+					if(isDelete) {
+						tempExistingComparisons.remove(details);
+					}
+				}
+			}
+			existingForecast.setComparisons(tempExistingComparisons);
+		}
 		
 		if(existingRuns!=null && !existingRuns.isEmpty()) {
 			List<RunVO> tempExistingRuns = new ArrayList<>(existingRuns);
