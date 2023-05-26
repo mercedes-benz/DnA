@@ -720,6 +720,7 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 						tempExistingRuns.remove(details);
 					}
 				}
+
 			}
 			existingForecast.setRuns(tempExistingRuns);
 		}
