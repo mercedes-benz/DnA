@@ -100,13 +100,12 @@ public class DataikuController implements DataikuApi {
 		DataikuProjectVOCollection col = null;
 		CreatedByVO currentUser = this.userStore.getVO();
 		String userId = currentUser != null ? currentUser.getId() : null;
-		List<DataikuProjectVO> extolloprojects = vService.getAllDataikuProjects(userId, live, "extollo");
-		List<DataikuProjectVO> onPremprojects = vService.getAllDataikuProjects(userId, live, "onprem");
+		List<DataikuProjectVO> extolloprojects = vService.getAllDataikuProjects(userId, live, "eXtollo");
+		List<DataikuProjectVO> onPremprojects = live ? vService.getAllDataikuProjects(userId, live, "onPremise") : null;
 		List<DataikuProjectVO> consolidateList = new ArrayList<>();
 		if(extolloprojects != null && !extolloprojects.isEmpty()) consolidateList.addAll(extolloprojects);
 		if(onPremprojects != null && !onPremprojects.isEmpty()) consolidateList.addAll(onPremprojects);
 		if (!ObjectUtils.isEmpty(consolidateList)) {
-			consolidateList.stream().forEach(val -> val.setId(UUID.randomUUID().toString()));
 			col = new DataikuProjectVOCollection();
 			col.setData(consolidateList);
 			col.setTotalCount(consolidateList.size());
@@ -140,12 +139,12 @@ public class DataikuController implements DataikuApi {
 		DataikuProjectVO extolloVo = null;
 		DataikuProjectVO onpremVo = null;
 		try {
-			 extolloVo = vService.getByProjectKey(projectKey, live, "extollo");
+			 extolloVo = vService.getByProjectKey(projectKey, live, "eXtollo");
 		} catch (Exception e) {
 			log.error("Failed to fetch extollo by project key with an exception {} ", e.getMessage());
 		}
 		try {
-			onpremVo = vService.getByProjectKey(projectKey, live, "onprem");
+			onpremVo = live ? vService.getByProjectKey(projectKey, live, "onPremise") : null;
 		} catch (Exception e) {
 			log.error("Failed to fetch onprem by project key with an exception {} ", e.getMessage());
 		}
