@@ -720,7 +720,6 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 						tempExistingRuns.remove(details);
 					}
 				}
-
 			}
 			existingForecast.setRuns(tempExistingRuns);
 		}
@@ -738,21 +737,7 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 			}
 			existingForecast.setComparisons(tempExistingComparisons);
 		}
-		
-		if(existingRuns!=null && !existingRuns.isEmpty()) {
-			List<RunVO> tempExistingRuns = new ArrayList<>(existingRuns);
-			for (int i = 0; i < existingRuns.size(); i++) {
-				RunVO details = existingRuns.get(i);
-				if (details.isIsDeleted() != null) {
-					boolean isDelete = details.isIsDeleted();
-					if (isDelete) {
-						tempExistingRuns.remove(details);
-					}
-				}
-
-			}
-			existingForecast.setRuns(tempExistingRuns);
-		}
+    
 		CreatedByVO requestUser = this.userStore.getVO();
 		List<String> forecastProjectUsers = new ArrayList<>();
 		forecastProjectUsers.add(existingForecast.getCreatedBy().getId());
