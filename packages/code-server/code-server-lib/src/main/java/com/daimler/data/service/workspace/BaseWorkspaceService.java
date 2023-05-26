@@ -298,6 +298,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 			 ownerWorkbenchCreateInputsDto.setShortid(entity.getData().getWorkspaceOwner().getId());
 			 ownerWorkbenchCreateInputsDto.setType(client.toDeployType(entity.getData().getProjectDetails().getRecipeDetails().getRecipeId()));
 			 ownerWorkbenchCreateInputsDto.setWsid(entity.getData().getWorkspaceId());
+			ownerWorkbenchCreateInputsDto.setResource(vo.getProjectDetails().getRecipeDetails().getResource());
 			 ownerWorkbenchCreateDto.setInputs(ownerWorkbenchCreateInputsDto);
 			 
 			 GenericMessage createOwnerWSResponse = client.manageWorkBench(ownerWorkbenchCreateDto);
@@ -305,24 +306,15 @@ public class BaseWorkspaceService implements WorkspaceService {
 				 if(!"SUCCESS".equalsIgnoreCase(createOwnerWSResponse.getSuccess()) || 
 						 	(createOwnerWSResponse.getErrors()!=null && !createOwnerWSResponse.getErrors().isEmpty()) ||
 						 	(createOwnerWSResponse.getWarnings()!=null && !createOwnerWSResponse.getWarnings().isEmpty())) {
-					 	HttpStatus deleteRepoStatus = gitClient.deleteRepo(repoName);
-					 	if(!deleteRepoStatus.is2xxSuccessful()) {
-					 		MessageDescription errMsg = new MessageDescription("Created git repository " +repoName + " successfully and added collaborator(s). Failed to initialize workbench. Deleted repository successfully, please retry");
+					 	
+							MessageDescription errMsg = new MessageDescription("Failed to initialize collaborator workbench while creating individual codespaces, please retry.");
 							errors.add(errMsg);
 							errors.addAll(createOwnerWSResponse.getErrors());
 							warnings.addAll(createOwnerWSResponse.getWarnings());
 							responseVO.setErrors(errors);
 							responseVO.setWarnings(warnings);
 							return responseVO;
-					 	}else {
-							MessageDescription errMsg = new MessageDescription("Created git repository " + repoName + " successfully and added collaborator(s). Failed to initialize workbench. Unable to delete repository, please delete repository manually and retry");
-							errors.add(errMsg);
-							errors.addAll(createOwnerWSResponse.getErrors());
-							warnings.addAll(createOwnerWSResponse.getWarnings());
-							responseVO.setErrors(errors);
-							responseVO.setWarnings(warnings);
-							return responseVO;
-					 	}
+					 	
 				 }
 			 }
 			 Date initatedOn = new Date();
@@ -905,6 +897,23 @@ public class BaseWorkspaceService implements WorkspaceService {
 			String angularRecipeId =  RecipeIdEnum.ANGULAR.toString();
 			String publicDnABackendRecipeId = RecipeIdEnum.PUBLIC_DNA_BACKEND.toString();
 			String publicDnaFrontendRecipeId = RecipeIdEnum.PUBLIC_DNA_FRONTEND.toString();
+			String publicDnaAirflowBackendRecipeId = RecipeIdEnum.PUBLIC_DNA_AIRFLOW_BACKEND.toString();
+			String publicDnaAuthenticatorBackendRecipeId = RecipeIdEnum.PUBLIC_DNA_AUTHENTICATOR_BACKEND.toString();
+			String publicDnaChronosBackendRecipeId = RecipeIdEnum.PUBLIC_DNA_CHRONOS_BACKEND.toString();
+			String publicDnaChronosMfeRecipeId = RecipeIdEnum.PUBLIC_DNA_CHRONOS_MFE.toString();
+			String publicDnaCodespaceBackendRecipeId = RecipeIdEnum.PUBLIC_DNA_CODESPACE_BACKEND.toString();
+			String publicDnaDataProductBackendRecipeId = RecipeIdEnum.PUBLIC_DNA_DATA_PRODUCT_BACKEND.toString();
+			String publicDnaDnaDataProductMfeRecipeId = RecipeIdEnum.PUBLIC_DNA_DATA_PRODUCT_MFE.toString();
+			String publicDnaDataikuBackendRecipeId = RecipeIdEnum.PUBLIC_DNA_DATAIKU_BACKEND.toString();
+			String publicDnaDssMfeRecipeId = RecipeIdEnum.PUBLIC_DNA_DSS_MFE.toString();
+			String publicDnaMalwareScannerRecipeId = RecipeIdEnum.PUBLIC_DNA_MALWARE_SCANNER.toString();
+			String publicDnaModalRegistryBackendRecipeId = RecipeIdEnum.PUBLIC_DNA_MODAL_REGISTRY_BACKEND.toString();
+			String publicDnaNassRecipeId = RecipeIdEnum.PUBLIC_DNA_NASS.toString();
+			String publicDnaReportBackendRecipeId = RecipeIdEnum.PUBLIC_DNA_REPORT_BACKEND.toString();
+			String publicDnaStorageBackendRecipeId = RecipeIdEnum.PUBLIC_DNA_STORAGE_BACKEND.toString();
+			String publicDnaStorageMfeRecipeId = RecipeIdEnum.PUBLIC_DNA_STORAGE_MFE.toString();
+			String publicDnaTrinoBackendRecipeId = RecipeIdEnum.PUBLIC_DNA_TRINO_BACKEND.toString();
+			
 			String projectRecipe = entity.getData().getProjectDetails().getRecipeDetails().getRecipeId();
 			String projectOwner = entity.getData().getProjectDetails().getProjectOwner().getId();
 			log.info("projectRecipe: {}",projectRecipe);
@@ -913,15 +922,28 @@ public class BaseWorkspaceService implements WorkspaceService {
 					String workspaceUrl = codeServerBaseUri+"/"+workspaceName+"/?folder=/home/coder";
 					if(!defaultRecipeId.equalsIgnoreCase(projectRecipe))
 						workspaceUrl += "/app";
-					if(projectRecipe.toLowerCase().contains("backend")) {
-						log.info("Project is public backend recipe");						
-						workspaceUrl = workspaceUrl + "/" + "packages/backend";
-						log.info("workspaceUrl: {}",workspaceUrl);
-					}
-					if(projectRecipe.toLowerCase().contains("frontend")) {
-						log.info("Project is public frontend recipe");						
-						workspaceUrl = workspaceUrl + "/" + "packages/frontend";
-						log.info("workspaceUrl: {}",workspaceUrl);
+					if(projectRecipe.toLowerCase().startsWith("public")) {						
+						switch(projectRecipe) {						
+						case "public-dna-backend" : workspaceUrl = workspaceUrl + "/" + "packages/backend"; break;
+						case "public-dna-frontend" : workspaceUrl = workspaceUrl + "/" + "packages/frontend"; break;			
+						case "public-dna-report-backend" : workspaceUrl = workspaceUrl + "/" + "packages/dashboard-backend"; break;
+						case "public-dna-codespace-backend" : workspaceUrl = workspaceUrl + "/" + "packages/code-server"; break;
+						case "public-dna-malware-scanner" : workspaceUrl = workspaceUrl + "/" + "packages/malware-scanner"; break;
+						case "public-dna-storage-mfe" : workspaceUrl = workspaceUrl + "/" + "packages/storage-mfe"; break;
+						case "public-dna-storage-backend" : workspaceUrl = workspaceUrl + "/" + "packages/storage-backend"; break;
+						case "public-dna-chronos-mfe" : workspaceUrl = workspaceUrl + "/" + "packages/chronos-mfe"; break;
+						case "public-dna-chronos-backend" : workspaceUrl = workspaceUrl + "/" + "packages/chronos"; break;
+						case "public-dna-data-product-mfe" : workspaceUrl = workspaceUrl + "/" + "packages/data-product-mfe"; break;
+						case "public-dna-data-product-backend" : workspaceUrl = workspaceUrl + "/" + "packages/data-product-backend"; break;
+						case "public-dna-dss-mfe" : workspaceUrl = workspaceUrl + "/" + "packages/dss-mfe"; break;
+						case "public-dna-dataiku-backend" : workspaceUrl = workspaceUrl + "/" + "packages/dataiku-backend"; break;
+						case "public-dna-airflow-backend" : workspaceUrl = workspaceUrl + "/" + "packages/airflow-backend"; break;
+						case "public-dna-modal-registry-backend" : workspaceUrl = workspaceUrl + "/" + "packages/model-registry"; break;
+						case "public-dna-trino-backend" : workspaceUrl = workspaceUrl + "/" + "packages/trino-backend"; break;
+						case "public-dna-nass" : workspaceUrl = workspaceUrl + "/" + "packages/naas"; break;			
+						case "public-dna-authenticator-backend" : workspaceUrl = workspaceUrl + "/" + "packages/authenticator-service"; break;
+						
+						}
 					}					
 					entity.getData().setWorkspaceUrl(workspaceUrl);
 					entity.getData().setStatus(latestStatus);

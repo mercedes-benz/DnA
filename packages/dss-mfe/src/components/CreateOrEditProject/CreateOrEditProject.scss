@@ -1,7 +1,6 @@
 .createDataikuWrapper {
     background: #252a33 !important;
     margin-top: 15px !important;
-    padding: 25px 38px;
 
     .submitButtton {
         display: flex;
@@ -78,7 +77,6 @@
                     flex: 1;
                     font-size: var(--font-size-smallest);
                     padding-right: 15px;
-                    word-break: break-word;
                     color: #99a5b3;
 
                     label {
@@ -127,18 +125,17 @@
         }
     }
 
+    .secondFlexLayout {
+        margin-top: 5px !important;
+    }
+
     .flexLayout {
         display: flex;
-        // margin: 40px;
         margin-top: 40px;
         margin-left: 40px;
 
         >div {
             width: calc(33% - 7px);
-        }
-
-        .instance {
-            margin-left: 35px;
         }
 
         &.fourColumn {
