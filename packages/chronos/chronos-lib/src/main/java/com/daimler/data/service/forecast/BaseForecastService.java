@@ -336,6 +336,7 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 			if(entity!=null && entity.getData()!=null && 	
 					entity.getData().getRuns()!=null && !entity.getData().getRuns().isEmpty()) {
 				List<RunDetails> existingRuns = entity.getData().getRuns();
+				if(existingRuns!=null && !existingRuns.isEmpty()) {
 				String bucketName = entity.getData().getBucketName();
 				String resultsPrefix = "results/";
 				List<RunDetails> newSubList =new ArrayList<>();
@@ -544,7 +545,7 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 				this.jpaRepo.save(entity);
 				updatedRunVOList = this.assembler.toRunsVO(updatedRuns);
 			}
-
+			}
 		}
 		runCollectionWrapper[0] = updatedRunVOList;
 		runCollectionWrapper[1] = totalCount;
@@ -1049,6 +1050,7 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 			Forecast data = entity.getData();
 			List<ComparisonDetails> existingComparisons = data.getComparisons();
 			//logic to remove all deleted comparisons from list
+			if(existingComparisons!=null && !existingComparisons.isEmpty()) {
 			List<ComparisonDetails> tempExistingComparisons = new ArrayList<>(existingComparisons);
 			for(int i=0; i<tempExistingComparisons.size(); i++) {
 				ComparisonDetails details= tempExistingComparisons.get(i);
@@ -1076,6 +1078,7 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 			if (limit == 0)
 				newSubList = tempExistingComparisons;
 			forecastComparisonsVOList = this.assembler.toComparisonsVO(newSubList);
+			}
 			getForecastComparisonsArr[0] = forecastComparisonsVOList;
 			getForecastComparisonsArr[1] = totalCount;
 		}
