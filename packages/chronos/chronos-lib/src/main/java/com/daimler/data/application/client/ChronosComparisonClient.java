@@ -30,7 +30,7 @@ public class ChronosComparisonClient {
 	private String chronosComparisonBaseUri;
 	
 	@Value("${chronosMinio.env}")
-	private String chronosMinioEnv; //"prod"/"dev"/"test"
+	private String chronosMinioEnv;
 	
 	private static final String COMPARISON_PATH = "/api/comparison";
 	
@@ -42,7 +42,6 @@ public class ChronosComparisonClient {
 		ComparisonState data = new ComparisonState();
 		data.setLifeCycleState("FAILED");
 		CreateComparisonResponseWrapperDto createComparisonResponseWrapperDto = new CreateComparisonResponseWrapperDto();
-		createComparisonResponseWrapperDto.setStatus("FAILED");
 		List<MessageDescription> errors = new ArrayList<>();
 		try {
 				HttpHeaders headers = new HttpHeaders();
@@ -56,17 +55,15 @@ public class ChronosComparisonClient {
 				if (response.hasBody()) {
 					createComparisonResponse = response.getBody();
 					if(response.getStatusCode().is2xxSuccessful()) {
-						createComparisonResponseWrapperDto.setStatus("SUCCESS");
-					}else {
-						
+						data.setLifeCycleState("SUCCESS");
 					}
+					data.setStateMessage(createComparisonResponse.getMessage());
 				}
 			}catch(Exception e) {
 					log.error("Failed while creating comparison {} , triggeredBy {} with exception {}", comparisonName ,requestUser, e.getMessage());
 					MessageDescription errMsg = new MessageDescription("Failed while creating comparison with exception." + e.getMessage());
 					errors.add(errMsg);
 					createComparisonResponseWrapperDto.setErrors(errors);
-					createComparisonResponseWrapperDto.setStatus("FAILED");
 			}
 			createComparisonResponseWrapperDto.setData(data);
 			return createComparisonResponseWrapperDto;
