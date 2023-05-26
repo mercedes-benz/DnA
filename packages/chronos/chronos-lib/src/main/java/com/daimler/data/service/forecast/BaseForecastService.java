@@ -1005,11 +1005,12 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 			 List<ComparisonDetails> updatedComparisons = new ArrayList();
 			if(existingComparisons!=null && !existingComparisons.isEmpty()) {
 				for(ComparisonDetails tempComparison : existingComparisons) {
-					if(comparisonId!=null && comparisonId.equalsIgnoreCase(tempComparison.getComparisonId())) {
+					if(comparisonId!=null && comparisonId.equalsIgnoreCase(tempComparison.getComparisonId()) && "CREATED".equalsIgnoreCase(tempComparison.getComparisonState().getLifeCycleState())) {
 						ChronosComparisonRequestDto comparisonRequestDto = new ChronosComparisonRequestDto();
 						comparisonRequestDto.setRuns_list(tempComparison.getRunsList());
 						comparisonRequestDto.setActuals_file(tempComparison.getActualsFile());
 						comparisonRequestDto.setTarget_folder(tempComparison.getTargetFolder());
+						log.info("calling Chronos Comparison API for comparison {} , triggeredBy {}  ", tempComparison.getComparisonName() ,tempComparison.getTriggeredBy());
 						CreateComparisonResponseWrapperDto createComparisonResponse = comparisonClient.createComparison(tempComparison.getComparisonName(),tempComparison.getTriggeredBy(),comparisonRequestDto);
 						ComparisonState resultState = createComparisonResponse.getData();
 						tempComparison.setComparisonState(resultState);
@@ -1035,6 +1036,7 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 			}
 			data.setComparisons(updatedComparisons);
 			entity.setData(data);
+			log.info("Aync job saving updated comparisons with new state ");
 			this.jpaRepo.save(entity);
 		}
 	}
