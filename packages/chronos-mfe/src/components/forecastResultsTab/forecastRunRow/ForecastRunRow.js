@@ -106,10 +106,26 @@ const ForecastRunRow = (props) => {
     }
   ];
 
+  const [isChecked, setIsChecked] = useState(false);
+
+  const onChangeCheck = (e) => {
+    if (!e.currentTarget.checked) {
+      props.deselectRun(e.currentTarget.id);
+    } else {
+      props.selectRun(e.currentTarget.id);
+    }
+    setIsChecked(e.currentTarget.checked);
+    e.nativeEvent.stopImmediatePropagation();
+  };
+
   const handleStatusClick = (e, item) => {
     e.stopPropagation();
     props.onOpenErrorModal(item);
   }
+
+  const stopPropagation = (e) => {
+    e.stopPropagation();
+  };
 
   return (
     <React.Fragment>
@@ -118,6 +134,26 @@ const ForecastRunRow = (props) => {
         onClick={showContextMenu ? undefined : onRowClick}
         className={classNames('data-row', Styles.dataRow)}
       >
+        <td>
+          <label
+            className={classNames('checkbox', Styles.checkboxItem)}
+            onClick={(e) => stopPropagation(e)}
+          >
+            <span className="wrapper">
+            <input
+                type="checkbox"
+                className="ff-only"
+                id={'checkbox-' + item.id}
+                checked={isChecked}
+                onChange={(e) => {
+                  e.stopPropagation();
+                  onChangeCheck(e, item.id);
+                }}
+                disabled={item.state.result_state === null || item.state.result_state === 'FAILED'}
+              />
+            </span>{' '}
+          </label>
+        </td>
         <td>
           {/* { item.new && <span className={Styles.badge}>New</span> }  */}
           { item.comment === '' && <span>{item.runName}</span> }

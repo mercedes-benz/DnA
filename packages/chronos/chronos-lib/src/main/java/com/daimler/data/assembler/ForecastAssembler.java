@@ -6,23 +6,15 @@ import java.util.stream.Collectors;
 
 import javax.validation.Valid;
 
+
+import com.daimler.data.db.json.*;
+import com.daimler.data.dto.forecast.*;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Component;
 
 import com.daimler.data.db.entities.ForecastNsql;
-import com.daimler.data.db.json.File;
-import com.daimler.data.db.json.Forecast;
-import com.daimler.data.db.json.RunDetails;
-import com.daimler.data.db.json.RunState;
-import com.daimler.data.db.json.UserDetails;
-import com.daimler.data.dto.forecast.CollaboratorVO;
-import com.daimler.data.dto.forecast.CreatedByVO;
-import com.daimler.data.dto.forecast.ForecastVO;
-import com.daimler.data.dto.forecast.InputFileVO;
-import com.daimler.data.dto.forecast.RunStateVO;
 import com.daimler.data.dto.forecast.RunStateVO.LifeCycleStateEnum;
 import com.daimler.data.dto.forecast.RunStateVO.ResultStateEnum;
-import com.daimler.data.dto.forecast.RunVO;
 
 @Component
 public class ForecastAssembler implements GenericAssembler<ForecastVO, ForecastNsql> {
@@ -57,6 +49,10 @@ public class ForecastAssembler implements GenericAssembler<ForecastVO, ForecastN
 					List<RunVO> runs = toRunsVO(data.getRuns());
 					vo.setRuns(runs);
 				}
+				if(data.getComparisons()!=null && !data.getComparisons().isEmpty()) {
+					List<ForecastComparisonVO> comparisons = toComparisonsVO(data.getComparisons());
+					vo.setComparisons(comparisons);
+				}
 				vo.setBucketId(entity.getData().getBucketId());
 			}
 		}
@@ -72,12 +68,32 @@ public class ForecastAssembler implements GenericAssembler<ForecastVO, ForecastN
 					BeanUtils.copyProperties(run,runVO);
 					RunStateVO stateVO = toStateVO(run.getRunState());
 					runVO.setState(stateVO);
+					if(run.getIsDelete()!=null) 
+						runVO.setIsDeleted(run.getIsDelete());
 					runVO.setFrequency(toFrequencyEnum(run.getFrequency()));
 					runsVOList.add(runVO);
 				}
 			}
 		}
 		return runsVOList;
+	}
+
+	public List<ForecastComparisonVO> toComparisonsVO(List<ComparisonDetails> comparisons){
+		List<ForecastComparisonVO> comparisonsVOList = new ArrayList<>();
+		if(comparisons!=null && !comparisons.isEmpty()) {
+			for(ComparisonDetails comparison: comparisons) {
+				if(comparison.getIsDelete()==null || !comparison.getIsDelete()) {
+					ForecastComparisonVO comparisonVO = new ForecastComparisonVO();
+					BeanUtils.copyProperties(comparison,comparisonVO);
+					ComparisonStateVO comparisonStateVO = toComparisonStateVO(comparison.getComparisonState());
+					comparisonVO.setState(comparisonStateVO);
+					if(comparison.getIsDelete()!=null)
+						comparisonVO.setIsDeleted(comparison.getIsDelete());
+					comparisonsVOList.add(comparisonVO);
+				}
+			}
+		}
+		return comparisonsVOList;
 	}
 	
 	private RunStateVO toStateVO(RunState runState) {
@@ -91,6 +107,18 @@ public class ForecastAssembler implements GenericAssembler<ForecastVO, ForecastN
 			stateVO.setUserCancelledOrTimedout(runState.getUser_cancelled_or_timedout());
 		}
 		return stateVO;
+	}
+
+	private ComparisonStateVO toComparisonStateVO(ComparisonState comparisonState) {
+		ComparisonStateVO comparisonStateVO = new ComparisonStateVO();
+		if(comparisonState!=null) {
+			if(comparisonState.getLifeCycleState()!=null)
+				comparisonStateVO.setLifeCycleState(ComparisonStateVO.LifeCycleStateEnum.fromValue(comparisonState.getLifeCycleState()));
+
+			comparisonStateVO.setStateMessage(comparisonState.getStateMessage());
+
+		}
+		return comparisonStateVO;
 	}
 
 	public List<InputFileVO> toFilesVO(List<File> files){
@@ -149,9 +177,23 @@ public class ForecastAssembler implements GenericAssembler<ForecastVO, ForecastN
 								RunState state = toState(n.getState());
 								run.setRunState(state);
 								run.setFrequency(toFrequencyParam(n.getFrequency().name()));
+								if(n.isIsDeleted()!=null)
+									run.setIsDelete(n.isIsDeleted());
 								return run;
 						}).collect(Collectors.toList());
 				data.setRuns(runs);
+			}
+			if(vo.getComparisons()!=null && !vo.getComparisons().isEmpty()) {
+				List<ComparisonDetails> comparisons = vo.getComparisons().stream().map
+						(n -> { ComparisonDetails comparison = new ComparisonDetails();
+							BeanUtils.copyProperties(n,comparison);
+							ComparisonState comparisonState = toComparisonState(n.getState());
+							comparison.setComparisonState(comparisonState);
+							if(n.isIsDeleted()!=null)
+								comparison.setIsDelete(n.isIsDeleted());
+							return comparison;
+						}).collect(Collectors.toList());
+				data.setComparisons(comparisons);
 			}
 			data.setBucketId(vo.getBucketId());
 			entity.setData(data);
@@ -193,5 +235,18 @@ public class ForecastAssembler implements GenericAssembler<ForecastVO, ForecastN
 		}
 		return state;
 	}
+
+	private ComparisonState toComparisonState(@Valid ComparisonStateVO comparisonStateVO) {
+		ComparisonState comparisonState = new ComparisonState();
+		if (comparisonStateVO != null) {
+			if (comparisonStateVO.getLifeCycleState() != null)
+				comparisonState.setLifeCycleState(comparisonStateVO.getLifeCycleState().name());
+			comparisonState.setStateMessage(comparisonStateVO.getStateMessage());
+
+		}
+		return comparisonState;
+	}
+
+
 
 }

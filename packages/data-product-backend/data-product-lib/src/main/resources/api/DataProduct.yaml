@@ -472,6 +472,8 @@ definitions:
         $ref: "#/definitions/DataProductTeamMemberVO"
       name:
         $ref: "#/definitions/DataProductTeamMemberVO"
+      productOwner:
+        $ref: "#/definitions/DataProductTeamMemberVO"  
       division:
         $ref: "#/definitions/DivisionVO"
       department:
@@ -619,6 +621,10 @@ definitions:
       oneApi:
         type: string
         description: "oneApi of data"
+      tags:
+        type: array
+        items:
+          type: string  
       platform:
         type: array
         items:
@@ -646,6 +652,9 @@ definitions:
       lastModifiedDate:
         type: string
         format: date
+      additionalInformation:
+        type: string
+        description: "Additional information for Data product"  
       createdBy:
         $ref: "#/definitions/CreatedByVO"
       modifiedBy:

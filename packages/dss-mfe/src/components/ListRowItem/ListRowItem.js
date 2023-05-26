@@ -2,12 +2,10 @@ import cn from 'classnames';
 import React, { useEffect, useState } from 'react';
 import Styles from './ListRowItem.scss';
 
-import { history } from '../../store';
-
 import Tooltip from '../../common/modules/uilab/js/src/tooltip';
 
 import { Envs } from '../../Utility/envs';
-import { getDateFromTimestampForDifference, getDateDifferenceFromToday } from '../../Utility/utils';
+import { getDifferenceFromToday } from '../../Utility/utils';
 
 const classNames = cn.bind(Styles);
 let isTouch = false;
@@ -94,10 +92,10 @@ const ProjectListRowItem = (props) => {
     props.editDataikuProjectDetail(props.project);
   };
 
-  const deleteDataikuProject = (projectId) => {
+  const deleteDataikuProject = (projectKey, cloudProfile) => {
     return () => {
       setShowContextMenu(!showContextMenu);
-      props.deleteDataikuProject(projectId);
+      props.deleteDataikuProject(projectKey, cloudProfile);
     };
   };
   const onProvisionBtnClick = (e) => {
@@ -110,58 +108,17 @@ const ProjectListRowItem = (props) => {
     props.openDetailsModal(props.project, props.isProduction);
   };
 
-  const openProject = (event, isProduction, projectId) => {
+  const openProject = (event, isProduction, projectId, cloudProfile) => {
     event.stopPropagation();
-    const baseUrl = isProduction ? Envs.DATAIKU_LIVE_APP_URL : Envs.DATAIKU_TRAINING_APP_URL;
+    const instanceURL = cloudProfile?.toLowerCase().includes('extollo') ?  Envs.DATAIKU_LIVE_APP_URL : Envs.DATAIKU_LIVE_ON_PREMISE_APP_URL
+    const baseUrl = isProduction ? instanceURL : Envs.DATAIKU_TRAINING_APP_URL;
     window.open(baseUrl + '/projects/' + projectId + '/');
   };
 
   const goToSolution = (solutionId) => {
     Tooltip.clear();
-    history.push('/summary/' + solutionId);
+    props.hostHistory.push('/summary/' + solutionId);
   };
-
-  if (props.isDnaProject) {
-    return (
-      <React.Fragment>
-        <tr
-          id={props.project.id}
-          key={props.project.id}
-          className={classNames('data-row')}
-        >
-          <td className="wrap-text projectName" >{props.project.projectName}</td>
-          <td className="wrap-text projectName" >{props.project.cloudProfile}</td>
-          {props?.user?.id === props?.project?.createdBy ? <td id={'card-' + props.project.id} key={props.project.id} className={Styles.actionMenus}>
-            <div className={classNames(Styles.contextMenu, showContextMenu ? Styles.open : '')}>
-              <span
-                tooltip-data="More Action"
-                onClick={toggleContextMenu}
-                className={classNames('trigger', Styles.contextMenuTrigger)}
-              >
-                <i className="icon mbc-icon listItem context" />
-              </span>
-              <div
-                style={{
-                  top: contextMenuOffsetTop + 'px',
-                  left: contextMenuOffsetLeft + 'px',
-                }}
-                className={classNames('contextMenuWrapper', showContextMenu ? Styles.showMenu : 'hide')}
-              >
-                <ul className={classNames('contextList', Styles.contextList)}>
-                  <li className="contextListItem" onClick={onEditBtnClick}>
-                    <span>Edit</span>
-                  </li>
-                  <li className="contextListItem" onClick={deleteDataikuProject(props.project.id)}>
-                    <span>Delete</span>
-                  </li>
-                </ul>
-              </div>
-            </div>
-          </td> : <td></td>}
-        </tr>
-      </React.Fragment>
-    )
-  }
 
   return (
     <React.Fragment>
@@ -169,21 +126,25 @@ const ProjectListRowItem = (props) => {
         id={props.project.id}
         key={props.project.id}
         className={classNames('data-row')}
-        onClick={onInfoBtnClick}
       >
-        <td className="wrap-text projectName">{props.project.name}</td>
-        <td className="wrap-text">
-          <span className={Styles.descriptionColumn}>{props.project.shortDesc}</span>
+        <td className="wrap-text projectName" onClick={onInfoBtnClick}>{props.project.name}</td>
+        <td className="wrap-text" onClick={onInfoBtnClick}>
+          <span className={props.isProduction ? Styles.descriptionColumn: Styles.traningDescriptionColumn}>{props.project.shortDesc}</span>
         </td>
         {props.isProduction ? (
-          <td className="wrap-text">{props.project.role ? props.project.role.toLowerCase() : ''}</td>
+          <td className="wrap-text" onClick={onInfoBtnClick}>{props.project.role ? props.project.role.toLowerCase() : ''}</td>
         ) : (
           ''
         )}
-        <td className="wrap-text">
-          {getDateDifferenceFromToday(getDateFromTimestampForDifference(props?.project?.versionTag?.lastModifiedOn))}{' '}
-          days ago
-        </td>
+        {props.isProduction ? (
+          ''
+        ) : (
+          <td className="wrap-text" onClick={onInfoBtnClick}>
+            {getDifferenceFromToday(props?.project?.versionTag?.lastModifiedOn)}{' '}
+            days ago
+          </td>
+        )}
+        {props.isProduction && <td className="wrap-text projectName" onClick={onInfoBtnClick}>{props.project.cloudProfile}</td>}
         <td className={Styles.iconAction}>
           {props.isProduction ? (
             <span id={'provision' + props.project.id}>
@@ -207,9 +168,38 @@ const ProjectListRowItem = (props) => {
           <i
             className={classNames('icon mbc-icon new-tab', Styles.OpenNewTabIcon)}
             tooltip-data={'Open in New Tab'}
-            onClick={(event) => openProject(event, props.isProduction, props.project.projectKey)}
+            onClick={(event) => openProject(event, props.isProduction, props.project.projectKey, props.project.cloudProfile)}
           />
         </td>
+        {props.isProduction && <td id={'card-' + props.project.id} key={props.project.id} className={Styles.actionMenus}>
+          <div className={classNames(Styles.contextMenu, showContextMenu ? Styles.open : '')}>
+            {
+              (props?.project?.role?.toLowerCase()?.includes("dataiku-administrator") ||
+                props?.project?.role?.toLowerCase()?.includes("administrator")) && <span
+                  tooltip-data="More Action"
+                  onClick={toggleContextMenu}
+                  className={classNames('trigger', Styles.contextMenuTrigger)}
+                >
+                <i className="icon mbc-icon listItem context" />
+              </span>}
+            <div
+              style={{
+                top: contextMenuOffsetTop + 'px',
+                left: contextMenuOffsetLeft + 'px',
+              }}
+              className={classNames('contextMenuWrapper', showContextMenu ? Styles.showMenu : 'hide')}
+            >
+              <ul className={classNames('contextList', Styles.contextList)}>
+                <li className="contextListItem" onClick={onEditBtnClick}>
+                  <span>Edit</span>
+                </li>
+                <li className="contextListItem" onClick={deleteDataikuProject(props.project.projectKey, props.project.cloudProfile)}>
+                  <span>Delete</span>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </td>}
       </tr>
     </React.Fragment>
   );

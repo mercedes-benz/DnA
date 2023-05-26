@@ -600,14 +600,14 @@ const Members = ({ showMembers, members }: IMembersProps) => {
       {showMembers && (
         <View wrap={false}>
           <Text style={[styles.subTitle, styles.setMarginTop, { marginBottom: 25 }]}>Members</Text>
-          {members.reportOwners?.length ? (
+          {/* {members.reportOwners?.length ? (
             <View>
               <View style={styles.firstCol}>
                 <Text style={styles.sectionTitle}>Report Member(s)</Text>
               </View>
               <View style={styles.flexLayout}>{teamMembersList(members.reportOwners)}</View>
             </View>
-          ) : null}
+          ) : null} */}
           {/* {members.developers?.length ? (
             <View>
               <View style={styles.firstCol}>
