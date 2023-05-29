@@ -19,7 +19,7 @@ import { isValidURL } from '../../../../Utility/utils';
 const Description = ({ 
   // onSave, 
   artList, carlaFunctionList, dataCatalogList, platformList, 
-  frontEndToolList }) => {
+  frontEndToolList, tagsList }) => {
   const {
     register,
     formState: { errors, 
@@ -32,14 +32,25 @@ const Description = ({
     setValue,
   } = useFormContext();
   const [showInfoModal, setShowInfoModal] = useState(false);
+  const [tagsListST, setTagsListST] = useState([]);
+  const [selectedTags, setSelectedTags] = useState([]);
 
-  const { howToAccessText } = watch();
+  const { howToAccessText, tags } = watch();
 
   useEffect(() => {
     Tooltip.defaultSetup();
     reset(watch());
     //eslint-disable-next-line
   }, []);
+
+  useEffect(()=>{
+    setTagsListST(tagsList);
+    //eslint-disable-next-line
+  },[tagsList]);
+
+  useEffect(() => {
+    setSelectedTags(tags);
+  }, [tags]);
 
   useEffect(() => {
     // update colors for the markdown editor
@@ -62,10 +73,16 @@ const Description = ({
       processor().then((res) => {
         setValue('howToAccessText', res.value);
       });
-    }
+    }    
   }, [howToAccessText, setValue, watch]);
   
-  const [tags, setTags] = useState([]);
+  
+  const setReportTags = (selectedTags, field) => {
+    // let dept = selectedTags?.map((item) => item.toUpperCase());
+    setSelectedTags([...selectedTags]);
+    setValue('tags', selectedTags);
+    field.onChange(selectedTags);
+  }
 
   return (
     <>
@@ -300,14 +317,19 @@ const Description = ({
               Use tags to make it easier to find your data product for other people
             </span>
             <div>
-              <Tags
-                title={'Tags'}
-                max={100}
-                chips={tags}
-                setTags={setTags}
-                isMandatory={false}
-                // showMissingEntryError={showTagsMissingError}
-              />
+              <Controller
+                  control={control}
+                  name="tags"
+                  render={({ field }) => (
+                    <Tags
+                      title={'Tags'}
+                      chips={selectedTags}
+                      tags={tagsListST}
+                      setTags={(selectedTags) => setReportTags(selectedTags, field)}
+                      // {...register('tags')}
+                    />
+                  )}
+                /> 
             </div>
           </div>
         </div>

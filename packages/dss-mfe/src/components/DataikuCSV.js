@@ -5,17 +5,17 @@ export const getDataForCSV = (listData, onDataSuccess) => {
     { label: 'Name', key: 'name' },
     { label: 'Description', key: 'description' },
     { label: 'Tags', key: 'tags' },
-    { label: 'Owner', key: 'owner' },
-    { label: 'Project Status', key: 'projectStatus' },
-    { label: 'Contributers', key: 'contributers' },
+    { label: 'Status', key: 'status' },
+    { label: 'Collaborators', key: 'collaborators' },
     { label: 'Checklists', key: 'checklists' },
     { label: 'Created Date', key: 'createdDate' },
     { label: 'Last Used', key: 'lastUsed' },
+    { label: 'Instance', key: 'instance' },
   ];
 
   listData.forEach((project) => {
     const checklistItems = [];
-    if (project.checklists.checklists) {
+    if (project?.checklists?.checklists) {
       if (project.checklists.checklists.length > 0) {
         project.checklists.checklists.forEach((checklist) => {
           checklistItems.push(checklist.title);
@@ -25,24 +25,30 @@ export const getDataForCSV = (listData, onDataSuccess) => {
         });
       }
     }
+    const collaborators = [];
+    if (project?.collaborators && project.collaborators.length > 0) {
+      project.collaborators.forEach((user) => {
+        collaborators.push(user?.userId);
+      })
+    }
     projectsCSVData.push({
       name: project.name ? sanitize(project.name) : 'NA',
       description: project.shortDesc ? sanitize(project.shortDesc) : 'NA',
-      tags: project.tags && project.tags.length > 0 ? sanitize(project.tags.join(', ')) : 'NA',
-      owner: project.ownerDisplayName ? project.ownerDisplayName : project.ownerLogin || 'NA',
-      projectStatus: project.projectStatus ? project.projectStatus : 'NA',
-      contributers: project.contributors && project.contributors.length > 0 ? project.contributors : 'NA',
+      tags: project?.tags && project?.tags?.length > 0 ? sanitize(project.tags.join(', ')) : 'NA',
+      status: project.status ? project.status : 'NA',
+      collaborators: collaborators.length > 0 ? collaborators : 'NA',
       checklists: checklistItems.length > 0 ? checklistItems : 'NA',
-      createdDate: project.creationTag
-        ? project.creationTag.lastModifiedOn
-          ? new Date(project.creationTag.lastModifiedOn).toUTCString().toString()
+      createdDate: project?.creationTag
+        ? project?.creationTag?.lastModifiedOn
+          ? new Date(project?.creationTag?.lastModifiedOn).toUTCString().toString()
           : 'NA'
         : 'NA',
-      lastUsed: project.versionTag
-        ? project.versionTag.lastModifiedOn
-          ? new Date(project.versionTag.lastModifiedOn).toUTCString().toString()
+      lastUsed: project?.versionTag
+        ? project?.versionTag?.lastModifiedOn
+          ? new Date(project?.versionTag?.lastModifiedOn).toUTCString().toString()
           : 'NA'
         : 'NA',
+      instance: project?.cloudProfile ?  project?.cloudProfile: 'NA'
     });
   });
 
