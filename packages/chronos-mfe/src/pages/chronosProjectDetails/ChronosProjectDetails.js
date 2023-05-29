@@ -9,6 +9,7 @@ import Notification from '../../common/modules/uilab/js/src/notification';
 import RunForecastTab from '../../components/runForecastTab/RunForecastTab';
 import ForecastResultsTab from '../../components/forecastResultsTab/ForecastResultsTab';
 import ProjectDetailsTab from '../../components/projectDetailsTab/ProjectDetailsTab';
+import ComparisonsTab from '../../components/comparisonsTab/ComparisonsTab';
 import Breadcrumb from '../../components/breadcrumb/Breadcrumb';
 import { chronosApi } from '../../apis/chronos.api';
 
@@ -16,6 +17,7 @@ const tabs = {
   runForecast: {},
   forecastResults: {},
   projectDetails: {},
+  comparisons: {},
 };
 
 const ChronosProjectDetails = ({ user }) => {
@@ -65,6 +67,12 @@ const ChronosProjectDetails = ({ user }) => {
     elementRef.current[tabIndex].click();
   };
 
+  const switchToComparisonTab = (currentTab) => {
+    const tabIndex = Object.keys(tabs).indexOf(currentTab) + 2;
+    setCurrentTab(Object.keys(tabs)[tabIndex]);
+    elementRef.current[tabIndex].click();
+  };
+
   return (
     <>
       <div className={classNames(Styles.mainPanel)}>
@@ -99,11 +107,23 @@ const ChronosProjectDetails = ({ user }) => {
                     href="#tab-content-3"
                     id="projectDetails"
                     ref={(ref) => {
-                      if (elementRef.current) elementRef.current[3] = ref;
+                      if (elementRef.current) elementRef.current[2] = ref;
                     }}
                     onClick={setTab}
                   >
                     Project Details
+                  </a>
+                </li>
+                <li className={'tab'}>
+                  <a
+                    href="#tab-content-4"
+                    id="comparisons"
+                    ref={(ref) => {
+                      if (elementRef.current) elementRef.current[3] = ref;
+                    }}
+                    onClick={setTab}
+                  >
+                    Comparisons
                   </a>
                 </li>
               </ul>
@@ -115,12 +135,17 @@ const ChronosProjectDetails = ({ user }) => {
             </div>
             <div id="tab-content-2" className="tab-content">
               {currentTab === 'forecastResults' ? (
-                <ForecastResultsTab />
+                <ForecastResultsTab onRunClick={() => switchToComparisonTab(currentTab)} />
               ) : null}
             </div>
             <div id="tab-content-3" className="tab-content">
               {currentTab === 'projectDetails' ? (
                 <ProjectDetailsTab project={project} onRefresh={getProjectById} />
+              ) : null}
+            </div>
+            <div id="tab-content-4" className="tab-content">
+              {currentTab === 'comparisons' ? (
+                <ComparisonsTab />
               ) : null}
             </div>
           </div>

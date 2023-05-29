@@ -141,6 +141,9 @@ const ReportsFilter = ({
             let newQueryParams = queryParams;
             if (portfolioFilterValues.current) {
               newQueryParams = portfolioFilterValues.current;
+              newQueryParams.processOwners = processOwners
+                ?.filter((item: any) => portfolioFilterValues.current.processOwners.includes(item.shortId))
+                ?.map((item) => item.shortId) as any || [];
               setFilterApplied(true);
             } else {
               newQueryParams.agileReleaseTrains = arts?.map((art: IART) => {
