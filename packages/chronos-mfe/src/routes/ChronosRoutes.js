@@ -14,6 +14,7 @@ import SessionExpired from './SessionExpired';
 import ChronosProjects from '../pages/chronosProjects/ChronosProjects';
 import ChronosProjectDetails from '../pages/chronosProjectDetails/ChronosProjectDetails';
 import ForecastingResults from '../pages/forecastingResults/ForecastingResults';
+import ComparisonResults from '../pages/comparisonResults/ComparisonResults';
 import ChronosHelp from '../pages/chronosHelp/ChronosHelp';
 
 const protectedRoutes = [
@@ -36,6 +37,11 @@ const protectedRoutes = [
     component: ForecastingResults,
     exact: true,
     path: '/results/:projectid/:runid',
+  },
+  {
+    component: ComparisonResults,
+    exact: true,
+    path: '/comparison-results/:projectid/:comparisonid',
   },
 ];
 

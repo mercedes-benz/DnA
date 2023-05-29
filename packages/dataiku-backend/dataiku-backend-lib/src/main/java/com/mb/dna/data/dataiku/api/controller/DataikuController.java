@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -21,10 +22,13 @@ import javax.ws.rs.core.Response.Status;
 import com.mb.dna.data.api.controller.exceptions.GenericMessage;
 import com.mb.dna.data.api.controller.exceptions.MessageDescription;
 import com.mb.dna.data.application.adapter.dna.UserStore;
+import com.mb.dna.data.assembler.DataikuAssembler;
 import com.mb.dna.data.dataiku.api.dto.CollaboratorDetailsDto;
 import com.mb.dna.data.dataiku.api.dto.DataikuProjectCreateRequestDto;
 import com.mb.dna.data.dataiku.api.dto.DataikuProjectDto;
 import com.mb.dna.data.dataiku.api.dto.DataikuProjectResponseDto;
+import com.mb.dna.data.dataiku.api.dto.DataikuProjectSummaryCollectionDto;
+import com.mb.dna.data.dataiku.api.dto.DataikuProjectSummaryDto;
 import com.mb.dna.data.dataiku.api.dto.DataikuProjectUpdateRequestDto;
 import com.mb.dna.data.dataiku.api.dto.DataikuProjectsCollectionDto;
 import com.mb.dna.data.dataiku.service.DataikuService;
@@ -52,6 +56,9 @@ public class DataikuController {
 	
 	@Inject
 	DataikuService service;
+	
+	@Inject
+	DataikuAssembler assembler;
 	
 	@Inject
 	UserPrivilegeService userPrivilegeService;
@@ -156,7 +163,7 @@ public class DataikuController {
     )
     @ApiResponse(responseCode = "200", description = "Results found and returned",
             content = @Content(mediaType = "application/json"
-            ,schema = @Schema(type="DataikuProjectsCollectionDto"))
+            ,schema = @Schema(type="DataikuProjectSummaryCollectionDto"))
     )
     @ApiResponse(responseCode = "404", description = "API not found")
     @ApiResponse(responseCode = "500", description = "Failed with internal server error")
@@ -169,11 +176,19 @@ public class DataikuController {
     		@Parameter(description = "searchTerm to filter by projectName",allowEmptyValue= true, required = false) @QueryParam("projectName") String projectName
     		) {
 		String userId = this.userStore.getUserInfo().getId();
+		DataikuProjectSummaryCollectionDto summaryCollectionDto = new DataikuProjectSummaryCollectionDto();
 		DataikuProjectsCollectionDto response = service.getAllDataikuProjects(userId, offset, limit, sortBy, sortOrder, projectName);
-		if(response!=null && response.getData()!= null && !response.getData().isEmpty())
-			return Response.ok().entity(response).build();
+		if(response!=null && response.getData()!= null && !response.getData().isEmpty()) {
+			
+			List<DataikuProjectDto> records = response.getData();
+			List<DataikuProjectSummaryDto>  summaryRecords = new ArrayList<>();
+			summaryRecords = records.stream().map(n -> assembler.toProjectDetails(n,userId)).collect(Collectors.toList());
+			summaryCollectionDto.setData(summaryRecords);
+			summaryCollectionDto.setTotalCount(response.getTotalCount());
+			return Response.ok().entity(summaryCollectionDto).build();
+		}
 		else
-			return Response.noContent().entity(response).build();
+			return Response.noContent().entity(summaryCollectionDto).build();
     }
 	
 	@PUT

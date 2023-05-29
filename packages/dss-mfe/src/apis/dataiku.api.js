@@ -32,6 +32,7 @@ const updateDataikuProjects = (data, id) => {
   return server.put(`/dataiku/${id}`, data);
 }
 
+
 const validateUserPrivilage = (userID) => {
   return server.get(`/userprivilege/validate?userId=${userID}`);
 }

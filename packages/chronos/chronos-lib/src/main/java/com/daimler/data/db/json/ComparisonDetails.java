@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 @Data
 @NoArgsConstructor
@@ -20,7 +21,7 @@ public class ComparisonDetails
     private Date triggeredOn;
     private String actualsFile;
     private String targetFolder;
-    private String[] runsList;
+    private List<String> runsList;
     private Boolean isDelete;
     private ComparisonState comparisonState;
 
