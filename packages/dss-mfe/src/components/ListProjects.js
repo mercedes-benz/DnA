@@ -230,13 +230,6 @@ export default class ListProjects extends React.Component {
             ) : (
               ''
             )}
-            <div>
-              <label id="role" className="input-label summary">
-                Role
-              </label>
-              <br />
-              <span className={classNames(Styles.permission, 'input-label summary')}>{this.state.projectData?.role ? this.state.projectData.role : '-NA-'} </span>
-            </div>
           </div>
           <div>
             {this.state.projectData?.checklists?.checklists?.map((checklist, index) => {
