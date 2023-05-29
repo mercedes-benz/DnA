@@ -1,0 +1,259 @@
+# LICENSE START
+# 
+# MIT License
+# 
+# Copyright (c) 2019 Daimler TSS GmbH
+# 
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+# 
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+# 
+# LICENSE END 
+#
+#-----------------------------------------------------------------------------------------------------
+#  **
+#  ** File Name  : KpiNameLov.yaml
+#  **
+#  ** Module     : core
+#  ** 
+#  -------------------------------------------------------------------------------------------------------
+#
+#  CHANGE HISTORY
+#
+#  Created By         :  
+#
+#  Bug Number         :  
+#  Changed By         :  
+#  Change Description :  
+#  Change On          :  
+#  Search String      :  
+#  
+#  -------------------------------------------------------------------------------------------------------
+swagger: "2.0"
+info:
+ version: "1.0.0"
+ title: "KPI Name LOV for Reports"
+host: "localhost:7171"
+basePath: "/api/1.0"
+consumes:
+ - "application/json"
+produces:
+ - "application/json"
+tags:
+ - name: "kpiNames"
+   description: "This service is used to maintain KPI Name LOV used in reports service."
+
+schemes:
+- "https"
+
+paths:
+
+# path to create, update and fetch all valid kpi name
+#
+# supported http methods GET, POST, PUT
+#
+# path example ../kpinames
+
+ /kpinames:
+  get:
+   tags:
+    - "kpiNames"
+   summary: "Get all kpi name."
+   description:  "Get all kpi name. This endpoints will be used to Get all valid available kpi name."
+   operationId: "getAllKpiNameLov"
+   parameters:
+        - name: sortOrder
+          in: query
+          description: Sort kpinames based on the given order, example asc,desc
+          required: false
+          type: string   
+          enum: [asc,desc]
+   responses:
+    201:
+     description: "Returns message of success or failure"
+     schema:
+       $ref: "#/definitions/KpiNameVOCollection"
+    204:
+      description: "No content found."
+    400:
+     description: "Bad request."
+    401:
+     description: "Request does not have sufficient credentials."
+    403:
+     description: "Request is not authorized."
+    405:
+     description: "Method not allowed"
+    500:
+     description: "Internal error"  
+  post:
+   tags:
+    - "kpiNames"
+   summary: "Add a new kpi name."
+   description: "Add a new non existing kpi name."
+   operationId: "createKpiNameLov"
+   parameters:
+    - name: "kpiNameRequestVO" 
+      in: "body" 
+      description: "Request Body that contains data required for creating a new kpi name." 
+      required: true
+      schema:
+       $ref: "#/definitions/KpiNameRequestVO"
+   responses:
+    201: 
+     description: "Returns message of succes or failure " 
+     schema:
+       $ref: "#/definitions/KpiNameResponseVO"
+    400:
+     description: "Bad Request"
+     schema:
+       $ref: "#/definitions/GenericMessage"
+    401:
+     description: "Request does not have sufficient credentials."
+    403:
+     description: "Request is not authorized."
+    405:
+     description: "Method not allowed"
+    500:
+     description: "Internal error"
+  put:
+    tags:
+    - "kpiNames"
+    summary: "Update the kpi name identified by given ID."
+    description:  "Update the kpi name identified by given ID"
+    operationId: "updateKpiNameLov"
+    parameters:
+      - name: "kpiNameUpdateRequestVO"
+        in: "body" 
+        description: "Request Body that contains data required for updating kpi name." 
+        required: true
+        schema:
+         $ref: "#/definitions/KpiNameUpdateRequestVO"        
+    responses:
+      200:
+       description: "Successfully updated."
+       schema:
+         $ref: "#/definitions/KpiNameResponseVO"
+      400:
+       description: "Bad request"
+      401:
+       description: "Request does not have sufficient credentials."
+      403:
+       description: "Request is not authorized."
+      404:
+       description: "Invalid id, record not found."
+      500:
+       description: "Internal error"         
+     
+# path to delete existing kpi name
+#
+# supported http method DELETE
+#
+# path example ../kpinames/xxx
+
+ /kpinames/{id}:
+  delete:
+    tags:
+    - "kpiNames"
+    summary: "Delete the kpi name identified by given ID."
+    description:  "Delete the kpi name identified by given ID"
+    operationId: "deleteKpiNameLov"
+    parameters:
+      - name: "id"
+        in: "path"
+        description: "Id of the KpiName field"
+        required: true
+        type: integer
+        format: int64
+    responses:
+      200:
+       description: "Successfully deleted."
+       schema:
+         $ref: "#/definitions/GenericMessage"
+      400:
+       description: "Bad request"
+      401:
+       description: "Request does not have sufficient credentials."
+      403:
+       description: "Request is not authorized."
+      404:
+       description: "Invalid id, record not found."
+      500:
+       description: "Internal error"
+
+definitions:
+ KpiNameVO:
+  type: object
+  properties: 
+    id:
+     type: integer
+     format: int64
+     description: "ID of KpiName field"
+     minLength: 1
+    name:
+     type: string
+     description: "Name of the KpiName field"
+     minLength: 1   
+    classification:
+     type: string
+     description: "classification of KpiName field" 
+  required:
+     - name
+     - id
+        
+ KpiNameResponseVO:
+   type: object
+   properties:
+     data:
+       $ref: "#/definitions/KpiNameVO"
+     errors:
+       type: array
+       items:
+         $ref: "#/definitions/MessageDescription"     
+     
+ KpiNameVOCollection: 
+  description: "Collection of lov values."
+  type: object
+  properties:
+   data:
+    type: array
+    items: 
+     $ref: "#/definitions/KpiNameVO"
+
+ KpiNameRequestVO:
+  type: object
+  properties:
+    data:
+      $ref: "#/definitions/KpiNameCreateRequestVO"
+      
+ KpiNameUpdateRequestVO:
+  type: object
+  properties:
+    data:
+      $ref: "#/definitions/KpiNameVO"
+       
+ KpiNameCreateRequestVO:
+  type: object
+  properties: 
+    name:
+     type: string
+     description: "Name of the KpiName field"
+     minLength: 1   
+    classification:
+     type: string
+     description: "classification of KpiName field" 
+  required:
+     - name 

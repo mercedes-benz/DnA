@@ -25,12 +25,41 @@
  * LICENSE END 
  */
 
-package com.daimler.data.service.lov;
+package com.daimler.data.assembler;
+
+import java.util.Objects;
+
+import org.springframework.beans.BeanUtils;
+import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 
 import com.daimler.data.db.entities.KpiNameSql;
-import com.daimler.data.dto.lov.LovVO;
-import com.daimler.data.service.common.CommonService;
+import com.daimler.data.db.jsonb.report.KPIName;
+import com.daimler.data.dto.KpiName.KpiNameVO;
 
-public interface KpiNameService extends CommonService<LovVO, KpiNameSql, Long> {
+@Component
+public class KpiNameAssembler implements GenericAssembler<KpiNameVO, KpiNameSql> {
 
+	@Override
+	public KpiNameVO toVo(KpiNameSql entity) {
+		KpiNameVO kpiNameVO = null;
+		if (Objects.nonNull(entity)) {
+			kpiNameVO = new KpiNameVO();			
+			BeanUtils.copyProperties(entity, kpiNameVO);
+			if(entity.getId() != null) {
+				kpiNameVO.setId(entity.getId());
+			}			
+		}
+		return kpiNameVO;
+	}
+
+	@Override
+	public KpiNameSql toEntity(KpiNameVO vo) {
+		KpiNameSql kpiNameSql = null;
+		if (Objects.nonNull(vo)) {
+			kpiNameSql = new KpiNameSql(); 
+			BeanUtils.copyProperties(vo, kpiNameSql);			
+		}
+		return kpiNameSql;
+	}
 }

@@ -84,10 +84,15 @@ type ExternalCustomerVO{
 }
 
 type KPIVO{
-	name: String,
+	name: KpiNameVO,
 	reportingCause: [String],
 	description: String,
 	kpiLink: String
+}
+
+type KpiNameVO{
+	name: String,
+	classification: String
 }
 
 type DataAndFunctionVO{
