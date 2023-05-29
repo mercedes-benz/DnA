@@ -461,7 +461,6 @@ export default class Provisionsolution extends React.Component<IProvisionSolutio
           this.setState({
             solution,
           });
-          ProgressIndicator.hide();
         },
         (err) => {
           this.showErrorNotification('Something went wrong');
