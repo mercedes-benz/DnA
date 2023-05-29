@@ -192,6 +192,15 @@ export default class ListProjects extends React.Component {
             </div>
             <br />
             <br />
+            <div>
+              <label id="role" className="input-label summary">
+                Role
+              </label>
+              <br />
+              <span className={classNames(Styles.permission, 'input-label summary')}>{this.state.projectData?.role ? this.state.projectData.role : '-NA-'} </span>
+            </div>
+            <br />
+            <br />
             {this.state.projectData?.tags?.length > 0 && <div>
               <label id="tags" className="input-label summary">
                 Tags
@@ -221,13 +230,6 @@ export default class ListProjects extends React.Component {
             ) : (
               ''
             )}
-            <div>
-              <label id="role" className="input-label summary">
-                Role
-              </label>
-              <br />
-              <span className={classNames(Styles.permission, 'input-label summary')}>{this.state.projectData?.role ? this.state.projectData.role : '-NA-'} </span>
-            </div>
           </div>
           <div>
             {this.state.projectData?.checklists?.checklists?.map((checklist, index) => {
@@ -1415,7 +1417,7 @@ export default class ListProjects extends React.Component {
           : [];
 
     if (records.length > 0) {
-      getDataForCSV(records, (csvData, csvHeader) => {
+      getDataForCSV(this.state.currentTab, records, (csvData, csvHeader) => {
         this.setState(
           {
             csvData,
