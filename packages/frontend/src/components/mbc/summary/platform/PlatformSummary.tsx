@@ -68,7 +68,7 @@ export default function PlatformSummary(props: ITeamProps) {
                       <label>
                         Created on{' '}
                         {(props?.dnaNotebookEnabled && props?.noteBookInfo.createdOn) ||
-                            (props?.dnaDataIkuProjectEnabled && props.dataIkuInfo?.creationTag?.lastModifiedOn) ?
+                            (props?.dnaDataIkuProjectEnabled && props?.dataIkuInfo?.creationTag?.lastModifiedOn) ?
                             getDateFromTimestamp(
                           (props.dnaNotebookEnabled && props.noteBookInfo.createdOn) ||
                             (props.dnaDataIkuProjectEnabled && props.dataIkuInfo.creationTag?.lastModifiedOn),
