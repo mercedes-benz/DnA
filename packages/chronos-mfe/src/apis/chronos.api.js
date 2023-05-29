@@ -103,6 +103,28 @@ const getExcelFile = (projectName, resultFolderName, fileName) => {
   });
 };
 
+const createForecastComparison = (data, id) => {
+  return formServer.post(`/forecasts/${id}/comparisons`, data);
+};
+
+const getForecastComparisons = (id) => {
+  return server.get(`/forecasts/${id}/comparisons`, {
+    data: {},
+  });
+};
+
+const deleteForecastComparisons = (cids, id) => {
+  return server.delete(`/forecasts/${id}/comparisons?comparisonIds=${cids}`, {
+    data: {},
+  });
+};
+
+const getComparisonHtml = (id, cid) => {
+  return server.get(`/forecasts/${id}/comparisons/${cid}/comparisonData`, {
+    data: {},
+  });
+};
+
 export const chronosApi = {
     getAllForecastProjects,
     getForecastProjectById,
@@ -122,4 +144,8 @@ export const chronosApi = {
     getHTML,
     getFile,
     getExcelFile,
+    createForecastComparison,
+    getForecastComparisons,
+    deleteForecastComparisons,
+    getComparisonHtml,
 };

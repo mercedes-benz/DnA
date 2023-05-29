@@ -701,6 +701,16 @@ paths:
           description: "forecast project ID "
           required: true
           type: "string"
+        - in: "query"
+          name: "offset"
+          description: "forecast comparisons page number "
+          required: false
+          type: integer
+        - in: "query"
+          name: "limit"
+          description: "forecast comparisons page size"
+          required: false
+          type: integer
       responses:
         201:
           description: "Returns message of success or failure"
@@ -1206,6 +1216,9 @@ definitions:
         exogenData:
           type: boolean
           description: "flag to check if exogenous data is present"
+        isDeleted:
+          type: boolean
+          description: "Field to identify if run is deleted. Deleted run records wont be shown, this is only for system to identify. Not for Users."
   
   ForecastRunResponseVO:
     type: object
@@ -1274,7 +1287,9 @@ definitions:
         type: array
         "items":
           "type": string
-
+      isDeleted:
+        type: boolean
+        description: "Field to identify if comparison is deleted. Deleted comparison records wont be shown, this is only for system to identify. Not for Users."
       state:
         $ref: "#/definitions/ComparisonStateVO"
 
@@ -1290,6 +1305,8 @@ definitions:
   ForecastComparisonResultVO:
     type: object
     properties:
+      comparisonName:
+        type: string
       comparisonData:
         type: string
       response:

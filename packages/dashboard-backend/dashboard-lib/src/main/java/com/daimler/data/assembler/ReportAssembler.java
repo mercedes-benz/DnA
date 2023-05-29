@@ -127,12 +127,7 @@ public class ReportAssembler implements GenericAssembler<ReportVO, ReportNsql> {
 			vo.setDataAndFunctions(dataAndFunctionVO);
 			if (report.getMember() != null) {
 				MemberVO memberVO = new MemberVO();
-				BeanUtils.copyProperties(report.getMember(), memberVO);
-				if (!ObjectUtils.isEmpty(report.getMember().getReportOwners())) {
-					List<TeamMemberVO> reportOwners = report.getMember().getReportOwners().stream()
-							.map(n -> toTeamMemberVO(n)).collect(Collectors.toList());
-					memberVO.setReportOwners(reportOwners);
-				}
+				BeanUtils.copyProperties(report.getMember(), memberVO);				
 				if (!ObjectUtils.isEmpty(report.getMember().getReportAdmins())) {
 					List<TeamMemberVO> reportAdmins = report.getMember().getReportAdmins().stream()
 							.map(n -> toTeamMemberVO(n)).collect(Collectors.toList());
@@ -297,12 +292,7 @@ public class ReportAssembler implements GenericAssembler<ReportVO, ReportNsql> {
 
 			if (vo.getMembers() != null) {
 				Member member = new Member();
-				BeanUtils.copyProperties(vo.getMembers(), member);
-				if (!ObjectUtils.isEmpty(vo.getMembers().getReportOwners())) {
-					List<TeamMember> reportOwners = vo.getMembers().getReportOwners().stream()
-							.map(n -> toTeamMemberJson(n)).collect(Collectors.toList());
-					member.setReportOwners(reportOwners);
-				}
+				BeanUtils.copyProperties(vo.getMembers(), member);				
 				if (!ObjectUtils.isEmpty(vo.getMembers().getReportAdmins())) {
 					List<TeamMember> reportAdmins = vo.getMembers().getReportAdmins().stream()
 							.map(n -> toTeamMemberJson(n)).collect(Collectors.toList());

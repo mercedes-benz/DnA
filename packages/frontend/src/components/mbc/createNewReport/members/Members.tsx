@@ -24,9 +24,7 @@ export interface IMembersProps {
   members: IMembers;
   onPublish: () => void;
   onSaveDraft: (tabToBeSaved: string) => void;
-  modifyMember: (
-    // productOwners: ITeams[], 
-    admin: ITeams[]) => void;
+  modifyMember: (admin: ITeams[]) => void;
 }
 
 export interface IMembersState {

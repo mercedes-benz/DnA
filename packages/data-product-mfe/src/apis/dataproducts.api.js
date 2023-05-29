@@ -80,6 +80,10 @@ const getAllFrontEndTools = () => {
   return reportsServer.get('/lov/frontendtechnologies', { data: {} });
 };
 
+const getAllTags = () => {
+  return server.get('/tags', { data: {} });
+};
+
 export const dataProductApi = {
   getAllDataProductList,
   getDataProductById,
@@ -94,4 +98,5 @@ export const dataProductApi = {
   getAllCorporateDataCatalogs,
   getAllPlatforms,
   getAllFrontEndTools,
+  getAllTags
 };

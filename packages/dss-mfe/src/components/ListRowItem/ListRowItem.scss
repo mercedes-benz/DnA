@@ -137,7 +137,6 @@ tr {
         }
 
         &:nth-child(4) {
-          text-transform: capitalize;
           width: 12%;
         }
 
@@ -152,6 +151,7 @@ tr {
         padding: 25px 0 25px 10px;
         font-size: var(--font-size-default);
         max-width: 20%;
+        overflow: inherit !important;
         text-overflow: ellipsis;
 
         &.wrap-text {
