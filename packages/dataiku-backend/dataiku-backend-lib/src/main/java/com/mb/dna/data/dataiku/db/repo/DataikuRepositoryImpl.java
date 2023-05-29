@@ -38,7 +38,7 @@ public class DataikuRepositoryImpl implements DataikuRepository{
 		List<DataikuSql> results = new ArrayList<>();
 		try {
 			String queryString = "SELECT id,project_name,description,cloud_profile,created_by,created_on, "
-					+ "status,classification_type,has_pii,division_id,division_name,subdivision_id,subdivision_name,department "
+					+ "status,classification_type,has_pii,division_id,division_name,subdivision_id,subdivision_name,department,solution_id "
 					+ "FROM dataiku_sql ";
 			if(projectName!=null && !projectName.isBlank() && !projectName.isEmpty()) {
 				queryString += " where LOWER(project_name) = '" + projectName.toLowerCase() + "' and LOWER(cloud_profile) = '" + cloudProfile.toLowerCase() + "'";
@@ -101,11 +101,11 @@ public class DataikuRepositoryImpl implements DataikuRepository{
 					CollaboratorSql collabUser = record.getCollaborators().stream().filter(collab -> userId.equalsIgnoreCase(collab.getUserId()))
 						  .findAny().orElse(null);
 					if(userId.equalsIgnoreCase(record.getCreatedBy()) || collabUser!=null) {
-						if(projectName==null || projectName.isBlank() || projectName.isEmpty() || projectName.equalsIgnoreCase(record.getProjectName()))
+						if(projectName==null || projectName.isBlank() || projectName.isEmpty() || "".equalsIgnoreCase(projectName) || projectName.equalsIgnoreCase(record.getProjectName()))
 							filteredResults.add(record);
 					}
 				}else {
-					if(projectName==null || projectName.isBlank() || projectName.isEmpty() || projectName.equalsIgnoreCase(record.getProjectName()))
+					if(projectName==null || projectName.isBlank() || projectName.isEmpty() || "".equalsIgnoreCase(projectName) || projectName.equalsIgnoreCase(record.getProjectName()))
 						filteredResults.add(record);
 				}
 			}
@@ -150,9 +150,9 @@ public class DataikuRepositoryImpl implements DataikuRepository{
 
 	public void insertDataiku(DataikuSql dataikuProject) {
 		String insertStmt = "insert into  dataiku_sql(id,cloud_profile,created_by,created_on,description"
-				+ ",project_name,status,classification_type,has_pii,division_id,division_name,subdivision_id,subdivision_name,department) "
+				+ ",project_name,status,classification_type,has_pii,division_id,division_name,subdivision_id,subdivision_name,department,solution_id) "
 				+ "values (:id, :cloudProfile, :createdBy, :createdOn, :description, :projectName"
-				+ ",:status,:classification_type,:has_pii,:division_id,:division_name,:subdivision_id,:subdivision_name,:department)";
+				+ ",:status,:classification_type,:has_pii,:division_id,:division_name,:subdivision_id,:subdivision_name,:department, :solution_id)";
 		Query q = entityManager.createNativeQuery(insertStmt);
 		q.setParameter("id", dataikuProject.getId());
 		q.setParameter("cloudProfile", dataikuProject.getCloudProfile());
@@ -169,6 +169,7 @@ public class DataikuRepositoryImpl implements DataikuRepository{
 		q.setParameter("subdivision_id", dataikuProject.getSubdivisionId());
 		q.setParameter("subdivision_name", dataikuProject.getSubdivisionName());
 		q.setParameter("department", dataikuProject.getDepartment());
+		q.setParameter("solution_id", null);
 		
 		q.executeUpdate();
 		log.info("successfully ran insert statement for dataiku {}",dataikuProject.getProjectName());
@@ -217,7 +218,6 @@ public class DataikuRepositoryImpl implements DataikuRepository{
 	
 	@Override
 	public void update(DataikuSql dataikuProject) {
-		//entityManager.merge(dataikuProject);
 		if(dataikuProject!=null) {
 			updateDataiku(dataikuProject.getId(),dataikuProject.getDescription(),dataikuProject.getClassificationType(),dataikuProject.getDepartment(),
 					dataikuProject.getDivisionId(),dataikuProject.getDivisionName(),dataikuProject.getHasPii(),dataikuProject.getStatus(),dataikuProject.getSubdivisionId(),dataikuProject.getSubdivisionName());

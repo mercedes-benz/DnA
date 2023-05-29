@@ -49,6 +49,10 @@ public class ForecastAssembler implements GenericAssembler<ForecastVO, ForecastN
 					List<RunVO> runs = toRunsVO(data.getRuns());
 					vo.setRuns(runs);
 				}
+				if(data.getComparisons()!=null && !data.getComparisons().isEmpty()) {
+					List<ForecastComparisonVO> comparisons = toComparisonsVO(data.getComparisons());
+					vo.setComparisons(comparisons);
+				}
 				vo.setBucketId(entity.getData().getBucketId());
 			}
 		}
@@ -64,6 +68,8 @@ public class ForecastAssembler implements GenericAssembler<ForecastVO, ForecastN
 					BeanUtils.copyProperties(run,runVO);
 					RunStateVO stateVO = toStateVO(run.getRunState());
 					runVO.setState(stateVO);
+					if(run.getIsDelete()!=null) 
+						runVO.setIsDeleted(run.getIsDelete());
 					runVO.setFrequency(toFrequencyEnum(run.getFrequency()));
 					runsVOList.add(runVO);
 				}
@@ -81,7 +87,8 @@ public class ForecastAssembler implements GenericAssembler<ForecastVO, ForecastN
 					BeanUtils.copyProperties(comparison,comparisonVO);
 					ComparisonStateVO comparisonStateVO = toComparisonStateVO(comparison.getComparisonState());
 					comparisonVO.setState(comparisonStateVO);
-
+					if(comparison.getIsDelete()!=null)
+						comparisonVO.setIsDeleted(comparison.getIsDelete());
 					comparisonsVOList.add(comparisonVO);
 				}
 			}
@@ -170,6 +177,8 @@ public class ForecastAssembler implements GenericAssembler<ForecastVO, ForecastN
 								RunState state = toState(n.getState());
 								run.setRunState(state);
 								run.setFrequency(toFrequencyParam(n.getFrequency().name()));
+								if(n.isIsDeleted()!=null)
+									run.setIsDelete(n.isIsDeleted());
 								return run;
 						}).collect(Collectors.toList());
 				data.setRuns(runs);
@@ -180,6 +189,8 @@ public class ForecastAssembler implements GenericAssembler<ForecastVO, ForecastN
 							BeanUtils.copyProperties(n,comparison);
 							ComparisonState comparisonState = toComparisonState(n.getState());
 							comparison.setComparisonState(comparisonState);
+							if(n.isIsDeleted()!=null)
+								comparison.setIsDelete(n.isIsDeleted());
 							return comparison;
 						}).collect(Collectors.toList());
 				data.setComparisons(comparisons);

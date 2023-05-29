@@ -62,8 +62,8 @@ const CreateOrEditProject = (props) => {
             .catch((err) => {
                 ProgressIndicator.hide();
                 SelectBox.defaultSetup();
-                if (err?.response?.data?.response?.errors?.length > 0) {
-                    err?.response?.data?.response?.errors.forEach((err) => {
+                if (err?.response?.data?.errors?.length > 0) {
+                    err?.response?.data?.errors.forEach((err) => {
                         showErrorNotification(err?.message || 'Something went wrong.');
                     });
                 } else {
@@ -162,8 +162,8 @@ const CreateOrEditProject = (props) => {
             })
             .catch((err) => {
                 ProgressIndicator.hide();
-                if (err?.response?.data?.response?.errors?.length > 0) {
-                    err?.response?.data?.response?.errors.forEach((err) => {
+                if (err?.response?.data?.errors?.length > 0) {
+                    err?.response?.data?.errors.forEach((err) => {
                         showErrorNotification(err?.message || 'Something went wrong.');
                     });
                 } else {
@@ -400,7 +400,7 @@ const CreateOrEditProject = (props) => {
 
     const onDivisionChange = (e) => {
         const selectedOptions = e.currentTarget.selectedOptions;
-        const division = { id: '0', name: null, subdivision: { id: null, name: null } };
+        const division = { id: '0', name: null, subdivision: { id: divisionValue?.subdivision?.id || null, name: divisionValue?.subdivision?.name || null } };
         if (selectedOptions.length) {
             division.id = selectedOptions[0].value;
             division.name = selectedOptions[0].textContent;
