@@ -21,5 +21,6 @@ public class CodeServerRecipeDetails implements Serializable {
 	private String operatingSystem;
 	private String environment;
 	private String cloudServiceProvider;
+	private String resource;
 	
 }

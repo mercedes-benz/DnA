@@ -59,6 +59,10 @@
                             right: 0;
                         }
                     }
+                    .bucketName {
+                        min-width: 250px;
+                        max-width: 250px;
+                    }
                 }
             }
             .bucketGrpListItemPanel {
@@ -105,6 +109,13 @@
                             &:hover {
                                 color: #00adef;
                             }
+                        }
+                    }
+                    .bucketName {
+                        min-width: 250px;
+                        max-width: 250px;
+                        a {
+                            word-wrap: break-word;
                         }
                     }
                 }

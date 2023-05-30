@@ -10,6 +10,7 @@ import rehypeStringify from 'rehype-stringify';
 
 // components from container app
 import InfoModal from 'dna-container/InfoModal';
+import Tags from 'dna-container/Tags';
 
 import { useFormContext, Controller } from 'react-hook-form';
 import Tooltip from '../../../../common/modules/uilab/js/src/tooltip';
@@ -18,7 +19,7 @@ import { isValidURL } from '../../../../Utility/utils';
 const Description = ({ 
   // onSave, 
   artList, carlaFunctionList, dataCatalogList, platformList, 
-  frontEndToolList }) => {
+  frontEndToolList, tagsList }) => {
   const {
     register,
     formState: { errors, 
@@ -31,14 +32,25 @@ const Description = ({
     setValue,
   } = useFormContext();
   const [showInfoModal, setShowInfoModal] = useState(false);
+  const [tagsListST, setTagsListST] = useState([]);
+  const [selectedTags, setSelectedTags] = useState([]);
 
-  const { howToAccessText } = watch();
+  const { howToAccessText, tags } = watch();
 
   useEffect(() => {
     Tooltip.defaultSetup();
     reset(watch());
     //eslint-disable-next-line
   }, []);
+
+  useEffect(()=>{
+    setTagsListST(tagsList);
+    //eslint-disable-next-line
+  },[tagsList]);
+
+  useEffect(() => {
+    setSelectedTags(tags);
+  }, [tags]);
 
   useEffect(() => {
     // update colors for the markdown editor
@@ -61,8 +73,16 @@ const Description = ({
       processor().then((res) => {
         setValue('howToAccessText', res.value);
       });
-    }
+    }    
   }, [howToAccessText, setValue, watch]);
+  
+  
+  const setReportTags = (selectedTags, field) => {
+    // let dept = selectedTags?.map((item) => item.toUpperCase());
+    setSelectedTags([...selectedTags]);
+    setValue('tags', selectedTags);
+    field.onChange(selectedTags);
+  }
 
   return (
     <>
@@ -269,6 +289,47 @@ const Description = ({
                 />
                 <span className={classNames('error-message')}>{errors?.description?.message}</span>
               </div>
+              <div className={classNames('input-field-group area')}>
+                <label id="additionalInformation" className="input-label" htmlFor="additionalInformation">
+                  Additional Information
+                  <i
+                    className={classNames('icon mbc-icon info iconsmd', Styles.infoIcon)}
+                    tooltip-data="Add additional information or notes about the data product"
+                  />
+                </label>
+                <textarea
+                  id="additionalInformation"
+                  className="input-field-area"
+                  type="text"
+                  {...register('additionalInformation')}
+                  rows={50}
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div id="tagsWrapper" className={classNames(Styles.wrapper)}>
+        <div id="tagsPanel" className={classNames(Styles.firstPanel)}>
+          <h3 id="tagHeading">Tags</h3>
+          <div id="tagsContainer" className={classNames(Styles.formWrapper, Styles.tagsWrapper)}>
+            <span id="tagDesc" className={classNames(Styles.textDesc)}>
+              Use tags to make it easier to find your data product for other people
+            </span>
+            <div>
+              <Controller
+                  control={control}
+                  name="tags"
+                  render={({ field }) => (
+                    <Tags
+                      title={'Tags'}
+                      chips={selectedTags}
+                      tags={tagsListST}
+                      setTags={(selectedTags) => setReportTags(selectedTags, field)}
+                      // {...register('tags')}
+                    />
+                  )}
+                /> 
             </div>
           </div>
         </div>

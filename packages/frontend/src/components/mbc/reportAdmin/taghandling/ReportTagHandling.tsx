@@ -50,7 +50,7 @@ export interface ITagHandlingState {
   integratedPortal: IFitlerCategory;
   addNewItem: boolean;
   departments: IFitlerCategory;
-  commonFunctions: IFitlerCategory;
+  // commonFunctions: IFitlerCategory;
   connectionTypes: IFitlerCategory;
   agileReleaseTrain: IFitlerCategory;
   level: IFitlerCategory;
@@ -102,7 +102,7 @@ export class ReportTagHandling extends React.Component<any, ITagHandlingState> {
       getKpiName: { id: 9, name: 'Kpi Names' },
       reportingCause: { id: 10, name: 'Reporting Cause' },
       datawerehouse: { id: 11, name: 'Dataware house' },
-      commonFunctions: { id: 12, name: 'Common Functions' },
+      // commonFunctions: { id: 12, name: 'Common Functions' },
       dataSource: { id: 13, name: 'Data Source' },
       connectionTypes: { id: 14, name: 'Connection Types' },
       dataClassification: { id: 15, name: 'Data Classifications' },
@@ -189,10 +189,10 @@ export class ReportTagHandling extends React.Component<any, ITagHandlingState> {
           id: 11,
           name: 'Data & Function - Data Warehouse - Data Warehouse',
         },
-        {
-          id: 12,
-          name: 'Data & Function - Data Warehouse - Common Functions',
-        },
+        // {
+        //   id: 12,
+        //   name: 'Data & Function - Data Warehouse - Common Functions',
+        // },
         // {
         //   id: 13,
         //   name: 'Data & Function - Single Data Source - Data Sources',
@@ -209,7 +209,7 @@ export class ReportTagHandling extends React.Component<any, ITagHandlingState> {
       datawareHouseItems: {
         id: '',
         dataWarehouse: '',
-        commonFunctions: [],
+        // commonFunctions: [],
         dataClassification: '',
         connectionType: '',
       },
@@ -250,17 +250,17 @@ export class ReportTagHandling extends React.Component<any, ITagHandlingState> {
     }
   };
   protected setCommonFnTags = (arr: string[]) => {
-    const chipsItemAdd = this.state.datawareHouseItems;
-    chipsItemAdd.commonFunctions = arr;
-    if (chipsItemAdd.commonFunctions.length > 0) {
-      this.setState({
-        showCommanFnTagsMissingError: false,
-      });
-    } else {
-      this.setState({
-        showCommanFnTagsMissingError: true,
-      });
-    }
+    // const chipsItemAdd = this.state.datawareHouseItems;
+    // chipsItemAdd.commonFunctions = arr;
+    // if (chipsItemAdd.commonFunctions.length > 0) {
+    //   this.setState({
+    //     showCommanFnTagsMissingError: false,
+    //   });
+    // } else {
+    //   this.setState({
+    //     showCommanFnTagsMissingError: true,
+    //   });
+    // }
   };
   protected setConnectionTypesTags = (arr: string[]) => {
     // const chipsItemAdd = this.state.datawareHouseItems;
@@ -446,24 +446,24 @@ export class ReportTagHandling extends React.Component<any, ITagHandlingState> {
       });
   };
   public getCommonFunctions = (results: ITagResult[]) => {
-    return ReportsApiClient.getCommonFunctions()
-      .then((res: any) => {
-        if (res) {
-          res.data?.forEach((dep: IFitlerCategory) => {
-            results.push({ category: this.state.commonFunctions, id: dep.id + '', name: dep.name });
-          });
-        }
-      })
-      .catch((error) => {
-        this.setState(
-          {
-            results: [],
-          },
-          () => {
-            this.showErrorNotification(error.message ? error.message : 'Some Error Occured');
-          },
-        );
-      });
+    // return ReportsApiClient.getCommonFunctions()
+    //   .then((res: any) => {
+    //     if (res) {
+    //       res.data?.forEach((dep: IFitlerCategory) => {
+    //         results.push({ category: this.state.commonFunctions, id: dep.id + '', name: dep.name });
+    //       });
+    //     }
+    //   })
+    //   .catch((error) => {
+    //     this.setState(
+    //       {
+    //         results: [],
+    //       },
+    //       () => {
+    //         this.showErrorNotification(error.message ? error.message : 'Some Error Occured');
+    //       },
+    //     );
+    //   });
   };
 
   public getConnectionType = (results: ITagResult[]) => {
@@ -856,9 +856,9 @@ export class ReportTagHandling extends React.Component<any, ITagHandlingState> {
       case 11:
         await this.getDatawareHouses(results);
         break;
-      case 12:
-        await this.getCommonFunctions(results);
-        break;  
+      // case 12:
+      //   await this.getCommonFunctions(results);
+      //   break;  
       // case 13:
       //   await this.getDataSource(results);
       //   break;  
@@ -1103,7 +1103,7 @@ export class ReportTagHandling extends React.Component<any, ITagHandlingState> {
                 />
               </div>
               <div className={classNames(Styles.flexLayout)}>
-                <div id="tagsWrapper" className={classNames(Styles.wrapper)}>
+                {/* <div id="tagsWrapper" className={classNames(Styles.wrapper)}>
                   <div id="tagsPanel" className={classNames(Styles.firstPanel)}>
                     <div id="tagsContainer" className={classNames(Styles.formWrapper, Styles.tagsWrapper)}>
                       <div>
@@ -1120,7 +1120,7 @@ export class ReportTagHandling extends React.Component<any, ITagHandlingState> {
                       </div>
                     </div>
                   </div>
-                </div>
+                </div> */}
                 <div id="tagsWrapper" className={classNames(Styles.wrapper)}>
                   <div id="tagsPanel" className={classNames(Styles.firstPanel)}>
                     <div id="tagsContainer" className={classNames(Styles.formWrapper, Styles.tagsWrapper)}>
@@ -1410,9 +1410,9 @@ export class ReportTagHandling extends React.Component<any, ITagHandlingState> {
       case 11:
         this.onTagDeleteCategoryItem('datawarehouses');
         break;
-      case 12:
-        this.onTagDeleteCategoryItem('commonfunctions');
-        break;  
+      // case 12:
+      //   this.onTagDeleteCategoryItem('commonfunctions');
+      //   break;  
       // case 13:
       //   this.onTagDeleteCategoryItem('datasources');
       //   break;
@@ -1500,16 +1500,16 @@ export class ReportTagHandling extends React.Component<any, ITagHandlingState> {
         dataWareHouseNameError: '',
       });
     }
-    if (!this.state.datawareHouseItems.commonFunctions.length) {
-      this.setState({
-        showCommanFnTagsMissingError: true,
-      });
-      formValidationStatus = false;
-    } else {
-      this.setState({
-        showCommanFnTagsMissingError: false,
-      });
-    }
+    // if (!this.state.datawareHouseItems.commonFunctions.length) {
+    //   this.setState({
+    //     showCommanFnTagsMissingError: true,
+    //   });
+    //   formValidationStatus = false;
+    // } else {
+    //   this.setState({
+    //     showCommanFnTagsMissingError: false,
+    //   });
+    // }
     if (!this.state.datawareHouseItems.connectionType.length) {
       this.setState({
         showConnectionTypesTagsMissingError: true,
@@ -1554,8 +1554,8 @@ export class ReportTagHandling extends React.Component<any, ITagHandlingState> {
         this.onTagAddCategoryItem('kpinames');
       } else if (itemToAddCategories === 'Data & Function - Data Warehouse - Data Warehouse') {
         this.onTagAddCategoryItem('datawarehouses');
-      } else if (itemToAddCategories === 'Data & Function - Data Warehouse - Common Functions') {
-        this.onTagAddCategoryItem('commonfunctions');
+      // } else if (itemToAddCategories === 'Data & Function - Data Warehouse - Common Functions') {
+      //   this.onTagAddCategoryItem('commonfunctions');
       } else if (itemToAddCategories === 'Data & Function - Data Classifications') {
         this.onTagAddCategoryItem('dataclassifications');
       }
@@ -1602,9 +1602,9 @@ export class ReportTagHandling extends React.Component<any, ITagHandlingState> {
         case 11:
           this.onTagUpdateCategoryItem('datawarehouses');
           break;
-        case 12:
-          this.onTagUpdateCategoryItem('commonfunctions');
-          break;  
+        // case 12:
+        //   this.onTagUpdateCategoryItem('commonfunctions');
+        //   break;  
         // case 13:
         //   this.onTagUpdateCategoryItem('datasources');
         //   break;
@@ -1692,7 +1692,7 @@ export class ReportTagHandling extends React.Component<any, ITagHandlingState> {
         datawareHouseItems: {
           id: '',
           dataWarehouse: '',
-          commonFunctions: [],
+          // commonFunctions: [],
           dataClassification: '',
           connectionType: '',
         },

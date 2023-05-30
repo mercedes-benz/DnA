@@ -31,6 +31,7 @@ import java.util.List;
 
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.db.entities.DataProductNsql;
+import com.daimler.data.dto.dataproduct.DataProductTeamMemberVO;
 import com.daimler.data.dto.dataproduct.DataProductVO;
 import com.daimler.data.dto.datatransfer.ConsumerVO;
 import com.daimler.data.dto.datatransfer.DataTransferConsumerResponseVO;
@@ -45,6 +46,9 @@ public interface DataProductService extends CommonService<DataProductVO, DataPro
 			String recordStatus, List<String> artsList, List<String> carlafunctionsList,
 			List<String> platformsList, List<String> frontendToolsList, List<String> productOwnerList);
 
+	List<DataProductTeamMemberVO> getAllWithDataProductOwners(Boolean published, int offset, int limit, String sortOrder,
+															  String recordStatus);
+
 	ResponseEntity<DataTransferProviderResponseVO> createDataTransferProvider(ProviderVO providerVO);
 
 	ResponseEntity<DataTransferConsumerResponseVO> updateDataTransferConsumer(ConsumerVO consumerVO);
@@ -54,6 +58,10 @@ public interface DataProductService extends CommonService<DataProductVO, DataPro
 				  List<String> platformsList, List<String> frontendToolsList, List<String> productOwnerList);
 
 	List<DataProductVO> getExistingDataProduct(String uniqueProductName, String status);
+
+	GenericMessage updateDataProductData();
+
+	Long getCountOwners(Boolean published, String recordStatus);
 
 	String getNextSeqId();
 }

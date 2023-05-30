@@ -633,7 +633,6 @@ export interface IInternalCustomerDetails {
 }
 
 export interface IExternalCustomerDetails {
-  name: ITeams;
   companyName: string;
   customerRelation: string;
   comment: string;
@@ -642,7 +641,7 @@ export interface IExternalCustomerDetails {
 export interface IKpis {
   description: string;
   name: string;
-  reportingCause: string;
+  reportingCause: string[];
   kpiLink: string;
 }
 
@@ -652,7 +651,7 @@ export interface IDataAndFunctions {
 }
 
 export interface IDataWarehouseInUse {
-  commonFunctions: string[];
+  // commonFunctions: string[];
   connectionType: string;
   dataWarehouse: string;
   dataClassification: string;
@@ -676,7 +675,7 @@ export interface IUserNewInfo {
 }
 
 export interface IMembers {
-  reportOwners: ITeams[];
+  // reportOwners: ITeams[];
   reportAdmins?: ITeams[];
 }
 export interface ICreateNewReport {
@@ -770,6 +769,7 @@ export interface ICommonFunctions {
 
 export interface IDataiku {
   name: string;
+  cloudProfile?: string;
   shortDesc: string;
   projectKey: string;
   tags: string[];
@@ -1093,6 +1093,20 @@ export interface IFilterPreferences {
   solutionStatus: IProjectStatus;
   useCaseType?: string;
   tags: ITag[];
+}
+
+export interface IDataProductListItem {
+  id: string;
+  name?: string;
+}
+
+export interface IDataProductFilterParams {
+  art: string[];
+  platform: string[];
+  frontendTool: string[];
+  productOwner: string[];
+  carlaFunction?: string[];
+  tag?: string[];
 }
 
 export interface INoticationModules {
@@ -1438,7 +1452,7 @@ export interface IAddNewCategoriesItem {
 export interface IDatawarehouseInItem {
   id: string;
   dataWarehouse: string;
-  commonFunctions: string[];
+  // commonFunctions: string[];
   dataClassification: string;
   connectionType: string;
 }
