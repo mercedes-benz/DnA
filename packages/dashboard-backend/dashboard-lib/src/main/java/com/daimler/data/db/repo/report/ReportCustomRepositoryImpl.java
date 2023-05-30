@@ -145,8 +145,7 @@ public class ReportCustomRepositoryImpl extends CommonDataRepositoryImpl<ReportN
 
 		String prefix = selectFieldsString != null && !"".equalsIgnoreCase(selectFieldsString) ? selectFieldsString
 				: "select cast(id as text), cast(data as text) ";
-//		prefix = prefix + "from report_nsql";
-		prefix = prefix + "from report_nametest_nsql";
+		prefix = prefix + "from report_nsql";
 		String basicpredicate = " where (id is not null)";
 		String consolidatedPredicates = buildPredicateString(published, statuses, userId, isAdmin, searchTerms, tags,
 				division, department, processOwner, art);
