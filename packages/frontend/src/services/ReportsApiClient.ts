@@ -43,7 +43,7 @@ export class ReportsApiClient {
       this.get('lov/frontendtechnologies'),
       this.get('lov/levels'),
       this.get('lov/integratedportals'),
-      this.get('lov/kpinames'),
+      this.get('kpinames'),
       this.get('lov/reportingcauses'),
       this.get('lov/legalentities'),
       this.get('lov/statuses'),
@@ -54,7 +54,7 @@ export class ReportsApiClient {
       ApiClient.get('divisions'),
       this.get('departments'),
       this.get('lov/dataclassifications'),
-      // this.get('lov/kpiclassifications'),
+      this.get('lov/kpiClassifications'),
     ]);
   }
 

@@ -187,7 +187,7 @@ export default class Kpi extends React.Component<IKpiProps, IKpiState> {
                     required={true}
                     // disabled={!this.state?.enableClassification}
                     // value={this.state.kpiInfo?.names.map((item: any) => item.classification) || ''}
-                    value={this.state.kpiInfo.names
+                    value={this.state.kpiInfo.name
                       ? this.state.kpiInfo.name?.kpiClassification
                       : this.state.dataSources?.kpiClassification}
                     onChange={this.handleChangeClassification}
