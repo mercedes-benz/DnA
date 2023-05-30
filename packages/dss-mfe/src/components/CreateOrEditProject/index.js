@@ -500,6 +500,7 @@ const CreateOrEditProject = (props) => {
                             className="input-field"
                             id="projectDescriptionInput"
                             placeholder="Type here"
+                            maxLength={250}
                             autoComplete="off"
                             value={projectDescription}
                             onChange={(e) => {
