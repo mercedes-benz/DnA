@@ -701,6 +701,16 @@ paths:
           description: "forecast project ID "
           required: true
           type: "string"
+        - in: "query"
+          name: "offset"
+          description: "forecast comparisons page number "
+          required: false
+          type: integer
+        - in: "query"
+          name: "limit"
+          description: "forecast comparisons page size"
+          required: false
+          type: integer
       responses:
         201:
           description: "Returns message of success or failure"
@@ -1295,6 +1305,8 @@ definitions:
   ForecastComparisonResultVO:
     type: object
     properties:
+      comparisonName:
+        type: string
       comparisonData:
         type: string
       response:

@@ -178,7 +178,7 @@ const CreateOrEditProject = (props) => {
     }
 
     const validateForm = () => {
-        if (!projectKey) {
+        if (projectKey?.trim()?.length === 0) {
             setProjectErrorMessage('Project name is required *');
             isFormValid = false;
         }
@@ -194,7 +194,7 @@ const CreateOrEditProject = (props) => {
             setProjectGroupErrorMessage('Please select dataiku instance *');
             isFormValid = false;
         }
-        if (!projectDescription) {
+        if (projectDescription?.trim()?.length === 0) {
             setProjectDescriptionErrorMessage('Project Description is required *');
             isFormValid = false;
         }
@@ -212,8 +212,8 @@ const CreateOrEditProject = (props) => {
             && (statusValue && !(statusValue === '0'))
             && (divisionValue && !(divisionValue?.name === 'Choose'))
             && projectGroup
-            && projectKey
-            && projectDescription
+            && projectKey?.trim()?.length > 0
+            && projectDescription?.trim()?.length > 0
             && selectedDepartmentTags.length > 0
         ) {
             isFormValid = true;
@@ -223,6 +223,7 @@ const CreateOrEditProject = (props) => {
     }
 
     const handleCreateDataikuSubmit = () => {
+        isFormValid = false;
         validateForm();
         if (isFormValid) {
             setProjectGroupErrorMessage('');
@@ -246,7 +247,7 @@ const CreateOrEditProject = (props) => {
                 collaborators: [...currentUserCollab, ...dataikuCollaborators],
                 createdBy: editDataikuProjectDetails.createdBy,
                 createdOn: editDataikuProjectDetails.createdOn,
-                description: projectDescription,
+                description: projectDescription?.trim(),
                 status: statusValue,
                 classificationType: dataClassification,
                 hasPii: PII,
@@ -297,8 +298,8 @@ const CreateOrEditProject = (props) => {
         const data = {
             data: {
                 id: "",
-                projectName: projectKey,
-                description: projectDescription,
+                projectName: projectKey?.trim(),
+                description: projectDescription?.trim(),
                 cloudProfile: projectGroup,
                 collaborators: dataikuCollaborators,
                 createdBy: "",
@@ -498,7 +499,6 @@ const CreateOrEditProject = (props) => {
                             type="text"
                             className="input-field"
                             id="projectDescriptionInput"
-                            maxLength={22}
                             placeholder="Type here"
                             autoComplete="off"
                             value={projectDescription}

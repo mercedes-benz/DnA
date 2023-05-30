@@ -16,7 +16,6 @@ import java.util.stream.Collectors;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
-import com.daimler.data.dto.forecast.*;
 import org.apache.commons.io.FilenameUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -40,6 +39,26 @@ import com.daimler.data.application.client.StorageServicesClient;
 import com.daimler.data.auth.vault.VaultAuthClientImpl;
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
+import com.daimler.data.dto.forecast.ApiKeyResponseVO;
+import com.daimler.data.dto.forecast.ApiKeyVO;
+import com.daimler.data.dto.forecast.CollaboratorVO;
+import com.daimler.data.dto.forecast.CreatedByVO;
+import com.daimler.data.dto.forecast.ForecastCollectionVO;
+import com.daimler.data.dto.forecast.ForecastComparisonCreateResponseVO;
+import com.daimler.data.dto.forecast.ForecastComparisonResultVO;
+import com.daimler.data.dto.forecast.ForecastComparisonVO;
+import com.daimler.data.dto.forecast.ForecastComparisonsCollectionDto;
+import com.daimler.data.dto.forecast.ForecastProjectCreateRequestVO;
+import com.daimler.data.dto.forecast.ForecastProjectCreateRequestWrapperVO;
+import com.daimler.data.dto.forecast.ForecastProjectResponseVO;
+import com.daimler.data.dto.forecast.ForecastProjectUpdateRequestVO;
+import com.daimler.data.dto.forecast.ForecastRunCollectionVO;
+import com.daimler.data.dto.forecast.ForecastRunResponseVO;
+import com.daimler.data.dto.forecast.ForecastVO;
+import com.daimler.data.dto.forecast.InputFileVO;
+import com.daimler.data.dto.forecast.InputFilesCollectionVO;
+import com.daimler.data.dto.forecast.RunVO;
+import com.daimler.data.dto.forecast.RunVisualizationVO;
 import com.daimler.data.dto.storage.BucketObjectsCollectionWrapperDto;
 import com.daimler.data.dto.storage.FileUploadResponseDto;
 import com.daimler.data.service.forecast.ForecastService;
@@ -691,8 +710,8 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 		}
 		//remove deleted runs before returning
 		List<RunVO> existingRuns = existingForecast.getRuns();
-		List<RunVO> tempExistingRuns = new ArrayList<>(existingRuns);
 		if(existingRuns!=null && !existingRuns.isEmpty()) {
+			List<RunVO> tempExistingRuns = new ArrayList<>(existingRuns);
 			for (int i = 0; i < existingRuns.size(); i++) {
 				RunVO details = existingRuns.get(i);
 				if (details.isIsDeleted() != null) {
@@ -705,6 +724,21 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 			}
 			existingForecast.setRuns(tempExistingRuns);
 		}
+		List<ForecastComparisonVO> existingComparisons = existingForecast.getComparisons();
+		if(existingComparisons!=null && !existingComparisons.isEmpty()) {
+			List<ForecastComparisonVO> tempExistingComparisons = new ArrayList<>(existingComparisons);
+			for(int i=0; i<tempExistingComparisons.size(); i++) {
+				ForecastComparisonVO details= tempExistingComparisons.get(i);
+				if(details.isIsDeleted()!= null) {
+					boolean isDelete = details.isIsDeleted();
+					if(isDelete) {
+						tempExistingComparisons.remove(details);
+					}
+				}
+			}
+			existingForecast.setComparisons(tempExistingComparisons);
+		}
+    
 		CreatedByVO requestUser = this.userStore.getVO();
 		List<String> forecastProjectUsers = new ArrayList<>();
 		forecastProjectUsers.add(existingForecast.getCreatedBy().getId());
@@ -897,24 +931,6 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 	}
 
 
-//	@Override
-//	@ApiOperation(value = "Get all forecast project run visualization for the user.", nickname = "getRunVisualizationData", notes = "Get all forecasts projects for the user.", response = RunVisualizationVO.class, tags = {
-//			"forecast-runs", })
-//	@ApiResponses(value = {
-//			@ApiResponse(code = 201, message = "Returns message of success or failure", response = RunVisualizationVO.class),
-//			@ApiResponse(code = 204, message = "Fetch complete, no content found."),
-//			@ApiResponse(code = 400, message = "Bad request."),
-//			@ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
-//			@ApiResponse(code = 403, message = "Request is not authorized."),
-//			@ApiResponse(code = 405, message = "Method not allowed"),
-//			@ApiResponse(code = 500, message = "Internal error") })
-//	@RequestMapping(value = "/forecasts/{id}/runs/{correlationid}", produces = { "application/json" }, consumes = {
-//			"application/json" }, method = RequestMethod.GET)
-//	public ResponseEntity<RunVisualizationVO> getRunVisualizationData(
-//			@ApiParam(value = "forecast project ID ", required = true) @PathVariable("id") String id,
-//			@ApiParam(value = "DNA correlation Id for the run", required = true) @PathVariable("correlationid") String rid) {
-//		return null;
-//	}
 
 	@Override
 	@ApiOperation(value = "Create new run for forecast project.", nickname = "createForecastRun", notes = "Create run for forecast project", response = ForecastRunResponseVO.class, tags={ "forecast-runs", })
@@ -1070,7 +1086,7 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 	public ResponseEntity<ForecastComparisonCreateResponseVO> createForecastComparison(@ApiParam(value = "forecast project ID ",required=true) @PathVariable("id") String id,
 			@ApiParam(value = "Comma separated forecast run corelation Ids. Maximum 12 Ids can be sent. Please avoid sending duplicates.", required=true) @RequestParam(value="runCorelationIds", required=true)  String runCorelationIds,
 			@ApiParam(value = "The input file for the comparison of forecast runs.") @Valid @RequestPart(value="actualsFile", required=false) MultipartFile actualsFile,
-			@ApiParam(value = "Run Comparison name") @RequestParam(value="comparisonName", required=false)  String comparisonName)
+			@ApiParam(value = "Comparison name") @RequestParam(value="comparisonName", required=false)  String comparisonName)
 	{
 		ForecastComparisonCreateResponseVO responseVO = new ForecastComparisonCreateResponseVO();
 		ForecastVO existingForecast = service.getById(id);
@@ -1083,7 +1099,7 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 		}catch(Exception e) {
 			log.warn("Failed to format createdOn date to ISO format");
 		}
-		comparisonName = comparisonName!= null && !"".equalsIgnoreCase(comparisonName) ? comparisonName :  ""; //ISOdate as comparisonname from createdOn
+		comparisonName = comparisonName!= null && !"".equalsIgnoreCase(comparisonName) ? comparisonName :  "comparison - " + createdOn; //ISOdate as comparisonname from createdOn
 		Boolean notAuthorized = false;
 		if(existingForecast==null || existingForecast.getId()==null) {
 			log.error("Forecast project with this id {} doesnt exists , failed to create comparison", id);
@@ -1129,14 +1145,14 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 				List<String> distinctRunIds = runIdsList.stream().distinct().collect(Collectors.toList());
 				if(runIdsList!=null && !runIdsList.isEmpty()) {
 					for(String runId : distinctRunIds) {
-						Optional<RunVO> any = existingRuns.stream().filter(x -> runId.equalsIgnoreCase(x.getId()) && !x.isIsDeleted()).findAny();
+						Optional<RunVO> any = existingRuns.stream().filter(x -> runId.equalsIgnoreCase(x.getId()) && (x.isIsDeleted()==null || !x.isIsDeleted())).findAny();
 						if(any!=null && any.isPresent()) {
 							validRunsPath.add(any.get().getResultFolderPath());
 						}else {
 							invalidRunIds.add(runId);
 						}
 					}
-					if(invalidRunIds!=null && !invalidRunIds.isEmpty()) {
+					if((invalidRunIds!=null && !invalidRunIds.isEmpty() ) || validRunsPath.isEmpty() ) {
 						String invalidIdsString = String.join(",", invalidRunIds);
 						log.error("Invalid runCorrelationIds {} sent for comparison {} of project name {} and id {}, by user {} ", 
 								invalidIdsString, comparisonName, existingForecast.getName(), id, requestUser);
@@ -1269,7 +1285,7 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 												String invalidIdsString = String.join(",", invalidComparisonIds);
 						log.error("Invalid ComparisonIds {} sent for comparison  of project name {} and id {}, by user {} ",
 								invalidIdsString, existingForecast.getName(), id, requestUser);
-						MessageDescription invalidMsg = new MessageDescription("Invalid runCorrelationIds " +  invalidIdsString + " sent for comparison. Please correct and retry.");
+						MessageDescription invalidMsg = new MessageDescription("Invalid ComparisonIds " +  invalidIdsString + " sent for comparison. Please correct and retry.");
 						GenericMessage errorMessage = new GenericMessage();
 						errorMessage.setSuccess("FAILED");
 						errorMessage.addErrors(invalidMsg);
@@ -1281,9 +1297,6 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 			}
 			responseMessage = service.deleteComparison(id,validComparisonIds);
 		}
-
-
-
 		if (responseMessage != null && "SUCCESS".equalsIgnoreCase(responseMessage.getSuccess())) {
 			return new ResponseEntity<>(responseMessage, HttpStatus.OK);
 		}
@@ -1346,24 +1359,22 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 			responseVO.setResponse(responseMessage);
 			return new ResponseEntity<>(responseVO, HttpStatus.FORBIDDEN);
 		}
-		boolean notFound = false;
+		boolean notFound = true;
 		List<ForecastComparisonVO> comparisonVOList = existingForecast.getComparisons();
 		if(comparisonVOList!= null && !comparisonVOList.isEmpty()) {
 			for(ForecastComparisonVO comparison: comparisonVOList) {
-				if(comparisonId.equalsIgnoreCase(comparison.getComparisonId())) {
-					notFound = true;
-					if(!user.equalsIgnoreCase(comparison.getTriggeredBy())) {
-						notAuthorized = false;
-					}
+				if(comparisonId.equalsIgnoreCase(comparison.getComparisonId())
+				     && !comparison.isIsDeleted()) {
+					notFound = false;
 				}
 			}
 		}else
-			notFound = false;
-		if(!notFound) {
+			notFound = true;
+		if(notFound) {
 			return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
 		}
-		ForecastComparisonResultVO records = service.getForecastComparisonById(id,comparisonId);
-		return null;
+		ForecastComparisonResultVO comparisonHTMLData = service.getForecastComparisonById(id,comparisonId);
+		return new ResponseEntity<>(comparisonHTMLData, HttpStatus.OK);
 	}
 
 
@@ -1381,8 +1392,18 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 			produces = { "application/json" },
 			consumes = { "application/json" },
 			method = RequestMethod.GET)
-	public ResponseEntity<ForecastComparisonsCollectionDto> getForecastComparisons(@ApiParam(value = "forecast project ID ",required=true) @PathVariable("id") String id)
+
+	public ResponseEntity<ForecastComparisonsCollectionDto> getForecastComparisons(@ApiParam(value = "forecast project ID ",required=true) @PathVariable("id") String id,
+			@ApiParam(value = "forecast comparisons page number ") @Valid @RequestParam(value = "offset", required = false) Integer offset,
+			@ApiParam(value = "forecast comparisons page size") @Valid @RequestParam(value = "limit", required = false) Integer limit)
 	{
+		int defaultLimit = Integer.parseInt(runsDefaultPageSize);
+		if (offset == null || offset < 0)
+			offset = 0;
+		if (limit == null || limit < 0) {
+			limit = defaultLimit;
+		}
+
 		ForecastComparisonsCollectionDto collection = new ForecastComparisonsCollectionDto();
 		ForecastVO existingForecast = service.getById(id);
 		CreatedByVO requestUser = this.userStore.getVO();
@@ -1390,7 +1411,7 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 		Date createdOn = new Date();
 		Boolean notAuthorized = false;
 		if(existingForecast==null || existingForecast.getId()==null) {
-			log.error("Forecast project with this id {} doesnt exists , failed to create comparison", id);
+			log.error("Forecast project with this id {} doesnt exists", id);
 			return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
 		}
 		List<String> forecastProjectUsers = new ArrayList<>();
@@ -1406,14 +1427,17 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 			}
 		}
 		if(notAuthorized) {
-			log.error("Only user of this project can delete the run. Unauthorized");
+			log.error("Only user of this project can view the details. Unauthorized");
 			return new ResponseEntity<>(null, HttpStatus.FORBIDDEN);
 		}
-		List<ForecastComparisonVO> records = service.getAllForecastComparisons(id);
+//		service.getAllForecastComparisons(id);
+		Object[] getComparisonsResultsArr = service.getAllForecastComparisons(limit,offset,id);
+		List<ForecastComparisonVO> records = (List<ForecastComparisonVO>) getComparisonsResultsArr[0];
+		Integer totalCount = (Integer) getComparisonsResultsArr[1];
 		HttpStatus responseCode = HttpStatus.NO_CONTENT;
 		if(records!=null && !records.isEmpty()) {
 			collection.setRecords(records);
-			collection.setTotalCount(records.size());
+			collection.setTotalCount(totalCount);
 			responseCode = HttpStatus.OK;
 		}
 		return new ResponseEntity<>(collection, responseCode);
