@@ -27,10 +27,10 @@
 
 package com.daimler.data.service.lov;
 
-import com.daimler.data.db.entities.KpiNameSql;
+import com.daimler.data.db.entities.lov.KpiClassificationSql;
 import com.daimler.data.dto.lov.LovVO;
 import com.daimler.data.service.common.CommonService;
 
-public interface KpiNameService extends CommonService<LovVO, KpiNameSql, Long> {
+public interface KpiClassificationService extends CommonService<LovVO, KpiClassificationSql, Long> {
 
 }

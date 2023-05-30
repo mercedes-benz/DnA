@@ -25,12 +25,16 @@
  * LICENSE END 
  */
 
-package com.daimler.data.service.lov;
+package com.daimler.data.db.repo.kpiName;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 
 import com.daimler.data.db.entities.KpiNameSql;
-import com.daimler.data.dto.lov.LovVO;
-import com.daimler.data.service.common.CommonService;
 
-public interface KpiNameService extends CommonService<LovVO, KpiNameSql, Long> {
+@Repository
+public interface KpiNameRepository extends JpaRepository<KpiNameSql, Long> {
+
+	KpiNameSql findFirstByNameIgnoreCase(String kpiName);
 
 }
