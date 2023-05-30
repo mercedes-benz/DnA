@@ -25,12 +25,42 @@
  * LICENSE END 
  */
 
-package com.daimler.data.service.lov;
+package com.daimler.data.db.entities;
 
-import com.daimler.data.db.entities.KpiNameSql;
-import com.daimler.data.dto.lov.LovVO;
-import com.daimler.data.service.common.CommonService;
+import java.io.Serializable;
 
-public interface KpiNameService extends CommonService<LovVO, KpiNameSql, Long> {
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.SequenceGenerator;
+import javax.persistence.Table;
+
+import com.daimler.data.db.jsonb.report.KPIName;
+import com.daimler.data.db.jsonb.report.Report;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Entity
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@JsonIgnoreProperties(ignoreUnknown = true)
+@Table(name = "kpi_name_sql")
+public class KpiNameSql implements Serializable {
+		
+	private static final long serialVersionUID = 1L;
+
+	@Id
+	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "lov_sequence_gen")
+	@SequenceGenerator(name = "lov_sequence_gen", sequenceName = "lov_sequence", allocationSize = 1)
+	private Long id;
+	
+	private String name;
+	private String classification;
 
 }
