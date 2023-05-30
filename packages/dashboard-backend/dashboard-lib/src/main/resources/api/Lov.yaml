@@ -989,23 +989,23 @@ paths:
       500:
        description: "Internal error"          
 
-# path to create, update and fetch all valid kpi name
+# path to create, update and fetch all valid KPI classification
 #
 # supported http methods GET, POST, PUT
 #
-# path example ../kpinames
+# path example ../kpiClassifications
 
- /kpinames:
+ /kpiClassifications:
   get:
    tags:
     - "lov"
-   summary: "Get all kpi name."
-   description:  "Get all kpi name. This endpoints will be used to Get all valid available kpi name."
-   operationId: "getAllKpiNameLov"
+   summary: "Get all kpi Classifications."
+   description:  "Get all kpiClassifications. This endpoints will be used to get all valid available kpiClassifications"
+   operationId: "getAllKpiClassificationsLov"
    parameters:
         - name: sortOrder
           in: query
-          description: Sort kpinames based on the given order, example asc,desc
+          description: Sort kpiClassifications based on the given order, example asc,desc
           required: false
           type: string   
           enum: [asc,desc]
@@ -1025,17 +1025,17 @@ paths:
     405:
      description: "Method not allowed"
     500:
-     description: "Internal error"  
+     description: "Internal error" 
   post:
    tags:
     - "lov"
-   summary: "Add a new kpi name."
-   description: "Add a new non existing kpi name."
-   operationId: "createKpiNameLov"
+   summary: "Add a new kpi Classification."
+   description: "Add a new non existing kpi Classification."
+   operationId: "createKpiClassificationLov"
    parameters:
     - name: "lovRequestVO" 
       in: "body" 
-      description: "Request Body that contains data required for creating a new kpi name." 
+      description: "Request Body that contains data required for creating a new kpi Classification." 
       required: true
       schema:
        $ref: "#/definitions/LovRequestVO"
@@ -1059,13 +1059,13 @@ paths:
   put:
     tags:
     - "lov"
-    summary: "Update the kpi name identified by given ID."
-    description:  "Update the kpi name identified by given ID"
-    operationId: "updateKpiNameLov"
+    summary: "Update the kpi Classification identified by given ID."
+    description:  "Update the kpi Classification identified by given ID"
+    operationId: "updateKpiClassificationLov"
     parameters:
       - name: "lovUpdateRequestVO"
         in: "body" 
-        description: "Request Body that contains data required for updating kpi name." 
+        description: "Request Body that contains data required for updating data classification." 
         required: true
         schema:
          $ref: "#/definitions/LovUpdateRequestVO"        
@@ -1085,23 +1085,23 @@ paths:
       500:
        description: "Internal error"         
      
-# path to delete existing kpi name
+# path to delete existing data classification
 #
 # supported http method DELETE
 #
-# path example ../kpinames/xxx
+# path example ../kpiClassifications/xxx
 
- /kpinames/{id}:
+ /kpiClassifications/{id}:
   delete:
     tags:
     - "lov"
-    summary: "Delete the kpi name identified by given ID."
-    description:  "Delete the kpi name identified by given ID"
-    operationId: "deleteKpiNameLov"
+    summary: "Delete the kpi Classification identified by given ID."
+    description:  "Delete the kpi Classification identified by given ID"
+    operationId: "deleteKpiClassificationLov"
     parameters:
       - name: "id"
         in: "path"
-        description: "Id of the kpi name"
+        description: "Id of the kpi Classification"
         required: true
         type: integer
         format: int64
