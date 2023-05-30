@@ -128,8 +128,7 @@ type DataProductTransnationalDataTransferVO {
     dataTransferred: Boolean,
     notWithinEU: Boolean,
     approved: String,
-    insiderInformation: String,
-    dataFromChina: Boolean
+    insiderInformation: String
 }
 
 type DataProductDeletionRequirementVO {
