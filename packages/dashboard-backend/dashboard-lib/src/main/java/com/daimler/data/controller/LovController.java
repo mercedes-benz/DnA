@@ -48,7 +48,7 @@ import com.daimler.data.db.entities.lov.DataClassificationSql;
 import com.daimler.data.db.entities.lov.DataWarehouseSql;
 import com.daimler.data.db.entities.lov.FrontendTechnologySql;
 import com.daimler.data.db.entities.lov.IntegratedPortalSql;
-import com.daimler.data.db.entities.lov.KpiNameSql;
+import com.daimler.data.db.entities.lov.KpiClassificationSql;
 import com.daimler.data.db.entities.lov.LegalEntitySql;
 import com.daimler.data.db.entities.lov.LevelSql;
 import com.daimler.data.db.entities.lov.ReportingCauseSql;
@@ -64,7 +64,7 @@ import com.daimler.data.service.lov.DataClassificationService;
 import com.daimler.data.service.lov.DataWarehouseService;
 import com.daimler.data.service.lov.FrontendTechnologyService;
 import com.daimler.data.service.lov.IntegratedPortalService;
-import com.daimler.data.service.lov.KpiNameService;
+import com.daimler.data.service.lov.KpiClassificationService;
 import com.daimler.data.service.lov.LegalEntityService;
 import com.daimler.data.service.lov.LevelService;
 import com.daimler.data.service.lov.ReportingCauseService;
@@ -95,9 +95,6 @@ public class LovController implements LovApi {
 	private IntegratedPortalService integratedPortalService;
 
 	@Autowired
-	private KpiNameService kpiNameService;
-
-	@Autowired
 	private DataWarehouseService dataWarehouseService;
 
 	@Autowired
@@ -117,6 +114,9 @@ public class LovController implements LovApi {
 
 	@Autowired
 	private DataClassificationService dataClassificationService;
+	
+	@Autowired
+	private KpiClassificationService kpiClassificationService;
 
 	@Override
 	@ApiOperation(value = "Add a new agile release train.", nickname = "createAgileReleaseTrainLov", notes = "Add a new non existing agile release train.", response = LovResponseVO.class, tags = {
@@ -213,25 +213,6 @@ public class LovController implements LovApi {
 		IntegratedPortalSql entity = new IntegratedPortalSql();
 		entity.setName(lovRequestVO.getData().getName());
 		return integratedPortalService.createLov(lovRequestVO, entity);
-	}
-
-	@Override
-	@ApiOperation(value = "Add a new kpi name.", nickname = "createKpiNameLov", notes = "Add a new non existing kpi name.", response = LovResponseVO.class, tags = {
-			"lov", })
-	@ApiResponses(value = {
-			@ApiResponse(code = 201, message = "Returns message of succes or failure ", response = LovResponseVO.class),
-			@ApiResponse(code = 400, message = "Bad Request", response = GenericMessage.class),
-			@ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
-			@ApiResponse(code = 403, message = "Request is not authorized."),
-			@ApiResponse(code = 405, message = "Method not allowed"),
-			@ApiResponse(code = 500, message = "Internal error") })
-	@RequestMapping(value = "/kpinames", produces = { "application/json" }, consumes = {
-			"application/json" }, method = RequestMethod.POST)
-	public ResponseEntity<LovResponseVO> createKpiNameLov(
-			@ApiParam(value = "Request Body that contains data required for creating a new kpi name.", required = true) @Valid @RequestBody LovRequestVO lovRequestVO) {
-		KpiNameSql entity = new KpiNameSql();
-		entity.setName(lovRequestVO.getData().getName());
-		return kpiNameService.createLov(lovRequestVO, entity);
 	}
 
 	@Override
@@ -439,24 +420,6 @@ public class LovController implements LovApi {
 	}
 
 	@Override
-	@ApiOperation(value = "Delete the kpi name identified by given ID.", nickname = "deleteKpiNameLov", notes = "Delete the kpi name identified by given ID", response = GenericMessage.class, tags = {
-			"lov", })
-	@ApiResponses(value = {
-			@ApiResponse(code = 200, message = "Successfully deleted.", response = GenericMessage.class),
-			@ApiResponse(code = 400, message = "Bad request"),
-			@ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
-			@ApiResponse(code = 403, message = "Request is not authorized."),
-			@ApiResponse(code = 404, message = "Invalid id, record not found."),
-			@ApiResponse(code = 500, message = "Internal error") })
-	@RequestMapping(value = "/kpinames/{id}", produces = { "application/json" }, consumes = {
-			"application/json" }, method = RequestMethod.DELETE)
-	public ResponseEntity<GenericMessage> deleteKpiNameLov(
-			@ApiParam(value = "Id of the kpi name", required = true) @PathVariable("id") Long id) {
-		KpiNameSql entity = new KpiNameSql();
-		return kpiNameService.deleteLov(id, ReportService.CATEGORY.KPI_NAME, entity);
-	}
-
-	@Override
 	@ApiOperation(value = "Delete the dataWarehouse identified by given ID.", nickname = "deleteDataWarehouseLov", notes = "Delete the dataWarehouse identified by given ID", response = GenericMessage.class, tags = {
 			"lov", })
 	@ApiResponses(value = {
@@ -647,23 +610,6 @@ public class LovController implements LovApi {
 	public ResponseEntity<LovVOCollection> getAllIntegratedPortalLov(
 			@ApiParam(value = "Sort integratedportals based on the given order, example asc,desc", allowableValues = "asc, desc") @Valid @RequestParam(value = "sortOrder", required = false) String sortOrder) {
 		return integratedPortalService.getAllLov(sortOrder);
-	}
-
-	@Override
-	@ApiOperation(value = "Get all kpi name.", nickname = "getAllKpiNameLov", notes = "Get all kpi name. This endpoints will be used to Get all valid available kpi name.", response = LovVOCollection.class, tags = {
-			"lov", })
-	@ApiResponses(value = {
-			@ApiResponse(code = 201, message = "Returns message of succes or failure", response = LovVOCollection.class),
-			@ApiResponse(code = 204, message = "No content found."), @ApiResponse(code = 400, message = "Bad request."),
-			@ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
-			@ApiResponse(code = 403, message = "Request is not authorized."),
-			@ApiResponse(code = 405, message = "Method not allowed"),
-			@ApiResponse(code = 500, message = "Internal error") })
-	@RequestMapping(value = "/kpinames", produces = { "application/json" }, consumes = {
-			"application/json" }, method = RequestMethod.GET)
-	public ResponseEntity<LovVOCollection> getAllKpiNameLov(
-			@ApiParam(value = "Sort kpinames based on the given order, example asc,desc", allowableValues = "asc, desc") @Valid @RequestParam(value = "sortOrder", required = false) String sortOrder) {
-		return kpiNameService.getAllLov(sortOrder);
 	}
 
 	@Override
@@ -859,24 +805,6 @@ public class LovController implements LovApi {
 	}
 
 	@Override
-	@ApiOperation(value = "Update the kpi name identified by given ID.", nickname = "updateKpiNameLov", notes = "Update the kpi name identified by given ID", response = LovResponseVO.class, tags = {
-			"lov", })
-	@ApiResponses(value = { @ApiResponse(code = 200, message = "Successfully updated.", response = LovResponseVO.class),
-			@ApiResponse(code = 400, message = "Bad request"),
-			@ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
-			@ApiResponse(code = 403, message = "Request is not authorized."),
-			@ApiResponse(code = 404, message = "Invalid id, record not found."),
-			@ApiResponse(code = 500, message = "Internal error") })
-	@RequestMapping(value = "/kpinames", produces = { "application/json" }, consumes = {
-			"application/json" }, method = RequestMethod.PUT)
-	public ResponseEntity<LovResponseVO> updateKpiNameLov(
-			@ApiParam(value = "Request Body that contains data required for updating kpi name.", required = true) @Valid @RequestBody LovUpdateRequestVO lovUpdateRequestVO) {
-		KpiNameSql entity = new KpiNameSql();
-		BeanUtils.copyProperties(lovUpdateRequestVO.getData(), entity);
-		return kpiNameService.updateLov(lovUpdateRequestVO, entity, ReportService.CATEGORY.KPI_NAME);
-	}
-
-	@Override
 	@ApiOperation(value = "Update the dataWarehouse identified by given ID.", nickname = "updateDataWarehouseLov", notes = "Update the dataWarehouse identified by given ID", response = LovResponseVO.class, tags = {
 			"lov", })
 	@ApiResponses(value = { @ApiResponse(code = 200, message = "Successfully updated.", response = LovResponseVO.class),
@@ -984,5 +912,86 @@ public class LovController implements LovApi {
 		BeanUtils.copyProperties(lovUpdateRequestVO.getData(), entity);
 		return dataClassificationService.updateLov(lovUpdateRequestVO, entity,
 				ReportService.CATEGORY.DATA_CLASSIFICATION);
+	}
+
+	@Override
+	@ApiOperation(value = "Add a new kpi Classification.", nickname = "createKpiClassificationLov", notes = "Add a new non existing kpi Classification.", response = LovResponseVO.class, tags={ "lov", })
+    @ApiResponses(value = { 
+        @ApiResponse(code = 201, message = "Returns message of succes or failure ", response = LovResponseVO.class),
+        @ApiResponse(code = 400, message = "Bad Request", response = GenericMessage.class),
+        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+        @ApiResponse(code = 403, message = "Request is not authorized."),
+        @ApiResponse(code = 405, message = "Method not allowed"),
+        @ApiResponse(code = 500, message = "Internal error") })
+    @RequestMapping(value = "/kpiClassifications",
+        produces = { "application/json" }, 
+        consumes = { "application/json" },
+        method = RequestMethod.POST)
+	public ResponseEntity<LovResponseVO> createKpiClassificationLov(
+			@ApiParam(value = "Request Body that contains data required for creating a new kpi Classification." ,required=true )  @Valid @RequestBody LovRequestVO lovRequestVO) {
+		KpiClassificationSql entity = new KpiClassificationSql();
+		entity.setName(lovRequestVO.getData().getName());
+		return kpiClassificationService.createLov(lovRequestVO, entity);
+	}
+
+	@Override
+	@ApiOperation(value = "Delete the kpi Classification identified by given ID.", nickname = "deleteKpiClassificationLov", notes = "Delete the kpi Classification identified by given ID", response = GenericMessage.class, tags={ "lov", })
+    @ApiResponses(value = { 
+        @ApiResponse(code = 200, message = "Successfully deleted.", response = GenericMessage.class),
+        @ApiResponse(code = 400, message = "Bad request"),
+        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+        @ApiResponse(code = 403, message = "Request is not authorized."),
+        @ApiResponse(code = 404, message = "Invalid id, record not found."),
+        @ApiResponse(code = 500, message = "Internal error") })
+    @RequestMapping(value = "/kpiClassifications/{id}",
+        produces = { "application/json" }, 
+        consumes = { "application/json" },
+        method = RequestMethod.DELETE)
+	public ResponseEntity<GenericMessage> deleteKpiClassificationLov(
+			@ApiParam(value = "Id of the kpi Classification",required=true) @PathVariable("id") Long id) {
+		// TODO Auto-generated method stub
+		KpiClassificationSql entity = new KpiClassificationSql();
+		return kpiClassificationService.deleteLov(id, ReportService.CATEGORY.KPI_CLASSIFICATION, entity);
+	}
+
+	@Override
+	@ApiOperation(value = "Get all kpi Classifications.", nickname = "getAllKpiClassificationsLov", notes = "Get all kpiClassifications. This endpoints will be used to get all valid available kpiClassifications", response = LovVOCollection.class, tags={ "lov", })
+    @ApiResponses(value = { 
+        @ApiResponse(code = 201, message = "Returns message of succes or failure", response = LovVOCollection.class),
+        @ApiResponse(code = 204, message = "No content found."),
+        @ApiResponse(code = 400, message = "Bad request."),
+        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+        @ApiResponse(code = 403, message = "Request is not authorized."),
+        @ApiResponse(code = 405, message = "Method not allowed"),
+        @ApiResponse(code = 500, message = "Internal error") })
+    @RequestMapping(value = "/kpiClassifications",
+        produces = { "application/json" }, 
+        consumes = { "application/json" },
+        method = RequestMethod.GET)
+	public ResponseEntity<LovVOCollection> getAllKpiClassificationsLov(
+			@ApiParam(value = "Sort kpiClassifications based on the given order, example asc,desc", allowableValues = "asc, desc") @Valid @RequestParam(value = "sortOrder", required = false) String sortOrder) {
+		// TODO Auto-generated method stub
+		return kpiClassificationService.getAllLov(sortOrder);
+	}
+
+	@Override
+	@ApiOperation(value = "Update the kpi Classification identified by given ID.", nickname = "updateKpiClassificationLov", notes = "Update the kpi Classification identified by given ID", response = LovResponseVO.class, tags={ "lov", })
+    @ApiResponses(value = { 
+        @ApiResponse(code = 200, message = "Successfully updated.", response = LovResponseVO.class),
+        @ApiResponse(code = 400, message = "Bad request"),
+        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+        @ApiResponse(code = 403, message = "Request is not authorized."),
+        @ApiResponse(code = 404, message = "Invalid id, record not found."),
+        @ApiResponse(code = 500, message = "Internal error") })
+    @RequestMapping(value = "/kpiClassifications",
+        produces = { "application/json" }, 
+        consumes = { "application/json" },
+        method = RequestMethod.PUT)
+	public ResponseEntity<LovResponseVO> updateKpiClassificationLov(@Valid LovUpdateRequestVO lovUpdateRequestVO) {
+		// TODO Auto-generated method stub
+		KpiClassificationSql entity = new KpiClassificationSql();
+		BeanUtils.copyProperties(lovUpdateRequestVO.getData(), entity);
+		return kpiClassificationService.updateLov(lovUpdateRequestVO, entity,
+				ReportService.CATEGORY.KPI_CLASSIFICATION);
 	}
 }

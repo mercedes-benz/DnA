@@ -30,6 +30,8 @@ package com.daimler.data.db.jsonb.report;
 import java.io.Serializable;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -41,7 +43,7 @@ public class KPI implements Serializable {
 
 	private static final long serialVersionUID = 152482308131566126L;
 
-	private String name;
+	private KPIName name;
 	private List<String> reportingCause;
 	private String description;
 	private String kpiLink;
