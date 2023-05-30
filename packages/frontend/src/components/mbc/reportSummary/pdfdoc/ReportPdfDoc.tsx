@@ -506,7 +506,7 @@ const KPI = ({ kpis, showKPI }: IKPIProps) => {
                 </View>
                 <View style={styles.flexCol2}>
                   <Text style={styles.sectionTitle}>Reporting Cause</Text>
-                  <Text>{kpi.reportingCause || 'NA'}</Text>
+                  <Text>{kpi.reportingCause ? kpi.reportingCause?.join(', ') : 'NA'}</Text>
                 </View>
                 <View style={styles.flexCol2}>
                   <Text style={styles.sectionTitle}>Link KPI-Wiki</Text>
@@ -543,10 +543,10 @@ const DataAndFunction = ({ dataAndFunctions, showDataAndFunction, showMembers }:
                     </View>
                   </View>
                   <View style={[styles.flexLayout, { marginVertical: 5 }]} wrap={false}>
-                    <View style={styles.firstCol}>
+                    {/* <View style={styles.firstCol}>
                       <Text style={styles.sectionTitle}>Common Functions</Text>
                       {data.commonFunctions?.length ? <Text>{data.commonFunctions?.join(', ')}</Text> : <Text>NA</Text>}
-                    </View>
+                    </View> */}
                     <View style={styles.firstCol}>
                       <Text style={styles.sectionTitle}>Data Classification</Text>
                       {data.dataClassification ? <Text>{data.dataClassification}</Text> : <Text>NA</Text>}
@@ -600,14 +600,14 @@ const Members = ({ showMembers, members }: IMembersProps) => {
       {showMembers && (
         <View wrap={false}>
           <Text style={[styles.subTitle, styles.setMarginTop, { marginBottom: 25 }]}>Members</Text>
-          {members.reportOwners?.length ? (
+          {/* {members.reportOwners?.length ? (
             <View>
               <View style={styles.firstCol}>
                 <Text style={styles.sectionTitle}>Report Member(s)</Text>
               </View>
               <View style={styles.flexLayout}>{teamMembersList(members.reportOwners)}</View>
             </View>
-          ) : null}
+          ) : null} */}
           {/* {members.developers?.length ? (
             <View>
               <View style={styles.firstCol}>

@@ -35,6 +35,7 @@ import {
   getCorporateDataCatalogs,
   getFrontEndTools,
   getPlatforms,
+  getTags
 } from '../../redux/getDropdowns.services';
 
 const dataForms = {
@@ -44,7 +45,6 @@ const dataForms = {
     ART: '',
     corporateDataCatalog: '',
     description: '',
-    dateOfDataProduct: '',
   },
   ...tabs,
 };
@@ -72,16 +72,18 @@ const CreateDataProduct = ({ user, history }) => {
     dataDescriptionClassificationTabError: [],
     personalRelatedDataTabError: [],
     transnationalDataTabError: [],
-    deletionRequirementsTabError: []
+    deletionRequirementsTabError: [],
+    saveTabError:[]
   });
 
   const [isTouChecked, setIsTouChecked] = useState(false);
   const [showAllTabsError, setShowAllTabsError] = useState(false);
   const [showDescriptionTabError, setShowDescriptionTabError] = useState(false);
+  // const [actionButtonName, setActionButtonName] = useState('');
 
   const dispatch = useDispatch();
-  const { agileReleaseTrains, carLAFunctions, corporateDataCatalogs, platforms, frontEndTools } = useSelector(
-    (state) => state.dropdowns,
+  const { agileReleaseTrains, carLAFunctions, corporateDataCatalogs, platforms, frontEndTools, tags } = useSelector(
+    (state) =>state.dropdowns,
   );
 
   const { id: dataProductId } = useParams();
@@ -178,12 +180,21 @@ const CreateDataProduct = ({ user, history }) => {
         reset({ ...data, ...dataForms['contact-info'] }); // setting default values
       }
     }
+    if (id) {
+      let defaultValues = { ...data.selectedDataProduct };
+      reset(defaultValues); // setting default values
+    }
+
+    if(data.selectedDataProduct.isPublish){
+      setIsTouChecked(true)
+    }
 
     //eslint-disable-next-line
   }, [dispatch, data.selectedDataProduct, isCreatePage]);
 
   useEffect(() => {
     validatePublishRequest(data.selectedDataProduct);
+    //eslint-disable-next-line
   },[data.selectedDataProduct])
 
   useEffect(() => {
@@ -193,7 +204,7 @@ const CreateDataProduct = ({ user, history }) => {
       ProgressIndicator.hide();
       dispatch(setDivisionList(res.data));
       SelectBox.defaultSetup();
-    });
+    });    
     //eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dispatch]);
 
@@ -206,8 +217,9 @@ const CreateDataProduct = ({ user, history }) => {
 
   useEffect(() => {
     return () => {
-      dispatch(setSelectedDataProduct({}));
+      dispatch(setSelectedDataProduct({}));     
     };
+    //eslint-disable-next-line
   }, [dispatch]);
 
   useEffect(() => {
@@ -216,13 +228,14 @@ const CreateDataProduct = ({ user, history }) => {
     dispatch(getCorporateDataCatalogs());
     dispatch(getPlatforms());
     dispatch(getFrontEndTools());
+    dispatch(getTags());
   }, [dispatch]);
 
   useEffect(() => {
     if (isCreatePage) {
       SelectBox.defaultSetup();
     }
-  }, [isCreatePage, agileReleaseTrains, carLAFunctions, corporateDataCatalogs, platforms, frontEndTools]);
+  }, [isCreatePage, agileReleaseTrains, carLAFunctions, corporateDataCatalogs, platforms, frontEndTools, tags]);
 
   const setTab = (e) => {
     const id = e.target.id;
@@ -254,8 +267,40 @@ const CreateDataProduct = ({ user, history }) => {
       dataDescriptionClassificationTabError: [],
       personalRelatedDataTabError: [],
       transnationalDataTabError: [],
-      deletionRequirementsTabError: []
+      deletionRequirementsTabError: [],
+      saveTabError:[]
     }
+
+    if(!savedTabs?.includes('description')){
+      errorObject.saveTabError.push('Description');
+      formValid = false;
+    }
+
+    if(!savedTabs?.includes('contact-info')){
+      errorObject.saveTabError.push('Contact Information');
+      formValid = false;
+    }
+
+    if(!savedTabs?.includes('classification-confidentiality')){
+      errorObject.saveTabError.push('Data Description & Classification');
+      formValid = false;
+    }
+
+    if(!savedTabs?.includes('personal-data')){
+      errorObject.saveTabError.push('Personal Related Data');
+      formValid = false;
+    }
+    
+    if(!savedTabs?.includes('trans-national-data-transfer')){
+      errorObject.saveTabError.push('Transnational Data');
+      formValid = false;
+    }
+
+    if(!savedTabs?.includes('deletion-requirements')){
+      errorObject.saveTabError.push('Other Data');
+      formValid = false;
+    }
+
     if (!reqObj?.description || reqObj?.description === '') {
       errorObject.descriptionTabError.push('Description');
       formValid = false;
@@ -288,11 +333,6 @@ const CreateDataProduct = ({ user, history }) => {
 
     if (!reqObj?.department || reqObj?.department === '') {
       errorObject.contactInformationTabError.push('Department');
-      formValid = false;
-    }
-
-    if (!reqObj?.dateOfDataProduct || reqObj?.dateOfDataProduct === '') {
-      errorObject.contactInformationTabError.push('Publish Date of Data Product');
       formValid = false;
     }
     
@@ -331,21 +371,43 @@ const CreateDataProduct = ({ user, history }) => {
         errorObject.personalRelatedDataTabError.push('Original legal basis for processing this personal related data');
         formValid = false;
       }
+
+      if (!reqObj?.personalRelatedDataContactAwareTransfer || reqObj?.personalRelatedDataContactAwareTransfer === '') {
+        errorObject.personalRelatedDataTabError.push('Is corresponding Compliance contact aware of this transfer?');
+        formValid = false;
+      }
     }
 
+    if (reqObj?.personalRelatedDataContactAwareTransfer == 'Yes' ) {
+      if (!reqObj?.personalRelatedDataObjectionsTransfer || reqObj?.personalRelatedDataObjectionsTransfer === '') {
+        errorObject.personalRelatedDataTabError.push('Has s/he any objections to this transfer?');
+        formValid = false;
+      }
+    }
+
+    if(reqObj?.personalRelatedDataObjectionsTransfer === 'Yes') {
+      if (!reqObj.personalRelatedDataTransferingNonetheless || reqObj.personalRelatedDataTransferingNonetheless === '') {
+        errorObject.personalRelatedDataTabError.push('Please state your reasoning for transfering nonetheless');
+        formValid = false;
+      }
+      if (!reqObj.personalRelatedDataTransferingObjections || reqObj.personalRelatedDataTransferingObjections === '') {
+        errorObject.personalRelatedDataTabError.push('Please state your objections');
+        formValid = false;
+      }
+    }
 
     if (!reqObj?.transnationalDataTransfer || reqObj?.transnationalDataTransfer === '') {
       errorObject.transnationalDataTabError.push('Is data being transferred from one country to another?');
       formValid = false;
     }
 
-    if (!reqObj?.insiderInformation || reqObj?.insiderInformation === '') {
-      errorObject.transnationalDataTabError.push('Does product contain insider information?');
+    if (!reqObj?.dataOriginatedFromChina || reqObj?.dataOriginatedFromChina === '') {
+      errorObject.transnationalDataTabError.push('Is data from China included?');
       formValid = false;
     }
 
-    if (!reqObj?.dataOriginatedFromChina || reqObj?.dataOriginatedFromChina === '') {
-      errorObject.transnationalDataTabError.push('Is data from China included?');
+    if (!reqObj?.insiderInformation || reqObj?.insiderInformation === '') {
+      errorObject.deletionRequirementsTabError.push('Does data product contain (potential) insider information?');
       formValid = false;
     }
 
@@ -408,7 +470,7 @@ const CreateDataProduct = ({ user, history }) => {
       formValid = false;
     }
 
-    if(reqObj?.tou === true){
+    if(reqObj?.tou === true || data.isPublish){
       setIsTouChecked(true)
     }
 
@@ -461,20 +523,29 @@ const CreateDataProduct = ({ user, history }) => {
       }
   }
 
-  const onSave = (currentTab, values, callbackFn) => {
+  const onSave = (currentAction, currentTab, values, callbackFn) => {
     setShowAllTabsError(false);
-    if(values?.publish){
-      if(validatePublishRequest(values)){
-        proceedToSave(currentTab, values, callbackFn)
-      } else {
-        setShowAllTabsError(true);
-      }
-    } else {      
-      if(validateDescriptionTab(values)){
-        proceedToSave(currentTab, values, callbackFn)
-      } else {
-        setShowAllTabsError(true);
-      }      
+    if(currentAction === 'publish'){
+      // if(!values.id && values.id!='' && currentTab!='description'){
+      //   setShowDescriptionTabError(true);
+      // } else{
+        if(validatePublishRequest(values)){
+          proceedToSave(currentTab, values, callbackFn)
+        } else {
+          setShowAllTabsError(true);
+        }
+      // }
+    } else { 
+      // if(!values.id && values.id!='' && currentTab!='description'){
+      //   setShowDescriptionTabError(true);
+      // } else{
+        if(validateDescriptionTab(values)){
+          proceedToSave(currentTab, values, callbackFn)
+        } else {
+          setShowAllTabsError(true);
+        }   
+      // }
+         
     }
   };
 
@@ -519,7 +590,9 @@ const CreateDataProduct = ({ user, history }) => {
               <nav>
                 <ul className="tabs">
                   {/* <li className={savedTabs?.includes('description') ? 'tab valid' : 'tab valid active'}> */}
-                  <li className={errorsInPublish?.descriptionTabError?.length > 0 ? 'tab' : 'tab valid active'}>
+                  <li className={
+                    savedTabs?.includes('description') && 
+                  errorsInPublish?.descriptionTabError?.length < 1 ? 'tab valid active' : 'tab active'}>
                     <a
                       href="#tab-content-1"
                       id="description"
@@ -532,7 +605,8 @@ const CreateDataProduct = ({ user, history }) => {
                     </a>
                   </li>
                   {/* <li className={savedTabs?.includes('contact-info') ? 'tab valid' : 'tab disabled'}> */}
-                  <li className={errorsInPublish?.contactInformationTabError?.length > 0 ? 'tab' :'tab valid'}>
+                  <li className={savedTabs?.includes('contact-info') && 
+                  errorsInPublish?.contactInformationTabError?.length < 1 ? 'tab valid' :'tab'}>
                     <a
                       href="#tab-content-2"
                       id="contact-info"
@@ -545,7 +619,8 @@ const CreateDataProduct = ({ user, history }) => {
                     </a>
                   </li>
                   {/* <li className={savedTabs?.includes('classification-confidentiality') ? 'tab valid' : 'tab disabled'}> */}
-                  <li className={ errorsInPublish?.dataDescriptionClassificationTabError?.length > 0 ? 'tab' :'tab valid'}>
+                  <li className={ savedTabs?.includes('classification-confidentiality') && 
+                  errorsInPublish?.dataDescriptionClassificationTabError?.length < 1 ? 'tab valid' :'tab'}>
                     <a
                       href="#tab-content-3"
                       id="classification-confidentiality"
@@ -558,7 +633,8 @@ const CreateDataProduct = ({ user, history }) => {
                     </a>
                   </li>
                   {/* <li className={savedTabs?.includes('personal-data') ? 'tab valid' : 'tab disabled'}> */}
-                  <li className={errorsInPublish?.personalRelatedDataTabError?.length > 0 ? 'tab' :'tab valid'}>
+                  <li className={savedTabs?.includes('personal-data') && 
+                  errorsInPublish?.personalRelatedDataTabError?.length < 1 ? 'tab valid' :'tab'}>
                     <a
                       href="#tab-content-4"
                       id="personal-data"
@@ -571,7 +647,8 @@ const CreateDataProduct = ({ user, history }) => {
                     </a>
                   </li>
                   {/* <li className={savedTabs?.includes('trans-national-data-transfer') ? 'tab valid' : 'tab disabled'}> */}
-                  <li className={errorsInPublish?.transnationalDataTabError?.length > 0 ? 'tab' :'tab valid'}>
+                  <li className={savedTabs?.includes('trans-national-data-transfer') && 
+                  errorsInPublish?.transnationalDataTabError?.length < 1 ? 'tab valid' :'tab'}>
                     <a
                       href="#tab-content-5"
                       id="trans-national-data-transfer"
@@ -585,10 +662,11 @@ const CreateDataProduct = ({ user, history }) => {
                   </li>
                   {/* <li className={savedTabs?.includes('deletion-requirements') ? 'tab valid' : 'tab disabled'}> */}
                   <li className={
-                    errorsInPublish?.deletionRequirementsTabError?.length > 0
-                    ?  errorsInPublish?.deletionRequirementsTabError?.includes('Terms and conditions acknowledgement') && !isTouChecked
+                    savedTabs?.includes('deletion-requirements') &&
+                    errorsInPublish?.deletionRequirementsTabError?.length < 1
+                    ?  'tab valid'
+                    : errorsInPublish?.deletionRequirementsTabError?.includes('Terms and conditions acknowledgement') && !isTouChecked
                         ?'tab': 'tab valid'
-                    :'tab valid'
                     }>
                     <a
                       href="#tab-content-6"
@@ -607,13 +685,15 @@ const CreateDataProduct = ({ user, history }) => {
             <div className="tabs-content-wrapper">
               <div id="tab-content-1" className="tab-content">
                 <Description
-                  onSave={(values) => {onSave('description', values)}}
+                  onSave={(values) => {
+                    onSave('description', values)}}
                   artList={agileReleaseTrains}
                   carlaFunctionList={carLAFunctions}
                   dataCatalogList={corporateDataCatalogs}
                   userInfo={userInfo}
                   platformList={platforms}
                   frontEndToolList={frontEndTools}
+                  tagsList={tags}
                   isDataProduct={true}
                 />
               </div>
@@ -673,28 +753,54 @@ const CreateDataProduct = ({ user, history }) => {
                   {displayErrorOfAllTabs('Data Description & Classification Tab', errorsInPublish?.dataDescriptionClassificationTabError)}
                   {displayErrorOfAllTabs('Personal Related Data Tab', errorsInPublish?.personalRelatedDataTabError)}
                   {displayErrorOfAllTabs('Transnational Data Tab', errorsInPublish?.transnationalDataTabError)}
-                  {displayErrorOfAllTabs('Other Tab', errorsInPublish?.deletionRequirementsTabError)}  
+                  {displayErrorOfAllTabs('Other Data Tab', errorsInPublish?.deletionRequirementsTabError)}  
                   </ul>
                 </div>
               ) : ''}
+
+              { showAllTabsError &&
+                errorsInPublish?.saveTabError?.length > 0 ? 
+              (
+                <div>
+                  <h3 className={classNames('error-message')}>
+                    Please save following tabs details before publishing
+                  </h3>
+                  {errorsInPublish?.saveTabError?.length > 0 ?
+                    <li className={classNames('error-message')}>
+                      <ul>
+                        {errorsInPublish?.saveTabError?.map((item) => {
+                          return (
+                            <li className={Styles.errorItem} key={item}>
+                              {item}
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    </li>             
+                  : ''}
+                </div>
+              ) : ''} 
+
               { showDescriptionTabError &&
                 errorsInPublish?.descriptionTabError?.length > 0 ? 
               (
                 <div>
                   <h3 className={classNames('error-message')}>
-                    Please fill Description Tab first
+                    Please fill and save Description Tab first
                   </h3>
                   <ul>
                   {displayErrorOfAllTabs('Description Tab', errorsInPublish?.descriptionTabError)}
                   </ul>
                 </div>
               ) : ''} 
-            <OtherRelevant onSave={(values) => {onSave(currentTab, values)}} 
+            <OtherRelevant onSave={(values) => {
+              // setActionButtonName('save');
+              onSave('save',currentTab, values)}} 
             onDescriptionTabErrors={(errorObj) => {
               setShowDescriptionTabError(false);
               // validateDescriptionTab(errorObj) ? 
               // setShowDescriptionTabError(false) : setShowDescriptionTabError(true)
-              (!validateDescriptionTab(errorObj) && (currentTab != 'contact-info')) ? 
+              (!validateDescriptionTab(errorObj) && (currentTab != 'description')) ? 
                 setShowDescriptionTabError(true) 
                 :  
                 setShowDescriptionTabError(false)
@@ -702,8 +808,9 @@ const CreateDataProduct = ({ user, history }) => {
               
               }
             onPublish={(values, callbackFn) => {
+              // setActionButtonName('publish');
               setShowDescriptionTabError(false);
-              onSave(currentTab, values, callbackFn)}} 
+              onSave('publish',currentTab, values, callbackFn)}} 
             user={userInfo} isDataProduct={true} currentTab={currentTab}/>
           </div>
           <ConfirmModal
@@ -724,7 +831,10 @@ const CreateDataProduct = ({ user, history }) => {
               const id = createCopyId || dataProductId || data?.selectedDataProduct?.id;
               if(id){
                 getDataProductById();
-              }              
+              }else{
+                const data = tabs[currentTab];
+                reset(data);
+              }                
               setCurrentTab(showChangeAlert.switchingTab);
               elementRef.current[Object.keys(dataForms).indexOf(showChangeAlert.switchingTab)].click();
               setShowChangeAlert({ modal: false, switchingTab: '' });

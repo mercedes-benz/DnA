@@ -5,17 +5,20 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
 
-import com.daimler.data.auth.vault.VaultAuthClientImpl;
-import com.daimler.data.dto.forecast.*;
-import com.daimler.data.service.forecast.ForecastService;
 import org.apache.commons.io.FilenameUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -27,15 +30,38 @@ import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.daimler.data.api.forecast.ForecastComparisonsApi;
 import com.daimler.data.api.forecast.ForecastInputsApi;
 import com.daimler.data.api.forecast.ForecastProjectsApi;
 import com.daimler.data.api.forecast.ForecastRunsApi;
 import com.daimler.data.application.auth.UserStore;
 import com.daimler.data.application.client.StorageServicesClient;
+import com.daimler.data.auth.vault.VaultAuthClientImpl;
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
+import com.daimler.data.dto.forecast.ApiKeyResponseVO;
+import com.daimler.data.dto.forecast.ApiKeyVO;
+import com.daimler.data.dto.forecast.CollaboratorVO;
+import com.daimler.data.dto.forecast.CreatedByVO;
+import com.daimler.data.dto.forecast.ForecastCollectionVO;
+import com.daimler.data.dto.forecast.ForecastComparisonCreateResponseVO;
+import com.daimler.data.dto.forecast.ForecastComparisonResultVO;
+import com.daimler.data.dto.forecast.ForecastComparisonVO;
+import com.daimler.data.dto.forecast.ForecastComparisonsCollectionDto;
+import com.daimler.data.dto.forecast.ForecastProjectCreateRequestVO;
+import com.daimler.data.dto.forecast.ForecastProjectCreateRequestWrapperVO;
+import com.daimler.data.dto.forecast.ForecastProjectResponseVO;
+import com.daimler.data.dto.forecast.ForecastProjectUpdateRequestVO;
+import com.daimler.data.dto.forecast.ForecastRunCollectionVO;
+import com.daimler.data.dto.forecast.ForecastRunResponseVO;
+import com.daimler.data.dto.forecast.ForecastVO;
+import com.daimler.data.dto.forecast.InputFileVO;
+import com.daimler.data.dto.forecast.InputFilesCollectionVO;
+import com.daimler.data.dto.forecast.RunVO;
+import com.daimler.data.dto.forecast.RunVisualizationVO;
 import com.daimler.data.dto.storage.BucketObjectsCollectionWrapperDto;
 import com.daimler.data.dto.storage.FileUploadResponseDto;
+import com.daimler.data.service.forecast.ForecastService;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -48,7 +74,7 @@ import lombok.extern.slf4j.Slf4j;
 @Api(value = "Forecast APIs")
 @RequestMapping("/api")
 @Slf4j
-public class ForecastController implements ForecastRunsApi, ForecastProjectsApi, ForecastInputsApi {
+public class ForecastController implements ForecastRunsApi, ForecastProjectsApi, ForecastInputsApi, ForecastComparisonsApi {
 
 	@Autowired
 	private ForecastService service;
@@ -62,8 +88,16 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 	@Autowired
 	private VaultAuthClientImpl vaultAuthClient;
 
+	@Value("${databricks.defaultConfigYml}")
+	private String defaultConfigFolderPath;
+	@Value("${databricks.runsDefaultPageSize}")
+	private String runsDefaultPageSize;
 	private static final String BUCKETS_PREFIX = "chronos-";
 	private static final String INPUT_FILE_PREFIX = "/inputs/";
+	private static final String COMPARISON_FOLDER_PREFIX = "/comparisons/";
+	private static final String ACTUALS_FILENAME_PREFIX = "actuals";
+	private static final String CONFIG_PATH = "/objects?prefix=configs/";
+	private static final String BUCKET_TYPE = "chronos-core/";
 
 	private static final List<String> contentTypes = Arrays.asList("xlsx", "csv");
 
@@ -77,22 +111,52 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 	}
 
 	@Override
-	@ApiOperation(value = "Get forecasts config files", nickname = "getConfigFiles", notes = "Get forecasts config files", response = BucketObjectsCollectionWrapperDto.class, tags={ "forecast-projects", })
-    @ApiResponses(value = {
-        @ApiResponse(code = 200, message = "Returns message of success or failure", response = BucketObjectsCollectionWrapperDto.class),
-        @ApiResponse(code = 204, message = "Fetch complete, no content found."),
-        @ApiResponse(code = 400, message = "Bad request."),
-        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
-        @ApiResponse(code = 403, message = "Request is not authorized."),
-        @ApiResponse(code = 405, message = "Method not allowed"),
-        @ApiResponse(code = 500, message = "Internal error") })
-    @RequestMapping(value = "/forecasts/default-config/files",
-        produces = { "application/json" },
-        consumes = { "application/json" },
-        method = RequestMethod.GET)
-    public ResponseEntity<BucketObjectsCollectionWrapperDto> getConfigFiles(){
+	@ApiOperation(value = "Get forecasts config files", nickname = "getConfigFiles", notes = "Get forecasts config files", response = BucketObjectsCollectionWrapperDto.class, tags = {"forecast-projects",})
+	@ApiResponses(value = {
+			@ApiResponse(code = 200, message = "Returns message of success or failure", response = BucketObjectsCollectionWrapperDto.class),
+			@ApiResponse(code = 204, message = "Fetch complete, no content found."),
+			@ApiResponse(code = 400, message = "Bad request."),
+			@ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+			@ApiResponse(code = 403, message = "Request is not authorized."),
+			@ApiResponse(code = 405, message = "Method not allowed"),
+			@ApiResponse(code = 500, message = "Internal error")})
+	@RequestMapping(value = "/forecasts/default-config/files",
+			produces = {"application/json"},
+			consumes = {"application/json"},
+			method = RequestMethod.GET)
+	public ResponseEntity<BucketObjectsCollectionWrapperDto> getConfigFiles(@ApiParam(value = "forecast project ID ") @Valid @RequestParam(value = "id", required = false) String id) {
 		BucketObjectsCollectionWrapperDto collection = new BucketObjectsCollectionWrapperDto();
-		collection = storageClient.getBucketObjects();
+		BucketObjectsCollectionWrapperDto projectSpecificBucketCollection = new BucketObjectsCollectionWrapperDto();
+		BucketObjectsCollectionWrapperDto chronosCoreSpecificcollection = new BucketObjectsCollectionWrapperDto();
+		ForecastVO existingForecast = new ForecastVO();
+		boolean isValidId = true;
+		if (id != null) {
+			existingForecast = service.getById(id);
+			if (existingForecast == null || !id.equalsIgnoreCase(existingForecast.getId())) {
+				log.warn("No forecast found with id {}, failed to fetch saved inputs for given forecast id", id);
+				isValidId = false;
+			}
+			CreatedByVO requestUser = this.userStore.getVO();
+			List<String> forecastProjectUsers = new ArrayList<>();
+			forecastProjectUsers.add(existingForecast.getCreatedBy().getId());
+			List<CollaboratorVO> collaborators = existingForecast.getCollaborators();
+			if (collaborators != null && !collaborators.isEmpty()) {
+				collaborators.forEach(n -> forecastProjectUsers.add(n.getId()));
+			}
+			if (forecastProjectUsers != null && !forecastProjectUsers.isEmpty()) {
+				if (!forecastProjectUsers.contains(requestUser.getId())) {
+					log.warn("User not part of forecast project with id {} and name {}, Not authorized to user other project inputs", id, existingForecast.getName());
+					return new ResponseEntity<>(null, HttpStatus.FORBIDDEN);
+				}
+			}
+		}
+		collection = service.getBucketObjects(defaultConfigFolderPath,BUCKET_TYPE);
+		if (isValidId && id != null) {
+			projectSpecificBucketCollection = service.getBucketObjects(existingForecast.getBucketName() + CONFIG_PATH,existingForecast.getBucketName()+"/");
+			if (projectSpecificBucketCollection.getData() != null) {
+				collection.getData().getBucketObjects().addAll(projectSpecificBucketCollection.getData().getBucketObjects());
+			}
+		}
 		return new ResponseEntity<>(collection, HttpStatus.OK);
 	}
 
@@ -141,6 +205,80 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 
 
 	@Override
+	@ApiOperation(value = "delete uploaded input file", nickname = "deleteSavedInputFile", notes = "delete uploaded input file by id", response = GenericMessage.class, tags = {
+			"forecast-inputs",})
+	@ApiResponses(value = {
+			@ApiResponse(code = 201, message = "Returns message of success or failure", response = GenericMessage.class),
+			@ApiResponse(code = 204, message = "Fetch complete, no content found."),
+			@ApiResponse(code = 400, message = "Bad request."),
+			@ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+			@ApiResponse(code = 403, message = "Request is not authorized."),
+			@ApiResponse(code = 405, message = "Method not allowed"),
+			@ApiResponse(code = 500, message = "Internal error")})
+	@RequestMapping(value = "/forecasts/{id}/inputs/{savedinputid}", produces = {"application/json"}, consumes = {
+			"application/json"}, method = RequestMethod.DELETE)
+	public ResponseEntity<GenericMessage> deleteSavedInputFile(
+			@ApiParam(value = "forecast project ID ", required = true) @PathVariable("id") String id,
+			@ApiParam(value = "saved Input file ID", required = true) @PathVariable("savedinputid") String sid) {
+
+		GenericMessage responseMessage = new GenericMessage();
+		CreatedByVO requestUser = this.userStore.getVO();
+		String user = requestUser.getId();
+		ForecastVO existingForecast = service.getById(id);
+		if (existingForecast == null || !id.equalsIgnoreCase(existingForecast.getId())) {
+			log.warn("No forecast found with id {}, failed to fetch saved inputs for given forecast id", id);
+			return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
+		}
+		List<String> forecastProjectUsers = new ArrayList<>();
+		forecastProjectUsers.add(existingForecast.getCreatedBy().getId());
+		List<CollaboratorVO> collaborators = existingForecast.getCollaborators();
+		if (collaborators != null && !collaborators.isEmpty()) {
+			collaborators.forEach(n -> forecastProjectUsers.add(n.getId()));
+		}
+		if (forecastProjectUsers != null && !forecastProjectUsers.isEmpty()) {
+			if (!forecastProjectUsers.contains(requestUser.getId())) {
+				log.warn("User not part of forecast project with id {} and name {}, Not authorized to user other project inputs", id, existingForecast.getName());
+				return new ResponseEntity<>(null, HttpStatus.FORBIDDEN);
+			}
+		}
+		boolean notFound = false;
+		List<InputFileVO> savedInputs = existingForecast.getSavedInputs();
+		if (savedInputs != null && !savedInputs.isEmpty()) {
+			List<String> fileIdList = savedInputs.stream().map(InputFileVO::getId).collect(Collectors.toList());
+			if (fileIdList.contains(sid)) {
+				notFound = true;
+				Optional<InputFileVO> fileObject = savedInputs.stream().
+						filter(x -> x.getId().equals(sid)).
+						findFirst();
+				InputFileVO file = fileObject.get();
+				savedInputs.remove(file);
+			} else
+				notFound = false;
+		}
+		if (!notFound) {
+			return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
+		}
+		existingForecast.setSavedInputs(savedInputs);
+
+		try {
+			ForecastVO updatedVO = service.create(existingForecast);
+		}
+		catch (Exception e){
+			List<MessageDescription> errors = new ArrayList<>();
+			log.error("Failed while saving input files for project name {} project id {}",existingForecast.getName(), existingForecast.getId());
+			MessageDescription msg = new MessageDescription("Failed while saving input files for project id" +existingForecast.getId());
+			errors.add(msg);
+			responseMessage.setSuccess("FAILED");
+			responseMessage.setErrors(errors);
+			return new ResponseEntity<>(responseMessage, HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+		responseMessage.setSuccess("SUCCESS");
+		return new ResponseEntity<>(responseMessage, HttpStatus.OK);
+	}
+
+
+
+	@Override
 	@ApiOperation(value = "Initialize/Create forecast project for user.", nickname = "createForecastProject", notes = "Create forecast project for user ", response = ForecastProjectResponseVO.class, tags = {
 			"forecast-projects", })
 	@ApiResponses(value = {
@@ -169,6 +307,42 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 			responseVO.setResponse(errorMessage);
 			return new ResponseEntity<>(responseVO, HttpStatus.CONFLICT);
 		}
+		CreatedByVO requestUser = this.userStore.getVO();
+		List<MessageDescription> errors = new ArrayList<>();
+		if (forecastProjectCreateVO !=null && forecastProjectCreateVO.getCollaborators() != null && forecastProjectCreateVO.getCollaborators().size() > 0) {
+			// To check if user is collaborator in the getAddCollaborators list.
+			CollaboratorVO exstingcollaboratorisCreator = forecastProjectCreateVO.getCollaborators().stream().filter(x -> requestUser.getId().equalsIgnoreCase(x.getId())).findAny().orElse(null);
+			if (exstingcollaboratorisCreator != null && exstingcollaboratorisCreator.getId() != null) {
+				GenericMessage responseMessg = new GenericMessage();
+				responseMessg.setSuccess("FAILED");
+				MessageDescription errMsg = new MessageDescription(requestUser.getId() + " is already a Creator and can not be added as a collaborator");
+				errors.add(errMsg);
+				responseMessg.setErrors(errors);
+				log.error(errMsg.getMessage());
+				responseVO.setResponse(responseMessg);
+				return new ResponseEntity<>(responseVO, HttpStatus.BAD_REQUEST);
+			}
+
+			if (forecastProjectCreateVO.getCollaborators() != null) {
+				// To check if user is already present in the existingForecast Collaborators list.
+				Set<String> seenIds = new HashSet<>();
+				GenericMessage responseMessg = new GenericMessage();
+				for (CollaboratorVO collaborator : forecastProjectCreateVO.getCollaborators()) {
+					if (seenIds.contains(collaborator.getId())) {
+						// duplicate id found.
+						responseMessg.setSuccess("FAILED");
+						MessageDescription errMsg = new MessageDescription( "Duplicate entry for collaborator " + collaborator.getId());
+						errors.add(errMsg);
+						responseMessg.setErrors(errors);
+						log.error(errMsg.getMessage());
+						responseVO.setResponse(responseMessg);
+						return new ResponseEntity<>(responseVO, HttpStatus.BAD_REQUEST);
+					} else {
+						seenIds.add(collaborator.getId());
+					}
+				}
+			}
+		}
 		if (existingForecast == null) {
 			boolean isBucketExists = service.isBucketExists(BUCKETS_PREFIX + name);
 			if(isBucketExists) {
@@ -181,7 +355,6 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 				return new ResponseEntity<>(responseVO, HttpStatus.CONFLICT);
 			}
 		}
-		CreatedByVO requestUser = this.userStore.getVO();
 		ForecastVO forecastVO = new ForecastVO();
 		forecastVO.setBucketName(BUCKETS_PREFIX + name);
 		forecastVO.setCollaborators(forecastProjectCreateVO.getCollaborators());
@@ -384,6 +557,42 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 				}
 			}
 		}
+		if (forecastUpdateRequestVO.getAddCollaborators() != null && forecastUpdateRequestVO.getAddCollaborators().size() > 0) {
+			// To check if user is collaborator in the getAddCollaborators list.
+			CollaboratorVO exstingcollaboratorisCreator = forecastUpdateRequestVO.getAddCollaborators().stream().filter(x -> existingForecast.getCreatedBy().getId().equalsIgnoreCase(x.getId())).findAny().orElse(null);
+			if (exstingcollaboratorisCreator != null && exstingcollaboratorisCreator.getId() != null) {
+				GenericMessage responseMessg = new GenericMessage();
+				responseMessg.setSuccess("FAILED");
+				MessageDescription errMsg = new MessageDescription(existingForecast.getCreatedBy().getId() + " is already a Creator and can not be added as a collaborator");
+				errors.add(errMsg);
+				responseMessg.setErrors(errors);
+				log.error(errMsg.getMessage());
+				responseVO.setResponse(responseMessg);
+				return new ResponseEntity<>(responseVO, HttpStatus.BAD_REQUEST);
+			}
+
+			if (existingForecast.getCollaborators() != null) {
+				// To check if user is already present in the existingForecast Collaborators list.
+				AtomicBoolean isCollabExits = new AtomicBoolean(false);
+				forecastUpdateRequestVO.getAddCollaborators().stream().forEach(collab -> {
+					CollaboratorVO exstingcollaborators = existingForecast.getCollaborators().stream().filter(x -> collab.getId().equalsIgnoreCase(x.getId())).findAny().orElse(null);
+					GenericMessage responseMessg = new GenericMessage();
+					if (exstingcollaborators != null && exstingcollaborators.getId() != null) {
+						isCollabExits.set(true);
+						responseMessg.setSuccess("FAILED");
+						MessageDescription errMsg = new MessageDescription(exstingcollaborators.getId() + " collaborator is already present");
+						errors.add(errMsg);
+						responseMessg.setErrors(errors);
+						log.error(errMsg.getMessage());
+						responseVO.setResponse(responseMessg);
+					}
+				});
+				if (isCollabExits.get()) {
+					return new ResponseEntity<>(responseVO, HttpStatus.BAD_REQUEST);
+				}
+			}
+		}
+
 		responseMessage = service.updateForecastByID(id, forecastUpdateRequestVO, existingForecast);
 		 responseVO.setResponse(responseMessage);
 
@@ -499,6 +708,37 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 			log.warn("No forecast found with id {}, failed to fetch saved inputs for given forecast id", id);
 			return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
 		}
+		//remove deleted runs before returning
+		List<RunVO> existingRuns = existingForecast.getRuns();
+		if(existingRuns!=null && !existingRuns.isEmpty()) {
+			List<RunVO> tempExistingRuns = new ArrayList<>(existingRuns);
+			for (int i = 0; i < existingRuns.size(); i++) {
+				RunVO details = existingRuns.get(i);
+				if (details.isIsDeleted() != null) {
+					boolean isDelete = details.isIsDeleted();
+					if (isDelete) {
+						tempExistingRuns.remove(details);
+					}
+				}
+
+			}
+			existingForecast.setRuns(tempExistingRuns);
+		}
+		List<ForecastComparisonVO> existingComparisons = existingForecast.getComparisons();
+		if(existingComparisons!=null && !existingComparisons.isEmpty()) {
+			List<ForecastComparisonVO> tempExistingComparisons = new ArrayList<>(existingComparisons);
+			for(int i=0; i<tempExistingComparisons.size(); i++) {
+				ForecastComparisonVO details= tempExistingComparisons.get(i);
+				if(details.isIsDeleted()!= null) {
+					boolean isDelete = details.isIsDeleted();
+					if(isDelete) {
+						tempExistingComparisons.remove(details);
+					}
+				}
+			}
+			existingForecast.setComparisons(tempExistingComparisons);
+		}
+    
 		CreatedByVO requestUser = this.userStore.getVO();
 		List<String> forecastProjectUsers = new ArrayList<>();
 		forecastProjectUsers.add(existingForecast.getCreatedBy().getId());
@@ -543,6 +783,9 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 		if(runVOList!= null && !runVOList.isEmpty()) {
 			for (RunVO run : runVOList) {
 				if (rid.equalsIgnoreCase(run.getId())) {
+					if(run.isIsDeleted()==true){
+						return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
+					}
 					notFound = true;
 					List<String> forecastProjectUsers = new ArrayList<>();
 					forecastProjectUsers.add(existingForecast.getCreatedBy().getId());
@@ -568,7 +811,7 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 		if(!notAuthorized) {
 			 GenericMessage responseMessage = new GenericMessage();
 			 List<MessageDescription> errMsgs = new ArrayList<>();
-			 MessageDescription errMsg = new MessageDescription("Only user who triggered the run can delete. Unauthorized");
+			 MessageDescription errMsg = new MessageDescription("Only user of this project can delete the run. Unauthorized");
 			 responseMessage.setSuccess("FAILED");
 			 errMsgs.add(errMsg);
 			 responseMessage.setErrors(errMsgs);
@@ -602,6 +845,9 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 		if(runVOList!= null && !runVOList.isEmpty()) {
 			for(RunVO run: runVOList) {
 				if(rid.equalsIgnoreCase(run.getId())) {
+					if(run.isIsDeleted()==true){
+						return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
+					}
 					notFound = true;
 					if(!user.equalsIgnoreCase(run.getTriggeredBy())) {
 						notAuthorized = false;
@@ -648,7 +894,7 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 			@ApiParam(value = "page size to limit the number of forecasts, Example 15") @Valid @RequestParam(value = "limit", required = false) Integer limit) {
 
 		ForecastRunCollectionVO collection = new ForecastRunCollectionVO();
-		int defaultLimit = 10;
+		int defaultLimit = Integer.parseInt(runsDefaultPageSize);
 		if (offset == null || offset < 0)
 			offset = 0;
 		if (limit == null || limit < 0) {
@@ -669,8 +915,9 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 				log.error("User not part of forecast project with id {} and name {}, Not authorized to user other project inputs",id,existingForecast.getName());
 				return new ResponseEntity<>(collection, HttpStatus.FORBIDDEN);
 			}else {
-				List<RunVO> records = service.getAllRunsForProject(limit, offset, existingForecast.getId());
-				Long count = service.getRunsCount(id);
+				Object[] runCollectionWrapper = service.getAllRunsForProject(limit, offset, existingForecast.getId());
+				List<RunVO> records = (List<RunVO>) runCollectionWrapper[0];
+				Long count = (Long) runCollectionWrapper[1];
 				HttpStatus responseCode = HttpStatus.NO_CONTENT;
 				if(records!=null && !records.isEmpty()) {
 					collection.setRecords(records);
@@ -684,24 +931,6 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 	}
 
 
-//	@Override
-//	@ApiOperation(value = "Get all forecast project run visualization for the user.", nickname = "getRunVisualizationData", notes = "Get all forecasts projects for the user.", response = RunVisualizationVO.class, tags = {
-//			"forecast-runs", })
-//	@ApiResponses(value = {
-//			@ApiResponse(code = 201, message = "Returns message of success or failure", response = RunVisualizationVO.class),
-//			@ApiResponse(code = 204, message = "Fetch complete, no content found."),
-//			@ApiResponse(code = 400, message = "Bad request."),
-//			@ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
-//			@ApiResponse(code = 403, message = "Request is not authorized."),
-//			@ApiResponse(code = 405, message = "Method not allowed"),
-//			@ApiResponse(code = 500, message = "Internal error") })
-//	@RequestMapping(value = "/forecasts/{id}/runs/{correlationid}", produces = { "application/json" }, consumes = {
-//			"application/json" }, method = RequestMethod.GET)
-//	public ResponseEntity<RunVisualizationVO> getRunVisualizationData(
-//			@ApiParam(value = "forecast project ID ", required = true) @PathVariable("id") String id,
-//			@ApiParam(value = "DNA correlation Id for the run", required = true) @PathVariable("correlationid") String rid) {
-//		return null;
-//	}
 
 	@Override
 	@ApiOperation(value = "Create new run for forecast project.", nickname = "createForecastRun", notes = "Create run for forecast project", response = ForecastRunResponseVO.class, tags={ "forecast-runs", })
@@ -839,5 +1068,379 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 			}
 			return new ResponseEntity<>(responseVO, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
+
+
+	@Override
+	@ApiOperation(value = "Create new comparison for forecast project.", nickname = "createForecastComparison", notes = "Create comparison for forecast project", response = ForecastComparisonCreateResponseVO.class, tags = {"forecast-comparisons",})
+	@ApiResponses(value = {
+			@ApiResponse(code = 201, message = "Returns message of success or failure ", response = ForecastRunResponseVO.class),
+			@ApiResponse(code = 400, message = "Bad Request", response = GenericMessage.class),
+			@ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+			@ApiResponse(code = 403, message = "Request is not authorized."),
+			@ApiResponse(code = 405, message = "Method not allowed"),
+			@ApiResponse(code = 500, message = "Internal error")})
+	@RequestMapping(value = "/forecasts/{id}/comparisons",
+			produces = {"application/json"},
+			consumes = {"multipart/form-data"},
+			method = RequestMethod.POST)
+	public ResponseEntity<ForecastComparisonCreateResponseVO> createForecastComparison(@ApiParam(value = "forecast project ID ",required=true) @PathVariable("id") String id,
+			@ApiParam(value = "Comma separated forecast run corelation Ids. Maximum 12 Ids can be sent. Please avoid sending duplicates.", required=true) @RequestParam(value="runCorelationIds", required=true)  String runCorelationIds,
+			@ApiParam(value = "The input file for the comparison of forecast runs.") @Valid @RequestPart(value="actualsFile", required=false) MultipartFile actualsFile,
+			@ApiParam(value = "Comparison name") @RequestParam(value="comparisonName", required=false)  String comparisonName)
+	{
+		ForecastComparisonCreateResponseVO responseVO = new ForecastComparisonCreateResponseVO();
+		ForecastVO existingForecast = service.getById(id);
+		CreatedByVO requestUser = this.userStore.getVO();
+		String user = requestUser.getId();
+		SimpleDateFormat isoFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS+00:00");
+		Date createdOn = new Date();
+		try {
+			createdOn = isoFormat.parse(isoFormat.format(createdOn));
+		}catch(Exception e) {
+			log.warn("Failed to format createdOn date to ISO format");
+		}
+		comparisonName = comparisonName!= null && !"".equalsIgnoreCase(comparisonName) ? comparisonName :  "comparison - " + createdOn; //ISOdate as comparisonname from createdOn
+		Boolean notAuthorized = false;
+		if(existingForecast==null || existingForecast.getId()==null) {
+			log.error("Forecast project with this id {} doesnt exists , failed to create comparison", id);
+			MessageDescription invalidMsg = new MessageDescription("Forecast project doesnt exists with given id");
+			GenericMessage errorMessage = new GenericMessage();
+			errorMessage.setSuccess("FAILED");
+			errorMessage.addErrors(invalidMsg);
+			responseVO.setData(null);
+			responseVO.setResponse(errorMessage);
+			return new ResponseEntity<>(responseVO, HttpStatus.NOT_FOUND);
+		}
+		List<String> forecastProjectUsers = new ArrayList<>();
+		forecastProjectUsers.add(existingForecast.getCreatedBy().getId());
+		List<CollaboratorVO> collaborators = existingForecast.getCollaborators();
+		if (collaborators != null && !collaborators.isEmpty()) {
+			collaborators.forEach(n -> forecastProjectUsers.add(n.getId()));
+		}
+		if (forecastProjectUsers != null && !forecastProjectUsers.isEmpty()) {
+			if (!forecastProjectUsers.contains(requestUser.getId())) {
+				log.warn("User not part of forecast project with id {} and name {}, Not authorized", id, existingForecast.getName());
+				notAuthorized=true;
+
+			}
+		}
+		if(notAuthorized) {
+			 GenericMessage responseMessage = new GenericMessage();
+			 List<MessageDescription> errMsgs = new ArrayList<>();
+			 MessageDescription errMsg = new MessageDescription("Only user of this project can delete the run. Unauthorized");
+			 responseMessage.setSuccess("FAILED");
+			 errMsgs.add(errMsg);
+			 responseMessage.setErrors(errMsgs);
+			 responseVO.setData(null);
+			 responseVO.setResponse(responseMessage);
+			 return new ResponseEntity<>(responseVO, HttpStatus.FORBIDDEN);
+		}
+		List<String> invalidRunIds = new ArrayList<>();
+		List<String> validRunsPath = new ArrayList<>();
+		List<RunVO> existingRuns = existingForecast.getRuns();
+		if(runCorelationIds!=null) {
+			try {
+				String[] runCorrIds = runCorelationIds.split(",");
+				List<String> runIdsList = Arrays.asList(runCorrIds);
+				List<String> distinctRunIds = runIdsList.stream().distinct().collect(Collectors.toList());
+				if(runIdsList!=null && !runIdsList.isEmpty()) {
+					for(String runId : distinctRunIds) {
+						Optional<RunVO> any = existingRuns.stream().filter(x -> runId.equalsIgnoreCase(x.getId()) && (x.isIsDeleted()==null || !x.isIsDeleted())).findAny();
+						if(any!=null && any.isPresent()) {
+							validRunsPath.add(any.get().getResultFolderPath());
+						}else {
+							invalidRunIds.add(runId);
+						}
+					}
+					if((invalidRunIds!=null && !invalidRunIds.isEmpty() ) || validRunsPath.isEmpty() ) {
+						String invalidIdsString = String.join(",", invalidRunIds);
+						log.error("Invalid runCorrelationIds {} sent for comparison {} of project name {} and id {}, by user {} ", 
+								invalidIdsString, comparisonName, existingForecast.getName(), id, requestUser);
+						MessageDescription invalidMsg = new MessageDescription("Invalid runCorrelationIds " +  invalidIdsString + " sent for comparison. Please correct and retry.");
+						GenericMessage errorMessage = new GenericMessage();
+						errorMessage.setSuccess("FAILED");
+						errorMessage.addErrors(invalidMsg);
+						responseVO.setData(null);
+						responseVO.setResponse(errorMessage);
+						return new ResponseEntity<>(responseVO, HttpStatus.BAD_REQUEST);
+					}
+				}
+			}catch(Exception e) {
+				log.error("Exception occurred:{} while creating comparison", e.getMessage());
+			}
+		}
+		String comparisionId = UUID.randomUUID().toString();
+		String targetFolder = COMPARISON_FOLDER_PREFIX+comparisionId;
+		String actualsFilePath = "";
+		if(actualsFile!=null) {
+			String fileName = actualsFile.getOriginalFilename();
+			String actuals_file_extension = FilenameUtils.getExtension(fileName);
+			String actuals_filename = ACTUALS_FILENAME_PREFIX + "." + actuals_file_extension;
+			if (!isValidAttachment(fileName)) {
+				log.error("Invalid file type {} attached for project name {} and id {} ", fileName, existingForecast.getName(), id);
+				MessageDescription invalidMsg = new MessageDescription("Invalid File type attached. Supported only xlxs and csv extensions");
+				GenericMessage errorMessage = new GenericMessage();
+				errorMessage.setSuccess("FAILED");
+				errorMessage.addErrors(invalidMsg);
+				responseVO.setData(null);
+				responseVO.setResponse(errorMessage);
+				return new ResponseEntity<>(responseVO, HttpStatus.BAD_REQUEST);
+			}
+			FileUploadResponseDto fileUploadResponse = storageClient.uploadFile(targetFolder+"/",actualsFile,actuals_filename, existingForecast.getBucketName());
+			if(fileUploadResponse==null || (fileUploadResponse!=null && (fileUploadResponse.getErrors()!=null || !"SUCCESS".equalsIgnoreCase(fileUploadResponse.getStatus())))) {
+				GenericMessage errorMessage = new GenericMessage();
+				errorMessage.setSuccess("FAILED");
+				errorMessage.setErrors(fileUploadResponse.getErrors());
+				errorMessage.setWarnings(fileUploadResponse.getWarnings());
+				responseVO.setData(null);
+				responseVO.setResponse(errorMessage);
+				return new ResponseEntity<>(responseVO, HttpStatus.INTERNAL_SERVER_ERROR);
+			}
+			actualsFilePath = existingForecast.getBucketName() + targetFolder + "/" + actuals_filename;
+		}
+		targetFolder = existingForecast.getBucketName() +  targetFolder;
+		ForecastComparisonCreateResponseVO createComparisonResponse = service.createComparison(id,existingForecast,validRunsPath,comparisionId,comparisonName,actualsFilePath,targetFolder
+				,createdOn, requestUser.getId());
+		if(createComparisonResponse!= null && "SUCCESS".equalsIgnoreCase(createComparisonResponse.getResponse().getSuccess())
+				&& createComparisonResponse.getData().getComparisonId()!=null) {
+			return new ResponseEntity<>(createComparisonResponse, HttpStatus.CREATED);
+		}else {
+			return new ResponseEntity<>(createComparisonResponse, HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+
+	}
+
+	@Override
+	@ApiOperation(value = "delete one or more comparisons", nickname = "deleteComparison", notes = "delete one or more comparisons", response = GenericMessage.class, tags = {"forecast-comparisons",})
+	@ApiResponses(value = {
+			@ApiResponse(code = 201, message = "Returns message of success or failure", response = GenericMessage.class),
+			@ApiResponse(code = 204, message = "Fetch complete, no content found."),
+			@ApiResponse(code = 400, message = "Bad request."),
+			@ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+			@ApiResponse(code = 403, message = "Request is not authorized."),
+			@ApiResponse(code = 405, message = "Method not allowed"),
+			@ApiResponse(code = 500, message = "Internal error")})
+	@RequestMapping(value = "/forecasts/{id}/comparisons",
+			produces = {"application/json"},
+			consumes = {"application/json"},
+			method = RequestMethod.DELETE)
+	public ResponseEntity<GenericMessage> deleteComparison(@ApiParam(value = "forecast project ID ", required = true) @PathVariable("id") String id,
+			@NotNull @ApiParam(value = "Comma separated forecast comparison IDs that are to be deleted. Ex: ?comparisonIds=\"ComparisionX01,ComparisionX02\" ", required = true) @Valid @RequestParam(value = "comparisonIds", required = true) String comparisonIds) {
+		GenericMessage responseMessage = new GenericMessage();
+		ForecastVO existingForecast = service.getById(id);
+		CreatedByVO requestUser = this.userStore.getVO();
+		String user = requestUser.getId();
+		Boolean notAuthorized = false;
+		if(existingForecast==null || existingForecast.getId()==null) {
+			log.error("Forecast project with this id {} doesnt exists , failed to create comparison", id);
+			MessageDescription invalidMsg = new MessageDescription("Forecast project doesnt exists with given id");
+			List<MessageDescription> errorMessage = new ArrayList<>();
+
+			responseMessage.setSuccess("FAILED");
+			errorMessage.add(invalidMsg);
+			responseMessage.setErrors(errorMessage);
+			return new ResponseEntity<>(responseMessage, HttpStatus.NOT_FOUND);
+		}
+		List<String> forecastProjectUsers = new ArrayList<>();
+		forecastProjectUsers.add(existingForecast.getCreatedBy().getId());
+		List<CollaboratorVO> collaborators = existingForecast.getCollaborators();
+		if (collaborators != null && !collaborators.isEmpty()) {
+			collaborators.forEach(n -> forecastProjectUsers.add(n.getId()));
+		}
+		if (forecastProjectUsers != null && !forecastProjectUsers.isEmpty()) {
+			if (!forecastProjectUsers.contains(requestUser.getId())) {
+				log.warn("User not part of forecast project with id {} and name {}, Not authorized", id, existingForecast.getName());
+				notAuthorized=true;
+
+			}
+		}
+		if(notAuthorized) {
+
+			List<MessageDescription> errMsgs = new ArrayList<>();
+			MessageDescription errMsg = new MessageDescription("Only user of this project can delete the run. Unauthorized");
+			responseMessage.setSuccess("FAILED");
+			errMsgs.add(errMsg);
+			responseMessage.setErrors(errMsgs);
+			return new ResponseEntity<>(responseMessage, HttpStatus.FORBIDDEN);
+		}
+		List<String> invalidComparisonIds = new ArrayList<>();
+		List<String> validComparisonIds = new ArrayList<>();
+		List<ForecastComparisonVO> existingComparisons = existingForecast.getComparisons();
+
+		if(comparisonIds!=null) {
+			try {
+				String[] comparisonsIds = comparisonIds.split(",");
+				List<String> comparisonIdsList = Arrays.asList(comparisonsIds);
+				List<String> distinctComparisonIds = comparisonIdsList.stream().distinct().collect(Collectors.toList());
+				if(comparisonIdsList!=null && !comparisonIdsList.isEmpty()) {
+					for(String comparisonId : distinctComparisonIds) {
+						Optional<ForecastComparisonVO> any = existingComparisons.stream().filter(x -> comparisonId.equalsIgnoreCase(x.getComparisonId()) && !x.isIsDeleted()).findAny();
+						if(any!=null && any.isPresent()) {
+							validComparisonIds.add(comparisonId);
+						}else {
+							invalidComparisonIds.add(comparisonId);
+						}
+					}
+					if(invalidComparisonIds!=null && !invalidComparisonIds.isEmpty()) {
+												String invalidIdsString = String.join(",", invalidComparisonIds);
+						log.error("Invalid ComparisonIds {} sent for comparison  of project name {} and id {}, by user {} ",
+								invalidIdsString, existingForecast.getName(), id, requestUser);
+						MessageDescription invalidMsg = new MessageDescription("Invalid ComparisonIds " +  invalidIdsString + " sent for comparison. Please correct and retry.");
+						GenericMessage errorMessage = new GenericMessage();
+						errorMessage.setSuccess("FAILED");
+						errorMessage.addErrors(invalidMsg);
+						return new ResponseEntity<>(responseMessage, HttpStatus.BAD_REQUEST);
+					}
+				}
+			}catch(Exception e) {
+				log.error("Exception occurred:{} while deleting comparison", e.getMessage());
+			}
+			responseMessage = service.deleteComparison(id,validComparisonIds);
+		}
+		if (responseMessage != null && "SUCCESS".equalsIgnoreCase(responseMessage.getSuccess())) {
+			return new ResponseEntity<>(responseMessage, HttpStatus.OK);
+		}
+
+		return new ResponseEntity<>(responseMessage, HttpStatus.INTERNAL_SERVER_ERROR);
+
+	}
+
+	@Override
+	@ApiOperation(value = "Get forecast comparison html for specific comparison.", nickname = "getForecastComparisonById", notes = "Get forecast comparison html for specific comparison.", response = ForecastComparisonResultVO.class, tags = {"forecast-comparisons",})
+	@ApiResponses(value = {
+			@ApiResponse(code = 201, message = "Returns message of success or failure", response = ForecastComparisonResultVO.class),
+			@ApiResponse(code = 204, message = "Fetch complete, no content found."),
+			@ApiResponse(code = 400, message = "Bad request."),
+			@ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+			@ApiResponse(code = 403, message = "Request is not authorized."),
+			@ApiResponse(code = 405, message = "Method not allowed"),
+			@ApiResponse(code = 500, message = "Internal error")})
+	@RequestMapping(value = "/forecasts/{id}/comparisons/{comparisonId}/comparisonData",
+			produces = {"application/json"},
+			consumes = {"application/json"},
+			method = RequestMethod.GET)
+	public ResponseEntity<ForecastComparisonResultVO> getForecastComparisonById(@ApiParam(value = "forecast project ID ",required=true) @PathVariable("id") String id,
+			@ApiParam(value = "Comparison Id for the run",required=true) @PathVariable("comparisonId") String comparisonId){
+		ForecastComparisonResultVO responseVO = new ForecastComparisonResultVO();
+		ForecastVO existingForecast = service.getById(id);
+		CreatedByVO requestUser = this.userStore.getVO();
+		String user = requestUser.getId();
+		Date createdOn = new Date();
+		Boolean notAuthorized = false;
+		if(existingForecast==null || existingForecast.getId()==null) {
+			log.error("Forecast project with this id {} doesnt exists , failed to create comparison", id);
+			MessageDescription invalidMsg = new MessageDescription("Forecast project doesnt exists with given id");
+			GenericMessage errorMessage = new GenericMessage();
+			errorMessage.setSuccess("FAILED");
+			errorMessage.addErrors(invalidMsg);
+			responseVO.setResponse(errorMessage);
+			return new ResponseEntity<>(responseVO, HttpStatus.NOT_FOUND);
+		}
+		List<String> forecastProjectUsers = new ArrayList<>();
+		forecastProjectUsers.add(existingForecast.getCreatedBy().getId());
+		List<CollaboratorVO> collaborators = existingForecast.getCollaborators();
+		if (collaborators != null && !collaborators.isEmpty()) {
+			collaborators.forEach(n -> forecastProjectUsers.add(n.getId()));
+		}
+		if (forecastProjectUsers != null && !forecastProjectUsers.isEmpty()) {
+			if (!forecastProjectUsers.contains(requestUser.getId())) {
+				log.warn("User not part of forecast project with id {} and name {}, Not authorized", id, existingForecast.getName());
+				notAuthorized=true;
+
+			}
+		}
+		if(notAuthorized) {
+			GenericMessage responseMessage = new GenericMessage();
+			List<MessageDescription> errMsgs = new ArrayList<>();
+			MessageDescription errMsg = new MessageDescription("Only user of this project can delete the run. Unauthorized");
+			responseMessage.setSuccess("FAILED");
+			errMsgs.add(errMsg);
+			responseMessage.setErrors(errMsgs);
+			responseVO.setResponse(responseMessage);
+			return new ResponseEntity<>(responseVO, HttpStatus.FORBIDDEN);
+		}
+		boolean notFound = true;
+		List<ForecastComparisonVO> comparisonVOList = existingForecast.getComparisons();
+		if(comparisonVOList!= null && !comparisonVOList.isEmpty()) {
+			for(ForecastComparisonVO comparison: comparisonVOList) {
+				if(comparisonId.equalsIgnoreCase(comparison.getComparisonId())
+				     && !comparison.isIsDeleted()) {
+					notFound = false;
+				}
+			}
+		}else
+			notFound = true;
+		if(notFound) {
+			return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
+		}
+		ForecastComparisonResultVO comparisonHTMLData = service.getForecastComparisonById(id,comparisonId);
+		return new ResponseEntity<>(comparisonHTMLData, HttpStatus.OK);
+	}
+
+
+	@Override
+	@ApiOperation(value = "Get all forecast comparison runs for the project", nickname = "getForecastComparisons", notes = "Get all forecast comparison runs for the project", response = ForecastComparisonsCollectionDto.class, tags={ "forecast-comparisons", })
+	@ApiResponses(value = {
+			@ApiResponse(code = 201, message = "Returns message of success or failure", response = ForecastComparisonsCollectionDto.class),
+			@ApiResponse(code = 204, message = "Fetch complete, no content found."),
+			@ApiResponse(code = 400, message = "Bad request."),
+			@ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+			@ApiResponse(code = 403, message = "Request is not authorized."),
+			@ApiResponse(code = 405, message = "Method not allowed"),
+			@ApiResponse(code = 500, message = "Internal error") })
+	@RequestMapping(value = "/forecasts/{id}/comparisons",
+			produces = { "application/json" },
+			consumes = { "application/json" },
+			method = RequestMethod.GET)
+
+	public ResponseEntity<ForecastComparisonsCollectionDto> getForecastComparisons(@ApiParam(value = "forecast project ID ",required=true) @PathVariable("id") String id,
+			@ApiParam(value = "forecast comparisons page number ") @Valid @RequestParam(value = "offset", required = false) Integer offset,
+			@ApiParam(value = "forecast comparisons page size") @Valid @RequestParam(value = "limit", required = false) Integer limit)
+	{
+		int defaultLimit = Integer.parseInt(runsDefaultPageSize);
+		if (offset == null || offset < 0)
+			offset = 0;
+		if (limit == null || limit < 0) {
+			limit = defaultLimit;
+		}
+
+		ForecastComparisonsCollectionDto collection = new ForecastComparisonsCollectionDto();
+		ForecastVO existingForecast = service.getById(id);
+		CreatedByVO requestUser = this.userStore.getVO();
+		String user = requestUser.getId();
+		Date createdOn = new Date();
+		Boolean notAuthorized = false;
+		if(existingForecast==null || existingForecast.getId()==null) {
+			log.error("Forecast project with this id {} doesnt exists", id);
+			return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
+		}
+		List<String> forecastProjectUsers = new ArrayList<>();
+		forecastProjectUsers.add(existingForecast.getCreatedBy().getId());
+		List<CollaboratorVO> collaborators = existingForecast.getCollaborators();
+		if (collaborators != null && !collaborators.isEmpty()) {
+			collaborators.forEach(n -> forecastProjectUsers.add(n.getId()));
+		}
+		if (forecastProjectUsers != null && !forecastProjectUsers.isEmpty()) {
+			if (!forecastProjectUsers.contains(requestUser.getId())) {
+				log.warn("User not part of forecast project with id {} and name {}, Not authorized", id, existingForecast.getName());
+				notAuthorized=true;
+			}
+		}
+		if(notAuthorized) {
+			log.error("Only user of this project can view the details. Unauthorized");
+			return new ResponseEntity<>(null, HttpStatus.FORBIDDEN);
+		}
+//		service.getAllForecastComparisons(id);
+		Object[] getComparisonsResultsArr = service.getAllForecastComparisons(limit,offset,id);
+		List<ForecastComparisonVO> records = (List<ForecastComparisonVO>) getComparisonsResultsArr[0];
+		Integer totalCount = (Integer) getComparisonsResultsArr[1];
+		HttpStatus responseCode = HttpStatus.NO_CONTENT;
+		if(records!=null && !records.isEmpty()) {
+			collection.setRecords(records);
+			collection.setTotalCount(totalCount);
+			responseCode = HttpStatus.OK;
+		}
+		return new ResponseEntity<>(collection, responseCode);
+	}
 
 }

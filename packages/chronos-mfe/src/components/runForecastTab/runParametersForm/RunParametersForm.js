@@ -1,6 +1,7 @@
 import classNames from 'classnames';
 import React, { useState, useEffect } from 'react';
 import { useFormContext } from 'react-hook-form';
+import { useParams } from 'react-router-dom';
 import Styles from './run-parameters-form.scss';
 // Container components
 import SelectBox from 'dna-container/SelectBox';
@@ -18,9 +19,12 @@ const RunParametersForm = () => {
   const [configurationFiles, setConfigurationFiles] = useState([]);
   const [expertView, setExpertView] = useState(false);
 
+  const { id: projectId } = useParams();
+
   useEffect(() => {
     SelectBox.defaultSetup();
     Tooltip.defaultSetup();
+    return Tooltip.clear();
     //eslint-disable-next-line
   }, []);
 
@@ -32,7 +36,7 @@ const RunParametersForm = () => {
   }
 
   useEffect(() => {
-    chronosApi.getConfigurationFiles().then((res) => {
+    chronosApi.getConfigurationFiles(projectId).then((res) => {
       const bucketObjects = res.data.data.bucketObjects ? [...res.data.data.bucketObjects] : [];
       // const bucketObjects = configFiles.data.bucketObjects ? [...configFiles.data.bucketObjects] : [];
       bucketObjects.sort((a, b) => {
@@ -46,12 +50,12 @@ const RunParametersForm = () => {
         }
         return 0;
       });
-      const filteredConfigFiles = bucketObjects.filter(file => file.objectName === 'configs/default_config.yml');
+      const filteredConfigFiles = bucketObjects.filter(file => file.objectName === 'chronos-core/configs/default_config.yml');
       if(filteredConfigFiles.length === 1) {
         bucketObjects.sort((a, b) => {
           let fa = a.objectName.toLowerCase(),
               fb = b.objectName.toLowerCase();
-          const first = 'configs/default_config.yml';
+          const first = 'chronos-core/configs/default_config.yml';
           return fa == first ? -1 : fb == first ? 1 : 0;
         });
       }
@@ -64,7 +68,7 @@ const RunParametersForm = () => {
         Notification.show(error.message, 'alert');
       }
     });
-  }, []);
+  }, [projectId]);
   
   useEffect(() => {
     expertView && SelectBox.defaultSetup();
@@ -135,8 +139,8 @@ const RunParametersForm = () => {
                       ) : (
                         <>
                           {configurationFiles.map((file) => (
-                              <option key={file.objectName} value={'chronos-core/' + file.objectName}>
-                                {file.objectName.split("/")[1]}
+                              <option key={file.objectName} value={file.objectName}>
+                                {file.objectName.split("/")[2]}
                               </option>
                           ))}
                         </>

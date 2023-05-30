@@ -44,5 +44,5 @@ public class ConsumerContactInformation {
 	private String department;
 	private String localComplianceOfficer;
 	private String appId;
-	private Date agreementDate;
+	private Date dataTransferDate;
 }

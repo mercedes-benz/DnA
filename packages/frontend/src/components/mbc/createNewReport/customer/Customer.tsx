@@ -41,6 +41,7 @@ export interface ICustomerState {
   addCustomer: boolean;
   editCustomer: boolean;
   editCustomerIndex: number;
+  editCustomerType: string;
   showAddTeamMemberModal: boolean;
   editTeamMember: boolean;
   editTeamMemberIndex: number;
@@ -104,17 +105,17 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
         }
       },
       externalCustomerInfo:{
-        name: {
-          company: '',
-          department: '',
-          email: '',
-          firstName: '',
-          shortId: '',
-          lastName: '',
-          mobileNumber: '',
-          teamMemberPosition: '',
-          userType: ''
-        },
+        // name: {
+        //   company: '',
+        //   department: '',
+        //   email: '',
+        //   firstName: '',
+        //   shortId: '',
+        //   lastName: '',
+        //   mobileNumber: '',
+        //   teamMemberPosition: '',
+        //   userType: ''
+        // },
         companyName: '',
         customerRelation: 'External',
         comment: ''
@@ -151,17 +152,17 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
         }
       },
       externalCustomerErrors:{
-        name: {
-          company: '',
-          department: '',
-          email: '',
-          firstName: '',
-          shortId: '',
-          lastName: '',
-          mobileNumber: '',
-          teamMemberPosition: '',
-          userType: ''
-        },
+        // name: {
+        //   company: '',
+        //   department: '',
+        //   email: '',
+        //   firstName: '',
+        //   shortId: '',
+        //   lastName: '',
+        //   mobileNumber: '',
+        //   teamMemberPosition: '',
+        //   userType: ''
+        // },
         companyName: '',
         customerRelation: '',
         comment: ''
@@ -170,6 +171,7 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
       addCustomer: false,
       editCustomer: false,
       editCustomerIndex: -1,
+      editCustomerType: '',
       showAddTeamMemberModal: false,
       editTeamMember: false,
       editTeamMemberIndex: -1,
@@ -286,30 +288,30 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
                 </div> */}
 
                 <div>
-                  <div
-                    className={classNames(
-                      'input-field-group include-error',
-                    )}
-                  >
+                  <div className={classNames('input-field-group include-error')}>
                     <label id="customerTypeLabel" htmlFor="customerTypeField" className="input-label">
                       Customer Relation
                     </label>
-                    <div className="custom-select">
-                      <select
-                        id="customerTypeField"
-                        name="customerRelation"
-                        multiple={false}
-                        value={this.state.customerType}
-                        onChange={this.internalHandleSelectChange}
-                      >
-                        <option id={'Internal'} key={'Internal'} value={'Internal'}>
-                          Internal
-                        </option>
-                        <option id={'External'} key={'External'} value={'External'}>
-                          External
-                        </option>
-                      </select>
-                    </div>
+                    {this.state.editCustomer ? (
+                      <div>{this.state.customerType}</div>
+                    ) : (
+                      <div className="custom-select">
+                        <select
+                          id="customerTypeField"
+                          name="customerRelation"
+                          multiple={false}
+                          value={this.state.customerType}
+                          onChange={this.internalHandleSelectChange}
+                        >
+                          <option id={'Internal'} key={'Internal'} value={'Internal'}>
+                            Internal
+                          </option>
+                          <option id={'External'} key={'External'} value={'External'}>
+                            External
+                          </option>
+                        </select>
+                      </div>
+                    )}
                   </div>
                 </div>
                 <div>
@@ -504,31 +506,31 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
           {this.state.customerType === 'External' && (
             <div className={Styles.flexLayout}>
               <div>
-                <div
-                  className={classNames(
-                    'input-field-group include-error',
-                  )}
-                >
+                <div className={classNames('input-field-group include-error')}>
                   <label id="customerTypeLabel" htmlFor="customerTypeField" className="input-label">
                     Customer Relation
                   </label>
-                  <div className="custom-select">
-                    <select
-                      id="customerTypeField"
-                      name="customerRelation"
-                      multiple={false}
-                      value={this.state.customerType}
-                      onChange={this.externalHandleSelectChange}
-                    >
-                      {/* <option value={''}>Choose</option> */}
-                      <option id={'Internal'} key={'Internal'} value={'Internal'}>
-                        Internal
-                      </option>
-                      <option id={'External'} key={'External'} value={'External'}>
-                        External
-                      </option>
-                    </select>
-                  </div>
+                  {this.state.editCustomer ? (
+                    <div>{this.state.customerType}</div>
+                  ) : (
+                    <div className="custom-select">
+                      <select
+                        id="customerTypeField"
+                        name="customerRelation"
+                        multiple={false}
+                        value={this.state.customerType}
+                        onChange={this.externalHandleSelectChange}
+                      >
+                        {/* <option value={''}>Choose</option> */}
+                        <option id={'Internal'} key={'Internal'} value={'Internal'}>
+                          Internal
+                        </option>
+                        <option id={'External'} key={'External'} value={'External'}>
+                          External
+                        </option>
+                      </select>
+                    </div>
+                  )}
                 </div>
               </div>
               <div>
@@ -644,7 +646,7 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
               ''
             )}
 
-            {/* {this.state.duplicateCustomerAdded ? <span className={'error-message'}>Customer already exist</span> : ''} */}
+            {this.state.duplicateCustomerAdded ? <span className={'error-message'}>Customer already exist</span> : ''}
             <div className="btnConatiner">
               {this.state.customerType === 'Internal' ? (
                 <button
@@ -689,7 +691,7 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
 
     const deleteModalContent: React.ReactNode = (
       <div id="contentparentdiv" className={Styles.modalContentWrapper}>
-        <div className={Styles.modalTitle}>Delete Customer</div>
+        <div className={Styles.modalTitle}>Delete {this.state.editCustomerType} Customer</div>
         <div className={Styles.modalContent}>This customer will be deleted permanently.</div>
       </div>
     );
@@ -698,7 +700,6 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
 
     const internalCustomersList = this.state.customer.internalCustomers
       ? this.state.customer.internalCustomers?.map((member: any, index: number) => {
-          console.log(member);
           return (
             <TeamMemberListItem
               key={'internal'+index}
@@ -831,7 +832,7 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
           show={this.state.showDeleteModal}
           content={deleteModalContent}
           onCancel={this.onCancellingDeleteChanges}
-          onAccept={this.onAcceptDeleteChangesInternal}
+          onAccept={this.onAcceptDeleteChanges}
         />
       </React.Fragment>
     );
@@ -985,17 +986,17 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
               //   }
               // },
               internalCustomerErrors: {
-                name: {
-                  company: '',
-                  department: '',
-                  email: '',
-                  firstName: '',
-                  shortId: '',
-                  lastName: '',
-                  mobileNumber: '',
-                  teamMemberPosition: '',
-                  userType: ''
-                },
+                // name: {
+                //   company: '',
+                //   department: '',
+                //   email: '',
+                //   firstName: '',
+                //   shortId: '',
+                //   lastName: '',
+                //   mobileNumber: '',
+                //   teamMemberPosition: '',
+                //   userType: ''
+                // },
                 customerRelation: '',
                 comment: '',
                 department: '',
@@ -1017,33 +1018,33 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
               },
               externalCustomerInfo: {
                 ...prevState.externalCustomerInfo,
-                name: {
-                  company: '',
-                  department: '',
-                  email: '',
-                  firstName: '',
-                  shortId: '',
-                  lastName: '',
-                  mobileNumber: '',
-                  teamMemberPosition: '',
-                  userType: ''
-                },
+                // name: {
+                //   company: '',
+                //   department: '',
+                //   email: '',
+                //   firstName: '',
+                //   shortId: '',
+                //   lastName: '',
+                //   mobileNumber: '',
+                //   teamMemberPosition: '',
+                //   userType: ''
+                // },
                 companyName: '',
                 customerRelation: 'External',
                 comment: ''
               },
               externalCustomerErrors:{
-                name: {
-                  company: '',
-                  department: '',
-                  email: '',
-                  firstName: '',
-                  shortId: '',
-                  lastName: '',
-                  mobileNumber: '',
-                  teamMemberPosition: '',
-                  userType: ''
-                },
+                // name: {
+                //   company: '',
+                //   department: '',
+                //   email: '',
+                //   firstName: '',
+                //   shortId: '',
+                //   lastName: '',
+                //   mobileNumber: '',
+                //   teamMemberPosition: '',
+                //   userType: ''
+                // },
                 companyName: '',
                 customerRelation: '',
                 comment: ''
@@ -1093,17 +1094,17 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
               //   comment: ''
               // },
               externalCustomerErrors:{
-                name: {
-                  company: '',
-                  department: '',
-                  email: '',
-                  firstName: '',
-                  shortId: '',
-                  lastName: '',
-                  mobileNumber: '',
-                  teamMemberPosition: '',
-                  userType: ''
-                },
+                // name: {
+                //   company: '',
+                //   department: '',
+                //   email: '',
+                //   firstName: '',
+                //   shortId: '',
+                //   lastName: '',
+                //   mobileNumber: '',
+                //   teamMemberPosition: '',
+                //   userType: ''
+                // },
                 companyName: '',
                 customerRelation: '',
                 comment: ''
@@ -1115,17 +1116,17 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
                 legalEntity: '',
                 comment: '',
                 customerRelation: 'Internal',
-                name: {
-                  company: '',
-                  department: '',
-                  email: '',
-                  firstName: '',
-                  shortId: '',
-                  lastName: '',
-                  mobileNumber: '',
-                  teamMemberPosition: '',
-                  userType: ''
-                },
+                // name: {
+                //   company: '',
+                //   department: '',
+                //   email: '',
+                //   firstName: '',
+                //   shortId: '',
+                //   lastName: '',
+                //   mobileNumber: '',
+                //   teamMemberPosition: '',
+                //   userType: ''
+                // },
                 division: '',
                 accessToSensibleData: false,
                 processOwner: {
@@ -1141,17 +1142,17 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
                 }
               },
               internalCustomerErrors: {
-                name: {
-                  company: '',
-                  department: '',
-                  email: '',
-                  firstName: '',
-                  shortId: '',
-                  lastName: '',
-                  mobileNumber: '',
-                  teamMemberPosition: '',
-                  userType: ''
-                },
+                // name: {
+                //   company: '',
+                //   department: '',
+                //   email: '',
+                //   firstName: '',
+                //   shortId: '',
+                //   lastName: '',
+                //   mobileNumber: '',
+                //   teamMemberPosition: '',
+                //   userType: ''
+                // },
                 customerRelation: 'Internal',
                 comment: '',
                 department: '',
@@ -1201,6 +1202,7 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
 
   protected addCustomerModelClose = () => {
     this.setState({
+      customerType: 'Internal',
       addCustomer: false,
       editCustomer: false,
       duplicateCustomerAdded: false,
@@ -1238,17 +1240,17 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
         }
       },
       externalCustomerInfo:{
-        name: {
-          company: '',
-          department: '',
-          email: '',
-          firstName: '',
-          shortId: '',
-          lastName: '',
-          mobileNumber: '',
-          teamMemberPosition: '',
-          userType: ''
-        },
+        // name: {
+        //   company: '',
+        //   department: '',
+        //   email: '',
+        //   firstName: '',
+        //   shortId: '',
+        //   lastName: '',
+        //   mobileNumber: '',
+        //   teamMemberPosition: '',
+        //   userType: ''
+        // },
         companyName: '',
         customerRelation: '',
         comment: ''
@@ -1285,17 +1287,17 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
         }
       },
       externalCustomerErrors:{
-        name: {
-          company: '',
-          department: '',
-          email: '',
-          firstName: '',
-          shortId: '',
-          lastName: '',
-          mobileNumber: '',
-          teamMemberPosition: '',
-          userType: ''
-        },
+        // name: {
+        //   company: '',
+        //   department: '',
+        //   email: '',
+        //   firstName: '',
+        //   shortId: '',
+        //   lastName: '',
+        //   mobileNumber: '',
+        //   teamMemberPosition: '',
+        //   userType: ''
+        // },
         companyName: '',
         customerRelation: '',
         comment: ''
@@ -1304,20 +1306,27 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
   };
 
   protected onCancellingDeleteChanges = () => {
-    this.setState({ showDeleteModal: false });
+    this.setState({ showDeleteModal: false, editCustomerType: '' });
   };
 
-  protected onAcceptDeleteChangesInternal = () => {
-    const customerList = [...this.state.customer.internalCustomers];
+  protected onAcceptDeleteChanges = () => {
+    const editCustomerType = this.state.editCustomerType;
+    const customerList = editCustomerType === 'Internal' ? [...this.state.customer.internalCustomers] : [...this.state.customer.externalCustomers];
     customerList.splice(this.state.editCustomerIndex, 1);
     const customerProps = this.props.customer;
-    customerProps.internalCustomers = customerList;
+    if (editCustomerType === 'Internal') {
+      customerProps.internalCustomers = customerList as IInternalCustomerDetails[];
+    } else {
+      customerProps.externalCustomers = customerList as IExternalCustomerDetails[];
+    }
+        
     this.setState((prevState) => ({
       customer: {
         ...prevState.customer,
         customerDetails: customerList,
       },
       showDeleteModal: false,
+      editCustomerType: '',
     }));
   };
 
@@ -1354,11 +1363,10 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
   };
 
   protected isExternalCustomerExist = (customerList: IExternalCustomerDetails[]) => {
-    const { name, comment, companyName } = this.state.externalCustomerInfo;
+    const { comment, companyName } = this.state.externalCustomerInfo;
     let customerExists = false;
     for (let ind = 0; ind < customerList?.length; ind++) {
       if (
-        customerList[ind].name === name &&
         customerList[ind].comment === comment &&
         customerList[ind].companyName === companyName
       ) {
@@ -1397,10 +1405,10 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
       processOwner
     });
 
-    // const customerExists = this.isCustomerExist(addedCustomerList);
+    const customerExists = this.isCustomerExist(addedCustomerList);
+    const isInternalCustomerFormValid = this.validateInternalCustomerModal();
 
-    // if (!customerExists && this.validateCustomerModal()) {
-    if (this.validateInternalCustomerModal()) {
+    if (!customerExists && isInternalCustomerFormValid) {
       const customer = this.props.customer;
       customer.internalCustomers = [...customer.internalCustomers, ...selectedValues];
       this.setState(
@@ -1445,17 +1453,17 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
             }
           },
           internalCustomerErrors: {
-            name: {
-              company: '',
-              department: '',
-              email: '',
-              firstName: '',
-              shortId: '',
-              lastName: '',
-              mobileNumber: '',
-              teamMemberPosition: '',
-              userType: ''
-            },
+            // name: {
+            //   company: '',
+            //   department: '',
+            //   email: '',
+            //   firstName: '',
+            //   shortId: '',
+            //   lastName: '',
+            //   mobileNumber: '',
+            //   teamMemberPosition: '',
+            //   userType: ''
+            // },
             customerRelation: 'Internal',
             comment: '',
             department: '',
@@ -1482,7 +1490,7 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
         },
       );
     } else {
-      addedCustomerList?.length &&
+      addedCustomerList?.length && isInternalCustomerFormValid &&
         this.setState({
           duplicateCustomerAdded: true,
         });
@@ -1491,22 +1499,23 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
 
   protected onAddExternalCustomer = () => {
     const {  
-      name,
+      // name,
       comment, 
       customerRelation,
       companyName } = this.state.externalCustomerInfo;
     const { externalCustomers: addedCustomerList } = this.state.customer;
     const selectedValues: IExternalCustomerDetails[] = [];
     selectedValues.push({
-      name,
+      // name,
       comment,
       customerRelation,
       companyName
     });
 
     const customerExists = this.isExternalCustomerExist(addedCustomerList);
+    const isExternalCustomerFormValid = this.validateExternalCustomerModal();
 
-    if (!customerExists && this.validateExternalCustomerModal()) {
+    if (!customerExists && isExternalCustomerFormValid) {
       const customer = this.props.customer;
       customer.externalCustomers = [...customer.externalCustomers, ...selectedValues];
       this.setState(
@@ -1531,17 +1540,17 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
             comment: ''
           },
           externalCustomerErrors:{
-            name: {
-              company: '',
-              department: '',
-              email: '',
-              firstName: '',
-              shortId: '',
-              lastName: '',
-              mobileNumber: '',
-              teamMemberPosition: '',
-              userType: ''
-            },
+            // name: {
+            //   company: '',
+            //   department: '',
+            //   email: '',
+            //   firstName: '',
+            //   shortId: '',
+            //   lastName: '',
+            //   mobileNumber: '',
+            //   teamMemberPosition: '',
+            //   userType: ''
+            // },
             companyName: '',
             customerRelation: '',
             comment: ''
@@ -1553,7 +1562,7 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
         },
       );
     } else {
-      addedCustomerList?.length &&
+      addedCustomerList?.length && isExternalCustomerFormValid &&
         this.setState({
           duplicateCustomerAdded: true,
         });
@@ -1603,13 +1612,13 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
 
   protected onExternalEditCustomerOpen = (customer: IExternalCustomerDetails) => {
     const {
-      name, 
+      // name, 
       comment,
       customerRelation,
       companyName } = customer;
     const { externalCustomers } = this.state.customer;
     const editCustomerIndex = externalCustomers.findIndex(
-      (item) => item.companyName === companyName && item.name === name && item.customerRelation === customerRelation,
+      (item) => item.companyName === companyName && item.customerRelation === customerRelation,
     );
     this.setState(
       {
@@ -1618,7 +1627,7 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
         editCustomerIndex,
         customerType: 'External',
         externalCustomerInfo: {
-          name, 
+          // name, 
           comment,
           customerRelation,
           companyName
@@ -1642,18 +1651,20 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
     this.setState({
       showDeleteModal: true,
       editCustomerIndex: deleteCustomerIndex,
+      editCustomerType: 'Internal',
     });
   };
 
   protected onDeleteExternalCustomer = (customer: IExternalCustomerDetails) => {
-    const { companyName, customerRelation, name } = customer;
+    const { companyName, customerRelation } = customer;
     const { externalCustomers } = this.state.customer;
     const deleteCustomerIndex = externalCustomers.findIndex(
-      (item) => item.companyName === companyName && item.customerRelation === customerRelation && item.name === name,
+      (item) => item.companyName === companyName && item.customerRelation === customerRelation,
     );
     this.setState({
       showDeleteModal: true,
       editCustomerIndex: deleteCustomerIndex,
+      editCustomerType: 'External',
     });
   };
 
@@ -1773,20 +1784,20 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
   protected onEditExternalCustomer = () => {
     const { editCustomerIndex } = this.state;
     const { 
-      name, 
+      // name, 
       comment,
       customerRelation,
       companyName } = this.state.externalCustomerInfo;
     const { externalCustomers: addedCustomerList } = this.state.customer;
     const customerExists = this.isExternalCustomerExist(addedCustomerList);
     const newIndex = addedCustomerList.findIndex(
-      (item) => item.name === name && item.companyName === companyName && item.comment === comment,
+      (item) => item.companyName === companyName && item.comment === comment,
     );
     if (this.validateExternalCustomerModal()) {
       if ((customerExists && editCustomerIndex === newIndex) || !customerExists) {
         const customerList = [...addedCustomerList]; // create copy of original array
         customerList[editCustomerIndex] = { 
-          name, 
+          // name, 
           comment,
           customerRelation,
           companyName }; // modify copied array
@@ -1800,33 +1811,33 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
             externalCustomers: customerList,
           },
           externalCustomerInfo:{
-            name: {
-              company: '',
-              department: '',
-              email: '',
-              firstName: '',
-              shortId: '',
-              lastName: '',
-              mobileNumber: '',
-              teamMemberPosition: '',
-              userType: ''
-            },
+            // name: {
+            //   company: '',
+            //   department: '',
+            //   email: '',
+            //   firstName: '',
+            //   shortId: '',
+            //   lastName: '',
+            //   mobileNumber: '',
+            //   teamMemberPosition: '',
+            //   userType: ''
+            // },
             companyName: '',
             customerRelation: '',
             comment: ''
           },
           externalCustomerErrors:{
-            name: {
-              company: '',
-              department: '',
-              email: '',
-              firstName: '',
-              shortId: '',
-              lastName: '',
-              mobileNumber: '',
-              teamMemberPosition: '',
-              userType: ''
-            },
+            // name: {
+            //   company: '',
+            //   department: '',
+            //   email: '',
+            //   firstName: '',
+            //   shortId: '',
+            //   lastName: '',
+            //   mobileNumber: '',
+            //   teamMemberPosition: '',
+            //   userType: ''
+            // },
             companyName: '',
             customerRelation: '',
             comment: ''

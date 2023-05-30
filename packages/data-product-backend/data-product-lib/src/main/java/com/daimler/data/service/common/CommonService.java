@@ -58,7 +58,7 @@ public interface CommonService<V, T, ID> {
 
 	void deleteAll();
 
-	void deleteById(ID id);
+	boolean deleteById(ID id);
 
 	Long getCount();
 

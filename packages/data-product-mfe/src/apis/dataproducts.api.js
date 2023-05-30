@@ -1,9 +1,15 @@
 import { hostServer, reportsServer, server } from '../server/api';
 
-const getAllDataProductList = (sortBy, sortOrder) => {
-  return server.get(`/dataproducts?limit=0&offset=0&sortBy=${sortBy}&sortOrder=${sortOrder}`, {
-    data: {},
-  });
+const getAllDataProductList = (sortBy, sortOrder, queryParams) => {
+  if(queryParams) {
+    return server.get(`/dataproducts?limit=0&offset=0&sortBy=${sortBy}&sortOrder=${sortOrder}${queryParams}`, {
+      data: {},
+    });
+  } else {
+    return server.get(`/dataproducts?limit=0&offset=0&sortBy=${sortBy}&sortOrder=${sortOrder}`, {
+      data: {},
+    });
+  }
 };
 
 const getDataProductById = (id) => {
@@ -74,6 +80,10 @@ const getAllFrontEndTools = () => {
   return reportsServer.get('/lov/frontendtechnologies', { data: {} });
 };
 
+const getAllTags = () => {
+  return server.get('/tags', { data: {} });
+};
+
 export const dataProductApi = {
   getAllDataProductList,
   getDataProductById,
@@ -88,4 +98,5 @@ export const dataProductApi = {
   getAllCorporateDataCatalogs,
   getAllPlatforms,
   getAllFrontEndTools,
+  getAllTags
 };

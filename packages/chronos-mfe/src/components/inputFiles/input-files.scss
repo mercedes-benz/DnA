@@ -1,0 +1,15 @@
+.firstPanel {
+  margin: 40px;
+  width: calc(100% - 80px);
+}
+.dataRow {
+  &:hover {
+    background-color: #1c2026;
+    cursor: pointer;
+  }
+}
+.deleteIcon {
+  font-size: var(--font-size-icon-nav);
+  color: #00adef;
+  cursor: pointer;
+}

@@ -49,12 +49,41 @@ public class DataikuSql implements Serializable{
 	@Column(name = "created_on")
 	private Date createdOn;
 	
+	@Column(name = "status")
+	private String status;
+	
+	@Column(name = "classification_type")
+	private String classificationType;
+	
+	@Column(name = "has_pii")
+	private Boolean hasPii;
+	
+	@Column(name = "division_id")
+	private String divisionId;
+	
+	@Column(name = "division_name")
+	private String divisionName;
+	
+	@Column(name = "subdivision_id")
+	private String subdivisionId;
+	
+	@Column(name = "subdivision_name")
+	private String subdivisionName;
+	
+	@Column(name = "department")
+	private String department;
+	
+	@Column(name = "solution_id")
+	private String solutionId;
+	
 	public DataikuSql() {
 		super();
 	}
 
 	public DataikuSql(String id, @NotNull String projectName, String description, String cloudProfile,
-			List<CollaboratorSql> collaborators, String createdBy, Date createdOn) {
+			List<CollaboratorSql> collaborators, String createdBy, Date createdOn, String status,
+			String classificationType, Boolean hasPii, String divisionId, String divisionName, String subdivisionId,
+			String subdivisionName, String department, String solutionId) {
 		super();
 		this.id = id;
 		this.projectName = projectName;
@@ -63,8 +92,25 @@ public class DataikuSql implements Serializable{
 		this.collaborators = collaborators;
 		this.createdBy = createdBy;
 		this.createdOn = createdOn;
+		this.status = status;
+		this.classificationType = classificationType;
+		this.hasPii = hasPii;
+		this.divisionId = divisionId;
+		this.divisionName = divisionName;
+		this.subdivisionId = subdivisionId;
+		this.subdivisionName = subdivisionName;
+		this.department = department;
+		this.solutionId = solutionId;
 	}
 
+
+	public String getSolutionId() {
+		return solutionId;
+	}
+
+	public void setSolutionId(String solutionId) {
+		this.solutionId = solutionId;
+	}
 
 	public String getId() {
 		return id;
@@ -121,7 +167,75 @@ public class DataikuSql implements Serializable{
 	public void setCreatedOn(Date createdOn) {
 		this.createdOn = createdOn;
 	}
-	
+
+	public String getStatus() {
+		return status;
+	}
+
+	public void setStatus(String status) {
+		this.status = status;
+	}
+
+	public String getClassificationType() {
+		return classificationType;
+	}
+
+	public void setClassificationType(String classificationType) {
+		this.classificationType = classificationType;
+	}
+
+	public Boolean getHasPii() {
+		return hasPii;
+	}
+
+	public void setHasPii(Boolean hasPii) {
+		this.hasPii = hasPii;
+	}
+
+	public String getDivisionId() {
+		return divisionId;
+	}
+
+	public void setDivisionId(String divisionId) {
+		this.divisionId = divisionId;
+	}
+
+	public String getDivisionName() {
+		return divisionName;
+	}
+
+	public void setDivisionName(String divisionName) {
+		this.divisionName = divisionName;
+	}
+
+	public String getSubdivisionId() {
+		return subdivisionId;
+	}
+
+	public void setSubdivisionId(String subdivisionId) {
+		this.subdivisionId = subdivisionId;
+	}
+
+	public String getSubdivisionName() {
+		return subdivisionName;
+	}
+
+	public void setSubdivisionName(String subdivisionName) {
+		this.subdivisionName = subdivisionName;
+	}
+
+	public String getDepartment() {
+		return department;
+	}
+
+	public void setDepartment(String department) {
+		this.department = department;
+	}
+
+	public static long getSerialversionuid() {
+		return serialVersionUID;
+	}
+
 	public class DataikuProjectNameCompartor implements Comparator<DataikuSql> {
 	    @Override
 	    public int compare(DataikuSql o1, DataikuSql o2) {

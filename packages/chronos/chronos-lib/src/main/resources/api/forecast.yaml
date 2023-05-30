@@ -176,6 +176,12 @@ paths:
       summary: "Get forecasts config files"
       description: "Get forecasts config files"
       operationId: "getConfigFiles"
+      parameters:
+        - name: "id"
+          in: query
+          description: "forecast project ID "
+          required: false
+          type: "string"
       responses:
         200:
           description: "Returns message of success or failure"
@@ -390,6 +396,45 @@ paths:
         500:
           description: "Internal error"
 
+  /forecasts/{id}/inputs/{savedinputid}:
+    delete:
+      tags:
+        - "forecast-inputs"
+      summary: "delete uploaded input file."
+      description: "delete uploaded input file by id."
+      operationId: "deleteSavedInputFile"
+      parameters:
+        - name: "id"
+          in: "path"
+          description: "forecast project ID "
+          required: true
+          type: "string"
+        - name: "savedinputid"
+          in: "path"
+          description: "saved Input file ID"
+          required: true
+          type: "string"
+
+      responses:
+        201:
+          description: "Returns message of success or failure"
+          schema:
+            $ref: "#/definitions/GenericMessage"
+        204:
+          description: "Fetch complete, no content found."
+        400:
+          description: "Bad request."
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
+
+
+
 
   #
   #  supported http methods GET
@@ -597,7 +642,165 @@ paths:
         500:
           description: "Internal error"
 
-          
+#forecst-runs-comparisons
+  /forecasts/{id}/comparisons:
+    post:
+      tags:
+        - "forecast-comparisons"
+      summary: "Create new comparison for forecast project."
+      description: "Create comparison for forecast project"
+      operationId: "createForecastComparison"
+      consumes:
+        - multipart/form-data
+      parameters:
+        - in: "path"
+          name: "id"
+          description: "forecast project ID "
+          required: true
+          type: "string"
+        - in: formData
+          name: actualsFile
+          type: file
+          description: The input file for the comparison of forecast runs.
+        - in: formData
+          name: "comparisonName"
+          type: "string"
+          description: "Run Comparison name"
+        - in: formData
+          name: "runCorelationIds"
+          description: "Comma separated forecast run corelation Ids. Maximum 12 Ids can be sent. Please avoid sending duplicates."
+          required: true
+          type: "string"
+      responses:
+        201:
+          description: "Returns message of success or failure "
+          schema:
+            $ref: "#/definitions/ForecastComparisonCreateResponseVO"
+        400:
+          description: "Bad Request"
+          schema:
+            $ref: "#/definitions/GenericMessage"
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
+
+    get:
+      tags:
+        - "forecast-comparisons"
+      summary: "Get all forecast comparison runs for the project"
+      description: "Get all forecast comparison runs for the project"
+      operationId: "getForecastComparisons"
+      parameters:
+        - in: "path"
+          name: "id"
+          description: "forecast project ID "
+          required: true
+          type: "string"
+        - in: "query"
+          name: "offset"
+          description: "forecast comparisons page number "
+          required: false
+          type: integer
+        - in: "query"
+          name: "limit"
+          description: "forecast comparisons page size"
+          required: false
+          type: integer
+      responses:
+        201:
+          description: "Returns message of success or failure"
+          schema:
+            $ref: "#/definitions/ForecastComparisonsCollectionDto"
+        204:
+          description: "Fetch complete, no content found."
+        400:
+          description: "Bad request."
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
+
+    delete:
+      tags:
+        - "forecast-comparisons"
+      summary: "delete one or more comparisons"
+      description: "delete one or more comparisons"
+      operationId: "deleteComparison"
+      parameters:
+        - in: "path"
+          name: "id"
+          description: "forecast project ID "
+          required: true
+          type: "string"
+        - in: "query"
+          name: "comparisonIds"
+          description: "Comma separated forecast comparison IDs that are to be deleted. Ex: ?comparisonIds=\"ComparisionX01,ComparisionX02\" "
+          required: true
+          type: "string"
+      responses:
+        201:
+          description: "Returns message of success or failure"
+          schema:
+            $ref: "#/definitions/GenericMessage"
+        204:
+          description: "Fetch complete, no content found."
+        400:
+          description: "Bad request."
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
+
+  # path example ../forecasts/{id}/comparisons/{comparisonId}/comparisonData
+  /forecasts/{id}/comparisons/{comparisonId}/comparisonData:
+    get:
+      tags:
+        - "forecast-comparisons"
+      summary: "Get forecast comparison html for specific comparison."
+      description: "Get forecast comparison html for specific comparison."
+      operationId: "getForecastComparisonById"
+      parameters:
+        - in: "path"
+          name: "id"
+          description: "forecast project ID "
+          required: true
+          type: "string"
+        - in: "path"
+          name: "comparisonId"
+          description: "Comparison Id for the run"
+          required: true
+          type: "string"
+      responses:
+        201:
+          description: "Returns message of success or failure"
+          schema:
+            $ref: "#/definitions/ForecastComparisonResultVO"
+        204:
+          description: "Fetch complete, no content found."
+        400:
+          description: "Bad request."
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
+
 definitions:
 
   InputFilesCollectionVO:
@@ -777,7 +980,12 @@ definitions:
             type: array
             items:
                 $ref: "#/definitions/RunVO"
-     
+        comparisons:
+          type: array
+          items:
+            $ref: "#/definitions/ForecastComparisonVO"
+
+
   ForecastRunRequestVO:
     type: object
     properties:
@@ -1008,6 +1216,9 @@ definitions:
         exogenData:
           type: boolean
           description: "flag to check if exogenous data is present"
+        isDeleted:
+          type: boolean
+          description: "Field to identify if run is deleted. Deleted run records wont be shown, this is only for system to identify. Not for Users."
   
   ForecastRunResponseVO:
     type: object
@@ -1027,7 +1238,80 @@ definitions:
             type: array
             items:
                 $ref: "#/definitions/RunVO"
-          
+
+  ForecastComparisonsCollectionDto:
+    type: object
+    properties:
+      totalCount:
+        type: integer
+        description: "Total Record Count"
+      records:
+        type: array
+        items:
+          $ref: "#/definitions/ForecastComparisonVO"
+
+
+
+  ForecastComparisonCreateResponseVO:
+    type: object
+    properties:
+      data:
+        $ref: "#/definitions/ForecastComparisonVO"
+      response:
+        $ref: "#/definitions/GenericMessage"
+
+
+  ForecastComparisonVO:
+    type: object
+    properties:
+      comparisonId:
+        type: string
+        description: "comparison run id for the forecast project"
+      comparisonName:
+        type: string
+        description: "comparison run name"
+      triggeredBy:
+        type: string
+        description: "Short Id of user who triggered the comparison"
+      triggeredOn:
+        type: string
+        format: date
+        description: "Date/Time for the triggered comparison"
+      actualsFile:
+        type: string
+        description: "input file for the comparison of forecast runs"
+      targetFolder:
+        type: string
+        description: "target folder to add comparison.html"
+      runsList:
+        type: array
+        "items":
+          "type": string
+      isDeleted:
+        type: boolean
+        description: "Field to identify if comparison is deleted. Deleted comparison records wont be shown, this is only for system to identify. Not for Users."
+      state:
+        $ref: "#/definitions/ComparisonStateVO"
+
+  ComparisonStateVO:
+    type: object
+    properties:
+      lifeCycleState:
+        type: string
+        enum: [ CREATED,RUNNING,FAILED,SUCCESS]
+      stateMessage:
+        type: string
+
+  ForecastComparisonResultVO:
+    type: object
+    properties:
+      comparisonName:
+        type: string
+      comparisonData:
+        type: string
+      response:
+        $ref: "#/definitions/GenericMessage"
+
   BindingResult:
     type: object
 
@@ -1089,11 +1373,13 @@ definitions:
         type: string
       hierarchy:
         type: string
-      y:
-        type: string
-      yPred:
-        type: string
-      eda:
+      #y:
+      #  type: string
+      #yPred:
+      #  type: string
+      #eda:
+      #  type: string
+      visualsData:
         type: string
       response:
         $ref: "#/definitions/GenericMessage"
