@@ -38,7 +38,7 @@ public class UserPrivilegeRepositoryImpl implements UserPrivilegeRepository{
 		try {
 			String queryString = "SELECT id,userId,profile,givenName,surName FROM userprivilege_sql ";
 			if(userId!=null && !userId.isBlank() && !userId.isEmpty()) {
-				queryString += " where LOWER(userId) = '" + userId.toLowerCase() + "' ";
+				queryString += " where LOWER(userId) = '" + userId.toLowerCase() + "'";
 			}else {
 				return existingRecord;
 			}
@@ -48,7 +48,7 @@ public class UserPrivilegeRepositoryImpl implements UserPrivilegeRepository{
 				existingRecord = fetchedResults.get(0);
 			}
 		}catch(Exception e) {
-			log.error("Failed to fetch user with shorid {} with exception {}", userId, e.getMessage());
+			log.error("Failed to fetch user with searchTerm {} with exception {}", userId, e.getMessage());
 		}
         return existingRecord;
 	}
@@ -65,11 +65,13 @@ public class UserPrivilegeRepositoryImpl implements UserPrivilegeRepository{
 	}
 
 	@Override
-	public List<UserPrivilegeSql> findAll(int limit, int offset, String sortBy, String sortOrder, String userId) {
+	public List<UserPrivilegeSql> findAll(int limit, int offset, String sortBy, String sortOrder, String searchTerm) {
 		List<UserPrivilegeSql> results = new ArrayList<>();
 		String queryString = "SELECT id,userId,profile,givenName,surName FROM userprivilege_sql ";
-		if(userId!=null && !userId.isBlank() && !userId.isEmpty()) {
-			queryString += " where LOWER(userId) like '%" + userId.toLowerCase() + "%' ";
+		if(searchTerm!=null && !searchTerm.isBlank() && !searchTerm.isEmpty()) {
+			queryString += " where LOWER(userId) like '%" + searchTerm.toLowerCase() + "%' or " + 
+					" LOWER(givenName) like '%" + searchTerm.toLowerCase() + "%' or " + 
+					" LOWER(surName) like '%" + searchTerm.toLowerCase() + "%'";
 		}
         if (sortBy==null || "userId".equalsIgnoreCase(sortBy)) {
         	queryString += " order by userId ";
@@ -94,10 +96,12 @@ public class UserPrivilegeRepositoryImpl implements UserPrivilegeRepository{
 	}
 	
 	@Override
-	public BigInteger findCount(String userId) {
+	public BigInteger findCount(String searchTerm) {
 		String queryString = "select count(*) from userprivilege_sql";
-		if(userId!=null && !userId.isBlank() && !userId.isEmpty()) {
-			queryString += " where LOWER(userId) like '%" + userId.toLowerCase() + "%' ";
+		if(searchTerm!=null && !searchTerm.isBlank() && !searchTerm.isEmpty()) {
+			queryString += " where LOWER(userId) like '%" + searchTerm.toLowerCase() + "%'  or " + 
+					" LOWER(givenName) like '%" + searchTerm.toLowerCase() + "%' or " + 
+					" LOWER(surName) like '%" + searchTerm.toLowerCase() + "%'";
 		}
 		Query q = entityManager.createNativeQuery(queryString);
 		BigInteger results = (BigInteger) q.getSingleResult();

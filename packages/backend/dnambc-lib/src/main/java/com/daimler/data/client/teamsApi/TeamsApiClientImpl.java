@@ -45,7 +45,7 @@ public class TeamsApiClientImpl implements TeamsApiClient {
 
 
     @Override
-    public UsersCollection getTeamsApiUserInfoDetails(String searchTerm) {
+    public UsersCollection getTeamsApiUserInfoDetails(String searchTerm, int offset) {
         UsersCollection usersCollection =null;
         List<UserInfoVO> userInfoVOList = new ArrayList<>();
         Claims claims;
@@ -60,11 +60,17 @@ public class TeamsApiClientImpl implements TeamsApiClient {
             headers.set("Accept", "application/json");
             headers.set("Content-Type", "application/json");
             headers.set("Authorization", oidcAuthontication);
-            String teamsApiUri = teamsApiBaseUri + personSearchUri + "?order=default&fetchSize=" + teamsApiResultFetchSize + "&query=" + searchTerm;
+            String teamsApiUri = "";
+            if(offset > 0) {
+            	 teamsApiUri = teamsApiBaseUri + personSearchUri + "?order=default&fetchSize=" + offset + "&query=" + searchTerm;
+            }
+            else {
+            	 teamsApiUri = teamsApiBaseUri + personSearchUri + "?order=default&fetchSize=" + teamsApiResultFetchSize + "&query=" + searchTerm;
+            }
             HttpEntity entity = new HttpEntity<>(headers);
             ResponseEntity<TeamsApiResponseWrapperDto> response = restTemplate.exchange(teamsApiUri, HttpMethod.GET, entity, TeamsApiResponseWrapperDto.class);
             if (response != null && response.hasBody()) {
-                LOGGER.debug("Successfully fetched user details from teamsApi");
+                LOGGER.info("Successfully fetched user details from teamsApi");
                 if (response.getBody().getEntries()!= null) {
                     usersCollection= new UsersCollection();
                     userInfoVOList = userInfoAssembler.toUserInfoVo(response.getBody().getEntries());

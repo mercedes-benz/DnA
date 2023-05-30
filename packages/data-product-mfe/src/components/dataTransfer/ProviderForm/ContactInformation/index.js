@@ -6,7 +6,6 @@ import Styles from './styles.scss';
 import SelectBox from 'dna-container/SelectBox';
 import InfoModal from 'dna-container/InfoModal';
 import Tags from 'dna-container/Tags';
-import DatePicker from 'dna-container/DatePicker';
 import TeamSearch from 'dna-container/TeamSearch';
 import TypeAheadBox from 'dna-container/TypeAheadBox';
 
@@ -37,7 +36,6 @@ const ContactInformation = ({
     reset,
     setValue,
     control,
-    getValues,
   } = useFormContext();
   const [showInfoModal, setShowInfoModal] = useState(false);
   const provideDataTransfers = useSelector((state) =>
@@ -51,6 +49,7 @@ const ContactInformation = ({
     name,
     planningIT,
     informationOwner,
+    productOwner,
   } = watch();
 
   const [complianceOfficerList, setComplianceOfficerList] = useState({
@@ -69,6 +68,8 @@ const ContactInformation = ({
 
   const [informationOwnerSearchTerm, setInformationOwnerSearchTerm] = useState('');
   const [informationOwnerFieldValue, setInformationOwnerFieldValue] = useState('');
+  const [productOwnerSearchTerm, setProductOwnerSearchTerm] = useState('');
+  const [productOwnerFieldValue, setProductOwnerFieldValue] = useState('');
 
   // const minDate = dayjs().format();
 
@@ -180,6 +181,15 @@ const ContactInformation = ({
     informationOwner && setInformationOwnerFieldValue(nameStr);
     //eslint-disable-next-line react-hooks/exhaustive-deps
   }, [informationOwner]);
+  
+  useEffect(() => {
+    let nameStr =
+      typeof productOwner === 'string'
+        ? productOwner
+        : `${productOwner?.firstName} ${productOwner?.lastName}`;
+    productOwner && setProductOwnerFieldValue(nameStr);
+    //eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [productOwner]);
 
   const handleName = (field, value) => {
     let name = '';
@@ -201,26 +211,15 @@ const ContactInformation = ({
     setInformationOwnerFieldValue(name);
   };
 
-  const validateDate = () => {
-    let key = isDataProduct ? 'dateOfDataProduct' : 'dateOfDataTransfer';
-    const value = getValues(key);
-    if (typeof value === 'object') {
-      const isValidDate = !isNaN(value?.get('date'));
-      // const isBefore = dayjs(value).isBefore(minDate, 'date');
-      const error =
-        value === null || value === ''
-          ? '*Missing entry'
-          : !isValidDate
-          ? 'Invalid Date Format'
-          // : isBefore
-          // ? 'Is before the minimum date'
-          : null;
-      // return (value === isValidDate && value !== isBefore) || error;
-      return (value === isValidDate) || error;
-    } else {
-      return (value !== '' && value !== undefined) || '*Missing entry';
+  const handleProductOwner = (field, value) => {
+    let name = '';
+    if(value) {
+      value['addedByProvider'] = true;
+      name =  `${value.firstName} ${value.lastName}`;
     }
-  };
+    field.onChange(value);
+    setProductOwnerFieldValue(name);
+  }
 
   const handlePlanningITSearch = debounce((searchTerm, showSpinner) => {
     if (searchTerm.length > 3) {
@@ -255,32 +254,55 @@ const ContactInformation = ({
           </div>
           <div className={Styles.formWrapper}>
             {isDataProduct ? (
-              <div className={classNames('input-field-group include-error', errors.informationOwner ? 'error' : '')}>
-                <Controller
-                  control={control}
-                  name="informationOwner"
-                  rules={{ required: '*Missing entry' }}
-                  render={({ field }) => (
-                    <TeamSearch
-                      label={
-                        <>
-                          Responsible Manager (E3 +) <sup>*</sup>
-                        </>
-                      }
-                      fieldMode={true}
-                      fieldValue={informationOwnerFieldValue}
-                      setFieldValue={(val) => setInformationOwnerFieldValue(val)}
-                      onAddTeamMember={(value) => handleInformationOwner(field, value)}
-                      btnText="Add User"
-                      searchTerm={informationOwnerSearchTerm}
-                      setSearchTerm={(value) => setInformationOwnerSearchTerm(value)}
-                      showUserDetails={false}
-                      setShowUserDetails={() => {}}
+              <>
+                <div className={classNames('input-field-group include-error', errors.informationOwner ? 'error' : '')}>
+                  <Controller
+                    control={control}
+                    name="informationOwner"
+                    rules={{ required: '*Missing entry' }}
+                    render={({ field }) => (
+                      <TeamSearch
+                        label={
+                          <>
+                            Responsible Manager (E3 +) <sup>*</sup>
+                          </>
+                        }
+                        fieldMode={true}
+                        fieldValue={informationOwnerFieldValue}
+                        setFieldValue={(val) => setInformationOwnerFieldValue(val)}
+                        onAddTeamMember={(value) => handleInformationOwner(field, value)}
+                        btnText="Add User"
+                        searchTerm={informationOwnerSearchTerm}
+                        setSearchTerm={(value) => setInformationOwnerSearchTerm(value)}
+                        showUserDetails={false}
+                        setShowUserDetails={() => {}}
+                      />
+                    )}
+                  />
+                  <span className={classNames('error-message')}>{errors.informationOwner?.message}</span>
+                </div>
+                <div className={classNames('input-field-group')}>
+                  <Controller
+                      control={control}
+                      name="productOwner"
+                      // rules={{ required: '*Missing entry' }}
+                      render={({ field }) => (
+                        <TeamSearch
+                          label={<>Product Owner</>}
+                          fieldMode={true}
+                          fieldValue={productOwnerFieldValue}
+                          setFieldValue={(val) => setProductOwnerFieldValue(val)}
+                          onAddTeamMember={(value) => handleProductOwner(field, value)}
+                          btnText="Save"
+                          searchTerm={productOwnerSearchTerm}
+                          setSearchTerm={(value) => setProductOwnerSearchTerm(value)}
+                          showUserDetails={false}
+                          setShowUserDetails={() => {}}
+                        />
+                      )}
                     />
-                  )}
-                />
-                <span className={classNames('error-message')}>{errors.informationOwner?.message}</span>
-              </div>
+                </div>
+              </>
             ) : (
               <div className={Styles.flexLayout}>
                 <div className={classNames('input-field-group include-error', errors.productName ? 'error' : '')}>
@@ -438,61 +460,6 @@ const ContactInformation = ({
                   )}
                 />
               </div>
-              {isDataProduct ? (
-                <div className={classNames('input-field-group include-error', errors.dateOfDataProduct ? 'error' : '')}>
-                  <label id="dateOfDataProductLabel" htmlFor="dateOfDataProductrInput" className="input-label">
-                    Publish Date of Data Product <sup>*</sup>
-                  </label>
-                  <Controller
-                    control={control}
-                    name="dateOfDataProduct"
-                    rules={{
-                      validate: validateDate,
-                    }}
-                    render={({ field }) => (
-                      <DatePicker
-                        label="Publish Date of Data Product"
-                        value={watch('dateOfDataProduct')}
-                        name={field.name}
-                        // minDate={minDate}
-                        onChange={(value) => {
-                          field.onChange(value);
-                        }}
-                        requiredError={errors.dateOfDataProduct?.message}
-                      />
-                    )}
-                  />
-                  <span className={classNames('error-message')}>{errors.dateOfDataProduct?.message}</span>
-                </div>
-              ) : (
-                <div
-                  className={classNames('input-field-group include-error', errors.dateOfDataTransfer ? 'error' : '')}
-                >
-                  <label id="dateOfDataTransferLabel" htmlFor="dateOfDataTransferInput" className="input-label">
-                    Date of Data Transfer <sup>*</sup>
-                  </label>
-                  <Controller
-                    control={control}
-                    name="dateOfDataTransfer"
-                    rules={{
-                      validate: validateDate,
-                    }}
-                    render={({ field }) => (
-                      <DatePicker
-                        label="Date of Data Transfer"
-                        value={watch('dateOfDataTransfer')}
-                        name={field.name}
-                        // minDate={minDate}
-                        onChange={(value) => {
-                          field.onChange(value);
-                        }}
-                        requiredError={errors.dateOfDataTransfer?.message}
-                      />
-                    )}
-                  />
-                  <span className={classNames('error-message')}>{errors.dateOfDataTransfer?.message}</span>
-                </div>
-              )}
             </div>
             <div className={Styles.flexLayout}>
               <div className={classNames('input-field-group include-error', errors.complianceOfficer ? 'error' : '')}>

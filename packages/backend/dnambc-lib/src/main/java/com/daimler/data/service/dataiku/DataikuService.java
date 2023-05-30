@@ -42,7 +42,7 @@ public interface DataikuService {
 	 * @param isAdmin
 	 * @param environment
 	 */
-	public List<DataikuProjectVO> getAllDataikuProjects(String userId, Boolean live);
+	public List<DataikuProjectVO> getAllDataikuProjects(String userId, Boolean live, String cloudProfile);
 
 	/**
 	 * get Dataiku project by given projectKey
@@ -50,7 +50,7 @@ public interface DataikuService {
 	 * @param projectKey
 	 * @return DataikuProjectVO
 	 */
-	public DataikuProjectVO getByProjectKey(String projectKey, Boolean live);
+	public DataikuProjectVO getByProjectKey(String projectKey, Boolean live, String cloudProfile);
 
 	/**
 	 * map dataiku project with solution

@@ -21,16 +21,19 @@ public class KafkaProducerService {
 
 	@Value(value = "${kafka.centralTopic.name}")
 	private String topicName;
-
+	
 	@Autowired
 	private KafkaDynamicProducerService dynamicProducer;
 
 	@Transactional
 	public void send(String eventType, String resourceId, String messageDetails, String publishingUser, String message,
-			Boolean mail_required, List<String> subscribedUsers, List<String> subscribedUsersEmail, List<ChangeLogVO> changeLogs) {
+			Boolean mail_required, List<String> subscribedUsers, List<String> subscribedUsersEmail, List<ChangeLogVO> changeLogs, String destinationTopicName) {
 		GenericEventRecord record = this.defaultRecordBuilder(eventType, resourceId, messageDetails, publishingUser,
 				message, mail_required, subscribedUsers, subscribedUsersEmail, changeLogs);
-		dynamicProducer.sendMessage(topicName, record);
+		if(destinationTopicName!=null)
+			dynamicProducer.sendMessage(destinationTopicName, record);
+		else
+			dynamicProducer.sendMessage(topicName, record);
 	}
 
 	private GenericEventRecord defaultRecordBuilder(String eventType, String resourceId, String messageDetails,

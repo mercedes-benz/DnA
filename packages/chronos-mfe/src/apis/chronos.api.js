@@ -39,8 +39,8 @@ const createForecastRun = (data, id) => {
   return formServer.post(`/forecasts/${id}/runs`, data);
 };
 
-const getForecastRuns = (id) => {
-  return server.get(`/forecasts/${id}/runs`, {
+const getForecastRuns = (id, offset, limit) => {
+  return server.get(`/forecasts/${id}/runs?offset=${offset}&limit=${limit}`, {
     data: {},
   });
 };
@@ -57,12 +57,18 @@ const deleteForecastRun = (id, rid) => {
   });
 };
 
+const deleteSavedInputFile = (id, rid) => {
+  return server.delete(`/forecasts/${id}/inputs/${rid}`, {
+    data: {},
+  });
+};
+
 const deleteForecastRuns = (rids, id) => {
   return server.delete(`/forecasts/${id}/runs`, { ids: rids });
 };
 
-const getConfigurationFiles = () => {
-  return server.get(`/forecasts/default-config/files`, {
+const getConfigurationFiles = (id) => {
+  return server.get(`/forecasts/default-config/files?id=${id}`, {
     data: {},
   });
 };
@@ -97,6 +103,28 @@ const getExcelFile = (projectName, resultFolderName, fileName) => {
   });
 };
 
+const createForecastComparison = (data, id) => {
+  return formServer.post(`/forecasts/${id}/comparisons`, data);
+};
+
+const getForecastComparisons = (id) => {
+  return server.get(`/forecasts/${id}/comparisons`, {
+    data: {},
+  });
+};
+
+const deleteForecastComparisons = (cids, id) => {
+  return server.delete(`/forecasts/${id}/comparisons?comparisonIds=${cids}`, {
+    data: {},
+  });
+};
+
+const getComparisonHtml = (id, cid) => {
+  return server.get(`/forecasts/${id}/comparisons/${cid}/comparisonData`, {
+    data: {},
+  });
+};
+
 export const chronosApi = {
     getAllForecastProjects,
     getForecastProjectById,
@@ -109,10 +137,15 @@ export const chronosApi = {
     deleteForecastRun,
     getForecastRuns,
     deleteForecastRuns,
+    deleteSavedInputFile,
     getConfigurationFiles,
     generateApiKeyById,
     getApiKeyById,
     getHTML,
     getFile,
     getExcelFile,
+    createForecastComparison,
+    getForecastComparisons,
+    deleteForecastComparisons,
+    getComparisonHtml,
 };

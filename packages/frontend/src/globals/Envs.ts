@@ -66,7 +66,7 @@ export const Envs = {
   ENABLE_INTERNAL_USER_INFO:
     getInjectedEnv('ENABLE_INTERNAL_USER_INFO') !== undefined
       ? getInjectedEnv('ENABLE_INTERNAL_USER_INFO')
-      : EnvParser.parseBool(process.env.ENABLE_INTERNAL_USER_INFO, false),
+      : EnvParser.parseBool(process.env.ENABLE_INTERNAL_USER_INFO, true),
   ENABLE_DATA_COMPLIANCE:
     getInjectedEnv('ENABLE_DATA_COMPLIANCE') !== undefined
       ? getInjectedEnv('ENABLE_DATA_COMPLIANCE')
@@ -152,11 +152,15 @@ export const Envs = {
       : EnvParser.parseBool(process.env.ENABLE_CODE_SPACE, false),
   CODE_SPACE_API_BASEURL: getInjectedEnv('CODE_SPACE_API_BASEURL') || process.env.CODE_SPACE_API_BASEURL,
   CODE_SPACE_GIT_PAT_APP_URL: getInjectedEnv('CODE_SPACE_GIT_PAT_APP_URL') || process.env.CODE_SPACE_GIT_PAT_APP_URL,
+  CODESPACE_OIDC_POPUP_URL: getInjectedEnv('CODESPACE_OIDC_POPUP_URL') || process.env.CODESPACE_OIDC_POPUP_URL,
+  CODESPACE_OIDC_POPUP_WAIT_TIME:
+    getInjectedEnv('CODESPACE_OIDC_POPUP_WAIT_TIME') ||
+    parseInt(process.env.CODESPACE_OIDC_POPUP_WAIT_TIME || '5000', 10),
   ENABLE_CHRONOS_FORECASTING_SERVICE:
     getInjectedEnv('ENABLE_CHRONOS_FORECASTING_SERVICE') !== undefined
       ? getInjectedEnv('ENABLE_CHRONOS_FORECASTING_SERVICE')
       : EnvParser.parseBool(process.env.ENABLE_CHRONOS_FORECASTING_SERVICE, false),
-  
+
   DATA_GOVERNANCE_INFO_LINK: getInjectedEnv('DATA_GOVERNANCE_INFO_LINK') || process.env.DATA_GOVERNANCE_INFO_LINK,
   UDEMY_URL: getInjectedEnv('UDEMY_URL') || process.env.UDEMY_URL,
   LINKEDIN_LEARNING_URL: getInjectedEnv('LINKEDIN_LEARNING_URL') || process.env.LINKEDIN_LEARNING_URL,
@@ -172,13 +176,15 @@ export const Envs = {
   BPT_TOOL_URL: getInjectedEnv('BPT_TOOL_URL') || process.env.BPT_TOOL_URL,
   DATA_OASIS_TOOL_URL: getInjectedEnv('DATA_OASIS_TOOL_URL') || process.env.DATA_OASIS_TOOL_URL,
   DATAQ_TOOL_URL: getInjectedEnv('DATAQ_TOOL_URL') || process.env.DATAQ_TOOL_URL,
-  DWC_TOOL_URL: getInjectedEnv('DWC_TOOL_URL') || process.env.DWC_TOOL_URL,
+  DATASPHERE_TOOL_URL: getInjectedEnv('DATASPHERE_TOOL_URL') || process.env.DATASPHERE_TOOL_URL,
+  GPT4ALL_CHATBOT_TOOL_URL: getInjectedEnv('GPT4ALL_CHATBOT_TOOL_URL') || process.env.GPT4ALL_CHATBOT_TOOL_URL,
   EXTOLLO_TOOL_URL: getInjectedEnv('EXTOLLO_TOOL_URL') || process.env.EXTOLLO_TOOL_URL,
   POWER_BI_TOOL_URL: getInjectedEnv('POWER_BI_TOOL_URL') || process.env.POWER_BI_TOOL_URL,
   SAC_TOOL_URL: getInjectedEnv('SAC_TOOL_URL') || process.env.SAC_TOOL_URL,
   SBISS_LAUNCHPAD_TOOL_URL: getInjectedEnv('SBISS_LAUNCHPAD_TOOL_URL') || process.env.SBISS_LAUNCHPAD_TOOL_URL,
   SBISS_PORTAL_TOOL_URL: getInjectedEnv('SBISS_PORTAL_TOOL_URL') || process.env.SBISS_PORTAL_TOOL_URL,
-  SBISS_HANA_LAUNCHPAD_TOOL_URL: getInjectedEnv('SBISS_HANA_LAUNCHPAD_TOOL_URL') || process.env.SBISS_HANA_LAUNCHPAD_TOOL_URL,
+  SBISS_HANA_LAUNCHPAD_TOOL_URL:
+    getInjectedEnv('SBISS_HANA_LAUNCHPAD_TOOL_URL') || process.env.SBISS_HANA_LAUNCHPAD_TOOL_URL,
   TERMS_OF_USE_CONTENT: getInjectedEnv('TERMS_OF_USE_CONTENT') || process.env.TERMS_OF_USE_CONTENT,
   COMING_SOON_CONTENT: getInjectedEnv('COMING_SOON_CONTENT') || process.env.COMING_SOON_CONTENT,
   DATA_MODEL_URL: getInjectedEnv('DATA_MODEL_URL') || process.env.DATA_MODEL_URL,

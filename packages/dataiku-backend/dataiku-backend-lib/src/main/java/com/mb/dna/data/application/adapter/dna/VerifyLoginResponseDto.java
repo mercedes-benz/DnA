@@ -1,5 +1,7 @@
 package com.mb.dna.data.application.adapter.dna;
 
+import java.io.Serializable;
+
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import lombok.AllArgsConstructor;
@@ -14,8 +16,10 @@ import lombok.ToString;
 @Builder
 @ToString
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class VerifyLoginResponseDto {
+public class VerifyLoginResponseDto implements Serializable{
 
+	private static final long serialVersionUID = 1L;
+	
 	private UserInfo data;
 	private String loggedIn;
 	private String token;

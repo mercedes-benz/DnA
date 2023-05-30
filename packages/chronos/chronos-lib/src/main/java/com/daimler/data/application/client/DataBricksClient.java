@@ -91,7 +91,6 @@ public class DataBricksClient {
 			}
 		}catch(Exception e) {
 			log.error("Failed to invoke databricks run {} with {} ", runCorrelationUUID,e.getMessage());
-			log.debug("Failed to invoke databricks run {} with {} ", runCorrelationUUID,e.getStackTrace());
 		}
 		return runNowResponse;
 	}
@@ -139,7 +138,6 @@ public class DataBricksClient {
 			}
 		}catch(Exception e) {
 			log.error("Failed to invoke databricks get run output {} with {} ", runId,e.getMessage());
-			log.debug("Failed to invoke databricks get run output with {} with {}", runId,e.getStackTrace());
 		}
 		return getSingleRunOutputResponse;
 	}
@@ -162,7 +160,6 @@ public class DataBricksClient {
 			}
 		}catch(Exception e) {
 			log.error("Failed to invoke databricks get run  {} with {} ", runId,e.getMessage());
-			log.debug("Failed to invoke databricks get run  with {} with {}", runId,e.getStackTrace());
 		}
 		return getSingleRunResponse;
 	}
@@ -185,7 +182,6 @@ public class DataBricksClient {
 			}
 		}catch(Exception e) {
 			log.error("Failed to invoke databricks get run {}", e.getMessage());
-			log.debug("Failed to invoke databricks get run {}", e.getStackTrace());
 		}
 		return getJobRunsResponse;
 	}
