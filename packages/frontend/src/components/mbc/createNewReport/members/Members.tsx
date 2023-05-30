@@ -24,7 +24,7 @@ export interface IMembersProps {
   members: IMembers;
   onPublish: () => void;
   onSaveDraft: (tabToBeSaved: string) => void;
-  modifyMember: (productOwners: ITeams[], admin: ITeams[]) => void;
+  modifyMember: (admin: ITeams[]) => void;
 }
 
 export interface IMembersState {
@@ -36,7 +36,7 @@ export interface IMembersState {
   addTeamMemberInController: boolean;
   addAdminInController: boolean;
   membersTabError: {
-    productOwner: string;
+    // productOwner: string;
     admin: string;
   };
   hideTeamPosition: boolean;
@@ -64,7 +64,7 @@ export default class Members extends React.Component<IMembersProps, IMembersStat
     super(props);
     this.state = {
       members: {
-        reportOwners: [],
+        // reportOwners: [],
         reportAdmins: [],
       },
       showAddTeamMemberModal: false,
@@ -83,7 +83,7 @@ export default class Members extends React.Component<IMembersProps, IMembersStat
       addTeamMemberInController: true,
       addAdminInController: true,
       membersTabError: {
-        productOwner: '',
+        // productOwner: '',
         admin: '',
       },
       hideTeamPosition: true,
@@ -96,7 +96,9 @@ export default class Members extends React.Component<IMembersProps, IMembersStat
   }
 
   public render() {
-    const { productOwner: POError, admin: adminError } = this.state.membersTabError;
+    const { 
+      // productOwner: POError, 
+      admin: adminError } = this.state.membersTabError;
 
     // const developerTeamMembersList = this.state.members.developers
     //   ? this.state.members.developers?.map((member: ITeams, index: number) => {
@@ -115,23 +117,23 @@ export default class Members extends React.Component<IMembersProps, IMembersStat
     //       );
     //     })
     //   : [];
-    const productOwnerTeamMembersList = this.state.members.reportOwners
-      ? this.state.members.reportOwners?.map((member: ITeams, index: number) => {
-          return (
-            <TeamMemberListItem
-              key={index}
-              itemIndex={index}
-              teamMember={member}
-              showMoveUp={index !== 0}
-              showMoveDown={index + 1 !== this.state.members.reportOwners.length}
-              onMoveUp={(index) => this.onTeamMemberMoveUp(index, 'productOwners')}
-              onMoveDown={(index) => this.onTeamMemberMoveDown(index, 'productOwners')}
-              onEdit={this.onControllerTeamMemberEdit}
-              onDelete={this.onControllerTeamMemberDelete}
-            />
-          );
-        })
-      : [];
+    // const productOwnerTeamMembersList = this.state.members.reportOwners
+    //   ? this.state.members.reportOwners?.map((member: ITeams, index: number) => {
+    //       return (
+    //         <TeamMemberListItem
+    //           key={index}
+    //           itemIndex={index}
+    //           teamMember={member}
+    //           showMoveUp={index !== 0}
+    //           showMoveDown={index + 1 !== this.state.members.reportOwners.length}
+    //           onMoveUp={(index) => this.onTeamMemberMoveUp(index, 'productOwners')}
+    //           onMoveDown={(index) => this.onTeamMemberMoveDown(index, 'productOwners')}
+    //           onEdit={this.onControllerTeamMemberEdit}
+    //           onDelete={this.onControllerTeamMemberDelete}
+    //         />
+    //       );
+    //     })
+    //   : [];
 
     const adminTeamMembersList = this.state.members.reportAdmins
       ? this.state.members.reportAdmins?.map((member: ITeams, index: number) => {
@@ -153,14 +155,10 @@ export default class Members extends React.Component<IMembersProps, IMembersStat
 
     return (
       <React.Fragment>
-        <div className={classNames(Styles.wrapper)}>
+        {/* <div className={classNames(Styles.wrapper)}>
           <div className={classNames(Styles.firstPanel)}>
             <h3>Please add report members</h3>
             <div className={classNames(Styles.teamListWrapper, productOwnerTeamMembersList.length < 1 ? 'error' : '')}>
-              {/* <h5>
-                {' '}
-                Product / Report Owner <sup>*</sup> (can edit/delete){' '}
-              </h5> */}
               <div className={Styles.addTeamMemberWrapper}>
                 <IconAvatarNew className={Styles.avatarIcon} />
                 <button id="AddTeamMemberBtn" onClick={this.addProductOwnerMember}>
@@ -174,7 +172,7 @@ export default class Members extends React.Component<IMembersProps, IMembersStat
               {productOwnerTeamMembersList.length ? productOwnerTeamMembersList : ''}
             </div>
           </div>
-        </div>
+        </div> */}
         <div className={classNames(Styles.adminWrapper)}>
           <div className={classNames(Styles.firstPanel)}>
             <h3>Please add report administrators</h3>
@@ -233,9 +231,9 @@ export default class Members extends React.Component<IMembersProps, IMembersStat
   }
   public resetChanges = () => {
     if (this.props.members) {
-      const members = this.props.members;
+      // const members = this.props.members;
       // members.developers = this.props.members.developers;
-      members.reportOwners = this.props.members.reportOwners;
+      // members.reportOwners = this.props.members.reportOwners;
     }
   };
   protected addDeveloperMember = () => {
@@ -316,14 +314,17 @@ export default class Members extends React.Component<IMembersProps, IMembersStat
 
   protected onTeamMemberEdit = (index: number) => {
     const {
-      members: { reportOwners, reportAdmins },
-      addTeamMemberInController,
+      members: { 
+        // reportOwners, 
+        reportAdmins },
+      // addTeamMemberInController,
       addAdminInController,
     } = this.state;
     let teamMemberObj: ITeams;
-    if (addTeamMemberInController) {
-      teamMemberObj = reportOwners[index];
-    } else if (addAdminInController) {
+    // if (addTeamMemberInController) {
+    //   teamMemberObj = reportOwners[index];
+    // } else 
+    if (addAdminInController) {
       teamMemberObj = reportAdmins[index];
     }
 
@@ -344,14 +345,17 @@ export default class Members extends React.Component<IMembersProps, IMembersStat
     const {
       editTeamMember,
       editTeamMemberIndex,
-      members: { reportOwners, reportAdmins },
-      addTeamMemberInController,
+      members: { 
+        // reportOwners, 
+        reportAdmins },
+      // addTeamMemberInController,
       addAdminInController,
     } = this.state;
     let teamMembers = null;
-    if (addTeamMemberInController) {
-      teamMembers = reportOwners;
-    } else if (addAdminInController) {
+    // if (addTeamMemberInController) {
+    //   teamMembers = reportOwners;
+    // } else 
+    if (addAdminInController) {
       teamMembers = reportAdmins;
     }
     if (editTeamMember) {
@@ -364,14 +368,15 @@ export default class Members extends React.Component<IMembersProps, IMembersStat
     const stateUpdateObj = {
       showAddTeamMemberModal: false,
       members: {
-        reportOwners: this.state.members.reportOwners,
+        // reportOwners: this.state.members.reportOwners,
         reportAdmins: this.state.members.reportAdmins,
       },
     };
 
-    if (addTeamMemberInController) {
-      stateUpdateObj.members.reportOwners = teamMembers;
-    } else if (addAdminInController) {
+    // if (addTeamMemberInController) {
+    //   stateUpdateObj.members.reportOwners = teamMembers;
+    // } else 
+    if (addAdminInController) {
       stateUpdateObj.members.reportAdmins = teamMembers;
     }
 
@@ -383,12 +388,17 @@ export default class Members extends React.Component<IMembersProps, IMembersStat
 
   protected validateMembersList = (teamMemberObj: ITeams) => {
     console.log(teamMemberObj);
-    const { reportAdmins, reportOwners } = this.state.members;
-    const { addAdminInController, addTeamMemberInController } = this.state;
+    const { reportAdmins, 
+      // reportOwners 
+    } = this.state.members;
+    const { addAdminInController, 
+      // addTeamMemberInController 
+    } = this.state;
     let duplicateMember = false;
-    if (addTeamMemberInController) {
-      duplicateMember = reportOwners?.filter((member) => member.shortId === teamMemberObj.shortId)?.length ? true : false;
-    } else if (addAdminInController) {
+    // if (addTeamMemberInController) {
+    //   duplicateMember = reportOwners?.filter((member) => member.shortId === teamMemberObj.shortId)?.length ? true : false;
+    // } else 
+    if (addAdminInController) {
       duplicateMember = reportAdmins?.filter((admin) => admin.shortId === teamMemberObj.shortId)?.length ? true : false;
     }
     return duplicateMember;
@@ -402,11 +412,14 @@ export default class Members extends React.Component<IMembersProps, IMembersStat
 
   protected onTeamMemberDelete = (index: number) => {
     const {
-      members: { reportOwners, reportAdmins },
+      members: { 
+        // reportOwners, 
+        reportAdmins },
       addTeamMemberInController,
       addAdminInController,
     } = this.state;
-    const teamMembers = addTeamMemberInController ? reportOwners : reportAdmins;
+    // const teamMembers = addTeamMemberInController ? reportOwners : reportAdmins;
+    const teamMembers = reportAdmins;
     teamMembers.splice(index, 1);
     if (addTeamMemberInController) {
       this.setState((prevState) => ({
@@ -425,32 +438,32 @@ export default class Members extends React.Component<IMembersProps, IMembersStat
     }
   };
   protected onTeamMemberMoveUp = (index: number, teamMembers = 'developers') => {
-    const members = this.state.members.reportOwners;
-    const teamMember = members.splice(index, 1)[0];
-    members.splice(index - 1, 0, teamMember);
-    this.setState((prevState) => ({
-      members: {
-        ...prevState.members,
-        [teamMembers]: members,
-      },
-    }));
+    // const members = this.state.members.reportOwners;
+    // const teamMember = members.splice(index, 1)[0];
+    // members.splice(index - 1, 0, teamMember);
+    // this.setState((prevState) => ({
+    //   members: {
+    //     ...prevState.members,
+    //     [teamMembers]: members,
+    //   },
+    // }));
   };
   protected onTeamMemberMoveDown = (index: number, teamMembers = 'developers') => {
-    const members = this.state.members.reportOwners;
-    const teamMember = members.splice(index, 1)[0];
-    members.splice(index + 1, 0, teamMember);
-    this.setState((prevState) => ({
-      members: {
-        ...prevState.members,
-        [teamMembers]: members,
-      },
-    }));
+    // const members = this.state.members.reportOwners;
+    // const teamMember = members.splice(index, 1)[0];
+    // members.splice(index + 1, 0, teamMember);
+    // this.setState((prevState) => ({
+    //   members: {
+    //     ...prevState.members,
+    //     [teamMembers]: members,
+    //   },
+    // }));
   };
 
   protected onSaveMembers = () => {
     if (this.validateMembersTab()) {
       this.props.modifyMember(
-        this.state.members.reportOwners,
+        // this.state.members.reportOwners,
         this.state.members.reportAdmins,
       );
       this.props.onSaveDraft('members');
@@ -460,7 +473,7 @@ export default class Members extends React.Component<IMembersProps, IMembersStat
   protected onMembersValueSubmit = () => {
     if (this.validateMembersTab()) {
       this.props.modifyMember(
-        this.state.members.reportOwners,
+        // this.state.members.reportOwners,
         this.state.members.reportAdmins,
       );
       this.props.onPublish();
@@ -468,14 +481,16 @@ export default class Members extends React.Component<IMembersProps, IMembersStat
   };
 
   protected validateMembersTab = () => {
-    const { reportOwners: POList, reportAdmins: adminList } = this.state.members;
-    let productOwner = '';
+    const { 
+      // reportOwners: POList, 
+      reportAdmins: adminList } = this.state.members;
+    // let productOwner = '';
     let admin = '';
-    if (!POList.length) productOwner = ErrorMsg.MEMBERS_TAB_PRODUCT_OWNER;
+    // if (!POList.length) productOwner = ErrorMsg.MEMBERS_TAB_PRODUCT_OWNER;
     if (!adminList.length) admin = ErrorMsg.MEMBERS_TAB_ADMIN;
     this.setState({
       membersTabError: {
-        productOwner,
+        // productOwner,
         admin,
       },
     });
@@ -483,6 +498,7 @@ export default class Members extends React.Component<IMembersProps, IMembersStat
       const anyErrorDetected = document.querySelector('.error');
       anyErrorDetected?.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }, 100);
-    return POList.length && adminList.length;
+    // return POList.length && adminList.length;
+    return adminList.length;
   };
 }

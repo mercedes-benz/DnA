@@ -526,7 +526,7 @@ export default class Portfolio extends React.Component<IPortfolioProps, IPortfol
           <button
             className={classNames('btn btn-text back arrow', Styles.backBtn)}
             type="submit"
-            onClick={() => history.push('/transparency')}
+            onClick={() => history.goBack()}
           >
             Back
           </button>

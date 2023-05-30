@@ -45,7 +45,6 @@ import {
   IDataSourceMaster,
   IConnectionType,
   IDataWarehouse,
-  ICommonFunctions,
   // ISingleDataSources,
   IDivision,
   ISubDivision,
@@ -84,7 +83,7 @@ export interface ICreateNewReportState {
   connectionTypes: IConnectionType[];
   dataClassifications: IDataClassification[];
   dataWarehouses: IDataWarehouse[];
-  commonFunctions: ICommonFunctions[];
+  // commonFunctions: ICommonFunctions[];
   editMode: boolean;
   currentTab: string;
   nextTab: string;
@@ -140,7 +139,7 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
         { id: 'Public', name: 'Public' },
       ],
       dataWarehouses: [],
-      commonFunctions: [],
+      // commonFunctions: [],
       departmentTags: [],
       editMode: false,
       currentTab: 'description',
@@ -185,7 +184,7 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
           singleDataSources: [],
         },
         members: {
-          reportOwners: [],
+          // reportOwners: [],
           reportAdmins: [],
         },
         publish: false,
@@ -225,8 +224,7 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
         const dataWarehouses: IDataWarehouse[] = response[11].data;
         const divisions: IDivision[] = response[12];
         const departmentTags: IDepartment[] = response[13].data;
-        const commonFunctions: ICommonFunctions[] = response[14].data;
-        const dataClassifications: IDataClassification[] = response[15].data;
+        const dataClassifications: IDataClassification[] = response[14].data;
         const creatorInfo = this.props.user;
         const teamMemberObj: ITeams = {
           department: creatorInfo.department,
@@ -259,7 +257,7 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
             divisions,
             connectionTypes,
             dataClassifications,
-            commonFunctions,
+            // commonFunctions,
             report: {
               ...prevState.report,
               members: {
@@ -342,14 +340,14 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
             const user = this.props.user;
             const isSuperAdmin = user.roles.find((role: IRole) => role.id === USER_ROLE.ADMIN);
             const isReportAdmin = user.roles.find((role: IRole) => role.id === USER_ROLE.REPORTADMIN);
-            const isProductOwner = res.members.reportOwners?.find(
-              (teamMember: ITeams) => teamMember.shortId === user.id,
-            )?.shortId;
+            // const isProductOwner = res.members.reportOwners?.find(
+            //   (teamMember: ITeams) => teamMember.shortId === user.id,
+            // )?.shortId;
 
             if (
               isSuperAdmin !== undefined ||
               isReportAdmin !== undefined ||
-              isProductOwner !== undefined ||
+              // isProductOwner !== undefined ||
               // user.id === (res.createdBy ? res.createdBy.id : '')
               res.members.reportAdmins.find((teamMember) => teamMember.shortId === user.id) !== undefined ||
               (user?.divisionAdmins && user?.divisionAdmins.includes(res?.description?.division?.name))
@@ -401,7 +399,7 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
               //   return item;
               // }) || [];
               // report.members.developers = res.members.developers || [];
-              report.members.reportOwners = res.members.reportOwners || [];
+              // report.members.reportOwners = res.members.reportOwners || [];
               report.members.reportAdmins = res.members.reportAdmins || [];
               report.publish = res.publish;
               report.openSegments = res.openSegments || [];
@@ -443,17 +441,6 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
     // report.usingQuickPath = !value;
     report.usingQuickPath = false;
 
-    // Following two if's are mentioned because when we switch quickview then its state gets changed
-    if (report.description.division.subdivision.id === null) {
-      report.description.division.subdivision.id = '0';
-      report.description.division.subdivision.name = 'Choose';
-      this.setState({ currentState: JSON.parse(JSON.stringify(report)) });
-    }
-    if (report.description.division.subdivision.id === '0') {
-      report.description.division.subdivision.id = '0';
-      report.description.division.subdivision.name = 'Choose';
-      this.setState({ currentState: JSON.parse(JSON.stringify(report)) });
-    }
     this.setState({ report }, () => {
       Tabs.defaultSetup();
       if (!this.state.report.usingQuickPath) {
@@ -635,7 +622,7 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
                       connectionTypes={this.state.connectionTypes}
                       dataClassifications={this.state.dataClassifications}
                       dataWarehouses={this.state.dataWarehouses}
-                      commonFunctions={this.state.commonFunctions}
+                      // commonFunctions={this.state.commonFunctions}
                       modifyDataFunction={this.modifyDataFunction}
                       onSaveDraft={this.onSaveDraft}
                       ref={this.dataFunctionComponent}
@@ -892,7 +879,7 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
       ReportsApiClient.createNewReport(requestBody)
         .then((response) => {
           if (response) {
-            this.trackReportEvent('New Report Save as Draft action on tab panel');
+            this.trackReportEvent('New Report Save as ' + (isPublished ? 'Publish' : 'Draft') +' action on tab panel');
             this.setState(
               {
                 response,
@@ -930,7 +917,7 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
 
   protected showNotification(isPublished: boolean) {
     ProgressIndicator.hide();
-    Notification.show((this.state.report.publish ? 'Report saved and published' : 'Draft saved') + ' successfully.');
+    Notification.show((isPublished ? 'Report saved and published' : 'Draft saved') + ' successfully.');
   }
 
   protected showErrorNotification(message: string) {
@@ -968,9 +955,9 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
       report: currentReportObject,
     });
   };
-  protected modifyMember = (productOwners: ITeams[], reportAdmins: ITeams[]) => {
+  protected modifyMember = (reportAdmins: ITeams[]) => {
     const currentReportObject = this.state.report;
-    currentReportObject.members.reportOwners = productOwners;
+    // currentReportObject.members.reportOwners = productOwners;
     currentReportObject.members.reportAdmins = reportAdmins;
     this.setState({
       report: currentReportObject,

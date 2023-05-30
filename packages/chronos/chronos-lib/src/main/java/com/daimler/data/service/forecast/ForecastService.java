@@ -5,6 +5,7 @@ import java.util.Date;
 import java.util.List;
 
 import com.daimler.data.dto.forecast.*;
+import com.daimler.data.dto.storage.BucketObjectsCollectionWrapperDto;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.daimler.data.controller.exceptions.GenericMessage;
@@ -24,9 +25,8 @@ public interface ForecastService extends CommonService<ForecastVO, ForecastNsql,
 			String configurationFile, String frequency, BigDecimal forecastHorizon, String hierarchy, String comment,
 			Boolean runOnPowerfulMachines, ForecastVO existingForecast, String triggeredBy, Date triggeredOn);
 
-	Long getRunsCount(String id);
 
-	List<RunVO> getAllRunsForProject( int limit,  int offset, String forecastId);
+	Object[] getAllRunsForProject( int limit,  int offset, String forecastId);
 
 	GenericMessage deletRunByUUID(String id, String rid);
 
@@ -43,4 +43,16 @@ public interface ForecastService extends CommonService<ForecastVO, ForecastNsql,
 	Boolean isBucketExists(String bucketName);
 	
 	List<String> getAllForecastIds();
+
+	public BucketObjectsCollectionWrapperDto getBucketObjects(String path, String bucketType);
+
+	public ForecastComparisonCreateResponseVO createComparison(String id, ForecastVO existingForecast, List<String> validRunsPath, String comparisionId, String comparisonName,
+			String actualsFilePath, String targetFolder, Date createdOn, String requestUser);
+	public Object[]  getAllForecastComparisons(int limit, int offset,String id);
+	public GenericMessage  deleteComparison(String id,List<String> validComparisonIds);
+	public ForecastComparisonResultVO  getForecastComparisonById(String id,String comparisonId);
+
+	public void processForecastComparision(String forecastId, String comparisonId);
+
+
 }

@@ -1,8 +1,10 @@
 package com.mb.dna.data.application.adapter.dataiku;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
-import org.json.JSONObject;
+import org.reactivestreams.Publisher;
 
 import com.mb.dna.data.api.controller.exceptions.MessageDescription;
 
@@ -88,6 +90,29 @@ public class DataikuClientImpl implements DataikuClient {
 		}
 		return responseBody;
 	}
+	
+	@Override
+	public List<DataikuProjectDetailsDto> getDataikuProjects(String cloudProfile){
+		List<DataikuProjectDetailsDto> dataikuProjects = new ArrayList<>();
+		String responseBody = "";
+		String baseUri = "onPremise".equalsIgnoreCase(cloudProfile) ? dataikuClientConfig.getOnPremiseBaseuri() : dataikuClientConfig.getExtolloBaseuri();
+		String url =  "https:" + baseUri + dataikuClientConfig.getProjectsUri();
+		String apiToken = "onPremise".equalsIgnoreCase(cloudProfile) ? dataikuClientConfig.getOnPremiseAuth() : dataikuClientConfig.getExtolloAuth();
+		HttpRequest<?> req = HttpRequest.GET(url).header("Accept", "application/json")
+		.header("Content-Type", "application/json")
+		.header("Authorization", "Basic "+apiToken);
+		try {
+			
+			HttpResponse<DataikuProjectsCollectionDto> response = client.toBlocking().exchange(req,DataikuProjectsCollectionDto.class);
+			if(response!=null && response.getBody()!=null) {
+				dataikuProjects = response.getBody().get();
+				log.info("got projects collection from {} ",cloudProfile);
+			}
+		}catch(Exception e) {
+			log.error("Failed to fetch dataiku projects from {} with exception {}", cloudProfile, e.getMessage());
+		}
+		return dataikuProjects;
+	}
 
 	@Override
 	public MessageDescription updateScenario(String projectName, String cloudProfile) {
@@ -124,15 +149,16 @@ public class DataikuClientImpl implements DataikuClient {
 			String baseUri = "onPremise".equalsIgnoreCase(cloudProfile) ? dataikuClientConfig.getOnPremiseBaseuri() : dataikuClientConfig.getExtolloBaseuri();
 			String url =   baseUri + "/projects/" + dataikuClientConfig.getScenarioProjectKey() + "/scenarios/" + dataikuClientConfig.getScenarioId() + "/run";
 			String apiToken = "onPremise".equalsIgnoreCase(cloudProfile) ? dataikuClientConfig.getOnPremiseAuth() : dataikuClientConfig.getExtolloAuth();
-			HttpRequest<?> req = HttpRequest.POST(url,null).header("Accept", "application/json")
-			.header("Content-Type", "application/json")
-			.header("Authorization", "Basic "+ apiToken);
+			HttpRequest<String> req = HttpRequest.POST(url,"{}")
+													.header("Accept", "application/json")
+													.header("Content-Type", "application/json")
+													.header("Authorization", "Basic "+ apiToken);
 			log.info("run scenarion with url {}", url);
-			HttpResponse<JSONObject> response = client.toBlocking().exchange(req,JSONObject.class);
+			HttpResponse<Object> response = client.toBlocking().exchange(req,Object.class);
 			if(response!=null && response.getBody()!=null) {
-				Optional<JSONObject> responseBody = response.getBody();
+				Optional<Object> responseBody = response.getBody();
 				if(responseBody.isPresent()) {
-					log.info("Ran updated scenario for projectName with response status {} ",projectName, response.getStatus().toString());
+					log.info("Ran updated scenario for projectName {} with response status {} ",projectName, response.getStatus().toString());
 				}
 			}
 			client.close();

@@ -127,12 +127,7 @@ public class ReportAssembler implements GenericAssembler<ReportVO, ReportNsql> {
 			vo.setDataAndFunctions(dataAndFunctionVO);
 			if (report.getMember() != null) {
 				MemberVO memberVO = new MemberVO();
-				BeanUtils.copyProperties(report.getMember(), memberVO);
-				if (!ObjectUtils.isEmpty(report.getMember().getReportOwners())) {
-					List<TeamMemberVO> reportOwners = report.getMember().getReportOwners().stream()
-							.map(n -> toTeamMemberVO(n)).collect(Collectors.toList());
-					memberVO.setReportOwners(reportOwners);
-				}
+				BeanUtils.copyProperties(report.getMember(), memberVO);				
 				if (!ObjectUtils.isEmpty(report.getMember().getReportAdmins())) {
 					List<TeamMemberVO> reportAdmins = report.getMember().getReportAdmins().stream()
 							.map(n -> toTeamMemberVO(n)).collect(Collectors.toList());
@@ -196,8 +191,7 @@ public class ReportAssembler implements GenericAssembler<ReportVO, ReportNsql> {
 		if (internalCustomer != null) {
 			vo = new InternalCustomerVO();
 			BeanUtils.copyProperties(internalCustomer, vo);
-			vo.setDivision(toDivisionVO(internalCustomer.getDivision()));
-			vo.setName(toTeamMemberVO(internalCustomer.getName()));
+			vo.setDivision(toDivisionVO(internalCustomer.getDivision()));			
 			vo.setProcessOwner(toTeamMemberVO(internalCustomer.getProcessOwner()));
 		}
 		return vo;
@@ -208,7 +202,6 @@ public class ReportAssembler implements GenericAssembler<ReportVO, ReportNsql> {
 		if (externalCustomer != null) {
 			vo = new ExternalCustomerVO();
 			BeanUtils.copyProperties(externalCustomer, vo);
-			vo.setName(toTeamMemberVO(externalCustomer.getName()));
 		}
 		return vo;
 	}
@@ -299,12 +292,7 @@ public class ReportAssembler implements GenericAssembler<ReportVO, ReportNsql> {
 
 			if (vo.getMembers() != null) {
 				Member member = new Member();
-				BeanUtils.copyProperties(vo.getMembers(), member);
-				if (!ObjectUtils.isEmpty(vo.getMembers().getReportOwners())) {
-					List<TeamMember> reportOwners = vo.getMembers().getReportOwners().stream()
-							.map(n -> toTeamMemberJson(n)).collect(Collectors.toList());
-					member.setReportOwners(reportOwners);
-				}
+				BeanUtils.copyProperties(vo.getMembers(), member);				
 				if (!ObjectUtils.isEmpty(vo.getMembers().getReportAdmins())) {
 					List<TeamMember> reportAdmins = vo.getMembers().getReportAdmins().stream()
 							.map(n -> toTeamMemberJson(n)).collect(Collectors.toList());
@@ -368,8 +356,7 @@ public class ReportAssembler implements GenericAssembler<ReportVO, ReportNsql> {
 		InternalCustomer internalCustomer = null;
 		if (vo != null) {
 			internalCustomer = new InternalCustomer();
-			BeanUtils.copyProperties(vo, internalCustomer);
-			internalCustomer.setName(toTeamMemberJson(vo.getName()));
+			BeanUtils.copyProperties(vo, internalCustomer);			
 			internalCustomer.setProcessOwner(toTeamMemberJson(vo.getProcessOwner()));
 			internalCustomer.setDivision(toDivisionJson(vo.getDivision()));
 		}
@@ -381,7 +368,6 @@ public class ReportAssembler implements GenericAssembler<ReportVO, ReportNsql> {
 		if (vo != null) {
 			externalCustomer = new ExternalCustomer();
 			BeanUtils.copyProperties(vo, externalCustomer);
-			externalCustomer.setName(toTeamMemberJson(vo.getName()));
 		}
 		return externalCustomer;
 	}

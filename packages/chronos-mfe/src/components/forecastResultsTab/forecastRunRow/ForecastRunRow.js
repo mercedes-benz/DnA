@@ -1,11 +1,12 @@
 import classnames from 'classnames';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Styles from './forecast-run-row.scss';
 // import from DNA Container
 import CircularProgressBar from '../../circularProgressBar/CircularProgressBar';
 import ContextMenu from '../../contextMenu/ContextMenu';
 import { regionalDateAndTimeConversionSolution } from '../../../utilities/utils';
 import Notification from '../../../common/modules/uilab/js/src/notification';
+import Tooltip from '../../../common/modules/uilab/js/src/tooltip';
 import ProgressIndicator from '../../../common/modules/uilab/js/src/progress-indicator';
 import { Envs } from '../../../utilities/envs';
 import { chronosApi } from '../../../apis/chronos.api';
@@ -14,6 +15,12 @@ const classNames = classnames.bind(Styles);
 
 const ForecastRunRow = (props) => {
   const item = props.item;
+
+  useEffect(() => {
+    Tooltip.defaultSetup();
+    return Tooltip.clear();
+    //eslint-disable-next-line
+  }, []);
 
   const [showContextMenu, setShowContextMenu] = useState(false);
 
@@ -99,10 +106,26 @@ const ForecastRunRow = (props) => {
     }
   ];
 
+  const [isChecked, setIsChecked] = useState(false);
+
+  const onChangeCheck = (e) => {
+    if (!e.currentTarget.checked) {
+      props.deselectRun(e.currentTarget.id);
+    } else {
+      props.selectRun(e.currentTarget.id);
+    }
+    setIsChecked(e.currentTarget.checked);
+    e.nativeEvent.stopImmediatePropagation();
+  };
+
   const handleStatusClick = (e, item) => {
     e.stopPropagation();
     props.onOpenErrorModal(item);
   }
+
+  const stopPropagation = (e) => {
+    e.stopPropagation();
+  };
 
   return (
     <React.Fragment>
@@ -111,6 +134,26 @@ const ForecastRunRow = (props) => {
         onClick={showContextMenu ? undefined : onRowClick}
         className={classNames('data-row', Styles.dataRow)}
       >
+        <td>
+          <label
+            className={classNames('checkbox', Styles.checkboxItem)}
+            onClick={(e) => stopPropagation(e)}
+          >
+            <span className="wrapper">
+            <input
+                type="checkbox"
+                className="ff-only"
+                id={'checkbox-' + item.id}
+                checked={isChecked}
+                onChange={(e) => {
+                  e.stopPropagation();
+                  onChangeCheck(e, item.id);
+                }}
+                disabled={item.state.result_state === null || item.state.result_state === 'FAILED'}
+              />
+            </span>{' '}
+          </label>
+        </td>
         <td>
           {/* { item.new && <span className={Styles.badge}>New</span> }  */}
           { item.comment === '' && <span>{item.runName}</span> }

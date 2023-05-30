@@ -1,3 +1,4 @@
+import classNames from 'classnames';
 import React from 'react';
 import Styles from './visual-container.scss';
 import html2canvas from 'html2canvas';
@@ -6,7 +7,8 @@ import ContextMenu from '../contextMenu/ContextMenu';
 import Spinner from '../spinner/Spinner';
 import Plot from 'react-plotly.js';
 
-const VisualContainer = ({title, forecastRun, printRef, loading, forecastData, addTraces, layout, isForecast}) => {
+const VisualContainer = ({title, forecastRun, printRef, loading, forecastData, addTraces, layout, isForecast, isDecomposition, handleDecompositionMethod, legend, decompositionMethods,
+  isOutlier, handleOutlierMethod, outlierMethods}) => {
   const exportToPdf = async () => {
     const element = printRef.current;
     const canvas = await html2canvas(element);
@@ -59,6 +61,46 @@ const VisualContainer = ({title, forecastRun, printRef, loading, forecastData, a
           <ContextMenu id={'visual'} items={contextMenuItems} />
         </div>
       </div>
+      { isDecomposition && <p>Method</p> }
+      {
+        isDecomposition &&
+          <div className={classNames(`input-field-group`)}>
+            <div 
+              // onBlur={() => trigger('frequency')}
+              >
+              <select id="colTwoField" onChange={handleDecompositionMethod} className={Styles.customSelect}>
+                <>
+                  {decompositionMethods.length > 0 &&
+                    decompositionMethods.map((name) => (
+                      <option id={name} key={name} value={name}>
+                        {name}
+                      </option>
+                  ))}
+                </>
+              </select>
+            </div>
+          </div>
+      }
+      { isOutlier && <p>Method</p> }
+      {
+        isOutlier &&
+          <div className={classNames(`input-field-group`)}>
+            <div 
+              // onBlur={() => trigger('frequency')}
+              >
+              <select id="colTwoField" onChange={handleOutlierMethod} className={Styles.customSelect}>
+                <>
+                  {outlierMethods.length > 0 &&
+                    outlierMethods.map((name) => (
+                      <option id={name} key={name} value={name}>
+                        {name}
+                      </option>
+                  ))}
+                </>
+              </select>
+            </div>
+          </div>
+      }
       <div className={Styles.firstPanel} ref={printRef}>
         { loading && <Spinner /> }
         { !loading && forecastData.length === 0 && <p>No visualization for the given data.</p> }
@@ -73,6 +115,7 @@ const VisualContainer = ({title, forecastRun, printRef, loading, forecastData, a
                   config={{ displaylogo: false }}
                   style={{width: '100%', height: '450px'}}
                 />
+                { isDecomposition && legend }
               </div>
             </>
         }
