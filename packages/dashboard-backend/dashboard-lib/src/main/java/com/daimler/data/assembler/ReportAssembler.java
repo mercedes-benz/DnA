@@ -48,6 +48,7 @@ import com.daimler.data.db.jsonb.report.Division;
 import com.daimler.data.db.jsonb.report.ExternalCustomer;
 import com.daimler.data.db.jsonb.report.InternalCustomer;
 import com.daimler.data.db.jsonb.report.KPI;
+import com.daimler.data.db.jsonb.report.KPIName;
 import com.daimler.data.db.jsonb.report.Member;
 import com.daimler.data.db.jsonb.report.Report;
 import com.daimler.data.db.jsonb.report.SingleDataSource;
@@ -63,6 +64,7 @@ import com.daimler.data.dto.report.DivisionVO;
 import com.daimler.data.dto.report.ExternalCustomerVO;
 import com.daimler.data.dto.report.InternalCustomerVO;
 import com.daimler.data.dto.report.KPIVO;
+import com.daimler.data.dto.report.KpiNameVO;
 import com.daimler.data.dto.report.MemberVO;
 import com.daimler.data.dto.report.ReportVO;
 import com.daimler.data.dto.report.SingleDataSourceVO;
@@ -182,6 +184,11 @@ public class ReportAssembler implements GenericAssembler<ReportVO, ReportNsql> {
 		if (kpi != null) {
 			kPIVO = new KPIVO();
 			BeanUtils.copyProperties(kpi, kPIVO);
+			if(Objects.nonNull(kpi.getName())){
+				KpiNameVO kpiNameVO = new KpiNameVO();
+				BeanUtils.copyProperties(kpi.getName(), kpiNameVO);	
+				kPIVO.setName(kpiNameVO);
+			}
 		}
 		return kPIVO;
 	}
@@ -348,6 +355,11 @@ public class ReportAssembler implements GenericAssembler<ReportVO, ReportNsql> {
 		if (vo != null) {
 			kpi = new KPI();
 			BeanUtils.copyProperties(vo, kpi);
+			if(Objects.nonNull(vo.getName())){
+				KPIName kpiName = new KPIName();
+				BeanUtils.copyProperties(vo.getName(), kpiName);
+				kpi.setName(kpiName);
+			}
 		}
 		return kpi;
 	}

@@ -81,6 +81,19 @@ swaggerSources {
            }
       }
       
+      KpiNameLov {
+        def KpiNameLovYaml = "${rootDir}/dashboard-lib/src/main/resources/api/KpiNameLov.yaml"
+        def KpiNameLovJson = "${rootDir}/dashboard-lib/src/main/resources/api/KpiNameLov.json"
+        inputFile = file(KpiNameLovYaml)
+        def ignoreFile = "${rootDir}/dashboard-lib/src/main/resources/api/.swagger-codegen-ignore"
+        code {
+            language = 'spring'
+            configFile = file(KpiNameLovJson)
+            rawOptions = ['--ignore-file-override', ignoreFile]
+            components = ['models', 'apis']
+           }
+      }
+      
       tag {
         def tagyaml = "${rootDir}/dashboard-lib/src/main/resources/api/Tag.yaml"
         def tagJson = "${rootDir}/dashboard-lib/src/main/resources/api/Tag.json"
@@ -159,6 +172,8 @@ compileJava {
     source "${swaggerSources.report.code.outputDir}/src/main/java"
 	dependsOn swaggerSources.lov.code
     source "${swaggerSources.lov.code.outputDir}/src/main/java"
+    dependsOn swaggerSources.KpiNameLov.code
+    source "${swaggerSources.KpiNameLov.code.outputDir}/src/main/java"
     dependsOn swaggerSources.tag.code
     source "${swaggerSources.tag.code.outputDir}/src/main/java"
     dependsOn swaggerSources.department.code
@@ -180,6 +195,7 @@ sourceSets {
     main {
         java { srcDirs += "${swaggerSources.report.code.outputDir}/src/main/java" }
         java { srcDirs += "${swaggerSources.lov.code.outputDir}/src/main/java"}
+        java { srcDirs += "${swaggerSources.KpiNameLov.code.outputDir}/src/main/java"}
         java { srcDirs += "${swaggerSources.tag.code.outputDir}/src/main/java" }
         java { srcDirs += "${swaggerSources.department.code.outputDir}/src/main/java" }
         java { srcDirs += "${swaggerSources.userwidgetpreference.code.outputDir}/src/main/java" }

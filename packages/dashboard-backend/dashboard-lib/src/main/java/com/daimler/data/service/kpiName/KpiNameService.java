@@ -25,25 +25,29 @@
  * LICENSE END 
  */
 
-package com.daimler.data.service.lov;
+package com.daimler.data.service.kpiName;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
+import org.springframework.http.ResponseEntity;
 
-import com.daimler.data.db.entities.lov.KpiNameSql;
-import com.daimler.data.db.repo.lov.KpiNameRepository;
-import com.daimler.data.dto.lov.LovVO;
-import com.daimler.data.service.common.BaseCommonService;
+import com.daimler.data.controller.exceptions.GenericMessage;
+import com.daimler.data.db.entities.KpiNameSql;
+import com.daimler.data.dto.KpiName.KpiNameRequestVO;
+import com.daimler.data.dto.KpiName.KpiNameResponseVO;
+import com.daimler.data.dto.KpiName.KpiNameUpdateRequestVO;
+import com.daimler.data.dto.KpiName.KpiNameVO;
+import com.daimler.data.dto.KpiName.KpiNameVOCollection;
+import com.daimler.data.service.common.CommonService;
 
-@Service
-public class BaseKpiNameService extends BaseCommonService<LovVO, KpiNameSql, Long> implements KpiNameService {
+public interface KpiNameService extends CommonService<KpiNameVO, KpiNameSql, Long> {
 
-	public BaseKpiNameService() {
-		super();
-	}
+	ResponseEntity<KpiNameVOCollection> getAllKpiNames(String sortOrder);
 
-	@Autowired
-	public BaseKpiNameService(KpiNameRepository jpaRepo) {
-		super(jpaRepo);
-	}
+	ResponseEntity<KpiNameResponseVO> createKpiName(KpiNameRequestVO requestVO);
+
+	ResponseEntity<KpiNameResponseVO> updateKpiName(KpiNameUpdateRequestVO requestVO);
+
+	ResponseEntity<GenericMessage> deleteKpiName(Long id);
+
+	KpiNameVO findKpiNameByName(String kpiName);
+
 }

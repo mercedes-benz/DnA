@@ -426,9 +426,7 @@ definitions:
     type: object
     properties:  
       name:
-        type: string
-        description: ""
-        minLength: 1
+        $ref: "#/definitions/KpiNameVO"
       reportingCause: 
         description: ""
         type: array
@@ -443,6 +441,19 @@ definitions:
     required:
       - name
       - reportingCause
+      
+  KpiNameVO: 
+    type: object
+    properties:  
+      kpiName:
+        type: string
+        description: "KPI name"
+      kpiClassification:
+        type: string        
+        description: "KPI classification"
+#    required:
+#     - name
+#     - classification   
           
   DataWarehouseVO:
     type: object
