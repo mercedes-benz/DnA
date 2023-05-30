@@ -393,9 +393,6 @@ definitions:
 #      insiderInformation:
 #      description: "Does product contain insider information"
 #      type: string         
-      dataFromChina:
-        type: boolean
-        description: "Is data from China included"
       contactAwareTransfer:
         type: boolean
         default: false
