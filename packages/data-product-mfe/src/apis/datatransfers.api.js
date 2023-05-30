@@ -1,7 +1,7 @@
 import { reportsServer, server } from '../server/api';
 
-const getAllDataProducts = (sortBy, sortOrder, isCreatorFilter) => {
-  return server.get(`/datatransfers?limit=0&offset=0&sortBy=${sortBy}&sortOrder=${sortOrder}&isCreator=${isCreatorFilter}`, {
+const getAllDataProducts = (sortBy, sortOrder, isProviderCreatorFilter=false) => {
+  return server.get(`/datatransfers?limit=0&offset=0&sortBy=${sortBy}&sortOrder=${sortOrder}&isProviderCreator=${isProviderCreatorFilter}`, {
     data: {},
   });
 };

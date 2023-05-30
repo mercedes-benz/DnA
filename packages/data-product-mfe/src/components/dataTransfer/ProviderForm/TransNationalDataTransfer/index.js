@@ -33,22 +33,20 @@ const TransNationalDataTransfer = (
     );
   };
 
-  const validateLCOApproved = (value) => {
-    return (
-      watch('transnationalDataTransfer') === null ||
-      watch('transnationalDataTransfer') === 'No' ||
-      watch('transnationalDataTransferNotWithinEU') === null ||
-      watch('transnationalDataTransferNotWithinEU') === 'No' ||
-      value?.length > 0 ||
-      '*Missing entry'
-    );
-  };
 
-  const isLCOApproveOptionsDisabled =
-    !watch('transnationalDataTransfer') ||
-    watch('transnationalDataTransfer') === 'No' ||
-    watch('transnationalDataTransferNotWithinEU') === 'No' ||
-    !watch('transnationalDataTransferNotWithinEU');
+  // const isLCOApproveOptionsDisabled =
+  //   !watch('transnationalDataTransfer') ||
+  //   watch('transnationalDataTransfer') === 'No' ||
+  //   watch('transnationalDataTransferNotWithinEU') === 'No' ||
+  //   !watch('transnationalDataTransferNotWithinEU');
+
+  // const isDisabledContactAwareTransfer = isLCOApproveOptionsDisabled
+  //   || !watch('transnationalDataContactAwareTransfer') ||
+  //   watch('transnationalDataContactAwareTransfer') === 'No';
+
+  // const isDisabledTransferingComments = isDisabledContactAwareTransfer || 
+  // !watch('transnationalDataObjectionsTransfer') ||
+  //   watch('transnationalDataObjectionsTransfer') === 'No';
 
   return (
     <>
@@ -80,9 +78,18 @@ const TransNationalDataTransfer = (
                         {...register('transnationalDataTransfer', {
                           required: '*Missing entry',
                           onChange: () => {
+                            clearErrors([
+                              'transnationalDataTransferNotWithinEU',
+                              'transnationalDataContactAwareTransfer',
+                              'transnationalDataObjectionsTransfer',
+                              'transnationalDataTransferingNonetheless',
+                              'transnationalDataTransferingObjections',
+                            ]);
                             setValue('transnationalDataTransferNotWithinEU', '');
-                            setValue('LCOApprovedDataTransfer', '');
-                            clearErrors(['transnationalDataTransferNotWithinEU', 'LCOApprovedDataTransfer']);
+                            setValue('transnationalDataContactAwareTransfer', '');
+                            setValue('transnationalDataObjectionsTransfer', '');
+                            setValue('transnationalDataTransferingNonetheless', '');
+                            setValue('transnationalDataTransferingObjections', '');
                           },
                         })}
                         type="radio"
@@ -111,6 +118,7 @@ const TransNationalDataTransfer = (
               <div
                 className={classNames(
                   `input-field-group include-error ${errors?.transnationalDataTransferNotWithinEU ? 'error' : ''}`,
+                  !watch('transnationalDataTransfer')|| watch('transnationalDataTransfer') === 'No' ? 'disabled' : '',
                 )}
                 style={{ minHeight: '50px' }}
               >
@@ -131,7 +139,16 @@ const TransNationalDataTransfer = (
                             return value;
                           },
                           onChange: () => {
-                            setValue('LCOApprovedDataTransfer', '');
+                            clearErrors([
+                              'transnationalDataContactAwareTransfer',
+                              'transnationalDataObjectionsTransfer',
+                              'transnationalDataTransferingNonetheless',
+                              'transnationalDataTransferingObjections',
+                            ]);
+                            setValue('transnationalDataContactAwareTransfer', '');
+                            setValue('transnationalDataObjectionsTransfer', '');
+                            setValue('transnationalDataTransferingNonetheless', '');
+                            setValue('transnationalDataTransferingObjections', '');
                           },
                         })}
                         type="radio"
@@ -164,53 +181,39 @@ const TransNationalDataTransfer = (
                 </span>
               </div>
             </div>
-            <p>
-              If both yes, the corresponding LCO/LCR of the data providing side needs to check all relevant local laws
-              and regulations and complete the following question
-            </p>
             <div
+              id="transnationalDataContactAwareTransfer"
               className={classNames(
-                `input-field-group include-error ${errors?.LCOApprovedDataTransfer ? 'error' : ''}`,
+                'input-field-group include-error',
+                errors.transnationalDataContactAwareTransfer ? 'error' : '',
+                !watch('transnationalDataTransfer')|| watch('transnationalDataTransfer') === 'No' ? 'disabled' : '',
               )}
               style={{ minHeight: '50px' }}
             >
               <label className={classNames(Styles.inputLabel, 'input-label')}>
-                Has LCO/LCR approved this data transfer?{' '}
-                {getValues('transnationalDataTransfer') === 'Yes' &&
-                getValues('transnationalDataTransferNotWithinEU') === 'Yes' ? (
-                  <sup>*</sup>
-                ) : null}
+                Is corresponding Compliance contact aware of this transfer? <sup>*</sup>
               </label>
               <div className={Styles.radioBtns}>
                 <label className={'radio'}>
                   <span className="wrapper">
                     <input
-                      {...register('LCOApprovedDataTransfer', {
-                        validate: validateLCOApproved,
-                        disabled: isLCOApproveOptionsDisabled,
-                        setValueAs: (value) => {
-                          if (watch('transnationalDataTransfer') === 'No') return undefined;
-                          return value;
+                      {...register('transnationalDataContactAwareTransfer', {
+                        required: '*Missing entry',
+                        disabled: watch('transnationalDataTransfer') === '' || watch('transnationalDataTransfer') === 'No',
+                        onChange: () => {
+                          clearErrors([
+                            'transnationalDataObjectionsTransfer',
+                            'transnationalDataTransferingNonetheless',
+                            'transnationalDataTransferingObjections',
+                          ]);
+                          setValue('transnationalDataObjectionsTransfer', '');
+                          setValue('transnationalDataTransferingNonetheless', '');
+                          setValue('transnationalDataTransferingObjections', '');
                         },
                       })}
                       type="radio"
                       className="ff-only"
-                      name="LCOApprovedDataTransfer"
-                      value="N.A"
-                    />
-                  </span>
-                  <span className="label">N.A</span>
-                </label>
-                <label className={'radio'}>
-                  <span className="wrapper">
-                    <input
-                      {...register('LCOApprovedDataTransfer', {
-                        validate: validateLCOApproved,
-                        disabled: isLCOApproveOptionsDisabled,
-                      })}
-                      type="radio"
-                      className="ff-only"
-                      name="LCOApprovedDataTransfer"
+                      name="transnationalDataContactAwareTransfer"
                       value="No"
                     />
                   </span>
@@ -219,47 +222,52 @@ const TransNationalDataTransfer = (
                 <label className={'radio'}>
                   <span className="wrapper">
                     <input
-                      {...register('LCOApprovedDataTransfer', {
-                        validate: validateLCOApproved,
-                        disabled: isLCOApproveOptionsDisabled,
+                      {...register('transnationalDataContactAwareTransfer', {
+                        required: '*Missing entry',
+                        disabled: watch('transnationalDataTransfer') === '' || watch('transnationalDataTransfer') === 'No',
                       })}
                       type="radio"
                       className="ff-only"
-                      name="LCOApprovedDataTransfer"
+                      name="transnationalDataContactAwareTransfer"
                       value="Yes"
                     />
                   </span>
                   <span className="label">Yes</span>
                 </label>
               </div>
-              <span className={classNames('error-message')}>{errors?.LCOApprovedDataTransfer?.message}</span>
+              <span className={classNames('error-message')}>{errors?.transnationalDataContactAwareTransfer?.message}</span>
             </div>
-          </div>
-        </div>
-      </div>
-      <div className={Styles.wrapper}>
-        <div className={Styles.firstPanel}>
-          <div>
-            <h3>Identifying (potential) insider information</h3>
-          </div>
-          <div className={Styles.formWrapper}>
             <div
-              className={classNames(`input-field-group include-error ${errors?.insiderInformation ? 'error' : ''}`)}
-              style={{ minHeight: '50px' }}
+              id="transnationalDataObjectionsTransfer"
+              className={classNames(
+                'input-field-group include-error',
+                errors.transnationalDataObjectionsTransfer ? 'error' : '',
+                !watch('transnationalDataTransfer')|| watch('transnationalDataTransfer') === 'No' ? 'disabled' : '',
+              )}
             >
               <label className={classNames(Styles.inputLabel, 'input-label')}>
-                Does data product contain (potential) insider information? <sup>*</sup>
+                Has s/he any objections to this transfer?{' '}
+                {getValues('transnationalDataContactAwareTransfer') === 'Yes' ? <sup>*</sup> : null}
               </label>
               <div className={Styles.radioBtns}>
                 <label className={'radio'}>
                   <span className="wrapper">
                     <input
-                      {...register('insiderInformation', {
+                      {...register('transnationalDataObjectionsTransfer', {
                         required: '*Missing entry',
+                        disabled: watch('transnationalDataTransfer') === '' || watch('transnationalDataTransfer') === 'No',
+                        onChange: () => {
+                          clearErrors([
+                            'transnationalDataTransferingNonetheless',
+                            'transnationalDataTransferingObjections',
+                          ]);
+                          setValue('transnationalDataTransferingNonetheless', '');
+                          setValue('transnationalDataTransferingObjections', '');
+                        },
                       })}
                       type="radio"
                       className="ff-only"
-                      name="insiderInformation"
+                      name="transnationalDataObjectionsTransfer"
                       value="No"
                     />
                   </span>
@@ -268,34 +276,72 @@ const TransNationalDataTransfer = (
                 <label className={'radio'}>
                   <span className="wrapper">
                     <input
-                      {...register('insiderInformation', {
+                      {...register('transnationalDataObjectionsTransfer', {
                         required: '*Missing entry',
+                        disabled: watch('transnationalDataTransfer') === '' || watch('transnationalDataTransfer') === 'No',
                       })}
                       type="radio"
                       className="ff-only"
-                      name="insiderInformation"
-                      value="Yes, potential insider information"
+                      name="transnationalDataObjectionsTransfer"
+                      value="Yes"
                     />
                   </span>
-                  <span className="label">Yes, potential insider information</span>
-                </label>
-                <label className={'radio'}>
-                  <span className="wrapper">
-                    <input
-                      {...register('insiderInformation', {
-                        required: '*Missing entry',
-                      })}
-                      type="radio"
-                      className="ff-only"
-                      name="insiderInformation"
-                      value="Yes, insider information"
-                    />
-                  </span>
-                  <span className="label">Yes, insider information</span>
+                  <span className="label">Yes</span>
                 </label>
               </div>
-              <span className={classNames('error-message')}>{errors?.insiderInformation?.message}</span>
-              <p>For further information and/or if you are unsure if your data product contains (potential) insider information, please contact your corresponding Compliance contact.</p>
+              <span className={classNames('error-message')}>{errors?.transnationalDataObjectionsTransfer?.message}</span>
+            </div>
+            <div
+              id="transnationalDataTransferingNonetheless"
+              className={classNames(
+                'input-field-group include-error area',
+                errors.transnationalDataTransferingNonetheless ? 'error' : '',
+                !watch('transnationalDataTransfer')|| watch('transnationalDataTransfer') === 'No' ? 'disabled' : '',
+              )}
+            >
+              <label
+                id="transnationalDataTransferingNonethelessLabel"
+                className="input-label"
+                htmlFor="transnationalDataTransferingNonetheless"
+              >
+                Please state your reasoning for transfering nonetheless{' '}
+                {getValues('transnationalDataObjectionsTransfer') === 'Yes' ? <sup>*</sup> : null}
+              </label>
+              <textarea
+                className="input-field-area"
+                type="text"
+                placeholder="Please state your reasoning for transfering nonetheless."
+                {...register('transnationalDataTransferingNonetheless', { required: '*Missing entry', disabled: watch('transnationalDataTransfer') === '' || watch('transnationalDataTransfer') === 'No' })}
+                rows={50}
+                id="transnationalDataTransferingNonetheless"
+              />
+              <span className={classNames('error-message')}>{errors?.transnationalDataTransferingNonetheless?.message}</span>
+            </div>
+            <div
+              id="transnationalDataTransferingObjections"
+              className={classNames(
+                'input-field-group include-error area',
+                errors.transnationalDataTransferingObjections ? 'error' : '',
+                !watch('transnationalDataTransfer')|| watch('transnationalDataTransfer') === 'No' ? 'disabled' : '',
+              )}
+            >
+              <label
+                id="transnationalDataTransferingObjectionsLabel"
+                className="input-label"
+                htmlFor="transnationalDataTransferingObjections"
+              >
+                Please state your objections{' '}
+                {getValues('transnationalDataObjectionsTransfer') === 'Yes' ? <sup>*</sup> : null}
+              </label>
+              <textarea
+                className="input-field-area"
+                type="text"
+                placeholder="Please state your objections."
+                {...register('transnationalDataTransferingObjections', { required: '*Missing entry', disabled: watch('transnationalDataTransfer') === '' || watch('transnationalDataTransfer') === 'No' })}
+                rows={50}
+                id="transnationalDataTransferingObjections"
+              />
+              <span className={classNames('error-message')}>{errors?.transnationalDataTransferingObjections?.message}</span>
             </div>
           </div>
         </div>

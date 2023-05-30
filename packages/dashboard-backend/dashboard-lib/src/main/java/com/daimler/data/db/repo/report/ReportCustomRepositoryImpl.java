@@ -31,14 +31,21 @@ import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
 import javax.persistence.Query;
+import javax.persistence.TypedQuery;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Root;
+import javax.transaction.Transactional;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.StringUtils;
 
@@ -51,12 +58,50 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
+
 @Repository
 public class ReportCustomRepositoryImpl extends CommonDataRepositoryImpl<ReportNsql, String>
 		implements ReportCustomRepository {
 
 	private static Logger LOGGER = LoggerFactory.getLogger(ReportCustomRepositoryImpl.class);
 	private static String REGEX = "[\\[+\\]+:{}^~?\\\\/()><=\"!]";
+	
+	@Value("${report.update}")
+	private boolean updateReportData;
+	
+	@EventListener(ApplicationReadyEvent.class)
+	@Transactional
+	public void updateData() {
+		if (updateReportData) {
+			try {
+				CriteriaBuilder cb = em.getCriteriaBuilder();
+				CriteriaQuery<ReportNsql> cq = cb.createQuery(ReportNsql.class);
+				Root<ReportNsql> root = cq.from(ReportNsql.class);
+				TypedQuery<ReportNsql> typedQuery = em.createQuery(cq);
+				List<ReportNsql> results = typedQuery.getResultList();
+				if (results != null && !results.isEmpty()) {
+					for (ReportNsql entity : results) {
+						Report report = entity.getData();
+						report.setLastModifiedDate(new Date());
+						entity.setData(report);
+						LOGGER.info("Updating report with id: {}", entity.getId());
+						try {
+							em.merge(entity);
+						} catch (Exception e) {
+							LOGGER.error("Failed to update data for id {} at startup with exception {}", entity.getId(),
+									e.getMessage());
+						}
+						LOGGER.info("Report updated with id: {}", entity.getId());		
+					}
+				}
+			} catch (Exception e) {
+				LOGGER.error("Failed to update data at startup with exception {}", e.getMessage());
+				e.printStackTrace();
+			}
+		}
+	}		
 
 	@Override
 	public List<ReportNsql> getAllWithFiltersUsingNativeQuery(Boolean published, List<String> statuses, String userId,

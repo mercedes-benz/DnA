@@ -40,6 +40,9 @@ import java.util.stream.Collectors;
 import javax.persistence.EntityNotFoundException;
 import javax.validation.Valid;
 
+import com.daimler.data.dto.attachment.FileDetailsVO;
+import com.daimler.data.dto.solution.*;
+import com.daimler.data.service.attachment.AttachmentService;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -61,17 +64,6 @@ import com.daimler.data.application.auth.UserStore;
 import com.daimler.data.assembler.SolutionAssembler;
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
-import com.daimler.data.dto.solution.ChangeLogVO;
-import com.daimler.data.dto.solution.CreatedByVO;
-import com.daimler.data.dto.solution.SolutionChangeLogCollectionVO;
-import com.daimler.data.dto.solution.SolutionCollection;
-import com.daimler.data.dto.solution.SolutionDigitalValueVO;
-import com.daimler.data.dto.solution.SolutionLocationVO;
-import com.daimler.data.dto.solution.SolutionProjectStatusVO;
-import com.daimler.data.dto.solution.SolutionRequestVO;
-import com.daimler.data.dto.solution.SolutionResponseVO;
-import com.daimler.data.dto.solution.SolutionVO;
-import com.daimler.data.dto.solution.ValueCalculatorVO;
 import com.daimler.data.dto.userinfo.UserFavoriteUseCaseVO;
 import com.daimler.data.dto.userinfo.UserInfoVO;
 import com.daimler.data.dto.userinfo.UserRoleVO;
@@ -107,6 +99,9 @@ public class SolutionController implements SolutionsApi, ChangelogsApi, Malwares
 
 	@Autowired
 	private SolutionAssembler solutionAssembler;
+
+	@Autowired
+	private AttachmentService attachmentService;
 
 	@Override
 	@ApiOperation(value = "Adds a new solution.", nickname = "create", notes = "Adds a new non existing solution.", response = SolutionResponseVO.class, tags = {
@@ -576,11 +571,12 @@ public class SolutionController implements SolutionsApi, ChangelogsApi, Malwares
 	public ResponseEntity<GenericMessage> delete(
 			@ApiParam(value = "Solution ID to be deleted", required = true) @PathVariable("id") String id) {
 		try {
+			SolutionVO solution = null;
 			CreatedByVO currentUser = this.userStore.getVO();
 			String userId = currentUser != null ? currentUser.getId() : "";
 			if (userId != null && !"".equalsIgnoreCase(userId)) {
 				UserInfoVO userInfoVO = userInfoService.getById(userId);
-				SolutionVO solution = solutionService.getById(id);
+				solution = solutionService.getById(id);
 				if (userInfoVO != null) {
 					List<UserRoleVO> userRoleVOs = userInfoVO.getRoles();
 					if (userRoleVOs != null && !userRoleVOs.isEmpty()) {
@@ -605,6 +601,22 @@ public class SolutionController implements SolutionsApi, ChangelogsApi, Malwares
 					}
 				}
 			}
+			List<FileDetailsVO> files = solution.getAttachments();
+			    String productName =solution.getProductName();
+			String keyName = null;
+				if (files != null) {
+					for (FileDetailsVO file : files) {
+						keyName = file.getId();
+						String fileName = file.getFileName();
+						try {
+							attachmentService.deleteFileFromS3Bucket(keyName);
+
+						} catch (Exception e) {
+							log.error("File {} is failed to delete from solution {} with an exception {}",fileName,productName, e.getMessage());
+						}
+					}
+				}
+
 			solutionService.deleteById(id);
 			GenericMessage successMsg = new GenericMessage();
 			successMsg.setSuccess("success");

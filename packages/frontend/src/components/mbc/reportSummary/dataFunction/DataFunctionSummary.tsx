@@ -38,11 +38,11 @@ export default class DataFunctionSummary extends React.Component<IDataAndFunctio
                           <br />
                           <span>{data.dataWarehouse ? data.dataWarehouse : 'NA'}</span>
                         </div>
-                        <div id="commonFunctions">
+                        {/* <div id="commonFunctions">
                           <label className="input-label summary">Common Functions</label>
                           <br />
                           {data.commonFunctions ? data.commonFunctions?.join(', ') : 'NA'}
-                        </div>
+                        </div> */}
                         <div id="connectionType">
                           <label className="input-label summary">Connection Type</label>
                           <br />

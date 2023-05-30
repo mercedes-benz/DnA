@@ -36,7 +36,7 @@ export const getDataForCSV = (
     { label: 'KPIs', key: 'kpis' },
     { label: 'Data Warehouse', key: 'datawarehouses' },
     { label: 'Single Datasource', key: 'singledatasources' },
-    { label: 'Report Member', key: 'reportMembers' },
+    // { label: 'Report Member', key: 'reportMembers' },
     // { label: 'Developers', key: 'developers' },
     { label: 'Report Admin', key: 'reportAdmins' },
     { label: 'IsPublished', key: 'publish' },
@@ -129,7 +129,7 @@ export const getDataForCSV = (
                   ?.map((datawarehouse) => 
                   'datawarehouse: ' + (datawarehouse?.dataWarehouse)
                   + '|' + 'connectionType: ' + datawarehouse?.connectionType
-                  + '|' + 'commonFunctions: ' + datawarehouse?.commonFunctions
+                  // + '|' + 'commonFunctions: ' + datawarehouse?.commonFunctions
                   + '|' + 'dataClassification: ' + datawarehouse?.dataClassification
                   )   
               : 'NA',
@@ -142,13 +142,13 @@ export const getDataForCSV = (
                   + '|' + 'dataClassification: ' + singledatasource?.dataClassification
                   )
               : 'NA',
-              reportMembers: report.members.reportOwners?.length
-              ? report.members.reportOwners?.map((member) => member.shortId)?.join(', ')
-              : 'NA',
+              // reportMembers: report.members.reportOwners?.length
+              // ? report.members.reportOwners?.map((member) => member.shortId)?.join(', ')
+              // : 'NA',
             // developers: report.members.developers?.length
             //   ? report.members.developers?.map((member) => member.shortId)?.join(', ')
             //   : 'NA',
-            admin: report.members.reportAdmins?.length
+            reportAdmins: report.members.reportAdmins?.length
               ? report.members.reportAdmins?.map((member) => member.shortId)?.join(', ')
               : 'NA',
             publish: report.publish ? 'Yes' : 'No',

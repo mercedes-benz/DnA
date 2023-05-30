@@ -31,6 +31,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.daimler.data.controller.exceptions.GenericMessage;
+import com.daimler.data.dto.dataproduct.DataProductTeamMemberVO;
 import com.daimler.data.dto.datatransfer.ConsumerVO;
 import com.daimler.data.dto.datatransfer.DataTransferConsumerResponseVO;
 import com.daimler.data.dto.datatransfer.DataTransferProviderResponseVO;
@@ -104,6 +106,14 @@ public class BaseDataProductService extends BaseCommonService<DataProductVO, Dat
 		}
 
 	@Override
+	public List<DataProductTeamMemberVO> getAllWithDataProductOwners(Boolean published, int offset, int limit, String sortOrder,
+																	 String recordStatus) {
+		List<DataProductTeamMemberVO> dataProductEntities = dataProductCustomRepository
+				.getOwnersAllWithFiltersUsingNativeQuery(published, offset, limit, sortOrder, recordStatus);
+		return dataProductEntities;
+	}
+
+	@Override
 	public ResponseEntity<DataTransferProviderResponseVO> createDataTransferProvider(ProviderVO providerVO) {
 		return dataTransferService.createDataTransferProvider(providerVO, true);
 	}
@@ -123,6 +133,11 @@ public class BaseDataProductService extends BaseCommonService<DataProductVO, Dat
 		}
 
 		@Override
+		public Long getCountOwners(Boolean published, String recordStatus) {
+			return dataProductCustomRepository.getCountOwnersUsingNativeQuery(published, recordStatus);
+		}
+
+		@Override
 		public List<DataProductVO> getExistingDataProduct(String uniqueProductName, String status) {
 			LOGGER.info("Fetching Data product information from table for getExistingDataProduct.");
 			List<DataProductNsql> dataProductNsqls = dataProductCustomRepository.getExistingDataProduct(uniqueProductName, status);
@@ -134,7 +149,12 @@ public class BaseDataProductService extends BaseCommonService<DataProductVO, Dat
 			}	
 		}
 
-		@Override
+	@Override
+	public GenericMessage updateDataProductData() {
+		return dataProductCustomRepository.updateDataProductData();
+	}
+
+	@Override
 		@Transactional
 		public String getNextSeqId() {
 			return String.format("%05d",dataProductRepository.getNextSeqId());

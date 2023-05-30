@@ -6,3 +6,5 @@ build
 
 # Ignore compiled classes bin directory
 bin
+
+gradle-wrapper.jar
