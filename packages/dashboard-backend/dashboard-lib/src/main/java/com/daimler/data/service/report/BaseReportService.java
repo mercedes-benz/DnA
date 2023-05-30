@@ -153,8 +153,14 @@ public class BaseReportService extends BaseCommonService<ReportVO, ReportNsql, S
 			String kpiClassification = kpi.getName().getKpiClassification();
 			if (Strings.hasText(kpiName)) {
 				KpiNameVO existingKpiNameVO = kpiNameService.findKpiNameByName(kpiName);
-				if (existingKpiNameVO != null && existingKpiNameVO.getKpiName() != null)
-					return;
+				if (existingKpiNameVO != null && existingKpiNameVO.getKpiName() != null) {
+					//set classification
+					if(StringUtils.hasText(kpiClassification)) {
+						existingKpiNameVO.setKpiClassification(kpiClassification);
+						kpiNameService.create(existingKpiNameVO);
+					}
+					return;	
+				}					
 				else {
 					KpiNameVO newKpiNameVO = new KpiNameVO();
 					newKpiNameVO.setKpiName(kpiName);

@@ -50,7 +50,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
-@Table(name = "kpi_name_sql2")
+@Table(name = "kpi_name_sql")
 public class KpiNameSql implements Serializable {
 		
 	private static final long serialVersionUID = 1L;

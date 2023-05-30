@@ -45,10 +45,15 @@ public class KpiNameAssembler implements GenericAssembler<KpiNameVO, KpiNameSql>
 		KpiNameVO kpiNameVO = null;
 		if (Objects.nonNull(entity)) {
 			kpiNameVO = new KpiNameVO();			
-			BeanUtils.copyProperties(entity, kpiNameVO);
 			if(entity.getId() != null) {
 				kpiNameVO.setId(entity.getId());
-			}			
+			}
+			if(entity.getName() != null) {
+				kpiNameVO.setKpiName(entity.getName());
+			}
+			if(entity.getClassification() != null) {
+				kpiNameVO.setKpiClassification(entity.getClassification());
+			}
 		}
 		return kpiNameVO;
 	}
@@ -58,7 +63,15 @@ public class KpiNameAssembler implements GenericAssembler<KpiNameVO, KpiNameSql>
 		KpiNameSql kpiNameSql = null;
 		if (Objects.nonNull(vo)) {
 			kpiNameSql = new KpiNameSql(); 
-			BeanUtils.copyProperties(vo, kpiNameSql);			
+			if(vo.getId() != null) {
+				kpiNameSql.setId(vo.getId());
+			}
+			if(vo.getKpiName() != null) {
+				kpiNameSql.setName(vo.getKpiName());
+			}
+			if(vo.getKpiClassification() != null) {
+				kpiNameSql.setClassification(vo.getKpiClassification());
+			}
 		}
 		return kpiNameSql;
 	}
