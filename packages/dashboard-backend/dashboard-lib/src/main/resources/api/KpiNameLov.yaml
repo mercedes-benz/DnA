@@ -203,11 +203,11 @@ definitions:
      format: int64
      description: "ID of KpiName field"
      minLength: 1
-    name:
+    kpiName:
      type: string
      description: "Name of the KpiName field"
      minLength: 1   
-    classification:
+    kpiClassification:
      type: string
      description: "classification of KpiName field" 
   required:

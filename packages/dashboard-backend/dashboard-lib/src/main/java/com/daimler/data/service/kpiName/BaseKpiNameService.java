@@ -89,10 +89,10 @@ public class BaseKpiNameService extends BaseCommonService<KpiNameVO, KpiNameSql,
 			LOGGER.info("kpiNames fetched successfully");
 			if (!ObjectUtils.isEmpty(kpiNames)) {
 				if (sortOrder == null || sortOrder.equalsIgnoreCase("asc")) {
-					kpiNames.sort(Comparator.comparing(KpiNameVO :: getName, String.CASE_INSENSITIVE_ORDER));
+					kpiNames.sort(Comparator.comparing(KpiNameVO :: getKpiName, String.CASE_INSENSITIVE_ORDER));
 				}
 				if (sortOrder != null && sortOrder.equalsIgnoreCase("desc")) {
-					kpiNames.sort(Comparator.comparing(KpiNameVO :: getName, String.CASE_INSENSITIVE_ORDER).reversed());
+					kpiNames.sort(Comparator.comparing(KpiNameVO :: getKpiName, String.CASE_INSENSITIVE_ORDER).reversed());
 				}
 				kpiNameVOCollection.setData(kpiNames);
 				return new ResponseEntity<>(kpiNameVOCollection, HttpStatus.OK);
@@ -113,14 +113,14 @@ public class BaseKpiNameService extends BaseCommonService<KpiNameVO, KpiNameSql,
 				String uniqueKpiName = kpiNameCreateRequestVO.getName();
 				String KpiClassification = kpiNameCreateRequestVO.getClassification();
 				KpiNameVO existingKpiNameVO = findKpiNameByName(uniqueKpiName);
-				if (existingKpiNameVO != null && existingKpiNameVO.getName() != null) {
+				if (existingKpiNameVO != null && existingKpiNameVO.getKpiName() != null) {
 					responseVO.setData(existingKpiNameVO);
 					LOGGER.info("KpiName {} already exists, returning as CONFLICT", uniqueKpiName);
 					return new ResponseEntity<>(responseVO, HttpStatus.CONFLICT);
 				}
 				KpiNameVO kpiNameVO = new KpiNameVO();
-				kpiNameVO.setName(uniqueKpiName);
-				kpiNameVO.setClassification(KpiClassification);
+				kpiNameVO.setKpiName(uniqueKpiName);
+				kpiNameVO.setKpiClassification(KpiClassification);
 				KpiNameVO vo = super.create(kpiNameVO);
 				if (vo != null && vo.getId() != null) {
 					responseVO.setData(vo);
@@ -145,13 +145,13 @@ public class BaseKpiNameService extends BaseCommonService<KpiNameVO, KpiNameSql,
 				Long id = kpiNameVO.getId();
 				KpiNameVO existingVO = super.getById(id);
 				if (existingVO != null && existingVO.getId() != null) {
-					KpiNameVO existingKpiNameVO = findKpiNameByName(kpiNameVO.getName());
-					if (existingKpiNameVO != null && existingKpiNameVO.getName() != null) {
+					KpiNameVO existingKpiNameVO = findKpiNameByName(kpiNameVO.getKpiName());
+					if (existingKpiNameVO != null && existingKpiNameVO.getKpiName() != null) {
 						responseVO.setData(existingKpiNameVO);
-						LOGGER.info("KpiName {} already exists, returning as CONFLICT", kpiNameVO.getName());
+						LOGGER.info("KpiName {} already exists, returning as CONFLICT", kpiNameVO.getKpiName());
 						return new ResponseEntity<>(responseVO, HttpStatus.CONFLICT);
 					}
-					reportService.updateForEachReport(existingVO.getName(), kpiNameVO.getName(),
+					reportService.updateForEachReport(existingVO.getKpiName(), kpiNameVO.getKpiName(),
 							ReportService.CATEGORY.KPI_NAME, null);
 					KpiNameVO vo = super.create(kpiNameVO);
 					if (vo != null && vo.getId() != null) {

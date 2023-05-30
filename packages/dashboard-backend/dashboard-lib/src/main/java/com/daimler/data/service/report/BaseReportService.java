@@ -149,18 +149,18 @@ public class BaseReportService extends BaseCommonService<ReportVO, ReportNsql, S
 	private void updateKpiNames(ReportVO vo) {
 		List<KPIVO> kpis = vo.getKpis();
 		for(KPIVO kpi : kpis) {
-			String kpiName = kpi.getName().getName();
-			String kpiClassification = kpi.getName().getClassification();
+			String kpiName = kpi.getName().getKpiName();
+			String kpiClassification = kpi.getName().getKpiClassification();
 			if (Strings.hasText(kpiName)) {
 				KpiNameVO existingKpiNameVO = kpiNameService.findKpiNameByName(kpiName);
-				if (existingKpiNameVO != null && existingKpiNameVO.getName() != null)
+				if (existingKpiNameVO != null && existingKpiNameVO.getKpiName() != null)
 					return;
 				else {
 					KpiNameVO newKpiNameVO = new KpiNameVO();
-					newKpiNameVO.setName(kpiName);
+					newKpiNameVO.setKpiName(kpiName);
 					//set classification
 					if(StringUtils.hasText(kpiClassification))
-						newKpiNameVO.setClassification(kpiClassification);
+						newKpiNameVO.setKpiClassification(kpiClassification);
 					kpiNameService.create(newKpiNameVO);
 				}
 
@@ -292,8 +292,8 @@ public class BaseReportService extends BaseCommonService<ReportVO, ReportNsql, S
 					if (!ObjectUtils.isEmpty(kpis)) {
 						for (KPI kpi : kpis) {
 							KPIName kpiNameObject = kpi.getName();
-							if (StringUtils.hasText(kpiNameObject.getClassification()) && kpiNameObject.getClassification().equals(name)) {
-								kpiNameObject.setClassification(null);
+							if (StringUtils.hasText(kpiNameObject.getKpiClassification()) && kpiNameObject.getKpiClassification().equals(name)) {
+								kpiNameObject.setKpiClassification(null);
 							}
 							kpi.setName(kpiNameObject);
 						}
@@ -303,8 +303,8 @@ public class BaseReportService extends BaseCommonService<ReportVO, ReportNsql, S
 					if (!ObjectUtils.isEmpty(kpis)) {
 						for (KPI kpi : kpis) {
 							KPIName kpiNameObject = kpi.getName();
-							if (StringUtils.hasText(kpiNameObject.getName()) && kpiNameObject.getName().equals(name)) {
-								kpiNameObject.setName(null);
+							if (StringUtils.hasText(kpiNameObject.getKpiName()) && kpiNameObject.getKpiName().equals(name)) {
+								kpiNameObject.setKpiName(null);
 							}
 							kpi.setName(kpiNameObject);
 						}
@@ -496,8 +496,8 @@ public class BaseReportService extends BaseCommonService<ReportVO, ReportNsql, S
 					if (!ObjectUtils.isEmpty(kpis)) {
 						for (KPI kpi : kpis) {
 							KPIName kpiNameObject = kpi.getName();
-							if(StringUtils.hasText(kpiNameObject.getClassification()) && kpiNameObject.getClassification().equals(oldValue)) {
-								kpiNameObject.setClassification(newValue);
+							if(StringUtils.hasText(kpiNameObject.getKpiClassification()) && kpiNameObject.getKpiClassification().equals(oldValue)) {
+								kpiNameObject.setKpiClassification(newValue);
 							}
 							kpi.setName(kpiNameObject);						
 						}
@@ -507,8 +507,8 @@ public class BaseReportService extends BaseCommonService<ReportVO, ReportNsql, S
 					if (!ObjectUtils.isEmpty(kpis)) {
 						for (KPI kpi : kpis) {
 							KPIName kpiNameObject = kpi.getName();
-							if(StringUtils.hasText(kpiNameObject.getName()) && kpiNameObject.getName().equals(oldValue)) {
-								kpiNameObject.setName(newValue);
+							if(StringUtils.hasText(kpiNameObject.getKpiName()) && kpiNameObject.getKpiName().equals(oldValue)) {
+								kpiNameObject.setKpiName(newValue);
 							}
 							kpi.setName(kpiNameObject);						
 						}

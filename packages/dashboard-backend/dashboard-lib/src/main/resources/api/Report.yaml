@@ -445,10 +445,10 @@ definitions:
   KpiNameVO: 
     type: object
     properties:  
-      name:
+      kpiName:
         type: string
         description: "KPI name"
-      classification:
+      kpiClassification:
         type: string        
         description: "KPI classification"
 #    required:

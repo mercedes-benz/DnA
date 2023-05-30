@@ -15,7 +15,7 @@ public class KPIName implements Serializable{
 	 
 	private static final long serialVersionUID = 2790979409985146122L;
 	
-	private String name;
-	private String classification;
+	private String kpiName;
+	private String kpiClassification;
 
 }
