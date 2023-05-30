@@ -1052,4 +1052,10 @@ public class BaseSolutionService extends BaseCommonService<SolutionVO, SolutionN
 		}
 	}
 
+	@Override
+	public Integer getCountBasedPublishSolution(Boolean published) {
+
+		return customRepo.getCountBasedPublishSolution(published);
+	}
+
 }
