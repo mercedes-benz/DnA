@@ -322,7 +322,7 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 
 	@Override
 	@Transactional
-	public Object[] getAllRunsForProject(int limit, int offset, String forecastId) {
+	public Object[] getAllRunsForProject(int limit, int offset, String forecastId,String sortBy, String sortOrder) {
 		Object[] runCollectionWrapper = new Object[2];
 		
 		List<RunDetails> updatedRuns = new ArrayList<>();
@@ -340,11 +340,7 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 				String bucketName = entity.getData().getBucketName();
 				String resultsPrefix = "results/";
 				List<RunDetails> newSubList =new ArrayList<>();
-				Collections.sort(existingRuns, new Comparator<RunDetails>() {
-					public int compare(RunDetails run1, RunDetails run2) {
-						return run2.getTriggeredOn().toString().compareTo(run1.getTriggeredOn().toString());
-					}
-				});
+				
 				//logic to remove all deleted runs from list
 				List<RunDetails> tempExistingRuns = new ArrayList<>(existingRuns);
 				for(int i=0; i<existingRuns.size(); i++) {
@@ -357,6 +353,77 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 					}
 										
 				}
+
+             log.info("sorting runs by sortOrder as {} , order by {}", sortBy,sortOrder);
+						switch (sortBy) {
+							case "createdOn":
+								Comparator<RunDetails> runCreatedOn = (v1, v2) -> (v2.getTriggeredOn().compareTo(v1.getTriggeredOn()));
+								if(sortOrder != null && sortOrder.equalsIgnoreCase("desc")) {
+									Collections.sort(tempExistingRuns, runCreatedOn);
+								}
+								else if(sortOrder != null && sortOrder.equalsIgnoreCase("asc")){
+									Collections.sort(tempExistingRuns, Collections.reverseOrder(runCreatedOn));
+								}
+								break;
+							case "runName":
+								Comparator<RunDetails> runName = (v1, v2) -> (v2.getRunName().compareTo(v1.getRunName()));
+								if(sortOrder != null && sortOrder.equalsIgnoreCase("desc")) {
+									Collections.sort(tempExistingRuns, runName);
+								}
+								else if(sortOrder != null && sortOrder.equalsIgnoreCase("asc")){
+									Collections.sort(tempExistingRuns, Collections.reverseOrder(runName));
+								}
+								break;
+							case "status":
+								Comparator<RunDetails> runStatus = (v1, v2) -> (v2.getRunState().getResult_state().compareTo(v1.getRunState().getResult_state()));
+								if(sortOrder != null && sortOrder.equalsIgnoreCase("desc")) {
+									Collections.sort(tempExistingRuns, runStatus);
+								}
+								else if(sortOrder != null && sortOrder.equalsIgnoreCase("asc")){
+									Collections.sort(tempExistingRuns, Collections.reverseOrder(runStatus));
+								}
+								break;
+							case "createdBy":
+								Comparator<RunDetails> runCreatedBy = (v1, v2) -> (v2.getTriggeredBy().compareTo(v1.getTriggeredBy()));
+								if(sortOrder != null && sortOrder.equalsIgnoreCase("desc")) {
+									Collections.sort(tempExistingRuns, runCreatedBy);
+								}
+								else if(sortOrder != null && sortOrder.equalsIgnoreCase("asc")){
+									Collections.sort(tempExistingRuns, Collections.reverseOrder(runCreatedBy));
+								}
+								break;
+							case "inputFile":
+								Comparator<RunDetails> inputFile = (v1, v2) -> (v2.getInputFile().compareTo(v1.getInputFile()));
+								if(sortOrder != null && sortOrder.equalsIgnoreCase("desc")) {
+									Collections.sort(tempExistingRuns, inputFile);
+								}
+								else if(sortOrder != null && sortOrder.equalsIgnoreCase("asc")){
+									Collections.sort(tempExistingRuns, Collections.reverseOrder(inputFile));
+								}
+								break;
+							case "forecastHorizon":
+								Comparator<RunDetails> forecastHorizon = (v1, v2) -> Integer.parseInt(v2.getForecastHorizon()) - Integer.parseInt(v1.getForecastHorizon());
+								if(sortOrder != null && sortOrder.equalsIgnoreCase("desc")) {
+									Collections.sort(tempExistingRuns, forecastHorizon);
+								}
+								else if(sortOrder != null && sortOrder.equalsIgnoreCase("asc")){
+									Collections.sort(tempExistingRuns, Collections.reverseOrder(forecastHorizon));
+								}
+								break;
+							case "exogenData":
+								Comparator<RunDetails> exogenData = (v1, v2) -> (v2.getExogenData().compareTo(v1.getExogenData()));
+								if(sortOrder != null && sortOrder.equalsIgnoreCase("desc")) {
+									Collections.sort(tempExistingRuns, exogenData);
+								}
+								else if(sortOrder != null && sortOrder.equalsIgnoreCase("asc")){
+									Collections.sort(tempExistingRuns, Collections.reverseOrder(exogenData));
+								}
+								break;
+								default:
+								log.info("Case not found");
+								break;
+						}
+				log.info("runs sorted successfully");
 				totalCount = tempExistingRuns.size();
 				int endLimit = offset + limit;
 				if (endLimit > tempExistingRuns.size()) {
@@ -1043,7 +1110,7 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 	}
 
 	@Override
-	public Object[] getAllForecastComparisons(int limit, int offset, String id) {
+	public Object[] getAllForecastComparisons(int limit, int offset, String id,String sortBy,String sortOrder) {
 		Object[] getForecastComparisonsArr = new Object[2];
 		List<ForecastComparisonVO> forecastComparisonsVOList = new ArrayList<>();
 		Optional<ForecastNsql> anyEntity = this.jpaRepo.findById(id);
@@ -1064,12 +1131,58 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 					}
 				}
 			}
-			//default sort
-			Collections.sort(tempExistingComparisons, new Comparator<ComparisonDetails>() {
-				public int compare(ComparisonDetails compare1, ComparisonDetails compare2) {
-					return compare2.getTriggeredOn().toString().compareTo(compare1.getTriggeredOn().toString());
-				}
-			});
+				log.info("sorting comparisons by sortOrder as {} , order by {}", sortBy,sortOrder);
+					switch (sortBy) {
+						case "createdOn":
+							Comparator<ComparisonDetails> comparatorCreatedOn = (v1, v2) -> (v2.getTriggeredOn().compareTo(v1.getTriggeredOn()));
+							if(sortOrder != null && sortOrder.equalsIgnoreCase("desc")) {
+								Collections.sort(tempExistingComparisons, comparatorCreatedOn);
+							}
+							else if(sortOrder != null && sortOrder.equalsIgnoreCase("asc")){
+								Collections.sort(tempExistingComparisons, Collections.reverseOrder(comparatorCreatedOn));
+							}
+							break;
+						case "comparisonName":
+							Comparator<ComparisonDetails> comparatorRunName = (v1, v2) -> (v2.getComparisonName().compareTo(v1.getComparisonName()));
+							if(sortOrder != null && sortOrder.equalsIgnoreCase("desc")) {
+								Collections.sort(tempExistingComparisons, comparatorRunName);
+							}
+							else if(sortOrder != null && sortOrder.equalsIgnoreCase("asc")){
+								Collections.sort(tempExistingComparisons, Collections.reverseOrder(comparatorRunName));
+							}
+							break;
+						case "status":
+							Comparator<ComparisonDetails> comparatorStatus = (v1, v2) -> (v2.getComparisonState().getLifeCycleState().compareTo(v1.getComparisonState().getLifeCycleState()));
+							if(sortOrder != null && sortOrder.equalsIgnoreCase("desc")) {
+								Collections.sort(tempExistingComparisons, comparatorStatus);
+							}
+							else if(sortOrder != null && sortOrder.equalsIgnoreCase("asc")){
+								Collections.sort(tempExistingComparisons, Collections.reverseOrder(comparatorStatus));
+							}
+							break;
+						case "createdBy":
+							Comparator<ComparisonDetails> comparatorCreatedBy = (v1, v2) -> (v2.getTriggeredBy().compareTo(v1.getTriggeredBy()));
+							if(sortOrder != null && sortOrder.equalsIgnoreCase("desc")) {
+								Collections.sort(tempExistingComparisons, comparatorCreatedBy);
+							}
+							else if(sortOrder != null && sortOrder.equalsIgnoreCase("asc")){
+								Collections.sort(tempExistingComparisons, Collections.reverseOrder(comparatorCreatedBy));
+							}
+							break;
+						case "actualsFile":
+							Comparator<ComparisonDetails> comparatorActualsFile = (v1, v2) -> (v2.getActualsFile().compareTo(v1.getActualsFile()));
+							if(sortOrder != null && sortOrder.equalsIgnoreCase("desc")) {
+								Collections.sort(tempExistingComparisons, comparatorActualsFile);
+							}
+							else if(sortOrder != null && sortOrder.equalsIgnoreCase("asc")){
+								Collections.sort(tempExistingComparisons, Collections.reverseOrder(comparatorActualsFile));
+							}
+							break;
+							default:
+							log.info("Case not found");
+							break;
+					}
+				log.info("comparisons sorted successfully");
 			//pagination
 			totalCount = tempExistingComparisons.size();
 			int endLimit = offset + limit;
