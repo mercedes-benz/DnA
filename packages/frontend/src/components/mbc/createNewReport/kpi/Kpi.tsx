@@ -62,6 +62,7 @@ export interface IKpiList {
 export interface IKpisError {
   description: string;
   name: string;
+  kpiClassification: string;
   reportingCause: string;
   kpiLink: string;
 }
@@ -87,6 +88,7 @@ export default class Kpi extends React.Component<IKpiProps, IKpiState> {
       },
       errors: {
         name: '',
+        kpiClassification: '',
         reportingCause: '',
         kpiLink: '',
         description: '',
@@ -164,7 +166,7 @@ export default class Kpi extends React.Component<IKpiProps, IKpiState> {
                     tags={this.props.kpiNames}
                     // tags={this.props.kpiNames}
                     showMissingEntryError={false}
-                    isDataSource={true}
+                    isDataSource={false}
                     suggestionPopupHeight={300}
                     {...this.props}
                   />
@@ -174,9 +176,9 @@ export default class Kpi extends React.Component<IKpiProps, IKpiState> {
                 </span>
               </div>
               
-              <div className={classNames('input-field-group include-error', this.state.errors.name ? 'error' : '')}>
+              <div className={classNames('input-field-group include-error', this.state.errors.kpiClassification ? 'error' : '')}>
                 <label id="kpinames" htmlFor="kpinames" className="input-label">
-                  KPI Classification<sup>*</sup>
+                  KPI Classification <sup>*</sup>
                 </label>
                 <div className={classNames("custom-select",!this.state?.enableClassification ? Styles.disabledDiv : '')}>
                   <select
@@ -187,8 +189,8 @@ export default class Kpi extends React.Component<IKpiProps, IKpiState> {
                     required={true}
                     // disabled={!this.state?.enableClassification}
                     // value={this.state.kpiInfo?.names.map((item: any) => item.classification) || ''}
-                    value={this.state.kpiInfo.name
-                      ? this.state.kpiInfo.name?.kpiClassification
+                    value={this.state.kpiInfo?.name?.kpiClassification
+                      ? this.state.kpiInfo?.name?.kpiClassification
                       : this.state.dataSources?.kpiClassification}
                     onChange={this.handleChangeClassification}
                   >
@@ -200,6 +202,9 @@ export default class Kpi extends React.Component<IKpiProps, IKpiState> {
                     ))}
                   </select>
                 </div>
+                <span className={classNames('error-message', this.state.errors.kpiClassification.length ? '' : 'hide')}>
+                  {this.state.errors.kpiClassification}
+                </span>
               </div>
               
               
@@ -212,7 +217,7 @@ export default class Kpi extends React.Component<IKpiProps, IKpiState> {
                 )}
               >
                 <label id="reportingCauseLabel" htmlFor="reportingCauseField" className="input-label">
-                  Reporting Cause<sup>*</sup>
+                  Reporting Cause <sup>*</sup>
                 </label>
                 <div className="custom-select">
                   <select
@@ -533,6 +538,7 @@ export default class Kpi extends React.Component<IKpiProps, IKpiState> {
       },
       errors: {
         name: '',
+        kpiClassification: '',
         reportingCause: '',
         kpiLink: '',
         description: '',
@@ -585,6 +591,7 @@ export default class Kpi extends React.Component<IKpiProps, IKpiState> {
           },
           errors: {
             name: '',
+            kpiClassification: '',
             reportingCause: '',
             kpiLink: '',
             description: '',
@@ -692,6 +699,7 @@ export default class Kpi extends React.Component<IKpiProps, IKpiState> {
           kpis: kpiList,
           errors: {
             name: '',
+            kpiClassification: '',
             reportingCause: '',
             kpiLink: '',
             description: '',
@@ -725,6 +733,10 @@ export default class Kpi extends React.Component<IKpiProps, IKpiState> {
 
     if (!this.state.kpiInfo.name.kpiName) {
       errors.name = errorMissingEntry;
+      formValid = false;
+    }
+    if (this.state.kpiInfo.name.kpiClassification.length === 0) {
+      errors.kpiClassification = errorMissingEntry;
       formValid = false;
     }
     if (this.state.kpiInfo.reportingCause.length === 0) {
@@ -838,14 +850,17 @@ export default class Kpi extends React.Component<IKpiProps, IKpiState> {
       const result = this.state.dataSources?.kpiName == element;
       // const result = this.state.dataSources.some((i) => i.dataSource.includes(element));
 
-      const isNameExist = this.state.kpiInfo.names.map((item: any) => item.dataSource == element && 
+      // const isNameExist = this.state?.kpiInfo?.names.map((item: any) => item.dataSource == element && 
+      // (item.dataType != null || item.dataType != null))[0];
+
+      const isNameExist = this.props?.kpiNames.map((item: any) => item.kpiName == element && 
       (item.dataType != null || item.dataType != null))[0];
 
       if(isNameExist){
         this.setState({enableClassification: false})
       } else {
         this.setState({enableClassification: true, selectedClassification: ''},
-        () => {-
+        () => {
           SelectBox.defaultSetup();
           })
       }
