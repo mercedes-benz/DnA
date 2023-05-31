@@ -891,14 +891,20 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 	public ResponseEntity<ForecastRunCollectionVO> getAllRunsForProject(
 			@ApiParam(value = "forecast project ID ", required = true) @PathVariable("id") String id,
 			@ApiParam(value = "page number from which listing of forecasts should start. Offset. Example 2") @Valid @RequestParam(value = "offset", required = false) Integer offset,
-			@ApiParam(value = "page size to limit the number of forecasts, Example 15") @Valid @RequestParam(value = "limit", required = false) Integer limit) {
-
+			@ApiParam(value = "page size to limit the number of forecasts, Example 15") @Valid @RequestParam(value = "limit", required = false) Integer limit,
+			@ApiParam(value = "Sort runs by a given variable like runName, createdby, createdon, or status", allowableValues = "runName,createdOn,status,createdBy,inputFile") @Valid @RequestParam(value = "sortBy", required = false) String sortBy,
+			@ApiParam(value = "Sort runs based on the given order, example asc,desc", allowableValues = "asc, desc") @Valid @RequestParam(value = "sortOrder", required = false) String sortOrder) {
 		ForecastRunCollectionVO collection = new ForecastRunCollectionVO();
 		int defaultLimit = Integer.parseInt(runsDefaultPageSize);
 		if (offset == null || offset < 0)
 			offset = 0;
 		if (limit == null || limit < 0) {
 			limit = defaultLimit;
+		}
+		if (sortBy == null || sortBy.trim().isEmpty())
+			sortBy = "createdOn";
+		if (sortOrder == null || sortOrder.trim().isEmpty()) {
+			sortOrder = "desc";
 		}
 		CreatedByVO requestUser = this.userStore.getVO();
 		String user = requestUser.getId();
@@ -915,7 +921,7 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 				log.error("User not part of forecast project with id {} and name {}, Not authorized to user other project inputs",id,existingForecast.getName());
 				return new ResponseEntity<>(collection, HttpStatus.FORBIDDEN);
 			}else {
-				Object[] runCollectionWrapper = service.getAllRunsForProject(limit, offset, existingForecast.getId());
+				Object[] runCollectionWrapper = service.getAllRunsForProject(limit, offset, existingForecast.getId(),sortBy,sortOrder);
 				List<RunVO> records = (List<RunVO>) runCollectionWrapper[0];
 				Long count = (Long) runCollectionWrapper[1];
 				HttpStatus responseCode = HttpStatus.NO_CONTENT;
@@ -1099,7 +1105,9 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 		}catch(Exception e) {
 			log.warn("Failed to format createdOn date to ISO format");
 		}
-		comparisonName = comparisonName!= null && !"".equalsIgnoreCase(comparisonName) ? comparisonName :  "comparison - " + createdOn; //ISOdate as comparisonname from createdOn
+		SimpleDateFormat comparisonNameDate = new SimpleDateFormat("yyyy.MM.dd-HH.mm.ss");
+		Date date = new Date();
+		comparisonName = comparisonName!= null && !"".equalsIgnoreCase(comparisonName) ? comparisonName :  "comparison - " + comparisonNameDate.format(date); //ISOdate as comparisonname from createdOn
 		Boolean notAuthorized = false;
 		if(existingForecast==null || existingForecast.getId()==null) {
 			log.error("Forecast project with this id {} doesnt exists , failed to create comparison", id);
@@ -1395,7 +1403,9 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 
 	public ResponseEntity<ForecastComparisonsCollectionDto> getForecastComparisons(@ApiParam(value = "forecast project ID ",required=true) @PathVariable("id") String id,
 			@ApiParam(value = "forecast comparisons page number ") @Valid @RequestParam(value = "offset", required = false) Integer offset,
-			@ApiParam(value = "forecast comparisons page size") @Valid @RequestParam(value = "limit", required = false) Integer limit)
+			@ApiParam(value = "forecast comparisons page size") @Valid @RequestParam(value = "limit", required = false) Integer limit,
+			@ApiParam(value = "Sort comparisons by a given variable like comparisonName, createdby, createdon or status", allowableValues = "comparisonName, createdOn, status, createdBy, actualsFile") @Valid @RequestParam(value = "sortBy", required = false) String sortBy,
+			@ApiParam(value = "Sort comparisons based on the given order, example asc,desc", allowableValues = "asc, desc") @Valid @RequestParam(value = "sortOrder", required = false) String sortOrder)
 	{
 		int defaultLimit = Integer.parseInt(runsDefaultPageSize);
 		if (offset == null || offset < 0)
@@ -1403,7 +1413,11 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 		if (limit == null || limit < 0) {
 			limit = defaultLimit;
 		}
-
+		if (sortBy == null || sortBy.trim().isEmpty())
+			sortBy = "createdOn";
+		if (sortOrder == null || sortOrder.trim().isEmpty()) {
+			sortOrder = "desc";
+		}
 		ForecastComparisonsCollectionDto collection = new ForecastComparisonsCollectionDto();
 		ForecastVO existingForecast = service.getById(id);
 		CreatedByVO requestUser = this.userStore.getVO();
@@ -1431,7 +1445,7 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 			return new ResponseEntity<>(null, HttpStatus.FORBIDDEN);
 		}
 //		service.getAllForecastComparisons(id);
-		Object[] getComparisonsResultsArr = service.getAllForecastComparisons(limit,offset,id);
+		Object[] getComparisonsResultsArr = service.getAllForecastComparisons(limit,offset,id, sortBy,sortOrder);
 		List<ForecastComparisonVO> records = (List<ForecastComparisonVO>) getComparisonsResultsArr[0];
 		Integer totalCount = (Integer) getComparisonsResultsArr[1];
 		HttpStatus responseCode = HttpStatus.NO_CONTENT;
