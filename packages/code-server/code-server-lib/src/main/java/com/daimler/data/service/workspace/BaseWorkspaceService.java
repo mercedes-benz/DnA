@@ -226,6 +226,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 				 ownerWorkbenchDeleteInputsDto.setIsCollaborator("false");
 				 ownerWorkbenchDeleteInputsDto.setPassword("");
 				 ownerWorkbenchDeleteInputsDto.setPat("");
+				 ownerWorkbenchDeleteInputsDto.setResource("");
 				 String repoNameWithOrg =  gitOrgUri + gitOrgName + "/" + repoName;
 				 ownerWorkbenchDeleteInputsDto.setRepo(repoNameWithOrg);
 				 String workspaceUserId = record[1].toString();
