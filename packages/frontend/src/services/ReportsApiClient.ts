@@ -337,7 +337,7 @@ export class ReportsApiClient {
     return this.get('tags');
   }
   public static getKpiName(): Promise<IReportListItems[]> {
-    return this.get('lov/kpinames');
+    return this.get('kpinames');
   }
 
   // Lov Add Calls //
