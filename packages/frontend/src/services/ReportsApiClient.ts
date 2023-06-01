@@ -154,7 +154,7 @@ export class ReportsApiClient {
             comment
           }
         },
-        kpis { name, reportingCause, description, kpiLink },
+        kpis { name{kpiName, kpiClassification}, reportingCause, description, kpiLink },
         dataAndFunctions { 
           dataWarehouseInUse { dataWarehouse, connectionType, dataClassification } , 
           singleDataSources { 
