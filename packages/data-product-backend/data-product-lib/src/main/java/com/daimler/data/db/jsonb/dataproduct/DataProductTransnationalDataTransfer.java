@@ -41,7 +41,6 @@ public class DataProductTransnationalDataTransfer {
 	private boolean dataTransferred;
 	private boolean notWithinEU;
 	private String insiderInformation;
-	private boolean dataFromChina;
 	private boolean contactAwareTransfer;
 	private boolean objectionsToTransfer;
 	private String transferringNonetheless;
