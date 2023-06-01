@@ -177,7 +177,7 @@ export default class Kpi extends React.Component<IKpiProps, IKpiState> {
               </div>
               
               <div className={classNames('input-field-group include-error', this.state.errors.kpiClassification ? 'error' : '')}>
-                <label id="kpinames" htmlFor="kpinames" className="input-label">
+                <label id="kpiclassificationlabel" htmlFor="kpiclassification" className="input-label">
                   KPI Classification <sup>*</sup>
                 </label>
                 <div className={classNames("custom-select",!this.state?.enableClassification ? Styles.disabledDiv : '')}>
@@ -847,38 +847,39 @@ export default class Kpi extends React.Component<IKpiProps, IKpiState> {
     let dataSources = this.state.dataSources;
 
     arr.forEach((element) => {
-      const result = this.state.dataSources?.kpiName == element;
-      // const result = this.state.dataSources.some((i) => i.dataSource.includes(element));
-
-      // const isNameExist = this.state?.kpiInfo?.names.map((item: any) => item.dataSource == element && 
-      // (item.dataType != null || item.dataType != null))[0];
-
-      const isNameExist = this.props?.kpiNames.map((item: any) => item.kpiName == element && 
-      (item.dataType != null || item.dataType != null))[0];
-
+      const matchedKpiName = this.props?.kpiNames.filter((item: any) => {
+        return item.kpiName == element;
+      });
+      
+      const isNameExist = matchedKpiName.length > 0;
       if(isNameExist){
-        this.setState({enableClassification: false})
+        if(matchedKpiName[0]?.dataType){
+          this.setState({
+            enableClassification: false, 
+            selectedClassification: matchedKpiName[0]?.dataType},
+            () => {
+              SelectBox.defaultSetup();
+            });
+        } else {
+          this.setState({
+            enableClassification: true, 
+            selectedClassification: ''},
+          () => {
+            SelectBox.defaultSetup();
+          });
+        }
+        
       } else {
-        this.setState({enableClassification: true, selectedClassification: ''},
+        this.setState({
+          enableClassification: true, 
+          selectedClassification: ''},
         () => {
           SelectBox.defaultSetup();
           })
       }
-
-      if (this.props.kpiNames.some(e => e.name === element)) {
-        // const selectedClassification = this.state.
-        this.setState({enableClassification: true},
-          () => {
-          SelectBox.defaultSetup();
-          }
-        );
-      }
-      if (result) {
-        // dataSources = [...this.state.dataSources];
-      } else {
-        // dataSources = dataSources.concat([{ kpiName: element, kpiClassification: this.state.selectedClassification }]);
-        dataSources = { kpiName: element, kpiClassification: this.state.selectedClassification };
-      }
+      
+      dataSources = { kpiName: element, kpiClassification: matchedKpiName[0]?.dataType };
+      
     });
 
     this.setState((prevState) => ({
@@ -886,34 +887,7 @@ export default class Kpi extends React.Component<IKpiProps, IKpiState> {
         ...prevState.kpiInfo,
         ['name']: dataSources,
       },
-      // ...(name === 'kpiLink' && {
-      //   errors: {
-      //     ...prevState.errors,
-      //     kpiLink: value ? (urlRegEx.test(value) ? '' : 'Invalid URL') : '',
-      //   },
-      // }),
     }));
-
-    // let dataSources = [...this.state.dataSources];
-
-    // arr.forEach((element) => {
-    //   const result = this.state.dataSources.some((i) => i.dataSource.includes(element));
-    //   if (result) {
-    //     dataSources = [...this.state.dataSources];
-    //   } else {
-    //     dataSources = dataSources.concat([{ dataSource: element, weightage: 0 }]);
-    //   }
-    // });
-
-    // const totalWeightage = dataSources.map((i) => i.weightage).reduce((current, next) => current + next);
-    // this.setState({
-    //   totalWeightage,
-    // });
-
-    // this.props.modifyDataSources({
-    //   dataSources,
-    //   dataVolume: this.state.dataVolumeValue,
-    // });
   };
 
   protected removeDataSource = (index: number) => {
