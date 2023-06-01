@@ -613,6 +613,7 @@ export interface IDescriptionRequest {
   reportLink: string;
   reportType: string;
   piiData: string;
+  procedureId: string;
 }
 
 export interface ICustomers {
@@ -968,6 +969,7 @@ export interface IAllReportsListItemCSV {
   createdDate?: string;
   lastModifiedDate?: string;
   reportId: string;
+  procedureId: string;
 }
 
 export interface IAllSolutionsResult {

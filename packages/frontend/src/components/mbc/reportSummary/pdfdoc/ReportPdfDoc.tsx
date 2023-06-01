@@ -347,6 +347,10 @@ const Description = (description: IDescriptionRequest) => (
         )}
       </View>
       <View style={styles.flexCol2}>
+        <Text style={styles.sectionTitle}>Procedure Id</Text>
+        <Text>{description.procedureId || 'NA'}</Text>
+      </View>
+      <View style={styles.flexCol2}>
         <Text style={styles.sectionTitle}>Frontend Technologies</Text>
         {description.frontendTechnologies?.length ? (
           <Text>{description.frontendTechnologies?.join(', ')}</Text>
@@ -354,9 +358,7 @@ const Description = (description: IDescriptionRequest) => (
           <Text>NA</Text>
         )}
       </View>
-      <View style={styles.flexCol2}>
-        <Text>{' '}</Text>
-      </View>
+      
     </View>
     <View style={styles.seperatorLine} />
   </>
