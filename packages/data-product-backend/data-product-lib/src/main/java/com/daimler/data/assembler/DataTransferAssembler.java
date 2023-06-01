@@ -304,7 +304,6 @@ public class DataTransferAssembler implements GenericAssembler<DataTransferVO, D
 					BeanUtils.copyProperties(transnationalDataTransferVO, transnationalDataTransfer);
 					transnationalDataTransfer.setDataTransferred(transnationalDataTransferVO.isDataTransferred());
 					transnationalDataTransfer.setNotWithinEU(transnationalDataTransferVO.isNotWithinEU());
-					transnationalDataTransfer.setDataFromChina(transnationalDataTransferVO.isDataFromChina());
 					String insiderInfo = "";
 					if(providerVO.getDeletionRequirement() != null) {
 						insiderInfo = providerVO.getDeletionRequirement().getInsiderInformation() != null ? providerVO.getDeletionRequirement().getInsiderInformation() : "";
