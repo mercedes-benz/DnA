@@ -31,7 +31,7 @@ import {
   IDepartment,
   IHierarchies,
   IIntegratedPortal,
-  IKpiNames,
+  // IKpiName,
   IReportingCauses,
   IRessort,
   IDescriptionRequest,
@@ -49,6 +49,8 @@ import {
   IDivision,
   ISubDivision,
   IDataClassification,
+  IKpiClassification,
+  IKpiNameList,
 } from 'globals/types';
 import Styles from './CreateNewReport.scss';
 import SelectBox from 'components/formElements/SelectBox/SelectBox';
@@ -65,6 +67,74 @@ import { TeamMemberType } from 'globals/Enums';
 import Caption from '../shared/caption/Caption';
 
 const classNames = cn.bind(Styles);
+// const tempKPIClassifications = [
+//   {
+//       "id": "Overhead & Invest > Overhead Controlling",
+//       "name": "Overhead & Invest > Overhead Controlling"
+//   },
+//   {
+//       "id": "Overhead & Invest > Overhead Planning",
+//       "name": "Overhead & Invest > Overhead Planning"
+//   },
+//   {
+//       "id": "Overhead & Invest > Plan Cost Breakdown",
+//       "name": "Overhead & Invest > Plan Cost Breakdown"
+//   },
+//   {
+//       "id": "Overhead & Invest > Funding Planning & Reporting",
+//       "name": "Overhead & Invest > Funding Planning & Reporting"
+//   },
+//   {
+//       "id": "Overhead & Invest > Depreciation calculations",
+//       "name": "Overhead & Invest > Depreciation calculations"
+//   },
+//   {
+//       "id": "Overhead & Invest > Journalization of funding/invest",
+//       "name": "Overhead & Invest > Journalization of funding/invest"
+//   },
+//   {
+//       "id": "Overhead & Invest > Purchasing E2E Process",
+//       "name": "Overhead & Invest > Purchasing E2E Process"
+//   },
+//   {
+//       "id": "Overhead & Invest > Shift Approval",
+//       "name": "Overhead & Invest > Shift Approval"
+//   }
+// ];
+
+// const tempKPINames = [
+//   {
+//       "id": "1039",
+//       "name": "CAV",
+//       "dataType": "Overhead & Invest > Overhead Controlling",
+//   },
+//   {
+//       "id": "1038",
+//       "name": "Contribution Margin per Unit",
+//       "dataType": "Overhead & Invest > Overhead Planning",
+//   },
+//   {
+//       "id": "1041",
+//       "name": "Cost per Acquisition",
+//       "dataType": "Overhead & Invest > Plan Cost Breakdown",
+//   },
+//   {
+//       "id": "1042",
+//       "name": "EBIT",
+//       "dataType": "Overhead & Invest > Funding Planning & Reporting",
+//   },
+//   {
+//       "id": "1040",
+//       "name": "ROI",
+//       "dataType": "Overhead & Invest > Depreciation calculations",
+//   },
+//   {
+//       "id": "1043",
+//       "name": "TestKPI",
+//       "dataType": "Overhead & Invest > Purchasing E2E Process",
+//   }
+// ]
+
 export interface ICreateNewReportState {
   divisions: IDivision[];
   subDivisions: ISubDivision[];
@@ -74,7 +144,7 @@ export interface ICreateNewReportState {
   hierarchies: IHierarchies[];
   arts: IART[];
   integratedPortals: IIntegratedPortal[];
-  kpiNames: IKpiNames[];
+  kpiNames: IKpiNameList[];
   productPhases: IProductPhase[];
   reportingCauses: IReportingCauses[];
   ressort: IRessort[];
@@ -99,6 +169,7 @@ export interface ICreateNewReportState {
   tags: ITag[];
   departmentTags: IDepartment[];
   fieldsMissing: boolean;
+  kpiClassifications: IKpiClassification[]
 }
 
 export interface ICreateNewReportProps {
@@ -196,6 +267,7 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
       showAlertChangesModal: false,
       publishFlag: false,
       fieldsMissing: false,
+      kpiClassifications: []
     };
   }
   // public componentWillReceiveProps(nextProps: any) {
@@ -214,7 +286,12 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
         const frontEndTechnologies = response[1].data;
         const hierarchies = response[2].data;
         const integratedPortals = response[3].data;
-        const kpiNames = response[4].data;
+        const kpiNames = response[4].data.map((item: any) => {
+          item['dataType'] = item.kpiClassification;
+          item['name'] = item.kpiName;
+          return item;
+        });
+        // const kpiNames: IKpiNameList[] = tempKPINames;
         const reportingCauses = response[5].data;
         const ressort = response[6].data;
         const statuses = response[7].data;
@@ -225,6 +302,8 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
         const divisions: IDivision[] = response[12];
         const departmentTags: IDepartment[] = response[13].data;
         const dataClassifications: IDataClassification[] = response[14].data;
+        const kpiClassifications: IKpiClassification[] = response[15].data;
+        // const kpiClassifications: IKpiClassification[] = tempKPIClassifications;
         const creatorInfo = this.props.user;
         const teamMemberObj: ITeams = {
           department: creatorInfo.department,
@@ -257,6 +336,7 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
             divisions,
             connectionTypes,
             dataClassifications,
+            kpiClassifications,
             // commonFunctions,
             report: {
               ...prevState.report,
@@ -611,6 +691,7 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
                       modifyKpi={this.modifyKpi}
                       onSaveDraft={this.onSaveDraft}
                       ref={this.kpiComponent}
+                      kpiClassifications={this.state.kpiClassifications}
                     />
                   )}
                 </div>

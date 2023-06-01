@@ -143,7 +143,7 @@ const ReportCardItem = (props: IReportCardItemProps) => {
   // };
 
   return (
-    <div id={'card-' + report.id} className={Styles.solCard}>
+    <div id={'card-' + report?.id} className={Styles.solCard}>
       <div className={Styles.solHead} onClick={goToSummary(report?.id)}>
         {/* <LogoImage displayType={SOLUTION_LOGO_IMAGE_TYPES.TILE} logoDetails={report.logoDetails} /> */}
         {/* <div className={Styles.solHeadInfo}>
@@ -212,7 +212,7 @@ const ReportCardItem = (props: IReportCardItemProps) => {
           <span>{report?.description.division?.name && 
           report?.description.division?.name != 'Choose' ? 
           report?.description.division?.name : 'N/A'}</span>
-          <span>{report.description?.productPhase || ''}</span>
+          <span>{report?.description?.productPhase || ''}</span>
         </div>
         <div className={Styles.solInfo}>{attachEllipsis(report?.description?.productDescription, 125)}</div>
         <div className={Styles.solLink}></div>
