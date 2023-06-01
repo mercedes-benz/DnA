@@ -78,6 +78,8 @@ export interface IDescriptionState {
   reportTypeError: string;
   piiValue: string;
   piiError: string;
+  procedureId: string;
+  procedureIdError: string;
 }
 
 export default class Description extends React.PureComponent<IDescriptionProps, IDescriptionState> {
@@ -133,7 +135,9 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
       reportTypeValue: 'Self Service Report',
       reportTypeError: null,
       piiValue: null,
-      piiError: null
+      piiError: null,
+      procedureId: 'ITPLC-',
+      procedureIdError: null
     };
   }
 
@@ -161,6 +165,21 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
     }
     this.setState({
       productName,
+    });
+  };
+
+  public onProcedureIdOnChange = (e: React.FormEvent<HTMLInputElement>) => {
+    const procedureId = e.currentTarget.value;
+    const description = this.props.description;
+    description.procedureId = procedureId;
+    // this.props.onStateChange();
+    if (procedureId === '' || procedureId === null) {
+      this.setState({ procedureIdError: '*Missing Entry' });
+    } else {
+      this.setState({ procedureIdError: '' });
+    }
+    this.setState({
+      procedureId,
     });
   };
 
@@ -364,6 +383,7 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
     const frontEndTechError = this.state.frontEndTechError || '';
     const reportLinkError = this.state.reportLinkError || '';
     const reportTypeError = this.state.reportTypeError || '';
+    const procedureIdError = this.state.procedureIdError || '';
 
     const requiredError = '*Missing entry';
 
@@ -628,6 +648,34 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
                     ) : (
                       ''
                     )}
+                    <div>
+                      <div
+                        className={classNames('input-field-group include-error', frontEndTechError ? 'error' : '')}
+                      >
+                        <label id="FrontEndTechnogies" htmlFor="FrontEndTechnogiesField" className="input-label">
+                          Frontend Technologies <sup>*</sup>
+                        </label>
+                        <div id="FrontEndTechnogies" className="custom-select">
+                          <select
+                            id="FrontEndTechnogiesField"
+                            multiple={true}
+                            required={true}
+                            required-error={requiredError}
+                            onChange={this.onChangeFrontTechnologies}
+                            value={frontEndTechValue}
+                          >
+                            {this.props.frontEndTechnologies?.map((obj) => (
+                              <option id={obj.name + obj.id} key={obj.id} value={obj.name}>
+                                {obj.name}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                        <span className={classNames('error-message', frontEndTechError ? '' : 'hide')}>
+                          {frontEndTechError}
+                        </span>
+                      </div>
+                    </div>
                   </div>
 
                   <div>
@@ -706,32 +754,19 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
                         ''
                       )}
                       <div>
-                        <div
-                          className={classNames('input-field-group include-error', frontEndTechError ? 'error' : '')}
-                        >
-                          <label id="FrontEndTechnogies" htmlFor="FrontEndTechnogiesField" className="input-label">
-                            Frontend Technologies <sup>*</sup>
-                          </label>
-                          <div id="FrontEndTechnogies" className="custom-select">
-                            <select
-                              id="FrontEndTechnogiesField"
-                              multiple={true}
-                              required={true}
-                              required-error={requiredError}
-                              onChange={this.onChangeFrontTechnologies}
-                              value={frontEndTechValue}
-                            >
-                              {this.props.frontEndTechnologies?.map((obj) => (
-                                <option id={obj.name + obj.id} key={obj.id} value={obj.name}>
-                                  {obj.name}
-                                </option>
-                              ))}
-                            </select>
-                          </div>
-                          <span className={classNames('error-message', frontEndTechError ? '' : 'hide')}>
-                            {frontEndTechError}
-                          </span>
-                        </div>
+                        <TextBox
+                          type="text"
+                          controlId={'procedureIdInput'}
+                          labelId={'procedureIdLabel'}
+                          label={'Procedure ID'}
+                          placeholder={'Type here'}
+                          infoTip={'Procedure ID (ITPLC-xxx) from Records of Processing Activities (RoPA)'}
+                          value={this.state.procedureId}
+                          errorText={procedureIdError}
+                          required={true}
+                          maxLength={200}
+                          onChange={this.onProcedureIdOnChange}
+                        />                        
                       </div>
                     </div>
                   </div>
