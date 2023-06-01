@@ -25,35 +25,26 @@
  * LICENSE END 
  */
 
-package com.daimler.data.db.entities.lov;
+package com.daimler.data.service.lov;
 
-import java.io.Serializable;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.SequenceGenerator;
-import javax.persistence.Table;
+import com.daimler.data.db.entities.lov.KpiClassificationSql;
+import com.daimler.data.db.repo.lov.KpiClassificationRepository;
+import com.daimler.data.dto.lov.LovVO;
+import com.daimler.data.service.common.BaseCommonService;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+@Service
+public class BaseKpiClassificationService extends BaseCommonService<LovVO, KpiClassificationSql, Long>
+		implements KpiClassificationService {
 
-@Entity
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-@Table(name = "kpi_name_sql")
-public class KpiNameSql implements Serializable {
-	private static final long serialVersionUID = 1L;
+	public BaseKpiClassificationService() {
+		super();
+	}
 
-	@Id
-	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "lov_sequence_gen")
-	@SequenceGenerator(name = "lov_sequence_gen", sequenceName = "lov_sequence", allocationSize = 1)
-	private Long id;
-
-	@Column(name = "name")
-	private String name;
+	@Autowired
+	public BaseKpiClassificationService(KpiClassificationRepository jpaRepo) {
+		super(jpaRepo);
+	}
 }

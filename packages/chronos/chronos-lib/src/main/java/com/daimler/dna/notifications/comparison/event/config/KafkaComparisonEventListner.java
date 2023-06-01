@@ -25,14 +25,30 @@
  * LICENSE END 
  */
 
-package com.daimler.data.db.repo.lov;
+package com.daimler.dna.notifications.comparison.event.config;
 
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.stereotype.Service;
 
-import com.daimler.data.db.entities.lov.KpiNameSql;
+import com.daimler.data.service.forecast.ForecastService;
+import com.daimler.dna.notifications.common.event.config.GenericEventRecord;
 
-@Repository
-public interface KpiNameRepository extends JpaRepository<KpiNameSql, Long> {
+@Service
+public class KafkaComparisonEventListner {
+
+	private static Logger LOGGER = LoggerFactory.getLogger(KafkaComparisonEventListner.class);
+
+	@Autowired
+	private ForecastService forecastService;
+
+	@KafkaListener(topics = "dnaChronosComparisonTopic")
+	public void chronosComparisonTopicListnerToProcess(GenericEventRecord message) {
+		if (message != null) {
+			forecastService.processForecastComparision(message.getResourceId(), message.getMessageDetails());
+		}
+	}
 
 }

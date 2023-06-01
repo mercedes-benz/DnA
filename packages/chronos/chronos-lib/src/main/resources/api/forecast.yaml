@@ -464,6 +464,18 @@ paths:
             description: page size to limit the number of forecasts, Example 15
             required: false
             type: integer
+          - name: sortBy
+            in: query
+            description: Sort runs by a given variable like name, createdby, createdon, or status
+            required: false
+            type: string
+            enum: [ runName,createdOn,status,createdBy,inputFile ]
+          - name: sortOrder
+            in: query
+            description: Sort runs based on the given order, example asc,desc
+            required: false
+            type: string
+            enum: [ asc,desc ]
       responses:
         201:
           description: "Returns message of success or failure"
@@ -701,6 +713,28 @@ paths:
           description: "forecast project ID "
           required: true
           type: "string"
+        - in: "query"
+          name: "offset"
+          description: "forecast comparisons page number "
+          required: false
+          type: integer
+        - in: "query"
+          name: "limit"
+          description: "forecast comparisons page size"
+          required: false
+          type: integer
+        - name: sortBy
+          in: query
+          description: Sort comparisons by a given variable like comparisonName, createdby, createdon or status
+          required: false
+          type: string
+          enum: [ comparisonName,createdOn,status,createdBy,actualsFile ]
+        - name: sortOrder
+          in: query
+          description: Sort comparisons based on the given order, example asc,desc
+          required: false
+          type: string
+          enum: [ asc,desc ]
       responses:
         201:
           description: "Returns message of success or failure"
@@ -1295,6 +1329,8 @@ definitions:
   ForecastComparisonResultVO:
     type: object
     properties:
+      comparisonName:
+        type: string
       comparisonData:
         type: string
       response:

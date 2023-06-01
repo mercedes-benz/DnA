@@ -26,7 +26,7 @@ public interface ForecastService extends CommonService<ForecastVO, ForecastNsql,
 			Boolean runOnPowerfulMachines, ForecastVO existingForecast, String triggeredBy, Date triggeredOn);
 
 
-	Object[] getAllRunsForProject( int limit,  int offset, String forecastId);
+	Object[] getAllRunsForProject( int limit,  int offset, String forecastId, String sortBy, String sortOrder);
 
 	GenericMessage deletRunByUUID(String id, String rid);
 
@@ -48,10 +48,11 @@ public interface ForecastService extends CommonService<ForecastVO, ForecastNsql,
 
 	public ForecastComparisonCreateResponseVO createComparison(String id, ForecastVO existingForecast, List<String> validRunsPath, String comparisionId, String comparisonName,
 			String actualsFilePath, String targetFolder, Date createdOn, String requestUser);
-	public List<ForecastComparisonVO>  getAllForecastComparisons(String id);
+	public Object[]  getAllForecastComparisons(int limit, int offset,String id,String sortBy,String sortOrder);
 	public GenericMessage  deleteComparison(String id,List<String> validComparisonIds);
 	public ForecastComparisonResultVO  getForecastComparisonById(String id,String comparisonId);
 
+	public void processForecastComparision(String forecastId, String comparisonId);
 
 
 }
