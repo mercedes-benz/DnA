@@ -401,11 +401,6 @@ const CreateDataProduct = ({ user, history }) => {
       formValid = false;
     }
 
-    if (!reqObj?.dataOriginatedFromChina || reqObj?.dataOriginatedFromChina === '') {
-      errorObject.transnationalDataTabError.push('Is data from China included?');
-      formValid = false;
-    }
-
     if (!reqObj?.insiderInformation || reqObj?.insiderInformation === '') {
       errorObject.deletionRequirementsTabError.push('Does data product contain (potential) insider information?');
       formValid = false;
@@ -414,13 +409,6 @@ const CreateDataProduct = ({ user, history }) => {
     if (!reqObj?.deletionRequirement || reqObj?.deletionRequirement === '') {
       errorObject.deletionRequirementsTabError.push('Are there specific deletion requirements for this data?');
       formValid = false;
-    }
-
-    if (reqObj?.deletionRequirement === 'Yes') {
-      if (!reqObj?.deletionRequirementDescription || reqObj?.deletionRequirementDescription === '') {
-        errorObject.deletionRequirementsTabError.push('Is data from China included?');
-        formValid = false;
-      }
     }
 
     if (!reqObj?.tou || reqObj?.tou === false) {
