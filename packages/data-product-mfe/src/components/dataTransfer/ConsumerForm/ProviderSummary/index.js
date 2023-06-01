@@ -234,13 +234,6 @@ const ProviderSummary = ({ onSave, providerFormIsDraft }) => {
                   </div></>}
                 <div></div>
               </div>) : null}
-            <div className={Styles.flexLayout}>
-              <div>
-                <label className="input-label summary">Is data from China included?</label>
-                <br />
-                {providerInformation.dataOriginatedFromChina}
-              </div>
-            </div>
           </div>
         </div>
       ) : null}
