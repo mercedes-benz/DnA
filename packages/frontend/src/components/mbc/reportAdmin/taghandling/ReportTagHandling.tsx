@@ -8,7 +8,7 @@ import SelectBox from 'components/formElements/SelectBox/SelectBox';
 import Pagination from 'components/mbc/pagination/Pagination';
 import Styles from './ReportTagHandling.scss';
 
-import { IFitlerCategory, ITagResult, IDatawarehouseInItem } from 'globals/types';
+import { IFitlerCategory, ITagResult, IDatawarehouseInItem, IFitlerKpiNameCategory } from 'globals/types';
 import { ReportsApiClient } from '../../../../services/ReportsApiClient';
 import { ISortField } from 'components/mbc/allSolutions/AllSolutions';
 import { TagRowItem } from './tagrowitem/TagRowItem';
@@ -177,10 +177,10 @@ export class ReportTagHandling extends React.Component<any, ITagHandlingState> {
           id: 8,
           name: 'Customers - MB Legal Entities',
         },
-        {
-          id: 9,
-          name: 'Kpi - KPI Name',
-        },
+        // {
+        //   id: 9,
+        //   name: 'Kpi - KPI Name',
+        // },
         {
           id: 10,
           name: 'Kpi - Reporting Cause',
@@ -595,8 +595,8 @@ export class ReportTagHandling extends React.Component<any, ITagHandlingState> {
     return ReportsApiClient.getKpiName()
       .then((res: any) => {
         if (res) {
-          res.data?.forEach((rc: IFitlerCategory) => {
-            results.push({ category: this.state.getKpiName, id: rc.id + '', name: rc.name });
+          res.data?.forEach((rc: IFitlerKpiNameCategory) => {
+            results.push({ category: this.state.getKpiName, id: rc.id + '', name: rc.kpiName });
           });
         }
       })
