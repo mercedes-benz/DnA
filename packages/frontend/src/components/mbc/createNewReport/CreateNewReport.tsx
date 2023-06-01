@@ -31,7 +31,7 @@ import {
   IDepartment,
   IHierarchies,
   IIntegratedPortal,
-  IKpiNames,
+  // IKpiName,
   IReportingCauses,
   IRessort,
   IDescriptionRequest,
@@ -49,6 +49,8 @@ import {
   IDivision,
   ISubDivision,
   IDataClassification,
+  IKpiClassification,
+  IKpiNameList,
 } from 'globals/types';
 import Styles from './CreateNewReport.scss';
 import SelectBox from 'components/formElements/SelectBox/SelectBox';
@@ -65,6 +67,8 @@ import { TeamMemberType } from 'globals/Enums';
 import Caption from '../shared/caption/Caption';
 
 const classNames = cn.bind(Styles);
+
+
 export interface ICreateNewReportState {
   divisions: IDivision[];
   subDivisions: ISubDivision[];
@@ -74,7 +78,7 @@ export interface ICreateNewReportState {
   hierarchies: IHierarchies[];
   arts: IART[];
   integratedPortals: IIntegratedPortal[];
-  kpiNames: IKpiNames[];
+  kpiNames: IKpiNameList[];
   productPhases: IProductPhase[];
   reportingCauses: IReportingCauses[];
   ressort: IRessort[];
@@ -99,6 +103,7 @@ export interface ICreateNewReportState {
   tags: ITag[];
   departmentTags: IDepartment[];
   fieldsMissing: boolean;
+  kpiClassifications: IKpiClassification[]
 }
 
 export interface ICreateNewReportProps {
@@ -196,6 +201,7 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
       showAlertChangesModal: false,
       publishFlag: false,
       fieldsMissing: false,
+      kpiClassifications: []
     };
   }
   // public componentWillReceiveProps(nextProps: any) {
@@ -214,7 +220,11 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
         const frontEndTechnologies = response[1].data;
         const hierarchies = response[2].data;
         const integratedPortals = response[3].data;
-        const kpiNames = response[4].data;
+        const kpiNames = response[4].data.map((item: any) => {
+          item['dataType'] = item.kpiClassification;
+          item['name'] = item.kpiName;
+          return item;
+        });
         const reportingCauses = response[5].data;
         const ressort = response[6].data;
         const statuses = response[7].data;
@@ -225,6 +235,7 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
         const divisions: IDivision[] = response[12];
         const departmentTags: IDepartment[] = response[13].data;
         const dataClassifications: IDataClassification[] = response[14].data;
+        const kpiClassifications: IKpiClassification[] = response[15].data;
         const creatorInfo = this.props.user;
         const teamMemberObj: ITeams = {
           department: creatorInfo.department,
@@ -257,6 +268,7 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
             divisions,
             connectionTypes,
             dataClassifications,
+            kpiClassifications,
             // commonFunctions,
             report: {
               ...prevState.report,
@@ -611,6 +623,7 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
                       modifyKpi={this.modifyKpi}
                       onSaveDraft={this.onSaveDraft}
                       ref={this.kpiComponent}
+                      kpiClassifications={this.state.kpiClassifications}
                     />
                   )}
                 </div>

@@ -638,13 +638,6 @@ const Summary = ({ history, user }) => {
                           </>}
                           <div></div>
                         </div>) : null}
-                      <div className={Styles.flexLayout}>
-                        <div>
-                          <label className="input-label summary">Is data from China included?</label>
-                          <br />
-                          {selectedDataProduct.dataOriginatedFromChina}
-                        </div>
-                      </div>
                     </div>
                   </div>
                 ) : null}

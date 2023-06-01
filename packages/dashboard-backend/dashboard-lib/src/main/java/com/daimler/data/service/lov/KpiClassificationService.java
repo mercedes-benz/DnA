@@ -25,23 +25,12 @@
  * LICENSE END 
  */
 
-package com.daimler.data.util;
+package com.daimler.data.service.lov;
 
-public class ConstantsUtility {
+import com.daimler.data.db.entities.lov.KpiClassificationSql;
+import com.daimler.data.dto.lov.LovVO;
+import com.daimler.data.service.common.CommonService;
 
-	public static final String CREATEACTION = "create";
-	public static final String SPRINGBOOT = "springboot";
-	public static final String PYFASTAPI = "py-fastapi";
-	public static final String REACT = "react";
-	public static final String ANGULAR = "angular";
-	public static final String PUBLIC = "generic";
-	public static final String GRADLE = "gradle";
-	public static final String DEFAULT = "default";
-	public static final String COLLABREQUESTEDSTATE = "COLLABORATION_REQUESTED";
-	public static final String CREATEREQUESTEDSTATE = "CREATE_REQUESTED";
-	public static final String CREATEDSTATE = "CREATED";
-	public static final String CREATEFAILEDSTATE = "CREATED_FAILED";
-	public static final String WORKSPACEPREFIX = "ws";
-	public static final String DEPLOYACTION = "deploy";
-	public static final String DELETEACTION = "delete";
+public interface KpiClassificationService extends CommonService<LovVO, KpiClassificationSql, Long> {
+
 }

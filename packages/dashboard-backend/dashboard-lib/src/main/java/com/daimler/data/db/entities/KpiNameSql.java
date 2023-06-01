@@ -25,23 +25,42 @@
  * LICENSE END 
  */
 
-package com.daimler.data.util;
+package com.daimler.data.db.entities;
 
-public class ConstantsUtility {
+import java.io.Serializable;
 
-	public static final String CREATEACTION = "create";
-	public static final String SPRINGBOOT = "springboot";
-	public static final String PYFASTAPI = "py-fastapi";
-	public static final String REACT = "react";
-	public static final String ANGULAR = "angular";
-	public static final String PUBLIC = "generic";
-	public static final String GRADLE = "gradle";
-	public static final String DEFAULT = "default";
-	public static final String COLLABREQUESTEDSTATE = "COLLABORATION_REQUESTED";
-	public static final String CREATEREQUESTEDSTATE = "CREATE_REQUESTED";
-	public static final String CREATEDSTATE = "CREATED";
-	public static final String CREATEFAILEDSTATE = "CREATED_FAILED";
-	public static final String WORKSPACEPREFIX = "ws";
-	public static final String DEPLOYACTION = "deploy";
-	public static final String DELETEACTION = "delete";
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.SequenceGenerator;
+import javax.persistence.Table;
+
+import com.daimler.data.db.jsonb.report.KPIName;
+import com.daimler.data.db.jsonb.report.Report;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Entity
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@JsonIgnoreProperties(ignoreUnknown = true)
+@Table(name = "kpi_name_sql")
+public class KpiNameSql implements Serializable {
+		
+	private static final long serialVersionUID = 1L;
+
+	@Id
+	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "lov_sequence_gen")
+	@SequenceGenerator(name = "lov_sequence_gen", sequenceName = "lov_sequence", allocationSize = 1)
+	private Long id;
+	
+	private String name;
+	private String classification;
+
 }
