@@ -114,7 +114,13 @@ export const getDataForCSV = (
               + '|' + 'comment: ' + customer?.comment
               )
               : 'NA',
-            kpis: report.kpis?.length ? report.kpis?.map((kpi) => Object.values(kpi)?.join(' | ')) : 'NA',
+            kpis: report.kpis?.length ? report.kpis?.map((kpi) => 
+              'kpiName: ' + (kpi?.name?.kpiName ? kpi?.name?.kpiName : 'NA')
+              + '|' + 'kpiClassification: ' + (kpi?.name?.kpiClassification ? kpi?.name?.kpiClassification : 'NA')
+              + '|' + 'reportingCause: ' + (kpi?.reportingCause ? kpi?.reportingCause : 'NA')
+              + '|' + 'kpiLink: ' + (kpi?.kpiLink ? kpi?.kpiLink : 'NA')
+              + '|' + 'description: ' + (kpi?.description ? kpi?.description : 'NA')
+              ) : 'NA',
             datawarehouses: report.dataAndFunctions?.dataWarehouseInUse?.length
               ? report.dataAndFunctions.dataWarehouseInUse
                   ?.map((datawarehouse) => 
