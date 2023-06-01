@@ -1372,6 +1372,13 @@ export interface IFitlerCategory {
   id: number;
   name: string;
 }
+
+export interface IFitlerKpiNameCategory {
+  id: number;
+  kpiName: string;
+  kpiClassification: string;
+}
+
 export interface ITagResult {
   id: string;
   name: string;
