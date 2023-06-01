@@ -87,7 +87,6 @@ export const serializeFormData = ({ values, division, type = 'provider', isDataP
                 transnationalDataTransfer: {
                   dataTransferred: values.transnationalDataTransfer === 'Yes' ? true : false, //boolean
                   notWithinEU: values.transnationalDataTransferNotWithinEU === 'Yes' ? true : false, //boolean
-                  dataFromChina: values.dataOriginatedFromChina === 'Yes' ? true : false,
                   contactAwareTransfer: values.transnationalDataContactAwareTransfer === 'Yes' ? true : false, //boolean
                   objectionsToTransfer: values.transnationalDataObjectionsTransfer === 'Yes' ? true : false, //boolean
                   transferringNonetheless: values.transnationalDataTransferingNonetheless,
@@ -160,7 +159,6 @@ export const serializeFormData = ({ values, division, type = 'provider', isDataP
                   }),
                   ...(values?.openSegments?.includes('IdentifiyingTransnationalDataTransfer') && {
                     transnationalDataTransfer: {
-                      dataFromChina: values.dataOriginatedFromChina === 'Yes' ? true : false,
                       dataTransferred: values.transnationalDataTransfer === 'Yes' ? true : false,
                       notWithinEU: values.transnationalDataTransferNotWithinEU === 'Yes' ? true : false,
                       contactAwareTransfer: values.transnationalDataContactAwareTransfer === 'Yes' ? true : false, //boolean
@@ -201,7 +199,6 @@ export const deserializeFormData = ({ item, type = 'provider', isDataProduct = f
           complianceOfficer: item.providerInformation?.contactInformation?.localComplianceOfficer?.split(),
           confidentiality: item.providerInformation?.classificationConfidentiality?.confidentiality || 'Internal',
           classificationOfTransferedData: item.providerInformation?.classificationConfidentiality?.description,
-          dataOriginatedFromChina: item.providerInformation?.transnationalDataTransfer?.dataFromChina ? 'Yes' : 'No',
           deletionRequirement: item.providerInformation?.deletionRequirement?.deletionRequirements ? 'Yes' : 'No',
           deletionRequirementDescription: item.providerInformation?.deletionRequirement?.description,
           otherRelevantInfo: item.providerInformation?.deletionRequirement?.otherRelevantInformation,
@@ -311,7 +308,6 @@ export const deserializeFormData = ({ item, type = 'provider', isDataProduct = f
 
           transnationalDataTransfer: item?.transnationalDataTransfer?.dataTransferred ? 'Yes' :  'No',
           transnationalDataTransferNotWithinEU: item?.transnationalDataTransfer?.notWithinEU ? 'Yes' : item?.transnationalDataTransfer?.dataTransferred ? 'No' : '',
-          dataOriginatedFromChina: item?.transnationalDataTransfer?.dataFromChina ? 'Yes' : 'No',
 
           transnationalDataContactAwareTransfer: item?.transnationalDataTransfer?.contactAwareTransfer ? 'Yes' : item?.transnationalDataTransfer?.notWithinEU ? 'No' : '',
           transnationalDataObjectionsTransfer: item?.transnationalDataTransfer?.objectionsToTransfer ? 'Yes' : item?.transnationalDataTransfer?.contactAwareTransfer ? 'No' : '',
