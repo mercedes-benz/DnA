@@ -319,7 +319,7 @@ paths:
       tags:
         - "reports"
       summary: "Number of published reports."
-      description: "Get published reports. This endpoints will be used to get all valid available report records."
+      description: "Get number of published reports. This endpoints will be used to get all valid available report records."
       operationId: "getNumberOfPublishedReports"
       responses:
         201:

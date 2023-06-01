@@ -227,7 +227,7 @@ public class ReportController implements ReportsApi {
 	}
 
 	@Override
-	@ApiOperation(value = "Get all available reports.", nickname = "getNumberOfPublishedReports", notes = "Get published reports. This endpoints will be used to get number of published available report records.", response = TransparencyVO.class, tags = {
+	@ApiOperation(value = "Get number of published reports.", nickname = "getNumberOfPublishedReports", notes = "Get number of published reports. This endpoints will be used to get number of published report records.", response = TransparencyVO.class, tags = {
 			"reports", })
 	@ApiResponses(value = {
 			@ApiResponse(code = 201, message = "Returns message of success or failure", response = TransparencyVO.class),
@@ -242,9 +242,7 @@ public class ReportController implements ReportsApi {
 	public ResponseEntity<TransparencyVO> getNumberOfPublishedReports() {
 		try {
 			Integer count = reportService.getCountBasedPublishReport(true);
-			LOGGER.info("total count of published report {}", count);
 			TransparencyVO transparencyVO = new TransparencyVO();
-			// int newCount = (int)count;
 			transparencyVO.setCount(count);
 			return new ResponseEntity<>(transparencyVO, HttpStatus.OK);
 		}catch (Exception e){
