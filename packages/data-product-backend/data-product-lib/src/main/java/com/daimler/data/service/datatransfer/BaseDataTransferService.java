@@ -659,6 +659,12 @@ public class BaseDataTransferService extends BaseCommonService<DataTransferVO, D
 		return dataTransferCustomRepository.updateDataTransferData();
 	}
 
+	@Override
+	public Integer getCountBasedPublishDatatransfer(Boolean published) {
+
+		return dataTransferCustomRepository.getCountBasedPublishDatatransfer(published);
+	}
+
 	private ProviderVO getProviderVOFromDataTransferVO(DataTransferVO vo) {
 		ProviderVO providerVO = new ProviderVO();
 		providerVO.setProviderInformation(vo.getProviderInformation());

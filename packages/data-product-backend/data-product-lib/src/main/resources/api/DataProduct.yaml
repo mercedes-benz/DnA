@@ -381,7 +381,7 @@ paths:
       tags:
         - "dataproducts"
       summary: "Number of published dataproducts."
-      description: "Get published dataproducts. This endpoints will be used to get all valid available dataproducts records."
+      description: "Get Number of published dataproducts. This endpoints will be used to get all valid available dataproducts records."
       operationId: "getNumberOfPublishedDataproducts"
       responses:
         201:
@@ -407,7 +407,7 @@ definitions:
     properties:
       count:
         type: integer
-        description: "Number of published dataproducts"
+        description: "Number of published records"
   RefreshVo:
     type: object
     properties:

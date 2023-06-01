@@ -410,7 +410,7 @@ public class DataProductController implements DataproductsApi{
     }
 
 	@Override
-	@ApiOperation(value = "Get all published dataproducts.", nickname = "getNumberOfPublishedDataproducts", notes = "Get published dataproducts. This endpoints will be used to get number of published available dataproducts records.", response = TransparencyVO.class, tags = {
+	@ApiOperation(value = "Get number of published dataproducts.", nickname = "getNumberOfPublishedDataproducts", notes = "Get number of published dataproducts. This endpoints will be used to get number of available published  dataproducts records.", response = TransparencyVO.class, tags = {
 			"dataproducts", })
 	@ApiResponses(value = {
 			@ApiResponse(code = 201, message = "Returns message of success or failure", response = TransparencyVO.class),
