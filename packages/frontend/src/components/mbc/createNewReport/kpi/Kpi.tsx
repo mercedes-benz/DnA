@@ -582,6 +582,7 @@ export default class Kpi extends React.Component<IKpiProps, IKpiState> {
           addKpi: false,
           duplicateKpiAdded: false,
           kpis: [...prevState.kpis, ...selectedValues],
+          enableClassification: false,
           kpiInfo: {
             name: {kpiName: '', kpiClassification: ''},
             names: [],
@@ -626,6 +627,7 @@ export default class Kpi extends React.Component<IKpiProps, IKpiState> {
         addKpi: false,
         editKpi: true,
         selectedItemIndex,
+        enableClassification: false,
         kpiInfo: {
           name,
           names,
