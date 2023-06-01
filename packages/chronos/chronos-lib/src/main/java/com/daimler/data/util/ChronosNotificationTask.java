@@ -29,7 +29,7 @@ public class ChronosNotificationTask {
 		
 		// calling for each forecast project
 		for (String forecastId : forecastIds) {
-			forecastService.getAllRunsForProject(0, 0, forecastId);
+			forecastService.getAllRunsForProject(0, 0, forecastId,"createdOn","desc");
 		}
 	}
 	
