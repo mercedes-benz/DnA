@@ -178,7 +178,8 @@ export default class Kpi extends React.Component<IKpiProps, IKpiState> {
               
               <div className={classNames('input-field-group include-error', this.state.errors.kpiClassification ? 'error' : '')}>
                 <label id="kpiclassificationlabel" htmlFor="kpiclassification" className="input-label">
-                  KPI Classification <sup>*</sup>
+                  KPI Classification <sup>*</sup> &nbsp;
+                  <i className="icon mbc-icon info" tooltip-data="Please assign the KPI to a respective Focus Area" />
                 </label>
                 <div className={classNames("custom-select",!this.state?.enableClassification ? Styles.disabledDiv : '')}>
                   <select
