@@ -183,6 +183,15 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
     });
   };
 
+  public onProcedureIdOnBlur = (e: React.FormEvent<HTMLInputElement>) => {
+    const procedureId = e.currentTarget.value;
+    if (procedureId.split('-')[0]!=='ITPLC' || procedureId.split('-')[1] === '') {
+      this.setState({ procedureIdError: '*Please provide valid Procedure Id (ITPLC-xxx).' });
+    } else {
+      this.setState({ procedureIdError: '' });
+    }
+  };
+
   public onDescChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const desc = e.currentTarget.value;
     const description = this.props.description;
@@ -766,6 +775,7 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
                           required={true}
                           maxLength={200}
                           onChange={this.onProcedureIdOnChange}
+                          onBlur={this.onProcedureIdOnBlur}
                         />                        
                       </div>
                     </div>
@@ -943,6 +953,9 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
     if (this.state.reportLinkError && this.state.reportLink) {
       this.setState({ reportLinkError: '' });
       // formValid = true;
+    }
+    if(this.state.procedureIdError) {
+      formValid = false;
     }
     setTimeout(() => {
       const anyErrorDetected = document.querySelector('.error');
