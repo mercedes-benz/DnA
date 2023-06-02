@@ -55,4 +55,5 @@ public class Description implements Serializable {
 	private String agileReleaseTrain;
 	private String department;
 	private Division division;
+	private String procedureId;
 }
