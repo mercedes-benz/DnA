@@ -954,6 +954,10 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
       this.setState({ reportLinkError: '' });
       // formValid = true;
     }
+    if (this.state.procedureId.split('-')[0]!=='ITPLC' || this.state.procedureId.split('-')[1] === '') {
+      this.setState({ procedureIdError: '*Please provide valid Procedure Id (ITPLC-xxx).' });
+      formValid = false;
+    }
     if(this.state.procedureIdError) {
       formValid = false;
     }
