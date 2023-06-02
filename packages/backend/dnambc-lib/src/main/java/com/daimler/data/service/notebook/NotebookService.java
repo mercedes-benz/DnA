@@ -34,4 +34,6 @@ import com.daimler.data.service.common.CommonService;
 public interface NotebookService extends CommonService<NotebookVO, NotebookNsql, String> {
 	public void updateSolutionIdofDnaNotebook(String updateType, String dnaNotebookId, String solutionId);
 
+	 Integer getTotalNumberOfNotebooks();
+
 }

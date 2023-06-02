@@ -34,6 +34,7 @@ import java.util.List;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
+import com.daimler.data.dto.solution.TransparencyVO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -109,6 +110,31 @@ public class NotebookController implements NotebooksApi {
 		} catch (Exception e) {
 			LOGGER.error("Exception occurred while fetching notebook {} ", e.getMessage());
 			return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
+
+	@Override
+	@ApiOperation(value = "Get number of notebooks.", nickname = "getNumberOfNotebooks", notes = "Get number of notebooks.", response = TransparencyVO.class, tags = {
+			"notebooks", })
+	@ApiResponses(value = {
+			@ApiResponse(code = 201, message = "Returns message of succes or failure", response = TransparencyVO.class),
+			@ApiResponse(code = 204, message = "Fetch complete, no content found."),
+			@ApiResponse(code = 400, message = "Bad request."),
+			@ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+			@ApiResponse(code = 403, message = "Request is not authorized."),
+			@ApiResponse(code = 405, message = "Method not allowed"),
+			@ApiResponse(code = 500, message = "Internal error") })
+	@RequestMapping(value = "/notebooks/transparency", method = RequestMethod.GET)
+	public ResponseEntity<TransparencyVO> getNumberOfNotebooks() {
+
+		try {
+			TransparencyVO transparencyVO = new TransparencyVO();
+			Integer count = notebookService.getTotalNumberOfNotebooks();
+			transparencyVO.setCount(count);
+			return new ResponseEntity<>(transparencyVO, HttpStatus.OK);
+		}catch (Exception e) {
+
+			return new ResponseEntity<>(new TransparencyVO(), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 

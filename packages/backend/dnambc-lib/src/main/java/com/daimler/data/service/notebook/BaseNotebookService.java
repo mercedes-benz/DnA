@@ -211,6 +211,11 @@ public class BaseNotebookService extends BaseCommonService<NotebookVO, NotebookN
 		}
 	}
 
+	@Override
+	public Integer getTotalNumberOfNotebooks() {
+		return customRepo.getTotalNumberOfNotebooks();
+	}
+
 	private void updateNotebook(String solutionId, NotebookNsql notebookRecord) {
 		Notebook existingNotebookDetails = notebookRecord.getData();
 		existingNotebookDetails.setSolutionId(solutionId);

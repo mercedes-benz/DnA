@@ -32,4 +32,7 @@ import com.daimler.data.db.repo.common.CommonDataRepository;
 
 public interface NotebookCustomRepository extends CommonDataRepository<NotebookNsql, String> {
 
+
+     Integer getTotalNumberOfNotebooks();
+
 }
