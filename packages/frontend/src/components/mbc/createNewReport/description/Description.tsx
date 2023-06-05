@@ -25,7 +25,10 @@ import SelectBox from 'components/formElements/SelectBox/SelectBox';
 import { ApiClient } from '../../../../services/ApiClient';
 import TextBox from 'components/mbc/shared/textBox/TextBox';
 import TextArea from 'components/mbc/shared/textArea/TextArea';
+import { Envs } from 'globals/Envs';
+
 const classNames = cn.bind(Styles);
+const procedureIdEnvs = Envs.ROPA_PROCEDURE_ID_PREFIX;
 
 export interface IDescriptionProps {
   divisions: IDivision[];
@@ -99,7 +102,8 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
       departmentTags: props.description.department,
       reportLink: props.description.reportLink,
       reportTypeValue: props.description.reportType,
-      piiValue: props.description.piiData
+      piiValue: props.description.piiData,
+      procedureId: props.description.procedureId 
     };
   }
   constructor(props: IDescriptionProps) {
@@ -136,7 +140,7 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
       reportTypeError: null,
       piiValue: null,
       piiError: null,
-      procedureId: 'ITPLC-',
+      procedureId: '',
       procedureIdError: null
     };
   }
@@ -184,11 +188,13 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
   };
 
   public onProcedureIdOnBlur = (e: React.FormEvent<HTMLInputElement>) => {
-    const procedureId = e.currentTarget.value;
-    if (procedureId.split('-')[0]!=='ITPLC' || procedureId.split('-')[1] === '') {
-      this.setState({ procedureIdError: '*Please provide valid Procedure Id (ITPLC-xxx).' });
-    } else {
-      this.setState({ procedureIdError: '' });
+    if(procedureIdEnvs){
+      const procedureId = e.currentTarget.value;
+      if (procedureId.split('-')[0]!== procedureIdEnvs || procedureId.split('-')[1] === '') {
+        this.setState({ procedureIdError: '*Please provide valid Procedure Id ('+procedureIdEnvs+'-xxx).' });
+      } else {
+        this.setState({ procedureIdError: '' });
+      }
     }
   };
 
@@ -769,7 +775,7 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
                           labelId={'procedureIdLabel'}
                           label={'Procedure ID'}
                           placeholder={'Type here'}
-                          infoTip={'Procedure ID (ITPLC-xxx) from Records of Processing Activities (RoPA)'}
+                          infoTip={'Procedure ID '+ (procedureIdEnvs ? ('('+procedureIdEnvs+'-xxx)'): '')+' from Records of Processing Activities (RoPA)'}
                           value={this.state.procedureId}
                           errorText={procedureIdError}
                           required={true}
@@ -954,8 +960,12 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
       this.setState({ reportLinkError: '' });
       // formValid = true;
     }
-    if (this.state.procedureId.split('-')[0]!=='ITPLC' || this.state.procedureId.split('-')[1] === '') {
-      this.setState({ procedureIdError: '*Please provide valid Procedure Id (ITPLC-xxx).' });
+    if (procedureIdEnvs && (this.state.procedureId.split('-')[0]!== procedureIdEnvs || this.state.procedureId.split('-')[1] === '')) {
+      this.setState({ procedureIdError: '*Please provide valid Procedure Id ('+procedureIdEnvs+'-xxx).' });
+      formValid = false;
+    }
+    if ((!procedureIdEnvs || procedureIdEnvs == '' || procedureIdEnvs == null) && (this.state.procedureId ==='' || !this.state.procedureId)) {
+      this.setState({ procedureIdError: errorMissingEntry });
       formValid = false;
     }
     if(this.state.procedureIdError) {
