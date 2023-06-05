@@ -178,6 +178,7 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
           reportLink: '',
           reportType: null,
           piiData: '',
+          procedureId: ''
         },
         kpis: [],
         customer: {
