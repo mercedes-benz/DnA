@@ -462,10 +462,40 @@ paths:
           description: "Method not allowed"
         500:
           description: "Internal error"
+  /workspaces/transparency:
+    get:
+      tags:
+        - "code-server"
+      summary: "Number of workspace."
+      description: "Get number of workspace. This endpoints will be used to get all valid available workspace records."
+      operationId: "getNumberOfWorkspace"
+      responses:
+        201:
+          description: "Returns message of success or failure"
+          schema:
+            $ref: "#/definitions/TransparencyVO"
+        204:
+          description: "Fetch complete, no content found."
+        400:
+          description: "Bad request."
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
 
           
 definitions:
-
+  
+  TransparencyVO:
+    type: object
+    properties:
+      count:
+        type: integer
+        description: "Number of workspace reports"
   WorkspaceCollectionVO:
     type: object
     properties:

@@ -685,6 +685,11 @@ public class BaseWorkspaceService implements WorkspaceService {
 		return responseMessage;
 	}
 
+	@Override
+	public Integer getTotalCountOfWorkSpace(String status) {
+		return workspaceCustomRepository.getTotalCountOfWorkSpace(status);
+	}
+
 
 	@Override
 	@Transactional

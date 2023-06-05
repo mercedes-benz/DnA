@@ -60,4 +60,6 @@ public interface WorkspaceCustomRepository extends CommonDataRepository<CodeServ
 
 	void updateDeletedStatusForProject(String projectName);
 
+	Integer getTotalCountOfWorkSpace(String status);
+
 }
