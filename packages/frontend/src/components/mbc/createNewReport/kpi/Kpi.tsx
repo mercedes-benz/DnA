@@ -330,6 +330,7 @@ export default class Kpi extends React.Component<IKpiProps, IKpiState> {
                     style={{
                       top: this.state.contextMenuOffsetTop + 'px',
                       right: this.state.contextMenuOffsetRight + 'px',
+                      zIndex: '9'
                     }}
                     className={classNames('contextMenuWrapper', this.state.showContextMenu ? '' : 'hide')}
                   >
@@ -620,6 +621,7 @@ export default class Kpi extends React.Component<IKpiProps, IKpiState> {
         editKpi: true,
         selectedItemIndex,
         enableClassification: false,
+        showContextMenu: !this.state.showContextMenu,
         kpiInfo: {
           name,
           names,
@@ -663,6 +665,7 @@ export default class Kpi extends React.Component<IKpiProps, IKpiState> {
       {
         showDeleteModal: true,
         selectedItemIndex,
+        showContextMenu: !this.state.showContextMenu,
       },
       () => {
         // Tooltip.defaultSetup();
@@ -885,22 +888,16 @@ export default class Kpi extends React.Component<IKpiProps, IKpiState> {
   };
 
   protected removeDataSource = (index: number) => {
-    // const dataSources = this.state.kpiInfo?.names.filter((ds, dsIndex) => index !== dsIndex);
+      const dataSources = { kpiName: '', kpiClassification: '' };
 
-    // if (dataSources.length > 0) {
-    //   const totalWeightage = dataSources.map((i) => i.weightage).reduce((current, next) => current + next);
-    //   this.setState({
-    //     totalWeightage,
-    //   });
-    // } else {
-    //   this.setState({
-    //     totalWeightage: 0,
-    //   });
-    // }
-
-    // this.props.modifyDataSources({
-    //   dataSources,
-    //   dataVolume: this.state.dataVolumeValue,
-    // });
+      this.setState((prevState) => ({
+        kpiInfo: {
+          ...prevState.kpiInfo,
+          ['name']: dataSources,
+        },
+      }),() => {
+        SelectBox.defaultSetup();
+        });
+    
   };
 }
