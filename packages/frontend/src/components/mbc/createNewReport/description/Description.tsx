@@ -99,7 +99,8 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
       departmentTags: props.description.department,
       reportLink: props.description.reportLink,
       reportTypeValue: props.description.reportType,
-      piiValue: props.description.piiData
+      piiValue: props.description.piiData,
+      procedureId: props.description.procedureId
     };
   }
   constructor(props: IDescriptionProps) {
