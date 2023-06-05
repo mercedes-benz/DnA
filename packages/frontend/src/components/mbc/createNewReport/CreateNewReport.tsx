@@ -65,6 +65,9 @@ import { serializeReportRequestBody } from './utility/Utility';
 import { USER_ROLE } from 'globals/constants';
 import { TeamMemberType } from 'globals/Enums';
 import Caption from '../shared/caption/Caption';
+import { Envs } from 'globals/Envs';
+
+const procedureIdEnvs = Envs.PROCEDURE_ID;
 
 const classNames = cn.bind(Styles);
 
@@ -178,7 +181,7 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
           reportLink: '',
           reportType: null,
           piiData: '',
-          procedureId: ''
+          procedureId: procedureIdEnvs ? procedureIdEnvs + '-': ''
         },
         kpis: [],
         customer: {
@@ -397,7 +400,7 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
               report.description.reportLink = res.description.reportLink;
               report.description.reportType = res.description?.reportType;
               report.description.piiData = res.description?.piiData;
-              report.description.procedureId = res.description?.procedureId;
+              report.description.procedureId = res.description?.procedureId || procedureIdEnvs ? procedureIdEnvs + '-':'';
               report.customer.internalCustomers = res.customer?.internalCustomers || [];
               report.customer.externalCustomers = res.customer?.externalCustomers || [];
               // report.customer.processOwners = res.customer?.processOwners || [];
