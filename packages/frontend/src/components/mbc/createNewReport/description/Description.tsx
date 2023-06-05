@@ -28,7 +28,7 @@ import TextArea from 'components/mbc/shared/textArea/TextArea';
 import { Envs } from 'globals/Envs';
 
 const classNames = cn.bind(Styles);
-const procedureIdEnvs = Envs.PROCEDURE_ID;
+const procedureIdEnvs = Envs.ROPA_PROCEDURE_ID_PREFIX;
 
 export interface IDescriptionProps {
   divisions: IDivision[];
