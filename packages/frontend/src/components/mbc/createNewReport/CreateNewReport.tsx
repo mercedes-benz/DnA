@@ -67,7 +67,7 @@ import { TeamMemberType } from 'globals/Enums';
 import Caption from '../shared/caption/Caption';
 import { Envs } from 'globals/Envs';
 
-const procedureIdEnvs = Envs.PROCEDURE_ID;
+const procedureIdEnvs = Envs.ROPA_PROCEDURE_ID_PREFIX;
 
 const classNames = cn.bind(Styles);
 
