@@ -148,8 +148,7 @@ export default class Kpi extends React.Component<IKpiProps, IKpiState> {
       <div className={Styles.addKpiModalContent}>
         <br />
         <div>
-          <div className={Styles.flexLayout}>
-            <div>
+          <div className={Styles.flexLayout}>            
               <div className={classNames('input-field-group include-error', this.state.errors.name ? 'error' : '')}>
                 <div>
                   <Tags
@@ -174,11 +173,11 @@ export default class Kpi extends React.Component<IKpiProps, IKpiState> {
                 <span className={classNames('error-message', this.state.errors.name.length ? '' : 'hide')}>
                   {this.state.errors.name}
                 </span>
-              </div>
-              
+              </div>              
               <div className={classNames('input-field-group include-error', this.state.errors.kpiClassification ? 'error' : '')}>
                 <label id="kpiclassificationlabel" htmlFor="kpiclassification" className="input-label">
-                  KPI Classification <sup>*</sup>
+                  KPI Classification <sup>*</sup> &nbsp;
+                  <i className="icon mbc-icon info" tooltip-data="Please assign the KPI to a respective Focus Area" />
                 </label>
                 <div className={classNames("custom-select",!this.state?.enableClassification ? Styles.disabledDiv : '')}>
                   <select
@@ -206,65 +205,58 @@ export default class Kpi extends React.Component<IKpiProps, IKpiState> {
                   {this.state.errors.kpiClassification}
                 </span>
               </div>
-              
-              
-            </div>
-            <div>
-              <div
-                className={classNames(
-                  'input-field-group include-error',
-                  this.state.errors.reportingCause ? 'error' : '',
-                )}
-              >
-                <label id="reportingCauseLabel" htmlFor="reportingCauseField" className="input-label">
-                  Reporting Cause <sup>*</sup>
-                </label>
-                <div className="custom-select">
-                  <select
-                    id="reportingCauseField"
-                    multiple={true}
-                    required-error={requiredError}
-                    required={true}
-                    name="reportingCause"
-                    value={this.state.kpiInfo.reportingCause}
-                    onChange={this.onChangeReportingCause}
-                  >
-                    {/* <option value={''}>Choose</option> */}
-                    {this.props.reportingCause?.map((obj) => (
-                      <option id={obj.name + obj.id} key={obj.id} value={obj.name}>
-                        {obj.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <span className={classNames('error-message', this.state.errors.reportingCause.length ? '' : 'hide')}>
-                  {this.state.errors.reportingCause}
-                </span>
-              </div>
-            </div>
           </div>
-          <div className={Styles.flexLayout}>
-            <div>
-              <div className={classNames('input-field-group include-error', this.state.errors.kpiLink ? 'error' : '')}>
-                <label id="kpiLinkLabel" htmlFor="kpiLinkField" className="input-label">
-                Link to KPI Information
-                </label>
-                <input
-                  type="text"
-                  className="input-field"
-                  name="kpiLink"
-                  id="kpiLinkInput"
-                  maxLength={200}
-                  placeholder="https://www.example.com"
-                  autoComplete="off"
-                  value={this.state.kpiInfo.kpiLink}
-                  onChange={this.handleChange}
-                />
-                <span className={classNames('error-message', this.state.errors.kpiLink.length ? '' : 'hide')}>
-                  {this.state.errors.kpiLink}
-                </span>
+          <div className={Styles.flexLayout}>    
+            <div
+              className={classNames(
+                'input-field-group include-error',
+                this.state.errors.reportingCause ? 'error' : '',
+              )}
+            >
+              <label id="reportingCauseLabel" htmlFor="reportingCauseField" className="input-label">
+                Reporting Cause <sup>*</sup>
+              </label>
+              <div className="custom-select">
+                <select
+                  id="reportingCauseField"
+                  multiple={true}
+                  required-error={requiredError}
+                  required={true}
+                  name="reportingCause"
+                  value={this.state.kpiInfo.reportingCause}
+                  onChange={this.onChangeReportingCause}
+                >
+                  {/* <option value={''}>Choose</option> */}
+                  {this.props.reportingCause?.map((obj) => (
+                    <option id={obj.name + obj.id} key={obj.id} value={obj.name}>
+                      {obj.name}
+                    </option>
+                  ))}
+                </select>
               </div>
+              <span className={classNames('error-message', this.state.errors.reportingCause.length ? '' : 'hide')}>
+                {this.state.errors.reportingCause}
+              </span>
             </div>
+            <div className={classNames('input-field-group include-error', this.state.errors.kpiLink ? 'error' : '')}>
+              <label id="kpiLinkLabel" htmlFor="kpiLinkField" className="input-label">
+              Link to KPI Information
+              </label>
+              <input
+                type="text"
+                className="input-field"
+                name="kpiLink"
+                id="kpiLinkInput"
+                maxLength={200}
+                placeholder="https://www.example.com"
+                autoComplete="off"
+                value={this.state.kpiInfo.kpiLink}
+                onChange={this.handleChange}
+              />
+              <span className={classNames('error-message', this.state.errors.kpiLink.length ? '' : 'hide')}>
+                {this.state.errors.kpiLink}
+              </span>
+            </div>            
           </div>
           <div>
             <TextArea
