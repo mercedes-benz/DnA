@@ -383,6 +383,8 @@ definitions:
           type: string
       agileReleaseTrain:
         type: string
+      procedureId: 
+        type: string
     required:
       - productDescription
       - status

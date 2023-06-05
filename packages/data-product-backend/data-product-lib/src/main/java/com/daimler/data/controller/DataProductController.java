@@ -354,13 +354,28 @@ public class DataProductController implements DataproductsApi{
 			Long count = service.getCount(published, recordStatus, artsList, carlafunctionsList, platformsList, frontendToolsList, productOwnerList);
 			if (count < offset)
 				offset = 0;
-
+			if(sortBy == null) {
+				sortBy = "dataProductName";
+			}
 			List<DataProductVO> dataProducts = service.getAllWithFilters(published, offset, limit, sortBy,
 					sortOrder, recordStatus, artsList, carlafunctionsList, platformsList, frontendToolsList, productOwnerList);
+			List<DataProductVO> publishedDataProducts = new ArrayList<>();
+			List<DataProductVO> unPublishedDataProducts = new ArrayList<>();
+			for (DataProductVO dataProduct : dataProducts) {
+				if(dataProduct.isIsPublish()) {
+					publishedDataProducts.add(dataProduct);
+				}
+				else {
+					unPublishedDataProducts.add(dataProduct);
+				}
+			}					
+			List<DataProductVO> orderedDataProducts = new ArrayList<>();
+			orderedDataProducts.addAll(publishedDataProducts);
+			orderedDataProducts.addAll(unPublishedDataProducts);
 			log.info("DataProducts fetched successfully");
-			if (!ObjectUtils.isEmpty(dataProducts)) {
+			if (!ObjectUtils.isEmpty(orderedDataProducts)) {
 				dataProductCollection.setTotalCount(count.intValue());
-				dataProductCollection.setRecords(dataProducts);
+				dataProductCollection.setRecords(orderedDataProducts);
 				return new ResponseEntity<>(dataProductCollection, HttpStatus.OK);
 			} else {
 				dataProductCollection.setTotalCount(count.intValue());
