@@ -1110,6 +1110,11 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 	}
 
 	@Override
+	public Integer getTotalCountOfForecastProjects() {
+		return customRepo.getTotalCountOfForecastProjects();
+	}
+
+	@Override
 	public Object[] getAllForecastComparisons(int limit, int offset, String id,String sortBy,String sortOrder) {
 		Object[] getForecastComparisonsArr = new Object[2];
 		List<ForecastComparisonVO> forecastComparisonsVOList = new ArrayList<>();

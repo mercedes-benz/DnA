@@ -109,5 +109,13 @@ public class ForecastCustomRepositoryImpl extends CommonDataRepositoryImpl<Forec
 		return convertedResults;
 	}
 
+	@Override
+	public Integer getTotalCountOfForecastProjects() {
+		String query = "select count(*) from forecast_nsql";
+		Query q = em.createNativeQuery(query);
+		BigInteger results = (BigInteger) q.getSingleResult();
+		return results.intValue();
+	}
+
 
 }

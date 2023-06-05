@@ -54,5 +54,7 @@ public interface ForecastService extends CommonService<ForecastVO, ForecastNsql,
 
 	public void processForecastComparision(String forecastId, String comparisonId);
 
+	Integer getTotalCountOfForecastProjects();
+
 
 }

@@ -824,9 +824,41 @@ paths:
           description: "Method not allowed"
         500:
           description: "Internal error"
+          
+  /forecasts/transparency:
+    get:
+      tags:
+        - "forecast-projects"
+      summary: "Number of forecast-projects."
+      description: "Get number of forecast-projects. This endpoints will be used to get number of counts available in forecast-projects."
+      operationId: "getNumberOfForecastProjects"
+      responses:
+        201:
+          description: "Returns message of success or failure"
+          schema:
+            $ref: "#/definitions/TransparencyVO"
+        204:
+          description: "Fetch complete, no content found."
+        400:
+          description: "Bad request."
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
 
 definitions:
-
+  
+  TransparencyVO:
+    type: object
+    properties:
+      count:
+        type: integer
+        description: "Number of forecast-projects reports"
+        
   InputFilesCollectionVO:
     type: object 
     properties:
