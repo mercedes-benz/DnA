@@ -143,7 +143,7 @@ export const getDataForCSV = (
             publish: report.publish ? 'Yes' : 'No',
             createdDate: report?.createdDate ? regionalDateAndTimeConversionSolution(report.createdDate) : 'NA',
             lastModifiedDate: report?.lastModifiedDate ? regionalDateAndTimeConversionSolution(report.lastModifiedDate) : 'NA',
-            procedureId: report.procedureId ? sanitize(report.procedureId) : 'NA',
+            procedureId: report?.description?.procedureId ? sanitize(report?.description?.procedureId) : 'NA',
           });
         });
       }
