@@ -12,7 +12,7 @@ import {
 export const GetDataProducts = createAsyncThunk('products/GetDataProducts', async (arg, { getState }) => {
   ProgressIndicator.show();
   try {
-    const res = await dataProductApi.getAllDataProductList('dataProductName', 'desc', arg);
+    const res = await dataProductApi.getAllDataProductList('dataProductName', 'asc', arg);
     ProgressIndicator.hide();
 
     const {
