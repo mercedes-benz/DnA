@@ -48,7 +48,8 @@ type DescriptionVO{
 	tags:[String],
 	agileReleaseTrain: String,
 	division : DivisionVO,
-	department: String
+	department: String,
+	procedureId: String
 }
 
 type DivisionVO{
