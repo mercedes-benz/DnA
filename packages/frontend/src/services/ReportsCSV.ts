@@ -38,6 +38,7 @@ export const getDataForCSV = (
     { label: 'IsPublished', key: 'publish' },
     { label: 'CreatedDate', key: 'createdDate' },
     { label: 'LastModifiedDate', key: 'lastModifiedDate' },
+    { label: 'Procedure ID', key: 'procedureId' },
   ];
 
   let agileReleaseTrains = queryParams.agileReleaseTrains?.join(',');
@@ -69,9 +70,9 @@ export const getDataForCSV = (
     sortType,
   ).then((resCSV) => {
     if (resCSV) {
-      const reportsCSV = resCSV.data.reports as IAllReportsResultCSV;
-      if (reportsCSV.records) {
-        reportsCSV.records.forEach((report) => {
+      const reportsCSV = resCSV?.data?.reports as IAllReportsResultCSV;
+      if (reportsCSV?.records) {
+        reportsCSV?.records?.forEach((report) => {
           reportsCSVData.push({
             reportId: report.reportId ? sanitize(report.reportId) : 'NA', 
             name: report.productName ? sanitize(report.productName) : 'NA',
@@ -113,7 +114,13 @@ export const getDataForCSV = (
               + '|' + 'comment: ' + customer?.comment
               )
               : 'NA',
-            kpis: report.kpis?.length ? report.kpis?.map((kpi) => Object.values(kpi)?.join(' | ')) : 'NA',
+            kpis: report.kpis?.length ? report.kpis?.map((kpi) => 
+              'kpiName: ' + (kpi?.name?.kpiName ? kpi?.name?.kpiName : 'NA')
+              + '|' + 'kpiClassification: ' + (kpi?.name?.kpiClassification ? kpi?.name?.kpiClassification : 'NA')
+              + '|' + 'reportingCause: ' + (kpi?.reportingCause ? kpi?.reportingCause : 'NA')
+              + '|' + 'kpiLink: ' + (kpi?.kpiLink ? kpi?.kpiLink : 'NA')
+              + '|' + 'description: ' + (kpi?.description ? kpi?.description : 'NA')
+              ) : 'NA',
             datawarehouses: report.dataAndFunctions?.dataWarehouseInUse?.length
               ? report.dataAndFunctions.dataWarehouseInUse
                   ?.map((datawarehouse) => 
@@ -136,6 +143,7 @@ export const getDataForCSV = (
             publish: report.publish ? 'Yes' : 'No',
             createdDate: report?.createdDate ? regionalDateAndTimeConversionSolution(report.createdDate) : 'NA',
             lastModifiedDate: report?.lastModifiedDate ? regionalDateAndTimeConversionSolution(report.lastModifiedDate) : 'NA',
+            procedureId: report.procedureId ? sanitize(report.procedureId) : 'NA',
           });
         });
       }
