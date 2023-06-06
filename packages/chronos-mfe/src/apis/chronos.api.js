@@ -39,8 +39,8 @@ const createForecastRun = (data, id) => {
   return formServer.post(`/forecasts/${id}/runs`, data);
 };
 
-const getForecastRuns = (id, offset, limit) => {
-  return server.get(`/forecasts/${id}/runs?offset=${offset}&limit=${limit}`, {
+const getForecastRuns = (id, offset, limit, sortBy, sortOrder) => {
+  return server.get(`/forecasts/${id}/runs?offset=${offset}&limit=${limit}&sortBy=${sortBy}&sortOrder=${sortOrder}`, {
     data: {},
   });
 };
@@ -107,8 +107,8 @@ const createForecastComparison = (data, id) => {
   return formServer.post(`/forecasts/${id}/comparisons`, data);
 };
 
-const getForecastComparisons = (id) => {
-  return server.get(`/forecasts/${id}/comparisons`, {
+const getForecastComparisons = (id, offset, limit, sortBy, sortOrder) => {
+  return server.get(`/forecasts/${id}/comparisons?offset=${offset}&limit=${limit}&sortBy=${sortBy}&sortOrder=${sortOrder}`, {
     data: {},
   });
 };
