@@ -522,6 +522,34 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
                       onChange={this.onDescChange}
                     />
                   </div>
+                  <div>
+                    <div
+                      className={classNames('input-field-group include-error', frontEndTechError ? 'error' : '')}
+                    >
+                      <label id="FrontEndTechnogies" htmlFor="FrontEndTechnogiesField" className="input-label">
+                        Frontend Technologies <sup>*</sup>
+                      </label>
+                      <div id="FrontEndTechnogies" className="custom-select">
+                        <select
+                          id="FrontEndTechnogiesField"
+                          multiple={true}
+                          required={true}
+                          required-error={requiredError}
+                          onChange={this.onChangeFrontTechnologies}
+                          value={frontEndTechValue}
+                        >
+                          {this.props.frontEndTechnologies?.map((obj) => (
+                            <option id={obj.name + obj.id} key={obj.id} value={obj.name}>
+                              {obj.name}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                      <span className={classNames('error-message', frontEndTechError ? '' : 'hide')}>
+                        {frontEndTechError}
+                      </span>
+                    </div>
+                  </div>
                 </div>
                 <div className={classNames(!this.props.enableQuickPath ? Styles.flexLayout : '')}>
                   <div className={classNames(this.props.enableQuickPath ? Styles.flexLayout : '')}>
@@ -666,34 +694,7 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
                     ) : (
                       ''
                     )}
-                    <div>
-                      <div
-                        className={classNames('input-field-group include-error', frontEndTechError ? 'error' : '')}
-                      >
-                        <label id="FrontEndTechnogies" htmlFor="FrontEndTechnogiesField" className="input-label">
-                          Frontend Technologies <sup>*</sup>
-                        </label>
-                        <div id="FrontEndTechnogies" className="custom-select">
-                          <select
-                            id="FrontEndTechnogiesField"
-                            multiple={true}
-                            required={true}
-                            required-error={requiredError}
-                            onChange={this.onChangeFrontTechnologies}
-                            value={frontEndTechValue}
-                          >
-                            {this.props.frontEndTechnologies?.map((obj) => (
-                              <option id={obj.name + obj.id} key={obj.id} value={obj.name}>
-                                {obj.name}
-                              </option>
-                            ))}
-                          </select>
-                        </div>
-                        <span className={classNames('error-message', frontEndTechError ? '' : 'hide')}>
-                          {frontEndTechError}
-                        </span>
-                      </div>
-                    </div>
+                    
                   </div>
 
                   <div>
@@ -787,10 +788,12 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
                           onBlur={this.onProcedureIdOnBlur}
                         />                        
                       </div>
+                      
                     </div>
                   </div>
                 </div>
               </div>
+              
             </div>
           </div>
           {!this.props.enableQuickPath ? (
