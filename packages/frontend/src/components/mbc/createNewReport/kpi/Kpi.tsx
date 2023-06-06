@@ -148,7 +148,7 @@ export default class Kpi extends React.Component<IKpiProps, IKpiState> {
       <div className={Styles.addKpiModalContent}>
         <br />
         <div>
-          <div className={Styles.flexLayout}>            
+          <div>            
               <div className={classNames('input-field-group include-error', this.state.errors.name ? 'error' : '')}>
                 <div>
                   <Tags
