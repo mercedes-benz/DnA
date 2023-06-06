@@ -132,8 +132,9 @@ public class DataikuServiceImpl implements DataikuService	{
 				if(tempUserDetails!=null) {
 					List<String> currentGroups = tempUserDetails.getGroups();
 					if(currentGroups!=null && !currentGroups.isEmpty()) 
-						currentGroups.removeIf(n->n.contains(consolidatedPrefix));
+						currentGroups.removeIf(n->n.contains(consolidatedPrefix+"--"));
 					tempUserDetails.setGroups(currentGroups);
+					log.info("Removing existing group with prefix {} for user {} ", consolidatedPrefix+"--",record.getUserId().toUpperCase() );
 					MessageDescription UpdateTempCollabErrMsg = dataikuClient.updateUser(tempUserDetails,cloudProfile);
 					if(UpdateTempCollabErrMsg!=null) {
 						warnings.add(new MessageDescription("Failed to remove project group with prefix " + consolidatedPrefix + " for user " + record.getUserId() + ". Please update manually."));
@@ -170,9 +171,10 @@ public class DataikuServiceImpl implements DataikuService	{
 						}
 					}else {
 						List<String> currentGroups = tempCollabUserDetails.getGroups();
-						if(currentGroups!=null && !currentGroups.isEmpty()) 
-							currentGroups.removeIf(n->n.contains(consolidatedPrefix));
+						if(currentGroups==null || currentGroups.isEmpty()) 
+							currentGroups = new ArrayList<>();
 						currentGroups.add(groupName);
+						log.info("Adding group {} for user {} ", groupName,x.getUserId().toUpperCase());
 						MessageDescription UpdateTempCollabErrMsg = dataikuClient.updateUser(tempCollabUserDetails,cloudProfile);
 						if(UpdateTempCollabErrMsg!=null) {
 							warnings.add(UpdateTempCollabErrMsg);
