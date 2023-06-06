@@ -101,6 +101,15 @@ hr {
   word-break: break-all;
 }
 
+.tagColumn {
+  display: inline-flex;
+  flex-wrap: wrap;
+  word-break: break-all;
+  > div {
+    margin: 5px 5px 5px 0;
+  }
+}
+
 :global {
   label.input-label.summary {
     color: #99A5B3;
