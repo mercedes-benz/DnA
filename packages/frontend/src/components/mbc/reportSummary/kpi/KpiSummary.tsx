@@ -42,7 +42,7 @@ export default class KpiSummary extends React.Component<IKpiProps> {
                         <div id="kpiName">
                           <label className="input-label summary">KPI Name</label>
                           <br />
-                          <div>{kpi?.name?.kpiName ? kpi.name?.kpiName : 'NA'}</div>
+                          <div className={Styles.tagColumn}>{kpi?.name?.kpiName ? kpi.name?.kpiName : 'NA'}</div>
                         </div>
                         <div id="kpiClassification">
                           <label className="input-label summary">KPI Classification</label>
