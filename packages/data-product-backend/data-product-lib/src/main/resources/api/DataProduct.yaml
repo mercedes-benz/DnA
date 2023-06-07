@@ -471,9 +471,7 @@ definitions:
       informationOwner:
         $ref: "#/definitions/DataProductTeamMemberVO"
       name:
-        $ref: "#/definitions/DataProductTeamMemberVO"
-      productOwner:
-        $ref: "#/definitions/DataProductTeamMemberVO"  
+        $ref: "#/definitions/DataProductTeamMemberVO"        
       division:
         $ref: "#/definitions/DivisionVO"
       department:
@@ -603,21 +601,14 @@ definitions:
         minLength: 1
       description:
         type: string
-        description: "Description of data product"
-      howToAccessText:
-        type: string
-        description: "Description of steps to access data product"
+        description: "Description of data product"      
       carLaFunction:
         $ref: "#/definitions/CarLaFunctionVO"
       ddx:
         type: string
         description: "DDX of data"
-      kafka:
-        type: string
-        description: "Kafka of data"
-      oneApi:
-        type: string
-        description: "oneApi of data"
+      productOwner:
+        $ref: "#/definitions/DataProductTeamMemberVO"        
       tags:
         type: array
         items:
@@ -630,6 +621,10 @@ definitions:
         type: array
         items:
           $ref: "#/definitions/FrontendToolsVO"
+      access:
+          $ref: "#/definitions/AccessVO"
+      howToAccessTemplate:
+        $ref: "#/definitions/HowToAccessTemplateVO"    
       agileReleaseTrain:
         $ref: "#/definitions/AgileReleaseTrainVO"
       corporateDataCatalog:
@@ -868,3 +863,79 @@ definitions:
       changeDescription:
         type: string
         description: "Short Description on change/addition/removal of attribute"              
+  AccessTypesVO:
+    type: object
+    properties:
+      id:
+        type: string
+        description: "ID of front-end tools"
+      name:
+        type: string
+        description: "Name of the front-end tools"
+    required:
+      - id
+      - name   
+      
+  AccessVO:
+    type: object
+    properties:
+      accessType:
+        type: array
+        items:
+          type: string
+      kafka:
+        type: string
+        description: "Kafka of data"    
+      confidentiality:
+        description: "Confidentiality level"
+        type: string 
+      personalRelatedData:
+        type: boolean
+        default: false
+        description: "Is data personal related"  
+      deletionRequirements:
+        type: boolean
+        default: false
+        description: "Are there requirements for deletion"
+      restrictDataAccess:
+        type: boolean
+        default: false
+        description: "Are there other internal/external policies to restrict access of data"  
+      minimumInformationCheck:
+        type: boolean
+        default: false
+        description: "Is Minimum Information Required"
+        
+  HowToAccessTemplateVO:
+    type: object
+    description: "Displays the types and details on selected access templates"
+    properties: 
+      useTemplate: 
+        description: "Describes the selected template type"
+        type: array
+        items:
+          type: string
+      accessDetailsCollectionVO:
+            type: array
+            items:
+                $ref: "#/definitions/AccessDetailsVO"
+  
+  AccessDetailsVO:
+    type: object
+    properties:
+      accessType: 
+            type: string
+            description: "Access via Kafka, Live-Access, API-Access"
+      stepCollectionVO:
+            type: array
+            items:
+               $ref: "#/definitions/StepDetailsVO"
+               
+  StepDetailsVO:  
+    type: object
+    properties:
+        stepNumber:
+            type: number
+            format: int64
+        stepText:
+            type: string      
