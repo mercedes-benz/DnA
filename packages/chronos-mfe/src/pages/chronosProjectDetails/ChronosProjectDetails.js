@@ -111,7 +111,7 @@ const ChronosProjectDetails = ({ user }) => {
                     }}
                     onClick={setTab}
                   >
-                    Project Details
+                    Manage Project
                   </a>
                 </li>
                 <li className={'tab'}>
