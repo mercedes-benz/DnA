@@ -258,10 +258,7 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 			else {
 				responseMessage.setSuccess("SUCCESS");
 				runNowResponse.setCorrelationId(correlationId);
-				Optional<ForecastNsql> anyEntity = this.jpaRepo.findById(existingForecast.getId());
-				ForecastNsql entity = null;
-				if(anyEntity.isPresent())
-					entity = anyEntity.get();
+		        ForecastNsql entity = this.assembler.toEntity(existingForecast);
 				List<RunDetails> existingRuns = entity.getData().getRuns();
 				if(existingRuns==null || existingRuns.isEmpty())
 					existingRuns = new ArrayList<>();
