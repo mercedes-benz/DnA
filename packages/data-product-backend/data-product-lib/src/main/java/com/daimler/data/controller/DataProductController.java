@@ -654,11 +654,11 @@ public class DataProductController implements DataproductsApi{
 						log.info("DataProduct id is not allowed to be modified" + requestVO.getDataProductId());
 						return new ResponseEntity<>(responseVO, HttpStatus.BAD_REQUEST);
 					}
-					existingVO.setHowToAccessText(requestVO.getHowToAccessText());
+					//existingVO.setHowToAccessText(requestVO.getHowToAccessText());
 					existingVO.setCarLaFunction(requestVO.getCarLaFunction());
 					existingVO.setDdx(requestVO.getDdx());
-					existingVO.setKafka(requestVO.getKafka());
-					existingVO.setOneApi(requestVO.getOneApi());
+					//existingVO.setKafka(requestVO.getKafka());
+					//existingVO.setOneApi(requestVO.getOneApi());
 					existingVO.setPlatform(requestVO.getPlatform());
 					existingVO.setFrontEndTools(requestVO.getFrontEndTools());
 					existingVO.setAgileReleaseTrain(requestVO.getAgileReleaseTrain());
