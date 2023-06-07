@@ -29,7 +29,9 @@ package com.daimler.data.controller;
 
 import javax.validation.Valid;
 
+import com.daimler.data.dto.model.TransparencyVO;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -77,6 +79,33 @@ public class RegistryController implements ModelsApi {
 			@ApiParam(value = "Authorization token.", required = true) @RequestHeader(value = "Authorization", required = true) String authorization) {
 		return modelRegistryservice.getAllModels();
 	}
+
+	@Override
+	@ApiOperation(value = "Number of models.", nickname = "getNumberOfModels", notes = "Get number of models. This endpoints will be used to get number of available models records.", response = TransparencyVO.class, tags={ "models", })
+	@ApiResponses(value = {
+			@ApiResponse(code = 201, message = "Returns message of success or failure", response = TransparencyVO.class),
+			@ApiResponse(code = 204, message = "Fetch complete, no content found."),
+			@ApiResponse(code = 400, message = "Bad request."),
+			@ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+			@ApiResponse(code = 403, message = "Request is not authorized."),
+			@ApiResponse(code = 405, message = "Method not allowed"),
+			@ApiResponse(code = 500, message = "Internal error") })
+	@RequestMapping(value = "/model/transparency",
+			produces = { "application/json" },
+			consumes = { "application/json" },
+			method = RequestMethod.GET)
+	public ResponseEntity<TransparencyVO> getNumberOfModels(String authorization) {
+		try {
+			TransparencyVO transparencyVO = new TransparencyVO();
+			Integer count = modelRegistryservice.getCountOfModels();
+			transparencyVO.setCount(count);
+			return new ResponseEntity<>(transparencyVO, HttpStatus.OK);
+		}catch (Exception e){
+			return new ResponseEntity<>(new TransparencyVO(), HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
+
+
 
 	@Override
 	@ApiOperation(value = "create a external url.", nickname = "create", notes = "create a external url", response = ModelResponseVO.class, tags = {

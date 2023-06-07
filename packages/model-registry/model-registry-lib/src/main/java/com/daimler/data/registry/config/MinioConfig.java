@@ -75,5 +75,19 @@ public class MinioConfig {
 		}
 		return models;
 	}
+	public Integer getModelsCount(MinioClient client) throws Exception {
+		Integer count =0;
+		if (client != null) {
+			Iterable<Result<Item>> results = client
+					.listObjects(ListObjectsArgs.builder().bucket(minioModelsBucketName).recursive(true).build());
+			Iterator<Result<Item>> iterator = results.iterator();
+		if(results!= null){
+			while (iterator.hasNext()) {
+				count=count+1;
+			}
+		}
+		}
+		return count;
+	}
 
 }

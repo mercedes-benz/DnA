@@ -39,4 +39,6 @@ public interface RegistryService {
 
 	ResponseEntity<ModelResponseVO> generateExternalUrl(ModelRequestVO modelRequestVO);
 
+	Integer getCountOfModels();
+
 }

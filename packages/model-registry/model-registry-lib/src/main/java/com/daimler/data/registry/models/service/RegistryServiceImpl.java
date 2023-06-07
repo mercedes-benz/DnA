@@ -229,4 +229,21 @@ public class RegistryServiceImpl implements RegistryService {
 		}
 	}
 
+	@Override
+	public Integer getCountOfModels() {
+		ModelCollection modelCollection = new ModelCollection();
+		try {
+			MinioClient minioClient = minioConfig.getMinioClient(endpoint, accessKey, secretKey);
+			return minioConfig.getModelsCount(minioClient);
+
+		} catch (Exception e) {
+			LOGGER.error("Failed to get buckets objects for given user, exception occured is : {}", e.getMessage());
+			List<MessageDescription> messages = new ArrayList<>();
+			MessageDescription message = new MessageDescription();
+			message.setMessage(e.getMessage());
+			messages.add(message);
+			modelCollection.setErrors(messages);
+			return null;
+		}
+	}
 }
