@@ -293,6 +293,7 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 				runNowResponse.setResultFolderPath(resultFolder);;
 				existingRuns.add(currentRun);
 				entity.getData().setRuns(existingRuns);
+				entity.getData().setSavedInputs(this.assembler.toFiles(existingForecast.getSavedInputs()));
 				try {
 					this.jpaRepo.save(entity);
 				}catch(Exception e) {
