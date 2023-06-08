@@ -15,6 +15,7 @@ import Tags from 'dna-container/Tags';
 import { useFormContext, Controller } from 'react-hook-form';
 import Tooltip from '../../../../common/modules/uilab/js/src/tooltip';
 import { isValidURL } from '../../../../Utility/utils';
+import TeamSearch from 'dna-container/TeamSearch';
 
 const Description = ({ 
   // onSave, 
@@ -34,8 +35,10 @@ const Description = ({
   const [showInfoModal, setShowInfoModal] = useState(false);
   const [tagsListST, setTagsListST] = useState([]);
   const [selectedTags, setSelectedTags] = useState([]);
+  const [productOwnerSearchTerm, setProductOwnerSearchTerm] = useState('');
+  const [productOwnerFieldValue, setProductOwnerFieldValue] = useState('');
 
-  const { howToAccessText, tags } = watch();
+  const { howToAccessText, tags, productOwner } = watch();
 
   useEffect(() => {
     Tooltip.defaultSetup();
@@ -51,6 +54,15 @@ const Description = ({
   useEffect(() => {
     setSelectedTags(tags);
   }, [tags]);
+
+  useEffect(() => {
+    let nameStr =
+      typeof productOwner === 'string'
+        ? productOwner
+        : `${productOwner?.firstName} ${productOwner?.lastName}`;
+    productOwner && setProductOwnerFieldValue(nameStr);
+    //eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [productOwner]);
 
   useEffect(() => {
     // update colors for the markdown editor
@@ -84,6 +96,17 @@ const Description = ({
     field.onChange(selectedTags);
   }
 
+  const handleProductOwner = (field, value) => {
+    let name = '';
+    if(value) {
+      value['addedByProvider'] = true;
+      name =  `${value.firstName} ${value.lastName}`;
+    }
+    setValue('productOwner', value);
+    field.onChange(value);
+    setProductOwnerFieldValue(name);
+  }
+
   return (
     <>
       <div className={Styles.wrapper}>
@@ -97,7 +120,7 @@ const Description = ({
             )}
           </div>
           <div className={Styles.formWrapper}>
-            <div className={Styles.flexLayout}>
+            {/* <div className={Styles.flexLayout}> */}
               <div className={Styles.flexLayout}>
                 <div className={classNames('input-field-group include-error', errors.productName ? 'error' : '')}>
                   <label id="productNameLabel" htmlFor="productNameInput" className="input-label">
@@ -178,8 +201,8 @@ const Description = ({
                   </span>
                 </div>
               </div>
-            </div>
-            <div className={Styles.flexLayout}>
+            {/* </div> */}
+            {/* <div className={Styles.flexLayout}> */}
               <div className={Styles.flexLayout}>
                 <div className={classNames('input-field-group include-error', errors.platform ? 'error' : '')}>
                   <label id="platformLabel" htmlFor="platformInput" className="input-label">
@@ -236,23 +259,29 @@ const Description = ({
                     {errors.ddx?.message}
                   </span>
                 </div>
-                <div className={classNames('input-field-group include-error', errors.kafka ? 'error' : '')}>
-                  <label id="kafkaLabel" htmlFor="kafkaInput" className="input-label">
-                    Kafka
-                  </label>
-                  <input
-                    {...register('kafka')}
-                    type="text"
-                    className="input-field"
-                    id="kafkaInput"
-                    maxLength={200}
-                    placeholder="Type here"
-                    autoComplete="off"
-                  />
-                </div>
+                <div className={classNames('input-field-group')}>
+                    <Controller
+                        control={control}
+                        name="productOwner"
+                        render={({ field }) => (
+                          <TeamSearch
+                            label={<>Product Owner</>}
+                            fieldMode={true}
+                            fieldValue={productOwnerFieldValue}
+                            setFieldValue={(val) => setProductOwnerFieldValue(val)}
+                            onAddTeamMember={(value) => handleProductOwner(field, value)}
+                            btnText="Save"
+                            searchTerm={productOwnerSearchTerm}
+                            setSearchTerm={(value) => setProductOwnerSearchTerm(value)}
+                            showUserDetails={false}
+                            setShowUserDetails={() => {}}
+                          />
+                        )}
+                      />
+                  </div>
               </div>
-            </div>
-            <div className={Styles.flexLayout}>
+            {/* </div> */}
+            {/* <div className={Styles.flexLayout}> */}
               <div className={Styles.flexLayout}>
                 <div className={classNames('input-field-group include-error', errors.oneAPI ? 'error' : '')}>
                   <label id="oneAPILabel" htmlFor="oneAPIInput" className="input-label">
@@ -273,8 +302,11 @@ const Description = ({
                     {errors.oneApi?.message}
                   </span>
                 </div>
+                <div>
+                  
+                </div>
               </div>
-            </div>
+            {/* </div> */}
             <div className={Styles.flexLayout}>
               <div className={classNames('input-field-group include-error area', errors.description ? 'error' : '')}>
                 <label id="description" className="input-label" htmlFor="description">
@@ -334,6 +366,71 @@ const Description = ({
           </div>
         </div>
       </div>
+
+      
+      <div id="tagsWrapper" className={classNames(Styles.wrapper)}>
+        <div id="tagsPanel" className={classNames(Styles.firstPanel)}>
+          <h3 id="tagHeading">Access &nbsp;
+          <i
+            className={classNames('icon mbc-icon info iconsmd', Styles.infoIcon)}
+            tooltip-data="Access"
+          />
+          </h3>
+          <div className={Styles.flexLayout}>
+            <div className={classNames('input-field-group include-error', errors.carLAFunction ? 'error' : '')}>
+              <label id="connectionTypeLabel" htmlFor="connectionTypeInput" className="input-label">
+                Access
+              </label>
+              <div className={`custom-select`}>
+                <select id="connectionTypeField" name="connectionType" {...register('carLAFunction')}>
+                  <option value="">Choose</option>
+                  <option id='Kafka0' key={'Kafka'} value={'Kafka'}>Kafka</option>
+                  <option id='Live (SAC/AFO)1' key={'Live (SAC/AFO)'} value={'Live (SAC/AFO)'}>Live (SAC/AFO)</option>
+                  <option id='API0' key={'API'} value={'API'}>API</option>
+                </select>
+              </div>
+              <span className={classNames('error-message', errors.carLAFunction?.message ? '' : 'hide')}>
+                {errors.carLAFunction?.message}
+              </span>
+            </div>
+            <div></div>
+          </div>
+          <div className={Styles.flexLayout}>
+            <div className={classNames('input-field-group include-error', errors.kafka ? 'error' : '')}>
+              <label id="kafkaLabel" htmlFor="kafkaInput" className="input-label">
+                Kafka
+              </label>
+              <input
+                {...register('kafka')}
+                type="text"
+                className="input-field"
+                id="kafkaInput"
+                maxLength={200}
+                placeholder="Type here"
+                autoComplete="off"
+              />
+            </div>
+            <div className={classNames('input-field-group include-error', errors.carLAFunction ? 'error' : '')}>
+              <label id="connectionTypeLabel" htmlFor="connectionTypeInput" className="input-label">
+                Classification
+              </label>
+              <div className={`custom-select`}>
+                <select id="connectionTypeField" name="connectionType" {...register('carLAFunction')}>
+                  <option value="">Choose</option>
+                  <option id='Kafka0' key={'Kafka'} value={'Kafka'}>Kafka</option>
+                  <option id='Live (SAC/AFO)1' key={'Live (SAC/AFO)'} value={'Live (SAC/AFO)'}>Live (SAC/AFO)</option>
+                  <option id='API0' key={'API'} value={'API'}>API</option>
+                </select>
+              </div>
+              <span className={classNames('error-message', errors.carLAFunction?.message ? '' : 'hide')}>
+                {errors.carLAFunction?.message}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+
       <div className={Styles.wrapper}>
         <div className={Styles.firstPanel}>
           <div>
