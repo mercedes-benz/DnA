@@ -27,7 +27,7 @@ const ChronosProjects = ({ user }) => {
         if(res.status !== 204) {
           if (res.data.records) {
             const results = [...res.data.records].sort((projectA, projectB) => {
-              return projectA.createdOn.toLowerCase() === projectB.createdOn.toLowerCase() ? 0 : -1;
+              return (projectA.name.toLowerCase() > projectB.name.toLowerCase()) ? 1 : (projectB.name.toLowerCase() > projectA.name.toLowerCase() ? -1 : 0);
             });
             setOriginalProjects(results);
             setForecastProjects(results);
