@@ -49,7 +49,7 @@ const ContactInformation = ({
     name,
     planningIT,
     informationOwner,
-    productOwner,
+    // productOwner,
   } = watch();
 
   const [complianceOfficerList, setComplianceOfficerList] = useState({
@@ -68,8 +68,8 @@ const ContactInformation = ({
 
   const [informationOwnerSearchTerm, setInformationOwnerSearchTerm] = useState('');
   const [informationOwnerFieldValue, setInformationOwnerFieldValue] = useState('');
-  const [productOwnerSearchTerm, setProductOwnerSearchTerm] = useState('');
-  const [productOwnerFieldValue, setProductOwnerFieldValue] = useState('');
+  // const [productOwnerSearchTerm, setProductOwnerSearchTerm] = useState('');
+  // const [productOwnerFieldValue, setProductOwnerFieldValue] = useState('');
 
   // const minDate = dayjs().format();
 
@@ -182,14 +182,14 @@ const ContactInformation = ({
     //eslint-disable-next-line react-hooks/exhaustive-deps
   }, [informationOwner]);
   
-  useEffect(() => {
-    let nameStr =
-      typeof productOwner === 'string'
-        ? productOwner
-        : `${productOwner?.firstName} ${productOwner?.lastName}`;
-    productOwner && setProductOwnerFieldValue(nameStr);
-    //eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [productOwner]);
+  // useEffect(() => {
+  //   let nameStr =
+  //     typeof productOwner === 'string'
+  //       ? productOwner
+  //       : `${productOwner?.firstName} ${productOwner?.lastName}`;
+  //   productOwner && setProductOwnerFieldValue(nameStr);
+  //   //eslint-disable-next-line react-hooks/exhaustive-deps
+  // }, [productOwner]);
 
   const handleName = (field, value) => {
     let name = '';
@@ -211,15 +211,15 @@ const ContactInformation = ({
     setInformationOwnerFieldValue(name);
   };
 
-  const handleProductOwner = (field, value) => {
-    let name = '';
-    if(value) {
-      value['addedByProvider'] = true;
-      name =  `${value.firstName} ${value.lastName}`;
-    }
-    field.onChange(value);
-    setProductOwnerFieldValue(name);
-  }
+  // const handleProductOwner = (field, value) => {
+  //   let name = '';
+  //   if(value) {
+  //     value['addedByProvider'] = true;
+  //     name =  `${value.firstName} ${value.lastName}`;
+  //   }
+  //   field.onChange(value);
+  //   setProductOwnerFieldValue(name);
+  // }
 
   const handlePlanningITSearch = debounce((searchTerm, showSpinner) => {
     if (searchTerm.length > 3) {
@@ -281,7 +281,7 @@ const ContactInformation = ({
                   />
                   <span className={classNames('error-message')}>{errors.informationOwner?.message}</span>
                 </div>
-                <div className={classNames('input-field-group')}>
+                {/* <div className={classNames('input-field-group')}>
                   <Controller
                       control={control}
                       name="productOwner"
@@ -301,7 +301,7 @@ const ContactInformation = ({
                         />
                       )}
                     />
-                </div>
+                </div> */}
               </>
             ) : (
               <div className={Styles.flexLayout}>
