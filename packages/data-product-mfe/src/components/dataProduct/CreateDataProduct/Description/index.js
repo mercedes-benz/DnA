@@ -376,57 +376,208 @@ const Description = ({
             tooltip-data="Access"
           />
           </h3>
-          <div className={Styles.flexLayout}>
-            <div className={classNames('input-field-group include-error', errors.carLAFunction ? 'error' : '')}>
-              <label id="connectionTypeLabel" htmlFor="connectionTypeInput" className="input-label">
-                Access
-              </label>
-              <div className={`custom-select`}>
-                <select id="connectionTypeField" name="connectionType" {...register('carLAFunction')}>
-                  <option value="">Choose</option>
-                  <option id='Kafka0' key={'Kafka'} value={'Kafka'}>Kafka</option>
-                  <option id='Live (SAC/AFO)1' key={'Live (SAC/AFO)'} value={'Live (SAC/AFO)'}>Live (SAC/AFO)</option>
-                  <option id='API0' key={'API'} value={'API'}>API</option>
-                </select>
+          <div className={Styles.formWrapper}>
+            <div className={Styles.flexLayout}>
+              <div className={classNames('input-field-group include-error', errors.carLAFunction ? 'error' : '')}>
+                <label id="connectionTypeLabel" htmlFor="connectionTypeInput" className="input-label">
+                  Access
+                </label>
+                <div className={`custom-select`}>
+                  <select id="connectionTypeField" multiple={true} name="connectionType" {...register('carLAFunction')}>
+                    <option value="">Choose</option>
+                    <option id='Kafka0' key={'Kafka'} value={'Kafka'}>Kafka</option>
+                    <option id='Live (SAC/AFO)1' key={'Live (SAC/AFO)'} value={'Live (SAC/AFO)'}>Live (SAC/AFO)</option>
+                    <option id='API0' key={'API'} value={'API'}>API</option>
+                  </select>
+                </div>
+                <span className={classNames('error-message', errors.carLAFunction?.message ? '' : 'hide')}>
+                  {errors.carLAFunction?.message}
+                </span>
               </div>
-              <span className={classNames('error-message', errors.carLAFunction?.message ? '' : 'hide')}>
-                {errors.carLAFunction?.message}
-              </span>
+              <div></div>
             </div>
-            <div></div>
-          </div>
-          <div className={Styles.flexLayout}>
-            <div className={classNames('input-field-group include-error', errors.kafka ? 'error' : '')}>
-              <label id="kafkaLabel" htmlFor="kafkaInput" className="input-label">
-                Kafka
-              </label>
-              <input
-                {...register('kafka')}
-                type="text"
-                className="input-field"
-                id="kafkaInput"
-                maxLength={200}
-                placeholder="Type here"
-                autoComplete="off"
-              />
-            </div>
-            <div className={classNames('input-field-group include-error', errors.carLAFunction ? 'error' : '')}>
-              <label id="connectionTypeLabel" htmlFor="connectionTypeInput" className="input-label">
-                Classification
-              </label>
-              <div className={`custom-select`}>
-                <select id="connectionTypeField" name="connectionType" {...register('carLAFunction')}>
-                  <option value="">Choose</option>
-                  <option id='Kafka0' key={'Kafka'} value={'Kafka'}>Kafka</option>
-                  <option id='Live (SAC/AFO)1' key={'Live (SAC/AFO)'} value={'Live (SAC/AFO)'}>Live (SAC/AFO)</option>
-                  <option id='API0' key={'API'} value={'API'}>API</option>
-                </select>
+            <div className={Styles.flexLayout}>
+              <div className={classNames('input-field-group include-error', errors.kafka ? 'error' : '')}>
+                <label id="kafkaLabel" htmlFor="kafkaInput" className="input-label">
+                  Kafka
+                </label>
+                <input
+                  {...register('kafka')}
+                  type="text"
+                  className="input-field"
+                  id="kafkaInput"
+                  maxLength={200}
+                  placeholder="Type here"
+                  autoComplete="off"
+                />
               </div>
-              <span className={classNames('error-message', errors.carLAFunction?.message ? '' : 'hide')}>
-                {errors.carLAFunction?.message}
-              </span>
+              <div className={classNames('input-field-group include-error', errors.carLAFunction ? 'error' : '')}>
+                <label id="connectionTypeLabel" htmlFor="connectionTypeInput" className="input-label">
+                  Classification
+                </label>
+                <div className={`custom-select`}>
+                  <select id="connectionTypeField" name="connectionType" {...register('carLAFunction')}>
+                    <option value="">Choose</option>
+                    <option id='Kafka0' key={'Kafka'} value={'Kafka'}>Kafka</option>
+                    <option id='Live (SAC/AFO)1' key={'Live (SAC/AFO)'} value={'Live (SAC/AFO)'}>Live (SAC/AFO)</option>
+                    <option id='API0' key={'API'} value={'API'}>API</option>
+                  </select>
+                </div>
+                <span className={classNames('error-message', errors.carLAFunction?.message ? '' : 'hide')}>
+                  {errors.carLAFunction?.message}
+                </span>
+              </div>
+            </div>
+
+            <div className={Styles.flexLayout}>
+              <div
+                className={classNames(`input-field-group include-error ${errors?.personalRelatedData ? 'error' : ''}`)}
+                style={{ minHeight: '50px' }}
+              >
+                <label className={classNames(Styles.inputLabel, 'input-label')}>
+                  Personal data in use? <sup>*</sup>
+                </label>
+                <div className={Styles.radioBtns}>
+                  <label className={'radio'}>
+                    <span className="wrapper">
+                      <input
+                        {...register('personalRelatedData', {
+                          required: '*Missing entry',
+                          onChange: () => {
+                            
+                          },
+                        })}
+                        type="radio"
+                        className="ff-only"
+                        name="personalRelatedData"
+                        value="No"
+                      />
+                    </span>
+                    <span className="label">No</span>
+                  </label>
+                  <label className={'radio'}>
+                    <span className="wrapper">
+                      <input
+                        {...register('personalRelatedData', { required: '*Missing entry' })}
+                        type="radio"
+                        className="ff-only"
+                        name="personalRelatedData"
+                        value="Yes"
+                      />
+                    </span>
+                    <span className="label">Yes</span>
+                  </label>
+                </div>
+                <span className={classNames('error-message')}>{errors?.personalRelatedData?.message}</span>
+              </div>
+              <div
+                className={classNames(`input-field-group include-error`)}
+                style={{ minHeight: '50px' }}
+              >
+                <label className={classNames(Styles.inputLabel, 'input-label')}>
+                  Are there requirements for deletion? <sup>*</sup>
+                </label>
+                <div className={Styles.radioBtns}>
+                  <label className={'radio'}>
+                    <span className="wrapper">
+                      <input
+                        {...register('deletionRequirements', {
+                          required: '*Missing entry',
+                          onChange: () => {
+                            
+                          },
+                        })}
+                        type="radio"
+                        className="ff-only"
+                        name="deletionRequirements"
+                        value="No"
+                      />
+                    </span>
+                    <span className="label">No</span>
+                  </label>
+                  <label className={'radio'}>
+                    <span className="wrapper">
+                      <input
+                        {...register('deletionRequirements', { required: '*Missing entry' })}
+                        type="radio"
+                        className="ff-only"
+                        name="deletionRequirements"
+                        value="Yes"
+                      />
+                    </span>
+                    <span className="label">Yes</span>
+                  </label>
+                </div>
+              </div>
+              <div
+                className={classNames(`input-field-group include-error`)}
+                style={{ minHeight: '50px' }}
+              >
+                <label className={classNames(Styles.inputLabel, 'input-label')}>
+                  Are there any other internal/external policies to restrict access of data? <sup>*</sup>
+                </label>
+                <div className={Styles.radioBtns}>
+                  <label className={'radio'}>
+                    <span className="wrapper">
+                      <input
+                        {...register('restrictDataAccess', {
+                          required: '*Missing entry',
+                          onChange: () => {
+                            
+                          },
+                        })}
+                        type="radio"
+                        className="ff-only"
+                        name="restrictDataAccess"
+                        value="No"
+                      />
+                    </span>
+                    <span className="label">No</span>
+                  </label>
+                  <label className={'radio'}>
+                    <span className="wrapper">
+                      <input
+                        {...register('restrictDataAccess', { required: '*Missing entry' })}
+                        type="radio"
+                        className="ff-only"
+                        name="restrictDataAccess"
+                        value="Yes"
+                      />
+                    </span>
+                    <span className="label">Yes</span>
+                  </label>
+                </div>
+              </div>
+              <div>
+              </div>
+            </div>
+
+            <div>
+              <div
+                className={classNames(`input-field-group include-error`)}
+                style={{ minHeight: '50px' }}
+              >
+                <label className={classNames(Styles.inputLabel, 'input-label')}>
+                  Minimum Information Check
+                </label>
+                
+                <div className={Styles.minimumInformationCheckSection}>
+                  <div className={Styles.minimumInformationCheckWrapper}>
+                    <div className={Styles.infoWrapper}>
+                      <i className={'icon mbc-icon info'} onClick={() => {}} />
+                    </div>
+                    <div className={Styles.descriptionWrapper}>
+                      <p>
+                        <b>Minimum information required.</b> You can either move on by selecting an existing Minimum information to review/edit or fill out the required provider-form in the next few steps. We already selected a fitting How-To-Access information to show your consumers in the next section.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                
+              </div>
             </div>
           </div>
+          
         </div>
       </div>
 
