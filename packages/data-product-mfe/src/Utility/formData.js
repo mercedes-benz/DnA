@@ -281,6 +281,8 @@ export const deserializeFormData = ({ item, type = 'provider', isDataProduct = f
           productName: item?.dataProductName,
           id: item?.id,
           howToAccessText: item?.howToAccessText,
+          deletionRequirements: item?.deletionRequirements ? 'Yes' : 'No',
+          restrictDataAccess: item?.restrictDataAccess ? 'Yes' : 'No',
 
           isPublish: item.isPublish,
           notifyUsers: item.notifyUsers,
@@ -292,7 +294,7 @@ export const deserializeFormData = ({ item, type = 'provider', isDataProduct = f
           division: item?.contactInformation?.division?.id || '0',
           subDivision: item?.contactInformation?.division?.subdivision?.id || '0',
           complianceOfficer: item?.contactInformation?.localComplianceOfficer?.split(),
-          planningIT: item?.contactInformation?.appId,
+          planningIT: item?.contactInformation?.appId,          
 
           confidentiality: item?.classificationConfidentiality?.confidentiality || 'Internal',
           classificationOfTransferedData: item?.classificationConfidentiality?.description,
