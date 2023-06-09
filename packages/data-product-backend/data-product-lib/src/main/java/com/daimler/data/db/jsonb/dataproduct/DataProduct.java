@@ -52,7 +52,6 @@ public class DataProduct {
 	private String recordStatus;
 	private String description;
 	private String additionalInformation;
-	private String howToAccessText;
 	private Boolean publish;
 	private Boolean notifyUsers;
 	private Date createdDate;
@@ -61,8 +60,8 @@ public class DataProduct {
 	private AgileReleaseTrainVO agileReleaseTrain;
 	private CorporateDataCatalogVO corporateDataCatalog;
 	private String ddx;
-	private String kafka;
-	private String oneApi;
+	private Access access;
+	private HowToAccessTemplate howToAccessTemplate;
 	private List<String> tags;
 	private List<PlatformVO> platform;
 	private List<FrontendToolsVO> frontEndTools;
