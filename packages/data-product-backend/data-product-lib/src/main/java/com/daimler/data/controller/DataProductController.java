@@ -504,6 +504,16 @@ public class DataProductController implements DataproductsApi{
 			existingDataProduct = service.getById(id);
 			if (existingDataProduct != null && ConstantsUtility.OPEN.equalsIgnoreCase(existingDataProduct.getRecordStatus())) {
 				try {
+					if(Objects.nonNull(existingDataProduct.getAccess().isMinimumInformationCheck()) && !existingDataProduct.getAccess().isMinimumInformationCheck()) {
+						List<MessageDescription> messages = new ArrayList<>();
+						MessageDescription message = new MessageDescription();
+						String msg = "Minimum information is not required for this dataproduct with name" + " " + existingDataProduct.getDataProductName();
+						message.setMessage(msg);
+						messages.add(message);
+						responseVO.setErrors(messages);
+						log.error("Minimum information is not required for this dataproduct with id {}", id);
+						return new ResponseEntity<>(responseVO, HttpStatus.OK);
+					}
 					ProviderVO providerVO = new ProviderVO();
 					providerVO = assembler.convertDatatransferProviderForm(existingDataProduct);
 					providerVO.setDataTransferName(dataTransferConsumerRequestVO.getData().getDataTransferName());
@@ -710,6 +720,9 @@ public class DataProductController implements DataproductsApi{
 					existingVO.setDeletionRequirement(requestVO.getDeletionRequirement());
 					existingVO.setOpenSegments(requestVO.getOpenSegments());
 					existingVO.setTags(requestVO.getTags());
+					existingVO.setAccess(requestVO.getAccess());
+					existingVO.setHowToAccessTemplate(requestVO.getHowToAccessTemplate());
+					existingVO.setProductOwner(requestVO.getProductOwner());
 					updateTags(existingVO);
 					try {
 						DataProductVO vo = service.updateByID(existingVO);
