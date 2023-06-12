@@ -80,6 +80,7 @@ public class UserInfoController implements UsersApi {
 	@Value("${teamsApi.enabled}")
 	private boolean teamsApiEnabled;
   
+	@Autowired
 	private HasuraClient hasuraClient;
 	
 	@Value("${dna.user.techUserPrefix}")
