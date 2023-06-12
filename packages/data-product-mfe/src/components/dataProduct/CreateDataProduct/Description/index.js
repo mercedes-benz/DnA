@@ -570,6 +570,9 @@ const Description = ({
                       <p>
                         <b>Minimum information required.</b> You can either move on by selecting an existing Minimum information to review/edit or fill out the required provider-form in the next few steps. We already selected a fitting How-To-Access information to show your consumers in the next section.
                       </p>
+                      {/* <p>
+                        <b>No Minimum information required.</b> Please make sure to comply with A22 policies when using SAP/IDM.
+                      </p> */}
                     </div>
                   </div>
                 </div>
