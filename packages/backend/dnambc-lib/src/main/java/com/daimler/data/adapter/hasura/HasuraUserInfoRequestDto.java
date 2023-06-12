@@ -1,5 +1,6 @@
 package com.daimler.data.adapter.hasura;
 
+import com.daimler.data.db.jsonb.UserInfo;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import lombok.AllArgsConstructor;
@@ -13,7 +14,7 @@ import lombok.NoArgsConstructor;
 public class HasuraUserInfoRequestDto {
 	
 	private String id;
-	private String data;
+	private UserInfo data;
 
 
 }
