@@ -65,7 +65,7 @@ public class DataBricksClient {
 	private RestTemplate proxyRestTemplate;
 
 
-	public RunNowResponseVO runNow(String runCorrelationUUID, RunNowNotebookParamsDto notebookParams, boolean runOnPowerfulMachines,String infotext) {
+	public RunNowResponseVO runNow(String runCorrelationUUID, RunNowNotebookParamsDto notebookParams, boolean runOnPowerfulMachines) {
 		RunNowResponseVO runNowResponse = null;
 		try {
 			String dataBricksJobidForRun = dataBricksJobId;
@@ -83,7 +83,6 @@ public class DataBricksClient {
 			}
 			requestWrapper.setJob_id(dataBricksJobidForRun);
 			requestWrapper.setNotebook_params(notebookParams);
-			requestWrapper.setInfotext(infotext);
 			HttpEntity<DatabricksJobRunNowRequestDto> requestEntity = new HttpEntity<>(requestWrapper,headers);
 			ResponseEntity<RunNowResponseVO> response = proxyRestTemplate.exchange(runNowUrl, HttpMethod.POST,
 					requestEntity, RunNowResponseVO.class);

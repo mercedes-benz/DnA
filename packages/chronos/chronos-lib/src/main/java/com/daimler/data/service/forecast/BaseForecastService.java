@@ -250,8 +250,9 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 		noteboookParams.setResults_folder(resultFolder);
 		noteboookParams.setX("");
 		noteboookParams.setX_pred("");
+		noteboookParams.setInfotext(infotext);
 
-		RunNowResponseVO runNowResponse = dataBricksClient.runNow(correlationId, noteboookParams, runOnPowerfulMachines,infotext);
+		RunNowResponseVO runNowResponse = dataBricksClient.runNow(correlationId, noteboookParams, runOnPowerfulMachines);
 		if(runNowResponse!=null) {
 			if(runNowResponse.getErrorCode()!=null || runNowResponse.getRunId()==null) 
 				responseMessage.setSuccess("FAILED");
