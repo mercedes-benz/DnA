@@ -588,9 +588,66 @@ const Description = ({
       <div className={Styles.wrapper}>
         <div className={Styles.firstPanel}>
           <div>
-            <h3>How to access</h3>
+            <h3>How to access - Template&nbsp;
+                <i
+                  className={classNames('icon mbc-icon info iconsmd', Styles.infoIcon)}
+                  tooltip-data="How to access"
+                />
+            </h3>
           </div>
           <div className={Styles.formWrapper}>
+            <div className={Styles.flexLayout}>
+              <div className={classNames('input-field-group include-error', errors.carLAFunction ? 'error' : '')}>
+                <label id="connectionTypeLabel" htmlFor="connectionTypeInput" className="input-label">
+                  Use Template
+                </label>
+                <div className={`custom-select`}>
+                  <select id="connectionTypeField" multiple={true} name="connectionType" {...register('carLAFunction')}>
+                    <option value="">Choose</option>
+                    <option id='Kafka0' key={'Kafka'} value={'Kafka'}>Kafka</option>
+                    <option id='Live (SAC/AFO)1' key={'Live (SAC/AFO)'} value={'Live (SAC/AFO)'}>Live (SAC/AFO)</option>
+                    <option id='API0' key={'API'} value={'API'}>API</option>
+                  </select>
+                </div>
+                <span className={classNames('error-message', errors.carLAFunction?.message ? '' : 'hide')}>
+                  {errors.carLAFunction?.message}
+                </span>
+              </div>
+              <div></div>
+            </div> 
+
+
+            <div
+              className={classNames(`input-field-group include-error`)}
+              style={{ minHeight: '50px' }}
+            >
+              <div className={Styles.howToAccessStepsSection}>
+                <div className={Styles.howToAccessStepsWrapper}>
+                  <div className={Styles.infoWrapper}>
+                    <div className={`custom-select`}>
+                      <select id="templateIconField" name="templateIcon" {...register('templateIcon')}>
+                        <option value="">Select Icon</option>
+                        <option id='Kafka0' key={'Kafka'} value={'Kafka'}>Kafka</option>
+                        <option id='Live (SAC/AFO)1' key={'Live (SAC/AFO)'} value={'Live (SAC/AFO)'}>Live (SAC/AFO)</option>
+                        <option id='API0' key={'API'} value={'API'}>API</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div className={Styles.descriptionWrapper}>
+                    <p>
+                      <b>Minimum information required.</b> You can either move on by selecting an existing Minimum information to review/edit or fill out the required provider-form in the next few steps. We already selected a fitting How-To-Access information to show your consumers in the next section.
+                    </p>
+                  </div>
+                </div>
+              </div>
+              
+            </div>
+
+
+
+
+
+
             <div className={Styles.flexLayout1}>
               <div
                 className={classNames(
@@ -627,6 +684,12 @@ const Description = ({
                 <span className={classNames('error-message')}>{errors?.howToAccessText?.message}</span>
               </div>
             </div>
+
+
+
+
+
+
           </div>
         </div>
       </div>
