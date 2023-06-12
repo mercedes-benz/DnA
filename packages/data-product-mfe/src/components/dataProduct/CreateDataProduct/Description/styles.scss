@@ -60,3 +60,32 @@
     }
 }
 
+
+
+.howToAccessStepsSection{
+    background-color: #1c2026;
+    padding: 35px 45px;
+    display: table;
+    width: 100%;
+    .howToAccessStepsWrapper{
+        display: table-row;
+        .infoWrapper{
+            display: table-cell;
+            vertical-align: middle;
+            min-width: 60px;
+            i{
+                font-size: 25px;
+            }
+        }
+        .descriptionWrapper{
+            display: table-cell;
+            vertical-align: middle;
+            padding-left: 40px;
+            p{
+                max-width: 600px;
+                margin-bottom: 0;
+            }
+        }
+    }
+}
+
