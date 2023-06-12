@@ -18,6 +18,6 @@ public class DatabricksJobRunNowRequestDto  implements Serializable{
 	
 	private String job_id;
 	private RunNowNotebookParamsDto notebook_params;
-	private String infotext;
+
 	
 }
