@@ -94,6 +94,15 @@ public class DnaMinioClientImp implements DnaMinioClient {
 
 	@Value("${storage.httpMethod}")
 	private String storageHttpMethod;
+	
+	@Value("${storage.mc.timeout.alias}")
+	private String storageMCAliasCmdTimeout;
+	
+	@Value("${storage.mc.timeout.listpolicies}")
+	private String storageMCListPoliciesCmdTimeout;
+	
+	@Value("${storage.mc.commandkeyword}")
+	private String storageMCcommandKey;
 
 	@Autowired
 	private MinioConfig minioConfig;
@@ -705,16 +714,27 @@ public class DnaMinioClientImp implements DnaMinioClient {
 					firstBuilder = new ProcessBuilder("cmd.exe", "/c", firstCommand);
 					secondBuilder = new ProcessBuilder("cmd.exe", "/c", secondCommand);
 				} else {
-					firstBuilder = new ProcessBuilder("sh", "-c", firstCommand);
-					secondBuilder = new ProcessBuilder("sh", "-c", secondCommand);
+					firstBuilder = new ProcessBuilder(storageMCcommandKey, "-c", firstCommand);
+					secondBuilder = new ProcessBuilder(storageMCcommandKey, "-c", secondCommand);
 				}
 
 				firstBuilder.redirectErrorStream(true);
 				Process p2 = firstBuilder.start();
 				BufferedReader r2 = new BufferedReader(new InputStreamReader(p2.getInputStream()));
+				
+				LOGGER.info("minio mc client alias command output is {}",r2.readLine());
+
+				if(!p2.waitFor(Integer.parseInt(storageMCAliasCmdTimeout), TimeUnit.SECONDS)) {
+				    p2.destroy();
+				}
+				
 				Process p = secondBuilder.start();
 				BufferedReader r = new BufferedReader(new InputStreamReader(p.getInputStream()));
 
+				if(!p.waitFor(Integer.parseInt(storageMCListPoliciesCmdTimeout), TimeUnit.SECONDS)) {
+				    p.destroy();
+				}
+				
 				String line;
 				String prefix = "{\"data\":[";
 				String suffix = "]}";
