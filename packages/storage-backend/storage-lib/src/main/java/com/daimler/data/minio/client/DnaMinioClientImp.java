@@ -520,8 +520,12 @@ public class DnaMinioClientImp implements DnaMinioClient {
 				// to build policies as comma separated
 				String commaSeparatedPolicies = policies.stream().collect(Collectors.joining(","));
 
-				LOGGER.debug("Creating SecretKey for user: {}", userId);
-				userSecretKey = UUID.randomUUID().toString();
+				userSecretKey = vaultConfig.validateUserInVault(userId);
+				if (!StringUtils.hasText(userSecretKey)) {
+					LOGGER.warn("User:{} not available in vault.", userId);
+					LOGGER.debug("Creating SecretKey for user: {}", userId);
+					userSecretKey = UUID.randomUUID().toString();
+				}
 
 				LOGGER.info("Onboarding user:{} to minio", userId);
 				minioAdminClient.addUser(userId, Status.ENABLED, userSecretKey, commaSeparatedPolicies, null);
@@ -926,6 +930,29 @@ public class DnaMinioClientImp implements DnaMinioClient {
 		cacheUtil.updateCache(ConstantsUtility.MINIO_USERS_CACHE, users);
 	}
 
+	@Override
+	public void deleteUser(String userId) {
+		MinioAdminClient minioAdminClient = minioConfig.getMinioAdminClient();
+		LOGGER.debug("Fetching users from cache.");
+		Map<String, UserInfo> users = cacheUtil.getMinioUsers(ConstantsUtility.MINIO_USERS_CACHE);
+		try {
+			LOGGER.info("Deleting user record {} from minio", userId);
+			minioAdminClient.deleteUser(userId);
+			
+			LOGGER.info("Deleting user minioPolicies {} from cache", userId);
+			users.remove(userId);
+			
+			// updating minioUsersCache
+			LOGGER.debug("Removing all enteries from {}.", ConstantsUtility.MINIO_USERS_CACHE);
+			cacheUtil.removeAll(ConstantsUtility.MINIO_USERS_CACHE);
+			LOGGER.debug("Updating {}.", ConstantsUtility.MINIO_USERS_CACHE);
+			cacheUtil.updateCache(ConstantsUtility.MINIO_USERS_CACHE, users);
+
+		} catch (InvalidKeyException | NoSuchAlgorithmException | IOException e) {
+			LOGGER.error("Error occured while deleting policy for user:{}", userId);
+		}
+	}
+	
 	@Override
 	public void setPolicy(String userOrGroupName, boolean isGroup, String policyName) {
 		// Getting MinioAdminClient from config
