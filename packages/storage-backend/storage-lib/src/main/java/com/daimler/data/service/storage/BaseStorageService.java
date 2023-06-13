@@ -957,7 +957,11 @@ public class BaseStorageService implements StorageService {
 					policy = StorageUtility.removePolicy(policy, readWritePolicy);
 				}
 				// Setting permission in Minio
-				dnaMinioClient.setPolicy(userId, false, policy);
+				if("".equalsIgnoreCase(policy) || policy == null || !StringUtils.hasText(policy)) {
+					dnaMinioClient.deleteUser(userId);
+				}else {
+					dnaMinioClient.setPolicy(userId, false, policy);
+				}
 
 			}
 			// If user presents only in new
