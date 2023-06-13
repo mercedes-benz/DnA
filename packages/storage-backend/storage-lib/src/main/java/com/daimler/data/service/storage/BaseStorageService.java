@@ -179,7 +179,7 @@ public class BaseStorageService implements StorageService {
 				pidAsCreator.setLastName("CHRONOS_POOLUSER");
 				bucketVo.setCreatedBy(pidAsCreator);
 			}
-			LOGGER.info("authflag {} currentUser {}",authFlag,currentUser);
+			LOGGER.debug("authflag {} currentUser {}",authFlag,currentUser);
 		
 		
 			
@@ -197,7 +197,7 @@ public class BaseStorageService implements StorageService {
 			if (createBucketResponse != null && createBucketResponse.getStatus().equals(ConstantsUtility.SUCCESS)) {
 				LOGGER.info("Success from make minio bucket");
 				responseVO.setStatus(createBucketResponse.getStatus());
-				LOGGER.info("Onboarding current user:{}", currentUser);
+				LOGGER.debug("Onboarding current user:{}", currentUser);
 				MinioGenericResponse onboardOwnerResponse = dnaMinioClient.onboardUserMinio(currentUser,
 						createBucketResponse.getPolicies());
 				if (onboardOwnerResponse != null && onboardOwnerResponse.getStatus().equals(ConstantsUtility.SUCCESS)) {
@@ -224,7 +224,7 @@ public class BaseStorageService implements StorageService {
 					List<String> subscribedUsersEmails = new ArrayList<>();
 					subscribedUsersEmails.add(ownerEmail);
 					
-					LOGGER.info("Onboarding collaborators");
+					LOGGER.debug("Onboarding collaborators");
 					if (!ObjectUtils.isEmpty(bucketVo.getCollaborators())) {
 						for (UserVO userVO : bucketVo.getCollaborators()) {
 							if (Objects.nonNull(userVO.getPermission())) {
@@ -238,7 +238,7 @@ public class BaseStorageService implements StorageService {
 									policies.add(bucketVo.getBucketName() + "_" + ConstantsUtility.READWRITE);
 								}
 
-								LOGGER.info("Onboarding collaborator:{}", userVO.getAccesskey());
+								LOGGER.debug("Onboarding collaborator:{}", userVO.getAccesskey());
 								MinioGenericResponse onboardUserResponse = dnaMinioClient
 										.onboardUserMinio(userVO.getAccesskey(), policies);
 								if (onboardUserResponse != null
@@ -292,9 +292,9 @@ public class BaseStorageService implements StorageService {
 			requestbucketVo.setCreatedDate(new Date());
 			requestbucketVo.setLastModifiedDate(new Date());
 		}
-		LOGGER.info("Converting to entity.");
+		LOGGER.debug("Converting to entity.");
 		StorageNsql storageNsql = storageAssembler.toEntity(requestbucketVo);
-		LOGGER.info("Saving entity.");
+		LOGGER.debug("Saving entity.");
 		StorageNsql savedEntity = jpaRepo.save(storageNsql);
 		return storageAssembler.toBucketVo(savedEntity);
 	}
@@ -439,26 +439,26 @@ public class BaseStorageService implements StorageService {
 			if(chronosUserToken!=null && dataBricksAuth.equals(chronosUserToken)) {
 				currentUser = dataBricksUser;
 			}
-			LOGGER.info("authflag {} currentUser {}",authFlag,currentUser);
+			LOGGER.debug("authflag {} currentUser {}",authFlag,currentUser);
 			
 		BucketObjectResponseWrapperVO objectResponseWrapperVO = new BucketObjectResponseWrapperVO();
 
 		LOGGER.debug("list bucket objects through minio client");
 		MinioGenericResponse minioObjectResponse = dnaMinioClient.getBucketObjects(currentUser, bucketName, prefix);
 		if (minioObjectResponse != null && minioObjectResponse.getStatus().equals(ConstantsUtility.SUCCESS)) {
-			LOGGER.info("Success from list objects minio client");
+			LOGGER.debug("Success from list objects minio client");
 			BucketObjectResponseVO bucketObjectResponseVO = new BucketObjectResponseVO();
 			//setting Bucket's object response from minio
 			bucketObjectResponseVO.setBucketObjects(minioObjectResponse.getObjects());
 			
-			LOGGER.info("Fetching bucket:{} permission for user:{}",bucketName,currentUser);
+			LOGGER.debug("Fetching bucket:{} permission for user:{}",bucketName,currentUser);
 			bucketObjectResponseVO.setBucketPermission(dnaMinioClient.getBucketPermission(bucketName, currentUser));
 			
 			objectResponseWrapperVO.setData(bucketObjectResponseVO);
 			httpStatus = minioObjectResponse.getHttpStatus();
 
 		} else {
-			LOGGER.info("Failure from list objects minio client");
+			LOGGER.info("Failure from list objects minio client for bucket {} ", bucketName);
 			objectResponseWrapperVO
 					.setErrors(getMessages(minioObjectResponse!=null?minioObjectResponse.getErrors():null));
 			httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
@@ -562,7 +562,7 @@ public class BaseStorageService implements StorageService {
 			LOGGER.info("Uploaded file is empty.");
 			errors.add(new MessageDescription("Please select file to upload."));
 		} else if (Boolean.TRUE.equals(attachmentMalwareScan)) {
-			LOGGER.info("Scanning for malware for file {}", uploadfile.getOriginalFilename());
+			LOGGER.debug("Scanning for malware for file {}", uploadfile.getOriginalFilename());
 			FileScanDetailsVO fileScanDetailsVO = this.scan(uploadfile);
 			if (Objects.nonNull(fileScanDetailsVO) && Boolean.TRUE.equals(fileScanDetailsVO.getDetected())) {
 				LOGGER.info("Malware detected in the uploaded file {}", uploadfile.getOriginalFilename());
@@ -741,9 +741,9 @@ public class BaseStorageService implements StorageService {
 		if (chronosUserToken!=null && dataBricksAuth.equals(chronosUserToken)) {
 			currentUser = dataBricksUser;
 		}
-		LOGGER.info("authflag {} currentUser {}",authFlag,currentUser);
+		LOGGER.debug("authflag {} currentUser {}",authFlag,currentUser);
 
-		LOGGER.info("Removing bucket:{}", bucketName);
+		LOGGER.debug("Removing bucket:{}", bucketName);
 		MinioGenericResponse minioResponse = dnaMinioClient.removeBucket(currentUser, bucketName);
 		if (minioResponse != null && minioResponse.getStatus().equals(ConstantsUtility.SUCCESS)) {
 			LOGGER.info("Success from minio remove bucket.");
@@ -783,7 +783,7 @@ public class BaseStorageService implements StorageService {
 	 	if (chronosUserToken!=null && dataBricksAuth.equals(chronosUserToken)) {
 	 		currentUser = dataBricksUser;
 	 	}
-	 	LOGGER.info("authflag {} currentUser {}",authFlag,currentUser);
+	 	LOGGER.debug("authflag {} currentUser {}",authFlag,currentUser);
 
 		 // To delete bucket cascade.
 		 MinioGenericResponse minioObjectResponse = dnaMinioClient.deleteBucketCascade(currentUser, bucketName);
@@ -841,7 +841,7 @@ public class BaseStorageService implements StorageService {
 		LOGGER.debug("Fetching Current user.");
 		String currentUser = userStore.getUserInfo().getId();
 
-		LOGGER.info("Validating Bucket before update.");
+		LOGGER.debug("Validating Bucket before update.");
 
 		List<MessageDescription> errors = validateUpdateBucket(bucketVo);
 		if (!ObjectUtils.isEmpty(errors)) {
@@ -849,10 +849,10 @@ public class BaseStorageService implements StorageService {
 			responseVO.setErrors(errors);
 			httpStatus = HttpStatus.BAD_REQUEST;
 		} else {
-			LOGGER.info("Fetching existing collaborators for bucket:{}", bucketVo.getBucketName());
+			LOGGER.debug("Fetching existing collaborators for bucket:{}", bucketVo.getBucketName());
 			List<UserVO> existingCollaborators = dnaMinioClient.getBucketCollaborators(bucketVo.getBucketName(),
 					currentUser);
-			LOGGER.info("Fetching new collaborators for bucket:{}", bucketVo.getBucketName());
+			LOGGER.debug("Fetching new collaborators for bucket:{}", bucketVo.getBucketName());
 			List<UserVO> newCollaborators = getNewCollaborators(bucketVo);
 			if(!(ObjectUtils.isEmpty(existingCollaborators) && ObjectUtils.isEmpty(newCollaborators))) {
 				// To update collaborators list
@@ -918,7 +918,7 @@ public class BaseStorageService implements StorageService {
 	private List<MessageDescription> updateBucketCollaborator(String bucketName, List<UserVO> existingCollaborators,
 			List<UserVO> newCollaborators) {
 		List<MessageDescription> errors = new ArrayList<>();
-		LOGGER.info("Fetching users from Minio user cache.");
+		LOGGER.debug("Fetching users from Minio user cache.");
 		Map<String, UserInfo> usersInfo = cacheUtil.getMinioUsers(ConstantsUtility.MINIO_USERS_CACHE);
 		String readPolicy = bucketName + "_" + ConstantsUtility.READ;
 		String readWritePolicy = bucketName + "_" + ConstantsUtility.READWRITE;
@@ -936,7 +936,7 @@ public class BaseStorageService implements StorageService {
 			String policy = "";
 			// if user presents in new and existing
 			if (newCollaborator.isPresent() && existingCollaborator.isPresent()) {
-				LOGGER.info("Checking permission update for existing collaborators");
+				LOGGER.debug("Checking permission update for existing collaborators");
 				PermissionVO permissionVO = newCollaborator.get().getPermission();
 				// Getting policy from user
 				policy = userInfo.policyName();
@@ -966,7 +966,7 @@ public class BaseStorageService implements StorageService {
 			}
 			// If user presents only in new
 			else if (newCollaborator.isPresent() && !existingCollaborator.isPresent()) {
-				LOGGER.info("Setting permission for new collaborators");
+				LOGGER.debug("Setting permission for new collaborators");
 				PermissionVO permissionVO = newCollaborator.get().getPermission();
 				List<String> policies = new ArrayList<>();
 				// for read permission
@@ -979,7 +979,7 @@ public class BaseStorageService implements StorageService {
 					LOGGER.debug("Setting READ/WRITE access.");
 					policies.add(readWritePolicy);
 				}
-				LOGGER.info("Onboarding collaborator:{}", userId);
+				LOGGER.debug("Onboarding collaborator:{}", userId);
 				MinioGenericResponse onboardUserResponse = dnaMinioClient.onboardUserMinio(userId,
 						policies);
 				if (onboardUserResponse != null && onboardUserResponse.getStatus().equals(ConstantsUtility.SUCCESS)) {
@@ -1000,7 +1000,11 @@ public class BaseStorageService implements StorageService {
 				// Removing read/write permission
 				policy = StorageUtility.removePolicy(policy, readWritePolicy);
 				// Setting permission in Minio
-				dnaMinioClient.setPolicy(userId, false, policy);
+				if("".equalsIgnoreCase(policy) || policy == null || !StringUtils.hasText(policy)) {
+					dnaMinioClient.deleteUser(userId);
+				}else {
+					dnaMinioClient.setPolicy(userId, false, policy);
+				}
 
 			}
 		}
