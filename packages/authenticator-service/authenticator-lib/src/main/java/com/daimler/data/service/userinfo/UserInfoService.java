@@ -33,4 +33,6 @@ import com.daimler.data.service.common.CommonService;
 
 public interface UserInfoService extends CommonService<UserInfoVO, UserInfoNsql, String> {
 
+    Integer getNumberOfUsers();
+
 }

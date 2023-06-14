@@ -70,4 +70,8 @@ public class BaseUserInfoService extends BaseCommonService<UserInfoVO, UserInfoN
 		return userInfo.isPresent() ? userinfoAssembler.toVo(userInfo.get()) : null;
 	}
 
+	@Override
+	public Integer getNumberOfUsers() {
+		return customRepo.getNumberOfUsers();
+	}
 }

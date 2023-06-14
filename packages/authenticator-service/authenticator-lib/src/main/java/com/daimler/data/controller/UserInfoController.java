@@ -27,6 +27,7 @@
 
 package com.daimler.data.controller;
 
+import com.daimler.data.dto.userinfo.TransparencyVO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -80,6 +81,28 @@ public class UserInfoController {
 			return new ResponseEntity<>(userInfoVO, HttpStatus.OK);
 		} else {
 			return new ResponseEntity<>(userInfoVO, HttpStatus.BAD_REQUEST);
+		}
+	}
+
+	@ApiOperation(value = "Get total count of users.", nickname = "getCountOfUsers", notes = "Get total count of users. This endpoints will be used to Get total count of users.", response = TransparencyVO.class, tags = {
+			"users",})
+	@ApiResponses(value = {
+			@ApiResponse(code = 201, message = "Returns message of succes or failure", response = TransparencyVO.class),
+			@ApiResponse(code = 400, message = "Malformed syntax."),
+			@ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+			@ApiResponse(code = 403, message = "Request is not authorized."),
+			@ApiResponse(code = 405, message = "Invalid input"),
+			@ApiResponse(code = 500, message = "Internal error")})
+	@RequestMapping(value = "/users/transparency", produces = {"application/json"}, consumes = {
+			"application/json"}, method = RequestMethod.GET)
+	public ResponseEntity<TransparencyVO> getCountOfUsers() {
+		TransparencyVO transparencyVO = new TransparencyVO();
+		try {
+			Integer count = userInfoService.getNumberOfUsers();
+			transparencyVO.setCount(count);
+			return new ResponseEntity<>(transparencyVO, HttpStatus.OK);
+		} catch (Exception e){
+			return new ResponseEntity<>(transparencyVO, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 
