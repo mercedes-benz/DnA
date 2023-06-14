@@ -53,6 +53,10 @@ public class ForecastAssembler implements GenericAssembler<ForecastVO, ForecastN
 					List<ForecastComparisonVO> comparisons = toComparisonsVO(data.getComparisons());
 					vo.setComparisons(comparisons);
 				}
+				if(data.getConfigFiles()!=null && !data.getConfigFiles().isEmpty()) {
+					List<ForecastConfigFileVO> configFiles = toConfigFilesVO(data.getConfigFiles());
+					vo.setConfigFiles(configFiles);
+				}
 				vo.setBucketId(entity.getData().getBucketId());
 			}
 		}
@@ -94,6 +98,22 @@ public class ForecastAssembler implements GenericAssembler<ForecastVO, ForecastN
 			}
 		}
 		return comparisonsVOList;
+	}
+
+	public List<ForecastConfigFileVO> toConfigFilesVO(List<ConfigFileDetails> configFiles){
+		List<ForecastConfigFileVO> configFilesVOList =  new ArrayList<>();
+		if(configFiles!=null && !configFiles.isEmpty()) {
+			for(ConfigFileDetails configFile: configFiles) {
+				if(configFile.getIsDeleted()==null || !configFile.getIsDeleted()) {
+					ForecastConfigFileVO configFileVO = new ForecastConfigFileVO();
+					BeanUtils.copyProperties(configFile,configFileVO);
+					if(configFile.getIsDeleted()!=null)
+						configFileVO.setIsDeleted(configFile.getIsDeleted());
+					configFilesVOList.add(configFileVO);
+				}
+			}
+		}
+		return configFilesVOList;
 	}
 	
 	private RunStateVO toStateVO(RunState runState) {
@@ -194,6 +214,16 @@ public class ForecastAssembler implements GenericAssembler<ForecastVO, ForecastN
 							return comparison;
 						}).collect(Collectors.toList());
 				data.setComparisons(comparisons);
+			}
+			if(vo.getConfigFiles()!=null && !vo.getConfigFiles().isEmpty()) {
+				List<ConfigFileDetails> configFiles = vo.getConfigFiles().stream().map
+						(n -> { ConfigFileDetails configFile = new ConfigFileDetails();
+							BeanUtils.copyProperties(n,configFile);
+							if(n.isIsDeleted()!=null)
+								configFile.setIsDeleted(n.isIsDeleted());
+							return configFile;
+						}).collect(Collectors.toList());
+				data.setConfigFiles(configFiles);
 			}
 			data.setBucketId(vo.getBucketId());
 			entity.setData(data);
