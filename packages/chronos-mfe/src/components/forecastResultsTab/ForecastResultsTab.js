@@ -16,6 +16,7 @@ import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indica
 import Spinner from '../spinner/Spinner';
 import { getQueryParameterByName } from '../../utilities/utils';
 import ForecastRunRow from './forecastRunRow/ForecastRunRow';
+import { SESSION_STORAGE_KEYS } from '../../utilities/constants';
 
 const ForecastResultsTab = ({ onRunClick }) => {
   const { id: projectId } = useParams();
@@ -30,7 +31,7 @@ const ForecastResultsTab = ({ onRunClick }) => {
   const [totalNumberOfPages, setTotalNumberOfPages] = useState(1);
   const [currentPageNumber, setCurrentPageNumber] = useState(1);
   const [currentPageOffset, setCurrentPageOffset] = useState(0);
-  const [maxItemsPerPage, setMaxItemsPerPage] = useState(15);
+  const [maxItemsPerPage, setMaxItemsPerPage] = useState(parseInt(sessionStorage.getItem(SESSION_STORAGE_KEYS.PAGINATION_MAX_ITEMS_PER_PAGE), 10) || 15);
 
   // compare
   const [showCompareModal, setShowCompareModal] = useState(false);
@@ -68,10 +69,18 @@ const ForecastResultsTab = ({ onRunClick }) => {
     setCurrentPageNumber(currentPageNumberTemp);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  
+  /* Sort */
+  const [sortBy, setSortBy] = useState({
+    name: 'triggeredOn',
+    currentSortType: 'desc',
+    nextSortType: 'asc',
+  });
   
   const getProjectForecastRuns = () => {
     ProgressIndicator.show();
-    chronosApi.getForecastRuns(projectId, currentPageOffset, maxItemsPerPage).then((res) => {
+    chronosApi.getForecastRuns(projectId, currentPageOffset, maxItemsPerPage, sortBy.name, sortBy.currentSortType).then((res) => {
       if (res.status === 204) {
         setForecastRuns([]);
       } else {
@@ -92,74 +101,16 @@ const ForecastResultsTab = ({ onRunClick }) => {
       ProgressIndicator.hide();
     });
   };
-
-  /* getResults */
-  const getResults = (action) => {
-    const showProgressIndicator = ['pagination'].includes(action);
-
-    showProgressIndicator && ProgressIndicator.show();
-
-    let results = forecastRuns;
-
-    if (sortBy) {
-      if (sortBy.name === 'runName') {
-        results = results.sort((a, b) => {
-          if (sortBy.currentSortType === 'asc') {
-            return a.runName.toLowerCase() === b.runName.toLowerCase() ? 0 : -1;
-          } else {
-            return a.runName.toLowerCase() === b.runName.toLowerCase() ? -1 : 0;
-          }
-        });
-      } else if (sortBy.name === 'result_state') {
-        results = results.sort((a, b) => {
-          if (sortBy.currentSortType === 'asc') {
-            return a.result_state.toLowerCase() === b.result_state.toLowerCase() ? 0 : -1;
-          } else {
-            return a.result_state.toLowerCase() === b.result_state.toLowerCase() ? -1 : 0;
-          }
-        });
-      } else if (sortBy.name === 'triggeredOn') {
-        results = results.sort((a, b) => {
-          if (sortBy.currentSortType === 'asc') {
-            return a.triggeredOn.toLowerCase() === b.triggeredOn.toLowerCase() ? 0 : -1;
-          } else {
-            return a.triggeredOn.toLowerCase() === b.triggeredOn.toLowerCase() ? -1 : 0;
-          }
-        });
-      } else if (sortBy.name === 'triggeredBy') {
-        results = results.sort((a, b) => {
-          if (sortBy.currentSortType === 'asc') {
-            return a.triggeredBy.toLowerCase() === b.triggeredBy.toLowerCase() ? 0 : -1;
-          } else {
-            return a.triggeredBy.toLowerCase() === b.triggeredBy.toLowerCase() ? -1 : 0;
-          }
-        });
-      } else if (sortBy.name === 'inputFile') {
-        results = results.sort((a, b) => {
-          if (sortBy.currentSortType === 'asc') {
-            return a.inputFile.toLowerCase() === b.inputFile.toLowerCase() ? 0 : -1;
-          } else {
-            return a.inputFile.toLowerCase() === b.inputFile.toLowerCase() ? -1 : 0;
-          }
-        });
-      } else if (sortBy.name === 'forecastHorizon') {
-        results = results.sort((a, b) => {
-          if (sortBy.currentSortType === 'asc') {
-            return a.forecastHorizon.toLowerCase() === b.forecastHorizon.toLowerCase() ? 0 : -1;
-          } else {
-            return a.forecastHorizon.toLowerCase() === b.forecastHorizon.toLowerCase() ? -1 : 0;
-          }
-        });
-      }
-    }
-
-    setForecastRuns(
-      results.slice(
-        currentPageOffset > results.length ? 0 : currentPageOffset,
-        currentPageOffset + maxItemsPerPage < results.length ? currentPageOffset + maxItemsPerPage : results.length,
-      ),
-    );
-    showProgressIndicator && ProgressIndicator.hide();
+  
+  // useEffect(() => {
+  //   getProjectForecastRuns();
+  // }, [sortBy]); // eslint-disable-line react-hooks/exhaustive-deps
+  const sortResults = (propName, sortOrder) => {
+    setSortBy({
+      name: propName,
+      currentSortType: sortOrder,
+      nextSortType: sortBy.currentSortType,
+    });
   };
 
   const onPaginationPreviousClick = () => {
@@ -182,24 +133,7 @@ const ForecastResultsTab = ({ onRunClick }) => {
   useEffect(() => {
     getProjectForecastRuns();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [maxItemsPerPage, currentPageNumber, currentPageOffset]);
-
-  /* Sort */
-  const [sortBy, setSortBy] = useState({
-    name: 'triggeredOn',
-    currentSortType: 'asc',
-    nextSortType: 'desc',
-  });
-  useEffect(() => {
-    getResults('sort');
-  }, [sortBy]); // eslint-disable-line react-hooks/exhaustive-deps
-  const sortResults = (propName, sortOrder) => {
-    setSortBy({
-      name: propName,
-      currentSortType: sortOrder,
-      nextSortType: sortBy.currentSortType,
-    });
-  };
+  }, [maxItemsPerPage, currentPageNumber, currentPageOffset, sortBy]);
 
   /* Delete */
   const [selectedRuns, setSelectedRuns] = useState([]);

@@ -27,14 +27,14 @@
 
 package com.daimler.data.db.jsonb;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
 import java.io.Serializable;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
 @NoArgsConstructor
@@ -53,77 +53,5 @@ public class UserInfo implements Serializable {
 	List<UserInfoRole> roles;
 	List<UserFavoriteUseCase> favoriteUsecases;
 	private List<String> divisionAdmins;
-
-//    public UserInfo() {
-//        super();
-//    }
-//
-//    public UserInfo(String firstName, String lastName, String email, String mobileNumber, String department,
-//                    List<UserInfoRole> roles, List<UserFavoriteUseCase> favoriteUsecases) {
-//        super();
-//        this.firstName = firstName;
-//        this.lastName = lastName;
-//        this.email = email;
-//        this.mobileNumber = mobileNumber;
-//        this.department = department;
-//        this.roles = roles;
-//        this.favoriteUsecases = favoriteUsecases;
-//    }
-
-//    public String getFirstName() {
-//        return firstName;
-//    }
-//
-//    public void setFirstName(String firstName) {
-//        this.firstName = firstName;
-//    }
-//
-//    public String getLastName() {
-//        return lastName;
-//    }
-//
-//    public void setLastName(String lastName) {
-//        this.lastName = lastName;
-//    }
-//
-//    public String getEmail() {
-//        return email;
-//    }
-//
-//    public void setEmail(String email) {
-//        this.email = email;
-//    }
-//
-//    public String getMobileNumber() {
-//        return mobileNumber;
-//    }
-//
-//    public void setMobileNumber(String mobileNumber) {
-//        this.mobileNumber = mobileNumber;
-//    }
-//
-//    public String getDepartment() {
-//        return department;
-//    }
-//
-//    public void setDepartment(String department) {
-//        this.department = department;
-//    }
-//
-//    public List<UserInfoRole> getRoles() {
-//        return roles;
-//    }
-//
-//    public void setRoles(List<UserInfoRole> roles) {
-//        this.roles = roles;
-//    }
-//
-//    public List<UserFavoriteUseCase> getFavoriteUsecases() {
-//        return favoriteUsecases;
-//    }
-//
-//    public void setFavoriteUsecases(List<UserFavoriteUseCase> favoriteUsecases) {
-//        this.favoriteUsecases = favoriteUsecases;
-//    }
 
 }

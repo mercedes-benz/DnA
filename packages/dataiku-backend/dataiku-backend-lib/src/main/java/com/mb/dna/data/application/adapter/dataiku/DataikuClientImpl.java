@@ -1,6 +1,7 @@
 package com.mb.dna.data.application.adapter.dataiku;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -54,6 +55,7 @@ public class DataikuClientImpl implements DataikuClient {
 			String baseUri = "onPremise".equalsIgnoreCase(cloudProfile) ? dataikuClientConfig.getOnPremiseBaseuri() : dataikuClientConfig.getExtolloBaseuri();
 			String url =   baseUri  + dataikuClientConfig.getUsersUri() + "/" + user.getLogin().toUpperCase();
 			String apiToken = "onPremise".equalsIgnoreCase(cloudProfile) ? dataikuClientConfig.getOnPremiseAuth() : dataikuClientConfig.getExtolloAuth();
+			log.info("Updating user {} with groups {} ", user.getLogin(), Arrays.toString(user.getGroups().toArray()));
 			HttpRequest<DataikuUserDto> req = HttpRequest.PUT(url,user).header("Accept", "application/json")
 			.header("Content-Type", "application/json")
 			.header("Authorization", "Basic "+apiToken);
