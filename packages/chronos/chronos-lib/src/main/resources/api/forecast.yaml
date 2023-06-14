@@ -860,10 +860,12 @@ definitions:
   TransparencyVO:
     type: object
     properties:
-      count:
+      projectCount:
         type: integer
         description: "Number of forecast-projects reports"
-        
+      userCount:
+        type: integer
+        description: "Number of forecast-projects users reports"
   InputFilesCollectionVO:
     type: object 
     properties:

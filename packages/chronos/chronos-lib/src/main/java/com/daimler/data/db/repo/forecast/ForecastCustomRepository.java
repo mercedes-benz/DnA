@@ -42,4 +42,6 @@ public interface ForecastCustomRepository extends CommonDataRepository<ForecastN
 
 	Integer getTotalCountOfForecastProjects();
 
+	Integer getTotalCountOfForecastUsers();
+
 }

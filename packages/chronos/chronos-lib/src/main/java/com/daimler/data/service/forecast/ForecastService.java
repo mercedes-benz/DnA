@@ -56,5 +56,7 @@ public interface ForecastService extends CommonService<ForecastVO, ForecastNsql,
 
 	Integer getTotalCountOfForecastProjects();
 
+	Integer getTotalCountOfForecastUsers();
+
 
 }

@@ -157,9 +157,11 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 			method = RequestMethod.GET)
 	public ResponseEntity<TransparencyVO> getNumberOfForecastProjects() {
 		try {
-			Integer count = service.getTotalCountOfForecastProjects();
+			Integer projectCount = service.getTotalCountOfForecastProjects();
+			Integer userCount = service.getTotalCountOfForecastUsers();
 			TransparencyVO transparencyVO = new TransparencyVO();
-			transparencyVO.setCount(count);
+			transparencyVO.userCount(userCount);
+			transparencyVO.setProjectCount(projectCount);
 			return new ResponseEntity<>(transparencyVO, HttpStatus.OK);
 		}catch (Exception e){
 			return  new ResponseEntity<>(new TransparencyVO(), HttpStatus.INTERNAL_SERVER_ERROR);
