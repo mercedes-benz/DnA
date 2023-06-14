@@ -967,7 +967,8 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
     		@ApiParam(value = "name of the run sample. Example YYYY-MM-DD_run_topic") @RequestParam(value="runName", required=false)  String runName,
     		@ApiParam(value = "Levels Of Hierarchy number between 2 to 20 Or null") @RequestParam(value="hierarchy", required=false)  String hierarchy,
     		@ApiParam(value = "Comments for the run") @RequestParam(value="comment", required=false)  String comment,
-    		@ApiParam(value = "If true, then run on Powerful Machines") @RequestParam(value="runOnPowerfulMachines", required=false)  Boolean runOnPowerfulMachines){
+    		@ApiParam(value = "If true, then run on Powerful Machines") @RequestParam(value="runOnPowerfulMachines", required=false)  Boolean runOnPowerfulMachines,
+            @ApiParam(value = "Text field to denote Chronos Version") @RequestParam(value="infotext", required=false)  String infotext){
 			ForecastRunResponseVO responseVO = new ForecastRunResponseVO();
 			GenericMessage responseMessage = new GenericMessage();
 			ForecastVO existingForecast = service.getById(id);
@@ -1068,7 +1069,7 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 					}
 					log.info("Passed all validations for create run in controller, calling service for project {} ", id);
 					ForecastRunResponseVO createRunResponse = service.createJobRun(file,savedInputPath, saveRequestPart, runName, configurationFile,
-							frequency, forecastHorizon, hierarchy, comment, runOnPowerfulMachines, existingForecast,requestUser.getId(),createdOn);
+							frequency, forecastHorizon, hierarchy, comment, runOnPowerfulMachines, existingForecast,requestUser.getId(),createdOn,infotext);
 					if(createRunResponse!= null && "SUCCESS".equalsIgnoreCase(createRunResponse.getResponse().getSuccess())
 								&& createRunResponse.getData().getRunId()!=null) {
 						return new ResponseEntity<>(createRunResponse, HttpStatus.CREATED);

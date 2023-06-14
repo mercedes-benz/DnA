@@ -29,9 +29,7 @@ package com.daimler.data.application.config;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Predicate;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -51,26 +49,14 @@ import springfox.documentation.swagger2.annotations.EnableSwagger2;
 @EnableSwagger2
 public class SwaggerConfig {
 
-
-	@Value("${swagger.headers.authorization.token}")
-	private String defaultAuthToken;
-	
-	
 	@Bean
 	public Docket apiWeb() {
 
-		RequestParameter authParamBuilder = new RequestParameterBuilder().name("Authorization")
-				.description("Authorization header")
-				.query(q -> q.defaultValue(
-						defaultAuthToken))
-				.query(q -> q.model(m -> m.scalarModel(ScalarType.STRING))).in(ParameterType.HEADER).required(true)
-				.build();
 		RequestParameter contentTypeParamBuilder = new RequestParameterBuilder().name("Content-Type")
 				.description("content type").query(q -> q.defaultValue("application/json"))
 				.query(q -> q.model(m -> m.scalarModel(ScalarType.STRING))).in(ParameterType.HEADER).required(true)
 				.build();
 		List<RequestParameter> globalRequestHeaderParms = new ArrayList<>();
-		globalRequestHeaderParms.add(authParamBuilder);
 		globalRequestHeaderParms.add(contentTypeParamBuilder);
 
 		return new Docket(DocumentationType.SWAGGER_2).select()

@@ -560,6 +560,11 @@ paths:
           type: boolean
           description: "If true, then run on Powerful Machines"
           required: false
+        - in: formData
+          name: infotext
+          type: string
+          description: Text field to denote Chronos Version
+          required: false
       responses:
         201:
           description: "Returns message of success or failure "
@@ -1072,6 +1077,9 @@ definitions:
         comment:
             type: string
             description: "Comments for the run"
+        infotext:
+          type: string
+          description: "Text field to denote Chronos Version"
         runOnPowerfulMachines:
             type: boolean
             description: "If true, then run on Powerful Machines"
@@ -1272,6 +1280,9 @@ definitions:
         exogenData:
           type: boolean
           description: "flag to check if exogenous data is present"
+        infotext:
+          type: string
+          description: "Text field to denote Chronos Version"
         isDeleted:
           type: boolean
           description: "Field to identify if run is deleted. Deleted run records wont be shown, this is only for system to identify. Not for Users."
