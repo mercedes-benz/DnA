@@ -27,11 +27,11 @@
 
 package com.daimler.data.db.jsonb;
 
+import java.io.Serializable;
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import java.io.Serializable;
 
 @Data
 @NoArgsConstructor
@@ -43,47 +43,5 @@ public class UserFavoriteUseCase implements Serializable {
 	String id;
 	String usecaseId;
 	String userinfoId;
-
-//    public UserFavoriteUseCase() {
-//        super();
-//    }
-//
-//
-//    public UserFavoriteUseCase(String id, String usecaseId, String userinfoId) {
-//        super();
-//        this.id = id;
-//        this.usecaseId = usecaseId;
-//        this.userinfoId = userinfoId;
-//    }
-//
-//
-//    public String getId() {
-//        return id;
-//    }
-//
-//
-//    public void setId(String id) {
-//        this.id = id;
-//    }
-//
-//
-//    public String getUsecaseId() {
-//        return usecaseId;
-//    }
-//
-//
-//    public void setUsecaseId(String usecaseId) {
-//        this.usecaseId = usecaseId;
-//    }
-//
-//
-//    public String getUserinfoId() {
-//        return userinfoId;
-//    }
-//
-//
-//    public void setUserinfoId(String userinfoId) {
-//        this.userinfoId = userinfoId;
-//    }
 
 }

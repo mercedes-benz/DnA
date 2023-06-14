@@ -33,13 +33,4 @@ import com.daimler.data.service.common.CommonService;
 
 public interface UserInfoService extends CommonService<UserInfoVO, UserInfoNsql, String> {
 
-	boolean updateNewUserToken(String id, boolean isLogin);
-
-	boolean validateUserToken(final String id, String token);
-
-	void addUser(UserInfoNsql userinfo);
-
-	public Boolean isAdmin(String userId);
-
-	boolean isLoggedIn(final String id);
 }
