@@ -147,7 +147,7 @@ export const BucketList = (props) => {
             <div className={Styles.bucketGrpListItem}>
               <div className={Styles.bucketCaption}>
                 <div className={Styles.bucketTile}>
-                  <div className={classNames(Styles.bucketTitleCol, Styles.bucketName)}>
+                  <div className={classNames(Styles.bucketTitleCol, Styles.bucketName)}> 
                     <label
                       className={
                         'sortable-column-header ' + (currentColumnToSort === 'bucketName' ? currentSortOrder : '')
@@ -219,7 +219,7 @@ export const BucketList = (props) => {
                       <input type="checkbox" className="ff-only" id={index + '1'} defaultChecked={index === 0} />
                       <label className={Styles.expansionLabel + ' expansion-panel-label '} htmlFor={index + '1'}>
                         <div className={Styles.bucketTile}>
-                          <div className={classNames(Styles.bucketTitleCol, Styles.bucketName)}>
+                          <div className={classNames(Styles.bucketTitleCol, Styles.bucketName)}> 
                             <a
                               href={'#/storage/'}
                               onClick={() => {
