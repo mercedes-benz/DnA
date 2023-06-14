@@ -27,11 +27,11 @@
 
 package com.daimler.data.db.jsonb;
 
+import java.io.Serializable;
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import java.io.Serializable;
 
 @Data
 @NoArgsConstructor
@@ -41,22 +41,5 @@ public class UserRole implements Serializable {
 	private static final long serialVersionUID = -1099242680726380699L;
 
 	private String name;
-
-//    public UserRole() {
-//        super();
-//    }
-//
-//    public UserRole(String name) {
-//        super();
-//        this.name = name;
-//    }
-//
-//    public String getName() {
-//        return name;
-//    }
-//
-//    public void setName(String name) {
-//        this.name = name;
-//    }
 
 }
