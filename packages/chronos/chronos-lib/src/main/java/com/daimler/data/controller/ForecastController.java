@@ -160,7 +160,7 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 			Integer projectCount = service.getTotalCountOfForecastProjects();
 			Integer userCount = service.getTotalCountOfForecastUsers();
 			TransparencyVO transparencyVO = new TransparencyVO();
-			transparencyVO.userCount(userCount);
+			transparencyVO.setUserCount(userCount);
 			transparencyVO.setProjectCount(projectCount);
 			return new ResponseEntity<>(transparencyVO, HttpStatus.OK);
 		}catch (Exception e){
