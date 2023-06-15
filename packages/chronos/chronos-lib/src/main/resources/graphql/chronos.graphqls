@@ -14,7 +14,9 @@ type ForecastVO {
     createdBy: CreatedByVO,
     createdOn: ISODate,
     savedInputs: [InputFileVO],
-    runs: [RunVO]  
+    runs: [RunVO],
+    comparisons: [ForecastComparisonVO],
+    configFiles: [ForecastConfigFileVO],
 }
 
 type Query {
@@ -65,4 +67,36 @@ type InputFileVO{
 	path: String,
 	createdBy: String,
 	createdOn: ISODate
+}
+
+type ForecastComparisonVO{
+	comparisonId: String,
+	comparisonName: String,
+	triggeredBy: String,
+	triggeredOn: ISODate,
+	actualsFile: String,
+	targetFolder: String,
+    runsList: [String],
+    isDeleted: Boolean,
+    state: ComparisonStateVO
+}
+
+type ForecastConfigFileVO{
+	id: String,
+	name: String,
+	path: String,
+	createdBy: String,
+	createdOn: ISODate
+}
+
+type ComparisonStateVO{
+	lifeCycleState: LifeCycleStateEnum,
+	stateMessage: String
+}
+
+enum LifeCycleStateEnum{
+    CREATED
+    RUNNING
+    FAILED
+    SUCCESS
 }

@@ -100,22 +100,18 @@ public class ForecastAssembler implements GenericAssembler<ForecastVO, ForecastN
 		return comparisonsVOList;
 	}
 
-	public List<ForecastConfigFileVO> toConfigFilesVO(List<ConfigFileDetails> configFiles){
-		List<ForecastConfigFileVO> configFilesVOList =  new ArrayList<>();
+	public List<ForecastConfigFileVO> toConfigFilesVO(List<File> configFiles){
+		List<ForecastConfigFileVO> configFilesVO =  new ArrayList<>();
 		if(configFiles!=null && !configFiles.isEmpty()) {
-			for(ConfigFileDetails configFile: configFiles) {
-				if(configFile.getIsDeleted()==null || !configFile.getIsDeleted()) {
-					ForecastConfigFileVO configFileVO = new ForecastConfigFileVO();
-					BeanUtils.copyProperties(configFile,configFileVO);
-					if(configFile.getIsDeleted()!=null)
-						configFileVO.setIsDeleted(configFile.getIsDeleted());
-					configFilesVOList.add(configFileVO);
-				}
-			}
+			configFilesVO = configFiles.stream().map
+					(n -> { ForecastConfigFileVO file = new ForecastConfigFileVO();
+						BeanUtils.copyProperties(n,file);
+						return file;
+					}).collect(Collectors.toList());
 		}
-		return configFilesVOList;
+		return configFilesVO;
 	}
-	
+
 	private RunStateVO toStateVO(RunState runState) {
 		RunStateVO stateVO = new RunStateVO();
 		if(runState!=null) {
@@ -163,6 +159,18 @@ public class ForecastAssembler implements GenericAssembler<ForecastVO, ForecastN
 					}).collect(Collectors.toList());
 		}
 		return files;
+	}
+
+	public List<File> toConfigFiles(List<ForecastConfigFileVO> configFilesVO){
+		List<File> configFiles =  new ArrayList<>();
+		if(configFilesVO!=null && !configFilesVO.isEmpty()) {
+			configFiles = configFilesVO.stream().map
+					(n -> { File configFile = new File();
+						BeanUtils.copyProperties(n,configFile);
+						return configFile;
+					}).collect(Collectors.toList());
+		}
+		return configFiles;
 	}
 
 	@Override
@@ -216,14 +224,8 @@ public class ForecastAssembler implements GenericAssembler<ForecastVO, ForecastN
 				data.setComparisons(comparisons);
 			}
 			if(vo.getConfigFiles()!=null && !vo.getConfigFiles().isEmpty()) {
-				List<ConfigFileDetails> configFiles = vo.getConfigFiles().stream().map
-						(n -> { ConfigFileDetails configFile = new ConfigFileDetails();
-							BeanUtils.copyProperties(n,configFile);
-							if(n.isIsDeleted()!=null)
-								configFile.setIsDeleted(n.isIsDeleted());
-							return configFile;
-						}).collect(Collectors.toList());
-				data.setConfigFiles(configFiles);
+				List<File> files = this.toConfigFiles(vo.getConfigFiles());
+				data.setSavedInputs(files);
 			}
 			data.setBucketId(vo.getBucketId());
 			entity.setData(data);
