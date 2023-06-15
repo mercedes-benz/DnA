@@ -47,7 +47,7 @@ const ComparisonsTab = () => {
 
   /* Sort */
   const [sortBy, setSortBy] = useState({
-    name: 'triggeredOn',
+    name: 'createdOn',
     currentSortType: 'desc',
     nextSortType: 'asc',
   });
@@ -193,12 +193,12 @@ const ComparisonsTab = () => {
                         <tr className="header-row">
                           <th className={Styles.checkboxCol}>&nbsp;</th>
                           <th 
-                            onClick={() => sortResults('runName', sortBy.nextSortType)}
+                            onClick={() => sortResults('comparisonName', sortBy.nextSortType)}
                             >
                             <label
                               className={
                                 'sortable-column-header ' + 
-                                (sortBy.name === 'runName' ? sortBy.currentSortType : '')
+                                (sortBy.name === 'comparisonName' ? sortBy.currentSortType : '')
                               }
                             >
                               <i className="icon sort" />
@@ -206,12 +206,12 @@ const ComparisonsTab = () => {
                             </label>
                           </th>
                           <th 
-                            onClick={() => sortResults('resultState', sortBy.nextSortType)}
+                            onClick={() => sortResults('status', sortBy.nextSortType)}
                             >
                             <label
                               className={
                                 'sortable-column-header ' +
-                                (sortBy.name === 'resultState' ? sortBy.currentSortType : '')
+                                (sortBy.name === 'status' ? sortBy.currentSortType : '')
                               }
                             >
                               <i className="icon sort" />
@@ -219,12 +219,12 @@ const ComparisonsTab = () => {
                             </label>
                           </th>
                           <th 
-                            onClick={() => sortResults('triggeredOn', sortBy.nextSortType)}
+                            onClick={() => sortResults('createdOn', sortBy.nextSortType)}
                             >
                             <label
                               className={
                                 'sortable-column-header ' +
-                                (sortBy.name === 'triggeredOn' ? sortBy.currentSortType : '')
+                                (sortBy.name === 'createdOn' ? sortBy.currentSortType : '')
                               }
                             >
                               <i className="icon sort" />
@@ -232,12 +232,12 @@ const ComparisonsTab = () => {
                             </label>
                           </th>
                           <th 
-                            onClick={() => sortResults('triggeredBy', sortBy.nextSortType)}
+                            onClick={() => sortResults('createdBy', sortBy.nextSortType)}
                             >
                             <label
                               className={
                                 'sortable-column-header ' +
-                                (sortBy.name === 'triggeredBy' ? sortBy.currentSortType : '')
+                                (sortBy.name === 'createdBy' ? sortBy.currentSortType : '')
                               }
                             >
                               <i className="icon sort" />
@@ -245,12 +245,12 @@ const ComparisonsTab = () => {
                             </label>
                           </th>
                           <th 
-                            onClick={() => sortResults('inputFile', sortBy.nextSortType)}
+                            onClick={() => sortResults('actualsFile', sortBy.nextSortType)}
                             >
                             <label
                               className={
                                 'sortable-column-header ' +
-                                (sortBy.name === 'inputFile' ? sortBy.currentSortType : '')
+                                (sortBy.name === 'actualsFile' ? sortBy.currentSortType : '')
                               }
                             >
                               <i className="icon sort" />
