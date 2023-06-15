@@ -1,7 +1,7 @@
 spring:
   application:
     name: dna-dashboard-service
-    version: 3.1.4
+    version: 3.1.5
   flyway:
     enabled: ${FLYWAY_ENABLED:true}
     baseline-on-migrate: ${FLYWAY_BASELINE_ON_MIGRATE:true}
