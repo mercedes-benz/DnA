@@ -21,18 +21,21 @@ The idea of the DnA Platform originated from the common challenge every big comp
 |---|---|---|
 | [DnA Portal Feature](./docs/DnAPortal.md)    | Wrapper feature that packages all features into one streamlined user experience.  | Since 24.12.2021  | 
 | [Solution Transparency feature](./docs/DnATransparency.md)    | Feature that enables you getting transparency on different initiatives around Data/ML/AI and collaboration between people working on similar activities.  | Since 24.12.2021  | 
+| [Report Transparency feature](https://github.com/mercedes-benz/DnA/wiki/Report-transparency)    | Feature that enables you creating transparency on reports and dashboards produced in organization.  | November 2022  | 
+| [Data sharing Transparency feature](https://github.com/mercedes-benz/DnA/wiki/Data-sharing-transparency)    | Feature that enables you creating transparency on which data is being used where in the company and for which purpose.  | February 2023  |
+| [Data product Transparency feature](https://github.com/mercedes-benz/DnA/wiki/Data-product-transparency)    | Feature that enables you creating transparency on which data products are existing in the company and through which access type they can be used (eg. SQL, Kafka, API, file,...).  | May 2023  |
 | [Malware Scan As A Service Feature](./docs/DnAMalwareScanAsAService.md)  |  Feature that provides a simple REST API to check all kinds of attachments for malicious code, abstracting the [ClamAV](https://github.com/Cisco-Talos/clamav) scanner usage and making it ready for web world.  | February 2022   | 
 |  [Data Pipeline Feature](./docs/DnADataPipeline.md)  | This feature integrates [Apache Airflow](https://github.com/apache/airflow) as major component in DnA Platform, enabling processing and transforming of data  | February 2022  | 
 |  [Jupyter Notebook Workspace Feature](./docs/DnAJupyterNotebookWorkspace.md)  | Feature based on [JupyterHub](https://github.com/jupyterhub/jupyterhub) enables users to start working on their models without any additional software installation.   | February 2022   |  
-| [Dataiku integration feature](./docs/DnADataikuWorkspace.md)   | Is only feature that does not follow open source principle completely as [Dataiku](https://doc.dataiku.com/dss/latest/concepts/index.html) is a licensed product. Still even for Dataiku license product we are offering integration into DnA Platform in case you are operating it also (if not simply disable it in configuration).  | February 2022  |
-| [MLOps Pipeline](https://github.com/mercedes-benz/DnA/blob/docs/kfserving-tutorial/docs/DnAMLOPsArchitecture.md) | A holistic Kubernetes native MLOps pipeline based on [Kubeflow](github.com/kubeflow) components and optimized for secure enterprise environments. For more info, you can read the  [DnA - Kubeflow Pipelines](./docs/DnAKFPTutorial.md) & [DnA - Kserve](./docs/DnAKServeTutorial.md) tutorials. | March 2022 | 
-
-
+| [Dataiku integration feature](./docs/DnADataikuWorkspace.md)   | This is the only feature that does not follow the open source principle completely as [Dataiku](https://doc.dataiku.com/dss/latest/concepts/index.html) is a licensed product. Still, even for Dataiku we are offering integration into the DnA Platform in case you are operating it also (if not, simply disable it in configuration).  | February 2022  |
+| [MLOps Pipeline](https://github.com/mercedes-benz/DnA/blob/docs/kfserving-tutorial/docs/DnAMLOPsArchitecture.md) | A holistic Kubernetes native MLOps pipeline based on [Kubeflow](github.com/kubeflow) components and optimized for secure enterprise environments. For more info, you can read the [DnA - Kubeflow Pipelines](./docs/DnAKFPTutorial.md) & [DnA - Kserve](./docs/DnAKServeTutorial.md) tutorials. | March 2022 | 
+| [Code Spaces feature](https://github.com/mercedes-benz/DnA/wiki/Code-Spaces)    | Feature that provides Visual Studio Code for single developer or team (Collaboration) with code templates for different technologies in the web and enables you automatic deployments.  | March 2023  |
+| [Storage bucket feature](https://github.com/mercedes-benz/DnA/wiki/Storage-bucket)    | Feature that provides S3 compliant storage based on [MinIO](https://github.com/minio/minio) possibility for self service user.  | November 2022  |
  
 
 ## Upcoming Features
 
-As Data Pipelines, Jupyter notebook, Kubeflow Pipelines, and other features require some kind of managed persistence layer, we are considering the integration of  [MinIO](https://github.com/minio/minio) as an S3 storage model along with the addition of [DeltaLake](https://github.com/delta-io/delta) to enable native Spark processing and ACID compliance.
+Web Analytics based on Matomo
 
 The list of future ideas is big and it is constantly being adjusted, so please include yourself in the discussion! We are looking forward to different ideas!
 

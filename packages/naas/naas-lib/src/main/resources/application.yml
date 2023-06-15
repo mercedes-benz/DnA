@@ -2,7 +2,7 @@ spring:
   mvc.pathmatch.matching-strategy: ant_path_matcher
   application:
     name: notification-service
-    version: 3.1.1
+    version: 3.1.2
   cache:
     type: redis
   redis:
@@ -58,7 +58,7 @@ spring:
         consume1:
           binder: kafka
           destination: dnaCentralEventTopic
-          content-type: text/plain
+          content-type: text/plain     
 
 kafka:
   centralTopic:

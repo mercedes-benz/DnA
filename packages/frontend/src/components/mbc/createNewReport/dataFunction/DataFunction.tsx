@@ -6,7 +6,6 @@ import {
   IDataSourceMaster,
   IConnectionType,
   IDataWarehouse,
-  ICommonFunctions,
   IDataWarehouseInUse,
   ISingleDataSources,
   IDataClassification,
@@ -33,7 +32,7 @@ export interface IDataWarehouseErrors {
 }
 
 interface IDataWarehouseDropdownValues {
-  commonFunctions: string[];
+  // commonFunctions: string[];
   dataClassifications: string[];
   connectionTypes: string[];
 }
@@ -48,7 +47,7 @@ export interface IDataFunctionProps {
   connectionTypes: IConnectionType[];
   dataClassifications: IDataClassification[];
   dataWarehouses: IDataWarehouse[];
-  commonFunctions: ICommonFunctions[];
+  // commonFunctions: ICommonFunctions[];
   modifyDataFunction: (modifyDataFunction: IDataAndFunctions) => void;
   onSaveDraft: (tabToBeSaved: string) => void;
 }
@@ -78,7 +77,7 @@ export interface IDataAndFunctionsState {
 export interface IDataFunction {
   carLaPlatform: string;
   otherDataFunction: string;
-  commonFunctions: string[];
+  // commonFunctions: string[];
   specificFunctions: string[];
   queries: string[];
   daraSources: string[];
@@ -100,11 +99,11 @@ export default class DataFunction extends React.Component<IDataFunctionProps, ID
       dataWarehouseInUseInfo: {
         dataWarehouse: '',
         connectionType: '',
-        commonFunctions: [],
+        //commonFunctions: [],
         dataClassification: ''
       },
       dataWarehouseDropdownValues: {
-        commonFunctions: [],
+        //commonFunctions: [],
         connectionTypes: [],
         dataClassifications: []
       },
@@ -205,7 +204,7 @@ export default class DataFunction extends React.Component<IDataFunctionProps, ID
     // isEmpty
     //   ? this.setState({
     //       dataWarehouseDropdownValues: {
-    //         commonFunctions: [],
+    //         //commonFunctions: [],
     //         connectionTypes: [],
     //         dataClassifications: []
     //       },
@@ -261,7 +260,7 @@ export default class DataFunction extends React.Component<IDataFunctionProps, ID
       dataWarehouseInUseInfo: {
         dataWarehouse: '',
         connectionType: '',
-        commonFunctions: [],
+        //commonFunctions: [],
         dataClassification: ''
       },
       errors: {
@@ -286,7 +285,7 @@ export default class DataFunction extends React.Component<IDataFunctionProps, ID
   protected onAddDatasourceNew = () => {
     const {
       connectionType: dataWarehouseConnectionTypes,
-      commonFunctions,
+      // commonFunctions,
       dataClassification: dataWarehouseDataClassification,
       dataWarehouse,
     } = this.state.dataWarehouseInUseInfo;
@@ -298,7 +297,7 @@ export default class DataFunction extends React.Component<IDataFunctionProps, ID
       ? selectedValues.push({
           dataWarehouse,
           connectionType: dataWarehouseConnectionTypes,
-          commonFunctions,
+          // commonFunctions,
           dataClassification: dataWarehouseDataClassification,
         })
       : selectedValues.push({
@@ -328,7 +327,7 @@ export default class DataFunction extends React.Component<IDataFunctionProps, ID
           dataWarehouseInUseInfo: {
             dataWarehouse: '',
             connectionType: '',
-            commonFunctions: [],
+            //commonFunctions: [],
             dataClassification: '',
           },
           singleDataSourceInfo: {
@@ -403,12 +402,12 @@ export default class DataFunction extends React.Component<IDataFunctionProps, ID
   //         dataWarehouseInUseInfo: {
   //           dataWarehouse: '',
   //           connectionTypes: [],
-  //           commonFunctions: [],
+  //           //commonFunctions: [],
   //           dataFunction: [],
   //           dataClassification: ''
   //         },
   //         dataWarehouseDropdownValues: {
-  //           commonFunctions: [],
+  //           //commonFunctions: [],
   //           connectionTypes: [],
   //           dataClassifications: []
   //         },
@@ -439,7 +438,9 @@ export default class DataFunction extends React.Component<IDataFunctionProps, ID
   };
 
   protected onEditDatasourceOpen = (dataSourcesAndFunctions: IDataWarehouseInUse, index: number) => {
-    const { connectionType, commonFunctions, dataClassification, dataWarehouse } =
+    const { connectionType, 
+      // commonFunctions, 
+      dataClassification, dataWarehouse } =
       dataSourcesAndFunctions;
     this.setState(
       {
@@ -449,7 +450,7 @@ export default class DataFunction extends React.Component<IDataFunctionProps, ID
         dataWarehouseInUseInfo: {
           dataWarehouse,
           connectionType,
-          commonFunctions,
+          // commonFunctions,
           dataClassification,
         },
         dataSource: 'datawarehouse',
@@ -470,14 +471,16 @@ export default class DataFunction extends React.Component<IDataFunctionProps, ID
 
   protected onEditDatasource = () => {
     const { editDataSourceIndex } = this.state;
-    const { connectionType, commonFunctions, dataClassification, dataWarehouse } =
+    const { connectionType, 
+      // commonFunctions, 
+      dataClassification, dataWarehouse } =
       this.state.dataWarehouseInUseInfo;
     const { dataWarehouseInUse, singleDataSources } = this.state.dataAndFunctions;
     if (this.validateDatasourceObject()) {
       const dataSourceList = [...dataWarehouseInUse]; // create copy of original array
       dataSourceList[editDataSourceIndex] = {
         connectionType,
-        commonFunctions,
+        // commonFunctions,
         dataClassification,
         dataWarehouse,
       }; // modify copied array
@@ -496,7 +499,7 @@ export default class DataFunction extends React.Component<IDataFunctionProps, ID
         dataWarehouseInUseInfo: {
           dataWarehouse: '',
           connectionType: '',
-          commonFunctions: [],
+          //commonFunctions: [],
           dataClassification: '',
         },
         errors: {
@@ -528,6 +531,14 @@ export default class DataFunction extends React.Component<IDataFunctionProps, ID
         SelectBox.defaultSetup();
       },
     );
+  };
+
+  protected onDeleteSingleDatasource = (isDataWarehouseSection: boolean, index: number) => {
+    this.setState({
+      showDeleteModal: true,
+      isDataWarehouseSection: isDataWarehouseSection,
+      editDataSourceIndex: index,
+    });
   };
 
   protected onEditSingleDataSource = () => {
@@ -580,25 +591,25 @@ export default class DataFunction extends React.Component<IDataFunctionProps, ID
     );
   };
 
-  public onCommonFunctionsChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const name = e.target.name;
-    const selectedValue:string[] = [];
-    const selectedOptions = e.currentTarget.selectedOptions;
-    Array.from(selectedOptions).forEach((option) => {
-      selectedValue.push(option.value);
-    });
-    this.setState((prevState) => ({
-      ...prevState,
-      dataWarehouseInUseInfo: {
-        ...prevState.dataWarehouseInUseInfo,
-        [name]: selectedValue,
-      }
-    }),
-    () => {
+  // public onCommonFunctionsChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+  //   const name = e.target.name;
+  //   const selectedValue:string[] = [];
+  //   const selectedOptions = e.currentTarget.selectedOptions;
+  //   Array.from(selectedOptions).forEach((option) => {
+  //     selectedValue.push(option.value);
+  //   });
+  //   this.setState((prevState) => ({
+  //     ...prevState,
+  //     dataWarehouseInUseInfo: {
+  //       ...prevState.dataWarehouseInUseInfo,
+  //       [name]: selectedValue,
+  //     }
+  //   }),
+  //   () => {
         
-      },
-    );
-  };
+  //     },
+  //   );
+  // };
 
   public onChangeSingleDataSource = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const name = e.target.name;
@@ -701,10 +712,10 @@ export default class DataFunction extends React.Component<IDataFunctionProps, ID
         formValid = false;
       }
 
-      if (!this.state.dataWarehouseInUseInfo.commonFunctions?.length) {
-        errors.commonFunctions = errorMissingEntry;
-        formValid = false;
-      }
+      // if (!this.state.dataWarehouseInUseInfo.commonFunctions?.length) {
+      //   errors.commonFunctions = errorMissingEntry;
+      //   formValid = false;
+      // }
 
       // if (!this.state.dataWarehouseInUseInfo.dataSources?.length) {
       //   errors.dataSources = errorMissingEntry;
@@ -737,13 +748,13 @@ export default class DataFunction extends React.Component<IDataFunctionProps, ID
         formValid = false;
       }
     } else {
-      if (
-        !this.state.singleDataSourceInfo.connectionType ||
-        this.state.singleDataSourceInfo.connectionType === 'Choose'
-      ) {
-        singleDataSourceErrors.connectionType = errorMissingEntry;
-        formValid = false;
-      }
+      // if (
+      //   !this.state.singleDataSourceInfo.connectionType ||
+      //   this.state.singleDataSourceInfo.connectionType === 'Choose'
+      // ) {
+      //   singleDataSourceErrors.connectionType = errorMissingEntry;
+      //   formValid = false;
+      // }
       if (
         !this.state.singleDataSourceInfo.dataClassification ||
         this.state.singleDataSourceInfo.dataClassification === 'Choose'
@@ -916,10 +927,10 @@ export default class DataFunction extends React.Component<IDataFunctionProps, ID
           dataWarehouseInUseInfo={this.state.dataWarehouseInUseInfo}
           errors={this.state.errors}
           onDropdownChange={this.onDataSource}
-          onCommonFunctionsChange={this.onCommonFunctionsChange}
+          // onCommonFunctionsChange={this.onCommonFunctionsChange}
           requiredError={requiredError}
           dataWarehouses={this.props.dataWarehouses}
-          commonFunctions={this.props.commonFunctions.map(item=>item.name)}
+          // commonFunctions={this.props.commonFunctions.map(item=>item.name)}
           connectionTypes={this.props.connectionTypes.map(item=>item.name)}
           dataClassifications={this.props.dataClassifications.map(item=>item.name)}
           // onDataWarehouseChange={()=>this.handleChange} 
@@ -1008,7 +1019,7 @@ export default class DataFunction extends React.Component<IDataFunctionProps, ID
                 currentColumnToSort={this.state.currentColumnToSort}
                 currentSortOrder={this.state.currentSortOrder}
                 onEdit={this.onEditSingleDataSourceOpen}
-                onDelete={this.onDeleteDatasource}
+                onDelete={this.onDeleteSingleDatasource}
                 showDataSourceModal={this.showDataSourceModal}
                 isDataWarehouseContextMenuOpened = {this.state.isDataWarehouseContextMenuOpened}
                 setSingleDataSourceContextMenuStatus = {this.setSingleDataSourceContextMenuStatus}

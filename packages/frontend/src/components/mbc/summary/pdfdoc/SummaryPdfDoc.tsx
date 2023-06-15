@@ -708,7 +708,7 @@ interface SummaryPdfDocProps {
   canShowPlatform: boolean;
   canShowMilestones: boolean;
   canShowDataSources: boolean;
-  canShowDigitalValue: string;
+  canShowDigitalValue: boolean;
   canShowComplianceSummary: number | boolean;
   user: IUserInfo;
   noteBookInfo: INotebookInfo;
@@ -896,11 +896,13 @@ export const SummaryPdfDoc = (props: SummaryPdfDocProps) => (
                           <View>
                             <Text>
                               Created on{' '}
-                              {getDateFromTimestamp(
+                              {(props?.dnaNotebookEnabled && props?.noteBookInfo?.createdOn) ||
+                                  (props?.dnaDataIkuProjectEnabled && props?.dataIkuInfo?.creationTag?.lastModifiedOn)
+                                  ? getDateFromTimestamp(
                                 (props.dnaNotebookEnabled && props.noteBookInfo.createdOn) ||
                                   (props.dnaDataIkuProjectEnabled && props.dataIkuInfo.creationTag?.lastModifiedOn),
                                 '.',
-                              )}{' '}
+                              ): ''}{' '}
                               by{' '}
                               {(props.dnaNotebookEnabled && props.noteBookInfo.createdBy.firstName) ||
                                 (props.dnaDataIkuProjectEnabled &&
@@ -1020,6 +1022,10 @@ export const SummaryPdfDoc = (props: SummaryPdfDocProps) => (
             ) : (
               <View />
             )}
+          </View>
+        ) : (
+          <View />
+        )}  
 
             {(props.solution.analytics &&
               props.solution.analytics.algorithms &&
@@ -1163,10 +1169,7 @@ export const SummaryPdfDoc = (props: SummaryPdfDocProps) => (
             ) : (
               <View />
             )}
-          </View>
-        ) : (
-          <View />
-        )}
+          
         {props.canShowComplianceSummary ? (
           <View wrap={false}>
             <View wrap={false}>

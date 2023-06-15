@@ -14,7 +14,7 @@ import ProgressIndicator from '../../../../common/modules/uilab/js/src/progress-
 import Notification from '../../../../common/modules/uilab/js/src/notification';
 import Tooltip from '../../../../common/modules/uilab/js/src/tooltip';
 
-const DataTransferListItem = ({ product, history, user }) => {
+const DataTransferListItem = ({ product, history, user, isProviderCreatorFilter }) => {
   const dispatch = useDispatch();
   const isProviderFormSubmitted = product?.providerInformation?.providerFormSubmitted;
   const isCreator = product.providerInformation?.createdBy?.id === user?.id;
@@ -50,12 +50,18 @@ const DataTransferListItem = ({ product, history, user }) => {
   );
   const deleteDataTransferAccept = () => {
     ProgressIndicator.show();
-    dataTransferApi.deleteDataTransfer(product?.id).then(() => {
-      dispatch(GetDataTransfers());
-      setShowContextMenu(false);
-      setShowDeleteModal(false);
-      Notification.show(`${product?.dataTransferName} deleted successfully.`);
-    });
+    dataTransferApi
+      .deleteDataTransfer(product?.id)
+      .then(() => {
+        dispatch(GetDataTransfers(isProviderCreatorFilter));
+        setShowContextMenu(false);
+        setShowDeleteModal(false);
+        Notification.show(`${product?.dataTransferName} deleted successfully.`);
+      })
+      .catch(() => {
+        ProgressIndicator.hide();
+        Notification.show('Error while deleting the data transfer', 'alert');
+      });
   };
   const deleteDataTransferClose = () => {
     setShowDeleteModal(false);
@@ -96,7 +102,7 @@ const DataTransferListItem = ({ product, history, user }) => {
           <button
             className={classNames('btn btn-text arrow', Styles.arrowBtn)}
             type="submit"
-            onClick={() => history.push(`/summary/${product?.dataTransferId}`)}
+            onClick={() => history.push(`/datasharing/summary/${product?.dataTransferId}`)}
           >
             {product?.dataTransferName}
           </button>

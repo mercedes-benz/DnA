@@ -34,10 +34,12 @@ import java.security.cert.X509Certificate;
 
 import javax.net.ssl.SSLContext;
 
+import org.apache.http.HttpHost;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.ssl.TrustStrategy;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
@@ -50,6 +52,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 @Configuration
 public class Restconfig implements WebMvcConfigurer {
 
+	@Value("${proxy.host}")
+	private String proxyHost;
+	
+	@Value("${proxy.port}")
+	private String proxyPort;
+	
 	@Bean
 	public RestTemplate restTemplate() throws KeyStoreException, NoSuchAlgorithmException, KeyManagementException {
 		TrustStrategy acceptingTrustStrategy = (X509Certificate[] chain, String authType) -> true;
@@ -71,5 +79,28 @@ public class Restconfig implements WebMvcConfigurer {
 		restTemplate.getMessageConverters().add(converter);
 		return restTemplate;
 	}
+	
+	@Bean
+	public RestTemplate proxyRestTemplate() throws KeyStoreException, NoSuchAlgorithmException, KeyManagementException {
+		TrustStrategy acceptingTrustStrategy = (X509Certificate[] chain, String authType) -> true;
+	
+		SSLContext sslContext = null;
+			sslContext = org.apache.http.ssl.SSLContexts.custom().loadTrustMaterial(null, acceptingTrustStrategy)
+					.build();
+		SSLConnectionSocketFactory csf = new SSLConnectionSocketFactory(sslContext);
+		int port = Integer.parseInt(proxyPort);
+		HttpHost proxy = new HttpHost(proxyHost, port);
+		CloseableHttpClient httpClient = HttpClients.custom().setSSLSocketFactory(csf).setProxy(proxy).build();
+	
+		HttpComponentsClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory();
+		requestFactory.setHttpClient(httpClient);
+		
+		RestTemplate restTemplate = new RestTemplate(requestFactory);
+		MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter();
+		converter.setObjectMapper(new ObjectMapper());
+		restTemplate.getMessageConverters().add(converter);
+		return restTemplate;
+	}
+
 
 }

@@ -79,6 +79,7 @@ export default class ListProjects extends React.Component<{ user: IUserInfo }, I
       showDetailsModal: false,
       projectData: {
         name: '',
+        cloudProfile: '',
         shortDesc: '',
         projectKey: '',
         tags: [],
@@ -744,7 +745,7 @@ export default class ListProjects extends React.Component<{ user: IUserInfo }, I
 
   protected openProvisionModal = (project: IDataiku) => {
     this.setState({ showProvisionModal: true, projectData: project }, () => {
-      this.child.current.callDAtaikuProjectDetails(project.projectKey);
+      this.child.current.callDAtaikuProjectDetails(project.projectKey, project.cloudProfile);
     });
   };
 

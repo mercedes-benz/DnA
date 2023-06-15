@@ -1,7 +1,7 @@
 micronaut:
   application:
     name: dataiku
-    version: 1.0.0
+    version: 1.0.1
   security:
     enabled: false
   router:
@@ -40,9 +40,9 @@ jpa:
         
 datasources:
   default:
-    url: ${JDBC_URL:jdbc:postgresql://53.137.140.156:64000/storage}
-    username: ${JDBC_USER:storage}
-    password: ${JDBC_PASSWORD:abcf02d283e9be06ea55ba189a2a00a77d35d12a}
+    url: ${JDBC_URL:XXXX}
+    username: ${JDBC_USER:user_XXXX}
+    password: ${JDBC_PASSWORD:password_XXXX}
     driver-class-name: ${JDBC_DRIVER:org.postgresql.Driver}
                 
 flyway:

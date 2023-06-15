@@ -530,6 +530,15 @@ export interface IUserDetails {
   lastName: string;
   mobileNumber?: string;
 }
+
+export interface IUserPrivilege {
+  id: string;
+  userId: string;
+  profile: string;
+  givenName: string;
+  surName: string;
+}
+
 export interface ICodeCollaborator {
   firstName: string;
   department: string;
@@ -604,6 +613,7 @@ export interface IDescriptionRequest {
   reportLink: string;
   reportType: string;
   piiData: string;
+  procedureId: string;
 }
 
 export interface ICustomers {
@@ -612,7 +622,7 @@ export interface ICustomers {
 }
 
 export interface IInternalCustomerDetails {
-  name: ITeams;
+  // name: ITeams;
   customerRelation: string;
   comment: string;
   department: string;
@@ -624,7 +634,6 @@ export interface IInternalCustomerDetails {
 }
 
 export interface IExternalCustomerDetails {
-  name: ITeams;
   companyName: string;
   customerRelation: string;
   comment: string;
@@ -632,9 +641,20 @@ export interface IExternalCustomerDetails {
 
 export interface IKpis {
   description: string;
-  name: string;
-  reportingCause: string;
+  name: IKpiName;
+  names?: any[];
+  reportingCause: string[];
   kpiLink: string;
+}
+
+export interface IKpiName {
+  kpiName: string;
+  kpiClassification: string;
+}
+
+export interface IKpiClassification {
+  id: string;
+  name: string;
 }
 
 export interface IDataAndFunctions {
@@ -643,7 +663,7 @@ export interface IDataAndFunctions {
 }
 
 export interface IDataWarehouseInUse {
-  commonFunctions: string[];
+  // commonFunctions: string[];
   connectionType: string;
   dataWarehouse: string;
   dataClassification: string;
@@ -667,7 +687,7 @@ export interface IUserNewInfo {
 }
 
 export interface IMembers {
-  reportOwners: ITeams[];
+  // reportOwners: ITeams[];
   reportAdmins?: ITeams[];
 }
 export interface ICreateNewReport {
@@ -721,9 +741,14 @@ export interface IIntegratedPortal {
   id: string;
   name: string;
 }
-export interface IKpiNames {
+export interface IKpiNameList {
   id: string;
   name: string;
+  dataType?: null | string;
+  source?: null | string;
+  externalRefId?: string,
+  lastModifiedDate?: string,
+  modifiedBy?: string
 }
 
 export interface IReportingCauses {
@@ -761,6 +786,7 @@ export interface ICommonFunctions {
 
 export interface IDataiku {
   name: string;
+  cloudProfile?: string;
   shortDesc: string;
   projectKey: string;
   tags: string[];
@@ -943,6 +969,7 @@ export interface IAllReportsListItemCSV {
   createdDate?: string;
   lastModifiedDate?: string;
   reportId: string;
+  procedureId: string;
 }
 
 export interface IAllSolutionsResult {
@@ -1084,6 +1111,20 @@ export interface IFilterPreferences {
   solutionStatus: IProjectStatus;
   useCaseType?: string;
   tags: ITag[];
+}
+
+export interface IDataProductListItem {
+  id: string;
+  name?: string;
+}
+
+export interface IDataProductFilterParams {
+  art: string[];
+  platform: string[];
+  frontendTool: string[];
+  productOwner: string[];
+  carlaFunction?: string[];
+  tag?: string[];
 }
 
 export interface INoticationModules {
@@ -1333,6 +1374,13 @@ export interface IFitlerCategory {
   id: number;
   name: string;
 }
+
+export interface IFitlerKpiNameCategory {
+  id: number;
+  kpiName: string;
+  kpiClassification: string;
+}
+
 export interface ITagResult {
   id: string;
   name: string;
@@ -1429,7 +1477,7 @@ export interface IAddNewCategoriesItem {
 export interface IDatawarehouseInItem {
   id: string;
   dataWarehouse: string;
-  commonFunctions: string[];
+  // commonFunctions: string[];
   dataClassification: string;
   connectionType: string;
 }

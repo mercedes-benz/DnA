@@ -5,6 +5,7 @@ import java.util.Date;
 import java.util.List;
 
 import com.daimler.data.dto.forecast.*;
+import com.daimler.data.dto.storage.BucketObjectsCollectionWrapperDto;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.daimler.data.controller.exceptions.GenericMessage;
@@ -20,15 +21,12 @@ public interface ForecastService extends CommonService<ForecastVO, ForecastNsql,
 
 	ForecastVO createForecast(ForecastVO vo) throws Exception;
 
-	FileUploadResponseDto saveFile(String prefix, MultipartFile file, String bucketName);
-
-	ForecastRunResponseVO createJobRun(MultipartFile file,String savedInputPath, Boolean saveRequestPart, String runName,
+	ForecastRunResponseVO createJobRun(MultipartFile file, String savedInputPath, Boolean saveRequestPart, String runName,
 			String configurationFile, String frequency, BigDecimal forecastHorizon, String hierarchy, String comment,
-			Boolean runOnPowerfulMachines, ForecastVO existingForecast, String triggeredBy, Date triggeredOn);
+			Boolean runOnPowerfulMachines, ForecastVO existingForecast, String triggeredBy, Date triggeredOn, String infotext);
 
-	Long getRunsCount(String id);
 
-	List<RunVO> getAllRunsForProject( int limit,  int offset, String forecastId);
+	Object[] getAllRunsForProject( int limit,  int offset, String forecastId, String sortBy, String sortOrder);
 
 	GenericMessage deletRunByUUID(String id, String rid);
 
@@ -45,4 +43,16 @@ public interface ForecastService extends CommonService<ForecastVO, ForecastNsql,
 	Boolean isBucketExists(String bucketName);
 	
 	List<String> getAllForecastIds();
+
+	public BucketObjectsCollectionWrapperDto getBucketObjects(String path, String bucketType);
+
+	public ForecastComparisonCreateResponseVO createComparison(String id, ForecastVO existingForecast, List<String> validRunsPath, String comparisionId, String comparisonName,
+			String actualsFilePath, String targetFolder, Date createdOn, String requestUser);
+	public Object[]  getAllForecastComparisons(int limit, int offset,String id,String sortBy,String sortOrder);
+	public GenericMessage  deleteComparison(String id,List<String> validComparisonIds);
+	public ForecastComparisonResultVO  getForecastComparisonById(String id,String comparisonId);
+
+	public void processForecastComparision(String forecastId, String comparisonId);
+
+
 }

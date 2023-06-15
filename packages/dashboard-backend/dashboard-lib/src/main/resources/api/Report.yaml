@@ -321,7 +321,6 @@ definitions:
       reportLink:
         type: string
         description: "Report Link"   
-        minLength: 1   
       productDescription: 
         description: "Description about the report"
         type: string
@@ -354,12 +353,13 @@ definitions:
           type: string
       agileReleaseTrain:
         type: string
+      procedureId: 
+        type: string
     required:
       - productDescription
       - status
       - frontendTechnologies
       - department
-      - reportLink
   
   CustomerVO:
     type: object
@@ -376,8 +376,8 @@ definitions:
   InternalCustomerVO:
     type: object
     properties: 
-      name:
-        $ref: "#/definitions/TeamMemberVO"
+#      name:
+#        $ref: "#/definitions/TeamMemberVO"
       customerRelation: 
         type: string
         minLength: 1           
@@ -410,8 +410,8 @@ definitions:
   ExternalCustomerVO:
     type: object
     properties: 
-      name:
-        $ref: "#/definitions/TeamMemberVO"
+#      name:
+#        $ref: "#/definitions/TeamMemberVO"
       customerRelation: 
         type: string
         minLength: 1
@@ -428,13 +428,13 @@ definitions:
     type: object
     properties:  
       name:
-        type: string
-        description: ""
-        minLength: 1
+        $ref: "#/definitions/KpiNameVO"
       reportingCause: 
         description: ""
-        type: string
-        minLength: 1
+        type: array
+        items:
+          type: string
+          minLength: 1
       description:
         type: string
       kpiLink:
@@ -443,6 +443,19 @@ definitions:
     required:
       - name
       - reportingCause
+      
+  KpiNameVO: 
+    type: object
+    properties:  
+      kpiName:
+        type: string
+        description: "KPI name"
+      kpiClassification:
+        type: string        
+        description: "KPI classification"
+#    required:
+#     - name
+#     - classification   
           
   DataWarehouseVO:
     type: object
@@ -450,10 +463,10 @@ definitions:
       dataWarehouse:
         type: string
         minLength: 1
-      commonFunctions: 
-        type: array
-        items:
-          type: string
+#      commonFunctions: 
+#        type: array
+#        items:
+#          type: string
       dataClassification: 
         type: string
         minLength: 1
@@ -509,11 +522,7 @@ definitions:
   MemberVO:
     description: "Team Member."
     type: object
-    properties:  
-      reportOwners:
-        type: array
-        items:
-          $ref: "#/definitions/TeamMemberVO"
+    properties:        
       reportAdmins:
         type: array
         items:

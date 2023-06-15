@@ -2,7 +2,7 @@ spring:
   mvc.pathmatch.matching-strategy: ant_path_matcher
   application:
     name: dna-chronos-service
-    version: 1.1.0
+    version: 1.3.2
 
   cloud:
     vault:
@@ -16,10 +16,22 @@ spring:
       kv:
        enabled: true
     stream:
+      function:
+        bindings:
+          consume-in-0: consume2
       default-binder: kafka
       kafka:
         binder:
           brokers: ${NAAS_BROKER:hostXXXX:portXXXX}   
+      bindings:
+        output:
+          binder: kafka
+          destination: dnaChronosComparisonTopic
+          content-type: text/plain
+        consume2:
+          binder: kafka
+          destination: dnaChronosComparisonTopic
+          content-type: text/plain
 
   flyway:
     enabled: ${FLYWAY_ENABLED:true}
@@ -53,17 +65,15 @@ spring:
       max-file-size: 5MB
       max-request-size: 5MB
       
-#  cloud:
-#    stream:
-#      default-binder: kafka
-#      kafka:
-#        binder:
-#          brokers: ${NAAS_BROKER:hostXXXX:portXXXX}   
-#
-#
 kafka:
   centralTopic:
     name: dnaCentralEventTopic
+    
+chronosComparison:
+  uri: ${CHRONOS_COMPARISON_BASE_URI:XXXXX}
+
+chronosMinio:
+  env: ${CHRONOS_MINIO_ENVIRONMENT:dev}
 
 
 databricks:
@@ -73,6 +83,7 @@ databricks:
   jobId: ${DATABRICKS_JOBID:XXXXX}
   powerfulMachinesJobId: ${DATABRICKS_POWERFULMACHINESJOBID:XXXXX}
   defaultConfigYml: ${DATABRICKS_DEFAULTCONFIGYML_PATH:chronos-core/objects?prefix=configs/}
+  runsDefaultPageSize: ${DATABRICKS_RUNSDEFAULTPAGESIZE_PATH:15}
   uri:
     base: ${DATABRICKS_BASE_URI:XXXXX}
     runnow: ${DATABRICKS_RUNNOW_URI:/api/2.1/jobs/run-now}
@@ -80,6 +91,7 @@ databricks:
     getrun: ${DATABRICKS_GETRUN_URI:/api/2.1/jobs/runs/get}
     jobrunlist: ${DATABRICKS_JOBRUNLIST_URI:/api/2.1/jobs/get}
     jobrunoutput: ${DATABRICKS_GETRUNOUTPUT_URI:/api/2.1/jobs/runs/get-output}
+    
 dna:
   uri: ${DNA_URI:XXXXXX}
   dnaAuthEnable: ${DNA_AUTH_ENABLE:false}

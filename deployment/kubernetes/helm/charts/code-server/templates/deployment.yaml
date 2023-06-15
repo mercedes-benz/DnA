@@ -63,6 +63,21 @@ spec:
           securityContext:
             runAsUser: {{ .Values.securityContext.runAsUser }}
           {{- end }}
+          {{- if .Values.custCmd }}
+          command:
+{{ toYaml .Values.custCmd | indent 11 }}
+          {{- end }}          
+          {{- if .Values.lifecycle.enabled }}
+          lifecycle:
+            {{- if .Values.lifecycle.postStart }}
+            postStart:
+              {{ toYaml .Values.lifecycle.postStart | nindent 14 }}
+            {{- end }}
+            {{- if .Values.lifecycle.preStop }}
+            preStop:
+              {{ toYaml .Values.lifecycle.preStop | nindent 14 }}
+            {{- end }}
+          {{- end }}
           env:
         {{- if .Values.extraVars }}
 {{ toYaml .Values.extraVars | indent 10 }}
@@ -92,6 +107,7 @@ spec:
           {{- range .Values.extraSecretMounts }}
           - name: {{ .name }}
             mountPath: {{ .mountPath }}
+            subPath: {{ .subPath | default "" }}
             readOnly: {{ .readOnly }}
           {{- end }}
           {{- range .Values.extraVolumeMounts }}
@@ -104,14 +120,27 @@ spec:
             - name: http
               containerPort: 8080
               protocol: TCP
+          {{- range .Values.extraPorts }}
+            - name: {{ .name }}
+              containerPort: {{ .port }}
+              protocol: {{ .protocol }}
+          {{- end }}
           livenessProbe:
             httpGet:
               path: /
               port: http
+            timeoutSeconds: 20
+            periodSeconds: 10
+            successThreshold: 1
+            failureThreshold: 5                 
           readinessProbe:
             httpGet:
               path: /
               port: http
+            timeoutSeconds: 20
+            periodSeconds: 10
+            successThreshold: 1
+            failureThreshold: 5                 
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
       {{- with .Values.nodeSelector }}
@@ -141,12 +170,6 @@ spec:
       {{- else }}
         emptyDir: {}
       {{- end -}}
-## PALANSA Extra vol for db service      
-      {{- if .Values.persistence.db.enabled }}
-      - name: db      
-        persistentVolumeClaim:
-          claimName: {{ include "code-server.fullname" . }}-db       
-      {{- end -}}      
       {{- range .Values.extraSecretMounts }}
       - name: {{ .name }}
         secret:
