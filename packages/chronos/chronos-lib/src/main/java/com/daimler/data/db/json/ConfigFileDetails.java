@@ -18,6 +18,6 @@ public class ConfigFileDetails {
     private String configFileName;
     private String triggeredBy;
     private Date triggeredOn;
-    private Boolean isDeleted;
+
 
 }
