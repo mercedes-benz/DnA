@@ -73,7 +73,7 @@ const ForecastResultsTab = ({ onRunClick }) => {
   
   /* Sort */
   const [sortBy, setSortBy] = useState({
-    name: 'triggeredOn',
+    name: 'createdOn',
     currentSortType: 'desc',
     nextSortType: 'asc',
   });
@@ -286,12 +286,12 @@ const ForecastResultsTab = ({ onRunClick }) => {
                             </label>
                           </th>
                           <th 
-                            onClick={() => sortResults('resultState', sortBy.nextSortType)}
+                            onClick={() => sortResults('status', sortBy.nextSortType)}
                             >
                             <label
                               className={
                                 'sortable-column-header ' +
-                                (sortBy.name === 'resultState' ? sortBy.currentSortType : '')
+                                (sortBy.name === 'status' ? sortBy.currentSortType : '')
                               }
                             >
                               <i className="icon sort" />
@@ -299,12 +299,12 @@ const ForecastResultsTab = ({ onRunClick }) => {
                             </label>
                           </th>
                           <th 
-                            onClick={() => sortResults('triggeredOn', sortBy.nextSortType)}
+                            onClick={() => sortResults('createdOn', sortBy.nextSortType)}
                             >
                             <label
                               className={
                                 'sortable-column-header ' +
-                                (sortBy.name === 'triggeredOn' ? sortBy.currentSortType : '')
+                                (sortBy.name === 'createdOn' ? sortBy.currentSortType : '')
                               }
                             >
                               <i className="icon sort" />
@@ -312,12 +312,12 @@ const ForecastResultsTab = ({ onRunClick }) => {
                             </label>
                           </th>
                           <th 
-                            onClick={() => sortResults('triggeredBy', sortBy.nextSortType)}
+                            onClick={() => sortResults('createdBy', sortBy.nextSortType)}
                             >
                             <label
                               className={
                                 'sortable-column-header ' +
-                                (sortBy.name === 'triggeredBy' ? sortBy.currentSortType : '')
+                                (sortBy.name === 'createdBy' ? sortBy.currentSortType : '')
                               }
                             >
                               <i className="icon sort" />
@@ -351,27 +351,20 @@ const ForecastResultsTab = ({ onRunClick }) => {
                             </label>
                           </th>
                           <th 
-                            onClick={() => sortResults('exogenousData', sortBy.nextSortType)}
+                            onClick={() => sortResults('exogenData', sortBy.nextSortType)}
                             >
                             <label
                               className={
                                 'sortable-column-header ' +
-                                (sortBy.name === 'exogenousData' ? sortBy.currentSortType : '')
+                                (sortBy.name === 'exogenData' ? sortBy.currentSortType : '')
                               }
                             >
                               <i className="icon sort" />
                               Exogenous Data
                             </label>
                           </th>
-                          <th 
-                            onClick={() => sortResults('hierarchy', sortBy.nextSortType)}
-                            >
-                            <label
-                              className={
-                                'sortable-column-header ' +
-                                (sortBy.name === 'hierarchy' ? sortBy.currentSortType : '')
-                              }
-                            >
+                          <th>
+                            <label className={'sortable-column-header'}>
                               <i className="icon sort" />
                               Levels of Hierarchy
                             </label>
