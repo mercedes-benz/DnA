@@ -43,7 +43,7 @@ export class ReportsApiClient {
       this.get('lov/frontendtechnologies'),
       this.get('lov/levels'),
       this.get('lov/integratedportals'),
-      this.get('lov/kpinames'),
+      this.get('kpinames'),
       this.get('lov/reportingcauses'),
       this.get('lov/legalentities'),
       this.get('lov/statuses'),
@@ -54,6 +54,7 @@ export class ReportsApiClient {
       ApiClient.get('divisions'),
       this.get('departments'),
       this.get('lov/dataclassifications'),
+      this.get('lov/kpiClassifications'),
     ]);
   }
 
@@ -128,7 +129,7 @@ export class ReportsApiClient {
     const resQuery = `totalCount
       records {id,
         productName,
-        description { division { id, name, subdivision { id, name } }, department, status, productDescription, tags, agileReleaseTrain, integratedPortal, frontendTechnologies, reportLink, reportType  },
+        description { division { id, name, subdivision { id, name } }, department, status, productDescription, tags, agileReleaseTrain, integratedPortal, frontendTechnologies, reportLink, reportType, procedureId  },
         customer {
           internalCustomers {            
             customerRelation,
@@ -153,7 +154,7 @@ export class ReportsApiClient {
             comment
           }
         },
-        kpis { name, reportingCause, description, kpiLink },
+        kpis { name{kpiName, kpiClassification}, reportingCause, description, kpiLink },
         dataAndFunctions { 
           dataWarehouseInUse { dataWarehouse, connectionType, dataClassification } , 
           singleDataSources { 
@@ -336,7 +337,7 @@ export class ReportsApiClient {
     return this.get('tags');
   }
   public static getKpiName(): Promise<IReportListItems[]> {
-    return this.get('lov/kpinames');
+    return this.get('kpinames');
   }
 
   // Lov Add Calls //

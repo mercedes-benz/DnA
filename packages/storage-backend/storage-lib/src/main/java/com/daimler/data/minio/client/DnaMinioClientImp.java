@@ -27,6 +27,40 @@
 
 package com.daimler.data.minio.client;
 
+import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Objects;
+import java.util.UUID;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
+
+import org.bouncycastle.crypto.InvalidCipherTextException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Component;
+import org.springframework.util.ObjectUtils;
+import org.springframework.util.StringUtils;
+import org.springframework.web.multipart.MultipartFile;
+
 import com.daimler.data.application.config.MinioConfig;
 import com.daimler.data.application.config.UserInfoDto;
 import com.daimler.data.application.config.UserInfoWrapperDto;
@@ -42,35 +76,30 @@ import com.daimler.data.util.PolicyUtility;
 import com.daimler.data.util.RedisCacheUtil;
 import com.daimler.data.util.StorageUtility;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.minio.*;
+
+import io.minio.BucketExistsArgs;
+import io.minio.GetObjectArgs;
+import io.minio.ListObjectsArgs;
+import io.minio.MakeBucketArgs;
+import io.minio.MinioClient;
+import io.minio.PutObjectArgs;
+import io.minio.RemoveBucketArgs;
+import io.minio.RemoveObjectsArgs;
+import io.minio.Result;
 import io.minio.admin.MinioAdminClient;
 import io.minio.admin.UserInfo;
 import io.minio.admin.UserInfo.Status;
-import io.minio.errors.*;
+import io.minio.errors.ErrorResponseException;
+import io.minio.errors.InsufficientDataException;
+import io.minio.errors.InternalException;
+import io.minio.errors.InvalidResponseException;
+import io.minio.errors.MinioException;
+import io.minio.errors.ServerException;
+import io.minio.errors.XmlParserException;
 import io.minio.messages.Bucket;
 import io.minio.messages.DeleteError;
 import io.minio.messages.DeleteObject;
 import io.minio.messages.Item;
-import org.bouncycastle.crypto.InvalidCipherTextException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.io.ByteArrayResource;
-import org.springframework.http.HttpStatus;
-import org.springframework.stereotype.Component;
-import org.springframework.util.ObjectUtils;
-import org.springframework.util.StringUtils;
-import org.springframework.web.multipart.MultipartFile;
-
-import java.io.*;
-import java.net.URLDecoder;
-import java.nio.charset.StandardCharsets;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
-import java.util.*;
-import java.util.Map.Entry;
-import java.util.stream.Collectors;
 
 @Component
 public class DnaMinioClientImp implements DnaMinioClient {
@@ -94,6 +123,15 @@ public class DnaMinioClientImp implements DnaMinioClient {
 
 	@Value("${storage.httpMethod}")
 	private String storageHttpMethod;
+	
+	@Value("${storage.mc.timeout.alias}")
+	private String storageMCAliasCmdTimeout;
+	
+	@Value("${storage.mc.timeout.listpolicies}")
+	private String storageMCListPoliciesCmdTimeout;
+	
+	@Value("${storage.mc.commandkeyword}")
+	private String storageMCcommandKey;
 
 	@Autowired
 	private MinioConfig minioConfig;
@@ -111,7 +149,7 @@ public class DnaMinioClientImp implements DnaMinioClient {
 		try {
 			MinioClient minioClient = minioConfig.getMinioClient();
 			// Make Bucket
-			LOGGER.info("Making new bucket: {}", bucketName);
+			LOGGER.debug("Making new bucket: {}", bucketName);
 			minioClient.makeBucket(MakeBucketArgs.builder().bucket(bucketName).build());
 
 			LOGGER.debug("Creating policies for bucket:{}", bucketName);
@@ -171,7 +209,7 @@ public class DnaMinioClientImp implements DnaMinioClient {
 		Boolean isBucketExists = null;
 		try {
 			MinioClient minioClient = minioConfig.getMinioClient();
-			LOGGER.info("Connecting to minio client to get bucket status for:{}", bucketName);
+			LOGGER.debug("Connecting to minio client to get bucket status for:{}", bucketName);
 			isBucketExists = minioClient.bucketExists(BucketExistsArgs.builder().bucket(bucketName).build());
 		} catch (InvalidKeyException | ErrorResponseException | InsufficientDataException | InternalException
 				| InvalidResponseException | NoSuchAlgorithmException | ServerException | XmlParserException
@@ -194,7 +232,7 @@ public class DnaMinioClientImp implements DnaMinioClient {
 						.build();
 				ByteArrayInputStream bais = new ByteArrayInputStream(uploadfile.getBytes());
 
-				LOGGER.info("Uploading object to minio..{}", uploadfile.getOriginalFilename());
+				LOGGER.debug("Uploading object to minio..{}", uploadfile.getOriginalFilename());
 				minioClient.putObject(PutObjectArgs.builder().bucket(bucketName)
 						.object(prefix + "/" + uploadfile.getOriginalFilename()).stream(bais, bais.available(), -1)
 						.build());
@@ -231,7 +269,7 @@ public class DnaMinioClientImp implements DnaMinioClient {
 				userId = minioAdminAccessKey;
 				userSecretKey = minioAdminSecretKey;
 			}else {
-				LOGGER.info("Fetching secrets from vault for user:{}", userId);
+				LOGGER.debug("Fetching secrets from vault for user:{}", userId);
 				userSecretKey = vaultConfig.validateUserInVault(userId);
 			}
 			if (StringUtils.hasText(userSecretKey)) {
@@ -239,7 +277,7 @@ public class DnaMinioClientImp implements DnaMinioClient {
 				MinioClient minioClient = MinioClient.builder().endpoint(minioBaseUri)
 						.credentials(userId, userSecretKey).build();
 
-				LOGGER.info("Listing all buckets for user:{}", userId);
+				LOGGER.debug("Listing all buckets for user:{}", userId);
 				List<Bucket> buckets = minioClient.listBuckets();
 
 				LOGGER.info("Success from minio list bucket for user:{}", userId);
@@ -247,7 +285,7 @@ public class DnaMinioClientImp implements DnaMinioClient {
 				getBucketResponse.setStatus(ConstantsUtility.SUCCESS);
 				getBucketResponse.setHttpStatus(HttpStatus.OK);
 			} else {
-				LOGGER.debug("User:{} not available in vault.", userId);
+				LOGGER.info("User:{} not available in vault.", userId);
 				getBucketResponse.setErrors(Arrays.asList(new ErrorDTO(null, "User:" + userId + " not available.")));
 				getBucketResponse.setStatus(ConstantsUtility.SUCCESS);
 				getBucketResponse.setHttpStatus(HttpStatus.NO_CONTENT);
@@ -275,14 +313,14 @@ public class DnaMinioClientImp implements DnaMinioClient {
 	public MinioGenericResponse getObjectContents(String userId, String bucketName, String prefix) {
 		MinioGenericResponse minioObjectContentResponse = new MinioGenericResponse();
 		try {
-			LOGGER.info("Fetching secrets from vault for user:{}", userId);
+			LOGGER.debug("Fetching secrets from vault for user:{}", userId);
 			String userSecretKey =  vaultConfig.validateUserInVault(userId);
 			if(StringUtils.hasText(userSecretKey)) {
 				LOGGER.debug("Fetch secret from vault successfull for user:{}",userId);
 				MinioClient minioClient = MinioClient.builder().endpoint(minioBaseUri).credentials(userId, userSecretKey)
 						.build();
 
-				LOGGER.info("Fetching object contents from minio for user:{}", userId);
+				LOGGER.debug("Fetching object contents from minio for user:{}", userId);
 				InputStream stream = minioClient
 						.getObject(GetObjectArgs.builder().bucket(bucketName).object(prefix).build());
 
@@ -296,7 +334,7 @@ public class DnaMinioClientImp implements DnaMinioClient {
 				minioObjectContentResponse.setStatus(ConstantsUtility.SUCCESS);
 				minioObjectContentResponse.setHttpStatus(HttpStatus.OK);
 			}else {
-				LOGGER.debug("Fetch secret from vault failed for user:{}",userId);
+				LOGGER.info("Fetch secret from vault failed for user:{}",userId);
 				minioObjectContentResponse.setErrors(Arrays.asList(new ErrorDTO(null, "Fetch secret from vault failed for user:"+userId)));
 				minioObjectContentResponse.setStatus(ConstantsUtility.FAILURE);
 				minioObjectContentResponse.setHttpStatus(HttpStatus.BAD_REQUEST);
@@ -319,14 +357,14 @@ public class DnaMinioClientImp implements DnaMinioClient {
 	public List<String> listObjectsInBucket(String userId, String bucketName) {
 		List<String> objectNames = new ArrayList<>();
 		try {
-			LOGGER.info("Fetching secrets from vault for user:{}", userId);
+			LOGGER.debug("Fetching secrets from vault for user:{}", userId);
 			String userSecretKey = vaultConfig.validateUserInVault(userId);
 			if (StringUtils.hasText(userSecretKey)) {
 				LOGGER.debug("Fetch secret from vault successful for user:{}", userId);
 				MinioClient minioClient = MinioClient.builder().endpoint(minioBaseUri).credentials(userId, userSecretKey).build();
 
 				// Lists objects information.
-				LOGGER.info("Listing Objects information from minio for user:{}", userId);
+				LOGGER.debug("Listing Objects information from minio for user:{}", userId);
 				Iterable<Result<Item>> results = minioClient.listObjects(ListObjectsArgs.builder().bucket(bucketName).recursive(true).build());
 
 				for (Result<Item> result : results) {
@@ -353,7 +391,7 @@ public class DnaMinioClientImp implements DnaMinioClient {
 		MinioGenericResponse minioGenericResponse = new MinioGenericResponse();
 
 		try {
-			LOGGER.info("Fetching secrets from vault for user:{}", userId);
+			LOGGER.debug("Fetching secrets from vault for user:{}", userId);
 			String userSecretKey = vaultConfig.validateUserInVault(userId);
 			if (StringUtils.hasText(userSecretKey)) {
 				LOGGER.debug("Fetch secret from vault successful for user:{}", userId);
@@ -418,7 +456,7 @@ public class DnaMinioClientImp implements DnaMinioClient {
 		MinioGenericResponse minioObjectResponse = new MinioGenericResponse();
 
 		try {
-			LOGGER.info("Fetching secrets from vault for user:{}", userId);
+			LOGGER.debug("Fetching secrets from vault for user:{}", userId);
 			String userSecretKey =  vaultConfig.validateUserInVault(userId);
 			if(StringUtils.hasText(userSecretKey)) {
 				LOGGER.debug("Fetch secret from vault successfull for user:{}",userId);
@@ -426,7 +464,7 @@ public class DnaMinioClientImp implements DnaMinioClient {
 						.build();
 
 				// Lists objects information.
-				LOGGER.info("Listing Objects information from minio for user:{}", userId);
+				LOGGER.debug("Listing Objects information from minio for user:{}", userId);
 				Iterable<Result<Item>> results = minioClient
 						.listObjects(ListObjectsArgs.builder().bucket(bucketName).prefix(prefix).build());
 
@@ -459,7 +497,7 @@ public class DnaMinioClientImp implements DnaMinioClient {
 				minioObjectResponse.setStatus(ConstantsUtility.SUCCESS);
 				minioObjectResponse.setHttpStatus(HttpStatus.OK);
 			}else {
-				LOGGER.debug("Fetch secret from vault failed for user:{}",userId);
+				LOGGER.info("Fetch secret from vault failed for user:{} , while getting bucket objects",userId);
 				minioObjectResponse.setErrors(Arrays.asList(new ErrorDTO(null, "Fetch secret from vault failed for user:"+userId)));
 				minioObjectResponse.setStatus(ConstantsUtility.FAILURE);
 				minioObjectResponse.setHttpStatus(HttpStatus.BAD_REQUEST);
@@ -520,8 +558,12 @@ public class DnaMinioClientImp implements DnaMinioClient {
 				// to build policies as comma separated
 				String commaSeparatedPolicies = policies.stream().collect(Collectors.joining(","));
 
-				LOGGER.debug("Creating SecretKey for user: {}", userId);
-				userSecretKey = UUID.randomUUID().toString();
+				userSecretKey = vaultConfig.validateUserInVault(userId);
+				if (!StringUtils.hasText(userSecretKey)) {
+					LOGGER.warn("User:{} not available in vault.", userId);
+					LOGGER.debug("Creating SecretKey for user: {}", userId);
+					userSecretKey = UUID.randomUUID().toString();
+				}
 
 				LOGGER.info("Onboarding user:{} to minio", userId);
 				minioAdminClient.addUser(userId, Status.ENABLED, userSecretKey, commaSeparatedPolicies, null);
@@ -530,7 +572,7 @@ public class DnaMinioClientImp implements DnaMinioClient {
 				LOGGER.debug("Setting policy for user:{}", userId);
 				minioAdminClient.setPolicy(userId, false, commaSeparatedPolicies);
 
-				LOGGER.info("Adding user: {} credentials to vault",userId);
+				LOGGER.debug("Adding user: {} credentials to vault",userId);
 				vaultConfig.addUserVault(userId, userSecretKey);
 
 				LOGGER.info("User:{} Onboarded successfully.", userId);
@@ -572,7 +614,7 @@ public class DnaMinioClientImp implements DnaMinioClient {
 		MinioGenericResponse minioResponse = new MinioGenericResponse();
 		try {
 			MinioAdminClient minioAdminClient = minioConfig.getMinioAdminClient();
-			LOGGER.info("Fetching user info from minio: {}", userId);
+			LOGGER.debug("Fetching user info from minio: {}", userId);
 			Map<String, UserInfo> users = minioAdminClient.listUsers();
 			// Creating new secret key for user
 			String userSecretKey = UUID.randomUUID().toString();
@@ -580,7 +622,7 @@ public class DnaMinioClientImp implements DnaMinioClient {
 			if (users.containsKey(userId)) {
 				UserInfo userInfo = users.get(userId);
 
-				LOGGER.info("Setting new secret key for existing user:{} to minio.", userId);
+				LOGGER.debug("Setting new secret key for existing user:{} to minio.", userId);
 				minioAdminClient.addUser(userId, Status.ENABLED, userSecretKey, userInfo.policyName(),
 						userInfo.memberOf());
 
@@ -681,10 +723,10 @@ public class DnaMinioClientImp implements DnaMinioClient {
 		Map<String, UserInfo> users = null;
 		try {
 			MinioAdminClient minioAdminClient = minioConfig.getMinioAdminClient();
-			LOGGER.info("Fetching users info from minio.");
+			LOGGER.debug("Fetching users info from minio.");
 			users = minioAdminClient.listUsers();
 		} catch (Exception e) {
-			LOGGER.info("listing user from minio Admin client is filed with Exception :{} retrying with MC client", e.getMessage());
+			LOGGER.debug("listing user from minio Admin client is filed with Exception :{} retrying with MC client", e.getMessage());
 			try {
 				boolean isWindows = System.getProperty("os.name").toLowerCase().startsWith("windows");
 				ObjectMapper mapper = new ObjectMapper();
@@ -701,16 +743,27 @@ public class DnaMinioClientImp implements DnaMinioClient {
 					firstBuilder = new ProcessBuilder("cmd.exe", "/c", firstCommand);
 					secondBuilder = new ProcessBuilder("cmd.exe", "/c", secondCommand);
 				} else {
-					firstBuilder = new ProcessBuilder("sh", "-c", firstCommand);
-					secondBuilder = new ProcessBuilder("sh", "-c", secondCommand);
+					firstBuilder = new ProcessBuilder(storageMCcommandKey, "-c", firstCommand);
+					secondBuilder = new ProcessBuilder(storageMCcommandKey, "-c", secondCommand);
 				}
 
 				firstBuilder.redirectErrorStream(true);
 				Process p2 = firstBuilder.start();
 				BufferedReader r2 = new BufferedReader(new InputStreamReader(p2.getInputStream()));
+				
+				LOGGER.info("minio mc client alias command output is {}",r2.readLine());
+
+				if(!p2.waitFor(Integer.parseInt(storageMCAliasCmdTimeout), TimeUnit.SECONDS)) {
+				    p2.destroy();
+				}
+				
 				Process p = secondBuilder.start();
 				BufferedReader r = new BufferedReader(new InputStreamReader(p.getInputStream()));
 
+				if(!p.waitFor(Integer.parseInt(storageMCListPoliciesCmdTimeout), TimeUnit.SECONDS)) {
+				    p.destroy();
+				}
+				
 				String line;
 				String prefix = "{\"data\":[";
 				String suffix = "]}";
@@ -726,6 +779,7 @@ public class DnaMinioClientImp implements DnaMinioClient {
 				data = prefix.concat(data.substring(0, data.length() - 1)).concat(suffix);
 				users = new HashMap<>();
 				List<UserInfoDto> userInfoDto = new ArrayList<>();
+				LOGGER.info("Policies data from minio to update cache is {} ", data);
 				UserInfoWrapperDto userInfoWrapperDto = mapper.readValue(data, UserInfoWrapperDto.class);
 				userInfoDto = userInfoWrapperDto.getData();
 				if (userInfoDto != null && !userInfoDto.isEmpty()) {
@@ -927,13 +981,36 @@ public class DnaMinioClientImp implements DnaMinioClient {
 	}
 
 	@Override
+	public void deleteUser(String userId) {
+		MinioAdminClient minioAdminClient = minioConfig.getMinioAdminClient();
+		LOGGER.debug("Fetching users from cache.");
+		Map<String, UserInfo> users = cacheUtil.getMinioUsers(ConstantsUtility.MINIO_USERS_CACHE);
+		try {
+			LOGGER.info("Deleting user record {} from minio", userId);
+			minioAdminClient.deleteUser(userId);
+			
+			LOGGER.info("Deleting user minioPolicies {} from cache", userId);
+			users.remove(userId);
+			
+			// updating minioUsersCache
+			LOGGER.debug("Removing all enteries from {}.", ConstantsUtility.MINIO_USERS_CACHE);
+			cacheUtil.removeAll(ConstantsUtility.MINIO_USERS_CACHE);
+			LOGGER.debug("Updating {}.", ConstantsUtility.MINIO_USERS_CACHE);
+			cacheUtil.updateCache(ConstantsUtility.MINIO_USERS_CACHE, users);
+
+		} catch (InvalidKeyException | NoSuchAlgorithmException | IOException e) {
+			LOGGER.error("Error occured while deleting policy for user:{}", userId);
+		}
+	}
+	
+	@Override
 	public void setPolicy(String userOrGroupName, boolean isGroup, String policyName) {
 		// Getting MinioAdminClient from config
 		MinioAdminClient minioAdminClient = minioConfig.getMinioAdminClient();
 		LOGGER.debug("Fetching users from cache.");
 		Map<String, UserInfo> users = cacheUtil.getMinioUsers(ConstantsUtility.MINIO_USERS_CACHE);
 		try {
-			LOGGER.info("Updating policy for user:{}", userOrGroupName);
+			LOGGER.debug("Updating policy for user:{}", userOrGroupName);
 			minioAdminClient.setPolicy(userOrGroupName, isGroup, policyName);
 			LOGGER.info("Success from minio set policy");
 

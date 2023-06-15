@@ -613,6 +613,7 @@ export interface IDescriptionRequest {
   reportLink: string;
   reportType: string;
   piiData: string;
+  procedureId: string;
 }
 
 export interface ICustomers {
@@ -640,9 +641,20 @@ export interface IExternalCustomerDetails {
 
 export interface IKpis {
   description: string;
-  name: string;
+  name: IKpiName;
+  names?: any[];
   reportingCause: string[];
   kpiLink: string;
+}
+
+export interface IKpiName {
+  kpiName: string;
+  kpiClassification: string;
+}
+
+export interface IKpiClassification {
+  id: string;
+  name: string;
 }
 
 export interface IDataAndFunctions {
@@ -729,9 +741,14 @@ export interface IIntegratedPortal {
   id: string;
   name: string;
 }
-export interface IKpiNames {
+export interface IKpiNameList {
   id: string;
   name: string;
+  dataType?: null | string;
+  source?: null | string;
+  externalRefId?: string,
+  lastModifiedDate?: string,
+  modifiedBy?: string
 }
 
 export interface IReportingCauses {
@@ -952,6 +969,7 @@ export interface IAllReportsListItemCSV {
   createdDate?: string;
   lastModifiedDate?: string;
   reportId: string;
+  procedureId: string;
 }
 
 export interface IAllSolutionsResult {
@@ -1356,6 +1374,13 @@ export interface IFitlerCategory {
   id: number;
   name: string;
 }
+
+export interface IFitlerKpiNameCategory {
+  id: number;
+  kpiName: string;
+  kpiClassification: string;
+}
+
 export interface ITagResult {
   id: string;
   name: string;

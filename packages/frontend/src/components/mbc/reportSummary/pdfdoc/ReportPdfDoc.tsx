@@ -347,6 +347,10 @@ const Description = (description: IDescriptionRequest) => (
         )}
       </View>
       <View style={styles.flexCol2}>
+        <Text style={styles.sectionTitle}>Procedure Id</Text>
+        <Text>{description.procedureId || 'NA'}</Text>
+      </View>
+      <View style={styles.flexCol2}>
         <Text style={styles.sectionTitle}>Frontend Technologies</Text>
         {description.frontendTechnologies?.length ? (
           <Text>{description.frontendTechnologies?.join(', ')}</Text>
@@ -354,9 +358,7 @@ const Description = (description: IDescriptionRequest) => (
           <Text>NA</Text>
         )}
       </View>
-      <View style={styles.flexCol2}>
-        <Text>{' '}</Text>
-      </View>
+      
     </View>
     <View style={styles.seperatorLine} />
   </>
@@ -378,16 +380,6 @@ const Customer = ({ customer, showCustomer }: ICustomerProps) => {
                 <Text style={styles.sectionTitle}>{`Customer ${index + 1}`}</Text>
               </View>
             </View>
-            {/* <View style={[styles.flexLayout, { marginVertical: 5 }]} wrap={false}>
-              <View style={styles.firstCol}>
-                <Text style={styles.sectionTitle}>Level | E2-Department | MB Legal Entity </Text>
-                <View style={styles.flexLayout}>{teamMembersList([data])}</View>
-              </View>
-              <View style={styles.firstCol}>
-                <Text style={styles.sectionTitle}>Process Owner</Text>
-                <View style={styles.flexLayout}>{teamMembersList([data?.processOwner])}</View>
-              </View>
-            </View> */}
             <View style={[styles.flexLayout, { marginVertical: 15 }]} wrap={false}>  
               <View style={styles.firstCol}>
                 <Text style={styles.sectionTitle}>Level</Text>
@@ -444,10 +436,6 @@ const Customer = ({ customer, showCustomer }: ICustomerProps) => {
               </View>
             </View>
             <View style={[styles.flexLayout, { marginVertical: 5 }]} wrap={false}>
-              {/* <View style={styles.firstCol}>
-                <Text style={styles.sectionTitle}>Name</Text>
-                <Text>{data?.name?.firstName +' '+ data?.name?.lastName || 'NA'}</Text>
-              </View> */}
               <View style={styles.flexCol2}>
                 <Text style={styles.sectionTitle}>Company Name</Text>
                 <Text>{data.companyName || 'NA'}</Text>
@@ -469,15 +457,6 @@ const Customer = ({ customer, showCustomer }: ICustomerProps) => {
             ) : null}
           </React.Fragment>
         ))}  
-      {/* {showCustomer && customer.processOwners?.length && (
-        <View wrap={false}>
-          <View style={[styles.firstCol, styles.setMarginTop]}>
-            <Text style={styles.sectionTitle}>Process Owner</Text>
-          </View>
-          <View style={styles.flexLayout}>{teamMembersList(customer.processOwners)}</View>
-          <View style={styles.seperatorLine} />
-        </View>
-      )} */}
     </>
   );
 };
@@ -502,19 +481,23 @@ const KPI = ({ kpis, showKPI }: IKPIProps) => {
               <View style={[styles.flexLayout, { marginVertical: 5 }]} wrap={false}>
                 <View style={styles.firstCol}>
                   <Text style={styles.sectionTitle}>KPI Name</Text>
-                  <Text>{kpi.name || 'NA'}</Text>
+                  <Text>{kpi?.name?.kpiName || 'NA'}</Text>
+                </View>
+                <View style={styles.flexCol2}>
+                  <Text style={styles.sectionTitle}>KPI Classification</Text>
+                  <Text>{kpi?.name?.kpiClassification || 'NA'}</Text>
                 </View>
                 <View style={styles.flexCol2}>
                   <Text style={styles.sectionTitle}>Reporting Cause</Text>
                   <Text>{kpi.reportingCause ? kpi.reportingCause?.join(', ') : 'NA'}</Text>
                 </View>
-                <View style={styles.flexCol2}>
-                  <Text style={styles.sectionTitle}>Link KPI-Wiki</Text>
-                  {kpi.kpiLink ? <Link src={kpi.kpiLink}>{kpi.kpiLink}</Link> : <Text>NA</Text>}
-                </View>
               </View>
               <View style={[styles.flexLayout, { marginVertical: 15 }]} wrap={false}>
                 <View style={styles.firstCol}>
+                  <Text style={styles.sectionTitle}>Link to KPI Information</Text>
+                  {kpi.kpiLink ? <Link src={kpi.kpiLink}>{kpi.kpiLink}</Link> : <Text>NA</Text>}
+                </View>
+                <View style={styles.flexCol2}>
                   <Text style={styles.sectionTitle}>KPI Description</Text>
                   <Text>{kpi.comment || 'NA'}</Text>
                 </View>
@@ -543,10 +526,6 @@ const DataAndFunction = ({ dataAndFunctions, showDataAndFunction, showMembers }:
                     </View>
                   </View>
                   <View style={[styles.flexLayout, { marginVertical: 5 }]} wrap={false}>
-                    {/* <View style={styles.firstCol}>
-                      <Text style={styles.sectionTitle}>Common Functions</Text>
-                      {data.commonFunctions?.length ? <Text>{data.commonFunctions?.join(', ')}</Text> : <Text>NA</Text>}
-                    </View> */}
                     <View style={styles.firstCol}>
                       <Text style={styles.sectionTitle}>Data Classification</Text>
                       {data.dataClassification ? <Text>{data.dataClassification}</Text> : <Text>NA</Text>}
@@ -600,22 +579,6 @@ const Members = ({ showMembers, members }: IMembersProps) => {
       {showMembers && (
         <View wrap={false}>
           <Text style={[styles.subTitle, styles.setMarginTop, { marginBottom: 25 }]}>Members</Text>
-          {/* {members.reportOwners?.length ? (
-            <View>
-              <View style={styles.firstCol}>
-                <Text style={styles.sectionTitle}>Report Member(s)</Text>
-              </View>
-              <View style={styles.flexLayout}>{teamMembersList(members.reportOwners)}</View>
-            </View>
-          ) : null} */}
-          {/* {members.developers?.length ? (
-            <View>
-              <View style={styles.firstCol}>
-                <Text style={styles.sectionTitle}>Developer(s)</Text>
-              </View>
-              <View style={styles.flexLayout}>{teamMembersList(members.developers)}</View>
-            </View>
-          ) : null} */}
           {members.reportAdmins?.length ? (
             <View>
               <View style={styles.firstCol}>

@@ -354,7 +354,6 @@ public class DataProductAssembler implements GenericAssembler<DataProductVO, Dat
 					BeanUtils.copyProperties(transnationalDataTransferVO, transnationalDataTransfer);
 					transnationalDataTransfer.setDataTransferred(transnationalDataTransferVO.isDataTransferred());
 					transnationalDataTransfer.setNotWithinEU(transnationalDataTransferVO.isNotWithinEU());
-					transnationalDataTransfer.setDataFromChina(transnationalDataTransferVO.isDataFromChina());
 					transnationalDataTransfer.setContactAwareTransfer(transnationalDataTransferVO.isContactAwareTransfer());
 					transnationalDataTransfer.setObjectionsToTransfer(transnationalDataTransferVO.isObjectionsToTransfer());
 					String insiderInfo = "";
@@ -661,9 +660,6 @@ public class DataProductAssembler implements GenericAssembler<DataProductVO, Dat
 		}
 		if (existingDataProduct.getTransnationalDataTransfer().isNotWithinEU() != null) {
 			providerResponseVO.getTransnationalDataTransfer().setNotWithinEU(existingDataProduct.getTransnationalDataTransfer().isNotWithinEU());
-		}
-		if (existingDataProduct.getTransnationalDataTransfer().isDataFromChina() != null) {
-			providerResponseVO.getTransnationalDataTransfer().setDataFromChina(existingDataProduct.getTransnationalDataTransfer().isDataFromChina());
 		}
 		if (existingDataProduct.getTransnationalDataTransfer().isContactAwareTransfer() != null) {
 			providerResponseVO.getTransnationalDataTransfer().setContactAwareTransfer(existingDataProduct.getTransnationalDataTransfer().isContactAwareTransfer());

@@ -25,7 +25,10 @@ import SelectBox from 'components/formElements/SelectBox/SelectBox';
 import { ApiClient } from '../../../../services/ApiClient';
 import TextBox from 'components/mbc/shared/textBox/TextBox';
 import TextArea from 'components/mbc/shared/textArea/TextArea';
+import { Envs } from 'globals/Envs';
+
 const classNames = cn.bind(Styles);
+const procedureIdEnvs = Envs.ROPA_PROCEDURE_ID_PREFIX;
 
 export interface IDescriptionProps {
   divisions: IDivision[];
@@ -78,6 +81,8 @@ export interface IDescriptionState {
   reportTypeError: string;
   piiValue: string;
   piiError: string;
+  procedureId: string;
+  procedureIdError: string;
 }
 
 export default class Description extends React.PureComponent<IDescriptionProps, IDescriptionState> {
@@ -97,7 +102,8 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
       departmentTags: props.description.department,
       reportLink: props.description.reportLink,
       reportTypeValue: props.description.reportType,
-      piiValue: props.description.piiData
+      piiValue: props.description.piiData,
+      procedureId: props.description.procedureId 
     };
   }
   constructor(props: IDescriptionProps) {
@@ -133,7 +139,9 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
       reportTypeValue: 'Self Service Report',
       reportTypeError: null,
       piiValue: null,
-      piiError: null
+      piiError: null,
+      procedureId: '',
+      procedureIdError: null
     };
   }
 
@@ -162,6 +170,35 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
     this.setState({
       productName,
     });
+  };
+
+  public onProcedureIdOnChange = (e: React.FormEvent<HTMLInputElement>) => {
+    const procedureId = e.currentTarget.value;
+    const description = this.props.description;
+    description.procedureId = procedureId;
+    // this.props.onStateChange();
+    if (procedureId === '' || procedureId === null) {
+      this.setState({ procedureIdError: '*Missing Entry' });
+    } else {
+      this.setState({ procedureIdError: '' });
+    }
+    this.setState({
+      procedureId,
+    });
+  };
+
+  public onProcedureIdOnBlur = (e: React.FormEvent<HTMLInputElement>) => {
+    if(procedureIdEnvs){
+      const procedureId = e.currentTarget.value;
+      if (!procedureId.startsWith(procedureIdEnvs)) {
+        this.setState({ procedureIdError: '*Please provide valid Procedure Id ('+procedureIdEnvs+'xxx).' });
+      } else if (procedureId.startsWith(procedureIdEnvs) && procedureId.replace(procedureIdEnvs, '') == '') {
+        this.setState({ procedureIdError: '*Please provide valid Procedure Id ('+procedureIdEnvs+'xxx).' });
+      }
+      else{
+        this.setState({ procedureIdError: '' });
+      }
+    }
   };
 
   public onDescChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -364,6 +401,7 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
     const frontEndTechError = this.state.frontEndTechError || '';
     const reportLinkError = this.state.reportLinkError || '';
     const reportTypeError = this.state.reportTypeError || '';
+    const procedureIdError = this.state.procedureIdError || '';
 
     const requiredError = '*Missing entry';
 
@@ -483,6 +521,34 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
                       required={true}
                       onChange={this.onDescChange}
                     />
+                  </div>
+                  <div>
+                    <div
+                      className={classNames('input-field-group include-error', frontEndTechError ? 'error' : '')}
+                    >
+                      <label id="FrontEndTechnogies" htmlFor="FrontEndTechnogiesField" className="input-label">
+                        Frontend Technologies <sup>*</sup>
+                      </label>
+                      <div id="FrontEndTechnogies" className="custom-select">
+                        <select
+                          id="FrontEndTechnogiesField"
+                          multiple={true}
+                          required={true}
+                          required-error={requiredError}
+                          onChange={this.onChangeFrontTechnologies}
+                          value={frontEndTechValue}
+                        >
+                          {this.props.frontEndTechnologies?.map((obj) => (
+                            <option id={obj.name + obj.id} key={obj.id} value={obj.name}>
+                              {obj.name}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                      <span className={classNames('error-message', frontEndTechError ? '' : 'hide')}>
+                        {frontEndTechError}
+                      </span>
+                    </div>
                   </div>
                 </div>
                 <div className={classNames(!this.props.enableQuickPath ? Styles.flexLayout : '')}>
@@ -628,6 +694,7 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
                     ) : (
                       ''
                     )}
+                    
                   </div>
 
                   <div>
@@ -706,37 +773,27 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
                         ''
                       )}
                       <div>
-                        <div
-                          className={classNames('input-field-group include-error', frontEndTechError ? 'error' : '')}
-                        >
-                          <label id="FrontEndTechnogies" htmlFor="FrontEndTechnogiesField" className="input-label">
-                            Frontend Technologies <sup>*</sup>
-                          </label>
-                          <div id="FrontEndTechnogies" className="custom-select">
-                            <select
-                              id="FrontEndTechnogiesField"
-                              multiple={true}
-                              required={true}
-                              required-error={requiredError}
-                              onChange={this.onChangeFrontTechnologies}
-                              value={frontEndTechValue}
-                            >
-                              {this.props.frontEndTechnologies?.map((obj) => (
-                                <option id={obj.name + obj.id} key={obj.id} value={obj.name}>
-                                  {obj.name}
-                                </option>
-                              ))}
-                            </select>
-                          </div>
-                          <span className={classNames('error-message', frontEndTechError ? '' : 'hide')}>
-                            {frontEndTechError}
-                          </span>
-                        </div>
+                        <TextBox
+                          type="text"
+                          controlId={'procedureIdInput'}
+                          labelId={'procedureIdLabel'}
+                          label={'Procedure ID'}
+                          placeholder={'Type here'}
+                          infoTip={'Procedure ID '+ (procedureIdEnvs ? ('('+procedureIdEnvs+'xxx)'): '')+' from Records of Processing Activities (RoPA)'}
+                          value={this.state.procedureId}
+                          errorText={procedureIdError}
+                          required={true}
+                          maxLength={200}
+                          onChange={this.onProcedureIdOnChange}
+                          onBlur={this.onProcedureIdOnBlur}
+                        />                        
                       </div>
+                      
                     </div>
                   </div>
                 </div>
               </div>
+              
             </div>
           </div>
           {!this.props.enableQuickPath ? (
@@ -908,6 +965,21 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
     if (this.state.reportLinkError && this.state.reportLink) {
       this.setState({ reportLinkError: '' });
       // formValid = true;
+    }
+    // if (procedureIdEnvs && (this.state.procedureId.split('-')[0]!== procedureIdEnvs || this.state.procedureId.split('-')[1] === '')) {
+    if (procedureIdEnvs && !this.state.procedureId.startsWith(procedureIdEnvs)) {
+      this.setState({ procedureIdError: '*Please provide valid Procedure Id ('+procedureIdEnvs+'xxx).' });
+      formValid = false;
+    }
+    if (procedureIdEnvs && this.state.procedureId.startsWith(procedureIdEnvs) && this.state.procedureId.replace(procedureIdEnvs, '') == '') {
+      this.setState({ procedureIdError: '*Please provide valid Procedure Id ('+procedureIdEnvs+'xxx).' });
+    }
+    if ((!procedureIdEnvs || procedureIdEnvs == '' || procedureIdEnvs == null) && (this.state.procedureId ==='' || !this.state.procedureId)) {
+      this.setState({ procedureIdError: errorMissingEntry });
+      formValid = false;
+    }
+    if(this.state.procedureIdError) {
+      formValid = false;
     }
     setTimeout(() => {
       const anyErrorDetected = document.querySelector('.error');

@@ -68,7 +68,7 @@ public class HasuraClient {
 			ObjectMapper mapper = new ObjectMapper();
 			String data = mapper.writeValueAsString(userInfo);
 			HasuraUserInfoRequestDto tempTechnicalUser = new HasuraUserInfoRequestDto();
-			tempTechnicalUser.setData(data);
+			tempTechnicalUser.setData(userInfo);
 			tempTechnicalUser.setId(userInfoVO.getId());
 			
 			HttpEntity<HasuraUserInfoRequestDto> entity = new HttpEntity<>(tempTechnicalUser,headers);

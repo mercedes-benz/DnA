@@ -29,12 +29,13 @@ The idea of the DnA Platform originated from the common challenge every big comp
 |  [Jupyter Notebook Workspace Feature](./docs/DnAJupyterNotebookWorkspace.md)  | Feature based on [JupyterHub](https://github.com/jupyterhub/jupyterhub) enables users to start working on their models without any additional software installation.   | February 2022   |  
 | [Dataiku integration feature](./docs/DnADataikuWorkspace.md)   | This is the only feature that does not follow the open source principle completely as [Dataiku](https://doc.dataiku.com/dss/latest/concepts/index.html) is a licensed product. Still, even for Dataiku we are offering integration into the DnA Platform in case you are operating it also (if not, simply disable it in configuration).  | February 2022  |
 | [MLOps Pipeline](https://github.com/mercedes-benz/DnA/blob/docs/kfserving-tutorial/docs/DnAMLOPsArchitecture.md) | A holistic Kubernetes native MLOps pipeline based on [Kubeflow](github.com/kubeflow) components and optimized for secure enterprise environments. For more info, you can read the [DnA - Kubeflow Pipelines](./docs/DnAKFPTutorial.md) & [DnA - Kserve](./docs/DnAKServeTutorial.md) tutorials. | March 2022 | 
-
+| [Code Spaces feature](https://github.com/mercedes-benz/DnA/wiki/Code-Spaces)    | Feature that provides Visual Studio Code for single developer or team (Collaboration) with code templates for different technologies in the web and enables you automatic deployments.  | March 2023  |
+| [Storage bucket feature](https://github.com/mercedes-benz/DnA/wiki/Storage-bucket)    | Feature that provides S3 compliant storage based on [MinIO](https://github.com/minio/minio) possibility for self service user.  | November 2022  |
  
 
 ## Upcoming Features
 
-As Data Pipelines, Jupyter notebook, Kubeflow Pipelines, and other features require some kind of managed persistence layer, we are considering the integration of  [MinIO](https://github.com/minio/minio) as an S3 storage model along with the addition of [DeltaLake](https://github.com/delta-io/delta) to enable native Spark processing and ACID compliance.
+Web Analytics based on Matomo
 
 The list of future ideas is big and it is constantly being adjusted, so please include yourself in the discussion! We are looking forward to different ideas!
 
