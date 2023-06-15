@@ -25,6 +25,6 @@ public class Forecast {
 	private List<File> savedInputs;
 	private List<RunDetails> runs;
 	private List<ComparisonDetails> comparisons;
-	private List<ConfigFileDetails> configFiles;
+	private List<File> configFiles;
 	
 }

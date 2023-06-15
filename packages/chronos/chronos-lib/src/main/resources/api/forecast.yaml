@@ -1502,25 +1502,22 @@ definitions:
   ForecastConfigFileVO:
     type: object
     properties:
-      configFileId:
+      id:
         type: string
-        description: "config file id for the forecast project"
-      configFilePath:
+        description: id of the file
+      name:
         type: string
-        description: "full path to add config.yaml"
-      configFileName:
+        description: name of the file
+      path:
         type: string
-        description: "comparison run name"
-      triggeredBy:
+        description: full path of the file object in minio with bucketname
+      createdBy:
         type: string
-        description: "Short Id of user who triggered the comparison"
-      triggeredOn:
+        description: shortid of user who uploaded the file
+      createdOn:
         type: string
         format: date
-        description: "Date/Time for the triggered comparison"
-      isDeleted:
-        type: boolean
-        description: "Field to identify if config file is deleted. Deleted config file records wont be shown, this is only for system to identify. Not for Users."
+        description: time when file is uploaded
 
   ForecastConfigFilesCollectionDto:
     type: object
