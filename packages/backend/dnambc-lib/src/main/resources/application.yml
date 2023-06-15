@@ -1,7 +1,7 @@
 spring:
   application:
     name: dna-backend-service
-    version: 3.2.7
+    version: 3.2.8
   flyway:
     enabled: ${FLYWAY_ENABLED:true}
     baseline-on-migrate: ${FLYWAY_BASELINE_ON_MIGRATE:true}
