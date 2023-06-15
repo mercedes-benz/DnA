@@ -31,7 +31,7 @@ import {
   IDepartment,
   IHierarchies,
   IIntegratedPortal,
-  IKpiNames,
+  // IKpiName,
   IReportingCauses,
   IRessort,
   IDescriptionRequest,
@@ -45,11 +45,12 @@ import {
   IDataSourceMaster,
   IConnectionType,
   IDataWarehouse,
-  ICommonFunctions,
   // ISingleDataSources,
   IDivision,
   ISubDivision,
   IDataClassification,
+  IKpiClassification,
+  IKpiNameList,
 } from 'globals/types';
 import Styles from './CreateNewReport.scss';
 import SelectBox from 'components/formElements/SelectBox/SelectBox';
@@ -64,8 +65,13 @@ import { serializeReportRequestBody } from './utility/Utility';
 import { USER_ROLE } from 'globals/constants';
 import { TeamMemberType } from 'globals/Enums';
 import Caption from '../shared/caption/Caption';
+import { Envs } from 'globals/Envs';
+
+const procedureIdEnvs = Envs.ROPA_PROCEDURE_ID_PREFIX;
 
 const classNames = cn.bind(Styles);
+
+
 export interface ICreateNewReportState {
   divisions: IDivision[];
   subDivisions: ISubDivision[];
@@ -75,7 +81,7 @@ export interface ICreateNewReportState {
   hierarchies: IHierarchies[];
   arts: IART[];
   integratedPortals: IIntegratedPortal[];
-  kpiNames: IKpiNames[];
+  kpiNames: IKpiNameList[];
   productPhases: IProductPhase[];
   reportingCauses: IReportingCauses[];
   ressort: IRessort[];
@@ -84,7 +90,7 @@ export interface ICreateNewReportState {
   connectionTypes: IConnectionType[];
   dataClassifications: IDataClassification[];
   dataWarehouses: IDataWarehouse[];
-  commonFunctions: ICommonFunctions[];
+  // commonFunctions: ICommonFunctions[];
   editMode: boolean;
   currentTab: string;
   nextTab: string;
@@ -100,6 +106,7 @@ export interface ICreateNewReportState {
   tags: ITag[];
   departmentTags: IDepartment[];
   fieldsMissing: boolean;
+  kpiClassifications: IKpiClassification[]
 }
 
 export interface ICreateNewReportProps {
@@ -140,7 +147,7 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
         { id: 'Public', name: 'Public' },
       ],
       dataWarehouses: [],
-      commonFunctions: [],
+      // commonFunctions: [],
       departmentTags: [],
       editMode: false,
       currentTab: 'description',
@@ -174,6 +181,7 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
           reportLink: '',
           reportType: null,
           piiData: '',
+          procedureId: procedureIdEnvs ? procedureIdEnvs: ''
         },
         kpis: [],
         customer: {
@@ -185,7 +193,7 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
           singleDataSources: [],
         },
         members: {
-          reportOwners: [],
+          // reportOwners: [],
           reportAdmins: [],
         },
         publish: false,
@@ -197,6 +205,7 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
       showAlertChangesModal: false,
       publishFlag: false,
       fieldsMissing: false,
+      kpiClassifications: []
     };
   }
   // public componentWillReceiveProps(nextProps: any) {
@@ -215,7 +224,11 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
         const frontEndTechnologies = response[1].data;
         const hierarchies = response[2].data;
         const integratedPortals = response[3].data;
-        const kpiNames = response[4].data;
+        const kpiNames = response[4].data.map((item: any) => {
+          item['dataType'] = item.kpiClassification;
+          item['name'] = item.kpiName;
+          return item;
+        });
         const reportingCauses = response[5].data;
         const ressort = response[6].data;
         const statuses = response[7].data;
@@ -225,8 +238,8 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
         const dataWarehouses: IDataWarehouse[] = response[11].data;
         const divisions: IDivision[] = response[12];
         const departmentTags: IDepartment[] = response[13].data;
-        const commonFunctions: ICommonFunctions[] = response[14].data;
-        const dataClassifications: IDataClassification[] = response[15].data;
+        const dataClassifications: IDataClassification[] = response[14].data;
+        const kpiClassifications: IKpiClassification[] = response[15].data;
         const creatorInfo = this.props.user;
         const teamMemberObj: ITeams = {
           department: creatorInfo.department,
@@ -259,7 +272,8 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
             divisions,
             connectionTypes,
             dataClassifications,
-            commonFunctions,
+            kpiClassifications,
+            // commonFunctions,
             report: {
               ...prevState.report,
               members: {
@@ -342,14 +356,14 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
             const user = this.props.user;
             const isSuperAdmin = user.roles.find((role: IRole) => role.id === USER_ROLE.ADMIN);
             const isReportAdmin = user.roles.find((role: IRole) => role.id === USER_ROLE.REPORTADMIN);
-            const isProductOwner = res.members.reportOwners?.find(
-              (teamMember: ITeams) => teamMember.shortId === user.id,
-            )?.shortId;
+            // const isProductOwner = res.members.reportOwners?.find(
+            //   (teamMember: ITeams) => teamMember.shortId === user.id,
+            // )?.shortId;
 
             if (
               isSuperAdmin !== undefined ||
               isReportAdmin !== undefined ||
-              isProductOwner !== undefined ||
+              // isProductOwner !== undefined ||
               // user.id === (res.createdBy ? res.createdBy.id : '')
               res.members.reportAdmins.find((teamMember) => teamMember.shortId === user.id) !== undefined ||
               (user?.divisionAdmins && user?.divisionAdmins.includes(res?.description?.division?.name))
@@ -386,6 +400,7 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
               report.description.reportLink = res.description.reportLink;
               report.description.reportType = res.description?.reportType;
               report.description.piiData = res.description?.piiData;
+              report.description.procedureId = res.description?.procedureId || procedureIdEnvs ? procedureIdEnvs :'';
               report.customer.internalCustomers = res.customer?.internalCustomers || [];
               report.customer.externalCustomers = res.customer?.externalCustomers || [];
               // report.customer.processOwners = res.customer?.processOwners || [];
@@ -401,7 +416,7 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
               //   return item;
               // }) || [];
               // report.members.developers = res.members.developers || [];
-              report.members.reportOwners = res.members.reportOwners || [];
+              // report.members.reportOwners = res.members.reportOwners || [];
               report.members.reportAdmins = res.members.reportAdmins || [];
               report.publish = res.publish;
               report.openSegments = res.openSegments || [];
@@ -443,17 +458,6 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
     // report.usingQuickPath = !value;
     report.usingQuickPath = false;
 
-    // Following two if's are mentioned because when we switch quickview then its state gets changed
-    if (report.description.division.subdivision.id === null) {
-      report.description.division.subdivision.id = '0';
-      report.description.division.subdivision.name = 'Choose';
-      this.setState({ currentState: JSON.parse(JSON.stringify(report)) });
-    }
-    if (report.description.division.subdivision.id === '0') {
-      report.description.division.subdivision.id = '0';
-      report.description.division.subdivision.name = 'Choose';
-      this.setState({ currentState: JSON.parse(JSON.stringify(report)) });
-    }
     this.setState({ report }, () => {
       Tabs.defaultSetup();
       if (!this.state.report.usingQuickPath) {
@@ -549,7 +553,7 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
                       }
                     >
                       <a href="#tab-content-3" id="kpi" onClick={this.setCurrentTab}>
-                        KPIs
+                        Content &amp; Functions
                       </a>
                     </li>
                     <li
@@ -560,7 +564,7 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
                       }
                     >
                       <a href="#tab-content-4" id="datafunction" onClick={this.setCurrentTab}>
-                        Data & Functions
+                        Data
                       </a>
                     </li>
                     <li
@@ -624,6 +628,7 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
                       modifyKpi={this.modifyKpi}
                       onSaveDraft={this.onSaveDraft}
                       ref={this.kpiComponent}
+                      kpiClassifications={this.state.kpiClassifications}
                     />
                   )}
                 </div>
@@ -635,7 +640,7 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
                       connectionTypes={this.state.connectionTypes}
                       dataClassifications={this.state.dataClassifications}
                       dataWarehouses={this.state.dataWarehouses}
-                      commonFunctions={this.state.commonFunctions}
+                      // commonFunctions={this.state.commonFunctions}
                       modifyDataFunction={this.modifyDataFunction}
                       onSaveDraft={this.onSaveDraft}
                       ref={this.dataFunctionComponent}
@@ -782,7 +787,6 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
     // this.state.report.openSegments.push('Description');
     this.setState({ publishFlag: true });
     this.callApiToSave(true, null);
-    history.push('/allreports');
   };
   protected saveDescription = () => {
     this.state.report.openSegments.push('Description');
@@ -893,20 +897,24 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
       ReportsApiClient.createNewReport(requestBody)
         .then((response) => {
           if (response) {
-            this.trackReportEvent('New Report Save as Draft action on tab panel');
+            this.trackReportEvent('New Report Save as ' + (isPublished ? 'Publish' : 'Draft') +' action on tab panel');
             this.setState(
               {
                 response,
               },
               () => {
-                this.setState({
-                  // currentStateHash: btoa(unescape(encodeURIComponent(JSON.stringify(this.state.report)))),
-                  // currentStateHash: JSON.stringify(this.state.report),
-                  currentState: JSON.parse(JSON.stringify(this.state.report)),
-                });
-                this.setOpenTabs(report.openSegments);
-                this.setTabsAndClick(nextTab);
                 this.showNotification(isPublished);
+                if (report.usingQuickPath) {
+                  history.push('/allreports');
+                } else {
+                  this.setState({
+                    // currentStateHash: btoa(unescape(encodeURIComponent(JSON.stringify(this.state.report)))),
+                    // currentStateHash: JSON.stringify(this.state.report),
+                    currentState: JSON.parse(JSON.stringify(this.state.report)),
+                  });
+                  this.setOpenTabs(report.openSegments);
+                  this.setTabsAndClick(nextTab);
+                }
               },
             );
           }
@@ -927,7 +935,7 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
 
   protected showNotification(isPublished: boolean) {
     ProgressIndicator.hide();
-    Notification.show((this.state.report.publish ? 'Report saved and published' : 'Draft saved') + ' successfully.');
+    Notification.show((isPublished ? 'Report saved and published' : 'Draft saved') + ' successfully.');
   }
 
   protected showErrorNotification(message: string) {
@@ -965,9 +973,9 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
       report: currentReportObject,
     });
   };
-  protected modifyMember = (productOwners: ITeams[], reportAdmins: ITeams[]) => {
+  protected modifyMember = (reportAdmins: ITeams[]) => {
     const currentReportObject = this.state.report;
-    currentReportObject.members.reportOwners = productOwners;
+    // currentReportObject.members.reportOwners = productOwners;
     currentReportObject.members.reportAdmins = reportAdmins;
     this.setState({
       report: currentReportObject,

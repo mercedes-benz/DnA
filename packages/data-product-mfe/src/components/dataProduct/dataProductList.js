@@ -7,11 +7,14 @@ import { useDispatch, useSelector } from 'react-redux';
 // import from DNA Container
 import Pagination from 'dna-container/Pagination';
 import HeadingSection from 'dna-container/HeadingSection';
+// import TagSection from 'dna-container/TagSection';
+import DataProductFilter from 'dna-container/DataProductFilter';
 
 import { setDataProductList, setPagination } from './redux/dataProductSlice';
 import { GetDataProducts } from './redux/dataProduct.services';
 import DataCardItem from './Layout/CardView/DataProductCardItem';
 import DataListItem from './Layout/ListView/DataProductListItem';
+import { dataProductApi } from '../../apis/dataproducts.api';
 
 import headerImageUrl from '../../assets/Data-Products-Landing.png';
 
@@ -57,6 +60,61 @@ const DataProductList = ({ user, history }) => {
     );
   };
 
+  // const [openFilters, setOpenFilters]  = useState(false);
+  const [openFilters]  = useState(false);
+
+  const [tagValues, setTagValues] = useState([]);
+  // const [tagFilterValues, setTagFilterValues] = useState([]);
+  // const [selectedTags, setSelectedTags] = useState([]);
+  const [, setSelectedTags] = useState([]);
+  const [selectedTagsToPass] = useState([]);
+  // const setSelectedFilter = (values) => {
+  //   setSelectedTags(values);
+  //   setSelectedTagsToPass(values);
+  // }
+
+  // useEffect(() => {
+  //   dispatch(GetDataProducts(`&carlafunction=`+selectedTagsToPass.join(',')));
+  //   // eslint-disable-next-line react-hooks/exhaustive-deps
+  // }, [selectedTagsToPass]);
+
+  useEffect(() => {
+    dataProductApi.getAllCarlaFunctions().then((res) => {
+      setTagValues(res.data.data);
+    }).catch((err) => {
+      console.log(err);
+    });
+    if (sessionStorage.getItem('listViewModeEnable') == null) {
+      setCardViewModeFn();
+    } else {
+      setListViewModeFn();
+    }
+  }, []);
+
+  const [allDataProductsFirstTimeDataLoaded, setAllDataProductsFirstTimeDataLoaded] = useState(false);
+
+  console.log(setAllDataProductsFirstTimeDataLoaded);
+
+  // const getFilteredSolutions = (queryParams) => {
+  //   dispatch(GetDataProducts(queryParams));
+  // }
+
+  const [showDataProductsFilter] = useState(false);
+
+  // setShowDataProductsFilter(false);
+
+  const setCardViewModeFn = () => {
+    setCardViewMode(true);
+    setListViewMode(false);
+    sessionStorage.removeItem('listViewModeEnable');
+  };
+
+  const setListViewModeFn = () => {
+    setCardViewMode(false);
+    setListViewMode(true);
+    sessionStorage.setItem('listViewModeEnable',true)
+  };
+
   return (
     <>
       <div className={Styles.mainPanel}>
@@ -71,13 +129,15 @@ const DataProductList = ({ user, history }) => {
         <div className={classNames(Styles.wrapper)}>
           <div className={classNames(Styles.caption)}>
             <h3>Data Products</h3>
+            {/* <div>
+              <TagSection tags={tagValues.map(item=>item.name)} selectedTags={selectedTags} setSeletedTags={setSelectedFilter}></TagSection>
+            </div> */}
             <div className={classNames(Styles.listHeader)}>
               <div tooltip-data="Card View">
                 <span
                   className={cardViewMode ? Styles.iconactive : Styles.iconInActive}
                   onClick={() => {
-                    setCardViewMode(true);
-                    setListViewMode(false);
+                    setCardViewModeFn();
                   }}
                 >
                   <i className="icon mbc-icon widgets" />
@@ -88,15 +148,40 @@ const DataProductList = ({ user, history }) => {
                 <span
                   className={listViewMode ? Styles.iconactive : Styles.iconInActive}
                   onClick={() => {
-                    setCardViewMode(false);
-                    setListViewMode(true);
+                    setListViewModeFn();
                   }}
                 >
                   <i className="icon mbc-icon listview big" />
                 </span>
               </div>
-            </div>
+              {/* <span className={Styles.dividerLine}> &nbsp; </span>
+              <div tooltip-data="Filters">
+                <span
+                  className={openFilters ? Styles.activeFilters : ''}
+                  onClick={() => setOpenFilters(!openFilters)}
+                >
+                  <i className="icon mbc-icon filter big" />
+                </span>
+            </div> */}
           </div>
+          </div>
+          <DataProductFilter
+            user={user}
+            // getFilterQueryParams={(queryParams) =>
+            //   getFilteredSolutions(queryParams)
+            // }
+            dataProductsDataLoaded={true}
+            setDataProductsDataLoaded={(value) => allDataProductsFirstTimeDataLoaded(value)}
+            showDataProductsFilter={showDataProductsFilter}
+            openFilters={openFilters}
+            getAllTags={(tags)=>{setTagValues(tags)}}
+            getValuesFromFilter={(value) => {
+              // setTagFilterValues(value.tagFilterValues ? value.tagFilterValues : []);
+              setSelectedTags(value.tagFilterValues ? value.tagFilterValues.map((item)=>item.name) : []);
+            }}
+            tagsList={tagValues.map(item=>item.name)}
+            setSelectedTags={selectedTagsToPass}
+            />
           <div>
             <div>
               {data?.length === 0 ? (

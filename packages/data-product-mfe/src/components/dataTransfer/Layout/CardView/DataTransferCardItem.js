@@ -14,18 +14,18 @@ import Tooltip from '../../../../common/modules/uilab/js/src/tooltip';
 import ProgressIndicator from '../../../../common/modules/uilab/js/src/progress-indicator';
 import Notification from '../../../../common/modules/uilab/js/src/notification';
 
-const DataProductCardItem = ({ product, history, user, isDataProduct = false }) => {
+const DataProductCardItem = ({ product, history, user, isDataProduct = false, isProviderCreatorFilter }) => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const dispatch = useDispatch();
 
   const isProviderFormSubmitted = product?.providerInformation?.providerFormSubmitted;
-  const isCreator = product.providerInformation?.createdBy?.id === user?.id;
+  const isCreator = product?.providerInformation?.createdBy?.id === user?.id;
 
   const name = product?.providerInformation?.contactInformation?.name;
   const productOwnerName = `${name?.firstName} ${name?.lastName}`;
 
   const usersAllowedToModify =
-    product.providerInformation?.contactInformation?.informationOwner?.shortId === user?.id ||
+    product?.providerInformation?.contactInformation?.informationOwner?.shortId === user?.id ||
     name?.shortId === user?.id;
 
   const consumerFormCreatedBy = product?.consumerInformation?.createdBy;
@@ -48,11 +48,17 @@ const DataProductCardItem = ({ product, history, user, isDataProduct = false }) 
 
   const deleteDataTransferAccept = () => {
     ProgressIndicator.show();
-    dataTransferApi.deleteDataTransfer(product?.id).then(() => {
-      dispatch(GetDataTransfers());
-      setShowDeleteModal(false);
-      Notification.show(`${product?.dataTransferName} deleted successfully.`);
-    });
+    dataTransferApi
+      .deleteDataTransfer(product?.id)
+      .then(() => {
+        dispatch(GetDataTransfers(isProviderCreatorFilter));
+        setShowDeleteModal(false);
+        Notification.show(`${product?.dataTransferName} deleted successfully.`);
+      })
+      .catch(() => {
+        ProgressIndicator.hide();
+        Notification.show('Error while deleting the data transfer', 'alert');
+      });
   };
   const deleteDataTransferClose = () => {
     setShowDeleteModal(false);
@@ -132,10 +138,10 @@ const DataProductCardItem = ({ product, history, user, isDataProduct = false }) 
                 </div>
               )}
             </div>
-            <div className={!product.publish ? Styles.disabled : ''}>
+            <div className={!product?.publish ? Styles.disabled : ''}>
               <label>Consumer</label>
-              {product.publish ? (
-                <span>{product.consumerInformation?.contactInformation?.appId || '-'}</span>
+              {product?.publish ? (
+                <span>{product?.consumerInformation?.contactInformation?.appId || '-'}</span>
               ) : (
                 <span>pending...</span>
               )}

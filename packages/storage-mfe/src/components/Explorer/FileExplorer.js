@@ -65,7 +65,7 @@ const FileExplorer = () => {
   const dispatch = useDispatch();
   const { bucketPermission } = useSelector((state) => state.fileExplorer);
 
-  const { bucketName } = useParams();
+  const { bucketName, resultFolder } = useParams();
 
   const { files, fileActions, bucketObjects } = useSelector((state) => state.fileExplorer);
 
@@ -157,10 +157,26 @@ const FileExplorer = () => {
   }, [newFolderName]);
 
   useEffect(() => {
-    if (!files?.rootFolderId) {
-      dispatch(setFiles(bucketName, false));
+    if(resultFolder !== undefined) {
+      const fileToOpen = {
+          "id": `results${resultFolder}`,
+          "name": resultFolder,
+          "parentId": "results",
+          "isDir": true,
+          "objectName": `results/${resultFolder}/`,
+      }
+      onOpenFolder(fileToOpen);
     }
-  }, [dispatch, bucketName, files]);
+    //eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [resultFolder]);
+
+  useEffect(() => {
+    if(resultFolder === undefined) {
+      if (!files?.rootFolderId) {
+        dispatch(setFiles(bucketName, false));
+      }
+    }
+  }, [dispatch, bucketName, files, resultFolder]);
 
   useEffect(() => {
     showCreateNewFolderModal && inputRef.current.focus();

@@ -11,7 +11,7 @@ interface IList {
 
 export interface IRowItemProps {
   controlId: string;
-  label: string;
+  label: string | React.ReactNode;
   placeholder: string;
   required: boolean;
   defaultValue: string;

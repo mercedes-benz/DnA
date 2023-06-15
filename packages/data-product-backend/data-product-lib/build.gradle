@@ -247,10 +247,22 @@ swaggerSources {
             rawOptions = ['--ignore-file-override', ignoreFile]
             components = ['models', 'apis']
            }
-      }   
+      }
+
+    userWidgetPreference {
+        def userWidgetPreferenceyaml = "${rootDir}/data-product-lib/src/main/resources/api/UserWidgetPreference.yaml"
+        def userWidgetPreferenceJson = "${rootDir}/data-product-lib/src/main/resources/api/UserWidgetPreference.json"
+        inputFile = file(userWidgetPreferenceyaml)
+        def ignoreFile = "${rootDir}/data-product-lib/src/main/resources/api/.swagger-codegen-ignore"
+        code {
+            language = 'spring'
+            configFile = file(userWidgetPreferenceJson)
+            rawOptions = ['--ignore-file-override', ignoreFile]
+            components = ['models', 'apis']
+        }
+    }
       
-      
-      planningit {
+    planningit {
         def palnningitYaml = "${rootDir}/data-product-lib/src/main/resources/api/PlanningIT.yaml"
         def palnningitJson = "${rootDir}/data-product-lib/src/main/resources/api/PlanningIT.json"
         inputFile = file(palnningitYaml)
@@ -261,7 +273,20 @@ swaggerSources {
             rawOptions = ['--ignore-file-override', ignoreFile]
             components = ['models', 'apis']
            }
-      }               
+      }
+      
+    tag {
+        def tagyaml = "${rootDir}/data-product-lib/src/main/resources/api/Tag.yaml"
+        def tagJson = "${rootDir}/data-product-lib/src/main/resources/api/Tag.json"
+        inputFile = file(tagyaml)
+        def ignoreFile = "${rootDir}/data-product-lib/src/main/resources/api/.swagger-codegen-ignore"
+        code {
+            language = 'spring'
+            configFile = file(tagJson)
+            rawOptions = ['--ignore-file-override', ignoreFile]
+            components = ['models', 'apis']
+        }
+    }               
         
 }
 
@@ -274,6 +299,8 @@ compileJava {
     source "${swaggerSources.platform.code.outputDir}/src/main/java"
     dependsOn swaggerSources.frontendtools.code
     source "${swaggerSources.frontendtools.code.outputDir}/src/main/java"
+    dependsOn swaggerSources.userWidgetPreference.code
+    source "${swaggerSources.userWidgetPreference.code.outputDir}/src/main/java"
     dependsOn swaggerSources.carlafunction.code
     source "${swaggerSources.carlafunction.code.outputDir}/src/main/java" 
     dependsOn swaggerSources.agileReleaseTrain.code
@@ -295,7 +322,9 @@ compileJava {
     dependsOn swaggerSources.legalbasis.code
     source "${swaggerSources.legalbasis.code.outputDir}/src/main/java"
     dependsOn swaggerSources.planningit.code
-    source "${swaggerSources.planningit.code.outputDir}/src/main/java"                
+    source "${swaggerSources.planningit.code.outputDir}/src/main/java"  
+    dependsOn swaggerSources.tag.code
+    source "${swaggerSources.tag.code.outputDir}/src/main/java"              
 }
 
 sourceSets {
@@ -308,7 +337,8 @@ sourceSets {
     	  java { srcDirs += "${swaggerSources.datacompliance.code.outputDir}/src/main/java" }
     	  java { srcDirs += "${swaggerSources.platform.code.outputDir}/src/main/java" }
     	  java { srcDirs += "${swaggerSources.frontendtools.code.outputDir}/src/main/java" }
-    	  java { srcDirs += "${swaggerSources.carlafunction.code.outputDir}/src/main/java" }
+          java { srcDirs += "${swaggerSources.userWidgetPreference.code.outputDir}/src/main/java" }
+          java { srcDirs += "${swaggerSources.carlafunction.code.outputDir}/src/main/java" }
     	  java { srcDirs += "${swaggerSources.agileReleaseTrain.code.outputDir}/src/main/java" }
     	  java { srcDirs += "${swaggerSources.corporateDataCatalog.code.outputDir}/src/main/java" }
     	  java { srcDirs += "${swaggerSources.datacomplianceAudit.code.outputDir}/src/main/java" }
@@ -319,6 +349,7 @@ sourceSets {
     	  java { srcDirs += "${swaggerSources.classification.code.outputDir}/src/main/java"}
     	  java { srcDirs += "${swaggerSources.legalbasis.code.outputDir}/src/main/java"}
     	  java { srcDirs += "${swaggerSources.planningit.code.outputDir}/src/main/java"}
+    	  java { srcDirs += "${swaggerSources.tag.code.outputDir}/src/main/java" }
     }
 }
 

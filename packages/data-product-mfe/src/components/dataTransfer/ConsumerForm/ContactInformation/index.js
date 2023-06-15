@@ -15,8 +15,8 @@ import { hostServer } from '../../../../server/api';
 import { dataTransferApi } from '../../../../apis/datatransfers.api';
 
 import ProgressIndicator from '../../../../common/modules/uilab/js/src/progress-indicator';
+import Tooltip from '../../../../common/modules/uilab/js/src/tooltip';
 import { useSelector } from 'react-redux';
-import dayjs from 'dayjs';
 import { debounce } from 'lodash';
 
 const ContactInformation = ({
@@ -64,8 +64,6 @@ const ContactInformation = ({
   const [searchTerm, setSearchTerm] = useState('');
   const [fieldValue, setFieldValue] = useState('');
 
-  const minDate = dayjs().format();
-
   const provideDataTransfers = useSelector((state) =>
     !isDataProduct ? state.provideDataTransfers : state.dataProduct,
   );
@@ -100,6 +98,8 @@ const ContactInformation = ({
 
   useEffect(() => {
     reset(watch());
+    Tooltip.defaultSetup();
+    SelectBox.defaultSetup();
     //eslint-disable-next-line
   }, []);
 
@@ -188,19 +188,16 @@ const ContactInformation = ({
   };
 
   const validateDate = () => {
-    const value = getValues('dateOfAgreement');
+    const value = getValues('dateOfDataTransfer');
     if (typeof value === 'object') {
       const isValidDate = !isNaN(value?.get('date'));
-      const isBefore = dayjs(value).isBefore(minDate, 'date');
       const error =
         value === null || value === ''
           ? '*Missing entry'
           : !isValidDate
           ? 'Invalid Date Format'
-          : isBefore
-          ? 'Is before the minimum date'
           : null;
-      return (value === isValidDate && value !== isBefore) || error;
+      return (value === isValidDate && value) || error;
     } else {
       return (value !== '' && value !== undefined) || '*Missing entry';
     }
@@ -275,7 +272,7 @@ const ContactInformation = ({
                     <TeamSearch
                       label={
                         <>
-                          Business and/or Information Owner <sup>*</sup>
+                          Responsible Manager (E3 +) <sup>*</sup>
                         </>
                       }
                       fieldMode={true}
@@ -362,6 +359,7 @@ const ContactInformation = ({
                   render={({ field }) => (
                     <Tags
                       title={'Department'}
+                      placeholder={'Choose from one of the existing or add new department'}
                       max={1}
                       chips={selectedDepartment}
                       tags={departments}
@@ -377,27 +375,32 @@ const ContactInformation = ({
                 />
               </div>
               <div className={Styles.flexLayout}>
-                <div className={classNames('input-field-group include-error', errors.dateOfAgreement ? 'error' : '')}>
-                  <label id="dateOfAgreementLabel" htmlFor="dateOfAgreementInput" className="input-label">
-                    Date of Agreement <sup>*</sup>
+                <div
+                  className={classNames('input-field-group include-error', errors.dateOfDataTransfer ? 'error' : '')}
+                >
+                  <label id="dateOfDataTransferLabel" htmlFor="dateOfDataTransferInput" className="input-label">
+                    Date of Data Transfer <sup>*</sup>
                   </label>
                   <Controller
                     control={control}
-                    name="dateOfAgreement"
+                    name="dateOfDataTransfer"
                     rules={{
                       validate: validateDate,
                     }}
                     render={({ field }) => (
                       <DatePicker
-                        label="Date of Agreement"
-                        value={watch('dateOfAgreement')}
-                        minDate={minDate}
-                        onChange={(value) => field.onChange(value)}
-                        requiredError={errors.dateOfAgreement?.message}
+                        label="Date of Data Transfer"
+                        value={watch('dateOfDataTransfer')}
+                        name={field.name}
+                        // minDate={minDate}
+                        onChange={(value) => {
+                          field.onChange(value);
+                        }}
+                        requiredError={errors.dateOfDataTransfer?.message}
                       />
                     )}
                   />
-                  <span className={classNames('error-message')}>{errors.dateOfAgreement?.message}</span>
+                  <span className={classNames('error-message')}>{errors.dateOfDataTransfer?.message}</span>
                 </div>
               </div>
             </div>
@@ -454,8 +457,8 @@ const ContactInformation = ({
                   rules={{ validate: isLCORequired }}
                   render={({ field }) => (
                     <TypeAheadBox
-                      label={'Corresponding Compliance Officer / Responsible (LCO/LCR)'}
-                      placeholder={'Select your (LCO/LCR)'}
+                      label={<>Corresponding Compliance Contact, i.e. Local Compliance Officer/ Responsible or Multiplier <a className='info' target="_blank" href='#/data/datacompliancenetworklist'><i className="icon mbc-icon info" tooltip-data="Click to view LCO/LCR Contacts" /></a></>}
+                      placeholder={'Search for country, department etc.'}
                       defaultValue={complianceOfficer}
                       list={complianceOfficerList.records}
                       setSelected={(selectedTags) => {

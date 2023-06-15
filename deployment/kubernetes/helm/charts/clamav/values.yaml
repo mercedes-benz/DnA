@@ -67,9 +67,10 @@ image:
   pullPolicy: Always
 
 ingress:
-  enabled: true
+  enabled: false
   host: ""
-
+  certificateIssuer: ""
+  prefix: ""
   annotations:
     traefik.frontend.rule.type: PathPrefix
     kubernetes.io/ingress.class: traefik

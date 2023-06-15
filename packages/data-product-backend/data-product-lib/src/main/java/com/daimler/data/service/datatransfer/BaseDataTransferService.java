@@ -108,13 +108,17 @@ public class BaseDataTransferService extends BaseCommonService<DataTransferVO, D
 
 	@Override
 	public List<DataTransferVO> getAllWithFilters(Boolean published, int offset, int limit, String sortBy,
-			String sortOrder, String recordStatus, String datatransferIds, Boolean isCreator) {
+			String sortOrder, String recordStatus, String datatransferIds, Boolean isCreator, Boolean isProviderCreator) {
 		String userId = null;
+		String providerUserId = null;
 		if (isCreator != null && isCreator && this.userStore.getUserInfo() != null) {
 			userId = this.userStore.getUserInfo().getId();
 		}
+		if (isProviderCreator != null && isProviderCreator && this.userStore.getUserInfo() != null) {
+			providerUserId = this.userStore.getUserInfo().getId();
+		}
 		List<DataTransferNsql> dataTransferEntities = dataTransferCustomRepository
-				.getAllWithFiltersUsingNativeQuery(published, offset, limit, sortBy, sortOrder, recordStatus, datatransferIds, userId);
+				.getAllWithFiltersUsingNativeQuery(published, offset, limit, sortBy, sortOrder, recordStatus, datatransferIds, userId, providerUserId);
 		if (!ObjectUtils.isEmpty(dataTransferEntities))
 			return dataTransferEntities.stream().map(n -> dataTransferAssembler.toVo(n)).collect(Collectors.toList());
 		else
@@ -122,12 +126,16 @@ public class BaseDataTransferService extends BaseCommonService<DataTransferVO, D
 	}
 
 	@Override
-	public Long getCount(Boolean published, String recordStatus, String datatransferIds, Boolean isCreator) {
+	public Long getCount(Boolean published, String recordStatus, String datatransferIds, Boolean isCreator, Boolean isProviderCreator) {
 		String userId = null;
+		String providerUserId = null;
 		if (isCreator != null && isCreator  && this.userStore.getUserInfo() != null) {
 			userId = this.userStore.getUserInfo().getId();
 		}
-		return dataTransferCustomRepository.getCountUsingNativeQuery(published, recordStatus, datatransferIds, userId);
+		if (isProviderCreator != null && isProviderCreator && this.userStore.getUserInfo() != null) {
+			providerUserId = this.userStore.getUserInfo().getId();
+		}
+		return dataTransferCustomRepository.getCountUsingNativeQuery(published, recordStatus, datatransferIds, userId, providerUserId);
 	}
 
 	private void updateDepartments(String department) {
@@ -254,7 +262,18 @@ public class BaseDataTransferService extends BaseCommonService<DataTransferVO, D
 		CreatedByVO currentUser = this.userStore.getVO();
 		String userId = currentUser != null ? currentUser.getId() : "";
 		if (StringUtils.hasText(userId)) {
-			if (userId.equalsIgnoreCase(createdBy.getId())) {
+			if (createdBy != null && userId.equalsIgnoreCase(createdBy.getId())) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	private boolean hasProviderAccess(DataTransferTeamMemberVO teamMemberVO) {
+		CreatedByVO currentUser = this.userStore.getVO();
+		String userId = currentUser != null ? currentUser.getId() : "";
+		if (StringUtils.hasText(userId)) {
+			if (teamMemberVO != null && userId.equalsIgnoreCase(teamMemberVO.getShortId())) {
 				return true;
 			}
 		}
@@ -279,7 +298,9 @@ public class BaseDataTransferService extends BaseCommonService<DataTransferVO, D
 			if (existingVO != null && existingVO.getRecordStatus() != null
 					&& !existingVO.getRecordStatus().equalsIgnoreCase(ConstantsUtility.DELETED)) {
 				CreatedByVO createdBy = existingVO.getProviderInformation().getCreatedBy();
-				if (hasProviderAccess(createdBy)) {
+				DataTransferTeamMemberVO informationOwner = existingVO.getProviderInformation().getContactInformation().getInformationOwner();
+				DataTransferTeamMemberVO name = existingVO.getProviderInformation().getContactInformation().getName();
+				if (hasProviderAccess(createdBy) || hasProviderAccess(informationOwner) || hasProviderAccess(name)) {
 					if (!ObjectUtils.isEmpty(providerResponseVO.getUsers())) {
 						if (providerResponseVO.getUsers().stream()
 								.anyMatch(n -> userId.equalsIgnoreCase(n.getShortId()))) {
@@ -585,7 +606,9 @@ public class BaseDataTransferService extends BaseCommonService<DataTransferVO, D
 			DataTransferVO dataTransferVO = null;
 			if (existingVO != null && existingVO.getId() != null) {
 				CreatedByVO createdBy = existingVO.getProviderInformation().getCreatedBy();
-				if (hasProviderAccess(createdBy)) {
+				DataTransferTeamMemberVO informationOwner = existingVO.getProviderInformation().getContactInformation().getInformationOwner();
+				DataTransferTeamMemberVO name = existingVO.getProviderInformation().getContactInformation().getName();
+				if (hasProviderAccess(createdBy) || hasProviderAccess(informationOwner) || hasProviderAccess(name)) {
 					ProviderResponseVO providerResponseVO = existingVO.getProviderInformation();
 					providerResponseVO.lastModifiedDate(new Date());
 					providerResponseVO.setModifiedBy(this.userStore.getVO());
@@ -629,6 +652,11 @@ public class BaseDataTransferService extends BaseCommonService<DataTransferVO, D
 			LOGGER.error("Failed to delete dataTransfer with id {} , due to internal error.", id);
 			return new ResponseEntity<>(errorMessage, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
+	}
+
+	@Override
+	public GenericMessage updateDataTransferData() {
+		return dataTransferCustomRepository.updateDataTransferData();
 	}
 
 	private ProviderVO getProviderVOFromDataTransferVO(DataTransferVO vo) {

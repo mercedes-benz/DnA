@@ -3,19 +3,22 @@ import * as React from 'react';
 import Styles from './Kpi.scss';
 import Modal from 'components/formElements/modal/Modal';
 import SelectBox from 'components/formElements/SelectBox/SelectBox';
-import { IKpis, IKpiNames, IReportingCauses } from 'globals/types';
+import { IKpis, IKpiNameList, IReportingCauses } from 'globals/types';
 import ExpansionPanel from '../../../../assets/modules/uilab/js/src/expansion-panel';
 import Tooltip from '../../../../assets/modules/uilab/js/src/tooltip';
 import { ErrorMsg } from 'globals/Enums';
 import ConfirmModal from 'components/formElements/modal/confirmModal/ConfirmModal';
 import TextArea from 'components/mbc/shared/textArea/TextArea';
 import IconAddKPI from 'components/icons/IconAddKPI';
+import Tags from 'components/formElements/tags/Tags';
 // import ReportListRowItem from 'components/mbc/allReports/reportListRowItem/ReportListRowItem';
 
 const classNames = cn.bind(Styles);
+
 export interface IKpiProps {
   kpis: IKpis[];
-  kpiNames: IKpiNames[];
+  kpiNames: IKpiNameList[];
+  kpiClassifications: any[];
   reportingCause: IReportingCauses[];
   onSaveDraft: (tabToBeSaved: string) => void;
   modifyKpi: (modifyKpi: IKpis[]) => void;
@@ -24,7 +27,7 @@ export interface IKpiProps {
 export interface IKpiState {
   kpis: IKpis[];
   kpiInfo: IKpis;
-  errors: IKpis;
+  errors: IKpisError;
   comment: string;
   addKpi: boolean;
   editKpi: boolean;
@@ -40,12 +43,28 @@ export interface IKpiState {
   contextMenuOffsetTop: number;
   contextMenuOffsetRight: number;
   selectedContextMenu: string;
+  dataSources: IDataSources;
+  enableClassification: boolean;
+  selectedClassification: string;
 }
+
+export interface IDataSources {
+  kpiName: string;
+  kpiClassification: string;
+}
+
 export interface IKpiList {
   name: string;
-  reportingCase: string;
+  reportingCase: string[];
   kpiLink: string;
   comment: string;
+}
+export interface IKpisError {
+  description: string;
+  name: string;
+  kpiClassification: string;
+  reportingCause: string;
+  kpiLink: string;
 }
 export default class Kpi extends React.Component<IKpiProps, IKpiState> {
   protected isTouch = false;
@@ -61,13 +80,15 @@ export default class Kpi extends React.Component<IKpiProps, IKpiState> {
     this.state = {
       kpis: [],
       kpiInfo: {
-        name: '',
-        reportingCause: '',
+        name: {kpiName: '', kpiClassification: ''},
+        names: [],
+        reportingCause: [],
         kpiLink: '',
         description: '',
       },
       errors: {
         name: '',
+        kpiClassification: '',
         reportingCause: '',
         kpiLink: '',
         description: '',
@@ -86,12 +107,19 @@ export default class Kpi extends React.Component<IKpiProps, IKpiState> {
       showContextMenu: false,
       contextMenuOffsetTop: 0,
       contextMenuOffsetRight: 0,
-      selectedContextMenu: ''
+      selectedContextMenu: '',
+      dataSources: {kpiName: '', kpiClassification: ''},
+      enableClassification: false,
+      selectedClassification: ''
     };
   }
 
   public componentDidMount() {
     ExpansionPanel.defaultSetup();
+    // this.setState({selectedClassification: this.state.kpiInfo?.names[0]?.dataType},
+    //   () => {-
+    //     SelectBox.defaultSetup();
+    //     });
     // document.addEventListener('touchend', this.handleContextMenuOutside, true);
     // document.addEventListener('click', this.handleContextMenuOutside, true);
     Tooltip.defaultSetup();
@@ -120,91 +148,115 @@ export default class Kpi extends React.Component<IKpiProps, IKpiState> {
       <div className={Styles.addKpiModalContent}>
         <br />
         <div>
-          <div className={Styles.flexLayout}>
-            <div>
+          <div>            
               <div className={classNames('input-field-group include-error', this.state.errors.name ? 'error' : '')}>
-                <label id="kpinames" htmlFor="kpinames" className="input-label">
-                  KPI Name<sup>*</sup>
-                </label>
-                <div className="custom-select">
-                  <select
-                    id="kpinames"
-                    name="name"
-                    multiple={false}
-                    required-error={requiredError}
-                    required={true}
-                    value={this.state.kpiInfo.name || ''}
-                    onChange={this.handleChange}
-                  >
-                    <option value={''}>Choose</option>
-                    {this.props.kpiNames?.map((obj) => (
-                      <option id={obj.name + obj.id} key={obj.id} value={obj.name}>
-                        {obj.name}
-                      </option>
-                    ))}
-                  </select>
+                <div>
+                  <Tags
+                    title={'KPI Name'}
+                    max={1}
+                    chips={
+                      this.state?.kpiInfo?.name?.kpiName
+                        ? this.state.kpiInfo?.name?.kpiName ? [this.state.kpiInfo?.name?.kpiName] : []
+                        : this.state.dataSources?.kpiName ? [this.state.dataSources?.kpiName] : []
+                    }
+                    setTags={this.setDataSources}
+                    isMandatory={true}
+                    removeTag={this.removeDataSource}
+                    tags={this.props.kpiNames}
+                    // tags={this.props.kpiNames}
+                    showMissingEntryError={false}
+                    isDataSource={false}
+                    suggestionPopupHeight={300}
+                    {...this.props}
+                  />
                 </div>
                 <span className={classNames('error-message', this.state.errors.name.length ? '' : 'hide')}>
                   {this.state.errors.name}
                 </span>
-              </div>
-            </div>
-            <div>
-              <div
-                className={classNames(
-                  'input-field-group include-error',
-                  this.state.errors.reportingCause ? 'error' : '',
-                )}
-              >
-                <label id="reportingCauseLabel" htmlFor="reportingCauseField" className="input-label">
-                  Reporting Cause<sup>*</sup>
+              </div>              
+              <div className={classNames('input-field-group include-error', this.state.errors.kpiClassification ? 'error' : '')}>
+                <label id="kpiclassificationlabel" htmlFor="kpiclassification" className="input-label">
+                  KPI Classification <sup>*</sup> &nbsp;
+                  <i className="icon mbc-icon info" tooltip-data="Please assign the KPI to a respective Focus Area" />
                 </label>
-                <div className="custom-select">
+                <div className={classNames("custom-select",!this.state?.enableClassification ? Styles.disabledDiv : '')}>
                   <select
-                    id="reportingCauseField"
+                    id="kpiClassification"
+                    name="kpiClassification"
                     multiple={false}
                     required-error={requiredError}
                     required={true}
-                    name="reportingCause"
-                    value={this.state.kpiInfo.reportingCause || ''}
-                    onChange={this.handleChange}
+                    // disabled={!this.state?.enableClassification}
+                    // value={this.state.kpiInfo?.names.map((item: any) => item.classification) || ''}
+                    value={this.state.kpiInfo?.name?.kpiClassification
+                      ? this.state.kpiInfo?.name?.kpiClassification
+                      : this.state.dataSources?.kpiClassification}
+                    onChange={this.handleChangeClassification}
                   >
                     <option value={''}>Choose</option>
-                    {this.props.reportingCause?.map((obj) => (
+                    {this.props.kpiClassifications?.map((obj) => (
                       <option id={obj.name + obj.id} key={obj.id} value={obj.name}>
                         {obj.name}
                       </option>
                     ))}
                   </select>
                 </div>
-                <span className={classNames('error-message', this.state.errors.reportingCause.length ? '' : 'hide')}>
-                  {this.state.errors.reportingCause}
+                <span className={classNames('error-message', this.state.errors.kpiClassification.length ? '' : 'hide')}>
+                  {this.state.errors.kpiClassification}
                 </span>
               </div>
-            </div>
           </div>
-          <div className={Styles.flexLayout}>
-            <div>
-              <div className={classNames('input-field-group include-error', this.state.errors.kpiLink ? 'error' : '')}>
-                <label id="kpiLinkLabel" htmlFor="kpiLinkField" className="input-label">
-                Link KPI-Wiki
-                </label>
-                <input
-                  type="text"
-                  className="input-field"
-                  name="kpiLink"
-                  id="kpiLinkInput"
-                  maxLength={200}
-                  placeholder="https://www.example.com"
-                  autoComplete="off"
-                  value={this.state.kpiInfo.kpiLink}
-                  onChange={this.handleChange}
-                />
-                <span className={classNames('error-message', this.state.errors.kpiLink.length ? '' : 'hide')}>
-                  {this.state.errors.kpiLink}
-                </span>
+          <div className={Styles.flexLayout}>    
+            <div
+              className={classNames(
+                'input-field-group include-error',
+                this.state.errors.reportingCause ? 'error' : '',
+              )}
+            >
+              <label id="reportingCauseLabel" htmlFor="reportingCauseField" className="input-label">
+                Reporting Cause <sup>*</sup>
+              </label>
+              <div className="custom-select">
+                <select
+                  id="reportingCauseField"
+                  multiple={true}
+                  required-error={requiredError}
+                  required={true}
+                  name="reportingCause"
+                  value={this.state.kpiInfo.reportingCause}
+                  onChange={this.onChangeReportingCause}
+                >
+                  {/* <option value={''}>Choose</option> */}
+                  {this.props.reportingCause?.map((obj) => (
+                    <option id={obj.name + obj.id} key={obj.id} value={obj.name}>
+                      {obj.name}
+                    </option>
+                  ))}
+                </select>
               </div>
+              <span className={classNames('error-message', this.state.errors.reportingCause.length ? '' : 'hide')}>
+                {this.state.errors.reportingCause}
+              </span>
             </div>
+            <div className={classNames('input-field-group include-error', this.state.errors.kpiLink ? 'error' : '')}>
+              <label id="kpiLinkLabel" htmlFor="kpiLinkField" className="input-label">
+              Link to KPI Information
+              </label>
+              <input
+                type="text"
+                className="input-field"
+                name="kpiLink"
+                id="kpiLinkInput"
+                maxLength={200}
+                placeholder="https://www.example.com"
+                autoComplete="off"
+                value={this.state.kpiInfo.kpiLink}
+                onChange={this.handleChange}
+              />
+              <span className={classNames('error-message', this.state.errors.kpiLink.length ? '' : 'hide')}>
+                {this.state.errors.kpiLink}
+              </span>
+            </div>            
           </div>
           <div>
             <TextArea
@@ -258,10 +310,10 @@ export default class Kpi extends React.Component<IKpiProps, IKpiState> {
           >
             <td className={'wrap-text ' + classNames(Styles.reportName)}>
               <div className={Styles.solIcon}>
-                {kpi?.name}
+                {kpi?.name?.kpiName}
               </div>
             </td>
-            <td className="wrap-text">{kpi?.reportingCause || 'NA'}</td>
+            <td className="wrap-text">{kpi?.reportingCause.length > 0? Array(kpi?.reportingCause).join(', ') : 'NA'}</td>
             <td className="wrap-text">{kpi?.kpiLink ? <a href={kpi?.kpiLink} target='_blank' rel="noreferrer">{kpi?.kpiLink}</a> : 'NA'}</td>
             <td>              
               <div
@@ -278,6 +330,7 @@ export default class Kpi extends React.Component<IKpiProps, IKpiState> {
                     style={{
                       top: this.state.contextMenuOffsetTop + 'px',
                       right: this.state.contextMenuOffsetRight + 'px',
+                      zIndex: '9'
                     }}
                     className={classNames('contextMenuWrapper', this.state.showContextMenu ? '' : 'hide')}
                   >
@@ -407,6 +460,40 @@ export default class Kpi extends React.Component<IKpiProps, IKpiState> {
     }));
   };
 
+  protected handleChangeClassification = (e: React.ChangeEvent<HTMLSelectElement | HTMLTextAreaElement | HTMLInputElement>) => {
+    // const name = e.target.name;
+    const value = e.target.value;
+    this.setState((prevState) => ({
+      kpiInfo: {
+        ...prevState.kpiInfo,
+        selectedClassification: value,
+        name:{
+          ...prevState.kpiInfo.name,
+          kpiClassification: value,
+        }
+      }
+    }));
+  };
+
+  public onChangeReportingCause = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const selectedOptions = e.currentTarget.selectedOptions;
+    const selectedValues: string[] = [];
+    if (selectedOptions.length) {
+      Array.from(selectedOptions).forEach((option) => {
+        let reportingCause = '';
+        reportingCause = option.textContent;
+        selectedValues.push(reportingCause);
+      });
+    }
+
+    this.setState((prevState) => ({
+      kpiInfo: {
+        ...prevState.kpiInfo,
+        reportingCause: selectedValues,
+      }
+    }));
+  };
+
   protected onSaveKpi = () => {
     if (this.validateKpiTab()) {
       this.props.modifyKpi(this.state.kpis);
@@ -436,13 +523,15 @@ export default class Kpi extends React.Component<IKpiProps, IKpiState> {
       editKpi: false,
       duplicateKpiAdded: false,
       kpiInfo: {
-        name: '',
-        reportingCause: '',
+        name: {kpiName: '', kpiClassification: ''},
+        names: [],
+        reportingCause: [],
         kpiLink: '',
         description: '',
       },
       errors: {
         name: '',
+        kpiClassification: '',
         reportingCause: '',
         kpiLink: '',
         description: '',
@@ -465,11 +554,12 @@ export default class Kpi extends React.Component<IKpiProps, IKpiState> {
   };
 
   protected onAddKpi = () => {
-    const { name, reportingCause, kpiLink, description } = this.state.kpiInfo;
+    const { name, names, reportingCause, kpiLink, description } = this.state.kpiInfo;
     const { kpis } = this.state;
     const selectedValues: IKpis[] = [];
     selectedValues.push({
       name,
+      names,
       reportingCause,
       kpiLink,
       description,
@@ -485,14 +575,17 @@ export default class Kpi extends React.Component<IKpiProps, IKpiState> {
           addKpi: false,
           duplicateKpiAdded: false,
           kpis: [...prevState.kpis, ...selectedValues],
+          enableClassification: false,
           kpiInfo: {
-            name: '',
-            reportingCause: '',
+            name: {kpiName: '', kpiClassification: ''},
+            names: [],
+            reportingCause: [],
             kpiLink: '',
             description: '',
           },
           errors: {
             name: '',
+            kpiClassification: '',
             reportingCause: '',
             kpiLink: '',
             description: '',
@@ -512,7 +605,7 @@ export default class Kpi extends React.Component<IKpiProps, IKpiState> {
   };
 
   protected onEditKpiOpen = (kpi: IKpis) => {
-    const { name, reportingCause, kpiLink, description } = kpi;
+    const { name, names, reportingCause, kpiLink, description } = kpi;
     const { kpis } = this.state;
     // const selectedItemIndex = kpis.findIndex(item=> item.name === name && item.reportingCause === reportingCause);
     const selectedItemIndex = kpis.findIndex(
@@ -527,8 +620,11 @@ export default class Kpi extends React.Component<IKpiProps, IKpiState> {
         addKpi: false,
         editKpi: true,
         selectedItemIndex,
+        enableClassification: false,
+        showContextMenu: !this.state.showContextMenu,
         kpiInfo: {
           name,
+          names,
           reportingCause,
           kpiLink,
           description,
@@ -569,6 +665,7 @@ export default class Kpi extends React.Component<IKpiProps, IKpiState> {
       {
         showDeleteModal: true,
         selectedItemIndex,
+        showContextMenu: !this.state.showContextMenu,
       },
       () => {
         // Tooltip.defaultSetup();
@@ -579,7 +676,7 @@ export default class Kpi extends React.Component<IKpiProps, IKpiState> {
 
   protected onEditKpi = () => {
     const { selectedItemIndex } = this.state;
-    const { name, reportingCause, kpiLink, description } = this.state.kpiInfo;
+    const { name, names, reportingCause, kpiLink, description } = this.state.kpiInfo;
     const { kpis } = this.state;
     // const kpiExists = this.isKpiExist(kpis);
     // const newIndex = kpis.findIndex(item=>item.name === name && item.reportingCause === reportingCause);
@@ -590,7 +687,7 @@ export default class Kpi extends React.Component<IKpiProps, IKpiState> {
       // || !kpiExists
       // ) {
       const kpiList = [...kpis]; // create copy of original array
-      kpiList[selectedItemIndex] = { name, reportingCause, kpiLink, description }; // modify copied array
+      kpiList[selectedItemIndex] = { name, names, reportingCause, kpiLink, description }; // modify copied array
       this.props.modifyKpi(kpiList);
       this.setState(
         {
@@ -599,13 +696,15 @@ export default class Kpi extends React.Component<IKpiProps, IKpiState> {
           kpis: kpiList,
           errors: {
             name: '',
+            kpiClassification: '',
             reportingCause: '',
             kpiLink: '',
             description: '',
           },
           kpiInfo: {
-            name: '',
-            reportingCause: '',
+            name: {kpiName: '', kpiClassification: ''},
+            names: [],
+            reportingCause: [],
             kpiLink: '',
             description: '',
           },
@@ -629,11 +728,15 @@ export default class Kpi extends React.Component<IKpiProps, IKpiState> {
     const errors = this.state.errors;
     const errorMissingEntry = '*Missing entry';
 
-    if (!this.state.kpiInfo.name) {
+    if (!this.state.kpiInfo.name.kpiName) {
       errors.name = errorMissingEntry;
       formValid = false;
     }
-    if (!this.state.kpiInfo.reportingCause) {
+    if (this.state.kpiInfo.name.kpiClassification.length === 0) {
+      errors.kpiClassification = errorMissingEntry;
+      formValid = false;
+    }
+    if (this.state.kpiInfo.reportingCause.length === 0) {
       errors.reportingCause = errorMissingEntry;
       formValid = false;
     }
@@ -734,5 +837,67 @@ export default class Kpi extends React.Component<IKpiProps, IKpiState> {
 
   protected listRow = (element: HTMLTableRowElement) => {
     this.listRowElement = element;
+  };
+
+  protected setDataSources = (arr: string[]) => {
+
+    let dataSources = this.state.dataSources;
+
+    arr.forEach((element) => {
+      const matchedKpiName = this.props?.kpiNames.filter((item: any) => {
+        return item.kpiName == element;
+      });
+      
+      const isNameExist = matchedKpiName.length > 0;
+      if(isNameExist){
+        if(matchedKpiName[0]?.dataType){
+          this.setState({
+            enableClassification: false, 
+            selectedClassification: matchedKpiName[0]?.dataType},
+            () => {
+              SelectBox.defaultSetup();
+            });
+        } else {
+          this.setState({
+            enableClassification: true, 
+            selectedClassification: ''},
+          () => {
+            SelectBox.defaultSetup();
+          });
+        }
+        
+      } else {
+        this.setState({
+          enableClassification: true, 
+          selectedClassification: ''},
+        () => {
+          SelectBox.defaultSetup();
+          })
+      }
+      
+      dataSources = { kpiName: element, kpiClassification: matchedKpiName[0]?.dataType };
+      
+    });
+
+    this.setState((prevState) => ({
+      kpiInfo: {
+        ...prevState.kpiInfo,
+        ['name']: dataSources,
+      },
+    }));
+  };
+
+  protected removeDataSource = (index: number) => {
+      const dataSources = { kpiName: '', kpiClassification: '' };
+
+      this.setState((prevState) => ({
+        kpiInfo: {
+          ...prevState.kpiInfo,
+          ['name']: dataSources,
+        },
+      }),() => {
+        SelectBox.defaultSetup();
+        });
+    
   };
 }

@@ -1,0 +1,115 @@
+.mainPanel {
+  padding: 50px 75px 0px 75px;
+}
+.backButtonWapper {
+  margin-bottom: 15px;
+}
+.summeryBannerTitle {
+  margin: 19px 0 30px 0;
+  h2 {
+    font-size: var(--font-size-headline-big);
+    line-height: 33px;
+  }
+}
+.switch {
+  text-align: right;
+  font-size: var(--font-size-icon-medium);
+  margin-right: -10px;
+  margin-top: -37px;
+  float: right;
+  i {
+      cursor: pointer;
+      color: #697582;
+
+      &:hover {
+          color: #00adef;
+      }
+  }
+}
+.contextMenu {
+  position: relative;
+  &.open .contextMenuTrigger {
+    z-index: 10;
+    position: relative;
+  }
+  .contextMenuTrigger {
+    padding: 12px 10px;
+    cursor: pointer;
+    margin-right: -14px;
+    &:hover {
+      color: #00adef;
+    }
+  }
+}
+  
+:global {
+  label.input-label.summary {
+    color: #99A5B3;
+    font-size: var(--font-size-small);
+    font-weight: bold;
+  }
+}
+.mr {
+  margin-right: 10px;
+}
+.content {
+  background: #252a33;
+  margin: 15px 0;
+  padding:  25px 38px;
+  position: relative;
+}
+.header {
+  margin-bottom: 50px;
+  position: relative;
+}
+.compareBtns {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  margin-top: 30px;
+
+  p {
+    color: #99a5b3;
+    margin-right: 40px;
+  }
+
+  > div {
+    margin-right: 10px;
+    min-width: 200px;
+  }
+}
+.legendContainer {
+  margin-left: 85px;
+  display: flex;
+  align-items: center;
+
+  .legend {
+    display: flex;
+    align-items: center;
+    margin-right: 10px;
+
+    .line {
+      display: inline-block;
+      width: 29px;
+      height: 2px;
+      border-bottom: 2px solid #00ADF0;
+      margin-right: 5px;
+    }
+
+    .dotted {
+      border-bottom: 2px dotted #979797;
+    }
+  }
+}
+
+.customSelect {
+  height: 40px;
+  font-size: var(--font-size-default);
+  outline: none;
+  width: auto;
+  border-color: #697582;
+  padding: 8px 16px 9px;
+  cursor: pointer;
+  background: #252a33;
+  color: #c0c8d0;
+}

@@ -22,7 +22,8 @@ const digitalCaseProgramUrl = Envs.DIGITAL_CASE_PROGRAM_URL;
 const afoUrl= Envs.AFO_TOOL_URL;
 const btpUrl = Envs.BPT_TOOL_URL;
 const dataOasisUrl = Envs.DATA_OASIS_TOOL_URL;
-const dwcUrl = Envs.DWC_TOOL_URL;
+const dataQToolUrl = Envs.DATAQ_TOOL_URL;
+const datasphereUrl = Envs.DATASPHERE_TOOL_URL;
 const extolloUrl = Envs.EXTOLLO_TOOL_URL;
 const powerBIUrl = Envs.POWER_BI_TOOL_URL;
 const sbissUrl = Envs.SBISS_LAUNCHPAD_TOOL_URL;
@@ -30,12 +31,13 @@ const sbissPortalUrl = Envs.SBISS_PORTAL_TOOL_URL;
 const sbissHanaUrl = Envs.SBISS_HANA_LAUNCHPAD_TOOL_URL;
 const dataModelUrl = Envs.DATA_MODEL_URL;
 const kpiWikiUrl = Envs.KPI_WIKI_URL;
-const carlaEconomicModelUrl = Envs.CARLA_ECONOMIC_MODEL_URL;
+// const carlaEconomicModelUrl = Envs.CARLA_ECONOMIC_MODEL_URL;
 const corporateDataCatalogUrl = Envs.CORPORATE_DATA_CATALOG_URL;
 const sapConnectionBookUrl = Envs.SAP_CONNECTION_BOOK_URL;
 const smartDataGovernanceUrl = Envs.SMART_DATA_GOVERNANCE_URL;
 const transactionalDataUrl = Envs.TRANSACTIONAL_DATA_URL;
 const carlaArchitectureUrl = Envs.CARLA_ARCHITECTURE_URL;
+const chatbotUrl = Envs.GPT4ALL_CHATBOT_TOOL_URL;
 
 export const DataLayerElements = [
   {
@@ -64,19 +66,19 @@ export const DataLayerElements = [
     isMediumCard: true,
     svgIcon: 'dataproduct',
   },
-  {
-    name: 'CarLA Economic Model',
-    description:
-      'The CarLA Economic Model is the orientation guide for all functions of the CarLA. This CarLA-City-Map gives you a first overview about the functions of the CarLA, which are clustered in 5 focus areas.',
-    tags: ['Self Service', 'FOSS'],
-    url: carlaEconomicModelUrl,
-    isExternalLink: true,
-    isTextAlignLeft: false,
-    isDisabled: false,
-    isSmallCard: false,
-    isMediumCard: true,
-    svgIcon: 'dataproduct',
-  },
+  // {
+  //   name: 'CarLA Economic Model',
+  //   description:
+  //     'The CarLA Economic Model is the orientation guide for all functions of the CarLA. This CarLA-City-Map gives you a first overview about the functions of the CarLA, which are clustered in 5 focus areas.',
+  //   tags: ['Self Service', 'FOSS'],
+  //   url: carlaEconomicModelUrl,
+  //   isExternalLink: true,
+  //   isTextAlignLeft: false,
+  //   isDisabled: false,
+  //   isSmallCard: false,
+  //   isMediumCard: true,
+  //   svgIcon: 'dataproduct',
+  // },
   {
     name: 'Corporate Data Catalogue',
     description:
@@ -225,7 +227,7 @@ export const ToolsLandingPageElements = [
     isExternalLink: true,
     isTextAlignLeft: true,
     animation: true,
-    isDisabled: !powerBIUrl,
+    isDisabled: !powerBIUrl?.startsWith('http'),
     isSmallCard: false,
     isMediumCard: true,
     svgIcon: 'powerbi',
@@ -259,7 +261,7 @@ export const ToolsLandingPageElements = [
     svgIcon: 'storage',
   },
   {
-    name: 'Code Spaces (Beta)',
+    name: 'Code Spaces',
     description:
       'Code spaces provides developers with one click developer workspace customizable based on the technology used. Developers can collaborate on the team developing same solution but also deploy solution to different staging environments with click of the mouse.',
     tags: ['FOSS', 'Coding', 'Cloud', 'Onprem'],
@@ -281,10 +283,24 @@ export const ToolsLandingPageElements = [
     isExternalLink: true,
     isTextAlignLeft: true,
     animation: true,
-    isDisabled: !dataOasisUrl,
+    isDisabled: !dataOasisUrl?.startsWith('http'),
     isSmallCard: false,
     isMediumCard: true,
     svgIcon: 'data-oasis',
+  },
+  {
+    name: 'DataQ',
+    description:
+      'DataQ is the intelligent IT tool for the simplified application of the Compliance Framework for Data Analytics and the AI Risk Self Assessments.',
+    tags: ['Data Compliance', 'Onprem'],
+    url: dataQToolUrl,
+    isExternalLink: true,
+    isTextAlignLeft: true,
+    animation: true,
+    isDisabled: !dataQToolUrl?.startsWith('http'),
+    isSmallCard: false,
+    isMediumCard: true,
+    svgIcon: 'tools-mini',
   },
   {
     name: 'Jupyter',
@@ -309,7 +325,7 @@ export const ToolsLandingPageElements = [
     isExternalLink: true,
     isTextAlignLeft: true,
     animation: true,
-    isDisabled: !afoUrl,
+    isDisabled: !afoUrl?.startsWith('http'),
     isSmallCard: false,
     isMediumCard: true,
     svgIcon: 'afo',
@@ -337,7 +353,7 @@ export const ToolsLandingPageElements = [
     isExternalLink: true,
     isTextAlignLeft: true,
     animation: true,
-    isDisabled: !extolloUrl,
+    isDisabled: !extolloUrl?.startsWith('http'),
     isSmallCard: false,
     isMediumCard: true,
     svgIcon: 'extollo',
@@ -351,21 +367,20 @@ export const ToolsLandingPageElements = [
     isExternalLink: true,
     isTextAlignLeft: true,
     animation: true,
-    isDisabled: !btpUrl,
+    isDisabled: !btpUrl?.startsWith('http'),
     isSmallCard: false,
     isMediumCard: true,
     svgIcon: 'btp',
   },
   {
-    name: 'DWC',
-    description: 'SAP Data Warehouse Cloud is a cloud based data warehouse designed for self service data integration, modelling and analysis.It provides access to FC Data products and is connected to our SAP Analytics Cloud Frontend.',
+    name: 'Datasphere',
+    description: 'SAP Datasphere is a cloud based data warehouse designed for self service data integration, modelling and analysis.It provides access to FC Data products and is connected to our SAP Analytics Cloud Frontend.',
     tags: ['Data Engineering', 'Data Storage', 'SAP', 'No / Low Code', 'Cloud'],
-    url: dwcUrl
-    ,
+    url: datasphereUrl,
     isExternalLink: true,
     isTextAlignLeft: true,
     animation: true,
-    isDisabled: true,
+    isDisabled: !datasphereUrl?.startsWith('http'),
     isSmallCard: false,
     isMediumCard: true,
     svgIcon: 'tools-mini',
@@ -379,7 +394,7 @@ export const ToolsLandingPageElements = [
     isExternalLink: true,
     isTextAlignLeft: true,
     animation: true,
-    isDisabled: !sbissUrl,
+    isDisabled: !sbissUrl?.startsWith('http'),
     isSmallCard: false,
     isMediumCard: true,
     svgIcon: 'sbiss',
@@ -393,7 +408,7 @@ export const ToolsLandingPageElements = [
     isExternalLink: true,
     isTextAlignLeft: true,
     animation: true,
-    isDisabled: !sbissPortalUrl,
+    isDisabled: !sbissPortalUrl?.startsWith('http'),
     isSmallCard: false,
     isMediumCard: true,
     svgIcon: 'sbiss',
@@ -407,7 +422,7 @@ export const ToolsLandingPageElements = [
     isExternalLink: true,
     isTextAlignLeft: true,
     animation: true,
-    isDisabled: !sbissHanaUrl,
+    isDisabled: !sbissHanaUrl?.startsWith('http'),
     isSmallCard: false,
     isMediumCard: true,
     svgIcon: 'sbiss',
@@ -425,6 +440,19 @@ export const ToolsLandingPageElements = [
     isSmallCard: false,
     isMediumCard: true,
     svgIcon: 'modelregistry',
+  },
+  {
+    name: 'Chat GPT4All',
+    description: 'This is an earlybird release of a chatbot based on GPT4 LLM.',
+    tags: ['Data Engineering', 'No / Low Code', 'Cloud', 'Machine Learning', 'FOSS', 'Onprem'],
+    url: chatbotUrl,
+    isExternalLink: true,
+    isTextAlignLeft: true,
+    animation: true,
+    isDisabled: !chatbotUrl?.startsWith('http'),
+    isSmallCard: false,
+    isMediumCard: true,
+    svgIcon: 'tools-mini',
   },
 ];
 
@@ -560,7 +588,7 @@ export const TrainingsLandingPageElements = [
     url: dataikuTrainingUrl,
     isExternalLink: true,
     isTextAlignLeft: false,
-    isDisabled: false,
+    isDisabled: !dataikuTrainingUrl?.startsWith('http'),
     isSmallCard: false,
     isMediumCard: false,
     svgIconId: 'dataiku-new',
@@ -573,7 +601,7 @@ export const TrainingsLandingPageElements = [
     url: powerbiTrainingUrl,
     isExternalLink: true,
     isTextAlignLeft: false,
-    isDisabled: false,
+    isDisabled: !powerbiTrainingUrl?.startsWith('http'),
     isSmallCard: false,
     isMediumCard: false,
     svgIconId: 'powerbi',
@@ -586,7 +614,7 @@ export const TrainingsLandingPageElements = [
     url: sacTrainingUrl,
     isExternalLink: true,
     isTextAlignLeft: false,
-    isDisabled: false,
+    isDisabled: !sacTrainingUrl?.startsWith('http'),
     isSmallCard: false,
     isMediumCard: true,
     svgIconId: 'sac',
@@ -599,7 +627,7 @@ export const TrainingsLandingPageElements = [
     url: databricksTrainingUrl,
     isExternalLink: true,
     isTextAlignLeft: false,
-    isDisabled: false,
+    isDisabled: !databricksTrainingUrl?.startsWith('http'),
     isSmallCard: false,
     isMediumCard: true,
     svgIconId: 'tools-mini',
@@ -612,7 +640,7 @@ export const TrainingsLandingPageElements = [
     url: digitalCaseProgramUrl,
     isExternalLink: true,
     isTextAlignLeft: false,
-    isDisabled: false,
+    isDisabled: !digitalCaseProgramUrl?.startsWith('http'),
     isSmallCard: false,
     isMediumCard: true,
     svgIconId: 'tools-mini',
@@ -628,7 +656,7 @@ export const CarLALandingPageElements = [
     url: carlaArchitectureUrl,
     isExternalLink: true,
     isTextAlignLeft: false,
-    isDisabled: false,
+    isDisabled: !carlaArchitectureUrl?.startsWith('http'),
     isSmallCard: false,
     isMediumCard: false,
     svgIconId: 'architecture',
@@ -667,7 +695,7 @@ export const CarLALandingPageElements = [
     url: transactionalDataUrl,
     isExternalLink: true,
     isTextAlignLeft: false,
-    isDisabled: false,
+    isDisabled: !transactionalDataUrl?.startsWith('http'),
     isSmallCard: false,
     isMediumCard: false,
     svgIconId: 'transactionaldata',

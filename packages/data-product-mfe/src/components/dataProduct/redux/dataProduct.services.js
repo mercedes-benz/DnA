@@ -12,7 +12,7 @@ import {
 export const GetDataProducts = createAsyncThunk('products/GetDataProducts', async (arg, { getState }) => {
   ProgressIndicator.show();
   try {
-    const res = await dataProductApi.getAllDataProductList('dataProductId', 'desc');
+    const res = await dataProductApi.getAllDataProductList('dataProductName', 'asc', arg);
     ProgressIndicator.hide();
 
     const {
@@ -94,6 +94,10 @@ export const UpdateDataProduct = createAsyncThunk(
     // Update few of the values
     values['platform'] = platforms;
     values['frontEndTools'] = frontEndTools;
+
+    if(values?.informationOwner == ''){
+      delete values?.informationOwner
+    }
 
     const requestBody = serializeFormData({ values, division, type, isDataProduct: true, dropdowns });
     ProgressIndicator.show();

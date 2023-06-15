@@ -256,12 +256,16 @@ export default class DescriptionSummary extends React.Component<IDescriptionRepo
                     <br />
                     {description.agileReleaseTrain && description?.agileReleaseTrain != '0' ? description.agileReleaseTrain : 'NA'}
                   </div>
+                  <div id="procedureId">
+                    <label className="input-label summary">Procedure Id</label>
+                    <br />
+                    {description.procedureId ? description.procedureId : 'NA'}
+                  </div>
                   <div id="frmonEndTech">
                     <label className="input-label summary">Frontend Technologies</label>
                     <br />
                     {description.frontendTechnologies?.join(', ')}
                   </div>
-                  <div></div>
                 </div>
               </div>
             </div>

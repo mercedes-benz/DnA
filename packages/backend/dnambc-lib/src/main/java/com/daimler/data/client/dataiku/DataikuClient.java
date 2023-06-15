@@ -47,7 +47,7 @@ public interface DataikuClient {
 	 * @throws JsonProcessingException
 	 * @throws Exception
 	 */
-	public Optional<List<DataikuProjectVO>> getAllDataikuProjects(Boolean live);
+	public Optional<List<DataikuProjectVO>> getAllDataikuProjects(Boolean live, String cloudProfile);
 
 	/**
 	 * <p>
@@ -57,7 +57,7 @@ public interface DataikuClient {
 	 * @param userId
 	 * @return DataikuUserRole
 	 */
-	public Optional<DataikuUserRole> getDataikuUserRole(String userId, Boolean live);
+	public Optional<DataikuUserRole> getDataikuUserRole(String userId, Boolean live, String cloudProfile);
 
 	/**
 	 * <p>
@@ -68,7 +68,7 @@ public interface DataikuClient {
 	 * @param live
 	 * @return DataikuPermission
 	 */
-	public Optional<DataikuPermission> getDataikuProjectPermission(String projectKey, Boolean live);
+	public Optional<DataikuPermission> getDataikuProjectPermission(String projectKey, Boolean live, String cloudProfile);
 
 	/**
 	 * To get Dataiku project by given project key
@@ -77,5 +77,5 @@ public interface DataikuClient {
 	 * @param live
 	 * @return Optional<DataikuProjectVO>
 	 */
-	public Optional<DataikuProjectVO> getDataikuProject(String projectKey, Boolean live);
+	public Optional<DataikuProjectVO> getDataikuProject(String projectKey, Boolean live, String cloudProfile);
 }

@@ -23,9 +23,9 @@ export default class MembersSummary extends React.Component<IMembersSummaryProps
   }
 
   public render() {
-    const productOwner = this.props.members.reportOwners?.map((member: ITeams, index: number) => {
-      return <TeamMemberListItem key={index} itemIndex={index} teamMember={member} />;
-    });
+    // const productOwner = this.props.members.reportOwners?.map((member: ITeams, index: number) => {
+    //   return <TeamMemberListItem key={index} itemIndex={index} teamMember={member} />;
+    // });
 
     // const developerList = this.props.members.developers?.map((member: ITeams, index: number) => {
     //   return <TeamMemberListItem key={index} itemIndex={index} teamMember={member} />;
@@ -41,12 +41,12 @@ export default class MembersSummary extends React.Component<IMembersSummaryProps
           <div className={Styles.wrapper}>
             <div className={Styles.firstPanel}>
               <h3 className={Styles.description}>Members</h3>
-              {this.props.members.reportOwners?.length ? (
+              {/* {this.props.members.reportOwners?.length ? (
                 <div className={Styles.membersListView}>
                   <label className={'input-label summary ' + Styles.cardSubTitle}>Report Member(s)</label>
                   <div>{productOwner}</div>
                 </div>
-              ) : null}
+              ) : null} */}
               {/* {this.props.members.developers?.length ? (
                 <div className={Styles.membersListView}>
                   <label className={'input-label summary ' + Styles.cardSubTitle}>Developer(s)</label>
