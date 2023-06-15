@@ -28,6 +28,7 @@
 package com.daimler.data.service.usernotificationpref;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -52,6 +53,48 @@ public class BaseUserNotificationPrefService extends BaseCommonService<UserNotif
 	private UserNotificationPrefRepository jpaRepo;
 	@Autowired
 	private UserNotificationPrefAssembler userNotificationPrefAssembler;
+	
+	@Value("${notification.email.solutionNotificationPref}")
+	private boolean defaultSolutionEmailNotificationPref;
+	
+	@Value("${notification.email.notebookNotificationPref}")
+	private boolean defaultNotebookEmailNotificationPref;
+	
+	@Value("${notification.email.persistenceNotificationPref}")
+	private boolean defaultPersistenceEmailNotificationPref;
+	
+	@Value("${notification.email.dashboardNotificationPref}")
+	private boolean defaultDashboardEmailNotificationPref;
+	
+	@Value("${notification.email.dataComplianceNotificationPref}")
+	private boolean defaultDataComplianceEmailNotificationPref;
+	
+	@Value("${notification.email.dataProductNotificationPref}")
+	private boolean defaultDataProductEmailNotificationPref;
+	
+	@Value("${notification.email.chronosNotificationPref}")
+	private boolean defaultChronosEmailNotificationPref;
+
+	@Value("${notification.app.solutionNotificationPref}")
+	private boolean defaultSolutionAppNotificationPref;
+	
+	@Value("${notification.app.notebookNotificationPref}")
+	private boolean defaultNotebookAppNotificationPref;
+	
+	@Value("${notification.app.persistenceNotificationPref}")
+	private boolean defaultPersistenceAppNotificationPref;
+	
+	@Value("${notification.app.dashboardNotificationPref}")
+	private boolean defaultDashboardAppNotificationPref;
+	
+	@Value("${notification.app.dataComplianceNotificationPref}")
+	private boolean defaultDataComplianceAppNotificationPref;
+	
+	@Value("${notification.app.dataProductNotificationPref}")
+	private boolean defaultDataProductAppNotificationPref;
+	
+	@Value("${notification.app.chronosNotificationPref}")
+	private boolean defaultChronosAppNotificationPref;
 
 	public BaseUserNotificationPrefService() {
 		super();
@@ -79,33 +122,33 @@ public class BaseUserNotificationPrefService extends BaseCommonService<UserNotif
 				preferencesVO.setUserId(value);
 				preferencesVO.setTermsOfUse(false);
 				NotificationPreferenceVO notebookNotificationPref = new NotificationPreferenceVO();
-				notebookNotificationPref.setEnableAppNotifications(true);
-				notebookNotificationPref.setEnableEmailNotifications(false);
+				notebookNotificationPref.setEnableAppNotifications(defaultNotebookAppNotificationPref);
+				notebookNotificationPref.setEnableEmailNotifications(defaultNotebookEmailNotificationPref);
 				preferencesVO.setNotebookNotificationPref(notebookNotificationPref);
 				NotificationPreferenceVO solutionNotificationPref = new NotificationPreferenceVO();
-				solutionNotificationPref.setEnableAppNotifications(true);
-				solutionNotificationPref.setEnableEmailNotifications(false);
+				solutionNotificationPref.setEnableAppNotifications(defaultSolutionAppNotificationPref);
+				solutionNotificationPref.setEnableEmailNotifications(defaultSolutionEmailNotificationPref);
 				preferencesVO.setSolutionNotificationPref(solutionNotificationPref);
 				NotificationPreferenceVO persistenceNotificationPref = new NotificationPreferenceVO();
-				persistenceNotificationPref.setEnableAppNotifications(true);
-				persistenceNotificationPref.setEnableEmailNotifications(false);
+				persistenceNotificationPref.setEnableAppNotifications(defaultPersistenceAppNotificationPref);
+				persistenceNotificationPref.setEnableEmailNotifications(defaultPersistenceEmailNotificationPref);
 				preferencesVO.setPersistenceNotificationPref(persistenceNotificationPref);
 				NotificationPreferenceVO dashboardNotificationPref = new NotificationPreferenceVO();
-				dashboardNotificationPref.setEnableAppNotifications(true);
-				dashboardNotificationPref.setEnableEmailNotifications(false);
+				dashboardNotificationPref.setEnableAppNotifications(defaultDashboardAppNotificationPref);
+				dashboardNotificationPref.setEnableEmailNotifications(defaultDashboardEmailNotificationPref);
 				preferencesVO.setDashboardNotificationPref(dashboardNotificationPref);
 				NotificationPreferenceVO dataComplianceNotificationPref = new NotificationPreferenceVO();
-				dataComplianceNotificationPref.setEnableAppNotifications(true);
-				dataComplianceNotificationPref.setEnableEmailNotifications(false);
+				dataComplianceNotificationPref.setEnableAppNotifications(defaultDataComplianceAppNotificationPref);
+				dataComplianceNotificationPref.setEnableEmailNotifications(defaultDataComplianceEmailNotificationPref);
 				preferencesVO.setDataComplianceNotificationPref(dataComplianceNotificationPref);
 				NotificationPreferenceVO dataProductNotificationPref = new NotificationPreferenceVO();
-				dataProductNotificationPref.setEnableAppNotifications(true);
-				dataProductNotificationPref.setEnableEmailNotifications(false);
+				dataProductNotificationPref.setEnableAppNotifications(defaultDataProductAppNotificationPref);
+				dataProductNotificationPref.setEnableEmailNotifications(defaultDataProductEmailNotificationPref);
 				preferencesVO.setDataProductNotificationPref(dataProductNotificationPref);
 				NotificationPreferenceVO chronosNotificationPref = new NotificationPreferenceVO();
-				chronosNotificationPref.setEnableAppNotifications(true);
-				chronosNotificationPref.setEnableEmailNotifications(false);
-				preferencesVO.setChronosNotificationPref(chronosNotificationPref);
+				chronosNotificationPref.setEnableAppNotifications(defaultChronosAppNotificationPref);
+				chronosNotificationPref.setEnableEmailNotifications(defaultChronosEmailNotificationPref);
+				preferencesVO.setChronosNotificationPref(chronosNotificationPref);				
 				try {
 					UserNotificationPrefVO savedPreferencesVO = this.create(preferencesVO);
 					log.info("Notification preferences created for user {} ", value);

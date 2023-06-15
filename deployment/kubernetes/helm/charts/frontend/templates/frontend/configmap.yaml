@@ -75,15 +75,15 @@ data:
               add_header 'Cache-Control' 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0';
             }
             # For One-API
-            location ^~ /malware-scan {
-              proxy_set_header X-Real-IP $remote_addr;
-              proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-              proxy_set_header X-NginX-Proxy true;
-              proxy_pass $avscan_mgw_server;
-              proxy_ssl_session_reuse off;
-              proxy_set_header Host $http_host;
-              proxy_redirect off;
-            }
+            # location ^~ /malware-scan {
+            #   proxy_set_header X-Real-IP $remote_addr;
+            #   proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            #   proxy_set_header X-NginX-Proxy true;
+            #   proxy_pass https://$avscan_mgw_server;
+            #   proxy_ssl_session_reuse off;
+            #   proxy_set_header Host $avscan_mgw_server;
+            #   proxy_redirect off;
+            # }
             
             location ~* \.(?:jpg|jpeg|gif|png|ico|cur|gz|svg|svgz|mp4|ogg|ogv|webm|htc|ttf|eot|woff)$ {
               expires 1M;

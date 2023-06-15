@@ -1,6 +1,6 @@
 import axios from 'axios';
-import { SESSION_STORAGE_KEYS } from '../Utility/constants';
-import { Envs } from '../Utility/envs';
+import { SESSION_STORAGE_KEYS } from '../utilities/constants';
+import { Envs } from '../utilities/envs';
 
 const jwt = sessionStorage?.length ? sessionStorage.getItem(SESSION_STORAGE_KEYS.JWT) : null;
 
@@ -27,4 +27,10 @@ export const hostServer = axios.create({
 export const storageServer = axios.create({
   baseURL: Envs.STORAGE_API_BASEURL ? Envs.STORAGE_API_BASEURL : `http://${window.location.hostname}:7175/api`,
   headers,
+});
+
+export const storageServerX = axios.create({
+  baseURL: Envs.STORAGE_API_BASEURL ? Envs.STORAGE_API_BASEURL : `http://${window.location.hostname}:7175/api`,
+  headers,
+  responseType: "arraybuffer",
 });

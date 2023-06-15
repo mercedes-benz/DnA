@@ -73,7 +73,7 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
           // setIsApiCallTakeTime(false);
           ProgressIndicator.hide();
           Notification.show(
-            'Error in deploying code space. Please try again later.\n' + res.errors[0].message,
+            'Error in deleting code space. Please try again later.\n' + res.errors[0].message,
             'alert',
           );
         }

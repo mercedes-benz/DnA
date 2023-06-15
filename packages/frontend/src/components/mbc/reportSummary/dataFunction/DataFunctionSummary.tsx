@@ -26,7 +26,7 @@ export default class DataFunctionSummary extends React.Component<IDataAndFunctio
         <div className={classNames(Styles.mainPanel, 'mainPanelSection')}>
           <div className={Styles.wrapper}>
             <div className={Styles.firstPanel}>
-              <h3 className={Styles.dataAndFunction}>Data Sources & Functions</h3>
+              <h3 className={Styles.dataAndFunction}>Data</h3>
               {this.props.dataAndFunctions?.dataWarehouseInUse?.map((data, index) => {
                 return (
                   <React.Fragment key={`dataWarehouse${index}`}>
@@ -38,11 +38,11 @@ export default class DataFunctionSummary extends React.Component<IDataAndFunctio
                           <br />
                           <span>{data.dataWarehouse ? data.dataWarehouse : 'NA'}</span>
                         </div>
-                        <div id="commonFunctions">
+                        {/* <div id="commonFunctions">
                           <label className="input-label summary">Common Functions</label>
                           <br />
                           {data.commonFunctions ? data.commonFunctions?.join(', ') : 'NA'}
-                        </div>
+                        </div> */}
                         <div id="connectionType">
                           <label className="input-label summary">Connection Type</label>
                           <br />

@@ -2,7 +2,7 @@ spring:
   mvc.pathmatch.matching-strategy: ant_path_matcher
   application:
     name: data-product-service
-    version: 1.1.0
+    version: 1.1.4
   flyway:
     enabled: ${FLYWAY_ENABLED:true}
     baseline-on-migrate: ${FLYWAY_BASELINE_ON_MIGRATE:true}
@@ -47,12 +47,20 @@ dna:
   
 dataproduct:
   base:
-    url: ${DATAPRODUCT_BASE_URL:XXXXXX}   
+    url: ${DATAPRODUCT_BASE_URL:XXXXXX}
+  refreshdb: ${DATAPRODUCT_REFRESH_DB:false}
 
 datatransfer:
   base:
-    url: ${DATATRANSFER_BASE_URL:XXXXXX} 
-  
+    url: ${DATATRANSFER_BASE_URL:XXXXXX}
+  refreshdb: ${DATATRANSFER_REFRESH_DB:false}
+
+xapikeydetails:
+  key: ${XPATH_VALUE:XXXX}
+  header: ${XPATH_HEADER:XXXX}
+
+dashboard:
+  uri: ${REPORTS_BASE_URL:XXXXXXX}
 
 server:
   port: 7184
@@ -63,6 +71,12 @@ allowedCorsOriginPatternUrl: ${CORS_ORIGIN_URL:http://*}
 jwt:
   secret:
     key: ${JWT_SECRET_KEY:xxxxxx}
+
+graphql:
+  servlet:
+    mapping: /api/minified
+    enabled: true
+    corsEnabled: true
       
 swagger.headers.authorization.token: ${SWAGGER_HEADER_AUTH:XXXXXX}
 management.endpoints.web.exposure.include: loggers,health

@@ -1,13 +1,16 @@
 import classNames from 'classnames';
 import React, { useState } from 'react';
-import Styles from '../Form.common.styles.scss';
+import Styles from './styles.scss';
 
 import { useFormContext } from 'react-hook-form';
 import InfoModal from 'dna-container/InfoModal';
 
-import OtherRelevant from '../OtherRelavantInfo';
+// import OtherRelevant from '../OtherRelavantInfo';
+import { Envs } from '../../../../Utility/envs';
 
-const DeletionRequirements = ({ onSave, user, isDataProduct = false }) => {
+const DeletionRequirements = (
+  // { onSave, user, isDataProduct = false }
+  ) => {
   const {
     register,
     formState: { errors },
@@ -27,6 +30,69 @@ const DeletionRequirements = ({ onSave, user, isDataProduct = false }) => {
 
   return (
     <>
+      <div className={Styles.wrapper}>
+        <div className={Styles.firstPanel}>
+          <div>
+            <h3>Identifying (potential) insider information</h3>
+          </div>
+          <div className={Styles.formWrapper}>
+            <div
+              className={classNames(`input-field-group include-error ${errors?.insiderInformation ? 'error' : ''}`)}
+              style={{ minHeight: '50px' }}
+            >
+              <label className={classNames(Styles.inputLabel, 'input-label')}>
+                Does data product contain (potential) insider information? <sup>*</sup>
+              </label>
+              <div className={Styles.radioBtns}>
+                <label className={'radio'}>
+                  <span className="wrapper">
+                    <input
+                      {...register('insiderInformation', {
+                        required: '*Missing entry',
+                      })}
+                      type="radio"
+                      className="ff-only"
+                      name="insiderInformation"
+                      value="No"
+                    />
+                  </span>
+                  <span className="label">No</span>
+                </label>
+                <label className={'radio'}>
+                  <span className="wrapper">
+                    <input
+                      {...register('insiderInformation', {
+                        required: '*Missing entry',
+                      })}
+                      type="radio"
+                      className="ff-only"
+                      name="insiderInformation"
+                      value="Yes, potential insider information"
+                    />
+                  </span>
+                  <span className="label">Yes, potential insider information</span>
+                </label>
+                <label className={'radio'}>
+                  <span className="wrapper">
+                    <input
+                      {...register('insiderInformation', {
+                        required: '*Missing entry',
+                      })}
+                      type="radio"
+                      className="ff-only"
+                      name="insiderInformation"
+                      value="Yes, insider information"
+                    />
+                  </span>
+                  <span className="label">Yes, insider information</span>
+                </label>
+              </div>
+              <span className={classNames('error-message')}>{errors?.insiderInformation?.message}</span>
+              <p>For further information and/or if you are unsure if your data product contains (potential) insider information, please contact your corresponding Compliance contact.</p>
+            </div>
+          </div>
+        </div>
+      </div>
       <div className={Styles.wrapper}>
         <div className={Styles.firstPanel}>
           <div>
@@ -105,7 +171,62 @@ const DeletionRequirements = ({ onSave, user, isDataProduct = false }) => {
           </div>
         </div>
       </div>
-      <OtherRelevant onSave={onSave} user={user} isDataProduct={isDataProduct} />
+      {/* <OtherRelevant onSave={onSave} user={user} isDataProduct={isDataProduct} /> */}
+
+
+      <>
+        <div className={Styles.wrapper}>
+          <div className={Styles.firstPanel}>
+            <div>
+              <h3>Specifying other relevant information</h3>
+              {showInfoModal && (
+                <div className={Styles.infoIcon}>
+                  <i className={'icon mbc-icon info'} onClick={() => {}} />
+                </div>
+              )}
+            </div>
+            <div className={Styles.formWrapper}>
+              <div id="otherRelevantInfoDescription" className={classNames('input-field-group area')}>
+                <label className="input-label" htmlFor="otherRelevantInfo">
+                  Please provide any other relevant & app specific restrictions that might apply to the corresponding data, examples being antitrust regulations, contractual restrictions etc.
+                </label>
+                <textarea
+                  className="input-field-area"
+                  type="text"
+                  {...register('otherRelevantInfo')}
+                  rows={50}
+                  id="otherRelevantInfo"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+        <div className={Styles.wrapper}>
+          <div className={Styles.firstPanel}>
+            <div className={Styles.termsOfUseContainer}>
+              <div className={classNames(Styles.termsOfUseContent)}>
+                <label className={classNames('checkbox', errors?.tou ? 'error' : '')}>
+                  <span className="wrapper">
+                    <input {...register('tou', { required: '*Missing entry' })}
+                    defaultChecked={watch('isPublish') || watch('publish')} 
+                    type="checkbox" className="ff-only" />
+                  </span>
+                  <div
+                    className={classNames(Styles.termsOfUseText, 'mbc-scroll')}
+                    style={{
+                      ...(errors?.tou ? { color: '#e84d47' } : ''),
+                    }}
+                    dangerouslySetInnerHTML={{
+                      __html: Envs.DATA_PRODUCT_TOU_HTML,
+                    }}
+                  ></div>
+                </label>
+              </div>
+              <span className={classNames('error-message', Styles.errorMsg)}>{errors?.tou?.message}</span>
+            </div>
+          </div>
+        </div>
+      </>
       {showInfoModal && (
         <InfoModal
           title="Info Modal"

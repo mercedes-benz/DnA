@@ -1,0 +1,178 @@
+.createDataikuWrapper {
+    background: #252a33 !important;
+    margin-top: 15px !important;
+
+    .submitButtton {
+        display: flex;
+        justify-content: end;
+    }
+
+    .adduser {
+        margin-right: 40px;
+        margin-left: 40px;
+    }
+
+    .bucketColUsersList {
+        margin-top: 12px;
+        width: 90%;
+        margin: 0 auto;
+        margin-top: 12px;
+        margin-bottom: 15px;
+
+        .collUserTitle {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #383f49;
+
+            .collUserTitleCol {
+                &:first-child {
+                    max-width: 150px;
+                }
+
+                &:nth-child(2) {
+                    max-width: 200px !important;
+                }
+
+                flex: 1;
+                font-size: var(--font-size-smallest);
+                padding-right: 12px;
+                color: #99a5b3;
+            }
+        }
+
+        .collUserContent {
+            display: flex;
+            align-items: center;
+            flex-direction: column;
+            justify-content: flex-start;
+            overflow: auto;
+            height: 80px;
+            width: 100%;
+
+            .collUserContentRow {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                width: 100%;
+
+                .collUserTitleCol {
+                    &:first-child {
+                        max-width: 150px;
+                    }
+
+                    &:nth-child(2) {
+                        max-width: 200px !important;
+                    }
+
+                    &:nth-child(4) {
+                        max-width: 195px !important;
+                    }
+
+                    display: flex;
+                    align-items: center;
+                    justify-content: flex-start;
+                    flex: 1;
+                    font-size: var(--font-size-smallest);
+                    padding-right: 15px;
+                    color: #99a5b3;
+
+                    label {
+                        cursor: pointer;
+                    }
+
+                    span {
+                        color: #99a5b3;
+                    }
+
+                    .deleteEntry {
+                        cursor: pointer;
+                    }
+
+                    .writeAccess {
+                        cursor: pointer;
+                    }
+
+                    input {
+                        opacity: unset !important;
+                        position: initial;
+                        z-index: unset !important;
+                    }
+
+                    .inputGrp {
+                        margin-top: 8px;
+                        min-height: auto !important;
+
+                        &:first-child {
+                            margin-left: -10px;
+                        }
+
+                        min-width: 80px;
+                    }
+
+                    i {
+                        margin: -7px 7px 0 0;
+                        right: 0;
+                    }
+
+                    div {
+                        cursor: default;
+                    }
+                }
+            }
+        }
+    }
+
+    .secondFlexLayout {
+        margin-top: 5px !important;
+    }
+
+    .flexLayout {
+        display: flex;
+        margin-top: 40px;
+        margin-left: 40px;
+
+        >div {
+            width: calc(33% - 7px);
+        }
+
+        &.fourColumn {
+            >div {
+                width: calc(25% - 7px);
+            }
+        }
+
+        &.threeColumn {
+            >div {
+                width: calc(33% - 7px);
+            }
+        }
+    }
+
+    ::-webkit-input-placeholder {
+        /* Edge */
+        color: #99A5B3;
+    }
+
+    :-ms-input-placeholder {
+        /* Internet Explorer 10-11 */
+        color: #99A5B3;
+    }
+
+    ::placeholder {
+        color: #99A5B3;
+    }
+
+    .radioBtnsGrid {
+        display: grid;
+        grid-template-columns: 127px 200px;
+    }
+
+    .radioBtns {
+        label {
+            min-width: 85px;
+        }
+    }
+}

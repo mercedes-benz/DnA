@@ -1,0 +1,21 @@
+.existingFilesContainer {
+  margin-top: 30px;
+  p {
+      font-size: 1rem;
+  }
+  .uploadInfo {
+      display: flex;
+      justify-content: space-between;
+      span:first-child {
+          font-weight: bold;
+          color: #697582;
+      }
+  }
+  .btnContinue {
+      display: flex;
+      justify-content: flex-end;
+  }
+}
+.mw {
+    max-width: 300px;
+}

@@ -187,7 +187,6 @@ div[class*="cardIconSection"]i::before {
 
 .marqueeContainer {
   position: absolute;
-  top: 5rem;
   left: 0;
   right: 0;
   z-index: 99;
@@ -208,6 +207,7 @@ div[class*="cardIconSection"]i::before {
     font-size: var(--font-size-medium);
     transform: translateX(100%);
     animation: scroll-left 30s linear infinite;
+    white-space: nowrap;
   }
 }
 

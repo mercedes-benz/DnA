@@ -1,0 +1,256 @@
+# LICENSE START
+#
+# MIT License
+#
+# Copyright (c) 2019 Daimler TSS GmbH
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+#
+# LICENSE END
+#
+#-----------------------------------------------------------------------------------------------------
+#  **
+#  ** File Name  : UserWidgetPreference.yaml
+#  **
+#  ** Module     : core
+#  **
+
+#  -------------------------------------------------------------------------------------------------------
+#
+#  CHANGE HISTORY
+#
+#  Created By         :  ***REMOVED***
+#
+#  Bug Number         :
+#  Changed By         :
+#  Change Description :
+#  Change On          :
+#  Search String      :
+#
+#  -------------------------------------------------------------------------------------------------------
+
+swagger: "2.0"
+info:
+  version: "1.0.0"
+  title: "User Widget Preference Service"
+host: "localhost:7184"
+basePath: "/api/1.0"
+consumes:
+  - "application/json"
+produces:
+  - "application/json"
+tags:
+  - name: "userWidgetPreference"
+    description: "This service is used to manage user widget preference."
+
+schemes:
+  - "https"
+
+paths:
+  # path to create a new UserWidgetPreference and fetch all valid widgets
+  #
+  #  supported http methods GET, POST
+  #
+  # path example ../userWidgetPreference
+
+  /widget-preference:
+    post:
+      tags:
+        - "userWidgetPreference"
+      summary: "Adds a new UserWidgetPreference."
+      description: "Adds a new widget preference for the user"
+      operationId: "create"
+      parameters:
+        - name: "userWidgetPreferenceRequestVO"
+          in: "body"
+          description: "Request Body that contains data required for creating a new widgetPreference"
+          required: true
+          schema:
+            $ref: "#/definitions/UserWidgetPreferenceRequestVO"
+      responses:
+        201:
+          description: "Returns message of success or failure "
+          schema:
+            $ref: "#/definitions/UserWidgetPreferenceVO"
+        400:
+          description: "Bad Request"
+          schema:
+            $ref: "#/definitions/GenericMessage"
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
+    get:
+      tags:
+        - "userWidgetPreference"
+      summary: "Get all available User Widget Preferences."
+      description:  "Get all UserWidgetPreferences. This endpoints will be used to get all valid available User Widget Preferences."
+      operationId: "getAll"
+      parameters:
+        - name: userId
+          in: query
+          description: UserId to fetch his widget preferences.
+          required: false
+          type: string
+      responses:
+        201:
+          description: "Returns message of success or failure"
+          schema:
+            $ref: "#/definitions/UserWidgetPreferenceCollection"
+        204:
+          description: "Fetch complete, no content found."
+        400:
+          description: "Bad request."
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
+
+  # path to delete existing widgets
+  #
+  #  supported http methods DELETE
+  #
+  # path examples----
+  #   DELETE    .../widgetPreference/xxx
+  /widget-preference/{id}:
+    delete:
+      tags:
+        - "userWidgetPreference"
+      summary: "Deletes a UserWidget Preference identified by given ID."
+      description: "Deletes the UserWidget Preference identified by given ID"
+      operationId: "delete"
+      parameters:
+        - name: "id"
+          in: "path"
+          description: "Id of the UserWidget  Preference"
+          required: true
+          type: "string"
+      responses:
+        200:
+          description: "Successfully deleted."
+          schema:
+            $ref: "#/definitions/GenericMessage"
+        400:
+          description: "Bad request"
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        404:
+          description: "Invalid id, record not found."
+        500:
+          description: "Internal error"
+
+    get:
+      tags:
+        - "userWidgetPreference"
+      summary: "Get data for the widget identified by given ID."
+      description: "Get data for the widget identified by given ID"
+      operationId: "getWidgetData"
+      parameters:
+        - name: "id"
+          in: "path"
+          description: "Id of the UserWidget  Preference"
+          required: true
+          type: "string"
+      responses:
+        201:
+          description: "Returns message of success or failure"
+          schema:
+            $ref: "#/definitions/UserWidgetPreferenceVO"
+        204:
+          description: "Fetch complete, no content found."
+        400:
+          description: "Bad request"
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        404:
+          description: "Invalid id, record not found."
+        500:
+          description: "Internal error"
+  # path to get widget data
+  #
+  #  supported http methods GET
+  #
+  # path examples----
+  #   GET    .../widgetData/{id}
+
+definitions:
+  UserWidgetPreferenceVO:
+    type: object
+    properties:
+      id:
+        type: string
+        description: "ID of widget Preference"
+      userId:
+        type: string
+        description: "UserID for which the preferences are attached"
+      filterPreferences:
+        $ref: "#/definitions/FilterPreferencesVO"
+    required:
+      - userId
+
+  UserWidgetPreferenceCollection:
+    description: "Collection of UserWidgetPreferences."
+    type: array
+    items:
+      $ref: "#/definitions/UserWidgetPreferenceVO"
+
+  UserWidgetPreferenceRequestVO:
+    type: object
+    properties:
+      data:
+        description: "Request data containing widget preference details to be created"
+        $ref: "#/definitions/UserWidgetPreferenceVO"
+
+  FilterPreferencesVO:
+    description: "Represents the Filters that user selected"
+    type: object
+    properties:
+      carlafunction:
+        type: array
+        items:
+          $ref: "#/definitions/CarlaFunctionVO"
+      frontendTools:
+        type: array
+        items:
+          $ref: "#/definitions/FrontEndToolsVO"
+      agileReleaseTrain:
+        type: array
+        items:
+          $ref: "#/definitions/AgileReleaseTrainVO"
+      productOwner:
+        type: array
+        items:
+          type: string
+      platform:
+        type: array
+        items:
+          $ref: "#/definitions/PlatformVO"
+

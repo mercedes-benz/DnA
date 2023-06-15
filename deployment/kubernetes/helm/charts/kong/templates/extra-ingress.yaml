@@ -1,0 +1,49 @@
+{{- if .Values.extraIngress.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: scan-route
+  namespace: {{ template "kong.namespace" . }}
+  annotations:
+    {{- range $key, $value := .Values.proxy.ingress.annotations }}
+    {{ $key }}: {{ $value | quote }}
+    {{- end }}
+spec:
+  tls:
+    - hosts:
+        - {{ .Values.extraIngress.scanHost }}
+      secretName: clamav-tls
+  rules:
+    - host: {{ .Values.extraIngress.scanHost }}
+      http:
+        paths:
+          - path: /api/v1/scan
+            pathType: Prefix
+            backend:
+              service:
+                name: dna-kong-gw-kong-proxy
+                port:
+                  number: 80
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: dna-route
+  namespace: {{ template "kong.namespace" . }}
+  annotations:
+    {{- range $key, $value := .Values.proxy.ingress.annotations }}
+    {{ $key }}: {{ $value | quote }}
+    {{- end }}
+spec:
+  rules:
+    - host: {{ .Values.extraIngress.dnaHost }}
+      http:
+        paths:
+          - path: /malware-scan/api/v1/scan
+            pathType: Prefix
+            backend:
+              service:
+                name: dna-kong-gw-kong-proxy
+                port:
+                  number: 80
+{{- end }}
