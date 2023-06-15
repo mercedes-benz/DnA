@@ -44,6 +44,8 @@ public class RunDetails {
 
 	private String taskRunId;
 	private String warnings;
+	private Boolean  exogenData;
+	private String infotext;
 	 
 	 
 }

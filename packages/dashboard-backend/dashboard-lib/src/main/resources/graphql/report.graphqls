@@ -48,7 +48,8 @@ type DescriptionVO{
 	tags:[String],
 	agileReleaseTrain: String,
 	division : DivisionVO,
-	department: String
+	department: String,
+	procedureId: String
 }
 
 type DivisionVO{
@@ -67,7 +68,6 @@ type CustomerVO{
 }
 
 type InternalCustomerVO{
-	name: TeamMemberVO,
 	customerRelation: String,
 	level: String,
 	division: DivisionVO,
@@ -79,17 +79,21 @@ type InternalCustomerVO{
 }
 
 type ExternalCustomerVO{
-	name: TeamMemberVO,
 	customerRelation: String,
 	companyName: String,
 	comment: String
 }
 
 type KPIVO{
-	name: String,
-	reportingCause: String,
+	name: KpiNameVO,
+	reportingCause: [String],
 	description: String,
 	kpiLink: String
+}
+
+type KpiNameVO{
+	kpiName: String,
+	kpiClassification: String
 }
 
 type DataAndFunctionVO{
@@ -99,7 +103,6 @@ type DataAndFunctionVO{
 
 type DataWarehouseVO{
 	dataWarehouse: String,
-	commonFunctions: [String],
 	dataClassification: String,
 	connectionType: String
 }
@@ -116,7 +119,6 @@ type DataSourceVO{
 }
 
 type MemberVO{
-	reportOwners: [TeamMemberVO],
     reportAdmins: [TeamMemberVO]
 }
 

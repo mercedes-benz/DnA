@@ -21,15 +21,15 @@ public class ChronosNotificationTask {
 	@Autowired
 	private ForecastService forecastService;
 
-	
-	@Scheduled(cron = "* 2 * * * *")
-	public void notificationsCron() {
-		List<String> forecastIds = forecastCustomRepository.getAllForecastIds();
+	//cron expression for every 2 minutes
+	@Scheduled(cron = "0 0/2 * * * *")
+	public void notificationsCron() {		
 		log.info("Chronos Notification triggered");
-
+		List<String> forecastIds = forecastCustomRepository.getAllForecastIds();		
+		
 		// calling for each forecast project
 		for (String forecastId : forecastIds) {
-			forecastService.getAllRunsForProject(0, 0, forecastId);
+			forecastService.getAllRunsForProject(0, 0, forecastId,"createdOn","desc");
 		}
 	}
 	

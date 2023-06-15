@@ -36,6 +36,7 @@ import ExpansionPanel from '../../../../assets/modules/uilab/js/src/expansion-pa
 import InputFields from '../../../../assets/modules/uilab/js/src/input-fields';
 import ProgressWithMessage from 'components/progressWithMessage/ProgressWithMessage';
 import { Envs } from 'globals/Envs';
+import Caption from 'components/mbc/shared/caption/Caption';
 
 interface ICreateNewPipelineProps {
   user: IUserInfo;
@@ -622,11 +623,7 @@ const CreateNewPipeline = (props: ICreateNewPipelineProps) => {
   return (
     <React.Fragment>
       <div className={classNames(Styles.mainPanel)}>
-        <div className={Styles.wrapper}>
-          <div className={Styles.caption}>
-            <h3>{id ? 'Edit' : 'New'} Pipeline Project</h3>
-          </div>
-        </div>
+        <Caption title={id ? 'Edit Pipeline Project' : 'New Pipeline Project'} />
         <div className={Styles.content}>
           <div className={Styles.CreateNewAirflowForm}>
             {/* <div className={Styles.editicon}>

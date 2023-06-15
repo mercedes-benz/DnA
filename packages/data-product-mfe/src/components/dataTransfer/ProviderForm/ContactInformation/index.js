@@ -6,7 +6,6 @@ import Styles from './styles.scss';
 import SelectBox from 'dna-container/SelectBox';
 import InfoModal from 'dna-container/InfoModal';
 import Tags from 'dna-container/Tags';
-import DatePicker from 'dna-container/DatePicker';
 import TeamSearch from 'dna-container/TeamSearch';
 import TypeAheadBox from 'dna-container/TypeAheadBox';
 
@@ -15,24 +14,28 @@ import { hostServer } from '../../../../server/api';
 
 import ProgressIndicator from '../../../../common/modules/uilab/js/src/progress-indicator';
 import Notification from '../../../../common/modules/uilab/js/src/notification';
+import Tooltip from '../../../../common/modules/uilab/js/src/tooltip';
 
 import { useSelector } from 'react-redux';
 import { dataTransferApi } from '../../../../apis/datatransfers.api';
 
-import dayjs from 'dayjs';
+// import dayjs from 'dayjs';
 import { debounce } from 'lodash';
 
-const ContactInformation = ({ onSave, divisions, setSubDivisions, subDivisions, isDataProduct = false }) => {
+const ContactInformation = ({ 
+  // onSave, 
+  divisions, setSubDivisions, subDivisions, isDataProduct = false }) => {
   const {
     register,
-    formState: { errors, isSubmitting, dirtyFields },
+    formState: { errors, 
+      // isSubmitting,
+      dirtyFields },
     watch,
-    handleSubmit,
+    // handleSubmit,
     trigger,
     reset,
     setValue,
     control,
-    getValues,
   } = useFormContext();
   const [showInfoModal, setShowInfoModal] = useState(false);
   const provideDataTransfers = useSelector((state) =>
@@ -46,6 +49,7 @@ const ContactInformation = ({ onSave, divisions, setSubDivisions, subDivisions, 
     name,
     planningIT,
     informationOwner,
+    productOwner,
   } = watch();
 
   const [complianceOfficerList, setComplianceOfficerList] = useState({
@@ -64,8 +68,10 @@ const ContactInformation = ({ onSave, divisions, setSubDivisions, subDivisions, 
 
   const [informationOwnerSearchTerm, setInformationOwnerSearchTerm] = useState('');
   const [informationOwnerFieldValue, setInformationOwnerFieldValue] = useState('');
+  const [productOwnerSearchTerm, setProductOwnerSearchTerm] = useState('');
+  const [productOwnerFieldValue, setProductOwnerFieldValue] = useState('');
 
-  const minDate = dayjs().format();
+  // const minDate = dayjs().format();
 
   useEffect(() => {
     const id = watch('division');
@@ -95,6 +101,7 @@ const ContactInformation = ({ onSave, divisions, setSubDivisions, subDivisions, 
   }, [division]);
 
   useEffect(() => {
+    Tooltip.defaultSetup();
     !isDataProduct && SelectBox.defaultSetup();
     reset(watch());
     //eslint-disable-next-line
@@ -174,6 +181,15 @@ const ContactInformation = ({ onSave, divisions, setSubDivisions, subDivisions, 
     informationOwner && setInformationOwnerFieldValue(nameStr);
     //eslint-disable-next-line react-hooks/exhaustive-deps
   }, [informationOwner]);
+  
+  useEffect(() => {
+    let nameStr =
+      typeof productOwner === 'string'
+        ? productOwner
+        : `${productOwner?.firstName} ${productOwner?.lastName}`;
+    productOwner && setProductOwnerFieldValue(nameStr);
+    //eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [productOwner]);
 
   const handleName = (field, value) => {
     let name = '';
@@ -195,25 +211,15 @@ const ContactInformation = ({ onSave, divisions, setSubDivisions, subDivisions, 
     setInformationOwnerFieldValue(name);
   };
 
-  const validateDate = () => {
-    let key = isDataProduct ? 'dateOfDataProduct' : 'dateOfDataTransfer';
-    const value = getValues(key);
-    if (typeof value === 'object') {
-      const isValidDate = !isNaN(value?.get('date'));
-      const isBefore = dayjs(value).isBefore(minDate, 'date');
-      const error =
-        value === null || value === ''
-          ? '*Missing entry'
-          : !isValidDate
-          ? 'Invalid Date Format'
-          : isBefore
-          ? 'Is before the minimum date'
-          : null;
-      return (value === isValidDate && value !== isBefore) || error;
-    } else {
-      return (value !== '' && value !== undefined) || '*Missing entry';
+  const handleProductOwner = (field, value) => {
+    let name = '';
+    if(value) {
+      value['addedByProvider'] = true;
+      name =  `${value.firstName} ${value.lastName}`;
     }
-  };
+    field.onChange(value);
+    setProductOwnerFieldValue(name);
+  }
 
   const handlePlanningITSearch = debounce((searchTerm, showSpinner) => {
     if (searchTerm.length > 3) {
@@ -248,32 +254,55 @@ const ContactInformation = ({ onSave, divisions, setSubDivisions, subDivisions, 
           </div>
           <div className={Styles.formWrapper}>
             {isDataProduct ? (
-              <div className={classNames('input-field-group include-error', errors.informationOwner ? 'error' : '')}>
-                <Controller
-                  control={control}
-                  name="informationOwner"
-                  rules={{ required: '*Missing entry' }}
-                  render={({ field }) => (
-                    <TeamSearch
-                      label={
-                        <>
-                          Information Owner <sup>*</sup>
-                        </>
-                      }
-                      fieldMode={true}
-                      fieldValue={informationOwnerFieldValue}
-                      setFieldValue={(val) => setInformationOwnerFieldValue(val)}
-                      onAddTeamMember={(value) => handleInformationOwner(field, value)}
-                      btnText="Add User"
-                      searchTerm={informationOwnerSearchTerm}
-                      setSearchTerm={(value) => setInformationOwnerSearchTerm(value)}
-                      showUserDetails={false}
-                      setShowUserDetails={() => {}}
+              <>
+                <div className={classNames('input-field-group include-error', errors.informationOwner ? 'error' : '')}>
+                  <Controller
+                    control={control}
+                    name="informationOwner"
+                    rules={{ required: '*Missing entry' }}
+                    render={({ field }) => (
+                      <TeamSearch
+                        label={
+                          <>
+                            Responsible Manager (E3 +) <sup>*</sup>
+                          </>
+                        }
+                        fieldMode={true}
+                        fieldValue={informationOwnerFieldValue}
+                        setFieldValue={(val) => setInformationOwnerFieldValue(val)}
+                        onAddTeamMember={(value) => handleInformationOwner(field, value)}
+                        btnText="Add User"
+                        searchTerm={informationOwnerSearchTerm}
+                        setSearchTerm={(value) => setInformationOwnerSearchTerm(value)}
+                        showUserDetails={false}
+                        setShowUserDetails={() => {}}
+                      />
+                    )}
+                  />
+                  <span className={classNames('error-message')}>{errors.informationOwner?.message}</span>
+                </div>
+                <div className={classNames('input-field-group')}>
+                  <Controller
+                      control={control}
+                      name="productOwner"
+                      // rules={{ required: '*Missing entry' }}
+                      render={({ field }) => (
+                        <TeamSearch
+                          label={<>Product Owner</>}
+                          fieldMode={true}
+                          fieldValue={productOwnerFieldValue}
+                          setFieldValue={(val) => setProductOwnerFieldValue(val)}
+                          onAddTeamMember={(value) => handleProductOwner(field, value)}
+                          btnText="Save"
+                          searchTerm={productOwnerSearchTerm}
+                          setSearchTerm={(value) => setProductOwnerSearchTerm(value)}
+                          showUserDetails={false}
+                          setShowUserDetails={() => {}}
+                        />
+                      )}
                     />
-                  )}
-                />
-                <span className={classNames('error-message')}>{errors.informationOwner?.message}</span>
-              </div>
+                </div>
+              </>
             ) : (
               <div className={Styles.flexLayout}>
                 <div className={classNames('input-field-group include-error', errors.productName ? 'error' : '')}>
@@ -300,7 +329,7 @@ const ContactInformation = ({ onSave, divisions, setSubDivisions, subDivisions, 
                       <TeamSearch
                         label={
                           <>
-                            Information Owner <sup>*</sup>
+                            Data responsible IO and/or Business Owner for application <sup>*</sup>
                           </>
                         }
                         fieldMode={true}
@@ -329,7 +358,7 @@ const ContactInformation = ({ onSave, divisions, setSubDivisions, subDivisions, 
                     <TeamSearch
                       label={
                         <>
-                          Your Name <sup>*</sup>
+                          Point of contact for data transfer e.g. Data Steward <sup>*</sup>
                         </>
                       }
                       fieldMode={true}
@@ -416,6 +445,7 @@ const ContactInformation = ({ onSave, divisions, setSubDivisions, subDivisions, 
                   render={({ field }) => (
                     <Tags
                       title={'Department'}
+                      placeholder={'Choose from one of the existing or add new department'}
                       max={1}
                       chips={selectedDepartment}
                       tags={departments}
@@ -430,61 +460,6 @@ const ContactInformation = ({ onSave, divisions, setSubDivisions, subDivisions, 
                   )}
                 />
               </div>
-              {isDataProduct ? (
-                <div className={classNames('input-field-group include-error', errors.dateOfDataProduct ? 'error' : '')}>
-                  <label id="dateOfDataProductLabel" htmlFor="dateOfDataProductrInput" className="input-label">
-                    Publish Date of Data Product <sup>*</sup>
-                  </label>
-                  <Controller
-                    control={control}
-                    name="dateOfDataProduct"
-                    rules={{
-                      validate: validateDate,
-                    }}
-                    render={({ field }) => (
-                      <DatePicker
-                        label="Publish Date of Data Product"
-                        value={watch('dateOfDataProduct')}
-                        name={field.name}
-                        minDate={minDate}
-                        onChange={(value) => {
-                          field.onChange(value);
-                        }}
-                        requiredError={errors.dateOfDataProduct?.message}
-                      />
-                    )}
-                  />
-                  <span className={classNames('error-message')}>{errors.dateOfDataProduct?.message}</span>
-                </div>
-              ) : (
-                <div
-                  className={classNames('input-field-group include-error', errors.dateOfDataTransfer ? 'error' : '')}
-                >
-                  <label id="dateOfDataTransferLabel" htmlFor="dateOfDataTransferInput" className="input-label">
-                    Date of Data Transfer <sup>*</sup>
-                  </label>
-                  <Controller
-                    control={control}
-                    name="dateOfDataTransfer"
-                    rules={{
-                      validate: validateDate,
-                    }}
-                    render={({ field }) => (
-                      <DatePicker
-                        label="Date of Data Transfer"
-                        value={watch('dateOfDataTransfer')}
-                        name={field.name}
-                        minDate={minDate}
-                        onChange={(value) => {
-                          field.onChange(value);
-                        }}
-                        requiredError={errors.dateOfDataTransfer?.message}
-                      />
-                    )}
-                  />
-                  <span className={classNames('error-message')}>{errors.dateOfDataTransfer?.message}</span>
-                </div>
-              )}
             </div>
             <div className={Styles.flexLayout}>
               <div className={classNames('input-field-group include-error', errors.complianceOfficer ? 'error' : '')}>
@@ -494,8 +469,8 @@ const ContactInformation = ({ onSave, divisions, setSubDivisions, subDivisions, 
                   rules={{ required: '*Missing entry' }}
                   render={({ field }) => (
                     <TypeAheadBox
-                      label={'Corresponding Compliance Officer / Responsible (LCO/LCR)'}
-                      placeholder={'Select your (LCO/LCR)'}
+                      label={<>Corresponding Compliance Contact, i.e. Local Compliance Officer/ Responsible or Multiplier <a className='info' target="_blank" href='#/data/datacompliancenetworklist'><i className="icon mbc-icon info" tooltip-data="Click to view LCO/LCR Contacts" /></a></>}
+                      placeholder={'Search for country, department etc.'}
                       defaultValue={complianceOfficer}
                       list={complianceOfficerList.records}
                       setSelected={(selectedTags) => {
@@ -564,7 +539,7 @@ const ContactInformation = ({ onSave, divisions, setSubDivisions, subDivisions, 
           </div>
         </div>
       </div>
-      <div className="btnContainer">
+      {/* <div className="btnContainer">
         <button
           className="btn btn-primary"
           type="submit"
@@ -580,7 +555,7 @@ const ContactInformation = ({ onSave, divisions, setSubDivisions, subDivisions, 
         >
           Save & Next
         </button>
-      </div>
+      </div> */}
       {showInfoModal && (
         <InfoModal
           title="Info Modal"

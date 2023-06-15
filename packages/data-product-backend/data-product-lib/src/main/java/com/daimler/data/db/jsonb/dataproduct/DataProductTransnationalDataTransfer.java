@@ -27,6 +27,7 @@
 
 package com.daimler.data.db.jsonb.dataproduct;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -34,11 +35,14 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class DataProductTransnationalDataTransfer {
 
 	private boolean dataTransferred;
 	private boolean notWithinEU;
-	private String approved;
 	private String insiderInformation;
-	private boolean dataFromChina;
+	private boolean contactAwareTransfer;
+	private boolean objectionsToTransfer;
+	private String transferringNonetheless;
+	private String objections;
 }

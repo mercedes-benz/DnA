@@ -27,9 +27,18 @@
 
 package com.daimler.data.service.customerJourneyPhase;
 
+import org.springframework.http.ResponseEntity;
+
+import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.db.entities.CustomerJourneyPhaseNsql;
+import com.daimler.data.dto.customerJourneyPhase.CustomerJourneyPhaseResponseVO;
 import com.daimler.data.dto.customerJourneyPhase.CustomerJourneyPhaseVO;
 import com.daimler.data.service.common.CommonService;
 
 public interface CustomerJourneyPhaseService extends CommonService<CustomerJourneyPhaseVO, CustomerJourneyPhaseNsql, String> {
+
+	ResponseEntity<CustomerJourneyPhaseResponseVO> updateCustomerJourneyPhase(
+			CustomerJourneyPhaseVO customerJourneyPhaseVO);
+
+	ResponseEntity<GenericMessage> deleteCustomerJourneyPhase(String id);
 }

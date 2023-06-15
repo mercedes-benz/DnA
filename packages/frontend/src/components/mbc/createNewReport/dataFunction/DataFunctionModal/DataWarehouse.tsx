@@ -11,10 +11,10 @@ interface DataWarehouseProps {
   errors: IDataWarehouseErrors;
   // onDataWarehouseChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
   onDropdownChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
-  onCommonFunctionsChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
+  // onCommonFunctionsChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
   requiredError: string;
   dataWarehouses: IDataWarehouse[];
-  commonFunctions: string[];
+  // commonFunctions: string[];
   connectionTypes: string[];
   dataClassifications: string[];
   dataWarehouseInUseInfo: IDataWarehouseInUse;
@@ -26,14 +26,14 @@ export const DataWarehouse = ({
   errors,
   // onDataWarehouseChange,
   onDropdownChange,
-  onCommonFunctionsChange,
+  // onCommonFunctionsChange,
   requiredError,
   dataWarehouses,
-  commonFunctions,
+  // commonFunctions,
   dataClassifications,
   connectionTypes,
 }: DataWarehouseProps) => {
-  const commonFunctionsError = errors.commonFunctions || '';
+  // const commonFunctionsError = errors.commonFunctions || '';
   // const specificFunctionsError = errors.specificFunctions || '';
   // const queriesError = errors.queries || '';
   // const originalDataSourcesError = errors.dataSources || '';
@@ -47,7 +47,7 @@ export const DataWarehouse = ({
       ? selectedFilterValues.dataWarehouse?.toString()
       : selectedFilterValues.dataWarehouse;
 
-  const commonFunctionsValue = selectedFilterValues.commonFunctions;
+  // const commonFunctionsValue = selectedFilterValues.commonFunctions;
   // const specificFunctionsValue = selectedFilterValues.specificFunctions;
   // const queriesValue = selectedFilterValues.queries;
   // const originalDataSourcesValue = selectedFilterValues.dataSources;
@@ -130,7 +130,7 @@ export const DataWarehouse = ({
           </div>
         </div>
         <div className={Styles.flexLayout}>
-          <div>
+          {/* <div>
             <div>
               <div
                 className={classNames(
@@ -157,13 +157,10 @@ export const DataWarehouse = ({
                       </option>
                     ))}
                   </select>
-                </div>
-                {/* <span className={classNames('error-message', commonFunctionsError ? '' : 'hide')}>
-                  {commonFunctionsError}
-                </span> */}
+                </div>                
               </div>
             </div>
-          </div>
+          </div> */}
           <div>
             <div>
               <div

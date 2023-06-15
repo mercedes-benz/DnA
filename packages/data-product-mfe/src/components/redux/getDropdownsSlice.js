@@ -7,6 +7,7 @@ import {
   getLegalBasis,
   getPlatforms,
   getFrontEndTools,
+  getTags
 } from './getDropdowns.services';
 
 const consumerProductsInitialState = {
@@ -24,6 +25,7 @@ const consumerProductsInitialState = {
   platforms: [],
   isFrontEndToolsLoading: false,
   frontEndTools: [],
+  tags: []
 };
 
 export const getDropdownsSlice = createSlice({
@@ -78,6 +80,13 @@ export const getDropdownsSlice = createSlice({
     [getFrontEndTools.fulfilled]: (state, action) => {
       state.isFrontEndToolsLoading = false;
       state.frontEndTools = action.payload.data;
+    },
+    [getTags.pending]: (state) => {
+      state.isTagsLoading = true;
+    },
+    [getTags.fulfilled]: (state, action) => {
+      state.isTagsLoading = false;
+      state.tags = action.payload.data;
     },
   },
 });

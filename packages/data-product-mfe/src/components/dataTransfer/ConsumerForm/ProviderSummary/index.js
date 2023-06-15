@@ -2,7 +2,6 @@ import classNames from 'classnames';
 import React, { useEffect, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { serializeDivisionSubDivision } from '../../../../Utility/formData';
-import { regionalDateFormat } from '../../../../Utility/utils';
 import Styles from './styles.scss';
 
 const ProviderSummary = ({ onSave, providerFormIsDraft }) => {
@@ -49,17 +48,12 @@ const ProviderSummary = ({ onSave, providerFormIsDraft }) => {
                 {providerInformation.productName}
               </div>
               <div>
-                <label className="input-label summary">Date of Data Transfer</label>
-                <br />
-                {regionalDateFormat(providerInformation.dateOfDataTransfer)}
-              </div>
-              <div>
-                <label className="input-label summary">Name</label>
+                <label className="input-label summary">Point of contact for data transfer</label>
                 <br />
                 {providerInformation.name?.firstName} {providerInformation.name?.lastName}
               </div>
               <div>
-                <label className="input-label summary">Information Owner</label>
+                <label className="input-label summary">Data responsible IO and/or Business Owner for application</label>
                 <br />
                 {providerInformation.informationOwner?.firstName} {providerInformation.informationOwner?.lastName}
               </div>
@@ -88,7 +82,7 @@ const ProviderSummary = ({ onSave, providerFormIsDraft }) => {
             </div>
             <div className={classNames(Styles.flexLayout, Styles.fourColumn)}>
               <div>
-                <label className="input-label summary">Compliance Officer / Responsible (LCO/LCR) </label>
+                <label className="input-label summary">Corresponding Compliance Contact, i.e. Local Compliance Officer/ Responsible or Multiplier </label>
                 <br />
                 {providerInformation.complianceOfficer}
               </div>
@@ -101,12 +95,12 @@ const ProviderSummary = ({ onSave, providerFormIsDraft }) => {
           <div className={Styles.firstPanel}>
             <div className={Styles.flexLayout}>
               <div>
-                <label className="input-label summary">Data Description & Classification</label>
+                <label className="input-label summary">Data Description &amp; Classification</label>
               </div>
             </div>
             <div className={classNames(Styles.flexLayout, Styles.threeColumn)}>
               <div>
-                <label className="input-label summary">Description & Classification of transfered data</label>
+                <label className="input-label summary">Description of transfered data</label>
                 <br />
                 {providerInformation.classificationOfTransferedData}
               </div>
@@ -120,7 +114,8 @@ const ProviderSummary = ({ onSave, providerFormIsDraft }) => {
         </div>
       ) : null}
       {showPersonalData ? (
-        <div className={Styles.sectionWrapper}>
+        <div className={classNames(Styles.sectionWrapper, providerInformation?.personalRelatedData === 'Yes' && Styles.yellowBorder)}>
+          { providerInformation?.personalRelatedData === 'Yes' && <i className={classNames('icon mbc-icon alert circle', Styles.warningIcon)} /> }
           <div className={Styles.firstPanel}>
             <div className={Styles.flexLayout}>
               <div>
@@ -137,7 +132,7 @@ const ProviderSummary = ({ onSave, providerFormIsDraft }) => {
             {providerInformation.personalRelatedData === 'Yes' ? (
               <div className={classNames(Styles.flexLayout, Styles.fourColumn)}>
                 <div>
-                  <label className="input-label summary">Description</label>
+                  <label className="input-label summary">Description of personal related data</label>
                   <br />
                   {providerInformation.personalRelatedDataDescription}
                 </div>
@@ -159,6 +154,34 @@ const ProviderSummary = ({ onSave, providerFormIsDraft }) => {
               </div>
             ) : null}
           </div>
+          {providerInformation.personalRelatedData === 'Yes' ? (<div className={Styles.flexLayout}>
+            <div>
+              <label className="input-label summary">Is corresponding Compliance contact aware of this transfer?</label>
+              <br />
+              {providerInformation.personalRelatedDataContactAwareTransfer}
+            </div>
+          </div>) : null}
+          {providerInformation.personalRelatedData === 'Yes' && providerInformation.personalRelatedDataContactAwareTransfer === 'Yes'
+            ? (<div className={classNames(Styles.flexLayout, Styles.fourColumn)}>
+              <div>
+                <label className="input-label summary">Has s/he any objections to this transfer?</label>
+                <br />
+                {providerInformation.personalRelatedDataObjectionsTransfer}
+              </div>
+              {providerInformation.personalRelatedDataObjectionsTransfer === 'Yes' && <>
+                <div>
+                  <label className="input-label summary">Please state your reasoning for transfering nonetheless</label>
+                  <br />
+                  {providerInformation.personalRelatedDataTransferingNonetheless}
+                </div>
+                <div>
+                  <label className="input-label summary">Please state your objections</label>
+                  <br />
+                  {providerInformation.personalRelatedDataTransferingObjections}
+                </div>
+              </>}
+              <div></div>
+            </div>) : null}
         </div>
       ) : null}
       {showTransNationalData ? (
@@ -166,10 +189,10 @@ const ProviderSummary = ({ onSave, providerFormIsDraft }) => {
           <div className={Styles.firstPanel}>
             <div className={Styles.flexLayout}>
               <div>
-                <label className="input-label summary">Trans-national Data</label>
+                <label className="input-label summary">Transnational Data</label>
               </div>
             </div>
-            <div className={classNames(Styles.flexLayout, Styles.threeColumn)}>
+            <div className={classNames(Styles.flexLayout)}>
               <div>
                 <label className="input-label summary">Is data being transferred from one country to another?</label>
                 <br />
@@ -177,32 +200,40 @@ const ProviderSummary = ({ onSave, providerFormIsDraft }) => {
               </div>
               {providerInformation.transnationalDataTransfer === 'Yes' ? (
                 <div>
-                  <label className="input-label summary">Is one of these countries not within the EU?</label>
+                  <label className="input-label summary">Is one of these countries outside the EU?</label>
                   <br />
                   {providerInformation.transnationalDataTransferNotWithinEU || 'No'}
                 </div>
               ) : null}
-              {providerInformation.transnationalDataTransfer === 'Yes' &&
-              providerInformation.transnationalDataTransferNotWithinEU === 'Yes' ? (
+            </div>
+            {providerInformation?.transnationalDataTransfer === 'Yes' &&
+              providerInformation?.transnationalDataTransferNotWithinEU === 'Yes' ? (<div className={Styles.flexLayout}>
                 <div>
-                  <label className="input-label summary">Has LCO/LCR approved this data transfer?</label>
+                  <label className="input-label summary">Is corresponding Compliance contact aware of this transfer?</label>
                   <br />
-                  {providerInformation.LCOApprovedDataTransfer}
+                  {providerInformation?.transnationalDataContactAwareTransfer}
                 </div>
-              ) : null}
-              <div>
-                <label className="input-label summary">Does product contain insider information?</label>
-                <br />
-                {providerInformation.insiderInformation}
-              </div>
-            </div>
-            <div className={Styles.flexLayout}>
-              <div>
-                <label className="input-label summary">Is data from China included?</label>
-                <br />
-                {providerInformation.dataOriginatedFromChina}
-              </div>
-            </div>
+              </div>) : null}
+            {providerInformation?.transnationalDataTransferNotWithinEU === 'Yes' && providerInformation?.transnationalDataContactAwareTransfer === 'Yes'
+              ? (<div className={classNames(Styles.flexLayout, Styles.fourColumn)}>
+                <div>
+                  <label className="input-label summary">Has s/he any objections to this transfer?</label>
+                  <br />
+                  {providerInformation?.transnationalDataObjectionsTransfer}
+                </div>
+                {providerInformation?.transnationalDataObjectionsTransfer === 'Yes' && <>
+                  <div>
+                    <label className="input-label summary">Please state your reasoning for transfering nonetheless</label>
+                    <br />
+                    {providerInformation?.transnationalDataTransferingNonetheless}
+                  </div>
+                  <div>
+                    <label className="input-label summary">Please state your objections</label>
+                    <br />
+                    {providerInformation?.transnationalDataTransferingObjections}
+                  </div></>}
+                <div></div>
+              </div>) : null}
           </div>
         </div>
       ) : null}
@@ -211,10 +242,15 @@ const ProviderSummary = ({ onSave, providerFormIsDraft }) => {
           <div className={Styles.firstPanel}>
             <div className={Styles.flexLayout}>
               <div>
-                <label className="input-label summary">Deletion Requirements & Other</label>
+                <label className="input-label summary">Other Data</label>
               </div>
             </div>
             <div className={classNames(Styles.flexLayout, Styles.threeColumn)}>
+              <div>
+                <label className="input-label summary">Does data product contain (potential) insider information?</label>
+                <br />
+                {providerInformation.insiderInformation}
+              </div>
               <div>
                 <label className="input-label summary">Are there specific deletion requirements for this data?</label>
                 <br />
