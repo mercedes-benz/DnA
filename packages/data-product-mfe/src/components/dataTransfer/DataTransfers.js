@@ -20,10 +20,21 @@ const DataProducts = ({ user, history, hostHistory }) => {
 
   const [cardViewMode, setCardViewMode] = useState(true);
   const [listViewMode, setListViewMode] = useState(false);
+  const [isProviderCreatorFilter, 
+    setIsProviderCreatorFilter
+  ] = useState(false);
 
   useEffect(() => {
-    dispatch(GetDataTransfers());
-  }, [dispatch]);
+    dispatch(GetDataTransfers(isProviderCreatorFilter));
+  }, [dispatch, isProviderCreatorFilter]);
+
+  useEffect(() => {
+    if (sessionStorage.getItem('listViewModeEnable') == null) {
+      setCardViewModeFn()
+    } else {
+      setListViewModeFn()
+    }
+  },[]);
 
   const onPaginationPreviousClick = () => {
     const currentPageNumberTemp = currentPageNumber - 1;
@@ -53,12 +64,24 @@ const DataProducts = ({ user, history, hostHistory }) => {
     );
   };
 
+  const setCardViewModeFn = () => {
+    setCardViewMode(true);
+    setListViewMode(false);
+    sessionStorage.removeItem('listViewModeEnable');
+  };
+
+  const setListViewModeFn = () => {
+    setCardViewMode(false);
+    setListViewMode(true);
+    sessionStorage.setItem('listViewModeEnable',true)
+  };
+
   return (
     <>
       <button
         className={classNames('btn btn-text back arrow', Styles.backBtn)}
         type="submit"
-        onClick={() => hostHistory.push('/transparency')}
+        onClick={() => hostHistory.goBack()}
       >
         Back
       </button>
@@ -71,8 +94,7 @@ const DataProducts = ({ user, history, hostHistory }) => {
                 <span
                   className={cardViewMode ? Styles.iconactive : Styles.iconInActive}
                   onClick={() => {
-                    setCardViewMode(true);
-                    setListViewMode(false);
+                    setCardViewModeFn();
                   }}
                 >
                   <i className="icon mbc-icon widgets" />
@@ -83,8 +105,7 @@ const DataProducts = ({ user, history, hostHistory }) => {
                 <span
                   className={listViewMode ? Styles.iconactive : Styles.iconInActive}
                   onClick={() => {
-                    setCardViewMode(false);
-                    setListViewMode(true);
+                    setListViewModeFn();
                   }}
                 >
                   <i className="icon mbc-icon listview big" />
@@ -92,6 +113,13 @@ const DataProducts = ({ user, history, hostHistory }) => {
               </div>
             </div>
           </div>
+          <div>
+            <button className={classNames(Styles.tagItem, 
+            isProviderCreatorFilter ? Styles.selectedItem : '')} 
+            onClick={() => {setIsProviderCreatorFilter(!isProviderCreatorFilter)}}>
+            My Data Transfers</button>
+          </div>
+          <p className={'text-center'}>Click on <i className="icon mbc-icon copy-new"></i> to Create Copy</p>
           <div>
             <div>
               {dataTransfers?.length === 0 ? (
@@ -124,7 +152,7 @@ const DataProducts = ({ user, history, hostHistory }) => {
                             <label className={Styles.addlabel}>Provide new data transfer</label>
                           </div>
                           {dataTransfers?.map((product, index) => {
-                            return <DataProductCardItem key={index} product={product} user={user} />;
+                            return <DataProductCardItem key={index} product={product} user={user} isProviderCreatorFilter={isProviderCreatorFilter} />;
                           })}
                         </>
                       ) : null}
@@ -143,7 +171,7 @@ const DataProducts = ({ user, history, hostHistory }) => {
                               <label className={Styles.addlabel}>Provide new data transfer</label>
                             </div>
                             {dataTransfers?.map((product, index) => {
-                              return <DataProductListItem key={index} product={product} user={user} />;
+                              return <DataProductListItem key={index} product={product} user={user} isProviderCreatorFilter={isProviderCreatorFilter}/>;
                             })}
                           </div>
                         </>

@@ -83,7 +83,8 @@ export default class ReportSummary extends React.Component<{ user: IUserInfo }, 
           tags: [],
           reportLink: '',
           reportType: '',
-          piiData: ''
+          piiData: '',
+          procedureId: ''
         },
         kpis: [],
         customer: {
@@ -95,7 +96,7 @@ export default class ReportSummary extends React.Component<{ user: IUserInfo }, 
           singleDataSources: [],
         },
         members: {
-          reportOwners: [],
+          // reportOwners: [],
           reportAdmins: [],
         },
         publish: false,
@@ -299,7 +300,7 @@ export default class ReportSummary extends React.Component<{ user: IUserInfo }, 
             report.kpis = res.kpis || [];
             report.dataAndFunctions.dataWarehouseInUse = res.dataAndFunctions.dataWarehouseInUse || [];
             report.dataAndFunctions.singleDataSources = res.dataAndFunctions.singleDataSources || [];
-            report.members.reportOwners = res.members.reportOwners || [];
+            // report.members.reportOwners = res.members.reportOwners || [];
             report.members.reportAdmins = res.members.reportAdmins || [];
             report.publish = res.publish;
             report.openSegments = res.openSegments || [];
@@ -314,7 +315,7 @@ export default class ReportSummary extends React.Component<{ user: IUserInfo }, 
                   res.dataAndFunctions.dataWarehouseInUse?.length > 0 ||
                   res.dataAndFunctions.singleDataSources?.length > 0,
                 canShowMembers:
-                  res.members.reportOwners?.length > 0 ||
+                  // res.members.reportOwners?.length > 0 ||
                   // res.members.developers?.length > 0 ||
                   res.members.reportAdmins?.length > 0,
               },

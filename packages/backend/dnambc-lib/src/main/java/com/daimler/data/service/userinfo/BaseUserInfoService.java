@@ -261,7 +261,7 @@ public class BaseUserInfoService extends BaseCommonService<UserInfoVO, UserInfoN
 					adminUsersEmails, changeLogs);
 			log.info("Successfully notified all admin users for event {} for {} ", eventType, message);
 		} catch (Exception e) {
-			log.error("Exception occured while notifying all Admin users on {}  for {} . Failed with exception {}",
+			log.error("Exception occurred while notifying all Admin users on {}  for {} . Failed with exception {}",
 					eventType, message, e.getMessage());
 		}
 	}

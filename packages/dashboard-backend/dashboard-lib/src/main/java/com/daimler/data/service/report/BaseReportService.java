@@ -37,6 +37,7 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 import javax.persistence.EntityNotFoundException;
+import javax.validation.Valid;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -59,10 +60,12 @@ import com.daimler.data.db.jsonb.report.DataWarehouse;
 import com.daimler.data.db.jsonb.report.Division;
 import com.daimler.data.db.jsonb.report.InternalCustomer;
 import com.daimler.data.db.jsonb.report.KPI;
+import com.daimler.data.db.jsonb.report.KPIName;
 import com.daimler.data.db.jsonb.report.SingleDataSource;
 import com.daimler.data.db.jsonb.report.Subdivision;
 import com.daimler.data.db.repo.report.ReportCustomRepository;
 import com.daimler.data.db.repo.report.ReportRepository;
+import com.daimler.data.dto.KpiName.KpiNameVO;
 import com.daimler.data.dto.dataSource.DataSourceBulkRequestVO;
 import com.daimler.data.dto.dataSource.DataSourceCreateVO;
 import com.daimler.data.dto.department.DepartmentVO;
@@ -71,6 +74,7 @@ import com.daimler.data.dto.report.CreatedByVO;
 import com.daimler.data.dto.report.CustomerVO;
 import com.daimler.data.dto.report.DataSourceVO;
 import com.daimler.data.dto.report.InternalCustomerVO;
+import com.daimler.data.dto.report.KPIVO;
 import com.daimler.data.dto.report.MemberVO;
 import com.daimler.data.dto.report.ProcessOwnerCollection;
 import com.daimler.data.dto.report.ReportResponseVO;
@@ -82,6 +86,7 @@ import com.daimler.data.dto.solution.UserInfoVO;
 import com.daimler.data.dto.tag.TagVO;
 import com.daimler.data.service.common.BaseCommonService;
 import com.daimler.data.service.department.DepartmentService;
+import com.daimler.data.service.kpiName.KpiNameService;
 import com.daimler.data.service.tag.TagService;
 import com.daimler.data.util.ConstantsUtility;
 import com.daimler.dna.notifications.common.producer.KafkaProducerService;
@@ -99,6 +104,9 @@ public class BaseReportService extends BaseCommonService<ReportVO, ReportNsql, S
 
 	@Autowired
 	private DepartmentService departmentService;
+	
+	@Autowired
+	private KpiNameService kpiNameService;
 
 	@Autowired
 	private UserStore userStore;
@@ -134,7 +142,33 @@ public class BaseReportService extends BaseCommonService<ReportVO, ReportNsql, S
 		updateTags(vo);
 		updateDepartments(vo);
 		updateDataSources(vo);
+		updateKpiNames(vo);
 		return super.create(vo);
+	}
+
+	private void updateKpiNames(ReportVO vo) {
+		List<KPIVO> kpis = vo.getKpis();
+		if(kpis != null && !kpis.isEmpty()) {
+			kpis.forEach(kpi -> {
+				String kpiName = kpi.getName().getKpiName();
+				String kpiClassification = kpi.getName().getKpiClassification();
+				if(StringUtils.hasText(kpiName)) {
+					KpiNameVO existingKpiNameVO = kpiNameService.findKpiNameByName(kpiName);
+					if(existingKpiNameVO != null && existingKpiNameVO.getKpiClassification() == null && StringUtils.hasText(kpiClassification)) {
+						existingKpiNameVO.setKpiClassification(kpiClassification);
+						kpiNameService.create(existingKpiNameVO);
+					}
+					if (existingKpiNameVO != null && existingKpiNameVO.getKpiName() != null)
+						return;
+					else {
+						KpiNameVO newKpiNameVO = new KpiNameVO();
+						newKpiNameVO.setKpiName(kpiName);
+						newKpiNameVO.setKpiClassification(kpiClassification);
+						kpiNameService.create(newKpiNameVO);
+					}
+				}
+			});
+		}
 	}
 
 	@Override
@@ -255,24 +289,47 @@ public class BaseReportService extends BaseCommonService<ReportVO, ReportNsql, S
 							}
 						}
 					}
-				} else if (category.equals(CATEGORY.KPI_NAME)) {
+				} else if (category.equals(CATEGORY.KPI_CLASSIFICATION)) {
 					List<KPI> kpis = reportNsql.getData().getKpis();
 					if (!ObjectUtils.isEmpty(kpis)) {
 						for (KPI kpi : kpis) {
-							if (StringUtils.hasText(kpi.getName()) && kpi.getName().equals(name)) {
-								kpi.setName(null);
+							KPIName kpiNameObject = kpi.getName();
+							if (StringUtils.hasText(kpiNameObject.getKpiClassification()) && kpiNameObject.getKpiClassification().equals(name)) {
+								kpiNameObject.setKpiClassification(null);
 							}
+							kpi.setName(kpiNameObject);
+						}
+					}
+				}else if (category.equals(CATEGORY.KPI_NAME)) {
+					List<KPI> kpis = reportNsql.getData().getKpis();
+					if (!ObjectUtils.isEmpty(kpis)) {
+						for (KPI kpi : kpis) {
+							KPIName kpiNameObject = kpi.getName();
+							if (StringUtils.hasText(kpiNameObject.getKpiName()) && kpiNameObject.getKpiName().equals(name)) {
+								kpiNameObject.setKpiName(null);
+							}
+							kpi.setName(kpiNameObject);
 						}
 					}
 				} else if (category.equals(CATEGORY.REPORTING_CAUSE)) {
 					List<KPI> kpis = reportNsql.getData().getKpis();
 					if (!ObjectUtils.isEmpty(kpis)) {
 						for (KPI kpi : kpis) {
-							if (StringUtils.hasText(kpi.getReportingCause()) && kpi.getReportingCause().equals(name)) {
-								kpi.setReportingCause(null);
+							List<String> reportingCauses = kpi.getReportingCause();
+							List<String> newReportingCauses = new ArrayList<>();
+							if(reportingCauses != null) {
+							for(String reportingCause : reportingCauses) {
+								if (StringUtils.hasText(reportingCause) && reportingCause.equals(name)) {
+									kpi.setReportingCause(null);
+								}
+								else {
+									newReportingCauses.add(reportingCause);									
+								}
 							}
+							kpi.setReportingCause(newReportingCauses);
+						   }
 						}
-					}
+					}		
 				} else if (category.equals(CATEGORY.DATASOURCE)) {
 					List<SingleDataSource> singleDataSources = reportNsql.getData().getSingleDataSources();
 					if (!ObjectUtils.isEmpty(singleDataSources)) {
@@ -335,23 +392,6 @@ public class BaseReportService extends BaseCommonService<ReportVO, ReportNsql, S
 							if (StringUtils.hasText(dataWarehouse.getDataWarehouse())
 									&& dataWarehouse.getDataWarehouse().equals(name)) {
 								dataWarehouse.setDataWarehouse(null);
-							}
-						}
-					}
-				} else if (category.equals(CATEGORY.COMMON_FUNCTION)) {
-					List<DataWarehouse> dataWarehouses = reportNsql.getData().getDataWarehouses();
-					if (!ObjectUtils.isEmpty(dataWarehouses)) {
-						for (DataWarehouse dataWarehouse : dataWarehouses) {
-							List<String> commonFunctions = dataWarehouse.getCommonFunctions();
-							if (!ObjectUtils.isEmpty(commonFunctions)) {
-								Iterator<String> itr = commonFunctions.iterator();
-								while (itr.hasNext()) {
-									String commonFunction = itr.next();
-									if (commonFunction.equals(name)) {
-										itr.remove();
-										break;
-									}
-								}
 							}
 						}
 					}
@@ -453,23 +493,45 @@ public class BaseReportService extends BaseCommonService<ReportVO, ReportNsql, S
 							}
 						}
 					}
-				} else if (category.equals(CATEGORY.KPI_NAME)) {
+				} else if (category.equals(CATEGORY.KPI_CLASSIFICATION)) {
 					List<KPI> kpis = reportNsql.getData().getKpis();
 					if (!ObjectUtils.isEmpty(kpis)) {
 						for (KPI kpi : kpis) {
-							if (StringUtils.hasText(kpi.getName()) && kpi.getName().equals(oldValue)) {
-								kpi.setName(newValue);
+							KPIName kpiNameObject = kpi.getName();
+							if(StringUtils.hasText(kpiNameObject.getKpiClassification()) && kpiNameObject.getKpiClassification().equals(oldValue)) {
+								kpiNameObject.setKpiClassification(newValue);
 							}
+							kpi.setName(kpiNameObject);						
+						}
+					}
+				}else if (category.equals(CATEGORY.KPI_NAME)) {
+					List<KPI> kpis = reportNsql.getData().getKpis();
+					if (!ObjectUtils.isEmpty(kpis)) {
+						for (KPI kpi : kpis) {
+							KPIName kpiNameObject = kpi.getName();
+							if(StringUtils.hasText(kpiNameObject.getKpiName()) && kpiNameObject.getKpiName().equals(oldValue)) {
+								kpiNameObject.setKpiName(newValue);
+							}
+							kpi.setName(kpiNameObject);						
 						}
 					}
 				} else if (category.equals(CATEGORY.REPORTING_CAUSE)) {
 					List<KPI> kpis = reportNsql.getData().getKpis();
 					if (!ObjectUtils.isEmpty(kpis)) {
 						for (KPI kpi : kpis) {
-							if (StringUtils.hasText(kpi.getReportingCause())
-									&& kpi.getReportingCause().equals(oldValue)) {
-								kpi.setReportingCause(newValue);
+							List<String> reportingCauses = kpi.getReportingCause();
+							List<String> newReportingCauses = new ArrayList<>();
+							if(reportingCauses != null) {
+							for(String reportingCause : reportingCauses) {
+								if (StringUtils.hasText(reportingCause) && reportingCause.equals(oldValue)) {
+									newReportingCauses.add(newValue);									
+								}
+								else {
+									newReportingCauses.add(reportingCause);
+								}
 							}
+							kpi.setReportingCause(newReportingCauses);
+						   }
 						}
 					}
 				} else if (category.equals(CATEGORY.CONNECTION_TYPE)) {
@@ -519,23 +581,6 @@ public class BaseReportService extends BaseCommonService<ReportVO, ReportNsql, S
 							if (StringUtils.hasText(dataWarehouse.getDataWarehouse())
 									&& dataWarehouse.getDataWarehouse().equals(oldValue)) {
 								dataWarehouse.setDataWarehouse(newValue);
-							}
-						}
-					}
-				} else if (category.equals(CATEGORY.COMMON_FUNCTION)) {
-					List<DataWarehouse> dataWarehouses = reportNsql.getData().getDataWarehouses();
-					if (!ObjectUtils.isEmpty(dataWarehouses)) {
-						for (DataWarehouse dataWarehouse : dataWarehouses) {
-							List<String> commonFunctions = dataWarehouse.getCommonFunctions();
-							if (!ObjectUtils.isEmpty(commonFunctions)) {
-								ListIterator<String> itr = commonFunctions.listIterator();
-								while (itr.hasNext()) {
-									String commonFunction = itr.next();
-									if (commonFunction.equals(oldValue)) {
-										itr.set(newValue);
-										break;
-									}
-								}
 							}
 						}
 					}
@@ -721,10 +766,7 @@ public class BaseReportService extends BaseCommonService<ReportVO, ReportNsql, S
 								List<TeamMemberVO> members = new ArrayList<>();
 								if (memberVO.getReportAdmins() != null) {
 									members.addAll(memberVO.getReportAdmins());
-								}
-								if (memberVO.getReportOwners() != null) {
-									members.addAll(memberVO.getReportOwners());
-								}
+								}								
 
 								CustomerVO customerVO = mergedReportVO.getCustomer();
 								if (customerVO != null && !ObjectUtils.isEmpty(customerVO.getInternalCustomers())) {

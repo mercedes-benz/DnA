@@ -142,17 +142,12 @@ const Summary = ({ history }) => {
                         {data.productName}
                       </div>
                       <div>
-                        <label className="input-label summary">Date of Data Transfer</label>
-                        <br />
-                        {regionalDateFormat(data.dateOfDataTransfer)}
-                      </div>
-                      <div>
-                        <label className="input-label summary">Name</label>
+                        <label className="input-label summary">Point of contact for data transfer</label>
                         <br />
                         {data.name?.firstName} {data.name?.lastName}
                       </div>
                       <div>
-                        <label className="input-label summary">Information Owner</label>
+                        <label className="input-label summary">Data responsible IO and/or Business Owner for application</label>
                         <br />
                         {data.informationOwner?.firstName} {data.informationOwner?.lastName}
                       </div>
@@ -181,7 +176,7 @@ const Summary = ({ history }) => {
                     </div>
                     <div className={classNames(Styles.flexLayout, Styles.fourColumn)}>
                       <div>
-                        <label className="input-label summary">Compliance Officer / Responsible (LCO/LCR) </label>
+                        <label className="input-label summary">Corresponding Compliance Contact, i.e. Local Compliance Officer/ Responsible or Multiplier </label>
                         <br />
                         {data.complianceOfficer}
                       </div>
@@ -193,17 +188,17 @@ const Summary = ({ history }) => {
                     <div className={Styles.firstPanel}>
                       <div className={Styles.flexLayout}>
                         <div>
-                          <h5>Data Description & Classification</h5>
+                          <h5>Data Description &amp; Classification</h5>
                         </div>
                       </div>
                       <div className={classNames(Styles.flexLayout, Styles.threeColumn)}>
                         <div>
-                          <label className="input-label summary">Description & Classification of transfered data</label>
+                          <label className="input-label summary">Description of transferred data</label>
                           <br />
                           {data.classificationOfTransferedData}
                         </div>
                         <div>
-                          <label className="input-label summary">Confidentiality</label>
+                          <label className="input-label summary">Confidentiality classification of transferred data (based on Information classification)</label>
                           <br />
                           {data.confidentiality}
                         </div>
@@ -212,7 +207,8 @@ const Summary = ({ history }) => {
                   </div>
                 ) : null}
                 {showPersonalData ? (
-                  <div className={Styles.sectionWrapper}>
+                  <div className={classNames(Styles.sectionWrapper, data.personalRelatedData === 'Yes' && Styles.yellowBorder)}>
+                    { data.personalRelatedData === 'Yes' && <i className={classNames('icon mbc-icon alert circle', Styles.warningIcon)} /> }
                     <div className={Styles.firstPanel}>
                       <div className={Styles.flexLayout}>
                         <div>
@@ -229,7 +225,7 @@ const Summary = ({ history }) => {
                       {data.personalRelatedData === 'Yes' ? (
                         <div className={classNames(Styles.flexLayout, Styles.fourColumn)}>
                           <div>
-                            <label className="input-label summary">Description</label>
+                            <label className="input-label summary">Description of personal related data</label>
                             <br />
                             {data.personalRelatedDataDescription}
                           </div>
@@ -251,6 +247,34 @@ const Summary = ({ history }) => {
                         </div>
                       ) : null}
                     </div>
+                    {data.personalRelatedData === 'Yes' ? (<div className={Styles.flexLayout}>
+                      <div>
+                        <label className="input-label summary">Is corresponding Compliance contact aware of this transfer?</label>
+                        <br />
+                        {data.personalRelatedDataContactAwareTransfer}
+                      </div>
+                    </div>) : null}
+                    {data.personalRelatedData === 'Yes' && data.personalRelatedDataContactAwareTransfer === 'Yes'
+                      ? (<div className={classNames(Styles.flexLayout, Styles.fourColumn)}>
+                        <div>
+                          <label className="input-label summary">Has s/he any objections to this transfer?</label>
+                          <br />
+                          {data.personalRelatedDataObjectionsTransfer}
+                        </div>
+                        {data.personalRelatedDataObjectionsTransfer === 'Yes' && <>
+                          <div>
+                            <label className="input-label summary">Please state your reasoning for transfering nonetheless</label>
+                            <br />
+                            {data.personalRelatedDataTransferingNonetheless}
+                          </div>
+                          <div>
+                            <label className="input-label summary">Please state your objections</label>
+                            <br />
+                            {data.personalRelatedDataTransferingObjections}
+                          </div>
+                        </>}
+                        <div></div>
+                      </div>) : null}
                   </div>
                 ) : null}
                 {showTransNationalData ? (
@@ -258,10 +282,10 @@ const Summary = ({ history }) => {
                     <div className={Styles.firstPanel}>
                       <div className={Styles.flexLayout}>
                         <div>
-                          <h5>Trans-national Data</h5>
+                          <h5>Transnational Data</h5>
                         </div>
                       </div>
-                      <div className={classNames(Styles.flexLayout, Styles.threeColumn)}>
+                      <div className={classNames(Styles.flexLayout)}>
                         <div>
                           <label className="input-label summary">
                             Is data being transferred from one country to another?
@@ -269,34 +293,43 @@ const Summary = ({ history }) => {
                           <br />
                           {data.transnationalDataTransfer}
                         </div>
-                        {data.transnationalDataTransfer == 'Yes' ? (
+                        {data.transnationalDataTransfer === 'Yes' ? (
                           <div>
-                            <label className="input-label summary">Is one of these countries not within the EU?</label>
+                            <label className="input-label summary">Is one of these countries outside the EU?</label>
                             <br />
                             {data.transnationalDataTransferNotWithinEU || 'No'}
                           </div>
                         ) : null}
-                        {data.transnationalDataTransfer == 'Yes' &&
-                        data.transnationalDataTransferNotWithinEU == 'Yes' ? (
+                      </div>
+                      {data?.transnationalDataTransfer === 'Yes' &&
+                        data?.transnationalDataTransferNotWithinEU === 'Yes' ? (<div className={Styles.flexLayout}>
                           <div>
-                            <label className="input-label summary">Has LCO/LCR approved this data transfer?</label>
+                            <label className="input-label summary">Is corresponding Compliance contact aware of this transfer?</label>
                             <br />
-                            {data.LCOApprovedDataTransfer}
+                            {data?.transnationalDataContactAwareTransfer}
                           </div>
-                        ) : null}
-                        <div>
-                          <label className="input-label summary">Does product contain insider information?</label>
-                          <br />
-                          {data.insiderInformation}
-                        </div>
-                      </div>
-                      <div className={Styles.flexLayout}>
-                        <div>
-                          <label className="input-label summary">Is data from China included?</label>
-                          <br />
-                          {data.dataOriginatedFromChina}
-                        </div>
-                      </div>
+                        </div>) : null}
+                      {data?.transnationalDataTransferNotWithinEU === 'Yes' && data?.transnationalDataContactAwareTransfer === 'Yes'
+                        ? (<div className={classNames(Styles.flexLayout, Styles.fourColumn)}>
+                          <div>
+                            <label className="input-label summary">Has s/he any objections to this transfer?</label>
+                            <br />
+                            {data?.transnationalDataObjectionsTransfer}
+                          </div>
+                          {data?.transnationalDataObjectionsTransfer === 'Yes' && <>
+                            <div>
+                              <label className="input-label summary">Please state your reasoning for transfering nonetheless</label>
+                              <br />
+                              {data?.transnationalDataTransferingNonetheless}
+                            </div>
+                            <div>
+                              <label className="input-label summary">Please state your objections</label>
+                              <br />
+                              {data?.transnationalDataTransferingObjections}
+                            </div>
+                          </>}
+                          <div></div>
+                        </div>) : null}
                     </div>
                   </div>
                 ) : null}
@@ -305,10 +338,15 @@ const Summary = ({ history }) => {
                     <div className={Styles.firstPanel}>
                       <div className={Styles.flexLayout}>
                         <div>
-                          <h5>Deletion Requirements & Other</h5>
+                          <h5>Other Data</h5>
                         </div>
                       </div>
                       <div className={classNames(Styles.flexLayout, Styles.threeColumn)}>
+                        <div>
+                          <label className="input-label summary">Does data product contain (potential) insider information?</label>
+                          <br />
+                          {data.insiderInformation}
+                        </div>
                         <div>
                           <label className="input-label summary">
                             Are there specific deletion requirements for this data?
@@ -340,7 +378,7 @@ const Summary = ({ history }) => {
                     <div className={Styles.firstPanel}>
                       <div className={Styles.flexLayout}>
                         <div>
-                          <h5>Members</h5>
+                          <h5>Point of contact (data receiving side)</h5>
                         </div>
                       </div>
                       {receivingMembers}
@@ -360,14 +398,14 @@ const Summary = ({ history }) => {
                         </div>
                         <div className={classNames(Styles.flexLayout, Styles.fourColumn)}>
                           <div>
-                            <label className="input-label summary">Business and/or Information Owner </label>
+                            <label className="input-label summary">Responsible Manager (E3 +) </label>
                             <br />
                             {data?.consumer?.businessOwnerName?.firstName} {data?.consumer?.businessOwnerName?.lastName}
                           </div>
                           <div>
-                            <label className="input-label summary">Date of Agreement</label>
+                            <label className="input-label summary">Date of Data Transfer</label>
                             <br />
-                            {regionalDateFormat(data?.consumer?.dateOfAgreement)}
+                            {regionalDateFormat(data?.consumer?.dateOfDataTransfer)}
                           </div>
                           <div>
                             <label className="input-label summary">Division</label>
@@ -399,7 +437,7 @@ const Summary = ({ history }) => {
                             {data?.consumer?.planningIT || '-'}
                           </div>
                           <div>
-                            <label className="input-label summary">Compliance Officer / Responsible (LCO/LCR) </label>
+                            <label className="input-label summary">Corresponding Compliance Contact, i.e. Local Compliance Officer/ Responsible or Multiplier </label>
                             <br />
                             {data?.consumer?.complianceOfficer || '-'}
                           </div>
@@ -407,7 +445,8 @@ const Summary = ({ history }) => {
                       </div>
                     </div>
                     {showConsumerPersonalData ? (
-                      <div className={Styles.sectionWrapper}>
+                      <div className={classNames(Styles.sectionWrapper, data?.consumer?.personalRelatedData === 'Yes' && Styles.yellowBorder)}>
+                        { data?.consumer?.personalRelatedData === 'Yes' && <i className={classNames('icon mbc-icon alert circle', Styles.warningIcon)} /> }
                         <div className={Styles.firstPanel}>
                           <div className={Styles.flexLayout}>
                             <div>
@@ -441,7 +480,7 @@ const Summary = ({ history }) => {
                               </div>
                               <div>
                                 <label className="input-label summary">
-                                  LCO/LCR checked legal basis of usage of personal data
+                                  Has corresponding compliance contact checked overall personal data processing
                                 </label>
                                 <br />
                                 {data?.consumer?.LCOCheckedLegalBasis}
@@ -455,6 +494,34 @@ const Summary = ({ history }) => {
                               </div>
                             </div>
                           ) : null}
+                          {data?.consumer?.personalRelatedData === 'Yes' ? (<div className={Styles.flexLayout}>
+                            <div>
+                              <label className="input-label summary">Is corresponding Compliance contact aware of this transfer?</label>
+                              <br />
+                              {data?.consumer?.personalRelatedDataContactAwareTransfer}
+                            </div>
+                          </div>) : null}
+                          {data?.consumer?.personalRelatedData === 'Yes' && data?.consumer?.personalRelatedDataContactAwareTransfer === 'Yes'
+                            ? (<div className={classNames(Styles.flexLayout, Styles.fourColumn)}>
+                              <div>
+                                <label className="input-label summary">Has s/he any objections to this transfer?</label>
+                                <br />
+                                {data?.consumer?.personalRelatedDataObjectionsTransfer}
+                              </div>
+                              {data?.consumer?.personalRelatedDataObjectionsTransfer === 'Yes' && <>
+                                <div>
+                                  <label className="input-label summary">Please state your reasoning for transfering nonetheless</label>
+                                  <br />
+                                  {data?.consumer?.personalRelatedDataTransferingNonetheless}
+                                </div>
+                                <div>
+                                  <label className="input-label summary">Please state your objections</label>
+                                  <br />
+                                  {data?.consumer?.personalRelatedDataTransferingObjections}
+                                </div>
+                              </>}
+                              <div></div>
+                            </div>) : null}
                         </div>
                       </div>
                     ) : null}

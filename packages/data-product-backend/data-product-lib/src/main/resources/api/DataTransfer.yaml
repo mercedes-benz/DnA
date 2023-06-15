@@ -192,6 +192,11 @@ paths:
           description: "if true then sends datatransfer which are created by the logged In users"
           required: false
           type: boolean
+        - name: isProviderCreator
+          in: query
+          description: "if true then sends dataproduct which are created by the logged In users"
+          required: false
+          type: boolean     
         - name: published
           in: query
           description: Filtering datatransfer based on publish state. Draft or published, values true or false
@@ -306,9 +311,6 @@ definitions:
   ProviderContactInformationVO:
     type: object
     properties:  
-      dataTransferDate:
-        type: string
-        format: date
       informationOwner:
         $ref: "#/definitions/DataTransferTeamMemberVO"
       name:
@@ -318,19 +320,19 @@ definitions:
       department:
         type: string
         description: "Department of the datatransfer"
-        minLength: 1                           
+#        minLength: 1                           
       localComplianceOfficer:
         type: string
         description: "Local compliance officer"
-        minLength: 1
+#        minLength: 1
       appId:
         type: string
         description: "planning IT App-ID "         
-    required:
-      - name
-      - division
-      - department
-      - localComplianceOfficer
+#    required:
+#      - name
+#      - division
+#      - department
+#      - localComplianceOfficer
       
   ProviderClassificationConfidentialityVO:
     type: object
@@ -338,14 +340,14 @@ definitions:
       description:
         type: string
         description: "Description and classification of the transfered data"
-        minLength: 1
+#        minLength: 1
       confidentiality: 
         description: "Confidentiality level"
         type: string
-        minLength: 1
-    required:
-      - description
-      - confidentiality
+#        minLength: 1
+#    required:
+#      - description
+#      - confidentiality
       
   ProviderPersonalRelatedDataVO:
     type: object
@@ -361,9 +363,23 @@ definitions:
         type: string
       legalBasis: 
         description: "Legal basis for processing this personal related data"
-        type: string                  
-    required:
-      - personalRelatedData  
+        type: string
+      contactAwareTransfer:
+        type: boolean
+        default: false
+        description: "Is corresponding Compliance contact aware of this transfer"
+      objectionsToTransfer:
+        type: boolean
+        default: false
+        description: "Has s/he any objections to this transfer"
+      transferringNonetheless:
+        type: string
+        description: "State your reasoning for transferring nonetheless"
+      objections:
+        type: string
+        description: "State your objections"
+#    required:
+#      - personalRelatedData  
           
   ProviderTransnationalDataTransferVO:
     type: object
@@ -374,17 +390,25 @@ definitions:
       notWithinEU:
         type: boolean
         description: "Is one of these countries not within the EU"
-      approved: 
-        description: "Has LCO/LCR approved this data transfer"
-        type: string
-      insiderInformation: 
-        description: "Does product contain insider information"
-        type: string         
-      dataFromChina:
+#      insiderInformation:
+#      description: "Does product contain insider information"
+#      type: string         
+      contactAwareTransfer:
         type: boolean
-        description: "Is data from China included"                
-    required:
-      - dataTransferred    
+        default: false
+        description: "Is corresponding Compliance contact aware of this transfer"
+      objectionsToTransfer:
+        type: boolean
+        default: false
+        description: "Has s/he any objections to this transfer"
+      transferringNonetheless:
+        type: string
+        description: "State your reasoning for transferring nonetheless"
+      objections:
+        type: string
+        description: "State your objections"
+#    required:
+#      - dataTransferred    
       
   ProviderDeletionRequirementVO:
     type: object
@@ -397,9 +421,12 @@ definitions:
         type: string
       otherRelevantInformation:
         type: string
-        description: "Specifying other relevant information"                         
-    required:
-      - deletionRequirements  
+        description: "Specifying other relevant information"
+      insiderInformation: 
+        description: "Does product contain insider information"
+        type: string                           
+#    required:
+#      - deletionRequirements  
       
   ConsumerContactInformationVO:
     type: object
@@ -414,21 +441,21 @@ definitions:
       department:
         type: string
         description: "Department of the consumer"
-        minLength: 1                           
+#        minLength: 1                           
       localComplianceOfficer:
         type: string
         description: "Local compliance officer"
       appId:
         type: string
         description: "planning IT App-ID "
-      agreementDate:
+      dataTransferDate:
         type: string
         format: date                 
-    required:
-      - lcoNeeded
-      - ownerName
-      - division
-      - department
+#    required:
+#      - lcoNeeded
+#      - ownerName
+#      - division
+#      - department
       
   ConsumerPersonalRelatedDataVO:
     type: object
@@ -447,9 +474,23 @@ definitions:
         type: string 
       comment: 
         description: "LCO/LCR comments to data usage of personal data"
-        type: string                              
-    required:
-      - personalRelatedData
+        type: string
+      contactAwareTransfer:
+        type: boolean
+        default: false
+        description: "Is corresponding Compliance contact aware of this transfer"
+      objectionsToTransfer:
+        type: boolean
+        default: false
+        description: "Has s/he any objections to this transfer"
+      transferringNonetheless:
+        type: string
+        description: "State your reasoning for transferring nonetheless"
+      objections:
+        type: string
+        description: "State your objections"
+#    required:
+#      - personalRelatedData
       
   ProviderVO:
     type: object
@@ -474,7 +515,7 @@ definitions:
         $ref: "#/definitions/ProviderResponseVO"
     required:
       - dataTransferName
-      - providerInformation    
+#      - providerInformation    
       
   ProviderResponseVO:
     type: object
@@ -519,8 +560,8 @@ definitions:
               "IdentifiyingTransnationalDataTransfer",
               "SpecifyDeletionRequirements"
             ]
-    required:
-      - contactInformation         
+#    required:
+#      - contactInformation         
                      
             
   ConsumerVO:
@@ -548,7 +589,7 @@ definitions:
         description: "Flag to notify users."                        
     required:
       - id
-      - consumerInformation
+#      - consumerInformation
       
   ConsumerResponseVO:
     type: object
@@ -577,8 +618,8 @@ definitions:
               "ContactInformation",
               "IdentifyingPersonalRelatedData"
             ]
-    required:
-      - contactInformation                                                                                                              
+#    required:
+#      - contactInformation                                                                                                              
 
   DataTransferVO:
     type: object
@@ -662,9 +703,9 @@ definitions:
         description: name of division
       subdivision:
         $ref: "#/definitions/SubdivisionVO"
-    required:
-      - id
-      - name
+#    required:
+#      - id
+#      - name
       
   SubdivisionVO:
     type: object

@@ -43,7 +43,7 @@ export class ReportsApiClient {
       this.get('lov/frontendtechnologies'),
       this.get('lov/levels'),
       this.get('lov/integratedportals'),
-      this.get('lov/kpinames'),
+      this.get('kpinames'),
       this.get('lov/reportingcauses'),
       this.get('lov/legalentities'),
       this.get('lov/statuses'),
@@ -53,8 +53,8 @@ export class ReportsApiClient {
       this.get('lov/datawarehouses'),
       ApiClient.get('divisions'),
       this.get('departments'),
-      this.get('lov/commonfunctions'),
       this.get('lov/dataclassifications'),
+      this.get('lov/kpiClassifications'),
     ]);
   }
 
@@ -97,7 +97,6 @@ export class ReportsApiClient {
         productName,
         description { division { id, name, subdivision { id, name } }, department, productDescription, agileReleaseTrain, status, tags },
         members {
-          reportOwners { firstName, lastName, department, shortId },
           reportAdmins { firstName, lastName, department, shortId }
         },
         publish
@@ -130,10 +129,9 @@ export class ReportsApiClient {
     const resQuery = `totalCount
       records {id,
         productName,
-        description { division { id, name, subdivision { id, name } }, department, status, productDescription, tags, agileReleaseTrain, integratedPortal, frontendTechnologies, reportLink, reportType  },
+        description { division { id, name, subdivision { id, name } }, department, status, productDescription, tags, agileReleaseTrain, integratedPortal, frontendTechnologies, reportLink, reportType, procedureId  },
         customer {
-          internalCustomers {
-            name { firstName, lastName, department, shortId },
+          internalCustomers {            
             customerRelation,
             comment,
             department,
@@ -151,15 +149,14 @@ export class ReportsApiClient {
             processOwner { firstName, lastName, department, shortId }
           },
           externalCustomers {
-            name { firstName, lastName, department, shortId },
             companyName,
             customerRelation,
             comment
           }
         },
-        kpis { name, reportingCause, description, kpiLink },
+        kpis { name{kpiName, kpiClassification}, reportingCause, description, kpiLink },
         dataAndFunctions { 
-          dataWarehouseInUse { dataWarehouse, commonFunctions, connectionType, dataClassification } , 
+          dataWarehouseInUse { dataWarehouse, connectionType, dataClassification } , 
           singleDataSources { 
             dataSources{
               dataSource,
@@ -169,7 +166,6 @@ export class ReportsApiClient {
             dataClassification } 
         }
         members {
-          reportOwners { firstName, lastName, department, shortId },
           reportAdmins { firstName, lastName, department, shortId }
         },
         publish,
@@ -226,7 +222,7 @@ export class ReportsApiClient {
       },
       kpis { name, reportingCause, description, kpiLink },
       dataAndFunctions { 
-        dataWarehouseInUse { dataWarehouse, commonFunctions, connectionType, dataClassification } , 
+        dataWarehouseInUse { dataWarehouse, connectionType, dataClassification } , 
         singleDataSources { 
           dataSources{
             dataSource,
@@ -236,7 +232,6 @@ export class ReportsApiClient {
           dataClassification } 
       }
       members {
-        reportOwners { firstName, lastName, department, shortId },
         reportAdmins { firstName, lastName, department, shortId }
       },
       publish,
@@ -320,9 +315,9 @@ export class ReportsApiClient {
   public static getDatawareHouses(): Promise<IReportListItems[]> {
     return this.get('lov/datawarehouses');
   }
-  public static getCommonFunctions(): Promise<IReportListItems[]> {
-    return this.get('lov/commonfunctions');
-  }
+  // public static getCommonFunctions(): Promise<IReportListItems[]> {
+  //   return this.get('lov/commonfunctions');
+  // }
   public static getSpecificFunctions(): Promise<IReportListItems[]> {
     return this.get('lov/specificfunctions');
   }
@@ -342,7 +337,7 @@ export class ReportsApiClient {
     return this.get('tags');
   }
   public static getKpiName(): Promise<IReportListItems[]> {
-    return this.get('lov/kpinames');
+    return this.get('kpinames');
   }
 
   // Lov Add Calls //

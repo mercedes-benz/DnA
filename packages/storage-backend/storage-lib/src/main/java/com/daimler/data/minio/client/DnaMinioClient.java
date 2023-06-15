@@ -202,5 +202,13 @@ public interface DnaMinioClient {
 	 * @return bucketConnectionUri{Map<String,String>}
 	 */
 	public Map<String,String> getUri(String userId, String bucketName, String object);
+
+	/**
+	 * 
+	 * To delete user record from minio identity
+	 * 
+	 * @param userId
+	 */
+	public void deleteUser(String userId);
 	
 }

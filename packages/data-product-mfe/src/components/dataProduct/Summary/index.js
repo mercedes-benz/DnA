@@ -14,7 +14,7 @@ import DataTranferCardLayout from '../../dataTransfer/Layout/CardView/DataTransf
 
 import { setSelectedDataProduct, setDivisionList, resetDataTransferList } from '../redux/dataProductSlice';
 
-import { isValidURL, regionalDateFormat } from '../../../Utility/utils';
+import { isValidURL } from '../../../Utility/utils';
 
 import InfoModal from 'dna-container/InfoModal';
 import Modal from 'dna-container/Modal';
@@ -86,7 +86,7 @@ const Summary = ({ history, user }) => {
 
   useMemo(() => {
     const CDC_URL = Envs.CORPORATE_DATA_CATALOG_URL;
-    const URL = CDC_URL.substring(0, CDC_URL.indexOf('data') + 4);
+    const URL = CDC_URL?.substring(0, CDC_URL.indexOf('data') + 4);
     const refId = corporateDataCatalogs?.find(
       (item) => item.name === selectedDataProduct?.corporateDataCatalog,
     )?.externalRefId;
@@ -204,7 +204,7 @@ const Summary = ({ history, user }) => {
   const deleteDataProductAccept = () => {
     ProgressIndicator.show();
     dataProductApi.deleteDataProduct(selectedDataProduct?.id).then(() => {
-      history.push('/dataproducts');
+      history.goBack();
       setShowDeleteModal(false);
       Notification.show(`${selectedDataProduct?.productName} deleted successfully.`);
     });
@@ -257,6 +257,17 @@ const Summary = ({ history, user }) => {
       );
     });
   };
+
+  const tagChips =
+      selectedDataProduct?.tags && selectedDataProduct?.tags?.length
+        ? selectedDataProduct?.tags?.map((chip, index) => {
+            return (
+              <div className="chips read-only" key={index}>
+                <label className="name">{chip}</label>
+              </div>
+            );
+          })
+        : 'N.A';
 
   return (
     <div className="dataproductSummary">
@@ -402,12 +413,22 @@ const Summary = ({ history, user }) => {
                         <br />
                         {isURL(selectedDataProduct?.oneApi) || '-'}
                       </div>
-                    </div>
-                    <div className={Styles.flexLayout}>
+                      <div id="tags">
+                        <label className="input-label summary">Tags</label>
+                          <br />
+                          <div className={Styles.tagColumn}>
+                            {tagChips}
+                          </div>                          
+                      </div>
                       <div>
                         <label className="input-label summary">Data Product Description</label>
                         <br />
                         {selectedDataProduct.description}
+                      </div>
+                      <div>
+                        <label className="input-label summary">Data Product Additional Information</label>
+                        <br />
+                        {selectedDataProduct?.additionalInformation || '-'}
                       </div>
                     </div>
                   </div>
@@ -422,18 +443,20 @@ const Summary = ({ history, user }) => {
                       </div>
                       <div className={classNames(Styles.flexLayout, Styles.fourColumn)}>
                         <div>
-                          <label className="input-label summary">Information Owner</label>
+                          <label className="input-label summary">Data responsible IO and/or Business Owner for application</label>
                           <br />
                           {selectedDataProduct.informationOwner?.firstName}{' '}
                           {selectedDataProduct.informationOwner?.lastName}
                         </div>
                         <div>
-                          <label className="input-label summary">Publish Date of Data Product</label>
+                          <label className="input-label summary">Product Owner</label>
                           <br />
-                          {regionalDateFormat(selectedDataProduct.dateOfDataProduct)}
+                          {selectedDataProduct.productOwner?  
+                            selectedDataProduct.productOwner?.firstName+' '+selectedDataProduct.productOwner?.lastName
+                          : 'N.A'}
                         </div>
                         <div>
-                          <label className="input-label summary">Name</label>
+                          <label className="input-label summary">Point of contact for data transfer</label>
                           <br />
                           {selectedDataProduct?.name?.firstName} {selectedDataProduct?.name?.lastName}
                         </div>
@@ -460,7 +483,7 @@ const Summary = ({ history, user }) => {
                           {selectedDataProduct.planningIT || '-'}
                         </div>
                         <div>
-                          <label className="input-label summary">Compliance Officer / Responsible (LCO/LCR) </label>
+                          <label className="input-label summary">Corresponding Compliance Contact, i.e. Local Compliance Officer/ Responsible or Multiplier </label>
                           <br />
                           {selectedDataProduct.complianceOfficer}
                         </div>
@@ -473,17 +496,17 @@ const Summary = ({ history, user }) => {
                     <div className={Styles.firstPanel}>
                       <div className={Styles.flexLayout}>
                         <div>
-                          <h5>Data Description & Classification</h5>
+                          <h5>Data Description &amp; Classification</h5>
                         </div>
                       </div>
                       <div className={classNames(Styles.flexLayout, Styles.threeColumn)}>
                         <div>
-                          <label className="input-label summary">Description & Classification of transfered data</label>
+                          <label className="input-label summary">Description of transfered data</label>
                           <br />
                           {selectedDataProduct.classificationOfTransferedData}
                         </div>
                         <div>
-                          <label className="input-label summary">Confidentiality</label>
+                          <label className="input-label summary">Confidentiality classification of transferred data (based on Information classification)</label>
                           <br />
                           {selectedDataProduct?.confidentiality}
                         </div>
@@ -509,7 +532,7 @@ const Summary = ({ history, user }) => {
                       {selectedDataProduct.personalRelatedData === 'Yes' ? (
                         <div className={classNames(Styles.flexLayout, Styles.fourColumn)}>
                           <div>
-                            <label className="input-label summary">Description</label>
+                            <label className="input-label summary">Description of personal related data</label>
                             <br />
                             {selectedDataProduct.personalRelatedDataDescription}
                           </div>
@@ -531,6 +554,35 @@ const Summary = ({ history, user }) => {
                         </div>
                       ) : null}
                     </div>
+                    {selectedDataProduct.personalRelatedData === 'Yes' ? (<div className={Styles.flexLayout}>
+                      <div>
+                        <label className="input-label summary">Is corresponding Compliance contact aware of this transfer?</label>
+                        <br />
+                        {selectedDataProduct.personalRelatedDataContactAwareTransfer}
+                      </div>
+                    </div>) : null}
+                    {selectedDataProduct.personalRelatedData === 'Yes' && selectedDataProduct.personalRelatedDataContactAwareTransfer === 'Yes'
+                      ? (<div className={classNames(Styles.flexLayout, Styles.fourColumn)}>
+                        <div>
+                          <label className="input-label summary">Has s/he any objections to this transfer?</label>
+                          <br />
+                          {selectedDataProduct.personalRelatedDataObjectionsTransfer}
+                        </div>
+                        {selectedDataProduct.personalRelatedDataObjectionsTransfer === 'Yes' &&
+                        <>
+                          <div>
+                            <label className="input-label summary">Please state your reasoning for transfering nonetheless</label>
+                            <br />
+                            {selectedDataProduct.personalRelatedDataTransferingNonetheless}
+                          </div>
+                          <div>
+                            <label className="input-label summary">Please state your objections</label>
+                            <br />
+                            {selectedDataProduct.personalRelatedDataTransferingObjections}
+                          </div>
+                        </>}
+                        <div></div>
+                      </div>) : null}
                   </div>
                 ) : null}
                 {showTransNationalData ? (
@@ -538,10 +590,10 @@ const Summary = ({ history, user }) => {
                     <div className={Styles.firstPanel}>
                       <div className={Styles.flexLayout}>
                         <div>
-                          <h5>Trans-national Data</h5>
+                          <h5>Transnational Data</h5>
                         </div>
                       </div>
-                      <div className={classNames(Styles.flexLayout, Styles.threeColumn)}>
+                      <div className={classNames(Styles.flexLayout)}>
                         <div>
                           <label className="input-label summary">
                             Is data being transferred from one country to another?
@@ -551,32 +603,41 @@ const Summary = ({ history, user }) => {
                         </div>
                         {selectedDataProduct.transnationalDataTransfer == 'Yes' ? (
                           <div>
-                            <label className="input-label summary">Is one of these countries not within the EU?</label>
+                            <label className="input-label summary">Is one of these countries outside the EU?</label>
                             <br />
                             {selectedDataProduct.transnationalDataTransferNotWithinEU || 'No'}
                           </div>
                         ) : null}
-                        {selectedDataProduct.transnationalDataTransfer == 'Yes' &&
-                        selectedDataProduct.transnationalDataTransferNotWithinEU == 'Yes' ? (
+                      </div>
+                      {selectedDataProduct.transnationalDataTransfer == 'Yes' &&
+                        selectedDataProduct.transnationalDataTransferNotWithinEU == 'Yes' ? (<div className={Styles.flexLayout}>
                           <div>
-                            <label className="input-label summary">Has LCO/LCR approved this data transfer?</label>
+                            <label className="input-label summary">Is corresponding Compliance contact aware of this transfer?</label>
                             <br />
-                            {selectedDataProduct.LCOApprovedDataTransfer}
+                            {selectedDataProduct.transnationalDataContactAwareTransfer}
                           </div>
-                        ) : null}
-                        <div>
-                          <label className="input-label summary">Does product contain insider information?</label>
-                          <br />
-                          {selectedDataProduct.insiderInformation}
-                        </div>
-                      </div>
-                      <div className={Styles.flexLayout}>
-                        <div>
-                          <label className="input-label summary">Is data from China included?</label>
-                          <br />
-                          {selectedDataProduct.dataOriginatedFromChina}
-                        </div>
-                      </div>
+                        </div>) : null}
+                      {selectedDataProduct.transnationalDataTransferNotWithinEU === 'Yes' && selectedDataProduct.transnationalDataContactAwareTransfer === 'Yes'
+                        ? (<div className={classNames(Styles.flexLayout, Styles.fourColumn)}>
+                          <div>
+                            <label className="input-label summary">Has s/he any objections to this transfer?</label>
+                            <br />
+                            {selectedDataProduct.transnationalDataObjectionsTransfer}
+                          </div>
+                          {selectedDataProduct.transnationalDataObjectionsTransfer === 'Yes' && <>
+                            <div>
+                              <label className="input-label summary">Please state your reasoning for transfering nonetheless</label>
+                              <br />
+                              {selectedDataProduct.transnationalDataTransferingNonetheless}
+                            </div>
+                            <div>
+                              <label className="input-label summary">Please state your objections</label>
+                              <br />
+                              {selectedDataProduct.transnationalDataTransferingObjections}
+                            </div>
+                          </>}
+                          <div></div>
+                        </div>) : null}
                     </div>
                   </div>
                 ) : null}
@@ -585,10 +646,15 @@ const Summary = ({ history, user }) => {
                     <div className={Styles.firstPanel}>
                       <div className={Styles.flexLayout}>
                         <div>
-                          <h5>Deletion Requirements & Other</h5>
+                          <h5>Other Data</h5>
                         </div>
                       </div>
                       <div className={classNames(Styles.flexLayout, Styles.threeColumn)}>
+                        <div>
+                          <label className="input-label summary">Does data product contain (potential) insider information?</label>
+                          <br />
+                          {selectedDataProduct.insiderInformation}
+                        </div>
                         <div>
                           <label className="input-label summary">
                             Are there specific deletion requirements for this data?

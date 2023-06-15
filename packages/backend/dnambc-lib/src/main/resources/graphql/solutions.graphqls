@@ -211,8 +211,8 @@ type ChangeLogVO{
 }
 
 type SolutionDataComplianceVO{
-    expertGuidelineNeeded: Boolean;
-    readyForImplementation: Boolean;
+    expertGuidelineNeeded: Boolean,
+    readyForImplementation: Boolean,
 	quickCheck: Boolean,
 	useCaseDescAndEval: Boolean,
 	attachments: [FileDetailsVO],

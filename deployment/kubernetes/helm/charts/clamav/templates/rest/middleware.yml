@@ -1,0 +1,11 @@
+{{- if .Values.ingress.enabled -}}
+apiVersion: traefik.containo.us/v1alpha1
+kind: Middleware
+metadata:
+ name: {{ .Values.app.backend.name }}
+ namespace: {{ .Values.namespace }}
+spec:
+ stripPrefix:
+  prefixes:
+   - {{ .Values.ingress.prefix }}
+{{- end }}

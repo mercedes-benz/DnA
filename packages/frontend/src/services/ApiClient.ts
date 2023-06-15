@@ -36,6 +36,8 @@ import {
   IManageDivision,
   IManageDivisionRequest,
   IManageMarketingTabRequest,
+  IMarketingCommunicationChannel,
+  IMarketingCustomerJourney,
 } from '../globals/types';
 import { Pkce } from './Pkce';
 import { ReportsApiClient } from './ReportsApiClient';
@@ -50,8 +52,13 @@ export interface IResponse<T> {
 }
 
 const baseUrl = Envs.API_BASEURL ? Envs.API_BASEURL : `http://${window.location.hostname}:7171/api`;
+const dataikUrl = Envs.DATAIKU_API_BASEURL ? Envs.DATAIKU_API_BASEURL : `http://${window.location.hostname}:7171/api`;
 const getUrl = (endpoint: string) => {
   return `${baseUrl}/${endpoint}`;
+};
+
+const getDataikuUrl = (endpoint: string) => {
+  return `${dataikUrl}/${endpoint}`;
 };
 
 export class ApiClient {
@@ -302,24 +309,32 @@ export class ApiClient {
     return this.delete(`relatedProducts/${id}`);
   }
 
-  public static getMarketingCommunicationChannels(): Promise<IVisualization[]> {
+  public static getMarketingCommunicationChannels(): Promise<IMarketingCommunicationChannel[]> {
     return this.get('marketingCommunicationChannels');
   }
 
-  public static createMarketingCommunicationChannels(data: IManageMarketingTabRequest): Promise<IManageDivision[]> {
+  public static createMarketingCommunicationChannels(data: IManageMarketingTabRequest): Promise<[]> {
     return this.post('marketingCommunicationChannels', data);
   }
 
-  public static deleteCommunicationChannels(id: string): Promise<any> {
+  public static putMarketingCommunicationChannels(data: IManageMarketingTabRequest): Promise<[]> {
+    return this.put('marketingCommunicationChannels', data);
+  }
+
+  public static deleteMarketingCommunicationChannels(id: string): Promise<any> {
     return this.delete(`marketingCommunicationChannels/${id}`);
   }
 
-  public static getCustomerJourneyPhases(): Promise<IVisualization[]> {
+  public static getCustomerJourneyPhases(): Promise<IMarketingCustomerJourney[]> {
     return this.get('customerJourneyPhases');
   }
 
-  public static createCustomerJourneyPhases(data: IManageMarketingTabRequest): Promise<IManageDivision[]> {
+  public static createCustomerJourneyPhases(data: IManageMarketingTabRequest): Promise<[]> {
     return this.post('customerJourneyPhases', data);
+  }
+
+  public static putCustomerJourneyPhases(data: IManageMarketingTabRequest): Promise<[]> {
+    return this.put('customerJourneyPhases', data);
   }
 
   public static deleteCustomerJourneyPhases(id: string): Promise<any> {
@@ -434,6 +449,10 @@ export class ApiClient {
     return this.get(`dataiku/projects/${projectId}?live=${isLive}`);
   }
 
+  public static getDataikuProjectDetailsByProjectkey(projectKey: any, cloudProfile: any) {
+    return this.fetch(getDataikuUrl(`dataiku/${cloudProfile}/${projectKey}`), HTTP_METHOD.GET);
+  }
+
   public static updateSolution(data: ICreateNewSolutionRequest): Promise<ICreateNewSolutionResult> {
     return this.put('solutions', data);
   }
@@ -447,6 +466,10 @@ export class ApiClient {
 
   public static getUsersBySearchTerm(searchTerm: string): Promise<any> {
     return this.get(`users?searchTerm=${searchTerm}&offset=0&limit=0`);
+  }
+
+  public static getUserprivilegeSearchTerm(searchTerm: string): Promise<any> {
+    return this.fetch(getDataikuUrl(`userprivilege?limit=0&offset=0&sortBy=&sortOrder=&searchTerm=${searchTerm}`), HTTP_METHOD.GET);
   }
 
   public static getAllSolutions(queryUrl?: string): Promise<ICreateNewSolution[]> {
@@ -471,6 +494,10 @@ export class ApiClient {
     sortOrder?: string,
   ): Promise<IUserInfoResponse> {
     return this.get(`users?offset=${offset}&limit=${limit}&sortBy=${sortBy}&sortOrder=${sortOrder}`);
+  }
+
+  public static onboardTechnicalUser(data: IUserRequestVO): Promise<IUserInfo> {
+    return this.post('users', data);
   }
 
   public static updateUser(data: IUserRequestVO): Promise<IUserInfo> {
