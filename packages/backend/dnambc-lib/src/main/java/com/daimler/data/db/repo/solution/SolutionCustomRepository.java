@@ -277,4 +277,6 @@ public interface SolutionCustomRepository extends CommonDataRepository<SolutionN
 			List<String> dataVolumes, String divisions, List<String> locations, List<String> statuses,
 			String solutionType, String userId, Boolean isAdmin, List<String> bookmarkedSolutions,
 			List<String> searchTerms, List<String> tags, List<String> divisionsAdmin);
+
+	Integer getCountBasedPublishSolution(Boolean published);
 }
