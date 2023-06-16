@@ -29,6 +29,7 @@ package com.daimler.data.controller;
 
 import com.daimler.data.api.datatransfer.DatatransfersApi;
 import com.daimler.data.controller.exceptions.GenericMessage;
+import com.daimler.data.dto.dataproduct.TransparencyVO;
 import com.daimler.data.dto.datatransfer.*;
 import com.daimler.data.service.datatransfer.DataTransferService;
 import com.daimler.data.util.ConstantsUtility;
@@ -174,6 +175,30 @@ public class DataTransferController implements DatatransfersApi {
 		} else {
 			LOGGER.debug("No DataTransfer {} found", id);
 			return new ResponseEntity<>(new DataTransferVO(), HttpStatus.NO_CONTENT);
+		}
+	}
+
+	@Override
+	@ApiOperation(value = "Get number of published datatransfers.", nickname = "getNumberOfPublishedDatatransfers", notes = "Get number of published datatransfers. This endpoints will be used to get number of available published  dataproducts records.", response = TransparencyVO.class, tags = {
+			"datatransfers", })
+	@ApiResponses(value = {
+			@ApiResponse(code = 201, message = "Returns message of success or failure", response = TransparencyVO.class),
+			@ApiResponse(code = 204, message = "Fetch complete, no content found."),
+			@ApiResponse(code = 400, message = "Bad request."),
+			@ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+			@ApiResponse(code = 403, message = "Request is not authorized."),
+			@ApiResponse(code = 405, message = "Method not allowed"),
+			@ApiResponse(code = 500, message = "Internal error") })
+	@RequestMapping(value = "/datatransfers/transparency", produces = { "application/json" }, consumes = {
+			"application/json" }, method = RequestMethod.GET)
+	public ResponseEntity<TransparencyVO> getNumberOfPublishedDatatransfers() {
+		try {
+			TransparencyVO transparencyVO = new TransparencyVO();
+			Integer count = dataTransferService.getCountBasedPublishDatatransfer(true);
+			transparencyVO.setCount(count);
+			return new ResponseEntity<>(transparencyVO, HttpStatus.OK);
+		}catch (Exception e){
+			return new ResponseEntity<>(new TransparencyVO(), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 

@@ -375,8 +375,38 @@ paths:
           description: "Method not allowed"
         500:
           description: "Internal error"
-
+  
+  /dataproducts/transparency:
+    get:
+      tags:
+        - "dataproducts"
+      summary: "Number of published dataproducts."
+      description: "Get published dataproducts. This endpoints will be used to get all valid available dataproducts records."
+      operationId: "getNumberOfPublishedDataproducts"
+      responses:
+        201:
+          description: "Returns message of success or failure"
+          schema:
+            $ref: "#/definitions/TransparencyVO"
+        204:
+          description: "Fetch complete, no content found."
+        400:
+          description: "Bad request."
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
 definitions:
+  TransparencyVO:
+    type: object
+    properties:
+      count:
+        type: integer
+        description: "Number of published dataproducts"
   RefreshVo:
     type: object
     properties:
