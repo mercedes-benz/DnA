@@ -160,5 +160,10 @@ public class BaseDataProductService extends BaseCommonService<DataProductVO, Dat
 			return String.format("%05d",dataProductRepository.getNextSeqId());
 		}
 
+	@Override
+	public Integer getCountBasedPublishReport(Boolean published) {
+		return dataProductCustomRepository.getCountBasedPublishReport(published);
+	}
+
 
 }

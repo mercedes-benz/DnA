@@ -307,6 +307,30 @@ paths:
         500:
           description: "Internal error"
 
+  /datatransfers/transparency:
+    get:
+      tags:
+        - "datatransfers"
+      summary: "Number of published datatransfers."
+      description: "Get Number of published datatransfers. This endpoints will be used to get number of valid available published datatransfers records."
+      operationId: "getNumberOfPublishedDatatransfers"
+      responses:
+        201:
+          description: "Returns message of success or failure"
+          schema:
+            $ref: "#/definitions/TransparencyVO"
+        204:
+          description: "Fetch complete, no content found."
+        400:
+          description: "Bad request."
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
 definitions:
   ProviderContactInformationVO:
     type: object
