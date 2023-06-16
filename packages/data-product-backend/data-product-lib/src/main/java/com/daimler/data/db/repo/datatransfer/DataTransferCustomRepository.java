@@ -44,4 +44,6 @@ public interface DataTransferCustomRepository extends CommonDataRepository<DataT
 
 	GenericMessage updateDataTransferData();
 
+	Integer getCountBasedPublishDatatransfer(Boolean published);
+
 }
