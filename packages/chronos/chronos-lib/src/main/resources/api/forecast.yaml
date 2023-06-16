@@ -58,7 +58,9 @@ produces:
   - "application/json"
 tags:
   - name: "forecasts"
-    description: "This service is used to maintain forecasts information."
+    description: |
+      Chronos is a automated forecasting tool compatible with Excel and
+      .csv files.
 
 schemes:
   - "https"
@@ -497,8 +499,21 @@ paths:
     post:
       tags:
         - "forecast-runs"
-      summary: "Create new run for forecast project."
-      description: "Create run for forecast project"
+      summary: |
+        Use this endpoint to create a new forecast with Chronos. You need to
+        provide the data in the form of an Excel file or a .csv file. For a
+        precise description of how to provide the input data, see [this
+        page](https://pages.git.i.mercedes-benz.com/FST/chronos/source/userguide/2_input_format.html)
+        of the Chronos documentation.
+        \n
+        Most other parameters are optional. However, you need to specify the
+        frequency of your data via the *frequency* parameter.
+        \n \n
+        Forecasts with the default configuration will take around 5 minutes.
+        Additionally, if not already running, the cloud VM the forecast is run
+        on takes around 5 minutes to boot up. Machines are not kept running
+        24/7 to prevent high costs.
+      description: "Run a new forecast."
       operationId: "createForecastRun"    
       consumes:
          - multipart/form-data
@@ -511,7 +526,7 @@ paths:
         - in: formData
           name: file
           type: file
-          description: The file to upload.
+          description: The file to be forecast. Can be either Excel or .csv file.
           required: false 
         - in: formData
           name: savedInputPath
@@ -548,23 +563,32 @@ paths:
         - in: formData
           name: hierarchy
           type: string
-          description: "Levels Of Hierarchy number between 2 to 20 Or null"
+          description: |
+            Levels Of hierarchy. To learn about hierarchical forecasting,
+            please refer to the Chronos Core documentation. 
+
+            Default value is null (no hierarchy), other valid values are any
+            integer from 2 - 20.
           required: false
         - in: formData
           name: comment
           type: string
-          description: "Comments for the run"
+          description: "Comments for the run."
           required: false
         - in: formData
           name: runOnPowerfulMachines
           type: boolean
-          description: "If true, then run on Powerful Machines"
+          description: |
+            Leave this at false to do a forecast on the default backend, which
+            is a machine shared between all users of Chronos. Normally, this is
+            the faster option, since this machine is often already running.
+            Setting this to true will boot up a machine just for your run,
+            incurring additional cost.
           required: false
         - in: formData
           name: infotext
           type: string
           description: Text field to denote Chronos Version
-          required: false
       responses:
         201:
           description: "Returns message of success or failure "
