@@ -202,6 +202,32 @@ public class StorageController implements StorageApi {
 	}
 
 	@Override
+	@ApiOperation(value = "Number of storage.", nickname = "getNumberOfStorageBuckets", notes = "Get number of storage. This endpoints will be used to get number of available storage records.", response = TransparencyVO.class, tags={ "storage", })
+	@ApiResponses(value = {
+			@ApiResponse(code = 201, message = "Returns message of success or failure", response = TransparencyVO.class),
+			@ApiResponse(code = 204, message = "Fetch complete, no content found."),
+			@ApiResponse(code = 400, message = "Bad request."),
+			@ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+			@ApiResponse(code = 403, message = "Request is not authorized."),
+			@ApiResponse(code = 405, message = "Method not allowed"),
+			@ApiResponse(code = 500, message = "Internal error") })
+	@RequestMapping(value = "/buckets/transparency",
+			produces = { "application/json" },
+			consumes = { "application/json" },
+			method = RequestMethod.GET)
+	public ResponseEntity<TransparencyVO> getNumberOfStorageBuckets() {
+		try {
+
+			Integer count = storageService.getTotalCountOfStorageBuckets();
+			TransparencyVO transparencyVO = new TransparencyVO();
+			transparencyVO.setCount(count);
+			return new ResponseEntity<>(transparencyVO, HttpStatus.OK);
+		}catch (Exception e){
+			return  new ResponseEntity<>(new TransparencyVO(), HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
+
+	@Override
     @ApiOperation(value = "Refresh cache.", nickname = "cacheRefresh", notes = "Refresh cache.", response = GenericMessage.class, tags={ "storage", })
     @ApiResponses(value = { 
         @ApiResponse(code = 200, message = "Returns message of succes or failure", response = GenericMessage.class),

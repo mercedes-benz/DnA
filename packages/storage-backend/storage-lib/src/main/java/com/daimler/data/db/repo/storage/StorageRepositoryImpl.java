@@ -1,5 +1,6 @@
 package com.daimler.data.db.repo.storage;
 
+import java.math.BigInteger;
 import java.util.List;
 
 import javax.persistence.EntityManager;
@@ -67,6 +68,14 @@ public class StorageRepositoryImpl implements StorageRepository {
 			entity.setId(id);
 			return entity;
 		}).toList();
+	}
+
+	@Override
+	public Integer getTotalCountOfStorageBuckets() {
+		String query = "select count(*) from storage_nsql";
+		Query q = em.createNativeQuery(query);
+		BigInteger results = (BigInteger) q.getSingleResult();
+		return results.intValue();
 	}
 
 	private Query getNativeQueryWithFilters(String selectFieldsString, String userId) {

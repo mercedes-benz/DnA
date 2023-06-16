@@ -1184,6 +1184,11 @@ public class BaseStorageService implements StorageService {
 		return new ResponseEntity<>(genericMessage, httpStatus);
 	}
 
+	@Override
+	public Integer getTotalCountOfStorageBuckets() {
+		return customRepo.getTotalCountOfStorageBuckets();
+	}
+
 	/*
 	 * To validate create dataiku connection
 	 */
