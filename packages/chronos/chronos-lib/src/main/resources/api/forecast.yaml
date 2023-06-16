@@ -830,6 +830,146 @@ paths:
         500:
           description: "Internal error"
 
+  #forecst-project-config-files
+  /forecasts/{id}/config-files:
+    post:
+      tags:
+        - "forecast-config-files"
+      summary: "Upload a new config file for forecast project."
+      description: "Upload a new config file for forecast project"
+      operationId: "uploadConfigFiles"
+      consumes:
+        - multipart/form-data
+      parameters:
+        - in: "path"
+          name: "id"
+          description: "forecast project ID "
+          required: true
+          type: "string"
+        - in: formData
+          name: configFile
+          type: file
+          description: The config file to upload for the forecast project.
+      responses:
+        201:
+          description: "Returns message of success or failure "
+          schema:
+            $ref: "#/definitions/ForecastConfigFileUploadResponseVO"
+        400:
+          description: "Bad Request"
+          schema:
+            $ref: "#/definitions/GenericMessage"
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
+
+    get:
+      tags:
+        - "forecast-config-files"
+      summary: "Get all uploaded config files for the project"
+      description: "Get all uploaded config files for the project"
+      operationId: "getForecastConfigFiles"
+      parameters:
+        - in: "path"
+          name: "id"
+          description: "forecast project ID "
+          required: true
+          type: "string"
+      responses:
+        201:
+          description: "Returns message of success or failure"
+          schema:
+            $ref: "#/definitions/ForecastConfigFilesCollectionDto"
+        204:
+          description: "Fetch complete, no content found."
+        400:
+          description: "Bad request."
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
+
+    delete:
+      tags:
+        - "forecast-config-files"
+      summary: "delete uploaded config file by id."
+      description: "delete uploaded config file by id."
+      operationId: "deleteConfigFile"
+      parameters:
+        - in: "path"
+          name: "id"
+          description: "forecast project ID "
+          required: true
+          type: "string"
+        - name: "configFileId"
+          in: "path"
+          description: "config file ID"
+          required: true
+          type: "string"
+      responses:
+        201:
+          description: "Returns message of success or failure"
+          schema:
+            $ref: "#/definitions/GenericMessage"
+        204:
+          description: "Fetch complete, no content found."
+        400:
+          description: "Bad request."
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
+
+  # path example ../forecasts/{id}/config-files/{configFileId}/configFileData
+  /forecasts/{id}/config-files/{configFileId}/configFileData:
+    get:
+      tags:
+        - "forecast-config-files"
+      summary: "Get specific forecast config yaml for a forecast project."
+      description: "Get specific forecast config yaml for a forecast project."
+      operationId: "getForecastConfigFileById"
+      parameters:
+        - in: "path"
+          name: "id"
+          description: "forecast project ID "
+          required: true
+          type: "string"
+        - in: "path"
+          name: "configFileId"
+          description: "Specific config file  Id for the forecast project"
+          required: true
+          type: "string"
+      responses:
+        201:
+          description: "Returns message of success or failure"
+          schema:
+            $ref: "#/definitions/ForecastConfigFileResultVO"
+        204:
+          description: "Fetch complete, no content found."
+        400:
+          description: "Bad request."
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
+
 definitions:
 
   InputFilesCollectionVO:
@@ -1013,6 +1153,10 @@ definitions:
           type: array
           items:
             $ref: "#/definitions/ForecastComparisonVO"
+        configFiles:
+          type: array
+          items:
+            $ref: "#/definitions/InputFileVO"
 
 
   ForecastRunRequestVO:
@@ -1346,6 +1490,38 @@ definitions:
         type: string
       response:
         $ref: "#/definitions/GenericMessage"
+
+  ForecastConfigFileUploadResponseVO:
+    type: object
+    properties:
+      data:
+        $ref: "#/definitions/InputFileVO"
+      response:
+        $ref: "#/definitions/GenericMessage"
+
+  ForecastConfigFilesCollectionDto:
+    type: object
+    properties:
+      totalCount:
+        type: integer
+        description: "Total Record Count"
+      records:
+        type: array
+        items:
+          $ref: "#/definitions/InputFileVO"
+
+  ForecastConfigFileResultVO:
+    type: object
+    properties:
+      configFileId:
+        type: string
+      configFileName:
+        type: string
+      configFileData:
+        type: string
+      response:
+        $ref: "#/definitions/GenericMessage"
+
 
   BindingResult:
     type: object
