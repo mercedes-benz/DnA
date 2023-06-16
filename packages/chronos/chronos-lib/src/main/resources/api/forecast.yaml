@@ -1156,7 +1156,7 @@ definitions:
         configFiles:
           type: array
           items:
-            $ref: "#/definitions/ForecastConfigFileVO"
+            $ref: "#/definitions/InputFileVO"
 
 
   ForecastRunRequestVO:
@@ -1495,29 +1495,9 @@ definitions:
     type: object
     properties:
       data:
-        $ref: "#/definitions/ForecastConfigFileVO"
+        $ref: "#/definitions/InputFileVO"
       response:
         $ref: "#/definitions/GenericMessage"
-
-  ForecastConfigFileVO:
-    type: object
-    properties:
-      id:
-        type: string
-        description: id of the file
-      name:
-        type: string
-        description: name of the file
-      path:
-        type: string
-        description: full path of the file object in minio with bucketname
-      createdBy:
-        type: string
-        description: shortid of user who uploaded the file
-      createdOn:
-        type: string
-        format: date
-        description: time when file is uploaded
 
   ForecastConfigFilesCollectionDto:
     type: object
@@ -1528,7 +1508,7 @@ definitions:
       records:
         type: array
         items:
-          $ref: "#/definitions/ForecastConfigFileVO"
+          $ref: "#/definitions/InputFileVO"
 
   ForecastConfigFileResultVO:
     type: object
