@@ -45,4 +45,6 @@ public interface ReportCustomRepository extends CommonDataRepository<ReportNsql,
 
 	List<TeamMemberVO> getAllProcessOwnerUsingNativeQuery();
 
+	Integer getCountBasedPublishReport(Boolean published);
+
 }
