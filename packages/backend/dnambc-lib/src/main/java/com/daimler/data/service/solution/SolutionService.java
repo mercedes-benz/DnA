@@ -72,4 +72,6 @@ public interface SolutionService extends CommonService<SolutionVO, SolutionNsql,
 	void updateForEachSolution(String oldValue, String newValue, TAG_CATEGORY category, Object updateObject);
 
 	ResponseEntity<GenericMessage> malwareScanUnsubscribe(String solutionId);
+
+	Integer getCountBasedPublishSolution(Boolean published);
 }
