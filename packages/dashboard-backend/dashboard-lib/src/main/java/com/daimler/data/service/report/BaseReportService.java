@@ -620,6 +620,11 @@ public class BaseReportService extends BaseCommonService<ReportVO, ReportNsql, S
 		}
 	}
 
+	@Override
+	public Integer getCountBasedPublishReport(Boolean published) {
+		return reportCustomRepository.getCountBasedPublishReport(published);
+	}
+
 	private void updateTags(ReportVO vo) {
 		List<String> tags = vo.getDescription().getTags();
 		if (tags != null && !tags.isEmpty()) {
