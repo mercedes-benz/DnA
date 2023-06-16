@@ -16,6 +16,7 @@ import java.util.stream.Collectors;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
+import com.daimler.data.dto.forecast.*;
 import org.apache.commons.io.FilenameUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -39,26 +40,6 @@ import com.daimler.data.application.client.StorageServicesClient;
 import com.daimler.data.auth.vault.VaultAuthClientImpl;
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
-import com.daimler.data.dto.forecast.ApiKeyResponseVO;
-import com.daimler.data.dto.forecast.ApiKeyVO;
-import com.daimler.data.dto.forecast.CollaboratorVO;
-import com.daimler.data.dto.forecast.CreatedByVO;
-import com.daimler.data.dto.forecast.ForecastCollectionVO;
-import com.daimler.data.dto.forecast.ForecastComparisonCreateResponseVO;
-import com.daimler.data.dto.forecast.ForecastComparisonResultVO;
-import com.daimler.data.dto.forecast.ForecastComparisonVO;
-import com.daimler.data.dto.forecast.ForecastComparisonsCollectionDto;
-import com.daimler.data.dto.forecast.ForecastProjectCreateRequestVO;
-import com.daimler.data.dto.forecast.ForecastProjectCreateRequestWrapperVO;
-import com.daimler.data.dto.forecast.ForecastProjectResponseVO;
-import com.daimler.data.dto.forecast.ForecastProjectUpdateRequestVO;
-import com.daimler.data.dto.forecast.ForecastRunCollectionVO;
-import com.daimler.data.dto.forecast.ForecastRunResponseVO;
-import com.daimler.data.dto.forecast.ForecastVO;
-import com.daimler.data.dto.forecast.InputFileVO;
-import com.daimler.data.dto.forecast.InputFilesCollectionVO;
-import com.daimler.data.dto.forecast.RunVO;
-import com.daimler.data.dto.forecast.RunVisualizationVO;
 import com.daimler.data.dto.storage.BucketObjectsCollectionWrapperDto;
 import com.daimler.data.dto.storage.FileUploadResponseDto;
 import com.daimler.data.service.forecast.ForecastService;
@@ -158,6 +139,33 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 			}
 		}
 		return new ResponseEntity<>(collection, HttpStatus.OK);
+	}
+
+	@Override
+	@ApiOperation(value = "Number of forecast-projects.", nickname = "getNumberOfForecastProjects", notes = "Get number of forecast-projects. This endpoints will be used to get all valid available forecast-projects records.", response = TransparencyVO.class, tags={ "forecast-projects", })
+	@ApiResponses(value = {
+			@ApiResponse(code = 201, message = "Returns message of success or failure", response = TransparencyVO.class),
+			@ApiResponse(code = 204, message = "Fetch complete, no content found."),
+			@ApiResponse(code = 400, message = "Bad request."),
+			@ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+			@ApiResponse(code = 403, message = "Request is not authorized."),
+			@ApiResponse(code = 405, message = "Method not allowed"),
+			@ApiResponse(code = 500, message = "Internal error") })
+	@RequestMapping(value = "/forecasts/transparency",
+			produces = { "application/json" },
+			consumes = { "application/json" },
+			method = RequestMethod.GET)
+	public ResponseEntity<TransparencyVO> getNumberOfForecastProjects() {
+		try {
+			Integer projectCount = service.getTotalCountOfForecastProjects();
+			Integer userCount = service.getTotalCountOfForecastUsers();
+			TransparencyVO transparencyVO = new TransparencyVO();
+			transparencyVO.setUserCount(userCount);
+			transparencyVO.setProjectCount(projectCount);
+			return new ResponseEntity<>(transparencyVO, HttpStatus.OK);
+		}catch (Exception e){
+			return  new ResponseEntity<>(new TransparencyVO(), HttpStatus.INTERNAL_SERVER_ERROR);
+		}
 	}
 
 	@Override
