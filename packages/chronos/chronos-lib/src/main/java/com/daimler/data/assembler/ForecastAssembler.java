@@ -54,7 +54,7 @@ public class ForecastAssembler implements GenericAssembler<ForecastVO, ForecastN
 					vo.setComparisons(comparisons);
 				}
 				if(data.getConfigFiles()!=null && !data.getConfigFiles().isEmpty()) {
-					List<ForecastConfigFileVO> configFiles = toConfigFilesVO(data.getConfigFiles());
+					List<InputFileVO> configFiles = toConfigFilesVO(data.getConfigFiles());
 					vo.setConfigFiles(configFiles);
 				}
 				vo.setBucketId(entity.getData().getBucketId());
@@ -100,11 +100,11 @@ public class ForecastAssembler implements GenericAssembler<ForecastVO, ForecastN
 		return comparisonsVOList;
 	}
 
-	public List<ForecastConfigFileVO> toConfigFilesVO(List<File> configFiles){
-		List<ForecastConfigFileVO> configFilesVO =  new ArrayList<>();
+	public List<InputFileVO> toConfigFilesVO(List<File> configFiles){
+		List<InputFileVO> configFilesVO =  new ArrayList<>();
 		if(configFiles!=null && !configFiles.isEmpty()) {
 			configFilesVO = configFiles.stream().map
-					(n -> { ForecastConfigFileVO file = new ForecastConfigFileVO();
+					(n -> { InputFileVO file = new InputFileVO();
 						BeanUtils.copyProperties(n,file);
 						return file;
 					}).collect(Collectors.toList());
@@ -161,7 +161,7 @@ public class ForecastAssembler implements GenericAssembler<ForecastVO, ForecastN
 		return files;
 	}
 
-	public List<File> toConfigFiles(List<ForecastConfigFileVO> configFilesVO){
+	public List<File> toConfigFiles(List<InputFileVO> configFilesVO){
 		List<File> configFiles =  new ArrayList<>();
 		if(configFilesVO!=null && !configFilesVO.isEmpty()) {
 			configFiles = configFilesVO.stream().map
