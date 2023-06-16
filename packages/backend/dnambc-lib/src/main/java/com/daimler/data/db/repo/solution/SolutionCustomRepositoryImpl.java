@@ -921,4 +921,12 @@ public class SolutionCustomRepositoryImpl extends CommonDataRepositoryImpl<Solut
 		return convertedResults;
 	}
 
+	@Override
+	public Integer getCountBasedPublishSolution(Boolean published) {
+		String query = "select count(*) from solution_nsql where ((jsonb_extract_path_text(data,'publish')) = (" +"'"+ published +"'"+ "))";
+		Query q = em.createNativeQuery(query);
+		BigInteger results = (BigInteger) q.getSingleResult();
+		return results.intValue();
+	}
+
 }
