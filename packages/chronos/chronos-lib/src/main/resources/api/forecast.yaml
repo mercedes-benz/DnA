@@ -589,6 +589,7 @@ paths:
           name: infotext
           type: string
           description: Text field to denote Chronos Version
+          required: false
       responses:
         201:
           description: "Returns message of success or failure "
