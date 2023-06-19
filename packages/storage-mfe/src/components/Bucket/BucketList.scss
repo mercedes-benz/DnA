@@ -9,6 +9,210 @@
     }
 }
 
+.newStorageCard {
+  width: calc(25% - 15px);
+  margin: 0 15px 15px 0;
+  min-width: 250px;
+  position: relative;
+  border: 1px solid #383F49;
+  cursor: pointer;
+
+  .addicon {
+    top: calc(50% - 31px);
+    width: 63px;
+    height: 63px;
+    border: 1px solid #fff;
+    border-radius: 50%;
+    position: relative;
+    display: flex;
+    align-items: center;
+    margin: 0 auto;
+    &:after {
+      content: '';
+      position: absolute;
+      width: 50%;
+      height: 1px;
+      background-color: #00ADEF;
+      left: 25%;
+      transform: rotate(90deg);
+    }
+    &:before {
+      content: '';
+      position: absolute;
+      width: 50%;
+      height: 1px;
+      background-color: #00ADEF;
+      left: 25%;
+      margin: 0 auto;
+      transform: rotate(180deg);
+      top: 49%;
+    }
+  }
+  .addlabel {
+    font-size: var(--font-size-headline);
+    line-height: 23px;
+    position: absolute;
+    word-break: break-word;
+    display: block;
+    width: 100%;
+    text-align: center;
+    bottom: 20px;
+  }
+
+  &:hover {
+    border-color: #00adef;
+    .addlabel {
+      color: #00adef;
+    }
+  }
+}
+
+.storageCard {
+  background: #252a33;
+  width: calc(25% - 15px);
+  margin: 0 15px 15px 0;
+  min-width: 250px;
+  position: relative;
+
+  &.disable {
+    opacity: 0.5;
+  }
+
+  .cardHead {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 5px;
+    align-items: center;
+    position: relative;
+    overflow: hidden;
+    height: 75px;
+
+    .cardHeadInfo {
+      width: 100%;
+      padding: 15px 20px;
+      cursor: pointer;
+      margin-top: 35px;
+      .cardHeadTitle {
+        font-size: var(--font-size-headline);
+        line-height: 23px;
+        word-break: break-word;
+        padding-right: 10px;
+        padding-bottom: 5px;
+        width: 100%;
+        text-align: left;
+      }
+
+      &.disable {
+        pointer-events: none;
+      }
+    }
+
+      &:hover .cardHeadTitle {
+        color: #00adef;
+      }
+  }
+  hr {
+    width: 90%;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .cardBodySection {
+      padding: 15px 20px 20px 20px;
+      margin-bottom: 30px;
+      min-height: 200px;
+      > div {
+      display: flex;
+      justify-content: space-between;
+      flex-grow: 1;
+      color: #99a5b3;
+      flex-direction: column;
+      > div {
+        display: flex;
+        justify-content: space-between;
+        &:not(:last-child) {
+          margin-bottom: 10px;
+        }
+        > div:first-child {
+          flex: 1;
+          font-weight: bold;
+          color: #697582;
+          font-size: var(--font-size-small);
+        }
+        > div:last-child {
+          flex: 1;
+        }
+      }
+      ul {
+          list-style-type: none;
+          padding: 0;
+          li:not(:last-child) {
+            padding-bottom: 10px;
+          }
+        }
+      }
+      .cardCollabSection {
+        .cardCollabIcon {
+          display: inline-block;
+          cursor: pointer;
+          color: #00adef;
+          min-width: 40px;
+          &:hover {
+            text-decoration: underline;
+          }
+        }
+        .collabsList {
+          min-width: 300px;
+          padding: 15px 15px 0!important;
+          font-size: var(--font-size-small);
+          li {
+            border-bottom: 1px solid #2d333b;
+            padding: 5px 0;
+            &:last-child {
+              border: none;
+            }
+            .permission {
+              position: absolute;
+              right: 15px;
+            }
+          }
+          span {
+            white-space: nowrap;
+          }
+        }
+      }
+  }
+
+  .cardFooter {
+    position: absolute;
+    width: 100%;
+    bottom: 0;
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    div:first-child {
+      margin: 7px 0px;
+    }
+  }
+  .btnGrp {
+    display: flex;
+    justify-content: flex-end;
+    font-size: var(--font-size-medium);
+    button {
+        background-color: transparent;
+        border: 0;
+        color: #99a5b3;
+        float: right;
+        margin-right: 20px;
+        outline: 0;
+        padding: 0;
+        &:hover {
+        background-color: transparent;
+        color: #00adef;
+      }
+    }
+  }
+}
+
 .bucketGrp {
     .bucketGrpList {
         .bucketGrpListItem {
