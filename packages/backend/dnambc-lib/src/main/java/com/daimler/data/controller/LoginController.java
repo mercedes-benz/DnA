@@ -365,10 +365,6 @@ public class LoginController {
 				log.error("Failed to fetch OIDC User info", e.getMessage());
 			}
 		}
-		if (Objects.isNull(userInfo.getFirstName()) && Objects.isNull(userInfo.getLastName())) {
-			LOGGER.info("Null values provided, cannot add user:{}", userId);
-			return null;
-		}
 		UserInfoVO userVO = userInfoService.getById(id);		
 		if (Objects.isNull(userVO)) {
 			LOGGER.info("User not found, adding the user:{}", id);
@@ -382,6 +378,10 @@ public class LoginController {
 			// Setting entity to add new user
 			UserInfoNsql userEntity = userInfoAssembler.toEntity(userInfo, userRoleList);
 			userEntity.setIsLoggedIn("Y");
+			if (Objects.isNull(userInfo.getFirstName()) && Objects.isNull(userInfo.getLastName())) {
+				LOGGER.info("Null values provided, cannot add user:{}", userId);
+				return null;
+			}
 			LOGGER.info("Onboarding new user:{}", userId);
 			userInfoService.addUser(userEntity);
 			userVO = userInfoAssembler.toVo(userEntity);
