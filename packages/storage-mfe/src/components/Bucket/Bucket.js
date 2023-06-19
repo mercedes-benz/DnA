@@ -1,5 +1,5 @@
 import classNames from 'classnames';
-import React, { useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { BucketList } from './BucketList';
@@ -16,6 +16,9 @@ import { bucketActions } from './redux/bucket.actions';
  * @visibleName All Buckets
  */
 const AllBuckets = (props) => {
+  const listViewSelected = sessionStorage.getItem('storageListViewModeEnable') || false;
+  const [cardViewMode, setCardViewMode] = useState(!listViewSelected);
+  const [listViewMode, setListViewMode] = useState(listViewSelected);
   const dispatch = useDispatch();
   const {
     bucketList,
@@ -78,26 +81,52 @@ const AllBuckets = (props) => {
     <>
       <div className={classNames(Styles.mainPanel)}>
         <div className={classNames(Styles.wrapper)}>
-          <Caption title="My Storage" />
-        </div>
-        <div className={classNames(Styles.content)}>
-          <div>
+          <Caption title="My Storage">
             <div className={classNames(Styles.listHeader)}>
-              <React.Fragment>
-                <div className={classNames(Styles.listHeaderContent)}>
-                  {bucketList?.length ? (
-                    <React.Fragment>
-                      <Link to="createBucket">
-                        <button className={bucketList === null ? Styles.btnHide : 'btn btn-primary'} type="button">
-                          <i className="icon mbc-icon plus" />
-                          <span>Add New Bucket</span>
-                        </button>
-                      </Link>
-                    </React.Fragment>
-                  ) : null}
-                </div>
-              </React.Fragment>
+              <div tooltip-data="Card View">
+                <span
+                  className={cardViewMode ? Styles.iconactive : Styles.iconInActive}
+                  onClick={() => {
+                    setCardViewMode(true);
+                    setListViewMode(false);
+                    sessionStorage.removeItem('storageListViewModeEnable');
+                  }}
+                >
+                  <i className="icon mbc-icon widgets" />
+                </span>
+              </div>
+              <span className={Styles.dividerLine}> &nbsp; </span>
+              <div tooltip-data="List View">
+                <span
+                  className={listViewMode ? Styles.iconactive : Styles.iconInActive}
+                  onClick={() => {
+                    setCardViewMode(false);
+                    setListViewMode(true);
+                    sessionStorage.setItem('storageListViewModeEnable', true);
+                  }}
+                >
+                  <i className="icon mbc-icon listview big" />
+                </span>
+              </div>
             </div>
+          </Caption>
+        </div>
+        {listViewMode && (
+          <div className={classNames(Styles.listHeaderContent)}>
+            {bucketList?.length ? (
+              <Link to="createBucket">
+                <button className={bucketList === null ? Styles.btnHide : 'btn btn-secondary'} type="button">
+                  <span className={Styles.addCircle}>
+                    <i className="icon mbc-icon plus" />
+                  </span>
+                  <span>Create new Storage Bucket</span>
+                </button>
+              </Link>
+            ) : null}
+          </div>
+        )}
+        <div className={classNames(Styles.content, cardViewMode && Styles.cardView)}>
+          <div>
             <div className={Styles.listContent}>
               {bucketList?.length === 0 ? (
                 <>
@@ -118,7 +147,7 @@ const AllBuckets = (props) => {
                 </>
               ) : (
                 <div className={Styles.subscriptionList}>
-                  <BucketList user={props.user} />
+                  <BucketList isCardView={cardViewMode} user={props.user} />
                   {bucketList?.length ? (
                     <Pagination
                       totalPages={totalNumberOfPages}

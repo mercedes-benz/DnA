@@ -13,6 +13,77 @@
         color: #dee3e8;
       }
     }
+
+    .listHeader {
+      margin-top: 10px;
+      float: right;
+      height: 29px;
+      display: flex;
+      align-items: center;
+      cursor: pointer;
+      .iconactive {
+          opacity: 0.5;
+          cursor: default;
+      }
+      .dividerLine {
+          height: 25px;
+          display: inline-block;
+          background-color: #252a33;
+          height: 25px;
+          margin: 0 10px 0 5px;
+          padding: 0;
+          width: 1px;
+      }
+      .iconInActive {
+          &:hover {
+              color: #00adef;
+          }
+      }
+    }
+  }
+
+  .listHeaderContent {
+    width: 100%;
+    display: flex;
+    align-items: flex-end;
+    justify-content: flex-end;
+    flex-direction: column;
+    padding-left: 0px;
+    padding-bottom: 14px;
+    padding-left: 0px;
+    padding-right: 0;
+    a {
+      width: 100%;
+      button {
+        transition: none;
+        width: 100%;
+        padding: 16px 0;
+        height: auto;
+        font-size: var(--font-size-headline);
+        .addCircle {
+          display: inline-block;
+          height: 45px;
+          width: 45px;
+          border-radius: 50%;
+          border: 2px solid #99A5B3;
+          vertical-align: middle;
+          margin-right: 20px;
+          position: relative;
+          i {
+            position: absolute;
+            top: 10px;
+            left: 12px;
+            color: #00adef;
+            font-weight: bold;
+            font-size: var(--font-size-icon);
+          }
+        }
+        &:hover {
+          border-color: #00adef;
+          color: #00adef;
+        }
+      }
+    }
   }
 
   .content {
@@ -49,42 +120,6 @@
         a {
           color: #c0c8d0;
         }
-      }
-    }
-    .listHeaderContent {
-      display: flex;
-      align-items: flex-end;
-      justify-content: flex-end;
-      flex-direction: column;
-      padding-left: 0px;
-      padding-bottom: 14px;
-      padding-left: 0px;
-      padding-right: 0;
-      width: 100%;
-      .appName {
-        margin-right: 20px;
-        border-right: 1px solid #41444c;
-        max-width: 260px;
-        min-width: 230px;
-      }
-      .appDescription {
-        max-width: 270px;
-        min-width: 250px;
-      }
-      div {
-        h6 {
-          color: #8f969e;
-          font-size: var(--font-size-tiny);
-          margin-bottom: 10px;
-        }
-        h2 {
-          color: #acb8c4;
-          font-size: var(--font-size-medium);
-          line-height: 19px;
-        }
-      }
-      i {
-        margin-top: -1px;
       }
     }
     i {
@@ -139,6 +174,19 @@
       button {
         a {
           color: #fff;
+        }
+      }
+    }
+
+    &.cardView {
+      background-color: transparent;
+      .listContent {
+        padding-left: 0;
+        padding-right: 0;
+        width: calc(100% + 15px);
+        .subscriptionList {
+          display: flex;
+          flex-wrap: wrap;
         }
       }
     }
