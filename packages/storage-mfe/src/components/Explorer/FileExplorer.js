@@ -270,7 +270,8 @@ const FileExplorer = () => {
   );
 
   const goBack = () => {
-    history.replace('/');
+    // history.replace('/');
+    history.goBack();
   };
 
   const onDelete = (data) => {
