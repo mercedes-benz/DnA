@@ -138,6 +138,7 @@ const CodeSpace = (props: ICodeSpaceProps) => {
   }, [showCodeDeployModal]);
 
   useEffect(() => {
+    if (id) {
     CodeSpaceApiClient.getCodeSpaceStatus(id)
       .then((res: ICodeSpaceData) => {
 
@@ -201,7 +202,7 @@ const CodeSpace = (props: ICodeSpaceProps) => {
         // }, Envs.CODESPACE_OIDC_POPUP_WAIT_TIME);
       })
       .catch((err: Error) => {
-        Notification.show('Error in validating code space - ' + err.message, 'alert');
+        Notification.show('Error in loading codespace - Please contact support.' + err.message, 'alert');
         history.replace('/codespaces');
       });
     // ApiClient.getCodeSpace().then((res: any) => {
@@ -215,6 +216,10 @@ const CodeSpace = (props: ICodeSpaceProps) => {
     // }).catch((err: Error) => {
     //   Notification.show("Error in validating code space - " + err.message, 'alert');
     // });
+    } else {
+      Notification.show('Codespace id is missing. Please choose your codespace to open.', 'warning');
+      history.replace('/codespaces');
+    }
   }, []);
 
   useEffect(() => {

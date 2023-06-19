@@ -65,6 +65,9 @@
         }
         > div:first-child {
           flex: 1;
+          font-weight: bold;
+          color: #697582;
+          font-size: var(--font-size-small);
         }
         > div:last-child {
           flex: 1;
