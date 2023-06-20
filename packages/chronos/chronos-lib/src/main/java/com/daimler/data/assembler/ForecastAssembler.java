@@ -53,6 +53,10 @@ public class ForecastAssembler implements GenericAssembler<ForecastVO, ForecastN
 					List<ForecastComparisonVO> comparisons = toComparisonsVO(data.getComparisons());
 					vo.setComparisons(comparisons);
 				}
+				if(data.getConfigFiles()!=null && !data.getConfigFiles().isEmpty()) {
+					List<InputFileVO> configFiles = toConfigFilesVO(data.getConfigFiles());
+					vo.setConfigFiles(configFiles);
+				}
 				vo.setBucketId(entity.getData().getBucketId());
 			}
 		}
@@ -95,7 +99,19 @@ public class ForecastAssembler implements GenericAssembler<ForecastVO, ForecastN
 		}
 		return comparisonsVOList;
 	}
-	
+
+	public List<InputFileVO> toConfigFilesVO(List<File> configFiles){
+		List<InputFileVO> configFilesVO =  new ArrayList<>();
+		if(configFiles!=null && !configFiles.isEmpty()) {
+			configFilesVO = configFiles.stream().map
+					(n -> { InputFileVO file = new InputFileVO();
+						BeanUtils.copyProperties(n,file);
+						return file;
+					}).collect(Collectors.toList());
+		}
+		return configFilesVO;
+	}
+
 	private RunStateVO toStateVO(RunState runState) {
 		RunStateVO stateVO = new RunStateVO();
 		if(runState!=null) {
@@ -143,6 +159,18 @@ public class ForecastAssembler implements GenericAssembler<ForecastVO, ForecastN
 					}).collect(Collectors.toList());
 		}
 		return files;
+	}
+
+	public List<File> toConfigFiles(List<InputFileVO> configFilesVO){
+		List<File> configFiles =  new ArrayList<>();
+		if(configFilesVO!=null && !configFilesVO.isEmpty()) {
+			configFiles = configFilesVO.stream().map
+					(n -> { File configFile = new File();
+						BeanUtils.copyProperties(n,configFile);
+						return configFile;
+					}).collect(Collectors.toList());
+		}
+		return configFiles;
 	}
 
 	@Override
@@ -194,6 +222,10 @@ public class ForecastAssembler implements GenericAssembler<ForecastVO, ForecastN
 							return comparison;
 						}).collect(Collectors.toList());
 				data.setComparisons(comparisons);
+			}
+			if(vo.getConfigFiles()!=null && !vo.getConfigFiles().isEmpty()) {
+				List<File> files = this.toConfigFiles(vo.getConfigFiles());
+				data.setSavedInputs(files);
 			}
 			data.setBucketId(vo.getBucketId());
 			entity.setData(data);
