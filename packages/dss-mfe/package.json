@@ -1,6 +1,6 @@
 {
   "name": "dss",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "private": "true",
   "scripts": {
     "start": "env-cmd -f .env webpack server --config config/webpack.config.js",

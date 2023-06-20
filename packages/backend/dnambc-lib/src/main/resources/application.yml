@@ -1,7 +1,7 @@
 spring:
   application:
     name: dna-backend-service
-    version: 3.2.7
+    version: 3.2.9
   flyway:
     enabled: ${FLYWAY_ENABLED:true}
     baseline-on-migrate: ${FLYWAY_BASELINE_ON_MIGRATE:true}
@@ -69,21 +69,21 @@ hasura:
   
 notification:
   email:      
-      solutionNotificationPref: ${DEFAULT_EMAIL_SOLUTION_NOTIFICATION_PREF:xxx}
-      notebookNotificationPref: ${DEFAULT_EMAIL_NOTEBOOK_NOTIFICATION_PREF:xxx}
-      persistenceNotificationPref: ${DEFAULT_EMAIL_PERSISTENCE_NOTIFICATION_PREF:xxx}
-      dashboardNotificationPref: ${DEFAULT_EMAIL_DASHBOARD_NOTIFICATION_PREF:xxx}
-      dataComplianceNotificationPref: ${DEFAULT_EMAIL_DATA_COMPLIANCE_NOTIFICATION_PREF:xxx}
-      dataProductNotificationPref: ${DEFAULT_EMAIL_DATA_PRODUCT_NOTIFICATION_PREF:xxx}
-      chronosNotificationPref: ${DEFAULT_EMAIL_CHRONOS_NOTIFICATION_PREF:xxx}
+      solutionNotificationPref: ${DEFAULT_EMAIL_SOLUTION_NOTIFICATION_PREF:false}
+      notebookNotificationPref: ${DEFAULT_EMAIL_NOTEBOOK_NOTIFICATION_PREF:false}
+      persistenceNotificationPref: ${DEFAULT_EMAIL_PERSISTENCE_NOTIFICATION_PREF:false}
+      dashboardNotificationPref: ${DEFAULT_EMAIL_DASHBOARD_NOTIFICATION_PREF:false}
+      dataComplianceNotificationPref: ${DEFAULT_EMAIL_DATA_COMPLIANCE_NOTIFICATION_PREF:true}
+      dataProductNotificationPref: ${DEFAULT_EMAIL_DATA_PRODUCT_NOTIFICATION_PREF:true}
+      chronosNotificationPref: ${DEFAULT_EMAIL_CHRONOS_NOTIFICATION_PREF:false}
   app:
-      solutionNotificationPref: ${DEFAULT_APP_SOLUTION_NOTIFICATION_PREF:xxx}
-      notebookNotificationPref: ${DEFAULT_APP_NOTEBOOK_NOTIFICATION_PREF:xxx}
-      persistenceNotificationPref: ${DEFAULT_APP_PERSISTENCE_NOTIFICATION_PREF:xxx}
-      dashboardNotificationPref: ${DEFAULT_APP_DASHBOARD_NOTIFICATION_PREF:xxx}
-      dataComplianceNotificationPref: ${DEFAULT_APP_DATA_COMPLIANCE_NOTIFICATION_PREF:xxx}
-      dataProductNotificationPref: ${DEFAULT_APP_DATA_PRODUCT_NOTIFICATION_PREF:xxx}
-      chronosNotificationPref: ${DEFAULT_APP_CHRONOS_NOTIFICATION_PREF:xxx}      
+      solutionNotificationPref: ${DEFAULT_APP_SOLUTION_NOTIFICATION_PREF:true}
+      notebookNotificationPref: ${DEFAULT_APP_NOTEBOOK_NOTIFICATION_PREF:true}
+      persistenceNotificationPref: ${DEFAULT_APP_PERSISTENCE_NOTIFICATION_PREF:true}
+      dashboardNotificationPref: ${DEFAULT_APP_DASHBOARD_NOTIFICATION_PREF:true}
+      dataComplianceNotificationPref: ${DEFAULT_APP_DATA_COMPLIANCE_NOTIFICATION_PREF:true}
+      dataProductNotificationPref: ${DEFAULT_APP_DATA_PRODUCT_NOTIFICATION_PREF:true}
+      chronosNotificationPref: ${DEFAULT_APP_CHRONOS_NOTIFICATION_PREF:true}      
       
 graphql:
   servlet:
@@ -213,5 +213,5 @@ teamsApi:
   team-api-baseurl: ${TEAMS_API_BASE_URI:xxxxxx}
   person-search-uri: ${PERSON_SEARCH_URI:xxxxxx}
   teams-api-resultFetchSize: ${TEAMS_API_RESULT_SIZE:xxxxxx}
-  enabled: ${TEAMS_API_ENABLED:xxxxxx}
+  enabled: ${TEAMS_API_ENABLED:false}
 

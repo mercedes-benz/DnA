@@ -1,7 +1,7 @@
 spring:
   application:
     name: dna-storage-service
-    version: 3.2.2
+    version: 3.2.3
   cache:
     type: redis
   redis:
@@ -84,6 +84,10 @@ storage:
   termsOfUse.uri: ${STORAGE_TERMS_OF_USE_URL:https://xxxxx}
   connect.host: ${STORAGE_CONNECT_HOST:http://xxxxxxx}
   httpMethod: ${HTTP_METHOD:XXXXXX}
+  mc.commandkeyword: ${MC_CMD_KEY:sh}
+  mc.timeout.alias: ${MC_ALIAS_TIMEOUT:10}
+  mc.timeout.listpolicies: ${MC_LISTPOLICIES_TIMEOUT:10}
+      
  
 minio:
   clientApi: ${MINIO_CLIENT_API:http://localhost:9000}

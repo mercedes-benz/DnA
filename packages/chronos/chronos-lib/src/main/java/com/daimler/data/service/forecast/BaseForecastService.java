@@ -146,8 +146,8 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 	@Transactional
 	public ForecastRunResponseVO createJobRun(MultipartFile file,String savedInputPath, Boolean saveRequestPart, String runName,
 			String configurationFile, String frequency, BigDecimal forecastHorizon, String hierarchy, String comment, Boolean runOnPowerfulMachines,
-			ForecastVO existingForecast,String triggeredBy, Date triggeredOn) {
-		
+			ForecastVO existingForecast,String triggeredBy, Date triggeredOn,String infotext) {
+
 		String dataBricksJobidForRun = dataBricksJobId;
 		ForecastRunResponseVO responseWrapper = new ForecastRunResponseVO();
 		RunNowResponseVO runNowResponseVO = new RunNowResponseVO();
@@ -250,6 +250,7 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 		noteboookParams.setResults_folder(resultFolder);
 		noteboookParams.setX("");
 		noteboookParams.setX_pred("");
+		noteboookParams.setInfotext(infotext);
 
 		RunNowResponseVO runNowResponse = dataBricksClient.runNow(correlationId, noteboookParams, runOnPowerfulMachines);
 		if(runNowResponse!=null) {
@@ -290,9 +291,11 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 				newRunState.setUser_cancelled_or_timedout(false);
 				currentRun.setRunState(newRunState);
 				currentRun.setResultFolderPath(resultFolder);
+				currentRun.setInfotext(infotext);
 				runNowResponse.setResultFolderPath(resultFolder);;
 				existingRuns.add(currentRun);
 				entity.getData().setRuns(existingRuns);
+				entity.getData().setSavedInputs(this.assembler.toFiles(existingForecast.getSavedInputs()));
 				try {
 					this.jpaRepo.save(entity);
 				}catch(Exception e) {
