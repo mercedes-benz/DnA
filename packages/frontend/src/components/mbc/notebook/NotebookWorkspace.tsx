@@ -18,6 +18,7 @@ export default function NotebookWorkspace(props: INotebookWorkspaceProps) {
         className={props.enableFullScreenMode ? Styles.fullscreen : ''}
         src={notebookUrl}
         title="Notebook Workspace"
+        allow="clipboard-read; clipboard-write"
       />
     </div>
   );

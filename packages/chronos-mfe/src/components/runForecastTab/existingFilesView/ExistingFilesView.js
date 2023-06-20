@@ -1,5 +1,5 @@
 import classNames from 'classnames';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useFormContext } from 'react-hook-form';
 import Styles from './existing-files-view.scss';
 // Container components
@@ -20,6 +20,8 @@ const ExistingFilesView = ({projectId, setShowExistingFiles, setInputFile, setIs
     SelectBox.defaultSetup();
     //eslint-disable-next-line
   }, []);
+
+  const inputFileSelect = useRef('');
 
   useEffect(() => {
     chronosApi.getAllInputFiles(projectId).then((res) => {
@@ -66,6 +68,7 @@ const ExistingFilesView = ({projectId, setShowExistingFiles, setInputFile, setIs
                 id="savedInputPath"
                 required={true}
                 onChange={(e) => {selectedSavedFile(e)}}
+                ref={inputFileSelect}
               >
                 <option id="savedInputPathOption" value={0}>
                   Choose
@@ -106,7 +109,7 @@ const ExistingFilesView = ({projectId, setShowExistingFiles, setInputFile, setIs
             <button
               className="btn btn-primary"
               type="submit"
-              disabled={savedFiles.length === 0 ? true : false}
+              disabled={inputFileSelect.current.value === 0 ? true : false}
               onClick={() => {
                 setShowExistingFiles(false);
                 setInputFile([selectedInputFile]);
