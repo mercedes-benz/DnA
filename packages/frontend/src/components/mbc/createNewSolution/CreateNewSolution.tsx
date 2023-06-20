@@ -545,7 +545,7 @@ export default class CreateNewSolution extends React.Component<ICreateNewSolutio
     return (
       <React.Fragment>
         <div className={classNames(Styles.mainPanel)}>
-          <Caption title={this.state.solution.description.productName || 'Create Solution'} />
+          <Caption title={this.state.solution.description.productName || `${getParams().id ? 'Edit' : 'Create'} Solution`} />
           <div id="create-solution-tabs" className="tabs-panel">
             <div className="tabs-wrapper">
               <nav>
