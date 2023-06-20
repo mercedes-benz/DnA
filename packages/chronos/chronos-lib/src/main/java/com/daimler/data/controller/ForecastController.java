@@ -16,6 +16,7 @@ import java.util.stream.Collectors;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
+import com.daimler.data.api.forecast.*;
 import com.daimler.data.dto.forecast.*;
 import org.apache.commons.io.FilenameUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,10 +32,6 @@ import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.daimler.data.api.forecast.ForecastComparisonsApi;
-import com.daimler.data.api.forecast.ForecastInputsApi;
-import com.daimler.data.api.forecast.ForecastProjectsApi;
-import com.daimler.data.api.forecast.ForecastRunsApi;
 import com.daimler.data.application.auth.UserStore;
 import com.daimler.data.application.client.StorageServicesClient;
 import com.daimler.data.auth.vault.VaultAuthClientImpl;
@@ -55,7 +52,7 @@ import lombok.extern.slf4j.Slf4j;
 @Api(value = "Forecast APIs")
 @RequestMapping("/api")
 @Slf4j
-public class ForecastController implements ForecastRunsApi, ForecastProjectsApi, ForecastInputsApi, ForecastComparisonsApi {
+public class ForecastController implements ForecastRunsApi, ForecastProjectsApi, ForecastInputsApi, ForecastComparisonsApi, ForecastConfigFilesApi {
 
 	@Autowired
 	private ForecastService service;
@@ -1465,5 +1462,81 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 		}
 		return new ResponseEntity<>(collection, responseCode);
 	}
+
+	@Override
+	@ApiOperation(value = "Upload a new config file for forecast project.", nickname = "uploadConfigFiles", notes = "Upload a new config file for forecast project", response = ForecastConfigFileUploadResponseVO.class, tags={ "forecast-config-files", })
+	@ApiResponses(value = {
+			@ApiResponse(code = 201, message = "Returns message of success or failure ", response = ForecastConfigFileUploadResponseVO.class),
+			@ApiResponse(code = 400, message = "Bad Request", response = GenericMessage.class),
+			@ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+			@ApiResponse(code = 403, message = "Request is not authorized."),
+			@ApiResponse(code = 405, message = "Method not allowed"),
+			@ApiResponse(code = 500, message = "Internal error") })
+	@RequestMapping(value = "/forecasts/{id}/config-files",
+			produces = { "application/json" },
+			consumes = { "multipart/form-data" },
+			method = RequestMethod.POST)
+	public ResponseEntity<ForecastConfigFileUploadResponseVO> uploadConfigFiles(@ApiParam(value = "forecast project ID ",required=true) @PathVariable("id") String id,
+			@ApiParam(value = "The config file to upload for the forecast project.") @Valid @RequestPart(value="configFile", required=false) MultipartFile configFile) {
+		return null;
+	}
+
+	@Override
+	@ApiOperation(value = "Get all uploaded config files for the project", nickname = "getForecastConfigFiles", notes = "Get all uploaded config files for the project", response = ForecastConfigFilesCollectionDto.class, tags={ "forecast-config-files", })
+	@ApiResponses(value = {
+			@ApiResponse(code = 201, message = "Returns message of success or failure", response = ForecastConfigFilesCollectionDto.class),
+			@ApiResponse(code = 204, message = "Fetch complete, no content found."),
+			@ApiResponse(code = 400, message = "Bad request."),
+			@ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+			@ApiResponse(code = 403, message = "Request is not authorized."),
+			@ApiResponse(code = 405, message = "Method not allowed"),
+			@ApiResponse(code = 500, message = "Internal error") })
+	@RequestMapping(value = "/forecasts/{id}/config-files",
+			produces = { "application/json" },
+			consumes = { "application/json" },
+			method = RequestMethod.GET)
+	public ResponseEntity<ForecastConfigFilesCollectionDto> getForecastConfigFiles(@ApiParam(value = "forecast project ID ",required=true) @PathVariable("id") String id) {
+		return null;
+	}
+	@Override
+	@ApiOperation(value = "delete uploaded config file by id.", nickname = "deleteConfigFile", notes = "delete uploaded config file by id.", response = GenericMessage.class, tags={ "forecast-config-files", })
+	@ApiResponses(value = {
+			@ApiResponse(code = 201, message = "Returns message of success or failure", response = GenericMessage.class),
+			@ApiResponse(code = 204, message = "Fetch complete, no content found."),
+			@ApiResponse(code = 400, message = "Bad request."),
+			@ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+			@ApiResponse(code = 403, message = "Request is not authorized."),
+			@ApiResponse(code = 405, message = "Method not allowed"),
+			@ApiResponse(code = 500, message = "Internal error") })
+	@RequestMapping(value = "/forecasts/{id}/config-files",
+			produces = { "application/json" },
+			consumes = { "application/json" },
+			method = RequestMethod.DELETE)
+	public ResponseEntity<GenericMessage> deleteConfigFile(@ApiParam(value = "forecast project ID ",required=true) @PathVariable("id") String id,
+			@ApiParam(value = "config file ID",required=true) @PathVariable("configFileId") String configFileId) {
+		return null;
+	}
+
+	@Override
+	@ApiOperation(value = "Get specific forecast config yaml for a forecast project.", nickname = "getForecastConfigFileById", notes = "Get specific forecast config yaml for a forecast project.", response = ForecastConfigFileResultVO.class, tags={ "forecast-config-files", })
+	@ApiResponses(value = {
+			@ApiResponse(code = 201, message = "Returns message of success or failure", response = ForecastConfigFileResultVO.class),
+			@ApiResponse(code = 204, message = "Fetch complete, no content found."),
+			@ApiResponse(code = 400, message = "Bad request."),
+			@ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+			@ApiResponse(code = 403, message = "Request is not authorized."),
+			@ApiResponse(code = 405, message = "Method not allowed"),
+			@ApiResponse(code = 500, message = "Internal error") })
+	@RequestMapping(value = "/forecasts/{id}/config-files/{configFileId}/configFileData",
+			produces = { "application/json" },
+			consumes = { "application/json" },
+			method = RequestMethod.GET)
+	public ResponseEntity<ForecastConfigFileResultVO> getForecastConfigFileById(@ApiParam(value = "forecast project ID ",required=true) @PathVariable("id") String id,
+			@ApiParam(value = "Specific config file  Id for the forecast project",required=true) @PathVariable("configFileId") String configFileId) {
+		return null;
+	}
+
+
+
 
 }
