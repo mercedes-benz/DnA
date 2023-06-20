@@ -10,15 +10,16 @@ export interface ICaptionProps {
   disableTitle?: boolean;
 }
 
-const Caption:React.FC<ICaptionProps> = ({ title, disableTitle }) => {
+const Caption:React.FC<ICaptionProps> = ({ title, disableTitle, children }) => {
   const history = useHistory();
   const goback = () => {
     history.goBack();
   };
   return (
     <div className={Styles.caption}>
-      <button className={classNames('btn btn-text back arrow')} type="submit" onClick={goback}>Back</button>
+      <button className={classNames('btn btn-text back arrow')} type="submit" onClick={goback}>Back</button><br/>
       { disableTitle ? '' : <h3>{title}</h3> }
+      {children && children}
     </div>
   );
 }

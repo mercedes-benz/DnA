@@ -14,7 +14,9 @@ type ForecastVO {
     createdBy: CreatedByVO,
     createdOn: ISODate,
     savedInputs: [InputFileVO],
-    runs: [RunVO]  
+    runs: [RunVO],
+    comparisons: [ForecastComparisonVO],
+    configFiles: [InputFileVO],
 }
 
 type Query {
@@ -50,13 +52,41 @@ enum ConfigurationFileEnum{
     DEFAULT_SETTINGS
 }
 
+enum FrequencyEnum{
+    Daily
+    Weekly
+    Monthly
+    Yearly
+    No_Frequency
+}
+
 type RunVO{
         id: String,
         jobId: Long,
         runId: Long,
         inputFile: String,
         runName: String,
-        configurationFile: ConfigurationFileEnum
+        configurationFile: ConfigurationFileEnum,
+        frequency: FrequencyEnum,
+        forecastHorizon: String,
+        hierarchy: String,
+        comment: String,
+        runOnPowerfulMachines: Boolean,
+        state: RunStateVO,
+        triggeredBy: String,
+        triggeredOn: String,
+        creatorUserName: String,
+        startTime: String,
+        endTime: String,
+        setupDuration: String,
+        executionDuration: String,
+        resultFolderPath: String,
+        warnings: String,
+        error: String,
+        exogenData: Boolean,
+        infotext: String,
+        isDeleted: Boolean
+
 }
        
 type InputFileVO{
@@ -66,3 +96,51 @@ type InputFileVO{
 	createdBy: String,
 	createdOn: ISODate
 }
+
+type ForecastComparisonVO{
+	comparisonId: String,
+	comparisonName: String,
+	triggeredBy: String,
+	triggeredOn: ISODate,
+	actualsFile: String,
+	targetFolder: String,
+    runsList: [String],
+    isDeleted: Boolean,
+    state: ComparisonStateVO
+}
+
+type ComparisonStateVO{
+	lifeCycleState: LifeCycleStateEnum,
+	stateMessage: String
+}
+
+type RunStateVO{
+	life_cycle_state: RunLifeCycleStateEnum,
+	result_state: RunResultStateEnum,
+	state_message: String,
+	user_cancelled_or_timedout: Boolean
+}
+
+enum LifeCycleStateEnum{
+    CREATED
+    RUNNING
+    FAILED
+    SUCCESS
+}
+
+enum RunLifeCycleStateEnum{
+    PENDING
+    RUNNING
+    TERMINATING
+    TERMINATED
+    INTERNAL_ERROR,SKIPPED
+
+}
+
+enum RunResultStateEnum{
+    SUCCESS
+    FAILED
+    TIMEDOUT
+    CANCELED,WARNINGS
+}
+
