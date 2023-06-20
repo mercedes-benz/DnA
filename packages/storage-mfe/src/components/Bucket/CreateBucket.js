@@ -117,7 +117,8 @@ const CreateBucket = ({ user }) => {
   }, [id, dataClassification, PII, bucketCollaborators, editAPIResponse]);
 
   const goBack = () => {
-    history.replace('/');
+    // history.replace('/');
+    history.goBack();
   };
 
   const onConnectionModalCancel = () => {

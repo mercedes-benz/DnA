@@ -378,7 +378,11 @@ public class LoginController {
 			// Setting entity to add new user
 			UserInfoNsql userEntity = userInfoAssembler.toEntity(userInfo, userRoleList);
 			userEntity.setIsLoggedIn("Y");
-			LOGGER.debug("Onboarding new user:{}", userId);
+			if (Objects.isNull(userInfo.getFirstName()) && Objects.isNull(userInfo.getLastName())) {
+				LOGGER.info("Null values provided, cannot add user:{}", userId);
+				return null;
+			}
+			LOGGER.info("Onboarding new user:{}", userId);
 			userInfoService.addUser(userEntity);
 			userVO = userInfoAssembler.toVo(userEntity);
 		}
