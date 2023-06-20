@@ -16,6 +16,7 @@ import {
   getFiles,
   setActionButtons,
   setFiles,
+  resetFiles,
 } from './redux/fileExplorer.actions';
 import { useParams } from 'react-router-dom';
 
@@ -177,6 +178,12 @@ const FileExplorer = () => {
       }
     }
   }, [dispatch, bucketName, files, resultFolder]);
+
+  useEffect(() => { // Cleanup File Explorer Data on unmount
+    return () => {
+      dispatch(resetFiles());
+    }
+  }, [dispatch]);
 
   useEffect(() => {
     showCreateNewFolderModal && inputRef.current.focus();
