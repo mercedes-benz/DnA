@@ -87,7 +87,7 @@ const ComparisonRow = (props) => {
           {item.triggeredBy}
         </td>
         <td>
-          {item.actualsFile.length === 0 ? 'NA' : item.actualsFile}
+          {item.actualsFile?.length === 0 ? 'NA' : item.actualsFile.split("/")[3]}
         </td>
       </tr>
     </React.Fragment>
