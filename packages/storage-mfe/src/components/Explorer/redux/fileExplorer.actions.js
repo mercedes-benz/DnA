@@ -79,7 +79,7 @@ export const setFiles = (bucketName, historyPush = true) => {
         e.response.data.errors?.length ? e.response.data.errors[0].message : 'Error fetching bucket list.',
         'alert',
       );
-      history.push('/');
+      // history.push('/');
     }
   };
 };
@@ -228,6 +228,19 @@ export const setActionButtons = (bucketPermission, bucketObjects, showPublish = 
         CustomActions.CopyPath,
         CustomActions.ResetSearchInput,
       ],
+    });
+  };
+};
+
+export const resetFiles = () => {
+  return async (dispatch) => {
+    dispatch({
+      type: 'UPDATE_ROOT_FOLDER',
+      payload: '',
+    });
+    dispatch({
+      type: 'SET_FILES',
+      payload: {},
     });
   };
 };
