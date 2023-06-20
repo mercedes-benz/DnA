@@ -51,6 +51,8 @@ import org.springframework.util.StringUtils;
 
 import com.daimler.data.application.auth.UserStore;
 import com.daimler.data.assembler.GenericAssembler;
+import com.daimler.data.auth.client.DnaAuthClient;
+import com.daimler.data.auth.client.UsersCollection;
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
 import com.daimler.data.db.repo.common.CommonDataRepository;
@@ -63,8 +65,11 @@ import com.daimler.data.dto.lov.LovUpdateRequestVO;
 import com.daimler.data.dto.lov.LovVO;
 import com.daimler.data.dto.lov.LovVOCollection;
 import com.daimler.data.dto.report.CreatedByVO;
+import com.daimler.data.dto.solution.ChangeLogVO;
+import com.daimler.data.dto.solution.UserInfoVO;
 import com.daimler.data.service.report.ReportService;
 import com.daimler.data.service.report.ReportService.CATEGORY;
+import com.daimler.dna.notifications.common.producer.KafkaProducerService;
 
 public class BaseCommonService<V, T, ID> implements CommonService<V, T, ID> {
 
@@ -78,6 +83,12 @@ public class BaseCommonService<V, T, ID> implements CommonService<V, T, ID> {
 
 	@Autowired
 	private UserStore userStore;
+	
+	@Autowired
+	private DnaAuthClient dnaAuthClient;
+	
+	@Autowired
+	private KafkaProducerService kafkaProducer;
 
 	private CommonDataRepository<T, ID> customRepo;
 
@@ -380,6 +391,56 @@ public class BaseCommonService<V, T, ID> implements CommonService<V, T, ID> {
 			isAdmin = this.userStore.getUserInfo().hasAdminAccess();
 		}
 		return isAdmin;
+	}
+	
+	@Override
+	public String currentUserName(CreatedByVO currentUser) {
+		String userName = "";
+		if (Objects.nonNull(currentUser)) {
+			if (StringUtils.hasText(currentUser.getFirstName())) {
+				userName = currentUser.getFirstName();
+			}
+			if (StringUtils.hasText(currentUser.getLastName())) {
+				userName += " " + currentUser.getLastName();
+			}
+		}
+		if (!StringUtils.hasText(userName)) {
+			userName = currentUser != null ? currentUser.getId() : "dna_system";
+		}
+		return userName;
+	}
+	
+	@Override
+	public void notifyAllAdminUsers(String eventType, String resourceId, String message, String triggeringUser,
+			List<ChangeLogVO> changeLogs) {
+		LOGGER.debug("Notifying all Admin users on " + eventType + " for " + message);
+		List<UserInfoVO> allUsers = null;
+		UsersCollection usersCollection = dnaAuthClient.getAll();
+		if (usersCollection != null && !ObjectUtils.isEmpty(usersCollection.getRecords())) {
+			allUsers = usersCollection.getRecords();
+			List<String> adminUsersIds = new ArrayList<>();
+			List<String> adminUsersEmails = new ArrayList<>();
+			for (UserInfoVO user : allUsers) {
+				boolean isAdmin = false;
+				if (!ObjectUtils.isEmpty(user) && !ObjectUtils.isEmpty(user.getRoles())) {
+					isAdmin = user.getRoles().stream().anyMatch(role -> "Admin".equalsIgnoreCase(role.getName())
+							|| "ReportAdmin".equalsIgnoreCase(role.getName()));
+				}
+				if (isAdmin) {
+					adminUsersIds.add(user.getId());
+					adminUsersEmails.add(user.getEmail());
+				}
+			}
+			try {
+				kafkaProducer.send(eventType, resourceId, "", triggeringUser, message, true, adminUsersIds,
+						adminUsersEmails, changeLogs);
+				LOGGER.info("Successfully notified all admin users for event {} for {} ", eventType, message);
+			} catch (Exception e) {
+				LOGGER.error(
+						"Exception occured while notifying all Admin users on {}  for {} . Failed with exception {}",
+						eventType, message, e.getMessage());
+			}
+		}
 	}
 
 }

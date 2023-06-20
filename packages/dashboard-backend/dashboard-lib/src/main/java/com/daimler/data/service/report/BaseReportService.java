@@ -41,6 +41,7 @@ import javax.validation.Valid;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -52,6 +53,7 @@ import org.springframework.util.StringUtils;
 import com.daimler.data.application.auth.UserStore;
 import com.daimler.data.assembler.ReportAssembler;
 import com.daimler.data.auth.client.DnaAuthClient;
+import com.daimler.data.auth.client.UsersCollection;
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
 import com.daimler.data.db.entities.ReportNsql;
@@ -61,6 +63,7 @@ import com.daimler.data.db.jsonb.report.Division;
 import com.daimler.data.db.jsonb.report.InternalCustomer;
 import com.daimler.data.db.jsonb.report.KPI;
 import com.daimler.data.db.jsonb.report.KPIName;
+import com.daimler.data.db.jsonb.report.Report;
 import com.daimler.data.db.jsonb.report.SingleDataSource;
 import com.daimler.data.db.jsonb.report.Subdivision;
 import com.daimler.data.db.repo.report.ReportCustomRepository;
@@ -82,6 +85,7 @@ import com.daimler.data.dto.report.ReportVO;
 import com.daimler.data.dto.report.SingleDataSourceVO;
 import com.daimler.data.dto.report.SubdivisionVO;
 import com.daimler.data.dto.report.TeamMemberVO;
+import com.daimler.data.dto.solution.ChangeLogVO;
 import com.daimler.data.dto.solution.UserInfoVO;
 import com.daimler.data.dto.tag.TagVO;
 import com.daimler.data.service.common.BaseCommonService;
@@ -143,6 +147,8 @@ public class BaseReportService extends BaseCommonService<ReportVO, ReportNsql, S
 		updateDepartments(vo);
 		updateDataSources(vo);
 		updateKpiNames(vo);
+		String eventType = "Dashboard-Report Create";
+		this.publishEventMessages(eventType, vo);
 		return super.create(vo);
 	}
 
@@ -210,13 +216,34 @@ public class BaseReportService extends BaseCommonService<ReportVO, ReportNsql, S
 	@Transactional
 	public void deleteForEachReport(String name, CATEGORY category) {
 		List<ReportNsql> reports = null;
+		String eventType = "Dashboard-Report MDM Delete";
+		CreatedByVO currentUser = this.userStore.getVO();
+		com.daimler.data.dto.solution.TeamMemberVO modifiedBy = new com.daimler.data.dto.solution.TeamMemberVO();
+		BeanUtils.copyProperties(currentUser, modifiedBy);
+		modifiedBy.setShortId(currentUser.getId());
+		String userId = currentUser != null ? currentUser.getId() : "dna_system";
+		String userName = this.currentUserName(currentUser);
 		if (StringUtils.hasText(name)) {
 			reports = reportCustomRepository.getAllWithFiltersUsingNativeQuery(null, null, null, true,
 					Arrays.asList(name), null, 0, 0, null, null, null, null, null, null);
 		}
 		if (!ObjectUtils.isEmpty(reports)) {
 			reports.forEach(reportNsql -> {
+				Report reportJson = reportNsql.getData();
+				String reportName = reportJson.getProductName();
+				String message = "";
+				List<ChangeLogVO> changeLogs = new ArrayList<>();
+				ChangeLogVO changeLog = new ChangeLogVO();
+				changeLog.setChangeDate(new Date());
+				changeLog.setModifiedBy(modifiedBy);
+				changeLog.setNewValue(null);
+				changeLog.setOldValue(name);
 				if (category.equals(CATEGORY.TAG)) {
+					changeLog.setChangeDescription("Tags: Tag '" + name + "' removed.");
+					changeLog.setFieldChanged("/tags/");
+					message = "Tag " + name + " has been deleted by Admin " + userName
+							+ ". Cascading update to Report " + reportName
+							+ " has been applied to remove references.";
 					List<String> tags = reportNsql.getData().getDescription().getTags();
 					if (!ObjectUtils.isEmpty(tags)) {
 						Iterator<String> itr = tags.iterator();
@@ -229,16 +256,31 @@ public class BaseReportService extends BaseCommonService<ReportVO, ReportNsql, S
 						}
 					}
 				} else if (category.equals(CATEGORY.DEPARTMENT)) {
+					changeLog.setChangeDescription("Departments: Department '" + name + "' removed.");
+					changeLog.setFieldChanged("/departments/");
+					message = "Department " + name + " has been deleted by Admin " + userName
+							+ ". Cascading update to Report " + reportName
+							+ " has been applied to remove references.";
 					String department = reportNsql.getData().getDescription().getDepartment();
 					if (StringUtils.hasText(department) && department.equals(name)) {
 						reportNsql.getData().getDescription().setDepartment(null);
 					}
 				} else if (category.equals(CATEGORY.INTEGRATED_PORTAL)) {
+					changeLog.setChangeDescription("Integrated Portals: Integrated Portal '" + name + "' removed.");
+					changeLog.setFieldChanged("/integratedportals/");
+					message = "Integrated Portal " + name + " has been deleted by Admin " + userName
+							+ ". Cascading update to Report " + reportName
+							+ " has been applied to remove references.";
 					String integratedPortal = reportNsql.getData().getDescription().getIntegratedPortal();
 					if (StringUtils.hasText(integratedPortal) && integratedPortal.equals(name)) {
 						reportNsql.getData().getDescription().setIntegratedPortal(null);
 					}
 				} else if (category.equals(CATEGORY.FRONTEND_TECH)) {
+					changeLog.setChangeDescription("Frontend Technologies: Frontend Technology '" + name + "' removed.");
+					changeLog.setFieldChanged("/frontendtechnologies/");
+					message = "Frontend Technology " + name + " has been deleted by Admin " + userName
+							+ ". Cascading update to Report " + reportName
+							+ " has been applied to remove references.";
 					List<String> frontendTechnologies = reportNsql.getData().getDescription().getFrontendTechnologies();
 					if (!ObjectUtils.isEmpty(frontendTechnologies)) {
 						Iterator<String> itr = frontendTechnologies.iterator();
@@ -251,16 +293,31 @@ public class BaseReportService extends BaseCommonService<ReportVO, ReportNsql, S
 						}
 					}
 				} else if (category.equals(CATEGORY.ART)) {
+					changeLog.setChangeDescription("Agile release trains: Agile release trian '" + name + "' removed.");
+					changeLog.setFieldChanged("/agilereleasetrains/");
+					message = "Agile release trian " + name + " has been deleted by Admin " + userName
+							+ ". Cascading update to Report " + reportName
+							+ " has been applied to remove references.";
 					String art = reportNsql.getData().getDescription().getAgileReleaseTrain();
 					if (StringUtils.hasText(art) && art.equals(name)) {
 						reportNsql.getData().getDescription().setAgileReleaseTrain(null);
 					}
 				} else if (category.equals(CATEGORY.STATUS)) {
+					changeLog.setChangeDescription("Statuses: Status '" + name + "' removed.");
+					changeLog.setFieldChanged("/statuses/");
+					message = "Status " + name + " has been deleted by Admin " + userName
+							+ ". Cascading update to Report " + reportName
+							+ " has been applied to remove references.";
 					String status = reportNsql.getData().getDescription().getStatus();
 					if (StringUtils.hasText(status) && status.equals(name)) {
 						reportNsql.getData().getDescription().setStatus(null);
 					}
 				} else if (category.equals(CATEGORY.CUST_DEPARTMENT)) {
+					changeLog.setChangeDescription("Customer Departments: Customer Department '" + name + "' removed.");
+					changeLog.setFieldChanged("/departments/");
+					message = "Customer Department " + name + " has been deleted by Admin " + userName
+							+ ". Cascading update to Report " + reportName
+							+ " has been applied to remove references.";
 					List<InternalCustomer> customers = reportNsql.getData().getCustomer().getInternalCustomers();
 					if (!ObjectUtils.isEmpty(customers)) {
 						for (InternalCustomer customer : customers) {
@@ -271,6 +328,11 @@ public class BaseReportService extends BaseCommonService<ReportVO, ReportNsql, S
 						}
 					}
 				} else if (category.equals(CATEGORY.LEVEL)) {
+					changeLog.setChangeDescription("Levels: Level '" + name + "' removed.");
+					changeLog.setFieldChanged("/levels/");
+					message = "Level " + name + " has been deleted by Admin " + userName
+							+ ". Cascading update to Report " + reportName
+							+ " has been applied to remove references.";
 					List<InternalCustomer> customers = reportNsql.getData().getCustomer().getInternalCustomers();
 					if (!ObjectUtils.isEmpty(customers)) {
 						for (InternalCustomer customer : customers) {
@@ -280,6 +342,11 @@ public class BaseReportService extends BaseCommonService<ReportVO, ReportNsql, S
 						}
 					}
 				} else if (category.equals(CATEGORY.LEGAL_ENTITY)) {
+					changeLog.setChangeDescription("Legal entities: Legal entity '" + name + "' removed.");
+					changeLog.setFieldChanged("/legalentities/");
+					message = "Legal entity " + name + " has been deleted by Admin " + userName
+							+ ". Cascading update to Report " + reportName
+							+ " has been applied to remove references.";
 					List<InternalCustomer> customers = reportNsql.getData().getCustomer().getInternalCustomers();
 					if (!ObjectUtils.isEmpty(customers)) {
 						for (InternalCustomer customer : customers) {
@@ -290,6 +357,11 @@ public class BaseReportService extends BaseCommonService<ReportVO, ReportNsql, S
 						}
 					}
 				} else if (category.equals(CATEGORY.KPI_CLASSIFICATION)) {
+					changeLog.setChangeDescription("kpi Classifications: kpi Classification '" + name + "' removed.");
+					changeLog.setFieldChanged("/kpiClassifications/");
+					message = "Kpi Classification " + name + " has been deleted by Admin " + userName
+							+ ". Cascading update to Report " + reportName
+							+ " has been applied to remove references.";
 					List<KPI> kpis = reportNsql.getData().getKpis();
 					if (!ObjectUtils.isEmpty(kpis)) {
 						for (KPI kpi : kpis) {
@@ -301,6 +373,11 @@ public class BaseReportService extends BaseCommonService<ReportVO, ReportNsql, S
 						}
 					}
 				}else if (category.equals(CATEGORY.KPI_NAME)) {
+					changeLog.setChangeDescription("kpi Names: kpi Name '" + name + "' removed.");
+					changeLog.setFieldChanged("/kpiNames/");
+					message = "Kpi Name " + name + " has been deleted by Admin " + userName
+							+ ". Cascading update to Report " + reportName
+							+ " has been applied to remove references.";
 					List<KPI> kpis = reportNsql.getData().getKpis();
 					if (!ObjectUtils.isEmpty(kpis)) {
 						for (KPI kpi : kpis) {
@@ -312,6 +389,11 @@ public class BaseReportService extends BaseCommonService<ReportVO, ReportNsql, S
 						}
 					}
 				} else if (category.equals(CATEGORY.REPORTING_CAUSE)) {
+					changeLog.setChangeDescription("Reporting causes: Reporting cause '" + name + "' removed.");
+					changeLog.setFieldChanged("/reportingcauses/");
+					message = "Reporting cause " + name + " has been deleted by Admin " + userName
+							+ ". Cascading update to Report " + reportName
+							+ " has been applied to remove references.";
 					List<KPI> kpis = reportNsql.getData().getKpis();
 					if (!ObjectUtils.isEmpty(kpis)) {
 						for (KPI kpi : kpis) {
@@ -331,6 +413,11 @@ public class BaseReportService extends BaseCommonService<ReportVO, ReportNsql, S
 						}
 					}		
 				} else if (category.equals(CATEGORY.DATASOURCE)) {
+					changeLog.setChangeDescription("Datasources: Datasource '" + name + "' removed.");
+					changeLog.setFieldChanged("/dataSources/");
+					message = "Datasource " + name + " has been deleted by Admin " + userName
+							+ ". Cascading update to report " + reportName
+							+ " has been applied to remove references.";
 					List<SingleDataSource> singleDataSources = reportNsql.getData().getSingleDataSources();
 					if (!ObjectUtils.isEmpty(singleDataSources)) {
 						for (SingleDataSource singleDataSource : singleDataSources) {
@@ -348,6 +435,11 @@ public class BaseReportService extends BaseCommonService<ReportVO, ReportNsql, S
 					}
 
 				} else if (category.equals(CATEGORY.CONNECTION_TYPE)) {
+					changeLog.setChangeDescription("Connection types: Connection type '" + name + "' removed.");
+					changeLog.setFieldChanged("/connectiontypes/");
+					message = "Connection types " + name + " has been deleted by Admin " + userName
+							+ ". Cascading update to Report " + reportName
+							+ " has been applied to remove references.";
 					List<SingleDataSource> singleDataSources = reportNsql.getData().getSingleDataSources();
 					if (!ObjectUtils.isEmpty(singleDataSources)) {
 						for (SingleDataSource singleDataSource : singleDataSources) {
@@ -367,6 +459,11 @@ public class BaseReportService extends BaseCommonService<ReportVO, ReportNsql, S
 						}
 					}
 				} else if (category.equals(CATEGORY.DATA_CLASSIFICATION)) {
+					changeLog.setChangeDescription("Data classifications: Data classification '" + name + "' removed.");
+					changeLog.setFieldChanged("/dataclassifications/");
+					message = "Data classification " + name + " has been deleted by Admin " + userName
+							+ ". Cascading update to Report " + reportName
+							+ " has been applied to remove references.";
 					List<SingleDataSource> singleDataSources = reportNsql.getData().getSingleDataSources();
 					if (!ObjectUtils.isEmpty(singleDataSources)) {
 						for (SingleDataSource singleDataSource : singleDataSources) {
@@ -386,6 +483,11 @@ public class BaseReportService extends BaseCommonService<ReportVO, ReportNsql, S
 						}
 					}
 				} else if (category.equals(CATEGORY.DATA_WAREHOUSE)) {
+					changeLog.setChangeDescription("Datawarehouses: Datawarehouse '" + name + "' removed.");
+					changeLog.setFieldChanged("/datawarehouses/");
+					message = "Datawarehouse " + name + " has been deleted by Admin " + userName
+							+ ". Cascading update to Report " + reportName
+							+ " has been applied to remove references.";
 					List<DataWarehouse> dataWarehouses = reportNsql.getData().getDataWarehouses();
 					if (!ObjectUtils.isEmpty(dataWarehouses)) {
 						for (DataWarehouse dataWarehouse : dataWarehouses) {
@@ -396,6 +498,11 @@ public class BaseReportService extends BaseCommonService<ReportVO, ReportNsql, S
 						}
 					}
 				} else if (category.equals(CATEGORY.DIVISION)) {
+					changeLog.setChangeDescription("Divisions: Division '" + name + "' removed.");
+					changeLog.setFieldChanged("/divisions/");
+					message = "Division " + name + " has been deleted by Admin " + userName
+							+ ". Cascading update to Report " + reportName
+							+ " has been applied to remove references.";
 					Division reportdivision = reportNsql.getData().getDescription().getDivision();
 					if (Objects.nonNull(reportdivision) && StringUtils.hasText(reportdivision.getId())
 							&& reportdivision.getId().equals(name)) {
@@ -405,6 +512,11 @@ public class BaseReportService extends BaseCommonService<ReportVO, ReportNsql, S
 					}
 				}
 				reportCustomRepository.update(reportNsql);
+				changeLogs.add(changeLog);
+				LOGGER.info(
+						"Publishing message on Dashboard-Report MDM Delete event for report {}, after admin action on {} and {}",
+						reportName, category, name);
+				super.notifyAllAdminUsers(eventType, reportNsql.getId(), message, userId, changeLogs);
 
 			});
 		}
@@ -414,13 +526,34 @@ public class BaseReportService extends BaseCommonService<ReportVO, ReportNsql, S
 	@Transactional
 	public void updateForEachReport(String oldValue, String newValue, CATEGORY category, Object updateObject) {
 		List<ReportNsql> reports = null;
+		String eventType = "Dashboard-Report MDM Update";
+		CreatedByVO currentUser = this.userStore.getVO();
+		com.daimler.data.dto.solution.TeamMemberVO modifiedBy = new com.daimler.data.dto.solution.TeamMemberVO();
+		BeanUtils.copyProperties(currentUser, modifiedBy);
+		modifiedBy.setShortId(currentUser.getId());
+		String userId = currentUser != null ? currentUser.getId() : "dna_system";
+		String userName = this.currentUserName(currentUser);
 		if (StringUtils.hasText(oldValue)) {
 			reports = reportCustomRepository.getAllWithFiltersUsingNativeQuery(null, null, null, true,
 					Arrays.asList(oldValue), null, 0, 0, null, null, null, null, null, null);
 		}
 		if (!ObjectUtils.isEmpty(reports)) {
 			reports.forEach(reportNsql -> {
+				Report reportJson = reportNsql.getData();
+				String reportName = reportJson.getProductName();
+				String message = "";
+				List<ChangeLogVO> changeLogs = new ArrayList<>();
+				ChangeLogVO changeLog = new ChangeLogVO();
+				changeLog.setChangeDate(new Date());
+				changeLog.setModifiedBy(modifiedBy);
+				changeLog.setNewValue(null);
+				changeLog.setOldValue(oldValue);
 				if (category.equals(CATEGORY.TAG)) {
+					changeLog.setChangeDescription("Tags: Tag '" + oldValue + "' updated.");
+					changeLog.setFieldChanged("/tags/");
+					message = "Tag " + oldValue + " has been updated by Admin " + userName
+							+ ". Cascading update to Report " + reportName
+							+ " has been applied to update references.";
 					List<String> tags = reportNsql.getData().getDescription().getTags();
 					if (!ObjectUtils.isEmpty(tags)) {
 						ListIterator<String> itr = tags.listIterator();
@@ -433,16 +566,31 @@ public class BaseReportService extends BaseCommonService<ReportVO, ReportNsql, S
 						}
 					}
 				} else if (category.equals(CATEGORY.DEPARTMENT)) {
+					changeLog.setChangeDescription("Departments: Department '" + oldValue + "' updated.");
+					changeLog.setFieldChanged("/departments/");
+					message = "Department " + oldValue + " has been updated by Admin " + userName
+							+ ". Cascading update to Report " + reportName
+							+ " has been applied to update references.";
 					String department = reportNsql.getData().getDescription().getDepartment();
 					if (StringUtils.hasText(department) && department.equals(oldValue)) {
 						reportNsql.getData().getDescription().setDepartment(newValue);
 					}
 				} else if (category.equals(CATEGORY.INTEGRATED_PORTAL)) {
+					changeLog.setChangeDescription("Integrated Portals: Integrated Portal '" + oldValue + "' updated.");
+					changeLog.setFieldChanged("/integratedportals/");
+					message = "Integrated Portal " + oldValue + " has been updated by Admin " + userName
+							+ ". Cascading update to Report " + reportName
+							+ " has been applied to update references.";
 					String integratedPortal = reportNsql.getData().getDescription().getIntegratedPortal();
 					if (StringUtils.hasText(integratedPortal) && integratedPortal.equals(oldValue)) {
 						reportNsql.getData().getDescription().setIntegratedPortal(newValue);
 					}
 				} else if (category.equals(CATEGORY.FRONTEND_TECH)) {
+					changeLog.setChangeDescription("Frontend Technologies: Frontend Technology '" + oldValue + "' updated.");
+					changeLog.setFieldChanged("/frontendtechnologies/");
+					message = "Frontend Technology " + oldValue + " has been updated by Admin " + userName
+							+ ". Cascading update to Report " + reportName
+							+ " has been applied to update references.";
 					List<String> frontendTechnologies = reportNsql.getData().getDescription().getFrontendTechnologies();
 					if (!ObjectUtils.isEmpty(frontendTechnologies)) {
 						ListIterator<String> itr = frontendTechnologies.listIterator();
@@ -455,16 +603,31 @@ public class BaseReportService extends BaseCommonService<ReportVO, ReportNsql, S
 						}
 					}
 				} else if (category.equals(CATEGORY.ART)) {
+					changeLog.setChangeDescription("Agile release trains: Agile release trian '" + oldValue + "' updated.");
+					changeLog.setFieldChanged("/agilereleasetrains/");
+					message = "Agile release trian " + oldValue + " has been updated by Admin " + userName
+							+ ". Cascading update to Report " + reportName
+							+ " has been applied to update references.";
 					String art = reportNsql.getData().getDescription().getAgileReleaseTrain();
 					if (StringUtils.hasText(art) && art.equals(oldValue)) {
 						reportNsql.getData().getDescription().setAgileReleaseTrain(newValue);
 					}
 				} else if (category.equals(CATEGORY.STATUS)) {
+					changeLog.setChangeDescription("Statuses: Status '" + oldValue + "' updated.");
+					changeLog.setFieldChanged("/statuses/");
+					message = "Status " + oldValue + " has been updated by Admin " + userName
+							+ ". Cascading update to Report " + reportName
+							+ " has been applied to updated references.";
 					String status = reportNsql.getData().getDescription().getStatus();
 					if (StringUtils.hasText(status) && status.equals(oldValue)) {
 						reportNsql.getData().getDescription().setStatus(newValue);
 					}
 				} else if (category.equals(CATEGORY.CUST_DEPARTMENT)) {
+					changeLog.setChangeDescription("Customer Departments: Customer Department '" + oldValue + "' updated.");
+					changeLog.setFieldChanged("/departments/");
+					message = "Customer Department " + oldValue + " has been updated by Admin " + userName
+							+ ". Cascading update to Report " + reportName
+							+ " has been applied to update references.";
 					List<InternalCustomer> customers = reportNsql.getData().getCustomer().getInternalCustomers();
 					if (!ObjectUtils.isEmpty(customers)) {
 						for (InternalCustomer customer : customers) {
@@ -475,6 +638,11 @@ public class BaseReportService extends BaseCommonService<ReportVO, ReportNsql, S
 						}
 					}
 				} else if (category.equals(CATEGORY.LEVEL)) {
+					changeLog.setChangeDescription("Levels: Level '" + oldValue + "' updated.");
+					changeLog.setFieldChanged("/levels/");
+					message = "Level " + oldValue + " has been updated by Admin " + userName
+							+ ". Cascading update to Report " + reportName
+							+ " has been applied to update references.";
 					List<InternalCustomer> customers = reportNsql.getData().getCustomer().getInternalCustomers();
 					if (!ObjectUtils.isEmpty(customers)) {
 						for (InternalCustomer customer : customers) {
@@ -484,6 +652,11 @@ public class BaseReportService extends BaseCommonService<ReportVO, ReportNsql, S
 						}
 					}
 				} else if (category.equals(CATEGORY.LEGAL_ENTITY)) {
+					changeLog.setChangeDescription("Legal entities: Legal entity '" + oldValue + "' updated.");
+					changeLog.setFieldChanged("/legalentities/");
+					message = "Legal entity " + oldValue + " has been updated by Admin " + userName
+							+ ". Cascading update to Report " + reportName
+							+ " has been applied to update references.";
 					List<InternalCustomer> customers = reportNsql.getData().getCustomer().getInternalCustomers();
 					if (!ObjectUtils.isEmpty(customers)) {
 						for (InternalCustomer customer : customers) {
@@ -494,6 +667,11 @@ public class BaseReportService extends BaseCommonService<ReportVO, ReportNsql, S
 						}
 					}
 				} else if (category.equals(CATEGORY.KPI_CLASSIFICATION)) {
+					changeLog.setChangeDescription("kpi Classifications: kpi Classification '" + oldValue + "' updated.");
+					changeLog.setFieldChanged("/kpiClassifications/");
+					message = "Kpi Classification " + oldValue + " has been updated by Admin " + userName
+							+ ". Cascading update to Report " + reportName
+							+ " has been applied to update references.";
 					List<KPI> kpis = reportNsql.getData().getKpis();
 					if (!ObjectUtils.isEmpty(kpis)) {
 						for (KPI kpi : kpis) {
@@ -505,6 +683,11 @@ public class BaseReportService extends BaseCommonService<ReportVO, ReportNsql, S
 						}
 					}
 				}else if (category.equals(CATEGORY.KPI_NAME)) {
+					changeLog.setChangeDescription("kpi Names: kpi Name '" + oldValue + "' updated.");
+					changeLog.setFieldChanged("/kpiNames/");
+					message = "Kpi Name " + oldValue + " has been updated by Admin " + userName
+							+ ". Cascading update to Report " + reportName
+							+ " has been applied to update references.";
 					List<KPI> kpis = reportNsql.getData().getKpis();
 					if (!ObjectUtils.isEmpty(kpis)) {
 						for (KPI kpi : kpis) {
@@ -516,6 +699,11 @@ public class BaseReportService extends BaseCommonService<ReportVO, ReportNsql, S
 						}
 					}
 				} else if (category.equals(CATEGORY.REPORTING_CAUSE)) {
+					changeLog.setChangeDescription("Reporting causes: Reporting cause '" + oldValue + "' updated.");
+					changeLog.setFieldChanged("/reportingcauses/");
+					message = "Reporting cause " + oldValue + " has been updated by Admin " + userName
+							+ ". Cascading update to Report " + reportName
+							+ " has been applied to update references.";
 					List<KPI> kpis = reportNsql.getData().getKpis();
 					if (!ObjectUtils.isEmpty(kpis)) {
 						for (KPI kpi : kpis) {
@@ -535,6 +723,11 @@ public class BaseReportService extends BaseCommonService<ReportVO, ReportNsql, S
 						}
 					}
 				} else if (category.equals(CATEGORY.CONNECTION_TYPE)) {
+					changeLog.setChangeDescription("Connection types: Connection type '" + oldValue + "' updated.");
+					changeLog.setFieldChanged("/connectiontypes/");
+					message = "Connection types " + oldValue + " has been updated by Admin " + userName
+							+ ". Cascading update to Report " + reportName
+							+ " has been applied to update references.";
 					List<SingleDataSource> singleDataSources = reportNsql.getData().getSingleDataSources();
 					if (!ObjectUtils.isEmpty(singleDataSources)) {
 						for (SingleDataSource singleDataSource : singleDataSources) {
@@ -555,6 +748,11 @@ public class BaseReportService extends BaseCommonService<ReportVO, ReportNsql, S
 						}
 					}
 				} else if (category.equals(CATEGORY.DATA_CLASSIFICATION)) {
+					changeLog.setChangeDescription("Data classifications: Data classification '" + oldValue + "' updated.");
+					changeLog.setFieldChanged("/dataclassifications/");
+					message = "Data classification " + oldValue + " has been updated by Admin " + userName
+							+ ". Cascading update to Report " + reportName
+							+ " has been applied to update references.";
 					List<SingleDataSource> singleDataSources = reportNsql.getData().getSingleDataSources();
 					if (!ObjectUtils.isEmpty(singleDataSources)) {
 						for (SingleDataSource singleDataSource : singleDataSources) {
@@ -575,6 +773,11 @@ public class BaseReportService extends BaseCommonService<ReportVO, ReportNsql, S
 						}
 					}
 				} else if (category.equals(CATEGORY.DATA_WAREHOUSE)) {
+					changeLog.setChangeDescription("Datawarehouses: Datawarehouse '" + oldValue + "' updated.");
+					changeLog.setFieldChanged("/datawarehouses/");
+					message = "Datawarehouse " + oldValue + " has been updated by Admin " + userName
+							+ ". Cascading update to Report " + reportName
+							+ " has been applied to update references.";
 					List<DataWarehouse> dataWarehouses = reportNsql.getData().getDataWarehouses();
 					if (!ObjectUtils.isEmpty(dataWarehouses)) {
 						for (DataWarehouse dataWarehouse : dataWarehouses) {
@@ -585,6 +788,11 @@ public class BaseReportService extends BaseCommonService<ReportVO, ReportNsql, S
 						}
 					}
 				} else if (category.equals(CATEGORY.DIVISION)) {
+					changeLog.setChangeDescription("Divisions: Division '" + oldValue + "' updated.");
+					changeLog.setFieldChanged("/divisions/");
+					message = "Division " + oldValue + " has been updated by Admin " + userName
+							+ ". Cascading update to Report " + reportName
+							+ " has been applied to update references.";
 					Division reportdivision = reportNsql.getData().getDescription().getDivision();
 					DivisionReportVO divisionVO = (DivisionReportVO) updateObject;
 					if (Objects.nonNull(reportdivision) && StringUtils.hasText(reportdivision.getId())
@@ -616,6 +824,11 @@ public class BaseReportService extends BaseCommonService<ReportVO, ReportNsql, S
 					}
 				}
 				reportCustomRepository.update(reportNsql);
+				changeLogs.add(changeLog);
+				LOGGER.info(
+						"Publishing message on Dashboard-Report MDM Update event for report {}, after admin action on {} and {}",
+						reportName, category, oldValue);
+				super.notifyAllAdminUsers(eventType, reportNsql.getId(), message, userId, changeLogs);
 			});
 		}
 	}
@@ -885,6 +1098,8 @@ public class BaseReportService extends BaseCommonService<ReportVO, ReportNsql, S
 		try {
 			ReportVO report = super.getById(id);
 			if (canProceedToEdit(report)) {
+				String eventType = "Dashboard-Report Delete";
+				this.publishEventMessages(eventType, report);				
 				this.deleteById(id);
 				GenericMessage successMsg = new GenericMessage();
 				successMsg.setSuccess("success");
@@ -930,5 +1145,75 @@ public class BaseReportService extends BaseCommonService<ReportVO, ReportNsql, S
 			throw e;
 		}
 	}
+	
+	private void publishEventMessages(String eventType, ReportVO vo) {
+		try {
+			String resourceID = vo.getId();
+			String reportName = vo.getProductName();
+			String publishingUserId = "dna_system";
+			String publishingUserName = "";
+			String eventMessage = "";
+			if (vo.getCreatedBy() != null) {
+				publishingUserId = vo.getCreatedBy().getId();
+				publishingUserName = vo.getCreatedBy().getFirstName() + " "
+						+ vo.getCreatedBy().getLastName();
+				if (publishingUserName == null || "".equalsIgnoreCase(publishingUserName))
+					publishingUserName = publishingUserId;
+			}
+			List<String> teamMembersIds = new ArrayList<>();
+			List<String> teamMembersEmails = new ArrayList<>();
+			for (TeamMemberVO user : vo.getMembers().getReportAdmins()) {
+				teamMembersIds.add(user.getShortId());
+				teamMembersEmails.add(user.getEmail());
+			}
+			if ("Dashboard-Report Create".equalsIgnoreCase(eventType)) {
+				eventMessage = "Dashboard report " + reportName + " has been created by "
+						+ publishingUserName;
+				LOGGER.info("Published successfully event {} for report {} with message {}", eventType,
+						resourceID, eventMessage);
+			}
+			if ("Dashboard-Report Delete".equalsIgnoreCase(eventType)) {
+				eventMessage = "Dashboard report " + reportName + " has been deleted by "
+						+ publishingUserName;
+				LOGGER.info("Published successfully event {} for report {} with message {}", eventType,
+						resourceID, eventMessage);
+			}
+			if (eventType != null && eventType != "") {
+				kafkaProducer.send(eventType, resourceID, "", publishingUserId, eventMessage, true,
+						teamMembersIds, teamMembersEmails, null);
+			}
+		} catch (Exception e) {
+			LOGGER.trace("Failed while publishing Dashboard Report event msg {} ", e.getMessage());
+		}
+	}
+	
+	public void notifyAllAdminUsers(String eventType, Long resourceId, String message, String triggeringUser,
+			List<ChangeLogVO> changeLogs) {
+		LOGGER.debug("Notifying all Admin users on " + eventType + " for " + message);
+		UsersCollection usersCollection = dnaAuthClient.getAll();
+		List<UserInfoVO> allUsers = usersCollection.getRecords();
+		List<String> adminUsersIds = new ArrayList<>();
+		List<String> adminUsersEmails = new ArrayList<>();
+		for (UserInfoVO user : allUsers) {
+			boolean isAdmin = false;
+			if (!ObjectUtils.isEmpty(user) && !ObjectUtils.isEmpty(user.getRoles())) {
+				isAdmin = user.getRoles().stream().anyMatch(role -> "admin".equalsIgnoreCase(role.getName())|| "admin".equalsIgnoreCase(role.getName()) );
+			}
+			if (isAdmin) {
+				adminUsersIds.add(user.getId());
+				adminUsersEmails.add(user.getEmail());
+			}
+		}
+		try {
+			String id = resourceId.toString();
+			kafkaProducer.send(eventType, id, "", triggeringUser, message, true, adminUsersIds,
+					adminUsersEmails, changeLogs);
+			LOGGER.info("Successfully notified all admin users for event {} for {} ", eventType, message);
+		} catch (Exception e) {
+			LOGGER.error("Exception occurred while notifying all Admin users on {}  for {} . Failed with exception {}",
+					eventType, message, e.getMessage());
+		}
+	}
+
 
 }

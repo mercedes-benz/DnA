@@ -56,6 +56,7 @@ public class DnaAuthClientImpl implements DnaAuthClient {
 	private static final String VERIFY_LOGIN = "/api/verifyLogin";
 	private static final String GET_USERINFO = "/api/users/";
 	private static final String CREATE_DATASOURCES = "/api/datasources/bulk";
+	private static final String GET_USERS = "/api/users?limit=0&offset=0";
 
 	@Value("${dna.dataSource.bulkCreate.api.accessToken}")
 	private String accessToken;
@@ -131,6 +132,30 @@ public class DnaAuthClientImpl implements DnaAuthClient {
 			status = response.getStatusCode().toString();
 		}
 		return status;
+	}
+
+	@Override
+	public UsersCollection getAll() {
+		UsersCollection collection = new UsersCollection();
+		try {
+			String jwt = httpRequest.getHeader("Authorization");
+			HttpHeaders headers = new HttpHeaders();
+			headers.set("Accept", "application/json");
+			headers.set("Content-Type", "application/json");
+			headers.set("Authorization", jwt);
+
+			String getUsersUri = dnaBaseUri + GET_USERS;
+			HttpEntity entity = new HttpEntity<>(headers);
+			ResponseEntity<UsersCollection> response = restTemplate.exchange(getUsersUri, HttpMethod.GET, entity,
+					UsersCollection.class);
+			if (response != null && response.hasBody()) {
+				LOGGER.info("Success from dna client getAll");
+				collection = response.getBody();
+			}
+		} catch (Exception e) {
+			LOGGER.error("Error occured while calling dna getAll {}, returning empty", e.getMessage());
+		}
+		return collection;
 	}
 
 }
