@@ -43,7 +43,7 @@ public class UserPrivilegeController {
     		@Parameter(description = "offset for records result position",allowEmptyValue= true, required = false) @QueryParam("offset") int offset,
     		@Parameter(description = "sortBy, possible values userId/profile",allowEmptyValue= true, required = false) @QueryParam("sortBy") String sortBy,
     		@Parameter(description = "sortOrder, possible values asc/desc",allowEmptyValue= true, required = false) @QueryParam("sortOrder") String sortOrder,
-    		@Parameter(description = "searchTerm to filter by userId",allowEmptyValue= true, required = false) @QueryParam("searchTerm") String searchTerm
+    		@Parameter(description = "searchTerm to filter",allowEmptyValue= true, required = false) @QueryParam("searchTerm") String searchTerm
     		) {
 		UserPrivilegeCollectionDto response = service.getAllUsersProfileDetail(limit, offset, sortBy, sortOrder, searchTerm);
 		if(response!=null && response.getData()!= null && !response.getData().isEmpty())
