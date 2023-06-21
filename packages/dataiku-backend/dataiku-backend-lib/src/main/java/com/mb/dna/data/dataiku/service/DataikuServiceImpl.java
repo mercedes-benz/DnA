@@ -107,7 +107,7 @@ public class DataikuServiceImpl implements DataikuService	{
 		List<MessageDescription> errors = new ArrayList<>();
 		List<MessageDescription> warnings = new ArrayList<>();
 		DataikuProjectDto existingRecord = this.getById(id);
-		existingRecord.setCollaborators(updateData.getCollaborators());
+		
 		if(updateData.getDescription()!=null)
 			existingRecord.setDescription(updateData.getDescription());
 		try {
@@ -155,6 +155,7 @@ public class DataikuServiceImpl implements DataikuService	{
 					if("Reader".equalsIgnoreCase(permission)) {
 						groupName = projectSpecificReadAccessGroup;
 					}
+					Optional<UserPrivilegeResponseDto> tempCollabUserPrivilegeResponseDtoOptional = collabPrivilegeDetails.stream().filter(n-> x.getUserId().equalsIgnoreCase(n.getData().getUserId())).findFirst();
 					if(tempCollabUserDetails == null || tempCollabUserDetails.getLogin()==null) {
 						tempCollabUserDetails = new DataikuUserDto();
 						tempCollabUserDetails.setLogin(x.getUserId().toUpperCase());
@@ -165,9 +166,7 @@ public class DataikuServiceImpl implements DataikuService	{
 						tempCollabUserDetails.setGroups(groups);
 						tempCollabUserDetails.setEmail(x.getUserId().toUpperCase());
 						tempCollabUserDetails.setEnabled(true);
-						Optional<UserPrivilegeResponseDto> tempCollabUserPrivilegeResponseDtoOptional = collabPrivilegeDetails.stream().filter(n-> x.getUserId().equalsIgnoreCase(n.getData().getUserId())).findFirst();
 						if(tempCollabUserPrivilegeResponseDtoOptional.isPresent()) {
-							log.info("update collab details to onboard {} : {}", x.getUserId().toUpperCase() , tempCollabUserPrivilegeResponseDtoOptional.get().getData().getProfile());
 							tempCollabUserDetails.setUserProfile(tempCollabUserPrivilegeResponseDtoOptional.get().getData().getProfile());
 						}
 						MessageDescription onboardTempCollabErrMsg = dataikuClient.addUser(tempCollabUserDetails,cloudProfile);
@@ -180,6 +179,9 @@ public class DataikuServiceImpl implements DataikuService	{
 							currentGroups = new ArrayList<>();
 						currentGroups.add(groupName);
 						tempCollabUserDetails.setGroups(currentGroups);
+						if(tempCollabUserPrivilegeResponseDtoOptional.isPresent()) {
+							tempCollabUserDetails.setUserProfile(tempCollabUserPrivilegeResponseDtoOptional.get().getData().getProfile());
+						}
 						log.info("Adding group {} for user {} ", groupName,x.getUserId().toUpperCase());
 						MessageDescription UpdateTempCollabErrMsg = dataikuClient.updateUser(tempCollabUserDetails,cloudProfile);
 						if(UpdateTempCollabErrMsg!=null) {
@@ -295,6 +297,7 @@ public class DataikuServiceImpl implements DataikuService	{
 					return responseWrapperDto;
 				}
 			}else {
+				ownerUserDetails.setUserProfile(ownerDetails.getData().getProfile());
 				ownerUserDetails.getGroups().add(projectSpecificAdminAccessGroup);
 				MessageDescription UpdateOwnerErrMsg = dataikuClient.updateUser(ownerUserDetails,cloudProfile);
 				if(UpdateOwnerErrMsg!=null) {
@@ -321,6 +324,7 @@ public class DataikuServiceImpl implements DataikuService	{
 					if("Reader".equalsIgnoreCase(permission)) {
 						groupName = projectSpecificReadAccessGroup;
 					}
+					Optional<UserPrivilegeResponseDto> tempCollabUserPrivilegeResponseDtoOptional = collabPrivilegeDetails.stream().filter(x-> tempCollab.getUserId().equalsIgnoreCase(x.getData().getUserId())).findFirst();
 					if(tempCollabUserDetails == null || tempCollabUserDetails.getLogin()==null) {
 						tempCollabUserDetails = new DataikuUserDto();
 						tempCollabUserDetails.setLogin(tempCollab.getUserId().toUpperCase());
@@ -330,9 +334,7 @@ public class DataikuServiceImpl implements DataikuService	{
 						groups.add(groupName);
 						tempCollabUserDetails.setGroups(groups);
 						tempCollabUserDetails.setEmail(tempCollab.getUserId().toUpperCase());
-						Optional<UserPrivilegeResponseDto> tempCollabUserPrivilegeResponseDtoOptional = collabPrivilegeDetails.stream().filter(x-> tempCollab.getUserId().equalsIgnoreCase(x.getData().getUserId())).findFirst();
 						if(tempCollabUserPrivilegeResponseDtoOptional.isPresent()) {
-							log.info("create collab details to onboard {} : {} ",tempCollab.getUserId().toUpperCase() ,tempCollabUserPrivilegeResponseDtoOptional.get().getData().getProfile());
 							tempCollabUserDetails.setUserProfile(tempCollabUserPrivilegeResponseDtoOptional.get().getData().getProfile());
 						}
 						tempCollabUserDetails.setEnabled(true);
@@ -346,6 +348,9 @@ public class DataikuServiceImpl implements DataikuService	{
 							return responseWrapperDto;
 						}
 					}else {
+						if(tempCollabUserPrivilegeResponseDtoOptional.isPresent()) {
+							tempCollabUserDetails.setUserProfile(tempCollabUserPrivilegeResponseDtoOptional.get().getData().getProfile());
+						}
 						tempCollabUserDetails.getGroups().add(groupName);
 						MessageDescription UpdateTempCollabErrMsg = dataikuClient.updateUser(tempCollabUserDetails,cloudProfile);
 						if(UpdateTempCollabErrMsg!=null) {
