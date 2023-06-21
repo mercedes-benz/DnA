@@ -43,21 +43,21 @@ public class UserPrivilegeServiceImpl implements UserPrivilegeService{
 
 	@Override
 	@Transactional
-	public UserPrivilegeCollectionDto getAllUsersProfileDetail(int limit, int offset, String sortBy, String sortOrder, String userId) {
+	public UserPrivilegeCollectionDto getAllUsersProfileDetail(int limit, int offset, String sortBy, String sortOrder, String searchTerm) {
 		UserPrivilegeCollectionDto response = new UserPrivilegeCollectionDto();
 		response.setData(new ArrayList<>());
 		response.setTotalCount(new BigInteger("0"));
 		List<UserPrivilegeDto> data = new ArrayList<>();
 		try {
-			List<UserPrivilegeSql> usersData = userPrivilegeRepo.findAll(limit, offset, sortBy, sortOrder,userId);
+			List<UserPrivilegeSql> usersData = userPrivilegeRepo.findAll(limit, offset, sortBy, sortOrder,searchTerm);
 			data = usersData.stream().map(n -> assembler.toUserPrivilegeVO(n)).collect(Collectors.toList());
-			log.info("Fetched userPrivilege records with params limit{} offset{} sortBy{} sortOrder{} userId{} ", limit, offset, sortBy, sortOrder, userId);
+			log.info("Fetched userPrivilege records with params limit{} offset{} sortBy{} sortOrder{} userId{} ", limit, offset, sortBy, sortOrder, searchTerm);
 		}catch(Exception e) {
 			log.error("Failed to fetch userprivilege records with params limit{} offset{} sortBy{} sortOrder{} userId{} ",
-					limit, offset, sortBy, sortOrder, userId);
+					limit, offset, sortBy, sortOrder, searchTerm);
 		}
 		response.setData(data);
-		BigInteger count = userPrivilegeRepo.findCount(userId);
+		BigInteger count = userPrivilegeRepo.findCount(searchTerm);
 		response.setTotalCount(count);
 		return response;
 	}
