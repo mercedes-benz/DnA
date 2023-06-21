@@ -99,7 +99,7 @@ public class DataikuServiceImpl implements DataikuService	{
 	
 	@Override
 	@Transactional
-	public DataikuProjectResponseDto updateProject(String id,DataikuProjectUpdateRequestDto updateRequest) {
+	public DataikuProjectResponseDto updateProject(String id,DataikuProjectUpdateRequestDto updateRequest, List<UserPrivilegeResponseDto> collabPrivilegeDetails) {
 		DataikuProjectUpdateDto updateData = updateRequest.getData();
 		DataikuProjectResponseDto responseWrapperDto = new DataikuProjectResponseDto();
 		GenericMessage responseMessage = new GenericMessage();
@@ -165,6 +165,10 @@ public class DataikuServiceImpl implements DataikuService	{
 						tempCollabUserDetails.setGroups(groups);
 						tempCollabUserDetails.setEmail(x.getUserId().toUpperCase());
 						tempCollabUserDetails.setEnabled(true);
+						Optional<UserPrivilegeResponseDto> tempCollabUserPrivilegeResponseDtoOptional = collabPrivilegeDetails.stream().filter(n-> x.getUserId().equalsIgnoreCase(n.getData().getId())).findFirst();
+						if(tempCollabUserPrivilegeResponseDtoOptional.isPresent()) {
+							tempCollabUserDetails.setUserProfile(tempCollabUserPrivilegeResponseDtoOptional.get().getData().getProfile());
+						}
 						MessageDescription onboardTempCollabErrMsg = dataikuClient.addUser(tempCollabUserDetails,cloudProfile);
 						if(onboardTempCollabErrMsg!=null) {
 							warnings.add(onboardTempCollabErrMsg);
@@ -324,7 +328,10 @@ public class DataikuServiceImpl implements DataikuService	{
 						groups.add(groupName);
 						tempCollabUserDetails.setGroups(groups);
 						tempCollabUserDetails.setEmail(tempCollab.getUserId().toUpperCase());
-//						tempCollabUserDetails.setUserProfile(tempCollab.get .getProfile());
+						Optional<UserPrivilegeResponseDto> tempCollabUserPrivilegeResponseDtoOptional = collabPrivilegeDetails.stream().filter(x-> tempCollab.getUserId().equalsIgnoreCase(x.getData().getId())).findFirst();
+						if(tempCollabUserPrivilegeResponseDtoOptional.isPresent()) {
+							tempCollabUserDetails.setUserProfile(tempCollabUserPrivilegeResponseDtoOptional.get().getData().getProfile());
+						}
 						tempCollabUserDetails.setEnabled(true);
 						MessageDescription onboardTempCollabErrMsg = dataikuClient.addUser(tempCollabUserDetails,cloudProfile);
 						if(onboardTempCollabErrMsg!=null) {
