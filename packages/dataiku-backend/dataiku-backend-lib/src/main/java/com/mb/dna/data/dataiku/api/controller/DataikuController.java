@@ -212,6 +212,8 @@ public class DataikuController {
 		List<MessageDescription> warnings = new ArrayList<>();
 		DataikuProjectDto existingDataikuProject = service.getById(id);
 		String userId = this.userStore.getUserInfo().getId();
+		List<CollaboratorDetailsDto> collaborators = request.getData().getCollaborators();
+		List<UserPrivilegeResponseDto> collabPrivilegeDetails = new ArrayList<>();
 		if(existingDataikuProject!=null && id.equalsIgnoreCase(existingDataikuProject.getId())){
 			List<CollaboratorDetailsDto> collabs = existingDataikuProject.getCollaborators();
 			Optional<CollaboratorDetailsDto> record = collabs.stream().filter(x-> userId.equalsIgnoreCase(x.getUserId()) && "Administrator".equalsIgnoreCase(x.getPermission())).findAny();
@@ -223,6 +225,23 @@ public class DataikuController {
 				responseMsg.setWarnings(warnings);
 				return Response.status(Status.FORBIDDEN).entity(responseMsg).build();
 			}
+			
+			if(collaborators!= null && !collaborators.isEmpty()) {
+				for(CollaboratorDetailsDto collab : collaborators) {
+					UserPrivilegeResponseDto collabDetails = userPrivilegeService.getByShortId(collab.getUserId());
+					if(collabDetails==null || !collabDetails.getCanCreate()) {
+						collabPrivilegeDetails.add(collabDetails);
+						MessageDescription errMsg = new MessageDescription("Collaborator " + collab.getUserId() + " or privileges not found, cannot add to dataiku project");
+						log.error("Collaborator {} or privileges not found, cannot update dataiku project", userId);
+						errors.add(errMsg);
+						responseMsg.setErrors(errors);
+						responseMsg.setWarnings(warnings);
+						responseDto.setResponse(responseMsg);
+						return Response.status(Status.BAD_REQUEST).entity(responseDto).build();
+					}
+				}
+			}
+			
 		}else {
 			MessageDescription errMsg = new MessageDescription(" Project with id " + id + " does not exists");
 			log.error("Not Found. Project with id {} does not exists", id);
@@ -231,7 +250,7 @@ public class DataikuController {
 			responseMsg.setWarnings(warnings);
 			return Response.status(Status.NOT_FOUND).entity(responseMsg).build();
 		}
-		responseDto = service.updateProject(id, request);
+		responseDto = service.updateProject(id, request,collabPrivilegeDetails);
 		return Response.ok().entity(responseDto).build();
 	}
 	
