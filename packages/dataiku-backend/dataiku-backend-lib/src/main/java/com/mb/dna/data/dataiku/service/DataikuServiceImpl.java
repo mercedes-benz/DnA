@@ -165,8 +165,9 @@ public class DataikuServiceImpl implements DataikuService	{
 						tempCollabUserDetails.setGroups(groups);
 						tempCollabUserDetails.setEmail(x.getUserId().toUpperCase());
 						tempCollabUserDetails.setEnabled(true);
-						Optional<UserPrivilegeResponseDto> tempCollabUserPrivilegeResponseDtoOptional = collabPrivilegeDetails.stream().filter(n-> x.getUserId().equalsIgnoreCase(n.getData().getId())).findFirst();
+						Optional<UserPrivilegeResponseDto> tempCollabUserPrivilegeResponseDtoOptional = collabPrivilegeDetails.stream().filter(n-> x.getUserId().equalsIgnoreCase(n.getData().getUserId())).findFirst();
 						if(tempCollabUserPrivilegeResponseDtoOptional.isPresent()) {
+							log.info("update collab details to onboard {} : {}", x.getUserId().toUpperCase() , tempCollabUserPrivilegeResponseDtoOptional.get().getData().getProfile());
 							tempCollabUserDetails.setUserProfile(tempCollabUserPrivilegeResponseDtoOptional.get().getData().getProfile());
 						}
 						MessageDescription onboardTempCollabErrMsg = dataikuClient.addUser(tempCollabUserDetails,cloudProfile);
@@ -178,6 +179,7 @@ public class DataikuServiceImpl implements DataikuService	{
 						if(currentGroups==null || currentGroups.isEmpty()) 
 							currentGroups = new ArrayList<>();
 						currentGroups.add(groupName);
+						tempCollabUserDetails.setGroups(currentGroups);
 						log.info("Adding group {} for user {} ", groupName,x.getUserId().toUpperCase());
 						MessageDescription UpdateTempCollabErrMsg = dataikuClient.updateUser(tempCollabUserDetails,cloudProfile);
 						if(UpdateTempCollabErrMsg!=null) {
@@ -328,8 +330,9 @@ public class DataikuServiceImpl implements DataikuService	{
 						groups.add(groupName);
 						tempCollabUserDetails.setGroups(groups);
 						tempCollabUserDetails.setEmail(tempCollab.getUserId().toUpperCase());
-						Optional<UserPrivilegeResponseDto> tempCollabUserPrivilegeResponseDtoOptional = collabPrivilegeDetails.stream().filter(x-> tempCollab.getUserId().equalsIgnoreCase(x.getData().getId())).findFirst();
+						Optional<UserPrivilegeResponseDto> tempCollabUserPrivilegeResponseDtoOptional = collabPrivilegeDetails.stream().filter(x-> tempCollab.getUserId().equalsIgnoreCase(x.getData().getUserId())).findFirst();
 						if(tempCollabUserPrivilegeResponseDtoOptional.isPresent()) {
+							log.info("create collab details to onboard {} : {} ",tempCollab.getUserId().toUpperCase() ,tempCollabUserPrivilegeResponseDtoOptional.get().getData().getProfile());
 							tempCollabUserDetails.setUserProfile(tempCollabUserPrivilegeResponseDtoOptional.get().getData().getProfile());
 						}
 						tempCollabUserDetails.setEnabled(true);

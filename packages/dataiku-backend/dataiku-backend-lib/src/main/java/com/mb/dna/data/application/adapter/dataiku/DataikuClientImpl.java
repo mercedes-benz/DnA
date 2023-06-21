@@ -5,8 +5,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
-import org.reactivestreams.Publisher;
-
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mb.dna.data.api.controller.exceptions.MessageDescription;
 
 import io.micronaut.http.HttpRequest;
@@ -35,6 +34,12 @@ public class DataikuClientImpl implements DataikuClient {
 			HttpRequest<DataikuUserDto> req = HttpRequest.POST(url,user).header("Accept", "application/json")
 			.header("Content-Type", "application/json")
 			.header("Authorization", "Basic "+apiToken);
+			try {
+				ObjectMapper mapper = new ObjectMapper();
+				log.info("Onboarding user to dataiku with details {}", mapper.writeValueAsString(user));
+			}catch(Exception ex) {
+				log.error("Failed to print details of user while onboarding to dataiku");
+			}
 			HttpResponse<DataikuResponseDto> response = client.toBlocking().exchange(req,DataikuResponseDto.class);
 			if(response!=null && response.getBody()!=null) {
 				Optional<DataikuResponseDto> responseBody = response.getBody();
