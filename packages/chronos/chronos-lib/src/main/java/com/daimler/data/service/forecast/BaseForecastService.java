@@ -10,6 +10,8 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import com.daimler.data.db.json.*;
+import com.daimler.data.dto.forecast.*;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -26,34 +28,13 @@ import com.daimler.data.auth.vault.VaultAuthClientImpl;
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
 import com.daimler.data.db.entities.ForecastNsql;
-import com.daimler.data.db.json.ComparisonDetails;
-import com.daimler.data.db.json.ComparisonState;
-import com.daimler.data.db.json.Forecast;
-import com.daimler.data.db.json.RunDetails;
-import com.daimler.data.db.json.RunState;
-import com.daimler.data.db.json.UserDetails;
 import com.daimler.data.db.repo.forecast.ForecastCustomRepository;
 import com.daimler.data.db.repo.forecast.ForecastRepository;
 import com.daimler.data.dto.comparison.ChronosComparisonRequestDto;
 import com.daimler.data.dto.comparison.CreateComparisonResponseWrapperDto;
 import com.daimler.data.dto.databricks.DataBricksJobRunOutputResponseWrapperDto;
 import com.daimler.data.dto.databricks.RunNowNotebookParamsDto;
-import com.daimler.data.dto.forecast.ApiKeyVO;
-import com.daimler.data.dto.forecast.CollaboratorVO;
-import com.daimler.data.dto.forecast.ComparisonStateVO;
-import com.daimler.data.dto.forecast.DataBricksErrorResponseVO;
-import com.daimler.data.dto.forecast.ForecastComparisonCreateResponseVO;
-import com.daimler.data.dto.forecast.ForecastComparisonResultVO;
-import com.daimler.data.dto.forecast.ForecastComparisonVO;
-import com.daimler.data.dto.forecast.ForecastProjectUpdateRequestVO;
-import com.daimler.data.dto.forecast.ForecastRunResponseVO;
-import com.daimler.data.dto.forecast.ForecastVO;
-import com.daimler.data.dto.forecast.RunDetailsVO;
-import com.daimler.data.dto.forecast.RunNowResponseVO;
-import com.daimler.data.dto.forecast.RunStateVO;
 import com.daimler.data.dto.forecast.RunStateVO.ResultStateEnum;
-import com.daimler.data.dto.forecast.RunVO;
-import com.daimler.data.dto.forecast.RunVisualizationVO;
 import com.daimler.data.dto.storage.BucketObjectDetailsDto;
 import com.daimler.data.dto.storage.BucketObjectsCollectionWrapperDto;
 import com.daimler.data.dto.storage.CreateBucketResponseWrapperDto;
@@ -1264,4 +1245,85 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 		}
 		return forecastComparisonsVO;
 	}
+
+
+	@Override
+	@Transactional
+	public ForecastConfigFileUploadResponseVO uploadConfigFile(ForecastVO existingForecast, String configFileId, String requestUser, Date createdOn, String configFilePath, String configFileName) {
+		InputFileVO forecastConfigFileVO = new InputFileVO();
+		GenericMessage responseMessage = new GenericMessage();
+		ForecastConfigFileUploadResponseVO responseWrapperVO = new ForecastConfigFileUploadResponseVO();
+
+		Optional<ForecastNsql> anyEntity = this.jpaRepo.findById(existingForecast.getId());
+		if (anyEntity != null && anyEntity.isPresent()) {
+			ForecastNsql entity = anyEntity.get();
+			forecastConfigFileVO.setId(configFileId);
+			forecastConfigFileVO.setCreatedBy(requestUser);
+			forecastConfigFileVO.setCreatedOn(createdOn);
+			forecastConfigFileVO.setPath(configFilePath);
+			forecastConfigFileVO.setName(configFileName);
+			entity.getData().setConfigFiles(this.assembler.toConfigFiles(existingForecast.getConfigFiles()));
+			try {
+				jpaRepo.save(entity);
+				responseMessage.setSuccess("SUCCESS");
+
+			} catch (Exception e) {
+				log.error("Failed while uploading config file forecast project {}", existingForecast.getName());
+				MessageDescription msg = new MessageDescription("Failed to save config details to table ");
+				List<MessageDescription> errors = new ArrayList<>();
+				errors.add(msg);
+				responseMessage.setErrors(errors);
+			}
+			responseWrapperVO.setData(forecastConfigFileVO);
+			responseWrapperVO.setResponse(responseMessage);
+		}
+		return responseWrapperVO;
+	}
+
+	@Override
+	public Object[] getForecastConfigFiles(String id) {
+		Object[] getForecastConfigsFilesArr = new Object[2];
+		List<InputFileVO> forecastConfigsFilesVOList = new ArrayList<>();
+		Optional<ForecastNsql> anyEntity = this.jpaRepo.findById(id);
+		Integer totalCount = 0;
+		if (anyEntity != null && anyEntity.isPresent()) {
+			ForecastNsql entity = anyEntity.get();
+			Forecast data = entity.getData();
+			List<File> configFilesList = data.getConfigFiles();
+			if (configFilesList != null && !configFilesList.isEmpty()) {
+				totalCount=configFilesList.size();
+				forecastConfigsFilesVOList	= this.assembler.toConfigFilesVO(configFilesList);
+			}
+			getForecastConfigsFilesArr[0] = forecastConfigsFilesVOList;
+			getForecastConfigsFilesArr[1] = totalCount;
+		}
+		return getForecastConfigsFilesArr;
+	}
+
+	@Override
+	public ForecastConfigFileResultVO getForecastConfigFileById(String id, String configFileId) {
+		ForecastConfigFileResultVO forecastConfigFileVO = new ForecastConfigFileResultVO();
+		Optional<ForecastNsql> anyEntity = this.jpaRepo.findById(id);
+		if (anyEntity != null && anyEntity.isPresent()) {
+			ForecastNsql entity = anyEntity.get();
+			Optional<File> requestedConfigFile = entity.getData().getConfigFiles().stream().filter(x -> configFileId.equalsIgnoreCase(x.getId())).findFirst();
+			String bucketName = entity.getData().getBucketName();
+			File configFile = requestedConfigFile.get();
+			try {
+				String commonPrefix = "/configs/" ;
+				String configPath = commonPrefix + configFile.getName();
+				FileDownloadResponseDto configDataResponse = storageClient.getFileContents(bucketName, configPath);
+				String configDataResult = "";
+				if (configDataResponse != null && configDataResponse.getData() != null && (configDataResponse.getErrors() == null || configDataResponse.getErrors().isEmpty())) {
+					configDataResult = new String(configDataResponse.getData().getByteArray());
+				}
+				forecastConfigFileVO.setConfigFileName(configFile.getName());
+				forecastConfigFileVO.setConfigFileData(configDataResult);
+			} catch (Exception e) {
+				log.error("Failed while parsing results data for config file id {} with exception {} ", configFileId, e.getMessage());
+			}
+		}
+		return forecastConfigFileVO;
+	}
+
 }
