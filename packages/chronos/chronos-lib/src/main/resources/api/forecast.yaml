@@ -898,6 +898,8 @@ paths:
         500:
           description: "Internal error"
 
+  # path example ../forecasts/{id}/config-files/{configFileId
+  /forecasts/{id}/config-files/{configFileId}:
     delete:
       tags:
         - "forecast-config-files"
