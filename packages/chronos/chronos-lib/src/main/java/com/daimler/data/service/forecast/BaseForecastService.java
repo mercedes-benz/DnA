@@ -1296,6 +1296,7 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 			}
 			getForecastConfigsFilesArr[0] = forecastConfigsFilesVOList;
 			getForecastConfigsFilesArr[1] = totalCount;
+			log.info("Get uploaded forecast config files", getForecastConfigsFilesArr);
 		}
 		return getForecastConfigsFilesArr;
 	}
