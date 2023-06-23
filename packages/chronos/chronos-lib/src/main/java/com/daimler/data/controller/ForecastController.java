@@ -1541,6 +1541,7 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 					configFiles = new ArrayList<>();
 				FileUploadResponseDto fileUploadResponse = storageClient.uploadFile(CONFIGS_FILE_PREFIX, configFile, existingForecast.getBucketName());
 				if (fileUploadResponse == null || (fileUploadResponse != null && (fileUploadResponse.getErrors() != null || !"SUCCESS".equalsIgnoreCase(fileUploadResponse.getStatus())))) {
+					log.error("Failed to upload config file {} to storage bucket",fileName);
 					GenericMessage errorMessage = new GenericMessage();
 					errorMessage.setSuccess("FAILED");
 					errorMessage.setErrors(fileUploadResponse.getErrors());
@@ -1549,6 +1550,7 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 					responseVO.setResponse(errorMessage);
 					return new ResponseEntity<>(responseVO, HttpStatus.INTERNAL_SERVER_ERROR);
 				} else if ("SUCCESS".equalsIgnoreCase(fileUploadResponse.getStatus())) {
+					log.info("Successfully to uploaded config file {} to storage bucket",fileName);
 					InputFileVO currentConfigInput = new InputFileVO();
 					currentConfigInput.setName(configFile.getOriginalFilename());
 					currentConfigInput.setPath(existingForecast.getBucketName() + "/configs/" + configFile.getOriginalFilename());
@@ -1706,6 +1708,7 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 				errorMessage.setWarnings(deleteFileResponse.getWarnings());
 				return new ResponseEntity<>(errorMessage, HttpStatus.INTERNAL_SERVER_ERROR);
 			}else if("SUCCESS".equalsIgnoreCase(deleteFileResponse.getStatus())) {
+				log.info("Successfully deleted config file {} from storage bucket",fileName);
 				ForecastVO updatedVO = service.create(existingForecast);
 			}
 		}
@@ -1785,6 +1788,7 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 		}else
 			notFound = true;
 		if(notFound) {
+			log.error("Config file id {} doesnt exists. Invalid configFileId",configFileId);
 			return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
 		}
 		ForecastConfigFileResultVO configFileData = service.getForecastConfigFileById(id,configFileId);
