@@ -225,7 +225,7 @@ public class ForecastAssembler implements GenericAssembler<ForecastVO, ForecastN
 			}
 			if(vo.getConfigFiles()!=null && !vo.getConfigFiles().isEmpty()) {
 				List<File> files = this.toConfigFiles(vo.getConfigFiles());
-				data.setSavedInputs(files);
+				data.setConfigFiles(files);
 			}
 			data.setBucketId(vo.getBucketId());
 			entity.setData(data);
