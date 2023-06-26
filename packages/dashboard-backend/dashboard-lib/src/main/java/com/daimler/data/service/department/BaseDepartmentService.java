@@ -42,6 +42,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ObjectUtils;
 
+import com.daimler.data.application.auth.UserStore;
 import com.daimler.data.assembler.DepartmentAssembler;
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
@@ -53,6 +54,7 @@ import com.daimler.data.dto.department.DepartmentRequestVO;
 import com.daimler.data.dto.department.DepartmentResponseVO;
 import com.daimler.data.dto.department.DepartmentUpdateRequestVO;
 import com.daimler.data.dto.department.DepartmentVO;
+import com.daimler.data.dto.report.CreatedByVO;
 import com.daimler.data.service.common.BaseCommonService;
 import com.daimler.data.service.report.ReportService;
 
@@ -68,6 +70,9 @@ public class BaseDepartmentService extends BaseCommonService<DepartmentVO, Depar
 
 	@Autowired
 	private ReportService reportService;
+	
+	@Autowired
+	private UserStore userStore;
 
 	public BaseDepartmentService() {
 		super();
@@ -153,6 +158,11 @@ public class BaseDepartmentService extends BaseCommonService<DepartmentVO, Depar
 					}
 					reportService.updateForEachReport(departmentEntity.get().getName(), departmentVO.getName(),
 							ReportService.CATEGORY.DEPARTMENT, null);
+					CreatedByVO currentUser = this.userStore.getVO();
+					String userId = currentUser != null ? currentUser.getId() : "";
+					String userName = currentUserName(currentUser);
+					String eventMessage = "Department " + departmentEntity.get().getName() + " has been updated by Admin " + userName;
+					super.notifyAllAdminUsers("Dashboard-Report MDM Update", departmentEntity.get().getName(), eventMessage, userId, null);
 					DepartmentVO vo = super.create(departmentVO);
 					if (vo != null && vo.getId() != null) {
 						responseVO.setData(vo);
@@ -194,6 +204,11 @@ public class BaseDepartmentService extends BaseCommonService<DepartmentVO, Depar
 				if (departmentEntity.isPresent()) {
 					String departmentName = departmentEntity.get().getName();
 					reportService.deleteForEachReport(departmentName, ReportService.CATEGORY.DEPARTMENT);
+					CreatedByVO currentUser = this.userStore.getVO();
+					String userId = currentUser != null ? currentUser.getId() : "";
+					String userName = currentUserName(currentUser);
+					String eventMessage = "Department " + departmentName + " has been deleted by Admin " + userName;
+					super.notifyAllAdminUsers("Dashboard-Report MDM Delete", departmentName, eventMessage, userId, null);
 					jpaRepo.deleteById(id);
 				}
 				GenericMessage successMsg = new GenericMessage();
