@@ -206,6 +206,59 @@ export const ConnectionModal = (props) => {
     return dataikuProjectList?.filter((item) => arr?.includes(item['name']))?.map((item) => item.name);
   };
 
+  const connectUsingRESTAPI = (
+    <>
+      <label>Step 1 - Get Access token from OpenID Connect (OIDC).</label>
+      <ul>
+        <li>Get access token from OIDC API - Use client creadential grant type or any other method.</li>
+      </ul>
+      <label>Step 2 - Generate JWT token.</label>
+      <ul>
+        <li>Request to <b>GET</b> API URL - <b>{Envs.API_BASEURL}/login</b></li>
+        <li>Value in Header: <b>Authorization</b> - Access token recived from Step 1</li>
+        <li>Value in Header: <b>Content-Type</b> - application/json</li>
+        <li>On Succesful response you will receive a JWT token as JSON data.</li>
+      </ul>
+      <label>Step 3 - Access Storage API&apos;s to manage your bucket contents.</label>
+      <ul>
+        <li>Use the JWT token received in Step 2 in the <b>Authorization</b> Header on Below API&apos;s</li>
+        <li>
+          To Upload File to a your bucket &apos;{bucketInfo.bucketName}&apos;<small>(Only for Read/Write Permission)</small> <br /><b>POST</b> API URL- <b>{`${Envs.STORAGE_API_BASEURL}/buckets/${bucketInfo.bucketName}/upload`}</b>
+          <ul>
+            <li>Value in Header: <b>Authorization</b> - JWT Token</li>
+            <li>Value in Header: <b>Content-Type</b> - application/json</li>
+            <li>Value in FormData: <b>file</b> - File Content as Binary</li>
+            <li>Value in FormData: <b>prefix</b> - Folder Path for the uploading file <br /><small>(Ex. Pass &apos;/&apos; for uploading to bucket root folder, Pass &apos;test/files&apos; for uploading to &apos;files&apos; folder under &apos;test&apos; folder)</small></li>
+          </ul>
+        </li>
+        <li>
+          To Download File from your bucket &apos;{bucketInfo.bucketName}&apos; <br /><b>GET</b> API URL- <b>{`${Envs.STORAGE_API_BASEURL}/buckets/${bucketInfo.bucketName}/objects/metadata`}</b>
+          <ul>
+            <li>Value in Header: <b>Authorization</b> - JWT Token</li>
+            <li>Value in Header: <b>Content-Type</b> - application/octet-stream</li>
+            <li>Value in Querystring: <b>prefix</b> - File Path for the downloading file <br /><small>(Ex. Pass &apos;file-name.pdf&apos; for downloading from root folder of the bucket, Pass &apos;test/files/file-name.pdf&apos; for downloading file &apos;file-name.pdf&apos; from &apos;files&apos; folder under &apos;test&apos; folder)</small></li>
+          </ul>
+        </li>
+        <li>
+          Get files and folders information from your bucket &apos;{bucketInfo.bucketName}&apos; <br /><b>GET</b> API URL- <b>{`${Envs.STORAGE_API_BASEURL}/buckets/${bucketInfo.bucketName}/objects`}</b>
+          <ul>
+            <li>Value in Header: <b>Authorization</b> - JWT Token</li>
+            <li>Value in Header: <b>Content-Type</b> - application/json</li>
+            <li>Value in Querystring: <b>prefix</b> - Path of the folder <br /><small>(Ex. Pass &apos;/&apos; folder info from root folder of the bucket, Pass &apos;test/files/&apos; for getting info for &apos;files&apos; folder under &apos;test&apos; folder)</small></li>
+          </ul>
+        </li>
+        <li>
+          To Delete file and folder from your bucket &apos;{bucketInfo.bucketName}&apos; <br /><b>DELETE</b> API URL- <b>{`${Envs.STORAGE_API_BASEURL}/buckets/${bucketInfo.bucketName}/objects`}</b>
+          <ul>
+            <li>Value in Header: <b>Authorization</b> - JWT Token</li>
+            <li>Value in Header: <b>Content-Type</b> - application/json</li>
+            <li>Value in Querystring: <b>prefix</b> - File or folder Path for the deleting file or folder <br /><small>(Ex. Pass &apos;file-name.pdf&apos; for delete from root folder of the bucket, Pass &apos;test/files/&apos; for deleting &apos;files&apos; folder under &apos;test&apos; folder)</small></li>
+          </ul>
+        </li>
+      </ul>
+    </>
+  );
+
   const connectToJupyter = (
     <>
       <code>
@@ -343,12 +396,17 @@ export const ConnectionModal = (props) => {
             <nav>
               <ul className="tabs">
                 <li className={'tab active'}>
-                  <a href="#tab-content-1" id="jupyterNotebook">
+                  <a href="#tab-content-1" id="restApi">
+                    <strong>Connect using REST API</strong>
+                  </a>
+                </li>
+                <li className={'tab'}>
+                  <a href="#tab-content-2" id="jupyterNotebook">
                     <strong>How to Connect from DNA Jupyter NoteBook</strong>
                   </a>
                 </li>
                 <li className={`tab ${!isDataikuEnabled ? 'disable' : ''}`}>
-                  <a href="#tab-content-2" id="dataiku">
+                  <a href="#tab-content-3" id="dataiku">
                     <strong style={{ ...(!isDataikuEnabled && { color: '#99a5b3' }) }}>
                       {`Connect to Dataiku project(s)${!isDataikuEnabled ? ' ( Coming soon )' : ''}`}
                     </strong>
@@ -368,9 +426,21 @@ export const ConnectionModal = (props) => {
               >
                 <i className="icon mbc-icon copy" />
               </span>
-              <div className={Styles.connectionCode}>{connectToJupyter}</div>
+              <div className={classNames(Styles.connectionCode, Styles.restAPIContent)}>{connectUsingRESTAPI}</div>
             </div>
             <div id="tab-content-2" className={classNames('tab-content mbc-scroll', Styles.tabContentContainer)}>
+              <span
+                className={Styles.copyIcon}
+                onClick={() => {
+                  const content = document.getElementById('tab-content-2')?.innerText;
+                  copyToClipboard(content);
+                }}
+              >
+                <i className="icon mbc-icon copy" />
+              </span>
+              <div className={Styles.connectionCode}>{connectToJupyter}</div>
+            </div>
+            <div id="tab-content-3" className={classNames('tab-content mbc-scroll', Styles.tabContentContainer)}>
               <div className={classNames(Styles.connectionCode)}>
                 {isLoading ? (
                   <div className={classNames('text-center', Styles.spinner)}>

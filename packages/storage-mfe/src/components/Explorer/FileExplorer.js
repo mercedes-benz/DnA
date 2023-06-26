@@ -6,6 +6,7 @@ import { useDispatch, useSelector } from 'react-redux';
 
 import ConfirmModal from 'dna-container/ConfirmModal';
 import Modal from 'dna-container/Modal';
+import Caption from 'dna-container/Caption';
 
 import { FullFileBrowser, ChonkyActions, FileHelper } from 'chonky';
 import { CustomActions } from './CustomFileActions';
@@ -55,7 +56,7 @@ import 'ace-builds/src-noconflict/mode-golang';
 import { bucketsObjectApi } from '../../apis/fileExplorer.api';
 import { getFilePath, serializeFolderChain, setObjectKey } from './Utils';
 import { aceEditorMode, IMAGE_EXTNS, PREVIEW_ALLOWED_EXTNS } from '../Utility/constants';
-import { history } from '../../store/storeRoot';
+// import { history } from '../../store/storeRoot';
 
 import { v4 as uuidv4 } from 'uuid';
 
@@ -276,10 +277,7 @@ const FileExplorer = () => {
     [dispatch, bucketObjects, bucketPermission],
   );
 
-  const goBack = () => {
-    // history.replace('/');
-    history.goBack();
-  };
+  //     history.goBack();
 
   const onDelete = (data) => {
     // Delete the files
@@ -917,15 +915,15 @@ const FileExplorer = () => {
 
   return (
     <>
-      <button className={classNames('btn btn-text back arrow', Styles.backBtn)} type="submit" onClick={goBack}>
+      {/* <button className={classNames('btn btn-text back arrow', Styles.backBtn)} type="submit" onClick={goBack}>
         Back
-      </button>
+      </button> */}
       <div className={Styles.mainPanel}>
         <div className={Styles.wrapper}>
-          <div className={Styles.caption}>
+          <Caption title={`Bucket - ${bucketName}`} />
+          {/* <div className={Styles.caption}>
             <h3>{`Bucket - ${bucketName}`}</h3>
-          </div>
-        </div>
+          </div> */}
         <div className={'explorer-content'}>
           <FileUpload uploadRef={uploadRef} bucketName={bucketName} folderChain={folderChain} />
           <FileUpload
@@ -1003,6 +1001,7 @@ const FileExplorer = () => {
               }
             />
           )}
+          </div>
         </div>
       </div>
       <Modal
