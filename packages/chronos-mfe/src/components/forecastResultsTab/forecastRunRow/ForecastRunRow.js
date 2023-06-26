@@ -38,7 +38,7 @@ const ForecastRunRow = (props) => {
   const onBrowseClick = () => {
     if(props.item.resultFolderPath) {
       const resultFolderPath = item.resultFolderPath.split('/');
-      window.open(`${Envs.STORAGE_MFE_APP_URL}/explorer/${resultFolderPath[0]}/${resultFolderPath[2]}`);
+      window.open(`${Envs.CONTAINER_APP_URL}/#/storage/explorer/${resultFolderPath[0]}/${resultFolderPath[2]}`);
     } else {
       Notification.show('No folder path available for the given run', 'alert');
     }
