@@ -48,7 +48,7 @@ export const DataLayerElements = [
     url: dataModelUrl,
     isExternalLink: true,
     isTextAlignLeft: false,
-    isDisabled: false,
+    isDisabled: !dataModelUrl?.startsWith('http'),
     isSmallCard: false,
     isMediumCard: true,
     svgIcon: 'dataproduct',
@@ -61,7 +61,7 @@ export const DataLayerElements = [
     url: kpiWikiUrl,
     isExternalLink: true,
     isTextAlignLeft: false,
-    isDisabled: false,
+    isDisabled: !kpiWikiUrl?.startsWith('http'),
     isSmallCard: false,
     isMediumCard: true,
     svgIcon: 'dataproduct',
@@ -87,7 +87,7 @@ export const DataLayerElements = [
     url: corporateDataCatalogUrl,
     isExternalLink: true,
     isTextAlignLeft: false,
-    isDisabled: false,
+    isDisabled: !corporateDataCatalogUrl?.startsWith('http'),
     isSmallCard: false,
     isMediumCard: true,
     svgIcon: 'dataproduct',
@@ -100,7 +100,7 @@ export const DataLayerElements = [
     url: sapConnectionBookUrl,
     isExternalLink: true,
     isTextAlignLeft: false,
-    isDisabled: true,
+    isDisabled: !sapConnectionBookUrl?.startsWith('http'),
     isSmallCard: false,
     isMediumCard: true,
     svgIcon: 'dataproduct',
@@ -113,7 +113,7 @@ export const DataLayerElements = [
     url: smartDataGovernanceUrl,
     isExternalLink: true,
     isTextAlignLeft: false,
-    isDisabled: false,
+    isDisabled: !smartDataGovernanceUrl?.startsWith('http'),
     isSmallCard: false,
     isMediumCard: true,
     svgIcon: 'dataproduct',
@@ -129,7 +129,7 @@ export const DataGovernanceElements = [
     url: Envs.DATA_GOVERNANCE_INFO_LINK,
     isExternalLink: true,
     isTextAlignLeft: false,
-    isDisabled: false,
+    isDisabled: !Envs.DATA_GOVERNANCE_INFO_LINK?.startsWith('http'),
     isSmallCard: false,
     isMediumCard: true,
     svgIcon: 'datagovernancesocialintranet',
@@ -175,6 +175,7 @@ export const ToolsLandingPageElements = [
     isSmallCard: false,
     isMediumCard: true,
     svgIcon: 'chronos',
+    isDnAInternalTool: true,
   },
   {
     name: 'Kubeflow',
@@ -189,6 +190,7 @@ export const ToolsLandingPageElements = [
     isSmallCard: false,
     isMediumCard: true,
     svgIcon: 'kubeflow',
+    isDnAInternalTool: true,
   },
   {
     name: 'Dataiku DSS',
@@ -203,6 +205,7 @@ export const ToolsLandingPageElements = [
     isSmallCard: false,
     isMediumCard: true,
     svgIcon: 'dataiku-new',
+    isDnAInternalTool: true,
   },
   {
     name: 'SAC',
@@ -217,6 +220,7 @@ export const ToolsLandingPageElements = [
     isSmallCard: false,
     isMediumCard: true,
     svgIcon: 'sac',
+    isDnAInternalTool: false,
   },
   {
     name: 'Power BI',
@@ -231,6 +235,7 @@ export const ToolsLandingPageElements = [
     isSmallCard: false,
     isMediumCard: true,
     svgIcon: 'powerbi',
+    isDnAInternalTool: false,
   },
   {
     name: 'Malware Scan',
@@ -245,6 +250,7 @@ export const ToolsLandingPageElements = [
     isSmallCard: false,
     isMediumCard: true,
     svgIcon: 'malwarescan',
+    isDnAInternalTool: true,
   },
   {
     name: 'Storage Bucket',
@@ -259,6 +265,7 @@ export const ToolsLandingPageElements = [
     isSmallCard: false,
     isMediumCard: true,
     svgIcon: 'storage',
+    isDnAInternalTool: true,
   },
   {
     name: 'Code Spaces',
@@ -273,6 +280,7 @@ export const ToolsLandingPageElements = [
     isSmallCard: false,
     isMediumCard: true,
     svgIcon: 'codespace',
+    isDnAInternalTool: true,
   },
   {
     name: 'Data Oasis',
@@ -287,6 +295,7 @@ export const ToolsLandingPageElements = [
     isSmallCard: false,
     isMediumCard: true,
     svgIcon: 'data-oasis',
+    isDnAInternalTool: false,
   },
   {
     name: 'DataQ',
@@ -301,6 +310,7 @@ export const ToolsLandingPageElements = [
     isSmallCard: false,
     isMediumCard: true,
     svgIcon: 'tools-mini',
+    isDnAInternalTool: false,
   },
   {
     name: 'Jupyter',
@@ -315,6 +325,7 @@ export const ToolsLandingPageElements = [
     isSmallCard: false,
     isMediumCard: true,
     svgIcon: 'jupyter',
+    isDnAInternalTool: true,
   },
   {
     name: 'AFO',
@@ -329,6 +340,7 @@ export const ToolsLandingPageElements = [
     isSmallCard: false,
     isMediumCard: true,
     svgIcon: 'afo',
+    isDnAInternalTool: false,
   },
   {
     name: 'Airflow',
@@ -343,6 +355,7 @@ export const ToolsLandingPageElements = [
     isSmallCard: false,
     isMediumCard: true,
     svgIcon: 'airflow',
+    isDnAInternalTool: true,
   },
   {
     name: 'eXtollo',
@@ -357,6 +370,7 @@ export const ToolsLandingPageElements = [
     isSmallCard: false,
     isMediumCard: true,
     svgIcon: 'extollo',
+    isDnAInternalTool: false,
   },
   {
     name: 'BTP',
@@ -371,6 +385,7 @@ export const ToolsLandingPageElements = [
     isSmallCard: false,
     isMediumCard: true,
     svgIcon: 'btp',
+    isDnAInternalTool: false,
   },
   {
     name: 'Datasphere',
@@ -384,6 +399,7 @@ export const ToolsLandingPageElements = [
     isSmallCard: false,
     isMediumCard: true,
     svgIcon: 'tools-mini',
+    isDnAInternalTool: false,
   },
   {
     name: 'SBISS4',
@@ -398,6 +414,7 @@ export const ToolsLandingPageElements = [
     isSmallCard: false,
     isMediumCard: true,
     svgIcon: 'sbiss',
+    isDnAInternalTool: false,
   },
   {
     name: 'SBISS Portal',
@@ -412,6 +429,7 @@ export const ToolsLandingPageElements = [
     isSmallCard: false,
     isMediumCard: true,
     svgIcon: 'sbiss',
+    isDnAInternalTool: false,
   },
   {
     name: 'SBISSonHANA Launchpad',
@@ -426,6 +444,7 @@ export const ToolsLandingPageElements = [
     isSmallCard: false,
     isMediumCard: true,
     svgIcon: 'sbiss',
+    isDnAInternalTool: false,
   },
   {
     name: 'Model Registry',
@@ -440,6 +459,7 @@ export const ToolsLandingPageElements = [
     isSmallCard: false,
     isMediumCard: true,
     svgIcon: 'modelregistry',
+    isDnAInternalTool: true,
   },
   {
     name: 'Chat GPT4All',
@@ -453,6 +473,7 @@ export const ToolsLandingPageElements = [
     isSmallCard: false,
     isMediumCard: true,
     svgIcon: 'tools-mini',
+    isDnAInternalTool: true,
   },
 ];
 
