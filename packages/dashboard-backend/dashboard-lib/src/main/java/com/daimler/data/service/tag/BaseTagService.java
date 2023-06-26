@@ -42,11 +42,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ObjectUtils;
 
+import com.daimler.data.application.auth.UserStore;
 import com.daimler.data.assembler.TagAssembler;
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
 import com.daimler.data.db.entities.TagSql;
 import com.daimler.data.db.repo.tag.TagRepository;
+import com.daimler.data.dto.report.CreatedByVO;
 import com.daimler.data.dto.tag.TagCollection;
 import com.daimler.data.dto.tag.TagNameVO;
 import com.daimler.data.dto.tag.TagRequestVO;
@@ -67,6 +69,9 @@ public class BaseTagService extends BaseCommonService<TagVO, TagSql, Long> imple
 
 	@Autowired
 	private ReportService reportService;
+	
+	@Autowired
+	private UserStore userStore;
 
 	public BaseTagService() {
 		super();
@@ -161,6 +166,11 @@ public class BaseTagService extends BaseCommonService<TagVO, TagSql, Long> imple
 					}
 					reportService.updateForEachReport(tagEntity.get().getName(), tagVO.getName(),
 							ReportService.CATEGORY.TAG, null);
+					CreatedByVO currentUser = this.userStore.getVO();
+					String userId = currentUser != null ? currentUser.getId() : "";
+					String userName = currentUserName(currentUser);
+					String eventMessage = "Tag " + tagEntity.get().getName() + " has been updated by Admin " + userName;
+					super.notifyAllAdminUsers("Dashboard-Report MDM Update", tagEntity.get().getName(), eventMessage, userId, null);
 					TagVO vo = super.create(tagVO);
 					if (vo != null && vo.getId() != null) {
 						responseVO.setData(vo);
@@ -200,6 +210,11 @@ public class BaseTagService extends BaseCommonService<TagVO, TagSql, Long> imple
 				if (tagEntity.isPresent()) {
 					String tagName = tagEntity.get().getName();
 					reportService.deleteForEachReport(tagName, ReportService.CATEGORY.TAG);
+					CreatedByVO currentUser = this.userStore.getVO();
+					String userId = currentUser != null ? currentUser.getId() : "";
+					String userName = currentUserName(currentUser);
+					String eventMessage = "Tag " + tagName + " has been deleted by Admin " + userName;
+					super.notifyAllAdminUsers("Dashboard-Report MDM Delete", tagName, eventMessage, userId, null);
 					jpaRepo.deleteById(id);
 				}
 				GenericMessage successMsg = new GenericMessage();
