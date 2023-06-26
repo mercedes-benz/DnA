@@ -311,6 +311,11 @@ public class BaseCommonService<V, T, ID> implements CommonService<V, T, ID> {
 							entity.getClass().getAnnotation(Table.class).name());
 					if (existingEntity == null) {
 						reportService.updateForEachReport(exists[1].toString(), vo.getData().getName(), category, null);
+						CreatedByVO currentUser = this.userStore.getVO();
+						String userId = currentUser != null ? currentUser.getId() : "";
+						String userName = currentUserName(currentUser);
+						String eventMessage = category.toString() + "  " + exists[1].toString() + " has been updated by Admin " + userName;
+						notifyAllAdminUsers("Dashboard-Report MDM Update", exists[1].toString(), eventMessage, userId, null);
 						T savedEntity = jpaRepo.save(entity);
 						BeanUtils.copyProperties(savedEntity, lovVo);
 						if (lovVo != null && lovVo.getId() != null) {
@@ -355,6 +360,11 @@ public class BaseCommonService<V, T, ID> implements CommonService<V, T, ID> {
 						entity.getClass().getAnnotation(Table.class).name());
 				if (existingEntity != null) {
 					reportService.deleteForEachReport(existingEntity[1].toString(), category);
+					CreatedByVO currentUser = this.userStore.getVO();
+					String userId = currentUser != null ? currentUser.getId() : "";
+					String userName = currentUserName(currentUser);
+					String eventMessage = category.toString()  + "  "  + existingEntity[1].toString() + " has been deleted by Admin " + userName;
+					notifyAllAdminUsers("Dashboard-Report MDM Delete", existingEntity[1].toString(), eventMessage, userId, null);
 					jpaRepo.deleteById(id);
 				}
 				GenericMessage successMsg = new GenericMessage();

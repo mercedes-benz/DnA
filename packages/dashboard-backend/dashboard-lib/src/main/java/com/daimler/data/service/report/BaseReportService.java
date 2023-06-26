@@ -30,11 +30,19 @@ package com.daimler.data.service.report;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.ListIterator;
+import java.util.Map;
 import java.util.Objects;
+import java.lang.reflect.Type;
+import java.util.AbstractMap.SimpleEntry;
+import java.util.Map.Entry;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 import javax.persistence.EntityNotFoundException;
 import javax.validation.Valid;
@@ -66,6 +74,7 @@ import com.daimler.data.db.jsonb.report.KPIName;
 import com.daimler.data.db.jsonb.report.Report;
 import com.daimler.data.db.jsonb.report.SingleDataSource;
 import com.daimler.data.db.jsonb.report.Subdivision;
+import com.daimler.data.db.jsonb.report.TeamMember;
 import com.daimler.data.db.repo.report.ReportCustomRepository;
 import com.daimler.data.db.repo.report.ReportRepository;
 import com.daimler.data.dto.KpiName.KpiNameVO;
@@ -94,6 +103,13 @@ import com.daimler.data.service.kpiName.KpiNameService;
 import com.daimler.data.service.tag.TagService;
 import com.daimler.data.util.ConstantsUtility;
 import com.daimler.dna.notifications.common.producer.KafkaProducerService;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.MapDifference;
+import com.google.common.collect.Maps;
+import com.google.common.collect.MapDifference.ValueDifference;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 
 import io.jsonwebtoken.lang.Strings;
 
@@ -147,8 +163,6 @@ public class BaseReportService extends BaseCommonService<ReportVO, ReportNsql, S
 		updateDepartments(vo);
 		updateDataSources(vo);
 		updateKpiNames(vo);
-		String eventType = "Dashboard-Report Create";
-		this.publishEventMessages(eventType, vo);
 		return super.create(vo);
 	}
 
@@ -216,7 +230,6 @@ public class BaseReportService extends BaseCommonService<ReportVO, ReportNsql, S
 	@Transactional
 	public void deleteForEachReport(String name, CATEGORY category) {
 		List<ReportNsql> reports = null;
-		String eventType = "Dashboard-Report MDM Delete";
 		CreatedByVO currentUser = this.userStore.getVO();
 		com.daimler.data.dto.solution.TeamMemberVO modifiedBy = new com.daimler.data.dto.solution.TeamMemberVO();
 		BeanUtils.copyProperties(currentUser, modifiedBy);
@@ -231,6 +244,13 @@ public class BaseReportService extends BaseCommonService<ReportVO, ReportNsql, S
 			reports.forEach(reportNsql -> {
 				Report reportJson = reportNsql.getData();
 				String reportName = reportJson.getProductName();
+				List<String> teamMembers = new ArrayList<>();
+				List<String> teamMembersEmails = new ArrayList<>();
+				List<TeamMember> reportTeamMembers = reportJson.getMember().getReportAdmins();
+				for(TeamMember member:reportTeamMembers) {
+					teamMembers.add(member.getShortId());
+					teamMembersEmails.add(member.getEmail());
+				}
 				String message = "";
 				List<ChangeLogVO> changeLogs = new ArrayList<>();
 				ChangeLogVO changeLog = new ChangeLogVO();
@@ -516,7 +536,8 @@ public class BaseReportService extends BaseCommonService<ReportVO, ReportNsql, S
 				LOGGER.info(
 						"Publishing message on Dashboard-Report MDM Delete event for report {}, after admin action on {} and {}",
 						reportName, category, name);
-				super.notifyAllAdminUsers(eventType, reportNsql.getId(), message, userId, changeLogs);
+				kafkaProducer.send("Dashboard-Report Updated after Admin action", reportNsql.getId(), "", userId, message,
+						true, teamMembers, teamMembersEmails, changeLogs);				
 
 			});
 		}
@@ -526,7 +547,6 @@ public class BaseReportService extends BaseCommonService<ReportVO, ReportNsql, S
 	@Transactional
 	public void updateForEachReport(String oldValue, String newValue, CATEGORY category, Object updateObject) {
 		List<ReportNsql> reports = null;
-		String eventType = "Dashboard-Report MDM Update";
 		CreatedByVO currentUser = this.userStore.getVO();
 		com.daimler.data.dto.solution.TeamMemberVO modifiedBy = new com.daimler.data.dto.solution.TeamMemberVO();
 		BeanUtils.copyProperties(currentUser, modifiedBy);
@@ -541,6 +561,13 @@ public class BaseReportService extends BaseCommonService<ReportVO, ReportNsql, S
 			reports.forEach(reportNsql -> {
 				Report reportJson = reportNsql.getData();
 				String reportName = reportJson.getProductName();
+				List<String> teamMembers = new ArrayList<>();
+				List<String> teamMembersEmails = new ArrayList<>();
+				List<TeamMember> reportTeamMembers = reportJson.getMember().getReportAdmins();
+				for(TeamMember member:reportTeamMembers) {
+					teamMembers.add(member.getShortId());
+					teamMembersEmails.add(member.getEmail());
+				}
 				String message = "";
 				List<ChangeLogVO> changeLogs = new ArrayList<>();
 				ChangeLogVO changeLog = new ChangeLogVO();
@@ -828,7 +855,8 @@ public class BaseReportService extends BaseCommonService<ReportVO, ReportNsql, S
 				LOGGER.info(
 						"Publishing message on Dashboard-Report MDM Update event for report {}, after admin action on {} and {}",
 						reportName, category, oldValue);
-				super.notifyAllAdminUsers(eventType, reportNsql.getId(), message, userId, changeLogs);
+				kafkaProducer.send("Dashboard-Report Updated after Admin action", reportNsql.getId(), "", userId, message,
+						true, teamMembers, teamMembersEmails, changeLogs);				
 			});
 		}
 	}
@@ -908,6 +936,8 @@ public class BaseReportService extends BaseCommonService<ReportVO, ReportNsql, S
 
 			ReportVO reportVO = this.create(requestReportVO);
 			if (reportVO != null && reportVO.getId() != null) {
+				String eventType = "Dashboard-Report Create";
+				this.publishEventMessages(eventType, reportVO);
 				reportResponseVO.setData(reportVO);
 				LOGGER.info("Report {} created successfully", uniqueProductName);
 				return new ResponseEntity<>(reportResponseVO, HttpStatus.CREATED);
@@ -1001,10 +1031,27 @@ public class BaseReportService extends BaseCommonService<ReportVO, ReportNsql, S
 								}
 								String eventMessage = "Dashboard report " + reportName + " has been updated by "
 										+ publishingUserName;
+								List<ChangeLogVO> changeLogs = new ArrayList<>();
+								List<ChangeLogVO> newChangeLogs = new ArrayList<>();
+								CreatedByVO currentUser = this.userStore.getVO();
+								changeLogs = jsonObjectCompare(requestReportVO, existingReportVO, currentUser);
+								if(changeLogs.size() == 1) {
+									for(ChangeLogVO changeLogVO : changeLogs) {
+										if(changeLogVO.getFieldChanged().contains("/lastModifiedDate")) {
+											newChangeLogs.add(changeLogVO);
+										}
+									}
+								}								
+								changeLogs.removeAll(newChangeLogs);
+								if(changeLogs != null && changeLogs.size()>0) {
 								kafkaProducer.send(eventType, resourceID, "", publishingUserId, eventMessage, true,
-										membersId, membersEmail, null);
+										membersId, membersEmail, changeLogs);								
 								LOGGER.info("Published successfully event {} for report {} with message {}", eventType,
 										resourceID, eventMessage);
+								}
+								else {
+									LOGGER.info("Changelogs are empty: {} " , changeLogs);
+								}
 							}
 						} catch (Exception e) {
 							LOGGER.error("Failed while publishing dashboard report update event msg. Exception is {} ",
@@ -1214,6 +1261,203 @@ public class BaseReportService extends BaseCommonService<ReportVO, ReportNsql, S
 					eventType, message, e.getMessage());
 		}
 	}
+	
+	/**
+	 * Simple GSON based json objects compare and difference provider
+	 * 
+	 * @param request
+	 * @param existing
+	 * @param currentUser
+	 * @return
+	 */
+	public List<ChangeLogVO> jsonObjectCompare(Object request, Object existing, CreatedByVO currentUser) {
+		Gson gson = new Gson();
+		Type type = new TypeToken<Map<String, Object>>() {
+		}.getType();
+		Map<String, Object> leftMap = gson.fromJson(gson.toJson(existing), type);
+		Map<String, Object> rightMap = gson.fromJson(gson.toJson(request), type);
+
+		Map<String, Object> leftFlatMap = BaseReportService.flatten(leftMap);
+		Map<String, Object> rightFlatMap = BaseReportService.flatten(rightMap);
+
+		MapDifference<String, Object> difference = Maps.difference(leftFlatMap, rightFlatMap);
+
+		com.daimler.data.dto.solution.TeamMemberVO teamMemberVO = new com.daimler.data.dto.solution.TeamMemberVO();
+		BeanUtils.copyProperties(currentUser, teamMemberVO);
+		teamMemberVO.setShortId(currentUser.getId());
+		Date changeDate = new Date();
+
+		List<ChangeLogVO> changeLogsVO = new ArrayList<ChangeLogVO>();
+		ChangeLogVO changeLogVO = null;
+		// Checking for Removed values
+		if (null != difference.entriesOnlyOnLeft() && !difference.entriesOnlyOnLeft().isEmpty()) {
+			for (Entry<String, Object> entry : difference.entriesOnlyOnLeft().entrySet()) {
+				if (!(entry.getKey().toString().contains(ConstantsUtility.CHANGE_LOGS)
+						|| entry.getKey().toString().contains(ConstantsUtility.VALUE_CALCULATOR)
+						|| entry.getKey().toString().contains(ConstantsUtility.ID))) {
+					changeLogVO = new ChangeLogVO();
+					changeLogVO.setModifiedBy(teamMemberVO);
+					changeLogVO.setChangeDate(changeDate);
+					changeLogVO.setFieldChanged(entry.getKey());
+					changeLogVO.setOldValue(entry.getValue().toString());
+					// setting change Description Starts
+					changeLogVO.setChangeDescription(
+							toChangeDescription(entry.getKey(), entry.getValue().toString(), null));
+					changeLogsVO.add(changeLogVO);
+				}
+			}
+		}
+		// Checking for Added values
+		if (null != difference.entriesOnlyOnRight() && !difference.entriesOnlyOnRight().isEmpty()) {
+			for (Entry<String, Object> entry : difference.entriesOnlyOnRight().entrySet()) {
+				if (!(entry.getKey().toString().contains(ConstantsUtility.CHANGE_LOGS)
+						|| entry.getKey().toString().contains(ConstantsUtility.VALUE_CALCULATOR)
+						|| entry.getKey().toString().contains(ConstantsUtility.ID))) {
+					changeLogVO = new ChangeLogVO();
+					changeLogVO.setModifiedBy(teamMemberVO);
+					changeLogVO.setChangeDate(changeDate);
+					changeLogVO.setFieldChanged(entry.getKey());
+					changeLogVO.setNewValue(entry.getValue().toString());
+					// setting change Description
+					changeLogVO.setChangeDescription(
+							toChangeDescription(entry.getKey(), null, entry.getValue().toString()));
+					changeLogsVO.add(changeLogVO);
+				}
+			}
+		}
+		// Checking for value differences
+		if (null != difference.entriesDiffering() && !difference.entriesDiffering().isEmpty()) {
+			for (Entry<String, ValueDifference<Object>> entry : difference.entriesDiffering().entrySet()) {
+				if (!(entry.getKey().toString().contains(ConstantsUtility.CHANGE_LOGS)
+						|| entry.getKey().toString().contains(ConstantsUtility.VALUE_CALCULATOR)
+						|| entry.getKey().toString().contains(ConstantsUtility.ID))) {
+					changeLogVO = new ChangeLogVO();
+					changeLogVO.setModifiedBy(teamMemberVO);
+					changeLogVO.setChangeDate(changeDate);
+					changeLogVO.setFieldChanged(entry.getKey());
+					changeLogVO.setOldValue(entry.getValue().leftValue().toString());
+					changeLogVO.setNewValue(entry.getValue().rightValue().toString());
+					// setting change Description
+					changeLogVO.setChangeDescription(toChangeDescription(entry.getKey(),
+							entry.getValue().leftValue().toString(), entry.getValue().rightValue().toString()));
+					changeLogsVO.add(changeLogVO);
+				}
+			}
+		}
+		return changeLogsVO;
+	}
+
+	/**
+	 * flatten the map
+	 * 
+	 * @param map
+	 * @return Map<String, Object>
+	 */
+	public static Map<String, Object> flatten(Map<String, Object> map) {
+		if (null == map || map.isEmpty()) {
+			return new HashMap<String, Object>();
+		} else {
+			return map.entrySet().stream().flatMap(BaseReportService::flatten).collect(LinkedHashMap::new,
+					(m, e) -> m.put("/" + e.getKey(), e.getValue()), LinkedHashMap::putAll);
+		}
+	}
+
+	/**
+	 * flatten map entry
+	 * 
+	 * @param entry
+	 * @return
+	 */
+	private static Stream<Entry<String, Object>> flatten(Entry<String, Object> entry) {
+
+		if (entry == null) {
+			return Stream.empty();
+		}
+
+		if (entry.getValue() instanceof Map<?, ?>) {
+			Map<?, ?> properties = (Map<?, ?>) entry.getValue();
+			return properties.entrySet().stream()
+					.flatMap(e -> flatten(new SimpleEntry<>(entry.getKey() + "/" + e.getKey(), e.getValue())));
+		}
+
+		if (entry.getValue() instanceof List<?>) {
+			List<?> list = (List<?>) entry.getValue();
+			return IntStream.range(0, list.size())
+					.mapToObj(i -> new SimpleEntry<String, Object>(entry.getKey() + "/" + i, list.get(i)))
+					.flatMap(BaseReportService::flatten);
+		}
+
+		return Stream.of(entry);
+	}
+	
+	private String toHumanReadableFormat(String raw) {
+		if (raw != null) {
+			String seperated = raw.replaceAll(String.format("%s|%s|%s", "(?<=[A-Z])(?=[A-Z][a-z])",
+					"(?<=[^A-Z])(?=[A-Z])", "(?<=[A-Za-z])(?=[^A-Za-z])"), " ");
+			String formatted = Character.toUpperCase(seperated.charAt(0)) + seperated.substring(1);
+			return formatted;
+		} else
+			return raw;
+	}
+
+	
+	/**
+	 * toChangeDescription convert given keyString to changeDescription
+	 * 
+	 * @param keyString
+	 * @param fromValue
+	 * @param toValue
+	 * @return changeDescription
+	 */
+	private String toChangeDescription(String keyString, String fromValue, String toValue) {
+		keyString = keyString.substring(1);
+		String[] keySet = keyString.split("/");
+		String at = null;
+		int indexValue = 0;
+		String fieldValue = "";
+		StringBuilder changeDescription = new StringBuilder();
+		if (keySet.length > 0) {
+			fieldValue = ConstantsUtility.staticMap.get(keySet[0]) != null ? ConstantsUtility.staticMap.get(keySet[0])
+					: keySet[0];
+			fieldValue = toHumanReadableFormat(fieldValue);
+			changeDescription.append(fieldValue + ": ");
+		}
+		boolean flag = false;
+		for (int i = (keySet.length - 1), index = keySet.length; i >= 0; i--) {
+			if (!keySet[i].matches("[0-9]") && !flag) {
+				String keySetField = ConstantsUtility.staticMap.get(keySet[i]) != null
+						? ConstantsUtility.staticMap.get(keySet[i])
+						: keySet[i];
+				changeDescription.append(toHumanReadableFormat(keySetField));
+				flag = true;
+			} else if (keySet[i].matches("[0-9]")) {
+				indexValue = Integer.parseInt(keySet[i]) + 1;
+				at = " at index " + String.valueOf(indexValue);
+				index = i;
+			} else {
+				String keySetField = (ConstantsUtility.staticMap.get(keySet[i]) != null
+						? ConstantsUtility.staticMap.get(keySet[i])
+						: keySet[i]);
+				changeDescription.append(" of " + toHumanReadableFormat(keySetField));
+			}
+			if (StringUtils.hasText(at) && index != i) {
+				changeDescription.append(at);
+				at = null;
+			}
+
+		}
+		if (!StringUtils.hasText(fromValue)) {
+			changeDescription.append(" `" + toValue + "` added . ");
+		} else if (!StringUtils.hasText(toValue)) {
+			changeDescription.append(" `" + fromValue + "` removed . ");
+		} else {
+			changeDescription.append(" changed from `" + fromValue + "` to `" + toValue + "` .");
+		}
+
+		return changeDescription.toString();
+	}
+
+
 
 
 }
