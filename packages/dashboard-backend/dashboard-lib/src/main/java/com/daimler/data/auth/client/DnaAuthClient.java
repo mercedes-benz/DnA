@@ -45,4 +45,6 @@ public interface DnaAuthClient {
 	public UserInfoVO userInfoById(String userId);
 
 	public String createDataSources(DataSourceBulkRequestVO vo);
+	
+	public UsersCollection getAll();
 }
