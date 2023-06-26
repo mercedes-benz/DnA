@@ -7,6 +7,7 @@ import Styles from './run-parameters-form.scss';
 import SelectBox from 'dna-container/SelectBox';
 import Tooltip from '../../../common/modules/uilab/js/src/tooltip';
 import { chronosApi } from '../../../apis/chronos.api';
+import { Envs } from '../../../utilities/envs';
 
 const RunParametersForm = () => {
   const { register, resetField, formState: { errors } } = useFormContext({defaultValues: {
@@ -15,7 +16,7 @@ const RunParametersForm = () => {
                                                                         }});
   const frequencyTooltipContent = 'Please select a frequency for your data in the field below.\n Make sure the datetimes in the first column of the data you upload matches the frequency selected here.\n If your data has no inherent frequency or the frequency is not available in the list, select "No frequency".\n In this case, the first column of your data should contain sortable indices like [1, 2, 3...].';
   const forecastHorizonTooltipContent = 'Select how many data points in the future the forecast should predict.\n Note that this number should not be more than 1/5th the length of your existing data, ideally less.\n Also, forecasting gets less precise over time, so try to not predict too many points in the future.';
-  const chronosVersionTooltipContent = 'This is an experimental feature used for testing or as a fallback option. To use an older Chronos version, type the version number, e.g. "2.3.0" (without the quotes).\nTo get a list of available Chronos versions, check this link [https://***REMOVED***/FST/chronos/releases].\nNote that we currently offer no support for this feature. Available versions differ between environments and versions might be discontinued without previous warning.';
+  const chronosVersionTooltipContent = `This is an experimental feature used for testing or as a fallback option. To use an older Chronos version, type the version number, e.g. "2.3.0" (without the quotes).\nTo get a list of available Chronos versions, check this link [${Envs.CHRONOS_RELEASES_GIT_URL}].\nNote that we currently offer no support for this feature. Available versions differ between environments and versions might be discontinued without previous warning.`;
 
   const [configurationFiles, setConfigurationFiles] = useState([]);
   const [expertView, setExpertView] = useState(false);
