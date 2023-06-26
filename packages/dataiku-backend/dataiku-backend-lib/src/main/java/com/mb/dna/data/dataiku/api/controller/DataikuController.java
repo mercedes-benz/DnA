@@ -26,8 +26,10 @@ import com.mb.dna.data.assembler.DataikuAssembler;
 import com.mb.dna.data.dataiku.api.dto.CollaboratorDetailsDto;
 import com.mb.dna.data.dataiku.api.dto.DataikuProjectCreateRequestDto;
 import com.mb.dna.data.dataiku.api.dto.DataikuProjectDto;
+import com.mb.dna.data.dataiku.api.dto.DataikuProjectProvisionSolutionRequestDto;
 import com.mb.dna.data.dataiku.api.dto.DataikuProjectResponseDto;
 import com.mb.dna.data.dataiku.api.dto.DataikuProjectSummaryCollectionDto;
+import com.mb.dna.data.dataiku.api.dto.DataikuProjectSummaryDetailResponseDto;
 import com.mb.dna.data.dataiku.api.dto.DataikuProjectSummaryDto;
 import com.mb.dna.data.dataiku.api.dto.DataikuProjectUpdateRequestDto;
 import com.mb.dna.data.dataiku.api.dto.DataikuProjectsCollectionDto;
@@ -37,6 +39,7 @@ import com.mb.dna.data.userprivilege.service.UserPrivilegeService;
 
 import io.micronaut.http.annotation.Controller;
 import io.micronaut.http.annotation.Get;
+import io.micronaut.http.annotation.Patch;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -150,6 +153,7 @@ public class DataikuController {
 			return Response.status(Status.CONFLICT).entity(responseDto).build();
 		}
 		requestedData.setProjectName(projectName.toUpperCase());
+		requestedData.setSolutionId(null);
 		responseDto = service.createProject(userId, requestedData,ownerDetails,collabPrivilegeDetails);
 		return Response.ok().entity(responseDto).build();
 		}catch(Exception e) {
@@ -166,7 +170,7 @@ public class DataikuController {
             content = @Content(mediaType = "application/json"
             ,schema = @Schema(type="DataikuProjectSummaryCollectionDto"))
     )
-    @ApiResponse(responseCode = "404", description = "API not found")
+    @ApiResponse(responseCode = "404", description = "Record not found")
     @ApiResponse(responseCode = "500", description = "Failed with internal server error")
     @Tag(name = "dataiku")
     public Response getAll(
@@ -192,6 +196,35 @@ public class DataikuController {
 			return Response.noContent().entity(summaryCollectionDto).build();
     }
 	
+	@GET
+    @Path("/dataiku/{id}")
+    @Operation(summary = "get dataiku project",
+            description = "get dataiku project details from the system")
+    @ApiResponse(responseCode = "200", description = "dataiku project fetched",
+    		content = @Content(mediaType = "application/json"
+            ,schema = @Schema(type="DataikuProjectResponseDto")))
+    @ApiResponse(responseCode = "400", description = "Invalid id supplied")
+    @ApiResponse(responseCode = "404", description = "Record not found")
+	@Tag(name = "dataiku")
+    public Response fetchDataikuById(
+            @Parameter(description = "The id of the dataiku project to be fetched", required = true) @PathParam("id") String id) {
+		String userId = this.userStore.getUserInfo().getId();
+		DataikuProjectDto data = service.getById(id);
+		if(data!=null && id.equalsIgnoreCase(data.getId())) {
+			CollaboratorDetailsDto collabUser = data.getCollaborators().stream().filter(collab -> userId.equalsIgnoreCase(collab.getUserId()))
+					  .findAny().orElse(null);
+			if(!(userId.equalsIgnoreCase(data.getCreatedBy()) || (collabUser!=null && userId.equalsIgnoreCase(collabUser.getUserId())))){
+				return Response.status(Status.FORBIDDEN).entity(null).build();
+			}
+		}else {
+			return Response.status(Status.NOT_FOUND).entity(null).build();
+		}
+		DataikuProjectSummaryDetailResponseDto responseDto = new DataikuProjectSummaryDetailResponseDto();
+		responseDto.setData(assembler.toProjectDetails(data));
+		responseDto.setResponse(responseDto.getResponse());
+		return Response.ok().entity(responseDto).build();
+	}
+	
 	@PUT
     @Path("/dataiku/{id}")
     @Operation(summary = "Update dataiku project",
@@ -206,6 +239,7 @@ public class DataikuController {
                             schema = @Schema(implementation = DataikuProjectUpdateRequestDto.class))) DataikuProjectUpdateRequestDto request,
             @Parameter(description = "The id of the dataiku project to be updated", required = true) @PathParam("id") String id) {
 		DataikuProjectResponseDto responseDto = new DataikuProjectResponseDto();
+		DataikuProjectSummaryDetailResponseDto responseDetailDto = new DataikuProjectSummaryDetailResponseDto();
 		responseDto.setData(null);
 		GenericMessage responseMsg = new GenericMessage();
 		responseMsg.setSuccess("FAILED");
@@ -224,7 +258,9 @@ public class DataikuController {
 				errors.add(errMsg);
 				responseMsg.setErrors(errors);
 				responseMsg.setWarnings(warnings);
-				return Response.status(Status.FORBIDDEN).entity(responseMsg).build();
+				responseDetailDto.setData(assembler.toProjectDetails(responseDto.getData()));
+				responseDetailDto.setResponse(responseMsg);
+				return Response.status(Status.FORBIDDEN).entity(responseDetailDto).build();
 			}
 			
 			if(collaborators!= null && !collaborators.isEmpty()) {
@@ -236,8 +272,9 @@ public class DataikuController {
 						errors.add(errMsg);
 						responseMsg.setErrors(errors);
 						responseMsg.setWarnings(warnings);
-						responseDto.setResponse(responseMsg);
-						return Response.status(Status.BAD_REQUEST).entity(responseDto).build();
+						responseDetailDto.setData(assembler.toProjectDetails(responseDto.getData()));
+						responseDetailDto.setResponse(responseMsg);
+						return Response.status(Status.BAD_REQUEST).entity(responseDetailDto).build();
 					}else {
 						collabPrivilegeDetails.add(collabDetails);
 					}
@@ -250,9 +287,13 @@ public class DataikuController {
 			errors.add(errMsg);
 			responseMsg.setErrors(errors);
 			responseMsg.setWarnings(warnings);
-			return Response.status(Status.NOT_FOUND).entity(responseMsg).build();
+			responseDetailDto.setData(assembler.toProjectDetails(responseDto.getData()));
+			responseDetailDto.setResponse(responseMsg);
+			return Response.status(Status.NOT_FOUND).entity(responseDetailDto).build();
 		}
 		responseDto = service.updateProject(id, request,collabPrivilegeDetails);
+		responseDetailDto.setData(assembler.toProjectDetails(responseDto.getData()));
+		responseDetailDto.setResponse(responseDto.getResponse());
 		return Response.ok().entity(responseDto).build();
 	}
 	
@@ -264,7 +305,7 @@ public class DataikuController {
     		content = @Content(mediaType = "application/json"
             ,schema = @Schema(type="GenericMessage")))
     @ApiResponse(responseCode = "400", description = "Invalid id supplied")
-    @ApiResponse(responseCode = "404", description = "User not found")
+    @ApiResponse(responseCode = "404", description = "Record not found")
 	@Tag(name = "dataiku")
     public Response deleteDataiku(
             @Parameter(description = "The id of the dataiku project to be deleted", required = true) @PathParam("id") String id) {
@@ -297,6 +338,97 @@ public class DataikuController {
 		return Response.ok().entity(responseMsg).build();
 	}
 	
+	@GET
+    @Path("/dataiku/{cloudprofile}/{projectname}")
+    @Operation(summary = "get dataiku project",
+            description = "get dataiku project details from the system based on cloudprofile, projectname")
+    @ApiResponse(responseCode = "200", description = "dataiku project fetched",
+    		content = @Content(mediaType = "application/json"
+            ,schema = @Schema(type="DataikuProjectResponseDto")))
+    @ApiResponse(responseCode = "400", description = "Invalid details supplied")
+    @ApiResponse(responseCode = "404", description = "Record not found")
+	@Tag(name = "dataiku")
+    public Response fetchDataikuByProjectName(
+    		@Parameter(description = "The cloudprofile of the dataiku details to be fetched", required = true) @PathParam("cloudprofile") String cloudprofile,
+            @Parameter(description = "The projectname of the dataiku details to be fetched", required = true) @PathParam("projectname") String projectname) {
+		String userId = this.userStore.getUserInfo().getId();
+		cloudprofile = "eXtollo".equalsIgnoreCase(cloudprofile) ? cloudprofile : "onPremise";
+		DataikuProjectDto data = service.getByProjectName(projectname, cloudprofile);
+		if(data!=null && projectname.equalsIgnoreCase(data.getProjectName())) {
+			CollaboratorDetailsDto collabUser = data.getCollaborators().stream().filter(collab -> userId.equalsIgnoreCase(collab.getUserId()))
+					  .findAny().orElse(null);
+			if(!(userId.equalsIgnoreCase(data.getCreatedBy()) || (collabUser!=null && userId.equalsIgnoreCase(collabUser.getUserId())))){
+				return Response.status(Status.FORBIDDEN).entity(null).build();
+			}
+		}else {
+			return Response.status(Status.NOT_FOUND).entity(null).build();
+		}
+		DataikuProjectSummaryDetailResponseDto responseDto = new DataikuProjectSummaryDetailResponseDto();
+		responseDto.setData(assembler.toProjectDetails(data));
+		responseDto.setResponse(responseDto.getResponse());
+		return Response.ok().entity(responseDto).build();
+	}
+	
+	@Patch
+    @Path("/dataiku/{cloudprofile}/{projectname}")
+    @Operation(summary = "Provision solution to dataiku project",
+            description = "Provision solution to dataiku project, API called from solution update/create to map solution id to dataiku project")
+    @ApiResponse(responseCode = "200", description = "dataiku project updated with provisioned solution",
+    		content = @Content(mediaType = "application/json"
+            ,schema = @Schema(type="GenericMessage")))
+    @ApiResponse(responseCode = "400", description = "Invalid id supplied")
+    @ApiResponse(responseCode = "404", description = "Record not found")
+	@Tag(name = "dataiku")
+    public Response provisionSolutionToDataikuProjectByProfileAndName(
+    		 @RequestBody(description = "Data to update dataiku project with solution Id", required = true,
+             content = @Content(
+                     schema = @Schema(implementation = DataikuProjectProvisionSolutionRequestDto.class))) DataikuProjectProvisionSolutionRequestDto request,
+            @Parameter(description = "The cloudProfile of the dataiku project to be updated", required = true) @PathParam("cloudprofile") String cloudprofile, 
+            @Parameter(description = "The name of the dataiku project to be updated", required = true) @PathParam("projectname") String projectname) {
+		DataikuProjectResponseDto responseDto = new DataikuProjectResponseDto();
+		DataikuProjectSummaryDetailResponseDto responseDetailDto = new DataikuProjectSummaryDetailResponseDto();
+		responseDto.setData(null);
+		GenericMessage responseMsg = new GenericMessage();
+		responseMsg.setSuccess("FAILED");
+		List<MessageDescription> errors = new ArrayList<>();
+		List<MessageDescription> warnings = new ArrayList<>();
+		cloudprofile = "eXtollo".equalsIgnoreCase(cloudprofile) ? cloudprofile : "onPremise";
+		projectname = projectname.toUpperCase();
+		DataikuProjectDto existingDataikuProject = service.getByProjectName(projectname, cloudprofile);
+		String userId = this.userStore.getUserInfo().getId();
+		String solutionId = request.getSolutionId();
+		List<UserPrivilegeResponseDto> collabPrivilegeDetails = new ArrayList<>();
+		if(existingDataikuProject!=null && existingDataikuProject.getId()!=null){
+			List<CollaboratorDetailsDto> collabs = existingDataikuProject.getCollaborators();
+			Optional<CollaboratorDetailsDto> record = collabs.stream().filter(x-> userId.equalsIgnoreCase(x.getUserId()) && "Administrator".equalsIgnoreCase(x.getPermission())).findAny();
+	        if (!record.isPresent()) {
+				MessageDescription errMsg = new MessageDescription("Forbidden, can only be updated by user with Administrator access to the project");
+				log.error("Forbidden. Only user with Administrator access of the project {} can update details. Current user {} ", projectname, userId);
+				errors.add(errMsg);
+				responseMsg.setErrors(errors);
+				responseMsg.setWarnings(warnings);
+				responseDetailDto.setData(assembler.toProjectDetails(responseDto.getData()));
+				responseDetailDto.setResponse(responseMsg);
+				return Response.status(Status.FORBIDDEN).entity(responseDetailDto).build();
+			}
+		}else {
+			MessageDescription errMsg = new MessageDescription(" Project with name " + projectname + " and profile " + cloudprofile + " does not exists");
+			log.error("Not Found. Project with projectname {} and cloudprofile {}  does not exists", projectname, cloudprofile);
+			errors.add(errMsg);
+			responseMsg.setErrors(errors);
+			responseMsg.setWarnings(warnings);
+			responseDetailDto.setData(assembler.toProjectDetails(responseDto.getData()));
+			responseDetailDto.setResponse(responseMsg);
+			return Response.status(Status.NOT_FOUND).entity(responseDetailDto).build();
+		}
+		responseDto = service.provisionSolutionToDataikuProject(projectname, cloudprofile,solutionId);
+		if("SUCCESS".equalsIgnoreCase(responseDto.getResponse().getSuccess())) {
+			existingDataikuProject.setSolutionId(solutionId);
+		}
+		responseDetailDto.setData(assembler.toProjectDetails(existingDataikuProject));
+		responseDetailDto.setResponse(responseDto.getResponse());
+		return Response.ok().entity(responseDetailDto).build();
+	}
 	
 	@DELETE
     @Path("/dataiku/{cloudprofile}/{projectname}")
@@ -343,63 +475,8 @@ public class DataikuController {
 	}
 	
     
-	@GET
-    @Path("/dataiku/{id}")
-    @Operation(summary = "get dataiku project",
-            description = "get dataiku project details from the system")
-    @ApiResponse(responseCode = "200", description = "dataiku project fetched",
-    		content = @Content(mediaType = "application/json"
-            ,schema = @Schema(type="DataikuProjectResponseDto")))
-    @ApiResponse(responseCode = "400", description = "Invalid id supplied")
-    @ApiResponse(responseCode = "404", description = "User not found")
-	@Tag(name = "dataiku")
-    public Response fetchDataikuById(
-            @Parameter(description = "The id of the dataiku project to be fetched", required = true) @PathParam("id") String id) {
-		String userId = this.userStore.getUserInfo().getId();
-		DataikuProjectDto data = service.getById(id);
-		if(data!=null && id.equalsIgnoreCase(data.getId())) {
-			CollaboratorDetailsDto collabUser = data.getCollaborators().stream().filter(collab -> userId.equalsIgnoreCase(collab.getUserId()))
-					  .findAny().orElse(null);
-			if(!(userId.equalsIgnoreCase(data.getCreatedBy()) || (collabUser!=null && userId.equalsIgnoreCase(collabUser.getUserId())))){
-				return Response.status(Status.FORBIDDEN).entity(null).build();
-			}
-		}else {
-			return Response.status(Status.NOT_FOUND).entity(null).build();
-		}
-		DataikuProjectResponseDto responseDto = new DataikuProjectResponseDto();
-		responseDto.setData(data);
-		return Response.ok().entity(responseDto).build();
-	}
 	
-	@GET
-    @Path("/dataiku/{cloudprofile}/{projectname}")
-    @Operation(summary = "get dataiku project",
-            description = "get dataiku project details from the system based on cloudprofile, projectname")
-    @ApiResponse(responseCode = "200", description = "dataiku project fetched",
-    		content = @Content(mediaType = "application/json"
-            ,schema = @Schema(type="DataikuProjectResponseDto")))
-    @ApiResponse(responseCode = "400", description = "Invalid id supplied")
-    @ApiResponse(responseCode = "404", description = "User not found")
-	@Tag(name = "dataiku")
-    public Response fetchDataikuByProjectName(
-    		@Parameter(description = "The cloudprofile of the dataiku details to be fetched", required = true) @PathParam("cloudprofile") String cloudprofile,
-            @Parameter(description = "The projectname of the dataiku details to be fetched", required = true) @PathParam("projectname") String projectname) {
-		String userId = this.userStore.getUserInfo().getId();
-		cloudprofile = "eXtollo".equalsIgnoreCase(cloudprofile) ? cloudprofile : "onPremise";
-		DataikuProjectDto data = service.getByProjectName(projectname, cloudprofile);
-		if(data!=null && projectname.equalsIgnoreCase(data.getProjectName())) {
-			CollaboratorDetailsDto collabUser = data.getCollaborators().stream().filter(collab -> userId.equalsIgnoreCase(collab.getUserId()))
-					  .findAny().orElse(null);
-			if(!(userId.equalsIgnoreCase(data.getCreatedBy()) || (collabUser!=null && userId.equalsIgnoreCase(collabUser.getUserId())))){
-				return Response.status(Status.FORBIDDEN).entity(null).build();
-			}
-		}else {
-			return Response.status(Status.NOT_FOUND).entity(null).build();
-		}
-		DataikuProjectResponseDto responseDto = new DataikuProjectResponseDto();
-		responseDto.setData(data);
-		return Response.ok().entity(responseDto).build();
-	}
+	
 	
 }
 
