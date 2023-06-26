@@ -678,7 +678,7 @@ const ForecastingResults = () => {
 
   const handleBrowseInStorage = () => {
     if(bucketName) {
-      window.open(`${Envs.STORAGE_MFE_APP_URL}/explorer/${bucketName}/${forecastRun.id}-${forecastRun.runName}`);
+      window.open(`${Envs.CONTAINER_APP_URL}/#/storage/explorer/${bucketName}/${forecastRun.id}-${forecastRun.runName}`);
     } else {
       Notification.show('No folder path available for the given run', 'alert');
     }
