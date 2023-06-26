@@ -41,6 +41,7 @@ const RunForecastTab = ({ onRunClick }) => {
     formData.append('forecastHorizon', data.forecastHorizon);
     formData.append('hierarchy', data.hierarchy === undefined ? '' : data.hierarchy);
     formData.append('runOnPowerfulMachines', data.runOnPowerfulMachines === undefined ? false : data.runOnPowerfulMachines);
+    formData.append('infotext', data.infotext === undefined ? '' : data.infotext);
     formData.append('comment', data.comment);
     formData.append('saveRequestPart', data.saveRequestPart === undefined ? 'false' : data.saveRequestPart + '');
     formData.append('savedInputPath', data.savedInputPath === undefined ? null : data.savedInputPath);

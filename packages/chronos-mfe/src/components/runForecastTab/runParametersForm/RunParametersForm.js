@@ -15,6 +15,7 @@ const RunParametersForm = () => {
                                                                         }});
   const frequencyTooltipContent = 'Please select a frequency for your data in the field below.\n Make sure the datetimes in the first column of the data you upload matches the frequency selected here.\n If your data has no inherent frequency or the frequency is not available in the list, select "No frequency".\n In this case, the first column of your data should contain sortable indices like [1, 2, 3...].';
   const forecastHorizonTooltipContent = 'Select how many data points in the future the forecast should predict.\n Note that this number should not be more than 1/5th the length of your existing data, ideally less.\n Also, forecasting gets less precise over time, so try to not predict too many points in the future.';
+  const chronosVersionTooltipContent = 'This is an experimental feature used for testing or as a fallback option. To use an older Chronos version, type the version number, e.g. "2.3.0" (without the quotes).\nTo get a list of available Chronos versions, check this link [https://git.i.mercedes-benz.com/FST/chronos/releases].\nNote that we currently offer no support for this feature. Available versions differ between environments and versions might be discontinued without previous warning.';
 
   const [configurationFiles, setConfigurationFiles] = useState([]);
   const [expertView, setExpertView] = useState(false);
@@ -71,7 +72,7 @@ const RunParametersForm = () => {
   }, [projectId]);
   
   useEffect(() => {
-    expertView && SelectBox.defaultSetup();
+    expertView && SelectBox.defaultSetup(); Tooltip.defaultSetup();
   }, [expertView]);
   
   return (
@@ -209,6 +210,7 @@ const RunParametersForm = () => {
         </div>
           {
             expertView ? 
+            <>
             <div className={Styles.flexLayout}>
             <div className={Styles.hierarchyContainer}>
               <div
@@ -274,7 +276,30 @@ const RunParametersForm = () => {
                 </div>
               </div>
             </div>
-          </div> : null
+          </div>
+          <div className={Styles.flexLayout}>
+            <div className={Styles.hierarchyContainer}>
+            <div className={classNames('input-field-group')}>
+              <label id="infotextLabel" htmlFor="infotextInput" className="input-label">
+                Chronos Version
+                <i className="icon mbc-icon info" tooltip-data={chronosVersionTooltipContent} />
+              </label>
+              <input
+                {...register('infotext')}
+                type="text"
+                className="input-field"
+                id="infotextInput"
+                maxLength={55}
+                placeholder="Leave empty for default version"
+                autoComplete="off"
+              />
+            </div>
+            </div>
+            <div className={Styles.runOnPowerfulMachinesContainer}>
+              &nbsp;
+            </div>
+          </div>
+          </>  : null
           }
         <div>
           <div
