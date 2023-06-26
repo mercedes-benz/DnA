@@ -11,14 +11,18 @@ const Tools = (props: any) => {
   const [cards, setcards] = useState([]);
   const [selectedTags, setSelectedTags] = useState([]);
 
-  const allTags = Array.from(new Set(Array.prototype.concat.apply([], ToolsLandingPageElements.map((item: any) => item.tags)))) as string[];
+  const orderedToolsLandingPageElements = ToolsLandingPageElements.sort((a: any, b: any) =>
+    a.name.toLowerCase() > b.name.toLowerCase() ? 1 : b.name.toLowerCase() > a.name.toLowerCase() ? -1 : 0,
+  ).sort((a: any, b: any) => b.isDnAInternalTool - a.isDnAInternalTool);
+
+  const allTags = Array.from(new Set(Array.prototype.concat.apply([], orderedToolsLandingPageElements.map((item: any) => item.tags)))) as string[];
 
   const onTagsFilterSelected = (selectedTags: string[]) => {
     setSelectedTags(selectedTags);
     if(selectedTags.length) {
-      setcards(ToolsLandingPageElements.filter((item: any) => item.tags.some((tag: any) => selectedTags.includes(tag))));
+      setcards(orderedToolsLandingPageElements.filter((item: any) => item.tags.some((tag: any) => selectedTags.includes(tag))));
     } else {
-      setcards(ToolsLandingPageElements);
+      setcards(orderedToolsLandingPageElements);
     }
   };
 
@@ -28,14 +32,14 @@ const Tools = (props: any) => {
     switch (tag) {
       case 'lowcode':
         selectedTags = ['No / Low Code'];
-        toolsToShowOnLoad = ToolsLandingPageElements.filter((item: any) => item.tags.some((tag: any) => selectedTags.includes(tag)));
+        toolsToShowOnLoad = orderedToolsLandingPageElements.filter((item: any) => item.tags.some((tag: any) => selectedTags.includes(tag)));
         break;
       case 'prodev':
         selectedTags = ['Coding'];
-        toolsToShowOnLoad = ToolsLandingPageElements.filter((item: any) => item.tags.some((tag: any) => selectedTags.includes(tag)));
+        toolsToShowOnLoad = orderedToolsLandingPageElements.filter((item: any) => item.tags.some((tag: any) => selectedTags.includes(tag)));
         break;
       default:
-        toolsToShowOnLoad = ToolsLandingPageElements
+        toolsToShowOnLoad = orderedToolsLandingPageElements
         break;    
     }
     setSelectedTags(selectedTags);
