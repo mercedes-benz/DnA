@@ -21,5 +21,7 @@ public interface DataikuRepository {
 	void update(DataikuSql dataikuProject);
 
 	DataikuSql findByProjectName(String projectName, String cloudProfile);
+	
+	void updateSolutionForDataiku(String projectName, String cloudProfile, String solutionId);
 
 }
