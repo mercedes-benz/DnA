@@ -244,8 +244,10 @@ public class ReportController implements ReportsApi {
 			Integer count = reportService.getCountBasedPublishReport(true);
 			TransparencyVO transparencyVO = new TransparencyVO();
 			transparencyVO.setCount(count);
+			LOGGER.debug("Report count fetched successfully");
 			return new ResponseEntity<>(transparencyVO, HttpStatus.OK);
 		}catch (Exception e){
+			LOGGER.error("Failed to fetch count of reports with exception {} ", e.getMessage());
 			return new ResponseEntity<>(new TransparencyVO(), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}

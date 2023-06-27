@@ -437,9 +437,10 @@ public class SolutionController implements SolutionsApi, ChangelogsApi, Malwares
 			TransparencyVO transparencyVO = new TransparencyVO();
 			Integer count =solutionService.getCountBasedPublishSolution(true);
 			transparencyVO.setCount(count);
+			log.debug("Returning solution count successfully");
 			return new ResponseEntity<>(transparencyVO, HttpStatus.OK);
 		}catch (Exception e) {
-
+			log.error("Failed while fetching solution count with exception {}", e.getMessage());
 			return new ResponseEntity<>(new TransparencyVO(), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
