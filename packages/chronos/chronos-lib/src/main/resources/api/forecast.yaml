@@ -1011,7 +1011,7 @@ paths:
     get:
       tags:
         - "forecast-projects"
-      summary: "Number of forecast-projects and users."
+      summary: "Number of forecast-projects and users counts."
       description: "Get number of forecast-projects and users. This endpoints will be used to get number of counts available in forecast-projects and users."
       operationId: "getNumberOfForecastProjects"
       responses:
@@ -1037,10 +1037,10 @@ definitions:
     properties:
       projectCount:
         type: integer
-        description: "Number of forecast-projects reports"
+        description: "Number of forecast-projects count"
       userCount:
         type: integer
-        description: "Number of forecast-projects users reports"
+        description: "Number of forecast-projects users count"
   InputFilesCollectionVO:
     type: object
     properties:
