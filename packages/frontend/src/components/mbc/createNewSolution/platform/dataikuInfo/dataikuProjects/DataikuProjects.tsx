@@ -4,6 +4,7 @@ import { ApiClient } from '../../../../../../services/ApiClient';
 import { IDataiku, IGetDataikuResult } from 'globals/types';
 import Styles from './DataikuProjects.scss';
 import { SUPPORT_EMAIL_ID } from 'globals/constants';
+import { getDataikuInstanceTag } from '../../../../../../services/utils';
 
 const classNames = cn.bind(Styles);
 
@@ -19,7 +20,7 @@ const DataikuProjects = (props: IDataikuProjectsProps) => {
   const [selectedProject, setSelectedProject] = useState<IDataiku>(null);
 
   const getDataikuLiveProjects = () => {
-    ApiClient.getDataikuProjectsList(true).then((res: IGetDataikuResult) => {
+    ApiClient.getDnaDataikuProjectList().then((res: IGetDataikuResult) => {
       if (Array.isArray(res)) {
         setDataikuProjects([]);
       } else {
@@ -72,19 +73,20 @@ const DataikuProjects = (props: IDataikuProjectsProps) => {
           </div>
           <ul className={classNames('list-item-group divider mbc-scroll', Styles.projectList)}>
             {dataikuProjects
-              .filter((project: IDataiku) => project.name.toLowerCase().includes(searchTerm))
+              .filter((project: IDataiku) => project.name.toLowerCase().includes(searchTerm?.toLowerCase()))
               .map((item: IDataiku, index: number) => {
                 return (
                   <li
                     className={classNames(
                       'list-item',
-                      selectedProject?.projectKey === item.projectKey ? Styles.active : '',
+                      selectedProject?.id === item.id ? Styles.active : '',
                     )}
                     key={'dnadataiku' + index}
                     onClick={onProjectSelect(item)}
                   >
                     <div className="item-text-wrap">
-                      <h6 className="item-text-title">{item.name}</h6>
+                      <h6 className="item-text-title">{item.name}
+                        ({getDataikuInstanceTag(item.cloudProfile)})</h6>
                       <label className="item-text">{item.shortDesc}</label>
                     </div>
                   </li>

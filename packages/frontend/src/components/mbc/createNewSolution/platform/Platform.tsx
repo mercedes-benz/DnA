@@ -7,6 +7,7 @@ import DataikuInfo, { IDataikuInfoRef } from './dataikuInfo/DataikuInfo';
 import NotebookInfo, { INotebookInfoRef } from './notebookInfo/NotebookInfo';
 import Styles from './Platform.scss';
 import { Envs } from 'globals/Envs';
+import { getDataikuInstanceTag } from '../../../../services/utils';
 const classNames = cn.bind(Styles);
 
 export interface IPlatformProps {
@@ -41,6 +42,7 @@ export default class Platform extends React.Component<IPlatformProps, IPlatformS
         platforms: [],
         dnaNotebookId: null,
         dnaDataikuProjectId: null,
+        dnaDataikuProjectInstance: null,
         dnaSubscriptionAppId: null,
       },
       dnaComputeMode: 'others',
@@ -55,7 +57,7 @@ export default class Platform extends React.Component<IPlatformProps, IPlatformS
         platformChips.push(lang.name);
       });
     }
-    const { dnaNotebookId, dnaDataikuProjectId, solutionOnCloud, usesExistingInternalPlatforms } = this.props.portfolio;
+    const { dnaNotebookId, dnaDataikuProjectId, dnaDataikuProjectInstance, solutionOnCloud, usesExistingInternalPlatforms } = this.props.portfolio;
     let { dnaComputeMode } = this.state;
     let fixedChips: string[] = [];
     if (dnaNotebookId) {
@@ -65,6 +67,9 @@ export default class Platform extends React.Component<IPlatformProps, IPlatformS
 
     if (dnaDataikuProjectId) {
       fixedChips = [ComputeFixedTag.DATAIKU];
+      if (dnaDataikuProjectInstance) {
+        fixedChips.push(getDataikuInstanceTag(dnaDataikuProjectInstance));
+      }
       dnaComputeMode = ProvisionSource.DATAIKU;
     }
 
@@ -99,6 +104,7 @@ export default class Platform extends React.Component<IPlatformProps, IPlatformS
             onProjectLinkRemove={this.onDataikuProjectLinkRemove}
             currSolutionId={this.props.solutionId}
             projectId={dnaDataikuProjectId}
+            projectInstance={dnaDataikuProjectInstance}
           />
         );
       }
@@ -271,11 +277,16 @@ export default class Platform extends React.Component<IPlatformProps, IPlatformS
   protected onDataikuProjectLinkSuccess = (dataikuProject: IDataiku) => {
     const portfolio = this.state.portfolio;
     portfolio.dnaDataikuProjectId = dataikuProject.projectKey;
+    portfolio.dnaDataikuProjectInstance = dataikuProject.cloudProfile;
 
     if (!portfolio.platforms.find((tag: ITag) => tag.name === ComputeFixedTag.DATAIKU)) {
       portfolio.platforms.push({
         id: null,
         name: ComputeFixedTag.DATAIKU,
+      } as ITag);
+      portfolio.platforms.push({
+        id: null,
+        name: getDataikuInstanceTag(dataikuProject.cloudProfile)
       } as ITag);
     }
 
@@ -287,9 +298,18 @@ export default class Platform extends React.Component<IPlatformProps, IPlatformS
   protected onDataikuProjectLinkRemove = () => {
     const portfolio = this.state.portfolio;
     portfolio.dnaDataikuProjectId = null;
-    const tagIndex = portfolio.platforms.findIndex((tag: ITag) => tag.name === ComputeFixedTag.DATAIKU);
-    if (tagIndex != -1) {
-      portfolio.platforms.splice(tagIndex, 1);
+    portfolio.dnaDataikuProjectInstance = null;
+    if (portfolio.platforms.length > 0) {
+      for (let i = portfolio.platforms.length - 1; i >= 0; i--) {
+        const tagIndex = portfolio.platforms.findIndex((tag: ITag) =>
+          tag.name === ComputeFixedTag.DATAIKU
+          || tag.name === ComputeFixedTag.DATAIKUEXTELLO
+          || tag.name === ComputeFixedTag.DATAIKUONPREMISE
+        );
+        if (tagIndex != -1) {
+          portfolio.platforms.splice(tagIndex, 1);
+        }
+      }
     }
     const dnaComputeMode = ProvisionSource.DATAIKU;
     this.setState({ portfolio, dnaComputeMode });

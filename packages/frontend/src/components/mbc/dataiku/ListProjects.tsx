@@ -78,6 +78,9 @@ export default class ListProjects extends React.Component<{ user: IUserInfo }, I
       projectTobeProvisioned: null,
       showDetailsModal: false,
       projectData: {
+        id: '',
+        projectName: '',
+        createdOn: '',
         name: '',
         cloudProfile: '',
         shortDesc: '',
