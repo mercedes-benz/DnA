@@ -645,6 +645,7 @@ public class SolutionAssembler implements GenericAssembler<SolutionVO, SolutionN
 			solutionPortfolioVO.setUsesExistingInternalPlatforms(solution.isUsesExistingInternalPlatforms());
 			solutionPortfolioVO.setDnaNotebookId(solution.getDnaNotebookId());
 			solutionPortfolioVO.setDnaDataikuProjectId(solution.getDataikuProjectKey());
+			solutionPortfolioVO.setDnaDataikuProjectInstance(solution.getDataikuProjectInstance());
 			solutionPortfolioVO.setDnaSubscriptionAppId(solution.getDnaSubscriptionAppId());
 			vo.setPortfolio(solutionPortfolioVO);
 
@@ -1269,6 +1270,7 @@ public class SolutionAssembler implements GenericAssembler<SolutionVO, SolutionN
 				solution.setSolutionOnCloud(solutionPortfolioVO.isSolutionOnCloud());
 				solution.setDnaNotebookId(solutionPortfolioVO.getDnaNotebookId());
 				solution.setDataikuProjectKey(solutionPortfolioVO.getDnaDataikuProjectId());
+				solution.setDataikuProjectInstance(solutionPortfolioVO.getDnaDataikuProjectInstance());
 				solution.setDnaSubscriptionAppId(solutionPortfolioVO.getDnaSubscriptionAppId());
 				List<SolutionPlatform> platforms = new ArrayList<>();
 				List<PlatformVO> platformsVO = solutionPortfolioVO.getPlatforms();
