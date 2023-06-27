@@ -5,6 +5,7 @@ import java.util.Date;
 import java.util.List;
 
 import com.daimler.data.dto.forecast.*;
+import com.daimler.data.dto.storage.BucketObjectDetailsDto;
 import com.daimler.data.dto.storage.BucketObjectsCollectionWrapperDto;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -30,6 +31,8 @@ public interface ForecastService extends CommonService<ForecastVO, ForecastNsql,
 
 	GenericMessage deletRunByUUID(String id, String rid);
 
+	CancelRunResponseVO cancelRunById(ForecastVO existingForecast, String correlationId);
+
 	RunVisualizationVO getRunVisualizationsByUUID(String id, String rid);
 
 	GenericMessage updateForecastByID(String id, ForecastProjectUpdateRequestVO forecastUpdateRequestVO, ForecastVO existingForecast );
@@ -46,6 +49,8 @@ public interface ForecastService extends CommonService<ForecastVO, ForecastNsql,
 
 	public BucketObjectsCollectionWrapperDto getBucketObjects(String path, String bucketType);
 
+	public List<BucketObjectDetailsDto> getProjectSpecificObjects(List<InputFileVO> configFiles);
+
 	public ForecastComparisonCreateResponseVO createComparison(String id, ForecastVO existingForecast, List<String> validRunsPath, String comparisionId, String comparisonName,
 			String actualsFilePath, String targetFolder, Date createdOn, String requestUser);
 	public Object[]  getAllForecastComparisons(int limit, int offset,String id,String sortBy,String sortOrder);
@@ -56,6 +61,8 @@ public interface ForecastService extends CommonService<ForecastVO, ForecastNsql,
 	public ForecastConfigFileUploadResponseVO uploadConfigFile(ForecastVO existingForecast, String configFileId,String requestUser,Date createdOn, String configFilePath, String configFileName);
 	public Object[]  getForecastConfigFiles(String id);
 	public ForecastConfigFileResultVO  getForecastConfigFileById(String id,String configFileId);
+
+
 
 
 

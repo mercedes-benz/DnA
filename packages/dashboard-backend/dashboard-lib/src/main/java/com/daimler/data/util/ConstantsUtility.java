@@ -27,10 +27,26 @@
 
 package com.daimler.data.util;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class ConstantsUtility {
 
 	private ConstantsUtility() {}
 
 	public static final String DIVISION_ADMIN = "DivisionAdmin";
+	public static final String CHANGE_LOGS = "changeLogs";
+	public static final String VALUE_CALCULATOR = "valueCalculator";
+	public static final String ID = "id";
+	
+	public static final Map<String, String> staticMap = new HashMap<>();
+	static {
+		staticMap.put("description", "Description");
+		staticMap.put("category", "Category");
+		staticMap.put("value", "Value");
+		staticMap.put("source", "Source");
+		staticMap.put("year", "Year");
+
+	}
 
 }
