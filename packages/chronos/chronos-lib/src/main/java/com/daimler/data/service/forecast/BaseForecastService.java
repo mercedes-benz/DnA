@@ -958,6 +958,78 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 		return responseMessage;
 	}
 
+	@Override
+	@Transactional
+	public CancelRunResponseVO cancelRunById(ForecastVO existingForecast, String correlationid) {
+		CancelRunResponseVO cancelRunResponseVO = new CancelRunResponseVO();
+		RunVO currentRun= new RunVO();
+		GenericMessage responseMessage = new GenericMessage();
+		List<MessageDescription> errors = new ArrayList<>();
+		Optional<ForecastNsql> anyEntity = this.jpaRepo.findById(existingForecast.getId());
+		ForecastNsql entity = null;
+		if(anyEntity.isPresent())
+			entity = anyEntity.get();
+		List<RunDetails> existingRuns = entity.getData().getRuns();
+		List<RunDetails> updatedRuns = new ArrayList<>();
+		if (existingRuns != null && !existingRuns.isEmpty()) {
+			for (RunDetails run : existingRuns) {
+				RunState state = run.getRunState();
+				if (correlationid.equalsIgnoreCase(run.getId())) {
+					BeanUtils.copyProperties(run, currentRun);
+					if("PENDING".equalsIgnoreCase(state.getLife_cycle_state()) || "RUNNING".equalsIgnoreCase(state.getLife_cycle_state())){
+						DataBricksErrorResponseVO cancelRunResponse = this.dataBricksClient.cancelDatabricksRun(run.getRunId());
+						if (cancelRunResponse != null && (cancelRunResponse.getErrorCode() != null || cancelRunResponse.getMessage() != null)) {
+							log.error("Failed to cancel run as  databricks reponse is not success for run id {} ", run.getRunId());
+							String msg = "Failed to cancel Run.";
+							if (cancelRunResponse.getErrorCode() != null) {
+								msg += cancelRunResponse.getErrorCode();
+							}
+							if (cancelRunResponse.getMessage() != null) {
+								msg += cancelRunResponse.getMessage();
+							}
+							MessageDescription errMsg = new MessageDescription(msg);
+							errors.add(errMsg);
+							responseMessage.setSuccess("FAILED");
+							responseMessage.setErrors(errors);
+
+						} else {
+							RunState newRunState = new RunState();
+							newRunState.setLife_cycle_state("TERMINATED");
+							newRunState.setResult_state("CANCELED");
+							newRunState.setState_message("Run cancelled.");
+							newRunState.setUser_cancelled_or_timedout(true);
+							run.setRunState(newRunState);
+							responseMessage.setSuccess("SUCCESS");
+
+						}
+					}
+					else{
+						log.error("Failed to cancel run as  Run is not in PENDING or Running state for run  of id {}", correlationid);
+						String msg = "Run is not in PENDING or Running state. Failed to cancel Run." ;
+						MessageDescription errMsg = new MessageDescription(msg);
+						errors.add(errMsg);
+						responseMessage.setSuccess("FAILED");
+						responseMessage.setErrors(errors);
+					}
+				}
+				updatedRuns.add(run);
+			}
+			entity.getData().setRuns(updatedRuns);
+			try {
+				jpaRepo.save(entity);
+
+			} catch (Exception e) {
+				log.error("Failed while cancelling run ", existingForecast.getName());
+				MessageDescription msg = new MessageDescription("Failed to cancel run ");
+				errors.add(msg);
+				responseMessage.setErrors(errors);
+			}
+			cancelRunResponseVO.setData(currentRun);
+			cancelRunResponseVO.setResponse(responseMessage);
+		}
+		return cancelRunResponseVO;
+	}
+
 
 	@Override
 	@Transactional
@@ -974,6 +1046,15 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 	@Transactional
 	public BucketObjectsCollectionWrapperDto getBucketObjects(String path, String bucketType){
 		return storageClient.getBucketObjects(path,bucketType) ;
+
+	}
+
+	@Override
+	@Transactional
+	public List<BucketObjectDetailsDto> getProjectSpecificObjects(List<InputFileVO> configFiles){
+		BucketObjectsCollectionWrapperDto projectSpecificConfigFiles = new BucketObjectsCollectionWrapperDto();
+
+		return this.assembler.toProjectSpecificConfigFiles(configFiles);
 
 	}
 
