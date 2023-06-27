@@ -18,6 +18,7 @@ import javax.validation.constraints.NotNull;
 
 import com.daimler.data.api.forecast.*;
 import com.daimler.data.dto.forecast.*;
+import com.daimler.data.dto.storage.DeleteBucketResponseWrapperDto;
 import org.apache.commons.io.FilenameUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -76,13 +77,24 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 	private static final String ACTUALS_FILENAME_PREFIX = "actuals";
 	private static final String CONFIG_PATH = "/objects?prefix=configs/";
 	private static final String BUCKET_TYPE = "chronos-core/";
+	private static final String CONFIGS_FILE_PREFIX = "/configs/";
 
 	private static final List<String> contentTypes = Arrays.asList("xlsx", "csv");
+	private static final List<String> configContentTypes = Arrays.asList("yml", "yaml");
 
 	private boolean isValidAttachment(String fileName) {
 		boolean isValid = false;
 		String extension = FilenameUtils.getExtension(fileName);
 		if (contentTypes.contains(extension.toLowerCase())) {
+			isValid = true;
+		}
+		return isValid;
+	}
+
+	private boolean isValidConfigFileAttachment(String fileName) {
+		boolean isValid = false;
+		String extension = FilenameUtils.getExtension(fileName);
+		if (configContentTypes.contains(extension.toLowerCase())) {
 			isValid = true;
 		}
 		return isValid;
@@ -1464,21 +1476,129 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 	}
 
 	@Override
-	@ApiOperation(value = "Upload a new config file for forecast project.", nickname = "uploadConfigFiles", notes = "Upload a new config file for forecast project", response = ForecastConfigFileUploadResponseVO.class, tags={ "forecast-config-files", })
+	@ApiOperation(value = "Upload a new config file for forecast project.", nickname = "uploadConfigFiles", notes = "Upload a new config file for forecast project", response = ForecastConfigFileUploadResponseVO.class, tags = {"forecast-config-files",})
 	@ApiResponses(value = {
 			@ApiResponse(code = 201, message = "Returns message of success or failure ", response = ForecastConfigFileUploadResponseVO.class),
 			@ApiResponse(code = 400, message = "Bad Request", response = GenericMessage.class),
 			@ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
 			@ApiResponse(code = 403, message = "Request is not authorized."),
 			@ApiResponse(code = 405, message = "Method not allowed"),
-			@ApiResponse(code = 500, message = "Internal error") })
+			@ApiResponse(code = 500, message = "Internal error")})
 	@RequestMapping(value = "/forecasts/{id}/config-files",
-			produces = { "application/json" },
-			consumes = { "multipart/form-data" },
+			produces = {"application/json"},
+			consumes = {"multipart/form-data"},
 			method = RequestMethod.POST)
-	public ResponseEntity<ForecastConfigFileUploadResponseVO> uploadConfigFiles(@ApiParam(value = "forecast project ID ",required=true) @PathVariable("id") String id,
-			@ApiParam(value = "The config file to upload for the forecast project.") @Valid @RequestPart(value="configFile", required=false) MultipartFile configFile) {
-		return null;
+	public ResponseEntity<ForecastConfigFileUploadResponseVO> uploadConfigFiles(@ApiParam(value = "forecast project ID ", required = true) @PathVariable("id") String id,
+			  @ApiParam(value = "The config file to upload for the forecast project.") @Valid @RequestPart(value = "configFile", required = false) MultipartFile configFile) {
+		ForecastConfigFileUploadResponseVO responseVO = new ForecastConfigFileUploadResponseVO();
+		ForecastVO existingForecast = service.getById(id);
+		CreatedByVO requestUser = this.userStore.getVO();
+		SimpleDateFormat isoFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS+00:00");
+		Date createdOn = new Date();
+		try {
+			createdOn = isoFormat.parse(isoFormat.format(createdOn));
+		} catch (Exception e) {
+			log.warn("Failed to format createdOn date to ISO format");
+		}
+		Boolean notAuthorized = false;
+		if (existingForecast == null || existingForecast.getId() == null) {
+			log.error("Forecast project with this id {} doesnt exists , failed to upload config file", id);
+			MessageDescription invalidMsg = new MessageDescription("Forecast project doesnt exists with given id");
+			GenericMessage errorMessage = new GenericMessage();
+			errorMessage.setSuccess("FAILED");
+			errorMessage.addErrors(invalidMsg);
+			responseVO.setData(null);
+			responseVO.setResponse(errorMessage);
+			return new ResponseEntity<>(responseVO, HttpStatus.NOT_FOUND);
+		}
+		List<String> forecastProjectUsers = new ArrayList<>();
+		forecastProjectUsers.add(existingForecast.getCreatedBy().getId());
+		List<CollaboratorVO> collaborators = existingForecast.getCollaborators();
+		if (collaborators != null && !collaborators.isEmpty()) {
+			collaborators.forEach(n -> forecastProjectUsers.add(n.getId()));
+		}
+		if (forecastProjectUsers != null && !forecastProjectUsers.isEmpty()) {
+			if (!forecastProjectUsers.contains(requestUser.getId())) {
+				log.warn("User not part of forecast project with id {} and name {}, Not authorized", id, existingForecast.getName());
+				notAuthorized = true;
+			}
+		}
+		if (notAuthorized) {
+			GenericMessage responseMessage = new GenericMessage();
+			List<MessageDescription> errMsgs = new ArrayList<>();
+			MessageDescription errMsg = new MessageDescription("Only user of this project can upload the config file. Unauthorized");
+			responseMessage.setSuccess("FAILED");
+			errMsgs.add(errMsg);
+			responseMessage.setErrors(errMsgs);
+			responseVO.setData(null);
+			responseVO.setResponse(responseMessage);
+			return new ResponseEntity<>(responseVO, HttpStatus.FORBIDDEN);
+		}
+		String configFilePath = "";
+		String configFileIdId = UUID.randomUUID().toString();
+		if (configFile != null) {
+			String fileName = configFile.getOriginalFilename();
+			String config_file_extension = FilenameUtils.getExtension(fileName);
+			String configs_filename = fileName + "." + config_file_extension;
+			if (!isValidConfigFileAttachment(fileName)) {
+				log.error("Invalid file type {} attached for project name {} and id {} ", fileName, existingForecast.getName(), id);
+				MessageDescription invalidMsg = new MessageDescription("Invalid File type attached. Supported only yaml and yml extensions");
+				GenericMessage errorMessage = new GenericMessage();
+				errorMessage.setSuccess("FAILED");
+				errorMessage.addErrors(invalidMsg);
+				responseVO.setData(null);
+				responseVO.setResponse(errorMessage);
+				return new ResponseEntity<>(responseVO, HttpStatus.BAD_REQUEST);
+			} else {
+				List<InputFileVO> configFiles = existingForecast.getConfigFiles();
+
+				if (configFiles != null && !configFiles.isEmpty()) {
+					List<String> fileNames = configFiles.stream().map(InputFileVO::getName).collect(Collectors.toList());
+					if (fileNames.contains(configFile.getOriginalFilename())) {
+						log.error("File with name already exists in uploaded config files list. Project {} and file {}", existingForecast.getName(), fileName);
+						MessageDescription invalidMsg = new MessageDescription("File with name already exists in uploaded config files list. Please rename and upload again");
+						GenericMessage errorMessage = new GenericMessage();
+						errorMessage.setSuccess("FAILED");
+						errorMessage.addErrors(invalidMsg);
+						responseVO.setData(null);
+						responseVO.setResponse(errorMessage);
+						return new ResponseEntity<>(responseVO, HttpStatus.BAD_REQUEST);
+					}
+				} else
+					configFiles = new ArrayList<>();
+				FileUploadResponseDto fileUploadResponse = storageClient.uploadFile(CONFIGS_FILE_PREFIX, configFile, existingForecast.getBucketName());
+				if (fileUploadResponse == null || (fileUploadResponse != null && (fileUploadResponse.getErrors() != null || !"SUCCESS".equalsIgnoreCase(fileUploadResponse.getStatus())))) {
+					log.error("Failed to upload config file {} to storage bucket",fileName);
+					GenericMessage errorMessage = new GenericMessage();
+					errorMessage.setSuccess("FAILED");
+					errorMessage.setErrors(fileUploadResponse.getErrors());
+					errorMessage.setWarnings(fileUploadResponse.getWarnings());
+					responseVO.setData(null);
+					responseVO.setResponse(errorMessage);
+					return new ResponseEntity<>(responseVO, HttpStatus.INTERNAL_SERVER_ERROR);
+				} else if ("SUCCESS".equalsIgnoreCase(fileUploadResponse.getStatus())) {
+					log.info("Successfully to uploaded config file {} to storage bucket",fileName);
+					InputFileVO currentConfigInput = new InputFileVO();
+					currentConfigInput.setName(configFile.getOriginalFilename());
+					currentConfigInput.setPath(existingForecast.getBucketName() + "/configs/" + configFile.getOriginalFilename());
+					currentConfigInput.setId(configFileIdId);
+					currentConfigInput.setCreatedOn(createdOn);
+					currentConfigInput.setCreatedBy(requestUser.getId());
+					configFiles.add(currentConfigInput);
+					existingForecast.setConfigFiles(configFiles);
+					configFilePath = existingForecast.getBucketName() + "/configs/" + configFile.getOriginalFilename();
+				}
+			}
+			ForecastConfigFileUploadResponseVO uploadConfigResponse = service.uploadConfigFile(existingForecast,configFileIdId,requestUser.getId(),createdOn,configFilePath,configFile.getOriginalFilename());
+			if(uploadConfigResponse!= null && "SUCCESS".equalsIgnoreCase(uploadConfigResponse.getResponse().getSuccess())
+					&& uploadConfigResponse.getData().getId()!=null) {
+				return new ResponseEntity<>(uploadConfigResponse, HttpStatus.CREATED);
+			}else {
+				return new ResponseEntity<>(uploadConfigResponse, HttpStatus.INTERNAL_SERVER_ERROR);
+			}
+		}
+		return new ResponseEntity<>(responseVO, HttpStatus.INTERNAL_SERVER_ERROR);
+
 	}
 
 	@Override
@@ -1496,7 +1616,40 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 			consumes = { "application/json" },
 			method = RequestMethod.GET)
 	public ResponseEntity<ForecastConfigFilesCollectionDto> getForecastConfigFiles(@ApiParam(value = "forecast project ID ",required=true) @PathVariable("id") String id) {
-		return null;
+		ForecastConfigFilesCollectionDto collection = new ForecastConfigFilesCollectionDto();
+		ForecastVO existingForecast = service.getById(id);
+		CreatedByVO requestUser = this.userStore.getVO();
+		Boolean notAuthorized = false;
+		if(existingForecast==null || existingForecast.getId()==null) {
+			log.error("Forecast project with this id {} doesnt exists", id);
+			return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
+		}
+		List<String> forecastProjectUsers = new ArrayList<>();
+		forecastProjectUsers.add(existingForecast.getCreatedBy().getId());
+		List<CollaboratorVO> collaborators = existingForecast.getCollaborators();
+		if (collaborators != null && !collaborators.isEmpty()) {
+			collaborators.forEach(n -> forecastProjectUsers.add(n.getId()));
+		}
+		if (forecastProjectUsers != null && !forecastProjectUsers.isEmpty()) {
+			if (!forecastProjectUsers.contains(requestUser.getId())) {
+				log.warn("User not part of forecast project with id {} and name {}, Not authorized", id, existingForecast.getName());
+				notAuthorized=true;
+			}
+		}
+		if(notAuthorized) {
+			log.error("Only user of this project can view the details. Unauthorized");
+			return new ResponseEntity<>(null, HttpStatus.FORBIDDEN);
+		}
+		Object[] getConfigsFilesResultsArr = service.getForecastConfigFiles(id);
+		List<InputFileVO> records = (List<InputFileVO>) getConfigsFilesResultsArr[0];
+		Integer totalCount = (Integer) getConfigsFilesResultsArr[1];
+		HttpStatus responseCode = HttpStatus.NO_CONTENT;
+		if(records!=null && !records.isEmpty()) {
+			collection.setRecords(records);
+			collection.setTotalCount(totalCount);
+			responseCode = HttpStatus.OK;
+		}
+		return new ResponseEntity<>(collection, responseCode);
 	}
 	@Override
 	@ApiOperation(value = "delete uploaded config file by id.", nickname = "deleteConfigFile", notes = "delete uploaded config file by id.", response = GenericMessage.class, tags={ "forecast-config-files", })
@@ -1508,13 +1661,95 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 			@ApiResponse(code = 403, message = "Request is not authorized."),
 			@ApiResponse(code = 405, message = "Method not allowed"),
 			@ApiResponse(code = 500, message = "Internal error") })
-	@RequestMapping(value = "/forecasts/{id}/config-files",
+	@RequestMapping(value = "/forecasts/{id}/config-files/{configFileId}",
 			produces = { "application/json" },
 			consumes = { "application/json" },
 			method = RequestMethod.DELETE)
 	public ResponseEntity<GenericMessage> deleteConfigFile(@ApiParam(value = "forecast project ID ",required=true) @PathVariable("id") String id,
 			@ApiParam(value = "config file ID",required=true) @PathVariable("configFileId") String configFileId) {
-		return null;
+
+		GenericMessage responseMessage = new GenericMessage();
+		ForecastVO existingForecast = service.getById(id);
+		CreatedByVO requestUser = this.userStore.getVO();
+		String user = requestUser.getId();
+		Boolean notAuthorized = false;
+		if(existingForecast==null || existingForecast.getId()==null) {
+			log.error("Forecast project with this id {} doesnt exists , failed to delete config file", id);
+			MessageDescription invalidMsg = new MessageDescription("Forecast project doesnt exists with given id");
+			List<MessageDescription> errorMessage = new ArrayList<>();
+
+			responseMessage.setSuccess("FAILED");
+			errorMessage.add(invalidMsg);
+			responseMessage.setErrors(errorMessage);
+			return new ResponseEntity<>(responseMessage, HttpStatus.NOT_FOUND);
+		}
+		List<String> forecastProjectUsers = new ArrayList<>();
+		forecastProjectUsers.add(existingForecast.getCreatedBy().getId());
+		List<CollaboratorVO> collaborators = existingForecast.getCollaborators();
+		if (collaborators != null && !collaborators.isEmpty()) {
+			collaborators.forEach(n -> forecastProjectUsers.add(n.getId()));
+		}
+		if (forecastProjectUsers != null && !forecastProjectUsers.isEmpty()) {
+			if (!forecastProjectUsers.contains(requestUser.getId())) {
+				log.warn("User not part of forecast project with id {} and name {}, Not authorized", id, existingForecast.getName());
+				notAuthorized=true;
+
+			}
+		}
+		if(notAuthorized) {
+
+			List<MessageDescription> errMsgs = new ArrayList<>();
+			MessageDescription errMsg = new MessageDescription("Only user of this project can delete the config file. Unauthorized");
+			responseMessage.setSuccess("FAILED");
+			errMsgs.add(errMsg);
+			responseMessage.setErrors(errMsgs);
+			return new ResponseEntity<>(responseMessage, HttpStatus.FORBIDDEN);
+		}
+		boolean notFound = false;
+		String fileName= "";
+		List<InputFileVO> configFiles = existingForecast.getConfigFiles();
+		if (configFiles != null && !configFiles.isEmpty()) {
+			List<String> configFileIdList = configFiles.stream().map(InputFileVO::getId).collect(Collectors.toList());
+			if (configFileIdList.contains(configFileId)) {
+				notFound = true;
+				Optional<InputFileVO> configFileObject = configFiles.stream().
+						filter(x -> x.getId().equals(configFileId)).
+						findFirst();
+				InputFileVO file = configFileObject.get();
+				fileName = file.getName();
+				configFiles.remove(file);
+			} else
+				notFound = false;
+		}
+		if (!notFound) {
+			return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
+		}
+		existingForecast.setConfigFiles(configFiles);
+		try {
+			String prefix= "configs/" + fileName;
+			DeleteBucketResponseWrapperDto deleteFileResponse = storageClient.deleteFilePresent(existingForecast.getBucketName(),prefix);
+			if(deleteFileResponse==null || (deleteFileResponse!=null && (deleteFileResponse.getErrors()!=null || !"SUCCESS".equalsIgnoreCase(deleteFileResponse.getStatus())))) {
+				GenericMessage errorMessage = new GenericMessage();
+				errorMessage.setSuccess("FAILED");
+				errorMessage.setErrors(deleteFileResponse.getErrors());
+				errorMessage.setWarnings(deleteFileResponse.getWarnings());
+				return new ResponseEntity<>(errorMessage, HttpStatus.INTERNAL_SERVER_ERROR);
+			}else if("SUCCESS".equalsIgnoreCase(deleteFileResponse.getStatus())) {
+				log.info("Successfully deleted config file {} from storage bucket",fileName);
+				ForecastVO updatedVO = service.create(existingForecast);
+			}
+		}
+		catch (Exception e){
+			List<MessageDescription> errors = new ArrayList<>();
+			log.error("Failed while saving config files for project name {} project id {}",existingForecast.getName(), existingForecast.getId());
+			MessageDescription msg = new MessageDescription("Failed while saving config files for project id" +existingForecast.getId());
+			errors.add(msg);
+			responseMessage.setSuccess("FAILED");
+			responseMessage.setErrors(errors);
+			return new ResponseEntity<>(responseMessage, HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+		responseMessage.setSuccess("SUCCESS");
+		return new ResponseEntity<>(responseMessage, HttpStatus.OK);
 	}
 
 	@Override
@@ -1533,10 +1768,58 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 			method = RequestMethod.GET)
 	public ResponseEntity<ForecastConfigFileResultVO> getForecastConfigFileById(@ApiParam(value = "forecast project ID ",required=true) @PathVariable("id") String id,
 			@ApiParam(value = "Specific config file  Id for the forecast project",required=true) @PathVariable("configFileId") String configFileId) {
-		return null;
+		ForecastConfigFileResultVO responseVO = new ForecastConfigFileResultVO();
+		ForecastVO existingForecast = service.getById(id);
+		CreatedByVO requestUser = this.userStore.getVO();
+		Boolean notAuthorized = false;
+		if(existingForecast==null || existingForecast.getId()==null) {
+			log.error("Forecast project with this id {} doesnt exists , failed to get config file", id);
+			MessageDescription invalidMsg = new MessageDescription("Forecast project doesnt exists with given id");
+			GenericMessage errorMessage = new GenericMessage();
+			errorMessage.setSuccess("FAILED");
+			errorMessage.addErrors(invalidMsg);
+			responseVO.setResponse(errorMessage);
+			return new ResponseEntity<>(responseVO, HttpStatus.NOT_FOUND);
+		}
+		List<String> forecastProjectUsers = new ArrayList<>();
+		forecastProjectUsers.add(existingForecast.getCreatedBy().getId());
+		List<CollaboratorVO> collaborators = existingForecast.getCollaborators();
+		if (collaborators != null && !collaborators.isEmpty()) {
+			collaborators.forEach(n -> forecastProjectUsers.add(n.getId()));
+		}
+		if (forecastProjectUsers != null && !forecastProjectUsers.isEmpty()) {
+			if (!forecastProjectUsers.contains(requestUser.getId())) {
+				log.warn("User not part of forecast project with id {} and name {}, Not authorized", id, existingForecast.getName());
+				notAuthorized=true;
+
+			}
+		}
+		if(notAuthorized) {
+			GenericMessage responseMessage = new GenericMessage();
+			List<MessageDescription> errMsgs = new ArrayList<>();
+			MessageDescription errMsg = new MessageDescription("Only user of this project can get the config file. Unauthorized");
+			responseMessage.setSuccess("FAILED");
+			errMsgs.add(errMsg);
+			responseMessage.setErrors(errMsgs);
+			responseVO.setResponse(responseMessage);
+			return new ResponseEntity<>(responseVO, HttpStatus.FORBIDDEN);
+		}
+		boolean notFound = true;
+		List<InputFileVO> configFilesVOList = existingForecast.getConfigFiles();
+		if(configFilesVOList!= null && !configFilesVOList.isEmpty()) {
+			for(InputFileVO configFile: configFilesVOList) {
+				if(configFileId.equalsIgnoreCase(configFile.getId())) {
+					notFound = false;
+				}
+			}
+		}else
+			notFound = true;
+		if(notFound) {
+			log.error("Config file id {} doesnt exists. Invalid configFileId",configFileId);
+			return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
+		}
+		ForecastConfigFileResultVO configFileData = service.getForecastConfigFileById(id,configFileId);
+		return new ResponseEntity<>(configFileData, HttpStatus.OK);
 	}
-
-
-
 
 }
