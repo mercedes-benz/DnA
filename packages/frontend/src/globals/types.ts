@@ -785,6 +785,8 @@ export interface ICommonFunctions {
 }
 
 export interface IDataiku {
+  id: string;
+  projectName: string;
   name: string;
   cloudProfile?: string;
   shortDesc: string;
@@ -792,6 +794,7 @@ export interface IDataiku {
   tags: string[];
   ownerDisplayName: string;
   role: string;
+  createdOn: string;
   projectStatus?: string;
   contributors?: string[];
   projectType?: string;
@@ -1365,6 +1368,7 @@ export interface IPortfolio {
   dnaSubscriptionAppId: string | null;
   dnaNotebookId: string | null;
   dnaDataikuProjectId: string | null;
+  dnaDataikuProjectInstance: string | null;
   solutionOnCloud: boolean;
   usesExistingInternalPlatforms: boolean;
   platforms: ITag[];
