@@ -48,6 +48,7 @@ import {
   ITeams,
   IUserInfo,
 } from 'globals/types';
+import { getDataikuInstanceTag } from '../../../services/utils';
 
 export interface IProvisionSolutionState {
   locations: ILocation[];
@@ -251,6 +252,7 @@ export default class Provisionsolution extends React.Component<IProvisionSolutio
         portfolio: {
           dnaNotebookId: null,
           dnaDataikuProjectId: null,
+          dnaDataikuProjectInstance: null,
           dnaSubscriptionAppId: null,
           solutionOnCloud: false,
           usesExistingInternalPlatforms: false,
@@ -311,6 +313,7 @@ export default class Provisionsolution extends React.Component<IProvisionSolutio
         const portfolio: IPortfolio = {
           dnaNotebookId: res.id,
           dnaDataikuProjectId: null,
+          dnaDataikuProjectInstance: null,
           dnaSubscriptionAppId: null,
           solutionOnCloud: false,
           usesExistingInternalPlatforms: true,
@@ -414,6 +417,7 @@ export default class Provisionsolution extends React.Component<IProvisionSolutio
       const portfolio: IPortfolio = {
         dnaSubscriptionAppId: nextProps.projectToBeProvisioned,
         dnaDataikuProjectId: null,
+        dnaDataikuProjectInstance: null,
         dnaNotebookId: null,
         solutionOnCloud: false,
         usesExistingInternalPlatforms: true,
@@ -441,10 +445,11 @@ export default class Provisionsolution extends React.Component<IProvisionSolutio
       ApiClient.getDataikuProjectDetailsByProjectkey(tempVar, cloudProfile).then(
         (res) => {
           const solution = this.state.solution;
-          solution.description.productName = res?.data?.projectName;
-          solution.description.description = res?.data?.description ? res?.data?.description : res?.data?.projectName;
+          solution.description.productName = res?.data?.name;
+          solution.description.description = res?.data?.description ? res?.data?.description : res?.data?.name;
           const portfolio: IPortfolio = {
-            dnaDataikuProjectId: res?.data?.projectName,
+            dnaDataikuProjectId: res?.data?.name,
+            dnaDataikuProjectInstance: cloudProfile,
             dnaNotebookId: null,
             dnaSubscriptionAppId: null,
             solutionOnCloud: false,
@@ -454,6 +459,10 @@ export default class Provisionsolution extends React.Component<IProvisionSolutio
                 id: null,
                 name: ComputeFixedTag.DATAIKU,
               },
+              {
+                id: null,
+                name: getDataikuInstanceTag(cloudProfile),
+              }
             ],
           };
 
