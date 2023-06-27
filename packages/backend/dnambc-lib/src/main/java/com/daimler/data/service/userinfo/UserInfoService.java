@@ -93,4 +93,6 @@ public interface UserInfoService extends CommonService<UserInfoVO, UserInfoNsql,
 	 * @param divisionNewValue
 	 */
 	public void updateDivisionForUserRole(String divisionOldValue, String divisionNewValue);
+
+	Integer getNumberOfUsers();
 }

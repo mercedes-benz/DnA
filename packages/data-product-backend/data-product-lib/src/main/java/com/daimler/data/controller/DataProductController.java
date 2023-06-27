@@ -442,8 +442,10 @@ public class DataProductController implements DataproductsApi{
 			TransparencyVO transparencyVO = new TransparencyVO();
 			Integer count = service.getCountBasedPublishReport(true);
 			transparencyVO.setCount(count);
+			log.info("DataProduct count fetched successfully");
 			return new ResponseEntity<>(transparencyVO, HttpStatus.OK);
 		}catch (Exception e){
+			log.error("Failed to fetch count of dataProducts with exception {} ", e.getMessage());
 			return new ResponseEntity<>(new TransparencyVO(), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
