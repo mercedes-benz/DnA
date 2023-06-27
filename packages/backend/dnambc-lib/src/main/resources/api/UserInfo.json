@@ -17,6 +17,7 @@
     "CreatedByVO": "com.daimler.data.dto.solution.CreatedByVO",
     "TeamMemberVO": "com.daimler.data.dto.solution.TeamMemberVO",
     "MilestoneVO": "com.daimler.data.dto.solution.MilestoneVO",
-    "SolutionDataSourceVO": "com.daimler.data.dto.solution.SolutionDataSourceVO"
+    "SolutionDataSourceVO": "com.daimler.data.dto.solution.SolutionDataSourceVO",
+    "TransparencyVO":"com.daimler.data.dto.solution.TransparencyVO"
   }
 }

@@ -325,6 +325,14 @@ public class ReportCustomRepositoryImpl extends CommonDataRepositoryImpl<ReportN
 		return getReportOwners(query);
 	}
 
+	@Override
+	public Integer getCountBasedPublishReport(Boolean published) {
+		String query = "select count(*) from report_nsql where ((jsonb_extract_path_text(data,'publish')) = (" +"'"+ published +"'"+ "))";
+		Query q = em.createNativeQuery(query);
+		BigInteger results = (BigInteger) q.getSingleResult();
+		return results.intValue();
+	}
+
 	private List<TeamMemberVO> getReportOwners(String query) {
 		Query q = em.createNativeQuery(query);
 		ObjectMapper mapper = new ObjectMapper();

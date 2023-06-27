@@ -109,5 +109,25 @@ public class ForecastCustomRepositoryImpl extends CommonDataRepositoryImpl<Forec
 		return convertedResults;
 	}
 
+	@Override
+	public Integer getTotalCountOfForecastProjects() {
+		String query = "select count(*) from forecast_nsql";
+		Query q = em.createNativeQuery(query);
+		BigInteger results = (BigInteger) q.getSingleResult();
+		return results.intValue();
+	}
+
+	@Override
+	public Integer getTotalCountOfForecastUsers() {
+		String query = "SELECT COUNT(*) AS count FROM (SELECT DISTINCT id" +
+				" FROM(SELECT jsonb_extract_path_text(data, 'createdBy', 'id') AS id FROM forecast_nsql" +
+				" UNION"
+				+ " SELECT jsonb_array_elements(data -> 'collaborators')->>'id' AS id FROM forecast_nsql"
+				+ " WHERE jsonb_typeof(data -> 'collaborators') = 'array' )subquery )count_subquery";
+		Query q = em.createNativeQuery(query);
+		BigInteger results = (BigInteger) q.getSingleResult();
+		return results.intValue();
+	}
+
 
 }
