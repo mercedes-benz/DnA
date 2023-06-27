@@ -152,6 +152,35 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 	}
 
 	@Override
+	@ApiOperation(value = "Number of forecast-projects user.", nickname = "getNumberOfForecastProjects", notes = "Get number of forecast-projects. This endpoints will be used to get all valid available forecast-projects records.", response = TransparencyVO.class, tags={ "forecast-projects", })
+	@ApiResponses(value = {
+			@ApiResponse(code = 201, message = "Returns message of success or failure", response = TransparencyVO.class),
+			@ApiResponse(code = 204, message = "Fetch complete, no content found."),
+			@ApiResponse(code = 400, message = "Bad request."),
+			@ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+			@ApiResponse(code = 403, message = "Request is not authorized."),
+			@ApiResponse(code = 405, message = "Method not allowed"),
+			@ApiResponse(code = 500, message = "Internal error") })
+	@RequestMapping(value = "/forecasts/transparency",
+			produces = { "application/json" },
+			consumes = { "application/json" },
+			method = RequestMethod.GET)
+	public ResponseEntity<TransparencyVO> getNumberOfForecastProjects() {
+		try {
+			Integer projectCount = service.getTotalCountOfForecastProjects();
+			Integer userCount = service.getTotalCountOfForecastUsers();
+			TransparencyVO transparencyVO = new TransparencyVO();
+			transparencyVO.setUserCount(userCount);
+			transparencyVO.setProjectCount(projectCount);
+			log.info("Forecast users and project count fetched successfully");
+			return new ResponseEntity<>(transparencyVO, HttpStatus.OK);
+		}catch (Exception e){
+			log.error("Failed to fetch Forecast count of users and project with exception {}", e.getMessage());
+			return  new ResponseEntity<>(new TransparencyVO(), HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
+
+	@Override
 	@ApiOperation(value = "Get list of saved input files", nickname = "getInputFiles", notes = "Get list of saved input files", response = InputFilesCollectionVO.class, tags={ "forecast-inputs", })
     @ApiResponses(value = {
         @ApiResponse(code = 201, message = "Returns message of success or failure", response = InputFilesCollectionVO.class),

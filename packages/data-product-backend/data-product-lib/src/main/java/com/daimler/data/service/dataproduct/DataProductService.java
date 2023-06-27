@@ -64,4 +64,6 @@ public interface DataProductService extends CommonService<DataProductVO, DataPro
 	Long getCountOwners(Boolean published, String recordStatus);
 
 	String getNextSeqId();
+
+	Integer getCountBasedPublishReport(Boolean published);
 }
