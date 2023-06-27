@@ -308,6 +308,7 @@ export default class CreateNewSolution extends React.Component<ICreateNewSolutio
           platforms: [],
           dnaNotebookId: null,
           dnaDataikuProjectId: null,
+          dnaDataikuProjectInstance: null,
           dnaSubscriptionAppId: null,
         },
         publish: false,

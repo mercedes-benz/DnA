@@ -233,6 +233,7 @@ type SolutionPortfolioVO{
     platforms: [PlatformVO],
 	dnaNotebookId: String,
 	dnaDataikuProjectId: String,
+        dnaDataikuProjectInstance: String,
 	dnaSubscriptionAppId: String
 }
 

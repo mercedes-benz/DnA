@@ -23,6 +23,8 @@ export enum ProvisionSource {
 
 export enum ComputeFixedTag {
   DATAIKU = 'DnA Dataiku Project',
+  DATAIKUEXTELLO = 'Instance-eXtollo',
+  DATAIKUONPREMISE = 'Instance-onPremise',
   NOTEBOOK = 'DnA Internal Notebook',
   MALWARESCANSERVICE = 'DnA Malware Scan Service',
 }
