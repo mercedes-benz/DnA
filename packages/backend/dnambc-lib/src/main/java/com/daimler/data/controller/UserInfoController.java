@@ -229,7 +229,7 @@ public class UserInfoController implements UsersApi {
 		try {
 			Integer count = userInfoService.getNumberOfUsers();
 			transparencyVO.setCount(count);
-			log.debug("Returning user count successfully");
+			log.info("Returning user count successfully");
 			return new ResponseEntity<>(transparencyVO, HttpStatus.OK);
 		} catch (Exception e) {
 			log.error("Failed while fetching users count with exception {}", e.getMessage());
