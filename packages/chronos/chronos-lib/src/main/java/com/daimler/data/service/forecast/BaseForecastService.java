@@ -975,7 +975,7 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 			for (RunDetails run : existingRuns) {
 				RunState state = run.getRunState();
 				if (correlationid.equalsIgnoreCase(run.getId())) {
-					BeanUtils.copyProperties(run, currentRun);
+					currentRun = this.assembler.toRunVO(run);
 					if("PENDING".equalsIgnoreCase(state.getLife_cycle_state()) || "RUNNING".equalsIgnoreCase(state.getLife_cycle_state())){
 						DataBricksErrorResponseVO cancelRunResponse = this.dataBricksClient.cancelDatabricksRun(run.getRunId());
 						if (cancelRunResponse != null && (cancelRunResponse.getErrorCode() != null || cancelRunResponse.getMessage() != null)) {
@@ -998,9 +998,9 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 							newRunState.setResult_state("CANCELED");
 							newRunState.setState_message("Run cancelled.");
 							newRunState.setUser_cancelled_or_timedout(true);
+							currentRun.setState(this.assembler.toStateVO(newRunState));
 							run.setRunState(newRunState);
 							responseMessage.setSuccess("SUCCESS");
-
 						}
 					}
 					else{

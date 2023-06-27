@@ -84,6 +84,21 @@ public class ForecastAssembler implements GenericAssembler<ForecastVO, ForecastN
 		return runsVOList;
 	}
 
+	public RunVO toRunVO(RunDetails run) {
+		RunVO runVO = new RunVO();
+		if (run != null) {
+			if (run.getIsDelete() == null || !run.getIsDelete()) {
+				BeanUtils.copyProperties(run, runVO);
+				RunStateVO stateVO = toStateVO(run.getRunState());
+				runVO.setState(stateVO);
+				if (run.getIsDelete() != null)
+					runVO.setIsDeleted(run.getIsDelete());
+				runVO.setFrequency(toFrequencyEnum(run.getFrequency()));
+			}
+		}
+		return runVO;
+	}
+
 	public List<ForecastComparisonVO> toComparisonsVO(List<ComparisonDetails> comparisons){
 		List<ForecastComparisonVO> comparisonsVOList = new ArrayList<>();
 		if(comparisons!=null && !comparisons.isEmpty()) {
@@ -122,7 +137,7 @@ public class ForecastAssembler implements GenericAssembler<ForecastVO, ForecastN
 	}
 
 
-	private RunStateVO toStateVO(RunState runState) {
+	public RunStateVO toStateVO(RunState runState) {
 		RunStateVO stateVO = new RunStateVO();
 		if(runState!=null) {
 			if(runState.getLife_cycle_state()!=null)
