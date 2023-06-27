@@ -172,7 +172,7 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 			TransparencyVO transparencyVO = new TransparencyVO();
 			transparencyVO.setUserCount(userCount);
 			transparencyVO.setProjectCount(projectCount);
-			log.debug("Forecast users and project count fetched successfully");
+			log.info("Forecast users and project count fetched successfully");
 			return new ResponseEntity<>(transparencyVO, HttpStatus.OK);
 		}catch (Exception e){
 			log.error("Failed to fetch Forecast count of users and project with exception {}", e.getMessage());
