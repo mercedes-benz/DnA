@@ -217,6 +217,18 @@ public class DataikuRepositoryImpl implements DataikuRepository{
 	}
 	
 	@Override
+	public void updateSolutionForDataiku(String projectName, String cloudProfile, String solutionId) {
+		String updateStmt = "update dataiku_sql set solution_id = :solutionId "
+				+ " where cloud_profile = :cloudProfile and project_name = :projectName";
+		Query q = entityManager.createNativeQuery(updateStmt);
+		q.setParameter("solutionId", solutionId);
+		q.setParameter("projectName", projectName);
+		q.setParameter("cloudProfile", cloudProfile);
+		q.executeUpdate();
+		log.info("successfully updated solutionId {} for dataikuproject {}  at {} ",solutionId, projectName, cloudProfile);
+	}
+	
+	@Override
 	public void update(DataikuSql dataikuProject) {
 		if(dataikuProject!=null) {
 			updateDataiku(dataikuProject.getId(),dataikuProject.getDescription(),dataikuProject.getClassificationType(),dataikuProject.getDepartment(),
