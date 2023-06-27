@@ -41,7 +41,7 @@ spring:
           brokers: ${NAAS_BROKER:localhost:9092}   
 
 dnadss:
-  provisionSolutionuri: 'XXXX'
+  provisionSolutionuri: ${PROVSION_SOLUTION_URI:XXXX}
 
 kafka:
   centralTopic:
