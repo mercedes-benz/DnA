@@ -39,6 +39,8 @@ public class DataBricksClient {
 
 	@Value("${databricks.uri.getrun}")
 	private String dataBricksJobGetRunPath;
+	@Value("${databricks.uri.cancelrun}")
+	private String dataBricksJobCancelRunPath;
 
 	@Value("${databricks.uri.jobrunlist}")
 	private String dataBricksJobRunList;
@@ -186,7 +188,31 @@ public class DataBricksClient {
 		return getJobRunsResponse;
 	}
 
-
-
-
+	public DataBricksErrorResponseVO cancelDatabricksRun(String runId) {
+		DataBricksErrorResponseVO deleteRunResponse = null;
+		try {
+			HttpHeaders headers = new HttpHeaders();
+			headers.set("Accept", "application/json");
+			headers.set("Authorization", "Bearer "+dataBricksPAT);
+			headers.setContentType(MediaType.APPLICATION_JSON);
+			String cancelJobRunUrl = dataBricksBaseUri + dataBricksJobCancelRunPath;
+			DatabricksRunGenericRequestDto requestWrapper = new DatabricksRunGenericRequestDto();
+			requestWrapper.setRun_id(runId);
+			HttpEntity requestEntity = new HttpEntity<>(requestWrapper,headers);
+			ResponseEntity<DataBricksErrorResponseVO> response = proxyRestTemplate.exchange(cancelJobRunUrl, HttpMethod.POST,
+					requestEntity, DataBricksErrorResponseVO.class);
+			if (response.hasBody()) {
+				deleteRunResponse = response.getBody();
+			}
+		}catch(Exception e) {
+			log.error("Failed to invoke databricks get run {}", e.getMessage());
+		}
+		return deleteRunResponse;
+	}
 }
+
+
+
+
+
+
