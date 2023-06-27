@@ -402,6 +402,41 @@ public class StorageServicesClient {
 	}
 
 
+	public DeleteBucketResponseWrapperDto deleteFilePresent(String bucketName,String prefix) {
+		Boolean flag = false;
+		DeleteBucketResponseWrapperDto deleteFileResponse = new DeleteBucketResponseWrapperDto();
+		ByteArrayResource data = null;
+		List<MessageDescription> errors = new ArrayList<>();
+		try {
+			HttpHeaders headers = new HttpHeaders();
+//			String jwt = httpRequest.getHeader("Authorization");
+			headers.set("Accept", "application/json");
+//			headers.set("Authorization", jwt);
+			headers.setContentType(MediaType.APPLICATION_JSON);
+			headers.set("chronos-api-key",dataBricksAuth);
+			HttpEntity requestEntity = new HttpEntity<>(headers);
+			String getFilesListUrl = storageBaseUri + BUCKETS_PATH + "/" +bucketName+"/objects?prefix=" + prefix;
+			log.info("getFilesListUrl" + getFilesListUrl);
+			ResponseEntity<DeleteBucketResponseWrapperDto> response = restTemplate.exchange(getFilesListUrl, HttpMethod.DELETE,requestEntity, DeleteBucketResponseWrapperDto.class);
+			log.info("DeleteBucketResponseWrapperDto response in deleteFilePresent" + response);
+			if (response.hasBody()) {
+				deleteFileResponse = response.getBody();
+				deleteFileResponse.setStatus("SUCCESS");
+			}
+		}catch (Exception e) {
+			MessageDescription errMsg = new MessageDescription("Failed to Delete bucket in minio storage " + e.getMessage());
+			log.error(errMsg.getMessage());
+			errors.add(errMsg);
+			deleteFileResponse.setErrors(errors);
+			deleteFileResponse.setStatus("FAILED");
+		}
+
+		return deleteFileResponse;
+
+	}
+
+
+
 	public DeleteBucketResponseWrapperDto deleteBucket(String bucketName) {
 		DeleteBucketResponseWrapperDto deleteBucketResponse = new DeleteBucketResponseWrapperDto();
 		List<MessageDescription> errors = new ArrayList<>();
