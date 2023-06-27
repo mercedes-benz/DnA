@@ -40,6 +40,8 @@ spring:
         binder:
           brokers: ${NAAS_BROKER:localhost:9092}   
 
+dnadss:
+  provisionSolutionuri: 'XXXX'
 
 kafka:
   centralTopic:

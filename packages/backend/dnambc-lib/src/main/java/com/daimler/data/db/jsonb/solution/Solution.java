@@ -96,6 +96,7 @@ public class Solution {
 	private boolean usesExistingInternalPlatforms;
 	private String dnaNotebookId;
 	private String dataikuProjectKey;
+	private String dataikuProjectInstance;
 	private String dnaSubscriptionAppId;
 	private List<SolutionPlatform> platforms;
 
