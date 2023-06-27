@@ -152,7 +152,7 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 	}
 
 	@Override
-	@ApiOperation(value = "Number of forecast-projects.", nickname = "getNumberOfForecastProjects", notes = "Get number of forecast-projects. This endpoints will be used to get all valid available forecast-projects records.", response = TransparencyVO.class, tags={ "forecast-projects", })
+	@ApiOperation(value = "Number of forecast-projects user.", nickname = "getNumberOfForecastProjects", notes = "Get number of forecast-projects. This endpoints will be used to get all valid available forecast-projects records.", response = TransparencyVO.class, tags={ "forecast-projects", })
 	@ApiResponses(value = {
 			@ApiResponse(code = 201, message = "Returns message of success or failure", response = TransparencyVO.class),
 			@ApiResponse(code = 204, message = "Fetch complete, no content found."),
