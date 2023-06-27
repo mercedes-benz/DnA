@@ -885,7 +885,10 @@ definitions:
           type: string
       kafka:
         type: string
-        description: "Kafka of data"    
+        description: "Kafka of data"
+      oneApi:
+        type: string
+        description: "oneApi of data"      
       confidentiality:
         description: "Confidentiality level"
         type: string 
@@ -936,5 +939,8 @@ definitions:
     properties:
         stepNumber:
             type: integer
+        stepIconType:
+            type: string
+            description: Type of a step icon.
         stepText:
             type: string      
