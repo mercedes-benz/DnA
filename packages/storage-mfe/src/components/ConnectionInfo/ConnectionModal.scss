@@ -80,6 +80,14 @@
     padding: 10px 0px;
     overflow: auto;
   }
+  .restAPIContent {
+    label {
+      font-size: var(--font-size-sub-headline);
+    }
+    ul > li> ul {
+      margin-bottom: 10px;
+    }
+  }
 }
 
 .OkBtn {
@@ -105,7 +113,7 @@
 }
 
 :global {
-  [class*="ConnectionModal"] #tab-content-2 .open-suggestion [class*="portal"] {
+  [class*="ConnectionModal"] #tab-content-3 .open-suggestion [class*="portal"] {
     display: none;
   }
 }
