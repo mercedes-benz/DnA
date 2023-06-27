@@ -18,6 +18,7 @@ import javax.validation.constraints.NotNull;
 
 import com.daimler.data.api.forecast.*;
 import com.daimler.data.dto.forecast.*;
+import com.daimler.data.dto.storage.BucketObjectDetailsDto;
 import com.daimler.data.dto.storage.DeleteBucketResponseWrapperDto;
 import org.apache.commons.io.FilenameUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -116,7 +117,7 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 			method = RequestMethod.GET)
 	public ResponseEntity<BucketObjectsCollectionWrapperDto> getConfigFiles(@ApiParam(value = "forecast project ID ") @Valid @RequestParam(value = "id", required = false) String id) {
 		BucketObjectsCollectionWrapperDto collection = new BucketObjectsCollectionWrapperDto();
-		BucketObjectsCollectionWrapperDto projectSpecificBucketCollection = new BucketObjectsCollectionWrapperDto();
+		List<BucketObjectDetailsDto> projectSpecificBucketCollection = new ArrayList<>();
 		BucketObjectsCollectionWrapperDto chronosCoreSpecificcollection = new BucketObjectsCollectionWrapperDto();
 		ForecastVO existingForecast = new ForecastVO();
 		boolean isValidId = true;
@@ -142,9 +143,9 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 		}
 		collection = service.getBucketObjects(defaultConfigFolderPath,BUCKET_TYPE);
 		if (isValidId && id != null) {
-			projectSpecificBucketCollection = service.getBucketObjects(existingForecast.getBucketName() + CONFIG_PATH,existingForecast.getBucketName()+"/");
-			if (projectSpecificBucketCollection.getData() != null) {
-				collection.getData().getBucketObjects().addAll(projectSpecificBucketCollection.getData().getBucketObjects());
+			projectSpecificBucketCollection = service.getProjectSpecificObjects(existingForecast.getConfigFiles());
+			if (projectSpecificBucketCollection != null) {
+				collection.getData().getBucketObjects().addAll(projectSpecificBucketCollection);
 			}
 		}
 		return new ResponseEntity<>(collection, HttpStatus.OK);
@@ -1065,6 +1066,88 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 			}
 			return new ResponseEntity<>(responseVO, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
+
+	@Override
+	@ApiOperation(value = "Cancel particular run based on id.", nickname = "cancelRun", notes = "Cancel particular run based on id.", response = CancelRunResponseVO.class, tags={ "forecast-runs", })
+	@ApiResponses(value = {
+			@ApiResponse(code = 200, message = "Returns message of success or failure", response = CancelRunResponseVO.class),
+			@ApiResponse(code = 204, message = "Fetch complete, no content found."),
+			@ApiResponse(code = 400, message = "Bad request."),
+			@ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+			@ApiResponse(code = 403, message = "Request is not authorized."),
+			@ApiResponse(code = 405, message = "Method not allowed"),
+			@ApiResponse(code = 500, message = "Internal error") })
+	@RequestMapping(value = "/forecasts/{id}/runs/{correlationid}",
+			produces = { "application/json" },
+			consumes = { "application/json" },
+			method = RequestMethod.PUT)
+	public ResponseEntity<CancelRunResponseVO> cancelRun(@ApiParam(value = "forecast project ID to be updated", required = true) @PathVariable("id") String id,
+			@ApiParam(value = "DNA correlation Id for the run", required = true) @PathVariable("correlationid") String correlationid) {
+		CancelRunResponseVO responseVO = new CancelRunResponseVO();
+		ForecastVO existingForecast = service.getById(id);
+		CreatedByVO requestUser = this.userStore.getVO();
+		Boolean notAuthorized = false;
+		boolean notFound = true;
+		if (existingForecast == null || existingForecast.getId() == null) {
+			log.error("Forecast project with this id {} doesnt exists , failed to create comparison", id);
+			MessageDescription invalidMsg = new MessageDescription("Forecast project doesnt exists with given id");
+			GenericMessage errorMessage = new GenericMessage();
+			errorMessage.setSuccess("FAILED");
+			errorMessage.addErrors(invalidMsg);
+			responseVO.setData(null);
+			responseVO.setResponse(errorMessage);
+			return new ResponseEntity<>(responseVO, HttpStatus.NOT_FOUND);
+		}
+		List<String> forecastProjectUsers = new ArrayList<>();
+		forecastProjectUsers.add(existingForecast.getCreatedBy().getId());
+		List<CollaboratorVO> collaborators = existingForecast.getCollaborators();
+		if (collaborators != null && !collaborators.isEmpty()) {
+			collaborators.forEach(n -> forecastProjectUsers.add(n.getId()));
+		}
+		if (forecastProjectUsers != null && !forecastProjectUsers.isEmpty()) {
+			if (!forecastProjectUsers.contains(requestUser.getId())) {
+				log.warn("User not part of forecast project with id {} and name {}, Not authorized", id, existingForecast.getName());
+				notAuthorized = true;
+
+			}
+		}
+		if (notAuthorized) {
+			GenericMessage responseMessage = new GenericMessage();
+			List<MessageDescription> errMsgs = new ArrayList<>();
+			MessageDescription errMsg = new MessageDescription("Only user of this project can cancel the run. Unauthorized");
+			responseMessage.setSuccess("FAILED");
+			errMsgs.add(errMsg);
+			responseMessage.setErrors(errMsgs);
+			responseVO.setData(null);
+			responseVO.setResponse(responseMessage);
+			return new ResponseEntity<>(responseVO, HttpStatus.FORBIDDEN);
+		}
+		List<RunVO> runVOList = existingForecast.getRuns();
+			if(runVOList!= null && !runVOList.isEmpty()) {
+				for(RunVO run: runVOList) {
+					if(correlationid.equalsIgnoreCase(run.getId()) && (run.isIsDeleted() == null || !run.isIsDeleted()) ) {
+						notFound = false;
+					}
+				}
+			}else
+				notFound = true;
+			if (notFound) {
+				log.error("Invalid runCorrelationId {} sent for cancelling run {}  project name {} and id {}, by user {}", correlationid, existingForecast.getName(), id, requestUser);
+				MessageDescription invalidMsg = new MessageDescription("Invalid runCorrelationIds " + correlationid + " sent for cancelling run. Please correct and retry.");
+				GenericMessage errorMessage = new GenericMessage();
+				errorMessage.setSuccess("FAILED");
+				errorMessage.addErrors(invalidMsg);
+				responseVO.setData(null);
+				responseVO.setResponse(errorMessage);
+				return new ResponseEntity<>(responseVO, HttpStatus.NOT_FOUND);
+			}
+		CancelRunResponseVO cancelRunResponse = service.cancelRunById(existingForecast, correlationid);
+		if (cancelRunResponse != null && "SUCCESS".equalsIgnoreCase(cancelRunResponse.getResponse().getSuccess())) {
+			return new ResponseEntity<>(cancelRunResponse, HttpStatus.OK);
+		}
+
+		return new ResponseEntity<>(cancelRunResponse, HttpStatus.INTERNAL_SERVER_ERROR);
+	}
 
 
 	@Override
