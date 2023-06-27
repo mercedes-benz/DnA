@@ -16,6 +16,7 @@ public class Access {
 	
 	private List<String> accessType;
 	private String kafka;
+	private String oneApi;
 	private String confidentiality;
 	private boolean personalRelatedData;
 	private boolean deletionRequirements;

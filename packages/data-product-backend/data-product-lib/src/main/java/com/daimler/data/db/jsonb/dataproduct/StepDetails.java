@@ -13,5 +13,6 @@ import lombok.NoArgsConstructor;
 public class StepDetails {
 
 	private Long stepNumber;
+	private String stepIconType;
 	private String stepText;
 }
