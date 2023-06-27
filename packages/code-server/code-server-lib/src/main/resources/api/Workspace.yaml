@@ -493,7 +493,7 @@ definitions:
     properties:
       count:
         type: integer
-        description: "Number of workspace reports"
+        description: "Number of workspaces"
   WorkspaceCollectionVO:
     type: object
     properties:

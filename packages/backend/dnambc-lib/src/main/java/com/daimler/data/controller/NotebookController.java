@@ -130,9 +130,10 @@ public class NotebookController implements NotebooksApi {
 			TransparencyVO transparencyVO = new TransparencyVO();
 			Integer count = notebookService.getTotalNumberOfNotebooks();
 			transparencyVO.setCount(count);
+			LOGGER.debug("Returning notebook count successfully");
 			return new ResponseEntity<>(transparencyVO, HttpStatus.OK);
 		}catch (Exception e) {
-
+			LOGGER.error("Failed while fetching notebook count with exception {}", e.getMessage());
 			return new ResponseEntity<>(new TransparencyVO(), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}

@@ -799,8 +799,10 @@ public class WorkspaceController  implements CodeServerApi{
 			Integer count = service.getTotalCountOfWorkSpace();
 			TransparencyVO transparencyVO = new TransparencyVO();
 			transparencyVO.setCount(count);
+			log.debug("Workspace count fetched successfully");
 			return new ResponseEntity<>(transparencyVO, HttpStatus.OK);
 		}catch (Exception e){
+			log.error("Failed to fetch count of workspaces with exception {} ", e.getMessage());
 			return  new ResponseEntity<>(new TransparencyVO(), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
