@@ -212,6 +212,14 @@ public class DataProductCustomRepositoryImpl extends CommonDataRepositoryImpl<Da
 	}
 
 	@Override
+	public Integer getCountBasedPublishReport(Boolean published) {
+		String query = "select count(*) from dataproduct_nsql where ((jsonb_extract_path_text(data,'publish')) = (" +"'"+ published +"'"+ "))";
+		Query q = em.createNativeQuery(query);
+		BigInteger results = (BigInteger) q.getSingleResult();
+		return results.intValue();
+	}
+
+	@Override
 	public List<DataProductNsql> getAllWithFiltersUsingNativeQuery(Boolean published, int offset, int limit,
 			String sortBy, String sortOrder, String recordStatus,
 			List<String> artsList, List<String> carlafunctionsList, List<String> platformsList, List<String> frontendToolsList,
