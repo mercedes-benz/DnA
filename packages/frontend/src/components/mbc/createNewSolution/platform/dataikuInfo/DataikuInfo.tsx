@@ -4,7 +4,7 @@ import { ApiClient } from '../../../../../services/ApiClient';
 import { IDataiku } from 'globals/types';
 import Styles from './DataikuInfo.scss';
 import DataikuProjects from './dataikuProjects/DataikuProjects';
-import { getDateFromTimestamp } from '../../../../../services/utils';
+import { getDataikuInstanceTag, getDateFromTimestamp } from '../../../../../services/utils';
 import { Envs } from 'globals/Envs';
 
 const classNames = cn.bind(Styles);
@@ -12,6 +12,7 @@ const classNames = cn.bind(Styles);
 export interface IDataikuInfoProps {
   currSolutionId: string;
   projectId: string;
+  projectInstance: string;
   onProjectLinkSuccess: (project: IDataiku) => void;
   onProjectLinkRemove: () => void;
 }
@@ -26,8 +27,8 @@ const DataikuInfo = forwardRef((props: IDataikuInfoProps, ref: Ref<IDataikuInfoR
   const [selectionError, setSelectionError] = useState<boolean>(false);
 
   const getDataikuInfo = () => {
-    ApiClient.getDataikuProjectDetails(props.projectId, true).then((res) => {
-      setDataikuInfo(res);
+    ApiClient.getDataikuProjectDetailsByProjectkey(props.projectId, props.projectInstance).then((res) => {
+      setDataikuInfo(res.data);
     });
   };
 
@@ -71,16 +72,18 @@ const DataikuInfo = forwardRef((props: IDataikuInfoProps, ref: Ref<IDataikuInfoR
             <div className={Styles.projectCardContent}>
               <h6>
                 <a
-                  href={Envs.DATAIKU_LIVE_APP_URL + '/projects/' + dataikuInfo.projectKey + '/'}
+                  href={dataikuInfo?.cloudProfile?.toLowerCase().includes('extollo')
+                    ? Envs.DATAIKU_LIVE_APP_URL + '/projects/' + dataikuInfo.projectKey + '/'
+                    : Envs.DATAIKU_LIVE_ON_PREMISE_APP_URL + '/projects/' + dataikuInfo.projectKey + '/'}
                   target="_blank"
                   rel="noreferrer"
                 >
                   {dataikuInfo.name}
                 </a>
+                {' '}({getDataikuInstanceTag(dataikuInfo.cloudProfile)})
               </h6>
               <label>
-                Created on {getDateFromTimestamp(dataikuInfo.creationTag?.lastModifiedOn, '.')} by{' '}
-                {dataikuInfo.ownerDisplayName || dataikuInfo.ownerLogin}
+                {dataikuInfo?.creationTag?.lastModifiedOn ? `Created on ${getDateFromTimestamp(dataikuInfo.creationTag?.lastModifiedOn, '.')}` : ''}
               </label>
               <div className={Styles.projectCardDesc}>{dataikuInfo.shortDesc}</div>
               <span className={Styles.closeICon} onClick={removeProject}>
