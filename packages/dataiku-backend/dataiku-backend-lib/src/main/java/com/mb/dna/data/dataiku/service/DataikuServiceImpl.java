@@ -99,6 +99,32 @@ public class DataikuServiceImpl implements DataikuService	{
 	
 	@Override
 	@Transactional
+	public DataikuProjectResponseDto provisionSolutionToDataikuProject(String projectName, String cloudProfile,
+			String solutionId) {
+		DataikuProjectResponseDto responseWrapperDto = new DataikuProjectResponseDto();
+		GenericMessage responseMessage = new GenericMessage();
+		responseMessage.setSuccess("FAILED");
+		List<MessageDescription> errors = new ArrayList<>();
+		List<MessageDescription> warnings = new ArrayList<>();
+		try {
+			dataikuRepo.updateSolutionForDataiku(projectName, cloudProfile, solutionId);
+			responseMessage.setSuccess("SUCCESS");
+		}catch(Exception e) {
+			log.error("Failed to update dataiku project {} at profile {} with solutionId {} with exception {}", projectName , cloudProfile , solutionId, e.getMessage());
+			MessageDescription errMsg = new MessageDescription("Failed to update dataiku project " + projectName  
+			+  " at " + cloudProfile  +" with exception " + e.getMessage());
+			errors.add(errMsg);
+		}
+		responseMessage.setErrors(errors);
+		responseMessage.setWarnings(warnings);
+		responseWrapperDto.setResponse(responseMessage);
+		responseWrapperDto.setData(null);
+		return responseWrapperDto;
+	}
+	
+	
+	@Override
+	@Transactional
 	public DataikuProjectResponseDto updateProject(String id,DataikuProjectUpdateRequestDto updateRequest, List<UserPrivilegeResponseDto> collabPrivilegeDetails) {
 		DataikuProjectUpdateDto updateData = updateRequest.getData();
 		DataikuProjectResponseDto responseWrapperDto = new DataikuProjectResponseDto();
@@ -206,7 +232,7 @@ public class DataikuServiceImpl implements DataikuService	{
 			
 		}catch(Exception e) {
 			log.error("Failed to update dataiku project {} with exception {}", existingRecord.getProjectName(), e.getMessage());
-			MessageDescription errMsg = new MessageDescription("Failed to save new dataiku project " + existingRecord.getProjectName() 
+			MessageDescription errMsg = new MessageDescription("Failed to update dataiku project " + existingRecord.getProjectName() 
 			+  " with exception " + e.getMessage());
 			errors.add(errMsg);
 		}
@@ -454,6 +480,7 @@ public class DataikuServiceImpl implements DataikuService	{
 		responseMessage.setWarnings(warnings);
 		return responseMessage;
 	}
+
 	
 	
 }

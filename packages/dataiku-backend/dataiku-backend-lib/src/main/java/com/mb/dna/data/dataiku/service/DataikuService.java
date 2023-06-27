@@ -25,5 +25,7 @@ public interface DataikuService {
 	boolean checkExistingProject(String projectName, String cloudProfile);
 
 	DataikuProjectDto getByProjectName(String projectName, String cloudProfile);
+	
+	DataikuProjectResponseDto provisionSolutionToDataikuProject(String projectName, String cloudProfile,String solutionId);
 
 }
