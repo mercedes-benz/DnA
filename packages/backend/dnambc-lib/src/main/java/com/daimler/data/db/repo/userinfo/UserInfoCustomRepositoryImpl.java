@@ -160,4 +160,12 @@ public class UserInfoCustomRepositoryImpl extends CommonDataRepositoryImpl<UserI
 		return Optional.of(user);
 	}
 
+	@Override
+	public Integer getNumberOfUsers() {
+		String query = "select count(*) from userinfo_nsql";
+		Query q = em.createNativeQuery(query);
+		BigInteger result = (BigInteger) q.getSingleResult();
+		return result.intValue();
+	}
+
 }

@@ -406,7 +406,7 @@ definitions:
     properties:
       count:
         type: integer
-        description: "Number of published dataproducts"
+        description: "Number of published items"
   RefreshVo:
     type: object
     properties:
