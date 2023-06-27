@@ -1011,7 +1011,7 @@ paths:
     get:
       tags:
         - "forecast-projects"
-      summary: "Number of forecast-projects and users counts."
+      summary: "Number of forecast-projects and users count."
       description: "Get number of forecast-projects and users. This endpoints will be used to get number of counts available in forecast-projects and users."
       operationId: "getNumberOfForecastProjects"
       responses:
