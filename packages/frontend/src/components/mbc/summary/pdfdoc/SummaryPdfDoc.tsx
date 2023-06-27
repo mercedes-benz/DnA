@@ -21,7 +21,7 @@ import ImgUseCaseCheckReady from '../../../../assets/images/UseCsae-Check-Ready.
 // @ts-ignore
 import ImgUseCaseCheck from '../../../../assets/images/UseCsae-Check.png';
 import { TeamMemberType } from 'globals/Enums';
-import { getDateFromTimestamp } from '../../../../services/utils';
+import { getDataikuInstanceTag, getDateFromTimestamp } from '../../../../services/utils';
 
 // @ts-ignore
 import ImgIdeation from '../../../../assets/images/ideation.jpg';
@@ -337,12 +337,11 @@ const teamMembersList = (members: ITeams[]) => {
           )}
         </View>
         <View>
-          <Text style={[styles.sectionTitle, { marginBottom: 5 }]}>{`${member.teamMemberPosition}${
-            !isInternalMember ? ' (' + member.userType + ')' : ''
-          }`}</Text>
+          <Text style={[styles.sectionTitle, { marginBottom: 5 }]}>{`${member.teamMemberPosition}${!isInternalMember ? ' (' + member.userType + ')' : ''
+            }`}</Text>
           {isInternalMember ? (
             <View>
-              <Text style={{marginBottom: 15, marginTop: 5}}>
+              <Text style={{ marginBottom: 15, marginTop: 5 }}>
                 <Link src={TEAMS_PROFILE_LINK_URL_PREFIX + member.shortId}>
                   <Text>
                     {member.firstName} {member.lastName}
@@ -548,9 +547,9 @@ const digitalValue = (items: IValueRampUp[]) => {
 const dataComplianceProcessFlow = (dataCompliance: IDataCompliance) => {
   const image =
     dataCompliance.quickCheck &&
-    !dataCompliance.expertGuidelineNeeded &&
-    !dataCompliance.useCaseDescAndEval &&
-    !dataCompliance.readyForImplementation ? (
+      !dataCompliance.expertGuidelineNeeded &&
+      !dataCompliance.useCaseDescAndEval &&
+      !dataCompliance.readyForImplementation ? (
       <Image style={{ width: 450, height: 150 }} src={ImgQuickCheck} />
     ) : dataCompliance.quickCheck &&
       dataCompliance.expertGuidelineNeeded &&
@@ -681,7 +680,7 @@ const personasList = (selectedPersonas: any[]) => {
   return selectedPersonasToShow.map((persona: any, index: number) => {
     return (
       <View key={index} style={{ display: 'flex', flexDirection: 'row', width: '50%', marginBottom: 15 }}>
-        <View style={{ width: 30, height: 30, marginRight: 10 }}>          
+        <View style={{ width: 30, height: 30, marginRight: 10 }}>
           <Image style={{ width: 'auto', height: 'auto' }} src={persona.avatar} />
         </View>
         <View>
@@ -692,7 +691,7 @@ const personasList = (selectedPersonas: any[]) => {
             <Text>{persona.description}</Text>
             <Text>&nbsp;</Text>
           </View>
-          
+
         </View>
       </View>
     );
@@ -887,26 +886,27 @@ export const SummaryPdfDoc = (props: SummaryPdfDocProps) => (
                             {(props.dnaNotebookEnabled && props.noteBookInfo.name) ||
                               (props.dnaDataIkuProjectEnabled && (
                                 <Link
-                                  src={Envs.DATAIKU_LIVE_APP_URL + '/projects/' + props.dataIkuInfo.projectKey + '/'}
+                                  src={props.dataIkuInfo?.cloudProfile?.toLowerCase().includes('extollo')
+                                    ? Envs.DATAIKU_LIVE_APP_URL + '/projects/' + props.dataIkuInfo.projectKey + '/'
+                                    : Envs.DATAIKU_LIVE_ON_PREMISE_APP_URL + '/projects/' + props.dataIkuInfo.projectKey + '/'}
                                 >
                                   <Text>{props.dataIkuInfo.name}</Text>
                                 </Link>
                               ))}
+                            {props.dnaDataIkuProjectEnabled && <>{' '}({getDataikuInstanceTag(props?.dataIkuInfo?.cloudProfile)})</>}
                           </Text>
                           <View>
                             <Text>
                               Created on{' '}
                               {(props?.dnaNotebookEnabled && props?.noteBookInfo?.createdOn) ||
-                                  (props?.dnaDataIkuProjectEnabled && props?.dataIkuInfo?.creationTag?.lastModifiedOn)
-                                  ? getDateFromTimestamp(
-                                (props.dnaNotebookEnabled && props.noteBookInfo.createdOn) ||
+                                (props?.dnaDataIkuProjectEnabled && props?.dataIkuInfo?.creationTag?.lastModifiedOn)
+                                ? getDateFromTimestamp(
+                                  (props.dnaNotebookEnabled && props.noteBookInfo.createdOn) ||
                                   (props.dnaDataIkuProjectEnabled && props.dataIkuInfo.creationTag?.lastModifiedOn),
-                                '.',
-                              ): ''}{' '}
-                              by{' '}
-                              {(props.dnaNotebookEnabled && props.noteBookInfo.createdBy.firstName) ||
-                                (props.dnaDataIkuProjectEnabled &&
-                                  (props.dataIkuInfo.ownerDisplayName || props.dataIkuInfo.ownerLogin))}
+                                  '.',
+                                ) : ''}{' '}
+                              {props.dnaNotebookEnabled && props.noteBookInfo.createdBy.firstName
+                                && 'by ' + props.dataIkuInfo?.ownerDisplayName || props.dataIkuInfo?.ownerLogin || ''}
                             </Text>
                             <Text>
                               {(props.dnaNotebookEnabled && props.noteBookInfo.description) ||
@@ -992,10 +992,10 @@ export const SummaryPdfDoc = (props: SummaryPdfDocProps) => (
             {(props.solution.dataSources &&
               props.solution.dataSources.dataSources &&
               props.solution.dataSources.dataSources.length > 0) ||
-            (props.solution.dataSources &&
-              props.solution.dataSources.dataVolume &&
-              props.solution.dataSources.dataVolume.name &&
-              props.solution.dataSources.dataVolume.name !== 'Choose') ? (
+              (props.solution.dataSources &&
+                props.solution.dataSources.dataVolume &&
+                props.solution.dataSources.dataVolume.name &&
+                props.solution.dataSources.dataVolume.name !== 'Choose') ? (
               <View wrap={false}>
                 <View style={styles.flexLayout}>
                   <View style={[styles.flexCol4, styles.firstCol]}>
@@ -1025,151 +1025,149 @@ export const SummaryPdfDoc = (props: SummaryPdfDocProps) => (
           </View>
         ) : (
           <View />
-        )}  
+        )}
 
-            {(props.solution.analytics &&
-              props.solution.analytics.algorithms &&
-              props.solution.analytics.algorithms.length > 0) ||
-            (props.solution.analytics &&
-              props.solution.analytics.languages &&
-              props.solution.analytics.languages.length > 0) ||
-            (props.solution.analytics &&
-              props.solution.analytics.visualizations &&
-              props.solution.analytics.visualizations.length > 0) ? (
-              <View wrap={false}>
-                <View style={styles.flexLayout}>
-                  <View style={[styles.flexCol4, styles.firstCol]}>
-                    <Text style={styles.subTitle}>Analytics</Text>
-                  </View>
-                  <View style={styles.flexCol4}>
-                    <Text style={styles.sectionTitle}>Languages</Text>
-                    {props.solution.analytics.languages && props.solution.analytics.languages.length > 0 ? (
-                      processDataValuesFromObj(props.solution.analytics.languages)
-                    ) : (
-                      <Text>NA</Text>
-                    )}
-                  </View>
-                  <View style={styles.flexCol4}>
-                    <Text style={styles.sectionTitle}>Models/Algorithms</Text>
-                    {props.solution.analytics.algorithms && props.solution.analytics.algorithms.length > 0 ? (
-                      processDataValuesFromObj(props.solution.analytics.algorithms)
-                    ) : (
-                      <Text>NA</Text>
-                    )}
-                  </View>
-                  <View style={styles.flexCol4}>
-                    <Text style={styles.sectionTitle}>Visualization</Text>
-                    {props.solution.analytics.visualizations && props.solution.analytics.visualizations.length > 0 ? (
-                      processDataValuesFromObj(props.solution.analytics.visualizations)
-                    ) : (
-                      <Text>NA</Text>
-                    )}
-                  </View>
-                </View>
-                <View style={styles.seperatorLineLight} />
+        {(props.solution.analytics &&
+          props.solution.analytics.algorithms &&
+          props.solution.analytics.algorithms.length > 0) ||
+          (props.solution.analytics &&
+            props.solution.analytics.languages &&
+            props.solution.analytics.languages.length > 0) ||
+          (props.solution.analytics &&
+            props.solution.analytics.visualizations &&
+            props.solution.analytics.visualizations.length > 0) ? (
+          <View wrap={false}>
+            <View style={styles.flexLayout}>
+              <View style={[styles.flexCol4, styles.firstCol]}>
+                <Text style={styles.subTitle}>Analytics</Text>
               </View>
-            ) : (
-              <View />
-            )}
-            {props.solution.sharing &&
-            ((props.solution.sharing.gitUrl && props.solution.sharing.gitUrl !== '') ||
-              (props.solution.sharing.result &&
-                props.solution.sharing.result.name &&
-                props.solution.sharing.result.name !== 'Choose') ||
-              (props.solution.sharing.resultUrl && props.solution.sharing.resultUrl !== '')) ? (
-              <View wrap={false}>
-                <View style={styles.flexLayout}>
-                  <View style={[styles.flexCol4, styles.firstCol]}>
-                    <Text style={styles.subTitle}>Sharing</Text>
-                  </View>
-                  <View style={styles.flexCol4}>
-                    <Text style={styles.sectionTitle}>Git Repository</Text>
-                    {props.solution.sharing.gitUrl && props.solution.sharing.gitUrl !== '' ? (
-                      <Link src={props.solution.sharing.gitUrl}>
-                        <Text>{props.solution.sharing.gitUrl}</Text>
-                      </Link>
-                    ) : (
-                      <Text>NA</Text>
-                    )}
-                  </View>
-                  <View style={styles.flexCol4}>
-                    <Text style={styles.sectionTitle}>Results</Text>
-                    <Text>{formatEmptyText(props.solution.sharing.result.name)}</Text>
-                  </View>
-                  <View style={styles.flexCol4}>
-                    <Text style={styles.sectionTitle}>Comment</Text>
-                    {props.solution.sharing.resultUrl && props.solution.sharing.resultUrl !== '' ? (
-                      <Link src={props.solution.sharing.resultUrl}>
-                        <Text>{props.solution.sharing.resultUrl}</Text>
-                      </Link>
-                    ) : (
-                      <Text>NA</Text>
-                    )}
-                  </View>
-                </View>
-                <View style={styles.seperatorLineLight} />
+              <View style={styles.flexCol4}>
+                <Text style={styles.sectionTitle}>Languages</Text>
+                {props.solution.analytics.languages && props.solution.analytics.languages.length > 0 ? (
+                  processDataValuesFromObj(props.solution.analytics.languages)
+                ) : (
+                  <Text>NA</Text>
+                )}
               </View>
-            ) : (
-              <View />
-            )}
-            <View style={styles.seperatorLine} />
-            {props.solution?.marketing &&
-            (props.solution?.marketing?.customerJourneyPhases?.length > 0 ||
+              <View style={styles.flexCol4}>
+                <Text style={styles.sectionTitle}>Models/Algorithms</Text>
+                {props.solution.analytics.algorithms && props.solution.analytics.algorithms.length > 0 ? (
+                  processDataValuesFromObj(props.solution.analytics.algorithms)
+                ) : (
+                  <Text>NA</Text>
+                )}
+              </View>
+              <View style={styles.flexCol4}>
+                <Text style={styles.sectionTitle}>Visualization</Text>
+                {props.solution.analytics.visualizations && props.solution.analytics.visualizations.length > 0 ? (
+                  processDataValuesFromObj(props.solution.analytics.visualizations)
+                ) : (
+                  <Text>NA</Text>
+                )}
+              </View>
+            </View>
+            <View style={styles.seperatorLineLight} />
+          </View>
+        ) : (
+          <View />
+        )}
+        {props.solution.sharing &&
+          ((props.solution.sharing.gitUrl && props.solution.sharing.gitUrl !== '') ||
+            (props.solution.sharing.result &&
+              props.solution.sharing.result.name &&
+              props.solution.sharing.result.name !== 'Choose') ||
+            (props.solution.sharing.resultUrl && props.solution.sharing.resultUrl !== '')) ? (
+          <View wrap={false}>
+            <View style={styles.flexLayout}>
+              <View style={[styles.flexCol4, styles.firstCol]}>
+                <Text style={styles.subTitle}>Sharing</Text>
+              </View>
+              <View style={styles.flexCol4}>
+                <Text style={styles.sectionTitle}>Git Repository</Text>
+                {props.solution.sharing.gitUrl && props.solution.sharing.gitUrl !== '' ? (
+                  <Link src={props.solution.sharing.gitUrl}>
+                    <Text>{props.solution.sharing.gitUrl}</Text>
+                  </Link>
+                ) : (
+                  <Text>NA</Text>
+                )}
+              </View>
+              <View style={styles.flexCol4}>
+                <Text style={styles.sectionTitle}>Results</Text>
+                <Text>{formatEmptyText(props.solution.sharing.result.name)}</Text>
+              </View>
+              <View style={styles.flexCol4}>
+                <Text style={styles.sectionTitle}>Comment</Text>
+                {props.solution.sharing.resultUrl && props.solution.sharing.resultUrl !== '' ? (
+                  <Link src={props.solution.sharing.resultUrl}>
+                    <Text>{props.solution.sharing.resultUrl}</Text>
+                  </Link>
+                ) : (
+                  <Text>NA</Text>
+                )}
+              </View>
+            </View>
+            <View style={styles.seperatorLineLight} />
+          </View>
+        ) : (
+          <View />
+        )}
+        <View style={styles.seperatorLine} />
+        {props.solution?.marketing &&
+          (props.solution?.marketing?.customerJourneyPhases?.length > 0 ||
             props.solution?.marketing?.marketingCommunicationChannels?.length > 0 ||
             props.solution?.marketing?.personas?.length > 0 ||
             props.solution?.marketing?.personalization?.isChecked ||
-            props.solution?.marketing?.marketingRoles?.length > 0     
-              ) ? (
-              <View wrap={false}>
-                <Text style={[styles.subTitle, styles.setMarginTop]}>Marketing</Text>
-                <View style={styles.flexLayout}>
-                  <View style={[styles.flexCol4, styles.firstCol]}>
-                    <Text style={styles.sectionTitle}>Use Case, Core Needs and Customer Journey Phase</Text>
-                    {props.solution?.marketing?.customerJourneyPhases?.length > 0 ? (
-                      <View>{props.solution?.marketing?.customerJourneyPhases?.map((item, index)=>
-                        {return (<Text key={index}>{item.name}</Text>)})}</View>
-                    ) : (
-                      <Text>NA</Text>
-                    )}
-                  </View>
-                  <View style={styles.flexCol4}>
-                    <Text style={styles.sectionTitle}>Marketing Communication Channels</Text>
-                    {props.solution?.marketing?.marketingCommunicationChannels?.length > 0 ? (
-                      <Text>{props.solution?.marketing?.marketingCommunicationChannels?.map(item=>item.name).join(', ')}</Text>
-                    ) : (
-                      <Text>NA</Text>
-                    )}
-                  </View>
-                  <View style={[styles.flexCol4, styles.firstCol]}>
-                    <Text style={styles.sectionTitle}>Personalisation</Text>
-                    {props.solution?.marketing?.personalization?.isChecked ? (
-                      <Text>{props.solution?.marketing?.personalization?.description}</Text>
-                    ) : (
-                      <Text>NA</Text>
-                    )}
-                  </View>
-                  
-                </View>
-                <View style={styles.flexLayout}>
-                  <Text style={styles.sectionTitle}>Personas</Text>
-                  <View style={styles.flexLayout}>
-                    {personasList(props.solution?.marketing?.personas)}
-                  </View>
-                </View>
-                <View>
-                  <Text style={styles.sectionTitle}>Marketing Roles</Text>
-                    {props.solution?.marketing?.marketingRoles?.length > 0 ? (
-                      <View>{props.solution?.marketing?.marketingRoles?.map((item, index)=>
-                        {return (<Text key={index}>{item.role}</Text>)})}</View>
-                    ) : (
-                      <Text>NA</Text>
-                    )}
-                </View>
+            props.solution?.marketing?.marketingRoles?.length > 0
+          ) ? (
+          <View wrap={false}>
+            <Text style={[styles.subTitle, styles.setMarginTop]}>Marketing</Text>
+            <View style={styles.flexLayout}>
+              <View style={[styles.flexCol4, styles.firstCol]}>
+                <Text style={styles.sectionTitle}>Use Case, Core Needs and Customer Journey Phase</Text>
+                {props.solution?.marketing?.customerJourneyPhases?.length > 0 ? (
+                  <View>{props.solution?.marketing?.customerJourneyPhases?.map((item, index) => { return (<Text key={index}>{item.name}</Text>) })}</View>
+                ) : (
+                  <Text>NA</Text>
+                )}
               </View>
-            ) : (
-              <View />
-            )}
-          
+              <View style={styles.flexCol4}>
+                <Text style={styles.sectionTitle}>Marketing Communication Channels</Text>
+                {props.solution?.marketing?.marketingCommunicationChannels?.length > 0 ? (
+                  <Text>{props.solution?.marketing?.marketingCommunicationChannels?.map(item => item.name).join(', ')}</Text>
+                ) : (
+                  <Text>NA</Text>
+                )}
+              </View>
+              <View style={[styles.flexCol4, styles.firstCol]}>
+                <Text style={styles.sectionTitle}>Personalisation</Text>
+                {props.solution?.marketing?.personalization?.isChecked ? (
+                  <Text>{props.solution?.marketing?.personalization?.description}</Text>
+                ) : (
+                  <Text>NA</Text>
+                )}
+              </View>
+
+            </View>
+            <View style={styles.flexLayout}>
+              <Text style={styles.sectionTitle}>Personas</Text>
+              <View style={styles.flexLayout}>
+                {personasList(props.solution?.marketing?.personas)}
+              </View>
+            </View>
+            <View>
+              <Text style={styles.sectionTitle}>Marketing Roles</Text>
+              {props.solution?.marketing?.marketingRoles?.length > 0 ? (
+                <View>{props.solution?.marketing?.marketingRoles?.map((item, index) => { return (<Text key={index}>{item.role}</Text>) })}</View>
+              ) : (
+                <Text>NA</Text>
+              )}
+            </View>
+          </View>
+        ) : (
+          <View />
+        )}
+
         {props.canShowComplianceSummary ? (
           <View wrap={false}>
             <View wrap={false}>
@@ -1205,7 +1203,7 @@ export const SummaryPdfDoc = (props: SummaryPdfDocProps) => (
               <Text style={[styles.subTitle, styles.setMarginTop]}>Local Compliance Officers</Text>
               <View style={styles.flexLayout}>
                 {props.solution.datacompliance.complianceOfficers &&
-                props.solution.datacompliance.complianceOfficers.length ? (
+                  props.solution.datacompliance.complianceOfficers.length ? (
                   teamMembersList(props.solution.datacompliance.complianceOfficers)
                 ) : (
                   <Text>NA</Text>
@@ -1235,7 +1233,7 @@ export const SummaryPdfDoc = (props: SummaryPdfDocProps) => (
               <Text style={[styles.subTitle, styles.setMarginTop]}>Controllers</Text>
               <View style={styles.flexLayout}>
                 {props.solution.digitalValue.projectControllers &&
-                props.solution.digitalValue.projectControllers.length ? (
+                  props.solution.digitalValue.projectControllers.length ? (
                   teamMembersList(props.solution.digitalValue.projectControllers)
                 ) : (
                   <Text>NA</Text>
@@ -1277,8 +1275,8 @@ export const SummaryPdfDoc = (props: SummaryPdfDocProps) => (
               <View style={styles.flexLayout}>
                 {props.solution.digitalValue ? (
                   props.solution.digitalValue.valueCalculator &&
-                  props.solution.digitalValue.valueCalculator.calculatedValueRampUpYears &&
-                  props.solution.digitalValue.valueCalculator.calculatedValueRampUpYears.length > 0 ? (
+                    props.solution.digitalValue.valueCalculator.calculatedValueRampUpYears &&
+                    props.solution.digitalValue.valueCalculator.calculatedValueRampUpYears.length > 0 ? (
                     digitalValue(props.solution.digitalValue.valueCalculator.calculatedValueRampUpYears)
                   ) : (
                     <Text>NA</Text>
@@ -1295,7 +1293,7 @@ export const SummaryPdfDoc = (props: SummaryPdfDocProps) => (
                     {' '}
                     Digital Value at{' '}
                     {props.solution.digitalValue.valueCalculator &&
-                    props.solution.digitalValue.valueCalculator.calculatedDigitalValue ? (
+                      props.solution.digitalValue.valueCalculator.calculatedDigitalValue ? (
                       <Text>{props.solution.digitalValue.valueCalculator.calculatedDigitalValue.valueAt}%</Text>
                     ) : (
                       <Text>%</Text>
@@ -1303,10 +1301,10 @@ export const SummaryPdfDoc = (props: SummaryPdfDocProps) => (
                   </Text>
                   <Text style={styles.sectionTitle}>
                     {props.solution.digitalValue.valueCalculator &&
-                    props.solution.digitalValue.valueCalculator.calculatedDigitalValue ? (
+                      props.solution.digitalValue.valueCalculator.calculatedDigitalValue ? (
                       props.solution.digitalValue.valueCalculator.calculatedDigitalValue.year +
-                      ' (' +
-                      props.solution.digitalValue.valueCalculator.calculatedDigitalValue.value ? (
+                        ' (' +
+                        props.solution.digitalValue.valueCalculator.calculatedDigitalValue.value ? (
                         <IntlProvider locale={navigator.language} defaultLocale="en">
                           <FormattedNumber
                             value={Number(props.solution.digitalValue.valueCalculator.calculatedDigitalValue.value)}
@@ -1325,7 +1323,7 @@ export const SummaryPdfDoc = (props: SummaryPdfDocProps) => (
                     {' '}
                     Cost Drivers (
                     {props.solution.digitalValue.valueCalculator &&
-                    props.solution.digitalValue.valueCalculator.costFactorSummary ? (
+                      props.solution.digitalValue.valueCalculator.costFactorSummary ? (
                       props.solution.digitalValue.valueCalculator.costFactorSummary.year
                     ) : (
                       <View />
@@ -1334,8 +1332,8 @@ export const SummaryPdfDoc = (props: SummaryPdfDocProps) => (
                   </Text>
                   <Text style={styles.sectionTitle}>
                     {props.solution.digitalValue.valueCalculator &&
-                    props.solution.digitalValue.valueCalculator.costFactorSummary &&
-                    props.solution.digitalValue.valueCalculator.costFactorSummary.value ? (
+                      props.solution.digitalValue.valueCalculator.costFactorSummary &&
+                      props.solution.digitalValue.valueCalculator.costFactorSummary.value ? (
                       <Text>
                         {' '}
                         {props.solution.digitalValue.valueCalculator.costFactorSummary.value ? (
@@ -1359,7 +1357,7 @@ export const SummaryPdfDoc = (props: SummaryPdfDocProps) => (
                     {' '}
                     Value Drivers (
                     {props.solution.digitalValue.valueCalculator &&
-                    props.solution.digitalValue.valueCalculator.valueFactorSummary ? (
+                      props.solution.digitalValue.valueCalculator.valueFactorSummary ? (
                       props.solution.digitalValue.valueCalculator.valueFactorSummary.year
                     ) : (
                       <View />
@@ -1368,8 +1366,8 @@ export const SummaryPdfDoc = (props: SummaryPdfDocProps) => (
                   </Text>
                   <Text style={styles.sectionTitle}>
                     {props.solution.digitalValue.valueCalculator &&
-                    props.solution.digitalValue.valueCalculator.valueFactorSummary &&
-                    props.solution.digitalValue.valueCalculator.valueFactorSummary.value ? (
+                      props.solution.digitalValue.valueCalculator.valueFactorSummary &&
+                      props.solution.digitalValue.valueCalculator.valueFactorSummary.value ? (
                       <Text>
                         {props.solution.digitalValue.valueCalculator.valueFactorSummary.value ? (
                           <IntlProvider locale={navigator.language} defaultLocale="en">
@@ -1391,7 +1389,7 @@ export const SummaryPdfDoc = (props: SummaryPdfDocProps) => (
                   <Text style={styles.sectionTitle}> Break Even Point </Text>
                   <Text style={styles.sectionTitle}>
                     {props.solution.digitalValue.valueCalculator &&
-                    props.solution.digitalValue.valueCalculator.breakEvenPoint ? (
+                      props.solution.digitalValue.valueCalculator.breakEvenPoint ? (
                       props.solution.digitalValue.valueCalculator.breakEvenPoint
                     ) : (
                       <Text>NA</Text>
@@ -1417,7 +1415,7 @@ export const SummaryPdfDoc = (props: SummaryPdfDocProps) => (
                 <Text style={styles.sectionTitle}>Strategic Relevance</Text>
                 <Text style={{ marginBottom: 12 }}>
                   {props.solution.digitalValue.assessment &&
-                  props.solution.digitalValue.assessment.strategicRelevance ? (
+                    props.solution.digitalValue.assessment.strategicRelevance ? (
                     props.solution.digitalValue.assessment.strategicRelevance
                   ) : (
                     <Text>NA</Text>
@@ -1425,7 +1423,7 @@ export const SummaryPdfDoc = (props: SummaryPdfDocProps) => (
                 </Text>
                 <Text>
                   {props.solution.digitalValue.assessment &&
-                  props.solution.digitalValue.assessment.commentOnStrategicRelevance ? (
+                    props.solution.digitalValue.assessment.commentOnStrategicRelevance ? (
                     props.solution.digitalValue.assessment.commentOnStrategicRelevance
                   ) : (
                     <View />
@@ -1438,7 +1436,7 @@ export const SummaryPdfDoc = (props: SummaryPdfDocProps) => (
                 <Text style={styles.sectionTitle}>Benefit Realization Risk</Text>
                 <Text style={{ marginBottom: 12 }}>
                   {props.solution.digitalValue.assessment &&
-                  props.solution.digitalValue.assessment.benefitRealizationRisk ? (
+                    props.solution.digitalValue.assessment.benefitRealizationRisk ? (
                     props.solution.digitalValue.assessment.benefitRealizationRisk
                   ) : (
                     <Text>NA</Text>
@@ -1446,7 +1444,7 @@ export const SummaryPdfDoc = (props: SummaryPdfDocProps) => (
                 </Text>
                 <Text>
                   {props.solution.digitalValue.assessment &&
-                  props.solution.digitalValue.assessment.commentOnBenefitRealizationRisk ? (
+                    props.solution.digitalValue.assessment.commentOnBenefitRealizationRisk ? (
                     props.solution.digitalValue.assessment.commentOnBenefitRealizationRisk
                   ) : (
                     <View />

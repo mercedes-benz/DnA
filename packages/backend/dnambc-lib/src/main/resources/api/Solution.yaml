@@ -1019,6 +1019,9 @@ definitions:
       dnaDataikuProjectId:
         type: string
         description: "Dataiku project id."
+      dnaDataikuProjectInstance:
+        type: string
+        description: "Dataiku project instance."
       dnaSubscriptionAppId:
         type: string
         description: "malware service subscription app ID." 

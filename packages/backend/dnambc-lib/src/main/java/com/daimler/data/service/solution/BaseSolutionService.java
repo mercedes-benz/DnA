@@ -158,7 +158,7 @@ public class BaseSolutionService extends BaseCommonService<SolutionVO, SolutionN
 	private AVScannerClient aVScannerClient;
 	
 	@Autowired
-	private DashboardClient dashboardClient;	
+	private DashboardClient dashboardClient;
 	
 	@Autowired
 	private MarketingRoleService marketingRoleService;
@@ -298,13 +298,13 @@ public class BaseSolutionService extends BaseCommonService<SolutionVO, SolutionN
 						responseSolutionVO.getId());
 			}
 		}
-		if (dataikuAllowed) {
-			if (responseSolutionVO != null && responseSolutionVO.getId() != null && vo.getPortfolio() != null) {
-				LOGGER.info("Updating Solution Id in DnA Dataiku...");
-				dataikuService.updateSolutionIdOfDataIkuProjectId(vo.getPortfolio().getDnaDataikuProjectId(),
-						responseSolutionVO.getId());
-			}
-		}
+//		if (dataikuAllowed) {
+//			if (responseSolutionVO != null && responseSolutionVO.getId() != null && vo.getPortfolio() != null) {
+//				LOGGER.info("Updating Solution Id in DnA Dataiku...");
+//				dataikuService.updateSolutionIdOfDataIkuProjectId(vo.getPortfolio().getDnaDataikuProjectId(),
+//						responseSolutionVO.getId());
+//			}
+//		}
 
 		if (responseSolutionVO != null && responseSolutionVO.getId() != null) {
 			String currDnaSubscriptionAppId = "";
@@ -943,13 +943,13 @@ public class BaseSolutionService extends BaseCommonService<SolutionVO, SolutionN
 					null);
 		}
 
-		if (dataikuAllowed) {
-			LOGGER.info("Updating Dataiku linkage.");
-			DataikuNsql dataikuEntity = dataikuCustomRepo.findbyUniqueLiteral("solutionId", id);
-			if (dataikuEntity != null && dataikuEntity.getData() != null) {
-				dataikuService.updateSolutionIdOfDataIkuProjectId(dataikuEntity.getData().getProjectKey(), null);
-			}
-		}
+//		if (dataikuAllowed) {
+//			LOGGER.info("Updating Dataiku linkage.");
+//			DataikuNsql dataikuEntity = dataikuCustomRepo.findbyUniqueLiteral("solutionId", id);
+//			if (dataikuEntity != null && dataikuEntity.getData() != null) {
+//				dataikuService.updateSolutionIdOfDataIkuProjectId(dataikuEntity.getData().getProjectKey(), null);
+//			}
+//		}
 
 		if (solutionVO != null && solutionVO.getId() != null) {
 			String eventType = "Solution_delete";
