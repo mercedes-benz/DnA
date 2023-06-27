@@ -11,6 +11,7 @@ import java.util.stream.Collectors;
 import com.mb.dna.data.dataiku.api.dto.CollaboratorDetailsDto;
 import com.mb.dna.data.dataiku.api.dto.DataikuProjectCheckListDto;
 import com.mb.dna.data.dataiku.api.dto.DataikuProjectDto;
+import com.mb.dna.data.dataiku.api.dto.DataikuProjectSummaryDetailsDto;
 import com.mb.dna.data.dataiku.api.dto.DataikuProjectSummaryDto;
 import com.mb.dna.data.dataiku.api.dto.DataikuProjectTimeStampDetailsDto;
 import com.mb.dna.data.dataiku.db.entities.CollaboratorSql;
@@ -152,6 +153,28 @@ public class DataikuAssembler {
 		        	}
 		        }
 			}
+		}
+		return summaryDto;
+	}
+	
+	public DataikuProjectSummaryDetailsDto toProjectDetails(DataikuProjectDto projectDto) {
+		DataikuProjectSummaryDetailsDto summaryDto = new DataikuProjectSummaryDetailsDto();
+		if(projectDto!=null) {
+			summaryDto.setClassificationType(projectDto.getClassificationType());
+			summaryDto.setCloudProfile(projectDto.getCloudProfile());
+			summaryDto.setCollaborators(projectDto.getCollaborators());
+			try {
+				Date createdOn = isoFormat.parse(isoFormat.format(projectDto.getCreatedOn()));
+				summaryDto.setCreationTag(new DataikuProjectTimeStampDetailsDto(createdOn));
+			}catch(Exception e) {
+				
+			}
+			summaryDto.setId(projectDto.getId());
+			summaryDto.setName(projectDto.getProjectName());
+			summaryDto.setProjectKey(projectDto.getProjectName());
+			summaryDto.setShortDesc(projectDto.getDescription());
+			summaryDto.setSolutionId(projectDto.getSolutionId());
+			summaryDto.setStatus(projectDto.getStatus());
 		}
 		return summaryDto;
 	}
