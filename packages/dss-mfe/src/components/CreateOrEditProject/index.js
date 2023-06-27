@@ -834,7 +834,7 @@ const CreateOrEditProject = (props) => {
                     onClick={(() => {
                         handleCreateDataikuSubmit();
                     })}
-                    title='users with a access can only create a dataiku project'
+                    title='users with a access can only edit a dataiku project'
                     disabled={!props.isUserCanCreateDataiku}
                 >
                     {'Submit'}

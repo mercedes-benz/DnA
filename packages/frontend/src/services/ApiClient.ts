@@ -52,7 +52,7 @@ export interface IResponse<T> {
 }
 
 const baseUrl = Envs.API_BASEURL ? Envs.API_BASEURL : `http://${window.location.hostname}:7171/api`;
-const dataikUrl = Envs.DATAIKU_API_BASEURL ? Envs.DATAIKU_API_BASEURL : `http://${window.location.hostname}:7171/api`;
+const dataikUrl = Envs.DATAIKU_API_BASEURL ? Envs.DATAIKU_API_BASEURL : `http://${window.location.hostname}:7777/api`;
 const getUrl = (endpoint: string) => {
   return `${baseUrl}/${endpoint}`;
 };
@@ -443,6 +443,10 @@ export class ApiClient {
 
   public static getDataikuProjectsList(live: boolean): Promise<any> {
     return this.get(`dataiku/projects?live=${live}`);
+  }
+
+  public static getDnaDataikuProjectList(): Promise<any> {
+    return this.fetch(getDataikuUrl(`dataiku?limit=0&offset=0&sortBy=&sortOrder=&projectName=`), HTTP_METHOD.GET);
   }
 
   public static getDataikuProjectDetails(projectId: any, isLive: boolean) {

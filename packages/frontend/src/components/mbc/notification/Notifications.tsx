@@ -489,7 +489,8 @@ const Notifications = (props: any) => {
                   />
 
                   {notificationDetails ? (
-                    JSON.parse(notificationDetails).eventType === 'Solution Updated' ? (
+                    (JSON.parse(notificationDetails).eventType === 'Solution Updated' || 
+                    JSON.parse(notificationDetails).eventType.includes('Dashboard-Report Update')) ? (
                       JSON.parse(notificationDetails)?.changeLogs ? (
                         <ul>
                           {JSON.parse(notificationDetails)?.changeLogs?.map((data: IChangeLogData, index: number) => {

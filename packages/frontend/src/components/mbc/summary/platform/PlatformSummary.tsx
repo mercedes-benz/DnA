@@ -4,7 +4,7 @@ import { IconTick } from 'components/icons/IconTick';
 import { IPortfolio, INotebookInfo, IDataiku } from 'globals/types';
 import Styles from './PlatformSummary.scss';
 const classNames = cn.bind(Styles);
-import { getDateFromTimestamp } from '../../../../services/utils';
+import { getDataikuInstanceTag, getDateFromTimestamp } from '../../../../services/utils';
 import { Envs } from 'globals/Envs';
 
 export interface ITeamProps {
@@ -20,13 +20,13 @@ export default function PlatformSummary(props: ITeamProps) {
   const platformChips =
     props.portfolio?.platforms && props.portfolio?.platforms.length > 0
       ? props.portfolio?.platforms.map((chip: any, index: any) => {
-          const lastIndex: boolean = index === props.portfolio?.platforms.length - 1;
-          return (
-            <React.Fragment key={index}>
-              {chip.name}&nbsp;{!lastIndex && `\u002F\xa0`}
-            </React.Fragment>
-          );
-        })
+        const lastIndex: boolean = index === props.portfolio?.platforms.length - 1;
+        return (
+          <React.Fragment key={index}>
+            {chip.name}&nbsp;{!lastIndex && `\u002F\xa0`}
+          </React.Fragment>
+        );
+      })
       : 'NA';
   const solOnCloud = props.portfolio?.solutionOnCloud ? <IconTick /> : 'N/A';
   const usageOfDaimler = props.portfolio?.usesExistingInternalPlatforms ? <IconTick /> : 'N/A';
@@ -57,27 +57,27 @@ export default function PlatformSummary(props: ITeamProps) {
                         {(props.dnaNotebookEnabled && props.noteBookInfo.name) ||
                           (props.dnaDataIkuProjectEnabled && (
                             <a
-                              href={Envs.DATAIKU_LIVE_APP_URL + '/projects/' + props.dataIkuInfo.projectKey + '/'}
+                              href={props.dataIkuInfo?.cloudProfile?.toLowerCase().includes('extollo')
+                                ? Envs.DATAIKU_LIVE_APP_URL + '/projects/' + props.dataIkuInfo.projectKey + '/'
+                                : Envs.DATAIKU_LIVE_ON_PREMISE_APP_URL + '/projects/' + props.dataIkuInfo.projectKey + '/'}
                               target="_blank"
                               rel="noreferrer"
                             >
                               {props.dataIkuInfo.name}
                             </a>
                           ))}
+                        {props.dnaDataIkuProjectEnabled && <>{' '}({getDataikuInstanceTag(props.dataIkuInfo?.cloudProfile)})</>}
                       </h6>
                       <label>
                         Created on{' '}
                         {(props?.dnaNotebookEnabled && props?.noteBookInfo.createdOn) ||
-                            (props?.dnaDataIkuProjectEnabled && props?.dataIkuInfo?.creationTag?.lastModifiedOn) ?
-                            getDateFromTimestamp(
-                          (props.dnaNotebookEnabled && props.noteBookInfo.createdOn) ||
+                          (props?.dnaDataIkuProjectEnabled && props?.dataIkuInfo?.creationTag?.lastModifiedOn) ?
+                          getDateFromTimestamp(
+                            (props.dnaNotebookEnabled && props.noteBookInfo.createdOn) ||
                             (props.dnaDataIkuProjectEnabled && props.dataIkuInfo.creationTag?.lastModifiedOn),
-                          '.',
-                        ):''}{' '}
-                        by{' '}
-                        {(props.dnaNotebookEnabled && props.noteBookInfo.createdBy.firstName) ||
-                          (props.dnaDataIkuProjectEnabled &&
-                            (props.dataIkuInfo.ownerDisplayName || props.dataIkuInfo.ownerLogin))}
+                            '.',
+                          ) : ''}{' '}
+                        {props.dnaNotebookEnabled && props.noteBookInfo.createdBy.firstName && 'by ' + props.dataIkuInfo?.ownerDisplayName || props.dataIkuInfo?.ownerLogin || ''}
                       </label>
                       <div className={Styles.JuperterCardDesc}>
                         {(props.dnaNotebookEnabled && props.noteBookInfo.description) ||
