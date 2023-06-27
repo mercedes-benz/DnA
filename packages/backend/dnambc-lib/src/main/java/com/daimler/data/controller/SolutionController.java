@@ -427,6 +427,31 @@ public class SolutionController implements SolutionsApi, ChangelogsApi, Malwares
             return new ResponseEntity<>(new SolutionVO(), HttpStatus.NO_CONTENT);
         }
     }
+@Override
+	@ApiOperation(value = "Get all published solutions.", nickname = "getNumberOfPublishedSolutions", notes = "Get published solutions. This endpoints will be used to get number of published available solutions records.", response = TransparencyVO.class, tags = {
+			"solutions", })
+	@ApiResponses(value = {
+			@ApiResponse(code = 201, message = "Returns message of success or failure", response = TransparencyVO.class),
+			@ApiResponse(code = 204, message = "Fetch complete, no content found."),
+			@ApiResponse(code = 400, message = "Bad request."),
+			@ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+			@ApiResponse(code = 403, message = "Request is not authorized."),
+			@ApiResponse(code = 405, message = "Method not allowed"),
+			@ApiResponse(code = 500, message = "Internal error") })
+	@RequestMapping(value = "/solutions/transparency", produces = { "application/json" }, consumes = {
+			"application/json" }, method = RequestMethod.GET)
+	public ResponseEntity<TransparencyVO> getNumberOfPublishedSolutions() {
+		try {
+			TransparencyVO transparencyVO = new TransparencyVO();
+			Integer count =solutionService.getCountBasedPublishSolution(true);
+			transparencyVO.setCount(count);
+			log.info("Returning solution count successfully");
+			return new ResponseEntity<>(transparencyVO, HttpStatus.OK);
+		}catch (Exception e) {
+			log.error("Failed while fetching solution count with exception {}", e.getMessage());
+			return new ResponseEntity<>(new TransparencyVO(), HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
 
     @Override
     @ApiOperation(value = "update existing solution.", nickname = "update", notes = "update existing solution.", response = SolutionResponseVO.class, tags = {
