@@ -110,7 +110,7 @@ const ProjectListRowItem = (props) => {
 
   const openProject = (event, isProduction, projectId, cloudProfile) => {
     event.stopPropagation();
-    const instanceURL = cloudProfile?.toLowerCase().includes('extollo') ?  Envs.DATAIKU_LIVE_APP_URL : Envs.DATAIKU_LIVE_ON_PREMISE_APP_URL
+    const instanceURL = cloudProfile?.toLowerCase().includes('extollo') ? Envs.DATAIKU_LIVE_APP_URL : Envs.DATAIKU_LIVE_ON_PREMISE_APP_URL;
     const baseUrl = isProduction ? instanceURL : Envs.DATAIKU_TRAINING_APP_URL;
     window.open(baseUrl + '/projects/' + projectId + '/');
   };
@@ -120,6 +120,7 @@ const ProjectListRowItem = (props) => {
     props.hostHistory.push('/summary/' + solutionId);
   };
 
+  const isAdmin = props?.project?.role?.toLowerCase()?.includes("dataiku-administrator") || props?.project?.role?.toLowerCase()?.includes("administrator");
   return (
     <React.Fragment>
       <tr
@@ -129,7 +130,7 @@ const ProjectListRowItem = (props) => {
       >
         <td className="wrap-text projectName" onClick={onInfoBtnClick}>{props.project.name}</td>
         <td className="wrap-text" onClick={onInfoBtnClick}>
-          <span className={props.isProduction ? Styles.descriptionColumn: Styles.traningDescriptionColumn}>{props.project.shortDesc}</span>
+          <span className={props.isProduction ? Styles.descriptionColumn : Styles.traningDescriptionColumn}>{props.project.shortDesc}</span>
         </td>
         {props.isProduction ? (
           <td className="wrap-text" onClick={onInfoBtnClick}>{props.project.role ? props.project.role.toLowerCase() : ''}</td>
@@ -155,11 +156,16 @@ const ProjectListRowItem = (props) => {
                   className={'icon mbc-icon solutions '}
                 />
               ) : (
-                <i
-                  className="icon mbc-icon provision"
-                  tooltip-data={'Provision to Solution'}
-                  onClick={onProvisionBtnClick}
-                />
+                <button
+                  onClick={isAdmin ? onProvisionBtnClick : null}
+                  className={classNames(Styles.provision, isAdmin ? '' : Styles.disabled)}
+                  disabled={!isAdmin
+                  }>
+                  <i
+                    className="icon mbc-icon provision"
+                    tooltip-data={!isAdmin ? 'No Permssion for Provision to Solution' : 'Provision to Solution'}
+                  />
+                </button>
               )}
             </span>
           ) : (
@@ -174,12 +180,11 @@ const ProjectListRowItem = (props) => {
         {props.isProduction && <td id={'card-' + props.project.id} key={props.project.id} className={Styles.actionMenus}>
           <div className={classNames(Styles.contextMenu, showContextMenu ? Styles.open : '')}>
             {
-              (props?.project?.role?.toLowerCase()?.includes("dataiku-administrator") ||
-                props?.project?.role?.toLowerCase()?.includes("administrator")) && <span
-                  tooltip-data="More Action"
-                  onClick={toggleContextMenu}
-                  className={classNames('trigger', Styles.contextMenuTrigger)}
-                >
+              isAdmin && <span
+                tooltip-data="More Action"
+                onClick={toggleContextMenu}
+                className={classNames('trigger', Styles.contextMenuTrigger)}
+              >
                 <i className="icon mbc-icon listItem context" />
               </span>}
             <div
