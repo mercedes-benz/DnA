@@ -37,6 +37,7 @@ import com.daimler.data.controller.exceptions.MessageDescription;
 import com.daimler.data.dto.solution.CreatedByVO;
 import com.daimler.data.dto.solution.SolutionCollectionResponseVO;
 import com.daimler.data.dto.solution.SolutionVO;
+import com.daimler.data.dto.solution.TransparencyVO;
 import com.daimler.data.dto.userinfo.*;
 import com.daimler.data.service.userinfo.UserInfoService;
 import io.swagger.annotations.*;
@@ -206,6 +207,33 @@ public class UserInfoController implements UsersApi {
 			return new ResponseEntity<>(userInfoVO, HttpStatus.OK);
 		} else {
 			return new ResponseEntity<>(userInfoVO, HttpStatus.BAD_REQUEST);
+		}
+	}
+
+	@Override
+	@ApiOperation(value = "Number of users.", nickname = "getNumberOfUsers", notes = "Get number of users. This endpoints will be used to get all valid available users records.", response = TransparencyVO.class, tags={ "users", })
+	@ApiResponses(value = {
+			@ApiResponse(code = 201, message = "Returns message of success or failure", response = TransparencyVO.class),
+			@ApiResponse(code = 204, message = "Fetch complete, no content found."),
+			@ApiResponse(code = 400, message = "Bad request."),
+			@ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+			@ApiResponse(code = 403, message = "Request is not authorized."),
+			@ApiResponse(code = 405, message = "Method not allowed"),
+			@ApiResponse(code = 500, message = "Internal error") })
+	@RequestMapping(value = "/users/transparency",
+			produces = { "application/json" },
+			consumes = { "application/json" },
+			method = RequestMethod.GET)
+	public ResponseEntity<TransparencyVO> getNumberOfUsers() {
+		TransparencyVO transparencyVO = new TransparencyVO();
+		try {
+			Integer count = userInfoService.getNumberOfUsers();
+			transparencyVO.setCount(count);
+			log.debug("Returning user count successfully");
+			return new ResponseEntity<>(transparencyVO, HttpStatus.OK);
+		} catch (Exception e) {
+			log.error("Failed while fetching users count with exception {}", e.getMessage());
+			return new ResponseEntity<>(transparencyVO, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 

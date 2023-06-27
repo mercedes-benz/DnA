@@ -196,8 +196,10 @@ public class DataTransferController implements DatatransfersApi {
 			TransparencyVO transparencyVO = new TransparencyVO();
 			Integer count = dataTransferService.getCountBasedPublishDatatransfer(true);
 			transparencyVO.setCount(count);
+			LOGGER.info("DataTransfers count fetched successfully");
 			return new ResponseEntity<>(transparencyVO, HttpStatus.OK);
 		}catch (Exception e){
+			LOGGER.error("Failed to fetch count of dataTransfers with exception {} ", e.getMessage());
 			return new ResponseEntity<>(new TransparencyVO(), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}

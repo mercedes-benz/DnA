@@ -312,7 +312,12 @@ public class BaseUserInfoService extends BaseCommonService<UserInfoVO, UserInfoN
 			}
 		}));
 	}
-	
+
+	@Override
+	public Integer getNumberOfUsers() {
+		return customRepo.getNumberOfUsers();
+	}
+
 	@Override
 	public UserInfoVO getById(String id) {
 		Optional<UserInfoNsql> userInfo = customRepo.findById(id);
