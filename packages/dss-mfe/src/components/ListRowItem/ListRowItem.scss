@@ -23,6 +23,19 @@
   }
 }
 
+.provision {
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  font-size: inherit;
+  cursor: pointer;
+}
+
+.disabled {
+  cursor: not-allowed;
+}
+
 .OpenNewTabIcon {
   margin-left: 5px !important;
 }
