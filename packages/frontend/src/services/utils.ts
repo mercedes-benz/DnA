@@ -1,5 +1,6 @@
 import { Envs } from '../globals/Envs';
 import { IUserInfo } from '../globals/types';
+import { ComputeFixedTag } from 'globals/Enums';
 
 declare global {
   interface Window {
@@ -114,6 +115,12 @@ export const getDateFromTimestampForDifference = (givenDate: string, seperator?:
   const d = (new Date(givenDate)).toUTCString();
   return d;
 };
+
+export const getDataikuInstanceTag = (instance: string) => {
+  return instance?.toLowerCase()?.includes('extollo')
+    ? ComputeFixedTag.DATAIKUEXTELLO
+    : ComputeFixedTag.DATAIKUONPREMISE
+}
 
 export const getDateTimeFromTimestamp = (givenDate: string, seperator?: string) => {
   const d = new Date(givenDate);
