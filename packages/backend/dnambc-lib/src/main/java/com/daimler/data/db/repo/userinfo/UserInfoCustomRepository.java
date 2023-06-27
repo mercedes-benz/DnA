@@ -62,4 +62,6 @@ public interface UserInfoCustomRepository extends CommonDataRepository<UserInfoN
 	 * @return the entity with the given id or {@literal Optional#empty()} if none found.
 	 */
 	Optional<UserInfoNsql> findById(String id);
+
+	Integer getNumberOfUsers();
 }

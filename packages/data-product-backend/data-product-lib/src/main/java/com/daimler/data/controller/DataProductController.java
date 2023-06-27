@@ -424,6 +424,32 @@ public class DataProductController implements DataproductsApi{
 		}
     }
 
+	@Override
+	@ApiOperation(value = "Get all published dataproducts.", nickname = "getNumberOfPublishedDataproducts", notes = "Get published dataproducts. This endpoints will be used to get number of published available dataproducts records.", response = TransparencyVO.class, tags = {
+			"dataproducts", })
+	@ApiResponses(value = {
+			@ApiResponse(code = 201, message = "Returns message of success or failure", response = TransparencyVO.class),
+			@ApiResponse(code = 204, message = "Fetch complete, no content found."),
+			@ApiResponse(code = 400, message = "Bad request."),
+			@ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+			@ApiResponse(code = 403, message = "Request is not authorized."),
+			@ApiResponse(code = 405, message = "Method not allowed"),
+			@ApiResponse(code = 500, message = "Internal error") })
+	@RequestMapping(value = "/dataproducts/transparency", produces = { "application/json" }, consumes = {
+			"application/json" }, method = RequestMethod.GET)
+	public ResponseEntity<TransparencyVO> getNumberOfPublishedDataproducts() {
+		try {
+			TransparencyVO transparencyVO = new TransparencyVO();
+			Integer count = service.getCountBasedPublishReport(true);
+			transparencyVO.setCount(count);
+			log.info("DataProduct count fetched successfully");
+			return new ResponseEntity<>(transparencyVO, HttpStatus.OK);
+		}catch (Exception e){
+			log.error("Failed to fetch count of dataProducts with exception {} ", e.getMessage());
+			return new ResponseEntity<>(new TransparencyVO(), HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
+
 
 	@ApiOperation(value = "Get all available dataproducts owners.", nickname = "getAllDataproductOwners", notes = "Get all dataproducts owner. This endpoints will be used to get all valid available dataproduct owner records.", response = DataProductCollection.class, tags={ "dataproducts", })
 	@ApiResponses(value = {

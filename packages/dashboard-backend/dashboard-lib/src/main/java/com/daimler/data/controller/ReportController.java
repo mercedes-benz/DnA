@@ -31,6 +31,7 @@ import java.util.List;
 
 import javax.validation.Valid;
 
+import com.daimler.data.dto.report.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,12 +50,6 @@ import com.daimler.data.api.report.ReportsApi;
 import com.daimler.data.application.auth.UserStore;
 import com.daimler.data.assembler.ReportAssembler;
 import com.daimler.data.controller.exceptions.GenericMessage;
-import com.daimler.data.dto.report.CreatedByVO;
-import com.daimler.data.dto.report.ProcessOwnerCollection;
-import com.daimler.data.dto.report.ReportCollection;
-import com.daimler.data.dto.report.ReportRequestVO;
-import com.daimler.data.dto.report.ReportResponseVO;
-import com.daimler.data.dto.report.ReportVO;
 import com.daimler.data.service.report.ReportService;
 
 import io.swagger.annotations.Api;
@@ -228,6 +223,32 @@ public class ReportController implements ReportsApi {
 		} else {
 			LOGGER.debug("No Report {} found", id);
 			return new ResponseEntity<>(new ReportVO(), HttpStatus.NO_CONTENT);
+		}
+	}
+
+	@Override
+	@ApiOperation(value = "Get number of published reports.", nickname = "getNumberOfPublishedReports", notes = "Get published reports. This endpoints will be used to get number of published available report records.", response = TransparencyVO.class, tags = {
+			"reports", })
+	@ApiResponses(value = {
+			@ApiResponse(code = 201, message = "Returns message of success or failure", response = TransparencyVO.class),
+			@ApiResponse(code = 204, message = "Fetch complete, no content found."),
+			@ApiResponse(code = 400, message = "Bad request."),
+			@ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+			@ApiResponse(code = 403, message = "Request is not authorized."),
+			@ApiResponse(code = 405, message = "Method not allowed"),
+			@ApiResponse(code = 500, message = "Internal error") })
+	@RequestMapping(value = "/reports/transparency", produces = { "application/json" }, consumes = {
+			"application/json" }, method = RequestMethod.GET)
+	public ResponseEntity<TransparencyVO> getNumberOfPublishedReports() {
+		try {
+			Integer count = reportService.getCountBasedPublishReport(true);
+			TransparencyVO transparencyVO = new TransparencyVO();
+			transparencyVO.setCount(count);
+			LOGGER.info("Report count fetched successfully");
+			return new ResponseEntity<>(transparencyVO, HttpStatus.OK);
+		}catch (Exception e){
+			LOGGER.error("Failed to fetch count of reports with exception {} ", e.getMessage());
+			return new ResponseEntity<>(new TransparencyVO(), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 

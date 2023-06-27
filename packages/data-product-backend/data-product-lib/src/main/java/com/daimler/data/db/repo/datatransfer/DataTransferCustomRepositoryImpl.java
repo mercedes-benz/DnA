@@ -359,4 +359,12 @@ public class DataTransferCustomRepositoryImpl extends CommonDataRepositoryImpl<D
 		}
 		return genericMessage;
 	}
+
+	@Override
+	public Integer getCountBasedPublishDatatransfer(Boolean published) {
+		String query = "select count(*) from datatransfer_nsql where ((jsonb_extract_path_text(data,'publish')) = (" +"'"+ published +"'"+ "))";
+		Query q = em.createNativeQuery(query);
+		BigInteger results = (BigInteger) q.getSingleResult();
+		return results.intValue();
+	}
 }

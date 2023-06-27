@@ -63,6 +63,10 @@ public interface ForecastService extends CommonService<ForecastVO, ForecastNsql,
 	public ForecastConfigFileResultVO  getForecastConfigFileById(String id,String configFileId);
 
 
+	Integer getTotalCountOfForecastProjects();
+
+	Integer getTotalCountOfForecastUsers();
+
 
 
 
