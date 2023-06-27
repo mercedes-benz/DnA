@@ -89,6 +89,7 @@ databricks:
     runnow: ${DATABRICKS_RUNNOW_URI:/api/2.1/jobs/run-now}
     deleterun: ${DATABRICKS_DELETERUN_URI:/api/2.1/jobs/runs/delete}
     getrun: ${DATABRICKS_GETRUN_URI:/api/2.1/jobs/runs/get}
+    cancelrun: ${DATABRICKS_CANCELRUN_URI:/api/2.1/jobs/runs/cancel}
     jobrunlist: ${DATABRICKS_JOBRUNLIST_URI:/api/2.1/jobs/get}
     jobrunoutput: ${DATABRICKS_GETRUNOUTPUT_URI:/api/2.1/jobs/runs/get-output}
     
