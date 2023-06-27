@@ -658,8 +658,43 @@ paths:
           description: "Method not allowed"
         500:
           description: "Internal error"
-  
-  #forecst-runs-comparisons
+
+    put:
+      tags:
+        - "forecast-runs"
+      summary: "Cancel particular run based on id."
+      description: "Cancel particular run based on id."
+      operationId: "cancelRun"
+      parameters:
+        - name: "id"
+          in: "path"
+          description: "forecast project ID to be updated"
+          required: true
+          type: "string"
+        - in: "path"
+          name: "correlationid"
+          description: "DNA correlation Id for the run"
+          required: true
+          type: "string"
+      responses:
+        200:
+          description: "Returns message of success or failure"
+          schema:
+            $ref: "#/definitions/CancelRunResponseVO"
+        204:
+          description: "Fetch complete, no content found."
+        400:
+          description: "Bad request."
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
+
+#forecst-runs-comparisons
   /forecasts/{id}/comparisons:
     post:
       tags:
@@ -1555,8 +1590,15 @@ definitions:
         type: string
       response:
         $ref: "#/definitions/GenericMessage"
-  
-  
+
+  CancelRunResponseVO:
+    type: object
+    properties:
+      data:
+        $ref: "#/definitions/RunVO"
+      response:
+        $ref: "#/definitions/GenericMessage"
+
   BindingResult:
     type: object
   

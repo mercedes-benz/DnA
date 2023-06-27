@@ -124,8 +124,8 @@ export default class Summary extends React.Component<{ user: IUserInfo }, ISumma
           customerJourneyPhases: [],
           marketingCommunicationChannels: [],
           personalization: {
-              isChecked: false,
-              description: ''
+            isChecked: false,
+            description: ''
           },
           personas: [],
           marketingRoles: []
@@ -180,6 +180,7 @@ export default class Summary extends React.Component<{ user: IUserInfo }, ISumma
           platforms: [],
           dnaNotebookId: null,
           dnaDataikuProjectId: null,
+          dnaDataikuProjectInstance: null,
           dnaSubscriptionAppId: null,
         },
         publish: false,
@@ -248,11 +249,11 @@ export default class Summary extends React.Component<{ user: IUserInfo }, ISumma
       &&
       (this.state.solution?.digitalValue?.maturityLevel && this.state.solution?.digitalValue?.maturityLevel != null);
 
-    const canShowMarketing  = this.state.solution?.marketing?.customerJourneyPhases?.length > 0 ||
-    this.state.solution?.marketing?.marketingCommunicationChannels?.length > 0 ||
-    this.state.solution?.marketing?.personas?.length > 0 ||
-    this.state.solution?.marketing?.personalization?.isChecked ||
-    this.state.solution?.marketing?.marketingRoles.length > 0;
+    const canShowMarketing = this.state.solution?.marketing?.customerJourneyPhases?.length > 0 ||
+      this.state.solution?.marketing?.marketingCommunicationChannels?.length > 0 ||
+      this.state.solution?.marketing?.personas?.length > 0 ||
+      this.state.solution?.marketing?.personalization?.isChecked ||
+      this.state.solution?.marketing?.marketingRoles.length > 0;
 
     const pdfContent = canShowDescription ? (
       <SummaryPdfDoc
@@ -388,10 +389,10 @@ export default class Summary extends React.Component<{ user: IUserInfo }, ISumma
                       <DataComplianceSummary dataCompliance={this.state.solution.datacompliance} />
                     ) : null}
 
-                    {canShowMarketing && (                  
+                    {canShowMarketing && (
                       <MarketingSummary marketing={this.state.solution.marketing} />
                     )}
-                    
+
                   </React.Fragment>
                 ) : (
                   ''
@@ -437,7 +438,7 @@ export default class Summary extends React.Component<{ user: IUserInfo }, ISumma
   public async componentDidMount() {
     ApiClient.getDataSources()
       .then((res) => {
-        this.setState({ dataSources: res }, () => {});
+        this.setState({ dataSources: res }, () => { });
       })
       .catch((error) => {
         this.showErrorNotification(error.message ? error.message : 'Some Error Occured');
@@ -465,7 +466,7 @@ export default class Summary extends React.Component<{ user: IUserInfo }, ISumma
             ? (sol.bookmarked = true)
             : (sol.bookmarked = false);
         }
-        this.setState({ solution: sol }, () => {});
+        this.setState({ solution: sol }, () => { });
       })
       .catch((error) => {
         this.showErrorNotification(error.message ? error.message : 'Some Error Occured');
@@ -548,7 +549,7 @@ export default class Summary extends React.Component<{ user: IUserInfo }, ISumma
                 canShowTeams: solution.team && solution.team.team.length > 0,
                 canShowDigitalValue:
                   solution.digitalValue &&
-                  (isAdmin !== undefined || (userInfo.id === this.checkUserCanViewDigitalValue(userInfo)))
+                    (isAdmin !== undefined || (userInfo.id === this.checkUserCanViewDigitalValue(userInfo)))
                     ? true
                     : false,
                 canShowMilestones:
@@ -568,9 +569,9 @@ export default class Summary extends React.Component<{ user: IUserInfo }, ISumma
                     });
                   });
                 } else if (res.portfolio.dnaDataikuProjectId !== null) {
-                  ApiClient.getDataikuProjectDetails(res.portfolio.dnaDataikuProjectId, true).then((res) => {
+                  ApiClient.getDataikuProjectDetailsByProjectkey(res.portfolio.dnaDataikuProjectId, res.portfolio.dnaDataikuProjectInstance).then((res) => {
                     this.setState({
-                      dataIkuInfo: res,
+                      dataIkuInfo: res?.data,
                       notebookAndDataIkuNotEnabled: false,
                       dnaDataIkuProjectEnabled: true,
                     });
@@ -646,7 +647,7 @@ export default class Summary extends React.Component<{ user: IUserInfo }, ISumma
         }
       } else if (this.state.solution.team.team.find((teamMember) => teamMember.shortId === userInfo.id)) {
         userId = this.state.solution.team.team.find((teamMember) => teamMember.shortId === userInfo.id).shortId;
-      }  else if (
+      } else if (
         userInfo?.divisionAdmins &&
         userInfo?.divisionAdmins.includes(this.state.solution?.description?.division?.name)
       ) {
@@ -715,7 +716,7 @@ export default class Summary extends React.Component<{ user: IUserInfo }, ISumma
       });
   };
 
-  protected exportToPDF = () => {};
+  protected exportToPDF = () => { };
 
   protected setCurrentTab = (event: React.MouseEvent) => {
     const target = event.target as HTMLLinkElement;
