@@ -427,31 +427,6 @@ public class SolutionController implements SolutionsApi, ChangelogsApi, Malwares
             return new ResponseEntity<>(new SolutionVO(), HttpStatus.NO_CONTENT);
         }
     }
-@Override
-	@ApiOperation(value = "Get all published solutions.", nickname = "getNumberOfPublishedSolutions", notes = "Get published solutions. This endpoints will be used to get number of published available solutions records.", response = TransparencyVO.class, tags = {
-			"solutions", })
-	@ApiResponses(value = {
-			@ApiResponse(code = 201, message = "Returns message of success or failure", response = TransparencyVO.class),
-			@ApiResponse(code = 204, message = "Fetch complete, no content found."),
-			@ApiResponse(code = 400, message = "Bad request."),
-			@ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
-			@ApiResponse(code = 403, message = "Request is not authorized."),
-			@ApiResponse(code = 405, message = "Method not allowed"),
-			@ApiResponse(code = 500, message = "Internal error") })
-	@RequestMapping(value = "/solutions/transparency", produces = { "application/json" }, consumes = {
-			"application/json" }, method = RequestMethod.GET)
-	public ResponseEntity<TransparencyVO> getNumberOfPublishedSolutions() {
-		try {
-			TransparencyVO transparencyVO = new TransparencyVO();
-			Integer count =solutionService.getCountBasedPublishSolution(true);
-			transparencyVO.setCount(count);
-			log.info("Returning solution count successfully");
-			return new ResponseEntity<>(transparencyVO, HttpStatus.OK);
-		}catch (Exception e) {
-			log.error("Failed while fetching solution count with exception {}", e.getMessage());
-			return new ResponseEntity<>(new TransparencyVO(), HttpStatus.INTERNAL_SERVER_ERROR);
-		}
-	}
 
     @Override
     @ApiOperation(value = "update existing solution.", nickname = "update", notes = "update existing solution.", response = SolutionResponseVO.class, tags = {
@@ -561,24 +536,33 @@ public class SolutionController implements SolutionsApi, ChangelogsApi, Malwares
                 mergedsolutionVO = solutionService.create(requestSolutionVO);
                 if (mergedsolutionVO != null && mergedsolutionVO.getId() != null) {
                     if (dataikuAllowed) {
+                        boolean showDataikuError = false;
                         if (requestSolutionVO.getPortfolio() != null
                                 && requestSolutionVO.getPortfolio().getDnaDataikuProjectId() != null
                                 && requestSolutionVO.getPortfolio().getDnaDataikuProjectId() != null) {
                             GenericMessage provisionSolutionResponse = dnaDssClient.provisionSolutionToDataikuProject(requestSolutionVO.getPortfolio().getDnaDataikuProjectId(),
                                     requestSolutionVO.getPortfolio().getDnaDataikuProjectInstance(), mergedsolutionVO.getId());
                             LOGGER.info("Adding provision Solution to DataikuProject via update with the response {}", provisionSolutionResponse);
-
                             if (provisionSolutionResponse != null && "FAILED".equalsIgnoreCase(provisionSolutionResponse.getSuccess())) {
-                                LOGGER.error("Failed at dataiku solution for project {} with solution {} ", mergedsolutionVO.getId());
-                                List<MessageDescription> messages = new ArrayList<>();
-                                MessageDescription message = new MessageDescription();
-                                message.setMessage("Failed at dataiku solution for project "
-                                        + requestSolutionVO.getPortfolio().getDnaDataikuProjectId() + " with solution {}  " + mergedsolutionVO.getId());
-                                messages.add(message);
-                                response.setData(requestSolutionVO);
-                                response.setErrors(messages);
-                                return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+                                LOGGER.error("Failed at Adding provision solution for project {} with solution {} ", requestSolutionVO.getPortfolio().getDnaDataikuProjectInstance(),
+                                        mergedsolutionVO.getId());
+                                showDataikuError = true;
                             }
+
+                            // To unlink the previously linked DnaDataiku project.
+                            if (!requestSolutionVO.getPortfolio().getDnaDataikuProjectId().equalsIgnoreCase(existingSolutionVO.getPortfolio().getDnaDataikuProjectId())
+                                    || !requestSolutionVO.getPortfolio().getDnaDataikuProjectInstance().equalsIgnoreCase(existingSolutionVO.getPortfolio().getDnaDataikuProjectInstance())) {
+                                LOGGER.info("unlinking the previously linked DnaDataiku project for soultion id {}", mergedsolutionVO.getId());
+                                GenericMessage unlinkProvisionSolutionResponse = dnaDssClient.provisionSolutionToDataikuProject(
+                                        existingSolutionVO.getPortfolio().getDnaDataikuProjectId(),
+                                        existingSolutionVO.getPortfolio().getDnaDataikuProjectInstance(), null);
+                                if (unlinkProvisionSolutionResponse != null && "FAILED".equalsIgnoreCase(unlinkProvisionSolutionResponse.getSuccess())) {
+                                    LOGGER.error("Failed at unlinking the previously linked DnaDataiku project for project {} with solution {} ", existingSolutionVO.getPortfolio().getDnaDataikuProjectId(),
+                                            mergedsolutionVO.getId());
+                                    showDataikuError = true;
+                                }
+                            }
+
                         } else if ((requestSolutionVO.getPortfolio() != null
                                 && requestSolutionVO.getPortfolio().getDnaDataikuProjectId() == null
                                 && requestSolutionVO.getPortfolio().getDnaDataikuProjectId() == null)
@@ -593,16 +577,19 @@ public class SolutionController implements SolutionsApi, ChangelogsApi, Malwares
                                     null);
                             LOGGER.info("removing provision Solution to DataikuProject via update with the response {}", provisionSolutionResponse);
                             if (provisionSolutionResponse != null && "FAILED".equalsIgnoreCase(provisionSolutionResponse.getSuccess())) {
-                                LOGGER.error("Failed at dataiku solution for project {} with solution {} ", mergedsolutionVO.getId());
-                                List<MessageDescription> messages = new ArrayList<>();
-                                MessageDescription message = new MessageDescription();
-                                message.setMessage("Failed at dataiku solution for project "
-                                        + requestSolutionVO.getPortfolio().getDnaDataikuProjectId() + " with solution {}  " + mergedsolutionVO.getId());
-                                messages.add(message);
-                                response.setData(requestSolutionVO);
-                                response.setErrors(messages);
-                                return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+                                LOGGER.error("Failed at removing provision solution for project {} with solution {} ",
+                                        existingSolutionVO.getPortfolio().getDnaDataikuProjectId(), mergedsolutionVO.getId());
+                                showDataikuError = true;
                             }
+                        }
+                        if (showDataikuError) {
+                            List<MessageDescription> messages = new ArrayList<>();
+                            MessageDescription message = new MessageDescription();
+                            message.setMessage("Failed at dataiku solution for project with solution {}  " + mergedsolutionVO.getId());
+                            messages.add(message);
+                            response.setData(requestSolutionVO);
+                            response.setErrors(messages);
+                            return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
                         }
                     }
                     response.setData(mergedsolutionVO);
