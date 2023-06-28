@@ -51,6 +51,12 @@ const getForecastRun = (id, rid) => {
   });
 };
 
+const cancelForecastRun = (id, rid) => {
+  return server.put(`/forecasts/${id}/runs/${rid}`, {
+    data: {},
+  });
+};
+
 const deleteForecastRun = (id, rid) => {
   return server.delete(`/forecasts/${id}/runs/${rid}`, {
     data: {},
@@ -125,6 +131,30 @@ const getComparisonHtml = (id, cid) => {
   });
 };
 
+const getProjectConfigFiles = (id) => {
+  return server.get(`/forecasts/${id}/config-files`, {
+    data: {},
+  });
+};
+
+const getProjectConfigFileById = (id, configFileId) => {
+  return server.get(`/forecasts/${id}/config-files/${configFileId}/configFileData`, {
+    data: {},
+  });
+};
+
+const uploadProjectConfigFile = (id, data) => {
+  return formServer.post(`/forecasts/${id}/config-files`, data);
+};
+
+const deleteProjectConfigFile = (id, configFileId) => {
+  return server.delete(`/forecasts/${id}/config-files/${configFileId}`, {
+    data: {},
+  });
+};
+
+
+
 export const chronosApi = {
     getAllForecastProjects,
     getForecastProjectById,
@@ -148,4 +178,9 @@ export const chronosApi = {
     getForecastComparisons,
     deleteForecastComparisons,
     getComparisonHtml,
+    getProjectConfigFiles,
+    getProjectConfigFileById,
+    uploadProjectConfigFile,
+    deleteProjectConfigFile,
+    cancelForecastRun,
 };
