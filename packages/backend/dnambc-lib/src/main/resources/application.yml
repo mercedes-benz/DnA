@@ -1,7 +1,7 @@
 spring:
   application:
     name: dna-backend-service
-    version: 3.2.8
+    version: 3.2.9
   flyway:
     enabled: ${FLYWAY_ENABLED:true}
     baseline-on-migrate: ${FLYWAY_BASELINE_ON_MIGRATE:true}
@@ -40,6 +40,8 @@ spring:
         binder:
           brokers: ${NAAS_BROKER:localhost:9092}   
 
+dnadss:
+  provisionSolutionuri: ${PROVSION_SOLUTION_URI:XXXX}
 
 kafka:
   centralTopic:

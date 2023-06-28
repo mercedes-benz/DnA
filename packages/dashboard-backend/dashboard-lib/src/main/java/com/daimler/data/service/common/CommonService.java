@@ -37,6 +37,7 @@ import com.daimler.data.dto.lov.LovRequestVO;
 import com.daimler.data.dto.lov.LovResponseVO;
 import com.daimler.data.dto.lov.LovUpdateRequestVO;
 import com.daimler.data.dto.lov.LovVOCollection;
+import com.daimler.data.dto.report.CreatedByVO;
 import com.daimler.data.service.report.ReportService.CATEGORY;
 
 public interface CommonService<V, T, ID> {
@@ -75,4 +76,9 @@ public interface CommonService<V, T, ID> {
 	ResponseEntity<GenericMessage> deleteLov(ID id, CATEGORY category, T entity);
 
 	boolean verifyUserRoles();
+	
+	String currentUserName(CreatedByVO currentUser);
+	
+	void notifyAllAdminUsers(String eventType, String resourceId, String message, String triggeringUser,
+			List<com.daimler.data.dto.solution.ChangeLogVO> changeLogs);
 }

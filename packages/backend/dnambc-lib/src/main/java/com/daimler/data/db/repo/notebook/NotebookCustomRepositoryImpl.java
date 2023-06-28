@@ -32,8 +32,18 @@ import org.springframework.stereotype.Repository;
 import com.daimler.data.db.entities.NotebookNsql;
 import com.daimler.data.db.repo.common.CommonDataRepositoryImpl;
 
+import javax.persistence.Query;
+import java.math.BigInteger;
+
 @Repository
 public class NotebookCustomRepositoryImpl extends CommonDataRepositoryImpl<NotebookNsql, String>
 		implements NotebookCustomRepository {
 
+	@Override
+	public Integer getTotalNumberOfNotebooks() {
+		String query = "select count(*) from notebook_nsql";
+		Query q = em.createNativeQuery(query);
+		BigInteger results = (BigInteger) q.getSingleResult();
+		return results.intValue();
+	}
 }

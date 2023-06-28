@@ -120,4 +120,6 @@ public interface ReportService extends CommonService<ReportVO, ReportNsql, Strin
 	 * @param category
 	 */
 	void updateForEachReport(String oldValue, String newValue, CATEGORY category, Object updateObject);
+
+	Integer getCountBasedPublishReport(Boolean published);
 }

@@ -99,7 +99,33 @@ public class DataikuServiceImpl implements DataikuService	{
 	
 	@Override
 	@Transactional
-	public DataikuProjectResponseDto updateProject(String id,DataikuProjectUpdateRequestDto updateRequest) {
+	public DataikuProjectResponseDto provisionSolutionToDataikuProject(String projectName, String cloudProfile,
+			String solutionId) {
+		DataikuProjectResponseDto responseWrapperDto = new DataikuProjectResponseDto();
+		GenericMessage responseMessage = new GenericMessage();
+		responseMessage.setSuccess("FAILED");
+		List<MessageDescription> errors = new ArrayList<>();
+		List<MessageDescription> warnings = new ArrayList<>();
+		try {
+			dataikuRepo.updateSolutionForDataiku(projectName, cloudProfile, solutionId);
+			responseMessage.setSuccess("SUCCESS");
+		}catch(Exception e) {
+			log.error("Failed to update dataiku project {} at profile {} with solutionId {} with exception {}", projectName , cloudProfile , solutionId, e.getMessage());
+			MessageDescription errMsg = new MessageDescription("Failed to update dataiku project " + projectName  
+			+  " at " + cloudProfile  +" with exception " + e.getMessage());
+			errors.add(errMsg);
+		}
+		responseMessage.setErrors(errors);
+		responseMessage.setWarnings(warnings);
+		responseWrapperDto.setResponse(responseMessage);
+		responseWrapperDto.setData(null);
+		return responseWrapperDto;
+	}
+	
+	
+	@Override
+	@Transactional
+	public DataikuProjectResponseDto updateProject(String id,DataikuProjectUpdateRequestDto updateRequest, List<UserPrivilegeResponseDto> collabPrivilegeDetails) {
 		DataikuProjectUpdateDto updateData = updateRequest.getData();
 		DataikuProjectResponseDto responseWrapperDto = new DataikuProjectResponseDto();
 		GenericMessage responseMessage = new GenericMessage();
@@ -107,7 +133,7 @@ public class DataikuServiceImpl implements DataikuService	{
 		List<MessageDescription> errors = new ArrayList<>();
 		List<MessageDescription> warnings = new ArrayList<>();
 		DataikuProjectDto existingRecord = this.getById(id);
-		existingRecord.setCollaborators(updateData.getCollaborators());
+		
 		if(updateData.getDescription()!=null)
 			existingRecord.setDescription(updateData.getDescription());
 		try {
@@ -155,6 +181,7 @@ public class DataikuServiceImpl implements DataikuService	{
 					if("Reader".equalsIgnoreCase(permission)) {
 						groupName = projectSpecificReadAccessGroup;
 					}
+					Optional<UserPrivilegeResponseDto> tempCollabUserPrivilegeResponseDtoOptional = collabPrivilegeDetails.stream().filter(n-> x.getUserId().equalsIgnoreCase(n.getData().getUserId())).findFirst();
 					if(tempCollabUserDetails == null || tempCollabUserDetails.getLogin()==null) {
 						tempCollabUserDetails = new DataikuUserDto();
 						tempCollabUserDetails.setLogin(x.getUserId().toUpperCase());
@@ -165,6 +192,9 @@ public class DataikuServiceImpl implements DataikuService	{
 						tempCollabUserDetails.setGroups(groups);
 						tempCollabUserDetails.setEmail(x.getUserId().toUpperCase());
 						tempCollabUserDetails.setEnabled(true);
+						if(tempCollabUserPrivilegeResponseDtoOptional.isPresent()) {
+							tempCollabUserDetails.setUserProfile(tempCollabUserPrivilegeResponseDtoOptional.get().getData().getProfile());
+						}
 						MessageDescription onboardTempCollabErrMsg = dataikuClient.addUser(tempCollabUserDetails,cloudProfile);
 						if(onboardTempCollabErrMsg!=null) {
 							warnings.add(onboardTempCollabErrMsg);
@@ -174,6 +204,10 @@ public class DataikuServiceImpl implements DataikuService	{
 						if(currentGroups==null || currentGroups.isEmpty()) 
 							currentGroups = new ArrayList<>();
 						currentGroups.add(groupName);
+						tempCollabUserDetails.setGroups(currentGroups);
+						if(tempCollabUserPrivilegeResponseDtoOptional.isPresent()) {
+							tempCollabUserDetails.setUserProfile(tempCollabUserPrivilegeResponseDtoOptional.get().getData().getProfile());
+						}
 						log.info("Adding group {} for user {} ", groupName,x.getUserId().toUpperCase());
 						MessageDescription UpdateTempCollabErrMsg = dataikuClient.updateUser(tempCollabUserDetails,cloudProfile);
 						if(UpdateTempCollabErrMsg!=null) {
@@ -198,7 +232,7 @@ public class DataikuServiceImpl implements DataikuService	{
 			
 		}catch(Exception e) {
 			log.error("Failed to update dataiku project {} with exception {}", existingRecord.getProjectName(), e.getMessage());
-			MessageDescription errMsg = new MessageDescription("Failed to save new dataiku project " + existingRecord.getProjectName() 
+			MessageDescription errMsg = new MessageDescription("Failed to update dataiku project " + existingRecord.getProjectName() 
 			+  " with exception " + e.getMessage());
 			errors.add(errMsg);
 		}
@@ -289,6 +323,7 @@ public class DataikuServiceImpl implements DataikuService	{
 					return responseWrapperDto;
 				}
 			}else {
+				ownerUserDetails.setUserProfile(ownerDetails.getData().getProfile());
 				ownerUserDetails.getGroups().add(projectSpecificAdminAccessGroup);
 				MessageDescription UpdateOwnerErrMsg = dataikuClient.updateUser(ownerUserDetails,cloudProfile);
 				if(UpdateOwnerErrMsg!=null) {
@@ -315,6 +350,7 @@ public class DataikuServiceImpl implements DataikuService	{
 					if("Reader".equalsIgnoreCase(permission)) {
 						groupName = projectSpecificReadAccessGroup;
 					}
+					Optional<UserPrivilegeResponseDto> tempCollabUserPrivilegeResponseDtoOptional = collabPrivilegeDetails.stream().filter(x-> tempCollab.getUserId().equalsIgnoreCase(x.getData().getUserId())).findFirst();
 					if(tempCollabUserDetails == null || tempCollabUserDetails.getLogin()==null) {
 						tempCollabUserDetails = new DataikuUserDto();
 						tempCollabUserDetails.setLogin(tempCollab.getUserId().toUpperCase());
@@ -324,7 +360,9 @@ public class DataikuServiceImpl implements DataikuService	{
 						groups.add(groupName);
 						tempCollabUserDetails.setGroups(groups);
 						tempCollabUserDetails.setEmail(tempCollab.getUserId().toUpperCase());
-//						tempCollabUserDetails.setUserProfile(tempCollab.get .getProfile());
+						if(tempCollabUserPrivilegeResponseDtoOptional.isPresent()) {
+							tempCollabUserDetails.setUserProfile(tempCollabUserPrivilegeResponseDtoOptional.get().getData().getProfile());
+						}
 						tempCollabUserDetails.setEnabled(true);
 						MessageDescription onboardTempCollabErrMsg = dataikuClient.addUser(tempCollabUserDetails,cloudProfile);
 						if(onboardTempCollabErrMsg!=null) {
@@ -336,6 +374,9 @@ public class DataikuServiceImpl implements DataikuService	{
 							return responseWrapperDto;
 						}
 					}else {
+						if(tempCollabUserPrivilegeResponseDtoOptional.isPresent()) {
+							tempCollabUserDetails.setUserProfile(tempCollabUserPrivilegeResponseDtoOptional.get().getData().getProfile());
+						}
 						tempCollabUserDetails.getGroups().add(groupName);
 						MessageDescription UpdateTempCollabErrMsg = dataikuClient.updateUser(tempCollabUserDetails,cloudProfile);
 						if(UpdateTempCollabErrMsg!=null) {
@@ -439,6 +480,7 @@ public class DataikuServiceImpl implements DataikuService	{
 		responseMessage.setWarnings(warnings);
 		return responseMessage;
 	}
+
 	
 	
 }

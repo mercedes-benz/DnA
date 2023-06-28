@@ -57,4 +57,6 @@ public interface DataProductCustomRepository extends CommonDataRepository<DataPr
 
 	GenericMessage updateDataProductData();
 
+	Integer getCountBasedPublishReport(Boolean published);
+
 }

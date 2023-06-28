@@ -56,4 +56,6 @@ public interface DataTransferService extends CommonService<DataTransferVO, DataT
 	ResponseEntity<GenericMessage> deleteDataTransfer(String id);
 
 	GenericMessage updateDataTransferData();
+
+	Integer getCountBasedPublishDatatransfer(Boolean published);
 }

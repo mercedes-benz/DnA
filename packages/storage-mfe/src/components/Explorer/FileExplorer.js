@@ -6,6 +6,7 @@ import { useDispatch, useSelector } from 'react-redux';
 
 import ConfirmModal from 'dna-container/ConfirmModal';
 import Modal from 'dna-container/Modal';
+import Caption from 'dna-container/Caption';
 
 import { FullFileBrowser, ChonkyActions, FileHelper } from 'chonky';
 import { CustomActions } from './CustomFileActions';
@@ -16,6 +17,7 @@ import {
   getFiles,
   setActionButtons,
   setFiles,
+  resetFiles,
 } from './redux/fileExplorer.actions';
 import { useParams } from 'react-router-dom';
 
@@ -54,7 +56,6 @@ import 'ace-builds/src-noconflict/mode-golang';
 import { bucketsObjectApi } from '../../apis/fileExplorer.api';
 import { getFilePath, serializeFolderChain, setObjectKey } from './Utils';
 import { aceEditorMode, IMAGE_EXTNS, PREVIEW_ALLOWED_EXTNS } from '../Utility/constants';
-import { history } from '../../store/storeRoot';
 
 import { v4 as uuidv4 } from 'uuid';
 
@@ -178,6 +179,12 @@ const FileExplorer = () => {
     }
   }, [dispatch, bucketName, files, resultFolder]);
 
+  useEffect(() => { // Cleanup File Explorer Data on unmount
+    return () => {
+      dispatch(resetFiles());
+    }
+  }, [dispatch]);
+
   useEffect(() => {
     showCreateNewFolderModal && inputRef.current.focus();
   }, [showCreateNewFolderModal]);
@@ -268,10 +275,6 @@ const FileExplorer = () => {
     },
     [dispatch, bucketObjects, bucketPermission],
   );
-
-  const goBack = () => {
-    history.replace('/');
-  };
 
   const onDelete = (data) => {
     // Delete the files
@@ -909,92 +912,87 @@ const FileExplorer = () => {
 
   return (
     <>
-      <button className={classNames('btn btn-text back arrow', Styles.backBtn)} type="submit" onClick={goBack}>
-        Back
-      </button>
       <div className={Styles.mainPanel}>
         <div className={Styles.wrapper}>
-          <div className={Styles.caption}>
-            <h3>{`Bucket - ${bucketName}`}</h3>
-          </div>
-        </div>
-        <div className={'explorer-content'}>
-          <FileUpload uploadRef={uploadRef} bucketName={bucketName} folderChain={folderChain} />
-          <FileUpload
-            uploadRef={folderUploadRef}
-            bucketName={bucketName}
-            folderChain={folderChain}
-            enableFolderUpload={true}
-          />
-          <FullFileBrowser
-            files={files?.fileMap?.[currentFolderId]?.childrenIds?.map((item) => files.fileMap[item])}
-            fileActions={fileActions}
-            onFileAction={handleAction}
-            folderChain={folderChain}
-            darkMode={true}
-            defaultFileViewActionId={ChonkyActions.EnableListView.id}
-            disableDragAndDrop={true}
-            i18n={i18n}
-            ref={fileBrowserRef}
-          />
-          {showPreview.modal && (
-            <Modal
-              title={`Preview - ${showPreview.fileName}`}
-              onCancel={() => {
-                setPreview({
-                  ...showPreview,
-                  modal: false,
-                });
-              }}
-              modalWidth={isPDF ? '45vw' : '80vw'}
-              showAcceptButton={false}
-              showCancelButton={false}
-              show={showPreview.modal}
-              content={
-                showPreview.isImage ? (
-                  <img width={'100%'} className={Styles.previewImg} src={showPreview.blobURL} />
-                ) : isPDF ? (
-                  <div id={'pdfDoc'} className="mbc-scroll">
-                    <Document
-                      file={showPreview.blobURL}
-                      onLoadSuccess={onPDFLoadSuccess}
-                      externalLinkTarget="_blank"
-                      onPassword={handlePassword}
-                    >
-                      {Array.from(new Array(pdfDocsNumPages), (el, index) => (
-                        <Page className={'pdf-doc-page'} key={`page_${index + 1}`} pageNumber={index + 1} />
-                      ))}
-                    </Document>
-                  </div>
-                ) : (
-                  <AceEditor
-                    width="100%"
-                    name="storagePreview"
-                    mode={aceEditorMode[fileExt]}
-                    theme="solarized_dark"
-                    fontSize={16}
-                    showPrintMargin={false}
-                    showGutter={false}
-                    highlightActiveLine={false}
-                    value={
-                      typeof showPreview.blobURL === 'object' && fileExt === 'json'
-                        ? JSON.stringify(showPreview.blobURL, undefined, 2)
-                        : showPreview.blobURL
-                    }
-                    readOnly={true}
-                    style={{
-                      height: '65vh',
-                    }}
-                    setOptions={{
-                      useWorker: false,
-                      showLineNumbers: false,
-                      tabSize: 2,
-                    }}
-                  />
-                )
-              }
+          <Caption title={`Bucket - ${bucketName}`} />
+          <div className={'explorer-content'}>
+            <FileUpload uploadRef={uploadRef} bucketName={bucketName} folderChain={folderChain} />
+            <FileUpload
+              uploadRef={folderUploadRef}
+              bucketName={bucketName}
+              folderChain={folderChain}
+              enableFolderUpload={true}
             />
-          )}
+            <FullFileBrowser
+              files={files?.fileMap?.[currentFolderId]?.childrenIds?.map((item) => files.fileMap[item])}
+              fileActions={fileActions}
+              onFileAction={handleAction}
+              folderChain={folderChain}
+              darkMode={true}
+              defaultFileViewActionId={ChonkyActions.EnableListView.id}
+              disableDragAndDrop={true}
+              i18n={i18n}
+              ref={fileBrowserRef}
+            />
+            {showPreview.modal && (
+              <Modal
+                title={`Preview - ${showPreview.fileName}`}
+                onCancel={() => {
+                  setPreview({
+                    ...showPreview,
+                    modal: false,
+                  });
+                }}
+                modalWidth={isPDF ? '45vw' : '80vw'}
+                showAcceptButton={false}
+                showCancelButton={false}
+                show={showPreview.modal}
+                content={
+                  showPreview.isImage ? (
+                    <img width={'100%'} className={Styles.previewImg} src={showPreview.blobURL} />
+                  ) : isPDF ? (
+                    <div id={'pdfDoc'} className="mbc-scroll">
+                      <Document
+                        file={showPreview.blobURL}
+                        onLoadSuccess={onPDFLoadSuccess}
+                        externalLinkTarget="_blank"
+                        onPassword={handlePassword}
+                      >
+                        {Array.from(new Array(pdfDocsNumPages), (el, index) => (
+                          <Page className={'pdf-doc-page'} key={`page_${index + 1}`} pageNumber={index + 1} />
+                        ))}
+                      </Document>
+                    </div>
+                  ) : (
+                    <AceEditor
+                      width="100%"
+                      name="storagePreview"
+                      mode={aceEditorMode[fileExt]}
+                      theme="solarized_dark"
+                      fontSize={16}
+                      showPrintMargin={false}
+                      showGutter={false}
+                      highlightActiveLine={false}
+                      value={
+                        typeof showPreview.blobURL === 'object' && fileExt === 'json'
+                          ? JSON.stringify(showPreview.blobURL, undefined, 2)
+                          : showPreview.blobURL
+                      }
+                      readOnly={true}
+                      style={{
+                        height: '65vh',
+                      }}
+                      setOptions={{
+                        useWorker: false,
+                        showLineNumbers: false,
+                        tabSize: 2,
+                      }}
+                    />
+                  )
+                }
+              />
+            )}
+          </div>
         </div>
       </div>
       <Modal

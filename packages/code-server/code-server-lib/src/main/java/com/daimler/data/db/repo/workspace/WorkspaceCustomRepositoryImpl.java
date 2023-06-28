@@ -27,6 +27,7 @@
 
 package com.daimler.data.db.repo.workspace;
 
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -350,5 +351,13 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 			log.error("Failed to update workspaces under project {} to DELETED state with exception {}", projectName, e.getMessage());
 		}
 	}
-	
+
+	@Override
+	public Integer getTotalCountOfWorkSpace() {
+		String query = "select count(*) from workspace_nsql";
+		Query q = em.createNativeQuery(query);
+		BigInteger results = (BigInteger) q.getSingleResult();
+		return results.intValue();
+	}
+
 }

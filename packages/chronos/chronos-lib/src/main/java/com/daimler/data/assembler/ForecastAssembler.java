@@ -9,6 +9,8 @@ import javax.validation.Valid;
 
 import com.daimler.data.db.json.*;
 import com.daimler.data.dto.forecast.*;
+import com.daimler.data.dto.storage.BucketObjectDetailsDto;
+import com.daimler.data.dto.storage.BucketObjectsCollectionWrapperDto;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Component;
 
@@ -53,6 +55,10 @@ public class ForecastAssembler implements GenericAssembler<ForecastVO, ForecastN
 					List<ForecastComparisonVO> comparisons = toComparisonsVO(data.getComparisons());
 					vo.setComparisons(comparisons);
 				}
+				if(data.getConfigFiles()!=null && !data.getConfigFiles().isEmpty()) {
+					List<InputFileVO> configFiles = toConfigFilesVO(data.getConfigFiles());
+					vo.setConfigFiles(configFiles);
+				}
 				vo.setBucketId(entity.getData().getBucketId());
 			}
 		}
@@ -78,6 +84,21 @@ public class ForecastAssembler implements GenericAssembler<ForecastVO, ForecastN
 		return runsVOList;
 	}
 
+	public RunVO toRunVO(RunDetails run) {
+		RunVO runVO = new RunVO();
+		if (run != null) {
+			if (run.getIsDelete() == null || !run.getIsDelete()) {
+				BeanUtils.copyProperties(run, runVO);
+				RunStateVO stateVO = toStateVO(run.getRunState());
+				runVO.setState(stateVO);
+				if (run.getIsDelete() != null)
+					runVO.setIsDeleted(run.getIsDelete());
+				runVO.setFrequency(toFrequencyEnum(run.getFrequency()));
+			}
+		}
+		return runVO;
+	}
+
 	public List<ForecastComparisonVO> toComparisonsVO(List<ComparisonDetails> comparisons){
 		List<ForecastComparisonVO> comparisonsVOList = new ArrayList<>();
 		if(comparisons!=null && !comparisons.isEmpty()) {
@@ -95,8 +116,28 @@ public class ForecastAssembler implements GenericAssembler<ForecastVO, ForecastN
 		}
 		return comparisonsVOList;
 	}
-	
-	private RunStateVO toStateVO(RunState runState) {
+
+	public List<InputFileVO> toConfigFilesVO(List<File> configFiles){
+		List<InputFileVO> configFilesVO =  new ArrayList<>();
+		if(configFiles!=null && !configFiles.isEmpty()) {
+			configFilesVO = configFiles.stream().map
+					(n -> { InputFileVO file = new InputFileVO();
+						BeanUtils.copyProperties(n,file);
+						return file;
+					}).collect(Collectors.toList());
+		}
+		return configFilesVO;
+	}
+	public List<BucketObjectDetailsDto> toProjectSpecificConfigFiles(List<InputFileVO> configFiles){
+		List<BucketObjectDetailsDto> filePathList = new ArrayList<>();
+		if(configFiles!=null && !configFiles.isEmpty()) {
+			 filePathList = configFiles.stream().map(x-> new BucketObjectDetailsDto(x.getPath())).collect(Collectors.toList());
+		}
+		return filePathList;
+	}
+
+
+	public RunStateVO toStateVO(RunState runState) {
 		RunStateVO stateVO = new RunStateVO();
 		if(runState!=null) {
 			if(runState.getLife_cycle_state()!=null)
@@ -143,6 +184,18 @@ public class ForecastAssembler implements GenericAssembler<ForecastVO, ForecastN
 					}).collect(Collectors.toList());
 		}
 		return files;
+	}
+
+	public List<File> toConfigFiles(List<InputFileVO> configFilesVO){
+		List<File> configFiles =  new ArrayList<>();
+		if(configFilesVO!=null && !configFilesVO.isEmpty()) {
+			configFiles = configFilesVO.stream().map
+					(n -> { File configFile = new File();
+						BeanUtils.copyProperties(n,configFile);
+						return configFile;
+					}).collect(Collectors.toList());
+		}
+		return configFiles;
 	}
 
 	@Override
@@ -194,6 +247,10 @@ public class ForecastAssembler implements GenericAssembler<ForecastVO, ForecastN
 							return comparison;
 						}).collect(Collectors.toList());
 				data.setComparisons(comparisons);
+			}
+			if(vo.getConfigFiles()!=null && !vo.getConfigFiles().isEmpty()) {
+				List<File> files = this.toConfigFiles(vo.getConfigFiles());
+				data.setConfigFiles(files);
 			}
 			data.setBucketId(vo.getBucketId());
 			entity.setData(data);

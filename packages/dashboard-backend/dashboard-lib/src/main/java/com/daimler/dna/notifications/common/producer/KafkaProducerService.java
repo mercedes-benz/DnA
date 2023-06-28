@@ -47,7 +47,7 @@ public class KafkaProducerService {
 		eventRecord.setTime(dateFormatter.format(new Date()));
 		eventRecord.setSubscribedUsers(subscribedUsers);
 		eventRecord.setSubscribedUsersEmail(subscribedUsersEmail);
-		//eventRecord.setChangeLogs(changeLogs);
+		eventRecord.setChangeLogs(changeLogs);
 		log.info("New event record created for resource {} with detail eventtype : {} " + "publishingUser: {} and subscribers: {}",resourceId, 
 				eventType, publishingUser, subscribedUsers);
 		return eventRecord;

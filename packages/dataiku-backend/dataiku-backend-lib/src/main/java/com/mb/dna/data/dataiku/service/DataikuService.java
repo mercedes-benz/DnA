@@ -20,10 +20,12 @@ public interface DataikuService {
 
 	GenericMessage deleteById(String id, DataikuProjectDto existingDataikuProject);
 
-	DataikuProjectResponseDto updateProject(String id, DataikuProjectUpdateRequestDto updateRequest);
+	DataikuProjectResponseDto updateProject(String id, DataikuProjectUpdateRequestDto updateRequest,List<UserPrivilegeResponseDto> collabPrivilegeDetails);
 
 	boolean checkExistingProject(String projectName, String cloudProfile);
 
 	DataikuProjectDto getByProjectName(String projectName, String cloudProfile);
+	
+	DataikuProjectResponseDto provisionSolutionToDataikuProject(String projectName, String cloudProfile,String solutionId);
 
 }

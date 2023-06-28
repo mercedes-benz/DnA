@@ -308,6 +308,7 @@ export default class CreateNewSolution extends React.Component<ICreateNewSolutio
           platforms: [],
           dnaNotebookId: null,
           dnaDataikuProjectId: null,
+          dnaDataikuProjectInstance: null,
           dnaSubscriptionAppId: null,
         },
         publish: false,
@@ -545,7 +546,7 @@ export default class CreateNewSolution extends React.Component<ICreateNewSolutio
     return (
       <React.Fragment>
         <div className={classNames(Styles.mainPanel)}>
-          <Caption title={this.state.currentTab !== 'description' ? 'Create Solution' : this.state.solution.description.productName} />
+          <Caption title={this.state.solution.description.productName || `${getParams().id ? 'Edit' : 'Create'} Solution`} />
           <div id="create-solution-tabs" className="tabs-panel">
             <div className="tabs-wrapper">
               <nav>
