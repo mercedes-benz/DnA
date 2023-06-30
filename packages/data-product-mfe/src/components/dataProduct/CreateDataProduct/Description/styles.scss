@@ -29,3 +29,112 @@
         }
     }
 }
+
+.infoIcon{
+    float: initial;
+}
+
+.minimumInformationCheckSection{
+    background-color: #1c2026;
+    padding: 35px 45px;
+    display: table;
+    width: 100%;
+    .minimumInformationCheckWrapper{
+        display: table-row;
+        .infoWrapper{
+            display: table-cell;
+            vertical-align: middle;
+            min-width: 60px;
+            i{
+                font-size: 25px;
+            }
+        }
+        .descriptionWrapper{
+            display: table-cell;
+            vertical-align: middle;
+            p{
+                max-width: 600px;
+                margin-bottom: 0;
+            }
+        }
+    }
+}
+
+
+
+
+.listViewContainer {
+    display: flex;
+    justify-content: center;
+    // border: 1px solid #697582;
+    padding: 20px;
+    cursor: pointer;
+    background-color: #1c2026;
+    width: 100%;
+    color: #fff;
+    outline: none;
+    border: 0;
+    .addicon {
+        width: 40px;
+        height: 40px;
+        margin: 0px;
+        border: 1px solid #fff;
+        border-radius: 50%;
+        position: relative;
+        display: flex;
+        align-items: center;
+        &:after {
+            content: "";
+            position: absolute;
+            width: 50%;
+            height: 1px;
+            background-color: #00adef;
+            left: 25%;
+            transform: rotate(90deg);
+        }
+        &:before {
+            content: "";
+            position: absolute;
+            width: 50%;
+            height: 1px;
+            background-color: #00adef;
+            left: 25%;
+            margin: 0 auto;
+            transform: rotate(180deg);
+            top: 49%;
+        }
+    }
+    .addlabel {
+        font-size: var(--font-size-headline);
+        line-height: 23px;
+        margin: auto 20px;
+        position: relative;
+        width: auto;
+        cursor: pointer;
+        word-break: break-word;
+    }
+    &:hover .addlabel {
+        color: #00adef;
+    }
+}
+
+
+
+
+
+
+
+:global {
+    #how-to-access-tabs .tab {
+        > a {
+            // position: relative;
+            // padding: 10px 50px 12px 40px;
+            &::before {
+                content: none!important;   
+                font-size: 0;         
+            }
+        }
+    }        
+}
+    
+
