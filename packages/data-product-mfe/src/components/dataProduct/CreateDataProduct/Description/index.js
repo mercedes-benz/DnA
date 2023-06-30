@@ -1,8 +1,12 @@
 import classNames from 'classnames';
-import React, { useEffect, useState } from 'react';
+import React, { 
+  // createRef, 
+  useEffect, useState, 
+  // useRef 
+} from 'react';
 import Styles from './styles.scss';
 
-import MDEditor from '@uiw/react-md-editor';
+// import MDEditor from '@uiw/react-md-editor';
 import rehypeSanitize from 'rehype-sanitize';
 import { unified } from 'unified';
 import rehypeParse from 'rehype-parse';
@@ -12,10 +16,15 @@ import rehypeStringify from 'rehype-stringify';
 import InfoModal from 'dna-container/InfoModal';
 import Tags from 'dna-container/Tags';
 
-import { useFormContext, Controller } from 'react-hook-form';
+import { Controller, useFieldArray, useFormContext } from 'react-hook-form';
 import Tooltip from '../../../../common/modules/uilab/js/src/tooltip';
+import Tabs from '../../../../common/modules/uilab/js/src/tabs';
 import { isValidURL } from '../../../../Utility/utils';
 import TeamSearch from 'dna-container/TeamSearch';
+import AccessSteps from '../../../accessSteps';
+// import AccessSteps2 from '../../../accessSteps2';
+
+import SelectBox from 'dna-container/SelectBox';
 
 const Description = ({ 
   // onSave, 
@@ -32,17 +41,61 @@ const Description = ({
     control,
     setValue,
   } = useFormContext();
+
+
+  const { 
+    fields: kafkaFields, append: kafkaAppend, 
+    update: kafkaUpdate, remove: kafkaRemove } = useFieldArray({
+    control,
+    name: 'kafkaArray'
+  });
+
+  const { 
+    fields: liveAccessFields, append: liveAccessAppend, 
+    update: liveAccessUpdate, remove: liveAccessRemove } = useFieldArray({
+    control,
+    name: 'liveAccessArray',
+  });
+
+  const { 
+    fields: apiFields, append: apiAppend, 
+    update: apiUpdate, remove: apiRemove } = useFieldArray({
+    control,
+    name: 'apiArray',
+  });
+
+
   const [showInfoModal, setShowInfoModal] = useState(false);
   const [tagsListST, setTagsListST] = useState([]);
   const [selectedTags, setSelectedTags] = useState([]);
   const [productOwnerSearchTerm, setProductOwnerSearchTerm] = useState('');
   const [productOwnerFieldValue, setProductOwnerFieldValue] = useState('');
+  const [currentTab, setCurrentTab] = useState('access-via-kafka');
+  // const [howToAccessTemplateObj, setHowToAccessTemplateObj] = useState({});
+  const [numberedStep, setNumberedStep] = useState(0);
 
-  const { howToAccessText, tags, productOwner } = watch();
+  const [stepsList, setStepsList] = useState([]);
+
+  const { howToAccessText, tags, productOwner, 
+    // useTemplate, 
+    accessType } = watch();
+
 
   useEffect(() => {
     Tooltip.defaultSetup();
+    // setTimeout(() => {
+      Tabs.defaultSetup();
+    // }, 100);
+    
     reset(watch());
+    //eslint-disable-next-line
+    const kafkaStepsMaxCount = Math.max.apply(Math, kafkaFields?.map(function(o) { return o.stepNumber; }));
+    
+    if(kafkaStepsMaxCount > 0)
+      setNumberedStep(kafkaStepsMaxCount);
+    else{
+      setNumberedStep(0);
+    }
     //eslint-disable-next-line
   }, []);
 
@@ -51,9 +104,16 @@ const Description = ({
     //eslint-disable-next-line
   },[tagsList]);
 
+
   useEffect(() => {
     setSelectedTags(tags);
   }, [tags]);
+
+  useEffect(() => {
+    if(accessType?.length > 0 && (accessType?.includes('Kafka') || accessType?.includes('API'))){
+       SelectBox.defaultSetup(true);
+    }
+  }, [accessType]);
 
   useEffect(() => {
     let nameStr =
@@ -64,13 +124,19 @@ const Description = ({
     //eslint-disable-next-line react-hooks/exhaustive-deps
   }, [productOwner]);
 
-  useEffect(() => {
-    // update colors for the markdown editor
-    const mdEditor = document.querySelector('[data-color-mode="dark"]>div.wmde-markdown-var');
+  // useEffect(() => {
+  //   // update colors for the markdown editor
+  //   const mdEditor = document.querySelector('[data-color-mode="dark"]>div.wmde-markdown-var');
 
-    mdEditor.style.setProperty('--color-canvas-default', '#1c2026');
-    mdEditor.style.setProperty('--color-accent-fg', '#00adef');
-    mdEditor.style.setProperty('--color-fg-default', '#c0c8d0');
+  //   mdEditor.style.setProperty('--color-canvas-default', '#1c2026');
+  //   mdEditor.style.setProperty('--color-accent-fg', '#00adef');
+  //   mdEditor.style.setProperty('--color-fg-default', '#c0c8d0');
+  // }, []);
+
+  useEffect(() => {
+    // if(currentTab=='')
+    // const stepperTab = document?.getElementById('access-via-kafka');
+    // stepperTab?.click();
   }, []);
 
   const validateURL = (value) => {
@@ -106,6 +172,41 @@ const Description = ({
     field.onChange(value);
     setProductOwnerFieldValue(name);
   }
+
+  const setTab = (e) => {
+    const id = e.target.id;
+    if (currentTab !== id) {
+      setCurrentTab(id);
+    }
+  };
+
+  const onTeamMemberMoveUp = (index) => {
+    const teamMembers = stepsList;
+    const teamMember = teamMembers.splice(index, 1)[0];
+    teamMembers.splice(index - 1, 0, teamMember);
+    setStepsList( teamMembers );
+    // const tempTeamsObj = { team: teamMembers };
+    // this.props.modifyTeam(tempTeamsObj, this.state.roleCountFieldList);
+    // console.log('Going up.................',stepsList);
+    // setStepsList(prevCache => prevCache.map((val, i) => i !== index ? val : !val));
+  };
+
+  const onTeamMemberMoveDown = (index) => {
+    const teamMembers = stepsList;
+    const teamMember = teamMembers.splice(index, 1)[0];
+    teamMembers.splice(index + 1, 0, teamMember);
+    setStepsList( teamMembers );
+    // const tempTeamsObj = { team: teamMembers };
+    // this.props.modifyTeam(tempTeamsObj, this.state.roleCountFieldList);
+    // console.log('Going down.................',stepsList);
+    // setStepsList(prevCache => prevCache.map((val, i) => i !== index ? val : !val));
+  };
+
+  // console.log(Math.max(...kafkaFields?.map(o => o.stepNumber)),'=-=-=-=-=-=-=');
+
+  
+
+  
 
   return (
     <>
@@ -282,30 +383,12 @@ const Description = ({
               </div>
             {/* </div> */}
             {/* <div className={Styles.flexLayout}> */}
-              <div className={Styles.flexLayout}>
-                <div className={classNames('input-field-group include-error', errors.oneAPI ? 'error' : '')}>
-                  <label id="oneAPILabel" htmlFor="oneAPIInput" className="input-label">
-                    oneAPI
-                  </label>
-                  <input
-                    {...register('oneApi', {
-                      validate: validateURL,
-                    })}
-                    type="text"
-                    className="input-field"
-                    id="oneAPIInput"
-                    maxLength={200}
-                    placeholder="https://example@example.com"
-                    autoComplete="off"
-                  />
-                  <span className={classNames('error-message', errors.oneApi?.message ? '' : 'hide')}>
-                    {errors.oneApi?.message}
-                  </span>
-                </div>
+              {/* <div className={Styles.flexLayout}>
+                
                 <div>
                   
                 </div>
-              </div>
+              </div> */}
             {/* </div> */}
             <div className={Styles.flexLayout}>
               <div className={classNames('input-field-group include-error area', errors.description ? 'error' : '')}>
@@ -378,181 +461,231 @@ const Description = ({
           </h3>
           <div className={Styles.formWrapper}>
             <div className={Styles.flexLayout}>
-              <div className={classNames('input-field-group include-error', errors.carLAFunction ? 'error' : '')}>
+              <div className={classNames('input-field-group include-error', 
+              // errors.carLAFunction ? 'error' : ''
+              )}>
                 <label id="connectionTypeLabel" htmlFor="connectionTypeInput" className="input-label">
                   Access
                 </label>
                 <div className={`custom-select`}>
-                  <select id="connectionTypeField" multiple={true} name="connectionType" {...register('carLAFunction')}>
+                  <select id="connectionTypeField" multiple={true} name="connectionType" {...register('accessType')}>
                     <option value="">Choose</option>
                     <option id='Kafka0' key={'Kafka'} value={'Kafka'}>Kafka</option>
                     <option id='Live (SAC/AFO)1' key={'Live (SAC/AFO)'} value={'Live (SAC/AFO)'}>Live (SAC/AFO)</option>
                     <option id='API0' key={'API'} value={'API'}>API</option>
                   </select>
                 </div>
-                <span className={classNames('error-message', errors.carLAFunction?.message ? '' : 'hide')}>
+                {/* <span className={classNames('error-message', errors.carLAFunction?.message ? '' : 'hide')}>
                   {errors.carLAFunction?.message}
-                </span>
+                </span> */}
               </div>
+
+              {(accessType?.length == 1 && accessType?.includes('Live (SAC/AFO)')) || accessType?.length == 0 ?
               <div></div>
-            </div>
-            <div className={Styles.flexLayout}>
-              <div className={classNames('input-field-group include-error', errors.kafka ? 'error' : '')}>
-                <label id="kafkaLabel" htmlFor="kafkaInput" className="input-label">
-                  Kafka
-                </label>
-                <input
-                  {...register('kafka')}
-                  type="text"
-                  className="input-field"
-                  id="kafkaInput"
-                  maxLength={200}
-                  placeholder="Type here"
-                  autoComplete="off"
-                />
-              </div>
-              <div className={classNames('input-field-group include-error', errors.carLAFunction ? 'error' : '')}>
-                <label id="connectionTypeLabel" htmlFor="connectionTypeInput" className="input-label">
+               : 
+               
+              <div className={classNames('input-field-group include-error', 
+              // errors.carLAFunction ? 'error' : ''
+              )}>
+                <label id="confidentialityLabel" htmlFor="confidentialityInput" className="input-label">
                   Classification
                 </label>
                 <div className={`custom-select`}>
-                  <select id="connectionTypeField" name="connectionType" {...register('carLAFunction')}>
+                  <select id="confidentialityField" name="confidentiality" {...register('confidentiality')}>
                     <option value="">Choose</option>
-                    <option id='Kafka0' key={'Kafka'} value={'Kafka'}>Kafka</option>
-                    <option id='Live (SAC/AFO)1' key={'Live (SAC/AFO)'} value={'Live (SAC/AFO)'}>Live (SAC/AFO)</option>
-                    <option id='API0' key={'API'} value={'API'}>API</option>
+                    <option id='Internal0' key={'Internal'} value={'Internal'}>Internal</option>
+                    <option id='Secret1' key={'Secret'} value={'Secret'}>Secret</option>
+                    <option id='Confidential2' key={'Confidential'} value={'Confidential'}>Confidential</option>
+                    <option id='Public2' key={'Public'} value={'Public'}>Public</option>
                   </select>
                 </div>
-                <span className={classNames('error-message', errors.carLAFunction?.message ? '' : 'hide')}>
+                {/* <span className={classNames('error-message', errors.carLAFunction?.message ? '' : 'hide')}>
                   {errors.carLAFunction?.message}
-                </span>
+                </span> */}
               </div>
+               
+              }
             </div>
 
-            <div className={Styles.flexLayout}>
-              <div
-                className={classNames(`input-field-group include-error ${errors?.personalRelatedData ? 'error' : ''}`)}
-                style={{ minHeight: '50px' }}
-              >
-                <label className={classNames(Styles.inputLabel, 'input-label')}>
-                  Personal data in use? <sup>*</sup>
-                </label>
-                <div className={Styles.radioBtns}>
-                  <label className={'radio'}>
-                    <span className="wrapper">
-                      <input
-                        {...register('personalRelatedData', {
-                          required: '*Missing entry',
-                          onChange: () => {
-                            
-                          },
-                        })}
-                        type="radio"
-                        className="ff-only"
-                        name="personalRelatedData"
-                        value="No"
-                      />
+            {(accessType?.length == 1 && accessType?.includes('Live (SAC/AFO)')) || accessType?.length == 0 ?
+              <div></div>
+               : 
+              <>
+                <div className={Styles.flexLayout}>
+
+                {accessType?.includes('Kafka')?
+                  <div className={classNames('input-field-group include-error', errors.kafka ? 'error' : '')}>
+                    <label id="kafkaLabel" htmlFor="kafkaInput" className="input-label">
+                      Kafka
+                    </label>
+                    <input
+                      {...register('kafka')}
+                      type="text"
+                      className="input-field"
+                      id="kafkaInput"
+                      maxLength={200}
+                      placeholder="Type here"
+                      autoComplete="off"
+                    />
+                  </div>
+                : <div></div>}
+
+
+                {accessType?.includes('API')?
+                  
+                  <div className={classNames('input-field-group include-error', errors.oneAPI ? 'error' : '')}>
+                    <label id="oneAPILabel" htmlFor="oneAPIInput" className="input-label">
+                      oneAPI
+                    </label>
+                    <input
+                      {...register('oneApi', {
+                        validate: validateURL,
+                      })}
+                      type="text"
+                      className="input-field"
+                      id="oneAPIInput"
+                      maxLength={200}
+                      placeholder="https://example@example.com"
+                      autoComplete="off"
+                    />
+                    <span className={classNames('error-message', errors.oneApi?.message ? '' : 'hide')}>
+                      {errors.oneApi?.message}
                     </span>
-                    <span className="label">No</span>
-                  </label>
-                  <label className={'radio'}>
-                    <span className="wrapper">
-                      <input
-                        {...register('personalRelatedData', { required: '*Missing entry' })}
-                        type="radio"
-                        className="ff-only"
-                        name="personalRelatedData"
-                        value="Yes"
-                      />
-                    </span>
-                    <span className="label">Yes</span>
-                  </label>
+                  </div>
+
+                  : <div></div>}
+
+                  
                 </div>
-                <span className={classNames('error-message')}>{errors?.personalRelatedData?.message}</span>
-              </div>
-              <div
-                className={classNames(`input-field-group include-error`)}
-                style={{ minHeight: '50px' }}
-              >
-                <label className={classNames(Styles.inputLabel, 'input-label')}>
-                  Are there requirements for deletion? <sup>*</sup>
-                </label>
-                <div className={Styles.radioBtns}>
-                  <label className={'radio'}>
-                    <span className="wrapper">
-                      <input
-                        {...register('deletionRequirements', {
-                          required: '*Missing entry',
-                          onChange: () => {
-                            
-                          },
-                        })}
-                        type="radio"
-                        className="ff-only"
-                        name="deletionRequirements"
-                        value="No"
-                      />
-                    </span>
-                    <span className="label">No</span>
-                  </label>
-                  <label className={'radio'}>
-                    <span className="wrapper">
-                      <input
-                        {...register('deletionRequirements', { required: '*Missing entry' })}
-                        type="radio"
-                        className="ff-only"
-                        name="deletionRequirements"
-                        value="Yes"
-                      />
-                    </span>
-                    <span className="label">Yes</span>
-                  </label>
+            
+
+                <div className={Styles.flexLayout}>
+                  <div
+                    className={classNames(`input-field-group include-error ${errors?.personalRelatedData ? 'error' : ''}`)}
+                    style={{ minHeight: '50px' }}
+                  >
+                    <label className={classNames(Styles.inputLabel, 'input-label')}>
+                      Personal data in use? <sup>*</sup>
+                    </label>
+                    <div className={Styles.radioBtns}>
+                      <label className={'radio'}>
+                        <span className="wrapper">
+                          <input
+                            {...register('personalRelatedData', {
+                              required: '*Missing entry',
+                              // onChange: () => {
+                                
+                              // },
+                            })}
+                            type="radio"
+                            className="ff-only"
+                            name="personalRelatedData"
+                            value="No"
+                          />
+                        </span>
+                        <span className="label">No</span>
+                      </label>
+                      <label className={'radio'}>
+                        <span className="wrapper">
+                          <input
+                            {...register('personalRelatedData', { required: '*Missing entry' })}
+                            type="radio"
+                            className="ff-only"
+                            name="personalRelatedData"
+                            value="Yes"
+                          />
+                        </span>
+                        <span className="label">Yes</span>
+                      </label>
+                    </div>
+                    <span className={classNames('error-message')}>{errors?.personalRelatedData?.message}</span>
+                  </div>
+                  <div
+                    className={classNames(`input-field-group include-error`)}
+                    style={{ minHeight: '50px' }}
+                  >
+                    <label className={classNames(Styles.inputLabel, 'input-label')}>
+                      Are there requirements for deletion? <sup>*</sup>
+                    </label>
+                    <div className={Styles.radioBtns}>
+                      <label className={'radio'}>
+                        <span className="wrapper">
+                          <input
+                            {...register('deletionRequirements', {
+                              required: '*Missing entry',
+                              // onChange: () => {
+                                
+                              // },
+                            })}
+                            type="radio"
+                            className="ff-only"
+                            name="deletionRequirements"
+                            value="No"
+                          />
+                        </span>
+                        <span className="label">No</span>
+                      </label>
+                      <label className={'radio'}>
+                        <span className="wrapper">
+                          <input
+                            {...register('deletionRequirements', { required: '*Missing entry' })}
+                            type="radio"
+                            className="ff-only"
+                            name="deletionRequirements"
+                            value="Yes"
+                          />
+                        </span>
+                        <span className="label">Yes</span>
+                      </label>
+                    </div>
+                  </div>
+                  <div
+                    className={classNames(`input-field-group include-error`)}
+                    style={{ minHeight: '50px' }}
+                  >
+                    <label className={classNames(Styles.inputLabel, 'input-label')}>
+                      Are there any other internal/external policies to restrict access of data? <sup>*</sup>
+                    </label>
+                    <div className={Styles.radioBtns}>
+                      <label className={'radio'}>
+                        <span className="wrapper">
+                          <input
+                            {...register('restrictDataAccess', {
+                              required: '*Missing entry',
+                              // onChange: () => {
+                                
+                              // },
+                            })}
+                            type="radio"
+                            className="ff-only"
+                            name="restrictDataAccess"
+                            value="No"
+                          />
+                        </span>
+                        <span className="label">No</span>
+                      </label>
+                      <label className={'radio'}>
+                        <span className="wrapper">
+                          <input
+                            {...register('restrictDataAccess', { required: '*Missing entry' })}
+                            type="radio"
+                            className="ff-only"
+                            name="restrictDataAccess"
+                            value="Yes"
+                          />
+                        </span>
+                        <span className="label">Yes</span>
+                      </label>
+                    </div>
+                  </div>
+                  <div>
+                  </div>
                 </div>
-              </div>
-              <div
-                className={classNames(`input-field-group include-error`)}
-                style={{ minHeight: '50px' }}
-              >
-                <label className={classNames(Styles.inputLabel, 'input-label')}>
-                  Are there any other internal/external policies to restrict access of data? <sup>*</sup>
-                </label>
-                <div className={Styles.radioBtns}>
-                  <label className={'radio'}>
-                    <span className="wrapper">
-                      <input
-                        {...register('restrictDataAccess', {
-                          required: '*Missing entry',
-                          onChange: () => {
-                            
-                          },
-                        })}
-                        type="radio"
-                        className="ff-only"
-                        name="restrictDataAccess"
-                        value="No"
-                      />
-                    </span>
-                    <span className="label">No</span>
-                  </label>
-                  <label className={'radio'}>
-                    <span className="wrapper">
-                      <input
-                        {...register('restrictDataAccess', { required: '*Missing entry' })}
-                        type="radio"
-                        className="ff-only"
-                        name="restrictDataAccess"
-                        value="Yes"
-                      />
-                    </span>
-                    <span className="label">Yes</span>
-                  </label>
-                </div>
-              </div>
-              <div>
-              </div>
-            </div>
+              </>
+            }
 
             <div>
+            {accessType?.length == 0 ? <></>: 
               <div
                 className={classNames(`input-field-group include-error`)}
                 style={{ minHeight: '50px' }}
@@ -568,16 +701,18 @@ const Description = ({
                     </div>
                     <div className={Styles.descriptionWrapper}>
                       <p>
-                        <b>Minimum information required.</b> You can either move on by selecting an existing Minimum information to review/edit or fill out the required provider-form in the next few steps. We already selected a fitting How-To-Access information to show your consumers in the next section.
+                      {accessType?.length == 1 && accessType?.includes('Live (SAC/AFO)') ?
+                        <><b>No Minimum information required.</b> Please make sure to comply with A22 policies when using SAP/IDM.</>
+                      :
+                        <><b>Minimum information required.</b> You can either move on by selecting an existing Minimum information to review/edit or fill out the required provider-form in the next few steps. We already selected a fitting How-To-Access information to show your consumers in the next section.</>
+                      }
                       </p>
-                      {/* <p>
-                        <b>No Minimum information required.</b> Please make sure to comply with A22 policies when using SAP/IDM.
-                      </p> */}
                     </div>
                   </div>
                 </div>
                 
               </div>
+            }  
             </div>
           </div>
           
@@ -596,59 +731,235 @@ const Description = ({
             </h3>
           </div>
           <div className={Styles.formWrapper}>
-            <div className={Styles.flexLayout}>
-              <div className={classNames('input-field-group include-error', errors.carLAFunction ? 'error' : '')}>
+            {/* <div className={Styles.flexLayout}>
+              <div className={classNames('input-field-group include-error')}>
                 <label id="connectionTypeLabel" htmlFor="connectionTypeInput" className="input-label">
                   Use Template
                 </label>
                 <div className={`custom-select`}>
-                  <select id="connectionTypeField" multiple={true} name="connectionType" {...register('carLAFunction')}>
+                  <select id="connectionTypeField" multiple={true} disabled={true} name="connectionType" {...register('useTemplate')}>
                     <option value="">Choose</option>
                     <option id='Kafka0' key={'Kafka'} value={'Kafka'}>Kafka</option>
                     <option id='Live (SAC/AFO)1' key={'Live (SAC/AFO)'} value={'Live (SAC/AFO)'}>Live (SAC/AFO)</option>
                     <option id='API0' key={'API'} value={'API'}>API</option>
                   </select>
                 </div>
-                <span className={classNames('error-message', errors.carLAFunction?.message ? '' : 'hide')}>
-                  {errors.carLAFunction?.message}
-                </span>
+                
               </div>
               <div></div>
-            </div> 
+            </div>  */}
 
 
-            <div
-              className={classNames(`input-field-group include-error`)}
-              style={{ minHeight: '50px' }}
-            >
-              <div className={Styles.howToAccessStepsSection}>
-                <div className={Styles.howToAccessStepsWrapper}>
-                  <div className={Styles.infoWrapper}>
-                    <div className={`custom-select`}>
-                      <select id="templateIconField" name="templateIcon" {...register('templateIcon')}>
-                        <option value="">Select Icon</option>
-                        <option id='Kafka0' key={'Kafka'} value={'Kafka'}>Kafka</option>
-                        <option id='Live (SAC/AFO)1' key={'Live (SAC/AFO)'} value={'Live (SAC/AFO)'}>Live (SAC/AFO)</option>
-                        <option id='API0' key={'API'} value={'API'}>API</option>
-                      </select>
-                    </div>
+
+
+
+            <div id="how-to-access-tabs" className="tabs-panel">
+              <div className="tabs-wrapper">
+                <nav>
+                  <ul className="tabs">
+                    <li className={(accessType?.includes('Kafka') ? 'tab' : 'tab')+' active'}>  
+                      <a
+                        className={accessType?.includes('Kafka') ? '' : 'hidden'}
+                        href="#steps-tab-content-1"
+                        id="access-via-kafka"
+                        onClick={setTab}
+                      >
+                        Access Via Kafka
+                      </a>
+                    </li>
+                    <li className={accessType?.includes('Live (SAC/AFO)') ? 'tab' : 'tab disabled'}>
+                      <a
+                        className={accessType?.includes('Live (SAC/AFO)') ? '' : 'hidden'}
+                        href="#steps-tab-content-2"
+                        id="live-access"
+                        onClick={setTab}
+                      >
+                        Live Access
+                      </a>
+                    </li>
+                    <li className={accessType?.includes('API') ? 'tab' : 'tab disabled'}>
+                      <a
+                        className={accessType?.includes('API') ? '' : 'hidden'}
+                        href="#steps-tab-content-3"
+                        id="api-access"
+                        onClick={setTab}
+                      >
+                        API-Access
+                      </a>
+                    </li>
+                    <li className={'tab disabled'}>
+                      <a id="stepTab2" className={'hidden'}>
+                        `
+                      </a>
+                    </li>
+                    <li className={'tab disabled'}>
+                      <a id="stepTab3" className={'hidden'}>
+                        `
+                      </a>
+                    </li>
+                    <li className={'tab disabled'}>
+                      <a id="stepTab4" className={'hidden'}>
+                        `
+                      </a>
+                    </li>
+                    
+                  </ul>
+                </nav>
+              </div>
+              <div className="tabs-content-wrapper">
+                <div id="steps-tab-content-1" className="tab-content">
+                  
+
+                  {currentTab === 'access-via-kafka' && kafkaFields?.map((stepItem, index)=>{
+                    return(
+                    <fieldset key={stepItem.id}>  
+                    <AccessSteps 
+                    value={stepItem}
+                    itemIndex={index}
+                    showMoveUp={index !== 0}
+                    showMoveDown={index + 1 !== kafkaFields.length}
+                    onMoveUp={(index)=>onTeamMemberMoveUp(index)}
+                    onMoveDown={(index)=>onTeamMemberMoveDown(index)}
+                    control={control}
+                    update={kafkaUpdate}
+                    remove={kafkaRemove}
+                    numberedStep = {numberedStep}
+                    updateNumberedStep = {() => setNumberedStep(numberedStep+1)}
+                    arrayName={'kafkaArray'}
+                    />
+                    </fieldset>
+                    )
+                  })}
+
+                  <div>
+                    <button
+                      className={classNames('data-row', Styles.listViewContainer)}
+                      // onClick={addSteps}
+                      onClick={ ()=>{
+                        kafkaAppend({
+                        "stepNumber": '',
+                        "stepIconType": "",
+                        "stepText": ""
+                        })
+                      }}
+                    >
+                      <span className={Styles.addicon}> &nbsp; </span>
+                      <label className={Styles.addlabel}>Add Step</label>
+                    </button>
                   </div>
-                  <div className={Styles.descriptionWrapper}>
-                    <p>
-                      <b>Minimum information required.</b> You can either move on by selecting an existing Minimum information to review/edit or fill out the required provider-form in the next few steps. We already selected a fitting How-To-Access information to show your consumers in the next section.
-                    </p>
+
+
+                </div>
+                <div id="steps-tab-content-2" className="tab-content">
+                  
+                  {currentTab === 'live-access' && liveAccessFields?.map((stepItem, index)=>{
+                    return(
+                    <fieldset key={stepItem.id}>  
+                    <AccessSteps 
+                    value={stepItem}
+                    itemIndex={index}
+                    showMoveUp={index !== 0}
+                    showMoveDown={index + 1 !== liveAccessFields.length}
+                    onMoveUp={(index)=>onTeamMemberMoveUp(index)}
+                    onMoveDown={(index)=>onTeamMemberMoveDown(index)}
+                    control={control}
+                    update={liveAccessUpdate}
+                    remove={liveAccessRemove}
+                    numberedStep = {numberedStep}
+                    updateNumberedStep = {() => setNumberedStep(numberedStep+1)}
+                    arrayName={'liveAccessArray'}
+                    />
+                    </fieldset>
+                    )
+                  })}
+
+                  <div>
+                    <button
+                      className={classNames('data-row', Styles.listViewContainer)}
+                      // onClick={addSteps}
+                      onClick={ ()=>{
+                        liveAccessAppend({
+                        "stepNumber": '',
+                        "stepIconType": "",
+                        "stepText": ""
+                        })
+                      }}
+                    >
+                      <span className={Styles.addicon}> &nbsp; </span>
+                      <label className={Styles.addlabel}>Add Step</label>
+                    </button>
+                  </div>
+                </div>
+                <div id="steps-tab-content-3" className="tab-content">
+                  
+                  {currentTab === 'api-access' && apiFields?.map((stepItem, index)=>{
+                    return(
+                    <fieldset key={stepItem.id}>  
+                    <AccessSteps 
+                    value={stepItem}
+                    itemIndex={index}
+                    showMoveUp={index !== 0}
+                    showMoveDown={index + 1 !== apiFields.length}
+                    onMoveUp={(index)=>onTeamMemberMoveUp(index)}
+                    onMoveDown={(index)=>onTeamMemberMoveDown(index)}
+                    control={control}
+                    update={apiUpdate}
+                    remove={apiRemove}
+                    numberedStep = {numberedStep}
+                    updateNumberedStep = {() => setNumberedStep(numberedStep+1)}
+                    arrayName={'apiArray'}
+                    />
+                    </fieldset>
+                    )
+                  })}
+
+                  <div>
+                    <button
+                      className={classNames('data-row', Styles.listViewContainer)}
+                      // onClick={addSteps}
+                      onClick={ ()=>{
+                        apiAppend({
+                        "stepNumber": '',
+                        "stepIconType": "",
+                        "stepText": ""
+                        })
+                      }}
+                    >
+                      <span className={Styles.addicon}> &nbsp; </span>
+                      <label className={Styles.addlabel}>Add Step</label>
+                    </button>
                   </div>
                 </div>
               </div>
-              
             </div>
 
 
 
 
+  
 
 
-            <div className={Styles.flexLayout1}>
+            
+
+
+
+
+
+
+
+
+
+
+
+
+          
+
+
+
+
+
+
+            {/* <div className={Styles.flexLayout1}>
               <div
                 className={classNames(
                   'input-field-group include-error area',
@@ -683,7 +994,7 @@ const Description = ({
                 />
                 <span className={classNames('error-message')}>{errors?.howToAccessText?.message}</span>
               </div>
-            </div>
+            </div> */}
 
 
 
