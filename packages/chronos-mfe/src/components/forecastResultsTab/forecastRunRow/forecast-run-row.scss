@@ -46,9 +46,12 @@
   font-size: 11px;
   color: #00ADEF;
   border-bottom: 1px solid #00ADEF;
+  margin-left: 41px;
+  min-width: 38px;
 
-  :hover {
+  &:hover {
     background: unset;
+    border-color: #00adef;
   }
 }
 :global {
