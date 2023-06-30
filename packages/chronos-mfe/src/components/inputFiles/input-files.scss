@@ -13,3 +13,18 @@
   color: #00adef;
   cursor: pointer;
 }
+.selectExisitingFiles {
+  background: none;
+  border: none;
+  color: #00adef;
+  padding: 0 5px;
+  cursor: pointer;
+  &:focus {
+      outline: none;
+  }
+}
+.fileInput {
+  position: fixed;
+  left: -100%;
+  top: -100%;
+}
