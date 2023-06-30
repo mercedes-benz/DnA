@@ -234,6 +234,18 @@ const ForecastResultsTab = ({ onRunClick }) => {
       });
   }
 
+  const handleCancelRun = (run) => {
+    ProgressIndicator.show();
+    chronosApi.cancelForecastRun(projectId, run.id).then(() => {
+      Notification.show('Run cancelled successfully');
+      getProjectForecastRuns();
+      ProgressIndicator.hide();
+    }).catch(error => {
+      Notification.show(error.message, 'alert');
+      ProgressIndicator.hide();
+    });
+  }
+
   /* Row actions */
   const history = useHistory();
   const openForecastingResults = (runId) => {
@@ -386,6 +398,7 @@ const ForecastResultsTab = ({ onRunClick }) => {
                               selectRun={selectRun}
                               deselectRun={deselectRun}
                               onOpenErrorModal={handleOpenErrorModal}
+                              onCancelRun={handleCancelRun}
                             />
                           );
                         })}

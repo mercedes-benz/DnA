@@ -11,11 +11,11 @@ const ComparisonResults = () => {
   const printRef = React.useRef();
 
   const history = useHistory();
-  const goback = () => {
-    history.goBack();
-  }
 
   const { projectid: projectId, comparisonid: comparisonId } = useParams();
+  const goback = () => {
+    history.push(`/project/${projectId}/comparisons`);
+  }
 
   const [html, setHtml] = useState('');
   const [comparisonName, setComparisonName] = useState('');
