@@ -227,12 +227,16 @@ public class DataProductAssembler implements GenericAssembler<DataProductVO, Dat
 					DataProductClassificationConfidentialityVO classificationConfidentialityVO = new DataProductClassificationConfidentialityVO();
 					BeanUtils.copyProperties(dataProduct.getClassificationConfidentiality(),
 							classificationConfidentialityVO);
+					if(dataProduct.getAccess().getConfidentiality() != null) {
+						classificationConfidentialityVO.setConfidentiality(dataProduct.getAccess().getConfidentiality());
+					}
 					vo.setClassificationConfidentiality(classificationConfidentialityVO);
 				}
 
 				if (dataProduct.getPersonalRelatedData() != null) {
 					DataProductPersonalRelatedDataVO personalRelatedDataVO = new DataProductPersonalRelatedDataVO();
 					BeanUtils.copyProperties(dataProduct.getPersonalRelatedData(), personalRelatedDataVO);
+					personalRelatedDataVO.setPersonalRelatedData(dataProduct.getAccess().isPersonalRelatedData());					
 					vo.setPersonalRelatedData(personalRelatedDataVO);
 				}
 
@@ -249,7 +253,8 @@ public class DataProductAssembler implements GenericAssembler<DataProductVO, Dat
 					if(dataProduct.getTransnationalDataTransfer() != null) {
 						insiderInfo = dataProduct.getTransnationalDataTransfer().getInsiderInformation() != null ? dataProduct.getTransnationalDataTransfer().getInsiderInformation() : "";
 					}					
-					deletionRequirementVO.setInsiderInformation(insiderInfo);										
+					deletionRequirementVO.setInsiderInformation(insiderInfo);		
+					deletionRequirementVO.setDeletionRequirements(dataProduct.getAccess().isDeletionRequirements());
 					vo.setDeletionRequirement(deletionRequirementVO);
 				}
 				if (dataProduct.getOpenSegments() != null && !ObjectUtils.isEmpty(dataProduct.getOpenSegments())) {
@@ -428,6 +433,9 @@ public class DataProductAssembler implements GenericAssembler<DataProductVO, Dat
 					DataProductClassificationConfidentiality classificationConfidentiality = new DataProductClassificationConfidentiality();
 					BeanUtils.copyProperties(vo.getClassificationConfidentiality(),
 							classificationConfidentiality);
+					if(vo.getAccess().getConfidentiality() != null) {
+						classificationConfidentiality.setConfidentiality(vo.getAccess().getConfidentiality());
+					}
 					dataProduct.setClassificationConfidentiality(classificationConfidentiality);
 				}
 
@@ -435,7 +443,7 @@ public class DataProductAssembler implements GenericAssembler<DataProductVO, Dat
 				if (personalRelatedDataVO != null) {
 					DataProductPersonalRelatedData personalRelatedData = new DataProductPersonalRelatedData();
 					BeanUtils.copyProperties(personalRelatedDataVO, personalRelatedData);
-					personalRelatedData.setPersonalRelatedData(personalRelatedDataVO.isPersonalRelatedData());
+					personalRelatedData.setPersonalRelatedData(vo.getAccess().isPersonalRelatedData());
 					personalRelatedData.setContactAwareTransfer(personalRelatedDataVO.isContactAwareTransfer());
 					personalRelatedData.setObjectionsToTransfer(personalRelatedDataVO.isObjectionsToTransfer());
 					dataProduct.setPersonalRelatedData(personalRelatedData);
@@ -462,7 +470,7 @@ public class DataProductAssembler implements GenericAssembler<DataProductVO, Dat
 				if (deletionRequirementVO != null) {
 					DataProductDeletionRequirement deletionRequirement = new DataProductDeletionRequirement();
 					BeanUtils.copyProperties(deletionRequirementVO, deletionRequirement);
-					deletionRequirement.setDeletionRequirements(deletionRequirementVO.isDeletionRequirements());
+					deletionRequirement.setDeletionRequirements(vo.getAccess().isDeletionRequirements());
 					dataProduct.setDeletionRequirement(deletionRequirement);
 				}
 
