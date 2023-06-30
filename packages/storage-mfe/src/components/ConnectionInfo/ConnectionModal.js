@@ -235,7 +235,7 @@ export const ConnectionModal = (props) => {
           To Download File from your bucket &apos;{bucketInfo.bucketName}&apos; <br /><b>GET</b> API URL- <b>{`${Envs.STORAGE_API_BASEURL}/buckets/${bucketInfo.bucketName}/objects/metadata`}</b>
           <ul>
             <li>Value in Header: <b>Authorization</b> - JWT Token</li>
-            <li>Value in Header: <b>Content-Type</b> - application/octet-stream</li>
+            <li>Value in Header: <b>Content-Type</b> - application/json</li>
             <li>Value in Querystring: <b>prefix</b> - File Path for the downloading file <br /><small>(Ex. Pass &apos;file-name.pdf&apos; for downloading from root folder of the bucket, Pass &apos;test/files/file-name.pdf&apos; for downloading file &apos;file-name.pdf&apos; from &apos;files&apos; folder under &apos;test&apos; folder)</small></li>
           </ul>
         </li>
@@ -248,7 +248,7 @@ export const ConnectionModal = (props) => {
           </ul>
         </li>
         <li>
-          To Delete file and folder from your bucket &apos;{bucketInfo.bucketName}&apos; <br /><b>DELETE</b> API URL- <b>{`${Envs.STORAGE_API_BASEURL}/buckets/${bucketInfo.bucketName}/objects`}</b>
+          To Delete file and folder from your bucket &apos;{bucketInfo.bucketName}&apos;<small>(Only for Read/Write Permission)</small> <br /><b>DELETE</b> API URL- <b>{`${Envs.STORAGE_API_BASEURL}/buckets/${bucketInfo.bucketName}/objects`}</b>
           <ul>
             <li>Value in Header: <b>Authorization</b> - JWT Token</li>
             <li>Value in Header: <b>Content-Type</b> - application/json</li>
