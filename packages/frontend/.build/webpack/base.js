@@ -180,6 +180,7 @@ const base = {
         './ProvisionSolution': './src/components/mbc/provisionsolution/Provisionsolution.tsx',
         './TagSection': './src/components/mbc/shared/landingSummary/tagSection/TagSection.tsx',
         './DataProductFilter': './src/components/mbc/filters/DataProductFilter.tsx',
+        './TextArea': './src/components/mbc/shared/textArea/TextArea.tsx',
       },
       remotes: {
         // object key is used to import
