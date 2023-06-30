@@ -3,7 +3,7 @@ import classNames from 'classnames';
 import Styles from './Form.style.scss';
 import { tabs } from '../../dataTransfer/ProviderForm';
 
-import Tabs from '../../../common/modules/uilab/js/src/tabs';
+// import Tabs from '../../../common/modules/uilab/js/src/tabs';
 import ProgressIndicator from '../../../common/modules/uilab/js/src/progress-indicator';
 import Notification from '../../../common/modules/uilab/js/src/notification';
 
@@ -146,7 +146,7 @@ const CreateDataProduct = ({ user, history }) => {
           setSavedTabs(segments);
         }
         ProgressIndicator.hide();
-        SelectBox.defaultSetup();
+        // SelectBox?.defaultSetup();
       })
       .catch((e) => {
         console.log(e);
@@ -158,15 +158,15 @@ const CreateDataProduct = ({ user, history }) => {
       });
   };
 
-  useEffect(() => {
-    if (user?.roles?.length) {
-      Tabs.defaultSetup();
-    } else {
-      setTimeout(() => {
-        Tabs.defaultSetup();
-      }, 100);
-    }
-  }, [user]);
+  // useEffect(() => {
+  //   if (user?.roles?.length) {
+  //     Tabs.defaultSetup();
+  //   } else {
+  //     setTimeout(() => {
+  //       Tabs.defaultSetup();
+  //     }, 100);
+  //   }
+  // }, [user]);
 
   useEffect(() => {
     const { id } = data.selectedDataProduct;
@@ -311,10 +311,10 @@ const CreateDataProduct = ({ user, history }) => {
       formValid = false;
     }
 
-    if (!reqObj?.howToAccessText || reqObj?.howToAccessText === '') {
-      errorObject.descriptionTabError.push('How to access');
-      formValid = false;
-    }
+    // if (!reqObj?.howToAccessText || reqObj?.howToAccessText === '') {
+    //   errorObject.descriptionTabError.push('How to access');
+    //   formValid = false;
+    // }
 
     if (!reqObj?.informationOwner || reqObj?.informationOwner === '') {
       errorObject.contactInformationTabError.push('Information Owner');
@@ -446,12 +446,12 @@ const CreateDataProduct = ({ user, history }) => {
       formValid = false;
     }
 
-    if (reqObj?.howToAccessText?.message === '*Missing entry') {
-      !errorObject.descriptionTabError.includes('How to access')?
-      errorObject.descriptionTabError.push('How to access')
-      :'';
-      formValid = false;
-    }
+    // if (reqObj?.howToAccessText?.message === '*Missing entry') {
+    //   !errorObject.descriptionTabError.includes('How to access')?
+    //   errorObject.descriptionTabError.push('How to access')
+    //   :'';
+    //   formValid = false;
+    // }
 
     if (reqObj?.tou?.message === '*Missing entry') {
       errorObject.deletionRequirementsTabError.push('Terms and conditions acknowledgement');
@@ -512,6 +512,27 @@ const CreateDataProduct = ({ user, history }) => {
   }
 
   const onSave = (currentAction, currentTab, values, callbackFn) => {
+
+    const howToAccessObj = {
+      "accessDetailsCollectionVO": [
+        {
+          "accessType": "access-via-kafka",
+          "stepCollectionVO": values['kafkaArray']
+        },
+        {
+          "accessType": "live-access",
+          "stepCollectionVO": values['liveAccessArray']
+        },
+        {
+          "accessType": "api-access",
+          "stepCollectionVO": values['apiArray']
+        }
+      ],
+      "useTemplate": values['useTemplate']
+    };
+
+    values['howToAccessTemplate'] = howToAccessObj
+
     setShowAllTabsError(false);
     if(currentAction === 'publish'){
       // if(!values.id && values.id!='' && currentTab!='description'){
@@ -578,9 +599,9 @@ const CreateDataProduct = ({ user, history }) => {
               <nav>
                 <ul className="tabs">
                   {/* <li className={savedTabs?.includes('description') ? 'tab valid' : 'tab valid active'}> */}
-                  <li className={
-                    savedTabs?.includes('description') && 
-                  errorsInPublish?.descriptionTabError?.length < 1 ? 'tab valid active' : 'tab active'}>
+                  <li id='firstElementTab' className={
+                    (savedTabs?.includes('description') && 
+                  errorsInPublish?.descriptionTabError?.length < 1 ? 'tab valid' : 'tab')+' active'}>
                     <a
                       href="#tab-content-1"
                       id="description"
