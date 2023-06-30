@@ -21,9 +21,9 @@ const tabs = {
 };
 
 const ChronosProjectDetails = ({ user }) => {
-  const { id: projectId } = useParams();
+  const { id: projectId, tabName } = useParams();
 
-  const [currentTab, setCurrentTab] = useState('runForecast');
+  const [currentTab, setCurrentTab] = useState(tabName !== undefined ? tabName : 'runForecast');
   const elementRef = useRef(Object.keys(tabs)?.map(() => createRef()));
   const [project, setProject] = useState();
 
@@ -85,12 +85,12 @@ const ChronosProjectDetails = ({ user }) => {
           <div className="tabs-wrapper">
             <nav>
               <ul className="tabs">
-                <li className={'tab active'}>
+                <li className={classNames('tab', tabName === undefined && 'active', tabName !== undefined && currentTab === tabName && 'active')}>
                   <a href="#tab-content-1" id="runForecast" ref={elementRef} onClick={setTab}>
                     Run Forecast
                   </a>
                 </li>
-                <li className={'tab'}>
+                <li className={classNames('tab', tabName !== undefined && tabName === 'forecastResults' && 'active')}>
                   <a
                     href="#tab-content-2"
                     id="forecastResults"
@@ -102,7 +102,7 @@ const ChronosProjectDetails = ({ user }) => {
                     Forecast Results
                   </a>
                 </li>
-                <li className={'tab'}>
+                <li className={classNames('tab', tabName !== undefined && tabName === 'projectDetails' && 'active')}>
                   <a
                     href="#tab-content-3"
                     id="projectDetails"
@@ -114,7 +114,7 @@ const ChronosProjectDetails = ({ user }) => {
                     Manage Project
                   </a>
                 </li>
-                <li className={'tab'}>
+                <li className={classNames('tab', tabName !== undefined && tabName === 'comparisons' && 'active')}>
                   <a
                     href="#tab-content-4"
                     id="comparisons"
