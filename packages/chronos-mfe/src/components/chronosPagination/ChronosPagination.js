@@ -3,13 +3,14 @@ import React, { useState, useEffect } from 'react';
 import Pagination from 'dna-container/Pagination';
 // App components
 import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indicator';
+import { SESSION_STORAGE_KEYS } from '../../utilities/constants';
 
 const ChronosPagination = ({projects, setForecastProjects}) => {
   // Pagination 
   const [totalNumberOfPages, setTotalNumberOfPages] = useState(1);
   const [currentPageNumber, setCurrentPageNumber] = useState(1);
   const [currentPageOffset, setCurrentPageOffset] = useState(0);
-  const [maxItemsPerPage, setMaxItemsPerPage] = useState(15);
+  const [maxItemsPerPage, setMaxItemsPerPage] = useState(parseInt(sessionStorage.getItem(SESSION_STORAGE_KEYS.PAGINATION_MAX_ITEMS_PER_PAGE), 10) || 15);
 
   // get results
   const getResults = (action) => {
