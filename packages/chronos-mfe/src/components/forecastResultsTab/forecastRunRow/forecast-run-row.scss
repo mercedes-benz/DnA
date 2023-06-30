@@ -46,6 +46,10 @@
   font-size: 11px;
   color: #00ADEF;
   border-bottom: 1px solid #00ADEF;
+
+  :hover {
+    background: unset;
+  }
 }
 :global {
   .contextMenuWrapper {
