@@ -127,6 +127,11 @@ const ForecastRunRow = (props) => {
     e.stopPropagation();
   };
 
+  const handleRunCancel = (e, run) => {
+    stopPropagation(e);
+    props.onCancelRun(run);
+  }
+
   return (
     <React.Fragment>
       <tr
@@ -165,7 +170,7 @@ const ForecastRunRow = (props) => {
           {item.state.result_state === 'FAILED' && <i className={classNames('icon mbc-icon close circle', Styles.closeCircle)}  onClick={(e) => handleStatusClick(e, item)} tooltip-data={'Click to View the Error'} />}
           {item.state.result_state === 'TIMEDOUT' && <i className={classNames('icon mbc-icon close circle', Styles.closeCircle)}  onClick={(e) => handleStatusClick(e, item)} tooltip-data={'Click to View the Error'} />}
           {item.state.result_state === 'WARNINGS' && <i className={classNames('icon mbc-icon alert circle', Styles.alertCircle)}  onClick={(e) => handleStatusClick(e, item)} tooltip-data={'Click to View the Warning'} />}
-          {item.state.result_state === null && <div tooltip-data={'IN PROGRESS'} ><CircularProgressBar /></div>}
+          {item.state.result_state === null && <div tooltip-data={'IN PROGRESS'} ><CircularProgressBar /> <button className={classNames('btn', Styles.cancelBtn)} onClick={(e) => handleRunCancel(e, item)}>Cancel</button></div>}
         </td>
         <td>
           {regionalDateAndTimeConversionSolution(item.triggeredOn)}

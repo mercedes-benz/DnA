@@ -23,8 +23,6 @@ const RunForecastTab = ({ onRunClick }) => {
   }, []);
   
   const onSubmit = (data) => {
-    console.log('formData');
-    console.log(data);
     const formData = new FormData();
     if(data.savedInputPath !== undefined) {
       formData.append('file', '');
