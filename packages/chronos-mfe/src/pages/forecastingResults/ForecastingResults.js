@@ -13,10 +13,10 @@ const ForecastingResults = () => {
   const printRef = React.useRef();
 
   const history = useHistory();
-  const goback = () => {
-    history.goBack();
-  }
   const { projectid: projectId, runid: runId } = useParams();
+  const goback = () => {
+    history.push(`/project/${projectId}/forecastResults`);
+  }
 
   const [nerdStats, setNerdStats] = useState(false);
   const [html, setHtml] = useState('');
@@ -714,42 +714,44 @@ const ForecastingResults = () => {
           <button className={classNames('btn', Styles.mr)} onClick={downloadExcel}><i className="icon mbc-icon document"></i> .xlsx</button>
           <button className={'btn'} onClick={downloadPrediction}><i className="icon mbc-icon document"></i> .csv</button>
         </div>
-        <div className={Styles.compareBtns}>
-          <p>Compare columns: </p>
-          <div className={classNames(`input-field-group`)}>
-            <div>
-              <select id="colOneField" onChange={handleColOne} ref={colOneSelect} className={Styles.customSelect}>
-                <>
-                  {colOne.length > 0 &&
-                    colOne.map((name) => (
-                      <option id={name} key={name} value={name}>
-                        {name}
-                      </option>
-                  ))}
-                </>
-              </select>
+        { colOne.length === 1 ? null :
+          <div className={Styles.compareBtns}>
+            <p>Compare columns: </p>
+            <div className={classNames(`input-field-group`)}>
+              <div>
+                <select id="colOneField" onChange={handleColOne} ref={colOneSelect} className={Styles.customSelect}>
+                  <>
+                    {colOne.length > 0 &&
+                      colOne.map((name) => (
+                        <option id={name} key={name} value={name}>
+                          {name}
+                        </option>
+                    ))}
+                  </>
+                </select>
+              </div>
+            </div>
+            <div className={classNames(`input-field-group`)}>
+              <div 
+                // onBlur={() => trigger('frequency')}
+                >
+                <select id="colTwoField" onChange={handleColTwo} ref={colTwoSelect} className={Styles.customSelect}>
+                  <>
+                    <option id={'choose'} key={'choose'} value={0}>
+                      Choose column
+                    </option>
+                    {colTwo.length > 0 &&
+                      colTwo.map((name) => (
+                        <option id={'col-' + name} key={'col-' + name} value={name}>
+                          {name}
+                        </option>
+                    ))}
+                  </>
+                </select>
+              </div>
             </div>
           </div>
-          <div className={classNames(`input-field-group`)}>
-            <div 
-              // onBlur={() => trigger('frequency')}
-              >
-              <select id="colTwoField" onChange={handleColTwo} ref={colTwoSelect} className={Styles.customSelect}>
-                <>
-                  <option id={'choose'} key={'choose'} value={0}>
-                    Choose column
-                  </option>
-                  {colTwo.length > 0 &&
-                    colTwo.map((name) => (
-                      <option id={'col-' + name} key={'col-' + name} value={name}>
-                        {name}
-                      </option>
-                  ))}
-                </>
-              </select>
-            </div>
-          </div>
-        </div>
+        }
       </div>
       
       { forecastDataA.length > 0 &&

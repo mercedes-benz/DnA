@@ -37,7 +37,16 @@
     justify-content: flex-end;
   }
 }
-
+.cancelBtn {
+  background: unset;
+  border: unset;
+  padding: 0;
+  margin-top: -5px;
+  height: unset;
+  font-size: 11px;
+  color: #00ADEF;
+  border-bottom: 1px solid #00ADEF;
+}
 :global {
   .contextMenuWrapper {
     z-index: 9;
