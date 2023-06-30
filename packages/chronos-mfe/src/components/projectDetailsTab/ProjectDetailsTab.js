@@ -66,10 +66,15 @@ const ProjectDetailsTab = () => {
 
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [inputFileToBeDeleted, setInputFileToBeDeleted] = useState();
+  const [configFileToBeDeleted, setConfigFileToBeDeleted] = useState();
 
   const showDeleteConfirmModal = (inputFile) => {
     setShowDeleteModal(true);
     setInputFileToBeDeleted(inputFile);
+  };
+  const showDeleteConfigFileConfirmModal = (configFile) => {
+    setShowDeleteModal(true);
+    setConfigFileToBeDeleted(configFile);
   };
   const onCancelDelete = () => {
     setShowDeleteModal(false);
@@ -81,9 +86,25 @@ const ProjectDetailsTab = () => {
         Notification.show('Saved input file deleted');
         getProjectById();
         ProgressIndicator.hide();
+        setInputFileToBeDeleted('');
       }).catch(error => {
         Notification.show(
           error?.response?.data?.response?.errors[0]?.message || error?.response?.data?.response?.warnings[0]?.message || error?.response?.data?.errors[0]?.message || 'Error while deleting saved input file',
+          'alert',
+        );
+        ProgressIndicator.hide();
+      });
+    }
+    if(configFileToBeDeleted !== '' || configFileToBeDeleted !== null) {
+      ProgressIndicator.show();
+      chronosApi.deleteProjectConfigFile(projectId, configFileToBeDeleted).then(() => {
+        Notification.show('Config file deleted');
+        getProjectById();
+        ProgressIndicator.hide();
+        setConfigFileToBeDeleted('');
+      }).catch(error => {
+        Notification.show(
+          error?.response?.data?.response?.errors[0]?.message || error?.response?.data?.response?.warnings[0]?.message || error?.response?.data?.errors[0]?.message || 'Error while deleting config file',
           'alert',
         );
         ProgressIndicator.hide();
@@ -148,6 +169,11 @@ const ProjectDetailsTab = () => {
         <h3 id="productName">Input Files</h3>
         { loading && <Spinner /> }
         {!loading && <InputFiles inputFiles={project.savedInputs === null ? [] : project.savedInputs} showModal={showDeleteConfirmModal} /> }
+      </div>
+      <div className={Styles.content}>
+        <h3 id="productName">Configuration Files</h3>
+        { loading && <Spinner /> }
+        {!loading && <InputFiles inputFiles={project.configFiles === null ? [] : project.configFiles} showModal={showDeleteConfigFileConfirmModal} addNew={true} proId={projectId} refresh={getProjectById} /> }
       </div>
       <div className={Styles.content}>
         <h3 id="productName">Access Details for Chronos Forecasting</h3>
