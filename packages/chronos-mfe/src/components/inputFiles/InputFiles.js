@@ -81,7 +81,7 @@ const InputFiles = ({inputFiles, showModal, addNew, proId, refresh}) => {
       <p>No input files present</p>
       { addNew && 
         <div>
-          <input type="file" id="file" name="file" className={Styles.fileInput} 
+          <input type="file" id="fileConfig" name="fileConfig" className={Styles.fileInput} 
             onChange={
               (e) => {
                 const isValid = isValidFile(e.target.files[0]);
@@ -94,7 +94,7 @@ const InputFiles = ({inputFiles, showModal, addNew, proId, refresh}) => {
             }
             accept=".yml, .yaml"
           />
-          <label htmlFor="file" className={Styles.selectExisitingFiles}><i className="icon mbc-icon plus" /> Upload new Config File</label>
+          <label htmlFor="fileConfig" className={Styles.selectExisitingFiles}><i className="icon mbc-icon plus" /> Upload new Config File</label>
         </div>
       }
     </div>
