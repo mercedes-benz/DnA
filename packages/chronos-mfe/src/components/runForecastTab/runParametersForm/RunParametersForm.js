@@ -144,7 +144,7 @@ const RunParametersForm = () => {
                         <>
                           {configurationFiles.map((file) => (
                               <option key={file.objectName} value={file.objectName}>
-                                {file.objectName.includes('chronos-core') ? 'General > ' + file.objectName.split("/")[2] : 'Project > ' + file.objectName.split("/")[2]}
+                                {file?.objectName?.includes('chronos-core') ? 'General > ' + file?.objectName?.split("/")[2] : 'Project > ' + file?.objectName?.split("/")[2]}
                               </option>
                           ))}
                         </>
