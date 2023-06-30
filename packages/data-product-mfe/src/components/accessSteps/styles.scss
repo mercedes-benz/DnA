@@ -1,0 +1,186 @@
+.memberListWrapper {
+    // display: flex;
+    color: #c0c8d0;
+    position: relative;
+    // background-color: #1c2026;
+  
+    .avatarIcon {
+      width: 55px;
+      height: 55px;
+    }
+  
+    .avatar {
+      padding: 28px 28px 28px 40px;
+    }
+  
+    .details {
+      flex: 1;
+      padding: 28px 0;
+      border-top: 1px solid #383f49;
+  
+      h6 {
+        font-weight: bold;
+        font-size: var(--font-size-small);
+        color: #99a5b3;
+      }
+    }
+  
+    .memberDetails {
+      display: flex;
+  
+      > div {
+        flex: 1;
+        padding-right: 10px;
+        width: 25%;
+        /*
+        &:last-child {
+          padding-right: 60px;
+        }
+        */
+      }
+      .relationSection{
+        text-align: center;
+      }
+    }
+  
+    &:last-child .details {
+      border-bottom: 1px solid #383f49;
+    }
+  
+    &:hover {
+      box-shadow: 0 2px 20px 0 rgba(0, 0, 0, 0.32);
+  
+      .details {
+        border-color: transparent;
+      }
+  
+      .orderUp,
+      .orderDown {
+        display: block;
+      }
+    }
+  
+    .orderUp,
+    .orderDown,
+    .contextMenu {
+      cursor: pointer;
+      display: block;
+      width: 40px;
+      height: 40px;
+      position: absolute;
+      text-align: center;
+  
+      i {
+        vertical-align: middle;
+        font-size: var(--font-size-icon-medium);
+      }
+  
+      &:hover {
+        color: #00adef;
+      }
+    }
+  
+    .contextMenu {
+      top: calc(50% - 10px);
+      right: 10px;
+      z-index: 10;
+    }
+  
+    .orderUp,
+    .orderDown {
+      display: none;
+      i {
+        font-size: 8px;
+      }
+    }
+  
+    .orderUp {
+      top: 15px;
+      font-size: 8px;
+    }
+  
+    .orderDown {
+      bottom: 0px;
+    }
+
+
+
+
+
+
+
+
+
+
+.howToAccessStepsSection{
+  background-color: #1c2026;
+  padding: 35px 45px;
+  display: table;
+  width: 100%;
+  .howToAccessStepsWrapper{
+      // display: table-row;
+      display: table;
+      width: 100%;
+      .infoWrapper{
+          display: table-cell;
+          vertical-align: middle;
+          width: 122px;
+          text-align: center;
+          i{
+              font-size: 34px;
+          }
+          .stepCounter{
+            border-radius: 50px;
+            border: 1px solid #c0c8d0;
+            font-size: 20px;
+            width: 32px;
+            height: 32px;
+            text-align: center;
+            margin: auto;
+          }
+      }
+      .editIcon{
+        width: 50px;
+        display: table-cell;
+        vertical-align: middle;
+        cursor: pointer;
+      }
+      .descriptionWrapper{
+          display: table-cell;
+          vertical-align: middle;
+          // padding-left: 40px;
+          .descriptionField{
+            .input-field-area{
+              min-height: 85px;
+            }
+          }
+          .textArea{
+            width: 600px;
+          }
+          p{
+              width: 600px;
+              margin-bottom: 0;
+          }
+          .addLink{
+            color: #00adef;
+            &:hover {
+              cursor: pointer;
+            }
+          }
+
+          .saveEntry{
+            color: #00adef;
+            &:hover {
+              cursor: pointer;
+            }
+          }
+      }
+      .removeAction{
+        display: table-cell;
+        vertical-align: middle;
+        cursor: pointer;
+      }
+  }
+}
+
+}
