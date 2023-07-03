@@ -87,14 +87,14 @@ const CreateOrEditProject = (props) => {
                 if (response?.data?.data) {
                     const data = response?.data?.data;
                     setEditDataikuProjectDetails(data);
-                    if (data?.projectName) {
-                        setProjectKey(data.projectName);
+                    if (data?.name) {
+                        setProjectKey(data.name);
                     }
                     if (data?.classificationType) {
                         setDataClassification(data.classificationType);
                     }
-                    if (data?.description) {
-                        setProjectDescription(data.description);
+                    if (data?.shortDesc) {
+                        setProjectDescription(data.shortDesc);
                     }
                     if (data?.hasPii) {
                         setPII(data.hasPii);
