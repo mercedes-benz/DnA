@@ -175,6 +175,12 @@ public class DataikuAssembler {
 			summaryDto.setShortDesc(projectDto.getDescription());
 			summaryDto.setSolutionId(projectDto.getSolutionId());
 			summaryDto.setStatus(projectDto.getStatus());
+			summaryDto.setClassificationType(projectDto.getClassificationType());
+			summaryDto.setHasPii(projectDto.getHasPii());
+			summaryDto.setDivisionId(projectDto.getDivisionId());
+			summaryDto.setDivisionName(projectDto.getDivisionName());
+			summaryDto.setSubdivisionId(projectDto.getSubdivisionId());
+			summaryDto.setSubdivisionName(projectDto.getSubdivisionName());
 		}
 		return summaryDto;
 	}

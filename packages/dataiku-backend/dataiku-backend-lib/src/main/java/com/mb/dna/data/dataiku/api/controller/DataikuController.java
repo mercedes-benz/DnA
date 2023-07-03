@@ -202,7 +202,7 @@ public class DataikuController {
             description = "get dataiku project details from the system")
     @ApiResponse(responseCode = "200", description = "dataiku project fetched",
     		content = @Content(mediaType = "application/json"
-            ,schema = @Schema(type="DataikuProjectResponseDto")))
+            ,schema = @Schema(type="DataikuProjectSummaryDetailResponseDto")))
     @ApiResponse(responseCode = "400", description = "Invalid id supplied")
     @ApiResponse(responseCode = "404", description = "Record not found")
 	@Tag(name = "dataiku")
@@ -344,7 +344,7 @@ public class DataikuController {
             description = "get dataiku project details from the system based on cloudprofile, projectname")
     @ApiResponse(responseCode = "200", description = "dataiku project fetched",
     		content = @Content(mediaType = "application/json"
-            ,schema = @Schema(type="DataikuProjectResponseDto")))
+            ,schema = @Schema(type="DataikuProjectSummaryDetailResponseDto")))
     @ApiResponse(responseCode = "400", description = "Invalid details supplied")
     @ApiResponse(responseCode = "404", description = "Record not found")
 	@Tag(name = "dataiku")
@@ -420,6 +420,18 @@ public class DataikuController {
 			responseDetailDto.setData(assembler.toProjectDetails(responseDto.getData()));
 			responseDetailDto.setResponse(responseMsg);
 			return Response.status(Status.NOT_FOUND).entity(responseDetailDto).build();
+		}
+		if(existingDataikuProject.getSolutionId()!=null && !"".equalsIgnoreCase(existingDataikuProject.getSolutionId())){
+			if(solutionId!=null && !solutionId.equalsIgnoreCase(existingDataikuProject.getSolutionId())){
+				MessageDescription errMsg = new MessageDescription("Bad Request, Cannot directly reassign to different solution, please unlink existing relation and assign to new solution");
+				log.error("Bad Request by user {} . Cannot directly reassign {} to different solution, please unlink existing relation with solution {} and assign to new solution {}", userId, projectname,existingDataikuProject.getSolutionId(),solutionId);
+				errors.add(errMsg);
+				responseMsg.setErrors(errors);
+				responseMsg.setWarnings(warnings);
+				responseDetailDto.setData(assembler.toProjectDetails(responseDto.getData()));
+				responseDetailDto.setResponse(responseMsg);
+				return Response.status(Status.BAD_REQUEST).entity(responseDetailDto).build();
+			}
 		}
 		responseDto = service.provisionSolutionToDataikuProject(projectname, cloudprofile,solutionId);
 		if("SUCCESS".equalsIgnoreCase(responseDto.getResponse().getSuccess())) {
