@@ -17,7 +17,7 @@ const InputFiles = ({inputFiles, showModal, addNew, proId, refresh}) => {
 
   const handleUploadFile = (file) => {
     const formData = new FormData();
-    formData.append('file', file);
+    formData.append('configFile', file);
     ProgressIndicator.show();
     chronosApi.uploadProjectConfigFile(proId, formData).then(() => {
         Notification.show('File uploaded successfully');
@@ -40,6 +40,7 @@ const InputFiles = ({inputFiles, showModal, addNew, proId, refresh}) => {
           let blob = new Blob([res.data.configFileData], {type: 'application/json'});
           const bURL = URL.createObjectURL(blob);
           setBlobUrl(bURL);
+          setShowPreview(true);
           ProgressIndicator.hide();
         }).catch(error => {
           ProgressIndicator.hide();
@@ -66,7 +67,7 @@ const InputFiles = ({inputFiles, showModal, addNew, proId, refresh}) => {
         </thead>
         <tbody>
           { inputFiles.map(inputFile =>
-              <tr className={classNames('data-row', Styles.dataRow)} key={inputFile?.id} onClick={() => handlePreviewFile(inputFile)}>
+              <tr className={classNames('data-row', Styles.dataRow)} key={inputFile?.id} onClick={() => handlePreviewFile(inputFile) }>
                 <td>{inputFile?.name}</td>
                 <td>{inputFile?.createdBy}</td>
                 <td>{regionalDateAndTimeConversionSolution(inputFile?.createdOn)}</td>
