@@ -227,7 +227,7 @@ public class DataProductAssembler implements GenericAssembler<DataProductVO, Dat
 					DataProductClassificationConfidentialityVO classificationConfidentialityVO = new DataProductClassificationConfidentialityVO();
 					BeanUtils.copyProperties(dataProduct.getClassificationConfidentiality(),
 							classificationConfidentialityVO);
-					if(dataProduct.getAccess().getConfidentiality() != null) {
+					if(Objects.nonNull(vo.getAccess()) && Objects.nonNull(dataProduct.getAccess().getConfidentiality())) {
 						classificationConfidentialityVO.setConfidentiality(dataProduct.getAccess().getConfidentiality());
 					}
 					vo.setClassificationConfidentiality(classificationConfidentialityVO);
@@ -236,7 +236,9 @@ public class DataProductAssembler implements GenericAssembler<DataProductVO, Dat
 				if (dataProduct.getPersonalRelatedData() != null) {
 					DataProductPersonalRelatedDataVO personalRelatedDataVO = new DataProductPersonalRelatedDataVO();
 					BeanUtils.copyProperties(dataProduct.getPersonalRelatedData(), personalRelatedDataVO);
-					personalRelatedDataVO.setPersonalRelatedData(dataProduct.getAccess().isPersonalRelatedData());					
+					if(Objects.nonNull(vo.getAccess()) && Objects.nonNull(dataProduct.getAccess().isPersonalRelatedData())) {					
+						personalRelatedDataVO.setPersonalRelatedData(dataProduct.getAccess().isPersonalRelatedData());
+					}											
 					vo.setPersonalRelatedData(personalRelatedDataVO);
 				}
 
@@ -253,8 +255,10 @@ public class DataProductAssembler implements GenericAssembler<DataProductVO, Dat
 					if(dataProduct.getTransnationalDataTransfer() != null) {
 						insiderInfo = dataProduct.getTransnationalDataTransfer().getInsiderInformation() != null ? dataProduct.getTransnationalDataTransfer().getInsiderInformation() : "";
 					}					
-					deletionRequirementVO.setInsiderInformation(insiderInfo);		
-					deletionRequirementVO.setDeletionRequirements(dataProduct.getAccess().isDeletionRequirements());
+					deletionRequirementVO.setInsiderInformation(insiderInfo);
+					if(Objects.nonNull(vo.getAccess()) && Objects.nonNull(dataProduct.getAccess().isDeletionRequirements())) {
+						deletionRequirementVO.setDeletionRequirements(dataProduct.getAccess().isDeletionRequirements());
+					}					
 					vo.setDeletionRequirement(deletionRequirementVO);
 				}
 				if (dataProduct.getOpenSegments() != null && !ObjectUtils.isEmpty(dataProduct.getOpenSegments())) {
