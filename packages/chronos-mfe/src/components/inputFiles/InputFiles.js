@@ -37,9 +37,9 @@ const InputFiles = ({inputFiles, showModal, addNew, proId, refresh}) => {
       setSelectedConfigFile(file);
       ProgressIndicator.show();
       chronosApi.getProjectConfigFileById(proId, file.id).then((res) => {
-          let blob = new Blob([res.data.configFileData], {type: 'application/json'});
-          const bURL = URL.createObjectURL(blob);
-          setBlobUrl(bURL);
+          // let blob = new Blob([res.data.configFileData], {type: 'application/json'});
+          // const bURL = URL.createObjectURL(blob);
+          setBlobUrl(res.data.configFileData);
           setShowPreview(true);
           ProgressIndicator.hide();
         }).catch(error => {
@@ -54,32 +54,33 @@ const InputFiles = ({inputFiles, showModal, addNew, proId, refresh}) => {
   
   return (
     <>
-    { inputFiles.length > 0 ? 
-    <>
-      <table className={classNames('ul-table', Styles.firstPanel)}>
-        <thead>
-          <tr className="header-row">
-            <th><label>Name</label></th>
-            <th><label>Uploaded By</label></th>
-            <th><label>Uploaded On</label></th>
-            <th>&nbsp;</th>
-          </tr>
-        </thead>
-        <tbody>
-          { inputFiles.map(inputFile =>
-              <tr className={classNames('data-row', Styles.dataRow)} key={inputFile?.id} onClick={() => handlePreviewFile(inputFile) }>
-                <td>{inputFile?.name}</td>
-                <td>{inputFile?.createdBy}</td>
-                <td>{regionalDateAndTimeConversionSolution(inputFile?.createdOn)}</td>
-                <td><i onClick={(e) => { e.stopPropagation(); showModal(inputFile?.id) }} className={classNames('icon delete', Styles.deleteIcon)} /></td>
-              </tr>
-            )
-          }
-        </tbody>
-      </table>
-    </> :
     <div className={Styles.firstPanel}>
-      <p>No input files present</p>
+      { inputFiles.length > 0 ? 
+      <>
+        <table className={classNames('ul-table')}>
+          <thead>
+            <tr className="header-row">
+              <th><label>Name</label></th>
+              <th><label>Uploaded By</label></th>
+              <th><label>Uploaded On</label></th>
+              <th>&nbsp;</th>
+            </tr>
+          </thead>
+          <tbody>
+            { inputFiles.map(inputFile =>
+                <tr className={classNames('data-row', Styles.dataRow)} key={inputFile?.id} onClick={() => handlePreviewFile(inputFile) }>
+                  <td>{inputFile?.name}</td>
+                  <td>{inputFile?.createdBy}</td>
+                  <td>{regionalDateAndTimeConversionSolution(inputFile?.createdOn)}</td>
+                  <td><i onClick={(e) => { e.stopPropagation(); showModal(inputFile?.id) }} className={classNames('icon delete', Styles.deleteIcon)} /></td>
+                </tr>
+              )
+            }
+          </tbody>
+        </table>
+      </> :
+        <p>No input files present</p>
+      }
       { addNew && 
         <div>
           <input type="file" id="fileConfig" name="fileConfig" className={Styles.fileInput} 
@@ -99,7 +100,6 @@ const InputFiles = ({inputFiles, showModal, addNew, proId, refresh}) => {
         </div>
       }
     </div>
-    }
     {showPreview && (
       <Modal
         title={`Preview - ${selectedConfigFile.name}`}
