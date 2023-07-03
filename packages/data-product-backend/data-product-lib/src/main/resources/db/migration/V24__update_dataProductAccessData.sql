@@ -12,7 +12,9 @@ begin
         id as identifier, 
 		data->'kafka' AS kafkaValue,
 		data->'oneApi' AS oneApiValue		   
-    	FROM dataproduct_nsql         	
+    	FROM dataproduct_nsql
+	where jsonb_extract_path_text(data,'recordStatus') <> 'DELETED'
+	and data->'access' IS NULL
 
 	loop
 		UPDATE dataproduct_nsql i
