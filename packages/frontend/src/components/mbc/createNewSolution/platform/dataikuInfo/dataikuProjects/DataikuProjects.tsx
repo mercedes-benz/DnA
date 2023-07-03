@@ -3,7 +3,6 @@ import React, { useState, useEffect } from 'react';
 import { ApiClient } from '../../../../../../services/ApiClient';
 import { IDataiku, IGetDataikuResult } from 'globals/types';
 import Styles from './DataikuProjects.scss';
-import { SUPPORT_EMAIL_ID } from 'globals/constants';
 import { getDataikuInstanceTag } from '../../../../../../services/utils';
 
 const classNames = cn.bind(Styles);
@@ -101,8 +100,7 @@ const DataikuProjects = (props: IDataikuProjectsProps) => {
         </div>
       ) : (
         <div>
-          There is no live project available, please create a project. In order to create a new Dataiku Live project,
-          please send an email to <a href={'mailto:' + SUPPORT_EMAIL_ID}>{SUPPORT_EMAIL_ID}</a>
+          There is no live Dataiku project available.
           {props.showError && (
             <p className="error-message">You dont have any live dataiku project. Please create the dataiku project.</p>
           )}
