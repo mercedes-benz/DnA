@@ -720,7 +720,7 @@ const Description = ({
       </div>
 
 
-      <div className={Styles.wrapper}>
+      <div className={accessType?.length == 0 ? ' hidden' : Styles.wrapper}>
         <div className={Styles.firstPanel}>
           <div>
             <h3>How to access - Template&nbsp;
