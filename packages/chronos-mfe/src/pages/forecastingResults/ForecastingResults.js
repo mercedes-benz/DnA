@@ -235,6 +235,7 @@ const ForecastingResults = () => {
       } else {
         setForecastRun(res.data);
         const myData = JSON.parse(res.data.visualsData);
+        setCharts(myData);
         const dataColumns = Object.keys(myData);
         setColOne([...dataColumns]);
         const index = dataColumns.indexOf(dataColumns[0]);
@@ -242,7 +243,6 @@ const ForecastingResults = () => {
           dataColumns.splice(index, 1);
         }
         setColTwo([...dataColumns]);
-        setCharts(myData);
       }
       setLoading(false);
       ProgressIndicator.hide();
