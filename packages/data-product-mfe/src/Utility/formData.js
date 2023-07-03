@@ -33,12 +33,12 @@ export const serializeFormData = ({ values, division, type = 'provider', isDataP
             access: {
               accessType: values.accessType,
               confidentiality: values.confidentiality,
-              deletionRequirements: values.deletionRequirements,
+              deletionRequirements: values.deletionRequirements === 'Yes' ? true : false,
               kafka: values.kafka,
               minimumInformationCheck: values.minimumInformationCheck,
               oneApi: values.oneApi,
-              personalRelatedData: values.personalRelatedData,
-              restrictDataAccess: values.restrictDataAccess
+              personalRelatedData: values.personalRelatedData === 'Yes' ? true : false,
+              restrictDataAccess: values.restrictDataAccess === 'Yes' ? true : false
             },
             howToAccessText: values.howToAccessText,
             howToAccessTemplate: values.howToAccessTemplate,
