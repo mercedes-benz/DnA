@@ -235,7 +235,6 @@ const ForecastingResults = () => {
       } else {
         setForecastRun(res.data);
         const myData = JSON.parse(res.data.visualsData);
-        setCharts(myData);
         const dataColumns = Object.keys(myData);
         setColOne([...dataColumns]);
         const index = dataColumns.indexOf(dataColumns[0]);
@@ -243,6 +242,7 @@ const ForecastingResults = () => {
           dataColumns.splice(index, 1);
         }
         setColTwo([...dataColumns]);
+        setCharts(myData);
       }
       setLoading(false);
       ProgressIndicator.hide();
@@ -714,44 +714,42 @@ const ForecastingResults = () => {
           <button className={classNames('btn', Styles.mr)} onClick={downloadExcel}><i className="icon mbc-icon document"></i> .xlsx</button>
           <button className={'btn'} onClick={downloadPrediction}><i className="icon mbc-icon document"></i> .csv</button>
         </div>
-        { colOne.length === 1 ? null :
-          <div className={Styles.compareBtns}>
-            <p>Compare columns: </p>
-            <div className={classNames(`input-field-group`)}>
-              <div>
-                <select id="colOneField" onChange={handleColOne} ref={colOneSelect} className={Styles.customSelect}>
-                  <>
-                    {colOne.length > 0 &&
-                      colOne.map((name) => (
-                        <option id={name} key={name} value={name}>
-                          {name}
-                        </option>
-                    ))}
-                  </>
-                </select>
-              </div>
-            </div>
-            <div className={classNames(`input-field-group`)}>
-              <div 
-                // onBlur={() => trigger('frequency')}
-                >
-                <select id="colTwoField" onChange={handleColTwo} ref={colTwoSelect} className={Styles.customSelect}>
-                  <>
-                    <option id={'choose'} key={'choose'} value={0}>
-                      Choose column
-                    </option>
-                    {colTwo.length > 0 &&
-                      colTwo.map((name) => (
-                        <option id={'col-' + name} key={'col-' + name} value={name}>
-                          {name}
-                        </option>
-                    ))}
-                  </>
-                </select>
-              </div>
+        <div className={Styles.compareBtns}>
+          <p>Compare columns: </p>
+          <div className={classNames(`input-field-group`)}>
+            <div>
+              <select id="colOneField" onChange={handleColOne} ref={colOneSelect} className={Styles.customSelect}>
+                <>
+                  {colOne.length > 0 &&
+                    colOne.map((name) => (
+                      <option id={name} key={name} value={name}>
+                        {name}
+                      </option>
+                  ))}
+                </>
+              </select>
             </div>
           </div>
-        }
+          <div className={classNames(`input-field-group`)}>
+            <div 
+              // onBlur={() => trigger('frequency')}
+              >
+              <select id="colTwoField" onChange={handleColTwo} ref={colTwoSelect} className={Styles.customSelect}>
+                <>
+                  <option id={'choose'} key={'choose'} value={0}>
+                    Choose column
+                  </option>
+                  {colTwo.length > 0 &&
+                    colTwo.map((name) => (
+                      <option id={'col-' + name} key={'col-' + name} value={name}>
+                        {name}
+                      </option>
+                  ))}
+                </>
+              </select>
+            </div>
+          </div>
+        </div>
       </div>
       
       { forecastDataA.length > 0 &&
