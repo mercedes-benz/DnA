@@ -181,6 +181,7 @@ public class DataikuAssembler {
 			summaryDto.setDivisionName(projectDto.getDivisionName());
 			summaryDto.setSubdivisionId(projectDto.getSubdivisionId());
 			summaryDto.setSubdivisionName(projectDto.getSubdivisionName());
+			summaryDto.setDepartment(projectDto.getDepartment());
 		}
 		return summaryDto;
 	}
