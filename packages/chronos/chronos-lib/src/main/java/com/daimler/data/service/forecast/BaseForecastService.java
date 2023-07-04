@@ -549,7 +549,7 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 								("TERMINATED".equalsIgnoreCase(state.getLife_cycle_state()) ||
 								"INTERNAL_ERROR".equalsIgnoreCase(state.getLife_cycle_state()) ||
 								"SKIPPED".equalsIgnoreCase(state.getLife_cycle_state()))) &&
-								!"SUCCESS".equalsIgnoreCase(state.getResult_state()) && (run.getError() == null || "".equalsIgnoreCase(run.getError())
+								!"SUCCESS".equalsIgnoreCase(state.getResult_state()) && !"CANCELED".equalsIgnoreCase(state.getResult_state()) && (run.getError() == null || "".equalsIgnoreCase(run.getError())
 								|| run.getRunState().getState_message() == null || "".equalsIgnoreCase(run.getRunState().getState_message())
 								|| ". ".equalsIgnoreCase(run.getRunState().getState_message()))
 						){
@@ -999,7 +999,9 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 							newRunState.setState_message("Run cancelled.");
 							newRunState.setUser_cancelled_or_timedout(true);
 							currentRun.setState(this.assembler.toStateVO(newRunState));
+							currentRun.setError("Run cancelled.");
 							run.setRunState(newRunState);
+							run.setError("Run cancelled.");
 							responseMessage.setSuccess("SUCCESS");
 						}
 					}
