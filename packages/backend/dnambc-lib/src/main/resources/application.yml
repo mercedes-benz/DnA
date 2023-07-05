@@ -55,6 +55,7 @@ dna:
       attachmentMalwareScan: ${ATTACHMENT_MALWARE_SCAN:false}
       internal-user-enabled: ${DRD_INTERNAL_USER_ENABLED:false}
       technicalUserOnboarding: ${TECH_USER_ONBOARD:false}
+      mockOauthToken: ${MOCK_OAUTH_TOKEN:XXXX}
   user:
     role: ${USER_ROLE:Admin}
     techUserPrefix: ${TECH_USER_PREFIX:XXXX}
