@@ -973,6 +973,7 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
     }
     if (procedureIdEnvs && this.state.procedureId.startsWith(procedureIdEnvs) && this.state.procedureId.replace(procedureIdEnvs, '') == '') {
       this.setState({ procedureIdError: '*Please provide valid Procedure Id ('+procedureIdEnvs+'xxx).' });
+      formValid = false;
     }
     if ((!procedureIdEnvs || procedureIdEnvs == '' || procedureIdEnvs == null) && (this.state.procedureId ==='' || !this.state.procedureId)) {
       this.setState({ procedureIdError: errorMissingEntry });
