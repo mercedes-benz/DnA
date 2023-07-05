@@ -147,7 +147,7 @@ public class SolutionController implements SolutionsApi, ChangelogsApi, Malwares
                 if (dataikuAllowed) {
                     if (requestSolutionVO.getPortfolio() != null
                             && requestSolutionVO.getPortfolio().getDnaDataikuProjectId() != null
-                            && requestSolutionVO.getPortfolio().getDnaDataikuProjectId() != null) {
+                            && requestSolutionVO.getPortfolio().getDnaDataikuProjectInstance() != null) {
                         GenericMessage provisionSolutionResponse = dnaDssClient.provisionSolutionToDataikuProject(requestSolutionVO.getPortfolio().getDnaDataikuProjectId(),
                                 requestSolutionVO.getPortfolio().getDnaDataikuProjectInstance(), solutionVO.getId());
                         LOGGER.info("Adding provision Solution to DataikuProject via create with the response {}", provisionSolutionResponse);
@@ -565,7 +565,7 @@ public class SolutionController implements SolutionsApi, ChangelogsApi, Malwares
                         boolean showDataikuError = false;
                         if (requestSolutionVO.getPortfolio() != null
                                 && requestSolutionVO.getPortfolio().getDnaDataikuProjectId() != null
-                                && requestSolutionVO.getPortfolio().getDnaDataikuProjectId() != null) {
+                                && requestSolutionVO.getPortfolio().getDnaDataikuProjectInstance() != null) {
                             GenericMessage provisionSolutionResponse = dnaDssClient.provisionSolutionToDataikuProject(requestSolutionVO.getPortfolio().getDnaDataikuProjectId(),
                                     requestSolutionVO.getPortfolio().getDnaDataikuProjectInstance(), mergedsolutionVO.getId());
                             LOGGER.info("Adding provision Solution to DataikuProject via update with the response {}", provisionSolutionResponse);
@@ -591,11 +591,11 @@ public class SolutionController implements SolutionsApi, ChangelogsApi, Malwares
 
                         } else if ((requestSolutionVO.getPortfolio() != null
                                 && requestSolutionVO.getPortfolio().getDnaDataikuProjectId() == null
-                                && requestSolutionVO.getPortfolio().getDnaDataikuProjectId() == null)
+                                && requestSolutionVO.getPortfolio().getDnaDataikuProjectInstance() == null)
                                 &&
                                 (existingSolutionVO.getPortfolio() != null
                                         && existingSolutionVO.getPortfolio().getDnaDataikuProjectId() != null
-                                        && existingSolutionVO.getPortfolio().getDnaDataikuProjectId() != null)
+                                        && existingSolutionVO.getPortfolio().getDnaDataikuProjectInstance() != null)
                         ) {
                             GenericMessage provisionSolutionResponse = dnaDssClient.provisionSolutionToDataikuProject(
                                     existingSolutionVO.getPortfolio().getDnaDataikuProjectId(),
@@ -696,7 +696,7 @@ public class SolutionController implements SolutionsApi, ChangelogsApi, Malwares
 
             if (dataikuAllowed && solution.getPortfolio() != null
                     && solution.getPortfolio().getDnaDataikuProjectId() != null
-                    && solution.getPortfolio().getDnaDataikuProjectId() != null) {
+                    && solution.getPortfolio().getDnaDataikuProjectInstance() != null) {
 
                 GenericMessage provisionSolutionResponse = dnaDssClient.provisionSolutionToDataikuProject(
                         solution.getPortfolio().getDnaDataikuProjectId(),
