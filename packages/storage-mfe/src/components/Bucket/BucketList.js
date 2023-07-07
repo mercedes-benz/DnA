@@ -370,7 +370,7 @@ export const BucketList = (props) => {
                         <input type="checkbox" className="ff-only" id={index + '1'} defaultChecked={index === 0} />
                         <label className={Styles.expansionLabel + ' expansion-panel-label '} htmlFor={index + '1'}>
                           <div className={Styles.bucketTile}>
-                            <div className={Styles.bucketTitleCol}>
+                            <div className={classNames(Styles.bucketTitleCol, Styles.bucketNameLink)}>
                               <Link to={`/explorer/${item.bucketName}`}>{item.bucketName}</Link>
                             </div>
                             <div className={Styles.bucketTitleCol}>
