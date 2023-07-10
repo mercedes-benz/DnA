@@ -52,6 +52,8 @@ const RunForecastTab = ({ onRunClick }) => {
         onRunClick();
         ProgressIndicator.hide();
         methods.reset();
+        SelectBox.defaultSetup();
+        setInputFile();
       }).catch(error => {
         ProgressIndicator.hide();
         Notification.show(
@@ -59,10 +61,6 @@ const RunForecastTab = ({ onRunClick }) => {
           'alert',
         );
       });
-
-    methods.reset();
-    SelectBox.defaultSetup();
-    setInputFile();
   }
 
   return (
