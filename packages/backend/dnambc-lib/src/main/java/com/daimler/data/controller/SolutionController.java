@@ -599,8 +599,6 @@ public class SolutionController implements SolutionsApi, ChangelogsApi, Malwares
                                         && existingSolutionVO.getPortfolio().getDnaDataikuProjectId() != null
                                         && existingSolutionVO.getPortfolio().getDnaDataikuProjectInstance() != null)
                         ) {
-                            LOGGER.info("existingSolutionVO.getPortfolio().getDnaDataikuProjectId() {}", existingSolutionVO.getPortfolio().getDnaDataikuProjectId());
-                            LOGGER.info("existingSolutionVO.getPortfolio().getDnaDataikuProjectInstance() {}", existingSolutionVO.getPortfolio().getDnaDataikuProjectInstance());
                             GenericMessage provisionSolutionResponse = dnaDssClient.provisionSolutionToDataikuProject(
                                     existingSolutionVO.getPortfolio().getDnaDataikuProjectId(),
                                     existingSolutionVO.getPortfolio().getDnaDataikuProjectInstance(),
