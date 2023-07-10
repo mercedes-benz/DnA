@@ -109,7 +109,7 @@ const ExistingFilesView = ({projectId, setShowExistingFiles, setInputFile, setIs
             <button
               className="btn btn-primary"
               type="submit"
-              disabled={selectedInputFile.length > 0 && inputFileSelect.current.value !== 0 ? false : true}
+              disabled={selectedInputFile.length > 0 ? false : true}
               onClick={() => {
                 setShowExistingFiles(false);
                 setInputFile([selectedInputFile]);
