@@ -12,7 +12,7 @@ import Spinner from '../../spinner/Spinner';
 const ExistingFilesView = ({projectId, setShowExistingFiles, setInputFile, setIsExistingInputFile}) => {
   const {register} = useFormContext();
   const [savedFiles, setSavedFiles] = useState([]);
-  const [selectedInputFile, setSelectedInputFile] = useState();
+  const [selectedInputFile, setSelectedInputFile] = useState('');
   const [loading, setLoading] = useState(true);
   const [error] = useState(false);
 
@@ -109,7 +109,7 @@ const ExistingFilesView = ({projectId, setShowExistingFiles, setInputFile, setIs
             <button
               className="btn btn-primary"
               type="submit"
-              disabled={inputFileSelect.current.value === 0 ? true : false}
+              disabled={selectedInputFile.length > 0 && inputFileSelect.current.value !== 0 ? false : true}
               onClick={() => {
                 setShowExistingFiles(false);
                 setInputFile([selectedInputFile]);
