@@ -102,7 +102,7 @@ const ExistingFilesView = ({projectId, setShowExistingFiles, setInputFile, setIs
             </div>
           </>
       }
-      { savedFiles.length !== 0 && inputFileSelect.current.value !== 0 && 
+      { savedFiles.length !== 0 &&
         <>
           <hr />
           <div className={Styles.btnContinue}>
