@@ -8,6 +8,7 @@ import SelectBox from 'dna-container/SelectBox';
 import Tooltip from '../../../common/modules/uilab/js/src/tooltip';
 import { chronosApi } from '../../../apis/chronos.api';
 import { Envs } from '../../../utilities/envs';
+import ProgressIndicator from '../../../common/modules/uilab/js/src/progress-indicator';
 
 const RunParametersForm = () => {
   const { register, resetField, formState: { errors } } = useFormContext({defaultValues: {
@@ -38,7 +39,8 @@ const RunParametersForm = () => {
     SelectBox.defaultSetup();
   }
 
-  useEffect(() => {
+  const getConfigFiles = () => {
+    ProgressIndicator.show();
     chronosApi.getConfigurationFiles(projectId).then((res) => {
       const bucketObjects = res.data.data.bucketObjects ? [...res.data.data.bucketObjects] : [];
       // const bucketObjects = configFiles.data.bucketObjects ? [...configFiles.data.bucketObjects] : [];
@@ -64,14 +66,25 @@ const RunParametersForm = () => {
       }      
       setConfigurationFiles(bucketObjects);
       SelectBox.defaultSetup();
+      ProgressIndicator.hide();
     }).catch(error => {
       if(error?.response?.data?.errors[0]?.message) {
         Notification.show(error?.response?.data?.errors[0]?.message, 'alert');
       } else {
         Notification.show(error.message, 'alert');
       }
+      ProgressIndicator.hide();
     });
-  }, [projectId]);
+  }
+
+  useEffect(() => {
+    getConfigFiles();
+    //eslint-disable-next-line
+  }, []);
+
+  const handleGetConfigFiles = () => {
+    getConfigFiles();
+  }
   
   useEffect(() => {
     expertView && SelectBox.defaultSetup(); Tooltip.defaultSetup();
@@ -134,6 +147,7 @@ const RunParametersForm = () => {
                     required: '*Missing entry',
                     validate: (value) => value !== '0' || '*Missing entry',
                   })}
+                  onClick={handleGetConfigFiles}
                 >
                   {
                     configurationFiles.length === 0 ? (
