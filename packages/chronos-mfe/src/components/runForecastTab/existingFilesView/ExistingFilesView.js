@@ -102,8 +102,6 @@ const ExistingFilesView = ({projectId, setShowExistingFiles, setInputFile, setIs
             </div>
           </>
       }
-      { console.log('inputFileSelect.current.value') }
-      { console.log(inputFileSelect.current.value) }
       { savedFiles.length !== 0 && inputFileSelect.current.value !== 0 && 
         <>
           <hr />
