@@ -21,7 +21,7 @@ const ExistingFilesView = ({projectId, setShowExistingFiles, setInputFile, setIs
     //eslint-disable-next-line
   }, []);
 
-  const inputFileSelect = useRef('');
+  const inputFileSelect = useRef();
 
   useEffect(() => {
     chronosApi.getAllInputFiles(projectId).then((res) => {
