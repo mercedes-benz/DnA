@@ -102,14 +102,15 @@ const ExistingFilesView = ({projectId, setShowExistingFiles, setInputFile, setIs
             </div>
           </>
       }
-      { savedFiles.length !== 0 && 
+      { console.log('inputFileSelect.current.value') }
+      { console.log(inputFileSelect.current.value) }
+      { savedFiles.length !== 0 && inputFileSelect.current.value !== 0 && 
         <>
           <hr />
           <div className={Styles.btnContinue}>
             <button
               className="btn btn-primary"
               type="submit"
-              disabled={selectedInputFile.length > 0 ? false : true}
               onClick={() => {
                 setShowExistingFiles(false);
                 setInputFile([selectedInputFile]);
