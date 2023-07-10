@@ -4,7 +4,7 @@ import Styles from './forecast-run-row.scss';
 // import from DNA Container
 import CircularProgressBar from '../../circularProgressBar/CircularProgressBar';
 import ContextMenu from '../../contextMenu/ContextMenu';
-import { regionalDateAndTimeConversionSolution } from '../../../utilities/utils';
+import { customDateFormat } from '../../../utilities/utils';
 import Notification from '../../../common/modules/uilab/js/src/notification';
 import Tooltip from '../../../common/modules/uilab/js/src/tooltip';
 import ProgressIndicator from '../../../common/modules/uilab/js/src/progress-indicator';
@@ -173,7 +173,7 @@ const ForecastRunRow = (props) => {
           {item.state.result_state === null && <><div tooltip-data={'IN PROGRESS'} ><CircularProgressBar /></div> <button className={classNames('btn', Styles.cancelBtn)} onClick={(e) => handleRunCancel(e, item)}>Cancel</button></>}
         </td>
         <td>
-          {regionalDateAndTimeConversionSolution(item.triggeredOn)}
+          {customDateFormat(item.triggeredOn)}
         </td>
         <td>
           {item.triggeredBy}

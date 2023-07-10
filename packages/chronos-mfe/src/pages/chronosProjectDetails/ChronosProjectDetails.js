@@ -1,6 +1,6 @@
 import classNames from 'classnames';
 import React, { createRef, useEffect, useRef, useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useHistory } from 'react-router-dom';
 import Styles from './chronos-project-details.scss';
 // App components
 import Tabs from '../../common/modules/uilab/js/src/tabs';
@@ -22,6 +22,8 @@ const tabs = {
 
 const ChronosProjectDetails = ({ user }) => {
   const { id: projectId, tabName } = useParams();
+
+  const history = useHistory();
 
   const [currentTab, setCurrentTab] = useState(tabName !== undefined ? tabName : 'runForecast');
   const elementRef = useRef(Object.keys(tabs)?.map(() => createRef()));
@@ -48,7 +50,15 @@ const ChronosProjectDetails = ({ user }) => {
       setProject(res.data);
       ProgressIndicator.hide();
     }).catch(error => {
-      Notification.show(error.message, 'alert');
+      if(error.response.status === 404) {
+        Notification.show('Chronos project not found either it is deleted or not present', 'alert');
+        history.push('/');
+      } else if(error.response.status === 403) {
+        Notification.show('You do not have access to this Chronos project.', 'alert');
+        history.push('/');
+      } else {
+        Notification.show(error.message, 'alert');
+      }
       ProgressIndicator.hide();
     });
   };
