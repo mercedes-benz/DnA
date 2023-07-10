@@ -40,3 +40,8 @@ export function getQueryParameterByName(name, url) {
   }
   return decodeURIComponent(results[2].replace(/\+/g, ' '));
 }
+
+export const customDateFormat = (dateString) => {
+  let date = new Date(dateString);
+  return date.toISOString().replace("T"," ").substring(0, 19);
+}
