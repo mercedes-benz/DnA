@@ -145,6 +145,7 @@ public class WorkspaceJobStatusUpdateController  {
 					else {
 						if(latestStatus.equalsIgnoreCase("CREATED")) {
 							eventType = "Codespace-Create";
+							log.info("Latest status is {}, and eventType is {}",latestStatus,eventType);
 							message = "Codespace "+ projectName + "successfully created by user " + userName;
 						}														
 						else {
@@ -167,6 +168,7 @@ public class WorkspaceJobStatusUpdateController  {
 					else {
 						if(latestStatus.equalsIgnoreCase("DEPLOYED")) {
 							eventType = "Codespace-Deploy";
+							log.info("Latest status is {}, and eventType is {}",latestStatus,eventType);
 							message = "Successfully deployed Codespace "+ projectName + "with branch " + branch +"on " + targetEnv + " triggered by " +workspaceOwnerName;
 						}													
 						else {
@@ -181,6 +183,7 @@ public class WorkspaceJobStatusUpdateController  {
 					else {
 						if(latestStatus.equalsIgnoreCase("UNDEPLOYED")) {
 							eventType = "Codespace-UnDeploy";
+							log.info("Latest status is {}, and eventType is {}",latestStatus,eventType);
 							message = "Successfully undeployed Codespace "+ projectName + "with branch " + branch +"on " + targetEnv + " triggered by " +workspaceOwnerName;
 						}													
 						else {
@@ -201,6 +204,7 @@ public class WorkspaceJobStatusUpdateController  {
 				return new ResponseEntity<>(errorMessage, HttpStatus.BAD_REQUEST);
 			}
 			GenericMessage responseMessage = service.update(userId,name,projectName,existingStatus,latestStatus,targetEnv,branch);
+			log.info("Message details after update action {} and userid is {} and resourceID is {}",message,userId,resourceID);
 			kafkaProducer.send(eventType, resourceID, "", userId, message, true, teamMembers, teamMembersEmails, null);
 			return new ResponseEntity<>(responseMessage, HttpStatus.OK);
 		}else {
