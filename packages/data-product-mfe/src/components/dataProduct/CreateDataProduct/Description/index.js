@@ -78,6 +78,7 @@ const Description = ({
 
   const { howToAccessText, tags, productOwner, 
     // useTemplate, 
+    confidentiality,
     accessType } = watch();
 
 
@@ -468,11 +469,31 @@ const Description = ({
                   Access
                 </label>
                 <div className={`custom-select`}>
-                  <select id="connectionTypeField" multiple={true} name="connectionType" {...register('accessType')}>
+                  <select id="connectionTypeField" multiple={true} name="connectionType" {...register('accessType',{
+                    onChange:()=>{
+                      if(accessType?.length == 1 && accessType?.includes('Live (SAC/AFO)')){
+                        setValue('personalRelatedDataInDescription', 'No');
+                        setValue('deletionRequirementInDescription', 'No');
+                        setValue('restrictDataAccess', 'No');
+                        setValue('kafkaArray', []);
+                        setValue('liveAccessArray', []);
+                        setValue('apiArray', []);
+                      }
+                      if(!accessType?.includes('Kafka')){
+                        setValue('kafkaArray', []);
+                      }
+                      if(!accessType?.includes('Live (SAC/AFO)')){
+                        setValue('liveAccessArray', []);
+                      }
+                      if(!accessType?.includes('API')){
+                        setValue('apiArray', []);
+                      }
+                    }
+                  })}>
                     <option value="">Choose</option>
-                    <option id='Kafka0' key={'Kafka'} value={'Kafka'}>Kafka</option>
-                    <option id='Live (SAC/AFO)1' key={'Live (SAC/AFO)'} value={'Live (SAC/AFO)'}>Live (SAC/AFO)</option>
-                    <option id='API0' key={'API'} value={'API'}>API</option>
+                    <option id='Kafka' key={'Kafka'} value={'Kafka'}>Kafka</option>
+                    <option id='Live (SAC/AFO)' key={'Live (SAC/AFO)'} value={'Live (SAC/AFO)'}>Live (SAC/AFO)</option>
+                    <option id='API' key={'API'} value={'API'}>API</option>
                   </select>
                 </div>
                 {/* <span className={classNames('error-message', errors.carLAFunction?.message ? '' : 'hide')}>
@@ -491,12 +512,20 @@ const Description = ({
                   Classification
                 </label>
                 <div className={`custom-select`}>
-                  <select id="confidentialityField" name="confidentiality" {...register('confidentiality')}>
+                  <select id="confidentialityField" name="confidentiality" {...register('confidentialityInDescription',{
+                    onChange:()=>{
+                      if(confidentiality == 'Internal'){
+                        setValue('personalRelatedDataInDescription', 'No');
+                        setValue('deletionRequirementInDescription', 'No');
+                        setValue('restrictDataAccess', 'No');
+                      }
+                    }
+                  })}>
                     <option value="">Choose</option>
-                    <option id='Internal0' key={'Internal'} value={'Internal'}>Internal</option>
-                    <option id='Secret1' key={'Secret'} value={'Secret'}>Secret</option>
-                    <option id='Confidential2' key={'Confidential'} value={'Confidential'}>Confidential</option>
-                    <option id='Public2' key={'Public'} value={'Public'}>Public</option>
+                    <option id='Internal' key={'Internal'} value={'Internal'}>Internal</option>
+                    <option id='Secret' key={'Secret'} value={'Secret'}>Secret</option>
+                    <option id='Confidential' key={'Confidential'} value={'Confidential'}>Confidential</option>
+                    <option id='Public' key={'Public'} value={'Public'}>Public</option>
                   </select>
                 </div>
                 {/* <span className={classNames('error-message', errors.carLAFunction?.message ? '' : 'hide')}>
@@ -507,7 +536,7 @@ const Description = ({
               }
             </div>
 
-            {(accessType?.length == 1 && accessType?.includes('Live (SAC/AFO)')) || accessType?.length == 0 ?
+            {(accessType?.length == 1 && accessType?.includes('Live (SAC/AFO)')) || accessType?.length == 0 || confidentiality == 'Internal' ?
               <div></div>
                : 
               <>
@@ -561,7 +590,7 @@ const Description = ({
 
                 <div className={Styles.flexLayout}>
                   <div
-                    className={classNames(`input-field-group include-error ${errors?.personalRelatedData ? 'error' : ''}`)}
+                    className={classNames(`input-field-group include-error`)}
                     style={{ minHeight: '50px' }}
                   >
                     <label className={classNames(Styles.inputLabel, 'input-label')}>
@@ -571,7 +600,7 @@ const Description = ({
                       <label className={'radio'}>
                         <span className="wrapper">
                           <input
-                            {...register('personalRelatedData', {
+                            {...register('personalRelatedDataInDescription', {
                               required: '*Missing entry',
                               // onChange: () => {
                                 
@@ -579,7 +608,7 @@ const Description = ({
                             })}
                             type="radio"
                             className="ff-only"
-                            name="personalRelatedData"
+                            name="personalRelatedDataInDescription"
                             value="No"
                           />
                         </span>
@@ -588,17 +617,16 @@ const Description = ({
                       <label className={'radio'}>
                         <span className="wrapper">
                           <input
-                            {...register('personalRelatedData', { required: '*Missing entry' })}
+                            {...register('personalRelatedDataInDescription', { required: '*Missing entry' })}
                             type="radio"
                             className="ff-only"
-                            name="personalRelatedData"
+                            name="personalRelatedDataInDescription"
                             value="Yes"
                           />
                         </span>
                         <span className="label">Yes</span>
                       </label>
                     </div>
-                    <span className={classNames('error-message')}>{errors?.personalRelatedData?.message}</span>
                   </div>
                   <div
                     className={classNames(`input-field-group include-error`)}
@@ -611,7 +639,7 @@ const Description = ({
                       <label className={'radio'}>
                         <span className="wrapper">
                           <input
-                            {...register('deletionRequirements', {
+                            {...register('deletionRequirementInDescription', {
                               required: '*Missing entry',
                               // onChange: () => {
                                 
@@ -619,7 +647,7 @@ const Description = ({
                             })}
                             type="radio"
                             className="ff-only"
-                            name="deletionRequirements"
+                            name="deletionRequirementInDescription"
                             value="No"
                           />
                         </span>
@@ -628,10 +656,10 @@ const Description = ({
                       <label className={'radio'}>
                         <span className="wrapper">
                           <input
-                            {...register('deletionRequirements', { required: '*Missing entry' })}
+                            {...register('deletionRequirementInDescription', { required: '*Missing entry' })}
                             type="radio"
                             className="ff-only"
-                            name="deletionRequirements"
+                            name="deletionRequirementInDescription"
                             value="Yes"
                           />
                         </span>
@@ -701,7 +729,7 @@ const Description = ({
                     </div>
                     <div className={Styles.descriptionWrapper}>
                       <p>
-                      {accessType?.length == 1 && accessType?.includes('Live (SAC/AFO)') ?
+                      {(accessType?.length == 1 && accessType?.includes('Live (SAC/AFO)')) || confidentiality == 'Internal' ?
                         <><b>No Minimum information required.</b> Please make sure to comply with A22 policies when using SAP/IDM.</>
                       :
                         <><b>Minimum information required.</b> You can either move on by selecting an existing Minimum information to review/edit or fill out the required provider-form in the next few steps. We already selected a fitting How-To-Access information to show your consumers in the next section.</>
@@ -753,10 +781,15 @@ const Description = ({
 
 
 
-            <div id="how-to-access-tabs" className="tabs-panel">
+
+
+
+
+            <div id="how-to-access-tabs" className={"tabs-panel "+accessType?.length < 1 ? 'hidden':''}>
               <div className="tabs-wrapper">
                 <nav>
                   <ul className="tabs">
+                    
                     <li className={(accessType?.includes('Kafka') ? 'tab' : 'tab')+' active'}>  
                       <a
                         className={accessType?.includes('Kafka') ? '' : 'hidden'}
@@ -767,6 +800,7 @@ const Description = ({
                         Access Via Kafka
                       </a>
                     </li>
+                    
                     <li className={accessType?.includes('Live (SAC/AFO)') ? 'tab' : 'tab disabled'}>
                       <a
                         className={accessType?.includes('Live (SAC/AFO)') ? '' : 'hidden'}
@@ -777,6 +811,7 @@ const Description = ({
                         Live Access
                       </a>
                     </li>
+                   
                     <li className={accessType?.includes('API') ? 'tab' : 'tab disabled'}>
                       <a
                         className={accessType?.includes('API') ? '' : 'hidden'}
@@ -787,6 +822,7 @@ const Description = ({
                         API-Access
                       </a>
                     </li>
+                    
                     <li className={'tab disabled'}>
                       <a id="stepTab2" className={'hidden'}>
                         `
@@ -932,6 +968,13 @@ const Description = ({
                 </div>
               </div>
             </div>
+
+
+
+
+
+
+            
 
 
 
