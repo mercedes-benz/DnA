@@ -31,6 +31,7 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.List;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -114,13 +115,13 @@ public class JupyterNotebookAdapter {
 	}
 
 	public JupyterNotebookGenericResponse startJupyterUserNotebook(String userShortId) {
+		HttpHeaders headers = new HttpHeaders();
+		headers.set("Accept", "application/json");
+		headers.set("Content-Type", "application/json");
+		headers.set("Authorization", "token " + authToken);
+		HttpEntity entity = new HttpEntity<>(headers);
+		String startUserNotebookUri = baseUri + "/" + userShortId + "/server";
 		try {
-			HttpHeaders headers = new HttpHeaders();
-			headers.set("Accept", "application/json");
-			headers.set("Content-Type", "application/json");
-			headers.set("Authorization", "token " + authToken);
-			HttpEntity entity = new HttpEntity<>(headers);
-			String startUserNotebookUri = baseUri + "/" + userShortId + "/server";
 			ResponseEntity<JupyterNotebookGenericResponse> response = restTemplate.exchange(startUserNotebookUri,
 					HttpMethod.POST, entity, JupyterNotebookGenericResponse.class);
 			if (response != null) {
@@ -149,14 +150,37 @@ public class JupyterNotebookAdapter {
 			LOGGER.error("Exception stacktrace for startJupyterUserNotebook for user(s) {} with message: {}",userShortId.toString(), sw.toString());
 			return startClientErrorResponse;
 		} catch (Exception e) {
+			LOGGER.error("In startJupyterUserNotebook, failed to start notebook {}", e.getMessage());
+			LOGGER.error("In startJupyterUserNotebook, Retrying after failed start");
+			try {
+				ResponseEntity<JupyterNotebookGenericResponse> response = restTemplate.exchange(startUserNotebookUri,
+						HttpMethod.POST, entity, JupyterNotebookGenericResponse.class);
+				if (response != null) {
+					HttpStatus responseStatus = response.getStatusCode();
+					if (responseStatus != null && responseStatus.is2xxSuccessful()) {
+						JupyterNotebookGenericResponse startSuccessResponse = new JupyterNotebookGenericResponse("200",
+								"Started Successfully");
+						LOGGER.info(
+								"In startJupyterUserNotebook, returning after getting retrying and starting notebook successfully for {} ",
+								userShortId);
+						return startSuccessResponse;
+					}
+					response.getBody();
+				}
+				LOGGER.info(
+						"In startJupyterUserNotebook, returning after getting no/null response from starting notebook successfully for {} ",
+						userShortId);
+				return null;
+			}catch(Exception ex) {
 			JupyterNotebookGenericResponse startServerErrorResponse = new JupyterNotebookGenericResponse("500",
-					e.getMessage());
+					"Failed to start, please try again after sometime.");
 			LOGGER.error("In startJupyterUserNotebook, failed to start notebook {}", e.getMessage());
 			StringWriter sw = new StringWriter();
 			PrintWriter pw = new PrintWriter(sw);
 			e.printStackTrace(pw);
 			LOGGER.error("Exception stacktrace for startJupyterUserNotebook for user(s) {} with message: {}",userShortId.toString(), sw.toString());
 			return startServerErrorResponse;
+			}
 		}
 	}
 
