@@ -66,6 +66,9 @@ const NotificationsSettings = (props: INotificationSettings) => {
           case 'chronosNotificationPref':
             temp.title = 'Configure Notification for Chronos Forecasting';
             break;
+          case 'codespaceNotificationPref':
+            temp.title = 'Configure Notification for Code Spaces';
+            break;
         }
         tempArr.push(temp);
       }
@@ -143,6 +146,16 @@ const NotificationsSettings = (props: INotificationSettings) => {
     callToUpdatePreference(messageForNotification);
   };
 
+  const onChangeEmailNotificationForCodeSpace = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const target = notificationPreferences?.codespaceNotificationPref;
+    target['enableEmailNotifications'] = e.target.checked;
+    setNotificationPreferences(notificationPreferences);
+    const messageForNotification = e.target.checked
+      ? 'Enabled Email Notification Successfully'
+      : 'Disabled Email Notification Successfully';
+    callToUpdatePreference(messageForNotification);
+  };
+
   const callToUpdatePreference = (message: string) => {
     ProgressIndicator.show();
     ApiClient.enableEmailNotifications(notificationPreferences)
@@ -183,6 +196,9 @@ const NotificationsSettings = (props: INotificationSettings) => {
         break;
       case 'chronosNotificationPref':
         onChangeEmailNotificationForChronos(e);
+        break;   
+      case 'codespaceNotificationPref':
+        onChangeEmailNotificationForCodeSpace(e);
         break;   
     }
   };
