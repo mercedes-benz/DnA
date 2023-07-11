@@ -226,10 +226,10 @@ public class NotebookController implements NotebooksApi {
 			@NotNull @ApiParam(value = "Is user new or already having existing notebook", required = true) @Valid @RequestParam(value = "newUser", required = true) String newUser,
 			@ApiParam(value = "Request Body that contains data required for creating a new notebook detail", required = true) @Valid @RequestBody NotebookVO notebookVO) {
 		String userId = getCurrentUser();
+		GenericMessage resposeMessage = new GenericMessage();
+		NotebookResponseVO responseVO = new NotebookResponseVO();
+		NotebookVO responseNotebookVO = new NotebookVO();
 		try {
-			GenericMessage resposeMessage = new GenericMessage();
-			NotebookResponseVO responseVO = new NotebookResponseVO();
-			NotebookVO responseNotebookVO = new NotebookVO();
 			NotebookVO existingNotebook = notebookService.getByUniqueliteral("userId", userId);
 			if (existingNotebook == null || existingNotebook.getId() == null) {
 				JupyterUserInfoDto user = notebookAdapter.getJupyterUserDetails(userId);
@@ -289,7 +289,16 @@ public class NotebookController implements NotebooksApi {
 			PrintWriter pw = new PrintWriter(sw);
 			e.printStackTrace(pw);
 			LOGGER.error("Exception stacktrace for start notebook for user {} is : {}",userId, sw.toString());
-			return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+			resposeMessage.setSuccess("Failed");
+			List<MessageDescription> errors = new ArrayList<>();
+			MessageDescription errMsg = new MessageDescription();
+			String msg = "Failed to start notebook, please retry again after sometime.";
+			errMsg.setMessage(msg);
+			errors.add(errMsg);
+			resposeMessage.setErrors(errors);
+			responseVO.setData(responseNotebookVO);
+			responseVO.setResponseMesage(resposeMessage);
+			return new ResponseEntity<>(responseVO, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 
