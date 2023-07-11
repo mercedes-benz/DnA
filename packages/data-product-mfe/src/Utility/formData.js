@@ -1,4 +1,4 @@
-export const serializeFormData = ({ values, division, type = 'provider', isDataProduct = false, dropdowns }) => {
+export const serializeFormData = ({ values, division, type = 'provider', isDataProduct = false, dropdowns, currentTab }) => {
   const isProviderForm = type === 'provider';
   const isConsumerForm = type === 'consumer';
   if (
@@ -37,7 +37,7 @@ export const serializeFormData = ({ values, division, type = 'provider', isDataP
               kafka: values.kafka,
               minimumInformationCheck: values.minimumInformationCheck,
               oneApi: values.oneApi,
-              personalRelatedData: values.personalRelatedData === 'Yes' ? true : false,
+              personalRelatedData: values.personalRelatedDataInDescription === 'Yes' ? true : false,
               restrictDataAccess: values.restrictDataAccess === 'Yes' ? true : false
             },
             howToAccessText: values.howToAccessText,
@@ -128,12 +128,21 @@ export const serializeFormData = ({ values, division, type = 'provider', isDataP
                   description: values.description,
                   access: {
                     accessType: values.accessType,
-                    confidentiality: values.confidentiality,
-                    deletionRequirements: values.deletionRequirements === 'Yes' ? true : false,
+                    confidentiality: currentTab == 'description' ?
+                      values.confidentialityInDescription 
+                    :
+                      values.confidentiality,
+                    deletionRequirements: currentTab == 'description' ?
+                      values.deletionRequirementInDescription === 'Yes' ? true : false
+                      :
+                      values.deletionRequirement === 'Yes' ? true : false,
                     kafka: values.kafka,
                     minimumInformationCheck: values.minimumInformationCheck,
                     oneApi: values.oneApi,
-                    personalRelatedData: values.personalRelatedData === 'Yes' ? true : false,
+                    personalRelatedData: currentTab == 'description' ?
+                      values.personalRelatedDataInDescription === 'Yes' ? true : false
+                      : 
+                      values.personalRelatedData === 'Yes' ? true : false,                     
                     restrictDataAccess: values.restrictDataAccess === 'Yes' ? true : false
                   },
                   howToAccessText: values.howToAccessText,
@@ -166,13 +175,19 @@ export const serializeFormData = ({ values, division, type = 'provider', isDataP
                   },
                   ...(values?.openSegments?.includes('ClassificationAndConfidentiality') && {
                     classificationConfidentiality: {
-                      confidentiality: values.confidentiality,
+                      confidentiality: currentTab == 'classification-confidentiality' ? 
+                      values.confidentiality
+                      : 
+                      values.confidentialityInDescription,
                       description: values.classificationOfTransferedData || '',
                     },
                   }),
                   ...(values?.openSegments?.includes('IdentifyingPersonalRelatedData') && {
                     personalRelatedData: {
-                      personalRelatedData: values.personalRelatedData === 'Yes' ? true : false,
+                      personalRelatedData: currentTab == 'personal-data' ?
+                        values.personalRelatedData === 'Yes' ? true : false
+                      :
+                        values.personalRelatedDataInDescription === 'Yes' ? true : false,
                       ...(values.personalRelatedData === 'Yes' && {
                         description: values.personalRelatedDataDescription,
                         legalBasis: values.personalRelatedDataLegalBasis,
@@ -196,7 +211,10 @@ export const serializeFormData = ({ values, division, type = 'provider', isDataP
                   }),
                   ...(values?.openSegments?.includes('SpecifyDeletionRequirements') && {
                     deletionRequirement: {
-                      deletionRequirements: values.deletionRequirement === 'Yes' ? true : false,
+                      deletionRequirements: currentTab == 'deletion-requirements' ?
+                        values.deletionRequirement === 'Yes' ? true : false
+                      :
+                        values.deletionRequirementInDescription === 'Yes' ? true : false,
                       description: values.deletionRequirementDescription,
                       otherRelevantInformation: values.otherRelevantInfo,
                       insiderInformation: values.insiderInformation,
@@ -308,16 +326,15 @@ export const deserializeFormData = ({ item, type = 'provider', isDataProduct = f
           id: item?.id,
           
             accessType: item?.access?.accessType,
-            // confidentiality: item?.confidentiality,
-            confidentiality: item?.access?.confidentiality || 'Internal',
+            confidentialityInDescription: item?.access?.confidentiality || 'Internal',
             kafka: item?.access?.kafka,
             minimumInformationCheck: item?.access?.minimumInformationCheck,
             oneApi: item?.access?.oneApi,
             // personalRelatedData: item?.personalRelatedData,
-            personalRelatedData: item?.access?.personalRelatedData ? 'Yes' : 'No',
+            personalRelatedDataInDescription: item?.access?.personalRelatedData ? 'Yes' : 'No',
             // deletionRequirements: item?.deletionRequirements,
             // restrictDataAccess: item?.restrictDataAccess,
-            deletionRequirements: item?.access?.deletionRequirements ? 'Yes' : 'No',
+            deletionRequirementInDescription: item?.access?.deletionRequirements ? 'Yes' : 'No',
             restrictDataAccess: item?.access?.restrictDataAccess ? 'Yes' : 'No',
           
           howToAccessText: item?.howToAccessText,
@@ -328,7 +345,7 @@ export const deserializeFormData = ({ item, type = 'provider', isDataProduct = f
           // useTemplate: item?.howToAccessTemplate?.useTemplate,
           useTemplate: item?.access?.accessType,
           accessTypeTab: item?.accessTypeTab,
-          // deletionRequirements: item?.deletionRequirements ? 'Yes' : 'No',
+          deletionRequirements: item?.deletionRequirements ? 'Yes' : 'No',
           // restrictDataAccess: item?.restrictDataAccess ? 'Yes' : 'No',
 
           isPublish: item.isPublish,
@@ -343,12 +360,12 @@ export const deserializeFormData = ({ item, type = 'provider', isDataProduct = f
           complianceOfficer: item?.contactInformation?.localComplianceOfficer?.split(),
           planningIT: item?.contactInformation?.appId,          
 
-          // confidentiality: item?.classificationConfidentiality?.confidentiality || 'Internal',
+          confidentiality: item?.classificationConfidentiality?.confidentiality || 'Internal',
           classificationOfTransferedData: item?.classificationConfidentiality?.description,
 
           personalRelatedDataDescription: item?.personalRelatedData?.description,
           personalRelatedDataLegalBasis: item?.personalRelatedData?.legalBasis,
-          // personalRelatedData: item?.personalRelatedData?.personalRelatedData ? 'Yes' : 'No',
+          personalRelatedData: item?.personalRelatedData?.personalRelatedData ? 'Yes' : 'No',
           personalRelatedDataPurpose: item?.personalRelatedData?.purpose,
 
           personalRelatedDataContactAwareTransfer: item?.personalRelatedData?.contactAwareTransfer ? 'Yes' : item?.personalRelatedData?.personalRelatedData ? 'No' : '',
