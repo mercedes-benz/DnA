@@ -1138,6 +1138,7 @@ export interface INoticationModules {
   dataProductNotificationPref: INotificationEnableDisable;
   dataComplianceNotificationPref: INotificationEnableDisable;
   chronosNotificationPref: INotificationEnableDisable;
+  codespaceNotificationPref: INotificationEnableDisable;
   termsOfUse: string;
   userId: string;
 }
