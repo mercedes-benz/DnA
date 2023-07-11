@@ -5,7 +5,7 @@ import Styles from './forecasting-results.scss';
 import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indicator';
 import { chronosApi } from '../../apis/chronos.api';
 import Spinner from '../../components/spinner/Spinner';
-// import SelectBox from 'dna-container/SelectBox';
+import SelectBox from 'dna-container/SelectBox';
 import VisualContainer from '../../components/visualContainer/VisualContainer';
 import { Envs } from '../../utilities/envs';
 
@@ -36,9 +36,13 @@ const ForecastingResults = () => {
   const [decompositionDataA, setDecompositionDataA] = useState([]);
   const [outlierDataA, setOutlierDataA] = useState([]);
 
-  // useEffect(() => {
-  //   SelectBox.defaultSetup();
-  // }, []);
+  useEffect(() => {
+    SelectBox.defaultSetup();
+  }, []);
+  
+  useEffect(() => {
+    SelectBox.defaultSetup();
+  }, [colOneSelect.current.value, colTwoSelect.current.value]);
 
   const [colOne, setColOne] = useState([]);
   const [colTwo, setColTwo] = useState([]);
@@ -246,6 +250,7 @@ const ForecastingResults = () => {
       }
       setLoading(false);
       ProgressIndicator.hide();
+      SelectBox.defaultSetup();
     }).catch(() => {
       setLoading(false);
       ProgressIndicator.hide();
@@ -717,8 +722,8 @@ const ForecastingResults = () => {
         <div className={Styles.compareBtns}>
           <p>Compare columns: </p>
           <div className={classNames(`input-field-group`)}>
-            <div>
-              <select id="colOneField" onChange={handleColOne} ref={colOneSelect} className={Styles.customSelect}>
+            <div className="custom-select">
+              <select id="colOneField" onChange={handleColOne} ref={colOneSelect}>
                 <>
                   {colOne.length > 0 &&
                     colOne.map((name) => (
@@ -731,10 +736,8 @@ const ForecastingResults = () => {
             </div>
           </div>
           <div className={classNames(`input-field-group`)}>
-            <div 
-              // onBlur={() => trigger('frequency')}
-              >
-              <select id="colTwoField" onChange={handleColTwo} ref={colTwoSelect} className={Styles.customSelect}>
+            <div className="custom-select">
+              <select id="colTwoField" onChange={handleColTwo} ref={colTwoSelect}>
                 <>
                   <option id={'choose'} key={'choose'} value={0}>
                     Choose column
@@ -751,6 +754,12 @@ const ForecastingResults = () => {
           </div>
         </div>
       </div>
+
+      { (forecastDataA.length > 0 && decompositionDataA.length > 0 && outlierDataA.length > 0) ? null : 
+        <div className={Styles.firstPanel}>
+          <p>No visualization for the given data.</p>
+        </div>
+      }
       
       { forecastDataA.length > 0 &&
         <VisualContainer
