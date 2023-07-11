@@ -135,6 +135,7 @@ task:
 jupyternotebook:
  baseuri: ${JUPYTER_NOTEBOOK_BASEURI:xxxxx}
  token: ${JUPYTER_NOTEBOOK_TOKEN:xxxxx}
+ sleepTime: ${JUPYTER_NOTEBOOK_SLEEPTIME:2000}
  
 storage:
   endpointurl: ${S3_EP_URL:xxxxxx}
