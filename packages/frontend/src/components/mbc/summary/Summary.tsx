@@ -569,12 +569,23 @@ export default class Summary extends React.Component<{ user: IUserInfo }, ISumma
                     });
                   });
                 } else if (res.portfolio.dnaDataikuProjectId !== null) {
-                  ApiClient.getDataikuProjectDetailsByProjectkey(res.portfolio.dnaDataikuProjectId, res.portfolio.dnaDataikuProjectInstance).then((res) => {
+                  ApiClient.getDataikuProjectDetailsByProjectkey(res.portfolio.dnaDataikuProjectId, res.portfolio.dnaDataikuProjectInstance).then((dataikuRes) => {
                     this.setState({
-                      dataIkuInfo: res?.data,
+                      dataIkuInfo: dataikuRes.data,
                       notebookAndDataIkuNotEnabled: false,
                       dnaDataIkuProjectEnabled: true,
                     });
+                  }).catch(() => {
+                    const dataikuDetails = {
+                      name: res.portfolio.dnaDataikuProjectId,
+                      projectKey: res.portfolio.dnaDataikuProjectId,
+                      cloudProfile: res.portfolio.dnaDataikuProjectInstance,
+                    };
+                    this.setState({
+                      dataIkuInfo: { ...this.state.dataIkuInfo, ...dataikuDetails },
+                      notebookAndDataIkuNotEnabled: false,
+                      dnaDataIkuProjectEnabled: true,
+                    })
                   });
                 }
 
