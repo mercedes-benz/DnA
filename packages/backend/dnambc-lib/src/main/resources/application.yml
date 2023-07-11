@@ -79,6 +79,7 @@ notification:
       dataComplianceNotificationPref: ${DEFAULT_EMAIL_DATA_COMPLIANCE_NOTIFICATION_PREF:true}
       dataProductNotificationPref: ${DEFAULT_EMAIL_DATA_PRODUCT_NOTIFICATION_PREF:true}
       chronosNotificationPref: ${DEFAULT_EMAIL_CHRONOS_NOTIFICATION_PREF:false}
+      codespaceNotificationPref: ${DEFAULT_EMAIL_CODESPACE_NOTIFICATION_PREF:false}
   app:
       solutionNotificationPref: ${DEFAULT_APP_SOLUTION_NOTIFICATION_PREF:true}
       notebookNotificationPref: ${DEFAULT_APP_NOTEBOOK_NOTIFICATION_PREF:true}
@@ -87,6 +88,7 @@ notification:
       dataComplianceNotificationPref: ${DEFAULT_APP_DATA_COMPLIANCE_NOTIFICATION_PREF:true}
       dataProductNotificationPref: ${DEFAULT_APP_DATA_PRODUCT_NOTIFICATION_PREF:true}
       chronosNotificationPref: ${DEFAULT_APP_CHRONOS_NOTIFICATION_PREF:true}      
+      codespaceNotificationPref: ${DEFAULT_APP_CODESPACE_NOTIFICATION_PREF:true}
       
 graphql:
   servlet:
