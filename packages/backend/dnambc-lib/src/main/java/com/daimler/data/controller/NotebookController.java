@@ -27,6 +27,8 @@
 
 package com.daimler.data.controller;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -34,7 +36,6 @@ import java.util.List;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
-import com.daimler.data.dto.solution.TransparencyVO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -59,6 +60,7 @@ import com.daimler.data.controller.exceptions.MessageDescription;
 import com.daimler.data.dto.notebook.NotebookResponseVO;
 import com.daimler.data.dto.notebook.NotebookVO;
 import com.daimler.data.dto.solution.CreatedByVO;
+import com.daimler.data.dto.solution.TransparencyVO;
 import com.daimler.data.service.notebook.NotebookService;
 
 import io.swagger.annotations.Api;
@@ -103,16 +105,23 @@ public class NotebookController implements NotebooksApi {
 			@ApiResponse(code = 500, message = "Internal error") })
 	@RequestMapping(value = "/notebooks", method = RequestMethod.GET)
 	public ResponseEntity<NotebookVO> getNotebookDetails() {
+		String userId = "";
 		try {
-			String userId = getCurrentUser();
+			userId = getCurrentUser();
 			NotebookVO existingNotebook = notebookService.getByUniqueliteral("userId", userId);
 			if (existingNotebook != null && existingNotebook.getId() != null) {
+				LOGGER.info("Fetched notebook for user {} ", userId);
 				return new ResponseEntity<>(existingNotebook, HttpStatus.OK);
 			} else {
+				LOGGER.info("No notebook records found for given user {} ", userId);
 				return new ResponseEntity<>(existingNotebook, HttpStatus.NO_CONTENT);
 			}
 		} catch (Exception e) {
-			LOGGER.error("Exception occurred while fetching notebook {} ", e.getMessage());
+			StringWriter sw = new StringWriter();
+			PrintWriter pw = new PrintWriter(sw);
+			e.printStackTrace(pw);
+			LOGGER.error("Exception occurred while fetching notebook for user {} with message {} ", userId, e.getMessage());
+			LOGGER.error("Exception stacktrace for fetch user {} notebooks with message: {}",userId, sw.toString());
 			return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
@@ -167,6 +176,7 @@ public class NotebookController implements NotebooksApi {
 				responseNotebookVO = notebookService.create(existingNotebook);
 				responseVO.setData(responseNotebookVO);
 				responseVO.setResponseMesage(null);
+				LOGGER.info("Notebook updated successfully by user {} ", userId);
 				return new ResponseEntity<>(responseVO, HttpStatus.OK);
 			} else {
 				resposeMessage.setSuccess("Failed");
@@ -178,6 +188,7 @@ public class NotebookController implements NotebooksApi {
 				resposeMessage.setErrors(errors);
 				responseVO.setData(notebookVO);
 				responseVO.setResponseMesage(resposeMessage);
+				LOGGER.info("No record found. Failed to updated Notebook for user {} ", userId);
 				return new ResponseEntity<>(responseVO, HttpStatus.NO_CONTENT);
 			}
 		} catch (Exception e) {
@@ -191,6 +202,10 @@ public class NotebookController implements NotebooksApi {
 			resposeMessage.setErrors(errors);
 			responseVO.setData(notebookVO);
 			responseVO.setResponseMesage(resposeMessage);
+			StringWriter sw = new StringWriter();
+			PrintWriter pw = new PrintWriter(sw);
+			e.printStackTrace(pw);
+			LOGGER.error("Exception stacktrace for update notebook of user {} is : {}",userId, sw.toString());
 			return new ResponseEntity<>(responseVO, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
@@ -231,16 +246,19 @@ public class NotebookController implements NotebooksApi {
 						resposeMessage.setErrors(errors);
 						responseVO.setData(null);
 						responseVO.setResponseMesage(resposeMessage);
-						LOGGER.debug("Failed to create Jupyter user for {} ", userId);
+						LOGGER.info("Failed to create Jupyter user for {} ", userId);
 						return new ResponseEntity<>(responseVO, HttpStatus.INTERNAL_SERVER_ERROR);
 					}
 
 				}
 				int threadSleepTime = Integer.parseInt(sleepTime);
+				LOGGER.info("Putting to sleep for {} after user {} onboarding",threadSleepTime, userId);
 				Thread.sleep(threadSleepTime);
+				LOGGER.info("Sleep time for new onboarded user {} is done and calling to create notebook record", userId);
 				notebookVO.setCreatedOn(new Date());
 				notebookVO.setUserId(userId);
 				responseNotebookVO = notebookService.create(notebookVO);
+				LOGGER.info("Added new notebook record for user {}", userId);
 			} else
 				responseNotebookVO = existingNotebook;
 			JupyterNotebookGenericResponse startResponse = notebookAdapter.startJupyterUserNotebook(userId);
@@ -248,7 +266,7 @@ public class NotebookController implements NotebooksApi {
 				resposeMessage.setSuccess(startResponse.getMessage());
 				responseVO.setData(responseNotebookVO);
 				responseVO.setResponseMesage(resposeMessage);
-				LOGGER.debug("Notebook started successfully for user {}", userId);
+				LOGGER.info("Notebook started successfully for user {}", userId);
 				return new ResponseEntity<>(responseVO, HttpStatus.OK);
 			} else {
 				resposeMessage.setSuccess("Failed");
@@ -262,11 +280,15 @@ public class NotebookController implements NotebooksApi {
 				resposeMessage.setErrors(errors);
 				responseVO.setData(responseNotebookVO);
 				responseVO.setResponseMesage(resposeMessage);
-				LOGGER.debug("Failed to start notebook for user {} ", userId);
+				LOGGER.info("Failed to start notebook for user {} ", userId);
 				return new ResponseEntity<>(responseVO, HttpStatus.INTERNAL_SERVER_ERROR);
 			}
 		} catch (Exception e) {
 			LOGGER.error("Exception {} occurred while fetching notebook for user {} ", e.getMessage(), userId);
+			StringWriter sw = new StringWriter();
+			PrintWriter pw = new PrintWriter(sw);
+			e.printStackTrace(pw);
+			LOGGER.error("Exception stacktrace for start notebook for user {} is : {}",userId, sw.toString());
 			return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
@@ -288,7 +310,7 @@ public class NotebookController implements NotebooksApi {
 		GenericMessage resposeMessage = new GenericMessage();
 		if (stopResponse != null && !"500".equals(stopResponse.getStatus())) {
 			resposeMessage.setSuccess(stopResponse.getMessage());
-			LOGGER.debug("Notebook stopped for user {} with response {} ", userId, stopResponse.getMessage());
+			LOGGER.info("Notebook stopped for user {} with response {} ", userId, stopResponse.getMessage());
 			return new ResponseEntity<>(resposeMessage, HttpStatus.OK);
 		} else {
 			resposeMessage.setSuccess("Failed");
@@ -300,7 +322,7 @@ public class NotebookController implements NotebooksApi {
 			errMsg.setMessage(msg);
 			errors.add(errMsg);
 			resposeMessage.setErrors(errors);
-			LOGGER.debug("Failed to stop Notebook for user {} with response {} ", userId, stopResponse.getMessage());
+			LOGGER.info("Failed to stop Notebook for user {} with response {} ", userId, stopResponse.getMessage());
 			return new ResponseEntity<>(resposeMessage, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
