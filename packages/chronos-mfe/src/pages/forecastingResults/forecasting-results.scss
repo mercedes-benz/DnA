@@ -113,3 +113,16 @@
   background: #252a33;
   color: #c0c8d0;
 }
+.firstPanel {
+  background: #252a33;
+  margin-top: 15px;
+  padding: 0 38px;
+  min-height: 300px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  p {
+    text-align: center;
+  }
+}
