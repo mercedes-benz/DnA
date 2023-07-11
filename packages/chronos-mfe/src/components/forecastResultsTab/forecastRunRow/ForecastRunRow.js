@@ -4,7 +4,7 @@ import Styles from './forecast-run-row.scss';
 // import from DNA Container
 import CircularProgressBar from '../../circularProgressBar/CircularProgressBar';
 import ContextMenu from '../../contextMenu/ContextMenu';
-import { regionalDateAndTimeConversionSolution } from '../../../utilities/utils';
+import { customDateFormat } from '../../../utilities/utils';
 import Notification from '../../../common/modules/uilab/js/src/notification';
 import Tooltip from '../../../common/modules/uilab/js/src/tooltip';
 import ProgressIndicator from '../../../common/modules/uilab/js/src/progress-indicator';
@@ -127,6 +127,11 @@ const ForecastRunRow = (props) => {
     e.stopPropagation();
   };
 
+  const handleRunCancel = (e, run) => {
+    stopPropagation(e);
+    props.onCancelRun(run);
+  }
+
   return (
     <React.Fragment>
       <tr
@@ -149,7 +154,7 @@ const ForecastRunRow = (props) => {
                   e.stopPropagation();
                   onChangeCheck(e, item.id);
                 }}
-                disabled={item.state.result_state === null || item.state.result_state === 'FAILED'}
+                disabled={item.state.result_state === null || item.state.result_state === 'FAILED' || item.state.result_state === 'CANCELED'}
               />
             </span>{' '}
           </label>
@@ -165,10 +170,10 @@ const ForecastRunRow = (props) => {
           {item.state.result_state === 'FAILED' && <i className={classNames('icon mbc-icon close circle', Styles.closeCircle)}  onClick={(e) => handleStatusClick(e, item)} tooltip-data={'Click to View the Error'} />}
           {item.state.result_state === 'TIMEDOUT' && <i className={classNames('icon mbc-icon close circle', Styles.closeCircle)}  onClick={(e) => handleStatusClick(e, item)} tooltip-data={'Click to View the Error'} />}
           {item.state.result_state === 'WARNINGS' && <i className={classNames('icon mbc-icon alert circle', Styles.alertCircle)}  onClick={(e) => handleStatusClick(e, item)} tooltip-data={'Click to View the Warning'} />}
-          {item.state.result_state === null && <div tooltip-data={'IN PROGRESS'} ><CircularProgressBar /></div>}
+          {item.state.result_state === null && <><div tooltip-data={'IN PROGRESS'} ><CircularProgressBar /></div> <button className={classNames('btn', Styles.cancelBtn)} onClick={(e) => handleRunCancel(e, item)}>Cancel</button></>}
         </td>
         <td>
-          {regionalDateAndTimeConversionSolution(item.triggeredOn)}
+          {customDateFormat(item.triggeredOn)}
         </td>
         <td>
           {item.triggeredBy}

@@ -124,6 +124,9 @@ public class LoginController {
 
 	@Value("${dna.user.role}")
 	private String USER_ROLE;
+	
+	@Value("${dna.feature.mockOauthToken}")
+	private String mockOauthToken;
 
 	@Autowired
 	private RestTemplate restTemplate;
@@ -164,7 +167,7 @@ public class LoginController {
 //            userinfoService.updateUserToken(getMockUser().getId(), jwt);
 			userInfoService.updateNewUserToken("DEMOUSER", true);
 			return new ResponseEntity<>(
-					"{\"token\": \"" + JWTGenerator.generateJWT(getMockUser(), "00014JWuWlHW0ajrhQRXvOCiSFj1")
+					"{\"token\": \"" + JWTGenerator.generateJWT(getMockUser(), mockOauthToken)
 							+ "\",\"loggedIn\":\"Y\"}",
 					HttpStatus.OK);
 		} else if ("OKTA".equalsIgnoreCase(oidcProvider) || "GOOGLE".equalsIgnoreCase(oidcProvider)) {
@@ -376,6 +379,7 @@ public class LoginController {
 			List<UserInfoRole> userRoleList = new ArrayList<>();
 			userRoleList.add(userRole);
 			// Setting entity to add new user
+			userInfo.setId(id != null ? id : userId);
 			UserInfoNsql userEntity = userInfoAssembler.toEntity(userInfo, userRoleList);
 			userEntity.setIsLoggedIn("Y");
 			if (Objects.isNull(userInfo.getFirstName()) && Objects.isNull(userInfo.getLastName())) {

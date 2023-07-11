@@ -23,8 +23,6 @@ const RunForecastTab = ({ onRunClick }) => {
   }, []);
   
   const onSubmit = (data) => {
-    console.log('formData');
-    console.log(data);
     const formData = new FormData();
     if(data.savedInputPath !== undefined) {
       formData.append('file', '');
@@ -54,6 +52,8 @@ const RunForecastTab = ({ onRunClick }) => {
         onRunClick();
         ProgressIndicator.hide();
         methods.reset();
+        SelectBox.defaultSetup();
+        setInputFile();
       }).catch(error => {
         ProgressIndicator.hide();
         Notification.show(
@@ -61,10 +61,6 @@ const RunForecastTab = ({ onRunClick }) => {
           'alert',
         );
       });
-
-    methods.reset();
-    SelectBox.defaultSetup();
-    setInputFile();
   }
 
   return (

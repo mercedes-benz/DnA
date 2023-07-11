@@ -13,10 +13,10 @@ const ForecastingResults = () => {
   const printRef = React.useRef();
 
   const history = useHistory();
-  const goback = () => {
-    history.goBack();
-  }
   const { projectid: projectId, runid: runId } = useParams();
+  const goback = () => {
+    history.push(`/project/${projectId}/forecastResults`);
+  }
 
   const [nerdStats, setNerdStats] = useState(false);
   const [html, setHtml] = useState('');

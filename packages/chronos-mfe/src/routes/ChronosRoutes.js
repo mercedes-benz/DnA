@@ -31,7 +31,7 @@ const protectedRoutes = [
   {
     component: ChronosProjectDetails,
     exact: true,
-    path: '/project/:id',
+    path: '/project/:id/:tabName?',
   },
   {
     component: ForecastingResults,

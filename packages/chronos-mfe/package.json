@@ -1,6 +1,6 @@
 {
   "name": "chronos",
-  "version": "1.2.6",
+  "version": "1.3.6",
   "private": "true",
   "scripts": {
     "start": "env-cmd -f .env webpack server --config config/webpack.config.js",
@@ -81,6 +81,7 @@
     "postcss-loader": "^7.0.1",
     "rc-upload": "^4.3.4",
     "react": "^17.0.2",
+    "react-ace": "^10.1.0",
     "react-dom": "^17.0.2",
     "react-hook-form": "^7.33.1",
     "react-plotly.js": "^2.6.0",
