@@ -27,6 +27,8 @@
 
 package com.daimler.data.adapter.jupyter;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.List;
 import org.slf4j.Logger;
@@ -67,12 +69,16 @@ public class JupyterNotebookAdapter {
 			ResponseEntity<JupyterUserInfoDto> response = restTemplate.exchange(getUserUri, HttpMethod.GET, entity,
 					JupyterUserInfoDto.class);
 			if (response != null) {
-				LOGGER.debug("In getJupyterUserDetails, returning after getting valid response from Jupyter");
+				LOGGER.info("In getJupyterUserDetails, returning after getting valid response from Jupyter for user {}", userShortId);
 				return response.getBody();
 			} else
-				LOGGER.debug("In getJupyterUserDetails, returning null after getting response from Jupyter");
+				LOGGER.info("In getJupyterUserDetails, returning null after getting response from Jupyter for user {}", userShortId);
 			return null;
 		} catch (Exception e) {
+			StringWriter sw = new StringWriter();
+			PrintWriter pw = new PrintWriter(sw);
+			e.printStackTrace(pw);
+			LOGGER.error("Exception stacktrace for fetch user {} notebooks with message: {}",userShortId, sw.toString());
 			return null;
 		}
 	}
@@ -93,11 +99,16 @@ public class JupyterNotebookAdapter {
 			if (response != null) {
 				List<JupyterUserInfoDto> createdUsersInfo = new ArrayList<>();
 				createdUsersInfo = (List<JupyterUserInfoDto>) response.getBody();
-				LOGGER.debug("In createJupyterUser, returning after getting response from Jupyter");
+				LOGGER.info("In createJupyterUser, returning after getting response from Jupyter for shortIds {}", usersShortIds.toString());
 				return createdUsersInfo;
 			}
+			LOGGER.info("In createJupyterUser, returning after getting no/null response from Jupyter for shortIds {}",usersShortIds.toString());
 			return null;
 		} catch (Exception e) {
+			StringWriter sw = new StringWriter();
+			PrintWriter pw = new PrintWriter(sw);
+			e.printStackTrace(pw);
+			LOGGER.error("Exception stacktrace for create notebooks for user(s) {} with message: {}",usersShortIds.toString(), sw.toString());
 			return null;
 		}
 	}
@@ -124,16 +135,27 @@ public class JupyterNotebookAdapter {
 				}
 				response.getBody();
 			}
+			LOGGER.info(
+					"In startJupyterUserNotebook, returning after getting no/null response from starting notebook successfully for {} ",
+					userShortId);
 			return null;
 		} catch (HttpClientErrorException e) {
 			JupyterNotebookGenericResponse startClientErrorResponse = new JupyterNotebookGenericResponse("400",
 					"Started Already");
 			LOGGER.info("In startJupyterUserNotebook, {} notebook already started, returning", userShortId);
+			StringWriter sw = new StringWriter();
+			PrintWriter pw = new PrintWriter(sw);
+			e.printStackTrace(pw);
+			LOGGER.error("Exception stacktrace for startJupyterUserNotebook for user(s) {} with message: {}",userShortId.toString(), sw.toString());
 			return startClientErrorResponse;
 		} catch (Exception e) {
 			JupyterNotebookGenericResponse startServerErrorResponse = new JupyterNotebookGenericResponse("500",
 					e.getMessage());
 			LOGGER.error("In startJupyterUserNotebook, failed to start notebook {}", e.getMessage());
+			StringWriter sw = new StringWriter();
+			PrintWriter pw = new PrintWriter(sw);
+			e.printStackTrace(pw);
+			LOGGER.error("Exception stacktrace for startJupyterUserNotebook for user(s) {} with message: {}",userShortId.toString(), sw.toString());
 			return startServerErrorResponse;
 		}
 	}
