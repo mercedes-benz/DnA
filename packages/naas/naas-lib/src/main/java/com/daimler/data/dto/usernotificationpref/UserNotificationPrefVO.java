@@ -43,6 +43,9 @@ public class UserNotificationPrefVO   {
   
   @JsonProperty("chronosNotificationPref")
   private NotificationPreferenceVO chronosNotificationPref = null;
+  
+  @JsonProperty("codespaceNotificationPref")
+  private NotificationPreferenceVO codespaceNotificationPref = null;
 
 public UserNotificationPrefVO id(String id) {
     this.id = id;
@@ -233,6 +236,29 @@ public UserNotificationPrefVO id(String id) {
 	public void setChronosNotificationPref(NotificationPreferenceVO chronosNotificationPref) {
 		this.chronosNotificationPref = chronosNotificationPref;
 	}
+	
+	public UserNotificationPrefVO codespaceNotificationPref(NotificationPreferenceVO codespaceNotificationPref) {
+	    this.codespaceNotificationPref = codespaceNotificationPref;
+	    return this;
+	  }
+
+	  /**
+	   * Get codespaceNotificationPref
+	   * @return codespaceNotificationPref
+	  **/
+	  @ApiModelProperty(required = true, value = "")
+	  @NotNull
+
+	  @Valid
+
+	  public NotificationPreferenceVO getCodespaceNotificationPref() {
+	    return codespaceNotificationPref;
+	  }
+
+	  public void setCodespaceNotificationPref(NotificationPreferenceVO codespaceNotificationPref) {
+	    this.codespaceNotificationPref = codespaceNotificationPref;
+	  }
+
 
 @Override
   public boolean equals(java.lang.Object o) {
@@ -250,7 +276,9 @@ public UserNotificationPrefVO id(String id) {
         Objects.equals(this.persistenceNotificationPref, userNotificationPrefVO.persistenceNotificationPref) &&
         Objects.equals(this.dashboardNotificationPref, userNotificationPrefVO.dashboardNotificationPref) &&
         Objects.equals(this.dataComplianceNotificationPref, userNotificationPrefVO.dataComplianceNotificationPref) &&
-        Objects.equals(this.dataProductNotificationPref, userNotificationPrefVO.dataProductNotificationPref);
+        Objects.equals(this.dataProductNotificationPref, userNotificationPrefVO.dataProductNotificationPref) &&
+        Objects.equals(this.chronosNotificationPref, userNotificationPrefVO.chronosNotificationPref) &&
+        Objects.equals(this.codespaceNotificationPref, userNotificationPrefVO.codespaceNotificationPref);
   }
 
   @Override
@@ -271,6 +299,8 @@ public UserNotificationPrefVO id(String id) {
     sb.append("    dashboardNotificationPref: ").append(toIndentedString(dashboardNotificationPref)).append("\n");
     sb.append("    dataComplianceNotificationPref: ").append(toIndentedString(dataComplianceNotificationPref)).append("\n");
     sb.append("    dataProductNotificationPref: ").append(toIndentedString(dataProductNotificationPref)).append("\n");
+    sb.append("    chronosNotificationPref: ").append(toIndentedString(chronosNotificationPref)).append("\n");
+    sb.append("    codespaceNotificationPref: ").append(toIndentedString(codespaceNotificationPref)).append("\n");
     sb.append("}");
     return sb.toString();
   }

@@ -92,6 +92,7 @@ public class CacheUpdateEventListener {
 	private static String DATAPRODUCT_NOTIFICATION_KEY = "DataProduct";
 	private static String DATACOMPLIANCE_NOTIFICATION_KEY = "DataCompliance";
 	private static String CHRONOS_NOTIFICATION_KEY = "Chronos";
+	private static String CODESPACE_NOTIFICATION_KEY = "Codespace";
 	
 	//@PostConstruct
 	public void init() {
@@ -183,6 +184,10 @@ public class CacheUpdateEventListener {
 								if(record.value().getEventType().contains(CHRONOS_NOTIFICATION_KEY)) {
 									appNotificationPreferenceFlag = preferenceVO.getChronosNotificationPref().isEnableAppNotifications();
 									emailNotificationPreferenceFlag = preferenceVO.getChronosNotificationPref().isEnableEmailNotifications();
+								}
+								if(record.value().getEventType().contains(CODESPACE_NOTIFICATION_KEY)) {
+									appNotificationPreferenceFlag = preferenceVO.getChronosNotificationPref().isEnableAppNotifications();
+									emailNotificationPreferenceFlag =  preferenceVO.getChronosNotificationPref().isEnableEmailNotifications();
 								}
 								NotificationVO vo = new NotificationVO();
 								vo.setDateTime(record.value().getTime());
