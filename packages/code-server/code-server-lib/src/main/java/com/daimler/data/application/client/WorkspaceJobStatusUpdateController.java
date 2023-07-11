@@ -1,7 +1,9 @@
 package com.daimler.data.application.client;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
@@ -10,18 +12,23 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.daimler.data.application.auth.UserStore;
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
 import com.daimler.data.dto.workspace.CodeServerWorkspaceVO;
+import com.daimler.data.dto.workspace.CreatedByVO;
 import com.daimler.data.dto.workspace.UserInfoVO;
 import com.daimler.data.dto.workspace.WorkspaceUpdateRequestVO;
+import com.daimler.data.service.common.BaseCommonService;
 import com.daimler.data.service.workspace.WorkspaceService;
+import com.daimler.dna.notifications.common.producer.KafkaProducerService;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -41,6 +48,12 @@ public class WorkspaceJobStatusUpdateController  {
 	
 	@Autowired
 	HttpServletRequest httpRequest;
+	
+	@Autowired
+	private UserStore userStore;
+	
+	@Autowired
+	private KafkaProducerService kafkaProducer;
 	
 	@Value("${codeServer.gitjob.pat}")
 	private String personalAccessToken;
@@ -105,11 +118,40 @@ public class WorkspaceJobStatusUpdateController  {
 //			if(updateRequestVO.getLastDeployedOn()!=null)
 //				existingVO.setLastDeployedOn(updateRequestVO.getLastDeployedOn());
 			String projectName = existingVO.getProjectDetails().getProjectName();
+			String message = "";
+			String eventType = "";
 			boolean invalidStatus = false;
+			String targetEnv = updateRequestVO.getTargetEnvironment();
+			String branch = updateRequestVO.getBranch();
+			CreatedByVO currentUser = this.userStore.getVO();
+			String userName = currentUserName(currentUser);			
+			UserInfoVO workspaceOwner = existingVO.getWorkspaceOwner();
+			String workspaceOwnerName = workspaceOwner.getFirstName() + " " + workspaceOwner.getLastName();	
+			String resourceID = existingVO.getWorkspaceId();
+			List<String> teamMembers = new ArrayList<>();
+			List<String> teamMembersEmails = new ArrayList<>();
+			UserInfoVO projectOwner = existingVO.getProjectDetails().getProjectOwner();
+			teamMembers.add(projectOwner.getId());
+			teamMembers.add(projectOwner.getEmail());
+			List<UserInfoVO> projectCollaborators = existingVO.getProjectDetails().getProjectCollaborators();
+			for(UserInfoVO collab : projectCollaborators) {
+				teamMembers.add(collab.getId());
+				teamMembersEmails.add(collab.getEmail());
+			}
 			switch(existingStatus) {
 				case "CREATE_REQUESTED": 
 					if(!(latestStatus.equalsIgnoreCase("CREATED") || latestStatus.equalsIgnoreCase("CREATE_FAILED")))
 						invalidStatus = true;
+					else {
+						if(latestStatus.equalsIgnoreCase("CREATED")) {
+							eventType = "Codespace-Create";
+							message = "Codespace "+ projectName + "successfully created by user " + userName;
+						}														
+						else {
+							eventType = "Codespace-Create Failed";
+							message = "Create failed, while initializing Codespace " +projectName +" for user "+ userName;
+						}													 
+					}						
 					break;
 				case "COLLAB_REQUESTED": 
 					if(!(latestStatus.equalsIgnoreCase("CREATED") || latestStatus.equalsIgnoreCase("CREATE_FAILED")))
@@ -122,10 +164,30 @@ public class WorkspaceJobStatusUpdateController  {
 				case "DEPLOY_REQUESTED": 
 					if(!(latestStatus.equalsIgnoreCase("DEPLOYED") || latestStatus.equalsIgnoreCase("DEPLOYMENT_FAILED")))
 						invalidStatus = true;
+					else {
+						if(latestStatus.equalsIgnoreCase("DEPLOYED")) {
+							eventType = "Codespace-Deploy";
+							message = "Successfully deployed Codespace "+ projectName + "with branch " + branch +"on " + targetEnv + " triggered by " +workspaceOwnerName;
+						}													
+						else {
+							eventType = "Codespace-Deploy Failed";
+							message = "Failed to deploy Codespace " + projectName + "with branch " + branch +"on " +  targetEnv + " triggered by " +workspaceOwnerName;
+						}													
+					}
 					break;
 				case "UNDEPLOY_REQUESTED": 
 					if(!(latestStatus.equalsIgnoreCase("UNDEPLOYED") || latestStatus.equalsIgnoreCase("UNDEPLOY_FAILED")))
 						invalidStatus = true;
+					else {
+						if(latestStatus.equalsIgnoreCase("UNDEPLOYED")) {
+							eventType = "Codespace-UnDeploy";
+							message = "Successfully undeployed Codespace "+ projectName + "with branch " + branch +"on " + targetEnv + " triggered by " +workspaceOwnerName;
+						}													
+						else {
+							eventType = "Codespace-UnDeploy Failed";
+							message = "Failed to undeploy Codespace " + projectName + "with branch " + branch +"on " + targetEnv + " triggered by " +workspaceOwnerName;
+						}													
+					}
 					break;
 				default:
 					break;
@@ -138,9 +200,8 @@ public class WorkspaceJobStatusUpdateController  {
 				errorMessage.addErrors(invalidMsg);
 				return new ResponseEntity<>(errorMessage, HttpStatus.BAD_REQUEST);
 			}
-			String targetEnv = updateRequestVO.getTargetEnvironment();
-			String branch = updateRequestVO.getBranch();
 			GenericMessage responseMessage = service.update(userId,name,projectName,existingStatus,latestStatus,targetEnv,branch);
+			kafkaProducer.send(eventType, resourceID, "", userId, message, true, teamMembers, teamMembersEmails, null);
 			return new ResponseEntity<>(responseMessage, HttpStatus.OK);
 		}else {
 			log.info("workspace {} doesnt exists for User {} , or workspace already deleted and hence update not required",existingVO.getWorkspaceId(), userId);
@@ -151,4 +212,20 @@ public class WorkspaceJobStatusUpdateController  {
 			return new ResponseEntity<>(errorMessage, HttpStatus.OK);
 		}
     }
+	
+	public String currentUserName(CreatedByVO currentUser) {
+		String userName = "";
+		if (Objects.nonNull(currentUser)) {
+			if (StringUtils.hasText(currentUser.getFirstName())) {
+				userName = currentUser.getFirstName();
+			}
+			if (StringUtils.hasText(currentUser.getLastName())) {
+				userName += " " + currentUser.getLastName();
+			}
+		}
+		if (!StringUtils.hasText(userName)) {
+			userName = currentUser != null ? currentUser.getId() : "dna_system";
+		}
+		return userName;
+	}
 }
