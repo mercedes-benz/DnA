@@ -252,9 +252,11 @@ public class NotebookController implements NotebooksApi {
 
 				}
 				int threadSleepTime = Integer.parseInt(sleepTime);
-				LOGGER.info("Putting to sleep for {} after user {} onboarding",threadSleepTime, userId);
-				Thread.sleep(threadSleepTime);
-				LOGGER.info("Sleep time for new onboarded user {} is done and calling to create notebook record", userId);
+				if(threadSleepTime>1) {
+					LOGGER.info("Putting to sleep for {} after user {} onboarding",threadSleepTime, userId);
+					Thread.sleep(threadSleepTime);
+					LOGGER.info("Sleep time for new onboarded user {} is done and calling to create notebook record", userId);
+				}
 				notebookVO.setCreatedOn(new Date());
 				notebookVO.setUserId(userId);
 				responseNotebookVO = notebookService.create(notebookVO);
