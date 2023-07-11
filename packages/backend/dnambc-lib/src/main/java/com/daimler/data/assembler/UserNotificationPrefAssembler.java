@@ -63,6 +63,10 @@ public class UserNotificationPrefAssembler  implements GenericAssembler<UserNoti
 				NotificationPreferenceVO chronosNotificationPrefVO = this.toNotificationPrefVO(chronosNotificationPrefJson);
 				vo.setChronosNotificationPref(chronosNotificationPrefVO);
 				
+				NotificationPreference codespaceNotificationPrefJson = data.getCodespaceNotificationPref();
+				NotificationPreferenceVO codespaceNotificationPrefVO = this.toNotificationPrefVO(codespaceNotificationPrefJson);
+				vo.setCodespaceNotificationPref(codespaceNotificationPrefVO);
+				
 				vo.setUserId(data.getUserId());
 			}
 		}
@@ -104,6 +108,8 @@ public class UserNotificationPrefAssembler  implements GenericAssembler<UserNoti
 			userNotificationPreferenceJsonb.setTermsOfUse(vo.isTermsOfUse());
 			NotificationPreference chronosNotificationPreference = this.toNotificationPrefJson(vo.getChronosNotificationPref());
 			userNotificationPreferenceJsonb.setChronosNotificationPref(chronosNotificationPreference);
+			NotificationPreference codespaceNotificationPreference = this.toNotificationPrefJson(vo.getCodespaceNotificationPref());
+			userNotificationPreferenceJsonb.setCodespaceNotificationPref(codespaceNotificationPreference);
 			entity.setId(vo.getId());
 		}
 		entity.setData(userNotificationPreferenceJsonb);
