@@ -208,18 +208,33 @@ public class DataikuController {
 	@Tag(name = "dataiku")
     public Response fetchDataikuById(
             @Parameter(description = "The id of the dataiku project to be fetched", required = true) @PathParam("id") String id) {
+		DataikuProjectSummaryDetailResponseDto responseDto = new DataikuProjectSummaryDetailResponseDto();
+		GenericMessage response = new GenericMessage();
+		List<MessageDescription> errors = new ArrayList<>();
+		List<MessageDescription> warnings = new ArrayList<>();
 		String userId = this.userStore.getUserInfo().getId();
 		DataikuProjectDto data = service.getById(id);
 		if(data!=null && id.equalsIgnoreCase(data.getId())) {
 			CollaboratorDetailsDto collabUser = data.getCollaborators().stream().filter(collab -> userId.equalsIgnoreCase(collab.getUserId()))
 					  .findAny().orElse(null);
 			if(!(userId.equalsIgnoreCase(data.getCreatedBy()) || (collabUser!=null && userId.equalsIgnoreCase(collabUser.getUserId())))){
-				return Response.status(Status.FORBIDDEN).entity(null).build();
+				MessageDescription errMsg = new MessageDescription("Forbidden. Does not have permissions to perform this operation.");
+				log.error("Forbidden. User {} does not have permissions to perform this operation fetchById for id {}",userId,id);
+				errors.add(errMsg);
+				response.setErrors(errors);
+				response.setWarnings(warnings);
+				responseDto.setResponse(response);
+				return Response.status(Status.FORBIDDEN).entity(responseDto).build();
 			}
 		}else {
-			return Response.status(Status.NOT_FOUND).entity(null).build();
+			MessageDescription errMsg = new MessageDescription("No record found.");
+			log.error("couldnt find any record. For user {} fetchById for id {}",userId,id);
+			errors.add(errMsg);
+			response.setErrors(errors);
+			response.setWarnings(warnings);
+			responseDto.setResponse(response);
+			return Response.status(Status.NOT_FOUND).entity(responseDto).build();
 		}
-		DataikuProjectSummaryDetailResponseDto responseDto = new DataikuProjectSummaryDetailResponseDto();
 		responseDto.setData(assembler.toProjectDetails(data));
 		responseDto.setResponse(responseDto.getResponse());
 		return Response.ok().entity(responseDto).build();
@@ -351,19 +366,34 @@ public class DataikuController {
     public Response fetchDataikuByProjectName(
     		@Parameter(description = "The cloudprofile of the dataiku details to be fetched", required = true) @PathParam("cloudprofile") String cloudprofile,
             @Parameter(description = "The projectname of the dataiku details to be fetched", required = true) @PathParam("projectname") String projectname) {
-		String userId = this.userStore.getUserInfo().getId();
+		DataikuProjectSummaryDetailResponseDto responseDto = new DataikuProjectSummaryDetailResponseDto();
+		GenericMessage response = new GenericMessage();
+		List<MessageDescription> errors = new ArrayList<>();
+		List<MessageDescription> warnings = new ArrayList<>();
+	    	String userId = this.userStore.getUserInfo().getId();
 		cloudprofile = "eXtollo".equalsIgnoreCase(cloudprofile) ? cloudprofile : "onPremise";
 		DataikuProjectDto data = service.getByProjectName(projectname, cloudprofile);
 		if(data!=null && projectname.equalsIgnoreCase(data.getProjectName())) {
 			CollaboratorDetailsDto collabUser = data.getCollaborators().stream().filter(collab -> userId.equalsIgnoreCase(collab.getUserId()))
 					  .findAny().orElse(null);
 			if(!(userId.equalsIgnoreCase(data.getCreatedBy()) || (collabUser!=null && userId.equalsIgnoreCase(collabUser.getUserId())))){
-				return Response.status(Status.FORBIDDEN).entity(null).build();
+				MessageDescription errMsg = new MessageDescription("Forbidden. Does not have permissions to perform this operation.");
+				log.error("Forbidden. User {} does not have permissions to perform this operation fetch by name {} and instance {}",userId,projectname,cloudprofile);
+				errors.add(errMsg);
+				response.setErrors(errors);
+				response.setWarnings(warnings);
+				responseDto.setResponse(response);
+				return Response.status(Status.FORBIDDEN).entity(responseDto).build();
 			}
 		}else {
-			return Response.status(Status.NOT_FOUND).entity(null).build();
+			MessageDescription errMsg = new MessageDescription("No record found.");
+			log.error("couldnt find any record. For user {} fetch by name {} and instance {} ",userId,projectname,cloudprofile);
+			errors.add(errMsg);
+			response.setErrors(errors);
+			response.setWarnings(warnings);
+			responseDto.setResponse(response);
+			return Response.status(Status.NOT_FOUND).entity(responseDto).build();
 		}
-		DataikuProjectSummaryDetailResponseDto responseDto = new DataikuProjectSummaryDetailResponseDto();
 		responseDto.setData(assembler.toProjectDetails(data));
 		responseDto.setResponse(responseDto.getResponse());
 		return Response.ok().entity(responseDto).build();

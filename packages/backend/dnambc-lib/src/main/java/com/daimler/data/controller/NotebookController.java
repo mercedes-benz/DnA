@@ -38,6 +38,7 @@ import com.daimler.data.dto.solution.TransparencyVO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -77,6 +78,9 @@ public class NotebookController implements NotebooksApi {
 
 	@Autowired
 	private UserStore userStore;
+	
+	@Value("${jupyternotebook.sleepTime}")
+	private String sleepTime;
 
 	@Autowired
 	private JupyterNotebookAdapter notebookAdapter;
@@ -232,6 +236,8 @@ public class NotebookController implements NotebooksApi {
 					}
 
 				}
+				int threadSleepTime = Integer.parseInt(sleepTime);
+				Thread.sleep(threadSleepTime);
 				notebookVO.setCreatedOn(new Date());
 				notebookVO.setUserId(userId);
 				responseNotebookVO = notebookService.create(notebookVO);
