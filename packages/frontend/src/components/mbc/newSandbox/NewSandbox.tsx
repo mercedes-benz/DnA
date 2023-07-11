@@ -1,7 +1,8 @@
 import React, { useState, forwardRef, useImperativeHandle, Ref } from 'react';
 import Styles from './NewSandbox.scss';
 import { ApiClient } from '../../../services/ApiClient';
-
+// @ts-ignore
+import Notification from '../../../assets/modules/uilab/js/src/notification';
 // @ts-ignore
 import ProgressIndicator from '../../../assets/modules/uilab/js/src/progress-indicator';
 import { trackEvent } from '../../../services/utils';
@@ -68,11 +69,14 @@ const Newsandbox = forwardRef((props: INewSanboxProps, ref: Ref<INewSandBoxRef>)
       ProgressIndicator.show();
       ApiClient.createNewSandbox(sandBoxData)
         .then((response) => {
-          trackEvent('DnA Notebook', 'Create new workspace', solutionName);
+          trackEvent('DnA Notebook', 'Create new notebook workspace', solutionName);
           ProgressIndicator.hide();
           props.isNotebookCreationSuccess(false, response.data);
         })
-        .catch((err) => err);
+        .catch((error: Error) => {
+          ProgressIndicator.hide();
+          Notification.show('Error creating Jupyter Notebook workspace - ' + error.message, 'alert');
+        });
     }
   };
   // const requiredError = '*Missing entry';
