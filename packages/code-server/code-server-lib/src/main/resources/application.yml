@@ -21,6 +21,13 @@ spring:
     hibernate:
       ddl-auto: none
 
+  cloud:
+    stream:
+      default-binder: kafka
+      kafka:
+        binder:
+          brokers: ${NAAS_BROKER:localhost:9092}    
+
   datasource:
     hikari:
       connection-timeout: 4000
@@ -33,6 +40,10 @@ spring:
 dna:
   uri: ${DNA_URI:XXXXXX}
   dnaAuthEnable: ${DNA_AUTH_ENABLE:false}
+
+kafka:
+  centralTopic:
+    name: dnaCentralEventTopic  
   
 jwt:
   secret:
