@@ -18,7 +18,7 @@ import Tags from 'dna-container/Tags';
 
 import { Controller, useFieldArray, useFormContext } from 'react-hook-form';
 import Tooltip from '../../../../common/modules/uilab/js/src/tooltip';
-import Tabs from '../../../../common/modules/uilab/js/src/tabs';
+import InnerTabs from '../../../../common/modules/uilab/js/src/inner-tabs';
 import { isValidURL } from '../../../../Utility/utils';
 import TeamSearch from 'dna-container/TeamSearch';
 import AccessSteps from '../../../accessSteps';
@@ -78,15 +78,14 @@ const Description = ({
 
   const { howToAccessText, tags, productOwner, 
     // useTemplate, 
-    confidentiality,
+    confidentialityInDescription,
     accessType } = watch();
 
 
   useEffect(() => {
     Tooltip.defaultSetup();
-    // setTimeout(() => {
-      Tabs.defaultSetup();
-    // }, 100);
+    InnerTabs.defaultSetup();
+    
     
     reset(watch());
     //eslint-disable-next-line
@@ -97,6 +96,12 @@ const Description = ({
     else{
       setNumberedStep(0);
     }
+  
+    setTimeout(() => {
+      const tabDetails = document.getElementById('access-via-kafka');
+      tabDetails?.click();
+    }, 100);
+    
     //eslint-disable-next-line
   }, []);
 
@@ -514,7 +519,7 @@ const Description = ({
                 <div className={`custom-select`}>
                   <select id="confidentialityField" name="confidentiality" {...register('confidentialityInDescription',{
                     onChange:()=>{
-                      if(confidentiality == 'Internal'){
+                      if(confidentialityInDescription == 'Internal'){
                         setValue('personalRelatedDataInDescription', 'No');
                         setValue('deletionRequirementInDescription', 'No');
                         setValue('restrictDataAccess', 'No');
@@ -536,7 +541,7 @@ const Description = ({
               }
             </div>
 
-            {(accessType?.length == 1 && accessType?.includes('Live (SAC/AFO)')) || accessType?.length == 0 || confidentiality == 'Internal' ?
+            {(accessType?.length == 1 && accessType?.includes('Live (SAC/AFO)')) || accessType?.length == 0 || confidentialityInDescription == 'Internal' ?
               <div></div>
                : 
               <>
@@ -729,7 +734,7 @@ const Description = ({
                     </div>
                     <div className={Styles.descriptionWrapper}>
                       <p>
-                      {(accessType?.length == 1 && accessType?.includes('Live (SAC/AFO)')) || confidentiality == 'Internal' ?
+                      {(accessType?.length == 1 && accessType?.includes('Live (SAC/AFO)')) || confidentialityInDescription == 'Internal' ?
                         <><b>No Minimum information required.</b> Please make sure to comply with A22 policies when using SAP/IDM.</>
                       :
                         <><b>Minimum information required.</b> You can either move on by selecting an existing Minimum information to review/edit or fill out the required provider-form in the next few steps. We already selected a fitting How-To-Access information to show your consumers in the next section.</>
@@ -788,31 +793,31 @@ const Description = ({
             <div id="how-to-access-tabs" className={"tabs-panel "+accessType?.length < 1 ? 'hidden':''}>
               <div className="tabs-wrapper">
                 <nav>
-                  <ul className="tabs">
+                  <ul className="inner-tabs tabs">
                     
-                    <li className={(accessType?.includes('Kafka') ? 'tab' : 'tab')+' active'}>  
+                    <li className={(accessType?.includes('Kafka') ? 'inner-tab tab active' : 'inner-tab tab')}>  
                       <a
                         className={accessType?.includes('Kafka') ? '' : 'hidden'}
                         href="#steps-tab-content-1"
                         id="access-via-kafka"
                         onClick={setTab}
                       >
-                        Access Via Kafka
+                        Kafka-Access
                       </a>
                     </li>
                     
-                    <li className={accessType?.includes('Live (SAC/AFO)') ? 'tab' : 'tab disabled'}>
+                    <li className={accessType?.includes('Live (SAC/AFO)') ? 'inner-tab tab' : 'inner-tab tab disabled '+ Styles.widthZero}>
                       <a
                         className={accessType?.includes('Live (SAC/AFO)') ? '' : 'hidden'}
                         href="#steps-tab-content-2"
                         id="live-access"
                         onClick={setTab}
                       >
-                        Live Access
+                        Live (SAC/AFO)-Access
                       </a>
                     </li>
                    
-                    <li className={accessType?.includes('API') ? 'tab' : 'tab disabled'}>
+                    <li className={accessType?.includes('API') ? 'inner-tab tab' : 'inner-tab tab disabled '+ Styles.widthZero}>
                       <a
                         className={accessType?.includes('API') ? '' : 'hidden'}
                         href="#steps-tab-content-3"
@@ -823,17 +828,17 @@ const Description = ({
                       </a>
                     </li>
                     
-                    <li className={'tab disabled'}>
+                    <li className={'inner-tab tab disabled'}>
                       <a id="stepTab2" className={'hidden'}>
                         `
                       </a>
                     </li>
-                    <li className={'tab disabled'}>
+                    <li className={'inner-tab tab disabled'}>
                       <a id="stepTab3" className={'hidden'}>
                         `
                       </a>
                     </li>
-                    <li className={'tab disabled'}>
+                    <li className={'inner-tab tab disabled'}>
                       <a id="stepTab4" className={'hidden'}>
                         `
                       </a>
@@ -843,7 +848,7 @@ const Description = ({
                 </nav>
               </div>
               <div className="tabs-content-wrapper">
-                <div id="steps-tab-content-1" className="tab-content">
+                <div id="steps-tab-content-1" className="inner-tab-content tab-content">
                   
 
                   {currentTab === 'access-via-kafka' && kafkaFields?.map((stepItem, index)=>{
@@ -886,7 +891,7 @@ const Description = ({
 
 
                 </div>
-                <div id="steps-tab-content-2" className="tab-content">
+                <div id="steps-tab-content-2" className="inner-tab-content tab-content">
                   
                   {currentTab === 'live-access' && liveAccessFields?.map((stepItem, index)=>{
                     return(
@@ -926,7 +931,7 @@ const Description = ({
                     </button>
                   </div>
                 </div>
-                <div id="steps-tab-content-3" className="tab-content">
+                <div id="steps-tab-content-3" className="inner-tab-content tab-content">
                   
                   {currentTab === 'api-access' && apiFields?.map((stepItem, index)=>{
                     return(
