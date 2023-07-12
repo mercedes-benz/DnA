@@ -19,7 +19,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.daimler.data.application.auth.UserStore;
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
 import com.daimler.data.dto.workspace.CodeServerWorkspaceVO;
@@ -48,9 +47,6 @@ public class WorkspaceJobStatusUpdateController  {
 	
 	@Autowired
 	HttpServletRequest httpRequest;
-	
-	@Autowired
-	private UserStore userStore;
 	
 	@Autowired
 	private KafkaProducerService kafkaProducer;
@@ -88,7 +84,9 @@ public class WorkspaceJobStatusUpdateController  {
 		CodeServerWorkspaceVO existingVO = service.getByUniqueliteral(userId,"workspaceId", name);
 		if (existingVO != null && existingVO.getWorkspaceId() != null) {
 			String existingStatus = existingVO.getStatus();
+			log.info("existingStatus  is {}",existingStatus);
 			String latestStatus = updateRequestVO.getStatus().name();
+			log.info("latestStatus  is {}",latestStatus);
 			UserInfoVO ownerVO = existingVO.getWorkspaceOwner();
 			boolean unauthorized = false; 
 			String owner = ownerVO.getId();
@@ -122,9 +120,7 @@ public class WorkspaceJobStatusUpdateController  {
 			String eventType = "";
 			boolean invalidStatus = false;
 			String targetEnv = updateRequestVO.getTargetEnvironment();
-			String branch = updateRequestVO.getBranch();
-			CreatedByVO currentUser = this.userStore.getVO();
-			String userName = currentUserName(currentUser);			
+			String branch = updateRequestVO.getBranch();		
 			UserInfoVO workspaceOwner = existingVO.getWorkspaceOwner();
 			String workspaceOwnerName = workspaceOwner.getFirstName() + " " + workspaceOwner.getLastName();	
 			String resourceID = existingVO.getWorkspaceId();
@@ -134,10 +130,14 @@ public class WorkspaceJobStatusUpdateController  {
 			teamMembers.add(projectOwner.getId());
 			teamMembers.add(projectOwner.getEmail());
 			List<UserInfoVO> projectCollaborators = existingVO.getProjectDetails().getProjectCollaborators();
-			for(UserInfoVO collab : projectCollaborators) {
-				teamMembers.add(collab.getId());
-				teamMembersEmails.add(collab.getEmail());
-			}
+			if (Objects.nonNull(projectCollaborators)) {
+				if (projectCollaborators.size() > 0) {
+					for (UserInfoVO collab : projectCollaborators) {
+						teamMembers.add(collab.getId());
+						teamMembersEmails.add(collab.getEmail());
+					}
+				}
+			}	
 			switch(existingStatus) {
 				case "CREATE_REQUESTED": 
 					if(!(latestStatus.equalsIgnoreCase("CREATED") || latestStatus.equalsIgnoreCase("CREATE_FAILED")))
@@ -146,11 +146,11 @@ public class WorkspaceJobStatusUpdateController  {
 						if(latestStatus.equalsIgnoreCase("CREATED")) {
 							eventType = "Codespace-Create";
 							log.info("Latest status is {}, and eventType is {}",latestStatus,eventType);
-							message = "Codespace "+ projectName + "successfully created by user " + userName;
+							message = "Codespace "+ projectName + " successfully created by user " + workspaceOwnerName;
 						}														
 						else {
 							eventType = "Codespace-Create Failed";
-							message = "Create failed, while initializing Codespace " +projectName +" for user "+ userName;
+							message = "Create failed, while initializing Codespace " +projectName +" for user "+ workspaceOwnerName;
 						}													 
 					}						
 					break;
@@ -162,39 +162,31 @@ public class WorkspaceJobStatusUpdateController  {
 					if(!(latestStatus.equalsIgnoreCase("DELETED") || latestStatus.equalsIgnoreCase("DELETE_FAILED") || latestStatus.equalsIgnoreCase("UNDEPLOYED") || latestStatus.equalsIgnoreCase("UNDEPLOY_FAILED") ))
 						invalidStatus = true;
 					break;
-				case "DEPLOY_REQUESTED": 
-					if(!(latestStatus.equalsIgnoreCase("DEPLOYED") || latestStatus.equalsIgnoreCase("DEPLOYMENT_FAILED")))
-						invalidStatus = true;
-					else {
-						if(latestStatus.equalsIgnoreCase("DEPLOYED")) {
-							eventType = "Codespace-Deploy";
-							log.info("Latest status is {}, and eventType is {}",latestStatus,eventType);
-							message = "Successfully deployed Codespace "+ projectName + "with branch " + branch +"on " + targetEnv + " triggered by " +workspaceOwnerName;
-						}													
-						else {
-							eventType = "Codespace-Deploy Failed";
-							message = "Failed to deploy Codespace " + projectName + "with branch " + branch +"on " +  targetEnv + " triggered by " +workspaceOwnerName;
-						}													
-					}
-					break;
-				case "UNDEPLOY_REQUESTED": 
-					if(!(latestStatus.equalsIgnoreCase("UNDEPLOYED") || latestStatus.equalsIgnoreCase("UNDEPLOY_FAILED")))
-						invalidStatus = true;
-					else {
-						if(latestStatus.equalsIgnoreCase("UNDEPLOYED")) {
-							eventType = "Codespace-UnDeploy";
-							log.info("Latest status is {}, and eventType is {}",latestStatus,eventType);
-							message = "Successfully undeployed Codespace "+ projectName + "with branch " + branch +"on " + targetEnv + " triggered by " +workspaceOwnerName;
-						}													
-						else {
-							eventType = "Codespace-UnDeploy Failed";
-							message = "Failed to undeploy Codespace " + projectName + "with branch " + branch +"on " + targetEnv + " triggered by " +workspaceOwnerName;
-						}													
-					}
-					break;
 				default:
 					break;
 			  
+			}
+			if(existingStatus.equals("CREATED")) {
+				if(latestStatus.equalsIgnoreCase("DEPLOYED")) {
+					eventType = "Codespace-Deploy";
+					log.info("Latest status is {}, and eventType is {}",latestStatus,eventType);
+					message = "Successfully deployed Codespace "+ projectName + " with branch " + branch +" on " + targetEnv + " triggered by " +workspaceOwnerName;
+				}													
+				if(latestStatus.equalsIgnoreCase("DEPLOYMENT_FAILED")) {
+					eventType = "Codespace-Deploy Failed";
+					log.info("Latest status is {}, and eventType is {}",latestStatus,eventType);
+					message = "Failed to deploy Codespace " + projectName + " with branch " + branch +" on " +  targetEnv + " triggered by " +workspaceOwnerName;
+				}
+				if(latestStatus.equalsIgnoreCase("UNDEPLOYED")) {
+					eventType = "Codespace-UnDeploy";
+					log.info("Latest status is {}, and eventType is {}",latestStatus,eventType);
+					message = "Successfully undeployed Codespace "+ projectName + " with branch " + branch +" on " + targetEnv + " triggered by " +workspaceOwnerName;
+				}													
+				if(latestStatus.equalsIgnoreCase("UNDEPLOY_FAILED")) {
+					eventType = "Codespace-UnDeploy Failed";
+					log.info("Latest status is {}, and eventType is {}",latestStatus,eventType);
+					message = "Failed to undeploy Codespace " + projectName + " with branch " + branch +" on " + targetEnv + " triggered by " +workspaceOwnerName;
+				}
 			}
 			if(invalidStatus) {
 				log.info("workspace {} is in status {} , cannot be changed to invalid status {} ",name, existingStatus, latestStatus);
@@ -216,20 +208,4 @@ public class WorkspaceJobStatusUpdateController  {
 			return new ResponseEntity<>(errorMessage, HttpStatus.OK);
 		}
     }
-	
-	public String currentUserName(CreatedByVO currentUser) {
-		String userName = "";
-		if (Objects.nonNull(currentUser)) {
-			if (StringUtils.hasText(currentUser.getFirstName())) {
-				userName = currentUser.getFirstName();
-			}
-			if (StringUtils.hasText(currentUser.getLastName())) {
-				userName += " " + currentUser.getLastName();
-			}
-		}
-		if (!StringUtils.hasText(userName)) {
-			userName = currentUser != null ? currentUser.getId() : "dna_system";
-		}
-		return userName;
-	}
 }
