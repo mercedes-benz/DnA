@@ -3,7 +3,7 @@ import classNames from 'classnames';
 import Styles from './Form.style.scss';
 import { tabs } from '../../dataTransfer/ProviderForm';
 
-// import Tabs from '../../../common/modules/uilab/js/src/tabs';
+import Tabs from '../../../common/modules/uilab/js/src/tabs';
 import ProgressIndicator from '../../../common/modules/uilab/js/src/progress-indicator';
 import Notification from '../../../common/modules/uilab/js/src/notification';
 
@@ -157,6 +157,15 @@ const CreateDataProduct = ({ user, history }) => {
         ProgressIndicator.hide();
       });
   };
+
+  useEffect(() => {
+    Tabs.defaultSetup();
+    const tabDescription = document.getElementById('description');
+    tabDescription?.click();
+    
+    // setCurrentTab('description');
+    //eslint-disable-next-line
+  },[]);
 
   // useEffect(() => {
   //   if (user?.roles?.length) {
@@ -602,8 +611,8 @@ const CreateDataProduct = ({ user, history }) => {
                 <ul className="tabs">
                   {/* <li className={savedTabs?.includes('description') ? 'tab valid' : 'tab valid active'}> */}
                   <li id='firstElementTab' className={
-                    (savedTabs?.includes('description') && 
-                  errorsInPublish?.descriptionTabError?.length < 1 ? 'tab valid' : 'tab')+' active'}>
+                    classNames((savedTabs?.includes('description') && 
+                errorsInPublish?.descriptionTabError?.length < 1 ? 'tab valid active' : 'tab'))}>
                     <a
                       href="#tab-content-1"
                       id="description"
@@ -695,6 +704,7 @@ const CreateDataProduct = ({ user, history }) => {
             </div>
             <div className="tabs-content-wrapper">
               <div id="tab-content-1" className="tab-content">
+              {currentTab === 'description' && (
                 <Description
                   onSave={(values) => {
                     onSave('description', values)}}
@@ -707,6 +717,7 @@ const CreateDataProduct = ({ user, history }) => {
                   tagsList={tags}
                   isDataProduct={true}
                 />
+                )}
               </div>
               <div id="tab-content-2" className="tab-content">
                 {currentTab === 'contact-info' && (
