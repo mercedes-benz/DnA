@@ -81,9 +81,6 @@ public class NotebookController implements NotebooksApi {
 	@Autowired
 	private UserStore userStore;
 	
-	@Value("${jupyternotebook.sleepTime}")
-	private String sleepTime;
-
 	@Autowired
 	private JupyterNotebookAdapter notebookAdapter;
 
@@ -250,12 +247,6 @@ public class NotebookController implements NotebooksApi {
 						return new ResponseEntity<>(responseVO, HttpStatus.INTERNAL_SERVER_ERROR);
 					}
 
-				}
-				int threadSleepTime = Integer.parseInt(sleepTime);
-				if(threadSleepTime>1) {
-					LOGGER.info("Putting to sleep for {} after user {} onboarding",threadSleepTime, userId);
-					Thread.sleep(threadSleepTime);
-					LOGGER.info("Sleep time for new onboarded user {} is done and calling to create notebook record", userId);
 				}
 				notebookVO.setCreatedOn(new Date());
 				notebookVO.setUserId(userId);
