@@ -55,6 +55,9 @@ public class JupyterNotebookAdapter {
 
 	@Value("${jupyternotebook.token}")
 	private String authToken;
+	
+	@Value("${jupyternotebook.sleepTime}")
+	private String sleepTime;
 
 	@Autowired
 	RestTemplate restTemplate;
@@ -153,6 +156,12 @@ public class JupyterNotebookAdapter {
 			LOGGER.error("In startJupyterUserNotebook, failed to start notebook {}", e.getMessage());
 			LOGGER.error("In startJupyterUserNotebook, Retrying after failed start");
 			try {
+				int threadSleepTime = Integer.parseInt(sleepTime);
+				if(threadSleepTime>1) {
+					LOGGER.info("Putting thread to sleep for {} after user {} notebook failed to start",threadSleepTime, userShortId);
+					Thread.sleep(threadSleepTime);
+					LOGGER.info("Sleep time for user {} is done and retrying startnotebook ", userShortId);
+				}
 				ResponseEntity<JupyterNotebookGenericResponse> response = restTemplate.exchange(startUserNotebookUri,
 						HttpMethod.POST, entity, JupyterNotebookGenericResponse.class);
 				if (response != null) {
