@@ -897,14 +897,13 @@ export const SummaryPdfDoc = (props: SummaryPdfDocProps) => (
                           </Text>
                           <View>
                             <Text>
-                              Created on{' '}
                               {(props?.dnaNotebookEnabled && props?.noteBookInfo?.createdOn) ||
                                 (props?.dnaDataIkuProjectEnabled && props?.dataIkuInfo?.creationTag?.lastModifiedOn)
-                                ? getDateFromTimestamp(
+                                ? `Created on ${getDateFromTimestamp(
                                   (props.dnaNotebookEnabled && props.noteBookInfo.createdOn) ||
                                   (props.dnaDataIkuProjectEnabled && props.dataIkuInfo.creationTag?.lastModifiedOn),
                                   '.',
-                                ) : ''}{' '}
+                                )}` : ''}{' '}
                               {props.dnaNotebookEnabled && props.noteBookInfo.createdBy.firstName
                                 && 'by ' + props.dataIkuInfo?.ownerDisplayName || props.dataIkuInfo?.ownerLogin || ''}
                             </Text>
