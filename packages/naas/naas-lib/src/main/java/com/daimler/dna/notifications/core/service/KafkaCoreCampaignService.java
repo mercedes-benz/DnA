@@ -84,7 +84,6 @@ public class KafkaCoreCampaignService {
 	private static String CHRONOS_NOTIFICATION_KEY = "Chronos";
 	private static String CHRONOS_URI_PATH = "#/chronos/project/";
 	private static String CODESPACE_NOTIFICATION_KEY = "Codespace";
-	private static String CODESPACE_URI_PATH = "#/codespace/";
 	
 	/*
 	 * @KafkaListener(topics = "dnaCentralEventTopic") public void
@@ -185,23 +184,7 @@ public class KafkaCoreCampaignService {
 								}
 							
 						}
-					}
-					if(message.getEventType().contains(CODESPACE_NOTIFICATION_KEY)) {
-						String bucketURL = dnaBaseUri + CODESPACE_URI_PATH + message.getResourceId();
-						if(!ObjectUtils.isEmpty(message.getChangeLogs())) {
-							for (ChangeLogVO changeLog : message.getChangeLogs()) {
-								emailBody += "<br/>" + "\u2022" + " " + changeLog.getChangeDescription() + "<br/>";
-							}
-						}
-						if(!ObjectUtils.isEmpty(message.getResourceId()) && message.getEventType().contains(CODESPACE_NOTIFICATION_KEY)) {
-								
-								emailBody += "<p> Please use " + " <a href=\"" + bucketURL +"\">link</a> to access the codespace project. <p/> <br/>";
-								if(!user.equalsIgnoreCase(publishingUser)) {
-									emailBody +=  message.getMessageDetails() + "<br/>";
-								}
-							
-						}
-					}
+					}					
 
 					if(appNotificationPreferenceFlag) {
 						cacheUtil.addEntry(user, vo);
