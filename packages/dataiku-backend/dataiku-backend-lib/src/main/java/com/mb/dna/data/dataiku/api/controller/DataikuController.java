@@ -187,7 +187,7 @@ public class DataikuController {
 			
 			List<DataikuProjectDto> records = response.getData();
 			List<DataikuProjectSummaryDto>  summaryRecords = new ArrayList<>();
-			summaryRecords = records.stream().map(n -> assembler.toProjectDetails(n,userId)).collect(Collectors.toList());
+			summaryRecords = records.stream().map(n -> assembler.toProjectSummary(n,userId)).collect(Collectors.toList());
 			summaryCollectionDto.setData(summaryRecords);
 			summaryCollectionDto.setTotalCount(response.getTotalCount());
 			return Response.ok().entity(summaryCollectionDto).build();
@@ -235,7 +235,8 @@ public class DataikuController {
 			responseDto.setResponse(response);
 			return Response.status(Status.NOT_FOUND).entity(responseDto).build();
 		}
-		responseDto.setData(assembler.toProjectDetails(data));
+		
+		responseDto.setData(assembler.toProjectSummaryDetails(data,userId));
 		responseDto.setResponse(responseDto.getResponse());
 		return Response.ok().entity(responseDto).build();
 	}
@@ -273,7 +274,7 @@ public class DataikuController {
 				errors.add(errMsg);
 				responseMsg.setErrors(errors);
 				responseMsg.setWarnings(warnings);
-				responseDetailDto.setData(assembler.toProjectDetails(responseDto.getData()));
+				responseDetailDto.setData(assembler.toProjectSummaryDetails(responseDto.getData(),userId));
 				responseDetailDto.setResponse(responseMsg);
 				return Response.status(Status.FORBIDDEN).entity(responseDetailDto).build();
 			}
@@ -287,7 +288,7 @@ public class DataikuController {
 						errors.add(errMsg);
 						responseMsg.setErrors(errors);
 						responseMsg.setWarnings(warnings);
-						responseDetailDto.setData(assembler.toProjectDetails(responseDto.getData()));
+						responseDetailDto.setData(assembler.toProjectSummaryDetails(responseDto.getData(),userId));
 						responseDetailDto.setResponse(responseMsg);
 						return Response.status(Status.BAD_REQUEST).entity(responseDetailDto).build();
 					}else {
@@ -302,12 +303,12 @@ public class DataikuController {
 			errors.add(errMsg);
 			responseMsg.setErrors(errors);
 			responseMsg.setWarnings(warnings);
-			responseDetailDto.setData(assembler.toProjectDetails(responseDto.getData()));
+			responseDetailDto.setData(assembler.toProjectSummaryDetails(responseDto.getData(),userId));
 			responseDetailDto.setResponse(responseMsg);
 			return Response.status(Status.NOT_FOUND).entity(responseDetailDto).build();
 		}
 		responseDto = service.updateProject(id, request,collabPrivilegeDetails);
-		responseDetailDto.setData(assembler.toProjectDetails(responseDto.getData()));
+		responseDetailDto.setData(assembler.toProjectSummaryDetails(responseDto.getData(),userId));
 		responseDetailDto.setResponse(responseDto.getResponse());
 		return Response.ok().entity(responseDto).build();
 	}
@@ -394,7 +395,7 @@ public class DataikuController {
 			responseDto.setResponse(response);
 			return Response.status(Status.NOT_FOUND).entity(responseDto).build();
 		}
-		responseDto.setData(assembler.toProjectDetails(data));
+		responseDto.setData(assembler.toProjectSummaryDetails(data,userId));
 		responseDto.setResponse(responseDto.getResponse());
 		return Response.ok().entity(responseDto).build();
 	}
@@ -437,7 +438,7 @@ public class DataikuController {
 				errors.add(errMsg);
 				responseMsg.setErrors(errors);
 				responseMsg.setWarnings(warnings);
-				responseDetailDto.setData(assembler.toProjectDetails(responseDto.getData()));
+				responseDetailDto.setData(assembler.toProjectSummaryDetails(responseDto.getData(),userId));
 				responseDetailDto.setResponse(responseMsg);
 				return Response.status(Status.FORBIDDEN).entity(responseDetailDto).build();
 			}
@@ -447,7 +448,7 @@ public class DataikuController {
 			errors.add(errMsg);
 			responseMsg.setErrors(errors);
 			responseMsg.setWarnings(warnings);
-			responseDetailDto.setData(assembler.toProjectDetails(responseDto.getData()));
+			responseDetailDto.setData(assembler.toProjectSummaryDetails(responseDto.getData(),userId));
 			responseDetailDto.setResponse(responseMsg);
 			return Response.status(Status.NOT_FOUND).entity(responseDetailDto).build();
 		}
@@ -458,7 +459,7 @@ public class DataikuController {
 				errors.add(errMsg);
 				responseMsg.setErrors(errors);
 				responseMsg.setWarnings(warnings);
-				responseDetailDto.setData(assembler.toProjectDetails(responseDto.getData()));
+				responseDetailDto.setData(assembler.toProjectSummaryDetails(responseDto.getData(),userId));
 				responseDetailDto.setResponse(responseMsg);
 				return Response.status(Status.BAD_REQUEST).entity(responseDetailDto).build();
 			}
@@ -467,7 +468,7 @@ public class DataikuController {
 		if("SUCCESS".equalsIgnoreCase(responseDto.getResponse().getSuccess())) {
 			existingDataikuProject.setSolutionId(solutionId);
 		}
-		responseDetailDto.setData(assembler.toProjectDetails(existingDataikuProject));
+		responseDetailDto.setData(assembler.toProjectSummaryDetails(existingDataikuProject,userId));
 		responseDetailDto.setResponse(responseDto.getResponse());
 		return Response.ok().entity(responseDetailDto).build();
 	}
