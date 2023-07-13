@@ -566,11 +566,11 @@ public class SolutionController implements SolutionsApi, ChangelogsApi, Malwares
                             && requestSolutionVO.getPortfolio().getDnaDataikuProjectId() != null
                             && requestSolutionVO.getPortfolio().getDnaDataikuProjectInstance() != null) {
 
-                        if (existingSolutionVO.getPortfolio().getDnaDataikuProjectId() != null && existingSolutionVO.getPortfolio().getDnaDataikuProjectInstance() != null) {
-                            if (existingSolutionVO.getPortfolio().getDnaDataikuProjectId().equalsIgnoreCase(requestSolutionVO.getPortfolio().getDnaDataikuProjectId())
-                                    && existingSolutionVO.getPortfolio().getDnaDataikuProjectInstance().equalsIgnoreCase(requestSolutionVO.getPortfolio().getDnaDataikuProjectInstance())) {
-                                LOGGER.info("No change in getDnaDataikuProjectId and getDnaDataikuProjectInstance");
-                            }
+                        if (existingSolutionVO.getPortfolio().getDnaDataikuProjectId() != null
+                                && existingSolutionVO.getPortfolio().getDnaDataikuProjectInstance() != null
+                                && existingSolutionVO.getPortfolio().getDnaDataikuProjectId().equalsIgnoreCase(requestSolutionVO.getPortfolio().getDnaDataikuProjectId())
+                                && existingSolutionVO.getPortfolio().getDnaDataikuProjectInstance().equalsIgnoreCase(requestSolutionVO.getPortfolio().getDnaDataikuProjectInstance()) ) {
+                            LOGGER.info("No change in getDnaDataikuProjectId and getDnaDataikuProjectInstance");
                         } else {
                             GenericMessage provisionSolutionResponse = dnaDssClient.provisionSolutionToDataikuProject(requestSolutionVO.getPortfolio().getDnaDataikuProjectId(),
                                     requestSolutionVO.getPortfolio().getDnaDataikuProjectInstance(), solutionId);
