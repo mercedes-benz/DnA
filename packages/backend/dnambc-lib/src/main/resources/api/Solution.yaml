@@ -1320,6 +1320,10 @@ definitions:
         type: array
         items:
           $ref: "#/definitions/MessageDescription"
+      warnings:
+        type: array
+        items:
+          $ref: "#/definitions/MessageDescription"
 
   SolutionCollectionResponseVO:
     description: "Collection of Solutions."
