@@ -153,20 +153,25 @@ public class DataProductAssembler implements GenericAssembler<DataProductVO, Dat
 				if(Objects.nonNull(dataProduct.getAccess())) {
 					List<String> accesstypes = dataProduct.getAccess().getAccessType();
 					if(accesstypes != null && accesstypes.size()>0 ) {
-						if(accesstypes.contains("KAFKA".toLowerCase()) || accesstypes.contains("API".toLowerCase())) {
-							dataProduct.getAccess().setMinimumInformationCheck(true);
+						if(accesstypes.contains("Kafka") || accesstypes.contains("API")) {
+							if(vo.getAccess().getConfidentiality().equals("Internal")) {								
+								vo.getAccess().setMinimumInformationCheck(false);								
+							}
+							else {
+								vo.getAccess().setMinimumInformationCheck(true);
+							}
 						}
 						else {
-							dataProduct.getAccess().setMinimumInformationCheck(false);
+							vo.getAccess().setMinimumInformationCheck(false);
 						}
 					}
 					AccessVO accessVO = new AccessVO();
 					BeanUtils.copyProperties(dataProduct.getAccess(), accessVO);
-					if(Objects.nonNull(dataProduct.getAccess().isDeletionRequirements()))
+					if(Objects.nonNull(dataProduct.getAccess()) && Objects.nonNull(dataProduct.getAccess().isDeletionRequirements()))
 						accessVO.setDeletionRequirements(dataProduct.getAccess().isDeletionRequirements());
-					if(Objects.nonNull(dataProduct.getAccess().isPersonalRelatedData()))
+					if(Objects.nonNull(dataProduct.getAccess()) && Objects.nonNull(dataProduct.getAccess().isPersonalRelatedData()))
 						accessVO.setPersonalRelatedData(dataProduct.getAccess().isPersonalRelatedData());
-					if(Objects.nonNull(dataProduct.getAccess().isRestrictDataAccess()))
+					if(Objects.nonNull(dataProduct.getAccess()) && Objects.nonNull(dataProduct.getAccess().isRestrictDataAccess()))
 						accessVO.setRestrictDataAccess(dataProduct.getAccess().isRestrictDataAccess());
 					vo.setAccess(accessVO);
 				}
@@ -360,8 +365,13 @@ public class DataProductAssembler implements GenericAssembler<DataProductVO, Dat
 				if(Objects.nonNull(vo.getAccess())) {
 					List<String> accesstypes = vo.getAccess().getAccessType();
 					if(accesstypes != null && accesstypes.size()>0 ) {
-						if(accesstypes.contains("KAFKA".toLowerCase()) || accesstypes.contains("API".toLowerCase())) {
-							vo.getAccess().setMinimumInformationCheck(true);
+						if(accesstypes.contains("Kafka") || accesstypes.contains("API")) {
+							if(vo.getAccess().getConfidentiality().equals("Internal")) {								
+								vo.getAccess().setMinimumInformationCheck(false);								
+							}
+							else {
+								vo.getAccess().setMinimumInformationCheck(true);
+							}
 						}
 						else {
 							vo.getAccess().setMinimumInformationCheck(false);
@@ -369,11 +379,11 @@ public class DataProductAssembler implements GenericAssembler<DataProductVO, Dat
 					}
 					Access access = new Access();
 					BeanUtils.copyProperties(vo.getAccess(), access);
-					if(Objects.nonNull(vo.getAccess().isDeletionRequirements()))
+					if(Objects.nonNull(vo.getAccess()) && Objects.nonNull(vo.getAccess().isDeletionRequirements()))
 						access.setDeletionRequirements(vo.getAccess().isDeletionRequirements());
-					if(Objects.nonNull(vo.getAccess().isPersonalRelatedData()))
+					if(Objects.nonNull(vo.getAccess()) && Objects.nonNull(vo.getAccess().isPersonalRelatedData()))
 						access.setPersonalRelatedData(vo.getAccess().isPersonalRelatedData());
-					if(Objects.nonNull(vo.getAccess().isRestrictDataAccess()))
+					if(Objects.nonNull(vo.getAccess()) && Objects.nonNull(vo.getAccess().isRestrictDataAccess()))
 						access.setRestrictDataAccess(vo.getAccess().isRestrictDataAccess());
 					dataProduct.setAccess(access);
 				}
@@ -437,7 +447,7 @@ public class DataProductAssembler implements GenericAssembler<DataProductVO, Dat
 					DataProductClassificationConfidentiality classificationConfidentiality = new DataProductClassificationConfidentiality();
 					BeanUtils.copyProperties(vo.getClassificationConfidentiality(),
 							classificationConfidentiality);
-					if(vo.getAccess().getConfidentiality() != null) {
+					if(Objects.nonNull(vo.getAccess()) && vo.getAccess().getConfidentiality() != null) {
 						classificationConfidentiality.setConfidentiality(vo.getAccess().getConfidentiality());
 					}
 					dataProduct.setClassificationConfidentiality(classificationConfidentiality);
