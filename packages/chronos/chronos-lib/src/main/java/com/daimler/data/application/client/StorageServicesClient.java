@@ -424,7 +424,7 @@ public class StorageServicesClient {
 				deleteFileResponse.setStatus("SUCCESS");
 			}
 		}catch (Exception e) {
-			MessageDescription errMsg = new MessageDescription("Failed to Delete bucket in minio storage " + e.getMessage());
+			MessageDescription errMsg = new MessageDescription("Failed to delete file from bucket " + e.getMessage());
 			log.error(errMsg.getMessage());
 			errors.add(errMsg);
 			deleteFileResponse.setErrors(errors);
