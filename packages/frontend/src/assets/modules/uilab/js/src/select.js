@@ -7,7 +7,7 @@
 import { setRippleAnimation, makeArray } from './util/index';
 
 class Select {
-  static defaultSetup() {
+  static defaultSetup(customSelects) {
     let i;
     let j;
     let selElmnt;
@@ -16,7 +16,7 @@ class Select {
     let c;
     const itemsToBeDisabled = [];
     /* Look for any elements with the class 'custom-select': */
-    const x = document.querySelectorAll('.custom-select');
+    const x = customSelects || document.querySelectorAll('.custom-select');
     for (i = 0; i < x.length; i++) {
       selElmnt = x[i].querySelectorAll('select')[0];
       /* For each element, create a new DIV that will act as the selected item: */
