@@ -1,0 +1,60 @@
+.mainPanel {
+  padding: 72px 75px 30px 75px;
+
+  .wrapper {
+    width: 100%;
+    .caption {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 0;
+      margin-bottom: 10px;
+      h3 {
+        color: #dee3e8;
+      }
+    }
+  }
+}
+
+.portHeader {
+  display: flex;
+  flex-wrap: wrap;
+
+  .portTile {
+    background-color: #252a33;
+    display: flex;
+    justify-content: space-between;
+    padding: 24px;
+    width: calc(25% - 6.5px);
+    margin: 6.5px 0 6.5px;
+    min-height: 100%;
+    margin-right: 12px;
+
+    .portTileVal {
+      display: flex;
+      align-items: center;
+
+      .serviceIcon {
+        font-size: 30px;
+        margin-right: 10px;
+        min-width: 70px;
+      }
+      h5 {
+        font-size: var(--font-size-sub-headline);
+        padding-bottom: 0px;
+        margin: 0;
+        color: #c0c8d0;
+      }
+      span {
+        font-size: var(--font-size-big);
+        color: #00adef;
+        display: flex;
+        margin-bottom: 1px;
+      }
+    }
+  }
+}
+
+.serviceSeparator {
+  margin-bottom: 50px;
+}
