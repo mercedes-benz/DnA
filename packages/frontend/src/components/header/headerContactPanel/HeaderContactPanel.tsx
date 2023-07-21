@@ -94,6 +94,14 @@ export default function HeaderContactPanel(props: IHeaderContactPanelProps) {
         )}
         <li
           onClick={() => {
+            history.push('/usage-statistics');
+            props.onClose();
+          }}
+        >
+          Usage Statistics
+        </li>
+        <li
+          onClick={() => {
             setShowTermsModal(true);
           }}
         >
