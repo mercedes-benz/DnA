@@ -1083,4 +1083,15 @@ export class ApiClient {
 
     return this.post('minified', apiQuery);
   }
+
+  // Usage statistics
+  public static getNotebooksTransparency(): Promise<any> {
+    return this.get('notebooks/transparency');
+  }
+  public static getSolutionsTransparency(): Promise<any> {
+    return this.get('solutions/transparency');
+  }
+  public static getUsersTransparency(): Promise<any> {
+    return this.get('users/transparency');
+  }
 }
