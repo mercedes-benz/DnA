@@ -15,6 +15,7 @@ const AllSolutions = React.lazy(() => import('components/mbc/allSolutions/AllSol
 const CreateNewSolution = React.lazy(() => import('components/mbc/createNewSolution/CreateNewSolution'));
 // const DssProjectsList = React.lazy(() => import('components/mbc/dataiku/ListProjects'));
 const License = React.lazy(() => import('components/mbc/footer/License/License'));
+const UsageStatistics = React.lazy(() => import('components/mbc/usageStatistics/usageStatistics'));
 const Home = React.lazy(() => import('components/mbc/home/Home'));
 const Notebook = React.lazy(() => import('components/mbc/notebook/Notebook'));
 const Portfolio = React.lazy(() => import('components/mbc/Portfolio'));
@@ -101,6 +102,13 @@ const protectedRoutes = [
     exact: false,
     path: '/license',
     title: 'License',
+  },
+  {
+    allowedRoles: UserAndAdminRole,
+    component: UsageStatistics,
+    exact: false,
+    path: '/usage-statistics',
+    title: 'Usage Statistics',
   },
   {
     allowedRoles: UserAndAdminRole,
