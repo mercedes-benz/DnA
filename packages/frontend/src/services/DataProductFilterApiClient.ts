@@ -91,4 +91,12 @@ export class DataProductFilterApiClient {
   // public static getTags(): Promise<IDataProductListItem[]> {
   //   return this.get('tags');
   // }
+
+  // Usage statistics
+  public static getDataProductsTransparency(): Promise<any> {
+    return this.get('dataproducts/transparency');
+  }
+  public static getDataTransfersTransparency(): Promise<any> {
+    return this.get('datatransfers/transparency');
+  }
 }

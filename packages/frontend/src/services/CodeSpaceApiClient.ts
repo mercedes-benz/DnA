@@ -53,4 +53,9 @@ export class CodeSpaceApiClient {
   public static onBoardCollaborator(id: string, data: any) {
     return this.put(`workspaces/${id}`, data);
   }
+
+  // Usage statistics
+  public static getWorkSpacesTransparency(): Promise<any> {
+    return this.get('workspaces/transparency');
+  }
 }
