@@ -513,7 +513,7 @@ public class DataProductCustomRepositoryImpl extends CommonDataRepositoryImpl<Da
 	
 	private String buildPredicateString(String uniqueProductName, String status) {;
 		if ((uniqueProductName != null && !uniqueProductName.isEmpty()) && (!status.isEmpty())) {			
-			return " and ((jsonb_extract_path_text(data,'dataProductName')) in (" +"'"+ uniqueProductName +"'"+ "))" +  
+			return " and (lower(jsonb_extract_path_text(data,'dataProductName')) in (" +"'"+ uniqueProductName.toLowerCase() +"'"+ "))" +  
 					" and ((jsonb_extract_path_text(data,'recordStatus')) in (" +"'"+ status +"'"+ "))";
 		}
 		return "";
