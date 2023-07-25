@@ -139,6 +139,16 @@
             }
         }
     }        
+    #how-to-access-preview-tabs .tab {
+        > a {
+            // position: relative;
+            // padding: 10px 50px 12px 40px;
+            &::before {
+                content: none!important;   
+                font-size: 0;         
+            }
+        }
+    }
 }
     
 

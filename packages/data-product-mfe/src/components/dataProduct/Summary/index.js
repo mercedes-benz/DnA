@@ -15,6 +15,7 @@ import DataTranferCardLayout from '../../dataTransfer/Layout/CardView/DataTransf
 import { setSelectedDataProduct, setDivisionList, resetDataTransferList } from '../redux/dataProductSlice';
 
 import { isValidURL } from '../../../Utility/utils';
+import AccessStepsSummary from '../../accessStepsSummary';
 
 import InfoModal from 'dna-container/InfoModal';
 import Modal from 'dna-container/Modal';
@@ -59,6 +60,12 @@ const Summary = ({ history, user }) => {
   const [showHowToAccessModal, setShowHowToAccessModal] = useState(false);
 
   const [showMyDataTransfers, setShowMyDataTransfers] = useState(false);
+  const [showPreviewModal, setShowPreviewModal] = useState(false);
+  const [currentPreviewTab, setCurrentPreviewTab] = useState('');
+
+  const [kafkaFields, setKafkaFields] = useState([]);
+  const [liveAccessFields, setLiveAccessFields] = useState([]);
+  const [apiFields, setApiFields] = useState([]);
 
   const [CDC_URL, setCDCURL] = useState('');
 
@@ -127,6 +134,9 @@ const Summary = ({ history, user }) => {
         return history.push('/NotFound');
       } else {
         const data = deserializeFormData({ item: res.data, isDataProduct: true });
+        setKafkaFields(data?.howToAccessTemplate?.accessDetailsCollectionVO[0]?.stepCollectionVO ? data?.howToAccessTemplate?.accessDetailsCollectionVO[0]?.stepCollectionVO : []);
+        setLiveAccessFields(data?.howToAccessTemplate?.accessDetailsCollectionVO[1]?.stepCollectionVO ? data?.howToAccessTemplate?.accessDetailsCollectionVO[1]?.stepCollectionVO : []);
+        setApiFields(data?.howToAccessTemplate?.accessDetailsCollectionVO[2]?.stepCollectionVO ? data?.howToAccessTemplate?.accessDetailsCollectionVO[2]?.stepCollectionVO : []);
         dispatch(setSelectedDataProduct(data));
         Tabs.defaultSetup();
       }
@@ -268,6 +278,81 @@ const Summary = ({ history, user }) => {
             );
           })
         : 'N.A';
+  
+        const previewModalContent = (
+          <div className={Styles.accessModal}>
+                <div className={Styles.accessModalHeader}>
+                  <div className={Styles.accessModalHeaderIcon}>
+                    <i
+                      className={classNames('icon mbc-icon info iconsmd', Styles.infoIcon)}
+                    /> 
+                  </div>
+                  <div className={Styles.accessModalHeaderText}>
+                    <h3>How To Access</h3>
+                  </div>
+                </div>
+                <div className={Styles.noData}>
+                  {currentPreviewTab === 'Kafka' && kafkaFields?.length == 0 ? 'No Data' : ''}
+                  {currentPreviewTab === 'Live' && liveAccessFields?.length == 0 ? 'No Data' : ''}
+                  {currentPreviewTab === 'API' && apiFields?.length == 0 ? 'No Data' : ''}
+                </div>
+                
+
+                {currentPreviewTab === 'Kafka' && kafkaFields?.map((stepItem, index)=>{
+                  return(
+                  <fieldset key={'access-via-kafka-preview'+stepItem.id}>  
+                  <AccessStepsSummary 
+                  value={stepItem}
+                  itemIndex={index}
+                  showMoveUp={index !== 0}
+                  showMoveDown={index + 1 !== kafkaFields.length}
+                  arrayName={'kafkaArray'}
+                  isEditable={false}
+                  />
+                  </fieldset>
+                  )
+                })}
+              
+                {currentPreviewTab === 'Live' && liveAccessFields?.map((stepItem, index)=>{
+                  return(
+                  <fieldset key={'live-access-preview'+stepItem.id}>  
+                  <AccessStepsSummary 
+                  value={stepItem}
+                  itemIndex={index}
+                  showMoveUp={index !== 0}
+                  showMoveDown={index + 1 !== liveAccessFields.length}
+                  arrayName={'liveAccessArray'}
+                  isEditable={false}
+                  />
+                  </fieldset>
+                  )
+                })}
+              
+                {currentPreviewTab === 'API' && apiFields?.map((stepItem, index)=>{
+                  return(
+                  <fieldset key={'api-access-preview'+stepItem.id}>  
+                  <AccessStepsSummary 
+                  value={stepItem}
+                  itemIndex={index}
+                  showMoveUp={index !== 0}
+                  showMoveDown={index + 1 !== apiFields.length}
+                  arrayName={'apiArray'}
+                  isEditable={false}
+                  />
+                  </fieldset>
+                  )
+                })}
+
+                <div className={Styles.actionButtonsSection}>
+                  <button
+                    onClick={()=>{
+                      setShowPreviewModal(false);
+                    }}
+                  >OK, got it</button>
+                </div>
+              
+          </div>
+);        
 
   return (
     <div className="dataproductSummary">
@@ -807,6 +892,39 @@ const Summary = ({ history, user }) => {
         onCancel={deleteDataProductClose}
         onAccept={deleteDataProductAccept}
       />
+      
+      <InfoModal
+        title={""}
+        show={showPreviewModal}
+        content={previewModalContent}
+        onCancel={() => setShowPreviewModal(false)}
+      />
+            
+      <div className={Styles.stickyPanel}>
+        <div className={Styles.productName}>
+          {'Access "'+ selectedDataProduct?.productName +'"'} 
+        </div>
+        <div className={Styles.actionButtonsSection}>
+          <button
+            onClick={()=>{
+              setShowPreviewModal(true);
+              setCurrentPreviewTab('Live');
+            }}
+          >Live</button>
+          <button
+            onClick={()=>{
+              setShowPreviewModal(true);
+              setCurrentPreviewTab('API');
+            }}
+          >API</button>
+          <button
+            onClick={()=>{
+              setShowPreviewModal(true);
+              setCurrentPreviewTab('Kafka');
+            }}
+          >Kafka</button>
+        </div>
+      </div>
     </div>
   );
 };
