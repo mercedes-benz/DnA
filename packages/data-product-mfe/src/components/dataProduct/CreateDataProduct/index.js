@@ -10,6 +10,7 @@ import Notification from '../../../common/modules/uilab/js/src/notification';
 import { useForm, FormProvider } from 'react-hook-form';
 import { useDispatch, useSelector } from 'react-redux';
 import { useParams } from 'react-router-dom';
+// import { useFormContext } from 'react-hook-form';
 
 import ConfirmModal from 'dna-container/ConfirmModal';
 import SelectBox from 'dna-container/SelectBox';
@@ -50,11 +51,19 @@ const dataForms = {
 };
 
 const CreateDataProduct = ({ user, history }) => {
+  // const { control } = useForm();
+  // const {  confidentialityInDescription, accessType } = watch();
+  // const confidentialityInDescription = useWatch({ control, name: "confidentialityInDescription" });
+  // const accessType = useWatch({ control, name: "accessType" });
+
+
   const isCreatePage = history.location.pathname === '/dataproduct/create';
   const isEditPage = /^\/dataproduct\/edit/.test(history?.location?.pathname);
 
   const [currentTab, setCurrentTab] = useState('description');
   const [savedTabs, setSavedTabs] = useState([]);
+  const [currentConfidentialityInDescription, setCurrentConfidentialityInDescription] = useState('');
+  const [currentAccessType, setCurrentAccessType] = useState([]);
 
   const data = useSelector((state) => state.dataProduct);
 
@@ -144,6 +153,8 @@ const CreateDataProduct = ({ user, history }) => {
             }
           });
           setSavedTabs(segments);
+          setCurrentAccessType(data.accessTypeInDescription);
+          setCurrentConfidentialityInDescription(data.confidentialityInDescription);
         }
         ProgressIndicator.hide();
         // SelectBox?.defaultSetup();
@@ -262,7 +273,10 @@ const CreateDataProduct = ({ user, history }) => {
   const switchTabs = (currentTab) => {
     const tabIndex = Object.keys(dataForms).indexOf(currentTab) + 1;
     setSavedTabs([...new Set([...savedTabs, currentTab])]);
-    if (currentTab !== 'deletion-requirements') {
+    if (currentTab !== 'deletion-requirements' && 
+    !((currentAccessType?.length == 1 && currentAccessType?.includes('Live (SAC/AFO)')) || 
+    currentConfidentialityInDescription == 'Internal')) 
+    {
       setCurrentTab(Object.keys(dataForms)[tabIndex]);
       elementRef.current[tabIndex].click();
     }
@@ -280,149 +294,171 @@ const CreateDataProduct = ({ user, history }) => {
       saveTabError:[]
     }
 
-    if(!savedTabs?.includes('description')){
-      errorObject.saveTabError.push('Description');
-      formValid = false;
-    }
+    if ((currentAccessType?.length == 1 && currentAccessType?.includes('Live (SAC/AFO)')) || 
+    currentConfidentialityInDescription == 'Internal') {
+      if(!savedTabs?.includes('description')){
+        errorObject.saveTabError.push('Description');
+        formValid = false;
+      }
 
-    if(!savedTabs?.includes('contact-info')){
-      errorObject.saveTabError.push('Contact Information');
-      formValid = false;
-    }
-
-    if(!savedTabs?.includes('classification-confidentiality')){
-      errorObject.saveTabError.push('Data Description & Classification');
-      formValid = false;
-    }
-
-    if(!savedTabs?.includes('personal-data')){
-      errorObject.saveTabError.push('Personal Related Data');
-      formValid = false;
-    }
+      if (!reqObj?.description || reqObj?.description === '') {
+        errorObject.descriptionTabError.push('Description');
+        formValid = false;
+      }
+  
+      if (!reqObj?.productName || reqObj?.productName === '') {
+        errorObject.descriptionTabError.push('Name of Data Product');
+        formValid = false;
+      }
+    } else {
+      if(!savedTabs?.includes('description')){
+        errorObject.saveTabError.push('Description');
+        formValid = false;
+      }
+  
+      if(!savedTabs?.includes('contact-info')){
+        errorObject.saveTabError.push('Contact Information');
+        formValid = false;
+      }
+  
+      if(!savedTabs?.includes('classification-confidentiality')){
+        errorObject.saveTabError.push('Data Description & Classification');
+        formValid = false;
+      }
+  
+      if(!savedTabs?.includes('personal-data')){
+        errorObject.saveTabError.push('Personal Related Data');
+        formValid = false;
+      }
+      
+      if(!savedTabs?.includes('trans-national-data-transfer')){
+        errorObject.saveTabError.push('Transnational Data');
+        formValid = false;
+      }
+  
+      if(!savedTabs?.includes('deletion-requirements')){
+        errorObject.saveTabError.push('Other Data');
+        formValid = false;
+      }
     
-    if(!savedTabs?.includes('trans-national-data-transfer')){
-      errorObject.saveTabError.push('Transnational Data');
-      formValid = false;
-    }
 
-    if(!savedTabs?.includes('deletion-requirements')){
-      errorObject.saveTabError.push('Other Data');
-      formValid = false;
-    }
-
-    if (!reqObj?.description || reqObj?.description === '') {
-      errorObject.descriptionTabError.push('Description');
-      formValid = false;
-    }
-
-    if (!reqObj?.productName || reqObj?.productName === '') {
-      errorObject.descriptionTabError.push('Name of Data Product');
-      formValid = false;
-    }
-
-    // if (!reqObj?.howToAccessText || reqObj?.howToAccessText === '') {
-    //   errorObject.descriptionTabError.push('How to access');
-    //   formValid = false;
-    // }
-
-    if (!reqObj?.informationOwner || reqObj?.informationOwner === '') {
-      errorObject.contactInformationTabError.push('Information Owner');
-      formValid = false;
-    }
-
-    if (!reqObj?.name?.firstName || reqObj?.name?.firstName === '') {
-      errorObject.contactInformationTabError.push('Your Name');
-      formValid = false;
-    }
-
-    if (!reqObj?.division || reqObj?.division === '0') {
-      errorObject.contactInformationTabError.push('Division');
-      formValid = false;
-    }
-
-    if (!reqObj?.department || reqObj?.department === '') {
-      errorObject.contactInformationTabError.push('Department');
-      formValid = false;
-    }
     
-    if (!reqObj?.complianceOfficer || reqObj?.complianceOfficer === '') {
-      errorObject.contactInformationTabError.push('Corresponding Compliance Officer / Responsible (LCO/LCR)');
-      formValid = false;
-    }
 
-    if (!reqObj?.classificationOfTransferedData || reqObj?.classificationOfTransferedData === '') {
-      errorObject.dataDescriptionClassificationTabError.push('Description of transfered data');
-      formValid = false;
-    }
-
-    if (!reqObj?.confidentiality || reqObj?.confidentiality === '') {
-      errorObject.dataDescriptionClassificationTabError.push('Confidentiality');
-      formValid = false;
-    }
-
-    if (!reqObj?.personalRelatedData || reqObj?.personalRelatedData === '') {
-      errorObject.personalRelatedDataTabError.push('Is data personal related');
-      formValid = false;
-    }
-
-    if (reqObj?.personalRelatedData === 'Yes') {
-      if (!reqObj?.personalRelatedDataDescription || reqObj?.personalRelatedDataDescription === '') {
-        errorObject.personalRelatedDataTabError.push('Description of personal related data');
+      if (!reqObj?.description || reqObj?.description === '') {
+        errorObject.descriptionTabError.push('Description');
         formValid = false;
       }
 
-      if (!reqObj?.personalRelatedDataPurpose || reqObj?.personalRelatedDataPurpose === '') {
-        errorObject.personalRelatedDataTabError.push('Original (business) purpose of processing this personal related data');
+      if (!reqObj?.productName || reqObj?.productName === '') {
+        errorObject.descriptionTabError.push('Name of Data Product');
         formValid = false;
       }
 
-      if (!reqObj?.personalRelatedDataLegalBasis || reqObj?.personalRelatedDataLegalBasis === '') {
-        errorObject.personalRelatedDataTabError.push('Original legal basis for processing this personal related data');
+      // if (!reqObj?.howToAccessText || reqObj?.howToAccessText === '') {
+      //   errorObject.descriptionTabError.push('How to access');
+      //   formValid = false;
+      // }
+
+      if (!reqObj?.informationOwner || reqObj?.informationOwner === '') {
+        errorObject.contactInformationTabError.push('Information Owner');
         formValid = false;
       }
 
-      if (!reqObj?.personalRelatedDataContactAwareTransfer || reqObj?.personalRelatedDataContactAwareTransfer === '') {
-        errorObject.personalRelatedDataTabError.push('Is corresponding Compliance contact aware of this transfer?');
+      if (!reqObj?.name?.firstName || reqObj?.name?.firstName === '') {
+        errorObject.contactInformationTabError.push('Your Name');
         formValid = false;
       }
-    }
 
-    if (reqObj?.personalRelatedDataContactAwareTransfer == 'Yes' ) {
-      if (!reqObj?.personalRelatedDataObjectionsTransfer || reqObj?.personalRelatedDataObjectionsTransfer === '') {
-        errorObject.personalRelatedDataTabError.push('Has s/he any objections to this transfer?');
+      if (!reqObj?.division || reqObj?.division === '0') {
+        errorObject.contactInformationTabError.push('Division');
         formValid = false;
       }
-    }
 
-    if(reqObj?.personalRelatedDataObjectionsTransfer === 'Yes') {
-      if (!reqObj.personalRelatedDataTransferingNonetheless || reqObj.personalRelatedDataTransferingNonetheless === '') {
-        errorObject.personalRelatedDataTabError.push('Please state your reasoning for transfering nonetheless');
+      if (!reqObj?.department || reqObj?.department === '') {
+        errorObject.contactInformationTabError.push('Department');
         formValid = false;
       }
-      if (!reqObj.personalRelatedDataTransferingObjections || reqObj.personalRelatedDataTransferingObjections === '') {
-        errorObject.personalRelatedDataTabError.push('Please state your objections');
+      
+      if (!reqObj?.complianceOfficer || reqObj?.complianceOfficer === '') {
+        errorObject.contactInformationTabError.push('Corresponding Compliance Officer / Responsible (LCO/LCR)');
         formValid = false;
       }
-    }
 
-    if (!reqObj?.transnationalDataTransfer || reqObj?.transnationalDataTransfer === '') {
-      errorObject.transnationalDataTabError.push('Is data being transferred from one country to another?');
-      formValid = false;
-    }
+      if (!reqObj?.classificationOfTransferedData || reqObj?.classificationOfTransferedData === '') {
+        errorObject.dataDescriptionClassificationTabError.push('Description of transfered data');
+        formValid = false;
+      }
 
-    if (!reqObj?.insiderInformation || reqObj?.insiderInformation === '') {
-      errorObject.deletionRequirementsTabError.push('Does data product contain (potential) insider information?');
-      formValid = false;
-    }
+      if (!reqObj?.confidentiality || reqObj?.confidentiality === '') {
+        errorObject.dataDescriptionClassificationTabError.push('Confidentiality');
+        formValid = false;
+      }
 
-    if (!reqObj?.deletionRequirement || reqObj?.deletionRequirement === '') {
-      errorObject.deletionRequirementsTabError.push('Are there specific deletion requirements for this data?');
-      formValid = false;
-    }
+      if (!reqObj?.personalRelatedData || reqObj?.personalRelatedData === '') {
+        errorObject.personalRelatedDataTabError.push('Is data personal related');
+        formValid = false;
+      }
 
-    if (!reqObj?.tou || reqObj?.tou === false) {
-      errorObject.deletionRequirementsTabError.push('Terms and conditions acknowledgement');
-      formValid = false;
+      if (reqObj?.personalRelatedData === 'Yes') {
+        if (!reqObj?.personalRelatedDataDescription || reqObj?.personalRelatedDataDescription === '') {
+          errorObject.personalRelatedDataTabError.push('Description of personal related data');
+          formValid = false;
+        }
+
+        if (!reqObj?.personalRelatedDataPurpose || reqObj?.personalRelatedDataPurpose === '') {
+          errorObject.personalRelatedDataTabError.push('Original (business) purpose of processing this personal related data');
+          formValid = false;
+        }
+
+        if (!reqObj?.personalRelatedDataLegalBasis || reqObj?.personalRelatedDataLegalBasis === '') {
+          errorObject.personalRelatedDataTabError.push('Original legal basis for processing this personal related data');
+          formValid = false;
+        }
+
+        if (!reqObj?.personalRelatedDataContactAwareTransfer || reqObj?.personalRelatedDataContactAwareTransfer === '') {
+          errorObject.personalRelatedDataTabError.push('Is corresponding Compliance contact aware of this transfer?');
+          formValid = false;
+        }
+      }
+
+      if (reqObj?.personalRelatedDataContactAwareTransfer == 'Yes' ) {
+        if (!reqObj?.personalRelatedDataObjectionsTransfer || reqObj?.personalRelatedDataObjectionsTransfer === '') {
+          errorObject.personalRelatedDataTabError.push('Has s/he any objections to this transfer?');
+          formValid = false;
+        }
+      }
+
+      if(reqObj?.personalRelatedDataObjectionsTransfer === 'Yes') {
+        if (!reqObj.personalRelatedDataTransferingNonetheless || reqObj.personalRelatedDataTransferingNonetheless === '') {
+          errorObject.personalRelatedDataTabError.push('Please state your reasoning for transfering nonetheless');
+          formValid = false;
+        }
+        if (!reqObj.personalRelatedDataTransferingObjections || reqObj.personalRelatedDataTransferingObjections === '') {
+          errorObject.personalRelatedDataTabError.push('Please state your objections');
+          formValid = false;
+        }
+      }
+
+      if (!reqObj?.transnationalDataTransfer || reqObj?.transnationalDataTransfer === '') {
+        errorObject.transnationalDataTabError.push('Is data being transferred from one country to another?');
+        formValid = false;
+      }
+
+      if (!reqObj?.insiderInformation || reqObj?.insiderInformation === '') {
+        errorObject.deletionRequirementsTabError.push('Does data product contain (potential) insider information?');
+        formValid = false;
+      }
+
+      if (!reqObj?.deletionRequirement || reqObj?.deletionRequirement === '') {
+        errorObject.deletionRequirementsTabError.push('Are there specific deletion requirements for this data?');
+        formValid = false;
+      }
+
+      if (!reqObj?.tou || reqObj?.tou === false) {
+        errorObject.deletionRequirementsTabError.push('Terms and conditions acknowledgement');
+        formValid = false;
+      }
+
     }
 
     setErrorsInPublish(errorObject);
@@ -625,8 +661,11 @@ const CreateDataProduct = ({ user, history }) => {
                     </a>
                   </li>
                   {/* <li className={savedTabs?.includes('contact-info') ? 'tab valid' : 'tab disabled'}> */}
-                  <li className={savedTabs?.includes('contact-info') && 
-                  errorsInPublish?.contactInformationTabError?.length < 1 ? 'tab valid' :'tab'}>
+                  
+                  <li className={classNames(savedTabs?.includes('contact-info') && 
+                  errorsInPublish?.contactInformationTabError?.length < 1 ? 'tab valid' :'tab',
+                  (currentAccessType?.length == 1 && currentAccessType?.includes('Live (SAC/AFO)')) || currentConfidentialityInDescription == 'Internal' ? 'disabled' : ''
+                  )}>
                     <a
                       href="#tab-content-2"
                       id="contact-info"
@@ -634,13 +673,16 @@ const CreateDataProduct = ({ user, history }) => {
                         if (elementRef.current) elementRef.current[1] = ref;
                       }}
                       onClick={setTab}
+                      className={(currentAccessType?.length == 1 && currentAccessType?.includes('Live (SAC/AFO)')) || currentConfidentialityInDescription == 'Internal' ? 'hidden' : ''}
                     >
                       Contact Information
                     </a>
                   </li>
                   {/* <li className={savedTabs?.includes('classification-confidentiality') ? 'tab valid' : 'tab disabled'}> */}
-                  <li className={ savedTabs?.includes('classification-confidentiality') && 
-                  errorsInPublish?.dataDescriptionClassificationTabError?.length < 1 ? 'tab valid' :'tab'}>
+                  <li className={ classNames(savedTabs?.includes('classification-confidentiality') && 
+                  errorsInPublish?.dataDescriptionClassificationTabError?.length < 1 ? 'tab valid' :'tab',
+                  (currentAccessType?.length == 1 && currentAccessType?.includes('Live (SAC/AFO)')) || currentConfidentialityInDescription == 'Internal' ? 'disabled' : ''
+                  )}>
                     <a
                       href="#tab-content-3"
                       id="classification-confidentiality"
@@ -648,13 +690,16 @@ const CreateDataProduct = ({ user, history }) => {
                         if (elementRef.current) elementRef.current[2] = ref;
                       }}
                       onClick={setTab}
+                      className={(currentAccessType?.length == 1 && currentAccessType?.includes('Live (SAC/AFO)')) || currentConfidentialityInDescription == 'Internal' ? 'hidden' : ''}
                     >
                       Data Description & Classification
                     </a>
                   </li>
                   {/* <li className={savedTabs?.includes('personal-data') ? 'tab valid' : 'tab disabled'}> */}
-                  <li className={savedTabs?.includes('personal-data') && 
-                  errorsInPublish?.personalRelatedDataTabError?.length < 1 ? 'tab valid' :'tab'}>
+                  <li className={classNames(savedTabs?.includes('personal-data') && 
+                  errorsInPublish?.personalRelatedDataTabError?.length < 1 ? 'tab valid' :'tab',
+                  (currentAccessType?.length == 1 && currentAccessType?.includes('Live (SAC/AFO)')) || currentConfidentialityInDescription == 'Internal' ? 'disabled' : ''
+                  )}>
                     <a
                       href="#tab-content-4"
                       id="personal-data"
@@ -662,13 +707,16 @@ const CreateDataProduct = ({ user, history }) => {
                         if (elementRef.current) elementRef.current[3] = ref;
                       }}
                       onClick={setTab}
+                      className={(currentAccessType?.length == 1 && currentAccessType?.includes('Live (SAC/AFO)')) || currentConfidentialityInDescription == 'Internal' ? 'hidden' : ''}
                     >
                       Personal Related Data
                     </a>
                   </li>
                   {/* <li className={savedTabs?.includes('trans-national-data-transfer') ? 'tab valid' : 'tab disabled'}> */}
-                  <li className={savedTabs?.includes('trans-national-data-transfer') && 
-                  errorsInPublish?.transnationalDataTabError?.length < 1 ? 'tab valid' :'tab'}>
+                  <li className={classNames(savedTabs?.includes('trans-national-data-transfer') && 
+                  errorsInPublish?.transnationalDataTabError?.length < 1 ? 'tab valid' :'tab',
+                  (currentAccessType?.length == 1 && currentAccessType?.includes('Live (SAC/AFO)')) || currentConfidentialityInDescription == 'Internal' ? 'disabled' : ''
+                  )}>
                     <a
                       href="#tab-content-5"
                       id="trans-national-data-transfer"
@@ -676,17 +724,20 @@ const CreateDataProduct = ({ user, history }) => {
                         if (elementRef.current) elementRef.current[4] = ref;
                       }}
                       onClick={setTab}
+                      className={(currentAccessType?.length == 1 && currentAccessType?.includes('Live (SAC/AFO)')) || currentConfidentialityInDescription == 'Internal' ? 'hidden' : ''}
                     >
                       Transnational Data
                     </a>
                   </li>
                   {/* <li className={savedTabs?.includes('deletion-requirements') ? 'tab valid' : 'tab disabled'}> */}
                   <li className={
-                    savedTabs?.includes('deletion-requirements') &&
+                    classNames(savedTabs?.includes('deletion-requirements') &&
                     errorsInPublish?.deletionRequirementsTabError?.length < 1
                     ?  'tab valid'
                     : errorsInPublish?.deletionRequirementsTabError?.includes('Terms and conditions acknowledgement') && !isTouChecked
-                        ?'tab': 'tab valid'
+                        ?'tab': 'tab valid',
+                  (currentAccessType?.length == 1 && currentAccessType?.includes('Live (SAC/AFO)')) || currentConfidentialityInDescription == 'Internal' ? 'disabled' : ''
+                  )
                     }>
                     <a
                       href="#tab-content-6"
@@ -695,6 +746,7 @@ const CreateDataProduct = ({ user, history }) => {
                         if (elementRef.current) elementRef.current[5] = ref;
                       }}
                       onClick={setTab}
+                      className={(currentAccessType?.length == 1 && currentAccessType?.includes('Live (SAC/AFO)')) || currentConfidentialityInDescription == 'Internal' ? 'hidden' : ''}
                     >
                       Other Data
                     </a>
@@ -716,6 +768,8 @@ const CreateDataProduct = ({ user, history }) => {
                   frontEndToolList={frontEndTools}
                   tagsList={tags}
                   isDataProduct={true}
+                  onChangeAccessType={(val)=>{setCurrentAccessType(val)}}
+                  onChangeConfidentialityInDescription={(val)=>{setCurrentConfidentialityInDescription(val)}}
                 />
                 )}
               </div>

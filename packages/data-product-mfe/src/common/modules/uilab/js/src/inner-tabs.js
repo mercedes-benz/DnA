@@ -6,10 +6,10 @@ class InnerTabs {
     this._element = element;
   }
 
-  static defaultSetup() {
-    const tabs = document.querySelectorAll('.inner-tabs');
+  static defaultSetup(tabName) {
+    const tabs = document.querySelectorAll('.'+tabName+'s');
     makeArray(tabs).forEach((tabsElem) => {
-      const tabItems = tabsElem.querySelectorAll('.inner-tab');
+      const tabItems = tabsElem.querySelectorAll('.'+tabName);
 
       const activeIndicator = document.createElement('SPAN');
       activeIndicator.setAttribute('class', 'active-indicator');
@@ -58,7 +58,7 @@ class InnerTabs {
       evt.preventDefault();
       const tabElem = evt.currentTarget;
       const tabsElem = tabElem.parentNode;
-      const curTabs = tabsElem.querySelectorAll('.inner-tab');
+      const curTabs = tabsElem.querySelectorAll('.'+tabName);
       makeArray(curTabs).forEach((tab) => {
         tab.classList.remove('active');
       });
@@ -73,7 +73,7 @@ class InnerTabs {
     function scrollTabs(evt) {
       const arrowElem = evt.currentTarget;
       const tabNavElem = arrowElem.parentNode;
-      const tabsElem = tabNavElem.querySelector('.inner-tabs');
+      const tabsElem = tabNavElem.querySelector('.'+tabName+'s');
       let leftScrollVal = 0;
       if (arrowElem.classList.contains('next')) {
         leftScrollVal = tabsElem.scrollLeft + tabsElem.clientWidth;
@@ -139,7 +139,7 @@ class InnerTabs {
     }
 
     function showActiveTabContent(activeTab, tabPanel) {
-      const tabContents = tabPanel.querySelectorAll('.inner-tab-content');
+      const tabContents = tabPanel.querySelectorAll('.'+tabName+'-content');
       makeArray(tabContents).forEach((tabContent) => {
         tabContent.classList.remove('active');
       });
