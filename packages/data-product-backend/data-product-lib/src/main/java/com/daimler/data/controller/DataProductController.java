@@ -102,7 +102,7 @@ public class DataProductController implements DataproductsApi{
 				return new ResponseEntity<>(responseVO, HttpStatus.CONFLICT);
 			}
 			if(requestVO.isIsPublish()) {
-				if(Objects.isNull(requestVO.getClassificationConfidentiality()) || 
+				if((requestVO.getAccess().isMinimumInformationCheck()) && Objects.isNull(requestVO.getClassificationConfidentiality()) || 
 				   Objects.isNull(requestVO.getContactInformation()) ||
 				   Objects.isNull(requestVO.getPersonalRelatedData()) ||
 				   Objects.isNull(requestVO.getTransnationalDataTransfer())||
