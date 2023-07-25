@@ -4,18 +4,12 @@ import Styles from './styles.scss';
 
 import { useForm, useWatch } from 'react-hook-form';
 
-// import InfoModal from 'dna-container/InfoModal';
-// import { useDispatch } from 'react-redux';
-// import TextArea from 'dna-container/TextArea';
 import SelectBox from 'dna-container/SelectBox';
-// import { getLegalBasis } from '../../../redux/getDropdowns.services';
-// import Tabs from '../../common/modules/uilab/js/src/tabs';
+import Modal from 'dna-container/Modal';
+import { markdownParser, htmlToMarkdownParser } from 'dna-container/MarkdownParser';
 
 const AccessSteps = (
   { 
-    //   onSave 
-    // description,
-    // stepNumber,
     value,
     itemIndex,
     showMoveUp,
@@ -27,53 +21,45 @@ const AccessSteps = (
     remove,
     numberedStep,
     updateNumberedStep,
-    arrayName
+    arrayName,
+    isEditable
 }
   ) => {
   const {
     register,
     handleSubmit,
-    // formState: { errors },
-    // reset,
-    // watch,
-    // clearErrors,
     setValue,
-    // getValues,
   } = useForm({
     defaultValues: {value}
   });
   const [enableEdit, setEnableEdit] = useState(false);
-  // const [numberedStep, setNumberedStep] = useState(0);
+  const [showLinkModal, setShowLinkModal] = useState(false);
+  const [linkLabel, setLinkLabel] = useState('');
+  const [linkUrl, setLinkUrl] = useState('');
+  const [showDesc, setShowDesc] = useState(true);
+  const [markdownParserText, setMarkdownParserText] = useState('');
 
   const data = useWatch({
     control,
     name: `${arrayName}.${itemIndex}`
   });
 
-//   const dispatch = useDispatch();
-
-//   useEffect(() => {
-//     setDescriptionText(description);
-//     //eslint-disable-next-line
-//   }, [dispatch]);
-
   useEffect(() => {
     SelectBox.defaultSetup();
     console.log(value,'Showing value coming from parent');
-    // dispatch(getLegalBasis());
     //eslint-disable-next-line
   }, [enableEdit]);
 
   useEffect(() => {
     setValue(`stepNumber`, numberedStep );
-    // Tabs.defaultSetup();
     //eslint-disable-next-line
   }, []);
 
   useEffect(() => {
-    setValue(`stepText`, data?.stepText );
+    // setValue(`stepText`, data?.stepText );
+    setMarkdownParserText(markdownParser(data?.stepText));
     //eslint-disable-next-line
-  }, [data?.stepText]);
+  }, []);
 
   const onMoveUpSide = () => {
     onMoveUp(itemIndex);
@@ -83,9 +69,83 @@ const AccessSteps = (
     onMoveDown(itemIndex);
   };
 
-  // const onDescChange = (val) => {
-  //   setValue(`stepText`, val.target.value );
-  // };
+
+  const addLink = () => {
+    setShowDesc(false);
+    let tempText = markdownParserText;
+    tempText += ' ['+linkLabel+']('+linkUrl+') ';
+    
+    setMarkdownParserText(markdownParser(tempText));
+    setValue('stepText', tempText);
+    
+    setShowDesc(true);
+    setShowLinkModal(false);
+    setLinkLabel('');
+    setLinkUrl('');
+  };
+
+  const addLinkModalContent = (
+    <div className={Styles.addLinkModalContent}>
+      <br />
+      <div>
+        <div className={Styles.flexLayout}>    
+          <div className={classNames('input-field-group include-error', 
+          // this.state.errors.kpiLink ? 'error' : ''
+          )}>
+            <label id="kpiLinkLabel" htmlFor="kpiLinkField" className="input-label">
+            Label for Link
+            </label>
+            <input
+              type="text"
+              className="input-field"
+              name="kpiLink"
+              id="kpiLinkInput"
+              maxLength={200}
+              // placeholder=""
+              autoComplete="off"
+              value={linkLabel}
+              onChange={(e)=>setLinkLabel(e.currentTarget.value)}
+            />
+            {/* <span className={classNames('error-message', this.state.errors.kpiLink.length ? '' : 'hide')}>
+              {this.state.errors.kpiLink}
+            </span> */}
+          </div> 
+          <div className={classNames('input-field-group include-error', 
+          // this.state.errors.kpiLink ? 'error' : ''
+          )}>
+            <label id="kpiLinkLabel" htmlFor="kpiLinkField" className="input-label">
+            Url
+            </label>
+            <input
+              type="text"
+              className="input-field"
+              name="kpiLink"
+              id="kpiLinkInput"
+              maxLength={200}
+              placeholder="https://www.example.com"
+              autoComplete="off"
+              value={linkUrl}
+              onChange={(e)=>setLinkUrl(e.currentTarget.value)}
+            />
+            {/* <span className={classNames('error-message', this.state.errors.kpiLink.length ? '' : 'hide')}>
+              {this.state.errors.kpiLink}
+            </span> */}
+          </div>            
+        </div>
+        <div>
+          <div className="btnConatiner">
+            <button
+              className="btn btn-primary"
+              type="button"
+              onClick={() => {addLink()}}
+            >
+              Add
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 
   return (
     <>
@@ -102,11 +162,10 @@ const AccessSteps = (
                     {enableEdit?
                         <div className={`custom-select`}>
                             <select id="stepIconTypeField" name="stepIconType" 
-                            // {...register(`stepsArray.${itemIndex}.stepIconType`)}
-                            {...register(`stepIconType`,{value: data?.stepIconType})}
+                            {...register(`stepIconType`,{value: data?.stepIconType ? data?.stepIconType : 'Numbered'})}
                             >
-                                <option id='Numbered0' key={'Numbered'} value={'Numbered'}>Numbered</option>
-                                <option id='Unnumbered1' key={'Unnumbered'} value={'Unnumbered'}>Unnumbered</option>
+                                <option id='Numbered' key={'Numbered'} value={'Numbered'}>Numbered</option>
+                                <option id='Unnumbered' key={'Unnumbered'} value={'Unnumbered'}>Unnumbered</option>
                             </select>
                             <input type='hidden' {...register(`stepNumber`,{value:
                             numberedStep
@@ -115,7 +174,6 @@ const AccessSteps = (
                         :
                          data?.stepNumber && data?.stepIconType === 'Numbered' ? 
                           <div className={Styles.stepCounter}>
-                            {/* { data?.stepIconType } */}
                             { data?.stepNumber }
                           </div>
 
@@ -132,7 +190,7 @@ const AccessSteps = (
                     }    
                   </div>
                   <div className={Styles.editIcon}>
-                  {!enableEdit ?
+                  {!enableEdit && isEditable ?
                         <i
                         className={classNames('icon mbc-icon edit iconsmd', Styles.infoIcon)}
                         tooltip-data="Edit step"
@@ -143,33 +201,39 @@ const AccessSteps = (
                         : ''}
                   </div>
                   <div className={Styles.descriptionWrapper}>     
-                  {!enableEdit ?
                   
-                    <p>
-                        { data?.stepText }
-                    </p>
-                  
-                   :
-                   <>
                         <div className={Styles.descriptionField}>
-                            {/* <TextArea
-                            controlId={'stepTextField'}
-                            containerId={'stepText'}
-                            rows={4}
-                            value = {value?.stepText}
-                            required={false}
-                            onChange={onDescChange}
-                            /> */}
-                            <textarea
-                              id="description"
-                              className={"input-field-area "+Styles.textArea}
-                              type="text"
-                              rows={4}
-                              {...register('stepText')}
-                            />
+                            {showDesc ? 
+                            <p contentEditable={enableEdit ? "true" : "false"} {...register('stepText')}
+                              className={Styles.stepDescription}
+                              onInput={(e) => {
+                                setValue('stepText',htmlToMarkdownParser(e.target.innerHTML))
+                                setMarkdownParserText(markdownParserText, ...e.target.innerHTML);
+                              }}
+                              onBlur={(e) => {
+                                let tempText2 = '';
+                                tempText2 += e.target.innerHTML;                        
+                                setValue('stepText',htmlToMarkdownParser(tempText2))
+                                setMarkdownParserText(tempText2);
+                              }}
+                              dangerouslySetInnerHTML={{
+                                __html: markdownParserText,
+                              }}
+                              placeholder="Description..."
+                            ></p>
+                            : ''}
                         </div>
+                    {!enableEdit ?   
+                    '' 
+                      :
+                      <>  
                         <div>
-                            {/* <span className={Styles.addLink}>Add link</span>&nbsp;&nbsp;&nbsp;&nbsp; */}
+                            <span className={Styles.saveEntry}
+                            onClick={() => {
+                              // setMarkdownParserText(markdownParserText, ...markdownParserText)
+                              setShowLinkModal(true)}}
+                            >Add Link</span>
+                            {' '}&nbsp;&nbsp;
                             <span className={Styles.saveEntry} 
                             onClick={handleSubmit((data1) => {
                               if(data1?.stepIconType == 'Numbered'){
@@ -183,6 +247,7 @@ const AccessSteps = (
                                 }
                                 
                               }
+                              
                               update(itemIndex, data1);
                               setEnableEdit(false);
                             })}
@@ -196,17 +261,14 @@ const AccessSteps = (
                     
                   </div>
                   <div className={Styles.removeAction}>
-                    {/* <span className={Styles.saveEntry} 
-                      onClick={() => {
-                        remove(itemIndex);
-                      }}
-                    >Remove</span> */}
-                    <i
-                      onClick={ () => {
-                        remove(itemIndex)
-                      }}
-                      className={classNames(Styles.deleteIcon, 'icon delete')}
-                    />
+                    {isEditable ? 
+                      <i
+                        onClick={ () => {
+                          remove(itemIndex)
+                        }}
+                        className={classNames(Styles.deleteIcon, 'icon delete')}
+                      />
+                    : ''}
                   </div>
                 </div>
               </div>
@@ -218,7 +280,6 @@ const AccessSteps = (
             <span 
             onClick={onMoveUpSide} 
             className={classNames(Styles.orderUp, 
-            // showMoveUp ? '' : 'hide'
             showMoveUp ? 'hide' : 'hide'
             )}>
             <i className="icon mbc-icon arrow small up" />
@@ -226,13 +287,20 @@ const AccessSteps = (
             <span
             onClick={onMoveDownSide}
             className={classNames(Styles.orderDown, 
-            // showMoveDown ? '' : 'hide'
             showMoveDown ? 'hide' : 'hide'
             )}
             >
             <i className="icon mbc-icon arrow small down" />
             </span>
         </div>
+        {showLinkModal && (
+          <Modal
+            title={"Add Link"}
+            show={showLinkModal}
+            content={addLinkModalContent}
+            onCancel={() => setShowLinkModal(false)}
+          />
+        )}
     </>
   );
 };
