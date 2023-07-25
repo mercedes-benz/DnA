@@ -154,15 +154,15 @@ public class DataProductAssembler implements GenericAssembler<DataProductVO, Dat
 					List<String> accesstypes = dataProduct.getAccess().getAccessType();
 					if(accesstypes != null && accesstypes.size()>0 ) {
 						if(accesstypes.contains("Kafka") || accesstypes.contains("API")) {
-							if(vo.getAccess().getConfidentiality().equals("Internal")) {								
-								vo.getAccess().setMinimumInformationCheck(false);								
+							if(dataProduct.getAccess().getConfidentiality().equals("Internal")) {								
+								dataProduct.getAccess().setMinimumInformationCheck(false);								
 							}
 							else {
-								vo.getAccess().setMinimumInformationCheck(true);
+								dataProduct.getAccess().setMinimumInformationCheck(true);
 							}
 						}
 						else {
-							vo.getAccess().setMinimumInformationCheck(false);
+							dataProduct.getAccess().setMinimumInformationCheck(false);
 						}
 					}
 					AccessVO accessVO = new AccessVO();
@@ -232,7 +232,7 @@ public class DataProductAssembler implements GenericAssembler<DataProductVO, Dat
 					DataProductClassificationConfidentialityVO classificationConfidentialityVO = new DataProductClassificationConfidentialityVO();
 					BeanUtils.copyProperties(dataProduct.getClassificationConfidentiality(),
 							classificationConfidentialityVO);
-					if(Objects.nonNull(vo.getAccess()) && Objects.nonNull(dataProduct.getAccess().getConfidentiality())) {
+					if(Objects.nonNull(dataProduct.getAccess()) && Objects.nonNull(dataProduct.getAccess().getConfidentiality())) {
 						classificationConfidentialityVO.setConfidentiality(dataProduct.getAccess().getConfidentiality());
 					}
 					vo.setClassificationConfidentiality(classificationConfidentialityVO);
@@ -241,7 +241,7 @@ public class DataProductAssembler implements GenericAssembler<DataProductVO, Dat
 				if (dataProduct.getPersonalRelatedData() != null) {
 					DataProductPersonalRelatedDataVO personalRelatedDataVO = new DataProductPersonalRelatedDataVO();
 					BeanUtils.copyProperties(dataProduct.getPersonalRelatedData(), personalRelatedDataVO);
-					if(Objects.nonNull(vo.getAccess()) && Objects.nonNull(dataProduct.getAccess().isPersonalRelatedData())) {					
+					if(Objects.nonNull(dataProduct.getAccess()) && Objects.nonNull(dataProduct.getAccess().isPersonalRelatedData())) {					
 						personalRelatedDataVO.setPersonalRelatedData(dataProduct.getAccess().isPersonalRelatedData());
 					}											
 					vo.setPersonalRelatedData(personalRelatedDataVO);
@@ -261,7 +261,7 @@ public class DataProductAssembler implements GenericAssembler<DataProductVO, Dat
 						insiderInfo = dataProduct.getTransnationalDataTransfer().getInsiderInformation() != null ? dataProduct.getTransnationalDataTransfer().getInsiderInformation() : "";
 					}					
 					deletionRequirementVO.setInsiderInformation(insiderInfo);
-					if(Objects.nonNull(vo.getAccess()) && Objects.nonNull(dataProduct.getAccess().isDeletionRequirements())) {
+					if(Objects.nonNull(dataProduct.getAccess()) && Objects.nonNull(dataProduct.getAccess().isDeletionRequirements())) {
 						deletionRequirementVO.setDeletionRequirements(dataProduct.getAccess().isDeletionRequirements());
 					}					
 					vo.setDeletionRequirement(deletionRequirementVO);
@@ -457,7 +457,9 @@ public class DataProductAssembler implements GenericAssembler<DataProductVO, Dat
 				if (personalRelatedDataVO != null) {
 					DataProductPersonalRelatedData personalRelatedData = new DataProductPersonalRelatedData();
 					BeanUtils.copyProperties(personalRelatedDataVO, personalRelatedData);
-					personalRelatedData.setPersonalRelatedData(vo.getAccess().isPersonalRelatedData());
+					if(Objects.nonNull(vo.getAccess()) && Objects.nonNull(vo.getAccess().isPersonalRelatedData())) {
+						personalRelatedData.setPersonalRelatedData(vo.getAccess().isPersonalRelatedData());
+					}
 					personalRelatedData.setContactAwareTransfer(personalRelatedDataVO.isContactAwareTransfer());
 					personalRelatedData.setObjectionsToTransfer(personalRelatedDataVO.isObjectionsToTransfer());
 					dataProduct.setPersonalRelatedData(personalRelatedData);
@@ -484,6 +486,9 @@ public class DataProductAssembler implements GenericAssembler<DataProductVO, Dat
 				if (deletionRequirementVO != null) {
 					DataProductDeletionRequirement deletionRequirement = new DataProductDeletionRequirement();
 					BeanUtils.copyProperties(deletionRequirementVO, deletionRequirement);
+					if(Objects.nonNull(vo.getAccess()) && Objects.nonNull(vo.getAccess().isDeletionRequirements())) {
+						deletionRequirement.setDeletionRequirements(vo.getAccess().isDeletionRequirements());
+					}
 					deletionRequirement.setDeletionRequirements(vo.getAccess().isDeletionRequirements());
 					dataProduct.setDeletionRequirement(deletionRequirement);
 				}
