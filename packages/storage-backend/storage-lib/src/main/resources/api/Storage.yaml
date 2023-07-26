@@ -692,7 +692,10 @@ definitions:
   properties:
     count:
       type: integer
-      description: "Number of workspace reports"
+      description: "Number of storage buckets"
+    volume:
+      type: object
+      description: "Number of storage buckets volumes"
  ObjectMetadataWrapperVO:
   type: object
   description: "Object metadata wrapper."

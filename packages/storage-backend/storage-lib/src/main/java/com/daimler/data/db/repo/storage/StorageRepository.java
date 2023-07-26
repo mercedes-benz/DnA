@@ -49,5 +49,4 @@ public interface StorageRepository {
 	 */
 	List<StorageNsql> getAllWithFilters(String userId);
 
-	Integer getTotalCountOfStorageBuckets();
 }

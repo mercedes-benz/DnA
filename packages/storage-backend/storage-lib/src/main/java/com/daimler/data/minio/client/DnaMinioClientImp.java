@@ -49,6 +49,8 @@ import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
+import com.daimler.data.dto.BucketTransparencyCollectionVO;
+import com.daimler.data.dto.BucketTransparencyVO;
 import org.bouncycastle.crypto.InvalidCipherTextException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -101,6 +103,10 @@ import io.minio.messages.DeleteError;
 import io.minio.messages.DeleteObject;
 import io.minio.messages.Item;
 
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+import javax.persistence.Query;
+
 @Component
 public class DnaMinioClientImp implements DnaMinioClient {
 
@@ -142,6 +148,11 @@ public class DnaMinioClientImp implements DnaMinioClient {
 	@Autowired
 	private RedisCacheUtil cacheUtil;
 
+	@Autowired
+	MinioClient minioClient;
+
+	@PersistenceContext
+	protected EntityManager em;
 	@Override
 	public MinioGenericResponse createBucket(String bucketName) {
 		MinioGenericResponse minioResponse = new MinioGenericResponse();
@@ -384,6 +395,36 @@ public class DnaMinioClientImp implements DnaMinioClient {
 		}
 
 		return objectNames;
+	}
+
+	@Override
+	public BucketTransparencyCollectionVO getCountOfStorageBucketsAndVolume() {
+		BucketTransparencyCollectionVO collectionVO = new BucketTransparencyCollectionVO();
+		List<BucketTransparencyVO> newList = new ArrayList<>();
+		try {
+			String query = "select jsonb_extract_path_text(data,'bucketName') as buckets from storage_nsql";
+			Query q = em.createNativeQuery(query);
+			List<String> buckets = q.getResultList();
+			collectionVO.setTotalCount(buckets.size());
+			for (String bucketName : buckets) {
+				BucketTransparencyVO bucketTransparencyVO = new BucketTransparencyVO();
+				bucketTransparencyVO.setName(bucketName);
+				long bucketSize = 0;
+				Iterable<Result<Item>> results = minioClient.listObjects(ListObjectsArgs.builder().bucket(bucketName).recursive(true).build());
+				for (Result<Item> result : results) {
+					Item item = result.get();
+					if (item.objectName() != null) {
+						bucketSize += item.size();
+					}
+				}
+				bucketTransparencyVO.setBucketSize(bucketSize);
+				newList.add(bucketTransparencyVO);
+				collectionVO.setRecords(newList);
+			}
+		} catch (Exception e) {
+			LOGGER.error("Failing to fetch records from DB");
+		}
+		return collectionVO;
 	}
 
 	@Override

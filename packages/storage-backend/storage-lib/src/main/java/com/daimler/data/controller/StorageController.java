@@ -30,7 +30,9 @@ package com.daimler.data.controller;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
+import com.daimler.data.dto.BucketTransparencyCollectionVO;
 import com.daimler.data.dto.storage.*;
+import com.daimler.data.minio.client.DnaMinioClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -72,6 +74,9 @@ public class StorageController implements StorageApi {
 
 	@Autowired
 	private UserStore userStore;
+
+	@Autowired
+	private DnaMinioClient dnaMinioClient;
 
 	@Override
 	@ApiOperation(value = "Create new Bucket", nickname = "createBucket", notes = "New Bucket will be created with this api", response = BucketResponseWrapperVO.class, tags = {
@@ -217,10 +222,10 @@ public class StorageController implements StorageApi {
 			method = RequestMethod.GET)
 	public ResponseEntity<TransparencyVO> getNumberOfStorageBuckets() {
 		try {
-
-			Integer count = storageService.getTotalCountOfStorageBuckets();
+			BucketTransparencyCollectionVO volume = dnaMinioClient.getCountOfStorageBucketsAndVolume();
 			TransparencyVO transparencyVO = new TransparencyVO();
-			transparencyVO.setCount(count);
+			transparencyVO.setCount(volume.getTotalCount());
+			transparencyVO.setVolume(volume.getRecords());
 			return new ResponseEntity<>(transparencyVO, HttpStatus.OK);
 		}catch (Exception e){
 			return  new ResponseEntity<>(new TransparencyVO(), HttpStatus.INTERNAL_SERVER_ERROR);

@@ -179,6 +179,5 @@ public interface StorageService {
 	 */
 	public ResponseEntity<GenericMessage> createDataikuConnection(ConnectionVO connectionVO, Boolean live);
 
-	Integer getTotalCountOfStorageBuckets();
 	
 }

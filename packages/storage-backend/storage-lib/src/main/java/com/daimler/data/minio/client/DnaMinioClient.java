@@ -32,6 +32,7 @@ import java.util.Map;
 
 import javax.annotation.Nonnull;
 
+import com.daimler.data.dto.BucketTransparencyCollectionVO;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.daimler.data.dto.MinioGenericResponse;
@@ -210,5 +211,8 @@ public interface DnaMinioClient {
 	 * @param userId
 	 */
 	public void deleteUser(String userId);
+
+
+	public BucketTransparencyCollectionVO getCountOfStorageBucketsAndVolume();
 	
 }

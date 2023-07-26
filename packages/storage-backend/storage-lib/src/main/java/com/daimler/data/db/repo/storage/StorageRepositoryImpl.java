@@ -70,13 +70,6 @@ public class StorageRepositoryImpl implements StorageRepository {
 		}).toList();
 	}
 
-	@Override
-	public Integer getTotalCountOfStorageBuckets() {
-		String query = "select count(*) from storage_nsql";
-		Query q = em.createNativeQuery(query);
-		BigInteger results = (BigInteger) q.getSingleResult();
-		return results.intValue();
-	}
 
 	private Query getNativeQueryWithFilters(String selectFieldsString, String userId) {
 		String prefix = StringUtils.hasText(selectFieldsString) ? selectFieldsString
