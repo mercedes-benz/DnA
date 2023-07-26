@@ -154,7 +154,7 @@ public class DataProductAssembler implements GenericAssembler<DataProductVO, Dat
 					List<String> accesstypes = dataProduct.getAccess().getAccessType();
 					if(accesstypes != null && accesstypes.size()>0 ) {
 						if(accesstypes.contains("Kafka") || accesstypes.contains("API")) {
-							if(dataProduct.getAccess().getConfidentiality().equals("Internal")) {								
+							if(Objects.nonNull(dataProduct.getAccess().getConfidentiality()) && dataProduct.getAccess().getConfidentiality().equals("Internal")) {								
 								dataProduct.getAccess().setMinimumInformationCheck(false);								
 							}
 							else {
@@ -366,7 +366,7 @@ public class DataProductAssembler implements GenericAssembler<DataProductVO, Dat
 					List<String> accesstypes = vo.getAccess().getAccessType();
 					if(accesstypes != null && accesstypes.size()>0 ) {
 						if(accesstypes.contains("Kafka") || accesstypes.contains("API")) {
-							if(vo.getAccess().getConfidentiality().equals("Internal")) {								
+							if(Objects.nonNull(vo.getAccess().getConfidentiality()) && vo.getAccess().getConfidentiality().equals("Internal")) {								
 								vo.getAccess().setMinimumInformationCheck(false);								
 							}
 							else {
