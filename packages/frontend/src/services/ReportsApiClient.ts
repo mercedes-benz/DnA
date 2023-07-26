@@ -385,4 +385,9 @@ export class ReportsApiClient {
     }
     return this.delete(`lov/${categoryType}/${id}`);
   }
+
+  // Usage statistics
+  public static getReportsTransparency(): Promise<any> {
+    return this.get('reports/transparency');
+  }
 }

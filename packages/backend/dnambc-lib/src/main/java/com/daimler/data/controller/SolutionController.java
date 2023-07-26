@@ -152,15 +152,15 @@ public class SolutionController implements SolutionsApi, ChangelogsApi, Malwares
                                 requestSolutionVO.getPortfolio().getDnaDataikuProjectInstance(), solutionVO.getId());
                         LOGGER.info("Adding provision Solution to DataikuProject via create with the response {}", provisionSolutionResponse);
                         if (provisionSolutionResponse != null && "FAILED".equalsIgnoreCase(provisionSolutionResponse.getSuccess())) {
-                            LOGGER.error("Failed at dataiku solution for project {} with solution {} ", solutionVO.getId());
+                            LOGGER.error("Failed at dataiku solution for project with solution {} ", solutionVO.getId());
                             List<MessageDescription> messages = new ArrayList<>();
                             MessageDescription message = new MessageDescription();
                             message.setMessage("Failed at dataiku solution for project "
                                     + requestSolutionVO.getPortfolio().getDnaDataikuProjectId() + " with solution {}  " + solutionVO.getId());
                             messages.add(message);
                             response.setData(requestSolutionVO);
-                            response.setErrors(messages);
-                            return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+                            response.setWarnings(messages);
+                            return new ResponseEntity<>(response, HttpStatus.CREATED);
                         }
                     }
                 }
@@ -559,80 +559,79 @@ public class SolutionController implements SolutionsApi, ChangelogsApi, Malwares
                     requestSolutionVO.getDigitalValue().setValueCalculator(valueCalculatorVO);
                 }
 
-                mergedsolutionVO = solutionService.create(requestSolutionVO);
-                if (mergedsolutionVO != null && mergedsolutionVO.getId() != null) {
-                    if (dataikuAllowed) {
-                        boolean showDataikuError = false;
-                        if (requestSolutionVO.getPortfolio() != null
-                                && requestSolutionVO.getPortfolio().getDnaDataikuProjectId() != null
-                                && requestSolutionVO.getPortfolio().getDnaDataikuProjectInstance() != null) {
+                String solutionId = requestSolutionVO.getId();
+                if (dataikuAllowed) {
+                    boolean showDataikuError = false;
+                    if (requestSolutionVO.getPortfolio() != null
+                            && requestSolutionVO.getPortfolio().getDnaDataikuProjectId() != null
+                            && requestSolutionVO.getPortfolio().getDnaDataikuProjectInstance() != null) {
+
+                        if (existingSolutionVO.getPortfolio().getDnaDataikuProjectId() != null
+                                && existingSolutionVO.getPortfolio().getDnaDataikuProjectInstance() != null
+                                && existingSolutionVO.getPortfolio().getDnaDataikuProjectId().equalsIgnoreCase(requestSolutionVO.getPortfolio().getDnaDataikuProjectId())
+                                && existingSolutionVO.getPortfolio().getDnaDataikuProjectInstance().equalsIgnoreCase(requestSolutionVO.getPortfolio().getDnaDataikuProjectInstance()) ) {
+                            LOGGER.info("No change in getDnaDataikuProjectId and getDnaDataikuProjectInstance");
+                        } else {
                             GenericMessage provisionSolutionResponse = dnaDssClient.provisionSolutionToDataikuProject(requestSolutionVO.getPortfolio().getDnaDataikuProjectId(),
-                                    requestSolutionVO.getPortfolio().getDnaDataikuProjectInstance(), mergedsolutionVO.getId());
+                                    requestSolutionVO.getPortfolio().getDnaDataikuProjectInstance(), solutionId);
                             LOGGER.info("Adding provision Solution to DataikuProject via update with the response {}", provisionSolutionResponse);
                             if (provisionSolutionResponse != null && "FAILED".equalsIgnoreCase(provisionSolutionResponse.getSuccess())) {
                                 LOGGER.error("Failed at Adding provision solution for project {} with solution {} ", requestSolutionVO.getPortfolio().getDnaDataikuProjectInstance(),
                                         mergedsolutionVO.getId());
                                 showDataikuError = true;
                             }
+                        }
 
-                            // To unlink the previously linked DnaDataiku project.
-                            if (existingSolutionVO.getPortfolio().getDnaDataikuProjectId() != null && existingSolutionVO.getPortfolio().getDnaDataikuProjectInstance() != null) {
-                                if (!requestSolutionVO.getPortfolio().getDnaDataikuProjectId().equalsIgnoreCase(existingSolutionVO.getPortfolio().getDnaDataikuProjectId())
-                                        || !requestSolutionVO.getPortfolio().getDnaDataikuProjectInstance().equalsIgnoreCase(existingSolutionVO.getPortfolio().getDnaDataikuProjectInstance())) {
-                                    LOGGER.info("unlinking the previously linked DnaDataiku project for soultion id {}", mergedsolutionVO.getId());
 
-                                    GenericMessage unlinkProvisionSolutionResponse = dnaDssClient.provisionSolutionToDataikuProject(
-                                            existingSolutionVO.getPortfolio().getDnaDataikuProjectId(),
-                                            existingSolutionVO.getPortfolio().getDnaDataikuProjectInstance(), null);
-                                    if (unlinkProvisionSolutionResponse != null && "FAILED".equalsIgnoreCase(unlinkProvisionSolutionResponse.getSuccess())) {
-                                        LOGGER.error("Failed at unlinking the previously linked DnaDataiku project for project {} with solution {} ", existingSolutionVO.getPortfolio().getDnaDataikuProjectId(),
-                                                mergedsolutionVO.getId());
-                                        showDataikuError = true;
-                                    }
+                        // To unlink the previously linked DnaDataiku project.
+                        if (existingSolutionVO.getPortfolio().getDnaDataikuProjectId() != null && existingSolutionVO.getPortfolio().getDnaDataikuProjectInstance() != null) {
+                            if (!requestSolutionVO.getPortfolio().getDnaDataikuProjectId().equalsIgnoreCase(existingSolutionVO.getPortfolio().getDnaDataikuProjectId())
+                                    || !requestSolutionVO.getPortfolio().getDnaDataikuProjectInstance().equalsIgnoreCase(existingSolutionVO.getPortfolio().getDnaDataikuProjectInstance())) {
+                                LOGGER.info("unlinking the previously linked DnaDataiku project for soultion id {}", solutionId);
+
+                                GenericMessage unlinkProvisionSolutionResponse = dnaDssClient.provisionSolutionToDataikuProject(
+                                        existingSolutionVO.getPortfolio().getDnaDataikuProjectId(),
+                                        existingSolutionVO.getPortfolio().getDnaDataikuProjectInstance(), null);
+                                if (unlinkProvisionSolutionResponse != null && "FAILED".equalsIgnoreCase(unlinkProvisionSolutionResponse.getSuccess())) {
+                                    LOGGER.error("Failed at unlinking the previously linked DnaDataiku project for project {} with solution {} ", existingSolutionVO.getPortfolio().getDnaDataikuProjectId(),
+                                            solutionId);
+                                    showDataikuError = true;
                                 }
                             }
-                        } else if ((requestSolutionVO.getPortfolio() != null
-                                && requestSolutionVO.getPortfolio().getDnaDataikuProjectId() == null
-                                && requestSolutionVO.getPortfolio().getDnaDataikuProjectInstance() == null)
-                                &&
-                                (existingSolutionVO.getPortfolio() != null
-                                        && existingSolutionVO.getPortfolio().getDnaDataikuProjectId() != null
-                                        && existingSolutionVO.getPortfolio().getDnaDataikuProjectInstance() != null)
-                        ) {
-                            GenericMessage provisionSolutionResponse = dnaDssClient.provisionSolutionToDataikuProject(
-                                    existingSolutionVO.getPortfolio().getDnaDataikuProjectId(),
-                                    existingSolutionVO.getPortfolio().getDnaDataikuProjectInstance(),
-                                    null);
-                            LOGGER.info("removing provision Solution to DataikuProject via update with the response {}", provisionSolutionResponse);
-                            if (provisionSolutionResponse != null && "FAILED".equalsIgnoreCase(provisionSolutionResponse.getSuccess())) {
-                                LOGGER.error("Failed at removing provision solution for project {} with solution {} ",
-                                        existingSolutionVO.getPortfolio().getDnaDataikuProjectId(), mergedsolutionVO.getId());
-                                showDataikuError = true;
-                            }
                         }
-                        if (showDataikuError) {
-                            List<MessageDescription> messages = new ArrayList<>();
-                            MessageDescription message = new MessageDescription();
-                            message.setMessage("Failed at dataiku solution for project with solution {}  " + mergedsolutionVO.getId());
-                            messages.add(message);
-                            response.setData(requestSolutionVO);
-                            response.setErrors(messages);
-                            return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+                    } else if ((requestSolutionVO.getPortfolio() != null
+                            && requestSolutionVO.getPortfolio().getDnaDataikuProjectId() == null
+                            && requestSolutionVO.getPortfolio().getDnaDataikuProjectInstance() == null)
+                            &&
+                            (existingSolutionVO.getPortfolio() != null
+                                    && existingSolutionVO.getPortfolio().getDnaDataikuProjectId() != null
+                                    && existingSolutionVO.getPortfolio().getDnaDataikuProjectInstance() != null)
+                    ) {
+                        GenericMessage provisionSolutionResponse = dnaDssClient.provisionSolutionToDataikuProject(
+                                existingSolutionVO.getPortfolio().getDnaDataikuProjectId(),
+                                existingSolutionVO.getPortfolio().getDnaDataikuProjectInstance(),
+                                null);
+                        LOGGER.info("removing provision Solution to DataikuProject via update with the response {}", provisionSolutionResponse);
+                        if (provisionSolutionResponse != null && "FAILED".equalsIgnoreCase(provisionSolutionResponse.getSuccess())) {
+                            LOGGER.error("Failed at removing provision solution for project {} with solution {} ",
+                                    existingSolutionVO.getPortfolio().getDnaDataikuProjectId(), solutionId);
+                            showDataikuError = true;
                         }
                     }
-                    response.setData(mergedsolutionVO);
-                    response.setErrors(null);
-                    return new ResponseEntity<>(response, HttpStatus.OK);
-                } else {
-                    List<MessageDescription> messages = new ArrayList<>();
-                    MessageDescription message = new MessageDescription();
-                    message.setMessage("Failed to update due to internal error");
-                    messages.add(message);
-                    response.setData(requestSolutionVO);
-                    response.setErrors(messages);
-                    LOGGER.debug("Solution {} cannot be edited. Failed with unknown internal error", id);
-                    return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+                    if (showDataikuError) {
+                        List<MessageDescription> messages = new ArrayList<>();
+                        MessageDescription message = new MessageDescription();
+                        message.setMessage("Failed at dataiku solution for project with solution {}  " + solutionId);
+                        messages.add(message);
+                        response.setData(requestSolutionVO);
+                        response.setErrors(messages);
+                        return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+                    }
                 }
+                mergedsolutionVO = solutionService.create(requestSolutionVO);
+                response.setData(mergedsolutionVO);
+                response.setErrors(null);
+                return new ResponseEntity<>(response, HttpStatus.OK);
             } else {
                 LOGGER.debug("No Solution {} found to edit.", id);
                 return notFoundResponse;

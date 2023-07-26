@@ -34,5 +34,7 @@ public class DataikuProjectSummaryDetailsDto implements Serializable{
 	private String department;
 	private String solutionId;
 	private DataikuProjectTimeStampDetailsDto creationTag;
+	private Boolean isProjectAdmin;
+	private String role;
 	
 }
