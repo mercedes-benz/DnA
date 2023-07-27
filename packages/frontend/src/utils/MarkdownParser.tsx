@@ -10,6 +10,6 @@ export const markdownParser = (markdownText: string) => {
 };
 
 export const htmlToMarkdownParser = (htmlText: string) =>{
-  const markdownText = htmlText.replace(/<a.*?href="(.*?)".*?>(.*?)<\/a>/gi, '[$2]($1)');
+  const markdownText = htmlText.replace(/<a.*?href="(.*?)" target='_blank'>(.*?)<\/a>/gi, '[$2]($1)');
   return markdownText.trim();
 }
