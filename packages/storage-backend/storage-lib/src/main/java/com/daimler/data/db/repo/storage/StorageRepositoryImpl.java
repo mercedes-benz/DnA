@@ -98,7 +98,6 @@ public class StorageRepositoryImpl implements StorageRepository {
 					sortQueryString = sortQueryString + " asc ";
 			}
 			query = query + sortQueryString;
-			System.out.println("Query: " + query);
 		}
 		if (limit > 0)
 			query = query + " limit " + limit;
