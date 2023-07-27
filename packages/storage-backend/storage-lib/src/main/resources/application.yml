@@ -5,14 +5,14 @@ spring:
   cache:
     type: redis
   redis:
-    host: ${REDIS_HOST:53.137.138.233}
-    port: ${REDIS_PORT:6379}
-    user: ${REDIS_ROOT_USER:default}
-    password: ${REDIS_ROOT_PASSWORD:PGn3W4yfNZ}
+    host: ${REDIS_HOST:XXXX}
+    port: ${REDIS_PORT:XXXX}
+    user: ${REDIS_ROOT_USER:XXXX}
+    password: ${REDIS_ROOT_PASSWORD:XXXX}
     
   flyway:
-    enabled: ${FLYWAY_ENABLED:false}
-    baseline-on-migrate: ${FLYWAY_BASELINE_ON_MIGRATE:false}
+    enabled: ${FLYWAY_ENABLED:true}
+    baseline-on-migrate: ${FLYWAY_BASELINE_ON_MIGRATE:true}
     baselineVersion: ${FLYWAY_BASELINEVERSION:0}
     schemas: ${FLYWAY_SCHEMA:public}      
     
@@ -31,9 +31,9 @@ spring:
     hikari:
       connection-timeout: 4000
     platform: postgres
-    url: ${API_DB_URL:jdbc:postgresql://53.137.140.156:64000/storage}
-    username: ${API_DB_USER:storage}
-    password: ${API_DB_PASS:abcf02d283e9be06ea55ba189a2a00a77d35d12a}
+    url: ${API_DB_URL:jdbc:postgresql://localhost:5432/db}
+    username: ${API_DB_USER:XXXX_user}
+    password: ${API_DB_PASS:XXXX_pass}
     driverClassName: org.postgresql.Driver
        
   servlet:
@@ -46,15 +46,15 @@ spring:
       default-binder: kafka
       kafka:
         binder:
-          brokers: ${NAAS_BROKER:53.137.140.156:8001}
+          brokers: ${NAAS_BROKER:localhost:9092}
     vault:
-      host: ${VAULT_HOST:serving.kfp.***REMOVED***}
-      port: ${VAULT_PORT:443}
-      scheme: ${VAULT_SCHEME:https}
+      host: ${VAULT_HOST:localhost}
+      port: ${VAULT_PORT:8200}
+      scheme: ${VAULT_SCHEME:http}
       authentication: ${VAULT_AUTHENTICATION:TOKEN}
       token: ${VAULT_TOKEN:***REMOVED***}
-      mountpath: ${VAULT_MOUNTPATH:kv}
-      vaultpath: ${VAULT_PATH:dna/minio}
+      mountpath: ${VAULT_MOUNTPATH:secret}
+      vaultpath: ${VAULT_PATH:dna}
       kv:
        enabled: true  
 
@@ -62,7 +62,7 @@ kafka:
   centralTopic:
     name: dnaCentralEventTopic      
 dna:
-  uri: ${DNA_URI:http://dna-app-backend-service.dna.svc.cluster.local:80}
+  uri: ${DNA_URI:XXXXXX}
   dnaAuthEnable: ${DNA_AUTH_ENABLE:false}
   feature:
      attachmentMalwareScan: ${ATTACHMENT_MALWARE_SCAN:false}
@@ -73,7 +73,7 @@ dna:
       
 jwt:
   secret:
-    key: ${JWT_SECRET_KEY:oeRaYY7Wo24sDqKSX3IM9ASGmdGPmkTd9jo1QTy4b7P9Ze5_9hKolVX8xNrQDcNRfVEdTZNOuOyqEGhXEbdJI-ZQ19k_o9MI0y3eZN2lp9jow55FfXMiINEdt1XR85VipRLSOkT6kSpzs2x-jbLDiz9iFVzkd81YKxMgPA7VfZeQUm4n-mOmnWMaVX30zGFU4L3oPBctYKkl4dYfqYWqRNfrgPJVi5DGFjywgxx0ASEiJHtV72paI3fDR2XwlSkyhhmY-ICjCRmsJN4fX1pdoL8a18-aQrvyu4j0Os6dVPYIoPvvY0SAZtWYKHfM15g7A3HD4cVREf9cUsprCRK93w}
+    key: ${JWT_SECRET_KEY:XXXXXX}
 server:
   port: 7175
 
@@ -81,19 +81,19 @@ server:
 allowedCorsOriginPatternUrl: ${CORS_ORIGIN_URL:http://*}
 
 storage:
-  termsOfUse.uri: ${STORAGE_TERMS_OF_USE_URL:https://***REMOVED***/docs/DOC-467646}
-  connect.host: ${STORAGE_CONNECT_HOST:***REMOVED***}
-  httpMethod: ${HTTP_METHOD:https://}
+  termsOfUse.uri: ${STORAGE_TERMS_OF_USE_URL:https://xxxxx}
+  connect.host: ${STORAGE_CONNECT_HOST:http://xxxxxxx}
+  httpMethod: ${HTTP_METHOD:XXXXXX}
   mc.commandkeyword: ${MC_CMD_KEY:sh}
   mc.timeout.alias: ${MC_ALIAS_TIMEOUT:10}
   mc.timeout.listpolicies: ${MC_LISTPOLICIES_TIMEOUT:10}
       
  
 minio:
-  clientApi: ${MINIO_CLIENT_API:http://53.137.143.78:9000}
-  endpoint: ${MINIO_ENDPOINT:http://53.137.143.78:9000}
-  accessKey: ${MINIO_ROOT_USER:admin} 
-  secretKey: ${MINIO_ROOT_PASSWORD:Ql1aqWvUXg}
+  clientApi: ${MINIO_CLIENT_API:http://localhost:9000}
+  endpoint: ${MINIO_ENDPOINT:http://localhost:9000}
+  accessKey: ${MINIO_ROOT_USER:XXXXXX} 
+  secretKey: ${MINIO_ROOT_PASSWORD:XXXXXX}
   version: ${MINIO_POLICY_VERSION:2012-10-17}
 
 databricks:
@@ -121,7 +121,7 @@ management.endpoint.health.show-details: always
 logging:
   service:
     environment: ${LOGGING_ENVIRONMENT:DEV}
-    path: ${LOGGING_PATH:/home/coder/app/packages/storage-backend/}
+    path: ${LOGGING_PATH:/var/log}
   level:
     com:
       daimler:
