@@ -788,7 +788,9 @@ const CreateDataProduct = ({ user, history }) => {
               </div>
               <div id="tab-content-3" className="tab-content">
                 {currentTab === 'classification-confidentiality' && (
-                  <Classification onSave={(values) => onSave('classification-confidentiality', values)} />
+                  <Classification 
+                  isDataProduct={true}
+                  onSave={(values) => onSave('classification-confidentiality', values)} />
                 )}
               </div>
               <div id="tab-content-4" className="tab-content">
