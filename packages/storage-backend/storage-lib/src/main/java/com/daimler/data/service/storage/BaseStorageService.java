@@ -387,7 +387,7 @@ public class BaseStorageService implements StorageService {
 	}
 	
 	@Override
-	public ResponseEntity<BucketCollectionVO> getAllBuckets() {
+	public ResponseEntity<BucketCollectionVO> getAllBuckets(int limit, String sortBy, String sortOrder, int offset) {
 		LOGGER.debug("Fetching Current user.");
 		String currentUser = userStore.getUserInfo().getId();
 		HttpStatus httpStatus;
@@ -400,23 +400,29 @@ public class BaseStorageService implements StorageService {
 			if (!ObjectUtils.isEmpty(minioResponse.getBuckets())) {
 				// Fetching data from database for specified users
 				LOGGER.info("Fetching records from database.");
-				List<StorageNsql> storageEntities = customRepo.getAllWithFilters(currentUser);
+				List<StorageNsql> storageEntities = customRepo.getAllWithFilters(currentUser,  limit, sortBy, sortOrder, offset);
+				System.out.println("Storage Entities Size: " + storageEntities.size());
 				List<BucketVo> bucketsVO = new ArrayList<>();
 				// Iterating over bucket list got from minio
+
 				for (Bucket bucket : minioResponse.getBuckets()) {
 					BucketVo bucketVo = storageAssembler.toBucketVo(storageEntities, bucket.name());
-					if (Objects.isNull(bucketVo)) {
-						bucketVo = new BucketVo();
-						bucketVo.setBucketName(bucket.name());
-						bucketVo.setCreatedDate(Date.from(bucket.creationDate().toInstant()));
-						LOGGER.debug("Setting collaborators for bucket:{}", bucket.name());
-						bucketVo.setCollaborators(dnaMinioClient.getBucketCollaborators(bucket.name(), currentUser));
+					// if (Objects.isNull(bucketVo)) {
+					// 	bucketVo = new BucketVo();
+					// 	bucketVo.setBucketName(bucket.name());
+					// 	bucketVo.setCreatedDate(Date.from(bucket.creationDate().toInstant()));
+					// 	LOGGER.debug("Setting collaborators for bucket:{}", bucket.name());
+					// 	bucketVo.setCollaborators(dnaMinioClient.getBucketCollaborators(bucket.name(), currentUser));
+					// }
+					// if (Objects.isNull(bucketVo.getPermission())) {
+					// 	// Setting current user permission for bucket
+					// 	bucketVo.setPermission(dnaMinioClient.getBucketPermission(bucket.name(), currentUser));
+					// }
+					if (Objects.nonNull(bucketVo)) {
+						bucketsVO.add(bucketVo);
 					}
-					if (Objects.isNull(bucketVo.getPermission())) {
-						// Setting current user permission for bucket
-						bucketVo.setPermission(dnaMinioClient.getBucketPermission(bucket.name(), currentUser));
-					}
-					bucketsVO.add(bucketVo);
+					// bucketsVO.add(bucketVo);
+					System.out.println("BucketsVO Size: " + bucketsVO.size());
 				}
 				bucketCollectionVO.setData(bucketsVO);
 			}
@@ -427,6 +433,19 @@ public class BaseStorageService implements StorageService {
 		}
 		return new ResponseEntity<>(bucketCollectionVO, httpStatus);
 	}
+
+	// @Override
+	// public List<StorageNsql> getAllWithFilters(int limit, String sortBy,String sortOrder, int offset) {
+	// 	logger.info("Fetching user information from table.");
+	// 	List<StorageNsql> storageEntities = customRepo.getAllWithFilters(limit, sortBy, sortOrder, offset);
+	// 	logger.info("Success from get information from table.");
+	// 	if (!ObjectUtils.isEmpty(storageEntities)) {
+	// 		return storageEntities.stream().map(n -> storageAssembler.toVo(n)).toList();
+	// 	} else {
+	// 		return new ArrayList<>();
+	// 	}
+	// }
+
 
 	@Override
 	public ResponseEntity<BucketObjectResponseWrapperVO> getBucketObjects(String bucketName, String prefix) {
