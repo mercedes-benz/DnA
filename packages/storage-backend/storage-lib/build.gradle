@@ -4,11 +4,15 @@ buildscript {
         releaseVersion = "1.0.0"
     }
     repositories {
-        mavenLocal()
-        mavenCentral()
+        // mavenLocal()
+        // mavenCentral()
 		gradlePluginPortal()
 		maven {
-		  url "https://plugins.gradle.org/m2/"
+		  url "https://artifacts.i.mercedes-benz.com/artifactory/gradle-opensource-remote/"
+          credentials {
+            username = "bhatadi"
+            password = "cmVmdGtuOjAxOjE3MjE3MTMyODg6UzF2dXdaSHBHRWZUWVp5WFdLWldodll3TmF1"
+          }
 		}
     }
     dependencies {		
@@ -33,12 +37,19 @@ apply plugin: "maven-publish"
 apply plugin: "org.hidetake.swagger.generator"
 
 repositories {
-        mavenLocal()
-        mavenCentral()
+        // mavenLocal()
+        // mavenCentral()
 		gradlePluginPortal()
-		maven {
-		  url "https://plugins.gradle.org/m2/"
-		  url "https://repo.eclipse.org/content/groups/releases"
+		// maven {
+		//   url "https://plugins.gradle.org/m2/"
+		//   url "https://repo.eclipse.org/content/groups/releases"
+		// }
+        maven {
+		  url "https://artifacts.i.mercedes-benz.com/artifactory/gradle-opensource-remote/"
+          credentials {
+            username = "bhatadi"
+            password = "cmVmdGtuOjAxOjE3MjE3MTMyODg6UzF2dXdaSHBHRWZUWVp5WFdLWldodll3TmF1"
+          }
 		}
 }
 
@@ -190,11 +201,18 @@ dependencies {
     implementation 'com.amazonaws:aws-java-sdk-s3'
     
 	repositories {
-        mavenLocal()
-        mavenCentral()
+        // mavenLocal()
+        // mavenCentral()
 		gradlePluginPortal()
-		maven {
-		  url "https://plugins.gradle.org/m2/"
+		// maven {
+		//   url "https://plugins.gradle.org/m2/"
+		// }
+        maven {
+		  url "https://artifacts.i.mercedes-benz.com/artifactory/gradle-opensource-remote/"
+          credentials {
+            username = "bhatadi"
+            password = "cmVmdGtuOjAxOjE3MjE3MTMyODg6UzF2dXdaSHBHRWZUWVp5WFdLWldodll3TmF1"
+          }
 		}
     }
 
