@@ -15,6 +15,7 @@ import DataTranferCardLayout from '../../dataTransfer/Layout/CardView/DataTransf
 import { setSelectedDataProduct, setDivisionList, resetDataTransferList } from '../redux/dataProductSlice';
 
 import { isValidURL } from '../../../Utility/utils';
+import AccessStepsSummary from '../../accessStepsSummary';
 
 import InfoModal from 'dna-container/InfoModal';
 import Modal from 'dna-container/Modal';
@@ -59,6 +60,12 @@ const Summary = ({ history, user }) => {
   const [showHowToAccessModal, setShowHowToAccessModal] = useState(false);
 
   const [showMyDataTransfers, setShowMyDataTransfers] = useState(false);
+  const [showPreviewModal, setShowPreviewModal] = useState(false);
+  const [currentPreviewTab, setCurrentPreviewTab] = useState('');
+
+  const [kafkaFields, setKafkaFields] = useState([]);
+  const [liveAccessFields, setLiveAccessFields] = useState([]);
+  const [apiFields, setApiFields] = useState([]);
 
   const [CDC_URL, setCDCURL] = useState('');
 
@@ -127,6 +134,9 @@ const Summary = ({ history, user }) => {
         return history.push('/NotFound');
       } else {
         const data = deserializeFormData({ item: res.data, isDataProduct: true });
+        setKafkaFields(data?.howToAccessTemplate?.accessDetailsCollectionVO[0]?.stepCollectionVO ? data?.howToAccessTemplate?.accessDetailsCollectionVO[0]?.stepCollectionVO : []);
+        setLiveAccessFields(data?.howToAccessTemplate?.accessDetailsCollectionVO[1]?.stepCollectionVO ? data?.howToAccessTemplate?.accessDetailsCollectionVO[1]?.stepCollectionVO : []);
+        setApiFields(data?.howToAccessTemplate?.accessDetailsCollectionVO[2]?.stepCollectionVO ? data?.howToAccessTemplate?.accessDetailsCollectionVO[2]?.stepCollectionVO : []);
         dispatch(setSelectedDataProduct(data));
         Tabs.defaultSetup();
       }
@@ -135,16 +145,16 @@ const Summary = ({ history, user }) => {
 
   useEffect(() => {
     const mainPanel = document.getElementById('mainPanel');
-    const accessBtnSetDiv = document.querySelector('.accessBtnSet');
+    // const accessBtnSetDiv = document.querySelector('.accessBtnSet');
 
     const accessRequestDiv = document.querySelector('.accessRequestInfo');
 
     const handleScroll = () => {
       if (window.scrollY + window.innerHeight >= mainPanel.scrollHeight) {
-        accessBtnSetDiv?.classList.add('fixed');
+        // accessBtnSetDiv?.classList.add('fixed');
         accessRequestDiv?.classList.add('fixed');
       } else {
-        accessBtnSetDiv?.classList.remove('fixed');
+        // accessBtnSetDiv?.classList.remove('fixed');
         accessRequestDiv?.classList.remove('fixed');
       }
     };
@@ -268,6 +278,81 @@ const Summary = ({ history, user }) => {
             );
           })
         : 'N.A';
+  
+        const previewModalContent = (
+          <div className={Styles.accessModal}>
+                <div className={Styles.accessModalHeader}>
+                  <div className={Styles.accessModalHeaderIcon}>
+                    <i
+                      className={classNames('icon mbc-icon help iconsmd', Styles.infoIcon)}
+                    /> 
+                  </div>
+                  <div className={Styles.accessModalHeaderText}>
+                    <h3>How To Access</h3>
+                  </div>
+                </div>
+                <div className={Styles.noData}>
+                  {currentPreviewTab === 'Kafka' && kafkaFields?.length == 0 ? 'No Data' : ''}
+                  {currentPreviewTab === 'Live' && liveAccessFields?.length == 0 ? 'No Data' : ''}
+                  {currentPreviewTab === 'API' && apiFields?.length == 0 ? 'No Data' : ''}
+                </div>
+                
+
+                {currentPreviewTab === 'Kafka' && kafkaFields?.map((stepItem, index)=>{
+                  return(
+                  <fieldset key={'access-via-kafka-preview'+stepItem.id}>  
+                  <AccessStepsSummary 
+                  value={stepItem}
+                  itemIndex={index}
+                  showMoveUp={index !== 0}
+                  showMoveDown={index + 1 !== kafkaFields.length}
+                  arrayName={'kafkaArray'}
+                  isEditable={false}
+                  />
+                  </fieldset>
+                  )
+                })}
+              
+                {currentPreviewTab === 'Live' && liveAccessFields?.map((stepItem, index)=>{
+                  return(
+                  <fieldset key={'live-access-preview'+stepItem.id}>  
+                  <AccessStepsSummary 
+                  value={stepItem}
+                  itemIndex={index}
+                  showMoveUp={index !== 0}
+                  showMoveDown={index + 1 !== liveAccessFields.length}
+                  arrayName={'liveAccessArray'}
+                  isEditable={false}
+                  />
+                  </fieldset>
+                  )
+                })}
+              
+                {currentPreviewTab === 'API' && apiFields?.map((stepItem, index)=>{
+                  return(
+                  <fieldset key={'api-access-preview'+stepItem.id}>  
+                  <AccessStepsSummary 
+                  value={stepItem}
+                  itemIndex={index}
+                  showMoveUp={index !== 0}
+                  showMoveDown={index + 1 !== apiFields.length}
+                  arrayName={'apiArray'}
+                  isEditable={false}
+                  />
+                  </fieldset>
+                  )
+                })}
+
+                <div className={Styles.actionButtonsSection}>
+                  <button
+                    onClick={()=>{
+                      setShowPreviewModal(false);
+                    }}
+                  >OK, got it</button>
+                </div>
+              
+          </div>
+);        
 
   return (
     <div className="dataproductSummary">
@@ -429,6 +514,13 @@ const Summary = ({ history, user }) => {
                         <label className="input-label summary">Data Product Additional Information</label>
                         <br />
                         {selectedDataProduct?.additionalInformation || '-'}
+                      </div>
+                    </div>
+                    <div className={classNames(Styles.flexLayout, Styles.fourColumn)}>
+                      <div>
+                        <label className="input-label summary">Access</label>
+                        <br />
+                        {selectedDataProduct?.accessType?.length > 0 ? selectedDataProduct?.accessType?.join(', ') : '-'}
                       </div>
                     </div>
                   </div>
@@ -684,7 +776,11 @@ const Summary = ({ history, user }) => {
               </div>
             </div>
           </div>
+
+
+
           <hr className={Styles.line} />
+          {selectedDataProduct?.minimumInformationCheck ? (
           <div className={Styles.dataTransferSection}>
             <h3>{`Data Transfer ${allDataTransfer?.totalCount ? `( ${allDataTransfer?.totalCount} )` : '( 0 )'}`}</h3>
             {allDataTransfer?.totalCount > 0 ? (
@@ -696,7 +792,8 @@ const Summary = ({ history, user }) => {
               </div>
             ) : null}
           </div>
-          {!isCreator ? (
+          ) : null}
+          {!isCreator && selectedDataProduct?.minimumInformationCheck ? (
             <div className={Styles.dataTransferSection}>
               <label className="switch">
                 <span className="label" style={{ marginRight: '5px' }}>
@@ -714,7 +811,7 @@ const Summary = ({ history, user }) => {
               </label>
             </div>
           ) : null}
-          {showMyDataTransfers ? (
+          {showMyDataTransfers && selectedDataProduct?.minimumInformationCheck ? (
             myDataTransfer?.totalCount > 0 ? (
               <>
                 <div className={Styles.dataTransferSection}>
@@ -731,7 +828,7 @@ const Summary = ({ history, user }) => {
             )
           ) : null}
 
-          {!showMyDataTransfers ? (
+          {!showMyDataTransfers && selectedDataProduct?.minimumInformationCheck ? (
             <div className={classNames(Styles.allDataproductCardviewContent)}>
               {allDataTransfer?.records?.map((product, index) => {
                 return <DataTranferCardLayout key={index} product={product} user={user} isDataProduct={true} />;
@@ -741,29 +838,48 @@ const Summary = ({ history, user }) => {
         </div>
       </div>
       {!isCreator ? (
-        <div
-          className={classNames(
-            'accessBtnSet',
-            !selectedDataProduct.isPublish ? 'indraft' : '',
-            myDataTransfer?.totalCount === 0 ? 'nomargin' : 'hasmargin',
-          )}
-        >
+        <div className={Styles.stickyPanel}>
+          <div className={Styles.productName}>
+            {'Access "'+ selectedDataProduct?.productName +'"'} 
+          </div>
+          <div className={Styles.actionButtonsSection}>
           {showHowToAccessModal ? (
-            <button className="btn btn-tertiary" type="button" onClick={() => setShowInfoModal(true)}>
-              How to access
+            <>
+              <button
+                onClick={()=>{
+                  setShowPreviewModal(true);
+                  setCurrentPreviewTab('Live');
+                }}
+              >Live</button>
+              <button
+                onClick={()=>{
+                  setShowPreviewModal(true);
+                  setCurrentPreviewTab('API');
+                }}
+              >API</button>
+              <button
+                onClick={()=>{
+                  setShowPreviewModal(true);
+                  setCurrentPreviewTab('Kafka');
+                }}
+              >Kafka</button>
+            </>
+          ) : null} 
+          {selectedDataProduct?.minimumInformationCheck ? (
+            <button
+              // className={classNames(!selectedDataProduct.isPublish ? 'btn indraft' : 'btn btn-tertiary')}
+              disabled={!selectedDataProduct.isPublish}
+              type="button"
+              onClick={() => setShowRequestAccessModal(true)}
+            >
+              Request access
             </button>
-          ) : null}
-          <button
-            className={classNames(!selectedDataProduct.isPublish ? 'btn indraft' : 'btn btn-tertiary')}
-            disabled={!selectedDataProduct.isPublish}
-            type="button"
-            onClick={() => setShowRequestAccessModal(true)}
-          >
-            Request access
-          </button>
+          ) : null}  
+          </div>
         </div>
       ) : null}
-      {!isCreator && !selectedDataProduct.isPublish ? (
+
+      {!isCreator && !selectedDataProduct.isPublish && selectedDataProduct?.minimumInformationCheck ? (
         <div className="accessRequestInfo">
           <span>
             <i className="icon mbc-icon info" />
@@ -771,6 +887,10 @@ const Summary = ({ history, user }) => {
           Unable to Request Access as Data Product is in Draft state.
         </div>
       ) : null}
+
+
+
+
       {showInfoModal && (
         <InfoModal
           title="How to access data"
@@ -807,6 +927,14 @@ const Summary = ({ history, user }) => {
         onCancel={deleteDataProductClose}
         onAccept={deleteDataProductAccept}
       />
+      
+      <InfoModal
+        title={""}
+        show={showPreviewModal}
+        content={previewModalContent}
+        onCancel={() => setShowPreviewModal(false)}
+      />
+            
     </div>
   );
 };
