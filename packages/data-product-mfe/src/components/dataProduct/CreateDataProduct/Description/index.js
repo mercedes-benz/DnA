@@ -175,6 +175,12 @@ const Description = ({
     if(accessType?.length > 0 && (accessType?.includes('Kafka') || accessType?.includes('API'))){
        SelectBox.defaultSetup(true);
     }
+
+
+
+    /****************************************************************** 
+     ********** Start of selecting default tab on selection ***********
+     ******************************************************************/
     if(accessType?.length > 0 && accessTypeCount === 0){
       setAccessTypeCount(1);
       let tabDetails = '';
@@ -191,6 +197,43 @@ const Description = ({
         tabDetails?.click();
       }
     }
+    /****************************************************************** 
+     ********** End of selecting default tab on selection ***********
+     ******************************************************************/
+
+
+
+
+
+
+    /****************************************************************** 
+     ********** Start of setting default value on selection ***********
+     ******************************************************************/
+
+    if(accessType?.length > 0 && !accessType.includes('Kafka')){
+      setValue('kafkaArray',[]);
+    }
+    if(accessType?.length > 0 && !accessType.includes('Live (SAC/AFO)')){
+      setValue('liveAccessArray',[]);
+    }
+    if(accessType?.length > 0 && !accessType.includes('API'))  {
+      setValue('apiArray',[]);
+    }
+    if(accessType?.length == 1 && accessType.includes('Live (SAC/AFO)')){
+      setValue('confidentialityInDescription','');
+    }
+    
+    if((accessType?.length == 1 && accessType?.includes('Live (SAC/AFO)')) || accessType?.length == 0 || confidentialityInDescription == 'Internal'){
+      setValue('personalRelatedDataInDescription', 'No');
+      setValue('deletionRequirementInDescription', 'No');
+      setValue('restrictDataAccess', 'No');
+    }
+    /****************************************************************** 
+     ********** End of setting default value on selection ***********
+     ******************************************************************/
+
+
+     
     //eslint-disable-next-line
   }, [accessType]);
 
