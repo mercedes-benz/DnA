@@ -19,7 +19,7 @@ import Tags from 'dna-container/Tags';
 
 import { Controller, useFieldArray, useFormContext } from 'react-hook-form';
 import Tooltip from '../../../../common/modules/uilab/js/src/tooltip';
-import InnerTabs from '../../../../common/modules/uilab/js/src/inner-tabs';
+import Tabs from '../../../../common/modules/uilab/js/src/tabs';
 import { isValidURL } from '../../../../Utility/utils';
 import TeamSearch from 'dna-container/TeamSearch';
 import AccessSteps from '../../../accessSteps';
@@ -91,8 +91,7 @@ const Description = ({
 
   useEffect(() => {
     Tooltip.defaultSetup();
-    InnerTabs.defaultSetup('inner-tab');
-    // InnerTabs.defaultSetup('inner-preview-tab');
+    Tabs.defaultSetup(document.querySelectorAll('.inner-tabs'));
     
     
     reset(watch());
@@ -1281,7 +1280,7 @@ const Description = ({
             <div className={Styles.howToAccessPopupLink}>
               <span onClick={()=>{
                 setShowPreviewModal(true);
-                InnerTabs.defaultSetup('inner-preview-tab');
+                Tabs.defaultSetup(document.querySelectorAll('.inner-preview-tabs'));
                 setTimeout(() => {
                   let tabDetails = '';
                   if(accessType?.length > 0 && accessType[0] == 'Kafka'){
