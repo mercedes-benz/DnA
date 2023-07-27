@@ -77,6 +77,15 @@ export const serializeFormData = ({ values, division, type = 'provider', isDataP
             ddx: values.ddx,
             kafka: values.kafka,
             oneApi: values.oneApi,
+            classificationConfidentiality: {
+              confidentiality: values.confidentialityInDescription,
+            },
+            personalRelatedData: {
+              personalRelatedData: values.personalRelatedDataInDescription === 'Yes' ? true : false, //boolean
+            },
+            deletionRequirement: {
+              deletionRequirements: values.deletionRequirementInDescription === 'Yes' ? true : false,
+            }  
           }),
     };
   } else {
@@ -345,7 +354,7 @@ export const deserializeFormData = ({ item, type = 'provider', isDataProduct = f
           id: item?.id,
           
             accessType: item?.access?.accessType,
-            confidentialityInDescription: item?.access?.confidentiality || 'Internal',
+            confidentialityInDescription: item?.access?.confidentiality,
             kafka: item?.access?.kafka,
             minimumInformationCheck: item?.access?.minimumInformationCheck,
             oneApi: item?.access?.oneApi,
@@ -364,7 +373,7 @@ export const deserializeFormData = ({ item, type = 'provider', isDataProduct = f
           // useTemplate: item?.howToAccessTemplate?.useTemplate,
           useTemplate: item?.access?.accessType,
           accessTypeTab: item?.accessTypeTab,
-          deletionRequirements: item?.deletionRequirements ? 'Yes' : 'No',
+          deletionRequirements: item?.access?.deletionRequirements || (item?.deletionRequirements ? 'Yes' : 'No'),
           // restrictDataAccess: item?.restrictDataAccess ? 'Yes' : 'No',
 
           isPublish: item.isPublish,
@@ -379,7 +388,7 @@ export const deserializeFormData = ({ item, type = 'provider', isDataProduct = f
           complianceOfficer: item?.contactInformation?.localComplianceOfficer?.split(),
           planningIT: item?.contactInformation?.appId,          
 
-          confidentiality: item?.classificationConfidentiality?.confidentiality || 'Internal',
+          confidentiality: item?.classificationConfidentiality?.confidentiality || item?.access?.confidentiality || 'Internal',
           classificationOfTransferedData: item?.classificationConfidentiality?.description,
 
           personalRelatedDataDescription: item?.personalRelatedData?.description,
@@ -401,7 +410,7 @@ export const deserializeFormData = ({ item, type = 'provider', isDataProduct = f
           transnationalDataTransferingObjections: item?.transnationalDataTransfer?.objections,
 
           insiderInformation: item?.deletionRequirement?.insiderInformation || 'No',
-          deletionRequirement: item?.deletionRequirement?.deletionRequirements ? 'Yes' : 'No',
+          deletionRequirement: item?.access?.deletionRequirements || item?.deletionRequirement?.deletionRequirements ? 'Yes' : 'No',
           deletionRequirementDescription: item?.deletionRequirement?.description,
           otherRelevantInfo: item?.deletionRequirement?.otherRelevantInformation,
 
