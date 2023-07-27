@@ -14,6 +14,7 @@ import rehypeStringify from 'rehype-stringify';
 
 // components from container app
 import InfoModal from 'dna-container/InfoModal';
+// import Modal from 'dna-container/Modal';
 import Tags from 'dna-container/Tags';
 
 import { Controller, useFieldArray, useFormContext } from 'react-hook-form';
@@ -27,7 +28,8 @@ import AccessSteps from '../../../accessSteps';
 import SelectBox from 'dna-container/SelectBox';
 
 const Description = ({ 
-  // onSave, 
+  onChangeConfidentialityInDescription,
+  onChangeAccessType, 
   artList, carlaFunctionList, dataCatalogList, platformList, 
   frontEndToolList, tagsList }) => {
   const {
@@ -70,34 +72,91 @@ const Description = ({
   const [selectedTags, setSelectedTags] = useState([]);
   const [productOwnerSearchTerm, setProductOwnerSearchTerm] = useState('');
   const [productOwnerFieldValue, setProductOwnerFieldValue] = useState('');
-  const [currentTab, setCurrentTab] = useState('access-via-kafka');
+  const [currentInnerTab, setCurrentInnerTab] = useState('access-via-kafka');
+  const [currentPreviewTab, setCurrentPreviewTab] = useState('access-via-kafka-Preview');
   // const [howToAccessTemplateObj, setHowToAccessTemplateObj] = useState({});
   const [numberedStep, setNumberedStep] = useState(0);
+  const [numberedLiveStep, setNumberedLiveStep] = useState(0);
+  const [numberedApiStep, setNumberedApiStep] = useState(0);
 
   const [stepsList, setStepsList] = useState([]);
+  const [showPreviewModal, setShowPreviewModal] = useState(false);
+  const [accessTypeCount, setAccessTypeCount] = useState(0);
 
   const { howToAccessText, tags, productOwner, 
     // useTemplate, 
+    confidentialityInDescription,
     accessType } = watch();
 
 
   useEffect(() => {
     Tooltip.defaultSetup();
-    // setTimeout(() => {
-      Tabs.defaultSetup();
-    // }, 100);
+    Tabs.defaultSetup(document.querySelectorAll('.inner-tabs'));
+    
     
     reset(watch());
     //eslint-disable-next-line
-    const kafkaStepsMaxCount = Math.max.apply(Math, kafkaFields?.map(function(o) { return o.stepNumber; }));
+  }, []);
+
+  useEffect(() => {
+    // const kafkaStepsMaxCount = Math.max.apply(Math, kafkaFields?.map(function(o) { return o.stepNumber; }));
+    // const liveAccessStepsMaxCount = Math.max.apply(Math, liveAccessFields?.map(function(o) { return o.stepNumber; }));
+    // const apiStepsMaxCount = Math.max.apply(Math, apiFields?.map(function(o) { return o.stepNumber; }));
+
+    let kafkaStepsMaxCount = 0;
+    kafkaFields?.map(function(o,index) { 
+      if (o.stepIconType=='Numbered')
+      {
+        kafkaStepsMaxCount += 1;
+        setValue(`kafkaArray.${index}.stepNumber`,kafkaStepsMaxCount)
+      }
+      return kafkaStepsMaxCount; });
+
+
+    let liveAccessStepsMaxCount = 0;
+    liveAccessFields?.map(function(o, index) { 
+      if (o.stepIconType=='Numbered')
+      {
+        liveAccessStepsMaxCount += 1;
+        setValue(`liveAccessArray.${index}.stepNumber`,liveAccessStepsMaxCount)
+      }
+      return liveAccessStepsMaxCount; });
+
+
+    let apiStepsMaxCount = 0;
+    apiFields?.map(function(o, index) { 
+      if (o.stepIconType=='Numbered')
+      {
+        apiStepsMaxCount += 1;
+        setValue(`apiArray.${index}.stepNumber`,apiStepsMaxCount)
+      }
+      return apiStepsMaxCount; });
+
+
     
+
+
+
     if(kafkaStepsMaxCount > 0)
       setNumberedStep(kafkaStepsMaxCount);
     else{
       setNumberedStep(0);
     }
+
+    if(liveAccessStepsMaxCount > 0)
+    setNumberedLiveStep(liveAccessStepsMaxCount);
+    else{
+      setNumberedLiveStep(0);
+    }
+
+    if(apiStepsMaxCount > 0)
+      setNumberedApiStep(apiStepsMaxCount);
+    else{
+      setNumberedApiStep(0);
+    }
     //eslint-disable-next-line
-  }, []);
+  }, [kafkaFields, liveAccessFields, apiFields]);
+
 
   useEffect(()=>{
     setTagsListST(tagsList);
@@ -108,11 +167,73 @@ const Description = ({
   useEffect(() => {
     setSelectedTags(tags);
   }, [tags]);
+  
 
   useEffect(() => {
+    
     if(accessType?.length > 0 && (accessType?.includes('Kafka') || accessType?.includes('API'))){
        SelectBox.defaultSetup(true);
     }
+
+
+
+    /****************************************************************** 
+     ********** Start of selecting default tab on selection ***********
+     ******************************************************************/
+    if(accessType?.length > 0 && accessTypeCount === 0){
+      setAccessTypeCount(1);
+      let tabDetails = '';
+      if(accessType?.length > 0 && accessType[0] == 'Kafka'){
+        tabDetails = document.getElementById('access-via-kafka');
+        tabDetails?.click();
+      }
+      else if(accessType?.length > 0 && accessType[0] == 'Live (SAC/AFO)'){
+        tabDetails = document.getElementById('live-access');
+        tabDetails?.click();
+      }
+      else if(accessType?.length > 0 && accessType[0] == 'API')  {
+        tabDetails = document.getElementById('api-access');
+        tabDetails?.click();
+      }
+    }
+    /****************************************************************** 
+     ********** End of selecting default tab on selection ***********
+     ******************************************************************/
+
+
+
+
+
+
+    /****************************************************************** 
+     ********** Start of setting default value on selection ***********
+     ******************************************************************/
+
+    if(accessType?.length > 0 && !accessType.includes('Kafka')){
+      setValue('kafkaArray',[]);
+    }
+    if(accessType?.length > 0 && !accessType.includes('Live (SAC/AFO)')){
+      setValue('liveAccessArray',[]);
+    }
+    if(accessType?.length > 0 && !accessType.includes('API'))  {
+      setValue('apiArray',[]);
+    }
+    if(accessType?.length == 1 && accessType.includes('Live (SAC/AFO)')){
+      setValue('confidentialityInDescription','');
+    }
+    
+    if((accessType?.length == 1 && accessType?.includes('Live (SAC/AFO)')) || accessType?.length == 0 || confidentialityInDescription == 'Internal'){
+      setValue('personalRelatedDataInDescription', 'No');
+      setValue('deletionRequirementInDescription', 'No');
+      setValue('restrictDataAccess', 'No');
+    }
+    /****************************************************************** 
+     ********** End of setting default value on selection ***********
+     ******************************************************************/
+
+
+     
+    //eslint-disable-next-line
   }, [accessType]);
 
   useEffect(() => {
@@ -132,12 +253,6 @@ const Description = ({
   //   mdEditor.style.setProperty('--color-accent-fg', '#00adef');
   //   mdEditor.style.setProperty('--color-fg-default', '#c0c8d0');
   // }, []);
-
-  useEffect(() => {
-    // if(currentTab=='')
-    // const stepperTab = document?.getElementById('access-via-kafka');
-    // stepperTab?.click();
-  }, []);
 
   const validateURL = (value) => {
     return !value || isValidURL(value) || 'Not a valid URL';
@@ -175,8 +290,15 @@ const Description = ({
 
   const setTab = (e) => {
     const id = e.target.id;
-    if (currentTab !== id) {
-      setCurrentTab(id);
+    if (currentInnerTab !== id) {
+      setCurrentInnerTab(id);
+    }
+  };
+
+  const setPreviewTab = (e) => {
+    const id = e.target.id;
+    if (currentPreviewTab !== id) {
+      setCurrentPreviewTab(id);
     }
   };
 
@@ -202,9 +324,185 @@ const Description = ({
     // setStepsList(prevCache => prevCache.map((val, i) => i !== index ? val : !val));
   };
 
-  // console.log(Math.max(...kafkaFields?.map(o => o.stepNumber)),'=-=-=-=-=-=-=');
+  const nextPreviewTab = () => {
+    let nextTab = '';
+    if(currentPreviewTab === 'access-via-kafka-preview'){
+      if(accessType?.includes('Live (SAC/AFO)'))
+      nextTab = 'live-access-preview';
+      else if(accessType?.includes('API'))
+      nextTab = 'api-access-preview';
+      else
+      nextTab = 'access-via-kafka-preview';
+    }
+    if(currentPreviewTab === 'live-access-preview'){
+      if(accessType?.includes('API'))
+      nextTab = 'api-access-preview';
+      else
+      nextTab = 'live-access-preview';
+    }
+    const tabDetails = document.getElementById(nextTab);
+    tabDetails?.click();
+  };
 
-  
+  const previewModalContent = (
+      <>
+        <div className={Styles.accessModalHeader}>
+          <div className={Styles.accessModalHeaderIcon}>
+            <i
+              className={classNames('icon mbc-icon help iconsmd', Styles.infoIcon)}
+            /> 
+          </div>
+          <div className={Styles.accessModalHeaderText}>
+            <h3>How To Access</h3>
+          </div>
+        </div>
+        <div id="how-to-access-preview-tabs" className={"tabs-panel "+accessType?.length < 1 ? 'hidden':''}>
+          <div className="tabs-wrapper">
+            <nav>
+              <ul className="inner-preview-tabs tabs">
+                
+                <li className={(accessType?.includes('Kafka') ? 'inner-preview-tab tab active' : ('inner-preview-tab tab ' + Styles.widthZero))}>  
+                  <a
+                    className={accessType?.includes('Kafka') ? '' : 'hidden'}
+                    href="#preview-steps-tab-content-1"
+                    id="access-via-kafka-preview"
+                    onClick={setPreviewTab}
+                  >
+                    Kafka-Access
+                  </a>
+                </li>
+                
+                <li className={accessType?.includes('Live (SAC/AFO)') ? 'inner-preview-tab tab' : ('inner-preview-tab tab disabled ' + Styles.widthZero)}>
+                  <a
+                    className={accessType?.includes('Live (SAC/AFO)') ? '' : 'hidden'}
+                    href="#preview-steps-tab-content-2"
+                    id="live-access-preview"
+                    onClick={setPreviewTab}
+                  >
+                    Live (SAC/AFO)-Access
+                  </a>
+                </li>
+                
+                <li className={accessType?.includes('API') ? 'inner-preview-tab tab' : ('inner-preview-tab tab disabled ' + Styles.widthZero)}>
+                  <a
+                    className={accessType?.includes('API') ? '' : 'hidden'}
+                    href="#preview-steps-tab-content-3"
+                    id="api-access-preview"
+                    onClick={setPreviewTab}
+                  >
+                    API-Access
+                  </a>
+                </li>
+                
+                <li className={'inner-preview-tab tab disabled'}>
+                  <a id="stepTab2-preview" className={'hidden'}>
+                    `
+                  </a>
+                </li>
+                <li className={'inner-preview-tab tab disabled'}>
+                  <a id="stepTab3-preview" className={'hidden'}>
+                    `
+                  </a>
+                </li>
+                <li className={'inner-preview-tab tab disabled'}>
+                  <a id="stepTab4-preview" className={'hidden'}>
+                    `
+                  </a>
+                </li>
+                
+              </ul>
+            </nav>
+          </div>
+          <div className="tabs-content-wrapper">
+            <div id="preview-steps-tab-content-1" className="inner-preview-tab-content tab-content">
+              
+              {currentPreviewTab === 'access-via-kafka-preview' && kafkaFields?.map((stepItem, index)=>{
+                return(
+                <fieldset key={'access-via-kafka-preview'+stepItem.id}>  
+                <AccessSteps 
+                value={stepItem}
+                itemIndex={index}
+                showMoveUp={index !== 0}
+                showMoveDown={index + 1 !== kafkaFields.length}
+                onMoveUp={(index)=>onTeamMemberMoveUp(index)}
+                onMoveDown={(index)=>onTeamMemberMoveDown(index)}
+                control={control}
+                // update={kafkaUpdate}
+                // remove={kafkaRemove}
+                numberedStep = {numberedStep}
+                updateNumberedStep = {() => setNumberedStep(numberedStep+1)}
+                arrayName={'kafkaArray'}
+                isEditable={false}
+                />
+                </fieldset>
+                )
+              })}
+            </div>
+            <div id="preview-steps-tab-content-2" className="inner-preview-tab-content tab-content">
+              
+              {currentPreviewTab === 'live-access-preview' && liveAccessFields?.map((stepItem, index)=>{
+                return(
+                <fieldset key={'live-access-preview'+stepItem.id}>  
+                <AccessSteps 
+                value={stepItem}
+                itemIndex={index}
+                showMoveUp={index !== 0}
+                showMoveDown={index + 1 !== liveAccessFields.length}
+                onMoveUp={(index)=>onTeamMemberMoveUp(index)}
+                onMoveDown={(index)=>onTeamMemberMoveDown(index)}
+                control={control}
+                // update={liveAccessUpdate}
+                // remove={liveAccessRemove}
+                numberedStep = {numberedLiveStep}
+                updateNumberedStep = {() => setNumberedLiveStep(numberedLiveStep+1)}
+                arrayName={'liveAccessArray'}
+                isEditable={false}
+                />
+                </fieldset>
+                )
+              })}
+            </div>
+            <div id="preview-steps-tab-content-3" className="inner-preview-tab-content tab-content">
+              
+              {currentPreviewTab === 'api-access-preview' && apiFields?.map((stepItem, index)=>{
+                return(
+                <fieldset key={'api-access-preview'+stepItem.id}>  
+                <AccessSteps 
+                value={stepItem}
+                itemIndex={index}
+                showMoveUp={index !== 0}
+                showMoveDown={index + 1 !== apiFields.length}
+                onMoveUp={(index)=>onTeamMemberMoveUp(index)}
+                onMoveDown={(index)=>onTeamMemberMoveDown(index)}
+                control={control}
+                // update={apiUpdate}
+                // remove={apiRemove}
+                numberedStep = {numberedApiStep}
+                updateNumberedStep = {() => setNumberedApiStep(numberedApiStep+1)}
+                arrayName={'apiArray'}
+                isEditable={false}
+                />
+                </fieldset>
+                )
+              })}
+            </div>
+          </div>
+        </div>
+        <div className={Styles.actionButtonsPreview}>
+          <button
+            onClick={()=>{
+              setShowPreviewModal(false);
+            }}
+          >OK, got it</button>
+          <button
+          
+            onClick={()=>{
+              nextPreviewTab();
+            }}
+          >Next</button>
+        </div>
+      </>      
+  );
 
   
 
@@ -464,15 +762,40 @@ const Description = ({
               <div className={classNames('input-field-group include-error', 
               // errors.carLAFunction ? 'error' : ''
               )}>
-                <label id="connectionTypeLabel" htmlFor="connectionTypeInput" className="input-label">
+                <label id="accessTypeLabel" htmlFor="accessTypeInput" className="input-label">
                   Access
                 </label>
                 <div className={`custom-select`}>
-                  <select id="connectionTypeField" multiple={true} name="connectionType" {...register('accessType')}>
+                  <select id="accessTypeField" multiple={true} name="accessType" {...register('accessType',{
+                    onChange:(e)=>{
+                      
+                      const options = e.target.selectedOptions;
+                      const values = Array.from(options).map(({ value }) => value);
+
+                      if(e.target.value?.length == 1 && e.target.value?.includes('Live (SAC/AFO)')){
+                        setValue('personalRelatedDataInDescription', 'No');
+                        setValue('deletionRequirementInDescription', 'No');
+                        setValue('restrictDataAccess', 'No');
+                        setValue('kafkaArray', []);
+                        setValue('liveAccessArray', []);
+                        setValue('apiArray', []);
+                      }
+                      // if(!e.target.value?.includes('Kafka')){
+                      //   setValue('kafkaArray', []);
+                      // }
+                      // if(!e.target.value?.includes('Live (SAC/AFO)')){
+                      //   setValue('liveAccessArray', []);
+                      // }
+                      // if(!e.target.value?.includes('API')){
+                      //   setValue('apiArray', []);
+                      // }
+                      onChangeAccessType(values);
+                    }
+                  })}>
                     <option value="">Choose</option>
-                    <option id='Kafka0' key={'Kafka'} value={'Kafka'}>Kafka</option>
-                    <option id='Live (SAC/AFO)1' key={'Live (SAC/AFO)'} value={'Live (SAC/AFO)'}>Live (SAC/AFO)</option>
-                    <option id='API0' key={'API'} value={'API'}>API</option>
+                    <option id='Kafka' key={'Kafka'} value={'Kafka'}>Kafka</option>
+                    <option id='Live (SAC/AFO)' key={'Live (SAC/AFO)'} value={'Live (SAC/AFO)'}>Live (SAC/AFO)</option>
+                    <option id='API' key={'API'} value={'API'}>API</option>
                   </select>
                 </div>
                 {/* <span className={classNames('error-message', errors.carLAFunction?.message ? '' : 'hide')}>
@@ -491,12 +814,21 @@ const Description = ({
                   Classification
                 </label>
                 <div className={`custom-select`}>
-                  <select id="confidentialityField" name="confidentiality" {...register('confidentiality')}>
+                  <select id="confidentialityField" name="confidentialityInDescription" {...register('confidentialityInDescription',{
+                    onChange:(e)=>{
+                      if(e.target.value == 'Internal'){
+                        setValue('personalRelatedDataInDescription', 'No');
+                        setValue('deletionRequirementInDescription', 'No');
+                        setValue('restrictDataAccess', 'No');
+                      }
+                      onChangeConfidentialityInDescription(e.target.value);
+                    }
+                  })}>
                     <option value="">Choose</option>
-                    <option id='Internal0' key={'Internal'} value={'Internal'}>Internal</option>
-                    <option id='Secret1' key={'Secret'} value={'Secret'}>Secret</option>
-                    <option id='Confidential2' key={'Confidential'} value={'Confidential'}>Confidential</option>
-                    <option id='Public2' key={'Public'} value={'Public'}>Public</option>
+                    <option id='Internal' key={'Internal'} value={'Internal'}>Internal</option>
+                    <option id='Secret' key={'Secret'} value={'Secret'}>Secret</option>
+                    <option id='Confidential' key={'Confidential'} value={'Confidential'}>Confidential</option>
+                    <option id='Public' key={'Public'} value={'Public'}>Public</option>
                   </select>
                 </div>
                 {/* <span className={classNames('error-message', errors.carLAFunction?.message ? '' : 'hide')}>
@@ -507,7 +839,7 @@ const Description = ({
               }
             </div>
 
-            {(accessType?.length == 1 && accessType?.includes('Live (SAC/AFO)')) || accessType?.length == 0 ?
+            {(accessType?.length == 1 && accessType?.includes('Live (SAC/AFO)')) || accessType?.length == 0 || confidentialityInDescription == 'Internal' ?
               <div></div>
                : 
               <>
@@ -524,7 +856,7 @@ const Description = ({
                       className="input-field"
                       id="kafkaInput"
                       maxLength={200}
-                      placeholder="Type here"
+                      placeholder="https://example@example.com"
                       autoComplete="off"
                     />
                   </div>
@@ -561,7 +893,7 @@ const Description = ({
 
                 <div className={Styles.flexLayout}>
                   <div
-                    className={classNames(`input-field-group include-error ${errors?.personalRelatedData ? 'error' : ''}`)}
+                    className={classNames(`input-field-group include-error`)}
                     style={{ minHeight: '50px' }}
                   >
                     <label className={classNames(Styles.inputLabel, 'input-label')}>
@@ -571,7 +903,7 @@ const Description = ({
                       <label className={'radio'}>
                         <span className="wrapper">
                           <input
-                            {...register('personalRelatedData', {
+                            {...register('personalRelatedDataInDescription', {
                               required: '*Missing entry',
                               // onChange: () => {
                                 
@@ -579,7 +911,7 @@ const Description = ({
                             })}
                             type="radio"
                             className="ff-only"
-                            name="personalRelatedData"
+                            name="personalRelatedDataInDescription"
                             value="No"
                           />
                         </span>
@@ -588,17 +920,16 @@ const Description = ({
                       <label className={'radio'}>
                         <span className="wrapper">
                           <input
-                            {...register('personalRelatedData', { required: '*Missing entry' })}
+                            {...register('personalRelatedDataInDescription', { required: '*Missing entry' })}
                             type="radio"
                             className="ff-only"
-                            name="personalRelatedData"
+                            name="personalRelatedDataInDescription"
                             value="Yes"
                           />
                         </span>
                         <span className="label">Yes</span>
                       </label>
                     </div>
-                    <span className={classNames('error-message')}>{errors?.personalRelatedData?.message}</span>
                   </div>
                   <div
                     className={classNames(`input-field-group include-error`)}
@@ -611,7 +942,7 @@ const Description = ({
                       <label className={'radio'}>
                         <span className="wrapper">
                           <input
-                            {...register('deletionRequirements', {
+                            {...register('deletionRequirementInDescription', {
                               required: '*Missing entry',
                               // onChange: () => {
                                 
@@ -619,7 +950,7 @@ const Description = ({
                             })}
                             type="radio"
                             className="ff-only"
-                            name="deletionRequirements"
+                            name="deletionRequirementInDescription"
                             value="No"
                           />
                         </span>
@@ -628,10 +959,10 @@ const Description = ({
                       <label className={'radio'}>
                         <span className="wrapper">
                           <input
-                            {...register('deletionRequirements', { required: '*Missing entry' })}
+                            {...register('deletionRequirementInDescription', { required: '*Missing entry' })}
                             type="radio"
                             className="ff-only"
-                            name="deletionRequirements"
+                            name="deletionRequirementInDescription"
                             value="Yes"
                           />
                         </span>
@@ -701,7 +1032,7 @@ const Description = ({
                     </div>
                     <div className={Styles.descriptionWrapper}>
                       <p>
-                      {accessType?.length == 1 && accessType?.includes('Live (SAC/AFO)') ?
+                      {(accessType?.length == 1 && accessType?.includes('Live (SAC/AFO)')) || confidentialityInDescription == 'Internal' ?
                         <><b>No Minimum information required.</b> Please make sure to comply with A22 policies when using SAP/IDM.</>
                       :
                         <><b>Minimum information required.</b> You can either move on by selecting an existing Minimum information to review/edit or fill out the required provider-form in the next few steps. We already selected a fitting How-To-Access information to show your consumers in the next section.</>
@@ -753,31 +1084,38 @@ const Description = ({
 
 
 
-            <div id="how-to-access-tabs" className="tabs-panel">
+
+
+
+
+            <div id="how-to-access-tabs" className={"tabs-panel "+accessType?.length < 1 ? 'hidden':''}>
               <div className="tabs-wrapper">
                 <nav>
-                  <ul className="tabs">
-                    <li className={(accessType?.includes('Kafka') ? 'tab' : 'tab')+' active'}>  
+                  <ul className="inner-tabs tabs">
+                    
+                    <li className={(accessType?.includes('Kafka') ? 'inner-tab tab active' : ('inner-tab tab ' + Styles.widthZero))}>  
                       <a
                         className={accessType?.includes('Kafka') ? '' : 'hidden'}
                         href="#steps-tab-content-1"
                         id="access-via-kafka"
                         onClick={setTab}
                       >
-                        Access Via Kafka
+                        Kafka-Access
                       </a>
                     </li>
-                    <li className={accessType?.includes('Live (SAC/AFO)') ? 'tab' : 'tab disabled'}>
+                    
+                    <li className={accessType?.includes('Live (SAC/AFO)') ? 'inner-tab tab' : ('inner-tab tab disabled ' + Styles.widthZero)}>
                       <a
                         className={accessType?.includes('Live (SAC/AFO)') ? '' : 'hidden'}
                         href="#steps-tab-content-2"
                         id="live-access"
                         onClick={setTab}
                       >
-                        Live Access
+                        Live (SAC/AFO)-Access
                       </a>
                     </li>
-                    <li className={accessType?.includes('API') ? 'tab' : 'tab disabled'}>
+                   
+                    <li className={accessType?.includes('API') ? 'inner-tab tab' : ('inner-tab tab disabled ' + Styles.widthZero)}>
                       <a
                         className={accessType?.includes('API') ? '' : 'hidden'}
                         href="#steps-tab-content-3"
@@ -787,17 +1125,18 @@ const Description = ({
                         API-Access
                       </a>
                     </li>
-                    <li className={'tab disabled'}>
+                    
+                    <li className={'inner-tab tab disabled'}>
                       <a id="stepTab2" className={'hidden'}>
                         `
                       </a>
                     </li>
-                    <li className={'tab disabled'}>
+                    <li className={'inner-tab tab disabled'}>
                       <a id="stepTab3" className={'hidden'}>
                         `
                       </a>
                     </li>
-                    <li className={'tab disabled'}>
+                    <li className={'inner-tab tab disabled'}>
                       <a id="stepTab4" className={'hidden'}>
                         `
                       </a>
@@ -807,12 +1146,11 @@ const Description = ({
                 </nav>
               </div>
               <div className="tabs-content-wrapper">
-                <div id="steps-tab-content-1" className="tab-content">
+                <div id="steps-tab-content-1" className="inner-tab-content tab-content">
                   
-
-                  {currentTab === 'access-via-kafka' && kafkaFields?.map((stepItem, index)=>{
+                  {currentInnerTab === 'access-via-kafka' && kafkaFields?.map((stepItem, index)=>{
                     return(
-                    <fieldset key={stepItem.id}>  
+                    <fieldset key={'access-via-kafka'+stepItem.id}>  
                     <AccessSteps 
                     value={stepItem}
                     itemIndex={index}
@@ -826,6 +1164,7 @@ const Description = ({
                     numberedStep = {numberedStep}
                     updateNumberedStep = {() => setNumberedStep(numberedStep+1)}
                     arrayName={'kafkaArray'}
+                    isEditable={true}
                     />
                     </fieldset>
                     )
@@ -834,7 +1173,6 @@ const Description = ({
                   <div>
                     <button
                       className={classNames('data-row', Styles.listViewContainer)}
-                      // onClick={addSteps}
                       onClick={ ()=>{
                         kafkaAppend({
                         "stepNumber": '',
@@ -850,11 +1188,11 @@ const Description = ({
 
 
                 </div>
-                <div id="steps-tab-content-2" className="tab-content">
+                <div id="steps-tab-content-2" className="inner-tab-content tab-content">
                   
-                  {currentTab === 'live-access' && liveAccessFields?.map((stepItem, index)=>{
+                  {currentInnerTab === 'live-access' && liveAccessFields?.map((stepItem, index)=>{
                     return(
-                    <fieldset key={stepItem.id}>  
+                    <fieldset key={'live-access'+stepItem.id}>  
                     <AccessSteps 
                     value={stepItem}
                     itemIndex={index}
@@ -865,9 +1203,10 @@ const Description = ({
                     control={control}
                     update={liveAccessUpdate}
                     remove={liveAccessRemove}
-                    numberedStep = {numberedStep}
-                    updateNumberedStep = {() => setNumberedStep(numberedStep+1)}
+                    numberedStep = {numberedLiveStep}
+                    updateNumberedStep = {() => setNumberedLiveStep(numberedLiveStep+1)}
                     arrayName={'liveAccessArray'}
+                    isEditable={true}
                     />
                     </fieldset>
                     )
@@ -876,7 +1215,6 @@ const Description = ({
                   <div>
                     <button
                       className={classNames('data-row', Styles.listViewContainer)}
-                      // onClick={addSteps}
                       onClick={ ()=>{
                         liveAccessAppend({
                         "stepNumber": '',
@@ -890,11 +1228,11 @@ const Description = ({
                     </button>
                   </div>
                 </div>
-                <div id="steps-tab-content-3" className="tab-content">
+                <div id="steps-tab-content-3" className="inner-tab-content tab-content">
                   
-                  {currentTab === 'api-access' && apiFields?.map((stepItem, index)=>{
+                  {currentInnerTab === 'api-access' && apiFields?.map((stepItem, index)=>{
                     return(
-                    <fieldset key={stepItem.id}>  
+                    <fieldset key={'api-access'+stepItem.id}>  
                     <AccessSteps 
                     value={stepItem}
                     itemIndex={index}
@@ -905,9 +1243,10 @@ const Description = ({
                     control={control}
                     update={apiUpdate}
                     remove={apiRemove}
-                    numberedStep = {numberedStep}
-                    updateNumberedStep = {() => setNumberedStep(numberedStep+1)}
+                    numberedStep = {numberedApiStep}
+                    updateNumberedStep = {() => setNumberedApiStep(numberedApiStep+1)}
                     arrayName={'apiArray'}
+                    isEditable={true}
                     />
                     </fieldset>
                     )
@@ -916,7 +1255,6 @@ const Description = ({
                   <div>
                     <button
                       className={classNames('data-row', Styles.listViewContainer)}
-                      // onClick={addSteps}
                       onClick={ ()=>{
                         apiAppend({
                         "stepNumber": '',
@@ -932,6 +1270,52 @@ const Description = ({
                 </div>
               </div>
             </div>
+
+
+
+
+
+
+
+            <div className={Styles.howToAccessPopupLink}>
+              <span onClick={()=>{
+                setShowPreviewModal(true);
+                Tabs.defaultSetup(document.querySelectorAll('.inner-preview-tabs'));
+                setTimeout(() => {
+                  let tabDetails = '';
+                  if(accessType?.length > 0 && accessType[0] == 'Kafka'){
+                    tabDetails = document.getElementById('access-via-kafka-preview');
+                    tabDetails?.click();
+                  }
+                  else if(accessType?.length > 0 && accessType[0] == 'Live (SAC/AFO)'){
+                    tabDetails = document.getElementById('live-access-preview');
+                    tabDetails?.click();
+                  }
+                  else if(accessType?.length > 0 && accessType[0] == 'API')  {
+                    tabDetails = document.getElementById('api-access-preview');
+                    tabDetails?.click();
+                  }
+                }, 100);
+                }}
+              className={Styles.howToAccessPopupLinkText}
+              >Preview How-To-Access Pop-up</span>
+            </div>
+            <div>
+              <InfoModal
+                show={showPreviewModal}
+                content={previewModalContent}
+                onCancel={() => setShowPreviewModal(false)}
+              />
+            </div>
+
+           
+
+
+
+
+
+
+            
 
 
 

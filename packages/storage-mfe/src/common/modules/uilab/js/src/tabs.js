@@ -6,8 +6,8 @@ class Tabs {
     this._element = element;
   }
 
-  static defaultSetup() {
-    const tabs = document.querySelectorAll('.tabs');
+  static defaultSetup(customTabs) {
+    const tabs = customTabs || document.querySelectorAll('.tabs');
 
     makeArray(tabs).forEach((tabsElem) => {
       const tabItems = tabsElem.querySelectorAll('.tab');

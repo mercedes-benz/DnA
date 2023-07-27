@@ -180,6 +180,70 @@ hr {
     font-size: var(--font-size-small);
 }
 
+.stickyPanel{
+    background: #000;
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    padding: 15px 75px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    .productName{
+        font-size: var(--font-size-headline);
+    }
+    .actionButtonsSection{
+        button {
+            background-color: #252a33;
+            border: none;
+            padding: 15px 50px;
+            color: #99a5b3;
+            margin: 0 2px;
+            font-size: var(--font-size-small);
+            &:hover:not(:disabled) {
+                background-color: #00adef;
+                color: #fff;
+            }
+            &:disabled {
+                color: #6d6e6f;
+            }
+        }
+    }
+}
+
+.accessModal{
+    .accessModalHeader{
+        text-align: center;
+        .accessModalHeaderIcon i{
+            font-size: 5em;
+        }
+        .accessModalHeaderText{
+            padding: 25px 0;
+        }
+    }
+    .noData{
+        text-align: center;
+        font-size: var(--font-size-headline);
+    }
+    .actionButtonsSection{
+        text-align: center;
+        margin-top: 25px;
+        button {
+            background-color: #00adef;
+            border: none;
+            padding: 15px 50px;
+            color: #fff;
+            margin: 0 2px;
+            font-size: var(--font-size-small);
+            &:hover {
+                background-color: #00adef;
+                color: #fff;
+            }
+        }
+    }
+}
+
+
 :global {
     .dataproductSummary {
         #data-summary-tabs {

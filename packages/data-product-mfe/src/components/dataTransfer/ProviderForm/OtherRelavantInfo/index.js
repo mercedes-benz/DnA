@@ -53,6 +53,8 @@ currentTab }) => {
   const isDisabled = !teamMembers.length && !provideDataTransfers.selectedDataTransfer.users?.length ? true : false;
   const hasUsers = watch('users');
 
+  const {accessType, confidentialityInDescription} = watch();
+
   const [isCreator, setIsCreator] = useState(false);
   const [isInformationOwner, setIsInformationOwner] = useState(false);
   const [isCreatedBy, setIsCreatedBy] = useState(false);
@@ -236,6 +238,25 @@ currentTab }) => {
       
       <div className="btnContainer">
         <div className="btn-set">
+        {(accessType?.length == 1 && accessType?.includes('Live (SAC/AFO)')) || confidentialityInDescription == 'Internal' ? 
+          <button
+            className={'btn btn-primary'}
+            type="button"
+            disabled={isSubmitting}
+            onClick={handleSubmit((data) => {
+              const isPublished = watch('publish');
+              setValue('notifyUsers', isPublished ? true : false);
+              onSave(watch(),()=>{
+                  reset(data, {
+                  keepDirty: false,
+                });
+              });
+              
+            },(errors) => onDescriptionTabErrors(errors))}
+          >
+            Fill out Minimum Information
+          </button>
+        :
           <button
             className={'btn btn-primary'}
             type="button"
@@ -253,6 +274,7 @@ currentTab }) => {
           >
             {currentTab == 'deletion-requirements' ?'Save':'Save & move to next tab'}
           </button>
+        }
           {isDataProduct ? (
             <button
               className={'btn btn-tertiary'}

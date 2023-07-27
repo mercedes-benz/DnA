@@ -36,6 +36,7 @@ export const SetDataProduct = createAsyncThunk(
       values,
       onSave,
       data: { divisionList, pagination },
+      currentTab // "provider" form or "consumer" form
     } = data;
 
     const division = serializeDivisionSubDivision(divisionList, values);
@@ -48,7 +49,7 @@ export const SetDataProduct = createAsyncThunk(
     values['platform'] = platforms;
     values['frontEndTools'] = frontEndTools;
 
-    const requestBody = serializeFormData({ values, division, isDataProduct: true, dropdowns });
+    const requestBody = serializeFormData({ values, division, isDataProduct: true, dropdowns, currentTab });
 
     ProgressIndicator.show();
     try {
@@ -76,7 +77,8 @@ export const UpdateDataProduct = createAsyncThunk(
       values,
       onSave,
       data: { divisionList, pagination },
-      type, // "provider" form or "consumer" form
+      type,
+      currentTab // "provider" form or "consumer" form
     } = data;
 
     const isProviderForm = type === 'provider';
@@ -99,7 +101,7 @@ export const UpdateDataProduct = createAsyncThunk(
       delete values?.informationOwner
     }
 
-    const requestBody = serializeFormData({ values, division, type, isDataProduct: true, dropdowns });
+    const requestBody = serializeFormData({ values, division, type, isDataProduct: true, dropdowns, currentTab });
     ProgressIndicator.show();
 
     try {
