@@ -127,7 +127,7 @@ public class StorageController implements StorageApi {
 		@ApiParam(value = "Sort users based on given order, example asc,desc", allowableValues = "asc, desc") @Valid @RequestParam(value = "sortOrder", required = false) String sortOrder,
 		@ApiParam(value = "page number from which listing of solutions should start. Offset. Example 2") @Valid @RequestParam(value = "offset", required = false) Integer offset) 
 	{
-		int defaultLimit = 15;
+		int defaultLimit = 20;
             if (offset == null || offset < 0)
                 offset = 0;
             if (limit == null || limit < 0) {
