@@ -6,6 +6,7 @@ import { useForm, useWatch } from 'react-hook-form';
 
 import SelectBox from 'dna-container/SelectBox';
 import Modal from 'dna-container/Modal';
+import ConfirmModal from 'dna-container/Modal';
 import { markdownParser, htmlToMarkdownParser } from 'dna-container/MarkdownParser';
 
 const AccessSteps = (
@@ -38,6 +39,8 @@ const AccessSteps = (
   const [linkUrl, setLinkUrl] = useState('');
   const [showDesc, setShowDesc] = useState(true);
   const [markdownParserText, setMarkdownParserText] = useState('');
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [itemIndexToDelete, setItemIndexToDelete] =useState('');
 
   const data = useWatch({
     control,
@@ -57,6 +60,7 @@ const AccessSteps = (
 
   useEffect(() => {
     // setValue(`stepText`, data?.stepText );
+    if(data?.stepText)
     setMarkdownParserText(markdownParser(data?.stepText));
     //eslint-disable-next-line
   }, []);
@@ -247,7 +251,7 @@ const AccessSteps = (
                                 }
                                 
                               }
-                              
+                              data1.stepText = htmlToMarkdownParser(markdownParserText)
                               update(itemIndex, data1);
                               setEnableEdit(false);
                             })}
@@ -264,7 +268,8 @@ const AccessSteps = (
                     {isEditable ? 
                       <i
                         onClick={ () => {
-                          remove(itemIndex)
+                          setItemIndexToDelete(itemIndex);
+                          setShowDeleteModal(true);
                         }}
                         className={classNames(Styles.deleteIcon, 'icon delete')}
                       />
@@ -301,6 +306,25 @@ const AccessSteps = (
             onCancel={() => setShowLinkModal(false)}
           />
         )}
+        <ConfirmModal
+            title="Are you sure you want to delete this?"
+            acceptButtonTitle="Delete"
+            cancelButtonTitle="Cancel"
+            showAcceptButton={true}
+            showCancelButton={true}
+            show={showDeleteModal}
+            // content={
+            //   <div id="contentparentdiv">
+            //     Are you sure you want to delete this?
+            //   </div>
+            // }
+            onCancel={() => {
+              setShowDeleteModal(false);
+            }}
+            onAccept={() => {
+              remove(itemIndexToDelete);
+            }}
+          />
     </>
   );
 };

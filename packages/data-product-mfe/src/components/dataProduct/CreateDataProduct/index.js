@@ -534,6 +534,7 @@ const CreateDataProduct = ({ user, history }) => {
           if (typeof callbackFn === 'function') callbackFn();
         },
         data,
+        currentTab
       };
       if (isCreatePage) {
         const { id } = data.selectedDataProduct;
@@ -541,13 +542,13 @@ const CreateDataProduct = ({ user, history }) => {
         if (id) {
           dataObj.values['id'] = id;
           dataObj.type = 'provider';
-          dataObj.currentTab = currentTab;
+          // dataObj.currentTab = currentTab;
           dispatch(UpdateDataProduct(dataObj));
-        } else dispatch(SetDataProduct(dataObj));
+        } else dispatch(SetDataProduct(dataObj))
       } else if (isEditPage) {
         dataObj.type = 'provider';
         dataObj.state = 'edit';
-        dataObj.currentTab = currentTab;
+        // dataObj.currentTab = currentTab;
         dispatch(UpdateDataProduct(dataObj));
       }
       if (history.location.state && history.location.state.copyId) {
