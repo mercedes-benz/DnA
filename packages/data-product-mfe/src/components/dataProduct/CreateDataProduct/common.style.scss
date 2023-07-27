@@ -12,6 +12,13 @@
 
     .formWrapper {
         margin: 60px 70px 0;
+        .howToAccessPopupLink{
+            text-align: center;
+            .howToAccessPopupLinkText{
+                color: #00adef;
+                cursor: pointer;
+            }
+        }
     }
 }
 
