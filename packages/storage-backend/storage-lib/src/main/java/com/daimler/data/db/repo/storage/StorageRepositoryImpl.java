@@ -76,7 +76,6 @@ public class StorageRepositoryImpl implements StorageRepository {
 		String consolidatedPredicates = buildPredicateString(userId);
 		String query = prefix + basicpredicate + consolidatedPredicates;
 		String sortQueryString = "";
-		// switch cases for the sort conditions
 		if (sortBy != null && !"".equalsIgnoreCase(sortBy)) {
 			switch (sortBy) {
 			case "lastModifiedOn":
