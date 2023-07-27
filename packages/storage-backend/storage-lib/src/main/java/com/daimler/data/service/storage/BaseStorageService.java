@@ -37,6 +37,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -403,9 +404,7 @@ public class BaseStorageService implements StorageService {
 				List<StorageNsql> storageEntities = customRepo.getAllWithFilters(currentUser,  limit, sortBy, sortOrder, offset);
 				List<BucketVo> bucketsVO = new ArrayList<>();
 				// converting the storageEntities to bucketVO objects and adding it to bucketsVO
-				for (StorageNsql sEntity: storageEntities) {
-					bucketsVO.add(storageAssembler.toBucketVo(sEntity));
-				}
+				bucketsVO = storageEntities.stream().map(n-> storageAssembler.toBucketVo(n)).collect(Collectors.toList());
 				bucketCollectionVO.setData(bucketsVO);
 			}
 		} else {
