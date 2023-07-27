@@ -102,7 +102,7 @@ paths:
      description: "Method not allowed"
     500:
      description: "Internal error"
-  # adding the get parameters : limit, offset, sortBy, sortOrder   
+
   get:
    tags:
     - "storage"
