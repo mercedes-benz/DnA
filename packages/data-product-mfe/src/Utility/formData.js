@@ -30,14 +30,33 @@ export const serializeFormData = ({ values, division, type = 'provider', isDataP
             description: values.description,
             additionalInformation: values.additionalInformation,
             tags: values.tags,
+            // access: {
+            //   accessType: values.accessType,
+            //   confidentiality: values.confidentiality,
+            //   deletionRequirements: values.deletionRequirements === 'Yes' ? true : false,
+            //   kafka: values.kafka,
+            //   minimumInformationCheck: values.minimumInformationCheck,
+            //   oneApi: values.oneApi,
+            //   personalRelatedData: values.personalRelatedDataInDescription === 'Yes' ? true : false,
+            //   restrictDataAccess: values.restrictDataAccess === 'Yes' ? true : false
+            // },
             access: {
               accessType: values.accessType,
-              confidentiality: values.confidentiality,
-              deletionRequirements: values.deletionRequirements === 'Yes' ? true : false,
+              confidentiality: currentTab == 'description' ?
+                values.confidentialityInDescription 
+              :
+                values.confidentiality,
+              deletionRequirements: currentTab == 'description' ?
+                values.deletionRequirementInDescription === 'Yes' ? true : false
+                :
+                values.deletionRequirement === 'Yes' ? true : false,
               kafka: values.kafka,
               minimumInformationCheck: values.minimumInformationCheck,
               oneApi: values.oneApi,
-              personalRelatedData: values.personalRelatedDataInDescription === 'Yes' ? true : false,
+              personalRelatedData: currentTab == 'description' ?
+                values.personalRelatedDataInDescription === 'Yes' ? true : false
+                : 
+                values.personalRelatedData === 'Yes' ? true : false,                     
               restrictDataAccess: values.restrictDataAccess === 'Yes' ? true : false
             },
             howToAccessText: values.howToAccessText,

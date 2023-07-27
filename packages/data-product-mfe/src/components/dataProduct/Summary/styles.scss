@@ -181,13 +181,13 @@ hr {
 }
 
 .stickyPanel{
-    display: flex;
-    justify-content: flex-end;
     background: #000;
     position: fixed;
     bottom: 0;
     width: 100%;
     padding: 15px 75px;
+    display: flex;
+    justify-content: flex-end;
     justify-content: space-between;
     align-items: center;
     .productName{

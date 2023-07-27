@@ -91,19 +91,10 @@ const Description = ({
   useEffect(() => {
     Tooltip.defaultSetup();
     InnerTabs.defaultSetup('inner-tab');
-    InnerTabs.defaultSetup('inner-preview-tab');
+    // InnerTabs.defaultSetup('inner-preview-tab');
     
     
     reset(watch());
-    //eslint-disable-next-line
-  
-    setTimeout(() => {
-      const tabDetails = document.getElementById('access-via-kafka');
-      tabDetails?.click();
-      // const tabDetailsPreview = document.getElementById('access-via-kafka-preview');
-      // tabDetailsPreview?.click();
-    }, 100);
-    
     //eslint-disable-next-line
   }, []);
 
@@ -178,9 +169,27 @@ const Description = ({
   }, [tags]);
 
   useEffect(() => {
+    let accessTypeCount = 0;
     if(accessType?.length > 0 && (accessType?.includes('Kafka') || accessType?.includes('API'))){
        SelectBox.defaultSetup(true);
     }
+    if(accessType?.length > 0 && accessTypeCount == 0){
+      accessTypeCount++;
+      let tabDetails = '';
+      if(accessType?.length > 0 && accessType[0] == 'Kafka'){
+        tabDetails = document.getElementById('access-via-kafka');
+        tabDetails?.click();
+      }
+      else if(accessType?.length > 0 && accessType[0] == 'Live (SAC/AFO)'){
+        tabDetails = document.getElementById('live-access');
+        tabDetails?.click();
+      }
+      else if(accessType?.length > 0 && accessType[0] == 'API')  {
+        tabDetails = document.getElementById('api-access');
+        tabDetails?.click();
+      }
+    }
+    
   }, [accessType]);
 
   useEffect(() => {
@@ -271,139 +280,184 @@ const Description = ({
     // setStepsList(prevCache => prevCache.map((val, i) => i !== index ? val : !val));
   };
 
+  const nextPreviewTab = () => {
+    let nextTab = '';
+    if(currentPreviewTab === 'access-via-kafka-preview'){
+      if(accessType?.includes('Live (SAC/AFO)'))
+      nextTab = 'live-access-preview';
+      else if(accessType?.includes('API'))
+      nextTab = 'api-access-preview';
+      else
+      nextTab = 'access-via-kafka-preview';
+    }
+    if(currentPreviewTab === 'live-access-preview'){
+      if(accessType?.includes('API'))
+      nextTab = 'api-access-preview';
+      else
+      nextTab = 'live-access-preview';
+    }
+    const tabDetails = document.getElementById(nextTab);
+    tabDetails?.click();
+  };
+
   const previewModalContent = (
-            <div id="how-to-access-preview-tabs" className={"tabs-panel "+accessType?.length < 1 ? 'hidden':''}>
-              <div className="tabs-wrapper">
-                <nav>
-                  <ul className="inner-preview-tabs tabs">
-                    
-                    <li className={(accessType?.includes('Kafka') ? 'inner-preview-tab tab active' : 'inner-preview-tab tab')}>  
-                      <a
-                        className={accessType?.includes('Kafka') ? '' : 'hidden'}
-                        href="#preview-steps-tab-content-1"
-                        id="access-via-kafka-preview"
-                        onClick={setPreviewTab}
-                      >
-                        Kafka-Access
-                      </a>
-                    </li>
-                    
-                    <li className={accessType?.includes('Live (SAC/AFO)') ? 'inner-preview-tab tab' : 'inner-preview-tab tab disabled'}>
-                      <a
-                        className={accessType?.includes('Live (SAC/AFO)') ? '' : 'hidden'}
-                        href="#preview-steps-tab-content-2"
-                        id="live-access-preview"
-                        onClick={setPreviewTab}
-                      >
-                        Live (SAC/AFO)-Access
-                      </a>
-                    </li>
-                   
-                    <li className={accessType?.includes('API') ? 'inner-preview-tab tab' : 'inner-preview-tab tab disabled'}>
-                      <a
-                        className={accessType?.includes('API') ? '' : 'hidden'}
-                        href="#preview-steps-tab-content-3"
-                        id="api-access-preview"
-                        onClick={setPreviewTab}
-                      >
-                        API-Access
-                      </a>
-                    </li>
-                    
-                    <li className={'inner-preview-tab tab disabled'}>
-                      <a id="stepTab2-preview" className={'hidden'}>
-                        `
-                      </a>
-                    </li>
-                    <li className={'inner-preview-tab tab disabled'}>
-                      <a id="stepTab3-preview" className={'hidden'}>
-                        `
-                      </a>
-                    </li>
-                    <li className={'inner-preview-tab tab disabled'}>
-                      <a id="stepTab4-preview" className={'hidden'}>
-                        `
-                      </a>
-                    </li>
-                    
-                  </ul>
-                </nav>
-              </div>
-              <div className="tabs-content-wrapper">
-                <div id="preview-steps-tab-content-1" className="inner-preview-tab-content tab-content">
-                  
-                  {currentPreviewTab === 'access-via-kafka-preview' && kafkaFields?.map((stepItem, index)=>{
-                    return(
-                    <fieldset key={'access-via-kafka-preview'+stepItem.id}>  
-                    <AccessSteps 
-                    value={stepItem}
-                    itemIndex={index}
-                    showMoveUp={index !== 0}
-                    showMoveDown={index + 1 !== kafkaFields.length}
-                    onMoveUp={(index)=>onTeamMemberMoveUp(index)}
-                    onMoveDown={(index)=>onTeamMemberMoveDown(index)}
-                    control={control}
-                    update={kafkaUpdate}
-                    remove={kafkaRemove}
-                    numberedStep = {numberedStep}
-                    updateNumberedStep = {() => setNumberedStep(numberedStep+1)}
-                    arrayName={'kafkaArray'}
-                    isEditable={false}
-                    />
-                    </fieldset>
-                    )
-                  })}
-                </div>
-                <div id="preview-steps-tab-content-2" className="inner-preview-tab-content tab-content">
-                  
-                  {currentPreviewTab === 'live-access-preview' && liveAccessFields?.map((stepItem, index)=>{
-                    return(
-                    <fieldset key={'live-access-preview'+stepItem.id}>  
-                    <AccessSteps 
-                    value={stepItem}
-                    itemIndex={index}
-                    showMoveUp={index !== 0}
-                    showMoveDown={index + 1 !== liveAccessFields.length}
-                    onMoveUp={(index)=>onTeamMemberMoveUp(index)}
-                    onMoveDown={(index)=>onTeamMemberMoveDown(index)}
-                    control={control}
-                    update={liveAccessUpdate}
-                    remove={liveAccessRemove}
-                    numberedStep = {numberedLiveStep}
-                    updateNumberedStep = {() => setNumberedLiveStep(numberedLiveStep+1)}
-                    arrayName={'liveAccessArray'}
-                    isEditable={false}
-                    />
-                    </fieldset>
-                    )
-                  })}
-                </div>
-                <div id="preview-steps-tab-content-3" className="inner-preview-tab-content tab-content">
-                  
-                  {currentPreviewTab === 'api-access-preview' && apiFields?.map((stepItem, index)=>{
-                    return(
-                    <fieldset key={'api-access-preview'+stepItem.id}>  
-                    <AccessSteps 
-                    value={stepItem}
-                    itemIndex={index}
-                    showMoveUp={index !== 0}
-                    showMoveDown={index + 1 !== apiFields.length}
-                    onMoveUp={(index)=>onTeamMemberMoveUp(index)}
-                    onMoveDown={(index)=>onTeamMemberMoveDown(index)}
-                    control={control}
-                    update={apiUpdate}
-                    remove={apiRemove}
-                    numberedStep = {numberedApiStep}
-                    updateNumberedStep = {() => setNumberedApiStep(numberedApiStep+1)}
-                    arrayName={'apiArray'}
-                    isEditable={false}
-                    />
-                    </fieldset>
-                    )
-                  })}
-                </div>
-              </div>
+      <>
+        <div className={Styles.accessModalHeader}>
+          <div className={Styles.accessModalHeaderIcon}>
+            <i
+              className={classNames('icon mbc-icon info iconsmd', Styles.infoIcon)}
+            /> 
+          </div>
+          <div className={Styles.accessModalHeaderText}>
+            <h3>How To Access</h3>
+          </div>
+        </div>
+        <div id="how-to-access-preview-tabs" className={"tabs-panel "+accessType?.length < 1 ? 'hidden':''}>
+          <div className="tabs-wrapper">
+            <nav>
+              <ul className="inner-preview-tabs tabs">
+                
+                <li className={(accessType?.includes('Kafka') ? 'inner-preview-tab tab active' : ('inner-preview-tab tab ' + Styles.widthZero))}>  
+                  <a
+                    className={accessType?.includes('Kafka') ? '' : 'hidden'}
+                    href="#preview-steps-tab-content-1"
+                    id="access-via-kafka-preview"
+                    onClick={setPreviewTab}
+                  >
+                    Kafka-Access
+                  </a>
+                </li>
+                
+                <li className={accessType?.includes('Live (SAC/AFO)') ? 'inner-preview-tab tab' : ('inner-preview-tab tab disabled ' + Styles.widthZero)}>
+                  <a
+                    className={accessType?.includes('Live (SAC/AFO)') ? '' : 'hidden'}
+                    href="#preview-steps-tab-content-2"
+                    id="live-access-preview"
+                    onClick={setPreviewTab}
+                  >
+                    Live (SAC/AFO)-Access
+                  </a>
+                </li>
+                
+                <li className={accessType?.includes('API') ? 'inner-preview-tab tab' : ('inner-preview-tab tab disabled ' + Styles.widthZero)}>
+                  <a
+                    className={accessType?.includes('API') ? '' : 'hidden'}
+                    href="#preview-steps-tab-content-3"
+                    id="api-access-preview"
+                    onClick={setPreviewTab}
+                  >
+                    API-Access
+                  </a>
+                </li>
+                
+                <li className={'inner-preview-tab tab disabled'}>
+                  <a id="stepTab2-preview" className={'hidden'}>
+                    `
+                  </a>
+                </li>
+                <li className={'inner-preview-tab tab disabled'}>
+                  <a id="stepTab3-preview" className={'hidden'}>
+                    `
+                  </a>
+                </li>
+                <li className={'inner-preview-tab tab disabled'}>
+                  <a id="stepTab4-preview" className={'hidden'}>
+                    `
+                  </a>
+                </li>
+                
+              </ul>
+            </nav>
+          </div>
+          <div className="tabs-content-wrapper">
+            <div id="preview-steps-tab-content-1" className="inner-preview-tab-content tab-content">
+              
+              {currentPreviewTab === 'access-via-kafka-preview' && kafkaFields?.map((stepItem, index)=>{
+                return(
+                <fieldset key={'access-via-kafka-preview'+stepItem.id}>  
+                <AccessSteps 
+                value={stepItem}
+                itemIndex={index}
+                showMoveUp={index !== 0}
+                showMoveDown={index + 1 !== kafkaFields.length}
+                onMoveUp={(index)=>onTeamMemberMoveUp(index)}
+                onMoveDown={(index)=>onTeamMemberMoveDown(index)}
+                control={control}
+                // update={kafkaUpdate}
+                remove={kafkaRemove}
+                numberedStep = {numberedStep}
+                updateNumberedStep = {() => setNumberedStep(numberedStep+1)}
+                arrayName={'kafkaArray'}
+                isEditable={false}
+                />
+                </fieldset>
+                )
+              })}
             </div>
+            <div id="preview-steps-tab-content-2" className="inner-preview-tab-content tab-content">
+              
+              {currentPreviewTab === 'live-access-preview' && liveAccessFields?.map((stepItem, index)=>{
+                return(
+                <fieldset key={'live-access-preview'+stepItem.id}>  
+                <AccessSteps 
+                value={stepItem}
+                itemIndex={index}
+                showMoveUp={index !== 0}
+                showMoveDown={index + 1 !== liveAccessFields.length}
+                onMoveUp={(index)=>onTeamMemberMoveUp(index)}
+                onMoveDown={(index)=>onTeamMemberMoveDown(index)}
+                control={control}
+                // update={liveAccessUpdate}
+                remove={liveAccessRemove}
+                numberedStep = {numberedLiveStep}
+                updateNumberedStep = {() => setNumberedLiveStep(numberedLiveStep+1)}
+                arrayName={'liveAccessArray'}
+                isEditable={false}
+                />
+                </fieldset>
+                )
+              })}
+            </div>
+            <div id="preview-steps-tab-content-3" className="inner-preview-tab-content tab-content">
+              
+              {currentPreviewTab === 'api-access-preview' && apiFields?.map((stepItem, index)=>{
+                return(
+                <fieldset key={'api-access-preview'+stepItem.id}>  
+                <AccessSteps 
+                value={stepItem}
+                itemIndex={index}
+                showMoveUp={index !== 0}
+                showMoveDown={index + 1 !== apiFields.length}
+                onMoveUp={(index)=>onTeamMemberMoveUp(index)}
+                onMoveDown={(index)=>onTeamMemberMoveDown(index)}
+                control={control}
+                // update={apiUpdate}
+                remove={apiRemove}
+                numberedStep = {numberedApiStep}
+                updateNumberedStep = {() => setNumberedApiStep(numberedApiStep+1)}
+                arrayName={'apiArray'}
+                isEditable={false}
+                />
+                </fieldset>
+                )
+              })}
+            </div>
+          </div>
+        </div>
+        <div className={Styles.actionButtonsPreview}>
+          <button
+            onClick={()=>{
+              setShowPreviewModal(false);
+            }}
+          >OK, got it</button>
+          <button
+          
+            onClick={()=>{
+              nextPreviewTab();
+            }}
+          >Next</button>
+        </div>
+      </>      
   );
 
   
@@ -995,7 +1049,7 @@ const Description = ({
                 <nav>
                   <ul className="inner-tabs tabs">
                     
-                    <li className={(accessType?.includes('Kafka') ? 'inner-tab tab active' : 'inner-tab tab')}>  
+                    <li className={(accessType?.includes('Kafka') ? 'inner-tab tab active' : ('inner-tab tab ' + Styles.widthZero))}>  
                       <a
                         className={accessType?.includes('Kafka') ? '' : 'hidden'}
                         href="#steps-tab-content-1"
@@ -1006,7 +1060,7 @@ const Description = ({
                       </a>
                     </li>
                     
-                    <li className={accessType?.includes('Live (SAC/AFO)') ? 'inner-tab tab' : 'inner-tab tab disabled'}>
+                    <li className={accessType?.includes('Live (SAC/AFO)') ? 'inner-tab tab' : ('inner-tab tab disabled ' + Styles.widthZero)}>
                       <a
                         className={accessType?.includes('Live (SAC/AFO)') ? '' : 'hidden'}
                         href="#steps-tab-content-2"
@@ -1017,7 +1071,7 @@ const Description = ({
                       </a>
                     </li>
                    
-                    <li className={accessType?.includes('API') ? 'inner-tab tab' : 'inner-tab tab disabled'}>
+                    <li className={accessType?.includes('API') ? 'inner-tab tab' : ('inner-tab tab disabled ' + Styles.widthZero)}>
                       <a
                         className={accessType?.includes('API') ? '' : 'hidden'}
                         href="#steps-tab-content-3"
@@ -1184,8 +1238,19 @@ const Description = ({
                 setShowPreviewModal(true);
                 InnerTabs.defaultSetup('inner-preview-tab');
                 setTimeout(() => {
-                  const tabDetailsPreview = document.getElementById('access-via-kafka-preview');
-                  tabDetailsPreview?.click();
+                  let tabDetails = '';
+                  if(accessType?.length > 0 && accessType[0] == 'Kafka'){
+                    tabDetails = document.getElementById('access-via-kafka-preview');
+                    tabDetails?.click();
+                  }
+                  else if(accessType?.length > 0 && accessType[0] == 'Live (SAC/AFO)'){
+                    tabDetails = document.getElementById('live-access-preview');
+                    tabDetails?.click();
+                  }
+                  else if(accessType?.length > 0 && accessType[0] == 'API')  {
+                    tabDetails = document.getElementById('api-access-preview');
+                    tabDetails?.click();
+                  }
                 }, 100);
                 }}
               className={Styles.howToAccessPopupLinkText}
@@ -1193,7 +1258,6 @@ const Description = ({
             </div>
             <div>
               <InfoModal
-                title={"Preview"}
                 show={showPreviewModal}
                 content={previewModalContent}
                 onCancel={() => setShowPreviewModal(false)}
