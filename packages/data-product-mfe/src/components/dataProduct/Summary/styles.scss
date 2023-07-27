@@ -187,7 +187,6 @@ hr {
     width: 100%;
     padding: 15px 75px;
     display: flex;
-    justify-content: flex-end;
     justify-content: space-between;
     align-items: center;
     .productName{
@@ -201,9 +200,12 @@ hr {
             color: #99a5b3;
             margin: 0 2px;
             font-size: var(--font-size-small);
-            &:hover {
+            &:hover:not(:disabled) {
                 background-color: #00adef;
                 color: #fff;
+            }
+            &:disabled {
+                color: #6d6e6f;
             }
         }
     }
