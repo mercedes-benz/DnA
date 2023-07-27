@@ -8,7 +8,9 @@ import { useDispatch, useSelector } from 'react-redux';
 import { getClassificationTypes } from '../../../redux/getDropdowns.services';
 
 const Classification = (
-  // { onSave }
+  {  
+    isDataProduct = false 
+  }
   ) => {
   const {
     register,
@@ -82,7 +84,7 @@ const Classification = (
                             className="ff-only"
                             name="confidentiality"
                             value={item.name}
-                            disabled={true}
+                            disabled={isDataProduct ? true : false}
                             // defaultChecked={item.name === 'Internal' && true}
                           />
                         </span>
