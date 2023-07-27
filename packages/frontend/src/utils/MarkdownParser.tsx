@@ -8,3 +8,8 @@ export const markdownParser = (markdownText: string) => {
     .replace(/\n/gi, '<br />');
   return htmlText.trim();
 };
+
+export const htmlToMarkdownParser = (htmlText: string) =>{
+  const markdownText = htmlText.replace(/<a.*?href="(.*?)" target='_blank'>(.*?)<\/a>/gi, '[$2]($1)');
+  return markdownText.trim();
+}

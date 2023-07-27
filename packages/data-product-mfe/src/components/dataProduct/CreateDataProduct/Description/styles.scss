@@ -30,6 +30,11 @@
     }
 }
 
+.widthZero{
+    width: 0!important;
+    display: none;
+}
+
 .infoIcon{
     float: initial;
 }
@@ -119,6 +124,35 @@
 }
 
 
+.accessModalHeader{
+    text-align: center;
+    .accessModalHeaderIcon i{
+        font-size: 5em;
+    }
+    .accessModalHeaderText{
+        padding: 25px 0;
+    }
+}
+
+.actionButtonsPreview{
+    text-align: center;
+    margin-top: 25px;
+    margin-bottom: 10px;
+    button {
+        background-color: #1c2026;
+        border: none;
+        padding: 15px 50px;
+        color: #fff;
+        margin: 0 2px;
+        font-size: var(--font-size-small);
+        &:hover {
+            background-color: #00adef;
+            color: #fff;
+        }
+    }
+}
+
+
 
 
 
@@ -135,6 +169,16 @@
             }
         }
     }        
+    #how-to-access-preview-tabs .tab {
+        > a {
+            // position: relative;
+            // padding: 10px 50px 12px 40px;
+            &::before {
+                content: none!important;   
+                font-size: 0;         
+            }
+        }
+    }
 }
     
 

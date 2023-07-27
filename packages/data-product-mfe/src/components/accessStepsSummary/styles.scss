@@ -117,6 +117,9 @@
   padding: 35px 45px;
   // display: table;
   // width: 100%;
+  // display: flex;
+  // justify-content: space-between;
+  // align-items: center;
   .howToAccessStepsWrapper{
       // display: table-row;
       // display: table;
@@ -151,7 +154,6 @@
       .descriptionWrapper{
           // display: table-cell;
           // vertical-align: middle;
-          // padding-left: 40px;
           width: 80%;
           .descriptionField{
             .input-field-area{
@@ -171,7 +173,11 @@
                 content: "";
             }
           }
+          .textArea{
+            width: 600px;
+          }
           p{
+              width: 800px;
               margin-bottom: 0;
           }
           .addLink{
