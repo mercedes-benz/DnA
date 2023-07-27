@@ -56,7 +56,8 @@ public interface StorageService {
 	 * 
 	 * @return ResponseEntity<BucketCollectionVO>
 	 */
-	public ResponseEntity<BucketCollectionVO> getAllBuckets();
+	public ResponseEntity<BucketCollectionVO> getAllBuckets(int limit, String sortBy, String sortOrder, int offset); 
+
 
 	/**
 	 * To list all the objects inside buckets
