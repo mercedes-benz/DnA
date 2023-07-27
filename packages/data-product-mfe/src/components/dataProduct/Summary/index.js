@@ -145,16 +145,16 @@ const Summary = ({ history, user }) => {
 
   useEffect(() => {
     const mainPanel = document.getElementById('mainPanel');
-    const accessBtnSetDiv = document.querySelector('.accessBtnSet');
+    // const accessBtnSetDiv = document.querySelector('.accessBtnSet');
 
     const accessRequestDiv = document.querySelector('.accessRequestInfo');
 
     const handleScroll = () => {
       if (window.scrollY + window.innerHeight >= mainPanel.scrollHeight) {
-        accessBtnSetDiv?.classList.add('fixed');
+        // accessBtnSetDiv?.classList.add('fixed');
         accessRequestDiv?.classList.add('fixed');
       } else {
-        accessBtnSetDiv?.classList.remove('fixed');
+        // accessBtnSetDiv?.classList.remove('fixed');
         accessRequestDiv?.classList.remove('fixed');
       }
     };
@@ -516,6 +516,13 @@ const Summary = ({ history, user }) => {
                         {selectedDataProduct?.additionalInformation || '-'}
                       </div>
                     </div>
+                    <div className={classNames(Styles.flexLayout, Styles.fourColumn)}>
+                      <div>
+                        <label className="input-label summary">Access</label>
+                        <br />
+                        {selectedDataProduct?.accessType?.length > 0 ? selectedDataProduct?.accessType?.join(', ') : '-'}
+                      </div>
+                    </div>
                   </div>
                 </div>
                 {showContactInformation ? (
@@ -769,7 +776,11 @@ const Summary = ({ history, user }) => {
               </div>
             </div>
           </div>
+
+
+
           <hr className={Styles.line} />
+          {selectedDataProduct?.minimumInformationCheck ? (
           <div className={Styles.dataTransferSection}>
             <h3>{`Data Transfer ${allDataTransfer?.totalCount ? `( ${allDataTransfer?.totalCount} )` : '( 0 )'}`}</h3>
             {allDataTransfer?.totalCount > 0 ? (
@@ -781,7 +792,8 @@ const Summary = ({ history, user }) => {
               </div>
             ) : null}
           </div>
-          {!isCreator ? (
+          ) : null}
+          {!isCreator && selectedDataProduct?.minimumInformationCheck ? (
             <div className={Styles.dataTransferSection}>
               <label className="switch">
                 <span className="label" style={{ marginRight: '5px' }}>
@@ -799,7 +811,7 @@ const Summary = ({ history, user }) => {
               </label>
             </div>
           ) : null}
-          {showMyDataTransfers ? (
+          {showMyDataTransfers && selectedDataProduct?.minimumInformationCheck ? (
             myDataTransfer?.totalCount > 0 ? (
               <>
                 <div className={Styles.dataTransferSection}>
@@ -816,7 +828,7 @@ const Summary = ({ history, user }) => {
             )
           ) : null}
 
-          {!showMyDataTransfers ? (
+          {!showMyDataTransfers && selectedDataProduct?.minimumInformationCheck ? (
             <div className={classNames(Styles.allDataproductCardviewContent)}>
               {allDataTransfer?.records?.map((product, index) => {
                 return <DataTranferCardLayout key={index} product={product} user={user} isDataProduct={true} />;
@@ -826,29 +838,48 @@ const Summary = ({ history, user }) => {
         </div>
       </div>
       {!isCreator ? (
-        <div
-          className={classNames(
-            'accessBtnSet',
-            !selectedDataProduct.isPublish ? 'indraft' : '',
-            myDataTransfer?.totalCount === 0 ? 'nomargin' : 'hasmargin',
-          )}
-        >
+        <div className={Styles.stickyPanel}>
+          <div className={Styles.productName}>
+            {'Access "'+ selectedDataProduct?.productName +'"'} 
+          </div>
+          <div className={Styles.actionButtonsSection}>
           {showHowToAccessModal ? (
-            <button className="btn btn-tertiary" type="button" onClick={() => setShowInfoModal(true)}>
-              How to access
+            <>
+              <button
+                onClick={()=>{
+                  setShowPreviewModal(true);
+                  setCurrentPreviewTab('Live');
+                }}
+              >Live</button>
+              <button
+                onClick={()=>{
+                  setShowPreviewModal(true);
+                  setCurrentPreviewTab('API');
+                }}
+              >API</button>
+              <button
+                onClick={()=>{
+                  setShowPreviewModal(true);
+                  setCurrentPreviewTab('Kafka');
+                }}
+              >Kafka</button>
+            </>
+          ) : null} 
+          {selectedDataProduct?.minimumInformationCheck ? (
+            <button
+              // className={classNames(!selectedDataProduct.isPublish ? 'btn indraft' : 'btn btn-tertiary')}
+              disabled={!selectedDataProduct.isPublish}
+              type="button"
+              onClick={() => setShowRequestAccessModal(true)}
+            >
+              Request access
             </button>
-          ) : null}
-          <button
-            className={classNames(!selectedDataProduct.isPublish ? 'btn indraft' : 'btn btn-tertiary')}
-            disabled={!selectedDataProduct.isPublish}
-            type="button"
-            onClick={() => setShowRequestAccessModal(true)}
-          >
-            Request access
-          </button>
+          ) : null}  
+          </div>
         </div>
       ) : null}
-      {!isCreator && !selectedDataProduct.isPublish ? (
+
+      {!isCreator && !selectedDataProduct.isPublish && selectedDataProduct?.minimumInformationCheck ? (
         <div className="accessRequestInfo">
           <span>
             <i className="icon mbc-icon info" />
@@ -856,6 +887,10 @@ const Summary = ({ history, user }) => {
           Unable to Request Access as Data Product is in Draft state.
         </div>
       ) : null}
+
+
+
+
       {showInfoModal && (
         <InfoModal
           title="How to access data"
@@ -900,31 +935,6 @@ const Summary = ({ history, user }) => {
         onCancel={() => setShowPreviewModal(false)}
       />
             
-      <div className={Styles.stickyPanel}>
-        <div className={Styles.productName}>
-          {'Access "'+ selectedDataProduct?.productName +'"'} 
-        </div>
-        <div className={Styles.actionButtonsSection}>
-          <button
-            onClick={()=>{
-              setShowPreviewModal(true);
-              setCurrentPreviewTab('Live');
-            }}
-          >Live</button>
-          <button
-            onClick={()=>{
-              setShowPreviewModal(true);
-              setCurrentPreviewTab('API');
-            }}
-          >API</button>
-          <button
-            onClick={()=>{
-              setShowPreviewModal(true);
-              setCurrentPreviewTab('Kafka');
-            }}
-          >Kafka</button>
-        </div>
-      </div>
     </div>
   );
 };
