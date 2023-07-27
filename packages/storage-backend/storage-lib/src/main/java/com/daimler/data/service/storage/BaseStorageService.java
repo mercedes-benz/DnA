@@ -401,7 +401,6 @@ public class BaseStorageService implements StorageService {
 				// Fetching data from database for specified users
 				LOGGER.info("Fetching records from database.");
 				List<StorageNsql> storageEntities = customRepo.getAllWithFilters(currentUser,  limit, sortBy, sortOrder, offset);
-				System.out.println("Storage Entities Size: " + storageEntities.size());
 				List<BucketVo> bucketsVO = new ArrayList<>();
 				// converting the storageEntities to bucketVO objects and adding it to bucketsVO
 				for (StorageNsql sEntity: storageEntities) {
