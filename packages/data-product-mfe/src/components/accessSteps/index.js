@@ -63,7 +63,7 @@ const AccessSteps = (
     if(data?.stepText)
     setMarkdownParserText(markdownParser(data?.stepText));
     //eslint-disable-next-line
-  }, []);
+  }, [data?.stepText]);
 
   const onMoveUpSide = () => {
     onMoveUp(itemIndex);
@@ -251,7 +251,8 @@ const AccessSteps = (
                                 }
                                 
                               }
-                              data1.stepText = htmlToMarkdownParser(markdownParserText)
+                              // console.log(markdownParserText,'=-=-=-=-=-=-=-=-=-=-=-==')
+                              data1.stepText = htmlToMarkdownParser(markdownParserText);
                               update(itemIndex, data1);
                               setEnableEdit(false);
                             })}
