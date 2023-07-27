@@ -349,7 +349,7 @@ const Description = ({
         <div className={Styles.accessModalHeader}>
           <div className={Styles.accessModalHeaderIcon}>
             <i
-              className={classNames('icon mbc-icon info iconsmd', Styles.infoIcon)}
+              className={classNames('icon mbc-icon help iconsmd', Styles.infoIcon)}
             /> 
           </div>
           <div className={Styles.accessModalHeaderText}>
@@ -856,7 +856,7 @@ const Description = ({
                       className="input-field"
                       id="kafkaInput"
                       maxLength={200}
-                      placeholder="Type here"
+                      placeholder="https://example@example.com"
                       autoComplete="off"
                     />
                   </div>
