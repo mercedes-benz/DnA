@@ -403,26 +403,9 @@ public class BaseStorageService implements StorageService {
 				List<StorageNsql> storageEntities = customRepo.getAllWithFilters(currentUser,  limit, sortBy, sortOrder, offset);
 				System.out.println("Storage Entities Size: " + storageEntities.size());
 				List<BucketVo> bucketsVO = new ArrayList<>();
-				// Iterating over bucket list got from minio
-
-				for (Bucket bucket : minioResponse.getBuckets()) {
-					BucketVo bucketVo = storageAssembler.toBucketVo(storageEntities, bucket.name());
-					// if (Objects.isNull(bucketVo)) {
-					// 	bucketVo = new BucketVo();
-					// 	bucketVo.setBucketName(bucket.name());
-					// 	bucketVo.setCreatedDate(Date.from(bucket.creationDate().toInstant()));
-					// 	LOGGER.debug("Setting collaborators for bucket:{}", bucket.name());
-					// 	bucketVo.setCollaborators(dnaMinioClient.getBucketCollaborators(bucket.name(), currentUser));
-					// }
-					// if (Objects.isNull(bucketVo.getPermission())) {
-					// 	// Setting current user permission for bucket
-					// 	bucketVo.setPermission(dnaMinioClient.getBucketPermission(bucket.name(), currentUser));
-					// }
-					if (Objects.nonNull(bucketVo)) {
-						bucketsVO.add(bucketVo);
-					}
-					// bucketsVO.add(bucketVo);
-					System.out.println("BucketsVO Size: " + bucketsVO.size());
+				// converting the storageEntities to bucketVO objects and adding it to bucketsVO
+				for (StorageNsql sEntity: storageEntities) {
+					bucketsVO.add(storageAssembler.toBucketVo(sEntity));
 				}
 				bucketCollectionVO.setData(bucketsVO);
 			}

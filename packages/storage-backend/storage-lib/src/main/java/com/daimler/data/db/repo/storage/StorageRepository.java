@@ -47,5 +47,6 @@ public interface StorageRepository {
 	 * @param userId
 	 * @return records {@code List<StorageNsql>}
 	 */
+	// adding the arguments for getAllWithFilters
 	List<StorageNsql> getAllWithFilters(String userId, int limit, String sortBy, String sortOrder, int offset);
 }
