@@ -417,18 +417,6 @@ public class BaseStorageService implements StorageService {
 		return new ResponseEntity<>(bucketCollectionVO, httpStatus);
 	}
 
-	// @Override
-	// public List<StorageNsql> getAllWithFilters(int limit, String sortBy,String sortOrder, int offset) {
-	// 	logger.info("Fetching user information from table.");
-	// 	List<StorageNsql> storageEntities = customRepo.getAllWithFilters(limit, sortBy, sortOrder, offset);
-	// 	logger.info("Success from get information from table.");
-	// 	if (!ObjectUtils.isEmpty(storageEntities)) {
-	// 		return storageEntities.stream().map(n -> storageAssembler.toVo(n)).toList();
-	// 	} else {
-	// 		return new ArrayList<>();
-	// 	}
-	// }
-
 
 	@Override
 	public ResponseEntity<BucketObjectResponseWrapperVO> getBucketObjects(String bucketName, String prefix) {
