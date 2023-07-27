@@ -115,15 +115,21 @@
 .howToAccessStepsSection{
   background-color: #1c2026;
   padding: 35px 45px;
-  display: table;
-  width: 100%;
+  // display: table;
+  // width: 100%;
+  // display: flex;
+  // justify-content: space-between;
+  // align-items: center;
   .howToAccessStepsWrapper{
       // display: table-row;
-      display: table;
+      // display: table;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
       width: 100%;
       .infoWrapper{
-          display: table-cell;
-          vertical-align: middle;
+          // display: table-cell;
+          // vertical-align: middle;
           width: 122px;
           text-align: center;
           i{
@@ -141,14 +147,14 @@
       }
       .editIcon{
         width: 50px;
-        display: table-cell;
-        vertical-align: middle;
+        // display: table-cell;
+        // vertical-align: middle;
         cursor: pointer;
       }
       .descriptionWrapper{
-          display: table-cell;
-          vertical-align: middle;
-          // padding-left: 40px;
+          // display: table-cell;
+          // vertical-align: middle;
+          width: 80%;
           .descriptionField{
             .input-field-area{
               min-height: 85px;
@@ -171,7 +177,7 @@
             width: 600px;
           }
           p{
-              width: 600px;
+              width: 800px;
               margin-bottom: 0;
           }
           .addLink{
