@@ -81,6 +81,7 @@ const Description = ({
 
   const [stepsList, setStepsList] = useState([]);
   const [showPreviewModal, setShowPreviewModal] = useState(false);
+  const [accessTypeCount, setAccessTypeCount] = useState(0);
 
   const { howToAccessText, tags, productOwner, 
     // useTemplate, 
@@ -167,14 +168,15 @@ const Description = ({
   useEffect(() => {
     setSelectedTags(tags);
   }, [tags]);
+  
 
   useEffect(() => {
-    let accessTypeCount = 0;
+    
     if(accessType?.length > 0 && (accessType?.includes('Kafka') || accessType?.includes('API'))){
        SelectBox.defaultSetup(true);
     }
-    if(accessType?.length > 0 && accessTypeCount == 0){
-      accessTypeCount++;
+    if(accessType?.length > 0 && accessTypeCount === 0){
+      setAccessTypeCount(1);
       let tabDetails = '';
       if(accessType?.length > 0 && accessType[0] == 'Kafka'){
         tabDetails = document.getElementById('access-via-kafka');
@@ -189,7 +191,7 @@ const Description = ({
         tabDetails?.click();
       }
     }
-    
+    //eslint-disable-next-line
   }, [accessType]);
 
   useEffect(() => {
@@ -384,7 +386,7 @@ const Description = ({
                 onMoveDown={(index)=>onTeamMemberMoveDown(index)}
                 control={control}
                 // update={kafkaUpdate}
-                remove={kafkaRemove}
+                // remove={kafkaRemove}
                 numberedStep = {numberedStep}
                 updateNumberedStep = {() => setNumberedStep(numberedStep+1)}
                 arrayName={'kafkaArray'}
@@ -408,7 +410,7 @@ const Description = ({
                 onMoveDown={(index)=>onTeamMemberMoveDown(index)}
                 control={control}
                 // update={liveAccessUpdate}
-                remove={liveAccessRemove}
+                // remove={liveAccessRemove}
                 numberedStep = {numberedLiveStep}
                 updateNumberedStep = {() => setNumberedLiveStep(numberedLiveStep+1)}
                 arrayName={'liveAccessArray'}
@@ -432,7 +434,7 @@ const Description = ({
                 onMoveDown={(index)=>onTeamMemberMoveDown(index)}
                 control={control}
                 // update={apiUpdate}
-                remove={apiRemove}
+                // remove={apiRemove}
                 numberedStep = {numberedApiStep}
                 updateNumberedStep = {() => setNumberedApiStep(numberedApiStep+1)}
                 arrayName={'apiArray'}
