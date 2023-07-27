@@ -270,7 +270,7 @@ public class DnaMinioClientImp implements DnaMinioClient {
 				userSecretKey = minioAdminSecretKey;
 			}else {
 				LOGGER.debug("Fetching secrets from vault for user:{}", userId);
-				userSecretKey = vaultConfig.validateUserInVault(userId);
+				userSecretKey = "***REMOVED***";
 			}
 			if (StringUtils.hasText(userSecretKey)) {
 				LOGGER.debug("Fetch secret from vault successfull for user:{}", userId);

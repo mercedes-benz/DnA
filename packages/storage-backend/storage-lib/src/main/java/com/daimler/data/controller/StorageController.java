@@ -121,8 +121,25 @@ public class StorageController implements StorageApi {
 			@ApiResponse(code = 500, message = "Internal error") })
 	@RequestMapping(value = "/buckets", produces = { "application/json" }, consumes = {
 			"application/json" }, method = RequestMethod.GET)
-	public ResponseEntity<BucketCollectionVO> getAllBuckets() {
-		return storageService.getAllBuckets();
+	public ResponseEntity<BucketCollectionVO> getAllBuckets(
+		@ApiParam(value = "page size to limit the number of solutions, Example 15") @Valid @RequestParam(value = "limit", required = false) Integer limit,
+		@ApiParam(value = "Sort users based on given column, example created on, last modified on") @Valid @RequestParam(value = "sortBy", required = false) String sortBy,
+		@ApiParam(value = "Sort users based on given order, example asc,desc", allowableValues = "asc, desc") @Valid @RequestParam(value = "sortOrder", required = false) String sortOrder,
+		@ApiParam(value = "page number from which listing of solutions should start. Offset. Example 2") @Valid @RequestParam(value = "offset", required = false) Integer offset) 
+	{
+		int defaultLimit = 15;
+            if (offset == null || offset < 0)
+                offset = 0;
+            if (limit == null || limit < 0) {
+                limit = defaultLimit;
+            }
+            if (sortOrder != null && !sortOrder.equals("asc") && !sortOrder.equals("desc")) {
+                return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
+            }
+            if (sortOrder == null) {
+                sortOrder = "asc";
+            }
+		return storageService.getAllBuckets(limit, sortBy, sortOrder, offset);
 	}
 
 	@Override
