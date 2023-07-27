@@ -284,7 +284,7 @@ const Summary = ({ history, user }) => {
                 <div className={Styles.accessModalHeader}>
                   <div className={Styles.accessModalHeaderIcon}>
                     <i
-                      className={classNames('icon mbc-icon info iconsmd', Styles.infoIcon)}
+                      className={classNames('icon mbc-icon help iconsmd', Styles.infoIcon)}
                     /> 
                   </div>
                   <div className={Styles.accessModalHeaderText}>
