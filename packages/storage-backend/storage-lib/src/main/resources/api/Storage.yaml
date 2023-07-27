@@ -109,6 +109,28 @@ paths:
    summary: "get Buckets"
    description: "Get bucket with this api"
    operationId: "getAllBuckets"
+   parameters:
+    - name: limit
+      in: query
+      description: page size to limit the number of solutions, Example 15
+      required: false
+      type: integer
+    - name: sortBy
+      in: query
+      description: Sort users based on given column, example created on, last modified on
+      required: false
+      type: string
+    - name: sortOrder
+      in: query
+      description: Sort users based on given order, example asc,desc
+      required: false
+      type: string
+      enum: [asc, desc]
+    - name: offset
+      in: query
+      description: page number from which listing of solutions should start. Offset. Example 2
+      required: false
+      type: integer
    responses:
     200: 
      description: "Returns message of succes or failure " 
