@@ -198,7 +198,7 @@ hr {
             border: none;
             padding: 15px 50px;
             color: #99a5b3;
-            margin: 0 2px;
+            margin: 0 8px;
             font-size: var(--font-size-small);
             &:hover:not(:disabled) {
                 background-color: #00adef;
@@ -206,6 +206,9 @@ hr {
             }
             &:disabled {
                 color: #6d6e6f;
+            }
+            &:last-child{
+                margin-right: 0;
             }
         }
     }
@@ -216,9 +219,11 @@ hr {
         text-align: center;
         .accessModalHeaderIcon i{
             font-size: 5em;
+            color: #C0C8D0;
         }
         .accessModalHeaderText{
             padding: 25px 0;
+            color: #D9DFE4;
         }
     }
     .noData{
@@ -233,7 +238,7 @@ hr {
             border: none;
             padding: 15px 50px;
             color: #fff;
-            margin: 0 2px;
+            margin: 0 8px;
             font-size: var(--font-size-small);
             &:hover {
                 background-color: #00adef;
