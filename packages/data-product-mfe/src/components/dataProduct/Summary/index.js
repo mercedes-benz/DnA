@@ -847,20 +847,32 @@ const Summary = ({ history, user }) => {
             <>
               <button
                 onClick={()=>{
-                  setShowPreviewModal(true);
-                  setCurrentPreviewTab('Live');
+                  if(liveAccessFields?.length > 0){
+                    setShowPreviewModal(true);
+                    setCurrentPreviewTab('Live');
+                  } else {
+                    Notification.show(`No steps available.`,'alert');
+                  }
                 }}
               >Live</button>
               <button
                 onClick={()=>{
-                  setShowPreviewModal(true);
-                  setCurrentPreviewTab('API');
+                  if(apiFields?.length > 0){
+                    setShowPreviewModal(true);
+                    setCurrentPreviewTab('API');
+                  }else {
+                    Notification.show(`No steps available.`,'alert');
+                  }
                 }}
               >API</button>
               <button
                 onClick={()=>{
-                  setShowPreviewModal(true);
-                  setCurrentPreviewTab('Kafka');
+                  if(kafkaFields?.length > 0){
+                    setShowPreviewModal(true);
+                    setCurrentPreviewTab('Kafka');
+                  }else {
+                    Notification.show(`No steps available.`,'alert');
+                  }                  
                 }}
               >Kafka</button>
             </>
