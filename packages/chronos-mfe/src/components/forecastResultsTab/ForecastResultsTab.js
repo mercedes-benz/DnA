@@ -13,7 +13,6 @@ import Tooltip from '../../common/modules/uilab/js/src/tooltip';
 import { useHistory, useParams } from 'react-router-dom';
 import { chronosApi } from '../../apis/chronos.api';
 import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indicator';
-import Spinner from '../spinner/Spinner';
 import { getQueryParameterByName } from '../../utilities/utils';
 import ForecastRunRow from './forecastRunRow/ForecastRunRow';
 import { SESSION_STORAGE_KEYS } from '../../utilities/constants';
@@ -265,7 +264,6 @@ const ForecastResultsTab = ({ onRunClick }) => {
         <div className={Styles.content}>
           <div className={Styles.forecastResultListWrapper}>
             <div className={Styles.listContent}>
-              {loading && <Spinner />}
               {!loading && (
                 forecastRuns?.length === 0 &&
                   <div className={Styles.forecastResultListEmpty}>Forecast Runs are not available</div>
