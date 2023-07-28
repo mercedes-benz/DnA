@@ -1016,7 +1016,7 @@ const Description = ({
             }
 
             <div>
-            {accessType?.length == 0 ? <></>: 
+            {accessType?.length == 0 ? '': 
               <div
                 className={classNames(`input-field-group include-error`)}
                 style={{ minHeight: '50px' }}
@@ -1051,7 +1051,7 @@ const Description = ({
       </div>
 
 
-      <div className={accessType?.length == 0 ? ' hidden' : Styles.wrapper}>
+      <div className={accessType?.length == 0 ? ' hidden '+Styles.heightZero : Styles.wrapper}>
         <div className={Styles.firstPanel}>
           <div>
             <h3>How to access - Template&nbsp;
@@ -1388,6 +1388,8 @@ const Description = ({
           </div>
         </div>
       </div>
+
+      
       {/* <div className="btnContainer">
         <button
           className="btn btn-primary"
