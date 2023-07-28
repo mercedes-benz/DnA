@@ -769,6 +769,7 @@ const CreateDataProduct = ({ user, history }) => {
                   frontEndToolList={frontEndTools}
                   tagsList={tags}
                   isDataProduct={true}
+                  isCreatePage={isCreatePage}
                   onChangeAccessType={(val)=>{setCurrentAccessType(val)}}
                   onChangeConfidentialityInDescription={(val)=>{setCurrentConfidentialityInDescription(val)}}
                 />
