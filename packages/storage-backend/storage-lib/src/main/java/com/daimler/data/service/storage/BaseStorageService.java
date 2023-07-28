@@ -37,6 +37,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -387,7 +388,7 @@ public class BaseStorageService implements StorageService {
 	}
 	
 	@Override
-	public ResponseEntity<BucketCollectionVO> getAllBuckets() {
+	public ResponseEntity<BucketCollectionVO> getAllBuckets(int limit, String sortBy, String sortOrder, int offset) {
 		LOGGER.debug("Fetching Current user.");
 		String currentUser = userStore.getUserInfo().getId();
 		HttpStatus httpStatus;
@@ -400,24 +401,10 @@ public class BaseStorageService implements StorageService {
 			if (!ObjectUtils.isEmpty(minioResponse.getBuckets())) {
 				// Fetching data from database for specified users
 				LOGGER.info("Fetching records from database.");
-				List<StorageNsql> storageEntities = customRepo.getAllWithFilters(currentUser);
+				List<StorageNsql> storageEntities = customRepo.getAllWithFilters(currentUser,  limit, sortBy, sortOrder, offset);
 				List<BucketVo> bucketsVO = new ArrayList<>();
-				// Iterating over bucket list got from minio
-				for (Bucket bucket : minioResponse.getBuckets()) {
-					BucketVo bucketVo = storageAssembler.toBucketVo(storageEntities, bucket.name());
-					if (Objects.isNull(bucketVo)) {
-						bucketVo = new BucketVo();
-						bucketVo.setBucketName(bucket.name());
-						bucketVo.setCreatedDate(Date.from(bucket.creationDate().toInstant()));
-						LOGGER.debug("Setting collaborators for bucket:{}", bucket.name());
-						bucketVo.setCollaborators(dnaMinioClient.getBucketCollaborators(bucket.name(), currentUser));
-					}
-					if (Objects.isNull(bucketVo.getPermission())) {
-						// Setting current user permission for bucket
-						bucketVo.setPermission(dnaMinioClient.getBucketPermission(bucket.name(), currentUser));
-					}
-					bucketsVO.add(bucketVo);
-				}
+				// converting the storageEntities to bucketVO objects and adding it to bucketsVO
+				bucketsVO = storageEntities.stream().map(n-> storageAssembler.toBucketVo(n)).collect(Collectors.toList());
 				bucketCollectionVO.setData(bucketsVO);
 			}
 		} else {
@@ -427,6 +414,7 @@ public class BaseStorageService implements StorageService {
 		}
 		return new ResponseEntity<>(bucketCollectionVO, httpStatus);
 	}
+
 
 	@Override
 	public ResponseEntity<BucketObjectResponseWrapperVO> getBucketObjects(String bucketName, String prefix) {

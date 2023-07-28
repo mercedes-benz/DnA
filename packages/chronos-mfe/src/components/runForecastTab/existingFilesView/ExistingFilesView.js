@@ -12,7 +12,7 @@ import Spinner from '../../spinner/Spinner';
 const ExistingFilesView = ({projectId, setShowExistingFiles, setInputFile, setIsExistingInputFile}) => {
   const {register} = useFormContext();
   const [savedFiles, setSavedFiles] = useState([]);
-  const [selectedInputFile, setSelectedInputFile] = useState();
+  const [selectedInputFile, setSelectedInputFile] = useState('');
   const [loading, setLoading] = useState(true);
   const [error] = useState(false);
 
@@ -21,7 +21,7 @@ const ExistingFilesView = ({projectId, setShowExistingFiles, setInputFile, setIs
     //eslint-disable-next-line
   }, []);
 
-  const inputFileSelect = useRef('');
+  const inputFileSelect = useRef();
 
   useEffect(() => {
     chronosApi.getAllInputFiles(projectId).then((res) => {
@@ -102,14 +102,13 @@ const ExistingFilesView = ({projectId, setShowExistingFiles, setInputFile, setIs
             </div>
           </>
       }
-      { savedFiles.length !== 0 && 
+      { savedFiles.length !== 0 &&
         <>
           <hr />
           <div className={Styles.btnContinue}>
             <button
               className="btn btn-primary"
               type="submit"
-              disabled={inputFileSelect.current.value === 0 ? true : false}
               onClick={() => {
                 setShowExistingFiles(false);
                 setInputFile([selectedInputFile]);

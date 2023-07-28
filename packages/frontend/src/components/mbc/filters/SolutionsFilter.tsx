@@ -123,7 +123,11 @@ const SolutionsFilter = ({
 
   useEffect(()=>{
     onsetTags(setSelectedTags);
-  },[setSelectedTags])
+  },[setSelectedTags]);
+
+  useEffect(() => {
+    SelectBox.refresh('subDivisionSelect'); // Refresh the sub division select box
+  }, [divisionFilterValues]);
 
   useEffect(() => {
     ProgressIndicator.show();
@@ -684,17 +688,21 @@ const SolutionsFilter = ({
     }
   };
 
-if(openFilters){
-  if(document.getElementById("filterContainer")){
-    const height = document?.getElementById('filterContainerDiv')?.clientHeight; // taking height of child div
-    document.getElementById("filterContainer").setAttribute("style", "height:"+height+"px"); //assigning height to parent div
+  if (openFilters) {
+    if (document.getElementById('filterContainer')) {
+      const height = document?.getElementById('filterContainerDiv')?.clientHeight; // taking height of child div
+      document.getElementById('filterContainer').setAttribute('style', 'height:' + height + 'px'); //assigning height to parent div
+    }
+  } else {
+    if (document.getElementById('filterContainer')) {
+      document.getElementById('filterContainer').setAttribute('style', 'height:' + 0 + 'px');
+    }
   }
-}else{
-  if(document.getElementById("filterContainer")){
-    document.getElementById("filterContainer").setAttribute("style", "height:"+0+"px");
-  } 
-}
 
+  let subDivisionsOfSelectedDivision: ISubDivisionSolution[] = divisionFilterValues.length ? [] : subDivisions;
+  divisionFilterValues.forEach((div: IDivision) => {
+    subDivisionsOfSelectedDivision = subDivisionsOfSelectedDivision.concat(subDivisions.filter((subDiv: ISubDivisionSolution) => subDiv.division === div.id) as ISubDivisionSolution[]);
+  });
 
   return (
     <FilterWrapper openFilters={openFilters}>
@@ -746,7 +754,7 @@ if(openFilters){
                   onChange={onSubDivisionChange}
                   value={queryParams?.subDivision}
               >
-                  {subDivisions.map((obj: ISubDivisionSolution) => (
+                  {subDivisionsOfSelectedDivision.map((obj: ISubDivisionSolution) => (
                   <option id={obj.name + obj.id} key={obj.id} value={obj.id}>
                       {obj.name}
                   </option>

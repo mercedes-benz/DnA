@@ -74,6 +74,9 @@ public class BaseUserNotificationPrefService extends BaseCommonService<UserNotif
 	
 	@Value("${notification.email.chronosNotificationPref}")
 	private boolean defaultChronosEmailNotificationPref;
+	
+	@Value("${notification.email.codespaceNotificationPref}")
+	private boolean defaultCodespaceEmailNotificationPref;
 
 	@Value("${notification.app.solutionNotificationPref}")
 	private boolean defaultSolutionAppNotificationPref;
@@ -95,6 +98,9 @@ public class BaseUserNotificationPrefService extends BaseCommonService<UserNotif
 	
 	@Value("${notification.app.chronosNotificationPref}")
 	private boolean defaultChronosAppNotificationPref;
+	
+	@Value("${notification.app.codespaceNotificationPref}")
+	private boolean defaultCodespaceAppNotificationPref;
 
 	public BaseUserNotificationPrefService() {
 		super();
@@ -148,7 +154,11 @@ public class BaseUserNotificationPrefService extends BaseCommonService<UserNotif
 				NotificationPreferenceVO chronosNotificationPref = new NotificationPreferenceVO();
 				chronosNotificationPref.setEnableAppNotifications(defaultChronosAppNotificationPref);
 				chronosNotificationPref.setEnableEmailNotifications(defaultChronosEmailNotificationPref);
-				preferencesVO.setChronosNotificationPref(chronosNotificationPref);				
+				preferencesVO.setChronosNotificationPref(chronosNotificationPref);
+				NotificationPreferenceVO codespaceNotificationPref = new NotificationPreferenceVO();
+				codespaceNotificationPref.setEnableAppNotifications(defaultCodespaceAppNotificationPref);
+				codespaceNotificationPref.setEnableEmailNotifications(defaultCodespaceEmailNotificationPref);
+				preferencesVO.setCodespaceNotificationPref(codespaceNotificationPref);
 				try {
 					UserNotificationPrefVO savedPreferencesVO = this.create(preferencesVO);
 					log.info("Notification preferences created for user {} ", value);
