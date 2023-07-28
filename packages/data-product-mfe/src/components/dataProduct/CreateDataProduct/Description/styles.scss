@@ -133,9 +133,11 @@
     text-align: center;
     .accessModalHeaderIcon i{
         font-size: 5em;
+        color: #C0C8D0;
     }
     .accessModalHeaderText{
         padding: 25px 0;
+        color: #D9DFE4;
     }
 }
 
@@ -148,7 +150,7 @@
         border: none;
         padding: 15px 50px;
         color: #fff;
-        margin: 0 2px;
+        margin: 0 8px;
         font-size: var(--font-size-small);
         &:hover {
             background-color: #00adef;
@@ -164,26 +166,38 @@
 
 
 :global {
-    #how-to-access-tabs .tab {
-        > a {
-            // position: relative;
-            // padding: 10px 50px 12px 40px;
-            &::before {
-                content: none!important;   
-                font-size: 0;         
-            }
+    #how-to-access-tabs {
+        .tabs-content-wrapper{
+            margin-top: 30px;
         }
-    }        
-    #how-to-access-preview-tabs .tab {
-        > a {
-            // position: relative;
-            // padding: 10px 50px 12px 40px;
-            &::before {
-                content: none!important;   
-                font-size: 0;         
+        .tab {
+            > a {
+                // position: relative;
+                // padding: 10px 50px 12px 40px;
+                &::before {
+                    content: none!important;   
+                    font-size: 0;         
+                }
+            }
+        }   
+    }
+         
+    #how-to-access-preview-tabs {
+        .tabs-content-wrapper{
+            margin-top: 30px;
+        }
+        .tab {
+            > a {
+                // position: relative;
+                // padding: 10px 50px 12px 40px;
+                &::before {
+                    content: none!important;   
+                    font-size: 0;         
+                }
             }
         }
     }
+    
 }
     
 
