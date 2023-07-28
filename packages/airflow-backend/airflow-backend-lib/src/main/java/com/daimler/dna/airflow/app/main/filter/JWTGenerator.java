@@ -38,8 +38,6 @@ import org.springframework.stereotype.Component;
 import com.daimler.dna.airflow.controller.LoginController;
 
 import javax.xml.bind.DatatypeConverter;
-
-import java.security.SignatureException;
 import java.util.HashMap;
 import java.util.Map;
 
