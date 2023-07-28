@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import Styles from './comparison-row.scss';
 // import from DNA Container
 import CircularProgressBar from '../../circularProgressBar/CircularProgressBar';
-import { customDateFormat } from '../../../utilities/utils';
+import { regionalDateAndTimeConversionSolution } from '../../../utilities/utils';
 import Tooltip from '../../../common/modules/uilab/js/src/tooltip';
 
 const classNames = classnames.bind(Styles);
@@ -82,7 +82,7 @@ const ComparisonRow = (props) => {
           {item.state.lifeCycleState === 'CREATED' && <div tooltip-data={'IN PROGRESS'} ><CircularProgressBar /></div>}
         </td>
         <td>
-          {customDateFormat(item.triggeredOn)}
+          {regionalDateAndTimeConversionSolution(item.triggeredOn)}
         </td>
         <td>
           {item.triggeredBy}
