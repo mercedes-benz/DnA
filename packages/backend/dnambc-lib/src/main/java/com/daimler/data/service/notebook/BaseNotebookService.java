@@ -120,7 +120,7 @@ public class BaseNotebookService extends BaseCommonService<NotebookVO, NotebookN
 					notebook = existingNotebook.getData();
 					if (!preNotebookId.equalsIgnoreCase(dnaNotebookId)) {
 						updateNotebook(null, existingNotebook);
-						LOGGER.debug("Solution {} unlinked from old notebook {} ", solutionId,
+						LOGGER.info("Solution {} unlinked from old notebook {} ", solutionId,
 								existingNotebook.getId());
 						Optional<NotebookNsql> notebookOptional = jpaRepo.findById(dnaNotebookId);
 						NotebookNsql notebookNsql = (notebookOptional != null && !notebookOptional.isEmpty())
@@ -129,7 +129,7 @@ public class BaseNotebookService extends BaseCommonService<NotebookVO, NotebookN
 						if (notebookNsql != null) {
 							updateNotebook(solutionId, notebookNsql);
 							sendNotificationForNotebookLink = true;
-							LOGGER.debug("Solution {} linked to notebook {} ", solutionId, notebookNsql.getId());
+							LOGGER.info("Solution {} linked to notebook {} ", solutionId, notebookNsql.getId());
 						}
 					}
 					else {
@@ -147,7 +147,7 @@ public class BaseNotebookService extends BaseCommonService<NotebookVO, NotebookN
 					if (notebookNsql != null) {
 						updateNotebook(solutionId, notebookNsql);
 						sendNotificationForNotebookLink = true;
-						LOGGER.debug("Solution {} linked to notebook {} ", solutionId, notebookNsql.getId());
+						LOGGER.info("Solution {} linked to notebook {} ", solutionId, notebookNsql.getId());
 					}
 				}
 			}
@@ -230,7 +230,7 @@ public class BaseNotebookService extends BaseCommonService<NotebookVO, NotebookN
 		if(Objects.nonNull(notebookVO)) {
 			LOGGER.info("Fetching user details for user:{}",notebookVO.getUserId());
 			UserInfoVO userInfoVO = userInfoService.getById(notebookVO.getUserId().toUpperCase());
-			LOGGER.debug("Setting createdByVO.");
+			LOGGER.info("Setting createdByVO.");
 			notebookVO.setCreatedBy(notebookAssembler.toCreatedByVO(userInfoVO));
 		}
 		return notebookVO;

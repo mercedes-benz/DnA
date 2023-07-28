@@ -14,7 +14,7 @@ import { regionalDateAndTimeConversionSolution } from '../../utilities/utils';
 import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indicator';
 import Notification from '../../common/modules/uilab/js/src/notification';
 import { chronosApi } from '../../apis/chronos.api';
-import Spinner from '../spinner/Spinner';
+// import Spinner from '../spinner/Spinner';
 import InputFiles from '../inputFiles/InputFiles';
 
 const ProjectDetailsTab = () => {
@@ -124,7 +124,7 @@ const ProjectDetailsTab = () => {
         <h3 id="productName">Project Details</h3>
         <div className={Styles.firstPanel}>
           <div className={Styles.formWrapper}>
-            { loading && <Spinner /> }
+            {/* { loading && <Spinner /> } */}
             { !loading && 
               <div className={classNames(Styles.flexLayout, Styles.threeColumn)}>
                 <div id="productDescription">
@@ -150,7 +150,7 @@ const ProjectDetailsTab = () => {
       <div className={Styles.content}>
         <h3 id="productName">Collaborators</h3>
         <div className={Styles.firstPanel}>
-        { loading && <Spinner /> }
+        {/* { loading && <Spinner /> } */}
         { !loading && 
           <div className={Styles.collabAvatar}>
             <div className={Styles.teamListWrapper}>
@@ -167,12 +167,12 @@ const ProjectDetailsTab = () => {
       </div>
       <div className={Styles.content}>
         <h3 id="productName">Input Files</h3>
-        { loading && <Spinner /> }
+        {/* { loading && <Spinner /> } */}
         {!loading && <InputFiles inputFiles={project.savedInputs === null ? [] : project.savedInputs} showModal={showDeleteConfirmModal} /> }
       </div>
       <div className={Styles.content}>
         <h3 id="productName">Configuration Files</h3>
-        { loading && <Spinner /> }
+        {/* { loading && <Spinner /> } */}
         {!loading && <InputFiles inputFiles={project.configFiles === null ? [] : project.configFiles} showModal={showDeleteConfigFileConfirmModal} addNew={true} proId={projectId} refresh={getProjectById} /> }
       </div>
       <div className={Styles.content}>
