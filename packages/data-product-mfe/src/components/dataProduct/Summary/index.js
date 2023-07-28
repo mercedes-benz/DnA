@@ -189,7 +189,7 @@ const Summary = ({ history, user }) => {
       setShowHowToAccessModal(true);
     }
     //eslint-disable-next-line
-  }, []);
+  }, [selectedDataProduct?.accessType]);
 
   const setTab = (e) => {
     // e.preventDefault();
