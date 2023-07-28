@@ -83,6 +83,7 @@ public class KafkaCoreCampaignService {
 	private static String STORAGE_URI_PATH = "/#/storage/explorer/";
 	private static String CHRONOS_NOTIFICATION_KEY = "Chronos";
 	private static String CHRONOS_URI_PATH = "#/chronos/project/";
+	private static String CODESPACE_NOTIFICATION_KEY = "Codespace";
 	
 	/*
 	 * @KafkaListener(topics = "dnaCentralEventTopic") public void
@@ -136,6 +137,10 @@ public class KafkaCoreCampaignService {
 						appNotificationPreferenceFlag = preferenceVO.getChronosNotificationPref().isEnableAppNotifications();
 						emailNotificationPreferenceFlag =  preferenceVO.getChronosNotificationPref().isEnableEmailNotifications();
 					}
+					if(message.getEventType().contains(CODESPACE_NOTIFICATION_KEY)) {
+						appNotificationPreferenceFlag = preferenceVO.getChronosNotificationPref().isEnableAppNotifications();
+						emailNotificationPreferenceFlag =  preferenceVO.getChronosNotificationPref().isEnableEmailNotifications();
+					}
 
 					NotificationVO vo = new NotificationVO();
 					vo.setDateTime(message.getTime());
@@ -179,7 +184,7 @@ public class KafkaCoreCampaignService {
 								}
 							
 						}
-					}
+					}					
 
 					if(appNotificationPreferenceFlag) {
 						cacheUtil.addEntry(user, vo);

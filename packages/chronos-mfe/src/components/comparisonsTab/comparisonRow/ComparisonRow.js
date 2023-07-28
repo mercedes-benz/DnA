@@ -38,6 +38,7 @@ const ComparisonRow = (props) => {
   // };
 
   const handleStatusClick = (e, item) => {
+    stopPropagation(e);
     props.onOpenErrorModal(item);
   }
 
