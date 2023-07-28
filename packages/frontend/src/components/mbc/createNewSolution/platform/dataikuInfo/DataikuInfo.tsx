@@ -25,10 +25,24 @@ const DataikuInfo = forwardRef((props: IDataikuInfoProps, ref: Ref<IDataikuInfoR
   const [dataikuInfo, setDataikuInfo] = useState<IDataiku>();
   const [dataikuProjectToLink, setDataikuProjectToLink] = useState<IDataiku>();
   const [selectionError, setSelectionError] = useState<boolean>(false);
+  const [canOnlyViewDataiku, setcanOnlyViewDataiku] = useState<boolean>(false);
 
   const getDataikuInfo = () => {
     ApiClient.getDataikuProjectDetailsByProjectkey(props.projectId, props.projectInstance).then((res) => {
-      setDataikuInfo(res.data);
+      if (res?.data) {
+        setDataikuInfo(res.data);
+        if (!res.data?.isProjectAdmin) {
+          setcanOnlyViewDataiku(true);
+        }
+      }
+    }).catch(() => {
+      const dataikuInfo = {
+        name: props.projectId,
+        projectKey: props.projectId,
+        cloudProfile: props.projectInstance,
+      };
+      setcanOnlyViewDataiku(true);
+      setDataikuInfo(prevDataikuInfo => ({ ...prevDataikuInfo, ...dataikuInfo }));
     });
   };
 
@@ -86,14 +100,14 @@ const DataikuInfo = forwardRef((props: IDataikuInfoProps, ref: Ref<IDataikuInfoR
                 {dataikuInfo?.creationTag?.lastModifiedOn ? `Created on ${getDateFromTimestamp(dataikuInfo.creationTag?.lastModifiedOn, '.')}` : ''}
               </label>
               <div className={Styles.projectCardDesc}>{dataikuInfo.shortDesc}</div>
-              <span className={Styles.closeICon} onClick={removeProject}>
+              {!canOnlyViewDataiku && <span className={Styles.closeICon} onClick={removeProject}>
                 <i className="icon mbc-icon close thin" />
-              </span>
+              </span>}
             </div>
           </div>
-          <p className={Styles.computeInfo}>
+          {!canOnlyViewDataiku && <p className={Styles.computeInfo}>
             Click on close 'x' button and Save &amp; Next to unlink the dataiku project.
-          </p>
+          </p>}
         </>
       ) : dataikuInfo !== null ? (
         <div className="text-center">

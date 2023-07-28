@@ -12,7 +12,7 @@ import 'ace-builds/src-noconflict/theme-solarized_dark';
 import 'ace-builds/src-noconflict/mode-yaml';
 
 const InputFiles = ({inputFiles, showModal, addNew, proId, refresh}) => {
-  const isValidFile = (file) => ['yml', 'yaml'].includes(file?.name?.split('.')[1]);
+  const isValidFile = (file) => ['yml', 'yaml'].includes(file?.name?.slice((file?.name?.lastIndexOf(".") - 1 >>> 0) + 2));
 
   const [showPreview, setShowPreview] = useState(false);
   const [blobURL, setBlobUrl] = useState();

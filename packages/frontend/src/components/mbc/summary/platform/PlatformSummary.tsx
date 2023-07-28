@@ -69,14 +69,13 @@ export default function PlatformSummary(props: ITeamProps) {
                         {props.dnaDataIkuProjectEnabled && <>{' '}({getDataikuInstanceTag(props.dataIkuInfo?.cloudProfile)})</>}
                       </h6>
                       <label>
-                        Created on{' '}
                         {(props?.dnaNotebookEnabled && props?.noteBookInfo.createdOn) ||
                           (props?.dnaDataIkuProjectEnabled && props?.dataIkuInfo?.creationTag?.lastModifiedOn) ?
-                          getDateFromTimestamp(
+                          `Created on ${getDateFromTimestamp(
                             (props.dnaNotebookEnabled && props.noteBookInfo.createdOn) ||
                             (props.dnaDataIkuProjectEnabled && props.dataIkuInfo.creationTag?.lastModifiedOn),
                             '.',
-                          ) : ''}{' '}
+                          )}` : ''}{' '}
                         {props.dnaNotebookEnabled && props.noteBookInfo.createdBy.firstName && 'by ' + props.dataIkuInfo?.ownerDisplayName || props.dataIkuInfo?.ownerLogin || ''}
                       </label>
                       <div className={Styles.JuperterCardDesc}>
