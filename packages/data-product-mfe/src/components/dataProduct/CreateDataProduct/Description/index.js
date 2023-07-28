@@ -31,7 +31,7 @@ const Description = ({
   onChangeConfidentialityInDescription,
   onChangeAccessType, 
   artList, carlaFunctionList, dataCatalogList, platformList, 
-  frontEndToolList, tagsList }) => {
+  frontEndToolList, tagsList, isCreatePage }) => {
   const {
     register,
     formState: { errors, 
@@ -90,9 +90,15 @@ const Description = ({
 
 
   useEffect(() => {
+    SelectBox.defaultSetup();
     Tooltip.defaultSetup();
     Tabs.defaultSetup(document.querySelectorAll('.inner-tabs'));
-    
+    if(isCreatePage){
+      setValue('accessType',['Kafka','Live (SAC/AFO)','API']);
+      setValue('personalRelatedDataInDescription', 'No');
+      setValue('deletionRequirementInDescription', 'No');
+      setValue('restrictDataAccess', 'No');
+    }
     
     reset(watch());
     //eslint-disable-next-line
@@ -163,14 +169,12 @@ const Description = ({
     //eslint-disable-next-line
   },[tagsList]);
 
-
   useEffect(() => {
     setSelectedTags(tags);
   }, [tags]);
   
 
   useEffect(() => {
-    
     if(accessType?.length > 0 && (accessType?.includes('Kafka') || accessType?.includes('API'))){
        SelectBox.defaultSetup(true);
     }

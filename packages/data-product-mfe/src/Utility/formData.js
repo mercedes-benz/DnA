@@ -353,7 +353,7 @@ export const deserializeFormData = ({ item, type = 'provider', isDataProduct = f
           productName: item?.dataProductName,
           id: item?.id,
           
-            accessType: item?.access?.accessType || ['Kafka','Live (SAC/AFO)','API'],
+            accessType: item?.access?.accessType,
             confidentialityInDescription: item?.access?.confidentiality,
             kafka: item?.access?.kafka,
             minimumInformationCheck: item?.access?.minimumInformationCheck,
