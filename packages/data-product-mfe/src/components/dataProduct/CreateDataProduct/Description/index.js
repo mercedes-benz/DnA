@@ -163,6 +163,10 @@ const Description = ({
     //eslint-disable-next-line
   },[tagsList]);
 
+  useEffect(()=>{
+    SelectBox.defaultSetup();
+    //eslint-disable-next-line
+  },[]);
 
   useEffect(() => {
     setSelectedTags(tags);
@@ -170,7 +174,6 @@ const Description = ({
   
 
   useEffect(() => {
-    
     if(accessType?.length > 0 && (accessType?.includes('Kafka') || accessType?.includes('API'))){
        SelectBox.defaultSetup(true);
     }
