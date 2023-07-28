@@ -184,10 +184,12 @@ const Summary = ({ history, user }) => {
   }, [dispatch, selectedDataProduct?.datatransfersAssociated]);
 
   useEffect(() => {
-    if (myDataTransfer?.totalCount > 0) {
+    // if (myDataTransfer?.totalCount > 0) {
+    if(selectedDataProduct?.accessType?.length > 0){
       setShowHowToAccessModal(true);
     }
-  }, [myDataTransfer?.totalCount]);
+    //eslint-disable-next-line
+  }, []);
 
   const setTab = (e) => {
     // e.preventDefault();
