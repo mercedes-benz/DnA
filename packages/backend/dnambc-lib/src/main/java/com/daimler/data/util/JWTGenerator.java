@@ -35,7 +35,6 @@ import org.springframework.stereotype.Component;
 
 import javax.xml.bind.DatatypeConverter;
 
-import java.security.SignatureException;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
