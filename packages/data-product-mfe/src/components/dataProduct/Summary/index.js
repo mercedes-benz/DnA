@@ -847,36 +847,30 @@ const Summary = ({ history, user }) => {
           <div className={Styles.actionButtonsSection}>
           {showHowToAccessModal ? (
             <>
+            {liveAccessFields?.length > 0 ? 
               <button
                 onClick={()=>{
-                  if(liveAccessFields?.length > 0){
-                    setShowPreviewModal(true);
-                    setCurrentPreviewTab('Live');
-                  } else {
-                    Notification.show(`No steps available.`,'alert');
-                  }
+                  setShowPreviewModal(true);
+                  setCurrentPreviewTab('Live');
                 }}
               >Live</button>
+            : ''}
+            {apiFields?.length > 0 ? 
               <button
                 onClick={()=>{
-                  if(apiFields?.length > 0){
-                    setShowPreviewModal(true);
-                    setCurrentPreviewTab('API');
-                  }else {
-                    Notification.show(`No steps available.`,'alert');
-                  }
+                  setShowPreviewModal(true);
+                  setCurrentPreviewTab('API');
                 }}
               >API</button>
+            : ''}  
+            {kafkaFields?.length > 0 ? 
               <button
                 onClick={()=>{
-                  if(kafkaFields?.length > 0){
-                    setShowPreviewModal(true);
-                    setCurrentPreviewTab('Kafka');
-                  }else {
-                    Notification.show(`No steps available.`,'alert');
-                  }                  
+                  setShowPreviewModal(true);
+                  setCurrentPreviewTab('Kafka');            
                 }}
               >Kafka</button>
+             : ''}  
             </>
           ) : null} 
           {selectedDataProduct?.minimumInformationCheck ? (
