@@ -1,13 +1,14 @@
 import classNames from 'classnames';
 import React, { useEffect, useState } from 'react';
 import Styles from './styles.scss';
+import { htmlToMarkdownParser } from '../../Utility/utils';
 
 import { useForm, useWatch } from 'react-hook-form';
 
 import SelectBox from 'dna-container/SelectBox';
 import Modal from 'dna-container/Modal';
 import ConfirmModal from 'dna-container/Modal';
-import { markdownParser, htmlToMarkdownParser } from 'dna-container/MarkdownParser';
+import { markdownParser } from 'dna-container/MarkdownParser';
 
 const AccessSteps = (
   { 
