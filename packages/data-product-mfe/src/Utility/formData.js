@@ -388,7 +388,7 @@ export const deserializeFormData = ({ item, type = 'provider', isDataProduct = f
           complianceOfficer: item?.contactInformation?.localComplianceOfficer?.split(),
           planningIT: item?.contactInformation?.appId,          
 
-          confidentiality: item?.classificationConfidentiality?.confidentiality || item?.access?.confidentiality || 'Internal',
+          confidentiality: item?.classificationConfidentiality?.confidentiality || item?.access?.confidentiality || 'Secret',
           classificationOfTransferedData: item?.classificationConfidentiality?.description,
 
           personalRelatedDataDescription: item?.personalRelatedData?.description,
