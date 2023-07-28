@@ -276,8 +276,7 @@ currentTab }) => {
           </button>
         }
           {isDataProduct ?
-          (accessType?.length == 1 && accessType?.includes('Live (SAC/AFO)')) || 
-          confidentialityInDescription == 'Internal' || accessType?.length == 0 ? '' : (
+          accessType?.length == 0 ? '' : (
             <button
               className={'btn btn-tertiary'}
               type="button"
