@@ -39,3 +39,11 @@ export const setTooltipIfEllipsisShown = (list) => {
 };
 
 export const isValidURL = (value) => /^http(s)?:\/\/[a-zA-Z\d]/g.test(value);
+
+
+
+export const htmlToMarkdownParser = (htmlText) =>{
+  const markdownText = htmlText.replace(/<a.*?href="(.*?)" target='_blank'>(.*?)<\/a>/gi, '[$2]($1)');
+  return markdownText.trim();
+}
+
