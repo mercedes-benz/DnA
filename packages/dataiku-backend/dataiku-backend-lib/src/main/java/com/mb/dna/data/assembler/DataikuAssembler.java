@@ -118,7 +118,7 @@ public class DataikuAssembler {
 		return collabData;
 	}
 	
-	public DataikuProjectSummaryDto toProjectDetails(DataikuProjectDto projectDto, String currentUser) {
+	public DataikuProjectSummaryDto toProjectSummary(DataikuProjectDto projectDto, String currentUser) {
 		DataikuProjectSummaryDto summaryDto = new DataikuProjectSummaryDto();
 		if(projectDto!=null) {
 			DataikuProjectCheckListDto checkListDetails = new DataikuProjectCheckListDto();
@@ -157,7 +157,7 @@ public class DataikuAssembler {
 		return summaryDto;
 	}
 	
-	public DataikuProjectSummaryDetailsDto toProjectDetails(DataikuProjectDto projectDto) {
+	public DataikuProjectSummaryDetailsDto toProjectSummaryDetails(DataikuProjectDto projectDto, String currentUser) {
 		DataikuProjectSummaryDetailsDto summaryDto = new DataikuProjectSummaryDetailsDto();
 		if(projectDto!=null) {
 			summaryDto.setClassificationType(projectDto.getClassificationType());
@@ -182,6 +182,17 @@ public class DataikuAssembler {
 			summaryDto.setSubdivisionId(projectDto.getSubdivisionId());
 			summaryDto.setSubdivisionName(projectDto.getSubdivisionName());
 			summaryDto.setDepartment(projectDto.getDepartment());
+			summaryDto.setIsProjectAdmin(false);
+			if(currentUser!=null && projectDto.getCollaborators()!=null && !projectDto.getCollaborators().isEmpty()) {
+				Optional<CollaboratorDetailsDto> record = projectDto.getCollaborators().stream().filter(x-> currentUser.equalsIgnoreCase(x.getUserId())).findAny();
+		        if (record.isPresent()) {
+		        	CollaboratorDetailsDto userDetails = record.get();
+		        	summaryDto.setRole(userDetails.getPermission());
+		        	if("Administrator".equalsIgnoreCase(userDetails.getPermission())){
+		        		summaryDto.setIsProjectAdmin(true);
+		        	}
+		        }
+			}
 		}
 		return summaryDto;
 	}

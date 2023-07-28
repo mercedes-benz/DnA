@@ -49,11 +49,10 @@ public class StorageRepositoryImpl implements StorageRepository {
 	}
 
 	@Override
-	public List<StorageNsql> getAllWithFilters(String userId) {
-		Query q = getNativeQueryWithFilters("", userId);
+	public List<StorageNsql> getAllWithFilters(String userId, int limit, String sortBy,String sortOrder, int offset) {
+		Query q = getNativeQueryWithFilters("", userId, limit, sortBy, sortOrder, offset);
 		ObjectMapper mapper = new ObjectMapper();
 		List<Object[]> results = q.getResultList();
-
 		return results.stream().map(temp -> {
 			StorageNsql entity = new StorageNsql();
 			try {
@@ -69,13 +68,42 @@ public class StorageRepositoryImpl implements StorageRepository {
 		}).toList();
 	}
 
-	private Query getNativeQueryWithFilters(String selectFieldsString, String userId) {
+	private Query getNativeQueryWithFilters(String selectFieldsString, String userId, int limit, String sortBy,String sortOrder, int offset) {
 		String prefix = StringUtils.hasText(selectFieldsString) ? selectFieldsString
 				: "select cast(id as text), cast(data as text) ";
 		prefix = prefix + "from " + STORAGE_NSQL;
 		String basicpredicate = " where (id is not null)";
 		String consolidatedPredicates = buildPredicateString(userId);
 		String query = prefix + basicpredicate + consolidatedPredicates;
+		String sortQueryString = "";
+		if (sortBy != null && !"".equalsIgnoreCase(sortBy)) {
+			switch (sortBy) {
+			case "lastModifiedOn":
+				sortQueryString = " order by to_timestamp(CAST(data ->> 'lastModifiedDate' AS BIGINT)) ";
+				break;
+			case "createdOn":
+				sortQueryString = " order by to_timestamp(CAST(data ->> 'createdDate' AS BIGINT)) ";
+				break;
+			case "bucketName":
+				sortQueryString = " order by lower(jsonb_extract_path_text(data,'bucketName')) ";
+				break;
+			default:
+				sortQueryString = "";
+				break;
+			}
+			if (StringUtils.hasText(sortQueryString)) {
+				if ("desc".equalsIgnoreCase(sortOrder))
+					sortQueryString = sortQueryString + " desc ";
+				else
+					sortQueryString = sortQueryString + " asc ";
+			}
+			query = query + sortQueryString;
+		}
+		if (limit > 0)
+			query = query + " limit " + limit;
+		if (offset >= 0)
+			query = query + " offset " + offset;
+		
 		return em.createNativeQuery(query);
 	}
 

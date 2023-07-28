@@ -8,7 +8,43 @@ class SelectBox {
     this.refresh();
     Select.defaultSetup();
     SelectionControl.defaultSetup();
+    this.setupSelectBoxes(disableEventDispatch);
+  }
 
+  public static refresh(selectBoxId?: string): void {
+    if (selectBoxId) {
+      const selectElement: HTMLSelectElement = document.querySelector(`#${selectBoxId}`);
+      if(selectElement) {
+        const selectOptions = selectElement?.options;
+        const selectElementDIV = selectElement?.nextSibling;
+        
+        if(selectElementDIV) {
+          const selectElementItemsDIV = selectElementDIV?.nextSibling as HTMLDivElement;
+          const selectOptionsDiv = selectElementItemsDIV?.querySelectorAll('div');
+          if (selectOptions?.length !== selectOptionsDiv?.length) {
+            selectElementDIV?.nextSibling && selectElementDIV?.nextSibling.remove();
+            selectElementDIV && selectElementDIV.remove();
+            Select.defaultSetup([selectElement.parentNode]);
+            SelectionControl.defaultSetup();
+            this.setupSelectBoxes(true, [selectElement.parentNode]);
+          }
+        }
+      } else {
+        console.log('Select Box not found for id - ' + selectBoxId);
+      }
+    } else {
+      const selectElements: NodeListOf<Element> = document.querySelectorAll('.select-selected');
+      let elementIndex = 0;
+      while (elementIndex < selectElements.length) {
+        const element = selectElements[elementIndex];
+        element.nextSibling && element.nextSibling.remove();
+        element.remove();
+        elementIndex++;
+      }
+    }
+  }
+
+  protected static setupSelectBoxes(disableEventDispatch?: boolean, customSelects?: any) {
     /* Code for solving select box and select control issues in firefox */
     if (navigator.userAgent.toLowerCase().indexOf('firefox') > -1) {
       const fixingElements: NodeListOf<Element> = document.querySelectorAll(
@@ -20,7 +56,7 @@ class SelectBox {
       });
     }
 
-    const selectBoxes: NodeListOf<Element> = document.querySelectorAll('.custom-select');
+    const selectBoxes: NodeListOf<Element> = customSelects || document.querySelectorAll('.custom-select');
     Array.from(selectBoxes).forEach((selectBox) => {
       // const selectItemVisible: Element = selectBox.querySelector('.select-selected');
       selectBox.setAttribute('tabIndex', '0');
@@ -151,18 +187,6 @@ class SelectBox {
         }
       });
     });
-  }
-
-  public static refresh(): void {
-    
-    const selectElements: NodeListOf<Element> = document.querySelectorAll('.select-selected');
-    let elementIndex = 0;
-    while (elementIndex < selectElements.length) {
-      const element = selectElements[elementIndex];
-      element.nextSibling && element.nextSibling.remove();
-      element.remove();
-      elementIndex++;
-    }
   }
 
   protected static dispatchReactOnChangeEvent(selectElement: HTMLSelectElement) {

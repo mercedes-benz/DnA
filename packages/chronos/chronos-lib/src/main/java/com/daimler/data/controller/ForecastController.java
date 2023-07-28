@@ -262,6 +262,7 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 			}
 		}
 		boolean notFound = false;
+		String fileName= "";
 		List<InputFileVO> savedInputs = existingForecast.getSavedInputs();
 		if (savedInputs != null && !savedInputs.isEmpty()) {
 			List<String> fileIdList = savedInputs.stream().map(InputFileVO::getId).collect(Collectors.toList());
@@ -271,6 +272,7 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 						filter(x -> x.getId().equals(sid)).
 						findFirst();
 				InputFileVO file = fileObject.get();
+				fileName = file.getName();
 				savedInputs.remove(file);
 			} else
 				notFound = false;
@@ -281,7 +283,18 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 		existingForecast.setSavedInputs(savedInputs);
 
 		try {
-			ForecastVO updatedVO = service.create(existingForecast);
+			String prefix= "inputs/" + fileName;
+			DeleteBucketResponseWrapperDto deleteFileResponse = storageClient.deleteFilePresent(existingForecast.getBucketName(),prefix);
+			if(deleteFileResponse==null || (deleteFileResponse!=null && (deleteFileResponse.getErrors()!=null || !"SUCCESS".equalsIgnoreCase(deleteFileResponse.getStatus())))) {
+				GenericMessage errorMessage = new GenericMessage();
+				errorMessage.setSuccess("FAILED");
+				errorMessage.setErrors(deleteFileResponse.getErrors());
+				errorMessage.setWarnings(deleteFileResponse.getWarnings());
+				return new ResponseEntity<>(errorMessage, HttpStatus.INTERNAL_SERVER_ERROR);
+			}else if("SUCCESS".equalsIgnoreCase(deleteFileResponse.getStatus())) {
+				log.info("Successfully deleted config file {} from storage bucket",fileName);
+				ForecastVO updatedVO = service.create(existingForecast);
+			}
 		}
 		catch (Exception e){
 			List<MessageDescription> errors = new ArrayList<>();
