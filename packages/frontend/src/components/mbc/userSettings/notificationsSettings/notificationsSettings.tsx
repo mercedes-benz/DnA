@@ -238,6 +238,7 @@ const NotificationsSettings = (props: INotificationSettings) => {
               </div>
             );
           })}
+          <div></div>
         </div>
       </div>
     </React.Fragment>
