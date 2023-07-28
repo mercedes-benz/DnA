@@ -792,7 +792,7 @@ const Description = ({
                       onChangeAccessType(values);
                     }
                   })}>
-                    <option value="">Choose</option>
+                    {/* <option value="">Choose</option> */}
                     <option id='Kafka' key={'Kafka'} value={'Kafka'}>Kafka</option>
                     <option id='Live (SAC/AFO)' key={'Live (SAC/AFO)'} value={'Live (SAC/AFO)'}>Live (SAC/AFO)</option>
                     <option id='API' key={'API'} value={'API'}>API</option>

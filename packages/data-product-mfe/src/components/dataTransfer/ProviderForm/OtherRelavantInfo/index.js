@@ -275,7 +275,9 @@ currentTab }) => {
             {currentTab == 'deletion-requirements' ?'Save':'Save & move to next tab'}
           </button>
         }
-          {isDataProduct ? (
+          {isDataProduct ?
+          (accessType?.length == 1 && accessType?.includes('Live (SAC/AFO)')) || 
+          confidentialityInDescription == 'Internal' || accessType?.length == 0 ? '' : (
             <button
               className={'btn btn-tertiary'}
               type="button"
@@ -293,8 +295,9 @@ currentTab }) => {
               },(errors) => {onDescriptionTabErrors(errors)})}
             >
               Publish
-            </button>
-          ) : (
+            </button>          
+            )           
+          : (
             <button
               className={'btn btn-tertiary'}
               type="button"
