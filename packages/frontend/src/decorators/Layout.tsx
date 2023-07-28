@@ -5,7 +5,7 @@ import Footer from 'components/mbc/footer/Footer';
 import { LOCAL_STORAGE_KEYS } from 'globals/constants';
 import { IUserInfo } from 'globals/types';
 import Header from 'components/header/Header';
-import SessionAlert from 'components/sessionAlert/SessionAlert';
+// import SessionAlert from 'components/sessionAlert/SessionAlert';
 
 export const AppContext = React.createContext({
   navMaximized: false,
@@ -78,7 +78,7 @@ export class Layout extends React.Component<ILayoutProps, ILayoutState> {
             showMenuCloseIcon={this.state.appNavMaximized}
             isHome={this.state.isHome}
           />
-          <SessionAlert />
+          {/* <SessionAlert /> */}
           {/* {this.state.isHome ? (
             <Home user={this.props.user} />
           ) : ( */}

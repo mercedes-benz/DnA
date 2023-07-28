@@ -1,10 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Route } from 'react-router-dom';
-
-import ProgressIndicator from '../common/modules/uilab/js/src/progress-indicator';
 import { hostServer } from '../server/api';
-import { history } from '../store/storeRoot';
-
 import { LocalWrapper } from './LocalWrapper';
 import { SESSION_STORAGE_KEYS } from './Utility/constants';
 
@@ -24,27 +20,6 @@ export const ProtectedRoute = ({ component: Component, ...rest }) => {
       }
     }
   }, [hasJwt, rest.user?.roles?.length]);
-
-  useEffect(() => {
-    if (hasJwt) {
-      hostServer
-        .post('/verifyLogin', {
-          data: {},
-        })
-        .then((res) => {
-          sessionStorage.setItem(SESSION_STORAGE_KEYS.JWT, res.data.token);
-        })
-        .catch(() => {
-          sessionStorage.removeItem(SESSION_STORAGE_KEYS.JWT);
-          ProgressIndicator.hide();
-          // reset history to base page before accessing container app's public routes;
-          history.replace('/');
-          window.location.replace('#/SessionExpired');
-        });
-    }
-
-    //eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [hasJwt, history.location]);
 
   return (
     <Route

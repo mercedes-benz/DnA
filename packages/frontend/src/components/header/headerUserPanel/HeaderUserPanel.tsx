@@ -1,6 +1,5 @@
 import cn from 'classnames';
 import React, { useEffect } from 'react';
-import { ApiClient } from '../../../../src/services/ApiClient';
 import { USER_ROLE } from 'globals/constants';
 import { getTranslatedLabel } from 'globals/i18n/TranslationsProvider';
 import { IRole, IUserInfo } from 'globals/types';
@@ -63,30 +62,21 @@ export default function HeaderUserPanel(props: IHeaderUserPanelProps) {
   };
 
   const onLogout = () => {
-    ApiClient.logoutUser()
-      .then(() => {
-        const access_token = Pkce.readAccessToken();
-        Pkce.clearUserSession();
-        const redirectUrl = Pkce.getLogoutUrl();
-        console.log('Error in logout the user.' + redirectUrl);
-        if (Envs.OIDC_PROVIDER === 'OKTA') {
-          const log_out_constant = {
-            id_token_hint: access_token.id_token,
-            post_logout_redirect_uri: Envs.REDIRECT_URLS,
-          };
-          window.location.href = redirectUrl + '?' + createQueryParams(log_out_constant);
-          console.log(`Redirecting to CD logout...` + redirectUrl);
-        } else {
-          console.log(`Redirecting to CD logout...` + redirectUrl);
-          window.location.href = redirectUrl;
-        }
-
-        /* tslint:disable:no-console */
-      })
-      .catch((err: Error) => {
-        /* tslint:disable:no-console */
-        console.log('Error in logout the user.');
-      });
+    const access_token = Pkce.readAccessToken();
+    Pkce.clearUserSession();
+    const redirectUrl = Pkce.getLogoutUrl();
+    console.log('Error in logout the user.' + redirectUrl);
+    if (Envs.OIDC_PROVIDER === 'OKTA') {
+      const log_out_constant = {
+        id_token_hint: access_token?.id_token,
+        post_logout_redirect_uri: Envs.REDIRECT_URLS,
+      };
+      window.location.href = redirectUrl + '?' + createQueryParams(log_out_constant);
+      console.log(`Redirecting to CD logout...` + redirectUrl);
+    } else {
+      console.log(`Redirecting to CD logout...` + redirectUrl);
+      window.location.href = Pkce.getRedirectUrl() + '/logout';
+    }
   };
 
   const navigateToMyBookmarks = (event: React.MouseEvent<HTMLElement>) => {

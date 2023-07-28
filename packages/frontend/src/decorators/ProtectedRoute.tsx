@@ -55,39 +55,47 @@ export class ProtectedRoute extends React.Component<IProtectedRouteProps, IProte
   public componentDidMount() {
     if (!sessionStorage.getItem(SESSION_STORAGE_KEYS.JWT)) {
       sessionStorage.setItem(SESSION_STORAGE_KEYS.APPREDIRECT_URL, this.props.location.pathname);
-      this.setState({ redirectPath: '/' });
+      const newURL = Pkce.getRedirectUrl() + '/login/redirect';
+      window.location.assign(newURL);
     }
-    this.verifyLogin();
+    this.storeUserDetails();
+  }
+
+  public async storeUserDetails() {
+    const token = ApiClient.readJwt();
+    if (token) {
+      const userDetails = ApiClient.parseJwt(token);
+      if (userDetails) {
+        this.setState({
+          user: {
+            "roles": userDetails.digiRole,
+            "department": userDetails.department,
+            "eMail": userDetails.email,
+            "firstName": userDetails.firstName,
+            "lastName": userDetails.lastName,
+            "id": userDetails.id,
+            "mobileNumber": userDetails.mobileNumber,
+            "divisionAdmins": userDetails.divisionAdmins
+          }
+        });
+        const title = this.props.title;
+        document.title = title;
+        trackPageView(window.location.hash.substr(1), title, userDetails.id);
+      }
+      const reqUrl = sessionStorage.getItem(SESSION_STORAGE_KEYS.APPREDIRECT_URL);
+      this.setState({
+        loading: false,
+        redirectPath: reqUrl ? reqUrl : '/'
+      }, () => {
+        sessionStorage.removeItem(SESSION_STORAGE_KEYS.APPREDIRECT_URL);
+      });
+    }
   }
 
   public logout = () => {
     this.setState({ user: initialUserState });
     sessionStorage.removeItem(LOCAL_STORAGE_KEY.TOKEN);
   };
-
-  public async verifyLogin() {
-    // try {
-    //   const result = await ApiClient.verifyDigiLogin();
-    //   this.setState({ user: result.data, loading: false });
-    // } catch (e) {
-    //   this.setState({ loading: false });
-    // }
-
-    ApiClient.verifyDigiLogin()
-      .then((result) => {
-        this.setState({ redirectPath: '/' });
-        this.setState({ user: result.data, loading: false }, () => {
-          const title = this.props.title;
-          document.title = title;
-          trackPageView(window.location.hash.substr(1), title, result.data.id);
-        });
-      })
-      .catch((error: Error) => {
-        Pkce.clearUserSession();
-        this.setState({ loading: false });
-        this.setState({ redirectPath: '/SessionExpired' });
-      });
-  }
 
   public setMessage(msg: string) {
     this.setState({ message: msg });

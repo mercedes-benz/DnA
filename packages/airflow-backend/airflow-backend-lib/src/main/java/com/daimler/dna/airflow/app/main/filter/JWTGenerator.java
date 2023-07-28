@@ -38,6 +38,8 @@ import org.springframework.stereotype.Component;
 import com.daimler.dna.airflow.controller.LoginController;
 
 import javax.xml.bind.DatatypeConverter;
+
+import java.security.SignatureException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -84,7 +86,7 @@ public class JWTGenerator {
 	public static Claims decodeJWT(String jwt) {
 		try {
 			// This line will throw an exception if it is not a signed JWS (as expected)
-			Claims claims = Jwts.parser().setSigningKey(DatatypeConverter.parseBase64Binary(SECRET_KEY))
+			Claims claims = Jwts.parser().setSigningKey(SECRET_KEY.getBytes())
 					.parseClaimsJws(jwt).getBody();
 			return claims;
 		} catch (ExpiredJwtException | MalformedJwtException | SignatureException | UnsupportedJwtException

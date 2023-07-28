@@ -41,6 +41,7 @@ import {
 } from '../globals/types';
 import { Pkce } from './Pkce';
 import { ReportsApiClient } from './ReportsApiClient';
+import { refreshToken } from '../../src/utils/RefreshToken';
 
 export interface IResponse<T> {
   meta?: {
@@ -90,33 +91,32 @@ export class ApiClient {
     return this.fetch(getUrl(endpoint), HTTP_METHOD.DELETE, body);
   }
 
-  public static getLoginJWT(token: string) {
-    return fetch(`${baseUrl}/login`, {
+  public static getLoginJWT() {
+    return fetch(`login?timestamp=${Date.now()}`, {
       headers: {
         Accept: 'application/json',
-        Authorization: token,
         'Content-Type': 'application/json',
       },
     }).then((response) => {
-      if (!response.ok) {
-        return response.json().then((result) => {
+      if (!response?.ok) {
+        return response?.json()?.then((result) => {
           throw new Error(result.message);
         });
       }
 
-      return response.json();
+      if (response?.headers?.get('authorization')) {
+        return response?.headers?.get('authorization');
+      }
+      return response?.json();
     });
   }
 
   public static logoutUser() {
-    const tokenObject = Pkce.readAccessToken();
-    const token = tokenObject.access_token;
     const jwt = this.readJwt();
     const method = HTTP_METHOD.POST;
-    return fetch(`${baseUrl}/logout`, {
+    return fetch(`${'logout'}`, {
       headers: {
         Accept: 'application/json',
-        AccessToken: token,
         Authorization: jwt,
         'Content-Type': 'application/json',
       },
@@ -132,9 +132,11 @@ export class ApiClient {
     });
   }
 
-  public static fetch(url: string, method: HTTP_METHOD, body?: any) {
-    const jwt = this.readJwt();
-    body = JSON.stringify(body);
+  public static fetch(url: string, method: HTTP_METHOD, body?: any, jwtVal?: any): Promise<any> {
+    const jwt = jwtVal ? jwtVal : this.readJwt();
+    if (typeof body !== 'string') {
+      body = JSON.stringify(body);
+    }
     return fetch(url, {
       body,
       headers: {
@@ -144,9 +146,27 @@ export class ApiClient {
       },
       method,
     }).then((response) => {
+      let message = '';
       if (!response.ok) {
         return response.json().then((result) => {
-          let message = '';
+
+          if (response?.status === 403 && result?.error_description?.includes("JWT is expired")) {
+            return refreshToken(jwt).then((newJwt: any) => {
+              return ApiClient.fetch(url, method, body, newJwt);
+            });
+          }
+
+          if (response?.status === 401 && result?.error_description?.includes('Invalid JWT token')) {
+            // Handle error during refresh
+            message = 'Authtoken has expired';
+            // Get the current URL
+            const currentURL = window.location.href;
+            const baseUrl = currentURL.split('#')[0];
+            const sessionExpiredUrl = `${baseUrl}#/SessionExpired`;
+            Pkce.clearUserSession();
+            window.location.href = sessionExpiredUrl;
+          }
+
           if (result && result.errors) {
             result.errors.forEach((error: IError) => {
               message += error.message + ' ';
@@ -205,10 +225,12 @@ export class ApiClient {
   }
 
   public static getJwt(): Promise<any> {
-    const tokenObject = Pkce.readAccessToken();
-    const token = tokenObject.access_token;
-    return ApiClient.getLoginJWT(token)
-      .then((result) => ApiClient.writeJwt(result.token))
+    return ApiClient.getLoginJWT()
+      .then((result) => {
+        if (result) {
+          ApiClient.writeJwt(result);
+        }
+      })
       .catch((error) => {
         ApiClient.destroyJwt();
         throw error;
@@ -217,6 +239,10 @@ export class ApiClient {
 
   public static verifyDigiLogin() {
     return this.post('verifyLogin');
+  }
+
+  public static parseJwt(token: any) {
+    return JSON.parse(Buffer.from(token.split('.')[1], 'base64').toString());
   }
 
   public static getTags(): Promise<ITag[]> {
@@ -787,9 +813,9 @@ export class ApiClient {
     return this.post(`notification-preferences`, { data: notificationPreferences });
   }
 
-  public static downloadAttachment(attachment: IAttachment): Promise<any> {
+  public static downloadAttachment(attachment: IAttachment, newJwt?: any): Promise<any> {
     const id = attachment.id + '~' + attachment.fileName;
-    const jwt = this.readJwt();
+    const jwt = newJwt ? newJwt : this.readJwt();
     return fetch(`${baseUrl}/attachments/${id}`, {
       headers: {
         Accept: 'application/json',
@@ -797,6 +823,15 @@ export class ApiClient {
         'Content-Type': 'application/octet-stream',
       },
     }).then((response) => {
+      if (!response.ok) {
+        return response.json().then((result) => {
+          if (response?.status === 403 && result?.error_description?.includes("JWT is expired")) {
+            return refreshToken(jwt).then((newJwt: any) => {
+              return ApiClient.downloadAttachment(attachment, newJwt);
+            });
+          }
+        });
+      }
       return response;
     });
   }

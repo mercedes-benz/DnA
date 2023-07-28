@@ -12,6 +12,7 @@ import { IAttachment, IAttachmentError } from 'globals/types';
 import { ApiClient } from '../../../../services/ApiClient';
 import ConfirmModal from 'components/formElements/modal/confirmModal/ConfirmModal';
 import Styles from './AttachmentUploader.scss';
+import { refreshToken } from '../../../../utils/RefreshToken';
 
 const classNames = cn.bind(Styles);
 
@@ -28,6 +29,7 @@ export interface IAttachmentUploaderState {
   showDeleteModal: boolean;
   attachmentToDelete: null | IAttachment;
   errorsInUpload: IAttachmentError[];
+  jwt: string | void;
 }
 
 export interface IAttachmentResponse {
@@ -52,8 +54,31 @@ export default class AttachmentUploader extends React.Component<IAttachmentUploa
       showDeleteModal: false,
       attachmentToDelete: null,
       errorsInUpload: [],
+      jwt: ApiClient.readJwt(),
     };
+    this.beforeUpload = this.beforeUpload.bind(this);
   }
+
+  beforeUpload = (file: RcFile, fileList: RcFile[]) => {
+    return new Promise<void>((resolve, reject) => {
+      if (process.env.NODE_ENV === 'production') {
+        const jwt = ApiClient.readJwt();
+        refreshToken(jwt)
+          .then((newJwt: any) => {
+            this.setState({ jwt: newJwt });
+            // continue as usual
+            resolve();
+          })
+          .catch((err: any) => {
+            // prevent upload
+            reject(err);
+          });
+      } else {
+        // continue as usual if not in production
+        resolve();
+      }
+    });
+  };
 
   public render() {
     const onSuccess = (attachmentResponse: IAttachmentResponse) => {
@@ -69,17 +94,13 @@ export default class AttachmentUploader extends React.Component<IAttachmentUploa
         }
       }
     };
-    const jwt = ApiClient.readJwt();
     const uploaderProps = {
       accept: ATTACH_FILES_TO_ACCEPT,
       headers: {
-        Authorization: jwt,
+        Authorization: this.state.jwt || '',
       },
       action: ApiClient.getAttachmentBaseURL(),
-      // beforeUpload(file: RcFile, fileList: RcFile[]) {
-      //   console.log('beforeUpload', file.name);
-      //   console.log('beforeUpload', fileList[0].name);
-      // },
+      beforeUpload: this.beforeUpload,
       onStart: (file: RcFile) => {
         this.setState({ errorsInUpload: [] });
         ProgressIndicator.show(1);
