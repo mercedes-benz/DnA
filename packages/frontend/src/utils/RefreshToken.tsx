@@ -11,7 +11,7 @@ declare global {
     }
 }
 
-const ONE_MINUTE = 50000; // 1 minutes in milliseconds
+const ONE_MINUTE = 50000; // 50 seconds in milliseconds
 
 export const refreshToken = (jwt: string) => {
     if (!window.refreshState) {
