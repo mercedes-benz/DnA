@@ -56,8 +56,6 @@ function createRefreshInterceptor(instance) {
         const jwt = sessionStorage.getItem(SESSION_STORAGE_KEYS.JWT);
         const newJwt = await refreshToken(jwt);
 
-        console.log("newJwt storage", newJwt);
-
         // Update the Authorization header in Axios instances.
         server.defaults.headers.Authorization = newJwt;
         hostServer.defaults.headers.Authorization = newJwt;
