@@ -865,7 +865,6 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 		List<MessageDescription> errors = new ArrayList<>();
 		List<MessageDescription> warnings = new ArrayList<>();
 		Optional<ForecastNsql> entityOptional = jpaRepo.findById(id);
-        log.info("inside deleteForecastByID");
 		if (entityOptional != null) {
 			ForecastNsql entity = entityOptional.get();
 			List<RunDetails> existingRuns = entity.getData().getRuns();
