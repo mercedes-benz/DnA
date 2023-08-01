@@ -816,7 +816,7 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 		if(runVOList!= null && !runVOList.isEmpty()) {
 			for (RunVO run : runVOList) {
 				if (rid.equalsIgnoreCase(run.getId())) {
-					if(run.isIsDeleted()==true){
+					if(run.isIsDeleted() != null && run.isIsDeleted()==true){
 						return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
 					}
 					notFound = true;
@@ -878,7 +878,7 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 		if(runVOList!= null && !runVOList.isEmpty()) {
 			for(RunVO run: runVOList) {
 				if(rid.equalsIgnoreCase(run.getId())) {
-					if(run.isIsDeleted()==true){
+					if(run.isIsDeleted() != null && run.isIsDeleted()==true){
 						return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
 					}
 					notFound = true;
