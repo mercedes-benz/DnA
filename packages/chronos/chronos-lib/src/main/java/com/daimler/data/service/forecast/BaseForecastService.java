@@ -865,7 +865,6 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 		List<MessageDescription> errors = new ArrayList<>();
 		List<MessageDescription> warnings = new ArrayList<>();
 		Optional<ForecastNsql> entityOptional = jpaRepo.findById(id);
-
 		if (entityOptional != null) {
 			ForecastNsql entity = entityOptional.get();
 			List<RunDetails> existingRuns = entity.getData().getRuns();
@@ -874,23 +873,7 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 			// To delete all the runs which are associated to the entity.
 			if (existingRuns != null && !existingRuns.isEmpty()) {
 				for (RunDetails run : existingRuns) {
-					DataBricksErrorResponseVO errResponse = this.dataBricksClient.deleteRun(run.getRunId());
-					if (errResponse != null
-							&& (errResponse.getErrorCode() != null || errResponse.getMessage() != null)) {
-						String msg = "Failed to delete Run. Please delete them manually" + run.getRunId();
-						if (errResponse.getErrorCode() != null) {
-							msg += errResponse.getErrorCode();
-						}
-						if (errResponse.getMessage() != null) {
-							msg += errResponse.getMessage();
-						}
-						MessageDescription errMsg = new MessageDescription(msg);
-						warnings.add(errMsg);
-						responseMessage.setWarnings(errors);
-						log.error(msg);
-					} else {
 						run.setIsDelete(true);
-					}
 				}
 			}
 
@@ -922,29 +905,25 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 	@Transactional
 	public GenericMessage deletRunByUUID(String id, String rid) {
 		GenericMessage responseMessage = new GenericMessage();
-		List<MessageDescription> errors = new ArrayList<>();
 		List<MessageDescription> warnings = new ArrayList<>();
 		Optional<ForecastNsql> entityOptional = jpaRepo.findById(id);
 		if(entityOptional!=null) {
 			ForecastNsql entity = entityOptional.get();
 			List<RunDetails> existingRuns = entity.getData().getRuns();
+			String bucketName = entity.getData().getBucketName();
 			List<RunDetails> updatedRuns = new ArrayList<>();
 			for(RunDetails run : existingRuns) {
 				if(rid.equalsIgnoreCase(run.getId())) {
-					DataBricksErrorResponseVO errResponse = this.dataBricksClient.deleteRun(run.getRunId());
-					if(errResponse!=null && (errResponse.getErrorCode()!=null || errResponse.getMessage()!=null)) {
-						String msg = "Failed to delete Run." ;
-						if(errResponse.getErrorCode()!=null) {
-							msg+= errResponse.getErrorCode();
+					String prefix= "results/" + rid + "-" + run.getRunName();
+					DeleteBucketResponseWrapperDto deleteRunResponse = storageClient.deleteFilePresent(bucketName,prefix);
+					if(deleteRunResponse==null || (deleteRunResponse!=null && (deleteRunResponse.getErrors()!=null || !"SUCCESS".equalsIgnoreCase(deleteRunResponse.getStatus())))) {
+						String msg = "Failed to delete Run folder on Minio." ;
+						if(deleteRunResponse.getErrors()!=null) {
+							msg+= deleteRunResponse.getErrors();
 						}
-						if(errResponse.getMessage()!=null) {
-							msg+= errResponse.getMessage();
-						}
-						MessageDescription errMsg = new MessageDescription(msg);
-						errors.add(errMsg);
-						responseMessage.setSuccess("FAILED");
-						responseMessage.setErrors(errors);
-						return responseMessage;
+						MessageDescription warningMsg = new MessageDescription(msg);
+						warnings.add(warningMsg);
+						responseMessage.setWarnings(warnings);
 					}else {
 						run.setIsDelete(true);
 					}
