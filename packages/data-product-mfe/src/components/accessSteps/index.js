@@ -49,7 +49,7 @@ const AccessSteps = (
   });
 
   useEffect(() => {
-    SelectBox.defaultSetup();
+    SelectBox.defaultSetup(true);
     console.log(value,'Showing value coming from parent');
     //eslint-disable-next-line
   }, [enableEdit]);
