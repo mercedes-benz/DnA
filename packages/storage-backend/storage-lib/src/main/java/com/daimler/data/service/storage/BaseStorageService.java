@@ -405,6 +405,21 @@ public class BaseStorageService implements StorageService {
 				List<BucketVo> bucketsVO = new ArrayList<>();
 				// converting the storageEntities to bucketVO objects and adding it to bucketsVO
 				bucketsVO = storageEntities.stream().map(n-> storageAssembler.toBucketVo(n)).collect(Collectors.toList());
+				for (Bucket bucket : minioResponse.getBuckets()) {
+					BucketVo bucketVo = storageAssembler.toBucketVo(storageEntities, bucket.name());
+					for (BucketVo s: bucketsVO) {
+						if (s.getBucketName().equals(bucket.name())) {
+							if (Objects.isNull(bucketVo.getPermission())) {
+								// Setting current user details
+								s.setPermission(dnaMinioClient.getBucketPermission(bucket.name(), currentUser));
+							}
+							s.setBucketName(bucket.name());
+							s.setCreatedDate(Date.from(bucket.creationDate().toInstant()));
+							s.setCollaborators(dnaMinioClient.getBucketCollaborators(bucket.name(), currentUser));
+							LOGGER.debug("Setting collaborators for bucket:{}", bucket.name());
+						}
+					}
+				}
 				bucketCollectionVO.setData(bucketsVO);
 			}
 		} else {
