@@ -413,6 +413,7 @@ public class BaseStorageService implements StorageService {
 								// Setting current user details
 								s.setPermission(dnaMinioClient.getBucketPermission(bucket.name(), currentUser));
 							}
+							s = new BucketVo();
 							s.setBucketName(bucket.name());
 							s.setCreatedDate(Date.from(bucket.creationDate().toInstant()));
 							s.setCollaborators(dnaMinioClient.getBucketCollaborators(bucket.name(), currentUser));
