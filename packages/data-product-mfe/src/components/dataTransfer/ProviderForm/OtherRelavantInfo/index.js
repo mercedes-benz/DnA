@@ -254,7 +254,7 @@ currentTab }) => {
               
             },(errors) => onDescriptionTabErrors(errors))}
           >
-            Fill out Minimum Information
+            Save
           </button>
         :
           <button
