@@ -153,7 +153,7 @@ const CreateDataProduct = ({ user, history }) => {
             }
           });
           setSavedTabs(segments);
-          setCurrentAccessType(data.accessTypeInDescription);
+          setCurrentAccessType(data.accessType);
           setCurrentConfidentialityInDescription(data.confidentialityInDescription);
         }
         ProgressIndicator.hide();
