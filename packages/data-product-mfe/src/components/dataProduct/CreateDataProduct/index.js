@@ -560,6 +560,7 @@ const CreateDataProduct = ({ user, history }) => {
   }
 
   const onSave = (currentAction, currentTab, values, callbackFn) => {
+    let showStepError = false;
     const howToAccessObj = {
       "accessDetailsCollectionVO": [
         {
@@ -578,31 +579,65 @@ const CreateDataProduct = ({ user, history }) => {
       "useTemplate": values['useTemplate']
     };
 
+    if(values['accessType']?.includes('Kafka')){
+      values['kafkaArray'].map((item) => {
+        if(item.stepNumber == '' || item.stepNumber == null || item.stepNumber == undefined)
+          showStepError = true;
+      })
+    }
+
+    if(values['accessType']?.includes('Live (SAC/AFO)')){
+      values['liveAccessArray'].map((item) => {
+        if(item.stepNumber == '' || item.stepNumber == null || item.stepNumber == undefined)
+          showStepError = true;
+      })
+    }
+
+    if(values['accessType']?.includes('API')){
+      values['apiArray'].map((item) => {
+        if(item.stepNumber == '' || item.stepNumber == null || item.stepNumber == undefined)
+          showStepError = true;
+      })
+    }
+    
+
+    
+
     values['howToAccessTemplate'] = howToAccessObj
 
     setShowAllTabsError(false);
-    if(currentAction === 'publish'){
-      // if(!values.id && values.id!='' && currentTab!='description'){
-      //   setShowDescriptionTabError(true);
-      // } else{
-        if(validatePublishRequest(values)){
-          proceedToSave(currentTab, values, callbackFn)
-        } else {
-          setShowAllTabsError(true);
-        }
-      // }
-    } else { 
-      // if(!values.id && values.id!='' && currentTab!='description'){
-      //   setShowDescriptionTabError(true);
-      // } else{
-        if(validateDescriptionTab(values)){
-          proceedToSave(currentTab, values, callbackFn)
-        } else {
-          setShowAllTabsError(true);
-        }   
-      // }
-         
+
+    if(showStepError){
+      Notification.show(
+        'Please save entry for step or delete empty step in How to Access Section',
+        'alert',
+      );
+    } else {
+      if(currentAction === 'publish'){
+        // if(!values.id && values.id!='' && currentTab!='description'){
+        //   setShowDescriptionTabError(true);
+        // } else{
+          if(validatePublishRequest(values)){
+            proceedToSave(currentTab, values, callbackFn)
+          } else {
+            setShowAllTabsError(true);
+          }
+        // }
+      } else { 
+        // if(!values.id && values.id!='' && currentTab!='description'){
+        //   setShowDescriptionTabError(true);
+        // } else{
+          if(validateDescriptionTab(values)){
+            proceedToSave(currentTab, values, callbackFn)
+          } else {
+            setShowAllTabsError(true);
+          }   
+        // }
+           
+      }
     }
+
+    
   };
 
   const displayErrorOfAllTabs = (tabTitle, tabErrorsList) => {
