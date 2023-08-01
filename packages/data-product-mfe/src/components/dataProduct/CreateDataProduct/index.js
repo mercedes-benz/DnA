@@ -560,20 +560,19 @@ const CreateDataProduct = ({ user, history }) => {
   }
 
   const onSave = (currentAction, currentTab, values, callbackFn) => {
-
     const howToAccessObj = {
       "accessDetailsCollectionVO": [
         {
           "accessType": "access-via-kafka",
-          "stepCollectionVO": values['kafkaArray']
+          "stepCollectionVO": values['accessType']?.includes('Kafka') ? values['kafkaArray'] : []
         },
         {
           "accessType": "live-access",
-          "stepCollectionVO": values['liveAccessArray']
+          "stepCollectionVO": values['accessType']?.includes('Live (SAC/AFO)') ? values['liveAccessArray'] : []
         },
         {
           "accessType": "api-access",
-          "stepCollectionVO": values['apiArray']
+          "stepCollectionVO": values['accessType']?.includes('API') ? values['apiArray'] : []
         }
       ],
       "useTemplate": values['useTemplate']
