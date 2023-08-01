@@ -92,7 +92,7 @@ const Description = ({
     SelectBox.defaultSetup();
     Tooltip.defaultSetup();
     Tabs.defaultSetup(document.querySelectorAll('.inner-tabs'));
-    if(isCreatePage){
+    if(isCreatePage || accessType === undefined){
       setValue('accessType',['Kafka','Live (SAC/AFO)','API']);
       setValue('personalRelatedDataInDescription', 'No');
       setValue('deletionRequirementInDescription', 'No');
