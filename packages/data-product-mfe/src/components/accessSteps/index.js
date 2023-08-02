@@ -219,10 +219,12 @@ const AccessSteps = (
                                 // setMarkdownParserText(markdownParserText, ...e.target.innerHTML);
                               }}
                               onBlur={(e) => {
-                                let tempText2 = '';
-                                tempText2 += e.target.innerHTML;                        
-                                setValue('stepText',htmlToMarkdownParser(tempText2))
-                                setMarkdownParserText(tempText2);
+                                if(enableEdit){
+                                  let tempText2 = '';
+                                  tempText2 += e.target.innerHTML;                        
+                                  setValue('stepText',htmlToMarkdownParser(tempText2))
+                                  setMarkdownParserText(tempText2);
+                                }
                               }}
                               dangerouslySetInnerHTML={{
                                 __html: markdownParserText,
