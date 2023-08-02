@@ -1,0 +1,83 @@
+version: "3.5"
+services:
+  app-frontend:
+    image: dna/app-frontend
+    container_name: app-frontend
+    build:
+      context: ../packages/frontend/
+      dockerfile: ../../deployment/dockerfiles/app/result-frontend.Dockerfile
+    volumes:
+      - ../packages/frontend/nginx.conf:/opt/bitnami/nginx/conf/nginx.conf
+    ports:
+      - 8080:3000
+    depends_on:
+      - app-backend
+      - dashboard-backend  
+      - naas-backend
+    deploy:
+      restart_policy:
+        condition: on-failure
+        max_attempts: 3
+
+  app-db:
+    image: bitnami/postgresql:11.14.0-debian-10-r28
+    container_name: app-db
+    restart: on-failure
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=db
+    volumes:
+      - ./kubernetes/helm/charts/bitnami-postgresql/files/docker-entrypoint-initdb.d/01-update-script.sql:/docker-entrypoint-initdb.d/01-updatescript.sql
+    ports:
+      - 5432:5432
+
+  app-backend:
+    image: dna/app-backend
+    container_name: app-backend
+    build:
+      context: ../packages/backend/
+      dockerfile: ../../deployment/dockerfiles/app/result-backend.Dockerfile
+    environment:
+      - API_DB_URL=jdbc:postgresql://app-db:5432/db
+      - API_DB_USER=postgres
+      - API_DB_PASS=postgres
+      - CORS_ORIGIN_URL=http://*
+      - OIDC_DISABLED=true
+      - JWT_SECRET_KEY=
+      - INACTIVE_SOLUTION_DURATION_YRS=2
+      - JUPYTER_NOTEBOOK=false
+      - DATAIKU=false
+      - ITSMM=false
+      - ATTACHMENT_MALWARE_SCAN=false
+      - AVSCAN_URI=http://malware-backend:8181
+      - AVSCAN_UPLOAD_API=/api/v1/scan/upload
+      - AVSCAN_APP_ID=
+      - AVSCAN_API_KEY=
+      - DRD_INTERNAL_USER_ENABLED=false
+      - S3_EP_URL=http://minio:9000
+      - S3_BUCKET_NAME=dna
+      - S3_ACCESS_KEY=minioadmin
+      - S3_SECRET_KEY=minioadmin
+      - S3_MAX_PARALLEL_UPLOADTHREADS=20
+      - S3_MIN_FILESIZE=1024
+      - S3_MAX_FILESIZE=5242880
+      - NAAS_BROKER=broker:29092
+      - LOGGING_ENVIRONMENT=DEV
+      - LOGGING_PATH=/tmp/app/logs/
+      - JWT_TOKEN_EXPIRY_TIME_IN_MIN=90
+      - DASHBOARD_URI=http://dashboard-backend:7173
+      - FLYWAY_BASELINEVERSION=0
+      - FLYWAY_BASELINE_ON_MIGRATE=true
+      - FLYWAY_ENABLED=true
+      - FLYWAY_SCHEMA=public
+    depends_on:
+      - app-db
+      - vault
+      - broker
+    ports:
+      - 7171:7171
+    deploy:
+      restart_policy:
+        condition: on-failure
+        max_attempts: 3
