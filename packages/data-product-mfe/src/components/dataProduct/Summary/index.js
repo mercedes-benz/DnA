@@ -840,7 +840,6 @@ const Summary = ({ history, user }) => {
           ) : null}
         </div>
       </div>
-      {!isCreator ? (
         <div className={Styles.stickyPanel}>
           <div className={Styles.productName}>
             {'Access "'+ selectedDataProduct?.productName +'"'} 
@@ -874,7 +873,7 @@ const Summary = ({ history, user }) => {
              : ''}  
             </>
           ) : null} 
-          {selectedDataProduct?.minimumInformationCheck ? (
+          { !isCreator && selectedDataProduct?.minimumInformationCheck ? (
             <button
               // className={classNames(!selectedDataProduct.isPublish ? 'btn indraft' : 'btn btn-tertiary')}
               disabled={!selectedDataProduct.isPublish}
@@ -886,7 +885,6 @@ const Summary = ({ history, user }) => {
           ) : null}  
           </div>
         </div>
-      ) : null}
 
       {!isCreator && !selectedDataProduct.isPublish && selectedDataProduct?.minimumInformationCheck ? (
         <div className="accessRequestInfo">
