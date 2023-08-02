@@ -184,8 +184,8 @@ const Summary = ({ history, user }) => {
   }, [dispatch, selectedDataProduct?.datatransfersAssociated]);
 
   useEffect(() => {
-    // if (myDataTransfer?.totalCount > 0) {
-    if(selectedDataProduct?.accessType?.length > 0){
+    if (myDataTransfer?.totalCount > 0) {
+    // if(selectedDataProduct?.accessType?.length > 0){
       setShowHowToAccessModal(true);
     }
     //eslint-disable-next-line
@@ -852,7 +852,7 @@ const Summary = ({ history, user }) => {
             {'Access "'+ selectedDataProduct?.productName +'"'} 
           </div>
           <div className={Styles.actionButtonsSection}>
-          {showHowToAccessModal ? (
+          {showHowToAccessModal || !selectedDataProduct?.minimumInformationCheck ? (
             <>
             {liveAccessFields?.length > 0 ? 
               <button
