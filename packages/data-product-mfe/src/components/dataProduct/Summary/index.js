@@ -885,7 +885,13 @@ const Summary = ({ history, user }) => {
               // className={classNames(!selectedDataProduct.isPublish ? 'btn indraft' : 'btn btn-tertiary')}
               disabled={!selectedDataProduct.isPublish}
               type="button"
-              onClick={() => setShowRequestAccessModal(true)}
+              onClick={() => {
+                if(selectedDataProduct?.openSegments?.length == 1 && !selectedDataProduct?.openSegments?.includes('ContactInformation')) {
+                  Notification.show(`Provider has not filled complete details`, 'alert')
+                } else {
+                  setShowRequestAccessModal(true)
+                }
+                }}
             >
               Request access
             </button>
