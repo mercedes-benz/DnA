@@ -128,7 +128,7 @@ public class WorkspaceJobStatusUpdateController  {
 			List<String> teamMembersEmails = new ArrayList<>();
 			UserInfoVO projectOwner = existingVO.getProjectDetails().getProjectOwner();
 			teamMembers.add(projectOwner.getId());
-			teamMembers.add(projectOwner.getEmail());
+			teamMembersEmails.add(projectOwner.getEmail());
 			List<UserInfoVO> projectCollaborators = existingVO.getProjectDetails().getProjectCollaborators();
 			if (Objects.nonNull(projectCollaborators)) {
 				if (projectCollaborators.size() > 0) {
