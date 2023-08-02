@@ -184,12 +184,12 @@ const Summary = ({ history, user }) => {
   }, [dispatch, selectedDataProduct?.datatransfersAssociated]);
 
   useEffect(() => {
-    if (myDataTransfer?.totalCount > 0) {
-    // if(selectedDataProduct?.accessType?.length > 0){
-      setShowHowToAccessModal(true);
+    // if (myDataTransfer?.totalCount > 0) {
+    if(showMyDataTransfers?.length > 0){
+      setShowHowToAccessModal(showMyDataTransfers);
     }
     //eslint-disable-next-line
-  }, []);
+  }, [showMyDataTransfers]);
 
   const setTab = (e) => {
     // e.preventDefault();
@@ -880,7 +880,7 @@ const Summary = ({ history, user }) => {
              : ''}  
             </>
           ) : null} 
-          { !isCreator && selectedDataProduct?.minimumInformationCheck ? (
+          { !isCreator && selectedDataProduct?.minimumInformationCheck && !showHowToAccessModal? (
             <button
               // className={classNames(!selectedDataProduct.isPublish ? 'btn indraft' : 'btn btn-tertiary')}
               disabled={!selectedDataProduct.isPublish}
