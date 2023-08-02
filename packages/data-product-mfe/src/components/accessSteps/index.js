@@ -49,7 +49,7 @@ const AccessSteps = (
   });
 
   useEffect(() => {
-    SelectBox.defaultSetup();
+    SelectBox.defaultSetup(true);
     console.log(value,'Showing value coming from parent');
     //eslint-disable-next-line
   }, [enableEdit]);
@@ -211,7 +211,10 @@ const AccessSteps = (
                             {showDesc ? 
                             <p contentEditable={enableEdit ? "true" : "false"} {...register('stepText')}
                               className={Styles.stepDescription}
-                              onInput={(e) => {
+                              onKeyPress={(e) => {
+                                if(e.target.innerText.length > 500){
+                                  e.preventDefault()
+                                }
                                 setValue('stepText',htmlToMarkdownParser(e.target.innerHTML))
                                 setMarkdownParserText(markdownParserText, ...e.target.innerHTML);
                               }}

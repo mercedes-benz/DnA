@@ -81,7 +81,6 @@ const Description = ({
 
   const [stepsList, setStepsList] = useState([]);
   const [showPreviewModal, setShowPreviewModal] = useState(false);
-  const [accessTypeCount, setAccessTypeCount] = useState(0);
 
   const { howToAccessText, tags, productOwner, 
     // useTemplate, 
@@ -93,7 +92,7 @@ const Description = ({
     SelectBox.defaultSetup();
     Tooltip.defaultSetup();
     Tabs.defaultSetup(document.querySelectorAll('.inner-tabs'));
-    if(isCreatePage){
+    if(isCreatePage || accessType === undefined){
       setValue('accessType',['Kafka','Live (SAC/AFO)','API']);
       setValue('personalRelatedDataInDescription', 'No');
       setValue('deletionRequirementInDescription', 'No');
@@ -181,34 +180,7 @@ const Description = ({
 
 
 
-    /****************************************************************** 
-     ********** Start of selecting default tab on selection ***********
-     ******************************************************************/
-    if(accessType?.length > 0 && accessTypeCount === 0){
-      setAccessTypeCount(1);
-      let tabDetails = '';
-      if(accessType?.length > 0 && accessType[0] == 'Kafka'){
-        tabDetails = document.getElementById('access-via-kafka');
-        tabDetails?.click();
-      }
-      else if(accessType?.length > 0 && accessType[0] == 'Live (SAC/AFO)'){
-        tabDetails = document.getElementById('live-access');
-        tabDetails?.click();
-      }
-      else if(accessType?.length > 0 && accessType[0] == 'API')  {
-        tabDetails = document.getElementById('api-access');
-        tabDetails?.click();
-      }
-    }
-    /****************************************************************** 
-     ********** End of selecting default tab on selection ***********
-     ******************************************************************/
-
-
-
-
-
-
+    
     /****************************************************************** 
      ********** Start of setting default value on selection ***********
      ******************************************************************/
@@ -221,7 +193,8 @@ const Description = ({
     }
     if(accessType?.length > 0 && !accessType.includes('API'))  {
       setValue('apiArray',[]);
-    }
+    } 
+    
     if(accessType?.length == 1 && accessType.includes('Live (SAC/AFO)')){
       setValue('confidentialityInDescription','');
     }
@@ -234,6 +207,37 @@ const Description = ({
     /****************************************************************** 
      ********** End of setting default value on selection ***********
      ******************************************************************/
+
+
+
+
+
+
+    /****************************************************************** 
+     ********** Start of selecting default tab on selection ***********
+     ******************************************************************/
+    if(accessType?.length > 0){
+      let tabDetails = '';
+      if(accessType?.length > 0 && accessType[0] === 'Kafka'){
+        setCurrentInnerTab('access-via-kafka');
+        tabDetails = document.getElementById('access-via-kafka');
+        tabDetails?.click();
+      }
+      else if(accessType?.length > 0 && accessType[0] === 'Live (SAC/AFO)'){
+        setCurrentInnerTab('live-access');
+        tabDetails = document.getElementById('live-access');
+        tabDetails?.click();
+      }
+      else if(accessType?.length > 0 && accessType[0] === 'API')  {
+        setCurrentInnerTab('api-access');
+        tabDetails = document.getElementById('api-access');
+        tabDetails?.click();
+      }
+    }
+    /****************************************************************** 
+     ********** End of selecting default tab on selection ***********
+     ******************************************************************/
+
 
 
      
@@ -771,8 +775,9 @@ const Description = ({
                 </label>
                 <div className={`custom-select`}>
                   <select id="accessTypeField" multiple={true} name="accessType" {...register('accessType',{
-                    onChange:(e)=>{
-                      
+                  
+                  
+                    onChange :(e)=>{
                       const options = e.target.selectedOptions;
                       const values = Array.from(options).map(({ value }) => value);
 
@@ -783,19 +788,12 @@ const Description = ({
                         setValue('kafkaArray', []);
                         setValue('liveAccessArray', []);
                         setValue('apiArray', []);
-                      }
-                      // if(!e.target.value?.includes('Kafka')){
-                      //   setValue('kafkaArray', []);
-                      // }
-                      // if(!e.target.value?.includes('Live (SAC/AFO)')){
-                      //   setValue('liveAccessArray', []);
-                      // }
-                      // if(!e.target.value?.includes('API')){
-                      //   setValue('apiArray', []);
-                      // }
+                      }                      
                       onChangeAccessType(values);
                     }
-                  })}>
+                  
+                  })}
+                  >
                     {/* <option value="">Choose</option> */}
                     <option id='Kafka' key={'Kafka'} value={'Kafka'}>Kafka</option>
                     <option id='Live (SAC/AFO)' key={'Live (SAC/AFO)'} value={'Live (SAC/AFO)'}>Live (SAC/AFO)</option>
@@ -1150,6 +1148,7 @@ const Description = ({
                 </nav>
               </div>
               <div className="tabs-content-wrapper">
+              {accessType?.includes('Kafka') ? 
                 <div id="steps-tab-content-1" className="inner-tab-content tab-content">
                   
                   {currentInnerTab === 'access-via-kafka' && kafkaFields?.map((stepItem, index)=>{
@@ -1192,6 +1191,9 @@ const Description = ({
 
 
                 </div>
+                : ''
+              }  
+              {accessType?.includes('Live (SAC/AFO)') ? 
                 <div id="steps-tab-content-2" className="inner-tab-content tab-content">
                   
                   {currentInnerTab === 'live-access' && liveAccessFields?.map((stepItem, index)=>{
@@ -1232,6 +1234,9 @@ const Description = ({
                     </button>
                   </div>
                 </div>
+                : ''
+              }    
+              {accessType?.includes('API') ? 
                 <div id="steps-tab-content-3" className="inner-tab-content tab-content">
                   
                   {currentInnerTab === 'api-access' && apiFields?.map((stepItem, index)=>{
@@ -1272,6 +1277,8 @@ const Description = ({
                     </button>
                   </div>
                 </div>
+                : ''
+              } 
               </div>
             </div>
 
