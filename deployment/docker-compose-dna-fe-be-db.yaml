@@ -71,8 +71,8 @@ services:
       - FLYWAY_SCHEMA=public
     depends_on:
       - app-db
-      - vault
-      - broker
+    #   - vault
+    #   - broker
     ports:
       - 7171:7171
     deploy:
@@ -80,35 +80,37 @@ services:
         condition: on-failure
         max_attempts: 3
 
-  zookeeper:
-    image: confluentinc/cp-zookeeper:7.0.1
-    container_name: zookeeper
-    environment:
-      ZOOKEEPER_CLIENT_PORT: 2181
-      ZOOKEEPER_TICK_TIME: 2000
+  # zookeeper:
+  #   image: confluentinc/cp-zookeeper:7.0.1
 
-  broker:
-    image: confluentinc/cp-kafka:7.0.1
-    container_name: broker
-    ports:
-      - 29092:29092
-    depends_on:
-      - zookeeper
-    environment:
-      KAFKA_BROKER_ID: 1
-      KAFKA_ZOOKEEPER_CONNECT: 'zookeeper:2181'
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_INTERNAL:PLAINTEXT
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092,PLAINTEXT_INTERNAL://broker:29092
-      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
-      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+  #   container_name: zookeeper
+  #   environment:
+  #     ZOOKEEPER_CLIENT_PORT: 2181
+  #     ZOOKEEPER_TICK_TIME: 2000
 
-  vault:
-    image: vault
-    container_name: vault
-    environment:
-      - VAULT_DEV_ROOT_TOKEN_ID=myroot    
-    cap_add:
-      - IPC_LOCK
-    ports:
-      - 8200:8200
+  # broker:
+  #   image: confluentinc/cp-kafka:7.0.1
+           
+  #   container_name: broker
+  #   ports:
+  #     - 29092:29092
+  #   depends_on:
+  #     - zookeeper
+  #   environment:
+  #     KAFKA_BROKER_ID: 1
+  #     KAFKA_ZOOKEEPER_CONNECT: 'zookeeper:2181'
+  #     KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_INTERNAL:PLAINTEXT
+  #     KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092,PLAINTEXT_INTERNAL://broker:29092
+  #     KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+  #     KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+  #     KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+
+  # vault:
+  #   image: vault
+  #   container_name: vault
+  #   environment:
+  #     - VAULT_DEV_ROOT_TOKEN_ID=myroot    
+  #   cap_add:
+  #     - IPC_LOCK
+  #   ports:
+  #     - 8200:8200
