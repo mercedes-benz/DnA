@@ -215,8 +215,8 @@ const AccessSteps = (
                                 if(e.target.innerText.length > 500){
                                   e.preventDefault()
                                 }
-                                setValue('stepText',htmlToMarkdownParser(e.target.innerHTML))
-                                setMarkdownParserText(markdownParserText, ...e.target.innerHTML);
+                                // setValue('stepText',htmlToMarkdownParser(e.target.innerHTML))
+                                // setMarkdownParserText(markdownParserText, ...e.target.innerHTML);
                               }}
                               onBlur={(e) => {
                                 let tempText2 = '';
