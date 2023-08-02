@@ -12,8 +12,6 @@ services:
       - 8080:3000
     depends_on:
       - app-backend
-      - dashboard-backend  
-      - naas-backend
     deploy:
       restart_policy:
         condition: on-failure
