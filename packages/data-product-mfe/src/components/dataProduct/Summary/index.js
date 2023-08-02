@@ -524,6 +524,13 @@ const Summary = ({ history, user }) => {
                         <br />
                         {selectedDataProduct?.accessType?.length > 0 ? selectedDataProduct?.accessType?.join(', ') : '-'}
                       </div>
+                      <div>
+                        <label className="input-label summary">Classification</label>
+                        <br />
+                        {selectedDataProduct?.confidentiality}
+                      </div>
+                      <div></div>
+                      <div></div>
                     </div>
                   </div>
                 </div>
