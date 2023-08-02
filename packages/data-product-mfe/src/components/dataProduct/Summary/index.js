@@ -184,12 +184,11 @@ const Summary = ({ history, user }) => {
   }, [dispatch, selectedDataProduct?.datatransfersAssociated]);
 
   useEffect(() => {
-    // if (myDataTransfer?.totalCount > 0) {
-    if(selectedDataProduct?.accessType?.length > 0){
+    if (myDataTransfer?.totalCount > 0) {
       setShowHowToAccessModal(true);
     }
     //eslint-disable-next-line
-  }, [selectedDataProduct?.accessType]);
+  }, [myDataTransfer?.totalCount]);
 
   const setTab = (e) => {
     // e.preventDefault();
@@ -524,6 +523,13 @@ const Summary = ({ history, user }) => {
                         <br />
                         {selectedDataProduct?.accessType?.length > 0 ? selectedDataProduct?.accessType?.join(', ') : '-'}
                       </div>
+                      <div>
+                        <label className="input-label summary">Classification</label>
+                        <br />
+                        {selectedDataProduct?.confidentiality}
+                      </div>
+                      <div></div>
+                      <div></div>
                     </div>
                   </div>
                 </div>
@@ -845,7 +851,7 @@ const Summary = ({ history, user }) => {
             {'Access "'+ selectedDataProduct?.productName +'"'} 
           </div>
           <div className={Styles.actionButtonsSection}>
-          {showHowToAccessModal ? (
+          {showHowToAccessModal || !selectedDataProduct?.minimumInformationCheck ? (
             <>
             {liveAccessFields?.length > 0 ? 
               <button
@@ -873,12 +879,18 @@ const Summary = ({ history, user }) => {
              : ''}  
             </>
           ) : null} 
-          { !isCreator && selectedDataProduct?.minimumInformationCheck ? (
+          { !isCreator && selectedDataProduct?.minimumInformationCheck && !showHowToAccessModal? (
             <button
               // className={classNames(!selectedDataProduct.isPublish ? 'btn indraft' : 'btn btn-tertiary')}
               disabled={!selectedDataProduct.isPublish}
               type="button"
-              onClick={() => setShowRequestAccessModal(true)}
+              onClick={() => {
+                if(selectedDataProduct?.openSegments?.length == 1 && !selectedDataProduct?.openSegments?.includes('ContactInformation')) {
+                  Notification.show(`Provider has not filled complete details`, 'alert')
+                } else {
+                  setShowRequestAccessModal(true)
+                }
+                }}
             >
               Request access
             </button>
