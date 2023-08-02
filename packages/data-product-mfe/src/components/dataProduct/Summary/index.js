@@ -76,11 +76,11 @@ const Summary = ({ history, user }) => {
   const updatedBy = selectedDataProduct?.modifiedBy ? selectedDataProduct.modifiedBy : selectedDataProduct.createdBy;
   const lastModifiedBy = `${updatedBy?.firstName} ${updatedBy?.lastName}`;
 
-  const showContactInformation = selectedDataProduct?.openSegments?.includes('ContactInformation');
-  const showConfidentiality = selectedDataProduct?.openSegments?.includes('ClassificationAndConfidentiality');
-  const showPersonalData = selectedDataProduct?.openSegments?.includes('IdentifyingPersonalRelatedData');
-  const showTransNationalData = selectedDataProduct?.openSegments?.includes('IdentifiyingTransnationalDataTransfer');
-  const showDeletionRequirements = selectedDataProduct?.openSegments?.includes('SpecifyDeletionRequirements');
+  const showContactInformation = selectedDataProduct?.openSegments?.includes('ContactInformation') && selectedDataProduct?.minimumInformationCheck;
+  const showConfidentiality = selectedDataProduct?.openSegments?.includes('ClassificationAndConfidentiality') && selectedDataProduct?.minimumInformationCheck;
+  const showPersonalData = selectedDataProduct?.openSegments?.includes('IdentifyingPersonalRelatedData') && selectedDataProduct?.minimumInformationCheck;
+  const showTransNationalData = selectedDataProduct?.openSegments?.includes('IdentifiyingTransnationalDataTransfer') && selectedDataProduct?.minimumInformationCheck;
+  const showDeletionRequirements = selectedDataProduct?.openSegments?.includes('SpecifyDeletionRequirements') && selectedDataProduct?.minimumInformationCheck;
 
   const division = serializeDivisionSubDivision(divisionList, {
     division: selectedDataProduct.division,
@@ -780,8 +780,9 @@ const Summary = ({ history, user }) => {
           </div>
 
 
-
-          <hr className={Styles.line} />
+          {selectedDataProduct?.minimumInformationCheck ? 
+            <hr className={Styles.line} />
+          :''}
           {selectedDataProduct?.minimumInformationCheck ? (
           <div className={Styles.dataTransferSection}>
             <h3>{`Data Transfer ${allDataTransfer?.totalCount ? `( ${allDataTransfer?.totalCount} )` : '( 0 )'}`}</h3>
@@ -839,7 +840,6 @@ const Summary = ({ history, user }) => {
           ) : null}
         </div>
       </div>
-      {!isCreator ? (
         <div className={Styles.stickyPanel}>
           <div className={Styles.productName}>
             {'Access "'+ selectedDataProduct?.productName +'"'} 
@@ -873,7 +873,7 @@ const Summary = ({ history, user }) => {
              : ''}  
             </>
           ) : null} 
-          {selectedDataProduct?.minimumInformationCheck ? (
+          { !isCreator && selectedDataProduct?.minimumInformationCheck ? (
             <button
               // className={classNames(!selectedDataProduct.isPublish ? 'btn indraft' : 'btn btn-tertiary')}
               disabled={!selectedDataProduct.isPublish}
@@ -885,7 +885,6 @@ const Summary = ({ history, user }) => {
           ) : null}  
           </div>
         </div>
-      ) : null}
 
       {!isCreator && !selectedDataProduct.isPublish && selectedDataProduct?.minimumInformationCheck ? (
         <div className="accessRequestInfo">
