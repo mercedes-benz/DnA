@@ -13,6 +13,7 @@ import { ApiClient } from '../../../../services/ApiClient';
 import ConfirmModal from 'components/formElements/modal/confirmModal/ConfirmModal';
 import Styles from './AttachmentUploader.scss';
 import { refreshToken } from '../../../../utils/RefreshToken';
+import { Envs } from 'globals/Envs';
 
 const classNames = cn.bind(Styles);
 
@@ -61,7 +62,7 @@ export default class AttachmentUploader extends React.Component<IAttachmentUploa
 
   beforeUpload = (file: RcFile, fileList: RcFile[]) => {
     return new Promise<void>((resolve, reject) => {
-      if (process.env.NODE_ENV === 'production') {
+      if (!Envs.OIDC_DISABLED) {
         const jwt = ApiClient.readJwt();
         refreshToken(jwt)
           .then((newJwt: any) => {

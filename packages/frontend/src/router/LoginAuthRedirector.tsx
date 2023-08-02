@@ -126,7 +126,7 @@ export default class LoginAuthRedirector extends React.Component<{}, IAuthState>
    * gets stored to the sessionStorage.
    */
   protected redirectToLogin = () => {
-    const newURL = Pkce.getRedirectUrl() + '/login/redirect';
+    const newURL = Pkce.getLoginRedirectUrl();
     window.location.assign(newURL);
   };
 }

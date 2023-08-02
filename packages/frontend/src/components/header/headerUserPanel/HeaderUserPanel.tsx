@@ -6,8 +6,6 @@ import { IRole, IUserInfo } from 'globals/types';
 import { history } from './../../../router/History';
 import { Pkce } from './../../../services/Pkce';
 import Styles from './HeaderUserPanel.scss';
-import { createQueryParams } from './../../../services/utils';
-import { Envs } from 'globals/Envs';
 
 const classNames = cn.bind(Styles);
 
@@ -62,21 +60,10 @@ export default function HeaderUserPanel(props: IHeaderUserPanelProps) {
   };
 
   const onLogout = () => {
-    const access_token = Pkce.readAccessToken();
     Pkce.clearUserSession();
     const redirectUrl = Pkce.getLogoutUrl();
-    console.log('Error in logout the user.' + redirectUrl);
-    if (Envs.OIDC_PROVIDER === 'OKTA') {
-      const log_out_constant = {
-        id_token_hint: access_token?.id_token,
-        post_logout_redirect_uri: Envs.REDIRECT_URLS,
-      };
-      window.location.href = redirectUrl + '?' + createQueryParams(log_out_constant);
-      console.log(`Redirecting to CD logout...` + redirectUrl);
-    } else {
-      console.log(`Redirecting to CD logout...` + redirectUrl);
-      window.location.href = Pkce.getRedirectUrl() + '/logout';
-    }
+    console.log(`Redirecting to CD logout...` + redirectUrl);
+    window.location.href = Pkce.getRedirectUrl() + '/logout';
   };
 
   const navigateToMyBookmarks = (event: React.MouseEvent<HTMLElement>) => {

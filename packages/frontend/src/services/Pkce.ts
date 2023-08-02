@@ -201,6 +201,15 @@ export class Pkce {
     return '';
   };
 
+  public static getLoginRedirectUrl = () => {
+    if (Envs.LOGINREDIRECTURL) {
+      return Envs.LOGINREDIRECTURL;
+    }
+
+    console.warn('No login redirect url for' + window.location.hostname);
+    return '';
+  };
+
   protected static getLoginAuthUrl = () => {
     if (Envs.OAUTH2_AUTH_URL) {
       return Envs.OAUTH2_AUTH_URL;

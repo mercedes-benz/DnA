@@ -55,7 +55,7 @@ export class ProtectedRoute extends React.Component<IProtectedRouteProps, IProte
   public componentDidMount() {
     if (!sessionStorage.getItem(SESSION_STORAGE_KEYS.JWT)) {
       sessionStorage.setItem(SESSION_STORAGE_KEYS.APPREDIRECT_URL, this.props.location.pathname);
-      const newURL = Pkce.getRedirectUrl() + '/login/redirect';
+      const newURL = Pkce.getLoginRedirectUrl();
       window.location.assign(newURL);
     }
     this.storeUserDetails();
