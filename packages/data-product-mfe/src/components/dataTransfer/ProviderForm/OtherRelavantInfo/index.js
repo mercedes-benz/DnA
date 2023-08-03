@@ -238,7 +238,7 @@ currentTab }) => {
       
       <div className="btnContainer">
         <div className="btn-set">
-        {(accessType?.length == 1 && accessType?.includes('Live (SAC/AFO)')) || confidentialityInDescription == 'Internal' ? 
+        {accessType?.length === 0 || ((accessType?.length == 1 && accessType?.includes('Live (SAC/AFO)')) || confidentialityInDescription == 'Internal') ? 
           <button
             className={'btn btn-primary'}
             type="button"
