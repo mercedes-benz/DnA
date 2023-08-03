@@ -623,7 +623,49 @@ paths:
           description: "Method not allowed"
         500:
           description: "Internal error"
-    
+
+
+  /forecasts/{id}/runs/{correlationid}/results/file:
+    get:
+      tags:
+        - "forecast-runs"
+      summary: "Get file for specific run."
+      description: "Get file for specific run."
+      operationId: "getRunResultsFile"
+      parameters:
+        - in: path
+          name: id
+          description: "forecast project ID "
+          required: true
+          type: string
+        - in: path
+          name: correlationid
+          description: "DNA correlation Id for the run"
+          required: true
+          type: string
+        - name: path
+          in: query
+          description: "file path which the user requests"
+          required: false
+          type: string
+      responses:
+        201:
+          description: "Returns message of success or failure"
+          schema:
+            $ref: "#/definitions/ByteArrayResource"
+        204:
+          description: "Fetch complete, no content found."
+        400:
+          description: "Bad request."
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
+
     delete:
       tags:
         - "forecast-runs"
