@@ -526,7 +526,9 @@ const Summary = ({ history, user }) => {
                       <div>
                         <label className="input-label summary">Classification</label>
                         <br />
-                        {selectedDataProduct?.confidentiality}
+                        {/* {!selectedDataProduct?.accessType || selectedDataProduct?.accessType?.length == 0 || 
+                        (selectedDataProduct?.accessType?.length == 1 && selectedDataProduct?.accessType == 'Live (SAC/AFO)') ? '-' :selectedDataProduct?.confidentiality} */}
+                        {selectedDataProduct?.confidentialityInDescription || '-'}
                       </div>
                       <div></div>
                       <div></div>
