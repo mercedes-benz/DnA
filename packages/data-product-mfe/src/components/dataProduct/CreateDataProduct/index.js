@@ -111,6 +111,8 @@ const CreateDataProduct = ({ user, history }) => {
     userType: user.userType || '',
   };
 
+  const showTab = currentAccessType ? currentAccessType?.length === 0 || ((currentAccessType?.length == 1 && currentAccessType?.includes('Live (SAC/AFO)')) || currentConfidentialityInDescription == 'Internal') : true;
+
   const getDataProductById = () => {
     const id = createCopyId || dataProductId || data?.selectedDataProduct?.id;
     ProgressIndicator.show();
@@ -274,8 +276,7 @@ const CreateDataProduct = ({ user, history }) => {
     const tabIndex = Object.keys(dataForms).indexOf(currentTab) + 1;
     setSavedTabs([...new Set([...savedTabs, currentTab])]);
     if (currentTab !== 'deletion-requirements' && 
-    !((currentAccessType?.length == 1 && currentAccessType?.includes('Live (SAC/AFO)')) || 
-    currentConfidentialityInDescription == 'Internal')) 
+    !showTab) 
     {
       setCurrentTab(Object.keys(dataForms)[tabIndex]);
       elementRef.current[tabIndex].click();
@@ -294,8 +295,7 @@ const CreateDataProduct = ({ user, history }) => {
       saveTabError:[]
     }
 
-    if ((currentAccessType?.length == 1 && currentAccessType?.includes('Live (SAC/AFO)')) || 
-    currentConfidentialityInDescription == 'Internal') {
+    if (showTab) {
       if(!savedTabs?.includes('description')){
         errorObject.saveTabError.push('Description');
         formValid = false;
@@ -659,6 +659,8 @@ const CreateDataProduct = ({ user, history }) => {
     )
   };
 
+  
+
   return (
     <>
       <button
@@ -699,7 +701,7 @@ const CreateDataProduct = ({ user, history }) => {
                   
                   <li className={classNames(savedTabs?.includes('contact-info') && 
                   errorsInPublish?.contactInformationTabError?.length < 1 ? 'tab valid' :'tab',
-                  (currentAccessType?.length == 1 && currentAccessType?.includes('Live (SAC/AFO)')) || currentConfidentialityInDescription == 'Internal' ? 'disabled' : ''
+                  showTab ? 'disabled' : ''
                   )}>
                     <a
                       href="#tab-content-2"
@@ -708,7 +710,7 @@ const CreateDataProduct = ({ user, history }) => {
                         if (elementRef.current) elementRef.current[1] = ref;
                       }}
                       onClick={setTab}
-                      className={(currentAccessType?.length == 1 && currentAccessType?.includes('Live (SAC/AFO)')) || currentConfidentialityInDescription == 'Internal' ? 'hidden' : ''}
+                      className={showTab ? 'hidden' : ''}
                     >
                       Contact Information
                     </a>
@@ -716,7 +718,7 @@ const CreateDataProduct = ({ user, history }) => {
                   {/* <li className={savedTabs?.includes('classification-confidentiality') ? 'tab valid' : 'tab disabled'}> */}
                   <li className={ classNames(savedTabs?.includes('classification-confidentiality') && 
                   errorsInPublish?.dataDescriptionClassificationTabError?.length < 1 ? 'tab valid' :'tab',
-                  (currentAccessType?.length == 1 && currentAccessType?.includes('Live (SAC/AFO)')) || currentConfidentialityInDescription == 'Internal' ? 'disabled' : ''
+                  showTab ? 'disabled' : ''
                   )}>
                     <a
                       href="#tab-content-3"
@@ -725,7 +727,7 @@ const CreateDataProduct = ({ user, history }) => {
                         if (elementRef.current) elementRef.current[2] = ref;
                       }}
                       onClick={setTab}
-                      className={(currentAccessType?.length == 1 && currentAccessType?.includes('Live (SAC/AFO)')) || currentConfidentialityInDescription == 'Internal' ? 'hidden' : ''}
+                      className={showTab ? 'hidden' : ''}
                     >
                       Data Description & Classification
                     </a>
@@ -733,7 +735,7 @@ const CreateDataProduct = ({ user, history }) => {
                   {/* <li className={savedTabs?.includes('personal-data') ? 'tab valid' : 'tab disabled'}> */}
                   <li className={classNames(savedTabs?.includes('personal-data') && 
                   errorsInPublish?.personalRelatedDataTabError?.length < 1 ? 'tab valid' :'tab',
-                  (currentAccessType?.length == 1 && currentAccessType?.includes('Live (SAC/AFO)')) || currentConfidentialityInDescription == 'Internal' ? 'disabled' : ''
+                  showTab ? 'disabled' : ''
                   )}>
                     <a
                       href="#tab-content-4"
@@ -742,7 +744,7 @@ const CreateDataProduct = ({ user, history }) => {
                         if (elementRef.current) elementRef.current[3] = ref;
                       }}
                       onClick={setTab}
-                      className={(currentAccessType?.length == 1 && currentAccessType?.includes('Live (SAC/AFO)')) || currentConfidentialityInDescription == 'Internal' ? 'hidden' : ''}
+                      className={showTab ? 'hidden' : ''}
                     >
                       Personal Related Data
                     </a>
@@ -750,7 +752,7 @@ const CreateDataProduct = ({ user, history }) => {
                   {/* <li className={savedTabs?.includes('trans-national-data-transfer') ? 'tab valid' : 'tab disabled'}> */}
                   <li className={classNames(savedTabs?.includes('trans-national-data-transfer') && 
                   errorsInPublish?.transnationalDataTabError?.length < 1 ? 'tab valid' :'tab',
-                  (currentAccessType?.length == 1 && currentAccessType?.includes('Live (SAC/AFO)')) || currentConfidentialityInDescription == 'Internal' ? 'disabled' : ''
+                  showTab ? 'disabled' : ''
                   )}>
                     <a
                       href="#tab-content-5"
@@ -759,7 +761,7 @@ const CreateDataProduct = ({ user, history }) => {
                         if (elementRef.current) elementRef.current[4] = ref;
                       }}
                       onClick={setTab}
-                      className={(currentAccessType?.length == 1 && currentAccessType?.includes('Live (SAC/AFO)')) || currentConfidentialityInDescription == 'Internal' ? 'hidden' : ''}
+                      className={showTab ? 'hidden' : ''}
                     >
                       Transnational Data
                     </a>
@@ -771,7 +773,7 @@ const CreateDataProduct = ({ user, history }) => {
                     ?  'tab valid'
                     : errorsInPublish?.deletionRequirementsTabError?.includes('Terms and conditions acknowledgement') && !isTouChecked
                         ?'tab': 'tab valid',
-                  (currentAccessType?.length == 1 && currentAccessType?.includes('Live (SAC/AFO)')) || currentConfidentialityInDescription == 'Internal' ? 'disabled' : ''
+                  showTab ? 'disabled' : ''
                   )
                     }>
                     <a
@@ -781,7 +783,7 @@ const CreateDataProduct = ({ user, history }) => {
                         if (elementRef.current) elementRef.current[5] = ref;
                       }}
                       onClick={setTab}
-                      className={(currentAccessType?.length == 1 && currentAccessType?.includes('Live (SAC/AFO)')) || currentConfidentialityInDescription == 'Internal' ? 'hidden' : ''}
+                      className={showTab ? 'hidden' : ''}
                     >
                       Other Data
                     </a>
