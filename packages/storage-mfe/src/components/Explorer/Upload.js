@@ -9,6 +9,7 @@ import Notification from '../../common/modules/uilab/js/src/notification';
 import { getFilePath, setObjectKey } from './Utils';
 import { SESSION_STORAGE_KEYS } from '../Utility/constants';
 import { refreshToken } from 'dna-container/RefreshToken';
+import { Envs } from '../Utility/envs';
 
 const FileUpload = ({ uploadRef, bucketName, folderChain, enableFolderUpload = false }) => {
   const dispatch = useDispatch();
@@ -71,7 +72,7 @@ const FileUpload = ({ uploadRef, bucketName, folderChain, enableFolderUpload = f
       ProgressIndicator.show(Math.round(step.percent));
     },
     beforeUpload: async (file, fileList) => {
-      if (process.env.NODE_ENV === 'production') {
+      if (!Envs.OIDC_DISABLED) {
         const jwt = sessionStorage.getItem(SESSION_STORAGE_KEYS.JWT);
         await refreshToken(jwt);
       }
