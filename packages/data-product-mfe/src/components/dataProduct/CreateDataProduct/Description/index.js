@@ -93,10 +93,10 @@ const Description = ({
     Tooltip.defaultSetup();
     Tabs.defaultSetup(document.querySelectorAll('.inner-tabs'));
     if(isCreatePage || accessType === undefined){
-      setValue('accessType',['Kafka','Live (SAC/AFO)','API']);
-      setValue('personalRelatedDataInDescription', 'No');
-      setValue('deletionRequirementInDescription', 'No');
-      setValue('restrictDataAccess', 'No');
+      // setValue('accessType',['Kafka','Live (SAC/AFO)','API']);
+      // setValue('personalRelatedDataInDescription', 'No');
+      // setValue('deletionRequirementInDescription', 'No');
+      // setValue('restrictDataAccess', 'No');
     }
     
     reset(watch());
@@ -762,7 +762,7 @@ const Description = ({
           <h3 id="tagHeading">Access &nbsp;
           <i
             className={classNames('icon mbc-icon info iconsmd', Styles.infoIcon)}
-            tooltip-data="Access"
+            tooltip-data="Please select any Access option to publish data product"
           />
           </h3>
           <div className={Styles.formWrapper}>
