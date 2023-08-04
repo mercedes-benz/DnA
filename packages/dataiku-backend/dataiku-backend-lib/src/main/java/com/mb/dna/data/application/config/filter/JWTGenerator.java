@@ -17,7 +17,7 @@ public class JWTGenerator {
 	public static Claims decodeJWT(String jwt,String secretKey) {
 		try {
 //			log.info("Parsing jwt {} with secret {} ",jwt,secretKey);
-			Claims claims = Jwts.parser().setSigningKey(DatatypeConverter.parseBase64Binary(secretKey))
+			Claims claims = Jwts.parser().setSigningKey(secretKey.getBytes())
 					.parseClaimsJws(jwt).getBody();
 			return claims;
 		} catch (Exception e) {
