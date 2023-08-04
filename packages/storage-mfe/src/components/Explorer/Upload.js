@@ -8,6 +8,8 @@ import { useDispatch, useSelector } from 'react-redux';
 import Notification from '../../common/modules/uilab/js/src/notification';
 import { getFilePath, setObjectKey } from './Utils';
 import { SESSION_STORAGE_KEYS } from '../Utility/constants';
+import { refreshToken } from 'dna-container/RefreshToken';
+import { Envs } from '../Utility/envs';
 
 const FileUpload = ({ uploadRef, bucketName, folderChain, enableFolderUpload = false }) => {
   const dispatch = useDispatch();
@@ -69,7 +71,11 @@ const FileUpload = ({ uploadRef, bucketName, folderChain, enableFolderUpload = f
     onProgress(step) {
       ProgressIndicator.show(Math.round(step.percent));
     },
-    beforeUpload: (file, fileList) => {
+    beforeUpload: async (file, fileList) => {
+      if (!Envs.OIDC_DISABLED) {
+        const jwt = sessionStorage.getItem(SESSION_STORAGE_KEYS.JWT);
+        await refreshToken(jwt);
+      }
       let isValid = true;
       setFolderFiles(fileList);
       // Folder upload
@@ -137,9 +143,9 @@ const FileUpload = ({ uploadRef, bucketName, folderChain, enableFolderUpload = f
     onError,
     ...(enableFolderUpload
       ? {
-          directory: true,
-          webkitdirectory: true,
-        }
+        directory: true,
+        webkitdirectory: true,
+      }
       : {}),
   };
   return (
