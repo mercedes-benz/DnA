@@ -40,6 +40,13 @@ spec:
           configMap:
             name: {{ include "chronos-mfe.fullname" . }}  
         {{- end }}           
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: ScheduleAnyway
+          labelSelector:
+            matchLabels:
+              {{- include "chronos-mfe.selectorLabels" . | nindent 10 }}          
       containers:
         - name: {{ .Chart.Name }}
           securityContext:

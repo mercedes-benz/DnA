@@ -29,6 +29,13 @@ spec:
       serviceAccountName: {{ include "code-server-backend.serviceAccountName" . }}
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: ScheduleAnyway
+          labelSelector:
+            matchLabels:
+              {{- include "code-server-backend.selectorLabels" . | nindent 10 }}          
       containers:
         - name: {{ .Chart.Name }}
           securityContext:
