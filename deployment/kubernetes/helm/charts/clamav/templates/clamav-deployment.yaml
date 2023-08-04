@@ -15,6 +15,13 @@ spec:
       labels:
         name: {{ .Chart.Name }}
     spec:
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: ScheduleAnyway
+          labelSelector:
+            matchLabels:
+              name: {{ .Chart.Name }}
       containers:
         - name: clamd
           image: {{ .Values.image.repo }}
