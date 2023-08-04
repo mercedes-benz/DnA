@@ -11,6 +11,7 @@ airflowIngressRoute:
 airflowMiddleware:
   enabled: false 
 backend:
+  replicas: 1
   image: ""
   imagePullPolicy: Always
   dbUrl: jdbc:postgresql://postgresql.dna.svc.cluster.local:64000/airflow
@@ -244,3 +245,9 @@ vaultInjector:
       {{- end }}
   saName: "default"
   jarName: "airflow-backend-lib*.jar"  
+
+podDisruptionBudget:
+  enabled: false
+  # Uncomment only one of the following when enabled is set to true
+  # maxUnavailable: "50%"
+  # minAvailable: "50%"
