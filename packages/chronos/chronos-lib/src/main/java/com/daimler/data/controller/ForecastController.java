@@ -982,13 +982,13 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 			@ApiResponse(code = 403, message = "Request is not authorized."),
 			@ApiResponse(code = 405, message = "Method not allowed"),
 			@ApiResponse(code = 500, message = "Internal error")})
-	@RequestMapping(value = "/forecasts/{id}/runs/{correlationid}/results/file",
+	@RequestMapping(value = "/forecasts/{id}/runs/{correlationid}/results/{file}",
 			produces = {"application/json"},
 			consumes = {"application/json"},
 			method = RequestMethod.GET)
 	public ResponseEntity<ByteArrayResource> getRunResultsFile(@ApiParam(value = "forecast project ID ",required=true) @PathVariable("id") String id,
 			@ApiParam(value = "DNA correlation Id for the run",required=true) @PathVariable("correlationid") String correlationid,
-			@ApiParam(value = "file path which the user requests") @Valid @RequestParam(value = "path", required = false) String path){
+			@ApiParam(value = "file which the user requests",required=true) @PathVariable("file") String file){
 		ForecastVO existingForecast = service.getById(id);
 		CreatedByVO requestUser = this.userStore.getVO();
 		String errorMessage = "";
@@ -1030,21 +1030,19 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 		}else
 			notFound = true;
 		if (notFound) {
-			log.error("Invalid runCorrelationId {} sent for cancelling run {}  project name {} and id {}, by user {}", correlationid, existingForecast.getName(), id, requestUser);
+			log.error("Invalid runCorrelationId {}  sent to get file for the requested run {}  project name {} and id {}, by user {}", correlationid, existingForecast.getName(), id, requestUser);
 			errorMessage = "Invalid runCorrelationId " + correlationid + " sent to get file for the requested run. Please correct and retry.";
 			ByteArrayResource errorResource = new ByteArrayResource(errorMessage.getBytes(StandardCharsets.UTF_8));
 			return ResponseEntity.status(HttpStatus.NOT_FOUND).contentType(MediaType.TEXT_PLAIN).contentLength(errorResource.contentLength()).body(errorResource);
 
 		}
-		if (path == null || path.trim().isEmpty()) {
+		if (file == null || file.trim().isEmpty()) {
 			log.error("File doesnt exists , failed to get file", id);
 			errorMessage = "File doesnt exists , failed to get file";
 			ByteArrayResource errorResource = new ByteArrayResource(errorMessage.getBytes(StandardCharsets.UTF_8));
 			return ResponseEntity.status(HttpStatus.NOT_FOUND).contentType(MediaType.TEXT_PLAIN).contentLength(errorResource.contentLength()).body(errorResource);
 		}
-		/*String prefix= "results/" + correlationid + "-" + runName;
-		String resultFilePrefix = prefix +"/" + path;*/
-		ResponseEntity<ByteArrayResource> resultFileResponse = service.getRunResultsFile(id,correlationid,path);
+		ResponseEntity<ByteArrayResource> resultFileResponse = service.getRunResultsFile(id,correlationid,file);
 		return resultFileResponse;
 	}
 
