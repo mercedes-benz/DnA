@@ -1405,17 +1405,19 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 	}
 
 	@Override
-	public ResponseEntity<ByteArrayResource> getRunResultsFile(String id, String correlationid, String path){
+	public ResponseEntity<ByteArrayResource> getRunResultsFile(String id, String correlationid, String file){
 		Optional<ForecastNsql> anyEntity = this.jpaRepo.findById(id);
+
 		if (anyEntity != null && anyEntity.isPresent()) {
 			ForecastNsql entity = anyEntity.get();
 			String bucketName = entity.getData().getBucketName();
 			Optional<RunDetails> requestedRun = entity.getData().getRuns().stream().filter(x -> correlationid.equalsIgnoreCase(x.getId())).findFirst();
 			RunDetails run = requestedRun.get();
 			String prefix = "results/" + correlationid + "-" + run.getRunName();
-			String resultFilePrefix = prefix + "/" + path;
+			String resultFilePrefix = prefix +  "/" + file;
 			ResponseEntity<ByteArrayResource> downloadFile = storageClient.getDownloadFile(bucketName, resultFilePrefix);
 			return downloadFile;
+
 		}
 		return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
 	}

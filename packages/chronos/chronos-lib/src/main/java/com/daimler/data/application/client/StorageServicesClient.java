@@ -332,10 +332,10 @@ public class StorageServicesClient {
 			return response;
 
 		}catch(Exception e) {
-			log.error("Invalid file. " + "Failed while downloading result files {} from minio bucket {} with exception {}. Invalid file", path, bucketName,e.getMessage());
-			errorMessage = "Invalid file. " + "Failed while downloading result files " + path + " from minio bucket " + bucketName +" with exception "  + e.getMessage();
+			log.error("Invalid file. Failed while downloading file from result folder {} from minio bucket {} with exception {}.",bucketName,path,e.getMessage());
+			errorMessage = "Invalid file. Failed while downloading file from result folder from minio bucket " + bucketName ;
 			ByteArrayResource errorResource = new ByteArrayResource(errorMessage.getBytes(StandardCharsets.UTF_8));
-			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).contentType(MediaType.TEXT_PLAIN).contentLength(errorResource.contentLength()).body(errorResource);
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).contentType(MediaType.TEXT_PLAIN).contentLength(errorResource.contentLength()).body(errorResource);
 		}
 	}
 	

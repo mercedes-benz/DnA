@@ -63,7 +63,7 @@ public interface ForecastService extends CommonService<ForecastVO, ForecastNsql,
 	public ForecastConfigFileUploadResponseVO uploadConfigFile(ForecastVO existingForecast, String configFileId,String requestUser,Date createdOn, String configFilePath, String configFileName);
 	public Object[]  getForecastConfigFiles(String id);
 	public ForecastConfigFileResultVO  getForecastConfigFileById(String id,String configFileId);
-	public ResponseEntity<ByteArrayResource> getRunResultsFile(String id, String correlationid, String path);
+	public ResponseEntity<ByteArrayResource> getRunResultsFile(String id, String correlationid, String file);
 
 	Integer getTotalCountOfForecastProjects();
 
