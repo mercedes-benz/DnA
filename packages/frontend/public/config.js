@@ -1,6 +1,7 @@
 window['INJECTED_ENVIRONMENT'] = {
   OIDC_DISABLED: true,
   API_BASEURL: 'http://localhost:7171/api',
+  LOGINREDIRECTURL: 'http://localhost:7171/login/redirect',
   DATA_PIPELINES_API_BASEURL: 'http://localhost:7172/airflow/api',
   MALWARESCAN_API_BASEURL: 'http://localhost:8181/api',
   DASHBOARD_API_BASEURL: 'http://localhost:7173/api',
