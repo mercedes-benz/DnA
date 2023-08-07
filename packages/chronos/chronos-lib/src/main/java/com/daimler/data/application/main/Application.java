@@ -29,7 +29,6 @@ package com.daimler.data.application.main;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
@@ -43,13 +42,12 @@ import org.springframework.web.WebApplicationInitializer;
 		"com.daimler.data.application.client", "com.daimler.data.util", "com.daimler.data.application.filter",
 		"com.daimler.data.auth.client", "com.daimler.data.application.logging", "com.daimler.data.auth.vault","com.daimler.dna" })
 public class Application extends SpringBootServletInitializer implements WebApplicationInitializer {
-	@Value("${encodedSlash.setting}")
-	private static String encodeSlashSetting;
+
 	private static final Logger LOG = LoggerFactory.getLogger(Application.class);
 
 	public static void main(String[] args) {
 		LOG.info("Starting up the dna chronos application");
-		System.setProperty("org.apache.tomcat.util.buf.UDecoder.ALLOW_ENCODED_SLASH", encodeSlashSetting);
+		System.setProperty("org.apache.tomcat.util.buf.UDecoder.ALLOW_ENCODED_SLASH", "true");
 		SpringApplication.run(Application.class, args);
 	}
 
