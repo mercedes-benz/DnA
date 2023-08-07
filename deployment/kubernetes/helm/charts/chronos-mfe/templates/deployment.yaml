@@ -46,7 +46,7 @@ spec:
           whenUnsatisfiable: ScheduleAnyway
           labelSelector:
             matchLabels:
-              {{- include "chronos-mfe.selectorLabels" . | nindent 10 }}          
+              {{- include "chronos-mfe.selectorLabels" . | nindent 14 }}          
       containers:
         - name: {{ .Chart.Name }}
           securityContext:
