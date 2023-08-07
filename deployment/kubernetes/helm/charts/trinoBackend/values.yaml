@@ -8,6 +8,8 @@ imagePullPolicy: Always
 imagePullSecret: 
   name: harbor-pull-secrets
 
+replicas: 1
+
 secret:
   name: trinoBackend-secrets
   minioSecretKey: ""
