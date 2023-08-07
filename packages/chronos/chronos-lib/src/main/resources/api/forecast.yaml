@@ -645,7 +645,7 @@ paths:
           type: string
         - in: path
           name: file
-          description: "file which the user requests"
+          description: "file which the user requests. Examples:- eda.json, visuals/results.html"
           required: true
           type: string
       responses:
