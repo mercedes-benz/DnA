@@ -34,7 +34,7 @@ spec:
           whenUnsatisfiable: ScheduleAnyway
           labelSelector:
             matchLabels:
-              {{- include "hasura.selectorLabels" . | nindent 10 }}          
+              {{- include "hasura.selectorLabels" . | nindent 14 }}          
       containers:
         - name: {{ .Chart.Name }}
           securityContext:
