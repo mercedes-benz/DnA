@@ -75,7 +75,6 @@ chronosComparison:
 chronosMinio:
   env: ${CHRONOS_MINIO_ENVIRONMENT:dev}
 
-
 databricks:
   userid: ${DATABRICKS_USERID:XXXXXX}
   userauth: ${DATABRICKS_USER_AUTH:XXXXX}
