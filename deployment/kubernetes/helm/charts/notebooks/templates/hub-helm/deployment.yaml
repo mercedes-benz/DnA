@@ -16,6 +16,13 @@ spec:
         component: jupyter
     spec:
       serviceAccountName: hub
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: ScheduleAnyway
+          labelSelector:
+            matchLabels:
+              component: jupyter     
       containers:
         - name: jupyter-hub
           image: {{ .Values.app.image.name }}
