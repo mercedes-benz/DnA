@@ -1,6 +1,7 @@
 package com.daimler.data.service.forecast;
 
 import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -16,6 +17,10 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -1397,6 +1402,24 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 			}
 		}
 		return forecastConfigFileVO;
+	}
+
+	@Override
+	public ResponseEntity<ByteArrayResource> getRunResultsFile(String id, String correlationid, String file){
+		Optional<ForecastNsql> anyEntity = this.jpaRepo.findById(id);
+
+		if (anyEntity != null && anyEntity.isPresent()) {
+			ForecastNsql entity = anyEntity.get();
+			String bucketName = entity.getData().getBucketName();
+			Optional<RunDetails> requestedRun = entity.getData().getRuns().stream().filter(x -> correlationid.equalsIgnoreCase(x.getId())).findFirst();
+			RunDetails run = requestedRun.get();
+			String prefix = "results/" + correlationid + "-" + run.getRunName();
+			String resultFilePrefix = prefix +  "/" + file;
+			ResponseEntity<ByteArrayResource> downloadFile = storageClient.getDownloadFile(bucketName, resultFilePrefix);
+			return downloadFile;
+
+		}
+		return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
 	}
 
 }
