@@ -34,7 +34,7 @@ spec:
           whenUnsatisfiable: ScheduleAnyway
           labelSelector:
             matchLabels:
-              {{- include "authenticator-service.selectorLabels" . | nindent 10 }}          
+              {{- include "authenticator-service.selectorLabels" . | nindent 14 }}          
       containers:
         - name: {{ .Chart.Name }}
           securityContext:
