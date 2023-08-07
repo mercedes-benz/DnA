@@ -35,7 +35,7 @@ spec:
           whenUnsatisfiable: ScheduleAnyway
           labelSelector:
             matchLabels:
-              {{- include "code-server-backend.selectorLabels" . | nindent 10 }}          
+              {{- include "code-server-backend.selectorLabels" . | nindent 14 }}          
       containers:
         - name: {{ .Chart.Name }}
           securityContext:
