@@ -75,6 +75,8 @@ chronosComparison:
 chronosMinio:
   env: ${CHRONOS_MINIO_ENVIRONMENT:dev}
 
+encodedSlash:
+  setting: ${ALLOW_ENCODED_SLASH:true}
 
 databricks:
   userid: ${DATABRICKS_USERID:XXXXXX}
