@@ -36,7 +36,7 @@ spec:
           whenUnsatisfiable: ScheduleAnyway
           labelSelector:
             matchLabels:
-              {{- include "dss-be.selectorLabels" . | nindent 10 }}                 
+              {{- include "dss-be.selectorLabels" . | nindent 14 }}                 
       containers:
         - name: {{ .Chart.Name }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"

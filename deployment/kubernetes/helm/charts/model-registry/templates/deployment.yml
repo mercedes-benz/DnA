@@ -32,7 +32,7 @@ spec:
           whenUnsatisfiable: ScheduleAnyway
           labelSelector:
             matchLabels:
-              {{- include "model-registry.selectorLabels" . | nindent 10 }}          
+              {{- include "model-registry.selectorLabels" . | nindent 14 }}          
       containers:
         - name: {{ .Chart.Name }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
