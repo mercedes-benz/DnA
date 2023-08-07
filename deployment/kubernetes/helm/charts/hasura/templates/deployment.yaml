@@ -28,6 +28,13 @@ spec:
       serviceAccountName: {{ include "hasura.serviceAccountName" . }}
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: ScheduleAnyway
+          labelSelector:
+            matchLabels:
+              {{- include "hasura.selectorLabels" . | nindent 10 }}          
       containers:
         - name: {{ .Chart.Name }}
           securityContext:
