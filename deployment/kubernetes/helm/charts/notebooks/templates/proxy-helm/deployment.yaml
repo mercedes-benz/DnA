@@ -6,7 +6,7 @@ metadata:
   labels:
     component: proxy
 spec:
-  replicas: 1
+  replicas: {{ .Values.app.hubConfig.replicas }}
   selector:
     matchLabels:
       component: proxy
