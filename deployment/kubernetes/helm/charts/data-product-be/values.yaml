@@ -134,3 +134,9 @@ affinity: {}
 vaultInjector:
   enable: false
   jarName: "data-product*.jar"
+
+podDisruptionBudget:
+  enabled: false
+  # Uncomment only one of the following when enabled is set to true
+  # maxUnavailable: "50%"
+  # minAvailable: "50%"
