@@ -34,7 +34,7 @@ spec:
           whenUnsatisfiable: ScheduleAnyway
           labelSelector:
             matchLabels:
-              {{- include "authenticator-service.selectorLabels" . | nindent 10 }}          
+              {{- include "authenticator-service.selectorLabels" . | nindent 14 }}          
       containers:
         - name: {{ .Chart.Name }}
           securityContext:
@@ -52,7 +52,7 @@ spec:
           {{- end }}          
           ports:
             - name: http
-              containerPort: 8383
+              containerPort: 9797
               protocol: TCP
           livenessProbe:
             initialDelaySeconds: 60
