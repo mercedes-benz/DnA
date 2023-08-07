@@ -23,9 +23,11 @@ app:
 
   proxy:
     image: ""
+    replicas: 1
 
   hubConfig:
     name: hub-config
+    replicas: 1
     KubeSpawnerimage: ""
     serviceAccount: hub 
     securitycontext: ""
