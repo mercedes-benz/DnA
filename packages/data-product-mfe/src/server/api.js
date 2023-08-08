@@ -47,7 +47,7 @@ function createRefreshInterceptor(instance) {
         hostServer.defaults.headers.Authorization = newJwt;
 
         // Retry the original request with the new token.
-        error.config.headers.Authorization = sessionStorage.getItem(SESSION_STORAGE_KEYS.JWT);
+        error.config.headers.Authorization = newJwt;
         return await axios.request(error.config);
       }
       return Promise.reject(error);
