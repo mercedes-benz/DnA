@@ -47,7 +47,6 @@ public class Application extends SpringBootServletInitializer implements WebAppl
 
 	public static void main(String[] args) {
 		LOG.info("Starting up the dna chronos application");
-		System.setProperty("org.apache.tomcat.util.buf.UDecoder.ALLOW_ENCODED_SLASH", "true");
 		SpringApplication.run(Application.class, args);
 	}
 

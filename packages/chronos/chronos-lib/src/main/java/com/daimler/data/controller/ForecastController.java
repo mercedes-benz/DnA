@@ -973,7 +973,7 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 	}
 
 	@Override
-	@ApiOperation(value = "Get file for specific run.", nickname = "getRunResultsFile", notes = "Get file for specific run.", response = ByteArrayResource.class, tags = {"forecast-runs",})
+	@ApiOperation(value = "Get file for specific run.", nickname = "getRunResultsFile", notes = "Get file for specific run.", response = ByteArrayResource.class, tags={ "forecast-runs", })
 	@ApiResponses(value = {
 			@ApiResponse(code = 201, message = "Returns message of success or failure", response = ByteArrayResource.class),
 			@ApiResponse(code = 204, message = "Fetch complete, no content found."),
@@ -981,14 +981,14 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 			@ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
 			@ApiResponse(code = 403, message = "Request is not authorized."),
 			@ApiResponse(code = 405, message = "Method not allowed"),
-			@ApiResponse(code = 500, message = "Internal error")})
-	@RequestMapping(value = "/forecasts/{id}/runs/{correlationid}/results/{file}",
-			produces = {"application/json"},
-			consumes = {"application/json"},
+			@ApiResponse(code = 500, message = "Internal error") })
+	@RequestMapping(value = "/forecasts/{id}/runs/{correlationid}/results",
+			produces = { "application/json" },
+			consumes = { "application/json" },
 			method = RequestMethod.GET)
 	public ResponseEntity<ByteArrayResource> getRunResultsFile(@ApiParam(value = "forecast project ID ",required=true) @PathVariable("id") String id,
-			@ApiParam(value = "DNA correlation Id for the run",required=true) @PathVariable("correlationid") String correlationid,
-			@ApiParam(value = "file which the user requests",required=true) @PathVariable("file") String file){
+			 @ApiParam(value = "DNA correlation Id for the run",required=true) @PathVariable("correlationid") String correlationid,
+			 @NotNull @ApiParam(value = "file which the user requests. Examples:- eda.json, visuals/results.html", required = true) @Valid @RequestParam(value = "file", required = true) String file) {
 		ForecastVO existingForecast = service.getById(id);
 		CreatedByVO requestUser = this.userStore.getVO();
 		String errorMessage = "";
