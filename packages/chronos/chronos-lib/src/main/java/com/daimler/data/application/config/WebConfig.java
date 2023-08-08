@@ -93,14 +93,6 @@ public class WebConfig implements WebMvcConfigurer {
 		return bean;
 	}
 
-	@Override
-	public void configurePathMatch(PathMatchConfigurer configurer) {
-
-		UrlPathHelper helper = new UrlPathHelper();
-		helper.setUrlDecode(false);
-
-		configurer.setUrlPathHelper(helper);
-	}
 	@Bean
 	public FilterRegistrationBean<JWTAuthenticationFilter> authtenticatonFilter() {
 		FilterRegistrationBean<JWTAuthenticationFilter> registrationBean = new FilterRegistrationBean<>();
