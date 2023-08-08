@@ -908,7 +908,7 @@ public class DnaMinioClientImp implements DnaMinioClient {
 						.build();
 
 				// Delete all object versions
-				Iterable<Result<Item>> results = minioClient.listObjects(ListObjectsArgs.builder().bucket(bucketName).includeVersions(true).build());
+				Iterable<Result<Item>> results = minioClient.listObjects(ListObjectsArgs.builder().bucket(bucketName).includeVersions(true).recursive(true).build());
 
 				// Prepare DeleteObjects to delete
 				List<DeleteObject> deleteObjects = new LinkedList<>();
@@ -925,7 +925,7 @@ public class DnaMinioClientImp implements DnaMinioClient {
 				}
 
 				// Check if bucket is empty before deleting
-				Iterable<Result<Item>> checkResults = minioClient.listObjects(ListObjectsArgs.builder().bucket(bucketName).includeVersions(true).build());
+				Iterable<Result<Item>> checkResults = minioClient.listObjects(ListObjectsArgs.builder().bucket(bucketName).includeVersions(true).recursive(true).build());
 				if (!checkResults.iterator().hasNext()) {
 					// No objects or versions remain, safe to delete bucket
 					LOGGER.info("Removing bucket:{} from Minio", bucketName);
@@ -933,6 +933,10 @@ public class DnaMinioClientImp implements DnaMinioClient {
 					LOGGER.info("Success from Minio remove Bucket:{}", bucketName);
 				} else {
 					LOGGER.error("Objects or versions still remain in bucket, cannot delete.");
+					minioGenericResponse.setErrors(Arrays.asList(new ErrorDTO(null, "Objects or versions still remain in bucket, cannot delete for user" + userId)));
+					minioGenericResponse.setStatus(ConstantsUtility.FAILURE);
+					minioGenericResponse.setHttpStatus(HttpStatus.INTERNAL_SERVER_ERROR);
+					return minioGenericResponse;
 				}
 
 				LOGGER.info("Removing policies for bucket:{}", bucketName);
