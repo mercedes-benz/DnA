@@ -99,7 +99,7 @@ export const BucketList = (props) => {
   const deleteBucketContent = (
     <div>
       <h3>Are you sure you want to delete {selectedItem.bucketName} ? </h3>
-      <h5>A bucket can only be deleted if its empty.</h5>
+      <h5>It will delete all content from the bucket.</h5>
       {isDataikuEnabled && <h6>Dataiku project(s) connection if any, will be removed.</h6>}
     </div>
   );
