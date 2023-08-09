@@ -523,7 +523,7 @@ const PersonalRelatedData = ({ onSave, setIsEditing, isDataProduct, callbackFn }
               }
             })}
           >
-            Finalize Minimum Information Documentation
+            Finalize Usage Information Documentation
           </button>
         </div>
       </div>
