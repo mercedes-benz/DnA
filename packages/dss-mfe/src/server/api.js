@@ -61,7 +61,7 @@ function createRefreshInterceptor(instance) {
 
         // Retry the original request with the new token.
         error.config.headers.Authorization = newJwt;
-        return await axios.request(error.config);
+        return await instance.request(error.config);
       }
       return Promise.reject(error);
     }
