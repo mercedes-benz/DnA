@@ -59,10 +59,13 @@ public class JWTGenerator {
 			Claims claims = Jwts.parser().setSigningKey(SECRET_KEY.getBytes())
 					.parseClaimsJws(jwt).getBody();
 			return claims;
-		} catch (ExpiredJwtException | MalformedJwtException | SignatureException | UnsupportedJwtException
-				| IllegalArgumentException e) {
-			log.error("Error parsing JWT:{}", e.getMessage());
-			return null;
-		}
+		}  catch (ExpiredJwtException e) {
+            log.error("Expired JWT. Error parsing JWT:{}", e.getMessage());
+            return e.getClaims();
+        } catch (MalformedJwtException | SignatureException | UnsupportedJwtException
+                 | IllegalArgumentException e) {
+            log.error("Error parsing JWT:{}", e.getMessage());
+            return null;
+        }
 	}
 }
