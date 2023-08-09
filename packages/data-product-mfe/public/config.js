@@ -3,6 +3,6 @@ window['DATA_PRODUCT_INJECTED_ENVIRONMENT'] = {
   DATA_PRODUCT_API_BASEURL: '',
   DATA_GOVERNANCE_HTML_FOR_CHINA_DATA: '<p>Your sample content</p>',
   DATA_PRODUCT_TOU_HTML:
-    '<div>On behalf of my above mentioned Business Owner, I confirm the corresponding minimum information to be correct and complete to the best of my knowledge. I accept the conditions.</div>',
+    '<div>On behalf of my aforementioned Information Owner/ Business Owner of Application, I confirm that the usage information for transferred data provided is correct and complete.</div>',
   INFORMATION_POLICY_LINK: 'YOUR_INFORMATION_POLICY_LINK',
 };
