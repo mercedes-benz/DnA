@@ -158,7 +158,7 @@ const UsageStatistics = () => {
           },
           { 
             id: '5', 
-            name: 'Minimum Information / Sharings', 
+            name: 'Usage Information / Sharings', 
             count: dataTransferTransparency,
             icon: 'datasharing',
             path: '/data'
