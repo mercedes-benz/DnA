@@ -625,7 +625,7 @@ paths:
           description: "Internal error"
 
 
-  /forecasts/{id}/runs/{correlationid}/results/{file}:
+  /forecasts/{id}/runs/{correlationid}/results:
     get:
       tags:
         - "forecast-runs"
@@ -643,7 +643,7 @@ paths:
           description: "DNA correlation Id for the run"
           required: true
           type: string
-        - in: path
+        - in: query
           name: file
           description: "file which the user requests. Examples:- eda.json, visuals/results.html"
           required: true
