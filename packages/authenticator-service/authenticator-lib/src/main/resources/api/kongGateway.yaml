@@ -1,0 +1,513 @@
+# LICENSE START
+# 
+# MIT License
+# 
+# Copyright (c) 2019 Daimler TSS GmbH
+# 
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+# 
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+# 
+# LICENSE END 
+#
+#-----------------------------------------------------------------------------------------------------
+#  **
+#  ** File Name  : kongGateway.yaml
+#  **
+#  ** Module     : core
+#  ** 
+
+#  -------------------------------------------------------------------------------------------------------
+#
+#  CHANGE HISTORY
+#
+#  Created By         :  ***REMOVED***
+#
+#  Bug Number         :  
+#  Changed By         :  
+#  Change Description :  
+#  Change On          :  
+#  Search String      :  
+#  
+#  -------------------------------------------------------------------------------------------------------
+  
+
+swagger: "2.0"
+info:
+ version: "1.0.0"
+ title: "core Kong gateway service"
+host: "localhost:7373"
+basePath: "/api"
+consumes:
+ - "application/json"
+produces:
+ - "application/json"
+tags:
+ - name: "kong"
+   description: "This service is used to create services and routes."
+
+schemes:
+- "https"
+
+paths:
+
+# path to create service
+#
+#  supprorted http methods GET
+#
+# path example ../models
+
+ /kong/services:
+  post:
+   tags:
+    - "kong"
+   summary: "Create new service "
+   description:  "Create new service."
+   operationId: "createService" 
+   parameters:      
+        - name: "createServiceRequestVO"
+          in: "body"
+          description: "Request Body that contains data required for creating a service"
+          required: true
+          schema:
+            $ref: "#/definitions/CreateServiceRequestVO"
+   responses:
+    201:
+     description: "Returns message of success or failure"
+     schema:
+        $ref: "#/definitions/GenericMessage"
+    409:
+      description: "Conflict"
+      schema:
+        $ref: "#/definitions/GenericMessage"   
+    400:
+     description: "Bad request."
+    401:
+     description: "Request does not have sufficient credentials."
+    403:
+     description: "Request is not authorized."
+    405:
+     description: "Method not allowed"
+    500:
+     description: "Internal error"
+     
+# path to create route 
+#  supported http methods POST
+
+ /kong/services/{serviceName}/routes:
+    post:
+      tags:
+        - "kong"
+      summary: "create a route."
+      description: "create a route"
+      operationId: "createRoute"
+      parameters:      
+        - name: "createRouteRequestVO"
+          in: "body"
+          description: "Request Body that contains data required for creating a route"
+          required: true
+          schema:
+            $ref: "#/definitions/CreateRouteRequestVO"    
+        - name: "serviceName"
+          in: "path"
+          description: "Name of the service for which route has to be created"
+          required: true
+          type: "string"      
+      responses:
+        201:
+          description: "Returns message of success"
+          schema:
+            $ref: "#/definitions/GenericMessage"
+        409:
+          description: "Conflict"
+          schema:
+            $ref: "#/definitions/GenericMessage"            
+        400:
+          description: "Bad Request"
+          schema:
+            $ref: "#/definitions/GenericMessage"
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
+# path to attach a plugin to service 
+#  supported http methods POST
+
+ /kong/services/{serviceName}/plugins:
+    post:
+      tags:
+        - "kong"
+      summary: "Attach a plugin to service."
+      description: "Attach a plugin to service."
+      operationId: "attachPlugin"
+      parameters:      
+        - name: "attachPluginRequestVO"
+          in: "body"
+          description: "Request Body that contains data required for attaching a plugin to service"
+          required: true
+          schema:
+            $ref: "#/definitions/AttachPluginRequestVO"  
+        - name: "serviceName"
+          in: "path"
+          description: "Name of the service for which plugin has to be attached"
+          required: true
+          type: "string"    
+      responses:
+        200:
+          description: "Returns message of success"
+          schema:
+            $ref: "#/definitions/GenericMessage"
+        409:
+          description: "Conflict"
+          schema:
+            $ref: "#/definitions/GenericMessage"            
+        400:
+          description: "Bad Request"
+          schema:
+            $ref: "#/definitions/GenericMessage"
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
+          
+# path to get service 
+#  supported http methods GET    
+ # /kong/services/{serviceName}:
+  # get:
+    # tags:
+        # - "kong"
+    # summary: "Get a service by Name."
+    # description: "Get a service by Name"
+    # operationId: "getServiceByName"
+    # parameters:
+      # - name: "serviceName"
+        # in: "path"
+        # description: "Name of the service to be fetched"
+        # required: true
+        # type: "string"
+    # responses:
+        # 200:
+          # description: "Returns message of success or failure"
+          # schema:
+            # $ref: "#/definitions/CreateServiceResponseVO"
+        # 204:
+          # description: "Fetch complete, no content found."
+        # 400:
+          # description: "Bad request."
+        # 401:
+          # description: "Request does not have sufficient credentials."
+        # 403:
+          # description: "Request is not authorized."
+        # 405:
+          # description: "Method not allowed"
+        # 500:
+          # description: "Internal error"    
+          
+# # path to get route 
+# #  supported http methods GET     
+ # /kong/services/{serviceName}/routes/{routeName}:
+    # get:
+      # tags:
+        # - "kong"
+      # summary: "Get a route by ID."
+      # description: "Get a route by ID"
+      # operationId: "getRouteByName"
+      # parameters:
+      # - name: "serviceName"
+        # in: "path"
+        # description: "Name of the service for which route has to be fetched"
+        # required: true
+        # type: "string"
+      # - name: "routeName"
+        # in: "path"
+        # description: "Name of the route to be fetched"
+        # required: true
+        # type: "string"  
+      # responses:
+        # 200:
+          # description: "Returns message of success or failure"
+          # schema:
+            # $ref: "#/definitions/CreateRouteResponseVO"
+        # 204:
+          # description: "Fetch complete, no content found."
+        # 400:
+          # description: "Bad request."
+        # 401:
+          # description: "Request does not have sufficient credentials."
+        # 403:
+          # description: "Request is not authorized."
+        # 405:
+          # description: "Method not allowed"
+        # 500:
+          # description: "Internal error"
+    
+
+definitions:       
+        
+ CreateRouteRequestVO:
+    type: object
+    properties:
+      data:
+        $ref: "#/definitions/CreateRouteVO"
+
+ CreateRouteResponseVO:
+  type: object
+  properties:
+    data:
+      $ref: "#/definitions/RouteResponse"
+    errors:
+        type: array
+        items:
+          $ref: "#/definitions/MessageDescription"  
+ RouteResponse:
+  type: object
+  properties:
+    regex_priority:
+      type: integer
+    hosts:
+      type: array
+      items:
+         type: string  
+    name:
+      type: string
+    service:
+      type: object
+      properties:
+        id:
+          type: string
+    protocols:
+      type: array
+      items:
+         type: string     
+    snis:
+      type: string
+    strip_path:
+      type: boolean
+    tags:
+      type: string
+    id:
+      type: string
+    destinations:
+      type: string
+    paths:
+        type: array
+        items:
+         type: string
+    https_redirect_status_code:
+      type: integer
+    path_handling:
+      type: string
+    preserve_host:
+      type: boolean
+                      
+ CreateRouteVO:
+    type: object
+    properties:
+      name:
+        type: string
+      paths:
+        type: array
+        items:
+         type: string 
+      protocols:
+        type: array
+        items:
+         type: string 
+      hosts:
+        type: array
+        items:
+         type: string   
+      strip_path:
+        type: boolean
+        
+
+ CreateServiceRequestVO:
+    type: object
+    properties:
+      data:
+        $ref: "#/definitions/CreateServiceVO"
+  
+ CreateServiceResponseVO:
+    type: object
+    properties:
+      data:
+        $ref: "#/definitions/ServiceResponse"
+      errors:
+        type: array
+        items:
+          $ref: "#/definitions/MessageDescription"  
+        
+ CreateServiceVO:
+    type: object
+    properties:
+      name:
+        type: string
+        description: "Name of the codespace"
+      url:
+        type: string
+      # host:
+      #   type: string
+      #   description: "Host of codeserver"
+      # port:
+      #   type: integer
+      #   description: "Port number"
+      # protocol:
+      #   type: string
+      #   description: "Type of the protocol"
+      # enabled:
+      #   type: boolean
+ ServiceResponse:
+    type: object
+    properties:
+      port:
+        type: integer
+      client_certificate:
+        type: string
+      write_timeout:
+        type: integer
+      name:
+        type: string
+      connect_timeout:
+        type: integer
+      read_timeout:
+        type: integer
+      tls_verify:
+        type: string
+      tags:
+        type: string
+      tls_verify_depth:
+        type: string
+      id:
+        type: string
+      host:
+        type: string
+      protocol:
+        type: string
+      enabled:
+        type: boolean
+      retries:
+        type: integer
+      path:
+        type: string
+      ca_certificates:
+        type: string
+        
+        
+ AttachPluginRequestVO:
+    type: object
+    properties:
+      data:
+        $ref: "#/definitions/AttachPluginVO"
+        
+ AttachPluginVO:
+    type: object
+    properties:
+      config:
+        $ref: "#/definitions/AttachPluginConfigVO"
+      name:
+        type: string
+    required:
+      - modelName      
+        
+ AttachPluginConfigVO:
+    type: object
+    properties:
+      client_secret:
+        type: string
+      discovery:
+        type: string
+      introspection_endpoint_auth_method:
+        type: string  
+      response_type:
+        type: string  
+      token_endpoint_auth_method:
+        type: string
+      logout_path:
+        type: string
+      redirect_after_logout_uri:
+        type: string
+      ssl_verify:
+        type: string  
+      introspection_endpoint:
+        type: string  
+      bearer_only:
+        type: string 
+      client_id:
+        type: string 
+      realm:
+        type: string  
+      scope:
+        type: string
+    required:
+      - modelName         
+ 
+ AttachPluginResponse:
+    type: object
+    properties:
+      tags:
+        type: string
+      id:
+        type: string
+      route:
+        type: string
+      config:
+        type: object
+        properties:
+          data:
+            $ref : "#/definitions/AttachPluginConfigVO"
+      name:
+        type: string
+      protocols:
+        type: array
+        items:
+         type: string  
+      enabled:
+        type: boolean
+      service:
+        type: object
+        properties:
+          id:
+            type: string  
+      consumer:
+        type: string
+             
+      
+ AttachPluginResponseVO:
+    type: object
+    properties:
+      data:
+        $ref: "#/definitions/AttachPluginResponse"
+      errors:
+        type: array
+        items:
+          $ref: "#/definitions/MessageDescription"                      
+  
+ MessageDescription:
+  type: object
+  properties:
+    message: 
+      type: string
+      description: "error message"
+ 
