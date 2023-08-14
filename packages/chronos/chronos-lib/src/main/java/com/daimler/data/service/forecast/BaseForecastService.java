@@ -22,6 +22,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -1112,7 +1113,7 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 	}
 	
 	@Override
-	@Transactional
+	@Transactional(isolation = Isolation.READ_UNCOMMITTED)
 	public void processForecastComparision(String forecastId, String comparisonId) {
 		Optional<ForecastNsql> anyEntity = this.jpaRepo.findById(forecastId);
 		ComparisonDetails comparisonDetails = new ComparisonDetails();
