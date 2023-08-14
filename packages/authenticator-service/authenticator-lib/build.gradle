@@ -61,8 +61,31 @@ sourceCompatibility = 1.17
 targetCompatibility = 1.17
 tasks.withType(JavaCompile) { options.encoding = 'UTF-8' }
 
+//__________________________________________________________//
+//_____________________ SWAGGER CONFIGURATION ______________//
+swaggerSources {
+
+		kongGateway {
+        def kongGatewayYaml = "${rootDir}/authenticator-lib/src/main/resources/api/kongGateway.yaml"
+        def kongGatewayJson = "${rootDir}/authenticator-lib/src/main/resources/api/kongGateway.json"
+        inputFile = file(kongGatewayYaml)
+
+        def ignoreFile = "${rootDir}/authenticator-lib/src/main/resources/api/.swagger-codegen-ignore"
+
+        code {
+            language = 'spring'
+            configFile = file(kongGatewayJson)
+            rawOptions = ['--ignore-file-override', ignoreFile]
+            components = ['models', 'apis']
+        }
+    } 
+    
+}
+
 compileJava {
     dependsOn processResources
+    dependsOn swaggerSources.kongGateway.code
+    source "${swaggerSources.kongGateway.code.outputDir}/src/main/java"
 }
 
 sourceSets {
@@ -74,6 +97,7 @@ sourceSets {
     main {
        
         java { srcDirs }
+        java { srcDirs += "${swaggerSources.kongGateway.code.outputDir}/src/main/java" }
         
     }
 }
