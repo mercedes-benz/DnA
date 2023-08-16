@@ -100,22 +100,23 @@ class SelectBox {
           const labelValues: string[] = [];
 
           Array.from(options).forEach((option, index) => {
-            const optionCheckBox: HTMLInputElement = item
-              .querySelector(`div:nth-child(${index + 1})`)
-              .querySelector('input[type="checkbox"]');
-            if (option.selected) {
-              optionCheckBox.checked = true;
-              optionCheckBox.parentElement.parentElement.classList.add('checked');
-              labelValues.push(option.innerHTML);
+            const optionDivWrapper = item.querySelector(`div:nth-child(${index + 1})`);
+            if (optionDivWrapper) {
+              const optionCheckBox: HTMLInputElement = optionDivWrapper.querySelector('input[type="checkbox"]');
+              if (option.selected) {
+                optionCheckBox.checked = true;
+                optionCheckBox.parentElement.parentElement.classList.add('checked');
+                labelValues.push(option.innerHTML);
+              }
+
+              optionCheckBox.tabIndex = -1;
+
+              // optionCheckBox.removeEventListener('focus', this.focusSelectBox);
+              // optionCheckBox.addEventListener('focus', this.focusSelectBox);
+
+              // optionCheckBox.removeEventListener('blur', this.blurSelectBox);
+              // optionCheckBox.addEventListener('blur', this.blurSelectBox);
             }
-
-            optionCheckBox.tabIndex = -1;
-
-            // optionCheckBox.removeEventListener('focus', this.focusSelectBox);
-            // optionCheckBox.addEventListener('focus', this.focusSelectBox);
-
-            // optionCheckBox.removeEventListener('blur', this.blurSelectBox);
-            // optionCheckBox.addEventListener('blur', this.blurSelectBox);
           });
 
           if (labelValues.length) {
