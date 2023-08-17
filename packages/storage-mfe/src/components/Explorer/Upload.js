@@ -41,8 +41,11 @@ const FileUpload = ({ uploadRef, bucketName, folderChain, enableFolderUpload = f
     dispatch(getFiles(files.fileMap, bucketName, folderId));
   };
   const onError = (err, errResponse) => {
-    if (errResponse.errors?.length) {
+    if (errResponse?.errors?.length) {
       Notification.show(errResponse.errors[0].message, 'alert');
+    }
+    if (!errResponse) {
+      Notification.show("Failed to connect to server. Please check your VPN/Internet.", 'alert');
     }
     ProgressIndicator.hide();
   };
