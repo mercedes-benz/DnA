@@ -186,6 +186,21 @@ export class ApiClient {
       }
 
       return response.json();
+    }).catch((error) => {
+      console.error('API call failed with error:', error);
+      if (error instanceof TypeError && error.message === "Failed to fetch") {
+        return Promise.reject({
+          error: true,
+          message: "Failed to connect to server. Please check your VPN/Internet.",
+        });
+      } else {
+        // Return the error in a similar structure to response.json()
+        return Promise.reject({
+          error: true,
+          message: error?.message || 'Some Error Occured',
+          code: error?.status || "FETCH_ERROR" // use FETCH_ERROR if status code is not available
+        });
+      }
     });
   }
 
@@ -833,6 +848,21 @@ export class ApiClient {
         });
       }
       return response;
+    }).catch((error) => {
+      console.error('API call failed with error:', error);
+      if (error instanceof TypeError && error.message === "Failed to fetch") {
+        return Promise.reject({
+          error: true,
+          message: "Failed to connect to server. Please check your VPN/Internet.",
+        });
+      } else {
+        // Return the error in a similar structure to response.json()
+        return Promise.reject({
+          error: true,
+          message: error?.message || 'Some Error Occured',
+          code: error?.status || "FETCH_ERROR" // use FETCH_ERROR if status code is not available
+        });
+      }
     });
   }
 

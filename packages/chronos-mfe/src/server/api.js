@@ -71,7 +71,23 @@ function createRefreshInterceptor(instance) {
         error.config.headers.Authorization = newJwt;
         return await instance.request(error.config);
       }
-      return Promise.reject(error);
+      if (error?.message && (error.message.includes("Network Error") || error.message.includes("ERR_NAME_NOT_RESOLVED"))) {
+        // Customize the error message
+        const customErrorMessage = {
+          error: true,
+          message: "Failed to connect to server. Please check your VPN/Internet.",
+        };
+        // Modify the error response to use your custom error message
+        error.response = {
+          ...error.response,
+          data: {
+            errors: [customErrorMessage]
+          }
+        };
+        return Promise.reject(error);
+      } else {
+        return Promise.reject(error);
+      }
     }
   );
 }
