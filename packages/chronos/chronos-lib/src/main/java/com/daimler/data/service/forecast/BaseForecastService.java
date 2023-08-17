@@ -464,25 +464,36 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 										List<BucketObjectDetailsDto> bucketObjectDetails=storageClient.getFilesPresent(bucketName,resultFolderPathForRun);
 										Boolean successFileFlag = storageClient.isFilePresent(resultFolderPathForRun+ "SUCCESS", bucketObjectDetails);
 										Boolean warningsFileFlag = storageClient.isFilePresent(resultFolderPathForRun+ "WARNINGS.txt", bucketObjectDetails);
+										Boolean warningsInfoFileFlag = storageClient.isFilePresent(resultFolderPathForRun+ "run_info.txt", bucketObjectDetails);
 										Boolean exogenousFileFlag = storageClient.isFilePresent(resultFolderPathForRun+ EXOGENOUS_FILE_NAME, bucketObjectDetails);
 										//check if exogenous data is present
 										if(exogenousFileFlag){
 											run.setExogenData(true);
 										}
 										log.info("Run state is success from databricks and successFileFlag value is {} and warningsFileFlag is {} , for bucket {} and prefix {} ", successFileFlag, warningsFileFlag, bucketName, resultFolderPathForRun);
-										if(warningsFileFlag){
+										if(warningsFileFlag || warningsInfoFileFlag){
 											newState.setResult_state(ResultStateEnum.WARNINGS.name());
 											//fetch file content from warnings.txt file
 											String commonPrefix = "/results/"+run.getId() + "-" + run.getRunName();
 											String warningsPrefix = commonPrefix +"/WARNINGS.txt";
+											String warningsInfoPrefix = commonPrefix +"/run_info.txt";
 											String warningsResult = "";
+											String warningsInfoResult = "";
+
 											FileDownloadResponseDto warningsTextDownloadResponse = storageClient.getFileContents(bucketName, warningsPrefix);
-											if(warningsTextDownloadResponse!= null && warningsTextDownloadResponse.getData()!=null && (warningsTextDownloadResponse.getErrors()==null || warningsTextDownloadResponse.getErrors().isEmpty())) {
+											FileDownloadResponseDto warningsInfoTextDownloadResponse = storageClient.getFileContents(bucketName, warningsInfoPrefix);
+											if(warningsFileFlag && (warningsTextDownloadResponse!= null && warningsTextDownloadResponse.getData()!=null && (warningsTextDownloadResponse.getErrors()==null || warningsTextDownloadResponse.getErrors().isEmpty()))) {
 												warningsResult = new String(warningsTextDownloadResponse.getData().getByteArray());
 												log.info("successfully retrieved warnings.txt file contents for forecast {} and correaltionid{} and runname{}",
 														bucketName, correlationId, run.getRunName());
 											}
+											if(warningsInfoFileFlag && (warningsInfoTextDownloadResponse!= null && warningsInfoTextDownloadResponse.getData()!=null && (warningsInfoTextDownloadResponse.getErrors()==null || warningsInfoTextDownloadResponse.getErrors().isEmpty()))) {
+												warningsInfoResult = new String(warningsInfoTextDownloadResponse.getData().getByteArray());
+												log.info("successfully retrieved run_info.txt file contents for forecast {} and correaltionid{} and runname{}",
+														bucketName, correlationId, run.getRunName());
+											}
 											updatedRunDetail.setWarnings(warningsResult);
+											updatedRunDetail.setWarningsInfo(warningsInfoResult);
 											updatedStateMsg = "Run was completed with warnings."; 
 										}
 										else{
@@ -1113,7 +1124,7 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 	}
 	
 	@Override
-	@Transactional(isolation = Isolation.READ_UNCOMMITTED)
+	@Transactional(isolation = Isolation.SERIALIZABLE)
 	public void processForecastComparision(String forecastId, String comparisonId) {
 		Optional<ForecastNsql> anyEntity = this.jpaRepo.findById(forecastId);
 		ComparisonDetails comparisonDetails = new ComparisonDetails();
