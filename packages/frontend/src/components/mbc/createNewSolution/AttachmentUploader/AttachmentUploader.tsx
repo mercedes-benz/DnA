@@ -88,11 +88,15 @@ export default class AttachmentUploader extends React.Component<IAttachmentUploa
       ProgressIndicator.hide();
     };
     const onError = (err: UploadRequestError, errResponse: IAttachmentResponse) => {
-      if (errResponse.errors) {
+      if (errResponse?.errors) {
         if (errResponse.errors.length > 0) {
           this.setState({ errorsInUpload: errResponse.errors });
           ProgressIndicator.hide();
         }
+      }
+      if (!errResponse) {
+        Notification.show("Failed to connect to server. Please check your VPN/Internet.", 'alert');
+        ProgressIndicator.hide();
       }
     };
     const uploaderProps = {

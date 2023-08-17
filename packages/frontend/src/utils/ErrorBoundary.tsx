@@ -27,7 +27,7 @@ export default class ErrorBoundary extends React.Component<{}, IErrorState> {
   render() {
     const file = /\/remoteEntry.js$/gi;
     const componentLoaded = file.test(this.state.error.request);
-    const isChunkFailed = /Loading chunk [\d]+ failed/.test(this.state.error.message);
+    const isChunkFailed = /Loading chunk [\d]+ failed/.test(this.state.error.message) || /Loading CSS chunk [\d]+ failed/.test(this.state.error.message);;
 
     if (this.state.hasError) {
       return componentLoaded ? (
@@ -42,6 +42,7 @@ export default class ErrorBoundary extends React.Component<{}, IErrorState> {
           content={
             <div>
               A new version has been released. Need to reload the page to apply changes.
+              / Please check your VPN/Internet connections.
               <p>
                 <small>(After refresh, if modal is shown again, please clear cache)</small>
               </p>
