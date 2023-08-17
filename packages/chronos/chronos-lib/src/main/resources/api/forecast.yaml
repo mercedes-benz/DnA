@@ -1497,6 +1497,9 @@ definitions:
       warnings:
         type: string
         description: "warnings"
+      warningsInfo:
+        type: string
+        description: "warnings info text"
       error:
         type: string
         description: "error"
