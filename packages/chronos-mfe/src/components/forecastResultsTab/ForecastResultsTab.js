@@ -465,11 +465,17 @@ const ForecastResultsTab = ({ onRunClick }) => {
                   {errorItem.state.result_state === 'WARNINGS' ? 
                     <div className={Styles.errorDiv}>
                       <i className={classNames('icon mbc-icon alert circle', Styles.alertCircle)} />
-                      <span>{errorItem.warnings}</span>
+                      <pre>{errorItem.warnings}</pre>
                     </div> :
                     <div className={Styles.errorDiv}>
                       <i className={classNames('icon mbc-icon close circle', Styles.closeCircle)} />
-                      <span>{errorItem.state.state_message}</span>
+                      <pre>{errorItem.state.state_message}</pre>
+                    </div>
+                  }
+                  {errorItem.state.result_state !== 'WARNINGS' && errorItem.warningsInfo !== null && errorItem.warningsInfo.length > 0 &&
+                    <div className={Styles.errorDiv}>
+                      <i className={classNames('icon mbc-icon info circle', Styles.infoCircle)} />
+                      <pre>{errorItem.warningsInfo}</pre>
                     </div>
                   }
                 </div>
