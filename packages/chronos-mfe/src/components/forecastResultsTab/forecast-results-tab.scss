@@ -150,20 +150,25 @@
 }
 .errorDiv {
   display: flex;
-  align-items: center;
   
   .alertCircle {
     color: #ffff4c;
+    font-size: 16px;
+  }
+  .infoCircle {
+    color: #00adef;
     font-size: 16px;
   }
   .closeCircle {
     color: #e94d47;
     font-size: 17px;
   }
-  span {
+  pre {
     color: #99A5B3;
-    margin-top: 7px;
+    margin-top: 3px;
     padding-left: 5px;
+    margin-bottom: 0;
+    white-space: break-spaces;
   }
 }
 .checkboxCol {
