@@ -30,6 +30,9 @@ import SelectBox from 'dna-container/SelectBox';
 const Description = ({ 
   onChangeConfidentialityInDescription,
   onChangeAccessType, 
+  onChangePersonalRelatedDataInDescription,
+  onChangeDeletionRequirementInDescription,
+  onChangeRestrictDataAccess,
   artList, carlaFunctionList, dataCatalogList, platformList, 
   frontEndToolList, tagsList, isCreatePage }) => {
   const {
@@ -66,6 +69,13 @@ const Description = ({
     name: 'apiArray',
   });
 
+  const { 
+    fields: trinoFields, append: trinoAppend, 
+    update: trinoUpdate, remove: trinoRemove } = useFieldArray({
+    control,
+    name: 'trinoArray',
+  });
+
 
   const [showInfoModal, setShowInfoModal] = useState(false);
   const [tagsListST, setTagsListST] = useState([]);
@@ -78,6 +88,7 @@ const Description = ({
   const [numberedStep, setNumberedStep] = useState(0);
   const [numberedLiveStep, setNumberedLiveStep] = useState(0);
   const [numberedApiStep, setNumberedApiStep] = useState(0);
+  const [numberedTrinoStep, setNumberedTrinoStep] = useState(0);
 
   const [stepsList, setStepsList] = useState([]);
   const [showPreviewModal, setShowPreviewModal] = useState(false);
@@ -85,6 +96,9 @@ const Description = ({
   const { howToAccessText, tags, productOwner, 
     // useTemplate, 
     confidentialityInDescription,
+    personalRelatedDataInDescription,
+    deletionRequirementInDescription,
+    restrictDataAccess,
     accessType } = watch();
 
 
@@ -137,8 +151,14 @@ const Description = ({
       }
       return apiStepsMaxCount; });
 
-
-    
+    let trinoStepsMaxCount = 0;
+    trinoFields?.map(function(o, index) { 
+      if (o.stepIconType=='Numbered')
+      {
+        trinoStepsMaxCount += 1;
+        setValue(`trinoArray.${index}.stepNumber`,trinoStepsMaxCount)
+      }
+      return trinoStepsMaxCount; });
 
 
 
@@ -159,8 +179,16 @@ const Description = ({
     else{
       setNumberedApiStep(0);
     }
+
+    if(trinoStepsMaxCount > 0)
+      setNumberedTrinoStep(apiStepsMaxCount);
+    else{
+      setNumberedTrinoStep(0);
+    }
+
+    
     //eslint-disable-next-line
-  }, [kafkaFields, liveAccessFields, apiFields]);
+  }, [kafkaFields, liveAccessFields, apiFields, trinoFields]);
 
 
   useEffect(()=>{
@@ -171,7 +199,22 @@ const Description = ({
   useEffect(() => {
     setSelectedTags(tags);
   }, [tags]);
+
   
+  useEffect(() => {
+    onChangePersonalRelatedDataInDescription(personalRelatedDataInDescription);
+    //eslint-disable-next-line
+  }, [personalRelatedDataInDescription]);
+
+  useEffect(() => {
+    onChangeDeletionRequirementInDescription(deletionRequirementInDescription);
+    //eslint-disable-next-line
+  }, [deletionRequirementInDescription]);
+
+  useEffect(() => {
+    onChangeRestrictDataAccess(restrictDataAccess);
+    //eslint-disable-next-line
+  }, [restrictDataAccess]);
 
   useEffect(() => {
     if(accessType?.length > 0 && (accessType?.includes('Kafka') || accessType?.includes('API'))){
@@ -193,7 +236,11 @@ const Description = ({
     }
     if(accessType?.length > 0 && !accessType.includes('API'))  {
       setValue('apiArray',[]);
-    } 
+    }
+    
+    if(accessType?.length > 0 && !accessType.includes('SQL endpoint (Trino)'))  {
+      setValue('trinoArray',[]);
+    }
     
     if(accessType?.length == 1 && accessType.includes('Live (SAC/AFO)')){
       setValue('confidentialityInDescription','');
@@ -231,6 +278,11 @@ const Description = ({
       else if(accessType?.length > 0 && accessType[0] === 'API')  {
         setCurrentInnerTab('api-access');
         tabDetails = document.getElementById('api-access');
+        tabDetails?.click();
+      }
+      else if(accessType?.length > 0 && accessType[0] === 'SQL endpoint (Trino)')  {
+        setCurrentInnerTab('trino-access');
+        tabDetails = document.getElementById('trino-access');
         tabDetails?.click();
       }
     }
@@ -788,6 +840,7 @@ const Description = ({
                         setValue('kafkaArray', []);
                         setValue('liveAccessArray', []);
                         setValue('apiArray', []);
+                        setValue('trinoArray', []);
                       }                      
                       onChangeAccessType(values);
                     }
@@ -798,6 +851,7 @@ const Description = ({
                     <option id='Kafka' key={'Kafka'} value={'Kafka'}>Kafka</option>
                     <option id='Live (SAC/AFO)' key={'Live (SAC/AFO)'} value={'Live (SAC/AFO)'}>Live (SAC/AFO)</option>
                     <option id='API' key={'API'} value={'API'}>API</option>
+                    <option id='SQL endpoint (Trino)' key={'SQL endpoint (Trino)'} value={'SQL endpoint (Trino)'}>SQL endpoint (Trino)</option>
                   </select>
                 </div>
                 {/* <span className={classNames('error-message', errors.carLAFunction?.message ? '' : 'hide')}>
@@ -826,7 +880,7 @@ const Description = ({
                       onChangeConfidentialityInDescription(e.target.value);
                     }
                   })}>
-                    <option value="">Choose</option>
+                    {/* <option value="">Choose</option> */}
                     <option id='Internal' key={'Internal'} value={'Internal'}>Internal</option>
                     <option id='Secret' key={'Secret'} value={'Secret'}>Secret</option>
                     <option id='Confidential' key={'Confidential'} value={'Confidential'}>Confidential</option>
@@ -841,7 +895,7 @@ const Description = ({
               }
             </div>
 
-            {(accessType?.length == 1 && accessType?.includes('Live (SAC/AFO)')) || accessType?.length == 0 || confidentialityInDescription == 'Internal' ?
+            {(accessType?.length == 1 && accessType?.includes('Live (SAC/AFO)')) || accessType?.length == 0 ?
               <div></div>
                : 
               <>
@@ -1034,7 +1088,7 @@ const Description = ({
                     </div>
                     <div className={Styles.descriptionWrapper}>
                       <p>
-                      {(accessType?.length == 1 && accessType?.includes('Live (SAC/AFO)')) || confidentialityInDescription == 'Internal' ?
+                      {(accessType?.length == 1 && accessType?.includes('Live (SAC/AFO)')) || confidentialityInDescription == 'Internal' && (personalRelatedDataInDescription=='No' && deletionRequirementInDescription=='No' && restrictDataAccess=='No') ?
                         <><b>No Minimum information required.</b> Please make sure to comply with A22 policies when using SAP/IDM.</>
                       :
                         <><b>Minimum information required.</b> You can either move on by selecting an existing Minimum information to review/edit or fill out the required provider-form in the next few steps. We already selected a fitting How-To-Access information to show your consumers in the next section.</>
@@ -1125,6 +1179,17 @@ const Description = ({
                         onClick={setTab}
                       >
                         API-Access
+                      </a>
+                    </li>
+
+                    <li className={accessType?.includes('SQL endpoint (Trino)') ? 'inner-tab tab' : ('inner-tab tab disabled ' + Styles.widthZero)}>
+                      <a
+                        className={accessType?.includes('SQL endpoint (Trino)') ? '' : 'hidden'}
+                        href="#steps-tab-content-4"
+                        id="trino-access"
+                        onClick={setTab}
+                      >
+                        SQL endpoint (Trino)-Access
                       </a>
                     </li>
                     
@@ -1266,6 +1331,49 @@ const Description = ({
                       className={classNames('data-row', Styles.listViewContainer)}
                       onClick={ ()=>{
                         apiAppend({
+                        "stepNumber": '',
+                        "stepIconType": "",
+                        "stepText": ""
+                        })
+                      }}
+                    >
+                      <span className={Styles.addicon}> &nbsp; </span>
+                      <label className={Styles.addlabel}>Add Step</label>
+                    </button>
+                  </div>
+                </div>
+                : ''
+              } 
+              {accessType?.includes('SQL endpoint (Trino)') ? 
+                <div id="steps-tab-content-4" className="inner-tab-content tab-content">
+                  
+                  {currentInnerTab === 'trino-access' && trinoFields?.map((stepItem, index)=>{
+                    return(
+                    <fieldset key={'trino-access'+stepItem.id}>  
+                    <AccessSteps 
+                    value={stepItem}
+                    itemIndex={index}
+                    showMoveUp={index !== 0}
+                    showMoveDown={index + 1 !== trinoFields.length}
+                    onMoveUp={(index)=>onTeamMemberMoveUp(index)}
+                    onMoveDown={(index)=>onTeamMemberMoveDown(index)}
+                    control={control}
+                    update={trinoUpdate}
+                    remove={trinoRemove}
+                    numberedStep = {numberedTrinoStep}
+                    updateNumberedStep = {() => setNumberedApiStep(numberedTrinoStep+1)}
+                    arrayName={'trinoArray'}
+                    isEditable={true}
+                    />
+                    </fieldset>
+                    )
+                  })}
+
+                  <div>
+                    <button
+                      className={classNames('data-row', Styles.listViewContainer)}
+                      onClick={ ()=>{
+                        trinoAppend({
                         "stepNumber": '',
                         "stepIconType": "",
                         "stepText": ""
