@@ -462,22 +462,26 @@ const ForecastResultsTab = ({ onRunClick }) => {
               show={showErrorModal}
               content={
                 <div className={Styles.modalContent}>
-                  {errorItem.state.result_state === 'WARNINGS' ? 
                     <div className={Styles.errorDiv}>
-                      <i className={classNames('icon mbc-icon alert circle', Styles.alertCircle)} />
-                      <pre>{errorItem.warnings}</pre>
-                    </div> :
-                    <div className={Styles.errorDiv}>
-                      <i className={classNames('icon mbc-icon close circle', Styles.closeCircle)} />
-                      <pre>{errorItem.state.state_message}</pre>
-                    </div>
-                  }
-                  {errorItem.state.result_state !== 'WARNINGS' && errorItem.warningsInfo !== null && errorItem.warningsInfo.length > 0 &&
-                    <div className={Styles.errorDiv}>
-                      <i className={classNames('icon mbc-icon info circle', Styles.infoCircle)} />
-                      <pre>{errorItem.warningsInfo}</pre>
-                    </div>
-                  }
+                      {errorItem.state.result_state === 'WARNINGS' && errorItem.warnings !== null && errorItem.warnings.length > 0 &&
+                        <>
+                          <i className={classNames('icon mbc-icon alert circle', Styles.alertCircle)} />
+                          <pre>{errorItem.warnings}</pre>
+                        </>
+                      }
+                      {errorItem.warnings !== null && errorItem.warnings.length === 0 && errorItem.warningsInfo !== null && errorItem.warningsInfo.length > 0 &&
+                        <>
+                          <i className={classNames('icon mbc-icon info circle', Styles.infoCircle)} />
+                          <pre>{errorItem.warningsInfo}</pre>
+                        </>
+                      }
+                      {errorItem.state.result_state === 'CANCELED' || errorItem.state.result_state === 'FAILED' || errorItem.state.result_state === 'TIMEDOUT' ||
+                       <>
+                        <i className={classNames('icon mbc-icon close circle', Styles.closeCircle)} />
+                        <pre>{errorItem.state.state_message}</pre>
+                       </>
+                      }
+                    </div> 
                 </div>
               }
               scrollableContent={false}
