@@ -528,7 +528,9 @@ const Summary = ({ history, user }) => {
                         <br />
                         {/* {!selectedDataProduct?.accessType || selectedDataProduct?.accessType?.length == 0 || 
                         (selectedDataProduct?.accessType?.length == 1 && selectedDataProduct?.accessType == 'Live (SAC/AFO)') ? '-' :selectedDataProduct?.confidentiality} */}
-                        {selectedDataProduct?.confidentialityInDescription || '-'}
+                        { (selectedDataProduct?.accessType?.length > 0 && selectedDataProduct?.confidentialityInDescription ) 
+                          && !(selectedDataProduct?.accessType?.length == 1 && selectedDataProduct?.accessType == 'Live (SAC/AFO)') ? selectedDataProduct?.confidentialityInDescription
+                        : '-'}
                       </div>
                       <div></div>
                       <div></div>
