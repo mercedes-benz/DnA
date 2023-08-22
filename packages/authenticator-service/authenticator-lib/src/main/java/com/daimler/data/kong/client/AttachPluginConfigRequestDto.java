@@ -40,6 +40,10 @@ public class AttachPluginConfigRequestDto implements Serializable{
 	  private String realm;
 
 	  private String scope;
+	  
+//	  private String claims_to_verify;
+//	  
+//	  private String key_claim_name;
 
 
 }
