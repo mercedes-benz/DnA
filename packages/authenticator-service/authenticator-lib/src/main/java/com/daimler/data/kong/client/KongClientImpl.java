@@ -209,26 +209,39 @@ public class KongClientImpl implements KongClient {
 			headers.set("Accept", "application/json");
 			headers.set("Content-Type", "application/json");
 			AttachPluginWrapperDto requestWrapper = new AttachPluginWrapperDto();			
-			AttachPluginConfigRequestDto attachPluginConfigRequestDto = new AttachPluginConfigRequestDto();				
-			attachPluginConfigRequestDto.setBearer_only(attachPluginConfigVO.getBearerOnly());
-			attachPluginConfigRequestDto.setClient_id(attachPluginConfigVO.getClientId());
-			attachPluginConfigRequestDto.setClient_secret(attachPluginConfigVO.getClientSecret());
-			attachPluginConfigRequestDto.setDiscovery(attachPluginConfigVO.getDiscovery());
-			attachPluginConfigRequestDto.setIntrospection_endpoint(attachPluginConfigVO.getIntrospectionEndpoint());
-			attachPluginConfigRequestDto.setIntrospection_endpoint_auth_method(attachPluginConfigVO.getIntrospectionEndpointAuthMethod());
-			attachPluginConfigRequestDto.setLogout_path(attachPluginConfigVO.getLogoutPath());
-			attachPluginConfigRequestDto.setRealm(attachPluginConfigVO.getRealm());
-			attachPluginConfigRequestDto.setRedirect_after_logout_uri(attachPluginConfigVO.getRedirectAfterLogoutUri());
-			attachPluginConfigRequestDto.setResponse_type(attachPluginConfigVO.getResponseType());
-			attachPluginConfigRequestDto.setScope(attachPluginConfigVO.getScope());
-			attachPluginConfigRequestDto.setSsl_verify(attachPluginConfigVO.getSslVerify());
-			attachPluginConfigRequestDto.setToken_endpoint_auth_method(attachPluginConfigVO.getTokenEndpointAuthMethod());
-			requestWrapper.setConfig(attachPluginConfigRequestDto);
-			requestWrapper.setName(attachPluginVO.getName());
-			HttpEntity<AttachPluginWrapperDto> request = new HttpEntity<AttachPluginWrapperDto>(
-					requestWrapper, headers);
-			ResponseEntity<String> response = restTemplate.exchange(kongUri, HttpMethod.POST, request, String.class);
-
+			AttachPluginConfigRequestDto attachPluginConfigRequestDto = new AttachPluginConfigRequestDto();	
+			ResponseEntity<String> response = null;
+			if(attachPluginVO.getName().name().toLowerCase().equalsIgnoreCase("oidc")) {
+				requestWrapper.setName(attachPluginVO.getName().name().toLowerCase());
+				attachPluginConfigRequestDto.setBearer_only(attachPluginConfigVO.getBearerOnly());
+				attachPluginConfigRequestDto.setClient_id(attachPluginConfigVO.getClientId());
+				attachPluginConfigRequestDto.setClient_secret(attachPluginConfigVO.getClientSecret());
+				attachPluginConfigRequestDto.setDiscovery(attachPluginConfigVO.getDiscovery());
+				attachPluginConfigRequestDto.setIntrospection_endpoint(attachPluginConfigVO.getIntrospectionEndpoint());
+				attachPluginConfigRequestDto.setIntrospection_endpoint_auth_method(attachPluginConfigVO.getIntrospectionEndpointAuthMethod());
+				attachPluginConfigRequestDto.setLogout_path(attachPluginConfigVO.getLogoutPath());
+				attachPluginConfigRequestDto.setRealm(attachPluginConfigVO.getRealm());
+				attachPluginConfigRequestDto.setRedirect_after_logout_uri(attachPluginConfigVO.getRedirectAfterLogoutUri());
+				attachPluginConfigRequestDto.setResponse_type(attachPluginConfigVO.getResponseType());
+				attachPluginConfigRequestDto.setScope(attachPluginConfigVO.getScope());
+				attachPluginConfigRequestDto.setSsl_verify(attachPluginConfigVO.getSslVerify());
+				attachPluginConfigRequestDto.setToken_endpoint_auth_method(attachPluginConfigVO.getTokenEndpointAuthMethod());
+				requestWrapper.setConfig(attachPluginConfigRequestDto);
+				HttpEntity<AttachPluginWrapperDto> oidcRequest = new HttpEntity<AttachPluginWrapperDto>(
+						requestWrapper, headers);
+				response = restTemplate.exchange(kongUri, HttpMethod.POST, oidcRequest, String.class);
+			}
+			if(attachPluginVO.getName().name().toLowerCase().equalsIgnoreCase("jwt")) {
+				MultiValueMap<String, String> requestBody = new LinkedMultiValueMap<>();
+				requestBody.add("name", "jwt");
+				requestBody.add("config.claims_to_verify", "exp");
+				requestBody.add("config.key_claim_name", "kid");
+				HttpEntity<MultiValueMap<String, String>> jwtRequest = new HttpEntity<MultiValueMap<String, String>>(
+						requestBody, headers);
+				response = restTemplate.exchange(kongUri, HttpMethod.POST, jwtRequest, String.class);
+				
+			}
+			
 			if (response != null && response.hasBody()) {
 				HttpStatus statusCode = response.getStatusCode();
 				if (statusCode == HttpStatus.CREATED) {
