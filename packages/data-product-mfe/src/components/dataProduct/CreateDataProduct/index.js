@@ -63,6 +63,9 @@ const CreateDataProduct = ({ user, history }) => {
   const [currentTab, setCurrentTab] = useState('description');
   const [savedTabs, setSavedTabs] = useState([]);
   const [currentConfidentialityInDescription, setCurrentConfidentialityInDescription] = useState('');
+  const [currentPersonalRelatedDataInDescription, setCurrentPersonalRelatedDataInDescription] = useState('');
+  const [currentDeletionRequirementInDescription, setCurrentDeletionRequirementInDescription] = useState('');
+  const [currentRestrictDataAccess, setCurrentRestrictDataAccess] = useState('');
   const [currentAccessType, setCurrentAccessType] = useState([]);
 
   const data = useSelector((state) => state.dataProduct);
@@ -111,7 +114,10 @@ const CreateDataProduct = ({ user, history }) => {
     userType: user.userType || '',
   };
 
-  const showTab = currentAccessType ? currentAccessType?.length === 0 || ((currentAccessType?.length == 1 && currentAccessType?.includes('Live (SAC/AFO)')) || currentConfidentialityInDescription == 'Internal') : true;
+  const showTab = currentAccessType ? currentAccessType?.length === 0 || 
+  ((currentAccessType?.length == 1 && currentAccessType?.includes('Live (SAC/AFO)')) 
+  || (currentConfidentialityInDescription == 'Internal') && (currentPersonalRelatedDataInDescription=='No' && currentDeletionRequirementInDescription=='No' && currentRestrictDataAccess=='No')) 
+  :  true;
 
   const getDataProductById = () => {
     const id = createCopyId || dataProductId || data?.selectedDataProduct?.id;
@@ -157,6 +163,9 @@ const CreateDataProduct = ({ user, history }) => {
           setSavedTabs(segments);
           setCurrentAccessType(data.accessType);
           setCurrentConfidentialityInDescription(data.confidentialityInDescription);
+          setCurrentPersonalRelatedDataInDescription(data.personalRelatedDataInDescription);
+          setCurrentDeletionRequirementInDescription(data.deletionRequirementInDescription);
+          setCurrentRestrictDataAccess(data.restrictDataAccess);
         }
         ProgressIndicator.hide();
         // SelectBox?.defaultSetup();
@@ -262,8 +271,8 @@ const CreateDataProduct = ({ user, history }) => {
   const setTab = (e) => {
     const id = e.target.id;
     if (currentTab !== id) {
-      // const isFieldsDirty = formState.isDirty || Object.keys(formState.dirtyFields).length > 0;
-      const isFieldsDirty = formState.isDirty;
+      const isFieldsDirty = formState.isDirty || Object.keys(formState.dirtyFields).length > 0;
+      // const isFieldsDirty = formState.isDirty;
       if (isFieldsDirty) {
         setShowChangeAlert({ modal: true, switchingTab: id });
       } else {
@@ -574,6 +583,10 @@ const CreateDataProduct = ({ user, history }) => {
         {
           "accessType": "api-access",
           "stepCollectionVO": values['accessType']?.includes('API') ? values['apiArray'] : []
+        },
+        {
+          "accessType": "trino-access",
+          "stepCollectionVO": values['accessType']?.includes('SQL endpoint (Trino)') ? values['trinoArray'] : []
         }
       ],
       "useTemplate": values['useTemplate']
@@ -808,6 +821,9 @@ const CreateDataProduct = ({ user, history }) => {
                   isCreatePage={isCreatePage}
                   onChangeAccessType={(val)=>{setCurrentAccessType(val)}}
                   onChangeConfidentialityInDescription={(val)=>{setCurrentConfidentialityInDescription(val)}}
+                  onChangePersonalRelatedDataInDescription={(val)=>{setCurrentPersonalRelatedDataInDescription(val)}}
+                  onChangeDeletionRequirementInDescription={(val)=>{setCurrentDeletionRequirementInDescription(val)}}
+                  onChangeRestrictDataAccess={(val)=>{setCurrentRestrictDataAccess(val)}}
                 />
                 )}
               </div>
