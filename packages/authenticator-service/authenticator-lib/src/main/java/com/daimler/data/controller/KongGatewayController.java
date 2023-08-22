@@ -1,5 +1,7 @@
 package com.daimler.data.controller;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 import javax.validation.Valid;
@@ -16,6 +18,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.daimler.data.api.kongGateway.KongApi;
 import com.daimler.data.controller.exceptions.GenericMessage;
+import com.daimler.data.controller.exceptions.MessageDescription;
+import com.daimler.data.dto.kongGateway.AttachPluginConfigVO;
 import com.daimler.data.dto.kongGateway.AttachPluginRequestVO;
 import com.daimler.data.dto.kongGateway.AttachPluginVO;
 import com.daimler.data.dto.kongGateway.CreateRouteRequestVO;
@@ -47,7 +51,38 @@ public class KongGatewayController implements KongApi{
 	public ResponseEntity<GenericMessage> attachPlugin(@Valid AttachPluginRequestVO attachPluginRequestVO,
 			String serviceName) {
 		GenericMessage response = new GenericMessage();
+		List<MessageDescription> errors = new ArrayList<>();
 		AttachPluginVO attachPluginVO = attachPluginRequestVO.getData();
+		if(attachPluginVO.getName().name().toLowerCase().equalsIgnoreCase("jwt")) {
+			if(Objects.nonNull(attachPluginVO.getConfig())) {
+				AttachPluginConfigVO configVO = attachPluginVO.getConfig();
+				if(Objects.isNull(configVO.getClaimsToVerify()) || Objects.isNull(configVO.getKeyClaimName())) {
+					MessageDescription msg = new MessageDescription();
+					msg.setMessage("Properties claims_to_verify and key_claim_name should not be null for attaching the JWT plugin to service ");
+					errors.add(msg);
+					response.setErrors(errors);
+					return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+				}				
+			}
+		}
+		if(attachPluginVO.getName().name().toLowerCase().equalsIgnoreCase("oidc")) {
+			if(Objects.nonNull(attachPluginVO.getConfig())) {
+				AttachPluginConfigVO configVO = attachPluginVO.getConfig();
+				if(Objects.isNull(configVO.getBearerOnly()) || Objects.isNull(configVO.getClientId()) ||
+					Objects.isNull(configVO.getClientSecret()) || Objects.isNull(configVO.getDiscovery()) ||
+					Objects.isNull(configVO.getIntrospectionEndpoint()) || Objects.isNull(configVO.getIntrospectionEndpointAuthMethod()) ||
+					Objects.isNull(configVO.getLogoutPath()) || Objects.isNull(configVO.getRealm()) || 
+					Objects.isNull(configVO.getRedirectAfterLogoutUri()) || Objects.isNull(configVO.getResponseType()) ||
+					Objects.isNull(configVO.getScope()) || Objects.isNull(configVO.getSslVerify()) ||
+					Objects.isNull(configVO.getTokenEndpointAuthMethod())) {
+					MessageDescription msg = new MessageDescription();
+					msg.setMessage("Properties should not be null for attaching the OIDC plugin to service ");
+					errors.add(msg);
+					response.setErrors(errors);
+					return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+				}				
+			}
+		}
 		try {
 			if(Objects.nonNull(attachPluginVO) && Objects.nonNull(serviceName)) {
 				response = kongClient.attachPluginToService(attachPluginVO, serviceName);

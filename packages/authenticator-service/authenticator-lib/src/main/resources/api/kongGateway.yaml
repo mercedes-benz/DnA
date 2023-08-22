@@ -428,8 +428,8 @@ definitions:
         $ref: "#/definitions/AttachPluginConfigVO"
       name:
         type: string
-    required:
-      - modelName      
+        enum: ["oidc","jwt"]
+    
         
  AttachPluginConfigVO:
     type: object
@@ -460,8 +460,11 @@ definitions:
         type: string  
       scope:
         type: string
-    required:
-      - modelName         
+      claims_to_verify:
+        type: string  
+      key_claim_name:
+        type: string  
+        
  
  AttachPluginResponse:
     type: object
