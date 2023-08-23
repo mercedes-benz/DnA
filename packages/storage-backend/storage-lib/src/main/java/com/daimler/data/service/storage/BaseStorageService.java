@@ -1265,5 +1265,88 @@ public class BaseStorageService implements StorageService {
 		
 		return dataikuClient.createDataikuConnection(requestDTO, live);
 	}
+
+	@Override
+	public GenericMessage reassignOwner(CreatedByVO currentUser, BucketVo bucketVo, UserVO newOwnerVo) {
+		GenericMessage responseMessage = new GenericMessage();
+		List<MessageDescription> errors = new ArrayList<>();
+		List<MessageDescription> warnings = new ArrayList<>();	
+		List<com.daimler.data.db.jsonb.UserInfo> existingCollaborators = new ArrayList<>();
+		List<com.daimler.data.db.jsonb.UserInfo> updatedCollaborators = new ArrayList<>();			
+		boolean isBucketOwner = false;	
+		String bucketName = bucketVo.getBucketName();
+		String newOwnerpolicy = "";		
+		String readWritePolicy = bucketName + "_" + ConstantsUtility.READWRITE;			
+		//Fetching bucket details from database
+		StorageNsql entity = customRepo.findbyUniqueLiteral(ConstantsUtility.BUCKET_NAME, bucketVo.getBucketName());
+		if(Objects.nonNull(entity)) {
+			existingCollaborators = entity.getData().getCollaborators();			
+		}
+		updatedCollaborators.addAll(existingCollaborators);
+		String bucketOwnerId = entity.getData().getCreatedBy().getId();		
+		if (bucketOwnerId.equalsIgnoreCase(currentUser.getId())) {
+			isBucketOwner = true;
+		}
+		if(isBucketOwner) {
+			com.daimler.data.db.jsonb.UserInfo currentOwnerAsCollab = entity.getData().getCreatedBy();
+			com.daimler.data.db.jsonb.UserInfo newOwner = new com.daimler.data.db.jsonb.UserInfo();
+			BeanUtils.copyProperties(newOwnerVo, newOwner);
+			newOwner.setId(newOwnerVo.getAccesskey());		
+			com.daimler.data.db.jsonb.Permission newOwnerPermission = new com.daimler.data.db.jsonb.Permission();
+			newOwnerPermission.setRead(Boolean.TRUE);
+			newOwnerPermission.setWrite(Boolean.TRUE);
+			newOwner.setPermission(newOwnerPermission);
+			// To update project owner.
+			entity.getData().setCreatedBy(newOwner);	
+			try {
+				Map<String, UserInfo> usersInfo = cacheUtil.getMinioUsers(ConstantsUtility.MINIO_USERS_CACHE);
+				// To get user info from Minio
+				UserInfo newOwnerUserInfo = usersInfo.get(newOwner.getId());
+				//Getting policy from user
+				newOwnerpolicy = newOwnerUserInfo.policyName();
+				//Add read-write policy to the new owner
+				newOwnerpolicy = StorageUtility.addPolicy(newOwnerpolicy, readWritePolicy);		
+				dnaMinioClient.setPolicy(newOwner.getId(), false, newOwnerpolicy);
+			}catch(Exception e) {
+				LOGGER.error("Failed while calling DnaMinioClient with Exception: {} ", e.getMessage());
+				MessageDescription msg = new MessageDescription("Failed while calling DnaMinioClient.");
+				errors.add(msg);
+				responseMessage.setSuccess("FAILED");
+				responseMessage.setErrors(errors);
+				return responseMessage;
+			} 
+			//permission is storing as null by default, so setting read/write permissions to the old owner
+			com.daimler.data.db.jsonb.Permission currentOwnerPermission = new com.daimler.data.db.jsonb.Permission();
+			currentOwnerPermission.setRead(Boolean.TRUE);
+			currentOwnerPermission.setWrite(Boolean.TRUE);
+			currentOwnerAsCollab.setPermission(currentOwnerPermission);					
+			// To remove new owner from collaborator list and to add current owner as collaborator.
+			if(Objects.nonNull(existingCollaborators)) {
+				for(com.daimler.data.db.jsonb.UserInfo collab : existingCollaborators) {
+					if(collab.getId().equalsIgnoreCase(newOwner.getId())) {
+						updatedCollaborators.remove(collab);			
+					}
+					if(! (existingCollaborators.contains(entity.getData().getCreatedBy()))) {
+						updatedCollaborators.add(currentOwnerAsCollab);						
+					}
+				}
+			}
+			entity.getData().setCollaborators(updatedCollaborators);						
+			try {
+				jpaRepo.save(entity);
+				LOGGER.info("Project owner and collaborator details updated successfully");
+				responseMessage.setSuccess("SUCCESS");
+				return responseMessage;
+			} catch (Exception e) {
+				LOGGER.error("Failed to add collaborator details as requested with Exception: {} ", e.getMessage());
+				MessageDescription msg = new MessageDescription("Failed to update project owner and collaborator details");
+				errors.add(msg);
+				responseMessage.setSuccess("FAILED");
+				responseMessage.setErrors(errors);
+				return responseMessage;
+			}
+		}
+		return null;
+	}
 	
 }
