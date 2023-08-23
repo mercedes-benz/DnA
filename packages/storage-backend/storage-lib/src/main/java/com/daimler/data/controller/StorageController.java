@@ -27,6 +27,10 @@
 
 package com.daimler.data.controller;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
@@ -51,6 +55,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.daimler.data.api.storage.StorageApi;
 import com.daimler.data.application.auth.UserStore;
 import com.daimler.data.controller.exceptions.GenericMessage;
+import com.daimler.data.controller.exceptions.MessageDescription;
 import com.daimler.data.service.storage.StorageService;
 
 import io.swagger.annotations.Api;
@@ -387,6 +392,82 @@ public class StorageController implements StorageApi {
 			@ApiParam(value = "Request Body that contains data to create connection for bucket with dataiku projects.", required = true) @Valid @RequestBody ConnectionRequestVO connectionRequestVO,
 			@ApiParam(value = "If requested data from live(Production) or training environment", defaultValue = "true") @Valid @RequestParam(value = "live", required = false, defaultValue="true") Boolean live) {
 		return storageService.createDataikuConnection(connectionRequestVO.getData(), live);
+	}
+	
+	@Override
+	@ApiOperation(value = "Re assigining the owner from the list of collaborators.", nickname = "reAssignOwner", notes = "Re assigining the owner from the list of collaborators.", response = GenericMessage.class, tags={ "storage", })
+    @ApiResponses(value = { 
+        @ApiResponse(code = 201, message = "Returns message of success or failure ", response = GenericMessage.class),
+        @ApiResponse(code = 204, message = "Fetch complete, no content found."),
+        @ApiResponse(code = 400, message = "Bad Request"),
+        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+        @ApiResponse(code = 403, message = "Request is not authorized."),
+        @ApiResponse(code = 405, message = "Method not allowed"),
+        @ApiResponse(code = 500, message = "Internal error") })
+    @RequestMapping(value = "/buckets/{bucketName}/reAssignOwner/{userId}",
+        produces = { "application/json" }, 
+        consumes = { "application/json" },
+        method = RequestMethod.PATCH)
+	public ResponseEntity<GenericMessage> reAssignOwner(
+			@ApiParam(value = "Bucket name which need to be verified.",required=true) @PathVariable("bucketName") String bucketName,
+			@ApiParam(value = "shortID of the user to re-assign the bucket ownership",required=true) @PathVariable("userId") String userId) {
+		// TODO Auto-generated method stub
+		CreatedByVO currentUser = this.userStore.getVO();
+		String currentUserId = currentUser != null ? currentUser.getId() : null;
+		ResponseEntity<BucketVo> bucketResponse = storageService.getByBucketName(bucketName);
+		GenericMessage responseMessage = new GenericMessage();
+		BucketVo bucketVo = null;
+		if(bucketResponse.hasBody()) {
+			bucketVo = bucketResponse.getBody();
+		}
+		if (Objects.isNull(bucketVo) || Objects.isNull(bucketVo.getId())) {
+			LOGGER.info("Bucket not found, returning empty");
+			GenericMessage emptyResponse = new GenericMessage();
+			List<MessageDescription> errorMessage = new ArrayList<>();
+			MessageDescription msg = new MessageDescription();
+			msg.setMessage("Bucket not found for the given bucketName");
+			errorMessage.add(msg);
+			emptyResponse.addErrors(msg);
+			emptyResponse.setSuccess("FAILED");
+			emptyResponse.setErrors(errorMessage);
+			return new ResponseEntity<>(emptyResponse, HttpStatus.NOT_FOUND);
+		}
+		if (!(Objects.nonNull(bucketVo) && Objects.nonNull(bucketVo.getCreatedBy()) && bucketVo.getCreatedBy().getId().equalsIgnoreCase(currentUserId))) {
+			MessageDescription notAuthorizedMsg = new MessageDescription();
+			notAuthorizedMsg.setMessage(
+					"Not authorized to reassign bucket ownership. Provided user does not have privileges.");
+			GenericMessage errorMessage = new GenericMessage();
+			errorMessage.addErrors(notAuthorizedMsg);
+			LOGGER.info("Provided user {} cannot reassign bucket ownership, insufficient privileges. Bucket name: {}", currentUserId, bucketName);
+			return new ResponseEntity<>(errorMessage, HttpStatus.FORBIDDEN);
+		}
+		//check if provided user is a collaborator or not
+		boolean isProviderUserCollab = false;
+		UserVO newOwnerVo = new UserVO();
+		if(Objects.nonNull(bucketVo.getCollaborators())) {
+			for(UserVO collab : bucketVo.getCollaborators()) {
+				if(collab.getAccesskey().equalsIgnoreCase(userId)) {
+					isProviderUserCollab = true;
+					newOwnerVo = collab;
+				}
+			}
+		}
+		if (isProviderUserCollab) {
+			responseMessage = storageService.reassignOwner(currentUser, bucketVo, newOwnerVo);
+		} else {
+			LOGGER.error("Provided user is not a collaborator, first add user as a collaborator to re-assign the bucket ownership.");
+			GenericMessage emptyResponse = new GenericMessage();
+			List<MessageDescription> errors = new ArrayList<>();
+			MessageDescription msg = new MessageDescription();
+			msg.setMessage("Provided user is not a collaborator, first add user as a collaborator to re-assign the bucket ownership.");
+			errors.add(msg);
+			emptyResponse.setSuccess("FAILED");
+			emptyResponse.setErrors(errors);
+			return new ResponseEntity<>(emptyResponse, HttpStatus.BAD_REQUEST);
+		}
+
+		return new ResponseEntity<>(responseMessage, HttpStatus.OK);		
+		
 	}
 
 }
