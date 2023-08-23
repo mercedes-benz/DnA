@@ -475,7 +475,7 @@ const ForecastResultsTab = ({ onRunClick }) => {
                           <pre>{errorItem.warningsInfo}</pre>
                         </>
                       }
-                      {errorItem.state.result_state === 'CANCELED' || errorItem.state.result_state === 'FAILED' || errorItem.state.result_state === 'TIMEDOUT' ||
+                      {errorItem.state.result_state === 'CANCELED' || errorItem.state.result_state === 'FAILED' || errorItem.state.result_state === 'TIMEDOUT' &&
                        <>
                         <i className={classNames('icon mbc-icon close circle', Styles.closeCircle)} />
                         <pre>{errorItem.state.state_message}</pre>
