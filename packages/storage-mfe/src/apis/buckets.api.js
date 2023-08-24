@@ -50,6 +50,10 @@ const connectToJupyterNotebook = (data) => {
   return server.post('/buckets/dataiku/connect', data);
 };
 
+const transferOwnership = (bucketName, userId) => {
+  return server.patch(`/buckets/${bucketName}/reAssignOwner/${userId}`);
+};
+
 export const bucketsApi = {
   getAllBuckets,
   getBucketByName,
@@ -60,5 +64,6 @@ export const bucketsApi = {
   getDataConnectionTypes,
   getDataikuProjects,
   connectToDataikuProjects,
-  connectToJupyterNotebook
+  connectToJupyterNotebook,
+  transferOwnership
 };
