@@ -39,7 +39,9 @@ import com.daimler.data.dto.storage.BucketResponseWrapperVO;
 import com.daimler.data.dto.storage.BucketVo;
 import com.daimler.data.dto.storage.ConnectionResponseWrapperVO;
 import com.daimler.data.dto.storage.ConnectionVO;
+import com.daimler.data.dto.storage.CreatedByVO;
 import com.daimler.data.dto.storage.UserRefreshWrapperVO;
+import com.daimler.data.dto.storage.UserVO;
 
 public interface StorageService {
 
@@ -179,5 +181,7 @@ public interface StorageService {
 	 * @return response {@code ResponseEntity<GenericMessage>}
 	 */
 	public ResponseEntity<GenericMessage> createDataikuConnection(ConnectionVO connectionVO, Boolean live);
+
+	public GenericMessage reassignOwner(CreatedByVO currentUser, BucketVo bucketVo, UserVO newOwnerVo);
 	
 }
