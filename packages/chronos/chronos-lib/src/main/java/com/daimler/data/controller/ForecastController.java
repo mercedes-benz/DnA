@@ -1,6 +1,7 @@
 package com.daimler.data.controller;
 
 import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -23,7 +24,9 @@ import com.daimler.data.dto.storage.DeleteBucketResponseWrapperDto;
 import org.apache.commons.io.FilenameUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -816,7 +819,7 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 		if(runVOList!= null && !runVOList.isEmpty()) {
 			for (RunVO run : runVOList) {
 				if (rid.equalsIgnoreCase(run.getId())) {
-					if(run.isIsDeleted()==true){
+					if(run.isIsDeleted() != null && run.isIsDeleted()==true){
 						return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
 					}
 					notFound = true;
@@ -878,7 +881,7 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 		if(runVOList!= null && !runVOList.isEmpty()) {
 			for(RunVO run: runVOList) {
 				if(rid.equalsIgnoreCase(run.getId())) {
-					if(run.isIsDeleted()==true){
+					if(run.isIsDeleted() != null && run.isIsDeleted()==true){
 						return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
 					}
 					notFound = true;
@@ -969,6 +972,79 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 		return new ResponseEntity<>(collection, HttpStatus.NO_CONTENT);
 	}
 
+	@Override
+	@ApiOperation(value = "Get file for specific run.", nickname = "getRunResultsFile", notes = "Get file for specific run.", response = ByteArrayResource.class, tags={ "forecast-runs", })
+	@ApiResponses(value = {
+			@ApiResponse(code = 201, message = "Returns message of success or failure", response = ByteArrayResource.class),
+			@ApiResponse(code = 204, message = "Fetch complete, no content found."),
+			@ApiResponse(code = 400, message = "Bad request."),
+			@ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+			@ApiResponse(code = 403, message = "Request is not authorized."),
+			@ApiResponse(code = 405, message = "Method not allowed"),
+			@ApiResponse(code = 500, message = "Internal error") })
+	@RequestMapping(value = "/forecasts/{id}/runs/{correlationid}/results",
+			produces = { "application/json" },
+			consumes = { "application/json" },
+			method = RequestMethod.GET)
+	public ResponseEntity<ByteArrayResource> getRunResultsFile(@ApiParam(value = "forecast project ID ",required=true) @PathVariable("id") String id,
+			 @ApiParam(value = "DNA correlation Id for the run",required=true) @PathVariable("correlationid") String correlationid,
+			 @NotNull @ApiParam(value = "file which the user requests. Examples:- eda.json, visuals/results.html", required = true) @Valid @RequestParam(value = "file", required = true) String file) {
+		ForecastVO existingForecast = service.getById(id);
+		CreatedByVO requestUser = this.userStore.getVO();
+		String errorMessage = "";
+		Boolean notAuthorized = false;
+		boolean notFound = true;
+		if (existingForecast == null || existingForecast.getId() == null) {
+			log.error("Forecast project with this id {} doesnt exists , failed to create comparison", id);
+			errorMessage = "Forecast project with this id" + id +" doesnt exists , failed to get requested file.";
+			ByteArrayResource errorResource = new ByteArrayResource(errorMessage.getBytes(StandardCharsets.UTF_8));
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).contentType(MediaType.TEXT_PLAIN).contentLength(errorResource.contentLength()).body(errorResource);
+		}
+		List<String> forecastProjectUsers = new ArrayList<>();
+		forecastProjectUsers.add(existingForecast.getCreatedBy().getId());
+		List<CollaboratorVO> collaborators = existingForecast.getCollaborators();
+		if (collaborators != null && !collaborators.isEmpty()) {
+			collaborators.forEach(n -> forecastProjectUsers.add(n.getId()));
+		}
+		if (forecastProjectUsers != null && !forecastProjectUsers.isEmpty()) {
+			if (!forecastProjectUsers.contains(requestUser.getId())) {
+				log.warn("User not part of forecast project with id {} and name {}, Not authorized", id, existingForecast.getName());
+				notAuthorized = true;
+
+			}
+		}
+		if (notAuthorized) {
+			errorMessage = "Only user of this project can get file for the requested run. Unauthorized";
+			ByteArrayResource errorResource = new ByteArrayResource(errorMessage.getBytes(StandardCharsets.UTF_8));
+			return ResponseEntity.status(HttpStatus.FORBIDDEN).contentType(MediaType.TEXT_PLAIN).contentLength(errorResource.contentLength()).body(errorResource);
+		}
+		String runName= "";
+		List<RunVO> runVOList = existingForecast.getRuns();
+		if(runVOList!= null && !runVOList.isEmpty()) {
+			for(RunVO run: runVOList) {
+				if(correlationid.equalsIgnoreCase(run.getId()) && (run.isIsDeleted() == null || !run.isIsDeleted()) ) {
+					runName= run.getRunName();
+					notFound = false;
+				}
+			}
+		}else
+			notFound = true;
+		if (notFound) {
+			log.error("Invalid runCorrelationId {}  sent to get file for the requested run {}  project name {} and id {}, by user {}", correlationid, existingForecast.getName(), id, requestUser);
+			errorMessage = "Invalid runCorrelationId " + correlationid + " sent to get file for the requested run. Please correct and retry.";
+			ByteArrayResource errorResource = new ByteArrayResource(errorMessage.getBytes(StandardCharsets.UTF_8));
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).contentType(MediaType.TEXT_PLAIN).contentLength(errorResource.contentLength()).body(errorResource);
+
+		}
+		if (file == null || file.trim().isEmpty()) {
+			log.error("File doesnt exists , failed to get file", id);
+			errorMessage = "File doesnt exists , failed to get file";
+			ByteArrayResource errorResource = new ByteArrayResource(errorMessage.getBytes(StandardCharsets.UTF_8));
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).contentType(MediaType.TEXT_PLAIN).contentLength(errorResource.contentLength()).body(errorResource);
+		}
+		ResponseEntity<ByteArrayResource> resultFileResponse = service.getRunResultsFile(id,correlationid,file);
+		return resultFileResponse;
+	}
 
 
 	@Override

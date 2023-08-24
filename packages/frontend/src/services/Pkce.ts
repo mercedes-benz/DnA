@@ -192,12 +192,21 @@ export class Pkce {
     return '';
   };
 
-  protected static getRedirectUrl = () => {
+  public static getRedirectUrl = () => {
     if (Envs.REDIRECT_URLS) {
       return Envs.REDIRECT_URLS;
     }
 
     console.warn('No redirect url for' + window.location.hostname);
+    return '';
+  };
+
+  public static getLoginRedirectUrl = () => {
+    if (Envs.LOGINREDIRECTURL) {
+      return Envs.LOGINREDIRECTURL;
+    }
+
+    console.warn('No login redirect url for' + window.location.hostname);
     return '';
   };
 

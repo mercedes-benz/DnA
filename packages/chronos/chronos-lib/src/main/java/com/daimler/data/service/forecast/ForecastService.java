@@ -7,6 +7,8 @@ import java.util.List;
 import com.daimler.data.dto.forecast.*;
 import com.daimler.data.dto.storage.BucketObjectDetailsDto;
 import com.daimler.data.dto.storage.BucketObjectsCollectionWrapperDto;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.daimler.data.controller.exceptions.GenericMessage;
@@ -61,7 +63,7 @@ public interface ForecastService extends CommonService<ForecastVO, ForecastNsql,
 	public ForecastConfigFileUploadResponseVO uploadConfigFile(ForecastVO existingForecast, String configFileId,String requestUser,Date createdOn, String configFilePath, String configFileName);
 	public Object[]  getForecastConfigFiles(String id);
 	public ForecastConfigFileResultVO  getForecastConfigFileById(String id,String configFileId);
-
+	public ResponseEntity<ByteArrayResource> getRunResultsFile(String id, String correlationid, String file);
 
 	Integer getTotalCountOfForecastProjects();
 

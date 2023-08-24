@@ -6,7 +6,7 @@ metadata:
   labels:
     component: proxy
 spec:
-  replicas: 1
+  replicas: {{ .Values.app.hubConfig.replicas }}
   selector:
     matchLabels:
       component: proxy
@@ -16,6 +16,13 @@ spec:
       labels:
         component: proxy
     spec:
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: ScheduleAnyway
+          labelSelector:
+            matchLabels:
+              component: proxy    
       containers:
         - name: chp
           image: {{ .Values.app.proxy.image }}

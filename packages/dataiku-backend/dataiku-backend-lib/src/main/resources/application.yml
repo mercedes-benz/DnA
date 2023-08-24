@@ -1,7 +1,7 @@
 micronaut:
   application:
     name: dataiku
-    version: 1.0.3
+    version: 1.0.4
   security:
     enabled: false
   router:

@@ -181,7 +181,8 @@ const base = {
         './TagSection': './src/components/mbc/shared/landingSummary/tagSection/TagSection.tsx',
         './DataProductFilter': './src/components/mbc/filters/DataProductFilter.tsx',
         './TextArea': './src/components/mbc/shared/textArea/TextArea.tsx',
-        './MarkdownParser': './src/utils/MarkdownParser.tsx'
+        './MarkdownParser': './src/utils/MarkdownParser.tsx',
+        './RefreshToken': './src/utils/RefreshToken.tsx',
       },
       remotes: {
         // object key is used to import

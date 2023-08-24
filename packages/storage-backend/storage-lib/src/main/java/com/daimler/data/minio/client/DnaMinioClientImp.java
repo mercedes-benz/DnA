@@ -365,8 +365,7 @@ public class DnaMinioClientImp implements DnaMinioClient {
 
 				// Lists objects information.
 				LOGGER.debug("Listing Objects information from minio for user:{}", userId);
-				Iterable<Result<Item>> results = minioClient.listObjects(ListObjectsArgs.builder().bucket(bucketName).recursive(true).build());
-
+				Iterable<Result<Item>> results = minioClient.listObjects(ListObjectsArgs.builder().bucket(bucketName).includeVersions(true).recursive(true).build());
 				for (Result<Item> result : results) {
 					Item item = result.get();
 					LOGGER.debug("Got details for object:{}", item.objectName() != null ? item.objectName() : null);
@@ -826,8 +825,8 @@ public class DnaMinioClientImp implements DnaMinioClient {
 		try {
 			LOGGER.info("Fetching secrets from vault for user:{}", userId);
 			String userSecretKey = vaultConfig.validateUserInVault(userId);
-			if(StringUtils.hasText(userSecretKey)) {
-				LOGGER.debug("Fetch secret from vault successful for user:{}",userId);
+			if (StringUtils.hasText(userSecretKey)) {
+				LOGGER.debug("Fetch secret from vault successful for user:{}", userId);
 				MinioClient minioClient = MinioClient.builder().endpoint(minioBaseUri).credentials(userId, userSecretKey)
 						.build();
 				LOGGER.debug("Setting object list to be deleted");
@@ -842,13 +841,19 @@ public class DnaMinioClientImp implements DnaMinioClient {
 					for (String path: prefixValue) {
 					    for (String objectName: objectNames) {
 							 if (objectName.contains(path)) {
-								objects.add(new DeleteObject(objectName));
+								 // Fetch the versions for this object
+								 Iterable<Result<Item>> versions = minioClient.listObjects(ListObjectsArgs.builder().bucket(bucketName).prefix(objectName).includeVersions(true).build());
+								 for (Result<Item> versionResult : versions) {
+									 Item versionItem = versionResult.get();
+									 // Add both the object name and version ID to delete this specific version.
+									 objects.add(new DeleteObject(objectName, versionItem.versionId()));
+								 }
 							 }
 					    }
                     }
                 }
 
-                LOGGER.info("Removing objects from Minio bucket:{}", bucketName);
+				LOGGER.info("Removing objects from Minio bucket:{}", bucketName);
 				Iterable<Result<DeleteError>> results = minioClient
 						.removeObjects(RemoveObjectsArgs.builder().bucket(bucketName).objects(objects).build());
 
@@ -873,15 +878,15 @@ public class DnaMinioClientImp implements DnaMinioClient {
 					minioGenericResponse.setStatus(ConstantsUtility.FAILURE);
 					minioGenericResponse.setHttpStatus(HttpStatus.BAD_REQUEST);
 				}
-			}else {
-				LOGGER.debug("Fetch secret from vault failed for user:{}",userId);
-				minioGenericResponse.setErrors(Arrays.asList(new ErrorDTO(null, "Fetch secret from vault failed for user:"+userId)));
+			} else {
+				LOGGER.debug("Fetch secret from vault failed for user:{}", userId);
+				minioGenericResponse.setErrors(Arrays.asList(new ErrorDTO(null, "Fetch secret from vault failed for user:" + userId)));
 				minioGenericResponse.setStatus(ConstantsUtility.FAILURE);
 				minioGenericResponse.setHttpStatus(HttpStatus.BAD_REQUEST);
 			}
 		} catch (InvalidKeyException | ErrorResponseException | InsufficientDataException | InternalException
-				| InvalidResponseException | NoSuchAlgorithmException | ServerException | XmlParserException
-				| IllegalArgumentException | IOException e) {
+				 | InvalidResponseException | NoSuchAlgorithmException | ServerException | XmlParserException
+				 | IllegalArgumentException | IOException e) {
 			LOGGER.error("Error occurred while removing object from Minio:{} ", e.getMessage());
 			minioGenericResponse.setStatus(ConstantsUtility.FAILURE);
 			minioGenericResponse
@@ -898,30 +903,59 @@ public class DnaMinioClientImp implements DnaMinioClient {
 			LOGGER.info("Fetching secrets from vault for user:{}", userId);
 			String userSecretKey = vaultConfig.validateUserInVault(userId);
 			if(StringUtils.hasText(userSecretKey)) {
-				LOGGER.debug("Fetch secret from vault successfull for user:{}",userId);
+				LOGGER.debug("Fetch secret from vault successful for user:{}", userId);
 				MinioClient minioClient = MinioClient.builder().endpoint(minioBaseUri).credentials(userId, userSecretKey)
 						.build();
-				LOGGER.info("Removing bucket:{} from Minio", bucketName);
-				minioClient.removeBucket(RemoveBucketArgs.builder().bucket(bucketName).build());
-				LOGGER.info("Success from Minio remove Bucket:{}", bucketName);
-				
-				LOGGER.info("Removing policies for bucket:{}",bucketName);
-				List<String> policies = Arrays.asList(bucketName+"_"+ConstantsUtility.READ,bucketName+"_"+ConstantsUtility.READWRITE);
+
+				// Delete all object versions
+				Iterable<Result<Item>> results = minioClient.listObjects(ListObjectsArgs.builder().bucket(bucketName).includeVersions(true).recursive(true).build());
+
+				// Prepare DeleteObjects to delete
+				List<DeleteObject> deleteObjects = new LinkedList<>();
+				for (Result<Item> result : results) {
+					Item item = result.get();
+					deleteObjects.add(new DeleteObject(item.objectName(), item.versionId()));
+				}
+
+				// Delete the objects and check for errors
+				Iterable<Result<DeleteError>> deleteResults = minioClient.removeObjects(RemoveObjectsArgs.builder().bucket(bucketName).objects(deleteObjects).build());
+				for (Result<DeleteError> result : deleteResults) {
+					DeleteError error = result.get();
+					LOGGER.error("Error deleting object: " + error.objectName() + ", version: "  + ", message: " + error.message());
+				}
+
+				// Check if bucket is empty before deleting
+				Iterable<Result<Item>> checkResults = minioClient.listObjects(ListObjectsArgs.builder().bucket(bucketName).includeVersions(true).recursive(true).build());
+				if (!checkResults.iterator().hasNext()) {
+					// No objects or versions remain, safe to delete bucket
+					LOGGER.info("Removing bucket:{} from Minio", bucketName);
+					minioClient.removeBucket(RemoveBucketArgs.builder().bucket(bucketName).build());
+					LOGGER.info("Success from Minio remove Bucket:{}", bucketName);
+				} else {
+					LOGGER.error("Objects or versions still remain in bucket, cannot delete.");
+					minioGenericResponse.setErrors(Arrays.asList(new ErrorDTO(null, "Objects or versions still remain in bucket, cannot delete for user" + userId)));
+					minioGenericResponse.setStatus(ConstantsUtility.FAILURE);
+					minioGenericResponse.setHttpStatus(HttpStatus.INTERNAL_SERVER_ERROR);
+					return minioGenericResponse;
+				}
+
+				LOGGER.info("Removing policies for bucket:{}", bucketName);
+				List<String> policies = Arrays.asList(bucketName + "_" + ConstantsUtility.READ, bucketName + "_" + ConstantsUtility.READWRITE);
 				deletePolicy(policies);
 				
 				minioGenericResponse.setStatus(ConstantsUtility.SUCCESS);
 				minioGenericResponse.setHttpStatus(HttpStatus.OK);
 				
 			} else {
-				LOGGER.debug("Fetch secret from vault failed for user:{}",userId);
-				minioGenericResponse.setErrors(Arrays.asList(new ErrorDTO(null, "Fetch secret from vault failed for user:"+userId)));
+				LOGGER.debug("Fetch secret from vault failed for user:{}", userId);
+				minioGenericResponse.setErrors(Arrays.asList(new ErrorDTO(null, "Fetch secret from vault failed for user:" + userId)));
 				minioGenericResponse.setStatus(ConstantsUtility.FAILURE);
 				minioGenericResponse.setHttpStatus(HttpStatus.BAD_REQUEST);
 			}
 		} catch (InvalidKeyException | ErrorResponseException | InsufficientDataException | InternalException
-				| InvalidResponseException | NoSuchAlgorithmException | ServerException | XmlParserException
-				| IllegalArgumentException | IOException  e) {
-			LOGGER.error("Error occured while removing bucket from Minio:{} ", e.getMessage());
+				 | InvalidResponseException | NoSuchAlgorithmException | ServerException | XmlParserException
+				 | IllegalArgumentException | IOException e) {
+			LOGGER.error("Error occurred while removing bucket from Minio:{} ", e.getMessage());
 			minioGenericResponse.setStatus(ConstantsUtility.FAILURE);
 			minioGenericResponse.setErrors(Arrays
 					.asList(new ErrorDTO(null, e.getMessage())));

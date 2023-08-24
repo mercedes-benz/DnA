@@ -6,7 +6,7 @@ metadata:
   labels:
     component: jupyter
 spec:
-  replicas: 1
+  replicas: {{ .Values.app.proxy.replicas }}
   selector:
     matchLabels:
       component: jupyter
@@ -16,6 +16,13 @@ spec:
         component: jupyter
     spec:
       serviceAccountName: hub
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: ScheduleAnyway
+          labelSelector:
+            matchLabels:
+              component: jupyter     
       containers:
         - name: jupyter-hub
           image: {{ .Values.app.image.name }}
