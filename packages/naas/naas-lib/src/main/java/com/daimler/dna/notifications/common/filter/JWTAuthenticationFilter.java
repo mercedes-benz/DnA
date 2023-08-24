@@ -74,8 +74,7 @@ public class JWTAuthenticationFilter implements Filter {
 			return;
 		} else {
 			Claims claims = JWTGenerator.decodeJWT(jwt);
-			log.trace("Claims:" + claims.toString());
-			String userId = (String) claims.get("id");
+			String userId = "";
 			if (claims == null) {
 				log.error("Invalid  JWT!");
 				HttpServletResponse response = (HttpServletResponse) servletResponse;
@@ -83,6 +82,7 @@ public class JWTAuthenticationFilter implements Filter {
 				response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
 				return;
 			} else {
+				 userId = (String) claims.get("id");
 				if (dnaAuthEnable) {
 					JSONObject res = null;
 					try {

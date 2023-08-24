@@ -84,6 +84,7 @@ public class KafkaCoreCampaignService {
 	private static String CHRONOS_NOTIFICATION_KEY = "Chronos";
 	private static String CHRONOS_URI_PATH = "#/chronos/project/";
 	private static String CODESPACE_NOTIFICATION_KEY = "Codespace";
+	private static String DATATRANSFER_NOTIFICATION_KEY = "DataTransfer";
 	
 	/*
 	 * @KafkaListener(topics = "dnaCentralEventTopic") public void
@@ -125,7 +126,7 @@ public class KafkaCoreCampaignService {
 						appNotificationPreferenceFlag = preferenceVO.getDashboardNotificationPref().isEnableAppNotifications();
 						emailNotificationPreferenceFlag =  preferenceVO.getDashboardNotificationPref().isEnableEmailNotifications();
 					}
-					if(message.getEventType().contains(DATAPRODUCT_NOTIFICATION_KEY)) {
+					if(message.getEventType().contains(DATAPRODUCT_NOTIFICATION_KEY) || message.getEventType().contains(DATATRANSFER_NOTIFICATION_KEY)) {
 						appNotificationPreferenceFlag = preferenceVO.getDataProductNotificationPref().isEnableAppNotifications();
 						emailNotificationPreferenceFlag =  preferenceVO.getDataProductNotificationPref().isEnableEmailNotifications();
 					}
@@ -138,8 +139,8 @@ public class KafkaCoreCampaignService {
 						emailNotificationPreferenceFlag =  preferenceVO.getChronosNotificationPref().isEnableEmailNotifications();
 					}
 					if(message.getEventType().contains(CODESPACE_NOTIFICATION_KEY)) {
-						appNotificationPreferenceFlag = preferenceVO.getChronosNotificationPref().isEnableAppNotifications();
-						emailNotificationPreferenceFlag =  preferenceVO.getChronosNotificationPref().isEnableEmailNotifications();
+						appNotificationPreferenceFlag = preferenceVO.getCodespaceNotificationPref().isEnableAppNotifications();
+						emailNotificationPreferenceFlag =  preferenceVO.getCodespaceNotificationPref().isEnableEmailNotifications();
 					}
 
 					NotificationVO vo = new NotificationVO();

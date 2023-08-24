@@ -2,7 +2,7 @@ spring:
   mvc.pathmatch.matching-strategy: ant_path_matcher
   application:
     name: dna-chronos-service
-    version: 1.3.3
+    version: 1.3.5
 
   cloud:
     vault:
@@ -74,7 +74,6 @@ chronosComparison:
 
 chronosMinio:
   env: ${CHRONOS_MINIO_ENVIRONMENT:dev}
-
 
 databricks:
   userid: ${DATABRICKS_USERID:XXXXXX}
