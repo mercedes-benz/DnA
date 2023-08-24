@@ -202,7 +202,7 @@ currentTab }) => {
     <div className={Styles.addMembersContainer}>
       <p>
         Added point of contacts will be informed about your initiated Data Transfer to give their information and finalize the
-        Minimum Information Documentation.
+        Usage Information Documentation.
       </p>
       <hr />
       <div className={classNames(Styles.firstPanel)}>
@@ -350,7 +350,7 @@ currentTab }) => {
               disabled={isDisabled}
               onClick={handleForwardMinInfo}
             >
-              Forward Minimum Information
+              Forward Usage Information
             </button>
           </div>
         }

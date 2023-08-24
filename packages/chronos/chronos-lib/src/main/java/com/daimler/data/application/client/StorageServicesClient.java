@@ -1,5 +1,6 @@
 package com.daimler.data.application.client;
 
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -13,11 +14,7 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ByteArrayResource;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.stereotype.Component;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.web.client.RestTemplate;
@@ -301,9 +298,7 @@ public class StorageServicesClient {
 			HttpEntity requestEntity = new HttpEntity<>(headers);
 
 			String getFileUrl = storageBaseUri + BUCKETS_PATH + "/" + bucketName + "/objects/metadata?prefix=" + path;
-
-			ResponseEntity<ByteArrayResource> response = restTemplate.exchange(getFileUrl, HttpMethod.GET,requestEntity, ByteArrayResource.class);
-
+			ResponseEntity<ByteArrayResource> response = restTemplate.exchange(getFileUrl, HttpMethod.GET,requestEntity, ByteArrayResource.class);;
 			if (response.hasBody()) {
 				data = response.getBody();
 				downloadResponse.setData(data);
@@ -317,6 +312,33 @@ public class StorageServicesClient {
 
 			}
 		return downloadResponse;
+	}
+
+
+	public ResponseEntity<ByteArrayResource> getDownloadFile(String bucketName, String path) {
+		FileDownloadResponseDto downloadResponse = new FileDownloadResponseDto();
+		ByteArrayResource data = null;
+		List<MessageDescription> errors = new ArrayList<>();
+		String errorMessage ="";
+		try {
+			String jwt = httpRequest.getHeader("Authorization");
+			HttpHeaders headers = new HttpHeaders();
+			headers.set("Accept", "application/json");
+			headers.set("Authorization", jwt);
+			headers.setContentType(MediaType.APPLICATION_JSON);
+			headers.set("chronos-api-key",dataBricksAuth);
+			HttpEntity requestEntity = new HttpEntity<>(headers);
+
+			String getFileUrl = storageBaseUri + BUCKETS_PATH + "/" + bucketName + "/objects/metadata?prefix=" + path;
+			ResponseEntity<ByteArrayResource> response = restTemplate.exchange(getFileUrl, HttpMethod.GET,requestEntity, ByteArrayResource.class);
+			return response;
+
+		}catch(Exception e) {
+			log.error("Invalid file. Failed while downloading file from result folder {} from minio bucket {} with exception {}.",bucketName,path,e.getMessage());
+			errorMessage = "Invalid file. Failed while downloading file from result folder from minio bucket " + bucketName ;
+			ByteArrayResource errorResource = new ByteArrayResource(errorMessage.getBytes(StandardCharsets.UTF_8));
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).contentType(MediaType.TEXT_PLAIN).contentLength(errorResource.contentLength()).body(errorResource);
+		}
 	}
 	
 	

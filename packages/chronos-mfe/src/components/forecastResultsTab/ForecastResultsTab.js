@@ -271,7 +271,7 @@ const ForecastResultsTab = ({ onRunClick }) => {
               {!loading && forecastRuns?.length > 0 &&
                 <React.Fragment>
                   <div className={Styles.refreshContainer}>
-                    <button className={classNames('btn btn-primary', Styles.delBtn, selectedRuns.length > 1 && selectedRuns.length < 13 ? '' : Styles.disableBtn)} tooltip-data={'Compare Runs'} onClick={() => setShowCompareModal(true)}><i className="icon mbc-icon data-sharing"></i></button>
+                    <button className={classNames('btn btn-primary', Styles.delBtn, selectedRuns.length > 1 ? '' : Styles.disableBtn)} tooltip-data={'Compare Runs'} onClick={() => setShowCompareModal(true)}><i className="icon mbc-icon data-sharing"></i></button>
                     <button className='btn btn-primary' onClick={() => { getProjectForecastRuns(); }}>
                       <i className="icon mbc-icon refresh" />
                       <span>Refresh</span>   
@@ -462,16 +462,26 @@ const ForecastResultsTab = ({ onRunClick }) => {
               show={showErrorModal}
               content={
                 <div className={Styles.modalContent}>
-                  {errorItem.state.result_state === 'WARNINGS' ? 
                     <div className={Styles.errorDiv}>
-                      <i className={classNames('icon mbc-icon alert circle', Styles.alertCircle)} />
-                      <span>{errorItem.warnings}</span>
-                    </div> :
-                    <div className={Styles.errorDiv}>
-                      <i className={classNames('icon mbc-icon close circle', Styles.closeCircle)} />
-                      <span>{errorItem.state.state_message}</span>
-                    </div>
-                  }
+                      {errorItem.state.result_state === 'WARNINGS' && errorItem.warnings !== null && errorItem.warnings.length > 0 &&
+                        <>
+                          <i className={classNames('icon mbc-icon alert circle', Styles.alertCircle)} />
+                          <pre>{errorItem.warnings}</pre>
+                        </>
+                      }
+                      {errorItem.warnings !== null && errorItem.warnings.length === 0 && errorItem.warningsInfo !== null && errorItem.warningsInfo.length > 0 &&
+                        <>
+                          <i className={classNames('icon mbc-icon info circle', Styles.infoCircle)} />
+                          <pre>{errorItem.warningsInfo}</pre>
+                        </>
+                      }
+                      {errorItem.state.result_state === 'CANCELED' || errorItem.state.result_state === 'FAILED' || errorItem.state.result_state === 'TIMEDOUT' &&
+                       <>
+                        <i className={classNames('icon mbc-icon close circle', Styles.closeCircle)} />
+                        <pre>{errorItem.state.state_message}</pre>
+                       </>
+                      }
+                    </div> 
                 </div>
               }
               scrollableContent={false}

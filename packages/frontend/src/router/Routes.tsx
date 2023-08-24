@@ -10,7 +10,7 @@ import { SessionExpired } from './SessionExpired';
 import UnAuthorised from './UnAuthorised';
 
 const Administration = React.lazy(() => import('components/mbc/admin/Administration'));
-const AuthRedirector = React.lazy(() => import('./AuthRedirector'));
+const LoginAuthRedirector = React.lazy(() => import('./LoginAuthRedirector'));
 const AllSolutions = React.lazy(() => import('components/mbc/allSolutions/AllSolutions'));
 const CreateNewSolution = React.lazy(() => import('components/mbc/createNewSolution/CreateNewSolution'));
 // const DssProjectsList = React.lazy(() => import('components/mbc/dataiku/ListProjects'));
@@ -58,7 +58,7 @@ const AdminRole = [USER_ROLE.ADMIN, USER_ROLE.REPORTADMIN];
 
 const publicRoutes = [
   {
-    component: AuthRedirector,
+    component: LoginAuthRedirector,
     exact: true,
     path: '/',
   },

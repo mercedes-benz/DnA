@@ -1,6 +1,7 @@
 package com.daimler.data.service.forecast;
 
 import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -16,7 +17,12 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -95,6 +101,7 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 	}
 
 	@Override
+	@Transactional(isolation = Isolation.SERIALIZABLE)
 	public List<ForecastVO> getAll( int limit,  int offset, String user) {
 		List<ForecastNsql> entities = customRepo.getAll(user, offset, limit);
 		if (entities != null && !entities.isEmpty())
@@ -104,12 +111,13 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 	}
 
 	@Override
+	@Transactional(isolation = Isolation.SERIALIZABLE)
 	public Long getCount(String user) {
 		return customRepo.getTotalCount(user);
 	}
 
 	@Override
-	@Transactional
+	@Transactional(isolation = Isolation.SERIALIZABLE)
 	public ForecastVO createForecast(ForecastVO vo) throws Exception {
 		CreateBucketResponseWrapperDto bucketCreationResponse = storageClient.createBucket(vo.getBucketName(),vo.getCreatedBy(),vo.getCollaborators());
 		if(bucketCreationResponse!= null && "SUCCESS".equalsIgnoreCase(bucketCreationResponse.getStatus())) {
@@ -124,7 +132,7 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 	}
 	
 	@Override
-	@Transactional
+	@Transactional(isolation = Isolation.SERIALIZABLE)
 	public ForecastRunResponseVO createJobRun(MultipartFile file,String savedInputPath, Boolean saveRequestPart, String runName,
 			String configurationFile, String frequency, BigDecimal forecastHorizon, String hierarchy, String comment, Boolean runOnPowerfulMachines,
 			ForecastVO existingForecast,String triggeredBy, Date triggeredOn,String infotext) {
@@ -305,7 +313,7 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 	}
 
 	@Override
-	@Transactional
+	@Transactional(isolation = Isolation.SERIALIZABLE)
 	public Object[] getAllRunsForProject(int limit, int offset, String forecastId,String sortBy, String sortOrder) {
 		Object[] runCollectionWrapper = new Object[2];
 		
@@ -458,25 +466,36 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 										List<BucketObjectDetailsDto> bucketObjectDetails=storageClient.getFilesPresent(bucketName,resultFolderPathForRun);
 										Boolean successFileFlag = storageClient.isFilePresent(resultFolderPathForRun+ "SUCCESS", bucketObjectDetails);
 										Boolean warningsFileFlag = storageClient.isFilePresent(resultFolderPathForRun+ "WARNINGS.txt", bucketObjectDetails);
+										Boolean warningsInfoFileFlag = storageClient.isFilePresent(resultFolderPathForRun+ "run_info.txt", bucketObjectDetails);
 										Boolean exogenousFileFlag = storageClient.isFilePresent(resultFolderPathForRun+ EXOGENOUS_FILE_NAME, bucketObjectDetails);
 										//check if exogenous data is present
 										if(exogenousFileFlag){
 											run.setExogenData(true);
 										}
 										log.info("Run state is success from databricks and successFileFlag value is {} and warningsFileFlag is {} , for bucket {} and prefix {} ", successFileFlag, warningsFileFlag, bucketName, resultFolderPathForRun);
-										if(warningsFileFlag){
+										if(warningsFileFlag || warningsInfoFileFlag){
 											newState.setResult_state(ResultStateEnum.WARNINGS.name());
 											//fetch file content from warnings.txt file
 											String commonPrefix = "/results/"+run.getId() + "-" + run.getRunName();
 											String warningsPrefix = commonPrefix +"/WARNINGS.txt";
+											String warningsInfoPrefix = commonPrefix +"/run_info.txt";
 											String warningsResult = "";
+											String warningsInfoResult = "";
+
 											FileDownloadResponseDto warningsTextDownloadResponse = storageClient.getFileContents(bucketName, warningsPrefix);
-											if(warningsTextDownloadResponse!= null && warningsTextDownloadResponse.getData()!=null && (warningsTextDownloadResponse.getErrors()==null || warningsTextDownloadResponse.getErrors().isEmpty())) {
+											FileDownloadResponseDto warningsInfoTextDownloadResponse = storageClient.getFileContents(bucketName, warningsInfoPrefix);
+											if(warningsFileFlag && (warningsTextDownloadResponse!= null && warningsTextDownloadResponse.getData()!=null && (warningsTextDownloadResponse.getErrors()==null || warningsTextDownloadResponse.getErrors().isEmpty()))) {
 												warningsResult = new String(warningsTextDownloadResponse.getData().getByteArray());
 												log.info("successfully retrieved warnings.txt file contents for forecast {} and correaltionid{} and runname{}",
 														bucketName, correlationId, run.getRunName());
 											}
+											if(warningsInfoFileFlag && (warningsInfoTextDownloadResponse!= null && warningsInfoTextDownloadResponse.getData()!=null && (warningsInfoTextDownloadResponse.getErrors()==null || warningsInfoTextDownloadResponse.getErrors().isEmpty()))) {
+												warningsInfoResult = new String(warningsInfoTextDownloadResponse.getData().getByteArray());
+												log.info("successfully retrieved run_info.txt file contents for forecast {} and correaltionid{} and runname{}",
+														bucketName, correlationId, run.getRunName());
+											}
 											updatedRunDetail.setWarnings(warningsResult);
+											updatedRunDetail.setWarningsInfo(warningsInfoResult);
 											updatedStateMsg = "Run was completed with warnings."; 
 										}
 										else{
@@ -625,6 +644,7 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 	}
 
 	@Override
+	@Transactional(isolation = Isolation.SERIALIZABLE)
 	public RunVisualizationVO getRunVisualizationsByUUID(String id, String rid) {
 		RunVisualizationVO visualizationVO = new RunVisualizationVO();
 		GenericMessage responseMessage = new GenericMessage();
@@ -689,6 +709,7 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 	}
 
 	@Override
+	@Transactional(isolation = Isolation.SERIALIZABLE)
 	public GenericMessage generateApiKey(String id) {
 		GenericMessage responseMessage = new GenericMessage();
         List<MessageDescription> errors = new ArrayList<>();
@@ -718,6 +739,7 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 	}
 
 	@Override
+	@Transactional(isolation = Isolation.SERIALIZABLE)
 	public ApiKeyVO getApiKey(String id) {
 		GenericMessage responseMessage = new GenericMessage();
 		List<MessageDescription> errors = new ArrayList<>();
@@ -746,6 +768,7 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 	}
 
 	@Override
+	@Transactional(isolation = Isolation.SERIALIZABLE)
 	public GenericMessage updateForecastByID(String id, ForecastProjectUpdateRequestVO forecastUpdateRequestVO,
 			ForecastVO existingForecast) {
 		GenericMessage responseMessage = new GenericMessage();
@@ -859,13 +882,12 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 	}
 
 	@Override
-	@Transactional
+	@Transactional(isolation = Isolation.SERIALIZABLE)
 	public GenericMessage deleteForecastByID(String id) {
 		GenericMessage responseMessage = new GenericMessage();
 		List<MessageDescription> errors = new ArrayList<>();
 		List<MessageDescription> warnings = new ArrayList<>();
 		Optional<ForecastNsql> entityOptional = jpaRepo.findById(id);
-
 		if (entityOptional != null) {
 			ForecastNsql entity = entityOptional.get();
 			List<RunDetails> existingRuns = entity.getData().getRuns();
@@ -874,23 +896,7 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 			// To delete all the runs which are associated to the entity.
 			if (existingRuns != null && !existingRuns.isEmpty()) {
 				for (RunDetails run : existingRuns) {
-					DataBricksErrorResponseVO errResponse = this.dataBricksClient.deleteRun(run.getRunId());
-					if (errResponse != null
-							&& (errResponse.getErrorCode() != null || errResponse.getMessage() != null)) {
-						String msg = "Failed to delete Run. Please delete them manually" + run.getRunId();
-						if (errResponse.getErrorCode() != null) {
-							msg += errResponse.getErrorCode();
-						}
-						if (errResponse.getMessage() != null) {
-							msg += errResponse.getMessage();
-						}
-						MessageDescription errMsg = new MessageDescription(msg);
-						warnings.add(errMsg);
-						responseMessage.setWarnings(errors);
-						log.error(msg);
-					} else {
 						run.setIsDelete(true);
-					}
 				}
 			}
 
@@ -919,32 +925,28 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 	}
 
 	@Override
-	@Transactional
+	@Transactional(isolation = Isolation.SERIALIZABLE)
 	public GenericMessage deletRunByUUID(String id, String rid) {
 		GenericMessage responseMessage = new GenericMessage();
-		List<MessageDescription> errors = new ArrayList<>();
 		List<MessageDescription> warnings = new ArrayList<>();
 		Optional<ForecastNsql> entityOptional = jpaRepo.findById(id);
 		if(entityOptional!=null) {
 			ForecastNsql entity = entityOptional.get();
 			List<RunDetails> existingRuns = entity.getData().getRuns();
+			String bucketName = entity.getData().getBucketName();
 			List<RunDetails> updatedRuns = new ArrayList<>();
 			for(RunDetails run : existingRuns) {
 				if(rid.equalsIgnoreCase(run.getId())) {
-					DataBricksErrorResponseVO errResponse = this.dataBricksClient.deleteRun(run.getRunId());
-					if(errResponse!=null && (errResponse.getErrorCode()!=null || errResponse.getMessage()!=null)) {
-						String msg = "Failed to delete Run." ;
-						if(errResponse.getErrorCode()!=null) {
-							msg+= errResponse.getErrorCode();
+					String prefix= "results/" + rid + "-" + run.getRunName();
+					DeleteBucketResponseWrapperDto deleteRunResponse = storageClient.deleteFilePresent(bucketName,prefix);
+					if(deleteRunResponse==null || (deleteRunResponse!=null && (deleteRunResponse.getErrors()!=null || !"SUCCESS".equalsIgnoreCase(deleteRunResponse.getStatus())))) {
+						String msg = "Failed to delete Run folder on Minio." ;
+						if(deleteRunResponse.getErrors()!=null) {
+							msg+= deleteRunResponse.getErrors();
 						}
-						if(errResponse.getMessage()!=null) {
-							msg+= errResponse.getMessage();
-						}
-						MessageDescription errMsg = new MessageDescription(msg);
-						errors.add(errMsg);
-						responseMessage.setSuccess("FAILED");
-						responseMessage.setErrors(errors);
-						return responseMessage;
+						MessageDescription warningMsg = new MessageDescription(msg);
+						warnings.add(warningMsg);
+						responseMessage.setWarnings(warnings);
 					}else {
 						run.setIsDelete(true);
 					}
@@ -959,7 +961,7 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 	}
 
 	@Override
-	@Transactional
+	@Transactional(isolation = Isolation.SERIALIZABLE)
 	public CancelRunResponseVO cancelRunById(ForecastVO existingForecast, String correlationid) {
 		CancelRunResponseVO cancelRunResponseVO = new CancelRunResponseVO();
 		RunVO currentRun= new RunVO();
@@ -1034,25 +1036,26 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 
 
 	@Override
-	@Transactional
+	@Transactional(isolation = Isolation.SERIALIZABLE)
 	public Boolean isBucketExists(String bucketName) {
 		return storageClient.isBucketExists(bucketName);
 	}	
 
 	@Override
+	@Transactional(isolation = Isolation.SERIALIZABLE)
 	public List<String> getAllForecastIds() {
 		return customRepo.getAllForecastIds();
 	}
 
 	@Override
-	@Transactional
+	@Transactional(isolation = Isolation.SERIALIZABLE)
 	public BucketObjectsCollectionWrapperDto getBucketObjects(String path, String bucketType){
 		return storageClient.getBucketObjects(path,bucketType) ;
 
 	}
 
 	@Override
-	@Transactional
+	@Transactional(isolation = Isolation.SERIALIZABLE)
 	public List<BucketObjectDetailsDto> getProjectSpecificObjects(List<InputFileVO> configFiles){
 		BucketObjectsCollectionWrapperDto projectSpecificConfigFiles = new BucketObjectsCollectionWrapperDto();
 
@@ -1061,7 +1064,7 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 	}
 
 	@Override
-	@Transactional
+	@Transactional(isolation = Isolation.SERIALIZABLE)
 	public ForecastComparisonCreateResponseVO createComparison(String id, ForecastVO existingForecast, List<String> validRunsPath, String comparisionId, String comparisonName,
 			String actualsFilePath, String targetFolder, Date createdOn, String requestUser) {
 		GenericMessage responseMessage = new GenericMessage();
@@ -1128,7 +1131,7 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 	}
 	
 	@Override
-	@Transactional
+	@Transactional(isolation = Isolation.SERIALIZABLE)
 	public void processForecastComparision(String forecastId, String comparisonId) {
 		Optional<ForecastNsql> anyEntity = this.jpaRepo.findById(forecastId);
 		ComparisonDetails comparisonDetails = new ComparisonDetails();
@@ -1177,16 +1180,19 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 	}
 
 	@Override
+	@Transactional(isolation = Isolation.SERIALIZABLE)
 	public Integer getTotalCountOfForecastProjects() {
 		return customRepo.getTotalCountOfForecastProjects();
 	}
 
 	@Override
+	@Transactional(isolation = Isolation.SERIALIZABLE)
 	public Integer getTotalCountOfForecastUsers() {
 		return customRepo.getTotalCountOfForecastUsers();
 	}
 
 	@Override
+	@Transactional(isolation = Isolation.SERIALIZABLE)
 	public Object[] getAllForecastComparisons(int limit, int offset, String id,String sortBy,String sortOrder) {
 		Object[] getForecastComparisonsArr = new Object[2];
 		List<ForecastComparisonVO> forecastComparisonsVOList = new ArrayList<>();
@@ -1279,7 +1285,7 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 	}
 
 	@Override
-	@Transactional
+	@Transactional(isolation = Isolation.SERIALIZABLE)
 	public GenericMessage deleteComparison(String id, List<String> validComparisonIds) {
 		GenericMessage responseMessage = new GenericMessage();
 		try {
@@ -1314,6 +1320,7 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 	}
 
 	@Override
+	@Transactional(isolation = Isolation.SERIALIZABLE)
 	public ForecastComparisonResultVO getForecastComparisonById(String id, String comparisonId) {
 		ForecastComparisonResultVO forecastComparisonsVO = new ForecastComparisonResultVO();
 		Optional<ForecastNsql> anyEntity = this.jpaRepo.findById(id);
@@ -1341,7 +1348,7 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 
 
 	@Override
-	@Transactional
+	@Transactional(isolation = Isolation.SERIALIZABLE)
 	public ForecastConfigFileUploadResponseVO uploadConfigFile(ForecastVO existingForecast, String configFileId, String requestUser, Date createdOn, String configFilePath, String configFileName) {
 		InputFileVO forecastConfigFileVO = new InputFileVO();
 		GenericMessage responseMessage = new GenericMessage();
@@ -1374,6 +1381,7 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 	}
 
 	@Override
+	@Transactional(isolation = Isolation.SERIALIZABLE)
 	public Object[] getForecastConfigFiles(String id) {
 		Object[] getForecastConfigsFilesArr = new Object[2];
 		List<InputFileVO> forecastConfigsFilesVOList = new ArrayList<>();
@@ -1395,6 +1403,7 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 	}
 
 	@Override
+	@Transactional(isolation = Isolation.SERIALIZABLE)
 	public ForecastConfigFileResultVO getForecastConfigFileById(String id, String configFileId) {
 		ForecastConfigFileResultVO forecastConfigFileVO = new ForecastConfigFileResultVO();
 		Optional<ForecastNsql> anyEntity = this.jpaRepo.findById(id);
@@ -1418,6 +1427,25 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 			}
 		}
 		return forecastConfigFileVO;
+	}
+
+	@Override
+	@Transactional(isolation = Isolation.SERIALIZABLE)
+	public ResponseEntity<ByteArrayResource> getRunResultsFile(String id, String correlationid, String file){
+		Optional<ForecastNsql> anyEntity = this.jpaRepo.findById(id);
+
+		if (anyEntity != null && anyEntity.isPresent()) {
+			ForecastNsql entity = anyEntity.get();
+			String bucketName = entity.getData().getBucketName();
+			Optional<RunDetails> requestedRun = entity.getData().getRuns().stream().filter(x -> correlationid.equalsIgnoreCase(x.getId())).findFirst();
+			RunDetails run = requestedRun.get();
+			String prefix = "results/" + correlationid + "-" + run.getRunName();
+			String resultFilePrefix = prefix +  "/" + file;
+			ResponseEntity<ByteArrayResource> downloadFile = storageClient.getDownloadFile(bucketName, resultFilePrefix);
+			return downloadFile;
+
+		}
+		return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
 	}
 
 }

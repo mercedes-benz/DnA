@@ -79,7 +79,7 @@ const SolutionsFilter = ({
   const [phases, setPhases] = useState<IPhase[]>([]);
   const [locations, setLocations] = useState<ILocation[]>([]);
   const [projectStatuses, setProjectStatuses] = useState<IProjectStatus[]>([]);
-  const [divisions, setDivisions] = useState<IDivision[]>([]);
+  const [divisions, setDivisions] = useState<IDivisionFilterPreference[]>([]);
   const [subDivisions, setSubDivisions] = useState<ISubDivisionSolution[]>([]);
   const [tagValues, setTagValues] = useState<ITag[]>([]);
   const [queryParams, setQueryParams] = useState<IFilterParams>({
@@ -203,7 +203,7 @@ const SolutionsFilter = ({
               newQueryParams.phase = phases.map((phase: IPhase) => {
                 return phase.id;
               });
-              newQueryParams.division = divisions.map((division: IDivision) => {
+              newQueryParams.division = divisions.map((division: IDivisionFilterPreference) => {
                 return division.id;
               });
               newQueryParams.subDivision = subDivisions.map((subDivision: ISubDivisionSolution) => {
@@ -379,6 +379,24 @@ const SolutionsFilter = ({
       ProgressIndicator.show();
       setFilterApplied(true);
       queryParams[filterName] = values;
+      if (filterName === 'division') {
+        let subDivisionValues: string[] = [];
+        let hasNoneValue = false;
+        values.forEach((divisionId: string) => {
+          const subDivisions = divisions.find((division: IDivision) => division.id === divisionId)?.subdivisions;
+          if (!hasNoneValue) {
+            hasNoneValue = subDivisions.some((subDiv: ISubDivisionSolution) => subDiv.name === 'None');
+          }
+          if (subDivisions.length) {
+            const subDivVals = subDivisions.map((subDivision: ISubDivisionSolution) => subDivision.id.indexOf('@-@') !== -1 ? subDivision.id : `${subDivision.id}@-@${divisionId}` as string) as string[];
+            subDivisionValues = subDivisionValues.concat(subDivVals);
+          }
+        });
+        if(!hasNoneValue && values.length) {
+          subDivisionValues.unshift(`EMPTY@-@${values[values.length - 1]}`);
+        }
+        queryParams['subDivision'] = subDivisionValues;
+      }
       setPortfolioFilterValuesInSession(queryParams);
       getSolutionsByQueryParams(queryParams);
       // if (filterName === 'division') SelectBox.defaultSetup(true);
@@ -446,6 +464,15 @@ const SolutionsFilter = ({
         selectedValues.push(subdivision);
         ids.push(option.value);
       });
+      // const divisionId = selectedValues[0].division;
+      // const noneSubDivValue = `EMPTY@-@${divisionId}`;
+      // if (!ids.includes(noneSubDivValue)) {
+      //   const subdivision: ISubDivisionSolution = { id: '0', name: null, division: divisionId };
+      //   subdivision.id = noneSubDivValue;
+      //   subdivision.name = 'None';
+      //   selectedValues.unshift(subdivision);
+      //   ids.unshift(noneSubDivValue);
+      // }
     }
     focusedItems['subDivision'] && applyFilter('subDivision', ids);
     setSubDivisionFilterValues(selectedValues);
@@ -520,15 +547,16 @@ const SolutionsFilter = ({
 
   const saveFilterPreference = () => {
     let divisionsWithSubDivisions;
-    if (subDivisionFilterValues.length > 0) {
+    if (queryParams.subDivision.length > 0) {
       const tempArr: any[] = [];
       divisionFilterValues.forEach((item) => {
-        const tempSubdiv = subDivisionFilterValues.map((value: any) => {
-          const tempSubDivId = value.id.split('@-@')[1];
-          if (item.id === tempSubDivId) {
+        const tempSubdiv = queryParams.subDivision.map((value: string) => {
+          const tempSubDivId = value.split('@-@')[1];
+          const subDivObject = subDivisionsOfSelectedDivision.find((subDiv: ISubDivisionSolution) => subDiv.id === value);
+          if (item.id === tempSubDivId && subDivObject) {
             const tempSubDivObj: IDivision = { id: '', name: '' };
-            tempSubDivObj.id = value.id.split('@-@')[0];
-            tempSubDivObj.name = value.name;
+            tempSubDivObj.id = value.split('@-@')[0];
+            tempSubDivObj.name = subDivObject.name;
             return tempSubDivObj;
           }
         });
@@ -536,6 +564,12 @@ const SolutionsFilter = ({
         tempObj.id = item.id;
         tempObj.name = item.name;
         tempObj.subdivisions = tempSubdiv.filter((div) => div);
+        if(!tempObj.subdivisions.some((tempSubDiv: any) => tempSubDiv.name === 'None') && queryParams.subDivision.some((subDivId: string) => subDivId === `EMPTY@-@${item.id}`)) {
+          tempObj.subdivisions.unshift({
+            id: 'EMPTY',
+            name: 'None',
+          });
+        }
         tempArr.push(tempObj);
       });
       divisionsWithSubDivisions = tempArr;
@@ -636,7 +670,7 @@ const SolutionsFilter = ({
     newQueryParams.phase = phases.map((phase: IPhase) => {
       return phase.id;
     });
-    newQueryParams.division = divisions.map((division: IDivision) => {
+    newQueryParams.division = divisions.map((division: IDivisionFilterPreference) => {
       return division.id;
     });
     ApiClient.getSubDivisionsData(divisions).then((subDivisionsList) => {
@@ -688,6 +722,31 @@ const SolutionsFilter = ({
     }
   };
 
+  const getSubDivisionsOfSelectedDivision = () => {
+    let subDivisionsOfSelectedDivision: ISubDivisionSolution[] = divisionFilterValues.length ? [] : subDivisions;
+    divisionFilterValues.forEach((div: IDivision) => {
+      const subDivisionsFromDivision = divisions.find((masterDiv: IDivisionFilterPreference) => masterDiv.id === div.id)?.subdivisions;
+      subDivisionsFromDivision?.forEach((subdivision: ISubDivisionSolution) => {
+        if (subdivision.id.indexOf('@-@') === -1) { // Making sure if divisiona and subdivision mappping already performed donot do again
+          subdivision.id = subdivision.id + '@-@' + div.id;
+          subdivision.division = div.id;
+        }
+        subDivisionsOfSelectedDivision = subDivisionsOfSelectedDivision.concat(subdivision);
+      });
+      // subDivisionsOfSelectedDivision = subDivisionsOfSelectedDivision.concat(subDivisionsFromDivision);
+      // subDivisionsOfSelectedDivision = subDivisionsOfSelectedDivision.concat(subDivisions.filter((subDiv: ISubDivisionSolution) => subDiv.division === div.id) as ISubDivisionSolution[]);
+    });
+
+    if(subDivisionsOfSelectedDivision.length && !subDivisionsOfSelectedDivision.some((item: ISubDivisionSolution) => item.name === 'None')) {
+      const lastDivisionId = divisionFilterValues[divisionFilterValues.length - 1].id;
+      subDivisionsOfSelectedDivision.unshift({ id: `EMPTY@-@${lastDivisionId}`, name: 'None', division: lastDivisionId } as ISubDivisionSolution);
+    } else {
+      subDivisionsOfSelectedDivision.sort((item) => item.name === 'None'? -1 : 0);
+    }
+
+    return subDivisionsOfSelectedDivision;
+  };
+
   if (openFilters) {
     if (document.getElementById('filterContainer')) {
       const height = document?.getElementById('filterContainerDiv')?.clientHeight; // taking height of child div
@@ -699,10 +758,7 @@ const SolutionsFilter = ({
     }
   }
 
-  let subDivisionsOfSelectedDivision: ISubDivisionSolution[] = divisionFilterValues.length ? [] : subDivisions;
-  divisionFilterValues.forEach((div: IDivision) => {
-    subDivisionsOfSelectedDivision = subDivisionsOfSelectedDivision.concat(subDivisions.filter((subDiv: ISubDivisionSolution) => subDiv.division === div.id) as ISubDivisionSolution[]);
-  });
+  const subDivisionsOfSelectedDivision: ISubDivisionSolution[] = getSubDivisionsOfSelectedDivision();
 
   return (
     <FilterWrapper openFilters={openFilters}>
@@ -729,7 +785,7 @@ const SolutionsFilter = ({
               </label>
               <div className=" custom-select">
               <select id="divisionSelect" multiple={true} onChange={onDivisionChange} value={queryParams?.division}>
-                  {divisions.map((obj: IDivision) => (
+                  {divisions.map((obj: IDivisionFilterPreference) => (
                   <option id={obj.name + obj.id} key={obj.id} value={obj.id}>
                       {obj.name}
                   </option>

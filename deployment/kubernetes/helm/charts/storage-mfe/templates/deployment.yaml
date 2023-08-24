@@ -40,6 +40,13 @@ spec:
           configMap:
             name: {{ include "storage-mfe.fullname" . }}  
         {{- end }}           
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: ScheduleAnyway
+          labelSelector:
+            matchLabels:
+              {{- include "storage-mfe.selectorLabels" . | nindent 14 }}          
       containers:
         - name: {{ .Chart.Name }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"

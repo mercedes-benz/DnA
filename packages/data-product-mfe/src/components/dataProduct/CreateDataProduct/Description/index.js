@@ -1118,7 +1118,7 @@ const Description = ({
                 style={{ minHeight: '50px' }}
               >
                 <label className={classNames(Styles.inputLabel, 'input-label')}>
-                  Minimum Information Check
+                  Usage Information Check
                 </label>
                 
                 <div className={Styles.minimumInformationCheckSection}>
@@ -1131,7 +1131,7 @@ const Description = ({
                       {(accessType?.length == 1 && accessType?.includes('Live (SAC/AFO)')) || confidentialityInDescription == 'Internal' && (personalRelatedDataInDescription=='No' && deletionRequirementInDescription=='No' && restrictDataAccess=='No') ?
                         <><b>No Minimum information required.</b> Please make sure to comply with A22 policies when using SAP/IDM.</>
                       :
-                        <><b>Minimum information required.</b> You can either move on by selecting an existing Minimum information to review/edit or fill out the required provider-form in the next few steps. We already selected a fitting How-To-Access information to show your consumers in the next section.</>
+                        <><b>Usage information required.</b> You can either move on by selecting an existing Usage information to review/edit or fill out the required provider-form in the next few steps. We already selected a fitting How-To-Access information to show your consumers in the next section.</>
                       }
                       </p>
                     </div>
