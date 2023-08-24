@@ -11,6 +11,7 @@ import { ConnectionModal } from '../ConnectionInfo/ConnectionModal';
 
 import Modal from 'dna-container/Modal';
 import InfoModal from 'dna-container/InfoModal';
+import ConfirmModal from 'dna-container/ConfirmModal';
 import SelectBox from 'dna-container/SelectBox';
 
 import { hideConnectionInfo } from '../ConnectionInfo/redux/connection.actions';
@@ -29,6 +30,8 @@ const CreateBucket = ({ user }) => {
     write: true,
   });
   const [showInfoModal, setInfoModal] = useState(false);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [ownerId, setOwnerId] = useState('');
 
   const [bucketCollaborators, setBucketCollaborators] = useState([]);
   const [bucketNameError, setBucketNameError] = useState('');
@@ -268,6 +271,27 @@ const CreateBucket = ({ user }) => {
       });
       setBucketCollaborators(currentCollList);
     };
+  };
+
+  const onTransferOwnership = (userId) => {
+    setOwnerId(userId);
+    setShowConfirmModal(true);
+  };
+
+  const onAcceptTransferOwnership = () => {
+    ProgressIndicator.show();
+    bucketsApi
+      .transferOwnership(bucketName, ownerId)
+      .then((res) => {
+        ProgressIndicator.hide();
+        Notification.show('Ownership transferred successfully.');
+        setShowConfirmModal(false);
+        location.reload();
+      })
+      .catch(() => {
+        ProgressIndicator.hide();
+        Notification.show('Error while transferring ownership', 'alert');
+      });
   };
 
   const handleCheckbox = (e) => {
@@ -518,10 +542,16 @@ const CreateBucket = ({ user }) => {
                                     </div>
                                   </div>
                                   <div className={Styles.collUserTitleCol}>
-                                    <div className={Styles.deleteEntry} onClick={onCollabaratorDelete(item.accesskey)}>
+                                    <div className={Styles.deleteEntry} onClick={() => onCollabaratorDelete(item.accesskey)}>
                                       <i className="icon mbc-icon trash-outline" />
                                       Delete Entry
                                     </div>
+                                    {isOwner && 
+                                      <div className={Styles.deleteEntry} onClick={() => onTransferOwnership(item.accesskey)}>
+                                        <i className="icon mbc-icon comparison" />
+                                        Transfer Ownership
+                                      </div>
+                                    }
                                   </div>
                                 </div>
                               );
@@ -600,6 +630,38 @@ const CreateBucket = ({ user }) => {
           showCancelButton={false}
           content={bucketNameRulesContent}
           onCancel={() => setInfoModal(false)}
+        />
+      )}
+      {showConfirmModal && (
+        <ConfirmModal
+          title={'Transfer Ownership'}
+          showAcceptButton={false}
+          showCancelButton={false}
+          show={showConfirmModal}
+          removalConfirmation={true}
+          showIcon={false}
+          showCloseIcon={true}
+          content={
+            <div className={Styles.transferOwnership}>
+              <div className={Styles.transferIcon}>
+                <i className={classNames('icon mbc-icon comparison')} />
+              </div>
+              <div>
+                You are going to transfer ownership.<br />You will no longer be the owner of this bucket.<br />
+                Are you sure you want to proceed?
+              </div>
+              <div className={Styles.yesBtn}>
+                <button
+                  className={'btn btn-secondary'}
+                  type="button"
+                  onClick={onAcceptTransferOwnership}
+                >
+                  Yes
+                </button>
+              </div>
+            </div>
+          }
+          onCancel={() => setShowConfirmModal(false)}
         />
       )}
     </>
