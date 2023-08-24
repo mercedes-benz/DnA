@@ -370,6 +370,7 @@ export const deserializeFormData = ({ item, type = 'provider', isDataProduct = f
           kafkaArray: item?.howToAccessTemplate?.accessDetailsCollectionVO[0]?.stepCollectionVO ? item?.howToAccessTemplate?.accessDetailsCollectionVO[0]?.stepCollectionVO : [],
           liveAccessArray: item?.howToAccessTemplate?.accessDetailsCollectionVO[1]?.stepCollectionVO ? item?.howToAccessTemplate?.accessDetailsCollectionVO[1]?.stepCollectionVO : [],
           apiArray: item?.howToAccessTemplate?.accessDetailsCollectionVO[2]?.stepCollectionVO ? item?.howToAccessTemplate?.accessDetailsCollectionVO[2]?.stepCollectionVO : [],
+          trinoArray: item?.howToAccessTemplate?.accessDetailsCollectionVO[3]?.stepCollectionVO ? item?.howToAccessTemplate?.accessDetailsCollectionVO[3]?.stepCollectionVO : [],
           // useTemplate: item?.howToAccessTemplate?.useTemplate,
           useTemplate: item?.access?.accessType,
           accessTypeTab: item?.accessTypeTab,
@@ -388,7 +389,7 @@ export const deserializeFormData = ({ item, type = 'provider', isDataProduct = f
           complianceOfficer: item?.contactInformation?.localComplianceOfficer?.split(),
           planningIT: item?.contactInformation?.appId,          
 
-          confidentiality: item?.classificationConfidentiality?.confidentiality || item?.access?.confidentiality || 'Secret',
+          confidentiality: item?.classificationConfidentiality?.confidentiality || item?.access?.confidentiality || 'Internal',
           classificationOfTransferedData: item?.classificationConfidentiality?.description,
 
           personalRelatedDataDescription: item?.personalRelatedData?.description,
