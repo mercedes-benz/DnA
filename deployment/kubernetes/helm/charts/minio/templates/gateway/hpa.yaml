@@ -1,5 +1,5 @@
 {{- if .Values.gateway.autoscaling.enabled }}
-apiVersion: autoscaling/v2beta1
+apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
   name: {{ template "common.names.fullname" . }}

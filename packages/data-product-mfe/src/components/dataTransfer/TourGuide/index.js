@@ -33,14 +33,14 @@ const TourGuide = () =>
           requires the responsible Information Owner(s) usually coordinated by the corresponding business owner of
           application to:
           <ul style={{ margin: '10px 0px' }}>
-            <li>Document minimum information for their data before sharing it (task on data providing side)</li>
+            <li>Document usage information for their data before sharing it (task on data providing side)</li>
             <li>
-              Familiarize themselves with and implementing the minimum information of data they receive before
+              Familiarize themselves with and implementing the usage information of data they receive before
               processing it (task on data receiving side)
             </li>
           </ul>
           To enable you to comply with these requirements, we, the Data Governance Office FM together with our
-          colleagues from DnA Platform are happy to introduce the latest version of the A22 Minimum Information Process.
+          colleagues from DnA Platform are happy to introduce the latest version of the A22 Usage Information Process.
         </div>
         {/* {guideData.map((item, index) => {
         return (

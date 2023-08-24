@@ -15,6 +15,8 @@ begin
     	FROM dataproduct_nsql
 	where jsonb_extract_path_text(data,'recordStatus') <> 'DELETED'
 	and data->'access' IS NULL
+	and data->'kafka' IS NOT NULL 
+	and data->'oneApi' IS NOT NULL
 
 	loop
 		UPDATE dataproduct_nsql i

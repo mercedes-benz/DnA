@@ -71,7 +71,10 @@ const Header:React.FC<IHeaderProps> = (props) => {
           setNotifications(response.records);
           setTotalRecordCount(response.totalRecordCount)
         })
-        .catch(() => {
+        .catch((error) => {
+          if(error?.message) {
+            Notification.show(error.message, 'alert');
+          }
           clearInterval(window.NOTIFICATION_POLL_ID);
         });
     }

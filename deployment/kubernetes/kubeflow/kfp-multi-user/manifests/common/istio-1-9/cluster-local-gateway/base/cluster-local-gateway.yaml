@@ -257,7 +257,7 @@ spec:
           optional: true
           secretName: istio-ingressgateway-ca-certs
 ---
-apiVersion: policy/v1beta1
+apiVersion: policy/v1
 kind: PodDisruptionBudget
 metadata:
   name: cluster-local-gateway

@@ -26,6 +26,13 @@ spec:
       {{- if .Values.vaultInjector.enable }}         
       serviceAccountName: {{ .Values.vaultInjector.saName }}
       {{- end }}      
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: ScheduleAnyway
+          labelSelector:
+            matchLabels:
+              app: {{ .Release.Name }}        
       containers:
         - name: backend
           image: {{ .Values.app.backend.image }}

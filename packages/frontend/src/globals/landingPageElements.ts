@@ -135,9 +135,9 @@ export const DataGovernanceElements = [
     svgIcon: 'datagovernancesocialintranet',
   },
   {
-    name: 'Minimum Information',
+    name: 'Usage Information',
     description:
-      'Sharing Data? Fill out the required Minimum Information (Policy A22) to let the receiving side know of any restriction when using the data.',
+      'Sharing Data? Fill out the required Usage Information (Policy A22) to let the receiving side know of any restriction when using the data.',
     tags: ['Self Service', 'FOSS'],
     url: '/data/datasharing/create',
     isExternalLink: false,

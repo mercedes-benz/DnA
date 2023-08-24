@@ -40,6 +40,7 @@ export const Envs = {
       : EnvParser.parseBool(process.env.OIDC_DISABLED, true),
 
   API_BASEURL: getInjectedEnv('API_BASEURL') || process.env.API_BASEURL,
+  LOGINREDIRECTURL: getInjectedEnv('LOGINREDIRECTURL') || process.env.LOGINREDIRECTURL,
   DATAIKU_API_BASEURL: getInjectedEnv('DATAIKU_API_BASEURL') || process.env.DATAIKU_API_BASEURL,
   DATA_PIPELINES_API_BASEURL: getInjectedEnv('DATA_PIPELINES_API_BASEURL') || process.env.DATA_PIPELINES_API_BASEURL,
   DATA_PIPELINES_APP_BASEURL: getInjectedEnv('DATA_PIPELINES_APP_BASEURL') || process.env.DATA_PIPELINES_APP_BASEURL,
