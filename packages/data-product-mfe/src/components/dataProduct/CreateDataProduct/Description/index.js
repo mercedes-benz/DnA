@@ -34,7 +34,7 @@ const Description = ({
   onChangeDeletionRequirementInDescription,
   onChangeRestrictDataAccess,
   artList, carlaFunctionList, dataCatalogList, platformList, 
-  frontEndToolList, tagsList, isCreatePage }) => {
+  frontEndToolList, tagsList, isCreatePage, canShowCopyHowToAccess }) => {
   const {
     register,
     formState: { errors, 
@@ -90,6 +90,8 @@ const Description = ({
   const [numberedApiStep, setNumberedApiStep] = useState(0);
   const [numberedTrinoStep, setNumberedTrinoStep] = useState(0);
 
+  const [canShowCopyHowToAccessFlag, setCanShowCopyHowToAccessFlag] = useState(false);
+
   const [stepsList, setStepsList] = useState([]);
   const [showPreviewModal, setShowPreviewModal] = useState(false);
 
@@ -116,6 +118,44 @@ const Description = ({
     reset(watch());
     //eslint-disable-next-line
   }, []);
+
+  useEffect(()=>{
+    setCanShowCopyHowToAccessFlag(canShowCopyHowToAccess);
+    //eslint-disable-next-line
+  },[canShowCopyHowToAccess])
+
+  useEffect(() => {
+    if (!canShowCopyHowToAccessFlag) {
+        const howToAccessObj = {
+          "accessDetailsCollectionVO": [
+            {
+              "accessType": "access-via-kafka",
+              "stepCollectionVO": []
+            },
+            {
+              "accessType": "live-access",
+              "stepCollectionVO": []
+            },
+            {
+              "accessType": "api-access",
+              "stepCollectionVO": []
+            },
+            {
+              "accessType": "trino-access",
+              "stepCollectionVO": []
+            }
+          ],
+          "useTemplate": []
+        };
+        
+        setValue('howToAccessTemplate', howToAccessObj);
+        setValue('kafkaArray', []);
+        setValue('liveAccessArray', []);
+        setValue('trinoArray', []);
+        setValue('apiArray', []);
+    }
+    //eslint-disable-next-line
+  }, [kafkaFields, liveAccessFields, apiFields, trinoFields]);
 
   useEffect(() => {
     // const kafkaStepsMaxCount = Math.max.apply(Math, kafkaFields?.map(function(o) { return o.stepNumber; }));
@@ -1242,6 +1282,7 @@ const Description = ({
                     <button
                       className={classNames('data-row', Styles.listViewContainer)}
                       onClick={ ()=>{
+                        setCanShowCopyHowToAccessFlag(true);
                         kafkaAppend({
                         "stepNumber": '',
                         "stepIconType": "",
@@ -1287,6 +1328,7 @@ const Description = ({
                     <button
                       className={classNames('data-row', Styles.listViewContainer)}
                       onClick={ ()=>{
+                        setCanShowCopyHowToAccessFlag(true);
                         liveAccessAppend({
                         "stepNumber": '',
                         "stepIconType": "",
@@ -1330,6 +1372,7 @@ const Description = ({
                     <button
                       className={classNames('data-row', Styles.listViewContainer)}
                       onClick={ ()=>{
+                        setCanShowCopyHowToAccessFlag(true);
                         apiAppend({
                         "stepNumber": '',
                         "stepIconType": "",
@@ -1373,6 +1416,7 @@ const Description = ({
                     <button
                       className={classNames('data-row', Styles.listViewContainer)}
                       onClick={ ()=>{
+                        setCanShowCopyHowToAccessFlag(true);
                         trinoAppend({
                         "stepNumber": '',
                         "stepIconType": "",
