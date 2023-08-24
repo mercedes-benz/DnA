@@ -26,6 +26,13 @@ spec:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
       imagePullSecrets:
         - name: {{ .Values.imagePullSecrets.name | quote }}
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: ScheduleAnyway
+          labelSelector:
+            matchLabels:
+              {{- include "model-registry.selectorLabels" . | nindent 14 }}          
       containers:
         - name: {{ .Chart.Name }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"

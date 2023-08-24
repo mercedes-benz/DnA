@@ -40,6 +40,13 @@ spec:
           configMap:
             name: {{ include "data-product-mfe.fullname" . }}  
         {{- end }}           
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: ScheduleAnyway
+          labelSelector:
+            matchLabels:
+              {{- include "data-product-mfe.selectorLabels" . | nindent 14 }}          
       containers:
         - name: {{ .Chart.Name }}
           securityContext:

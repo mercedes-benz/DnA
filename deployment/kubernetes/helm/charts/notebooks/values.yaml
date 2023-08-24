@@ -23,9 +23,11 @@ app:
 
   proxy:
     image: ""
+    replicas: 1
 
   hubConfig:
     name: hub-config
+    replicas: 1
     KubeSpawnerimage: ""
     serviceAccount: hub 
     securitycontext: ""
@@ -61,3 +63,9 @@ Storage:
 resources:
   cpu: 1
   memory: 4G
+
+podDisruptionBudget:
+  enabled: false
+  # Uncomment only one of the following when enabled is set to true
+  # maxUnavailable: "50%"
+  # minAvailable: "50%"

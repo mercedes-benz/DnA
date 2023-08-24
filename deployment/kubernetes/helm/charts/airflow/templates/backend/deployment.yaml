@@ -6,7 +6,7 @@ metadata:
   labels:
     name: {{ .Chart.Name }}-backend
 spec:
-  replicas: 1
+  replicas: {{ .Values.backend.replicas }}
   selector:
     matchLabels:
       name: {{ .Chart.Name }}-backend
@@ -37,6 +37,13 @@ spec:
             mountPath: /git-secrets
           command: ["/bin/sh", "-c"]
           args: ["/tmp/airflow-git-init.sh"]
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: ScheduleAnyway
+          labelSelector:
+            matchLabels:
+              name: {{ .Chart.Name }}-backend       
       containers:
         - name: {{ .Chart.Name }}-backend-rest
           image: {{ .Values.backend.image }}

@@ -6,7 +6,7 @@ metadata:
   labels:
     name: {{ .Chart.Name }}
 spec:
-  replicas: 1
+  replicas: {{ .Values.replicas }}
   selector:
     matchLabels:
       name: {{ .Chart.Name }}
@@ -24,6 +24,13 @@ spec:
       {{- if .Values.vaultInjector.enable }}         
       serviceAccountName: {{ .Values.vaultInjector.saName }}
       {{- end }}     
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: ScheduleAnyway
+          labelSelector:
+            matchLabels:
+              name: {{ .Chart.Name }}
       containers:
         - name: {{ .Chart.Name }}-service
           image: {{ .Values.image }}
