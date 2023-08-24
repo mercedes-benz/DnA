@@ -594,21 +594,21 @@ const CreateDataProduct = ({ user, history }) => {
 
     if(values['accessType']?.includes('Kafka')){
       values['kafkaArray']?.map((item) => {
-        if(item.stepNumber == '' || item.stepNumber == null || item.stepNumber == undefined)
+        if(item.stepNumber === '' || item.stepNumber === null || item.stepNumber === undefined)
           showStepError = true;
       })
     }
 
     if(values['accessType']?.includes('Live (SAC/AFO)')){
       values['liveAccessArray']?.map((item) => {
-        if(item.stepNumber == '' || item.stepNumber == null || item.stepNumber == undefined)
+        if(item.stepNumber === '' || item.stepNumber === null || item.stepNumber === undefined)
           showStepError = true;
       })
     }
 
     if(values['accessType']?.includes('API')){
       values['apiArray']?.map((item) => {
-        if(item.stepNumber == '' || item.stepNumber == null || item.stepNumber == undefined)
+        if(item.stepNumber === '' || item.stepNumber === null || item.stepNumber === undefined)
           showStepError = true;
       })
     }
