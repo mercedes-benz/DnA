@@ -356,7 +356,7 @@
   become_user: "{{dss_system_user}}"
   shell: "{{dss_data_directory}}/bin/dssadmin encrypt-password {{azure_app_secret}}"
   register: sso_azure_secret
-  tags: [ training, prod, automation_node ]
+  tags: [ training, prod, automation_node , ad_sync ]
 
 - name: Install dataiku-api-client for managing Dataiku from the code
   pip:
@@ -370,7 +370,7 @@
     cmd: "rm -f azure-ad-sync.zip; zip -r azure-ad-sync.zip dss-plugin-azure-ad-sync/"
     chdir: "{{playbook_dir}}/../../"
   delegate_to: localhost
-  tags: [ training, prod, automation_node  ]
+  tags: [ training, prod, automation_node , ad_sync ]
 
 - name: Upload Azure Ad Sync Plugin package
   copy:
@@ -378,7 +378,7 @@
     dest: "{{dss_data_directory}}/plugins/"
     owner: "{{dss_system_user}}"
     group: "{{dss_system_user}}"
-  tags: [ training, prod, automation_node ]
+  tags: [ training, prod, automation_node , ad_sync]
 
 - name: Prepare Azure AD Project Plugin Package
   become: no
@@ -420,15 +420,6 @@
     owner: "{{dss_system_user}}"
     group: "{{dss_system_user}}"
   tags: [ training, prod, automation_node ]
-
-- name: Downloading api connect Plugin
-  become_user: "{{dss_system_user}}"
-  get_url:
-    url: "{{dss_api_connect_plugin_url}}"
-    dest: "{{dss_data_directory}}/plugins"
-    owner: "{{dss_system_user}}"
-    group: "{{dss_system_user}}"
-  tags: [ training, prod, automation_node ]  
 
 - name: Downloading Model Drift Plugin
   become_user: "{{dss_system_user}}"
@@ -477,7 +468,7 @@
   become_user: "{{dss_system_user}}"
   shell: "{{dss_data_directory}}/bin/dsscli api-keys-list --output json | jq -r '.[0].key'"
   register: dataiku_api_key
-  tags: [ training, prod, automation_node ]
+  tags: [ training, prod, automation_node, ad_sync ]
 
 - name: Update default dataiku settings
   dataiku_default_settings:
@@ -497,7 +488,7 @@
     settings:
       - key: "presets"
         value: "{{ lookup('template', 'ad_sync_config.json') }}"
-  tags: [ training, prod, automation_node]
+  tags: [ training, prod, automation_node ,ad_sync ]
 
 - name: Install Azure AD Project Plugin
   dataiku_install_plugin:
@@ -527,15 +518,6 @@
   dataiku_install_plugin:
     name: "timeseries-forecast"
     archive_path: "{{dss_data_directory}}/plugins/{{dss_timeseries_forecast_plugin_name}}"
-    api_host: "http://localhost:{{dss_port}}"
-    api_key: "{{dataiku_api_key.stdout}}"
-    force_update: true
-  tags: [ training, prod, automation_node ]
-
-- name: Install api-connect Plugin
-  dataiku_install_plugin:
-    name: "api-connect"
-    archive_path: "{{dss_data_directory}}/plugins/dss-plugin-api-connect-1.1.1.zip"
     api_host: "http://localhost:{{dss_port}}"
     api_key: "{{dataiku_api_key.stdout}}"
     force_update: true
