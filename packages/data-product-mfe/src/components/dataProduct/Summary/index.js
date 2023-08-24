@@ -368,7 +368,10 @@ const Summary = ({ history, user }) => {
               onClick={() =>
                 history.push({
                   pathname: '/dataproduct/create',
-                  state: { copyId: selectedDataProduct?.dataProductId },
+                  state: { 
+                    copyId: selectedDataProduct?.dataProductId, 
+                    canShowCopyHowToAccess: isCreator || myDataTransfer?.length ? true : false 
+                  },
                 })
               }
             >
