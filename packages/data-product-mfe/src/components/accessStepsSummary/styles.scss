@@ -115,7 +115,7 @@
 
 .howToAccessStepsSection{
   background-color: #1c2026;
-  padding: 25px 45px;
+  padding: 12px 45px;
   // display: table;
   // width: 100%;
   // display: flex;
@@ -164,9 +164,11 @@
               min-height: 85px;
             }
             .stepDescription{
-              height: 20px;
-              overflow-y: auto;
+              // height: 50px;
+              // overflow-y: auto;
               margin-bottom: 10px;
+              overflow-x: hidden;
+              overflow-wrap: break-word;
             }
             .stepDescription[placeholder]:empty:before {
               content: attr(placeholder);

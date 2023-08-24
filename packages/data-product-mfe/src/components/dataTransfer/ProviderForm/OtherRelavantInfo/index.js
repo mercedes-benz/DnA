@@ -53,7 +53,12 @@ currentTab }) => {
   const isDisabled = !teamMembers.length && !provideDataTransfers.selectedDataTransfer.users?.length ? true : false;
   const hasUsers = watch('users');
 
-  const {accessType, confidentialityInDescription} = watch();
+  const {accessType, 
+    confidentialityInDescription,
+    personalRelatedDataInDescription,
+    deletionRequirementInDescription,
+    restrictDataAccess
+  } = watch();
 
   const [isCreator, setIsCreator] = useState(false);
   const [isInformationOwner, setIsInformationOwner] = useState(false);
@@ -238,7 +243,7 @@ currentTab }) => {
       
       <div className="btnContainer">
         <div className="btn-set">
-        {accessType?.length === 0 || ((accessType?.length == 1 && accessType?.includes('Live (SAC/AFO)')) || confidentialityInDescription == 'Internal') ? 
+        {accessType?.length === 0 || ((accessType?.length == 1 && accessType?.includes('Live (SAC/AFO)')) || (confidentialityInDescription == 'Internal'  && (personalRelatedDataInDescription=='No' && deletionRequirementInDescription=='No' && restrictDataAccess=='No'))) ? 
           <button
             className={'btn btn-primary'}
             type="button"
