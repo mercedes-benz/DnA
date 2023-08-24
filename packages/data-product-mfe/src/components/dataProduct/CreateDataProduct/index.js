@@ -100,6 +100,7 @@ const CreateDataProduct = ({ user, history }) => {
 
   const { id: dataProductId } = useParams();
   let createCopyId = history.location?.state?.copyId;
+  const canShowCopyHowToAccess = history.location?.state?.canShowCopyHowToAccess;
 
   const userInfo = {
     addedByProvider: true,
@@ -199,6 +200,7 @@ const CreateDataProduct = ({ user, history }) => {
   //   }
   // }, [user]);
 
+  
   useEffect(() => {
     const { id } = data.selectedDataProduct;
     if (isCreatePage && !createCopyId) {
@@ -210,12 +212,11 @@ const CreateDataProduct = ({ user, history }) => {
         dataForms['contact-info'].name = userInfo;
         reset({ ...data, ...dataForms['contact-info'] }); // setting default values
       }
-    }
+    }    
     if (id) {
       let defaultValues = { ...data.selectedDataProduct };
       reset(defaultValues); // setting default values
     }
-
     if(data.selectedDataProduct.isPublish){
       setIsTouChecked(true)
     }
@@ -819,6 +820,7 @@ const CreateDataProduct = ({ user, history }) => {
                   tagsList={tags}
                   isDataProduct={true}
                   isCreatePage={isCreatePage}
+                  canShowCopyHowToAccess={canShowCopyHowToAccess}
                   onChangeAccessType={(val)=>{setCurrentAccessType(val)}}
                   onChangeConfidentialityInDescription={(val)=>{setCurrentConfidentialityInDescription(val)}}
                   onChangePersonalRelatedDataInDescription={(val)=>{setCurrentPersonalRelatedDataInDescription(val)}}
