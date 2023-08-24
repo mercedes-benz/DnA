@@ -148,6 +148,7 @@
 
             .deleteEntry {
               cursor: pointer;
+              margin-right: 20px;
             }
             .writeAccess {
               cursor: pointer;
@@ -204,6 +205,31 @@
   justify-content: space-between;
   > div {
     width: calc(50% - 30px);
+  }
+}
+.transferOwnership {
+  margin: 35px 0;
+  text-align: center;
+}
+.transferIcon {
+  border: 2px solid #d8d8d8;
+  width: 54px;
+  height: 54px;
+  line-height: 50px;
+  border-radius: 100%;
+  margin: 0 auto 24px;
+
+  i {
+    color: #00adef;
+    font-size: 18px;
+    margin: 0;
+  }
+} 
+.yesBtn {
+  margin-top: 40px;
+
+  button {
+    background-color: #383f49 !important;
   }
 }
 
