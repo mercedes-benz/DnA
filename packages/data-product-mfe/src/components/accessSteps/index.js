@@ -50,9 +50,20 @@ const AccessSteps = (
 
   useEffect(() => {
     SelectBox.defaultSetup(true);
-    console.log(value,'Showing value coming from parent');
     //eslint-disable-next-line
   }, [enableEdit]);
+
+  
+
+  const onContentPaste = () => {
+    navigator.clipboard.readText()
+      .then(clipText => {
+        let tempText2 = markdownParserText;
+        tempText2 += clipText.replace(/\n|\r/g, "");                        
+        setValue('stepText',htmlToMarkdownParser(tempText2));
+        setMarkdownParserText(tempText2);
+      });
+  }
 
   useEffect(() => {
     setValue(`stepNumber`, numberedStep );
@@ -212,7 +223,7 @@ const AccessSteps = (
                             <p contentEditable={enableEdit ? "true" : "false"} {...register('stepText')}
                               className={Styles.stepDescription}
                               onKeyPress={(e) => {
-                                if(e.target.innerText.length > 500){
+                                if(e.target.innerText.length > 1000){
                                   e.preventDefault()
                                 }
                                 // setValue('stepText',htmlToMarkdownParser(e.target.innerHTML))
@@ -226,6 +237,7 @@ const AccessSteps = (
                                   setMarkdownParserText(tempText2);
                                 }
                               }}
+                              onPaste={()=>onContentPaste()}
                               dangerouslySetInnerHTML={{
                                 __html: markdownParserText,
                               }}
