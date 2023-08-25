@@ -282,7 +282,7 @@ const CreateBucket = ({ user }) => {
     ProgressIndicator.show();
     bucketsApi
       .transferOwnership(bucketName, ownerId)
-      .then((res) => {
+      .then(() => {
         ProgressIndicator.hide();
         Notification.show('Ownership transferred successfully.');
         setShowConfirmModal(false);
