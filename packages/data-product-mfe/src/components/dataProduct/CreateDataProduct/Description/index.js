@@ -34,7 +34,8 @@ const Description = ({
   onChangeDeletionRequirementInDescription,
   onChangeRestrictDataAccess,
   artList, carlaFunctionList, dataCatalogList, platformList, 
-  frontEndToolList, tagsList, isCreatePage, canShowCopyHowToAccess }) => {
+  frontEndToolList, tagsList, isCreatePage
+ }) => {
   const {
     register,
     formState: { errors, 
@@ -90,8 +91,7 @@ const Description = ({
   const [numberedApiStep, setNumberedApiStep] = useState(0);
   const [numberedTrinoStep, setNumberedTrinoStep] = useState(0);
 
-  const [canShowCopyHowToAccessFlag, setCanShowCopyHowToAccessFlag] = useState(false);
-
+  
   const [stepsList, setStepsList] = useState([]);
   const [showPreviewModal, setShowPreviewModal] = useState(false);
 
@@ -118,44 +118,6 @@ const Description = ({
     reset(watch());
     //eslint-disable-next-line
   }, []);
-
-  useEffect(()=>{
-    setCanShowCopyHowToAccessFlag(canShowCopyHowToAccess);
-    //eslint-disable-next-line
-  },[canShowCopyHowToAccess])
-
-  useEffect(() => {
-    if (!canShowCopyHowToAccessFlag) {
-        const howToAccessObj = {
-          "accessDetailsCollectionVO": [
-            {
-              "accessType": "access-via-kafka",
-              "stepCollectionVO": []
-            },
-            {
-              "accessType": "live-access",
-              "stepCollectionVO": []
-            },
-            {
-              "accessType": "api-access",
-              "stepCollectionVO": []
-            },
-            {
-              "accessType": "trino-access",
-              "stepCollectionVO": []
-            }
-          ],
-          "useTemplate": []
-        };
-        
-        setValue('howToAccessTemplate', howToAccessObj);
-        setValue('kafkaArray', []);
-        setValue('liveAccessArray', []);
-        setValue('trinoArray', []);
-        setValue('apiArray', []);
-    }
-    //eslint-disable-next-line
-  }, [kafkaFields, liveAccessFields, apiFields, trinoFields]);
 
   useEffect(() => {
     // const kafkaStepsMaxCount = Math.max.apply(Math, kafkaFields?.map(function(o) { return o.stepNumber; }));
@@ -286,7 +248,7 @@ const Description = ({
       setValue('confidentialityInDescription','');
     }
     
-    if((accessType?.length == 1 && accessType?.includes('Live (SAC/AFO)')) || accessType?.length == 0 || confidentialityInDescription == 'Internal'){
+    if((accessType?.length == 1 && accessType?.includes('Live (SAC/AFO)')) || accessType?.length == 0 ){
       setValue('personalRelatedDataInDescription', 'No');
       setValue('deletionRequirementInDescription', 'No');
       setValue('restrictDataAccess', 'No');
@@ -431,14 +393,24 @@ const Description = ({
       nextTab = 'live-access-preview';
       else if(accessType?.includes('API'))
       nextTab = 'api-access-preview';
+      else if(accessType?.includes('SQL endpoint (Trino)'))
+      nextTab = 'trino-access-preview';
       else
       nextTab = 'access-via-kafka-preview';
     }
     if(currentPreviewTab === 'live-access-preview'){
       if(accessType?.includes('API'))
       nextTab = 'api-access-preview';
+      else if(accessType?.includes('SQL endpoint (Trino)'))
+      nextTab = 'trino-access-preview';
       else
       nextTab = 'live-access-preview';
+    }
+    if(currentPreviewTab === 'api-access-preview'){
+      if(accessType?.includes('SQL endpoint (Trino)'))
+      nextTab = 'trino-access-preview';
+      else
+      nextTab = 'api-access-preview';
     }
     const tabDetails = document.getElementById(nextTab);
     tabDetails?.click();
@@ -491,6 +463,17 @@ const Description = ({
                     onClick={setPreviewTab}
                   >
                     API-Access
+                  </a>
+                </li>
+
+                <li className={accessType?.includes('SQL endpoint (Trino)') ? 'inner-preview-tab tab' : ('inner-preview-tab tab disabled ' + Styles.widthZero)}>
+                  <a
+                    className={accessType?.includes('SQL endpoint (Trino)') ? '' : 'hidden'}
+                    href="#preview-steps-tab-content-4"
+                    id="trino-access-preview"
+                    onClick={setPreviewTab}
+                  >
+                    SQL endpoint (Trino)-Access
                   </a>
                 </li>
                 
@@ -586,6 +569,30 @@ const Description = ({
                 )
               })}
             </div>
+            <div id="preview-steps-tab-content-4" className="inner-preview-tab-content tab-content">
+              
+              {currentPreviewTab === 'trino-access-preview' && trinoFields?.map((stepItem, index)=>{
+                return(
+                <fieldset key={'trino-access-preview'+stepItem.id}>  
+                <AccessSteps 
+                value={stepItem}
+                itemIndex={index}
+                showMoveUp={index !== 0}
+                showMoveDown={index + 1 !== trinoFields.length}
+                onMoveUp={(index)=>onTeamMemberMoveUp(index)}
+                onMoveDown={(index)=>onTeamMemberMoveDown(index)}
+                control={control}
+                // update={apiUpdate}
+                // remove={apiRemove}
+                numberedStep = {numberedTrinoStep}
+                updateNumberedStep = {() => setNumberedTrinoStep(numberedTrinoStep+1)}
+                arrayName={'trinoArray'}
+                isEditable={false}
+                />
+                </fieldset>
+                )
+              })}
+            </div>  
           </div>
         </div>
         <div className={Styles.actionButtonsPreview}>
@@ -912,11 +919,11 @@ const Description = ({
                 <div className={`custom-select`}>
                   <select id="confidentialityField" name="confidentialityInDescription" {...register('confidentialityInDescription',{
                     onChange:(e)=>{
-                      if(e.target.value == 'Internal'){
-                        setValue('personalRelatedDataInDescription', 'No');
-                        setValue('deletionRequirementInDescription', 'No');
-                        setValue('restrictDataAccess', 'No');
-                      }
+                      // if(e.target.value == 'Internal'){
+                      //   setValue('personalRelatedDataInDescription', 'No');
+                      //   setValue('deletionRequirementInDescription', 'No');
+                      //   setValue('restrictDataAccess', 'No');
+                      // }
                       onChangeConfidentialityInDescription(e.target.value);
                     }
                   })}>
@@ -1282,7 +1289,6 @@ const Description = ({
                     <button
                       className={classNames('data-row', Styles.listViewContainer)}
                       onClick={ ()=>{
-                        setCanShowCopyHowToAccessFlag(true);
                         kafkaAppend({
                         "stepNumber": '',
                         "stepIconType": "",
@@ -1328,7 +1334,6 @@ const Description = ({
                     <button
                       className={classNames('data-row', Styles.listViewContainer)}
                       onClick={ ()=>{
-                        setCanShowCopyHowToAccessFlag(true);
                         liveAccessAppend({
                         "stepNumber": '',
                         "stepIconType": "",
@@ -1372,7 +1377,6 @@ const Description = ({
                     <button
                       className={classNames('data-row', Styles.listViewContainer)}
                       onClick={ ()=>{
-                        setCanShowCopyHowToAccessFlag(true);
                         apiAppend({
                         "stepNumber": '',
                         "stepIconType": "",
@@ -1416,7 +1420,6 @@ const Description = ({
                     <button
                       className={classNames('data-row', Styles.listViewContainer)}
                       onClick={ ()=>{
-                        setCanShowCopyHowToAccessFlag(true);
                         trinoAppend({
                         "stepNumber": '',
                         "stepIconType": "",

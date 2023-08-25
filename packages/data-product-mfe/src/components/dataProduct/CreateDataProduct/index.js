@@ -138,7 +138,35 @@ const CreateDataProduct = ({ user, history }) => {
           delete res.data.createdBy;
           delete res.data.createdDate;
           delete res.data.lastModifiedDate;
-          delete res.data.modifiedBy;
+          delete res.data.modifiedBy; 
+          if(!canShowCopyHowToAccess){
+            const howToAccessObj = {
+              "accessDetailsCollectionVO": [
+                {
+                  "accessType": "access-via-kafka",
+                  "stepCollectionVO": []
+                },
+                {
+                  "accessType": "live-access",
+                  "stepCollectionVO": []
+                },
+                {
+                  "accessType": "api-access",
+                  "stepCollectionVO": []
+                },
+                {
+                  "accessType": "trino-access",
+                  "stepCollectionVO": []
+                }
+              ],
+              "useTemplate": []
+            };
+            res.data['howToAccessTemplate'] = howToAccessObj;
+            res.data['kafkaArray'] = [];
+            res.data['liveAccessArray'] = [];
+            res.data['trinoArray'] = [];
+            res.data['apiArray'] = [];
+          }         
         }
 
         if (res.status === 204) {
@@ -820,7 +848,6 @@ const CreateDataProduct = ({ user, history }) => {
                   tagsList={tags}
                   isDataProduct={true}
                   isCreatePage={isCreatePage}
-                  canShowCopyHowToAccess={canShowCopyHowToAccess}
                   onChangeAccessType={(val)=>{setCurrentAccessType(val)}}
                   onChangeConfidentialityInDescription={(val)=>{setCurrentConfidentialityInDescription(val)}}
                   onChangePersonalRelatedDataInDescription={(val)=>{setCurrentPersonalRelatedDataInDescription(val)}}
