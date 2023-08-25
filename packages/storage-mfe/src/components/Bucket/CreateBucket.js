@@ -286,7 +286,7 @@ const CreateBucket = ({ user }) => {
         ProgressIndicator.hide();
         Notification.show('Ownership transferred successfully.');
         setShowConfirmModal(false);
-        location.reload();
+        history.push('/');
       })
       .catch(() => {
         ProgressIndicator.hide();
