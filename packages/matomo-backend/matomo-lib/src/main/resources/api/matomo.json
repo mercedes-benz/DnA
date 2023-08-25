@@ -1,0 +1,13 @@
+{
+	"library": "spring-mvc",
+	"dateLibrary": "legacy",
+	"hideGenerationTimestamp": true,
+	"useTags": true,
+	"modelPackage": "com.daimler.data.dto.matomo",
+	"apiPackage": "com.daimler.data.api.matomo",
+	"invokerPackage": "com.daimler.data.service.matomo",
+	"importMappings": {
+		"GenericMessage": "com.daimler.data.controller.exceptions.GenericMessage",
+		"MessageDescription": "com.daimler.data.controller.exceptions.MessageDescription"
+	}
+}
