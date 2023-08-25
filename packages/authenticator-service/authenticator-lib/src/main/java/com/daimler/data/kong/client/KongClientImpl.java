@@ -226,6 +226,7 @@ public class KongClientImpl implements KongClient {
 				attachPluginConfigRequestDto.setScope(attachPluginConfigVO.getScope());
 				attachPluginConfigRequestDto.setSsl_verify(attachPluginConfigVO.getSslVerify());
 				attachPluginConfigRequestDto.setToken_endpoint_auth_method(attachPluginConfigVO.getTokenEndpointAuthMethod());
+				attachPluginConfigRequestDto.setRedirect_uri_path(attachPluginConfigVO.getRedirectUriPath());
 				requestWrapper.setConfig(attachPluginConfigRequestDto);
 				HttpEntity<AttachPluginWrapperDto> oidcRequest = new HttpEntity<AttachPluginWrapperDto>(
 						requestWrapper, headers);
