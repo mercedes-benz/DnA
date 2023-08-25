@@ -51,7 +51,7 @@ const connectToJupyterNotebook = (data) => {
 };
 
 const transferOwnership = (bucketName, userId) => {
-  return server.patch(`/buckets/${bucketName}/reAssignOwner/${userId}`);
+  return server.patch(`/buckets/${bucketName}/reAssignOwner/${userId}`, {});
 };
 
 export const bucketsApi = {
