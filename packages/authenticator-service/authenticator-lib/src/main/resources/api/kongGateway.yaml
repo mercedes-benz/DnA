@@ -460,6 +460,8 @@ definitions:
         type: string  
       scope:
         type: string
+      redirect_uri_path:
+        type: string
       claims_to_verify:
         type: string  
       key_claim_name:
