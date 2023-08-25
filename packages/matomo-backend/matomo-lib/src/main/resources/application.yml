@@ -1,0 +1,90 @@
+
+spring:
+  mvc.pathmatch.matching-strategy: ant_path_matcher
+  application:
+    name: dna-matomo-service
+    version: 1.1.2
+
+  flyway:
+    enabled: ${FLYWAY_ENABLED:false}
+    baseline-on-migrate: ${FLYWAY_BASELINE_ON_MIGRATE:false}
+    baselineVersion: ${FLYWAY_BASELINEVERSION:0}
+    schemas: ${FLYWAY_SCHEMA:public}
+
+  jpa:
+    database: POSTGRESQL
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        temp:
+          use_jdbc_metadata_defaults: false
+    hibernate:
+      ddl-auto: none
+
+  datasource:
+    hikari:
+      connection-timeout: 4000
+    platform: postgres
+    url: ${API_DB_URL:jdbc:postgresql://53.137.140.156:64000/matomo}
+    username: ${API_DB_USER:matomo}
+    password: ${API_DB_PASS:matomo}
+
+    driverClassName: org.postgresql.Driver
+
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 5MB
+
+
+dna:
+  uri: ${DNA_URI:https://***REMOVED***/}
+  dnaAuthEnable: ${DNA_AUTH_ENABLE:false}
+
+
+jwt:
+  secret:
+    key: ${JWT_SECRET_KEY:oeRaYY7Wo24sDqKSX3IM9ASGmdGPmkTd9jo1QTy4b7P9Ze5_9hKolVX8xNrQDcNRfVEdTZNOuOyqEGhXEbdJI-ZQ19k_o9MI0y3eZN2lp9jow55FfXMiINEdt1XR85VipRLSOkT6kSpzs2x-jbLDiz9iFVzkd81YKxMgPA7VfZeQUm4n-mOmnWMaVX30zGFU4L3oPBctYKkl4dYfqYWqRNfrgPJVi5DGFjywgxx0ASEiJHtV72paI3fDR2XwlSkyhhmY-ICjCRmsJN4fX1pdoL8a18-aQrvyu4j0Os6dVPYIoPvvY0SAZtWYKHfM15g7A3HD4cVREf9cUsprCRK93w}
+
+server:
+  port: 8989
+
+storage.uri : ${STORAGE_API_BASE_URL:https://storage.***REMOVED***/}
+
+#Cors Filter origin Domains
+allowedCorsOriginPatternUrl: ${CORS_ORIGIN_URL:http://*}
+
+swagger.headers.authorization.token: ${SWAGGER_HEADER_AUTH:XXXXXX}
+swagger.headers.authorization.appId: ${SWAGGER_HEADER_AUTH_APPID:XXXXXX}
+swagger.headers.authorization.apiKey: ${SWAGGER_HEADER_AUTH_APPKEY:XXXXXX}
+management.endpoints.web.exposure.include: loggers,health
+management.endpoint.loggers.enabled: true
+management.endpoint.health.probes.enabled: true
+management.endpoint.health.show-details: always
+
+proxy:
+  port: ${CUSTOMPROXY_PORT:3128}
+  host: ${CUSTOMPROXY_HOST:***REMOVED***}
+
+logging:
+  service:
+    environment: ${LOGGING_ENVIRONMENT:DEV}
+    path: ${LOGGING_PATH:/var/log}
+  level:
+    com:
+      daimler:
+        data:
+          application: INFO
+          controller.ItsmmGameController: DEBUG
+    org.springframework.boot.autoconfigure.logging: INFO
+    com.daimler.data.application.logging.ApplicationLoggingAspect: DEBUG
+    org:
+      springframework:
+        web:
+          client:
+            RestTemplate: INFO
+      hibernate:
+        type:
+          descriptor:
+            sql: ERROR
