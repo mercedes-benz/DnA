@@ -32,5 +32,7 @@ import com.daimler.data.dto.userinfo.UserInfoVO;
 import com.daimler.data.service.common.CommonService;
 
 public interface UserInfoService extends CommonService<UserInfoVO, UserInfoNsql, String> {
+	
+	void addUser(UserInfoNsql userinfo);
 
 }
