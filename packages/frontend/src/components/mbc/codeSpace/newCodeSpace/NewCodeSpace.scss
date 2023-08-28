@@ -56,6 +56,23 @@
     }
   }
 
+  .editicon {
+    align-items: center;
+    border: 1px solid #fff;
+    border-radius: 50%;
+    display: flex;
+    height: 60px;
+    justify-content: center;
+    margin: 0 auto;
+    position: relative;
+    width: 60px;
+    font-size: var(--font-size-icon-big);
+    i {
+      margin-top: -11px;
+      color: #00ADEF;
+    }
+  }
+
   .codeSpaceDetails {
     margin: 20px 0;
     label {
@@ -130,6 +147,7 @@
           overflow: auto;
           height: 80px;
           width: 100%;
+          padding-top: 3px;
           .collaboratorContentRow {
             padding: 10px 0;
             display: flex;
@@ -142,6 +160,11 @@
               }
               &:last-child {
                 max-width: 100px;
+                justify-content: right;
+                font-size: var(--font-size-icon);
+                span:hover {
+                  color: #00ADEF;
+                }
               }
               display: flex;
               align-items: center;
