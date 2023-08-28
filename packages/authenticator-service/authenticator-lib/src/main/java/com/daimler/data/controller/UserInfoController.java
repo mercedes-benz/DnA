@@ -55,6 +55,8 @@ import com.daimler.data.controller.LoginController.UserInfo;
 import com.daimler.data.db.entities.UserInfoNsql;
 import com.daimler.data.db.entities.UserRoleNsql;
 import com.daimler.data.db.jsonb.UserInfoRole;
+import com.daimler.data.dto.userinfo.Attrs;
+import com.daimler.data.dto.userinfo.DrdResponse;
 import com.daimler.data.dto.userinfo.UserInfoVO;
 import com.daimler.data.service.userinfo.UserInfoService;
 import com.daimler.data.service.userrole.UserRoleService;
@@ -101,12 +103,15 @@ public class UserInfoController {
 			@ApiResponse(code = 405, message = "Invalid input"), @ApiResponse(code = 500, message = "Internal error")})
 	@RequestMapping(value = "/users/{id}", produces = {"application/json"}, consumes = {
 			"application/json"}, method = RequestMethod.GET)
-	public ResponseEntity<UserInfoVO> getById(@RequestHeader("Authorization") String authToken,
+	public ResponseEntity<UserInfoVO> getById(
 			@ApiParam(value = "Id of the user for which information to be fetched", required = true) @PathVariable("id") String id) {
 		UserInfoVO userInfoVO = null;
 		if (id != null) {
 			try {
-			userInfoVO = this.fetchUserInfo(authToken, id);
+			userInfoVO = this.fetchUserInfo(id);
+			if (Objects.isNull(userInfoVO)) {
+				return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+			}
 			}catch(Exception e) {
 				log.info("Failed to fetch/onboard user {}", id);
 			}
@@ -116,31 +121,29 @@ public class UserInfoController {
 		}
 	}
 
-	private UserInfoVO fetchUserInfo(String accessToken, String userId) {
+	private UserInfoVO fetchUserInfo(String userId) {
 		HttpHeaders headers = new HttpHeaders();
 		headers.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));
-		headers.set("Authorization", "Bearer " + accessToken);
 		HttpEntity<String> request = new HttpEntity<String>(headers);
-		String id = "";
+		String id = userId;
 		UserInfo userInfo = new UserInfo();
-
-		try {
-			ResponseEntity<String> response = drdRestTemplate.exchange(drdRequestUrl + id, HttpMethod.GET, request,
-					String.class);
-			ObjectMapper mapper = new ObjectMapper();
-			userInfo = mapper.readValue(response.getBody(), UserInfo.class);
-			logger.info("Fetching user:{} from database.", userId);
-			id = userInfo.getId();
-		} catch (Exception e) {
-			if (userId != null && userId.toLowerCase().startsWith("TE".toLowerCase())) {
-				log.debug("Technical user {} , bypassed OIDC userinfo fetch", userId);
-				id = userId;
-			} else {
-				log.error("Failed to fetch OIDC User info", e.getMessage());
-			}
-		}
-		UserInfoVO userVO = userInfoService.getById(id);		
+		UserInfoVO userVO = userInfoService.getById(userId);
 		if (Objects.isNull(userVO)) {
+			try {
+				ResponseEntity<DrdResponse> response = drdRestTemplate.exchange(drdRequestUrl + userId, HttpMethod.GET,
+						request, DrdResponse.class);
+				userInfo = convertDrdResponseToUserInfo(response.getBody().getAttrs());
+				logger.info("Fetching user:{} from database.", userId);
+				id = userInfo.getId();
+			} catch (Exception e) {
+				if (userId != null && userId.toLowerCase().startsWith("TE".toLowerCase())) {
+					log.debug("Technical user {} , bypassed OIDC userinfo fetch", userId);
+					id = userId;
+				} else {
+					log.error("Failed to fetch OIDC User info", e.getMessage());
+				}
+				return null;
+			}
 			logger.info("User not found, adding the user:{}", id);
 			logger.debug("Setting default role as 'User' for: {}", id);
 			UserRoleNsql roleEntity = userRoleService.getRoleUser();
@@ -165,5 +168,16 @@ public class UserInfoController {
 		return userVO;
 	}
 	
+	private UserInfo convertDrdResponseToUserInfo(Attrs attrs) {
+		UserInfo userInfo = new UserInfo();		
+		userInfo.setId(attrs.getUid() != null ? attrs.getUid().get(0) : "");
+		userInfo.setFirstName(attrs.getGivenName() != null ? attrs.getGivenName().get(0) : "");
+		userInfo.setLastName(attrs.getSn() != null ? attrs.getSn().get(0) : "");
+		userInfo.setEmail(attrs.getMail() != null ? attrs.getMail().get(0) : "");
+		userInfo.setMobileNumber(attrs.getMobile() != null ? attrs.getMobile().get(0) : "");
+		userInfo.setDepartment(attrs.getDepartmentNumber() != null ? attrs.getDepartmentNumber().get(0) : "");
+		return userInfo;
+		
+	}
 
 }
