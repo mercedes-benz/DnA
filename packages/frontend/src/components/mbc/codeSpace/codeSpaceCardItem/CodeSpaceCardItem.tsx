@@ -73,7 +73,7 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
     ProgressIndicator.show();
     CodeSpaceApiClient.deleteCodeSpace(codeSpace.id)
       .then((res: any) => {
-        trackEvent('DnA Code Space', 'Deploy', 'Deploy code space');
+        trackEvent('DnA Code Space', 'Delete', 'Delete code space');
         if (res.success === 'SUCCESS') {
           props.onDeleteSuccess();
           setShowDeleteModal(false);
@@ -135,7 +135,7 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
     (prodDeployedUrl !== null && prodDeployedUrl !== 'null');
 
   const deployed = intDeployed || prodDeployed;
-  const allowDelete = isOwner && !hasCollaborators;
+  const allowDelete = isOwner ? !hasCollaborators : true;
 
   return (
     <>
