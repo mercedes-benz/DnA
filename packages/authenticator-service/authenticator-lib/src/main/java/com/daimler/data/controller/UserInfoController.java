@@ -27,19 +27,38 @@
 
 package com.daimler.data.controller;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Objects;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.client.RestTemplate;
 
 import com.daimler.data.assembler.UserInfoAssembler;
+import com.daimler.data.controller.LoginController.UserInfo;
+import com.daimler.data.controller.LoginController.UserRole;
+import com.daimler.data.db.entities.UserInfoNsql;
+import com.daimler.data.db.entities.UserRoleNsql;
+import com.daimler.data.db.jsonb.UserInfoRole;
 import com.daimler.data.dto.userinfo.UserInfoVO;
+import com.daimler.data.dto.userinfo.UserRoleVO;
 import com.daimler.data.service.userinfo.UserInfoService;
+import com.daimler.data.service.userrole.UserRoleService;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -60,7 +79,16 @@ public class UserInfoController {
 	private UserInfoService userInfoService;
 	
 	@Autowired
+	private UserRoleService userRoleService;
+	
+	@Autowired
 	private UserInfoAssembler userinfoAssembler;
+	
+	@Value("${oidc.userinfo.url}")
+	private String userInfoUrl;
+	
+	@Autowired
+	private RestTemplate restTemplate;
 	
 	@ApiOperation(value = "Get specific user for a given userid.", nickname = "getById", notes = "Get specific user for a given userid. This endpoints will be used to Get specific user for a given userid.", response = UserInfoVO.class, tags = {
 			"users",})
@@ -83,6 +111,68 @@ public class UserInfoController {
 		}
 	}
 
+	private UserInfo fetchUserInfo(String accessToken, String userId) {
+		HttpHeaders headers = new HttpHeaders();
+		headers.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));
+		headers.set("Authorization", "Bearer " + accessToken);
+		HttpEntity<String> request = new HttpEntity<String>(headers);
+		String id = "";
+		UserInfo userInfo = new UserInfo();
+
+		try {
+			ResponseEntity<String> response = restTemplate.exchange(userInfoUrl, HttpMethod.GET, request, String.class);
+			ObjectMapper mapper = new ObjectMapper();
+			userInfo = mapper.readValue(response.getBody(), UserInfo.class);
+			logger.info("Fetching user:{} from database.", userId);
+			id = userInfo.getId();
+		} catch (Exception e) {
+			if (userId != null && userId.toLowerCase().startsWith("TE".toLowerCase())) {
+				log.debug("Technical user {} , bypassed OIDC userinfo fetch", userId);
+				id = userId;
+			} else {
+				log.error("Failed to fetch OIDC User info", e.getMessage());
+			}
+		}
+		UserInfoVO userVO = userInfoService.getById(id);		
+		if (Objects.isNull(userVO)) {
+			logger.info("User not found, adding the user:{}", id);
+			logger.debug("Setting default role as 'User' for: {}", id);
+			UserRoleNsql roleEntity = userRoleService.getRoleUser();
+			UserInfoRole userRole = new UserInfoRole();
+			userRole.setId(roleEntity.getId());
+			userRole.setName(roleEntity.getData().getName());
+			List<UserInfoRole> userRoleList = new ArrayList<>();
+			userRoleList.add(userRole);
+			// Setting entity to add new user
+			userInfo.setId(id != null ? id : userId);
+			UserInfoNsql userEntity = userinfoAssembler.toEntity(userInfo, userRoleList);
+			userEntity.setIsLoggedIn("Y");
+			if (Objects.isNull(userInfo.getFirstName()) && Objects.isNull(userInfo.getLastName())) {
+				logger.info("Null values provided, cannot add user:{}", userId);
+				return null;
+			}
+			logger.info("Onboarding new user:{}", userId);
+			userInfoService.addUser(userEntity);
+			userVO = userinfoAssembler.toVo(userEntity);
+		}
+
+		List<UserRoleVO> rolesVO = userVO.getRoles();
+		List<UserRole> userRoles = userinfoAssembler.toUserRoles(rolesVO);
+		List<UserRole> existingRoles = userInfo.getDigiRole();
+		if (userRoles != null && !userRoles.isEmpty() && existingRoles != null) {
+			existingRoles.addAll(userRoles);
+			userInfo.setDigiRole(existingRoles);
+		}
+		userInfo.setDivisionAdmins(userVO.getDivisionAdmins());
+		userInfo.setDepartment(userVO.getDepartment());
+		userInfo.setEmail(userVO.getEmail());
+		userInfo.setFirstName(userVO.getFirstName());
+		userInfo.setId(userVO.getId());
+		userInfo.setLastName(userVO.getLastName());
+		userInfo.setMobileNumber(userVO.getMobileNumber());
+		userInfo.setDigiRole(userRoles);
+		return userInfo;
+	}
 	
 
 }

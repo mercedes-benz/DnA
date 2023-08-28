@@ -27,6 +27,10 @@ spring:
 server:
   port: 9797
 
+oidc: 
+  userinfo:
+    url: ${OIDC_USER_INFO_URL:xxxxx}
+    
 #Cors Filter origin Domains  
 allowedCorsOriginPatternUrl: ${CORS_ORIGIN_URL:http://*}
 
