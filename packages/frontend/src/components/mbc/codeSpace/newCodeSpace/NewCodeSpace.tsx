@@ -245,7 +245,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
       ProgressIndicator.show();
       CodeSpaceApiClient.addCollaborator(props.onEditingCodeSpace.id, newCollaborator).then((res) => {
         ProgressIndicator.hide();
-        if (res.status === 'SUCCESS') {
+        if (res.success === 'SUCCESS') {
           trackEvent('DnA Code Space', 'Add New Collaborator', 'Existing Code Space');
           props.onEditingCodeSpace.projectDetails?.projectCollaborators.push(newCollaborator);
           Notification.show(
@@ -308,7 +308,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
   const processDeleteCollaborator = () => {
     CodeSpaceApiClient.deleteCollaborator(props.onEditingCodeSpace.id, collaboratorToDelete.id).then((res) => {
       ProgressIndicator.hide();
-      if (res.status === 'SUCCESS') {
+      if (res.success === 'SUCCESS') {
         trackEvent('DnA Code Space', 'Delete Collaborator', 'Existing Code Space');
         updateCollaborator(collaboratorToDelete.id);
         Notification.show(

@@ -63,7 +63,7 @@ export class CodeSpaceApiClient {
   }
 
   public static transferOwnership(id: string, data: any) {
-    return this.patch(`workspaces/${id}/projectowner`);
+    return this.patch(`workspaces/${id}/projectowner`, data);
   }
 
   // Usage statistics
