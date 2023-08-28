@@ -180,7 +180,7 @@ const ProjectDetailsTab = () => {
           modalWidth={'60%'}
           buttonAlignment="right"
           show={editProject}
-          content={<ChronosProjectForm edit={true} onSave={() => {setEditProject(false); console.log('before dispatch'); dispatch(getProjectDetails(projectId)); console.log('after dispatch')}} />}
+          content={<ChronosProjectForm edit={true} onSave={() => {setEditProject(false); dispatch(getProjectDetails(projectId)); }} />}
           scrollableContent={false}
           onCancel={() => setEditProject(false)}
           modalStyle={{
