@@ -73,8 +73,8 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
   // let livelinessInterval: any = undefined;
 
   useEffect(() => {
-    if (onEditingMode && props.onEditingCodeSpace.projectDetails) {
-      setCodeSpaceCollaborators([...props.onEditingCodeSpace.projectDetails.projectCollaborators]);
+    if (onEditingMode && props.onEditingCodeSpace.projectDetails?.projectCollaborators) {
+      setCodeSpaceCollaborators([...props.onEditingCodeSpace.projectDetails?.projectCollaborators]);
     }
     SelectBox.defaultSetup(true);
   }, []);
