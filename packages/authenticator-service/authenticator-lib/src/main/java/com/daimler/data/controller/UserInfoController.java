@@ -36,6 +36,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -51,12 +52,10 @@ import org.springframework.web.client.RestTemplate;
 
 import com.daimler.data.assembler.UserInfoAssembler;
 import com.daimler.data.controller.LoginController.UserInfo;
-import com.daimler.data.controller.LoginController.UserRole;
 import com.daimler.data.db.entities.UserInfoNsql;
 import com.daimler.data.db.entities.UserRoleNsql;
 import com.daimler.data.db.jsonb.UserInfoRole;
 import com.daimler.data.dto.userinfo.UserInfoVO;
-import com.daimler.data.dto.userinfo.UserRoleVO;
 import com.daimler.data.service.userinfo.UserInfoService;
 import com.daimler.data.service.userrole.UserRoleService;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -85,11 +84,12 @@ public class UserInfoController {
 	@Autowired
 	private UserInfoAssembler userinfoAssembler;
 	
-	@Value("${oidc.userinfo.url}")
-	private String userInfoUrl;
+	@Value("${drd.request-url}")
+	private String drdRequestUrl;
 	
+	@Lazy
 	@Autowired
-	private RestTemplate restTemplate;
+	private RestTemplate drdRestTemplate;
 	
 	@ApiOperation(value = "Get specific user for a given userid.", nickname = "getById", notes = "Get specific user for a given userid. This endpoints will be used to Get specific user for a given userid.", response = UserInfoVO.class, tags = {
 			"users",})
@@ -106,13 +106,9 @@ public class UserInfoController {
 		UserInfoVO userInfoVO = null;
 		if (id != null) {
 			try {
-			userInfoVO = userInfoService.getById(id);
+			userInfoVO = this.fetchUserInfo(authToken, id);
 			}catch(Exception e) {
-				log.info("Failed to fetch {}, going to onboard user", id);
-			}
-			if(Objects.isNull(userInfoVO)) {
-				log.info("onboarding user", id);
-				this.fetchUserInfo(authToken, id);
+				log.info("Failed to fetch/onboard user {}", id);
 			}
 			return new ResponseEntity<>(userInfoVO, HttpStatus.OK);
 		} else {
@@ -120,7 +116,7 @@ public class UserInfoController {
 		}
 	}
 
-	private UserInfo fetchUserInfo(String accessToken, String userId) {
+	private UserInfoVO fetchUserInfo(String accessToken, String userId) {
 		HttpHeaders headers = new HttpHeaders();
 		headers.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));
 		headers.set("Authorization", "Bearer " + accessToken);
@@ -129,7 +125,8 @@ public class UserInfoController {
 		UserInfo userInfo = new UserInfo();
 
 		try {
-			ResponseEntity<String> response = restTemplate.exchange(userInfoUrl, HttpMethod.GET, request, String.class);
+			ResponseEntity<String> response = drdRestTemplate.exchange(drdRequestUrl + id, HttpMethod.GET, request,
+					String.class);
 			ObjectMapper mapper = new ObjectMapper();
 			userInfo = mapper.readValue(response.getBody(), UserInfo.class);
 			logger.info("Fetching user:{} from database.", userId);
@@ -165,22 +162,7 @@ public class UserInfoController {
 			userVO = userinfoAssembler.toVo(userEntity);
 		}
 
-		List<UserRoleVO> rolesVO = userVO.getRoles();
-		List<UserRole> userRoles = userinfoAssembler.toUserRoles(rolesVO);
-		List<UserRole> existingRoles = userInfo.getDigiRole();
-		if (userRoles != null && !userRoles.isEmpty() && existingRoles != null) {
-			existingRoles.addAll(userRoles);
-			userInfo.setDigiRole(existingRoles);
-		}
-		userInfo.setDivisionAdmins(userVO.getDivisionAdmins());
-		userInfo.setDepartment(userVO.getDepartment());
-		userInfo.setEmail(userVO.getEmail());
-		userInfo.setFirstName(userVO.getFirstName());
-		userInfo.setId(userVO.getId());
-		userInfo.setLastName(userVO.getLastName());
-		userInfo.setMobileNumber(userVO.getMobileNumber());
-		userInfo.setDigiRole(userRoles);
-		return userInfo;
+		return userVO;
 	}
 	
 
