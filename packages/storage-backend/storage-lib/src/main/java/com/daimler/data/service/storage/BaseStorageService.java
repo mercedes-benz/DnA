@@ -1277,6 +1277,7 @@ public class BaseStorageService implements StorageService {
 		String bucketName = bucketVo.getBucketName();
 		String newOwnerpolicy = "";		
 		String readWritePolicy = bucketName + "_" + ConstantsUtility.READWRITE;			
+		List<String> collabIds = new ArrayList<>();
 		//Fetching bucket details from database
 		StorageNsql entity = customRepo.findbyUniqueLiteral(ConstantsUtility.BUCKET_NAME, bucketVo.getBucketName());
 		if(Objects.nonNull(entity)) {
@@ -1323,12 +1324,27 @@ public class BaseStorageService implements StorageService {
 			// To remove new owner from collaborator list and to add current owner as collaborator.
 			if (Objects.nonNull(existingCollaborators)) {
 				for (com.daimler.data.db.jsonb.UserInfo collab : existingCollaborators) {
+					collabIds.add(collab.getId());
 					if (collab.getId().equalsIgnoreCase(newOwner.getId())) {
 						updatedCollaborators.remove(collab);
 					}
 				}
-				if (!(existingCollaborators.contains(currentOwnerAsCollab))) {
+				if (!(collabIds.contains(currentOwnerAsCollab.getId()))) {
 					updatedCollaborators.add(currentOwnerAsCollab);
+				}
+				else {
+					for (com.daimler.data.db.jsonb.UserInfo collab : existingCollaborators) {
+						if(collab.getId().equalsIgnoreCase(currentOwnerAsCollab.getId())) {
+							if(Objects.isNull(collab.getPermission())) {
+								updatedCollaborators.remove(collab);
+								com.daimler.data.db.jsonb.Permission collabPermission = new com.daimler.data.db.jsonb.Permission();
+								collabPermission.setRead(Boolean.TRUE);
+								collabPermission.setWrite(Boolean.TRUE);
+								collab.setPermission(collabPermission);
+								updatedCollaborators.add(collab);
+							}
+						}
+					}
 				}
 			}
 			entity.getData().setCollaborators(updatedCollaborators);						
