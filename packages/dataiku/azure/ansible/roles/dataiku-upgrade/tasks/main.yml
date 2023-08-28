@@ -61,13 +61,13 @@
     state: directory
     owner: "{{dss_system_user}}"
     mode: "755"
-  tags: [ dss-upgrade-production-2, dss-upgrade-training, dss-upgrade-automation ]
+  tags: [ dss-upgrade-production-2, dss-upgrade-training-2, dss-upgrade-automation ]
 
 - name: Check if DSS archive already download
   stat:
     path: "{{dss_install_directory}}/{{dss_install_archive_name_with_extension}}"
   register: dss_archive_stat_result
-  tags: [ dss-upgrade-production-2, dss-upgrade-training, dss-upgrade-automation ]
+  tags: [ dss-upgrade-production-2, dss-upgrade-training-2, dss-upgrade-automation ]
 
 - name: Download DSS
   become_user: "{{dss_system_user}}"
@@ -75,7 +75,7 @@
     url: "{{dss_download_url}}"
     dest: "{{dss_install_directory}}"
   when: not dss_archive_stat_result.stat.exists
-  tags: [ dss-upgrade-production-2, dss-upgrade-training, dss-upgrade-automation ]
+  tags: [ dss-upgrade-production-2, dss-upgrade-training-2, dss-upgrade-automation ]
 
 - name: Unarchive DSS
   become_user: "{{dss_system_user}}"
@@ -84,12 +84,12 @@
     dest: "{{dss_install_directory}}"
     creates: "{{dss_home_directory}}"
     remote_src: yes
-  tags: [ dss-upgrade-production-2, dss-upgrade-training, dss-upgrade-automation ]
+  tags: [ dss-upgrade-production-2, dss-upgrade-training-2, dss-upgrade-automation ]
 
 - name: Run DSS upgrade
   become_user: "{{dss_system_user}}"
   shell: yes Y | {{dss_home_directory}}/installer.sh -d {{dss_data_directory}} -u
-  tags: [ dss-upgrade-production-2, dss-upgrade-training ]
+  tags: [ dss-upgrade-production-2, dss-upgrade-training-2 ]
 
 - name: Run DSS upgrade automation
   become_user: "{{dss_system_user}}"
@@ -101,7 +101,7 @@
 - name: Run R installer (it takes a while to compile dependencies)
   become_user: "{{dss_system_user}}"
   command: "{{dss_data_directory}}/bin/dssadmin install-R-integration"
-  tags: [ dss-upgrade-production-2, dss-upgrade-training, dss-upgrade-automation ]
+  tags: [ dss-upgrade-production-2, dss-upgrade-training-2, dss-upgrade-automation ]
 
 #Install User Isolation Framework
 - name: Install User Isolation Framework
@@ -114,11 +114,11 @@
   shell:
     cmd: |
       /etc/init.d/dataiku start
-  tags: [ dss-upgrade-production-2, dss-upgrade-training, dss-upgrade-automation ]
+  tags: [ dss-upgrade-production-2, dss-upgrade-training-2, dss-upgrade-automation ]
 
 #Cleanup
 - name: Remove backup file from local storage
   file:
     path: "{{dss_backup_directory}}/dataiku_backup_{{date_now}}_{{ansible_eth0.ipv4.address}}.tar.gz"
     state: absent
-  tags: [ dss-upgrade-production-2, dss-upgrade-training, dss-upgrade-automation ]
+  tags: [ dss-upgrade-production-2, dss-upgrade-training-2, dss-upgrade-automation ]
