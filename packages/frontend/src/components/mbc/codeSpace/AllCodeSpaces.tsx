@@ -106,6 +106,9 @@ const AllCodeSpaces = (props: IAllCodeSpacesProps) => {
   };
 
   const onNewCodeSpaceModalCancel = () => {
+    if (onEditCodeSpace) {
+      getCodeSpacesData();
+    }
     setShowNewCodeSpaceModal(false);
     setOnBoardCodeSpace(undefined);
     setOnEditCodeSpace(undefined);
