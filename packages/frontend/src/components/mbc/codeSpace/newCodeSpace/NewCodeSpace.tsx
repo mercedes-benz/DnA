@@ -334,7 +334,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
     })
       .then((res) => {
         ProgressIndicator.hide();
-        if (res.data.status === 'SUCCESS') {
+        if (res.success === 'SUCCESS') {
           trackEvent('DnA Code Space', 'Transfer Ownership', 'Existing Code Space');
           Notification.show(
             `Code Space '${props.onEditingCodeSpace?.projectDetails?.projectName}' ownership successfully transferred to collaborator '${collaboratorToTransferOwnership.firstName}'.`,
