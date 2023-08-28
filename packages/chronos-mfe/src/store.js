@@ -1,7 +1,7 @@
 import { configureStore } from '@reduxjs/toolkit';
 import { createHashHistory } from 'history';
 
-import projects from './redux/projectsSlice';
+import projectDetails from './redux/projectDetailsSlice';
 
 import logger from 'redux-logger';
 
@@ -13,7 +13,7 @@ const isDev = process.env.NODE_ENV === 'development';
 
 export default configureStore({
   reducer: {
-    projects,
+    projectDetails,
   },
   middleware: (getDefaultMiddleware) =>
     isDev
