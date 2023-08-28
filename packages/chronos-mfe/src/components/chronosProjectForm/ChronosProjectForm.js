@@ -2,6 +2,7 @@ import classNames from 'classnames';
 import React, { useState } from 'react';
 import { useForm, FormProvider } from 'react-hook-form';
 import { useHistory } from "react-router-dom";
+import { useSelector } from 'react-redux';
 // styles
 import Styles from './ChronosProjectForm.scss';
 // import from DNA Container
@@ -16,10 +17,13 @@ import { regionalDateAndTimeConversionSolution } from '../../utilities/utils';
 // Api
 import { chronosApi } from '../../apis/chronos.api';
 
-const ChronosProjectForm = ({edit, project, onSave}) => {
+const ChronosProjectForm = ({edit, onSave}) => {
   let history = useHistory();
-  const [teamMembers, setTeamMembers] = useState(edit && project.collaborators !== null ? project.collaborators : []);
-  const [teamMembersOriginal, setTeamMembersOriginal] = useState(edit && project.collaborators !== null ? project.collaborators : []);
+
+  const project = useSelector(state => state.projectDetails);
+
+  const [teamMembers, setTeamMembers] = useState(edit && project?.data?.collaborators !== null ? project?.data?.collaborators : []);
+  const [teamMembersOriginal, setTeamMembersOriginal] = useState(edit && project?.data?.collaborators !== null ? project?.data?.collaborators : []);
   const [editTeamMember, setEditTeamMember] = useState(false);
   const [selectedTeamMember, setSelectedTeamMember] = useState();
   const [editTeamMemberIndex, setEditTeamMemberIndex] = useState(0);
@@ -80,7 +84,7 @@ const ChronosProjectForm = ({edit, project, onSave}) => {
       removeCollaborators: removedCollaboratorsTemp
     }
     ProgressIndicator.show();
-    chronosApi.updateForecastProjectCollaborators(data, project.id).then(() => {
+    chronosApi.updateForecastProjectCollaborators(data, project?.data?.id).then(() => {
       ProgressIndicator.hide();
       setTeamMembers([]);
       setTeamMembersOriginal([]);

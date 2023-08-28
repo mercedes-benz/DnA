@@ -1,6 +1,7 @@
 import classNames from 'classnames';
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
+import { useSelector, useDispatch } from 'react-redux';
 import Styles from './project-details-tab.scss';
 // import from DNA Container
 import TeamMemberListItem from 'dna-container/TeamMemberListItem';
@@ -16,38 +17,26 @@ import Notification from '../../common/modules/uilab/js/src/notification';
 import { chronosApi } from '../../apis/chronos.api';
 // import Spinner from '../spinner/Spinner';
 import InputFiles from '../inputFiles/InputFiles';
+import { getProjectDetails } from '../../redux/projectDetails.services';
 
 const ProjectDetailsTab = () => {
   const { id: projectId } = useParams();
-  const [project, setProject] = useState();
-  const [loading, setLoading] = useState(true);
   const [editProject, setEditProject] = useState(false);
   const [teamMembers, setTeamMembers] = useState([]);
 
-  useEffect(() => {
-    getProjectById();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  const getProjectById = () => {
-    ProgressIndicator.show();
-    chronosApi.getForecastProjectById(projectId).then((res) => {
-      setProject(res.data);
-      ProgressIndicator.hide();
-      setLoading(false);
-    }).catch(error => {
-      Notification.show(error.message, 'alert');
-      ProgressIndicator.hide();
-      setLoading(false);
-    });
-  };
+  const project = useSelector(state => state.projectDetails);
+  const dispatch = useDispatch();
   
   useEffect(() => {
-    if(!loading && project?.collaborators !== null) {
-      const members = project?.collaborators.map(member => ({...member, shortId: member.id, userType: 'internal'}));
+    if(!project?.isLoading && project?.data?.collaborators !== null) {
+      const members = project?.data?.collaborators.map(member => ({...member, shortId: member.id, userType: 'internal'}));
       setTeamMembers(members);
     }
-  }, [loading, project]);
+  }, [project]);
+
+  useEffect(() => {
+    project?.isLoading ? ProgressIndicator.show() : ProgressIndicator.hide();
+  }, [project]);
 
   const teamMembersList = teamMembers?.map((member, index) => {
     return (
@@ -65,8 +54,8 @@ const ProjectDetailsTab = () => {
   });
 
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [inputFileToBeDeleted, setInputFileToBeDeleted] = useState();
-  const [configFileToBeDeleted, setConfigFileToBeDeleted] = useState();
+  const [inputFileToBeDeleted, setInputFileToBeDeleted] = useState('');
+  const [configFileToBeDeleted, setConfigFileToBeDeleted] = useState('');
 
   const showDeleteConfirmModal = (inputFile) => {
     setShowDeleteModal(true);
@@ -78,13 +67,15 @@ const ProjectDetailsTab = () => {
   };
   const onCancelDelete = () => {
     setShowDeleteModal(false);
+    setConfigFileToBeDeleted('');
+    setInputFileToBeDeleted('');
   };
   const onAcceptDelete = () => {
-    if(inputFileToBeDeleted !== '' || inputFileToBeDeleted !== null) {
+    if(inputFileToBeDeleted?.length > 0) {
       ProgressIndicator.show();
       chronosApi.deleteSavedInputFile(projectId, inputFileToBeDeleted).then(() => {
         Notification.show('Saved input file deleted');
-        getProjectById();
+        dispatch(getProjectDetails(projectId));
         ProgressIndicator.hide();
         setInputFileToBeDeleted('');
       }).catch(error => {
@@ -93,13 +84,14 @@ const ProjectDetailsTab = () => {
           'alert',
         );
         ProgressIndicator.hide();
+        setInputFileToBeDeleted('');
       });
     }
-    if(configFileToBeDeleted !== '' || configFileToBeDeleted !== null) {
+    if(configFileToBeDeleted?.length > 0) {
       ProgressIndicator.show();
       chronosApi.deleteProjectConfigFile(projectId, configFileToBeDeleted).then(() => {
         Notification.show('Config file deleted');
-        getProjectById();
+        dispatch(getProjectDetails(projectId));
         ProgressIndicator.hide();
         setConfigFileToBeDeleted('');
       }).catch(error => {
@@ -108,6 +100,7 @@ const ProjectDetailsTab = () => {
           'alert',
         );
         ProgressIndicator.hide();
+        setConfigFileToBeDeleted('');
       });
     }
     setShowDeleteModal(false);
@@ -125,22 +118,22 @@ const ProjectDetailsTab = () => {
         <div className={Styles.firstPanel}>
           <div className={Styles.formWrapper}>
             {/* { loading && <Spinner /> } */}
-            { !loading && 
+            { !project?.isLoading && 
               <div className={classNames(Styles.flexLayout, Styles.threeColumn)}>
                 <div id="productDescription">
                   <label className="input-label summary">Project Name</label>
                   <br />                    
-                  {project?.name}
+                  {project?.data?.name}
                 </div>
                 <div id="tags">
                   <label className="input-label summary">Created on</label>
                   <br />
-                  {project?.createdOn !== undefined && regionalDateAndTimeConversionSolution(project?.createdOn)}
+                  {project?.data?.createdOn !== undefined && regionalDateAndTimeConversionSolution(project?.data?.createdOn)}
                 </div>
                 <div id="isExistingSolution">
                   <label className="input-label summary">Created by</label>
                   <br />
-                  {project?.createdBy?.firstName} {project?.createdBy?.lastName}
+                  {project?.data?.createdBy?.firstName} {project?.data?.createdBy?.lastName}
                 </div>
               </div>
             }
@@ -151,7 +144,7 @@ const ProjectDetailsTab = () => {
         <h3 id="productName">Collaborators</h3>
         <div className={Styles.firstPanel}>
         {/* { loading && <Spinner /> } */}
-        { !loading && 
+        { !project?.isLoading && 
           <div className={Styles.collabAvatar}>
             <div className={Styles.teamListWrapper}>
               {teamMembers.length === 0 ? <p className={Styles.noCollaborator}>No Collaborators</p> : null}
@@ -168,12 +161,12 @@ const ProjectDetailsTab = () => {
       <div className={Styles.content}>
         <h3 id="productName">Input Files</h3>
         {/* { loading && <Spinner /> } */}
-        {!loading && <InputFiles inputFiles={project.savedInputs === null ? [] : project.savedInputs} showModal={showDeleteConfirmModal} /> }
+        {!project.isLoading && <InputFiles inputFiles={project?.data?.savedInputs === null ? [] : project?.data?.savedInputs} showModal={showDeleteConfirmModal} /> }
       </div>
       <div className={Styles.content}>
         <h3 id="productName">Configuration Files</h3>
         {/* { loading && <Spinner /> } */}
-        {!loading && <InputFiles inputFiles={project.configFiles === null ? [] : project.configFiles} showModal={showDeleteConfigFileConfirmModal} addNew={true} proId={projectId} refresh={getProjectById} /> }
+        {!project.isLoading && <InputFiles inputFiles={project?.data?.configFiles === null ? [] : project?.data?.configFiles} showModal={showDeleteConfigFileConfirmModal} addNew={true} /> }
       </div>
       <div className={Styles.content}>
         <h3 id="productName">Access Details for Chronos Forecasting</h3>
@@ -187,7 +180,7 @@ const ProjectDetailsTab = () => {
           modalWidth={'60%'}
           buttonAlignment="right"
           show={editProject}
-          content={<ChronosProjectForm edit={true} project={project} onSave={() => {setEditProject(false); getProjectById()}} />}
+          content={<ChronosProjectForm edit={true} onSave={() => {setEditProject(false); console.log('before dispatch'); dispatch(getProjectDetails(projectId)); console.log('after dispatch')}} />}
           scrollableContent={false}
           onCancel={() => setEditProject(false)}
           modalStyle={{
