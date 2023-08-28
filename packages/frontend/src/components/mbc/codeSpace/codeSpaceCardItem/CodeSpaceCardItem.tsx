@@ -32,7 +32,7 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
   const creationFailed = codeSpace.status === 'CREATE_FAILED';
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const recipes = recipesMaster;
-  const isOwner = codeSpace.workspaceOwner.id === props.userInfo.id;
+  const isOwner = codeSpace.projectDetails?.projectOwner?.id === props.userInfo.id;
   const hasCollaborators = codeSpace.projectDetails?.projectCollaborators?.length > 0;
 
   const deleteCodeSpaceContent = (
