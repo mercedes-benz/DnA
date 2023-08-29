@@ -49,7 +49,6 @@ public class CodeServerWorkspace implements Serializable{
 	private CodeServerProjectDetails projectDetails;
 	private String gitUserName;
 	private String description;
-	private String password;
 	private Date intiatedOn;
 	private String status;
 	private String workspaceUrl;
