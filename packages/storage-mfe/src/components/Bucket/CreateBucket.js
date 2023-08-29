@@ -542,7 +542,7 @@ const CreateBucket = ({ user }) => {
                                     </div>
                                   </div>
                                   <div className={Styles.collUserTitleCol}>
-                                    <div className={Styles.deleteEntry} onClick={() => onCollabaratorDelete(item.accesskey)}>
+                                    <div className={Styles.deleteEntry} onClick={onCollabaratorDelete(item.accesskey)}>
                                       <i className="icon mbc-icon trash-outline" />
                                       Delete Entry
                                     </div>
