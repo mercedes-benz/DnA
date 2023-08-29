@@ -48,6 +48,19 @@ public class KongGatewayController implements KongApi{
 	private static Logger LOGGER = LoggerFactory.getLogger(KongGatewayController.class);
 
 	@Override
+	@ApiOperation(value = "Attach a plugin to service.", nickname = "attachPlugin", notes = "Attach a plugin to service.", response = GenericMessage.class, tags={ "kong", })
+    @ApiResponses(value = { 
+        @ApiResponse(code = 200, message = "Returns message of success", response = GenericMessage.class),
+        @ApiResponse(code = 400, message = "Bad Request", response = GenericMessage.class),
+        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+        @ApiResponse(code = 403, message = "Request is not authorized."),
+        @ApiResponse(code = 405, message = "Method not allowed"),
+        @ApiResponse(code = 409, message = "Conflict", response = GenericMessage.class),
+        @ApiResponse(code = 500, message = "Internal error") })
+    @RequestMapping(value = "/kong/services/{serviceName}/plugins",
+        produces = { "application/json" }, 
+        consumes = { "application/json" },
+        method = RequestMethod.POST)
 	public ResponseEntity<GenericMessage> attachPlugin(@Valid AttachPluginRequestVO attachPluginRequestVO,
 			String serviceName) {
 		GenericMessage response = new GenericMessage();
@@ -104,6 +117,19 @@ public class KongGatewayController implements KongApi{
 	}
 
 	@Override
+	@ApiOperation(value = "create a route.", nickname = "createRoute", notes = "create a route", response = GenericMessage.class, tags={ "kong", })
+    @ApiResponses(value = { 
+        @ApiResponse(code = 201, message = "Returns message of success", response = GenericMessage.class),
+        @ApiResponse(code = 400, message = "Bad Request", response = GenericMessage.class),
+        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+        @ApiResponse(code = 403, message = "Request is not authorized."),
+        @ApiResponse(code = 405, message = "Method not allowed"),
+        @ApiResponse(code = 409, message = "Conflict", response = GenericMessage.class),
+        @ApiResponse(code = 500, message = "Internal error") })
+    @RequestMapping(value = "/kong/services/{serviceName}/routes",
+        produces = { "application/json" }, 
+        consumes = { "application/json" },
+        method = RequestMethod.POST)
 	public ResponseEntity<GenericMessage> createRoute(@Valid CreateRouteRequestVO createRouteRequestVO,
 			String serviceName) {
 		GenericMessage response = new GenericMessage();
