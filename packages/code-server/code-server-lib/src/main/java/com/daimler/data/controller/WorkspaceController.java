@@ -273,10 +273,9 @@ public class WorkspaceController  implements CodeServerApi{
 			responseMessage.setData(null);
 			return new ResponseEntity<>(responseMessage, HttpStatus.NOT_FOUND);
 		}
-		String password = initializeCollabWSRequestVO.getPassword();
 		String pat = initializeCollabWSRequestVO.getPat();
 		
-		InitializeWorkspaceResponseVO responseData = service.initiateWorkspace(collabUserVO, pat, password);
+		InitializeWorkspaceResponseVO responseData = service.initiateWorkspace(collabUserVO, pat);
 		return new ResponseEntity<>(responseData, responseStatus);
 	}
 
@@ -388,7 +387,6 @@ public class WorkspaceController  implements CodeServerApi{
 		InitializeWorkspaceResponseVO responseMessage = new InitializeWorkspaceResponseVO();
 		String userId = currentUser != null ? currentUser.getId() : null;
 		CodeServerWorkspaceVO reqVO = codeServerRequestVO.getData();
-		String password = codeServerRequestVO.getPassword();
 		String pat = codeServerRequestVO.getPat();
 		CodeServerWorkspaceVO existingVO = service.getByProjectName(userId,reqVO.getProjectDetails().getProjectName());
 		if (existingVO != null && existingVO.getWorkspaceId() != null) {
@@ -427,7 +425,7 @@ public class WorkspaceController  implements CodeServerApi{
 		newRecipeVO.setRepodetails(reqVO.getProjectDetails().getRecipeDetails().getRepodetails());
 		newRecipeVO.setRamSize(RamSizeEnum._1);
 		reqVO.getProjectDetails().setRecipeDetails(newRecipeVO);
-		responseMessage = service.createWorkspace(reqVO,pat,password);		
+		responseMessage = service.createWorkspace(reqVO,pat);		
 		if("SUCCESS".equalsIgnoreCase(responseMessage.getSuccess())) {
 			responseStatus = HttpStatus.CREATED;
 			log.info("User {} created workspace {}", userId,reqVO.getProjectDetails().getProjectName());
