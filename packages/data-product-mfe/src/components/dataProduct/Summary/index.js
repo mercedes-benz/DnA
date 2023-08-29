@@ -909,7 +909,7 @@ const Summary = ({ history, user }) => {
             {'Access "'+ selectedDataProduct?.productName +'"'} 
           </div>
           <div className={Styles.actionButtonsSection}>
-          {showHowToAccessModal || !selectedDataProduct?.minimumInformationCheck ? (
+          {isCreator || showHowToAccessModal || !selectedDataProduct?.minimumInformationCheck ? (
             <>
             {liveAccessFields?.length > 0 ? 
               <button
