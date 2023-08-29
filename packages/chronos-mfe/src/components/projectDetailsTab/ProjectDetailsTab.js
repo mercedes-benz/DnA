@@ -15,6 +15,8 @@ import { regionalDateAndTimeConversionSolution } from '../../utilities/utils';
 import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indicator';
 import Notification from '../../common/modules/uilab/js/src/notification';
 import { chronosApi } from '../../apis/chronos.api';
+// @ts-ignore
+import Select from '../../assets/modules/uilab/js/src/select';
 // import Spinner from '../spinner/Spinner';
 import InputFiles from '../inputFiles/InputFiles';
 import { getProjectDetails } from '../../redux/projectDetails.services';
@@ -78,6 +80,7 @@ const ProjectDetailsTab = () => {
         dispatch(getProjectDetails(projectId));
         ProgressIndicator.hide();
         setInputFileToBeDeleted('');
+        Select.defaultSetup();
       }).catch(error => {
         Notification.show(
           error?.response?.data?.response?.errors[0]?.message || error?.response?.data?.response?.warnings[0]?.message || error?.response?.data?.errors[0]?.message || 'Error while deleting saved input file',
@@ -94,6 +97,7 @@ const ProjectDetailsTab = () => {
         dispatch(getProjectDetails(projectId));
         ProgressIndicator.hide();
         setConfigFileToBeDeleted('');
+        Select.defaultSetup();
       }).catch(error => {
         Notification.show(
           error?.response?.data?.response?.errors[0]?.message || error?.response?.data?.response?.warnings[0]?.message || error?.response?.data?.errors[0]?.message || 'Error while deleting config file',
