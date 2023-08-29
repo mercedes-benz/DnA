@@ -232,17 +232,17 @@ const ChronosProjectForm = ({edit, onSave}) => {
                   <div id="productDescription">
                     <label className="input-label summary">Project Name</label>
                     <br />                    
-                    {project?.name}
+                    {project?.data?.name}
                   </div>
                   <div id="tags">
                     <label className="input-label summary">Created on</label>
                     <br />
-                    {project?.createdOn !== undefined && regionalDateAndTimeConversionSolution(project?.createdOn)}
+                    {project?.data?.createdOn !== undefined && regionalDateAndTimeConversionSolution(project?.data?.createdOn)}
                   </div>
                   <div id="isExistingSolution">
                     <label className="input-label summary">Created by</label>
                     <br />
-                    {project?.createdBy?.firstName} {project?.createdBy?.lastName}
+                    {project?.data?.createdBy?.firstName} {project?.data?.createdBy?.lastName}
                   </div>
                 </div>
               </div>
