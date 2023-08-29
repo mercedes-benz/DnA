@@ -40,7 +40,10 @@ spring:
 dna:
   uri: ${DNA_URI:XXXXXX}
   dnaAuthEnable: ${DNA_AUTH_ENABLE:false}
-
+  
+authenticator:
+   uri: ${AUTHENTICATOR_URI:XXXX}  
+  
 kafka:
   centralTopic:
     name: dnaCentralEventTopic  
@@ -66,6 +69,7 @@ codeServer:
   base.uri: ${CODE_BASE_URI:XXXX}
   env.ref: ${CODE_SERVER_GIT_ENVREF:dev}
   env.value: ${CODE_SERVER_GIT_ENV:Development}
+  env.url: ${CODE_SERVER_ENVURL:XXXX}
 
 swagger.headers.authorization.token: ${SWAGGER_HEADER_AUTH:XXXXXX}
 management.endpoints.web.exposure.include: loggers,health
@@ -100,4 +104,20 @@ proxy:
   host: ${CUSTOMPROXY_HOST:XXXX}
   
 codespace:
-  recipe: ${DnARECIPE:XXXX}  
+  recipe: ${DnARECIPE:XXXX}
+
+kong:
+   bearerOnly: ${BEARER_ONLY:XXXX}
+   clientId: ${CLIENT_ID:XXXX}
+   clientSecret: ${CLIENT_SECRET:XXXX}
+   discovery: ${DISCOVERY:XXXX}
+   introspectionEndpoint: ${INTROSPECTION_ENDPOINT:XXXX}
+   introspectionEndpointAuthMethod: ${INTROSPECTION_ENDPOINT_AUTH_METHOD:XXXX}
+   logoutPath: ${LOGOUT_PATH:XXXX}
+   realm: ${REALM:XXXX}
+   redirectAfterLogoutUri: ${REDIRECT_AFTER_LOGOUT_URI:XXXX}
+   redirectUriPath: ${REDIRECT_URI_PATH:XXXX}
+   responseType: ${RESPONSE_TYPE:XXXX}
+   scope: ${SCOPE:XXXX}
+   sslVerify: ${SSL_VERIFY:XXXX}
+   tokenEndpointAuthMethod: ${TOKEN_ENDPOINT_AUTH_METHOD:XXXX}  
