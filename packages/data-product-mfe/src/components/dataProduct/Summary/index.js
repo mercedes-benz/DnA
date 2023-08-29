@@ -66,6 +66,7 @@ const Summary = ({ history, user }) => {
   const [kafkaFields, setKafkaFields] = useState([]);
   const [liveAccessFields, setLiveAccessFields] = useState([]);
   const [apiFields, setApiFields] = useState([]);
+  const [trinoFields, setTrinoFields] = useState([]);
 
   const [CDC_URL, setCDCURL] = useState('');
 
@@ -137,6 +138,7 @@ const Summary = ({ history, user }) => {
         setKafkaFields(data?.howToAccessTemplate?.accessDetailsCollectionVO[0]?.stepCollectionVO ? data?.howToAccessTemplate?.accessDetailsCollectionVO[0]?.stepCollectionVO : []);
         setLiveAccessFields(data?.howToAccessTemplate?.accessDetailsCollectionVO[1]?.stepCollectionVO ? data?.howToAccessTemplate?.accessDetailsCollectionVO[1]?.stepCollectionVO : []);
         setApiFields(data?.howToAccessTemplate?.accessDetailsCollectionVO[2]?.stepCollectionVO ? data?.howToAccessTemplate?.accessDetailsCollectionVO[2]?.stepCollectionVO : []);
+        setTrinoFields(data?.howToAccessTemplate?.accessDetailsCollectionVO[3]?.stepCollectionVO ? data?.howToAccessTemplate?.accessDetailsCollectionVO[3]?.stepCollectionVO : []);
         dispatch(setSelectedDataProduct(data));
         Tabs.defaultSetup();
       }
@@ -296,12 +298,13 @@ const Summary = ({ history, user }) => {
                   {currentPreviewTab === 'Kafka' && kafkaFields?.length == 0 ? 'No Data' : ''}
                   {currentPreviewTab === 'Live' && liveAccessFields?.length == 0 ? 'No Data' : ''}
                   {currentPreviewTab === 'API' && apiFields?.length == 0 ? 'No Data' : ''}
+                  {currentPreviewTab === 'Trino' && trinoFields?.length == 0 ? 'No Data' : ''}
                 </div>
                 
 
                 {currentPreviewTab === 'Kafka' && kafkaFields?.map((stepItem, index)=>{
                   return(
-                  <fieldset key={'access-via-kafka-preview'+stepItem.id}>  
+                  <fieldset key={'access-via-kafka-preview'+index}>  
                   <AccessStepsSummary 
                   value={stepItem}
                   itemIndex={index}
@@ -316,7 +319,7 @@ const Summary = ({ history, user }) => {
               
                 {currentPreviewTab === 'Live' && liveAccessFields?.map((stepItem, index)=>{
                   return(
-                  <fieldset key={'live-access-preview'+stepItem.id}>  
+                  <fieldset key={'live-access-preview'+index}>  
                   <AccessStepsSummary 
                   value={stepItem}
                   itemIndex={index}
@@ -331,13 +334,28 @@ const Summary = ({ history, user }) => {
               
                 {currentPreviewTab === 'API' && apiFields?.map((stepItem, index)=>{
                   return(
-                  <fieldset key={'api-access-preview'+stepItem.id}>  
+                  <fieldset key={'api-access-preview'+index}>  
                   <AccessStepsSummary 
                   value={stepItem}
                   itemIndex={index}
                   showMoveUp={index !== 0}
                   showMoveDown={index + 1 !== apiFields.length}
                   arrayName={'apiArray'}
+                  isEditable={false}
+                  />
+                  </fieldset>
+                  )
+                })}
+
+                {currentPreviewTab === 'Trino' && trinoFields?.map((stepItem, index)=>{
+                  return(
+                  <fieldset key={'trino-access-preview'+index}>  
+                  <AccessStepsSummary 
+                  value={stepItem}
+                  itemIndex={index}
+                  showMoveUp={index !== 0}
+                  showMoveDown={index + 1 !== trinoFields.length}
+                  arrayName={'trinoArray'}
                   isEditable={false}
                   />
                   </fieldset>
@@ -365,14 +383,47 @@ const Summary = ({ history, user }) => {
           <div className={Styles.actionBtns}>
             <button
               className="btn btn-primary"
-              onClick={() =>
+              onClick={() =>{
+                const tempCheck = isCreator || showHowToAccessModal || !selectedDataProduct?.minimumInformationCheck;
+                if(!tempCheck){
+                  const tempObj = JSON.parse(JSON.stringify(selectedDataProduct));
+                  const howToAccessObj = {
+                    "accessDetailsCollectionVO": [
+                      {
+                        "accessType": "access-via-kafka",
+                        "stepCollectionVO": []
+                      },
+                      {
+                        "accessType": "live-access",
+                        "stepCollectionVO": []
+                      },
+                      {
+                        "accessType": "api-access",
+                        "stepCollectionVO": []
+                      },
+                      {
+                        "accessType": "trino-access",
+                        "stepCollectionVO": []
+                      }
+                    ],
+                    "useTemplate": []
+                  };
+                  tempObj['howToAccessTemplate'] = howToAccessObj;
+                  tempObj['kafkaArray'] = [];
+                  tempObj['liveAccessArray'] = [];
+                  tempObj['trinoArray'] = [];
+                  tempObj['apiArray'] = [];
+                  dispatch(setSelectedDataProduct(tempObj));
+                }
+                 
                 history.push({
                   pathname: '/dataproduct/create',
                   state: { 
                     copyId: selectedDataProduct?.dataProductId, 
-                    canShowCopyHowToAccess: isCreator || myDataTransfer?.length ? true : false 
+                    canShowCopyHowToAccess: tempCheck ? true : false 
                   },
                 })
+              }
               }
             >
               <i className="icon mbc-icon copy" tooltip-data="Create Copy"></i>Copy & Create New
@@ -883,7 +934,15 @@ const Summary = ({ history, user }) => {
                   setCurrentPreviewTab('Kafka');            
                 }}
               >Kafka</button>
-             : ''}  
+             : ''}
+            {trinoFields?.length > 0 ? 
+              <button
+                onClick={()=>{
+                  setShowPreviewModal(true);
+                  setCurrentPreviewTab('Trino');            
+                }}
+              >Trino</button>
+             : ''}   
             </>
           ) : null} 
           { !isCreator && selectedDataProduct?.minimumInformationCheck && !showHowToAccessModal? (
