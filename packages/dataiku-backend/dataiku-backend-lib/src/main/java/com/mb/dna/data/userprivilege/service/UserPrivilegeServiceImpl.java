@@ -150,7 +150,7 @@ public class UserPrivilegeServiceImpl implements UserPrivilegeService{
 			if(dto!=null) {
 				responseDto.setData(dto);
 				String profile = dto.getProfile();
-				if("DESIGNER".equalsIgnoreCase(profile) || "VISUAL-DESIGNER".equalsIgnoreCase(profile)) {
+				if("DESIGNER".equalsIgnoreCase(profile) || "VISUAL_DESIGNER".equalsIgnoreCase(profile)) {
 					responseDto.setCanCreate(true);
 				}
 			}
