@@ -65,3 +65,7 @@ logging:
           descriptor:
             sql: ERROR
 
+kong:
+    uri: ${KONG_URI:XXXX}
+                
+
