@@ -178,6 +178,21 @@ export const ToolsLandingPageElements = [
     isDnAInternalTool: true,
   },
   {
+    name: 'Matamo',
+    description:
+      'Matamo summary',
+    tags: ['Frontend Reporting', 'Data Engineering', 'Data Pipeline', 'Data Science', 'Machine Learning', 'No / Low Code', 'Coding', 'Cloud', 'Onprem'],
+    url: '/matamo',
+    isExternalLink: false,
+    isTextAlignLeft: true,
+    animation: true,
+    isDisabled: !enableChronosForecastingService,
+    isSmallCard: false,
+    isMediumCard: true,
+    svgIcon: 'chronos',
+    isDnAInternalTool: true,
+  },
+  {
     name: 'Kubeflow',
     description:
       'Kubeflow is a platform for data scientists who want to build and experiment with Machine Learning [ML] pipelines. Kubeflow is also for ML engineers and operational teams who want to deploy ML systems to various environments for development, testing, and production-level serving.',
