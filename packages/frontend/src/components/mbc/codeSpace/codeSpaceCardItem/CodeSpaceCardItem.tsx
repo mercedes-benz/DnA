@@ -136,6 +136,7 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
 
   const deployed = intDeployed || prodDeployed;
   const allowDelete = isOwner ? !hasCollaborators : true;
+  const isPublicRecipe = projectDetails.recipeDetails?.recipeId.startsWith('public');
 
   return (
     <>
@@ -157,7 +158,7 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
           <div>
             <div>
               <div>Code Recipe</div>
-              <div>{recipes.find((item: any) => item.id === projectDetails.recipeDetails.recipeId).name}</div>
+              <div>{recipes.find((item: any) => item.id === projectDetails.recipeDetails.recipeId)?.name}</div>
             </div>
             <div>
               <div>Environment</div>
@@ -237,7 +238,7 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
                 )}
               </div>
               <div className={Styles.btnGrp}>
-                {!creationFailed && isOwner && (
+                {!isPublicRecipe && !creationFailed && isOwner && (
                   <button className="btn btn-primary" onClick={() => props.onCodeSpaceEdit(codeSpace)}>
                     <i className="icon mbc-icon edit"></i>
                   </button>
