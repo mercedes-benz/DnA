@@ -8,8 +8,8 @@ import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indica
 import Notification from '../../common/modules/uilab/js/src/notification';
 import { chronosApi } from '../../apis/chronos.api';
 import Modal from 'dna-container/Modal';
+import SelectBox from 'dna-container/SelectBox';
 import AceEditor from 'react-ace';
-import Select from '../../assets/modules/uilab/js/src/select';
 //import theme
 import 'ace-builds/src-noconflict/theme-solarized_dark';
 import 'ace-builds/src-noconflict/mode-yaml';
@@ -34,7 +34,7 @@ const InputFiles = ({inputFiles, showModal, addNew}) => {
         Notification.show('File uploaded successfully');
         dispatch(getProjectDetails(projectId));
         ProgressIndicator.hide();
-        Select.defaultSetup();
+        SelectBox.defaultSetup();
       }).catch(error => {
         ProgressIndicator.hide();
         Notification.show(
