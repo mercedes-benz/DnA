@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.daimler.data.auth.client.AuthenticatorClient;
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
 import com.daimler.data.dto.workspace.CodeServerWorkspaceVO;
@@ -53,6 +54,9 @@ public class WorkspaceJobStatusUpdateController  {
 	
 	@Value("${codeServer.gitjob.pat}")
 	private String personalAccessToken;
+	
+	@Autowired
+	private AuthenticatorClient authenticatorClient;		
 	
 	@ApiOperation(value = "Update workspace Project for a given Id.", nickname = "updateWorkspace", notes = "update workspace Project for a given identifier.", response = GenericMessage.class, tags={ "code-server", })
     @ApiResponses(value = { 
@@ -197,6 +201,7 @@ public class WorkspaceJobStatusUpdateController  {
 			}
 			GenericMessage responseMessage = service.update(userId,name,projectName,existingStatus,latestStatus,targetEnv,branch);
 			log.info("Message details after update action {} and userid is {} and resourceID is {}",message,userId,resourceID);
+			authenticatorClient.callingKongApis(name);
 			kafkaProducer.send(eventType, resourceID, "", userId, message, true, teamMembers, teamMembersEmails, null);
 			return new ResponseEntity<>(responseMessage, HttpStatus.OK);
 		}else {
