@@ -7,6 +7,7 @@ import Styles from './project-details-tab.scss';
 import TeamMemberListItem from 'dna-container/TeamMemberListItem';
 import ConfirmModal from 'dna-container/ConfirmModal';
 import Modal from 'dna-container/Modal';
+import SelectBox from 'dna-container/SelectBox';
 // App components
 import ChronosProjectForm from '../chronosProjectForm/ChronosProjectForm';
 import ChronosAccessDetails from '../chronosAccessDetails/ChronosAccessDetails';
@@ -15,8 +16,6 @@ import { regionalDateAndTimeConversionSolution } from '../../utilities/utils';
 import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indicator';
 import Notification from '../../common/modules/uilab/js/src/notification';
 import { chronosApi } from '../../apis/chronos.api';
-// @ts-ignore
-import Select from '../../assets/modules/uilab/js/src/select';
 // import Spinner from '../spinner/Spinner';
 import InputFiles from '../inputFiles/InputFiles';
 import { getProjectDetails } from '../../redux/projectDetails.services';
@@ -80,7 +79,7 @@ const ProjectDetailsTab = () => {
         dispatch(getProjectDetails(projectId));
         ProgressIndicator.hide();
         setInputFileToBeDeleted('');
-        Select.defaultSetup();
+        SelectBox.defaultSetup();
       }).catch(error => {
         Notification.show(
           error?.response?.data?.response?.errors[0]?.message || error?.response?.data?.response?.warnings[0]?.message || error?.response?.data?.errors[0]?.message || 'Error while deleting saved input file',
@@ -97,7 +96,7 @@ const ProjectDetailsTab = () => {
         dispatch(getProjectDetails(projectId));
         ProgressIndicator.hide();
         setConfigFileToBeDeleted('');
-        Select.defaultSetup();
+        SelectBox.defaultSetup();
       }).catch(error => {
         Notification.show(
           error?.response?.data?.response?.errors[0]?.message || error?.response?.data?.response?.warnings[0]?.message || error?.response?.data?.errors[0]?.message || 'Error while deleting config file',
