@@ -45,7 +45,7 @@ const StorageComponent = React.lazy(() => import('storage-mfe/Bucket'));
 const DataProductComponent = React.lazy(() => import('data-product-mfe/DataProduct'));
 const ChronosComponent = React.lazy(() => import('chronos-mfe/Chronos'));
 const DataikuComponent = React.lazy(() => import('dss-mfe/Dataiku'));
-const MatamoComponent = React.lazy(() => import('matamo-mfe/Matamo'));
+const MatomoComponent = React.lazy(() => import('matomo-mfe/Matomo'));
 
 const UserAndAdminRole = [
   USER_ROLE.USER,
@@ -344,10 +344,10 @@ const protectedRoutes = [
   },
   {
     allowedRoles: UserAndAdminRole,
-    component: MatamoComponent,
+    component: MatomoComponent,
     exact: false,
-    path: '/matamo',
-    title: 'Matamo',
+    path: '/matomo',
+    title: 'Matomo',
   },
 ];
 
