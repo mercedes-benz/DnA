@@ -190,7 +190,7 @@ const base = {
         'data-product-mfe': `data_product_mfe@[(window.INJECTED_ENVIRONMENT && window.INJECTED_ENVIRONMENT.DATA_PRODUCT_MFE_APP_URL)]/remoteEntry.js?[(new Date()).getTime()]`,
         'chronos-mfe': `chronos_mfe@[(window.INJECTED_ENVIRONMENT && window.INJECTED_ENVIRONMENT.CHRONOS_MFE_APP_URL)]/remoteEntry.js?[(new Date()).getTime()]`,
         'dss-mfe': `dss_mfe@[(window.INJECTED_ENVIRONMENT && window.INJECTED_ENVIRONMENT.DSS_MFE_APP_URL)]/remoteEntry.js?[(new Date()).getTime()]`,
-        'matamo-mfe': `matamo_mfe@[(window.INJECTED_ENVIRONMENT && window.INJECTED_ENVIRONMENT.MATAMO_MFE_APP_URL)]/remoteEntry.js?[(new Date()).getTime()]`,
+        'matomo-mfe': `matomo_mfe@[(window.INJECTED_ENVIRONMENT && window.INJECTED_ENVIRONMENT.MATOMO_MFE_APP_URL)]/remoteEntry.js?[(new Date()).getTime()]`,
         'datalake-mfe': `datalake_mfe@[(window.INJECTED_ENVIRONMENT && window.INJECTED_ENVIRONMENT.DATALAKE_MFE_APP_URL)]/remoteEntry.js?[(new Date()).getTime()]`,
       },
       shared: {
