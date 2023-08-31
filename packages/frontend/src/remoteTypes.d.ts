@@ -18,9 +18,9 @@ declare module 'dss-mfe/Dataiku' {
   export default Dataiku;
 }
 
-declare module 'matamo-mfe/Matamo' {
-  const Matamo: React.ComponentType;
-  export default Matamo;
+declare module 'matomo-mfe/Matomo' {
+  const Matomo: React.ComponentType;
+  export default Matomo;
 }
 
 declare module 'datalake-mfe/Datalake' {
