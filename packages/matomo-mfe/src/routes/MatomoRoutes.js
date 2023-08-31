@@ -7,7 +7,7 @@ import NotFoundPage from 'dna-container/NotFound';
 import UnAuthorised from 'dna-container/UnAuthorised';
 // import Dataiku from 'dna-container/Dataiku';
 
-import MatamoProjects from '../pages/matamoProjects/MatamoProjects';
+import MatomoProjects from '../pages/matomoProjects/MatomoProjects';
 import { ProtectedRoute } from './ProtectedRoutes';
 import { history } from '../store';
 
@@ -16,7 +16,7 @@ import SessionExpired from './SessionExpired';
 
 export const protectedRoutes = [
   {
-    component: MatamoProjects,
+    component: MatomoProjects,
     exact: true,
     path: '/',
   },

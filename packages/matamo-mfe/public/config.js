@@ -1,4 +1,0 @@
-window['MATAMO_INJECTED_ENVIRONMENT'] = {
-  CONTAINER_APP_URL: 'http://localhost:9090',
-  MATAMO_API_BASEURL: '',
-};
