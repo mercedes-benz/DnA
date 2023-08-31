@@ -14,7 +14,7 @@ export const USER_ROLE = {
 };
 
 export const ProvisionSource = {
-  MATAMO: 'matamo',
+  MATOMO: 'matomo',
 };
 
 export const SUPPORT_EMAIL_ID = 'support@your-domain.com';

@@ -28,7 +28,7 @@ const devConfig = {
   plugins: [
     new MFLiveReloadPlugin({
       port: 8089,
-      container: 'matamo-mfe',
+      container: 'matomo-mfe',
       standalone: false,
     }),
   ],

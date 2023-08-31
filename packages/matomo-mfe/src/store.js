@@ -4,7 +4,7 @@ import { createHashHistory } from 'history';
 import logger from 'redux-logger';
 
 export const history = createHashHistory({
-  basename: '/matamo',
+  basename: '/matomo',
 });
 
 const isDev = process.env.NODE_ENV === 'development';

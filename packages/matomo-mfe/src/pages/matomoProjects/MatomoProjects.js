@@ -1,20 +1,16 @@
 import classNames from 'classnames';
 import React from 'react';
-import Styles from './matamo-projects.scss';
+import Styles from './matomo-projects.scss';
 // dna-container
 import Caption from 'dna-container/Caption';
 
-const MatamoProjects = () => {
+const MatomoProjects = () => {
   return (
     <>
       <div className={classNames(Styles.mainPanel)}>
         <div className={classNames(Styles.wrapper)}>
         <>
-              <Caption title={'Matamo Projects'} />
-
-              <div className={classNames(Styles.caption)}>
-                <h3>Matamo Projects</h3>
-              </div>
+              <Caption title={'Matomo Projects'} />
 
               <div className={Styles.allProjectContent}>
                 <div className={Styles.newProjectCard}>
@@ -29,4 +25,4 @@ const MatamoProjects = () => {
     </>
   );
 };
-export default MatamoProjects;
+export default MatomoProjects;
