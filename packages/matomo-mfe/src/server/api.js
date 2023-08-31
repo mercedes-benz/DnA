@@ -5,8 +5,8 @@ import { refreshToken } from 'dna-container/RefreshToken';
 
 const jwt = sessionStorage?.length ? sessionStorage.getItem(SESSION_STORAGE_KEYS.JWT) : null;
 
-export const baseURL = Envs.MATAMO_API_BASEURL
-  ? Envs.MATAMO_API_BASEURL
+export const baseURL = Envs.MATOMO_API_BASEURL
+  ? Envs.MATOMO_API_BASEURL
   : `http://${window.location.hostname}:7777/api`;
 
 const headers = {

@@ -178,11 +178,11 @@ export const ToolsLandingPageElements = [
     isDnAInternalTool: true,
   },
   {
-    name: 'Matamo',
+    name: 'Matomo',
     description:
-      'Matamo summary',
+      'Matomo summary',
     tags: ['Frontend Reporting', 'Data Engineering', 'Data Pipeline', 'Data Science', 'Machine Learning', 'No / Low Code', 'Coding', 'Cloud', 'Onprem'],
-    url: '/matamo',
+    url: '/matomo',
     isExternalLink: false,
     isTextAlignLeft: true,
     animation: true,

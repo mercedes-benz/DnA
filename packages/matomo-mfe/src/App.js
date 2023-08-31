@@ -3,14 +3,14 @@ import React, { useEffect } from 'react';
 import { Provider } from 'react-redux';
 import store, { history } from './store';
 
-import Routes, { protectedRoutes } from './routes/MatamoRoutes';
+import Routes, { protectedRoutes } from './routes/MatomoRoutes';
 
 const App = ({ user, ...rest }) => {
   useEffect(() => {
-    const pathName = rest.history?.location?.pathname?.replace('/matamo', '') || '/';
+    const pathName = rest.history?.location?.pathname?.replace('/matomo', '') || '/';
     const isValidRoute = protectedRoutes.find((route) => pathName === route.path)?.path;
 
-    if (user?.roles?.length > 0 && rest.history?.location?.pathname.includes('/matamo')) {
+    if (user?.roles?.length > 0 && rest.history?.location?.pathname.includes('/matomo')) {
       if (isValidRoute) {
         history.replace(isValidRoute);
       }

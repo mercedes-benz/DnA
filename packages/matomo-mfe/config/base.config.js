@@ -123,13 +123,13 @@ module.exports = {
     }),
     new ExternalTemplateRemotesPlugin(),
     new ModuleFederationPlugin({
-      name: 'matamo_mfe',
+      name: 'matomo_mfe',
       filename: 'remoteEntry.js',
       exposes: {
-        './Matamo': './src/App',
+        './Matomo': './src/App',
       },
       remotes: {
-        'dna-container': `dna_container@[(window.MATAMO_INJECTED_ENVIRONMENT && window.MATAMO_INJECTED_ENVIRONMENT.CONTAINER_APP_URL)]/remoteEntry.js?[(new Date()).getTime()]`,
+        'dna-container': `dna_container@[(window.MATOMO_INJECTED_ENVIRONMENT && window.MATOMO_INJECTED_ENVIRONMENT.CONTAINER_APP_URL)]/remoteEntry.js?[(new Date()).getTime()]`,
       },
       shared: {
         ...deps,
