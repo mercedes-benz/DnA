@@ -72,11 +72,43 @@ paths:
 # path example ../matomo
 
   /matomo:
+    post:
+      tags:
+        - "matomo-sites"
+      summary: "Initialize/Create matomo site for user."
+      description: "Create matomo site for user "
+      operationId: "createMatomoSite"
+      parameters:
+        - name: "matomoRequestVO"
+          in: "body"
+          description: "Request Body that contains data required to initialize matomo site for user"
+          required: true
+          schema:
+            $ref: "#/definitions/MatomoSiteCreateRequestWrapperVO"
+      responses:
+        201:
+          description: "Returns message of success or failure "
+          schema:
+            $ref: "#/definitions/MatomoResponseVO"
+        400:
+          description: "Bad Request"
+          schema:
+            $ref: "#/definitions/GenericMessage"
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
+
+
     get:
       tags:
-        - "matomo-projects"
-      summary: "Get all forecast projects for the user."
-      description: "Get all forecasts projects for the user."
+        - "matomo-sites"
+      summary: "Get all matomo sites for the user."
+      description: "Get all matomo sites for the user."
       operationId: "getAll"
       parameters:
         - name: offset
@@ -93,7 +125,7 @@ paths:
         201:
           description: "Returns message of success or failure"
           schema:
-            $ref: "#/definitions/CreatedByVO"
+            $ref: "#/definitions/MatomoCollectionVO"
         204:
           description: "Fetch complete, no content found."
         400:
@@ -107,27 +139,254 @@ paths:
         500:
           description: "Internal error"
 
-definitions:
-  GenericMessage:
-    type: object
-    properties:
-      success:
-        type: string
-      errors:
-        type: array
-        items:
-          $ref: "#/definitions/MessageDescription"
-      warnings:
-        type: array
-        items:
-          $ref: "#/definitions/MessageDescription"
+  /matomo/{id}:
+    get:
+      tags:
+        - "matomo-sites"
+      summary: "Get matomo details for a given Id."
+      description: "Get matomo details for a given Id."
+      operationId: "getById"
+      parameters:
+        - name: "id"
+          in: "path"
+          description: "matomo ID to be fetched"
+          required: true
+          type: "string"
+      responses:
+        200:
+          description: "Returns message of success or failure"
+          schema:
+            $ref: "#/definitions/MatomoVO"
+        204:
+          description: "Fetch complete, no content found."
+        400:
+          description: "Bad request."
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
+    put:
+      tags:
+        - "matomo-sites"
+      summary: "update matomo details for a given Id."
+      description: "update matomo details for a given Id."
+      operationId: "updateById"
+      parameters:
+        - name: "id"
+          in: "path"
+          description: "matomo ID to be updated"
+          required: true
+          type: "string"
+        - name: "matomoUpdateRequestVO"
+          in: "body"
+          description: "Request Body that contains data required for updating of collab details"
+          required: true
+          schema:
+            $ref: "#/definitions/MatomoSiteUpdateRequestVO"
+      responses:
+        200:
+          description: "Returns message of success or failure"
+          schema:
+            $ref: "#/definitions/MatomoResponseVO"
+        204:
+          description: "Fetch complete, no content found."
+        400:
+          description: "Bad request."
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
 
-  MessageDescription:
+    delete:
+      tags:
+        - "matomo-sites"
+      summary: "delete matomo details for a given Id."
+      description: "delete matomo details for a given Id."
+      operationId: "deleteById"
+      parameters:
+        - name: "id"
+          in: "path"
+          description: "forecast project ID to be delete"
+          required: true
+          type: "string"
+      responses:
+        200:
+          description: "Returns message of success"
+          schema:
+            $ref: "#/definitions/GenericMessage"
+        400:
+          description: "Bad request."
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
+
+
+definitions:
+  MatomoSiteCreateRequestWrapperVO:
+    type: object
+    description: "Site create request model definition"
+    properties:
+      data:
+        $ref: "#/definitions/MatomoSiteRequestVO"
+
+  MatomoSiteRequestVO:
     type: object
     properties:
-      message:
+      siteName:
         type: string
-        description: "message"
+        description: "name of the matomo site"
+      siteUrl:
+        type: string
+        description: "site url for the matomo site"
+      division:
+        type: string
+        description: "division for the matomo site"
+      subDivision:
+        type: string
+        description: "sub division for the matomo site"
+      department:
+        type: string
+        description: "department for the matomo site"
+      status:
+        type: string
+        description: "status for the matomo site"
+      classificationType:
+        type: string
+        description: "Classification type for matomo site."
+      piiData:
+        type: boolean
+        description: "If Matomo site contains personally identifiable information."
+      permission:
+        $ref: "#/definitions/ForecastPermissionVO"
+      collaborators:
+        type: array
+        items:
+          $ref: "#/definitions/CollaboratorVO"
+      required:
+        - name
+
+  MatomoResponseVO:
+    type: object
+    properties:
+      status:
+        type: string
+        description: "Overrall status"
+      data:
+        $ref: "#/definitions/MatomoVO"
+      response:
+        $ref: "#/definitions/GenericMessage"
+
+  MatomoCollectionVO:
+    type: object
+    properties:
+      totalCount:
+        type: integer
+        description: "Total Record Count"
+      records:
+        type: array
+        items:
+          $ref: "#/definitions/MatomoVO"
+
+  MatomoVO:
+    type: object
+    properties:
+      id:
+        type: string
+        description: "id of matomo site"
+      siteId:
+        type: string
+        description: "site id of the matomo site"
+      siteName:
+        type: string
+        description: "name of the matomo site"
+      siteUrl:
+        type: string
+        description: "defines the site url"
+      division:
+        type: string
+        description: "division for the matomo site"
+      subDivision:
+        type: string
+        description: "sub division for the matomo site"
+      department:
+        type: string
+        description: "department for the matomo site"
+      status:
+        type: string
+        description: "status for the matomo site"
+      classificationType:
+        type: string
+        description: "Classification type for matomo site."
+      piiData:
+        type: boolean
+        description: "If Matomo site contains personally identifiable information."
+      permission:
+        $ref: "#/definitions/ForecastPermissionVO"
+      collaborators:
+        type: array
+        items:
+          $ref: "#/definitions/CollaboratorVO"
+      createdBy:
+        $ref: "#/definitions/CreatedByVO"
+        description: createdBy user details
+      createdOn:
+        type: string
+        format: date
+        description: date when project created
+
+
+  MatomoSiteUpdateRequestVO:
+    type: object
+    properties:
+      siteName:
+        type: string
+        description: "name of the matomo site"
+      siteUrl:
+        type: string
+        description: "site url for the matomo site"
+      division:
+        type: string
+        description: "division for the matomo site"
+      subDivision:
+        type: string
+        description: "sub division for the matomo site"
+      department:
+        type: string
+        description: "department for the matomo site"
+      status:
+        type: string
+        description: "status for the matomo site"
+      classificationType:
+        type: string
+        description: "Classification type for matomo site."
+      piiData:
+        type: boolean
+        description: "If Matomo site contains personally identifiable information."
+      permission:
+        $ref: "#/definitions/ForecastPermissionVO"
+      addCollaborators:
+        type: array
+        items:
+          $ref: "#/definitions/CollaboratorVO"
+          description: "To add collaborators"
+      removeCollaborators:
+        type: array
+        items:
+          $ref: "#/definitions/CollaboratorVO"
+          description: "To remove collaborators"
 
   CreatedByVO:
     type: object
@@ -150,3 +409,58 @@ definitions:
       mobileNumber:
         type: string
         description: "Mobile number of the user"
+
+  CollaboratorVO:
+    type: object
+    properties:
+      id:
+        type: string
+        description: "Short id of the user"
+      permissions:
+        $ref: "#/definitions/ForecastPermissionVO"
+        description: "Read write permissions"
+      firstName:
+        type: string
+        description: "First Name of the user"
+      lastName:
+        type: string
+        description: "Last Name of the user"
+      department:
+        type: string
+        description: "Department of the user"
+      email:
+        type: string
+        description: "E-Mail of the user"
+        format: email
+      mobileNumber:
+        type: string
+        description: "Mobile number of the user"
+
+  ForecastPermissionVO:
+    type: object
+    properties:
+      read:
+        type: boolean
+      write:
+        type: boolean
+
+  GenericMessage:
+    type: object
+    properties:
+      success:
+        type: string
+      errors:
+        type: array
+        items:
+          $ref: "#/definitions/MessageDescription"
+      warnings:
+        type: array
+        items:
+          $ref: "#/definitions/MessageDescription"
+
+  MessageDescription:
+    type: object
+    properties:
+      message:
+        type: string
+        description: "message"
