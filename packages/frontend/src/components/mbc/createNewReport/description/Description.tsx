@@ -896,6 +896,28 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
     let formValid = true;
     const errorMissingEntry = '*Missing entry';
 
+    if(this.state.procedureId){
+      if(this.state.procedureId === procedureIdEnvs){
+        const description = this.props.description;
+        description.procedureId = '';
+        formValid = true;
+      } else {
+        if (procedureIdEnvs && !this.state.procedureId.startsWith(procedureIdEnvs)) {
+          this.setState({ procedureIdError: '*Please provide valid Procedure Id ('+procedureIdEnvs+'xxx).' });
+          formValid = false;
+        }
+        if (procedureIdEnvs && this.state.procedureId.startsWith(procedureIdEnvs) && this.state.procedureId.replace(procedureIdEnvs, '') == '') {
+          this.setState({ procedureIdError: '*Please provide valid Procedure Id ('+procedureIdEnvs+'xxx).' });
+          formValid = false;
+        }
+        // if ((!procedureIdEnvs || procedureIdEnvs == '' || procedureIdEnvs == null) && (this.state.procedureId ==='' || !this.state.procedureId)) {
+        //   this.setState({ procedureIdError: errorMissingEntry });
+        //   formValid = false;
+        // }
+      }
+      
+    }
+
     if (!this.state.divisionValue || this.state.divisionValue.id === '0') {
       this.setState({ divisionError: errorMissingEntry });
       formValid = false;
@@ -966,36 +988,17 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
       this.setState({ frontEndTechError: errorMissingEntry });
       formValid = false;
     }
+    // if (this.state.reportLinkError && this.state.reportLink) {
+    //   this.setState({ reportLinkError: '' });
+    //   // formValid = true;
+    // }
     if ((!this.state.reportLink || this.state.reportLink === null || this.state.reportLink === '') && this.state.statusValue[0]?.id === 'Active') {
       this.setState({ reportLinkError: errorMissingEntry });
       formValid = false;
     }
-    if (this.state.reportLinkError && this.state.reportLink) {
-      this.setState({ reportLinkError: '' });
-      // formValid = true;
-    }
+    
     // if (procedureIdEnvs && (this.state.procedureId.split('-')[0]!== procedureIdEnvs || this.state.procedureId.split('-')[1] === '')) {
-    if(this.state.procedureId){
-      if(this.state.procedureId === procedureIdEnvs){
-        const description = this.props.description;
-        description.procedureId = '';
-        formValid = true;
-      } else {
-        if (procedureIdEnvs && !this.state.procedureId.startsWith(procedureIdEnvs)) {
-          this.setState({ procedureIdError: '*Please provide valid Procedure Id ('+procedureIdEnvs+'xxx).' });
-          formValid = false;
-        }
-        if (procedureIdEnvs && this.state.procedureId.startsWith(procedureIdEnvs) && this.state.procedureId.replace(procedureIdEnvs, '') == '') {
-          this.setState({ procedureIdError: '*Please provide valid Procedure Id ('+procedureIdEnvs+'xxx).' });
-          formValid = false;
-        }
-        // if ((!procedureIdEnvs || procedureIdEnvs == '' || procedureIdEnvs == null) && (this.state.procedureId ==='' || !this.state.procedureId)) {
-        //   this.setState({ procedureIdError: errorMissingEntry });
-        //   formValid = false;
-        // }
-      }
-      
-    }
+    
     if(this.state.procedureIdError) {
       formValid = false;
     }
