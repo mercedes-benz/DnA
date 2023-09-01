@@ -13,7 +13,17 @@ import java.util.List;
 @AllArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Matomo {
-    private String name;
+
+    private String id;
+    private String siteId;
+    private String siteName;
+    private String siteUrl;
+    private String division;
+    private String subDivision;
+    private String department;
+    private String status;
+    private boolean piiData;
+    private String classificationType;
     private UserDetails createdBy;
     //private String resultFolderPath;
     private Date createdOn;
