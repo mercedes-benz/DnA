@@ -25,8 +25,8 @@ public class Matomo {
     private boolean piiData;
     private String classificationType;
     private UserDetails createdBy;
-    //private String resultFolderPath;
     private Date createdOn;
+    private Date lastModified;
     private List<UserDetails> collaborators;
 
 }
