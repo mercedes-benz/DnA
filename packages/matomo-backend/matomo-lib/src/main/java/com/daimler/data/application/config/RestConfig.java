@@ -22,12 +22,6 @@ import java.security.cert.X509Certificate;
 @Configuration
 public class RestConfig implements WebMvcConfigurer {
 
-    @Value("${proxy.host}")
-    private String proxyHost;
-
-    @Value("${proxy.port}")
-    private String proxyPort;
-
     @Bean
     public RestTemplate restTemplate() throws KeyStoreException, NoSuchAlgorithmException, KeyManagementException {
         TrustStrategy acceptingTrustStrategy = (X509Certificate[] chain, String authType) -> true;
