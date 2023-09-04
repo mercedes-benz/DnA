@@ -1344,12 +1344,13 @@ public class BaseStorageService implements StorageService {
 			currentOwnerPermission.setRead(Boolean.TRUE);
 			currentOwnerPermission.setWrite(Boolean.TRUE);
 			currentOwnerAsCollab.setPermission(currentOwnerPermission);
-			// To remove new owner from collaborator list and to add current owner as collaborator.
+			// To update permission of the new owner from collaborator list and to add current owner as collaborator.
 			if (Objects.nonNull(existingCollaborators)) {
 				for (com.daimler.data.db.jsonb.UserInfo collab : existingCollaborators) {
 					collabIds.add(collab.getId());
 					if (collab.getId().equalsIgnoreCase(newOwner.getId())) {
-						updatedCollaborators.remove(collab);
+						collab.getPermission().setWrite(true);
+						collab.getPermission().setRead(true);
 					}
 				}
 				if (!(collabIds.contains(currentOwnerAsCollab.getId()))) {
