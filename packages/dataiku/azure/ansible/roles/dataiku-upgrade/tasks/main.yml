@@ -129,10 +129,10 @@
   file:
     path: "{{dss_backup_directory}}/dataiku_backup_{{date_now}}_{{ansible_eth0.ipv4.address}}.tar.gz"
     state: absent
-  tags: [ dss-upgrade-production, dss-upgrade-training, dss-upgrade-automation, lc-upgrade-prod ]
+  tags: [ dss-upgrade-production, dss-upgrade-training, dss-upgrade-automation ]
 
 - name: Remove backup file from local storage
   file:
     path: "{{dss_backup_directory}}/dataiku_backup_{{date_now}}_{{ansible_default_ipv4.address}}.tar.gz"
     state: absent
-  tags: [ dss-upgrade-production, dss-upgrade-training, dss-upgrade-automation, lc-upgrade-prod ]  
+  tags: [ lc-upgrade-prod ]  
