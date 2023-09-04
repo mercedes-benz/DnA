@@ -113,12 +113,12 @@ paths:
       parameters:
         - name: offset
           in: query
-          description: page number from which listing of forecasts should start. Offset. Example 2
+          description: page number from which listing of matomo should start. Offset. Example 2
           required: false
           type: integer
         - name: limit
           in: query
-          description: page size to limit the number of forecasts, Example 15
+          description: page size to limit the number of matomo, Example 15
           required: false
           type: integer
       responses:
@@ -139,7 +139,7 @@ paths:
         500:
           description: "Internal error"
 
-  /matomo/{id}:
+  /matomo/{id}/sites:
     get:
       tags:
         - "matomo-sites"
@@ -214,7 +214,7 @@ paths:
       parameters:
         - name: "id"
           in: "path"
-          description: "forecast project ID to be delete"
+          description: "matomo ID to be delete"
           required: true
           type: "string"
       responses:
@@ -270,20 +270,23 @@ definitions:
         type: boolean
         description: "If Matomo site contains personally identifiable information."
       permission:
-        $ref: "#/definitions/ForecastPermissionVO"
+        $ref: "#/definitions/MatomoPermissionVO"
       collaborators:
         type: array
         items:
           $ref: "#/definitions/CollaboratorVO"
       required:
-        - name
+        - siteName
+        - siteUrl
+        - division
+        - department
+        - status
+        - classificationType
+        - piiData
 
   MatomoResponseVO:
     type: object
     properties:
-      status:
-        type: string
-        description: "Overrall status"
       data:
         $ref: "#/definitions/MatomoVO"
       response:
@@ -334,7 +337,7 @@ definitions:
         type: boolean
         description: "If Matomo site contains personally identifiable information."
       permission:
-        $ref: "#/definitions/ForecastPermissionVO"
+        $ref: "#/definitions/MatomoPermissionVO"
       collaborators:
         type: array
         items:
@@ -345,7 +348,12 @@ definitions:
       createdOn:
         type: string
         format: date
-        description: date when project created
+        description: date when site created
+      lastModified:
+        type: string
+        format: date
+        description: date when site was last modified
+
 
 
   MatomoSiteUpdateRequestVO:
@@ -376,7 +384,7 @@ definitions:
         type: boolean
         description: "If Matomo site contains personally identifiable information."
       permission:
-        $ref: "#/definitions/ForecastPermissionVO"
+        $ref: "#/definitions/MatomoPermissionVO"
       addCollaborators:
         type: array
         items:
@@ -417,7 +425,7 @@ definitions:
         type: string
         description: "Short id of the user"
       permissions:
-        $ref: "#/definitions/ForecastPermissionVO"
+        $ref: "#/definitions/MatomoPermissionVO"
         description: "Read write permissions"
       firstName:
         type: string
@@ -436,13 +444,12 @@ definitions:
         type: string
         description: "Mobile number of the user"
 
-  ForecastPermissionVO:
+  MatomoPermissionVO:
     type: object
     properties:
-      read:
-        type: boolean
-      write:
-        type: boolean
+      type: string
+      enum: [ VIEW,WRITE,ADMIN ]
+
 
   GenericMessage:
     type: object
