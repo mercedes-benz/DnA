@@ -224,7 +224,6 @@ public class BaseWorkspaceService implements WorkspaceService {
 				 ownerWorkbenchDeleteInputsDto.setAction(ConstantsUtility.DELETEACTION);
 				 ownerWorkbenchDeleteInputsDto.setEnvironment(environment);
 				 ownerWorkbenchDeleteInputsDto.setIsCollaborator("false");
-				 ownerWorkbenchDeleteInputsDto.setPassword("");
 				 ownerWorkbenchDeleteInputsDto.setPat("");
 				 ownerWorkbenchDeleteInputsDto.setResource("");
 				 String repoNameWithOrg =  gitOrgUri + gitOrgName + "/" + repoName;
@@ -266,7 +265,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 	
 	@Override
 	@Transactional
-	public InitializeWorkspaceResponseVO initiateWorkspace(CodeServerWorkspaceVO vo, String pat, String password) {
+	public InitializeWorkspaceResponseVO initiateWorkspace(CodeServerWorkspaceVO vo, String pat) {
 		InitializeWorkspaceResponseVO responseVO = new InitializeWorkspaceResponseVO();
 		responseVO.setData(null);
 		responseVO.setSuccess("FAILED");
@@ -291,7 +290,6 @@ public class BaseWorkspaceService implements WorkspaceService {
 			 ownerWorkbenchCreateInputsDto.setAction(ConstantsUtility.CREATEACTION);
 			 ownerWorkbenchCreateInputsDto.setEnvironment(entity.getData().getProjectDetails().getRecipeDetails().getEnvironment());
 			 ownerWorkbenchCreateInputsDto.setIsCollaborator("true");
-			 ownerWorkbenchCreateInputsDto.setPassword(password);
 			 ownerWorkbenchCreateInputsDto.setPat(pat);
 			 String repoName = entity.getData().getProjectDetails().getGitRepoName();
 			 String repoNameWithOrg =  gitOrgUri + gitOrgName + "/" + repoName;
@@ -341,7 +339,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 
 	@Override
 	@Transactional
-	public InitializeWorkspaceResponseVO createWorkspace(CodeServerWorkspaceVO vo, String pat, String password) {
+	public InitializeWorkspaceResponseVO createWorkspace(CodeServerWorkspaceVO vo, String pat) {
 		InitializeWorkspaceResponseVO responseVO = new InitializeWorkspaceResponseVO();
 		responseVO.setData(vo);
 		responseVO.setSuccess("FAILED");
@@ -425,7 +423,6 @@ public class BaseWorkspaceService implements WorkspaceService {
 			 ownerWorkbenchCreateInputsDto.setAction(ConstantsUtility.CREATEACTION);
 			 ownerWorkbenchCreateInputsDto.setEnvironment(ownerEntity.getData().getProjectDetails().getRecipeDetails().getEnvironment());
 			 ownerWorkbenchCreateInputsDto.setIsCollaborator("false");
-			 ownerWorkbenchCreateInputsDto.setPassword(password);
 			 ownerWorkbenchCreateInputsDto.setPat(pat);
 			 String repoNameWithOrg = "";
 			 if(!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public")) {
@@ -475,7 +472,6 @@ public class BaseWorkspaceService implements WorkspaceService {
 			 String projectName = ownerEntity.getData().getProjectDetails().getProjectName();
 			 ownerEntity.getData().setIntiatedOn(now);
 			 ownerEntity.getData().setStatus(ConstantsUtility.CREATEREQUESTEDSTATE);
-			 ownerEntity.getData().setPassword(password);
 			 ownerEntity.getData().setWorkspaceUrl("");//set url
 			 ownerEntity.getData().getProjectDetails().setProjectCreatedOn(now);
 			 if(vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public")) {
@@ -490,7 +486,6 @@ public class BaseWorkspaceService implements WorkspaceService {
 					 collabData.setDescription(ownerEntity.getData().getDescription());
 					 collabData.setGitUserName(collaborator.getGitUserName());
 					 collabData.setIntiatedOn(null);
-					 collabData.setPassword("");
 					 collabData.setProjectDetails(ownerEntity.getData().getProjectDetails());
 					 collabData.setStatus(ConstantsUtility.COLLABREQUESTEDSTATE);
 					 Long collabWsSeqId = jpaRepo.getNextWorkspaceSeqId();
@@ -768,7 +763,6 @@ public class BaseWorkspaceService implements WorkspaceService {
 					collabData.setDescription(ownerEntity.getData().getDescription());
 					collabData.setGitUserName(collaborator.getGitUserName());
 					collabData.setIntiatedOn(null);
-					collabData.setPassword("");
 					collabData.setProjectDetails(ownerEntity.getData().getProjectDetails());
 					collabData.setStatus(ConstantsUtility.COLLABREQUESTEDSTATE);
 					Long collabWsSeqId = jpaRepo.getNextWorkspaceSeqId();

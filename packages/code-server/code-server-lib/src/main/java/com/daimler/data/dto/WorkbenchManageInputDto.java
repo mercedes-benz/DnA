@@ -19,7 +19,6 @@ public class WorkbenchManageInputDto {
 	private String type;
 	private String repo;
 	private String resource;
-	private String password;
 	private String pat;
 	private String isCollaborator;
 	
