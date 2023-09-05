@@ -44,7 +44,7 @@ podAnnotations: {}
 podSecurityContext: 
   runAsUser: 1000
 
-containerPort: 7175
+containerPort: 8989
 
 securityContext: {}
   # capabilities:
