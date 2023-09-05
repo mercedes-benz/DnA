@@ -1,20 +1,20 @@
 import classNames from 'classnames';
 import React, { useState, useEffect, useRef } from 'react';
 import { useFormContext } from 'react-hook-form';
+import { useSelector } from 'react-redux';
 import Styles from './existing-files-view.scss';
 // Container components
 import SelectBox from 'dna-container/SelectBox';
 import { regionalDateAndTimeConversionSolution } from '../../../utilities/utils';
-import { chronosApi } from '../../../apis/chronos.api';
-import Spinner from '../../spinner/Spinner';
 
 
-const ExistingFilesView = ({projectId, setShowExistingFiles, setInputFile, setIsExistingInputFile}) => {
+const ExistingFilesView = ({setShowExistingFiles, setInputFile, setIsExistingInputFile}) => {
+  const project = useSelector(state => state.projectDetails);
   const {register} = useFormContext();
-  const [savedFiles, setSavedFiles] = useState([]);
+  const [savedFiles] = useState([...project.data.savedInputs]);
   const [selectedInputFile, setSelectedInputFile] = useState('');
-  const [loading, setLoading] = useState(true);
   const [error] = useState(false);
+
 
   useEffect(() => {
     SelectBox.defaultSetup();
@@ -22,27 +22,6 @@ const ExistingFilesView = ({projectId, setShowExistingFiles, setInputFile, setIs
   }, []);
 
   const inputFileSelect = useRef();
-
-  useEffect(() => {
-    chronosApi.getAllInputFiles(projectId).then((res) => {
-      if(res.status === 204) {
-        setSavedFiles([]);
-      }
-      if(res.data !== '') {
-        setSavedFiles(res.data.files);
-      }
-      // setSavedFiles(savedInputs);
-      setLoading(false);
-      SelectBox.defaultSetup();
-    }).catch(error => {
-      Notification.show(
-        error?.response?.data?.response?.errors?.[0]?.message || error?.response?.data?.response?.warnings?.[0]?.message || 'Error while fetching input files',
-        'alert',
-      );
-      setLoading(false);
-    });
-    //eslint-disable-next-line
-  }, [projectId]);
 
   const selectedSavedFile = (e) => {
     const selectedOne = savedFiles.filter(item => item.path === e.target.value);
@@ -52,11 +31,10 @@ const ExistingFilesView = ({projectId, setShowExistingFiles, setInputFile, setIs
   
   return (
     <div className={Styles.existingFilesContainer}>
-      {loading && <Spinner />}
       <div className={Styles.mw}>
-        {!loading && savedFiles.length === 0 && <span>No saved input files</span>}
+        {savedFiles.length === 0 && <span>No saved input files</span>}
         {
-          !loading && savedFiles.length !== 0 ? 
+          savedFiles.length !== 0 ? 
           <div className={classNames(`input-field-group include-error ${error ? 'error' : ''}`)}>
             <label id="savedInputPathLabel" htmlFor="existingFilenField" className="input-label">
               Input File <sup>*</sup>
