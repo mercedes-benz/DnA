@@ -710,30 +710,30 @@ definitions:
   InitializeCollabWorkspaceRequestVO:
     type: object
     properties:
-      password:
-        type: string
-        description: "Create Password, required to login to workbench of codeserver"
+#      password:
+#        type: string
+#        description: "Create Password, required to login to workbench of codeserver"
       pat:
         type: string
         description: "Provide PAT to manage git repositories"
       required:
        - pat
-       - password     
+#       - password     
         
   InitializeWorkspaceRequestVO:
     type: object
     properties:
       data:
         $ref: "#/definitions/CodeServerWorkspaceVO"
-      password:
-        type: string
-        description: "Create Password, required to login to workbench of codeserver"
+#      password:
+#        type: string
+#        description: "Create Password, required to login to workbench of codeserver"
       pat:
         type: string
         description: "Provide PAT to manage git repositories"
       required:
        - pat
-       - password     
+#       - password     
        - data
         
   InitializeWorkspaceResponseVO:

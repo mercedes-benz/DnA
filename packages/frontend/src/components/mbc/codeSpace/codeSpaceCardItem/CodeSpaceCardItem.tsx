@@ -19,6 +19,7 @@ interface CodeSpaceCardItemProps {
   onDeleteSuccess?: () => void;
   toggleProgressMessage?: (show: boolean) => void;
   onShowCodeSpaceOnBoard: (codeSpace: ICodeSpaceData) => void;
+  onCodeSpaceEdit: (codeSpace: ICodeSpaceData) => void;
 }
 
 const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
@@ -28,10 +29,11 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
   // const codeDeploying = codeSpace.status === 'DEPLOY_REQUESTED';
   const deleteInProgress = codeSpace.status === 'DELETE_REQUESTED';
   const createInProgress = codeSpace.status === 'CREATE_REQUESTED';
+  const creationFailed = codeSpace.status === 'CREATE_FAILED';
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const recipes = recipesMaster;
-  const isOwner = codeSpace.workspaceOwner.id === props.userInfo.id;
-  const hasCollaborators = codeSpace.projectDetails?.projectCollaborators?.length;
+  const isOwner = codeSpace.projectDetails?.projectOwner?.id === props.userInfo.id;
+  const hasCollaborators = codeSpace.projectDetails?.projectCollaborators?.length > 0;
 
   const deleteCodeSpaceContent = (
     <div>
@@ -40,9 +42,19 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
         <br /> */}
         {isOwner ? (
           <>
-            Deleting a CodeSpace would delete the code associated with it
-            {hasCollaborators && <><br />and the CodeSpaces of the collaborators you have added</>},
-            <br /> Do you want to proceed?
+            {hasCollaborators ? (
+              <>
+                You have collaborators in your project.
+                <br />
+                Please transfer your ownership to any one of the collaborator <br /> or remove the collaborator(s) before
+                deleting this code space '{codeSpace?.projectDetails?.projectName}'.
+              </>
+            ) : (
+              <>
+                Deleting a CodeSpace would delete the code associated with it,
+                <br /> Do you want to proceed?
+              </>
+            )}
           </>
         ) : (
           <>
@@ -61,7 +73,7 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
     ProgressIndicator.show();
     CodeSpaceApiClient.deleteCodeSpace(codeSpace.id)
       .then((res: any) => {
-        trackEvent('DnA Code Space', 'Deploy', 'Deploy code space');
+        trackEvent('DnA Code Space', 'Delete', 'Delete code space');
         if (res.success === 'SUCCESS') {
           props.onDeleteSuccess();
           setShowDeleteModal(false);
@@ -97,6 +109,14 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
     }
   };
 
+  const onCodeSpaceDelete = () => {
+    if (creationFailed) {
+      deleteCodeSpaceAccept();
+    } else {
+      setShowDeleteModal(true);
+    }
+  };
+
   const projectDetails = codeSpace?.projectDetails;
   const intDeploymentDetails = projectDetails.intDeploymentDetails;
   const prodDeploymentDetails = projectDetails.prodDeploymentDetails;
@@ -115,13 +135,18 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
     (prodDeployedUrl !== null && prodDeployedUrl !== 'null');
 
   const deployed = intDeployed || prodDeployed;
+  const allowDelete = isOwner ? !hasCollaborators : true;
+  const isPublicRecipe = projectDetails.recipeDetails?.recipeId.startsWith('public');
 
   return (
     <>
       <div className={classNames(Styles.codeSpaceCard, deleteInProgress || createInProgress ? Styles.disable : null)}>
         <div className={Styles.cardHead}>
           <div
-            className={classNames(Styles.cardHeadInfo, deleteInProgress || createInProgress ? Styles.disable : null)}
+            className={classNames(
+              Styles.cardHeadInfo,
+              deleteInProgress || createInProgress || creationFailed ? Styles.disable : null,
+            )}
           >
             <div className={classNames('btn btn-text forward arrow', Styles.cardHeadTitle)} onClick={onCardNameClick}>
               {projectDetails.projectName}
@@ -133,7 +158,7 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
           <div>
             <div>
               <div>Code Recipe</div>
-              <div>{recipes.find((item: any) => item.id === projectDetails.recipeDetails.recipeId).name}</div>
+              <div>{recipes.find((item: any) => item.id === projectDetails.recipeDetails.recipeId)?.name}</div>
             </div>
             <div>
               <div>Environment</div>
@@ -147,9 +172,21 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
               <div>
                 <div>Last Deployed on</div>
                 <div>
-                  {intDeployed && <>Staging({intDeploymentDetails.lastDeployedBranch}):<br />{regionalDateAndTimeConversionSolution(intLastDeployedOn)}</>}
+                  {intDeployed && (
+                    <>
+                      Staging({intDeploymentDetails.lastDeployedBranch}):
+                      <br />
+                      {regionalDateAndTimeConversionSolution(intLastDeployedOn)}
+                    </>
+                  )}
                   <br />
-                  {prodDeployed && <>Production({prodDeploymentDetails.lastDeployedBranch}):<br />{regionalDateAndTimeConversionSolution(prodLastDeployedOn)}</>}
+                  {prodDeployed && (
+                    <>
+                      Production({prodDeploymentDetails.lastDeployedBranch}):
+                      <br />
+                      {regionalDateAndTimeConversionSolution(prodLastDeployedOn)}
+                    </>
+                  )}
                 </div>
               </div>
             )}
@@ -169,38 +206,51 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
           ) : (
             <>
               <div>
-                {deployingInProgress && (
-                  <span className={classNames(Styles.statusIndicator, Styles.deploying)}>Deploying...</span>
-                )}
-                {deployed && (
+                {createInProgress ? (
+                  <span className={classNames(Styles.statusIndicator, Styles.creating)}>Creating...</span>
+                ) : (
                   <>
-                    {!deployingInProgress && <span className={Styles.statusIndicator}>Deployed</span>}
-                    {intDeployed && (
-                      <a href={intDeployedUrl} target="_blank" rel="noreferrer" className={Styles.deployedLink}>
-                        <i className="icon mbc-icon link" /> Staging
-                      </a>
+                    {deployingInProgress && (
+                      <span className={classNames(Styles.statusIndicator, Styles.deploying)}>Deploying...</span>
                     )}
-                    {prodDeployed && (
-                      <a href={prodDeployedUrl} target="_blank" rel="noreferrer" className={Styles.deployedLink}>
-                        <i className="icon mbc-icon link" /> Production
-                      </a>
+                    {deployed && (
+                      <>
+                        {!deployingInProgress && <span className={Styles.statusIndicator}>Deployed</span>}
+                        {intDeployed && (
+                          <a href={intDeployedUrl} target="_blank" rel="noreferrer" className={Styles.deployedLink}>
+                            <i className="icon mbc-icon link" /> Staging
+                          </a>
+                        )}
+                        {prodDeployed && (
+                          <a href={prodDeployedUrl} target="_blank" rel="noreferrer" className={Styles.deployedLink}>
+                            <i className="icon mbc-icon link" /> Production
+                          </a>
+                        )}
+                      </>
                     )}
                   </>
                 )}
                 {deleteInProgress && (
                   <span className={classNames(Styles.statusIndicator, Styles.deleting)}>Deleting...</span>
                 )}
-                {createInProgress && (
-                  <span className={classNames(Styles.statusIndicator, Styles.creating)}>Creating...</span>
+                {creationFailed && (
+                  <span className={classNames(Styles.statusIndicator, Styles.deleting)}>Create Failed</span>
                 )}
               </div>
               <div className={Styles.btnGrp}>
-                <button className="btn btn-primary hide" onClick={() => history.push(`/edit/${codeSpace.workspaceId}`)}>
-                  <i className="icon mbc-icon edit"></i>
-                </button>
-                {!deleteInProgress && !createInProgress && !deployingInProgress && (
-                  <button className="btn btn-primary" onClick={() => setShowDeleteModal(true)}>
+                {!isPublicRecipe && !creationFailed && isOwner && (
+                  <button className="btn btn-primary" onClick={() => props.onCodeSpaceEdit(codeSpace)}>
+                    <i className="icon mbc-icon edit"></i>
+                  </button>
+                )}
+                {!creationFailed && !deleteInProgress && !createInProgress && !deployingInProgress && (
+                  <button className="btn btn-primary" onClick={onCodeSpaceDelete}>
                     <i className="icon delete"></i>
+                  </button>
+                )}
+                {creationFailed && (
+                  <button className="btn btn-primary">
+                    <i className="icon mbc-icon refresh"></i> Retry
                   </button>
                 )}
               </div>
@@ -211,8 +261,8 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
       <ConfirmModal
         title={''}
         acceptButtonTitle="Yes"
-        cancelButtonTitle="No"
-        showAcceptButton={true}
+        cancelButtonTitle={allowDelete ? "No" : "OK"}
+        showAcceptButton={allowDelete}
         showCancelButton={true}
         show={showDeleteModal}
         content={deleteCodeSpaceContent}

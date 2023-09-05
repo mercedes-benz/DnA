@@ -1,31 +1,40 @@
 import classNames from 'classnames';
 import React, { useState } from 'react';
+import { useParams } from 'react-router-dom';
+import { useSelector, useDispatch } from 'react-redux';
 import Styles from './input-files.scss';
 import { regionalDateAndTimeConversionSolution } from '../../utilities/utils';
 import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indicator';
 import Notification from '../../common/modules/uilab/js/src/notification';
 import { chronosApi } from '../../apis/chronos.api';
 import Modal from 'dna-container/Modal';
+import SelectBox from 'dna-container/SelectBox';
 import AceEditor from 'react-ace';
 //import theme
 import 'ace-builds/src-noconflict/theme-solarized_dark';
 import 'ace-builds/src-noconflict/mode-yaml';
+import { getProjectDetails } from '../../redux/projectDetails.services';
 
-const InputFiles = ({inputFiles, showModal, addNew, proId, refresh}) => {
+const InputFiles = ({inputFiles, showModal, addNew}) => {
+  const { id: projectId } = useParams();
   const isValidFile = (file) => ['yml', 'yaml'].includes(file?.name?.slice((file?.name?.lastIndexOf(".") - 1 >>> 0) + 2));
 
   const [showPreview, setShowPreview] = useState(false);
   const [blobURL, setBlobUrl] = useState();
   const [selectedConfigFile, setSelectedConfigFile] = useState();
 
+  const project = useSelector(state => state.projectDetails);
+  const dispatch = useDispatch();
+
   const handleUploadFile = (file) => {
     const formData = new FormData();
     formData.append('configFile', file);
     ProgressIndicator.show();
-    chronosApi.uploadProjectConfigFile(proId, formData).then(() => {
+    chronosApi.uploadProjectConfigFile(project?.data?.id, formData).then(() => {
         Notification.show('File uploaded successfully');
-        refresh();
+        dispatch(getProjectDetails(projectId));
         ProgressIndicator.hide();
+        SelectBox.defaultSetup();
       }).catch(error => {
         ProgressIndicator.hide();
         Notification.show(
@@ -39,7 +48,7 @@ const InputFiles = ({inputFiles, showModal, addNew, proId, refresh}) => {
     if(addNew) {
       setSelectedConfigFile(file);
       ProgressIndicator.show();
-      chronosApi.getProjectConfigFileById(proId, file.id).then((res) => {
+      chronosApi.getProjectConfigFileById(project?.data?.id, file.id).then((res) => {
           setBlobUrl(res.data.configFileData);
           setShowPreview(true);
           ProgressIndicator.hide();

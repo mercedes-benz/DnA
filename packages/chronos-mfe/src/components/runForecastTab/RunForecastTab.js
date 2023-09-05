@@ -67,7 +67,6 @@ const RunForecastTab = ({ onRunClick }) => {
     <FormProvider {...methods} >
       <form onSubmit={methods.handleSubmit(onSubmit)}>
         <InputFileArea
-          projectId={projectId}
           inputFile={inputFile}
           setInputFile={setInputFile}
         />

@@ -47,9 +47,9 @@ public interface WorkspaceService {
 
 	Integer getCount(String userId);
 
-	InitializeWorkspaceResponseVO createWorkspace(CodeServerWorkspaceVO vo, String pat, String password);
+	InitializeWorkspaceResponseVO createWorkspace(CodeServerWorkspaceVO vo, String pat);
 
-	InitializeWorkspaceResponseVO initiateWorkspace(CodeServerWorkspaceVO vo, String pat, String password);
+	InitializeWorkspaceResponseVO initiateWorkspace(CodeServerWorkspaceVO vo, String pat);
 
 	CodeServerWorkspaceVO getByProjectName(String userId, String projectName);
 

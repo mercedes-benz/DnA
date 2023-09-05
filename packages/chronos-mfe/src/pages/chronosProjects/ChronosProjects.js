@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react';
 import Styles from './chronos-projects.scss';
 // import from DNA Container
 import Modal from 'dna-container/Modal';
+import Pagination from 'dna-container/Pagination';
 // App components
 import Notification from '../../common/modules/uilab/js/src/notification';
 import Breadcrumb from '../../components/breadcrumb/Breadcrumb';
@@ -10,15 +11,21 @@ import FirstRun from '../../components/firstRun/FirstRun';
 import ChronosProjectCard from '../../components/chronosProjectCard/ChronosProjectCard';
 import ChronosProjectForm from '../../components/chronosProjectForm/ChronosProjectForm';
 import Spinner from '../../components/spinner/Spinner';
-import ChronosPagination from '../../components/chronosPagination/ChronosPagination';
+import { getQueryParameterByName } from '../../utilities/utils';
+import { SESSION_STORAGE_KEYS } from '../../utilities/constants';
 // Api
 import { chronosApi } from '../../apis/chronos.api';
 
 const ChronosProjects = ({ user }) => {
   const [loading, setLoading] = useState(true);
-  const [originalProjects, setOriginalProjects] = useState([]);
   const [forecastProjects, setForecastProjects] = useState([]);
   const [createProject, setCreateProject] = useState(false);
+
+  // Pagination 
+  const [totalNumberOfPages, setTotalNumberOfPages] = useState(1);
+  const [currentPageNumber, setCurrentPageNumber] = useState(1);
+  const [currentPageOffset, setCurrentPageOffset] = useState(0);
+  const [maxItemsPerPage, setMaxItemsPerPage] = useState(parseInt(sessionStorage.getItem(SESSION_STORAGE_KEYS.PAGINATION_MAX_ITEMS_PER_PAGE), 10) || 15);
 
   // Fetch all chronos projects
   const getChronosProjects = () => {
@@ -29,9 +36,16 @@ const ChronosProjects = ({ user }) => {
             const results = [...res.data.records].sort((projectA, projectB) => {
               return (projectA.name.toLowerCase() > projectB.name.toLowerCase()) ? 1 : (projectB.name.toLowerCase() > projectA.name.toLowerCase() ? -1 : 0);
             });
-            setOriginalProjects(results);
             setForecastProjects(results);
+            const totalNumberOfPagesTemp = Math.ceil(res.data.totalCount / maxItemsPerPage);
+            setCurrentPageNumber(currentPageNumber > totalNumberOfPagesTemp ? 1 : currentPageNumber);
+            setTotalNumberOfPages(totalNumberOfPagesTemp);
           }
+        } else {
+          setForecastProjects([]);
+          setTotalNumberOfPages(1);
+          setCurrentPageNumber(1);
+          setCurrentPageOffset(0);
         }
         setLoading(false);
       })
@@ -43,14 +57,41 @@ const ChronosProjects = ({ user }) => {
         setLoading(false);
       });
   }
-  
-  useEffect(() => {
-    getChronosProjects();
-  }, []);
 
   const handleRefresh = () => {
     getChronosProjects();
   }
+
+  useEffect(() => {
+    const pageNumberOnQuery = getQueryParameterByName('page');
+    const currentPageNumberTemp = pageNumberOnQuery ? parseInt(getQueryParameterByName('page'), 10) : 1;
+    const currentPageOffsetTemp = pageNumberOnQuery ? (currentPageNumberTemp - 1) * maxItemsPerPage : 0;
+    setCurrentPageOffset(currentPageOffsetTemp);
+    setCurrentPageNumber(currentPageNumberTemp);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const onPaginationPreviousClick = () => {
+    const currentPageNum = currentPageNumber - 1;
+    const currentPageOffsetTemp = (currentPageNum - 1) * maxItemsPerPage;
+    setCurrentPageNumber(currentPageNum);
+    setCurrentPageOffset(currentPageOffsetTemp);
+  };
+  const onPaginationNextClick = () => {
+    const currentPageOffsetTemp = currentPageNumber * maxItemsPerPage;
+    setCurrentPageNumber(currentPageNumber + 1);
+    setCurrentPageOffset(currentPageOffsetTemp);
+  };
+  const onViewByPageNum = (pageNum) => {
+    setCurrentPageNumber(1);
+    setCurrentPageOffset(0);
+    setMaxItemsPerPage(pageNum);
+  };
+
+  useEffect(() => {
+    getChronosProjects();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [maxItemsPerPage, currentPageNumber, currentPageOffset]);
 
   return (
     <>
@@ -97,7 +138,16 @@ const ChronosProjects = ({ user }) => {
                   );
                 })}
               </div>
-              {forecastProjects?.length > 0 ? <ChronosPagination projects={originalProjects} setForecastProjects={setForecastProjects} /> : null}
+              {forecastProjects?.length > 0 ? 
+                <Pagination
+                  totalPages={totalNumberOfPages}
+                  pageNumber={currentPageNumber}
+                  onPreviousClick={onPaginationPreviousClick}
+                  onNextClick={onPaginationNextClick}
+                  onViewByNumbers={onViewByPageNum}
+                  displayByPage={true}
+                /> : null
+              }
             </> : null
           }
         </div>

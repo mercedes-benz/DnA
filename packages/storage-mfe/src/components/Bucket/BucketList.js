@@ -221,10 +221,15 @@ export const BucketList = (props) => {
                           <div className={classNames(Styles.collabsList, 'hide')}>
                             <ul>
                               {collaborators?.map((bucketItem, bucketIndex) => {
+                                  // Check if lastName is more than 12 characters
+                                  let lastName = bucketItem.lastName;
+                                  if (lastName?.length > 12) {
+                                    lastName = lastName.substring(0, 12) + " ...";
+                                  }
                                 return (
                                   <li key={'collab' + bucketIndex}>
                                     <span>
-                                      {`${bucketItem.firstName} ${bucketItem.lastName}`}
+                                      {`${bucketItem.firstName} ${lastName}`}
                                       {item.createdBy?.id === bucketItem.accesskey ? ' (Owner)' : ''}
                                     </span>
                                     <span className={Styles.permission}>
