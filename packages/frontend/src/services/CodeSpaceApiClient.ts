@@ -54,6 +54,18 @@ export class CodeSpaceApiClient {
     return this.put(`workspaces/${id}`, data);
   }
 
+  public static addCollaborator(id: string, data: any) {
+    return this.post(`workspaces/${id}/collaborator`, data);
+  }
+
+  public static deleteCollaborator(id: string, userId: string) {
+    return this.delete(`workspaces/${id}/collaborator/${userId}`);
+  }
+
+  public static transferOwnership(id: string, data: any) {
+    return this.patch(`workspaces/${id}/projectowner`, data);
+  }
+
   // Usage statistics
   public static getWorkSpacesTransparency(): Promise<any> {
     return this.get('workspaces/transparency');

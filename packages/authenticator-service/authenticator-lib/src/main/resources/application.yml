@@ -1,7 +1,7 @@
 spring:
   application:
     name: dna-authenticator-service
-    version: 1.0.0
+    version: 1.0.1
     
   jpa:
     database: POSTGRESQL
@@ -27,6 +27,12 @@ spring:
 server:
   port: 9797
 
+drd:
+  #DEV
+  request-url: ${INTERNAL_USER_REQUEST_URL:xxxxx}
+  certificate-file: ${INTERNAL_USER_CERT_FILE:xxxxx}
+  certificate-pass: ${INTERNAL_USER_CERT_PASS:xxxxx}
+    
 #Cors Filter origin Domains  
 allowedCorsOriginPatternUrl: ${CORS_ORIGIN_URL:http://*}
 
@@ -58,4 +64,8 @@ logging:
         type:
           descriptor:
             sql: ERROR
+
+kong:
+    uri: ${KONG_URI:XXXX}
+                
 
