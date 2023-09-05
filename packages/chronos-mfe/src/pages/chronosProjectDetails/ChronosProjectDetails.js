@@ -64,6 +64,7 @@ const ChronosProjectDetails = ({ user }) => {
     const tabIndex = Object.keys(tabs).indexOf(currentTab) + 2;
     setCurrentTab(Object.keys(tabs)[tabIndex]);
     elementRef.current[tabIndex].click();
+    dispatch(getProjectDetails(projectId));
   };
 
   return (
