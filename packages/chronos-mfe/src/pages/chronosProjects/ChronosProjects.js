@@ -41,6 +41,11 @@ const ChronosProjects = ({ user }) => {
             setCurrentPageNumber(currentPageNumber > totalNumberOfPagesTemp ? 1 : currentPageNumber);
             setTotalNumberOfPages(totalNumberOfPagesTemp);
           }
+        } else {
+          setForecastProjects([]);
+          setTotalNumberOfPages(1);
+          setCurrentPageNumber(1);
+          setCurrentPageOffset(0);
         }
         setLoading(false);
       })
