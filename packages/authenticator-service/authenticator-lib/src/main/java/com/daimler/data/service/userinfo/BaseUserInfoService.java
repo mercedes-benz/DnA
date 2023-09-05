@@ -70,4 +70,10 @@ public class BaseUserInfoService extends BaseCommonService<UserInfoVO, UserInfoN
 		return userInfo.isPresent() ? userinfoAssembler.toVo(userInfo.get()) : null;
 	}
 
+	@Override
+	public void addUser(UserInfoNsql userinfo) {
+		jpaRepo.save(userinfo);
+		logger.info("Added user {} successfully",userinfo.getId());
+	}
+
 }
