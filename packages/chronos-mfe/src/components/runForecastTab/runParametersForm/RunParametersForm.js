@@ -1,14 +1,12 @@
 import classNames from 'classnames';
 import React, { useState, useEffect } from 'react';
 import { useFormContext } from 'react-hook-form';
-import { useParams } from 'react-router-dom';
+import { useSelector } from 'react-redux';
 import Styles from './run-parameters-form.scss';
 // Container components
 import SelectBox from 'dna-container/SelectBox';
 import Tooltip from '../../../common/modules/uilab/js/src/tooltip';
-import { chronosApi } from '../../../apis/chronos.api';
 import { Envs } from '../../../utilities/envs';
-import ProgressIndicator from '../../../common/modules/uilab/js/src/progress-indicator';
 
 const RunParametersForm = () => {
   const { register, resetField, formState: { errors } } = useFormContext({defaultValues: {
@@ -23,7 +21,7 @@ const RunParametersForm = () => {
   const [configurationFiles, setConfigurationFiles] = useState([]);
   const [expertView, setExpertView] = useState(false);
 
-  const { id: projectId } = useParams();
+  const project = useSelector(state => state.projectDetails);
 
   useEffect(() => {
     SelectBox.defaultSetup();
@@ -39,52 +37,37 @@ const RunParametersForm = () => {
     SelectBox.defaultSetup();
   }
 
-  const getConfigFiles = () => {
-    ProgressIndicator.show();
-    chronosApi.getConfigurationFiles(projectId).then((res) => {
-      const bucketObjects = res.data.data.bucketObjects ? [...res.data.data.bucketObjects] : [];
-      // const bucketObjects = configFiles.data.bucketObjects ? [...configFiles.data.bucketObjects] : [];
+  const setConfigFiles = () => {
+    const bucketObjects = project.data.configFiles ? [...project.data.configFiles] : [];
+    // const bucketObjects = configFiles.data.bucketObjects ? [...configFiles.data.bucketObjects] : [];
+    bucketObjects.sort((a, b) => {
+      let fa = a.objectName.toLowerCase(),
+          fb = b.objectName.toLowerCase();
+      if (fa < fb) {
+        return -1;
+      }
+      if (fa > fb) {
+        return 1;
+      }
+      return 0;
+    });
+    const filteredConfigFiles = bucketObjects.filter(file => file.objectName === 'chronos-core/configs/default_config.yml');
+    if(filteredConfigFiles.length === 1) {
       bucketObjects.sort((a, b) => {
         let fa = a.objectName.toLowerCase(),
             fb = b.objectName.toLowerCase();
-        if (fa < fb) {
-          return -1;
-        }
-        if (fa > fb) {
-          return 1;
-        }
-        return 0;
+        const first = 'chronos-core/configs/default_config.yml';
+        return fa == first ? -1 : fb == first ? 1 : 0;
       });
-      const filteredConfigFiles = bucketObjects.filter(file => file.objectName === 'chronos-core/configs/default_config.yml');
-      if(filteredConfigFiles.length === 1) {
-        bucketObjects.sort((a, b) => {
-          let fa = a.objectName.toLowerCase(),
-              fb = b.objectName.toLowerCase();
-          const first = 'chronos-core/configs/default_config.yml';
-          return fa == first ? -1 : fb == first ? 1 : 0;
-        });
-      }      
-      setConfigurationFiles(bucketObjects);
-      SelectBox.defaultSetup();
-      ProgressIndicator.hide();
-    }).catch(error => {
-      if(error?.response?.data?.errors[0]?.message) {
-        Notification.show(error?.response?.data?.errors[0]?.message, 'alert');
-      } else {
-        Notification.show(error.message, 'alert');
-      }
-      ProgressIndicator.hide();
-    });
+    }      
+    setConfigurationFiles(bucketObjects);
+    SelectBox.refresh('configurationField');
   }
 
   useEffect(() => {
-    getConfigFiles();
+    setConfigFiles();
     //eslint-disable-next-line
   }, []);
-
-  const handleGetConfigFiles = () => {
-    getConfigFiles();
-  }
   
   useEffect(() => {
     expertView && SelectBox.defaultSetup(); Tooltip.defaultSetup();
@@ -147,7 +130,6 @@ const RunParametersForm = () => {
                     required: '*Missing entry',
                     validate: (value) => value !== '0' || '*Missing entry',
                   })}
-                  onClick={handleGetConfigFiles}
                 >
                   {
                     configurationFiles.length === 0 ? (

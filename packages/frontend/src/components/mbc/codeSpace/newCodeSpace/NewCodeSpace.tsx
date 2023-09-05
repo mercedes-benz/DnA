@@ -1,15 +1,11 @@
 import React, { useState } from 'react';
 import cn from 'classnames';
 import Styles from './NewCodeSpace.scss';
-// import { ApiClient } from '../../../../services/ApiClient';
-
 // @ts-ignore
-import ProgressIndicator from '../../../../assets/modules/uilab/js/src/progress-indicator';
-// @ts-ignore
-import { Notification } from '../../../../assets/modules/uilab/bundle/js/uilab.bundle';
+import { Notification, Tooltip, ProgressIndicator} from '../../../../assets/modules/uilab/bundle/js/uilab.bundle';
 import SelectBox from 'components/formElements/SelectBox/SelectBox';
 
-import { trackEvent } from '../../../../services/utils';
+import { isValidGITRepoUrl, trackEvent } from '../../../../services/utils';
 import TextBox from '../../shared/textBox/TextBox';
 import { ICodeSpaceData } from '../CodeSpace';
 import { useEffect } from 'react';
@@ -18,14 +14,17 @@ import { CodeSpaceApiClient } from '../../../../services/CodeSpaceApiClient';
 import AddUser from '../../addUser/AddUser';
 import { Envs } from 'globals/Envs';
 import { recipesMaster } from '../../../../services/utils';
+import ConfirmModal from 'components/formElements/modal/confirmModal/ConfirmModal';
 
 const classNames = cn.bind(Styles);
 
 export interface ICodeSpaceProps {
   user: IUserInfo;
   onBoardingCodeSpace?: ICodeSpaceData;
+  onEditingCodeSpace?: ICodeSpaceData;
   isCodeSpaceCreationSuccess?: (status: boolean, codeSpaceData: ICodeSpaceData) => void;
   toggleProgressMessage?: (show: boolean) => void;
+  onUpdateCodeSpaceComplete?: () => void;
 }
 
 export interface ICodeSpaceRef {
@@ -39,6 +38,7 @@ export interface ICreateCodeSpaceData {
 
 const NewCodeSpace = (props: ICodeSpaceProps) => {
   const onBoadingMode = props.onBoardingCodeSpace !== undefined;
+  const onEditingMode = props.onEditingCodeSpace !== undefined;
   const [projectName, setProjectName] = useState('');
   const [projectNameError, setProjectNameError] = useState('');
   const [environment, setEnvironment] = useState('DHC-CaaS');
@@ -46,12 +46,11 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
   const recipes = recipesMaster;
 
   const [recipeError, setRecipeError] = useState('');
-  const [passwordError, setPasswordErr] = useState('');
-  const [confirmPasswordError, setConfirmPasswordError] = useState('');
-  const [passwordInput, setPasswordInput] = useState({
-    password: '',
-    confirmPassword: '',
-  });
+
+  const [isUserDefinedPublicGithubRecipe, setIsUserDefinedPublicGithubRecipe] = useState(false);
+  const [userDefinedPublicGithubUrl, setUserDefinedPublicGithubUrl] = useState('');
+  const [userDefinedPublicGithubUrlError, setUserDefinedPublicGithubUrlError] = useState('');
+  
   // const [githubUserName, setGithubUserName] = useState('');
   // const [githubUserNameError, setGithubUserNameError] = useState('');
   const [githubToken, setGithubToken] = useState('');
@@ -64,11 +63,18 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
 
   // const [createdCodeSpaceName, setCreatedCodeSpaceName] = useState('');
 
+  const [showConfirmModal, setShowConfirmModal] =  useState(false);
+  const [collaboratorToDelete, setCollaboratorToDelete] =  useState<ICodeCollaborator>();
+  const [collaboratorToTransferOwnership, setCollaboratorToTransferOwnership] =  useState<ICodeCollaborator>();
+
   const requiredError = '*Missing entry';
   const livelinessIntervalRef = React.useRef<NodeJS.Timer>();
   // let livelinessInterval: any = undefined;
 
   useEffect(() => {
+    if (onEditingMode && props.onEditingCodeSpace.projectDetails?.projectCollaborators) {
+      setCodeSpaceCollaborators([...props.onEditingCodeSpace.projectDetails?.projectCollaborators]);
+    }
     SelectBox.defaultSetup(true);
   }, []);
 
@@ -78,6 +84,13 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
       livelinessIntervalRef.current && clearInterval(livelinessIntervalRef.current);
     };
   }, [livelinessInterval]);
+
+  useEffect(() => {
+    if (onEditingMode) {
+      addNewCollaborator();
+    }
+    Tooltip.defaultSetup();
+  }, [codeSpaceCollaborators]);
 
   const sanitizedRepositoryName = (name: string) => {
     return name.replace(/[^\w.-]/g, '-');
@@ -102,6 +115,18 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
   //   setGithubUserNameError(githubUserNameVal.length ? '' : requiredError);
   // };
   
+  const onUserDefinedPublicGithubUrlOnChange = (evnt: React.FormEvent<HTMLInputElement>) => {
+    const githubUrlVal = evnt.currentTarget.value.trim();
+    setUserDefinedPublicGithubUrl(githubUrlVal);
+    setUserDefinedPublicGithubUrlError(
+      githubUrlVal.length
+        ? isValidGITRepoUrl(githubUrlVal)
+          ? ''
+          : 'Please provide valid github.com git repository clone url.'
+        : requiredError,
+    );
+  };
+  
   const onGithubTokenOnChange = (evnt: React.FormEvent<HTMLInputElement>) => {
     const githubTokenVal = evnt.currentTarget.value.trim();
     setGithubToken(githubTokenVal);
@@ -115,68 +140,15 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
   const onRecipeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const selectedOption = e.currentTarget.value;
     setRecipeValue(selectedOption);
+    const isUserDefinedRecipe = selectedOption === 'public-user-defined';
+    setIsUserDefinedPublicGithubRecipe(isUserDefinedRecipe);
+    if (!isUserDefinedRecipe) {
+      setUserDefinedPublicGithubUrl('');
+      setUserDefinedPublicGithubUrlError('');
+    }
     setRecipeError(selectedOption !== '0' ? '' : requiredError);
   };
 
-  const handlePasswordChange = (evnt: React.FormEvent<HTMLInputElement>) => {
-    const passwordInputValue = evnt.currentTarget.value.trim();
-    const passwordInputFieldName = evnt.currentTarget.name;
-    const NewPasswordInput = { ...passwordInput, [passwordInputFieldName]: passwordInputValue };
-    setPasswordInput(NewPasswordInput);
-  };
-
-  const handleValidation = (evnt: React.FormEvent<HTMLInputElement>) => {
-    const passwordInputValue = evnt.currentTarget.value.trim();
-    const passwordInputFieldName = evnt.currentTarget.name;
-    //for password
-    if (passwordInputFieldName === 'password') {
-      const oneLetterRegExp = /(?=.*?[a-zA-Z])/;
-      // const uppercaseRegExp = /(?=.*?[A-Z])/;
-      // const lowercaseRegExp = /(?=.*?[a-z])/;
-      const digitsRegExp = /(?=.*?[0-9])/;
-      // const specialCharRegExp = /(?=.*?[#?!@$%^&*-])/;
-      const minLengthRegExp = /.{8,}/;
-      const passwordLength = passwordInputValue.length;
-      const atleastOneLetter = oneLetterRegExp.test(passwordInputValue);
-      // const uppercasePassword = uppercaseRegExp.test(passwordInputValue);
-      // const lowercasePassword = lowercaseRegExp.test(passwordInputValue);
-      const digitsPassword = digitsRegExp.test(passwordInputValue);
-      // const specialCharPassword = specialCharRegExp.test(passwordInputValue);
-      const minLengthPassword = minLengthRegExp.test(passwordInputValue);
-      let errMsg = '';
-      if (passwordLength === 0) {
-        errMsg = 'Password is empty';
-      } else if (!atleastOneLetter) {
-        errMsg = 'At least one letter';
-      } else if (!digitsPassword) {
-        /*else if (!uppercasePassword) {
-        errMsg = 'At least one Uppercase';
-      } else if (!lowercasePassword) {
-        errMsg = 'At least one Lowercase';
-      }*/
-        errMsg = 'At least one digit';
-      } else if (!minLengthPassword) {
-        /*else if (!specialCharPassword) {
-        errMsg = 'At least one Special Characters';
-      }*/
-        errMsg = 'At least minumum 8 characters';
-      } else {
-        errMsg = '';
-      }
-      setPasswordErr(errMsg);
-    }
-    // for confirm password
-    if (
-      passwordInputFieldName === 'confirmPassword' ||
-      (passwordInputFieldName === 'password' && passwordInput.confirmPassword.length > 0)
-    ) {
-      if (passwordInput.confirmPassword !== passwordInput.password) {
-        setConfirmPasswordError('Confirm password is not matched');
-      } else {
-        setConfirmPasswordError('');
-      }
-    }
-  };
   // User Name
   const namePrefix = props.user.firstName;
 
@@ -211,9 +183,9 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
     }
   };
 
-  const onCollaboratorPermission = (e: React.ChangeEvent<HTMLInputElement>, userName: string) => {
+  const onCollaboratorPermission = (e: React.ChangeEvent<HTMLInputElement>, userId: string) => {
     const codeSpaceCollaborator = codeSpaceCollaborators.find((item: ICodeCollaborator) => {
-      return item.id == userName;
+      return item.id == userId;
     });
 
     if (e.target.checked) {
@@ -224,13 +196,128 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
     setCodeSpaceCollaborators([...codeSpaceCollaborators]);
   };
 
-  const onCollabaratorDelete = (userName: string) => {
-    return () => {
-      const currentCollList = codeSpaceCollaborators.filter((item) => {
-        return item.id !== userName;
+  const addNewCollaborator = () => {
+    const existingColloborators = props.onEditingCodeSpace.projectDetails?.projectCollaborators || [];
+    const newCollaborator = codeSpaceCollaborators.find((collab: ICodeCollaborator) => !existingColloborators.some((existCollab: ICodeCollaborator) => existCollab.id === collab.id));
+    if (newCollaborator) {
+      ProgressIndicator.show();
+      CodeSpaceApiClient.addCollaborator(props.onEditingCodeSpace.id, newCollaborator).then((res) => {
+        ProgressIndicator.hide();
+        if (res.success === 'SUCCESS') {
+          trackEvent('DnA Code Space', 'Add New Collaborator', 'Existing Code Space');
+          props.onEditingCodeSpace.projectDetails?.projectCollaborators.push(newCollaborator);
+          Notification.show(
+            `Collaborator '${newCollaborator.firstName}' has been added successfully to the Code Space.`,
+          );
+        } else {
+          setCodeSpaceCollaborators([...existingColloborators]);
+          Notification.show(
+            `Error adding collaborator '${newCollaborator.firstName}' to the Code Space. Please try again later.`,
+            'alert',
+          );
+        }
+      })
+      .catch((err: Error) => {
+        ProgressIndicator.hide();
+        if (err.message === 'User is already part of a collaborator') {
+          Notification.show(
+            `Colloborator '${newCollaborator.firstName}' already in the Code Space. Please use another user as colloborator.`,
+            'alert',
+          );
+        } else {
+          setCodeSpaceCollaborators([...existingColloborators]);
+          Notification.show('Error in adding new colloborator code space. Please try again later.\n' + err.message, 'alert');
+        }
       });
-      setCodeSpaceCollaborators(currentCollList);
+    }
+  }
+
+  const onCollaboratorDelete = (userId: string) => {
+    return () => {
+      if (onEditingMode) {
+        setCollaboratorToDelete(codeSpaceCollaborators.find((collab: ICodeCollaborator) => collab.id === userId));
+        setShowConfirmModal(true);
+      } else {
+        updateCollaborator(userId);
+      }
     };
+  };
+
+  const updateCollaborator = (userId: string) => {
+    const currentCollList = codeSpaceCollaborators.filter((item: ICodeCollaborator) => {
+      return item.id !== userId;
+    });
+    setCodeSpaceCollaborators(currentCollList);
+  };
+
+  const onCollaboratorConfirmModalCancel = () => {
+    setCollaboratorToDelete(undefined);
+    setCollaboratorToTransferOwnership(undefined);
+    setShowConfirmModal(false);
+  };
+
+  const onCollaboratorConfirmModalAccept = () => {
+    ProgressIndicator.show();
+    collaboratorToDelete && processDeleteCollaborator();
+    collaboratorToTransferOwnership && processTransferOwnership();
+    setShowConfirmModal(false);
+  };
+
+  const processDeleteCollaborator = () => {
+    CodeSpaceApiClient.deleteCollaborator(props.onEditingCodeSpace.id, collaboratorToDelete.id).then((res) => {
+      ProgressIndicator.hide();
+      if (res.success === 'SUCCESS') {
+        trackEvent('DnA Code Space', 'Delete Collaborator', 'Existing Code Space');
+        updateCollaborator(collaboratorToDelete.id);
+        Notification.show(
+          `Collaborator '${collaboratorToDelete.firstName}' has been removed successfully from the Code Space.`,
+        );
+      } else {
+        Notification.show(
+          `Error removing collaborator '${collaboratorToDelete.firstName}' from the Code Space. Please try again later.`,
+          'alert',
+        );
+      }
+    })
+    .catch((err: Error) => {
+      ProgressIndicator.hide();
+      Notification.show('Error in removing colloborator from code space. Please try again later.\n' + err.message, 'alert');
+    });
+    setCollaboratorToDelete(undefined);
+  };
+
+  const processTransferOwnership = () => {
+    CodeSpaceApiClient.transferOwnership(props.onEditingCodeSpace.id, {
+      id: collaboratorToTransferOwnership.id,
+    })
+      .then((res) => {
+        ProgressIndicator.hide();
+        if (res.success === 'SUCCESS') {
+          trackEvent('DnA Code Space', 'Transfer Ownership', 'Existing Code Space');
+          Notification.show(
+            `Code Space '${props.onEditingCodeSpace?.projectDetails?.projectName}' ownership successfully transferred to collaborator '${collaboratorToTransferOwnership.firstName}'.`,
+          );
+          props.onUpdateCodeSpaceComplete();
+        } else {
+          Notification.show(
+            `Error transferring Code Space ownership to collaborator '${collaboratorToTransferOwnership.firstName}'. Please try again later.`,
+            'alert',
+          );
+        }
+      })
+      .catch((err: Error) => {
+        ProgressIndicator.hide();
+        Notification.show(
+          'Error in transferring Code Space ownership. Please try again later.\n' + err.message,
+          'alert',
+        );
+      });
+    setCollaboratorToTransferOwnership(undefined);
+  };
+
+  const onTransferOwnership = (userId: string) => {
+    setCollaboratorToTransferOwnership(codeSpaceCollaborators.find((collab: ICodeCollaborator) => collab.id === userId));
+    setShowConfirmModal(true);
   };
 
   const validateNewCodeSpaceForm = (isPublicRecipeChoosen: boolean) => {
@@ -243,25 +330,24 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
       setRecipeError(requiredError);
       formValid = false;
     }
-    if (passwordInput.password === '') {
-      setPasswordErr(requiredError);
-      formValid = false;
-    }
-    if (passwordInput.confirmPassword === '') {
-      setConfirmPasswordError(requiredError);
-      formValid = false;
-    }
     // if (isPublicRecipeChoosen && githubUserName === '') {
     //   setGithubUserNameError(requiredError);
     //   formValid = false;
     // } else {
     //   setGithubUserNameError('');
     // }
+
+    if (isPublicRecipeChoosen && isUserDefinedPublicGithubRecipe && userDefinedPublicGithubUrl === '') {
+      setUserDefinedPublicGithubUrlError(requiredError);
+      formValid = false;
+    } else {
+      if (isValidGITRepoUrl(userDefinedPublicGithubUrl)) setUserDefinedPublicGithubUrlError('');
+    }
     if (githubToken === '') {
       setGithubTokenError(requiredError);
       formValid = false;
     }
-    if (projectNameError !== '' || recipeError !== '' || passwordError !== '' || confirmPasswordError !== '' || githubTokenError !== '') {
+    if (projectNameError !== '' || recipeError !== '' || githubTokenError !== '' || (isPublicRecipeChoosen && isUserDefinedPublicGithubRecipe && userDefinedPublicGithubUrlError !== '')) {
       formValid = false;
     }
     return formValid;
@@ -269,14 +355,6 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
 
   const validateOnBoardCodeSpaceForm = (isPublicRecipeChoosen: boolean) => {
     let formValid = true;
-    if (passwordInput.password === '') {
-      setPasswordErr(requiredError);
-      formValid = false;
-    }
-    if (passwordInput.confirmPassword === '') {
-      setConfirmPasswordError(requiredError);
-      formValid = false;
-    }
     // if (isPublicRecipeChoosen && githubUserName === '') {
     //   setGithubUserNameError(requiredError);
     //   formValid = false;
@@ -287,7 +365,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
       setGithubTokenError(requiredError);
       formValid = false;
     }
-    if (passwordError !== '' || confirmPasswordError !== '' || githubTokenError !== '') {
+    if (githubTokenError !== '') {
       formValid = false;
     }
     return formValid;
@@ -371,7 +449,6 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
             }
           }
         },
-        password: passwordInput.password,
         pat: githubToken
       };
 
@@ -407,7 +484,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
               'alert',
             );
           } else {
-            Notification.show('Error in creating new code space. Please try again later.\n' + err, 'alert');
+            Notification.show('Error in creating new code space. Please try again later.\n' + err.message, 'alert');
           }
         });
     }
@@ -444,7 +521,6 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
     if (validateOnBoardCodeSpaceForm(isPublicRecipeChoosen)) {
 
       const onBoardCodeSpaceRequest = {
-        password: passwordInput.password,
         pat: githubToken
       };
 
@@ -478,13 +554,18 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
               'alert',
             );
           } else {
-            Notification.show('Error in creating new code space. Please try again later.\n' + err, 'alert');
+            Notification.show('Error in creating new code space. Please try again later.\n' + err.message, 'alert');
           }
         });
     }
   };
 
-  const projectDetails = props.onBoardingCodeSpace?.projectDetails;
+  // const updateCodeSpace = () => {
+  //   const existingColloborators = props.onEditingCodeSpace.projectDetails?.projectCollaborators || [];
+  //   const newCollaborators = codeSpaceCollaborators.filter((collab: ICodeCollaborator) => !existingColloborators.some((existCollab: ICodeCollaborator) => existCollab.id === collab.id));
+  // };
+
+  const projectDetails = props.onBoardingCodeSpace?.projectDetails || props.onEditingCodeSpace?.projectDetails;
   const isPublicRecipeChoosen = recipeValue.startsWith('public');
   return (
     <React.Fragment>
@@ -515,7 +596,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
               <div>{projectDetails.recipeDetails.cloudServiceProvider}</div>
             </div>
           </div>
-          <div className={Styles.flexLayout}>
+          {/* <div className={Styles.flexLayout}>
             <div>
               <TextBox
                 type="password"
@@ -548,7 +629,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
                 onKeyUp={handleValidation}
               />
             </div>
-          </div>
+          </div> */}
           {/* {isPublicRecipeChoosen && (
             <div>
               <div>
@@ -595,162 +676,235 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
         </div>
       ) : (
         <div className={Styles.newCodeSpacePanel}>
-          <div className={Styles.addicon}> &nbsp; </div>
-          <h3>Hello {namePrefix}, Create your Code Space</h3>
-          <p>Protect your code space with the password of your own.</p>
-          {/* <p className={Styles.passwordInfo}>Note: Password should be minimum 8 chars in length and alpha numeric.</p> */}
-          <div
-            id="recipeContainer"
-            className={classNames('input-field-group include-error', recipeError.length ? 'error' : '')}
-          >
-            <label id="recipeLabel" className="input-label" htmlFor="recipeSelect">
-              Code Recipe<sup>*</sup>
-            </label>
-            <div id="recipe" className="custom-select">
-              <select
-                id="recipeSelect"
-                multiple={false}
-                required={true}
-                required-error={requiredError}
-                onChange={onRecipeChange}
-                value={recipeValue}
+          {!onEditingMode ? (
+            <>
+              <div className={Styles.addicon}> &nbsp; </div>
+              <h3>Hello {namePrefix}, Create your Code Space</h3>
+              <p>Protect your code space with the password of your own.</p>
+              {/* <p className={Styles.passwordInfo}>Note: Password should be minimum 8 chars in length and alpha numeric.</p> */}
+              <div
+                id="recipeContainer"
+                className={classNames('input-field-group include-error', recipeError.length ? 'error' : '')}
               >
-                <option id="defaultStatus" value={0}>
-                  Select Code Recipe
-                </option>
-                {recipes.map((obj: any) => (
-                  <option key={obj.id} id={obj.name + obj.id} value={obj.id}>
-                    {obj.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <span className={classNames('error-message', recipeError.length ? '' : 'hide')}>{recipeError}</span>
-          </div>
-          <div className={Styles.flexLayout}>
-            <div>
-              <TextBox
-                type="text"
-                controlId={'productNameInput'}
-                labelId={'productNameLabel'}
-                label={'Code Space Name'}
-                placeholder={'Type here'}
-                value={projectName}
-                errorText={projectNameError}
-                required={true}
-                maxLength={39}
-                onChange={onProjectNameOnChange}
-              />
-            </div>
-            <div>
-              <div id="environmentContainer" className={classNames('input-field-group include-error')}>
-                <label className={classNames(Styles.inputLabel, 'input-label')}>
-                  Environment<sup>*</sup>
+                <label id="recipeLabel" className="input-label" htmlFor="recipeSelect">
+                  Code Recipe<sup>*</sup>
                 </label>
+                <div id="recipe" className="custom-select">
+                  <select
+                    id="recipeSelect"
+                    multiple={false}
+                    required={true}
+                    required-error={requiredError}
+                    onChange={onRecipeChange}
+                    value={recipeValue}
+                  >
+                    <option id="defaultStatus" value={0}>
+                      Select Code Recipe
+                    </option>
+                    {recipes.map((obj: any) => (
+                      <option key={obj.id} id={obj.name + obj.id} value={obj.id}>
+                        {obj.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <span className={classNames('error-message', recipeError.length ? '' : 'hide')}>{recipeError}</span>
+              </div>
+              <div className={Styles.flexLayout}>
                 <div>
-                  <label className={classNames('radio')}>
-                    <span className="wrapper">
-                      <input
-                        type="radio"
-                        className="ff-only"
-                        value={'DHC-CaaS'}
-                        name="environment"
-                        onChange={onEnvironmentChange}
-                        checked={true}
-                      />
-                    </span>
-                    <span className="label">DHC CaaS</span>
-                  </label>
-                  <label className={classNames('radio')}>
-                    <span className="wrapper">
-                      <input
-                        type="radio"
-                        className="ff-only"
-                        value="azure"
-                        name="environment"
-                        onChange={onEnvironmentChange}
-                        checked={false}
-                        disabled={true}
-                      />
-                    </span>
-                    <span className="label">Azure (Coming Soon)</span>
-                  </label>
+                  <TextBox
+                    type="text"
+                    controlId={'productNameInput'}
+                    labelId={'productNameLabel'}
+                    label={'Code Space Name'}
+                    placeholder={'Type here'}
+                    value={projectName}
+                    errorText={projectNameError}
+                    required={true}
+                    maxLength={39}
+                    onChange={onProjectNameOnChange}
+                  />
+                </div>
+                <div>
+                  <div id="environmentContainer" className={classNames('input-field-group include-error')}>
+                    <label className={classNames(Styles.inputLabel, 'input-label')}>
+                      Environment<sup>*</sup>
+                    </label>
+                    <div>
+                      <label className={classNames('radio')}>
+                        <span className="wrapper">
+                          <input
+                            type="radio"
+                            className="ff-only"
+                            value={'DHC-CaaS'}
+                            name="environment"
+                            onChange={onEnvironmentChange}
+                            checked={true}
+                          />
+                        </span>
+                        <span className="label">DHC CaaS</span>
+                      </label>
+                      <label className={classNames('radio')}>
+                        <span className="wrapper">
+                          <input
+                            type="radio"
+                            className="ff-only"
+                            value="azure"
+                            name="environment"
+                            onChange={onEnvironmentChange}
+                            checked={false}
+                            disabled={true}
+                          />
+                        </span>
+                        <span className="label">Azure (Coming Soon)</span>
+                      </label>
+                    </div>
+                  </div>
                 </div>
               </div>
-            </div>
-          </div>
-          <div className={Styles.flexLayout}>
-            <div>
-              <TextBox
-                type="password"
-                controlId={'codeSpacePasswordInput'}
-                name="password"
-                labelId={'codeSpacePasswordLabel'}
-                label={'Code Space Password (min 8 chars & alpha numeric)'}
-                placeholder={'Type here'}
-                value={passwordInput.password}
-                errorText={passwordError}
-                required={true}
-                maxLength={20}
-                onChange={handlePasswordChange}
-                onKeyUp={handleValidation}
-              />
-            </div>
-            <div>
-              <TextBox
-                type="password"
-                controlId={'codeSpaceConfirmPasswordInput'}
-                name="confirmPassword"
-                labelId={'codeSpaceConfirmPasswordLabel'}
-                label={'Confirm Code Space Password'}
-                placeholder={'Type here'}
-                value={passwordInput.confirmPassword}
-                errorText={confirmPasswordError}
-                required={true}
-                maxLength={20}
-                onChange={handlePasswordChange}
-                onKeyUp={handleValidation}
-              />
-            </div>
-          </div>
-          {/* {isPublicRecipeChoosen && (
-            <div>
+              {/* <div className={Styles.flexLayout}>
+                <div>
+                  <TextBox
+                    type="password"
+                    controlId={'codeSpacePasswordInput'}
+                    name="password"
+                    labelId={'codeSpacePasswordLabel'}
+                    label={'Code Space Password (min 8 chars & alpha numeric)'}
+                    placeholder={'Type here'}
+                    value={passwordInput.password}
+                    errorText={passwordError}
+                    required={true}
+                    maxLength={20}
+                    onChange={handlePasswordChange}
+                    onKeyUp={handleValidation}
+                  />
+                </div>
+                <div>
+                  <TextBox
+                    type="password"
+                    controlId={'codeSpaceConfirmPasswordInput'}
+                    name="confirmPassword"
+                    labelId={'codeSpaceConfirmPasswordLabel'}
+                    label={'Confirm Code Space Password'}
+                    placeholder={'Type here'}
+                    value={passwordInput.confirmPassword}
+                    errorText={confirmPasswordError}
+                    required={true}
+                    maxLength={20}
+                    onChange={handlePasswordChange}
+                    onKeyUp={handleValidation}
+                  />
+                </div>
+              </div> */}
+              {/* {isPublicRecipeChoosen && (
+                <div>
+                  <div>
+                    <TextBox
+                      type="text"
+                      controlId={'githubTokenInput'}
+                      labelId={'githubTokenLabel'}
+                      label={`Your Github(https://github.com/) Username`}
+                      infoTip="Not stored only used for Code Space initial setup"
+                      placeholder={'Type here'}
+                      value={githubUserName}
+                      errorText={githubUserNameError}
+                      required={true}
+                      maxLength={50}
+                      onChange={onGithubUserNameOnChange}
+                    />
+                  </div>
+                </div>
+              )} */}
+              {isUserDefinedPublicGithubRecipe && <div>
+                <div>
+                  <TextBox
+                    type="text"
+                    controlId={'publicGithubUrlInput'}
+                    labelId={'publicGithubUrlInputLabel'}
+                    label={`Provide Your Github Clone Url (Ex. https://github.com/orgname-or-username/your-repo-name.git)`}
+                    placeholder={'https://github.com/orgname-or-username/your-repo-name.git'}
+                    value={userDefinedPublicGithubUrl}
+                    errorText={userDefinedPublicGithubUrlError}
+                    required={true}
+                    maxLength={300}
+                    onChange={onUserDefinedPublicGithubUrlOnChange}
+                  />
+                </div>
+              </div>}
               <div>
-                <TextBox
-                  type="text"
-                  controlId={'githubTokenInput'}
-                  labelId={'githubTokenLabel'}
-                  label={`Your Github(https://github.com/) Username`}
-                  infoTip="Not stored only used for Code Space initial setup"
-                  placeholder={'Type here'}
-                  value={githubUserName}
-                  errorText={githubUserNameError}
-                  required={true}
-                  maxLength={50}
-                  onChange={onGithubUserNameOnChange}
-                />
+                <div>
+                  <TextBox
+                    type="password"
+                    controlId={'githubTokenInput'}
+                    labelId={'githubTokenLabel'}
+                    label={`Your Github(${
+                      isPublicRecipeChoosen ? 'https://github.com/' : Envs.CODE_SPACE_GIT_PAT_APP_URL
+                    }) Personal Access Token`}
+                    infoTip="Not stored only used for Code Space initial setup"
+                    placeholder={'Type here'}
+                    value={githubToken}
+                    errorText={githubTokenError}
+                    required={true}
+                    maxLength={50}
+                    onChange={onGithubTokenOnChange}
+                  />
+                </div>
               </div>
-            </div>
-          )} */}
-          <div>
-            <div>
-              <TextBox
-                type="password"
-                controlId={'githubTokenInput'}
-                labelId={'githubTokenLabel'}
-                label={`Your Github(${
-                  isPublicRecipeChoosen ? 'https://github.com/' : Envs.CODE_SPACE_GIT_PAT_APP_URL
-                }) Personal Access Token`}
-                infoTip="Not stored only used for Code Space initial setup"
-                placeholder={'Type here'}
-                value={githubToken}
-                errorText={githubTokenError}
-                required={true}
-                maxLength={50}
-                onChange={onGithubTokenOnChange}
+            </>
+          ) : (
+            <>
+              <div className={Styles.editicon}>
+                <i className="icon mbc-icon edit small " />
+              </div>
+              <h3>Edit Code Space - {projectDetails.projectName}</h3>
+              <div className={Styles.codeSpaceDetails}>
+                <div className={Styles.flexLayout}>
+                  <div>
+                    <label>Name</label>
+                  </div>
+                  <div>{projectDetails.projectName}</div>
+                </div>
+                <div className={Styles.flexLayout}>
+                  <div>
+                    <label>Recipe</label>
+                  </div>
+                  <div>{recipes.find((item: any) => item.id === projectDetails.recipeDetails.recipeId).name}</div>
+                </div>
+                <div className={Styles.flexLayout}>
+                  <div>
+                    <label>Environment</label>
+                  </div>
+                  <div>{projectDetails.recipeDetails.cloudServiceProvider}</div>
+                </div>
+              </div>
+              <ConfirmModal
+                title={''}
+                acceptButtonTitle="Yes"
+                cancelButtonTitle="No"
+                showAcceptButton={true}
+                showCancelButton={true}
+                show={showConfirmModal}
+                content={
+                  <>
+                    {collaboratorToDelete && <div>
+                      Are you sure to delete colloborator '{collaboratorToDelete?.firstName}'?
+                      <p>
+                        Removing collaborator from codespace make him/her deny the acccess to the code space and code.
+                      </p>
+                    </div>}
+                    {collaboratorToTransferOwnership && <div>
+                      Are you sure to transfer code space ownership to the colloborator '{collaboratorToTransferOwnership?.firstName}'?
+                      <p>
+                        Transfering ownership to another collaborator will deny you to acccess this code space edit mode.
+                      </p>
+                    </div>}
+                  </> 
+                }
+                onCancel={onCollaboratorConfirmModalCancel}
+                onAccept={onCollaboratorConfirmModalAccept}
               />
-            </div>
-          </div>
+            </>
+          )}
           {!isPublicRecipeChoosen && (
             <div className={classNames('input-field-group include-error')}>
               <label htmlFor="userId" className="input-label">
@@ -817,10 +971,17 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
                                   </div>
                                 </div>
                                 <div className={Styles.collaboratorTitleCol}>
-                                  <div className={Styles.deleteEntry} onClick={onCollabaratorDelete(item.id)}>
+                                  <span tooltip-data={"Remove Collaborator"} className={Styles.deleteEntry} onClick={onCollaboratorDelete(item.id)}>
                                     <i className="icon mbc-icon trash-outline" />
-                                    Delete Entry
-                                  </div>
+                                  </span>
+                                  {onEditingMode && (
+                                    <>
+                                      &nbsp;| &nbsp;
+                                      <span tooltip-data={"Transfer Ownership"} className={Styles.deleteEntry} onClick={() => onTransferOwnership(item.id)}>
+                                        <i className="icon mbc-icon comparison" />
+                                      </span>
+                                    </>
+                                  )}
                                 </div>
                               </div>
                             );
@@ -838,9 +999,11 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
             </div>
           )}
           <div className={Styles.newCodeSpaceBtn}>
-            <button className={' btn btn-tertiary '} onClick={createCodeSpace}>
-              Create Code Space
-            </button>
+            {!onEditingMode && (
+              <button className={' btn btn-tertiary '} onClick={createCodeSpace}>
+                Create Code Space
+              </button>
+            )}
           </div>
         </div>
       )}

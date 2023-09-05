@@ -10,7 +10,7 @@ import ExistingFilesView from '../existingFilesView/ExistingFilesView';
 import { Link } from 'react-router-dom';
 import SelectedFileView from '../selectedFileView/SelectedFileView';
 
-const InputFileArea = ({projectId, inputFile, setInputFile}) => {
+const InputFileArea = ({inputFile, setInputFile}) => {
   const { register, formState: { errors } } = useFormContext();
   const isValidFile = (file) => ['csv', 'xlsx'].includes(file?.name?.split('.')[1]);
   const [showExistingFiles, setShowExistingFiles] = useState(false);
@@ -112,7 +112,7 @@ const InputFileArea = ({projectId, inputFile, setInputFile}) => {
                 modalWidth={'35%'}
                 buttonAlignment="right"
                 show={showExistingFiles}
-                content={<ExistingFilesView projectId={projectId} setShowExistingFiles={setShowExistingFiles} setInputFile={setInputFile} setIsExistingInputFile={setIsExistingInputFile} />}
+                content={<ExistingFilesView setShowExistingFiles={setShowExistingFiles} setInputFile={setInputFile} setIsExistingInputFile={setIsExistingInputFile} />}
                 scrollableContent={false}
                 onCancel={() => {
                   setShowExistingFiles(false);

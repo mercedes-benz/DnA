@@ -1,19 +1,19 @@
 /* LICENSE START
- * 
+ *
  * MIT License
- * 
+ *
  * Copyright (c) 2019 Daimler TSS GmbH
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in all
  * copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -21,8 +21,8 @@
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
- * 
- * LICENSE END 
+ *
+ * LICENSE END
  */
 
 package com.daimler.data.service.storage;
@@ -97,64 +97,64 @@ public class BaseStorageService implements StorageService {
 
 	@Value("${minio.endpoint}")
 	private String minioBaseUri;
-	
+
 	@Value("${storage.termsOfUse.uri}")
 	private String storageTermsOfUseUri;
-	
+
 	@Value("${storage.connect.host}")
 	private String storageConnectHost;
-	
+
     	@Autowired
 	HttpServletRequest httpRequest;
-	
+
 	@Value("${databricks.userid}")
 	private String dataBricksUser;
-	
+
 	@Value("${databricks.userauth}")
 	private String dataBricksAuth;
-	
-	
+
+
 	@Value("${minio.clientApi}")
 	private String minioClientApi;
-	
+
 	@Autowired
 	private RedisCacheUtil cacheUtil;
-	
+
 	@Autowired
 	private UserStore userStore;
 
 	@Autowired
 	private DnaMinioClient dnaMinioClient;
-	
+
 	@Autowired
 	private VaultConfig vaultConfig;
 
 	@Value("${dna.feature.attachmentMalwareScan}")
 	private Boolean attachmentMalwareScan;
-	
+
 	@Autowired
 	private MalwareScannerClient malwareScannerClient;
-	
+
 	@Autowired
 	private KafkaProducerService kafkaProducer;
-	
+
 	private static String bucketCreationEvent = "Storage - Bucket Creation";
-	
+
 	@Autowired
 	private IStorageRepository jpaRepo;
-	
+
 	@Autowired
 	private StorageRepository customRepo;
-	
+
 	@Autowired
 	private StorageAssembler storageAssembler;
-	
+
 	@Autowired
 	private DnaAuthClient dnaAuthClient;
-	
+
 	@Autowired
 	private DataikuClient dataikuClient;
-	
+
 	public BaseStorageService() {
 		super();
 	}
@@ -168,8 +168,8 @@ public class BaseStorageService implements StorageService {
 		LOGGER.debug("Fetching Current user.");
 		String currentUser = userStore.getUserInfo().getId();
 		String ownerEmail = userStore.getUserInfo().getEmail();
-		
-		
+
+
 			String chronosUserToken = httpRequest.getHeader("chronos-api-key");
 			boolean authFlag = chronosUserToken!=null && dataBricksAuth.equals(chronosUserToken);
 			if(chronosUserToken!=null && dataBricksAuth.equals(chronosUserToken)) {
@@ -181,9 +181,9 @@ public class BaseStorageService implements StorageService {
 				bucketVo.setCreatedBy(pidAsCreator);
 			}
 			LOGGER.debug("authflag {} currentUser {}",authFlag,currentUser);
-		
-		
-			
+
+
+
 		PermissionVO permissionVO = null;
 
 		LOGGER.debug("Validate Bucket before create.");
@@ -224,7 +224,30 @@ public class BaseStorageService implements StorageService {
 					subscribedUsers.add(currentUser);
 					List<String> subscribedUsersEmails = new ArrayList<>();
 					subscribedUsersEmails.add(ownerEmail);
-					
+                    if (currentUser.equalsIgnoreCase(dataBricksUser)) {
+                        ownerUserVO.setFirstName(bucketVo.getCreatedBy().getFirstName());
+                        ownerUserVO.setLastName(bucketVo.getCreatedBy().getLastName());
+                    } else {
+                        ownerUserVO.setFirstName(userStore.getUserInfo().getFirstName());
+                        ownerUserVO.setLastName(userStore.getUserInfo().getLastName());
+                        ownerUserVO.setEmail(userStore.getUserInfo().getEmail());
+                        ownerUserVO.setDepartment(userStore.getUserInfo().getDepartment());
+                        ownerUserVO.setMobileNumber(userStore.getUserInfo().getMobileNumber());
+                    }
+
+                    // Get the existing collaborators
+                    List<UserVO> existingCollaborators = bucketVo.getCollaborators();
+
+                    // If the existing collaborators list is null, initialize it.
+                    if (existingCollaborators == null) {
+                        existingCollaborators = new ArrayList<>();
+                    }
+
+                    // Add the owner collaborator to the list.
+                    existingCollaborators.add(ownerUserVO);
+
+                    // Set the updated list of collaborators on the bucketVo
+                    bucketVo.setCollaborators(existingCollaborators);
 					LOGGER.debug("Onboarding collaborators");
 					if (!ObjectUtils.isEmpty(bucketVo.getCollaborators())) {
 						for (UserVO userVO : bucketVo.getCollaborators()) {
@@ -256,10 +279,10 @@ public class BaseStorageService implements StorageService {
 							}
 						}
 					}
-					
+
 					String eventType = bucketCreationEvent;
 					this.publishEventMessages(eventType, bucketUri, null, bucketVo.getBucketName(), subscribedUsers,subscribedUsersEmails);
-					
+
 				} else {
 					LOGGER.info("Failure from onboard bucket owner.");
 				}
@@ -267,7 +290,7 @@ public class BaseStorageService implements StorageService {
 				//To save bucket info in db
 				BucketVo savedBucketVo = saveBucket(bucketVo);
 				bucketVo.setId(savedBucketVo.getId());
-				
+
 				responseVO.setStatus(createBucketResponse.getStatus());
 				httpStatus = HttpStatus.OK;
 			} else {
@@ -281,10 +304,10 @@ public class BaseStorageService implements StorageService {
 		responseVO.setData(bucketVo);
 		return new ResponseEntity<>(responseVO, httpStatus);
 	}
-	
+
 	/*
 	 * To save bucket info to database
-	 * 
+	 *
 	 */
 	private BucketVo saveBucket(BucketVo requestbucketVo) {
 		if (Objects.isNull(requestbucketVo.getCreatedBy())
@@ -299,8 +322,8 @@ public class BaseStorageService implements StorageService {
 		StorageNsql savedEntity = jpaRepo.save(storageNsql);
 		return storageAssembler.toBucketVo(savedEntity);
 	}
-	
-	
+
+
 	private void publishEventMessages(String eventType, String bucketUri, List<ChangeLogVO> changeLogs, String bucketName,
 			List<String> subscribedUsers, List<String> subscribedUsersEmail) {
 		try {
@@ -315,7 +338,7 @@ public class BaseStorageService implements StorageService {
 				if(currentUser.getLastName()!= null)
 					userName = userName + " " + currentUser.getLastName();
 			}
-			
+
 			/*
 			 * if(subscribedUsers!=null && !subscribedUsers.isEmpty() &&
 			 * subscribedUsers.contains(userId)) {
@@ -336,10 +359,10 @@ public class BaseStorageService implements StorageService {
 			LOGGER.trace("Failed while publishing storage event msg {} ", e.getMessage());
 		}
 	}
-	
+
 	/*
 	 * To validate create bucket.
-	 * 
+	 *
 	 */
 	private List<MessageDescription> validateCreateBucket(BucketVo bucketVo) {
 		List<MessageDescription> messages = new ArrayList<>();
@@ -361,10 +384,10 @@ public class BaseStorageService implements StorageService {
 
 		return messages;
 	}
-	
+
 	/*
 	 * To validate update bucket.
-	 * 
+	 *
 	 */
 	private List<MessageDescription> validateUpdateBucket(BucketVo bucketVo) {
 		List<MessageDescription> messages = new ArrayList<>();
@@ -386,7 +409,7 @@ public class BaseStorageService implements StorageService {
 
 		return messages;
 	}
-	
+
 	@Override
 	public ResponseEntity<BucketCollectionVO> getAllBuckets(int limit, String sortBy, String sortOrder, int offset) {
 		LOGGER.debug("Fetching Current user.");
@@ -437,14 +460,14 @@ public class BaseStorageService implements StorageService {
 		LOGGER.debug("Fetching Current user.");
 		String currentUser = userStore.getUserInfo().getId();
 		HttpStatus httpStatus;
-		
+
 			String chronosUserToken = httpRequest.getHeader("chronos-api-key");
 			boolean authFlag = chronosUserToken!=null && dataBricksAuth.equals(chronosUserToken);
 			if(chronosUserToken!=null && dataBricksAuth.equals(chronosUserToken)) {
 				currentUser = dataBricksUser;
 			}
 			LOGGER.debug("authflag {} currentUser {}",authFlag,currentUser);
-			
+
 		BucketObjectResponseWrapperVO objectResponseWrapperVO = new BucketObjectResponseWrapperVO();
 
 		LOGGER.debug("list bucket objects through minio client");
@@ -454,10 +477,10 @@ public class BaseStorageService implements StorageService {
 			BucketObjectResponseVO bucketObjectResponseVO = new BucketObjectResponseVO();
 			//setting Bucket's object response from minio
 			bucketObjectResponseVO.setBucketObjects(minioObjectResponse.getObjects());
-			
+
 			LOGGER.debug("Fetching bucket:{} permission for user:{}",bucketName,currentUser);
 			bucketObjectResponseVO.setBucketPermission(dnaMinioClient.getBucketPermission(bucketName, currentUser));
-			
+
 			objectResponseWrapperVO.setData(bucketObjectResponseVO);
 			httpStatus = minioObjectResponse.getHttpStatus();
 
@@ -500,7 +523,7 @@ public class BaseStorageService implements StorageService {
 
 	/*
 	 * fetching filename from given prefix
-	 * 
+	 *
 	 */
 	private String fileName(String prefix) {
 		String[] arr = prefix.split("/");
@@ -509,7 +532,7 @@ public class BaseStorageService implements StorageService {
 
 	/*
 	 * Setting media type with file extension
-	 * 
+	 *
 	 */
 	private MediaType contentType(String fileName) {
 		String[] arr = fileName.split("\\.");
@@ -581,7 +604,7 @@ public class BaseStorageService implements StorageService {
 		}
 		return errors;
 	}
-	
+
 	@Override
 	public ResponseEntity<UserRefreshWrapperVO> userRefresh(String userId) {
 		HttpStatus httpStatus;
@@ -707,7 +730,7 @@ public class BaseStorageService implements StorageService {
 	public ResponseEntity<GenericMessage> deleteBucketObjects(String bucketName, String prefix) {
 		GenericMessage genericMessage = new GenericMessage();
 		HttpStatus httpStatus;
-		
+
 		LOGGER.debug("Fetching Current user.");
 		String currentUser = userStore.getUserInfo().getId();
 		String chronosUserToken = httpRequest.getHeader("chronos-api-key");
@@ -823,8 +846,8 @@ public class BaseStorageService implements StorageService {
 	}
 
 	/*
-	 * To convert List<Error> errors to List<MessageDescription> 
-	 * 
+	 * To convert List<Error> errors to List<MessageDescription>
+	 *
 	 */
 	private List<MessageDescription> getMessages(List<ErrorDTO> errors){
 		List<MessageDescription> messages = null;
@@ -869,7 +892,7 @@ public class BaseStorageService implements StorageService {
 				bucketVo.setUpdatedBy(userStore.getVO());
 				BucketVo savedBucketVo =  this.saveBucket(bucketVo);
 				responseVO.setData(savedBucketVo);
-				
+
 				responseVO.setStatus(ConstantsUtility.SUCCESS);
 				httpStatus = HttpStatus.OK;
 			} else {
@@ -896,7 +919,7 @@ public class BaseStorageService implements StorageService {
 		}
 		return newCollaborators;
 	}
-	
+
 	/*
 	 * To get Union of list return list of user by making unison of 2 userVO list
 	 */
@@ -914,7 +937,7 @@ public class BaseStorageService implements StorageService {
 		// fetching users
 		return set.stream().map(t -> t.getAccesskey()).toList();
 	}
-	
+
 	/*
 	 * update collaborator for bucket by comparing existing and new collaborator
 	 * list
@@ -1014,8 +1037,8 @@ public class BaseStorageService implements StorageService {
 		}
 		return errors;
 	}
-	
-	
+
+
 	@Override
 	public ResponseEntity<BucketVo> getByBucketName(String bucketName) {
 		HttpStatus httpStatus;
@@ -1033,7 +1056,7 @@ public class BaseStorageService implements StorageService {
 			LOGGER.debug("Fetching Current user.");
 			String currentUser = userStore.getUserInfo().getId();
 			// Setting bucket details
-			bucketVo.setPermission(dnaMinioClient.getBucketPermission(bucketName, currentUser));			
+			bucketVo.setPermission(dnaMinioClient.getBucketPermission(bucketName, currentUser));
 			httpStatus = HttpStatus.OK;
 		}
 		return new ResponseEntity<>(bucketVo, httpStatus);
@@ -1041,7 +1064,7 @@ public class BaseStorageService implements StorageService {
 
 	/**
 	 * To scan file by calling AVscan service
-	 * 
+	 *
 	 * @param multiPartFile
 	 * @return FileScanDetailsVO
 	 */
@@ -1050,8 +1073,8 @@ public class BaseStorageService implements StorageService {
 		Optional<FileScanDetailsVO> aVScannerRes = malwareScannerClient.scan(multiPartFile);
 		return aVScannerRes.isPresent()?aVScannerRes.get():null;
 	}
-	
-	
+
+
 	@Override
 	public ResponseEntity<GenericMessage> bucketMigrate() {
 		MinioGenericResponse minioResponse = dnaMinioClient.getAllBuckets(null, true);
@@ -1199,7 +1222,7 @@ public class BaseStorageService implements StorageService {
 		}
 		return errors;
 	}
-	
+
 	/*
 	 * To setup data and create dataiku connection
 	 */
@@ -1210,7 +1233,7 @@ public class BaseStorageService implements StorageService {
 		LOGGER.debug("Fetching permission..");
 		Optional<DataikuPermission> projectPermission = dataikuClient
 				.getDataikuProjectPermission(projectKey, live);
-		
+
 		List<String> projectGroups = new ArrayList<>();
 		List<String> allowedProjectGroups = new ArrayList<>();
 		if (projectPermission.isPresent() && !ObjectUtils.isEmpty(projectPermission.get().getPermissions())) {
@@ -1224,7 +1247,7 @@ public class BaseStorageService implements StorageService {
 		//Setting RequestDTO
 		requestDTO.setName(StorageUtility.getDataikuConnectionName(projectKey, bucketName));
 		requestDTO.setType("EC2");
-		
+
 		//Setting params
 		DataikuParameterDTO params = new DataikuParameterDTO();
 		params.setCredentialsMode("KEYPAIR");
@@ -1240,7 +1263,7 @@ public class BaseStorageService implements StorageService {
 		params.setSwitchToRegionFromBucket(false);
 		params.setUsePathMode(false);
 		params.setMetastoreSynchronizationMode("NO_SYNC");
-		
+
 		requestDTO.setParams(params);
 		requestDTO.setAllowWrite(true);
 		requestDTO.setAllowManagedDatasets(true);
@@ -1251,18 +1274,18 @@ public class BaseStorageService implements StorageService {
 		requestDTO.setUsableBy("ALLOWED");
 		//Setting allowed groups by removing READ-ONLY group
 		requestDTO.setAllowedGroups(allowedProjectGroups);
-		
+
 		DataikuReadabilityDTO detailsReadability = new DataikuReadabilityDTO();
 		detailsReadability.setReadableBy("ALLOWED");
 		detailsReadability.setAllowedGroups(projectGroups);
 		requestDTO.setDetailsReadability(detailsReadability);
-		
+
 		DataikuIndexDTO indexingSettings = new DataikuIndexDTO();
 		indexingSettings.setIndexForeignKeys(false);
 		indexingSettings.setIndexIndices(false);
 		indexingSettings.setIndexSystemTables(false);
 		requestDTO.setIndexingSettings(indexingSettings);
-		
+
 		return dataikuClient.createDataikuConnection(requestDTO, live);
 	}
 
@@ -1270,20 +1293,21 @@ public class BaseStorageService implements StorageService {
 	public GenericMessage reassignOwner(CreatedByVO currentUser, BucketVo bucketVo, UserVO newOwnerVo) {
 		GenericMessage responseMessage = new GenericMessage();
 		List<MessageDescription> errors = new ArrayList<>();
-		List<MessageDescription> warnings = new ArrayList<>();	
+		List<MessageDescription> warnings = new ArrayList<>();
 		List<com.daimler.data.db.jsonb.UserInfo> existingCollaborators = new ArrayList<>();
-		List<com.daimler.data.db.jsonb.UserInfo> updatedCollaborators = new ArrayList<>();			
-		boolean isBucketOwner = false;	
+		List<com.daimler.data.db.jsonb.UserInfo> updatedCollaborators = new ArrayList<>();
+		boolean isBucketOwner = false;
 		String bucketName = bucketVo.getBucketName();
-		String newOwnerpolicy = "";		
-		String readWritePolicy = bucketName + "_" + ConstantsUtility.READWRITE;			
+		String newOwnerpolicy = "";
+		String readWritePolicy = bucketName + "_" + ConstantsUtility.READWRITE;
+		List<String> collabIds = new ArrayList<>();
 		//Fetching bucket details from database
 		StorageNsql entity = customRepo.findbyUniqueLiteral(ConstantsUtility.BUCKET_NAME, bucketVo.getBucketName());
 		if(Objects.nonNull(entity)) {
-			existingCollaborators = entity.getData().getCollaborators();			
+			existingCollaborators = entity.getData().getCollaborators();
 		}
 		updatedCollaborators.addAll(existingCollaborators);
-		String bucketOwnerId = entity.getData().getCreatedBy().getId();		
+		String bucketOwnerId = entity.getData().getCreatedBy().getId();
 		if (bucketOwnerId.equalsIgnoreCase(currentUser.getId())) {
 			isBucketOwner = true;
 		}
@@ -1291,13 +1315,13 @@ public class BaseStorageService implements StorageService {
 			com.daimler.data.db.jsonb.UserInfo currentOwnerAsCollab = entity.getData().getCreatedBy();
 			com.daimler.data.db.jsonb.UserInfo newOwner = new com.daimler.data.db.jsonb.UserInfo();
 			BeanUtils.copyProperties(newOwnerVo, newOwner);
-			newOwner.setId(newOwnerVo.getAccesskey());		
+			newOwner.setId(newOwnerVo.getAccesskey());
 			com.daimler.data.db.jsonb.Permission newOwnerPermission = new com.daimler.data.db.jsonb.Permission();
 			newOwnerPermission.setRead(Boolean.TRUE);
 			newOwnerPermission.setWrite(Boolean.TRUE);
 			newOwner.setPermission(newOwnerPermission);
 			// To update project owner.
-			entity.getData().setCreatedBy(newOwner);	
+			entity.getData().setCreatedBy(newOwner);
 			try {
 				Map<String, UserInfo> usersInfo = cacheUtil.getMinioUsers(ConstantsUtility.MINIO_USERS_CACHE);
 				// To get user info from Minio
@@ -1305,7 +1329,7 @@ public class BaseStorageService implements StorageService {
 				//Getting policy from user
 				newOwnerpolicy = newOwnerUserInfo.policyName();
 				//Add read-write policy to the new owner
-				newOwnerpolicy = StorageUtility.addPolicy(newOwnerpolicy, readWritePolicy);		
+				newOwnerpolicy = StorageUtility.addPolicy(newOwnerpolicy, readWritePolicy);
 				dnaMinioClient.setPolicy(newOwner.getId(), false, newOwnerpolicy);
 			}catch(Exception e) {
 				LOGGER.error("Failed while calling DnaMinioClient with Exception: {} ", e.getMessage());
@@ -1314,24 +1338,40 @@ public class BaseStorageService implements StorageService {
 				responseMessage.setSuccess("FAILED");
 				responseMessage.setErrors(errors);
 				return responseMessage;
-			} 
+			}
 			//permission is storing as null by default, so setting read/write permissions to the old owner
 			com.daimler.data.db.jsonb.Permission currentOwnerPermission = new com.daimler.data.db.jsonb.Permission();
 			currentOwnerPermission.setRead(Boolean.TRUE);
 			currentOwnerPermission.setWrite(Boolean.TRUE);
-			currentOwnerAsCollab.setPermission(currentOwnerPermission);					
-			// To remove new owner from collaborator list and to add current owner as collaborator.
-			if(Objects.nonNull(existingCollaborators)) {
-				for(com.daimler.data.db.jsonb.UserInfo collab : existingCollaborators) {
-					if(collab.getId().equalsIgnoreCase(newOwner.getId())) {
-						updatedCollaborators.remove(collab);			
+			currentOwnerAsCollab.setPermission(currentOwnerPermission);
+			// To update permission of the new owner from collaborator list and to add current owner as collaborator.
+			if (Objects.nonNull(existingCollaborators)) {
+				for (com.daimler.data.db.jsonb.UserInfo collab : existingCollaborators) {
+					collabIds.add(collab.getId());
+					if (collab.getId().equalsIgnoreCase(newOwner.getId())) {
+						collab.getPermission().setWrite(true);
+						collab.getPermission().setRead(true);
 					}
-					if(! (existingCollaborators.contains(entity.getData().getCreatedBy()))) {
-						updatedCollaborators.add(currentOwnerAsCollab);						
+				}
+				if (!(collabIds.contains(currentOwnerAsCollab.getId()))) {
+					updatedCollaborators.add(currentOwnerAsCollab);
+				}
+				else {
+					for (com.daimler.data.db.jsonb.UserInfo collab : existingCollaborators) {
+						if(collab.getId().equalsIgnoreCase(currentOwnerAsCollab.getId())) {
+							if(Objects.isNull(collab.getPermission())) {
+								updatedCollaborators.remove(collab);
+								com.daimler.data.db.jsonb.Permission collabPermission = new com.daimler.data.db.jsonb.Permission();
+								collabPermission.setRead(Boolean.TRUE);
+								collabPermission.setWrite(Boolean.TRUE);
+								collab.setPermission(collabPermission);
+								updatedCollaborators.add(collab);
+							}
+						}
 					}
 				}
 			}
-			entity.getData().setCollaborators(updatedCollaborators);						
+			entity.getData().setCollaborators(updatedCollaborators);
 			try {
 				jpaRepo.save(entity);
 				LOGGER.info("Project owner and collaborator details updated successfully");
@@ -1348,5 +1388,5 @@ public class BaseStorageService implements StorageService {
 		}
 		return null;
 	}
-	
+
 }
