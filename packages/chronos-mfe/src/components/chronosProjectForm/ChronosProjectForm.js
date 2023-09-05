@@ -17,13 +17,15 @@ import { regionalDateAndTimeConversionSolution } from '../../utilities/utils';
 // Api
 import { chronosApi } from '../../apis/chronos.api';
 
-const ChronosProjectForm = ({edit, onSave}) => {
+const ChronosProjectForm = ({project, edit, onSave}) => {
   let history = useHistory();
 
-  const project = useSelector(state => state.projectDetails);
+  const projectR = useSelector(state => state.projectDetails);
 
-  const [teamMembers, setTeamMembers] = useState(edit && project?.data?.collaborators !== null ? project?.data?.collaborators : []);
-  const [teamMembersOriginal, setTeamMembersOriginal] = useState(edit && project?.data?.collaborators !== null ? project?.data?.collaborators : []);
+  const [chronosProject] = useState(project !== undefined ? {...project} : {...projectR.data});
+
+  const [teamMembers, setTeamMembers] = useState(edit && chronosProject.collaborators !== null ? chronosProject.collaborators : []);
+  const [teamMembersOriginal, setTeamMembersOriginal] = useState(edit && chronosProject.collaborators !== null ? chronosProject.collaborators : []);
   const [editTeamMember, setEditTeamMember] = useState(false);
   const [selectedTeamMember, setSelectedTeamMember] = useState();
   const [editTeamMemberIndex, setEditTeamMemberIndex] = useState(0);
@@ -84,7 +86,7 @@ const ChronosProjectForm = ({edit, onSave}) => {
       removeCollaborators: removedCollaboratorsTemp
     }
     ProgressIndicator.show();
-    chronosApi.updateForecastProjectCollaborators(data, project?.data?.id).then(() => {
+    chronosApi.updateForecastProjectCollaborators(data, chronosProject.id).then(() => {
       ProgressIndicator.hide();
       setTeamMembers([]);
       setTeamMembersOriginal([]);
@@ -232,17 +234,17 @@ const ChronosProjectForm = ({edit, onSave}) => {
                   <div id="productDescription">
                     <label className="input-label summary">Project Name</label>
                     <br />                    
-                    {project?.data?.name}
+                    {chronosProject.name}
                   </div>
                   <div id="tags">
                     <label className="input-label summary">Created on</label>
                     <br />
-                    {project?.data?.createdOn !== undefined && regionalDateAndTimeConversionSolution(project?.data?.createdOn)}
+                    {chronosProject.createdOn !== undefined && regionalDateAndTimeConversionSolution(chronosProject.createdOn)}
                   </div>
                   <div id="isExistingSolution">
                     <label className="input-label summary">Created by</label>
                     <br />
-                    {project?.data?.createdBy?.firstName} {project?.data?.createdBy?.lastName}
+                    {chronosProject.createdBy?.firstName} {chronosProject.createdBy?.lastName}
                   </div>
                 </div>
               </div>
