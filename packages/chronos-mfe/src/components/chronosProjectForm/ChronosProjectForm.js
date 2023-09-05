@@ -2,6 +2,7 @@ import classNames from 'classnames';
 import React, { useState } from 'react';
 import { useForm, FormProvider } from 'react-hook-form';
 import { useHistory } from "react-router-dom";
+import { useSelector } from 'react-redux';
 // styles
 import Styles from './ChronosProjectForm.scss';
 // import from DNA Container
@@ -16,10 +17,15 @@ import { regionalDateAndTimeConversionSolution } from '../../utilities/utils';
 // Api
 import { chronosApi } from '../../apis/chronos.api';
 
-const ChronosProjectForm = ({edit, project, onSave}) => {
+const ChronosProjectForm = ({project, edit, onSave}) => {
   let history = useHistory();
-  const [teamMembers, setTeamMembers] = useState(edit && project.collaborators !== null ? project.collaborators : []);
-  const [teamMembersOriginal, setTeamMembersOriginal] = useState(edit && project.collaborators !== null ? project.collaborators : []);
+
+  const projectR = useSelector(state => state.projectDetails);
+
+  const [chronosProject] = useState(project !== undefined ? {...project} : {...projectR.data});
+
+  const [teamMembers, setTeamMembers] = useState(edit && chronosProject.collaborators !== null ? chronosProject.collaborators : []);
+  const [teamMembersOriginal, setTeamMembersOriginal] = useState(edit && chronosProject.collaborators !== null ? chronosProject.collaborators : []);
   const [editTeamMember, setEditTeamMember] = useState(false);
   const [selectedTeamMember, setSelectedTeamMember] = useState();
   const [editTeamMemberIndex, setEditTeamMemberIndex] = useState(0);
@@ -80,7 +86,7 @@ const ChronosProjectForm = ({edit, project, onSave}) => {
       removeCollaborators: removedCollaboratorsTemp
     }
     ProgressIndicator.show();
-    chronosApi.updateForecastProjectCollaborators(data, project.id).then(() => {
+    chronosApi.updateForecastProjectCollaborators(data, chronosProject.id).then(() => {
       ProgressIndicator.hide();
       setTeamMembers([]);
       setTeamMembersOriginal([]);
@@ -228,17 +234,17 @@ const ChronosProjectForm = ({edit, project, onSave}) => {
                   <div id="productDescription">
                     <label className="input-label summary">Project Name</label>
                     <br />                    
-                    {project?.name}
+                    {chronosProject.name}
                   </div>
                   <div id="tags">
                     <label className="input-label summary">Created on</label>
                     <br />
-                    {project?.createdOn !== undefined && regionalDateAndTimeConversionSolution(project?.createdOn)}
+                    {chronosProject.createdOn !== undefined && regionalDateAndTimeConversionSolution(chronosProject.createdOn)}
                   </div>
                   <div id="isExistingSolution">
                     <label className="input-label summary">Created by</label>
                     <br />
-                    {project?.createdBy?.firstName} {project?.createdBy?.lastName}
+                    {chronosProject.createdBy?.firstName} {chronosProject.createdBy?.lastName}
                   </div>
                 </div>
               </div>

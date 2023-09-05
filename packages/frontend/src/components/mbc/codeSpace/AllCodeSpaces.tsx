@@ -29,7 +29,8 @@ const AllCodeSpaces = (props: IAllCodeSpacesProps) => {
     }),
     [showNewCodeSpaceModal, setShowNewCodeSpaceModal] = useState<boolean>(false),
     [isApiCallTakeTime, setIsApiCallTakeTime] = useState<boolean>(false),
-    [onBoardCodeSpace, setOnBoardCodeSpace] = useState<ICodeSpaceData>();
+    [onBoardCodeSpace, setOnBoardCodeSpace] = useState<ICodeSpaceData>(),
+    [onEditCodeSpace, setOnEditCodeSpace] = useState<ICodeSpaceData>();
 
   const history = useHistory();
   const goback = () => {
@@ -105,8 +106,12 @@ const AllCodeSpaces = (props: IAllCodeSpacesProps) => {
   };
 
   const onNewCodeSpaceModalCancel = () => {
+    if (onEditCodeSpace) {
+      getCodeSpacesData();
+    }
     setShowNewCodeSpaceModal(false);
     setOnBoardCodeSpace(undefined);
+    setOnEditCodeSpace(undefined);
   };
 
   const onDeleteSuccess = () => {
@@ -115,6 +120,11 @@ const AllCodeSpaces = (props: IAllCodeSpacesProps) => {
 
   const onShowCodeSpaceOnBoard = (codeSpace: ICodeSpaceData) => {
     setOnBoardCodeSpace(codeSpace);
+    setShowNewCodeSpaceModal(true);
+  };
+
+  const onCodeSpaceEdit = (codeSpace: ICodeSpaceData) => {
+    setOnEditCodeSpace(codeSpace);
     setShowNewCodeSpaceModal(true);
   };
 
@@ -130,7 +140,9 @@ const AllCodeSpaces = (props: IAllCodeSpacesProps) => {
       <div className={classNames(Styles.wrapper)}>
         <div className={classNames(Styles.caption)}>
           <div>
-            <button className={classNames('btn btn-text back arrow')} type="submit" onClick={goback}>Back</button>
+            <button className={classNames('btn btn-text back arrow')} type="submit" onClick={goback}>
+              Back
+            </button>
             <h3>Code Spaces Overview</h3>
           </div>
           <div className={classNames(Styles.listHeader)}>
@@ -196,6 +208,7 @@ const AllCodeSpaces = (props: IAllCodeSpacesProps) => {
                             toggleProgressMessage={toggleProgressMessage}
                             onDeleteSuccess={onDeleteSuccess}
                             onShowCodeSpaceOnBoard={onShowCodeSpaceOnBoard}
+                            onCodeSpaceEdit={onCodeSpaceEdit}
                           />
                         );
                       })}
@@ -230,8 +243,13 @@ const AllCodeSpaces = (props: IAllCodeSpacesProps) => {
             <NewCodeSpace
               user={props.user}
               onBoardingCodeSpace={onBoardCodeSpace}
+              onEditingCodeSpace={onEditCodeSpace}
               isCodeSpaceCreationSuccess={isCodeSpaceCreationSuccess}
               toggleProgressMessage={toggleProgressMessage}
+              onUpdateCodeSpaceComplete={() => {
+                setShowNewCodeSpaceModal(false);
+                getCodeSpacesData();
+              }}
             />
           }
           scrollableContent={true}
