@@ -20,7 +20,7 @@ const RunParametersForm = () => {
 
   const [expertView, setExpertView] = useState(false);
 
-  const configFiles = useSelector(state => state.chronosForm.configFiles);
+  const {isLoading, configFiles} = useSelector(state => state.chronosForm);
 
   useEffect(() => {
     SelectBox.defaultSetup();
@@ -42,7 +42,7 @@ const RunParametersForm = () => {
 
   useEffect(() => {
     SelectBox.defaultSetup(); 
-  }, [configFiles]);
+  }, [isLoading]);
   
   return (
     <div className={Styles.wrapper}>
@@ -103,7 +103,7 @@ const RunParametersForm = () => {
                   })}
                 >
                   {
-                    configFiles.length === 0 ? (
+                    isLoading && configFiles.length === 0 ? (
                       <option id="configurationOption" value={0}>
                         None
                       </option>
