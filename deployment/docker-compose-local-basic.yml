@@ -161,7 +161,7 @@ services:
         max_attempts: 3
 
   vault:
-    image: vault
+    image: vault:1.13.3
     container_name: vault
     environment:
       - VAULT_DEV_ROOT_TOKEN_ID=myroot    
