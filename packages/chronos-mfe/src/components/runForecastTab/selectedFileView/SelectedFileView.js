@@ -1,8 +1,11 @@
 import classNames from 'classnames';
 import React from 'react';
+import { useDispatch } from 'react-redux';
 import Styles from './selected-file-view.scss';
+import { setInputFile } from '../../../redux/chronosFormSlice';
 
-const SelectedFile = ({ selectedFile, setSelected, setIsExistingInputFile }) => {
+const SelectedFile = ({ selectedFile, setIsExistingInputFile }) => {
+  const dispatch = useDispatch();
   return (
     <>
       <div className={Styles.selectedFile}>
@@ -23,7 +26,7 @@ const SelectedFile = ({ selectedFile, setSelected, setIsExistingInputFile }) => 
           <span>Index not sorted. Either delete Input File and select another one or try to run anyway.</span>
         </div> */}
         <div>
-          <i onClick={() => { setSelected(); setIsExistingInputFile(false); }} className={classNames('icon delete', Styles.deleteIcon)} />
+          <i onClick={() => { dispatch(setInputFile({})); setIsExistingInputFile(false); }} className={classNames('icon delete', Styles.deleteIcon)} />
         </div>
       </div>
     </>

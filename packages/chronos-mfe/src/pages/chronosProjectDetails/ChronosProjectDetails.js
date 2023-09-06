@@ -12,6 +12,7 @@ import ProjectDetailsTab from '../../components/projectDetailsTab/ProjectDetails
 import ComparisonsTab from '../../components/comparisonsTab/ComparisonsTab';
 import Breadcrumb from '../../components/breadcrumb/Breadcrumb';
 import { getProjectDetails } from '../../redux/projectDetails.services';
+import { reset } from '../../redux/chronosFormSlice';
 
 const tabs = {
   runForecast: {},
@@ -36,6 +37,11 @@ const ChronosProjectDetails = ({ user }) => {
   useEffect(() => {
     projectDetails.isLoading ? ProgressIndicator.show() : ProgressIndicator.hide();
   }, [projectDetails]);
+
+  useEffect(() => {
+    currentTab === 'runForecast' && dispatch(reset());
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentTab]);
 
   useEffect(() => {
     if (user?.roles?.length) {
@@ -64,6 +70,7 @@ const ChronosProjectDetails = ({ user }) => {
     const tabIndex = Object.keys(tabs).indexOf(currentTab) + 2;
     setCurrentTab(Object.keys(tabs)[tabIndex]);
     elementRef.current[tabIndex].click();
+    dispatch(getProjectDetails(projectId));
   };
 
   return (

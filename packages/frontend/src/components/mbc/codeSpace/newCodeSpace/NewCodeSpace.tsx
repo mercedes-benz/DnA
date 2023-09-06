@@ -5,7 +5,7 @@ import Styles from './NewCodeSpace.scss';
 import { Notification, Tooltip, ProgressIndicator} from '../../../../assets/modules/uilab/bundle/js/uilab.bundle';
 import SelectBox from 'components/formElements/SelectBox/SelectBox';
 
-import { trackEvent } from '../../../../services/utils';
+import { isValidGITRepoUrl, trackEvent } from '../../../../services/utils';
 import TextBox from '../../shared/textBox/TextBox';
 import { ICodeSpaceData } from '../CodeSpace';
 import { useEffect } from 'react';
@@ -46,6 +46,10 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
   const recipes = recipesMaster;
 
   const [recipeError, setRecipeError] = useState('');
+
+  const [isUserDefinedPublicGithubRecipe, setIsUserDefinedPublicGithubRecipe] = useState(false);
+  const [userDefinedPublicGithubUrl, setUserDefinedPublicGithubUrl] = useState('');
+  const [userDefinedPublicGithubUrlError, setUserDefinedPublicGithubUrlError] = useState('');
   
   // const [githubUserName, setGithubUserName] = useState('');
   // const [githubUserNameError, setGithubUserNameError] = useState('');
@@ -111,6 +115,18 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
   //   setGithubUserNameError(githubUserNameVal.length ? '' : requiredError);
   // };
   
+  const onUserDefinedPublicGithubUrlOnChange = (evnt: React.FormEvent<HTMLInputElement>) => {
+    const githubUrlVal = evnt.currentTarget.value.trim();
+    setUserDefinedPublicGithubUrl(githubUrlVal);
+    setUserDefinedPublicGithubUrlError(
+      githubUrlVal.length
+        ? isValidGITRepoUrl(githubUrlVal)
+          ? ''
+          : 'Please provide valid github.com git repository clone url.'
+        : requiredError,
+    );
+  };
+  
   const onGithubTokenOnChange = (evnt: React.FormEvent<HTMLInputElement>) => {
     const githubTokenVal = evnt.currentTarget.value.trim();
     setGithubToken(githubTokenVal);
@@ -124,6 +140,12 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
   const onRecipeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const selectedOption = e.currentTarget.value;
     setRecipeValue(selectedOption);
+    const isUserDefinedRecipe = selectedOption === 'public-user-defined';
+    setIsUserDefinedPublicGithubRecipe(isUserDefinedRecipe);
+    if (!isUserDefinedRecipe) {
+      setUserDefinedPublicGithubUrl('');
+      setUserDefinedPublicGithubUrlError('');
+    }
     setRecipeError(selectedOption !== '0' ? '' : requiredError);
   };
 
@@ -314,11 +336,18 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
     // } else {
     //   setGithubUserNameError('');
     // }
+
+    if (isPublicRecipeChoosen && isUserDefinedPublicGithubRecipe && userDefinedPublicGithubUrl === '') {
+      setUserDefinedPublicGithubUrlError(requiredError);
+      formValid = false;
+    } else {
+      if (isValidGITRepoUrl(userDefinedPublicGithubUrl)) setUserDefinedPublicGithubUrlError('');
+    }
     if (githubToken === '') {
       setGithubTokenError(requiredError);
       formValid = false;
     }
-    if (projectNameError !== '' || recipeError !== '' || githubTokenError !== '') {
+    if (projectNameError !== '' || recipeError !== '' || githubTokenError !== '' || (isPublicRecipeChoosen && isUserDefinedPublicGithubRecipe && userDefinedPublicGithubUrlError !== '')) {
       formValid = false;
     }
     return formValid;
@@ -786,6 +815,22 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
                   </div>
                 </div>
               )} */}
+              {isUserDefinedPublicGithubRecipe && <div>
+                <div>
+                  <TextBox
+                    type="text"
+                    controlId={'publicGithubUrlInput'}
+                    labelId={'publicGithubUrlInputLabel'}
+                    label={`Provide Your Github Clone Url (Ex. https://github.com/orgname-or-username/your-repo-name.git)`}
+                    placeholder={'https://github.com/orgname-or-username/your-repo-name.git'}
+                    value={userDefinedPublicGithubUrl}
+                    errorText={userDefinedPublicGithubUrlError}
+                    required={true}
+                    maxLength={300}
+                    onChange={onUserDefinedPublicGithubUrlOnChange}
+                  />
+                </div>
+              </div>}
               <div>
                 <div>
                   <TextBox
