@@ -41,7 +41,7 @@ const RunParametersForm = () => {
   }, [expertView]);
 
   useEffect(() => {
-    SelectBox.defaultSetup();
+    SelectBox.defaultSetup(); 
   }, [configFiles]);
   
   return (
