@@ -35,7 +35,28 @@ export const chronosFormSlice = createSlice({
         state.configFiles = [];
         state.errors = action.payload;
       } else {
-        state.configFiles = action.payload;
+        const bucketObjects = action.payload.data.data.bucketObjects ? [...action.payload.data.data.bucketObjects] : [];
+        bucketObjects.sort((a, b) => {
+          let fa = a.objectName.toLowerCase(),
+              fb = b.objectName.toLowerCase();
+          if (fa < fb) {
+            return -1;
+          }
+          if (fa > fb) {
+            return 1;
+          }
+          return 0;
+        });
+        const filteredConfigFiles = bucketObjects.filter(file => file.objectName === 'chronos-core/configs/default_config.yml');
+        if(filteredConfigFiles.length === 1) {
+          bucketObjects.sort((a, b) => {
+            let fa = a.objectName.toLowerCase(),
+                fb = b.objectName.toLowerCase();
+            const first = 'chronos-core/configs/default_config.yml';
+            return fa == first ? -1 : fb == first ? 1 : 0;
+          });
+        }
+        state.configFiles = [...bucketObjects];
         state.errors = '';
       }
     });
