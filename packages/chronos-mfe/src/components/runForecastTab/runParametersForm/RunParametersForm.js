@@ -18,10 +18,9 @@ const RunParametersForm = () => {
   const chronosVersionTooltipContent = `This is an experimental feature used for testing or as a fallback option. To use an older Chronos version, type the version number, e.g. "2.3.0" (without the quotes).\nTo get a list of available Chronos versions, check this link [${Envs.CHRONOS_RELEASES_INFO_URL}].\nNote that we currently offer no support for this feature. Available versions differ between environments and versions might be discontinued without previous warning.`;
   const configurationFileTooltipContent = `You can upload your own Configuration\nFiles in the "Manage Project" Tab`;
 
-  const [configurationFiles, setConfigurationFiles] = useState([]);
   const [expertView, setExpertView] = useState(false);
 
-  const project = useSelector(state => state.projectDetails);
+  const configFiles = useSelector(state => state.chronosForm.configFiles);
 
   useEffect(() => {
     SelectBox.defaultSetup();
@@ -36,38 +35,6 @@ const RunParametersForm = () => {
     resetField('runOnPowerfulMachines', {defaultValue: false});
     SelectBox.defaultSetup();
   }
-
-  const setConfigFiles = () => {
-    const bucketObjects = project.data.configFiles ? [...project.data.configFiles] : [];
-    // const bucketObjects = configFiles.data.bucketObjects ? [...configFiles.data.bucketObjects] : [];
-    bucketObjects.sort((a, b) => {
-      let fa = a.objectName.toLowerCase(),
-          fb = b.objectName.toLowerCase();
-      if (fa < fb) {
-        return -1;
-      }
-      if (fa > fb) {
-        return 1;
-      }
-      return 0;
-    });
-    const filteredConfigFiles = bucketObjects.filter(file => file.objectName === 'chronos-core/configs/default_config.yml');
-    if(filteredConfigFiles.length === 1) {
-      bucketObjects.sort((a, b) => {
-        let fa = a.objectName.toLowerCase(),
-            fb = b.objectName.toLowerCase();
-        const first = 'chronos-core/configs/default_config.yml';
-        return fa == first ? -1 : fb == first ? 1 : 0;
-      });
-    }      
-    setConfigurationFiles(bucketObjects);
-    SelectBox.refresh('configurationField');
-  }
-
-  useEffect(() => {
-    setConfigFiles();
-    //eslint-disable-next-line
-  }, []);
   
   useEffect(() => {
     expertView && SelectBox.defaultSetup(); Tooltip.defaultSetup();
@@ -132,13 +99,13 @@ const RunParametersForm = () => {
                   })}
                 >
                   {
-                    configurationFiles.length === 0 ? (
+                    configFiles.length === 0 ? (
                       <option id="configurationOption" value={0}>
                         None
                       </option>
                       ) : (
                         <>
-                          {configurationFiles.map((file) => (
+                          {configFiles.map((file) => (
                               <option key={file.objectName} value={file.objectName}>
                                 {file?.objectName?.includes('chronos-core') ? 'General > ' + file?.objectName?.split("/")[2] : 'Project > ' + file?.objectName?.split("/")[2]}
                               </option>
