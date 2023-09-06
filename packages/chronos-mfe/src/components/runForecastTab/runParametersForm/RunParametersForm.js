@@ -35,10 +35,14 @@ const RunParametersForm = () => {
     resetField('runOnPowerfulMachines', {defaultValue: false});
     SelectBox.defaultSetup();
   }
-  
+
   useEffect(() => {
     expertView && SelectBox.defaultSetup(); Tooltip.defaultSetup();
   }, [expertView]);
+
+  useEffect(() => {
+    SelectBox.defaultSetup(); 
+  }, [configFiles]);
   
   return (
     <div className={Styles.wrapper}>

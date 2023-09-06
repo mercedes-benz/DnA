@@ -34,7 +34,7 @@ const InputFiles = ({inputFiles, showModal, addNew}) => {
     chronosApi.uploadProjectConfigFile(project?.data?.id, formData).then(() => {
         Notification.show('File uploaded successfully');
         dispatch(getProjectDetails(projectId));
-        dispatch(getConfigFiles(projectId));
+        dispatch(getConfigFiles(projectId)); 
         ProgressIndicator.hide();
         SelectBox.defaultSetup();
       }).catch(error => {
