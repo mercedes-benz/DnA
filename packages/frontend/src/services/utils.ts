@@ -281,26 +281,31 @@ export const regionalForMonthAndYear = (dateString: any) => {
 
 export const thousandSeparator = (region: string) => {
   if(region.includes('de') || region.includes('it') || region.includes('es'))
-    return  "."
+    return  ".";
   else if(region.includes('fr') || region.includes('fi') || region.includes('da') || region.includes('sv')) 
-    return " " 
+    return " ";
   else  
-    return ","
-}
+    return ",";
+};
 
 export const decimalSeparator = (region: string) => {
   if(region.includes('de') || region.includes('it') || region.includes('es'))
-    return  ","
+    return  ",";
   else if(region.includes('fr') || region.includes('fi') || region.includes('da') || region.includes('sv')) 
-    return "," 
+    return ",";
   else  
-    return "."
-}
+    return ".";
+};
 
 export const csvSeparator = (region: string) => {
   if(region.includes('de'))
-    return  ";" 
+    return  ";";  
+};
+
+export const isValidGITRepoUrl = (str: string) => {
+  const regex = new RegExp(/((http|http(s)|\/?))(:(\/\/github.com\/))([\w.@:/\-~]+)(\.git)(\/)?/);
   
+  return (str == null) ? false : regex.test(str);
 }
 
 export const recipesMaster = [
@@ -309,6 +314,8 @@ export const recipesMaster = [
   { id: 'py-fastapi', resource: '2Gi,1000Mi,500m,2000Mi,1000m', name: 'Microservice using Python FastAPI (Debian 11 OS, 2GB RAM, 1CPU)' },
   { id: 'react', resource: '4Gi,2000Mi,500m,4000Mi,1000m', name: 'React SPA (Debian 11 OS, 2GB RAM, 1CPU)' },
   { id: 'angular', resource: '4Gi,2000Mi,500m,4000Mi,1000m', name: 'Angular SPA (Debian 11 OS, 2GB RAM, 1CPU)' },
+
+  { id: 'public-user-defined', resource: '4Gi,4000Mi,1000m,6000Mi,2000m', name: 'Recipe from Public Github (Debian 11 OS, 6GB RAM, 2CPU)', repodetails: '' },
 
   { id: 'public-dna-frontend', resource: '4Gi,4000Mi,1000m,6000Mi,2000m', name: 'DnA Frontend (Debian 11 OS, 6GB RAM, 2CPU)', repodetails: 'github.com/mercedes-benz/DnA.git,packages/frontend/*' },
   { id: 'public-dna-backend', resource: '2Gi,2000Mi,500m,4000Mi,1000m', name: 'DnA Backend (Debian 11 OS, 4GB RAM, 1CPU)', repodetails: 'github.com/mercedes-benz/DnA.git,packages/backend/*' },
@@ -328,8 +335,6 @@ export const recipesMaster = [
   { id: 'public-dna-trino-backend', resource: '2Gi,2000Mi,500m,4000Mi,1000m', name: 'DnA Trino Backend (Debian 11 OS, 4GB RAM, 1CPU)', repodetails: 'github.com/mercedes-benz/DnA.git,packages/trino-backend/*' },
   { id: 'public-dna-nass', resource: '2Gi,2000Mi,500m,4000Mi,1000m', name: 'DnA Notification Backend (Debian 11 OS, 4GB RAM, 1CPU)', repodetails: 'github.com/mercedes-benz/DnA.git,packages/naas/*' },
   { id: 'public-dna-authenticator-backend', resource: '2Gi,2000Mi,500m,4000Mi,1000m', name: 'DnA Authenticator Backend (Debian 11 OS, 4GB RAM, 1CPU)', repodetails: 'github.com/mercedes-benz/DnA.git,packages/authenticator-service/*' },
-
-
 
   { id: 'chronos', name: 'CHRONOS Workspace (Coming Soon)' },
   { id: 'mean', name: 'MEAN Stack (Coming Soon)' },

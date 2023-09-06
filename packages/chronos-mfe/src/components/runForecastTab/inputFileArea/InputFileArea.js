@@ -1,6 +1,7 @@
 import classNames from 'classnames';
 import React, {useState} from 'react';
 import { useFormContext } from 'react-hook-form';
+import { useDispatch, useSelector } from 'react-redux';
 // Container components
 import Modal from 'dna-container/Modal';
 import Notification from '../../../common/modules/uilab/js/src/notification';
@@ -9,8 +10,12 @@ import IconUpload from '../../../assets/icon_upload.png';
 import ExistingFilesView from '../existingFilesView/ExistingFilesView';
 import { Link } from 'react-router-dom';
 import SelectedFileView from '../selectedFileView/SelectedFileView';
+import { set, setInputFile } from '../../../redux/chronosFormSlice';
 
-const InputFileArea = ({projectId, inputFile, setInputFile}) => {
+const InputFileArea = () => {
+  
+  const dispatch = useDispatch();
+  const chronosForm = useSelector(state => state.chronosForm);
   const { register, formState: { errors } } = useFormContext();
   const isValidFile = (file) => ['csv', 'xlsx'].includes(file?.name?.split('.')[1]);
   const [showExistingFiles, setShowExistingFiles] = useState(false);
@@ -24,7 +29,7 @@ const InputFileArea = ({projectId, inputFile, setInputFile}) => {
       Notification.show('File is not valid. Only .xlsx files allowed.', 'alert');
     } else {
       register('droppedFile', { value: file });
-      setInputFile(file);
+      dispatch(setInputFile(file));
     }
   };
   const onFileDrop = (e) => {
@@ -33,8 +38,7 @@ const InputFileArea = ({projectId, inputFile, setInputFile}) => {
       onDrop?.(e);
     }
   };
-  
-  const [keepFileForFuture, setKeepFileForFuture] = useState(false);
+
   return (
     <div className={Styles.wrapper}>
       <div className={Styles.firstPanel}>
@@ -52,8 +56,8 @@ const InputFileArea = ({projectId, inputFile, setInputFile}) => {
               For a quick start you can download the default template (.xlsx) <a href={`/chronos-templates/Chronos_Forecasting_Template.xlsx`} download={true}>right here</a>.
             </p>
           </div>
-          { inputFile ? 
-            <SelectedFileView selectedFile={inputFile[0]} setSelected={setInputFile} setIsExistingInputFile={setIsExistingInputFile} /> :
+          { chronosForm.inputFile.length > 0 ? 
+            <SelectedFileView selectedFile={chronosForm.inputFile[0]} setIsExistingInputFile={setIsExistingInputFile} /> :
             <>
             <div className={Styles.container}>
               <div
@@ -69,7 +73,7 @@ const InputFileArea = ({projectId, inputFile, setInputFile}) => {
                     if (!isValid) {
                       Notification.show('File is not valid. Only .xlsx files allowed.', 'alert');
                     } else {
-                      setInputFile(e.target.files);
+                      dispatch(setInputFile(e.target.files));
                     }
                   }})}
                   accept=".csv, .xlsx"
@@ -90,7 +94,7 @@ const InputFileArea = ({projectId, inputFile, setInputFile}) => {
                       onClick={(e) => {
                         e.stopPropagation();
                         setShowExistingFiles(true);
-                        setKeepFileForFuture(false);
+                        dispatch(set(false));
                       }}
                     >
                       <p>
@@ -112,7 +116,7 @@ const InputFileArea = ({projectId, inputFile, setInputFile}) => {
                 modalWidth={'35%'}
                 buttonAlignment="right"
                 show={showExistingFiles}
-                content={<ExistingFilesView projectId={projectId} setShowExistingFiles={setShowExistingFiles} setInputFile={setInputFile} setIsExistingInputFile={setIsExistingInputFile} />}
+                content={<ExistingFilesView setShowExistingFiles={setShowExistingFiles} setIsExistingInputFile={setIsExistingInputFile} />}
                 scrollableContent={false}
                 onCancel={() => {
                   setShowExistingFiles(false);
@@ -130,10 +134,10 @@ const InputFileArea = ({projectId, inputFile, setInputFile}) => {
                   className="ff-only"
                   {...register('saveRequestPart', {
                     onChange: () => {
-                      setKeepFileForFuture(!keepFileForFuture);
+                      dispatch(set(!chronosForm.keepForFuture))
                     }
                   })}
-                  checked={keepFileForFuture}
+                  checked={chronosForm.keepForFuture}
                   disabled={isExistingInputFile}
                 />
               </span>
