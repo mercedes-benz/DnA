@@ -161,8 +161,9 @@ const DeletionRequirements = (
                 type="text"
                 {...register('deletionRequirementDescription', {
                   validate: validateTextArea,
-                  disabled: isTextAreaDisabled,
+                  // disabled: isTextAreaDisabled,
                 })}
+                disabled= {isTextAreaDisabled}
                 rows={50}
                 id="deletionRequirementDescription"
               />
