@@ -455,7 +455,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
       if (isPublicRecipeChoosen) {
         // createCodeSpaceRequest.data.gitUserName = githubUserName;
         // createCodeSpaceRequest.data.projectDetails.recipeDetails.recipeId = 'public';
-        createCodeSpaceRequest.data.projectDetails.recipeDetails['repodetails'] = recipe.repodetails;
+        createCodeSpaceRequest.data.projectDetails.recipeDetails['repodetails'] = isUserDefinedPublicGithubRecipe ? (userDefinedPublicGithubUrl.split('://')[1] + ',') : recipe.repodetails;
       }
 
       ProgressIndicator.show();
