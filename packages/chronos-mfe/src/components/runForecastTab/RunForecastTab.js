@@ -11,6 +11,7 @@ import { chronosApi } from '../../apis/chronos.api';
 import RunParametersForm from './runParametersForm/RunParametersForm';
 import InputFileArea from './inputFileArea/InputFileArea';
 import { setInputFile } from '../../redux/chronosFormSlice';
+import { getProjectDetails } from '../../redux/projectDetails.services';
 
 const RunForecastTab = ({ onRunClick }) => {
   const { id: projectId } = useParams();
@@ -56,6 +57,7 @@ const RunForecastTab = ({ onRunClick }) => {
         methods.reset();
         SelectBox.defaultSetup();
         dispatch(setInputFile({}));
+        dispatch(getProjectDetails(projectId));
       }).catch(error => {
         ProgressIndicator.hide();
         Notification.show(
