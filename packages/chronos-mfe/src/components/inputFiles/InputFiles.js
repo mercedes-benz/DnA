@@ -14,6 +14,7 @@ import AceEditor from 'react-ace';
 import 'ace-builds/src-noconflict/theme-solarized_dark';
 import 'ace-builds/src-noconflict/mode-yaml';
 import { getProjectDetails } from '../../redux/projectDetails.services';
+import { getConfigFiles } from '../../redux/chronosForm.services';
 
 const InputFiles = ({inputFiles, showModal, addNew}) => {
   const { id: projectId } = useParams();
@@ -33,6 +34,7 @@ const InputFiles = ({inputFiles, showModal, addNew}) => {
     chronosApi.uploadProjectConfigFile(project?.data?.id, formData).then(() => {
         Notification.show('File uploaded successfully');
         dispatch(getProjectDetails(projectId));
+        dispatch(getConfigFiles(projectId)); 
         ProgressIndicator.hide();
         SelectBox.defaultSetup();
       }).catch(error => {
