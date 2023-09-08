@@ -360,4 +360,22 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 		return results.intValue();
 	}
 
+	@Override
+	public List<String> getAllWorkspaceIds() {
+		List<String> records = new ArrayList<>();
+
+		String getQuery = "select jsonb_extract_path_text(data,'workspaceId') as wsid from workspace_nsql where "
+				+ "lower(jsonb_extract_path_text(data,'status')) not in ('create_requested','deleted','collaboration_requested') ;" ;				
+		try {
+			Query q = em.createNativeQuery(getQuery);
+			records = q.getResultList();
+			if (records != null && !records.isEmpty()) {
+				log.info("Found {} workspaces in project {} which are not in deleted state", records.size());
+			}
+		} catch (Exception e) {
+			log.error("Failed to query workspaces under project {} , which are not in deleted state");
+		}
+		return records;
+	}		
+
 }
