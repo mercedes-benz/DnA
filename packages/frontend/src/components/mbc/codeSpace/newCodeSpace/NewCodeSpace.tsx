@@ -2,7 +2,11 @@ import React, { useState } from 'react';
 import cn from 'classnames';
 import Styles from './NewCodeSpace.scss';
 // @ts-ignore
-import { Notification, Tooltip, ProgressIndicator} from '../../../../assets/modules/uilab/bundle/js/uilab.bundle';
+import Notification from '../../../../assets/modules/uilab/js/src/notification';
+// @ts-ignore
+import ProgressIndicator from '../../../../assets/modules/uilab/js/src/progress-indicator';
+// @ts-ignore
+import Tooltip from '../../../../assets/modules/uilab/js/src/tooltip';
 import SelectBox from 'components/formElements/SelectBox/SelectBox';
 
 import { isValidGITRepoUrl, trackEvent } from '../../../../services/utils';
