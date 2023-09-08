@@ -197,7 +197,7 @@ const TransNationalDataTransfer = (
                   <span className="wrapper">
                     <input
                       {...register('transnationalDataContactAwareTransfer', {
-                        required: '*Missing entry',
+                        required: !(watch('transnationalDataTransfer') === '' || watch('transnationalDataTransfer') === 'No'),
                         // disabled: watch('transnationalDataTransfer') === '' || watch('transnationalDataTransfer') === 'No',
                         onChange: () => {
                           clearErrors([
@@ -223,7 +223,7 @@ const TransNationalDataTransfer = (
                   <span className="wrapper">
                     <input
                       {...register('transnationalDataContactAwareTransfer', {
-                        required: '*Missing entry',
+                        required: !(watch('transnationalDataTransfer') === '' || watch('transnationalDataTransfer') === 'No'),
                         // disabled: watch('transnationalDataTransfer') === '' || watch('transnationalDataTransfer') === 'No',
                       })}
                       disabled= {watch('transnationalDataTransfer') === '' || watch('transnationalDataTransfer') === 'No'}
@@ -255,7 +255,7 @@ const TransNationalDataTransfer = (
                   <span className="wrapper">
                     <input
                       {...register('transnationalDataObjectionsTransfer', {
-                        required: '*Missing entry',
+                        required: !(watch('transnationalDataTransfer') === '' || watch('transnationalDataTransfer') === 'No'),
                         // disabled: watch('transnationalDataTransfer') === '' || watch('transnationalDataTransfer') === 'No',
                         onChange: () => {
                           clearErrors([
@@ -279,7 +279,7 @@ const TransNationalDataTransfer = (
                   <span className="wrapper">
                     <input
                       {...register('transnationalDataObjectionsTransfer', {
-                        required: '*Missing entry',
+                        required: !(watch('transnationalDataTransfer') === '' || watch('transnationalDataTransfer') === 'No'),
                         // disabled: watch('transnationalDataTransfer') === '' || watch('transnationalDataTransfer') === 'No',
                       })}
                       disabled= {watch('transnationalDataTransfer') === '' || watch('transnationalDataTransfer') === 'No'}
@@ -314,7 +314,8 @@ const TransNationalDataTransfer = (
                 className="input-field-area"
                 type="text"
                 placeholder="Please state your reasoning for transfering nonetheless."
-                {...register('transnationalDataTransferingNonetheless', { required: '*Missing entry', 
+                {...register('transnationalDataTransferingNonetheless', { 
+                  required: !(watch('transnationalDataTransfer') === '' || watch('transnationalDataTransfer') === 'No'), 
                 // disabled: watch('transnationalDataTransfer') === '' || watch('transnationalDataTransfer') === 'No' 
                 })}
                 disabled= {watch('transnationalDataTransfer') === '' || watch('transnationalDataTransfer') === 'No'}
@@ -343,7 +344,8 @@ const TransNationalDataTransfer = (
                 className="input-field-area"
                 type="text"
                 placeholder="Please state your objections."
-                {...register('transnationalDataTransferingObjections', { required: '*Missing entry', 
+                {...register('transnationalDataTransferingObjections', { 
+                  required: !(watch('transnationalDataTransfer') === '' || watch('transnationalDataTransfer') === 'No'), 
                 // disabled: watch('transnationalDataTransfer') === '' || watch('transnationalDataTransfer') === 'No' 
                 })}
                 disabled= {watch('transnationalDataTransfer') === '' || watch('transnationalDataTransfer') === 'No'}
