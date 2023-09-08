@@ -74,6 +74,7 @@ public class CodeServerClient {
 			case "public-dna-trino-backend" : deployType = ConstantsUtility.PUBLIC; break;
 			case "public-dna-nass" : deployType = ConstantsUtility.PUBLIC; break;			
 			case "public-dna-authenticator-backend" : deployType = ConstantsUtility.PUBLIC; break;
+			case "public-user-defined" : deployType = ConstantsUtility.PUBLIC; break;	
 			
 			default: deployType = ConstantsUtility.DEFAULT; break;
 		}
