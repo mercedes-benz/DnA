@@ -709,56 +709,89 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
                   </select>
                 </div>
                 <span className={classNames('error-message', recipeError.length ? '' : 'hide')}>{recipeError}</span>
-              </div>
-              <div className={Styles.flexLayout}>
                 <div>
-                  <TextBox
-                    type="text"
-                    controlId={'productNameInput'}
-                    labelId={'productNameLabel'}
-                    label={'Code Space Name'}
-                    placeholder={'Type here'}
-                    value={projectName}
-                    errorText={projectNameError}
-                    required={true}
-                    maxLength={39}
-                    onChange={onProjectNameOnChange}
-                  />
+                  <button className={classNames(Styles.addNewItemButton)}>
+                    <i className="icon mbc-icon plus" />
+                    &nbsp;
+                    <span>Add new code space recipe (Coming Soon)</span>
+                  </button>
                 </div>
-                <div>
-                  <div id="environmentContainer" className={classNames('input-field-group include-error')}>
-                    <label className={classNames(Styles.inputLabel, 'input-label')}>
-                      Environment<sup>*</sup>
+              </div>
+              <div>
+                <TextBox
+                  type="text"
+                  controlId={'productNameInput'}
+                  labelId={'productNameLabel'}
+                  label={'Code Space Name'}
+                  placeholder={'Type here'}
+                  value={projectName}
+                  errorText={projectNameError}
+                  required={true}
+                  maxLength={39}
+                  onChange={onProjectNameOnChange}
+                />
+              </div>
+              <div>
+                <div id="environmentContainer" className={classNames('input-field-group include-error')}>
+                  <label className={classNames(Styles.inputLabel, 'input-label')}>
+                    Environment<sup>*</sup>
+                  </label>
+                  <div>
+                    <label className={classNames('radio')}>
+                      <span className="wrapper">
+                        <input
+                          type="radio"
+                          className="ff-only"
+                          value={'DHC-CaaS'}
+                          name="environment"
+                          onChange={onEnvironmentChange}
+                          checked={true}
+                        />
+                      </span>
+                      <span className="label">DHC CaaS</span>
                     </label>
-                    <div>
-                      <label className={classNames('radio')}>
-                        <span className="wrapper">
-                          <input
-                            type="radio"
-                            className="ff-only"
-                            value={'DHC-CaaS'}
-                            name="environment"
-                            onChange={onEnvironmentChange}
-                            checked={true}
-                          />
-                        </span>
-                        <span className="label">DHC CaaS</span>
-                      </label>
-                      <label className={classNames('radio')}>
-                        <span className="wrapper">
-                          <input
-                            type="radio"
-                            className="ff-only"
-                            value="azure"
-                            name="environment"
-                            onChange={onEnvironmentChange}
-                            checked={false}
-                            disabled={true}
-                          />
-                        </span>
-                        <span className="label">Azure (Coming Soon)</span>
-                      </label>
-                    </div>
+                    <label className={classNames('radio')}>
+                      <span className="wrapper">
+                        <input
+                          type="radio"
+                          className="ff-only"
+                          value="azure"
+                          name="environment"
+                          onChange={onEnvironmentChange}
+                          checked={false}
+                          disabled={true}
+                        />
+                      </span>
+                      <span className="label">Azure (Coming Soon)</span>
+                    </label>
+                    <label className={classNames('radio')}>
+                      <span className="wrapper">
+                        <input
+                          type="radio"
+                          className="ff-only"
+                          value="extollo"
+                          name="environment"
+                          onChange={onEnvironmentChange}
+                          checked={false}
+                          disabled={true}
+                        />
+                      </span>
+                      <span className="label">eXtollo (Coming Soon)</span>
+                    </label>
+                    <label className={classNames('radio')}>
+                      <span className="wrapper">
+                        <input
+                          type="radio"
+                          className="ff-only"
+                          value="aws"
+                          name="environment"
+                          onChange={onEnvironmentChange}
+                          checked={false}
+                          disabled={true}
+                        />
+                      </span>
+                      <span className="label">AWS (Coming Soon)</span>
+                    </label>
                   </div>
                 </div>
               </div>
@@ -815,22 +848,24 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
                   </div>
                 </div>
               )} */}
-              {isUserDefinedPublicGithubRecipe && <div>
+              {isUserDefinedPublicGithubRecipe && (
                 <div>
-                  <TextBox
-                    type="text"
-                    controlId={'publicGithubUrlInput'}
-                    labelId={'publicGithubUrlInputLabel'}
-                    label={`Provide Your Github Clone Url (Ex. https://github.com/orgname-or-username/your-repo-name.git)`}
-                    placeholder={'https://github.com/orgname-or-username/your-repo-name.git'}
-                    value={userDefinedPublicGithubUrl}
-                    errorText={userDefinedPublicGithubUrlError}
-                    required={true}
-                    maxLength={300}
-                    onChange={onUserDefinedPublicGithubUrlOnChange}
-                  />
+                  <div>
+                    <TextBox
+                      type="text"
+                      controlId={'publicGithubUrlInput'}
+                      labelId={'publicGithubUrlInputLabel'}
+                      label={`Provide Your Github Clone Url (Ex. https://github.com/orgname-or-username/your-repo-name.git)`}
+                      placeholder={'https://github.com/orgname-or-username/your-repo-name.git'}
+                      value={userDefinedPublicGithubUrl}
+                      errorText={userDefinedPublicGithubUrlError}
+                      required={true}
+                      maxLength={300}
+                      onChange={onUserDefinedPublicGithubUrlOnChange}
+                    />
+                  </div>
                 </div>
-              </div>}
+              )}
               <div>
                 <div>
                   <TextBox
@@ -886,19 +921,25 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
                 show={showConfirmModal}
                 content={
                   <>
-                    {collaboratorToDelete && <div>
-                      Are you sure to delete colloborator '{collaboratorToDelete?.firstName}'?
-                      <p>
-                        Removing collaborator from codespace make him/her deny the acccess to the code space and code.
-                      </p>
-                    </div>}
-                    {collaboratorToTransferOwnership && <div>
-                      Are you sure to transfer code space ownership to the colloborator '{collaboratorToTransferOwnership?.firstName}'?
-                      <p>
-                        Transfering ownership to another collaborator will deny you to acccess this code space edit mode.
-                      </p>
-                    </div>}
-                  </> 
+                    {collaboratorToDelete && (
+                      <div>
+                        Are you sure to delete colloborator '{collaboratorToDelete?.firstName}'?
+                        <p>
+                          Removing collaborator from codespace make him/her deny the acccess to the code space and code.
+                        </p>
+                      </div>
+                    )}
+                    {collaboratorToTransferOwnership && (
+                      <div>
+                        Are you sure to transfer code space ownership to the colloborator '
+                        {collaboratorToTransferOwnership?.firstName}'?
+                        <p>
+                          Transfering ownership to another collaborator will deny you to acccess this code space edit
+                          mode.
+                        </p>
+                      </div>
+                    )}
+                  </>
                 }
                 onCancel={onCollaboratorConfirmModalCancel}
                 onAccept={onCollaboratorConfirmModalAccept}
@@ -971,13 +1012,21 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
                                   </div>
                                 </div>
                                 <div className={Styles.collaboratorTitleCol}>
-                                  <span tooltip-data={"Remove Collaborator"} className={Styles.deleteEntry} onClick={onCollaboratorDelete(item.id)}>
+                                  <span
+                                    tooltip-data={'Remove Collaborator'}
+                                    className={Styles.deleteEntry}
+                                    onClick={onCollaboratorDelete(item.id)}
+                                  >
                                     <i className="icon mbc-icon trash-outline" />
                                   </span>
                                   {onEditingMode && (
                                     <>
                                       &nbsp;| &nbsp;
-                                      <span tooltip-data={"Transfer Ownership"} className={Styles.deleteEntry} onClick={() => onTransferOwnership(item.id)}>
+                                      <span
+                                        tooltip-data={'Transfer Ownership'}
+                                        className={Styles.deleteEntry}
+                                        onClick={() => onTransferOwnership(item.id)}
+                                      >
                                         <i className="icon mbc-icon comparison" />
                                       </span>
                                     </>
