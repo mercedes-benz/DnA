@@ -42,7 +42,7 @@ public class WorkspaceMigration {
 	@Value("${authenticator.uri}")
 	private String authenticatorBaseUri;
 	
-	private static final String GET_ALL_SERVICES = "/api";
+	private static final String GET_ALL_SERVICES = "/api/kong/services";
 	
 	@EventListener(ApplicationReadyEvent.class)
 	@Transactional
