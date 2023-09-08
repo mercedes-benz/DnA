@@ -252,7 +252,7 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
                 )}
               </div>
               <div className={Styles.btnGrp}>
-                {!isPublicRecipe && !creationFailed && isOwner && (
+                {!isPublicRecipe && !createInProgress && !creationFailed && isOwner && (
                   <button className="btn btn-primary" onClick={() => props.onCodeSpaceEdit(codeSpace)}>
                     <i className="icon mbc-icon edit"></i>
                   </button>
