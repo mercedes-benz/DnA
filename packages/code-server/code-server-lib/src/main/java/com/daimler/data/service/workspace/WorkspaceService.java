@@ -67,4 +67,6 @@ public interface WorkspaceService {
 
 	Integer getTotalCountOfWorkSpace();
 
+	List<String> getAllWorkspaceIds();
+
 }
