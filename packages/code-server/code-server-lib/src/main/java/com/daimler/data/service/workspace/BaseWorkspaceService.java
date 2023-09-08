@@ -1028,6 +1028,12 @@ public class BaseWorkspaceService implements WorkspaceService {
 		return null;
 	}
 
+	@Override
+	public List<String> getAllWorkspaceIds() {
+		return workspaceCustomRepository.getAllWorkspaceIds();
+	}
+
+
 
 	
 }

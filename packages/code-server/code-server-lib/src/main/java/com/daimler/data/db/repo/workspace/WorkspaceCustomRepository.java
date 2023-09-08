@@ -62,4 +62,6 @@ public interface WorkspaceCustomRepository extends CommonDataRepository<CodeServ
 
 	Integer getTotalCountOfWorkSpace();
 
+	List<String> getAllWorkspaceIds();
+
 }
