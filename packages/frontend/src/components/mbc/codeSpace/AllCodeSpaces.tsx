@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import Styles from './AllCodeSpaces.scss';
 import { ICodeSpaceData } from './CodeSpace';
 import CodeSpaceCardItem from './codeSpaceCardItem/CodeSpaceCardItem';
-import Pagination from '../pagination/Pagination';
+// import Pagination from '../pagination/Pagination';
 import Modal from 'components/formElements/modal/Modal';
 import NewCodeSpace from './newCodeSpace/NewCodeSpace';
 import { IUserInfo } from 'globals/types';
@@ -21,12 +21,12 @@ export interface IAllCodeSpacesProps {
 const AllCodeSpaces = (props: IAllCodeSpacesProps) => {
   const [loading, setLoading] = useState<boolean>(true);
   const [codeSpaces, setCodeSpaces] = useState<ICodeSpaceData[]>([]),
-    [codeSpacesListResponse, setCodeSpacesListResponse] = useState<ICodeSpaceData[]>([]),
-    [pagination, setPagination] = useState({
-      totalNumberOfPages: 1,
-      currentPageNumber: 1,
-      maxItemsPerPage: 15,
-    }),
+    // [codeSpacesListResponse, setCodeSpacesListResponse] = useState<ICodeSpaceData[]>([]),
+    // [pagination, setPagination] = useState({
+    //   totalNumberOfPages: 1,
+    //   currentPageNumber: 1,
+    //   maxItemsPerPage: 15,
+    // }),
     [showNewCodeSpaceModal, setShowNewCodeSpaceModal] = useState<boolean>(false),
     [isApiCallTakeTime, setIsApiCallTakeTime] = useState<boolean>(false),
     [onBoardCodeSpace, setOnBoardCodeSpace] = useState<ICodeSpaceData>(),
@@ -49,44 +49,45 @@ const AllCodeSpaces = (props: IAllCodeSpacesProps) => {
         setLoading(false);
         Notification.show('Error in loading your code spaces - ' + err.message, 'alert');
       });
-    setCodeSpacesListResponse([]);
+    // setCodeSpacesListResponse([]);
   };
 
   useEffect(() => {
     getCodeSpacesData();
   }, []);
 
-  const onPaginationPreviousClick = () => {
-    const currentPageNumberTemp = pagination.currentPageNumber - 1;
-    const currentPageOffset = (currentPageNumberTemp - 1) * pagination.maxItemsPerPage;
-    const modifiedData = codeSpacesListResponse.slice(
-      currentPageOffset,
-      pagination.maxItemsPerPage * currentPageNumberTemp,
-    );
-    setCodeSpaces(modifiedData);
-    setPagination({ ...pagination, currentPageNumber: currentPageNumberTemp });
-  };
-  const onPaginationNextClick = () => {
-    let currentPageNumberTemp = pagination.currentPageNumber;
-    const currentPageOffset = pagination.currentPageNumber * pagination.maxItemsPerPage;
-    currentPageNumberTemp = pagination.currentPageNumber + 1;
-    const modifiedData = codeSpacesListResponse.slice(
-      currentPageOffset,
-      pagination.maxItemsPerPage * currentPageNumberTemp,
-    );
-    setCodeSpaces(modifiedData);
-    setPagination({ ...pagination, currentPageNumber: currentPageNumberTemp });
-  };
-  const onViewByPageNum = (pageNum: number) => {
-    const totalNumberOfPages = Math.ceil(codeSpacesListResponse?.length / pageNum);
-    const modifiedData = codeSpacesListResponse.slice(0, pageNum);
-    setCodeSpaces(modifiedData);
-    setPagination({
-      totalNumberOfPages,
-      maxItemsPerPage: pageNum,
-      currentPageNumber: 1,
-    });
-  };
+  // const onPaginationPreviousClick = () => {
+  //   const currentPageNumberTemp = pagination.currentPageNumber - 1;
+  //   const currentPageOffset = (currentPageNumberTemp - 1) * pagination.maxItemsPerPage;
+  //   const modifiedData = codeSpacesListResponse.slice(
+  //     currentPageOffset,
+  //     pagination.maxItemsPerPage * currentPageNumberTemp,
+  //   );
+  //   setCodeSpaces(modifiedData);
+  //   setPagination({ ...pagination, currentPageNumber: currentPageNumberTemp });
+  // };
+  // const onPaginationNextClick = () => {
+  //   let currentPageNumberTemp = pagination.currentPageNumber;
+  //   const currentPageOffset = pagination.currentPageNumber * pagination.maxItemsPerPage;
+  //   currentPageNumberTemp = pagination.currentPageNumber + 1;
+  //   const modifiedData = codeSpacesListResponse.slice(
+  //     currentPageOffset,
+  //     pagination.maxItemsPerPage * currentPageNumberTemp,
+  //   );
+  //   setCodeSpaces(modifiedData);
+  //   setPagination({ ...pagination, currentPageNumber: currentPageNumberTemp });
+  // };
+  // const onViewByPageNum = (pageNum: number) => {
+  //   const totalNumberOfPages = Math.ceil(codeSpacesListResponse?.length / pageNum);
+  //   console.log(codeSpacesListResponse);
+  //   const modifiedData = codeSpacesListResponse.slice(0, pageNum);
+  //   setCodeSpaces(modifiedData);
+  //   setPagination({
+  //     totalNumberOfPages,
+  //     maxItemsPerPage: pageNum,
+  //     currentPageNumber: 1,
+  //   });
+  // };
 
   const onShowNewCodeSpaceModal = () => {
     setShowNewCodeSpaceModal(true);
@@ -229,7 +230,7 @@ const AllCodeSpaces = (props: IAllCodeSpacesProps) => {
                       })}
                     </div>
                   </div>
-                  {codeSpaces?.length ? (
+                  {/* {codeSpaces?.length ? (
                     <Pagination
                       totalPages={pagination.totalNumberOfPages}
                       pageNumber={pagination.currentPageNumber}
@@ -238,7 +239,7 @@ const AllCodeSpaces = (props: IAllCodeSpacesProps) => {
                       onViewByNumbers={onViewByPageNum}
                       displayByPage={true}
                     />
-                  ) : null}
+                  ) : null} */}
                 </>
               )}
             </div>
