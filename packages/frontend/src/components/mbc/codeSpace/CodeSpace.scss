@@ -236,15 +236,22 @@
         top: 11px !important;
         right: 15px !important;
         display: flex;
-        min-width: 500px;
+        min-width: 50vW;
         justify-content: flex-end;
 
         .urlLink {
           padding-right: 15px;
           text-align: right;
+          display: flex;
+          align-items: center;
+          line-height: 18px;
           i {
             font-size: var(--font-size-icon-medium);
             vertical-align: middle;
+            &:nth-child(2) {
+              font-size: var(--font-size-default) !important;
+              vertical-align: top !important;
+            }
           }
           > a:hover {
             text-decoration: none;
@@ -297,6 +304,14 @@
       }
       .nbstopbtn {
         display: none;
+      }
+    }
+
+    .flexLayout {
+      display: flex;
+      justify-content: space-between;
+      > div {
+        width: calc(50% - 7px);
       }
     }
   }
