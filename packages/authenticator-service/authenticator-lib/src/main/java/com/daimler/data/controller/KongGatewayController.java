@@ -23,10 +23,8 @@ import com.daimler.data.dto.kongGateway.AttachPluginConfigVO;
 import com.daimler.data.dto.kongGateway.AttachPluginRequestVO;
 import com.daimler.data.dto.kongGateway.AttachPluginVO;
 import com.daimler.data.dto.kongGateway.CreateRouteRequestVO;
-import com.daimler.data.dto.kongGateway.CreateRouteResponseVO;
 import com.daimler.data.dto.kongGateway.CreateRouteVO;
 import com.daimler.data.dto.kongGateway.CreateServiceRequestVO;
-import com.daimler.data.dto.kongGateway.CreateServiceResponseVO;
 import com.daimler.data.dto.kongGateway.CreateServiceVO;
 import com.daimler.data.kong.client.KongClient;
 
@@ -192,6 +190,25 @@ public class KongGatewayController implements KongApi{
 					e.getLocalizedMessage());
 			return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
 		}			
+	}	
+
+	@Override
+	 @ApiOperation(value = "Get all the existing services ", nickname = "getAllServices", notes = "Get all the existing kong services.", response = String.class, responseContainer = "List", tags={ "kong", })
+    @ApiResponses(value = { 
+        @ApiResponse(code = 200, message = "Returns message of success or failure", response = String.class, responseContainer = "List"),
+        @ApiResponse(code = 204, message = "Fetch complete, no content found."),
+        @ApiResponse(code = 400, message = "Bad request."),
+        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+        @ApiResponse(code = 403, message = "Request is not authorized."),
+        @ApiResponse(code = 405, message = "Method not allowed"),
+        @ApiResponse(code = 500, message = "Internal error") })
+    @RequestMapping(value = "/kong/services",
+        produces = { "application/json" }, 
+        consumes = { "application/json" },
+        method = RequestMethod.GET)
+	public ResponseEntity<List<String>> getAllServices() {
+		List<String> serviceNames = kongClient.getAllServices();
+		return new ResponseEntity<>(serviceNames,HttpStatus.OK);
 	}
 
 //	@Override
