@@ -57,6 +57,28 @@ public class DnaProjectRepositoryImpl extends CommonDataRepositoryImpl<DnaProjec
 	}
 
 	@Override
+	public List<Object[]> findAllCreationStatusProjects(String Status) {
+		String query = "select dna_project.project_id,dna_project.created_by, dna_project.project_name, dna_project.project_description, dna_project.project_status  from  dna_project\r\n"
+				+ "where dna_project.project_status = ?\r\n";
+
+		Query qry = this.em.createNativeQuery(query);
+		qry.setParameter(1, Status);
+		return qry.getResultList();
+	}
+
+	@Override
+	public List<Object[]> findAllCreationStatusProjectsByUserId(String username, String Status) {
+		String query = "select dna_project.project_id,dna_project.created_by, dna_project.project_name, dna_project.project_description, dna_project.project_status  from  dna_project\r\n"
+				+ "where dna_project.created_by = ?\r\n"
+				+ "and dna_project.project_status = ?\r\n";
+
+		Query qry = this.em.createNativeQuery(query);
+		qry.setParameter(1, username);
+		qry.setParameter(2, Status);
+		return qry.getResultList();
+	}
+
+	@Override
 	public List<Object[]> findDagPermissionAndViewMenu(String dagName) {
 		String query = "select ab_permission_view.id from ab_permission inner join ab_permission_view\r\n"
 				+ "on ab_permission.id = ab_permission_view.permission_id\r\n"
