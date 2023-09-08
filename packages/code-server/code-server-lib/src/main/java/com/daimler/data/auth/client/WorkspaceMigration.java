@@ -47,13 +47,12 @@ public class WorkspaceMigration {
 	private String authenticatorBaseUri;
 
 	private static final String GET_ALL_SERVICES = "/api/kong/services";
-	
-
-	@EventListener(ApplicationReadyEvent.class)	
+			
 	@PostConstruct
-	public void updateData() {
+	public void init() {
 		if (updateWorkspaceData) {
 			try {
+				log.info("Run after application startup ");
 				List<String> workspaceIds = customRepository.getAllWorkspaceIds();
 				List<String> oldWsIds = new ArrayList<>();
 				String kongServiceNames = null;
@@ -93,11 +92,6 @@ public class WorkspaceMigration {
 
 		}
 	}
-	
-	@PostConstruct
-	public void runAfterStartUp() {
-		log.info("workspace update boolean value is: {}", updateWorkspaceData);
-		log.info("Run after startup method is called");
-	}
+
 
 }
