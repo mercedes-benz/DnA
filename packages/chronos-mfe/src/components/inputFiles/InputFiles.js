@@ -8,7 +8,6 @@ import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indica
 import Notification from '../../common/modules/uilab/js/src/notification';
 import { chronosApi } from '../../apis/chronos.api';
 import Modal from 'dna-container/Modal';
-import SelectBox from 'dna-container/SelectBox';
 import AceEditor from 'react-ace';
 //import theme
 import 'ace-builds/src-noconflict/theme-solarized_dark';
@@ -36,7 +35,6 @@ const InputFiles = ({inputFiles, showModal, addNew}) => {
         dispatch(getProjectDetails(projectId));
         dispatch(getConfigFiles(projectId)); 
         ProgressIndicator.hide();
-        SelectBox.defaultSetup();
       }).catch(error => {
         ProgressIndicator.hide();
         Notification.show(
