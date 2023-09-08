@@ -53,6 +53,7 @@ import com.daimler.data.controller.exceptions.MessageDescription;
 import com.daimler.data.dto.kongGateway.AttachPluginConfigVO;
 import com.daimler.data.dto.kongGateway.AttachPluginVO;
 import com.daimler.data.dto.kongGateway.CreateRouteVO;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 @Component
 public class KongClientImpl implements KongClient {
@@ -277,6 +278,49 @@ public class KongClientImpl implements KongClient {
 			return message;
 		}
 		return message;
+	}
+
+	@Override
+	public List<String> getAllServices() {
+		
+		GetAllServicesDto allServicesCollection = new GetAllServicesDto();
+		List<String> serviceNames = new ArrayList<>();
+		List<ServiceDto> kongServices = new ArrayList<>();
+		String serviceName =  "";
+		try {
+			String kongUri = kongBaseUri + "/services/";
+			HttpHeaders headers = new HttpHeaders();
+			headers.set("Accept", "application/json");
+			headers.set("Content-Type", "application/x-www-form-urlencoded");
+			HttpEntity entity = new HttpEntity<>(headers);
+			ResponseEntity<String> response = restTemplate.exchange(kongUri, HttpMethod.GET, entity, String.class);
+			if (response != null && response.getStatusCode()!=null) {
+				LOGGER.info("completed fetching all services from kong ");
+				ObjectMapper mapper = new ObjectMapper();
+				allServicesCollection = mapper.readValue(response.getBody(), GetAllServicesDto.class);
+				//return response.getBody();
+				kongServices = allServicesCollection.getData();
+				JSONArray array = (JSONArray) new JSONObject(response.getBody()).getJSONArray("data");
+				if (array != null && !array.isEmpty()) {
+					for(int i=0; i<array.length(); i++) {
+						JSONObject jsonObject = (JSONObject) array.get(i);
+						String host = jsonObject.getString("host");
+						String name = jsonObject.getString("name");
+						if(Objects.nonNull(jsonObject.get("name")) && Objects.nonNull(jsonObject.get("host"))) {
+							if(host.contains("code-server") && name.startsWith("ws")) {
+								serviceName = (String) jsonObject.get("name");
+								serviceNames.add(serviceName);
+							}							
+						}
+					}														
+				}				
+			}
+			return serviceNames;
+		}
+		catch(Exception e) {
+			LOGGER.error("Error occured while fetching services from kong with exception {}", e.getMessage());
+		}
+		return serviceNames;
 	}	
 	
 //	@Override
