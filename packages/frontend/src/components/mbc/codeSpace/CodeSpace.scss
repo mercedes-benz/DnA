@@ -66,8 +66,13 @@
       a {
         font-size: var(--font-size-medium);
         margin-right: 10px;
+        line-height: 18px;
         i {
           font-size: var(--font-size-icon-nav);
+        }
+        i:last-child {
+          font-size: var(--font-size-default) !important;
+          vertical-align: top !important;
         }
       }
       .nbtitle {
@@ -200,6 +205,9 @@
         height: calc(100% - 60px);
       }
     }
+    .textRight {
+      text-align: right;
+    }
   }
   .codeSpaceWrapperFSmode {
     position: fixed;
@@ -301,6 +309,11 @@
     display: flex;
     align-items: center;
   }
+
+  .createTechUserWrapper {
+    padding-top: 40px;
+  }
+
   @keyframes fsbtn11 {
     0% {
       right: 3px;
