@@ -69,10 +69,10 @@
         line-height: 18px;
         i {
           font-size: var(--font-size-icon-nav);
-        }
-        i:last-child {
-          font-size: var(--font-size-default) !important;
-          vertical-align: top !important;
+          &:nth-child(2) {
+            font-size: var(--font-size-default) !important;
+            vertical-align: top !important;
+          }
         }
       }
       .nbtitle {
