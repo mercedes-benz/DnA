@@ -2,6 +2,7 @@ package com.daimler.data.auth.client;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -10,8 +11,10 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
 import com.daimler.data.controller.exceptions.GenericMessage;
@@ -94,14 +97,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 			headers.set("Content-Type", "application/json");		
 
 			String createServiceUri = authenticatorBaseUri + CREATE_SERVICE;
-			HttpEntity<CreateServiceRequestVO> entity = new HttpEntity<CreateServiceRequestVO>(createServiceRequestVO,headers);
-			ObjectMapper newMapper = new ObjectMapper();
-			try {
-				System.out.println(newMapper.writeValueAsString(createServiceRequestVO));
-			} catch (JsonProcessingException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+			HttpEntity<CreateServiceRequestVO> entity = new HttpEntity<CreateServiceRequestVO>(createServiceRequestVO,headers);			
 			ResponseEntity<String> createServiceResponse = restTemplate.exchange(createServiceUri, HttpMethod.POST, entity, String.class);
 			if (createServiceResponse != null && createServiceResponse.getStatusCode()!=null) {
 				if(createServiceResponse.getStatusCode().is2xxSuccessful()) {
@@ -116,6 +112,19 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 				}
 			}
 		}
+		catch (HttpClientErrorException ex) {
+			if (ex.getRawStatusCode() == HttpStatus.CONFLICT.value()) {
+				LOGGER.info("Kong service:{} already exists", createServiceRequestVO.getData().getName());
+				MessageDescription error = new MessageDescription();				
+				error.setMessage("Kong service already exists");
+				errors.add(error);				
+			}
+			LOGGER.error("Error occured while creating service: {} for kong :{}",createServiceRequestVO.getData().getName(), ex.getMessage());		
+			MessageDescription error = new MessageDescription();
+			error.setMessage(ex.getMessage());
+			errors.add(error);
+			
+		} 
 		catch(Exception e) {
 			LOGGER.error("Error occured while calling Kong create service API for workspace: {} with exception {} ", createServiceRequestVO.getData().getName(), e.getMessage());
 			MessageDescription error = new MessageDescription();
@@ -140,14 +149,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 			headers.set("Content-Type", "application/json");		
 
 			String createRouteUri = authenticatorBaseUri + CREATE_SERVICE + "/" + serviceName + CREATE_ROUTE;
-			HttpEntity<CreateRouteRequestVO> entity = new HttpEntity<CreateRouteRequestVO>(createRouteRequestVO,headers);
-			ObjectMapper newMapper = new ObjectMapper();
-			try {
-				System.out.println(newMapper.writeValueAsString(createRouteRequestVO));
-			} catch (JsonProcessingException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+			HttpEntity<CreateRouteRequestVO> entity = new HttpEntity<CreateRouteRequestVO>(createRouteRequestVO,headers);			
 			ResponseEntity<String> createRouteResponse = restTemplate.exchange(createRouteUri, HttpMethod.POST, entity, String.class);
 			if (createRouteResponse != null && createRouteResponse.getStatusCode()!=null) {
 				if(createRouteResponse.getStatusCode().is2xxSuccessful()) {
@@ -186,14 +188,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 			headers.set("Content-Type", "application/json");		
 
 			String attachPluginUri = authenticatorBaseUri + CREATE_SERVICE + "/" + serviceName + ATTACH_PLUGIN_TO_SERVICE;
-			HttpEntity<AttachPluginRequestVO> entity = new HttpEntity<AttachPluginRequestVO>(attachPluginRequestVO,headers);
-			ObjectMapper newMapper = new ObjectMapper();
-			try {
-				System.out.println(newMapper.writeValueAsString(attachPluginRequestVO));
-			} catch (JsonProcessingException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+			HttpEntity<AttachPluginRequestVO> entity = new HttpEntity<AttachPluginRequestVO>(attachPluginRequestVO,headers);			
 			ResponseEntity<String> attachPluginResponse = restTemplate.exchange(attachPluginUri, HttpMethod.POST, entity, String.class);
 			if (attachPluginResponse != null && attachPluginResponse.getStatusCode()!=null) {
 				if(attachPluginResponse.getStatusCode().is2xxSuccessful()) {
@@ -274,26 +269,40 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 		GenericMessage createRouteResponse = new GenericMessage();
 		GenericMessage attachPluginResponse = new GenericMessage();
 		
-		try {
+		try {	
+			boolean isServiceAlreadyCreated = false;
+			boolean isRouteAlreadyCreated = false;
 			createServiceResponse = createService(createServiceRequestVO);
-			createRouteResponse = createRoute(createRouteRequestVO, serviceName);
-			attachPluginResponse = attachPluginToService(attachPluginRequestVO,serviceName);
-			
-//			createServiceResponse = createService(createServiceRequestVO);
-//			if(createServiceResponse.getSuccess().equalsIgnoreCase("success")) {
-//				ycreateRouteResponse = createRoute(createRouteRequestVO, serviceName);
-//			}
-//			else {
-//				LOGGER.info("Faied while calling kong create service API with errors " + createServiceResponse.getErrors());
-//				return;
-//			}
-//			if(createServiceResponse.getSuccess().equalsIgnoreCase("success") && createRouteResponse.getSuccess().equalsIgnoreCase("success")) {
-//				attachPluginResponse = attachPluginToService(attachPluginRequestVO,serviceName);
-//			}
-//			else {
-//				LOGGER.info("Failed while calling kong create route API with errors " + createRouteResponse.getErrors());
-//				return;
-//			}
+			if(Objects.nonNull(createServiceResponse) && Objects.nonNull(createServiceResponse.getErrors())) {
+				List<MessageDescription> responseErrors = createServiceResponse.getErrors();
+				for(MessageDescription error : responseErrors) {
+					if(error.getMessage().contains("Kong service already exists")) {
+						isServiceAlreadyCreated = true;
+					}
+				}
+			}
+			if(createServiceResponse.getSuccess().equalsIgnoreCase("success") || isServiceAlreadyCreated ) {
+				createRouteResponse = createRoute(createRouteRequestVO, serviceName);
+				if(Objects.nonNull(createRouteResponse) && Objects.nonNull(createRouteResponse.getErrors())) {
+					List<MessageDescription> responseErrors = createRouteResponse.getErrors();
+					for(MessageDescription error : responseErrors) {
+						if(error.getMessage().contains("Route already exist")) {
+							isRouteAlreadyCreated = true;
+						}
+					}
+				}
+			}
+			else {
+				LOGGER.info("Failed while calling kong create service API with errors " + createServiceResponse.getErrors());
+				return;
+			}
+			if((createServiceResponse.getSuccess().equalsIgnoreCase("success")  || isServiceAlreadyCreated )&& (createRouteResponse.getSuccess().equalsIgnoreCase("success") || isRouteAlreadyCreated)) {
+				attachPluginResponse = attachPluginToService(attachPluginRequestVO,serviceName);
+			}
+			else {
+				LOGGER.info("Failed while calling kong create route API with errors " + createRouteResponse.getErrors());
+				return;
+			}
 		}
 		catch(Exception e) {
 			LOGGER.error(e.getMessage());
@@ -302,7 +311,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 		if (createServiceResponse.getSuccess().equalsIgnoreCase("success")
 				&& createRouteResponse.getSuccess().equalsIgnoreCase("success")
 				&& attachPluginResponse.getSuccess().equalsIgnoreCase("success")) {
-			LOGGER.info("Kong service, kong route and oidc plugin is attached to the service " + serviceName);
+			LOGGER.info("Kong service, kong route and oidc plugin is attached to the service: {} " + serviceName);
 
 		}
 		else {
