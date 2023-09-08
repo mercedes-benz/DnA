@@ -186,6 +186,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 		}
 			
 		String repoName = entity.getData().getProjectDetails().getGitRepoName();
+		/*
 		if(isProjectOwner) {
 			//deleting repo
 			HttpStatus deleteRepoStatus = gitClient.deleteRepo(repoName);
@@ -206,6 +207,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 			}
 			
 		}
+		*/
 			//trigger delete of all project members workspaces if user is owner otherwise trigger just for user individual workspace
 			String projectName = entity.getData().getProjectDetails().getProjectName();
 			String recipeType = client.toDeployType(entity.getData().getProjectDetails().getRecipeDetails().getRecipeId());
@@ -384,6 +386,11 @@ public class BaseWorkspaceService implements WorkspaceService {
 			 for(String gitUser: gitUsers) {
 				 HttpStatus addGitUser = gitClient.addUserToRepo(gitUser, repoName);
 				 if(!addGitUser.is2xxSuccessful()) {
+					 	MessageDescription warnMsg = new MessageDescription("Failed while adding " + gitUser  + " as collaborator to repository. Please add manually");
+					 	log.info("Failed while adding {} as collaborator to repository. Please add manually",gitUser);
+						warnings.add(warnMsg);
+						responseVO.setWarnings(warnings);
+					        /*
 					 	HttpStatus deleteRepoStatus = gitClient.deleteRepo(repoName);
 					 	log.info("Created git repository {} successfully. Failed while adding {} as collaborator with status {} and delete repo status as {} ",repoName,gitUser,addGitUser.name(),deleteRepoStatus.name());
 					 	if(deleteRepoStatus.is2xxSuccessful()) {
@@ -397,6 +404,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 							responseVO.setErrors(errors);
 							return responseVO;
 					 	}
+					        */
 				 }
 			 }
 		}else {
