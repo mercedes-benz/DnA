@@ -324,7 +324,7 @@ const PersonalRelatedData = ({ onSave, setIsEditing, isDataProduct, callbackFn }
                   <span className="wrapper">
                     <input
                       {...register('personalRelatedDataContactAwareTransfer', {
-                        required: '*Missing entry',
+                        required: !isDisabled,
                         // disabled: isDisabled,
                         onChange: () => {
                           clearErrors([
@@ -350,7 +350,7 @@ const PersonalRelatedData = ({ onSave, setIsEditing, isDataProduct, callbackFn }
                   <span className="wrapper">
                     <input
                       {...register('personalRelatedDataContactAwareTransfer', {
-                        required: '*Missing entry',
+                        required: !isDisabled,
                         // disabled: isDisabled,
                       })}
                       disabled= {isDisabled}
@@ -382,7 +382,7 @@ const PersonalRelatedData = ({ onSave, setIsEditing, isDataProduct, callbackFn }
                   <span className="wrapper">
                     <input
                       {...register('personalRelatedDataObjectionsTransfer', {
-                        required: '*Missing entry',
+                        required: !isDisabledContactAwareTransfer,
                         // disabled: isDisabledContactAwareTransfer,
                         onChange: () => {
                           clearErrors([
@@ -406,7 +406,7 @@ const PersonalRelatedData = ({ onSave, setIsEditing, isDataProduct, callbackFn }
                   <span className="wrapper">
                     <input
                       {...register('personalRelatedDataObjectionsTransfer', {
-                        required: '*Missing entry',
+                        required: !isDisabledContactAwareTransfer,
                         // disabled: isDisabledContactAwareTransfer,
                       })}
                       disabled= {isDisabledContactAwareTransfer}
@@ -441,7 +441,7 @@ const PersonalRelatedData = ({ onSave, setIsEditing, isDataProduct, callbackFn }
                 className="input-field-area"
                 type="text"
                 placeholder="Please state your reasoning for transfering nonetheless."
-                {...register('personalRelatedDataTransferingNonetheless', { required: '*Missing entry', 
+                {...register('personalRelatedDataTransferingNonetheless', { required: !isDisabledTransferingComments, 
                 // disabled: isDisabledTransferingComments 
                 })}
                 disabled= {isDisabledTransferingComments}
@@ -470,7 +470,7 @@ const PersonalRelatedData = ({ onSave, setIsEditing, isDataProduct, callbackFn }
                 className="input-field-area"
                 type="text"
                 placeholder="Please state your objections."
-                {...register('personalRelatedDataTransferingObjections', { required: '*Missing entry', 
+                {...register('personalRelatedDataTransferingObjections', { required: !isDisabledTransferingComments, 
                 // disabled: isDisabledTransferingComments 
                 })}
                 disabled= {isDisabledTransferingComments}
