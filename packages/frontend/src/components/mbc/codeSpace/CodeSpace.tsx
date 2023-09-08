@@ -318,6 +318,7 @@ const CodeSpace = (props: ICodeSpaceProps) => {
               Notification.show(`Code from code space ${res.projectDetails?.projectName} succesfully deployed.`);
             }
             if (deployStatus === 'DEPLOYMENT_FAILED') {
+              ProgressIndicator.hide();
               clearInterval(livelinessIntervalRef.current);
               setCodeDeploying(false);
               setShowCodeDeployModal(false);
