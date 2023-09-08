@@ -122,7 +122,7 @@ const PersonalRelatedData = (
               <textarea
                 className="input-field-area"
                 type="text"
-                {...register('personalRelatedDataDescription', { required: '*Missing entry', 
+                {...register('personalRelatedDataDescription', { required: !isDisabled, 
                 // disabled: isDisabled 
                 })}
                 disabled={isDisabled}
@@ -146,7 +146,7 @@ const PersonalRelatedData = (
               <textarea
                 className="input-field-area"
                 type="text"
-                {...register('personalRelatedDataPurpose', { required: '*Missing entry', 
+                {...register('personalRelatedDataPurpose', { required: !isDisabled, 
                 // disabled: isDisabled
                  })}
                 disabled={isDisabled} 
@@ -220,7 +220,7 @@ const PersonalRelatedData = (
                   <span className="wrapper">
                     <input
                       {...register('personalRelatedDataContactAwareTransfer', {
-                        required: '*Missing entry',
+                        required: !isDisabled,
                         // disabled: isDisabled,
                         onChange: () => {
                           clearErrors([
@@ -246,7 +246,7 @@ const PersonalRelatedData = (
                   <span className="wrapper">
                     <input
                       {...register('personalRelatedDataContactAwareTransfer', {
-                        required: '*Missing entry',
+                        required: !isDisabled,
                         // disabled: isDisabled,
                       })}
                       disabled={isDisabled}
@@ -278,7 +278,7 @@ const PersonalRelatedData = (
                   <span className="wrapper">
                     <input
                       {...register('personalRelatedDataObjectionsTransfer', {
-                        required: '*Missing entry',
+                        required: !isDisabledContactAwareTransfer,
                         // disabled: isDisabledContactAwareTransfer,
                         onChange: () => {
                           clearErrors([
@@ -302,7 +302,7 @@ const PersonalRelatedData = (
                   <span className="wrapper">
                     <input
                       {...register('personalRelatedDataObjectionsTransfer', {
-                        required: '*Missing entry',
+                        required: !isDisabledContactAwareTransfer,
                         // disabled: isDisabledContactAwareTransfer,
                       })}
                       disabled={isDisabledContactAwareTransfer}
@@ -337,7 +337,7 @@ const PersonalRelatedData = (
                 className="input-field-area"
                 type="text"
                 placeholder="Please state your reasoning for transfering nonetheless."
-                {...register('personalRelatedDataTransferingNonetheless', { required: '*Missing entry', 
+                {...register('personalRelatedDataTransferingNonetheless', { required: !isDisabledTransferingComments, 
                 // disabled: isDisabledTransferingComments 
                 })}
                 disabled={isDisabledTransferingComments}
@@ -366,7 +366,7 @@ const PersonalRelatedData = (
                 className="input-field-area"
                 type="text"
                 placeholder="Please state your objections."
-                {...register('personalRelatedDataTransferingObjections', { required: '*Missing entry', 
+                {...register('personalRelatedDataTransferingObjections', { required: !isDisabledTransferingComments, 
                 // disabled: isDisabledTransferingComments 
                 })}
                 disabled={isDisabledTransferingComments}
