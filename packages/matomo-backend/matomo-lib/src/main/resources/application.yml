@@ -6,8 +6,8 @@ spring:
     version: 1.0.0
 
   flyway:
-    enabled: ${FLYWAY_ENABLED:true}
-    baseline-on-migrate: ${FLYWAY_BASELINE_ON_MIGRATE:true}
+    enabled: ${FLYWAY_ENABLED:false}
+    baseline-on-migrate: ${FLYWAY_BASELINE_ON_MIGRATE:false}
     baselineVersion: ${FLYWAY_BASELINEVERSION:0}
     schemas: ${FLYWAY_SCHEMA:public}
 
@@ -26,9 +26,9 @@ spring:
     hikari:
       connection-timeout: 4000
     platform: postgres
-    url: ${API_DB_URL:jdbc:postgresql://localhost:5432/dbname}
-    username: ${API_DB_USER:username_XXXXX}
-    password: ${API_DB_PASS:password_XXXXX}
+    url: ${API_DB_URL:jdbc:postgresql://53.137.140.156:64000/matomo}
+    username: ${API_DB_USER:matomo}
+    password: ${API_DB_PASS:matomo}
 
     driverClassName: org.postgresql.Driver
 
@@ -37,20 +37,33 @@ spring:
       max-file-size: 5MB
       max-request-size: 5MB
 
+matomo:
+  tokenAuth: ${MATOMO_TOKEN_AUTH:XXXXX}
+  uri:
+    base: ${MATOMO_BASE_URI:https://web-analytics.***REMOVED***?}
+    addSite: ${MATOMO_ADDSITE_URI:module=API&method=SitesManager.addSite&format=JSON&token_auth=}
+    getUser: ${MATOMO_GETUSER_URI:module=API&method=UsersManager.getUser&format=JSON&token_auth=}
+    addUser: ${MATOMO_ADDUSER_URI:module=API&method=UsersManager.addUser&format=JSON&token_auth=}
+    getSite: ${MATOMO_GETSITE_URI:module=API&method=SitesManager.getSiteFromId&format=JSON&token_auth=}
+    setUserAccess: ${MATOMO_SETUSERACCESS_URI:module=API&method=UsersManager.setUserAccess&format=JSON&token_auth=}
+    deleteSite: ${MATOMO_DELETESITE_URI:module=API&method=SitesManager.deleteSite&format=JSON&token_auth=}
+
+
+
 
 dna:
-  uri: ${DNA_URI:XXXXXX}
+  uri: ${DNA_URI:https://***REMOVED***/}
   dnaAuthEnable: ${DNA_AUTH_ENABLE:false}
 
 
 jwt:
   secret:
-    key: ${JWT_SECRET_KEY:XXXXXX}
+    key: ${JWT_SECRET_KEY:oeRaYY7Wo24sDqKSX3IM9ASGmdGPmkTd9jo1QTy4b7P9Ze5_9hKolVX8xNrQDcNRfVEdTZNOuOyqEGhXEbdJI-ZQ19k_o9MI0y3eZN2lp9jow55FfXMiINEdt1XR85VipRLSOkT6kSpzs2x-jbLDiz9iFVzkd81YKxMgPA7VfZeQUm4n-mOmnWMaVX30zGFU4L3oPBctYKkl4dYfqYWqRNfrgPJVi5DGFjywgxx0ASEiJHtV72paI3fDR2XwlSkyhhmY-ICjCRmsJN4fX1pdoL8a18-aQrvyu4j0Os6dVPYIoPvvY0SAZtWYKHfM15g7A3HD4cVREf9cUsprCRK93w}
 
 server:
   port: 8989
 
-storage.uri : ${STORAGE_API_BASE_URL:XXXXXX}
+storage.uri : ${STORAGE_API_BASE_URL:https://storage.***REMOVED***/}
 
 #Cors Filter origin Domains
 allowedCorsOriginPatternUrl: ${CORS_ORIGIN_URL:http://*}
@@ -63,6 +76,9 @@ management.endpoint.loggers.enabled: true
 management.endpoint.health.probes.enabled: true
 management.endpoint.health.show-details: always
 
+proxy:
+  port: ${CUSTOMPROXY_PORT:3128}
+  host: ${CUSTOMPROXY_HOST:***REMOVED***}
 
 logging:
   service:
