@@ -217,8 +217,8 @@ public class DnaProjectServiceImpl implements DnaProjectService {
 			if (ObjectUtils.isEmpty(errors)) {
 				DnaProject savedDnaProject = dnaProjectRepository.save(assembler.toEntity(airflowProjectVO));
 				List<String> permissions = new ArrayList<>();
-				permissions.add("can_dag_edit");
-				permissions.add("can_dag_read");
+				permissions.add("can_edit");
+				permissions.add("can_read");
 				currentUser.setPermissions(permissions);
 				boolean isCurrentUserExist = userExist(currentUser.getEmail());
 				boolean isCurrentRoleExist = roleExist(currentUser.getUsername());
@@ -259,33 +259,35 @@ public class DnaProjectServiceImpl implements DnaProjectService {
 							} catch (InterruptedException e) {
 								LOGGER.error("Unable to stop {}", e.getMessage());
 							}
-						} else {
-							airflowGitClient.deleteAirflowDag(dagVO.getDagName(), currentUser);
-							dnaProjectRepository.delete(savedDnaProject);
-							res.setData(airflowProjectVO);
-							errors = checkForDagSyntaxError(dagVO.getDagName());
-							res.setErrors(errors);
-							res.setStatus("FAILURE");
-							return new ResponseEntity<AirflowProjectResponseWrapperVO>(res, HttpStatus.BAD_REQUEST);
 						}
+//						else {
+//							airflowGitClient.deleteAirflowDag(dagVO.getDagName(), currentUser);
+//							dnaProjectRepository.delete(savedDnaProject);
+//							res.setData(airflowProjectVO);
+//							errors = checkForDagSyntaxError(dagVO.getDagName());
+//							res.setErrors(errors);
+//							res.setStatus("FAILURE");
+//							return new ResponseEntity<AirflowProjectResponseWrapperVO>(res, HttpStatus.BAD_REQUEST);
+//						}
 					}
 					if (isDagExist) {
 						LOGGER.debug("mapping dag and user to project..");
 						addPermissionAndMappedToProject(currentUser, dagVO, savedCurrentUserRole, savedCurrentUser,
 								savedDnaProject);
-					} else {
-						LOGGER.debug("Unable to create project. Please create after sometime.");
-						airflowGitClient.deleteAirflowDag(dagVO.getDagName(), currentUser);
-						dnaProjectRepository.delete(savedDnaProject);
-						res.setData(airflowProjectVO);
-						List<MessageDescription> errors1 = new ArrayList<MessageDescription>();
-						MessageDescription md = new MessageDescription();
-						md.setMessage("Unable to create project. Please create after sometime.");
-						errors1.add(md);
-						res.setErrors(errors1);
-						res.setStatus("FAILURE");
-						return new ResponseEntity<AirflowProjectResponseWrapperVO>(res, HttpStatus.BAD_REQUEST);
 					}
+//					else {
+//						LOGGER.debug("Unable to create project. Please create after sometime.");
+//						airflowGitClient.deleteAirflowDag(dagVO.getDagName(), currentUser);
+//						dnaProjectRepository.delete(savedDnaProject);
+//						res.setData(airflowProjectVO);
+//						List<MessageDescription> errors1 = new ArrayList<MessageDescription>();
+//						MessageDescription md = new MessageDescription();
+//						md.setMessage("Unable to create project. Please create after sometime.");
+//						errors1.add(md);
+//						res.setErrors(errors1);
+//						res.setStatus("FAILURE");
+//						return new ResponseEntity<AirflowProjectResponseWrapperVO>(res, HttpStatus.BAD_REQUEST);
+//					}
 					if (isPermissionCreated) {
 						LOGGER.debug("mapping permission to role..");
 						addRoleAndPermissionMapping(currentUser, savedCurrentUserRole, dagVO.getDagName());
@@ -359,8 +361,8 @@ public class DnaProjectServiceImpl implements DnaProjectService {
 				deleteExistingRoleAndPermission(existingDnaProject, airflowProjectVO);
 				deleteAllProjectAndUserMapping(existingDnaProject);
 				List<String> permissions = new ArrayList<>();
-				permissions.add("can_dag_edit");
-				permissions.add("can_dag_read");
+				permissions.add("can_edit");
+				permissions.add("can_read");
 				currentUser.setPermissions(permissions);
 				boolean isCurrentUserExist = userExist(currentUser.getEmail());
 				boolean isCurrentRoleExist = roleExist(currentUser.getUsername());
@@ -499,8 +501,8 @@ public class DnaProjectServiceImpl implements DnaProjectService {
 		AirflowProjectUserVO currentUser = this.userStore.getVO();
 		DnaProject existingDnaProject = findProject(projectId);
 		List<String> permissions = new ArrayList<>();
-		permissions.add("can_dag_edit");
-		permissions.add("can_dag_read");
+		permissions.add("can_edit");
+		permissions.add("can_read");
 		currentUser.setPermissions(permissions);
 		boolean isCurrentRoleExist = roleExist(currentUser.getUsername());
 		Role savedCurrentUserRole = isCurrentRoleExist ? findRole(currentUser.getUsername())

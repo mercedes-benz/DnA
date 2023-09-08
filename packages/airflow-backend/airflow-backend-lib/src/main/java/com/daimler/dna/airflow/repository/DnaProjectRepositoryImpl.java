@@ -1,19 +1,19 @@
 /* LICENSE START
  * 
  * MIT License
- * 
+ *
  * Copyright (c) 2019 Daimler TSS GmbH
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in all
  * copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -21,8 +21,8 @@
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
- * 
- * LICENSE END 
+ *
+ * LICENSE END
  */
 
 package com.daimler.dna.airflow.repository;
@@ -46,10 +46,10 @@ public class DnaProjectRepositoryImpl extends CommonDataRepositoryImpl<DnaProjec
 				+ "on dna_project_user_dag.user_id = ab_user.id\r\n"
 				+ "inner join dna_project_user on dna_project_user_dag.id = dna_project_user.user_dag_id\r\n"
 				+ "inner join dna_project on dna_project.id = dna_project_user.dna_project_id\r\n"
-				+ "inner join ab_view_menu on ab_view_menu.name = dna_project_user_dag.dag_id\r\n"
+				+ "inner join ab_view_menu ON dna_project_user_dag.dag_id = SUBSTRING(ab_view_menu.name, POSITION(':' IN ab_view_menu.name) + 1)\r\n"
 				+ "inner join ab_permission_view on ab_permission_view.view_menu_id = ab_view_menu.id\r\n"
 				+ "inner join ab_permission on ab_permission.id = ab_permission_view.permission_id\r\n"
-				+ "where ab_permission.name in ('can_dag_read', 'can_dag_edit') and username = ?";
+				+ "where ab_permission.name in ('can_read', 'can_edit') and username = ?";
 
 		Query qry = this.em.createNativeQuery(query);
 		qry.setParameter(1, username);
@@ -61,10 +61,11 @@ public class DnaProjectRepositoryImpl extends CommonDataRepositoryImpl<DnaProjec
 		String query = "select ab_permission_view.id from ab_permission inner join ab_permission_view\r\n"
 				+ "on ab_permission.id = ab_permission_view.permission_id\r\n"
 				+ "inner join ab_view_menu on ab_permission_view.view_menu_id = ab_view_menu.id\r\n"
-				+ "where ab_permission.name in ('can_dag_read', 'can_dag_edit')\r\n" + "and ab_view_menu.name = ?";
+				+ "where ab_permission.name in ('can_read', 'can_edit')\r\n" + "and (ab_view_menu.name = ? OR ab_view_menu.name = CONCAT('DAG:', ?))";
 
 		Query qry = this.em.createNativeQuery(query);
 		qry.setParameter(1, dagName);
+		qry.setParameter(2, dagName);
 		return qry.getResultList();
 	}
 
@@ -110,12 +111,14 @@ public class DnaProjectRepositoryImpl extends CommonDataRepositoryImpl<DnaProjec
 				+ "inner join ab_permission_view on ab_permission_view_role.permission_view_id = ab_permission_view.id\r\n"
 				+ "inner join ab_permission on ab_permission_view.permission_id = ab_permission.id\r\n"
 				+ "inner join ab_view_menu on ab_permission_view.view_menu_id = ab_view_menu.id\r\n"
-				+ "where ab_permission.name in ('can_dag_read', 'can_dag_edit') and\r\n"
-				+ "ab_user.username = ? and ab_view_menu.name = ?";
+				+ "where ab_permission.name in ('can_read', 'can_edit') and\r\n"
+				+ "ab_user.username = ?\r\n"
+				+ "and (ab_view_menu.name = ? OR ab_view_menu.name = CONCAT('DAG:', ?))";
 
 		Query qry = this.em.createNativeQuery(query);
 		qry.setParameter(1, user);
 		qry.setParameter(2, dagName);
+		qry.setParameter(3, dagName);
 		return qry.getResultList();
 	}
 
