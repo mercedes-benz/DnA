@@ -161,4 +161,29 @@ public class DnaProjectAssesmbler {
 		return vo;
 	}
 
+	public AirflowProjectsByUserVO toVO1(Object[] obj, String currentUser, Map<String, AirflowProjectsByUserVO> map) {
+		log.trace("Started assembling all aiflow project per user ....");
+		AirflowProjectsByUserVO vo = null;
+		AirflowDagProjectResponseVo dagsItem = null;
+		if (Objects.nonNull(obj)) {
+			if (map.get((String) obj[0]) != null) {
+				vo = map.get((String) obj[0]);
+
+			} else {
+				vo = new AirflowProjectsByUserVO();
+
+			}
+			dagsItem = new AirflowDagProjectResponseVo();
+			vo.setProjectId((String) obj[0]);
+			vo.setCreatedBy((String) obj[1]);
+			vo.setProjectName((String) obj[2]);
+			vo.setProjectDescription((String) obj[3]);
+			vo.setProjectStatus((String) obj[4]);
+			vo.setIsOwner(currentUser.equalsIgnoreCase((String) obj[1]));
+			vo.addDagsItem(dagsItem);
+		}
+		log.trace("Successfully assembled all aiflow project per user.");
+		return vo;
+	}
+
 }
