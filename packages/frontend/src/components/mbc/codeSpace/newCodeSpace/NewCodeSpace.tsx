@@ -209,7 +209,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
         ProgressIndicator.hide();
         if (res.success === 'SUCCESS') {
           trackEvent('DnA Code Space', 'Add New Collaborator', 'Existing Code Space');
-          props.onEditingCodeSpace.projectDetails?.projectCollaborators.push(newCollaborator);
+          props.onEditingCodeSpace.projectDetails?.projectCollaborators?.push(newCollaborator);
           Notification.show(
             `Collaborator '${newCollaborator.firstName}' has been added successfully to the Code Space.`,
           );
