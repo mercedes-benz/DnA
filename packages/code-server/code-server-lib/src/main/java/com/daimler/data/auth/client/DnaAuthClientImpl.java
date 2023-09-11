@@ -36,6 +36,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
@@ -49,6 +50,7 @@ public class DnaAuthClientImpl implements DnaAuthClient {
 	private String dnaBaseUri;
 
 	private static final String VERIFY_LOGIN = "/api/verifyLogin";
+	private static final String ONBOARD_TECHNICAL_USER = "/api/users";
 
 	@Autowired
 	RestTemplate restTemplate;
@@ -77,6 +79,32 @@ public class DnaAuthClientImpl implements DnaAuthClient {
 			throw e;
 		}
 		return res;
+	}
+
+	@Override
+	public UserInfoVO onboardTechnicalUser(UserRequestVO userRequestVO) {
+		UserInfoVO userInfoVO = null ;
+		try {
+			HttpHeaders headers = new HttpHeaders();
+			headers.set("Accept", "application/json");
+			headers.set("Content-Type", "application/json");			
+
+			String onboardTechUserUri = dnaBaseUri + ONBOARD_TECHNICAL_USER;			
+			HttpEntity<UserRequestVO> entity = new HttpEntity<UserRequestVO>(userRequestVO,headers);	
+			ResponseEntity<UserInfoVO> response = restTemplate.exchange(onboardTechUserUri, HttpMethod.POST, entity, UserInfoVO.class);
+			if (response != null && response.hasBody()) {
+				HttpStatus statusCode = response.getStatusCode();
+				if (statusCode == HttpStatus.CREATED || statusCode == HttpStatus.CONFLICT) {
+					LOGGER.info("Success from dna onboardTechnicalUser");
+					userInfoVO = response.getBody();
+				}
+			}
+		}
+		catch(Exception e) {
+			LOGGER.error("On-boarding technical user failed while calling DnA onboardTechnicalUser:{}", e.getMessage());
+			throw e;
+		}
+		return userInfoVO;
 	}
 
 }

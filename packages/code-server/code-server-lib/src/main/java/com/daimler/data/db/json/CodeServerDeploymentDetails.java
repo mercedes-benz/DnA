@@ -20,5 +20,7 @@ public class CodeServerDeploymentDetails implements Serializable {
 	private String lastDeployedBranch;
 	private String deploymentUrl;
 	private String lastDeploymentStatus;
+	private boolean isSecureWithIAMRequired;
+	private String technicalUserDetailsForIAMLogin;
 	
 }

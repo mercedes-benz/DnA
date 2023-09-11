@@ -22,6 +22,8 @@ import org.springframework.web.bind.annotation.RestController;
 import com.daimler.data.auth.client.AuthenticatorClient;
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
+import com.daimler.data.dto.workspace.CodeServerDeploymentDetailsVO;
+import com.daimler.data.dto.workspace.CodeServerProjectDetailsVO;
 import com.daimler.data.dto.workspace.CodeServerWorkspaceVO;
 import com.daimler.data.dto.workspace.CreatedByVO;
 import com.daimler.data.dto.workspace.UserInfoVO;
@@ -172,6 +174,23 @@ public class WorkspaceJobStatusUpdateController  {
 			}
 			if(existingStatus.equals("CREATED")) {
 				if(latestStatus.equalsIgnoreCase("DEPLOYED")) {
+					CodeServerProjectDetailsVO codeServerProjectDetailsVO  = existingVO.getProjectDetails();
+					CodeServerDeploymentDetailsVO codeServerDeploymentDetailsVO = null;
+					if(Objects.nonNull(codeServerProjectDetailsVO)) {
+						if(targetEnv.equalsIgnoreCase("int")) {
+							codeServerDeploymentDetailsVO = codeServerProjectDetailsVO.getIntDeploymentDetails();
+						}
+						else {
+							codeServerDeploymentDetailsVO = codeServerProjectDetailsVO.getProdDeploymentDetails();
+						}
+						
+					}
+					if(Objects.nonNull(codeServerDeploymentDetailsVO)) {
+						String deploymentUrl = codeServerDeploymentDetailsVO.getDeploymentUrl();
+						//needs to be checked how to pass this deployment url to kong
+						String serviceName = name + "API";
+						authenticatorClient.callingKongApis(serviceName);
+					}
 					eventType = "Codespace-Deploy";
 					log.info("Latest status is {}, and eventType is {}",latestStatus,eventType);
 					message = "Successfully deployed Codespace "+ projectName + " with branch " + branch +" on " + targetEnv + " triggered by " +workspaceOwnerName;

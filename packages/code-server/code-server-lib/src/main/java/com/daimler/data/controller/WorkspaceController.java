@@ -29,6 +29,7 @@ package com.daimler.data.controller;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import javax.persistence.EntityNotFoundException;
@@ -49,6 +50,8 @@ import org.springframework.web.bind.annotation.RestController;
 import com.daimler.data.api.workspace.CodeServerApi;
 import com.daimler.data.application.auth.UserStore;
 import com.daimler.data.application.client.GitClient;
+import com.daimler.data.auth.client.DnaAuthClient;
+import com.daimler.data.auth.client.UserRequestVO;
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
 import com.daimler.data.db.entities.CodeServerWorkspaceNsql;
@@ -82,6 +85,9 @@ public class WorkspaceController  implements CodeServerApi{
 	
 	@Autowired
 	private GitClient gitClient;	
+	
+	@Autowired
+	private DnaAuthClient dnaAuthClient;
 
 	@Override
 	@ApiOperation(value = "remove collaborator from workspace project for a given Id.", nickname = "removeCollab", notes = "remove collaborator from workspace project for a given identifier.", response = CodeServerWorkspaceVO.class, tags={ "code-server", })
@@ -564,7 +570,25 @@ public class WorkspaceController  implements CodeServerApi{
 			if(deployRequestDto!=null && deployRequestDto.getBranch()!=null) {
 				branch = deployRequestDto.getBranch();
 			}
-			GenericMessage responseMsg = service.deployWorkspace(userId, id, environment, branch);
+			UserRequestVO userRequestVO = new UserRequestVO();
+			com.daimler.data.auth.client.UserInfoVO userInfoVO = new com.daimler.data.auth.client.UserInfoVO();
+			com.daimler.data.auth.client.UserInfoVO userInfoVOResponse = new com.daimler.data.auth.client.UserInfoVO();
+			userInfoVO.setId(userId);
+			userInfoVO.setDepartment(currentUser.getDepartment());
+			userInfoVO.setDivisionAdmins(null);
+			userInfoVO.setEmail(currentUser.getEmail());
+			userInfoVO.setFavoriteUsecases(null);
+			userInfoVO.setFirstName(currentUser.getFirstName());
+			userInfoVO.setLastName(currentUser.getLastName());
+			userInfoVO.setMobileNumber(currentUser.getMobileNumber());
+			userInfoVO.setRoles(null);			
+			userRequestVO.setData(userInfoVO);
+			if((Objects.nonNull(deployRequestDto.isIsSecureWithIAMRequired() && deployRequestDto.isIsSecureWithIAMRequired()))
+					&& (Objects.nonNull(deployRequestDto.getTechnicalUserDetailsForIAMLogin()))) {
+				userInfoVOResponse = dnaAuthClient.onboardTechnicalUser(userRequestVO);
+			}
+			GenericMessage responseMsg = service.deployWorkspace(userId, id, environment, branch,deployRequestDto.isIsSecureWithIAMRequired(),
+					deployRequestDto.getTechnicalUserDetailsForIAMLogin());
 			if(!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public")) {
 				log.info("User {} deployed workspace {} project {}", userId,vo.getWorkspaceId(),vo.getProjectDetails().getRecipeDetails().getRecipeId().name());
 			}			
