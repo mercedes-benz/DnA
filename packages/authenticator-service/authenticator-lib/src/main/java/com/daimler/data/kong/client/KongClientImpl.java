@@ -170,7 +170,8 @@ public class KongClientImpl implements KongClient {
 				requestBody.put("protocols", new JSONArray(createRouteVO.getProtocols())); 
 				requestBody.put("hosts", new JSONArray(createRouteVO.getHosts())); 
 				requestBody.put("name", routeName);   
-				requestBody.put("strip_path", createRouteVO.isStripPath()); // Added strip_path 				
+				requestBody.put("strip_path", createRouteVO.isStripPath()); // Added strip_path 
+				requestBody.put("preserve_host", true);
 				HttpEntity<String> request = new HttpEntity<>(requestBody.toString(), headers);
 				ResponseEntity<String> response = restTemplate.exchange(postKongUri, HttpMethod.POST, request, String.class);
 				if (response != null && response.hasBody()) {
