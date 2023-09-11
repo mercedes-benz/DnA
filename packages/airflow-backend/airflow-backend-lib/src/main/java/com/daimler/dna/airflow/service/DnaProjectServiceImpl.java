@@ -367,7 +367,7 @@ public class DnaProjectServiceImpl implements DnaProjectService {
 		return new ResponseEntity<AirflowProjectResponseWrapperVO>(res, HttpStatus.CREATED);
 	}
 
-	@Scheduled(cron = "*/5 * * * * *")
+//	@Scheduled(cron = "*/5 * * * * *")
 	@Transactional
 	public void updateAirflowInprogressDagProjectStatus() {
 		Map<String, AirflowProjectsByUserVO> map1 = new HashMap<String, AirflowProjectsByUserVO>();
@@ -385,6 +385,29 @@ public class DnaProjectServiceImpl implements DnaProjectService {
 
 		List<AirflowProjectVO> projectVOs = filteredList.stream().map(n->assembler.toVO(n)).collect(Collectors.toList());
 		for(AirflowProjectVO projectVO: projectVOs) {
+
+			// NOTE: since getDags was null hence added logic here
+			// please feel to remove if below one is fixed.
+			String dagName = projectVO.getProjectId() + "_DAG_1";
+			Boolean isDagExists = checkDagMenu(dagName);
+			if (isDagExists) {
+				AirflowProjectUserVO currentUsers = new AirflowProjectUserVO();
+				String usernames = projectVO.getCreatedBy();
+				LOGGER.info("..usernames...{}", usernames);
+				Role savedCurrentUserRole = findRole(usernames);
+				List<User> existingUser = userRepository.findbyUniqueLiteral("username", usernames);
+				User savedCurrentUser = existingUser != null && !existingUser.isEmpty() ? existingUser.get(0) :
+						new User();
+				AirflowDagVo dagVO1 = new AirflowDagVo();
+				dagVO1.setDagName(dagName);
+				projectVO.setProjectStatus("CREATED");
+				dnaProjectRepository.save(assembler.toEntity(projectVO));
+
+//				addPermissionAndMappedToProject(currentUsers, dagVO1, savedCurrentUserRole, savedCurrentUser,
+//						assembler.toEntity(projectVO));
+//				Boolean isPermissionCreated = checkDagPermissionAndViewMenu(dagVO1);
+			}
+
 			if (projectVO.getDags() != null) {
 				for(AirflowDagVo dagVO: projectVO.getDags()) {
 					Boolean isDagExist = checkDagMenu(dagVO.getDagName());
@@ -619,11 +642,48 @@ public class DnaProjectServiceImpl implements DnaProjectService {
 	}
 
 	@Override
-	public  ResponseEntity<AirflowProjectResponseWrapperVO> getAirflowDagStatus(String dagName) {
+	@Transactional
+	public ResponseEntity<AirflowProjectResponseWrapperVO> getAirflowDagStatus(String projectId) {
 		AirflowProjectResponseWrapperVO res = new AirflowProjectResponseWrapperVO();
 		AirflowProjectVO airflowProjectVO = new AirflowProjectVO();
-		airflowProjectVO.setProjectStatus("CREATE_REQUESTED");
-//		airflowProjectVO.setStatus("CREATED");
+
+		List<DnaProject> dnaProjects = dnaProjectRepository.findbyUniqueLiteral("projectId", projectId);
+
+		if (dnaProjects != null) {
+			List<AirflowProjectVO> projectVOs = dnaProjects.stream().map(n -> assembler.toVO(n)).collect(Collectors.toList());
+
+			if (projectVOs != null) {
+				if (projectVOs.get(0).getProjectStatus().equalsIgnoreCase("CREATED")) {
+					res.setData(projectVOs.get(0));
+					return new ResponseEntity<AirflowProjectResponseWrapperVO>(res, HttpStatus.OK);
+				}
+			}
+
+			for (AirflowProjectVO projectVO : projectVOs) {
+				String dagName = projectVO.getProjectId() + "_DAG_1";
+				Boolean isDagExists = checkDagMenu(dagName);
+
+				if (isDagExists) {
+					AirflowProjectUserVO currentUsers = new AirflowProjectUserVO();
+					String usernames = projectVO.getCreatedBy();
+					LOGGER.info("..usernames...{}", usernames);
+					Role savedCurrentUserRole = findRole(usernames);
+					List<User> existingUser = userRepository.findbyUniqueLiteral("username", usernames);
+					User savedCurrentUser = existingUser != null && !existingUser.isEmpty() ? existingUser.get(0) :
+							new User();
+					AirflowDagVo dagVO1 = new AirflowDagVo();
+					dagVO1.setDagName(dagName);
+					projectVO.setProjectStatus("CREATED");
+
+//				addPermissionAndMappedToProject(currentUsers, dagVO1, savedCurrentUserRole, savedCurrentUser,
+//						assembler.toEntity(projectVO));
+//				Boolean isPermissionCreated = checkDagPermissionAndViewMenu(dagVO1);
+//					dnaProjectRepository.save(assembler.toEntity(projectVO));
+
+				}
+			}
+		}
+
 		res.setData(airflowProjectVO);
 		return new ResponseEntity<AirflowProjectResponseWrapperVO>(res, HttpStatus.OK);
 	}
