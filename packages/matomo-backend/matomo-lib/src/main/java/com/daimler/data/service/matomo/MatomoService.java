@@ -7,7 +7,10 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.math.BigDecimal;
 import java.util.Date;
+import java.util.List;
 
 public interface MatomoService extends CommonService<MatomoVO, MatomoNsql, String> {
     MatomoResponseVO createMatomoSite(String matomoId, String siteId, Date createdOn, Date lastModified, MatomoSiteRequestVO matomoRequestVO, CreatedByVO requestUser);
+    List<MatomoVO> getAll(int limit, int offset, String user);
+    Long getCount(String user);
 }

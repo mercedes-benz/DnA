@@ -197,7 +197,7 @@ public class MatomoController implements MatomoSitesApi {
         }
 
 
-        return null;
+        return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     @Override
@@ -232,8 +232,27 @@ public class MatomoController implements MatomoSitesApi {
             consumes = { "application/json" },
             method = RequestMethod.GET)
     public ResponseEntity<MatomoCollectionVO> getAll(@ApiParam(value = "page number from which listing of matomo should start. Offset. Example 2") @Valid @RequestParam(value = "offset", required = false) Integer offset,
-                                                     @ApiParam(value = "page size to limit the number of matomo, Example 15") @Valid @RequestParam(value = "limit", required = false) Integer limit) {
-        return null;
+             @ApiParam(value = "page size to limit the number of matomo, Example 15") @Valid @RequestParam(value = "limit", required = false) Integer limit) {
+
+        MatomoCollectionVO collection = new MatomoCollectionVO();
+        int defaultLimit = 10;
+        if (offset == null || offset < 0)
+            offset = 0;
+        if (limit == null || limit < 0) {
+            limit = defaultLimit;
+        }
+        CreatedByVO requestUser = this.userStore.getVO();
+        String user = requestUser.getId();
+        List<MatomoVO> records = service.getAll(limit, offset, user);
+        Long count = service.getCount(user);
+        HttpStatus responseCode = HttpStatus.NO_CONTENT;
+        if(records!=null && !records.isEmpty()) {
+            collection.setRecords(records);
+            collection.setTotalCount(count.intValue());
+            responseCode = HttpStatus.OK;
+        }
+        return new ResponseEntity<>(collection, responseCode);
+
     }
 
     @Override
