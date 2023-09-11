@@ -1,19 +1,15 @@
 package com.daimler.data.application.client;
 
 import com.daimler.data.controller.exceptions.MessageDescription;
-import com.daimler.data.dto.MatomoSiteResponseDto;
-import com.daimler.data.dto.MatomoUserResponseDto;
-import com.daimler.data.dto.MatomoGetSiteResponseDto;
-import com.daimler.data.dto.MatomoSetUserAccessResponseDto;
+import com.daimler.data.dto.*;
 import lombok.extern.slf4j.Slf4j;
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
-
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 @Component
 @Slf4j
@@ -37,6 +33,8 @@ public class MatomoClient {
     private String matomoSetUserAccessPath;
     @Value("${matomo.uri.deleteSite}")
     private String matomoDeleteSitePath;
+    @Value("${matomo.uri.getUserAccess}")
+    private String matomoGetUserAccessPath;
 
 
 
@@ -139,19 +137,7 @@ public class MatomoClient {
                 access=permission;
 
             }
-            String getSiteFromIdUrl =  matomoBaseUri + matomoGetSitePath + matomoTokenAuth +"&idSite=" + siteId;
             HttpEntity requestEntity = new HttpEntity<>(headers);
-            ResponseEntity<MatomoGetSiteResponseDto> getMatomoSiteResponse = restTemplate.exchange(getSiteFromIdUrl, HttpMethod.GET,
-                    requestEntity, MatomoGetSiteResponseDto.class);
-            if (getMatomoSiteResponse.hasBody()) {
-                getSiteResponse = getMatomoSiteResponse.getBody();
-                if (getSiteResponse == null || (getSiteResponse != null && ("error".equalsIgnoreCase(getSiteResponse.getResult())) && getSiteResponse.getMessage() != null)) {
-
-                    MessageDescription getSiteResponseErrMsg = new MessageDescription(getSiteResponse.getMessage());
-                    errors.add(getSiteResponseErrMsg);
-                    setUserAcessResponse.setErrors(errors);
-                    setUserAcessResponse.setStatus("FAILED");
-                } else {
                     //setUserAccess
                     String setUserAccessUrl =  matomoBaseUri + matomoSetUserAccessPath + matomoTokenAuth +"&userLogin=" + userId + "&access=" +access+ "&idSites=" + siteId;
                     ResponseEntity<MatomoSetUserAccessResponseDto> setMatomoUserAccessResponse = restTemplate.exchange(setUserAccessUrl, HttpMethod.GET,
@@ -167,10 +153,10 @@ public class MatomoClient {
                             setUserAcessResponse.setErrors(errors);
                             setUserAcessResponse.setStatus("FAILED");
 
-                        }
+
                     }
                 }
-            }
+
         }catch (Exception e) {
             log.error("Failed while setting access to user  of userLogin {} with {}" + userId, e.getMessage());
             MessageDescription errMsg = new MessageDescription("Failed while setting access to user  with exception " + e.getMessage());
@@ -209,6 +195,73 @@ public class MatomoClient {
         }
         return deleteMatomoSiteResponse;
     }
+
+
+    public MatomoGetSiteResponseDto listParticularMatomoSite(String siteId){
+        MatomoGetSiteResponseDto getSiteResponse =null;
+        List<MessageDescription> errors = new ArrayList<>();
+        try {
+            HttpHeaders headers = new HttpHeaders();
+            headers.set("Accept", "application/json");
+            headers.setContentType(MediaType.APPLICATION_JSON);
+
+            String getSiteFromIdUrl =  matomoBaseUri + matomoGetSitePath + matomoTokenAuth +"&idSite=" + siteId;
+            HttpEntity requestEntity = new HttpEntity<>(headers);
+            ResponseEntity<MatomoGetSiteResponseDto> response = restTemplate.exchange(getSiteFromIdUrl, HttpMethod.GET,
+                    requestEntity, MatomoGetSiteResponseDto.class);
+            if (response.hasBody()) {
+                getSiteResponse = response.getBody();
+                if (getSiteResponse == null || (getSiteResponse != null && ("error".equalsIgnoreCase(getSiteResponse.getResult())) && getSiteResponse.getMessage() != null)) {
+                    MessageDescription getSiteResponseErrMsg = new MessageDescription(getSiteResponse.getMessage());
+                    errors.add(getSiteResponseErrMsg);
+                    getSiteResponse.setErrors(errors);
+                    getSiteResponse.setStatus("FAILED");
+                }
+                else{
+                    getSiteResponse.setStatus("SUCCESS");
+                }
+                }
+        } catch (Exception e) {
+            log.error("Failed to get particular site details site {} api with {}" + siteId,e.getMessage());
+            MessageDescription errMsg = new MessageDescription("Failed to get particular site details  with exception " + e.getMessage());
+            errors.add(errMsg);
+            getSiteResponse.setErrors(errors);
+            getSiteResponse.setStatus("FAILED");
+        }
+        return getSiteResponse;
+    }
+
+    public Map<String, Object> getUsersAccessFromSite(String userId, String siteId){
+        Map<String, Object> map = new HashMap<>();
+        List<MessageDescription> errors = new ArrayList<>();
+        try {
+            HttpHeaders headers = new HttpHeaders();
+            headers.set("Accept", "application/json");
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            String getSiteAccessFromUserUrl =  matomoBaseUri + matomoGetUserAccessPath + matomoTokenAuth + "&idSite=" +siteId;
+            HttpEntity requestEntity = new HttpEntity<>(headers);
+            ResponseEntity<String> response = restTemplate.exchange(getSiteAccessFromUserUrl, HttpMethod.GET,
+                    requestEntity, String.class);
+            if (response.hasBody()) {
+
+                JSONObject jsonObj = new JSONObject(response.getBody());
+                Iterator<String> keys = jsonObj.keys();
+                while(keys.hasNext()) {
+                    String key = keys.next();
+                    Object value = jsonObj.get(key);
+                    map.put(key, value);
+                }
+            }
+        } catch (Exception e) {
+            log.error("Failed to get  user access from site {} api with {}" + siteId,e.getMessage());
+        }
+       return  map;
+    }
+
+
+
+
+
 
 }
 
