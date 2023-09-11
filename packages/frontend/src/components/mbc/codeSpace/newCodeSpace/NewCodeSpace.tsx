@@ -201,6 +201,9 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
   };
 
   const addNewCollaborator = () => {
+    if (props.onEditingCodeSpace.projectDetails?.projectCollaborators === null) {
+      props.onEditingCodeSpace.projectDetails.projectCollaborators = [];
+    }
     const existingColloborators = props.onEditingCodeSpace.projectDetails?.projectCollaborators || [];
     const newCollaborator = codeSpaceCollaborators.find((collab: ICodeCollaborator) => !existingColloborators.some((existCollab: ICodeCollaborator) => existCollab.id === collab.id));
     if (newCollaborator) {
@@ -252,6 +255,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
       return item.id !== userId;
     });
     setCodeSpaceCollaborators(currentCollList);
+    return currentCollList;
   };
 
   const onCollaboratorConfirmModalCancel = () => {
@@ -272,7 +276,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
       ProgressIndicator.hide();
       if (res.success === 'SUCCESS') {
         trackEvent('DnA Code Space', 'Delete Collaborator', 'Existing Code Space');
-        updateCollaborator(collaboratorToDelete.id);
+        props.onEditingCodeSpace.projectDetails.projectCollaborators = [...updateCollaborator(collaboratorToDelete.id)];
         Notification.show(
           `Collaborator '${collaboratorToDelete.firstName}' has been removed successfully from the Code Space.`,
         );
