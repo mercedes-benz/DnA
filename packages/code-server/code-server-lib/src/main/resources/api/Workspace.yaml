@@ -591,6 +591,10 @@ definitions:
         enum: [int,prod]
       branch:
         type: string
+      isSecureWithIAMRequired:
+        type: boolean
+      technicalUserDetailsForIAMLogin:
+        type: string     
            
   CodeServerDeploymentDetailsVO:
     type: object
