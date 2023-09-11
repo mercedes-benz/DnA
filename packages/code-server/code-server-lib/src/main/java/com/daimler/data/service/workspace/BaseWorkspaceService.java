@@ -556,7 +556,8 @@ public class BaseWorkspaceService implements WorkspaceService {
 	
 	@Override
 	@Transactional
-	public GenericMessage deployWorkspace(String userId,String id,String environment, String branch) {
+	public GenericMessage deployWorkspace(String userId,String id,String environment, String branch,
+			boolean isSecureWithIAMRequired, String technicalUserDetailsForIAMLogin) {
 		GenericMessage responseMessage = new GenericMessage();
 		String status = "FAILED";
 		List<MessageDescription> warnings = new ArrayList<>();
@@ -601,6 +602,8 @@ public class BaseWorkspaceService implements WorkspaceService {
 						deploymentDetails = entity.getData().getProjectDetails().getProdDeploymentDetails();
 					}
 					deploymentDetails.setLastDeploymentStatus("DEPLOY_REQUESTED");;
+					deploymentDetails.setSecureWithIAMRequired(isSecureWithIAMRequired);
+					deploymentDetails.setTechnicalUserDetailsForIAMLogin(technicalUserDetailsForIAMLogin);
 					workspaceCustomRepository.updateDeploymentDetails(projectName, environmentJsonbName, deploymentDetails);
 					status = "SUCCESS";
 				}else {
