@@ -34,7 +34,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import com.daimler.data.dto.workspace.CreatedByVO;
+import com.daimler.data.dto.workspace.*;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -58,9 +58,6 @@ import com.daimler.data.dto.DeploymentManageInputDto;
 import com.daimler.data.dto.WorkbenchManageDto;
 import com.daimler.data.dto.WorkbenchManageInputDto;
 import com.daimler.data.dto.workspace.CodeServerRecipeDetailsVO.RecipeIdEnum;
-import com.daimler.data.dto.workspace.CodeServerWorkspaceVO;
-import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
-import com.daimler.data.dto.workspace.UserInfoVO;
 import com.daimler.data.util.ConstantsUtility;
 
 import lombok.extern.slf4j.Slf4j;
@@ -1041,7 +1038,8 @@ public class BaseWorkspaceService implements WorkspaceService {
 		return workspaceCustomRepository.getAllWorkspaceIds();
 	}
 
-
-
-	
+	@Override
+	public CodeServerWorkspaceValidateVO validateCodespace(String id, String userId) {
+		return workspaceCustomRepository.validateCodespace(id, userId);
+	}
 }
