@@ -48,7 +48,7 @@ matomo:
     setUserAccess: ${MATOMO_SETUSERACCESS_URI:module=API&method=UsersManager.setUserAccess&format=JSON&token_auth=}
     deleteSite: ${MATOMO_DELETESITE_URI:module=API&method=SitesManager.deleteSite&format=JSON&token_auth=}
     getUserAccess: ${MATOMO_GETUSERACCESS_URI:module=API&method=UsersManager.getUsersAccessFromSite&format=JSON&token_auth=}
-
+    getSitesAccess: ${MATOMO_GETSITESACCESS_URI:module=API&method=UsersManager.getSitesAccessFromUser&format=JSON&token_auth=}
 
 
 

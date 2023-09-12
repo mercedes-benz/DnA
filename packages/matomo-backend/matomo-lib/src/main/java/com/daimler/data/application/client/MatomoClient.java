@@ -2,7 +2,9 @@ package com.daimler.data.application.client;
 
 import com.daimler.data.controller.exceptions.MessageDescription;
 import com.daimler.data.dto.*;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
+import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -35,6 +37,9 @@ public class MatomoClient {
     private String matomoDeleteSitePath;
     @Value("${matomo.uri.getUserAccess}")
     private String matomoGetUserAccessPath;
+
+    @Value("${matomo.uri.getSitesAccess}")
+    private String matomoGetSitesAccessPath;
 
 
 
@@ -242,8 +247,7 @@ public class MatomoClient {
             HttpEntity requestEntity = new HttpEntity<>(headers);
             ResponseEntity<String> response = restTemplate.exchange(getSiteAccessFromUserUrl, HttpMethod.GET,
                     requestEntity, String.class);
-            if (response.hasBody()) {
-
+            if (response!=null && response.hasBody()) {
                 JSONObject jsonObj = new JSONObject(response.getBody());
                 Iterator<String> keys = jsonObj.keys();
                 while(keys.hasNext()) {
@@ -257,6 +261,58 @@ public class MatomoClient {
         }
        return  map;
     }
+
+
+
+    public MatomoGetSitesAccessCollectionDto getSitesAccessFromUser(String user){
+        MatomoGetSitesAccessCollectionDto getSitesAccessCollection = new MatomoGetSitesAccessCollectionDto();
+        List<MatomoGetSitesAccessDto> getSitesAccess = new ArrayList<>();
+        List<MessageDescription> errors = new ArrayList<>();
+        try {
+            HttpHeaders headers = new HttpHeaders();
+            headers.set("Accept", "application/json");
+            headers.setContentType(MediaType.APPLICATION_JSON);
+
+            String getSitesAccessFromUserUrl =  matomoBaseUri + matomoGetSitesAccessPath + matomoTokenAuth +"&userLogin="+user;
+            HttpEntity requestEntity = new HttpEntity<>(headers);
+            ResponseEntity<String> response = restTemplate.exchange(getSitesAccessFromUserUrl, HttpMethod.GET,
+                    requestEntity, String.class);
+            if (response.hasBody()) {
+
+                JSONArray response_json = new JSONArray(response.getBody());
+                for(int i=0; i<response_json.length(); i++) {
+                    MatomoGetSitesAccessDto getSiteAccessObj = new MatomoGetSitesAccessDto();
+                    JSONObject jsonObject = (JSONObject) response_json.get(i);
+                    if(Objects.nonNull(jsonObject.get("site"))) {
+                        String siteId = jsonObject.get("site").toString();
+                        getSiteAccessObj.setSite(siteId);
+
+                    }
+                    if(Objects.nonNull(jsonObject.get("access"))) {
+                        String siteAccess = (String)jsonObject.get("access");
+                        getSiteAccessObj.setAccess(siteAccess);
+
+                    }
+
+                    getSitesAccess.add(getSiteAccessObj);
+                }
+            }
+            if (getSitesAccess != null && !getSitesAccess.isEmpty()) {
+                getSitesAccessCollection.setData(getSitesAccess);
+            }
+
+
+        } catch (Exception e) {
+            log.error("Failed to get particular site details site {} api with {}" + user,e.getMessage());
+            MessageDescription errMsg = new MessageDescription("Failed to get particular site details  with exception " + e.getMessage());
+            errors.add(errMsg);
+            getSitesAccessCollection.setErrors(errors);
+            getSitesAccessCollection.setStatus("FAILED");
+        }
+        return getSitesAccessCollection;
+    }
+
+
 
 
 
