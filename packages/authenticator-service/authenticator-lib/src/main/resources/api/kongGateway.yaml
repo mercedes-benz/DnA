@@ -489,6 +489,8 @@ definitions:
         type: string
       redirect_uri_path:
         type: string
+      recovery_page_path:
+        type: string  
       claims_to_verify:
         type: string  
       key_claim_name:
