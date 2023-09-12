@@ -1014,6 +1014,11 @@ public class BaseWorkspaceService implements WorkspaceService {
 					workspaceCustomRepository.updateDeploymentDetails(projectName, environmentJsonbName, deploymentDetails);
 					log.info("updated deployment details successfully for projectName {} , branch {} , targetEnv {} and status {}",
 							projectName,branch,targetEnv,latestStatus);
+					// BUG-339
+					//call kong apis
+					//if something fails in kong, add to warnings, message saying- failed to secure apis with iam, please contact admin for resolving.
+					// route path = deploymentUrl - codeServerBaseUri
+					//proceed - dont break anything in betweeen, flow should continue
 				}
 				else if("UNDEPLOYED".equalsIgnoreCase(latestStatus)) {
 					deploymentDetails.setDeploymentUrl(null);
