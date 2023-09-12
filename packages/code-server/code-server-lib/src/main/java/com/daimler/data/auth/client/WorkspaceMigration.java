@@ -75,7 +75,7 @@ public class WorkspaceMigration {
 					kongWsIdList = new ArrayList<String>(Arrays.asList(kongWsIds));
 				}
 				final List<String> newKongWsIdList = new ArrayList<>(kongWsIdList);
-				if (!ObjectUtils.isEmpty(workspaceIds) && !ObjectUtils.isEmpty(kongWsIdList)) {
+				if (!ObjectUtils.isEmpty(workspaceIds) ) {
 					oldWsIds = workspaceIds.stream().filter(id -> !newKongWsIdList.contains("\"" + id + "\""))
 							.collect(Collectors.toList());
 				}
