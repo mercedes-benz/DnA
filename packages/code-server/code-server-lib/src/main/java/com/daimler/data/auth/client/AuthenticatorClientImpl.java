@@ -84,6 +84,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 	private static final String CREATE_SERVICE = "/api/kong/services";
 	private static final String CREATE_ROUTE = "/routes";
 	private static final String ATTACH_PLUGIN_TO_SERVICE = "/plugins";
+	private static final String WORKSPACE_API = "API";
 	
 	@Override
 	public GenericMessage createService(CreateServiceRequestVO createServiceRequestVO) {
@@ -175,6 +176,9 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 		response.setErrors(errors);
 		return response;
 	}
+	
+	
+	// BUG-339 public GenericMessage attachJWTPluginToService(new dto,String serviceName){
 
 	@Override
 	public GenericMessage attachPluginToService(AttachPluginRequestVO attachPluginRequestVO, String serviceName) {
@@ -238,6 +242,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 		hosts.add(codeServerEnvUrl);
 		createRouteVO.setHosts(hosts);
 		createRouteVO.setName(serviceName);
+		// BUG-339  if(serviceName.contains(""))
 		createRouteVO.setPaths(paths);
 		createRouteVO.setProtocols(protocols);
 		createRouteVO.setStripPath(true);
@@ -298,6 +303,8 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 			}
 			if((createServiceResponse.getSuccess().equalsIgnoreCase("success")  || isServiceAlreadyCreated )&& (createRouteResponse.getSuccess().equalsIgnoreCase("success") || isRouteAlreadyCreated)) {
 				attachPluginResponse = attachPluginToService(attachPluginRequestVO,serviceName);
+				// BUG-339
+				//call attachJWTPluginToService if flag is different
 			}
 			else {
 				LOGGER.info("Failed while calling kong create route API with errors " + createRouteResponse.getErrors());
