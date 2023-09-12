@@ -243,8 +243,10 @@ public class MatomoController implements MatomoSitesApi {
         }
         CreatedByVO requestUser = this.userStore.getVO();
         String user = requestUser.getId();
-        List<MatomoVO> records = service.getAll(limit, offset, user);
-        Long count = service.getCount(user);
+        Object[] matomoCollectionWrapper = service.getAll(limit, offset, user);
+        List<MatomoVO> records = (List<MatomoVO>) matomoCollectionWrapper[0];
+        Long count = (Long) matomoCollectionWrapper[1];
+
         HttpStatus responseCode = HttpStatus.NO_CONTENT;
         if(records!=null && !records.isEmpty()) {
             collection.setRecords(records);
