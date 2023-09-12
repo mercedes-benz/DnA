@@ -31,7 +31,7 @@ export const MatomoList = (props) => {
   const [selectedItem, setSelectedItem] = useState({});
   const [currentSortOrder, setCurrentSortOrder] = useState('asc');
   const [nextSortOrder, setNextSortOrder] = useState('desc');
-  const [currentColumnToSort, setCurrentColumnToSort] = useState('matomoName');
+  const [currentColumnToSort, setCurrentColumnToSort] = useState('siteName');
 
   const isDataikuEnabled = Envs.ENABLE_DATAIKU;
   const isCardView = props.isCardView;
@@ -150,10 +150,10 @@ export const MatomoList = (props) => {
   const deleteBucketAccept = () => {
     ProgressIndicator.show();
     matomoApi
-      .deleteMatomo(selectedItem.matomoName)
+      .deleteMatomo(selectedItem.siteName)
       .then(() => {
         dispatch(matomoActions.getMatomoList());
-        Notification.show(`Matomo ${selectedItem.matomoName} deleted successfully.`);
+        Notification.show(`Matomo ${selectedItem.siteName} deleted successfully.`);
       })
       .catch((e) => {
         Notification.show(
@@ -221,9 +221,9 @@ export const MatomoList = (props) => {
                   <div className={classNames(Styles.cardHeadInfo)}>
                     <div
                       className={classNames('btn btn-text forward arrow', Styles.cardHeadTitle)}
-                      onClick={() => history.push(`/explorer/${item.matomoName}`)}
+                      onClick={() => history.push(`/explorer/${item.siteName}`)}
                     >
-                      {item.matomoName}
+                      {item.siteName}
                     </div>
                   </div>
                 </div>
@@ -232,11 +232,11 @@ export const MatomoList = (props) => {
                   <div>
                     <div>
                       <div>Created on</div>
-                      <div>{regionalDateAndTimeConversionSolution(item.createdDate)}</div>
+                      <div>{regionalDateAndTimeConversionSolution(item.createdOn)}</div>
                     </div>
                     <div>
                       <div>Last modified</div>
-                      <div>{regionalDateAndTimeConversionSolution(item.lastModifiedDate)}</div>
+                      <div>{regionalDateAndTimeConversionSolution(item.lastModified)}</div>
                     </div>
                     <div>
                       <div>Classification</div>
@@ -415,7 +415,7 @@ export const MatomoList = (props) => {
                         <label className={Styles.expansionLabel + ' expansion-panel-label '} htmlFor={index + '1'}>
                           <div className={Styles.bucketTile}>
                             <div className={classNames(Styles.bucketTitleCol, Styles.bucketName)}>
-                              <Link to={`/explorer/${item.matomoName}`}>{item.matomoName}</Link>
+                              <Link to={`/explorer/${item.siteName}`}>{item.siteName}</Link>
                             </div>
                             <div className={Styles.bucketTitleCol}>
                               {displayPermission(item?.permission)}
@@ -478,7 +478,7 @@ export const MatomoList = (props) => {
                                       type="button"
                                       onClick={() => {
                                         setSelectedItem(item);
-                                        history.push(`/editMatomo/${item.matomoName}`);
+                                        history.push(`/editMatomo/${item.siteName}`);
                                       }}
                                     >
                                       <i className="icon mbc-icon edit"></i>
