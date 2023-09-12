@@ -72,6 +72,40 @@ export const MatomoList = (props) => {
       "siteUrl": "string",
       "status": "string",
       "subDivision": "string"
+    },
+    {
+      "classificationType": "string",
+      "collaborators": [
+        {
+          "department": "string",
+          "email": "string",
+          "firstName": "string",
+          "id": "string",
+          "lastName": "string",
+          "mobileNumber": "string",
+          "permissions": {}
+        }
+      ],
+      "createdBy": {
+        "department": "string",
+        "email": "string",
+        "firstName": "string",
+        "id": "string",
+        "lastName": "string",
+        "mobileNumber": "string"
+      },
+      "createdOn": "2023-09-12T06:16:49.306Z",
+      "department": "string",
+      "division": "string",
+      "id": "string",
+      "lastModified": "2023-09-12T06:16:49.306Z",
+      "permission": {},
+      "piiData": true,
+      "siteId": "string",
+      "siteName": "string",
+      "siteUrl": "string",
+      "status": "string",
+      "subDivision": "string"
     }
   ]
 
@@ -422,10 +456,10 @@ export const MatomoList = (props) => {
                               {isOwner && ` (Owner)`}
                             </div>
                             <div className={Styles.bucketTitleCol}>
-                              {regionalDateAndTimeConversionSolution(item.createdDate)}
+                              {regionalDateAndTimeConversionSolution(item.createdOn)}
                             </div>
                             <div className={Styles.bucketTitleCol}>
-                              {regionalDateAndTimeConversionSolution(item.lastModifiedDate)}
+                              {regionalDateAndTimeConversionSolution(item.lastModified)}
                             </div>
                             <div className={Styles.bucketTitleCol}>{item.classificationType}</div>
                             <div className={Styles.bucketTitleCol}></div>
