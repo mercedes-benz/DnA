@@ -234,7 +234,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 		protocols.add("http");
 		protocols.add("https");
 		paths.add("/" + serviceName + "/");
-		paths.add("/");
+		//paths.add("/");
 		hosts.add(codeServerEnvUrl);
 		createRouteVO.setHosts(hosts);
 		createRouteVO.setName(serviceName);
@@ -247,6 +247,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 		AttachPluginRequestVO attachPluginRequestVO = new AttachPluginRequestVO();
 		AttachPluginVO attachPluginVO = new AttachPluginVO();
 		AttachPluginConfigVO attachPluginConfigVO = new AttachPluginConfigVO();
+		String recovery_page_path = "https://" + codeServerEnvUrl + "/" + serviceName + "/";
 		attachPluginVO.setName("oidc");
 		attachPluginConfigVO.setBearer_only(bearerOnly);
 		attachPluginConfigVO.setClient_id(clientId);
@@ -262,6 +263,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 		attachPluginConfigVO.setScope(scope);
 		attachPluginConfigVO.setSsl_verify(sslVerify);
 		attachPluginConfigVO.setToken_endpoint_auth_method(tokenEndpointAuthMethod);
+		attachPluginConfigVO.setRecovery_page_path(recovery_page_path);
 		attachPluginVO.setConfig(attachPluginConfigVO);
 		attachPluginRequestVO.setData(attachPluginVO);
 		
