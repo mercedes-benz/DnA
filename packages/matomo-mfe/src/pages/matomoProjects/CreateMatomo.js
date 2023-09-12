@@ -712,7 +712,7 @@ const CreateMatomo = ({ user }) => {
                         <div className={Styles.collUserTitle}>
                           <div className={Styles.collUserTitleCol}>User ID</div>
                           <div className={Styles.collUserTitleCol}>Name</div>
-                          {/* <div className={Styles.collUserTitleCol}>Permission</div> */}
+                          <div className={Styles.collUserTitleCol}>Permission</div>
                           <div className={Styles.collUserTitleCol}></div>
                         </div>
                         <div className={classNames('mbc-scroll', Styles.collUserContent)}>
