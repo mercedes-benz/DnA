@@ -121,6 +121,8 @@ kong:
    scope: ${SCOPE:XXXX}
    sslVerify: ${SSL_VERIFY:XXXX}
    tokenEndpointAuthMethod: ${TOKEN_ENDPOINT_AUTH_METHOD:XXXX}  
+   
+# BUG-339 
 
 workspace:
   update: ${UPDATE_WORKSPACEDATA:XXXX}   

@@ -183,32 +183,25 @@ public class WorkspaceJobStatusUpdateController  {
 						else {
 							codeServerDeploymentDetailsVO = codeServerProjectDetailsVO.getProdDeploymentDetails();
 						}
-						
-					}
-					if(Objects.nonNull(codeServerDeploymentDetailsVO)) {
-						String deploymentUrl = codeServerDeploymentDetailsVO.getDeploymentUrl();
-						//needs to be checked how to pass this deployment url to kong
-						String serviceName = name + "API";
-						authenticatorClient.callingKongApis(serviceName);
 					}
 					eventType = "Codespace-Deploy";
 					log.info("Latest status is {}, and eventType is {}",latestStatus,eventType);
-					message = "Successfully deployed Codespace "+ projectName + " with branch " + branch +" on " + targetEnv + " triggered by " +workspaceOwnerName;
+					message = "Successfully deployed Codespace "+ projectName + " with branch " + branch +" on " + targetEnv + " triggered by " +userId;
 				}													
 				if(latestStatus.equalsIgnoreCase("DEPLOYMENT_FAILED")) {
 					eventType = "Codespace-Deploy Failed";
 					log.info("Latest status is {}, and eventType is {}",latestStatus,eventType);
-					message = "Failed to deploy Codespace " + projectName + " with branch " + branch +" on " +  targetEnv + " triggered by " +workspaceOwnerName;
+					message = "Failed to deploy Codespace " + projectName + " with branch " + branch +" on " +  targetEnv + " triggered by " +userId;
 				}
 				if(latestStatus.equalsIgnoreCase("UNDEPLOYED")) {
 					eventType = "Codespace-UnDeploy";
 					log.info("Latest status is {}, and eventType is {}",latestStatus,eventType);
-					message = "Successfully undeployed Codespace "+ projectName + " with branch " + branch +" on " + targetEnv + " triggered by " +workspaceOwnerName;
+					message = "Successfully undeployed Codespace "+ projectName + " with branch " + branch +" on " + targetEnv + " triggered by " +userId;
 				}													
 				if(latestStatus.equalsIgnoreCase("UNDEPLOY_FAILED")) {
 					eventType = "Codespace-UnDeploy Failed";
 					log.info("Latest status is {}, and eventType is {}",latestStatus,eventType);
-					message = "Failed to undeploy Codespace " + projectName + " with branch " + branch +" on " + targetEnv + " triggered by " +workspaceOwnerName;
+					message = "Failed to undeploy Codespace " + projectName + " with branch " + branch +" on " + targetEnv + " triggered by " +userId;
 				}
 			}
 			if(invalidStatus) {
