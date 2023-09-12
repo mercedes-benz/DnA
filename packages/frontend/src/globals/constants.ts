@@ -63,6 +63,7 @@ export const SUPPORT_EMAIL_ID = 'support@your-domain.com';
 
 export const TEAMS_PROFILE_APP_NAME = 'Teams';
 export const TEAMS_PROFILE_LINK_URL_PREFIX = 'https://your-team-profile-url-prefix/';
+export const IAM_URL = 'https://your-iam-url/';
 
 export const ATTACH_FILES_TO_ACCEPT =
   '.doc,.docx,.odt,.pptx,.rtf,.pdf,.bmp,.gif,.png,.jpg,.jpeg,.csv,.xsl,.xlsx,.ppt,.txt,.zip';
