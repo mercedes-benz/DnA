@@ -807,7 +807,7 @@ public class WorkspaceController  implements CodeServerApi{
 
 	@ApiOperation(value = "To check given user has a access to workspace or not.", nickname = "validateCodespace", notes = "To check a user has access to workspace.", response = CodeServerWorkspaceValidateVO.class, tags={ "code-server", })
 	@ApiResponses(value = {
-			@ApiResponse(code = 201, message = "Returns message of success or failure", response = CodeServerWorkspaceValidateVO.class),
+			@ApiResponse(code = 200, message = "Returns message of success or failure", response = CodeServerWorkspaceValidateVO.class),
 			@ApiResponse(code = 204, message = "Fetch complete, no content found."),
 			@ApiResponse(code = 400, message = "Bad request."),
 			@ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
