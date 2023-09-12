@@ -8,6 +8,7 @@ import UnAuthorised from 'dna-container/UnAuthorised';
 // import Dataiku from 'dna-container/Dataiku';
 
 import MatomoProjects from '../pages/matomoProjects/MatomoProjects';
+import CreateMatomo from '../pages/matomoProjects/CreateMatomo';
 import { ProtectedRoute } from './ProtectedRoutes';
 import { history } from '../store';
 
@@ -19,6 +20,11 @@ export const protectedRoutes = [
     component: MatomoProjects,
     exact: true,
     path: '/',
+  },
+  {
+    component: CreateMatomo,
+    exact: true,
+    path: '/createMatomo',
   },
 ];
 
