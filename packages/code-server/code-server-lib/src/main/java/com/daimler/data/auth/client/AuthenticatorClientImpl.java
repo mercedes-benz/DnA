@@ -219,10 +219,24 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 		return response;
 	}
 	
-	public void callingKongApis(String serviceName) {
-
-		// request for kong create service
-		String url = "http://" + serviceName + ".code-server:8080";
+	public void callingKongApis(String serviceName, String env) {
+		
+		boolean kongApiForDeploymentURL = false;
+		String deploymentServiceName = "";
+		String url = "";
+		if(serviceName.contains(WORKSPACE_API) && Objects.nonNull(env)) {
+			kongApiForDeploymentURL = true;
+			String[] wsid = serviceName.split("-");
+			deploymentServiceName = wsid[0];
+		}
+		
+		// request for kong create service	
+		if(kongApiForDeploymentURL) {					    		    
+			url = deploymentServiceName + "-" + env + ".codespaces-apps"; //ws316-int.codespaces-apps
+		}
+		else {
+			url = "http://" + serviceName + ".code-server:8080";
+		}
 		CreateServiceRequestVO createServiceRequestVO = new CreateServiceRequestVO();
 		CreateServiceVO createServiceVO = new CreateServiceVO();
 		createServiceVO.setName(serviceName);
@@ -230,15 +244,20 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 		createServiceRequestVO.setData(createServiceVO);
 		
 		//request for creating kong route
-		CreateRouteRequestVO createRouteRequestVO = new CreateRouteRequestVO();
-		CreateRouteVO createRouteVO = new CreateRouteVO();
 		List<String> hosts = new ArrayList();
 		List<String> paths = new ArrayList();
 		List<String> protocols = new ArrayList();
+		if(kongApiForDeploymentURL) {
+			paths.add("/" + serviceName + "/" + env + "/api"); // "/ws316/int/api"
+		}
+		else {
+			paths.add("/" + serviceName + "/");
+			paths.add("/");
+		}
+		CreateRouteRequestVO createRouteRequestVO = new CreateRouteRequestVO();
+		CreateRouteVO createRouteVO = new CreateRouteVO();		
 		protocols.add("http");
 		protocols.add("https");
-		paths.add("/" + serviceName + "/");
-		paths.add("/");
 		hosts.add(codeServerEnvUrl);
 		createRouteVO.setHosts(hosts);
 		createRouteVO.setName(serviceName);
@@ -330,6 +349,45 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 					attachPluginResponse.getErrors(), attachPluginResponse.getWarnings());
 		}
 
+	}
+
+	@Override
+	public GenericMessage attachJwtPluginToService(AttachJwtPluginRequestVO attachJwtPluginRequestVO, String serviceName) {
+		GenericMessage response = new GenericMessage();
+		String status = "FAILED";
+		List<MessageDescription> warnings = new ArrayList<>();
+		List<MessageDescription> errors = new ArrayList<>();
+		try {
+			HttpHeaders headers = new HttpHeaders();
+			headers.set("Accept", "application/json");
+			headers.set("Content-Type", "application/json");		
+
+			String attachPluginUri = authenticatorBaseUri + CREATE_SERVICE + "/" + serviceName + ATTACH_PLUGIN_TO_SERVICE;
+			HttpEntity<AttachJwtPluginRequestVO> entity = new HttpEntity<AttachJwtPluginRequestVO>(attachJwtPluginRequestVO,headers);			
+			ResponseEntity<String> attachJwtPluginResponse = restTemplate.exchange(attachPluginUri, HttpMethod.POST, entity, String.class);
+			if (attachJwtPluginResponse != null && attachJwtPluginResponse.getStatusCode()!=null) {
+				if(attachJwtPluginResponse.getStatusCode().is2xxSuccessful()) {
+					status = "SUCCESS";
+					LOGGER.info("Success while calling Kong attach plugin: {} for the service {} ",attachJwtPluginRequestVO.getData().getName(), serviceName);
+				}
+				else {
+					LOGGER.info("Warnings while calling Kong attach plugin:{} API for workspace: {} , httpstatuscode is {}", attachJwtPluginRequestVO.getData().getName(), serviceName,  attachJwtPluginResponse.getStatusCodeValue());
+					MessageDescription warning = new MessageDescription();
+					warning.setMessage("Response from kong attach plugin : " + attachJwtPluginResponse.getBody() + " Response Code is : " + attachJwtPluginResponse.getStatusCodeValue());
+					warnings.add(warning);
+				}
+			}
+		}
+		catch(Exception e) {
+			LOGGER.error("Error occured while calling Kong attach plugin: {} API for workspace: {} with exception {} ", attachJwtPluginRequestVO.getData().getName(), serviceName,  e.getMessage());
+			MessageDescription error = new MessageDescription();
+			error.setMessage("Error occured while calling Kong attach plugin: " + attachJwtPluginRequestVO.getData().getName() + " API for workspace:  " +  serviceName + " with exception: " + e.getMessage());
+			errors.add(error);
+		}
+		response.setSuccess(status);
+		response.setWarnings(warnings);
+		response.setErrors(errors);
+		return response;
 	}
 
 }
