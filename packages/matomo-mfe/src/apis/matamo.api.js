@@ -6,8 +6,8 @@ const getMatomoProjectsList = () => {
   });
 };
 
-const getMatomoByName = (matomoName) => {
-  return server.get(`/matomo/${matomoName}`, {
+const getMatomoByName = (siteName) => {
+  return server.get(`/matomo/${siteName}`, {
     data: {},
   });
 };
@@ -30,8 +30,8 @@ const deleteMatomo = (bucketName) => {
   });
 };
 
-const getConnectionInfo = (matomoName) => {
-  return server.get(`/matomo/${matomoName}/connect`, { data: {} });
+const getConnectionInfo = (siteName) => {
+  return server.get(`/matomo/${siteName}/connect`, { data: {} });
 };
 
 const getDataConnectionTypes = () => {

@@ -73,6 +73,8 @@
   margin: 0 15px 15px 0;
   min-width: 250px;
   position: relative;
+  border: 1px solid #383F49;
+  cursor: pointer;
 
   &.disable {
     opacity: 0.5;
