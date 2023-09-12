@@ -583,11 +583,18 @@ public class WorkspaceController  implements CodeServerApi{
 			userInfoVO.setMobileNumber(currentUser.getMobileNumber());
 			userInfoVO.setRoles(null);			
 			userRequestVO.setData(userInfoVO);
-			if((Objects.nonNull(deployRequestDto.isIsSecureWithIAMRequired() && deployRequestDto.isIsSecureWithIAMRequired()))
+			if((Objects.nonNull(deployRequestDto.isSecureWithIAMRequired()) && deployRequestDto.isSecureWithIAMRequired())
 					&& (Objects.nonNull(deployRequestDto.getTechnicalUserDetailsForIAMLogin()))) {
 				userInfoVOResponse = dnaAuthClient.onboardTechnicalUser(userRequestVO);
+				if(Objects.isNull(userInfoVOResponse)) {
+					log.info("Failed to onboard/fetch technical user {}, returning from controller without triggering deploy action",deployRequestDto.getTechnicalUserDetailsForIAMLogin());
+					MessageDescription exceptionMsg = new MessageDescription("Failed to onboard/fetch technical user, Please try again.");
+					GenericMessage errorMessage = new GenericMessage();
+					errorMessage.addErrors(exceptionMsg);
+					return new ResponseEntity<>(errorMessage, HttpStatus.INTERNAL_SERVER_ERROR);
+				}
 			}
-			GenericMessage responseMsg = service.deployWorkspace(userId, id, environment, branch,deployRequestDto.isIsSecureWithIAMRequired(),
+			GenericMessage responseMsg = service.deployWorkspace(userId, id, environment, branch,deployRequestDto.isSecureWithIAMRequired(),
 					deployRequestDto.getTechnicalUserDetailsForIAMLogin());
 			if(!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public")) {
 				log.info("User {} deployed workspace {} project {}", userId,vo.getWorkspaceId(),vo.getProjectDetails().getRecipeDetails().getRecipeId().name());

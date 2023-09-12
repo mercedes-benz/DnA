@@ -102,7 +102,7 @@ public class DnaAuthClientImpl implements DnaAuthClient {
 		}
 		catch(Exception e) {
 			LOGGER.error("On-boarding technical user failed while calling DnA onboardTechnicalUser:{}", e.getMessage());
-			throw e;
+			//throw e;
 		}
 		return userInfoVO;
 	}
