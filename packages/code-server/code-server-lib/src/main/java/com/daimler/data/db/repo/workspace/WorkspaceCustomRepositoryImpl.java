@@ -384,7 +384,7 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 	public CodeServerWorkspaceValidateVO validateCodespace(String id, String userId) {
 		String getQuery = "SELECT COUNT(*) > 0 AS hasPermission " +
 				"FROM workspace_nsql " +
-				"WHERE jsonb_extract_path_text(data, 'workspaceId') = LOWER(:id) " +
+				"WHERE jsonb_extract_path_text(data, 'workspaceId') = (:id) " +
 				"AND LOWER(jsonb_extract_path_text(data, 'gitUserName')) = LOWER(:userId) " +
 				"AND LOWER(jsonb_extract_path_text(data, 'status')) NOT IN ('create_requested', 'deleted', 'collaboration_requested')";
 

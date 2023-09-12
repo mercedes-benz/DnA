@@ -814,14 +814,14 @@ public class WorkspaceController  implements CodeServerApi{
 			@ApiResponse(code = 403, message = "Request is not authorized."),
 			@ApiResponse(code = 405, message = "Method not allowed"),
 			@ApiResponse(code = 500, message = "Internal error") })
-	@RequestMapping(value = "/workspaces/validate/{id}/{userid}",
+	@RequestMapping(value = "/workspaces/{id}/{userid}/validate",
 			produces = { "application/json" },
 			consumes = { "application/json" },
 			method = RequestMethod.GET)
 	@Override
 	public ResponseEntity<CodeServerWorkspaceValidateVO> validateCodespace(
 			@ApiParam(value = "Workspace ID for the project", required = true) @PathVariable("id")String id,
-			@ApiParam(value = "User ID to be deleted", required = true) @PathVariable("userid") String userid
+			@ApiParam(value = "User ID to be validated", required = true) @PathVariable("userid") String userid
 	) {
 		CodeServerWorkspaceValidateVO validateVO = service.validateCodespace(id, userid);
 		return new ResponseEntity<>(validateVO, HttpStatus.OK);
