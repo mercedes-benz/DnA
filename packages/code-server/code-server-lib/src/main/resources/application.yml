@@ -2,7 +2,7 @@ spring:
   mvc.pathmatch.matching-strategy: ant_path_matcher
   application:
     name: dna-codeserver-service
-    version: 1.0.8
+    version: 1.0.9
 
   flyway:
     enabled: ${FLYWAY_ENABLED:false}
@@ -121,3 +121,6 @@ kong:
    scope: ${SCOPE:XXXX}
    sslVerify: ${SSL_VERIFY:XXXX}
    tokenEndpointAuthMethod: ${TOKEN_ENDPOINT_AUTH_METHOD:XXXX}  
+
+workspace:
+  update: ${UPDATE_WORKSPACEDATA:XXXX}   
