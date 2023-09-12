@@ -57,6 +57,40 @@ const MatomoProjects = (props) => {
         "siteUrl": "string",
         "status": "string",
         "subDivision": "string"
+      },
+      {
+        "classificationType": "string",
+        "collaborators": [
+          {
+            "department": "string",
+            "email": "string",
+            "firstName": "string",
+            "id": "string",
+            "lastName": "string",
+            "mobileNumber": "string",
+            "permissions": {}
+          }
+        ],
+        "createdBy": {
+          "department": "string",
+          "email": "string",
+          "firstName": "string",
+          "id": "string",
+          "lastName": "string",
+          "mobileNumber": "string"
+        },
+        "createdOn": "2023-09-12T06:16:49.306Z",
+        "department": "string",
+        "division": "string",
+        "id": "string",
+        "lastModified": "2023-09-12T06:16:49.306Z",
+        "permission": {},
+        "piiData": true,
+        "siteId": "string",
+        "siteName": "string",
+        "siteUrl": "string",
+        "status": "string",
+        "subDivision": "string"
       }
     ]
 
