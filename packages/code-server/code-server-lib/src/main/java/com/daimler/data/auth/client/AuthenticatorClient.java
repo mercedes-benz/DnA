@@ -10,6 +10,8 @@ public interface AuthenticatorClient {
 	
 	public GenericMessage attachPluginToService(AttachPluginRequestVO attachPluginRequestVO, String serviceName);
 	
-	public void callingKongApis(String serviceName);
+	public GenericMessage attachJwtPluginToService(AttachJwtPluginRequestVO attachJwtPluginRequestVO, String serviceName);
+	
+	public void callingKongApis(String serviceName, String env);
 
 }
