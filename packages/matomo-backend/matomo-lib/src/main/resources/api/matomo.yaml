@@ -270,7 +270,8 @@ definitions:
         type: boolean
         description: "If Matomo site contains personally identifiable information."
       permission:
-        $ref: "#/definitions/MatomoPermissionVO"
+        type: string
+        description: "Read write admin permissions"
       collaborators:
         type: array
         items:
@@ -337,7 +338,60 @@ definitions:
         type: boolean
         description: "If Matomo site contains personally identifiable information."
       permission:
-        $ref: "#/definitions/MatomoPermissionVO"
+        type: string
+        description: "Read write admin permissions"
+      collaborators:
+        type: array
+        items:
+          $ref: "#/definitions/CollaboratorVO"
+      createdBy:
+        $ref: "#/definitions/CreatedByVO"
+        description: createdBy user details
+      createdOn:
+        type: string
+        format: date
+        description: date when site created
+      lastModified:
+        type: string
+        format: date
+        description: date when site was last modified
+
+  MatomoSiteVO:
+    type: object
+    properties:
+      id:
+        type: string
+        description: "id of matomo site"
+      siteId:
+        type: string
+        description: "site id of the matomo site"
+      siteName:
+        type: string
+        description: "name of the matomo site"
+      siteUrl:
+        type: string
+        description: "defines the site url"
+      division:
+        type: string
+        description: "division for the matomo site"
+      subDivision:
+        type: string
+        description: "sub division for the matomo site"
+      department:
+        type: string
+        description: "department for the matomo site"
+      status:
+        type: string
+        description: "status for the matomo site"
+      classificationType:
+        type: string
+        description: "Classification type for matomo site."
+      piiData:
+        type: boolean
+        description: "If Matomo site contains personally identifiable information."
+      permission:
+        type: string
+        description: "Read write admin permissions"
       collaborators:
         type: array
         items:
@@ -384,7 +438,8 @@ definitions:
         type: boolean
         description: "If Matomo site contains personally identifiable information."
       permission:
-        $ref: "#/definitions/MatomoPermissionVO"
+        type: string
+        description: "Read write admin permissions"
       addCollaborators:
         type: array
         items:
@@ -424,9 +479,9 @@ definitions:
       id:
         type: string
         description: "Short id of the user"
-      permissions:
-        $ref: "#/definitions/MatomoPermissionVO"
-        description: "Read write permissions"
+      permission:
+        type: string
+        description: "Read write admin permissions"
       firstName:
         type: string
         description: "First Name of the user"
