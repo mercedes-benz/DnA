@@ -50,9 +50,9 @@ const CreateMatomo = ({ user }) => {
   const [dataClassification, setDataClassification] = useState('');
   const [dataClassificationError, setDataClassificationError] = useState('');
   const [PII, setPII] = useState(false);
-  const [termsOfUse, setTermsOfUse] = useState(false);
+  // const [termsOfUse, setTermsOfUse] = useState(false);
 //   const [termsOfUseError, setTermsOfUseError] = useState(false);
-  const [editAPIResponse, setEditAPIResponse] = useState({});
+  // const [editAPIResponse, setEditAPIResponse] = useState({});
 
   const [departments, setDepartments] = useState([]);
   const [departmentName, setDepartmentName] = useState('');
@@ -166,8 +166,8 @@ const CreateMatomo = ({ user }) => {
             setBucketId(res?.data?.id);
             setCreatedBy(res?.data?.createdBy);
             setCreatedDate(res?.data?.createdDate);
-            setTermsOfUse(res?.data?.termsOfUse);
-            setEditAPIResponse(res?.data); // store to compare whether the values are changed
+            // setTermsOfUse(res?.data?.termsOfUse);
+            // setEditAPIResponse(res?.data); // store to compare whether the values are changed
             SelectBox.defaultSetup();
           } else {
             // reset history to base page before accessing container app's public routes;
@@ -187,19 +187,19 @@ const CreateMatomo = ({ user }) => {
     }
   }, [id]);
 
-  useEffect(() => {
-    // check whether values are changed while edit
-    // if changed ensure user again accepts terms of use
-    if (id) {
-      if (
-        dataClassification !== editAPIResponse.classificationType ||
-        PII !== editAPIResponse.piiData ||
-        bucketCollaborators?.length !== (editAPIResponse?.collaborators?.length || 0)
-      ) {
-        setTermsOfUse(false);
-      }
-    }
-  }, [id, dataClassification, PII, bucketCollaborators, editAPIResponse]);
+  // useEffect(() => {
+  //   // check whether values are changed while edit
+  //   // if changed ensure user again accepts terms of use
+  //   if (id) {
+  //     if (
+  //       dataClassification !== editAPIResponse.classificationType ||
+  //       PII !== editAPIResponse.piiData ||
+  //       bucketCollaborators?.length !== (editAPIResponse?.collaborators?.length || 0)
+  //     ) {
+  //       setTermsOfUse(false);
+  //     }
+  //   }
+  // }, [id, dataClassification, PII, bucketCollaborators, editAPIResponse]);
 
   const goBack = () => {
     // history.replace('/');
@@ -221,7 +221,7 @@ const CreateMatomo = ({ user }) => {
     if (siteNameError) {
       formValid = false;
     }
-    if (dataClassification === 'Choose') {
+    if (dataClassification === '0') {
       formValid = false;
       setDataClassificationError(errorMissingEntry);
     }
@@ -244,11 +244,11 @@ const CreateMatomo = ({ user }) => {
     if (statusValue === '0') {
       setStatusError(errorMissingEntry)
       formValid = false;
-  }
-  if (!matomoDivision || matomoDivision?.name === 'Choose') {
-      setMatomoDivisionError(errorMissingEntry)
-      formValid = false;
-  }
+    }
+    // if (!matomoDivision || matomoDivision?.name === 'Choose') {
+    //     setMatomoDivisionError(errorMissingEntry)
+    //     formValid = false;
+    // }
     // if (!termsOfUse) {
     // //   setTermsOfUseError('Please agree to terms of use');
     //   formValid = false;
@@ -324,14 +324,19 @@ const CreateMatomo = ({ user }) => {
       });
 
       const data = {
-        siteName: siteName,
         id: bucketId,
         createdBy,
         createdDate,
+        siteName: siteName,
         collaborators: bucketCollaborators,
         classificationType: dataClassification,
         piiData: PII,
-        termsOfUse: termsOfUse,
+        department: departmentName[0],
+        division: matomoDivision,
+        permission: "admin",
+        siteUrl: url,
+        status: statusValue,
+        subDivision: matomoSubDivision
       };
       dispatch(matomoActions.updateMatomo(data));
     }
