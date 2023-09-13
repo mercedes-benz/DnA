@@ -82,7 +82,7 @@ public class WorkspaceMigration {
 				log.info("old workspace ids are: {}", oldWsIds);
 				if (Objects.nonNull(oldWsIds) && oldWsIds.size() > 0) {
 					for (String oldWsId : oldWsIds) {
-						authenticatorClient.callingKongApis(oldWsId);
+						authenticatorClient.callingKongApis(oldWsId,null,false);
 					}
 				}
 			} catch (Exception e) {

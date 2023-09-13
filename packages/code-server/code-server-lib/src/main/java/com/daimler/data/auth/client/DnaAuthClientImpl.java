@@ -27,6 +27,8 @@
 
 package com.daimler.data.auth.client;
 
+import javax.servlet.http.HttpServletRequest;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.slf4j.Logger;
@@ -54,6 +56,9 @@ public class DnaAuthClientImpl implements DnaAuthClient {
 
 	@Autowired
 	RestTemplate restTemplate;
+	
+	@Autowired
+	HttpServletRequest httpRequest;
 
 	@Override
 	public JSONObject verifyLogin(String jwt) {
@@ -85,10 +90,11 @@ public class DnaAuthClientImpl implements DnaAuthClient {
 	public UserInfoVO onboardTechnicalUser(UserRequestVO userRequestVO) {
 		UserInfoVO userInfoVO = null ;
 		try {
+			String jwt = httpRequest.getHeader("Authorization");
 			HttpHeaders headers = new HttpHeaders();
 			headers.set("Accept", "application/json");
 			headers.set("Content-Type", "application/json");			
-
+			headers.set("Authorization", jwt);
 			String onboardTechUserUri = dnaBaseUri + ONBOARD_TECHNICAL_USER;			
 			HttpEntity<UserRequestVO> entity = new HttpEntity<UserRequestVO>(userRequestVO,headers);	
 			ResponseEntity<UserInfoVO> response = restTemplate.exchange(onboardTechUserUri, HttpMethod.POST, entity, UserInfoVO.class);
