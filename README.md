@@ -35,7 +35,7 @@ If you are interested to get a glimpse on how is this all tied up all together h
 
 ## Security
 
-If you are interested to find out what we are doing to enasure security on the platform have a look at [this short overview](./docs/DnASecurity.md).
+If you are interested to find out what we are doing to ensure security on the platform have a look at [this short overview](./docs/DnASecurity.md).
 
 ## Contributing
 
