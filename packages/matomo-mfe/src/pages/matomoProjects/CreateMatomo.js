@@ -155,9 +155,9 @@ const CreateMatomo = ({ user }) => {
     if (id) {
       ProgressIndicator.show();
       matomoApi
-        .getBucketByName(id)
+        .getMatomoById(id)
         .then((res) => {
-          if (res?.data?.permission.write) {
+          if (res?.data?.permission === 'admin') {
             setSiteName(res?.data?.siteName);
             setBucketPermission(res?.data?.permission);
             setBucketCollaborators(res?.data?.collaborators || []);
@@ -166,6 +166,22 @@ const CreateMatomo = ({ user }) => {
             setBucketId(res?.data?.id);
             setCreatedBy(res?.data?.createdBy);
             setCreatedDate(res?.data?.createdDate);
+            if (res?.data?.department) {
+              setDepartmentName([res?.data?.department]);
+            }
+
+            if (res?.data?.status) {
+              setStatusValue(res?.data.status);
+            }
+
+            if (res?.data?.division) {
+              setMatomoDivision(res?.data?.division);
+            }
+
+            if (res?.data?.subDivision) {
+              setMatomoSubDivision(res?.data?.subDivision);
+            }
+
             // setTermsOfUse(res?.data?.termsOfUse);
             // setEditAPIResponse(res?.data); // store to compare whether the values are changed
             SelectBox.defaultSetup();
