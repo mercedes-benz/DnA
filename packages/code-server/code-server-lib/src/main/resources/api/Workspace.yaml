@@ -632,6 +632,10 @@ definitions:
         enum: [int,prod]
       branch:
         type: string
+      secureWithIAMRequired:
+        type: boolean
+      technicalUserDetailsForIAMLogin:
+        type: string     
            
   CodeServerDeploymentDetailsVO:
     type: object
@@ -642,7 +646,11 @@ definitions:
         description: "Date of last deployment"
       deploymentUrl:
         type: string
-        description: "URL of the project deployed"  
+        description: "URL of the project deployed"
+      secureWithIAMRequired:
+        type: boolean
+      technicalUserDetailsForIAMLogin:
+        type: string    
       lastDeployedBy:
         $ref: "#/definitions/UserInfoVO" 
       lastDeployedBranch:
