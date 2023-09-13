@@ -175,7 +175,6 @@ public class MatomoController implements MatomoSitesApi {
 
 
 
-            if(setUserAccess!=null && setCollaboratorUserAccess!=null && "SUCCESS".equalsIgnoreCase(setUserAccess.getResult()) && "SUCCESS".equalsIgnoreCase(setCollaboratorUserAccess.getResult()) ) {
                 MatomoResponseVO createMatomoSiteResponse = service.createMatomoSite(matomoId,siteId,createdOn,lastModified,matomoSiteCreateVO,requestUser);
 
                 if(createMatomoSiteResponse!= null && "SUCCESS".equalsIgnoreCase(createMatomoSiteResponse.getResponse().getSuccess())) {
@@ -191,7 +190,7 @@ public class MatomoController implements MatomoSitesApi {
                     return new ResponseEntity<>(createMatomoSiteResponse, HttpStatus.INTERNAL_SERVER_ERROR);
                 }
 
-            }
+
 
 
         }
