@@ -42,6 +42,8 @@ public class AttachPluginConfigRequestDto implements Serializable{
 	  private String scope;
 	  
 	  private String redirect_uri_path;
+
+	  private String recovery_page_path;
 	  
 //	  private String claims_to_verify;
 //	  
