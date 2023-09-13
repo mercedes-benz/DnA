@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, 
-  // useSelector 
+  useSelector 
 } from 'react-redux';
 import Styles from './MatomoList.scss';
 import classNames from 'classnames';
@@ -20,13 +20,13 @@ import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indica
 import Notification from '../../common/modules/uilab/js/src/notification';
 import { regionalDateAndTimeConversionSolution } from '../Utility/utils';
 import { Envs } from '../Utility/envs';
-import { Link } from 'react-router-dom';
+// import { Link } from 'react-router-dom';
 import Popper from 'popper.js';
 
 export const MatomoList = (props) => { 
   const dispatch = useDispatch();
   // const { connect } = useSelector((state) => state.connectionInfo);
-  // const { matomoList } = useSelector((state) => state.matomo);
+  const { matomoList } = useSelector((state) => state.matomo);
   const [showDeleteModal, setDeleteModal] = useState(false);
   const [selectedItem, setSelectedItem] = useState({});
   const [currentSortOrder, setCurrentSortOrder] = useState('asc');
@@ -38,76 +38,76 @@ export const MatomoList = (props) => {
 
   let popperObj, tooltipElem = null;
 
-  const matomoList = [
-    {
-      "classificationType": "string",
-      "collaborators": [
-        {
-          "department": "string",
-          "email": "string",
-          "firstName": "string",
-          "id": "string",
-          "lastName": "string",
-          "mobileNumber": "string",
-          "permission": "view"
-        }
-      ],
-      "createdBy": {
-        "department": "string",
-        "email": "string",
-        "firstName": "string",
-        "id": "string",
-        "lastName": "string",
-        "mobileNumber": "string"
-      },
-      "createdOn": "2023-09-12T06:16:49.306Z",
-      "department": "string",
-      "division": "string",
-      "id": "string",
-      "lastModified": "2023-09-12T06:16:49.306Z",
-      "permission": "admin",
-      "piiData": true,
-      "siteId": "string",
-      "siteName": "string",
-      "siteUrl": "string",
-      "status": "string",
-      "subDivision": "string"
-    },
-    {
-      "classificationType": "string",
-      "collaborators": [
-        {
-          "department": "string",
-          "email": "string",
-          "firstName": "string",
-          "id": "string",
-          "lastName": "string",
-          "mobileNumber": "string",
-          "permission": "view"
-        }
-      ],
-      "createdBy": {
-        "department": "string",
-        "email": "string",
-        "firstName": "string",
-        "id": "string",
-        "lastName": "string",
-        "mobileNumber": "string"
-      },
-      "createdOn": "2023-09-12T06:16:49.306Z",
-      "department": "string",
-      "division": "string",
-      "id": "string",
-      "lastModified": "2023-09-12T06:16:49.306Z",
-      "permission": "admin",
-      "piiData": true,
-      "siteId": "string",
-      "siteName": "string",
-      "siteUrl": "string",
-      "status": "string",
-      "subDivision": "string"
-    }
-  ]
+  // const matomoList = [
+  //   {
+  //     "classificationType": "string",
+  //     "collaborators": [
+  //       {
+  //         "department": "string",
+  //         "email": "string",
+  //         "firstName": "string",
+  //         "id": "string",
+  //         "lastName": "string",
+  //         "mobileNumber": "string",
+  //         "permission": "view"
+  //       }
+  //     ],
+  //     "createdBy": {
+  //       "department": "string",
+  //       "email": "string",
+  //       "firstName": "string",
+  //       "id": "string",
+  //       "lastName": "string",
+  //       "mobileNumber": "string"
+  //     },
+  //     "createdOn": "2023-09-12T06:16:49.306Z",
+  //     "department": "string",
+  //     "division": "string",
+  //     "id": "string",
+  //     "lastModified": "2023-09-12T06:16:49.306Z",
+  //     "permission": "admin",
+  //     "piiData": true,
+  //     "siteId": "string",
+  //     "siteName": "string",
+  //     "siteUrl": "string",
+  //     "status": "string",
+  //     "subDivision": "string"
+  //   },
+  //   {
+  //     "classificationType": "string",
+  //     "collaborators": [
+  //       {
+  //         "department": "string",
+  //         "email": "string",
+  //         "firstName": "string",
+  //         "id": "string",
+  //         "lastName": "string",
+  //         "mobileNumber": "string",
+  //         "permission": "view"
+  //       }
+  //     ],
+  //     "createdBy": {
+  //       "department": "string",
+  //       "email": "string",
+  //       "firstName": "string",
+  //       "id": "string",
+  //       "lastName": "string",
+  //       "mobileNumber": "string"
+  //     },
+  //     "createdOn": "2023-09-12T06:16:49.306Z",
+  //     "department": "string",
+  //     "division": "string",
+  //     "id": "string",
+  //     "lastModified": "2023-09-12T06:16:49.306Z",
+  //     "permission": "admin",
+  //     "piiData": true,
+  //     "siteId": "string",
+  //     "siteName": "string",
+  //     "siteUrl": "string",
+  //     "status": "string",
+  //     "subDivision": "string"
+  //   }
+  // ]
 
   const sortByColumn = (columnName, sortOrder) => {
     return () => {
@@ -172,7 +172,7 @@ export const MatomoList = (props) => {
   const deleteBucketContent = (
     <div>
       <h3>Are you sure you want to delete {selectedItem.bucketName} ? </h3>
-      <h5>It will delete all content from the bucket.</h5>
+      <h5>It will delete all content.</h5>
       {isDataikuEnabled && <h6>Dataiku project(s) connection if any, will be removed.</h6>}
     </div>
   );
@@ -184,16 +184,16 @@ export const MatomoList = (props) => {
   const deleteBucketAccept = () => {
     ProgressIndicator.show();
     matomoApi
-      .deleteMatomo(selectedItem.siteName)
+      .deleteMatomo(selectedItem.id)
       .then(() => {
         dispatch(matomoActions.getMatomoList());
-        Notification.show(`Matomo ${selectedItem.siteName} deleted successfully.`);
+        Notification.show(`Site ${selectedItem.siteName} deleted successfully.`);
       })
       .catch((e) => {
         Notification.show(
           e.response.data.errors?.length
             ? e.response.data.errors[0].message
-            : 'Error while deleting a matomo. Try again later!',
+            : 'Error while deleting a site. Try again later!',
           'alert',
         );
         ProgressIndicator.hide();
@@ -246,7 +246,7 @@ export const MatomoList = (props) => {
             <label className={Styles.addlabel}>Create new Matomo Project</label>
           </div>
           {matomoList?.map((item, index) => {
-            const hasWriteAccess = item?.permission?.write;
+            const hasWriteAccess = item?.permission === 'admin' ? true : false;
             const isOwner = props.user?.id === item.createdBy?.id;
             const collaborators = item.collaborators?.filter((item) => item.id !== props.user?.id);
             return (
@@ -337,7 +337,7 @@ export const MatomoList = (props) => {
                             type="button"
                             onClick={() => {
                               setSelectedItem(item);
-                              history.push(`/editBucket/${item.bucketName}`);
+                              history.push(`/editMatomo/${item.id}`);
                             }}
                           >
                             <i className="icon mbc-icon edit"></i>
@@ -465,7 +465,7 @@ export const MatomoList = (props) => {
                   </div>
                 </div>
                 {matomoList?.map((item, index) => {
-                  const hasWriteAccess = item?.permission?.write;
+                  const hasWriteAccess = item?.permission === 'admin' ? true : false;
                   const isOwner = props.user?.id === item.createdBy?.id;
                   const collaborators = item.collaborators?.filter((item) => item.accesskey !== props.user?.id);
                   return (
@@ -479,10 +479,12 @@ export const MatomoList = (props) => {
                         <label className={Styles.expansionLabel + ' expansion-panel-label '} htmlFor={index + '1'}>
                           <div className={Styles.bucketTile}>
                             <div className={classNames(Styles.bucketTitleCol)}>
-                              <Link to={`/explorer/${item.siteName}`}>{item.siteId}</Link>
+                              {/* <Link to={`/explorer/${item.siteName}`}>{item.siteId}</Link> */}
+                              {item.siteId}
                             </div>
                             <div className={classNames(Styles.bucketTitleCol, Styles.bucketName)}>
-                              <Link to={`/explorer/${item.siteName}`}>{item.siteName}</Link>
+                              {/* <Link to={`/explorer/${item.siteName}`}>{item.siteName}</Link> */}
+                              {item.siteName}
                             </div>
                             <div className={Styles.bucketTitleCol}>
                               {item.siteUrl}
@@ -548,7 +550,7 @@ export const MatomoList = (props) => {
                                       type="button"
                                       onClick={() => {
                                         setSelectedItem(item);
-                                        history.push(`/editMatomo/${item.siteName}`);
+                                        history.push(`/editMatomo/${item.id}`);
                                       }}
                                     >
                                       <i className="icon mbc-icon edit"></i>
