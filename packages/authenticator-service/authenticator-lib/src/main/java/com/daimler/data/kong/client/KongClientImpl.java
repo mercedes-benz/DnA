@@ -170,7 +170,8 @@ public class KongClientImpl implements KongClient {
 				requestBody.put("protocols", new JSONArray(createRouteVO.getProtocols())); 
 				requestBody.put("hosts", new JSONArray(createRouteVO.getHosts())); 
 				requestBody.put("name", routeName);   
-				requestBody.put("strip_path", createRouteVO.isStripPath()); // Added strip_path 				
+				requestBody.put("strip_path", createRouteVO.isStripPath()); // Added strip_path 
+				requestBody.put("preserve_host", true);
 				HttpEntity<String> request = new HttpEntity<>(requestBody.toString(), headers);
 				ResponseEntity<String> response = restTemplate.exchange(postKongUri, HttpMethod.POST, request, String.class);
 				if (response != null && response.hasBody()) {
@@ -228,6 +229,7 @@ public class KongClientImpl implements KongClient {
 				attachPluginConfigRequestDto.setSsl_verify(attachPluginConfigVO.getSslVerify());
 				attachPluginConfigRequestDto.setToken_endpoint_auth_method(attachPluginConfigVO.getTokenEndpointAuthMethod());
 				attachPluginConfigRequestDto.setRedirect_uri_path(attachPluginConfigVO.getRedirectUriPath());
+				attachPluginConfigRequestDto.setRecovery_page_path(attachPluginConfigVO.getRecoveryPagePath());
 				requestWrapper.setConfig(attachPluginConfigRequestDto);
 				HttpEntity<AttachPluginWrapperDto> oidcRequest = new HttpEntity<AttachPluginWrapperDto>(
 						requestWrapper, headers);
