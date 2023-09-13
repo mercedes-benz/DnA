@@ -47,6 +47,7 @@ public class MatomoController implements MatomoSitesApi {
             consumes = { "application/json" },
             method = RequestMethod.POST)
     public ResponseEntity<MatomoResponseVO> createMatomoSite(@ApiParam(value = "Request Body that contains data required to initialize matomo site for user" ,required=true )  @Valid @RequestBody MatomoSiteCreateRequestWrapperVO matomoRequestVO) {
+        log.info("inside createMatomoSite");
         MatomoResponseVO responseVO = new MatomoResponseVO();
         MatomoSiteRequestVO matomoSiteCreateVO = matomoRequestVO.getData();
         GenericMessage responseMessage = new GenericMessage();
@@ -97,7 +98,7 @@ public class MatomoController implements MatomoSitesApi {
                 }
             }
         }
-
+        log.info("before matomoAddSiteResponse");
         MatomoSiteResponseDto matomoAddSiteResponse = matomoClient.addMatomoSite(matomoSiteCreateVO.getSiteName(),matomoSiteCreateVO.getSiteUrl());
         if(matomoAddSiteResponse==null || (matomoAddSiteResponse!=null && ("error".equalsIgnoreCase(matomoAddSiteResponse.getResult())) && matomoAddSiteResponse.getMessage()!=null)) {
 
@@ -195,7 +196,7 @@ public class MatomoController implements MatomoSitesApi {
 
         }
 
-
+        log.info("after call");
         return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
