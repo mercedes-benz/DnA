@@ -56,13 +56,18 @@
     }
   }
 }
-.reportNameDivide {
-  display: flex;
-  flex-direction: column;
-  .gotoNotebook {
-    cursor: pointer;
-  }
+// .reportNameDivide {
+//   display: flex;
+//   flex-direction: column;
+//   .gotoNotebook {
+//     cursor: pointer;
+//   }
+// }
+
+.reportName{
+  word-break: break-all;
 }
+
 .reportRow:hover {
   cursor: pointer;
   background-color: #1c2026;
@@ -77,10 +82,10 @@
     position: relative;
   }
 }
-.solIcon {
-  display: flex;
-  align-items: center;
-}
+// .solIcon {
+//   display: flex;
+//   align-items: center;
+// }
 .solIconimg {
   position: relative;
   min-width: 50px;
