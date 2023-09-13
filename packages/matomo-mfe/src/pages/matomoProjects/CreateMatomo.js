@@ -519,13 +519,12 @@ const CreateMatomo = ({ user }) => {
                   className={classNames(
                     'input-field-group include-error',
                     matomoDivisionError?.length ? 'error' : '',
-                    id && !isOwner ? 'disabled' : '',
                   )}
                 >
                   <label className={classNames(Styles.inputLabel, 'input-label')}>
                     Division <sup>*</sup>
                   </label>
-                  <div className={classNames('custom-select', id && !isOwner ? 'disabled' : '')}>
+                  <div className={classNames('custom-select')}>
                   <select
                         id="divisionField"
                         required={true}
@@ -616,15 +615,18 @@ const CreateMatomo = ({ user }) => {
                   className={classNames(
                     'input-field-group include-error',
                     matomoSubDivisionError?.length ? 'error' : '',
-                    id && !isOwner ? 'disabled' : '',
                   )}
                 >
                   <label className={classNames(Styles.inputLabel, 'input-label')}>
                     Sub Division <sup>*</sup>
                   </label>
-                  <div className={classNames('custom-select', id && !isOwner ? 'disabled' : '')}>
+                  <div className={classNames('custom-select')}>
                     
-                    <select id="subDivisionField" onChange={handleSubDivision} value={matomoSubDivision}>
+                    <select id="subDivisionField" 
+                    onChange={handleSubDivision} 
+                    value={matomoSubDivision}
+                    required={true}
+                    >
                         {subDivisions?.some((item) => item.id === '0' && item.name === 'None') ? (
                           <option id="subDivisionDefault" value={0}>
                             None
@@ -659,7 +661,11 @@ const CreateMatomo = ({ user }) => {
                     Status <sup>*</sup>
                   </label>
                   <div className={classNames('custom-select', id && !isOwner ? 'disabled' : '')}>
-                    <select id="reportStatusField" onChange={onChangeStatus} value={statusValue}>
+                    <select id="reportStatusField" 
+                    onChange={onChangeStatus} 
+                    value={statusValue}
+                    required={true}
+                    >
                       {statuses?.length
                       ?           
                       <>
@@ -692,10 +698,14 @@ const CreateMatomo = ({ user }) => {
                     Data Classification <sup>*</sup>
                   </label>
                   <div className={classNames('custom-select', id && !isOwner ? 'disabled' : '')}>
-                    <select id="reportStatusField" onChange={handleDataClassification} value={dataClassification}>
+                    <select id="classificationField" 
+                    onChange={handleDataClassification} 
+                    value={dataClassification}
+                    required={true}
+                    >
                       {dataClassificationDropdown?.length
                         ?<>
-                          <option id="reportStatusOption" value={0}>
+                          <option id="classificationOption" value={0}>
                               Choose
                           </option>
                           {dataClassificationDropdown?.map((item) => (
