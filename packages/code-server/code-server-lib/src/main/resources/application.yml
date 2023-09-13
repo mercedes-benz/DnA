@@ -121,8 +121,13 @@ kong:
    scope: ${SCOPE:XXXX}
    sslVerify: ${SSL_VERIFY:XXXX}
    tokenEndpointAuthMethod: ${TOKEN_ENDPOINT_AUTH_METHOD:XXXX}  
-   
-# BUG-339 
+   algorithm: ${ALGORITHM:XXXX}
+   secret: ${SECRET:XXXX}
+   clientHomeUrl: ${CLIENT_HOME_URL:XXXX}
+   privateKeyFilePath: ${PRIVATE_KEY_FILEPATH:XXXX}
+   expiresIn: ${EXPIRES_IN:XXXX}
+   jwtClientId: ${JWT_CLIENT_ID:XXXX}
+   jwtClientSecret: ${JWT_CLIENT_SECRET:XXXX}
 
 workspace:
   update: ${UPDATE_WORKSPACEDATA:XXXX}   
