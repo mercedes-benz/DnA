@@ -329,6 +329,7 @@ const CreateMatomo = ({ user }) => {
         // termsOfUse: termsOfUse,
       };
       dispatch(matomoActions.createMatomo(data));
+      history.replace('/');
     }
   };
 
@@ -824,7 +825,7 @@ const CreateMatomo = ({ user }) => {
                       <React.Fragment>
                         <div className={Styles.collUserTitle}>
                           <div className={Styles.collUserTitleCol}>User ID</div>
-                          <div className={Styles.collUserTitleCol}>Name</div>
+                          {/* <div className={Styles.collUserTitleCol}>Name</div> */}
                           <div className={Styles.collUserTitleCol}>Permission</div>
                           <div className={Styles.collUserTitleCol}></div>
                         </div>
@@ -835,7 +836,7 @@ const CreateMatomo = ({ user }) => {
                               return (
                                 <div key={collIndex} className={Styles.collUserContentRow}>
                                   <div className={Styles.collUserTitleCol}>{item.id}</div>
-                                  <div className={Styles.collUserTitleCol}>{item.firstName + ' ' + item.lastName}</div>
+                                  {/* <div className={Styles.collUserTitleCol}>{item.firstName + ' ' + item.lastName}</div> */}
                                   <div className={Styles.collUserTitleCol}>
                                     <div className={classNames('input-field-group include-error ' + Styles.inputGrp)}>
                                       <label className={classNames('checkbox', 

@@ -7,7 +7,7 @@ const getMatomoProjectsList = () => {
 };
 
 const getMatomoById = (id) => {
-  return server.get(`/matomo/${id}`, {
+  return server.get(`/matomo/${id}/sites`, {
     data: {},
   });
 };
