@@ -92,6 +92,8 @@ public class MatomoClient {
                     MessageDescription getUserResponseErrMsg = new MessageDescription(createUserResponse.getMessage());
                     String userNotExistMessage = "User '" + userId + "' doesn't exist.";
                     if (userNotExistMessage.equalsIgnoreCase(createUserResponse.getMessage())) {
+
+
                         String addMatomoUserUrl = matomoBaseUri + matomoAddUserPath + matomoTokenAuth +"&userLogin=" + userId + "&password=" + userId + "&email=" + userEmail;
                         ResponseEntity<MatomoUserResponseDto> addMatomoUserResponse = restTemplate.exchange(addMatomoUserUrl, HttpMethod.GET,
                                 requestEntity, MatomoUserResponseDto.class);
@@ -145,11 +147,14 @@ public class MatomoClient {
             HttpEntity requestEntity = new HttpEntity<>(headers);
                     //setUserAccess
                     String setUserAccessUrl =  matomoBaseUri + matomoSetUserAccessPath + matomoTokenAuth +"&userLogin=" + userId + "&access=" +access+ "&idSites=" + siteId;
+
                     ResponseEntity<MatomoSetUserAccessResponseDto> setMatomoUserAccessResponse = restTemplate.exchange(setUserAccessUrl, HttpMethod.GET,
                             requestEntity, MatomoSetUserAccessResponseDto.class);
+
                     if (setMatomoUserAccessResponse.hasBody()) {
                         setUserAcessResponse = setMatomoUserAccessResponse.getBody();
-                        if ((setUserAcessResponse != null && ("success".equalsIgnoreCase(getSiteResponse.getResult())))) {
+
+                        if ((setUserAcessResponse != null && ("success".equalsIgnoreCase(setUserAcessResponse.getResult())))) {
                             setUserAcessResponse.setStatus("SUCCESS");
                         }
                         else{
