@@ -135,4 +135,4 @@
   file:
     path: "{{dss_backup_directory}}/dataiku_backup_{{date_now}}_{{ansible_default_ipv4.address}}.tar.gz"
     state: absent
-  tags: [ lc-upgrade-prod ]  
+  tags: [ lc-upgrade-prod-remove-backup ]  
