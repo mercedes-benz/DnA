@@ -17,13 +17,13 @@ const getMatomoList = () => {
     matomoApi
       .getMatomoProjectsList()
       .then((res) => {
-        const totalNumberOfPages = Math.ceil(res?.data?.data?.length / pagination.maxItemsPerPage);
-        const modifiedData = res?.data ? res.data.data.slice(0, pagination.maxItemsPerPage) : [];
+        const totalNumberOfPages = Math.ceil(res?.data?.records?.length / pagination.maxItemsPerPage);
+        const modifiedData = res?.data ? res?.data?.records.slice(0, pagination.maxItemsPerPage) : [];
         dispatch({
           type: 'SET_PAGINATION',
           payload: {
             totalNumberOfPages,
-            bucketListResponse: res.data.data,
+            bucketListResponse: res?.data?.records,
             currentPageNumber: 1,
           },
         });

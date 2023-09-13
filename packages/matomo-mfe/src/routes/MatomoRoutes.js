@@ -26,6 +26,11 @@ export const protectedRoutes = [
     exact: true,
     path: '/createMatomo',
   },
+  {
+    component: CreateMatomo,
+    exact: true,
+    path: '/editMatomo/:id',
+  },
 ];
 
 const Routes = ({ user, hostHistory }) => {
