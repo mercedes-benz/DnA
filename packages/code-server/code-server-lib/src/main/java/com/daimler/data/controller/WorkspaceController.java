@@ -700,7 +700,7 @@ public class WorkspaceController  implements CodeServerApi{
     }
 
 
-    @ApiOperation(value = "Get all codeServer workspaces for the user.", nickname = "getAll", notes = "Get all codeServer workspaces for the user.", response = WorkspaceCollectionVO.class, tags={ "code-server", })
+	@ApiOperation(value = "Get all codeServer workspaces for the user.", nickname = "getAll", notes = "Get all codeServer workspaces for the user.", response = WorkspaceCollectionVO.class, tags={ "code-server", })
     @ApiResponses(value = { 
         @ApiResponse(code = 201, message = "Returns message of success or failure", response = WorkspaceCollectionVO.class),
         @ApiResponse(code = 204, message = "Fetch complete, no content found."),
@@ -836,5 +836,26 @@ public class WorkspaceController  implements CodeServerApi{
 		}
 	}
 
+	@ApiOperation(value = "To check given user has a access to workspace or not.", nickname = "validateCodespace", notes = "To check a user has access to workspace.", response = CodeServerWorkspaceValidateVO.class, tags={ "code-server", })
+	@ApiResponses(value = {
+			@ApiResponse(code = 200, message = "Returns message of success or failure", response = CodeServerWorkspaceValidateVO.class),
+			@ApiResponse(code = 204, message = "Fetch complete, no content found."),
+			@ApiResponse(code = 400, message = "Bad request."),
+			@ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+			@ApiResponse(code = 403, message = "Request is not authorized."),
+			@ApiResponse(code = 405, message = "Method not allowed"),
+			@ApiResponse(code = 500, message = "Internal error") })
+	@RequestMapping(value = "/workspaces/{id}/{userid}/validate",
+			produces = { "application/json" },
+			consumes = { "application/json" },
+			method = RequestMethod.GET)
+	@Override
+	public ResponseEntity<CodeServerWorkspaceValidateVO> validateCodespace(
+			@ApiParam(value = "Workspace ID for the project", required = true) @PathVariable("id")String id,
+			@ApiParam(value = "User ID to be validated", required = true) @PathVariable("userid") String userid
+	) {
+		CodeServerWorkspaceValidateVO validateVO = service.validateCodespace(id, userid);
+		return new ResponseEntity<>(validateVO, HttpStatus.OK);
+	}
 
 }

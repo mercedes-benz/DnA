@@ -275,7 +275,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 		}
 		else {
 			paths.add("/" + serviceName + "/");
-			paths.add("/");
+			//paths.add("/");
 		}
 		CreateRouteRequestVO createRouteRequestVO = new CreateRouteRequestVO();
 		CreateRouteVO createRouteVO = new CreateRouteVO();		
@@ -293,7 +293,11 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 		AttachPluginRequestVO attachPluginRequestVO = new AttachPluginRequestVO();
 		AttachPluginVO attachPluginVO = new AttachPluginVO();
 		AttachPluginConfigVO attachPluginConfigVO = new AttachPluginConfigVO();
+
 		attachPluginVO.setName(OIDC_PLUGIN);
+
+		String recovery_page_path = "https://" + codeServerEnvUrl + "/" + serviceName + "/";		
+
 		attachPluginConfigVO.setBearer_only(bearerOnly);
 		attachPluginConfigVO.setClient_id(clientId);
 		attachPluginConfigVO.setClient_secret(clientSecret);
@@ -308,6 +312,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 		attachPluginConfigVO.setScope(scope);
 		attachPluginConfigVO.setSsl_verify(sslVerify);
 		attachPluginConfigVO.setToken_endpoint_auth_method(tokenEndpointAuthMethod);
+		attachPluginConfigVO.setRecovery_page_path(recovery_page_path);
 		attachPluginVO.setConfig(attachPluginConfigVO);
 		attachPluginRequestVO.setData(attachPluginVO);
 		

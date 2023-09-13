@@ -40,6 +40,7 @@ import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 
 import com.daimler.data.db.json.UserInfo;
+import com.daimler.data.dto.workspace.CodeServerWorkspaceValidateVO;
 import org.springframework.stereotype.Repository;
 
 import com.daimler.data.controller.exceptions.GenericMessage;
@@ -378,6 +379,35 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 			log.error("Failed to query workspaces under project {} , which are not in deleted state");
 		}
 		return records;
-	}		
+	}
+
+
+	@Override
+	public CodeServerWorkspaceValidateVO validateCodespace(String id, String userId) {
+		String getQuery = "SELECT COUNT(*) > 0 AS hasPermission " +
+				"FROM workspace_nsql " +
+				"WHERE jsonb_extract_path_text(data, 'workspaceId') = (:id) " +
+				"AND LOWER(jsonb_extract_path_text(data, 'gitUserName')) = LOWER(:userId) " +
+				"AND LOWER(jsonb_extract_path_text(data, 'status')) NOT IN ('create_requested', 'deleted', 'collaboration_requested')";
+
+		try {
+			Query q = em.createNativeQuery(getQuery);
+			q.setParameter("id", id);
+			q.setParameter("userId", userId);
+
+			List<Boolean> resultList = q.getResultList();
+			if (!resultList.isEmpty() && resultList.get(0)) {
+				CodeServerWorkspaceValidateVO validateVO = new CodeServerWorkspaceValidateVO();
+				validateVO.setIsValid(true);
+				return validateVO;
+			}
+		} catch (Exception e) {
+			log.error("Failed to query workspaces under project {} , which are not in deleted state");
+		}
+		// If no record matched or an exception occurred, return CodeServerWorkspaceValidateVO with isValid set to false
+		CodeServerWorkspaceValidateVO validateVO = new CodeServerWorkspaceValidateVO();
+		validateVO.setIsValid(false);
+		return validateVO;
+	}
 
 }
