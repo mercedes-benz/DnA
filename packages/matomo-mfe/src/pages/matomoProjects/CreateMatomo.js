@@ -9,7 +9,7 @@ import AddUser from 'dna-container/AddUser';
 
 import { useParams } from 'react-router-dom';
 import { history } from '../../store/storeRoot';
-import { hostServer, storageServer } from '../../server/api';
+import { hostServer } from '../../server/api';
 // import { ConnectionModal } from '../ConnectionInfo/ConnectionModal';
 
 import Modal from 'dna-container/Modal';
@@ -23,7 +23,7 @@ import { matomoApi } from '../../apis/matamo.api';
 // import { bucketsApi } from '../../apis/buckets.api';
 import Notification from '../../common/modules/uilab/js/src/notification';
 import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indicator';
-import { Envs } from '../Utility/envs';
+// import { Envs } from '../Utility/envs';
 
 const CreateMatomo = ({ user }) => {
   const { id } = useParams();
@@ -33,6 +33,7 @@ const CreateMatomo = ({ user }) => {
   const [bucketPermission, setBucketPermission] = useState({
     read: true,
     write: true,
+    admin: true
   });
   const [showInfoModal, setInfoModal] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
@@ -46,7 +47,7 @@ const CreateMatomo = ({ user }) => {
   const [createdDate, setCreatedDate] = useState(new Date());
 
   const [dataClassificationDropdown, setDataClassificationDropdown] = useState([]);
-  const [dataClassification, setDataClassification] = useState('Internal');
+  const [dataClassification, setDataClassification] = useState('');
   const [dataClassificationError, setDataClassificationError] = useState('');
   const [PII, setPII] = useState(false);
   const [termsOfUse, setTermsOfUse] = useState(false);
@@ -62,39 +63,59 @@ const CreateMatomo = ({ user }) => {
   const [matomoDivisionError, setMatomoDivisionError] = useState('');
   const [matomoSubDivision, setMatomoSubDivision] = useState('');
   const [matomoSubDivisionError, setMatomoSubDivisionError] = useState('');
+  const [statusValue, setStatusValue] = useState('');
+  const [statusError, setStatusError] = useState('');
+  const statuses = [{
+    id: 1,
+    name: 'Active'
+    }, {
+        id: 2,
+        name: 'In development'
+    }, {
+        id: 3,
+        name: 'Sundowned'
+  }];
   
   
   
   const [divisions, setDivisions] = useState([]);
   const [subDivisions, setSubDivisions] = useState([]);
 
-  const isSecretEnabled = Envs.ENABLE_DATA_CLASSIFICATION_SECRET;
+  // const isSecretEnabled = Envs.ENABLE_DATA_CLASSIFICATION_SECRET;
 
   const isOwner = user.id === createdBy.id;
 
   useEffect(() => {
     // setDivisions([]);
     // setSubDivisions([]);
-    setDepartments([]);
+    // setDepartments([]);
   }, []);  
 
   useEffect(() => {
     ProgressIndicator.show();
-    hostServer.get('/divisions').then((res) => {
-      setDivisions(res.data);
-      ProgressIndicator.hide();
-      SelectBox.defaultSetup();
-    });
-    matomoApi.getDepartments('/departments').then((res) => {
-        setDepartments(res?.data?.data);
-        ProgressIndicator.hide();
-        // SelectBox.defaultSetup();
-    });
-    storageServer.get('/classifications').then((res) => {
-        setDataClassificationDropdown(res.data);
-        ProgressIndicator.hide();
-        // SelectBox.defaultSetup();
-    });
+    matomoApi.getLovData()
+            .then((response) => {
+                setDataClassificationDropdown(response[0]?.data?.data || []);
+                setDivisions(response[1]?.data || []);
+                setDepartments(response[2]?.data?.data || []);
+                SelectBox.defaultSetup();
+            })
+            .catch((err) => {
+                ProgressIndicator.hide();
+                SelectBox.defaultSetup();
+                if (err?.response?.data?.errors?.length > 0) {
+                    err?.response?.data?.errors.forEach((err) => {
+                        Notification.show(err?.message || 'Something went wrong.', 'alert');
+                    });
+                } else {
+                    Notification.show(err?.message || 'Something went wrong.', 'alert');
+                }
+            })
+            .finally(() => {
+                // validateUser(props?.user?.id);
+                
+                ProgressIndicator.hide();
+            });
     //eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -113,22 +134,22 @@ const CreateMatomo = ({ user }) => {
     //eslint-disable-next-line react-hooks/exhaustive-deps
   }, [matomoDivision]);
 
-  useEffect(() => {
-    ProgressIndicator.show();
-    matomoApi
-      .getDataConnectionTypes()
-      .then((res) => {
-        setDataClassificationDropdown(res?.data?.data || []);
-        SelectBox.defaultSetup();
-        ProgressIndicator.hide();
-      })
-      .catch(() => {
-        ProgressIndicator.hide();
-        setDataClassificationDropdown([{ id: '', name: 'Choose' }]);
-        SelectBox.defaultSetup();
-        Notification.show('Error while fetching Data Connection Type list', 'alert');
-      });
-  }, [isSecretEnabled]);
+  // useEffect(() => {
+  //   ProgressIndicator.show();
+  //   matomoApi
+  //     .getDataConnectionTypes()
+  //     .then((res) => {
+  //       setDataClassificationDropdown(res?.data?.data || []);
+  //       SelectBox.defaultSetup();
+  //       ProgressIndicator.hide();
+  //     })
+  //     .catch(() => {
+  //       ProgressIndicator.hide();
+  //       setDataClassificationDropdown([{ id: '', name: 'Choose' }]);
+  //       SelectBox.defaultSetup();
+  //       Notification.show('Error while fetching Data Connection Type list', 'alert');
+  //     });
+  // }, [isSecretEnabled]);
 
   useEffect(() => {
     if (id) {
@@ -220,10 +241,18 @@ const CreateMatomo = ({ user }) => {
         setMatomoSubDivisionError(errorMissingEntry);
         formValid = false;
     }
-    if (!termsOfUse) {
-    //   setTermsOfUseError('Please agree to terms of use');
+    if (statusValue === '0') {
+      setStatusError(errorMissingEntry)
       formValid = false;
-    }
+  }
+  if (!matomoDivision || matomoDivision?.name === 'Choose') {
+      setMatomoDivisionError(errorMissingEntry)
+      formValid = false;
+  }
+    // if (!termsOfUse) {
+    // //   setTermsOfUseError('Please agree to terms of use');
+    //   formValid = false;
+    // }
     setTimeout(() => {
       const anyErrorDetected = document.querySelector('.error');
       anyErrorDetected?.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -231,6 +260,10 @@ const CreateMatomo = ({ user }) => {
 
     return formValid;
   };
+
+  const onChangeStatus = (e) => {
+    setStatusValue(e.target.value);
+  }
 
   const handleSiteNameValidation = (value) => {
     if (value) {
@@ -260,9 +293,9 @@ const CreateMatomo = ({ user }) => {
 
   const onAddNewBucket = () => {
     if (storageBucketValidation()) {
-      const permissions = [];
+      const permission = [];
       Object.entries(bucketPermission)?.forEach(([k, v]) => {
-        if (v === true) permissions.push(k);
+        if (v === true) permission.push(k);
       });
 
       const data = {
@@ -270,8 +303,14 @@ const CreateMatomo = ({ user }) => {
         collaborators: bucketCollaborators,
         classificationType: dataClassification,
         piiData: PII,
-        creator: user,
-        termsOfUse: termsOfUse,
+        department: departmentName[0],
+        division: matomoDivision,
+        permission: "admin",
+        siteUrl: url,
+        status: statusValue,
+        subDivision: matomoSubDivision
+        // createdBy: user,
+        // termsOfUse: termsOfUse,
       };
       dispatch(matomoActions.createMatomo(data));
     }
@@ -279,9 +318,9 @@ const CreateMatomo = ({ user }) => {
 
   const onUpdateBucket = () => {
     if (storageBucketValidation()) {
-      const permissions = [];
+      const permission = [];
       Object.entries(bucketPermission)?.forEach(([k, v]) => {
-        if (v === true) permissions.push(k);
+        if (v === true) permission.push(k);
       });
 
       const data = {
@@ -302,15 +341,16 @@ const CreateMatomo = ({ user }) => {
     const collabarationData = {
       firstName: collaborators.firstName,
       lastName: collaborators.lastName,
-      accesskey: collaborators.shortId,
+      id: collaborators.shortId,
       department: collaborators.department,
       email: collaborators.email,
       mobileNumber: collaborators.mobileNumber,
-      permission: { read: true, write: false },
+      // permission: { view: true, write: false, admin: false },
+      permission: collaborators.permission,
     };
 
     let duplicateMember = false;
-    duplicateMember = bucketCollaborators.filter((member) => member.accesskey === collaborators.shortId)?.length
+    duplicateMember = bucketCollaborators.filter((member) => member.id === collaborators.shortId)?.length
       ? true
       : false;
     const isCreator = id ? createdBy.id === collaborators.shortId : user.id === collaborators.shortId;
@@ -330,21 +370,21 @@ const CreateMatomo = ({ user }) => {
 
   const onCollaboratorPermission = (e, userName) => {
     const bucketList = bucketCollaborators.find((item) => {
-      return item.accesskey == userName;
+      return item.id == userName;
     });
-
-    if (e.target.checked) {
-      bucketList.permission.write = true;
-    } else {
-      bucketList.permission.write = false;
-    }
+    bucketList.permission = e.target.value;
+    // if (e.target.checked) {
+    //   bucketList.permission.write = true;
+    // } else {
+    //   bucketList.permission.write = false;
+    // }
     setBucketCollaborators([...bucketCollaborators]);
   };
 
   const onCollabaratorDelete = (collId) => {
     return () => {
       const currentCollList = bucketCollaborators.filter((item) => {
-        return item.accesskey !== collId;
+        return item.id !== collId;
       });
       setBucketCollaborators(currentCollList);
     };
@@ -371,19 +411,19 @@ const CreateMatomo = ({ user }) => {
       });
   };
 
-//   const handleCheckbox = (e) => {
-//     if (e.target.checked) {
-//       setBucketPermission({
-//         ...bucketPermission,
-//         [e.target.name]: true,
-//       });
-//     } else {
-//       setBucketPermission({
-//         ...bucketPermission,
-//         [e.target.name]: false,
-//       });
-//     }
-//   };
+  const handleCheckbox = (e) => {
+    if (e.target.checked) {
+      setBucketPermission({
+        ...bucketPermission,
+        [e.target.name]: true,
+      });
+    } else {
+      setBucketPermission({
+        ...bucketPermission,
+        [e.target.name]: false,
+      });
+    }
+  };
 
 //   const handleInfoModal = () => {
 //     setInfoModal(true);
@@ -606,7 +646,7 @@ const CreateMatomo = ({ user }) => {
                 <div
                   className={classNames(
                     'input-field-group include-error',
-                    dataClassificationError?.length ? 'error' : '',
+                    statusError?.length ? 'error' : '',
                     id && !isOwner ? 'disabled' : '',
                   )}
                 >
@@ -614,23 +654,24 @@ const CreateMatomo = ({ user }) => {
                     Status <sup>*</sup>
                   </label>
                   <div className={classNames('custom-select', id && !isOwner ? 'disabled' : '')}>
-                    <select id="reportStatusField" onChange={handleDataClassification} value={dataClassification}>
-                      {dataClassificationDropdown?.length
-                        ? dataClassificationDropdown?.map((item) => (
-                            <option
-                              disabled={item.name === 'Secret' && !isSecretEnabled}
-                              id={item.id}
-                              key={item.id}
-                              value={item.name}
-                            >
-                              {item.name}
+                    <select id="reportStatusField" onChange={onChangeStatus} value={statusValue}>
+                      {statuses?.length
+                      ?           
+                      <>
+                        <option id="reportStatusOption" value={0}>
+                            Choose
+                        </option>
+                        {statuses?.map((obj) => (
+                            <option id={obj.name + obj.id} key={obj.id} value={obj.name}>
+                                {obj.name}
                             </option>
-                          ))
+                        ))}
+                      </>
                         : null}
                     </select>
                   </div>
-                  <span className={classNames('error-message', dataClassificationError?.length ? '' : 'hide')}>
-                    {dataClassificationError}
+                  <span className={classNames('error-message', statusError?.length ? '' : 'hide')}>
+                    {statusError}
                   </span>
                 </div>
               </div>
@@ -648,16 +689,21 @@ const CreateMatomo = ({ user }) => {
                   <div className={classNames('custom-select', id && !isOwner ? 'disabled' : '')}>
                     <select id="reportStatusField" onChange={handleDataClassification} value={dataClassification}>
                       {dataClassificationDropdown?.length
-                        ? dataClassificationDropdown?.map((item) => (
+                        ?<>
+                          <option id="reportStatusOption" value={0}>
+                              Choose
+                          </option>
+                          {dataClassificationDropdown?.map((item) => (
                             <option
-                              disabled={item.name === 'Secret' && !isSecretEnabled}
+                              // disabled={item.name === 'Secret' && !isSecretEnabled}
                               id={item.id}
                               key={item.id}
                               value={item.name}
                             >
                               {item.name}
                             </option>
-                          ))
+                          ))}
+                        </> 
                         : null}
                     </select>
                   </div>
@@ -698,6 +744,42 @@ const CreateMatomo = ({ user }) => {
                     </label>
                   </div>
                 </div>
+                <div className={classNames('input-field-group include-error')}>
+                  <label className={classNames(Styles.inputLabel, 'input-label')}>
+                    Permission <sup>*</sup>
+                  </label>
+                  <div className={Styles.permissionField}>
+                    <div className={Styles.checkboxContainer}>
+                      <label className={classNames('checkbox', Styles.checkBoxDisable)}>
+                        <span className="wrapper">
+                          <input
+                            name="read"
+                            type="checkbox"
+                            className="ff-only"
+                            checked={!!bucketPermission?.admin}
+                            onChange={handleCheckbox}
+                          />
+                        </span>
+                        {/* <span className="label">Read</span> */}
+                        <span className="label">Admin</span>
+                      </label>
+                    </div>
+                    {/* <div className={Styles.checkboxContainer}>
+                      <label className={classNames('checkbox', Styles.checkBoxDisable)}>
+                        <span className="wrapper">
+                          <input
+                            name="write"
+                            type="checkbox"
+                            className="ff-only"
+                            checked={!!bucketPermission?.write}
+                            onChange={handleCheckbox}
+                          />
+                        </span>
+                        <span className="label">Write</span>
+                      </label>
+                    </div> */}
+                  </div>
+                </div>
               </div>
             </div>
             <div className={classNames('input-field-group include-error')}>
@@ -717,22 +799,26 @@ const CreateMatomo = ({ user }) => {
                         </div>
                         <div className={classNames('mbc-scroll', Styles.collUserContent)}>
                           {bucketCollaborators
-                            ?.filter((item) => item.accesskey !== user.id && item.accesskey !== createdBy.id)
+                            ?.filter((item) => item.id !== user.id && item.id !== createdBy.id)
                             ?.map((item, collIndex) => {
                               return (
                                 <div key={collIndex} className={Styles.collUserContentRow}>
-                                  <div className={Styles.collUserTitleCol}>{item.accesskey}</div>
+                                  <div className={Styles.collUserTitleCol}>{item.id}</div>
                                   <div className={Styles.collUserTitleCol}>{item.firstName + ' ' + item.lastName}</div>
                                   <div className={Styles.collUserTitleCol}>
                                     <div className={classNames('input-field-group include-error ' + Styles.inputGrp)}>
-                                      <label className={classNames('checkbox', Styles.checkBoxDisable)}>
+                                      <label className={classNames('checkbox', 
+                                      // Styles.checkBoxDisable
+                                      )}>
                                         <span className="wrapper">
                                           <input
-                                            type="checkbox"
+                                            type="radio"
                                             className="ff-only"
-                                            value="read"
-                                            checked={true}
-                                            readOnly
+                                            value="view"
+                                            checked={item?.permission == 'view' ? true : false}
+                                            onChange={(e) => onCollaboratorPermission(e, item.id)}
+                                            // readOnly
+                                            name="view"
                                           />
                                         </span>
                                         <span className="label">Read</span>
@@ -743,24 +829,41 @@ const CreateMatomo = ({ user }) => {
                                       <label className={'checkbox'}>
                                         <span className="wrapper">
                                           <input
-                                            type="checkbox"
+                                            type="radio"
                                             className="ff-only"
                                             value="write"
-                                            checked={item?.permission !== null ? item?.permission?.write : false}
-                                            onChange={(e) => onCollaboratorPermission(e, item.accesskey)}
+                                            checked={item?.permission == 'write' ? true : false}
+                                            onChange={(e) => onCollaboratorPermission(e, item.id)}
+                                            name="write"
                                           />
                                         </span>
                                         <span className="label">Write</span>
                                       </label>
                                     </div>
+                                    &nbsp;&nbsp;&nbsp;
+                                    <div className={classNames('input-field-group include-error ' + Styles.inputGrp)}>
+                                      <label className={'checkbox'}>
+                                        <span className="wrapper">
+                                          <input
+                                            type="radio"
+                                            className="ff-only"
+                                            value="admin"
+                                            checked={item?.permission == 'admin' ? true : false}
+                                            onChange={(e) => onCollaboratorPermission(e, item.id)}
+                                            name="admin"
+                                          />
+                                        </span>
+                                        <span className="label">Admin</span>
+                                      </label>
+                                    </div>
                                   </div>
                                   <div className={Styles.collUserTitleCol}>
-                                    <div className={Styles.deleteEntry} onClick={onCollabaratorDelete(item.accesskey)}>
+                                    <div className={Styles.deleteEntry} onClick={onCollabaratorDelete(item.id)}>
                                       <i className="icon mbc-icon trash-outline" />
                                       Delete Entry
                                     </div>
                                     {isOwner && 
-                                      <div className={Styles.deleteEntry} onClick={() => onTransferOwnership(item.accesskey)}>
+                                      <div className={Styles.deleteEntry} onClick={() => onTransferOwnership(item.id)}>
                                         <i className="icon mbc-icon comparison" />
                                         Transfer Ownership
                                       </div>

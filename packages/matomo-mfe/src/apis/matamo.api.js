@@ -1,7 +1,7 @@
-import { hostServer, server, reportsServer } from '../server/api';
+import { hostServer, server, reportsServer, storageServer } from '../server/api';
 
 const getMatomoProjectsList = () => {
-  return server.get(`/matomo/projects`, {
+  return server.get(`/matomo`, {
     data: {},
   });
 };
@@ -61,6 +61,18 @@ const getDepartments = () => {
   });
 };
 
+const getLovData = () => {
+  return Promise.all([
+    storageServer.get(`/classifications`, {
+      data: {},
+    }),
+    hostServer.get('/divisions'),
+    reportsServer.get('/departments', {
+      data: {},
+    }),
+  ]);
+}
+
 export const matomoApi = {
   getMatomoProjectsList,
   getMatomoByName,
@@ -73,5 +85,6 @@ export const matomoApi = {
   connectToDataikuProjects,
   connectToJupyterNotebook,
   transferOwnership,
-  getDepartments
+  getDepartments,
+  getLovData
 };
