@@ -76,6 +76,26 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 	@Value("${kong.tokenEndpointAuthMethod}")
 	private String tokenEndpointAuthMethod;
 	
+	@Value("${kong.algorithm}")
+	private String jwtAlgorithm;
+	
+	@Value("${kong.secret}")
+	private String jwtSecret;
+	
+	@Value("${kong.clientHomeUrl}")
+	private String jwtClientHomeUrl;
+	
+	@Value("${kong.privateKeyFilePath}")
+	private String jwtPrivateKeyFilePath;
+	
+	@Value("${kong.expiresIn}")
+	private String jwtExpiresIn;
+	
+	@Value("${kong.jwtClientId}")
+	private String jwtClientId;
+	
+	@Value("${kong.jwtClientSecret}")
+	private String jwtClientSecret;
 
 
 	@Autowired
@@ -85,6 +105,9 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 	private static final String CREATE_ROUTE = "/routes";
 	private static final String ATTACH_PLUGIN_TO_SERVICE = "/plugins";
 	private static final String WORKSPACE_API = "API";
+	private static final String OIDC_PLUGIN = "oidc";
+	private static final String JWTISSUER_PLUGIN = "jwtissuer";
+	private static final String ATTACH_JWT_PLUGIN_TO_SERVICE = "/jwtplugins";
 	
 	@Override
 	public GenericMessage createService(CreateServiceRequestVO createServiceRequestVO) {
@@ -219,7 +242,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 		return response;
 	}
 	
-	public void callingKongApis(String serviceName, String env) {
+	public void callingKongApis(String serviceName, String env, boolean apiRecipe) {
 		
 		boolean kongApiForDeploymentURL = false;
 		String deploymentServiceName = "";
@@ -232,7 +255,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 		
 		// request for kong create service	
 		if(kongApiForDeploymentURL) {					    		    
-			url = deploymentServiceName + "-" + env + ".codespaces-apps"; //ws316-int.codespaces-apps
+			url = deploymentServiceName + "-" + env + ".codespaces-apps";
 		}
 		else {
 			url = "http://" + serviceName + ".code-server:8080";
@@ -248,7 +271,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 		List<String> paths = new ArrayList();
 		List<String> protocols = new ArrayList();
 		if(kongApiForDeploymentURL) {
-			paths.add("/" + serviceName + "/" + env + "/api"); // "/ws316/int/api"
+			paths.add("/" + serviceName + "/" + env + "/api");
 		}
 		else {
 			paths.add("/" + serviceName + "/");
@@ -261,7 +284,6 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 		hosts.add(codeServerEnvUrl);
 		createRouteVO.setHosts(hosts);
 		createRouteVO.setName(serviceName);
-		// BUG-339  if(serviceName.contains(""))
 		createRouteVO.setPaths(paths);
 		createRouteVO.setProtocols(protocols);
 		createRouteVO.setStripPath(true);
@@ -271,7 +293,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 		AttachPluginRequestVO attachPluginRequestVO = new AttachPluginRequestVO();
 		AttachPluginVO attachPluginVO = new AttachPluginVO();
 		AttachPluginConfigVO attachPluginConfigVO = new AttachPluginConfigVO();
-		attachPluginVO.setName("oidc");
+		attachPluginVO.setName(OIDC_PLUGIN);
 		attachPluginConfigVO.setBearer_only(bearerOnly);
 		attachPluginConfigVO.setClient_id(clientId);
 		attachPluginConfigVO.setClient_secret(clientSecret);
@@ -289,9 +311,27 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 		attachPluginVO.setConfig(attachPluginConfigVO);
 		attachPluginRequestVO.setData(attachPluginVO);
 		
+		//request for attaching JWT plugin to service
+		AttachJwtPluginRequestVO attachJwtPluginRequestVO = new AttachJwtPluginRequestVO();
+		AttachJwtPluginVO attachJwtPluginVO = new AttachJwtPluginVO();
+		AttachJwtPluginConfigVO attachJwtPluginConfigVO = new AttachJwtPluginConfigVO();
+		attachJwtPluginVO.setName(JWTISSUER_PLUGIN);
+		attachJwtPluginConfigVO.setAlgorithm(jwtAlgorithm);
+		attachJwtPluginConfigVO.setAuthurl(authenticatorBaseUri);
+		attachJwtPluginConfigVO.setClientHomeUrl(jwtClientHomeUrl);
+		attachJwtPluginConfigVO.setClientId(jwtClientId);
+		attachJwtPluginConfigVO.setClientSecret(jwtClientSecret);
+		attachJwtPluginConfigVO.setExpiresIn(jwtExpiresIn);
+		attachJwtPluginConfigVO.setIntrospectionUri(introspectionEndpoint);
+		attachJwtPluginConfigVO.setPrivateKeyFilePath(jwtPrivateKeyFilePath);
+		attachJwtPluginConfigVO.setSecret(jwtSecret);
+		attachJwtPluginVO.setConfig(attachJwtPluginConfigVO);
+		attachJwtPluginRequestVO.setData(attachJwtPluginVO);
+		
 		GenericMessage createServiceResponse = new GenericMessage();
 		GenericMessage createRouteResponse = new GenericMessage();
 		GenericMessage attachPluginResponse = new GenericMessage();
+		GenericMessage attachJwtPluginResponse = new GenericMessage();
 		
 		try {	
 			boolean isServiceAlreadyCreated = false;
@@ -321,10 +361,20 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 				return;
 			}
 			if((createServiceResponse.getSuccess().equalsIgnoreCase("success")  || isServiceAlreadyCreated )&& (createRouteResponse.getSuccess().equalsIgnoreCase("success") || isRouteAlreadyCreated)) {
-				attachPluginResponse = attachPluginToService(attachPluginRequestVO,serviceName);
-				// BUG-339
-				//call attachJWTPluginToService if flag is different
+				if(!kongApiForDeploymentURL) {
+					LOGGER.info("kongApiForDeploymentURL is false, calling oidc plugin " );
+					attachPluginResponse = attachPluginToService(attachPluginRequestVO,serviceName);
+				}
+				else {
+					if(apiRecipe) {
+						LOGGER.info("kongApiForDeploymentURL and apiRecipe is true, calling jwtissuer plugin " );
+						attachJwtPluginResponse = attachJwtPluginToService(attachJwtPluginRequestVO,serviceName);
+					}
+					LOGGER.info("kongApiForDeploymentURL is true and apiRecipe is false, calling jwtissuer plugin " );
+					attachPluginResponse = attachPluginToService(attachPluginRequestVO,serviceName);
+				}
 			}
+			
 			else {
 				LOGGER.info("Failed while calling kong create route API with errors " + createRouteResponse.getErrors());
 				return;
@@ -334,10 +384,16 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 			LOGGER.error(e.getMessage());
 		}
 		
-		if (createServiceResponse.getSuccess().equalsIgnoreCase("success")
+		if (!kongApiForDeploymentURL && createServiceResponse.getSuccess().equalsIgnoreCase("success")
 				&& createRouteResponse.getSuccess().equalsIgnoreCase("success")
 				&& attachPluginResponse.getSuccess().equalsIgnoreCase("success")) {
 			LOGGER.info("Kong service, kong route and oidc plugin is attached to the service: {} " + serviceName);
+
+		}
+		if (kongApiForDeploymentURL && createServiceResponse.getSuccess().equalsIgnoreCase("success")
+				&& createRouteResponse.getSuccess().equalsIgnoreCase("success")
+				&& attachJwtPluginResponse.getSuccess().equalsIgnoreCase("success")) {
+			LOGGER.info("Kong service, kong route and jwtissuer plugin is attached to the service: {} " + serviceName);
 
 		}
 		else {
@@ -347,6 +403,8 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 					createRouteResponse.getErrors(), createRouteResponse.getWarnings());
 			LOGGER.info("kong attach plugin to service status is: {} and errors if any: {}, warnings if any:", attachPluginResponse.getSuccess(),
 					attachPluginResponse.getErrors(), attachPluginResponse.getWarnings());
+			LOGGER.info("kong attach jwtissuer plugin to service status is: {} and errors if any: {}, warnings if any:", attachJwtPluginResponse.getSuccess(),
+					attachJwtPluginResponse.getErrors(), attachJwtPluginResponse.getWarnings());
 		}
 
 	}
@@ -362,7 +420,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 			headers.set("Accept", "application/json");
 			headers.set("Content-Type", "application/json");		
 
-			String attachPluginUri = authenticatorBaseUri + CREATE_SERVICE + "/" + serviceName + ATTACH_PLUGIN_TO_SERVICE;
+			String attachPluginUri = authenticatorBaseUri + CREATE_SERVICE + "/" + serviceName + ATTACH_JWT_PLUGIN_TO_SERVICE;
 			HttpEntity<AttachJwtPluginRequestVO> entity = new HttpEntity<AttachJwtPluginRequestVO>(attachJwtPluginRequestVO,headers);			
 			ResponseEntity<String> attachJwtPluginResponse = restTemplate.exchange(attachPluginUri, HttpMethod.POST, entity, String.class);
 			if (attachJwtPluginResponse != null && attachJwtPluginResponse.getStatusCode()!=null) {
@@ -379,7 +437,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 			}
 		}
 		catch(Exception e) {
-			LOGGER.error("Error occured while calling Kong attach plugin: {} API for workspace: {} with exception {} ", attachJwtPluginRequestVO.getData().getName(), serviceName,  e.getMessage());
+			LOGGER.error("Failed to secure apis with IAM for workspace: {} with exception {} . Please contact admin for resolving. ", serviceName,  e.getMessage());
 			MessageDescription error = new MessageDescription();
 			error.setMessage("Error occured while calling Kong attach plugin: " + attachJwtPluginRequestVO.getData().getName() + " API for workspace:  " +  serviceName + " with exception: " + e.getMessage());
 			errors.add(error);
