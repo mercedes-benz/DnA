@@ -6,8 +6,8 @@ const getMatomoProjectsList = () => {
   });
 };
 
-const getMatomoByName = (siteName) => {
-  return server.get(`/matomo/${siteName}`, {
+const getMatomoById = (id) => {
+  return server.get(`/matomo/${id}`, {
     data: {},
   });
 };
@@ -19,13 +19,13 @@ const createMatomo = (data) => {
 };
 
 const updateMatomo = (data) => {
-  return server.put('/matomo', {
+  return server.put(`/matomo/${data.id}/sites`, {
     data,
   });
 };
 
-const deleteMatomo = (bucketName) => {
-  return server.delete(`/matomo/${bucketName}`, {
+const deleteMatomo = (id) => {
+  return server.delete(`/matomo/${id}/sites`, {
     data: {},
   });
 };
@@ -75,7 +75,7 @@ const getLovData = () => {
 
 export const matomoApi = {
   getMatomoProjectsList,
-  getMatomoByName,
+  getMatomoById,
   createMatomo,
   updateMatomo,
   deleteMatomo,
