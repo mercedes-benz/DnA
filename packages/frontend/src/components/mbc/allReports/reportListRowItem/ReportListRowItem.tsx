@@ -139,12 +139,12 @@ export default class ReportListRowItem extends React.Component<IReportListRowIte
           onClick={this.goToSummary}
         >
           <td className={'wrap-text ' + classNames(Styles.reportName)}>
-            <div className={Styles.solIcon}>
+            {/* <div className={Styles.solIcon}> */}
               {/* <div className={Styles.solIconimg}>
                 <LogoImage displayType={SOLUTION_LOGO_IMAGE_TYPES.THUMBNAIL} logoDetails={report.logoDetails} />
               </div>{' '} */}
               {report?.productName}
-            </div>
+            {/* </div> */}
           </td>
           <td className={Styles.draftIndicatorCol}>
             {!report?.publish ? <span className={Styles.draftIndicator}>DRAFT</span> : ''}
