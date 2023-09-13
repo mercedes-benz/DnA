@@ -318,8 +318,8 @@
                         }
                     }
                     .bucketName {
-                        min-width: 230px;
-                        max-width: 230px;
+                        min-width: 245px;
+                        max-width: 245px;
                         a {
                             word-wrap: break-word;
                         } 
@@ -428,4 +428,8 @@
 
 .expansionpanelFirstCol {
     max-width: 150px;
+}
+
+.firstLetterCapital {
+  text-transform:capitalize;
 }

@@ -13,7 +13,7 @@ const getMatomoList = () => {
       type: 'MATOMO_LOADING',
       payload: true,
     });
-    // ProgressIndicator.show();
+    ProgressIndicator.show();
     matomoApi
       .getMatomoProjectsList()
       .then((res) => {
@@ -53,49 +53,49 @@ const getMatomoList = () => {
   };
 };
 
-// const createBucket = (data) => {
-//   return async (dispatch) => {
-//     dispatch({
-//       type: 'BUCKET_LOADING',
-//       payload: true,
-//     });
-//     ProgressIndicator.show();
-//     try {
-//       const res = await bucketsApi.createBucket(data);
-//       dispatch({
-//         type: 'BUCKET_LOADING',
-//         payload: false,
-//       });
-//       dispatch({
-//         type: 'CONNECTION_INFO',
-//         payload: {
-//           bucketName: data.bucketName,
-//           modal: true,
-//           creator: data.creator,
-//           accessInfo: res.data.bucketAccessinfo,
-//         },
-//       });
-//       ProgressIndicator.hide();
-//       Notification.show(`Bucket ${data.bucketName} created successfully.`);
-//     } catch (error) {
-//       dispatch({
-//         type: 'BUCKET_ERROR',
-//         payload: error.response.data.errors?.length
-//           ? error.response.data.errors[0].message
-//           : 'Error while creating a bucket',
-//       });
-//       dispatch({
-//         type: 'BUCKET_LOADING',
-//         payload: false,
-//       });
-//       Notification.show(
-//         error.response.data.errors?.length ? error.response.data.errors[0].message : 'Error while creating a bucket',
-//         'alert',
-//       );
-//       ProgressIndicator.hide();
-//     }
-//   };
-// };
+const createMatomo = (data) => {
+  return async (dispatch) => {
+    dispatch({
+      type: 'MATOMO_LOADING',
+      payload: true,
+    });
+    ProgressIndicator.show();
+    try {
+      const res = await matomoApi.createMatomo(data);
+      dispatch({
+        type: 'MATOMO_LOADING',
+        payload: false,
+      });
+      dispatch({
+        type: 'CONNECTION_INFO',
+        payload: {
+          siteName: res?.data?.siteName,
+          modal: true,
+          creator: data?.creator,
+          // accessInfo: res.data?.bucketAccessinfo,
+        },
+      });
+      ProgressIndicator.hide();
+      Notification.show(`Site ${data.siteName} created successfully.`);
+    } catch (error) {
+      dispatch({
+        type: 'MATOMO_ERROR',
+        payload: error.response.data.errors?.length
+          ? error.response.data.errors[0].message
+          : 'Error while creating a site',
+      });
+      dispatch({
+        type: 'MATOMO_LOADING',
+        payload: false,
+      });
+      Notification.show(
+        error.response.data.errors?.length ? error.response.data.errors[0].message : 'Error while creating a site',
+        'alert',
+      );
+      ProgressIndicator.hide();
+    }
+  };
+};
 
 // const updateBucket = (data) => {
 //   return async (dispatch) => {
@@ -135,6 +135,6 @@ const getMatomoList = () => {
 
 export const matomoActions = {
   getMatomoList,
-  // createBucket,
+  createMatomo,
   // updateBucket,
 };

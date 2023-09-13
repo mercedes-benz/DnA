@@ -7,7 +7,7 @@ const jwt = sessionStorage?.length ? sessionStorage.getItem(SESSION_STORAGE_KEYS
 
 export const baseURL = Envs.MATOMO_API_BASEURL
   ? Envs.MATOMO_API_BASEURL
-  : `http://${window.location.hostname}:7777/api`;
+  : `http://${window.location.hostname}:8989/api`;
 
 const headers = {
   Accept: 'application/json',
