@@ -49,7 +49,7 @@ export const MatomoList = (props) => {
           "id": "string",
           "lastName": "string",
           "mobileNumber": "string",
-          "permissions": {}
+          "permission": "view"
         }
       ],
       "createdBy": {
@@ -65,7 +65,7 @@ export const MatomoList = (props) => {
       "division": "string",
       "id": "string",
       "lastModified": "2023-09-12T06:16:49.306Z",
-      "permission": {},
+      "permission": "admin",
       "piiData": true,
       "siteId": "string",
       "siteName": "string",
@@ -83,7 +83,7 @@ export const MatomoList = (props) => {
           "id": "string",
           "lastName": "string",
           "mobileNumber": "string",
-          "permissions": {}
+          "permission": "view"
         }
       ],
       "createdBy": {
@@ -99,7 +99,7 @@ export const MatomoList = (props) => {
       "division": "string",
       "id": "string",
       "lastModified": "2023-09-12T06:16:49.306Z",
-      "permission": {},
+      "permission": "admin",
       "piiData": true,
       "siteId": "string",
       "siteName": "string",
@@ -205,17 +205,17 @@ export const MatomoList = (props) => {
   //   dispatch(hideConnectionInfo());
   // };
 
-  const displayPermission = (item) => {
-    return Object.entries(item || {})
-      ?.map(([key, value]) => {
-        if (value === true) {
-          return key;
-        }
-      })
-      ?.filter((x) => x) // remove falsy values
-      ?.map((perm) => perm?.charAt(0)?.toUpperCase() + perm?.slice(1)) // update first character to Uppercase
-      ?.join(' / ');
-  };
+  // const displayPermission = (item) => {
+  //   return Object.entries(item || {})
+  //     ?.map(([key, value]) => {
+  //       if (value === true) {
+  //         return key;
+  //       }
+  //     })
+  //     ?.filter((x) => x) // remove falsy values
+  //     ?.map((perm) => perm?.charAt(0)?.toUpperCase() + perm?.slice(1)) // update first character to Uppercase
+  //     ?.join(' / ');
+  // };
 
   const onCollabsIconMouseOver = (e) => {
     const targetElem = e.target;
@@ -248,14 +248,14 @@ export const MatomoList = (props) => {
           {matomoList?.map((item, index) => {
             const hasWriteAccess = item?.permission?.write;
             const isOwner = props.user?.id === item.createdBy?.id;
-            const collaborators = item.collaborators?.filter((item) => item.accesskey !== props.user?.id);
+            const collaborators = item.collaborators?.filter((item) => item.id !== props.user?.id);
             return (
               <div key={'card-' + index} className={classNames(Styles.storageCard)}>
                 <div className={Styles.cardHead}>
                   <div className={classNames(Styles.cardHeadInfo)}>
                     <div
                       className={classNames('btn btn-text forward arrow', Styles.cardHeadTitle)}
-                      onClick={() => history.push(`/explorer/${item.siteName}`)}
+                      // onClick={() => history.push(`/explorer/${item.siteName}`)}
                     >
                       {item.siteName}
                     </div>
@@ -264,6 +264,10 @@ export const MatomoList = (props) => {
                 <hr />
                 <div className={Styles.cardBodySection}>
                   <div>
+                    <div>
+                      <div>Site Id</div>
+                      <div>{item.siteId}</div>
+                    </div>
                     <div>
                       <div>Created on</div>
                       <div>{regionalDateAndTimeConversionSolution(item.createdOn)}</div>
@@ -278,10 +282,14 @@ export const MatomoList = (props) => {
                     </div>
                     <div>
                       <div>Permission</div>
-                      <div>
-                        {displayPermission(item?.permission) || 'N/A'}
+                      <div className={Styles.firstLetterCapital}>
+                        {item?.permission || 'N/A'}
                         {isOwner && ` (Owner)`}
                       </div>
+                    </div>
+                    <div>
+                      <div>Website/App Url</div>
+                      <div>{item.siteUrl || 'N/A'}</div>
                     </div>
                     <div className={Styles.cardCollabSection}>
                       <div>Collaborators</div>
@@ -303,10 +311,10 @@ export const MatomoList = (props) => {
                                   <li key={'collab' + bucketIndex}>
                                     <span>
                                       {`${bucketItem.firstName} ${lastName}`}
-                                      {item.createdBy?.id === bucketItem.accesskey ? ' (Owner)' : ''}
+                                      {item.createdBy?.id === bucketItem.id ? ' (Owner)' : ''}
                                     </span>
-                                    <span className={Styles.permission}>
-                                      &nbsp;[{displayPermission(bucketItem?.permission)}]
+                                    <span className={classNames(Styles.permission, Styles.firstLetterCapital)}>
+                                      &nbsp;[{bucketItem?.permission}]
                                     </span>
                                   </li>
                                 );
@@ -374,15 +382,37 @@ export const MatomoList = (props) => {
               <div className={Styles.bucketGrpListItem}>
                 <div className={Styles.bucketCaption}>
                   <div className={Styles.bucketTile}>
+                    <div className={classNames(Styles.bucketTitleCol)}>
+                      <label
+                        className={
+                          'sortable-column-header ' + (currentColumnToSort === 'bucketId' ? currentSortOrder : '')
+                        }
+                        onClick={sortByColumn('siteId', nextSortOrder)}
+                      >
+                        <i className="icon sort" />
+                        Site Id
+                      </label>
+                    </div>
                     <div className={classNames(Styles.bucketTitleCol, Styles.bucketName)}>
                       <label
                         className={
-                          'sortable-column-header ' + (currentColumnToSort === 'bucketName' ? currentSortOrder : '')
+                          'sortable-column-header ' + (currentColumnToSort === 'siteName' ? currentSortOrder : '')
                         }
-                        onClick={sortByColumn('bucketName', nextSortOrder)}
+                        onClick={sortByColumn('siteName', nextSortOrder)}
                       >
                         <i className="icon sort" />
-                        Bucket Name
+                        Site Name
+                      </label>
+                    </div>
+                    <div className={classNames(Styles.bucketTitleCol)}>
+                      <label
+                        className={
+                          'sortable-column-header '
+                        }
+                        // onClick={sortByColumn('bucketName', nextSortOrder)}
+                      >
+                        <i className="icon sort" />
+                        Site Url
                       </label>
                     </div>
                     <div className={Styles.bucketTitleCol}>
@@ -448,11 +478,17 @@ export const MatomoList = (props) => {
                         <input type="checkbox" className="ff-only" id={index + '1'} defaultChecked={index === 0} />
                         <label className={Styles.expansionLabel + ' expansion-panel-label '} htmlFor={index + '1'}>
                           <div className={Styles.bucketTile}>
+                            <div className={classNames(Styles.bucketTitleCol)}>
+                              <Link to={`/explorer/${item.siteName}`}>{item.siteId}</Link>
+                            </div>
                             <div className={classNames(Styles.bucketTitleCol, Styles.bucketName)}>
                               <Link to={`/explorer/${item.siteName}`}>{item.siteName}</Link>
                             </div>
                             <div className={Styles.bucketTitleCol}>
-                              {displayPermission(item?.permission)}
+                              {item.siteUrl}
+                            </div>
+                            <div className={classNames(Styles.bucketTitleCol, Styles.firstLetterCapital)}>
+                              {item?.permission}
                               {isOwner && ` (Owner)`}
                             </div>
                             <div className={Styles.bucketTitleCol}>
@@ -482,14 +518,14 @@ export const MatomoList = (props) => {
                                   return (
                                     <div key={bucketIndex} className={Styles.bucketTile}>
                                       <div className={classNames(Styles.bucketTitleCol, Styles.expansionpanelFirstCol)}>
-                                        {bucketItem.accesskey}{' '}
-                                        {item.createdBy?.id === bucketItem.accesskey ? '(Owner)' : ''}
+                                        {bucketItem.id}{' '}
+                                        {item.createdBy?.id === bucketItem.id ? '(Owner)' : ''}
                                       </div>
                                       <div
                                         className={Styles.bucketTitleCol}
                                       >{`${bucketItem.firstName} ${bucketItem.lastName}`}</div>
-                                      <div className={Styles.bucketTitleCol}>
-                                        {displayPermission(bucketItem?.permission)}
+                                      <div className={classNames(Styles.bucketTitleCol, Styles.firstLetterCapital)}>
+                                        {bucketItem?.permission}
                                       </div>
 
                                       <div className={Styles.bucketTitleCol}></div>
