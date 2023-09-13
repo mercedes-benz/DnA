@@ -50,6 +50,8 @@ import org.springframework.web.client.RestTemplate;
 
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
+import com.daimler.data.dto.kongGateway.AttachJwtPluginConfigVO;
+import com.daimler.data.dto.kongGateway.AttachJwtPluginVO;
 import com.daimler.data.dto.kongGateway.AttachPluginConfigVO;
 import com.daimler.data.dto.kongGateway.AttachPluginVO;
 import com.daimler.data.dto.kongGateway.CreateRouteVO;
@@ -323,6 +325,71 @@ public class KongClientImpl implements KongClient {
 			LOGGER.error("Error occured while fetching services from kong with exception {}", e.getMessage());
 		}
 		return serviceNames;
+	}
+
+	@Override
+	public GenericMessage attachJwtPluginToService(AttachJwtPluginVO attachJwtPluginVO, String serviceName) {
+		GenericMessage message = new GenericMessage();
+		MessageDescription messageDescription = new MessageDescription();
+		List<MessageDescription> errors = new ArrayList<>();
+		List<MessageDescription> warnings = new ArrayList<>();
+		try {
+			AttachJwtPluginConfigVO attachJwtPluginConfigVO = attachJwtPluginVO.getConfig();
+			String kongUri = kongBaseUri + "/services/" + serviceName + "/plugins";
+			HttpHeaders headers = new HttpHeaders();
+			headers.set("Accept", "application/json");
+			headers.set("Content-Type", "application/json");
+			AttachJwtPluginWrapperDto requestWrapper = new AttachJwtPluginWrapperDto();			
+			AttachJwtPluginConfigRequestDto attachJwtPluginConfigRequestDto = new AttachJwtPluginConfigRequestDto();	
+			ResponseEntity<String> response = null;
+			requestWrapper.setName(attachJwtPluginVO.getName());
+			attachJwtPluginConfigRequestDto.setAlgorithm(attachJwtPluginConfigVO.getAlgorithm());
+			attachJwtPluginConfigRequestDto.setAuthurl(attachJwtPluginConfigVO.getAuthurl());
+			attachJwtPluginConfigRequestDto.setClientHomeUrl(attachJwtPluginConfigVO.getClientHomeUrl());
+			attachJwtPluginConfigRequestDto.setClientId(attachJwtPluginConfigVO.getClientId());
+			attachJwtPluginConfigRequestDto.setClientSecret(attachJwtPluginConfigVO.getClientSecret());
+			attachJwtPluginConfigRequestDto.setExpiresIn(attachJwtPluginConfigVO.getExpiresIn());
+			attachJwtPluginConfigRequestDto.setIntrospectionUri(attachJwtPluginConfigVO.getIntrospectionUri());
+			attachJwtPluginConfigRequestDto.setPrivateKeyFilePath(attachJwtPluginConfigVO.getPrivateKeyFilePath());
+			attachJwtPluginConfigRequestDto.setSecret(attachJwtPluginConfigVO.getSecret());
+			requestWrapper.setConfig(attachJwtPluginConfigRequestDto);
+			HttpEntity<AttachJwtPluginWrapperDto> jwtIssuerRequest = new HttpEntity<AttachJwtPluginWrapperDto>(requestWrapper, headers);
+			response = restTemplate.exchange(kongUri, HttpMethod.POST, jwtIssuerRequest, String.class);
+			if (response != null && response.hasBody()) {
+				HttpStatus statusCode = response.getStatusCode();
+				if (statusCode == HttpStatus.CREATED) {
+					LOGGER.info("Plugin: {} attached successfully to API: {}", attachJwtPluginVO.getName(), serviceName);					
+					message.setSuccess("Success");
+					message.setErrors(errors);
+					message.setWarnings(warnings);
+					return message;
+				}
+			}
+			
+		}catch (HttpClientErrorException ex) {
+			if (ex.getRawStatusCode() == HttpStatus.CONFLICT.value()) {
+				LOGGER.info(" plugin: {} already attached to service: {}",attachJwtPluginVO.getName(), serviceName);
+				message.setSuccess("Failure");
+				messageDescription.setMessage("Plugin already attached to service");
+				errors.add(messageDescription);
+				message.setErrors(errors);
+				return message;
+			}	
+			LOGGER.error("Error occured while attaching plugin: {} to service: {}",attachJwtPluginVO.getName(), ex.getMessage());
+			message.setSuccess("Failure");
+			messageDescription.setMessage(ex.getMessage());
+			errors.add(messageDescription);
+			message.setErrors(errors);
+			return message;
+		} catch (Exception e) {
+			LOGGER.error("Error while attaching plugin: {} to service: {}",attachJwtPluginVO.getName(), e.getMessage());
+			message.setSuccess("Failure");
+			messageDescription.setMessage(e.getMessage());
+			errors.add(messageDescription);
+			message.setErrors(errors);
+			return message;
+		}
+		return message;
 	}	
 	
 //	@Override

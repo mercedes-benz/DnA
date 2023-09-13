@@ -19,6 +19,8 @@ import org.springframework.web.bind.annotation.RestController;
 import com.daimler.data.api.kongGateway.KongApi;
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
+import com.daimler.data.dto.kongGateway.AttachJwtPluginRequestVO;
+import com.daimler.data.dto.kongGateway.AttachJwtPluginVO;
 import com.daimler.data.dto.kongGateway.AttachPluginConfigVO;
 import com.daimler.data.dto.kongGateway.AttachPluginRequestVO;
 import com.daimler.data.dto.kongGateway.AttachPluginVO;
@@ -209,6 +211,46 @@ public class KongGatewayController implements KongApi{
 	public ResponseEntity<List<String>> getAllServices() {
 		List<String> serviceNames = kongClient.getAllServices();
 		return new ResponseEntity<>(serviceNames,HttpStatus.OK);
+	}
+
+	@Override
+	@ApiOperation(value = "Attach jwtissuer plugin to service.", nickname = "attachJwtIssuerPlugin", notes = "Attach jwtissuer plugin to service.", response = GenericMessage.class, tags={ "kong", })
+    @ApiResponses(value = { 
+        @ApiResponse(code = 200, message = "Returns message of success", response = GenericMessage.class),
+        @ApiResponse(code = 400, message = "Bad Request", response = GenericMessage.class),
+        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+        @ApiResponse(code = 403, message = "Request is not authorized."),
+        @ApiResponse(code = 405, message = "Method not allowed"),
+        @ApiResponse(code = 409, message = "Conflict", response = GenericMessage.class),
+        @ApiResponse(code = 500, message = "Internal error") })
+    @RequestMapping(value = "/kong/services/{serviceName}/jwtplugins",
+        produces = { "application/json" }, 
+        consumes = { "application/json" },
+        method = RequestMethod.POST)
+	public ResponseEntity<GenericMessage> attachJwtIssuerPlugin(
+			@Valid AttachJwtPluginRequestVO attachJwtPluginRequestVO, String serviceName) {
+		GenericMessage response = new GenericMessage();
+		List<MessageDescription> errors = new ArrayList<>();
+		AttachJwtPluginVO attachJwtPluginVO = attachJwtPluginRequestVO.getData();
+		try {
+			if(Objects.nonNull(attachJwtPluginVO) && Objects.nonNull(serviceName)) {
+				response = kongClient.attachJwtPluginToService(attachJwtPluginVO, serviceName);
+			}
+			if(Objects.nonNull(response) && Objects.nonNull(response.getSuccess()) && response.getSuccess().equalsIgnoreCase("Success")) {
+				LOGGER.info("Plugin: {} attached successfully to the service {}", attachJwtPluginVO.getName(),serviceName);
+				return new ResponseEntity<>(response, HttpStatus.CREATED);
+			}
+			else {
+				LOGGER.info("Attaching plugin {} to the service {} failed with error {}", attachJwtPluginVO.getName(), serviceName);
+				return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+			}
+			
+		}
+		catch(Exception e) {
+			LOGGER.error("Failed to attach plugin {} with exception {} ", attachJwtPluginVO.getName(),e.getMessage());
+			return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	
 	}
 
 //	@Override
