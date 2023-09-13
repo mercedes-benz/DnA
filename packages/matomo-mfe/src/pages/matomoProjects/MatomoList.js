@@ -512,7 +512,7 @@ export const MatomoList = (props) => {
                                   <div className={classNames(Styles.bucketTitleCol, Styles.expansionpanelFirstCol)}>
                                     User Id
                                   </div>
-                                  <div className={Styles.bucketTitleCol}>Name</div>
+                                  {/* <div className={Styles.bucketTitleCol}>Name</div> */}
                                   <div className={Styles.bucketTitleCol}>Permission</div>
                                   <div className={Styles.bucketTitleCol}></div>
                                 </div>
@@ -523,9 +523,9 @@ export const MatomoList = (props) => {
                                         {bucketItem.id}{' '}
                                         {item.createdBy?.id === bucketItem.id ? '(Owner)' : ''}
                                       </div>
-                                      <div
+                                      {/* <div
                                         className={Styles.bucketTitleCol}
-                                      >{`${bucketItem.firstName} ${bucketItem.lastName}`}</div>
+                                      >{`${bucketItem.firstName} ${bucketItem.lastName}`}</div> */}
                                       <div className={classNames(Styles.bucketTitleCol, Styles.firstLetterCapital)}>
                                         {bucketItem?.permission}
                                       </div>
