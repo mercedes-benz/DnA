@@ -12,6 +12,6 @@ public interface AuthenticatorClient {
 	
 	public GenericMessage attachJwtPluginToService(AttachJwtPluginRequestVO attachJwtPluginRequestVO, String serviceName);
 	
-	public void callingKongApis(String serviceName, String env);
+	public void callingKongApis(String serviceName, String env, boolean apiRecipe);
 
 }

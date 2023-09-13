@@ -45,6 +45,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.daimler.data.application.client.CodeServerClient;
 import com.daimler.data.application.client.GitClient;
 import com.daimler.data.assembler.WorkspaceAssembler;
+import com.daimler.data.auth.client.AuthenticatorClient;
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
 import com.daimler.data.db.entities.CodeServerWorkspaceNsql;
@@ -94,6 +95,9 @@ public class BaseWorkspaceService implements WorkspaceService {
 	
 	@Autowired
 	private GitClient gitClient;
+	
+	@Autowired
+	private AuthenticatorClient authenticatorClient;
 	
 	public BaseWorkspaceService() {
 		super();
@@ -1013,12 +1017,15 @@ public class BaseWorkspaceService implements WorkspaceService {
 					deploymentDetails.setLastDeploymentStatus(latestStatus);
 					workspaceCustomRepository.updateDeploymentDetails(projectName, environmentJsonbName, deploymentDetails);
 					log.info("updated deployment details successfully for projectName {} , branch {} , targetEnv {} and status {}",
-							projectName,branch,targetEnv,latestStatus);
-					// BUG-339
-					//call kong apis
-					//if something fails in kong, add to warnings, message saying- failed to secure apis with iam, please contact admin for resolving.
-					// route path = deploymentUrl - codeServerBaseUri
-					//proceed - dont break anything in betweeen, flow should continue
+							projectName,branch,targetEnv,latestStatus);	
+					boolean apiRecipe = false;					
+					if(projectRecipe.equalsIgnoreCase(reactRecipeId)|| projectRecipe.equalsIgnoreCase(angularRecipeId)) {
+						authenticatorClient.callingKongApis(name + "-API", targetEnv,apiRecipe);
+					}
+					else {
+						apiRecipe = true;
+						authenticatorClient.callingKongApis(name + "-API", targetEnv,apiRecipe);
+					}
 				}
 				else if("UNDEPLOYED".equalsIgnoreCase(latestStatus)) {
 					deploymentDetails.setDeploymentUrl(null);
