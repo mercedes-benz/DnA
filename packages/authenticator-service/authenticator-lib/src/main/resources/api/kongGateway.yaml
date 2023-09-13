@@ -218,6 +218,50 @@ paths:
           description: "Method not allowed"
         500:
           description: "Internal error"
+
+# path to attach JWTISSUER plugin to service 
+#  supported http methods POST
+
+ /kong/services/{serviceName}/jwtplugins:
+    post:
+      tags:
+        - "kong"
+      summary: "Attach jwtissuer plugin to service."
+      description: "Attach jwtissuer plugin to service."
+      operationId: "attachJwtIssuerPlugin"
+      parameters:      
+        - name: "attachJwtPluginRequestVO"
+          in: "body"
+          description: "Request Body that contains data required for attaching a plugin to service"
+          required: true
+          schema:
+            $ref: "#/definitions/AttachJwtPluginRequestVO"  
+        - name: "serviceName"
+          in: "path"
+          description: "Name of the service for which plugin has to be attached"
+          required: true
+          type: "string"    
+      responses:
+        200:
+          description: "Returns message of success"
+          schema:
+            $ref: "#/definitions/GenericMessage"
+        409:
+          description: "Conflict"
+          schema:
+            $ref: "#/definitions/GenericMessage"            
+        400:
+          description: "Bad Request"
+          schema:
+            $ref: "#/definitions/GenericMessage"
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
           
 # path to get service 
 #  supported http methods GET    
@@ -544,4 +588,42 @@ definitions:
     message: 
       type: string
       description: "error message"
+      
+ AttachJwtPluginRequestVO:
+    type: object
+    properties:
+      data:
+        $ref: "#/definitions/AttachJwtPluginVO"
+        
+ AttachJwtPluginVO:
+    type: object
+    properties:
+      config:
+        $ref: "#/definitions/AttachJwtPluginConfigVO"
+      name:
+        type: string        
+    
+        
+ AttachJwtPluginConfigVO:
+    type: object
+    properties:
+      algorithm:
+        type: string
+      secret:
+        type: string
+      authurl:
+        type: string  
+      clientHomeUrl:
+        type: string  
+      privateKeyFilePath:
+        type: string
+      expiresIn:
+        type: string
+      clientId:
+        type: string
+      clientSecret:
+        type: string  
+      introspectionUri:
+        type: string  
+             
  
