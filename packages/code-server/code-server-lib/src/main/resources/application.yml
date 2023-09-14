@@ -128,6 +128,7 @@ kong:
    expiresIn: ${EXPIRES_IN:XXXX}
    jwtClientId: ${JWT_CLIENT_ID:XXXX}
    jwtClientSecret: ${JWT_CLIENT_SECRET:XXXX}
+   uiRecipesToUseOidc: ${UI_RECIPES_TO_USE_OIDC:XXXX}
 
 workspace:
   update: ${UPDATE_WORKSPACEDATA:XXXX}   
