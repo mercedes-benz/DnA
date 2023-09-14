@@ -14,7 +14,7 @@ buildscript {
     dependencies {
         classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
         //classpath("org.sonarsource.scanner.gradle:sonarqube-gradle-plugin:2.6.2")
-		classpath("org.sonarsource.scanner.gradle:sonarqube-gradle-plugin:3.2.0")
+		// classpath("org.sonarsource.scanner.gradle:sonarqube-gradle-plugin:3.2.0")
 		classpath("gradle.plugin.org.hidetake:gradle-swagger-generator-plugin:2.18.2")
 		classpath("com.commercehub:gradle-cucumber-jvm-plugin:0.14")
 		classpath("org.apache.maven.plugins:maven-dependency-plugin:3.1.2")
@@ -179,21 +179,21 @@ jacocoTestReport {
   }
 }
 */
-sonarqube {
-    properties {
-        property "sonar.projectName", "Data@MBC Backend"
-        property "sonar.projectKey", "org.sonarqube:java-gradle-simple"
-        property "sonar.jacoco.reportPath", "${project.buildDir}/jacoco/test.exec"
-    }
-}
+// sonarqube {
+//     properties {
+//         property "sonar.projectName", "Data@MBC Backend"
+//         property "sonar.projectKey", "org.sonarqube:java-gradle-simple"
+//         property "sonar.jacoco.reportPath", "${project.buildDir}/jacoco/test.exec"
+//     }
+// }
 
-configurations {
-    cucumberTestCompile.extendsFrom testCompile
-    cucumberTestRuntime.extendsFrom testRuntime
-    /*contractTestCompile.extendsFrom testCompile
-    contractTestRuntime.extendsFrom testRuntime*/
-	//implementation
-}
+// configurations {
+//     cucumberTestCompile.extendsFrom testCompile
+//     cucumberTestRuntime.extendsFrom testRuntime
+//     /*contractTestCompile.extendsFrom testCompile
+//     contractTestRuntime.extendsFrom testRuntime*/
+// 	//implementation
+// }
 
 
 dependencies {
