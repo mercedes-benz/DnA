@@ -47,7 +47,6 @@ public class MatomoController implements MatomoSitesApi {
             consumes = { "application/json" },
             method = RequestMethod.POST)
     public ResponseEntity<MatomoResponseVO> createMatomoSite(@ApiParam(value = "Request Body that contains data required to initialize matomo site for user" ,required=true )  @Valid @RequestBody MatomoSiteCreateRequestWrapperVO matomoRequestVO) {
-        log.info("inside createMatomoSite");
         MatomoResponseVO responseVO = new MatomoResponseVO();
         MatomoSiteRequestVO matomoSiteCreateVO = matomoRequestVO.getData();
         GenericMessage responseMessage = new GenericMessage();
@@ -98,7 +97,6 @@ public class MatomoController implements MatomoSitesApi {
                 }
             }
         }
-        log.info("before matomoAddSiteResponse");
         MatomoSiteResponseDto matomoAddSiteResponse = matomoClient.addMatomoSite(matomoSiteCreateVO.getSiteName(),matomoSiteCreateVO.getSiteUrl());
         if(matomoAddSiteResponse==null || (matomoAddSiteResponse!=null && ("error".equalsIgnoreCase(matomoAddSiteResponse.getResult())) && matomoAddSiteResponse.getMessage()!=null)) {
 
@@ -191,12 +189,8 @@ public class MatomoController implements MatomoSitesApi {
                     return new ResponseEntity<>(createMatomoSiteResponse, HttpStatus.INTERNAL_SERVER_ERROR);
                 }
 
-
-
-
         }
 
-        log.info("after call");
         return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
@@ -254,7 +248,6 @@ public class MatomoController implements MatomoSitesApi {
             method = RequestMethod.GET)
     public ResponseEntity<MatomoCollectionVO> getAll(@ApiParam(value = "page number from which listing of matomo should start. Offset. Example 2") @Valid @RequestParam(value = "offset", required = false) Integer offset,
              @ApiParam(value = "page size to limit the number of matomo, Example 15") @Valid @RequestParam(value = "limit", required = false) Integer limit) {
-
         MatomoCollectionVO collection = new MatomoCollectionVO();
         int defaultLimit = 10;
         if (offset == null || offset < 0)
@@ -264,17 +257,15 @@ public class MatomoController implements MatomoSitesApi {
         }
         CreatedByVO requestUser = this.userStore.getVO();
         String user = requestUser.getId();
-        Object[] matomoCollectionWrapper = service.getAll(limit, offset, user);
-        List<MatomoVO> records = (List<MatomoVO>) matomoCollectionWrapper[0];
-        Long count = (Long) matomoCollectionWrapper[1];
+        MatomoCollectionVO matomoCollectionWrapper = service.getAll(limit, offset, user);
+
 
         HttpStatus responseCode = HttpStatus.NO_CONTENT;
-        if(records!=null && !records.isEmpty()) {
-            collection.setRecords(records);
-            collection.setTotalCount(count.intValue());
+        if(matomoCollectionWrapper.getRecords()!=null ) {
+
             responseCode = HttpStatus.OK;
         }
-        return new ResponseEntity<>(collection, responseCode);
+        return new ResponseEntity<>(matomoCollectionWrapper, responseCode);
 
     }
 
