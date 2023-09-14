@@ -145,11 +145,7 @@ const ReportCardItem = (props: IReportCardItemProps) => {
   return (
     <div id={'card-' + report?.id} className={Styles.solCard}>
       <div className={Styles.solHead} onClick={goToSummary(report?.id)}>
-        {/* <LogoImage displayType={SOLUTION_LOGO_IMAGE_TYPES.TILE} logoDetails={report.logoDetails} /> */}
-        {/* <div className={Styles.solHeadInfo}>
-          <div className={Styles.solTitle}>{report.productName}</div>
-        </div> */}
-        <div>
+        <div className={Styles.solTitleDiv}>
           <div className={Styles.solTitle}>{report?.productName}</div>
         </div>
         <div className={classNames(Styles.contextMenu, showContextMenu ? Styles.open : '')}>
