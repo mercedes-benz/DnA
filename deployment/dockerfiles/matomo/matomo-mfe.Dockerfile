@@ -16,6 +16,6 @@ RUN rm -rf /usr/share/nginx/html/*
 COPY --from=base /usr/src/packages/data-product-mfe/dist .
 COPY nginx.conf /opt/bitnami/nginx/conf/nginx.conf
 RUN chmod -R g+rwX /usr/share/nginx/html
-EXPOSE 4000
+EXPOSE 8989
 USER 1001
 
