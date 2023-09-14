@@ -1,7 +1,7 @@
 FROM node:16.14.2 as base
 
 # Building the frontend
-WORKDIR /usr/src/packages/data-product-mfe
+WORKDIR /usr/src/packages/matomo-mfe
 
 COPY . .
 RUN yarn
@@ -13,7 +13,7 @@ FROM bitnami/nginx:latest
 WORKDIR /usr/share/nginx/html
 USER 0
 RUN rm -rf /usr/share/nginx/html/*
-COPY --from=base /usr/src/packages/data-product-mfe/dist .
+COPY --from=base /usr/src/packages/matomo-mfe/dist .
 COPY nginx.conf /opt/bitnami/nginx/conf/nginx.conf
 RUN chmod -R g+rwX /usr/share/nginx/html
 EXPOSE 8989
