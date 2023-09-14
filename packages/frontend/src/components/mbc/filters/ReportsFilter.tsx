@@ -192,7 +192,7 @@ const ReportsFilter = ({
             const userPreference = res[0];
             const savedSubDivisionsList: ISubDivisionSolution[] = [];
             const filterPreferences = userPreference.filterPreferences;
-            // if (!portfolioFilterValues.current) {
+            if (!portfolioFilterValues.current) {
             queryParams.agileReleaseTrains = filterPreferences.arts?.map((art: IART) => {
               return art.name;
             });
@@ -216,7 +216,7 @@ const ReportsFilter = ({
               ?.map((item) => item.shortId) as any || [];
             // queryParams.productOwners = filterPreferences.productOwners as any;
             // populate subDivision dropdown values
-            if (!portfolioFilterValues.current) {
+            /*if (!portfolioFilterValues.current) {*/
               ApiClient.getSubDivisionsData(filterPreferences.divisions).then((subDivisionsList) => {
                 setSubDivisions(subDivisionsList);
                 SelectBox.defaultSetup();
