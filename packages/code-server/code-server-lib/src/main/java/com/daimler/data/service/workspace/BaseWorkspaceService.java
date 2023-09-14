@@ -34,7 +34,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import com.daimler.data.dto.workspace.CreatedByVO;
+import com.daimler.data.dto.workspace.*;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -45,6 +45,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.daimler.data.application.client.CodeServerClient;
 import com.daimler.data.application.client.GitClient;
 import com.daimler.data.assembler.WorkspaceAssembler;
+import com.daimler.data.auth.client.AuthenticatorClient;
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
 import com.daimler.data.db.entities.CodeServerWorkspaceNsql;
@@ -58,9 +59,6 @@ import com.daimler.data.dto.DeploymentManageInputDto;
 import com.daimler.data.dto.WorkbenchManageDto;
 import com.daimler.data.dto.WorkbenchManageInputDto;
 import com.daimler.data.dto.workspace.CodeServerRecipeDetailsVO.RecipeIdEnum;
-import com.daimler.data.dto.workspace.CodeServerWorkspaceVO;
-import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
-import com.daimler.data.dto.workspace.UserInfoVO;
 import com.daimler.data.util.ConstantsUtility;
 
 import lombok.extern.slf4j.Slf4j;
@@ -94,6 +92,9 @@ public class BaseWorkspaceService implements WorkspaceService {
 	
 	@Autowired
 	private GitClient gitClient;
+	
+	@Autowired
+	private AuthenticatorClient authenticatorClient;
 	
 	public BaseWorkspaceService() {
 		super();
@@ -556,7 +557,8 @@ public class BaseWorkspaceService implements WorkspaceService {
 	
 	@Override
 	@Transactional
-	public GenericMessage deployWorkspace(String userId,String id,String environment, String branch) {
+	public GenericMessage deployWorkspace(String userId,String id,String environment, String branch,
+			boolean isSecureWithIAMRequired, String technicalUserDetailsForIAMLogin) {
 		GenericMessage responseMessage = new GenericMessage();
 		String status = "FAILED";
 		List<MessageDescription> warnings = new ArrayList<>();
@@ -601,6 +603,8 @@ public class BaseWorkspaceService implements WorkspaceService {
 						deploymentDetails = entity.getData().getProjectDetails().getProdDeploymentDetails();
 					}
 					deploymentDetails.setLastDeploymentStatus("DEPLOY_REQUESTED");;
+					deploymentDetails.setSecureWithIAMRequired(isSecureWithIAMRequired);
+					deploymentDetails.setTechnicalUserDetailsForIAMLogin(technicalUserDetailsForIAMLogin);
 					workspaceCustomRepository.updateDeploymentDetails(projectName, environmentJsonbName, deploymentDetails);
 					status = "SUCCESS";
 				}else {
@@ -1010,7 +1014,15 @@ public class BaseWorkspaceService implements WorkspaceService {
 					deploymentDetails.setLastDeploymentStatus(latestStatus);
 					workspaceCustomRepository.updateDeploymentDetails(projectName, environmentJsonbName, deploymentDetails);
 					log.info("updated deployment details successfully for projectName {} , branch {} , targetEnv {} and status {}",
-							projectName,branch,targetEnv,latestStatus);
+							projectName,branch,targetEnv,latestStatus);	
+					boolean apiRecipe = false;					
+					if(projectRecipe.equalsIgnoreCase(reactRecipeId)|| projectRecipe.equalsIgnoreCase(angularRecipeId)) {
+						authenticatorClient.callingKongApis(name + "-API", targetEnv,apiRecipe);
+					}
+					else {
+						apiRecipe = true;
+						authenticatorClient.callingKongApis(name + "-API", targetEnv,apiRecipe);
+					}
 				}
 				else if("UNDEPLOYED".equalsIgnoreCase(latestStatus)) {
 					deploymentDetails.setDeploymentUrl(null);
@@ -1041,7 +1053,8 @@ public class BaseWorkspaceService implements WorkspaceService {
 		return workspaceCustomRepository.getAllWorkspaceIds();
 	}
 
-
-
-	
+	@Override
+	public CodeServerWorkspaceValidateVO validateCodespace(String id, String userId) {
+		return workspaceCustomRepository.validateCodespace(id, userId);
+	}
 }
