@@ -4,12 +4,10 @@
 
 namespace: matomo
 configJs: |
-    window["DATA_PRODUCT_INJECTED_ENVIRONMENT"]={
-      CONTAINER_APP_URL: "http://localhost:9090",
-      API_BASEURL: "http://localhost:7171/api",
-      DATA_PRODUCT_API_BASEURL: "http://localhost:7175/data-product/api",
-      DATA_GOVERNANCE_HTML_FOR_CHINA_DATA: '<p>Your sample content</p>',
-      DATA_PRODUCT_TOU_HTML: '<div>I agree to <a href="#" target="_blank" rel="noopener noreferrer">terms of use</a></div>'
+    window["MATOMO_INJECTED_ENVIRONMENT"]={
+      ENABLE_MATOMO_SERVICE=true,
+      MATOMO_MFE_APP_URL="http://localhost:8089",
+      MATOMO_API_BASEURL="http://localhost:8989/api"
     };
 
 replicaCount: 1
@@ -29,13 +27,13 @@ fullnameOverride: "matomo-mfe"
 podSecurityContext:
   runAsUser: 1001
 
-containerPort: 4000
+containerPort: 8989
 service:
   type: ClusterIP
   port: 80
 
 ingress:
-  enabled: true
+  enabled: false
   annotations:
     # kubernetes.io/ingress.class: nginx
     # kubernetes.io/tls-acme: "true"
