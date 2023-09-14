@@ -25,29 +25,34 @@
  * LICENSE END 
  */
 
-package com.daimler.data.kong.client;
+package com.daimler.data.db.repo.common;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+import javax.persistence.TypedQuery;
+import javax.persistence.criteria.*;
+import java.lang.reflect.ParameterizedType;
 import java.util.List;
+import java.util.Objects;
 
-import com.daimler.data.controller.exceptions.GenericMessage;
-import com.daimler.data.dto.kongGateway.AttachJwtPluginVO;
-import com.daimler.data.dto.kongGateway.AttachPluginVO;
-import com.daimler.data.dto.kongGateway.CreateRouteVO;
+public class CommonDataRepositoryImpl<T, ID> implements CommonDataRepository<T, ID> {
 
-public interface KongClient {
 
-	public GenericMessage createService(String name, String url);
-	
-//	public CreateServiceResponseVO getServiceByName(String serviceName);
 
-	public GenericMessage createRoute(CreateRouteVO createRouteVO, String serviceName);
-	
-//	public CreateRouteResponseVO getRouteByName(String serviceName, String routeName);
+	@PersistenceContext
+	protected EntityManager em;
 
-	public GenericMessage attachPluginToService(AttachPluginVO attachPluginVO, String serviceName);
-	
-	public GenericMessage attachJwtPluginToService(AttachJwtPluginVO attachJwtPluginVO, String serviceName);
-	
-	public List<String> getAllServices();
-	
+	protected Class<T> entityClass;
+
+	private static final Logger LOG = LoggerFactory.getLogger(CommonDataRepositoryImpl.class);
+
+	@SuppressWarnings("unchecked")
+	public CommonDataRepositoryImpl() {
+		this.entityClass = ((Class<T>) ((ParameterizedType) getClass().getGenericSuperclass())
+				.getActualTypeArguments()[0]);
+	}
+
 }

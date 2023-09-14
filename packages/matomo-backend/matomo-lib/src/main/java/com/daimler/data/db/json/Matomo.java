@@ -16,8 +16,6 @@ public class Matomo {
 
     private String id;
     private String siteId;
-    private String siteName;
-    private String siteUrl;
     private String division;
     private String subDivision;
     private String department;
@@ -27,6 +25,6 @@ public class Matomo {
     private UserDetails createdBy;
     private Date createdOn;
     private Date lastModified;
-    private List<UserDetails> collaborators;
+
 
 }
