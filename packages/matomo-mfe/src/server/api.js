@@ -88,3 +88,9 @@ createRefreshInterceptor(server);
 
 // Apply interceptor to hostServer
 createRefreshInterceptor(hostServer);
+
+// Apply interceptor to reportsServer
+createRefreshInterceptor(reportsServer);
+
+// Apply interceptor to storageServer
+createRefreshInterceptor(storageServer);
