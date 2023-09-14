@@ -5,10 +5,13 @@ import com.daimler.data.assembler.MatomoAssembler;
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
 import com.daimler.data.db.entities.MatomoNsql;
+import com.daimler.data.db.json.Matomo;
 import com.daimler.data.db.repo.matomo.MatomoCustomRepository;
+import com.daimler.data.db.repo.matomo.MatomoRepository;
 import com.daimler.data.dto.MatomoGetSiteResponseDto;
 import com.daimler.data.dto.MatomoGetSitesAccessCollectionDto;
 import com.daimler.data.dto.MatomoGetSitesAccessDto;
+import com.daimler.data.dto.MatomoSiteResponseDto;
 import com.daimler.data.dto.matomo.*;
 import com.daimler.data.service.common.BaseCommonService;
 import lombok.extern.slf4j.Slf4j;
@@ -30,6 +33,8 @@ public class BaseMatomoService extends BaseCommonService<MatomoVO, MatomoNsql, S
     private MatomoAssembler assembler;
     @Autowired
     private MatomoClient matomoClient;
+    @Autowired
+    private MatomoRepository jpaRepo;
     @Override
     public MatomoResponseVO createMatomoSite(String matomoId, String siteId, Date createdOn, Date lastModified, MatomoSiteRequestVO matomoRequestVO, CreatedByVO requestUser) {
         GenericMessage responseMessage = new GenericMessage();
@@ -70,38 +75,88 @@ public class BaseMatomoService extends BaseCommonService<MatomoVO, MatomoNsql, S
 
 
     @Override
-    public Object[]  getAll( int limit,  int offset, String user) {
-        Object[] matomoCollectionWrapper = new Object[2];
-        long totalCount= 0L;
+    public MatomoCollectionVO  getAll( int limit,  int offset, String user) {
+        MatomoCollectionVO matomoCollectionWrapper = new MatomoCollectionVO();
+        int totalCount= 0;
         MatomoGetSiteResponseDto getSiteResponse =new MatomoGetSiteResponseDto();
         List<MatomoGetSitesAccessDto> getSiteAccess = new ArrayList<>();
         Map<String, Object> map = new HashMap<>();
-        List<MatomoVO> matomoVO = new ArrayList<>();
+        MatomoVO matomoVO = new MatomoVO();
         List<MatomoVO> newMatomoList = new ArrayList<>();
         List<MatomoVO> matomoVOResponse = new ArrayList<>();
         MatomoGetSitesAccessCollectionDto response= matomoClient.getSitesAccessFromUser(user);
-        if(response!=null && response.getData()!=null){
-            getSiteAccess= response.getData();
-        }
-        List<String> siteIdList = getSiteAccess.stream().map(MatomoGetSitesAccessDto::getSite).collect(Collectors.toList());
-        List<MatomoNsql> entities = customRepo.getAll(user, offset, limit);
-        if (entities != null && !entities.isEmpty()) {
-            matomoVO = entities.stream().map(n -> assembler.toVo(n)).collect(Collectors.toList());
-            for(MatomoVO matomoRecord: matomoVO) {
-            if(siteIdList.contains(matomoRecord.getSiteId())){
-                List<CollaboratorVO> collaborators = new ArrayList<CollaboratorVO>();
-                getSiteResponse = matomoClient.listParticularMatomoSite(matomoRecord.getSiteId());
-                if (getSiteResponse != null && "SUCCESS".equalsIgnoreCase(getSiteResponse.getStatus())) {
-                    matomoRecord.setSiteName(getSiteResponse.getName());
-                    matomoRecord.setSiteUrl(getSiteResponse.getMain_url());
+        if(response!=null && response.getData()!=null && "SUCCESS".equalsIgnoreCase(response.getStatus()) ) {
+            getSiteAccess = response.getData();
+
+            List<String> siteIdList = getSiteAccess.stream().map(MatomoGetSitesAccessDto::getSite).collect(Collectors.toList());
+            if (siteIdList != null || !siteIdList.isEmpty()) {
+                for (String siteId : siteIdList) {
+                    MatomoNsql entity = customRepo.findUserById(siteId);
+                    if (entity != null) {
+                        matomoVO = assembler.toVo(entity);
+                        List<CollaboratorVO> collaborators = new ArrayList<CollaboratorVO>();
+                        getSiteResponse = matomoClient.listParticularMatomoSite(matomoVO.getSiteId());
+                        if (getSiteResponse != null && "SUCCESS".equalsIgnoreCase(getSiteResponse.getStatus())) {
+                            matomoVO.setSiteName(getSiteResponse.getName());
+                            matomoVO.setSiteUrl(getSiteResponse.getMain_url());
+                        }
+
+                        map = matomoClient.getUsersAccessFromSite(user, matomoVO.getSiteId());
+                        for (Map.Entry<String, Object> entry : map.entrySet()) {
+
+                            String key = entry.getKey();
+                            if (key.equalsIgnoreCase(user)) {
+                                matomoVO.setPermission(entry.getValue().toString());
+                            } else {
+                                CollaboratorVO collaborator = new CollaboratorVO();
+                                collaborator.setId(entry.getKey());
+                                collaborator.setPermission(entry.getValue().toString());
+                                collaborators.add(collaborator);
+                            }
+                        }
+                        matomoVO.setCollaborators(collaborators);
+                        matomoVOResponse.add(matomoVO);
+                    }
                 }
 
-                map = matomoClient.getUsersAccessFromSite(user, matomoRecord.getSiteId());
+
+                totalCount = matomoVOResponse.size();
+                int endLimit = offset + limit;
+                if (endLimit > matomoVOResponse.size()) {
+                    endLimit = matomoVOResponse.size();
+                }
+                newMatomoList = matomoVOResponse.subList(offset, endLimit);
+                matomoCollectionWrapper.setRecords(newMatomoList);
+                matomoCollectionWrapper.setTotalCount(totalCount);
+            }
+        }
+
+        return  matomoCollectionWrapper;
+
+    }
+
+    @Override
+    public MatomoVO getMatomoById(String matomoId, String user) {
+        MatomoVO matomoVO = new MatomoVO();
+        MatomoGetSiteResponseDto getSiteResponse = new MatomoGetSiteResponseDto();
+        Map<String, Object> map = new HashMap<>();
+        Optional<MatomoNsql> anyEntity = this.jpaRepo.findById(matomoId);
+        if (anyEntity != null && anyEntity.isPresent()) {
+            MatomoNsql entity = anyEntity.get();
+            matomoVO = assembler.toVo(entity);
+            try {
+                List<CollaboratorVO> collaborators = new ArrayList<CollaboratorVO>();
+                getSiteResponse = matomoClient.listParticularMatomoSite(matomoVO.getSiteId());
+                if (getSiteResponse != null && "SUCCESS".equalsIgnoreCase(getSiteResponse.getStatus())) {
+                    matomoVO.setSiteName(getSiteResponse.getName());
+                    matomoVO.setSiteUrl(getSiteResponse.getMain_url());
+                }
+                map = matomoClient.getUsersAccessFromSite(user, matomoVO.getSiteId());
                 for (Map.Entry<String, Object> entry : map.entrySet()) {
 
                     String key = entry.getKey();
                     if (key.equalsIgnoreCase(user)) {
-                        matomoRecord.setPermission(entry.getValue().toString());
+                        matomoVO.setPermission(entry.getValue().toString());
                     } else {
                         CollaboratorVO collaborator = new CollaboratorVO();
                         collaborator.setId(entry.getKey());
@@ -109,29 +164,74 @@ public class BaseMatomoService extends BaseCommonService<MatomoVO, MatomoNsql, S
                         collaborators.add(collaborator);
                     }
                 }
-                matomoRecord.setCollaborators(collaborators);
-                matomoVOResponse.add(matomoRecord);
-
+                matomoVO.setCollaborators(collaborators);
+            } catch (Exception e) {
+                log.error("Failed while getting matamo site details results data for user  {} with exception {} ", user, e.getMessage());
             }
-            }
-            totalCount = matomoVOResponse.size();
-            int endLimit = offset + limit;
-            if (endLimit > matomoVOResponse.size()) {
-                endLimit = matomoVOResponse.size();
-            }
-            newMatomoList = matomoVOResponse.subList(offset, endLimit);
-            matomoCollectionWrapper[0] = newMatomoList;
-            matomoCollectionWrapper[1] = totalCount;
-
-
         }
-        return  matomoCollectionWrapper;
-
+        return matomoVO;
     }
+
 
     @Override
-    @Transactional(isolation = Isolation.SERIALIZABLE)
-    public Long getCount(String user) {
-        return customRepo.getTotalCount(user);
+    public GenericMessage deleteMatomoByID(String id, String user) {
+        GenericMessage responseMessage = new GenericMessage();
+        List<MessageDescription> errors = new ArrayList<>();
+        Map<String, Object> map = new HashMap<>();
+        List<MessageDescription> warnings = new ArrayList<>();
+        boolean isAdmin = false;
+        Optional<MatomoNsql> entityOptional = jpaRepo.findById(id);
+        if (entityOptional != null) {
+            MatomoNsql entity = entityOptional.get();
+            String siteId = entity.getData().getSiteId();
+            map = matomoClient.getUsersAccessFromSite(user, siteId);
+            for (Map.Entry<String, Object> entry : map.entrySet()) {
+
+                String key = entry.getKey();
+                if (key.equalsIgnoreCase(user)) {
+                    String userPermission = entry.getValue().toString();
+                    if("admin".equalsIgnoreCase(userPermission)) {
+                        isAdmin = true;
+                    }
+                }
+            }
+            if (isAdmin) {
+                MatomoSiteResponseDto deleteMatomoSiteResponse = matomoClient.deleteMatomoSite(siteId);
+
+                if (deleteMatomoSiteResponse != null && "FAILED".equalsIgnoreCase(deleteMatomoSiteResponse.getStatus())) {
+                    String msg = "Failed to delete Bucket.";
+                    MessageDescription errMsg = new MessageDescription(msg);
+                    errors.add(errMsg);
+                    responseMessage.setSuccess("FAILED");
+                    responseMessage.setErrors(errors);
+                    log.error("Failed to delete matomo site try again.");
+                    return responseMessage;
+                }
+
+                try {
+                    // To delete an Entity.
+                    this.jpaRepo.delete(entity);
+                    responseMessage.setErrors(null);
+                    responseMessage.setSuccess("SUCCESS");
+                } catch (Exception e) {
+                    log.error("Failed while deleting matomo site {}", siteId);
+                    MessageDescription msg = new MessageDescription("Failed while deleting matomo site ");
+                    errors.add(msg);
+                    responseMessage.setErrors(errors);
+                    responseMessage.setSuccess("FAILED");
+                }
+            } else {
+                log.error("Failed while deleting matomo site as user{} is not admin", siteId,user);
+                MessageDescription msg = new MessageDescription("Failed while deleting matomo site as user " +user+" is not admin");
+                errors.add(msg);
+                responseMessage.setErrors(errors);
+                responseMessage.setSuccess("FAILED");
+
+            }
+        }
+        return responseMessage;
     }
+
+
+
 }
