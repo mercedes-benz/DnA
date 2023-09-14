@@ -25,29 +25,11 @@
  * LICENSE END 
  */
 
-package com.daimler.data.kong.client;
+package com.daimler.data.db.repo.common;
 
 import java.util.List;
 
-import com.daimler.data.controller.exceptions.GenericMessage;
-import com.daimler.data.dto.kongGateway.AttachJwtPluginVO;
-import com.daimler.data.dto.kongGateway.AttachPluginVO;
-import com.daimler.data.dto.kongGateway.CreateRouteVO;
+public interface CommonDataRepository<T, ID> {
 
-public interface KongClient {
 
-	public GenericMessage createService(String name, String url);
-	
-//	public CreateServiceResponseVO getServiceByName(String serviceName);
-
-	public GenericMessage createRoute(CreateRouteVO createRouteVO, String serviceName);
-	
-//	public CreateRouteResponseVO getRouteByName(String serviceName, String routeName);
-
-	public GenericMessage attachPluginToService(AttachPluginVO attachPluginVO, String serviceName);
-	
-	public GenericMessage attachJwtPluginToService(AttachJwtPluginVO attachJwtPluginVO, String serviceName);
-	
-	public List<String> getAllServices();
-	
 }

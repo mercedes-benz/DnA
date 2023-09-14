@@ -241,7 +241,42 @@ paths:
           description: "Method not allowed"
         500:
           description: "Internal error"
- 
+
+  /workspaces/{id}/{userid}/validate:
+    get:
+      tags:
+        - "code-server"
+      summary: "To check given user has a access to workspace or not."
+      description: "To check a user has access to workspace."
+      operationId: "validateCodespace"
+      parameters:
+        - name: "id"
+          in: "path"
+          description: "Workspace ID to be validated"
+          required: true
+          type: "string"
+        - name: "userid"
+          in: "path"
+          description: "User ID to be deleted"
+          required: true
+          type: "string"
+      responses:
+        200:
+          description: "Returns message of success or failure"
+          schema:
+            $ref: "#/definitions/CodeServerWorkspaceValidateVO"
+        204:
+          description: "Fetch complete, no content found."
+        400:
+          description: "Bad request."
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
  
   /workspaces/{id}/collaborator:        
     post:
@@ -522,7 +557,13 @@ definitions:
         type: string
       required:
           -status
-       
+  CodeServerWorkspaceValidateVO:
+    type: object
+    properties:
+      isValid:
+        type: boolean
+        description: boolean indicating if user has a access to workspace or not.
+
   CodeServerWorkspaceVO:
     type: object
     properties:
@@ -591,6 +632,10 @@ definitions:
         enum: [int,prod]
       branch:
         type: string
+      secureWithIAMRequired:
+        type: boolean
+      technicalUserDetailsForIAMLogin:
+        type: string     
            
   CodeServerDeploymentDetailsVO:
     type: object
@@ -601,7 +646,11 @@ definitions:
         description: "Date of last deployment"
       deploymentUrl:
         type: string
-        description: "URL of the project deployed"  
+        description: "URL of the project deployed"
+      secureWithIAMRequired:
+        type: boolean
+      technicalUserDetailsForIAMLogin:
+        type: string    
       lastDeployedBy:
         $ref: "#/definitions/UserInfoVO" 
       lastDeployedBranch:
