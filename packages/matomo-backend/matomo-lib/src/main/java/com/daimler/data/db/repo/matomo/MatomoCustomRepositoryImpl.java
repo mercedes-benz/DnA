@@ -20,10 +20,7 @@ public class MatomoCustomRepositoryImpl extends CommonDataRepositoryImpl<MatomoN
         String user = userId.toLowerCase();
         String getAllStmt = " select cast(id as text), cast(data as text) from matomo_nsql where  ((lower(jsonb_extract_path_text(data,'createdBy','id')) = '" + user +
                 "'))";
-        if (limit > 0)
-            getAllStmt = getAllStmt + " limit " + limit;
-        if (offset >= 0)
-            getAllStmt = getAllStmt + " offset " + offset;
+
         Query q = em.createNativeQuery(getAllStmt);
         ObjectMapper mapper = new ObjectMapper();
         List<Object[]> results = q.getResultList();

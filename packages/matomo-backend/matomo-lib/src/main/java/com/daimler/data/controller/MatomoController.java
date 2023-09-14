@@ -214,7 +214,28 @@ public class MatomoController implements MatomoSitesApi {
             consumes = { "application/json" },
             method = RequestMethod.DELETE)
     public ResponseEntity<GenericMessage> deleteById(@ApiParam(value = "matomo ID to be delete",required=true) @PathVariable("id") String id) {
-        return null;
+        GenericMessage responseMessage = new GenericMessage();
+        List<MessageDescription> errors = new ArrayList<>();
+        MatomoVO existingMatomo = service.getById(id);
+        CreatedByVO requestUser = this.userStore.getVO();
+        String user = requestUser.getId();
+        if(existingMatomo==null || !id.equalsIgnoreCase(existingMatomo.getId())) {
+            log.warn("No matomo site found with id {}, failed to fetch details for given matomo id", id);
+            responseMessage.setSuccess("FAILED");
+            MessageDescription errMsg = new MessageDescription("Matomo ID Not found!");
+            errors.add(errMsg);
+            responseMessage.setErrors(errors);
+            log.error("Matomo ID Not found!");
+            return new ResponseEntity<>(responseMessage, HttpStatus.NOT_FOUND);
+        }
+
+        responseMessage = service.deleteMatomoByID(id,user);
+
+        if (responseMessage != null && "SUCCESS".equalsIgnoreCase(responseMessage.getSuccess())) {
+            return new ResponseEntity<>(responseMessage, HttpStatus.OK);
+        }
+
+        return new ResponseEntity<>(responseMessage, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     @Override
@@ -272,7 +293,15 @@ public class MatomoController implements MatomoSitesApi {
             consumes = { "application/json" },
             method = RequestMethod.GET)
     public ResponseEntity<MatomoVO> getById(@ApiParam(value = "matomo ID to be fetched",required=true) @PathVariable("id") String id) {
-        return null;
+       MatomoVO existingMatomo = service.getById(id);
+        CreatedByVO requestUser = this.userStore.getVO();
+        String user = requestUser.getId();
+        if(existingMatomo==null || !id.equalsIgnoreCase(existingMatomo.getId())) {
+            log.warn("No matomo site found with id {}, failed to fetch details for given matomo id", id);
+            return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
+        }
+        MatomoVO matomoData = service.getMatomoById(id,user);
+        return new ResponseEntity<>(matomoData, HttpStatus.OK);
     }
 
     @Override
