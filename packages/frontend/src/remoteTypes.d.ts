@@ -17,3 +17,13 @@ declare module 'dss-mfe/Dataiku' {
   const Dataiku: React.ComponentType;
   export default Dataiku;
 }
+
+declare module 'matomo-mfe/Matomo' {
+  const Matomo: React.ComponentType;
+  export default Matomo;
+}
+
+declare module 'datalake-mfe/Datalake' {
+  const Datalake: React.ComponentType;
+  export default Datalake;
+}
