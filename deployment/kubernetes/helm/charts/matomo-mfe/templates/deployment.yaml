@@ -1,20 +1,20 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "data-product-mfe.fullname" . }}
+  name: {{ include "matomo-mfe.fullname" . }}
   namespace: {{ .Values.namespace }}
   labels:
-    {{- include "data-product-mfe.labels" . | nindent 4 }}
+    {{- include "matomo-mfe.labels" . | nindent 4 }}
     
 spec:
   replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
-      {{- include "data-product-mfe.selectorLabels" . | nindent 6 }}
+      {{- include "matomo-mfe.selectorLabels" . | nindent 6 }}
   template:
     metadata:
       labels:
-        {{- include "data-product-mfe.selectorLabels" . | nindent 8 }}
+        {{- include "matomo-mfe.selectorLabels" . | nindent 8 }}
       {{- if .Values.vaultInjector.enable }}      
       {{- with .Values.vaultInjector.annotations }}
       annotations:
@@ -32,13 +32,13 @@ spec:
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
       volumes:
-        - name: {{ include "data-product-mfe.fullname" . }}-ngnix
+        - name: {{ include "matomo-mfe.fullname" . }}-ngnix
           configMap:
-            name: {{ include "data-product-mfe.fullname" . }}
+            name: {{ include "matomo-mfe.fullname" . }}
         {{- if not .Values.vaultInjector.enable }} 
-        - name: {{ include "data-product-mfe.fullname" . }}-configjs
+        - name: {{ include "matomo-mfe.fullname" . }}-configjs
           configMap:
-            name: {{ include "data-product-mfe.fullname" . }}  
+            name: {{ include "matomo-mfe.fullname" . }}  
         {{- end }}           
       topologySpreadConstraints:
         - maxSkew: 1
@@ -46,7 +46,7 @@ spec:
           whenUnsatisfiable: ScheduleAnyway
           labelSelector:
             matchLabels:
-              {{- include "data-product-mfe.selectorLabels" . | nindent 14 }}          
+              {{- include "matomo-mfe.selectorLabels" . | nindent 14 }}          
       containers:
         - name: {{ .Chart.Name }}
           securityContext:
@@ -79,11 +79,11 @@ spec:
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
           volumeMounts:
-            - name: {{ include "data-product-mfe.fullname" . }}-ngnix
+            - name: {{ include "matomo-mfe.fullname" . }}-ngnix
               mountPath: /opt/bitnami/nginx/conf/nginx.conf
               subPath: nginx.conf
             {{- if not .Values.vaultInjector.enable }}               
-            - name: {{ include "data-product-mfe.fullname" . }}-configjs
+            - name: {{ include "matomo-mfe.fullname" . }}-configjs
               mountPath: /usr/share/nginx/html/config.js
               subPath: config.js  
             {{- end }}               
