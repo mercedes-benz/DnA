@@ -102,6 +102,7 @@ const ReportsFilter = ({
   const [subDivisionFilterValues, setSubDivisionFilterValues] = useState([]);
   const [departmentFilterValues, setDepartmentFilterValues] = useState([]);
   const [tagFilterValues, setTagFilterValues] = useState<ITag[]>([]);
+  //const [, setTags] = useState<string[]>([]);
 
   const [userPreferenceDataId, setUserPreferenceDataId] = useState<string>(null);
 
@@ -148,6 +149,18 @@ const ReportsFilter = ({
               newQueryParams.processOwners = processOwners
                 ?.filter((item: any) => portfolioFilterValues.current.processOwners.includes(item.shortId))
                 ?.map((item) => item.shortId) as any || [];
+              /*if (!newQueryParams.tag) {
+                  newQueryParams.tag = [];
+              }
+              const selectedValues: ITag[] = [];
+              newQueryParams.tag.forEach((a: any) => {
+                const tag: ITag = { id: null, name: null };
+                tag.id = a;
+                tag.name = a;
+                selectedValues.push(tag);
+              });
+              setTagFilterValues(selectedValues);
+              setTags(newQueryParams.tag);*/
               setFilterApplied(true);
             } else {
               newQueryParams.agileReleaseTrains = arts?.map((art: IART) => {
@@ -192,7 +205,7 @@ const ReportsFilter = ({
             const userPreference = res[0];
             const savedSubDivisionsList: ISubDivisionSolution[] = [];
             const filterPreferences = userPreference.filterPreferences;
-            // if (!portfolioFilterValues.current) {
+            if (!portfolioFilterValues.current)/*uncommented*/ {
             queryParams.agileReleaseTrains = filterPreferences.arts?.map((art: IART) => {
               return art.name;
             });
@@ -216,17 +229,17 @@ const ReportsFilter = ({
               ?.map((item) => item.shortId) as any || [];
             // queryParams.productOwners = filterPreferences.productOwners as any;
             // populate subDivision dropdown values
-            if (!portfolioFilterValues.current) {
+            /*if (!portfolioFilterValues.current) {*/
               ApiClient.getSubDivisionsData(filterPreferences.divisions).then((subDivisionsList) => {
                 setSubDivisions(subDivisionsList);
                 SelectBox.defaultSetup();
               });
               setFilterApplied(true);
-            }
-            //}
+            /*}*/
+            }/*uncommented*/
             userPreferenceDataId = userPreference.id;
           }
-
+          console.log(queryParams);
           setQueryParams(queryParams);
           setUserPreferenceDataId(userPreferenceDataId);
           Button.defaultSetup();
@@ -565,6 +578,7 @@ const ReportsFilter = ({
       });
 
       newQueryParams.tag = [];
+      //setTags([]);
 
       setTimeout(() => {
         sessionStorage.removeItem(SESSION_STORAGE_KEYS.REPORT_FILTER_VALUES)
@@ -612,7 +626,7 @@ const ReportsFilter = ({
     });
 
     applyFilter('tag', arr);
-    // setTags(arr);
+    //setTags(arr);
     setTagFilterValues(selectedValues);
   };
 
@@ -652,6 +666,7 @@ const ReportsFilter = ({
     }
   }
   const subDivisionsOfSelectedDivision: ISubDivisionSolution[] = getSubDivisionsOfSelectedDivision();
+
   return (
     <FilterWrapper openFilters={openFilters}>
       <div>
