@@ -247,6 +247,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 		boolean kongApiForDeploymentURL = false;
 		String deploymentServiceName = "";
 		String url = "";
+		boolean uiRecipesToUseOidc = false;
 		if(serviceName.contains(WORKSPACE_API) && Objects.nonNull(env)) {
 			kongApiForDeploymentURL = true;
 			String[] wsid = serviceName.split("-");
@@ -371,12 +372,14 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 					attachPluginResponse = attachPluginToService(attachPluginRequestVO,serviceName);
 				}
 				else {
-					if(apiRecipe) {
-						LOGGER.info("kongApiForDeploymentURL and apiRecipe is true, calling jwtissuer plugin " );
+					if(!apiRecipe && uiRecipesToUseOidc) {
+						LOGGER.info("kongApiForDeploymentURL is {} and apiRecipe is {} and uiRecipesToUseOidc is : {}, calling oidc plugin ",kongApiForDeploymentURL, apiRecipe, uiRecipesToUseOidc );
+						attachPluginResponse = attachPluginToService(attachPluginRequestVO,serviceName);
+					}
+					else {
+						LOGGER.info("kongApiForDeploymentURL is {} and apiRecipe is {} and uiRecipesToUseOidc is : {}, calling jwtissuer plugin ",kongApiForDeploymentURL, apiRecipe, uiRecipesToUseOidc );
 						attachJwtPluginResponse = attachJwtPluginToService(attachJwtPluginRequestVO,serviceName);
 					}
-					LOGGER.info("kongApiForDeploymentURL is true and apiRecipe is false, calling jwtissuer plugin " );
-					attachPluginResponse = attachPluginToService(attachPluginRequestVO,serviceName);
 				}
 			}
 			
