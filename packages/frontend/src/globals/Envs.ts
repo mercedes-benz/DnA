@@ -162,6 +162,11 @@ export const Envs = {
     getInjectedEnv('ENABLE_CHRONOS_FORECASTING_SERVICE') !== undefined
       ? getInjectedEnv('ENABLE_CHRONOS_FORECASTING_SERVICE')
       : EnvParser.parseBool(process.env.ENABLE_CHRONOS_FORECASTING_SERVICE, false),
+  ENABLE_MATOMO_SERVICE:
+    getInjectedEnv('ENABLE_MATOMO_SERVICE') !== undefined
+      ? getInjectedEnv('ENABLE_MATOMO_SERVICE')
+      : EnvParser.parseBool(process.env.ENABLE_MATOMO_SERVICE, false),
+  
 
   DATA_GOVERNANCE_INFO_LINK: getInjectedEnv('DATA_GOVERNANCE_INFO_LINK') || process.env.DATA_GOVERNANCE_INFO_LINK,
   UDEMY_URL: getInjectedEnv('UDEMY_URL') || process.env.UDEMY_URL,
@@ -198,4 +203,5 @@ export const Envs = {
   DATA_PRODUCT_API_BASEURL: getInjectedEnv('DATA_PRODUCT_API_BASEURL') || process.env.DATA_PRODUCT_API_BASEURL,
   ROPA_PROCEDURE_ID_PREFIX: getInjectedEnv('ROPA_PROCEDURE_ID_PREFIX') || process.env.ROPA_PROCEDURE_ID_PREFIX,
   CHRONOS_API_BASEURL: getInjectedEnv('CHRONOS_API_BASEURL') || process.env.CHRONOS_API_BASEURL,
+  MATOMO_API_BASEURL: getInjectedEnv('MATOMO_API_BASEURL') || process.env.MATOMO_API_BASEURL,
 };
