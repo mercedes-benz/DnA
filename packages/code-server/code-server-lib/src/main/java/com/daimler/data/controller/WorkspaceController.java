@@ -569,22 +569,14 @@ public class WorkspaceController  implements CodeServerApi{
 			}
 			if(deployRequestDto!=null && deployRequestDto.getBranch()!=null) {
 				branch = deployRequestDto.getBranch();
-			}
-			UserRequestVO userRequestVO = new UserRequestVO();
-			com.daimler.data.auth.client.UserInfoVO userInfoVO = new com.daimler.data.auth.client.UserInfoVO();
-			com.daimler.data.auth.client.UserInfoVO userInfoVOResponse = new com.daimler.data.auth.client.UserInfoVO();
-			userInfoVO.setId(userId);
-			userInfoVO.setDepartment(currentUser.getDepartment());
-			userInfoVO.setDivisionAdmins(null);
-			userInfoVO.setEmail(currentUser.getEmail());
-			userInfoVO.setFavoriteUsecases(null);
-			userInfoVO.setFirstName(currentUser.getFirstName());
-			userInfoVO.setLastName(currentUser.getLastName());
-			userInfoVO.setMobileNumber(currentUser.getMobileNumber());
-			userInfoVO.setRoles(null);			
-			userRequestVO.setData(userInfoVO);
+			}			
 			if((Objects.nonNull(deployRequestDto.isSecureWithIAMRequired()) && deployRequestDto.isSecureWithIAMRequired())
 					&& (Objects.nonNull(deployRequestDto.getTechnicalUserDetailsForIAMLogin()))) {
+				UserRequestVO userRequestVO = new UserRequestVO();
+			com.daimler.data.auth.client.UserInfoVO userInfoVO = new com.daimler.data.auth.client.UserInfoVO();
+			com.daimler.data.auth.client.UserInfoVO userInfoVOResponse = new com.daimler.data.auth.client.UserInfoVO();
+			userInfoVO.setId(deployRequestDto.getTechnicalUserDetailsForIAMLogin());					
+			userRequestVO.setData(userInfoVO);
 				userInfoVOResponse = dnaAuthClient.onboardTechnicalUser(userRequestVO);
 				if(Objects.isNull(userInfoVOResponse)) {
 					log.info("Failed to onboard/fetch technical user {}, returning from controller without triggering deploy action",deployRequestDto.getTechnicalUserDetailsForIAMLogin());
