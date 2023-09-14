@@ -5,10 +5,13 @@ import com.daimler.data.assembler.MatomoAssembler;
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
 import com.daimler.data.db.entities.MatomoNsql;
+import com.daimler.data.db.json.Matomo;
 import com.daimler.data.db.repo.matomo.MatomoCustomRepository;
+import com.daimler.data.db.repo.matomo.MatomoRepository;
 import com.daimler.data.dto.MatomoGetSiteResponseDto;
 import com.daimler.data.dto.MatomoGetSitesAccessCollectionDto;
 import com.daimler.data.dto.MatomoGetSitesAccessDto;
+import com.daimler.data.dto.MatomoSiteResponseDto;
 import com.daimler.data.dto.matomo.*;
 import com.daimler.data.service.common.BaseCommonService;
 import lombok.extern.slf4j.Slf4j;
@@ -30,6 +33,8 @@ public class BaseMatomoService extends BaseCommonService<MatomoVO, MatomoNsql, S
     private MatomoAssembler assembler;
     @Autowired
     private MatomoClient matomoClient;
+    @Autowired
+    private MatomoRepository jpaRepo;
     @Override
     public MatomoResponseVO createMatomoSite(String matomoId, String siteId, Date createdOn, Date lastModified, MatomoSiteRequestVO matomoRequestVO, CreatedByVO requestUser) {
         GenericMessage responseMessage = new GenericMessage();
@@ -128,6 +133,102 @@ public class BaseMatomoService extends BaseCommonService<MatomoVO, MatomoNsql, S
         return  matomoCollectionWrapper;
 
     }
+
+    @Override
+    public MatomoVO getMatomoById(String matomoId, String user) {
+        MatomoVO matomoVO = new MatomoVO();
+        MatomoGetSiteResponseDto getSiteResponse = new MatomoGetSiteResponseDto();
+        Map<String, Object> map = new HashMap<>();
+        Optional<MatomoNsql> anyEntity = this.jpaRepo.findById(matomoId);
+        if (anyEntity != null && anyEntity.isPresent()) {
+            MatomoNsql entity = anyEntity.get();
+            matomoVO = assembler.toVo(entity);
+            try {
+                List<CollaboratorVO> collaborators = new ArrayList<CollaboratorVO>();
+                getSiteResponse = matomoClient.listParticularMatomoSite(matomoVO.getSiteId());
+                if (getSiteResponse != null && "SUCCESS".equalsIgnoreCase(getSiteResponse.getStatus())) {
+                    matomoVO.setSiteName(getSiteResponse.getName());
+                    matomoVO.setSiteUrl(getSiteResponse.getMain_url());
+                }
+                map = matomoClient.getUsersAccessFromSite(user, matomoVO.getSiteId());
+                for (Map.Entry<String, Object> entry : map.entrySet()) {
+
+                    String key = entry.getKey();
+                    if (key.equalsIgnoreCase(user)) {
+                        matomoVO.setPermission(entry.getValue().toString());
+                    } else {
+                        CollaboratorVO collaborator = new CollaboratorVO();
+                        collaborator.setId(entry.getKey());
+                        collaborator.setPermission(entry.getValue().toString());
+                        collaborators.add(collaborator);
+                    }
+                }
+                matomoVO.setCollaborators(collaborators);
+            } catch (Exception e) {
+                log.error("Failed while getting matamo site details results data for user  {} with exception {} ", user, e.getMessage());
+            }
+        }
+        return matomoVO;
+    }
+
+
+    @Override
+    public GenericMessage deleteMatomoByID(String id, String user) {
+        GenericMessage responseMessage = new GenericMessage();
+        List<MessageDescription> errors = new ArrayList<>();
+        Map<String, Object> map = new HashMap<>();
+        List<MessageDescription> warnings = new ArrayList<>();
+        boolean isAdmin = false;
+        Optional<MatomoNsql> entityOptional = jpaRepo.findById(id);
+        if (entityOptional != null) {
+            MatomoNsql entity = entityOptional.get();
+            String siteId = entity.getData().getSiteId();
+            // To delete bucket in minio storage.
+            map = matomoClient.getUsersAccessFromSite(user, siteId);
+            for (Map.Entry<String, Object> entry : map.entrySet()) {
+
+                String key = entry.getKey();
+                if (key.equalsIgnoreCase(user)) {
+                    isAdmin = true;
+                }
+            }
+            if (isAdmin) {
+                MatomoSiteResponseDto deleteMatomoSiteResponse = matomoClient.deleteMatomoSite(siteId);
+
+                if (deleteMatomoSiteResponse != null && "FAILED".equalsIgnoreCase(deleteMatomoSiteResponse.getStatus())) {
+                    String msg = "Failed to delete Bucket.";
+                    MessageDescription errMsg = new MessageDescription(msg);
+                    errors.add(errMsg);
+                    responseMessage.setSuccess("FAILED");
+                    responseMessage.setErrors(errors);
+                    log.error("Failed to delete matomo site try again.");
+                    return responseMessage;
+                }
+
+                try {
+                    // To delete an Entity.
+                    this.jpaRepo.delete(entity);
+                    responseMessage.setErrors(null);
+                    responseMessage.setSuccess("SUCCESS");
+                } catch (Exception e) {
+                    log.error("Failed while deleting matomo site {}", siteId);
+                    MessageDescription msg = new MessageDescription("Failed while deleting matomo site ");
+                    errors.add(msg);
+                    responseMessage.setErrors(errors);
+                    responseMessage.setSuccess("FAILED");
+                }
+            } else {
+                log.error("Failed while deleting matomo site as user{} is not admin", siteId,user);
+                MessageDescription msg = new MessageDescription("Failed while deleting matomo site as user " +user+" is not admin");
+                errors.add(msg);
+                responseMessage.setErrors(errors);
+                responseMessage.setSuccess("FAILED");
+
+            }
+        }
+        return responseMessage;
+    }
+
 
     @Override
     @Transactional(isolation = Isolation.SERIALIZABLE)
