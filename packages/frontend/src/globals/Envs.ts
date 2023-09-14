@@ -204,4 +204,5 @@ export const Envs = {
   ROPA_PROCEDURE_ID_PREFIX: getInjectedEnv('ROPA_PROCEDURE_ID_PREFIX') || process.env.ROPA_PROCEDURE_ID_PREFIX,
   CHRONOS_API_BASEURL: getInjectedEnv('CHRONOS_API_BASEURL') || process.env.CHRONOS_API_BASEURL,
   MATOMO_API_BASEURL: getInjectedEnv('MATOMO_API_BASEURL') || process.env.MATOMO_API_BASEURL,
+  MATOMO_APP_URL: getInjectedEnv('MATOMO_APP_URL') || process.env.MATOMO_APP_URL,
 };
