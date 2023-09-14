@@ -304,12 +304,13 @@ public class MatomoClient {
             }
             if (getSitesAccess != null && !getSitesAccess.isEmpty()) {
                 getSitesAccessCollection.setData(getSitesAccess);
+                getSitesAccessCollection.setStatus("SUCCESS");
             }
 
 
         } catch (Exception e) {
             log.error("Failed to get particular site details site {} api with {}" + user,e.getMessage());
-            MessageDescription errMsg = new MessageDescription("Failed to get particular site details  with exception " + e.getMessage());
+            MessageDescription errMsg = new MessageDescription("Failed to get particular site details. The user" + user + "doesn't have matomo sites created" );
             errors.add(errMsg);
             getSitesAccessCollection.setErrors(errors);
             getSitesAccessCollection.setStatus("FAILED");
