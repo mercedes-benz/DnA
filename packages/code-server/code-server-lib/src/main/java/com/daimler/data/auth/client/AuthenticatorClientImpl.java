@@ -97,6 +97,9 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 	@Value("${kong.jwtClientSecret}")
 	private String jwtClientSecret;
 
+	@Value("${kong.uiRecipesToUseOidc}")
+	private boolean uiRecipesToUseOidc;
+
 
 	@Autowired
 	RestTemplate restTemplate;
@@ -246,8 +249,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 		
 		boolean kongApiForDeploymentURL = false;
 		String deploymentServiceName = "";
-		String url = "";
-		boolean uiRecipesToUseOidc = false;
+		String url = "";		
 		if(serviceName.contains(WORKSPACE_API) && Objects.nonNull(env)) {
 			kongApiForDeploymentURL = true;
 			String[] wsid = serviceName.split("-");
