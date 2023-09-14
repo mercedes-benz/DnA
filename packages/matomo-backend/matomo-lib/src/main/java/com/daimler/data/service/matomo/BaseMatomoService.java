@@ -75,61 +75,62 @@ public class BaseMatomoService extends BaseCommonService<MatomoVO, MatomoNsql, S
 
 
     @Override
-    public Object[]  getAll( int limit,  int offset, String user) {
-        Object[] matomoCollectionWrapper = new Object[2];
-        long totalCount= 0L;
+    public MatomoCollectionVO  getAll( int limit,  int offset, String user) {
+        MatomoCollectionVO matomoCollectionWrapper = new MatomoCollectionVO();
+        int totalCount= 0;
         MatomoGetSiteResponseDto getSiteResponse =new MatomoGetSiteResponseDto();
         List<MatomoGetSitesAccessDto> getSiteAccess = new ArrayList<>();
         Map<String, Object> map = new HashMap<>();
-        List<MatomoVO> matomoVO = new ArrayList<>();
+        MatomoVO matomoVO = new MatomoVO();
         List<MatomoVO> newMatomoList = new ArrayList<>();
         List<MatomoVO> matomoVOResponse = new ArrayList<>();
         MatomoGetSitesAccessCollectionDto response= matomoClient.getSitesAccessFromUser(user);
-        if(response!=null && response.getData()!=null){
-            getSiteAccess= response.getData();
-        }
-        List<String> siteIdList = getSiteAccess.stream().map(MatomoGetSitesAccessDto::getSite).collect(Collectors.toList());
-        List<MatomoNsql> entities = customRepo.getAll(user, offset, limit);
-        if (entities != null && !entities.isEmpty()) {
-            matomoVO = entities.stream().map(n -> assembler.toVo(n)).collect(Collectors.toList());
-            for(MatomoVO matomoRecord: matomoVO) {
-            if(siteIdList.contains(matomoRecord.getSiteId())){
-                List<CollaboratorVO> collaborators = new ArrayList<CollaboratorVO>();
-                getSiteResponse = matomoClient.listParticularMatomoSite(matomoRecord.getSiteId());
-                if (getSiteResponse != null && "SUCCESS".equalsIgnoreCase(getSiteResponse.getStatus())) {
-                    matomoRecord.setSiteName(getSiteResponse.getName());
-                    matomoRecord.setSiteUrl(getSiteResponse.getMain_url());
-                }
+        if(response!=null && response.getData()!=null && "SUCCESS".equalsIgnoreCase(response.getStatus()) ) {
+            getSiteAccess = response.getData();
 
-                map = matomoClient.getUsersAccessFromSite(user, matomoRecord.getSiteId());
-                for (Map.Entry<String, Object> entry : map.entrySet()) {
+            List<String> siteIdList = getSiteAccess.stream().map(MatomoGetSitesAccessDto::getSite).collect(Collectors.toList());
+            if (siteIdList != null || !siteIdList.isEmpty()) {
+                for (String siteId : siteIdList) {
+                    MatomoNsql entity = customRepo.findUserById(siteId);
+                    if (entity != null) {
+                        matomoVO = assembler.toVo(entity);
+                        List<CollaboratorVO> collaborators = new ArrayList<CollaboratorVO>();
+                        getSiteResponse = matomoClient.listParticularMatomoSite(matomoVO.getSiteId());
+                        if (getSiteResponse != null && "SUCCESS".equalsIgnoreCase(getSiteResponse.getStatus())) {
+                            matomoVO.setSiteName(getSiteResponse.getName());
+                            matomoVO.setSiteUrl(getSiteResponse.getMain_url());
+                        }
 
-                    String key = entry.getKey();
-                    if (key.equalsIgnoreCase(user)) {
-                        matomoRecord.setPermission(entry.getValue().toString());
-                    } else {
-                        CollaboratorVO collaborator = new CollaboratorVO();
-                        collaborator.setId(entry.getKey());
-                        collaborator.setPermission(entry.getValue().toString());
-                        collaborators.add(collaborator);
+                        map = matomoClient.getUsersAccessFromSite(user, matomoVO.getSiteId());
+                        for (Map.Entry<String, Object> entry : map.entrySet()) {
+
+                            String key = entry.getKey();
+                            if (key.equalsIgnoreCase(user)) {
+                                matomoVO.setPermission(entry.getValue().toString());
+                            } else {
+                                CollaboratorVO collaborator = new CollaboratorVO();
+                                collaborator.setId(entry.getKey());
+                                collaborator.setPermission(entry.getValue().toString());
+                                collaborators.add(collaborator);
+                            }
+                        }
+                        matomoVO.setCollaborators(collaborators);
+                        matomoVOResponse.add(matomoVO);
                     }
                 }
-                matomoRecord.setCollaborators(collaborators);
-                matomoVOResponse.add(matomoRecord);
-
-            }
-            }
-            totalCount = matomoVOResponse.size();
-            int endLimit = offset + limit;
-            if (endLimit > matomoVOResponse.size()) {
-                endLimit = matomoVOResponse.size();
-            }
-            newMatomoList = matomoVOResponse.subList(offset, endLimit);
-            matomoCollectionWrapper[0] = newMatomoList;
-            matomoCollectionWrapper[1] = totalCount;
 
 
+                totalCount = matomoVOResponse.size();
+                int endLimit = offset + limit;
+                if (endLimit > matomoVOResponse.size()) {
+                    endLimit = matomoVOResponse.size();
+                }
+                newMatomoList = matomoVOResponse.subList(offset, endLimit);
+                matomoCollectionWrapper.setRecords(newMatomoList);
+                matomoCollectionWrapper.setTotalCount(totalCount);
+            }
         }
+
         return  matomoCollectionWrapper;
 
     }
@@ -183,13 +184,15 @@ public class BaseMatomoService extends BaseCommonService<MatomoVO, MatomoNsql, S
         if (entityOptional != null) {
             MatomoNsql entity = entityOptional.get();
             String siteId = entity.getData().getSiteId();
-            // To delete bucket in minio storage.
             map = matomoClient.getUsersAccessFromSite(user, siteId);
             for (Map.Entry<String, Object> entry : map.entrySet()) {
 
                 String key = entry.getKey();
                 if (key.equalsIgnoreCase(user)) {
-                    isAdmin = true;
+                    String userPermission = entry.getValue().toString();
+                    if("admin".equalsIgnoreCase(userPermission)) {
+                        isAdmin = true;
+                    }
                 }
             }
             if (isAdmin) {
@@ -230,9 +233,5 @@ public class BaseMatomoService extends BaseCommonService<MatomoVO, MatomoNsql, S
     }
 
 
-    @Override
-    @Transactional(isolation = Isolation.SERIALIZABLE)
-    public Long getCount(String user) {
-        return customRepo.getTotalCount(user);
-    }
+
 }
