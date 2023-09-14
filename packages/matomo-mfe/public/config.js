@@ -3,5 +3,6 @@ window['MATOMO_INJECTED_ENVIRONMENT'] = {
   API_BASEURL: 'http://localhost:7171/api',
   MATOMO_API_BASEURL: 'http://localhost:8989/api',
   STORAGE_API_BASEURL: 'http://localhost:7175/api',
-  REPORTS_API_BASEURL: 'http://localhost:7173/api'
+  REPORTS_API_BASEURL: 'http://localhost:7173/api',
+  MATOMO_APP_URL: ''
 };
