@@ -57,6 +57,8 @@ function createRefreshInterceptor(instance) {
         // Update the Authorization header in Axios instances.
         server.defaults.headers.Authorization = newJwt;
         hostServer.defaults.headers.Authorization = newJwt;
+        reportsServer.defaults.headers.Authorization = newJwt;
+        storageServer.defaults.headers.Authorization = newJwt;
 
         // Retry the original request with the new token.
         error.config.headers.Authorization = newJwt;
