@@ -25,7 +25,7 @@ import java.util.stream.Collectors;
 
 @Service
 @Slf4j
-public class BaseMatomoService extends BaseCommonService<MatomoVO, MatomoNsql, String> implements MatomoService{
+public class BaseMatomoService extends BaseCommonService<MatomoVO, MatomoNsql, String> implements MatomoService {
 
     @Autowired
     private MatomoCustomRepository customRepo;
@@ -35,11 +35,12 @@ public class BaseMatomoService extends BaseCommonService<MatomoVO, MatomoNsql, S
     private MatomoClient matomoClient;
     @Autowired
     private MatomoRepository jpaRepo;
+
     @Override
     public MatomoResponseVO createMatomoSite(String matomoId, String siteId, Date createdOn, Date lastModified, MatomoSiteRequestVO matomoRequestVO, CreatedByVO requestUser) {
         GenericMessage responseMessage = new GenericMessage();
         MatomoVO matomoVO = new MatomoVO();
-        MatomoSiteVO matomoSiteVO =new MatomoSiteVO();
+        MatomoSiteVO matomoSiteVO = new MatomoSiteVO();
         matomoVO.setId(matomoId);
         matomoVO.setSiteId(siteId);
         matomoVO.setSiteName(matomoRequestVO.getSiteName());
@@ -61,8 +62,8 @@ public class BaseMatomoService extends BaseCommonService<MatomoVO, MatomoNsql, S
             super.create(matomoVO);
             responseMessage.setSuccess("SUCCESS");
 
-        }catch(Exception e) {
-            log.error("Failed while saving details of matomo site {} to database for site {}, created by {}",siteId, matomoRequestVO.getSiteName(), requestUser);
+        } catch (Exception e) {
+            log.error("Failed while saving details of matomo site {} to database for site {}, created by {}", siteId, matomoRequestVO.getSiteName(), requestUser);
             MessageDescription msg = new MessageDescription("Failed to save matomo site details to table ");
             List<MessageDescription> errors = new ArrayList<>();
             errors.add(msg);
@@ -75,17 +76,17 @@ public class BaseMatomoService extends BaseCommonService<MatomoVO, MatomoNsql, S
 
 
     @Override
-    public MatomoCollectionVO  getAll( int limit,  int offset, String user) {
+    public MatomoCollectionVO getAll(int limit, int offset, String user) {
         MatomoCollectionVO matomoCollectionWrapper = new MatomoCollectionVO();
-        int totalCount= 0;
-        MatomoGetSiteResponseDto getSiteResponse =new MatomoGetSiteResponseDto();
+        int totalCount = 0;
+        MatomoGetSiteResponseDto getSiteResponse = new MatomoGetSiteResponseDto();
         List<MatomoGetSitesAccessDto> getSiteAccess = new ArrayList<>();
         Map<String, Object> map = new HashMap<>();
         MatomoVO matomoVO = new MatomoVO();
         List<MatomoVO> newMatomoList = new ArrayList<>();
         List<MatomoVO> matomoVOResponse = new ArrayList<>();
-        MatomoGetSitesAccessCollectionDto response= matomoClient.getSitesAccessFromUser(user);
-        if(response!=null && response.getData()!=null && "SUCCESS".equalsIgnoreCase(response.getStatus()) ) {
+        MatomoGetSitesAccessCollectionDto response = matomoClient.getSitesAccessFromUser(user);
+        if (response != null && response.getData() != null && "SUCCESS".equalsIgnoreCase(response.getStatus())) {
             getSiteAccess = response.getData();
 
             List<String> siteIdList = getSiteAccess.stream().map(MatomoGetSitesAccessDto::getSite).collect(Collectors.toList());
@@ -101,7 +102,7 @@ public class BaseMatomoService extends BaseCommonService<MatomoVO, MatomoNsql, S
                             matomoVO.setSiteUrl(getSiteResponse.getMain_url());
                         }
 
-                        map = matomoClient.getUsersAccessFromSite(user, matomoVO.getSiteId());
+                        map = matomoClient.getUsersAccessFromSite(matomoVO.getSiteId());
                         for (Map.Entry<String, Object> entry : map.entrySet()) {
 
                             String key = entry.getKey();
@@ -131,7 +132,7 @@ public class BaseMatomoService extends BaseCommonService<MatomoVO, MatomoNsql, S
             }
         }
 
-        return  matomoCollectionWrapper;
+        return matomoCollectionWrapper;
 
     }
 
@@ -151,7 +152,7 @@ public class BaseMatomoService extends BaseCommonService<MatomoVO, MatomoNsql, S
                     matomoVO.setSiteName(getSiteResponse.getName());
                     matomoVO.setSiteUrl(getSiteResponse.getMain_url());
                 }
-                map = matomoClient.getUsersAccessFromSite(user, matomoVO.getSiteId());
+                map = matomoClient.getUsersAccessFromSite(matomoVO.getSiteId());
                 for (Map.Entry<String, Object> entry : map.entrySet()) {
 
                     String key = entry.getKey();
@@ -184,13 +185,13 @@ public class BaseMatomoService extends BaseCommonService<MatomoVO, MatomoNsql, S
         if (entityOptional != null) {
             MatomoNsql entity = entityOptional.get();
             String siteId = entity.getData().getSiteId();
-            map = matomoClient.getUsersAccessFromSite(user, siteId);
+            map = matomoClient.getUsersAccessFromSite(siteId);
             for (Map.Entry<String, Object> entry : map.entrySet()) {
 
                 String key = entry.getKey();
                 if (key.equalsIgnoreCase(user)) {
                     String userPermission = entry.getValue().toString();
-                    if("admin".equalsIgnoreCase(userPermission)) {
+                    if ("admin".equalsIgnoreCase(userPermission)) {
                         isAdmin = true;
                     }
                 }
@@ -221,8 +222,8 @@ public class BaseMatomoService extends BaseCommonService<MatomoVO, MatomoNsql, S
                     responseMessage.setSuccess("FAILED");
                 }
             } else {
-                log.error("Failed while deleting matomo site as user{} is not admin", siteId,user);
-                MessageDescription msg = new MessageDescription("Failed while deleting matomo site as user " +user+" is not admin");
+                log.error("Failed while deleting matomo sit {} as user{} is not admin", siteId, user);
+                MessageDescription msg = new MessageDescription("Failed while deleting matomo site as user " + user + " is not admin");
                 errors.add(msg);
                 responseMessage.setErrors(errors);
                 responseMessage.setSuccess("FAILED");
@@ -234,4 +235,49 @@ public class BaseMatomoService extends BaseCommonService<MatomoVO, MatomoNsql, S
 
 
 
+    public MatomoResponseVO updateMatomoSiteById(MatomoSiteUpdateRequestVO matomoUpdateRequestVO, String id, List<CollaboratorVO> allCollaborators) {
+        GenericMessage responseMessage = new GenericMessage();
+        MatomoVO matomoVO = new MatomoVO();
+        MatomoVO matomoVOResponse = new MatomoVO();
+        MatomoResponseVO responseWrapperVO = new MatomoResponseVO();
+        try {
+            Optional<MatomoNsql> anyEntity = this.jpaRepo.findById(id);
+            if(anyEntity!=null && anyEntity.isPresent()) {
+                MatomoNsql entity = anyEntity.get();
+                matomoVOResponse = assembler.toVo(entity);
+                matomoVO.setId(matomoVOResponse.getId());
+                matomoVO.setSiteId(matomoVOResponse.getSiteId());
+                matomoVO.setSiteName(matomoUpdateRequestVO.getSiteName());
+                matomoVO.setSiteUrl(matomoUpdateRequestVO.getSiteUrl());
+                matomoVO.setDivision(matomoUpdateRequestVO.getDivision());
+                matomoVO.setSubDivision(matomoUpdateRequestVO.getSubDivision());
+                matomoVO.setDepartment(matomoUpdateRequestVO.getDepartment());
+                matomoVO.setClassificationType(matomoUpdateRequestVO.getClassificationType());
+                matomoVO.setPiiData(matomoUpdateRequestVO.isPiiData());
+                matomoVO.setCreatedBy(matomoVOResponse.getCreatedBy());
+                matomoVO.setStatus(matomoUpdateRequestVO.getStatus());
+                matomoVO.setPermission(matomoUpdateRequestVO.getPermission());
+                matomoVO.setCollaborators(allCollaborators);
+                matomoVO.setCreatedOn(matomoVOResponse.getCreatedOn());
+                matomoVO.setLastModified(matomoVOResponse.getLastModified());
+                MatomoNsql updatedEntity =assembler.toEntity(matomoVO);
+
+                this.jpaRepo.save(updatedEntity);
+            }
+            responseMessage.setSuccess("SUCCESS");
+        }catch(Exception e) {
+            responseMessage.setSuccess("FAILED");
+            List<MessageDescription> errors = new ArrayList<>();
+            MessageDescription errMsg = new MessageDescription("Failed to update site details with exception " + e.getMessage());
+            log.error("Failed to update site details with exception", e.getMessage());
+        }
+        responseWrapperVO.setData(matomoVO);
+        responseWrapperVO.setResponse(responseMessage);
+        return responseWrapperVO;
+
+    }
 }
+
+
+
+

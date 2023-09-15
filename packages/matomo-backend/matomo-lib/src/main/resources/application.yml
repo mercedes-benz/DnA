@@ -49,7 +49,7 @@ matomo:
     deleteSite: ${MATOMO_DELETESITE_URI:module=API&method=SitesManager.deleteSite&format=JSON&token_auth=}
     getUserAccess: ${MATOMO_GETUSERACCESS_URI:module=API&method=UsersManager.getUsersAccessFromSite&format=JSON&token_auth=}
     getSitesAccess: ${MATOMO_GETSITESACCESS_URI:module=API&method=UsersManager.getSitesAccessFromUser&format=JSON&token_auth=}
-
+    updateSite: ${MATOMO_UPDATEDITE_URI:module=API&method=SitesManager.updateSite&format=JSON&token_auth=}
 
 
 dna:

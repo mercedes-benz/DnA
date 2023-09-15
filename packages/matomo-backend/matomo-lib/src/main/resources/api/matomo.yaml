@@ -440,6 +440,11 @@ definitions:
       permission:
         type: string
         description: "Read write admin permissions"
+      existingCollaborators:
+        type: array
+        items:
+          $ref: "#/definitions/CollaboratorVO"
+          description: "To add collaborators"
       addCollaborators:
         type: array
         items:
