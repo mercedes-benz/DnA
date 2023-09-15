@@ -241,7 +241,7 @@ export const MatomoList = (props) => {
     <>
       {isCardView ? (
         <>
-          <div className={Styles.newStorageCard} onClick={()=> history.push('createMatomo')}>
+          <div className={Styles.newStorageCard} onClick={()=> history.push('/createMatomo')}>
             <div className={Styles.addicon}> &nbsp; </div>
             <label className={Styles.addlabel}>Create new Matomo Project</label>
           </div>
