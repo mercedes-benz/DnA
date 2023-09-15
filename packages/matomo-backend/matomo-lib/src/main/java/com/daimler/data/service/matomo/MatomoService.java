@@ -13,7 +13,7 @@ import java.util.List;
 public interface MatomoService extends CommonService<MatomoVO, MatomoNsql, String> {
     MatomoResponseVO createMatomoSite(String matomoId, String siteId, Date createdOn, Date lastModified, MatomoSiteRequestVO matomoRequestVO, CreatedByVO requestUser);
     MatomoCollectionVO getAll(int limit, int offset, String user);
-
+    MatomoResponseVO updateMatomoSiteById(MatomoSiteUpdateRequestVO matomoUpdateRequestVO, String id, List<CollaboratorVO> allCollaborators);
     MatomoVO getMatomoById(String matomoId,String user);
     GenericMessage deleteMatomoByID(String id, String user);
 
