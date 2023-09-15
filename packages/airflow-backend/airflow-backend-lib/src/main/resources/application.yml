@@ -71,5 +71,5 @@ logging:
     com:
       daimler:
           dna:
-            airflow: INFO
+            airflow: ${LOGGING_LEVEL:DEBUG}
     org.springframework.boot.autoconfigure.logging: INFO
