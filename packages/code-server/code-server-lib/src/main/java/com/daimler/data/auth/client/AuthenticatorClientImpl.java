@@ -278,7 +278,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 		}
 		else {
 			paths.add("/" + serviceName + "/");
-			//paths.add("/");
+			paths.add("/");
 		}
 		CreateRouteRequestVO createRouteRequestVO = new CreateRouteRequestVO();
 		CreateRouteVO createRouteVO = new CreateRouteVO();		
