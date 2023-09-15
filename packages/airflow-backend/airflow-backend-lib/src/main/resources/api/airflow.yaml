@@ -1,17 +1,17 @@
 #  This source is part of the Daimler AG.
 #  Copyright  Daimler and/or its affiliates.  All rights reserved.
-#  
+#
 #  No part of this work may be reproduced, stored in a retrieval system, adopted or transmitted in any form or by any means, electronic, mechanical, photographic, graphic, optic recording or otherwise, translated in any language or computer language, without the prior written permission of Daimler AG and/or its affiliates.
-#  
-# 
-#  
-#  
+#
+#
+#
+#
 #-----------------------------------------------------------------------------------------------------
 #  **
 #  ** File Name  : airflow.yaml
 #  **
 #  ** Module     : core
-#  ** 
+#  **
 
 #  -------------------------------------------------------------------------------------------------------
 #
@@ -19,177 +19,177 @@
 #
 #  Created By         :  GHOSDEB
 #
-#  Bug Number         :  
-#  Changed By         :  
-#  Change Description :  
-#  Change On          :  
-#  Search String      :  
-#  
+#  Bug Number         :
+#  Changed By         :
+#  Change Description :
+#  Change On          :
+#  Search String      :
+#
 #  -------------------------------------------------------------------------------------------------------
-  
+
 
 swagger: "2.0"
 info:
- description: "REST API uri document management. Description of all the available APIs along with request and response formats. Also provides options to try calling to execute running APIs and check"
- version: "0.0.1"
- title: "Pipeline as a Service."
+  description: "REST API uri document management. Description of all the available APIs along with request and response formats. Also provides options to try calling to execute running APIs and check"
+  version: "0.0.1"
+  title: "Pipeline as a Service."
 host: "localhost:7171"
 basePath: "/api/1.0"
 tags:
- - name: "projects"
-   description: "This service is used for file airflow roles operations."
- - name: "dags"
-   description: "This service is used for file airflow roles operations."
+  - name: "projects"
+    description: "This service is used for file airflow roles operations."
+  - name: "dags"
+    description: "This service is used for file airflow roles operations."
 
 schemes:
-- "https"
+  - "https"
 
 paths:
 
-#Projects Path
- /projects:
-  post:
-   tags:
-    - "projects"
-   summary: "Create airflow projects"
-   description: "Airflow project will be onboarded with this api"
-   operationId: "createProject"
-   parameters:
-    - name: "airflowProjectRequestVO" 
-      in: "body" 
-      description: "Request Body that contains data to create user in airflow" 
-      required: true
-      schema:
-       $ref: "#/definitions/AirflowProjectRequestVO"
-   responses:
-    201: 
-     description: "Returns message of succes or failure " 
-     schema:
-       $ref: "#/definitions/AirflowProjectResponseWrapperVO"
-    400:
-     description: "Bad Request"
-     schema:
-       $ref: "#/definitions/AirflowProjectResponseWrapperVO"
-    401:
-     description: "Request does not have sufficient credentials."
-    403:
-     description: "Request is not authorized."
-    405:
-     description: "Method not allowed"
-    500:
-     description: "Internal error"
+  #Projects Path
+  /projects:
+    post:
+      tags:
+        - "projects"
+      summary: "Create airflow projects"
+      description: "Airflow project will be onboarded with this api"
+      operationId: "createProject"
+      parameters:
+        - name: "airflowProjectRequestVO"
+          in: "body"
+          description: "Request Body that contains data to create user in airflow"
+          required: true
+          schema:
+            $ref: "#/definitions/AirflowProjectRequestVO"
+      responses:
+        201:
+          description: "Returns message of succes or failure "
+          schema:
+            $ref: "#/definitions/AirflowProjectResponseWrapperVO"
+        400:
+          description: "Bad Request"
+          schema:
+            $ref: "#/definitions/AirflowProjectResponseWrapperVO"
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
 
-  get:
-   tags:
-    - "projects"
-   summary: "get all airflow projects"
-   description: "get all airflow projects"
-   operationId: "getAllAirflowProject"
-   responses:
-    200: 
-     description: "Returns message of succes or failure " 
-     schema:
-       $ref: "#/definitions/AirflowProjectResponseVO"
-    400:
-     description: "Bad Request"
-    401:
-     description: "Request does not have sufficient credentials."
-    403:
-     description: "Request is not authorized."
-    405:
-     description: "Method not allowed"
-    500:
-     description: "Internal error"
-     
-     
- /projects/{projectId}: 
-  put:
-   tags:
-    - "projects"
-   summary: "update airflow project"
-   description: "Airflow project will be updated with this api"
-   operationId: "updatedProject"
-   parameters:
-    - name: projectId
-      in: path
-      description: "project id for which project to be fetched."
-      required: true
-      type: string
-    - name: "airflowProjectRequestVO" 
-      in: "body" 
-      description: "Request Body that contains data to create user in airflow" 
-      required: true
-      schema:
-       $ref: "#/definitions/AirflowProjectRequestVO"
-   responses:
-    200: 
-     description: "Returns message of succes or failure " 
-     schema:
-       $ref: "#/definitions/AirflowProjectResponseWrapperVO"
-    400:
-     description: "Bad Request"
-     schema:
-       $ref: "#/definitions/AirflowProjectResponseWrapperVO"
-    401:
-     description: "Request does not have sufficient credentials."
-    403:
-     description: "Request is not authorized."
-    405:
-     description: "Method not allowed"
-    500:
-     description: "Internal error"    
-  get:
-   tags:
-    - "projects"
-   summary: "get by project id airflow projects"
-   description: "get by project id airflow projects"
-   operationId: "getByAirflowProject"
-   parameters:
-      - name: projectId
-        in: path
-        description: "project id for which project to be fetched."
-        required: true
-        type: string
-   responses:
-    200: 
-     description: "Returns message of succes or failure " 
-     schema:
-       $ref: "#/definitions/AirflowProjectVO"
-    400:
-     description: "Bad Request"
-    401:
-     description: "Request does not have sufficient credentials."
-    403:
-     description: "Request is not authorized."
-    405:
-     description: "Method not allowed"
-    500:
-     description: "Internal error"
-     
-#Api for get ProjectId
- /projects/projectid:
-  get:
-   tags:
-    - "projects"
-   summary: "get airflow project ID"
-   description: "get airflow project ID"
-   operationId: "getAirflowProjectId"
-   responses:
-    200: 
+    get:
+      tags:
+        - "projects"
+      summary: "get all airflow projects"
+      description: "get all airflow projects"
+      operationId: "getAllAirflowProject"
+      responses:
+        200:
+          description: "Returns message of succes or failure "
+          schema:
+            $ref: "#/definitions/AirflowProjectResponseVO"
+        400:
+          description: "Bad Request"
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
+
+
+  /projects/{projectId}:
+    put:
+      tags:
+        - "projects"
+      summary: "update airflow project"
+      description: "Airflow project will be updated with this api"
+      operationId: "updatedProject"
+      parameters:
+        - name: projectId
+          in: path
+          description: "project id for which project to be fetched."
+          required: true
+          type: string
+        - name: "airflowProjectRequestVO"
+          in: "body"
+          description: "Request Body that contains data to create user in airflow"
+          required: true
+          schema:
+            $ref: "#/definitions/AirflowProjectRequestVO"
+      responses:
+        200:
+          description: "Returns message of succes or failure "
+          schema:
+            $ref: "#/definitions/AirflowProjectResponseWrapperVO"
+        400:
+          description: "Bad Request"
+          schema:
+            $ref: "#/definitions/AirflowProjectResponseWrapperVO"
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
+    get:
+      tags:
+        - "projects"
+      summary: "get by project id airflow projects"
+      description: "get by project id airflow projects"
+      operationId: "getByAirflowProject"
+      parameters:
+        - name: projectId
+          in: path
+          description: "project id for which project to be fetched."
+          required: true
+          type: string
+      responses:
+        200:
+          description: "Returns message of succes or failure "
+          schema:
+            $ref: "#/definitions/AirflowProjectVO"
+        400:
+          description: "Bad Request"
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
+
+  #Api for get ProjectId
+  /projects/projectid:
+    get:
+      tags:
+        - "projects"
+      summary: "get airflow project ID"
+      description: "get airflow project ID"
+      operationId: "getAirflowProjectId"
+      responses:
+        200:
           description: "Returns message of success or failure "
-     schema:
-       $ref: "#/definitions/AirflowProjectIdVO"
-    400:
-     description: "Bad Request"
-    401:
-     description: "Request does not have sufficient credentials."
-    403:
-     description: "Request is not authorized."
-    405:
-     description: "Method not allowed"
-    500:
-     description: "Internal error"     
-          
+          schema:
+            $ref: "#/definitions/AirflowProjectIdVO"
+        400:
+          description: "Bad Request"
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
+
   /projects/status/{projectId}:
     get:
       tags:
@@ -220,105 +220,105 @@ paths:
           description: "Method not allowed"
         500:
           description: "Internal error"
-#Airflow Dag Push
-#Api to cretae a new dag      
- 
-# /dags:
-#  post:
-#   tags:
-#    - "dags"
-#   summary: "Create new Dag in airflow"
-#   description: "Airflow Dag will be created with this api"
-#   operationId: "createDag"
-#   parameters:
-#    - name: "airflowDagVo" 
-#      in: "body" 
-#      description: "Request Body that contains data to create dag in airflow" 
-#      required: true
-#      schema:
-#       $ref: "#/definitions/AirflowProjectRequestVO"
-#   responses:
-#    201: 
-#     description: "Returns message of succes or failure " 
-#     schema:
-#       $ref: "#/definitions/AirflowDagResponseVO"
-#    400:
-#     description: "Bad Request"
-#     schema:
-#       $ref: "#/definitions/GenericMessage"
-#    401:
-#     description: "Request does not have sufficient credentials."
-#    403:
-#     description: "Request is not authorized."
-#    405:
-#     description: "Method not allowed"
-#    500:
-#     description: "Internal error"       
-     
-#Airflow Dag modify
-#Api to update an existing dag      
- /dags:
-  put:
-   tags:
-    - "dags"
-   summary: "Update an existing DAG file"
-   description: "Airflow Dag will be updated api"
-   operationId: "updateDag"
-   parameters:
-    - name: "airflowDagUpdateRequestVO" 
-      in: "body" 
-      description: "Request Body that contains data to create dag in airflow" 
-      required: true
-      schema:
-       $ref: "#/definitions/AirflowDagUpdateRequestVO"
-   responses:
-    201: 
-     description: "Returns message of succes or failure " 
-     schema:
-       $ref: "#/definitions/AirflowDagUpdateResponseVO"
-    400:
-     description: "Bad Request"
-     schema:
-       $ref: "#/definitions/GenericMessage"
-    401:
-     description: "Request does not have sufficient credentials."
-    403:
-     description: "Request is not authorized."
-    405:
-     description: "Method not allowed"
-    500:
-     description: "Internal error"
-     
- /dags/{dagName}:     
-  get:
-    tags:
-    - "dags"
-    summary: "Returns existing permissions from the airflow"
-    description:  "Returns existing permissions from the airflow"
-    operationId: "getDagByName" 
-    parameters:
-    - name: "dagName"
-      in: "path"
-      type: string
-      description: "dagId for which content to be fetched" 
-      required: true
-    responses:
-      200:
-       description: "Successfully downloaded."
-       schema:
-         $ref: "#/definitions/AirflowDagVo"
-      400:
-       description: "Bad request"
-      401:
-       description: "Request does not have sufficient credentials."
-      403:
-       description: "Request is not authorized."
-      404:
-       description: "Invalid id, record not found."
-      500:
-       description: "Internal error"         
-       
- /dags/{dagName}/{projectId}:      
+  #Airflow Dag Push
+  #Api to cretae a new dag
+
+  # /dags:
+  #  post:
+  #   tags:
+  #    - "dags"
+  #   summary: "Create new Dag in airflow"
+  #   description: "Airflow Dag will be created with this api"
+  #   operationId: "createDag"
+  #   parameters:
+  #    - name: "airflowDagVo"
+  #      in: "body"
+  #      description: "Request Body that contains data to create dag in airflow"
+  #      required: true
+  #      schema:
+  #       $ref: "#/definitions/AirflowProjectRequestVO"
+  #   responses:
+  #    201:
+  #     description: "Returns message of succes or failure "
+  #     schema:
+  #       $ref: "#/definitions/AirflowDagResponseVO"
+  #    400:
+  #     description: "Bad Request"
+  #     schema:
+  #       $ref: "#/definitions/GenericMessage"
+  #    401:
+  #     description: "Request does not have sufficient credentials."
+  #    403:
+  #     description: "Request is not authorized."
+  #    405:
+  #     description: "Method not allowed"
+  #    500:
+  #     description: "Internal error"
+
+  #Airflow Dag modify
+  #Api to update an existing dag
+  /dags:
+    put:
+      tags:
+        - "dags"
+      summary: "Update an existing DAG file"
+      description: "Airflow Dag will be updated api"
+      operationId: "updateDag"
+      parameters:
+        - name: "airflowDagUpdateRequestVO"
+          in: "body"
+          description: "Request Body that contains data to create dag in airflow"
+          required: true
+          schema:
+            $ref: "#/definitions/AirflowDagUpdateRequestVO"
+      responses:
+        201:
+          description: "Returns message of succes or failure "
+          schema:
+            $ref: "#/definitions/AirflowDagUpdateResponseVO"
+        400:
+          description: "Bad Request"
+          schema:
+            $ref: "#/definitions/GenericMessage"
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
+
+  /dags/{dagName}:
+    get:
+      tags:
+        - "dags"
+      summary: "Returns existing permissions from the airflow"
+      description:  "Returns existing permissions from the airflow"
+      operationId: "getDagByName"
+      parameters:
+        - name: "dagName"
+          in: "path"
+          type: string
+          description: "dagId for which content to be fetched"
+          required: true
+      responses:
+        200:
+          description: "Successfully downloaded."
+          schema:
+            $ref: "#/definitions/AirflowDagVo"
+        400:
+          description: "Bad request"
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        404:
+          description: "Invalid id, record not found."
+        500:
+          description: "Internal error"
+
+  /dags/{dagName}/{projectId}:
     delete:
       tags:
         - "dags"
@@ -335,7 +335,7 @@ paths:
           in: "path"
           description: "Project Id for associated DAG."
           required: true
-          type: "string"  
+          type: "string"
       responses:
         201:
           description: "Returns message of success or failure"
@@ -352,10 +352,10 @@ paths:
         405:
           description: "Method not allowed"
         500:
-          description: "Internal error"       
+          description: "Internal error"
 
 
- /dags/{dagName}/{projectId}/permission:      
+  /dags/{dagName}/{projectId}/permission:
     get:
       tags:
         - "dags"
@@ -372,7 +372,7 @@ paths:
           in: "path"
           description: "Project Id for associated DAG."
           required: true
-          type: "string"  
+          type: "string"
       responses:
         200:
           description: "Returns message of success or failure"
@@ -406,13 +406,13 @@ paths:
           in: "path"
           description: "Project Id for associated DAG."
           required: true
-          type: "string" 
-        - name: "airflowRetryDagVo" 
-          in: "body" 
-          description: "Request Body that contains data to create dag in airflow" 
+          type: "string"
+        - name: "airflowRetryDagVo"
+          in: "body"
+          description: "Request Body that contains data to create dag in airflow"
           required: true
           schema:
-            $ref: "#/definitions/AirflowDagRetryRequestVO" 
+            $ref: "#/definitions/AirflowDagRetryRequestVO"
       responses:
         200:
           description: "Returns message of success or failure"
@@ -429,83 +429,83 @@ paths:
         405:
           description: "Method not allowed"
         500:
-          description: "Internal error"  
-                    
+          description: "Internal error"
+
 definitions:
 
-#Project Request VO
- AirflowProjectRequestVO:
-   type: object
-   description: "Airflow project create request model definition"
-   properties:
-     data:
-       $ref: "#/definitions/AirflowProjectVO"
+  #Project Request VO
+  AirflowProjectRequestVO:
+    type: object
+    description: "Airflow project create request model definition"
+    properties:
+      data:
+        $ref: "#/definitions/AirflowProjectVO"
 
- AirflowProjectResponseVO:
-   type: object
-   description: "Airflow project create request model definition"
-   properties:
-     data:
-       type: array
-       items:
+  AirflowProjectResponseVO:
+    type: object
+    description: "Airflow project create request model definition"
+    properties:
+      data:
+        type: array
+        items:
           $ref: "#/definitions/AirflowProjectsByUserVO"
-       
- AirflowProjectVO:
-   type: object
-   description: "Airflow project model definition"
-   properties:
-     projectId:
-       type: string
-       description: "Airflow project id"       
-     projectName:
-       type: string
-       description: "Airflow project name"
-     projectDescription:
-       type: string
-       description: "Airflow project description"
-     createdBy:
-       type: string
-       description: "Airflow project owner" 
-     isOwner:
-       type: boolean
-       description: "Airflow project owner or collaborator"
+
+  AirflowProjectVO:
+    type: object
+    description: "Airflow project model definition"
+    properties:
+      projectId:
+        type: string
+        description: "Airflow project id"
+      projectName:
+        type: string
+        description: "Airflow project name"
+      projectDescription:
+        type: string
+        description: "Airflow project description"
+      createdBy:
+        type: string
+        description: "Airflow project owner"
+      isOwner:
+        type: boolean
+        description: "Airflow project owner or collaborator"
       projectStatus:
         type: string
         description: "Status of Airflow - CREATED,CREATE_REQUESTED,CREATE_FAILED"
-     dags:
-       type: array
-       items:
-         $ref: "#/definitions/AirflowDagVo" 
-   required:
+      dags:
+        type: array
+        items:
+          $ref: "#/definitions/AirflowDagVo"
+    required:
       - projectId
-      
- AirflowProjectsByUserVO:
-   type: object
-   description: "Airflow project response definition"
-   properties:
-     projectId:
-       type: string
-       description: "Airflow project id"   
-     projectName:
-       type: string
-       description: "Airflow project Name."     
-     projectDescription:
-       type: string
-       description: "Airflow project Description."         
-     createdBy:
-       type: string
-       description: "Airflow project owner" 
-     isOwner:
-       type: boolean
-       description: "Airflow project owner or collaborator"
+
+  AirflowProjectsByUserVO:
+    type: object
+    description: "Airflow project response definition"
+    properties:
+      projectId:
+        type: string
+        description: "Airflow project id"
+      projectName:
+        type: string
+        description: "Airflow project Name."
+      projectDescription:
+        type: string
+        description: "Airflow project Description."
+      createdBy:
+        type: string
+        description: "Airflow project owner"
+      isOwner:
+        type: boolean
+        description: "Airflow project owner or collaborator"
       projectStatus:
         type: string
         description: "Status of Airflow - CREATED,CREATE_REQUESTED,CREATE_FAILED"
-     dags:
-       type: array
-       items:
-         $ref: "#/definitions/AirflowDagProjectResponseVo" 
- AirflowDagProjectResponseVo:
+      dags:
+        type: array
+        items:
+          $ref: "#/definitions/AirflowDagProjectResponseVo"
+  AirflowDagProjectResponseVo:
     type: object
     properties:
       dagName:
@@ -514,8 +514,8 @@ definitions:
       permissions:
         type: array
         items:
-           type: string  
- AirflowProjectUserVO:
+          type: string
+  AirflowProjectUserVO:
     type: object
     properties:
       id:
@@ -536,11 +536,11 @@ definitions:
       permissions:
         type: array
         items:
-           type: string
-                            
- AirflowProjectResponseWrapperVO:
-   type: object
-   properties:
+          type: string
+
+  AirflowProjectResponseWrapperVO:
+    type: object
+    properties:
       status:
         type: string
         description: Overral status
@@ -554,20 +554,20 @@ definitions:
         type: array
         items:
           $ref: "#/definitions/MessageDescription"
-     
-#Project Request VO Ends
-#Defination of airflow users DTO
- AirflowResponseWrapperVO:
-   type: object
-   properties:
-     response: 
-       $ref: "#/definitions/GenericMessage"
-     airflowUserVO:
-       type: array
-       items:
-         $ref: "#/definitions/AirflowUserVO" 
-      
- AirflowUserVO:
+
+  #Project Request VO Ends
+  #Defination of airflow users DTO
+  AirflowResponseWrapperVO:
+    type: object
+    properties:
+      response:
+        $ref: "#/definitions/GenericMessage"
+      airflowUserVO:
+        type: array
+        items:
+          $ref: "#/definitions/AirflowUserVO"
+
+  AirflowUserVO:
     type: object
     properties:
       id:
@@ -588,21 +588,21 @@ definitions:
       roles:
         type: array
         items:
-         $ref: "#/definitions/AirflowRoleVO" 
- 
-#Defination of airflow roles dto
- 
- AirflowRoleResponseWrapperVO:
-   type: object
-   properties:
-     response: 
-       $ref: "#/definitions/GenericMessage"
-     airflowRoleVO:
-       type: array
-       items:
-         $ref: "#/definitions/AirflowRoleVO" 
-         
- AirflowRoleVO:
+          $ref: "#/definitions/AirflowRoleVO"
+
+  #Defination of airflow roles dto
+
+  AirflowRoleResponseWrapperVO:
+    type: object
+    properties:
+      response:
+        $ref: "#/definitions/GenericMessage"
+      airflowRoleVO:
+        type: array
+        items:
+          $ref: "#/definitions/AirflowRoleVO"
+
+  AirflowRoleVO:
     type: object
     properties:
       id:
@@ -614,21 +614,21 @@ definitions:
       permissions:
         type: array
         items:
-          $ref: "#/definitions/AirflowPermissionVO"         
+          $ref: "#/definitions/AirflowPermissionVO"
 
 
-#Definition of Permission DTO
- AirflowPermissionsResponseWrapperVO:
-   type: object
-   properties:
-     response: 
-       $ref: "#/definitions/GenericMessage"
-     permissions:
-       type: array
-       items:
-         $ref: "#/definitions/AirflowPermissionVO" 
+  #Definition of Permission DTO
+  AirflowPermissionsResponseWrapperVO:
+    type: object
+    properties:
+      response:
+        $ref: "#/definitions/GenericMessage"
+      permissions:
+        type: array
+        items:
+          $ref: "#/definitions/AirflowPermissionVO"
 
- AirflowPermissionVO:
+  AirflowPermissionVO:
     type: object
     properties:
       permissionViewId:
@@ -643,8 +643,8 @@ definitions:
       menus:
         type: array
         items:
-         $ref: "#/definitions/ViewMenuVO" 
- ViewMenuVO:
+          $ref: "#/definitions/ViewMenuVO"
+  ViewMenuVO:
     type: object
     properties:
       id:
@@ -653,52 +653,52 @@ definitions:
       name:
         type: string
         description: name of the menu
-        
-#Defination of common model dto
- CreatedByVO:
-   type: object
-   properties:
-     id:
-       type: string
-       description: "ID of user"
-     firstName:
-       type: string
-       description: "First Name of the user"
-     lastName:
-       type: string
-       description: "Last Name of the user"
-     department:
-       type: string
-       description: "Department of the user"
-     email:
-       type: string
-       description: "E-Mail of the user"
-     mobileNumber:
-       type: string
-       description: "Mobile number of the user"           
- GenericMessage:
-  type: object
-  properties:
-    success:
-      type: string
-    errors:
-      type: array
-      items: 
-        $ref: "#/definitions/MessageDescription"
-    warnings:
-      type: array
-      items:
-        $ref: "#/definitions/MessageDescription"
-  
- MessageDescription:
-  type: object
-  properties:
-    message: 
-      type: string
-      description: "error message"
-      
-    
- AirflowDagResponseVO:
+
+  #Defination of common model dto
+  CreatedByVO:
+    type: object
+    properties:
+      id:
+        type: string
+        description: "ID of user"
+      firstName:
+        type: string
+        description: "First Name of the user"
+      lastName:
+        type: string
+        description: "Last Name of the user"
+      department:
+        type: string
+        description: "Department of the user"
+      email:
+        type: string
+        description: "E-Mail of the user"
+      mobileNumber:
+        type: string
+        description: "Mobile number of the user"
+  GenericMessage:
+    type: object
+    properties:
+      success:
+        type: string
+      errors:
+        type: array
+        items:
+          $ref: "#/definitions/MessageDescription"
+      warnings:
+        type: array
+        items:
+          $ref: "#/definitions/MessageDescription"
+
+  MessageDescription:
+    type: object
+    properties:
+      message:
+        type: string
+        description: "error message"
+
+
+  AirflowDagResponseVO:
     type: object
     properties:
       data:
@@ -706,15 +706,15 @@ definitions:
       errors:
         type: array
         items:
-          $ref: "#/definitions/MessageDescription"      
-  
- AirflowDagRequestVo:
+          $ref: "#/definitions/MessageDescription"
+
+  AirflowDagRequestVo:
     type: object
     properties:
       data:
-        $ref: "#/definitions/AirflowDagVo"   
+        $ref: "#/definitions/AirflowDagVo"
 
- AirflowDagVo:
+  AirflowDagVo:
     type: object
     properties:
       dagContent:
@@ -732,17 +732,17 @@ definitions:
           $ref: "#/definitions/AirflowProjectUserVO"
     required:
       - dagContent
-      - dagName              
-      
- AirflowProjectIdVO:
+      - dagName
+
+  AirflowProjectIdVO:
     type: object
     description: Airflow Project Id Object
     properties:
       projectId:
         type: string
-        description: Project Id 
-        
- AirflowDagUpdateVO:
+        description: Project Id
+
+  AirflowDagUpdateVO:
     type: object
     description: "Defines the Model for Airflow DAG update operation."
     properties:
@@ -754,18 +754,18 @@ definitions:
         description: "Defines the DAG file name."
     required:
       - dagContent
-      - dagName         
-        
- AirflowDagUpdateRequestVO:
+      - dagName
+
+  AirflowDagUpdateRequestVO:
     type: object
     description: "Defines the Model for Airflow DAG update operation request."
     properties:
       data:
-        $ref: "#/definitions/AirflowDagUpdateVO"        
+        $ref: "#/definitions/AirflowDagUpdateVO"
     required:
-      - data        
-      
- AirflowDagUpdateResponseVO:
+      - data
+
+  AirflowDagUpdateResponseVO:
     type: object
     properties:
       data:
@@ -773,28 +773,28 @@ definitions:
       errors:
         type: array
         items:
-          $ref: "#/definitions/MessageDescription"      
-          
- AirflowGITResponse:
-   type: object
-   properties:
-     gitCommitId:
+          $ref: "#/definitions/MessageDescription"
+
+  AirflowGITResponse:
+    type: object
+    properties:
+      gitCommitId:
         type: object
         description: "GIT commit"
-     errors:
+      errors:
         type: array
         items:
-          $ref: "#/definitions/MessageDescription"         
+          $ref: "#/definitions/MessageDescription"
 
- AirflowDagRetryRequestVO:
+  AirflowDagRetryRequestVO:
     type: object
     description: "Defines the Model for Airflow DAG update operation request."
     properties:
       data:
-        $ref: "#/definitions/AirflowRetryDagVo"        
+        $ref: "#/definitions/AirflowRetryDagVo"
     required:
-      - data  
- AirflowDagRetryResponseVO:
+      - data
+  AirflowDagRetryResponseVO:
     type: object
     properties:
       status:
@@ -805,16 +805,15 @@ definitions:
       errors:
         type: array
         items:
-          $ref: "#/definitions/MessageDescription" 
-          
- AirflowRetryDagVo:
+          $ref: "#/definitions/MessageDescription"
+
+  AirflowRetryDagVo:
     type: object
     properties:
       dagName:
         type: string
-        description: "Defines the DAG file name."      
+        description: "Defines the DAG file name."
       collaborators:
         type: array
         items:
           $ref: "#/definitions/AirflowProjectUserVO"
-      
