@@ -30,11 +30,7 @@ const CreateMatomo = ({ user }) => {
   const dispatch = useDispatch();
 //   const { connect } = useSelector((state) => state.connectionInfo);
   const [siteName, setSiteName] = useState('');
-  const [bucketPermission, setBucketPermission] = useState({
-    read: true,
-    write: true,
-    admin: true
-  });
+  const [bucketPermission, setBucketPermission] = useState('admin');
   const [showInfoModal, setInfoModal] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [ownerId, setOwnerId] = useState('');
@@ -80,16 +76,12 @@ const CreateMatomo = ({ user }) => {
   
   const [divisions, setDivisions] = useState([]);
   const [subDivisions, setSubDivisions] = useState([]);
+  const [callOnGetByID, setCallOnGetByID] = useState(false);
 
   // const isSecretEnabled = Envs.ENABLE_DATA_CLASSIFICATION_SECRET;
 
   const isOwner = user.id === createdBy.id;
 
-  useEffect(() => {
-    // setDivisions([]);
-    // setSubDivisions([]);
-    // setDepartments([]);
-  }, []);  
 
   useEffect(() => {
     ProgressIndicator.show();
@@ -120,36 +112,24 @@ const CreateMatomo = ({ user }) => {
   }, []);
 
   useEffect(() => {
-    const id = matomoDivision;
-    if (id > '0') {
-      ProgressIndicator.show();
-      hostServer.get('/subdivisions/' + id).then((res) => {
-        setSubDivisions(res?.data || []);
-        SelectBox.defaultSetup();
-        ProgressIndicator.hide();
-      });
-    } else {
-        setSubDivisions([]);
+    if(!callOnGetByID){
+      const divId = matomoDivision;
+      if (divId > '0') {
+        ProgressIndicator.show();
+        hostServer.get('/subdivisions/' + divId)
+        .then((res) => {
+          setSubDivisions(res?.data || []);
+          SelectBox.defaultSetup();
+          ProgressIndicator.hide();
+          setCallOnGetByID(false);
+        });
+      } else {
+          setSubDivisions([]);
+      }
     }
     //eslint-disable-next-line react-hooks/exhaustive-deps
   }, [matomoDivision]);
 
-  // useEffect(() => {
-  //   ProgressIndicator.show();
-  //   matomoApi
-  //     .getDataConnectionTypes()
-  //     .then((res) => {
-  //       setDataClassificationDropdown(res?.data?.data || []);
-  //       SelectBox.defaultSetup();
-  //       ProgressIndicator.hide();
-  //     })
-  //     .catch(() => {
-  //       ProgressIndicator.hide();
-  //       setDataClassificationDropdown([{ id: '', name: 'Choose' }]);
-  //       SelectBox.defaultSetup();
-  //       Notification.show('Error while fetching Data Connection Type list', 'alert');
-  //     });
-  // }, [isSecretEnabled]);
 
   useEffect(() => {
     if (id) {
@@ -159,9 +139,11 @@ const CreateMatomo = ({ user }) => {
         .then((res) => {
           if (res?.data?.permission === 'admin') {
             setSiteName(res?.data?.siteName);
+            setUrl(res?.data?.siteUrl);
             setBucketPermission(res?.data?.permission);
             setBucketCollaborators(res?.data?.collaborators || []);
             setDataClassification(res?.data?.classificationType);
+            // SelectBox.defaultSetup();
             setPII(res?.data?.piiData);
             setBucketId(res?.data?.id);
             setCreatedBy(res?.data?.createdBy);
@@ -172,19 +154,27 @@ const CreateMatomo = ({ user }) => {
 
             if (res?.data?.status) {
               setStatusValue(res?.data.status);
+              // SelectBox.defaultSetup();
             }
 
             if (res?.data?.division) {
               setMatomoDivision(res?.data?.division);
+              if(res?.data?.division > '0'){
+                hostServer.get('/subdivisions/' + res?.data?.division)
+                .then((res) => {
+                  setSubDivisions(res?.data || []);
+                })
+                .finally(() => {
+                  setMatomoDivision(res?.data?.division);
+                  setMatomoSubDivision(res?.data?.subDivision);
+                  setCallOnGetByID(true);
+                  SelectBox.defaultSetup();
+                  ProgressIndicator.hide();
+                });
+              }
+              
             }
 
-            if (res?.data?.subDivision) {
-              setMatomoSubDivision(res?.data?.subDivision);
-            }
-
-            // setTermsOfUse(res?.data?.termsOfUse);
-            // setEditAPIResponse(res?.data); // store to compare whether the values are changed
-            SelectBox.defaultSetup();
           } else {
             // reset history to base page before accessing container app's public routes;
             history.replace('/');
@@ -201,7 +191,8 @@ const CreateMatomo = ({ user }) => {
           history.push('/');
         });
     }
-  }, [id]);
+    //eslint-disable-next-line
+  }, []);
 
   // useEffect(() => {
   //   // check whether values are changed while edit
@@ -329,7 +320,6 @@ const CreateMatomo = ({ user }) => {
         // termsOfUse: termsOfUse,
       };
       dispatch(matomoActions.createMatomo(data));
-      history.replace('/');
     }
   };
 
@@ -456,7 +446,19 @@ const CreateMatomo = ({ user }) => {
   };
 
   const handleDivision = (e) => {
-    setMatomoDivision(e.target.value);
+    // const divId = e.target.value;
+    const selectedOptions = e.currentTarget.selectedOptions;
+    const divId = selectedOptions[0].value
+    // if(divId > '0'){
+    //   ProgressIndicator.show();
+    //   hostServer.get('/subdivisions/' + divId)
+    //   .then((res) => {
+    //     setSubDivisions(res?.data);
+    //     SelectBox.defaultSetup();
+    //     ProgressIndicator.hide();
+    //   });
+    // }  
+    setMatomoDivision(divId);
   };
 
   const handleSubDivision = (e) => {
@@ -525,7 +527,6 @@ const CreateMatomo = ({ user }) => {
                         handleSiteNameValidation(e.target.value);
                       }}
                       defaultValue={siteName}
-                      readOnly={id}
                     />
                     <span className={classNames('error-message', siteNameError?.length ? '' : 'hide')}>
                       {siteNameError}
@@ -621,7 +622,6 @@ const CreateMatomo = ({ user }) => {
                         // handleBucketNameValidation(e.target.value);
                       }}
                       defaultValue={url}
-                      readOnly={id}
                     />
                     <span className={classNames('error-message', urlError?.length ? '' : 'hide')}>
                       {urlError}
@@ -788,7 +788,7 @@ const CreateMatomo = ({ user }) => {
                             name="read"
                             type="checkbox"
                             className="ff-only"
-                            checked={!!bucketPermission?.admin}
+                            checked={bucketPermission === 'admin'}
                             onChange={handleCheckbox}
                           />
                         </span>
