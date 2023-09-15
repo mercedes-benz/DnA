@@ -2,7 +2,7 @@
 import { matomoApi } from '../../apis/matamo.api';
 import Notification from '../../common/modules/uilab/js/src/notification';
 import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indicator';
-// import { history } from '../../store/storeRoot';
+import { history } from '../../store/storeRoot';
 
 const getMatomoList = () => {
   return async (dispatch, getStore) => {
@@ -77,6 +77,7 @@ const createMatomo = (data) => {
       });
       ProgressIndicator.hide();
       Notification.show(`Site ${data.siteName} created successfully.`);
+      history.replace('/');
     } catch (error) {
       dispatch({
         type: 'MATOMO_ERROR',
