@@ -176,7 +176,7 @@ paths:
    operationId: "getAirflowProjectId"
    responses:
     200: 
-     description: "Returns message of succes or failure " 
+          description: "Returns message of success or failure "
      schema:
        $ref: "#/definitions/AirflowProjectIdVO"
     400:
@@ -190,6 +190,36 @@ paths:
     500:
      description: "Internal error"     
           
+  /projects/status/{projectId}:
+    get:
+      tags:
+        - "projects"
+      summary: "Get pipeline status for a projectId."
+      description: "Get pipeline details for a projectId."
+      operationId: "getStatusByProjectId"
+      parameters:
+        - name: "projectId"
+          in: "path"
+          description: "Project Id for associated DAG.  "
+          required: true
+          type: "string"
+      responses:
+        200:
+          description: "Returns message of success or failure"
+          schema:
+            $ref: "#/definitions/AirflowProjectResponseWrapperVO"
+        204:
+          description: "Fetch complete, no content found."
+        400:
+          description: "Bad request."
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
 #Airflow Dag Push
 #Api to cretae a new dag      
  
@@ -439,6 +469,9 @@ definitions:
      isOwner:
        type: boolean
        description: "Airflow project owner or collaborator"
+      projectStatus:
+        type: string
+        description: "Status of Airflow - CREATED,CREATE_REQUESTED,CREATE_FAILED"
      dags:
        type: array
        items:
@@ -465,6 +498,9 @@ definitions:
      isOwner:
        type: boolean
        description: "Airflow project owner or collaborator"
+      projectStatus:
+        type: string
+        description: "Status of Airflow - CREATED,CREATE_REQUESTED,CREATE_FAILED"
      dags:
        type: array
        items:

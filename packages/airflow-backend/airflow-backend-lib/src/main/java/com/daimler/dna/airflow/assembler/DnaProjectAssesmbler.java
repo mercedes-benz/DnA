@@ -82,7 +82,6 @@ public class DnaProjectAssesmbler {
 					dagVO = dagMap.get(userDagMapping.getDag().getDagId());
 				} else {
 					dagVO = new AirflowDagVo();
-					dagMap.put(userDagMapping.getDag().getDagId(), dagVO);
 				}
 				dagVO.setDagName(userDagMapping.getDag().getDagId());
 				dagVO.setActive(userDagMapping.getDag().getIsActive());
@@ -107,7 +106,9 @@ public class DnaProjectAssesmbler {
 					}
 					dagVO.addCollaboratorsItem(airflowProjectUserVO);
 				}
-
+				
+				dagMap.put(userDagMapping.getDag().getDagId(), dagVO);
+				
 			}
 			dagMap.entrySet().forEach(x -> vo.addDagsItem(x.getValue()));
 			log.debug("fetching dag content from GIT..");
@@ -155,6 +156,31 @@ public class DnaProjectAssesmbler {
 			vo.setIsOwner(currentUser.equalsIgnoreCase((String) obj[1]));
 			dagsItem.setDagName((String) obj[2]);
 			dagsItem.addPermissionsItem((String) obj[3]);
+			vo.addDagsItem(dagsItem);
+		}
+		log.trace("Successfully assembled all aiflow project per user.");
+		return vo;
+	}
+
+	public AirflowProjectsByUserVO toVO1(Object[] obj, String currentUser, Map<String, AirflowProjectsByUserVO> map) {
+		log.trace("Started assembling all aiflow project per user ....");
+		AirflowProjectsByUserVO vo = null;
+		AirflowDagProjectResponseVo dagsItem = null;
+		if (Objects.nonNull(obj)) {
+			if (map.get((String) obj[0]) != null) {
+				vo = map.get((String) obj[0]);
+
+			} else {
+				vo = new AirflowProjectsByUserVO();
+
+			}
+			dagsItem = new AirflowDagProjectResponseVo();
+			vo.setProjectId((String) obj[0]);
+			vo.setCreatedBy((String) obj[1]);
+			vo.setProjectName((String) obj[2]);
+			vo.setProjectDescription((String) obj[3]);
+			vo.setProjectStatus((String) obj[4]);
+			vo.setIsOwner(currentUser.equalsIgnoreCase((String) obj[1]));
 			vo.addDagsItem(dagsItem);
 		}
 		log.trace("Successfully assembled all aiflow project per user.");
