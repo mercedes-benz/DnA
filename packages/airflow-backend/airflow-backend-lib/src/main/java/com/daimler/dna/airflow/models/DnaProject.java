@@ -69,6 +69,8 @@ public class DnaProject implements Serializable {
 	private String projectDescription;
 	@Column(name = "created_by", length = 64, nullable = false, unique = false)
 	private String createdBy;
+	@Column(name = "project_status", length = 64, nullable = true, unique = false)
+	private String projectStatus;
 	@OneToMany(mappedBy = "dnaProject", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
 	@OnDelete(action = OnDeleteAction.CASCADE)
 	private List<DnaProjectAndUserMapping> dnaProjectUserMappings;
