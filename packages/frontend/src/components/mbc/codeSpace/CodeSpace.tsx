@@ -53,6 +53,8 @@ export interface IProjectDetails {
 }
 
 export interface IDeploymentDetails {
+  secureWithIAMRequired?: boolean,
+  technicalUserDetailsForIAMLogin?: string,
   lastDeployedOn?: string;
   deploymentUrl?: string;
   lastDeployedBranch?: string;
@@ -95,6 +97,8 @@ export interface IBranch {
 export interface IDeployRequest {
   targetEnvironment: string; // int or prod
   branch: string;
+  secureWithIAMRequired?: boolean,
+  technicalUserDetailsForIAMLogin?: string,
 }
 
 const CodeSpace = (props: ICodeSpaceProps) => {
@@ -176,9 +180,9 @@ const CodeSpace = (props: ICodeSpaceProps) => {
             const prodDeployed =
               prodDeploymentDetails.lastDeploymentStatus === 'DEPLOYED' ||
               (prodDeployedUrl !== null && prodDeployedUrl !== 'null');
-            // const deployingInProgress =
-            //   (intDeploymentDetails.lastDeploymentStatus === 'DEPLOY_REQUESTED' ||
-            //   prodDeploymentDetails.lastDeploymentStatus === 'DEPLOY_REQUESTED');
+            const deployingInProgress =
+              (intDeploymentDetails.lastDeploymentStatus === 'DEPLOY_REQUESTED' ||
+              prodDeploymentDetails.lastDeploymentStatus === 'DEPLOY_REQUESTED');
             // const deployed =
             //   intDeploymentDetails.lastDeploymentStatus === 'DEPLOYED' ||
             //   prodDeploymentDetails.lastDeploymentStatus === 'DEPLOYED' ||
@@ -198,10 +202,13 @@ const CodeSpace = (props: ICodeSpaceProps) => {
             setProdCodeDeployedBranch(prodDeploymentDetails.lastDeployedBranch);
 
             Tooltip.defaultSetup();
-            // if (deployingInProgress) {
-            //   setCodeDeploying(true);
-            //   enableDeployLivelinessCheck(res.workspaceId);
-            // }
+            if (deployingInProgress) {
+              const deployingEnv = intDeploymentDetails.lastDeploymentStatus === 'DEPLOY_REQUESTED' ? 'staging' : 'production';
+              console.log(deployingEnv);
+              setDeployEnvironment(deployingEnv);
+              setCodeDeploying(true);
+              enableDeployLivelinessCheck(res.workspaceId, deployingEnv);
+            }
           } else {
             Notification.show(`Code space ${res.projectDetails.projectName} is getting created. Please try again later.`, 'warning');
           }
@@ -273,8 +280,8 @@ const CodeSpace = (props: ICodeSpaceProps) => {
         ProgressIndicator.hide();
         setShowCodeDeployModal(true);
         setBranches(res);
-        setIAMTechnicalUserID('');
-        setSecureWithIAMSelected(false);
+        setIAMTechnicalUserID(codeSpaceData.projectDetails?.intDeploymentDetails?.technicalUserDetailsForIAMLogin || '');
+        setSecureWithIAMSelected(codeSpaceData.projectDetails?.intDeploymentDetails?.secureWithIAMRequired || false);
         SelectBox.defaultSetup();
         Tooltip.defaultSetup();
       })
@@ -288,7 +295,8 @@ const CodeSpace = (props: ICodeSpaceProps) => {
     setShowCodeDeployModal(false);
   };
 
-  const enableDeployLivelinessCheck = (id: string) => {
+  const enableDeployLivelinessCheck = (id: string, deployEnvironmentValue: string) => {
+    console.log(deployEnvironmentValue);
     clearInterval(livelinessInterval);
     const intervalId = setInterval(() => {
       CodeSpaceApiClient.getCodeSpaceStatus(id)
@@ -297,17 +305,17 @@ const CodeSpace = (props: ICodeSpaceProps) => {
             const intDeploymentDetails = res.projectDetails?.intDeploymentDetails;
             const prodDeploymentDetails = res.projectDetails?.prodDeploymentDetails;
 
-            const deployStatus = deployEnvironment === 'staging' ? intDeploymentDetails?.lastDeploymentStatus : prodDeploymentDetails?.lastDeploymentStatus;
+            const deployStatus = deployEnvironmentValue === 'staging' ? intDeploymentDetails?.lastDeploymentStatus : prodDeploymentDetails?.lastDeploymentStatus;
             if (deployStatus === 'DEPLOYED') {
               setIsApiCallTakeTime(false);
               ProgressIndicator.hide();
               clearInterval(livelinessIntervalRef.current);
               setCodeDeploying(false);
-              if (deployEnvironment === 'staging') {
+              if (deployEnvironmentValue === 'staging') {
                 setCodeDeployed(true);
                 setCodeDeployedUrl(intDeploymentDetails?.deploymentUrl);
                 setCodeDeployedBranch(branchValue);
-              } else if (deployEnvironment === 'production') {
+              } else if (deployEnvironmentValue === 'production') {
                 setProdCodeDeployed(true);
                 setProdCodeDeployedUrl(prodDeploymentDetails?.deploymentUrl);
                 setProdCodeDeployedBranch(branchValue);
@@ -325,6 +333,12 @@ const CodeSpace = (props: ICodeSpaceProps) => {
               setIsApiCallTakeTime(false);
               Notification.show(`Deployment faild for code space ${res.projectDetails?.projectName}. Please try again.`, 'alert');
             }
+
+            setCodeSpaceData({
+              ...res,
+              running: !!res.intiatedOn,
+            });
+
           } catch (err: any) {
             console.log(err);
           }
@@ -344,7 +358,15 @@ const CodeSpace = (props: ICodeSpaceProps) => {
   };
 
   const onDeployEnvironmentChange = (evnt: React.FormEvent<HTMLInputElement>) => {
-    setDeployEnvironment(evnt.currentTarget.value.trim());
+    const deployEnv = evnt.currentTarget.value.trim();
+    setDeployEnvironment(deployEnv);
+    if (deployEnv === 'staging') {
+      setSecureWithIAMSelected(codeSpaceData.projectDetails?.intDeploymentDetails?.secureWithIAMRequired || false);
+      setIAMTechnicalUserID(codeSpaceData.projectDetails?.intDeploymentDetails?.technicalUserDetailsForIAMLogin || '');
+    } else {
+      setSecureWithIAMSelected(codeSpaceData.projectDetails?.prodDeploymentDetails?.secureWithIAMRequired || false);
+      setIAMTechnicalUserID(codeSpaceData.projectDetails?.prodDeploymentDetails?.technicalUserDetailsForIAMLogin || '');
+    }
   };
 
   const onAcceptCodeDeploy = () => {
@@ -355,6 +377,8 @@ const CodeSpace = (props: ICodeSpaceProps) => {
       setIAMTechnicalUserIDError('');
     }
     const deployRequest: IDeployRequest = {
+      secureWithIAMRequired: secureWithIAMSelected,
+      technicalUserDetailsForIAMLogin: secureWithIAMSelected ? iamTechnicalUserID : null,
       targetEnvironment: deployEnvironment === 'staging' ? 'int' : 'prod', // int or prod
       branch: branchValue
     };
@@ -374,7 +398,7 @@ const CodeSpace = (props: ICodeSpaceProps) => {
           } else {
             setIsApiCallTakeTime(true);
           }
-          enableDeployLivelinessCheck(codeSpaceData.workspaceId);
+          enableDeployLivelinessCheck(codeSpaceData.workspaceId, deployEnvironment);
         } else {
           setIsApiCallTakeTime(false);
           ProgressIndicator.hide();
@@ -411,6 +435,20 @@ const CodeSpace = (props: ICodeSpaceProps) => {
   };
 
   const isPublicRecipeChoosen = codeSpaceData?.projectDetails?.recipeDetails?.recipeId.startsWith('public');
+  const securedWithIAMContent: React.ReactNode = (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      stroke="#00adef"
+      fill="#00adef"
+      strokeWidth="0"
+      viewBox="0 0 30 30"
+      width="15px"
+      height="15px"
+    >
+      {' '}
+      <path d="M 15 2 C 11.145666 2 8 5.1456661 8 9 L 8 11 L 6 11 C 4.895 11 4 11.895 4 13 L 4 25 C 4 26.105 4.895 27 6 27 L 24 27 C 25.105 27 26 26.105 26 25 L 26 13 C 26 11.895 25.105 11 24 11 L 22 11 L 22 9 C 22 5.2715823 19.036581 2.2685653 15.355469 2.0722656 A 1.0001 1.0001 0 0 0 15 2 z M 15 4 C 17.773666 4 20 6.2263339 20 9 L 20 11 L 10 11 L 10 9 C 10 6.2263339 12.226334 4 15 4 z" />
+    </svg>
+  );
 
   return (
     <div className={fullScreenMode ? Styles.codeSpaceWrapperFSmode : '' + ' ' + Styles.codeSpaceWrapper}>
@@ -440,6 +478,7 @@ const CodeSpace = (props: ICodeSpaceProps) => {
                           <a href={codeDeployedUrl} target="_blank" rel="noreferrer">
                             <i className="icon mbc-icon link" /> Staging (
                             <i className="icon mbc-icon transactionaldata" /> {codeDeployedBranch})
+                            {codeSpaceData.projectDetails.intDeploymentDetails?.secureWithIAMRequired && securedWithIAMContent}
                           </a>
                           &nbsp;
                         </div>
@@ -449,20 +488,7 @@ const CodeSpace = (props: ICodeSpaceProps) => {
                           <a href={prodCodeDeployedUrl} target="_blank" rel="noreferrer">
                             <i className="icon mbc-icon link" /> Production (
                             <i className="icon mbc-icon transactionaldata" /> {prodCodeDeployedBranch})
-                            {codeSpaceData.projectDetails.projectName === 'ITLSDemoService' && (
-                              <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                stroke="#00adef"
-                                fill="#00adef"
-                                strokeWidth="0"
-                                viewBox="0 0 30 30"
-                                width="15px"
-                                height="15px"
-                              >
-                                {' '}
-                                <path d="M 15 2 C 11.145666 2 8 5.1456661 8 9 L 8 11 L 6 11 C 4.895 11 4 11.895 4 13 L 4 25 C 4 26.105 4.895 27 6 27 L 24 27 C 25.105 27 26 26.105 26 25 L 26 13 C 26 11.895 25.105 11 24 11 L 22 11 L 22 9 C 22 5.2715823 19.036581 2.2685653 15.355469 2.0722656 A 1.0001 1.0001 0 0 0 15 2 z M 15 4 C 17.773666 4 20 6.2263339 20 9 L 20 11 L 10 11 L 10 9 C 10 6.2263339 12.226334 4 15 4 z" />
-                              </svg>
-                            )}
+                            {codeSpaceData.projectDetails.prodDeploymentDetails?.secureWithIAMRequired && securedWithIAMContent}
                           </a>
                           &nbsp;
                         </div>
