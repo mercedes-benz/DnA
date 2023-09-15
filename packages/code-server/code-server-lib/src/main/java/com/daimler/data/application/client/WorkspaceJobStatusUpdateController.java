@@ -208,7 +208,7 @@ public class WorkspaceJobStatusUpdateController  {
 			}
 			GenericMessage responseMessage = service.update(userId,name,projectName,existingStatus,latestStatus,targetEnv,branch);
 			log.info("Message details after update action {} and userid is {} and resourceID is {}",message,userId,resourceID);
-			//authenticatorClient.callingKongApis(name);
+			authenticatorClient.callingKongApis(name,null,false);
 			kafkaProducer.send(eventType, resourceID, "", userId, message, true, teamMembers, teamMembersEmails, null);
 			return new ResponseEntity<>(responseMessage, HttpStatus.OK);
 		}else {
