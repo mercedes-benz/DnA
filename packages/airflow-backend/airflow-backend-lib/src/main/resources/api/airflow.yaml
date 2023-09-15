@@ -176,7 +176,7 @@ paths:
    operationId: "getAirflowProjectId"
    responses:
     200: 
-          description: "Returns message of success or failure "
+     description: "Returns message of success or failure "
      schema:
        $ref: "#/definitions/AirflowProjectIdVO"
     400:
