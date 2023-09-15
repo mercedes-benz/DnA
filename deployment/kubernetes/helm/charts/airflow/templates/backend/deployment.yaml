@@ -30,6 +30,11 @@ spec:
         - name: git-clone-init
           image: {{ .Values.backend.image }}
           imagePullPolicy: Always
+          env:
+            - name: AIRFLOW_GIT_URI
+              value: {{ .Values.backendgit.gitCloneurl }}
+            - name: GIT_BRANCH
+              value:  {{ .Values.backendgit.gitbranch }}                     
           volumeMounts:
           - name: dag-repo
             mountPath: /git
@@ -165,7 +170,7 @@ spec:
         fsGroup: 1000
         runAsGroup: 1000
       imagePullSecrets:
-        - name: {{ .Values.imagePullSecret.name }}
+        - name: imagepullsecret
       volumes:
         - name: dag-repo
           persistentVolumeClaim:
