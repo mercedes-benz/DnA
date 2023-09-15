@@ -1,31 +1,31 @@
-# {{- if .Values.airflowIngressRoute.enabled -}}
-# apiVersion: traefik.containo.us/v1alpha1
-# kind: IngressRoute
-# metadata:
-#   name: {{ include "airflow.name" . }}
-#   annotations:
-#     link.argocd.argoproj.io/external-link: '{{ .Values.configuration.webserver.baseUrl }}{{ .Values.configuration.webserver.path }}/'
-# spec:
-#   entryPoints:
-#     - web
-#   routes:
-#     - match: PathPrefix(`{{ .Values.configuration.webserver.path }}`)
-#       kind: Rule
-#       services:
-#         - name: {{ include "airflow-service.name" . }}
-#           port: {{ .Values.service.port }}
-#       middlewares:
-#         - name: airflow-traefik-middleware-x-forwarded-headers
-# {{- end }}
-# ---
-# {{- if .Values.airflowMiddleware.enabled -}}
-# apiVersion: traefik.containo.us/v1alpha1
-# kind: Middleware
-# metadata:
-#   name: airflow-traefik-middleware-x-forwarded-headers
-# spec:
-#   headers:
-#     customRequestHeaders:
-#       X-Forwarded-Proto: "https"
-#       X-Forwarded-Port: "443"
-# {{- end }}
+{{- if .Values.airflowIngressRoute.enabled -}}
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: {{ include "airflow.name" . }}
+  annotations:
+    link.argocd.argoproj.io/external-link: '{{ .Values.configuration.webserver.baseUrl }}{{ .Values.configuration.webserver.path }}/'
+spec:
+  entryPoints:
+    - web
+  routes:
+    - match: PathPrefix(`{{ .Values.configuration.webserver.path }}`)
+      kind: Rule
+      services:
+        - name: {{ include "airflow-service.name" . }}
+          port: {{ .Values.service.port }}
+      middlewares:
+        - name: airflow-traefik-middleware-x-forwarded-headers
+{{- end }}
+---
+{{- if .Values.airflowMiddleware.enabled -}}
+apiVersion: traefik.containo.us/v1alpha1
+kind: Middleware
+metadata:
+  name: airflow-traefik-middleware-x-forwarded-headers
+spec:
+  headers:
+    customRequestHeaders:
+      X-Forwarded-Proto: "https"
+      X-Forwarded-Port: "443"
+{{- end }}
