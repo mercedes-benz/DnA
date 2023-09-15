@@ -20,7 +20,7 @@ public class Matomo {
     private String subDivision;
     private String department;
     private String status;
-    private boolean piiData;
+    private Boolean piiData;
     private String classificationType;
     private UserDetails createdBy;
     private Date createdOn;
