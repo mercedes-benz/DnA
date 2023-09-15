@@ -106,7 +106,7 @@ public class DagMgmtServiceImpl implements DagMgmtService {
 	private List<MessageDescription> validateUpdate(AirflowDagUpdateVO dag, AirflowProjectUserVO currentUser) {
 		List<MessageDescription> errors = new ArrayList<MessageDescription>();
 
-		if (!dnaProjectService.getPermissions(dag.getDagName(), currentUser.getUsername()).contains("can_dag_edit")) {
+		if (!dnaProjectService.getPermissions(dag.getDagName(), currentUser.getUsername()).contains("can_edit")) {
 			LOGGER.debug("Access Denied. You cannot perform this operation.");
 			MessageDescription md = new MessageDescription();
 			md.setMessage("Access Denied. You cannot perform this operation.");
@@ -202,7 +202,7 @@ public class DagMgmtServiceImpl implements DagMgmtService {
 		List<MessageDescription> errors = new ArrayList<MessageDescription>();
 		MessageDescription message = null;
 		// Check for permission userStore
-		if (!dnaProjectService.getPermissions(dagName, currentUser.getUsername()).contains("can_dag_edit")) {
+		if (!dnaProjectService.getPermissions(dagName, currentUser.getUsername()).contains("can_edit")) {
 			LOGGER.debug("Access Denied. You cannot perform this operation.");
 			MessageDescription md = new MessageDescription();
 			md.setMessage("Access Denied. You cannot perform this operation.");
