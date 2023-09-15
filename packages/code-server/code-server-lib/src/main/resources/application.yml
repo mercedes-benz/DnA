@@ -132,3 +132,4 @@ kong:
 
 workspace:
   update: ${UPDATE_WORKSPACEDATA:XXXX}   
+  callKongApisFromBackend: ${CALL_KONG_APIS_FROM_BACKEND:XXXX}
