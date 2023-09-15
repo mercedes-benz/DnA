@@ -53,4 +53,8 @@ public interface DnaProjectService {
 
 	void updatePermisions(AirflowRetryDagVo airflowRetryDagVo, String projectId, boolean defaultPermission);
 
+	ResponseEntity<AirflowProjectResponseWrapperVO> getAirflowDagStatus(String projectId);
+
+	void updateAirflowInprogressDagProjectStatus();
+
 }
