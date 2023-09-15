@@ -8,8 +8,6 @@ import com.daimler.data.dto.matomo.MatomoVO;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
-import java.util.stream.Collectors;
 
 @Component
 public class MatomoAssembler implements GenericAssembler<MatomoVO, MatomoNsql> {
@@ -23,6 +21,8 @@ public class MatomoAssembler implements GenericAssembler<MatomoVO, MatomoNsql> {
             Matomo data = entity.getData();
             if(data!=null) {
                 BeanUtils.copyProperties(data, vo);
+                if(data.getPiiData()!=null)
+                    vo.setPiiData(data.getPiiData());
                 if(data.getCreatedBy()!=null) {
                     CreatedByVO creator = new CreatedByVO();
                     BeanUtils.copyProperties(data.getCreatedBy(),creator);
@@ -41,6 +41,9 @@ public class MatomoAssembler implements GenericAssembler<MatomoVO, MatomoNsql> {
             entity.setId(vo.getId());
             Matomo data = new Matomo();
             BeanUtils.copyProperties(vo, data);
+
+            if(vo.isPiiData()!=null)
+                data.setPiiData(vo.isPiiData());
             if(vo.getCreatedBy()!=null) {
                 UserDetails creator = new UserDetails();
                 BeanUtils.copyProperties(vo.getCreatedBy(), creator);
