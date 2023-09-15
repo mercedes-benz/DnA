@@ -82,6 +82,10 @@ public class JWTAuthenticationFilter implements Filter {
 		log.debug("Intercepting Request to validate JWT:" + requestUri);
 		String jwt = httpRequest.getHeader("Authorization");
 		if (!StringUtils.hasText(jwt)) {
+			if (requestUri.contains("validate")) {
+				filterChain.doFilter(servletRequest, servletResponse);
+				return;
+			}
 			log.error("Request UnAuthorized,No JWT available");
 			forbidResponse(servletResponse);
 			return;
