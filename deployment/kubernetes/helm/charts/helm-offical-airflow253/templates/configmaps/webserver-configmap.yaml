@@ -1,0 +1,213 @@
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#   http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing,
+# software distributed under the License is distributed on an
+# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+# KIND, either express or implied.  See the License for the
+# specific language governing permissions and limitations
+# under the License.
+
+################################
+## Airflow ConfigMap
+#################################
+{{- if .Values.webserverConfig.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: officalairflow-webserver-config
+  labels:
+    tier: airflow
+    component: config
+    release: {{ .Release.Name }}
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+    heritage: {{ .Release.Service }}
+    {{- with .Values.labels }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+data:
+  webserver_config.py: |-
+    import os, logging, json, posixpath
+
+    from airflow import configuration as conf
+
+    from airflow.www.security import AirflowSecurityManager
+
+    from flask import abort, make_response, redirect
+
+    from flask_appbuilder.security.manager import AUTH_OID
+
+    from flask_appbuilder.security.views import AuthOIDView
+
+    from flask_appbuilder.views import ModelView, SimpleFormView, expose
+
+    from flask_login import login_user
+
+    from flask_oidc import OpenIDConnect
+
+
+    logger = logging.getLogger(__name__)
+
+
+
+
+    # Extending AuthOIDView
+
+    class AuthOIDCView(AuthOIDView):
+
+        @expose('/login/', methods=['GET', 'POST'])
+        def login(self, flag=True):
+
+            sm = self.appbuilder.sm
+            oidc = sm.oid
+
+            @self.appbuilder.sm.oid.require_login
+            def handle_login():
+        #         sub = "ADEVALL"
+                user = sm.auth_user_oid(oidc.user_getfield('email'))
+
+                login_user(user, remember=False)
+                return redirect(self.appbuilder.get_url_for_index)
+
+            return handle_login()
+
+        @expose('/logout/', methods=['GET', 'POST'])
+        def logout(self):
+            oidc = self.appbuilder.sm.oid
+            # if not oidc.credentials_store:
+            #     return redirect('/login/')
+            # self.revoke_token()
+            oidc.logout()
+            super(AuthOIDCView, self).logout()
+            response = make_response("You have been signed out")
+            return response
+            # redirect_url = request.url_root.strip('/') + self.appbuilder.get_url_for_login
+
+            # return redirect(
+            #     oidc.client_secrets.get('issuer') + '/protocol/openid-connect/logout?redirect_uri=' + quote(redirect_url))
+
+
+        def revoke_token(self):
+            """ Revokes the provided access token. Sends a POST request to the token revocation endpoint
+            """
+            import aiohttp
+            import asyncio
+            import json
+            oidc = self.appbuilder.sm.oid
+            sub = oidc.user_getfield(sub)
+            config = oidc.credentials_store
+            config = config.get(str(sub))
+            config = json.loads(config)
+            payload = {
+                "token": config['access_token'],
+                "token_type_hint": "refresh_token"
+            }
+            auth = aiohttp.BasicAuth(config['client_id'], config['client_secret'])
+            # Sends an asynchronous POST request to revoke the token
+        
+            async def revoke():
+                async with aiohttp.ClientSession() as session:
+                    async with session.post(self.appbuilder.app.config.get('OIDC_LOGOUT_URI'), data=payload, auth=auth) as response:
+                        logging.info(f"Revoke response {response.status}")
+
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            loop.run_until_complete(revoke())
+
+
+
+    class OIDCSecurityManager(AirflowSecurityManager):
+        """
+        Custom security manager class that allows using the OpenID Connection authentication method.
+        """
+        def __init__(self, appbuilder):
+            super(OIDCSecurityManager, self).__init__(appbuilder)
+            if self.auth_type == AUTH_OID:
+                self.oid = OpenIDConnect(self.appbuilder.get_app)
+                self.authoidview = AuthOIDCView
+
+
+    basedir = os.path.abspath(os.path.dirname(__file__))
+
+
+    SECURITY_MANAGER_CLASS = OIDCSecurityManager
+
+    # The SQLAlchemy connection string.
+
+    SQLALCHEMY_DATABASE_URI = conf.get('database', 'SQL_ALCHEMY_CONN')
+
+
+    # Flask-WTF flag for CSRF
+
+    CSRF_ENABLED = True
+
+
+    AUTH_TYPE = AUTH_OID
+
+    OIDC_CLIENT_SECRETS = '/opt/airflow/offical-airflow-client-secret.json'  # Configurationfile for GAS OIDC
+
+    OIDC_COOKIE_SECURE= False
+
+    OIDC_ID_TOKEN_COOKIE_SECURE = False
+
+    OIDC_REQUIRE_VERIFIED_EMAIL = False
+
+    OIDC_USER_INFO_ENABLED = True
+
+    CUSTOM_SECURITY_MANAGER = OIDCSecurityManager
+
+
+    # Ensure that the secrets file exists
+
+    if not os.path.exists(OIDC_CLIENT_SECRETS):
+        ValueError('Unable to load OIDC client configuration. %s does not exist.' % OIDC_CLIENT_SECRETS)
+
+    # Parse client_secret.json for scopes and logout URL
+
+    with open(OIDC_CLIENT_SECRETS) as f:
+        OIDC_APPCONFIG = json.loads(f.read())
+
+    # Ensure that the logout/revoke URL is specified in the client secrets file
+
+    GAS_OIDC_URL = OIDC_APPCONFIG.get('web', {}).get('issuer')
+
+    if not GAS_OIDC_URL:
+        raise ValueError('Invalid OIDC client configuration, GAS OIDC URI not specified.')
+
+    OIDC_SCOPES = OIDC_APPCONFIG.get('OIDC_SCOPES', ['openid', 'email'])  #Scopes that should be requested.
+
+    OIDC_LOGOUT_URI = posixpath.join(GAS_OIDC_URL, 'oauth/revoke') # OIDC logout URL
+
+
+
+    # Allow user self registration
+
+    AUTH_USER_REGISTRATION = False
+
+
+    # Default role to provide to new users
+
+    AUTH_USER_REGISTRATION_ROLE = os.environ.get('AUTH_USER_REGISTRATION_ROLE',
+    'Public')
+
+
+    AUTH_ROLE_ADMIN = 'Admin'
+
+    AUTH_ROLE_PUBLIC = "Public"
+
+
+
+    OPENID_PROVIDERS = [
+
+    {'name': 'GAS_OIDC', 'url': posixpath.join(GAS_OIDC_URL,
+    'as/authorization.oauth2')}
+
+    ]
+{{- end }}

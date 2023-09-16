@@ -7,7 +7,7 @@ const jwt = sessionStorage?.length ? sessionStorage.getItem(SESSION_STORAGE_KEYS
 
 export const baseURL = Envs.MATOMO_API_BASEURL
   ? Envs.MATOMO_API_BASEURL
-  : `http://${window.location.hostname}:7777/api`;
+  : `http://${window.location.hostname}:8989/api`;
 
 const headers = {
   Accept: 'application/json',
@@ -24,6 +24,17 @@ export const hostServer = axios.create({
   baseURL: Envs.API_BASEURL ? Envs.API_BASEURL : `http://${window.location.hostname}:7171/api`,
   headers,
 });
+
+export const reportsServer = axios.create({
+  baseURL: Envs.REPORTS_API_BASEURL ? Envs.REPORTS_API_BASEURL : `http://${window.location.hostname}:7173/api`,
+  headers,
+});
+
+export const storageServer = axios.create({
+  baseURL: Envs.STORAGE_API_BASEURL ? Envs.STORAGE_API_BASEURL: `http://${window.location.hostname}:7175/api`,
+  headers,
+});
+
 
 function createRefreshInterceptor(instance) {
   instance.interceptors.request.use((config) => {
@@ -46,6 +57,8 @@ function createRefreshInterceptor(instance) {
         // Update the Authorization header in Axios instances.
         server.defaults.headers.Authorization = newJwt;
         hostServer.defaults.headers.Authorization = newJwt;
+        reportsServer.defaults.headers.Authorization = newJwt;
+        storageServer.defaults.headers.Authorization = newJwt;
 
         // Retry the original request with the new token.
         error.config.headers.Authorization = newJwt;
@@ -77,3 +90,9 @@ createRefreshInterceptor(server);
 
 // Apply interceptor to hostServer
 createRefreshInterceptor(hostServer);
+
+// Apply interceptor to reportsServer
+createRefreshInterceptor(reportsServer);
+
+// Apply interceptor to storageServer
+createRefreshInterceptor(storageServer);
