@@ -11,7 +11,7 @@
     display: flex;
     justify-content: space-between;
     margin-bottom: 5px;
-    align-items: center;
+    //align-items: center;
     position: relative;
     // overflow: hidden;
     // height: 110px;
@@ -22,36 +22,17 @@
       min-width: 100%;
       align-self: flex-start;
     }
-    .solHeadInfo {
-      position: absolute;
-      width: 100%;
-      height: 100%;
-      display: flex;
-      flex-direction: column;
-      justify-content: flex-end;
-      padding: 15px 20px;
-      cursor: pointer;
-      &:before {
-        content: '';
-        height: 100%;
-        left: 0;
-        opacity: 0;
-        position: absolute;
-        top: 0;
-        width: 100%;
-        background: linear-gradient(49deg, #214350, #31c5ff, #ffffff00);
-        background: -webkit-linear-gradient(90deg, #111111, #36b1e0);
-        background: -o-linear-gradient(90deg, #111111, #36b1e0);
-        background: -ms-linear-gradient(90deg, #111111, #36b1e0);
-      }
-      .solTitle {
-        font-size: var(--font-size-headline);
-        line-height: 23px;
-        position: relative;
-        word-break: break-word;
-        padding-right: 10px;
-        padding-bottom:5px;
-      }
+    
+    .solTitle {
+      font-size: var(--font-size-headline);
+      line-height: 23px;
+      position: relative;
+      overflow-wrap: break-word;
+      padding-right: 10px;
+      padding-bottom:5px;
+    }
+    .solTitleDiv{
+      max-width: calc((100%) - 28px);
     }
 
     &:hover .solTitle {

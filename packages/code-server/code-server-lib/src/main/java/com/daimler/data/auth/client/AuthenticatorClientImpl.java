@@ -97,6 +97,9 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 	@Value("${kong.jwtClientSecret}")
 	private String jwtClientSecret;
 
+	@Value("${kong.uiRecipesToUseOidc}")
+	private boolean uiRecipesToUseOidc;
+
 
 	@Autowired
 	RestTemplate restTemplate;
@@ -246,7 +249,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 		
 		boolean kongApiForDeploymentURL = false;
 		String deploymentServiceName = "";
-		String url = "";
+		String url = "";		
 		if(serviceName.contains(WORKSPACE_API) && Objects.nonNull(env)) {
 			kongApiForDeploymentURL = true;
 			String[] wsid = serviceName.split("-");
@@ -275,7 +278,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 		}
 		else {
 			paths.add("/" + serviceName + "/");
-			//paths.add("/");
+			paths.add("/");
 		}
 		CreateRouteRequestVO createRouteRequestVO = new CreateRouteRequestVO();
 		CreateRouteVO createRouteVO = new CreateRouteVO();		
@@ -371,12 +374,14 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 					attachPluginResponse = attachPluginToService(attachPluginRequestVO,serviceName);
 				}
 				else {
-					if(apiRecipe) {
-						LOGGER.info("kongApiForDeploymentURL and apiRecipe is true, calling jwtissuer plugin " );
+					if(!apiRecipe && uiRecipesToUseOidc) {
+						LOGGER.info("kongApiForDeploymentURL is {} and apiRecipe is {} and uiRecipesToUseOidc is : {}, calling oidc plugin ",kongApiForDeploymentURL, apiRecipe, uiRecipesToUseOidc );
+						attachPluginResponse = attachPluginToService(attachPluginRequestVO,serviceName);
+					}
+					else {
+						LOGGER.info("kongApiForDeploymentURL is {} and apiRecipe is {} and uiRecipesToUseOidc is : {}, calling jwtissuer plugin ",kongApiForDeploymentURL, apiRecipe, uiRecipesToUseOidc );
 						attachJwtPluginResponse = attachJwtPluginToService(attachJwtPluginRequestVO,serviceName);
 					}
-					LOGGER.info("kongApiForDeploymentURL is true and apiRecipe is false, calling jwtissuer plugin " );
-					attachPluginResponse = attachPluginToService(attachPluginRequestVO,serviceName);
 				}
 			}
 			
