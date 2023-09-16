@@ -128,7 +128,7 @@
     "identity-obj-proxy": "^3.0.0",
     "jest": "^27.4.3",
     "mini-css-extract-plugin": "^2.6.0",
-    "node-sass": "^7.0.1",
+    "node-sass": "7.0.1",
     "postcss": "^8.4.4",
     "postcss-preset-env": "^7.0.1",
     "prettier": "^2.5.1",

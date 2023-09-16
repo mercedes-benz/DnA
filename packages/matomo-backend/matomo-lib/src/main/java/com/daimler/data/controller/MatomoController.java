@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.validation.Valid;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 @RestController
 @Api(value = "Matomo APIs")
@@ -47,7 +48,6 @@ public class MatomoController implements MatomoSitesApi {
             consumes = { "application/json" },
             method = RequestMethod.POST)
     public ResponseEntity<MatomoResponseVO> createMatomoSite(@ApiParam(value = "Request Body that contains data required to initialize matomo site for user" ,required=true )  @Valid @RequestBody MatomoSiteCreateRequestWrapperVO matomoRequestVO) {
-        log.info("inside createMatomoSite");
         MatomoResponseVO responseVO = new MatomoResponseVO();
         MatomoSiteRequestVO matomoSiteCreateVO = matomoRequestVO.getData();
         GenericMessage responseMessage = new GenericMessage();
@@ -86,7 +86,7 @@ public class MatomoController implements MatomoSitesApi {
                     if (seenIds.contains(collaborator.getId())) {
                         // duplicate id found.
                         responseMessage.setSuccess("FAILED");
-                        com.daimler.data.controller.exceptions.MessageDescription errMsg = new com.daimler.data.controller.exceptions.MessageDescription( "Duplicate entry for collaborator " + collaborator.getId());
+                        MessageDescription errMsg = new MessageDescription( "Duplicate entry for collaborator " + collaborator.getId());
                         errors.add(errMsg);
                         responseMessage.setErrors(errors);
                         log.error(errMsg.getMessage());
@@ -98,12 +98,11 @@ public class MatomoController implements MatomoSitesApi {
                 }
             }
         }
-        log.info("before matomoAddSiteResponse");
         MatomoSiteResponseDto matomoAddSiteResponse = matomoClient.addMatomoSite(matomoSiteCreateVO.getSiteName(),matomoSiteCreateVO.getSiteUrl());
         if(matomoAddSiteResponse==null || (matomoAddSiteResponse!=null && ("error".equalsIgnoreCase(matomoAddSiteResponse.getResult())) && matomoAddSiteResponse.getMessage()!=null)) {
 
             GenericMessage errorMessage = new GenericMessage();
-            com.daimler.data.controller.exceptions.MessageDescription errMsg = new MessageDescription(matomoAddSiteResponse.getMessage());
+            MessageDescription errMsg = new MessageDescription(matomoAddSiteResponse.getMessage());
             errors.add(errMsg);
             errorMessage.setSuccess("FAILED");
             errorMessage.setErrors(errors);
@@ -115,7 +114,7 @@ public class MatomoController implements MatomoSitesApi {
             /// add user
             String siteId = matomoAddSiteResponse.getValue();
             MatomoUserResponseDto createUserResponse = matomoClient.createMatomoUser(requestUser.getId(), requestUser.getEmail());
-            if (createUserResponse != null || (createUserResponse != null && ("SUCCESS".equalsIgnoreCase(createUserResponse.getResult())))) {
+            if ((createUserResponse != null && ("SUCCESS".equalsIgnoreCase(createUserResponse.getStatus())))) {
                  setUserAccess = matomoClient.setUserAccess(siteId,requestUser.getId(),matomoSiteCreateVO.getPermission(),isCreatedUser);
 
                 if(setUserAccess==null || (setUserAccess!=null && ("error".equalsIgnoreCase(setUserAccess.getResult())) && setUserAccess.getMessage()!=null)) {
@@ -128,7 +127,7 @@ public class MatomoController implements MatomoSitesApi {
                     return new ResponseEntity<>(responseVO, HttpStatus.INTERNAL_SERVER_ERROR);
                 }
             }
-            else{
+            else if((createUserResponse != null && ("FAILED".equalsIgnoreCase(createUserResponse.getResult())))){
                 GenericMessage errorMessage = new GenericMessage();
                 errorMessage.setSuccess("FAILED");
                 errorMessage.setErrors(createUserResponse.getErrors());
@@ -143,7 +142,7 @@ public class MatomoController implements MatomoSitesApi {
                 for (CollaboratorVO collaborator : matomoSiteCreateVO.getCollaborators()) {
                     isCreatedUser=false;
                     MatomoUserResponseDto createCollaboratorResponse = matomoClient.createMatomoUser(collaborator.getId(), collaborator.getEmail());
-                    if (createCollaboratorResponse != null || (createCollaboratorResponse != null && ("SUCCESS".equalsIgnoreCase(createCollaboratorResponse.getResult())))) {
+                    if ((createCollaboratorResponse != null && ("SUCCESS".equalsIgnoreCase(createCollaboratorResponse.getStatus())))) {
                          setCollaboratorUserAccess = matomoClient.setUserAccess(siteId,collaborator.getId(),collaborator.getPermission(),isCreatedUser);
                         if(setCollaboratorUserAccess==null || (setCollaboratorUserAccess!=null && ("error".equalsIgnoreCase(setCollaboratorUserAccess.getResult())) && setCollaboratorUserAccess.getMessage()!=null)){
                             GenericMessage errorMessage = new GenericMessage();
@@ -156,7 +155,7 @@ public class MatomoController implements MatomoSitesApi {
                         }
 
                     }
-                    else{
+                    else if((createCollaboratorResponse != null && ("FAILED".equalsIgnoreCase(createCollaboratorResponse.getResult())))){
                         GenericMessage errorMessage = new GenericMessage();
                         errorMessage.setSuccess("FAILED");
                         errorMessage.setErrors(createUserResponse.getErrors());
@@ -191,12 +190,8 @@ public class MatomoController implements MatomoSitesApi {
                     return new ResponseEntity<>(createMatomoSiteResponse, HttpStatus.INTERNAL_SERVER_ERROR);
                 }
 
-
-
-
         }
 
-        log.info("after call");
         return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
@@ -214,7 +209,28 @@ public class MatomoController implements MatomoSitesApi {
             consumes = { "application/json" },
             method = RequestMethod.DELETE)
     public ResponseEntity<GenericMessage> deleteById(@ApiParam(value = "matomo ID to be delete",required=true) @PathVariable("id") String id) {
-        return null;
+        GenericMessage responseMessage = new GenericMessage();
+        List<MessageDescription> errors = new ArrayList<>();
+        MatomoVO existingMatomo = service.getById(id);
+        CreatedByVO requestUser = this.userStore.getVO();
+        String user = requestUser.getId();
+        if(existingMatomo==null || !id.equalsIgnoreCase(existingMatomo.getId())) {
+            log.warn("No matomo site found with id {}, failed to fetch details for given matomo id", id);
+            responseMessage.setSuccess("FAILED");
+            MessageDescription errMsg = new MessageDescription("Matomo ID Not found!");
+            errors.add(errMsg);
+            responseMessage.setErrors(errors);
+            log.error("Matomo ID Not found!");
+            return new ResponseEntity<>(responseMessage, HttpStatus.NOT_FOUND);
+        }
+
+        responseMessage = service.deleteMatomoByID(id,user);
+
+        if (responseMessage != null && "SUCCESS".equalsIgnoreCase(responseMessage.getSuccess())) {
+            return new ResponseEntity<>(responseMessage, HttpStatus.OK);
+        }
+
+        return new ResponseEntity<>(responseMessage, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     @Override
@@ -233,7 +249,6 @@ public class MatomoController implements MatomoSitesApi {
             method = RequestMethod.GET)
     public ResponseEntity<MatomoCollectionVO> getAll(@ApiParam(value = "page number from which listing of matomo should start. Offset. Example 2") @Valid @RequestParam(value = "offset", required = false) Integer offset,
              @ApiParam(value = "page size to limit the number of matomo, Example 15") @Valid @RequestParam(value = "limit", required = false) Integer limit) {
-
         MatomoCollectionVO collection = new MatomoCollectionVO();
         int defaultLimit = 10;
         if (offset == null || offset < 0)
@@ -243,17 +258,15 @@ public class MatomoController implements MatomoSitesApi {
         }
         CreatedByVO requestUser = this.userStore.getVO();
         String user = requestUser.getId();
-        Object[] matomoCollectionWrapper = service.getAll(limit, offset, user);
-        List<MatomoVO> records = (List<MatomoVO>) matomoCollectionWrapper[0];
-        Long count = (Long) matomoCollectionWrapper[1];
+        MatomoCollectionVO matomoCollectionWrapper = service.getAll(limit, offset, user);
+
 
         HttpStatus responseCode = HttpStatus.NO_CONTENT;
-        if(records!=null && !records.isEmpty()) {
-            collection.setRecords(records);
-            collection.setTotalCount(count.intValue());
+        if(matomoCollectionWrapper.getRecords()!=null ) {
+
             responseCode = HttpStatus.OK;
         }
-        return new ResponseEntity<>(collection, responseCode);
+        return new ResponseEntity<>(matomoCollectionWrapper, responseCode);
 
     }
 
@@ -272,7 +285,15 @@ public class MatomoController implements MatomoSitesApi {
             consumes = { "application/json" },
             method = RequestMethod.GET)
     public ResponseEntity<MatomoVO> getById(@ApiParam(value = "matomo ID to be fetched",required=true) @PathVariable("id") String id) {
-        return null;
+       MatomoVO existingMatomo = service.getById(id);
+        CreatedByVO requestUser = this.userStore.getVO();
+        String user = requestUser.getId();
+        if(existingMatomo==null || !id.equalsIgnoreCase(existingMatomo.getId())) {
+            log.warn("No matomo site found with id {}, failed to fetch details for given matomo id", id);
+            return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
+        }
+        MatomoVO matomoData = service.getMatomoById(id,user);
+        return new ResponseEntity<>(matomoData, HttpStatus.OK);
     }
 
     @Override
@@ -290,8 +311,163 @@ public class MatomoController implements MatomoSitesApi {
             consumes = { "application/json" },
             method = RequestMethod.PUT)
     public ResponseEntity<MatomoResponseVO> updateById(@ApiParam(value = "matomo ID to be updated",required=true) @PathVariable("id") String id,@ApiParam(value = "Request Body that contains data required for updating of collab details" ,required=true )  @Valid @RequestBody MatomoSiteUpdateRequestVO matomoUpdateRequestVO) {
-        return null;
-    }
+        MatomoVO existingMatomo = service.getById(id);
+        List<MessageDescription> errors = new ArrayList<>();
+        GenericMessage responseMessage = new GenericMessage();
+        MatomoResponseVO responseVO = new MatomoResponseVO();
+        MatomoSetUserAccessResponseDto setCollaboratorUserAccess =null;
+        List<CollaboratorVO> allCollaborators = new ArrayList<>();
+        Map<String, Object> map = new HashMap<>();
+        CreatedByVO requestUser = this.userStore.getVO();
+        String user = requestUser.getId();
+        boolean isAdmin = false;
+        // if existingMatomo is null return not found.
 
+        if (existingMatomo == null) {
+            responseMessage.setSuccess("FAILED");
+            MessageDescription errMsg = new MessageDescription("Matomo ID Not found!");
+            errors.add(errMsg);
+            responseMessage.setErrors(errors);
+            log.error("Matomo ID Not found!");
+            responseVO.setResponse(responseMessage);
+            return new ResponseEntity<>(responseVO, HttpStatus.NOT_FOUND);
+        }
+
+        List<String> existingCollaborators = new ArrayList<>();
+        map = matomoClient.getUsersAccessFromSite(existingMatomo.getSiteId());
+        for (Map.Entry<String, Object> entry : map.entrySet()) {
+            String key = entry.getKey();
+            if (key.equalsIgnoreCase(user)) {
+                String userPermission = entry.getValue().toString();
+                if ("admin".equalsIgnoreCase(userPermission)) {
+                    isAdmin = true;
+                }
+            }
+
+            existingCollaborators.add(entry.getKey());
+
+        }
+
+        if (matomoUpdateRequestVO.getAddCollaborators() != null && matomoUpdateRequestVO.getAddCollaborators().size() > 0) {
+            // To check if user is collaborator in the getAddCollaborators list.
+            CollaboratorVO exstingcollaboratorisCreator = matomoUpdateRequestVO.getAddCollaborators().stream().filter(x -> existingMatomo.getCreatedBy().getId().equalsIgnoreCase(x.getId())).findAny().orElse(null);
+            if (exstingcollaboratorisCreator != null && exstingcollaboratorisCreator.getId() != null) {
+                GenericMessage responseMessg = new GenericMessage();
+                responseMessg.setSuccess("FAILED");
+                MessageDescription errMsg = new MessageDescription(existingMatomo.getCreatedBy().getId() + " is already a Creator and can not be added as a collaborator");
+                errors.add(errMsg);
+                responseMessg.setErrors(errors);
+                log.error(errMsg.getMessage());
+                responseVO.setResponse(responseMessg);
+                return new ResponseEntity<>(responseVO, HttpStatus.BAD_REQUEST);
+            }
+
+            AtomicBoolean isCollabExits = new AtomicBoolean(false);
+
+            matomoUpdateRequestVO.getAddCollaborators().stream().forEach(collab -> {
+                String existingCollaborator = existingCollaborators.stream().filter(x -> collab.getId().equalsIgnoreCase(x)).findAny().orElse(null);
+                GenericMessage responseMessg = new GenericMessage();
+                if (existingCollaborator != null) {
+                    isCollabExits.set(true);
+                    responseMessg.setSuccess("FAILED");
+                    MessageDescription errMsg = new MessageDescription(existingCollaborator + " collaborator is already present");
+                    errors.add(errMsg);
+                    responseMessg.setErrors(errors);
+                    log.error(errMsg.getMessage());
+                    responseVO.setResponse(responseMessg);
+                }
+            });
+            if (isCollabExits.get()) {
+                return new ResponseEntity<>(responseVO, HttpStatus.BAD_REQUEST);
+            }
+        }
+
+        if(isAdmin) {
+            MatomoSiteResponseDto updateMatomoSiteResponse = matomoClient.updateMatomoSite(matomoUpdateRequestVO.getSiteName(), matomoUpdateRequestVO.getSiteUrl(), existingMatomo.getSiteId());
+            if (updateMatomoSiteResponse == null || (updateMatomoSiteResponse != null && ("error".equalsIgnoreCase(updateMatomoSiteResponse.getResult())))) {
+
+                GenericMessage errorMessage = new GenericMessage();
+                MessageDescription errMsg = new MessageDescription(updateMatomoSiteResponse.getMessage());
+                errors.add(errMsg);
+                errorMessage.setSuccess("FAILED");
+                errorMessage.setErrors(errors);
+                errorMessage.setWarnings(null);
+                responseVO.setData(null);
+                responseVO.setResponse(errorMessage);
+                return new ResponseEntity<>(responseVO, HttpStatus.INTERNAL_SERVER_ERROR);
+            } else if ((updateMatomoSiteResponse != null && ("SUCCESS".equalsIgnoreCase(updateMatomoSiteResponse.getResult())))) {
+
+                if (matomoUpdateRequestVO.getAddCollaborators() != null && matomoUpdateRequestVO.getAddCollaborators().size() > 0) {
+                    allCollaborators.addAll(matomoUpdateRequestVO.getAddCollaborators());
+                }
+                if (matomoUpdateRequestVO.getExistingCollaborators() != null && matomoUpdateRequestVO.getExistingCollaborators().size() > 0) {
+                    allCollaborators.addAll(matomoUpdateRequestVO.getExistingCollaborators());
+                }
+                if (allCollaborators != null && allCollaborators.size() > 0) {
+                    boolean isCreatedUser = false;
+                    for (CollaboratorVO collaborator : allCollaborators) {
+
+                        MatomoUserResponseDto createCollaboratorResponse = matomoClient.createMatomoUser(collaborator.getId(), collaborator.getEmail());
+                        if ((createCollaboratorResponse != null && ("SUCCESS".equalsIgnoreCase(createCollaboratorResponse.getStatus())))) {
+                            setCollaboratorUserAccess = matomoClient.setUserAccess(existingMatomo.getSiteId(), collaborator.getId(), collaborator.getPermission(), isCreatedUser);
+                            if (setCollaboratorUserAccess == null || (setCollaboratorUserAccess != null && ("error".equalsIgnoreCase(setCollaboratorUserAccess.getResult())) && setCollaboratorUserAccess.getMessage() != null)) {
+                                GenericMessage errorMessage = new GenericMessage();
+                                errorMessage.setSuccess("FAILED");
+                                errorMessage.setErrors(setCollaboratorUserAccess.getErrors());
+                                errorMessage.setWarnings(setCollaboratorUserAccess.getWarnings());
+                                responseVO.setData(null);
+                                responseVO.setResponse(errorMessage);
+                                return new ResponseEntity<>(responseVO, HttpStatus.INTERNAL_SERVER_ERROR);
+                            }
+
+                        } else if ((createCollaboratorResponse != null && ("FAILED".equalsIgnoreCase(createCollaboratorResponse.getResult())))) {
+                            GenericMessage errorMessage = new GenericMessage();
+                            errorMessage.setSuccess("FAILED");
+                            errorMessage.setErrors(createCollaboratorResponse.getErrors());
+                            errorMessage.setWarnings(createCollaboratorResponse.getWarnings());
+                            responseVO.setData(null);
+                            responseVO.setResponse(errorMessage);
+                            return new ResponseEntity<>(responseVO, HttpStatus.INTERNAL_SERVER_ERROR);
+                        }
+                    }
+
+                }
+                if (matomoUpdateRequestVO.getRemoveCollaborators() != null && matomoUpdateRequestVO.getRemoveCollaborators().size() > 0) {
+                    boolean isCreatedUser = false;
+                    for (CollaboratorVO collaborator : matomoUpdateRequestVO.getRemoveCollaborators()) {
+                        setCollaboratorUserAccess = matomoClient.setUserAccess(existingMatomo.getSiteId(), collaborator.getId(), collaborator.getPermission(), isCreatedUser);
+                        if (setCollaboratorUserAccess == null || (setCollaboratorUserAccess != null && ("error".equalsIgnoreCase(setCollaboratorUserAccess.getResult())) && setCollaboratorUserAccess.getMessage() != null)) {
+                            GenericMessage errorMessage = new GenericMessage();
+                            errorMessage.setSuccess("FAILED");
+                            errorMessage.setErrors(setCollaboratorUserAccess.getErrors());
+                            errorMessage.setWarnings(setCollaboratorUserAccess.getWarnings());
+                            responseVO.setData(null);
+                            responseVO.setResponse(errorMessage);
+                            return new ResponseEntity<>(responseVO, HttpStatus.INTERNAL_SERVER_ERROR);
+                        }
+                    }
+
+                }
+
+                MatomoResponseVO updateSiteResponse = service.updateMatomoSiteById(matomoUpdateRequestVO, id, allCollaborators);
+                if(updateSiteResponse!= null && "SUCCESS".equalsIgnoreCase(updateSiteResponse.getResponse().getSuccess())) {
+                    return new ResponseEntity<>(updateSiteResponse, HttpStatus.OK);
+                }
+            }
+        }
+        else{
+            log.error("Failed while updating matomo site {} as user {} is not admin",existingMatomo.getSiteId(), user);
+            GenericMessage errorMessage = new GenericMessage();
+            MessageDescription msg = new MessageDescription("Failed while updating matomo site as user " +user+" is not admin");
+            errors.add(msg);
+            errorMessage.setSuccess("FAILED");
+            errorMessage.setErrors(errors);
+            errorMessage.setWarnings(null);
+            responseVO.setData(null);
+            responseVO.setResponse(errorMessage);
+            return new ResponseEntity<>(responseVO, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+        return new ResponseEntity<>(responseVO, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
 
 }

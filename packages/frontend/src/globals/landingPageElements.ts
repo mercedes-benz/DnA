@@ -7,6 +7,7 @@ const enableMLPipelineService = Envs.ENABLE_ML_PIPELINE_SERVICE;
 const enableStorageService = Envs.ENABLE_STORAGE_SERVICE;
 const mLPipelineUrl = enableMLPipelineService ? Envs.ML_PIPELINE_URL : '#/comingsoon';
 const enableChronosForecastingService = Envs.ENABLE_CHRONOS_FORECASTING_SERVICE;
+const enableMatomoService = Envs.ENABLE_MATOMO_SERVICE;
 const enableSapAnalyticsCloud = Envs.ENABLE_SAP_ANALYTICS_CLOUD;
 const sapAnalyticsUrl = Envs.SAP_ANALYTICS_CLOUD_URL;
 const enableCodeSpace = Envs.ENABLE_CODE_SPACE;
@@ -181,15 +182,15 @@ export const ToolsLandingPageElements = [
     name: 'Matomo',
     description:
       'Matomo summary',
-    tags: ['Frontend Reporting', 'Data Engineering', 'Data Pipeline', 'Data Science', 'Machine Learning', 'No / Low Code', 'Coding', 'Cloud', 'Onprem'],
+    tags: ['Onprem'],
     url: '/matomo',
     isExternalLink: false,
     isTextAlignLeft: true,
     animation: true,
-    isDisabled: !enableChronosForecastingService,
+    isDisabled: !enableMatomoService,
     isSmallCard: false,
     isMediumCard: true,
-    svgIcon: 'chronos',
+    svgIcon: 'tools-mini',
     isDnAInternalTool: true,
   },
   {
