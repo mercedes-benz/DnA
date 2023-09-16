@@ -41,6 +41,9 @@ public class MatomoClient {
     @Value("${matomo.uri.getSitesAccess}")
     private String matomoGetSitesAccessPath;
 
+    @Value("${matomo.uri.updateSite}")
+    private String matomoUpdateSitePath;
+
 
 
 
@@ -99,7 +102,7 @@ public class MatomoClient {
                                 requestEntity, MatomoUserResponseDto.class);
                         if (addMatomoUserResponse.hasBody()) {
                             createUserResponse = addMatomoUserResponse.getBody();
-                            if (createUserResponse != null || (createUserResponse != null && ("SUCCESS".equalsIgnoreCase(createUserResponse.getResult())))) {
+                            if ( (createUserResponse != null && createUserResponse.getLogin()!=null)){
                                 createUserResponse.setStatus("SUCCESS");
                             } else {
                                 MessageDescription addUserResponseErrMsg = new MessageDescription(createUserResponse.getMessage());
@@ -109,11 +112,11 @@ public class MatomoClient {
 
                             }
                         }
-                    } else {
-                        errors.add(getUserResponseErrMsg);
-                        createUserResponse.setErrors(errors);
-                        createUserResponse.setStatus("FAILED");
                     }
+                }
+                else
+                {
+                    createUserResponse.setStatus("SUCCESS");
                 }
             }
         } catch (Exception e) {
@@ -241,7 +244,7 @@ public class MatomoClient {
         return getSiteResponse;
     }
 
-    public Map<String, Object> getUsersAccessFromSite(String userId, String siteId){
+    public Map<String, Object> getUsersAccessFromSite(String siteId){
         Map<String, Object> map = new HashMap<>();
         List<MessageDescription> errors = new ArrayList<>();
         try {
@@ -304,17 +307,42 @@ public class MatomoClient {
             }
             if (getSitesAccess != null && !getSitesAccess.isEmpty()) {
                 getSitesAccessCollection.setData(getSitesAccess);
+                getSitesAccessCollection.setStatus("SUCCESS");
             }
 
 
         } catch (Exception e) {
             log.error("Failed to get particular site details site {} api with {}" + user,e.getMessage());
-            MessageDescription errMsg = new MessageDescription("Failed to get particular site details  with exception " + e.getMessage());
+            MessageDescription errMsg = new MessageDescription("Failed to get particular site details. The user" + user + "doesn't have matomo sites created" );
             errors.add(errMsg);
             getSitesAccessCollection.setErrors(errors);
             getSitesAccessCollection.setStatus("FAILED");
         }
         return getSitesAccessCollection;
+    }
+
+    public MatomoSiteResponseDto updateMatomoSite(String siteName, String siteUrl, String siteId) {
+        MatomoSiteResponseDto updateMatomoSiteResponse = null;
+        List<MessageDescription> errors = new ArrayList<>();
+        try {
+            HttpHeaders headers = new HttpHeaders();
+            headers.set("Accept", "application/json");
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            String updateSiteUrl = matomoBaseUri + matomoUpdateSitePath + matomoTokenAuth +"&siteName=" +siteName +"&urls=" +siteUrl +"&idSite=" + siteId ;
+            HttpEntity requestEntity = new HttpEntity<>(headers);
+            ResponseEntity<MatomoSiteResponseDto> response = restTemplate.exchange(updateSiteUrl, HttpMethod.GET,
+                    requestEntity, MatomoSiteResponseDto.class);
+            if (response.hasBody()) {
+                updateMatomoSiteResponse = response.getBody();
+            }
+        } catch (Exception e) {
+            log.error("Failed to invoke matomo update site api with {}" + e.getMessage());
+            MessageDescription errMsg = new MessageDescription("Failed to invoke matomo update site api with exception " + e.getMessage());
+            errors.add(errMsg);
+            updateMatomoSiteResponse.setErrors(errors);
+            updateMatomoSiteResponse.setStatus("FAILED");
+        }
+        return updateMatomoSiteResponse;
     }
 
 
