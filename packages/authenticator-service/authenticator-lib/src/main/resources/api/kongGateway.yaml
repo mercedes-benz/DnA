@@ -531,7 +531,7 @@ definitions:
         type: string  
       scope:
         type: string
-      redirect_uri_path:
+      redirect_uri:
         type: string
       recovery_page_path:
         type: string  

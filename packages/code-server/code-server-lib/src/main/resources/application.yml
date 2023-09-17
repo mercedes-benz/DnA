@@ -116,7 +116,7 @@ kong:
    logoutPath: ${LOGOUT_PATH:XXXX}
    realm: ${REALM:XXXX}
    redirectAfterLogoutUri: ${REDIRECT_AFTER_LOGOUT_URI:XXXX}
-   redirectUriPath: ${REDIRECT_URI_PATH:XXXX}
+   redirectUri: ${REDIRECT_URI:XXXX}
    responseType: ${RESPONSE_TYPE:XXXX}
    scope: ${SCOPE:XXXX}
    sslVerify: ${SSL_VERIFY:XXXX}
