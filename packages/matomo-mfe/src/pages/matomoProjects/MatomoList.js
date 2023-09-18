@@ -241,7 +241,7 @@ export const MatomoList = (props) => {
     <>
       {isCardView ? (
         <>
-          <div className={Styles.newStorageCard} onClick={()=> history.push('createMatomo')}>
+          <div className={Styles.newStorageCard} onClick={()=> history.push('/createMatomo')}>
             <div className={Styles.addicon}> &nbsp; </div>
             <label className={Styles.addlabel}>Create new Matomo Project</label>
           </div>
@@ -303,14 +303,14 @@ export const MatomoList = (props) => {
                             <ul>
                               {collaborators?.map((bucketItem, bucketIndex) => {
                                   // Check if lastName is more than 12 characters
-                                  let lastName = bucketItem.lastName;
+                                  {/* let lastName = bucketItem.lastName;
                                   if (lastName?.length > 12) {
                                     lastName = lastName.substring(0, 12) + " ...";
-                                  }
+                                  } */}
                                 return (
                                   <li key={'collab' + bucketIndex}>
                                     <span>
-                                      {`${bucketItem.firstName} ${lastName}`}
+                                      {bucketItem.id}
                                       {item.createdBy?.id === bucketItem.id ? ' (Owner)' : ''}
                                     </span>
                                     <span className={classNames(Styles.permission, Styles.firstLetterCapital)}>
@@ -343,19 +343,19 @@ export const MatomoList = (props) => {
                             <i className="icon mbc-icon edit"></i>
                             <span>Edit</span>
                           </button>
-                          {isOwner && hasWriteAccess ? (
-                            <button
-                              className={'btn btn-primary'}
-                              type="button"
-                              onClick={() => {
-                                setSelectedItem(item);
-                                setDeleteModal(true);
-                              }}
-                            >
-                              <i className="icon delete"></i>
-                              <span>Delete</span>
-                            </button>
-                          ) : null}
+                          
+                          <button
+                            className={'btn btn-primary'}
+                            type="button"
+                            onClick={() => {
+                              setSelectedItem(item);
+                              setDeleteModal(true);
+                            }}
+                          >
+                            <i className="icon delete"></i>
+                            <span>Delete</span>
+                          </button>
+                          
                         </>
                       )}
                       {/* <button
