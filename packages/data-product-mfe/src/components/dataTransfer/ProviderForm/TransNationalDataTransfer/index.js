@@ -131,8 +131,7 @@ const TransNationalDataTransfer = (
                       <input
                         {...register('transnationalDataTransferNotWithinEU', {
                           validate: validateNotWithinEU,
-                          disabled:
-                            watch('transnationalDataTransfer') === '' || watch('transnationalDataTransfer') === 'No',
+                          // disabled: watch('transnationalDataTransfer') === '' || watch('transnationalDataTransfer') === 'No',
                           setValueAs: (value) => {
                             if (watch('transnationalDataTransfer') === 'No') return undefined;
                             return value;
@@ -150,6 +149,7 @@ const TransNationalDataTransfer = (
                             setValue('transnationalDataTransferingObjections', '');
                           },
                         })}
+                        disabled = {watch('transnationalDataTransfer') === '' || watch('transnationalDataTransfer') === 'No'}
                         type="radio"
                         className="ff-only"
                         name="transnationalDataTransferNotWithinEU"
@@ -163,9 +163,9 @@ const TransNationalDataTransfer = (
                       <input
                         {...register('transnationalDataTransferNotWithinEU', {
                           validate: validateNotWithinEU,
-                          disabled:
-                            watch('transnationalDataTransfer') === '' || watch('transnationalDataTransfer') === 'No',
+                          // disabled: watch('transnationalDataTransfer') === '' || watch('transnationalDataTransfer') === 'No',
                         })}
+                        disabled= {watch('transnationalDataTransfer') === '' || watch('transnationalDataTransfer') === 'No'}
                         type="radio"
                         className="ff-only"
                         name="transnationalDataTransferNotWithinEU"
@@ -197,8 +197,8 @@ const TransNationalDataTransfer = (
                   <span className="wrapper">
                     <input
                       {...register('transnationalDataContactAwareTransfer', {
-                        required: '*Missing entry',
-                        disabled: watch('transnationalDataTransfer') === '' || watch('transnationalDataTransfer') === 'No',
+                        required: !(watch('transnationalDataTransfer') === '' || watch('transnationalDataTransfer') === 'No'),
+                        // disabled: watch('transnationalDataTransfer') === '' || watch('transnationalDataTransfer') === 'No',
                         onChange: () => {
                           clearErrors([
                             'transnationalDataObjectionsTransfer',
@@ -210,6 +210,7 @@ const TransNationalDataTransfer = (
                           setValue('transnationalDataTransferingObjections', '');
                         },
                       })}
+                      disabled= {watch('transnationalDataTransfer') === '' || watch('transnationalDataTransfer') === 'No'}
                       type="radio"
                       className="ff-only"
                       name="transnationalDataContactAwareTransfer"
@@ -222,9 +223,10 @@ const TransNationalDataTransfer = (
                   <span className="wrapper">
                     <input
                       {...register('transnationalDataContactAwareTransfer', {
-                        required: '*Missing entry',
-                        disabled: watch('transnationalDataTransfer') === '' || watch('transnationalDataTransfer') === 'No',
+                        required: !(watch('transnationalDataTransfer') === '' || watch('transnationalDataTransfer') === 'No'),
+                        // disabled: watch('transnationalDataTransfer') === '' || watch('transnationalDataTransfer') === 'No',
                       })}
+                      disabled= {watch('transnationalDataTransfer') === '' || watch('transnationalDataTransfer') === 'No'}
                       type="radio"
                       className="ff-only"
                       name="transnationalDataContactAwareTransfer"
@@ -253,8 +255,8 @@ const TransNationalDataTransfer = (
                   <span className="wrapper">
                     <input
                       {...register('transnationalDataObjectionsTransfer', {
-                        required: '*Missing entry',
-                        disabled: watch('transnationalDataTransfer') === '' || watch('transnationalDataTransfer') === 'No',
+                        required: !(watch('transnationalDataTransfer') === '' || watch('transnationalDataTransfer') === 'No'),
+                        // disabled: watch('transnationalDataTransfer') === '' || watch('transnationalDataTransfer') === 'No',
                         onChange: () => {
                           clearErrors([
                             'transnationalDataTransferingNonetheless',
@@ -264,6 +266,7 @@ const TransNationalDataTransfer = (
                           setValue('transnationalDataTransferingObjections', '');
                         },
                       })}
+                      disabled= {watch('transnationalDataTransfer') === '' || watch('transnationalDataTransfer') === 'No'}
                       type="radio"
                       className="ff-only"
                       name="transnationalDataObjectionsTransfer"
@@ -276,9 +279,10 @@ const TransNationalDataTransfer = (
                   <span className="wrapper">
                     <input
                       {...register('transnationalDataObjectionsTransfer', {
-                        required: '*Missing entry',
-                        disabled: watch('transnationalDataTransfer') === '' || watch('transnationalDataTransfer') === 'No',
+                        required: !(watch('transnationalDataTransfer') === '' || watch('transnationalDataTransfer') === 'No'),
+                        // disabled: watch('transnationalDataTransfer') === '' || watch('transnationalDataTransfer') === 'No',
                       })}
+                      disabled= {watch('transnationalDataTransfer') === '' || watch('transnationalDataTransfer') === 'No'}
                       type="radio"
                       className="ff-only"
                       name="transnationalDataObjectionsTransfer"
@@ -310,7 +314,11 @@ const TransNationalDataTransfer = (
                 className="input-field-area"
                 type="text"
                 placeholder="Please state your reasoning for transfering nonetheless."
-                {...register('transnationalDataTransferingNonetheless', { required: '*Missing entry', disabled: watch('transnationalDataTransfer') === '' || watch('transnationalDataTransfer') === 'No' })}
+                {...register('transnationalDataTransferingNonetheless', { 
+                  required: !(watch('transnationalDataTransfer') === '' || watch('transnationalDataTransfer') === 'No'), 
+                // disabled: watch('transnationalDataTransfer') === '' || watch('transnationalDataTransfer') === 'No' 
+                })}
+                disabled= {watch('transnationalDataTransfer') === '' || watch('transnationalDataTransfer') === 'No'}
                 rows={50}
                 id="transnationalDataTransferingNonetheless"
               />
@@ -336,7 +344,11 @@ const TransNationalDataTransfer = (
                 className="input-field-area"
                 type="text"
                 placeholder="Please state your objections."
-                {...register('transnationalDataTransferingObjections', { required: '*Missing entry', disabled: watch('transnationalDataTransfer') === '' || watch('transnationalDataTransfer') === 'No' })}
+                {...register('transnationalDataTransferingObjections', { 
+                  required: !(watch('transnationalDataTransfer') === '' || watch('transnationalDataTransfer') === 'No'), 
+                // disabled: watch('transnationalDataTransfer') === '' || watch('transnationalDataTransfer') === 'No' 
+                })}
+                disabled= {watch('transnationalDataTransfer') === '' || watch('transnationalDataTransfer') === 'No'}
                 rows={50}
                 id="transnationalDataTransferingObjections"
               />

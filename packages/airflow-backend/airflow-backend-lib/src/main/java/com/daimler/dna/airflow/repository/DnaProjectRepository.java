@@ -35,6 +35,10 @@ public interface DnaProjectRepository extends CommonDataRepository<DnaProject, I
 
 	List<Object[]> findAllProjectsByUserId(String username);
 
+	List<Object[]> findAllCreationStatusProjectsByUserId(String username, String status);
+
+	List<Object[]> findAllCreationStatusProjects(String status);
+
 	List<Object[]> findDagPermissionAndViewMenu(String dagName);
 
 	Integer deleteUserAndProjectMapping(int projectId);
