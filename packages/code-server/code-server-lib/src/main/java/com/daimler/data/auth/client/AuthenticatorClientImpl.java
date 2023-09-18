@@ -62,7 +62,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 	private String redirectAfterLogoutUri;
 	
 	@Value("${kong.redirectUri}")
-	private String redirect_uri;
+	private String redirectUri;
 	
 	@Value("${kong.responseType}")
 	private String responseType;
