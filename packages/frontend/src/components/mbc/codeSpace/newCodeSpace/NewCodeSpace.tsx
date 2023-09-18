@@ -2,10 +2,14 @@ import React, { useState } from 'react';
 import cn from 'classnames';
 import Styles from './NewCodeSpace.scss';
 // @ts-ignore
-import { Notification, Tooltip, ProgressIndicator} from '../../../../assets/modules/uilab/bundle/js/uilab.bundle';
+import Notification from '../../../../assets/modules/uilab/js/src/notification';
+// @ts-ignore
+import ProgressIndicator from '../../../../assets/modules/uilab/js/src/progress-indicator';
+// @ts-ignore
+import Tooltip from '../../../../assets/modules/uilab/js/src/tooltip';
 import SelectBox from 'components/formElements/SelectBox/SelectBox';
 
-import { trackEvent } from '../../../../services/utils';
+import { isValidGITRepoUrl, trackEvent } from '../../../../services/utils';
 import TextBox from '../../shared/textBox/TextBox';
 import { ICodeSpaceData } from '../CodeSpace';
 import { useEffect } from 'react';
@@ -46,6 +50,10 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
   const recipes = recipesMaster;
 
   const [recipeError, setRecipeError] = useState('');
+
+  const [isUserDefinedPublicGithubRecipe, setIsUserDefinedPublicGithubRecipe] = useState(false);
+  const [userDefinedPublicGithubUrl, setUserDefinedPublicGithubUrl] = useState('');
+  const [userDefinedPublicGithubUrlError, setUserDefinedPublicGithubUrlError] = useState('');
   
   // const [githubUserName, setGithubUserName] = useState('');
   // const [githubUserNameError, setGithubUserNameError] = useState('');
@@ -111,6 +119,18 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
   //   setGithubUserNameError(githubUserNameVal.length ? '' : requiredError);
   // };
   
+  const onUserDefinedPublicGithubUrlOnChange = (evnt: React.FormEvent<HTMLInputElement>) => {
+    const githubUrlVal = evnt.currentTarget.value.trim();
+    setUserDefinedPublicGithubUrl(githubUrlVal);
+    setUserDefinedPublicGithubUrlError(
+      githubUrlVal.length
+        ? isValidGITRepoUrl(githubUrlVal)
+          ? ''
+          : 'Please provide valid github.com git repository clone url.'
+        : requiredError,
+    );
+  };
+  
   const onGithubTokenOnChange = (evnt: React.FormEvent<HTMLInputElement>) => {
     const githubTokenVal = evnt.currentTarget.value.trim();
     setGithubToken(githubTokenVal);
@@ -124,6 +144,12 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
   const onRecipeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const selectedOption = e.currentTarget.value;
     setRecipeValue(selectedOption);
+    const isUserDefinedRecipe = selectedOption === 'public-user-defined';
+    setIsUserDefinedPublicGithubRecipe(isUserDefinedRecipe);
+    if (!isUserDefinedRecipe) {
+      setUserDefinedPublicGithubUrl('');
+      setUserDefinedPublicGithubUrlError('');
+    }
     setRecipeError(selectedOption !== '0' ? '' : requiredError);
   };
 
@@ -175,6 +201,9 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
   };
 
   const addNewCollaborator = () => {
+    if (props.onEditingCodeSpace.projectDetails?.projectCollaborators === null) {
+      props.onEditingCodeSpace.projectDetails.projectCollaborators = [];
+    }
     const existingColloborators = props.onEditingCodeSpace.projectDetails?.projectCollaborators || [];
     const newCollaborator = codeSpaceCollaborators.find((collab: ICodeCollaborator) => !existingColloborators.some((existCollab: ICodeCollaborator) => existCollab.id === collab.id));
     if (newCollaborator) {
@@ -183,7 +212,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
         ProgressIndicator.hide();
         if (res.success === 'SUCCESS') {
           trackEvent('DnA Code Space', 'Add New Collaborator', 'Existing Code Space');
-          props.onEditingCodeSpace.projectDetails?.projectCollaborators.push(newCollaborator);
+          props.onEditingCodeSpace.projectDetails?.projectCollaborators?.push(newCollaborator);
           Notification.show(
             `Collaborator '${newCollaborator.firstName}' has been added successfully to the Code Space.`,
           );
@@ -226,6 +255,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
       return item.id !== userId;
     });
     setCodeSpaceCollaborators(currentCollList);
+    return currentCollList;
   };
 
   const onCollaboratorConfirmModalCancel = () => {
@@ -246,7 +276,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
       ProgressIndicator.hide();
       if (res.success === 'SUCCESS') {
         trackEvent('DnA Code Space', 'Delete Collaborator', 'Existing Code Space');
-        updateCollaborator(collaboratorToDelete.id);
+        props.onEditingCodeSpace.projectDetails.projectCollaborators = [...updateCollaborator(collaboratorToDelete.id)];
         Notification.show(
           `Collaborator '${collaboratorToDelete.firstName}' has been removed successfully from the Code Space.`,
         );
@@ -314,11 +344,18 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
     // } else {
     //   setGithubUserNameError('');
     // }
+
+    if (isPublicRecipeChoosen && isUserDefinedPublicGithubRecipe && userDefinedPublicGithubUrl === '') {
+      setUserDefinedPublicGithubUrlError(requiredError);
+      formValid = false;
+    } else {
+      if (isValidGITRepoUrl(userDefinedPublicGithubUrl)) setUserDefinedPublicGithubUrlError('');
+    }
     if (githubToken === '') {
       setGithubTokenError(requiredError);
       formValid = false;
     }
-    if (projectNameError !== '' || recipeError !== '' || githubTokenError !== '') {
+    if (projectNameError !== '' || recipeError !== '' || githubTokenError !== '' || (isPublicRecipeChoosen && isUserDefinedPublicGithubRecipe && userDefinedPublicGithubUrlError !== '')) {
       formValid = false;
     }
     return formValid;
@@ -426,7 +463,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
       if (isPublicRecipeChoosen) {
         // createCodeSpaceRequest.data.gitUserName = githubUserName;
         // createCodeSpaceRequest.data.projectDetails.recipeDetails.recipeId = 'public';
-        createCodeSpaceRequest.data.projectDetails.recipeDetails['repodetails'] = recipe.repodetails;
+        createCodeSpaceRequest.data.projectDetails.recipeDetails['repodetails'] = isUserDefinedPublicGithubRecipe ? (userDefinedPublicGithubUrl.split('://')[1] + ',') : recipe.repodetails;
       }
 
       ProgressIndicator.show();
@@ -680,56 +717,89 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
                   </select>
                 </div>
                 <span className={classNames('error-message', recipeError.length ? '' : 'hide')}>{recipeError}</span>
-              </div>
-              <div className={Styles.flexLayout}>
                 <div>
-                  <TextBox
-                    type="text"
-                    controlId={'productNameInput'}
-                    labelId={'productNameLabel'}
-                    label={'Code Space Name'}
-                    placeholder={'Type here'}
-                    value={projectName}
-                    errorText={projectNameError}
-                    required={true}
-                    maxLength={39}
-                    onChange={onProjectNameOnChange}
-                  />
+                  <button className={classNames(Styles.addNewItemButton)}>
+                    <i className="icon mbc-icon plus" />
+                    &nbsp;
+                    <span>Add new code space recipe (Coming Soon)</span>
+                  </button>
                 </div>
-                <div>
-                  <div id="environmentContainer" className={classNames('input-field-group include-error')}>
-                    <label className={classNames(Styles.inputLabel, 'input-label')}>
-                      Environment<sup>*</sup>
+              </div>
+              <div>
+                <TextBox
+                  type="text"
+                  controlId={'productNameInput'}
+                  labelId={'productNameLabel'}
+                  label={'Code Space Name'}
+                  placeholder={'Type here'}
+                  value={projectName}
+                  errorText={projectNameError}
+                  required={true}
+                  maxLength={39}
+                  onChange={onProjectNameOnChange}
+                />
+              </div>
+              <div>
+                <div id="environmentContainer" className={classNames('input-field-group include-error')}>
+                  <label className={classNames(Styles.inputLabel, 'input-label')}>
+                    Environment<sup>*</sup>
+                  </label>
+                  <div>
+                    <label className={classNames('radio')}>
+                      <span className="wrapper">
+                        <input
+                          type="radio"
+                          className="ff-only"
+                          value={'DHC-CaaS'}
+                          name="environment"
+                          onChange={onEnvironmentChange}
+                          checked={true}
+                        />
+                      </span>
+                      <span className="label">DHC CaaS</span>
                     </label>
-                    <div>
-                      <label className={classNames('radio')}>
-                        <span className="wrapper">
-                          <input
-                            type="radio"
-                            className="ff-only"
-                            value={'DHC-CaaS'}
-                            name="environment"
-                            onChange={onEnvironmentChange}
-                            checked={true}
-                          />
-                        </span>
-                        <span className="label">DHC CaaS</span>
-                      </label>
-                      <label className={classNames('radio')}>
-                        <span className="wrapper">
-                          <input
-                            type="radio"
-                            className="ff-only"
-                            value="azure"
-                            name="environment"
-                            onChange={onEnvironmentChange}
-                            checked={false}
-                            disabled={true}
-                          />
-                        </span>
-                        <span className="label">Azure (Coming Soon)</span>
-                      </label>
-                    </div>
+                    <label className={classNames('radio')}>
+                      <span className="wrapper">
+                        <input
+                          type="radio"
+                          className="ff-only"
+                          value="azure"
+                          name="environment"
+                          onChange={onEnvironmentChange}
+                          checked={false}
+                          disabled={true}
+                        />
+                      </span>
+                      <span className="label">Azure (Coming Soon)</span>
+                    </label>
+                    <label className={classNames('radio')}>
+                      <span className="wrapper">
+                        <input
+                          type="radio"
+                          className="ff-only"
+                          value="extollo"
+                          name="environment"
+                          onChange={onEnvironmentChange}
+                          checked={false}
+                          disabled={true}
+                        />
+                      </span>
+                      <span className="label">eXtollo (Coming Soon)</span>
+                    </label>
+                    <label className={classNames('radio')}>
+                      <span className="wrapper">
+                        <input
+                          type="radio"
+                          className="ff-only"
+                          value="aws"
+                          name="environment"
+                          onChange={onEnvironmentChange}
+                          checked={false}
+                          disabled={true}
+                        />
+                      </span>
+                      <span className="label">AWS (Coming Soon)</span>
+                    </label>
                   </div>
                 </div>
               </div>
@@ -786,6 +856,24 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
                   </div>
                 </div>
               )} */}
+              {isUserDefinedPublicGithubRecipe && (
+                <div>
+                  <div>
+                    <TextBox
+                      type="text"
+                      controlId={'publicGithubUrlInput'}
+                      labelId={'publicGithubUrlInputLabel'}
+                      label={`Provide Your Github Clone Url (Ex. https://github.com/orgname-or-username/your-repo-name.git)`}
+                      placeholder={'https://github.com/orgname-or-username/your-repo-name.git'}
+                      value={userDefinedPublicGithubUrl}
+                      errorText={userDefinedPublicGithubUrlError}
+                      required={true}
+                      maxLength={300}
+                      onChange={onUserDefinedPublicGithubUrlOnChange}
+                    />
+                  </div>
+                </div>
+              )}
               <div>
                 <div>
                   <TextBox
@@ -841,19 +929,25 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
                 show={showConfirmModal}
                 content={
                   <>
-                    {collaboratorToDelete && <div>
-                      Are you sure to delete colloborator '{collaboratorToDelete?.firstName}'?
-                      <p>
-                        Removing collaborator from codespace make him/her deny the acccess to the code space and code.
-                      </p>
-                    </div>}
-                    {collaboratorToTransferOwnership && <div>
-                      Are you sure to transfer code space ownership to the colloborator '{collaboratorToTransferOwnership?.firstName}'?
-                      <p>
-                        Transfering ownership to another collaborator will deny you to acccess this code space edit mode.
-                      </p>
-                    </div>}
-                  </> 
+                    {collaboratorToDelete && (
+                      <div>
+                        Are you sure to delete colloborator '{collaboratorToDelete?.firstName}'?
+                        <p>
+                          Removing collaborator from codespace make him/her deny the acccess to the code space and code.
+                        </p>
+                      </div>
+                    )}
+                    {collaboratorToTransferOwnership && (
+                      <div>
+                        Are you sure to transfer code space ownership to the colloborator '
+                        {collaboratorToTransferOwnership?.firstName}'?
+                        <p>
+                          Transfering ownership to another collaborator will deny you to acccess this code space edit
+                          mode.
+                        </p>
+                      </div>
+                    )}
+                  </>
                 }
                 onCancel={onCollaboratorConfirmModalCancel}
                 onAccept={onCollaboratorConfirmModalAccept}
@@ -926,13 +1020,21 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
                                   </div>
                                 </div>
                                 <div className={Styles.collaboratorTitleCol}>
-                                  <span tooltip-data={"Remove Collaborator"} className={Styles.deleteEntry} onClick={onCollaboratorDelete(item.id)}>
+                                  <span
+                                    tooltip-data={'Remove Collaborator'}
+                                    className={Styles.deleteEntry}
+                                    onClick={onCollaboratorDelete(item.id)}
+                                  >
                                     <i className="icon mbc-icon trash-outline" />
                                   </span>
                                   {onEditingMode && (
                                     <>
                                       &nbsp;| &nbsp;
-                                      <span tooltip-data={"Transfer Ownership"} className={Styles.deleteEntry} onClick={() => onTransferOwnership(item.id)}>
+                                      <span
+                                        tooltip-data={'Transfer Ownership'}
+                                        className={Styles.deleteEntry}
+                                        onClick={() => onTransferOwnership(item.id)}
+                                      >
                                         <i className="icon mbc-icon comparison" />
                                       </span>
                                     </>

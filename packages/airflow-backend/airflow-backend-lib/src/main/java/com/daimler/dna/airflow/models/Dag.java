@@ -58,7 +58,7 @@ public class Dag implements Serializable {
 	private Boolean isPaused;
 	private Boolean isSubdag;
 	private Boolean isActive;
-	private Date lastSchedulerRun;
+	private Date lastParsedTime;
 	private Date lastPickled;
 	private Date lastExpired;
 	private Boolean schedulerLock;

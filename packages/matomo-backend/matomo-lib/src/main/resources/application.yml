@@ -37,6 +37,20 @@ spring:
       max-file-size: 5MB
       max-request-size: 5MB
 
+matomo:
+  tokenAuth: ${MATOMO_TOKEN_AUTH:XXXXXX}
+  uri:
+    base: ${MATOMO_BASE_URI:https://web-analytics.dev.dna.app.corpintra.net?}
+    addSite: ${MATOMO_ADDSITE_URI:module=API&method=SitesManager.addSite&format=JSON&token_auth=}
+    getUser: ${MATOMO_GETUSER_URI:module=API&method=UsersManager.getUser&format=JSON&token_auth=}
+    addUser: ${MATOMO_ADDUSER_URI:module=API&method=UsersManager.addUser&format=JSON&token_auth=}
+    getSite: ${MATOMO_GETSITE_URI:module=API&method=SitesManager.getSiteFromId&format=JSON&token_auth=}
+    setUserAccess: ${MATOMO_SETUSERACCESS_URI:module=API&method=UsersManager.setUserAccess&format=JSON&token_auth=}
+    deleteSite: ${MATOMO_DELETESITE_URI:module=API&method=SitesManager.deleteSite&format=JSON&token_auth=}
+    getUserAccess: ${MATOMO_GETUSERACCESS_URI:module=API&method=UsersManager.getUsersAccessFromSite&format=JSON&token_auth=}
+    getSitesAccess: ${MATOMO_GETSITESACCESS_URI:module=API&method=UsersManager.getSitesAccessFromUser&format=JSON&token_auth=}
+    updateSite: ${MATOMO_UPDATEDITE_URI:module=API&method=SitesManager.updateSite&format=JSON&token_auth=}
+
 
 dna:
   uri: ${DNA_URI:XXXXXX}
