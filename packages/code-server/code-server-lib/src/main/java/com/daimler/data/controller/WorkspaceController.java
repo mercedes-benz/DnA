@@ -578,7 +578,7 @@ public class WorkspaceController  implements CodeServerApi{
 			userInfoVO.setId(deployRequestDto.getTechnicalUserDetailsForIAMLogin());					
 			userRequestVO.setData(userInfoVO);
 				userInfoVOResponse = dnaAuthClient.onboardTechnicalUser(userRequestVO);
-				if(Objects.isNull(userInfoVOResponse)) {
+				if(Objects.nonNull(userInfoVOResponse) && Objects.isNull(userInfoVOResponse.getId())) {
 					log.info("Failed to onboard/fetch technical user {}, returning from controller without triggering deploy action",deployRequestDto.getTechnicalUserDetailsForIAMLogin());
 					MessageDescription exceptionMsg = new MessageDescription("Failed to onboard/fetch technical user, Please try again.");
 					GenericMessage errorMessage = new GenericMessage();
