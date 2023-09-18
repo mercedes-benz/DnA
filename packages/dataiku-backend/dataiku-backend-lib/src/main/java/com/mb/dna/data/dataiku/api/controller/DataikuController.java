@@ -103,9 +103,9 @@ public class DataikuController {
 		if(collaborators!= null && !collaborators.isEmpty()) {
 			for(CollaboratorDetailsDto collab : collaborators) {
 				UserPrivilegeResponseDto collabDetails = userPrivilegeService.getByShortId(collab.getUserId());
-				if(collabDetails==null || !collabDetails.getCanCreate()) {
+				if(collabDetails==null) {
 					MessageDescription errMsg = new MessageDescription("Collaborator " + collab.getUserId() + " or privileges not found, cannot add to dataiku project");
-					log.error("Collaborator {} or privileges not found, cannot create dataiku project", userId);
+					log.error("Collaborator {} or privileges not found, cannot create dataiku project", collab.getUserId());
 					errors.add(errMsg);
 					responseMsg.setErrors(errors);
 					responseMsg.setWarnings(warnings);
@@ -282,9 +282,9 @@ public class DataikuController {
 			if(collaborators!= null && !collaborators.isEmpty()) {
 				for(CollaboratorDetailsDto collab : collaborators) {
 					UserPrivilegeResponseDto collabDetails = userPrivilegeService.getByShortId(collab.getUserId());
-					if(collabDetails==null || !collabDetails.getCanCreate()) {
+					if(collabDetails==null ) {
 						MessageDescription errMsg = new MessageDescription("Collaborator " + collab.getUserId() + " or privileges not found, cannot add to dataiku project");
-						log.error("Collaborator {} or privileges not found, cannot update dataiku project", userId);
+						log.error("Collaborator {} or privileges not found, cannot update dataiku project", collab.getUserId());
 						errors.add(errMsg);
 						responseMsg.setErrors(errors);
 						responseMsg.setWarnings(warnings);

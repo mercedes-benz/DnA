@@ -1,6 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { useForm, FormProvider } from "react-hook-form";
 import { useParams } from 'react-router-dom';
+import { useDispatch } from 'react-redux';
 // Container components
 import SelectBox from 'dna-container/SelectBox';
 import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indicator';
@@ -9,11 +10,13 @@ import Tooltip from '../../common/modules/uilab/js/src/tooltip';
 import { chronosApi } from '../../apis/chronos.api';
 import RunParametersForm from './runParametersForm/RunParametersForm';
 import InputFileArea from './inputFileArea/InputFileArea';
+import { setInputFile } from '../../redux/chronosFormSlice';
+import { getProjectDetails } from '../../redux/projectDetails.services';
 
 const RunForecastTab = ({ onRunClick }) => {
   const { id: projectId } = useParams();
   const methods = useForm();
-  const [inputFile, setInputFile] = useState();
+  const dispatch = useDispatch();
 
   useEffect(() => {
     SelectBox.defaultSetup();
@@ -53,7 +56,8 @@ const RunForecastTab = ({ onRunClick }) => {
         ProgressIndicator.hide();
         methods.reset();
         SelectBox.defaultSetup();
-        setInputFile();
+        dispatch(setInputFile({}));
+        dispatch(getProjectDetails(projectId));
       }).catch(error => {
         ProgressIndicator.hide();
         Notification.show(
@@ -66,11 +70,7 @@ const RunForecastTab = ({ onRunClick }) => {
   return (
     <FormProvider {...methods} >
       <form onSubmit={methods.handleSubmit(onSubmit)}>
-        <InputFileArea
-          projectId={projectId}
-          inputFile={inputFile}
-          setInputFile={setInputFile}
-        />
+        <InputFileArea />
         <RunParametersForm />
         <div className="btnContainer">
           <button className="btn btn-tertiary" type="submit">Run Forecast</button>

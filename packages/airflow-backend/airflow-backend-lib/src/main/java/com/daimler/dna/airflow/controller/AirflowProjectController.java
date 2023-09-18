@@ -143,4 +143,20 @@ public class AirflowProjectController implements ProjectsApi {
 		return new ResponseEntity<AirflowProjectIdVO>(airflowProjectIdVO, HttpStatus.OK);
 	}
 
+	@Override
+	@ApiOperation(value = "Get pipeline status for a projectId.", nickname = "getSatusByProjectId", notes = "Get pipeline status for a projectId.", response = AirflowProjectResponseWrapperVO.class, tags = {
+			"projects", })
+	@ApiResponses(value = {
+			@ApiResponse(code = 201, message = "Returns message of success or failure ", response = AirflowProjectResponseWrapperVO.class),
+			@ApiResponse(code = 400, message = "Bad Request", response = com.daimler.dna.airflow.exceptions.GenericMessage.class),
+			@ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+			@ApiResponse(code = 403, message = "Request is not authorized."),
+			@ApiResponse(code = 405, message = "Method not allowed"),
+			@ApiResponse(code = 500, message = "Internal error") })
+	@RequestMapping(value = "/projects/status/{projectId}", method = RequestMethod.GET)
+	public ResponseEntity<AirflowProjectResponseWrapperVO> getStatusByProjectId(@ApiParam(value = "Project Id for associated DAG.", required = true) @PathVariable("projectId") String projectId) {
+		LOGGER.trace("Entering status of projectId.");
+		return dnaProjectService.getAirflowDagStatus(projectId);
+	}
+
 }

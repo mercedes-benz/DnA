@@ -35,6 +35,7 @@ import java.util.stream.Collectors;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import java.util.Objects;
 
 import com.daimler.data.db.entities.CodeServerWorkspaceNsql;
 import com.daimler.data.db.json.CodeServerDeploymentDetails;
@@ -95,6 +96,9 @@ public class WorkspaceAssembler implements GenericAssembler<CodeServerWorkspaceV
 		if(deploymentDetails!=null) {
 			BeanUtils.copyProperties(deploymentDetails, deploymentDetailsVO);
 			deploymentDetailsVO.setLastDeployedBy(toUserInfoVO(deploymentDetails.getLastDeployedBy()));
+			if(Objects.isNull(deploymentDetails.getSecureWithIAMRequired())) {
+				deploymentDetailsVO.setSecureWithIAMRequired(false);
+			}
 			if(deploymentDetails.getLastDeployedOn()!=null)
 				deploymentDetailsVO.setLastDeployedOn(isoFormat.parse(isoFormat.format(deploymentDetails.getLastDeployedOn())));
 		}

@@ -3,6 +3,7 @@ import React, { createRef, useEffect, useRef, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import Styles from './chronos-project-details.scss';
+import SelectBox from 'dna-container/SelectBox';
 // App components
 import Tabs from '../../common/modules/uilab/js/src/tabs';
 import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indicator';
@@ -12,6 +13,8 @@ import ProjectDetailsTab from '../../components/projectDetailsTab/ProjectDetails
 import ComparisonsTab from '../../components/comparisonsTab/ComparisonsTab';
 import Breadcrumb from '../../components/breadcrumb/Breadcrumb';
 import { getProjectDetails } from '../../redux/projectDetails.services';
+import { reset } from '../../redux/chronosFormSlice';
+import { getConfigFiles } from '../../redux/chronosForm.services';
 
 const tabs = {
   runForecast: {},
@@ -31,11 +34,22 @@ const ChronosProjectDetails = ({ user }) => {
 
   useEffect(() => {
     dispatch(getProjectDetails(projectId));
+    dispatch(getConfigFiles(projectId));
+    SelectBox.defaultSetup();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     projectDetails.isLoading ? ProgressIndicator.show() : ProgressIndicator.hide();
   }, [projectDetails]);
+
+  useEffect(() => {
+    if(currentTab === 'runForecast') {
+      dispatch(reset());
+      dispatch(getConfigFiles(projectId));
+      SelectBox.defaultSetup();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentTab]);
 
   useEffect(() => {
     if (user?.roles?.length) {
@@ -64,6 +78,7 @@ const ChronosProjectDetails = ({ user }) => {
     const tabIndex = Object.keys(tabs).indexOf(currentTab) + 2;
     setCurrentTab(Object.keys(tabs)[tabIndex]);
     elementRef.current[tabIndex].click();
+    dispatch(getProjectDetails(projectId));
   };
 
   return (
