@@ -359,7 +359,7 @@ const CreateMatomo = ({ user }) => {
 
   const onTransferOwnership = (userId) => {
     setOwnerId(userId);
-    setShowConfirmModal(true);
+    // setShowConfirmModal(true);
   };
 
   const onAcceptTransferOwnership = () => {
@@ -813,7 +813,7 @@ const CreateMatomo = ({ user }) => {
                                       Delete Entry
                                     </div>
                                     {isOwner && 
-                                      <div className={Styles.deleteEntry} onClick={() => onTransferOwnership(item.id)}>
+                                      <div className={classNames(Styles.deleteEntry,'hidden')} onClick={() => onTransferOwnership(item.id)}>
                                         <i className="icon mbc-icon comparison" />
                                         Transfer Ownership
                                       </div>
