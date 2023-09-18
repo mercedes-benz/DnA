@@ -42,9 +42,11 @@ public class AttachPluginConfigVO  implements Serializable {
 
 	  private String scope;
 	  
-	  private String redirect_uri_path;
+	  private String redirect_uri;
 
 	  private String recovery_page_path;
+	  
+	  private String revoke_tokens_on_logout;
 	  
 //	  private String claims_to_verify;
 //	  
