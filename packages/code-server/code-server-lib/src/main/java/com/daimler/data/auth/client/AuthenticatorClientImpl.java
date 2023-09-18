@@ -99,6 +99,9 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 
 	@Value("${kong.uiRecipesToUseOidc}")
 	private boolean uiRecipesToUseOidc;
+	
+	@Value("${kong.revokeTokensOnLogout")
+	private String revokeTokensOnLogout;
 
 
 	@Autowired
@@ -277,8 +280,8 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 			paths.add("/" + serviceName + "/" + env + "/api");
 		}
 		else {
-			paths.add("/" + serviceName + "/");
-			paths.add("/");
+			paths.add("/" + serviceName);
+			//paths.add("/");
 		}
 		CreateRouteRequestVO createRouteRequestVO = new CreateRouteRequestVO();
 		CreateRouteVO createRouteVO = new CreateRouteVO();		
@@ -299,7 +302,8 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 
 		attachPluginVO.setName(OIDC_PLUGIN);
 
-		String recovery_page_path = "https://" + codeServerEnvUrl + "/" + serviceName + "/";		
+		String recovery_page_path = "https://" + codeServerEnvUrl + "/" + serviceName + "/";	
+		String redirectUri = "/" + serviceName;
 
 		attachPluginConfigVO.setBearer_only(bearerOnly);
 		attachPluginConfigVO.setClient_id(clientId);
@@ -310,7 +314,8 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 		attachPluginConfigVO.setLogout_path(logoutPath);
 		attachPluginConfigVO.setRealm(realm);
 		attachPluginConfigVO.setRedirect_after_logout_uri(redirectAfterLogoutUri);
-		attachPluginConfigVO.setRedirect_uri_path(redirectUriPath);
+		attachPluginConfigVO.setRedirect_uri(redirectUri);
+		attachPluginConfigVO.setRevoke_tokens_on_logout(revokeTokensOnLogout);
 		attachPluginConfigVO.setResponse_type(responseType);
 		attachPluginConfigVO.setScope(scope);
 		attachPluginConfigVO.setSsl_verify(sslVerify);
