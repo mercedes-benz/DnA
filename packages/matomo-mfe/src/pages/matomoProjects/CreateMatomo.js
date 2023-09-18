@@ -81,10 +81,13 @@ const CreateMatomo = ({ user }) => {
     ProgressIndicator.show();
     matomoApi.getLovData()
             .then((response) => {
-                setDataClassificationDropdown(response[0]?.data?.data || []);
+                setDataClassificationDropdown(response[0]?.data?.data || []);                
                 setDivisions(response[1]?.data || []);
                 setDepartments(response[2]?.data?.data || []);
-                SelectBox.defaultSetup();
+                setTimeout(() => {
+                  SelectBox.defaultSetup();  
+                }, 100);
+                              
             })
             .catch((err) => {
                 ProgressIndicator.hide();
@@ -98,9 +101,6 @@ const CreateMatomo = ({ user }) => {
                 }
             })
             .finally(() => {
-                // validateUser(props?.user?.id);
-
-
                 if (id) {
                   ProgressIndicator.show();
                   matomoApi
@@ -138,7 +138,9 @@ const CreateMatomo = ({ user }) => {
                               setMatomoDivision(res?.data?.division);
                               setMatomoSubDivision(res?.data?.subDivision);
                               setCallOnGetByID(true);
-                              SelectBox.defaultSetup();
+                              setTimeout(() => {
+                                SelectBox.defaultSetup();  
+                              }, 100);
                               ProgressIndicator.hide();
                             });
                           }
@@ -177,7 +179,9 @@ const CreateMatomo = ({ user }) => {
         hostServer.get('/subdivisions/' + divId)
         .then((res) => {
           setSubDivisions(res?.data || []);
-          SelectBox.defaultSetup();
+          setTimeout(() => {
+            SelectBox.defaultSetup();  
+          }, 100);
           ProgressIndicator.hide();
           setCallOnGetByID(false);
         });
@@ -312,7 +316,6 @@ const CreateMatomo = ({ user }) => {
         status: statusValue,
         subDivision: matomoSubDivision
       };
-      console.log(data,'================================');
       dispatch(matomoActions.updateMatomo(data));
     }
   };
@@ -352,10 +355,6 @@ const CreateMatomo = ({ user }) => {
   };
 
   const onCollaboratorPermission = (e, userName) => {
-    // const bucketList = bucketCollaborators.find((item) => {
-    //   return item.id == userName;
-    // });
-    // bucketList.permission = e.currentTarget.value;
     bucketCollaborators.map((item) => {
       if(item.id == userName)
       {
@@ -363,8 +362,6 @@ const CreateMatomo = ({ user }) => {
       }
       return item;
     });
-    // bucketList.permission = e.currentTarget.value;
-    
     setBucketCollaborators([...bucketCollaborators]);
   };
 
@@ -521,11 +518,13 @@ const CreateMatomo = ({ user }) => {
                         <option id="divisionOption" value={0}>
                           Choose
                         </option>
-                        {divisions?.map((obj) => (
+                        {divisions?.map((obj) => {
+                          return (
                           <option id={obj.name + obj.id} key={obj.id} value={obj.id}>
                             {obj.name}
                           </option>
-                        ))}
+                          )
+                        })}
                       </select>
                   </div>
                   <span className={classNames('error-message', matomoDivisionError?.length ? '' : 'hide')}>
@@ -683,8 +682,7 @@ const CreateMatomo = ({ user }) => {
                     value={dataClassification}
                     required={true}
                     >
-                      {dataClassificationDropdown?.length
-                        ?<>
+                      
                           <option id="classificationOption" value={0}>
                               Choose
                           </option>
@@ -697,8 +695,7 @@ const CreateMatomo = ({ user }) => {
                               {item.name}
                             </option>
                           ))}
-                        </> 
-                        : null}
+                        
                     </select>
                   </div>
                   <span className={classNames('error-message', dataClassificationError?.length ? '' : 'hide')}>
