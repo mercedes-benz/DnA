@@ -98,44 +98,44 @@ const createMatomo = (data) => {
   };
 };
 
-// const updateBucket = (data) => {
-//   return async (dispatch) => {
-//     dispatch({
-//       type: 'BUCKET_LOADING',
-//       payload: true,
-//     });
-//     ProgressIndicator.show();
-//     try {
-//       await bucketsApi.updateBucket(data);
-//       dispatch({
-//         type: 'BUCKET_LOADING',
-//         payload: false,
-//       });
-//       ProgressIndicator.hide();
-//       Notification.show(`Bucket ${data.bucketName} updated successfully.`);
-//       history.push('/');
-//     } catch (error) {
-//       dispatch({
-//         type: 'BUCKET_ERROR',
-//         payload: error.response.data.errors?.length
-//           ? error.response.data.errors[0].message
-//           : 'Error while updating a bucket.',
-//       });
-//       dispatch({
-//         type: 'BUCKET_LOADING',
-//         payload: false,
-//       });
-//       Notification.show(
-//         error.response.data.errors?.length ? error.response.data.errors[0].message : 'Error while updating a bucket.',
-//         'alert',
-//       );
-//       ProgressIndicator.hide();
-//     }
-//   };
-// };
+const updateMatomo = (data) => {
+  return async (dispatch) => {
+    dispatch({
+      type: 'MATOMO_LOADING',
+      payload: true,
+    });
+    ProgressIndicator.show();
+    try {
+      await matomoApi.updateMatomo(data);
+      dispatch({
+        type: 'MATOMO_LOADING',
+        payload: false,
+      });
+      ProgressIndicator.hide();
+      Notification.show(`Project ${data.siteName} updated successfully.`);
+      history.push('/');
+    } catch (error) {
+      dispatch({
+        type: 'MATOMO_ERROR',
+        payload: error.response.data.errors?.length
+          ? error.response.data.errors[0].message
+          : 'Error while updating a project.',
+      });
+      dispatch({
+        type: 'MATOMO_LOADING',
+        payload: false,
+      });
+      Notification.show(
+        error.response.data.errors?.length ? error.response.data.errors[0].message : 'Error while updating a bucket.',
+        'alert',
+      );
+      ProgressIndicator.hide();
+    }
+  };
+};
 
 export const matomoActions = {
   getMatomoList,
   createMatomo,
-  // updateBucket,
+  updateMatomo,
 };
