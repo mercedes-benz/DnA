@@ -531,8 +531,10 @@ definitions:
         type: string  
       scope:
         type: string
-      redirect_uri_path:
+      redirect_uri:
         type: string
+      revoke_tokens_on_logout:
+        type: string  
       recovery_page_path:
         type: string  
       claims_to_verify:
