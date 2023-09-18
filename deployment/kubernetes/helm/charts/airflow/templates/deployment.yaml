@@ -191,7 +191,7 @@ spec:
         runAsUser: 1000
         fsGroup: 65533
       imagePullSecrets:
-        - name: {{ include "image-pull.secret.name" . }}
+        - name: imagepullsecret
       volumes:
         - name: airflow-dags-git
           emptyDir: {}

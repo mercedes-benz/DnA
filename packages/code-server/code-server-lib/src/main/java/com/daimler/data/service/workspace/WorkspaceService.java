@@ -30,10 +30,7 @@ package com.daimler.data.service.workspace;
 import java.util.List;
 
 import com.daimler.data.controller.exceptions.GenericMessage;
-import com.daimler.data.dto.workspace.CodeServerWorkspaceVO;
-import com.daimler.data.dto.workspace.CreatedByVO;
-import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
-import com.daimler.data.dto.workspace.UserInfoVO;
+import com.daimler.data.dto.workspace.*;
 
 public interface WorkspaceService {
 
@@ -55,7 +52,7 @@ public interface WorkspaceService {
 
 	GenericMessage update(String userId, String name, String projectName, String existingStatus, String latestStatus, String targetEnv, String branch);
 
-	GenericMessage deployWorkspace(String userId, String id, String environment, String branch);
+	GenericMessage deployWorkspace(String userId, String id, String environment, String branch, boolean isSecureWithIAMRequired, String technicalUserDetailsForIAMLogin);
 
 	GenericMessage undeployWorkspace(String userId, String id, String environment, String branch);
 
@@ -66,5 +63,9 @@ public interface WorkspaceService {
 	GenericMessage reassignOwner(CreatedByVO currentUser, CodeServerWorkspaceVO vo, UserInfoVO newOwnerDeatils);
 
 	Integer getTotalCountOfWorkSpace();
+
+	List<String> getAllWorkspaceIds();
+
+	CodeServerWorkspaceValidateVO validateCodespace(String id, String userId);
 
 }

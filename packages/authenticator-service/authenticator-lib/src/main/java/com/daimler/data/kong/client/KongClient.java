@@ -27,7 +27,10 @@
 
 package com.daimler.data.kong.client;
 
+import java.util.List;
+
 import com.daimler.data.controller.exceptions.GenericMessage;
+import com.daimler.data.dto.kongGateway.AttachJwtPluginVO;
 import com.daimler.data.dto.kongGateway.AttachPluginVO;
 import com.daimler.data.dto.kongGateway.CreateRouteVO;
 
@@ -42,5 +45,9 @@ public interface KongClient {
 //	public CreateRouteResponseVO getRouteByName(String serviceName, String routeName);
 
 	public GenericMessage attachPluginToService(AttachPluginVO attachPluginVO, String serviceName);
+	
+	public GenericMessage attachJwtPluginToService(AttachJwtPluginVO attachJwtPluginVO, String serviceName);
+	
+	public List<String> getAllServices();
 	
 }
