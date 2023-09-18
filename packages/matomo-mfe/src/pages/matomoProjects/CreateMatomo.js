@@ -30,6 +30,9 @@ const CreateMatomo = ({ user }) => {
   const [ownerId, setOwnerId] = useState('');
 
   const [bucketCollaborators, setBucketCollaborators] = useState([]);
+  const [existingCollaboratorsUpdate, setExistingCollaboratorsUpdate] = useState([]);
+  const [addCollaboratorsUpdate, setAddCollaboratorsUpdate] = useState([]);
+  const [removeCollaboratorsUpdate, setRemoveCollaboratorsUpdate] = useState([]);
   const [siteNameError, setSiteNameError] = useState('');
 
   const [bucketId, setBucketId] = useState('');
@@ -108,6 +111,7 @@ const CreateMatomo = ({ user }) => {
                         setUrl(res?.data?.siteUrl);
                         setBucketPermission(res?.data?.permission);
                         setBucketCollaborators(res?.data?.collaborators || []);
+                        setExistingCollaboratorsUpdate(JSON.parse(JSON.stringify(res?.data?.collaborators)) || []);
                         setDataClassification(res?.data?.classificationType);
                         // SelectBox.defaultSetup();
                         setPII(res?.data?.piiData);
@@ -296,7 +300,9 @@ const CreateMatomo = ({ user }) => {
         createdBy,
         createdDate,
         siteName: siteName,
-        collaborators: bucketCollaborators,
+        existingCollaborators: existingCollaboratorsUpdate,
+        addCollaborators: addCollaboratorsUpdate,
+        removeCollaborators: removeCollaboratorsUpdate,
         classificationType: dataClassification,
         piiData: PII,
         department: departmentName[0],
@@ -306,6 +312,7 @@ const CreateMatomo = ({ user }) => {
         status: statusValue,
         subDivision: matomoSubDivision
       };
+      console.log(data,'================================');
       dispatch(matomoActions.updateMatomo(data));
     }
   };
@@ -334,6 +341,10 @@ const CreateMatomo = ({ user }) => {
         `${collaborators.firstName} ${collaborators.lastName} is a creator. Creator can't be added as collaborator.`,
         'warning',
       );
+    }else if (bucketId) {
+      bucketCollaborators.push(collabarationData);
+      // addCollaboratorsUpdate.push(bucketCollaborators);
+      setAddCollaboratorsUpdate([...[collabarationData]]);
     } else {
       bucketCollaborators.push(collabarationData);
       setBucketCollaborators([...bucketCollaborators]);
@@ -341,10 +352,19 @@ const CreateMatomo = ({ user }) => {
   };
 
   const onCollaboratorPermission = (e, userName) => {
-    const bucketList = bucketCollaborators.find((item) => {
-      return item.id == userName;
+    // const bucketList = bucketCollaborators.find((item) => {
+    //   return item.id == userName;
+    // });
+    // bucketList.permission = e.currentTarget.value;
+    bucketCollaborators.map((item) => {
+      if(item.id == userName)
+      {
+        item.permission = e.currentTarget.value;
+      }
+      return item;
     });
-    bucketList.permission = e.target.value;
+    // bucketList.permission = e.currentTarget.value;
+    
     setBucketCollaborators([...bucketCollaborators]);
   };
 
@@ -353,6 +373,15 @@ const CreateMatomo = ({ user }) => {
       const currentCollList = bucketCollaborators.filter((item) => {
         return item.id !== collId;
       });
+      if(bucketId){
+        setAddCollaboratorsUpdate(addCollaboratorsUpdate.filter(item => item.id !== collId));
+        setRemoveCollaboratorsUpdate(bucketCollaborators.filter((item) => {
+          if(item.id === collId){
+            item.permission = 'noaccess';
+            return item;
+          }
+        }));
+      }
       setBucketCollaborators(currentCollList);
     };
   };
@@ -749,7 +778,7 @@ const CreateMatomo = ({ user }) => {
                         </div>
                         <div className={classNames('mbc-scroll', Styles.collUserContent)}>
                           {bucketCollaborators
-                            ?.filter((item) => item.id !== user.id && item.id !== createdBy.id)
+                            
                             ?.map((item, collIndex) => {
                               return (
                                 <div key={collIndex} className={Styles.collUserContentRow}>
@@ -768,7 +797,7 @@ const CreateMatomo = ({ user }) => {
                                             checked={item?.permission == 'view' ? true : false}
                                             onChange={(e) => onCollaboratorPermission(e, item.id)}
                                             // readOnly
-                                            name="view"
+                                            name={"permission-"+collIndex}
                                           />
                                         </span>
                                         <span className="label">Read</span>
@@ -784,7 +813,7 @@ const CreateMatomo = ({ user }) => {
                                             value="write"
                                             checked={item?.permission == 'write' ? true : false}
                                             onChange={(e) => onCollaboratorPermission(e, item.id)}
-                                            name="write"
+                                            name={"permission-"+collIndex}
                                           />
                                         </span>
                                         <span className="label">Write</span>
@@ -800,7 +829,7 @@ const CreateMatomo = ({ user }) => {
                                             value="admin"
                                             checked={item?.permission == 'admin' ? true : false}
                                             onChange={(e) => onCollaboratorPermission(e, item.id)}
-                                            name="admin"
+                                            name={"permission-"+collIndex}
                                           />
                                         </span>
                                         <span className="label">Admin</span>
