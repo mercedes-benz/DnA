@@ -111,7 +111,6 @@ public class AirflowGitClientImpl implements AirflowGitClient {
 			Path localDagPath = Paths.get(gitMountPath + File.separator + dagPath);
 			Git git = gitClone(credentialsProvider);
 			if (git != null) {
-
 //				CheckoutCommand checkoutCommand = git.checkout();
 //				CreateBranchCommand createBranchCommand = git.branchCreate();
 				PushCommand pushCommand = git.push();
@@ -136,7 +135,8 @@ public class AirflowGitClientImpl implements AirflowGitClient {
 					for (AirflowDagVo dag : airflowProjectVO.getDags()) {
 						dagFileName = dag.getDagName() + "." + dagFileExtension;
 						gitCommitMsg = gitCommitMsg + " " + dagFileName;
-						if (new File(localDagPath.toString() + File.separator + dagFileName).isFile()) {
+						LOGGER.debug("DAG path {} is {}", localDagPath.toString() + File.separator + dagFileName, new File(localDagPath.toString() + File.separator + dagFileName).exists());
+						if (new File(localDagPath.toString() + File.separator + dagFileName).exists()) {
 							LOGGER.debug("DAG already existing:{}", dagFileName);
 							errors = setErrors("DAG already existing: " + dagFileName);
 							break;

@@ -46,13 +46,35 @@ public class DnaProjectRepositoryImpl extends CommonDataRepositoryImpl<DnaProjec
 				+ "on dna_project_user_dag.user_id = ab_user.id\r\n"
 				+ "inner join dna_project_user on dna_project_user_dag.id = dna_project_user.user_dag_id\r\n"
 				+ "inner join dna_project on dna_project.id = dna_project_user.dna_project_id\r\n"
-				+ "inner join ab_view_menu on ab_view_menu.name = dna_project_user_dag.dag_id\r\n"
+				+ "inner join ab_view_menu ON dna_project_user_dag.dag_id = SUBSTRING(ab_view_menu.name, POSITION(':' IN ab_view_menu.name) + 1)\r\n"
 				+ "inner join ab_permission_view on ab_permission_view.view_menu_id = ab_view_menu.id\r\n"
 				+ "inner join ab_permission on ab_permission.id = ab_permission_view.permission_id\r\n"
-				+ "where ab_permission.name in ('can_dag_read', 'can_dag_edit') and username = ?";
+				+ "where ab_permission.name in ('can_read', 'can_edit') and username = ?";
 
 		Query qry = this.em.createNativeQuery(query);
 		qry.setParameter(1, username);
+		return qry.getResultList();
+	}
+
+	@Override
+	public List<Object[]> findAllCreationStatusProjects(String Status) {
+		String query = "select dna_project.project_id,dna_project.created_by, dna_project.project_name, dna_project.project_description, dna_project.project_status  from  dna_project\r\n"
+				+ "where dna_project.project_status = ?\r\n";
+
+		Query qry = this.em.createNativeQuery(query);
+		qry.setParameter(1, Status);
+		return qry.getResultList();
+	}
+
+	@Override
+	public List<Object[]> findAllCreationStatusProjectsByUserId(String username, String Status) {
+		String query = "select dna_project.project_id,dna_project.created_by, dna_project.project_name, dna_project.project_description, dna_project.project_status  from  dna_project\r\n"
+				+ "where dna_project.created_by = ?\r\n"
+				+ "and dna_project.project_status = ?\r\n";
+
+		Query qry = this.em.createNativeQuery(query);
+		qry.setParameter(1, username);
+		qry.setParameter(2, Status);
 		return qry.getResultList();
 	}
 
@@ -61,10 +83,11 @@ public class DnaProjectRepositoryImpl extends CommonDataRepositoryImpl<DnaProjec
 		String query = "select ab_permission_view.id from ab_permission inner join ab_permission_view\r\n"
 				+ "on ab_permission.id = ab_permission_view.permission_id\r\n"
 				+ "inner join ab_view_menu on ab_permission_view.view_menu_id = ab_view_menu.id\r\n"
-				+ "where ab_permission.name in ('can_dag_read', 'can_dag_edit')\r\n" + "and ab_view_menu.name = ?";
+				+ "where ab_permission.name in ('can_read', 'can_edit')\r\n" + "and (ab_view_menu.name = ? OR ab_view_menu.name = CONCAT('DAG:', ?))";
 
 		Query qry = this.em.createNativeQuery(query);
 		qry.setParameter(1, dagName);
+		qry.setParameter(2, dagName);
 		return qry.getResultList();
 	}
 
@@ -110,12 +133,14 @@ public class DnaProjectRepositoryImpl extends CommonDataRepositoryImpl<DnaProjec
 				+ "inner join ab_permission_view on ab_permission_view_role.permission_view_id = ab_permission_view.id\r\n"
 				+ "inner join ab_permission on ab_permission_view.permission_id = ab_permission.id\r\n"
 				+ "inner join ab_view_menu on ab_permission_view.view_menu_id = ab_view_menu.id\r\n"
-				+ "where ab_permission.name in ('can_dag_read', 'can_dag_edit') and\r\n"
-				+ "ab_user.username = ? and ab_view_menu.name = ?";
+				+ "where ab_permission.name in ('can_read', 'can_edit') and\r\n"
+				+ "ab_user.username = ?\r\n"
+				+ "and (ab_view_menu.name = ? OR ab_view_menu.name = CONCAT('DAG:', ?))";
 
 		Query qry = this.em.createNativeQuery(query);
 		qry.setParameter(1, user);
 		qry.setParameter(2, dagName);
+		qry.setParameter(3, dagName);
 		return qry.getResultList();
 	}
 

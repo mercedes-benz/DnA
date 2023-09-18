@@ -164,8 +164,9 @@ const PersonalRelatedData = ({ onSave, setIsEditing, isDataProduct, callbackFn }
                 type="text"
                 {...register('personalRelatedDataPurpose', {
                   validate: isValid,
-                  disabled: isDisabled,
+                  // disabled: isDisabled,
                 })}
+                disabled= {isDisabled}
                 rows={50}
                 id="personalRelatedDataPurpose"
               />
@@ -201,8 +202,9 @@ const PersonalRelatedData = ({ onSave, setIsEditing, isDataProduct, callbackFn }
                           <input
                             {...register('personalRelatedDataLegalBasis', {
                               validate: isValid,
-                              disabled: isDisabled,
+                              // disabled: isDisabled,
                             })}
+                            disabled= {isDisabled}
                             type="radio"
                             className="ff-only"
                             name="personalRelatedDataLegalBasis"
@@ -235,8 +237,9 @@ const PersonalRelatedData = ({ onSave, setIsEditing, isDataProduct, callbackFn }
                     <input
                       {...register('LCOCheckedLegalBasis', {
                         validate: isValid,
-                        disabled: isDisabled,
+                        // disabled: isDisabled,
                       })}
+                      disabled= {isDisabled}
                       type="radio"
                       className="ff-only"
                       name="LCOCheckedLegalBasis"
@@ -250,8 +253,9 @@ const PersonalRelatedData = ({ onSave, setIsEditing, isDataProduct, callbackFn }
                     <input
                       {...register('LCOCheckedLegalBasis', {
                         validate: isValid,
-                        disabled: isDisabled,
+                        // disabled: isDisabled,
                       })}
+                      disabled= {isDisabled}
                       type="radio"
                       className="ff-only"
                       name="LCOCheckedLegalBasis"
@@ -265,8 +269,9 @@ const PersonalRelatedData = ({ onSave, setIsEditing, isDataProduct, callbackFn }
                     <input
                       {...register('LCOCheckedLegalBasis', {
                         validate: isValid,
-                        disabled: isDisabled,
+                        // disabled: isDisabled,
                       })}
+                      disabled= {isDisabled}
                       type="radio"
                       className="ff-only"
                       name="LCOCheckedLegalBasis"
@@ -294,8 +299,9 @@ const PersonalRelatedData = ({ onSave, setIsEditing, isDataProduct, callbackFn }
                 type="text"
                 {...register('LCOComments', {
                   validate: isValid,
-                  disabled: isDisabled,
+                  // disabled: isDisabled,
                 })}
+                disabled= {isDisabled}
                 rows={50}
                 id="LCOComments"
               />
@@ -318,8 +324,8 @@ const PersonalRelatedData = ({ onSave, setIsEditing, isDataProduct, callbackFn }
                   <span className="wrapper">
                     <input
                       {...register('personalRelatedDataContactAwareTransfer', {
-                        required: '*Missing entry',
-                        disabled: isDisabled,
+                        required: !isDisabled,
+                        // disabled: isDisabled,
                         onChange: () => {
                           clearErrors([
                             'personalRelatedDataObjectionsTransfer',
@@ -331,6 +337,7 @@ const PersonalRelatedData = ({ onSave, setIsEditing, isDataProduct, callbackFn }
                           setValue('personalRelatedDataTransferingObjections', '');
                         },
                       })}
+                      disabled= {isDisabled}
                       type="radio"
                       className="ff-only"
                       name="personalRelatedDataContactAwareTransfer"
@@ -343,9 +350,10 @@ const PersonalRelatedData = ({ onSave, setIsEditing, isDataProduct, callbackFn }
                   <span className="wrapper">
                     <input
                       {...register('personalRelatedDataContactAwareTransfer', {
-                        required: '*Missing entry',
-                        disabled: isDisabled,
+                        required: !isDisabled,
+                        // disabled: isDisabled,
                       })}
+                      disabled= {isDisabled}
                       type="radio"
                       className="ff-only"
                       name="personalRelatedDataContactAwareTransfer"
@@ -374,8 +382,8 @@ const PersonalRelatedData = ({ onSave, setIsEditing, isDataProduct, callbackFn }
                   <span className="wrapper">
                     <input
                       {...register('personalRelatedDataObjectionsTransfer', {
-                        required: '*Missing entry',
-                        disabled: isDisabledContactAwareTransfer,
+                        required: !isDisabledContactAwareTransfer,
+                        // disabled: isDisabledContactAwareTransfer,
                         onChange: () => {
                           clearErrors([
                             'personalRelatedDataTransferingNonetheless',
@@ -385,6 +393,7 @@ const PersonalRelatedData = ({ onSave, setIsEditing, isDataProduct, callbackFn }
                           setValue('personalRelatedDataTransferingObjections', '');
                         },
                       })}
+                      disabled= {isDisabledContactAwareTransfer}
                       type="radio"
                       className="ff-only"
                       name="personalRelatedDataObjectionsTransfer"
@@ -397,9 +406,10 @@ const PersonalRelatedData = ({ onSave, setIsEditing, isDataProduct, callbackFn }
                   <span className="wrapper">
                     <input
                       {...register('personalRelatedDataObjectionsTransfer', {
-                        required: '*Missing entry',
-                        disabled: isDisabledContactAwareTransfer,
+                        required: !isDisabledContactAwareTransfer,
+                        // disabled: isDisabledContactAwareTransfer,
                       })}
+                      disabled= {isDisabledContactAwareTransfer}
                       type="radio"
                       className="ff-only"
                       name="personalRelatedDataObjectionsTransfer"
@@ -431,7 +441,10 @@ const PersonalRelatedData = ({ onSave, setIsEditing, isDataProduct, callbackFn }
                 className="input-field-area"
                 type="text"
                 placeholder="Please state your reasoning for transfering nonetheless."
-                {...register('personalRelatedDataTransferingNonetheless', { required: '*Missing entry', disabled: isDisabledTransferingComments })}
+                {...register('personalRelatedDataTransferingNonetheless', { required: !isDisabledTransferingComments, 
+                // disabled: isDisabledTransferingComments 
+                })}
+                disabled= {isDisabledTransferingComments}
                 rows={50}
                 id="personalRelatedDataTransferingNonetheless"
               />
@@ -457,7 +470,10 @@ const PersonalRelatedData = ({ onSave, setIsEditing, isDataProduct, callbackFn }
                 className="input-field-area"
                 type="text"
                 placeholder="Please state your objections."
-                {...register('personalRelatedDataTransferingObjections', { required: '*Missing entry', disabled: isDisabledTransferingComments })}
+                {...register('personalRelatedDataTransferingObjections', { required: !isDisabledTransferingComments, 
+                // disabled: isDisabledTransferingComments 
+                })}
+                disabled= {isDisabledTransferingComments}
                 rows={50}
                 id="personalRelatedDataTransferingObjections"
               />

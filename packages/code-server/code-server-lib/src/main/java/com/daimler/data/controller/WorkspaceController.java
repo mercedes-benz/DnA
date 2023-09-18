@@ -29,6 +29,7 @@ package com.daimler.data.controller;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import javax.persistence.EntityNotFoundException;
@@ -49,6 +50,8 @@ import org.springframework.web.bind.annotation.RestController;
 import com.daimler.data.api.workspace.CodeServerApi;
 import com.daimler.data.application.auth.UserStore;
 import com.daimler.data.application.client.GitClient;
+import com.daimler.data.auth.client.DnaAuthClient;
+import com.daimler.data.auth.client.UserRequestVO;
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
 import com.daimler.data.db.entities.CodeServerWorkspaceNsql;
@@ -82,6 +85,9 @@ public class WorkspaceController  implements CodeServerApi{
 	
 	@Autowired
 	private GitClient gitClient;	
+	
+	@Autowired
+	private DnaAuthClient dnaAuthClient;
 
 	@Override
 	@ApiOperation(value = "remove collaborator from workspace project for a given Id.", nickname = "removeCollab", notes = "remove collaborator from workspace project for a given identifier.", response = CodeServerWorkspaceVO.class, tags={ "code-server", })
@@ -563,8 +569,25 @@ public class WorkspaceController  implements CodeServerApi{
 			}
 			if(deployRequestDto!=null && deployRequestDto.getBranch()!=null) {
 				branch = deployRequestDto.getBranch();
+			}			
+			if((Objects.nonNull(deployRequestDto.isSecureWithIAMRequired()) && deployRequestDto.isSecureWithIAMRequired())
+					&& (Objects.nonNull(deployRequestDto.getTechnicalUserDetailsForIAMLogin()))) {
+				UserRequestVO userRequestVO = new UserRequestVO();
+			com.daimler.data.auth.client.UserInfoVO userInfoVO = new com.daimler.data.auth.client.UserInfoVO();
+			com.daimler.data.auth.client.UserInfoVO userInfoVOResponse = new com.daimler.data.auth.client.UserInfoVO();
+			userInfoVO.setId(deployRequestDto.getTechnicalUserDetailsForIAMLogin());					
+			userRequestVO.setData(userInfoVO);
+				userInfoVOResponse = dnaAuthClient.onboardTechnicalUser(userRequestVO);
+				if(Objects.isNull(userInfoVOResponse)) {
+					log.info("Failed to onboard/fetch technical user {}, returning from controller without triggering deploy action",deployRequestDto.getTechnicalUserDetailsForIAMLogin());
+					MessageDescription exceptionMsg = new MessageDescription("Failed to onboard/fetch technical user, Please try again.");
+					GenericMessage errorMessage = new GenericMessage();
+					errorMessage.addErrors(exceptionMsg);
+					return new ResponseEntity<>(errorMessage, HttpStatus.INTERNAL_SERVER_ERROR);
+				}
 			}
-			GenericMessage responseMsg = service.deployWorkspace(userId, id, environment, branch);
+			GenericMessage responseMsg = service.deployWorkspace(userId, id, environment, branch,deployRequestDto.isSecureWithIAMRequired(),
+					deployRequestDto.getTechnicalUserDetailsForIAMLogin());
 			if(!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public")) {
 				log.info("User {} deployed workspace {} project {}", userId,vo.getWorkspaceId(),vo.getProjectDetails().getRecipeDetails().getRecipeId().name());
 			}			
@@ -669,7 +692,7 @@ public class WorkspaceController  implements CodeServerApi{
     }
 
 
-    @ApiOperation(value = "Get all codeServer workspaces for the user.", nickname = "getAll", notes = "Get all codeServer workspaces for the user.", response = WorkspaceCollectionVO.class, tags={ "code-server", })
+	@ApiOperation(value = "Get all codeServer workspaces for the user.", nickname = "getAll", notes = "Get all codeServer workspaces for the user.", response = WorkspaceCollectionVO.class, tags={ "code-server", })
     @ApiResponses(value = { 
         @ApiResponse(code = 201, message = "Returns message of success or failure", response = WorkspaceCollectionVO.class),
         @ApiResponse(code = 204, message = "Fetch complete, no content found."),
@@ -805,5 +828,26 @@ public class WorkspaceController  implements CodeServerApi{
 		}
 	}
 
+	@ApiOperation(value = "To check given user has a access to workspace or not.", nickname = "validateCodespace", notes = "To check a user has access to workspace.", response = CodeServerWorkspaceValidateVO.class, tags={ "code-server", })
+	@ApiResponses(value = {
+			@ApiResponse(code = 200, message = "Returns message of success or failure", response = CodeServerWorkspaceValidateVO.class),
+			@ApiResponse(code = 204, message = "Fetch complete, no content found."),
+			@ApiResponse(code = 400, message = "Bad request."),
+			@ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+			@ApiResponse(code = 403, message = "Request is not authorized."),
+			@ApiResponse(code = 405, message = "Method not allowed"),
+			@ApiResponse(code = 500, message = "Internal error") })
+	@RequestMapping(value = "/workspaces/{id}/{userid}/validate",
+			produces = { "application/json" },
+			consumes = { "application/json" },
+			method = RequestMethod.GET)
+	@Override
+	public ResponseEntity<CodeServerWorkspaceValidateVO> validateCodespace(
+			@ApiParam(value = "Workspace ID for the project", required = true) @PathVariable("id")String id,
+			@ApiParam(value = "User ID to be validated", required = true) @PathVariable("userid") String userid
+	) {
+		CodeServerWorkspaceValidateVO validateVO = service.validateCodespace(id, userid);
+		return new ResponseEntity<>(validateVO, HttpStatus.OK);
+	}
 
 }

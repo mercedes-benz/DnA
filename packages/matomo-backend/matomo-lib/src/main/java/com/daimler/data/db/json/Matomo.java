@@ -16,17 +16,15 @@ public class Matomo {
 
     private String id;
     private String siteId;
-    private String siteName;
-    private String siteUrl;
     private String division;
     private String subDivision;
     private String department;
     private String status;
-    private boolean piiData;
+    private Boolean piiData;
     private String classificationType;
     private UserDetails createdBy;
     private Date createdOn;
     private Date lastModified;
-    private List<UserDetails> collaborators;
+
 
 }
