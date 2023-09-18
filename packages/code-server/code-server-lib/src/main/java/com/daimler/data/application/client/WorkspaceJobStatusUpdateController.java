@@ -22,6 +22,8 @@ import org.springframework.web.bind.annotation.RestController;
 import com.daimler.data.auth.client.AuthenticatorClient;
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
+import com.daimler.data.dto.workspace.CodeServerDeploymentDetailsVO;
+import com.daimler.data.dto.workspace.CodeServerProjectDetailsVO;
 import com.daimler.data.dto.workspace.CodeServerWorkspaceVO;
 import com.daimler.data.dto.workspace.CreatedByVO;
 import com.daimler.data.dto.workspace.UserInfoVO;
@@ -54,6 +56,9 @@ public class WorkspaceJobStatusUpdateController  {
 	
 	@Value("${codeServer.gitjob.pat}")
 	private String personalAccessToken;
+	
+	@Value("${workspace.callKongApisFromBackend}")
+	private boolean callKongApisFromBackend;
 	
 	@Autowired
 	private AuthenticatorClient authenticatorClient;		
@@ -170,26 +175,31 @@ public class WorkspaceJobStatusUpdateController  {
 					break;
 			  
 			}
+			String environment = "Staging";
+			if(targetEnv.equalsIgnoreCase("prod")) {
+				environment = "Production";
+			}
+			
 			if(existingStatus.equals("CREATED")) {
 				if(latestStatus.equalsIgnoreCase("DEPLOYED")) {
 					eventType = "Codespace-Deploy";
 					log.info("Latest status is {}, and eventType is {}",latestStatus,eventType);
-					message = "Successfully deployed Codespace "+ projectName + " with branch " + branch +" on " + targetEnv + " triggered by " +workspaceOwnerName;
+					message = "Successfully deployed Codespace "+ projectName + " with branch " + branch +" on " + environment + " triggered by " +userId;
 				}													
 				if(latestStatus.equalsIgnoreCase("DEPLOYMENT_FAILED")) {
 					eventType = "Codespace-Deploy Failed";
 					log.info("Latest status is {}, and eventType is {}",latestStatus,eventType);
-					message = "Failed to deploy Codespace " + projectName + " with branch " + branch +" on " +  targetEnv + " triggered by " +workspaceOwnerName;
+					message = "Failed to deploy Codespace " + projectName + " with branch " + branch +" on " +  environment + " triggered by " +userId;
 				}
 				if(latestStatus.equalsIgnoreCase("UNDEPLOYED")) {
 					eventType = "Codespace-UnDeploy";
 					log.info("Latest status is {}, and eventType is {}",latestStatus,eventType);
-					message = "Successfully undeployed Codespace "+ projectName + " with branch " + branch +" on " + targetEnv + " triggered by " +workspaceOwnerName;
+					message = "Successfully undeployed Codespace "+ projectName + " with branch " + branch +" on " + environment + " triggered by " +userId;
 				}													
 				if(latestStatus.equalsIgnoreCase("UNDEPLOY_FAILED")) {
 					eventType = "Codespace-UnDeploy Failed";
 					log.info("Latest status is {}, and eventType is {}",latestStatus,eventType);
-					message = "Failed to undeploy Codespace " + projectName + " with branch " + branch +" on " + targetEnv + " triggered by " +workspaceOwnerName;
+					message = "Failed to undeploy Codespace " + projectName + " with branch " + branch +" on " + environment + " triggered by " +userId;
 				}
 			}
 			if(invalidStatus) {
@@ -201,7 +211,10 @@ public class WorkspaceJobStatusUpdateController  {
 			}
 			GenericMessage responseMessage = service.update(userId,name,projectName,existingStatus,latestStatus,targetEnv,branch);
 			log.info("Message details after update action {} and userid is {} and resourceID is {}",message,userId,resourceID);
-			authenticatorClient.callingKongApis(name);
+			if(callKongApisFromBackend) {
+				log.info("Calling Kong API's from backend and flag is {}", callKongApisFromBackend);
+				authenticatorClient.callingKongApis(name,null,false);
+			}			
 			kafkaProducer.send(eventType, resourceID, "", userId, message, true, teamMembers, teamMembersEmails, null);
 			return new ResponseEntity<>(responseMessage, HttpStatus.OK);
 		}else {

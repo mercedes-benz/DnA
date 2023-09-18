@@ -3,14 +3,11 @@ package com.daimler.data.assembler;
 import com.daimler.data.db.entities.MatomoNsql;
 import com.daimler.data.db.json.Matomo;
 import com.daimler.data.db.json.UserDetails;
-import com.daimler.data.dto.matomo.CollaboratorVO;
 import com.daimler.data.dto.matomo.CreatedByVO;
 import com.daimler.data.dto.matomo.MatomoVO;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
-import java.util.stream.Collectors;
 
 @Component
 public class MatomoAssembler implements GenericAssembler<MatomoVO, MatomoNsql> {
@@ -24,14 +21,8 @@ public class MatomoAssembler implements GenericAssembler<MatomoVO, MatomoNsql> {
             Matomo data = entity.getData();
             if(data!=null) {
                 BeanUtils.copyProperties(data, vo);
-                if(data.getCollaborators()!=null && !data.getCollaborators().isEmpty()) {
-                    List<CollaboratorVO> collaborators = data.getCollaborators().stream().map
-                            (n -> { CollaboratorVO user = new CollaboratorVO();
-                                BeanUtils.copyProperties(n,user);
-                                return user;
-                            }).collect(Collectors.toList());
-                    vo.setCollaborators(collaborators);
-                }
+                if(data.getPiiData()!=null)
+                    vo.setPiiData(data.getPiiData());
                 if(data.getCreatedBy()!=null) {
                     CreatedByVO creator = new CreatedByVO();
                     BeanUtils.copyProperties(data.getCreatedBy(),creator);
@@ -50,20 +41,15 @@ public class MatomoAssembler implements GenericAssembler<MatomoVO, MatomoNsql> {
             entity.setId(vo.getId());
             Matomo data = new Matomo();
             BeanUtils.copyProperties(vo, data);
-            if(vo.getCollaborators()!=null && !vo.getCollaborators().isEmpty()) {
-                List<UserDetails> collaborators = vo.getCollaborators().stream().map
-                        (n -> { UserDetails collaborator = new UserDetails();
-                            BeanUtils.copyProperties(n,collaborator);
-                            return collaborator;
-                        }).collect(Collectors.toList());
-                data.setCollaborators(collaborators);
-            }
+
+            if(vo.isPiiData()!=null)
+                data.setPiiData(vo.isPiiData());
             if(vo.getCreatedBy()!=null) {
                 UserDetails creator = new UserDetails();
                 BeanUtils.copyProperties(vo.getCreatedBy(), creator);
                 data.setCreatedBy(creator);
             }
-
+            entity.setData(data);
         }
         return entity;
     }

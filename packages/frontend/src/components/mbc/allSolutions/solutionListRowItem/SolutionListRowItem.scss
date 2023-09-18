@@ -57,6 +57,7 @@
   }
 }
 .solutionNameDivide {
+  word-break: break-all;
   display: flex;
   flex-direction: column;
   label {

@@ -155,7 +155,7 @@ const SolutionCardItem = (props: ISolutionCardItemProps) => {
         {/* <div className={Styles.solHeadInfo}>
           <div className={Styles.solTitle}>{solution.productName}</div>
         </div> */}
-        <div>
+        <div className={Styles.solTitleDiv}>
         <div className={Styles.solTitle}>{solution.productName}</div>
         </div>
         <div className={classNames(Styles.contextMenu, showContextMenu ? Styles.open : '')}>

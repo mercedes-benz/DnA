@@ -50,9 +50,12 @@ import org.springframework.web.client.RestTemplate;
 
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
+import com.daimler.data.dto.kongGateway.AttachJwtPluginConfigVO;
+import com.daimler.data.dto.kongGateway.AttachJwtPluginVO;
 import com.daimler.data.dto.kongGateway.AttachPluginConfigVO;
 import com.daimler.data.dto.kongGateway.AttachPluginVO;
 import com.daimler.data.dto.kongGateway.CreateRouteVO;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 @Component
 public class KongClientImpl implements KongClient {
@@ -169,7 +172,8 @@ public class KongClientImpl implements KongClient {
 				requestBody.put("protocols", new JSONArray(createRouteVO.getProtocols())); 
 				requestBody.put("hosts", new JSONArray(createRouteVO.getHosts())); 
 				requestBody.put("name", routeName);   
-				requestBody.put("strip_path", createRouteVO.isStripPath()); // Added strip_path 				
+				requestBody.put("strip_path", createRouteVO.isStripPath()); // Added strip_path 
+				requestBody.put("preserve_host", true);
 				HttpEntity<String> request = new HttpEntity<>(requestBody.toString(), headers);
 				ResponseEntity<String> response = restTemplate.exchange(postKongUri, HttpMethod.POST, request, String.class);
 				if (response != null && response.hasBody()) {
@@ -227,6 +231,7 @@ public class KongClientImpl implements KongClient {
 				attachPluginConfigRequestDto.setSsl_verify(attachPluginConfigVO.getSslVerify());
 				attachPluginConfigRequestDto.setToken_endpoint_auth_method(attachPluginConfigVO.getTokenEndpointAuthMethod());
 				attachPluginConfigRequestDto.setRedirect_uri_path(attachPluginConfigVO.getRedirectUriPath());
+				attachPluginConfigRequestDto.setRecovery_page_path(attachPluginConfigVO.getRecoveryPagePath());
 				requestWrapper.setConfig(attachPluginConfigRequestDto);
 				HttpEntity<AttachPluginWrapperDto> oidcRequest = new HttpEntity<AttachPluginWrapperDto>(
 						requestWrapper, headers);
@@ -270,6 +275,114 @@ public class KongClientImpl implements KongClient {
 			return message;
 		} catch (Exception e) {
 			LOGGER.error("Error while attaching plugin: {} to service: {}",attachPluginVO.getName(), e.getMessage());
+			message.setSuccess("Failure");
+			messageDescription.setMessage(e.getMessage());
+			errors.add(messageDescription);
+			message.setErrors(errors);
+			return message;
+		}
+		return message;
+	}
+
+	@Override
+	public List<String> getAllServices() {
+		
+		GetAllServicesDto allServicesCollection = new GetAllServicesDto();
+		List<String> serviceNames = new ArrayList<>();
+		List<ServiceDto> kongServices = new ArrayList<>();
+		String serviceName =  "";
+		try {
+			String kongUri = kongBaseUri + "/services/";
+			HttpHeaders headers = new HttpHeaders();
+			headers.set("Accept", "application/json");
+			headers.set("Content-Type", "application/x-www-form-urlencoded");
+			HttpEntity entity = new HttpEntity<>(headers);
+			ResponseEntity<String> response = restTemplate.exchange(kongUri, HttpMethod.GET, entity, String.class);
+			if (response != null && response.getStatusCode()!=null) {
+				LOGGER.info("completed fetching all services from kong ");
+				ObjectMapper mapper = new ObjectMapper();
+				allServicesCollection = mapper.readValue(response.getBody(), GetAllServicesDto.class);
+				//return response.getBody();
+				kongServices = allServicesCollection.getData();
+				JSONArray array = (JSONArray) new JSONObject(response.getBody()).getJSONArray("data");
+				if (array != null && !array.isEmpty()) {
+					for(int i=0; i<array.length(); i++) {
+						JSONObject jsonObject = (JSONObject) array.get(i);
+						String host = jsonObject.getString("host");
+						String name = jsonObject.getString("name");
+						if(Objects.nonNull(jsonObject.get("name")) && Objects.nonNull(jsonObject.get("host"))) {
+							if(host.contains("code-server") && name.startsWith("ws")) {
+								serviceName = (String) jsonObject.get("name");
+								serviceNames.add(serviceName);
+							}							
+						}
+					}														
+				}				
+			}
+			return serviceNames;
+		}
+		catch(Exception e) {
+			LOGGER.error("Error occured while fetching services from kong with exception {}", e.getMessage());
+		}
+		return serviceNames;
+	}
+
+	@Override
+	public GenericMessage attachJwtPluginToService(AttachJwtPluginVO attachJwtPluginVO, String serviceName) {
+		GenericMessage message = new GenericMessage();
+		MessageDescription messageDescription = new MessageDescription();
+		List<MessageDescription> errors = new ArrayList<>();
+		List<MessageDescription> warnings = new ArrayList<>();
+		try {
+			AttachJwtPluginConfigVO attachJwtPluginConfigVO = attachJwtPluginVO.getConfig();
+			String kongUri = kongBaseUri + "/services/" + serviceName + "/plugins";
+			HttpHeaders headers = new HttpHeaders();
+			headers.set("Accept", "application/json");
+			headers.set("Content-Type", "application/json");
+			AttachJwtPluginWrapperDto requestWrapper = new AttachJwtPluginWrapperDto();			
+			AttachJwtPluginConfigRequestDto attachJwtPluginConfigRequestDto = new AttachJwtPluginConfigRequestDto();	
+			ResponseEntity<String> response = null;
+			requestWrapper.setName(attachJwtPluginVO.getName());
+			attachJwtPluginConfigRequestDto.setAlgorithm(attachJwtPluginConfigVO.getAlgorithm());
+			attachJwtPluginConfigRequestDto.setAuthurl(attachJwtPluginConfigVO.getAuthurl());
+			attachJwtPluginConfigRequestDto.setClientHomeUrl(attachJwtPluginConfigVO.getClientHomeUrl());
+			attachJwtPluginConfigRequestDto.setClientId(attachJwtPluginConfigVO.getClientId());
+			attachJwtPluginConfigRequestDto.setClientSecret(attachJwtPluginConfigVO.getClientSecret());
+			attachJwtPluginConfigRequestDto.setExpiresIn(attachJwtPluginConfigVO.getExpiresIn());
+			attachJwtPluginConfigRequestDto.setIntrospectionUri(attachJwtPluginConfigVO.getIntrospectionUri());
+			attachJwtPluginConfigRequestDto.setPrivateKeyFilePath(attachJwtPluginConfigVO.getPrivateKeyFilePath());
+			attachJwtPluginConfigRequestDto.setSecret(attachJwtPluginConfigVO.getSecret());
+			requestWrapper.setConfig(attachJwtPluginConfigRequestDto);
+			HttpEntity<AttachJwtPluginWrapperDto> jwtIssuerRequest = new HttpEntity<AttachJwtPluginWrapperDto>(requestWrapper, headers);
+			response = restTemplate.exchange(kongUri, HttpMethod.POST, jwtIssuerRequest, String.class);
+			if (response != null && response.hasBody()) {
+				HttpStatus statusCode = response.getStatusCode();
+				if (statusCode == HttpStatus.CREATED) {
+					LOGGER.info("Plugin: {} attached successfully to API: {}", attachJwtPluginVO.getName(), serviceName);					
+					message.setSuccess("Success");
+					message.setErrors(errors);
+					message.setWarnings(warnings);
+					return message;
+				}
+			}
+			
+		}catch (HttpClientErrorException ex) {
+			if (ex.getRawStatusCode() == HttpStatus.CONFLICT.value()) {
+				LOGGER.info(" plugin: {} already attached to service: {}",attachJwtPluginVO.getName(), serviceName);
+				message.setSuccess("Failure");
+				messageDescription.setMessage("Plugin already attached to service");
+				errors.add(messageDescription);
+				message.setErrors(errors);
+				return message;
+			}	
+			LOGGER.error("Error occured while attaching plugin: {} to service: {}",attachJwtPluginVO.getName(), ex.getMessage());
+			message.setSuccess("Failure");
+			messageDescription.setMessage(ex.getMessage());
+			errors.add(messageDescription);
+			message.setErrors(errors);
+			return message;
+		} catch (Exception e) {
+			LOGGER.error("Error while attaching plugin: {} to service: {}",attachJwtPluginVO.getName(), e.getMessage());
 			message.setSuccess("Failure");
 			messageDescription.setMessage(e.getMessage());
 			errors.add(messageDescription);
