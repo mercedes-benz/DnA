@@ -87,7 +87,7 @@ public class KongGatewayController implements KongApi{
 					Objects.isNull(configVO.getLogoutPath()) || Objects.isNull(configVO.getRealm()) || 
 					Objects.isNull(configVO.getRedirectAfterLogoutUri()) || Objects.isNull(configVO.getResponseType()) ||
 					Objects.isNull(configVO.getScope()) || Objects.isNull(configVO.getSslVerify()) ||
-					Objects.isNull(configVO.getTokenEndpointAuthMethod()) || Objects.isNull(configVO.getRedirectUriPath())) {
+					Objects.isNull(configVO.getTokenEndpointAuthMethod()) || Objects.isNull(configVO.getRedirectUri())) {
 					MessageDescription msg = new MessageDescription();
 					msg.setMessage("Properties should not be null for attaching the OIDC plugin to service ");
 					errors.add(msg);
