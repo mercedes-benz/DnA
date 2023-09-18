@@ -19,9 +19,7 @@ const createMatomo = (data) => {
 };
 
 const updateMatomo = (data) => {
-  return server.put(`/matomo/${data.id}/sites`, {
-    data,
-  });
+  return server.put(`/matomo/${data.id}/sites`, data);
 };
 
 const deleteMatomo = (id) => {
