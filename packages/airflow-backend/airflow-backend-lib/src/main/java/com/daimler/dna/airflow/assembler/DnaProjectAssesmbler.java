@@ -27,11 +27,13 @@
 
 package com.daimler.dna.airflow.assembler;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -176,11 +178,18 @@ public class DnaProjectAssesmbler {
 			}
 			dagsItem = new AirflowDagProjectResponseVo();
 			vo.setProjectId((String) obj[0]);
-			vo.setCreatedBy((String) obj[1]);
 			vo.setProjectName((String) obj[2]);
 			vo.setProjectDescription((String) obj[3]);
-			vo.setProjectStatus((String) obj[4]);
+			vo.setCreatedBy((String) obj[1]);
 			vo.setIsOwner(currentUser.equalsIgnoreCase((String) obj[1]));
+			String dagName = (String) obj[0] + "_DAG_1";
+			dagsItem.setDagName(dagName);
+			dagsItem.addPermissionsItem("can_read");
+			String collabsDetails = (String) obj[5];
+			String[] individualCollabDetails = collabsDetails.split(",");
+			Optional<String> collab = Arrays.stream(individualCollabDetails).filter(x -> x.contains(currentUser)).findFirst();
+			if(collab.isPresent() && collab.get().split("_").length >1)
+				dagsItem.addPermissionsItem("can_edit");
 			vo.addDagsItem(dagsItem);
 		}
 		log.trace("Successfully assembled all aiflow project per user.");
