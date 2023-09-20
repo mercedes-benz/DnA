@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, 
-  useSelector 
+  // useSelector 
 } from 'react-redux';
 import Styles from './MatomoList.scss';
 import classNames from 'classnames';
@@ -9,24 +9,15 @@ import Tooltip from '../../common/modules/uilab/js/src/tooltip';
 import ExpansionPanel from '../../common/modules/uilab/js/src/expansion-panel';
 
 import ConfirmModal from 'dna-container/ConfirmModal';
-// import InfoModal from 'dna-container/InfoModal';
-
-// import { ConnectionModal } from '../ConnectionInfo/ConnectionModal';
-// import { setFiles } from '../Explorer/redux/fileExplorer.actions';
-// import { getConnectionInfo, hideConnectionInfo } from '../ConnectionInfo/redux/connection.actions';
 import { matomoApi } from '../../apis/matamo.api';
 import { matomoActions } from '../redux/matomo.actions';
 import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indicator';
 import Notification from '../../common/modules/uilab/js/src/notification';
 import { regionalDateAndTimeConversionSolution } from '../Utility/utils';
-// import { Envs } from '../Utility/envs';
-// import { Link } from 'react-router-dom';
 import Popper from 'popper.js';
 
 export const MatomoList = (props) => { 
   const dispatch = useDispatch();
-  // const { connect } = useSelector((state) => state.connectionInfo);
-  const { matomoList } = useSelector((state) => state.matomo);
   const [showDeleteModal, setDeleteModal] = useState(false);
   const [selectedItem, setSelectedItem] = useState({});
   const [currentSortOrder, setCurrentSortOrder] = useState('asc');
@@ -34,79 +25,9 @@ export const MatomoList = (props) => {
   const [currentColumnToSort, setCurrentColumnToSort] = useState('siteName');
 
   const isCardView = props.isCardView;
+  const matomoList = props.matomoList;
 
   let popperObj, tooltipElem = null;
-
-  // const matomoList = [
-  //   {
-  //     "classificationType": "string",
-  //     "collaborators": [
-  //       {
-  //         "department": "string",
-  //         "email": "string",
-  //         "firstName": "string",
-  //         "id": "string",
-  //         "lastName": "string",
-  //         "mobileNumber": "string",
-  //         "permission": "view"
-  //       }
-  //     ],
-  //     "createdBy": {
-  //       "department": "string",
-  //       "email": "string",
-  //       "firstName": "string",
-  //       "id": "string",
-  //       "lastName": "string",
-  //       "mobileNumber": "string"
-  //     },
-  //     "createdOn": "2023-09-12T06:16:49.306Z",
-  //     "department": "string",
-  //     "division": "string",
-  //     "id": "string",
-  //     "lastModified": "2023-09-12T06:16:49.306Z",
-  //     "permission": "admin",
-  //     "piiData": true,
-  //     "siteId": "string",
-  //     "siteName": "string",
-  //     "siteUrl": "string",
-  //     "status": "string",
-  //     "subDivision": "string"
-  //   },
-  //   {
-  //     "classificationType": "string",
-  //     "collaborators": [
-  //       {
-  //         "department": "string",
-  //         "email": "string",
-  //         "firstName": "string",
-  //         "id": "string",
-  //         "lastName": "string",
-  //         "mobileNumber": "string",
-  //         "permission": "view"
-  //       }
-  //     ],
-  //     "createdBy": {
-  //       "department": "string",
-  //       "email": "string",
-  //       "firstName": "string",
-  //       "id": "string",
-  //       "lastName": "string",
-  //       "mobileNumber": "string"
-  //     },
-  //     "createdOn": "2023-09-12T06:16:49.306Z",
-  //     "department": "string",
-  //     "division": "string",
-  //     "id": "string",
-  //     "lastModified": "2023-09-12T06:16:49.306Z",
-  //     "permission": "admin",
-  //     "piiData": true,
-  //     "siteId": "string",
-  //     "siteName": "string",
-  //     "siteUrl": "string",
-  //     "status": "string",
-  //     "subDivision": "string"
-  //   }
-  // ]
 
   const sortByColumn = (columnName, sortOrder) => {
     return () => {
@@ -198,22 +119,6 @@ export const MatomoList = (props) => {
       });
     setDeleteModal(false);
   };
-
-  // const onConnectionModalClose = () => {
-  //   dispatch(hideConnectionInfo());
-  // };
-
-  // const displayPermission = (item) => {
-  //   return Object.entries(item || {})
-  //     ?.map(([key, value]) => {
-  //       if (value === true) {
-  //         return key;
-  //       }
-  //     })
-  //     ?.filter((x) => x) // remove falsy values
-  //     ?.map((perm) => perm?.charAt(0)?.toUpperCase() + perm?.slice(1)) // update first character to Uppercase
-  //     ?.join(' / ');
-  // };
 
   const onCollabsIconMouseOver = (e) => {
     const targetElem = e.target;
@@ -356,16 +261,6 @@ export const MatomoList = (props) => {
                           
                         </>
                       )}
-                      {/* <button
-                        className={'btn btn-primary'}
-                        type="button"
-                        onClick={() => {
-                          dispatch(getConnectionInfo(item.bucketName, item.createdBy));
-                        }}
-                      >
-                        <i className="icon mbc-icon comparison"></i>
-                        <span>Connect</span>
-                      </button> */}
                     </div>
                   </>
                 </div>
@@ -569,16 +464,6 @@ export const MatomoList = (props) => {
                                     ) : null}
                                   </>
                                 )}
-                                {/* <button
-                                  className={'btn btn-primary'}
-                                  type="button"
-                                  onClick={() => {
-                                    dispatch(getConnectionInfo(item.bucketName, item.createdBy));
-                                  }}
-                                >
-                                  <i className="icon mbc-icon comparison"></i>
-                                  <span>Connect</span>
-                                </button> */}
                               </div>
                             </div>
                           </div>
