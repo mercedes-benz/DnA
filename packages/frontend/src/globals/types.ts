@@ -1430,6 +1430,7 @@ export interface ISubsriptionExpiryObjectData {
   data: ISubsriptionExpiryObject;
 }
 export interface IPipelineProjectDetail {
+  projectStatus: string;
   projectId: string;
   projectName: string;
   projectDescription: string;
