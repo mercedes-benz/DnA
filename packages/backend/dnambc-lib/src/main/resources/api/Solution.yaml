@@ -946,6 +946,9 @@ definitions:
   SolutionDigitalValueVO:
     type: object
     properties:
+      typeOfCalculation:
+        type: string
+        enum: ["DIGITAL_VALUE", "DATA_VALUE"]
       digitalValue:
         type: number
         description: Indicate a preliminary indication of a quantitative value add (e.g. in terms of hours saved, budget, efficiency, etc.). Note :Value considers cash generated yearly run rate in Euro and the yearly operatin / running costs after implementation in Euro.
@@ -996,8 +999,32 @@ definitions:
           $ref: "#/definitions/ChangeLogVO"
       valueCalculator:
         description: Calculated Digital value details for the solution
-        $ref: "#/definitions/ValueCalculatorVO"      
+        $ref: "#/definitions/ValueCalculatorVO"
+      dataValueCalculator:
+        description: Calculated Digital value details for the solution
+        $ref: "#/definitions/DataValueCalculatorVO"      
 
+  DataValueCalculatorVO:
+    type: object
+    properties:
+      savings:
+        type: array
+        items:
+          $ref: "#/definitions/YearValueVO"
+      revenue:
+        type: array
+        items: 
+          $ref:  "#/definitions/YearValueVO"
+  
+  YearValueVO:
+    type: object
+    properties:
+      year:
+       type: integer
+       format: int64
+      value:
+       type: integer
+       format: int64
   SolutionPortfolioVO:
     type: object
     properties:
