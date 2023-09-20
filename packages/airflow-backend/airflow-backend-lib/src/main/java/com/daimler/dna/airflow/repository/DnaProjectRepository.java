@@ -52,4 +52,6 @@ public interface DnaProjectRepository extends CommonDataRepository<DnaProject, I
 	List<Object[]> dagPermissionList(String dagName, String user);
 
 	public Integer deletedag(String dagName);
+
+	Integer updateProjectStatus(String projectId, String projectStatus);
 }
