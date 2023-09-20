@@ -17,10 +17,13 @@ import Styles from './AddOrEditFactorModal.scss';
 import NumberFormat from 'react-number-format';
 import { thousandSeparator, decimalSeparator } from '../../../../../services/utils';
 import TextBox from 'components/mbc/shared/textBox/TextBox';
+import { SOLUTION_DATA_VALUE_CATEGORY_TYPES, SOLUTION_VALUE_CALCULATION_TYPES } from 'globals/constants';
+import { FormattedNumber, IntlProvider } from 'react-intl';
 
 const classNames = cn.bind(Styles);
 
 export interface IAddOrEditFactorModalProps {
+  valueCalculationType: string;
   factorId?: string;
   editMode: boolean;
   showAddOrEditFactorModal: boolean;
@@ -52,6 +55,12 @@ export default class AddOrEditFactorModal extends React.Component<
   IAddOrEditFactorModalProps,
   IAddOrEditFactorModalState
 > {
+
+  static digitalValueTypeKeyValue  = Object.keys(SOLUTION_VALUE_CALCULATION_TYPES)[0];
+  static dataValueTypeKeyValue  = Object.keys(SOLUTION_VALUE_CALCULATION_TYPES)[1];
+  static dataValueSavingsKeyValue = Object.keys(SOLUTION_DATA_VALUE_CATEGORY_TYPES)[0];
+  static dataValueRevenueKeyValue = Object.keys(SOLUTION_DATA_VALUE_CATEGORY_TYPES)[1];
+  
   constructor(props: any) {
     super(props);
     this.state = {
@@ -76,6 +85,9 @@ export default class AddOrEditFactorModal extends React.Component<
   }
 
   public render() {
+
+    const valueCalculationType = this.props.valueCalculationType;
+
     if (this.state.rampUp.length === 0 && this.props.factorId === 'Cost') {
       this.setState({
         rampUp: [
@@ -291,13 +303,18 @@ export default class AddOrEditFactorModal extends React.Component<
             );
           })
         : '';
+    
+    const isDataValueSelected = valueCalculationType === AddOrEditFactorModal.dataValueTypeKeyValue;
+    const isDataValueType = this.props.factorId === 'Value' && isDataValueSelected;
+    const isDataValueTypeSelectedAddNew = !this.state.isEditMode && isDataValueType;
 
     const valuesList =
       rampUpValue && rampUpValue.length > 0
         ? rampUpValue.map((valueFactor: IValueRampUp, index: number) => {
+            isDataValueTypeSelectedAddNew && (valueFactor.percent = '100');
             return (
               <div
-                className={this.props.factorId === 'Value' ? Styles.valueFlexLayout : Styles.costFlexLayout}
+                className={(this.props.factorId === 'Value' && !isDataValueType) ? Styles.valueFlexLayout : Styles.costFlexLayout}
                 key={index}
               >
                 <div>
@@ -365,7 +382,7 @@ export default class AddOrEditFactorModal extends React.Component<
                   </div>
                 </div>
 
-                <div>
+                <div className={classNames(isDataValueType && 'hide')}>
                   <div
                     className={classNames(
                       'input-field-group include-error',
@@ -504,6 +521,12 @@ export default class AddOrEditFactorModal extends React.Component<
           })
         : '';
 
+    const displayValue = isDataValueSelected
+      ? this.props.factorId === 'Value'
+        ? this.getDataValueFactorRampUpTotal(rampUpValue)
+        : this.getDataCostFactorRampUpTotal(rampUp)
+      : value;  
+
     const AddOrEditFactorModalContent: React.ReactNode = (
       <div id="addOrEditFactorModalDiv" className={classNames(Styles.firstPanel, Styles.addOrEditFactorModal)}>
         <div className={Styles.formWrapper}>
@@ -522,26 +545,70 @@ export default class AddOrEditFactorModal extends React.Component<
                 onChange={this.textInputOnChange}
               />
             </div>
-            <div>
-              <TextBox
-                type="text"
-                controlId={'factorCategory'}
-                name={'category'}
-                label={'Category'}
-                placeholder={'Type here'}
-                value={category}
-                errorText={categoryError}
-                required={true}
-                maxLength={100}
-                onChange={this.textInputOnChange}
-              />
-            </div>
+            {isDataValueType ? (
+              <div>
+                <div id="dataValueCategoryTypeContainer" className={classNames('input-field-group include-error')}>
+                  <label className="input-label">
+                    {SOLUTION_DATA_VALUE_CATEGORY_TYPES[AddOrEditFactorModal.dataValueSavingsKeyValue]}/
+                    {SOLUTION_DATA_VALUE_CATEGORY_TYPES[AddOrEditFactorModal.dataValueRevenueKeyValue]}
+                    <sup>*</sup>
+                  </label>
+                  <div>
+                    <label className={classNames('radio')}>
+                      <span className="wrapper">
+                        <input
+                          type="radio"
+                          className="ff-only"
+                          value={AddOrEditFactorModal.dataValueSavingsKeyValue}
+                          name="dataValueCategoryType"
+                          onChange={this.onDataValueCategoryTypeChange}
+                          checked={category === AddOrEditFactorModal.dataValueSavingsKeyValue}
+                        />
+                      </span>
+                      <span className="label">
+                        {SOLUTION_DATA_VALUE_CATEGORY_TYPES[AddOrEditFactorModal.dataValueSavingsKeyValue]}
+                      </span>
+                    </label>
+                    <label className={classNames('radio')}>
+                      <span className="wrapper">
+                        <input
+                          type="radio"
+                          className="ff-only"
+                          value={AddOrEditFactorModal.dataValueRevenueKeyValue}
+                          name="dataValueCategoryType"
+                          onChange={this.onDataValueCategoryTypeChange}
+                          checked={category === AddOrEditFactorModal.dataValueRevenueKeyValue}
+                        />
+                      </span>
+                      <span className="label">
+                        {SOLUTION_DATA_VALUE_CATEGORY_TYPES[AddOrEditFactorModal.dataValueRevenueKeyValue]}
+                      </span>
+                    </label>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div>
+                <TextBox
+                  type="text"
+                  controlId={'factorCategory'}
+                  name={'category'}
+                  label={'Category'}
+                  placeholder={'Type here'}
+                  value={category}
+                  errorText={categoryError}
+                  required={true}
+                  maxLength={100}
+                  onChange={this.textInputOnChange}
+                />
+              </div>
+            )}
           </div>
           <div className={Styles.flexLayout}>
             <div>
               <div className={classNames('input-field-group include-error', valueError.length ? 'error' : '')}>
                 <label htmlFor="factorValue" className="input-label">
-                  Value in €<sup>*</sup>
+                  Value in €{!isDataValueSelected && <sup>*</sup>}
                 </label>
                 {/* <input
                   type="text"
@@ -556,21 +623,36 @@ export default class AddOrEditFactorModal extends React.Component<
                   maxLength={10}
                   onChange={this.textInputOnChange}
                 /> */}
+                {isDataValueSelected && (
+                  <div>
+                    <IntlProvider locale={navigator.language} defaultLocale="en">
+                      {displayValue !== '' ? <FormattedNumber value={Number(displayValue)} /> : ''}
+                    </IntlProvider>
+                  </div>
+                )}
+                
                 {/* @ts-ignore */}
                 <NumberFormat
-                  className={classNames('input-field', Styles.fteField)}
+                  className={classNames('input-field', Styles.fteField, isDataValueSelected && 'hide')}
                   id={'factorValue'}
                   required={true}
                   required-error={requiredError}
+                  readOnly={isDataValueSelected}
                   name="value"
                   placeholder="Type here"
-                  value={value === '' ? '' : new Intl.NumberFormat(navigator.language).format(Number(value))}
+                  value={
+                    displayValue === ''
+                      ? ''
+                      : new Intl.NumberFormat(navigator.language).format(Number(displayValue))
+                  }
                   thousandSeparator={thousandSeparator(navigator.language)}
                   decimalSeparator={decimalSeparator(navigator.language)}
                   decimalScale={2}
-                  onValueChange={(values: any, sourceInfo: any) => this.textInputOnChangeValueField(values, sourceInfo)}
+                  onValueChange={(values: any, sourceInfo: any) =>
+                    this.textInputOnChangeValueField(values, sourceInfo)
+                  }
                 />
-                <span className={classNames('error-message', valueError.length ? '' : 'hide')}>{valueError}</span>
+                {!isDataValueSelected && <span className={classNames('error-message', valueError.length ? '' : 'hide')}>{valueError}</span>}
               </div>
             </div>
             <div>
@@ -578,7 +660,7 @@ export default class AddOrEditFactorModal extends React.Component<
                 type="text"
                 controlId={'factorSource'}
                 name={'source'}
-                label={'Source'}
+                label={'Information Source'}
                 placeholder={'Type here'}
                 value={source}
                 errorText={sourceError}
@@ -681,6 +763,22 @@ export default class AddOrEditFactorModal extends React.Component<
     }
   };
 
+  protected onDataValueCategoryTypeChange = (e: React.FormEvent<HTMLInputElement>) => {
+    this.setState({category: e.currentTarget.value.trim()});
+  };
+
+  protected getDataValueFactorRampUpTotal = (rampUpValue: IValueRampUp[]) => {
+    let valueTotal = 0;
+    rampUpValue.forEach((valueRampUp: IValueRampUp) => valueTotal += parseFloat(valueRampUp.value === '' ?  '0' : valueRampUp.value));
+    return valueTotal;
+  };
+
+  protected getDataCostFactorRampUpTotal = (rampUpCost: ICostRampUp[]) => {
+    let costTotal = 0;
+    rampUpCost.forEach((costRampUp: ICostRampUp) => costTotal += parseFloat(costRampUp.value === '' ?  '0' : costRampUp.value));
+    return costTotal;
+  };
+
   protected textInputOnChange = (e: React.FormEvent<HTMLInputElement>) => {
     const name: string = e.currentTarget.name;
     const value: string = e.currentTarget.value;
@@ -731,7 +829,11 @@ export default class AddOrEditFactorModal extends React.Component<
           }
           return item;
         });
-        this.setState({ rampUp });
+        this.setState({ rampUp }, () => {
+          if (this.props.valueCalculationType === AddOrEditFactorModal.dataValueTypeKeyValue) {
+            this.setState({ value: this.getDataCostFactorRampUpTotal(rampUp).toString() })
+          }
+        });
       }
 
       if (this.props.factorId === 'Value') {
@@ -768,7 +870,11 @@ export default class AddOrEditFactorModal extends React.Component<
           }
           return item;
         });
-        this.setState({ rampUpValue });
+        this.setState({ rampUpValue }, () => {
+          if (this.props.valueCalculationType === AddOrEditFactorModal.dataValueTypeKeyValue) {
+            this.setState({ value: this.getDataValueFactorRampUpTotal(rampUpValue).toString() })
+          }
+        });
       }
     }
   };
@@ -788,10 +894,11 @@ export default class AddOrEditFactorModal extends React.Component<
   };
 
   protected clearModalFields() {
+    const isDataValueTypeSelectedAddNew = !this.state.isEditMode && this.props.factorId === 'Value' && this.props.valueCalculationType === AddOrEditFactorModal.dataValueTypeKeyValue;
     this.setState({
       description: '',
       descriptionError: '',
-      category: '',
+      category: isDataValueTypeSelectedAddNew ? AddOrEditFactorModal.dataValueSavingsKeyValue : '',
       categoryError: '',
       value: '',
       valueError: '',
@@ -918,7 +1025,11 @@ export default class AddOrEditFactorModal extends React.Component<
     }
 
     if (this.props.factorId === 'Value') {
-      dataValueFactor = { year: '', percent: '', value: '' };
+      dataValueFactor = {
+        year: '',
+        percent: this.props.valueCalculationType === AddOrEditFactorModal.dataValueTypeKeyValue ? '100' : '',
+        value: '',
+      };
       dataForValueFactorError = { year: null, percent: null, value: null };
       rampUpValue.push(dataValueFactor);
       valueFactorItemErrors.push(dataForValueFactorError);
