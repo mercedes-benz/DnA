@@ -1,100 +1,86 @@
 import classNames from 'classnames';
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { useDispatch, useSelector } from 'react-redux';
 import Styles from './matomo-projects.scss';
 import { MatomoList } from './MatomoList';
+import { matomoApi } from '../../apis/matamo.api';
+
 // dna-container
 import Caption from 'dna-container/Caption';
 import Pagination from 'dna-container/Pagination';
-
-
-import { matomoActions } from '../redux/matomo.actions';
+import { getQueryParameterByName } from '../../utilities/utils';
+import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indicator';
+import { SESSION_STORAGE_KEYS } from '../Utility/constants';
 
 const MatomoProjects = (props) => {
-
 
   const listViewSelected = sessionStorage.getItem('storageListViewModeEnable') || false;
   const [cardViewMode, setCardViewMode] = useState(!listViewSelected);
   const [listViewMode, setListViewMode] = useState(listViewSelected);
-  const dispatch = useDispatch();
-  const {
-    matomoList,
-    pagination: { matomoListResponse, totalNumberOfPages, currentPageNumber, maxItemsPerPage },
-  } = useSelector((state) => state.matomo);
+  const [matomoList, setMatomoList] = useState([]);
 
-
+  // Pagination 
+  const [totalNumberOfPages, setTotalNumberOfPages] = useState(1);
+  const [currentPageNumber, setCurrentPageNumber] = useState(1);
+  const [currentPageOffset, setCurrentPageOffset] = useState(0);
+  const [maxItemsPerPage, setMaxItemsPerPage] = useState(parseInt(sessionStorage.getItem(SESSION_STORAGE_KEYS.PAGINATION_MAX_ITEMS_PER_PAGE), 10) || 15);
+  
   const onPaginationPreviousClick = () => {
-    const currentPageNumberTemp = currentPageNumber - 1;
-    const currentPageOffset = (currentPageNumberTemp - 1) * maxItemsPerPage;
-    const modifiedData = matomoListResponse.slice(currentPageOffset, maxItemsPerPage * currentPageNumberTemp);
-    dispatch({
-      type: 'MATOMO_DATA',
-      payload: modifiedData,
-    });
-    dispatch({
-      type: 'SET_PAGINATION',
-      payload: {
-        currentPageNumber: currentPageNumberTemp,
-      },
-    });
+    const currentPageNum = currentPageNumber - 1;
+    const currentPageOffsetTemp = (currentPageNum - 1) * maxItemsPerPage;
+    setCurrentPageNumber(currentPageNum);
+    setCurrentPageOffset(currentPageOffsetTemp);
   };
   const onPaginationNextClick = () => {
-    let currentPageNumberTemp = currentPageNumber;
-    const currentPageOffset = currentPageNumber * maxItemsPerPage;
-    currentPageNumberTemp = currentPageNumber + 1;
-    const modifiedData = matomoListResponse.slice(currentPageOffset, maxItemsPerPage * currentPageNumberTemp);
-    dispatch({
-      type: 'MATOMO_DATA',
-      payload: modifiedData,
-    });
-    dispatch({
-      type: 'SET_PAGINATION',
-      payload: {
-        currentPageNumber: currentPageNumberTemp,
-      },
-    });
+    const currentPageOffsetTemp = currentPageNumber * maxItemsPerPage;
+    setCurrentPageNumber(currentPageNumber + 1);
+    setCurrentPageOffset(currentPageOffsetTemp);
   };
   const onViewByPageNum = (pageNum) => {
-    const totalNumberOfPages = Math.ceil(matomoListResponse?.length / pageNum);
-    const modifiedData = matomoListResponse.slice(0, pageNum);
-    dispatch({
-      type: 'MATOMO_DATA',
-      payload: modifiedData,
-    });
-    dispatch({
-      type: 'SET_PAGINATION',
-      payload: {
-        totalNumberOfPages,
-        maxItemsPerPage: pageNum,
-        currentPageNumber: 1,
-      },
-    });
+    setCurrentPageNumber(1);
+    setCurrentPageOffset(0);
+    setMaxItemsPerPage(pageNum);
   };
 
+
   useEffect(() => {
-    dispatch(matomoActions.getMatomoList());
-  }, [dispatch, maxItemsPerPage]);
+    const pageNumberOnQuery = getQueryParameterByName('page');
+    const currentPageNumberTemp = pageNumberOnQuery ? parseInt(getQueryParameterByName('page'), 10) : 1;
+    const currentPageOffsetTemp = pageNumberOnQuery ? (currentPageNumberTemp - 1) * maxItemsPerPage : 0;
+    setCurrentPageOffset(currentPageOffsetTemp);
+    setCurrentPageNumber(currentPageNumberTemp);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-console.log(matomoList,'-----------------------------')
+  useEffect(() => {
+    getMatomoSitesList();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [maxItemsPerPage, currentPageNumber, currentPageOffset]);
+
+  const getMatomoSitesList = () => {      
+      ProgressIndicator.show();
+      matomoApi
+        .getMatomoProjectsList(maxItemsPerPage, currentPageOffset)
+        .then((res) => {
+          setMatomoList(res?.data?.records);
+          const totalNumberOfPagesTemp = Math.ceil(res.data.totalCount / maxItemsPerPage);
+          setCurrentPageNumber(currentPageNumber > totalNumberOfPagesTemp ? 1 : currentPageNumber);
+          setTotalNumberOfPages(totalNumberOfPagesTemp);
+          
+          ProgressIndicator.hide();
+        })
+        .catch((e) => {
+          ProgressIndicator.hide();
+          Notification.show(
+            e.response.data.errors?.length
+              ? e.response.data.errors[0].message
+              : 'Fetching list of matomo sites failed!',
+            'alert',
+          );
+        });
+  };
+
   return (
-    // <>
-    //   <div className={classNames(Styles.mainPanel)}>
-    //     <div className={classNames(Styles.wrapper)}>
-    //     <>
-    //           <Caption title={'Matomo Projects'} />
-
-    //           <div className={Styles.allProjectContent}>
-    //             <div className={Styles.newProjectCard}>
-    //               <div className={Styles.addicon}> &nbsp; </div>
-    //               <label className={Styles.addlabel}>Create new project</label>
-    //             </div>
-    //             <div></div>
-    //           </div>
-    //         </>
-    //     </div>
-    //   </div>
-    // </>
     <>
       <div className={classNames(Styles.mainPanel)}>
         <div className={classNames(Styles.wrapper)}>
@@ -164,7 +150,7 @@ console.log(matomoList,'-----------------------------')
                 </>
               ) : (
                 <div className={Styles.subscriptionList}>
-                  <MatomoList isCardView={cardViewMode} user={props.user} />
+                  <MatomoList isCardView={cardViewMode} user={props.user} matomoList={matomoList} />
                   {matomoList?.length ? (
                     <Pagination
                       totalPages={totalNumberOfPages}
