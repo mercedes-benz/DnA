@@ -135,7 +135,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 				String projectOwner = entity.getData().getProjectDetails().getProjectOwner().getId();
 				deployJobInputDto.setShortid(projectOwner);
 				deployJobInputDto.setTarget_env("int");
-				deployJobInputDto.setSecure_iam(false);
+				deployJobInputDto.setSecure_iam("false");
 				deployJobInputDto.setType(client.toDeployType(entity.getData().getProjectDetails().getRecipeDetails().getRecipeId().toLowerCase()));
 				String projectName = entity.getData().getProjectDetails().getProjectName();
 				String projectOwnerWsId = entity.getData().getWorkspaceId();
@@ -168,7 +168,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 				String projectOwner = entity.getData().getProjectDetails().getProjectOwner().getId();
 				deployJobInputDto.setShortid(projectOwner);
 				deployJobInputDto.setTarget_env("prod");
-				deployJobInputDto.setSecure_iam(false);
+				deployJobInputDto.setSecure_iam("false");
 				deployJobInputDto.setType(client.toDeployType(entity.getData().getProjectDetails().getRecipeDetails().getRecipeId().toLowerCase()));
 				String projectName = entity.getData().getProjectDetails().getProjectName();
 				String projectOwnerWsId = entity.getData().getWorkspaceId();
@@ -584,10 +584,10 @@ public class BaseWorkspaceService implements WorkspaceService {
 				deployJobInputDto.setShortid(projectOwner);
 				deployJobInputDto.setTarget_env(environment);
 				if(Objects.nonNull(isSecureWithIAMRequired) && isSecureWithIAMRequired && Objects.nonNull(technicalUserDetailsForIAMLogin)) {
-					deployJobInputDto.setSecure_iam(true);
+					deployJobInputDto.setSecure_iam("true");
 				}
 				else {
-					deployJobInputDto.setSecure_iam(false);
+					deployJobInputDto.setSecure_iam("false");
 				}
 				deployJobInputDto.setType(client.toDeployType(entity.getData().getProjectDetails().getRecipeDetails().getRecipeId().toLowerCase()));
 				String projectName = entity.getData().getProjectDetails().getProjectName();
