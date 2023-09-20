@@ -20,7 +20,7 @@ public class AttachJwtPluginConfigRequestDto implements Serializable{
 	private String clientHomeUrl;
 	private String privateKeyFilePath;
 	private String expiresIn;
-	private String clientId;
-	private String clientSecret;
-	private String introspectionUri;
+	private String client_id;
+	private String client_secret;
+	private String introspection_uri;
 }
