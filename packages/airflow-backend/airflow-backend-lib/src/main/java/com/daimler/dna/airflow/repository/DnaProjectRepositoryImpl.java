@@ -68,8 +68,8 @@ public class DnaProjectRepositoryImpl extends CommonDataRepositoryImpl<DnaProjec
 
 	@Override
 	public List<Object[]> findAllCreationStatusProjectsByUserId(String username, String Status) {
-		String query = "select dna_project.project_id,dna_project.created_by, dna_project.project_name, dna_project.project_description, dna_project.project_status  from  dna_project\r\n"
-				+ "where dna_project.created_by = ?\r\n"
+		String query = "select dna_project.project_id,dna_project.created_by, dna_project.project_name, dna_project.project_description, dna_project.project_status, dna_project.collabs  from  dna_project\r\n"
+				+ "where collabs like  CONCAT( '%', ? ,'%')\r\n"
 				+ "and dna_project.project_status = ?\r\n";
 
 		Query qry = this.em.createNativeQuery(query);
@@ -122,6 +122,15 @@ public class DnaProjectRepositoryImpl extends CommonDataRepositoryImpl<DnaProjec
 		qry.setParameter("projectName", updatedProject.getProjectName());
 		qry.setParameter("projectDescription", updatedProject.getProjectDescription());
 		qry.setParameter("projectId", updatedProject.getProjectId());
+		return qry.executeUpdate();
+	}
+	
+	@Override
+	public Integer updateProjectStatus(String projectId,String projectStatus) {
+		String query = "update dna_project set project_status=:projectStatus where project_id=:projectId";
+		Query qry = this.em.createNativeQuery(query);
+		qry.setParameter("projectStatus", projectStatus);
+		qry.setParameter("projectId", projectId);
 		return qry.executeUpdate();
 	}
 
