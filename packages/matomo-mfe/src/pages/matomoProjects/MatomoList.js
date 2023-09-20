@@ -19,7 +19,7 @@ import { matomoActions } from '../redux/matomo.actions';
 import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indicator';
 import Notification from '../../common/modules/uilab/js/src/notification';
 import { regionalDateAndTimeConversionSolution } from '../Utility/utils';
-import { Envs } from '../Utility/envs';
+// import { Envs } from '../Utility/envs';
 // import { Link } from 'react-router-dom';
 import Popper from 'popper.js';
 
@@ -33,7 +33,6 @@ export const MatomoList = (props) => {
   const [nextSortOrder, setNextSortOrder] = useState('desc');
   const [currentColumnToSort, setCurrentColumnToSort] = useState('siteName');
 
-  const isDataikuEnabled = Envs.ENABLE_DATAIKU;
   const isCardView = props.isCardView;
 
   let popperObj, tooltipElem = null;
@@ -173,7 +172,6 @@ export const MatomoList = (props) => {
     <div>
       <h3>Are you sure you want to delete {selectedItem.bucketName} ? </h3>
       <h5>It will delete all content.</h5>
-      {isDataikuEnabled && <h6>Dataiku project(s) connection if any, will be removed.</h6>}
     </div>
   );
 
