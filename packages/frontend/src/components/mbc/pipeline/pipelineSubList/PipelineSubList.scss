@@ -555,3 +555,22 @@
     }
   }
 }
+.notAllowed {
+  cursor: not-allowed;
+}
+.statusIndicator {
+  padding: 2px 8px;
+  border: 1px solid #0AE6AB;
+  color: #0AE6AB;
+  font-size: var(--font-size-icon-small);
+  letter-spacing: 1px;
+  border-radius: 2px;
+  margin-left: 20px;
+
+  &.colloboration {
+    border: 1px solid #35ADAC;
+    color: #35ADAC;
+    position: absolute;
+    right: 10px;
+  }
+}
