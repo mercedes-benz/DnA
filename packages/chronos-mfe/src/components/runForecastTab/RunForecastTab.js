@@ -1,7 +1,9 @@
-import React, { useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useForm, FormProvider } from "react-hook-form";
 import { useParams } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
+// Container Components
+import Modal from 'dna-container/Modal';
 // Container components
 import SelectBox from 'dna-container/SelectBox';
 import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indicator';
@@ -12,11 +14,14 @@ import RunParametersForm from './runParametersForm/RunParametersForm';
 import InputFileArea from './inputFileArea/InputFileArea';
 import { setInputFile } from '../../redux/chronosFormSlice';
 import { getProjectDetails } from '../../redux/projectDetails.services';
+import Tutorial from '../../components/tutorial/Tutorial';
 
 const RunForecastTab = ({ onRunClick }) => {
   const { id: projectId } = useParams();
   const methods = useForm();
   const dispatch = useDispatch();
+
+  const [showTutorial, setShowTutorial] = useState((localStorage.getItem('showTutorial') === null || localStorage.getItem('showTutorial') === 'true') ? true : false);
 
   useEffect(() => {
     SelectBox.defaultSetup();
@@ -68,15 +73,39 @@ const RunForecastTab = ({ onRunClick }) => {
   }
 
   return (
-    <FormProvider {...methods} >
-      <form onSubmit={methods.handleSubmit(onSubmit)}>
-        <InputFileArea />
-        <RunParametersForm />
-        <div className="btnContainer">
-          <button className="btn btn-tertiary" type="submit">Run Forecast</button>
-        </div>
-      </form>
-    </FormProvider>
+    <>
+      <FormProvider {...methods} >
+        <form onSubmit={methods.handleSubmit(onSubmit)}>
+          <InputFileArea />
+          <RunParametersForm />
+          <div className="btnContainer">
+            <button className="btn btn-tertiary" type="submit">Run Forecast</button>
+          </div>
+        </form>
+      </FormProvider>
+      
+      { showTutorial &&
+        <Modal
+          title={'Chronos Tutorial'}
+          showAcceptButton={false}
+          showCancelButton={false}
+          modalWidth={'60%'}
+          buttonAlignment="right"
+          show={showTutorial}
+          content={<Tutorial sliderWidth="100%" sliderHeight="auto" onOk={() => setShowTutorial(false)} />}
+          scrollableContent={false}
+          onCancel={() => {
+            setShowTutorial(false)
+          }}
+          modalStyle={{
+            padding: '50px 35px 35px 35px',
+            minWidth: 'unset',
+            width: '60%',
+            maxWidth: '50vw'
+          }}
+        />
+      }
+    </>
   );
 };
 
