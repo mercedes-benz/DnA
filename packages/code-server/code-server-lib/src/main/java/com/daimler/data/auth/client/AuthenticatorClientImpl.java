@@ -100,7 +100,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 	@Value("${kong.uiRecipesToUseOidc}")
 	private boolean uiRecipesToUseOidc;
 	
-	@Value("${kong.revokeTokensOnLogout")
+	@Value("${kong.revokeTokensOnLogout}")
 	private String revokeTokensOnLogout;
 
 
