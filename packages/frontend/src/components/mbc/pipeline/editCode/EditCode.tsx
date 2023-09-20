@@ -105,7 +105,7 @@ const EditCode = () => {
         const records = response.data;
         records.find((item: IPipelineProjectDetail) => {
           item.dags.find((item: IPipelineProjectDag) => {
-            if (item.dagName === id && item.permissions.includes('can_dag_edit')) {
+            if (item.dagName === id && item.permissions.includes('can_edit')) {
               setIsCodeEditable(true);
             }
           });
