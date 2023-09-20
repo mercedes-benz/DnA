@@ -554,7 +554,7 @@ export const MatomoList = (props) => {
                                       <i className="icon mbc-icon edit"></i>
                                       <span>Edit</span>
                                     </button>
-                                    {isOwner && hasWriteAccess ? (
+                                    {hasWriteAccess ? (
                                       <button
                                         className={'btn btn-primary'}
                                         type="button"
