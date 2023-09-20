@@ -51,6 +51,16 @@ export enum SOLUTION_LOGO_IMAGE_TYPES {
   BANNER = 'banners',
 }
 
+export enum SOLUTION_VALUE_CALCULATION_TYPES {
+  DIGITAL_VALUE = 'Digital Value',
+  DATA_VALUE = 'Data Value',
+}
+
+export enum SOLUTION_DATA_VALUE_CATEGORY_TYPES {
+  SAVINGS = 'Savings',
+  REVENUE = 'Revenue',
+}
+
 export enum DATA_COMPLIANCE_INFO_LINKS {
   GUIDELINES = 'https://your-data-compliance-guidelines-url',
   LOCAL_OFFICER = 'https://your-local-data-compliance-officer-profile-url',
