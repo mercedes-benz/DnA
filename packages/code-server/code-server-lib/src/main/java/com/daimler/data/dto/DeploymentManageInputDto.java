@@ -20,6 +20,6 @@ public class DeploymentManageInputDto {
 	private String repo;
 	private String branch;
 	private String target_env;
-	private Boolean secure_iam;
+	private String secure_iam;
 	
 }
