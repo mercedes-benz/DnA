@@ -347,10 +347,10 @@ public class KongClientImpl implements KongClient {
 			attachJwtPluginConfigRequestDto.setAlgorithm(attachJwtPluginConfigVO.getAlgorithm());
 			attachJwtPluginConfigRequestDto.setAuthurl(attachJwtPluginConfigVO.getAuthurl());
 			attachJwtPluginConfigRequestDto.setClientHomeUrl(attachJwtPluginConfigVO.getClientHomeUrl());
-			attachJwtPluginConfigRequestDto.setClientId(attachJwtPluginConfigVO.getClientId());
-			attachJwtPluginConfigRequestDto.setClientSecret(attachJwtPluginConfigVO.getClientSecret());
+			attachJwtPluginConfigRequestDto.setClient_id(attachJwtPluginConfigVO.getClientId());
+			attachJwtPluginConfigRequestDto.setClient_secret(attachJwtPluginConfigVO.getClientSecret());
 			attachJwtPluginConfigRequestDto.setExpiresIn(attachJwtPluginConfigVO.getExpiresIn());
-			attachJwtPluginConfigRequestDto.setIntrospectionUri(attachJwtPluginConfigVO.getIntrospectionUri());
+			attachJwtPluginConfigRequestDto.setIntrospection_uri(attachJwtPluginConfigVO.getIntrospectionUri());
 			attachJwtPluginConfigRequestDto.setPrivateKeyFilePath(attachJwtPluginConfigVO.getPrivateKeyFilePath());
 			attachJwtPluginConfigRequestDto.setSecret(attachJwtPluginConfigVO.getSecret());
 			requestWrapper.setConfig(attachJwtPluginConfigRequestDto);
