@@ -71,6 +71,16 @@
         }
       }
 
+      .dataValueTotalSection {
+        text-align: right;
+        font-size: var(--font-size-medium);
+        label {
+          font-family: var(--font-family-medium);
+          font-weight: bold;
+          color: #99a5b3;
+        }
+      }
+
       .commentWapper {
         margin-top: 30px;
         max-width: calc(50% - 7px);

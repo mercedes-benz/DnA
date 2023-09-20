@@ -136,14 +136,14 @@ public class AirflowGitClientImpl implements AirflowGitClient {
 						dagFileName = dag.getDagName() + "." + dagFileExtension;
 						gitCommitMsg = gitCommitMsg + " " + dagFileName;
 						LOGGER.debug("DAG path {} is {}", localDagPath.toString() + File.separator + dagFileName, new File(localDagPath.toString() + File.separator + dagFileName).exists());
-						if (new File(localDagPath.toString() + File.separator + dagFileName).exists()) {
-							LOGGER.debug("DAG already existing:{}", dagFileName);
-							errors = setErrors("DAG already existing: " + dagFileName);
-							break;
-						} else {
+//						if (new File(localDagPath.toString() + File.separator + dagFileName).exists()) {
+//							LOGGER.debug("DAG already existing:{}", dagFileName);
+//							errors = setErrors("DAG already existing: " + dagFileName);
+//							break;
+//						} else {
 							LOGGER.debug("Writing to:{}", dagFileName);
 							Files.writeString(localDagPath.resolve(dagFileName), dag.getDagContent());
-						}
+//						}
 					}
 				}
 				if (Objects.isNull(errors)) {
