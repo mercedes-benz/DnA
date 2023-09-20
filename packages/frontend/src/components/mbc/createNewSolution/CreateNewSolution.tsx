@@ -658,7 +658,7 @@ export default class CreateNewSolution extends React.Component<ICreateNewSolutio
                     }
                   >
                     <a href="#tab-content-10" id="digitalvalue" onClick={this.setCurrentTab}>
-                      Digital Value
+                      Value Calculation
                     </a>
                   </li>
                 </ul>
