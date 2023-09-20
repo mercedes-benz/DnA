@@ -100,7 +100,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 	@Value("${kong.uiRecipesToUseOidc}")
 	private boolean uiRecipesToUseOidc;
 	
-	@Value("${kong.revokeTokensOnLogout}")
+	@Value("${kong.revokeTokensOnLogout")
 	private String revokeTokensOnLogout;
 
 
@@ -254,20 +254,23 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 		String deploymentServiceName = "";
 		String url = "";		
 		if(serviceName.contains(WORKSPACE_API) && Objects.nonNull(env)) {
+			LOGGER.info("service is : {}",serviceName);	
+			LOGGER.info("env is : {}",env);
 			kongApiForDeploymentURL = true;
+			LOGGER.info("kongApiForDeploymentURL is :{}",kongApiForDeploymentURL);
 			String[] wsid = serviceName.split("-");
 			deploymentServiceName = wsid[0];
 		}
 		
 		// request for kong create service	
+		CreateServiceRequestVO createServiceRequestVO = new CreateServiceRequestVO();
+		CreateServiceVO createServiceVO = new CreateServiceVO();
 		if(kongApiForDeploymentURL) {					    		    
-			url = deploymentServiceName + "-" + env + ".codespaces-apps";
+			url = "http://" + deploymentServiceName + "-" + env + ".codespaces-apps:80";
 		}
 		else {
 			url = "http://" + serviceName + ".code-server:8080";
-		}
-		CreateServiceRequestVO createServiceRequestVO = new CreateServiceRequestVO();
-		CreateServiceVO createServiceVO = new CreateServiceVO();
+		}		
 		createServiceVO.setName(serviceName);
 		createServiceVO.setUrl(url);
 		createServiceRequestVO.setData(createServiceVO);
@@ -276,20 +279,21 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 		List<String> hosts = new ArrayList();
 		List<String> paths = new ArrayList();
 		List<String> protocols = new ArrayList();
+		CreateRouteRequestVO createRouteRequestVO = new CreateRouteRequestVO();
+		CreateRouteVO createRouteVO = new CreateRouteVO();
 		if(kongApiForDeploymentURL) {
-			paths.add("/" + serviceName + "/" + env + "/api");
+			paths.add("/" + deploymentServiceName + "/" + env + "/api");
 		}
 		else {
 			paths.add("/" + serviceName);
-			//paths.add("/");
+			//paths.add("/");			
 		}
-		CreateRouteRequestVO createRouteRequestVO = new CreateRouteRequestVO();
-		CreateRouteVO createRouteVO = new CreateRouteVO();		
+				
 		protocols.add("http");
 		protocols.add("https");
 		hosts.add(codeServerEnvUrl);
-		createRouteVO.setHosts(hosts);
 		createRouteVO.setName(serviceName);
+		createRouteVO.setHosts(hosts);		
 		createRouteVO.setPaths(paths);
 		createRouteVO.setProtocols(protocols);
 		createRouteVO.setStripPath(true);
