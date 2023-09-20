@@ -336,10 +336,10 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 		attachJwtPluginConfigVO.setAlgorithm(jwtAlgorithm);
 		attachJwtPluginConfigVO.setAuthurl(authenticatorBaseUri);
 		attachJwtPluginConfigVO.setClientHomeUrl(jwtClientHomeUrl);
-		attachJwtPluginConfigVO.setClientId(jwtClientId);
-		attachJwtPluginConfigVO.setClientSecret(jwtClientSecret);
+		attachJwtPluginConfigVO.setClient_id(jwtClientId);
+		attachJwtPluginConfigVO.setClient_secret(jwtClientSecret);
 		attachJwtPluginConfigVO.setExpiresIn(jwtExpiresIn);
-		attachJwtPluginConfigVO.setIntrospectionUri(introspectionEndpoint);
+		attachJwtPluginConfigVO.setIntrospection_uri(introspectionEndpoint);
 		attachJwtPluginConfigVO.setPrivateKeyFilePath(jwtPrivateKeyFilePath);
 		attachJwtPluginConfigVO.setSecret(jwtSecret);
 		attachJwtPluginVO.setConfig(attachJwtPluginConfigVO);
