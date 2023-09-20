@@ -621,11 +621,11 @@ definitions:
         type: string
       expiresIn:
         type: string
-      clientId:
+      client_id:
         type: string
-      clientSecret:
+      client_secret:
         type: string  
-      introspectionUri:
+      introspection_uri:
         type: string  
              
  
