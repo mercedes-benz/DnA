@@ -270,15 +270,16 @@ public class DnaProjectServiceImpl implements DnaProjectService {
 					if (isPermissionCreated) {
 						LOGGER.debug("mapping permission to role..");
 						addRoleAndPermissionMapping(currentUser, savedCurrentUserRole, dagVO.getDagName());
-					} else {
-						LOGGER.warn(
-								"Permission is not created for the DAG {} , however project is onboarded. Please contact administrator for permission.",
-								dagVO.getDagName());
-						MessageDescription md = new MessageDescription();
-						md.setMessage("Permission is not created for the DAG" + dagVO.getDagName()
-								+ ", however project is onboarded. Please contact administrator for permission.");
-						warnings.add(md);
-					}
+					} 
+//					else {
+//						LOGGER.warn(
+//								"Permission is not created for the DAG {} , however project is onboarded. Please contact administrator for permission.",
+//								dagVO.getDagName());
+//						MessageDescription md = new MessageDescription();
+//						md.setMessage("Permission is not created for the DAG" + dagVO.getDagName()
+//								+ ", however project is onboarded. Please contact administrator for permission.");
+//						warnings.add(md);
+//					}
 					List<String> collabs = new ArrayList<>();
 					String collabsCommanSeparatedValue = null;
 					if (!ObjectUtils.isEmpty(dagVO.getCollaborators())) {
@@ -363,6 +364,10 @@ public class DnaProjectServiceImpl implements DnaProjectService {
 				String username = dnaProject.getCreatedBy();
 				LOGGER.info("..username...{}", username);
 				currentUser.setUsername(username);
+				List<String> ownerPermissions = new ArrayList<>();
+				ownerPermissions.add("can_read");
+				ownerPermissions.add("can_edit");
+				currentUser.setPermissions(ownerPermissions);
 				Role savedCurrentUserRole = findRole(username);
 				List<User> existingUser = userRepository.findbyUniqueLiteral("username", username);
 				User savedCurrentUser = existingUser != null && !existingUser.isEmpty() ? existingUser.get(0) : new User();
@@ -370,7 +375,7 @@ public class DnaProjectServiceImpl implements DnaProjectService {
 				addPermissionAndMappedToProject(currentUser, dagVO1, savedCurrentUserRole, savedCurrentUser,
 						dnaProject);
 				if(isPermissionCreated) {
-					addRoleAndPermissionMapping(currentUser, savedCurrentUserRole, dagVO1.getDagName());
+					addRoleAndPermissionMapping(currentUser, savedCurrentUserRole, "DAG:"+dagVO1.getDagName());
 				}
 				String collabs = dnaProject.getCollabs();
 				if(collabs!=null) {
@@ -408,7 +413,7 @@ public class DnaProjectServiceImpl implements DnaProjectService {
 							}
 							if (isPermissionCreated) {
 								LOGGER.debug("mapping permission to role..");
-								addRoleAndPermissionMapping(collabUserVO, savedCollabRole, dagVO1.getDagName());
+								addRoleAndPermissionMapping(collabUserVO, savedCollabRole, "DAG:"+dagVO1.getDagName());
 							}
 						}
 					}
