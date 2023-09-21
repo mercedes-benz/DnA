@@ -23,4 +23,5 @@ public class AttachJwtPluginConfigRequestDto implements Serializable{
 	private String client_id;
 	private String client_secret;
 	private String introspection_uri;
+	private Boolean enableAuthTokenIntrospection;
 }
