@@ -39,6 +39,7 @@ const smartDataGovernanceUrl = Envs.SMART_DATA_GOVERNANCE_URL;
 const transactionalDataUrl = Envs.TRANSACTIONAL_DATA_URL;
 const carlaArchitectureUrl = Envs.CARLA_ARCHITECTURE_URL;
 const chatbotUrl = Envs.GPT4ALL_CHATBOT_TOOL_URL;
+const spireUrl = Envs.SPIRE_URL;
 
 export const DataLayerElements = [
   {
@@ -486,6 +487,20 @@ export const ToolsLandingPageElements = [
     isTextAlignLeft: true,
     animation: true,
     isDisabled: !chatbotUrl?.startsWith('http'),
+    isSmallCard: false,
+    isMediumCard: true,
+    svgIcon: 'tools-mini',
+    isDnAInternalTool: true,
+  },
+  {
+    name: 'Spire',
+    description: 'Spire is the standardized & compliant global cloud analytics platform for MBM – live and running, along with a team of experts leveraging cutting-edge technology and end2end services to create business value.',
+    tags: ['Data Engineering', 'No / Low Code', 'Cloud', 'Machine Learning', 'FOSS', 'Onprem'],
+    url: spireUrl,
+    isExternalLink: true,
+    isTextAlignLeft: true,
+    animation: true,
+    isDisabled: !spireUrl?.startsWith('http'),
     isSmallCard: false,
     isMediumCard: true,
     svgIcon: 'tools-mini',
