@@ -299,6 +299,9 @@ const CreateMatomo = ({ user }) => {
         if (v === true) permission.push(k);
       });
 
+      user.permission = "admin";
+      existingCollaboratorsUpdate.push(user);
+
       const data = {
         id: bucketId,
         createdBy,
