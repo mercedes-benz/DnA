@@ -674,7 +674,7 @@ const CodeSpace = (props: ICodeSpaceProps) => {
                   </div>
                   <div className={Styles.createTechUserWrapper}>
                     <a href={IAM_URL} target="_blank" rel="noreferrer">
-                      Create a new technical user in IAM
+                      Create a new technical user in IAM (Enabled only with Production IAM)
                     </a>
                   </div>
                 </div>
