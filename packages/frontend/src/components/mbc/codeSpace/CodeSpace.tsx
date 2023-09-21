@@ -643,19 +643,22 @@ const CodeSpace = (props: ICodeSpaceProps) => {
                   </div>
                 </div>
               </div>
-              <div>
-                <label className="checkbox">
-                  <span className="wrapper">
-                    <input
-                      type="checkbox"
-                      className="ff-only"
-                      checked={secureWithIAMSelected}
-                      onChange={onChangeSecureWithIAM}
-                    />
-                  </span>
-                  <span className="label">Secure with IAM</span>
-                </label>
-              </div>
+              {(!codeSpaceData.projectDetails.recipeDetails?.recipeId.match(/^(react|angular)$/)) &&
+                <div>
+                  <label className="checkbox">
+                    <span className="wrapper">
+                      <input
+                        type="checkbox"
+                        className="ff-only"
+                        checked={secureWithIAMSelected}
+                        onChange={onChangeSecureWithIAM}
+                        disabled={secureWithIAMSelected}
+                      />
+                    </span>
+                    <span className="label">Secure with IAM</span>
+                  </label>
+                </div>
+              }
               {secureWithIAMSelected && (
                 <div className={Styles.flexLayout}>
                   <div>
