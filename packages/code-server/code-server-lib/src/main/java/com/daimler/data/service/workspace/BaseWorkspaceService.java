@@ -1025,7 +1025,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 					log.info("updated deployment details successfully for projectName {} , branch {} , targetEnv {} and status {}",
 							projectName,branch,targetEnv,latestStatus);	
 					boolean apiRecipe = false;	
-					String serviceName = name+ "-API";
+					String serviceName = name+ "-api";
 					if(projectRecipe.equalsIgnoreCase(reactRecipeId)|| projectRecipe.equalsIgnoreCase(angularRecipeId)) {
 						log.info("projectRecipe: {} and service name is : {}",projectRecipe, serviceName);
 						authenticatorClient.callingKongApis(serviceName, targetEnv,apiRecipe);
