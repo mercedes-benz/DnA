@@ -47,7 +47,7 @@ const Tutorial = ({onOk}) => {
 
   return (
     <div className={Styles.container}>
-      <p>Chronos is an automatic forecasting tool using Machine Learning, meaning it can predict future values of a time series based on past data. By default, Chronos uses an automatic mode adjusts the settings to the data you provided, trying out different Machine Learning methods. It also supports a lot of advanced features and customization.</p>
+      <p>Chronos is an automatic forecasting tool using Machine Learning, meaning it can predict future values of a time series based on past data and relevant predictors. By default, Chronos uses an automatic mode adjusts the settings to the data you provided, trying out different Machine Learning methods and thousands of parameters. It also supports a lot of advanced features and customization.</p>
       <div  className="slider-wrapper">
         <div className="slider">
           <div style={style} className={1 === activeIndex ? 'slider-item' : 'hide'}>
@@ -64,7 +64,7 @@ const Tutorial = ({onOk}) => {
               <i className="icon mbc-icon document"></i>
             </div>
             <div className={Styles.tutDescription}>
-              <p>Once you have prepared your data, upload it on the project start page you will see after closing this introduction. Additionally, you need to specify which frequency (e.g. monthly) your data has in the run parameters. There, you can also set a run name and tell Chronos how many future values to predict (&ldquo;Forecast Horizon&rdquo;). Optionally, you can also select a different run configuration, although the default configuration is probably fine for your first run..</p>
+              <p>Once you have prepared your data, upload it on the project start page you will see after closing this introduction. Additionally, you need to specify which frequency (e.g. monthly) your data has in the run parameters. There, you can also set a run name and tell Chronos how many future values to predict (&ldquo;Forecast Horizon&rdquo;). Optionally, you can also select a different run configuration, although the default configuration is probably fine for your first run.</p>
             </div>
           </div>
 
@@ -73,7 +73,7 @@ const Tutorial = ({onOk}) => {
               <i className="icon mbc-icon help"></i>
             </div>
             <div className={Styles.tutDescription}>
-              <p>Please be aware that forecasting quality hugely depends on the type and quality of the data you provided. While it is possible to use Chronos without knowledge about Data Science methods, we strongly recommend discussing your use case with a Data Scientist or the Chronos team before relying on the results for actual business cases.</p>
+              <p>In automatic mode, forecasts take around 10-15 minutes. Please be aware that forecasting quality and training time hugely depend on the type and quality of the data you provided. While it is possible to use Chronos without knowledge about Data Science methods, we strongly recommend discussing your use case with a Data Scientist or the Chronos team before relying on the results for actual business cases.</p>
               <p>If you want to learn more, visit the Chronos documentation <a href={Envs.CHRONOS_DOCUMENTATION_URL} target='_blank' rel='noopener noreferrer'>here</a>. Feel free to also contact the Chronos team via <a href={`mailto:${Envs.ADS_EMAIL}`}>{Envs.ADS_EMAIL}</a>. For a walkthrough of the Chronos application, see <a href={`/chronos-templates/Chronos_GUI_tutorial.pptx`} download={true}>this Powerpoint presentation</a></p>
             </div>
           </div>
