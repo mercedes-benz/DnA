@@ -12,6 +12,12 @@ public interface AuthenticatorClient {
 	
 	public GenericMessage attachJwtPluginToService(AttachJwtPluginRequestVO attachJwtPluginRequestVO, String serviceName);
 	
+	public GenericMessage attachAppAuthoriserPluginToService(AttachAppAuthoriserPluginRequestVO attachAppAuthoriserPluginRequestVO, String serviceName);
+	
 	public void callingKongApis(String serviceName, String env, boolean apiRecipe);
+	
+	public GenericMessage deleteService(String serviceName);
+	
+	public GenericMessage deleteRoute(String serviceName, String routeName);
 
 }

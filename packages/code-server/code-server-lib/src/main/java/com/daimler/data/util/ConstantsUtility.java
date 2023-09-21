@@ -36,6 +36,8 @@ public class ConstantsUtility {
 	public static final String ANGULAR = "angular";
 	public static final String PUBLIC = "generic";
 	public static final String GRADLE = "gradle";
+	public static final String QUARKUS = "quarkus";
+	public static final String MICRONAUT = "micronaut";
 	public static final String DEFAULT = "default";
 	public static final String COLLABREQUESTEDSTATE = "COLLABORATION_REQUESTED";
 	public static final String CREATEREQUESTEDSTATE = "CREATE_REQUESTED";
