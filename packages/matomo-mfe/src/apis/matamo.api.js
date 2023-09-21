@@ -1,7 +1,7 @@
 import { hostServer, server, reportsServer, storageServer } from '../server/api';
 
-const getMatomoProjectsList = () => {
-  return server.get(`/matomo`, {
+const getMatomoProjectsList = (limit=10, offset=1) => {
+  return server.get(`/matomo?limit=${limit}&offset=${offset}`, {
     data: {},
   });
 };
