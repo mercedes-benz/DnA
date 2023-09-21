@@ -50,6 +50,8 @@ import org.springframework.web.client.RestTemplate;
 
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
+import com.daimler.data.dto.kongGateway.AttachAppAuthoriserPluginConfigVO;
+import com.daimler.data.dto.kongGateway.AttachAppAuthoriserPluginVO;
 import com.daimler.data.dto.kongGateway.AttachJwtPluginConfigVO;
 import com.daimler.data.dto.kongGateway.AttachJwtPluginVO;
 import com.daimler.data.dto.kongGateway.AttachPluginConfigVO;
@@ -133,39 +135,38 @@ public class KongClientImpl implements KongClient {
 		List<MessageDescription> errors = new ArrayList<>();
 		List<MessageDescription> warnings = new ArrayList<>();
 		String routeName = createRouteVO.getName();
-		String existingRouteName = "";
+		String existingRouteName = "";		
 		List<String> routeNames = new ArrayList<>();
 		String getKongUri = kongBaseUri + "/services/" + serviceName + "/routes";		
-		String postKongUri = kongBaseUri + "/services/" + serviceName + "/routes";
+		String patchKongUri = kongBaseUri + "/services/" + serviceName + "/routes/" + createRouteVO.getName();
 		HttpHeaders headers = new HttpHeaders();
 		headers.set("Accept", "application/json");
 		headers.set("Content-Type", "application/json");
 		try {
-			// get available routes
-			HttpEntity entity = new HttpEntity<>(headers);
-			ResponseEntity<String> routes = restTemplate.exchange(getKongUri, HttpMethod.GET, entity, String.class);
-			if (routes != null && routes.hasBody() && routes.getStatusCode() == HttpStatus.OK) {
-				JSONArray array = (JSONArray) new JSONObject(routes.getBody()).getJSONArray("data");
-				if (array != null && !array.isEmpty()) {
-					for(int i=0; i<array.length(); i++) {
-						JSONObject jsonObject = (JSONObject) array.get(i);
-						if(Objects.nonNull(jsonObject.get("name"))) {
-							existingRouteName = (String) jsonObject.get("name");
-						}
-								
-						routeNames.add(existingRouteName);
-					}														
-				}
-			}
-			if(routeNames.contains(routeName)) {
-				LOGGER.info("Route: {} already exist for service:{}", createRouteVO.getName(), serviceName);
-				message.setSuccess("Failure");
-				messageDescription.setMessage("Route already exist");
-				errors.add(messageDescription);
-				message.setErrors(errors);
-				return message;
-			}
-			else {
+//			// get available routes
+//			HttpEntity entity = new HttpEntity<>(headers);
+//			ResponseEntity<String> routes = restTemplate.exchange(getKongUri, HttpMethod.GET, entity, String.class);
+//			if (routes != null && routes.hasBody() && routes.getStatusCode() == HttpStatus.OK) {
+//				JSONArray array = (JSONArray) new JSONObject(routes.getBody()).getJSONArray("data");
+//				if (array != null && !array.isEmpty()) {
+//					for(int i=0; i<array.length(); i++) {
+//						JSONObject jsonObject = (JSONObject) array.get(i);
+//						if(Objects.nonNull(jsonObject.get("name"))) {
+//							existingRouteName = (String) jsonObject.get("name");
+//						}
+//						routeNames.add(existingRouteName);
+//					}														
+//				}
+//			}
+//			if(routeNames.contains(routeName)) {
+//				LOGGER.info("Route: {} already exist for service:{}", createRouteVO.getName(), serviceName);
+//				message.setSuccess("Failure");
+//				messageDescription.setMessage("Route already exist");
+//				errors.add(messageDescription);
+//				message.setErrors(errors);
+//				return message;
+//			}
+//			else {
 				// create new route
 				JSONObject requestBody = new JSONObject(); 
 				requestBody.put("paths", new JSONArray(createRouteVO.getPaths()));
@@ -175,10 +176,11 @@ public class KongClientImpl implements KongClient {
 				requestBody.put("strip_path", createRouteVO.isStripPath()); // Added strip_path 
 				requestBody.put("preserve_host", true);
 				HttpEntity<String> request = new HttpEntity<>(requestBody.toString(), headers);
-				ResponseEntity<String> response = restTemplate.exchange(postKongUri, HttpMethod.POST, request, String.class);
+				ResponseEntity<String> response = restTemplate.exchange(patchKongUri, HttpMethod.PUT, request, String.class);
 				if (response != null && response.hasBody()) {
 					HttpStatus statusCode = response.getStatusCode();
-					if (statusCode == HttpStatus.CREATED) {
+					LOGGER.info("statuscode is:{}",statusCode);
+					if (statusCode == HttpStatus.CREATED || statusCode == HttpStatus.OK) {
 						LOGGER.info("Route: {} created successfully for service:{}", createRouteVO.getName(), serviceName);
 						message.setSuccess("Success");		
 						message.setErrors(errors);
@@ -186,7 +188,7 @@ public class KongClientImpl implements KongClient {
 						return message;
 					}
 				}
-			}
+			//}
 			
 		} catch (Exception e) {	
 			LOGGER.error("Exception while creating a route {} with error message {}",routeName, e.getMessage());	
@@ -351,6 +353,7 @@ public class KongClientImpl implements KongClient {
 			attachJwtPluginConfigRequestDto.setClient_secret(attachJwtPluginConfigVO.getClientSecret());
 			attachJwtPluginConfigRequestDto.setExpiresIn(attachJwtPluginConfigVO.getExpiresIn());
 			attachJwtPluginConfigRequestDto.setIntrospection_uri(attachJwtPluginConfigVO.getIntrospectionUri());
+			attachJwtPluginConfigRequestDto.setEnableAuthTokenIntrospection(attachJwtPluginConfigVO.isEnableAuthTokenIntrospection());
 			attachJwtPluginConfigRequestDto.setPrivateKeyFilePath(attachJwtPluginConfigVO.getPrivateKeyFilePath());
 			attachJwtPluginConfigRequestDto.setSecret(attachJwtPluginConfigVO.getSecret());
 			requestWrapper.setConfig(attachJwtPluginConfigRequestDto);
@@ -389,6 +392,158 @@ public class KongClientImpl implements KongClient {
 			errors.add(messageDescription);
 			message.setErrors(errors);
 			return message;
+		}
+		return message;
+	}
+
+	@Override
+	public GenericMessage attachAppAuthoriserPluginToService(AttachAppAuthoriserPluginVO attachAppAuthoriserPluginVO, String serviceName) {
+		GenericMessage message = new GenericMessage();
+		MessageDescription messageDescription = new MessageDescription();
+		List<MessageDescription> errors = new ArrayList<>();
+		List<MessageDescription> warnings = new ArrayList<>();
+		try {			
+			String kongUri = kongBaseUri + "/services/" + serviceName + "/plugins";
+			HttpHeaders headers = new HttpHeaders();
+			headers.set("Accept", "application/json");
+			headers.set("Content-Type", "application/json");
+			AttachAppAuthoriserPluginWrapperDto requestWrapper = new AttachAppAuthoriserPluginWrapperDto();
+			AttachAppAuthoriserPluginConfigVO appAuthoriserPluginConfigVO = attachAppAuthoriserPluginVO.getConfig();
+			AttachAppAuthoriserPluginConfigRequestDto appAuthoriserPluginConfigRequestDto = new AttachAppAuthoriserPluginConfigRequestDto();
+			appAuthoriserPluginConfigRequestDto.setCsvalidateurl(appAuthoriserPluginConfigVO.getCsvalidateurl());
+			requestWrapper.setName(attachAppAuthoriserPluginVO.getName());
+			requestWrapper.setConfig(appAuthoriserPluginConfigRequestDto);
+						
+			HttpEntity<AttachAppAuthoriserPluginWrapperDto> appAuthoriserRequest = new HttpEntity<AttachAppAuthoriserPluginWrapperDto>(requestWrapper, headers);
+			ResponseEntity<String> response = restTemplate.exchange(kongUri, HttpMethod.POST, appAuthoriserRequest, String.class);
+			if (response != null && response.hasBody()) {
+				HttpStatus statusCode = response.getStatusCode();
+				if (statusCode == HttpStatus.CREATED) {
+					LOGGER.info("App Authoriser plugin attached successfully to service: {}", serviceName);					
+					message.setSuccess("Success");
+					message.setErrors(errors);
+					message.setWarnings(warnings);
+					return message;
+				}
+			}
+		} catch (HttpClientErrorException ex) {
+			if (ex.getRawStatusCode() == HttpStatus.CONFLICT.value()) {
+				LOGGER.info("App Authoriser plugin already attached to service: {}", serviceName);
+				message.setSuccess("Failure");
+				messageDescription.setMessage("App Authoriser Plugin already attached to service");
+				errors.add(messageDescription);
+				message.setErrors(errors);
+				return message;
+			}	
+			LOGGER.error("Error occured while attaching App Authoriser plugin to service: {}", ex.getMessage());
+			message.setSuccess("Failure");
+			messageDescription.setMessage(ex.getMessage());
+			errors.add(messageDescription);
+			message.setErrors(errors);
+			return message;
+		} catch (Exception e) {
+			LOGGER.error("Error while attaching App Authoriser plugin to service: {}", e.getMessage());
+			message.setSuccess("Failure");
+			messageDescription.setMessage(e.getMessage());
+			errors.add(messageDescription);
+			message.setErrors(errors);
+			return message;
+		}
+		return message;
+	}
+
+	@Override
+	public GenericMessage deleteRoute(String serviceName, String routeName) {
+		GenericMessage message = new GenericMessage();
+		MessageDescription messageDescription = new MessageDescription();
+		List<MessageDescription> errors = new ArrayList<>();
+		List<MessageDescription> warnings = new ArrayList<>();
+		try {
+			String kongUri = kongBaseUri + "/services/" + serviceName + "/routes" + routeName;
+			HttpHeaders headers = new HttpHeaders();
+			headers.set("Accept", "application/json");
+			headers.set("Content-Type", "application/x-www-form-urlencoded");
+			HttpEntity entity = new HttpEntity<>(headers);
+			ResponseEntity<String> response = restTemplate.exchange(kongUri, HttpMethod.DELETE, entity, String.class);
+			if (response != null) {
+				HttpStatus statusCode = response.getStatusCode();
+				if (statusCode == HttpStatus.OK || statusCode == HttpStatus.NO_CONTENT) {
+					message.setSuccess("Success");		
+					message.setErrors(errors);
+					message.setWarnings(warnings);
+					LOGGER.info("Kong route:{} for the service {} deleted successfully", routeName, serviceName);
+					return message;
+				}
+			}
+		}
+		catch (HttpClientErrorException ex) {
+			if (ex.getRawStatusCode() == HttpStatus.CONFLICT.value()) {			
+			LOGGER.error("Route {} does not exist", routeName);
+			messageDescription.setMessage("Service does not exist");
+			errors.add(messageDescription);
+			message.setErrors(errors);
+			return message;
+			}
+			LOGGER.error("Exception occured while deleting route: {} details", routeName);			
+			messageDescription.setMessage(ex.getMessage());
+			errors.add(messageDescription);
+			message.setErrors(errors);
+			return message;
+		}
+		catch(Exception e) {
+			LOGGER.error("Error while deleting route: {} details", routeName);			
+			messageDescription.setMessage(e.getMessage());
+			errors.add(messageDescription);
+			errors.add(messageDescription);
+			message.setErrors(errors);
+		}
+		return message;
+	}
+
+	@Override
+	public GenericMessage deleteService(String serviceName) {
+		GenericMessage message = new GenericMessage();
+		MessageDescription messageDescription = new MessageDescription();
+		List<MessageDescription> errors = new ArrayList<>();
+		List<MessageDescription> warnings = new ArrayList<>();
+		try {
+			String kongUri = kongBaseUri + "/services/" + serviceName;
+			HttpHeaders headers = new HttpHeaders();
+			headers.set("Accept", "application/json");
+			headers.set("Content-Type", "application/x-www-form-urlencoded");
+			HttpEntity entity = new HttpEntity<>(headers);
+			ResponseEntity<String> response = restTemplate.exchange(kongUri, HttpMethod.DELETE, entity, String.class);
+			if (response != null && response.hasBody()) {
+				HttpStatus statusCode = response.getStatusCode();
+				if (statusCode == HttpStatus.OK || statusCode == HttpStatus.NO_CONTENT) {
+					message.setSuccess("Success");		
+					message.setErrors(errors);
+					message.setWarnings(warnings);
+					LOGGER.info("Kong service:{} deleted successfully", serviceName);
+					return message;
+				}
+			}
+		}
+		catch (HttpClientErrorException ex) {
+			if (ex.getRawStatusCode() == HttpStatus.CONFLICT.value()) {			
+			LOGGER.error("Service {} does not exist", serviceName);
+			messageDescription.setMessage("Service does not exist");
+			errors.add(messageDescription);
+			message.setErrors(errors);
+			return message;
+			}
+			LOGGER.error("Exception occured while deleting service: {} details", serviceName);			
+			messageDescription.setMessage(ex.getMessage());
+			errors.add(messageDescription);
+			message.setErrors(errors);
+			return message;
+		}
+		catch(Exception e) {
+			LOGGER.error("Error while deleting service: {} details", serviceName);			
+			messageDescription.setMessage(e.getMessage());
+			errors.add(messageDescription);
+			errors.add(messageDescription);
+			message.setErrors(errors);
 		}
 		return message;
 	}	
