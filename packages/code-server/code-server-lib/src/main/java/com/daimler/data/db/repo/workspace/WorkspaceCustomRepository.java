@@ -66,5 +66,7 @@ public interface WorkspaceCustomRepository extends CommonDataRepository<CodeServ
 	List<String> getAllWorkspaceIds();
 
 	CodeServerWorkspaceValidateVO validateCodespace(String id, String userId);
+	
+	CodeServerWorkspaceNsql findByWorkspaceId(String wsId);
 
 }
