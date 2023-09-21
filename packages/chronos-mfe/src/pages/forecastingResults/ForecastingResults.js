@@ -279,6 +279,12 @@ const ForecastingResults = () => {
     yaxis: {
       gridcolor: '#383F49',
       automargin: true,
+      // tickfont: {color: '#00adef'},
+    },
+    yaxis2: {
+      overlaying: 'y',
+      side: 'right',
+      // tickfont: {color: '#979797'},
     },
     xaxis: {
       gridcolor: '#383F49',
@@ -363,6 +369,7 @@ const ForecastingResults = () => {
             mode: 'lines',
             x: dates,
             y: value.y,
+            yaxis: 'y2',
             name: key,
             line: {
               dash: 'dot',
@@ -402,6 +409,44 @@ const ForecastingResults = () => {
       size: 'var(--font-size-smallest)'
     },
     showlegend: false,
+    annotations: [
+      {
+        text: "Trend",
+        font: {
+          size: 11,
+          color: '#35ADAC',
+        },
+        showarrow: false,
+        x: 0,
+        xref: "x domain",
+        y: 1.1,
+        yref: "y domain"
+      },
+      {
+        text: "Seasonal",
+        font: {
+          size: 11,
+          color: '#35ADAC',
+        },
+        showarrow: false,
+        x: 0,
+        xref: "x2 domain",
+        y: 1.1,
+        yref: "y2 domain"
+      },
+      {
+        text: "Residual",
+        font: {
+          size: 11,
+          color: '#35ADAC',
+        },
+        showarrow: false,
+        x: 0,
+        xref: "x3 domain",
+        y: 1.1,
+        yref: "y3 domain"
+      }
+    ],
     legend: {
       orientation: 'h', 
       font: {
