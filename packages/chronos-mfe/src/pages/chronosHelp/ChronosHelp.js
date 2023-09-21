@@ -27,7 +27,7 @@ const ChronosHelp = () => {
                 <li><a href={`/chronos-templates/Chronos_GUI_tutorial.pptx`} download={true}>Chronos Application tutorial</a></li>
                 <li><a href={Envs.CHRONOS_DOCUMENTATION_URL} target='_blank' rel='noopener noreferrer'>Chronos technical documentation</a></li>
               </ul>
-              <button className='btn btn-secondary' onClick={goback}>Go Back</button>
+              <button className='btn btn-secondary' onClick={goback}>Go Back Here</button>
             </div>
         </div>
       </div>
