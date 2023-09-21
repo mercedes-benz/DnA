@@ -56,6 +56,8 @@ public class CodeServerClient {
 			case "py-fastapi" : deployType = ConstantsUtility.PYFASTAPI; break;
 			case "react":  deployType = ConstantsUtility.REACT; break;
 			case "angular" : deployType = ConstantsUtility.ANGULAR; break;
+			case "quarkus" : deployType = ConstantsUtility.QUARKUS; break;
+			case "micronaut" : deployType = ConstantsUtility.MICRONAUT; break;
 			case "public-dna-backend" : deployType = ConstantsUtility.PUBLIC; break;
 			case "public-dna-frontend" : deployType = ConstantsUtility.PUBLIC; break;			
 			case "public-dna-report-backend" : deployType = ConstantsUtility.PUBLIC; break;
