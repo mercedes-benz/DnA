@@ -365,7 +365,24 @@ const CreateMatomo = ({ user }) => {
       }
       return item;
     });
+    existingCollaboratorsUpdate.map((item) => {
+      if(item.id == userName)
+      {
+        item.permission = e.currentTarget.value;
+      }
+      return item;
+    });
+    addCollaboratorsUpdate.map((item) => {
+      if(item.id == userName)
+      {
+        item.permission = e.currentTarget.value;
+      }
+      return item;
+    });
+
     setBucketCollaborators([...bucketCollaborators]);
+    setExistingCollaboratorsUpdate([...existingCollaboratorsUpdate]);
+    setAddCollaboratorsUpdate([...addCollaboratorsUpdate]);
   };
 
   const onCollabaratorDelete = (collId) => {
