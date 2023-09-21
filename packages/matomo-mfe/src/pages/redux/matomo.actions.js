@@ -81,8 +81,8 @@ const createMatomo = (data) => {
     } catch (error) {
       dispatch({
         type: 'MATOMO_ERROR',
-        payload: error.response.data.errors?.length
-          ? error.response.data.errors[0].message
+        payload: error.response.data.response.errors.length
+          ? error.response.data.response.errors[0].message
           : 'Error while creating a site',
       });
       dispatch({
@@ -90,7 +90,7 @@ const createMatomo = (data) => {
         payload: false,
       });
       Notification.show(
-        error.response.data.errors?.length ? error.response.data.errors[0].message : 'Error while creating a site',
+        error.response.data.response.errors.length ? error.response.data.response.errors[0].message : 'Error while creating a site',
         'alert',
       );
       ProgressIndicator.hide();
