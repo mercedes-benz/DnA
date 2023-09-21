@@ -175,10 +175,10 @@ export const MatomoList = (props) => {
                       <div>Created on</div>
                       <div>{regionalDateAndTimeConversionSolution(item.createdOn)}</div>
                     </div>
-                    <div>
+                    {/* <div>
                       <div>Last modified</div>
                       <div>{regionalDateAndTimeConversionSolution(item.lastModified)}</div>
-                    </div>
+                    </div> */}
                     <div>
                       <div>Classification</div>
                       <div>{item.classificationType || 'N/A'}</div>
@@ -330,7 +330,7 @@ export const MatomoList = (props) => {
                         Created On
                       </label>
                     </div>
-                    <div className={Styles.bucketTitleCol}>
+                    {/* <div className={Styles.bucketTitleCol}>
                       <label
                         className={
                           'sortable-column-header ' +
@@ -341,7 +341,7 @@ export const MatomoList = (props) => {
                         <i className="icon sort" />
                         Last Modified On
                       </label>
-                    </div>
+                    </div> */}
                     <div className={Styles.bucketTitleCol}>
                       <label
                         className={
@@ -389,9 +389,9 @@ export const MatomoList = (props) => {
                             <div className={Styles.bucketTitleCol}>
                               {regionalDateAndTimeConversionSolution(item.createdOn)}
                             </div>
-                            <div className={Styles.bucketTitleCol}>
+                            {/* <div className={Styles.bucketTitleCol}>
                               {regionalDateAndTimeConversionSolution(item.lastModified)}
-                            </div>
+                            </div> */}
                             <div className={Styles.bucketTitleCol}>{item.classificationType}</div>
                             <div className={Styles.bucketTitleCol}></div>
                           </div>
