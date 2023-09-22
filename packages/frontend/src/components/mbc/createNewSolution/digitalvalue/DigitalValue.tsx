@@ -1151,6 +1151,7 @@ export default class DigitalValue extends React.Component<IDigitalValueProps, ID
           commentOnBenefitRealizationRisk: '',
         };
     digitalValueObj.assessment = digitalValueObj.assessment ? digitalValueObj.assessment : tempAssessment;
+    const valueCalculationType = digitalValueObj.typeOfCalculation;
     const digitalValue = digitalValueObj.digitalValue ? digitalValueObj.digitalValue.toString() : '';
     const digitalValueComment = digitalValueObj.digitalValueComment;
     const effortValue = digitalValueObj.digitalEffort ? digitalValueObj.digitalEffort.toString() : '';
@@ -1164,6 +1165,7 @@ export default class DigitalValue extends React.Component<IDigitalValueProps, ID
     const permissions = digitalValueObj.permissions;
     this.setState(
       {
+        valueCalculationType,
         digitalValue,
         digitalValueComment,
         effortValue,
