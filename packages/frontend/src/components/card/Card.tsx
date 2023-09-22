@@ -9,6 +9,7 @@ import Styles from './Card.scss';
 import { history } from '../../router/History';
 import IconWrapper from 'components/icons/IconWrapper';
 import IconNameRenderer from 'components/icons/IconNameRenderer';
+import IconSpire from 'components/icons/IconSpire';
 const classNames = cn.bind(Styles);
 
 export interface IDNACardProps {
@@ -64,7 +65,10 @@ const DNACard = (props: IDNACardProps) => {
         <div className={Styles.cardIconSection}>
           {props.svgIcon ? (
             typeof props.svgIcon === 'string' ? (
-              <IconNameRenderer name={props.svgIcon} />
+              props.svgIcon === 'spire'?
+                <IconSpire size='85px'/>
+              :
+                <IconNameRenderer name={props.svgIcon} />
             ) : (
               props.svgIcon
             )
