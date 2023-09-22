@@ -979,8 +979,7 @@ export default class DigitalValue extends React.Component<IDigitalValueProps, ID
                 <div>
                   {valueDrivers.length ? (
                     <h3>
-                      {this.state.valueCalculationType ===
-                      Object.keys(SOLUTION_VALUE_CALCULATION_TYPES.DATA_VALUE)[0] ? (
+                      {this.state.valueCalculationType === DigitalValue.digitalValueTypeKeyValue ? (
                         <>
                           You have already filled value drivers.
                           <br />
@@ -1108,7 +1107,7 @@ export default class DigitalValue extends React.Component<IDigitalValueProps, ID
   };
 
   protected onValueCalculationChangeAccept = () => {
-    if (this.state.valueCalculationType === Object.keys(SOLUTION_VALUE_CALCULATION_TYPES)[1]) {
+    if (this.state.valueCalculationType === DigitalValue.dataValueTypeKeyValue) {
       const {valueDrivers, costDrivers } = this.state;
       valueDrivers.forEach((valueDriver: IValueFactor) => {
         let value = 0;
@@ -1151,7 +1150,7 @@ export default class DigitalValue extends React.Component<IDigitalValueProps, ID
           commentOnBenefitRealizationRisk: '',
         };
     digitalValueObj.assessment = digitalValueObj.assessment ? digitalValueObj.assessment : tempAssessment;
-    const valueCalculationType = digitalValueObj.typeOfCalculation;
+    const valueCalculationType = digitalValueObj.typeOfCalculation || DigitalValue.digitalValueTypeKeyValue; // By Default Digital Value calculation type used if the value is null
     const digitalValue = digitalValueObj.digitalValue ? digitalValueObj.digitalValue.toString() : '';
     const digitalValueComment = digitalValueObj.digitalValueComment;
     const effortValue = digitalValueObj.digitalEffort ? digitalValueObj.digitalEffort.toString() : '';
@@ -1185,7 +1184,6 @@ export default class DigitalValue extends React.Component<IDigitalValueProps, ID
   };
 
   protected modifyAttachments = (attachments: IAttachment[]) => {
-    // console.log(attachments);
     this.setState({ attachments });
   };
 
