@@ -12,9 +12,12 @@
 
   .wrapper {
     width: 100%;
+    background: #252a33 !important;
+    margin-top: 60px !important;
+    padding: 25px 38px;
+    min-height: 500px;
     .container {
-      padding: 40px 0;
-      text-align: center;
+      padding: 20px 0;
       h2 {
         text-align: center;
         color: #c8c9cb;

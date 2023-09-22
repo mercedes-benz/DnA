@@ -19,6 +19,8 @@ import org.springframework.web.bind.annotation.RestController;
 import com.daimler.data.api.kongGateway.KongApi;
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
+import com.daimler.data.dto.kongGateway.AttachAppAuthoriserPluginRequestVO;
+import com.daimler.data.dto.kongGateway.AttachAppAuthoriserPluginVO;
 import com.daimler.data.dto.kongGateway.AttachJwtPluginRequestVO;
 import com.daimler.data.dto.kongGateway.AttachJwtPluginVO;
 import com.daimler.data.dto.kongGateway.AttachPluginConfigVO;
@@ -87,7 +89,7 @@ public class KongGatewayController implements KongApi{
 					Objects.isNull(configVO.getLogoutPath()) || Objects.isNull(configVO.getRealm()) || 
 					Objects.isNull(configVO.getRedirectAfterLogoutUri()) || Objects.isNull(configVO.getResponseType()) ||
 					Objects.isNull(configVO.getScope()) || Objects.isNull(configVO.getSslVerify()) ||
-					Objects.isNull(configVO.getTokenEndpointAuthMethod()) || Objects.isNull(configVO.getRedirectUriPath())) {
+					Objects.isNull(configVO.getTokenEndpointAuthMethod()) || Objects.isNull(configVO.getRedirectUri())) {
 					MessageDescription msg = new MessageDescription();
 					msg.setMessage("Properties should not be null for attaching the OIDC plugin to service ");
 					errors.add(msg);
@@ -251,6 +253,119 @@ public class KongGatewayController implements KongApi{
 			return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	
+	}
+
+	@Override
+	@ApiOperation(value = "Attach appAuthoriserPlugin to service.", nickname = "attachAppAuthoriserPlugin", notes = "Attach appAuthoriserPlugin to service.", response = GenericMessage.class, tags={ "kong", })
+    @ApiResponses(value = { 
+        @ApiResponse(code = 200, message = "Returns message of success", response = GenericMessage.class),
+        @ApiResponse(code = 400, message = "Bad Request", response = GenericMessage.class),
+        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+        @ApiResponse(code = 403, message = "Request is not authorized."),
+        @ApiResponse(code = 405, message = "Method not allowed"),
+        @ApiResponse(code = 409, message = "Conflict", response = GenericMessage.class),
+        @ApiResponse(code = 500, message = "Internal error") })
+    @RequestMapping(value = "/kong/services/{serviceName}/appAuthoriserPlugin",
+        produces = { "application/json" }, 
+        consumes = { "application/json" },
+        method = RequestMethod.POST)
+	public ResponseEntity<GenericMessage> attachAppAuthoriserPlugin(
+			@Valid AttachAppAuthoriserPluginRequestVO attachAppAuthoriserPluginRequestVO, String serviceName) {
+
+		GenericMessage response = new GenericMessage();
+		List<MessageDescription> errors = new ArrayList<>();
+		AttachAppAuthoriserPluginVO attachAppAuthoriserPluginVO = attachAppAuthoriserPluginRequestVO.getData();
+		try {
+			if(Objects.nonNull(attachAppAuthoriserPluginVO) && Objects.nonNull(serviceName)) {
+				response = kongClient.attachAppAuthoriserPluginToService(attachAppAuthoriserPluginVO, serviceName);
+			}
+			if(Objects.nonNull(response) && Objects.nonNull(response.getSuccess()) && response.getSuccess().equalsIgnoreCase("Success")) {
+				LOGGER.info("Plugin: {} attached successfully to the service {}", attachAppAuthoriserPluginVO.getName(),serviceName);
+				return new ResponseEntity<>(response, HttpStatus.CREATED);
+			}
+			else {
+				LOGGER.info("Attaching plugin {} to the service {} failed with error {}", attachAppAuthoriserPluginVO.getName(), serviceName);
+				return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+			}
+			
+		}
+		catch(Exception e) {
+			LOGGER.error("Failed to attach plugin {} with exception {} ", attachAppAuthoriserPluginVO.getName(),e.getMessage());
+			return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	
+	
+	}
+
+	@Override
+	@ApiOperation(value = "Delete a route.", nickname = "deleteRoute", notes = "Delete a route", response = GenericMessage.class, tags={ "kong", })
+    @ApiResponses(value = { 
+        @ApiResponse(code = 201, message = "Returns message of success", response = GenericMessage.class),
+        @ApiResponse(code = 400, message = "Bad Request", response = GenericMessage.class),
+        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+        @ApiResponse(code = 403, message = "Request is not authorized."),
+        @ApiResponse(code = 405, message = "Method not allowed"),
+        @ApiResponse(code = 409, message = "Conflict", response = GenericMessage.class),
+        @ApiResponse(code = 500, message = "Internal error") })
+    @RequestMapping(value = "/kong/services/{serviceName}/routes/{routeName}",
+        produces = { "application/json" }, 
+        consumes = { "application/json" },
+        method = RequestMethod.DELETE)
+	public ResponseEntity<GenericMessage> deleteRoute(String serviceName, String routeName) {
+		GenericMessage response = new GenericMessage();		
+		try {
+			if(Objects.nonNull(serviceName) && Objects.nonNull(routeName)) {
+				response = kongClient.deleteRoute(serviceName, routeName);
+			}
+			if(Objects.nonNull(response) && Objects.nonNull(response.getSuccess()) && response.getSuccess().equalsIgnoreCase("Success")) {
+				LOGGER.info("Kong route {} deleted successfully", routeName);
+				return new ResponseEntity<>(response, HttpStatus.CREATED);
+			}
+			else {
+				LOGGER.info("Kong route {} deletion failed", routeName);
+				return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+			}
+							
+		}catch(Exception e) {
+			LOGGER.error("Failed to delete Kong route {} with exception {} ", routeName,e.getMessage());
+			return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+		
+	}
+
+	@Override
+	@ApiOperation(value = "Delete the existing service ", nickname = "deleteService", notes = "Delete the existing service.", response = GenericMessage.class, tags={ "kong", })
+    @ApiResponses(value = { 
+        @ApiResponse(code = 200, message = "Returns message of success or failure", response = GenericMessage.class),
+        @ApiResponse(code = 204, message = "Fetch complete, no content found."),
+        @ApiResponse(code = 400, message = "Bad request."),
+        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+        @ApiResponse(code = 403, message = "Request is not authorized."),
+        @ApiResponse(code = 405, message = "Method not allowed"),
+        @ApiResponse(code = 500, message = "Internal error") })
+    @RequestMapping(value = "/kong/services/{serviceName}",
+        produces = { "application/json" }, 
+        consumes = { "application/json" },
+        method = RequestMethod.DELETE)
+	public ResponseEntity<GenericMessage> deleteService(String serviceName) {
+		GenericMessage response = new GenericMessage();		
+		try {
+			if(Objects.nonNull(serviceName)) {
+				response = kongClient.deleteService(serviceName);
+			}
+			if(Objects.nonNull(response) && Objects.nonNull(response.getSuccess()) && response.getSuccess().equalsIgnoreCase("Success")) {
+				LOGGER.info("Kong service {} deleted successfully", serviceName);
+				return new ResponseEntity<>(response, HttpStatus.CREATED);
+			}
+			else {
+				LOGGER.info("Kong service {} deletion failed", serviceName);
+				return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+			}
+							
+		}catch(Exception e) {
+			LOGGER.error("Failed to delete Kong service {} with exception {} ", serviceName,e.getMessage());
+			return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+		}
 	}
 
 //	@Override

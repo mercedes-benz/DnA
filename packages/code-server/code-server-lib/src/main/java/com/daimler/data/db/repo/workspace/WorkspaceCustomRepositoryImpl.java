@@ -31,6 +31,7 @@ import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 
 import javax.persistence.Query;
 import javax.persistence.TypedQuery;
@@ -408,6 +409,30 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 		CodeServerWorkspaceValidateVO validateVO = new CodeServerWorkspaceValidateVO();
 		validateVO.setIsValid(false);
 		return validateVO;
+	}
+
+	@Override
+	public CodeServerWorkspaceNsql findByWorkspaceId(String wsId) {
+
+		CriteriaBuilder cb = em.getCriteriaBuilder();
+		CriteriaQuery<CodeServerWorkspaceNsql> cq = cb.createQuery(CodeServerWorkspaceNsql.class);
+		Root<CodeServerWorkspaceNsql> root = cq.from(entityClass);
+		CriteriaQuery<CodeServerWorkspaceNsql> byName = cq.select(root);
+		Predicate con1 = cb.equal(cb.lower(
+				cb.function("jsonb_extract_path_text", String.class, root.get("data"), cb.literal("workspaceId"))),
+				wsId.toLowerCase());
+		Predicate con2 = cb.notEqual(cb.lower(
+				cb.function("jsonb_extract_path_text", String.class, root.get("data"), cb.literal("status"))),
+				"DELETED".toLowerCase());
+		Predicate pMain = cb.and(con1, con2);
+		cq.where(con1);
+		TypedQuery<CodeServerWorkspaceNsql> byNameQuery = em.createQuery(byName);
+		List<CodeServerWorkspaceNsql> entities = byNameQuery.getResultList();
+		if (entities != null && entities.size() > 0)
+			return entities.get(0);
+		else
+			return null;
+	
 	}
 
 }
