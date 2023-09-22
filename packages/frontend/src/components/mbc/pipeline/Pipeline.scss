@@ -158,3 +158,14 @@
 .btnHide {
   display: none;
 }
+
+.refreshButton {
+  left: 0;
+  top: 50%;
+  position: absolute;
+  transform: translateY(-50%);
+  color: #00adef !important;
+  .refresh {
+    color: #00adef !important
+  }
+}

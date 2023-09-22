@@ -259,11 +259,13 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
           }
           this.props.setSubDivisions(subDivisions);
           ProgressIndicator.hide();
+          
         });
+        description.division = division;
+        this.setState({ divisionValue: division });
       }
     }
-    description.division = division;
-    this.setState({ divisionValue: division });
+    
   };
 
   public onSubDivisionChange = (e: React.FormEvent<HTMLSelectElement>) => {

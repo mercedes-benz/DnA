@@ -41,6 +41,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
 @Component
@@ -59,6 +60,9 @@ public class DnaAuthClientImpl implements DnaAuthClient {
 	
 	@Autowired
 	HttpServletRequest httpRequest;
+	
+	@Value("${codeserver.userauth}")
+	private String codeserverAuth;
 
 	@Override
 	public JSONObject verifyLogin(String jwt) {
@@ -88,22 +92,33 @@ public class DnaAuthClientImpl implements DnaAuthClient {
 
 	@Override
 	public UserInfoVO onboardTechnicalUser(UserRequestVO userRequestVO) {
-		UserInfoVO userInfoVO = null ;
+		UserInfoVO userInfoVO = new UserInfoVO();
 		try {
 			String jwt = httpRequest.getHeader("Authorization");
 			HttpHeaders headers = new HttpHeaders();
 			headers.set("Accept", "application/json");
 			headers.set("Content-Type", "application/json");			
 			headers.set("Authorization", jwt);
+			headers.set("codeserver-api-key", codeserverAuth);
 			String onboardTechUserUri = dnaBaseUri + ONBOARD_TECHNICAL_USER;			
 			HttpEntity<UserRequestVO> entity = new HttpEntity<UserRequestVO>(userRequestVO,headers);	
 			ResponseEntity<UserInfoVO> response = restTemplate.exchange(onboardTechUserUri, HttpMethod.POST, entity, UserInfoVO.class);
-			if (response != null && response.hasBody()) {
+			if (response != null) {
 				HttpStatus statusCode = response.getStatusCode();
-				if (statusCode == HttpStatus.CREATED || statusCode == HttpStatus.CONFLICT) {
+				if (statusCode != null && statusCode.is2xxSuccessful()) {
 					LOGGER.info("Success from dna onboardTechnicalUser");
 					userInfoVO = response.getBody();
 				}
+			}
+		}
+		catch(HttpClientErrorException ex) {
+			if (ex.getRawStatusCode() == HttpStatus.CONFLICT.value()) {
+				LOGGER.info("Technical user:{} already exists",userRequestVO.getData().getId());
+				userInfoVO.setId(userRequestVO.getData().getId());
+			}
+			if (ex.getRawStatusCode() == HttpStatus.UNAUTHORIZED.value()) {
+				LOGGER.info("Requested user does not have admin priviliges to onboard technical user");
+				//userInfoVO.setId(userRequestVO.getData().getId());
 			}
 		}
 		catch(Exception e) {

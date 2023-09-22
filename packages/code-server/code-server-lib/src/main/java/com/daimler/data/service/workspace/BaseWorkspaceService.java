@@ -32,6 +32,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import com.daimler.data.dto.workspace.*;
@@ -134,6 +135,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 				String projectOwner = entity.getData().getProjectDetails().getProjectOwner().getId();
 				deployJobInputDto.setShortid(projectOwner);
 				deployJobInputDto.setTarget_env("int");
+				deployJobInputDto.setSecure_iam("false");
 				deployJobInputDto.setType(client.toDeployType(entity.getData().getProjectDetails().getRecipeDetails().getRecipeId().toLowerCase()));
 				String projectName = entity.getData().getProjectDetails().getProjectName();
 				String projectOwnerWsId = entity.getData().getWorkspaceId();
@@ -166,6 +168,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 				String projectOwner = entity.getData().getProjectDetails().getProjectOwner().getId();
 				deployJobInputDto.setShortid(projectOwner);
 				deployJobInputDto.setTarget_env("prod");
+				deployJobInputDto.setSecure_iam("false");
 				deployJobInputDto.setType(client.toDeployType(entity.getData().getProjectDetails().getRecipeDetails().getRecipeId().toLowerCase()));
 				String projectName = entity.getData().getProjectDetails().getProjectName();
 				String projectOwnerWsId = entity.getData().getWorkspaceId();
@@ -580,6 +583,12 @@ public class BaseWorkspaceService implements WorkspaceService {
 				String projectOwner = entity.getData().getProjectDetails().getProjectOwner().getId();
 				deployJobInputDto.setShortid(projectOwner);
 				deployJobInputDto.setTarget_env(environment);
+				if(Objects.nonNull(isSecureWithIAMRequired) && isSecureWithIAMRequired && Objects.nonNull(technicalUserDetailsForIAMLogin)) {
+					deployJobInputDto.setSecure_iam("true");
+				}
+				else {
+					deployJobInputDto.setSecure_iam("false");
+				}
 				deployJobInputDto.setType(client.toDeployType(entity.getData().getProjectDetails().getRecipeDetails().getRecipeId().toLowerCase()));
 				String projectName = entity.getData().getProjectDetails().getProjectName();
 				CodeServerWorkspaceNsql ownerEntity =  workspaceCustomRepository.findbyProjectName(projectOwner, projectName);
@@ -1015,13 +1024,16 @@ public class BaseWorkspaceService implements WorkspaceService {
 					workspaceCustomRepository.updateDeploymentDetails(projectName, environmentJsonbName, deploymentDetails);
 					log.info("updated deployment details successfully for projectName {} , branch {} , targetEnv {} and status {}",
 							projectName,branch,targetEnv,latestStatus);	
-					boolean apiRecipe = false;					
+					boolean apiRecipe = false;	
+					String serviceName = name+ "-api";
 					if(projectRecipe.equalsIgnoreCase(reactRecipeId)|| projectRecipe.equalsIgnoreCase(angularRecipeId)) {
-						authenticatorClient.callingKongApis(name + "-API", targetEnv,apiRecipe);
+						log.info("projectRecipe: {} and service name is : {}",projectRecipe, serviceName);
+						authenticatorClient.callingKongApis(serviceName, targetEnv,apiRecipe);
 					}
 					else {
 						apiRecipe = true;
-						authenticatorClient.callingKongApis(name + "-API", targetEnv,apiRecipe);
+						log.info("projectRecipe: {} and service name is : {}",projectRecipe, serviceName);
+						authenticatorClient.callingKongApis(serviceName, targetEnv,apiRecipe);
 					}
 				}
 				else if("UNDEPLOYED".equalsIgnoreCase(latestStatus)) {

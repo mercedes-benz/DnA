@@ -43,10 +43,10 @@ const PipelineSubList = (props: IPipelineProjectProps) => {
     return () => {
       const collItem = dagCollExist.map((item: IPipelineProjectDagsCollabarator, itemIndex: number) => {
         if (item.username === collUserId) {
-          if (item.permissions?.includes('can_dag_edit')) {
-            item.permissions.splice(item.permissions.indexOf('can_dag_edit'), 1);
+          if (item.permissions?.includes('can_edit')) {
+            item.permissions.splice(item.permissions.indexOf('can_edit'), 1);
           } else {
-            item.permissions.push('can_dag_edit');
+            item.permissions.push('can_edit');
           }
         }
         return item;
@@ -170,38 +170,38 @@ const PipelineSubList = (props: IPipelineProjectProps) => {
             {dagCollExist === null
               ? ''
               : dagCollExist.map((item: IPipelineProjectDagsCollabarator, collIndex: any) => {
-                  return (
-                    <div key={collIndex} className={Styles.collUserContentRow}>
-                      <div className={Styles.collUserTitleCol}>{item.username}</div>
-                      <div className={Styles.collUserTitleCol}>{item.firstName + ' ' + item.lastName}</div>
-                      <div className={Styles.collUserTitleCol}>
-                        <div className={classNames('input-field-group include-error ' + Styles.inputGrp)}>
-                          <label className={'checkbox ' + Styles.checkBoxDisable}>
-                            <span className="wrapper">
-                              <input type="checkbox" className="ff-only" value="can_dag_read" checked={true} />
-                            </span>
-                            <span className="label">Read</span>
-                          </label>
-                        </div>
-                        &nbsp;&nbsp;&nbsp;
-                        <div className={classNames('input-field-group include-error ' + Styles.inputGrp)}>
-                          <label className={'checkbox ' + Styles.writeAccess}>
-                            <span className="wrapper">
-                              <input
-                                type="checkbox"
-                                className="ff-only"
-                                value="can_dag_edit"
-                                checked={item.permissions !== null ? item.permissions?.includes('can_dag_edit') : false}
-                                onClick={onPermissionEdit(item.username, collIndex)}
-                              />
-                            </span>
-                            <span className="label">Write</span>
-                          </label>
-                        </div>
+                return (
+                  <div key={collIndex} className={Styles.collUserContentRow}>
+                    <div className={Styles.collUserTitleCol}>{item.username}</div>
+                    <div className={Styles.collUserTitleCol}>{item.firstName + ' ' + item.lastName}</div>
+                    <div className={Styles.collUserTitleCol}>
+                      <div className={classNames('input-field-group include-error ' + Styles.inputGrp)}>
+                        <label className={'checkbox ' + Styles.checkBoxDisable}>
+                          <span className="wrapper">
+                            <input type="checkbox" className="ff-only" value="can_read" checked={true} />
+                          </span>
+                          <span className="label">Read</span>
+                        </label>
+                      </div>
+                      &nbsp;&nbsp;&nbsp;
+                      <div className={classNames('input-field-group include-error ' + Styles.inputGrp)}>
+                        <label className={'checkbox ' + Styles.writeAccess}>
+                          <span className="wrapper">
+                            <input
+                              type="checkbox"
+                              className="ff-only"
+                              value="can_edit"
+                              checked={item.permissions !== null ? item.permissions?.includes('can_edit') : false}
+                              onClick={onPermissionEdit(item.username, collIndex)}
+                            />
+                          </span>
+                          <span className="label">Write</span>
+                        </label>
                       </div>
                     </div>
-                  );
-                })}
+                  </div>
+                );
+              })}
           </div>
         </div>
       </div>
@@ -270,120 +270,126 @@ const PipelineSubList = (props: IPipelineProjectProps) => {
                       <span className="animation-wrapper"></span>
                       <input type="checkbox" className="ff-only" id={index + '1'} defaultChecked={index === 0} />
                       <label className={Styles.expansionLabel + ' expansion-panel-label '} htmlFor={index + '1'}>
-                        <div className={Styles.dagTile}>
+                        <div className={classNames(Styles.dagTile, item.projectStatus === 'CREATE_REQUESTED' ? Styles.notAllowed : '')}>
                           <div className={Styles.dagTitleCol}>{item.projectId}</div>
                           <div className={Styles.dagTitleCol}>{item.projectName}</div>
                           <div className={Styles.dagTitleCol}>{item.isOwner ? 'Owner' : 'Collaborator'}</div>
-                          <div className={Styles.dagTitleCol}></div>
+                          <div className={Styles.dagTitleCol}>
+                            {item.projectStatus === 'CREATE_REQUESTED' ?
+                              <span className={classNames(Styles.statusIndicator, Styles.colloboration)}>
+                                Creation in progress... </span> : ''}
+                          </div>
                         </div>
-                        <i tooltip-data="Expand" className="icon down-up-flip"></i>
+                        {item.projectStatus !== 'CREATE_REQUESTED' && <i tooltip-data="Expand" className="icon down-up-flip"></i>}
                       </label>
-                      <div className="expansion-panel-content">
-                        <div className={Styles.dagCollContent}>
-                          <div className={Styles.projectList}>
-                            <div className={Styles.dagTile + ' ' + Styles.dagTileCption}>
-                              <div className={Styles.dagTitleCol}>DAG Id</div>
-                              <div className={Styles.dagTitleCol}>Your Permission</div>
-                              <div className={Styles.dagTitleCol}>Action</div>
-                            </div>
-                            <div className={Styles.projectDagList}>
-                              {item.dags.map((dagItem: IPipelineProjectDag, dagIndex: number) => {
-                                return (
-                                  <div key={dagIndex} className={Styles.dagTile}>
-                                    <div className={Styles.dagTitleCol}>{dagItem.dagName}</div>
-                                    <div className={Styles.dagTitleCol}>
-                                      {dagItem.permissions === null ? (
-                                        <span className={Styles.noPermission}>
-                                          Not Granted
-                                          <i
-                                            className={Styles.noPermissionInfo + ' icon mbc-icon info'}
-                                            tooltip-data="Permission mapping failed. Please click try again."
-                                          />
-                                        </span>
-                                      ) : (
-                                        'Read' + (dagItem.permissions?.includes('can_dag_edit') ? ' / Edit  ' : '')
-                                      )}
-                                    </div>
-
-                                    <div className={Styles.dagTitleCol}>
-                                      <div className={Styles.actionBtnGrp}>
+                      {item.projectStatus !== 'CREATE_REQUESTED' && (
+                        <div className="expansion-panel-content">
+                          <div className={Styles.dagCollContent}>
+                            <div className={Styles.projectList}>
+                              <div className={Styles.dagTile + ' ' + Styles.dagTileCption}>
+                                <div className={Styles.dagTitleCol}>DAG Id</div>
+                                <div className={Styles.dagTitleCol}>Your Permission</div>
+                                <div className={Styles.dagTitleCol}>Action</div>
+                              </div>
+                              <div className={Styles.projectDagList}>
+                                {item.dags.map((dagItem: IPipelineProjectDag, dagIndex: number) => {
+                                  return (
+                                    <div key={dagIndex} className={Styles.dagTile}>
+                                      <div className={Styles.dagTitleCol}>{dagItem.dagName}</div>
+                                      <div className={Styles.dagTitleCol}>
                                         {dagItem.permissions === null ? (
                                           <span className={Styles.noPermission}>
-                                            {item.isOwner ? (
-                                              <div
-                                                className={Styles.tryAgain}
-                                                onClick={getDagPermissionRefresh(
-                                                  dagItem.dagName,
-                                                  item.projectId,
-                                                  dagIndex,
-                                                )}
-                                              >
-                                                {' '}
-                                                <i className="icon mbc-icon refresh" />
-                                                Try Again
-                                              </div>
-                                            ) : (
-                                              'Please Contact Admin.'
-                                            )}
+                                            Not Granted
+                                            <i
+                                              className={Styles.noPermissionInfo + ' icon mbc-icon info'}
+                                              tooltip-data="Permission mapping failed. Please click try again."
+                                            />
                                           </span>
                                         ) : (
-                                          <React.Fragment>
-                                            {dagItem.permissions?.includes('can_dag_edit') ? (
-                                              <button
-                                                onClick={editCodeCurrentDag(dagItem.dagName)}
-                                                className={Styles.actionBtn + ' btn btn-primary'}
-                                                type="button"
-                                              >
-                                                <i className="icon mbc-icon edit" />
-                                                <span>Edit Code </span>
-                                              </button>
-                                            ) : (
-                                              <button
-                                                onClick={viewCodeCurrentDag(dagItem.dagName)}
-                                                className={Styles.actionBtn + ' btn btn-primary'}
-                                                type="button"
-                                              >
-                                                <i className="icon mbc-icon document" />
-                                                <span>View Code </span>
-                                              </button>
-                                            )}
-                                            &nbsp; &nbsp;
-                                            <a
-                                              className={Styles.airflowLink}
-                                              href={`${Envs.DATA_PIPELINES_APP_BASEURL}/graph?dag_id=${dagItem.dagName}`}
-                                              target="_blank"
-                                              rel="noreferrer"
-                                            >
-                                              <i
-                                                tooltip-data="Open in New Tab"
-                                                className={Styles.airflowNewTab + ' icon mbc-icon new-tab'}
-                                              />
-                                            </a>
-                                          </React.Fragment>
+                                          'Read' + (dagItem.permissions?.includes('can_edit') ? ' / Edit  ' : '')
                                         )}
                                       </div>
+
+                                      <div className={Styles.dagTitleCol}>
+                                        <div className={Styles.actionBtnGrp}>
+                                          {dagItem.permissions === null ? (
+                                            <span className={Styles.noPermission}>
+                                              {item.isOwner ? (
+                                                <div
+                                                  className={Styles.tryAgain}
+                                                  onClick={getDagPermissionRefresh(
+                                                    dagItem.dagName,
+                                                    item.projectId,
+                                                    dagIndex,
+                                                  )}
+                                                >
+                                                  {' '}
+                                                  <i className="icon mbc-icon refresh" />
+                                                  Try Again
+                                                </div>
+                                              ) : (
+                                                'Please Contact Admin.'
+                                              )}
+                                            </span>
+                                          ) : (
+                                            <React.Fragment>
+                                              {dagItem.permissions?.includes('can_edit') ? (
+                                                <button
+                                                  onClick={editCodeCurrentDag(dagItem.dagName)}
+                                                  className={Styles.actionBtn + ' btn btn-primary'}
+                                                  type="button"
+                                                >
+                                                  <i className="icon mbc-icon edit" />
+                                                  <span>Edit Code </span>
+                                                </button>
+                                              ) : (
+                                                <button
+                                                  onClick={viewCodeCurrentDag(dagItem.dagName)}
+                                                  className={Styles.actionBtn + ' btn btn-primary'}
+                                                  type="button"
+                                                >
+                                                  <i className="icon mbc-icon document" />
+                                                  <span>View Code </span>
+                                                </button>
+                                              )}
+                                              &nbsp; &nbsp;
+                                              <a
+                                                className={Styles.airflowLink}
+                                                href={`${Envs.DATA_PIPELINES_APP_BASEURL}/graph?dag_id=${dagItem.dagName}`}
+                                                target="_blank"
+                                                rel="noreferrer"
+                                              >
+                                                <i
+                                                  tooltip-data="Open in New Tab"
+                                                  className={Styles.airflowNewTab + ' icon mbc-icon new-tab'}
+                                                />
+                                              </a>
+                                            </React.Fragment>
+                                          )}
+                                        </div>
+                                      </div>
                                     </div>
-                                  </div>
-                                );
-                              })}
-                            </div>
-                          </div>
-                          {item.isOwner && (
-                            <div className={Styles.prjListAction}>
-                              <div className={Styles.actionBtnGrp}>
-                                <button
-                                  onClick={onEditProject(item.projectId)}
-                                  className={Styles.actionBtn + ' btn btn-primary'}
-                                  type="button"
-                                >
-                                  <i className="icon mbc-icon edit" />
-                                  <span>Edit Project</span>
-                                </button>{' '}
+                                  );
+                                })}
                               </div>
                             </div>
-                          )}
+                            {item.isOwner && (
+                              <div className={Styles.prjListAction}>
+                                <div className={Styles.actionBtnGrp}>
+                                  <button
+                                    onClick={onEditProject(item.projectId)}
+                                    className={Styles.actionBtn + ' btn btn-primary'}
+                                    type="button"
+                                  >
+                                    <i className="icon mbc-icon edit" />
+                                    <span>Edit Project</span>
+                                  </button>{' '}
+                                </div>
+                              </div>
+                            )}
+                          </div>
                         </div>
-                      </div>
+                      )}
                     </div>
                   </div>
                 );
