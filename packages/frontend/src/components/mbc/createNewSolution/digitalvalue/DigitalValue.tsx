@@ -1427,6 +1427,7 @@ export default class DigitalValue extends React.Component<IDigitalValueProps, ID
 
   protected getDigitalValueObj() {
     return {
+      typeOfCalculation: this.state.valueCalculationType,
       digitalValue: this.state.digitalValue ? parseFloat(this.state.digitalValue) : null,
       digitalValueComment: this.state.digitalValueComment,
       digitalEffort: this.state.effortValue ? parseFloat(this.state.effortValue) : null,
