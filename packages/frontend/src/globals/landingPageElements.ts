@@ -503,7 +503,7 @@ export const ToolsLandingPageElements = [
     isDisabled: !spireUrl?.startsWith('http'),
     isSmallCard: false,
     isMediumCard: true,
-    svgIcon: 'tools-mini',
+    svgIcon: 'spire',
     isDnAInternalTool: true,
   },
 ];
