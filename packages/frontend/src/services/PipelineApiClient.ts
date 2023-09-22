@@ -68,5 +68,8 @@ export class PipelineApiClient {
   public static updateDagPermissions(dagName: string, projectId: string, data: any ) {
     return this.put('v1/dags/' + dagName + '/' + projectId + '/permission', data);
   }
+  public static getPiplineStatus(projectId: string) {
+    return this.get(`v1/projects/status/${projectId}`);
+  }
   
 }

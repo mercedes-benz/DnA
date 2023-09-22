@@ -103,6 +103,9 @@ server:
 #Cors Filter origin Domains  
 allowedCorsOriginPatternUrl: ${CORS_ORIGIN_URL:http://*}
 
+codeserver:
+  userauth: ${CODESERVER_USERAUTH:XXXX}
+  
 oidc:
   provider: ${OIDC_PROVIDER:OKTA}
   token:

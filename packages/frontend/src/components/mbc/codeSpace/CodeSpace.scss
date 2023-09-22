@@ -326,7 +326,12 @@
   }
 
   .createTechUserWrapper {
-    padding-top: 40px;
+    padding-top: 33px;
+  }
+
+  .disabledDiv {
+    opacity: 0.6;
+    pointer-events: none;
   }
 
   @keyframes fsbtn11 {
