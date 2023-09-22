@@ -652,7 +652,7 @@ const CodeSpace = (props: ICodeSpaceProps) => {
                         className="ff-only"
                         checked={secureWithIAMSelected}
                         onChange={onChangeSecureWithIAM}
-                        disabled={deployEnvironment === 'production' && secureWithIAMSelected}
+                        disabled={secureWithIAMSelected}
                       />
                     </span>
                     <span className="label">Secure with IAM</span>
