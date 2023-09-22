@@ -60,6 +60,9 @@ public class DnaAuthClientImpl implements DnaAuthClient {
 	
 	@Autowired
 	HttpServletRequest httpRequest;
+	
+	@Value("${codeserver.userauth}")
+	private String codeserverAuth;
 
 	@Override
 	public JSONObject verifyLogin(String jwt) {
@@ -96,6 +99,7 @@ public class DnaAuthClientImpl implements DnaAuthClient {
 			headers.set("Accept", "application/json");
 			headers.set("Content-Type", "application/json");			
 			headers.set("Authorization", jwt);
+			headers.set("codeserver-api-key", codeserverAuth);
 			String onboardTechUserUri = dnaBaseUri + ONBOARD_TECHNICAL_USER;			
 			HttpEntity<UserRequestVO> entity = new HttpEntity<UserRequestVO>(userRequestVO,headers);	
 			ResponseEntity<UserInfoVO> response = restTemplate.exchange(onboardTechUserUri, HttpMethod.POST, entity, UserInfoVO.class);
