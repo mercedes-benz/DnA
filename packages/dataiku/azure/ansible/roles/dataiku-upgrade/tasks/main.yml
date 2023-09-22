@@ -3,7 +3,21 @@
 - name: "Collect installed package facts"
   package_facts:
     manager: "auto"
-  tags: [ dss-upgrade-production, dss-upgrade-training, dss-upgrade-automation , lc-upgrade-prod ]
+  tags: [ dss-upgrade-production, dss-upgrade-training, dss-upgrade-automation ]
+
+#Checking prerequisites
+- name: "Collect installed package facts"
+  block:
+    - package_facts:
+        manager: "auto"
+      failed_when: ansible_facts.packages|length == 0
+  rescue:
+    - shell: dpkg --list | tail -n +6 | cut -f3 -d " "
+      register: packages_facts
+    - set_fact:
+        ansible_facts: "{{ ansible_facts | combine({ 'packages': packages_facts.stdout_lines }) }}"
+  tags: [ lc-upgrade-prod ]
+
 
 - name: "Load all gathered facts"
   setup:
