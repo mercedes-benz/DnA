@@ -673,6 +673,7 @@ const CodeSpace = (props: ICodeSpaceProps) => {
                       required={true}
                       maxLength={7}
                       onChange={onIAMTechnicalUserIDOnChange}
+                      disabled={secureWithIAMSelected}
                     />
                   </div>
                   <div className={Styles.createTechUserWrapper}>
