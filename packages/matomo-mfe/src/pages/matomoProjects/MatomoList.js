@@ -15,7 +15,7 @@ import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indica
 import Notification from '../../common/modules/uilab/js/src/notification';
 import { regionalDateAndTimeConversionSolution } from '../Utility/utils';
 import Popper from 'popper.js';
-// import { Link } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { Envs } from '../../utilities/envs';
 
 export const MatomoList = (props) => { 
@@ -374,12 +374,12 @@ export const MatomoList = (props) => {
                         <label className={Styles.expansionLabel + ' expansion-panel-label '} htmlFor={index + '1'}>
                           <div className={Styles.bucketTile}>
                             <div className={classNames(Styles.bucketTitleCol)}>
-                              {/* <Link to={`/explorer/${item.siteName}`}>{item.siteId}</Link> */}
-                              {item.siteId}
+                              <Link to={`${Envs.MATOMO_APP_URL}${item.siteId}`} target="_blank">{item.siteId}</Link>
+                              {/* {item.siteId} */}
                             </div>
                             <div className={classNames(Styles.bucketTitleCol, Styles.bucketName)}>
-                              {/* <Link to={`/explorer/${item.siteName}`}>{item.siteName}</Link> */}
-                              {item.siteName}
+                              <Link to={`${Envs.MATOMO_APP_URL}${item.siteId}`} target="_blank">{item.siteName}</Link>
+                              {/* {item.siteName} */}
                             </div>
                             <div className={Styles.bucketTitleCol}>
                               {item.siteUrl}
