@@ -54,7 +54,7 @@ const RunForecastTab = ({ onRunClick }) => {
 
     ProgressIndicator.show();
     chronosApi.createForecastRun(formData, projectId).then(() => {
-        Notification.show('Run created successfully');
+        Notification.show('Forecast running...\n\nThis usually takes about 10 minutes.');
         document.body.scrollTop = 0;
         document.documentElement.scrollTop = 0;
         onRunClick();
