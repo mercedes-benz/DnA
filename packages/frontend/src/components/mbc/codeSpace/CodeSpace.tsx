@@ -644,20 +644,40 @@ const CodeSpace = (props: ICodeSpaceProps) => {
                 </div>
               </div>
               {(!codeSpaceData.projectDetails.recipeDetails?.recipeId.match(/^(react|angular)$/)) &&
-                <div>
-                  <label className="checkbox">
-                    <span className="wrapper">
-                      <input
-                        type="checkbox"
-                        className="ff-only"
-                        checked={secureWithIAMSelected}
-                        onChange={onChangeSecureWithIAM}
-                        disabled={secureWithIAMSelected}
-                      />
-                    </span>
-                    <span className="label">Secure with IAM</span>
-                  </label>
-                </div>
+                <>
+                  {deployEnvironment === 'staging' &&
+                    <div>
+                      <label className="checkbox">
+                        <span className="wrapper">
+                          <input
+                            type="checkbox"
+                            className="ff-only"
+                            checked={secureWithIAMSelected}
+                            onChange={onChangeSecureWithIAM}
+                            disabled={codeSpaceData.projectDetails?.intDeploymentDetails?.secureWithIAMRequired}
+                          />
+                        </span>
+                        <span className="label">Secure with IAM</span>
+                      </label>
+                    </div>
+                  }
+                  {deployEnvironment === 'production' &&
+                    <div>
+                      <label className="checkbox">
+                        <span className="wrapper">
+                          <input
+                            type="checkbox"
+                            className="ff-only"
+                            checked={secureWithIAMSelected}
+                            onChange={onChangeSecureWithIAM}
+                            disabled={codeSpaceData.projectDetails?.prodDeploymentDetails?.secureWithIAMRequired}
+                          />
+                        </span>
+                        <span className="label">Secure with IAM</span>
+                      </label>
+                    </div>
+                  }
+                </>
               }
               {secureWithIAMSelected && (
                 <div className={Styles.flexLayout}>
@@ -673,7 +693,6 @@ const CodeSpace = (props: ICodeSpaceProps) => {
                       required={true}
                       maxLength={7}
                       onChange={onIAMTechnicalUserIDOnChange}
-                      disabled={secureWithIAMSelected}
                     />
                   </div>
                   <div className={Styles.createTechUserWrapper}>
