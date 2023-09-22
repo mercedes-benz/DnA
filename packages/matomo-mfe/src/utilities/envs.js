@@ -30,4 +30,5 @@ export const Envs = {
   DNA_APP_LOGO_URL: getDNAInjectedEnv('DNA_APP_LOGO_URL') || process.env.DNA_APP_LOGO_URL,
   REPORTS_API_BASEURL: getDNAInjectedEnv('REPORTS_API_BASEURL') || process.env.REPORTS_API_BASEURL,
   STORAGE_API_BASEURL: getDNAInjectedEnv('STORAGE_API_BASEURL') || process.env.STORAGE_API_BASEURL,
+  MATOMO_APP_URL: getDNAInjectedEnv('MATOMO_APP_URL') || process.env.MATOMO_APP_URL, 
 };
