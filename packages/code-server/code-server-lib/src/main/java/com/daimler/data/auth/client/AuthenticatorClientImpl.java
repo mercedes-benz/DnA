@@ -634,6 +634,16 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 			headers.set("Content-Type", "application/json");		
 
 			String attachPluginUri = authenticatorBaseUri + CREATE_SERVICE + "/" + serviceName + ATTACH_APP_AUTHORISER_PLUGIN_TO_SERVICE;
+			if(attachAppAuthoriserPluginRequestVO==null) {
+				AttachAppAuthoriserPluginRequestVO appAuthoriserPluginRequestVO = new AttachAppAuthoriserPluginRequestVO();
+				AttachAppAuthoriserPluginVO appAuthoriserPluginVO = new AttachAppAuthoriserPluginVO();
+				AttachAppAuthoriserPluginConfigVO appAuthoriserPluginConfigVO = new AttachAppAuthoriserPluginConfigVO();
+				appAuthoriserPluginConfigVO.setCsvalidateurl(csvalidateurl);
+				appAuthoriserPluginVO.setName(APP_AUTHORISER_PLUGIN);
+				appAuthoriserPluginVO.setConfig(appAuthoriserPluginConfigVO);
+				appAuthoriserPluginRequestVO.setData(appAuthoriserPluginVO);
+				attachAppAuthoriserPluginRequestVO = appAuthoriserPluginRequestVO;
+			}
 			HttpEntity<AttachAppAuthoriserPluginRequestVO> entity = new HttpEntity<AttachAppAuthoriserPluginRequestVO>(attachAppAuthoriserPluginRequestVO,headers);			
 			ResponseEntity<String> attachAppAuthoriserPluginResponse = restTemplate.exchange(attachPluginUri, HttpMethod.POST, entity, String.class);
 			if (attachAppAuthoriserPluginResponse != null && attachAppAuthoriserPluginResponse.getStatusCode()!=null) {
