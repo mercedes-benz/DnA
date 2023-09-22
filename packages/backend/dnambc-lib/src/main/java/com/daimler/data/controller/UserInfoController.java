@@ -51,6 +51,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
+
+import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import java.util.ArrayList;
@@ -74,6 +76,12 @@ public class UserInfoController implements UsersApi {
 
 	@Autowired
 	private UserStore userStore;
+	
+	@Autowired
+	HttpServletRequest httpRequest;
+	
+	@Value("${codeserver.userauth}")
+	private String codeserverAuth;
 
 	@Autowired
 	private TeamsApiClient teamsApiClient;
@@ -360,6 +368,12 @@ public class UserInfoController implements UsersApi {
 						List<UserRoleVO> userRoles = loggedInUserData.getRoles();
 						if (userRoles != null && !userRoles.isEmpty())
 							isAdmin = userRoles.stream().anyMatch(role -> "admin".equalsIgnoreCase(role.getName()));
+				}
+				if(!isAdmin) {
+					String codeServerUserToken = httpRequest.getHeader("codeserver-api-key");
+					if( codeServerUserToken!=null && codeserverAuth.equals(codeServerUserToken)) {
+						isAdmin = true;
+					}
 				}
 				if (!isAdmin) {
 					logger.info("Only user with Admin role can change roles");
