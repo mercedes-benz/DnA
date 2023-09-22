@@ -12,7 +12,6 @@ export interface ITextBoxProps {
   label: string;
   required: boolean;
   maxLength: number;
-  disabled?: boolean;
   placeholder: string;
   onChange: (e: React.FormEvent<HTMLInputElement>) => void;
   onBlur?: (e: React.FormEvent<HTMLInputElement>) => void;
@@ -53,7 +52,6 @@ const TextBox:React.FC<ITextBoxProps> = (props: ITextBoxProps) => {
         onBlur={props.onBlur ? props.onBlur : undefined}
         onKeyUp={props.onKeyUp ? props.onKeyUp : undefined}
         required={props.required}
-        disabled={props.disabled}
         maxLength={props.maxLength}
         autoComplete="off"
       />
