@@ -31,8 +31,11 @@
 
   .slider {
     list-style: none;
-    margin: 0;
+    margin: 0 auto;
     padding: 0;
+    position: relative;
+    z-index: 99;
+    width: 90%;
   }
 
   .slider-item {
