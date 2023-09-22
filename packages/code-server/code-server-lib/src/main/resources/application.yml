@@ -40,7 +40,10 @@ spring:
 dna:
   uri: ${DNA_URI:XXXXXX}
   dnaAuthEnable: ${DNA_AUTH_ENABLE:false}
-  
+
+codeserver:
+  userauth: ${CODESERVER_USERAUTH:XXXX}
+    
 authenticator:
    uri: ${AUTHENTICATOR_URI:XXXX}  
   
