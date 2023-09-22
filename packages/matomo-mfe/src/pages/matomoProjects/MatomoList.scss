@@ -15,7 +15,7 @@
   min-width: 250px;
   position: relative;
   border: 1px solid #383F49;
-  cursor: pointer;
+  
 
   .addicon {
     top: calc(50% - 31px);
@@ -74,7 +74,6 @@
   min-width: 250px;
   position: relative;
   border: 1px solid #383F49;
-  cursor: pointer;
 
   &.disable {
     opacity: 0.5;
@@ -102,6 +101,7 @@
         padding-bottom: 5px;
         width: 100%;
         text-align: left;
+        cursor: pointer;
       }
 
       &.disable {
