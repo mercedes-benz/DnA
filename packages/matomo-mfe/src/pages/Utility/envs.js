@@ -35,4 +35,5 @@ export const Envs = {
   ENABLE_TRINO_PUBLISH: getInjectedEnv('ENABLE_TRINO_PUBLISH') || parseBool(process.env.ENABLE_TRINO_PUBLISH, false),
   ENABLE_DATAIKU:
     getDNAInjectedEnv('ENABLE_DATAIKU_WORKSPACE') || parseBool(process.env.ENABLE_DATAIKU_WORKSPACE, false),
+  MATOMO_APP_URL: getDNAInjectedEnv('MATOMO_APP_URL') || parseBool(process.env.MATOMO_APP_URL, false), 
 };
