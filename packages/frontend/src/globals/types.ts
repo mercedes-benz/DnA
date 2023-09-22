@@ -1271,6 +1271,7 @@ export interface IDataCompliance {
 }
 
 export interface IDigitalValue {
+  typeOfCalculation?: string;
   digitalValue?: number;
   digitalValueComment?: string;
   digitalEffort?: number;
@@ -1283,6 +1284,7 @@ export interface IDigitalValue {
   permissions: ITeams[];
   assessment: IAssessment;
   valueCalculator?: IValueCalculator;
+  dataValueCalculator?: IValueCalculator;
 }
 
 export interface IValueCalculator {
