@@ -28,18 +28,16 @@
 package com.daimler.dna.airflow.service;
 
 import java.math.BigDecimal;
-import java.util.*;
-import java.util.concurrent.TimeUnit;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import javax.transaction.Transactional;
 
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
 import org.eclipse.jgit.revwalk.RevCommit;
-import org.postgresql.shaded.com.ongres.scram.common.message.ServerFinalMessage.Error;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -54,21 +52,15 @@ import com.daimler.dna.airflow.app.main.auth.UserStore;
 import com.daimler.dna.airflow.assembler.DnaProjectAssesmbler;
 import com.daimler.dna.airflow.assembler.RoleAssembler;
 import com.daimler.dna.airflow.assembler.UserAssembler;
-import com.daimler.dna.airflow.controller.AirflowPermissionsController;
-
 import com.daimler.dna.airflow.client.AirflowGitClient;
 import com.daimler.dna.airflow.dto.AirflowDagProjectResponseVo;
 import com.daimler.dna.airflow.dto.AirflowDagVo;
 import com.daimler.dna.airflow.dto.AirflowGITResponse;
-import com.daimler.dna.airflow.dto.AirflowProjectRequestVO;
 import com.daimler.dna.airflow.dto.AirflowProjectResponseWrapperVO;
 import com.daimler.dna.airflow.dto.AirflowProjectUserVO;
 import com.daimler.dna.airflow.dto.AirflowProjectVO;
 import com.daimler.dna.airflow.dto.AirflowProjectsByUserVO;
-import com.daimler.dna.airflow.dto.AirflowResponseWrapperVO;
 import com.daimler.dna.airflow.dto.AirflowRetryDagVo;
-import com.daimler.dna.airflow.dto.CreatedByVO;
-import com.daimler.dna.airflow.exceptions.GenericMessage;
 import com.daimler.dna.airflow.exceptions.MessageDescription;
 import com.daimler.dna.airflow.models.Dag;
 import com.daimler.dna.airflow.models.DnaProject;
@@ -91,9 +83,6 @@ import com.daimler.dna.airflow.repository.UserAndDagMappingRepository;
 import com.daimler.dna.airflow.repository.UserRepository;
 import com.daimler.dna.airflow.repository.UserRoleMappingRepository;
 import com.daimler.dna.airflow.repository.ViewMenuRepository;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 
 @Service
 public class DnaProjectServiceImpl implements DnaProjectService {
@@ -171,12 +160,7 @@ public class DnaProjectServiceImpl implements DnaProjectService {
 		}
 
 		for (Object[] obj : result1) {
-			map1.put((String) obj[0], assembler.toVO1(obj, currentUser.getUsername(), map1));
-		}
-		for (Map.Entry<String, AirflowProjectsByUserVO> entry : map1.entrySet()) {
-			Map<String, List<String>> dagMap = new HashMap<>();
-			List<AirflowDagProjectResponseVo> listOfDag = new ArrayList<AirflowDagProjectResponseVo>();
-			list.add(entry.getValue());
+			map.put((String) obj[0], assembler.toVO1(obj, currentUser.getUsername(), map));
 		}
 
 		for (Map.Entry<String, AirflowProjectsByUserVO> entry : map.entrySet()) {
@@ -277,46 +261,27 @@ public class DnaProjectServiceImpl implements DnaProjectService {
 								LOGGER.error("Unable to stop {}", e.getMessage());
 							}
 						}
-//						else {
-//							airflowGitClient.deleteAirflowDag(dagVO.getDagName(), currentUser);
-//							dnaProjectRepository.delete(savedDnaProject);
-//							res.setData(airflowProjectVO);
-//							errors = checkForDagSyntaxError(dagVO.getDagName());
-//							res.setErrors(errors);
-//							res.setStatus("FAILURE");
-//							return new ResponseEntity<AirflowProjectResponseWrapperVO>(res, HttpStatus.BAD_REQUEST);
-//						}
 					}
 					if (isDagExist) {
 						LOGGER.debug("mapping dag and user to project..");
 						addPermissionAndMappedToProject(currentUser, dagVO, savedCurrentUserRole, savedCurrentUser,
 								savedDnaProject);
 					}
-//					else {
-//						LOGGER.debug("Unable to create project. Please create after sometime.");
-//						airflowGitClient.deleteAirflowDag(dagVO.getDagName(), currentUser);
-//						dnaProjectRepository.delete(savedDnaProject);
-//						res.setData(airflowProjectVO);
-//						List<MessageDescription> errors1 = new ArrayList<MessageDescription>();
-//						MessageDescription md = new MessageDescription();
-//						md.setMessage("Unable to create project. Please create after sometime.");
-//						errors1.add(md);
-//						res.setErrors(errors1);
-//						res.setStatus("FAILURE");
-//						return new ResponseEntity<AirflowProjectResponseWrapperVO>(res, HttpStatus.BAD_REQUEST);
-//					}
 					if (isPermissionCreated) {
 						LOGGER.debug("mapping permission to role..");
 						addRoleAndPermissionMapping(currentUser, savedCurrentUserRole, dagVO.getDagName());
-					} else {
-						LOGGER.warn(
-								"Permission is not created for the DAG {} , however project is onboarded. Please contact administrator for permission.",
-								dagVO.getDagName());
-						MessageDescription md = new MessageDescription();
-						md.setMessage("Permission is not created for the DAG" + dagVO.getDagName()
-								+ ", however project is onboarded. Please contact administrator for permission.");
-						warnings.add(md);
-					}
+					} 
+//					else {
+//						LOGGER.warn(
+//								"Permission is not created for the DAG {} , however project is onboarded. Please contact administrator for permission.",
+//								dagVO.getDagName());
+//						MessageDescription md = new MessageDescription();
+//						md.setMessage("Permission is not created for the DAG" + dagVO.getDagName()
+//								+ ", however project is onboarded. Please contact administrator for permission.");
+//						warnings.add(md);
+//					}
+					List<String> collabs = new ArrayList<>();
+					String collabsCommanSeparatedValue = null;
 					if (!ObjectUtils.isEmpty(dagVO.getCollaborators())) {
 						for (AirflowProjectUserVO userVO : dagVO.getCollaborators()) {
 							boolean isRoleExist = roleExist(userVO.getUsername());
@@ -337,15 +302,24 @@ public class DnaProjectServiceImpl implements DnaProjectService {
 								LOGGER.debug("mapping permission to role..");
 								addRoleAndPermissionMapping(userVO, savedRole, dagVO.getDagName());
 							}
+							List<String> collabPermissions = userVO.getPermissions();
+							String collabDetails = userVO.getUsername();
+							if(collabPermissions!=null && !collabPermissions.isEmpty() && collabPermissions.contains("can_edit")) {
+								collabDetails = collabDetails+"_RW";
+							}
+							collabs.add(collabDetails);
 						}
+						collabsCommanSeparatedValue = String.join(",", collabs);
 					}
 					if (isDagExist) {
-						airflowProjectVO.setProjectStatus("CREATED");
-						dnaProjectRepository.save(assembler.toEntity(airflowProjectVO));
+						savedDnaProject.setProjectStatus("CREATED");
 					} else {
 						LOGGER.info("...Dag still not created hence adding status as CREATE_REQUESTED...");
-						airflowProjectVO.setProjectStatus("CREATE_REQUESTED");
+						savedDnaProject.setProjectStatus("CREATE_REQUESTED");
+						savedDnaProject.setCollabs(collabsCommanSeparatedValue);
 					}
+					
+					dnaProjectRepository.save(savedDnaProject);
 				}
 			} else {
 				res.setData(airflowProjectVO);
@@ -373,87 +347,80 @@ public class DnaProjectServiceImpl implements DnaProjectService {
 		Map<String, AirflowProjectsByUserVO> map1 = new HashMap<String, AirflowProjectsByUserVO>();
 		LOGGER.info("..UpdateAirflowDagProjectStatus Started...");
 		List<DnaProject> dnaProjects = dnaProjectRepository.findAll(0, 0);
-//		List<Object[]> result1 = dnaProjectRepository.findAllCreationStatusProjects("CREATE_REQUESTED");
-//		Set<String> idsInResult1 = new HashSet<>();  // Initialize the set here
-//		for (Object[] obj : result1) {
-//			idsInResult1.add(obj[0].toString());
-//		}
-
 		List<DnaProject> filteredList = dnaProjects.stream()
 				.filter(dnaProject -> "CREATE_REQUESTED".equalsIgnoreCase(dnaProject.getProjectStatus()))
 				.collect(Collectors.toList());
 
-		List<AirflowProjectVO> projectVOs = filteredList.stream().map(n->assembler.toVO(n)).collect(Collectors.toList());
-		for(AirflowProjectVO projectVO: projectVOs) {
-			LOGGER.info("Processing update of project {} from scheduled job", projectVO.getProjectName());
-			// NOTE: since getDags was null hence added logic here
-			// please feel to remove if below one is fixed.
-			String dagName = projectVO.getProjectId() + "_DAG_1";
+		for(DnaProject dnaProject : filteredList) {
+			LOGGER.info("Processing update of project {} from scheduled job", dnaProject.getProjectName());
+			String dagName = dnaProject.getProjectId() + "_DAG_1";
+			AirflowDagVo dagVO1 = new AirflowDagVo();
+			dagVO1.setDagName(dagName);
 			Boolean isDagExists = checkDagMenu(dagName);
-//			if (isDagExists) {
-//				AirflowProjectUserVO currentUsers = new AirflowProjectUserVO();
-//				String usernames = projectVO.getCreatedBy();
-//				LOGGER.info("..usernames...{}", usernames);
-//				Role savedCurrentUserRole = findRole(usernames);
-//				List<User> existingUser = userRepository.findbyUniqueLiteral("username", usernames);
-//				User savedCurrentUser = existingUser != null && !existingUser.isEmpty() ? existingUser.get(0) :
-//						new User();
-//				AirflowDagVo dagVO1 = new AirflowDagVo();
-//				dagVO1.setDagName(dagName);
-//				projectVO.setProjectStatus("CREATED");
-//				dnaProjectRepository.save(assembler.toEntity(projectVO));
-//
-//				addPermissionAndMappedToProject(currentUsers, dagVO1, savedCurrentUserRole, savedCurrentUser,
-//						assembler.toEntity(projectVO));
-//				Boolean isPermissionCreated = checkDagPermissionAndViewMenu(dagVO1);
-//			}
-
-			if (projectVO.getDags() != null) {
-				LOGGER.info("Processing update of project {} from scheduled job, dags not null for project", projectVO.getProjectName());
-				for(AirflowDagVo dagVO: projectVO.getDags()) {
-					Boolean isDagExist = checkDagMenu(dagVO.getDagName());
-					if (isDagExist) {
-						LOGGER.info("Processing update of project {} from scheduled job, dag {} exists", projectVO.getProjectName(),dagVO.getDagName());
-						AirflowProjectUserVO currentUser = new AirflowProjectUserVO();
-						String username = projectVO.getCreatedBy();
-						LOGGER.info("..username...{}", username);
-						currentUser.setUsername(username);
-						Role savedCurrentUserRole = findRole(username);
-						List<User> existingUser = userRepository.findbyUniqueLiteral("username", username);
-						User savedCurrentUser = existingUser != null && !existingUser.isEmpty() ? existingUser.get(0) :
-								new User();
-						LOGGER.info("mapping dag and user to project..");
-						addPermissionAndMappedToProject(currentUser, dagVO, savedCurrentUserRole, savedCurrentUser,
-								assembler.toEntity(projectVO));
-						if (!ObjectUtils.isEmpty(dagVO.getCollaborators())) {
-							for (AirflowProjectUserVO userVO : dagVO.getCollaborators()) {
-								boolean isRoleExist = roleExist(userVO.getUsername());
-								boolean isUserExist = userExist(userVO.getEmail());
-								Role savedRole = isRoleExist ? findRole(userVO.getUsername())
-										: addRole(userVO.getUsername());
-								User savedUser = isUserExist ? findUser(userVO.getEmail()) : addUser(userVO);
-								if (!isUserExist && !isRoleExist && Objects.nonNull(savedUser)
-										&& Objects.nonNull(savedRole)) {
-									addUserRoleMapping(savedUser, savedRole);
-								}
-								LOGGER.info("User onboarded successfully..{}", savedUser.getUsername());
-								LOGGER.info("mapping dag and user to project..");
-								addPermissionAndMappedToProject(userVO, dagVO, savedRole, savedUser, assembler.toEntity(projectVO));
-								LOGGER.info("mapping permission to role..");
-								addRoleAndPermissionMapping(userVO, savedRole, dagVO.getDagName());
+			Boolean isPermissionCreated = checkDagPermissionAndViewMenu(dagVO1);
+			if (isDagExists) {
+				LOGGER.info("Processing update of project {} from scheduled job, dag {} exists", dnaProject.getProjectName(),dagVO1.getDagName());
+				AirflowProjectUserVO currentUser = new AirflowProjectUserVO();
+				String username = dnaProject.getCreatedBy();
+				LOGGER.info("..username...{}", username);
+				currentUser.setUsername(username);
+				List<String> ownerPermissions = new ArrayList<>();
+				ownerPermissions.add("can_read");
+				ownerPermissions.add("can_edit");
+				currentUser.setPermissions(ownerPermissions);
+				Role savedCurrentUserRole = findRole(username);
+				List<User> existingUser = userRepository.findbyUniqueLiteral("username", username);
+				User savedCurrentUser = existingUser != null && !existingUser.isEmpty() ? existingUser.get(0) : new User();
+				LOGGER.info("mapping dag and user to project");
+				addPermissionAndMappedToProject(currentUser, dagVO1, savedCurrentUserRole, savedCurrentUser,
+						dnaProject);
+				if(isPermissionCreated) {
+					addRoleAndPermissionMapping(currentUser, savedCurrentUserRole, "DAG:"+dagVO1.getDagName());
+				}
+				String collabs = dnaProject.getCollabs();
+				if(collabs!=null) {
+					String[] collabIds = collabs.split(",");
+					if(collabIds!=null && collabIds.length>0) {
+						for(String collabDetail : collabIds) {
+							String[] collaboratorDetails = collabDetail.split("_");
+							String collabId = collaboratorDetails[0];
+							boolean canEdit = collaboratorDetails.length > 1 ? true : false;
+							boolean isRoleExist = roleExist(collabId);
+							Role savedCollabRole = findRole(collabId);
+							List<User> existingCollabUser = userRepository.findbyUniqueLiteral("username", collabId);
+							User savedCollabUser = new User();
+							boolean isUserExist = false;
+							if(existingCollabUser != null && !existingCollabUser.isEmpty()) {
+								savedCollabUser =   existingCollabUser.get(0);
+								isUserExist = true;
+							}
+							if (!isUserExist && !isRoleExist && Objects.nonNull(savedCollabUser)
+									&& Objects.nonNull(savedCollabRole)) {
+								addUserRoleMapping(savedCollabUser, savedCollabRole);
+							}
+							LOGGER.debug("User onboarded successfully..{}", collabId);
+							AirflowProjectUserVO collabUserVO = new AirflowProjectUserVO();
+							collabUserVO.setUsername(collabId);
+							List<String> collabPermissions = new ArrayList<>();
+							collabPermissions.add("can_read");
+							if(canEdit) {
+								collabPermissions.add("can_edit");
+							}
+							collabUserVO.setPermissions(collabPermissions);
+							if (isDagExists) {
+								LOGGER.debug("mapping dag and user to project..");
+								addPermissionAndMappedToProject(collabUserVO, dagVO1, savedCollabRole, savedCollabUser, dnaProject);
+							}
+							if (isPermissionCreated) {
+								LOGGER.debug("mapping permission to role..");
+								addRoleAndPermissionMapping(collabUserVO, savedCollabRole, "DAG:"+dagVO1.getDagName());
 							}
 						}
-						projectVO.setProjectStatus("CREATED");
-					}
-					else {
-						LOGGER.info("Processing update of project {} from scheduled job, dag {} doesnt exist. Will retry in next attempt", projectVO.getProjectName(),dagVO.getDagName());
 					}
 				}
-			} else {
-				LOGGER.info("..dagVO is null...");
-				projectVO.setProjectStatus("CREATED");
+				dnaProjectRepository.updateProjectStatus(dnaProject.getProjectId(), "CREATED");
 			}
-			dnaProjectRepository.save(assembler.toEntity(projectVO));
+			
 		}
 	}
 
@@ -587,7 +554,7 @@ public class DnaProjectServiceImpl implements DnaProjectService {
 
 					LOGGER.debug("updating dna project");
 					updateProject(updatedProject);
-//					/dnaProjectRepository.save(updatedProject);
+//					dnaProjectRepository.save(updatedProject);
 				}
 			} else {
 				res.setData(airflowProjectVO);
@@ -653,45 +620,12 @@ public class DnaProjectServiceImpl implements DnaProjectService {
 	@Transactional
 	public ResponseEntity<AirflowProjectResponseWrapperVO> getAirflowDagStatus(String projectId) {
 		AirflowProjectResponseWrapperVO res = new AirflowProjectResponseWrapperVO();
-		AirflowProjectVO airflowProjectVO = new AirflowProjectVO();
-
-		List<DnaProject> dnaProjects = dnaProjectRepository.findbyUniqueLiteral("projectId", projectId);
-
-		if (dnaProjects != null) {
-			List<AirflowProjectVO> projectVOs = dnaProjects.stream().map(n -> assembler.toVO(n)).collect(Collectors.toList());
-
-			if (projectVOs != null) {
-				if (projectVOs.get(0).getProjectStatus().equalsIgnoreCase("CREATED")) {
-					res.setData(projectVOs.get(0));
-					return new ResponseEntity<AirflowProjectResponseWrapperVO>(res, HttpStatus.OK);
-				}
-			}
-
-			for (AirflowProjectVO projectVO : projectVOs) {
-				String dagName = projectVO.getProjectId() + "_DAG_1";
-				Boolean isDagExists = checkDagMenu(dagName);
-
-				if (isDagExists) {
-					AirflowProjectUserVO currentUsers = new AirflowProjectUserVO();
-					String usernames = projectVO.getCreatedBy();
-					LOGGER.info("..usernames...{}", usernames);
-					Role savedCurrentUserRole = findRole(usernames);
-					List<User> existingUser = userRepository.findbyUniqueLiteral("username", usernames);
-					User savedCurrentUser = existingUser != null && !existingUser.isEmpty() ? existingUser.get(0) :
-							new User();
-					AirflowDagVo dagVO1 = new AirflowDagVo();
-					dagVO1.setDagName(dagName);
-					projectVO.setProjectStatus("CREATED");
-
-//				addPermissionAndMappedToProject(currentUsers, dagVO1, savedCurrentUserRole, savedCurrentUser,
-//						assembler.toEntity(projectVO));
-//				Boolean isPermissionCreated = checkDagPermissionAndViewMenu(dagVO1);
-//					dnaProjectRepository.save(assembler.toEntity(projectVO));
-
-				}
-			}
-		}
-
+		AirflowProjectVO airflowProjectVO = this.getByProjectId(projectId);
+		List<MessageDescription> warnings = new ArrayList<>();
+		List<MessageDescription> errors = new ArrayList<>();
+		res.setStatus("SUCCESS");
+		res.setErrors(errors);
+		res.setWarnings(warnings);
 		res.setData(airflowProjectVO);
 		return new ResponseEntity<AirflowProjectResponseWrapperVO>(res, HttpStatus.OK);
 	}

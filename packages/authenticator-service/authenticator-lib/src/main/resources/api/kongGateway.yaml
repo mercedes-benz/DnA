@@ -129,6 +129,39 @@ paths:
      description: "Method not allowed"
     500:
      description: "Internal error"    
+
+# path to delete service 
+#  supported http methods DELETE     
+ /kong/services/{serviceName}:    
+  delete:
+   tags:
+    - "kong"
+   summary: "Delete the existing service "
+   description:  "Delete the existing service."
+   operationId: "deleteService" 
+   parameters:
+      - name : "serviceName"
+        in: "path"
+        description: "Name of the service to be deleted"
+        required: true
+        type: "string"
+   responses:
+    200:
+     description: "Returns message of success or failure"
+     schema:
+        $ref: "#/definitions/GenericMessage"
+    204:
+      description: "Fetch complete, no content found."
+    400:
+     description: "Bad request."
+    401:
+     description: "Request does not have sufficient credentials."
+    403:
+     description: "Request is not authorized."
+    405:
+     description: "Method not allowed"
+    500:
+     description: "Internal error"       
       
      
      
@@ -175,6 +208,49 @@ paths:
           description: "Method not allowed"
         500:
           description: "Internal error"
+          
+# path to delete route 
+#  supported http methods DELETE
+ /kong/services/{serviceName}/routes/{routeName}:
+    delete:
+      tags:
+        - "kong"
+      summary: "Delete a route."
+      description: "Delete a route"
+      operationId: "deleteRoute"
+      parameters:      
+        - name: "serviceName"
+          in: "path"
+          description: "Name of the service for which route has to be created"
+          required: true
+          type: "string"
+        - name: "routeName"
+          in: "path"
+          description: "Name of the route has to be created"
+          required: true
+          type: "string"  
+      responses:
+        201:
+          description: "Returns message of success"
+          schema:
+            $ref: "#/definitions/GenericMessage"
+        409:
+          description: "Conflict"
+          schema:
+            $ref: "#/definitions/GenericMessage"            
+        400:
+          description: "Bad Request"
+          schema:
+            $ref: "#/definitions/GenericMessage"
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
+
 # path to attach a plugin to service 
 #  supported http methods POST
 
@@ -262,6 +338,47 @@ paths:
           description: "Method not allowed"
         500:
           description: "Internal error"
+          
+ /kong/services/{serviceName}/appAuthoriserPlugin:
+    post:
+      tags:
+        - "kong"
+      summary: "Attach appAuthoriserPlugin to service."
+      description: "Attach appAuthoriserPlugin to service."
+      operationId: "attachAppAuthoriserPlugin"
+      parameters:      
+        - name: "attachAppAuthoriserPluginRequestVO"
+          in: "body"
+          description: "Request Body that contains data required for attaching a plugin to service"
+          required: true
+          schema:
+            $ref: "#/definitions/AttachAppAuthoriserPluginRequestVO"  
+        - name: "serviceName"
+          in: "path"
+          description: "Name of the service for which plugin has to be attached"
+          required: true
+          type: "string"    
+      responses:
+        200:
+          description: "Returns message of success"
+          schema:
+            $ref: "#/definitions/GenericMessage"
+        409:
+          description: "Conflict"
+          schema:
+            $ref: "#/definitions/GenericMessage"            
+        400:
+          description: "Bad Request"
+          schema:
+            $ref: "#/definitions/GenericMessage"
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"        
           
 # path to get service 
 #  supported http methods GET    
@@ -531,8 +648,10 @@ definitions:
         type: string  
       scope:
         type: string
-      redirect_uri_path:
+      redirect_uri:
         type: string
+      revoke_tokens_on_logout:
+        type: string  
       recovery_page_path:
         type: string  
       claims_to_verify:
@@ -619,11 +738,31 @@ definitions:
         type: string
       expiresIn:
         type: string
-      clientId:
+      client_id:
         type: string
-      clientSecret:
+      client_secret:
         type: string  
-      introspectionUri:
-        type: string  
-             
+      introspection_uri:
+        type: string
+      enableAuthTokenIntrospection:
+        type: boolean
+ AttachAppAuthoriserPluginRequestVO:
+    type: object
+    properties:
+      data:
+        $ref: "#/definitions/AttachAppAuthoriserPluginVO"           
+        
+ AttachAppAuthoriserPluginVO:
+    type: object
+    properties:
+      config:
+        $ref: "#/definitions/AttachAppAuthoriserPluginConfigVO"
+      name:
+        type: string
+              
+ AttachAppAuthoriserPluginConfigVO:
+    type: object
+    properties:      
+      csvalidateurl:
+        type: string             
  
