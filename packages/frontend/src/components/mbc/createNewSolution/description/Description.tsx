@@ -342,10 +342,11 @@ export default class Description extends React.Component<IDescriptionProps, IDes
             },
           );
         });
+        description.division = division;
+        this.setState({ divisionValue: division });
       }
     }
-    description.division = division;
-    this.setState({ divisionValue: division });
+    
   };
 
   public onSubDivisionChange = (e: React.FormEvent<HTMLSelectElement>) => {
