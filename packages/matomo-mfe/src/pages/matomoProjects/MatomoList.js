@@ -15,6 +15,8 @@ import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indica
 import Notification from '../../common/modules/uilab/js/src/notification';
 import { regionalDateAndTimeConversionSolution } from '../Utility/utils';
 import Popper from 'popper.js';
+// import { Link } from 'react-router-dom';
+import { Envs } from '../../utilities/envs';
 
 export const MatomoList = (props) => { 
   const dispatch = useDispatch();
@@ -158,7 +160,7 @@ export const MatomoList = (props) => {
                   <div className={classNames(Styles.cardHeadInfo)}>
                     <div
                       className={classNames('btn btn-text forward arrow', Styles.cardHeadTitle)}
-                      // onClick={() => history.push(`/explorer/${item.siteName}`)}
+                      onClick={() => window.open(`${Envs.MATOMO_APP_URL}${item.siteId}`, "_blank")}
                     >
                       {item.siteName}
                     </div>
