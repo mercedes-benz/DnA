@@ -495,7 +495,7 @@ export const ToolsLandingPageElements = [
   {
     name: 'Spire',
     description: 'Spire is the standardized & compliant global cloud analytics platform for MBM – live and running, along with a team of experts leveraging cutting-edge technology and end2end services to create business value.',
-    tags: ['Data Engineering', 'No / Low Code', 'Cloud', 'Machine Learning', 'FOSS', 'Onprem'],
+    tags: ['Data Engineering','Cloud', 'Machine Learning'],
     url: spireUrl,
     isExternalLink: true,
     isTextAlignLeft: true,
