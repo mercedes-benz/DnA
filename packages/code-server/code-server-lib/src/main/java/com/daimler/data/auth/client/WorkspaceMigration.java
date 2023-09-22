@@ -55,6 +55,7 @@ public class WorkspaceMigration {
 				log.info("Run after application startup ");
 				List<String> workspaceIds = customRepository.getAllWorkspaceIds();
 				List<String> oldWsIds = new ArrayList<>();
+				List<String> oldWsIdsWithService = new ArrayList<>();
 				String kongServiceNames = null;
 				String[] kongWsIds = null;
 				HttpHeaders headers = new HttpHeaders();
@@ -78,11 +79,25 @@ public class WorkspaceMigration {
 				if (!ObjectUtils.isEmpty(workspaceIds) ) {
 					oldWsIds = workspaceIds.stream().filter(id -> !newKongWsIdList.contains("\"" + id + "\""))
 							.collect(Collectors.toList());
+					
+					for(String id : workspaceIds) {
+						if(newKongWsIdList.contains("\"" + id + "\"")) {
+							oldWsIdsWithService.add(id);
+						}else {
+							oldWsIds.add(id);
+						}
+					}
 				}
-				log.info("old workspace ids are: {}", oldWsIds);
+				log.info("old workspace ids for which service is not created yet are: {}", oldWsIds);
 				if (Objects.nonNull(oldWsIds) && oldWsIds.size() > 0) {
 					for (String oldWsId : oldWsIds) {
 						authenticatorClient.callingKongApis(oldWsId,null,false);
+					}
+				}
+				log.info("old workspace ids for which service already created and attaching authorization plugin as migration are: {}", oldWsIdsWithService);
+				if (Objects.nonNull(oldWsIdsWithService) && oldWsIdsWithService.size() > 0) {
+					for (String oldWsIdWithService : oldWsIdsWithService) {
+						authenticatorClient.attachAppAuthoriserPluginToService(null, oldWsIdWithService);
 					}
 				}
 			} catch (Exception e) {
