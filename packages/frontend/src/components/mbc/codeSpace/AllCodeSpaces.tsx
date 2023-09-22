@@ -263,6 +263,8 @@ const AllCodeSpaces = (props: IAllCodeSpacesProps) => {
               isCodeSpaceCreationSuccess={isCodeSpaceCreationSuccess}
               toggleProgressMessage={toggleProgressMessage}
               onUpdateCodeSpaceComplete={() => {
+                setOnEditCodeSpace(undefined);
+                setOnBoardCodeSpace(undefined);
                 setShowNewCodeSpaceModal(false);
                 getCodeSpacesData();
               }}

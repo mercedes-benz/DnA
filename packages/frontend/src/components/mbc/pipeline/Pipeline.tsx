@@ -47,7 +47,7 @@ const Pipeline = () => {
   const getRefreshedDagPermission = (projectId: string, dagIndex: number) => {
     const modDagList: IPipelineProjectDetail[] = pipelineProjectList.map((item: IPipelineProjectDetail) => {
       if (item.projectId === projectId) {
-        item.dags[dagIndex].permissions = ['can_dag_read', 'can_dag_edit'];
+        item.dags[dagIndex].permissions = ['can_read', 'can_edit'];
       }
       return item;
     });
@@ -85,6 +85,10 @@ const Pipeline = () => {
   };
 
   useEffect(() => {
+    getPipelineProjectList();
+  }, []);
+
+  const getPipelineProjectList = () => {
     ProgressIndicator.show();
     Tooltip.defaultSetup();
     PipelineApiClient.getPipelineProjectList()
@@ -103,7 +107,7 @@ const Pipeline = () => {
       .catch((err) => {
         ProgressIndicator.hide();
       });
-  }, []);
+  };
 
   const contentForInfo = (
     <div className={Styles.infoPopup}>
@@ -126,6 +130,13 @@ const Pipeline = () => {
             <div className={Styles.addNewSubscrHeader}>
               <React.Fragment>
                 <div className={Styles.appHeaderDetails}>
+                  <button
+                    className={pipelineProjectList?.length === 0 ? Styles.btnHide : Styles.refreshButton + ' btn btn-icon-circle'}
+                    tooltip-data="Refresh"
+                    onClick={getPipelineProjectList}
+                  >
+                    <i className={Styles.refresh + " icon mbc-icon refresh"} />
+                  </button>
                   {pipelineProjectList.length === 0 ? (
                     ''
                   ) : (

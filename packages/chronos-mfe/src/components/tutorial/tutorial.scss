@@ -1,0 +1,114 @@
+.container {
+  > p {
+    color: #9eadbd;
+  }
+}
+.tutIcon {
+  font-size: 40px;
+  margin-right: 35px;
+  margin-left: 20px;
+  color: #00adef;
+}
+.tutDescription {
+  font-size: 14px;
+  margin-right: 20px;
+}
+.action {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+:global {
+  
+  .slider-wrapper {
+    width: 100%;
+    overflow: hidden;
+    position: relative;
+    min-height: 250px;
+    display: flex;
+    align-items: center;
+  }
+
+  .slider {
+    list-style: none;
+    margin: 0 auto;
+    padding: 0;
+    position: relative;
+    z-index: 99;
+    width: 90%;
+  }
+
+  .slider-item {
+    display: flex;
+    justify-content: flex-start;
+    padding: 0 35px;
+    align-items: center;
+  }
+
+  .hide {
+    @extend .slider-item
+  }
+
+  .buttons-wrapper {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    position: absolute;
+    top: calc(50% - 20px);
+  }
+
+  .buttons-wrapper .prev-button {
+    background-color: unset;
+    color: #66717e;
+    border: none;
+    cursor: pointer;
+    outline: none;
+    font-size: 26px;
+    padding: 0;
+  }
+
+  .buttons-wrapper .next-button {
+    @extend .prev-button;
+  }
+
+  .buttons-wrapper button:hover {
+    background-color: unset;
+    color: #00adef;
+  }
+
+
+  /* indicators */
+
+  .indicators {
+    width: 100%;
+    text-align: center;
+    padding: 0;
+    padding-top: 20px;
+  }
+
+  .indicators li {
+    display: inline-block;
+    margin-right: 10px;
+    width: 7px;
+    height: 7px;
+    border-radius: 100%;
+    text-align: center;
+    background-color: #697582;
+    text-indent: -9999px;
+    cursor: pointer;
+    transition: all 0.2s linear;
+  }
+
+  .indicators li:last-child {
+    margin-right: 0;
+  }
+
+  .active-indicator {
+    background: #00adef !important;
+    width: 8px;
+    height: 8px;
+  }
+
+
+  /* indicators */
+}

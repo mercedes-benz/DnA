@@ -35,6 +35,7 @@ import AddOrEditFactorModal from './addOrEditFactorModal/AddOrEditFactorModal';
 import Styles from './DigitalValue.scss';
 import SelectBox from 'components/formElements/SelectBox/SelectBox';
 import { IntlProvider, FormattedNumber } from 'react-intl';
+import { SOLUTION_DATA_VALUE_CATEGORY_TYPES, SOLUTION_VALUE_CALCULATION_TYPES } from 'globals/constants';
 
 const classNames = cn.bind(Styles);
 
@@ -76,10 +77,13 @@ export interface IDigitalValueState {
   strategicRelevanceComment: string;
   benefitRealizationRisk: string;
   benefitRelevanceComment: string;
+  showValueCalculationChangeAlertModal: boolean;
+  showValueCalculationTypeInfoModal: boolean;
   showMaturityLevelInfoModal: boolean;
   showCostDriverInfoModal: boolean;
   showValueDriverInfoModal: boolean;
   showRiskAssesmentInfoModal: boolean;
+  valueCalculationType: string;
   maturityLevel: string;
   costDrivers: ICostFactor[];
   valueDrivers: IValueFactor[];
@@ -104,6 +108,11 @@ export default class DigitalValue extends React.Component<IDigitalValueProps, ID
   public strategyCommentAreaInput: HTMLTextAreaElement;
   private addTeamMemberModalRef = React.createRef<AddTeamMemberModal>();
   private addOrEditFactorModalRef = React.createRef<AddOrEditFactorModal>();
+
+  static digitalValueTypeKeyValue  = Object.keys(SOLUTION_VALUE_CALCULATION_TYPES)[0];
+  static dataValueTypeKeyValue  = Object.keys(SOLUTION_VALUE_CALCULATION_TYPES)[1];
+  static dataValueSavingsKeyValue = Object.keys(SOLUTION_DATA_VALUE_CATEGORY_TYPES)[0];
+  static dataValueRevenueKeyValue = Object.keys(SOLUTION_DATA_VALUE_CATEGORY_TYPES)[1];
 
   constructor(props: IDigitalValueProps) {
     super(props);
@@ -146,8 +155,11 @@ export default class DigitalValue extends React.Component<IDigitalValueProps, ID
       benefitRelevanceComment: '',
       showCostDriverInfoModal: false,
       showValueDriverInfoModal: false,
+      showValueCalculationChangeAlertModal: false,
+      showValueCalculationTypeInfoModal: false,
       showMaturityLevelInfoModal: false,
       showRiskAssesmentInfoModal: false,
+      valueCalculationType: DigitalValue.digitalValueTypeKeyValue, // By Default Digital Value calculation type used
       maturityLevel: '',
       costDrivers: [],
       valueDrivers: [],
@@ -192,8 +204,9 @@ export default class DigitalValue extends React.Component<IDigitalValueProps, ID
     // const digitalValueError = this.state.digitalValueError || '';
     // const effortValue = this.state.effortValue;
     // const effortValueError = this.state.effortValueError || '';
-    const { maturityLevel, costDrivers, valueDrivers, currentStrategyFieldValue, assessment } = this.state;
+    const { valueCalculationType, maturityLevel, costDrivers, valueDrivers, currentStrategyFieldValue, assessment } = this.state;
     const strategyCommentValueError = this.state.strategyCommentValueError || '';
+    const isDataValueCalcSelected = valueCalculationType === DigitalValue.dataValueTypeKeyValue;
 
     // const requiredError = '*Missing entry';
 
@@ -232,6 +245,9 @@ export default class DigitalValue extends React.Component<IDigitalValueProps, ID
           );
         })
       : [];
+
+    let totalSavings = 0;
+    let totalRevenue = 0; 
 
     return (
       <React.Fragment>
@@ -352,6 +368,47 @@ export default class DigitalValue extends React.Component<IDigitalValueProps, ID
          */}
         <div className={classNames(Styles.wrapper)}>
           <div className={classNames(Styles.firstPanel)}>
+            <h3>Type of Calculation</h3>
+            <div className={Styles.infoIcon}>
+              <i className="icon mbc-icon info" onClick={this.showValueCalculationTypeInfoModal} />
+            </div>
+            <div className={Styles.digitalValueWrapper}>
+              <div className={Styles.flexLayout}>
+                <div>
+                  <div className={Styles.setMaxWidth}>
+                    <p className="hide">
+                      Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt.
+                    </p>
+                    <div className={classNames('input-field-group')}>
+                      <label
+                        id="valueCalculationTypeSelectLabel"
+                        htmlFor="valueCalculationTypeSelect"
+                        className="input-label"
+                      >
+                        Type of Calculation
+                      </label>
+                      <div id="valueCalculationType" className="custom-select">
+                        <select
+                          id="valueCalculationTypeSelect"
+                          onChange={this.onValueCalculationTypeChange}
+                          value={valueCalculationType}
+                        >
+                          {Object.keys(SOLUTION_VALUE_CALCULATION_TYPES).map((key) => (
+                            <option id={key} key={key} value={key}>
+                              {SOLUTION_VALUE_CALCULATION_TYPES[key]}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div className={classNames(Styles.wrapper)}>
+          <div className={classNames(Styles.firstPanel)}>
             <h3>Maturity Level</h3>
             <div className={Styles.infoIcon}>
               <i className="icon mbc-icon info" onClick={this.showMaturityLevelInfoModal} />
@@ -411,6 +468,176 @@ export default class DigitalValue extends React.Component<IDigitalValueProps, ID
         </div>
         <div className={classNames(Styles.wrapper)}>
           <div className={classNames(Styles.firstPanel)}>
+            <h3>Value Driver</h3>
+            <div className={Styles.infoIcon}>
+              <i className="icon mbc-icon info" onClick={this.showValueDriverInfoModal} />
+            </div>
+            <div className={Styles.digitalValueWrapper}>
+              <div id="valueDriversWrapper" className={Styles.expansionListWrapper}>
+                {valueDrivers ? (
+                  valueDrivers.length ? (
+                    <div className="expansion-panel-group">
+                      {valueDrivers.map((item: IValueFactor, index: number) => {
+                        const expansionPanelId = 'valueFactorExpPanel' + index;
+                        const itemCategory = isDataValueCalcSelected
+                          ? SOLUTION_DATA_VALUE_CATEGORY_TYPES[item.category]
+                          : item.category;
+
+                        totalSavings += item.category === DigitalValue.dataValueSavingsKeyValue ? parseFloat(item.value) : 0;
+
+                        totalRevenue += item.category === DigitalValue.dataValueRevenueKeyValue ? parseFloat(item.value) : 0;
+
+                        return (
+                          <div id={'valueDriverPanel_' + index} key={index} className="expansion-panel">
+                            <span className="animation-wrapper" />
+                            <input type="checkbox" id={expansionPanelId} />
+                            <label className="expansion-panel-label" htmlFor={expansionPanelId}>
+                              {`Value Factor ${index + 1} ${item.description}`}{' '}
+                              {isDataValueCalcSelected && (
+                                <>
+                                  <br />[{itemCategory}:{' '}
+                                  <IntlProvider locale={navigator.language} defaultLocale="en">
+                                    {item.value !== '' ? <FormattedNumber value={Number(item.value)} /> : ''}
+                                  </IntlProvider>
+                                  &euro;]
+                                </>
+                              )}
+                              <i className="icon down-up-flip" />
+                            </label>
+                            <div className="expansion-panel-content">
+                              <div className={Styles.expansionnPanelContent}>
+                                <div className={classNames(Styles.flexLayout, Styles.factorInfo)}>
+                                  <div>
+                                    <label>Description</label>
+                                    <div>{item.description}</div>
+                                  </div>
+                                  <div>
+                                    <label>Category</label>
+                                    <div>{itemCategory}</div>
+                                  </div>
+                                  <div>
+                                    <label>Value</label>
+                                    <div>
+                                      <IntlProvider locale={navigator.language} defaultLocale="en">
+                                        {item.value !== '' ? <FormattedNumber value={Number(item.value)} /> : ''}
+                                      </IntlProvider>
+                                      &euro;
+                                    </div>
+                                  </div>
+                                  <div>
+                                    <label>Information Source</label>
+                                    <div>{item.source}</div>
+                                  </div>
+                                </div>
+                                <div>
+                                  <label>Ramp-up</label>
+                                  <div className={Styles.rampUpScrollableWrapper}>
+                                    {/* <div className={Styles.scrollerLeft}>
+                                <span>
+                                    <i className="icon mbc-icon arrow small left" />
+                                </span>
+                                </div> */}
+                                    <div className={Styles.rampUpContainer}>
+                                      {item.rampUp.map((valueDriver: IValueRampUp, indexVal: number) => {
+                                        return (
+                                          <div className={Styles.rampUpItem} key={indexVal}>
+                                            <strong>{valueDriver.year}</strong>
+                                            {!isDataValueCalcSelected && (
+                                              <div>
+                                                <IntlProvider locale={navigator.language} defaultLocale="en">
+                                                  {valueDriver.percent !== '' ? (
+                                                    <FormattedNumber value={Number(valueDriver.percent)} />
+                                                  ) : (
+                                                    ''
+                                                  )}
+                                                </IntlProvider>
+                                                %
+                                              </div>
+                                            )}
+                                            <div>
+                                              <IntlProvider locale={navigator.language} defaultLocale="en">
+                                                {valueDriver.value !== '' ? (
+                                                  <FormattedNumber value={Number(valueDriver.value)} />
+                                                ) : (
+                                                  ''
+                                                )}
+                                              </IntlProvider>
+                                              &euro;
+                                            </div>
+                                          </div>
+                                        );
+                                      })}
+                                    </div>
+                                    {/* <div className={Styles.scrollerRight}>
+                                <span>
+                                    <i className="icon mbc-icon arrow small right" />
+                                </span>
+                                </div> */}
+                                  </div>
+                                  <div className={Styles.factorItemActionWrapper}>
+                                    <div className={Styles.addButtonWrapper}>
+                                      <button
+                                        id={'editCostFactorBtn' + index}
+                                        onClick={(e: any) => this.onEditValueFactorClick(e, index)}
+                                      >
+                                        <i className="icon edit medium-grey" />
+                                        <span>Edit Value Factor</span>
+                                      </button>
+                                    </div>
+                                    <div className={Styles.addButtonWrapper}>
+                                      <button
+                                        id={'deleteCostFactorBtn' + index}
+                                        onClick={this.showDeleteValueFactorModal(index, item.description)}
+                                      >
+                                        <i className="icon delete" />
+                                        <span>Delete Value Factor</span>
+                                      </button>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    ''
+                  )
+                ) : (
+                  ''
+                )}
+              </div>
+              <div className={Styles.flexLayout}>
+                <div
+                  className={classNames(
+                    Styles.addButtonWrapper,
+                    valueDrivers ? (valueDrivers.length ? '' : Styles.setBorder) : Styles.setBorder,
+                  )}
+                >
+                  <button id="addValueFactorBtn" onClick={this.onAddValueFactorClick}>
+                    <i className="icon mbc-icon plus" />
+                    <span>Add Value Factor</span>
+                  </button>
+                </div>
+                {isDataValueCalcSelected && (
+                  <div className={Styles.dataValueTotalSection}>
+                    <label>Total {SOLUTION_DATA_VALUE_CATEGORY_TYPES[DigitalValue.dataValueSavingsKeyValue]}</label> -{' '}
+                    <IntlProvider locale={navigator.language} defaultLocale="en">
+                      <FormattedNumber value={Number(totalSavings)} /> 
+                    </IntlProvider>&euro; &nbsp;|&nbsp;{' '}
+                    <label>Total {SOLUTION_DATA_VALUE_CATEGORY_TYPES[DigitalValue.dataValueRevenueKeyValue]}</label> -{' '}
+                     <IntlProvider locale={navigator.language} defaultLocale="en">
+                      <FormattedNumber value={Number(totalRevenue)} /> 
+                    </IntlProvider>&euro;
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+        <div className={classNames(Styles.wrapper)}>
+          <div className={classNames(Styles.firstPanel)}>
             <h3>Cost Driver</h3>
             <div className={Styles.infoIcon}>
               <i className="icon mbc-icon info" onClick={this.showCostDriverInfoModal} />
@@ -445,13 +672,13 @@ export default class DigitalValue extends React.Component<IDigitalValueProps, ID
                                     <label>Value</label>
                                     <div>
                                       <IntlProvider locale={navigator.language} defaultLocale="en">
-                                        {item.value ? <FormattedNumber value={Number(item.value)} /> : ''}
+                                        {item.value !== '' ? <FormattedNumber value={Number(item.value)} /> : ''}
                                       </IntlProvider>
                                       &euro;
                                     </div>
                                   </div>
                                   <div>
-                                    <label>Source</label>
+                                    <label>Information Source</label>
                                     <div>{item.source}</div>
                                   </div>
                                 </div>
@@ -470,7 +697,11 @@ export default class DigitalValue extends React.Component<IDigitalValueProps, ID
                                             <strong>{cost.year}</strong>
                                             <div>
                                               <IntlProvider locale={navigator.language} defaultLocale="en">
-                                                {cost.value ? <FormattedNumber value={Number(cost.value)} /> : ''}
+                                                {cost.value !== '' ? (
+                                                  <FormattedNumber value={Number(cost.value)} />
+                                                ) : (
+                                                  ''
+                                                )}
                                               </IntlProvider>
                                               &euro;
                                             </div>
@@ -528,145 +759,6 @@ export default class DigitalValue extends React.Component<IDigitalValueProps, ID
                   <button id="addCostFactorBtn" onClick={this.onAddCostFactorClick}>
                     <i className="icon mbc-icon plus" />
                     <span>Add Cost Factor</span>
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div className={classNames(Styles.wrapper)}>
-          <div className={classNames(Styles.firstPanel)}>
-            <h3>Value Driver</h3>
-            <div className={Styles.infoIcon}>
-              <i className="icon mbc-icon info" onClick={this.showValueDriverInfoModal} />
-            </div>
-            <div className={Styles.digitalValueWrapper}>
-              <div id="valueDriversWrapper" className={Styles.expansionListWrapper}>
-                {valueDrivers ? (
-                  valueDrivers.length ? (
-                    <div className="expansion-panel-group">
-                      {valueDrivers.map((item: IValueFactor, index: number) => {
-                        const expansionPanelId = 'valueFactorExpPanel' + index;
-                        return (
-                          <div id={'valueDriverPanel_' + index} key={index} className="expansion-panel">
-                            <span className="animation-wrapper" />
-                            <input type="checkbox" id={expansionPanelId} />
-                            <label className="expansion-panel-label" htmlFor={expansionPanelId}>
-                              {`Value Factor ${index + 1} ${item.description}`}
-                              <i className="icon down-up-flip" />
-                            </label>
-                            <div className="expansion-panel-content">
-                              <div className={Styles.expansionnPanelContent}>
-                                <div className={classNames(Styles.flexLayout, Styles.factorInfo)}>
-                                  <div>
-                                    <label>Description</label>
-                                    <div>{item.description}</div>
-                                  </div>
-                                  <div>
-                                    <label>Category</label>
-                                    <div>{item.category}</div>
-                                  </div>
-                                  <div>
-                                    <label>Value</label>
-                                    <div>
-                                      <IntlProvider locale={navigator.language} defaultLocale="en">
-                                        {item.value ? <FormattedNumber value={Number(item.value)} /> : ''}
-                                      </IntlProvider>
-                                      &euro;
-                                    </div>
-                                  </div>
-                                  <div>
-                                    <label>Source</label>
-                                    <div>{item.source}</div>
-                                  </div>
-                                </div>
-                                <div>
-                                  <label>Ramp-up</label>
-                                  <div className={Styles.rampUpScrollableWrapper}>
-                                    {/* <div className={Styles.scrollerLeft}>
-                                <span>
-                                    <i className="icon mbc-icon arrow small left" />
-                                </span>
-                                </div> */}
-                                    <div className={Styles.rampUpContainer}>
-                                      {item.rampUp.map((valueDriver: IValueRampUp, indexVal: number) => {
-                                        return (
-                                          <div className={Styles.rampUpItem} key={indexVal}>
-                                            <strong>{valueDriver.year}</strong>
-                                            <div>
-                                              <IntlProvider locale={navigator.language} defaultLocale="en">
-                                                {valueDriver.percent ? (
-                                                  <FormattedNumber value={Number(valueDriver.percent)} />
-                                                ) : (
-                                                  ''
-                                                )}
-                                              </IntlProvider>
-                                              %
-                                            </div>
-                                            <div>
-                                              <IntlProvider locale={navigator.language} defaultLocale="en">
-                                                {valueDriver.value ? (
-                                                  <FormattedNumber value={Number(valueDriver.value)} />
-                                                ) : (
-                                                  ''
-                                                )}
-                                              </IntlProvider>
-                                              &euro;
-                                            </div>
-                                          </div>
-                                        );
-                                      })}
-                                    </div>
-                                    {/* <div className={Styles.scrollerRight}>
-                                <span>
-                                    <i className="icon mbc-icon arrow small right" />
-                                </span>
-                                </div> */}
-                                  </div>
-                                  <div className={Styles.factorItemActionWrapper}>
-                                    <div className={Styles.addButtonWrapper}>
-                                      <button
-                                        id={'editCostFactorBtn' + index}
-                                        onClick={(e: any) => this.onEditValueFactorClick(e, index)}
-                                      >
-                                        <i className="icon edit medium-grey" />
-                                        <span>Edit Value Factor</span>
-                                      </button>
-                                    </div>
-                                    <div className={Styles.addButtonWrapper}>
-                                      <button
-                                        id={'deleteCostFactorBtn' + index}
-                                        onClick={this.showDeleteValueFactorModal(index, item.description)}
-                                      >
-                                        <i className="icon delete" />
-                                        <span>Delete Value Factor</span>
-                                      </button>
-                                    </div>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  ) : (
-                    ''
-                  )
-                ) : (
-                  ''
-                )}
-              </div>
-              <div>
-                <div
-                  className={classNames(
-                    Styles.addButtonWrapper,
-                    valueDrivers ? (valueDrivers.length ? '' : Styles.setBorder) : Styles.setBorder,
-                  )}
-                >
-                  <button id="addValueFactorBtn" onClick={this.onAddValueFactorClick}>
-                    <i className="icon mbc-icon plus" />
-                    <span>Add Value Factor</span>
                   </button>
                 </div>
               </div>
@@ -865,12 +957,86 @@ export default class DigitalValue extends React.Component<IDigitalValueProps, ID
         {this.state.showAddOrEditFactorModal && (
           <AddOrEditFactorModal
             ref={this.addOrEditFactorModalRef}
+            valueCalculationType={this.state.valueCalculationType}
             factorId={this.state.currentSelectedFactor}
             editMode={this.state.editFactor}
             showAddOrEditFactorModal={this.state.showAddOrEditFactorModal}
             factorItem={this.state.factorItem}
             onAddOrEditFactorItem={this.onAddOrEditFactorItem}
             onAddOrEditFactorModalCancel={this.onAddOrEditFactorModalCancel}
+          />
+        )}
+        {this.state.showValueCalculationChangeAlertModal && (
+          <ConfirmModal
+            title={''}
+            acceptButtonTitle="Yes"
+            cancelButtonTitle={'No'}
+            showAcceptButton={true}
+            showCancelButton={true}
+            show={this.state.showValueCalculationChangeAlertModal}
+            content={
+              <>
+                <div>
+                  {valueDrivers.length ? (
+                    <h3>
+                      {this.state.valueCalculationType === DigitalValue.digitalValueTypeKeyValue ? (
+                        <>
+                          You have already filled value drivers.
+                          <br />
+                          <br />
+                          Changing value calculation from {SOLUTION_VALUE_CALCULATION_TYPES.DATA_VALUE} to{' '}
+                          {SOLUTION_VALUE_CALCULATION_TYPES.DIGITAL_VALUE} <br />
+                          may lead to data loss of value driver attributes.
+                          <br />
+                          <br />
+                          Are you sure to change the value calculation type to{' '}
+                          {SOLUTION_VALUE_CALCULATION_TYPES.DIGITAL_VALUE}?
+                        </>
+                      ) : (
+                        <>
+                          You have already filled value drivers.
+                          <br />
+                          <br />
+                          Changing value calculation from {SOLUTION_VALUE_CALCULATION_TYPES.DIGITAL_VALUE} to{' '}
+                          {SOLUTION_VALUE_CALCULATION_TYPES.DATA_VALUE} <br />
+                          may lead to data loss of value driver attributes.
+                          <br />
+                          <br />
+                          Are you sure to change the value calculation type to{' '}
+                          {SOLUTION_VALUE_CALCULATION_TYPES.DATA_VALUE}?
+                        </>
+                      )}
+                    </h3>
+                  ) : (
+                    <h3>Are you sure to change the Value Calculation?</h3>
+                  )}
+                </div>
+              </>
+            }
+            onCancel={this.onValueCalculationChangeCancel}
+            onAccept={this.onValueCalculationChangeAccept}
+          />
+        )}
+        {this.state.showValueCalculationTypeInfoModal && (
+          <InfoModal
+            title={'Type of Value Calculation'}
+            show={this.state.showValueCalculationTypeInfoModal}
+            modalWidth={'50vW'}
+            content={
+              <>
+                <h4>Digital Value</h4>
+                <p>
+                  Digital value provides the value calculation for your solution by creating the breakeven year and
+                  value based on the cost and value factors.{' '}
+                </p>
+                <h4>Data Value</h4>
+                <p>
+                  Data value is the amount of gross revenue or total savings (in €) generated by a data solution without
+                  accounting for development costs such as FTE costs, Spire costs etc.{' '}
+                </p>
+              </>
+            }
+            onCancel={this.onValueCalculationTypeInfoModalCancel}
           />
         )}
         {this.state.showMaturityLevelInfoModal && (
@@ -926,6 +1092,48 @@ export default class DigitalValue extends React.Component<IDigitalValueProps, ID
       </React.Fragment>
     );
   }
+
+  protected onValueCalculationChangeCancel = () => {
+    this.setState({
+      showValueCalculationChangeAlertModal: false,
+      valueCalculationType:
+        this.state.valueCalculationType === DigitalValue.dataValueTypeKeyValue
+          ? DigitalValue.digitalValueTypeKeyValue
+          : DigitalValue.dataValueTypeKeyValue,
+    }, () => {
+      SelectBox.defaultSetup();
+    });
+    
+  };
+
+  protected onValueCalculationChangeAccept = () => {
+    if (this.state.valueCalculationType === DigitalValue.dataValueTypeKeyValue) {
+      const {valueDrivers, costDrivers } = this.state;
+      valueDrivers.forEach((valueDriver: IValueFactor) => {
+        let value = 0;
+        (valueDriver.category !== DigitalValue.dataValueSavingsKeyValue &&
+          valueDriver.category !== DigitalValue.dataValueRevenueKeyValue) &&
+          (valueDriver.category = DigitalValue.dataValueSavingsKeyValue);
+        valueDriver.rampUp.forEach((rampUp: IValueRampUp) => {
+          rampUp.percent = '100';
+          value += parseFloat(rampUp.value);
+        });
+        valueDriver.value = value.toString();
+      });
+
+      costDrivers.forEach((costDriver: ICostFactor) => {
+        let value = 0;
+        costDriver.rampUp.forEach((rampUp: IValueRampUp) => {
+          value += parseFloat(rampUp.value);
+        });
+        costDriver.value = value.toString();
+      });
+    }
+    this.setState({
+      showValueCalculationChangeAlertModal: false
+    });
+  };
+
   public resetChanges = () => {
     if (this.props.digitalValue) {
       this.updateComponentValues(this.props.digitalValue, true);
@@ -942,6 +1150,7 @@ export default class DigitalValue extends React.Component<IDigitalValueProps, ID
           commentOnBenefitRealizationRisk: '',
         };
     digitalValueObj.assessment = digitalValueObj.assessment ? digitalValueObj.assessment : tempAssessment;
+    const valueCalculationType = digitalValueObj.typeOfCalculation || DigitalValue.digitalValueTypeKeyValue; // By Default Digital Value calculation type used if the value is null
     const digitalValue = digitalValueObj.digitalValue ? digitalValueObj.digitalValue.toString() : '';
     const digitalValueComment = digitalValueObj.digitalValueComment;
     const effortValue = digitalValueObj.digitalEffort ? digitalValueObj.digitalEffort.toString() : '';
@@ -955,6 +1164,7 @@ export default class DigitalValue extends React.Component<IDigitalValueProps, ID
     const permissions = digitalValueObj.permissions;
     this.setState(
       {
+        valueCalculationType,
         digitalValue,
         digitalValueComment,
         effortValue,
@@ -974,7 +1184,6 @@ export default class DigitalValue extends React.Component<IDigitalValueProps, ID
   };
 
   protected modifyAttachments = (attachments: IAttachment[]) => {
-    // console.log(attachments);
     this.setState({ attachments });
   };
 
@@ -1071,6 +1280,13 @@ export default class DigitalValue extends React.Component<IDigitalValueProps, ID
         this.commentAreaInput.focus();
       },
     );
+  };
+
+  protected onValueCalculationTypeChange = (e: React.FormEvent<HTMLSelectElement>) => {
+    const valueCalculationType = e.currentTarget.selectedOptions[0].value;
+    if (valueCalculationType !== this.state.valueCalculationType) {
+      this.setState({ valueCalculationType, showValueCalculationChangeAlertModal: true });
+    }
   };
 
   protected onMaturityLevelChange = (e: React.FormEvent<HTMLSelectElement>) => {
@@ -1211,6 +1427,7 @@ export default class DigitalValue extends React.Component<IDigitalValueProps, ID
 
   protected getDigitalValueObj() {
     return {
+      typeOfCalculation: this.state.valueCalculationType,
       digitalValue: this.state.digitalValue ? parseFloat(this.state.digitalValue) : null,
       digitalValueComment: this.state.digitalValueComment,
       digitalEffort: this.state.effortValue ? parseFloat(this.state.effortValue) : null,
@@ -1565,6 +1782,14 @@ export default class DigitalValue extends React.Component<IDigitalValueProps, ID
         }
       }
     });
+  };
+
+  protected showValueCalculationTypeInfoModal = () => {
+    this.setState({ showValueCalculationTypeInfoModal: true });
+  };
+
+  protected onValueCalculationTypeInfoModalCancel = () => {
+    this.setState({ showValueCalculationTypeInfoModal: false });
   };
 
   protected showMaturityLevelInfoModal = () => {

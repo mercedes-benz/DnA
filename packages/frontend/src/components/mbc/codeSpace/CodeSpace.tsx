@@ -643,42 +643,92 @@ const CodeSpace = (props: ICodeSpaceProps) => {
                   </div>
                 </div>
               </div>
-              <div>
-                <label className="checkbox">
-                  <span className="wrapper">
-                    <input
-                      type="checkbox"
-                      className="ff-only"
-                      checked={secureWithIAMSelected}
-                      onChange={onChangeSecureWithIAM}
-                    />
-                  </span>
-                  <span className="label">Secure with IAM</span>
-                </label>
-              </div>
-              {secureWithIAMSelected && (
-                <div className={Styles.flexLayout}>
-                  <div>
-                    <TextBox
-                      type="text"
-                      controlId={'iamTechnicalUserID'}
-                      labelId={'iamTechnicalUserIDLabel'}
-                      label={'Technical User ID'}
-                      placeholder={'IAM Technical User Id'}
-                      value={iamTechnicalUserID}
-                      errorText={iamTechnicalUserIDError}
-                      required={true}
-                      maxLength={7}
-                      onChange={onIAMTechnicalUserIDOnChange}
-                    />
-                  </div>
-                  <div className={Styles.createTechUserWrapper}>
-                    <a href={IAM_URL} target="_blank" rel="noreferrer">
-                      Create a new technical user in IAM
-                    </a>
-                  </div>
-                </div>
-              )}
+              {(!codeSpaceData.projectDetails.recipeDetails?.recipeId.match(/^(react|angular)$/)) &&
+                <>
+                  {deployEnvironment === 'staging' &&
+                    <>
+                      <div>
+                        <label className="checkbox">
+                          <span className="wrapper">
+                            <input
+                              type="checkbox"
+                              className="ff-only"
+                              checked={secureWithIAMSelected}
+                              onChange={onChangeSecureWithIAM}
+                              disabled={codeSpaceData.projectDetails?.intDeploymentDetails?.secureWithIAMRequired}
+                            />
+                          </span>
+                          <span className="label">Secure with IAM</span>
+                        </label>
+                      </div>
+                      {secureWithIAMSelected && (
+                        <div className={classNames(Styles.flexLayout, codeSpaceData.projectDetails?.intDeploymentDetails?.secureWithIAMRequired && Styles.disabledDiv)}>
+                          <div>
+                            <TextBox
+                              type="text"
+                              controlId={'iamTechnicalUserID'}
+                              labelId={'iamTechnicalUserIDLabel'}
+                              label={'Technical User ID'}
+                              placeholder={'IAM Technical User Id'}
+                              value={iamTechnicalUserID}
+                              errorText={iamTechnicalUserIDError}
+                              required={true}
+                              maxLength={7}
+                              onChange={onIAMTechnicalUserIDOnChange}
+                            />
+                          </div>
+                          <div className={Styles.createTechUserWrapper}>
+                            <a href={IAM_URL} target="_blank" rel="noreferrer">
+                              Create a new technical user in IAM (Enabled only with Production IAM)
+                            </a>
+                          </div>
+                        </div>
+                      )}
+                    </>
+                  }
+                  {deployEnvironment === 'production' &&
+                    <>
+                      <div>
+                        <label className="checkbox">
+                          <span className="wrapper">
+                            <input
+                              type="checkbox"
+                              className="ff-only"
+                              checked={secureWithIAMSelected}
+                              onChange={onChangeSecureWithIAM}
+                              disabled={codeSpaceData.projectDetails?.prodDeploymentDetails?.secureWithIAMRequired}
+                            />
+                          </span>
+                          <span className="label">Secure with IAM</span>
+                        </label>
+                      </div>
+                      {secureWithIAMSelected && (
+                        <div className={classNames(Styles.flexLayout, codeSpaceData.projectDetails?.prodDeploymentDetails?.secureWithIAMRequired && Styles.disabledDiv)}>
+                          <div>
+                            <TextBox
+                              type="text"
+                              controlId={'iamTechnicalUserID'}
+                              labelId={'iamTechnicalUserIDLabel'}
+                              label={'Technical User ID'}
+                              placeholder={'IAM Technical User Id'}
+                              value={iamTechnicalUserID}
+                              errorText={iamTechnicalUserIDError}
+                              required={true}
+                              maxLength={7}
+                              onChange={onIAMTechnicalUserIDOnChange}
+                            />
+                          </div>
+                          <div className={Styles.createTechUserWrapper}>
+                            <a href={IAM_URL} target="_blank" rel="noreferrer">
+                              Create a new technical user in IAM (Enabled only with Production IAM)
+                            </a>
+                          </div>
+                        </div>
+                      )}
+                    </>
+                  }
+                </>
+              }
               <div>
                 <label className="checkbox">
                   <span className="wrapper">

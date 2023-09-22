@@ -80,6 +80,7 @@ const CreateNewPipeline = (props: ICreateNewPipelineProps) => {
   const [isFsEnable, setIsFsEnable] = useState<boolean>(false);
   const [activeDagLength, setActiveDagLength] = useState<number>();
   const [isApiCallTakeTime, setIsApiCallTakeTime] = useState<boolean>(false);
+  const [livelinessInterval, setLivelinessInterval] = useState<NodeJS.Timer>();
 
   const fsActive = () => {
     setIsFsEnable(!isFsEnable);
@@ -281,7 +282,7 @@ const CreateNewPipeline = (props: ICreateNewPipelineProps) => {
       lastName: collaborators.lastName,
       email: collaborators.email,
       username: collaborators.shortId,
-      permissions: ['can_dag_read', 'can_dag_edit'] as string[],
+      permissions: ['can_read', 'can_edit'] as string[],
     };
     const modDagList = dagsList.filter((item: IPipelineProjectDag) => {
       return item.dagName === dagId;
@@ -352,13 +353,13 @@ const CreateNewPipeline = (props: ICreateNewPipelineProps) => {
         dagIndex = itemIndex;
         return item.dagName == dagId;
       });
-      if (dagItem.collaborators[index].permissions.includes('can_dag_edit')) {
+      if (dagItem.collaborators[index].permissions.includes('can_edit')) {
         dagItem.collaborators[index].permissions.splice(
-          dagItem.collaborators[index].permissions.indexOf('can_dag_edit'),
+          dagItem.collaborators[index].permissions.indexOf('can_edit'),
           1,
         );
       } else {
-        dagItem.collaborators[index].permissions.push('can_dag_edit');
+        dagItem.collaborators[index].permissions.push('can_edit');
       }
       dagsList[dagIndex] = dagItem;
       setDagsList([...dagsList]);
@@ -409,11 +410,15 @@ const CreateNewPipeline = (props: ICreateNewPipelineProps) => {
     setIsApiCallTakeTime(true);
     PipelineApiClient.addNewProject(data)
       .then((response) => {
-        history.push(`/pipeline`);
-        Notification.show('New Project Created successfully!');
-        setCreateProjectError('');
-        setIsApiCallTakeTime(false);
-        ProgressIndicator.hide();
+        if (response?.data?.projectStatus === "CREATE_REQUESTED") {
+          enableLivelinessCheck(response?.data?.projectId);
+        } else {
+          history.push(`/pipeline`);
+          Notification.show('New Project Created successfully!');
+          setCreateProjectError('');
+          setIsApiCallTakeTime(false);
+          ProgressIndicator.hide();
+        }
       })
       .catch((err: IError) => {
         setCreateProjectError(err.message);
@@ -421,6 +426,45 @@ const CreateNewPipeline = (props: ICreateNewPipelineProps) => {
         ProgressIndicator.hide();
       });
   };
+
+  const switchBackToPipeline = () => {
+    history.push(`/pipeline`);
+    setCreateProjectError('');
+    setIsApiCallTakeTime(false);
+    clearInterval(livelinessInterval);
+    ProgressIndicator.hide();
+  };
+
+  const enableLivelinessCheck = (id: string) => {
+    // Clear the existing interval using the state value
+    clearInterval(livelinessInterval);
+
+    const intervalId = setInterval(() => {
+      PipelineApiClient.getPiplineStatus(id)
+        .then((res) => {
+          try {
+            if (res?.data?.projectStatus === 'CREATED') {
+              ProgressIndicator.hide();
+              clearInterval(intervalId);  // Use intervalId directly here
+              switchBackToPipeline();
+              Notification.show('New Project Created successfully.');
+            }
+          } catch (err: any) {
+            console.log(err);
+          }
+        })
+        .catch((err: Error) => {
+          clearInterval(intervalId);  // Use intervalId directly here
+          ProgressIndicator.hide();
+          setCreateProjectError(err.message);
+          setIsApiCallTakeTime(false);
+          Notification.show('Error in validating pipeline - ' + err.message, 'alert');
+          switchBackToPipeline();
+        });
+    }, 2000);
+    setLivelinessInterval(intervalId);
+  };
+
   const editCodeCurrentDag = (dagId: string, dagContent: string, isActive: boolean, dagIndex: number) => {
     return () => {
       setCodeEditor(true);
@@ -822,7 +866,7 @@ const CreateNewPipeline = (props: ICreateNewPipelineProps) => {
                                                           <input
                                                             type="checkbox"
                                                             className="ff-only"
-                                                            value="can_dag_read"
+                                                            value="can_read"
                                                             checked={true}
                                                           />
                                                         </span>
@@ -840,10 +884,10 @@ const CreateNewPipeline = (props: ICreateNewPipelineProps) => {
                                                           <input
                                                             type="checkbox"
                                                             className="ff-only"
-                                                            value="can_dag_edit"
+                                                            value="can_edit"
                                                             checked={
                                                               item.permissions !== null
-                                                                ? item.permissions.includes('can_dag_edit')
+                                                                ? item.permissions.includes('can_edit')
                                                                 : false
                                                             }
                                                             onClick={onPermissionEdit(dagItem.dagName, collIndex)}
@@ -959,7 +1003,15 @@ const CreateNewPipeline = (props: ICreateNewPipelineProps) => {
           onAccept={deleteDagAcceptLocal}
         />
       )}
-      {isApiCallTakeTime && <ProgressWithMessage message={'Please wait as this process can take up to a minute....'} />}
+      {isApiCallTakeTime && <ProgressWithMessage message={
+        <>
+          Please wait as this process can take up to a minute....
+          <br />
+          <button className="btn btn-text back arrow" onClick={switchBackToPipeline}>
+            Back to Pipeline
+          </button>
+        </>
+      } />}
     </React.Fragment>
   );
 };

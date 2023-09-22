@@ -1271,6 +1271,7 @@ export interface IDataCompliance {
 }
 
 export interface IDigitalValue {
+  typeOfCalculation?: string;
   digitalValue?: number;
   digitalValueComment?: string;
   digitalEffort?: number;
@@ -1283,6 +1284,7 @@ export interface IDigitalValue {
   permissions: ITeams[];
   assessment: IAssessment;
   valueCalculator?: IValueCalculator;
+  dataValueCalculator?: IValueCalculator;
 }
 
 export interface IValueCalculator {
@@ -1430,6 +1432,7 @@ export interface ISubsriptionExpiryObjectData {
   data: ISubsriptionExpiryObject;
 }
 export interface IPipelineProjectDetail {
+  projectStatus: string;
   projectId: string;
   projectName: string;
   projectDescription: string;

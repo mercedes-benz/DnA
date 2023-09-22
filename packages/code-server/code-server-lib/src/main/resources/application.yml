@@ -40,7 +40,10 @@ spring:
 dna:
   uri: ${DNA_URI:XXXXXX}
   dnaAuthEnable: ${DNA_AUTH_ENABLE:false}
-  
+
+codeserver:
+  userauth: ${CODESERVER_USERAUTH:XXXX}
+    
 authenticator:
    uri: ${AUTHENTICATOR_URI:XXXX}  
   
@@ -117,6 +120,7 @@ kong:
    realm: ${REALM:XXXX}
    redirectAfterLogoutUri: ${REDIRECT_AFTER_LOGOUT_URI:XXXX}
    redirectUriPath: ${REDIRECT_URI_PATH:XXXX}
+   revokeTokensOnLogout: ${REVOKE_TOKENS_ON_LOGOUT:XXXX}
    responseType: ${RESPONSE_TYPE:XXXX}
    scope: ${SCOPE:XXXX}
    sslVerify: ${SSL_VERIFY:XXXX}
@@ -129,6 +133,8 @@ kong:
    jwtClientId: ${JWT_CLIENT_ID:XXXX}
    jwtClientSecret: ${JWT_CLIENT_SECRET:XXXX}
    uiRecipesToUseOidc: ${UI_RECIPES_TO_USE_OIDC:XXXX}
+   enableAuthTokenIntrospection: ${enableAuthTokenIntrospection:XXXX}
+   csvalidateurl: ${csvalidateurl:XXXX}
 
 workspace:
   update: ${UPDATE_WORKSPACEDATA:XXXX}   
