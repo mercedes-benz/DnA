@@ -977,7 +977,7 @@ export default class DigitalValue extends React.Component<IDigitalValueProps, ID
             content={
               <>
                 <div>
-                  {valueDrivers.length ? (
+                  {valueDrivers?.length ? (
                     <h3>
                       {this.state.valueCalculationType === DigitalValue.digitalValueTypeKeyValue ? (
                         <>
