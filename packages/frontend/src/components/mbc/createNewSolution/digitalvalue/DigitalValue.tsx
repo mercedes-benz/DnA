@@ -620,7 +620,7 @@ export default class DigitalValue extends React.Component<IDigitalValueProps, ID
                     <span>Add Value Factor</span>
                   </button>
                 </div>
-                {isDataValueCalcSelected && (
+                {valueDrivers && isDataValueCalcSelected && (
                   <div className={Styles.dataValueTotalSection}>
                     <label>Total {SOLUTION_DATA_VALUE_CATEGORY_TYPES[DigitalValue.dataValueSavingsKeyValue]}</label> -{' '}
                     <IntlProvider locale={navigator.language} defaultLocale="en">
