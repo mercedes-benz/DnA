@@ -8,6 +8,7 @@ configJs: |
       ENABLE_MATOMO_SERVICE=true,
       MATOMO_MFE_APP_URL="http://localhost:8089",
       MATOMO_API_BASEURL="http://localhost:8989/api"
+      MATOMO_APP_URL='YOUR_MATOMO_APP_URL'
     };
 
 replicaCount: 1
