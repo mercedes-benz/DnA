@@ -657,9 +657,9 @@ public class SolutionAssembler implements GenericAssembler<SolutionVO, SolutionN
 					CalculatedDataValueRampupYearsVO calculatedDataValueRampUpYearsVO = new CalculatedDataValueRampupYearsVO();
 					List<CalculatedDataValueRampUpYearVO> savingsRampUpsVO = new ArrayList<>();
 					List<CalculatedDataValueRampUpYearVO> revenueRampUpsVO = new ArrayList<>();
-					ValueFactorSummary savingsSummary = dataValueCalculator.getRevenueValueFactorSummary();
+					ValueFactorSummary savingsSummary = dataValueCalculator.getSavingsValueFactorSummary();
 					ValueFactorSummaryVO revenueValueFactorSummaryVO = new ValueFactorSummaryVO();
-					ValueFactorSummary revenueSummary = dataValueCalculator.getSavingsValueFactorSummary();
+					ValueFactorSummary revenueSummary = dataValueCalculator.getRevenueValueFactorSummary();
 					ValueFactorSummaryVO savingsValueFactorSummaryVO = new ValueFactorSummaryVO();
 					if(savingsSummary!=null) {
 						BeanUtils.copyProperties(savingsSummary, savingsValueFactorSummaryVO);
