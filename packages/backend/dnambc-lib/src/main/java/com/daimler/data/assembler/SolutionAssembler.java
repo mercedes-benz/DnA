@@ -231,6 +231,7 @@ public class SolutionAssembler implements GenericAssembler<SolutionVO, SolutionN
         		currRampUp.setYear(currYear);
         		currRampUp.setValue(currValue);
         		savingsTotalSummary.add(currValue);
+        		LOGGER.info("Adding {} and {} to datavalueSavingsRampupList",currYear,currValue);
         		savingsRampUps.add(currRampUp);
         		savingsEndYear = currYear.toString();
         	}
@@ -255,6 +256,7 @@ public class SolutionAssembler implements GenericAssembler<SolutionVO, SolutionN
         		currRampUp.setYear(currYear);
         		currRampUp.setValue(currValue);
         		revenueTotalSummary.add(currValue);
+        		LOGGER.info("Adding {} and {} to datavalueRevenueRampupList",currYear,currValue);
         		revenueRampUps.add(currRampUp);
         		revenueEndYear = currYear.toString();
         	}
@@ -649,34 +651,36 @@ public class SolutionAssembler implements GenericAssembler<SolutionVO, SolutionN
 				digitalValueDetailsVO.setTypeOfCalculation(calculationType);
 				DataValueCalculatorVO dataValueCalculatorVO = new DataValueCalculatorVO(); 
 				DataValueCalculator dataValueCalculator = digitalValueDetails.getDataValueCalculator();
-				CalculatedValueRampUpYears dataValueRampUps = dataValueCalculator.getCalculatedDataValueRampUpYears();
-				CalculatedDataValueRampupYearsVO calculatedDataValueRampUpYearsVO = new CalculatedDataValueRampupYearsVO();
-				List<CalculatedDataValueRampUpYearVO> savingsRampUpsVO = new ArrayList<>();
-				List<CalculatedDataValueRampUpYearVO> revenueRampUpsVO = new ArrayList<>();
-				ValueFactorSummary savingsSummary = dataValueCalculator.getRevenueValueFactorSummary();
-				ValueFactorSummaryVO revenueValueFactorSummaryVO = new ValueFactorSummaryVO();
-				ValueFactorSummary revenueSummary = dataValueCalculator.getSavingsValueFactorSummary();
-				ValueFactorSummaryVO savingsValueFactorSummaryVO = new ValueFactorSummaryVO();
-				if(savingsSummary!=null) {
-					BeanUtils.copyProperties(savingsSummary, savingsValueFactorSummaryVO);
-					dataValueCalculatorVO.setSavingsValueFactorSummaryVO(savingsValueFactorSummaryVO);
-				}
-				if(revenueSummary!=null) {
-					BeanUtils.copyProperties(revenueSummary, revenueValueFactorSummaryVO);
-					dataValueCalculatorVO.setRevenueValueFactorSummaryVO(revenueValueFactorSummaryVO);
-				}
-				if(dataValueRampUps!=null) {
-					List<DataValueRampUpYear> revenueRampUps = dataValueRampUps.getRevenue();
-					if(revenueRampUps!=null && !revenueRampUps.isEmpty()) {
-						revenueRampUpsVO = revenueRampUps.stream().map(n-> this.toCalculatedDataValueRampUpYearVO(n)).collect(Collectors.toList());
-						calculatedDataValueRampUpYearsVO.setRevenue(revenueRampUpsVO);
+				if(dataValueCalculator!=null) {
+					CalculatedValueRampUpYears dataValueRampUps = dataValueCalculator.getCalculatedDataValueRampUpYears();
+					CalculatedDataValueRampupYearsVO calculatedDataValueRampUpYearsVO = new CalculatedDataValueRampupYearsVO();
+					List<CalculatedDataValueRampUpYearVO> savingsRampUpsVO = new ArrayList<>();
+					List<CalculatedDataValueRampUpYearVO> revenueRampUpsVO = new ArrayList<>();
+					ValueFactorSummary savingsSummary = dataValueCalculator.getRevenueValueFactorSummary();
+					ValueFactorSummaryVO revenueValueFactorSummaryVO = new ValueFactorSummaryVO();
+					ValueFactorSummary revenueSummary = dataValueCalculator.getSavingsValueFactorSummary();
+					ValueFactorSummaryVO savingsValueFactorSummaryVO = new ValueFactorSummaryVO();
+					if(savingsSummary!=null) {
+						BeanUtils.copyProperties(savingsSummary, savingsValueFactorSummaryVO);
+						dataValueCalculatorVO.setSavingsValueFactorSummaryVO(savingsValueFactorSummaryVO);
 					}
-					List<DataValueRampUpYear> savingsRampUps = dataValueRampUps.getRevenue();
-					if(savingsRampUps!=null && !savingsRampUps.isEmpty()) {
-						savingsRampUpsVO = savingsRampUps.stream().map(n-> this.toCalculatedDataValueRampUpYearVO(n)).collect(Collectors.toList());
-						calculatedDataValueRampUpYearsVO.setSavings(savingsRampUpsVO);
+					if(revenueSummary!=null) {
+						BeanUtils.copyProperties(revenueSummary, revenueValueFactorSummaryVO);
+						dataValueCalculatorVO.setRevenueValueFactorSummaryVO(revenueValueFactorSummaryVO);
 					}
-					dataValueCalculatorVO.setCalculatedValueRampUpYearsVO(calculatedDataValueRampUpYearsVO);
+					if(dataValueRampUps!=null) {
+						List<DataValueRampUpYear> revenueRampUps = dataValueRampUps.getRevenue();
+						if(revenueRampUps!=null && !revenueRampUps.isEmpty()) {
+							revenueRampUpsVO = revenueRampUps.stream().map(n-> this.toCalculatedDataValueRampUpYearVO(n)).collect(Collectors.toList());
+							calculatedDataValueRampUpYearsVO.setRevenue(revenueRampUpsVO);
+						}
+						List<DataValueRampUpYear> savingsRampUps = dataValueRampUps.getRevenue();
+						if(savingsRampUps!=null && !savingsRampUps.isEmpty()) {
+							savingsRampUpsVO = savingsRampUps.stream().map(n-> this.toCalculatedDataValueRampUpYearVO(n)).collect(Collectors.toList());
+							calculatedDataValueRampUpYearsVO.setSavings(savingsRampUpsVO);
+						}
+						dataValueCalculatorVO.setCalculatedValueRampUpYearsVO(calculatedDataValueRampUpYearsVO);
+					}
 				}
 				digitalValueDetails.setDataValueCalculator(dataValueCalculator);
 
@@ -1361,9 +1365,14 @@ public class SolutionAssembler implements GenericAssembler<SolutionVO, SolutionN
 						valueCalculator.setCostFactorSummary(costFactorSummary);
 					}
 					//datavaluecalculator mappings
-					digitalValueDetails.setTypeOfCalculation(digitalValueDetailsVO.getTypeOfCalculation().name());
+					String calculationType = "DIGITAL_VALUE";
+					if(digitalValueDetailsVO.getTypeOfCalculation()!=null && "DATA_VALUE".equalsIgnoreCase(digitalValueDetailsVO.getTypeOfCalculation().name())) {
+						calculationType = "DATA_VALUE";
+					}
+					digitalValueDetails.setTypeOfCalculation(calculationType);
 					DataValueCalculatorVO dataValueCalculatorVO = digitalValueDetailsVO.getDataValueCalculator();
 					DataValueCalculator dataValueCalculator = new DataValueCalculator();
+					if(dataValueCalculatorVO!=null) {
 					CalculatedValueRampUpYears dataValueRampUps = new CalculatedValueRampUpYears();
 					ValueFactorSummary savingsSummary = new ValueFactorSummary();
 					ValueFactorSummary revenueSummary = new ValueFactorSummary();
@@ -1388,6 +1397,7 @@ public class SolutionAssembler implements GenericAssembler<SolutionVO, SolutionN
 							dataValueRampUps.setSavings(savingsRampUps);
 						}
 						dataValueCalculator.setCalculatedDataValueRampUpYears(dataValueRampUps);
+					}
 					}
 					digitalValueDetails.setDataValueCalculator(dataValueCalculator);
 					// Setting Value Factor summary
