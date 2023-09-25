@@ -43,6 +43,7 @@ import lombok.NoArgsConstructor;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class SolutionDigitalValue implements Serializable {
 
+	private String typeOfCalculation;
 	private BigDecimal digitalValue;
 	private String digitalValueComment;
 	private BigDecimal digitalEffort;
@@ -59,4 +60,5 @@ public class SolutionDigitalValue implements Serializable {
 	private List<SolutionTeamMember> permissions;
 	private List<ChangeLogs> changeLogs;
 	private ValueCalculator valueCalculator;
+	private DataValueCalculator dataValueCalculator;
 }
