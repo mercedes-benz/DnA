@@ -32,14 +32,17 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.AbstractMap.SimpleEntry;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Map.Entry;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.TreeMap;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -57,11 +60,14 @@ import com.daimler.data.db.entities.SolutionNsql;
 import com.daimler.data.db.jsonb.SubDivision;
 import com.daimler.data.db.jsonb.solution.AssessmentDetails;
 import com.daimler.data.db.jsonb.solution.CalculatedDigitalValue;
+import com.daimler.data.db.jsonb.solution.CalculatedValueRampUpYears;
 import com.daimler.data.db.jsonb.solution.ChangeLogs;
 import com.daimler.data.db.jsonb.solution.CostDriver;
 import com.daimler.data.db.jsonb.solution.CostFactorSummary;
 import com.daimler.data.db.jsonb.solution.CreatedBy;
 import com.daimler.data.db.jsonb.solution.CurrentPhase;
+import com.daimler.data.db.jsonb.solution.DataValueCalculator;
+import com.daimler.data.db.jsonb.solution.DataValueRampUpYear;
 import com.daimler.data.db.jsonb.solution.Factor;
 import com.daimler.data.db.jsonb.solution.FileDetails;
 import com.daimler.data.db.jsonb.solution.LogoDetails;
@@ -102,6 +108,8 @@ import com.daimler.data.dto.marketingCommunicationChannel.MarketingCommunication
 import com.daimler.data.dto.platform.PlatformVO;
 import com.daimler.data.dto.result.ResultVO;
 import com.daimler.data.dto.solution.AssessmentDetailsVO;
+import com.daimler.data.dto.solution.CalculatedDataValueRampUpYearVO;
+import com.daimler.data.dto.solution.CalculatedDataValueRampupYearsVO;
 import com.daimler.data.dto.solution.CalculatedDigitalValueVO;
 import com.daimler.data.dto.solution.CalculatedValueRampUpYearVO;
 import com.daimler.data.dto.solution.ChangeLogVO;
@@ -110,6 +118,7 @@ import com.daimler.data.dto.solution.CostFactorVO;
 import com.daimler.data.dto.solution.CostRampUpYearVO;
 import com.daimler.data.dto.solution.CreatedByVO;
 import com.daimler.data.dto.solution.DataSourceSummaryVO;
+import com.daimler.data.dto.solution.DataValueCalculatorVO;
 import com.daimler.data.dto.solution.LinkVO;
 import com.daimler.data.dto.solution.LogoDetailsVO;
 import com.daimler.data.dto.solution.MarketingRoleSummaryVO;
@@ -122,6 +131,7 @@ import com.daimler.data.dto.solution.SolutionCurrentPhase;
 import com.daimler.data.dto.solution.SolutionDataComplianceVO;
 import com.daimler.data.dto.solution.SolutionDataSourceVO;
 import com.daimler.data.dto.solution.SolutionDigitalValueVO;
+import com.daimler.data.dto.solution.SolutionDigitalValueVO.TypeOfCalculationEnum;
 import com.daimler.data.dto.solution.SolutionDivisionVO;
 import com.daimler.data.dto.solution.SolutionLocationVO;
 import com.daimler.data.dto.solution.SolutionMarketingVO;
@@ -152,6 +162,117 @@ public class SolutionAssembler implements GenericAssembler<SolutionVO, SolutionN
 
 	private Logger LOGGER = LoggerFactory.getLogger(SolutionAssembler.class);
 
+	public DataValueCalculatorVO dataValueCalculator(SolutionDigitalValueVO solutionDigitalValueVO) {
+        DataValueCalculatorVO datavalueCalculatorVO = new DataValueCalculatorVO();
+        CalculatedDataValueRampupYearsVO calculatedDataValueRampUps = new CalculatedDataValueRampupYearsVO();
+        List<CalculatedDataValueRampUpYearVO> savingsRampUps = new ArrayList<>();
+        List<CalculatedDataValueRampUpYearVO> revenueRampUps = new ArrayList<>();
+        ValueFactorSummaryVO savingsSummary = new ValueFactorSummaryVO();
+        ValueFactorSummaryVO revenueSummary = new ValueFactorSummaryVO();
+        if("DATA_VALUE".equalsIgnoreCase(solutionDigitalValueVO.getTypeOfCalculation().getDeclaringClass().getName())){
+        	List<ValueRampUpYearVO> savingsList = new ArrayList<>();
+        	List<ValueRampUpYearVO> revenueList = new ArrayList<>();
+        	HashMap<BigDecimal,BigDecimal> savingsMap = new HashMap<>();
+        	HashMap<BigDecimal,BigDecimal> revenueMap = new HashMap<>();
+        	List<CalculatedDataValueRampUpYearVO> savingsCalculatedList = new ArrayList<>();
+        	List<CalculatedDataValueRampUpYearVO> revenueCalculatedList = new ArrayList<>();
+        	List<ValueFactorVO> valueFactors = solutionDigitalValueVO.getValueDrivers();
+        	for(ValueFactorVO valueFactor: valueFactors) {
+        		if("SAVINGS".equalsIgnoreCase(valueFactor.getCategory())) {
+        			savingsList.addAll(valueFactor.getRampUp());
+        		}
+        		if("REVENUE".equalsIgnoreCase(valueFactor.getCategory())) {
+        			revenueList.addAll(valueFactor.getRampUp());
+        		}
+        	}
+        	Comparator<ValueRampUpYearVO> comparatorBasedOnYear = (v1, v2) -> (v2.getYear().compareTo(v1.getYear()));
+        	if(savingsList!=null && !savingsList.isEmpty()) {
+        		Collections.sort(savingsList,comparatorBasedOnYear);
+        		for(ValueRampUpYearVO rampUp: savingsList) {
+        			BigDecimal currentYear = rampUp.getYear();
+        			BigDecimal currentValue = rampUp.getValue();
+        			BigDecimal existingValue = savingsMap.get(currentYear);
+        			if(existingValue!=null) {
+        				existingValue.add(currentValue);
+        				savingsMap.put(currentYear, existingValue);
+        			}else {
+        				savingsMap.put(currentYear, currentValue);
+        			}
+        		}
+        	}
+        	if(revenueList!=null && !revenueList.isEmpty()) {
+        		Collections.sort(revenueList,comparatorBasedOnYear);
+        		for(ValueRampUpYearVO rampUp: revenueList) {
+        			BigDecimal currentYear = rampUp.getYear();
+        			BigDecimal currentValue = rampUp.getValue();
+        			BigDecimal existingValue = revenueMap.get(currentYear);
+        			if(existingValue!=null) {
+        				existingValue.add(currentValue);
+        				revenueMap.put(currentYear, existingValue);
+        			}else {
+        				revenueMap.put(currentYear, currentValue);
+        			}
+        		}
+        	}
+        	Iterator savingsIterator = savingsMap.entrySet().iterator();
+        	String savingsStartYear = "";
+        	String savingsEndYear = "";
+        	BigDecimal savingsTotalSummary = new BigDecimal("0");
+        	boolean isStarting = true;
+        	while(savingsIterator.hasNext()) {
+        		Map.Entry mapElement = (Map.Entry)savingsIterator.next();
+        		BigDecimal currYear = (BigDecimal) mapElement.getKey();
+        		BigDecimal currValue = (BigDecimal) mapElement.getValue();
+        		CalculatedDataValueRampUpYearVO currRampUp = new CalculatedDataValueRampUpYearVO();
+        		if(isStarting) {
+        			savingsStartYear = currYear.toString();
+        			isStarting = false;
+        		}
+        		currRampUp.setYear(currYear);
+        		currRampUp.setValue(currValue);
+        		savingsTotalSummary.add(currValue);
+        		savingsRampUps.add(currRampUp);
+        		savingsEndYear = currYear.toString();
+        	}
+        	String savingsYear = savingsStartYear + "-" + savingsEndYear;
+        	savingsSummary.setYear(savingsYear);
+        	savingsSummary.setValue(savingsTotalSummary);
+        	
+        	Iterator revenueIterator = savingsMap.entrySet().iterator();
+        	String revenueStartYear = "";
+        	String revenueEndYear = "";
+        	BigDecimal revenueTotalSummary = new BigDecimal("0");
+        	boolean isRevenueStarting = true;
+        	while(revenueIterator.hasNext()) {
+        		Map.Entry mapElement = (Map.Entry)revenueIterator.next();
+        		BigDecimal currYear = (BigDecimal) mapElement.getKey();
+        		BigDecimal currValue = (BigDecimal) mapElement.getValue();
+        		CalculatedDataValueRampUpYearVO currRampUp = new CalculatedDataValueRampUpYearVO();
+        		if(isRevenueStarting) {
+        			revenueStartYear = currYear.toString();
+        			isRevenueStarting = false;
+        		}
+        		currRampUp.setYear(currYear);
+        		currRampUp.setValue(currValue);
+        		revenueTotalSummary.add(currValue);
+        		revenueRampUps.add(currRampUp);
+        		revenueEndYear = currYear.toString();
+        	}
+        	String revenueYear = revenueStartYear + "-" + revenueEndYear;
+        	revenueSummary.setYear(revenueYear);
+        	revenueSummary.setValue(revenueTotalSummary);
+        	datavalueCalculatorVO.setRevenueValueFactorSummaryVO(revenueSummary);
+        	datavalueCalculatorVO.setSavingsValueFactorSummaryVO(revenueSummary);
+        	calculatedDataValueRampUps.setSavings(savingsRampUps);
+        	calculatedDataValueRampUps.setRevenue(revenueRampUps);
+        	datavalueCalculatorVO.setCalculatedValueRampUpYearsVO(calculatedDataValueRampUps);
+        	return datavalueCalculatorVO;
+        }else {
+        	return datavalueCalculatorVO;
+        }
+	}
+	
+	
 	@Override
 	public SolutionVO toVo(SolutionNsql entity) {
 		SolutionVO vo = new SolutionVO();
@@ -519,6 +640,45 @@ public class SolutionAssembler implements GenericAssembler<SolutionVO, SolutionN
 					}
 					digitalValueDetailsVO.setPermissions(teamMemberVOList);
 				}
+				
+				//datavaluecalculator mappings
+				TypeOfCalculationEnum calculationType = TypeOfCalculationEnum.DIGITAL_VALUE;
+				if(digitalValueDetails.getTypeOfCalculation()!=null && "DATA_VALUE".equalsIgnoreCase(digitalValueDetails.getTypeOfCalculation())) {
+					calculationType = TypeOfCalculationEnum.DATA_VALUE;
+				}
+				digitalValueDetailsVO.setTypeOfCalculation(calculationType);
+				DataValueCalculatorVO dataValueCalculatorVO = new DataValueCalculatorVO(); 
+				DataValueCalculator dataValueCalculator = digitalValueDetails.getDataValueCalculator();
+				CalculatedValueRampUpYears dataValueRampUps = dataValueCalculator.getCalculatedDataValueRampUpYears();
+				CalculatedDataValueRampupYearsVO calculatedDataValueRampUpYearsVO = new CalculatedDataValueRampupYearsVO();
+				List<CalculatedDataValueRampUpYearVO> savingsRampUpsVO = new ArrayList<>();
+				List<CalculatedDataValueRampUpYearVO> revenueRampUpsVO = new ArrayList<>();
+				ValueFactorSummary savingsSummary = dataValueCalculator.getRevenueValueFactorSummary();
+				ValueFactorSummaryVO revenueValueFactorSummaryVO = new ValueFactorSummaryVO();
+				ValueFactorSummary revenueSummary = dataValueCalculator.getSavingsValueFactorSummary();
+				ValueFactorSummaryVO savingsValueFactorSummaryVO = new ValueFactorSummaryVO();
+				if(savingsSummary!=null) {
+					BeanUtils.copyProperties(savingsSummary, savingsValueFactorSummaryVO);
+					dataValueCalculatorVO.setSavingsValueFactorSummaryVO(savingsValueFactorSummaryVO);
+				}
+				if(revenueSummary!=null) {
+					BeanUtils.copyProperties(revenueSummary, revenueValueFactorSummaryVO);
+					dataValueCalculatorVO.setRevenueValueFactorSummaryVO(revenueValueFactorSummaryVO);
+				}
+				if(dataValueRampUps!=null) {
+					List<DataValueRampUpYear> revenueRampUps = dataValueRampUps.getRevenue();
+					if(revenueRampUps!=null && !revenueRampUps.isEmpty()) {
+						revenueRampUpsVO = revenueRampUps.stream().map(n-> this.toCalculatedDataValueRampUpYearVO(n)).collect(Collectors.toList());
+						calculatedDataValueRampUpYearsVO.setRevenue(revenueRampUpsVO);
+					}
+					List<DataValueRampUpYear> savingsRampUps = dataValueRampUps.getRevenue();
+					if(savingsRampUps!=null && !savingsRampUps.isEmpty()) {
+						savingsRampUpsVO = savingsRampUps.stream().map(n-> this.toCalculatedDataValueRampUpYearVO(n)).collect(Collectors.toList());
+						calculatedDataValueRampUpYearsVO.setSavings(savingsRampUpsVO);
+					}
+					dataValueCalculatorVO.setCalculatedValueRampUpYearsVO(calculatedDataValueRampUpYearsVO);
+				}
+				digitalValueDetails.setDataValueCalculator(dataValueCalculator);
 
 				// Setting changeLogs
 				List<ChangeLogs> changeLogsList = digitalValueDetails.getChangeLogs();
@@ -1200,6 +1360,36 @@ public class SolutionAssembler implements GenericAssembler<SolutionVO, SolutionN
 						BeanUtils.copyProperties(valueCalculatorVO.getCostFactorSummary(), costFactorSummary);
 						valueCalculator.setCostFactorSummary(costFactorSummary);
 					}
+					//datavaluecalculator mappings
+					digitalValueDetails.setTypeOfCalculation(digitalValueDetailsVO.getTypeOfCalculation().name());
+					DataValueCalculatorVO dataValueCalculatorVO = digitalValueDetailsVO.getDataValueCalculator();
+					DataValueCalculator dataValueCalculator = new DataValueCalculator();
+					CalculatedValueRampUpYears dataValueRampUps = new CalculatedValueRampUpYears();
+					ValueFactorSummary savingsSummary = new ValueFactorSummary();
+					ValueFactorSummary revenueSummary = new ValueFactorSummary();
+					//setting savings value summary for datavaluecalculator
+					if(dataValueCalculatorVO.getSavingsValueFactorSummaryVO()!=null) {
+						BeanUtils.copyProperties(dataValueCalculatorVO.getSavingsValueFactorSummaryVO(), savingsSummary);
+						dataValueCalculator.setSavingsValueFactorSummary(savingsSummary);
+					}
+					if(dataValueCalculatorVO.getRevenueValueFactorSummaryVO()!=null) {
+						BeanUtils.copyProperties(dataValueCalculatorVO.getRevenueValueFactorSummaryVO(), revenueSummary);
+						dataValueCalculator.setRevenueValueFactorSummary(revenueSummary);
+					}
+					if(dataValueCalculatorVO.getCalculatedValueRampUpYearsVO()!=null) {
+						List<CalculatedDataValueRampUpYearVO> revenueRampUpsVO = dataValueCalculatorVO.getCalculatedValueRampUpYearsVO().getRevenue();
+						if(revenueRampUpsVO!=null && !revenueRampUpsVO.isEmpty()) {
+							List<DataValueRampUpYear> revenueRampUps = revenueRampUpsVO.stream().map(n-> this.toDataValueRampUpYear(n)).collect(Collectors.toList());
+							dataValueRampUps.setRevenue(revenueRampUps);
+						}
+						List<CalculatedDataValueRampUpYearVO> savingsRampUpsVO = dataValueCalculatorVO.getCalculatedValueRampUpYearsVO().getSavings();
+						if(savingsRampUpsVO!=null && !savingsRampUpsVO.isEmpty()) {
+							List<DataValueRampUpYear> savingsRampUps = savingsRampUpsVO.stream().map(n-> this.toDataValueRampUpYear(n)).collect(Collectors.toList());
+							dataValueRampUps.setSavings(savingsRampUps);
+						}
+						dataValueCalculator.setCalculatedDataValueRampUpYears(dataValueRampUps);
+					}
+					digitalValueDetails.setDataValueCalculator(dataValueCalculator);
 					// Setting Value Factor summary
 					if (null != valueCalculatorVO.getValueFactorSummary()) {
 						ValueFactorSummary valueFactorSummary = new ValueFactorSummary();
@@ -1298,6 +1488,20 @@ public class SolutionAssembler implements GenericAssembler<SolutionVO, SolutionN
 		return entity;
 	}
 
+	private DataValueRampUpYear toDataValueRampUpYear(CalculatedDataValueRampUpYearVO rampUpVO) {
+		DataValueRampUpYear rampUp = new DataValueRampUpYear();
+		if(rampUpVO!=null)
+			BeanUtils.copyProperties(rampUpVO, rampUp);
+		return rampUp;
+	}
+	
+	private CalculatedDataValueRampUpYearVO toCalculatedDataValueRampUpYearVO(DataValueRampUpYear rampUp) {
+		CalculatedDataValueRampUpYearVO rampUpVO = new CalculatedDataValueRampUpYearVO();
+		if(rampUp!=null)
+			BeanUtils.copyProperties(rampUp, rampUpVO);
+		return rampUpVO;
+	}
+	
 	/*
 	 * To convert 
 	 */
@@ -1943,6 +2147,9 @@ public class SolutionAssembler implements GenericAssembler<SolutionVO, SolutionN
 								: null;
 				valueCalculatorVO.setCalculatedDigitalValue(calculatedDigitalValueVO);
 				digitalValueVO.setValueCalculator(valueCalculatorVO);
+				DataValueCalculatorVO dataValueCalculatorVO = new DataValueCalculatorVO();
+				dataValueCalculatorVO = vo.getDigitalValue().getDataValueCalculator();
+				digitalValueVO.setDataValueCalculator(dataValueCalculatorVO);
 				vo.setDigitalValue(digitalValueVO);
 			} else if (!userLinkedToSolution && !portfolioView) {
 				LOGGER.debug("User does not have permission to view digitalValue details");
