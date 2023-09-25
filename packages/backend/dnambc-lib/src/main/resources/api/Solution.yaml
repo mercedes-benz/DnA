@@ -1004,18 +1004,28 @@ definitions:
         description: Calculated Digital value details for the solution
         $ref: "#/definitions/DataValueCalculatorVO"      
 
-  DataValueCalculatorVO:
+  CalculatedDataValueRampupYearsVO:
     type: object
-    properties:
+    properties: 
       savings:
         type: array
         items:
-          $ref: "#/definitions/YearValueVO"
+          $ref: "#/definitions/CalculatedDataValueRampUpYearVO"
       revenue:
         type: array
         items: 
-          $ref:  "#/definitions/YearValueVO"
-  
+          $ref:  "#/definitions/CalculatedDataValueRampUpYearVO"
+          
+  DataValueCalculatorVO:
+    type: object
+    properties:
+      calculatedValueRampUpYearsVO:
+        $ref: "#/definitions/CalculatedDataValueRampupYearsVO"
+      savingsValueFactorSummaryVO:
+        $ref: "#/definitions/ValueFactorSummaryVO"
+      revenueValueFactorSummaryVO:
+        $ref: "#/definitions/ValueFactorSummaryVO"
+
   YearValueVO:
     type: object
     properties:
@@ -1275,7 +1285,17 @@ definitions:
       breakEvenPoint:
         type: number
         description: Break even point for the digital value at 100% 
-  
+
+  CalculatedDataValueRampUpYearVO:
+    type: object
+    description: Calculated Ramp up of the Digital value for the solution
+    properties:
+      year:
+        type: number
+        description: "Describes the rampup year"
+      value:
+        type: number
+          
   CalculatedValueRampUpYearVO:
     type: object
     description: Calculated Ramp up of the Digital value for the solution
