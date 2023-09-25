@@ -558,8 +558,10 @@ public class SolutionController implements SolutionsApi, ChangelogsApi, Malwares
                 if (null != requestSolutionVO.getDigitalValue()) {
                     SolutionDigitalValueVO digitalValueRequest = new SolutionDigitalValueVO();
                     digitalValueRequest = SolutionAssembler.cloneDigitalValueVO(requestSolutionVO.getDigitalValue());
+                    SolutionDigitalValueVO digitalValueRequestForDataValue = new SolutionDigitalValueVO();
+                    digitalValueRequestForDataValue = SolutionAssembler.cloneDigitalValueVO(requestSolutionVO.getDigitalValue());
                     ValueCalculatorVO valueCalculatorVO = solutionAssembler.valueCalculator(digitalValueRequest);
-                    DataValueCalculatorVO dataValueCalculatorVO = solutionAssembler.dataValueCalculator(digitalValueRequest);
+                    DataValueCalculatorVO dataValueCalculatorVO = solutionAssembler.dataValueCalculator(digitalValueRequestForDataValue);
                     requestSolutionVO.getDigitalValue().setValueCalculator(valueCalculatorVO);
                     requestSolutionVO.getDigitalValue().setDataValueCalculator(dataValueCalculatorVO);
                 }
