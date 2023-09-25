@@ -44,6 +44,12 @@ const ForecastingResults = () => {
     SelectBox.defaultSetup();
   }, [colOneSelect.current.value, colTwoSelect.current.value]);
 
+  useEffect(() => {
+    chronosApi.getForecastProjectById(projectId).then((res) => {
+      setBucketName(res.data.bucketName);
+    }).catch(() => { });
+  }, [projectId]);
+
   const [colOne, setColOne] = useState([]);
   const [colTwo, setColTwo] = useState([]);
   const [decompositionMethods, setDecompositionMethods] = useState([]);
@@ -56,11 +62,11 @@ const ForecastingResults = () => {
       dataColumns.splice(index, 1);
     }
     setColTwo([...dataColumns]);
-    setCharts(JSON.parse(forecastRun.visualsData));
+    forecastRun?.visualsData && setCharts(JSON.parse(forecastRun?.visualsData));
   }
 
   const handleColTwo = () => {
-    setCharts(JSON.parse(forecastRun.visualsData));
+    forecastRun?.visualsData && setCharts(JSON.parse(forecastRun?.visualsData));
   }
 
   const setCharts = (myData) => {
@@ -225,12 +231,6 @@ const ForecastingResults = () => {
     setOutlierDataA([...outlierDataArray]);
   }
 
-  useEffect(() => {
-    chronosApi.getForecastProjectById(projectId).then((res) => {
-      setBucketName(res.data.bucketName);
-    }).catch(() => { });
-  }, [projectId]);
-
   const getForecastRun = () => {
     ProgressIndicator.show();
     chronosApi.getForecastRun(projectId, runId).then((res) => {
@@ -238,15 +238,19 @@ const ForecastingResults = () => {
         setForecastRun([]);
       } else {
         setForecastRun(res.data);
-        const myData = JSON.parse(res.data.visualsData);
-        const dataColumns = Object.keys(myData);
-        setColOne([...dataColumns]);
-        const index = dataColumns.indexOf(dataColumns[0]);
-        if (index > -1) {
-          dataColumns.splice(index, 1);
+        console.log('forecastRun');
+        console.log(res.data);
+        if(res.data.visualsData !== '') {
+          const myData = JSON.parse(res.data.visualsData);
+          const dataColumns = Object.keys(myData);
+          setColOne([...dataColumns]);
+          const index = dataColumns.indexOf(dataColumns[0]);
+          if (index > -1) {
+            dataColumns.splice(index, 1);
+          }
+          setColTwo([...dataColumns]);
+          setCharts(myData);
         }
-        setColTwo([...dataColumns]);
-        setCharts(myData);
       }
       setLoading(false);
       ProgressIndicator.hide();
