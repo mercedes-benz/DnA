@@ -169,7 +169,8 @@ public class SolutionAssembler implements GenericAssembler<SolutionVO, SolutionN
         List<CalculatedDataValueRampUpYearVO> revenueRampUps = new ArrayList<>();
         ValueFactorSummaryVO savingsSummary = new ValueFactorSummaryVO();
         ValueFactorSummaryVO revenueSummary = new ValueFactorSummaryVO();
-        if("DATA_VALUE".equalsIgnoreCase(solutionDigitalValueVO.getTypeOfCalculation().getDeclaringClass().getName())){
+        LOGGER.info("type of calculation is name {} and tostring is {}", solutionDigitalValueVO.getTypeOfCalculation().name(), solutionDigitalValueVO.getTypeOfCalculation().toString() );
+        if("DATA_VALUE".equalsIgnoreCase(solutionDigitalValueVO.getTypeOfCalculation().name())){
         	List<ValueRampUpYearVO> savingsList = new ArrayList<>();
         	List<ValueRampUpYearVO> revenueList = new ArrayList<>();
         	HashMap<BigDecimal,BigDecimal> savingsMap = new HashMap<>();
@@ -185,7 +186,8 @@ public class SolutionAssembler implements GenericAssembler<SolutionVO, SolutionN
         			revenueList.addAll(valueFactor.getRampUp());
         		}
         	}
-        	Comparator<ValueRampUpYearVO> comparatorBasedOnYear = (v1, v2) -> (v2.getYear().compareTo(v1.getYear()));
+        	Comparator<ValueRampUpYearVO> comparatorBasedOnYear = (v1, v2) -> (v1.getYear().compareTo(v2.getYear()));
+        	Comparator<CalculatedDataValueRampUpYearVO> calculatedRampUpscomparatorBasedOnYear = (v1, v2) -> (v1.getYear().compareTo(v2.getYear()));
         	if(savingsList!=null && !savingsList.isEmpty()) {
         		Collections.sort(savingsList,comparatorBasedOnYear);
         		for(ValueRampUpYearVO rampUp: savingsList) {
@@ -193,7 +195,7 @@ public class SolutionAssembler implements GenericAssembler<SolutionVO, SolutionN
         			BigDecimal currentValue = rampUp.getValue();
         			BigDecimal existingValue = savingsMap.get(currentYear);
         			if(existingValue!=null) {
-        				existingValue.add(currentValue);
+        				existingValue = existingValue.add(currentValue);
         				savingsMap.put(currentYear, existingValue);
         			}else {
         				savingsMap.put(currentYear, currentValue);
@@ -207,22 +209,21 @@ public class SolutionAssembler implements GenericAssembler<SolutionVO, SolutionN
         			BigDecimal currentValue = rampUp.getValue();
         			BigDecimal existingValue = revenueMap.get(currentYear);
         			if(existingValue!=null) {
-        				existingValue.add(currentValue);
+        				existingValue = existingValue.add(currentValue);
         				revenueMap.put(currentYear, existingValue);
         			}else {
         				revenueMap.put(currentYear, currentValue);
         			}
         		}
         	}
-        	Iterator savingsIterator = savingsMap.entrySet().iterator();
+        	List<BigDecimal> sortedSavingsKeys = new ArrayList<BigDecimal>(savingsMap.keySet());
+        	Collections.sort(sortedSavingsKeys);
         	String savingsStartYear = "";
         	String savingsEndYear = "";
-        	BigDecimal savingsTotalSummary = new BigDecimal("0");
+        	BigDecimal savingsTotalSummary = new BigDecimal(0);
         	boolean isStarting = true;
-        	while(savingsIterator.hasNext()) {
-        		Map.Entry mapElement = (Map.Entry)savingsIterator.next();
-        		BigDecimal currYear = (BigDecimal) mapElement.getKey();
-        		BigDecimal currValue = (BigDecimal) mapElement.getValue();
+        	for(BigDecimal currYear: sortedSavingsKeys) {
+        		BigDecimal currValue = (BigDecimal) savingsMap.get(currYear);
         		CalculatedDataValueRampUpYearVO currRampUp = new CalculatedDataValueRampUpYearVO();
         		if(isStarting) {
         			savingsStartYear = currYear.toString();
@@ -230,7 +231,7 @@ public class SolutionAssembler implements GenericAssembler<SolutionVO, SolutionN
         		}
         		currRampUp.setYear(currYear);
         		currRampUp.setValue(currValue);
-        		savingsTotalSummary.add(currValue);
+        		savingsTotalSummary = savingsTotalSummary.add(currValue);
         		LOGGER.info("Adding {} and {} to datavalueSavingsRampupList",currYear,currValue);
         		savingsRampUps.add(currRampUp);
         		savingsEndYear = currYear.toString();
@@ -238,16 +239,14 @@ public class SolutionAssembler implements GenericAssembler<SolutionVO, SolutionN
         	String savingsYear = savingsStartYear + "-" + savingsEndYear;
         	savingsSummary.setYear(savingsYear);
         	savingsSummary.setValue(savingsTotalSummary);
-        	
-        	Iterator revenueIterator = savingsMap.entrySet().iterator();
+        	List<BigDecimal> sortedRevenueKeys = new ArrayList<BigDecimal>(revenueMap.keySet());
+        	Collections.sort(sortedRevenueKeys);
         	String revenueStartYear = "";
         	String revenueEndYear = "";
-        	BigDecimal revenueTotalSummary = new BigDecimal("0");
+        	BigDecimal revenueTotalSummary = new BigDecimal(0);
         	boolean isRevenueStarting = true;
-        	while(revenueIterator.hasNext()) {
-        		Map.Entry mapElement = (Map.Entry)revenueIterator.next();
-        		BigDecimal currYear = (BigDecimal) mapElement.getKey();
-        		BigDecimal currValue = (BigDecimal) mapElement.getValue();
+        	for(BigDecimal currYear: sortedRevenueKeys) {
+        		BigDecimal currValue = (BigDecimal) revenueMap.get(currYear);
         		CalculatedDataValueRampUpYearVO currRampUp = new CalculatedDataValueRampUpYearVO();
         		if(isRevenueStarting) {
         			revenueStartYear = currYear.toString();
@@ -255,7 +254,7 @@ public class SolutionAssembler implements GenericAssembler<SolutionVO, SolutionN
         		}
         		currRampUp.setYear(currYear);
         		currRampUp.setValue(currValue);
-        		revenueTotalSummary.add(currValue);
+        		revenueTotalSummary = revenueTotalSummary.add(currValue);
         		LOGGER.info("Adding {} and {} to datavalueRevenueRampupList",currYear,currValue);
         		revenueRampUps.add(currRampUp);
         		revenueEndYear = currYear.toString();
@@ -264,7 +263,9 @@ public class SolutionAssembler implements GenericAssembler<SolutionVO, SolutionN
         	revenueSummary.setYear(revenueYear);
         	revenueSummary.setValue(revenueTotalSummary);
         	datavalueCalculatorVO.setRevenueValueFactorSummaryVO(revenueSummary);
-        	datavalueCalculatorVO.setSavingsValueFactorSummaryVO(revenueSummary);
+        	datavalueCalculatorVO.setSavingsValueFactorSummaryVO(savingsSummary);
+        	Collections.sort(revenueRampUps, calculatedRampUpscomparatorBasedOnYear);
+        	Collections.sort(savingsRampUps, calculatedRampUpscomparatorBasedOnYear);
         	calculatedDataValueRampUps.setSavings(savingsRampUps);
         	calculatedDataValueRampUps.setRevenue(revenueRampUps);
         	datavalueCalculatorVO.setCalculatedValueRampUpYearsVO(calculatedDataValueRampUps);
@@ -674,7 +675,7 @@ public class SolutionAssembler implements GenericAssembler<SolutionVO, SolutionN
 							revenueRampUpsVO = revenueRampUps.stream().map(n-> this.toCalculatedDataValueRampUpYearVO(n)).collect(Collectors.toList());
 							calculatedDataValueRampUpYearsVO.setRevenue(revenueRampUpsVO);
 						}
-						List<DataValueRampUpYear> savingsRampUps = dataValueRampUps.getRevenue();
+						List<DataValueRampUpYear> savingsRampUps = dataValueRampUps.getSavings();
 						if(savingsRampUps!=null && !savingsRampUps.isEmpty()) {
 							savingsRampUpsVO = savingsRampUps.stream().map(n-> this.toCalculatedDataValueRampUpYearVO(n)).collect(Collectors.toList());
 							calculatedDataValueRampUpYearsVO.setSavings(savingsRampUpsVO);
@@ -682,7 +683,7 @@ public class SolutionAssembler implements GenericAssembler<SolutionVO, SolutionN
 						dataValueCalculatorVO.setCalculatedValueRampUpYearsVO(calculatedDataValueRampUpYearsVO);
 					}
 				}
-				digitalValueDetails.setDataValueCalculator(dataValueCalculator);
+				digitalValueDetailsVO.setDataValueCalculator(dataValueCalculatorVO);
 
 				// Setting changeLogs
 				List<ChangeLogs> changeLogsList = digitalValueDetails.getChangeLogs();
