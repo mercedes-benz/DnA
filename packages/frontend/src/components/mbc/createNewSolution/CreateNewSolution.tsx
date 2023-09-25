@@ -291,6 +291,7 @@ export default class CreateNewSolution extends React.Component<ICreateNewSolutio
           complianceOfficers: [],
         },
         digitalValue: {
+          typeOfCalculation: DigitalValue.digitalValueTypeKeyValue,
           maturityLevel: '',
           projectControllers: [],
           attachments: [],
