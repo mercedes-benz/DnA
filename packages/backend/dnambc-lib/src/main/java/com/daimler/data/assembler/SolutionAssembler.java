@@ -231,6 +231,7 @@ public class SolutionAssembler implements GenericAssembler<SolutionVO, SolutionN
         		currRampUp.setYear(currYear);
         		currRampUp.setValue(currValue);
         		savingsTotalSummary.add(currValue);
+        		LOGGER.info("Adding {} and {} to datavalueSavingsRampupList",currYear,currValue);
         		savingsRampUps.add(currRampUp);
         		savingsEndYear = currYear.toString();
         	}
@@ -255,6 +256,7 @@ public class SolutionAssembler implements GenericAssembler<SolutionVO, SolutionN
         		currRampUp.setYear(currYear);
         		currRampUp.setValue(currValue);
         		revenueTotalSummary.add(currValue);
+        		LOGGER.info("Adding {} and {} to datavalueRevenueRampupList",currYear,currValue);
         		revenueRampUps.add(currRampUp);
         		revenueEndYear = currYear.toString();
         	}

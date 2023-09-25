@@ -129,7 +129,24 @@ type SolutionDigitalValueVO{
 	assessment: AssessmentDetailsVO,
 	permissions: [TeamMemberVO],
 	changeLogs: [ChangeLogVO],
-    valueCalculator: ValueCalculatorVO
+    valueCalculator: ValueCalculatorVO,
+    dataValueCalculator: DataValueCalculatorVO
+}
+
+type CalculatedDataValueRampUpYearVO{
+	year: Float,
+	value: Float
+}
+
+type CalculatedDataValueRampupYearsVO{
+	savings: [CalculatedDataValueRampUpYearVO],
+	revenue: [CalculatedDataValueRampUpYearVO]
+}
+
+type DataValueCalculatorVO{
+	calculatedValueRampUpYearsVO: CalculatedDataValueRampupYearsVO,
+	savingsValueFactorSummaryVO: ValueFactorSummaryVO,
+	revenueValueFactorSummaryVO: ValueFactorSummaryVO
 }
 
 type ValueCalculatorVO{
