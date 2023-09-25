@@ -75,9 +75,9 @@ configJs: |
       CODESPACE_OIDC_POPUP_WAIT_TIME: "5000",
       ENABLE_CHRONOS_FORECASTING_SERVICE: "false",
       CHRONOS_MFE_APP_URL:"http://localhost:8085",
-      ENABLE_MATOMO_SERVICE:"true"
-      MATOMO_MFE_APP_URL:"http://localhost:8089"
-      MATOMO_APP_URL:""
+      ENABLE_MATOMO_SERVICE:"true",
+      MATOMO_MFE_APP_URL:"http://localhost:8089",
+      MATOMO_APP_URL:"YOUR_MATOMO_APP_URL",
 
       UDEMY_URL= "YOUR_UDEMY_URL",
       LINKEDIN_LEARNING_URL= "YOUR_LINKEDIN_LEARNING_URL",
@@ -148,7 +148,8 @@ configJs: |
         API_BASEURL: 'http://localhost:7171/api',
         MATOMO_API_BASEURL: 'http://localhost:8989/api',
         STORAGE_API_BASEURL: 'http://localhost:7175/api',
-        REPORTS_API_BASEURL: 'http://localhost:7173/api'
+        REPORTS_API_BASEURL: 'http://localhost:7173/api',
+        MATOMO_APP_URL: 'YOUR_MATOMO_APP_URL'
     };
 
     
