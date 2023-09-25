@@ -1073,7 +1073,16 @@ export default class AddOrEditFactorModal extends React.Component<
               return item;
             }
           });
+
+          if (this.props.valueCalculationType === AddOrEditFactorModal.dataValueTypeKeyValue) {
+            const ramupValue = rampUp[index].value;
+            let value = parseFloat(this.state.value  === '' ? '0' : this.state.value);
+            value -= parseFloat(ramupValue === '' ? '0' : ramupValue);
+            this.setState({ value: value.toString()});
+          }
+
           this.setState({ rampUp: removedItemFromRampup, costFactorItemError: removeCostFactorItemError });
+          
         } else {
           this.setState({ rampUpError: 'Atleast 5 records should be available.' });
         }
@@ -1105,6 +1114,14 @@ export default class AddOrEditFactorModal extends React.Component<
               return item;
             }
           });
+
+          if (this.props.valueCalculationType === AddOrEditFactorModal.dataValueTypeKeyValue) {
+            const ramupValue = rampUpValue[index].value;
+            let value = parseFloat(this.state.value  === '' ? '0' : this.state.value);
+            value -= parseFloat(ramupValue === '' ? '0' : ramupValue);
+            this.setState({ value: value.toString()});
+          }
+
           this.setState({ rampUpValue: removedItemFromRampup, valueFactorItemErrors: removeValueFactorItemError });
         } else {
           this.setState({ rampUpError: 'Atleast 5 records should be available.' });
