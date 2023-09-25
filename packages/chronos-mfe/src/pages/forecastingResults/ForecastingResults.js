@@ -238,8 +238,6 @@ const ForecastingResults = () => {
         setForecastRun([]);
       } else {
         setForecastRun(res.data);
-        console.log('forecastRun');
-        console.log(res.data);
         if(res.data.visualsData !== '') {
           const myData = JSON.parse(res.data.visualsData);
           const dataColumns = Object.keys(myData);
