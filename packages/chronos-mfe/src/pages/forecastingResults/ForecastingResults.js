@@ -41,7 +41,9 @@ const ForecastingResults = () => {
   }, []);
   
   useEffect(() => {
-    SelectBox.defaultSetup();
+    setTimeout(() => {
+      SelectBox.defaultSetup();  
+    }, 100);
   }, [colOneSelect.current.value, colTwoSelect.current.value]);
 
   useEffect(() => {
@@ -238,21 +240,21 @@ const ForecastingResults = () => {
         setForecastRun([]);
       } else {
         setForecastRun(res.data);
-        if(res.data.visualsData !== '') {
-          const myData = JSON.parse(res.data.visualsData);
-          const dataColumns = Object.keys(myData);
-          setColOne([...dataColumns]);
-          const index = dataColumns.indexOf(dataColumns[0]);
-          if (index > -1) {
-            dataColumns.splice(index, 1);
-          }
-          setColTwo([...dataColumns]);
-          setCharts(myData);
+        const myData = JSON.parse(res.data.visualsData);
+        const dataColumns = Object.keys(myData);
+        setColOne([...dataColumns]);
+        const index = dataColumns.indexOf(dataColumns[0]);
+        if (index > -1) {
+          dataColumns.splice(index, 1);
         }
+        setColTwo([...dataColumns]);
+        setCharts(myData);
       }
       setLoading(false);
       ProgressIndicator.hide();
-      SelectBox.defaultSetup();
+      setTimeout(() => {
+        SelectBox.defaultSetup();  
+      }, 100);
     }).catch(() => {
       setLoading(false);
       ProgressIndicator.hide();
