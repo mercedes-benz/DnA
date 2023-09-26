@@ -57,11 +57,15 @@ const CreateOrEditProject = (props) => {
                 setDataClassificationDropdown(response[0]?.data?.data || []);
                 setDivisions(response[1]?.data || []);
                 setDepartmentTags(response[2]?.data?.data || []);
-                SelectBox.defaultSetup();
+                setTimeout(() => {
+                    SelectBox.defaultSetup();  
+                }, 100);
             })
             .catch((err) => {
                 ProgressIndicator.hide();
-                SelectBox.defaultSetup();
+                setTimeout(() => {
+                    SelectBox.defaultSetup();  
+                }, 100);
                 if (err?.response?.data?.errors?.length > 0) {
                     err?.response?.data?.errors.forEach((err) => {
                         showErrorNotification(err?.message || 'Something went wrong.');
@@ -115,7 +119,9 @@ const CreateOrEditProject = (props) => {
                             }
                             setSubDivisions(subDivisions);
                             setDivisionValue(division);
-                            SelectBox.defaultSetup();
+                            setTimeout(() => {
+                                SelectBox.defaultSetup();  
+                            }, 100);
                         }).catch((err) => {
                             ProgressIndicator.hide();
                             if (err?.response?.data?.response?.errors?.length > 0) {
@@ -156,8 +162,9 @@ const CreateOrEditProject = (props) => {
                         setCurrentUserCollab(currentUserCollabList);
                         setDataikuCollaborators(remainingUsersColloab);
                     }
-
-                    SelectBox.defaultSetup();
+                    setTimeout(() => {
+                        SelectBox.defaultSetup();  
+                    }, 100);
                 }
             })
             .catch((err) => {
@@ -415,7 +422,9 @@ const CreateOrEditProject = (props) => {
                         division.subdivision = { id: '0', name: 'Choose' };
                     }
                     setSubDivisions(subDivisions);
-                    SelectBox.defaultSetup();
+                    setTimeout(() => {
+                        SelectBox.defaultSetup();  
+                    }, 100);
                     ProgressIndicator.hide();
                 });
             }
