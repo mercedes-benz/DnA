@@ -42,7 +42,7 @@ public class DnaProjectRepositoryImpl extends CommonDataRepositoryImpl<DnaProjec
 
 	@Override
 	public List<Object[]> findAllProjectsByUserId(String username) {
-		String query = "select dna_project.project_id,dna_project.created_by,dna_project_user_dag.dag_id, ab_permission.name, dna_project.project_name, dna_project.project_description  from ab_user inner join dna_project_user_dag\r\n"
+		String query = "select dna_project.project_id,dna_project.created_by,dna_project_user_dag.dag_id, ab_permission.name, dna_project.project_name, dna_project.project_description , dna_project.project_status from ab_user inner join dna_project_user_dag\r\n"
 				+ "on dna_project_user_dag.user_id = ab_user.id\r\n"
 				+ "inner join dna_project_user on dna_project_user_dag.id = dna_project_user.user_dag_id\r\n"
 				+ "inner join dna_project on dna_project.id = dna_project_user.dna_project_id\r\n"
@@ -69,12 +69,13 @@ public class DnaProjectRepositoryImpl extends CommonDataRepositoryImpl<DnaProjec
 	@Override
 	public List<Object[]> findAllCreationStatusProjectsByUserId(String username, String Status) {
 		String query = "select dna_project.project_id,dna_project.created_by, dna_project.project_name, dna_project.project_description, dna_project.project_status, dna_project.collabs  from  dna_project\r\n"
-				+ "where collabs like  CONCAT( '%', ? ,'%')\r\n"
+				+ "where (collabs like  CONCAT( '%', ? ,'%') or created_by = ?)\r\n" 
 				+ "and dna_project.project_status = ?\r\n";
 
 		Query qry = this.em.createNativeQuery(query);
 		qry.setParameter(1, username);
-		qry.setParameter(2, Status);
+		qry.setParameter(2, username);
+		qry.setParameter(3, Status);
 		return qry.getResultList();
 	}
 
