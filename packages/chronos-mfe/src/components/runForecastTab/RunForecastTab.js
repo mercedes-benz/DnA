@@ -60,7 +60,9 @@ const RunForecastTab = ({ onRunClick }) => {
         onRunClick();
         ProgressIndicator.hide();
         methods.reset();
-        SelectBox.defaultSetup();
+        setTimeout(() => {
+          SelectBox.defaultSetup();  
+        }, 100);
         dispatch(setInputFile({}));
         dispatch(getProjectDetails(projectId));
       }).catch(error => {
