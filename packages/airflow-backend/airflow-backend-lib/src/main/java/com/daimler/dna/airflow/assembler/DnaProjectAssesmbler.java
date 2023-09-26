@@ -156,6 +156,7 @@ public class DnaProjectAssesmbler {
 			vo.setProjectDescription((String) obj[5]);
 			vo.setCreatedBy((String) obj[1]);
 			vo.setIsOwner(currentUser.equalsIgnoreCase((String) obj[1]));
+			vo.setProjectStatus((String) obj[6]);
 			dagsItem.setDagName((String) obj[2]);
 			dagsItem.addPermissionsItem((String) obj[3]);
 			vo.addDagsItem(dagsItem);
@@ -174,13 +175,13 @@ public class DnaProjectAssesmbler {
 
 			} else {
 				vo = new AirflowProjectsByUserVO();
-
 			}
 			dagsItem = new AirflowDagProjectResponseVo();
 			vo.setProjectId((String) obj[0]);
 			vo.setProjectName((String) obj[2]);
 			vo.setProjectDescription((String) obj[3]);
 			vo.setCreatedBy((String) obj[1]);
+			vo.setProjectStatus((String) obj[4]);
 			vo.setIsOwner(currentUser.equalsIgnoreCase((String) obj[1]));
 			String dagName = (String) obj[0] + "_DAG_1";
 			dagsItem.setDagName(dagName);
