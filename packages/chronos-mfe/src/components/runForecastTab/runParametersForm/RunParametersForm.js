@@ -41,7 +41,9 @@ const RunParametersForm = () => {
   }, [expertView]);
 
   useEffect(() => {
-    SelectBox.defaultSetup(); 
+    setTimeout(() => {
+      SelectBox.defaultSetup();  
+    }, 100);
   }, [isLoading]);
   
   return (
