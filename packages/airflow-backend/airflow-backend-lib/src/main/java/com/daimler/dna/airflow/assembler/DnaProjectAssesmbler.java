@@ -187,10 +187,12 @@ public class DnaProjectAssesmbler {
 			dagsItem.setDagName(dagName);
 			dagsItem.addPermissionsItem("can_read");
 			String collabsDetails = (String) obj[5];
+			if(collabsDetails !=null ) {
 			String[] individualCollabDetails = collabsDetails.split(",");
 			Optional<String> collab = Arrays.stream(individualCollabDetails).filter(x -> x.contains(currentUser)).findFirst();
 			if(collab.isPresent() && collab.get().split("_").length >1)
 				dagsItem.addPermissionsItem("can_edit");
+			}
 			vo.addDagsItem(dagsItem);
 		}
 		log.trace("Successfully assembled all aiflow project per user.");
