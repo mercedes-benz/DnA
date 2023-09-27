@@ -30,6 +30,7 @@ package com.daimler.dna.airflow.models;
 import java.io.Serializable;
 
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
@@ -60,11 +61,11 @@ public class PermissionAndRoleMapping implements Serializable {
 	 * private Integer permissionViewId; private Integer roleId;
 	 */
 
-	@ManyToOne()
+	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "role_id")
 	private Role role;
 
-	@ManyToOne()
+	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "permission_view_id")
 	private PermissionAndViewMenuMapping permissionView;
 }
