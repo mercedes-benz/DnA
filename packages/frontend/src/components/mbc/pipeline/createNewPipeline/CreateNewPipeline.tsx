@@ -730,7 +730,7 @@ const CreateNewPipeline = (props: ICreateNewPipelineProps) => {
             </div>
             <div className={Styles.dagGrp}>
               <div className={Styles.dagGrpTitle}>
-                {addDagShow && (
+                {addDagShow && !isUpdate && (
                   <button onClick={addDag} className={Styles.addDagbtn + ' btn btn-primary'} type="button">
                     <i className="icon mbc-icon plus" />
                     <span>Add DAG</span>
@@ -816,7 +816,7 @@ const CreateNewPipeline = (props: ICreateNewPipelineProps) => {
                                       </button>
                                     )}
                                     &nbsp;&nbsp;
-                                    <button
+                                    {!isUpdate && <button
                                       onClick={
                                         dagItem?.active !== undefined
                                           ? deleteDagServer(dagItem.dagName, projectName, index)
@@ -827,7 +827,7 @@ const CreateNewPipeline = (props: ICreateNewPipelineProps) => {
                                     >
                                       <i className="icon delete" />
                                       <span>Delete DAG</span>
-                                    </button>
+                                    </button>}
                                   </div>
                                 </div>
                               </div>
