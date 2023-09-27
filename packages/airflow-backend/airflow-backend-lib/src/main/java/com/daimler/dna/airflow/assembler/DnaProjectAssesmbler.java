@@ -60,6 +60,7 @@ import com.daimler.dna.airflow.models.Role;
 import com.daimler.dna.airflow.models.User;
 import com.daimler.dna.airflow.models.UserRoleMapping;
 import com.daimler.dna.airflow.models.ViewMenu;
+import com.daimler.dna.airflow.repository.DnaProjectRepository;
 
 @Component
 public class DnaProjectAssesmbler {
@@ -67,6 +68,9 @@ public class DnaProjectAssesmbler {
 
 	@Autowired
 	private AirflowGitClient airflowGitClient;
+	
+	@Autowired
+	private DnaProjectRepository dnaProjectRepository;
 
 	public AirflowProjectVO toVO(DnaProject dnaProject) {
 		log.trace("Started assembling from entity to model");
@@ -93,19 +97,25 @@ public class DnaProjectAssesmbler {
 				if (!dnaProject.getCreatedBy().equalsIgnoreCase(user.getUsername())) {
 					AirflowProjectUserVO airflowProjectUserVO = new AirflowProjectUserVO();
 					BeanUtils.copyProperties(user, airflowProjectUserVO);
-					for (UserRoleMapping roleMapping : user.getRoleMaping()) {
-						Role role = roleMapping.getRole();
-						log.debug("mapping for tole {} to user {}", role.getName(), user.getId());
-						for (PermissionAndRoleMapping permissionMapping : role.getPermissionAndRoleMapping()) {
-							PermissionAndViewMenuMapping permissionAndViewMenuMapping = permissionMapping
-									.getPermissionView();
-							Permission permission = permissionAndViewMenuMapping.getPermission();
-							ViewMenu viewMenu = permissionAndViewMenuMapping.getViewMenu();
-							if (viewMenu.getName().equalsIgnoreCase(userDagMapping.getDag().getDagId())) {
-								airflowProjectUserVO.addPermissionsItem(permission.getName());
-							}
-						}
+					List<String> permissionNames = dnaProjectRepository.findPermissionNameforGivenUserDag("DAG:"+userDagMapping.getDag().getDagId(),user.getUsername());
+					if(permissionNames!=null && !permissionNames.isEmpty()) {
+						permissionNames.stream().forEach(n->airflowProjectUserVO.addPermissionsItem(n));
 					}
+//					for (UserRoleMapping roleMapping : user.getRoleMaping()) {
+//						Role role = roleMapping.getRole();
+//						log.debug("mapping for tole {} to user {}", role.getName(), user.getId());
+//						System.out.println(role.getPermissionAndRoleMapping().size());
+//						for (PermissionAndRoleMapping permissionMapping : role.getPermissionAndRoleMapping()) {
+//							PermissionAndViewMenuMapping permissionAndViewMenuMapping = permissionMapping
+//									.getPermissionView();
+//							System.out.println(permissionAndViewMenuMapping.getId() + " " + permissionAndViewMenuMapping.getPermission().getId() + " " +  permissionAndViewMenuMapping.getViewMenu().getId());
+//							Permission permission = permissionAndViewMenuMapping.getPermission();
+//							ViewMenu viewMenu = permissionAndViewMenuMapping.getViewMenu();
+//							if (viewMenu.getName().equalsIgnoreCase("DAG:"+userDagMapping.getDag().getDagId())) {
+//								airflowProjectUserVO.addPermissionsItem(permission.getName());
+//							}
+//						}
+//					}
 					dagVO.addCollaboratorsItem(airflowProjectUserVO);
 				}
 				
