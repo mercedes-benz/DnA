@@ -278,7 +278,7 @@ const AllCodeSpaces = (props: IAllCodeSpacesProps) => {
         <ProgressWithMessage
           message={
             <>
-              'Please wait as this process can take up to a minute....'
+              Please wait as this process can take up to a minute....
               <br />
               <button className="btn btn-text back arrow" onClick={switchBackToCodeSpace}>
                 Back to Code Spaces
