@@ -162,9 +162,6 @@ public class DataProductAssembler implements GenericAssembler<DataProductVO, Dat
 									dataProduct.getAccess().setMinimumInformationCheck(false);
 								}											
 							}
-							else {
-								dataProduct.getAccess().setMinimumInformationCheck(true);
-							}
 						}
 						else {
 							dataProduct.getAccess().setMinimumInformationCheck(false);
@@ -378,9 +375,6 @@ public class DataProductAssembler implements GenericAssembler<DataProductVO, Dat
 								else {
 									vo.getAccess().setMinimumInformationCheck(false);
 								}							
-							}
-							else {
-								vo.getAccess().setMinimumInformationCheck(false);
 							}
 						}
 						else {
