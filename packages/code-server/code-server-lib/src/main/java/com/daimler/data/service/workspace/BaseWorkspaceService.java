@@ -770,7 +770,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 		if (isProjectOwner) {
 			try {
 				String repoName = entity.getData().getProjectDetails().getGitRepoName();
-				CodeServerWorkspaceNsql ownerEntity = workspaceAssembler.toEntity(vo);
+				//CodeServerWorkspaceNsql ownerEntity = workspaceAssembler.toEntity(vo);
 				String projectName = entity.getData().getProjectDetails().getProjectName();
 
 				UserInfo collaborator = new UserInfo();
@@ -781,10 +781,10 @@ public class BaseWorkspaceService implements WorkspaceService {
 				if (addGitUser.is2xxSuccessful()) {
 					CodeServerWorkspaceNsql collabEntity = new CodeServerWorkspaceNsql();
 					CodeServerWorkspace collabData = new CodeServerWorkspace();
-					collabData.setDescription(ownerEntity.getData().getDescription());
+					collabData.setDescription(entity.getData().getDescription());
 					collabData.setGitUserName(collaborator.getGitUserName());
 					collabData.setIntiatedOn(null);
-					collabData.setProjectDetails(ownerEntity.getData().getProjectDetails());
+					collabData.setProjectDetails(entity.getData().getProjectDetails());
 					collabData.setStatus(ConstantsUtility.COLLABREQUESTEDSTATE);
 					Long collabWsSeqId = jpaRepo.getNextWorkspaceSeqId();
 					String collabWsId = ConstantsUtility.WORKSPACEPREFIX + String.valueOf(collabWsSeqId);

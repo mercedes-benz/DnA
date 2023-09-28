@@ -504,7 +504,7 @@ export const ToolsLandingPageElements = [
     isSmallCard: false,
     isMediumCard: true,
     svgIcon: 'spire',
-    isDnAInternalTool: true,
+    isDnAInternalTool: false,
   },
 ];
 
