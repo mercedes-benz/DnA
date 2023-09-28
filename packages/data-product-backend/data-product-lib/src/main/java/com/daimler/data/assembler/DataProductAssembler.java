@@ -155,8 +155,7 @@ public class DataProductAssembler implements GenericAssembler<DataProductVO, Dat
 					if(accesstypes != null && accesstypes.size()>0 ) {
 						if(accesstypes.contains("Kafka") || accesstypes.contains("API")) {
 							if(Objects.nonNull(dataProduct.getAccess().getConfidentiality()) && dataProduct.getAccess().getConfidentiality().equals("Internal")) {								
-								if(Objects.nonNull(dataProduct.getAccess().isPersonalRelatedData() && dataProduct.getAccess().isDeletionRequirements() && dataProduct.getAccess().isRestrictDataAccess()) && (dataProduct.getAccess().isPersonalRelatedData() || dataProduct.getAccess().isDeletionRequirements() || dataProduct.getAccess().isRestrictDataAccess())) {	 		
-<<<<<<< HEAD
+								if(Objects.nonNull(dataProduct.getAccess().isPersonalRelatedData() && dataProduct.getAccess().isDeletionRequirements() && dataProduct.getAccess().isRestrictDataAccess()) && (dataProduct.getAccess().isPersonalRelatedData() || dataProduct.getAccess().isDeletionRequirements() || dataProduct.getAccess().isRestrictDataAccess())) {	 	
 									dataProduct.getAccess().setMinimumInformationCheck(true);	
 								}
 								else {
@@ -164,14 +163,11 @@ public class DataProductAssembler implements GenericAssembler<DataProductVO, Dat
 								}								
 							}
 							else {
-								dataProduct.getAccess().setMinimumInformationCheck(false);
-=======
-										dataProduct.getAccess().setMinimumInformationCheck(true);		
+								dataProduct.getAccess().setMinimumInformationCheck(false);		
 								}
 								else {
 									dataProduct.getAccess().setMinimumInformationCheck(false);
 								}											
->>>>>>> ea9574b4db670db4bc3b84630fe596b7392bc78c
 							}
 						}
 						else {
