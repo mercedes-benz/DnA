@@ -81,6 +81,8 @@ const CreateNewPipeline = (props: ICreateNewPipelineProps) => {
   const [activeDagLength, setActiveDagLength] = useState<number>();
   const [isApiCallTakeTime, setIsApiCallTakeTime] = useState<boolean>(false);
   const [livelinessInterval, setLivelinessInterval] = useState<NodeJS.Timer>();
+  const [enableBackButton, setBackButton] = useState<boolean>(false);
+  const createAndUpdateStatus = ['CREATE_REQUESTED', 'UPDATE_REQUESTED'];
 
   const fsActive = () => {
     setIsFsEnable(!isFsEnable);
@@ -384,12 +386,17 @@ const CreateNewPipeline = (props: ICreateNewPipelineProps) => {
     setIsApiCallTakeTime(true);
     PipelineApiClient.putExistingProject(id, data)
       .then((response) => {
-        history.push('/pipeline');
-        Notification.show('Project Updated successfully!');
-        setCreateProjectError('');
-        setIsApiCallTakeTime(false);
-        window.location.reload();
-        ProgressIndicator.hide();
+        if (createAndUpdateStatus.includes(response?.data?.projectStatus)) {
+          enableLivelinessCheck(response?.data?.projectId);
+          setBackButton(true);
+        } else {
+          history.push('/pipeline');
+          Notification.show('Project Updated successfully!');
+          setCreateProjectError('');
+          setIsApiCallTakeTime(false);
+          window.location.reload();
+          ProgressIndicator.hide();
+        }
       })
       .catch((err: Error) => {
         setCreateProjectError(err.message);
@@ -410,8 +417,9 @@ const CreateNewPipeline = (props: ICreateNewPipelineProps) => {
     setIsApiCallTakeTime(true);
     PipelineApiClient.addNewProject(data)
       .then((response) => {
-        if (response?.data?.projectStatus === "CREATE_REQUESTED") {
+        if (createAndUpdateStatus.includes(response?.data?.projectStatus)) {
           enableLivelinessCheck(response?.data?.projectId);
+          setBackButton(true);
         } else {
           history.push(`/pipeline`);
           Notification.show('New Project Created successfully!');
@@ -1007,9 +1015,9 @@ const CreateNewPipeline = (props: ICreateNewPipelineProps) => {
         <>
           Please wait as this process can take up to a minute....
           <br />
-          <button className="btn btn-text back arrow" onClick={switchBackToPipeline}>
+          {enableBackButton && <button className="btn btn-text back arrow" onClick={switchBackToPipeline}>
             Back to Pipeline
-          </button>
+          </button>}
         </>
       } />}
     </React.Fragment>

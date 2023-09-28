@@ -57,11 +57,11 @@ const CreateOrEditProject = (props) => {
                 setDataClassificationDropdown(response[0]?.data?.data || []);
                 setDivisions(response[1]?.data || []);
                 setDepartmentTags(response[2]?.data?.data || []);
-                SelectBox.defaultSetup();
+                SelectBox.defaultSetup();  
             })
             .catch((err) => {
                 ProgressIndicator.hide();
-                SelectBox.defaultSetup();
+                SelectBox.defaultSetup();  
                 if (err?.response?.data?.errors?.length > 0) {
                     err?.response?.data?.errors.forEach((err) => {
                         showErrorNotification(err?.message || 'Something went wrong.');
@@ -115,7 +115,7 @@ const CreateOrEditProject = (props) => {
                             }
                             setSubDivisions(subDivisions);
                             setDivisionValue(division);
-                            SelectBox.defaultSetup();
+                             SelectBox.defaultSetup();  
                         }).catch((err) => {
                             ProgressIndicator.hide();
                             if (err?.response?.data?.response?.errors?.length > 0) {
@@ -156,8 +156,7 @@ const CreateOrEditProject = (props) => {
                         setCurrentUserCollab(currentUserCollabList);
                         setDataikuCollaborators(remainingUsersColloab);
                     }
-
-                    SelectBox.defaultSetup();
+                     SelectBox.defaultSetup();  
                 }
             })
             .catch((err) => {
@@ -415,7 +414,7 @@ const CreateOrEditProject = (props) => {
                         division.subdivision = { id: '0', name: 'Choose' };
                     }
                     setSubDivisions(subDivisions);
-                    SelectBox.defaultSetup();
+                     SelectBox.defaultSetup();  
                     ProgressIndicator.hide();
                 });
             }
