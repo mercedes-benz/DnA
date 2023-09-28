@@ -76,5 +76,20 @@ public class DnaProject implements Serializable {
 	@OneToMany(mappedBy = "dnaProject", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
 	@OnDelete(action = OnDeleteAction.CASCADE)
 	private List<DnaProjectAndUserMapping> dnaProjectUserMappings;
+	
+	@Override
+	public String toString() {
+	   return "DnaProject{" +
+	         "id=" + id +
+	         ", projectId='" + projectId + '\'' +
+	         ", projectName='" + projectName + '\'' +
+	         ", projectDescription='" + projectDescription + '\'' +
+	         ", createdBy='" + createdBy + '\'' +
+	         ", projectStatus='" + projectStatus + '\'' +
+	         ", collabs='" + collabs + '\'' +
+	         '}';
+	}
+	
+	
 
 }

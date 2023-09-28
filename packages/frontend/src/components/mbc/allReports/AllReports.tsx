@@ -195,8 +195,8 @@ export default class AllReports extends React.Component<
       });
     } else {
       this.setState({
-        cardViewMode: true,
-        listViewMode: false,
+        cardViewMode: false,
+        listViewMode: true,
       });
     }
     ProgressIndicator.show();
