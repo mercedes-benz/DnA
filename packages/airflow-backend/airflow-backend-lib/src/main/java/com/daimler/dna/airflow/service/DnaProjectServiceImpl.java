@@ -199,8 +199,10 @@ public class DnaProjectServiceImpl implements DnaProjectService {
 	public AirflowProjectVO getByProjectId(String projectId) {
 		AirflowProjectUserVO currentUser = this.userStore.getVO();
 		List<DnaProject> projects = dnaProjectRepository.findbyUniqueLiteral("projectId", projectId);
+		if(projects!=null && !projects.isEmpty()) {
 		projects = projects.stream().filter(p -> p.getCreatedBy().equalsIgnoreCase(currentUser.getUsername()))
 				.collect(Collectors.toList());
+		}
 		return (Objects.nonNull(projects) && !projects.isEmpty()) ? assembler.toVO(projects.get(0)) : null;
 	}
 

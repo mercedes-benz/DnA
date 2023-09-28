@@ -33,6 +33,7 @@ import java.util.List;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.Id;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
@@ -70,6 +71,6 @@ public class Dag implements Serializable {
 	private String scheduleInterval;
 	private String rootDagId;
 
-	@OneToMany(mappedBy = "dag", cascade = CascadeType.ALL)
+	@OneToMany(mappedBy = "dag", cascade = CascadeType.ALL,  fetch = FetchType.LAZY)
 	private List<DnaProjectUserAndDagMapping> dnaProjectUserAndDagMapping;
 }
