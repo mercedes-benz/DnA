@@ -156,12 +156,7 @@ public class DataProductAssembler implements GenericAssembler<DataProductVO, Dat
 						if(accesstypes.contains("Kafka") || accesstypes.contains("API")) {
 							if(Objects.nonNull(dataProduct.getAccess().getConfidentiality()) && dataProduct.getAccess().getConfidentiality().equals("Internal")) {								
 								if(Objects.nonNull(dataProduct.getAccess().isPersonalRelatedData() && dataProduct.getAccess().isDeletionRequirements() && dataProduct.getAccess().isRestrictDataAccess()) && (dataProduct.getAccess().isPersonalRelatedData() || dataProduct.getAccess().isDeletionRequirements() || dataProduct.getAccess().isRestrictDataAccess())) {	 		
-									if(Objects.nonNull(dataProduct.getAccess().isPersonalRelatedData() && dataProduct.getAccess().isDeletionRequirements() && dataProduct.getAccess().isRestrictDataAccess()) && (dataProduct.getAccess().isPersonalRelatedData() || dataProduct.getAccess().isDeletionRequirements() || dataProduct.getAccess().isRestrictDataAccess())) {	 		
-										dataProduct.getAccess().setMinimumInformationCheck(true);	
-									}
-									else {
-										dataProduct.getAccess().setMinimumInformationCheck(false);
-									}	
+										dataProduct.getAccess().setMinimumInformationCheck(true);		
 								}
 								else {
 									dataProduct.getAccess().setMinimumInformationCheck(false);
@@ -378,12 +373,7 @@ public class DataProductAssembler implements GenericAssembler<DataProductVO, Dat
 						if(accesstypes.contains("Kafka") || accesstypes.contains("API")) {
 							if(Objects.nonNull(vo.getAccess().getConfidentiality()) && vo.getAccess().getConfidentiality().equals("Internal")) {		
 								if(Objects.nonNull(vo.getAccess().isPersonalRelatedData() && vo.getAccess().isDeletionRequirements() && vo.getAccess().isRestrictDataAccess()) && (vo.getAccess().isPersonalRelatedData() || vo.getAccess().isDeletionRequirements() || vo.getAccess().isRestrictDataAccess()))	{			
-									if(Objects.nonNull(dataProduct.getAccess().isPersonalRelatedData() && dataProduct.getAccess().isDeletionRequirements() && dataProduct.getAccess().isRestrictDataAccess()) && (dataProduct.getAccess().isPersonalRelatedData() || dataProduct.getAccess().isDeletionRequirements() || dataProduct.getAccess().isRestrictDataAccess())) {	 		
-										dataProduct.getAccess().setMinimumInformationCheck(true);	
-									}
-									else {
-										dataProduct.getAccess().setMinimumInformationCheck(false);
-									}	
+									dataProduct.getAccess().setMinimumInformationCheck(true);		
 								}
 								else {
 									vo.getAccess().setMinimumInformationCheck(false);
