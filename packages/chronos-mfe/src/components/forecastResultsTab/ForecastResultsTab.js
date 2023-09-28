@@ -271,7 +271,7 @@ const ForecastResultsTab = ({ onRunClick }) => {
               {!loading && forecastRuns?.length > 0 &&
                 <React.Fragment>
                   <div className={Styles.refreshContainer}>
-                    <button className={classNames('btn btn-primary', Styles.delBtn, selectedRuns.length > 1 ? '' : Styles.disableBtn)} tooltip-data={'Compare Runs'} onClick={() => setShowCompareModal(true)}><i className="icon mbc-icon data-sharing"></i></button>
+                    <button className={classNames('btn btn-primary', Styles.delBtn, selectedRuns.length > 0 ? '' : Styles.disableBtn)} tooltip-data={'Compare Runs'} onClick={() => setShowCompareModal(true)}><i className="icon mbc-icon data-sharing"></i></button>
                     <button className='btn btn-primary' onClick={() => { getProjectForecastRuns(); }}>
                       <i className="icon mbc-icon refresh" />
                       <span>Refresh</span>   

@@ -620,7 +620,7 @@ export default class DigitalValue extends React.Component<IDigitalValueProps, ID
                     <span>Add Value Factor</span>
                   </button>
                 </div>
-                {isDataValueCalcSelected && (
+                {valueDrivers && isDataValueCalcSelected && (
                   <div className={Styles.dataValueTotalSection}>
                     <label>Total {SOLUTION_DATA_VALUE_CATEGORY_TYPES[DigitalValue.dataValueSavingsKeyValue]}</label> -{' '}
                     <IntlProvider locale={navigator.language} defaultLocale="en">
@@ -977,7 +977,7 @@ export default class DigitalValue extends React.Component<IDigitalValueProps, ID
             content={
               <>
                 <div>
-                  {valueDrivers.length ? (
+                  {valueDrivers?.length ? (
                     <h3>
                       {this.state.valueCalculationType === DigitalValue.digitalValueTypeKeyValue ? (
                         <>
@@ -1109,7 +1109,7 @@ export default class DigitalValue extends React.Component<IDigitalValueProps, ID
   protected onValueCalculationChangeAccept = () => {
     if (this.state.valueCalculationType === DigitalValue.dataValueTypeKeyValue) {
       const {valueDrivers, costDrivers } = this.state;
-      valueDrivers.forEach((valueDriver: IValueFactor) => {
+      valueDrivers?.forEach((valueDriver: IValueFactor) => {
         let value = 0;
         (valueDriver.category !== DigitalValue.dataValueSavingsKeyValue &&
           valueDriver.category !== DigitalValue.dataValueRevenueKeyValue) &&
@@ -1121,7 +1121,7 @@ export default class DigitalValue extends React.Component<IDigitalValueProps, ID
         valueDriver.value = value.toString();
       });
 
-      costDrivers.forEach((costDriver: ICostFactor) => {
+      costDrivers?.forEach((costDriver: ICostFactor) => {
         let value = 0;
         costDriver.rampUp.forEach((rampUp: IValueRampUp) => {
           value += parseFloat(rampUp.value);

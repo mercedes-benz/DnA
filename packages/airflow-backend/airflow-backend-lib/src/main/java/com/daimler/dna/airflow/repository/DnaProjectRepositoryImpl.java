@@ -42,7 +42,7 @@ public class DnaProjectRepositoryImpl extends CommonDataRepositoryImpl<DnaProjec
 
 	@Override
 	public List<Object[]> findAllProjectsByUserId(String username) {
-		String query = "select dna_project.project_id,dna_project.created_by,dna_project_user_dag.dag_id, ab_permission.name, dna_project.project_name, dna_project.project_description  from ab_user inner join dna_project_user_dag\r\n"
+		String query = "select dna_project.project_id,dna_project.created_by,dna_project_user_dag.dag_id, ab_permission.name, dna_project.project_name, dna_project.project_description , dna_project.project_status from ab_user inner join dna_project_user_dag\r\n"
 				+ "on dna_project_user_dag.user_id = ab_user.id\r\n"
 				+ "inner join dna_project_user on dna_project_user_dag.id = dna_project_user.user_dag_id\r\n"
 				+ "inner join dna_project on dna_project.id = dna_project_user.dna_project_id\r\n"
@@ -69,14 +69,31 @@ public class DnaProjectRepositoryImpl extends CommonDataRepositoryImpl<DnaProjec
 	@Override
 	public List<Object[]> findAllCreationStatusProjectsByUserId(String username, String Status) {
 		String query = "select dna_project.project_id,dna_project.created_by, dna_project.project_name, dna_project.project_description, dna_project.project_status, dna_project.collabs  from  dna_project\r\n"
-				+ "where collabs like  CONCAT( '%', ? ,'%')\r\n"
+				+ "where (collabs like  CONCAT( '%', ? ,'%') or created_by = ?)\r\n" 
 				+ "and dna_project.project_status = ?\r\n";
 
 		Query qry = this.em.createNativeQuery(query);
 		qry.setParameter(1, username);
-		qry.setParameter(2, Status);
+		qry.setParameter(2, username);
+		qry.setParameter(3, Status);
 		return qry.getResultList();
 	}
+	
+	@Override
+	public List<String> findPermissionNameforGivenUserDag(String dagName, String userName) {
+		String query = "select name from ab_permission where id in \r\n"
+				+ "(select permission_id from ab_permission_view where view_menu_id in \r\n"
+				+ "(select id from ab_view_menu where name = ?) \r\n"
+				+ "and id in (select permission_view_id from ab_permission_view_role where role_id in \r\n"
+				+ "(select id from ab_role where id in (select role_id from ab_user_role where user_id = \r\n"
+				+ "(select id from ab_user where username = ?)))))";
+
+		Query qry = this.em.createNativeQuery(query);
+		qry.setParameter(1, dagName);
+		qry.setParameter(2, userName);
+		return qry.getResultList();
+	}
+	
 
 	@Override
 	public List<Object[]> findDagPermissionAndViewMenu(String dagName) {
