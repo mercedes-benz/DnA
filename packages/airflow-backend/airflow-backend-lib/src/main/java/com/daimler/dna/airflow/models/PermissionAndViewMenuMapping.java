@@ -30,7 +30,9 @@ package com.daimler.dna.airflow.models;
 import java.io.Serializable;
 import java.util.List;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
@@ -59,14 +61,14 @@ public class PermissionAndViewMenuMapping implements Serializable {
 	@SequenceGenerator(name = "ab_permission_view_id", sequenceName = "ab_permission_view_id_seq", allocationSize = 1)
 	private Integer id;
 
-	@ManyToOne()
+	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "permission_id")
 	private Permission permission;
 
-	@ManyToOne()
+	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "view_menu_id")
 	private ViewMenu viewMenu;
 
-	@OneToMany(mappedBy = "permissionView")
+	@OneToMany(mappedBy = "permissionView", cascade = CascadeType.ALL,  fetch = FetchType.LAZY)
 	private List<PermissionAndRoleMapping> permissionAndRoleMapping;
 }
