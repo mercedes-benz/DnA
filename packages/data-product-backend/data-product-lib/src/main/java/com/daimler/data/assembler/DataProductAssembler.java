@@ -155,10 +155,15 @@ public class DataProductAssembler implements GenericAssembler<DataProductVO, Dat
 					if(accesstypes != null && accesstypes.size()>0 ) {
 						if(accesstypes.contains("Kafka") || accesstypes.contains("API")) {
 							if(Objects.nonNull(dataProduct.getAccess().getConfidentiality()) && dataProduct.getAccess().getConfidentiality().equals("Internal")) {								
-								dataProduct.getAccess().setMinimumInformationCheck(false);								
+								if(Objects.nonNull(dataProduct.getAccess().isPersonalRelatedData() && dataProduct.getAccess().isDeletionRequirements() && dataProduct.getAccess().isRestrictDataAccess()) && (dataProduct.getAccess().isPersonalRelatedData() || dataProduct.getAccess().isDeletionRequirements() || dataProduct.getAccess().isRestrictDataAccess())) {	 		
+									dataProduct.getAccess().setMinimumInformationCheck(true);	
+								}
+								else {
+									dataProduct.getAccess().setMinimumInformationCheck(false);
+								}								
 							}
 							else {
-								dataProduct.getAccess().setMinimumInformationCheck(true);
+								dataProduct.getAccess().setMinimumInformationCheck(false);
 							}
 						}
 						else {
@@ -367,10 +372,15 @@ public class DataProductAssembler implements GenericAssembler<DataProductVO, Dat
 					if(accesstypes != null && accesstypes.size()>0 ) {
 						if(accesstypes.contains("Kafka") || accesstypes.contains("API")) {
 							if(Objects.nonNull(vo.getAccess().getConfidentiality()) && vo.getAccess().getConfidentiality().equals("Internal")) {								
-								vo.getAccess().setMinimumInformationCheck(false);								
+								if(Objects.nonNull(dataProduct.getAccess().isPersonalRelatedData() && dataProduct.getAccess().isDeletionRequirements() && dataProduct.getAccess().isRestrictDataAccess()) && (dataProduct.getAccess().isPersonalRelatedData() || dataProduct.getAccess().isDeletionRequirements() || dataProduct.getAccess().isRestrictDataAccess())) {	 		
+									dataProduct.getAccess().setMinimumInformationCheck(true);	
+								}
+								else {
+									dataProduct.getAccess().setMinimumInformationCheck(false);
+								}								
 							}
 							else {
-								vo.getAccess().setMinimumInformationCheck(true);
+								vo.getAccess().setMinimumInformationCheck(false);
 							}
 						}
 						else {
