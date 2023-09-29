@@ -368,7 +368,7 @@ export default class Description extends React.Component<IDescriptionProps, IDes
     // this.props.onStateChange();
     if (selectedOptions.length) {
       Array.from(selectedOptions).forEach((option) => {
-        const location: ILocation = { id: null, name: null, is_row: false };
+        const location: ILocation = { id: null, name: null, };
         location.id = option.value;
         location.name = option.label;
         selectedValues.push(location);
