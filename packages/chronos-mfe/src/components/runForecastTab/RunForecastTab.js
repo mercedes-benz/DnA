@@ -60,9 +60,7 @@ const RunForecastTab = ({ onRunClick }) => {
         onRunClick();
         ProgressIndicator.hide();
         methods.reset();
-        setTimeout(() => {
-          SelectBox.defaultSetup();  
-        }, 100);
+        SelectBox.defaultSetup();
         dispatch(setInputFile({}));
         dispatch(getProjectDetails(projectId));
       }).catch(error => {
@@ -78,7 +76,7 @@ const RunForecastTab = ({ onRunClick }) => {
     <>
       <FormProvider {...methods} >
         <form onSubmit={methods.handleSubmit(onSubmit)}>
-          <InputFileArea />
+          <InputFileArea showTutorial={setShowTutorial} />
           <RunParametersForm />
           <div className="btnContainer">
             <button className="btn btn-tertiary" type="submit">Run Forecast</button>
