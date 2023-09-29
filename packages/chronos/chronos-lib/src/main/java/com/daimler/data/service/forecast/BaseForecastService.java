@@ -241,6 +241,8 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 		noteboookParams.setX_pred("");
 		noteboookParams.setInfotext(infotext);
 
+		noteboookParams.setUser_id(triggeredBy);
+
 		RunNowResponseVO runNowResponse = dataBricksClient.runNow(correlationId, noteboookParams, runOnPowerfulMachines);
 		if(runNowResponse!=null) {
 			if(runNowResponse.getErrorCode()!=null || runNowResponse.getRunId()==null) 
