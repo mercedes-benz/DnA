@@ -243,30 +243,37 @@ const CreateMatomo = ({ user }) => {
     setStatusValue(e.target.value);
   }
 
+  const handleURLValidation = (value) => {
+    setUrlError('');
+    setUrl(value);
+  }
+
   const handleSiteNameValidation = (value) => {
-    if (value) {
-      if (value?.length < 3) {
-        setSiteNameError('Site name should be minimum 3 characters.');
-      } else if (!/(^[a-z\d.-]*$)/g.test(value)) {
-        setSiteNameError(
-          'Site names can consist only of lowercase letters, numbers, dots ( . ), and hyphens ( - ).',
-        );
-      } else if (!/^[a-z\d]/g.test(value)) {
-        setSiteNameError('Site name must start with a lowercase letter or number.');
-      } else if (/-$/.test(value)) {
-        setSiteNameError('Site name must end with letter or a number.');
-      } else if (/\.$/.test(value)) {
-        setSiteNameError('Site name must end with letter or a number.');
-      } else if (/\.+\./.test(value)) {
-        setSiteNameError('Site name cant have consecutive dots.');
-      } else if (/^(?:(?:^|\.)(?:2(?:5[0-5]|[0-4]\d)|1?\d?\d)){4}$/.test(value)) {
-        setSiteNameError('Site name cant be an IP address.');
-      } else {
-        setSiteNameError('');
-      }
-    } else {
-      setSiteNameError('');
-    }
+    setSiteNameError('');
+    setSiteName(value);
+    // if (value) {
+    //   if (value?.length < 3) {
+    //     setSiteNameError('Site name should be minimum 3 characters.');
+    //   } else if (!/(^[a-z\d.-]*$)/g.test(value)) {
+    //     setSiteNameError(
+    //       'Site names can consist only of lowercase letters, numbers, dots ( . ), and hyphens ( - ).',
+    //     );
+    //   } else if (!/^[a-z\d]/g.test(value)) {
+    //     setSiteNameError('Site name must start with a lowercase letter or number.');
+    //   } else if (/-$/.test(value)) {
+    //     setSiteNameError('Site name must end with letter or a number.');
+    //   } else if (/\.$/.test(value)) {
+    //     setSiteNameError('Site name must end with letter or a number.');
+    //   } else if (/\.+\./.test(value)) {
+    //     setSiteNameError('Site name cant have consecutive dots.');
+    //   } else if (/^(?:(?:^|\.)(?:2(?:5[0-5]|[0-4]\d)|1?\d?\d)){4}$/.test(value)) {
+    //     setSiteNameError('Site name cant be an IP address.');
+    //   } else {
+    //     setSiteNameError('');
+    //   }
+    // } else {
+    //   setSiteNameError('');
+    // }
   };
 
   const onAddNewBucket = () => {
@@ -508,7 +515,6 @@ const CreateMatomo = ({ user }) => {
                       placeholder="Type here"
                       autoComplete="off"
                       onChange={(e) => {
-                        setSiteName(e.target.value?.toLowerCase());
                         handleSiteNameValidation(e.target.value);
                       }}
                       defaultValue={siteName}
@@ -600,8 +606,7 @@ const CreateMatomo = ({ user }) => {
                       placeholder="Type here"
                       autoComplete="off"
                       onChange={(e) => {
-                        setUrl(e.target.value);
-                        // handleBucketNameValidation(e.target.value);
+                        handleURLValidation(e.target.value);
                       }}
                       defaultValue={url}
                     />

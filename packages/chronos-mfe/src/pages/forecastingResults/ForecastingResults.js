@@ -41,8 +41,16 @@ const ForecastingResults = () => {
   }, []);
   
   useEffect(() => {
-    SelectBox.defaultSetup();
+    setTimeout(() => {
+      SelectBox.defaultSetup();
+    }, 200);
   }, [colOneSelect.current.value, colTwoSelect.current.value]);
+
+  useEffect(() => {
+    chronosApi.getForecastProjectById(projectId).then((res) => {
+      setBucketName(res.data.bucketName);
+    }).catch(() => { });
+  }, [projectId]);
 
   const [colOne, setColOne] = useState([]);
   const [colTwo, setColTwo] = useState([]);
@@ -56,11 +64,11 @@ const ForecastingResults = () => {
       dataColumns.splice(index, 1);
     }
     setColTwo([...dataColumns]);
-    setCharts(JSON.parse(forecastRun.visualsData));
+    forecastRun?.visualsData && setCharts(JSON.parse(forecastRun?.visualsData));
   }
 
   const handleColTwo = () => {
-    setCharts(JSON.parse(forecastRun.visualsData));
+    forecastRun?.visualsData && setCharts(JSON.parse(forecastRun?.visualsData));
   }
 
   const setCharts = (myData) => {
@@ -224,12 +232,6 @@ const ForecastingResults = () => {
     outlierDataArray.push(...outlierColOneArray, ...outlierColTwoArray);
     setOutlierDataA([...outlierDataArray]);
   }
-
-  useEffect(() => {
-    chronosApi.getForecastProjectById(projectId).then((res) => {
-      setBucketName(res.data.bucketName);
-    }).catch(() => { });
-  }, [projectId]);
 
   const getForecastRun = () => {
     ProgressIndicator.show();
