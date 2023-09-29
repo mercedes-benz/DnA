@@ -139,7 +139,10 @@ public class SolutionController implements SolutionsApi, ChangelogsApi, Malwares
             if (null != requestSolutionVO.getDigitalValue()) {
                 ValueCalculatorVO valueCalculatorVO = solutionAssembler
                         .valueCalculator(requestSolutionVO.getDigitalValue());
+                DataValueCalculatorVO dataValueCalculatorVO = solutionAssembler
+                		.dataValueCalculator(requestSolutionVO.getDigitalValue());
                 requestSolutionVO.getDigitalValue().setValueCalculator(valueCalculatorVO);
+                requestSolutionVO.getDigitalValue().setDataValueCalculator(dataValueCalculatorVO);
             }
 
             SolutionVO solutionVO = solutionService.create(requestSolutionVO);
@@ -555,8 +558,12 @@ public class SolutionController implements SolutionsApi, ChangelogsApi, Malwares
                 if (null != requestSolutionVO.getDigitalValue()) {
                     SolutionDigitalValueVO digitalValueRequest = new SolutionDigitalValueVO();
                     digitalValueRequest = SolutionAssembler.cloneDigitalValueVO(requestSolutionVO.getDigitalValue());
+                    SolutionDigitalValueVO digitalValueRequestForDataValue = new SolutionDigitalValueVO();
+                    digitalValueRequestForDataValue = SolutionAssembler.cloneDigitalValueVO(requestSolutionVO.getDigitalValue());
                     ValueCalculatorVO valueCalculatorVO = solutionAssembler.valueCalculator(digitalValueRequest);
+                    DataValueCalculatorVO dataValueCalculatorVO = solutionAssembler.dataValueCalculator(digitalValueRequestForDataValue);
                     requestSolutionVO.getDigitalValue().setValueCalculator(valueCalculatorVO);
+                    requestSolutionVO.getDigitalValue().setDataValueCalculator(dataValueCalculatorVO);
                 }
 
                 String solutionId = requestSolutionVO.getId();
