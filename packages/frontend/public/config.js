@@ -108,6 +108,7 @@ window['STORAGE_INJECTED_ENVIRONMENT'] = {
   TOU_HTML: '<div>I agree to <a href="#" target="_blank" rel="noopener noreferrer">terms of use</a></div>',
   ENABLE_DATA_CLASSIFICATION_SECRET: false,
   TRINO_API_BASEURL: 'http://localhost:7575/api',
+  DATAIKU_API_BASEURL: 'http://localhost:7777/api',
   ENABLE_TRINO_PUBLISH: false,
 };
 
