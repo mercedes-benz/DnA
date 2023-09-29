@@ -79,9 +79,7 @@ const ProjectDetailsTab = () => {
         dispatch(getProjectDetails(projectId));
         ProgressIndicator.hide();
         setInputFileToBeDeleted('');
-        setTimeout(() => {
-          SelectBox.defaultSetup();  
-        }, 100);
+        SelectBox.defaultSetup();  
       }).catch(error => {
         Notification.show(
           error?.response?.data?.response?.errors[0]?.message || error?.response?.data?.response?.warnings[0]?.message || error?.response?.data?.errors[0]?.message || 'Error while deleting saved input file',
@@ -98,9 +96,7 @@ const ProjectDetailsTab = () => {
         dispatch(getProjectDetails(projectId));
         ProgressIndicator.hide();
         setConfigFileToBeDeleted('');
-        setTimeout(() => {
-          SelectBox.defaultSetup();  
-        }, 100);
+        SelectBox.defaultSetup();
       }).catch(error => {
         Notification.show(
           error?.response?.data?.response?.errors[0]?.message || error?.response?.data?.response?.warnings[0]?.message || error?.response?.data?.errors[0]?.message || 'Error while deleting config file',
