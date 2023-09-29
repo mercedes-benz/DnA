@@ -78,6 +78,22 @@ public class DnaProjectRepositoryImpl extends CommonDataRepositoryImpl<DnaProjec
 		qry.setParameter(3, Status);
 		return qry.getResultList();
 	}
+	
+	@Override
+	public List<String> findPermissionNameforGivenUserDag(String dagName, String userName) {
+		String query = "select name from ab_permission where id in \r\n"
+				+ "(select permission_id from ab_permission_view where view_menu_id in \r\n"
+				+ "(select id from ab_view_menu where name = ?) \r\n"
+				+ "and id in (select permission_view_id from ab_permission_view_role where role_id in \r\n"
+				+ "(select id from ab_role where id in (select role_id from ab_user_role where user_id = \r\n"
+				+ "(select id from ab_user where username = ?)))))";
+
+		Query qry = this.em.createNativeQuery(query);
+		qry.setParameter(1, dagName);
+		qry.setParameter(2, userName);
+		return qry.getResultList();
+	}
+	
 
 	@Override
 	public List<Object[]> findDagPermissionAndViewMenu(String dagName) {
