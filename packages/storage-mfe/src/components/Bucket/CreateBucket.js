@@ -58,17 +58,13 @@ const CreateBucket = ({ user }) => {
       .getDataConnectionTypes()
       .then((res) => {
         setDataClassificationDropdown(res?.data?.data || []);
-        setTimeout(() => {
-          SelectBox.defaultSetup();  
-        }, 100);
+        SelectBox.defaultSetup();
         ProgressIndicator.hide();
       })
       .catch(() => {
         ProgressIndicator.hide();
         setDataClassificationDropdown([{ id: '', name: 'Choose' }]);
-        setTimeout(() => {
-          SelectBox.defaultSetup();  
-        }, 100);
+        SelectBox.defaultSetup();
         Notification.show('Error while fetching Data Connection Type list', 'alert');
       });
   }, [isSecretEnabled]);
@@ -90,9 +86,7 @@ const CreateBucket = ({ user }) => {
             setCreatedDate(res?.data?.createdDate);
             setTermsOfUse(res?.data?.termsOfUse);
             setEditAPIResponse(res?.data); // store to compare whether the values are changed
-            setTimeout(() => {
-              SelectBox.defaultSetup();  
-            }, 100);
+            SelectBox.defaultSetup();
           } else {
             // reset history to base page before accessing container app's public routes;
             history.replace('/');
