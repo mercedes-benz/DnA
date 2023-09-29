@@ -79,9 +79,10 @@ public class User implements Serializable {
 
 	private Date changedOn;
 
-	@OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+	@OneToMany(mappedBy = "user", cascade = CascadeType.ALL,  fetch = FetchType.LAZY)
 	private List<UserRoleMapping> roleMaping;
 
-	@OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
-	private List<DnaProjectUserAndDagMapping> dnaProjectUserAndDagMapping;
+	@OneToMany(mappedBy = "user", cascade = CascadeType.ALL,  fetch = FetchType.LAZY)
+	private List<DnaProjectUserAndDagMapping> dnaProjectUserAndDagMapping;	
+	
 }
