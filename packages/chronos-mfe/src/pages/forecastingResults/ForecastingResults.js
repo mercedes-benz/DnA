@@ -41,7 +41,9 @@ const ForecastingResults = () => {
   }, []);
   
   useEffect(() => {
-    SelectBox.defaultSetup();
+    setTimeout(() => {
+      SelectBox.defaultSetup();
+    }, 200);
   }, [colOneSelect.current.value, colTwoSelect.current.value]);
 
   useEffect(() => {
