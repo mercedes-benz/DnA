@@ -27,4 +27,5 @@ public class RunNowNotebookParamsDto  implements Serializable{
 	private String excel;
 	private String correlationId;
 	private String infotext;
+	private String user_id;
 }
