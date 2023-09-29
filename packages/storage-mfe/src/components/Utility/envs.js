@@ -32,6 +32,7 @@ export const Envs = {
       ? getInjectedEnv('ENABLE_DATA_CLASSIFICATION_SECRET')
       : parseBool(process.env.ENABLE_DATA_CLASSIFICATION_SECRET, false),
   TRINO_API_BASEURL: getInjectedEnv('TRINO_API_BASEURL') || process.env.TRINO_API_BASEURL,
+  DATAIKU_API_BASEURL: getInjectedEnv('DATAIKU_API_BASEURL') || process.env.DATAIKU_API_BASEURL,
   ENABLE_TRINO_PUBLISH: getInjectedEnv('ENABLE_TRINO_PUBLISH') || parseBool(process.env.ENABLE_TRINO_PUBLISH, false),
   ENABLE_DATAIKU:
     getDNAInjectedEnv('ENABLE_DATAIKU_WORKSPACE') || parseBool(process.env.ENABLE_DATAIKU_WORKSPACE, false),
