@@ -31,6 +31,7 @@ import java.io.Serializable;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
@@ -59,11 +60,11 @@ public class UserRoleMapping implements Serializable {
 	@SequenceGenerator(name = "user_role_mapping_seq", sequenceName = "ab_user_role_id_seq", allocationSize = 1)
 	private Integer id;
 
-	@ManyToOne()
+	@ManyToOne( fetch = FetchType.LAZY)
 	@JoinColumn(name = "user_id")
 	private User user;
 
-	@ManyToOne()
+	@ManyToOne( fetch = FetchType.LAZY)
 	@JoinColumn(name = "role_id")
 	private Role role;
 
