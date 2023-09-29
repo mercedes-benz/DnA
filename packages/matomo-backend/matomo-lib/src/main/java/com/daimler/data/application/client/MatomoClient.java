@@ -11,6 +11,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
+
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 @Component
@@ -58,7 +61,7 @@ public class MatomoClient {
             HttpHeaders headers = new HttpHeaders();
             headers.set("Accept", "application/json");
             headers.setContentType(MediaType.APPLICATION_JSON);
-
+            siteUrl= URLEncoder.encode(siteUrl, StandardCharsets.UTF_8.toString());
             String addSiteUrl = matomoBaseUri + matomoAddSitePath + matomoTokenAuth +"&siteName=" +siteName +"&urls=" +siteUrl;
             HttpEntity requestEntity = new HttpEntity<>(headers);
             ResponseEntity<MatomoSiteResponseDto> response = restTemplate.exchange(addSiteUrl, HttpMethod.GET,
@@ -328,6 +331,7 @@ public class MatomoClient {
             HttpHeaders headers = new HttpHeaders();
             headers.set("Accept", "application/json");
             headers.setContentType(MediaType.APPLICATION_JSON);
+            siteUrl= URLEncoder.encode(siteUrl, StandardCharsets.UTF_8.toString());
             String updateSiteUrl = matomoBaseUri + matomoUpdateSitePath + matomoTokenAuth +"&siteName=" +siteName +"&urls=" +siteUrl +"&idSite=" + siteId ;
             HttpEntity requestEntity = new HttpEntity<>(headers);
             ResponseEntity<MatomoSiteResponseDto> response = restTemplate.exchange(updateSiteUrl, HttpMethod.GET,

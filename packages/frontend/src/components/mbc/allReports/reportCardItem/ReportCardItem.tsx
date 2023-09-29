@@ -148,16 +148,16 @@ const ReportCardItem = (props: IReportCardItemProps) => {
         <div className={Styles.solTitleDiv}>
           <div className={Styles.solTitle}>{report?.productName}</div>
         </div>
-        <div className={classNames(Styles.contextMenu, showContextMenu ? Styles.open : '')}>
-          <span onClick={toggleContextMenu} className={classNames('trigger', Styles.contextMenuTrigger)}>
+        <div className={classNames(Styles.contextMenu,showContextMenu ? Styles.open : '')}>
+          {props.canEdit &&(<span onClick={toggleContextMenu} className={classNames('trigger', Styles.contextMenuTrigger)}>
             <i className="icon mbc-icon listItem context" />
-          </span>
+          </span>)}
           <div
             style={{
               top: contextMenuOffsetTop + 'px',
               left: contextMenuOffsetLeft + 'px',
             }}
-            className={classNames('contextMenuWrapper', showContextMenu ? '' : 'hide')}
+            className={classNames('contextMenuWrapper',showContextMenu ? '' : 'hide')}
           >
             <ul className="contextList">
               {/* {props.bookmarked ? (
