@@ -44,7 +44,7 @@ public interface DataikuClient {
 	 * @param live
 	 * @return DataikuPermission
 	 */
-	public Optional<DataikuPermission> getDataikuProjectPermission(String projectKey, Boolean live);
+	public Optional<DataikuPermission> getDataikuProjectPermission(String projectKey, Boolean live, String cloudProfile);
 
 	/**
 	 * To create dataiku connection
@@ -53,7 +53,7 @@ public interface DataikuClient {
 	 * @param live
 	 * @return response {@code DataikuGenericResponseDTO}
 	 */
-	public DataikuGenericResponseDTO createDataikuConnection(DataikuConnectionRequestDTO requestDTO, Boolean live);
+	public DataikuGenericResponseDTO createDataikuConnection(DataikuConnectionRequestDTO requestDTO, Boolean live, String cloudProfile);
 
 	/**
 	 * To delete dataiku connection
@@ -62,6 +62,6 @@ public interface DataikuClient {
 	 * @param live
 	 * @return response {@code DataikuGenericResponseDTO}
 	 */
-	public DataikuGenericResponseDTO deleteDataikuConnection(String connectionName, Boolean live);
+	public DataikuGenericResponseDTO deleteDataikuConnection(String connectionName, Boolean live, String cloudProfile);
 
 }
