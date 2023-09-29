@@ -76,7 +76,7 @@ const RunForecastTab = ({ onRunClick }) => {
     <>
       <FormProvider {...methods} >
         <form onSubmit={methods.handleSubmit(onSubmit)}>
-          <InputFileArea />
+          <InputFileArea showTutorial={setShowTutorial} />
           <RunParametersForm />
           <div className="btnContainer">
             <button className="btn btn-tertiary" type="submit">Run Forecast</button>
