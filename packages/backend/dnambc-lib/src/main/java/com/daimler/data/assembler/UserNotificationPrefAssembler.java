@@ -60,7 +60,15 @@ public class UserNotificationPrefAssembler  implements GenericAssembler<UserNoti
 				vo.setDataProductNotificationPref(dataProductNotificationPrefVO);
 				
 				NotificationPreference chronosNotificationPrefJson = data.getChronosNotificationPref();
-				NotificationPreferenceVO chronosNotificationPrefVO = this.toNotificationPrefVO(chronosNotificationPrefJson);
+				NotificationPreferenceVO chronosNotificationPrefVO = new NotificationPreferenceVO();
+				if(chronosNotificationPrefJson != null) {
+					chronosNotificationPrefVO.setEnableAppNotifications(chronosNotificationPrefJson.isEnableAppNotifications());
+					chronosNotificationPrefVO.setEnableEmailNotifications(chronosNotificationPrefJson.isEnableEmailNotifications());
+				}
+				else {
+					chronosNotificationPrefVO.setEnableAppNotifications(true);
+					chronosNotificationPrefVO.setEnableEmailNotifications(true);
+				}
 				vo.setChronosNotificationPref(chronosNotificationPrefVO);
 				
 				NotificationPreference codespaceNotificationPrefJson = data.getCodespaceNotificationPref();
