@@ -574,6 +574,9 @@ const CreateDataProduct = ({ user, history }) => {
         data,
         currentTab
       };
+      reset(dataObj, {
+        keepDirty: false,
+      });
       if (isCreatePage) {
         const { id } = data.selectedDataProduct;
 
