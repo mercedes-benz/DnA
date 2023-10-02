@@ -83,11 +83,14 @@ const ContactInformation = ({
           let selected = isDataProduct
             ? provideDataTransfers?.selectedDataProduct
             : provideDataTransfers.selectedDataTransfer;
-          setValue('subDivision', selected.subDivision);
+          setTimeout(() => {
+            setValue('subDivision', selected.subDivision);
+          }, 100); 
+          SelectBox.defaultSetup();
         } else {
           setValue('subDivision', '0');
+          SelectBox.defaultSetup();
         }
-        SelectBox.defaultSetup();
         ProgressIndicator.hide();
       });
     } else {
