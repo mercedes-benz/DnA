@@ -70,7 +70,6 @@ export default class Summary extends React.Component<{ user: IUserInfo }, ISumma
             {
               id: '',
               name: '',
-              is_row: false,
             },
           ],
           division: {
