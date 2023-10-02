@@ -30,6 +30,11 @@ export const trinoServer = axios.create({
   headers,
 });
 
+export const dataikuServer = axios.create({
+  baseURL: Envs.DATAIKU_API_BASEURL ? Envs.DATAIKU_API_BASEURL : `http://${window.location.hostname}:7777/api`,
+  headers,
+});
+
 
 async function blobToJson(blob) {
   const text = await blob.text();
@@ -60,6 +65,7 @@ function createRefreshInterceptor(instance) {
         server.defaults.headers.Authorization = newJwt;
         hostServer.defaults.headers.Authorization = newJwt;
         trinoServer.defaults.headers.Authorization = newJwt;
+        dataikuServer.defaults.headers.Authorization = newJwt;
 
         // Retry the original request with the new token.
         error.config.headers.Authorization = newJwt;
@@ -94,3 +100,6 @@ createRefreshInterceptor(hostServer);
 
 // Apply interceptor to trinoServer
 createRefreshInterceptor(trinoServer);
+
+// Apply interceptor to dataikuServer
+createRefreshInterceptor(dataikuServer);
