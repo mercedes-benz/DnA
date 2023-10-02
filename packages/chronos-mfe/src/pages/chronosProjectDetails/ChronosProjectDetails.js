@@ -46,9 +46,7 @@ const ChronosProjectDetails = ({ user }) => {
     if(currentTab === 'runForecast') {
       dispatch(reset());
       dispatch(getConfigFiles(projectId));
-      setTimeout(() => {
-        SelectBox.defaultSetup();  
-      }, 100);
+      SelectBox.defaultSetup();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentTab]);

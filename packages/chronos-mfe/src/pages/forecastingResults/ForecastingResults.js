@@ -42,8 +42,8 @@ const ForecastingResults = () => {
   
   useEffect(() => {
     setTimeout(() => {
-      SelectBox.defaultSetup();  
-    }, 100);
+      SelectBox.defaultSetup();
+    }, 200);
   }, [colOneSelect.current.value, colTwoSelect.current.value]);
 
   useEffect(() => {
@@ -252,9 +252,7 @@ const ForecastingResults = () => {
       }
       setLoading(false);
       ProgressIndicator.hide();
-      setTimeout(() => {
-        SelectBox.defaultSetup();  
-      }, 100);
+      SelectBox.defaultSetup();
     }).catch(() => {
       setLoading(false);
       ProgressIndicator.hide();
