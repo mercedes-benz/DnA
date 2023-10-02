@@ -170,7 +170,6 @@ export default class Provisionsolution extends React.Component<IProvisionSolutio
             {
               id: '',
               name: '',
-              is_row: false,
             },
           ],
           division: {
