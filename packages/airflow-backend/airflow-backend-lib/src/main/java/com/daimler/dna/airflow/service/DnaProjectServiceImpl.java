@@ -43,6 +43,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 
@@ -287,15 +288,6 @@ public class DnaProjectServiceImpl implements DnaProjectService {
 						LOGGER.debug("mapping permission to role..");
 						addRoleAndPermissionMapping(currentUser, savedCurrentUserRole, dagVO.getDagName());
 					} 
-//					else {
-//						LOGGER.warn(
-//								"Permission is not created for the DAG {} , however project is onboarded. Please contact administrator for permission.",
-//								dagVO.getDagName());
-//						MessageDescription md = new MessageDescription();
-//						md.setMessage("Permission is not created for the DAG" + dagVO.getDagName()
-//								+ ", however project is onboarded. Please contact administrator for permission.");
-//						warnings.add(md);
-//					}
 					List<CollabInfo> collabs = new ArrayList<>();
 					if (!ObjectUtils.isEmpty(dagVO.getCollaborators())) {
 						for (AirflowProjectUserVO userVO : dagVO.getCollaborators()) {
@@ -616,15 +608,6 @@ public class DnaProjectServiceImpl implements DnaProjectService {
 						updateRoleAndPermissionMapping(currentUser, savedCurrentUserRole,"DAG:"+ dagVO.getDagName(),
 								existingDnaProject);
 					} 
-//					else {
-//						LOGGER.warn(
-//								"Permission is not created for the DAG {} , however project is onboarded. Please contact administrator for permission.",
-//								dagVO.getDagName());
-//						MessageDescription md = new MessageDescription();
-//						md.setMessage("Permission is not created for the DAG" + dagVO.getDagName()
-//								+ ", however project is updated. Please contact administrator for permission.");
-//						warnings.add(md);
-//					}
 					List<CollabInfo> collabs = new ArrayList<>();
 					if (!ObjectUtils.isEmpty(dagVO.getCollaborators())) {
 						for (AirflowProjectUserVO userVO : dagVO.getCollaborators()) {
@@ -688,7 +671,6 @@ public class DnaProjectServiceImpl implements DnaProjectService {
 				}
 					LOGGER.debug("updating dna project");
 					updateProject(updatedProject,currentStatus,collabsInfoAsString);
-//					dnaProjectRepository.save(updatedProject);
 				}
 			 else {
 				res.setData(airflowProjectVO);
