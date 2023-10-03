@@ -37,6 +37,8 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
@@ -778,10 +780,18 @@ public class BaseStorageService implements StorageService {
 			StorageNsql entity = customRepo.findbyUniqueLiteral(ConstantsUtility.BUCKET_NAME, bucketName);
 			if (Objects.nonNull(entity) && StringUtils.hasText(entity.getId())) {
 				// To delete dataiku connection if exists
-				Optional.ofNullable(entity.getData().getDataikuProjects()).ifPresent(l -> l.forEach(project -> {
+				Optional.ofNullable(entity.getData().getDataikuProjects()).ifPresent(l -> l.forEach(projectAndCloudProfile -> {
+					String project = projectAndCloudProfile;
+					String cloudProfile = null;
+					Pattern pattern = Pattern.compile("([^\\s]+) \\((\\w+)\\)");
+					Matcher matcher = pattern.matcher(project);
+					if (matcher.find()) {
+						project = matcher.group(1); // Extracts the project name
+						cloudProfile = matcher.group(2); // Extracts the cloud profile
+					}
 					LOGGER.info("Removing connection for project:{}", project);
 					dataikuClient.deleteDataikuConnection(StorageUtility.getDataikuConnectionName(project, bucketName),
-							live);
+							live, cloudProfile);
 				}));
 				LOGGER.info("Deleting bucket:{} info from database", bucketName);
 				jpaRepo.deleteById(entity.getId());
@@ -821,10 +831,18 @@ public class BaseStorageService implements StorageService {
 	 	 	StorageNsql entity = customRepo.findbyUniqueLiteral(ConstantsUtility.BUCKET_NAME, bucketName);
 	 	 	if (Objects.nonNull(entity) && StringUtils.hasText(entity.getId())) {
 	 	 		// To delete dataiku connection if exists
-	 	 		Optional.ofNullable(entity.getData().getDataikuProjects()).ifPresent(l -> l.forEach(project -> {
+	 	 		Optional.ofNullable(entity.getData().getDataikuProjects()).ifPresent(l -> l.forEach(projectAndCloudProfile -> {
+					String project = projectAndCloudProfile;
+					String cloudProfile = null;
+					Pattern pattern = Pattern.compile("([^\\s]+) \\((\\w+)\\)");
+					Matcher matcher = pattern.matcher(project);
+					if (matcher.find()) {
+						project = matcher.group(1); // Extracts the project name
+						cloudProfile = matcher.group(2); // Extracts the cloud profile
+					}
 	 	 			LOGGER.info("Removing connection for project:{}", project);
 	 	 			dataikuClient.deleteDataikuConnection(StorageUtility.getDataikuConnectionName(project, bucketName),
-	 	 					live);
+	 	 					live, cloudProfile);
 	 	 		}));
 	 	 		LOGGER.info("Deleting bucket:{} info from database", bucketName);
 	 	 		jpaRepo.deleteById(entity.getId());
@@ -1182,19 +1200,27 @@ public class BaseStorageService implements StorageService {
 			List<String> projectsUnion = StorageUtility.getUnion(storage.getDataikuProjects(),
 					connectionVO.getDataikuProjects());
 
-			Optional.ofNullable(projectsUnion).ifPresent(l -> l.forEach(project -> {
+			Optional.ofNullable(projectsUnion).ifPresent(l -> l.forEach(projectAndCloudProfile -> {
+				String project = projectAndCloudProfile;
+				String cloudProfile = null;
+				Pattern pattern = Pattern.compile("([^\\s]+) \\((\\w+)\\)");
+				Matcher matcher = pattern.matcher(project);
+				if (matcher.find()) {
+					 project = matcher.group(1); // Extracts the project name
+					 cloudProfile = matcher.group(2); // Extracts the cloud profile
+				}
 				// To check if project available in new list
 				boolean isNewProject = !ObjectUtils.isEmpty(connectionVO.getDataikuProjects())
-						&& connectionVO.getDataikuProjects().contains(project);
+						&& connectionVO.getDataikuProjects().contains(projectAndCloudProfile);
 				boolean isExistingProject = !ObjectUtils.isEmpty(storage.getDataikuProjects())
-						&& storage.getDataikuProjects().contains(project);
+						&& storage.getDataikuProjects().contains(projectAndCloudProfile);
 				if (isNewProject && !isExistingProject) {
 					LOGGER.info("Creating new connection for project:{}", project);
-					this.createDataikuConnection(connectionVO.getBucketName(), project, live);
+					this.createDataikuConnection(connectionVO.getBucketName(), project, live, cloudProfile);
 				} else if (!isNewProject && isExistingProject) {
 					LOGGER.info("Removing connection for project:{}", project);
 					dataikuClient.deleteDataikuConnection(StorageUtility.getDataikuConnectionName(project, connectionVO.getBucketName()),
-							live);
+							live, cloudProfile);
 				}
 			}));
 
@@ -1226,13 +1252,13 @@ public class BaseStorageService implements StorageService {
 	/*
 	 * To setup data and create dataiku connection
 	 */
-	private DataikuGenericResponseDTO createDataikuConnection(String bucketName, String projectKey, Boolean live) {
+	private DataikuGenericResponseDTO createDataikuConnection(String bucketName, String projectKey, Boolean live, String cloudProfile) {
 		DataikuConnectionRequestDTO requestDTO = new DataikuConnectionRequestDTO();
 		String currentUser = userStore.getUserInfo().getId();
 		String secretKey = vaultConfig.validateUserInVault(currentUser);
 		LOGGER.debug("Fetching permission..");
 		Optional<DataikuPermission> projectPermission = dataikuClient
-				.getDataikuProjectPermission(projectKey, live);
+				.getDataikuProjectPermission(projectKey, live, cloudProfile);
 
 		List<String> projectGroups = new ArrayList<>();
 		List<String> allowedProjectGroups = new ArrayList<>();
@@ -1286,7 +1312,7 @@ public class BaseStorageService implements StorageService {
 		indexingSettings.setIndexSystemTables(false);
 		requestDTO.setIndexingSettings(indexingSettings);
 
-		return dataikuClient.createDataikuConnection(requestDTO, live);
+		return dataikuClient.createDataikuConnection(requestDTO, live, cloudProfile);
 	}
 
 	@Override

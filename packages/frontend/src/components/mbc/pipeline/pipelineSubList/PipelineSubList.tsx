@@ -38,6 +38,7 @@ const PipelineSubList = (props: IPipelineProjectProps) => {
   const [currentSortOrder, setCurrentSortOrder] = useState<string>('desc');
   const [nextSortOrder, setNextSortOrder] = useState<string>('asc');
   const [currentColumnToSort, setCurrentColumnToSort] = useState<string>('projectId');
+  const createAndUpdateStatus = ['CREATE_REQUESTED', 'UPDATE_REQUESTED'];
 
   const onPermissionEdit = (collUserId: string, index: number) => {
     return () => {
@@ -270,19 +271,21 @@ const PipelineSubList = (props: IPipelineProjectProps) => {
                       <span className="animation-wrapper"></span>
                       <input type="checkbox" className="ff-only" id={index + '1'} defaultChecked={index === 0} />
                       <label className={Styles.expansionLabel + ' expansion-panel-label '} htmlFor={index + '1'}>
-                        <div className={classNames(Styles.dagTile, item.projectStatus === 'CREATE_REQUESTED' ? Styles.notAllowed : '')}>
+                        <div className={classNames(Styles.dagTile, createAndUpdateStatus.includes(item.projectStatus) ? Styles.notAllowed : '')}>
                           <div className={Styles.dagTitleCol}>{item.projectId}</div>
                           <div className={Styles.dagTitleCol}>{item.projectName}</div>
                           <div className={Styles.dagTitleCol}>{item.isOwner ? 'Owner' : 'Collaborator'}</div>
                           <div className={Styles.dagTitleCol}>
                             {item.projectStatus === 'CREATE_REQUESTED' ?
                               <span className={classNames(Styles.statusIndicator, Styles.colloboration)}>
-                                Creation in progress... </span> : ''}
+                                Creation in progress... </span> : item.projectStatus === 'UPDATE_REQUESTED' ?
+                                <span className={classNames(Styles.statusIndicator, Styles.colloboration)}>
+                                  Updation in progress... </span> : ''}
                           </div>
                         </div>
-                        {item.projectStatus !== 'CREATE_REQUESTED' && <i tooltip-data="Expand" className="icon down-up-flip"></i>}
+                        {!createAndUpdateStatus.includes(item.projectStatus) && <i tooltip-data="Expand" className="icon down-up-flip"></i>}
                       </label>
-                      {item.projectStatus !== 'CREATE_REQUESTED' && (
+                      {!createAndUpdateStatus.includes(item.projectStatus) && (
                         <div className="expansion-panel-content">
                           <div className={Styles.dagCollContent}>
                             <div className={Styles.projectList}>

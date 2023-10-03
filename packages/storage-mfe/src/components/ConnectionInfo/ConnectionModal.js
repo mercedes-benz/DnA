@@ -40,12 +40,12 @@ export const ConnectionModal = (props) => {
   const disableMakeConnectionBtn =
     !bucketInfo.accessInfo.permission?.write || dataikuProjectList?.length > 0
       ? connect?.dataikuProjects?.length === selectedDataikuProjects?.length &&
-        (selectedDataikuProjects?.length
-          ? dataikuProjectList
-              ?.filter((item) => selectedDataikuProjects.indexOf(item.projectKey) > -1)
-              ?.map((item) => item.name)
-              ?.every((i) => connect?.dataikuProjects?.indexOf(i) > -1)
-          : true)
+      (selectedDataikuProjects?.length
+        ? dataikuProjectList
+          ?.filter((item) => selectedDataikuProjects.indexOf(item.name) > -1)
+          ?.map((item) => item.name)
+          ?.every((i) => connect?.dataikuProjects?.indexOf(i) > -1)
+        : true)
       : true;
 
   const { pathname } = useLocation();
@@ -80,11 +80,10 @@ export const ConnectionModal = (props) => {
     if (connect.modal && isDataikuEnabled) {
       setIsLoading(true);
       bucketsApi
-        .getDataikuProjects(true)
+        .getDnaProjectList()
         .then((res) => {
           res.data?.data?.map((item) => {
-            item['id'] = item.projectKey; // add 'id' for each of the object item
-            item['name'] = `${item.name} (${item.projectKey})`;
+            item['name'] = `${item.projectKey} (${item.cloudProfile})`;
             return item;
           });
           setDataikuProjectList(res.data?.data);
@@ -106,8 +105,8 @@ export const ConnectionModal = (props) => {
     // deserialize the response to show value in dropdown
     const data = dataikuProjectList?.length
       ? dataikuProjectList
-          ?.filter((item) => connect?.dataikuProjects.includes(item.projectKey))
-          ?.map((item) => item.name)
+        ?.filter((item) => connect?.dataikuProjects.includes(item.name))
+        ?.map((item) => item.name)
       : connect?.dataikuProjects;
     dispatch({
       type: 'CONNECTION_INFO',
@@ -126,9 +125,8 @@ export const ConnectionModal = (props) => {
   // Dataiku project connection notification msg
   const NotificationMsg = (success = true) => {
     let portal;
-    const successMsg = `Selected project(s) ${
-      connect.dataikuProjects?.length ? 'connected to' : 'connection removed from'
-    } the bucket successfully!`;
+    const successMsg = `Selected project(s) ${connect.dataikuProjects?.length ? 'connected to' : 'connection removed from'
+      } the bucket successfully!`;
     const errorMsg = 'Error while connecting to dataiku project(s)';
     if (success) {
       portal = ReactDOM.createPortal(<span className={Styles.portal}>{successMsg}</span>, dataikuTagContainer);
@@ -161,19 +159,20 @@ export const ConnectionModal = (props) => {
     const data = {
       data: {
         bucketName: bucketInfo.bucketName,
-        dataikuProjects: connect.dataikuProjects?.map((item) => item.match(/\((.*?)\)/)[1]), // pick projectKey within paranthesis
+        dataikuProjects: connect.dataikuProjects,
       },
     };
     bucketsApi
       .connectToDataikuProjects(data)
       .then(() => {
+        ProgressIndicator.hide();
+        Notification.show("Successfully connected to Dataiku project(s)");
         setSelectedDataikuProjects(connect?.dataikuProjects);
-        NotificationMsg();
-        ProgressIndicator.hide();
       })
-      .catch(() => {
-        NotificationMsg(false);
+      .catch((error) => {
+        Notification.show('Error while connecting dataiku projects.' + error, 'alert');
         ProgressIndicator.hide();
+        NotificationMsg(false);
       });
   };
 
@@ -289,7 +288,7 @@ export const ConnectionModal = (props) => {
           title={'Please select the Dataiku project(s) that you want to link to the bucket.'}
           max={100}
           chips={filterDataikuProjectList(connect?.dataikuProjects)}
-          tags={dataikuProjectList?.filter((item) => item.projectKey)}
+          tags={dataikuProjectList?.filter((item) => item.name)}
           setTags={(selectedTags) => {
             const data = filterDataikuProjectList(selectedTags);
             dispatch({

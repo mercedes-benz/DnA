@@ -387,7 +387,9 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
               report.description.productPhase = productPhases?.filter(
                 (item: any) => item.name === res.description.productPhase,
               );
-              report.description.status = statuses?.filter((item: any) => item.name === res.description.status);
+              const status = statuses?.filter((item: any) => item.name === res.description.status);
+              status[0].id = res.description.status;
+              report.description.status = status;
               report.description.frontendTechnologies = res.description.frontendTechnologies;
               report.description.designGuideImplemented = designGuideImplemented?.filter(
                 (item: any) => item.name === res.description.designGuideImplemented,
@@ -395,7 +397,11 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
               report.description.agileReleaseTrain = res.description.agileReleaseTrain;
               report.description.integratedPortal = res.description.integratedPortal;
               report.description.tags = res.description.tags;
-              report.description.division = res.description.division;
+              const division=res.description.division;
+              if(!division.subdivision || !division.subdivision.id){
+                division.subdivision = {id:'0', name:'Choose'};
+              };
+              report.description.division = division;
               report.description.department = (res.description.department as any)?.split(' ') || null;
               report.description.reportLink = res.description.reportLink;
               report.description.reportType = res.description?.reportType;
