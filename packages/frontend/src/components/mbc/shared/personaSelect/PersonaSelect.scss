@@ -10,8 +10,10 @@
   padding: 0 38px;
 }
 .personaContainer {
-  padding-left: 60px;
+ padding-left: 60px;
   margin: 60px 70px 60px;
+  position: relative;
+  
 }
 .persona {
   display: flex;
@@ -57,4 +59,9 @@
 }
 .selected {
   background-color: #1c2026;
+}
+.noPersonaSelected {
+  position: absolute;
+  left:-30px;
+  bottom: 20px;
 }
