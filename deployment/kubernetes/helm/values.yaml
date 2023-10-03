@@ -2676,3 +2676,6 @@ matomo:
 
 mysql:
   enabled: true
+
+datalakemfe:
+  enabled: true 
