@@ -46,6 +46,7 @@ const DataProductComponent = React.lazy(() => import('data-product-mfe/DataProdu
 const ChronosComponent = React.lazy(() => import('chronos-mfe/Chronos'));
 const DataikuComponent = React.lazy(() => import('dss-mfe/Dataiku'));
 const MatomoComponent = React.lazy(() => import('matomo-mfe/Matomo'));
+const DatalakeComponent = React.lazy(() => import('datalake-mfe/Datalake'));
 
 const UserAndAdminRole = [
   USER_ROLE.USER,
@@ -348,6 +349,13 @@ const protectedRoutes = [
     exact: false,
     path: '/matomo',
     title: 'Matomo',
+  },
+  {
+    allowedRoles: UserAndAdminRole,
+    component: DatalakeComponent,
+    exact: false,
+    path: '/datalake',
+    title: 'Datalake',
   },
 ];
 
