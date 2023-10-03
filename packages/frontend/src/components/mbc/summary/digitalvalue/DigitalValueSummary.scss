@@ -66,6 +66,7 @@
       overflow-x: auto;
     }
     .calculatedValue {
+      justify-content: normal;
       margin: 40px 0px;
       label {
         font-size: var(--font-size-small);
@@ -119,6 +120,16 @@
         &:hover span {
           text-decoration: underline;
         }
+      }
+    }
+
+    .dataValueTotalSection {
+      text-align: right;
+      font-size: var(--font-size-medium);
+      label {
+        font-family: var(--font-family-medium);
+        font-weight: bold;
+        color: #99a5b3;
       }
     }
   }
@@ -229,6 +240,12 @@
         border-left: 1px solid #697582;
       }
     }
+  }
+
+  label {
+    font-size: var(--font-size-small);
+    font-weight: bold;
+    color: #99a5b3;
   }
 }
 
