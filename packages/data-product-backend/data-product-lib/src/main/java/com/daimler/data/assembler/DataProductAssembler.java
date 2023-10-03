@@ -372,11 +372,11 @@ public class DataProductAssembler implements GenericAssembler<DataProductVO, Dat
 					if(accesstypes != null && accesstypes.size()>0 ) {
 						if(accesstypes.contains("Kafka") || accesstypes.contains("API")) {
 							if(Objects.nonNull(vo.getAccess().getConfidentiality()) && vo.getAccess().getConfidentiality().equals("Internal")) {								
-								if((Objects.nonNull(dataProduct.getAccess().isPersonalRelatedData()) && dataProduct.getAccess().isPersonalRelatedData()) || (Objects.nonNull(dataProduct.getAccess().isDeletionRequirements()) && dataProduct.getAccess().isDeletionRequirements()) || (Objects.nonNull(dataProduct.getAccess().isRestrictDataAccess()) && dataProduct.getAccess().isRestrictDataAccess())) {	 		
-									dataProduct.getAccess().setMinimumInformationCheck(true);	
+								if((Objects.nonNull(vo.getAccess().isPersonalRelatedData()) && vo.getAccess().isPersonalRelatedData()) || (Objects.nonNull(vo.getAccess().isDeletionRequirements()) && vo.getAccess().isDeletionRequirements()) || (Objects.nonNull(vo.getAccess().isRestrictDataAccess()) && vo.getAccess().isRestrictDataAccess())) {	 		
+									vo.getAccess().setMinimumInformationCheck(true);	
 								}
 								else {
-									dataProduct.getAccess().setMinimumInformationCheck(false);
+									vo.getAccess().setMinimumInformationCheck(false);
 								}								
 							}
 							else {
