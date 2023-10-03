@@ -342,6 +342,7 @@ public class DnaProjectServiceImpl implements DnaProjectService {
 					String collabsInfoAsString = null;
 					try {
 						collabsInfoAsString = mapper.writeValueAsString(dagsInfoCollection);
+						savedDnaProject.setCollabs(collabsInfoAsString);
 					}catch(Exception e) {
 						MessageDescription error = new MessageDescription("Failed while saving airflow project information due to unexpected server exception, please retry again");
 						res.setData(airflowProjectVO);
@@ -685,7 +686,6 @@ public class DnaProjectServiceImpl implements DnaProjectService {
 						return new ResponseEntity<AirflowProjectResponseWrapperVO>(res, HttpStatus.INTERNAL_SERVER_ERROR);
 					}
 				}
-				
 					LOGGER.debug("updating dna project");
 					updateProject(updatedProject,currentStatus,collabsInfoAsString);
 //					dnaProjectRepository.save(updatedProject);
