@@ -1,6 +1,6 @@
 /* tslint:disable:no-console */
 import * as React from 'react';
-import { removeURLParameter } from '../../../frontend/src/services/utils';
+import { removeURLParameter } from './../services/utils';
 import Progress from 'components/progress/Progress';
 import { SESSION_STORAGE_KEYS } from 'globals/constants';
 import { Envs } from 'globals/Envs';
