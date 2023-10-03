@@ -1,7 +1,7 @@
 spring:
   application:
     name: dna-airflow-backend
-    version: 3.2.0
+    version: 3.2.1
   flyway:
     enabled: ${FLYWAY_ENABLED:true}
     baseline-on-migrate: ${FLYWAY_BASELINE_ON_MIGRATE:true}
@@ -16,7 +16,13 @@ spring:
           use_jdbc_metadata_defaults: false
     hibernate:
      ddl-auto: none
-      
+     
+  cloud:
+    stream:
+      default-binder: kafka
+      kafka:
+        binder:
+          brokers: ${NAAS_BROKER:XXXX:XXXX}        
 
   datasource:
     platform: postgres
@@ -55,7 +61,7 @@ git:
 dag:
   menuCreate:
      waitTime: ${AIRFLOW_DAG_MENU_CREATE_WAIT_TIME:4}
-     reTry: ${AIRFLOW_DAGMENU_CREATE_RETRY:20}
+     reTry: ${AIRFLOW_DAGMENU_CREATE_RETRY:1}
 
 management.endpoints.web.exposure.include: loggers,health
 management.endpoint.loggers.enabled: true
