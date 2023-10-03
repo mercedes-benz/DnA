@@ -1330,7 +1330,7 @@ export default class Milestones extends React.Component<IMilestonesProps, IMileS
     const selectedValues: ILocation[] = [];
     if (selectedOptions.length) {
       Array.from(selectedOptions).forEach((option) => {
-        const location: ILocation = { id: null, name: null, is_row: false };
+        const location: ILocation = { id: null, name: null, };
         location.id = option.value;
         location.name = option.label;
         selectedValues.push(location);

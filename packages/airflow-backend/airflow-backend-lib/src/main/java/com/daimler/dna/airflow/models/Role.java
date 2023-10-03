@@ -62,9 +62,9 @@ public class Role implements Serializable {
 	@SequenceGenerator(name = "role_seq", sequenceName = "ab_role_id_seq", allocationSize = 1)
 	private Integer id;
 	private String name;
-	@OneToMany(mappedBy = "role")
+	@OneToMany(mappedBy = "role", cascade = CascadeType.ALL,  fetch = FetchType.LAZY)
 	private List<UserRoleMapping> roleMaping;
 
-	@OneToMany(mappedBy = "role")
+	@OneToMany(mappedBy = "role", cascade = CascadeType.ALL,  fetch = FetchType.LAZY)
 	private List<PermissionAndRoleMapping> permissionAndRoleMapping;
 }

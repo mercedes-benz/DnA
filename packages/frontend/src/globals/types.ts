@@ -6,7 +6,6 @@ export interface IPhase {
 export interface ILocation {
   id: string;
   name: string;
-  is_row: boolean;
 }
 
 export interface IDigitalizationMilestone {
@@ -328,7 +327,6 @@ export interface ICraft {
 export interface ILocation {
   id: string;
   name: string;
-  is_row: boolean;
 }
 
 export interface IDepartment {
