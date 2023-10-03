@@ -62,6 +62,7 @@ const PersonaSelect = (props: IPersonaSelectProps) => {
             )
           })
         }
+        {selectedPersona.length===0 && <div className={Styles.noPersonaSelected}>NA</div>}
       </div>
     </div>
   );
