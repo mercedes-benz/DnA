@@ -162,6 +162,10 @@ export const Envs = {
     getInjectedEnv('ENABLE_CHRONOS_FORECASTING_SERVICE') !== undefined
       ? getInjectedEnv('ENABLE_CHRONOS_FORECASTING_SERVICE')
       : EnvParser.parseBool(process.env.ENABLE_CHRONOS_FORECASTING_SERVICE, false),
+  ENABLE_DATALAKE_SERVICE:
+    getInjectedEnv('ENABLE_DATALAKE_SERVICE') !== undefined
+      ? getInjectedEnv('ENABLE_DATALAKE_SERVICE')
+      : EnvParser.parseBool(process.env.ENABLE_DATALAKE_SERVICE, false),
   ENABLE_MATOMO_SERVICE:
     getInjectedEnv('ENABLE_MATOMO_SERVICE') !== undefined
       ? getInjectedEnv('ENABLE_MATOMO_SERVICE')
