@@ -1,4 +1,4 @@
-import { hostServer, server } from '../server/api';
+import { hostServer, server, dataikuServer } from '../server/api';
 
 const getAllBuckets = () => {
   return server.get('/buckets', {
@@ -42,6 +42,12 @@ const getDataikuProjects = (live) => {
   return hostServer.get(`/dataiku/projects?live=${live}`, { data: {} });
 };
 
+const getDnaProjectList = () => {
+  return dataikuServer.get(`/dataiku?limit=0&offset=0&sortBy=&sortOrder=&projectName=`, {
+    data: {},
+  });
+};
+
 const connectToDataikuProjects = (data) => {
   return server.post('/buckets/dataiku/connect', data);
 };
@@ -63,6 +69,7 @@ export const bucketsApi = {
   getConnectionInfo,
   getDataConnectionTypes,
   getDataikuProjects,
+  getDnaProjectList,
   connectToDataikuProjects,
   connectToJupyterNotebook,
   transferOwnership
