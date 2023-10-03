@@ -14,7 +14,7 @@ By contributing you will agree that your contribution will be put under the same
 
 ## CLA
 
-Before you can contribute, you will need to sign our cla [Contributor License Agreement](https://github.com/Daimler/daimler-foss/blob/master/cla/2019-09-11_Daimler_FOSS_CLA_DaimlerTSS.pdf) and send the signed CLA to <cla-tss@daimler.com>
+Before you can contribute, you will need to sign our cla [Contributor License Agreement](https://github.com/mercedes-benz/foss/blob/master/cla/2022-04-25_MB_FOSS_CLA_MBTI.pdf) and send the signed CLA to <mbti-foss@mercedes-benz.com>
 
 ## Communication
 
