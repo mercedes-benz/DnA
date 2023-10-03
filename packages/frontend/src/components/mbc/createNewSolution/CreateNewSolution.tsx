@@ -223,7 +223,6 @@ export default class CreateNewSolution extends React.Component<ICreateNewSolutio
             {
               id: '',
               name: '',
-              is_row: false,
             },
           ],
           division: {
@@ -479,7 +478,11 @@ export default class CreateNewSolution extends React.Component<ICreateNewSolutio
               solution.description.businessNeeds = res.businessNeed;
               solution.description.businessGoal = res.businessGoals;
               solution.description.description = res.description;
-              solution.description.division = res.division;
+              const division=res.division;
+              if(!division.subdivision || !division.subdivision.id){
+                division.subdivision = {id:'0', name:'Choose'};
+              };
+              solution.description.division = division;
               solution.description.expectedBenefits = res.expectedBenefits;
               solution.description.location = res.locations;
               solution.description.status = res.projectStatus;
