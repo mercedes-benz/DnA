@@ -32,7 +32,11 @@ spring:
     driverClassName: org.postgresql.Driver
 
 swagger.headers.authorization.token: ${SWAGGER_HEADER_AUTH:XXXXXX}
-        
+
+kafka:
+  centralTopic:
+    name: dnaCentralEventTopic 
+           
 server:
   port: 7171
   servlet:
