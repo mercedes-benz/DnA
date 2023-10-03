@@ -211,7 +211,7 @@ public class DnaProjectAssesmbler {
 					}
 				}
 			}catch(Exception e) {
-				log.info("Failed to add project dags what are in requested state to user {} ",currentUser);
+				log.info("Failed to add project dags that are in requested state to user {} ",currentUser);
 			}
 		}
 		log.trace("Successfully assembled all aiflow project per user.");
