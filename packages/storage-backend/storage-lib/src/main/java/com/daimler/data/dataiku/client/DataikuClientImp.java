@@ -62,6 +62,12 @@ public class DataikuClientImp implements DataikuClient {
 	@Value("${dataiku.production.apiKey}")
 	private String productionApiKey;
 
+	@Value("${dataiku.production.onPremiseUri}")
+	private String onPremProductionUri;
+
+	@Value("${dataiku.production.onPremiseApiKey}")
+	private String onPremProductionApiKey;
+
 	@Value("${dataiku.training.uri}")
 	private String trainingUri;
 
@@ -91,13 +97,13 @@ public class DataikuClientImp implements DataikuClient {
 	 */
 	@Override
 	@SuppressWarnings({ "rawtypes" })
-	public Optional<DataikuPermission> getDataikuProjectPermission(String projectKey, Boolean live) {
+	public Optional<DataikuPermission> getDataikuProjectPermission(String projectKey, Boolean live, String cloudProfile) {
 		DataikuPermission permission = null;
 		try {
 			HttpHeaders headers = new HttpHeaders();
 			headers.set(ConstantsUtility.ACCEPT, MediaType.APPLICATION_JSON.toString());
 			headers.set(ConstantsUtility.CONTENT_TYPE, MediaType.APPLICATION_JSON.toString());
-			String dataikuUri = setDataikuUri(live, headers, projectsUriPath);
+			String dataikuUri = setDataikuUri(live, headers, projectsUriPath, cloudProfile);
 			dataikuUri = dataikuUri + projectKey + projectPermissionUriPath;
 			HttpEntity entity = new HttpEntity<>(headers);
 			ResponseEntity<String> response = restTemplate.exchange(dataikuUri, HttpMethod.GET, entity, String.class);
@@ -126,15 +132,21 @@ public class DataikuClientImp implements DataikuClient {
 	 * 
 	 * @param live
 	 * @param headers
-	 * @param dataikuUri
 	 * @param uriExtension
+	 * @param cloudProfile
 	 */
-	private String setDataikuUri(Boolean live, HttpHeaders headers, String uriExtension) {
+	private String setDataikuUri(Boolean live, HttpHeaders headers, String uriExtension, String cloudProfile) {
 		String dataikuUri = "";
 		if (Boolean.TRUE.equals(live)) {
-			logger.debug("Forming uri for production environment");
-			headers.setBasicAuth(productionApiKey, "");
-			dataikuUri = productionUri + uriExtension;
+			if (cloudProfile.equals("onPremise")) {
+				logger.debug("Forming uri for production on-premise environment");
+				headers.setBasicAuth(onPremProductionApiKey, "");
+				dataikuUri = onPremProductionUri + uriExtension;
+			} else {
+				logger.debug("Forming uri for production eXtollo environment");
+				headers.setBasicAuth(productionApiKey, "");
+				dataikuUri = productionUri + uriExtension;
+			}
 		} else {
 			logger.debug("Forming uri for training environment");
 			headers.setBasicAuth(trainingApiKey, "");
@@ -145,13 +157,13 @@ public class DataikuClientImp implements DataikuClient {
 	}
 
 	@Override
-	public DataikuGenericResponseDTO createDataikuConnection(DataikuConnectionRequestDTO requestDTO, Boolean live) {
+	public DataikuGenericResponseDTO createDataikuConnection(DataikuConnectionRequestDTO requestDTO, Boolean live, String cloudProfile) {
 		DataikuGenericResponseDTO createConnectionResponse = new DataikuGenericResponseDTO();
 		createConnectionResponse.setStatus(ConstantsUtility.FAILURE);
 		HttpHeaders headers = new HttpHeaders();
 		headers.set(ConstantsUtility.ACCEPT, MediaType.APPLICATION_JSON.toString());
 		headers.set(ConstantsUtility.CONTENT_TYPE, MediaType.APPLICATION_JSON.toString());
-		String dataikuUri = setDataikuUri(live, headers, connectionsUriPath);
+		String dataikuUri = setDataikuUri(live, headers, connectionsUriPath, cloudProfile);
 		HttpEntity<DataikuConnectionRequestDTO> entity = new HttpEntity<>(requestDTO, headers);
 		ResponseEntity<String> response = restTemplate.exchange(dataikuUri, HttpMethod.POST, entity, String.class);
 		createConnectionResponse.setHttpStatus(response.getStatusCode());
@@ -163,13 +175,13 @@ public class DataikuClientImp implements DataikuClient {
 	}
 
 	@Override
-	public DataikuGenericResponseDTO deleteDataikuConnection(String connectionName, Boolean live) {
+	public DataikuGenericResponseDTO deleteDataikuConnection(String connectionName, Boolean live, String cloudProfile) {
 		DataikuGenericResponseDTO deleteConnectionResponse = new DataikuGenericResponseDTO();
 		deleteConnectionResponse.setStatus(ConstantsUtility.FAILURE);
 		HttpHeaders headers = new HttpHeaders();
 		headers.set(ConstantsUtility.ACCEPT, MediaType.APPLICATION_JSON.toString());
 		headers.set(ConstantsUtility.CONTENT_TYPE, MediaType.APPLICATION_JSON.toString());
-		String dataikuUri = setDataikuUri(live, headers, connectionsUriPath);
+		String dataikuUri = setDataikuUri(live, headers, connectionsUriPath, cloudProfile);
 		dataikuUri = dataikuUri+"/"+connectionName;
 		HttpEntity<Object> entity = new HttpEntity<>(headers);
 		ResponseEntity<String> response = restTemplate.exchange(dataikuUri, HttpMethod.DELETE, entity, String.class);

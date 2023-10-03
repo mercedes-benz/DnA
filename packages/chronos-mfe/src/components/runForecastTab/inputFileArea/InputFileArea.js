@@ -12,7 +12,7 @@ import { Link } from 'react-router-dom';
 import SelectedFileView from '../selectedFileView/SelectedFileView';
 import { set, setInputFile } from '../../../redux/chronosFormSlice';
 
-const InputFileArea = () => {
+const InputFileArea = ({ showTutorial }) => {
   
   const dispatch = useDispatch();
   const chronosForm = useSelector(state => state.chronosForm);
@@ -44,7 +44,7 @@ const InputFileArea = () => {
       <div className={Styles.firstPanel}>
         <h3>Input File</h3>
         <div className={Styles.infoIcon}>
-          <i className="icon mbc-icon info" onClick={() => {}} />
+          <i className="icon mbc-icon info" onClick={() => showTutorial(true)} />
         </div>
         <div className={Styles.formWrapper}>
           <div>
