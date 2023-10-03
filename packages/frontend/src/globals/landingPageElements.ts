@@ -40,6 +40,7 @@ const transactionalDataUrl = Envs.TRANSACTIONAL_DATA_URL;
 const carlaArchitectureUrl = Envs.CARLA_ARCHITECTURE_URL;
 const chatbotUrl = Envs.GPT4ALL_CHATBOT_TOOL_URL;
 const spireUrl = Envs.SPIRE_URL;
+const enableDatalakeService = Envs.ENABLE_DATALAKE_SERVICE;
 
 export const DataLayerElements = [
   {
@@ -192,6 +193,21 @@ export const ToolsLandingPageElements = [
     isSmallCard: false,
     isMediumCard: true,
     svgIcon: 'tools-mini',
+    isDnAInternalTool: true,
+  },
+  {
+    name: 'Datalake',
+    description:
+      'Relational table creation tool',
+    tags: ['Frontend Reporting', 'Data Engineering', 'Data Pipeline', 'Data Science', 'Machine Learning', 'No / Low Code', 'Coding', 'Cloud', 'Onprem'],
+    url: '/datalake',
+    isExternalLink: false,
+    isTextAlignLeft: true,
+    animation: true,
+    isDisabled: !enableDatalakeService,
+    isSmallCard: false,
+    isMediumCard: true,
+    svgIcon: 'chronos',
     isDnAInternalTool: true,
   },
   {
