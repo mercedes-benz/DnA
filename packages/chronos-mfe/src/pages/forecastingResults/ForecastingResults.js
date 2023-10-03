@@ -41,10 +41,8 @@ const ForecastingResults = () => {
   }, []);
   
   useEffect(() => {
-    setTimeout(() => {
-      SelectBox.defaultSetup();
-    }, 200);
-  }, [colOneSelect.current.value, colTwoSelect.current.value]);
+    SelectBox.defaultSetup();
+  }, [colOneSelect.current.value, colTwoSelect.current.value, loading]);
 
   useEffect(() => {
     chronosApi.getForecastProjectById(projectId).then((res) => {
