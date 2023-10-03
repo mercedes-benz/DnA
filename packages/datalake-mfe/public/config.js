@@ -1,0 +1,4 @@
+window['DATALAKE_INJECTED_ENVIRONMENT'] = {
+  CONTAINER_APP_URL: 'http://localhost:9090',
+  DATALAKE_API_BASEURL: '',
+};
