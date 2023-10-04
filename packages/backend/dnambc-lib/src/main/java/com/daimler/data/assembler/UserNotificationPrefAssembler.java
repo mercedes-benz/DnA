@@ -75,6 +75,10 @@ public class UserNotificationPrefAssembler  implements GenericAssembler<UserNoti
 				NotificationPreferenceVO codespaceNotificationPrefVO = this.toNotificationPrefVO(codespaceNotificationPrefJson);
 				vo.setCodespaceNotificationPref(codespaceNotificationPrefVO);
 				
+				NotificationPreference airflowNotificationPrefJson = data.getCodespaceNotificationPref();
+				NotificationPreferenceVO airflowNotificationPrefVO = this.toNotificationPrefVO(airflowNotificationPrefJson);
+				vo.setAirflowNotificationPref(airflowNotificationPrefVO);
+				
 				vo.setUserId(data.getUserId());
 			}
 		}
@@ -118,6 +122,8 @@ public class UserNotificationPrefAssembler  implements GenericAssembler<UserNoti
 			userNotificationPreferenceJsonb.setChronosNotificationPref(chronosNotificationPreference);
 			NotificationPreference codespaceNotificationPreference = this.toNotificationPrefJson(vo.getCodespaceNotificationPref());
 			userNotificationPreferenceJsonb.setCodespaceNotificationPref(codespaceNotificationPreference);
+			NotificationPreference airflowNotificationPreference = this.toNotificationPrefJson(vo.getAirflowNotificationPref());
+			userNotificationPreferenceJsonb.setAirflowNotificationPref(airflowNotificationPreference);
 			entity.setId(vo.getId());
 		}
 		entity.setData(userNotificationPreferenceJsonb);
@@ -130,6 +136,9 @@ public class UserNotificationPrefAssembler  implements GenericAssembler<UserNoti
 		if(notificationPrefVO!=null) {
 			notificationPrefJson.setEnableAppNotifications(notificationPrefVO.isEnableAppNotifications());
 			notificationPrefJson.setEnableEmailNotifications(notificationPrefVO.isEnableEmailNotifications());
+		}else {
+			notificationPrefJson.setEnableAppNotifications(true);
+			notificationPrefJson.setEnableEmailNotifications(false);
 		}
 		return notificationPrefJson;
 	}

@@ -1,0 +1,41 @@
+%clearAfter {
+  &::after {
+    clear: both;
+    content: '';
+    display: table;
+  }
+}
+
+%noAppearance {
+  appearance: none;
+  background-color: transparent;
+  border: 0 none;
+  border-radius: 0;
+  box-shadow: none;
+  font-family: inherit;
+  margin: 0;
+  outline: 0 none;
+  padding: 0;
+  resize: none;
+}
+
+%verticalCenter {
+  position: relative;
+  top: 50%;
+  transform: translate3d(0, -50%, 0);
+}
+
+%verticalAndHorizontalCenter {
+  margin: auto;
+}
+
+%panel {
+  background-color: var(--header-color-background);
+  border: var(--color-text-highlight);
+}
+
+%textOverflowEllipsis {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
