@@ -19,6 +19,7 @@ import Tags from 'dna-container/Tags';
 import { matomoApi } from '../../apis/matamo.api';
 import Notification from '../../common/modules/uilab/js/src/notification';
 import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indicator';
+import { isValidURL } from '../../utilities/utils';
 
 const CreateMatomo = ({ user }) => {
   const { id } = useParams();
@@ -213,6 +214,13 @@ const CreateMatomo = ({ user }) => {
         setUrlError(errorMissingEntry);
         formValid = false;
     }
+    if(url !== ''){
+      if(!isValidURL(url)){
+        setUrlError('Please provide valid url');
+        formValid = false;
+      }
+    }
+    
     if (matomoDivision === '0') {
         setMatomoDivisionError(errorMissingEntry);
         formValid = false;
@@ -228,7 +236,7 @@ const CreateMatomo = ({ user }) => {
 
     if(bucketCollaborators?.length > 0){
       bucketCollaborators?.map((item) => {
-        if(!item.permission || item.permission !== 'view' || item.permission !== 'write' || item.permission !== 'admin'){
+        if(!item.permission || !['view', 'write', 'admin'].includes(item.permission)){
           setPermissionError('Please provide permission to collaborators');
           formValid=false;
         }
@@ -361,7 +369,7 @@ const CreateMatomo = ({ user }) => {
     }else if (bucketId) {
       bucketCollaborators.push(collabarationData);
       // addCollaboratorsUpdate.push(bucketCollaborators);
-      setAddCollaboratorsUpdate([...[collabarationData]]);
+      setAddCollaboratorsUpdate([...addCollaboratorsUpdate,collabarationData]);
     } else {
       bucketCollaborators.push(collabarationData);
       setBucketCollaborators([...bucketCollaborators]);
