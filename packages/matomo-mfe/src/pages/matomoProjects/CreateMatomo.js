@@ -828,7 +828,7 @@ const CreateMatomo = ({ user }) => {
                                             name={"permission-"+collIndex}
                                           />
                                         </span>
-                                        <span className="label">Read</span>
+                                        <span className="label">View</span>
                                       </label>
                                     </div>
                                     &nbsp;&nbsp;&nbsp;
