@@ -84,4 +84,4 @@ export function getQueryParameterByName(name, url) {
   return decodeURIComponent(results[2].replace(/\+/g, ' '));
 }
 
-export const isValidURL = (value) => /^http(s)?:\/\/[a-zA-Z\d]/g.test(value);
+export const isValidURL = (value) => /[(http(s)?)://(www.)?a-zA-Z0-9@:%._+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_+.~#?&//=]*)/ig.test(value);
