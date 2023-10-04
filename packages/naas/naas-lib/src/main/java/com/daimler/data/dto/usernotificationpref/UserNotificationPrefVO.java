@@ -47,6 +47,9 @@ public class UserNotificationPrefVO   {
   @JsonProperty("codespaceNotificationPref")
   private NotificationPreferenceVO codespaceNotificationPref = null;
 
+  @JsonProperty("airflowNotificationPref")
+  private NotificationPreferenceVO airflowNotificationPref = null;
+
 public UserNotificationPrefVO id(String id) {
     this.id = id;
     return this;
@@ -220,6 +223,11 @@ public UserNotificationPrefVO id(String id) {
     this.dataProductNotificationPref = dataProductNotificationPref;
   }
 
+  public UserNotificationPrefVO chronosNotificationPref(NotificationPreferenceVO chronosNotificationPref) {
+    this.chronosNotificationPref = chronosNotificationPref;
+    return this;
+  }
+
   /**
    * Get chronosNotificationPref
    * @return chronosNotificationPref
@@ -259,6 +267,27 @@ public UserNotificationPrefVO id(String id) {
 	    this.codespaceNotificationPref = codespaceNotificationPref;
 	  }
 
+  public UserNotificationPrefVO airflowNotificationPref(NotificationPreferenceVO airflowNotificationPref) {
+    this.airflowNotificationPref = airflowNotificationPref;
+    return this;
+  }
+
+  /**
+   * Get airflowNotificationPref
+   * @return airflowNotificationPref
+  **/
+  @ApiModelProperty(value = "")
+
+  @Valid
+
+  public NotificationPreferenceVO getAirflowNotificationPref() {
+    return airflowNotificationPref;
+  }
+
+  public void setAirflowNotificationPref(NotificationPreferenceVO airflowNotificationPref) {
+    this.airflowNotificationPref = airflowNotificationPref;
+  }
+
 
 @Override
   public boolean equals(java.lang.Object o) {
@@ -278,7 +307,8 @@ public UserNotificationPrefVO id(String id) {
         Objects.equals(this.dataComplianceNotificationPref, userNotificationPrefVO.dataComplianceNotificationPref) &&
         Objects.equals(this.dataProductNotificationPref, userNotificationPrefVO.dataProductNotificationPref) &&
         Objects.equals(this.chronosNotificationPref, userNotificationPrefVO.chronosNotificationPref) &&
-        Objects.equals(this.codespaceNotificationPref, userNotificationPrefVO.codespaceNotificationPref);
+        Objects.equals(this.codespaceNotificationPref, userNotificationPrefVO.codespaceNotificationPref) &&
+        Objects.equals(this.airflowNotificationPref, userNotificationPrefVO.airflowNotificationPref);
   }
 
   @Override
@@ -301,6 +331,7 @@ public UserNotificationPrefVO id(String id) {
     sb.append("    dataProductNotificationPref: ").append(toIndentedString(dataProductNotificationPref)).append("\n");
     sb.append("    chronosNotificationPref: ").append(toIndentedString(chronosNotificationPref)).append("\n");
     sb.append("    codespaceNotificationPref: ").append(toIndentedString(codespaceNotificationPref)).append("\n");
+    sb.append("    airflowNotificationPref: ").append(toIndentedString(airflowNotificationPref)).append("\n");
     sb.append("}");
     return sb.toString();
   }
