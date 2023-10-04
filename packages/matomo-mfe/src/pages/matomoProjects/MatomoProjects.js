@@ -150,7 +150,7 @@ const MatomoProjects = (props) => {
                 </>
               ) : (
                 <div className={Styles.subscriptionList}>
-                  <MatomoList isCardView={cardViewMode} user={props.user} matomoList={matomoList} />
+                  <MatomoList isCardView={cardViewMode} user={props.user} matomoList={matomoList} callMatomoList={getMatomoSitesList} />
                   {matomoList?.length ? (
                     <Pagination
                       totalPages={totalNumberOfPages}

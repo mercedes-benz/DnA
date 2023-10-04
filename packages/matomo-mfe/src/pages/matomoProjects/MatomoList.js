@@ -10,7 +10,7 @@ import ExpansionPanel from '../../common/modules/uilab/js/src/expansion-panel';
 
 import ConfirmModal from 'dna-container/ConfirmModal';
 import { matomoApi } from '../../apis/matamo.api';
-import { matomoActions } from '../redux/matomo.actions';
+// import { matomoActions } from '../redux/matomo.actions';
 import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indicator';
 import Notification from '../../common/modules/uilab/js/src/notification';
 import { regionalDateAndTimeConversionSolution } from '../Utility/utils';
@@ -107,7 +107,8 @@ export const MatomoList = (props) => {
     matomoApi
       .deleteMatomo(selectedItem.id)
       .then(() => {
-        dispatch(matomoActions.getMatomoList());
+        // dispatch(matomoActions.getMatomoList());
+        props.callMatomoList();
         Notification.show(`Site ${selectedItem.siteName} deleted successfully.`);
       })
       .catch((e) => {
