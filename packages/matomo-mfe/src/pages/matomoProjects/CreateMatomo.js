@@ -413,12 +413,12 @@ const CreateMatomo = ({ user }) => {
       });
       if(bucketId){
         setAddCollaboratorsUpdate(addCollaboratorsUpdate.filter(item => item.id !== collId));
-        setRemoveCollaboratorsUpdate(bucketCollaborators.filter((item) => {
+        setRemoveCollaboratorsUpdate([...removeCollaboratorsUpdate, bucketCollaborators.filter((item) => {
           if(item.id === collId){
             item.permission = 'noaccess';
             return item;
           }
-        }));
+        })[0]]);
       }
       setBucketCollaborators(currentCollList);
     };
