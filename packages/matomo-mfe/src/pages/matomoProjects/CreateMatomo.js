@@ -52,9 +52,10 @@ const CreateMatomo = ({ user }) => {
   const [matomoDivision, setMatomoDivision] = useState('');
   const [matomoDivisionError, setMatomoDivisionError] = useState('');
   const [matomoSubDivision, setMatomoSubDivision] = useState('');
-  const [matomoSubDivisionError, setMatomoSubDivisionError] = useState('');
+  // const [matomoSubDivisionError, setMatomoSubDivisionError] = useState('');
   const [statusValue, setStatusValue] = useState('');
   const [statusError, setStatusError] = useState('');
+  const [permissionError, setPermissionError] = useState('');
   const statuses = [{
     id: 1,
     name: 'Active'
@@ -81,13 +82,10 @@ const CreateMatomo = ({ user }) => {
     ProgressIndicator.show();
     matomoApi.getLovData()
             .then((response) => {
-                setDataClassificationDropdown(response[0]?.data?.data || []);                
-                setDivisions(response[1]?.data || []);
-                setDepartments(response[2]?.data?.data || []);
-                setTimeout(() => {
-                  SelectBox.defaultSetup();  
-                }, 100);
-                              
+              setDataClassificationDropdown(response[0]?.data?.data || []);                
+              setDivisions(response[1]?.data || []);
+              setDepartments(response[2]?.data?.data || []);
+              SelectBox.defaultSetup();  
             })
             .catch((err) => {
                 ProgressIndicator.hide();
@@ -138,9 +136,7 @@ const CreateMatomo = ({ user }) => {
                               setMatomoDivision(res?.data?.division);
                               setMatomoSubDivision(res?.data?.subDivision);
                               setCallOnGetByID(true);
-                              setTimeout(() => {
-                                SelectBox.defaultSetup();  
-                              }, 100);
+                              SelectBox.defaultSetup();  
                               ProgressIndicator.hide();
                             });
                           }
@@ -179,9 +175,7 @@ const CreateMatomo = ({ user }) => {
         hostServer.get('/subdivisions/' + divId)
         .then((res) => {
           setSubDivisions(res?.data || []);
-          setTimeout(() => {
-            SelectBox.defaultSetup();  
-          }, 100);
+          SelectBox.defaultSetup();  
           ProgressIndicator.hide();
           setCallOnGetByID(false);
         });
@@ -223,14 +217,24 @@ const CreateMatomo = ({ user }) => {
         setMatomoDivisionError(errorMissingEntry);
         formValid = false;
     }
-    if (matomoSubDivision === '0') {
-        setMatomoSubDivisionError(errorMissingEntry);
-        formValid = false;
-    }
+    // if (matomoSubDivision === '0') {
+    //     setMatomoSubDivisionError(errorMissingEntry);
+    //     formValid = false;
+    // }
     if (statusValue === '0') {
       setStatusError(errorMissingEntry)
       formValid = false;
     }
+
+    if(bucketCollaborators?.length > 0){
+      bucketCollaborators?.map((item) => {
+        if(!item.permission || item.permission !== 'view' || item.permission !== 'write' || item.permission !== 'admin'){
+          setPermissionError('Please provide permission to collaborators');
+          formValid=false;
+        }
+      })
+    }
+
     setTimeout(() => {
       const anyErrorDetected = document.querySelector('.error');
       anyErrorDetected?.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -365,6 +369,7 @@ const CreateMatomo = ({ user }) => {
   };
 
   const onCollaboratorPermission = (e, userName) => {
+    setPermissionError('');
     bucketCollaborators.map((item) => {
       if(item.id == userName)
       {
@@ -394,6 +399,7 @@ const CreateMatomo = ({ user }) => {
 
   const onCollabaratorDelete = (collId) => {
     return () => {
+      setPermissionError('');
       const currentCollList = bucketCollaborators.filter((item) => {
         return item.id !== collId;
       });
@@ -618,18 +624,18 @@ const CreateMatomo = ({ user }) => {
                 <div
                   className={classNames(
                     'input-field-group include-error',
-                    matomoSubDivisionError?.length ? 'error' : '',
+                    // matomoSubDivisionError?.length ? 'error' : '',
                   )}
                 >
                   <label className={classNames(Styles.inputLabel, 'input-label')}>
-                    Sub Division <sup>*</sup>
+                    Sub Division 
                   </label>
                   <div className={classNames('custom-select')}>
                     
                     <select id="subDivisionField" 
                     onChange={handleSubDivision} 
                     value={matomoSubDivision}
-                    required={true}
+                    required={false}
                     >
                         {subDivisions?.some((item) => item.id === '0' && item.name === 'None') ? (
                           <option id="subDivisionDefault" value={0}>
@@ -650,9 +656,9 @@ const CreateMatomo = ({ user }) => {
                     </select>
                     
                   </div>
-                  <span className={classNames('error-message', matomoSubDivisionError?.length ? '' : 'hide')}>
+                  {/* <span className={classNames('error-message', matomoSubDivisionError?.length ? '' : 'hide')}>
                     {matomoSubDivisionError}
-                  </span>
+                  </span> */}
                 </div>
                 <div
                   className={classNames(
@@ -880,6 +886,9 @@ const CreateMatomo = ({ user }) => {
                         <h6> Collaborators Not Exist!</h6>
                       </div>
                     )}
+                    <span className={classNames('error-message', permissionError?.length ? '' : 'hide')}>
+                      {permissionError}
+                    </span>
                   </div>
                 </div>
               </div>
