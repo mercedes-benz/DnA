@@ -183,6 +183,7 @@ const base = {
         './TextArea': './src/components/mbc/shared/textArea/TextArea.tsx',
         './MarkdownParser': './src/utils/MarkdownParser.tsx',
         './RefreshToken': './src/utils/RefreshToken.tsx',
+        './FullScreenModeIcon': './src/components/icons/fullScreenMode/FullScreenModeIcon.tsx',
       },
       remotes: {
         // object key is used to import

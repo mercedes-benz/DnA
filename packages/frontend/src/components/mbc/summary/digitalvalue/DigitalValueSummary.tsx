@@ -18,6 +18,7 @@ import {
   IChangeLogData,
   ICostFactor,
   ICostRampUp,
+  IDataValueRampUp,
   IDigitalValue,
   ITeams,
   IValueFactor,
@@ -25,6 +26,7 @@ import {
 } from 'globals/types';
 import Styles from './DigitalValueSummary.scss';
 import { IntlProvider, FormattedNumber } from 'react-intl';
+import { SOLUTION_DATA_VALUE_CATEGORY_TYPES, SOLUTION_VALUE_CALCULATION_TYPES } from 'globals/constants';
 
 const classNames = cn.bind(Styles);
 
@@ -49,6 +51,12 @@ export interface IDigitalValueSummaryState {
   onDigitalValueInfoModal: boolean;
 }
 export default class DigitalValueSummary extends React.Component<IDigitalValueProps, any> {
+
+  static digitalValueTypeKeyValue  = Object.keys(SOLUTION_VALUE_CALCULATION_TYPES)[0];
+  static dataValueTypeKeyValue  = Object.keys(SOLUTION_VALUE_CALCULATION_TYPES)[1];
+  static dataValueSavingsKeyValue = Object.keys(SOLUTION_DATA_VALUE_CATEGORY_TYPES)[0];
+  static dataValueRevenueKeyValue = Object.keys(SOLUTION_DATA_VALUE_CATEGORY_TYPES)[1];
+
   constructor(props: any) {
     super(props);
     this.state = {
@@ -158,12 +166,14 @@ export default class DigitalValueSummary extends React.Component<IDigitalValuePr
   };
 
   public render() {
-    const valueDrivers = this.props.digitalValue ? this.props.digitalValue.valueDrivers : [];
-    const costDrivers = this.props.digitalValue ? this.props.digitalValue.costDrivers : [];
+    const digitalValue = this.props.digitalValue;
+    const valueCalculationType = digitalValue?.typeOfCalculation || DigitalValueSummary.digitalValueTypeKeyValue;
+    const valueDrivers = digitalValue ? digitalValue.valueDrivers : [];
+    const costDrivers = digitalValue ? digitalValue.costDrivers : [];
     const pdfFileName = this.props.solutionName.replace(/[/|\\:*?"<>]/g, '').replace(/ /g, '-');
-    const attachments = this.props.digitalValue ? this.props.digitalValue.attachments : [];
-    const projectControllers = this.props.digitalValue ? this.props.digitalValue.projectControllers : [];
-    const maturityLevel = this.props.digitalValue ? this.props.digitalValue.maturityLevel : '';
+    const attachments = digitalValue ? digitalValue.attachments : [];
+    const projectControllers = digitalValue ? digitalValue.projectControllers : [];
+    const maturityLevel = digitalValue ? digitalValue.maturityLevel : '';
 
     const teamMembersList = projectControllers
       ? projectControllers.map((member: ITeams, index: number) => {
@@ -171,13 +181,14 @@ export default class DigitalValueSummary extends React.Component<IDigitalValuePr
         })
       : [];
 
-    const valueCalculator = this.props.digitalValue ? this.props.digitalValue.valueCalculator : null;
+    const valueCalculator = digitalValue ? digitalValue.valueCalculator : null;
     const costFactorSummary = valueCalculator ? valueCalculator.costFactorSummary : null;
     const valueFactorSummary = valueCalculator ? valueCalculator.valueFactorSummary : null;
     const calculatedDigitalValue = valueCalculator ? valueCalculator.calculatedDigitalValue : null;
     const breakEvenPoint = valueCalculator ? valueCalculator.breakEvenPoint : '';
-    const permissions = this.props.digitalValue ? this.props.digitalValue.permissions : [];
-    const assessment = this.props.digitalValue ? this.props.digitalValue.assessment : '';
+
+    const permissions = digitalValue ? digitalValue.permissions : [];
+    const assessment = digitalValue ? digitalValue.assessment : '';
     const sharingTeamMembersList = permissions
       ? permissions.map((member: ITeams, index: number) => {
           return <TeamMemberListItem key={index} itemIndex={index} teamMember={member} />;
@@ -193,9 +204,24 @@ export default class DigitalValueSummary extends React.Component<IDigitalValuePr
           ? true
           : false
         : false;
+
+    const dataValueCalculator = digitalValue ? digitalValue.dataValueCalculator : null;
+    const savingsValueFactorSummary = dataValueCalculator ? dataValueCalculator.savingsValueFactorSummaryVO : null;
+    const revenueValueFactorSummary = dataValueCalculator ? dataValueCalculator.revenueValueFactorSummaryVO : null;
+        
+    const canShowDataValueCalculator =
+      savingsValueFactorSummary && revenueValueFactorSummary
+        ? savingsValueFactorSummary.value || revenueValueFactorSummary.value
+          ? true
+          : false
+        : false;    
     const canShowValueDrivers = valueDrivers ? (valueDrivers.length > 0 ? true : false) : false;
     const canShowCostDrivers = costDrivers ? (costDrivers.length > 0 ? true : false) : false;
     const canShowMaturityLevel = teamMembersList.length > 0 || maturityLevel ? true : false;
+
+    const isDataValueCalcSelected = valueCalculationType === DigitalValueSummary.dataValueTypeKeyValue;
+    let totalSavings = 0;
+    let totalRevenue = 0; 
 
     const changeLog = (
       <table className="ul-table solutions">
@@ -294,7 +320,9 @@ export default class DigitalValueSummary extends React.Component<IDigitalValuePr
                 </div>
               </div>
               <h3>{this.props.solutionName}</h3>
-              <span className={Styles.digitalValue}>Digital Value Summary</span>
+              <span className={Styles.digitalValue}>
+                {SOLUTION_VALUE_CALCULATION_TYPES[valueCalculationType.toString()]} Summary
+              </span>
               <div className={Styles.firstPanel}>
                 <div className={Styles.formWrapper}>
                   <div className={classNames(Styles.maturityLevelSection, Styles.flexLayout, Styles.twoColumn)}>
@@ -306,7 +334,7 @@ export default class DigitalValueSummary extends React.Component<IDigitalValuePr
                     <div id="controllers">
                       <label className="input-label summary">Controllers</label>
                       <br />
-                      <div>{teamMembersList.length > 0 ? teamMembersList : ''}</div>
+                      <div>{teamMembersList.length > 0 ? teamMembersList : 'None'}</div>
                     </div>
                   </div>
                 </div>
@@ -316,6 +344,163 @@ export default class DigitalValueSummary extends React.Component<IDigitalValuePr
         ) : (
           ''
         )}
+
+        {canShowValueDrivers ? (
+          <div className={classNames(Styles.mainPanel, Styles.valueFactorSection)}>
+            <div className={Styles.wrapper}>
+              <h3>Value Driver</h3>
+              <div className={Styles.firstPanel}>
+                <div className={Styles.formWrapper}>
+                  <div className={Styles.digitalValueWrapper}>
+                    <div id="valueDriversWrapper" className={Styles.expansionListWrapper}>
+                      {valueDrivers ? (
+                        valueDrivers.length ? (
+                          <div className="expansion-panel-group">
+                            {valueDrivers.map((item: IValueFactor, index: number) => {
+                              const expansionPanelId = 'valueFactorExpPanel' + index;
+                              const itemCategory = isDataValueCalcSelected
+                                ? SOLUTION_DATA_VALUE_CATEGORY_TYPES[item.category]
+                                : item.category;
+
+                              totalSavings +=
+                                item.category === DigitalValueSummary.dataValueSavingsKeyValue
+                                  ? parseFloat(item.value)
+                                  : 0;
+
+                              totalRevenue +=
+                                item.category === DigitalValueSummary.dataValueRevenueKeyValue
+                                  ? parseFloat(item.value)
+                                  : 0;
+                              return (
+                                <div id={'valueFactorPanel_' + index} key={index} className="expansion-panel">
+                                  <span className="animation-wrapper" />
+                                  <input type="checkbox" id={expansionPanelId} />
+                                  <label className="expansion-panel-label" htmlFor={expansionPanelId}>
+                                    {`Value Factor ${index + 1} ${item.description}`}{' '}
+                                    {isDataValueCalcSelected && (
+                                      <>
+                                        <br />[{itemCategory}:{' '}
+                                        <IntlProvider locale={navigator.language} defaultLocale="en">
+                                          {item.value !== '' ? <FormattedNumber value={Number(item.value)} /> : ''}
+                                        </IntlProvider>
+                                        &euro;]
+                                      </>
+                                    )}
+                                    <i className="icon down-up-flip" />
+                                  </label>
+                                  <div className="expansion-panel-content">
+                                    <div className={Styles.expansionnPanelContent}>
+                                      <div className={classNames(Styles.flexLayout, Styles.factorInfo)}>
+                                        <div>
+                                          <label>Description</label>
+                                          <div>{item.description}</div>
+                                        </div>
+                                        <div>
+                                          <label>Category</label>
+                                          <div>{itemCategory}</div>
+                                        </div>
+                                        <div>
+                                          <label>Value</label>
+                                          <div>
+                                            <IntlProvider locale={navigator.language} defaultLocale="en">
+                                              {item.value ? <FormattedNumber value={Number(item.value)} /> : ''}
+                                            </IntlProvider>
+                                            &euro;
+                                          </div>
+                                        </div>
+                                        <div>
+                                          <label>Source</label>
+                                          <div>{item.source}</div>
+                                        </div>
+                                      </div>
+                                      <div>
+                                        <label>Ramp-up</label>
+                                        <div className={Styles.rampUpScrollableWrapper}>
+                                          {/* <div className={Styles.scrollerLeft}>
+                                    <span>
+                                        <i className="icon mbc-icon arrow small left" />
+                                    </span>
+                                    </div> */}
+                                          <div className={Styles.rampUpContainer}>
+                                            {item.rampUp.map((valueDriver: IValueRampUp, indexVal: number) => {
+                                              return (
+                                                <div className={Styles.rampUpItem} key={indexVal}>
+                                                  <strong>{valueDriver.year}</strong>
+                                                  {!isDataValueCalcSelected && (
+                                                    <div>
+                                                      <IntlProvider locale={navigator.language} defaultLocale="en">
+                                                        {valueDriver.percent !== '' ? (
+                                                          <FormattedNumber value={Number(valueDriver.percent)} />
+                                                        ) : (
+                                                          ''
+                                                        )}
+                                                      </IntlProvider>
+                                                      %
+                                                    </div>
+                                                  )}
+                                                  <div>
+                                                    <IntlProvider locale={navigator.language} defaultLocale="en">
+                                                      {valueDriver.value !== '' ? (
+                                                        <FormattedNumber value={Number(valueDriver.value)} />
+                                                      ) : (
+                                                        ''
+                                                      )}
+                                                    </IntlProvider>
+                                                    &euro;
+                                                  </div>
+                                                </div>
+                                              );
+                                            })}
+                                          </div>
+                                          {/* <div className={Styles.scrollerRight}>
+                                    <span>
+                                        <i className="icon mbc-icon arrow small right" />
+                                    </span>
+                                    </div> */}
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        ) : (
+                          ''
+                        )
+                      ) : (
+                        ''
+                      )}
+                    </div>
+                    {valueDrivers && isDataValueCalcSelected && (
+                      <div className={Styles.dataValueTotalSection}>
+                        <label>
+                          Total {SOLUTION_DATA_VALUE_CATEGORY_TYPES[DigitalValueSummary.dataValueSavingsKeyValue]}
+                        </label>{' '}
+                        -{' '}
+                        <IntlProvider locale={navigator.language} defaultLocale="en">
+                          <FormattedNumber value={Number(totalSavings)} />
+                        </IntlProvider>
+                        &euro; &nbsp;|&nbsp;{' '}
+                        <label>
+                          Total {SOLUTION_DATA_VALUE_CATEGORY_TYPES[DigitalValueSummary.dataValueRevenueKeyValue]}
+                        </label>{' '}
+                        -{' '}
+                        <IntlProvider locale={navigator.language} defaultLocale="en">
+                          <FormattedNumber value={Number(totalRevenue)} />
+                        </IntlProvider>
+                        &euro;
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        ) : (
+          ''
+        )}
+
         {canShowCostDrivers ? (
           <div className={classNames(Styles.mainPanel, Styles.costFactorSection)}>
             <div className={Styles.wrapper}>
@@ -418,122 +603,10 @@ export default class DigitalValueSummary extends React.Component<IDigitalValuePr
           ''
         )}
 
-        {canShowValueDrivers ? (
-          <div className={classNames(Styles.mainPanel, Styles.valueFactorSection)}>
-            <div className={Styles.wrapper}>
-              <h3>Value Driver</h3>
-              <div className={Styles.firstPanel}>
-                <div className={Styles.formWrapper}>
-                  <div className={Styles.digitalValueWrapper}>
-                    <div id="valueDriversWrapper" className={Styles.expansionListWrapper}>
-                      {valueDrivers ? (
-                        valueDrivers.length ? (
-                          <div className="expansion-panel-group">
-                            {valueDrivers.map((item: IValueFactor, index: number) => {
-                              const expansionPanelId = 'valueFactorExpPanel' + index;
-                              return (
-                                <div id={'valueFactorPanel_' + index} key={index} className="expansion-panel">
-                                  <span className="animation-wrapper" />
-                                  <input type="checkbox" id={expansionPanelId} />
-                                  <label className="expansion-panel-label" htmlFor={expansionPanelId}>
-                                    {`Value Factor ${index + 1} ${item.description}`}
-                                    <i className="icon down-up-flip" />
-                                  </label>
-                                  <div className="expansion-panel-content">
-                                    <div className={Styles.expansionnPanelContent}>
-                                      <div className={classNames(Styles.flexLayout, Styles.factorInfo)}>
-                                        <div>
-                                          <label>Description</label>
-                                          <div>{item.description}</div>
-                                        </div>
-                                        <div>
-                                          <label>Category</label>
-                                          <div>{item.category}</div>
-                                        </div>
-                                        <div>
-                                          <label>Value</label>
-                                          <div>
-                                            <IntlProvider locale={navigator.language} defaultLocale="en">
-                                              {item.value ? <FormattedNumber value={Number(item.value)} /> : ''}
-                                            </IntlProvider>
-                                            &euro;
-                                          </div>
-                                        </div>
-                                        <div>
-                                          <label>Source</label>
-                                          <div>{item.source}</div>
-                                        </div>
-                                      </div>
-                                      <div>
-                                        <label>Ramp-up</label>
-                                        <div className={Styles.rampUpScrollableWrapper}>
-                                          {/* <div className={Styles.scrollerLeft}>
-                                    <span>
-                                        <i className="icon mbc-icon arrow small left" />
-                                    </span>
-                                    </div> */}
-                                          <div className={Styles.rampUpContainer}>
-                                            {item.rampUp.map((valueDriver: IValueRampUp, indexVal: number) => {
-                                              return (
-                                                <div className={Styles.rampUpItem} key={indexVal}>
-                                                  <strong>{valueDriver.year}</strong>
-                                                  <div>
-                                                    <IntlProvider locale={navigator.language} defaultLocale="en">
-                                                      {valueDriver.percent ? (
-                                                        <FormattedNumber value={Number(valueDriver.percent)} />
-                                                      ) : (
-                                                        ''
-                                                      )}
-                                                    </IntlProvider>
-                                                    %
-                                                  </div>
-                                                  <div>
-                                                    <IntlProvider locale={navigator.language} defaultLocale="en">
-                                                      {valueDriver.value ? (
-                                                        <FormattedNumber value={Number(valueDriver.value)} />
-                                                      ) : (
-                                                        ''
-                                                      )}
-                                                    </IntlProvider>
-                                                    &euro;
-                                                  </div>
-                                                </div>
-                                              );
-                                            })}
-                                          </div>
-                                          {/* <div className={Styles.scrollerRight}>
-                                    <span>
-                                        <i className="icon mbc-icon arrow small right" />
-                                    </span>
-                                    </div> */}
-                                        </div>
-                                      </div>
-                                    </div>
-                                  </div>
-                                </div>
-                              );
-                            })}
-                          </div>
-                        ) : (
-                          ''
-                        )
-                      ) : (
-                        ''
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        ) : (
-          ''
-        )}
-
-        {canShowValueCalculator ? (
+        {canShowValueCalculator && valueCalculationType === DigitalValueSummary.digitalValueTypeKeyValue && (
           <div className={classNames(Styles.mainPanel, Styles.digitalValueSection)}>
             <div id="digtalValueWrapper" className={Styles.wrapper}>
-              <h3>Digital Value</h3>
+              <h3>{SOLUTION_VALUE_CALCULATION_TYPES[valueCalculationType.toString()]}</h3>
               <div className={Styles.infoIcon}>
                 <i className="icon mbc-icon info" onClick={this.onDigitalValueInfoModal} />
               </div>
@@ -542,10 +615,10 @@ export default class DigitalValueSummary extends React.Component<IDigitalValuePr
                   <div className={Styles.digitalValueWrapper}>
                     <div className={Styles.rampUpScrollableWrapper}>
                       {/* <div className={Styles.scrollerLeft}>
-                <span>
-                    <i className="icon mbc-icon arrow small left" />
-                </span>
-                </div> */}
+              <span>
+                  <i className="icon mbc-icon arrow small left" />
+              </span>
+              </div> */}
                       <div id="valueRampUpContainer" className={Styles.rampUpContainer}>
                         {valueCalculator
                           ? valueCalculator.calculatedValueRampUpYears.map(
@@ -565,7 +638,7 @@ export default class DigitalValueSummary extends React.Component<IDigitalValuePr
                                     </div>
                                     <div>
                                       <IntlProvider locale={navigator.language} defaultLocale="en">
-                                        {valueDriver.value ? <FormattedNumber value={Number(valueDriver.value)} /> : ''}
+                                        {valueDriver.value !== '' ? <FormattedNumber value={Number(valueDriver.value)} /> : ''}
                                       </IntlProvider>
                                       &euro;
                                     </div>
@@ -576,10 +649,10 @@ export default class DigitalValueSummary extends React.Component<IDigitalValuePr
                           : ''}
                       </div>
                       {/* <div className={Styles.scrollerRight}>
-                <span>
-                    <i className="icon mbc-icon arrow small right" />
-                </span>
-                </div> */}
+              <span>
+                  <i className="icon mbc-icon arrow small right" />
+              </span>
+              </div> */}
                     </div>
                     <div className={classNames(Styles.flexLayout, Styles.calculatedValue)}>
                       <div id="valueAt100Percent">
@@ -627,8 +700,110 @@ export default class DigitalValueSummary extends React.Component<IDigitalValuePr
               </div>
             </div>
           </div>
-        ) : (
-          ''
+        )}
+
+        {canShowDataValueCalculator && valueCalculationType === DigitalValueSummary.dataValueTypeKeyValue && (
+          <div className={classNames(Styles.mainPanel, Styles.digitalValueSection)}>
+            <div id="dataValueWrapper" className={Styles.wrapper}>
+              <h3>{SOLUTION_VALUE_CALCULATION_TYPES[valueCalculationType.toString()]}</h3>
+              <div className={classNames(Styles.infoIcon, 'hide')}>
+                <i className="icon mbc-icon info" onClick={this.onDigitalValueInfoModal} />
+              </div>
+              <div className={Styles.firstPanel}>
+                <div className={Styles.formWrapper}>
+                  <div className={Styles.digitalValueWrapper}>
+                    <div className={Styles.rampUpScrollableWrapper}>
+                      <label>{SOLUTION_DATA_VALUE_CATEGORY_TYPES[DigitalValueSummary.dataValueSavingsKeyValue]} Value Ramup</label>
+                      {/* <div className={Styles.scrollerLeft}>
+            <span>
+                <i className="icon mbc-icon arrow small left" />
+            </span>
+            </div> */}
+                      <div id="dataValueSavingsRampUpContainer" className={Styles.rampUpContainer}>
+                        {dataValueCalculator
+                          ? dataValueCalculator.calculatedValueRampUpYearsVO.savings.map(
+                              (valueDriver: IDataValueRampUp, indexVal: number) => {
+                                return (
+                                  <div id={'valueSavingsRampUp_' + indexVal} className={Styles.rampUpItem} key={indexVal}>
+                                    <strong>{valueDriver.year}</strong>
+                                    <div>
+                                      <IntlProvider locale={navigator.language} defaultLocale="en">
+                                        {valueDriver.value ? <FormattedNumber value={Number(valueDriver.value)} /> : '0'}
+                                      </IntlProvider>
+                                      &euro;
+                                    </div>
+                                  </div>
+                                );
+                              },
+                            )
+                          : ''}
+                      </div>
+                      {/* <div className={Styles.scrollerRight}>
+            <span>
+                <i className="icon mbc-icon arrow small right" />
+            </span>
+            </div> */}
+                    </div>
+                    <div className={Styles.rampUpScrollableWrapper}>
+                      <label>{SOLUTION_DATA_VALUE_CATEGORY_TYPES[DigitalValueSummary.dataValueRevenueKeyValue]} Value Ramup</label>
+                      {/* <div className={Styles.scrollerLeft}>
+            <span>
+                <i className="icon mbc-icon arrow small left" />
+            </span>
+            </div> */}
+                      <div id="dataValueRevenueRampUpContainer" className={Styles.rampUpContainer}>
+                        {dataValueCalculator
+                          ? dataValueCalculator.calculatedValueRampUpYearsVO.revenue.map(
+                              (valueDriver: IDataValueRampUp, indexVal: number) => {
+                                return (
+                                  <div id={'valueRevenueRampUp_' + indexVal} className={Styles.rampUpItem} key={indexVal}>
+                                    <strong>{valueDriver.year}</strong>
+                                    <div>
+                                      <IntlProvider locale={navigator.language} defaultLocale="en">
+                                        {valueDriver.value ? <FormattedNumber value={Number(valueDriver.value)} /> : '0'}
+                                      </IntlProvider>
+                                      &euro;
+                                    </div>
+                                  </div>
+                                );
+                              },
+                            )
+                          : ''}
+                      </div>
+                      {/* <div className={Styles.scrollerRight}>
+            <span>
+                <i className="icon mbc-icon arrow small right" />
+            </span>
+            </div> */}
+                    </div>
+                    <div className={classNames(Styles.flexLayout, Styles.calculatedValue)}>
+
+                      <div id="totalSavingsValueDriver">
+                        <label>{SOLUTION_DATA_VALUE_CATEGORY_TYPES[DigitalValueSummary.dataValueSavingsKeyValue]} Value Summary ({savingsValueFactorSummary ? savingsValueFactorSummary.year : ''})</label>
+                        <div>
+                          <IntlProvider locale={navigator.language} defaultLocale="en">
+                            {savingsValueFactorSummary ? <FormattedNumber value={Number(savingsValueFactorSummary.value)} /> : ''}
+                          </IntlProvider>
+                          &euro;
+                        </div>
+                      </div>
+
+                      <div id="totalRevenueValueDriver">
+                        <label>{SOLUTION_DATA_VALUE_CATEGORY_TYPES[DigitalValueSummary.dataValueRevenueKeyValue]} Value Summary ({revenueValueFactorSummary ? revenueValueFactorSummary.year : ''})</label>
+                        <div>
+                          <IntlProvider locale={navigator.language} defaultLocale="en">
+                            {revenueValueFactorSummary ? <FormattedNumber value={Number(revenueValueFactorSummary.value)} /> : ''}
+                          </IntlProvider>
+                          &euro;
+                        </div>
+                      </div>
+
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         )}
 
         {canShowAttachments ? (

@@ -95,6 +95,10 @@ sourceSets {
 
 dependencies {
 
+	implementation group: 'org.springframework.cloud', name: 'spring-cloud-stream', version: '3.2.4'
+	implementation group: 'org.springframework.cloud', name: 'spring-cloud-stream-binder-kafka', version: '3.2.4'
+	implementation group: 'org.springframework.kafka', name: 'spring-kafka', version: '2.8.6'
+	
 	implementation group: 'org.springframework.boot', name: 'spring-boot-starter-actuator', version: '2.4.0'
 
     implementation group: 'org.json', name: 'json', version: '20190722'
@@ -130,6 +134,7 @@ dependencies {
 	//implementation group: 'javax.validation', name: 'validation-api', version: '2.0.1.Final'
 	
     implementation group: 'org.postgresql', name: 'postgresql', version: '42.2.20'
+    implementation group: 'com.vladmihalcea', name: 'hibernate-types-52', version: '2.9.2'
 	implementation 'commons-io:commons-io:2.9.0'
 	// https://mvnrepository.com/artifact/org.eclipse.jgit/org.eclipse.jgit
 	implementation group: 'org.eclipse.jgit', name: 'org.eclipse.jgit', version: '5.12.0.202106070339-r'

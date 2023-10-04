@@ -27,7 +27,6 @@
 
 package com.daimler.dna.airflow.assembler;
 
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -50,17 +49,15 @@ import com.daimler.dna.airflow.dto.AirflowDagVo;
 import com.daimler.dna.airflow.dto.AirflowProjectUserVO;
 import com.daimler.dna.airflow.dto.AirflowProjectVO;
 import com.daimler.dna.airflow.dto.AirflowProjectsByUserVO;
+import com.daimler.dna.airflow.models.CollabInfo;
+import com.daimler.dna.airflow.models.DagCollabInfo;
+import com.daimler.dna.airflow.models.DagCollabInfoCollection;
 import com.daimler.dna.airflow.models.DnaProject;
 import com.daimler.dna.airflow.models.DnaProjectAndUserMapping;
 import com.daimler.dna.airflow.models.DnaProjectUserAndDagMapping;
-import com.daimler.dna.airflow.models.Permission;
-import com.daimler.dna.airflow.models.PermissionAndRoleMapping;
-import com.daimler.dna.airflow.models.PermissionAndViewMenuMapping;
-import com.daimler.dna.airflow.models.Role;
 import com.daimler.dna.airflow.models.User;
-import com.daimler.dna.airflow.models.UserRoleMapping;
-import com.daimler.dna.airflow.models.ViewMenu;
 import com.daimler.dna.airflow.repository.DnaProjectRepository;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 @Component
 public class DnaProjectAssesmbler {
@@ -178,7 +175,6 @@ public class DnaProjectAssesmbler {
 	public AirflowProjectsByUserVO toVO1(Object[] obj, String currentUser, Map<String, AirflowProjectsByUserVO> map) {
 		log.trace("Started assembling all aiflow project per user ....");
 		AirflowProjectsByUserVO vo = null;
-		AirflowDagProjectResponseVo dagsItem = null;
 		if (Objects.nonNull(obj)) {
 			if (map.get((String) obj[0]) != null) {
 				vo = map.get((String) obj[0]);
@@ -186,24 +182,37 @@ public class DnaProjectAssesmbler {
 			} else {
 				vo = new AirflowProjectsByUserVO();
 			}
-			dagsItem = new AirflowDagProjectResponseVo();
 			vo.setProjectId((String) obj[0]);
 			vo.setProjectName((String) obj[2]);
 			vo.setProjectDescription((String) obj[3]);
 			vo.setCreatedBy((String) obj[1]);
 			vo.setProjectStatus((String) obj[4]);
 			vo.setIsOwner(currentUser.equalsIgnoreCase((String) obj[1]));
-			String dagName = (String) obj[0] + "_DAG_1";
-			dagsItem.setDagName(dagName);
-			dagsItem.addPermissionsItem("can_read");
-			String collabsDetails = (String) obj[5];
-			if(collabsDetails !=null ) {
-			String[] individualCollabDetails = collabsDetails.split(",");
-			Optional<String> collab = Arrays.stream(individualCollabDetails).filter(x -> x.contains(currentUser)).findFirst();
-			if(collab.isPresent() && collab.get().split("_").length >1)
-				dagsItem.addPermissionsItem("can_edit");
+			
+			try {
+				String collabsDetails = (String) obj[5];
+					if(collabsDetails!=null && "".equalsIgnoreCase(collabsDetails)) {
+					ObjectMapper mapper = new ObjectMapper();
+					DagCollabInfoCollection collection = mapper.readValue(collabsDetails, DagCollabInfoCollection.class);
+					if(collection!=null && collection.getDagsInfo()!=null && !collection.getDagsInfo().isEmpty()) {
+						for(DagCollabInfo dagInfo : collection.getDagsInfo()) {
+							if(dagInfo.getCollabs()!= null  && !dagInfo.getCollabs().isEmpty()) {
+								Optional<CollabInfo> tempCollabOptional = dagInfo.getCollabs().stream().filter(n->currentUser.equalsIgnoreCase(n.getUsername())).findAny();
+								if(tempCollabOptional!=null && tempCollabOptional.get()!=null) {
+									AirflowDagProjectResponseVo tempDagItem = new AirflowDagProjectResponseVo();
+									tempDagItem.setDagName(dagInfo.getDagName());
+									if(tempCollabOptional.get().getPermissions()!=null && !tempCollabOptional.get().getPermissions().isEmpty()) {
+										tempDagItem.setPermissions(tempCollabOptional.get().getPermissions());
+									}
+									vo.addDagsItem(tempDagItem);
+								}
+							}
+						}
+					}
+				}
+			}catch(Exception e) {
+				log.info("Failed to add project dags that are in requested state to user {} ",currentUser);
 			}
-			vo.addDagsItem(dagsItem);
 		}
 		log.trace("Successfully assembled all aiflow project per user.");
 		return vo;
