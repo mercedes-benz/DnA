@@ -135,7 +135,7 @@ const MatomoProjects = (props) => {
                 <>
                   <div className={Styles.emptyBuckets}>
                     <span>
-                      You don&apos;t have any Matomo Site at this time.
+                      You don&apos;t have any Matomo project at this time.
                       <br /> Please create a new one.
                     </span>
                   </div>
