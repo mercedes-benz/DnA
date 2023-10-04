@@ -77,6 +77,9 @@ public class BaseUserNotificationPrefService extends BaseCommonService<UserNotif
 	
 	@Value("${notification.email.codespaceNotificationPref}")
 	private boolean defaultCodespaceEmailNotificationPref;
+	
+	@Value("${notification.email.airflowNotificationPref}")
+	private boolean defaultAirflowEmailNotificationPref;
 
 	@Value("${notification.app.solutionNotificationPref}")
 	private boolean defaultSolutionAppNotificationPref;
@@ -101,6 +104,9 @@ public class BaseUserNotificationPrefService extends BaseCommonService<UserNotif
 	
 	@Value("${notification.app.codespaceNotificationPref}")
 	private boolean defaultCodespaceAppNotificationPref;
+	
+	@Value("${notification.app.airflowNotificationPref}")
+	private boolean defaultAirflowAppNotificationPref;
 
 	public BaseUserNotificationPrefService() {
 		super();
@@ -159,6 +165,10 @@ public class BaseUserNotificationPrefService extends BaseCommonService<UserNotif
 				codespaceNotificationPref.setEnableAppNotifications(defaultCodespaceAppNotificationPref);
 				codespaceNotificationPref.setEnableEmailNotifications(defaultCodespaceEmailNotificationPref);
 				preferencesVO.setCodespaceNotificationPref(codespaceNotificationPref);
+				NotificationPreferenceVO airflowNotificationPref = new NotificationPreferenceVO();
+				airflowNotificationPref.setEnableAppNotifications(defaultAirflowAppNotificationPref);
+				airflowNotificationPref.setEnableEmailNotifications(defaultAirflowEmailNotificationPref);
+				preferencesVO.setAirflowNotificationPref(airflowNotificationPref);
 				try {
 					UserNotificationPrefVO savedPreferencesVO = this.create(preferencesVO);
 					log.info("Notification preferences created for user {} ", value);
