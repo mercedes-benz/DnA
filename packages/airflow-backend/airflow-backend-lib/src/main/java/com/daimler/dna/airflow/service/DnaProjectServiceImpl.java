@@ -368,14 +368,14 @@ public class DnaProjectServiceImpl implements DnaProjectService {
 		return new ResponseEntity<AirflowProjectResponseWrapperVO>(res, HttpStatus.CREATED);
 	}
 
-	@Scheduled(cron = "*/10 * * * * *")
+	@Scheduled(cron = "*/30 * * * * *")
 	@Transactional
 	public void updateAirflowInprogressDagProjectStatus() {
 		Map<String, AirflowProjectsByUserVO> map1 = new HashMap<String, AirflowProjectsByUserVO>();
 		LOGGER.info("..UpdateAirflowDagProjectStatus Started...");
 		List<DnaProject> dnaProjects = dnaProjectRepository.findAll(0, 0);
 		List<DnaProject> filteredList = dnaProjects.stream()
-				.filter(dnaProject -> (dnaProject.getProjectStatus()!= null && dnaProject.getProjectStatus().contains("_REQUESTED")))
+				.filter(dnaProject -> (dnaProject.getProjectStatus()!= null && dnaProject.getProjectStatus().contains("REQUESTED")))
 				.collect(Collectors.toList());
 		for(DnaProject dnaProject : filteredList) {
 			List<String> teamMembersIds = new ArrayList<>();
@@ -479,6 +479,11 @@ public class DnaProjectServiceImpl implements DnaProjectService {
 								pendingDagsInfo.add(dagInfo);
 							}
 						}
+						if(pendingDagsInfo!=null && !pendingDagsInfo.isEmpty()) {
+							processingPending = true;
+						}else {
+							processingPending = false;
+						}
 					}
 					else {
 						processingPending = false;
@@ -486,7 +491,7 @@ public class DnaProjectServiceImpl implements DnaProjectService {
 				}else {
 					processingPending = false;
 				}
-				if(processingPending || (pendingDagsInfo!=null && !pendingDagsInfo.isEmpty())) {
+				if(processingPending) {
 						String processedStatus = null;
 						if("CREATE_REQUESTED".equalsIgnoreCase(dnaProject.getProjectStatus())){
 							processedStatus = "CREATE_REQUESTED";
