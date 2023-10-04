@@ -1,19 +1,19 @@
 /* LICENSE START
- * 
+ *
  * MIT License
- * 
+ *
  * Copyright (c) 2019 Daimler TSS GmbH
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in all
  * copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -21,8 +21,8 @@
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
- * 
- * LICENSE END 
+ *
+ * LICENSE END
  */
 
 package com.daimler.data.controller;
@@ -76,23 +76,26 @@ import lombok.extern.slf4j.Slf4j;
 public class UserInfoController {
 
 	private static Logger logger = LoggerFactory.getLogger(UserInfoController.class);
-	
+
 	@Autowired
 	private UserInfoService userInfoService;
-	
+
 	@Autowired
 	private UserRoleService userRoleService;
-	
+
 	@Autowired
 	private UserInfoAssembler userinfoAssembler;
-	
+
 	@Value("${drd.request-url}")
 	private String drdRequestUrl;
-	
+
+	@Value("${pooluser.email-domain}")
+	private String poolUserEmailDomain;
+
 	@Lazy
 	@Autowired
 	private RestTemplate drdRestTemplate;
-	
+
 	@ApiOperation(value = "Get specific user for a given userid.", nickname = "getById", notes = "Get specific user for a given userid. This endpoints will be used to Get specific user for a given userid.", response = UserInfoVO.class, tags = {
 			"users",})
 	@ApiResponses(value = {
@@ -133,17 +136,26 @@ public class UserInfoController {
 				ResponseEntity<DrdResponse> response = drdRestTemplate.exchange(drdRequestUrl + userId, HttpMethod.GET,
 						request, DrdResponse.class);
 				userInfo = convertDrdResponseToUserInfo(response.getBody().getAttrs());
-				logger.info("Fetching user:{} from database.", userId);
+				logger.info("Fetching user:{} from drd.", userId);
 				id = userInfo.getId();
-			} catch (Exception e) {
-				if (userId != null && userId.toLowerCase().startsWith("TE".toLowerCase())) {
-					log.debug("Technical user {} , bypassed OIDC userinfo fetch", userId);
-					id = userId;
-				} else {
-					log.error("Failed to fetch OIDC User info", e.getMessage());
-				}
-				return null;
-			}
+            } catch (Exception e) {
+                if (userId != null && userId.toLowerCase().startsWith("TE".toLowerCase())) {
+                    log.debug("Technical user {} , bypassed OIDC userinfo fetch", userId);
+                    id = userId;
+                    userInfo.setFirstName("Tech User");
+                    userInfo.setLastName(userId);
+                } else if (userId != null && userId.toLowerCase().startsWith("PID".toLowerCase())) {
+                    log.info("PID user {} , bypassed OIDC userinfo fetch", userId);
+                    id = userId;
+                    String email = userId.toLowerCase() + "." + poolUserEmailDomain;
+                    userInfo.setEmail(email);
+                    userInfo.setFirstName("Pool-ID");
+                    userInfo.setLastName(userId);
+                } else {
+                    log.error("Failed to fetch OIDC User info {}", e.getMessage());
+                    return null;
+                }
+            }
 			logger.info("User not found, adding the user:{}", id);
 			logger.debug("Setting default role as 'User' for: {}", id);
 			UserRoleNsql roleEntity = userRoleService.getRoleUser();
@@ -167,9 +179,9 @@ public class UserInfoController {
 
 		return userVO;
 	}
-	
+
 	private UserInfo convertDrdResponseToUserInfo(Attrs attrs) {
-		UserInfo userInfo = new UserInfo();		
+		UserInfo userInfo = new UserInfo();
 		userInfo.setId(attrs.getUid() != null ? attrs.getUid().get(0) : "");
 		userInfo.setFirstName(attrs.getGivenName() != null ? attrs.getGivenName().get(0) : "");
 		userInfo.setLastName(attrs.getSn() != null ? attrs.getSn().get(0) : "");
@@ -177,7 +189,7 @@ public class UserInfoController {
 		userInfo.setMobileNumber(attrs.getMobile() != null ? attrs.getMobile().get(0) : "");
 		userInfo.setDepartment(attrs.getDepartmentNumber() != null ? attrs.getDepartmentNumber().get(0) : "");
 		return userInfo;
-		
+
 	}
 
 }
