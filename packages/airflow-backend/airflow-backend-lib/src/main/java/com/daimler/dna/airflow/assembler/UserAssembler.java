@@ -36,6 +36,7 @@ import org.springframework.stereotype.Component;
 import com.daimler.dna.airflow.dto.AirflowProjectUserVO;
 import com.daimler.dna.airflow.dto.AirflowRoleVO;
 import com.daimler.dna.airflow.dto.AirflowUserVO;
+import com.daimler.dna.airflow.models.CollabInfo;
 import com.daimler.dna.airflow.models.Role;
 import com.daimler.dna.airflow.models.User;
 import com.daimler.dna.airflow.models.UserRoleMapping;
@@ -72,6 +73,16 @@ public class UserAssembler {
 				roleMappings.add(roleMapping);
 			}
 			user.setRoleMaping(roleMappings);
+			user.setActive(true);
+		}
+		return user;
+	}
+	
+	public User toEntity(CollabInfo vo) {
+		User user = null;
+		if (Objects.nonNull(vo)) {
+			user = new User();
+			BeanUtils.copyProperties(vo, user);
 			user.setActive(true);
 		}
 		return user;

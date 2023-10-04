@@ -9,7 +9,7 @@ import Tabs from '../../../assets/modules/uilab/js/src/tabs';
 import { getParams } from '../../../router/RouterUtils';
 
 import ConfirmModal from 'components/formElements/modal/confirmModal/ConfirmModal';
-import { USER_ROLE, SOLUTION_LOGO_IMAGE_TYPES } from 'globals/constants';
+import { USER_ROLE, SOLUTION_LOGO_IMAGE_TYPES, SOLUTION_VALUE_CALCULATION_TYPES } from 'globals/constants';
 import { IBookMarks, ICreateNewSolutionResult, IPhase, IRole, IUserInfo, INotebookInfo, IDataiku, IDepartment } from 'globals/types';
 import { history } from '../../../router/History';
 import { ApiClient } from '../../../services/ApiClient';
@@ -58,6 +58,10 @@ export interface IAllSolutionsResult {
 }
 
 export default class Summary extends React.Component<{ user: IUserInfo }, ISummaryState> {
+
+  static digitalValueTypeKeyValue  = Object.keys(SOLUTION_VALUE_CALCULATION_TYPES)[0];
+  static dataValueTypeKeyValue  = Object.keys(SOLUTION_VALUE_CALCULATION_TYPES)[1];
+
   constructor(props: any) {
     super(props);
     this.state = {
@@ -139,6 +143,7 @@ export default class Summary extends React.Component<{ user: IUserInfo }, ISumma
           complianceOfficers: [],
         },
         digitalValue: {
+          typeOfCalculation: Summary.digitalValueTypeKeyValue,
           maturityLevel: '',
           projectControllers: [],
           attachments: [],
@@ -314,7 +319,7 @@ export default class Summary extends React.Component<{ user: IUserInfo }, ISumma
                       onClick={this.setCurrentTab}
                       className={canShowDigitalValue ? '' : 'hidden'}
                     >
-                      Digital Value Summary
+                      Value Calculation Summary
                     </a>
                   </li>
                   <li className={'tab disabled'}>
@@ -511,6 +516,7 @@ export default class Summary extends React.Component<{ user: IUserInfo }, ISumma
             solution.neededRoles = res.skills;
             solution.dataSources = res.dataSources;
             solution.digitalValue = res.digitalValue;
+            solution.digitalValue.typeOfCalculation = res.digitalValue.typeOfCalculation ? res.digitalValue.typeOfCalculation : Summary.digitalValueTypeKeyValue;
             solution.datacompliance = res.dataCompliance;
             // this.digitalValueComponent.current.updateComponentValues(res.digitalValue);
             solution.analytics = res.analytics;

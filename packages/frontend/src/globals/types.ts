@@ -1282,7 +1282,7 @@ export interface IDigitalValue {
   permissions: ITeams[];
   assessment: IAssessment;
   valueCalculator?: IValueCalculator;
-  dataValueCalculator?: IValueCalculator;
+  dataValueCalculator?: IDataValueCalculator;
 }
 
 export interface IValueCalculator {
@@ -1292,6 +1292,28 @@ export interface IValueCalculator {
   calculatedDigitalValue?: ICalculatedDigitalValueSummary;
   breakEvenPoint?: string;
 }
+
+export interface IDataValueRampUp {
+  year: number;
+  value: number;
+}
+
+export interface IDataValueRampUpYears {
+  savings?: IDataValueRampUp[];
+  revenue?: IDataValueRampUp[];
+}
+
+export interface IDataValueFactorSummary {
+  year: string;
+  value: number;
+}
+
+export interface IDataValueCalculator {
+  calculatedValueRampUpYearsVO?: IDataValueRampUpYears;
+  savingsValueFactorSummaryVO?: IDataValueFactorSummary;
+  revenueValueFactorSummaryVO?: IDataValueFactorSummary;
+}
+
 export interface ICostValueFactorSummary {
   year: string;
   value: string;
