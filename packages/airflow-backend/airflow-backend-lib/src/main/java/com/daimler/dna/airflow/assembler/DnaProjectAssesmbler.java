@@ -27,6 +27,7 @@
 
 package com.daimler.dna.airflow.assembler;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -185,22 +186,30 @@ public class DnaProjectAssesmbler {
 			vo.setProjectId((String) obj[0]);
 			vo.setProjectName((String) obj[2]);
 			vo.setProjectDescription((String) obj[3]);
-			vo.setCreatedBy((String) obj[1]);
+			String createdBy = (String) obj[1];
+			vo.setCreatedBy(createdBy);
 			vo.setProjectStatus((String) obj[4]);
 			vo.setIsOwner(currentUser.equalsIgnoreCase((String) obj[1]));
-			
+			List<String> permissions = new ArrayList<>();
+			permissions.add("can_read");
+			permissions.add("can_edit");
 			try {
 				String collabsDetails = (String) obj[5];
-					if(collabsDetails!=null && "".equalsIgnoreCase(collabsDetails)) {
+					if(collabsDetails!=null && !"".equalsIgnoreCase(collabsDetails)) {
 					ObjectMapper mapper = new ObjectMapper();
 					DagCollabInfoCollection collection = mapper.readValue(collabsDetails, DagCollabInfoCollection.class);
 					if(collection!=null && collection.getDagsInfo()!=null && !collection.getDagsInfo().isEmpty()) {
 						for(DagCollabInfo dagInfo : collection.getDagsInfo()) {
-							if(dagInfo.getCollabs()!= null  && !dagInfo.getCollabs().isEmpty()) {
+							if(currentUser.equalsIgnoreCase(createdBy)) {
+								AirflowDagProjectResponseVo tempDagItem = new AirflowDagProjectResponseVo();
+								tempDagItem.dagName(dagInfo.getDagName());
+								tempDagItem.setPermissions(permissions);
+								vo.addDagsItem(tempDagItem);
+							}
+							else if(dagInfo.getCollabs()!= null  && !dagInfo.getCollabs().isEmpty()) {
 								Optional<CollabInfo> tempCollabOptional = dagInfo.getCollabs().stream().filter(n->currentUser.equalsIgnoreCase(n.getUsername())).findAny();
-								if(tempCollabOptional!=null && tempCollabOptional.get()!=null) {
+								if(tempCollabOptional!=null && tempCollabOptional.get()!=null){
 									AirflowDagProjectResponseVo tempDagItem = new AirflowDagProjectResponseVo();
-									tempDagItem.setDagName(dagInfo.getDagName());
 									if(tempCollabOptional.get().getPermissions()!=null && !tempCollabOptional.get().getPermissions().isEmpty()) {
 										tempDagItem.setPermissions(tempCollabOptional.get().getPermissions());
 									}
