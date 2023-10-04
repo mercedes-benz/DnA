@@ -144,7 +144,8 @@ public class UserInfoController {
                     id = userId;
                     userInfo.setFirstName("Tech User");
                     userInfo.setLastName(userId);
-                } else if (userId != null && userId.toLowerCase().startsWith("PID".toLowerCase())) {
+					userInfo.setEmail("");
+				} else if (userId != null && userId.toLowerCase().startsWith("PID".toLowerCase())) {
                     log.info("PID user {} , bypassed OIDC userinfo fetch", userId);
                     id = userId;
                     String email = userId.toLowerCase() + "." + poolUserEmailDomain;
@@ -166,6 +167,8 @@ public class UserInfoController {
 			userRoleList.add(userRole);
 			// Setting entity to add new user
 			userInfo.setId(id != null ? id : userId);
+			userInfo.setDepartment("NA");
+			userInfo.setMobileNumber("NA");
 			UserInfoNsql userEntity = userinfoAssembler.toEntity(userInfo, userRoleList);
 			userEntity.setIsLoggedIn("Y");
 			if (Objects.isNull(userInfo.getFirstName()) && Objects.isNull(userInfo.getLastName())) {
