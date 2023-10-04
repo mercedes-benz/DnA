@@ -116,7 +116,7 @@ const MatomoProjects = (props) => {
         </div>
         {listViewMode && (
           <div className={classNames(Styles.listHeaderContent)}>
-            {matomoList?.length ? (
+            {matomoList && matomoList?.length ? (
               <Link to="createMatomo">
                 <button className={matomoList === null ? Styles.btnHide : 'btn btn-secondary'} type="button">
                   <span className={Styles.addCircle}>
@@ -131,11 +131,11 @@ const MatomoProjects = (props) => {
         <div className={classNames(Styles.content, cardViewMode && Styles.cardView)}>
           <div>
             <div className={Styles.listContent}>
-              {matomoList?.length === 0 ? (
+              {!matomoList || matomoList?.length === 0 ? (
                 <>
                   <div className={Styles.emptyBuckets}>
                     <span>
-                      You don&apos;t have any Matomo at this time.
+                      You don&apos;t have any Matomo Site at this time.
                       <br /> Please create a new one.
                     </span>
                   </div>
@@ -150,7 +150,7 @@ const MatomoProjects = (props) => {
                 </>
               ) : (
                 <div className={Styles.subscriptionList}>
-                  <MatomoList isCardView={cardViewMode} user={props.user} matomoList={matomoList} />
+                  <MatomoList isCardView={cardViewMode} user={props.user} matomoList={matomoList} callMatomoList={getMatomoSitesList} />
                   {matomoList?.length ? (
                     <Pagination
                       totalPages={totalNumberOfPages}
