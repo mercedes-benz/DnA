@@ -36,7 +36,7 @@ import com.daimler.dna.airflow.controller.LoginController;
 import com.daimler.dna.airflow.dto.AirflowProjectUserVO;
 import com.daimler.dna.airflow.dto.CreatedByVO;
 
-@Component
+//@Component
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
