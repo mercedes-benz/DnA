@@ -289,7 +289,7 @@ export interface IUserInfo {
   id: string;
   firstName: string;
   lastName: string;
-  email: string;
+  email?: string;
   eMail: string;
   mobileNumber: string;
   department: string;
