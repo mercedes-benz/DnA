@@ -30,6 +30,7 @@ interface IProtectedRouteState {
 
 const initialUserState: IUserInfo = {
   department: '',
+  email: '',
   eMail: '',
   firstName: '',
   id: '',
@@ -73,6 +74,7 @@ export class ProtectedRoute extends React.Component<IProtectedRouteProps, IProte
           user: {
             "roles": userDetails.digiRole,
             "department": userDetails.department,
+            "email": userDetails.email,
             "eMail": userDetails.email,
             "firstName": userDetails.firstName,
             "lastName": userDetails.lastName,
