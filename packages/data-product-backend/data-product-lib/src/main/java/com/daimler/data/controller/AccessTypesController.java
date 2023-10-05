@@ -85,34 +85,34 @@ public class AccessTypesController implements AccesstypesApi {
 	
 	}
 	
-	@ApiOperation(value = "get the accesstypes  by given ID.", nickname = "getByID", notes = "get the accesstypes  by given ID", response = AccessTypesCollection.class, tags={ "accesstypes", })
-    @ApiResponses(value = { 
-        @ApiResponse(code = 200, message = "Returns message of success or failure", response = AccessTypesCollection.class),
-        @ApiResponse(code = 400, message = "Bad request"),
-        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
-        @ApiResponse(code = 403, message = "Request is not authorized."),
-        @ApiResponse(code = 404, message = "Invalid id, record not found."),
-        @ApiResponse(code = 500, message = "Internal error") })
-    @RequestMapping(value = "/accesstypes/{id}",
-        produces = { "application/json" }, 
-        consumes = { "application/json" },
-        method = RequestMethod.GET)
-	public ResponseEntity<AccessTypesVO> getByID(
-    		@ApiParam(value = "Id of the accesstype",required=true) @PathVariable("id") String id){
+	// @ApiOperation(value = "get the accesstypes  by given ID.", nickname = "getByID", notes = "get the accesstypes  by given ID", response = AccessTypesCollection.class, tags={ "accesstypes", })
+    // @ApiResponses(value = { 
+    //     @ApiResponse(code = 200, message = "Returns message of success or failure", response = AccessTypesCollection.class),
+    //     @ApiResponse(code = 400, message = "Bad request"),
+    //     @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+    //     @ApiResponse(code = 403, message = "Request is not authorized."),
+    //     @ApiResponse(code = 404, message = "Invalid id, record not found."),
+    //     @ApiResponse(code = 500, message = "Internal error") })
+    // @RequestMapping(value = "/accesstypes/{id}",
+    //     produces = { "application/json" }, 
+    //     consumes = { "application/json" },
+    //     method = RequestMethod.GET)
+	// public ResponseEntity<AccessTypesVO> getByID(
+    // 		@ApiParam(value = "Id of the accesstype",required=true) @PathVariable("id") String id){
 	
-		AccessTypesVO accessTypesVO = null;
-		if (StringUtils.hasText(id)) {
-			AccessTypesVO existingVO = accessTypesService.getById(id);
-			if (existingVO != null && existingVO.getId() != null) {
-				accessTypesVO = existingVO;
-			} 
-		}
-		if(accessTypesVO != null) {
-			log.info("accesstype {} fetched successfully", id);
-			return new ResponseEntity<>(accessTypesVO, HttpStatus.OK);
-		}else {
-			log.info("No accesstype {} found", id);
-			return new ResponseEntity<>(new AccessTypesVO(), HttpStatus.NO_CONTENT);
-		}
-	}
+	// 	AccessTypesVO accessTypesVO = null;
+	// 	if (StringUtils.hasText(id)) {
+	// 		AccessTypesVO existingVO = accessTypesService.getById(id);
+	// 		if (existingVO != null && existingVO.getId() != null) {
+	// 			accessTypesVO = existingVO;
+	// 		} 
+	// 	}
+	// 	if(accessTypesVO != null) {
+	// 		log.info("accesstype {} fetched successfully", id);
+	// 		return new ResponseEntity<>(accessTypesVO, HttpStatus.OK);
+	// 	}else {
+	// 		log.info("No accesstype {} found", id);
+	// 		return new ResponseEntity<>(new AccessTypesVO(), HttpStatus.NO_CONTENT);
+	// 	}
+	// }
 }
