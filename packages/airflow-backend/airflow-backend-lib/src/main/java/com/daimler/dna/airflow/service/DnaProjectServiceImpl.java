@@ -695,6 +695,7 @@ public class DnaProjectServiceImpl implements DnaProjectService {
 					}
 				}
 					LOGGER.debug("updating dna project");
+					airflowProjectVO.setProjectStatus(currentStatus);
 					updateProject(updatedProject,currentStatus,collabsInfoAsString);
 				}
 			 else {
