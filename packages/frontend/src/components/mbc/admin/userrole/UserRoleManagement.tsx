@@ -710,8 +710,6 @@ export class UserRoleManagement extends React.Component<any, IUserRoleManagement
         {
           if (this.state.shortID === '' || this.state.shortID === null) {
             this.setState({ shortIDError: errorMissingEntry });
-          } else if (!this.state.shortID.toUpperCase().startsWith('TE')) {
-            this.setState({ shortIDError: 'Technical user ID should start with TE' });
           } else {
             this.setState({ shortIDError: '' });
           }
