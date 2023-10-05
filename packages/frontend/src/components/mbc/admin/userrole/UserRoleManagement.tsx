@@ -830,6 +830,7 @@ export class UserRoleManagement extends React.Component<any, IUserRoleManagement
       const postData: IUserRequestVO = {
         data: {
           id: shortID.toUpperCase(),
+          email: email,
           eMail: email,
           firstName: firstName,
           lastName: lastName,
@@ -962,6 +963,7 @@ export class UserRoleManagement extends React.Component<any, IUserRoleManagement
         lastName: userToEdit.lastName,
         department: userToEdit.department,
         eMail: userToEdit.eMail,
+        email: userToEdit.eMail,
         mobileNumber: userToEdit.mobileNumber,
         favoriteUsecases: userToEdit.favoriteUsecases,
         roles: this.state.updatedRole ? [this.state.updatedRole] : this.state.moduleRoles,
