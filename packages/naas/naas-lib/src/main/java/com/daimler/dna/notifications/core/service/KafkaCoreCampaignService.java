@@ -85,6 +85,7 @@ public class KafkaCoreCampaignService {
 	private static String CHRONOS_URI_PATH = "#/chronos/project/";
 	private static String CODESPACE_NOTIFICATION_KEY = "Codespace";
 	private static String DATATRANSFER_NOTIFICATION_KEY = "DataTransfer";
+	private static String AIRFLOW_NOTIFICATION_KEY = "Airflow";
 	
 	/*
 	 * @KafkaListener(topics = "dnaCentralEventTopic") public void
@@ -141,6 +142,10 @@ public class KafkaCoreCampaignService {
 					if(message.getEventType().contains(CODESPACE_NOTIFICATION_KEY)) {
 						appNotificationPreferenceFlag = preferenceVO.getCodespaceNotificationPref().isEnableAppNotifications();
 						emailNotificationPreferenceFlag =  preferenceVO.getCodespaceNotificationPref().isEnableEmailNotifications();
+					}
+					if(message.getEventType().contains(AIRFLOW_NOTIFICATION_KEY)) {
+						appNotificationPreferenceFlag = preferenceVO.getAirflowNotificationPref().isEnableAppNotifications();
+						emailNotificationPreferenceFlag =  preferenceVO.getAirflowNotificationPref().isEnableEmailNotifications();
 					}
 
 					NotificationVO vo = new NotificationVO();
