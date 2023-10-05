@@ -355,7 +355,7 @@ public class UserInfoController implements UsersApi {
 			}
 			if (userRequestVO.getData() != null && userRequestVO.getData().getId() != null) {
 				UserInfoVO userInfoVO = userRequestVO.getData();
-				if(userInfoVO == null || userInfoVO.getId() == null ||  !(userInfoVO != null && userInfoVO.getId() != null && userInfoVO.getId().toLowerCase().startsWith(techUserPrefix.toLowerCase()))) {
+				if (userInfoVO == null || userInfoVO.getId() == null) {
 					logger.info("Invalid data provided, please check the user request data.");
 					return new ResponseEntity<>(userInfoVO, HttpStatus.BAD_REQUEST);
 				}
@@ -384,7 +384,7 @@ public class UserInfoController implements UsersApi {
 					logger.info("Failed to onboarding already existing user {} ", existingUser.getId());
 					return new ResponseEntity<>(userInfoVO, HttpStatus.CONFLICT);
 				}
-				HasuraUserInfoInsertGenericResponse response  = hasuraClient.createTechnicalUser(userInfoVO);
+				HasuraUserInfoInsertGenericResponse response  = hasuraClient.onboardNewUser(userInfoVO);
 				if (response != null) {
 					log.info("Completed process {} with the response status {}", userRequestVO.getData().getId(), response.getStatus());
 					return new ResponseEntity<>(response.getUserInfoVO(), response.getStatus());
