@@ -210,6 +210,7 @@ public class DnaProjectAssesmbler {
 								Optional<CollabInfo> tempCollabOptional = dagInfo.getCollabs().stream().filter(n->currentUser.equalsIgnoreCase(n.getUsername())).findAny();
 								if(tempCollabOptional!=null && tempCollabOptional.get()!=null){
 									AirflowDagProjectResponseVo tempDagItem = new AirflowDagProjectResponseVo();
+									tempDagItem.setDagName(dagInfo.getDagName());
 									if(tempCollabOptional.get().getPermissions()!=null && !tempCollabOptional.get().getPermissions().isEmpty()) {
 										tempDagItem.setPermissions(tempCollabOptional.get().getPermissions());
 									}

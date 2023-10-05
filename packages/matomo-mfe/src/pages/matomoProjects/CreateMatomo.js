@@ -255,9 +255,15 @@ const CreateMatomo = ({ user }) => {
     setStatusValue(e.target.value);
   }
 
-  const handleURLValidation = (value) => {
+  const handleURLChange = (value) => {
     setUrlError('');
     setUrl(value);
+  }
+
+  const checkURL = (e) => {
+    if(!isValidURL(e.target.value)){
+      setUrlError('Please provide valid url');
+    }
   }
 
   const handleSiteNameValidation = (value) => {
@@ -619,8 +625,9 @@ const CreateMatomo = ({ user }) => {
                       maxLength={63}
                       placeholder="Type here"
                       autoComplete="off"
+                      onBlur={(e) => checkURL(e)}
                       onChange={(e) => {
-                        handleURLValidation(e.target.value);
+                        handleURLChange(e.target.value);
                       }}
                       defaultValue={url}
                     />
