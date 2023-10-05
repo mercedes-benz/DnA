@@ -83,6 +83,7 @@ const CreateNewPipeline = (props: ICreateNewPipelineProps) => {
   const [livelinessInterval, setLivelinessInterval] = useState<NodeJS.Timer>();
   const [enableBackButton, setBackButton] = useState<boolean>(false);
   const createAndUpdateStatus = ['CREATE_REQUESTED', 'UPDATE_REQUESTED'];
+  const createAndUpdate = ['CREATED', 'UPDATED'];
 
   const fsActive = () => {
     setIsFsEnable(!isFsEnable);
@@ -450,7 +451,7 @@ const CreateNewPipeline = (props: ICreateNewPipelineProps) => {
       PipelineApiClient.getPiplineStatus(id)
         .then((res) => {
           try {
-            if (res?.data?.projectStatus === 'CREATED') {
+            if (createAndUpdate.includes(res?.data?.projectStatus)) {
               ProgressIndicator.hide();
               clearInterval(intervalId);  // Use intervalId directly here
               switchBackToPipeline();
