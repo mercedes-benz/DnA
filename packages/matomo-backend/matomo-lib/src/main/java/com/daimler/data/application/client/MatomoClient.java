@@ -105,7 +105,7 @@ public class MatomoClient {
                                 requestEntity, MatomoUserResponseDto.class);
                         if (addMatomoUserResponse.hasBody()) {
                             createUserResponse = addMatomoUserResponse.getBody();
-                            if ( (createUserResponse != null && createUserResponse.getLogin()!=null)){
+                            if ( (createUserResponse != null && ("success".equalsIgnoreCase(createUserResponse.getResult())))){
                                 createUserResponse.setStatus("SUCCESS");
                             } else {
                                 MessageDescription addUserResponseErrMsg = new MessageDescription(createUserResponse.getMessage());
