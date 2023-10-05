@@ -1,7 +1,7 @@
 spring:
   application:
     name: dna-authenticator-service
-    version: 1.0.5
+    version: 1.0.6
     
   jpa:
     database: POSTGRESQL
@@ -23,6 +23,8 @@ spring:
     password: ${API_DB_PASS:XXXX_pass}
     driverClassName: org.postgresql.Driver
 
+pooluser:
+  email-domain: ${POOL_USER_EMAIL_DOMAIN:XXXXX}
 
 server:
   port: 9797

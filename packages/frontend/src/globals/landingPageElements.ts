@@ -183,7 +183,7 @@ export const ToolsLandingPageElements = [
   {
     name: 'Matomo',
     description:
-      'Matomo summary',
+      'Matomo is a free open source web-analytics platform which will help in analyzing the website traffic, visitors.',
     tags: ['Onprem'],
     url: '/matomo',
     isExternalLink: false,
@@ -196,10 +196,10 @@ export const ToolsLandingPageElements = [
     isDnAInternalTool: true,
   },
   {
-    name: 'Datalake',
+    name: 'Data Lakehouse',
     description:
-      'Relational table creation tool',
-    tags: ['Frontend Reporting', 'Data Engineering', 'Data Pipeline', 'Data Science', 'Machine Learning', 'No / Low Code', 'Coding', 'Cloud', 'Onprem'],
+      'A data lakehouse is an open source data management architecture that combines the flexibility and cost-efficiency of data lakes with the data management and structure features of data warehouses, all on one data platform.',
+    tags: ['Data Engineering', 'Data Science', 'No / Low Code', 'Cloud', 'Onprem'],
     url: '/datalake',
     isExternalLink: false,
     isTextAlignLeft: true,
@@ -207,7 +207,7 @@ export const ToolsLandingPageElements = [
     isDisabled: !enableDatalakeService,
     isSmallCard: false,
     isMediumCard: true,
-    svgIcon: 'chronos',
+    svgIcon: 'tools-mini',
     isDnAInternalTool: true,
   },
   {
