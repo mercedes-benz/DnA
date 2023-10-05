@@ -40,12 +40,12 @@ apply plugin: "maven-publish"
 apply plugin: "org.hidetake.swagger.generator"
 
 repositories {
-        mavenLocal()
-        mavenCentral()
-		gradlePluginPortal()
-		maven {
-		  url "https://plugins.gradle.org/m2/"
-		}
+    mavenLocal()
+    mavenCentral()
+	gradlePluginPortal()
+	maven {
+		url "https://plugins.gradle.org/m2/"
+	}
 }
 
 group 'com.daimler.data'
@@ -115,6 +115,21 @@ swaggerSources {
         code {
             language = 'spring'
             configFile = file(carlafunctionJson)
+            rawOptions = ['--ignore-file-override', ignoreFile]
+            components = ['models', 'apis']
+        }
+    }
+
+    accesstypes {
+        def accesstypesyaml = "${rootDir}/data-product-lib/src/main/resources/api/AccessTypes.yaml"
+        def accesstypesJson = "${rootDir}/data-product-lib/src/main/resources/api/AccessTypes.json"
+        inputFile = file(accesstypesyaml)
+
+        def ignoreFile = "${rootDir}/data-product-lib/src/main/resources/api/.swagger-codegen-ignore"
+
+        code {
+            language = 'spring'
+            configFile = file(accesstypesJson)
             rawOptions = ['--ignore-file-override', ignoreFile]
             components = ['models', 'apis']
         }
@@ -301,6 +316,8 @@ compileJava {
     source "${swaggerSources.frontendtools.code.outputDir}/src/main/java"
     dependsOn swaggerSources.userWidgetPreference.code
     source "${swaggerSources.userWidgetPreference.code.outputDir}/src/main/java"
+    dependsOn swaggerSources.accesstypes.code
+    source "${swaggerSources.accesstypes.code.outputDir}/src/main/java" 
     dependsOn swaggerSources.carlafunction.code
     source "${swaggerSources.carlafunction.code.outputDir}/src/main/java" 
     dependsOn swaggerSources.agileReleaseTrain.code
