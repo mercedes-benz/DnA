@@ -160,7 +160,9 @@ definitions:
     chronosNotificationPref:
       $ref: "#/definitions/NotificationPreferenceVO"
     codespaceNotificationPref:
-      $ref: "#/definitions/NotificationPreferenceVO"                
+      $ref: "#/definitions/NotificationPreferenceVO"
+    airflowNotificationPref:
+      $ref: "#/definitions/NotificationPreferenceVO"                 
   required:
      - userId
      - termsOfUse

@@ -443,6 +443,7 @@ export default class AllSolutions extends React.Component<
                   }
                   solutionsDataLoaded={this.state.allSolutiosFirstTimeDataLoaded}
                   setSolutionsDataLoaded={(value: boolean) => this.setState({ allSolutiosFirstTimeDataLoaded: value })}
+                  setSolutionsFilterApplied={(value: boolean) => this.setState({ allSolutionsFilterApplied: value })}
                   showSolutionsFilter={this.state.showSolutionsFilter}
                   openFilters={this.state.openFilters}
                   getAllTags={(tags: any) => {
@@ -961,7 +962,6 @@ export default class AllSolutions extends React.Component<
           const totalNumberOfPages = Math.ceil(solutions.totalCount / maxItemsPerPage);
           this.setState(
             {
-              allSolutionsFilterApplied: this.IsFilterApplied(queryParams),
               solutions: solutions.totalCount ? solutions.records : [],
               totalNumberOfPages,
               totalNumberOfRecords: solutions.totalCount,
@@ -1043,41 +1043,6 @@ export default class AllSolutions extends React.Component<
     }
 
     return pageTitle;
-  };
-
-  protected IsFilterApplied = (queryParams: IFilterParams) => {
-    const { division, subDivision, phase, location, status, useCaseType, tag } = queryParams;
-    let filterApplied = false;
-
-    if (division.length && division.length !== this.state.divisions.length) {
-      filterApplied = true;
-    }
-
-    if (subDivision.length && subDivision.length !== this.state.subDivisions.length) {
-      filterApplied = true;
-    }
-
-    if (phase.length && phase.length !== this.state.phases.length) {
-      filterApplied = true;
-    }
-
-    if (location.length && location.length !== this.state.locations.length) {
-      filterApplied = true;
-    }
-    
-    if (status.length) {
-      filterApplied = true;
-    }
-
-    if (useCaseType.length) {
-      filterApplied = true;
-    }
-
-    if (tag.length && tag.length !== this.state.tags.length) {
-      filterApplied = true;
-    }
-
-    return filterApplied;
   };
 
   protected showErrorNotification(message: string) {

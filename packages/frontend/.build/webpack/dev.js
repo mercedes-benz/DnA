@@ -44,7 +44,7 @@ const devConfig = {
   devServer: {
     port: packageJson.config.devServer.port || '9090',
     historyApiFallback: true,
-    https: packageJson.config.devServer.https || false,
+    https: packageJson.config.devServer.https || false
   },
 };
 
