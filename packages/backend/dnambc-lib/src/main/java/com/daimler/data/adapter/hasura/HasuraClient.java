@@ -62,7 +62,7 @@ public class HasuraClient {
 			userInfo.setEmail(userInfoVO.getEmail() != null ? userInfoVO.getEmail() : "");
 			userInfo.setFirstName(userInfoVO.getFirstName() != null ? userInfoVO.getFirstName() : "Tech User");
 			userInfo.setRoles(roles);
-			userInfo.setLastName(userInfoVO.getId());
+			userInfo.setLastName(userInfoVO.getLastName() != null ? userInfoVO.getLastName() : userInfoVO.getId());
 			userInfo.setMobileNumber(userInfoVO.getMobileNumber() != null ? userInfoVO.getMobileNumber() : "NA");
 			userInfo.setFavoriteUsecases(new ArrayList<>());
 			ObjectMapper mapper = new ObjectMapper();
