@@ -196,7 +196,7 @@ export const ToolsLandingPageElements = [
     isDnAInternalTool: true,
   },
   {
-    name: 'Datalake',
+    name: 'Data Lakehouse',
     description:
       'A data lakehouse is an open source data management architecture that combines the flexibility and cost-efficiency of data lakes with the data management and structure features of data warehouses, all on one data platform.',
     tags: ['Data Engineering', 'Data Science', 'No / Low Code', 'Cloud', 'Onprem'],
