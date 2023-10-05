@@ -183,7 +183,7 @@ export const ToolsLandingPageElements = [
   {
     name: 'Matomo',
     description:
-      'Matomo summary',
+      'Matomo is a free open source web-analytics platform which will help in analyzing the website traffic , visitors.',
     tags: ['Onprem'],
     url: '/matomo',
     isExternalLink: false,
