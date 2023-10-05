@@ -394,7 +394,6 @@ const CreateNewPipeline = (props: ICreateNewPipelineProps) => {
           Notification.show('Project Updated successfully!');
           setCreateProjectError('');
           setIsApiCallTakeTime(false);
-          window.location.reload();
           ProgressIndicator.hide();
         }
       })
