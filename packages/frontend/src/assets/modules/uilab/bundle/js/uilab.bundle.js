@@ -3871,7 +3871,7 @@
         : document.body.querySelector('.' + PROGRESS_BLOCK_WRAPPER_CLASS);
 
       if (progressBlockWrapper && progressBlockWrapper.classList.contains(PROGRESS_BLOCK_WRAPPER_CLASS)) {
-        progressBlockWrapper.parentNode.removeChild(progressBlockWrapper);
+        progressBlockWrapper.parentNode?.removeChild(progressBlockWrapper);
       }
     };
 

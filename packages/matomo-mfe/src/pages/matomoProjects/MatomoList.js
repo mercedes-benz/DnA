@@ -10,12 +10,11 @@ import ExpansionPanel from '../../common/modules/uilab/js/src/expansion-panel';
 
 import ConfirmModal from 'dna-container/ConfirmModal';
 import { matomoApi } from '../../apis/matamo.api';
-import { matomoActions } from '../redux/matomo.actions';
+// import { matomoActions } from '../redux/matomo.actions';
 import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indicator';
 import Notification from '../../common/modules/uilab/js/src/notification';
 import { regionalDateAndTimeConversionSolution } from '../Utility/utils';
 import Popper from 'popper.js';
-import { Link } from 'react-router-dom';
 import { Envs } from '../../utilities/envs';
 
 export const MatomoList = (props) => { 
@@ -107,7 +106,8 @@ export const MatomoList = (props) => {
     matomoApi
       .deleteMatomo(selectedItem.id)
       .then(() => {
-        dispatch(matomoActions.getMatomoList());
+        // dispatch(matomoActions.getMatomoList());
+        props.callMatomoList();
         Notification.show(`Site ${selectedItem.siteName} deleted successfully.`);
       })
       .catch((e) => {
@@ -374,12 +374,20 @@ export const MatomoList = (props) => {
                         <label className={Styles.expansionLabel + ' expansion-panel-label '} htmlFor={index + '1'}>
                           <div className={Styles.bucketTile}>
                             <div className={classNames(Styles.bucketTitleCol)}>
-                              <Link to={`${Envs.MATOMO_APP_URL}${item.siteId}`} target="_blank">{item.siteId}</Link>
-                              {/* {item.siteId} */}
+                              <span
+                                className={classNames(Styles.projectLink)}
+                                onClick={() => window.open(`${Envs.MATOMO_APP_URL}${item.siteId}`, "_blank")}
+                              >
+                                {item.siteId}
+                              </span>
                             </div>
                             <div className={classNames(Styles.bucketTitleCol, Styles.bucketName)}>
-                              <Link to={`${Envs.MATOMO_APP_URL}${item.siteId}`} target="_blank">{item.siteName}</Link>
-                              {/* {item.siteName} */}
+                              <span
+                                className={classNames(Styles.projectLink)}
+                                onClick={() => window.open(`${Envs.MATOMO_APP_URL}${item.siteId}`, "_blank")}
+                              >
+                                {item.siteName}
+                              </span>
                             </div>
                             <div className={Styles.bucketTitleCol}>
                               {item.siteUrl}
