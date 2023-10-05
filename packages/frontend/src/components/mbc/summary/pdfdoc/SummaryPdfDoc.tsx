@@ -60,6 +60,7 @@ import {
   IUserInfo,
   INotebookInfo,
   IDataiku,
+  IDataValueRampUp,
 } from 'globals/types';
 import { SOLUTION_DATA_VALUE_CATEGORY_TYPES, SOLUTION_VALUE_CALCULATION_TYPES, TEAMS_PROFILE_LINK_URL_PREFIX, TOTAL_LOCATIONS_COUNT } from 'globals/constants';
 import { Envs } from 'globals/Envs';
@@ -180,7 +181,6 @@ const styles = StyleSheet.create({
     width: '16.66%',
     display: 'flex',
     flexDirection: 'column',
-    minHeight: '200px',
   },
   milestoneValueView: {
     width: '100%',
@@ -341,7 +341,7 @@ const teamMembersList = (members: ITeams[]) => {
   return members.map((member: ITeams, index: number) => {
     const isInternalMember = member.userType === TeamMemberType.INTERNAL;
     return (
-      <View key={index} style={{ display: 'flex', flexDirection: 'row', width: '50%', minHeight: '150px', marginBottom: 15 }}>
+      <View key={index} style={{ display: 'flex', flexDirection: 'row', width: '50%', marginBottom: 15 }}>
         <View style={{ width: 30, height: 30, marginRight: 10 }}>
           {isInternalMember ? (
             <Image style={{ width: 'auto', height: 'auto' }} src={ImgTeamInternalAvatar} />
@@ -408,7 +408,7 @@ const attachmentList = (attachments: IAttachment[]) => {
 const costDrivers = (costFactors: ICostFactor[]) => {
   return costFactors.map((costFactor: ICostFactor, index: number) => {
     return (
-      <View key={index}>
+      <View key={index} wrap={false}>
         <Text style={styles.sectionTitle}>{`Cost Factor ${index + 1} ${costFactor.description}`}</Text>
         <View style={[styles.flexLayout, { marginTop: 10 }]}>
           <View style={[styles.flexCol2, styles.firstCol]}>
@@ -463,12 +463,12 @@ const costDrivers = (costFactors: ICostFactor[]) => {
 
 const valueDrivers = (valueFactors: IValueFactor[], hidePercent: boolean) => {
   let totalSavings = 0;
-  let totalRevenue = 0; 
-  return valueFactors.map((valueFactor: IValueFactor, index: number) => {
+  let totalRevenue = 0;
+  const valueDriversViews = valueFactors.map((valueFactor: IValueFactor, index: number) => {
     totalSavings += valueFactor.category === dataValueSavingsKeyValue ? parseFloat(valueFactor.value) : 0;
     totalRevenue += valueFactor.category === dataValueRevenueKeyValue ? parseFloat(valueFactor.value) : 0;
     return (
-      <View key={index}>
+      <View key={index} wrap={false}>
         <Text style={styles.sectionTitle}>{`Value Factor ${index + 1} ${valueFactor.description}`}</Text>
         <View style={[styles.flexLayout, { marginTop: 10 }]}>
           <View style={[styles.flexCol2, styles.firstCol]}>
@@ -529,47 +529,46 @@ const valueDrivers = (valueFactors: IValueFactor[], hidePercent: boolean) => {
             </View>
           ))}
         </View>
-        {hidePercent && (
-          <View style={styles.sectionTitle}>
-            <Text>
-              Total {SOLUTION_DATA_VALUE_CATEGORY_TYPES[dataValueSavingsKeyValue]} -{' '}
-              <IntlProvider locale={navigator.language} defaultLocale="en">
-                <FormattedNumber value={Number(totalSavings)} />
-              </IntlProvider>
-              &euro;
-            </Text>
-            <Text>
-              Total {SOLUTION_DATA_VALUE_CATEGORY_TYPES[dataValueRevenueKeyValue]} -{' '}
-              <IntlProvider locale={navigator.language} defaultLocale="en">
-                <FormattedNumber value={Number(totalRevenue)} />
-              </IntlProvider>
-              &euro;
-            </Text>
-          </View>
-        )}
         <View style={styles.costFactorSeperator} />
       </View>
     );
   });
+
+  return <>{valueDriversViews}{hidePercent && (
+    <View style={styles.sectionTitle}>
+      <Text>
+        Total {SOLUTION_DATA_VALUE_CATEGORY_TYPES[dataValueSavingsKeyValue]} -{' '}
+        <IntlProvider locale={navigator.language} defaultLocale="en">
+          <FormattedNumber value={Number(totalSavings)} />
+        </IntlProvider>
+        &euro;
+      </Text>
+      <Text>
+        Total {SOLUTION_DATA_VALUE_CATEGORY_TYPES[dataValueRevenueKeyValue]} -{' '}
+        <IntlProvider locale={navigator.language} defaultLocale="en">
+          <FormattedNumber value={Number(totalRevenue)} />
+        </IntlProvider>
+        &euro;
+      </Text>
+    </View>
+  )}</>;
 };
 
-const digitalValue = (items: IValueRampUp[], hidePercent: boolean) => {
+const digitalValue = (items: IValueRampUp[]) => {
   return items.map((item: IValueRampUp, index: number) => {
     return (
       <View key={index} style={[styles.rampUpContainer, styles.smallText]}>
         <Text>{item.year}</Text>
-        {!hidePercent && (
-          <Text>
-            {item.percent !== '' ? (
-              <IntlProvider locale={navigator.language} defaultLocale="en">
-                <FormattedNumber value={Number(item.percent)} />
-              </IntlProvider>
-            ) : (
-              ''
-            )}
-            %
-          </Text>
-        )}
+        <Text>
+          {item.percent !== '' ? (
+            <IntlProvider locale={navigator.language} defaultLocale="en">
+              <FormattedNumber value={Number(item.percent)} />
+            </IntlProvider>
+          ) : (
+            ''
+          )}
+          %
+        </Text>
         <Text>
           {item.value !== '' ? (
             <IntlProvider locale={navigator.language} defaultLocale="en">
@@ -578,6 +577,22 @@ const digitalValue = (items: IValueRampUp[], hidePercent: boolean) => {
           ) : (
             ''
           )}
+          &euro;
+        </Text>
+      </View>
+    );
+  });
+};
+
+const dataValue = (items: IDataValueRampUp[]) => {
+  return items.map((item: IDataValueRampUp, index: number) => {
+    return (
+      <View key={index} style={[styles.rampUpContainer, styles.smallText]}>
+        <Text>{item.year}</Text>
+        <Text>
+          <IntlProvider locale={navigator.language} defaultLocale="en">
+            <FormattedNumber value={Number(item.value)} />
+          </IntlProvider>
           &euro;
         </Text>
       </View>
@@ -985,7 +1000,7 @@ export const SummaryPdfDoc = (props: SummaryPdfDocProps) => (
         <View style={styles.seperatorLine} />
         {props.canShowTeams ? (
           <View>
-            <View wrap={false}>
+            <View>
               <Text style={[styles.subTitle, styles.setMarginTop]}>Team</Text>
               <View style={styles.flexLayout}>{teamMembersList(props.solution.team.team)}</View>
               <View style={styles.seperatorLine} />
@@ -1003,16 +1018,18 @@ export const SummaryPdfDoc = (props: SummaryPdfDocProps) => (
                   <Text>NA</Text>
                 )}
               </View>
-              <View style={{ marginTop: -20 }} />
+              <View style={styles.seperatorLine} />
             </View>
           </View>
         ) : (
           <View />
         )}
         {props.canShowMilestones ? (
-          <View wrap={false}>
-            <Text style={[styles.subTitle, styles.setMarginTop]}>Milestones</Text>
-            <View style={styles.setMarginTop}>{milestonesView(props.solution.milestones)}</View>
+          <View>
+            <View wrap={false}>
+              <Text style={[styles.subTitle, styles.setMarginTop]}>Milestones</Text>
+              <View style={styles.setMarginTop}>{milestonesView(props.solution.milestones)}</View>
+            </View>
             {props.solution.milestones?.rollouts?.details && props.solution.milestones?.rollouts?.details.length > 0 ? (
               <View>
                 <Text style={[styles.subTitle, styles.setMarginTop]}>Rollout Locations</Text>
@@ -1220,13 +1237,14 @@ export const SummaryPdfDoc = (props: SummaryPdfDocProps) => (
                 <Text>NA</Text>
               )}
             </View>
+            <View style={styles.seperatorLine} />
           </View>
         ) : (
           <View />
         )}
 
         {props.canShowComplianceSummary ? (
-          <View wrap={false}>
+          <View>
             <View wrap={false}>
               <Text style={[styles.subTitle, styles.setMarginTop, styles.setNegativeMarginBottom]}>
                 Compliance Framework / Process Flow
@@ -1288,7 +1306,7 @@ export const SummaryPdfDoc = (props: SummaryPdfDocProps) => (
               </View>
               <View style={styles.seperatorLine} />
             </View>
-            <View wrap={false}>
+            <View>
               <Text style={[styles.subTitle, styles.setMarginTop]}>Controllers</Text>
               <View style={styles.flexLayout}>
                 {props.solution.digitalValue.projectControllers &&
@@ -1300,7 +1318,7 @@ export const SummaryPdfDoc = (props: SummaryPdfDocProps) => (
               </View>
               <View style={styles.seperatorLine} />
             </View>
-            <View wrap={false}>
+            <View>
               <Text style={[styles.subTitle, styles.setMarginTop, { marginBottom: 10 }]}>Value Driver</Text>
               <View>
                 {props.solution.digitalValue ? (
@@ -1317,7 +1335,7 @@ export const SummaryPdfDoc = (props: SummaryPdfDocProps) => (
                 )}
               </View>
             </View>
-            <View wrap={false}>
+            <View>
               <Text style={[styles.subTitle, styles.setMarginTop, { marginBottom: 10 }]}>Cost Driver</Text>
               <View>
                 {props.solution.digitalValue ? (
@@ -1331,7 +1349,7 @@ export const SummaryPdfDoc = (props: SummaryPdfDocProps) => (
                 )}
               </View>
             </View>
-            <View wrap={false}>
+            <View>
               <Text style={[styles.subTitle, { marginBottom: 10 }]}>
                 {SOLUTION_VALUE_CALCULATION_TYPES[props.solution.digitalValue?.typeOfCalculation]}
               </Text>
@@ -1359,10 +1377,9 @@ export const SummaryPdfDoc = (props: SummaryPdfDocProps) => (
                       props.solution.digitalValue.dataValueCalculator.calculatedValueRampUpYearsVO &&
                       props.solution.digitalValue.dataValueCalculator.calculatedValueRampUpYearsVO.savings.length >
                         0 ? (
-                        digitalValue(
-                          props.solution.digitalValue.dataValueCalculator.calculatedValueRampUpYearsVO.savings,
-                          true,
-                        )
+                          dataValue(
+                            props.solution.digitalValue.dataValueCalculator.calculatedValueRampUpYearsVO.savings
+                          )
                       ) : (
                         <Text>NA</Text>
                       )
@@ -1377,10 +1394,9 @@ export const SummaryPdfDoc = (props: SummaryPdfDocProps) => (
                       props.solution.digitalValue.dataValueCalculator.calculatedValueRampUpYearsVO &&
                       props.solution.digitalValue.dataValueCalculator.calculatedValueRampUpYearsVO.revenue.length >
                         0 ? (
-                        digitalValue(
-                          props.solution.digitalValue.dataValueCalculator.calculatedValueRampUpYearsVO.revenue,
-                          true,
-                        )
+                          dataValue(
+                            props.solution.digitalValue.dataValueCalculator.calculatedValueRampUpYearsVO.revenue
+                          )
                       ) : (
                         <Text>NA</Text>
                       )
@@ -1392,7 +1408,7 @@ export const SummaryPdfDoc = (props: SummaryPdfDocProps) => (
               )}
             </View>
             {props.solution.digitalValue?.typeOfCalculation === digitalValueTypeKeyValue && (
-              <View wrap={false}>
+              <View>
                 <View style={[styles.flexLayout]}>
                   <View style={[styles.flexCol2, styles.firstCol]}>
                     <Text style={styles.sectionTitle}>
@@ -1507,7 +1523,7 @@ export const SummaryPdfDoc = (props: SummaryPdfDocProps) => (
             )}
 
             {props.solution.digitalValue?.typeOfCalculation === dataValueTypeKeyValue && (
-              <View wrap={false}>
+              <View>
                 <View style={[styles.flexLayout]}>
                   <View style={styles.flexCol2}>
                     <Text style={styles.sectionTitle}>
@@ -1649,7 +1665,7 @@ export const SummaryPdfDoc = (props: SummaryPdfDocProps) => (
         ) : (
           <View />
         )}
-        <View fixed={true}>
+        <View fixed={true} style={{bottom: 0}}>
           <Text fixed={true} style={styles.pageNumber} render={pageNumberRender} />
         </View>
       </View>
