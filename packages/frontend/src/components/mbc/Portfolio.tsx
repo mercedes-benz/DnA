@@ -535,6 +535,7 @@ export default class Portfolio extends React.Component<IPortfolioProps, IPortfol
             <div className={Styles.allSolExport}>
               <div tooltip-data="Filters">
                 <span className={this.state.openFilters ? Styles.activeFilters : ''} onClick={this.openCloseFilter}>
+                  {this.state.portfolioDataFilterApplied && (<i className="active-status"/>)}
                   <i className="icon mbc-icon filter big" />
                 </span>
               </div>
@@ -553,6 +554,10 @@ export default class Portfolio extends React.Component<IPortfolioProps, IPortfol
             showSolutionsFilter={true}
             solutionsDataLoaded={this.state.portfolioFirstTimeDataLoaded}
             setSolutionsDataLoaded={(value: boolean) => this.setState({ portfolioFirstTimeDataLoaded: value })}
+            setSolutionsFilterApplied= {(value: boolean) => {
+              console.log(value);
+              this.setState({ portfolioDataFilterApplied: value });
+            }}
             openFilters={this.state.openFilters}
             getAllTags={(tags: any) => {
               this.setState({ tagValues: tags });
@@ -816,20 +821,6 @@ export default class Portfolio extends React.Component<IPortfolioProps, IPortfol
         );
       });
   }
-
-  // protected getFilteredSolutions = (queryParams: IFilterParams) => {
-  //   ProgressIndicator.show();
-  //   this.setState(
-  //     {
-  //       queryParams,
-  //       // portfolioDataFilterApplied: true,
-  //     },
-  //     () => {
-  //       this.getSolutions();
-  //       // this.storeFilterValuesInSession();
-  //     },
-  //   );
-  // };
 
   protected getSolutions = (
     locations: string,
