@@ -27,7 +27,7 @@ import SelectBox from 'components/formElements/SelectBox/SelectBox';
 import { ApiClient } from '../../../services/ApiClient';
 import { SESSION_STORAGE_KEYS } from 'globals/constants';
 import Tags from 'components/formElements/tags/Tags';
-import { getDivisionsQueryValue, trackEvent } from '../../../services/utils';
+import { getDivisionsQueryValue, trackEvent, isSolutionFilterApplied } from '../../../services/utils';
 import { useLocation } from 'react-router-dom';
 
 import Styles from './Filter.scss';
@@ -41,6 +41,7 @@ type SolutionsFilterType = {
   getValuesFromFilter?: Function;
   solutionsDataLoaded: boolean;
   setSolutionsDataLoaded: Function;
+  setSolutionsFilterApplied: Function;
   showSolutionsFilter?: boolean;
   openFilters?: boolean;
   getAllTags?: Function;
@@ -54,6 +55,7 @@ type SolutionsFilterType = {
  * @param {Function} getValuesFromFilter callback function to get access to all the filter values, that can be used in the main page
  * @param {boolean} solutionsDataLoaded solutions data loaded
  * @param {Function} setSolutionsDataLoaded setter for solutions data loaded
+ * @param {Function} setSolutionsFilterApplied setter for solutions filter applied
  * @param {boolean} showSolutionsFilter filter should be visible or not
  * @returns
  */
@@ -65,6 +67,7 @@ const SolutionsFilter = ({
   getValuesFromFilter,
   solutionsDataLoaded,
   setSolutionsDataLoaded,
+  setSolutionsFilterApplied,
   showSolutionsFilter,
   openFilters,
   getAllTags,
@@ -656,6 +659,8 @@ const SolutionsFilter = ({
     typeof getFilterQueryParams === 'function' && getFilterQueryParams(queryParams);
 
     typeof getSolutions === 'function' && getSolutions(locationIds, phaseIds, divisionIds, status, useCaseType, tags);
+
+    setSolutionsFilterApplied(isSolutionFilterApplied(queryParams, divisions.length, subDivisions.length, phases.length, locations.length, tagValues.length));
   };
 
   const resetDataFilters = () => {
@@ -706,6 +711,7 @@ const SolutionsFilter = ({
   const onResetFilterCompleted = (queryParams: IFilterParams, showMessage?: boolean) => {
     setSolutionsDataLoaded(false);
     setFilterApplied(false);
+    setSolutionsFilterApplied(false);
     setFocusedItems({});
     setQueryParams(queryParams);
     setUserPreferenceDataId(null);

@@ -59,13 +59,13 @@ public class ApplicationLoggingAspect {
 	public Object logAround(ProceedingJoinPoint joinPoint) throws Throwable {
 		Logger classSpecificlog = LoggerFactory
 				.getLogger(Class.forName(joinPoint.getSignature().getDeclaringTypeName()));
-		if (classSpecificlog.isDebugEnabled()) {
+		if (classSpecificlog.isTraceEnabled()) {
 			log.debug("Enter: {}.{}() with argument[s] = {}", joinPoint.getSignature().getDeclaringTypeName(),
 					joinPoint.getSignature().getName(), Arrays.toString(joinPoint.getArgs()));
 		}
 		try {
 			Object result = joinPoint.proceed();
-			if (classSpecificlog.isDebugEnabled()) {
+			if (classSpecificlog.isTraceEnabled()) {
 				log.debug("Exit: {}.{}() with result ", joinPoint.getSignature().getDeclaringTypeName(),
 						joinPoint.getSignature().getName());
 			}
