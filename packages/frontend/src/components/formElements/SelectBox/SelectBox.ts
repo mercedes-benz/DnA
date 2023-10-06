@@ -5,12 +5,10 @@ import SelectionControl from '../../../assets/modules/uilab/js/src/selection-con
 
 class SelectBox {
   public static defaultSetup(disableEventDispatch?: boolean): void {
-    setTimeout(() => {
       this.refresh();
       Select.defaultSetup();
       SelectionControl.defaultSetup();
       this.setupSelectBoxes(disableEventDispatch);
-    }, 100);
   }
 
   public static refresh(selectBoxId?: string): void {
