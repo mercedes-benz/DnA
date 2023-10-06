@@ -388,7 +388,7 @@ const CreateNewPipeline = (props: ICreateNewPipelineProps) => {
     PipelineApiClient.putExistingProject(id, data)
       .then((response) => {
         if (createAndUpdateStatus.includes(response?.data?.projectStatus)) {
-          enableLivelinessCheck(response?.data?.projectId);
+          enableLivelinessCheck(response?.data?.projectId, "updated");
           setBackButton(true);
         } else {
           history.push('/pipeline');
@@ -418,7 +418,7 @@ const CreateNewPipeline = (props: ICreateNewPipelineProps) => {
     PipelineApiClient.addNewProject(data)
       .then((response) => {
         if (createAndUpdateStatus.includes(response?.data?.projectStatus)) {
-          enableLivelinessCheck(response?.data?.projectId);
+          enableLivelinessCheck(response?.data?.projectId, "created");
           setBackButton(true);
         } else {
           history.push(`/pipeline`);
@@ -443,7 +443,7 @@ const CreateNewPipeline = (props: ICreateNewPipelineProps) => {
     ProgressIndicator.hide();
   };
 
-  const enableLivelinessCheck = (id: string) => {
+  const enableLivelinessCheck = (id: string, status: string) => {
     // Clear the existing interval using the state value
     clearInterval(livelinessInterval);
 
@@ -455,7 +455,7 @@ const CreateNewPipeline = (props: ICreateNewPipelineProps) => {
               ProgressIndicator.hide();
               clearInterval(intervalId);  // Use intervalId directly here
               switchBackToPipeline();
-              Notification.show('New Project Created successfully.');
+              Notification.show(`Project ${status} successfully.`);
             }
           } catch (err: any) {
             console.log(err);
