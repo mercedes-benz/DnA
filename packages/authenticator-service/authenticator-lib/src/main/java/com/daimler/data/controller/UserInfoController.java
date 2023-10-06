@@ -139,6 +139,8 @@ public class UserInfoController {
 				logger.info("Fetching user:{} from drd.", userId);
 				id = userInfo.getId();
             } catch (Exception e) {
+				userInfo.setDepartment("NA");
+				userInfo.setMobileNumber("NA");
                 if (userId != null && userId.toLowerCase().startsWith("TE".toLowerCase())) {
                     log.debug("Technical user {} , bypassed OIDC userinfo fetch", userId);
                     id = userId;
@@ -167,8 +169,6 @@ public class UserInfoController {
 			userRoleList.add(userRole);
 			// Setting entity to add new user
 			userInfo.setId(id != null ? id : userId);
-			userInfo.setDepartment("NA");
-			userInfo.setMobileNumber("NA");
 			UserInfoNsql userEntity = userinfoAssembler.toEntity(userInfo, userRoleList);
 			userEntity.setIsLoggedIn("Y");
 			if (Objects.isNull(userInfo.getFirstName()) && Objects.isNull(userInfo.getLastName())) {
