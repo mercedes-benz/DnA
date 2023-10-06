@@ -40,6 +40,7 @@ const transactionalDataUrl = Envs.TRANSACTIONAL_DATA_URL;
 const carlaArchitectureUrl = Envs.CARLA_ARCHITECTURE_URL;
 const chatbotUrl = Envs.GPT4ALL_CHATBOT_TOOL_URL;
 const spireUrl = Envs.SPIRE_URL;
+const enableDatalakeService = Envs.ENABLE_DATALAKE_SERVICE;
 
 export const DataLayerElements = [
   {
@@ -182,13 +183,28 @@ export const ToolsLandingPageElements = [
   {
     name: 'Matomo',
     description:
-      'Matomo summary',
+      'Matomo is a free open source web-analytics platform which will help in analyzing the website traffic, visitors.',
     tags: ['Onprem'],
     url: '/matomo',
     isExternalLink: false,
     isTextAlignLeft: true,
     animation: true,
     isDisabled: !enableMatomoService,
+    isSmallCard: false,
+    isMediumCard: true,
+    svgIcon: 'tools-mini',
+    isDnAInternalTool: true,
+  },
+  {
+    name: 'Data Lakehouse',
+    description:
+      'A data lakehouse is an open source data management architecture that combines the flexibility and cost-efficiency of data lakes with the data management and structure features of data warehouses, all on one data platform.',
+    tags: ['Data Engineering', 'Data Science', 'No / Low Code', 'Cloud', 'Onprem'],
+    url: '/datalake',
+    isExternalLink: false,
+    isTextAlignLeft: true,
+    animation: true,
+    isDisabled: !enableDatalakeService,
     isSmallCard: false,
     isMediumCard: true,
     svgIcon: 'tools-mini',

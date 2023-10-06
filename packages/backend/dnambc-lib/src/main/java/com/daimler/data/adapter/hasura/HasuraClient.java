@@ -43,7 +43,7 @@ public class HasuraClient {
 	@Autowired
 	private UserInfoAssembler userInfoAssembler;
 
-	public HasuraUserInfoInsertGenericResponse createTechnicalUser(UserInfoVO userInfoVO) {
+	public HasuraUserInfoInsertGenericResponse onboardNewUser(UserInfoVO userInfoVO) {
 		try {
 			HttpHeaders headers = new HttpHeaders();
 			headers.set("Accept", "application/json");
@@ -58,12 +58,12 @@ public class HasuraClient {
 			List<UserInfoRole> roles = new ArrayList<>();
 			roles.add(role);
 			userInfo.setDivisionAdmins(null);
-			userInfo.setDepartment("NA");
-			userInfo.setEmail("");
-			userInfo.setFirstName("Tech User");
+			userInfo.setDepartment(userInfoVO.getDepartment() != null ? userInfoVO.getDepartment() : "");
+			userInfo.setEmail(userInfoVO.getEmail() != null ? userInfoVO.getEmail() : "");
+			userInfo.setFirstName(userInfoVO.getFirstName() != null ? userInfoVO.getFirstName() : "Tech User");
 			userInfo.setRoles(roles);
-			userInfo.setLastName(userInfoVO.getId());
-			userInfo.setMobileNumber("NA");
+			userInfo.setLastName(userInfoVO.getLastName() != null ? userInfoVO.getLastName() : userInfoVO.getId());
+			userInfo.setMobileNumber(userInfoVO.getMobileNumber() != null ? userInfoVO.getMobileNumber() : "NA");
 			userInfo.setFavoriteUsecases(new ArrayList<>());
 			ObjectMapper mapper = new ObjectMapper();
 			String data = mapper.writeValueAsString(userInfo);
