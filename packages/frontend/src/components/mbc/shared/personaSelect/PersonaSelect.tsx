@@ -29,6 +29,7 @@ const PersonaSelect = (props: IPersonaSelectProps) => {
   return (
     <div className={Styles.container}>
       <h2 className={classNames(Styles.heading, props.isSummary? Styles.summaryHeading : '')}>Personas</h2>
+      {selectedPersona.length === 0 || props.personas.length === 0 ? <div className={Styles.noPersonaSelected}>NA</div> :
       <div className={Styles.personaContainer}>
         {
           props.personas.map((persona:any) => {
@@ -62,8 +63,8 @@ const PersonaSelect = (props: IPersonaSelectProps) => {
             )
           })
         }
-        {selectedPersona.length===0 && <div className={Styles.noPersonaSelected}>NA</div>}
       </div>
+      }
     </div>
   );
 };
