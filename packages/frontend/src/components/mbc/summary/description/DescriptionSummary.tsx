@@ -312,8 +312,7 @@ export default class DescriptionSummary extends React.Component<IDescriptionSumm
                   <div id="dataStrategyDomain">
                     <label className="input-label summary">Data Strategy Domain</label>
                     <br />
-                    {/* {description.dataStrategyDomain ? description.dataStrategyDomain : 'NA'} */}
-                    {description.dataStrategyDomain ? description.dataStrategyDomain.toLocaleLowerCase()===""||description.dataStrategyDomain.toLocaleLowerCase()==="choose" ? "NA":description.dataStrategyDomain : 'NA'}
+                    {description.dataStrategyDomain ? description.dataStrategyDomain.toLocaleLowerCase() === ""||description.dataStrategyDomain.toLocaleLowerCase() === "choose" ? "NA":description.dataStrategyDomain : 'NA'}
                   </div>
                   <div id="createdAt">
                     <label className="input-label summary">Created On</label>

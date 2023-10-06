@@ -216,14 +216,13 @@ export default class Summary extends React.Component<{ user: IUserInfo }, ISumma
     const header = document.getElementById('header');
     window.addEventListener('scroll', () => {
       if (window.pageYOffset > 47) {
-         header?.classList.remove('nav-header-bg-trans');
+        header?.classList.remove('nav-header-bg-trans');
       } else {
         header?.classList.add('nav-header-bg-trans');
       }
     });
     const userInfo = this.props.user;
     const isAdmin = userInfo.roles.find((role: IRole) => role.id === USER_ROLE.ADMIN);
-    // const isAdmin = userInfo.roles.find((role: IRole) => role.id === USER_ROLE.ADMIN || role.id===USER_ROLE.DIVISIONADMIN);
     const solutionName = this.state.solution.description.productName;
     const logoDetails = this.state.solution.description.logoDetails;
 
