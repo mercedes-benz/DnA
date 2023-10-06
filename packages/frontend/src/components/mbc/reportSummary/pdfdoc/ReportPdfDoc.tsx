@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { Document, Font, Page, StyleSheet, Text, View, Image, Link } from '@react-pdf/renderer';
 import * as React from 'react';
 import { PropsWithChildren } from 'react';

@@ -40,7 +40,7 @@ import org.springframework.web.WebApplicationInitializer;
 @ComponentScan({ "com.daimler.dna.airflow.app.main.config", "com.daimler.dna.airflow.controller",
 		"com.daimler.dna.airflow.service", "com.daimler.dna.airflow.repository", "com.daimler.dna.airflow.assembler",
 		"com.daimler.dna.airflow.app.main.filter", "com.daimler.dna.airflow.client", "com.daimler.dna.auth.client",
-		"com.daimler.dna.airflow.logging" })
+		"com.daimler.dna.airflow.logging","com.daimler.dna"})
 public class Application extends SpringBootServletInitializer implements WebApplicationInitializer {
 
 	private static final Logger LOG = LoggerFactory.getLogger(Application.class);

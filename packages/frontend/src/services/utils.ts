@@ -1,5 +1,5 @@
 import { Envs } from '../globals/Envs';
-import { IUserInfo } from '../globals/types';
+import { IFilterParams, IUserInfo } from '../globals/types';
 import { ComputeFixedTag } from 'globals/Enums';
 
 declare global {
@@ -248,6 +248,48 @@ export const getDivisionsQueryValue = (divisions: string[], subDivisions: string
   return divisionIds;
 };
 
+export const isSolutionFilterApplied = (
+  queryParams: IFilterParams,
+  divisionLength: number,
+  subDivisionsLength: number,
+  phasesLength: number,
+  locationsLength: number,
+  tagsLength: number,
+) => {
+  const { division, subDivision, phase, location, status, useCaseType, tag } = queryParams;
+  let filterApplied = false;
+
+  if (division.length && division.length !== divisionLength) {
+    filterApplied = true;
+  }
+
+  if (subDivision.length && subDivision.length !== subDivisionsLength) {
+    filterApplied = true;
+  }
+
+  if (phase.length && phase.length !== phasesLength) {
+    filterApplied = true;
+  }
+
+  if (location.length && location.length !== locationsLength) {
+    filterApplied = true;
+  }
+
+  if (status.length) {
+    filterApplied = true;
+  }
+
+  if (useCaseType.length) {
+    filterApplied = true;
+  }
+
+  if (tag.length && tag.length !== tagsLength) {
+    filterApplied = true;
+  }
+
+  return filterApplied;
+};
+
 export const regionalDateAndTimeConversion = (dateString: any) => { 
   // const newDateString = dateString.split(/-| /);   
   // const dateUTC = newDateString[2]+'-'+newDateString[1]+'-'+newDateString[0]+'T'+newDateString[3]+'Z';
@@ -304,7 +346,7 @@ export const csvSeparator = (region: string) => {
 
 export const isValidGITRepoUrl = (str: string) => {
   const regex = new RegExp(/((http|http(s)|\/?))(:(\/\/github.com\/))([\w.@:/\-~]+)(\.git)(\/)?/);
-  
+
   return (str == null) ? false : regex.test(str);
 }
 
