@@ -37,7 +37,6 @@ import java.util.stream.Collectors;
 
 import javax.transaction.Transactional;
 
-import org.eclipse.jgit.revwalk.RevCommit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -62,7 +61,10 @@ import com.daimler.dna.airflow.dto.AirflowProjectVO;
 import com.daimler.dna.airflow.dto.AirflowProjectsByUserVO;
 import com.daimler.dna.airflow.dto.AirflowRetryDagVo;
 import com.daimler.dna.airflow.exceptions.MessageDescription;
+import com.daimler.dna.airflow.models.CollabInfo;
 import com.daimler.dna.airflow.models.Dag;
+import com.daimler.dna.airflow.models.DagCollabInfo;
+import com.daimler.dna.airflow.models.DagCollabInfoCollection;
 import com.daimler.dna.airflow.models.DnaProject;
 import com.daimler.dna.airflow.models.DnaProjectAndUserMapping;
 import com.daimler.dna.airflow.models.DnaProjectUserAndDagMapping;
@@ -83,6 +85,8 @@ import com.daimler.dna.airflow.repository.UserAndDagMappingRepository;
 import com.daimler.dna.airflow.repository.UserRepository;
 import com.daimler.dna.airflow.repository.UserRoleMappingRepository;
 import com.daimler.dna.airflow.repository.ViewMenuRepository;
+import com.daimler.dna.notifications.common.producer.KafkaProducerService;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 @Service
 public class DnaProjectServiceImpl implements DnaProjectService {
@@ -142,6 +146,13 @@ public class DnaProjectServiceImpl implements DnaProjectService {
 
 	@Autowired
 	private ImportErrorRepository importErrorRepository;
+	
+	private ObjectMapper mapper = new ObjectMapper();
+	
+	@Autowired
+	private KafkaProducerService kafkaProducer;
+	
+	private static String DEFAULT_USER_ROLENAME = "User";
 
 	@Override
 	public List<AirflowProjectsByUserVO> getAllProjects(int offset, int limit) {
@@ -153,7 +164,7 @@ public class DnaProjectServiceImpl implements DnaProjectService {
 		List<AirflowDagProjectResponseVo> dags = null;
 		LOGGER.debug("fetching project details for {} from database.", currentUser.getUsername());
 		List<Object[]> result = dnaProjectRepository.findAllProjectsByUserId(currentUser.getUsername());
-		List<Object[]> result1 = dnaProjectRepository.findAllCreationStatusProjectsByUserId(currentUser.getUsername(), "CREATE_REQUESTED");
+		List<Object[]> result1 = dnaProjectRepository.findAllCreationStatusProjectsByUserId(currentUser.getUsername(), "_REQUESTED");
 		LOGGER.debug("Database fetch successfull {}", currentUser.getUsername());
 		for (Object[] obj : result) {
 			map.put((String) obj[0], assembler.toVO(obj, currentUser.getUsername(), map));
@@ -205,6 +216,7 @@ public class DnaProjectServiceImpl implements DnaProjectService {
 		}
 		return (Objects.nonNull(projects) && !projects.isEmpty()) ? assembler.toVO(projects.get(0)) : null;
 	}
+	
 
 	@Override
 	@Transactional
@@ -215,8 +227,9 @@ public class DnaProjectServiceImpl implements DnaProjectService {
 		airflowProjectVO.setProjectStatus("CREATE_REQUESTED");
 		airflowProjectVO.setCreatedBy(currentUser.getUsername());
 		List<MessageDescription> validErrors = validateProject(airflowProjectVO);
+		List<MessageDescription> errors = new ArrayList<>();
 		if (ObjectUtils.isEmpty(validErrors)) {
-			List<MessageDescription> errors = airflowGitClient.createAirflowDags(airflowProjectVO, currentUser);
+			errors = airflowGitClient.createAirflowDags(airflowProjectVO, currentUser);
 			if (ObjectUtils.isEmpty(errors)) {
 				DnaProject savedDnaProject = dnaProjectRepository.save(assembler.toEntity(airflowProjectVO));
 				List<String> permissions = new ArrayList<>();
@@ -225,15 +238,23 @@ public class DnaProjectServiceImpl implements DnaProjectService {
 				currentUser.setPermissions(permissions);
 				boolean isCurrentUserExist = userExist(currentUser.getEmail());
 				boolean isCurrentRoleExist = roleExist(currentUser.getUsername());
+				Role defaultUserRole = findRole(DEFAULT_USER_ROLENAME);
 				Role savedCurrentUserRole = isCurrentRoleExist ? findRole(currentUser.getUsername())
 						: addRole(currentUser.getUsername());
 				User savedCurrentUser = isCurrentUserExist ? findUser(currentUser.getEmail()) : addUser(currentUser);
 				if (!isCurrentUserExist && !isCurrentRoleExist && Objects.nonNull(savedCurrentUser)
 						&& Objects.nonNull(savedCurrentUserRole)) {
 					addUserRoleMapping(savedCurrentUser, savedCurrentUserRole);
+					if(defaultUserRole!=null) {
+						addUserRoleMapping(savedCurrentUser, savedCurrentUserRole);
+					}
 				}
 				// for each dag
+				DagCollabInfoCollection dagsInfoCollection = new DagCollabInfoCollection();
+				List<DagCollabInfo> dagsInfo = new ArrayList<>();
 				for (AirflowDagVo dagVO : airflowProjectVO.getDags()) {
+					DagCollabInfo tempDagInfo = new DagCollabInfo();
+					tempDagInfo.setDagName(dagVO.getDagName());
 					boolean isPermissionCreated = false;
 					boolean isDagExist = false;
 					boolean isErrorExist = false;
@@ -273,17 +294,7 @@ public class DnaProjectServiceImpl implements DnaProjectService {
 						LOGGER.debug("mapping permission to role..");
 						addRoleAndPermissionMapping(currentUser, savedCurrentUserRole, dagVO.getDagName());
 					} 
-//					else {
-//						LOGGER.warn(
-//								"Permission is not created for the DAG {} , however project is onboarded. Please contact administrator for permission.",
-//								dagVO.getDagName());
-//						MessageDescription md = new MessageDescription();
-//						md.setMessage("Permission is not created for the DAG" + dagVO.getDagName()
-//								+ ", however project is onboarded. Please contact administrator for permission.");
-//						warnings.add(md);
-//					}
-					List<String> collabs = new ArrayList<>();
-					String collabsCommanSeparatedValue = null;
+					List<CollabInfo> collabs = new ArrayList<>();
 					if (!ObjectUtils.isEmpty(dagVO.getCollaborators())) {
 						for (AirflowProjectUserVO userVO : dagVO.getCollaborators()) {
 							boolean isRoleExist = roleExist(userVO.getUsername());
@@ -294,6 +305,9 @@ public class DnaProjectServiceImpl implements DnaProjectService {
 							if (!isUserExist && !isRoleExist && Objects.nonNull(savedUser)
 									&& Objects.nonNull(savedRole)) {
 								addUserRoleMapping(savedUser, savedRole);
+								if(defaultUserRole!=null) {
+									addUserRoleMapping(savedCurrentUser, defaultUserRole);
+								}
 							}
 							LOGGER.debug("User onboarded successfully..{}", savedUser.getUsername());
 							if (isDagExist) {
@@ -305,25 +319,45 @@ public class DnaProjectServiceImpl implements DnaProjectService {
 								addRoleAndPermissionMapping(userVO, savedRole, dagVO.getDagName());
 							}
 							List<String> collabPermissions = userVO.getPermissions();
-							String collabDetails = userVO.getUsername();
-							if(collabPermissions!=null && !collabPermissions.isEmpty() && collabPermissions.contains("can_edit")) {
-								collabDetails = collabDetails+"_RW";
+							if(collabPermissions==null) {
+								collabPermissions = new ArrayList<>();
 							}
-							collabs.add(collabDetails);
+							CollabInfo tempCollabInfo = new CollabInfo();
+							tempCollabInfo.setUsername(userVO.getUsername());
+							tempCollabInfo.setEmail(userVO.getEmail());
+							tempCollabInfo.setFirstName(userVO.getFirstName());
+							tempCollabInfo.setLastName(userVO.getLastName());
+							tempCollabInfo.setPermissions(collabPermissions);
+							collabs.add(tempCollabInfo);
 						}
-						collabsCommanSeparatedValue = String.join(",", collabs);
+						tempDagInfo.setCollabs(collabs);
 					}
-					if (isDagExist) {
-						savedDnaProject.setProjectStatus("CREATED");
-					} else {
-						LOGGER.info("...Dag still not created hence adding status as CREATE_REQUESTED...");
-						savedDnaProject.setProjectStatus("CREATE_REQUESTED");
-						savedDnaProject.setCollabs(collabsCommanSeparatedValue);
+					dagsInfo.add(tempDagInfo);
+					if (!isDagExist) {
+						dagsInfoCollection.setDagsInfo(dagsInfo);
 					}
-					
-					dnaProjectRepository.save(savedDnaProject);
 				}
-			} else {
+				if(dagsInfoCollection!=null && dagsInfoCollection.getDagsInfo()!= null && !dagsInfoCollection.getDagsInfo().isEmpty()) {
+					LOGGER.info("...Dag still not created hence adding status as CREATE_REQUESTED...");
+					savedDnaProject.setProjectStatus("CREATE_REQUESTED");
+					String collabsInfoAsString = null;
+					try {
+						collabsInfoAsString = mapper.writeValueAsString(dagsInfoCollection);
+						savedDnaProject.setCollabs(collabsInfoAsString);
+					}catch(Exception e) {
+						MessageDescription error = new MessageDescription("Failed while saving airflow project information due to unexpected server exception, please retry again");
+						res.setData(airflowProjectVO);
+						errors.add(error);
+						res.setErrors(errors);
+						res.setStatus("FAILURE");
+						return new ResponseEntity<AirflowProjectResponseWrapperVO>(res, HttpStatus.INTERNAL_SERVER_ERROR);
+					}
+				}else {
+					savedDnaProject.setProjectStatus("CREATED");
+				}
+				dnaProjectRepository.save(savedDnaProject);
+			}
+			else {
 				res.setData(airflowProjectVO);
 				res.setErrors(errors);
 				res.setStatus("FAILURE");
@@ -343,86 +377,175 @@ public class DnaProjectServiceImpl implements DnaProjectService {
 		return new ResponseEntity<AirflowProjectResponseWrapperVO>(res, HttpStatus.CREATED);
 	}
 
-	@Scheduled(cron = "*/10 * * * * *")
+	@Scheduled(cron = "*/30 * * * * *")
 	@Transactional
 	public void updateAirflowInprogressDagProjectStatus() {
 		Map<String, AirflowProjectsByUserVO> map1 = new HashMap<String, AirflowProjectsByUserVO>();
 		LOGGER.info("..UpdateAirflowDagProjectStatus Started...");
 		List<DnaProject> dnaProjects = dnaProjectRepository.findAll(0, 0);
 		List<DnaProject> filteredList = dnaProjects.stream()
-				.filter(dnaProject -> "CREATE_REQUESTED".equalsIgnoreCase(dnaProject.getProjectStatus()))
+				.filter(dnaProject -> (dnaProject.getProjectStatus()!= null && dnaProject.getProjectStatus().contains("REQUESTED")))
 				.collect(Collectors.toList());
-
+		Role defaultUserRole = findRole(DEFAULT_USER_ROLENAME);
 		for(DnaProject dnaProject : filteredList) {
+			List<String> teamMembersIds = new ArrayList<>();
+			List<String> teamMembersEmails = new ArrayList<>();
 			LOGGER.info("Processing update of project {} from scheduled job", dnaProject.getProjectName());
-			String dagName = dnaProject.getProjectId() + "_DAG_1";
-			AirflowDagVo dagVO1 = new AirflowDagVo();
-			dagVO1.setDagName(dagName);
-			Boolean isDagExists = checkDagMenu(dagName);
-			Boolean isPermissionCreated = checkDagPermissionAndViewMenu(dagVO1);
-			if (isDagExists) {
-				LOGGER.info("Processing update of project {} from scheduled job, dag {} exists", dnaProject.getProjectName(),dagVO1.getDagName());
-				AirflowProjectUserVO currentUser = new AirflowProjectUserVO();
-				String username = dnaProject.getCreatedBy();
-				LOGGER.info("..username...{}", username);
-				currentUser.setUsername(username);
-				List<String> ownerPermissions = new ArrayList<>();
-				ownerPermissions.add("can_read");
-				ownerPermissions.add("can_edit");
-				currentUser.setPermissions(ownerPermissions);
-				Role savedCurrentUserRole = findRole(username);
-				List<User> existingUser = userRepository.findbyUniqueLiteral("username", username);
-				User savedCurrentUser = existingUser != null && !existingUser.isEmpty() ? existingUser.get(0) : new User();
-				LOGGER.info("mapping dag and user to project");
-				addPermissionAndMappedToProject(currentUser, dagVO1, savedCurrentUserRole, savedCurrentUser,
-						dnaProject);
-				if(isPermissionCreated) {
-					addRoleAndPermissionMapping(currentUser, savedCurrentUserRole, "DAG:"+dagVO1.getDagName());
-				}
-				String collabs = dnaProject.getCollabs();
-				if(collabs!=null) {
-					String[] collabIds = collabs.split(",");
-					if(collabIds!=null && collabIds.length>0) {
-						for(String collabDetail : collabIds) {
-							String[] collaboratorDetails = collabDetail.split("_");
-							String collabId = collaboratorDetails[0];
-							boolean canEdit = collaboratorDetails.length > 1 ? true : false;
-							boolean isRoleExist = roleExist(collabId);
-							Role savedCollabRole = findRole(collabId);
-							List<User> existingCollabUser = userRepository.findbyUniqueLiteral("username", collabId);
-							User savedCollabUser = new User();
-							boolean isUserExist = false;
-							if(existingCollabUser != null && !existingCollabUser.isEmpty()) {
-								savedCollabUser =   existingCollabUser.get(0);
-								isUserExist = true;
+			String collabsDagsInfo = dnaProject.getCollabs();
+			DagCollabInfoCollection dagsInfoCollection = new DagCollabInfoCollection();
+			List<DagCollabInfo> pendingDagsInfo = new ArrayList<>();
+			try {
+				dagsInfoCollection = mapper.readValue(collabsDagsInfo, DagCollabInfoCollection.class);
+			}catch(Exception e){
+				LOGGER.error("Failed to parse information for Project {} in requested state with exception {}, will retry in next schedule",dnaProject.getProjectName(), e.getMessage());
+				return;
+			}
+			boolean processingPending = true;
+			if(dagsInfoCollection!=null) {
+				List<DagCollabInfo> dagsInfo = dagsInfoCollection.getDagsInfo();
+				if(dagsInfo!=null && !dagsInfo.isEmpty()) {
+					for(DagCollabInfo dagInfo : dagsInfo) {
+						AirflowDagVo dagVO1 = new AirflowDagVo();
+						dagVO1.setDagName(dagInfo.getDagName());
+						Boolean isErrorExist = isErrorExistInDag(dagInfo.getDagName());
+						Boolean isDagExists = checkDagMenu(dagInfo.getDagName());
+						Boolean isPermissionCreated = checkDagPermissionAndViewMenu(dagVO1);
+						if (isDagExists) {
+							LOGGER.info("Processing update of project {} from scheduled job, dag {} exists", dnaProject.getProjectName(),dagVO1.getDagName());
+							AirflowProjectUserVO currentUser = new AirflowProjectUserVO();
+							String username = dnaProject.getCreatedBy();
+							LOGGER.info("..username...{}", username);
+							currentUser.setUsername(username);
+							List<String> ownerPermissions = new ArrayList<>();
+							ownerPermissions.add("can_read");
+							ownerPermissions.add("can_edit");
+							currentUser.setPermissions(ownerPermissions);
+							Role savedCurrentUserRole = findRole(username);
+							List<User> existingUser = userRepository.findbyUniqueLiteral("username", username);
+							User savedCurrentUser = existingUser != null && !existingUser.isEmpty() ? existingUser.get(0) : new User();
+							teamMembersIds.add(savedCurrentUser.getUsername());
+							teamMembersEmails.add(savedCurrentUser.getEmail());
+							LOGGER.info("mapping dag and user to project");
+							if("CREATE_REQUESTED".equalsIgnoreCase(dnaProject.getProjectStatus())) {
+								addPermissionAndMappedToProject(currentUser, dagVO1, savedCurrentUserRole, savedCurrentUser,
+										dnaProject);
+								if(isPermissionCreated) {
+									addRoleAndPermissionMapping(currentUser, savedCurrentUserRole, "DAG:"+dagVO1.getDagName());
+								}
 							}
-							if (!isUserExist && !isRoleExist && Objects.nonNull(savedCollabUser)
-									&& Objects.nonNull(savedCollabRole)) {
-								addUserRoleMapping(savedCollabUser, savedCollabRole);
+							if("UPDATE_REQUESTED".equalsIgnoreCase(dnaProject.getProjectStatus())) {
+								updatePermissionAndMappedToProject(currentUser, dagVO1, savedCurrentUserRole, savedCurrentUser,
+										dnaProject);
+								if(isPermissionCreated) {
+									deleteRoleAndPermissionMapping(savedCurrentUserRole,"DAG:"+  dagVO1.getDagName());
+									addRoleAndPermissionMapping(currentUser, savedCurrentUserRole, "DAG:"+dagVO1.getDagName());
+								}
 							}
-							LOGGER.debug("User onboarded successfully..{}", collabId);
-							AirflowProjectUserVO collabUserVO = new AirflowProjectUserVO();
-							collabUserVO.setUsername(collabId);
-							List<String> collabPermissions = new ArrayList<>();
-							collabPermissions.add("can_read");
-							if(canEdit) {
-								collabPermissions.add("can_edit");
+							List<CollabInfo> currentDagCollabs = dagInfo.getCollabs();
+							if(currentDagCollabs!=null && !currentDagCollabs.isEmpty()) {
+									for(CollabInfo tempCollab : currentDagCollabs) {
+										String collabId = tempCollab.getUsername();
+										boolean isRoleExist = roleExist(collabId);
+										boolean isUserExist = userExist(tempCollab.getEmail());
+										Role savedCollabRole = isRoleExist ? findRole(collabId) : addRole(collabId);
+										User savedCollabUser = isUserExist ? findUser(tempCollab.getEmail()) : addUserFromCollabInfo(tempCollab);
+										if (!isUserExist && !isRoleExist && Objects.nonNull(savedCollabUser)
+												&& Objects.nonNull(savedCollabRole)) {
+											addUserRoleMapping(savedCollabUser, savedCollabRole);
+											if(defaultUserRole!=null) {
+												addUserRoleMapping(savedCurrentUser, defaultUserRole);
+											}
+										}
+										LOGGER.debug("User onboarded successfully..{}", collabId);
+										AirflowProjectUserVO collabUserVO = new AirflowProjectUserVO();
+										collabUserVO.setUsername(collabId);
+										List<String> collabPermissions = new ArrayList<>();
+										collabPermissions.addAll(tempCollab.getPermissions());
+										collabUserVO.setPermissions(collabPermissions);
+										teamMembersIds.add(savedCollabUser.getUsername());
+										teamMembersEmails.add(savedCollabUser.getEmail());
+										if("CREATE_REQUESTED".equalsIgnoreCase(dnaProject.getProjectStatus())) {
+											if (isDagExists) {
+												LOGGER.debug("mapping dag and user to project..");
+												addPermissionAndMappedToProject(collabUserVO, dagVO1, savedCollabRole, savedCollabUser, dnaProject);
+											}
+											if (isPermissionCreated) {
+												LOGGER.debug("mapping permission to role..");
+												addRoleAndPermissionMapping(collabUserVO, savedCollabRole, "DAG:"+dagVO1.getDagName());
+											}
+										}
+										if("UPDATE_REQUESTED".equalsIgnoreCase(dnaProject.getProjectStatus())) {
+											if (isDagExists && !currentUser.getUsername().equalsIgnoreCase(tempCollab.getUsername())) {
+												LOGGER.debug("mapping dag and user to project..");
+												updatePermissionAndMappedToProject(collabUserVO, dagVO1, savedCollabRole, savedCollabUser,dnaProject);
+											}
+											if (isPermissionCreated && !currentUser.getUsername().equalsIgnoreCase(tempCollab.getUsername())) {
+												deleteRoleAndPermissionMapping(savedCollabRole, "DAG:"+dagVO1.getDagName());
+												LOGGER.debug("mapping permission to role..");
+												updateRoleAndPermissionMapping(collabUserVO, savedCollabRole, "DAG:"+dagVO1.getDagName(),dnaProject);
+											}
+										}
+									}
+								}
 							}
-							collabUserVO.setPermissions(collabPermissions);
-							if (isDagExists) {
-								LOGGER.debug("mapping dag and user to project..");
-								addPermissionAndMappedToProject(collabUserVO, dagVO1, savedCollabRole, savedCollabUser, dnaProject);
-							}
-							if (isPermissionCreated) {
-								LOGGER.debug("mapping permission to role..");
-								addRoleAndPermissionMapping(collabUserVO, savedCollabRole, "DAG:"+dagVO1.getDagName());
+							else {
+								pendingDagsInfo.add(dagInfo);
 							}
 						}
+						if(pendingDagsInfo!=null && !pendingDagsInfo.isEmpty()) {
+							processingPending = true;
+						}else {
+							processingPending = false;
+						}
 					}
+					else {
+						processingPending = false;
+					}
+				}else {
+					processingPending = false;
 				}
-				dnaProjectRepository.updateProjectStatus(dnaProject.getProjectId(), "CREATED");
-			}
-			
+				if(processingPending) {
+						String processedStatus = null;
+						if("CREATE_REQUESTED".equalsIgnoreCase(dnaProject.getProjectStatus())){
+							processedStatus = "CREATE_REQUESTED";
+						}
+						if("UPDATE_REQUESTED".equalsIgnoreCase(dnaProject.getProjectStatus())) {
+							processedStatus = "UPDATE_REQUESTED";
+						}
+						try {
+							dagsInfoCollection = new DagCollabInfoCollection();
+							dagsInfoCollection.setDagsInfo(pendingDagsInfo);
+							String collabsInfoAsString = mapper.writeValueAsString(dagsInfoCollection);
+							updateProject(dnaProject,processedStatus,collabsInfoAsString);
+							LOGGER.info("Processed project {} to {}, updating with pending dags for processing",dnaProject.getProjectName(),processedStatus);
+						}catch(Exception e){
+							LOGGER.error("Failed to parse information after processing with dags still pending for Project {} in requested state with exception {}, will retry in next schedule",dnaProject.getProjectName(), e.getMessage());
+							return;
+						}
+                }else {
+	                	String processedStatus = null;
+	                	String eventType = "";
+	                	String message = "";
+						if("CREATE_REQUESTED".equalsIgnoreCase(dnaProject.getProjectStatus())){
+							processedStatus = "CREATED";
+							eventType = "Airflow-Create";
+							message = "Project " + dnaProject.getProjectName() + " is created successfully.";
+						}
+						if("UPDATE_REQUESTED".equalsIgnoreCase(dnaProject.getProjectStatus())) {
+							processedStatus = "UPDATED";
+							eventType = "Airflow-update";
+							message = "Project " + dnaProject.getProjectName() + " is updated successfully.";
+						}
+						try {
+							dagsInfoCollection = new DagCollabInfoCollection();
+							updateProject(dnaProject,processedStatus,"");
+							LOGGER.info("Processed project {} to {}, updating with no dags pending for processing",dnaProject.getProjectName(),processedStatus);
+							kafkaProducer.send(eventType, dnaProject.getProjectId(), "", dnaProject.getCreatedBy(), message, true, teamMembersIds, teamMembersEmails, null);
+						}catch(Exception e){
+							LOGGER.error("Failed to parse information after processing all dags for Project {} in requested state with exception {}, will retry in next schedule",dnaProject.getProjectName(), e.getMessage());
+							return;
+						}	
+				}
 		}
 	}
 
@@ -449,14 +572,22 @@ public class DnaProjectServiceImpl implements DnaProjectService {
 				currentUser.setPermissions(permissions);
 				boolean isCurrentUserExist = userExist(currentUser.getEmail());
 				boolean isCurrentRoleExist = roleExist(currentUser.getUsername());
+				Role defaultUserRole = findRole(DEFAULT_USER_ROLENAME);
 				Role savedCurrentUserRole = isCurrentRoleExist ? findRole(currentUser.getUsername())
 						: addRole(currentUser.getUsername());
 				User savedCurrentUser = isCurrentUserExist ? findUser(currentUser.getEmail()) : addUser(currentUser);
 				if (!isCurrentUserExist && !isCurrentRoleExist && Objects.nonNull(savedCurrentUser)
 						&& Objects.nonNull(savedCurrentUserRole)) {
 					addUserRoleMapping(savedCurrentUser, savedCurrentUserRole);
+					if(defaultUserRole!=null) {
+						addUserRoleMapping(savedCurrentUser, defaultUserRole);
+					}
 				}
+				DagCollabInfoCollection dagsInfoCollection = new DagCollabInfoCollection();
+				List<DagCollabInfo> dagsInfo = new ArrayList<>();
 				for (AirflowDagVo dagVO : airflowProjectVO.getDags()) {
+					DagCollabInfo tempDagInfo = new DagCollabInfo();
+					tempDagInfo.setDagName(dagVO.getDagName());
 					boolean isErrorExist = false;
 					boolean isPermissionCreated = false;
 					boolean isDagExist = false;
@@ -486,46 +617,20 @@ public class DnaProjectServiceImpl implements DnaProjectService {
 							} catch (InterruptedException e) {
 								LOGGER.error("Unable to stop {}", e.getMessage());
 							}
-						} else {
-							airflowGitClient.gitRollback((RevCommit) airflowGITResponse.getGitCommitId());
-							res.setData(airflowProjectVO);
-							errors = checkForDagSyntaxError(airflowProjectVO.getDags());
-							res.setErrors(errors);
-							res.setStatus("FAILURE");
-							return new ResponseEntity<AirflowProjectResponseWrapperVO>(res, HttpStatus.BAD_REQUEST);
-						}
-
+						} 
 					}
 
 					if (isDagExist) {
 						updatePermissionAndMappedToProject(currentUser, dagVO, savedCurrentUserRole, savedCurrentUser,
 								existingDnaProject);
-					} else {
-						LOGGER.debug("Unable to update project. Please create after sometime.");
-						airflowGitClient.gitRollback((RevCommit) airflowGITResponse.getGitCommitId());
-						res.setData(airflowProjectVO);
-						List<MessageDescription> errors1 = new ArrayList<MessageDescription>();
-						MessageDescription md = new MessageDescription();
-						md.setMessage("Unable to update project. Please create after sometime.");
-						errors1.add(md);
-						res.setErrors(errors1);
-						res.setStatus("FAILURE");
-						return new ResponseEntity<AirflowProjectResponseWrapperVO>(res, HttpStatus.BAD_REQUEST);
 					}
 					if (isPermissionCreated) {
-						deleteRoleAndPermissionMapping(savedCurrentUserRole, dagVO.getDagName());
+						deleteRoleAndPermissionMapping(savedCurrentUserRole, "DAG:"+  dagVO.getDagName());
 						LOGGER.debug("mapping permission to role..");
-						updateRoleAndPermissionMapping(currentUser, savedCurrentUserRole, dagVO.getDagName(),
+						updateRoleAndPermissionMapping(currentUser, savedCurrentUserRole,"DAG:"+ dagVO.getDagName(),
 								existingDnaProject);
-					} else {
-						LOGGER.warn(
-								"Permission is not created for the DAG {} , however project is onboarded. Please contact administrator for permission.",
-								dagVO.getDagName());
-						MessageDescription md = new MessageDescription();
-						md.setMessage("Permission is not created for the DAG" + dagVO.getDagName()
-								+ ", however project is updated. Please contact administrator for permission.");
-						warnings.add(md);
-					}
+					} 
+					List<CollabInfo> collabs = new ArrayList<>();
 					if (!ObjectUtils.isEmpty(dagVO.getCollaborators())) {
 						for (AirflowProjectUserVO userVO : dagVO.getCollaborators()) {
 							boolean isRoleExist = roleExist(userVO.getUsername());
@@ -536,6 +641,9 @@ public class DnaProjectServiceImpl implements DnaProjectService {
 							if (!isUserExist && !isRoleExist && Objects.nonNull(savedUser)
 									&& Objects.nonNull(savedRole)) {
 								addUserRoleMapping(savedUser, savedRole);
+								if(defaultUserRole!=null) {
+									addUserRoleMapping(savedCurrentUser, defaultUserRole);
+								}
 							}
 							LOGGER.debug("User onboarded successfully..{}", savedUser.getUsername());
 							LOGGER.debug("mapping dag and user to project.."); // find permissionView menu
@@ -546,19 +654,51 @@ public class DnaProjectServiceImpl implements DnaProjectService {
 							}
 							if (isPermissionCreated
 									&& !currentUser.getUsername().equalsIgnoreCase(userVO.getUsername())) {
-								deleteRoleAndPermissionMapping(savedRole, dagVO.getDagName());
+								deleteRoleAndPermissionMapping(savedRole,"DAG:"+  dagVO.getDagName());
 								LOGGER.debug("mapping permission to role..");
-								updateRoleAndPermissionMapping(userVO, savedRole, dagVO.getDagName(),
+								updateRoleAndPermissionMapping(userVO, savedRole,"DAG:"+  dagVO.getDagName(),
 										existingDnaProject);
 							}
+							List<String> collabPermissions = userVO.getPermissions();
+							if(collabPermissions==null) {
+								collabPermissions = new ArrayList<>();
+							}
+							CollabInfo tempCollabInfo = new CollabInfo();
+							tempCollabInfo.setUsername(userVO.getUsername());
+							tempCollabInfo.setEmail(userVO.getEmail());
+							tempCollabInfo.setFirstName(userVO.getFirstName());
+							tempCollabInfo.setLastName(userVO.getLastName());
+							tempCollabInfo.setPermissions(collabPermissions);
+							collabs.add(tempCollabInfo);
 						}
+						tempDagInfo.setCollabs(collabs);
 					}
-
-					LOGGER.debug("updating dna project");
-					updateProject(updatedProject);
-//					dnaProjectRepository.save(updatedProject);
+					dagsInfo.add(tempDagInfo);
+					if (!isDagExist) {
+						dagsInfoCollection.setDagsInfo(dagsInfo);
+					}
 				}
-			} else {
+				String currentStatus = "UPDATED";
+				String collabsInfoAsString = null;
+				if(dagsInfoCollection!=null && dagsInfoCollection.getDagsInfo()!= null && !dagsInfoCollection.getDagsInfo().isEmpty()) {
+					LOGGER.info("...Dag still not updated hence adding status as UPDATE_REQUESTED...");
+					currentStatus = "UPDATE_REQUESTED";
+					try {
+						collabsInfoAsString = mapper.writeValueAsString(dagsInfoCollection);
+					}catch(Exception e) {
+						MessageDescription error = new MessageDescription("Failed while saving airflow project information due to unexpected server exception, please retry again");
+						res.setData(airflowProjectVO);
+						errors.add(error);
+						res.setErrors(errors);
+						res.setStatus("FAILURE");
+						return new ResponseEntity<AirflowProjectResponseWrapperVO>(res, HttpStatus.INTERNAL_SERVER_ERROR);
+					}
+				}
+					LOGGER.debug("updating dna project");
+					airflowProjectVO.setProjectStatus(currentStatus);
+					updateProject(updatedProject,currentStatus,collabsInfoAsString);
+				}
+			 else {
 				res.setData(airflowProjectVO);
 				res.setErrors(airflowGITResponse.getErrors());
 				res.setStatus("FAILURE");
@@ -632,9 +772,9 @@ public class DnaProjectServiceImpl implements DnaProjectService {
 		return new ResponseEntity<AirflowProjectResponseWrapperVO>(res, HttpStatus.OK);
 	}
 
-	private void updateProject(DnaProject updatedProject) {
+	private void updateProject(DnaProject updatedProject,String status, String dagsCollabsInfo) {
 		LOGGER.debug("updating existing project");
-		dnaProjectRepository.updateProject(updatedProject);
+		dnaProjectRepository.updateProject(updatedProject,status,dagsCollabsInfo);
 	}
 
 	private List<MessageDescription> validateProjectForUpdate(AirflowProjectVO airflowProjectVO, String projectId) {
@@ -756,6 +896,14 @@ public class DnaProjectServiceImpl implements DnaProjectService {
 		User savedUser = null;
 		LOGGER.debug("creating user ..{}", userVO.getUsername());
 		savedUser = userRepository.save(userAssembler.toEntity(userVO));
+		LOGGER.debug("successfully created user {}", savedUser.getUsername());
+		return savedUser;
+	}
+	
+	private User addUserFromCollabInfo(CollabInfo collabInfo) {
+		User savedUser = new User();
+		LOGGER.debug("creating user ..{}", collabInfo.getUsername());
+		savedUser = userRepository.save(userAssembler.toEntity(collabInfo));
 		LOGGER.debug("successfully created user {}", savedUser.getUsername());
 		return savedUser;
 	}

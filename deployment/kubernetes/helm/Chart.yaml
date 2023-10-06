@@ -136,6 +136,11 @@ dependencies:
   repository: file://charts/hasura
   version: 2.16.1
   condition: hasura.enabled 
+
+- name: datalakemfe
+  repository: file://charts/datalake-mfe
+  version: 0.1.0
+  condition: datalakemfe.enabled  
  
 # A chart can be either an 'application' or a 'library' chart.
 #

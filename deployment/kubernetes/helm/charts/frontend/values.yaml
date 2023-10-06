@@ -74,6 +74,7 @@ configJs: |
       CODESPACE_OIDC_POPUP_URL: "YOUR_CODESPACE_OIDC_LOGIN_URL",
       CODESPACE_OIDC_POPUP_WAIT_TIME: "5000",
       ENABLE_CHRONOS_FORECASTING_SERVICE: "false",
+      ENABLE_DATALAKE_SERVICE: "false",
       CHRONOS_MFE_APP_URL:"http://localhost:8085",
       ENABLE_MATOMO_SERVICE:"true",
       MATOMO_MFE_APP_URL:"http://localhost:8089",
@@ -152,6 +153,11 @@ configJs: |
         MATOMO_APP_URL: 'YOUR_MATOMO_APP_URL'
     };
 
+    window["DATALAKE_INJECTED_ENVIRONMENT"]={
+        CONTAINER_APP_URL: "http://localhost:9090",
+        API_BASEURL: "http://localhost:7171/api",
+    };
+
     
     
 probes:
@@ -226,7 +232,18 @@ vaultInjector:
           {{- end }}
           {{- end }}
               };
-      {{- end }}  
+      {{- end }} 
+      {{- with secret "kv/dna/kubernetesSecret/datalakeMFE" -}}
+          window["DATALAKE_INJECTED_ENVIRONMENT"]={
+          {{- range $k, $v := .Data.data }}
+          {{- if or (eq $v "true") (eq $v "false") (regexMatch "^[0-9]+$" $v) }}
+                  {{ $k }}:{{ $v }},
+          {{ else }}
+                  {{ $k }}:'{{ $v }}',
+          {{- end }}
+          {{- end }}
+              };
+      {{- end }}       
   saName: "default"
 
 podDisruptionBudget:
