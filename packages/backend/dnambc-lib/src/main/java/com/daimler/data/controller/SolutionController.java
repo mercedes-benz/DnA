@@ -137,7 +137,10 @@ public class SolutionController implements SolutionsApi, ChangelogsApi, Malwares
 
             // Calculating DIgital Value
             if (null != requestSolutionVO.getDigitalValue()) {
-                ValueCalculatorVO valueCalculatorVO = solutionAssembler
+                if (requestSolutionVO.getDigitalValue().getTypeOfCalculation() == null) {
+                    requestSolutionVO.getDigitalValue().setTypeOfCalculation(SolutionDigitalValueVO.TypeOfCalculationEnum.valueOf("DIGITAL_VALUE"));
+                }
+                    ValueCalculatorVO valueCalculatorVO = solutionAssembler
                         .valueCalculator(requestSolutionVO.getDigitalValue());
                 DataValueCalculatorVO dataValueCalculatorVO = solutionAssembler
                 		.dataValueCalculator(requestSolutionVO.getDigitalValue());
