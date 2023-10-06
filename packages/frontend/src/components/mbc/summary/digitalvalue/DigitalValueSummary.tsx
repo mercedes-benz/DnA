@@ -334,7 +334,6 @@ export default class DigitalValueSummary extends React.Component<IDigitalValuePr
                     <div id="controllers">
                       <label className="input-label summary">Controllers</label>
                       <br />
-                      {/* <div>{teamMembersList.length > 0 ? teamMembersList : ''}</div> */}
                       <div>{teamMembersList.length > 0 ? teamMembersList : 'NA'}</div>
                     </div>
                   </div>
