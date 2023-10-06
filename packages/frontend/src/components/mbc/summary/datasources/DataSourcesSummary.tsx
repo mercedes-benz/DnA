@@ -127,7 +127,6 @@ export default class DataSourcesSummary extends React.Component<IDataSourcesSumm
           })
         : 'NA';
     const formatEmptyText = (displayVal: string) => {
-      // return displayVal && displayVal !== '' ? displayVal : 'NA';
       return displayVal && displayVal !== '' && displayVal.toLowerCase()!=="choose" ? displayVal : 'NA';
     };
     return (
