@@ -178,14 +178,16 @@ public class SolutionAssembler implements GenericAssembler<SolutionVO, SolutionN
         	List<CalculatedDataValueRampUpYearVO> savingsCalculatedList = new ArrayList<>();
         	List<CalculatedDataValueRampUpYearVO> revenueCalculatedList = new ArrayList<>();
         	List<ValueFactorVO> valueFactors = solutionDigitalValueVO.getValueDrivers();
-        	for(ValueFactorVO valueFactor: valueFactors) {
-        		if("SAVINGS".equalsIgnoreCase(valueFactor.getCategory())) {
-        			savingsList.addAll(valueFactor.getRampUp());
-        		}
-        		if("REVENUE".equalsIgnoreCase(valueFactor.getCategory())) {
-        			revenueList.addAll(valueFactor.getRampUp());
-        		}
-        	}
+			if(valueFactors != null && !valueFactors.isEmpty()) {
+				for (ValueFactorVO valueFactor : valueFactors) {
+					if ("SAVINGS".equalsIgnoreCase(valueFactor.getCategory())) {
+						savingsList.addAll(valueFactor.getRampUp());
+					}
+					if ("REVENUE".equalsIgnoreCase(valueFactor.getCategory())) {
+						revenueList.addAll(valueFactor.getRampUp());
+					}
+				}
+			}
         	Comparator<ValueRampUpYearVO> comparatorBasedOnYear = (v1, v2) -> (v1.getYear().compareTo(v2.getYear()));
         	Comparator<CalculatedDataValueRampUpYearVO> calculatedRampUpscomparatorBasedOnYear = (v1, v2) -> (v1.getYear().compareTo(v2.getYear()));
         	if(savingsList!=null && !savingsList.isEmpty()) {
