@@ -134,29 +134,21 @@ public class UserInfoController {
 		UserInfoVO userVO = userInfoService.getById(userId);
 		if (Objects.isNull(userVO)) {
 			try {
-				if (userId != null && userId.toLowerCase().startsWith("TE".toLowerCase())) {
-					log.info("Technical user {} , bypassed OIDC userinfo fetch", userId);
-					id = userId;
-					userInfo.setFirstName("Tech User");
-					userInfo.setLastName(userId);
-					userInfo.setEmail("");
-					userInfo.setDepartment("NA");
-					userInfo.setMobileNumber("NA");
-				} else {
-					ResponseEntity<DrdResponse> response = drdRestTemplate.exchange(drdRequestUrl + userId, HttpMethod.GET,
-							request, DrdResponse.class);
-					userInfo = convertDrdResponseToUserInfo(response.getBody().getAttrs());
-					logger.info("Fetching user:{} from drd.", userId);
-					id = userInfo.getId();
-				}
+				ResponseEntity<DrdResponse> response = drdRestTemplate.exchange(drdRequestUrl + userId, HttpMethod.GET,
+						request, DrdResponse.class);
+				userInfo = convertDrdResponseToUserInfo(response.getBody().getAttrs());
+				logger.info("Fetching user:{} from drd.", userId);
+				id = userInfo.getId();
 			} catch (HttpClientErrorException.NotFound e) {
 				log.error("User {} not found in DRD: {}", userId, e.getResponseBodyAsString());
-				if (userId != null && userId.toLowerCase().startsWith("PID".toLowerCase())) {
-					log.info("PID user {} , bypassed OIDC userinfo fetch", userId);
+				if (userId != null && (userId.toLowerCase().startsWith("PID".toLowerCase())) || (userId.toLowerCase().startsWith("TE".toLowerCase())))
+				{
+					boolean isTechUser = userId.toLowerCase().startsWith("TE".toLowerCase());
+					log.info("PID / Tech user {} , bypassed OIDC userinfo fetch", userId);
 					id = userId;
 					String email = userId.toLowerCase() + "." + poolUserEmailDomain;
-					userInfo.setEmail(email);
-					userInfo.setFirstName("Pool-ID");
+					userInfo.setEmail(isTechUser ? "" : email);
+					userInfo.setFirstName(isTechUser ? "Tech User" : "Pool-ID");
 					userInfo.setLastName(userId);
 					userInfo.setDepartment("NA");
 					userInfo.setMobileNumber("NA");
