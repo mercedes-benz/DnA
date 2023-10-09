@@ -139,19 +139,21 @@ public class UserInfoController {
 				userInfo = convertDrdResponseToUserInfo(response.getBody().getAttrs());
 				logger.info("Fetching user:{} from drd.", userId);
 				id = userInfo.getId();
-			} catch (HttpClientErrorException.NotFound e) {
-				log.error("User {} not found in DRD: {}", userId, e.getResponseBodyAsString());
-				if (userId != null && (userId.toLowerCase().startsWith("PID".toLowerCase())) || (userId.toLowerCase().startsWith("TE".toLowerCase())))
-				{
-					boolean isTechUser = userId.toLowerCase().startsWith("TE".toLowerCase());
-					log.info("PID / Tech user {} , bypassed OIDC userinfo fetch", userId);
-					id = userId;
-					String email = userId.toLowerCase() + "." + poolUserEmailDomain;
-					userInfo.setEmail(isTechUser ? "" : email);
-					userInfo.setFirstName(isTechUser ? "Tech User" : "Pool-ID");
-					userInfo.setLastName(userId);
-					userInfo.setDepartment("NA");
-					userInfo.setMobileNumber("NA");
+			} catch (HttpClientErrorException e) {
+				HttpStatus statusCode = e.getStatusCode();
+				log.error("{} error for user {}: {}", statusCode, userId, e.getResponseBodyAsString());
+				if (statusCode == HttpStatus.NOT_FOUND || statusCode == HttpStatus.BAD_REQUEST) {
+					if (userId != null && (userId.toLowerCase().startsWith("PID".toLowerCase())) || (userId.toLowerCase().startsWith("TE".toLowerCase()))) {
+						boolean isTechUser = userId.toLowerCase().startsWith("TE".toLowerCase());
+						log.info("PID / Tech user {} , bypassed OIDC userinfo fetch", userId);
+						id = userId;
+						String email = userId.toLowerCase() + "." + poolUserEmailDomain;
+						userInfo.setEmail(isTechUser ? "" : email);
+						userInfo.setFirstName(isTechUser ? "Tech User" : "Pool-ID");
+						userInfo.setLastName(userId);
+						userInfo.setDepartment("NA");
+						userInfo.setMobileNumber("NA");
+					}
 				}
 			} catch (Exception e) {
 				log.error("Failed to fetch OIDC for User {} with an exception {}", userId, e.getMessage());
