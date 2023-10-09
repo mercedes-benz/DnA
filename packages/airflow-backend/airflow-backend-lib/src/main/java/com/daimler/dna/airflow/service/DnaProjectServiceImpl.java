@@ -246,7 +246,7 @@ public class DnaProjectServiceImpl implements DnaProjectService {
 						&& Objects.nonNull(savedCurrentUserRole)) {
 					addUserRoleMapping(savedCurrentUser, savedCurrentUserRole);
 					if(defaultUserRole!=null) {
-						addUserRoleMapping(savedCurrentUser, savedCurrentUserRole);
+						addUserRoleMapping(savedCurrentUser, defaultUserRole);
 					}
 				}
 				// for each dag
@@ -306,7 +306,7 @@ public class DnaProjectServiceImpl implements DnaProjectService {
 									&& Objects.nonNull(savedRole)) {
 								addUserRoleMapping(savedUser, savedRole);
 								if(defaultUserRole!=null) {
-									addUserRoleMapping(savedCurrentUser, defaultUserRole);
+									addUserRoleMapping(savedUser, defaultUserRole);
 								}
 							}
 							LOGGER.debug("User onboarded successfully..{}", savedUser.getUsername());
@@ -453,7 +453,7 @@ public class DnaProjectServiceImpl implements DnaProjectService {
 												&& Objects.nonNull(savedCollabRole)) {
 											addUserRoleMapping(savedCollabUser, savedCollabRole);
 											if(defaultUserRole!=null) {
-												addUserRoleMapping(savedCurrentUser, defaultUserRole);
+												addUserRoleMapping(savedCollabUser, defaultUserRole);
 											}
 										}
 										LOGGER.debug("User onboarded successfully..{}", collabId);
@@ -642,7 +642,7 @@ public class DnaProjectServiceImpl implements DnaProjectService {
 									&& Objects.nonNull(savedRole)) {
 								addUserRoleMapping(savedUser, savedRole);
 								if(defaultUserRole!=null) {
-									addUserRoleMapping(savedCurrentUser, defaultUserRole);
+									addUserRoleMapping(savedUser, defaultUserRole);
 								}
 							}
 							LOGGER.debug("User onboarded successfully..{}", savedUser.getUsername());
@@ -695,6 +695,7 @@ public class DnaProjectServiceImpl implements DnaProjectService {
 					}
 				}
 					LOGGER.debug("updating dna project");
+					airflowProjectVO.setProjectStatus(currentStatus);
 					updateProject(updatedProject,currentStatus,collabsInfoAsString);
 				}
 			 else {
