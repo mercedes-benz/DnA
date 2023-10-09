@@ -49,6 +49,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.client.HttpClientErrorException;
 
 import com.daimler.data.assembler.UserInfoAssembler;
 import com.daimler.data.controller.LoginController.UserInfo;
@@ -133,32 +134,37 @@ public class UserInfoController {
 		UserInfoVO userVO = userInfoService.getById(userId);
 		if (Objects.isNull(userVO)) {
 			try {
-				ResponseEntity<DrdResponse> response = drdRestTemplate.exchange(drdRequestUrl + userId, HttpMethod.GET,
-						request, DrdResponse.class);
-				userInfo = convertDrdResponseToUserInfo(response.getBody().getAttrs());
-				logger.info("Fetching user:{} from drd.", userId);
-				id = userInfo.getId();
-            } catch (Exception e) {
-				userInfo.setDepartment("NA");
-				userInfo.setMobileNumber("NA");
-                if (userId != null && userId.toLowerCase().startsWith("TE".toLowerCase())) {
-                    log.debug("Technical user {} , bypassed OIDC userinfo fetch", userId);
-                    id = userId;
-                    userInfo.setFirstName("Tech User");
-                    userInfo.setLastName(userId);
+				if (userId != null && userId.toLowerCase().startsWith("TE".toLowerCase())) {
+					log.info("Technical user {} , bypassed OIDC userinfo fetch", userId);
+					id = userId;
+					userInfo.setFirstName("Tech User");
+					userInfo.setLastName(userId);
 					userInfo.setEmail("");
-				} else if (userId != null && userId.toLowerCase().startsWith("PID".toLowerCase())) {
-                    log.info("PID user {} , bypassed OIDC userinfo fetch", userId);
-                    id = userId;
-                    String email = userId.toLowerCase() + "." + poolUserEmailDomain;
-                    userInfo.setEmail(email);
-                    userInfo.setFirstName("Pool-ID");
-                    userInfo.setLastName(userId);
-                } else {
-                    log.error("Failed to fetch OIDC User info {}", e.getMessage());
-                    return null;
-                }
-            }
+					userInfo.setDepartment("NA");
+					userInfo.setMobileNumber("NA");
+				} else {
+					ResponseEntity<DrdResponse> response = drdRestTemplate.exchange(drdRequestUrl + userId, HttpMethod.GET,
+							request, DrdResponse.class);
+					userInfo = convertDrdResponseToUserInfo(response.getBody().getAttrs());
+					logger.info("Fetching user:{} from drd.", userId);
+					id = userInfo.getId();
+				}
+			} catch (HttpClientErrorException.NotFound e) {
+				log.error("User {} not found in DRD: {}", userId, e.getResponseBodyAsString());
+				if (userId != null && userId.toLowerCase().startsWith("PID".toLowerCase())) {
+					log.info("PID user {} , bypassed OIDC userinfo fetch", userId);
+					id = userId;
+					String email = userId.toLowerCase() + "." + poolUserEmailDomain;
+					userInfo.setEmail(email);
+					userInfo.setFirstName("Pool-ID");
+					userInfo.setLastName(userId);
+					userInfo.setDepartment("NA");
+					userInfo.setMobileNumber("NA");
+				}
+			} catch (Exception e) {
+				log.error("Failed to fetch OIDC User info with an exception {}", e.getMessage());
+				return null;
+			}
 			logger.info("User not found, adding the user:{}", id);
 			logger.debug("Setting default role as 'User' for: {}", id);
 			UserRoleNsql roleEntity = userRoleService.getRoleUser();
