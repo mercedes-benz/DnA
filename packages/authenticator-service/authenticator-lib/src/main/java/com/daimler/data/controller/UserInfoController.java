@@ -162,7 +162,7 @@ public class UserInfoController {
 					userInfo.setMobileNumber("NA");
 				}
 			} catch (Exception e) {
-				log.error("Failed to fetch OIDC User info with an exception {}", e.getMessage());
+				log.error("Failed to fetch OIDC for User {} with an exception {}", userId, e.getMessage());
 				return null;
 			}
 			logger.info("User not found, adding the user:{}", id);
