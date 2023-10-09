@@ -753,8 +753,8 @@ public class DnaProjectServiceImpl implements DnaProjectService {
 		for (AirflowDagVo dagVO : airflowProjectVO.getDags()) {
 			existingDnaProject.getDnaProjectUserMappings().forEach(
 					dagMapping -> dagMapping.getDnaProjectUserAndDagMapping().getUser().getRoleMaping().forEach(
-							roleMapping -> deleteRoleAndPermissionMapping(roleMapping.getRole(), dagVO.getDagName())));
-			LOGGER.debug("Successfully deleted all the role and permission mapping for the dag {}", dagVO.getDagName());
+							roleMapping -> deleteRoleAndPermissionMapping(roleMapping.getRole(), "DAG:" + dagVO.getDagName())));
+			LOGGER.debug("Successfully deleted all the role and permission mapping for the dag {}", "DAG:" + dagVO.getDagName());
 		}
 	}
 
