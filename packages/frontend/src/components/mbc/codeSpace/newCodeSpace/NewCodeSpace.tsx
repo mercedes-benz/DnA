@@ -540,7 +540,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
       CodeSpaceApiClient.onBoardCollaborator(props.onBoardingCodeSpace.id, onBoardCodeSpaceRequest)
         .then((res) => {
           trackEvent('DnA Code Space', 'Create', 'New code space');
-          if (res.data.status === 'CREATE_REQUESTED') {
+          if (res.data?.status === 'CREATE_REQUESTED') {
             // setCreatedCodeSpaceName(res.data.name);
             props.toggleProgressMessage(true);
             enableLivelinessCheck(res.data.workspaceId);
