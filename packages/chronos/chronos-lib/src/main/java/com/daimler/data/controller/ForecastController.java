@@ -585,8 +585,8 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 		}
 
 		if (forecastUpdateRequestVO.getApiKey() != null) {
-			String ApiKey = vaultAuthClient.getApiKeys(id);
-			if (ApiKey != null && ApiKey != forecastUpdateRequestVO.getApiKey()) {
+			String apiKeyCheck = vaultAuthClient.getApiKeys(id);
+			if (apiKeyCheck != null && apiKeyCheck != forecastUpdateRequestVO.getApiKey()) {
 				GenericMessage updateApiKeyResponseMessage = vaultAuthClient.updateApiKey(id, forecastUpdateRequestVO.getApiKey());
 				if (updateApiKeyResponseMessage != null && "FAILED".equalsIgnoreCase(updateApiKeyResponseMessage.getSuccess())) {
 				 	responseVO.setResponse(updateApiKeyResponseMessage);
