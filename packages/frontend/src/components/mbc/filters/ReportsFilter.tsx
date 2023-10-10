@@ -102,6 +102,7 @@ const ReportsFilter = ({
   const [subDivisionFilterValues, setSubDivisionFilterValues] = useState([]);
   const [departmentFilterValues, setDepartmentFilterValues] = useState([]);
   const [tagFilterValues, setTagFilterValues] = useState<ITag[]>([]);
+  const [, setTags] = useState<string[]>([]);
 
   const [userPreferenceDataId, setUserPreferenceDataId] = useState<string>(null);
 
@@ -148,6 +149,18 @@ const ReportsFilter = ({
               newQueryParams.processOwners = processOwners
                 ?.filter((item: any) => portfolioFilterValues.current.processOwners.includes(item.shortId))
                 ?.map((item) => item.shortId) as any || [];
+              if (!newQueryParams.tag) {
+                newQueryParams.tag = [];
+              }
+              const selectedValues: ITag[] = [];
+              newQueryParams.tag.forEach((a: any) => {
+                const tag: ITag = { id: null, name: null };
+                tag.id = a;
+                tag.name = a;
+                selectedValues.push(tag);
+              });
+              setTagFilterValues(selectedValues);
+              setTags(newQueryParams.tag);
               setFilterApplied(true);
             } else {
               newQueryParams.agileReleaseTrains = arts?.map((art: IART) => {
@@ -163,7 +176,8 @@ const ReportsFilter = ({
                 return department.name;
               });
               // newQueryParams.processOwners = processOwners?.map((processOwner: ITeams) => processOwner.shortId);
-              // newQueryParams.productOwners = productOwners?.map((productOwner: ITeams) => productOwner.shortId);              
+              // newQueryParams.productOwners = productOwners?.map((productOwner: ITeams) => productOwner.shortId);
+              newQueryParams.tag = [];              
               setFilterApplied(false);
             }
             setDivisions(divisions);
@@ -565,6 +579,7 @@ const ReportsFilter = ({
       });
 
       newQueryParams.tag = [];
+      setTags([]);
 
       setTimeout(() => {
         sessionStorage.removeItem(SESSION_STORAGE_KEYS.REPORT_FILTER_VALUES)
@@ -612,7 +627,7 @@ const ReportsFilter = ({
     });
 
     applyFilter('tag', arr);
-    // setTags(arr);
+    setTags(arr);
     setTagFilterValues(selectedValues);
   };
 
