@@ -30,6 +30,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -197,7 +198,7 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
         produces = { "application/json" },
         consumes = { "application/json" },
         method = RequestMethod.GET)
-    public ResponseEntity<InputFilesCollectionVO> getInputFiles(@ApiParam(value = "forecast project ID ",required=true) @PathVariable("id") String id){
+    public ResponseEntity<InputFilesCollectionVO> getInputFiles(@ApiParam(value = "forecast project ID ",required=true) @PathVariable("id") String id,@ApiParam(value = "Authorization header" ) @RequestHeader(value="apiKey", required=false) String apiKey){
 		InputFilesCollectionVO collection = new InputFilesCollectionVO();
 		ForecastVO existingForecast = service.getById(id);
 		if(existingForecast==null || !id.equalsIgnoreCase(existingForecast.getId())) {
@@ -242,7 +243,7 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 			"application/json"}, method = RequestMethod.DELETE)
 	public ResponseEntity<GenericMessage> deleteSavedInputFile(
 			@ApiParam(value = "forecast project ID ", required = true) @PathVariable("id") String id,
-			@ApiParam(value = "saved Input file ID", required = true) @PathVariable("savedinputid") String sid) {
+			@ApiParam(value = "saved Input file ID", required = true) @PathVariable("savedinputid") String sid,@ApiParam(value = "Authorization header" ) @RequestHeader(value="apiKey", required=false) String apiKey) {
 
 		GenericMessage responseMessage = new GenericMessage();
 		CreatedByVO requestUser = this.userStore.getVO();
@@ -459,7 +460,7 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 	@RequestMapping(value = "/forecasts/{id}/apikey", produces = { "application/json" }, consumes = {
 			"application/json" }, method = RequestMethod.GET)
 	@Override
-	public ResponseEntity<ApiKeyResponseVO> getApikey(@ApiParam(value = "forecast project ID", required = true) @PathVariable("id") String id) {
+	public ResponseEntity<ApiKeyResponseVO> getApikey(@ApiParam(value = "forecast project ID", required = true) @PathVariable("id") String id,@ApiParam(value = "Authorization header" ) @RequestHeader(value="apiKey", required=false) String apiKey) {
 		ApiKeyResponseVO responseVO = new ApiKeyResponseVO();
 		ApiKeyVO response = new ApiKeyVO();
 		ForecastVO existingForecast = service.getById(id);
@@ -496,7 +497,7 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 			@ApiResponse(code = 500, message = "Internal error") })
 	@RequestMapping(value = "/forecasts/{id}/apikey", produces = { "application/json" }, consumes = {
 			"application/json" }, method = RequestMethod.POST)
-	public ResponseEntity<ApiKeyResponseVO> generateApikey(@ApiParam(value = "forecast project ID", required = true) @PathVariable("id") String id) {
+	public ResponseEntity<ApiKeyResponseVO> generateApikey(@ApiParam(value = "forecast project ID", required = true) @PathVariable("id") String id,@ApiParam(value = "Authorization header" ) @RequestHeader(value="apiKey", required=false) String apiKey) {
 
 		ApiKeyResponseVO responseVO = new ApiKeyResponseVO();
 		ApiKeyVO response = new ApiKeyVO();
@@ -551,7 +552,7 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 			"application/json" }, method = RequestMethod.PUT)
 	public ResponseEntity<ForecastProjectResponseVO> updateById(
 			@ApiParam(value = "forecast project ID to be updated", required = true) @PathVariable("id") String id,
-			@ApiParam(value = "Request Body that contains data required for updating of collab details", required = true) @Valid @RequestBody ForecastProjectUpdateRequestVO forecastUpdateRequestVO) {
+			@ApiParam(value = "Request Body that contains data required for updating of collab details", required = true) @Valid @RequestBody ForecastProjectUpdateRequestVO forecastUpdateRequestVO,@ApiParam(value = "Authorization header" ) @RequestHeader(value="apiKey", required=false) String apiKey) {
 		ForecastVO existingForecast = service.getById(id);
 		List<MessageDescription> errors = new ArrayList<>();
 		GenericMessage responseMessage = new GenericMessage();
@@ -584,8 +585,8 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 		}
 
 		if (forecastUpdateRequestVO.getApiKey() != null) {
-			String apiKey = vaultAuthClient.getApiKeys(id);
-			if (apiKey != null && apiKey != forecastUpdateRequestVO.getApiKey()) {
+			String ApiKey = vaultAuthClient.getApiKeys(id);
+			if (ApiKey != null && ApiKey != forecastUpdateRequestVO.getApiKey()) {
 				GenericMessage updateApiKeyResponseMessage = vaultAuthClient.updateApiKey(id, forecastUpdateRequestVO.getApiKey());
 				if (updateApiKeyResponseMessage != null && "FAILED".equalsIgnoreCase(updateApiKeyResponseMessage.getSuccess())) {
 				 	responseVO.setResponse(updateApiKeyResponseMessage);
@@ -661,7 +662,7 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 	@RequestMapping(value = "/forecasts/{id}", produces = { "application/json" }, consumes = {
 			"application/json" }, method = RequestMethod.DELETE)
 	public ResponseEntity<GenericMessage> deleteById(
-			@ApiParam(value = "forecast project ID to be delete", required = true) @PathVariable("id") String id) {
+			@ApiParam(value = "forecast project ID to be delete", required = true) @PathVariable("id") String id,@ApiParam(value = "Authorization header" ) @RequestHeader(value="apiKey", required=false) String apiKey) {
 		ForecastVO existingForecast = service.getById(id);
 		GenericMessage responseMessage = new GenericMessage();
 		List<MessageDescription> errors = new ArrayList<>();
@@ -738,7 +739,7 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 	@RequestMapping(value = "/forecasts/{id}", produces = { "application/json" }, consumes = {
 			"application/json" }, method = RequestMethod.GET)
 	public ResponseEntity<ForecastVO> getById(
-			@ApiParam(value = "forecast project ID to be fetched", required = true) @PathVariable("id") String id){
+			@ApiParam(value = "forecast project ID to be fetched", required = true) @PathVariable("id") String id,@ApiParam(value = "Authorization header" ) @RequestHeader(value="apiKey", required=false) String apiKey){
 		ForecastVO existingForecast = service.getById(id);
 		if(existingForecast==null || !id.equalsIgnoreCase(existingForecast.getId())) {
 			log.warn("No forecast found with id {}, failed to fetch saved inputs for given forecast id", id);
@@ -808,7 +809,7 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 			"application/json" }, method = RequestMethod.DELETE)
 	public ResponseEntity<GenericMessage> deleteRun(
 			@ApiParam(value = "forecast project ID ", required = true) @PathVariable("id") String id,
-			@ApiParam(value = "DNA correlation Id for the run", required = true) @PathVariable("correlationid") String rid) {
+			@ApiParam(value = "DNA correlation Id for the run", required = true) @PathVariable("correlationid") String rid,@ApiParam(value = "Authorization header" ) @RequestHeader(value="apiKey", required=false) String apiKey) {
 
 		CreatedByVO requestUser = this.userStore.getVO();
 		String user = requestUser.getId();
@@ -871,7 +872,7 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
         produces = { "application/json" },
         consumes = { "application/json" },
         method = RequestMethod.GET)
-    public ResponseEntity<RunVisualizationVO> getRunVisualizationData(@ApiParam(value = "forecast project ID ",required=true) @PathVariable("id") String id,@ApiParam(value = "DNA correlation Id for the run",required=true) @PathVariable("correlationid") String rid){
+    public ResponseEntity<RunVisualizationVO> getRunVisualizationData(@ApiParam(value = "forecast project ID ",required=true) @PathVariable("id") String id,@ApiParam(value = "DNA correlation Id for the run",required=true) @PathVariable("correlationid") String rid,@ApiParam(value = "Authorization header" ) @RequestHeader(value="apiKey", required=false) String apiKey){
 		CreatedByVO requestUser = this.userStore.getVO();
 		String user = requestUser.getId();
 		ForecastVO existingForecast = service.getById(id);
@@ -929,7 +930,7 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 			@ApiParam(value = "page number from which listing of forecasts should start. Offset. Example 2") @Valid @RequestParam(value = "offset", required = false) Integer offset,
 			@ApiParam(value = "page size to limit the number of forecasts, Example 15") @Valid @RequestParam(value = "limit", required = false) Integer limit,
 			@ApiParam(value = "Sort runs by a given variable like runName, createdby, createdon, or status", allowableValues = "runName,createdOn,status,createdBy,inputFile") @Valid @RequestParam(value = "sortBy", required = false) String sortBy,
-			@ApiParam(value = "Sort runs based on the given order, example asc,desc", allowableValues = "asc, desc") @Valid @RequestParam(value = "sortOrder", required = false) String sortOrder) {
+			@ApiParam(value = "Sort runs based on the given order, example asc,desc", allowableValues = "asc, desc") @Valid @RequestParam(value = "sortOrder", required = false) String sortOrder,@ApiParam(value = "Authorization header" ) @RequestHeader(value="apiKey", required=false) String apiKey) {
 		ForecastRunCollectionVO collection = new ForecastRunCollectionVO();
 		int defaultLimit = Integer.parseInt(runsDefaultPageSize);
 		if (offset == null || offset < 0)
@@ -988,7 +989,7 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 			method = RequestMethod.GET)
 	public ResponseEntity<ByteArrayResource> getRunResultsFile(@ApiParam(value = "forecast project ID ",required=true) @PathVariable("id") String id,
 			 @ApiParam(value = "DNA correlation Id for the run",required=true) @PathVariable("correlationid") String correlationid,
-			 @NotNull @ApiParam(value = "file which the user requests. Examples:- eda.json, visuals/results.html", required = true) @Valid @RequestParam(value = "file", required = true) String file) {
+			 @NotNull @ApiParam(value = "file which the user requests. Examples:- eda.json, visuals/results.html", required = true) @Valid @RequestParam(value = "file", required = true) String file,@ApiParam(value = "Authorization header" ) @RequestHeader(value="apiKey", required=false) String apiKey) {
 		ForecastVO existingForecast = service.getById(id);
 		CreatedByVO requestUser = this.userStore.getVO();
 		String errorMessage = "";
@@ -1071,7 +1072,7 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
     		@ApiParam(value = "Levels Of Hierarchy number between 2 to 20 Or null") @RequestParam(value="hierarchy", required=false)  String hierarchy,
     		@ApiParam(value = "Comments for the run") @RequestParam(value="comment", required=false)  String comment,
     		@ApiParam(value = "If true, then run on Powerful Machines") @RequestParam(value="runOnPowerfulMachines", required=false)  Boolean runOnPowerfulMachines,
-            @ApiParam(value = "Text field to denote Chronos Version") @RequestParam(value="infotext", required=false)  String infotext){
+            @ApiParam(value = "Text field to denote Chronos Version") @RequestParam(value="infotext", required=false)  String infotext,@ApiParam(value = "Authorization header" ) @RequestHeader(value="apiKey", required=false) String apiKey){
 			ForecastRunResponseVO responseVO = new ForecastRunResponseVO();
 			GenericMessage responseMessage = new GenericMessage();
 			ForecastVO existingForecast = service.getById(id);
@@ -1200,7 +1201,7 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 			consumes = { "application/json" },
 			method = RequestMethod.PUT)
 	public ResponseEntity<CancelRunResponseVO> cancelRun(@ApiParam(value = "forecast project ID to be updated", required = true) @PathVariable("id") String id,
-			@ApiParam(value = "DNA correlation Id for the run", required = true) @PathVariable("correlationid") String correlationid) {
+			@ApiParam(value = "DNA correlation Id for the run", required = true) @PathVariable("correlationid") String correlationid,@ApiParam(value = "Authorization header" ) @RequestHeader(value="apiKey", required=false) String apiKey) {
 		CancelRunResponseVO responseVO = new CancelRunResponseVO();
 		ForecastVO existingForecast = service.getById(id);
 		CreatedByVO requestUser = this.userStore.getVO();
@@ -1284,7 +1285,7 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 	public ResponseEntity<ForecastComparisonCreateResponseVO> createForecastComparison(@ApiParam(value = "forecast project ID ",required=true) @PathVariable("id") String id,
 			@ApiParam(value = "Comma separated forecast run corelation Ids. Maximum 12 Ids can be sent. Please avoid sending duplicates.", required=true) @RequestParam(value="runCorelationIds", required=true)  String runCorelationIds,
 			@ApiParam(value = "The input file for the comparison of forecast runs.") @Valid @RequestPart(value="actualsFile", required=false) MultipartFile actualsFile,
-			@ApiParam(value = "Comparison name") @RequestParam(value="comparisonName", required=false)  String comparisonName)
+			@ApiParam(value = "Comparison name") @RequestParam(value="comparisonName", required=false)  String comparisonName,@ApiParam(value = "Authorization header" ) @RequestHeader(value="apiKey", required=false) String apiKey)
 	{
 		ForecastComparisonCreateResponseVO responseVO = new ForecastComparisonCreateResponseVO();
 		ForecastVO existingForecast = service.getById(id);
@@ -1425,7 +1426,7 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 			consumes = {"application/json"},
 			method = RequestMethod.DELETE)
 	public ResponseEntity<GenericMessage> deleteComparison(@ApiParam(value = "forecast project ID ", required = true) @PathVariable("id") String id,
-			@NotNull @ApiParam(value = "Comma separated forecast comparison IDs that are to be deleted. Ex: ?comparisonIds=\"ComparisionX01,ComparisionX02\" ", required = true) @Valid @RequestParam(value = "comparisonIds", required = true) String comparisonIds) {
+			@NotNull @ApiParam(value = "Comma separated forecast comparison IDs that are to be deleted. Ex: ?comparisonIds=\"ComparisionX01,ComparisionX02\" ", required = true) @Valid @RequestParam(value = "comparisonIds", required = true) String comparisonIds,@ApiParam(value = "Authorization header" ) @RequestHeader(value="apiKey", required=false) String apiKey) {
 		GenericMessage responseMessage = new GenericMessage();
 		ForecastVO existingForecast = service.getById(id);
 		CreatedByVO requestUser = this.userStore.getVO();
@@ -1520,7 +1521,7 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 			consumes = {"application/json"},
 			method = RequestMethod.GET)
 	public ResponseEntity<ForecastComparisonResultVO> getForecastComparisonById(@ApiParam(value = "forecast project ID ",required=true) @PathVariable("id") String id,
-			@ApiParam(value = "Comparison Id for the run",required=true) @PathVariable("comparisonId") String comparisonId){
+			@ApiParam(value = "Comparison Id for the run",required=true) @PathVariable("comparisonId") String comparisonId,@ApiParam(value = "Authorization header" ) @RequestHeader(value="apiKey", required=false) String apiKey){
 		ForecastComparisonResultVO responseVO = new ForecastComparisonResultVO();
 		ForecastVO existingForecast = service.getById(id);
 		CreatedByVO requestUser = this.userStore.getVO();
@@ -1597,7 +1598,7 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 			@ApiParam(value = "forecast comparisons page number ") @Valid @RequestParam(value = "offset", required = false) Integer offset,
 			@ApiParam(value = "forecast comparisons page size") @Valid @RequestParam(value = "limit", required = false) Integer limit,
 			@ApiParam(value = "Sort comparisons by a given variable like comparisonName, createdby, createdon or status", allowableValues = "comparisonName, createdOn, status, createdBy, actualsFile") @Valid @RequestParam(value = "sortBy", required = false) String sortBy,
-			@ApiParam(value = "Sort comparisons based on the given order, example asc,desc", allowableValues = "asc, desc") @Valid @RequestParam(value = "sortOrder", required = false) String sortOrder)
+			@ApiParam(value = "Sort comparisons based on the given order, example asc,desc", allowableValues = "asc, desc") @Valid @RequestParam(value = "sortOrder", required = false) String sortOrder,@ApiParam(value = "Authorization header" ) @RequestHeader(value="apiKey", required=false) String apiKey)
 	{
 		int defaultLimit = Integer.parseInt(runsDefaultPageSize);
 		if (offset == null || offset < 0)
@@ -1663,7 +1664,7 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 			consumes = {"multipart/form-data"},
 			method = RequestMethod.POST)
 	public ResponseEntity<ForecastConfigFileUploadResponseVO> uploadConfigFiles(@ApiParam(value = "forecast project ID ", required = true) @PathVariable("id") String id,
-			  @ApiParam(value = "The config file to upload for the forecast project.") @Valid @RequestPart(value = "configFile", required = false) MultipartFile configFile) {
+			  @ApiParam(value = "The config file to upload for the forecast project.") @Valid @RequestPart(value = "configFile", required = false) MultipartFile configFile,@ApiParam(value = "Authorization header" ) @RequestHeader(value="apiKey", required=false) String apiKey) {
 		ForecastConfigFileUploadResponseVO responseVO = new ForecastConfigFileUploadResponseVO();
 		ForecastVO existingForecast = service.getById(id);
 		CreatedByVO requestUser = this.userStore.getVO();
@@ -1789,7 +1790,7 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 			produces = { "application/json" },
 			consumes = { "application/json" },
 			method = RequestMethod.GET)
-	public ResponseEntity<ForecastConfigFilesCollectionDto> getForecastConfigFiles(@ApiParam(value = "forecast project ID ",required=true) @PathVariable("id") String id) {
+	public ResponseEntity<ForecastConfigFilesCollectionDto> getForecastConfigFiles(@ApiParam(value = "forecast project ID ",required=true) @PathVariable("id") String id,@ApiParam(value = "Authorization header" ) @RequestHeader(value="apiKey", required=false) String apiKey) {
 		ForecastConfigFilesCollectionDto collection = new ForecastConfigFilesCollectionDto();
 		ForecastVO existingForecast = service.getById(id);
 		CreatedByVO requestUser = this.userStore.getVO();
@@ -1840,7 +1841,7 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 			consumes = { "application/json" },
 			method = RequestMethod.DELETE)
 	public ResponseEntity<GenericMessage> deleteConfigFile(@ApiParam(value = "forecast project ID ",required=true) @PathVariable("id") String id,
-			@ApiParam(value = "config file ID",required=true) @PathVariable("configFileId") String configFileId) {
+			@ApiParam(value = "config file ID",required=true) @PathVariable("configFileId") String configFileId,@ApiParam(value = "Authorization header" ) @RequestHeader(value="apiKey", required=false) String apiKey) {
 
 		GenericMessage responseMessage = new GenericMessage();
 		ForecastVO existingForecast = service.getById(id);
@@ -1941,7 +1942,7 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 			consumes = { "application/json" },
 			method = RequestMethod.GET)
 	public ResponseEntity<ForecastConfigFileResultVO> getForecastConfigFileById(@ApiParam(value = "forecast project ID ",required=true) @PathVariable("id") String id,
-			@ApiParam(value = "Specific config file  Id for the forecast project",required=true) @PathVariable("configFileId") String configFileId) {
+			@ApiParam(value = "Specific config file  Id for the forecast project",required=true) @PathVariable("configFileId") String configFileId,@ApiParam(value = "Authorization header" ) @RequestHeader(value="apiKey", required=false) String apiKey) {
 		ForecastConfigFileResultVO responseVO = new ForecastConfigFileResultVO();
 		ForecastVO existingForecast = service.getById(id);
 		CreatedByVO requestUser = this.userStore.getVO();
