@@ -489,6 +489,9 @@ const ProviderForm = ({ user, history }) => {
       },
       provideDataTransfers,
     };
+    reset(data, {
+      keepDirty: false,
+    });
     if (isCreatePage) {
       const { id } = provideDataTransfers.selectedDataTransfer;
       if (id) {
