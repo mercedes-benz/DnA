@@ -86,21 +86,21 @@ public class SwaggerConfig {
 				.query(q -> q.model(m -> m.scalarModel(ScalarType.STRING))).in(ParameterType.HEADER).required(false)
 				.build();
 
-		RequestParameter appId = new RequestParameterBuilder().name("appId")
-				.description("Authorization header").query(q -> q.defaultValue(defaultAuthAppId))
-				.query(q -> q.model(m -> m.scalarModel(ScalarType.STRING))).in(ParameterType.HEADER).required(false)
-				.build();
+		// RequestParameter appId = new RequestParameterBuilder().name("appId")
+		// 		.description("Authorization header").query(q -> q.defaultValue(defaultAuthAppId))
+		// 		.query(q -> q.model(m -> m.scalarModel(ScalarType.STRING))).in(ParameterType.HEADER).required(false)
+		// 		.build();
 
-		RequestParameter apiKey = new RequestParameterBuilder().name("apiKey")
-				.description("Authorization header").query(q -> q.defaultValue(defaultAuthAppKey))
-				.query(q -> q.model(m -> m.scalarModel(ScalarType.STRING))).in(ParameterType.HEADER).required(false)
-				.build();
+		// RequestParameter apiKey = new RequestParameterBuilder().name("apiKey")
+		// 		.description("Authorization header").query(q -> q.defaultValue(defaultAuthAppKey))
+		// 		.query(q -> q.model(m -> m.scalarModel(ScalarType.STRING))).in(ParameterType.HEADER).required(false)
+		// 		.build();
 
 		List<RequestParameter> params = new ArrayList<>();
 		params.add(contentTypeParamBuilder);
 		params.add(authParamBuilder);
-		params.add(appId);
-		params.add(apiKey);
+		//params.add(appId);
+		// params.add(apiKey);
 
 		return new Docket(DocumentationType.SWAGGER_2).select()
 				.apis(RequestHandlerSelectors.basePackage("com.daimler.data.controller")).paths(PathSelectors.any())
