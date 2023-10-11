@@ -163,6 +163,7 @@ export const MatomoList = (props) => {
                       onClick={() => window.open(`${Envs.MATOMO_APP_URL}${item.siteId}`, "_blank")}
                     >
                       {item.siteName}
+                      <i className={classNames('icon mbc-icon new-tab')} />
                     </div>
                   </div>
                 </div>
@@ -194,7 +195,7 @@ export const MatomoList = (props) => {
                     </div>
                     <div>
                       <div>Website/App Url</div>
-                      <div>{item.siteUrl || 'N/A'}</div>
+                      <div className={Styles.urlStyle}>{item.siteUrl || 'N/A'}</div>
                     </div>
                     <div className={Styles.cardCollabSection}>
                       <div>Collaborators</div>
@@ -387,9 +388,10 @@ export const MatomoList = (props) => {
                                 onClick={() => window.open(`${Envs.MATOMO_APP_URL}${item.siteId}`, "_blank")}
                               >
                                 {item.siteName}
+                                <i className={classNames('icon mbc-icon new-tab')} />
                               </span>
                             </div>
-                            <div className={Styles.bucketTitleCol}>
+                            <div className={classNames(Styles.bucketTitleCol, Styles.urlStyle)}>
                               {item.siteUrl}
                             </div>
                             <div className={classNames(Styles.bucketTitleCol, Styles.firstLetterCapital)}>
