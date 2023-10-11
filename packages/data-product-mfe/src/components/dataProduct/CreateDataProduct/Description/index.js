@@ -20,9 +20,11 @@ import Tags from 'dna-container/Tags';
 import { Controller, useFieldArray, useFormContext } from 'react-hook-form';
 import Tooltip from '../../../../common/modules/uilab/js/src/tooltip';
 import Tabs from '../../../../common/modules/uilab/js/src/tabs';
+import ProgressIndicator from '../../../../common/modules/uilab/js/src/progress-indicator'
 import { isValidURL } from '../../../../Utility/utils';
 import TeamSearch from 'dna-container/TeamSearch';
 import AccessSteps from '../../../accessSteps';
+import { dataProductApi } from '../../../../apis/dataproducts.api';
 // import AccessSteps2 from '../../../accessSteps2';
 
 import SelectBox from 'dna-container/SelectBox';
@@ -94,6 +96,7 @@ const Description = ({
   
   const [stepsList, setStepsList] = useState([]);
   const [showPreviewModal, setShowPreviewModal] = useState(false);
+  const [allAccessTypes, setAllAccessTypes] = useState([]);
 
   const { howToAccessText, tags, productOwner, 
     // useTemplate, 
@@ -105,7 +108,7 @@ const Description = ({
 
 
   useEffect(() => {
-    SelectBox.defaultSetup();
+    // SelectBox.defaultSetup();
     Tooltip.defaultSetup();
     Tabs.defaultSetup(document.querySelectorAll('.inner-tabs'));
     if(isCreatePage || accessType === undefined){
@@ -114,7 +117,22 @@ const Description = ({
       // setValue('deletionRequirementInDescription', 'No');
       // setValue('restrictDataAccess', 'No');
     }
-    
+    ProgressIndicator.show();
+    dataProductApi
+    .getAllAccessTypes()
+    .then((res) => {
+      setAllAccessTypes(res?.data?.data);
+      ProgressIndicator.hide();
+      SelectBox.defaultSetup();
+    })
+    .catch((e) => {
+      console.log(e);
+      Notification.show(
+        e?.response?.data?.errors?.[0]?.message || 'Error while fetching access type list',
+        'alert',
+      );
+      ProgressIndicator.hide();
+    });  
     reset(watch());
     //eslint-disable-next-line
   }, []);
@@ -219,9 +237,19 @@ const Description = ({
   }, [restrictDataAccess]);
 
   useEffect(() => {
-    if(accessType?.length > 0 && (accessType?.includes('Kafka') || accessType?.includes('API'))){
-       SelectBox.defaultSetup(true);
+    if(document.getElementById('confidentialityField')&&document.getElementById('accessTypeField')){
+      setTimeout(() => {
+        SelectBox.defaultSetup(true);
+      }, 200);
     }
+    
+    //eslint-disable-next-line
+  }, [document.getElementById('confidentialityField')]);
+
+  useEffect(() => {
+    // if(accessType?.length > 0 && document.getElementById('confidentialityField') && (accessType?.includes('Kafka') || accessType?.includes('API'))){
+    //   SelectBox.defaultSetup(true);
+    // }
 
 
 
@@ -869,17 +897,19 @@ const Description = ({
               <div className={classNames('input-field-group include-error', 
               // errors.carLAFunction ? 'error' : ''
               )}>
-                <label id="accessTypeLabel" htmlFor="accessTypeInput" className="input-label">
+                <label id="accessTypeLabel" htmlFor="accessTypeField" className="input-label">
                   Access
                 </label>
                 <div className={`custom-select`}>
-                  <select id="accessTypeField" multiple={true} name="accessType" {...register('accessType',{
+                  <select id="accessTypeField" multiple={true} 
+                  // name="accessType" 
+                  {...register('accessType',{
                   
                   
                     onChange :(e)=>{
                       const options = e.target.selectedOptions;
                       const values = Array.from(options).map(({ value }) => value);
-
+                      
                       if(e.target.value?.length == 1 && e.target.value?.includes('Live (SAC/AFO)')){
                         setValue('personalRelatedDataInDescription', 'No');
                         setValue('deletionRequirementInDescription', 'No');
@@ -895,10 +925,16 @@ const Description = ({
                   })}
                   >
                     {/* <option value="">Choose</option> */}
-                    <option id='Kafka' key={'Kafka'} value={'Kafka'}>Kafka</option>
+                    
+                    {allAccessTypes?.map((obj) => (
+                        <option id={obj.name} key={obj.name} value={obj.name}>
+                            {obj.name}
+                        </option>
+                    ))}
+                    {/* <option id='Kafka' key={'Kafka'} value={'Kafka'}>Kafka</option>
                     <option id='Live (SAC/AFO)' key={'Live (SAC/AFO)'} value={'Live (SAC/AFO)'}>Live (SAC/AFO)</option>
                     <option id='API' key={'API'} value={'API'}>API</option>
-                    <option id='SQL endpoint (Trino)' key={'SQL endpoint (Trino)'} value={'SQL endpoint (Trino)'}>SQL endpoint (Trino)</option>
+                    <option id='SQL endpoint (Trino)' key={'SQL endpoint (Trino)'} value={'SQL endpoint (Trino)'}>SQL endpoint (Trino)</option> */}
                   </select>
                 </div>
                 {/* <span className={classNames('error-message', errors.carLAFunction?.message ? '' : 'hide')}>
