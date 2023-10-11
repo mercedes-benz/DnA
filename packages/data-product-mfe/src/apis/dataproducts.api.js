@@ -84,6 +84,10 @@ const getAllTags = () => {
   return server.get('/tags', { data: {} });
 };
 
+const getAllAccessTypes = () => {
+  return server.get('/accesstypes', { data: {} });
+};
+
 export const dataProductApi = {
   getAllDataProductList,
   getDataProductById,
@@ -98,5 +102,6 @@ export const dataProductApi = {
   getAllCorporateDataCatalogs,
   getAllPlatforms,
   getAllFrontEndTools,
-  getAllTags
+  getAllTags,
+  getAllAccessTypes
 };
