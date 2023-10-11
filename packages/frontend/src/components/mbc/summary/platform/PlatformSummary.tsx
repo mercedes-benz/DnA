@@ -28,8 +28,8 @@ export default function PlatformSummary(props: ITeamProps) {
         );
       })
       : 'NA';
-  const solOnCloud = props.portfolio?.solutionOnCloud ? <IconTick /> : 'N/A';
-  const usageOfDaimler = props.portfolio?.usesExistingInternalPlatforms ? <IconTick /> : 'N/A';
+  const solOnCloud = props.portfolio?.solutionOnCloud ? <IconTick /> : 'NA';
+  const usageOfDaimler = props.portfolio?.usesExistingInternalPlatforms ? <IconTick /> : 'NA';
   return (
     <React.Fragment>
       <div className={classNames(Styles.mainPanel, 'mainPanelSection')}>
