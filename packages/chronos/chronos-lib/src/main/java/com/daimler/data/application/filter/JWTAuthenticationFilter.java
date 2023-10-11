@@ -31,6 +31,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
@@ -55,6 +56,7 @@ import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.support.WebApplicationContextUtils;
+import org.springframework.web.util.UriTemplate;
 
 import com.daimler.data.application.auth.UserStore;
 import com.daimler.data.application.auth.UserStore.UserRole;
@@ -89,7 +91,10 @@ public class JWTAuthenticationFilter implements Filter {
 		log.debug("Intercepting Request to validate JWT:" + requestUri);
 		String jwt = httpRequest.getHeader("Authorization");
 		if (!StringUtils.hasText(jwt)) {
-			String appId = httpRequest.getHeader("appId");
+			String uriPattern = "/api/forecasts/{id}";
+			UriTemplate uriTemplate = new UriTemplate(uriPattern);
+			Map<String, String> pathVariables = uriTemplate.match(requestUri);
+			String appId = pathVariables.get("id");
 			String appKey = httpRequest.getHeader("apiKey");
 			if (appId != null && appKey != null) {
 				ApiKeyValidationVO apiKeyValidationVO = new ApiKeyValidationVO();
