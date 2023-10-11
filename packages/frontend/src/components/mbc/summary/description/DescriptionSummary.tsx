@@ -157,7 +157,7 @@ export default class DescriptionSummary extends React.Component<IDescriptionSumm
               </div>
             );
           })
-        : 'N/A';
+        : 'NA';
     const locations: string[] = [];
     description.location.forEach((l) => {
       locations.push(l.name);
@@ -253,7 +253,7 @@ export default class DescriptionSummary extends React.Component<IDescriptionSumm
                   <div id="isExistingSolution">
                     <label className="input-label summary">Register support of additional resources</label>
                     <br />
-                    {description.additionalResource ? description.additionalResource : 'N/A'}
+                    {description.additionalResource ? description.additionalResource : 'NA'}
                   </div>
                 </div>
                 <hr className="divider1" />
@@ -261,7 +261,7 @@ export default class DescriptionSummary extends React.Component<IDescriptionSumm
                   <div id="division">
                     <label className="input-label summary">Division</label>
                     <br />
-                    {description.division?.name || 'N/A'}
+                    {description.division?.name || 'NA'}
                   </div>
                   <div id="subdivision">
                     <label className="input-label summary">Sub Division</label>
@@ -286,8 +286,8 @@ export default class DescriptionSummary extends React.Component<IDescriptionSumm
                     {description.relatedProducts
                       ? description.relatedProducts.length > 0
                         ? description.relatedProducts.join(', ')
-                        : 'N/A'
-                      : 'N/A'}
+                        : 'NA'
+                      : 'NA'}
                   </div>
                   <div id="businessGoal">
                     <label className="input-label summary">Business Goals</label>
@@ -295,8 +295,8 @@ export default class DescriptionSummary extends React.Component<IDescriptionSumm
                     {description.businessGoal
                       ? description.businessGoal.length > 0
                         ? description.businessGoal.join(', ')
-                        : 'N/A'
-                      : 'N/A'}
+                        : 'NA'
+                      : 'NA'}
                   </div>
                 </div>
                 <div className={classNames(Styles.flexLayout, Styles.threeColumn)}>
@@ -312,7 +312,7 @@ export default class DescriptionSummary extends React.Component<IDescriptionSumm
                   <div id="dataStrategyDomain">
                     <label className="input-label summary">Data Strategy Domain</label>
                     <br />
-                    {description.dataStrategyDomain ? description.dataStrategyDomain : 'N/A'}
+                    {description.dataStrategyDomain ? description.dataStrategyDomain.toLocaleLowerCase() === ""||description.dataStrategyDomain.toLocaleLowerCase() === "choose" ? "NA":description.dataStrategyDomain : 'NA'}
                   </div>
                   <div id="createdAt">
                     <label className="input-label summary">Created On</label>
@@ -322,7 +322,7 @@ export default class DescriptionSummary extends React.Component<IDescriptionSumm
                   <div id="department">
                     <label className="input-label summary">Department</label>
                     <br />
-                    {description.department ? description.department : 'N/A'}
+                    {description.department ? description.department : 'NA'}
                   </div>
                 </div>
                 <div className={classNames(Styles.flexLayout, Styles.threeColumn)}>  

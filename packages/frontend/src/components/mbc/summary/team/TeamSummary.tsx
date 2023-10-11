@@ -59,14 +59,14 @@ export default class TeamSummary extends React.Component<ITeamProps, any> {
                               {item.requestedFTECount ? (
                                 <FormattedNumber value={Number(item.requestedFTECount)} />
                               ) : (
-                                'N/A'
+                                'NA'
                               )}
                             </IntlProvider>
                           </div>
                         );
                       })
-                    : 'N/A'
-                  : 'N/A'}
+                    : 'NA'
+                  : 'NA'}
               </div>
             </div>
           </div>

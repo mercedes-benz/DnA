@@ -334,7 +334,7 @@ export default class DigitalValueSummary extends React.Component<IDigitalValuePr
                     <div id="controllers">
                       <label className="input-label summary">Controllers</label>
                       <br />
-                      <div>{teamMembersList.length > 0 ? teamMembersList : 'None'}</div>
+                      <div>{teamMembersList.length > 0 ? teamMembersList : 'NA'}</div>
                     </div>
                   </div>
                 </div>
@@ -664,7 +664,7 @@ export default class DigitalValueSummary extends React.Component<IDigitalValuePr
                               <FormattedNumber value={Number(calculatedDigitalValue.value)} /> &euro;
                             </IntlProvider>
                           ) : (
-                            'N/A'
+                            'NA'
                           )}
                           {calculatedDigitalValue ? ')' : ''}
                         </div>
@@ -753,7 +753,7 @@ export default class DigitalValueSummary extends React.Component<IDigitalValuePr
             </div> */}
                       <div id="dataValueRevenueRampUpContainer" className={Styles.rampUpContainer}>
                         {dataValueCalculator
-                          ? dataValueCalculator.calculatedValueRampUpYearsVO.revenue.map(
+                          ? dataValueCalculator?.calculatedValueRampUpYearsVO?.revenue?.map(
                               (valueDriver: IDataValueRampUp, indexVal: number) => {
                                 return (
                                   <div id={'valueRevenueRampUp_' + indexVal} className={Styles.rampUpItem} key={indexVal}>

@@ -841,7 +841,9 @@ export const SummaryPdfDoc = (props: SummaryPdfDocProps) => (
           </View>
           <View style={[styles.flexCol2]}>
             <Text style={styles.sectionTitle}>Department</Text>
-            <Text>{props.solution.description?.department ? props.solution.description?.department : 'N/A'}</Text>
+            <Text>
+              {props.solution.description?.department ? props.solution.description?.department : 'NA'}
+            </Text>
           </View>
           <View style={[styles.flexCol2, styles.wideCol]}>
             <Text style={styles.sectionTitle}>Last Modified On</Text>
@@ -1392,7 +1394,7 @@ export const SummaryPdfDoc = (props: SummaryPdfDocProps) => (
                     {props.solution.digitalValue ? (
                       props.solution.digitalValue.dataValueCalculator &&
                       props.solution.digitalValue.dataValueCalculator.calculatedValueRampUpYearsVO &&
-                      props.solution.digitalValue.dataValueCalculator.calculatedValueRampUpYearsVO.revenue.length >
+                      props.solution.digitalValue.dataValueCalculator.calculatedValueRampUpYearsVO.revenue?.length >
                         0 ? (
                           dataValue(
                             props.solution.digitalValue.dataValueCalculator.calculatedValueRampUpYearsVO.revenue

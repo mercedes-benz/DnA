@@ -130,6 +130,8 @@ const AllCodeSpaces = (props: IAllCodeSpacesProps) => {
   };
 
   const switchBackToCodeSpace = () => {
+    setOnEditCodeSpace(undefined);
+    setOnBoardCodeSpace(undefined);
     setShowNewCodeSpaceModal(false);
     setIsApiCallTakeTime(false);
     ProgressIndicator.hide();

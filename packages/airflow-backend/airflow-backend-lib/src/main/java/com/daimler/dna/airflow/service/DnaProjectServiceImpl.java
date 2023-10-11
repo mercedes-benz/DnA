@@ -151,6 +151,8 @@ public class DnaProjectServiceImpl implements DnaProjectService {
 	
 	@Autowired
 	private KafkaProducerService kafkaProducer;
+	
+	private static String DEFAULT_USER_ROLENAME = "User";
 
 	@Override
 	public List<AirflowProjectsByUserVO> getAllProjects(int offset, int limit) {
@@ -236,12 +238,16 @@ public class DnaProjectServiceImpl implements DnaProjectService {
 				currentUser.setPermissions(permissions);
 				boolean isCurrentUserExist = userExist(currentUser.getEmail());
 				boolean isCurrentRoleExist = roleExist(currentUser.getUsername());
+				Role defaultUserRole = findRole(DEFAULT_USER_ROLENAME);
 				Role savedCurrentUserRole = isCurrentRoleExist ? findRole(currentUser.getUsername())
 						: addRole(currentUser.getUsername());
 				User savedCurrentUser = isCurrentUserExist ? findUser(currentUser.getEmail()) : addUser(currentUser);
 				if (!isCurrentUserExist && !isCurrentRoleExist && Objects.nonNull(savedCurrentUser)
 						&& Objects.nonNull(savedCurrentUserRole)) {
 					addUserRoleMapping(savedCurrentUser, savedCurrentUserRole);
+					if(defaultUserRole!=null) {
+						addUserRoleMapping(savedCurrentUser, defaultUserRole);
+					}
 				}
 				// for each dag
 				DagCollabInfoCollection dagsInfoCollection = new DagCollabInfoCollection();
@@ -299,6 +305,9 @@ public class DnaProjectServiceImpl implements DnaProjectService {
 							if (!isUserExist && !isRoleExist && Objects.nonNull(savedUser)
 									&& Objects.nonNull(savedRole)) {
 								addUserRoleMapping(savedUser, savedRole);
+								if(defaultUserRole!=null) {
+									addUserRoleMapping(savedUser, defaultUserRole);
+								}
 							}
 							LOGGER.debug("User onboarded successfully..{}", savedUser.getUsername());
 							if (isDagExist) {
@@ -377,6 +386,7 @@ public class DnaProjectServiceImpl implements DnaProjectService {
 		List<DnaProject> filteredList = dnaProjects.stream()
 				.filter(dnaProject -> (dnaProject.getProjectStatus()!= null && dnaProject.getProjectStatus().contains("REQUESTED")))
 				.collect(Collectors.toList());
+		Role defaultUserRole = findRole(DEFAULT_USER_ROLENAME);
 		for(DnaProject dnaProject : filteredList) {
 			List<String> teamMembersIds = new ArrayList<>();
 			List<String> teamMembersEmails = new ArrayList<>();
@@ -442,6 +452,9 @@ public class DnaProjectServiceImpl implements DnaProjectService {
 										if (!isUserExist && !isRoleExist && Objects.nonNull(savedCollabUser)
 												&& Objects.nonNull(savedCollabRole)) {
 											addUserRoleMapping(savedCollabUser, savedCollabRole);
+											if(defaultUserRole!=null) {
+												addUserRoleMapping(savedCollabUser, defaultUserRole);
+											}
 										}
 										LOGGER.debug("User onboarded successfully..{}", collabId);
 										AirflowProjectUserVO collabUserVO = new AirflowProjectUserVO();
@@ -559,12 +572,16 @@ public class DnaProjectServiceImpl implements DnaProjectService {
 				currentUser.setPermissions(permissions);
 				boolean isCurrentUserExist = userExist(currentUser.getEmail());
 				boolean isCurrentRoleExist = roleExist(currentUser.getUsername());
+				Role defaultUserRole = findRole(DEFAULT_USER_ROLENAME);
 				Role savedCurrentUserRole = isCurrentRoleExist ? findRole(currentUser.getUsername())
 						: addRole(currentUser.getUsername());
 				User savedCurrentUser = isCurrentUserExist ? findUser(currentUser.getEmail()) : addUser(currentUser);
 				if (!isCurrentUserExist && !isCurrentRoleExist && Objects.nonNull(savedCurrentUser)
 						&& Objects.nonNull(savedCurrentUserRole)) {
 					addUserRoleMapping(savedCurrentUser, savedCurrentUserRole);
+					if(defaultUserRole!=null) {
+						addUserRoleMapping(savedCurrentUser, defaultUserRole);
+					}
 				}
 				DagCollabInfoCollection dagsInfoCollection = new DagCollabInfoCollection();
 				List<DagCollabInfo> dagsInfo = new ArrayList<>();
@@ -624,6 +641,9 @@ public class DnaProjectServiceImpl implements DnaProjectService {
 							if (!isUserExist && !isRoleExist && Objects.nonNull(savedUser)
 									&& Objects.nonNull(savedRole)) {
 								addUserRoleMapping(savedUser, savedRole);
+								if(defaultUserRole!=null) {
+									addUserRoleMapping(savedUser, defaultUserRole);
+								}
 							}
 							LOGGER.debug("User onboarded successfully..{}", savedUser.getUsername());
 							LOGGER.debug("mapping dag and user to project.."); // find permissionView menu
@@ -675,6 +695,7 @@ public class DnaProjectServiceImpl implements DnaProjectService {
 					}
 				}
 					LOGGER.debug("updating dna project");
+					airflowProjectVO.setProjectStatus(currentStatus);
 					updateProject(updatedProject,currentStatus,collabsInfoAsString);
 				}
 			 else {
@@ -732,8 +753,8 @@ public class DnaProjectServiceImpl implements DnaProjectService {
 		for (AirflowDagVo dagVO : airflowProjectVO.getDags()) {
 			existingDnaProject.getDnaProjectUserMappings().forEach(
 					dagMapping -> dagMapping.getDnaProjectUserAndDagMapping().getUser().getRoleMaping().forEach(
-							roleMapping -> deleteRoleAndPermissionMapping(roleMapping.getRole(), dagVO.getDagName())));
-			LOGGER.debug("Successfully deleted all the role and permission mapping for the dag {}", dagVO.getDagName());
+							roleMapping -> deleteRoleAndPermissionMapping(roleMapping.getRole(), "DAG:" + dagVO.getDagName())));
+			LOGGER.debug("Successfully deleted all the role and permission mapping for the dag {}", "DAG:" + dagVO.getDagName());
 		}
 	}
 

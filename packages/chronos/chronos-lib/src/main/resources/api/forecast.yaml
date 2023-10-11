@@ -219,6 +219,11 @@ paths:
           description: "forecast project ID to be fetched"
           required: true
           type: "string"
+        - name: "apiKey"
+          in: "header"
+          description: "Authorization header"
+          required: false
+          type: "string"
       responses:
         200:
           description: "Returns message of success or failure"
@@ -254,6 +259,11 @@ paths:
           required: true
           schema:
             $ref: "#/definitions/ForecastProjectUpdateRequestVO"
+        - name: "apiKey"
+          in: "header"
+          description: "Authorization header"
+          required: false
+          type: "string"
       responses:
         200:
           description: "Returns message of success or failure"
@@ -282,6 +292,11 @@ paths:
           in: "path"
           description: "forecast project ID to be delete"
           required: true
+          type: "string"
+        - name: "apiKey"
+          in: "header"
+          description: "Authorization header"
+          required: false
           type: "string"
       responses:
         200:
@@ -312,6 +327,11 @@ paths:
           description: "forecast project ID"
           required: true
           type: "string"
+        - name: "apiKey"
+          in: "header"
+          description: "Authorization header"
+          required: false
+          type: "string"
       responses:
         201:
           description: "Returns message of success or failure "
@@ -340,6 +360,11 @@ paths:
           name: "id"
           description: "forecast project ID"
           required: true
+          type: "string"
+        - name: "apiKey"
+          in: "header"
+          description: "Authorization header"
+          required: false
           type: "string"
       responses:
         201:
@@ -378,6 +403,11 @@ paths:
           description: "forecast project ID "
           required: true
           type: "string"
+        - name: "apiKey"
+          in: "header"
+          description: "Authorization header"
+          required: false
+          type: "string"
       responses:
         201:
           description: "Returns message of success or failure"
@@ -413,6 +443,11 @@ paths:
           in: "path"
           description: "saved Input file ID"
           required: true
+          type: "string"
+        - name: "apiKey"
+          in: "header"
+          description: "Authorization header"
+          required: false
           type: "string"
       
       responses:
@@ -476,6 +511,11 @@ paths:
           required: false
           type: string
           enum: [ asc,desc ]
+        - name: "apiKey"
+          in: "header"
+          description: "Authorization header"
+          required: false
+          type: "string"
       responses:
         201:
           description: "Returns message of success or failure"
@@ -565,6 +605,11 @@ paths:
           type: string
           description: Text field to denote Chronos Version
           required: false
+        - name: "apiKey"
+          in: "header"
+          description: "Authorization header"
+          required: false
+          type: "string"
       responses:
         201:
           description: "Returns message of success or failure "
@@ -605,6 +650,11 @@ paths:
           name: "correlationid"
           description: "DNA correlation Id for the run"
           required: true
+          type: "string"
+        - name: "apiKey"
+          in: "header"
+          description: "Authorization header"
+          required: false
           type: "string"
       responses:
         201:
@@ -648,6 +698,11 @@ paths:
           description: "file which the user requests. Examples:- eda.json, visuals/results.html"
           required: true
           type: string
+        - name: "apiKey"
+          in: "header"
+          description: "Authorization header"
+          required: false
+          type: "string"
       responses:
         201:
           description: "Returns message of success or failure"
@@ -683,6 +738,11 @@ paths:
           description: "DNA correlation Id for the run"
           required: true
           type: "string"
+        - name: "apiKey"
+          in: "header"
+          description: "Authorization header"
+          required: false
+          type: "string"
       responses:
         201:
           description: "Returns message of success or failure"
@@ -717,6 +777,11 @@ paths:
           name: "correlationid"
           description: "DNA correlation Id for the run"
           required: true
+          type: "string"
+        - name: "apiKey"
+          in: "header"
+          description: "Authorization header"
+          required: false
           type: "string"
       responses:
         200:
@@ -764,6 +829,11 @@ paths:
           name: "runCorelationIds"
           description: "Comma separated forecast run corelation Ids. Maximum 12 Ids can be sent. Please avoid sending duplicates."
           required: true
+          type: "string"
+        - name: "apiKey"
+          in: "header"
+          description: "Authorization header"
+          required: false
           type: "string"
       responses:
         201:
@@ -817,6 +887,11 @@ paths:
           required: false
           type: string
           enum: [ asc,desc ]
+        - name: "apiKey"
+          in: "header"
+          description: "Authorization header"
+          required: false
+          type: "string"
       responses:
         201:
           description: "Returns message of success or failure"
@@ -851,6 +926,11 @@ paths:
           name: "comparisonIds"
           description: "Comma separated forecast comparison IDs that are to be deleted. Ex: ?comparisonIds=\"ComparisionX01,ComparisionX02\" "
           required: true
+          type: "string"
+        - name: "apiKey"
+          in: "header"
+          description: "Authorization header"
+          required: false
           type: "string"
       responses:
         201:
@@ -888,6 +968,11 @@ paths:
           name: "comparisonId"
           description: "Comparison Id for the run"
           required: true
+          type: "string"
+        - name: "apiKey"
+          in: "header"
+          description: "Authorization header"
+          required: false
           type: "string"
       responses:
         201:
@@ -927,6 +1012,11 @@ paths:
           name: configFile
           type: file
           description: The config file to upload for the forecast project.
+        - name: "apiKey"
+          in: "header"
+          description: "Authorization header"
+          required: false
+          type: "string"
       responses:
         201:
           description: "Returns message of success or failure "
@@ -956,6 +1046,11 @@ paths:
           name: "id"
           description: "forecast project ID "
           required: true
+          type: "string"
+        - name: "apiKey"
+          in: "header"
+          description: "Authorization header"
+          required: false
           type: "string"
       responses:
         201:
@@ -994,6 +1089,11 @@ paths:
           description: "config file ID"
           required: true
           type: "string"
+        - name: "apiKey"
+          in: "header"
+          description: "Authorization header"
+          required: false
+          type: "string"
       responses:
         201:
           description: "Returns message of success or failure"
@@ -1030,6 +1130,11 @@ paths:
           name: "configFileId"
           description: "Specific config file  Id for the forecast project"
           required: true
+          type: "string"
+        - name: "apiKey"
+          in: "header"
+          description: "Authorization header"
+          required: false
           type: "string"
       responses:
         201:

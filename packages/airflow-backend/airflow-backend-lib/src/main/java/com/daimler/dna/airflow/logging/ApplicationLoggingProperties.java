@@ -31,7 +31,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
 @Component
-@ConfigurationProperties(prefix = "service.logging")
+@ConfigurationProperties(prefix = "logging.service")
 public class ApplicationLoggingProperties {
 
 	private String environment;
