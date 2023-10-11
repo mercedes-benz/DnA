@@ -753,7 +753,7 @@ export default class DigitalValueSummary extends React.Component<IDigitalValuePr
             </div> */}
                       <div id="dataValueRevenueRampUpContainer" className={Styles.rampUpContainer}>
                         {dataValueCalculator
-                          ? dataValueCalculator.calculatedValueRampUpYearsVO.revenue.map(
+                          ? dataValueCalculator?.calculatedValueRampUpYearsVO?.revenue?.map(
                               (valueDriver: IDataValueRampUp, indexVal: number) => {
                                 return (
                                   <div id={'valueRevenueRampUp_' + indexVal} className={Styles.rampUpItem} key={indexVal}>
