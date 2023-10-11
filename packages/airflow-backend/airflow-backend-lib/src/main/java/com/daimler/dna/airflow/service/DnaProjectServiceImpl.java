@@ -152,7 +152,8 @@ public class DnaProjectServiceImpl implements DnaProjectService {
 	@Autowired
 	private KafkaProducerService kafkaProducer;
 	
-	private static String DEFAULT_USER_ROLENAME = "User";
+	@Value("${abrole.dnauser.rolename}")
+	private String DEFAULT_USER_ROLENAME;
 
 	@Override
 	public List<AirflowProjectsByUserVO> getAllProjects(int offset, int limit) {
