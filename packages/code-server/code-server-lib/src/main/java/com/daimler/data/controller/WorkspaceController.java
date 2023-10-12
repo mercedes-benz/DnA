@@ -401,12 +401,22 @@ public class WorkspaceController  implements CodeServerApi{
 			log.info("workspace {} already exists for User {} ",reqVO.getProjectDetails().getProjectName() , userId);
 			return new ResponseEntity<>(responseMessage, HttpStatus.CONFLICT);
 		}		
-		if(reqVO.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public")){
-			String publicUrl = reqVO.getProjectDetails().getRecipeDetails().getRepodetails();
-			if("".equals(publicUrl) || publicUrl == null) {
+		if(reqVO.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public") || reqVO.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("private")){
+			String githubUrl = reqVO.getProjectDetails().getRecipeDetails().getRepodetails();
+			List<String> newUrl = new ArrayList<>();
+			String[] url = githubUrl.split(",");			
+			if(Objects.nonNull(url) && url.length == 1) {
+				log.info("Inside newUrl split block");
+				newUrl.add(url[0]);
+				newUrl.add("/*");
+				githubUrl = newUrl.toString();
+				githubUrl = (String) githubUrl.substring(0+1, githubUrl.length()-1);
+				reqVO.getProjectDetails().getRecipeDetails().setRepodetails(githubUrl);
+			}			
+			if("".equals(githubUrl) || githubUrl == null) {
 				List<MessageDescription> errorMessage = new ArrayList<>();
 				MessageDescription msg = new MessageDescription();
-				msg.setMessage("No Repodetails found for given public recipe");
+				msg.setMessage("No Repodetails found for given public/private recipe");
 				errorMessage.add(msg);
 				responseMessage.setErrors(errorMessage);
 				return new ResponseEntity<>(responseMessage, HttpStatus.BAD_REQUEST);
