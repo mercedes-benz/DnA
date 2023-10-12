@@ -852,8 +852,12 @@ definitions:
       updatedBy:
         $ref: "#/definitions/CreatedByVO"
       permission:
-        $ref: "#/definitions/PermissionVO"      
-            
+        $ref: "#/definitions/PermissionVO"
+      dataikuProjects:
+        type: array
+        items:
+          type: string
+
     required:
       - bucketName
  
