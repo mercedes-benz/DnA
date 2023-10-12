@@ -40,7 +40,7 @@ const Home: React.FC<ILandingpageProps> = () => {
                   isTextAlignLeft={false}
                   isDisabled={false}
                   svgIcon={'transparency'}
-                  upperTag="MB"
+                  // upperTag="MB"
                 />
               </div>
             </div>
@@ -54,7 +54,7 @@ const Home: React.FC<ILandingpageProps> = () => {
                   url={'/carla'}
                   isTextAlignLeft={false}
                   isDisabled={false}
-                  upperTag="FC"
+                  // upperTag="FC"
                   svgIcon={<IconCarla size="80"/>}
                 />
               </div>
@@ -66,18 +66,18 @@ const Home: React.FC<ILandingpageProps> = () => {
                   isTextAlignLeft={false}
                   isDisabled={false}
                   svgIcon={'data'}
-                  upperTag="FC"
+                  // upperTag="FC"
                 />
               </div>
               <div className={Styles.dnaCol6}>
                 <DNACard
                   title={'Tools'}
-                  description={'Our standard Data & Analytics for both FC Users and Pro Developers.'}
+                  description={'Our Data & Analytics Tools for all Data Workers ranging from low/no code users to full developers.'}
                   url={'/tools'}
                   isTextAlignLeft={false}
                   isDisabled={false}
                   svgIcon={'tools'}
-                  upperTag="FC"
+                  // upperTag="FC"
                 />
               </div>
               <div className={Styles.dnaCol6}>
@@ -88,7 +88,7 @@ const Home: React.FC<ILandingpageProps> = () => {
                   isTextAlignLeft={false}
                   isDisabled={!Envs.ENABLE_TRAININGS}
                   svgIcon={'trainings'}
-                  upperTag="FC"
+                  // upperTag="FC"
                 />
               </div>
             </div>
