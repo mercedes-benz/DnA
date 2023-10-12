@@ -388,7 +388,7 @@ export const MatomoList = (props) => {
                                 onClick={() => window.open(`${Envs.MATOMO_APP_URL}${item.siteId}`, "_blank")}
                               >
                                 {item.siteName}
-                                <i className={classNames('icon mbc-icon new-tab')} />
+                                <i className={classNames('icon mbc-icon new-tab',Styles.arrowInListView)} />
                               </span>
                             </div>
                             <div className={classNames(Styles.bucketTitleCol, Styles.urlStyle)}>
