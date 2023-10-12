@@ -359,6 +359,9 @@ public class BaseWorkspaceService implements WorkspaceService {
 			UserInfoVO owner = vo.getProjectDetails().getProjectOwner();
 			
 			String repoName = vo.getProjectDetails().getGitRepoName();
+			if(vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public") || vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("private")) {
+				repoName = vo.getProjectDetails().getRecipeDetails().getRepodetails();
+			}
 			List<UserInfoVO> collabs = new ArrayList<>();
 			if(!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public")) {
 			//validate user pat 
@@ -371,14 +374,18 @@ public class BaseWorkspaceService implements WorkspaceService {
 			}
 			
 			//initialize repo
+			if(!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("private") ) {
 			repoName = vo.getProjectDetails().getGitRepoName();
-			HttpStatus createRepoStatus = gitClient.createRepo(repoName);
-			if(!createRepoStatus.is2xxSuccessful()) {
-				MessageDescription errMsg = new MessageDescription("Failed while initializing git repository " +repoName + " for codespace  with status " + createRepoStatus.name()  + " . Please verify inputs/permissions/existing repositories and retry.");
-				errors.add(errMsg);
-				responseVO.setErrors(errors);
-				return responseVO;
+			if(!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().equalsIgnoreCase("default") ) {
+				HttpStatus createRepoStatus = gitClient.createRepo(repoName);
+				if(!createRepoStatus.is2xxSuccessful()) {
+					MessageDescription errMsg = new MessageDescription("Failed while initializing git repository " +repoName + " for codespace  with status " + createRepoStatus.name()  + " . Please verify inputs/permissions/existing repositories and retry.");
+					errors.add(errMsg);
+					responseVO.setErrors(errors);
+					return responseVO;
+				}
 			}
+			
 			// create repo success, adding collabs
 			 
 			 gitUsers.add(owner.getGitUserName());
@@ -411,8 +418,9 @@ public class BaseWorkspaceService implements WorkspaceService {
 					        */
 				 }
 			 }
+			} 
 		}else {
-			repoName = vo.getProjectDetails().getRecipeDetails().getRepodetails();
+//			repoName = vo.getProjectDetails().getRecipeDetails().getRepodetails();
 			HttpStatus publicGitPatStatus = gitClient.validatePublicGitPat(vo.getGitUserName(), pat, repoName);
 			if(!publicGitPatStatus.is2xxSuccessful()) {
 				MessageDescription errMsg = new MessageDescription("Invalid Personal Access Token. Please verify and retry");
@@ -437,7 +445,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 			 ownerWorkbenchCreateInputsDto.setIsCollaborator("false");
 			 ownerWorkbenchCreateInputsDto.setPat(pat);
 			 String repoNameWithOrg = "";
-			 if(!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public")) {
+			 if(!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public") && !vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("private")) {
 				 repoNameWithOrg =  gitOrgUri + gitOrgName + "/" + repoName;
 			 }
 			 else {
@@ -568,9 +576,10 @@ public class BaseWorkspaceService implements WorkspaceService {
 		List<MessageDescription> errors = new ArrayList<>();
 		try {
 			CodeServerWorkspaceNsql entity =  workspaceCustomRepository.findById(userId,id);
-			if(entity.getData().getProjectDetails().getRecipeDetails().getRecipeId().toLowerCase().startsWith("public")){
-				log.error("Cannot deploy workspace for this project with id {} of recipe type - Public " + id);
-				MessageDescription msg = new MessageDescription("Cannot deploy workspace for this project of recipe type - Public.");
+			if(entity.getData().getProjectDetails().getRecipeDetails().getRecipeId().toLowerCase().startsWith("public")
+					|| entity.getData().getProjectDetails().getRecipeDetails().getRecipeId().toLowerCase().startsWith("private")){
+				log.error("Cannot deploy workspace for this project with id {} of recipe type - Public/Private " + id);
+				MessageDescription msg = new MessageDescription("Cannot deploy workspace for this project of recipe type {} " +entity.getData().getProjectDetails().getRecipeDetails());
 				errors.add(msg);
 			}
 			if(entity!=null && !entity.getData().getProjectDetails().getRecipeDetails().getRecipeId().toLowerCase().startsWith("public")) {
@@ -580,8 +589,9 @@ public class BaseWorkspaceService implements WorkspaceService {
 				deployJobInputDto.setBranch(branch);
 				deployJobInputDto.setEnvironment(entity.getData().getProjectDetails().getRecipeDetails().getEnvironment());
 				deployJobInputDto.setRepo(gitOrgName+"/"+entity.getData().getProjectDetails().getGitRepoName());
+				String workspaceOwner = entity.getData().getWorkspaceOwner().getId();
 				String projectOwner = entity.getData().getProjectDetails().getProjectOwner().getId();
-				deployJobInputDto.setShortid(projectOwner);
+				deployJobInputDto.setShortid(workspaceOwner);
 				deployJobInputDto.setTarget_env(environment);
 				if(Objects.nonNull(isSecureWithIAMRequired) && isSecureWithIAMRequired && Objects.nonNull(technicalUserDetailsForIAMLogin)) {
 					deployJobInputDto.setSecure_iam("true");
@@ -599,8 +609,8 @@ public class BaseWorkspaceService implements WorkspaceService {
 					responseMessage.setErrors(errors);
 					return responseMessage;
 				}
-				String projectOwnerWsId = ownerEntity.getData().getWorkspaceId();
-				deployJobInputDto.setWsid(projectOwnerWsId);
+				String workspaceOwnerWsId = entity.getData().getWorkspaceId();
+				deployJobInputDto.setWsid(workspaceOwnerWsId);
 				deploymentJobDto.setInputs(deployJobInputDto);
 				deploymentJobDto.setRef(codeServerEnvRef);
 				GenericMessage jobResponse = client.manageDeployment(deploymentJobDto);
@@ -967,8 +977,8 @@ public class BaseWorkspaceService implements WorkspaceService {
 						}
 					}					
 					entity.getData().setWorkspaceUrl(workspaceUrl);
-					entity.getData().setStatus(latestStatus);
 				}
+				entity.getData().setStatus(latestStatus);
 				workspaceCustomRepository.update(entity);
 				log.info("updated status for user {} , workspace name {}, existingStatus {}, latestStatus {}",
 						userId,name,existingStatus,latestStatus);
