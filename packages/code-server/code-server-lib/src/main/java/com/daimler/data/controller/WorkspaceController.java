@@ -402,15 +402,12 @@ public class WorkspaceController  implements CodeServerApi{
 			return new ResponseEntity<>(responseMessage, HttpStatus.CONFLICT);
 		}		
 		if(reqVO.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public") || reqVO.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("private")){
-			String githubUrl = reqVO.getProjectDetails().getRecipeDetails().getRepodetails();
-			List<String> newUrl = new ArrayList<>();
+			String githubUrl = reqVO.getProjectDetails().getRecipeDetails().getRepodetails();			
 			String[] url = githubUrl.split(",");			
 			if(Objects.nonNull(url) && url.length == 1) {
-				log.info("Inside newUrl split block");
-				newUrl.add(url[0]);
-				newUrl.add("/*");
-				githubUrl = newUrl.toString();
-				githubUrl = (String) githubUrl.substring(0+1, githubUrl.length()-1);
+				log.info("Inside newUrl split block, adding default parameter to clone the project completely");
+				githubUrl = githubUrl + ",/*";
+				log.info(githubUrl);
 				reqVO.getProjectDetails().getRecipeDetails().setRepodetails(githubUrl);
 			}			
 			if("".equals(githubUrl) || githubUrl == null) {
