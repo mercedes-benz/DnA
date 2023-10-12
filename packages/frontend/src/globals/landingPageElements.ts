@@ -27,9 +27,6 @@ const dataQToolUrl = Envs.DATAQ_TOOL_URL;
 const datasphereUrl = Envs.DATASPHERE_TOOL_URL;
 const extolloUrl = Envs.EXTOLLO_TOOL_URL;
 const powerBIUrl = Envs.POWER_BI_TOOL_URL;
-const sbissUrl = Envs.SBISS_LAUNCHPAD_TOOL_URL;
-const sbissPortalUrl = Envs.SBISS_PORTAL_TOOL_URL;
-const sbissHanaUrl = Envs.SBISS_HANA_LAUNCHPAD_TOOL_URL;
 const dataModelUrl = Envs.DATA_MODEL_URL;
 const kpiWikiUrl = Envs.KPI_WIKI_URL;
 // const carlaEconomicModelUrl = Envs.CARLA_ECONOMIC_MODEL_URL;
@@ -432,51 +429,6 @@ export const ToolsLandingPageElements = [
     isSmallCard: false,
     isMediumCard: true,
     svgIcon: 'tools-mini',
-    isDnAInternalTool: false,
-  },
-  {
-    name: 'SBISS4',
-    description: 'The SBISS/4 Launchpad is the entry Point to access Finance Functions for MBC based on CarLA as well as functions on Corporate FC DWH.',
-    tags: ['Frontend Reporting', 'SAP', 'Onprem'],
-    url: sbissUrl
-    ,
-    isExternalLink: true,
-    isTextAlignLeft: true,
-    animation: true,
-    isDisabled: !sbissUrl?.startsWith('http'),
-    isSmallCard: false,
-    isMediumCard: true,
-    svgIcon: 'sbiss',
-    isDnAInternalTool: false,
-  },
-  {
-    name: 'SBISS Portal',
-    description: 'The SBISS Portal is the singe point of entry for endusers accessing applications based on SBISSonHANA',
-    tags: ['Frontend Reporting', 'SAP', 'Onprem'],
-    url: sbissPortalUrl
-    ,
-    isExternalLink: true,
-    isTextAlignLeft: true,
-    animation: true,
-    isDisabled: !sbissPortalUrl?.startsWith('http'),
-    isSmallCard: false,
-    isMediumCard: true,
-    svgIcon: 'sbiss',
-    isDnAInternalTool: false,
-  },
-  {
-    name: 'SBISSonHANA Launchpad',
-    description: 'SBISSonHANA Launchpad is the central entry point to all applications based on the BW-Platform.',
-    tags: ['SAP', 'Onprem'],
-    url: sbissHanaUrl
-    ,
-    isExternalLink: true,
-    isTextAlignLeft: true,
-    animation: true,
-    isDisabled: !sbissHanaUrl?.startsWith('http'),
-    isSmallCard: false,
-    isMediumCard: true,
-    svgIcon: 'sbiss',
     isDnAInternalTool: false,
   },
   {
