@@ -40,7 +40,6 @@ const Home: React.FC<ILandingpageProps> = () => {
                   isTextAlignLeft={false}
                   isDisabled={false}
                   svgIcon={'transparency'}
-                  // upperTag="MB"
                 />
               </div>
             </div>
@@ -54,7 +53,6 @@ const Home: React.FC<ILandingpageProps> = () => {
                   url={'/carla'}
                   isTextAlignLeft={false}
                   isDisabled={false}
-                  // upperTag="FC"
                   svgIcon={<IconCarla size="80"/>}
                 />
               </div>
@@ -66,7 +64,6 @@ const Home: React.FC<ILandingpageProps> = () => {
                   isTextAlignLeft={false}
                   isDisabled={false}
                   svgIcon={'data'}
-                  // upperTag="FC"
                 />
               </div>
               <div className={Styles.dnaCol6}>
@@ -77,7 +74,6 @@ const Home: React.FC<ILandingpageProps> = () => {
                   isTextAlignLeft={false}
                   isDisabled={false}
                   svgIcon={'tools'}
-                  // upperTag="FC"
                 />
               </div>
               <div className={Styles.dnaCol6}>
@@ -88,7 +84,6 @@ const Home: React.FC<ILandingpageProps> = () => {
                   isTextAlignLeft={false}
                   isDisabled={!Envs.ENABLE_TRAININGS}
                   svgIcon={'trainings'}
-                  // upperTag="FC"
                 />
               </div>
             </div>
