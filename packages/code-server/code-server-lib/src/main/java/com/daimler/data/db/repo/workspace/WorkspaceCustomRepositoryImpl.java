@@ -71,7 +71,8 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 				cb.function("jsonb_extract_path_text", String.class, root.get("data"), cb.literal("status"))),
 				"DELETED".toLowerCase());
 		Predicate pMain = cb.and(p1,p2);
-		cq.where(pMain);
+		cq.where(pMain);		
+		cq.orderBy(cb.asc(cb.function("jsonb_extract_path_text", String.class, root.get("data"), cb.literal("projectDetails"), cb.literal("projectName"))));
 		TypedQuery<CodeServerWorkspaceNsql> getAllQuery = em.createQuery(getAll);
 		if (offset >= 0)
 			getAllQuery.setFirstResult(offset);
@@ -358,7 +359,7 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 
 	@Override
 	public Integer getTotalCountOfWorkSpace() {
-		String query = "select count(*) from workspace_nsql";
+		String query = "select count(*) from workspace_nsql where jsonb_extract_path_text(data,'status')  in ('CREATED')";
 		Query q = em.createNativeQuery(query);
 		BigInteger results = (BigInteger) q.getSingleResult();
 		return results.intValue();
