@@ -42,6 +42,10 @@ const getDataikuProjects = (live) => {
   return hostServer.get(`/dataiku/projects?live=${live}`, { data: {} });
 };
 
+const validateUserPrivilage = (userID) => {
+  return dataikuServer.get(`/userprivilege/validate?userId=${userID}`);
+}
+
 const getDnaProjectList = () => {
   return dataikuServer.get(`/dataiku?limit=0&offset=0&sortBy=&sortOrder=&projectName=`, {
     data: {},
@@ -72,5 +76,6 @@ export const bucketsApi = {
   getDnaProjectList,
   connectToDataikuProjects,
   connectToJupyterNotebook,
-  transferOwnership
+  transferOwnership,
+  validateUserPrivilage
 };
