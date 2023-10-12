@@ -69,6 +69,9 @@ const NotificationsSettings = (props: INotificationSettings) => {
           case 'codespaceNotificationPref':
             temp.title = 'Configure Notification for Code Spaces';
             break;
+          case 'airflowNotificationPref':
+            temp.title = 'Configure Notification for Airflow';
+            break;
         }
         tempArr.push(temp);
       }
@@ -156,6 +159,16 @@ const NotificationsSettings = (props: INotificationSettings) => {
     callToUpdatePreference(messageForNotification);
   };
 
+  const onChangeEmailNotificationForAirflow = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const target = notificationPreferences?.airflowNotificationPref;
+    target['enableEmailNotifications'] = e.target.checked;
+    setNotificationPreferences(notificationPreferences);
+    const messageForNotification = e.target.checked
+      ? 'Enabled Email Notification Successfully'
+      : 'Disabled Email Notification Successfully';
+    callToUpdatePreference(messageForNotification);
+  };
+
   const callToUpdatePreference = (message: string) => {
     ProgressIndicator.show();
     ApiClient.enableEmailNotifications(notificationPreferences)
@@ -200,6 +213,9 @@ const NotificationsSettings = (props: INotificationSettings) => {
       case 'codespaceNotificationPref':
         onChangeEmailNotificationForCodeSpace(e);
         break;   
+      case 'airflowNotificationPref':
+        onChangeEmailNotificationForAirflow(e);
+        break;  
     }
   };
 
