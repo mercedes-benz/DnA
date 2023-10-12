@@ -34,6 +34,7 @@ export const ConnectionModal = (props) => {
   const [dataikuNotificationPortal, setDataikuNotificationPortal] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedDataikuProjects, setSelectedDataikuProjects] = useState([]);
+  const [userCanCreateDataiku, setUserCanCreateDataiku] = useState(false);
 
   const isDataikuEnabled = Envs.ENABLE_DATAIKU;
 
@@ -98,6 +99,27 @@ export const ConnectionModal = (props) => {
 
   useEffect(() => {
     connect?.modal && setSelectedDataikuProjects(connect?.dataikuProjects);
+
+    ProgressIndicator.show();
+    bucketsApi
+      .validateUserPrivilage(props?.user?.id)
+      .then((response) => {
+        if (response?.data && response?.data?.canCreate) {
+          setUserCanCreateDataiku(response.data.canCreate);
+        }
+      })
+      .catch((err) => {
+        err;
+        if (err?.response?.data?.response?.errors?.length > 0) {
+          err?.response?.data?.response?.errors.forEach((err) => {
+            Notification.show(err?.message || 'Something went wrong.');
+          });
+        } else {
+          Notification.show('Something went wrong.');
+        }
+      }).finally(() => {
+        ProgressIndicator.hide();
+      });
     //eslint-disable-next-line react-hooks/exhaustive-deps
   }, [connect.modal]);
 
@@ -283,7 +305,7 @@ export const ConnectionModal = (props) => {
 
   const connectToDataiku = (
     <>
-      {dataikuProjectList?.length ? (
+      {dataikuProjectList?.length && userCanCreateDataiku ? (
         <Tags
           title={'Please select the Dataiku project(s) that you want to link to the bucket.'}
           max={100}
