@@ -331,7 +331,7 @@ const CodeSpace = (props: ICodeSpaceProps) => {
               setCodeDeploying(false);
               setShowCodeDeployModal(false);
               setIsApiCallTakeTime(false);
-              Notification.show(`Deployment faild for code space ${res.projectDetails?.projectName}. Please try again.`, 'alert');
+              Notification.show(`Deployment failed for code space ${res.projectDetails?.projectName}. Please try again.`, 'alert');
             }
 
             setCodeSpaceData({
