@@ -835,23 +835,45 @@ public class DnaMinioClientImp implements DnaMinioClient {
 				// To get list of Objects In Bucket.
 				List<String> objectNames = listObjectsInBucket(userId, bucketName);
 
-                if (StringUtils.hasText(prefix)) {
-                    String decodePrefix = URLDecoder.decode(prefix, StandardCharsets.UTF_8.toString());
-                     String[] prefixValue = decodePrefix.split(",", 0);
-					for (String path: prefixValue) {
-					    for (String objectName: objectNames) {
-							 if (objectName.contains(path)) {
-								 // Fetch the versions for this object
-								 Iterable<Result<Item>> versions = minioClient.listObjects(ListObjectsArgs.builder().bucket(bucketName).prefix(objectName).includeVersions(true).build());
-								 for (Result<Item> versionResult : versions) {
-									 Item versionItem = versionResult.get();
-									 // Add both the object name and version ID to delete this specific version.
-									 objects.add(new DeleteObject(objectName, versionItem.versionId()));
-								 }
-							 }
-					    }
-                    }
-                }
+				if (StringUtils.hasText(prefix)) {
+					String decodePrefix = URLDecoder.decode(prefix, StandardCharsets.UTF_8.toString());
+					String[] prefixValue = decodePrefix.split(",", 0);
+					for (String path : prefixValue) {
+						// Check if the path is a folder (ends with '/')
+						if (path.endsWith("/")) {
+							// Fetch and mark all objects with the prefix 'path' for deletion
+							Iterable<Result<Item>> versions = minioClient.listObjects(
+									ListObjectsArgs.builder().bucket(bucketName).prefix(path).recursive(true).includeVersions(true).build()
+							);
+							for (Result<Item> versionResult : versions) {
+								try {
+									Item versionItem = versionResult.get();
+									objects.add(new DeleteObject(versionItem.objectName(), versionItem.versionId()));
+									LOGGER.info("Marked for deletion: {}", versionItem.objectName());
+								} catch (Exception e) {
+									LOGGER.error("Error fetching version item: {}", e.getMessage());
+								}
+							}
+						} else {
+							// If it's not a folder, apply the logic for specific object deletion
+							for (String objectName : objectNames) {
+								if (path.equals(objectName) || objectName.startsWith(path + "/")) {
+									Iterable<Result<Item>> versions = minioClient.listObjects(
+											ListObjectsArgs.builder().bucket(bucketName).prefix(objectName).includeVersions(true).build()
+									);
+									for (Result<Item> versionResult : versions) {
+										try {
+											Item versionItem = versionResult.get();
+											objects.add(new DeleteObject(objectName, versionItem.versionId()));
+										} catch (Exception e) {
+											LOGGER.error("Error fetching version item: {}", e.getMessage());
+										}
+									}
+								}
+							}
+						}
+					}
+				}
 
 				LOGGER.info("Removing objects from Minio bucket:{}", bucketName);
 				Iterable<Result<DeleteError>> results = minioClient
