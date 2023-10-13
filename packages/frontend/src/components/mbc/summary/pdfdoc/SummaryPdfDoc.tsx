@@ -334,7 +334,7 @@ const processDataValuesFromObj = (values: any[]) => {
 };
 
 const formatEmptyText = (displayVal: string) => {
-  return displayVal && displayVal !== '' ? displayVal : 'NA';
+  return displayVal && displayVal !== '' && displayVal.toLocaleLowerCase() !== 'choose' ? displayVal : 'NA';
 };
 
 const teamMembersList = (members: ITeams[]) => {
