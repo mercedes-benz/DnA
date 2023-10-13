@@ -109,7 +109,17 @@ public class SolutionController implements SolutionsApi, ChangelogsApi, Malwares
         SolutionResponseVO response = new SolutionResponseVO();
         try {
             String uniqueProductName = requestSolutionVO.getProductName();
+            if(uniqueProductName.startsWith(" ")||uniqueProductName.endsWith(" ")){
+                List<MessageDescription> messages = new ArrayList<>();
+                MessageDescription message = new MessageDescription();
+                message.setMessage("Solution name starts or ends with Whitespace");
+                messages.add(message);
+                response.setErrors(messages);
+                LOGGER.debug("Solution {} ame starts or ends Whitespace, returning as BAD_REQUEST", uniqueProductName);
+                return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+            }
             SolutionVO existingSolutionVO = solutionService.getByUniqueliteral("productName", uniqueProductName);
+
             if (existingSolutionVO != null && existingSolutionVO.getProductName() != null) {
                 response.setData(existingSolutionVO);
                 List<MessageDescription> messages = new ArrayList<>();
