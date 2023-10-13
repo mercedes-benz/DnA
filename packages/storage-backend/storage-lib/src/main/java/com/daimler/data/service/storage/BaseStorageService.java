@@ -894,6 +894,10 @@ public class BaseStorageService implements StorageService {
 			responseVO.setErrors(errors);
 			httpStatus = HttpStatus.BAD_REQUEST;
 		} else {
+			StorageNsql entity = customRepo.findbyUniqueLiteral(ConstantsUtility.BUCKET_NAME, bucketVo.getBucketName());
+			if (entity != null && entity.getData() != null && entity.getData().getDataikuProjects() != null) {
+				bucketVo.setDataikuProjects(entity.getData().getDataikuProjects());
+			}
 			LOGGER.debug("Fetching existing collaborators for bucket:{}", bucketVo.getBucketName());
 			List<UserVO> existingCollaborators = dnaMinioClient.getBucketCollaborators(bucketVo.getBucketName(),
 					currentUser);
