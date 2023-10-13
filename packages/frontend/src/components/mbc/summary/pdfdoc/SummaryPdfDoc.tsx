@@ -843,7 +843,7 @@ export const SummaryPdfDoc = (props: SummaryPdfDocProps) => (
             <Text style={styles.sectionTitle}>Department</Text>
             <Text>
               {props.solution.description?.department ? props.solution.description?.department : 'NA'}
-            </Text>
+              </Text>
           </View>
           <View style={[styles.flexCol2, styles.wideCol]}>
             <Text style={styles.sectionTitle}>Last Modified On</Text>
@@ -1223,12 +1223,16 @@ export const SummaryPdfDoc = (props: SummaryPdfDocProps) => (
                 )}
               </View>
             </View>
-            <View style={styles.flexLayout}>
-              <Text style={styles.sectionTitle}>Personas</Text>
-              <View style={styles.flexLayout}>{personasList(props.solution?.marketing?.personas)}</View>
+            <View>
+              <Text style={[styles.sectionTitle,styles.setMarginTop]}>Personas</Text>
+              {personasList(props.solution?.marketing?.personas).length ? (
+                <View style={styles.flexLayout}>{personasList(props.solution?.marketing?.personas)}</View>
+              ) : (
+                <Text>NA</Text>
+              )}
             </View>
             <View>
-              <Text style={styles.sectionTitle}>Marketing Roles</Text>
+              <Text style={[styles.sectionTitle,styles.setMarginTop]}>Marketing Roles</Text>
               {props.solution?.marketing?.marketingRoles?.length > 0 ? (
                 <View>
                   {props.solution?.marketing?.marketingRoles?.map((item, index) => {
@@ -1379,8 +1383,8 @@ export const SummaryPdfDoc = (props: SummaryPdfDocProps) => (
                       props.solution.digitalValue.dataValueCalculator.calculatedValueRampUpYearsVO &&
                       props.solution.digitalValue.dataValueCalculator.calculatedValueRampUpYearsVO.savings.length >
                         0 ? (
-                          dataValue(
-                            props.solution.digitalValue.dataValueCalculator.calculatedValueRampUpYearsVO.savings
+                        dataValue(
+                          props.solution.digitalValue.dataValueCalculator.calculatedValueRampUpYearsVO.savings
                           )
                       ) : (
                         <Text>NA</Text>
@@ -1396,8 +1400,8 @@ export const SummaryPdfDoc = (props: SummaryPdfDocProps) => (
                       props.solution.digitalValue.dataValueCalculator.calculatedValueRampUpYearsVO &&
                       props.solution.digitalValue.dataValueCalculator.calculatedValueRampUpYearsVO.revenue?.length >
                         0 ? (
-                          dataValue(
-                            props.solution.digitalValue.dataValueCalculator.calculatedValueRampUpYearsVO.revenue
+                        dataValue(
+                          props.solution.digitalValue.dataValueCalculator.calculatedValueRampUpYearsVO.revenue
                           )
                       ) : (
                         <Text>NA</Text>
