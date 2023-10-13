@@ -1384,7 +1384,6 @@ export const SummaryPdfDoc = (props: SummaryPdfDocProps) => (
                       props.solution.digitalValue.dataValueCalculator.calculatedValueRampUpYearsVO.savings.length >
                         0 ? (
                           dataValue(
-
                             props.solution.digitalValue.dataValueCalculator.calculatedValueRampUpYearsVO.savings
                           )
                       ) : (
@@ -1402,7 +1401,6 @@ export const SummaryPdfDoc = (props: SummaryPdfDocProps) => (
                       props.solution.digitalValue.dataValueCalculator.calculatedValueRampUpYearsVO.revenue?.length >
                         0 ? (
                           dataValue(
-
                             props.solution.digitalValue.dataValueCalculator.calculatedValueRampUpYearsVO.revenue
                           )
                       ) : (
