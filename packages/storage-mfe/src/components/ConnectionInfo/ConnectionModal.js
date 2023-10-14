@@ -38,8 +38,9 @@ export const ConnectionModal = (props) => {
 
   const isDataikuEnabled = Envs.ENABLE_DATAIKU;
 
-  const disableMakeConnectionBtn =
-    !bucketInfo.accessInfo.permission?.write || dataikuProjectList?.length > 0
+  const disableMakeConnectionBtn = !userCanCreateDataiku && !bucketInfo.accessInfo.permission?.write
+    ? true
+    : !bucketInfo.accessInfo.permission?.write || dataikuProjectList?.length > 0
       ? connect?.dataikuProjects?.length === selectedDataikuProjects?.length &&
       (selectedDataikuProjects?.length
         ? dataikuProjectList
@@ -83,10 +84,30 @@ export const ConnectionModal = (props) => {
       bucketsApi
         .getDnaProjectList()
         .then((res) => {
-          res.data?.data?.map((item) => {
+          const dataikuProjects = res.data?.data || [];
+          dataikuProjects.map((item) => {
             item['name'] = `${item.projectKey} (${item.cloudProfile})`;
             return item;
           });
+
+          // Check and add missing projects
+          if (connect.dataikuProjects?.length > 0) {
+            connect.dataikuProjects.forEach((projectString) => {
+              const [projectKey, cloudProfile] = projectString.split(' (');
+              const name = projectString;
+              const id = projectString;
+
+              if (!dataikuProjects.some(item => item.name === name)) {
+                dataikuProjects.push({
+                  name,
+                  projectKey,
+                  isProjectAdmin: false,
+                  cloudProfile: cloudProfile.slice(0, -1), // Removing the trailing ')'
+                  id
+                });
+              }
+            });
+          }
           setDataikuProjectList(res.data?.data);
           setIsLoading(false);
         })
@@ -95,6 +116,7 @@ export const ConnectionModal = (props) => {
           setIsLoading(false);
         });
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [connect.modal, isDataikuEnabled]);
 
   useEffect(() => {
