@@ -1378,10 +1378,10 @@ export const SummaryPdfDoc = (props: SummaryPdfDocProps) => (
                 <>
                   <Text>{SOLUTION_DATA_VALUE_CATEGORY_TYPES[dataValueSavingsKeyValue]} Value Ramup</Text>
                   <View style={[styles.flexLayout]}>
-                    {props.solution.digitalValue ? (
-                      props.solution.digitalValue.dataValueCalculator &&
-                      props.solution.digitalValue.dataValueCalculator.calculatedValueRampUpYearsVO &&
-                      props.solution.digitalValue.dataValueCalculator.calculatedValueRampUpYearsVO.savings.length >
+                    {props.solution?.digitalValue ? (
+                      props.solution.digitalValue?.dataValueCalculator &&
+                      props.solution.digitalValue.dataValueCalculator?.calculatedValueRampUpYearsVO &&
+                      props.solution.digitalValue.dataValueCalculator.calculatedValueRampUpYearsVO?.savings?.length >
                         0 ? (
                           dataValue(
                             props.solution.digitalValue.dataValueCalculator.calculatedValueRampUpYearsVO.savings
