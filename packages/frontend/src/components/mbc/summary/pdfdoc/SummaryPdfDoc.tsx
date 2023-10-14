@@ -334,7 +334,7 @@ const processDataValuesFromObj = (values: any[]) => {
 };
 
 const formatEmptyText = (displayVal: string) => {
-  return displayVal && displayVal !== '' ? displayVal : 'NA';
+  return displayVal && displayVal !== '' && displayVal.toLocaleLowerCase() !== 'choose' ? displayVal : 'NA';
 };
 
 const teamMembersList = (members: ITeams[]) => {
@@ -1223,12 +1223,16 @@ export const SummaryPdfDoc = (props: SummaryPdfDocProps) => (
                 )}
               </View>
             </View>
-            <View style={styles.flexLayout}>
-              <Text style={styles.sectionTitle}>Personas</Text>
-              <View style={styles.flexLayout}>{personasList(props.solution?.marketing?.personas)}</View>
+            <View>
+              <Text style={[styles.sectionTitle, styles.setMarginTop]}>Personas</Text>
+              {personasList(props.solution?.marketing?.personas).length ? (
+                <View style={styles.flexLayout}>{personasList(props.solution?.marketing?.personas)}</View>
+              ) : (
+                <Text>NA</Text>
+              )}
             </View>
             <View>
-              <Text style={styles.sectionTitle}>Marketing Roles</Text>
+              <Text style={[styles.sectionTitle, styles.setMarginTop]}>Marketing Roles</Text>
               {props.solution?.marketing?.marketingRoles?.length > 0 ? (
                 <View>
                   {props.solution?.marketing?.marketingRoles?.map((item, index) => {
