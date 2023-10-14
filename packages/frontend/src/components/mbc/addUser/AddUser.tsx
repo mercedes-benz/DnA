@@ -20,6 +20,7 @@ export interface IAddUserProps {
   isRequired: boolean;
   /** if true then returns privilage search */
   isUserprivilegeSearch: boolean;
+  title?: string;
 }
 
 export interface IAddUserState {
@@ -50,7 +51,7 @@ export default class AddUser extends React.Component<IAddUserProps, IAddUserStat
         <UserprivilegeSearch
           label={
             <>
-              Find Collaborator<sup>*</sup>{' '}
+              Find {this.props.title ? this.props.title : 'Collaborator'}<sup>*</sup>{' '}
               <span dangerouslySetInnerHTML={{ __html: Envs.INTERNAL_USER_TEAMS_INFO }}></span>
             </>
           }
@@ -67,7 +68,7 @@ export default class AddUser extends React.Component<IAddUserProps, IAddUserStat
       <TeamSearch
         label={
           <>
-            Find Collaborator<sup>*</sup>{' '}
+            Find {this.props.title ? this.props.title : 'Collaborator'}<sup>*</sup>{' '}
             <span dangerouslySetInnerHTML={{ __html: Envs.INTERNAL_USER_TEAMS_INFO }}></span>
           </>
         }
