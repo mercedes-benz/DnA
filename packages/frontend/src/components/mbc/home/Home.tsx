@@ -4,7 +4,7 @@ import { IUserInfo } from 'globals/types';
 import Styles from './Home.scss';
 import { Envs } from 'globals/Envs';
 import DNACard from 'components/card/Card';
-import IconCarla from 'components/icons/IconCarla';
+import IconGenAI from 'components/icons/IconGenAI';
 
 export interface ILandingpageProps {
   user: IUserInfo;
@@ -26,7 +26,6 @@ const Home: React.FC<ILandingpageProps> = () => {
                 <br />
                 analytics - all in one place.
               </h5>
-              <p className={Styles.poweredBy}>powered by CarLA</p>
             </div>
             <div className={classNames(Styles.dnaRow, Styles.transparencyCol)}>
               <div className={classNames(Styles.dnaCol6, Styles.transparencyCol)}>
@@ -48,12 +47,12 @@ const Home: React.FC<ILandingpageProps> = () => {
             <div className={classNames(Styles.dnaRow, Styles.fcCol)}>
               <div className={Styles.dnaCol6}>
                 <DNACard
-                  title={'CarLA'}
-                  description={'More Infos about the Cars Analysis Reporting Landscape.'}
+                  title={'GenAI'}
+                  description={'All the Tools and insight you need to start with Artificial Intelligence.'}
                   url={'/carla'}
                   isTextAlignLeft={false}
-                  isDisabled={false}
-                  svgIcon={<IconCarla size="80"/>}
+                  isDisabled={true}
+                  svgIcon={<IconGenAI size="80"/>}
                 />
               </div>
               <div className={Styles.dnaCol6}>
