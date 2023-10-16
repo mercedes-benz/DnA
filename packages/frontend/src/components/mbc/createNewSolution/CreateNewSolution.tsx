@@ -563,7 +563,7 @@ export default class CreateNewSolution extends React.Component<ICreateNewSolutio
                     }
                   >
                     <a href="#tab-content-1" id="description" onClick={this.setCurrentTab}>
-                      Description
+                      Description<sup>*</sup>
                     </a>
                   </li>
                   <li
@@ -583,7 +583,7 @@ export default class CreateNewSolution extends React.Component<ICreateNewSolutio
                     }
                   >
                     <a href="#tab-content-3" id="teams" onClick={this.setCurrentTab}>
-                      Members
+                      Members<sup>*</sup>
                     </a>
                   </li>
                   <li
@@ -594,7 +594,7 @@ export default class CreateNewSolution extends React.Component<ICreateNewSolutio
                     }
                   >
                     <a href="#tab-content-4" id="milestones" onClick={this.setCurrentTab}>
-                      Milestones
+                      Milestones<sup>*</sup>
                     </a>
                   </li>
                   <li
