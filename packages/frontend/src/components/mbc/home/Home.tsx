@@ -26,6 +26,7 @@ const Home: React.FC<ILandingpageProps> = () => {
                 <br />
                 analytics - all in one place.
               </h5>
+              <p className={Styles.poweredBy}></p>
             </div>
             <div className={classNames(Styles.dnaRow, Styles.transparencyCol)}>
               <div className={classNames(Styles.dnaCol6, Styles.transparencyCol)}>
