@@ -1,6 +1,7 @@
 .mainPanel {
   // padding: 72px 0 30px 114px;
   display: flex;
+  width: 100%;
 
   // &.hasRightPanel {
   //   margin-right: 184px;
@@ -190,6 +191,12 @@
       }
     }
   }
+}
+
+.Workspaces {
+  display: flex;
+  flex-wrap: wrap;
+  margin-top: 50px;
 }
 
 .cardViewContainer {
