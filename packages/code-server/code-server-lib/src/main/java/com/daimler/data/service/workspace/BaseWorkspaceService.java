@@ -971,8 +971,11 @@ public class BaseWorkspaceService implements WorkspaceService {
 						case "public-dna-airflow-backend" : workspaceUrl = workspaceUrl + "/" + "packages/airflow-backend"; break;
 						case "public-dna-modal-registry-backend" : workspaceUrl = workspaceUrl + "/" + "packages/model-registry"; break;
 						case "public-dna-trino-backend" : workspaceUrl = workspaceUrl + "/" + "packages/trino-backend"; break;
-						case "public-dna-nass" : workspaceUrl = workspaceUrl + "/" + "packages/naas"; break;			
+						case "public-dna-nass" : workspaceUrl = workspaceUrl + "/" + "packages/naas"; break;
 						case "public-dna-authenticator-backend" : workspaceUrl = workspaceUrl + "/" + "packages/authenticator-service"; break;
+						case "public-dna-matomo-mfe" : workspaceUrl = workspaceUrl + "/" + "packages/matomo-mfe"; break;
+						case "public-dna-matomo-backend" : workspaceUrl = workspaceUrl + "/" + "packages/matomo-backend"; break;
+						case "public-dna-datalake-mfe" : workspaceUrl = workspaceUrl + "/" + "packages/datalake-mfe"; break;
 						
 						}
 					}					
@@ -988,9 +991,9 @@ public class BaseWorkspaceService implements WorkspaceService {
 				responseMessage.setWarnings(warnings);
 				return responseMessage;
 			}else {
-				if(projectRecipe.toLowerCase().startsWith("public")) {
-					log.error("Cannot update public recipe types, deploy n undeploy is disabled");
-					MessageDescription msg = new MessageDescription("Cannot update public recipe types, deploy n undeploy is disabled.");
+				if(projectRecipe.toLowerCase().startsWith("public") || projectRecipe.toLowerCase().startsWith("private")) {
+					log.error("Cannot update public/private recipe types, deploy n undeploy is disabled");
+					MessageDescription msg = new MessageDescription("Cannot update public/private recipe types, deploy n undeploy is disabled.");
 					errors.add(msg);
 					responseMessage.setErrors(errors);
 					return responseMessage;
