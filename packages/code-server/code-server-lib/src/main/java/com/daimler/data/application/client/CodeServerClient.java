@@ -76,6 +76,9 @@ public class CodeServerClient {
 			case "public-dna-trino-backend" : deployType = ConstantsUtility.PUBLIC; break;
 			case "public-dna-nass" : deployType = ConstantsUtility.PUBLIC; break;			
 			case "public-dna-authenticator-backend" : deployType = ConstantsUtility.PUBLIC; break;
+			case "public-dna-matomo-mfe" : deployType = ConstantsUtility.PUBLIC; break;
+			case "public-dna-matomo-backend" : deployType = ConstantsUtility.PUBLIC; break;
+			case "public-dna-datalake-mfe" : deployType = ConstantsUtility.PUBLIC; break;
 			case "public-user-defined" : deployType = ConstantsUtility.PUBLIC; break;
 			case "private-user-defined" : deployType = ConstantsUtility.PUBLIC; break;
 			
