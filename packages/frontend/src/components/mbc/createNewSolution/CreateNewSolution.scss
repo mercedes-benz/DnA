@@ -47,6 +47,11 @@
         right: 20px;
         font-size: var(--font-size-icon-highlight);
       }
+      sup{
+        font-size: 15px;
+        font-style: bold;
+        vertical-align: -px;
+      }
     }
 
     &.valid a::before {
