@@ -236,7 +236,7 @@ const RoleSelect = (props: IPersonaSelectProps) => {
                     <span>Add new roles</span>
                   </button>
                 </div>
-
+                { neededRoleValue.length>0 && (
                 <div className={Styles.roleCountFieldList}>
                   {roleCountFieldList ? (
                     roleCountFieldList.length > 0 ? (
@@ -305,6 +305,7 @@ const RoleSelect = (props: IPersonaSelectProps) => {
                     ''
                   )}
                 </div>
+                )}
               </div>
             </div>
           </div>
