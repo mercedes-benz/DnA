@@ -501,7 +501,11 @@ export default class CreateNewSolution extends React.Component<ICreateNewSolutio
               solution.currentPhase = res.currentPhase;
               solution.team.team = res.team;
               solution.neededRoles = res.skills;
-              solution.dataSources = res.dataSources;
+              const dataSources=res.dataSources;
+              if(!dataSources.dataSources){
+                  dataSources.dataSources=[];
+              }
+              solution.dataSources = dataSources;
               // solution.digitalValue = this.translateToMillions(res.digitalValue);
               // this.digitalValueComponent.current.updateComponentValues(this.translateToMillions(res.digitalValue));
               solution.digitalValue = res.digitalValue;
@@ -933,6 +937,8 @@ export default class CreateNewSolution extends React.Component<ICreateNewSolutio
     const newState = this.state.solution;
     const saveActionType = this.state.saveActionType;
     const currentState = this.state.currentState;
+    console.log(currentState);
+    console.log(newState);
 
     if (!currentState || saveActionType === 'btn' || _.isEqual(newState, currentState)) {
       this.setState({ currentTab: target.id, saveActionType: '' });
