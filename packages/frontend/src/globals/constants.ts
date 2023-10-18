@@ -147,3 +147,5 @@ export const RolesInfoList = [
 ];
 
 export const TOTAL_LOCATIONS_COUNT = 162;
+
+export const OTHER_PLATFORMS = 'Other platforms (e.g. Azure,…)';
