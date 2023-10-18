@@ -210,6 +210,10 @@ public class SolutionCustomRepositoryImpl extends CommonDataRepositoryImpl<Solut
 		if (searchTerms != null && !searchTerms.isEmpty()) {
 			String delimiterSeparatedSearchTerms = searchTerms.stream().map(String::toLowerCase)
 					.collect(Collectors.joining("%|%", "%", "%"));
+			delimiterSeparatedSearchTerms = delimiterSeparatedSearchTerms.replaceAll("\\(", "\\\\(").
+					replaceAll("\\)", "\\\\)").replaceAll("\\[", "\\\\[").
+					replaceAll("\\{", "");
+			
 			delimiterSeparatedSearchTerms = "'" + delimiterSeparatedSearchTerms + "'";
 			return "  and (" + "lower(jsonb_extract_path_text(data,'productName')) similar to "
 					+ delimiterSeparatedSearchTerms + " or " + "lower(jsonb_extract_path_text(data,'tags')) similar to "
