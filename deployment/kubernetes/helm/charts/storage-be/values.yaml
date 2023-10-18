@@ -73,7 +73,7 @@ envs:
   - name: STORAGE_TERMS_OF_USE_URL
     value: ""          
   - name: DATAIKU_PROD_URI
-    value: "https://***REMOVED***/public/api"    
+    value: "***REMOVED***/public/api"    
   - name: DATAIKU_PROD_API_KEY
     valueFrom:
       secretKeyRef:
