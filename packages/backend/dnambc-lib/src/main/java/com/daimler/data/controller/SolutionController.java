@@ -752,11 +752,21 @@ public class SolutionController implements SolutionsApi, ChangelogsApi, Malwares
                 }
             }
 
-            solutionService.deleteById(id);
-            GenericMessage successMsg = new GenericMessage();
-            successMsg.setSuccess("success");
-            LOGGER.info("Solution {} deleted successfully", id);
-            return new ResponseEntity<>(successMsg, HttpStatus.OK);
+            if(solutionService.deleteById(id))
+            {
+                GenericMessage successMsg = new GenericMessage();
+                successMsg.setSuccess("success");
+                LOGGER.info("Solution {} deleted successfully", id);
+                return new ResponseEntity<>(successMsg, HttpStatus.OK);
+            }
+            else{
+                MessageDescription invalidMsg = new MessageDescription("No Solution with the given id");
+                GenericMessage errorMessage = new GenericMessage();
+                errorMessage.addErrors(invalidMsg);
+                LOGGER.error("No Solution with the given id {} , couldnt delete.", id);
+                return new ResponseEntity<>(errorMessage, HttpStatus.NOT_FOUND);
+            }
+            
         } catch (EntityNotFoundException e) {
             MessageDescription invalidMsg = new MessageDescription("No Solution with the given id");
             GenericMessage errorMessage = new GenericMessage();
