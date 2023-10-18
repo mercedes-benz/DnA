@@ -19,6 +19,7 @@ import { chronosApi } from '../../apis/chronos.api';
 // import Spinner from '../spinner/Spinner';
 import InputFiles from '../inputFiles/InputFiles';
 import { getProjectDetails } from '../../redux/projectDetails.services';
+import { Envs } from '../../utilities/envs';
 
 const ProjectDetailsTab = () => {
   const { id: projectId } = useParams();
@@ -173,7 +174,8 @@ const ProjectDetailsTab = () => {
       </div>
       <div className={Styles.content}>
         <h3 id="productName">Access Details for Chronos Forecasting</h3>
-        <ChronosAccessDetails />
+        <p className={Styles.swagger}><a href={Envs.CHRONOS_SWAGGER_URL} target='_blank' rel="noreferrer">API swagger documentation</a></p>
+        <ChronosAccessDetails />  
       </div>
       { editProject &&
         <Modal
