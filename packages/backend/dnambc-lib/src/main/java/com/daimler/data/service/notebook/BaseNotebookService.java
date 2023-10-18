@@ -132,12 +132,12 @@ public class BaseNotebookService extends BaseCommonService<NotebookVO, NotebookN
 							LOGGER.info("Solution {} linked to notebook {} ", solutionId, notebookNsql.getId());
 						}
 					}
-					else {
+				}	
+				else {
 						updateNotebook(null, existingNotebook);
 						sendNotificationForNotebookUnLink = true;
 						LOGGER.info("Solution {} unlinked from notebook {} ", solutionId, existingNotebook.getId());
-					}
-				} 
+					}				 
 			} else {
 				if (dnaNotebookId != null) {
 					Optional<NotebookNsql> notebookOptional = jpaRepo.findById(dnaNotebookId);
@@ -203,7 +203,7 @@ public class BaseNotebookService extends BaseCommonService<NotebookVO, NotebookN
 			 * LOGGER.info("Removed current userid from subscribedUsers");
 			 * subscribedUsers.remove(userId); }
 			 */
-			if (sendNotificationForNotebookLink || sendNotificationForNotebookUnLink)
+			if ((sendNotificationForNotebookLink || sendNotificationForNotebookUnLink) && !StringUtils.isBlank(eventType))
 					kafkaProducer.send(eventType, solutionId, "", userId, message, mailRequired, subscribedUsers,subscribedUsersEmail,null);
 		} catch (Exception e) {
 			LOGGER.error("Failed while publishing notebookevent of eventType {} solutionId {} with exceptionmsg {} ",
