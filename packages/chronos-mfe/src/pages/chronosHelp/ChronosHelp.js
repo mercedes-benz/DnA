@@ -24,6 +24,7 @@ const ChronosHelp = () => {
               {/* <img src={help} height={'150px'} /> */}
               <p>This page is under construction. In case of questions, don&apos;t hesitate to reach out to the team behind Chronos under <a href={`mailto:${Envs.ADS_EMAIL}`}>{Envs.ADS_EMAIL}</a>. Meanwhile, here are some resources that might help you:</p>
               <ul>
+                <li><a href={Envs.CHRONOS_SWAGGER_URL} target='_blank' rel="noreferrer">API swagger documentation</a></li>
                 <li><a href={`/chronos-templates/Chronos_GUI_tutorial.pptx`} download={true}>Chronos Application tutorial</a></li>
                 <li><a href={Envs.CHRONOS_DOCUMENTATION_URL} target='_blank' rel='noopener noreferrer'>Chronos technical documentation</a></li>
               </ul>
