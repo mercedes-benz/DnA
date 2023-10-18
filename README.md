@@ -1,5 +1,5 @@
 <!-- SPDX-License-Identifier: MIT -->
-dss-dev.xto.corpintra.net
+
 <p align="center">
 <img alt="DnA Logo" src="./packages/frontend/public/images/solutionLogoImages/thumbnails/default.jpg" height="150" style="max-width:100%">
 </p>
