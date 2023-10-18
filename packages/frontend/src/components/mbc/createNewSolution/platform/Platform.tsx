@@ -8,6 +8,7 @@ import NotebookInfo, { INotebookInfoRef } from './notebookInfo/NotebookInfo';
 import Styles from './Platform.scss';
 import { Envs } from 'globals/Envs';
 import { getDataikuInstanceTag } from '../../../../services/utils';
+import { OTHER_PLATFORMS } from 'globals/constants';
 const classNames = cn.bind(Styles);
 
 export interface IPlatformProps {
@@ -215,7 +216,7 @@ export default class Platform extends React.Component<IPlatformProps, IPlatformS
                             disabled={disableExistingPlatformCheck}
                           />
                         </span>
-                        <span className="label">Other platforms</span>
+                        <span className="label">{OTHER_PLATFORMS}</span>
                       </label>
                     </div>
                     <div className={Styles.platformTags}>
