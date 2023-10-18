@@ -104,7 +104,7 @@ export interface IDeployRequest {
 
 const CodeSpace = (props: ICodeSpaceProps) => {
   // const [codeSpaceData, setCodeSpaceData] = useState<ICodeSpaceData>({
-  //   url: `https://code-spaces.***REMOVED***/${props.user.id.toLocaleLowerCase()}/default/?folder=/home/coder/projects/default/demo`,
+  //   url: `https://code-spaces.dev.dna.app.corpintra.net/${props.user.id.toLocaleLowerCase()}/default/?folder=/home/coder/projects/default/demo`,
   //   running: false
   // });
   const { id } = getParams();
