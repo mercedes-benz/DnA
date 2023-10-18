@@ -63,7 +63,7 @@ dna:
   dataSource:
      bulkCreate:
         api:
-           accessToken: ${DATASOURCE_BULKCREATE_API_ACCESS_TOKEN:***REMOVED***} 
+           accessToken: ${DATASOURCE_BULKCREATE_API_ACCESS_TOKEN:85ab6f81-b1fa-4c46-a160-c2b46ea780b0} 
       
 hasura:
   baseuri: ${HASURA_BASE_URI:xxxxx}
