@@ -75,7 +75,7 @@ injector:
       exitOnRetryFailure: true
       staticSecretRenderInterval: ""
   agentImage:
-    repository: ***REMOVED***/i3-mirror/docker.io_vault
+    repository: registry.app.corpintra.net/i3-mirror/docker.io_vault
     tag: 1.9.3
   annotations: {}
   authPath: auth/kubernetes
@@ -92,7 +92,7 @@ injector:
   hostNetwork: false
   image:
     pullPolicy: IfNotPresent
-    repository: ***REMOVED***/i3-mirror/docker.io_hashicorp_vault-k8s
+    repository: registry.app.corpintra.net/i3-mirror/docker.io_hashicorp_vault-k8s
     tag: 0.14.2
   leaderElector:
     enabled: true
@@ -213,7 +213,7 @@ server:
     replicas: 3
   image:
     pullPolicy: IfNotPresent
-    repository: ***REMOVED***/i3-mirror/docker.io_vault
+    repository: registry.app.corpintra.net/i3-mirror/docker.io_vault
     tag: 1.9.3
   ingress:
     activeService: true
@@ -383,7 +383,7 @@ injector:
       exitOnRetryFailure: true
       staticSecretRenderInterval: ""
   agentImage:
-    repository: ***REMOVED***/i3-mirror/docker.io_vault
+    repository: registry.app.corpintra.net/i3-mirror/docker.io_vault
     tag: 1.9.3
   annotations: {}
   authPath: auth/kubernetes
@@ -399,7 +399,7 @@ injector:
   hostNetwork: false
   image:
     pullPolicy: IfNotPresent
-    repository: ***REMOVED***/i3-mirror/docker.io_hashicorp_vault-k8s
+    repository: registry.app.corpintra.net/i3-mirror/docker.io_hashicorp_vault-k8s
     tag: 0.14.2
   leaderElector:
     enabled: true
@@ -513,7 +513,7 @@ server:
     replicas: 3
   image:
     pullPolicy: IfNotPresent
-    repository: ***REMOVED***/i3-mirror/docker.io_vault
+    repository: registry.app.corpintra.net/i3-mirror/docker.io_vault
     tag: 1.9.3
   ingress:
     activeService: true
@@ -624,7 +624,7 @@ spec:
   
   containers:
     - name: vault-server-test
-      image: ***REMOVED***/i3-mirror/docker.io_vault:1.9.3
+      image: registry.app.corpintra.net/i3-mirror/docker.io_vault:1.9.3
       imagePullPolicy: IfNotPresent
       env:
         - name: VAULT_ADDR
@@ -919,7 +919,7 @@ spec:
       containers:
         - name: sidecar-injector
           
-          image: "***REMOVED***/i3-mirror/docker.io_hashicorp_vault-k8s:0.14.2"
+          image: "registry.app.corpintra.net/i3-mirror/docker.io_hashicorp_vault-k8s:0.14.2"
           imagePullPolicy: "IfNotPresent"
           securityContext:
             allowPrivilegeEscalation: false
@@ -933,7 +933,7 @@ spec:
             - name: AGENT_INJECT_VAULT_AUTH_PATH
               value: auth/kubernetes
             - name: AGENT_INJECT_VAULT_IMAGE
-              value: "***REMOVED***/i3-mirror/docker.io_vault:1.9.3"
+              value: "registry.app.corpintra.net/i3-mirror/docker.io_vault:1.9.3"
             - name: AGENT_INJECT_TLS_AUTO
               value: vault-agent-injector-cfg
             - name: AGENT_INJECT_TLS_AUTO_HOSTS
@@ -1047,7 +1047,7 @@ spec:
       containers:
         - name: vault
           
-          image: ***REMOVED***/i3-mirror/docker.io_vault:1.9.3
+          image: registry.app.corpintra.net/i3-mirror/docker.io_vault:1.9.3
           imagePullPolicy: IfNotPresent
           command:
           - "/bin/sh"
