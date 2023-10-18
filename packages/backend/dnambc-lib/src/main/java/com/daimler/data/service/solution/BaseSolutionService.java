@@ -42,6 +42,8 @@ import javax.validation.Valid;
 
 import com.daimler.data.db.jsonb.solution.*;
 import com.daimler.data.dto.attachment.FileDetailsVO;
+import com.daimler.data.dto.solution.SolutionDataComplianceVO;
+import com.daimler.data.dto.solution.SolutionDigitalValueVO;
 import com.daimler.data.dto.solution.*;
 import com.daimler.data.service.attachment.AttachmentService;
 import org.apache.commons.lang3.time.DateUtils;
@@ -72,7 +74,7 @@ import com.daimler.data.db.repo.solution.SolutionRepository;
 import com.daimler.data.dto.algorithm.AlgorithmVO;
 import com.daimler.data.dto.datasource.DataSourceVO;
 import com.daimler.data.dto.divisions.DivisionVO;
-import com.daimler.data.dto.divisions.SubdivisionVO;
+import com.daimler.data.dto.divisions.SubdivisionVO; 
 import com.daimler.data.dto.language.LanguageVO;
 import com.daimler.data.dto.marketingRole.MarketingRoleVO;
 import com.daimler.data.dto.notebook.NotebookVO;
@@ -229,14 +231,59 @@ public class BaseSolutionService extends BaseCommonService<SolutionVO, SolutionN
 			boolean found = false;
 			String prevFileName, curFileName;
 			List<FileDetailsVO> prevFileList = prevVo.getAttachments();
+			SolutionDataComplianceVO prevDataCompliance = prevVo.getDataCompliance();
+			// prevFileList.addAll(prevDataCompliance.getAttachments());
+			List<FileDetailsVO> prevDataComplianceFileList = prevDataCompliance.getAttachments();
+			SolutionDigitalValueVO prevDigitalValue = prevVo.getDigitalValue();
+			List<FileDetailsVO> prevDigitalValueFileList = prevDigitalValue.getAttachments();
+			// prevFileList.addAll(prevDigitalValue.getAttachments());
 			String productName = prevVo.getProductName();
 			List<FileDetailsVO> curFileList = vo.getAttachments();
+			SolutionDataComplianceVO curDataCompliance = vo.getDataCompliance();
+			List<FileDetailsVO> curDataComplianceFileList = curDataCompliance.getAttachments();
+			SolutionDigitalValueVO curDigitalValue = vo.getDigitalValue();
+			List<FileDetailsVO> curDigitalValueFileList = curDataCompliance.getAttachments();
+			// curFileList.addAll(curDataCompliance.getAttachments());
+			// curFileList.addAll(curDigitalValue.getAttachments());
 			FileDetailsVO tempFile= null;
 			try {
+				//deleteing unused attachments
 				if (prevFileList != null && !prevFileList.isEmpty()) {
 					for (FileDetailsVO prevFile : prevFileList) {
 						if (curFileList != null && !curFileList.isEmpty() && prevFile.getId() != null) {
 							tempFile = curFileList.stream().filter(x -> prevFile.getId().equalsIgnoreCase(x.getId())).findAny().orElse(null);
+						}
+						if (tempFile == null) {
+							try {
+								attachmentService.deleteFileFromS3Bucket(prevFile.getId());
+								log.info("Deleting unused attachment found after solution update");
+							}catch (Exception e){
+								log.error("Failed to delete attachment from solution with an exception {}", e.getMessage());
+							}
+						}
+					}
+				}
+				//deleteing unused  digitalvalue attachments
+				if (prevDigitalValueFileList != null && !prevDigitalValueFileList.isEmpty()) {
+					for (FileDetailsVO prevFile : prevDigitalValueFileList) {
+						if (curDigitalValueFileList != null && !curDigitalValueFileList.isEmpty() && prevFile.getId() != null) {
+							tempFile = curDigitalValueFileList.stream().filter(x -> prevFile.getId().equalsIgnoreCase(x.getId())).findAny().orElse(null);
+						}
+						if (tempFile == null) {
+							try {
+								attachmentService.deleteFileFromS3Bucket(prevFile.getId());
+								log.info("Deleting unused attachment found after solution update");
+							}catch (Exception e){
+								log.error("Failed to delete attachment from solution with an exception {}", e.getMessage());
+							}
+						}
+					}
+				}
+				//deleteing unused datacompliance attachments
+				if (prevDataComplianceFileList != null && !prevDataComplianceFileList.isEmpty()) {
+					for (FileDetailsVO prevFile : prevDataComplianceFileList) {
+						if (curDataComplianceFileList != null && !curDataComplianceFileList.isEmpty() && prevFile.getId() != null) {
+							tempFile = curDataComplianceFileList.stream().filter(x -> prevFile.getId().equalsIgnoreCase(x.getId())).findAny().orElse(null);
 						}
 						if (tempFile == null) {
 							try {
