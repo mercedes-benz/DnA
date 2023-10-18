@@ -344,7 +344,9 @@ public class BaseSolutionService extends BaseCommonService<SolutionVO, SolutionN
 		}
 		if (isPublishedOrCreated) {
 			LOGGER.debug("Publishing message on solution event for solution {} ", solutionName);
-			this.publishEventMessages(eventType, solutionId, changeLogs, solutionName, teamMembers, teamMembersEmails);
+			if (StringUtils.hasText(eventType)) {
+				this.publishEventMessages(eventType, solutionId, changeLogs, solutionName, teamMembers, teamMembersEmails);
+			}
 		} else {
 			LOGGER.debug(
 					"Not publishing message on solution event for solution {} , as it is still in draft stage and not published",
