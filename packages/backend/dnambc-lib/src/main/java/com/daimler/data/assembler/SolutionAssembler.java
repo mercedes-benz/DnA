@@ -49,6 +49,9 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
+import com.daimler.data.db.jsonb.solution.*;
+import com.daimler.data.dto.analyticsSolution.AnalyticsSolutionVO;
+import com.daimler.data.dto.solution.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
@@ -58,47 +61,6 @@ import org.springframework.util.StringUtils;
 
 import com.daimler.data.db.entities.SolutionNsql;
 import com.daimler.data.db.jsonb.SubDivision;
-import com.daimler.data.db.jsonb.solution.AssessmentDetails;
-import com.daimler.data.db.jsonb.solution.CalculatedDigitalValue;
-import com.daimler.data.db.jsonb.solution.CalculatedValueRampUpYears;
-import com.daimler.data.db.jsonb.solution.ChangeLogs;
-import com.daimler.data.db.jsonb.solution.CostDriver;
-import com.daimler.data.db.jsonb.solution.CostFactorSummary;
-import com.daimler.data.db.jsonb.solution.CreatedBy;
-import com.daimler.data.db.jsonb.solution.CurrentPhase;
-import com.daimler.data.db.jsonb.solution.DataValueCalculator;
-import com.daimler.data.db.jsonb.solution.DataValueRampUpYear;
-import com.daimler.data.db.jsonb.solution.Factor;
-import com.daimler.data.db.jsonb.solution.FileDetails;
-import com.daimler.data.db.jsonb.solution.LogoDetails;
-import com.daimler.data.db.jsonb.solution.MarketingRoleSummary;
-import com.daimler.data.db.jsonb.solution.RampUpYear;
-import com.daimler.data.db.jsonb.solution.SkillSummary;
-import com.daimler.data.db.jsonb.solution.Solution;
-import com.daimler.data.db.jsonb.solution.SolutionAlgorithm;
-import com.daimler.data.db.jsonb.solution.SolutionComplianceLink;
-import com.daimler.data.db.jsonb.solution.SolutionCustomerJourneyPhase;
-import com.daimler.data.db.jsonb.solution.SolutionDataCompliance;
-import com.daimler.data.db.jsonb.solution.SolutionDataVolume;
-import com.daimler.data.db.jsonb.solution.SolutionDatasource;
-import com.daimler.data.db.jsonb.solution.SolutionDigitalValue;
-import com.daimler.data.db.jsonb.solution.SolutionDivision;
-import com.daimler.data.db.jsonb.solution.SolutionLanguage;
-import com.daimler.data.db.jsonb.solution.SolutionLocation;
-import com.daimler.data.db.jsonb.solution.SolutionMarketingCommunicationChannel;
-import com.daimler.data.db.jsonb.solution.SolutionMilestone;
-import com.daimler.data.db.jsonb.solution.SolutionPersonalization;
-import com.daimler.data.db.jsonb.solution.SolutionPhase;
-import com.daimler.data.db.jsonb.solution.SolutionPlatform;
-import com.daimler.data.db.jsonb.solution.SolutionProjectStatus;
-import com.daimler.data.db.jsonb.solution.SolutionResult;
-import com.daimler.data.db.jsonb.solution.SolutionRollOut;
-import com.daimler.data.db.jsonb.solution.SolutionRollOutDetail;
-import com.daimler.data.db.jsonb.solution.SolutionTeamMember;
-import com.daimler.data.db.jsonb.solution.SolutionVisualization;
-import com.daimler.data.db.jsonb.solution.ValueCalculator;
-import com.daimler.data.db.jsonb.solution.ValueDriver;
-import com.daimler.data.db.jsonb.solution.ValueFactorSummary;
 import com.daimler.data.dto.algorithm.AlgorithmVO;
 import com.daimler.data.dto.attachment.FileDetailsVO;
 import com.daimler.data.dto.customerJourneyPhase.CustomerJourneyPhaseVO;
@@ -107,48 +69,8 @@ import com.daimler.data.dto.language.LanguageVO;
 import com.daimler.data.dto.marketingCommunicationChannel.MarketingCommunicationChannelVO;
 import com.daimler.data.dto.platform.PlatformVO;
 import com.daimler.data.dto.result.ResultVO;
-import com.daimler.data.dto.solution.AssessmentDetailsVO;
-import com.daimler.data.dto.solution.CalculatedDataValueRampUpYearVO;
-import com.daimler.data.dto.solution.CalculatedDataValueRampupYearsVO;
-import com.daimler.data.dto.solution.CalculatedDigitalValueVO;
-import com.daimler.data.dto.solution.CalculatedValueRampUpYearVO;
-import com.daimler.data.dto.solution.ChangeLogVO;
-import com.daimler.data.dto.solution.CostFactorSummaryVO;
-import com.daimler.data.dto.solution.CostFactorVO;
-import com.daimler.data.dto.solution.CostRampUpYearVO;
-import com.daimler.data.dto.solution.CreatedByVO;
-import com.daimler.data.dto.solution.DataSourceSummaryVO;
-import com.daimler.data.dto.solution.DataValueCalculatorVO;
-import com.daimler.data.dto.solution.LinkVO;
-import com.daimler.data.dto.solution.LogoDetailsVO;
-import com.daimler.data.dto.solution.MarketingRoleSummaryVO;
-import com.daimler.data.dto.solution.MilestoneVO;
-import com.daimler.data.dto.solution.PersonalizationVO;
-import com.daimler.data.dto.solution.SkillSummaryVO;
-import com.daimler.data.dto.solution.SolutionAnalyticsVO;
-import com.daimler.data.dto.solution.SolutionCollection;
-import com.daimler.data.dto.solution.SolutionCurrentPhase;
-import com.daimler.data.dto.solution.SolutionDataComplianceVO;
-import com.daimler.data.dto.solution.SolutionDataSourceVO;
-import com.daimler.data.dto.solution.SolutionDigitalValueVO;
 import com.daimler.data.dto.solution.SolutionDigitalValueVO.TypeOfCalculationEnum;
-import com.daimler.data.dto.solution.SolutionDivisionVO;
-import com.daimler.data.dto.solution.SolutionLocationVO;
-import com.daimler.data.dto.solution.SolutionMarketingVO;
-import com.daimler.data.dto.solution.SolutionMilestonePhaseVO;
-import com.daimler.data.dto.solution.SolutionPhaseVO;
-import com.daimler.data.dto.solution.SolutionPortfolioVO;
-import com.daimler.data.dto.solution.SolutionProjectStatusVO;
-import com.daimler.data.dto.solution.SolutionRolloutDetailsVO;
-import com.daimler.data.dto.solution.SolutionRolloutPhaseVO;
-import com.daimler.data.dto.solution.SolutionSharingVO;
-import com.daimler.data.dto.solution.SolutionVO;
-import com.daimler.data.dto.solution.TeamMemberVO;
 import com.daimler.data.dto.solution.TeamMemberVO.UserTypeEnum;
-import com.daimler.data.dto.solution.ValueCalculatorVO;
-import com.daimler.data.dto.solution.ValueFactorSummaryVO;
-import com.daimler.data.dto.solution.ValueFactorVO;
-import com.daimler.data.dto.solution.ValueRampUpYearVO;
 import com.daimler.data.dto.visualization.VisualizationVO;
 import com.daimler.data.util.ConstantsUtility;
 import com.google.common.collect.MapDifference;
@@ -460,6 +382,18 @@ public class SolutionAssembler implements GenericAssembler<SolutionVO, SolutionN
 					}
 				}
 			}
+
+			List<AnalyticsSolutionDetails> analyticsSolutions = solution.getAnalyticsSolutions();
+			List<AnalyticsSolutionVO> analyticsSolutionsVO = new ArrayList<>();
+			if (analyticsSolutions != null && !analyticsSolutions.isEmpty()) {
+				for (AnalyticsSolutionDetails analyticsSolution : analyticsSolutions) {
+					if (analyticsSolution != null) {
+						AnalyticsSolutionVO analyticsSolutionVO = new AnalyticsSolutionVO();
+						BeanUtils.copyProperties(analyticsSolution, analyticsSolutionVO);
+						analyticsSolutionsVO.add(analyticsSolutionVO);
+					}
+				}
+			}
 									
 			List<SolutionCustomerJourneyPhase> customerJourneyPhases = solution.getCustomerJourneyPhases();
 			List<CustomerJourneyPhaseVO> customerJourneyPhasesVO = new ArrayList<>();
@@ -519,6 +453,7 @@ public class SolutionAssembler implements GenericAssembler<SolutionVO, SolutionN
 			analyticsVO.setAlgorithms(algorithmsVO);
 			analyticsVO.setLanguages(languagesVO);
 			analyticsVO.setVisualizations(visualizationsVO);
+			analyticsVO.setAnalyticsSolution(analyticsSolutionsVO);
 			vo.setAnalytics(analyticsVO);
 
 			SolutionSharingVO sharingVO = new SolutionSharingVO();
@@ -1262,7 +1197,18 @@ public class SolutionAssembler implements GenericAssembler<SolutionVO, SolutionN
 					solution.setVisualizations(visualizations);
 				}
 			}
-
+			List<AnalyticsSolutionVO> analyticsSolutionsVO = analyticsVO.getAnalyticsSolution();
+			if (analyticsSolutionsVO != null && !analyticsSolutionsVO.isEmpty()) {
+				List<AnalyticsSolutionDetails> analyticsSolutions = new ArrayList<>();
+				for (AnalyticsSolutionVO analyticsSolutionVO : analyticsSolutionsVO) {
+					if (analyticsSolutionVO != null) {
+						AnalyticsSolutionDetails analyticsSolution = new AnalyticsSolutionDetails();
+						BeanUtils.copyProperties(analyticsSolutionVO, analyticsSolution);
+						analyticsSolutions.add(analyticsSolution);
+					}
+				}
+				solution.setAnalyticsSolutions(analyticsSolutions);
+			}
 			SolutionSharingVO sharingVO = vo.getSharing();
 			if (sharingVO != null) {
 				solution.setGitUrl(sharingVO.getGitUrl());

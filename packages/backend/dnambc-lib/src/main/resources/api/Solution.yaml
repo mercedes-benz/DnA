@@ -825,6 +825,11 @@ definitions:
         type: array
         items:
           $ref: "#/definitions/VisualizationVO"
+      analyticsSolution:
+        type: array
+        items:
+          $ref: "#/definitions/AnalyticsSolutionVO"
+
   
   SolutionMarketingVO:
     type: object
@@ -928,6 +933,20 @@ definitions:
         description: "Name of the Visualization"
         minLength: 1
     #       pattern: '[a-zA-Z\s]+'
+    required:
+      - name
+
+  AnalyticsSolutionVO:
+    type: object
+    properties:
+      name:
+        type: string
+        description: "Name of the Analytics Solution"
+        minLength: 1
+      #      pattern: '[a-zA-Z\s]+'
+      id:
+        type: string
+        description: "ID of the Analytics Solution"
     required:
       - name
 

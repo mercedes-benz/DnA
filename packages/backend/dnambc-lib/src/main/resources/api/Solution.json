@@ -12,6 +12,7 @@
     "AlgorithmVO": "com.daimler.data.dto.algorithm.AlgorithmVO",
     "DataVolumeVO": "com.daimler.data.dto.datavolume.DataVolumeVO",
     "VisualizationVO": "com.daimler.data.dto.visualization.VisualizationVO",
+    "AnalyticsSolutionVO": "com.daimler.data.dto.analyticsSolution.AnalyticsSolutionVO",
     "ResultVO": "com.daimler.data.dto.result.ResultVO",
     "PlatformVO":"com.daimler.data.dto.platform.PlatformVO",
     "BindingResult": "org.springframework.validation.BindingResult",
