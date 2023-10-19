@@ -149,7 +149,7 @@ const MainNavigation: React.FC<IMainNavigationProps> = (props) => {
     {
       id: 2,
       title: 'GenAI',
-      icon: 'carla-mini',
+      icon: 'gen-ai',
       enabled: false,
       subNavItems: [
            {
