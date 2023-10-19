@@ -13,7 +13,7 @@ spring:
       port: ${VAULT_PORT:8200}
       scheme: ${VAULT_SCHEME:http}
       authentication: ${VAULT_AUTHENTICATION:TOKEN}
-      token: ${VAULT_TOKEN:***REMOVED***}
+      token: ${VAULT_TOKEN:00000000-0000-0000-0000-000000000000}
       mountpath: ${VAULT_MOUNTPATH:secret}
       vaultpath: ${VAULT_PATH:dna}
       kv:
