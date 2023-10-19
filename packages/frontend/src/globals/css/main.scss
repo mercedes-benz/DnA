@@ -1400,6 +1400,9 @@
     &.carla-mini::before {
       content: "\e961";
     }
+    &.gen-ai::before{
+      content:"\e98c";
+    }
     &.malwarescan::before {
       content: "\e978";
     }
