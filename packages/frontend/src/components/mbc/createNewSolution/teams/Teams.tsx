@@ -643,19 +643,20 @@ export default class Teams extends React.Component<ITeamProps, ITeamsState> {
       this.props.modifyTeam(tempTeamsObj, this.state.roleCountFieldList);
     });
   };
+
   protected NumberChange =(value: string)=>{
-    const tempVal= value !== null && value !== '' ? new Intl.NumberFormat(navigator.language).format(
-        Number(value)) : '';
+    const tempVal = value !== null && value !== '' ? new Intl.NumberFormat(navigator.language).format(Number(value)) : '';
     return tempVal;
   };
+
   protected handleBlur=(event :any, index :any)=>{
-    const value=event.target.value;
-    if(value === null || value ===''){
+    const value = event.target.value;
+    if(value === null || value === ''){
       const updatedRoleCountFieldList = [...this.state.roleCountFieldList];
       updatedRoleCountFieldList[index].requestedFTECount = '0';
-      this.setState({roleCountFieldList : updatedRoleCountFieldList});
+      this.setState({ roleCountFieldList: updatedRoleCountFieldList});
     }
-    };
+  };
   
   protected changeDotWithComma = (text: any) => {
     return text.replace('.', ',');
