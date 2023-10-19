@@ -41,8 +41,10 @@ import javax.persistence.EntityNotFoundException;
 import javax.validation.Valid;
 
 import com.daimler.data.db.jsonb.solution.*;
+import com.daimler.data.dto.analyticsSolution.AnalyticsSolutionVO;
 import com.daimler.data.dto.attachment.FileDetailsVO;
 import com.daimler.data.dto.solution.*;
+import com.daimler.data.service.analyticsSolution.AnalyticsSolutionService;
 import com.daimler.data.service.attachment.AttachmentService;
 import org.apache.commons.lang3.time.DateUtils;
 import org.slf4j.Logger;
@@ -131,6 +133,9 @@ public class BaseSolutionService extends BaseCommonService<SolutionVO, SolutionN
 	private AlgorithmService algorithmService;
 	@Autowired
 	private VisualizationService visualizationService;
+
+	@Autowired
+	private AnalyticsSolutionService analyticsSolutionService;
 	@Autowired
 	private PlatformService platformService;
 	@Autowired
@@ -280,6 +285,9 @@ public class BaseSolutionService extends BaseCommonService<SolutionVO, SolutionN
 			List<VisualizationVO> visualizations = analyticsVO.getVisualizations();
 			List<VisualizationVO> visualizationsWithIds = updateVisualization(visualizations);
 			analyticsWithIdsInfo.setVisualizations(visualizationsWithIds);
+			List<AnalyticsSolutionVO> analyticsSolutions = analyticsVO.getAnalyticsSolution();
+			List<AnalyticsSolutionVO> analyticsSolutionsWithIds = updateAnalyticsSolutions(analyticsSolutions);
+			analyticsWithIdsInfo.setAnalyticsSolution(analyticsSolutionsWithIds);
 			vo.setAnalytics(analyticsWithIdsInfo);
 		}
 		SolutionPortfolioVO portfolioVO = vo.getPortfolio();
@@ -843,6 +851,31 @@ public class BaseSolutionService extends BaseCommonService<SolutionVO, SolutionN
 			}).collect(Collectors.toList());
 		}
 		return visualizationsWithIds;
+	}
+
+	private List<AnalyticsSolutionVO> updateAnalyticsSolutions(List<AnalyticsSolutionVO> analyticsSolutions) {
+		List<AnalyticsSolutionVO> analyticsSolutionsWithIds = new ArrayList<>();
+		List<AnalyticsSolutionVO> existingAnalyticsSolutions = analyticsSolutionService.getAll();
+		boolean analyticsSolutionsExists = false;
+		if (existingAnalyticsSolutions != null && !existingAnalyticsSolutions.isEmpty())
+			analyticsSolutionsExists = true;
+		final boolean analyticsSolutionsExistsFinal = analyticsSolutionsExists;
+		if (analyticsSolutions != null && !analyticsSolutions.isEmpty()) {
+			analyticsSolutionsWithIds = analyticsSolutions.stream().map(analyticsSolution -> {
+				if (analyticsSolutionsExistsFinal) {
+					AnalyticsSolutionVO existingAnalyticsSolutionWithId = existingAnalyticsSolutions.stream()
+							.filter(n -> analyticsSolution.getName().equalsIgnoreCase(n.getName())).findAny().orElse(null);
+					if (existingAnalyticsSolutionWithId != null)
+						return existingAnalyticsSolutionWithId;
+				}
+				AnalyticsSolutionVO newAnalyticsSolutionVO = new AnalyticsSolutionVO();
+				newAnalyticsSolutionVO.setId(null);
+				newAnalyticsSolutionVO.setName(analyticsSolution.getName());
+				newAnalyticsSolutionVO = analyticsSolutionService.create(newAnalyticsSolutionVO);
+				return newAnalyticsSolutionVO;
+			}).collect(Collectors.toList());
+		}
+		return analyticsSolutionsWithIds;
 	}
 
 	private List<PlatformVO> updatePlatforms(List<PlatformVO> platforms) {
