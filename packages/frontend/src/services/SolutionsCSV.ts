@@ -269,50 +269,55 @@ export const getDataForCSV = (
             bookmarked: solution.bookmarked ? 'Yes' : 'No',
             location:
               solution.locations && solution.locations.length > 0
-                ? solution.locations.length === TOTAL_LOCATIONS_COUNT ? 'All' : solution.locations.map((location) => location.name).join('|')
+                ? solution.locations.length === TOTAL_LOCATIONS_COUNT
+                  ? 'All'
+                  : solution.locations.map((location) => location.name).join('|')
                 : 'NA',
-            department: solution.department ? solution.department : 'NA',    
+            department: solution.department ? solution.department : 'NA',
             expectedBenefits: solution.expectedBenefits ? sanitize(solution.expectedBenefits) : 'NA',
             businessNeed: solution.businessNeed ? sanitize(solution.businessNeed) : 'NA',
             additionalResource: solution.additionalResource ? solution.additionalResource : 'NA',
             neededRoles:
               solution.skills && solution.skills.length > 0
                 ? solution.skills
-                    .map((item) =>{
-                      if(Number(item.requestedFTECount) > 0)
-                      return item.neededSkill + '(' + item.requestedFTECount + ')';
+                    .map((item) => {
+                      if (Number(item.requestedFTECount) > 0)
+                        return item.neededSkill + '(' + item.requestedFTECount + ')';
                     })
                     .join('|')
                 : 'NA',
-            dataStrategyDomain: solution.dataStrategyDomain ? sanitize(solution.dataStrategyDomain) : 'NA',
+            dataStrategyDomain:
+              solution.dataStrategyDomain && solution.dataStrategyDomain.toLocaleLowerCase() !== 'choose'
+                ? sanitize(solution.dataStrategyDomain)
+                : 'NA',
             team:
               solution.team && solution.team.length > 0
                 ? solution.team.map((member) => member.shortId).join('|')
                 : 'NA',
-            kickoff: 
-              solution.milestones && solution.milestones.phases && solution.milestones.phases.length > 0 
+            kickoff:
+              solution.milestones && solution.milestones.phases && solution.milestones.phases.length > 0
                 ? setMilestonesPhases(solution.milestones.phases, 1)
                 : 'NA',
-            ideation: 
-              solution.milestones && solution.milestones.phases && solution.milestones.phases.length > 0 
+            ideation:
+              solution.milestones && solution.milestones.phases && solution.milestones.phases.length > 0
                 ? setMilestonesPhases(solution.milestones.phases, 2)
-                : 'NA',   
+                : 'NA',
             conceptDevelopment:
-              solution.milestones && solution.milestones.phases && solution.milestones.phases.length > 0 
+              solution.milestones && solution.milestones.phases && solution.milestones.phases.length > 0
                 ? setMilestonesPhases(solution.milestones.phases, 3)
-                : 'NA',   
+                : 'NA',
             pilot:
-              solution.milestones && solution.milestones.phases && solution.milestones.phases.length > 0 
+              solution.milestones && solution.milestones.phases && solution.milestones.phases.length > 0
                 ? setMilestonesPhases(solution.milestones.phases, 4)
-                : 'NA',  
+                : 'NA',
             professionalization:
-              solution.milestones && solution.milestones.phases && solution.milestones.phases.length > 0 
+              solution.milestones && solution.milestones.phases && solution.milestones.phases.length > 0
                 ? setMilestonesPhases(solution.milestones.phases, 5)
-                : 'NA',        
-            rolloutLocations: 
-              solution.milestones && solution.milestones.rollouts && solution.milestones.rollouts.details.length > 0 
+                : 'NA',
+            rolloutLocations:
+              solution.milestones && solution.milestones.rollouts && solution.milestones.rollouts.details.length > 0
                 ? setRolloutLocations(solution.milestones.rollouts.details)
-                : 'NA',       
+                : 'NA',
             dataSources:
               solution.dataSources && solution.dataSources.dataSources && solution.dataSources.dataSources.length > 0
                 ? setDataSources(solution.dataSources.dataSources, dataSourcesList)
@@ -341,19 +346,42 @@ export const getDataForCSV = (
               solution.analytics && solution.analytics.visualizations && solution.analytics.visualizations.length > 0
                 ? sanitize(solution.analytics.visualizations.map((visualization) => visualization.name).join('|'))
                 : 'NA',
-            gitRepository: solution.sharing ? solution.sharing.gitUrl : 'NA',
-            results: solution.sharing && solution.sharing.result ? sanitize(solution.sharing.result.name) : 'NA',
-            comment: solution.sharing ? sanitize(solution.sharing.resultUrl) : 'NA',
-            customerJourneyPhases: solution.marketing ? solution.marketing?.customerJourneyPhases.map(item=>item.name).join('|') : 'NA',
-            marketingCommunicationChannel: solution.marketing ? solution.marketing?.marketingCommunicationChannels.map(item=>item.name).join('|') : 'NA',
-            personas: solution.marketing ? solution.marketing?.personas?.length > 0 ? solution.marketing?.personas?.join('|') : 'NA': 'NA',
+            gitRepository: solution.sharing ? (solution.sharing.gitUrl ? solution.sharing.gitUrl : 'NA') : 'NA',
+            results:
+              solution.sharing &&
+              solution.sharing.result &&
+              solution.sharing.result.name.toLocaleLowerCase() !== 'choose'
+                ? sanitize(solution.sharing.result.name)
+                : 'NA',
+            comment: solution.sharing ? sanitize(solution.sharing.resultUrl ? solution.sharing.resultUrl : 'NA') : 'NA',
+            customerJourneyPhases: solution.marketing
+              ? solution.marketing.customerJourneyPhases.length > 0
+                ? solution.marketing?.customerJourneyPhases.map((item) => item.name).join('|')
+                : 'NA'
+              : 'NA',
+            marketingCommunicationChannel:
+              solution.marketing && solution.marketing.marketingCommunicationChannels.length > 0
+                ? solution.marketing?.marketingCommunicationChannels.map((item) => item.name).join('|')
+                : 'NA',
+            personas: solution.marketing
+              ? solution.marketing?.personas?.length > 0
+                ? solution.marketing?.personas?.join('|')
+                : 'NA'
+              : 'NA',
             personalization: solution.marketing?.personalization.isChecked,
-            personalizationDescription: solution.marketing?.personalization.description ? solution.marketing?.personalization.description : 'NA',
-            marketingRoles: solution.marketing ? solution.marketing?.marketingRoles?.map(item=>item.role).join('|') : 'NA',
+            personalizationDescription: solution.marketing?.personalization.description
+              ? solution.marketing?.personalization.description
+              : 'NA',
+            marketingRoles: solution.marketing
+              ? solution.marketing.marketingRoles.length > 0
+                ? solution.marketing?.marketingRoles?.map((item) => item.role).join('|')
+                : 'NA'
+              : 'NA',
             publish: solution.publish ? 'Yes' : 'No',
             reasonForHoldOrClose: solution.reasonForHoldOrClose ? sanitize(solution.reasonForHoldOrClose) : 'NA',
             ...dataComplianceOBJ,
-            maturityLevel: solution.digitalValue ? solution.digitalValue.maturityLevel : 'NA',
+            maturityLevel:
+              solution.digitalValue && solution.digitalValue.maturityLevel ? solution.digitalValue.maturityLevel : 'NA',
             controller:
               solution.digitalValue &&
               solution.digitalValue.projectControllers &&
@@ -401,40 +429,46 @@ export const getDataForCSV = (
                 ? solution.digitalValue.valueCalculator.breakEvenPoint
                 : 'NA',
             benefitRealizationRisk:
-              solution.digitalValue && solution.digitalValue.assessment
+              solution.digitalValue &&
+              solution.digitalValue.assessment &&
+              solution.digitalValue.assessment.benefitRealizationRisk
                 ? solution.digitalValue.assessment.benefitRealizationRisk
                 : 'NA',
             commentOnBenefitRealizationRisk:
-              solution.digitalValue && solution.digitalValue.assessment
+              solution.digitalValue &&
+              solution.digitalValue.assessment &&
+              solution.digitalValue.assessment.commentOnBenefitRealizationRisk
                 ? solution.digitalValue.assessment.commentOnBenefitRealizationRisk !== null
                   ? sanitize(solution.digitalValue.assessment.commentOnBenefitRealizationRisk)
                   : 'NA'
                 : 'NA',
             commentOnStrategicRelevance:
-              solution.digitalValue && solution.digitalValue.assessment
+              solution.digitalValue &&
+              solution.digitalValue.assessment &&
+              solution.digitalValue.assessment.commentOnStrategicRelevance
                 ? solution.digitalValue.assessment.commentOnStrategicRelevance !== null
                   ? sanitize(solution.digitalValue.assessment.commentOnStrategicRelevance)
                   : 'NA'
                 : 'NA',
             strategicRelevance:
-              solution.digitalValue && solution.digitalValue.assessment
+              solution.digitalValue &&
+              solution.digitalValue.assessment &&
+              solution.digitalValue.assessment.strategicRelevance
                 ? solution.digitalValue.assessment.strategicRelevance
                 : 'NA',
             digitalValueAttachedFiles:
-              solution.digitalValue &&
-              solution.digitalValue.attachments &&
-              solution.digitalValue.attachments.length > 0
+              solution.digitalValue && solution.digitalValue.attachments && solution.digitalValue.attachments.length > 0
                 ? solution.digitalValue.attachments.map((attachment) => attachment.fileName).join('|')
                 : 'NA',
             digitalValuePermissions:
-              solution.digitalValue &&
-              solution.digitalValue.permissions &&
-              solution.digitalValue.permissions.length > 0
+              solution.digitalValue && solution.digitalValue.permissions && solution.digitalValue.permissions.length > 0
                 ? solution.digitalValue.permissions.map((team) => team.shortId).join('|')
                 : 'NA',
             createdBy: solution.createdBy ? solution.createdBy.id : 'NA',
             createdDate: solution.createdDate ? regionalDateAndTimeConversionSolution(solution.createdDate) : 'NA',
-            lastModifiedDate: solution.lastModifiedDate ? regionalDateAndTimeConversionSolution(solution.lastModifiedDate) : 'NA',
+            lastModifiedDate: solution.lastModifiedDate
+              ? regionalDateAndTimeConversionSolution(solution.lastModifiedDate)
+              : 'NA',
             // createdDate: solution.createdDate ? solution.createdDate : 'NA',
             // lastModifiedDate: solution.lastModifiedDate ? solution.lastModifiedDate : 'NA',
           });
@@ -475,7 +509,7 @@ export const setDataSources = (dataSources: IDataSources[], dsList: any) => {
 
 export const setMilestonesPhases = (phases: IPhasesItem[], phaseId: number) => {
   const temVar = phases.filter((phase: IPhasesItem) => Number(phase.phase.id) === phaseId);
-  const dataValues = temVar[0] ? (temVar[0].month > 0 && temVar[0].year > 0) || temVar[0].description.length > 0? sanitize( (temVar[0].month > 0 && temVar[0].year > 0 ? regionalForMonthAndYear(temVar[0].month+'/'+'01'+'/'+temVar[0].year):'') + '|' + temVar[0].description) : '' : '';
+  const dataValues = temVar[0] ? (temVar[0].month > 0 && temVar[0].year > 0) || temVar[0].description.length > 0? sanitize( (temVar[0].month > 0 && temVar[0].year > 0 ? regionalForMonthAndYear(temVar[0].month+'/'+'01'+'/'+temVar[0].year):'') + '|' + temVar[0].description) : 'NA' : '';
   return dataValues;
 };
 
