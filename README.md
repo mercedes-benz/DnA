@@ -23,7 +23,7 @@ The idea of the DnA Platform originated from the common challenge every big comp
 
 ## Installation
 
-if you want to try the DnA Platform ,please follow the [installation guide](./docs/Install.md). In the installation guide we are provding 2 ways to install this application(Docker-compose and Helm) . Use Docker-compose only for local testing .
+if you want to try the DnA Platform ,please follow the [installation guide](./docs/Install.md). In the installation guide we are providing 2 ways to install this application(Docker-compose and Helm) . Use Docker-compose only for local testing .
 
 For a complete production installation, we recommend the installation using helm.Currently in our helm and docker-compose we are providing multiple service like DnA , Dashboard, Naas , Malware Scan,Vault service,storage-service ,Airflow and Jupyter Notebooks.
 
