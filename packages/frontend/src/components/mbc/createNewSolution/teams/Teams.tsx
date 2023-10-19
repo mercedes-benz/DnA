@@ -249,9 +249,7 @@ export default class Teams extends React.Component<ITeamProps, ITeamsState> {
                                           className={classNames('input-field', Styles.fteField)}
                                           id={'numberOfRequestedFTE-' + index}
                                           name="requestedFTECount"
-                                          value={new Intl.NumberFormat(navigator.language).format(
-                                            Number(item.requestedFTECount),
-                                          )}
+                                          value = {this.NumberChange(item.requestedFTECount)}
                                           thousandSeparator={false}
                                           decimalScale={2}
                                           decimalSeparator={
@@ -261,6 +259,7 @@ export default class Teams extends React.Component<ITeamProps, ITeamsState> {
                                               ? ','
                                               : '.'
                                           }
+                                          onBlur={(e :any) => this.handleBlur(e,index)}
                                           onValueChange={(values, sourceInfo) => this.handleChange(values, sourceInfo)}
                                         />
                                       </div>
@@ -630,7 +629,7 @@ export default class Teams extends React.Component<ITeamProps, ITeamsState> {
   protected handleChange = (values: any, sourceInfo: any) => {
     const { value } = values;
     const name: string = sourceInfo?.event?.target?.name;
-    const tempVal: any = value !== null && value !== '' ? value : 0;
+    const tempVal: any = value !== null && value !== '' ? value : '';
     const index = Number(sourceInfo?.event?.target?.id.split('-')[1]);
     const { roleCountFieldList } = this.state;
     roleCountFieldList.forEach((item, itemIndex) => {
@@ -645,6 +644,20 @@ export default class Teams extends React.Component<ITeamProps, ITeamsState> {
     });
   };
 
+  protected NumberChange =(value: string)=>{
+    const tempVal = value !== null && value !== '' ? new Intl.NumberFormat(navigator.language).format(Number(value)) : '';
+    return tempVal;
+  };
+
+  protected handleBlur=(event :any, index :any)=>{
+    const value = event.target.value;
+    if(value === null || value === ''){
+      const updatedRoleCountFieldList = [...this.state.roleCountFieldList];
+      updatedRoleCountFieldList[index].requestedFTECount = '0';
+      this.setState({ roleCountFieldList: updatedRoleCountFieldList});
+    }
+  };
+  
   protected changeDotWithComma = (text: any) => {
     return text.replace('.', ',');
   };
