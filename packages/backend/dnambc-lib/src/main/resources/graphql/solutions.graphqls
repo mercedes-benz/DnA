@@ -56,7 +56,8 @@ type Query {
 type SolutionAnalyticsVO{
 	languages: [LanguageVO],
 	algorithms: [AlgorithmVO],
-	visualizations: [VisualizationVO]
+	visualizations: [VisualizationVO],
+    analyticsSolution:[AnalyticsSolutionVO]
 }
 
 type LanguageVO{
@@ -71,6 +72,11 @@ type AlgorithmVO{
 
 type VisualizationVO{
 	id: ID!,
+    name: String
+}
+
+type AnalyticsSolutionVO{
+    id: ID!,
     name: String
 }
 

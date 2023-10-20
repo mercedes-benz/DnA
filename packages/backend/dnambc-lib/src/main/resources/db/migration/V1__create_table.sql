@@ -68,6 +68,11 @@ CREATE TABLE if not exists language_nsql (
     data jsonb NOT NULL
 );
 
+CREATE TABLE if not exists analyticsSolution_nsql (
+    id TEXT primary key,
+    data jsonb NOT NULL
+);
+
 CREATE TABLE if not exists location_nsql (
     id TEXT primary key,
     data jsonb NOT NULL
