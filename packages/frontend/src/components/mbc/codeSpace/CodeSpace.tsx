@@ -236,7 +236,6 @@ const CodeSpace = (props: ICodeSpaceProps) => {
             Tooltip.defaultSetup();
             if (deployingInProgress) {
               const deployingEnv = intDeploymentDetails.lastDeploymentStatus === 'DEPLOY_REQUESTED' ? 'staging' : 'production';
-              console.log(deployingEnv);
               setDeployEnvironment(deployingEnv);
               setCodeDeploying(true);
               enableDeployLivelinessCheck(res.workspaceId, deployingEnv);
@@ -328,7 +327,6 @@ const CodeSpace = (props: ICodeSpaceProps) => {
   };
 
   const enableDeployLivelinessCheck = (id: string, deployEnvironmentValue: string) => {
-    console.log(deployEnvironmentValue);
     clearInterval(livelinessInterval);
     const intervalId = setInterval(() => {
       CodeSpaceApiClient.getCodeSpaceStatus(id)
@@ -490,10 +488,9 @@ const CodeSpace = (props: ICodeSpaceProps) => {
       usersIAMAliceSecured.push(collabarationData);
       setUsersIAMAliceSecured([...usersIAMAliceSecured]);
     }
-    console.log(usersIAMAliceSecured);
   };
 
-  const isPublicRecipeChoosen = codeSpaceData?.projectDetails?.recipeDetails?.recipeId.startsWith('public');
+  const isPublicRecipeChoosen = codeSpaceData?.projectDetails?.recipeDetails?.recipeId.startsWith('public') || codeSpaceData?.projectDetails?.recipeDetails?.recipeId === 'private-user-defined';
   const securedWithIAMContent: React.ReactNode = (
     <svg
       xmlns="http://www.w3.org/2000/svg"
