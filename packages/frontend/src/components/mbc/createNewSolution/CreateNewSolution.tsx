@@ -478,10 +478,10 @@ export default class CreateNewSolution extends React.Component<ICreateNewSolutio
               solution.description.businessNeeds = res.businessNeed;
               solution.description.businessGoal = res.businessGoals;
               solution.description.description = res.description;
-              const division=res.division;
-              if(!division.subdivision || !division.subdivision.id){
-                division.subdivision = {id:'0', name:'Choose'};
-              };
+              const division = res.division;
+              if (!division.subdivision || !division.subdivision.id) {
+                division.subdivision = { id: '0', name: 'Choose' };
+              }
               solution.description.division = division;
               solution.description.expectedBenefits = res.expectedBenefits;
               solution.description.location = res.locations;
@@ -501,9 +501,9 @@ export default class CreateNewSolution extends React.Component<ICreateNewSolutio
               solution.currentPhase = res.currentPhase;
               solution.team.team = res.team;
               solution.neededRoles = res.skills;
-              const dataSources=res.dataSources;
-              if(!dataSources.dataSources){
-                  dataSources.dataSources=[];
+              const dataSources = res.dataSources;
+              if (!dataSources.dataSources) {
+                dataSources.dataSources = [];
               }
               solution.dataSources = dataSources;
               // solution.digitalValue = this.translateToMillions(res.digitalValue);
@@ -554,7 +554,9 @@ export default class CreateNewSolution extends React.Component<ICreateNewSolutio
     return (
       <React.Fragment>
         <div className={classNames(Styles.mainPanel)}>
-          <Caption title={this.state.solution.description.productName || `${getParams().id ? 'Edit' : 'Create'} Solution`} />
+          <Caption
+            title={this.state.solution.description.productName || `${getParams().id ? 'Edit' : 'Create'} Solution`}
+          />
           <div id="create-solution-tabs" className="tabs-panel">
             <div className="tabs-wrapper">
               <nav>
@@ -935,8 +937,26 @@ export default class CreateNewSolution extends React.Component<ICreateNewSolutio
   protected setCurrentTab = (event: React.MouseEvent) => {
     const target = event.target as HTMLLinkElement;
     const newState = this.state.solution;
+    if (!newState.description.division.subdivision || !newState.description.division.subdivision.id) {
+      newState.description.division.subdivision = { id: '0', name: 'Choose' };
+    }
+    if (!newState.dataSources.dataVolume || !newState.dataSources.dataVolume.id) {
+      newState.dataSources.dataVolume = { id: '0', name: 'Choose' };
+    }
+    if (!newState.sharing.result || !newState.sharing.result.id) {
+      newState.sharing.result = { id: '0', name: 'Choose' };
+    }
     const saveActionType = this.state.saveActionType;
     const currentState = this.state.currentState;
+    if (!currentState.description.division.subdivision || !currentState.description.division.subdivision.id) {
+      currentState.description.division.subdivision = { id: '0', name: 'Choose' };
+    }
+    if (!currentState.dataSources.dataVolume || !currentState.dataSources.dataVolume.id) {
+      currentState.dataSources.dataVolume = { id: '0', name: 'Choose' };
+    }
+    if (!currentState.sharing.result || !currentState.sharing.result.id) {
+      currentState.sharing.result = { id: '0', name: 'Choose' };
+    }
 
     if (!currentState || saveActionType === 'btn' || _.isEqual(newState, currentState)) {
       this.setState({ currentTab: target.id, saveActionType: '' });
