@@ -149,3 +149,5 @@ export const RolesInfoList = [
 export const TOTAL_LOCATIONS_COUNT = 162;
 
 export const OTHER_PLATFORMS = 'Other platforms (e.g. Azure,…)';
+
+export const SOLUTION_FIXED_TAGS = [ '#GenAI', 'GenAI' ];
