@@ -344,8 +344,9 @@ export const csvSeparator = (region: string) => {
     return  ";";  
 };
 
-export const isValidGITRepoUrl = (str: string) => {
-  const regex = new RegExp(/((http|http(s)|\/?))(:(\/\/github.com\/))([\w.@:/\-~]+)(\.git)(\/)?/);
+export const isValidGITRepoUrl = (str: string, isPublicRecipeChoosen: boolean) => {
+  const privateHost = new URL(Envs.CODE_SPACE_GIT_PAT_APP_URL).host;
+  const regex = new RegExp('((http|http(s)|\\/?))(:(\\/\\/' + (isPublicRecipeChoosen ? 'github.com'  : privateHost) + '\\/))([\\w.@:/\\-~]+)(\\.git)(\\/)?');
 
   return (str == null) ? false : regex.test(str);
 }
@@ -357,7 +358,9 @@ export const recipesMaster = [
   { id: 'react', resource: '4Gi,2000Mi,500m,4000Mi,1000m', name: 'React SPA (Debian 11 OS, 2GB RAM, 1CPU)' },
   { id: 'angular', resource: '4Gi,2000Mi,500m,4000Mi,1000m', name: 'Angular SPA (Debian 11 OS, 2GB RAM, 1CPU)' },
 
-  { id: 'public-user-defined', resource: '4Gi,4000Mi,1000m,6000Mi,2000m', name: 'Recipe from Public Github (Debian 11 OS, 6GB RAM, 2CPU)', repodetails: '' },
+  { id: 'private-user-defined', resource: '4Gi,4000Mi,1000m,6000Mi,2000m', name: `Recipe from Private Github(${Envs.CODE_SPACE_GIT_PAT_APP_URL}) (Debian 11 OS, 6GB RAM, 2CPU)`, repodetails: '' },
+
+  { id: 'public-user-defined', resource: '4Gi,4000Mi,1000m,6000Mi,2000m', name: 'Recipe from Public Github(https://github.com/) (Debian 11 OS, 6GB RAM, 2CPU)', repodetails: '' },
 
   { id: 'public-dna-frontend', resource: '4Gi,4000Mi,1000m,6000Mi,2000m', name: 'DnA Frontend (Debian 11 OS, 6GB RAM, 2CPU)', repodetails: 'github.com/mercedes-benz/DnA.git,packages/frontend/*' },
   { id: 'public-dna-backend', resource: '2Gi,2000Mi,500m,4000Mi,1000m', name: 'DnA Backend (Debian 11 OS, 4GB RAM, 1CPU)', repodetails: 'github.com/mercedes-benz/DnA.git,packages/backend/*' },
