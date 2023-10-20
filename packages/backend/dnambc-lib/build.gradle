@@ -116,6 +116,23 @@ swaggerSources {
             //dependsOn validation
         }
     }
+
+    analyticsSolution {
+        def analyticsSolutionyaml = "${rootDir}/dnambc-lib/src/main/resources/api/AnalyticsSolution.yaml"
+        def analyticsSolutionJson = "${rootDir}/dnambc-lib/src/main/resources/api/AnalyticsSolution.json"
+        inputFile = file(analyticsSolutionyaml)
+
+        def ignoreFile = "${rootDir}/dnambc-lib/src/main/resources/api/.swagger-codegen-ignore"
+
+        code {
+            language = 'spring'
+            configFile = file(analyticsSolutionJson)
+            rawOptions = ['--ignore-file-override', ignoreFile]
+
+            components = ['models', 'apis']
+            //dependsOn validation
+        }
+    }
     
     customerJourneyPhase {
         def customerJourneyPhaseyaml = "${rootDir}/dnambc-lib/src/main/resources/api/CustomerJourneyPhase.yaml"
@@ -611,6 +628,8 @@ compileJava {
     source "${swaggerSources.location.code.outputDir}/src/main/java"
     dependsOn swaggerSources.algorithm.code
     source "${swaggerSources.algorithm.code.outputDir}/src/main/java"
+    dependsOn swaggerSources.analyticsSolution.code
+    source "${swaggerSources.analyticsSolution.code.outputDir}/src/main/java"
     dependsOn swaggerSources.customerJourneyPhase.code
     source "${swaggerSources.customerJourneyPhase.code.outputDir}/src/main/java"
     dependsOn swaggerSources.marketingCommunicationChannel.code
@@ -681,6 +700,7 @@ sourceSets {
         java { srcDirs += "${swaggerSources.language.code.outputDir}/src/main/java" }
         java { srcDirs += "${swaggerSources.location.code.outputDir}/src/main/java" }
         java { srcDirs += "${swaggerSources.algorithm.code.outputDir}/src/main/java" }
+        java { srcDirs += "${swaggerSources.analyticsSolution.code.outputDir}/src/main/java" }
         java { srcDirs += "${swaggerSources.customerJourneyPhase.code.outputDir}/src/main/java" }
         java { srcDirs += "${swaggerSources.marketingCommunicationChannel.code.outputDir}/src/main/java" }
         java { srcDirs += "${swaggerSources.marketingRole.code.outputDir}/src/main/java" }
