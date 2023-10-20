@@ -46,82 +46,106 @@
 #  -------------------------------------------------------------------------------------------------------
   
 
+
 swagger: "2.0"
 info:
- version: "1.0.0"
- title: "core analytics solution Service"
+  version: "1.0.0"
+  title: "core analyticsSolutions Service"
 host: "localhost:7171"
 basePath: "/api/1.0"
 consumes:
- - "application/json"
+  - "application/json"
 produces:
- - "application/json"
+  - "application/json"
 tags:
- - name: "analyticsSolutions"
-   description: "This service is used to maintain solutions used in solution analytics."
+  - name: "analyticSolutions"
+    description: "This service is used to maintain analytics Solutions used in solutions."
 
 schemes:
-- "https"
+  - "https"
 
 paths:
 
-# path to create a new solution in solution analytics and fetch all valid solutions or by intent
-#
-#  supprorted http methods GET, POST and DELETE 
-#
-# path example ../analyticsSolutions
+  # path to create a new analytic Solutions  and fetch all valid  solutions or by intent
+  #
+  #  supprorted http methods GET, POST and DELETE
+  #
+  # path example ../analyticsSolutions
 
- /analyticsSolutions:
-  get:
-   tags:
-    - "analyticsSolutions"
-   summary: "Get all available analytics solutions."
-   description:  "Get all analytics solutions. This endpoints will be used to Get all valid available analytics solutions maintenance records."
-   operationId: "getAll"
-   parameters:       
+  /analyticsSolutions:
+
+
+    get:
+      tags:
+        - "analyticsSolutions"
+      summary: "Get all available analytics Solutions."
+      description:  "Get all analytics Solutions. This endpoints will be used to Get all valid available analytics Solutions maintenance records."
+      operationId: "getAll"
+      parameters:
         - name: sortOrder
           in: query
-          description: Sort analytics solutions based on the given order, example asc,desc
+          description: Sort analytics Solutions based on the given order, example asc,desc
           required: false
-          type: string   
+          type: string
           enum: [asc,desc]
-   responses:
-    201:
-     description: "Returns message of success or failure"
-     schema:
-       $ref: "#/definitions/AnalyticsSolutionCollection"
-    204:
-      description: "Fetch complete, no content found."
-    400:
-     description: "Bad request."
-    401:
-     description: "Request does not have sufficient credentials."
-    403:
-     description: "Request is not authorized."
-    405:
-     description: "Method not allowed"
-    500:
-     description: "Internal error"
+      responses:
+        201:
+          description: "Returns message of succes or failure"
+          schema:
+            $ref: "#/definitions/AnalyticsSolutionCollection"
+        204:
+          description: "Fetch complete, no content found."
+        400:
+          description: "Bad request."
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
+
+
 
 
 definitions:
   AnalyticsSolutionVO:
     type: object
     properties:
-      id:
-        type: string
-        description: "ID of Analytics Solution"
       name:
         type: string
-        description: "Name of the Analytics Solution"
+        description: "Name of the programming analytics Solution"
         minLength: 1
-    #     pattern: '[a-zA-Z\s]+'
+      #      pattern: '[a-zA-Z\s]+'
+      id:
+        type: string
+        description: "ID of the analytics Solution"
     required:
       - name
   AnalyticsSolutionCollection:
-    description: "Collection of Analytics Solution."
+    description: "Collection of analytics Solutions."
     type: array
     items:
       $ref: "#/definitions/AnalyticsSolutionVO"
 
- 
+  BindingResult:
+    type: object
+
+  GenericMessage:
+    type: object
+    properties:
+      success:
+        type: string
+      errors:
+        type: array
+        items:
+          $ref: "#/definitions/MessageDescription"
+
+  MessageDescription:
+    type: object
+    properties:
+      message:
+        type: string
+        description: "error message"
+
