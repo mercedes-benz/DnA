@@ -228,6 +228,8 @@ public class SolutionCustomRepositoryImpl extends CommonDataRepositoryImpl<Solut
 					+ " or " + "lower(jsonb_extract_path_text(data,'skills')) similar to "
 					+ delimiterSeparatedSearchTerms + " or "
 					+ "lower(jsonb_extract_path_text(data,'visualizations')) similar to "
+					+ delimiterSeparatedSearchTerms + " or "
+					+ "lower(jsonb_extract_path_text(data,'analyticsSolutions')) similar to "
 					+ delimiterSeparatedSearchTerms + " ) ";
 		}
 		return "";
@@ -773,6 +775,8 @@ public class SolutionCustomRepositoryImpl extends CommonDataRepositoryImpl<Solut
 						root.get("data"), cb.literal("languages"))), "%" + searchTerm + "%");
 				Predicate tempAlgoCondition = cb.like(cb.lower(cb.function("jsonb_extract_path_text", String.class,
 						root.get("data"), cb.literal("algorithms"))), "%" + searchTerm + "%");
+				Predicate tempAnalyticsSolutionCondition = cb.like(cb.lower(cb.function("jsonb_extract_path_text", String.class,
+						root.get("data"), cb.literal("analyticsSolutions"))), "%" + searchTerm + "%");
 				Predicate divisionCondition = cb.like(cb.lower(
 						cb.function("jsonb_extract_path_text", String.class, root.get("data"), cb.literal("division"))),
 						"%" + searchTerm + "%");
@@ -785,7 +789,7 @@ public class SolutionCustomRepositoryImpl extends CommonDataRepositoryImpl<Solut
 						cb.function("jsonb_extract_path_text", String.class, root.get("data"), cb.literal("marketingRoles"))),
 						"%" + searchTerm + "%");
 				Predicate consolidateTempKeyCondition = cb.or(tempProductNameCondition, tempTagCondition,tempDepartmentCondition,
-						tempDSCondition, tempPlatformCondition, tempLangCondition, tempAlgoCondition,
+						tempDSCondition, tempPlatformCondition, tempLangCondition, tempAlgoCondition,tempAnalyticsSolutionCondition,
 						tempVisualizationCondition, tempSkillCondition, divisionCondition, tempMarketingRoleCondition);
 				if (anySearchTermConsolidate == null)
 					anySearchTermConsolidate = consolidateTempKeyCondition;

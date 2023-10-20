@@ -72,6 +72,8 @@ public class Solution {
 	private List<SolutionAlgorithm> algorithms;
 
 	private List<SolutionVisualization> visualizations;
+
+	private List<AnalyticsSolutionDetails> analyticsSolutions;
 	
 	private List<SolutionCustomerJourneyPhase> customerJourneyPhases;
 	
