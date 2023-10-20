@@ -51,9 +51,9 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
 
   const [recipeError, setRecipeError] = useState('');
 
-  const [isUserDefinedPublicGithubRecipe, setIsUserDefinedPublicGithubRecipe] = useState(false);
-  const [userDefinedPublicGithubUrl, setUserDefinedPublicGithubUrl] = useState('');
-  const [userDefinedPublicGithubUrlError, setUserDefinedPublicGithubUrlError] = useState('');
+  const [isUserDefinedGithubRecipe, setIsUserDefinedGithubRecipe] = useState(false);
+  const [userDefinedGithubUrl, setUserDefinedGithubUrl] = useState('');
+  const [userDefinedGithubUrlError, setUserDefinedGithubUrlError] = useState('');
   
   // const [githubUserName, setGithubUserName] = useState('');
   // const [githubUserNameError, setGithubUserNameError] = useState('');
@@ -119,14 +119,14 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
   //   setGithubUserNameError(githubUserNameVal.length ? '' : requiredError);
   // };
   
-  const onUserDefinedPublicGithubUrlOnChange = (evnt: React.FormEvent<HTMLInputElement>) => {
+  const onUserDefinedGithubUrlOnChange = (evnt: React.FormEvent<HTMLInputElement>) => {
     const githubUrlVal = evnt.currentTarget.value.trim();
-    setUserDefinedPublicGithubUrl(githubUrlVal);
-    setUserDefinedPublicGithubUrlError(
+    setUserDefinedGithubUrl(githubUrlVal);
+    setUserDefinedGithubUrlError(
       githubUrlVal.length
-        ? isValidGITRepoUrl(githubUrlVal)
+        ? isValidGITRepoUrl(githubUrlVal, isPublicRecipeChoosen)
           ? ''
-          : 'Please provide valid github.com git repository clone url.'
+          : `Please provide valid ${isPublicRecipeChoosen ? 'https://github.com/' : Envs.CODE_SPACE_GIT_PAT_APP_URL} git repository clone url.`
         : requiredError,
     );
   };
@@ -144,11 +144,11 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
   const onRecipeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const selectedOption = e.currentTarget.value;
     setRecipeValue(selectedOption);
-    const isUserDefinedRecipe = selectedOption === 'public-user-defined';
-    setIsUserDefinedPublicGithubRecipe(isUserDefinedRecipe);
+    const isUserDefinedRecipe = selectedOption === 'public-user-defined' || selectedOption === 'private-user-defined';
+    setIsUserDefinedGithubRecipe(isUserDefinedRecipe);
     if (!isUserDefinedRecipe) {
-      setUserDefinedPublicGithubUrl('');
-      setUserDefinedPublicGithubUrlError('');
+      setUserDefinedGithubUrl('');
+      setUserDefinedGithubUrlError('');
     }
     setRecipeError(selectedOption !== '0' ? '' : requiredError);
   };
@@ -345,17 +345,17 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
     //   setGithubUserNameError('');
     // }
 
-    if (isPublicRecipeChoosen && isUserDefinedPublicGithubRecipe && userDefinedPublicGithubUrl === '') {
-      setUserDefinedPublicGithubUrlError(requiredError);
+    if (isPublicRecipeChoosen && isUserDefinedGithubRecipe && userDefinedGithubUrl === '') {
+      setUserDefinedGithubUrlError(requiredError);
       formValid = false;
     } else {
-      if (isValidGITRepoUrl(userDefinedPublicGithubUrl)) setUserDefinedPublicGithubUrlError('');
+      if (isValidGITRepoUrl(userDefinedGithubUrl, isPublicRecipeChoosen)) setUserDefinedGithubUrlError('');
     }
     if (githubToken === '') {
       setGithubTokenError(requiredError);
       formValid = false;
     }
-    if (projectNameError !== '' || recipeError !== '' || githubTokenError !== '' || (isPublicRecipeChoosen && isUserDefinedPublicGithubRecipe && userDefinedPublicGithubUrlError !== '')) {
+    if (projectNameError !== '' || recipeError !== '' || githubTokenError !== '' || (isPublicRecipeChoosen && isUserDefinedGithubRecipe && userDefinedGithubUrlError !== '')) {
       formValid = false;
     }
     return formValid;
@@ -460,10 +460,10 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
         pat: githubToken
       };
 
-      if (isPublicRecipeChoosen) {
+      if (isPublicRecipeChoosen || isUserDefinedGithubRecipe) {
         // createCodeSpaceRequest.data.gitUserName = githubUserName;
         // createCodeSpaceRequest.data.projectDetails.recipeDetails.recipeId = 'public';
-        createCodeSpaceRequest.data.projectDetails.recipeDetails['repodetails'] = isUserDefinedPublicGithubRecipe ? (userDefinedPublicGithubUrl.split('://')[1] + ',') : recipe.repodetails;
+        createCodeSpaceRequest.data.projectDetails.recipeDetails['repodetails'] = isUserDefinedGithubRecipe ? (userDefinedGithubUrl.split('://')[1] + ',') : recipe.repodetails;
       }
 
       ProgressIndicator.show();
@@ -575,6 +575,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
 
   const projectDetails = props.onBoardingCodeSpace?.projectDetails || props.onEditingCodeSpace?.projectDetails;
   const isPublicRecipeChoosen = recipeValue.startsWith('public');
+  const githubUrlValue = isPublicRecipeChoosen ? 'https://github.com/' : Envs.CODE_SPACE_GIT_PAT_APP_URL;
   return (
     <React.Fragment>
       {onBoadingMode ? (
@@ -663,9 +664,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
                 type="password"
                 controlId={'githubTokenInput'}
                 labelId={'githubTokenLabel'}
-                label={`Your Github(${
-                  isPublicRecipeChoosen ? 'https://github.com/' : Envs.CODE_SPACE_GIT_PAT_APP_URL
-                }) Personal Access Token`}
+                label={`Your Github(${githubUrlValue}) Personal Access Token`}
                 infoTip="Not stored only used for Code Space initial setup"
                 placeholder={'Type here'}
                 value={githubToken}
@@ -856,20 +855,20 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
                   </div>
                 </div>
               )} */}
-              {isUserDefinedPublicGithubRecipe && (
+              {isUserDefinedGithubRecipe && (
                 <div>
                   <div>
                     <TextBox
                       type="text"
-                      controlId={'publicGithubUrlInput'}
-                      labelId={'publicGithubUrlInputLabel'}
-                      label={`Provide Your Github Clone Url (Ex. https://github.com/orgname-or-username/your-repo-name.git)`}
-                      placeholder={'https://github.com/orgname-or-username/your-repo-name.git'}
-                      value={userDefinedPublicGithubUrl}
-                      errorText={userDefinedPublicGithubUrlError}
+                      controlId={'userDefinedGithubUrlInput'}
+                      labelId={'userDefinedGithubUrlInputLabel'}
+                      label={`Provide Your Github Clone Url (Ex. ${githubUrlValue}orgname-or-username/your-repo-name.git)`}
+                      placeholder={`${githubUrlValue}orgname-or-username/your-repo-name.git`}
+                      value={userDefinedGithubUrl}
+                      errorText={userDefinedGithubUrlError}
                       required={true}
                       maxLength={300}
-                      onChange={onUserDefinedPublicGithubUrlOnChange}
+                      onChange={onUserDefinedGithubUrlOnChange}
                     />
                   </div>
                 </div>
@@ -880,9 +879,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
                     type="password"
                     controlId={'githubTokenInput'}
                     labelId={'githubTokenLabel'}
-                    label={`Your Github(${
-                      isPublicRecipeChoosen ? 'https://github.com/' : Envs.CODE_SPACE_GIT_PAT_APP_URL
-                    }) Personal Access Token`}
+                    label={`Your Github(${githubUrlValue}) Personal Access Token`}
                     infoTip="Not stored only used for Code Space initial setup"
                     placeholder={'Type here'}
                     value={githubToken}
@@ -954,7 +951,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
               />
             </>
           )}
-          {!isPublicRecipeChoosen && (
+          {!isPublicRecipeChoosen && !isUserDefinedGithubRecipe && (
             <div className={classNames('input-field-group include-error')}>
               <label htmlFor="userId" className="input-label">
                 Find and add the collaborators you want to work with your code (Optional)
