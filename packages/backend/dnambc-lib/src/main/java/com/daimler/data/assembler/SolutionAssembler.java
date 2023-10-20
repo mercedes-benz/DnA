@@ -49,6 +49,8 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
+import com.daimler.data.db.jsonb.solution.*;
+import com.daimler.data.dto.analyticsSolution.AnalyticsSolutionVO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
@@ -58,47 +60,6 @@ import org.springframework.util.StringUtils;
 
 import com.daimler.data.db.entities.SolutionNsql;
 import com.daimler.data.db.jsonb.SubDivision;
-import com.daimler.data.db.jsonb.solution.AssessmentDetails;
-import com.daimler.data.db.jsonb.solution.CalculatedDigitalValue;
-import com.daimler.data.db.jsonb.solution.CalculatedValueRampUpYears;
-import com.daimler.data.db.jsonb.solution.ChangeLogs;
-import com.daimler.data.db.jsonb.solution.CostDriver;
-import com.daimler.data.db.jsonb.solution.CostFactorSummary;
-import com.daimler.data.db.jsonb.solution.CreatedBy;
-import com.daimler.data.db.jsonb.solution.CurrentPhase;
-import com.daimler.data.db.jsonb.solution.DataValueCalculator;
-import com.daimler.data.db.jsonb.solution.DataValueRampUpYear;
-import com.daimler.data.db.jsonb.solution.Factor;
-import com.daimler.data.db.jsonb.solution.FileDetails;
-import com.daimler.data.db.jsonb.solution.LogoDetails;
-import com.daimler.data.db.jsonb.solution.MarketingRoleSummary;
-import com.daimler.data.db.jsonb.solution.RampUpYear;
-import com.daimler.data.db.jsonb.solution.SkillSummary;
-import com.daimler.data.db.jsonb.solution.Solution;
-import com.daimler.data.db.jsonb.solution.SolutionAlgorithm;
-import com.daimler.data.db.jsonb.solution.SolutionComplianceLink;
-import com.daimler.data.db.jsonb.solution.SolutionCustomerJourneyPhase;
-import com.daimler.data.db.jsonb.solution.SolutionDataCompliance;
-import com.daimler.data.db.jsonb.solution.SolutionDataVolume;
-import com.daimler.data.db.jsonb.solution.SolutionDatasource;
-import com.daimler.data.db.jsonb.solution.SolutionDigitalValue;
-import com.daimler.data.db.jsonb.solution.SolutionDivision;
-import com.daimler.data.db.jsonb.solution.SolutionLanguage;
-import com.daimler.data.db.jsonb.solution.SolutionLocation;
-import com.daimler.data.db.jsonb.solution.SolutionMarketingCommunicationChannel;
-import com.daimler.data.db.jsonb.solution.SolutionMilestone;
-import com.daimler.data.db.jsonb.solution.SolutionPersonalization;
-import com.daimler.data.db.jsonb.solution.SolutionPhase;
-import com.daimler.data.db.jsonb.solution.SolutionPlatform;
-import com.daimler.data.db.jsonb.solution.SolutionProjectStatus;
-import com.daimler.data.db.jsonb.solution.SolutionResult;
-import com.daimler.data.db.jsonb.solution.SolutionRollOut;
-import com.daimler.data.db.jsonb.solution.SolutionRollOutDetail;
-import com.daimler.data.db.jsonb.solution.SolutionTeamMember;
-import com.daimler.data.db.jsonb.solution.SolutionVisualization;
-import com.daimler.data.db.jsonb.solution.ValueCalculator;
-import com.daimler.data.db.jsonb.solution.ValueDriver;
-import com.daimler.data.db.jsonb.solution.ValueFactorSummary;
 import com.daimler.data.dto.algorithm.AlgorithmVO;
 import com.daimler.data.dto.attachment.FileDetailsVO;
 import com.daimler.data.dto.customerJourneyPhase.CustomerJourneyPhaseVO;
@@ -460,7 +421,34 @@ public class SolutionAssembler implements GenericAssembler<SolutionVO, SolutionN
 					}
 				}
 			}
-									
+
+			List<String> solutionTags = solution.getTags();
+			boolean genAiTag = false;
+
+			List<AnalyticsSolutionDetails> analyticsSolutions = solution.getAnalyticsSolutions();
+			List<AnalyticsSolutionVO> analyticsSolutionsVO = new ArrayList<>();
+
+			if (solutionTags != null && !solutionTags.isEmpty()) {
+				for (String tag : solutionTags) {
+					if (tag.equalsIgnoreCase("genai") || tag.equalsIgnoreCase("#genai")) {
+						genAiTag = true;
+					}
+				}
+				if (genAiTag) {
+					if (analyticsSolutions != null && !analyticsSolutions.isEmpty()) {
+						for (AnalyticsSolutionDetails analyticsSolution : analyticsSolutions) {
+							if (analyticsSolution != null) {
+								AnalyticsSolutionVO analyticsSolutionVO = new AnalyticsSolutionVO();
+								BeanUtils.copyProperties(analyticsSolution, analyticsSolutionVO);
+								analyticsSolutionsVO.add(analyticsSolutionVO);
+							}
+						}
+					}
+				}
+
+			}
+
+
 			List<SolutionCustomerJourneyPhase> customerJourneyPhases = solution.getCustomerJourneyPhases();
 			List<CustomerJourneyPhaseVO> customerJourneyPhasesVO = new ArrayList<>();
 			if(customerJourneyPhases != null && !customerJourneyPhases.isEmpty()) {
@@ -519,6 +507,7 @@ public class SolutionAssembler implements GenericAssembler<SolutionVO, SolutionN
 			analyticsVO.setAlgorithms(algorithmsVO);
 			analyticsVO.setLanguages(languagesVO);
 			analyticsVO.setVisualizations(visualizationsVO);
+			analyticsVO.setAnalyticsSolution(analyticsSolutionsVO);
 			vo.setAnalytics(analyticsVO);
 
 			SolutionSharingVO sharingVO = new SolutionSharingVO();
@@ -1263,6 +1252,33 @@ public class SolutionAssembler implements GenericAssembler<SolutionVO, SolutionN
 				}
 			}
 
+			List<String> solutionTags = solution.getTags();
+			boolean genAiTag = false;
+
+			List<AnalyticsSolutionVO> analyticsSolutionsVO = analyticsVO.getAnalyticsSolution();
+
+
+			if (solutionTags != null && !solutionTags.isEmpty()) {
+				for (String tag : solutionTags) {
+					if (tag.equalsIgnoreCase("genai") || tag.equalsIgnoreCase("#genai")) {
+						genAiTag = true;
+					}
+				}
+				if (genAiTag) {
+					if (analyticsSolutionsVO != null && !analyticsSolutionsVO.isEmpty()) {
+						List<AnalyticsSolutionDetails> analyticsSolutions = new ArrayList<>();
+						for (AnalyticsSolutionVO analyticsSolutionVO : analyticsSolutionsVO) {
+							if (analyticsSolutionVO != null) {
+								AnalyticsSolutionDetails analyticsSolution = new AnalyticsSolutionDetails();
+								BeanUtils.copyProperties(analyticsSolutionVO, analyticsSolution);
+								analyticsSolutions.add(analyticsSolution);
+							}
+						}
+						solution.setAnalyticsSolutions(analyticsSolutions);
+					}
+				}
+
+			}
 			SolutionSharingVO sharingVO = vo.getSharing();
 			if (sharingVO != null) {
 				solution.setGitUrl(sharingVO.getGitUrl());
