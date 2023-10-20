@@ -1214,7 +1214,7 @@ public class SolutionAssembler implements GenericAssembler<SolutionVO, SolutionN
 
 			List<String> solutionTags = solution.getTags();
 			boolean genAiTag = false;
-			
+
 			List<AnalyticsSolutionVO> analyticsSolutionsVO = analyticsVO.getAnalyticsSolution();
 
 
