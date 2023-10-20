@@ -59,8 +59,8 @@ export interface IAllSolutionsResult {
 
 export default class Summary extends React.Component<{ user: IUserInfo }, ISummaryState> {
 
-  static digitalValueTypeKeyValue  = Object.keys(SOLUTION_VALUE_CALCULATION_TYPES)[0];
-  static dataValueTypeKeyValue  = Object.keys(SOLUTION_VALUE_CALCULATION_TYPES)[1];
+  static digitalValueTypeKeyValue = Object.keys(SOLUTION_VALUE_CALCULATION_TYPES)[0];
+  static dataValueTypeKeyValue = Object.keys(SOLUTION_VALUE_CALCULATION_TYPES)[1];
 
   constructor(props: any) {
     super(props);
@@ -110,7 +110,7 @@ export default class Summary extends React.Component<{ user: IUserInfo }, ISumma
         team: { team: [] },
         currentPhase: null,
         milestones: { phases: [], rollouts: { details: [], description: '' } },
-        analytics: { languages: [], algorithms: [], visualizations: [] },
+        analytics: { languages: [], algorithms: [], visualizations: [], analyticsSolution: [] },
         dataSources: {
           dataSources: [],
           dataVolume: {},
@@ -645,7 +645,7 @@ export default class Summary extends React.Component<{ user: IUserInfo }, ISumma
 
   protected checkUserCanViewDigitalValue(userInfo: IUserInfo) {
     let userId = '';
-        if (this.state.solution.digitalValue) {
+    if (this.state.solution.digitalValue) {
       if (this.state.solution.digitalValue.permissions) {
         if (this.state.solution.digitalValue.permissions.find((teamMember) => teamMember.shortId === userInfo.id)) {
           userId = this.state.solution.digitalValue.permissions.find(
@@ -653,13 +653,13 @@ export default class Summary extends React.Component<{ user: IUserInfo }, ISumma
           ).shortId;
         } else if (this.state.solution.team.team.find((teamMember) => teamMember.shortId === userInfo.id)) {
           userId = this.state.solution.team.team.find((teamMember) => teamMember.shortId === userInfo.id).shortId;
-        }  else if (
+        } else if (
           userInfo?.divisionAdmins &&
           userInfo?.divisionAdmins.includes(this.state.solution?.description?.division?.name)
         ) {
           userId = userInfo.id;
         }
-        else if (this.state.solution.createdBy ) {
+        else if (this.state.solution.createdBy) {
           userId = this.state.solution.createdBy.id;
         }
       } else if (this.state.solution.team.team.find((teamMember) => teamMember.shortId === userInfo.id)) {
