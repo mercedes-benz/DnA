@@ -19,6 +19,15 @@ export const getParams = () => {
   }
 };
 
+export const getQueryParam = (paramName: string) => {
+  const hashParts = window.location.hash?.split('?');
+  const queryString = hashParts[1] || "";
+
+  const params = new URLSearchParams(queryString);
+  return params.get(paramName);
+}
+
+
 export const getPath = () => {
   return window.location.hash;
 };

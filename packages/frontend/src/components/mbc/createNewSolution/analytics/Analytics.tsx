@@ -12,14 +12,19 @@ export interface IAnalyticsProps {
   languages: ITag[];
   visualizations: ITag[];
   algorithms: ITag[];
+  analyticsSolution: ITag[];
+  isGenAI: boolean;
+  onPublish: () => void;
 }
 
 export interface IAnalyticsState {
   analytics: IAnalytics;
+  showAlogMissingError: boolean;
 }
 
 export default class Analytics extends React.Component<IAnalyticsProps, IAnalyticsState> {
   public static getDerivedStateFromProps(props: IAnalyticsProps, state: IAnalyticsState) {
+    console.log('cccccccc props', props);
     if (props.analytics) {
       const analytics = state.analytics;
       if (props.analytics.languages && props.analytics.languages.length > 0) {
@@ -30,6 +35,9 @@ export default class Analytics extends React.Component<IAnalyticsProps, IAnalyti
       }
       if (props.analytics.visualizations && props.analytics.visualizations.length > 0) {
         analytics.visualizations = props.analytics.visualizations;
+      }
+      if (props.analytics.analyticsSolution && props.analytics.analyticsSolution.length > 0) {
+        analytics.analyticsSolution = props.analytics.analyticsSolution;
       }
       return {
         analytics,
@@ -44,7 +52,9 @@ export default class Analytics extends React.Component<IAnalyticsProps, IAnalyti
         languages: [],
         algorithms: [],
         visualizations: [],
+        analyticsSolution: []
       },
+      showAlogMissingError: false
     };
   }
 
@@ -69,6 +79,13 @@ export default class Analytics extends React.Component<IAnalyticsProps, IAnalyti
         visualChips.push(lang.name);
       });
     }
+
+    const solutionsChips: string[] = [];
+    if (this.props.analytics) {
+      this.props.analytics.analyticsSolution?.forEach((lang) => {
+        solutionsChips.push(lang.name);
+      });
+    }
     return (
       <React.Fragment>
         <div className={classNames(Styles.wrapper)}>
@@ -76,7 +93,7 @@ export default class Analytics extends React.Component<IAnalyticsProps, IAnalyti
             <h3>Analytics</h3>
             <div className={classNames(Styles.formWrapper)}>
               <div className={Styles.flexLayout}>
-                <div>
+                {!this.props.isGenAI && <div>
                   <div>
                     <Tags
                       title={'Languages'}
@@ -99,26 +116,49 @@ export default class Analytics extends React.Component<IAnalyticsProps, IAnalyti
                       {...this.props}
                     />
                   </div>
-                </div>
+                </div>}
                 <div>
-                  <Tags
-                    title={'Models/Algorithms'}
-                    max={100}
-                    chips={algoChips}
-                    setTags={this.setAlgos}
-                    tags={this.props.algorithms}
-                    showMissingEntryError={false}
-                    {...this.props}
-                  />
+                  <div>
+                    <Tags
+                      title={this.props.isGenAI ? 'GenAI Models' : 'Models/Algorithms'}
+                      max={100}
+                      chips={algoChips}
+                      setTags={this.setAlgos}
+                      tags={this.props.algorithms}
+                      showMissingEntryError={this.props.isGenAI ? this.state.showAlogMissingError : false}
+                      isMandatory={this.props.isGenAI ? true : false}
+                      {...this.props}
+                    />
+                  </div>
+                  {this.props.isGenAI && <div>
+                    <Tags
+                      title={'Solutions'}
+                      max={100}
+                      chips={solutionsChips}
+                      setTags={this.setSolutions}
+                      tags={this.props.analyticsSolution}
+                      showMissingEntryError={false}
+                      {...this.props}
+                    />
+                  </div>}
                 </div>
               </div>
             </div>
           </div>
         </div>
         <div className="btnConatiner">
-          <button className="btn btn-primary" type="button" onClick={this.onAnalyticsSubmit}>
-            Save & Next
-          </button>
+          <div className="btn-set">
+            <button className="btn btn-primary" type="button" onClick={this.onAnalyticsSubmit}>
+              Save & Next
+            </button>
+            <button
+              className={'btn btn-tertiary ' + classNames(Styles.publishBtn)}
+              type="button"
+              onClick={this.onSolutionPublish}
+            >
+              Publish
+            </button>
+          </div>
         </div>
       </React.Fragment>
     );
@@ -165,12 +205,33 @@ export default class Analytics extends React.Component<IAnalyticsProps, IAnalyti
       analytics.languages = this.props.analytics.languages;
       analytics.algorithms = this.props.analytics.algorithms;
       analytics.visualizations = this.props.analytics.visualizations;
+      analytics.analyticsSolution = this.props.analytics?.analyticsSolution;
       this.setState({ analytics });
     }
   };
   protected onAnalyticsSubmit = () => {
-    this.props.modifyAnalytics(this.state.analytics);
-    this.props.onSaveDraft('analytics');
+    if (this.validateAnalyticsForm()) {
+      this.props.modifyAnalytics(this.state.analytics);
+      this.props.onSaveDraft('analytics');
+    }
+  };
+
+  protected validateAnalyticsForm = () => {
+    let formValid = true;
+
+    if (this.props.isGenAI && !this.state.analytics.algorithms?.length) {
+      this.setState({ showAlogMissingError: true });
+      formValid = false;
+    }
+    return formValid;
+  };
+
+  protected onSolutionPublish = () => {
+    if (this.validateAnalyticsForm()) {
+      this.props.modifyAnalytics(this.state.analytics);
+      this.props.onSaveDraft('analytics');
+      this.props.onPublish();
+    }
   };
 
   protected setLanguages = (arr: string[]) => {
@@ -212,6 +273,7 @@ export default class Analytics extends React.Component<IAnalyticsProps, IAnalyti
       }
     });
     analytics.algorithms = algos;
+    this.setState({ showAlogMissingError: algos.length === 0 });
     this.props.modifyAnalytics(analytics);
   };
 
@@ -234,6 +296,28 @@ export default class Analytics extends React.Component<IAnalyticsProps, IAnalyti
       }
     });
     analytics.visualizations = visuals;
+    this.props.modifyAnalytics(analytics);
+  };
+
+  protected setSolutions = (arr: string[]) => {
+    const temp: string[] = [];
+
+    const analytics = this.state.analytics;
+    const analyticsSolution = this.props.analyticsSolution;
+    const solut = analyticsSolution.filter((l1) => {
+      if (arr.includes(l1.name)) {
+        temp.push(l1.name);
+        return true;
+      } else {
+        return false;
+      }
+    });
+    arr.forEach((a) => {
+      if (!temp.includes(a)) {
+        solut.push({ id: null, name: a });
+      }
+    });
+    analytics.analyticsSolution = solut;
     this.props.modifyAnalytics(analytics);
   };
 }

@@ -84,6 +84,7 @@ export interface IProvisionSolutionState {
   strategicRelevancesList: IStrategicRelevance[];
   isProvision: boolean;
   departmentTags: IDepartment[];
+  isGenAI: boolean;
 }
 
 export interface IProvisionSolutionProps {
@@ -137,6 +138,7 @@ export default class Provisionsolution extends React.Component<IProvisionSolutio
   constructor(props: IProvisionSolutionProps) {
     super(props);
     this.state = {
+      isGenAI: false,
       locations: [],
       divisions: [],
       subDivisions: [],
@@ -204,7 +206,7 @@ export default class Provisionsolution extends React.Component<IProvisionSolutio
         team: [],
         currentPhase: null,
         milestones: { phases: [], rollouts: { details: [], description: '' } },
-        analytics: { languages: [], algorithms: [], visualizations: [] },
+        analytics: { languages: [], algorithms: [], visualizations: [], analyticsSolution: [] },
         dataSources: {
           dataSources: [],
           dataVolume: {},
@@ -296,6 +298,7 @@ export default class Provisionsolution extends React.Component<IProvisionSolutio
               modfifyDescription={this.modifySolutionDescription}
               onSaveDraft={this.onSaveDraft}
               isProvision={this.state.isProvision}
+              isGenAI={this.state.isGenAI}
             />
           </div>
         </div>
