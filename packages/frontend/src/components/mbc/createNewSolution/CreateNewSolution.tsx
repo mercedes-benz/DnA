@@ -1,7 +1,7 @@
 import cn from 'classnames';
 import * as React from 'react';
 import { history } from '../../../router/History';
-import { getParams } from '../../../router/RouterUtils';
+import { getParams, getQueryParam } from '../../../router/RouterUtils';
 
 // @ts-ignore
 import Button from '../../../assets/modules/uilab/js/src/button';
@@ -13,7 +13,7 @@ import Notification from '../../../assets/modules/uilab/js/src/notification';
 import ProgressIndicator from '../../../assets/modules/uilab/js/src/progress-indicator';
 // @ts-ignore
 import Tabs from '../../../assets/modules/uilab/js/src/tabs';
-import { USER_ROLE } from 'globals/constants';
+import { SOLUTION_FIXED_TAGS, USER_ROLE } from 'globals/constants';
 import { Envs } from 'globals/Envs';
 import { ApiClient } from '../../../services/ApiClient';
 // import { getQueryParameterByName } from '../../../services/Query';
@@ -74,6 +74,7 @@ import Caption from '../shared/caption/Caption';
 
 const classNames = cn.bind(Styles);
 export interface ICreateNewSolutionState {
+  isGenAI: boolean;
   editMode: boolean;
   locations: ILocation[];
   divisions: IDivision[];
@@ -87,6 +88,7 @@ export interface ICreateNewSolutionState {
   languages: ITag[];
   algorithms: ITag[];
   visualizations: ITag[];
+  analyticsSolution: ITag[];
   results: IResult[];
   dataSourcesTags: ITag[];
   dataSources: IDataSource;
@@ -189,6 +191,7 @@ export default class CreateNewSolution extends React.Component<ICreateNewSolutio
     this.digitalValueComponent = React.createRef<DigitalValue>();
     this.platformComponent = React.createRef<Platform>();
     this.state = {
+      isGenAI: false,
       editMode: false,
       locations: [],
       divisions: [],
@@ -200,6 +203,7 @@ export default class CreateNewSolution extends React.Component<ICreateNewSolutio
       phases: [],
       languages: [],
       visualizations: [],
+      analyticsSolution: [],
       algorithms: [],
       results: [],
       platforms: [],
@@ -257,7 +261,7 @@ export default class CreateNewSolution extends React.Component<ICreateNewSolutio
         team: { team: [] },
         currentPhase: null,
         milestones: { phases: [], rollouts: { details: [], description: '' } },
-        analytics: { languages: [], algorithms: [], visualizations: [] },
+        analytics: { languages: [], algorithms: [], visualizations: [], analyticsSolution: [] },
         dataSources: {
           dataSources: [],
           dataVolume: {},
@@ -337,6 +341,21 @@ export default class CreateNewSolution extends React.Component<ICreateNewSolutio
   //   }
   // }
   public componentDidMount() {
+    const tagValue = getQueryParam("tag");
+    if (!this.state.editMode && SOLUTION_FIXED_TAGS.includes(tagValue)) {
+      this.setState({ isGenAI: true });
+    }
+    if (!this.state.editMode && tagValue && tagValue?.length > 0) {
+      this.setState(prevState => ({
+        solution: {
+          ...prevState.solution,
+          description: {
+            ...prevState.solution.description,
+            tags: [tagValue]
+          }
+        }
+      }));
+    }
     Tabs.defaultSetup();
     InputFields.defaultSetup();
     ProgressIndicator.show();
@@ -365,6 +384,7 @@ export default class CreateNewSolution extends React.Component<ICreateNewSolutio
         const marketingCommunicationChannelsLOV = response[19];
         const departmentTags = response[20].data;
         const marketingRolesLOV = response[21];
+        const analyticsSolution: ITag[] = response[22];
         phases.forEach((phase) => {
           switch (phase.id) {
             case '1':
@@ -413,12 +433,13 @@ export default class CreateNewSolution extends React.Component<ICreateNewSolutio
             marketingCommunicationChannelsLOV,
             departmentTags,
             marketingRolesLOV,
+            analyticsSolution
           },
           () => {
             Button.defaultSetup();
             SelectBox.defaultSetup();
             ProgressIndicator.hide();
-            this.getSolutionById(() => {});
+            this.getSolutionById(() => { });
           },
         );
       }
@@ -481,13 +502,16 @@ export default class CreateNewSolution extends React.Component<ICreateNewSolutio
               const division = res.division;
               if (!division.subdivision || !division.subdivision.id) {
                 division.subdivision = { id: '0', name: 'Choose' };
-              }
+              };
               solution.description.division = division;
               solution.description.expectedBenefits = res.expectedBenefits;
               solution.description.location = res.locations;
               solution.description.status = res.projectStatus;
               solution.description.relatedProducts = res.relatedProducts;
               solution.description.tags = res.tags;
+              if (res.tags && SOLUTION_FIXED_TAGS.some(tag => res.tags.includes(tag))) {
+                this.setState({ isGenAI: true });
+              }
               solution.description.logoDetails = res.logoDetails;
               solution.description.attachments = res.attachments;
               solution.description.reasonForHoldOrClose = res.reasonForHoldOrClose;
@@ -554,9 +578,7 @@ export default class CreateNewSolution extends React.Component<ICreateNewSolutio
     return (
       <React.Fragment>
         <div className={classNames(Styles.mainPanel)}>
-          <Caption
-            title={this.state.solution.description.productName || `${getParams().id ? 'Edit' : 'Create'} Solution`}
-          />
+          <Caption title={this.state.solution.description.productName || `${getParams()?.id ? 'Edit' : 'Create'} Solution`} />
           <div id="create-solution-tabs" className="tabs-panel">
             <div className="tabs-wrapper">
               <nav>
@@ -691,6 +713,7 @@ export default class CreateNewSolution extends React.Component<ICreateNewSolutio
                   modfifyDescription={this.modifySolutionDescription}
                   onSaveDraft={this.onSaveDraft}
                   isProvision={this.state.isProvision}
+                  isGenAI={this.state.isGenAI}
                 />
               </div>
               <div id="tab-content-2" className="tab-content">
@@ -748,9 +771,12 @@ export default class CreateNewSolution extends React.Component<ICreateNewSolutio
                     languages={this.state.languages}
                     algorithms={this.state.algorithms}
                     visualizations={this.state.visualizations}
+                    analyticsSolution={this.state.analyticsSolution}
                     modifyAnalytics={this.modifyAnalytics}
                     onSaveDraft={this.onSaveDraft}
+                    onPublish={this.onPublish}
                     ref={this.analyticComponent}
+                    isGenAI={this.state.isGenAI}
                   />
                 )}
               </div>

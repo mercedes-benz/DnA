@@ -38,6 +38,7 @@ import {
   IManageMarketingTabRequest,
   IMarketingCommunicationChannel,
   IMarketingCustomerJourney,
+  IAnalyticsSolution,
 } from '../globals/types';
 import { Pkce } from './Pkce';
 import { ReportsApiClient } from './ReportsApiClient';
@@ -339,6 +340,10 @@ export class ApiClient {
     return this.get('visualizations');
   }
 
+  public static getSolutions(): Promise<IAnalyticsSolution[]> {
+    return this.get('analyticsSolutions');
+  }
+
   public static deleteVisualization(id: string): Promise<any> {
     return this.delete(`visualizations/${id}`);
   }
@@ -419,6 +424,7 @@ export class ApiClient {
       this.get('marketingCommunicationChannels'),
       ReportsApiClient.get('departments'),
       this.get('marketingRoles'),
+      this.get('analyticsSolutions')
     ]);
   }
 
