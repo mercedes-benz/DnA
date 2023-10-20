@@ -29,7 +29,7 @@ import LogoManager from './logoManager/LogoManager';
 import Tags from 'components/formElements/tags/Tags';
 import InfoModal from 'components/formElements/modal/infoModal/InfoModal';
 import { Envs } from 'globals/Envs';
-import { DataStrategyDomainInfoList, AdditionalResourceTooltipContent } from 'globals/constants';
+import { DataStrategyDomainInfoList, AdditionalResourceTooltipContent, SOLUTION_FIXED_TAGS } from 'globals/constants';
 import { InfoList } from 'components/formElements/modal/infoModal/InfoList';
 // @ts-ignore
 import Tooltip from '../../../../assets/modules/uilab/js/src/tooltip';
@@ -54,6 +54,7 @@ export interface IDescriptionProps {
   onSaveDraft: (tabToBeSaved: string) => void;
   // onStateChange: () => void;
   isProvision: boolean;
+  isGenAI: boolean;
 }
 
 export interface IDescriptionState {
@@ -928,6 +929,7 @@ export default class Description extends React.Component<IDescriptionProps, IDes
                         setTags={this.setTags}
                         isMandatory={false}
                         showMissingEntryError={this.state.showTagsMissingError}
+                        fixedChips={this.props.isGenAI ? SOLUTION_FIXED_TAGS : []}
                         {...this.props}
                       />
                     </div>

@@ -463,6 +463,11 @@ export interface IVisualization {
   name?: string;
 }
 
+export interface IAnalyticsSolution {
+  id: number;
+  name?: string;
+}
+
 export interface IResult {
   id: string;
   name?: string;
@@ -1194,6 +1199,7 @@ export interface IAnalytics {
   languages: ITag[];
   algorithms: ITag[];
   visualizations: ITag[];
+  analyticsSolution: ITag[];
 }
 
 export interface ISharing {
