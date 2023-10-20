@@ -935,8 +935,26 @@ export default class CreateNewSolution extends React.Component<ICreateNewSolutio
   protected setCurrentTab = (event: React.MouseEvent) => {
     const target = event.target as HTMLLinkElement;
     const newState = this.state.solution;
+    if(!newState.description.division.subdivision || !newState.description.division.subdivision.id){
+      newState.description.division.subdivision = {id:'0', name:'Choose'};
+    }
+    if(!newState.dataSources.dataVolume || !newState.dataSources.dataVolume.id){
+      newState.dataSources.dataVolume = {id:'0', name:'Choose'};
+    }
+    if(!newState.sharing.result || !newState.sharing.result.id){
+      newState.sharing.result = {id:'0', name:'Choose'};
+    }
     const saveActionType = this.state.saveActionType;
     const currentState = this.state.currentState;
+    if(!currentState.description.division.subdivision || !currentState.description.division.subdivision.id){
+      currentState.description.division.subdivision = {id:'0', name:'Choose'};
+    }
+    if(!currentState.dataSources.dataVolume || !currentState.dataSources.dataVolume.id){
+      currentState.dataSources.dataVolume = {id:'0', name:'Choose'};
+    }
+    if(!currentState.sharing.result || !currentState.sharing.result.id){
+      currentState.sharing.result = {id:'0', name:'Choose'};
+    }
 
     if (!currentState || saveActionType === 'btn' || _.isEqual(newState, currentState)) {
       this.setState({ currentTab: target.id, saveActionType: '' });
