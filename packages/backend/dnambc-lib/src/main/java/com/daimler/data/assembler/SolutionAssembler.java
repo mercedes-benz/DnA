@@ -422,16 +422,30 @@ public class SolutionAssembler implements GenericAssembler<SolutionVO, SolutionN
 				}
 			}
 
+			List<String> solutionTags = solution.getTags();
+			boolean genAiTag = false;
+
 			List<AnalyticsSolutionDetails> analyticsSolutions = solution.getAnalyticsSolutions();
 			List<AnalyticsSolutionVO> analyticsSolutionsVO = new ArrayList<>();
-			if (analyticsSolutions != null && !analyticsSolutions.isEmpty()) {
-				for (AnalyticsSolutionDetails analyticsSolution : analyticsSolutions) {
-					if (analyticsSolution != null) {
-						AnalyticsSolutionVO analyticsSolutionVO = new AnalyticsSolutionVO();
-						BeanUtils.copyProperties(analyticsSolution, analyticsSolutionVO);
-						analyticsSolutionsVO.add(analyticsSolutionVO);
+
+			if (solutionTags != null && !solutionTags.isEmpty()) {
+				for (String tag : solutionTags) {
+					if (tag.equalsIgnoreCase("genai") || tag.equalsIgnoreCase("#genai")) {
+						genAiTag = true;
 					}
 				}
+				if (genAiTag) {
+					if (analyticsSolutions != null && !analyticsSolutions.isEmpty()) {
+						for (AnalyticsSolutionDetails analyticsSolution : analyticsSolutions) {
+							if (analyticsSolution != null) {
+								AnalyticsSolutionVO analyticsSolutionVO = new AnalyticsSolutionVO();
+								BeanUtils.copyProperties(analyticsSolution, analyticsSolutionVO);
+								analyticsSolutionsVO.add(analyticsSolutionVO);
+							}
+						}
+					}
+				}
+
 			}
 
 
@@ -1238,19 +1252,33 @@ public class SolutionAssembler implements GenericAssembler<SolutionVO, SolutionN
 				}
 			}
 
+			List<String> solutionTags = solution.getTags();
+			boolean genAiTag = false;
+
 			List<AnalyticsSolutionVO> analyticsSolutionsVO = analyticsVO.getAnalyticsSolution();
-			if (analyticsSolutionsVO != null && !analyticsSolutionsVO.isEmpty()) {
-				List<AnalyticsSolutionDetails> analyticsSolutions = new ArrayList<>();
-				for (AnalyticsSolutionVO analyticsSolutionVO : analyticsSolutionsVO) {
-					if (analyticsSolutionVO != null) {
-						AnalyticsSolutionDetails analyticsSolution = new AnalyticsSolutionDetails();
-						BeanUtils.copyProperties(analyticsSolutionVO, analyticsSolution);
-						analyticsSolutions.add(analyticsSolution);
+
+
+			if (solutionTags != null && !solutionTags.isEmpty()) {
+				for (String tag : solutionTags) {
+					if (tag.equalsIgnoreCase("genai") || tag.equalsIgnoreCase("#genai")) {
+						genAiTag = true;
 					}
 				}
-				solution.setAnalyticsSolutions(analyticsSolutions);
-			}
+				if (genAiTag) {
+					if (analyticsSolutionsVO != null && !analyticsSolutionsVO.isEmpty()) {
+						List<AnalyticsSolutionDetails> analyticsSolutions = new ArrayList<>();
+						for (AnalyticsSolutionVO analyticsSolutionVO : analyticsSolutionsVO) {
+							if (analyticsSolutionVO != null) {
+								AnalyticsSolutionDetails analyticsSolution = new AnalyticsSolutionDetails();
+								BeanUtils.copyProperties(analyticsSolutionVO, analyticsSolution);
+								analyticsSolutions.add(analyticsSolution);
+							}
+						}
+						solution.setAnalyticsSolutions(analyticsSolutions);
+					}
+				}
 
+			}
 			SolutionSharingVO sharingVO = vo.getSharing();
 			if (sharingVO != null) {
 				solution.setGitUrl(sharingVO.getGitUrl());
