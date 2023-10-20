@@ -24,7 +24,6 @@ export interface IAnalyticsState {
 
 export default class Analytics extends React.Component<IAnalyticsProps, IAnalyticsState> {
   public static getDerivedStateFromProps(props: IAnalyticsProps, state: IAnalyticsState) {
-    console.log('cccccccc props', props);
     if (props.analytics) {
       const analytics = state.analytics;
       if (props.analytics.languages && props.analytics.languages.length > 0) {
