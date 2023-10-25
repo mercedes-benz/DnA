@@ -57,7 +57,7 @@ public class GitClient {
 				return response.getStatusCode();
 			}
 		} catch (Exception e) {
-			log.error("Error occured while creating git repo {} with exception ", gitOrgName, e.getMessage());
+			log.error("Error occured while creating git repo {} with exception {} ", gitOrgName, e.getMessage());
 		}
 		return HttpStatus.INTERNAL_SERVER_ERROR;
 	}

@@ -216,14 +216,14 @@ public class BaseWorkspaceService implements WorkspaceService {
 			String projectName = entity.getData().getProjectDetails().getProjectName();
 			String recipeType = client.toDeployType(entity.getData().getProjectDetails().getRecipeDetails().getRecipeId());
 			String environment = entity.getData().getProjectDetails().getRecipeDetails().getEnvironment();
-			List<Object[]> records = new ArrayList<>();
-			if(isProjectOwner) {
-			records = workspaceCustomRepository.getWorkspaceIdsForProjectMembers(projectName);
-			}else {
-				Object[] collabRecord = {entity.getData().getWorkspaceId(),entity.getData().getWorkspaceOwner().getId()};
-				records.add(collabRecord);
-			}
-			for(Object[] record: records) {
+//			List<Object[]> records = new ArrayList<>();
+//			if(isProjectOwner) {
+//			records = workspaceCustomRepository.getWorkspaceIdsForProjectMembers(projectName);
+//			}else {
+//				Object[] collabRecord = {entity.getData().getWorkspaceId(),entity.getData().getWorkspaceOwner().getId()};
+//				records.add(collabRecord);
+//			}
+//			for(Object[] record: records) {
 				 WorkbenchManageDto ownerWorkbenchDeleteDto = new WorkbenchManageDto();
 				 ownerWorkbenchDeleteDto.setRef(codeServerEnvRef);
 				 WorkbenchManageInputDto ownerWorkbenchDeleteInputsDto = new WorkbenchManageInputDto();
@@ -234,19 +234,19 @@ public class BaseWorkspaceService implements WorkspaceService {
 				 ownerWorkbenchDeleteInputsDto.setResource("");
 				 String repoNameWithOrg =  gitOrgUri + gitOrgName + "/" + repoName;
 				 ownerWorkbenchDeleteInputsDto.setRepo(repoNameWithOrg);
-				 String workspaceUserId = record[1].toString();
+				 String workspaceUserId = entity.getData().getWorkspaceOwner().getId();
 				 ownerWorkbenchDeleteInputsDto.setShortid(workspaceUserId);
 				 ownerWorkbenchDeleteInputsDto.setType(recipeType);
-				 ownerWorkbenchDeleteInputsDto.setWsid(record[0].toString());
+				 ownerWorkbenchDeleteInputsDto.setWsid(entity.getData().getWorkspaceId());
 				 ownerWorkbenchDeleteDto.setInputs(ownerWorkbenchDeleteInputsDto);
 				 GenericMessage deleteOwnerWSResponse = client.manageWorkBench(ownerWorkbenchDeleteDto);
 				 warnings.addAll(deleteOwnerWSResponse.getErrors());
 				 warnings.addAll(deleteOwnerWSResponse.getWarnings());
-			}
+//			}
 			//update all workspaces for the project to deleted state in db if user is projectOwner otherwise change state to deleted only for individual workspace
-			if(isProjectOwner) {
-				workspaceCustomRepository.updateDeletedStatusForProject(projectName);
-			}else {
+//			if(isProjectOwner) {
+//				workspaceCustomRepository.updateDeletedStatusForProject(projectName);
+//			}else {
 				entity.getData().setStatus("DELETED");
 
 				UserInfo removeUser = new UserInfo();
@@ -262,7 +262,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 				}
 				workspaceCustomRepository.updateCollaboratorDetails(projectName, removeUser, true);
 				jpaRepo.save(entity);
-			}
+//			}
 			responseMessage.setSuccess("SUCCESS");
 			responseMessage.setErrors(errors);
 			responseMessage.setWarnings(warnings);
