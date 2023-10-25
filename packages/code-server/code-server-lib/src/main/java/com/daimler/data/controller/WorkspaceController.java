@@ -495,6 +495,15 @@ public class WorkspaceController  implements CodeServerApi{
 				log.info("User {} already requested delete workspace {}", userId,vo.getWorkspaceId());
 				return new ResponseEntity<>(errorMessage, HttpStatus.OK);
 			}
+			if(vo!=null && vo.getWorkspaceOwner()!=null && vo.getWorkspaceOwner().getId().equalsIgnoreCase(userId) && vo.getProjectDetails().getProjectCollaborators() != null && !vo.getProjectDetails().getProjectCollaborators().isEmpty()) {
+				MessageDescription notAuthorizedMsg = new MessageDescription();
+				notAuthorizedMsg.setMessage(
+						"You have collaborators in your project. Please transfer your ownership to any one of the collaborator before deleting this project codespace.");
+				GenericMessage errorMessage = new GenericMessage();
+				errorMessage.addErrors(notAuthorizedMsg);
+				log.info("You have collaborators in your project. Please transfer your ownership to any one of the collaborator before deleting this project codespace");
+				return new ResponseEntity<>(errorMessage, HttpStatus.BAD_REQUEST);
+			}
 			GenericMessage responseMsg = service.deleteById(userId,id);
 			log.info("User {} deleted workspace {}", userId,vo.getWorkspaceId());
 			return new ResponseEntity<>(responseMsg, HttpStatus.OK);
