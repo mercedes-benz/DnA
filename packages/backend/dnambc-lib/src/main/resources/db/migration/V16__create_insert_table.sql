@@ -1,8 +1,8 @@
-CREATE TABLE if not exists analyticsSolution_nsql (
+CREATE TABLE if not exists analyticssolution_nsql (
     id TEXT primary key,
     data jsonb NOT NULL
 );
 
-insert into analyticsSolution_nsql (id, data)
-values('1','{"name": "analyticsSolution1"}'),
-('2','{"name": "analyticsSolution2"}');
+insert into analyticssolution_nsql (id, data)
+values('1','{"name": "analyticssolution1"}'),
+('2','{"name": "analyticssolution2"}');

@@ -8,7 +8,7 @@ import javax.persistence.Table;
 import java.io.Serializable;
 
 @Entity
-@Table(name = "analyticsSolution_nsql")
+@Table(name = "analyticssolution_nsql")
 public class AnalyticsSolutionNsql extends BaseEntity<AnalyticsSolution> implements Serializable {
 
     private static final long serialVersionUID = -7715637669188213350L;
