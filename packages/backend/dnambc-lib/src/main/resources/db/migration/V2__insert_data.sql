@@ -38,10 +38,6 @@ insert into language_nsql (id, data)
 values('1','{"name": "language1"}'),
 ('2','{"name": "language2"}');
 
-insert into analyticsSolution_nsql (id, data)
-values('1','{"name": "analyticsSolution1"}'),
-('2','{"name": "analyticsSolution2"}');
-
 insert into location_nsql (id, data) 
 values('1','{"name": "location1", "is_row": true}'),
 ('2','{"name": "location2", "is_row": true}');
