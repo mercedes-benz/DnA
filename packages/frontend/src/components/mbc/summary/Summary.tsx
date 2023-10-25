@@ -296,13 +296,48 @@ export default class Summary extends React.Component<{ user: IUserInfo }, ISumma
       />
     ) : null;
 
+    const getCollabarators = (collaborators: any) => {
+      const collabarationData = {
+        firstName: collaborators.firstName,
+        lastName: collaborators.lastName,
+        accesskey: collaborators.shortId,
+        department: collaborators.department,
+        email: collaborators.email,
+        mobileNumber: collaborators.mobileNumber
+      };
+  
+      let duplicateMember = false;
+      duplicateMember = this.state?.solutionCollaborators?.filter((member) => member.shortId === collaborators.shortId)?.length
+        ? true
+        : false;
+      const isCreator = this.props?.user?.id === this.state?.solution?.createdBy?.id;
+  
+      if (duplicateMember) {
+        Notification.show('Collaborator Already Exist.', 'warning');
+      } else if (isCreator) {
+        Notification.show(
+          `${collaborators.firstName} ${collaborators.lastName} is a creator. Creator can't be added as collaborator.`,
+          'warning',
+        );
+      } else {
+        // bucketCollaborators.push(collabarationData);
+        // setBucketCollaborators([...bucketCollaborators]);
+  
+        this.setState(prevState => ({
+          solutionCollaborators: {
+            ...prevState.solutionCollaborators,
+            collabarationData
+          }
+        }))
+      }
+    };
 
     const transferOwnershipContent = (
       <div className={classNames('input-field-group include-error')}>
               <div className={Styles.bucketColContent}>
                 <div className={Styles.bucketColContentList}>
                   <div className={Styles.bucketColContentListAdd}>
-                    <AddUser getCollabarators={this.getCollabarators} dagId={''} isRequired={false} isUserprivilegeSearch={false} />
+                    <AddUser getCollabarators={getCollabarators} dagId={''} isRequired={false} isUserprivilegeSearch={false} />
                   </div>
                   <div className={Styles.bucketColUsersList}>
                     {this.state.solutionCollaborators?.length > 0 ? (
@@ -424,7 +459,7 @@ export default class Summary extends React.Component<{ user: IUserInfo }, ISumma
                       onExportToPDFDocument={pdfContent}
                       isPublished={this.state.solution.publish}
                       canTransferOwnerShip={userInfo?.id === this.state.solution?.createdBy?.id}
-                      onTransferOwnership={this.onTransferOwnershipSolutionConsent}
+                      onTransferOwnershipSolutionConsent={this.onTransferOwnershipSolutionConsent}
                     />
 
                     {this.state.canShowPlatform && (
@@ -502,8 +537,8 @@ export default class Summary extends React.Component<{ user: IUserInfo }, ISumma
                 showCancelButton={true}
                 show={this.state.showTransferOwnershipConsentModal}
                 content={transferOwnershipConsentContent}
-                onCancel={this.onCancellingDeleteChanges}
-                onAccept={this.onAcceptDeleteChanges}
+                onCancel={this.onCancellingTransferOwnershipConsentModal}
+                onAccept={this.onAcceptingTransferOwnershipConsentModal}
               />
               <Modal
                 title={"Transfer Ownership"}
@@ -862,39 +897,5 @@ export default class Summary extends React.Component<{ user: IUserInfo }, ISumma
     }
   };
 
-  protected getCollabarators (collaborators: any) {
-    const collabarationData = {
-      firstName: collaborators.firstName,
-      lastName: collaborators.lastName,
-      accesskey: collaborators.shortId,
-      department: collaborators.department,
-      email: collaborators.email,
-      mobileNumber: collaborators.mobileNumber
-    };
-
-    let duplicateMember = false;
-    duplicateMember = this.state.solutionCollaborators.filter((member) => member.shortId === collaborators.shortId)?.length
-      ? true
-      : false;
-    const isCreator = this.props?.user?.id === this.state?.solution?.createdBy?.id;
-
-    if (duplicateMember) {
-      Notification.show('Collaborator Already Exist.', 'warning');
-    } else if (isCreator) {
-      Notification.show(
-        `${collaborators.firstName} ${collaborators.lastName} is a creator. Creator can't be added as collaborator.`,
-        'warning',
-      );
-    } else {
-      // bucketCollaborators.push(collabarationData);
-      // setBucketCollaborators([...bucketCollaborators]);
-
-      this.setState(prevState => ({
-        solutionCollaborators: {
-          ...prevState.solutionCollaborators,
-          collabarationData
-        }
-      }))
-    }
-  };
+  
 }
