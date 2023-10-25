@@ -176,13 +176,14 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 
 	
 	@Override
-	public List<Object[]> getWorkspaceIdsForProjectMembers(String projectName){
+	public List<Object[]> getWorkspaceIdsForProjectMembers(String projectName, String projectOwnerId){
 		List<Object[]> records = new ArrayList<>();
 		
 		String getQuery = "select jsonb_extract_path_text(data,'workspaceId') as wsid,"
 				+ "jsonb_extract_path_text(data,'workspaceOwner','id') as userid from workspace_nsql "
 				+ "where lower(jsonb_extract_path_text(data,'projectDetails','projectName'))"
-				+ "= '" + projectName.toLowerCase() + "' and lower(jsonb_extract_path_text(data,'status')) <> 'deleted'";
+				+ "= '" + projectName.toLowerCase() + "' and lower(jsonb_extract_path_text(data,'status')) <> 'deleted'"
+				+ "and lower(jsonb_extract_path_text(data,'projectDetails','projectOwner','id'))" + "= '" + projectOwnerId.toLowerCase() + "' ";
 		try {
 			Query q = em.createNativeQuery(getQuery);
 			records = q.getResultList();
