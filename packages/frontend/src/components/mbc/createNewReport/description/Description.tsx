@@ -103,7 +103,7 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
       reportLink: props.description.reportLink,
       reportTypeValue: props.description.reportType,
       piiValue: props.description.piiData,
-      procedureId: props.description.procedureId
+      procedureId: props.description.procedureId,
     };
   }
   constructor(props: IDescriptionProps) {
@@ -141,14 +141,13 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
       piiValue: null,
       piiError: null,
       procedureId: '',
-      procedureIdError: null
+      procedureIdError: null,
     };
   }
 
   public componentDidMount() {
     SelectBox.defaultSetup();
-    if(this.props.description.procedureId == '' || this.props.description.procedureId == null)
-    {
+    if (this.props.description.procedureId == '' || this.props.description.procedureId == null) {
       this.props.description.procedureId = procedureIdEnvs;
     }
   }
@@ -191,19 +190,17 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
   };
 
   public onProcedureIdOnBlur = (e: React.FormEvent<HTMLInputElement>) => {
-    if(procedureIdEnvs){
+    if (procedureIdEnvs) {
       const procedureId = e.currentTarget.value;
-      if(procedureId){
+      if (procedureId) {
         if (!procedureId.startsWith(procedureIdEnvs)) {
-          this.setState({ procedureIdError: '*Please provide valid Procedure Id ('+procedureIdEnvs+'xxx).' });
+          this.setState({ procedureIdError: '*Please provide valid Procedure Id (' + procedureIdEnvs + 'xxx).' });
         } else if (procedureId.startsWith(procedureIdEnvs) && procedureId.replace(procedureIdEnvs, '') == '') {
-          this.setState({ procedureIdError: '*Please provide valid Procedure Id ('+procedureIdEnvs+'xxx).' });
-        }
-        else{
+          this.setState({ procedureIdError: '*Please provide valid Procedure Id (' + procedureIdEnvs + 'xxx).' });
+        } else {
           this.setState({ procedureIdError: '' });
         }
-      }
-      else{
+      } else {
         this.setState({ procedureIdError: '' });
       }
     }
@@ -250,22 +247,22 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
     if (selectedOptions.length) {
       division.id = selectedOptions[0].value;
       division.name = selectedOptions[0].textContent;
-      if (division.id !== '0' && division.id !== this.state.divisionValue.id) {
-        ProgressIndicator.show();
+      if (division.id !== this.state.divisionValue.id) {
+        if (division.id !== '0') {
+          ProgressIndicator.show();
 
-        ApiClient.getSubDivisions(division.id).then((subDivisions) => {
-          if (!subDivisions.length) {
-            subDivisions = [{ id: '0', name: 'None' }];
-          }
-          this.props.setSubDivisions(subDivisions);
-          ProgressIndicator.hide();
-          
-        });
+          ApiClient.getSubDivisions(division.id).then((subDivisions) => {
+            if (!subDivisions.length) {
+              subDivisions = [{ id: '0', name: 'None' }];
+            }
+            this.props.setSubDivisions(subDivisions);
+            ProgressIndicator.hide();
+          });
+        }
         description.division = division;
         this.setState({ divisionValue: division });
       }
     }
-    
   };
 
   public onSubDivisionChange = (e: React.FormEvent<HTMLSelectElement>) => {
@@ -339,7 +336,7 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
     // const description = this.props.description;
     // description.integratedPortal = selectedValues;
     // this.setState({ integratedPortalsValue: selectedValues });
-    
+
     const selectedOptions = e.currentTarget.selectedOptions;
     let selectedValue = '';
     if (selectedOptions.length) {
@@ -382,7 +379,6 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
     description.piiData = selectedValues;
     this.setState({ piiValue: selectedValues });
   };
-
 
   public onChangeFrontTechnologies = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const selectedOptions = e.currentTarget.selectedOptions;
@@ -429,7 +425,7 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
       })
       ?.toString();
 
-    const reportTypeValue = this.state.reportTypeValue ? this.state.reportTypeValue : 'Self Service Report';  
+    const reportTypeValue = this.state.reportTypeValue ? this.state.reportTypeValue : 'Self Service Report';
 
     const piiValue = this.state.piiValue;
 
@@ -533,9 +529,7 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
                     />
                   </div>
                   <div>
-                    <div
-                      className={classNames('input-field-group include-error', frontEndTechError ? 'error' : '')}
-                    >
+                    <div className={classNames('input-field-group include-error', frontEndTechError ? 'error' : '')}>
                       <label id="FrontEndTechnogies" htmlFor="FrontEndTechnogiesField" className="input-label">
                         Frontend Technologies <sup>*</sup>
                       </label>
@@ -638,11 +632,7 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
                               integratedPortalError ? 'error' : '',
                             )}
                           >
-                            <label
-                              id="integratedPortalLabel"
-                              htmlFor="integratedPortalField"
-                              className="input-label"
-                            >
+                            <label id="integratedPortalLabel" htmlFor="integratedPortalField" className="input-label">
                               Integrated In Portal
                             </label>
                             <div className="custom-select">
@@ -670,10 +660,7 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
                         </div>
                         <div>
                           <div
-                            className={classNames(
-                              'input-field-group include-error',
-                              piiError.length ? 'error' : '',
-                            )}
+                            className={classNames('input-field-group include-error', piiError.length ? 'error' : '')}
                           >
                             <label id="piiLabel" htmlFor="piiField" className="input-label">
                               PII(Personally Identifiable Information) <sup>*</sup>
@@ -704,7 +691,6 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
                     ) : (
                       ''
                     )}
-                    
                   </div>
 
                   <div>
@@ -789,21 +775,23 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
                           labelId={'procedureIdLabel'}
                           label={'Procedure ID'}
                           placeholder={'Type here'}
-                          infoTip={'Procedure ID '+ (procedureIdEnvs ? ('('+procedureIdEnvs+'xxx)'): '')+' from Records of Processing Activities (RoPA)'}
+                          infoTip={
+                            'Procedure ID ' +
+                            (procedureIdEnvs ? '(' + procedureIdEnvs + 'xxx)' : '') +
+                            ' from Records of Processing Activities (RoPA)'
+                          }
                           value={this.state.procedureId}
                           errorText={procedureIdError}
                           required={false}
                           maxLength={200}
                           onChange={this.onProcedureIdOnChange}
                           onBlur={this.onProcedureIdOnBlur}
-                        />                        
+                        />
                       </div>
-                      
                     </div>
                   </div>
                 </div>
               </div>
-              
             </div>
           </div>
           {!this.props.enableQuickPath ? (
@@ -898,18 +886,22 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
     let formValid = true;
     const errorMissingEntry = '*Missing entry';
 
-    if(this.state.procedureId){
-      if(this.state.procedureId === procedureIdEnvs){
+    if (this.state.procedureId) {
+      if (this.state.procedureId === procedureIdEnvs) {
         const description = this.props.description;
         description.procedureId = '';
         formValid = true;
       } else {
         if (procedureIdEnvs && !this.state.procedureId.startsWith(procedureIdEnvs)) {
-          this.setState({ procedureIdError: '*Please provide valid Procedure Id ('+procedureIdEnvs+'xxx).' });
+          this.setState({ procedureIdError: '*Please provide valid Procedure Id (' + procedureIdEnvs + 'xxx).' });
           formValid = false;
         }
-        if (procedureIdEnvs && this.state.procedureId.startsWith(procedureIdEnvs) && this.state.procedureId.replace(procedureIdEnvs, '') == '') {
-          this.setState({ procedureIdError: '*Please provide valid Procedure Id ('+procedureIdEnvs+'xxx).' });
+        if (
+          procedureIdEnvs &&
+          this.state.procedureId.startsWith(procedureIdEnvs) &&
+          this.state.procedureId.replace(procedureIdEnvs, '') == ''
+        ) {
+          this.setState({ procedureIdError: '*Please provide valid Procedure Id (' + procedureIdEnvs + 'xxx).' });
           formValid = false;
         }
         // if ((!procedureIdEnvs || procedureIdEnvs == '' || procedureIdEnvs == null) && (this.state.procedureId ==='' || !this.state.procedureId)) {
@@ -917,10 +909,9 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
         //   formValid = false;
         // }
       }
-      
     }
 
-    if (!this.state.divisionValue || this.state.divisionValue.id === '0') {
+    if (!this.state.divisionValue || this.state.divisionValue.id === '0' || this.state.divisionValue.id === '') {
       this.setState({ divisionError: errorMissingEntry });
       formValid = false;
     }
@@ -994,14 +985,17 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
     //   this.setState({ reportLinkError: '' });
     //   // formValid = true;
     // }
-    if ((!this.state.reportLink || this.state.reportLink === null || this.state.reportLink === '') && this.state.statusValue[0]?.id === 'Active') {
+    if (
+      (!this.state.reportLink || this.state.reportLink === null || this.state.reportLink === '') &&
+      this.state.statusValue[0]?.id === 'Active'
+    ) {
       this.setState({ reportLinkError: errorMissingEntry });
       formValid = false;
     }
-    
+
     // if (procedureIdEnvs && (this.state.procedureId.split('-')[0]!== procedureIdEnvs || this.state.procedureId.split('-')[1] === '')) {
-    
-    if(this.state.procedureIdError) {
+
+    if (this.state.procedureIdError) {
       formValid = false;
     }
     setTimeout(() => {
@@ -1015,7 +1009,7 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
     let formValid = true;
     const errorMissingEntry = '*Missing entry';
 
-    if (!this.state.divisionValue || this.state.divisionValue.id === '0') {
+    if (!this.state.divisionValue || this.state.divisionValue.id === '0' || this.state.divisionValue.id === '') {
       this.setState({ divisionError: errorMissingEntry });
       formValid = false;
     }
@@ -1063,7 +1057,10 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
       this.setState({ frontEndTechError: errorMissingEntry });
       formValid = false;
     }
-    if ((!this.state.reportLink || this.state.reportLink === null || this.state.reportLink === '') && this.state.statusValue[0]?.id === 'Active') {
+    if (
+      (!this.state.reportLink || this.state.reportLink === null || this.state.reportLink === '') &&
+      this.state.statusValue[0]?.id === 'Active'
+    ) {
       this.setState({ reportLinkError: errorMissingEntry });
       formValid = false;
     }
@@ -1102,7 +1099,10 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
     const reportLink = e.currentTarget.value;
     const description = this.props.description;
     description.reportLink = reportLink;
-    if ((reportLink === '' || reportLink === null) && (this.state.statusValue ? this.state.statusValue[0]?.id === 'Active' : false)) {
+    if (
+      (reportLink === '' || reportLink === null) &&
+      (this.state.statusValue ? this.state.statusValue[0]?.id === 'Active' : false)
+    ) {
       this.setState({ reportLinkError: '*Missing Entry' });
     } else {
       this.setState({ reportLinkError: '' });
