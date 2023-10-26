@@ -341,19 +341,19 @@ export default class CreateNewSolution extends React.Component<ICreateNewSolutio
   //   }
   // }
   public componentDidMount() {
-    const tagValue = getQueryParam("tag");
+    const tagValue = getQueryParam('tag');
     if (!this.state.editMode && SOLUTION_FIXED_TAGS.includes(tagValue)) {
       this.setState({ isGenAI: true });
     }
     if (!this.state.editMode && tagValue && tagValue?.length > 0) {
-      this.setState(prevState => ({
+      this.setState((prevState) => ({
         solution: {
           ...prevState.solution,
           description: {
             ...prevState.solution.description,
-            tags: [tagValue]
-          }
-        }
+            tags: [tagValue],
+          },
+        },
       }));
     }
     Tabs.defaultSetup();
@@ -433,13 +433,13 @@ export default class CreateNewSolution extends React.Component<ICreateNewSolutio
             marketingCommunicationChannelsLOV,
             departmentTags,
             marketingRolesLOV,
-            analyticsSolution
+            analyticsSolution,
           },
           () => {
             Button.defaultSetup();
             SelectBox.defaultSetup();
             ProgressIndicator.hide();
-            this.getSolutionById(() => { });
+            this.getSolutionById(() => {});
           },
         );
       }
@@ -502,14 +502,14 @@ export default class CreateNewSolution extends React.Component<ICreateNewSolutio
               const division = res.division;
               if (!division.subdivision || !division.subdivision.id) {
                 division.subdivision = { id: '0', name: 'Choose' };
-              };
+              }
               solution.description.division = division;
               solution.description.expectedBenefits = res.expectedBenefits;
               solution.description.location = res.locations;
               solution.description.status = res.projectStatus;
               solution.description.relatedProducts = res.relatedProducts;
               solution.description.tags = res.tags;
-              if (res.tags && SOLUTION_FIXED_TAGS.some(tag => res.tags.includes(tag))) {
+              if (res.tags && SOLUTION_FIXED_TAGS.some((tag) => res.tags.includes(tag))) {
                 this.setState({ isGenAI: true });
               }
               solution.description.logoDetails = res.logoDetails;
@@ -578,7 +578,9 @@ export default class CreateNewSolution extends React.Component<ICreateNewSolutio
     return (
       <React.Fragment>
         <div className={classNames(Styles.mainPanel)}>
-          <Caption title={this.state.solution.description.productName || `${getParams()?.id ? 'Edit' : 'Create'} Solution`} />
+          <Caption
+            title={this.state.solution.description.productName || `${getParams()?.id ? 'Edit' : 'Create'} Solution`}
+          />
           <div id="create-solution-tabs" className="tabs-panel">
             <div className="tabs-wrapper">
               <nav>
@@ -963,25 +965,22 @@ export default class CreateNewSolution extends React.Component<ICreateNewSolutio
   protected setCurrentTab = (event: React.MouseEvent) => {
     const target = event.target as HTMLLinkElement;
     const newState = this.state.solution;
-    if (!newState.description.division.subdivision || !newState.description.division.subdivision.id) {
-      newState.description.division.subdivision = { id: '0', name: 'Choose' };
-    }
-    if (!newState.dataSources.dataVolume || !newState.dataSources.dataVolume.id) {
-      newState.dataSources.dataVolume = { id: '0', name: 'Choose' };
-    }
-    if (!newState.sharing.result || !newState.sharing.result.id) {
-      newState.sharing.result = { id: '0', name: 'Choose' };
-    }
     const saveActionType = this.state.saveActionType;
     const currentState = this.state.currentState;
     if (!currentState.description.division.subdivision || !currentState.description.division.subdivision.id) {
-      currentState.description.division.subdivision = { id: '0', name: 'Choose' };
+      if (newState.description.division.subdivision && newState.description.division.subdivision.id) {
+        currentState.description.division.subdivision = { id: '0', name: 'Choose' };
+      }
     }
     if (!currentState.dataSources.dataVolume || !currentState.dataSources.dataVolume.id) {
-      currentState.dataSources.dataVolume = { id: '0', name: 'Choose' };
+      if (newState.dataSources.dataVolume && newState.dataSources.dataVolume.id) {
+        currentState.dataSources.dataVolume = { id: '0', name: 'Choose' };
+      }
     }
     if (!currentState.sharing.result || !currentState.sharing.result.id) {
-      currentState.sharing.result = { id: '0', name: 'Choose' };
+      if (newState.sharing.result && newState.sharing.result.id) {
+        currentState.sharing.result = { id: '0', name: 'Choose' };
+      }
     }
 
     if (!currentState || saveActionType === 'btn' || _.isEqual(newState, currentState)) {
