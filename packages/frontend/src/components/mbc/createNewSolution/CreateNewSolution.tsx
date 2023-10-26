@@ -967,17 +967,17 @@ export default class CreateNewSolution extends React.Component<ICreateNewSolutio
     const newState = this.state.solution;
     const saveActionType = this.state.saveActionType;
     const currentState = this.state.currentState;
-    if (!currentState.description.division.subdivision || !currentState.description.division.subdivision.id) {
+    if (!currentState?.description?.division?.subdivision || !currentState?.description?.division?.subdivision?.id) {
       if (newState.description.division.subdivision && newState.description.division.subdivision.id) {
         currentState.description.division.subdivision = { id: '0', name: 'Choose' };
       }
     }
-    if (!currentState.dataSources.dataVolume || !currentState.dataSources.dataVolume.id) {
+    if (!currentState?.dataSources?.dataVolume || !currentState?.dataSources?.dataVolume?.id) {
       if (newState.dataSources.dataVolume && newState.dataSources.dataVolume.id) {
         currentState.dataSources.dataVolume = { id: '0', name: 'Choose' };
       }
     }
-    if (!currentState.sharing.result || !currentState.sharing.result.id) {
+    if (!currentState?.sharing?.result || !currentState?.sharing?.result?.id) {
       if (newState.sharing.result && newState.sharing.result.id) {
         currentState.sharing.result = { id: '0', name: 'Choose' };
       }
