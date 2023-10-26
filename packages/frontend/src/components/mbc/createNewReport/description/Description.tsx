@@ -250,17 +250,19 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
     if (selectedOptions.length) {
       division.id = selectedOptions[0].value;
       division.name = selectedOptions[0].textContent;
-      if (division.id !== '0' && division.id !== this.state.divisionValue.id) {
-        ProgressIndicator.show();
+      if (division.id !== this.state.divisionValue.id ) {
+        if(division.id !== '0'){
+          ProgressIndicator.show();
 
-        ApiClient.getSubDivisions(division.id).then((subDivisions) => {
-          if (!subDivisions.length) {
-            subDivisions = [{ id: '0', name: 'None' }];
-          }
-          this.props.setSubDivisions(subDivisions);
-          ProgressIndicator.hide();
-          
-        });
+          ApiClient.getSubDivisions(division.id).then((subDivisions) => {
+            if (!subDivisions.length) {
+              subDivisions = [{ id: '0', name: 'None' }];
+            }
+            this.props.setSubDivisions(subDivisions);
+            ProgressIndicator.hide();
+            
+          });
+        }
         description.division = division;
         this.setState({ divisionValue: division });
       }
@@ -920,7 +922,7 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
       
     }
 
-    if (!this.state.divisionValue || this.state.divisionValue.id === '0') {
+    if (!this.state.divisionValue || this.state.divisionValue.id === '0' || this.state.divisionValue.id === '') {
       this.setState({ divisionError: errorMissingEntry });
       formValid = false;
     }
@@ -1015,7 +1017,7 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
     let formValid = true;
     const errorMissingEntry = '*Missing entry';
 
-    if (!this.state.divisionValue || this.state.divisionValue.id === '0') {
+    if (!this.state.divisionValue || this.state.divisionValue.id === '0' || this.state.divisionValue.id === '' ) {
       this.setState({ divisionError: errorMissingEntry });
       formValid = false;
     }
