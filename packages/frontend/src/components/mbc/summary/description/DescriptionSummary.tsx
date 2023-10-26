@@ -27,7 +27,7 @@ export interface IDescriptionSummaryProps {
   updateBookmark: (solutionId: string, isRemove: boolean) => void;
   onExportToPDFDocument: JSX.Element;
   canTransferOwnerShip: boolean;
-  onTransferOwnership: (solutionId: string) => void;
+  onTransferOwnershipSolutionConsent: (solutionId: string) => void;
 }
 export interface IDescriptionSummaryState {
   showContextMenu: boolean;
@@ -98,7 +98,7 @@ export default class DescriptionSummary extends React.Component<IDescriptionSumm
         showContextMenu: false,
       },
       () => {
-        this.props.onTransferOwnership(this.props.solutionId);
+        this.props.onTransferOwnershipSolutionConsent(this.props.solutionId);
       },
     );
   };
