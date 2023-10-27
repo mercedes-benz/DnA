@@ -151,6 +151,13 @@ const protectedRoutes = [
     allowedRoles: UserAndAdminRole,
     component: CreateNewSolution,
     exact: false,
+    path: '/createnewgenaisolution',
+    title: 'Create New GenAI Solution',
+  },
+  {
+    allowedRoles: UserAndAdminRole,
+    component: CreateNewSolution,
+    exact: false,
     path: '/editSolution/:id?/:editable?',
     title: 'Edit Solution',
   },

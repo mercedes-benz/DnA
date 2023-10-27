@@ -1,3 +1,4 @@
+import { SOLUTION_FIXED_TAGS } from 'globals/constants';
 import { Envs } from '../globals/Envs';
 import { IFilterParams, IUserInfo } from '../globals/types';
 import { ComputeFixedTag } from 'globals/Enums';
@@ -388,3 +389,11 @@ export const recipesMaster = [
   { id: 'mean', name: 'MEAN Stack (Coming Soon)' },
   { id: 'mern', name: 'MERN Stack (Coming Soon)' },
 ];
+
+export const isSolutionFixedTagIncluded = (tagValue: string) => {
+  return SOLUTION_FIXED_TAGS.map(tag => tag.toLowerCase()).includes(tagValue?.toLowerCase());
+}
+
+export const isSolutionFixedTagIncludedInArray = (arr: string[]) => {
+  return SOLUTION_FIXED_TAGS.some(tag => arr?.map(item => item?.toLowerCase()).includes(tag?.toLowerCase()));
+}
