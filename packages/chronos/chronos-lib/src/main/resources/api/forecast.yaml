@@ -884,7 +884,7 @@ paths:
           description: Sort comparisons by a given variable like comparisonName, createdby, createdon or status
           required: false
           type: string
-          enum: [ comparisonName,createdOn,status,createdBy,actualsFile ]
+          enum: [ comparisonName,createdOn,status,createdBy,actualsFile,buisnessFile ]
         - name: sortOrder
           in: query
           description: Sort comparisons based on the given order, example asc,desc
