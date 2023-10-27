@@ -85,6 +85,7 @@ export interface IProvisionSolutionState {
   isProvision: boolean;
   departmentTags: IDepartment[];
   isGenAI: boolean;
+  id: string;
 }
 
 export interface IProvisionSolutionProps {
@@ -138,6 +139,7 @@ export default class Provisionsolution extends React.Component<IProvisionSolutio
   constructor(props: IProvisionSolutionProps) {
     super(props);
     this.state = {
+      id: '',
       isGenAI: false,
       locations: [],
       divisions: [],
@@ -299,6 +301,7 @@ export default class Provisionsolution extends React.Component<IProvisionSolutio
               onSaveDraft={this.onSaveDraft}
               isProvision={this.state.isProvision}
               isGenAI={this.state.isGenAI}
+              id={this.state.id}
             />
           </div>
         </div>
