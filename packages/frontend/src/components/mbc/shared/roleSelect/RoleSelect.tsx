@@ -44,8 +44,12 @@ const RoleSelect = (props: IPersonaSelectProps) => {
       Array.from(selectedOptions).forEach((option) => {
         selectedValues.push(option.label);
       });
+      changeInRoleCount(selectedValues);
     }
-    changeInRoleCount(selectedValues);
+    else {
+      setNeededRoleValue([]);
+      setRoleCountFieldList([]);
+    }
   };
 
   const changeInRoleCount = (selectedValues: string[]) => {
