@@ -1032,6 +1032,7 @@ export default class Milestones extends React.Component<IMilestonesProps, IMileS
         milestonesList: JSON.parse(JSON.stringify(milestones)),
       });
       this.props.modifyMileStones(milestones, this.state.currentPhase);
+      this.setState({ milestonesErrorMessage: null });
     }
   };
 
