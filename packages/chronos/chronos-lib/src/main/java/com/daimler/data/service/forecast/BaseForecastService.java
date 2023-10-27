@@ -1151,6 +1151,7 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 						ChronosComparisonRequestDto comparisonRequestDto = new ChronosComparisonRequestDto();
 						comparisonRequestDto.setRuns_list(tempComparison.getRunsList());
 						comparisonRequestDto.setActuals_file(tempComparison.getActualsFile());
+						comparisonRequestDto.setBuisness_file(tempComparison.getBuisnessFile());
 						comparisonRequestDto.setTarget_folder(tempComparison.getTargetFolder());
 						log.info("calling Chronos Comparison API for comparison {} , triggeredBy {}  ", tempComparison.getComparisonName() ,tempComparison.getTriggeredBy());
 						CreateComparisonResponseWrapperDto createComparisonResponse = comparisonClient.createComparison(tempComparison.getComparisonName(),tempComparison.getTriggeredBy(),comparisonRequestDto);
@@ -1263,6 +1264,15 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 							}
 							else if(sortOrder != null && sortOrder.equalsIgnoreCase("asc")){
 								Collections.sort(tempExistingComparisons, Collections.reverseOrder(comparatorActualsFile));
+							}
+							break;
+						case "buisnessFile":
+							Comparator<ComparisonDetails> comparatorBuisnessFile = (v1, v2) -> (v2.getBuisnessFile().compareTo(v1.getBuisnessFile()));
+							if(sortOrder != null && sortOrder.equalsIgnoreCase("desc")) {
+								Collections.sort(tempExistingComparisons, comparatorBuisnessFile);
+							}
+							else if(sortOrder != null && sortOrder.equalsIgnoreCase("asc")){
+								Collections.sort(tempExistingComparisons, Collections.reverseOrder(comparatorBuisnessFile));
 							}
 							break;
 							default:
