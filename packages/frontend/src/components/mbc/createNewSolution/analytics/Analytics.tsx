@@ -89,7 +89,7 @@ export default class Analytics extends React.Component<IAnalyticsProps, IAnalyti
       <React.Fragment>
         <div className={classNames(Styles.wrapper)}>
           <div className={classNames(Styles.firstPanel)}>
-            <h3>Analytics</h3>
+            <h3>{this.props.isGenAI ? 'Technology' : 'Analytics'}</h3>
             <div className={classNames(Styles.formWrapper)}>
               <div className={Styles.flexLayout}>
                 {!this.props.isGenAI && <div>
