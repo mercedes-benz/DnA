@@ -42,6 +42,7 @@ export interface ISummaryState {
   canShowDigitalValue: boolean;
   showDeleteSolutionModal: boolean;
   solutionToBeDeleted: string;
+  solutionToBeTransfered: string;
   tabClassNames: Map<string, string>;
   currentTab: string;
   noteBookInfo: INotebookInfo;
@@ -207,6 +208,7 @@ export default class Summary extends React.Component<{ user: IUserInfo }, ISumma
       canShowMilestones: false,
       showDeleteSolutionModal: false,
       solutionToBeDeleted: null,
+      solutionToBeTransfered: null,
       tabClassNames: new Map<string, string>(),
       currentTab: 'description',
       noteBookInfo: null,
@@ -300,17 +302,18 @@ export default class Summary extends React.Component<{ user: IUserInfo }, ISumma
       const collabarationData = {
         firstName: collaborators.firstName,
         lastName: collaborators.lastName,
-        accesskey: collaborators.shortId,
+        shortId: collaborators.shortId,
         department: collaborators.department,
         email: collaborators.email,
-        mobileNumber: collaborators.mobileNumber
+        mobileNumber: collaborators.mobileNumber,
+        userType: 'internal'
       };
   
       let duplicateMember = false;
       duplicateMember = this.state?.solutionCollaborators?.filter((member) => member.shortId === collaborators.shortId)?.length
         ? true
         : false;
-      const isCreator = this.props?.user?.id === this.state?.solution?.createdBy?.id;
+      const isCreator = collaborators.shortId === this.state?.solution?.createdBy?.id;
   
       if (duplicateMember) {
         Notification.show('Collaborator Already Exist.', 'warning');
@@ -322,13 +325,9 @@ export default class Summary extends React.Component<{ user: IUserInfo }, ISumma
       } else {
         // bucketCollaborators.push(collabarationData);
         // setBucketCollaborators([...bucketCollaborators]);
-  
-        this.setState(prevState => ({
-          solutionCollaborators: {
-            ...prevState.solutionCollaborators,
-            collabarationData
-          }
-        }))
+        const {solutionCollaborators} = this.state;
+        solutionCollaborators.push(collabarationData);
+        this.setState({solutionCollaborators})
       }
     };
 
@@ -804,7 +803,7 @@ export default class Summary extends React.Component<{ user: IUserInfo }, ISumma
   };
 
   protected onTransferOwnershipSolutionConsent = (solutionId: string) => {
-    this.setState({ showTransferOwnershipConsentModal: true, solutionToBeDeleted: solutionId });
+    this.setState({ showTransferOwnershipConsentModal: true, solutionToBeTransfered: solutionId });
   };
 
   protected updateBookmark = (solutionId: string, isRemove: boolean) => {
@@ -840,7 +839,7 @@ export default class Summary extends React.Component<{ user: IUserInfo }, ISumma
   };
 
   protected onCancellingTransferOwnershipConsentModal = () => {
-    this.setState({ showTransferOwnershipConsentModal: false, solutionToBeDeleted: null });
+    this.setState({ showTransferOwnershipConsentModal: false, solutionToBeTransfered: null });
   };
 
   protected onAcceptingTransferOwnershipConsentModal = () => {
@@ -848,11 +847,29 @@ export default class Summary extends React.Component<{ user: IUserInfo }, ISumma
   };
 
   protected onCancellingTransferOwnershipModal = () => {
-    this.setState({ showTransferOwnershipModal: false });
+    this.setState({ showTransferOwnershipModal: false, solutionToBeTransfered: null });
   };
 
   protected onTransferOwnership = (shortId: string) => {
     // call api to change ownership
+    console.log(shortId,'====================',this.state.solutionToBeTransfered);
+    
+    // ProgressIndicator.show();
+    // ApiClient.transferSolutionOwner(shortId, this.state.solutionToBeTransfered)
+    //   .then((res) => {
+    //     if (res) {
+    //       Notification.show('Owner transferred successfully');
+    //       ProgressIndicator.hide();
+    //       this.setState({ showTransferOwnershipModal: false }, () => {
+    //         history.goBack();
+    //       });
+    //     }
+    //   })
+    //   .catch((error) => {
+    //     ProgressIndicator.hide();
+    //     this.showErrorNotification(error.message ? error.message : 'Some Error Occured');
+    //     this.setState({ showTransferOwnershipModal: false });
+    //   });
   };
 
   protected onAcceptDeleteChanges = () => {

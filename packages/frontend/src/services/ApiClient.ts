@@ -511,6 +511,10 @@ export class ApiClient {
     return this.delete(`solutions/${id}`);
   }
 
+  public static transferSolutionOwner(shortId: string, solutionId: string): Promise<any> {
+    return this.put(`solutions/${solutionId}/${shortId}`,{});
+  }
+
   public static getDRDUserInfo(adId: string): Promise<any> {
     return this.get(`userinfo/${adId}`);
   }
