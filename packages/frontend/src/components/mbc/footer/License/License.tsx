@@ -23,7 +23,7 @@ export default class License extends React.Component<{ user: IUserInfo }, any> {
                 MIT License
                 <br />
                 <br />
-                Copyright (c) 2019 Daimler TSS GmbH
+                Copyright (c) 2019 Mercedes-Benz Tech Innovation GmbH
                 <br />
                 <br />
                 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
