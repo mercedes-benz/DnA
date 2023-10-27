@@ -822,6 +822,10 @@ paths:
           type: file
           description: The input file for the comparison of forecast runs.
         - in: formData
+          name: businessFile
+          type: file
+          description: The input file for the comparison of forecast runs.
+        - in: formData
           name: "comparisonName"
           type: "string"
           description: "Run Comparison name"
@@ -1676,6 +1680,9 @@ definitions:
         format: date
         description: "Date/Time for the triggered comparison"
       actualsFile:
+        type: string
+        description: "input file for the comparison of forecast runs"
+      buisnessFile:
         type: string
         description: "input file for the comparison of forecast runs"
       targetFolder:
