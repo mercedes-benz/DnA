@@ -690,28 +690,36 @@ public class SolutionController implements SolutionsApi, ChangelogsApi, Malwares
             if (userId != null && !"".equalsIgnoreCase(userId)) {
                 UserInfoVO userInfoVO = userInfoService.getById(userId);
                 solution = solutionService.getById(id);
-                if (userInfoVO != null) {
-                    List<UserRoleVO> userRoleVOs = userInfoVO.getRoles();
-                    if (userRoleVOs != null && !userRoleVOs.isEmpty()) {
-                        boolean isDivisionAdmin = userRoleVOs.stream()
-                                .anyMatch(n -> "DivisionAdmin".equalsIgnoreCase(n.getName()))
-                                && !ObjectUtils.isEmpty(userInfoVO.getDivisionAdmins())
-                                && userInfoVO.getDivisionAdmins().contains(solution.getDivision().getName());
-                        boolean isAdmin = userRoleVOs.stream().anyMatch(n -> "Admin".equalsIgnoreCase(n.getName()));
-                        String createdBy = solution.getCreatedBy() != null ? solution.getCreatedBy().getId() : null;
-                        boolean isOwner = (createdBy != null && createdBy.equals(userId));
-                        boolean isTeamMember = solution.getTeam().stream()
-                                .anyMatch(n -> userId.equalsIgnoreCase(n.getShortId()));
-                        if (!isAdmin && !isOwner && !isTeamMember && !isDivisionAdmin) {
-                            MessageDescription notAuthorizedMsg = new MessageDescription();
-                            notAuthorizedMsg.setMessage(
-                                    "Not authorized to delete solution. Only the solution owner or an admin can delete the solution.");
-                            GenericMessage errorMessage = new GenericMessage();
-                            errorMessage.addErrors(notAuthorizedMsg);
-                            // log.error(notAuthorizedMsg.getMessage());
-                            return new ResponseEntity<>(errorMessage, HttpStatus.FORBIDDEN);
+                if(solution.getId() != null) {
+                    if (userInfoVO != null) {
+                        List<UserRoleVO> userRoleVOs = userInfoVO.getRoles();
+                        if (userRoleVOs != null && !userRoleVOs.isEmpty()) {
+                            boolean isDivisionAdmin = userRoleVOs.stream()
+                                    .anyMatch(n -> "DivisionAdmin".equalsIgnoreCase(n.getName()))
+                                    && !ObjectUtils.isEmpty(userInfoVO.getDivisionAdmins())
+                                    && userInfoVO.getDivisionAdmins().contains(solution.getDivision().getName());
+                            boolean isAdmin = userRoleVOs.stream().anyMatch(n -> "Admin".equalsIgnoreCase(n.getName()));
+                            String createdBy = solution.getCreatedBy() != null ? solution.getCreatedBy().getId() : null;
+                            boolean isOwner = (createdBy != null && createdBy.equals(userId));
+                            boolean isTeamMember = solution.getTeam().stream()
+                                    .anyMatch(n -> userId.equalsIgnoreCase(n.getShortId()));
+                            if (!isAdmin && !isOwner && !isTeamMember && !isDivisionAdmin) {
+                                MessageDescription notAuthorizedMsg = new MessageDescription();
+                                notAuthorizedMsg.setMessage(
+                                        "Not authorized to delete solution. Only the solution owner or an admin can delete the solution.");
+                                GenericMessage errorMessage = new GenericMessage();
+                                errorMessage.addErrors(notAuthorizedMsg);
+                                // log.error(notAuthorizedMsg.getMessage());
+                                return new ResponseEntity<>(errorMessage, HttpStatus.FORBIDDEN);
+                            }
                         }
                     }
+                }else{
+                    MessageDescription invalidMsg = new MessageDescription("No Solution with the given id");
+                    GenericMessage errorMessage = new GenericMessage();
+                    errorMessage.addErrors(invalidMsg);
+                    LOGGER.error("No Solution with the given id {} , couldnt delete.", id);
+                    return new ResponseEntity<>(errorMessage, HttpStatus.NOT_FOUND);
                 }
             }
 
@@ -751,21 +759,11 @@ public class SolutionController implements SolutionsApi, ChangelogsApi, Malwares
                     }
                 }
             }
-
-            if(solutionService.deleteById(id))
-            {
-                GenericMessage successMsg = new GenericMessage();
-                successMsg.setSuccess("success");
-                LOGGER.info("Solution {} deleted successfully", id);
-                return new ResponseEntity<>(successMsg, HttpStatus.OK);
-            }
-            else{
-                MessageDescription invalidMsg = new MessageDescription("No Solution with the given id");
-                GenericMessage errorMessage = new GenericMessage();
-                errorMessage.addErrors(invalidMsg);
-                LOGGER.error("No Solution with the given id {} , couldnt delete.", id);
-                return new ResponseEntity<>(errorMessage, HttpStatus.NOT_FOUND);
-            }
+            solutionService.deleteById(id);
+            GenericMessage successMsg = new GenericMessage();
+            successMsg.setSuccess("success");
+            LOGGER.info("Solution {} deleted successfully", id);
+            return new ResponseEntity<>(successMsg, HttpStatus.OK);
             
         } catch (EntityNotFoundException e) {
             MessageDescription invalidMsg = new MessageDescription("No Solution with the given id");
