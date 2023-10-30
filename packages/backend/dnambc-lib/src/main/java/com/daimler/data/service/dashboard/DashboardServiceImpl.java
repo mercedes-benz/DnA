@@ -29,11 +29,16 @@ package com.daimler.data.service.dashboard;
 
 import java.math.BigDecimal;
 import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeMap;
 import java.util.TreeSet;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,11 +46,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.daimler.data.assembler.DashboardAssembler;
+import com.daimler.data.db.jsonb.solution.DataValueRampUpYear;
 import com.daimler.data.db.repo.solution.SolutionCustomRepository;
+import com.daimler.data.dto.SolDataValueDTO;
 import com.daimler.data.dto.SolDigitalValueDTO;
+import com.daimler.data.dto.SolObjectDataValueDTO;
+import com.daimler.data.dto.dashboard.DataValueVO;
 import com.daimler.data.dto.dashboard.DatasourceWidgetVO;
 import com.daimler.data.dto.dashboard.LocationWidgetVO;
 import com.daimler.data.dto.dashboard.MilestoneWidgetVO;
+import com.daimler.data.dto.dashboard.SolDataValueSummaryVO;
 import com.daimler.data.dto.dashboard.SolDigitalValuesummaryVO;
 
 @Service
@@ -153,5 +163,90 @@ public class DashboardServiceImpl implements DashboardService {
 			}
 		}
 	};
+	
+	private Comparator<SolObjectDataValueDTO> savingsDataValueComp = new Comparator<SolObjectDataValueDTO>() {
+		@Override
+		public int compare(SolObjectDataValueDTO s1, SolObjectDataValueDTO s2) {
+			if (s2.getProductName()
+					.compareTo(s1.getProductName()) == 0) {
+				return 1;
+			} else {
+				return (s2.getProductName()
+						.compareTo(s1.getProductName()));
+			}
+		}
+	};
+	
+	private Comparator<SolObjectDataValueDTO> revenueDataValueComp = new Comparator<SolObjectDataValueDTO>() {
+		@Override
+		public int compare(SolObjectDataValueDTO s1, SolObjectDataValueDTO s2) {
+			if (s2.getRevenue()
+					.compareTo(s1.getRevenue()) == 0) {
+				return 1;
+			} else {
+				return (s2.getRevenue()
+						.compareTo(s1.getRevenue()));
+			}
+		}
+	};
+	
+	
+
+	@Override
+	public List<BigDecimal> getSolDataValue(Boolean published, List<String> phases, List<String> dataVolumes,
+			String divisions, List<String> locations, List<String> statuses, String solutionType, String userId,
+			Boolean isAdmin, List<String> bookmarkedSolutions, List<String> searchTerms, List<String> tags,
+			List<String> divisionsAdmin) {
+		return customRepo.getDataValuesSum(published, phases, dataVolumes, divisions, locations, statuses,
+				solutionType, userId, isAdmin, bookmarkedSolutions, searchTerms, tags, divisionsAdmin);
+	}
+
+	
+	@Override
+	public List<SolDataValueSummaryVO> getSolDataValueSummary(Boolean published, List<String> phases,
+			List<String> dataVolumes, String divisions, List<String> locations, List<String> statuses,
+			String solutionType, String userId, Boolean isAdmin, List<String> bookmarkedSolutions,
+			List<String> searchTerms, List<String> tags, List<String> divisionsAdmin) {
+
+		List<SolDataValueDTO> result = customRepo.getDataValueUsingNativeQuery(published, phases, dataVolumes,
+				divisions, locations, statuses, solutionType, userId, isAdmin, bookmarkedSolutions, searchTerms, tags,
+				divisionsAdmin);
+		Set<SolObjectDataValueDTO> digitalValueSortedSet = new HashSet<SolObjectDataValueDTO>();;		
+		Map<BigDecimal, Set<SolObjectDataValueDTO>> digitalValueSummaryTreeMap = new TreeMap<BigDecimal, Set<SolObjectDataValueDTO>>();
+		for (SolDataValueDTO dto : result) {
+			SolObjectDataValueDTO dto2 = new SolObjectDataValueDTO();
+			dto2.setId(dto.getId());
+			dto2.setProductName(dto.getProductName());
+			if (dto.getSavings() != null && dto.getSavings().size() > 0) {
+				for (DataValueRampUpYear savings : dto.getSavings()) {
+					if (!digitalValueSummaryTreeMap.containsKey(savings.getYear())) {
+						//digitalValueSortedSet = new HashSet<SolObjectDataValueDTO>();
+						dto2.setSavings(savings.getValue());
+						digitalValueSortedSet.add(dto2);
+						digitalValueSummaryTreeMap.put(savings.getYear(), digitalValueSortedSet);
+					} else {
+						dto2.setSavings(savings.getValue());
+						digitalValueSummaryTreeMap.get(savings.getYear()).add(dto2);
+					}
+				}
+			}
+			if (dto.getRevenue() != null && dto.getRevenue().size() > 0) {
+				for (DataValueRampUpYear revenue : dto.getRevenue()) {
+					if (!digitalValueSummaryTreeMap.containsKey(revenue.getYear())) {
+						//digitalValueSortedSet = new HashSet<SolObjectDataValueDTO>();
+						dto2.setRevenue(revenue.getValue());
+						digitalValueSortedSet.add(dto2);
+						digitalValueSummaryTreeMap.put(revenue.getYear(), digitalValueSortedSet);
+					} else {
+						dto2.setRevenue(revenue.getValue());
+						digitalValueSummaryTreeMap.get(revenue.getYear()).add(dto2);
+					}
+				}
+			}
+		}
+		return dashboardAssembler.toDataValueSummary(digitalValueSummaryTreeMap);
+
+	}
+
 
 }

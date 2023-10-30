@@ -33,6 +33,7 @@ import java.util.Map;
 
 import com.daimler.data.db.entities.SolutionNsql;
 import com.daimler.data.db.repo.common.CommonDataRepository;
+import com.daimler.data.dto.SolDataValueDTO;
 import com.daimler.data.dto.SolDigitalValueDTO;
 import com.daimler.data.dto.dashboard.DatasourceWidgetVO;
 import com.daimler.data.dto.dashboard.LocationWidgetVO;
@@ -271,6 +272,7 @@ public interface SolutionCustomRepository extends CommonDataRepository<SolutionN
 	 * @param searchTerms
 	 * @param tags
 	 * @param divisionsAdmin
+	 * @param dataValue 
 	 * @return List<SolDigitalValueDTO>
 	 */
 	List<SolDigitalValueDTO> getDigitalValueUsingNativeQuery(Boolean published, List<String> phases,
@@ -279,4 +281,49 @@ public interface SolutionCustomRepository extends CommonDataRepository<SolutionN
 			List<String> searchTerms, List<String> tags, List<String> divisionsAdmin);
 
 	Integer getCountBasedPublishSolution(Boolean published);
+	
+	/**
+	 * 
+	 * @param published
+	 * @param phases
+	 * @param dataVolumes
+	 * @param divisions
+	 * @param locations
+	 * @param statuses
+	 * @param solutionType
+	 * @param userId
+	 * @param isAdmin
+	 * @param bookmarkedSolutions
+	 * @param searchTerms
+	 * @param tags
+	 * @param divisionsAdmin
+	 * @return
+	 */
+
+	List<BigDecimal> getDataValuesSum(Boolean published, List<String> phases, List<String> dataVolumes, String divisions,
+			List<String> locations, List<String> statuses, String solutionType, String userId, Boolean isAdmin,
+			List<String> bookmarkedSolutions, List<String> searchTerms, List<String> tags, List<String> divisionsAdmin);
+	
+	/**
+	 * 
+	 * @param published
+	 * @param phases
+	 * @param dataVolumes
+	 * @param divisions
+	 * @param locations
+	 * @param statuses
+	 * @param solutionType
+	 * @param userId
+	 * @param isAdmin
+	 * @param bookmarkedSolutions
+	 * @param searchTerms
+	 * @param tags
+	 * @param divisionsAdmin
+	 * @return
+	 */
+
+	List<SolDataValueDTO> getDataValueUsingNativeQuery(Boolean published, List<String> phases,
+			List<String> dataVolumes, String divisions, List<String> locations, List<String> statuses,
+			String solutionType, String userId, Boolean isAdmin, List<String> bookmarkedSolutions,
+			List<String> searchTerms, List<String> tags, List<String> divisionsAdmin);
 }
