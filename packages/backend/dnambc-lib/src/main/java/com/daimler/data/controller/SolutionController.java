@@ -763,7 +763,7 @@ public class SolutionController implements SolutionsApi, ChangelogsApi, Malwares
             GenericMessage successMsg = new GenericMessage();
             successMsg.setSuccess("success");
             LOGGER.info("Solution {} deleted successfully", id);
-                return new ResponseEntity<>(successMsg, HttpStatus.OK);
+            return new ResponseEntity<>(successMsg, HttpStatus.OK);
             
         } catch (EntityNotFoundException e) {
             MessageDescription invalidMsg = new MessageDescription("No Solution with the given id");
