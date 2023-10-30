@@ -20,6 +20,7 @@ public class ComparisonDetails
     private String triggeredBy;
     private Date triggeredOn;
     private String actualsFile;
+    private String businessFile;
     private String targetFolder;
     private List<String> runsList;
     private Boolean isDelete;

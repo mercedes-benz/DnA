@@ -80,6 +80,7 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 	private static final String INPUT_FILE_PREFIX = "/inputs/";
 	private static final String COMPARISON_FOLDER_PREFIX = "/comparisons/";
 	private static final String ACTUALS_FILENAME_PREFIX = "actuals";
+	private static final String BUSINESS_FILENAME_PREFIX = "business";
 	private static final String CONFIG_PATH = "/objects?prefix=configs/";
 	private static final String BUCKET_TYPE = "chronos-core/";
 	private static final String CONFIGS_FILE_PREFIX = "/configs/";
@@ -1284,7 +1285,8 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 			method = RequestMethod.POST)
 	public ResponseEntity<ForecastComparisonCreateResponseVO> createForecastComparison(@ApiParam(value = "forecast project ID ",required=true) @PathVariable("id") String id,
 			@ApiParam(value = "Comma separated forecast run corelation Ids. Maximum 12 Ids can be sent. Please avoid sending duplicates.", required=true) @RequestParam(value="runCorelationIds", required=true)  String runCorelationIds,
-			@ApiParam(value = "The input file for the comparison of forecast runs.") @Valid @RequestPart(value="actualsFile", required=false) MultipartFile actualsFile,
+			@ApiParam(value = "The actuals file for the comparison of forecast runs.") @Valid @RequestPart(value="actualsFile", required=false) MultipartFile actualsFile,
+			@ApiParam(value = "The business file for the comparison of forecast runs.") @Valid @RequestPart(value="businessFile", required=false) MultipartFile businessFile,
 			@ApiParam(value = "Comparison name") @RequestParam(value="comparisonName", required=false)  String comparisonName,@ApiParam(value = "Authorization header" ) @RequestHeader(value="apiKey", required=false) String apiKey)
 	{
 		ForecastComparisonCreateResponseVO responseVO = new ForecastComparisonCreateResponseVO();
@@ -1373,6 +1375,7 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 		String comparisionId = UUID.randomUUID().toString();
 		String targetFolder = COMPARISON_FOLDER_PREFIX+comparisionId;
 		String actualsFilePath = "";
+		String businessFilePath ="";
 		if(actualsFile!=null) {
 			String fileName = actualsFile.getOriginalFilename();
 			String actuals_file_extension = FilenameUtils.getExtension(fileName);
@@ -1399,8 +1402,34 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 			}
 			actualsFilePath = existingForecast.getBucketName() + targetFolder + "/" + actuals_filename;
 		}
+		if(businessFile!=null) {
+			String fileName = businessFile.getOriginalFilename();
+			String business_file_extension = FilenameUtils.getExtension(fileName);
+			String business_filename = BUSINESS_FILENAME_PREFIX + "." + business_file_extension;
+			if (!isValidAttachment(fileName)) {
+				log.error("Invalid file type {} attached for project name {} and id {} ", fileName, existingForecast.getName(), id);
+				MessageDescription invalidMsg = new MessageDescription("Invalid File type attached. Supported only xlxs and csv extensions");
+				GenericMessage errorMessage = new GenericMessage();
+				errorMessage.setSuccess("FAILED");
+				errorMessage.addErrors(invalidMsg);
+				responseVO.setData(null);
+				responseVO.setResponse(errorMessage);
+				return new ResponseEntity<>(responseVO, HttpStatus.BAD_REQUEST);
+			}
+			FileUploadResponseDto fileUploadResponse = storageClient.uploadFile(targetFolder+"/",businessFile,business_filename, existingForecast.getBucketName());
+			if(fileUploadResponse==null || (fileUploadResponse!=null && (fileUploadResponse.getErrors()!=null || !"SUCCESS".equalsIgnoreCase(fileUploadResponse.getStatus())))) {
+				GenericMessage errorMessage = new GenericMessage();
+				errorMessage.setSuccess("FAILED");
+				errorMessage.setErrors(fileUploadResponse.getErrors());
+				errorMessage.setWarnings(fileUploadResponse.getWarnings());
+				responseVO.setData(null);
+				responseVO.setResponse(errorMessage);
+				return new ResponseEntity<>(responseVO, HttpStatus.INTERNAL_SERVER_ERROR);
+			}
+			businessFilePath = existingForecast.getBucketName() + targetFolder + "/" + business_filename;
+		}
 		targetFolder = existingForecast.getBucketName() +  targetFolder;
-		ForecastComparisonCreateResponseVO createComparisonResponse = service.createComparison(id,existingForecast,validRunsPath,comparisionId,comparisonName,actualsFilePath,targetFolder
+		ForecastComparisonCreateResponseVO createComparisonResponse = service.createComparison(id,existingForecast,validRunsPath,comparisionId,comparisonName,actualsFilePath,businessFilePath,targetFolder
 				,createdOn, requestUser.getId());
 		if(createComparisonResponse!= null && "SUCCESS".equalsIgnoreCase(createComparisonResponse.getResponse().getSuccess())
 				&& createComparisonResponse.getData().getComparisonId()!=null) {
@@ -1597,7 +1626,7 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 	public ResponseEntity<ForecastComparisonsCollectionDto> getForecastComparisons(@ApiParam(value = "forecast project ID ",required=true) @PathVariable("id") String id,
 			@ApiParam(value = "forecast comparisons page number ") @Valid @RequestParam(value = "offset", required = false) Integer offset,
 			@ApiParam(value = "forecast comparisons page size") @Valid @RequestParam(value = "limit", required = false) Integer limit,
-			@ApiParam(value = "Sort comparisons by a given variable like comparisonName, createdby, createdon or status", allowableValues = "comparisonName, createdOn, status, createdBy, actualsFile") @Valid @RequestParam(value = "sortBy", required = false) String sortBy,
+			@ApiParam(value = "Sort comparisons by a given variable like comparisonName, createdby, createdon or status", allowableValues = "comparisonName, createdOn, status, createdBy, actualsFile, businessFile") @Valid @RequestParam(value = "sortBy", required = false) String sortBy,
 			@ApiParam(value = "Sort comparisons based on the given order, example asc,desc", allowableValues = "asc, desc") @Valid @RequestParam(value = "sortOrder", required = false) String sortOrder,@ApiParam(value = "Authorization header" ) @RequestHeader(value="apiKey", required=false) String apiKey)
 	{
 		int defaultLimit = Integer.parseInt(runsDefaultPageSize);
