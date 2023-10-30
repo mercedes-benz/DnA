@@ -651,7 +651,7 @@ export default class Summary extends React.Component<{ user: IUserInfo }, ISumma
               {
                 response,
                 solution,
-                solutionCollaborators: res.team,
+                solutionCollaborators: JSON.parse(JSON.stringify(res.team)),
                 canShowDataSources:
                   (solution.dataSources &&
                     solution.dataSources.dataSources &&
