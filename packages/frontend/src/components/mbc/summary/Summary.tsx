@@ -516,7 +516,7 @@ export default class Summary extends React.Component<{ user: IUserInfo }, ISumma
             solution.neededRoles = res.skills;
             solution.dataSources = res.dataSources;
             solution.digitalValue = res.digitalValue;
-            solution.digitalValue.typeOfCalculation = res.digitalValue.typeOfCalculation ? res.digitalValue.typeOfCalculation : Summary.digitalValueTypeKeyValue;
+            solution.digitalValue.typeOfCalculation = res.digitalValue?.typeOfCalculation ? res.digitalValue?.typeOfCalculation : Summary.digitalValueTypeKeyValue;
             solution.datacompliance = res.dataCompliance;
             // this.digitalValueComponent.current.updateComponentValues(res.digitalValue);
             solution.analytics = res.analytics;
