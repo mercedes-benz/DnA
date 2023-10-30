@@ -824,7 +824,7 @@ paths:
         - in: formData
           name: businessFile
           type: file
-          description: The buisness file for the comparison of forecast runs.
+          description: The business file for the comparison of forecast runs.
         - in: formData
           name: "comparisonName"
           type: "string"
@@ -884,7 +884,7 @@ paths:
           description: Sort comparisons by a given variable like comparisonName, createdby, createdon or status
           required: false
           type: string
-          enum: [ comparisonName,createdOn,status,createdBy,actualsFile,buisnessFile ]
+          enum: [ comparisonName,createdOn,status,createdBy,actualsFile,businessFile ]
         - name: sortOrder
           in: query
           description: Sort comparisons based on the given order, example asc,desc
@@ -1682,9 +1682,9 @@ definitions:
       actualsFile:
         type: string
         description: "actuals file for the comparison of forecast runs"
-      buisnessFile:
+      businessFile:
         type: string
-        description: "buisness file for the comparison of forecast runs"
+        description: "business file for the comparison of forecast runs"
       targetFolder:
         type: string
         description: "target folder to add comparison.html"
