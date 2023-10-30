@@ -1068,7 +1068,7 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 	@Override
 	@Transactional(isolation = Isolation.SERIALIZABLE)
 	public ForecastComparisonCreateResponseVO createComparison(String id, ForecastVO existingForecast, List<String> validRunsPath, String comparisionId, String comparisonName,
-			String actualsFilePath, String targetFolder, Date createdOn, String requestUser) {
+			String actualsFilePath, String buisnessFilePath, String targetFolder, Date createdOn, String requestUser) {
 		GenericMessage responseMessage = new GenericMessage();
 		ForecastComparisonVO forecastComparisonsVO = new ForecastComparisonVO();
 		ForecastComparisonCreateResponseVO responseWrapperVO = new ForecastComparisonCreateResponseVO();
@@ -1090,6 +1090,7 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 				existingComparisons = new ArrayList<>();
 			 comparisonDetails.setComparisonId(comparisionId);
 			 comparisonDetails.setActualsFile(actualsFilePath);
+			 comparisonDetails.setBuisnessFile(buisnessFilePath);
 			 comparisonDetails.setComparisonName(comparisonName);
 			 comparisonDetails.setComparisonState(comparisonState);
 			 comparisonDetails.setIsDelete(false);
@@ -1101,6 +1102,7 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 
 			forecastComparisonsVO.setComparisonId(comparisionId);
 			forecastComparisonsVO.setActualsFile(actualsFilePath);
+			forecastComparisonsVO.setBuisnessFile(buisnessFilePath);
 			forecastComparisonsVO.setComparisonName(comparisonName);
 			forecastComparisonsVO.setState(state);
 			forecastComparisonsVO.setIsDeleted(false);
@@ -1149,6 +1151,7 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 						ChronosComparisonRequestDto comparisonRequestDto = new ChronosComparisonRequestDto();
 						comparisonRequestDto.setRuns_list(tempComparison.getRunsList());
 						comparisonRequestDto.setActuals_file(tempComparison.getActualsFile());
+						comparisonRequestDto.setBuisness_file(tempComparison.getBuisnessFile());
 						comparisonRequestDto.setTarget_folder(tempComparison.getTargetFolder());
 						log.info("calling Chronos Comparison API for comparison {} , triggeredBy {}  ", tempComparison.getComparisonName() ,tempComparison.getTriggeredBy());
 						CreateComparisonResponseWrapperDto createComparisonResponse = comparisonClient.createComparison(tempComparison.getComparisonName(),tempComparison.getTriggeredBy(),comparisonRequestDto);
@@ -1261,6 +1264,15 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 							}
 							else if(sortOrder != null && sortOrder.equalsIgnoreCase("asc")){
 								Collections.sort(tempExistingComparisons, Collections.reverseOrder(comparatorActualsFile));
+							}
+							break;
+						case "buisnessFile":
+							Comparator<ComparisonDetails> comparatorBuisnessFile = (v1, v2) -> (v2.getBuisnessFile().compareTo(v1.getBuisnessFile()));
+							if(sortOrder != null && sortOrder.equalsIgnoreCase("desc")) {
+								Collections.sort(tempExistingComparisons, comparatorBuisnessFile);
+							}
+							else if(sortOrder != null && sortOrder.equalsIgnoreCase("asc")){
+								Collections.sort(tempExistingComparisons, Collections.reverseOrder(comparatorBuisnessFile));
 							}
 							break;
 							default:
