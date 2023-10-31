@@ -283,10 +283,12 @@ export default class Description extends React.Component<IDescriptionProps, IDes
     const description = this.props.description;
     description.expectedBenefits = expectedBenefits;
     // this.props.onStateChange();
-    if (expectedBenefits === '' || expectedBenefits === null) {
-      this.setState({ expectedBenefitsError: '*Missing Entry' });
-    } else {
-      this.setState({ expectedBenefitsError: '' });
+    if (!this.props.isGenAI) {
+      if (expectedBenefits === '' || expectedBenefits === null) {
+        this.setState({ expectedBenefitsError: '*Missing Entry' });
+      } else {
+        this.setState({ expectedBenefitsError: '' });
+      }
     }
     this.setState({
       expectedBenefits,
@@ -940,7 +942,7 @@ export default class Description extends React.Component<IDescriptionProps, IDes
                     rows={50}
                     value={this.state.expectedBenefits}
                     errorText={expectedBenefitsError}
-                    required={true}
+                    required={!this.props.isGenAI}
                     onChange={this.onBenefitChange}
                   />
                 </div>
@@ -1121,9 +1123,11 @@ export default class Description extends React.Component<IDescriptionProps, IDes
       formValid = false;
     }
 
-    if (!this.state.expectedBenefits || this.state.expectedBenefits === '') {
-      this.setState({ expectedBenefitsError: errorMissingEntry });
-      formValid = false;
+    if (!this.props.isGenAI) {
+      if (!this.state.expectedBenefits || this.state.expectedBenefits === '') {
+        this.setState({ expectedBenefitsError: errorMissingEntry });
+        formValid = false;
+      }
     }
     // if (!this.props.description.tags || !this.props.description.tags.length) {
     //   this.setState({ showTagsMissingError: true });
