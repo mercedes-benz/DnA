@@ -51,7 +51,7 @@ const RunParametersForm = () => {
       <div className={Styles.infoIcon}>
         <label className="switch">
           <span className="label" style={{ marginRight: '5px' }}>
-            Enable Expert View
+            Expert Options
           </span>
           <span className="wrapper">
             <input
