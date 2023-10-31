@@ -272,7 +272,6 @@ public interface SolutionCustomRepository extends CommonDataRepository<SolutionN
 	 * @param searchTerms
 	 * @param tags
 	 * @param divisionsAdmin
-	 * @param dataValue 
 	 * @return List<SolDigitalValueDTO>
 	 */
 	List<SolDigitalValueDTO> getDigitalValueUsingNativeQuery(Boolean published, List<String> phases,
