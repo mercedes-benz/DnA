@@ -455,7 +455,7 @@ definitions:
       expectedBenefits:
         type: string
         description: "Expected benefits from Solution"
-        minLength: 1
+        # minLength: 1
       #     pattern: '^[^\W_]+(?: [^\W_]+)*$'
       tags:
         type: array
@@ -548,7 +548,7 @@ definitions:
       - productName
       - description
       - businessNeed
-      - expectedBenefits
+      #- expectedBenefits
       #- tags
       - projectStatus
       - locations
