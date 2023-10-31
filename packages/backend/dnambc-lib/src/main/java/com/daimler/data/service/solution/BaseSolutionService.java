@@ -40,6 +40,7 @@ import java.util.stream.Collectors;
 import javax.persistence.EntityNotFoundException;
 import javax.validation.Valid;
 
+import com.daimler.data.db.jsonb.UserInfo;
 import com.daimler.data.db.jsonb.solution.*;
 import com.daimler.data.dto.attachment.FileDetailsVO;
 import com.daimler.data.dto.solution.SolutionDataComplianceVO;
@@ -1138,5 +1139,7 @@ public class BaseSolutionService extends BaseCommonService<SolutionVO, SolutionN
 	public Integer getCountBasedPublishSolution(Boolean published) {
 		return customRepo.getCountBasedPublishSolution(published);
 	}
+
+
 
 }
