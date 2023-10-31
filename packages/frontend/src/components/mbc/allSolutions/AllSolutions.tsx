@@ -49,6 +49,7 @@ import { getTranslatedLabel } from 'globals/i18n/TranslationsProvider';
 import LandingSummary from 'components/mbc/shared/landingSummary/LandingSummary';
 import headerImageURL from '../../../assets/images/Transparency-Landing.png';
 import TagSection from 'components/mbc/shared/landingSummary/tagSection/TagSection';
+import { getPath } from '../../../router/RouterUtils';
 
 const classNames = cn.bind(Styles);
 
@@ -59,6 +60,7 @@ export interface ISortField {
 }
 
 export interface IAllSolutionsState {
+  path: String;
   phases: IPhase[];
   divisions: IDivision[];
   subDivisions: ISubDivisionSolution[];
@@ -114,7 +116,9 @@ export default class AllSolutions extends React.Component<
   // protected isTouch = false;
   constructor(props: any) {
     super(props);
+    const path=getPath().split('/');
     this.state = {
+      path: path.length>3 ? path[3]?.split('?')[0] : path[1],
       phases: [],
       divisions: [],
       subDivisions: [],
@@ -462,7 +466,7 @@ export default class AllSolutions extends React.Component<
                   {this.state.cardViewMode && (
                     <div className={classNames('cardSolutions', Styles.allsolutionCardviewContent)}>
                       {this.state.solutions.length > 0 ? (
-                        <div className={Styles.cardViewContainer} onClick={() => history.push('/createnewsolution')}>
+                        <div className={Styles.cardViewContainer} onClick={() => this.state.path === 'GenAI' ? history.push('/createnewgenaisolution') : history.push('/createnewsolution')}>
                           <div className={Styles.addicon}> &nbsp; </div>
                           <label className={Styles.addlabel}>Create new solution</label>
                         </div>
@@ -535,7 +539,7 @@ export default class AllSolutions extends React.Component<
                               </label>
                             </th>
                             {enablePortfolioSolutionsView ? (
-                              <th
+                                <th
                                 onClick={this.sortSolutions.bind(null, 'digitalValue', this.state.sortBy.nextSortType)}
                               >
                                 <label
@@ -548,7 +552,7 @@ export default class AllSolutions extends React.Component<
                                   Digital Value (€)
                                 </label>
                               </th>
-                            ) : (
+                              ) : (
                               <React.Fragment />
                             )}
                             <th onClick={this.sortSolutions.bind(null, 'locations', this.state.sortBy.nextSortType)}>
@@ -581,7 +585,7 @@ export default class AllSolutions extends React.Component<
                             <th
                               colSpan={enablePortfolioSolutionsView ? 8 : 7}
                               className={classNames(Styles.listViewContainer)}
-                              onClick={() => history.push('/createnewsolution')}
+                              onClick={() => this.state.path === 'GenAI' ? history.push('/createnewgenaisolution') : history.push('/createnewsolution')}
                             >
                               <div className={Styles.addicon}> &nbsp; </div>
                               <label className={Styles.addlabel}>Create new solution</label>
@@ -611,7 +615,7 @@ export default class AllSolutions extends React.Component<
                         <a
                           target="_blank"
                           className={Styles.linkStyle}
-                          onClick={() => history.push('/createnewsolution/')}
+                          onClick={() => this.state.path === 'GenAI' ? history.push('/createnewgenaisolution') : history.push('/createnewsolution')}
                           rel="noreferrer"
                         >
                           here.
