@@ -29,10 +29,7 @@ package com.daimler.data.db.repo.solution;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import javax.persistence.Query;
@@ -936,5 +933,7 @@ public class SolutionCustomRepositoryImpl extends CommonDataRepositoryImpl<Solut
 		BigInteger results = (BigInteger) q.getSingleResult();
 		return results.intValue();
 	}
+
+
 
 }
