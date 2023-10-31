@@ -26,6 +26,8 @@ export interface IDescriptionSummaryProps {
   onDelete: (solutionId: string) => void;
   updateBookmark: (solutionId: string, isRemove: boolean) => void;
   onExportToPDFDocument: JSX.Element;
+  canTransferOwnerShip: boolean;
+  onTransferOwnershipSolutionConsent: (solutionId: string) => void;
 }
 export interface IDescriptionSummaryState {
   showContextMenu: boolean;
@@ -85,6 +87,18 @@ export default class DescriptionSummary extends React.Component<IDescriptionSumm
       },
       () => {
         this.props.onDelete(this.props.solutionId);
+      },
+    );
+  };
+
+  public onTransferOwnershipSolution = (e: React.FormEvent<HTMLSpanElement>) => {
+    e.stopPropagation();
+    this.setState(
+      {
+        showContextMenu: false,
+      },
+      () => {
+        this.props.onTransferOwnershipSolutionConsent(this.props.solutionId);
       },
     );
   };
@@ -212,6 +226,11 @@ export default class DescriptionSummary extends React.Component<IDescriptionSumm
                       </PDFDownloadLink>
                     }
                   </li>
+                  {this.props.canTransferOwnerShip && (
+                    <li className="contextListItem">
+                      <span onClick={this.onTransferOwnershipSolution}>Transfer Ownership</span>
+                    </li>
+                  )}
                 </ul>
               </div>
             </div>
