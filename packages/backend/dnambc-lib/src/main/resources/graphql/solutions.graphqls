@@ -123,6 +123,7 @@ type ResultVO{
 }
 
 type SolutionDigitalValueVO{
+    typeOfCalculation: TypeOfCalculationEnum,
 	digitalValue: Float,
 	digitalValueComment: String,
     digitalEffort: Float,
@@ -361,4 +362,9 @@ type SkillSummaryVO{
 enum UserTypeEnum{
     INTERNAL,
     EXTERNAL
+}
+
+enum TypeOfCalculationEnum{
+    DIGITAL_VALUE,
+    DATA_VALUE
 }

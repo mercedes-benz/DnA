@@ -38,7 +38,7 @@ const UserSettings = React.lazy(() => import('components/mbc/userSettings/userSe
 const CodeSpace = React.lazy(() => import('components/mbc/codeSpace/CodeSpace'));
 const AllCodeSpaces = React.lazy(() => import('components/mbc/codeSpace/AllCodeSpaces'));
 const Trainings = React.lazy(() => import('components/mbc/trainings/Trainings'));
-const Carla = React.lazy(() => import('components/mbc/carla/Carla'));
+const GenAI = React.lazy(() => import('components/mbc/genAI/GenAI'));
 
 // Micro Front End Component
 const StorageComponent = React.lazy(() => import('storage-mfe/Bucket'));
@@ -151,6 +151,13 @@ const protectedRoutes = [
     allowedRoles: UserAndAdminRole,
     component: CreateNewSolution,
     exact: false,
+    path: '/createnewgenaisolution',
+    title: 'Create New GenAI Solution',
+  },
+  {
+    allowedRoles: UserAndAdminRole,
+    component: CreateNewSolution,
+    exact: false,
     path: '/editSolution/:id?/:editable?',
     title: 'Edit Solution',
   },
@@ -240,10 +247,10 @@ const protectedRoutes = [
   },
   {
     allowedRoles: UserAndAdminRole,
-    component: Carla,
+    component: GenAI,
     exact: false,
-    path: '/carla',
-    title: 'Carla',
+    path: '/genAI',
+    title: 'GenAI',
   },
   {
     allowedRoles: UserAndAdminRole,

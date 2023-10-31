@@ -30,6 +30,8 @@ package com.daimler.data.service.solution;
 import java.util.Calendar;
 import java.util.List;
 
+import com.daimler.data.dto.solution.CreatedByVO;
+import com.daimler.data.dto.solution.TeamMemberVO;
 import org.springframework.http.ResponseEntity;
 
 import com.daimler.data.controller.exceptions.GenericMessage;
@@ -74,4 +76,6 @@ public interface SolutionService extends CommonService<SolutionVO, SolutionNsql,
 	ResponseEntity<GenericMessage> malwareScanUnsubscribe(String solutionId);
 
 	Integer getCountBasedPublishSolution(Boolean published);
+
+
 }

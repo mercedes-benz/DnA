@@ -1,7 +1,7 @@
 import cn from 'classnames';
 import * as React from 'react';
 import { history } from '../../../router/History';
-import { getParams, getQueryParam } from '../../../router/RouterUtils';
+import { getParams, getQueryParam, getPath } from '../../../router/RouterUtils';
 
 // @ts-ignore
 import Button from '../../../assets/modules/uilab/js/src/button';
@@ -13,7 +13,7 @@ import Notification from '../../../assets/modules/uilab/js/src/notification';
 import ProgressIndicator from '../../../assets/modules/uilab/js/src/progress-indicator';
 // @ts-ignore
 import Tabs from '../../../assets/modules/uilab/js/src/tabs';
-import { SOLUTION_FIXED_TAGS, USER_ROLE } from 'globals/constants';
+import { USER_ROLE } from 'globals/constants';
 import { Envs } from 'globals/Envs';
 import { ApiClient } from '../../../services/ApiClient';
 // import { getQueryParameterByName } from '../../../services/Query';
@@ -68,12 +68,13 @@ import Milestones from './milestones/Milestones';
 import Platform from './platform/Platform';
 import Sharing from './sharing/Sharing';
 import Teams from './teams/Teams';
-import { trackEvent } from '../../../services/utils';
+import { isSolutionFixedTagIncluded, isSolutionFixedTagIncludedInArray, trackEvent } from '../../../services/utils';
 import Marketing from './marketing/Marketing';
 import Caption from '../shared/caption/Caption';
 
 const classNames = cn.bind(Styles);
 export interface ICreateNewSolutionState {
+  id: string;
   isGenAI: boolean;
   editMode: boolean;
   locations: ILocation[];
@@ -191,6 +192,7 @@ export default class CreateNewSolution extends React.Component<ICreateNewSolutio
     this.digitalValueComponent = React.createRef<DigitalValue>();
     this.platformComponent = React.createRef<Platform>();
     this.state = {
+      id: '',
       isGenAI: false,
       editMode: false,
       locations: [],
@@ -341,19 +343,20 @@ export default class CreateNewSolution extends React.Component<ICreateNewSolutio
   //   }
   // }
   public componentDidMount() {
-    const tagValue = getQueryParam("tag");
-    if (!this.state.editMode && SOLUTION_FIXED_TAGS.includes(tagValue)) {
+    const tagValue = getQueryParam('tag');
+    const path = getPath().split('/')[1];
+    if (!this.state.editMode && (isSolutionFixedTagIncluded(tagValue) || 'createnewgenaisolution' === path)) {
       this.setState({ isGenAI: true });
     }
-    if (!this.state.editMode && tagValue && tagValue?.length > 0) {
-      this.setState(prevState => ({
+    if (!this.state.editMode && (tagValue && tagValue?.length > 0 || 'createnewgenaisolution' === path)) {
+      this.setState((prevState) => ({
         solution: {
           ...prevState.solution,
           description: {
             ...prevState.solution.description,
-            tags: [tagValue]
-          }
-        }
+            tags: [tagValue || '#GenAI'],
+          },
+        },
       }));
     }
     Tabs.defaultSetup();
@@ -433,7 +436,7 @@ export default class CreateNewSolution extends React.Component<ICreateNewSolutio
             marketingCommunicationChannelsLOV,
             departmentTags,
             marketingRolesLOV,
-            analyticsSolution
+            analyticsSolution,
           },
           () => {
             Button.defaultSetup();
@@ -502,16 +505,17 @@ export default class CreateNewSolution extends React.Component<ICreateNewSolutio
               const division = res.division;
               if (!division.subdivision || !division.subdivision.id) {
                 division.subdivision = { id: '0', name: 'Choose' };
-              };
+              }
               solution.description.division = division;
               solution.description.expectedBenefits = res.expectedBenefits;
               solution.description.location = res.locations;
               solution.description.status = res.projectStatus;
               solution.description.relatedProducts = res.relatedProducts;
               solution.description.tags = res.tags;
-              if (res.tags && SOLUTION_FIXED_TAGS.some(tag => res.tags.includes(tag))) {
+              if (res.tags && isSolutionFixedTagIncludedInArray(res.tags)) {
                 this.setState({ isGenAI: true });
               }
+              this.setState({ id: res?.id });
               solution.description.logoDetails = res.logoDetails;
               solution.description.attachments = res.attachments;
               solution.description.reasonForHoldOrClose = res.reasonForHoldOrClose;
@@ -578,7 +582,9 @@ export default class CreateNewSolution extends React.Component<ICreateNewSolutio
     return (
       <React.Fragment>
         <div className={classNames(Styles.mainPanel)}>
-          <Caption title={this.state.solution.description.productName || `${getParams()?.id ? 'Edit' : 'Create'} Solution`} />
+          <Caption
+            title={this.state.solution.description.productName || `${getParams()?.id ? 'Edit' : 'Create'} ${this.state.isGenAI ? 'GenAI Solution' : 'Solution'}`}
+          />
           <div id="create-solution-tabs" className="tabs-panel">
             <div className="tabs-wrapper">
               <nav>
@@ -644,7 +650,7 @@ export default class CreateNewSolution extends React.Component<ICreateNewSolutio
                     }
                   >
                     <a href="#tab-content-6" id="analytics" onClick={this.setCurrentTab}>
-                      Analytics
+                      {this.state.isGenAI ? 'Technology' : 'Analytics'}
                     </a>
                   </li>
                   <li
@@ -714,6 +720,7 @@ export default class CreateNewSolution extends React.Component<ICreateNewSolutio
                   onSaveDraft={this.onSaveDraft}
                   isProvision={this.state.isProvision}
                   isGenAI={this.state.isGenAI}
+                  id={this.state.id}
                 />
               </div>
               <div id="tab-content-2" className="tab-content">
@@ -963,25 +970,24 @@ export default class CreateNewSolution extends React.Component<ICreateNewSolutio
   protected setCurrentTab = (event: React.MouseEvent) => {
     const target = event.target as HTMLLinkElement;
     const newState = this.state.solution;
-    if (!newState.description.division.subdivision || !newState.description.division.subdivision.id) {
-      newState.description.division.subdivision = { id: '0', name: 'Choose' };
-    }
-    if (!newState.dataSources.dataVolume || !newState.dataSources.dataVolume.id) {
-      newState.dataSources.dataVolume = { id: '0', name: 'Choose' };
-    }
-    if (!newState.sharing.result || !newState.sharing.result.id) {
-      newState.sharing.result = { id: '0', name: 'Choose' };
-    }
     const saveActionType = this.state.saveActionType;
     const currentState = this.state.currentState;
-    if (!currentState?.description?.division?.subdivision || !currentState?.description?.division?.subdivision?.id) {
-      currentState.description.division.subdivision = { id: '0', name: 'Choose' };
-    }
-    if (!currentState?.dataSources?.dataVolume || !currentState?.dataSources?.dataVolume?.id) {
-      currentState.dataSources.dataVolume = { id: '0', name: 'Choose' };
-    }
-    if (!currentState?.sharing.result || !currentState?.sharing?.result?.id) {
-      currentState.sharing.result = { id: '0', name: 'Choose' };
+    if (currentState && newState) {
+      if (!currentState?.description?.division?.subdivision || !currentState?.description?.division?.subdivision?.id) {
+        if (newState.description.division.subdivision && newState.description.division.subdivision.id) {
+          currentState.description.division.subdivision = { id: '0', name: 'Choose' };
+        }
+      }
+      if (!currentState?.dataSources?.dataVolume || !currentState?.dataSources?.dataVolume?.id) {
+        if (newState.dataSources.dataVolume && newState.dataSources.dataVolume.id) {
+          currentState.dataSources.dataVolume = { id: '0', name: 'Choose' };
+        }
+      }
+      if (!currentState?.sharing?.result || !currentState?.sharing?.result?.id) {
+        if (newState.sharing.result && newState.sharing.result.id) {
+          currentState.sharing.result = { id: '0', name: 'Choose' };
+        }
+      }
     }
 
     if (!currentState || saveActionType === 'btn' || _.isEqual(newState, currentState)) {
@@ -1136,6 +1142,7 @@ export default class CreateNewSolution extends React.Component<ICreateNewSolutio
                   // currentStateHash: btoa(unescape(encodeURIComponent(JSON.stringify(this.state.solution)))),
                   // currentStateHash: JSON.stringify(this.state.solution),
                   currentState: JSON.parse(JSON.stringify(this.state.solution)),
+                  id: response?.data?.id,
                 });
                 this.setOpenTabs(solution.openSegments);
                 this.setTabsAndClick(nextTab);

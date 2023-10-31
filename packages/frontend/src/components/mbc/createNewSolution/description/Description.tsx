@@ -35,6 +35,9 @@ import { InfoList } from 'components/formElements/modal/infoModal/InfoList';
 import Tooltip from '../../../../assets/modules/uilab/js/src/tooltip';
 import TextBox from 'components/mbc/shared/textBox/TextBox';
 import TextArea from 'components/mbc/shared/textArea/TextArea';
+import ConfirmModal from 'components/formElements/modal/confirmModal/ConfirmModal';
+import { history } from '../../../../router/History';
+import { isSolutionFixedTagIncluded, isSolutionFixedTagIncludedInArray } from '../../../../services/utils';
 
 const classNames = cn.bind(Styles);
 
@@ -55,6 +58,7 @@ export interface IDescriptionProps {
   // onStateChange: () => void;
   isProvision: boolean;
   isGenAI: boolean;
+  id: string;
 }
 
 export interface IDescriptionState {
@@ -110,6 +114,7 @@ export interface IDescriptionState {
   additionalResourcesMasterList: IRelatedProduct[];
   additionalResource: string;
   departmentTags: string[];
+  showGenAIWarningModal: boolean;
 }
 
 export interface IDescriptionRequest {
@@ -213,7 +218,8 @@ export default class Description extends React.Component<IDescriptionProps, IDes
       dataStrategyDomainMaster: [],
       additionalResourcesMasterList: [],
       additionalResource: 'No',
-      departmentTags: []
+      departmentTags: [],
+      showGenAIWarningModal: false
     };
 
     // this.onProductNameOnChange = this.onProductNameOnChange.bind(this);
@@ -277,10 +283,12 @@ export default class Description extends React.Component<IDescriptionProps, IDes
     const description = this.props.description;
     description.expectedBenefits = expectedBenefits;
     // this.props.onStateChange();
-    if (expectedBenefits === '' || expectedBenefits === null) {
-      this.setState({ expectedBenefitsError: '*Missing Entry' });
-    } else {
-      this.setState({ expectedBenefitsError: '' });
+    if (!this.props.isGenAI) {
+      if (expectedBenefits === '' || expectedBenefits === null) {
+        this.setState({ expectedBenefitsError: '*Missing Entry' });
+      } else {
+        this.setState({ expectedBenefitsError: '' });
+      }
     }
     this.setState({
       expectedBenefits,
@@ -347,7 +355,7 @@ export default class Description extends React.Component<IDescriptionProps, IDes
         this.setState({ divisionValue: division });
       }
     }
-    
+
   };
 
   public onSubDivisionChange = (e: React.FormEvent<HTMLSelectElement>) => {
@@ -511,8 +519,8 @@ export default class Description extends React.Component<IDescriptionProps, IDes
 
     const relatedProductValues = this.state.relatedProductValue
       ? this.state.relatedProductValue.map((relatedProduct: string) => {
-          return relatedProduct;
-        })
+        return relatedProduct;
+      })
       : [];
     const dataStrategyDomainValue = this.state.dataStrategyDomain;
     const businessGoalValue = this.state.businessGoal;
@@ -540,6 +548,35 @@ export default class Description extends React.Component<IDescriptionProps, IDes
 
     return (
       <React.Fragment>
+        <ConfirmModal
+          title={'Confirm to add GenAI tag'}
+          showAcceptButton={true}
+          showCancelButton={true}
+          acceptButtonTitle="Navigate to GenAI"
+          cancelButtonTitle="Cancel"
+          show={this.state.showGenAIWarningModal}
+          content={
+            <div id="contentparentdiv">
+              {this.props.id && this.props.id?.length > 0 ?
+                <>
+                  Solution already created. Adding GenAI tags to this solution is not allowed.
+                  Press  &#187;Navigate to GenAI&#187; to create a new solution with GenAI tagging.
+                  (Please note: the current solution will also be retained. Delete it if it's no longer needed.)
+                </>
+                :
+                <>
+                  Press  &#187;Navigate to GenAI &#187; to create a new solution with GenAI tagging.
+                  <br />
+                  Details entered here will be lost. Are you sure you want to proceed?
+                </>
+              }
+              <br />
+              &#187;Cancel &#187; to remove the GenAI tag.
+            </div>
+          }
+          onCancel={() => this.setState({ showGenAIWarningModal: false })}
+          onAccept={() => history.push('/createnewgenaisolution')}
+        />
         <div className={classNames(this.props.isProvision && Styles.provisionStyles)}>
           <div className={classNames(Styles.wrapper)}>
             <div className={classNames(Styles.firstPanel, 'decriptionSection', 'mbc-scroll')}>
@@ -751,106 +788,106 @@ export default class Description extends React.Component<IDescriptionProps, IDes
                   {this.props.isProvision ? (
                     ''
                   ) : (
-                  <>
-                    <div className={Styles.flexLayout}>
-                      <div className={Styles.departmentTags}>
-                        <Tags
-                          title={'Department'}
-                          max={1}
-                          chips={departmentValue}
-                          tags={this.props.departmentTags}
-                          setTags={this.setDepartment}
-                          isMandatory={false}
-                          showMissingEntryError={false}
-                        />
-                      </div>
-
-                      <div
-                        id="dataStrategyDomainContainer"
-                        // className={classNames('input-field-group', dataStrategyDomainValError.length ? 'error' : '')}
-                        className={classNames('input-field-group')}
-                      >
-                        <label
-                          id="dataStrategyDomainLable"
-                          className={classNames('input-label', Styles.dataStrategyLabel)}
-                          htmlFor="dataStrategyDomainSelect"
-                        >
-                          Data Strategy Domains{' '}
-                          {enableDataStatergyInfo && (
-                            <React.Fragment>
-                              (Only for MS)&nbsp;
-                              <i className="icon mbc-icon info" onClick={this.showDataStrategyDomainsInfoModal} />
-                            </React.Fragment>
-                          )}
-                        </label>
-                        <div id="dataStrategyDomain" className=" custom-select">
-                          <select
-                            id="dataStrategyDomainSelect"
-                            // required={true}
-                            // required-error={requiredError}
-                            onChange={this.onDataStrategyDomainChange}
-                            value={dataStrategyDomainValue}
-                          >
-                            <option id="defaultBusineesGoal" value={0}>
-                              Choose
-                            </option>
-                            {this.state.dataStrategyDomainMaster.map((obj) => (
-                              <option id={obj.name + obj.id} key={obj.id} value={obj.name}>
-                                {obj.name}
-                              </option>
-                            ))}
-                          </select>
+                    <>
+                      <div className={Styles.flexLayout}>
+                        <div className={Styles.departmentTags}>
+                          <Tags
+                            title={'Department'}
+                            max={1}
+                            chips={departmentValue}
+                            tags={this.props.departmentTags}
+                            setTags={this.setDepartment}
+                            isMandatory={false}
+                            showMissingEntryError={false}
+                          />
                         </div>
-                        {/* <span className={classNames('error-message', dataStrategyDomainValError.length ? '' : 'hide')}>
-                          {dataStrategyDomainValError}
-                        </span> */}
-                      </div>
-                    </div>
-                    <div className={Styles.flexLayout}>
-                      <div id="relatedProductWrapper">
+
                         <div
-                          id="relatedProductContainer"
+                          id="dataStrategyDomainContainer"
+                          // className={classNames('input-field-group', dataStrategyDomainValError.length ? 'error' : '')}
                           className={classNames('input-field-group')}
-                          // className={classNames('input-field-group', relatedProductsError.length ? 'error' : '')}
                         >
-                          <label id="relatedProductLable" className="input-label" htmlFor="relatedProductSelect">
-                            Related Products
+                          <label
+                            id="dataStrategyDomainLable"
+                            className={classNames('input-label', Styles.dataStrategyLabel)}
+                            htmlFor="dataStrategyDomainSelect"
+                          >
+                            Data Strategy Domains{' '}
+                            {enableDataStatergyInfo && (
+                              <React.Fragment>
+                                (Only for MS)&nbsp;
+                                <i className="icon mbc-icon info" onClick={this.showDataStrategyDomainsInfoModal} />
+                              </React.Fragment>
+                            )}
                           </label>
-                          <div id="relatedProduct" className="custom-select">
+                          <div id="dataStrategyDomain" className=" custom-select">
                             <select
-                              id="relatedProductSelect"
-                              multiple={true}
-                              required={false}
+                              id="dataStrategyDomainSelect"
+                              // required={true}
                               // required-error={requiredError}
-                              onChange={this.onRelatedProductChange}
-                              value={relatedProductValues}
+                              onChange={this.onDataStrategyDomainChange}
+                              value={dataStrategyDomainValue}
                             >
-                              {relatedProdcutList.map((obj) => (
-                                <option id={obj.name} key={obj.name} value={obj.name}>
+                              <option id="defaultBusineesGoal" value={0}>
+                                Choose
+                              </option>
+                              {this.state.dataStrategyDomainMaster.map((obj) => (
+                                <option id={obj.name + obj.id} key={obj.id} value={obj.name}>
                                   {obj.name}
                                 </option>
                               ))}
                             </select>
                           </div>
-                          {/* <span className={classNames('error-message', relatedProductsError.length ? '' : 'hide')}>
+                          {/* <span className={classNames('error-message', dataStrategyDomainValError.length ? '' : 'hide')}>
+                          {dataStrategyDomainValError}
+                        </span> */}
+                        </div>
+                      </div>
+                      <div className={Styles.flexLayout}>
+                        <div id="relatedProductWrapper">
+                          <div
+                            id="relatedProductContainer"
+                            className={classNames('input-field-group')}
+                          // className={classNames('input-field-group', relatedProductsError.length ? 'error' : '')}
+                          >
+                            <label id="relatedProductLable" className="input-label" htmlFor="relatedProductSelect">
+                              Related Products
+                            </label>
+                            <div id="relatedProduct" className="custom-select">
+                              <select
+                                id="relatedProductSelect"
+                                multiple={true}
+                                required={false}
+                                // required-error={requiredError}
+                                onChange={this.onRelatedProductChange}
+                                value={relatedProductValues}
+                              >
+                                {relatedProdcutList.map((obj) => (
+                                  <option id={obj.name} key={obj.name} value={obj.name}>
+                                    {obj.name}
+                                  </option>
+                                ))}
+                              </select>
+                            </div>
+                            {/* <span className={classNames('error-message', relatedProductsError.length ? '' : 'hide')}>
                         {relatedProductsError}
                         </span>
                             */}
-                          <div>
-                            <button
-                              className={classNames(Styles.relatedPrdEdit)}
-                              onClick={this.showAddRelatedProductModalView}
-                            >
-                              <i className="icon mbc-icon plus" />
-                              &nbsp;
-                              <span>Add new related products</span>
-                            </button>
+                            <div>
+                              <button
+                                className={classNames(Styles.relatedPrdEdit)}
+                                onClick={this.showAddRelatedProductModalView}
+                              >
+                                <i className="icon mbc-icon plus" />
+                                &nbsp;
+                                <span>Add new related products</span>
+                              </button>
+                            </div>
                           </div>
                         </div>
+                        <div></div>
                       </div>
-                      <div></div>
-                    </div>
-                  </>
+                    </>
                   )}
                 </div>
 
@@ -905,7 +942,7 @@ export default class Description extends React.Component<IDescriptionProps, IDes
                     rows={50}
                     value={this.state.expectedBenefits}
                     errorText={expectedBenefitsError}
-                    required={true}
+                    required={!this.props.isGenAI}
                     onChange={this.onBenefitChange}
                   />
                 </div>
@@ -929,7 +966,7 @@ export default class Description extends React.Component<IDescriptionProps, IDes
                         setTags={this.setTags}
                         isMandatory={false}
                         showMissingEntryError={this.state.showTagsMissingError}
-                        fixedChips={this.props.isGenAI ? SOLUTION_FIXED_TAGS : []}
+                        fixedChips={this.props.isGenAI ? [...SOLUTION_FIXED_TAGS, ...SOLUTION_FIXED_TAGS.map(tag => tag.toLowerCase())] : []}
                         {...this.props}
                       />
                     </div>
@@ -1086,9 +1123,11 @@ export default class Description extends React.Component<IDescriptionProps, IDes
       formValid = false;
     }
 
-    if (!this.state.expectedBenefits || this.state.expectedBenefits === '') {
-      this.setState({ expectedBenefitsError: errorMissingEntry });
-      formValid = false;
+    if (!this.props.isGenAI) {
+      if (!this.state.expectedBenefits || this.state.expectedBenefits === '') {
+        this.setState({ expectedBenefitsError: errorMissingEntry });
+        formValid = false;
+      }
     }
     // if (!this.props.description.tags || !this.props.description.tags.length) {
     //   this.setState({ showTagsMissingError: true });
@@ -1111,7 +1150,12 @@ export default class Description extends React.Component<IDescriptionProps, IDes
 
   protected setTags = (arr: string[]) => {
     const description = this.props.description;
-    description.tags = arr;
+    if (!this.props.isGenAI && arr && isSolutionFixedTagIncludedInArray(arr)) {
+      this.setState({ showGenAIWarningModal: true });
+      description.tags = arr.filter(tag => !isSolutionFixedTagIncluded(tag)) || [];
+    } else {
+      description.tags = arr;
+    }
     // this.props.onStateChange();
     this.setState({ showTagsMissingError: arr.length === 0 });
   };

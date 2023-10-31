@@ -20,6 +20,7 @@ public class ChronosComparisonRequestDto  implements Serializable{
 	private String minio_endpoint;
 	private List<String> runs_list;
 	private String actuals_file;
+	private String business_file;
 	private String target_folder;
 	
 }

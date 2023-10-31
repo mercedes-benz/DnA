@@ -52,6 +52,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.ObjectUtils;
@@ -73,6 +74,9 @@ public class SolutionController implements SolutionsApi, ChangelogsApi, Malwares
 
     @Autowired
     private SolutionService solutionService;
+
+    @Autowired
+    private LoginController loginControllerService;
 
     @Autowired
     private UserStore userStore;
@@ -471,6 +475,74 @@ public class SolutionController implements SolutionsApi, ChangelogsApi, Malwares
     }
 
     @Override
+    @ApiOperation(value = "Reassigining the owner from the list of collaborators.", nickname = "reassignOwner", notes = "Reassigining the owner from the list of collaborators.", response = GenericMessage.class, tags={ "solutions", })
+    @ApiResponses(value = {
+            @ApiResponse(code = 201, message = "Returns message of success or failure", response = GenericMessage.class),
+            @ApiResponse(code = 204, message = "Fetch complete, no content found."),
+            @ApiResponse(code = 400, message = "Bad request."),
+            @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+            @ApiResponse(code = 403, message = "Request is not authorized."),
+            @ApiResponse(code = 405, message = "Method not allowed"),
+            @ApiResponse(code = 500, message = "Internal error") })
+    @RequestMapping(value = "/solutions/{id}/reassignOwner/{userId}",
+            produces = { "application/json" },
+            consumes = { "application/json" },
+            method = RequestMethod.PATCH)
+    public ResponseEntity<GenericMessage> reassignOwner(@ApiParam(value = "Solution ID to be fetched",required=true) @PathVariable("id") String id,@ApiParam(value = "User to added as Owner" ,required=true )  @Valid @RequestBody CreatedByVO userDto) {
+
+    CreatedByVO currentUser = this.userStore.getVO();
+        String currentUserId= currentUser != null ? currentUser.getId() : null;
+        SolutionVO existingSolutionVO = solutionService.getById(id);
+        GenericMessage responseMessage = new GenericMessage();
+        if(existingSolutionVO==null || existingSolutionVO.getId()==null) {
+            log.error("No solution with this id {} doesnt exists , failed to reassign owner", id);
+            MessageDescription invalidMsg = new MessageDescription("No solution doesnt exists with given id");
+            List<MessageDescription> errorMessage = new ArrayList<>();
+            responseMessage.setSuccess("FAILED");
+            errorMessage.add(invalidMsg);
+            responseMessage.setErrors(errorMessage);
+            return new ResponseEntity<>(responseMessage, HttpStatus.NOT_FOUND);
+        }
+        if (!(Objects.nonNull(existingSolutionVO) && Objects.nonNull(existingSolutionVO.getCreatedBy()) && existingSolutionVO.getCreatedBy().getId().equalsIgnoreCase(currentUserId))) {
+            MessageDescription notAuthorizedMsg = new MessageDescription();
+            notAuthorizedMsg.setMessage(
+                    "Not authorized to reassign solution ownership. Provided user does not have privileges.");
+            GenericMessage errorMessage = new GenericMessage();
+            errorMessage.addErrors(notAuthorizedMsg);
+            LOGGER.info("Provided user {} cannot reassign solution ownership, insufficient privileges. Solution name: {}", currentUserId, existingSolutionVO.getProductName());
+            return new ResponseEntity<>(errorMessage, HttpStatus.FORBIDDEN);
+        }
+        try {
+            ResponseEntity<?> validUserInfo = loginControllerService.getDrdUserInfo(userDto.getId());
+            log.info("Validating user info for user id {} with response {}", userDto.getId(), validUserInfo);
+        } catch (Exception e) {
+           List<MessageDescription> errors = new ArrayList<>();
+            log.error("User with id {} does not exist to be transferred as owner for solution id {}",userDto.getId(), existingSolutionVO.getId());
+            MessageDescription msg = new MessageDescription("User with id  does not exist to be transferred as owner " +userDto.getId());
+            errors.add(msg);
+            responseMessage.setSuccess("FAILED");
+            responseMessage.setErrors(errors);
+            return new ResponseEntity<>(responseMessage, HttpStatus.BAD_REQUEST);
+        }
+
+        try {
+            existingSolutionVO.setCreatedBy(userDto);
+            SolutionVO updatedVO = solutionService.create(existingSolutionVO);
+        }
+        catch (Exception e){
+            List<MessageDescription> errors = new ArrayList<>();
+            log.error("Failed while reassigning owner for solution name {} solution id {}",existingSolutionVO.getProductName(), existingSolutionVO.getId());
+            MessageDescription msg = new MessageDescription("Failed while reassigning owner for solution id" +existingSolutionVO.getId());
+            errors.add(msg);
+            responseMessage.setSuccess("FAILED");
+            responseMessage.setErrors(errors);
+            return new ResponseEntity<>(responseMessage, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+        responseMessage.setSuccess("SUCCESS");
+        return new ResponseEntity<>(responseMessage, HttpStatus.OK);
+    }
+
+    @Override
     @ApiOperation(value = "update existing solution.", nickname = "update", notes = "update existing solution.", response = SolutionResponseVO.class, tags = {
             "solutions",})
     @ApiResponses(value = {
@@ -690,28 +762,36 @@ public class SolutionController implements SolutionsApi, ChangelogsApi, Malwares
             if (userId != null && !"".equalsIgnoreCase(userId)) {
                 UserInfoVO userInfoVO = userInfoService.getById(userId);
                 solution = solutionService.getById(id);
-                if (userInfoVO != null) {
-                    List<UserRoleVO> userRoleVOs = userInfoVO.getRoles();
-                    if (userRoleVOs != null && !userRoleVOs.isEmpty()) {
-                        boolean isDivisionAdmin = userRoleVOs.stream()
-                                .anyMatch(n -> "DivisionAdmin".equalsIgnoreCase(n.getName()))
-                                && !ObjectUtils.isEmpty(userInfoVO.getDivisionAdmins())
-                                && userInfoVO.getDivisionAdmins().contains(solution.getDivision().getName());
-                        boolean isAdmin = userRoleVOs.stream().anyMatch(n -> "Admin".equalsIgnoreCase(n.getName()));
-                        String createdBy = solution.getCreatedBy() != null ? solution.getCreatedBy().getId() : null;
-                        boolean isOwner = (createdBy != null && createdBy.equals(userId));
-                        boolean isTeamMember = solution.getTeam().stream()
-                                .anyMatch(n -> userId.equalsIgnoreCase(n.getShortId()));
-                        if (!isAdmin && !isOwner && !isTeamMember && !isDivisionAdmin) {
-                            MessageDescription notAuthorizedMsg = new MessageDescription();
-                            notAuthorizedMsg.setMessage(
-                                    "Not authorized to delete solution. Only the solution owner or an admin can delete the solution.");
-                            GenericMessage errorMessage = new GenericMessage();
-                            errorMessage.addErrors(notAuthorizedMsg);
-                            // log.error(notAuthorizedMsg.getMessage());
-                            return new ResponseEntity<>(errorMessage, HttpStatus.FORBIDDEN);
+                if(solution.getId() != null) {
+                    if (userInfoVO != null) {
+                        List<UserRoleVO> userRoleVOs = userInfoVO.getRoles();
+                        if (userRoleVOs != null && !userRoleVOs.isEmpty()) {
+                            boolean isDivisionAdmin = userRoleVOs.stream()
+                                    .anyMatch(n -> "DivisionAdmin".equalsIgnoreCase(n.getName()))
+                                    && !ObjectUtils.isEmpty(userInfoVO.getDivisionAdmins())
+                                    && userInfoVO.getDivisionAdmins().contains(solution.getDivision().getName());
+                            boolean isAdmin = userRoleVOs.stream().anyMatch(n -> "Admin".equalsIgnoreCase(n.getName()));
+                            String createdBy = solution.getCreatedBy() != null ? solution.getCreatedBy().getId() : null;
+                            boolean isOwner = (createdBy != null && createdBy.equals(userId));
+                            boolean isTeamMember = solution.getTeam().stream()
+                                    .anyMatch(n -> userId.equalsIgnoreCase(n.getShortId()));
+                            if (!isAdmin && !isOwner && !isTeamMember && !isDivisionAdmin) {
+                                MessageDescription notAuthorizedMsg = new MessageDescription();
+                                notAuthorizedMsg.setMessage(
+                                        "Not authorized to delete solution. Only the solution owner or an admin can delete the solution.");
+                                GenericMessage errorMessage = new GenericMessage();
+                                errorMessage.addErrors(notAuthorizedMsg);
+                                // log.error(notAuthorizedMsg.getMessage());
+                                return new ResponseEntity<>(errorMessage, HttpStatus.FORBIDDEN);
+                            }
                         }
                     }
+                }else{
+                    MessageDescription invalidMsg = new MessageDescription("No Solution with the given id");
+                    GenericMessage errorMessage = new GenericMessage();
+                    errorMessage.addErrors(invalidMsg);
+                    LOGGER.error("No Solution with the given id {} , couldnt delete.", id);
+                    return new ResponseEntity<>(errorMessage, HttpStatus.NOT_FOUND);
                 }
             }
 
@@ -751,21 +831,11 @@ public class SolutionController implements SolutionsApi, ChangelogsApi, Malwares
                     }
                 }
             }
-
-            if(solutionService.deleteById(id))
-            {
-                GenericMessage successMsg = new GenericMessage();
-                successMsg.setSuccess("success");
-                LOGGER.info("Solution {} deleted successfully", id);
-                return new ResponseEntity<>(successMsg, HttpStatus.OK);
-            }
-            else{
-                MessageDescription invalidMsg = new MessageDescription("No Solution with the given id");
-                GenericMessage errorMessage = new GenericMessage();
-                errorMessage.addErrors(invalidMsg);
-                LOGGER.error("No Solution with the given id {} , couldnt delete.", id);
-                return new ResponseEntity<>(errorMessage, HttpStatus.NOT_FOUND);
-            }
+            solutionService.deleteById(id);
+            GenericMessage successMsg = new GenericMessage();
+            successMsg.setSuccess("success");
+            LOGGER.info("Solution {} deleted successfully", id);
+            return new ResponseEntity<>(successMsg, HttpStatus.OK);
             
         } catch (EntityNotFoundException e) {
             MessageDescription invalidMsg = new MessageDescription("No Solution with the given id");

@@ -50,9 +50,9 @@ const Home: React.FC<ILandingpageProps> = () => {
                 <DNACard
                   title={'GenAI'}
                   description={'All the Tools and insight you need to start with Artificial Intelligence.'}
-                  url={'/carla'}
+                  url={'/genAI'}
                   isTextAlignLeft={false}
-                  isDisabled={true}
+                  isDisabled={false}
                   svgIcon={<IconGenAI size="80"/>}
                 />
               </div>
