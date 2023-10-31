@@ -52,6 +52,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.ObjectUtils;
@@ -73,6 +74,9 @@ public class SolutionController implements SolutionsApi, ChangelogsApi, Malwares
 
     @Autowired
     private SolutionService solutionService;
+
+    @Autowired
+    private LoginController loginControllerService;
 
     @Autowired
     private UserStore userStore;
@@ -508,6 +512,19 @@ public class SolutionController implements SolutionsApi, ChangelogsApi, Malwares
             LOGGER.info("Provided user {} cannot reassign solution ownership, insufficient privileges. Solution name: {}", currentUserId, existingSolutionVO.getProductName());
             return new ResponseEntity<>(errorMessage, HttpStatus.FORBIDDEN);
         }
+        try {
+            ResponseEntity<?> validUserInfo = loginControllerService.getDrdUserInfo(userDto.getId());
+            log.info("Validating user info for user id {} with response {}", userDto.getId(), validUserInfo);
+        } catch (Exception e) {
+           List<MessageDescription> errors = new ArrayList<>();
+            log.error("User with id {} does not exist to be transferred as owner for solution id {}",userDto.getId(), existingSolutionVO.getId());
+            MessageDescription msg = new MessageDescription("User with id  does not exist to be transferred as owner " +userDto.getId());
+            errors.add(msg);
+            responseMessage.setSuccess("FAILED");
+            responseMessage.setErrors(errors);
+            return new ResponseEntity<>(responseMessage, HttpStatus.BAD_REQUEST);
+        }
+
         try {
             existingSolutionVO.setCreatedBy(userDto);
             SolutionVO updatedVO = solutionService.create(existingSolutionVO);
