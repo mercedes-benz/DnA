@@ -145,10 +145,10 @@ public class DashboardAssembler {
 	}
 
 	public List<SolDataValueSummaryVO> toDataValueSummary(
-			Map<BigDecimal, Set<SolObjectDataValueDTO>> digitalValueSummaryTreeMap) {
+			Map<BigDecimal, Set<SolObjectDataValueDTO>> dataValueSummaryTreeMap) {
 		List<SolDataValueSummaryVO> solDataValuesummary = new ArrayList<SolDataValueSummaryVO>();
 		SolDataValueSummaryVO solDataValueSummaryVO = null;
-		for(Map.Entry<BigDecimal, Set<SolObjectDataValueDTO>> map : digitalValueSummaryTreeMap.entrySet()) {
+		for(Map.Entry<BigDecimal, Set<SolObjectDataValueDTO>> map : dataValueSummaryTreeMap.entrySet()) {
 			solDataValueSummaryVO = new SolDataValueSummaryVO();
 			solDataValueSummaryVO.setYear(map.getKey());
 			solDataValueSummaryVO.setDataValueVO(this.toDataValueVO(map.getValue()));

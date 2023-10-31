@@ -167,26 +167,16 @@ public class DashboardServiceImpl implements DashboardService {
 	private Comparator<SolObjectDataValueDTO> savingsDataValueComp = new Comparator<SolObjectDataValueDTO>() {
 		@Override
 		public int compare(SolObjectDataValueDTO s1, SolObjectDataValueDTO s2) {
-			if (s2.getProductName()
-					.compareTo(s1.getProductName()) == 0) {
-				return 1;
-			} else {
-				return (s2.getProductName()
-						.compareTo(s1.getProductName()));
-			}
+			return s2.getSavings()
+			.compareTo(s1.getSavings());
 		}
 	};
 	
 	private Comparator<SolObjectDataValueDTO> revenueDataValueComp = new Comparator<SolObjectDataValueDTO>() {
 		@Override
 		public int compare(SolObjectDataValueDTO s1, SolObjectDataValueDTO s2) {
-			if (s2.getRevenue()
-					.compareTo(s1.getRevenue()) == 0) {
-				return 1;
-			} else {
-				return (s2.getRevenue()
-						.compareTo(s1.getRevenue()));
-			}
+		return s2.getRevenue()
+				.compareTo(s1.getRevenue());
 		}
 	};
 	
@@ -211,40 +201,74 @@ public class DashboardServiceImpl implements DashboardService {
 		List<SolDataValueDTO> result = customRepo.getDataValueUsingNativeQuery(published, phases, dataVolumes,
 				divisions, locations, statuses, solutionType, userId, isAdmin, bookmarkedSolutions, searchTerms, tags,
 				divisionsAdmin);
-		Set<SolObjectDataValueDTO> digitalValueSortedSet = new HashSet<SolObjectDataValueDTO>();;		
-		Map<BigDecimal, Set<SolObjectDataValueDTO>> digitalValueSummaryTreeMap = new TreeMap<BigDecimal, Set<SolObjectDataValueDTO>>();
+		Set<SolObjectDataValueDTO> dataValueSortedSet = null;
+		Map<BigDecimal, Set<SolObjectDataValueDTO>> dataValueSummaryTreeMap = new TreeMap<BigDecimal, Set<SolObjectDataValueDTO>>();
+
 		for (SolDataValueDTO dto : result) {
-			SolObjectDataValueDTO dto2 = new SolObjectDataValueDTO();
-			dto2.setId(dto.getId());
-			dto2.setProductName(dto.getProductName());
+			HashMap<BigDecimal, BigDecimal> savingsMap = new HashMap<BigDecimal, BigDecimal>();// Creating HashMap
+			HashMap<BigDecimal, BigDecimal> revenueMap = new HashMap<BigDecimal, BigDecimal>();// Creating HashMap
+			if (Objects.nonNull(dto.getSavings()) && dto.getSavings().size() > 0) {
+				for (DataValueRampUpYear savings : dto.getSavings()) {
+					savingsMap.put(savings.getYear(), savings.getValue()); // Put elements in Map
+				}
+			}
+			if (Objects.nonNull(dto.getRevenue()) && dto.getRevenue().size() > 0) {
+				for (DataValueRampUpYear revenue : dto.getRevenue()) {
+					revenueMap.put(revenue.getYear(), revenue.getValue());
+				}
+			}
 			if (dto.getSavings() != null && dto.getSavings().size() > 0) {
 				for (DataValueRampUpYear savings : dto.getSavings()) {
-					if (!digitalValueSummaryTreeMap.containsKey(savings.getYear())) {
-						//digitalValueSortedSet = new HashSet<SolObjectDataValueDTO>();
-						dto2.setSavings(savings.getValue());
-						digitalValueSortedSet.add(dto2);
-						digitalValueSummaryTreeMap.put(savings.getYear(), digitalValueSortedSet);
+					SolObjectDataValueDTO dto2 = new SolObjectDataValueDTO();
+					dto2.setId(dto.getId());
+					dto2.setProductName(dto.getProductName());
+					dto2.setSavings(savings.getValue() != null ? savings.getValue() : BigDecimal.ZERO);
+					dto2.setRevenue(revenueMap.get(savings.getYear()) != null ? revenueMap.get(savings.getYear()) : BigDecimal.ZERO);
+					if (!dataValueSummaryTreeMap.containsKey(savings.getYear())) {
+						dataValueSortedSet = new TreeSet<SolObjectDataValueDTO>(savingsDataValueComp);
+						dataValueSortedSet.add(dto2);
+						dataValueSummaryTreeMap.put(savings.getYear(), dataValueSortedSet);
 					} else {
-						dto2.setSavings(savings.getValue());
-						digitalValueSummaryTreeMap.get(savings.getYear()).add(dto2);
+						Set<SolObjectDataValueDTO> existingSet = dataValueSummaryTreeMap.get(savings.getYear());
+			            if (existingSet.contains(dto2)) {
+			                // Remove the existing object and add the new one
+			                existingSet.remove(dto2);
+			                existingSet.add(dto2);
+			            } else {
+			                // If its new object, add it
+			                existingSet.add(dto2);
+			            }
+						//dataValueSummaryTreeMap.get(savings.getYear()).add(dto2);
 					}
 				}
 			}
 			if (dto.getRevenue() != null && dto.getRevenue().size() > 0) {
 				for (DataValueRampUpYear revenue : dto.getRevenue()) {
-					if (!digitalValueSummaryTreeMap.containsKey(revenue.getYear())) {
-						//digitalValueSortedSet = new HashSet<SolObjectDataValueDTO>();
-						dto2.setRevenue(revenue.getValue());
-						digitalValueSortedSet.add(dto2);
-						digitalValueSummaryTreeMap.put(revenue.getYear(), digitalValueSortedSet);
+					SolObjectDataValueDTO dto2 = new SolObjectDataValueDTO();
+					dto2.setId(dto.getId());
+					dto2.setProductName(dto.getProductName());
+					dto2.setSavings(savingsMap.get(revenue.getYear()) != null ? savingsMap.get(revenue.getYear()) : BigDecimal.ZERO);
+					dto2.setRevenue(revenue.getValue() != null ? revenue.getValue() : BigDecimal.ZERO);
+					if (!dataValueSummaryTreeMap.containsKey(revenue.getYear())) {
+						dataValueSortedSet = new TreeSet<SolObjectDataValueDTO>(revenueDataValueComp);
+						dataValueSortedSet.add(dto2);
+						dataValueSummaryTreeMap.put(revenue.getYear(), dataValueSortedSet);
 					} else {
-						dto2.setRevenue(revenue.getValue());
-						digitalValueSummaryTreeMap.get(revenue.getYear()).add(dto2);
+						Set<SolObjectDataValueDTO> existingSet = dataValueSummaryTreeMap.get(revenue.getYear());
+			            if (existingSet.contains(dto2)) {
+			                // Remove the existing object and add the new one
+			                existingSet.remove(dto2);
+			                existingSet.add(dto2);
+			            } else {
+			                // If its new object, add it
+			                existingSet.add(dto2);
+			            }
+//						dataValueSummaryTreeMap.put(revenue.getYear(),existingSet);
 					}
 				}
 			}
 		}
-		return dashboardAssembler.toDataValueSummary(digitalValueSummaryTreeMap);
+		return dashboardAssembler.toDataValueSummary(dataValueSummaryTreeMap);
 
 	}
 
