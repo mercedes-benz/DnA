@@ -50,7 +50,7 @@ import com.daimler.data.db.jsonb.solution.DataValueRampUpYear;
 import com.daimler.data.db.repo.solution.SolutionCustomRepository;
 import com.daimler.data.dto.SolDataValueDTO;
 import com.daimler.data.dto.SolDigitalValueDTO;
-import com.daimler.data.dto.SolObjectDataValueDTO;
+import com.daimler.data.dto.SolDataValueSummaryDTO;
 import com.daimler.data.dto.dashboard.DataValueVO;
 import com.daimler.data.dto.dashboard.DatasourceWidgetVO;
 import com.daimler.data.dto.dashboard.LocationWidgetVO;
@@ -164,17 +164,17 @@ public class DashboardServiceImpl implements DashboardService {
 		}
 	};
 	
-	private Comparator<SolObjectDataValueDTO> savingsDataValueComp = new Comparator<SolObjectDataValueDTO>() {
+	private Comparator<SolDataValueSummaryDTO> savingsDataValueComp = new Comparator<SolDataValueSummaryDTO>() {
 		@Override
-		public int compare(SolObjectDataValueDTO s1, SolObjectDataValueDTO s2) {
+		public int compare(SolDataValueSummaryDTO s1, SolDataValueSummaryDTO s2) {
 			return s2.getSavings()
 			.compareTo(s1.getSavings());
 		}
 	};
 	
-	private Comparator<SolObjectDataValueDTO> revenueDataValueComp = new Comparator<SolObjectDataValueDTO>() {
+	private Comparator<SolDataValueSummaryDTO> revenueDataValueComp = new Comparator<SolDataValueSummaryDTO>() {
 		@Override
-		public int compare(SolObjectDataValueDTO s1, SolObjectDataValueDTO s2) {
+		public int compare(SolDataValueSummaryDTO s1, SolDataValueSummaryDTO s2) {
 		return s2.getRevenue()
 				.compareTo(s1.getRevenue());
 		}
@@ -201,8 +201,8 @@ public class DashboardServiceImpl implements DashboardService {
 		List<SolDataValueDTO> result = customRepo.getDataValueUsingNativeQuery(published, phases, dataVolumes,
 				divisions, locations, statuses, solutionType, userId, isAdmin, bookmarkedSolutions, searchTerms, tags,
 				divisionsAdmin);
-		Set<SolObjectDataValueDTO> dataValueSortedSet = null;
-		Map<BigDecimal, Set<SolObjectDataValueDTO>> dataValueSummaryTreeMap = new TreeMap<BigDecimal, Set<SolObjectDataValueDTO>>();
+		Set<SolDataValueSummaryDTO> dataValueSortedSet = null;
+		Map<BigDecimal, Set<SolDataValueSummaryDTO>> dataValueSummaryTreeMap = new TreeMap<BigDecimal, Set<SolDataValueSummaryDTO>>();
 
 		for (SolDataValueDTO dto : result) {
 			HashMap<BigDecimal, BigDecimal> savingsMap = new HashMap<BigDecimal, BigDecimal>();// Creating HashMap
@@ -219,17 +219,17 @@ public class DashboardServiceImpl implements DashboardService {
 			}
 			if (dto.getSavings() != null && dto.getSavings().size() > 0) {
 				for (DataValueRampUpYear savings : dto.getSavings()) {
-					SolObjectDataValueDTO dto2 = new SolObjectDataValueDTO();
+					SolDataValueSummaryDTO dto2 = new SolDataValueSummaryDTO();
 					dto2.setId(dto.getId());
 					dto2.setProductName(dto.getProductName());
 					dto2.setSavings(savings.getValue() != null ? savings.getValue() : BigDecimal.ZERO);
 					dto2.setRevenue(revenueMap.get(savings.getYear()) != null ? revenueMap.get(savings.getYear()) : BigDecimal.ZERO);
 					if (!dataValueSummaryTreeMap.containsKey(savings.getYear())) {
-						dataValueSortedSet = new TreeSet<SolObjectDataValueDTO>(savingsDataValueComp);
+						dataValueSortedSet = new TreeSet<SolDataValueSummaryDTO>(savingsDataValueComp);
 						dataValueSortedSet.add(dto2);
 						dataValueSummaryTreeMap.put(savings.getYear(), dataValueSortedSet);
 					} else {
-						Set<SolObjectDataValueDTO> existingSet = dataValueSummaryTreeMap.get(savings.getYear());
+						Set<SolDataValueSummaryDTO> existingSet = dataValueSummaryTreeMap.get(savings.getYear());
 			            if (existingSet.contains(dto2)) {
 			                // Remove the existing object and add the new one
 			                existingSet.remove(dto2);
@@ -244,17 +244,17 @@ public class DashboardServiceImpl implements DashboardService {
 			}
 			if (dto.getRevenue() != null && dto.getRevenue().size() > 0) {
 				for (DataValueRampUpYear revenue : dto.getRevenue()) {
-					SolObjectDataValueDTO dto2 = new SolObjectDataValueDTO();
+					SolDataValueSummaryDTO dto2 = new SolDataValueSummaryDTO();
 					dto2.setId(dto.getId());
 					dto2.setProductName(dto.getProductName());
 					dto2.setSavings(savingsMap.get(revenue.getYear()) != null ? savingsMap.get(revenue.getYear()) : BigDecimal.ZERO);
 					dto2.setRevenue(revenue.getValue() != null ? revenue.getValue() : BigDecimal.ZERO);
 					if (!dataValueSummaryTreeMap.containsKey(revenue.getYear())) {
-						dataValueSortedSet = new TreeSet<SolObjectDataValueDTO>(revenueDataValueComp);
+						dataValueSortedSet = new TreeSet<SolDataValueSummaryDTO>(revenueDataValueComp);
 						dataValueSortedSet.add(dto2);
 						dataValueSummaryTreeMap.put(revenue.getYear(), dataValueSortedSet);
 					} else {
-						Set<SolObjectDataValueDTO> existingSet = dataValueSummaryTreeMap.get(revenue.getYear());
+						Set<SolDataValueSummaryDTO> existingSet = dataValueSummaryTreeMap.get(revenue.getYear());
 			            if (existingSet.contains(dto2)) {
 			                // Remove the existing object and add the new one
 			                existingSet.remove(dto2);

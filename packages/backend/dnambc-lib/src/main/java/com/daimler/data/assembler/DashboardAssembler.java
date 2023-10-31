@@ -45,7 +45,7 @@ import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
 import com.daimler.data.dto.SolDigitalValueDTO;
-import com.daimler.data.dto.SolObjectDataValueDTO;
+import com.daimler.data.dto.SolDataValueSummaryDTO;
 import com.daimler.data.dto.dashboard.DataValueVO;
 import com.daimler.data.dto.dashboard.DigitalValueVO;
 import com.daimler.data.dto.dashboard.SolDataValueSummaryVO;
@@ -145,10 +145,10 @@ public class DashboardAssembler {
 	}
 
 	public List<SolDataValueSummaryVO> toDataValueSummary(
-			Map<BigDecimal, Set<SolObjectDataValueDTO>> dataValueSummaryTreeMap) {
+			Map<BigDecimal, Set<SolDataValueSummaryDTO>> dataValueSummaryTreeMap) {
 		List<SolDataValueSummaryVO> solDataValuesummary = new ArrayList<SolDataValueSummaryVO>();
 		SolDataValueSummaryVO solDataValueSummaryVO = null;
-		for(Map.Entry<BigDecimal, Set<SolObjectDataValueDTO>> map : dataValueSummaryTreeMap.entrySet()) {
+		for(Map.Entry<BigDecimal, Set<SolDataValueSummaryDTO>> map : dataValueSummaryTreeMap.entrySet()) {
 			solDataValueSummaryVO = new SolDataValueSummaryVO();
 			solDataValueSummaryVO.setYear(map.getKey());
 			solDataValueSummaryVO.setDataValueVO(this.toDataValueVO(map.getValue()));
@@ -157,10 +157,10 @@ public class DashboardAssembler {
 		return solDataValuesummary;
 	}
 
-	private List<DataValueVO> toDataValueVO(Set<SolObjectDataValueDTO> solDataValues) {
+	private List<DataValueVO> toDataValueVO(Set<SolDataValueSummaryDTO> solDataValues) {
 		List<DataValueVO> dataValues = new ArrayList<DataValueVO>();
 		DataValueVO dataValueVO = null;
-		for(SolObjectDataValueDTO vo : solDataValues) {
+		for(SolDataValueSummaryDTO vo : solDataValues) {
 			dataValueVO = new DataValueVO();
 			dataValueVO.setSolutionId(vo.getId());
 			dataValueVO.setProductName(vo.getProductName());
