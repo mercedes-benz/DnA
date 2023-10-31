@@ -25,6 +25,7 @@ const ForecastResultsTab = ({ onRunClick }) => {
 
   const comparisonNameInput = useRef();
   const fileInput = useRef();
+  const businessFileInput = useRef();
 
   // Pagination 
   const [totalNumberOfPages, setTotalNumberOfPages] = useState(1);
@@ -35,6 +36,7 @@ const ForecastResultsTab = ({ onRunClick }) => {
   // compare
   const [showCompareModal, setShowCompareModal] = useState(false);
   const [actualsFile, setActualsFile] = useState('');
+  const [businessFile, setBusinessFile] = useState('');
 
   const isValidFile = (file) => ['csv', 'xlsx'].includes(file?.name?.split('.')[1]);
   const onDrop = (e) => {
@@ -44,13 +46,28 @@ const ForecastResultsTab = ({ onRunClick }) => {
       Notification.show('File is not valid. Only .xlsx files allowed.', 'alert');
     } else {
       setActualsFile(file);
-      console.log('hehe');
     }
   };
   const onFileDrop = (e) => {
     e.preventDefault();
     if (e.type === 'drop') {
       onDrop?.(e);
+    }
+  };
+
+  const onDropBusiness = (e) => {
+    const file = e.dataTransfer.files;
+    const isValid = isValidFile(file?.[0]);
+    if (!isValid) {
+      Notification.show('File is not valid. Only .xlsx files allowed.', 'alert');
+    } else {
+      setBusinessFile(file);
+    }
+  };
+  const onBusinessFileDrop = (e) => {
+    e.preventDefault();
+    if (e.type === 'drop') {
+      onDropBusiness?.(e);
     }
   };
 
@@ -214,6 +231,9 @@ const ForecastResultsTab = ({ onRunClick }) => {
     if(actualsFile.length !== 0) {
       formData.append('actualsFile', actualsFile[0]);
     }
+    if(businessFile.length !== 0) {
+      formData.append('businessFile', businessFile[0]);
+    }
     formData.append('comparisonName', comparisonNameInput.current.value);
     formData.append('runCorelationIds', selectedRuns.toString());
 
@@ -223,6 +243,7 @@ const ForecastResultsTab = ({ onRunClick }) => {
         onRunClick();
         ProgressIndicator.hide();
         setActualsFile('');
+        setBusinessFile('');
       }).catch(error => {
         ProgressIndicator.hide();
         Notification.show(
@@ -230,6 +251,7 @@ const ForecastResultsTab = ({ onRunClick }) => {
           'alert',
         );
         setActualsFile('');
+        setBusinessFile('');
       });
   }
 
@@ -571,6 +593,46 @@ const ForecastResultsTab = ({ onRunClick }) => {
                         <div>
                           <span>Actuals File</span>
                           <span>{actualsFile[0]?.name}</span>
+                        </div>
+                        <div className={Styles.msgContainer}>
+                          <i className={classNames('icon mbc-icon check circle', Styles.checkCircle)} />
+                          <span>File is ready to use.</span>
+                        </div>
+                      </div>
+                  </div>
+                  <div className={Styles.fileUploadBox}>
+                    
+                    <div className={businessFile.length !== 0 ? Styles.hide : ''}>
+                      <p>Upload Business Forecast (optional)</p>
+                      <div 
+                        onDrop={onBusinessFileDrop}
+                        onDragOver={onBusinessFileDrop}
+                        onDragLeave={onBusinessFileDrop}
+                        className={classNames('upload-container', Styles.uploadContainer)}
+                      >
+                        <input type="file" id="businessfile" name="businessfile" 
+                          ref={businessFileInput}
+                          onInputCapture={(e) => {
+                            const isValid = isValidFile(e.target.files[0]);
+                            if (!isValid) {
+                              Notification.show('File is not valid. Only .xlsx files allowed.', 'alert');
+                            } else {
+                              setBusinessFile(e.target.files);
+                            }
+                          }}
+                          accept=".csv, .xlsx"
+                          />
+                        <div className={Styles.dragDrop}>
+                          <div className={Styles.browseHelperText}>
+                            Drag&apos;n&apos;Drop or <label htmlFor="businessfile" className={Styles.selectExisitingFiles}>select</label> 
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                      <div className={classNames(Styles.selectedFile, businessFile.length === 0 ? Styles.hide : '')}>
+                        <div>
+                          <span>Business Forecast File</span>
+                          <span>{businessFile[0]?.name}</span>
                         </div>
                         <div className={Styles.msgContainer}>
                           <i className={classNames('icon mbc-icon check circle', Styles.checkCircle)} />
