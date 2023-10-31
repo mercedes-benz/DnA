@@ -77,5 +77,5 @@ public interface SolutionService extends CommonService<SolutionVO, SolutionNsql,
 
 	Integer getCountBasedPublishSolution(Boolean published);
 
-	GenericMessage reassignOwner(CreatedByVO currentUser, SolutionVO existingSolutionVO, TeamMemberVO newOwnerDeatils);
+
 }

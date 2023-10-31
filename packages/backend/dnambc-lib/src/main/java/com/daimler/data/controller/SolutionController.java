@@ -470,7 +470,8 @@ public class SolutionController implements SolutionsApi, ChangelogsApi, Malwares
         }
     }
 
-    @ApiOperation(value = "Re assigining the owner from the list of collaborators.", nickname = "reAssignOwner", notes = "Re assigining the owner from the list of collaborators.", response = GenericMessage.class, tags={ "solutions", })
+    @Override
+    @ApiOperation(value = "Reassigining the owner from the list of collaborators.", nickname = "reassignOwner", notes = "Reassigining the owner from the list of collaborators.", response = GenericMessage.class, tags={ "solutions", })
     @ApiResponses(value = {
             @ApiResponse(code = 201, message = "Returns message of success or failure", response = GenericMessage.class),
             @ApiResponse(code = 204, message = "Fetch complete, no content found."),
@@ -479,12 +480,13 @@ public class SolutionController implements SolutionsApi, ChangelogsApi, Malwares
             @ApiResponse(code = 403, message = "Request is not authorized."),
             @ApiResponse(code = 405, message = "Method not allowed"),
             @ApiResponse(code = 500, message = "Internal error") })
-    @RequestMapping(value = "/solutions/{id}/reAssignOwner/{userId}",
+    @RequestMapping(value = "/solutions/{id}/reassignOwner/{userId}",
             produces = { "application/json" },
             consumes = { "application/json" },
             method = RequestMethod.PATCH)
-    public ResponseEntity<GenericMessage> reAssignOwner(@ApiParam(value = "Solution ID to be fetched",required=true) @PathVariable("id") String id,@ApiParam(value = "UserId to add collaborator as Owner" ,required=true )  @Valid @RequestBody TeamMemberVO userDto){
-        CreatedByVO currentUser = this.userStore.getVO();
+    public ResponseEntity<GenericMessage> reassignOwner(@ApiParam(value = "Solution ID to be fetched",required=true) @PathVariable("id") String id,@ApiParam(value = "User to added as Owner" ,required=true )  @Valid @RequestBody CreatedByVO userDto) {
+
+    CreatedByVO currentUser = this.userStore.getVO();
         String currentUserId= currentUser != null ? currentUser.getId() : null;
         SolutionVO existingSolutionVO = solutionService.getById(id);
         GenericMessage responseMessage = new GenericMessage();
@@ -506,14 +508,21 @@ public class SolutionController implements SolutionsApi, ChangelogsApi, Malwares
             LOGGER.info("Provided user {} cannot reassign solution ownership, insufficient privileges. Solution name: {}", currentUserId, existingSolutionVO.getProductName());
             return new ResponseEntity<>(errorMessage, HttpStatus.FORBIDDEN);
         }
-
-        responseMessage = solutionService.reassignOwner(currentUser, existingSolutionVO, userDto);
-        if (responseMessage != null && "SUCCESS".equalsIgnoreCase(responseMessage.getSuccess())) {
-            return new ResponseEntity<>(responseMessage, HttpStatus.OK);
+        try {
+            existingSolutionVO.setCreatedBy(userDto);
+            SolutionVO updatedVO = solutionService.create(existingSolutionVO);
         }
-
-        return new ResponseEntity<>(responseMessage, HttpStatus.INTERNAL_SERVER_ERROR);
-
+        catch (Exception e){
+            List<MessageDescription> errors = new ArrayList<>();
+            log.error("Failed while reassigning owner for solution name {} solution id {}",existingSolutionVO.getProductName(), existingSolutionVO.getId());
+            MessageDescription msg = new MessageDescription("Failed while reassigning owner for solution id" +existingSolutionVO.getId());
+            errors.add(msg);
+            responseMessage.setSuccess("FAILED");
+            responseMessage.setErrors(errors);
+            return new ResponseEntity<>(responseMessage, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+        responseMessage.setSuccess("SUCCESS");
+        return new ResponseEntity<>(responseMessage, HttpStatus.OK);
     }
 
     @Override

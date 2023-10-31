@@ -935,26 +935,5 @@ public class SolutionCustomRepositoryImpl extends CommonDataRepositoryImpl<Solut
 	}
 
 
-	@Override
-	public SolutionNsql findById(String userId, String id) {
-		CriteriaBuilder cb = em.getCriteriaBuilder();
-		CriteriaQuery<SolutionNsql> cq = cb.createQuery(SolutionNsql.class);
-		Root<SolutionNsql> root = cq.from(entityClass);
-		CriteriaQuery<SolutionNsql> byName = cq.select(root);
-		Predicate con1 = cb.equal(root.get("id"),id);
-		Predicate con2 = cb.equal(cb.lower(
-						cb.function("jsonb_extract_path_text", String.class, root.get("data"), cb.literal("createdBy"), cb.literal("id"))),
-				userId.toLowerCase());
-
-		Predicate pMain = cb.and(con1, con2);
-		cq.where(pMain);
-		cq.orderBy(cb.desc(cb.function("jsonb_extract_path_text", Date.class, root.get("data"), cb.literal("createdDate"))));
-		TypedQuery<SolutionNsql> byNameQuery = em.createQuery(byName);
-		List<SolutionNsql> entities = byNameQuery.getResultList();
-		if (entities != null && entities.size() > 0)
-			return entities.get(0);
-		else
-			return null;
-	}
 
 }

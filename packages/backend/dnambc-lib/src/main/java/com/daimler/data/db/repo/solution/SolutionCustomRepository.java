@@ -282,6 +282,4 @@ public interface SolutionCustomRepository extends CommonDataRepository<SolutionN
 
 
 
-	SolutionNsql findById(String userId, String id);
-
 }

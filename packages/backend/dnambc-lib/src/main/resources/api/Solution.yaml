@@ -405,13 +405,13 @@ paths:
         500:
           description: "Internal error"
 
-  /solutions/{id}/reAssignOwner/{userId}:
+  /solutions/{id}/reassignOwner/{userId}:
     patch:
       tags:
         - "solutions"
-      summary: "Re assigining the owner from the list of collaborators."
-      description: "Re assigining the owner from the list of collaborators."
-      operationId: "reAssignOwner"
+      summary: "Reassigining the owner from the list of collaborators."
+      description: "Reassigining the owner from the list of collaborators."
+      operationId: "reassignOwner"
       parameters:
         - name: id
           in: path
@@ -420,10 +420,10 @@ paths:
           type: string
         - name: "UserDto"
           in: "body"
-          description: "UserId to add collaborator as Owner"
+          description: "User to added as Owner"
           required: true
           schema:
-            $ref: "#/definitions/TeamMemberVO"
+            $ref: "#/definitions/CreatedByVO"
       responses:
         201:
           description: "Returns message of success or failure"
