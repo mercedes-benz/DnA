@@ -39,6 +39,7 @@ import {
   IMarketingCommunicationChannel,
   IMarketingCustomerJourney,
   IAnalyticsSolution,
+  ITeams,
 } from '../globals/types';
 import { Pkce } from './Pkce';
 import { ReportsApiClient } from './ReportsApiClient';
@@ -511,8 +512,8 @@ export class ApiClient {
     return this.delete(`solutions/${id}`);
   }
 
-  public static transferSolutionOwner(shortId: string, solutionId: string): Promise<any> {
-    return this.put(`solutions/${solutionId}/${shortId}`,{});
+  public static transferSolutionOwner(userObj: ITeams, solutionId: string): Promise<any> {
+    return this.patch(`solutions/${solutionId}/reassignOwner/${userObj.shortId}`,userObj);
   }
 
   public static getDRDUserInfo(adId: string): Promise<any> {

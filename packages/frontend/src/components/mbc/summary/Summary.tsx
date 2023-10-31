@@ -303,6 +303,7 @@ export default class Summary extends React.Component<{ user: IUserInfo }, ISumma
         firstName: collaborators.firstName,
         lastName: collaborators.lastName,
         shortId: collaborators.shortId,
+        id: collaborators.shortId,
         department: collaborators.department,
         email: collaborators.email,
         mobileNumber: collaborators.mobileNumber,
@@ -355,7 +356,7 @@ export default class Summary extends React.Component<{ user: IUserInfo }, ISumma
                                   <div className={Styles.collUserTitleCol}>{item.shortId}</div>
                                   <div className={Styles.collUserTitleCol}>{item.firstName + ' ' + item.lastName}</div>
                                   <div className={Styles.collUserTitleCol}>
-                                    <div className={Styles.deleteEntry} onClick={() => this.onTransferOwnership(item.shortId)}>
+                                    <div className={Styles.deleteEntry} onClick={() => this.onTransferOwnership(item)}>
                                       <i className="icon mbc-icon comparison" />
                                       Transfer Ownership
                                     </div>
@@ -647,11 +648,17 @@ export default class Summary extends React.Component<{ user: IUserInfo }, ISumma
             solution.createdBy = res.createdBy;
             solution.createdDate = res.createdDate;
             solution.lastModifiedDate = res.lastModifiedDate;
+            const tempCollab = res.team.filter((item: any) => {
+              item.id = item.shortId
+              item.userType === 'internal'
+              return item;
+            }
+              )
             this.setState(
               {
                 response,
                 solution,
-                solutionCollaborators: JSON.parse(JSON.stringify(res.team)),
+                solutionCollaborators: JSON.parse(JSON.stringify(tempCollab)),
                 canShowDataSources:
                   (solution.dataSources &&
                     solution.dataSources.dataSources &&
@@ -850,26 +857,25 @@ export default class Summary extends React.Component<{ user: IUserInfo }, ISumma
     this.setState({ showTransferOwnershipModal: false, solutionToBeTransfered: null });
   };
 
-  protected onTransferOwnership = (shortId: string) => {
+  protected onTransferOwnership = (userObj: ITeams) => {
     // call api to change ownership
-    console.log(shortId,'====================',this.state.solutionToBeTransfered);
     
-    // ProgressIndicator.show();
-    // ApiClient.transferSolutionOwner(shortId, this.state.solutionToBeTransfered)
-    //   .then((res) => {
-    //     if (res) {
-    //       Notification.show('Owner transferred successfully');
-    //       ProgressIndicator.hide();
-    //       this.setState({ showTransferOwnershipModal: false }, () => {
-    //         history.goBack();
-    //       });
-    //     }
-    //   })
-    //   .catch((error) => {
-    //     ProgressIndicator.hide();
-    //     this.showErrorNotification(error.message ? error.message : 'Some Error Occured');
-    //     this.setState({ showTransferOwnershipModal: false });
-    //   });
+    ProgressIndicator.show();
+    ApiClient.transferSolutionOwner(userObj, this.state.solutionToBeTransfered)
+      .then((res) => {
+        if (res) {
+          Notification.show('Owner transferred successfully');
+          ProgressIndicator.hide();
+          this.setState({ showTransferOwnershipModal: false }, () => {
+            history.goBack();
+          });
+        }
+      })
+      .catch((error) => {
+        ProgressIndicator.hide();
+        this.showErrorNotification(error.message ? error.message : 'Some Error Occured');
+        this.setState({ showTransferOwnershipModal: false });
+      });
   };
 
   protected onAcceptDeleteChanges = () => {
