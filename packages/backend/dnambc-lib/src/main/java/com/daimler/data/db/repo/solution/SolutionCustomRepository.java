@@ -279,4 +279,7 @@ public interface SolutionCustomRepository extends CommonDataRepository<SolutionN
 			List<String> searchTerms, List<String> tags, List<String> divisionsAdmin);
 
 	Integer getCountBasedPublishSolution(Boolean published);
+
+
+
 }
