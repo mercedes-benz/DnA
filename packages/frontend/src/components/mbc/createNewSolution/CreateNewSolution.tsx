@@ -583,7 +583,7 @@ export default class CreateNewSolution extends React.Component<ICreateNewSolutio
       <React.Fragment>
         <div className={classNames(Styles.mainPanel)}>
           <Caption
-            title={this.state.solution.description.productName || `${getParams()?.id ? 'Edit' : 'Create'} Solution`}
+            title={this.state.solution.description.productName || `${getParams()?.id ? 'Edit' : 'Create'} ${this.state.isGenAI ? 'GenAI Solution' : 'Solution'}`}
           />
           <div id="create-solution-tabs" className="tabs-panel">
             <div className="tabs-wrapper">
