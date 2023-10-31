@@ -470,7 +470,6 @@ public class SolutionController implements SolutionsApi, ChangelogsApi, Malwares
         }
     }
 
-    @Override
     @ApiOperation(value = "Re assigining the owner from the list of collaborators.", nickname = "reAssignOwner", notes = "Re assigining the owner from the list of collaborators.", response = GenericMessage.class, tags={ "solutions", })
     @ApiResponses(value = {
             @ApiResponse(code = 201, message = "Returns message of success or failure", response = GenericMessage.class),
@@ -484,7 +483,7 @@ public class SolutionController implements SolutionsApi, ChangelogsApi, Malwares
             produces = { "application/json" },
             consumes = { "application/json" },
             method = RequestMethod.PATCH)
-    public ResponseEntity<GenericMessage> reAssignOwner(@ApiParam(value = "Solution ID to be fetched",required=true) @PathVariable("id") String id,@ApiParam(value = "shortID of the user to re-assign the solution ownership",required=true) @PathVariable("userId") String userId) {
+    public ResponseEntity<GenericMessage> reAssignOwner(@ApiParam(value = "Solution ID to be fetched",required=true) @PathVariable("id") String id,@ApiParam(value = "UserId to add collaborator as Owner" ,required=true )  @Valid @RequestBody TeamMemberVO userDto){
         CreatedByVO currentUser = this.userStore.getVO();
         String currentUserId= currentUser != null ? currentUser.getId() : null;
         SolutionVO existingSolutionVO = solutionService.getById(id);
@@ -501,41 +500,19 @@ public class SolutionController implements SolutionsApi, ChangelogsApi, Malwares
         if (!(Objects.nonNull(existingSolutionVO) && Objects.nonNull(existingSolutionVO.getCreatedBy()) && existingSolutionVO.getCreatedBy().getId().equalsIgnoreCase(currentUserId))) {
             MessageDescription notAuthorizedMsg = new MessageDescription();
             notAuthorizedMsg.setMessage(
-                    "Not authorized to reassign bucket ownership. Provided user does not have privileges.");
+                    "Not authorized to reassign solution ownership. Provided user does not have privileges.");
             GenericMessage errorMessage = new GenericMessage();
             errorMessage.addErrors(notAuthorizedMsg);
-            LOGGER.info("Provided user {} cannot reassign bucket ownership, insufficient privileges. Solution name: {}", currentUserId, existingSolutionVO.getProductName());
+            LOGGER.info("Provided user {} cannot reassign solution ownership, insufficient privileges. Solution name: {}", currentUserId, existingSolutionVO.getProductName());
             return new ResponseEntity<>(errorMessage, HttpStatus.FORBIDDEN);
         }
-        // To check is user is already a part of workspace.
-        boolean isCollabroratorAlreadyExits = false;
-        TeamMemberVO newOwnerDeatils = new TeamMemberVO();
-        if (existingSolutionVO.getTeam() != null) {
-            for(TeamMemberVO collab : existingSolutionVO.getTeam()) {
-                if (userId != null) {
-                    if (collab.getShortId().equalsIgnoreCase(userId)) {
-                        newOwnerDeatils = collab;
-                        isCollabroratorAlreadyExits = true;
-                    }
-                }
-            }
+
+        responseMessage = solutionService.reassignOwner(currentUser, existingSolutionVO, userDto);
+        if (responseMessage != null && "SUCCESS".equalsIgnoreCase(responseMessage.getSuccess())) {
+            return new ResponseEntity<>(responseMessage, HttpStatus.OK);
         }
 
-        if (isCollabroratorAlreadyExits) {
-            responseMessage = solutionService.reassignOwner(currentUser, existingSolutionVO, newOwnerDeatils);
-        } else {
-            log.error("User is not part of a collaborator list");
-            GenericMessage emptyResponse = new GenericMessage();
-            List<MessageDescription> errors = new ArrayList<>();
-            MessageDescription msg = new MessageDescription();
-            msg.setMessage("User is not part of a collaborator list");
-            errors.add(msg);
-            emptyResponse.setSuccess("FAILED");
-            emptyResponse.setErrors(errors);
-            return new ResponseEntity<>(emptyResponse, HttpStatus.BAD_REQUEST);
-        }
-
-        return new ResponseEntity<>(responseMessage, HttpStatus.OK);
+        return new ResponseEntity<>(responseMessage, HttpStatus.INTERNAL_SERVER_ERROR);
 
     }
 

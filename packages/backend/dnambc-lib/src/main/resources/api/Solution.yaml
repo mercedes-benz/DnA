@@ -418,11 +418,12 @@ paths:
           description: "Solution ID to be fetched"
           required: true
           type: string
-        - name: userId
-          in: path
-          description: "shortID of the user to re-assign the solution ownership"
+        - name: "UserDto"
+          in: "body"
+          description: "UserId to add collaborator as Owner"
           required: true
-          type: string
+          schema:
+            $ref: "#/definitions/TeamMemberVO"
       responses:
         201:
           description: "Returns message of success or failure"
@@ -1487,5 +1488,5 @@ definitions:
       requestedFTECount:
         type: number
         minimum: 0
-        description: "Number of FTE requested for the needed Role."     
+        description: "Number of FTE requested for the needed Role."
     

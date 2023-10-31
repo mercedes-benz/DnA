@@ -1145,17 +1145,12 @@ public class BaseSolutionService extends BaseCommonService<SolutionVO, SolutionN
 		GenericMessage responseVO = new GenericMessage();
 		List<MessageDescription> errors = new ArrayList<>();
 		List<MessageDescription> warnings = new ArrayList<>();
-		List<SolutionTeamMember> existingCollaborators = new ArrayList<>();
-		List<SolutionTeamMember> updatedCollaborators = new ArrayList<>();
 		GenericMessage responseMessage = new GenericMessage();
 		SolutionNsql entity = customRepo.findById(currentUser.getId(), existingSolutionVO.getId());
 		boolean isSolutionOwner = false;
 		String projectName = entity.getData().getProductName();
 		List<String> collabIds = new ArrayList<>();
-		if(Objects.nonNull(entity)) {
-			existingCollaborators = entity.getData().getTeamMembers();
-		}
-		updatedCollaborators.addAll(existingCollaborators);
+
 		String solutionOwnerId = entity.getData().getCreatedBy().getId();
 		if (solutionOwnerId.equalsIgnoreCase(currentUser.getId())) {
 			isSolutionOwner = true;
@@ -1172,19 +1167,6 @@ public class BaseSolutionService extends BaseCommonService<SolutionVO, SolutionN
 			newOwner.setMobileNumber(newOwnerDeatils.getMobileNumber());
 			// To update project owner.
 			entity.getData().setCreatedBy(newOwner);
-			if (Objects.nonNull(existingCollaborators)) {
-
-				if ((collabIds.contains(currentOwnerAsCollab.getId()))) {
-					// To remove new owner from collaborator.
-					for (SolutionTeamMember  collab : existingCollaborators) {
-						if(collab.getShortId().equalsIgnoreCase(currentOwnerAsCollab.getId())) {
-								updatedCollaborators.remove(collab);
-								updatedCollaborators.add(collab);
-						}
-					}
-				}
-			}
-			entity.getData().setTeamMembers(updatedCollaborators);
 			try {
 				jpaRepo.save(entity);
 				LOGGER.info("Project owner and collaborator details updated successfully");
