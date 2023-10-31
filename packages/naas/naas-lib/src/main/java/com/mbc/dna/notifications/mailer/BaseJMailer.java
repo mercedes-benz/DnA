@@ -48,6 +48,9 @@ public class BaseJMailer implements JMailer {
 	
 	@Value("${dna.notification.senderEmail}")
 	private String senderEmailId;
+
+	@Value("${dna.uri}")
+	private String dnaBaseUri;
 	
 	public BaseJMailer() {
 		super();
@@ -69,10 +72,10 @@ public class BaseJMailer implements JMailer {
 	        helper.setSubject(subject);
 	         
 	        boolean html = true;
-	        helper.setText("<p>Hi</p>"
-	        		+ "<br/>Message Details: <br/>"
+	        helper.setText(""	        		
 	        		+ msgTxt
-	        		+ "<p> You received this auto generated email from DNA as per preferences set. For more details check application. </p>", html);
+					+ "<br/>-----<br/>"
+	        		+ "<p> You received this auto-generated email from DNA as per your notification setings. You can change them <a href=\"" + dnaBaseUri + "/#/usersettings" + "\">here</a> </p>", html);
 	         
 	        javaMailSender.send(message);
 	        log.info("Mail sent successfully for eventRecord {} , please check notification by this id for more details", eventId);
