@@ -39,7 +39,7 @@ import SolutionListRowItem from './solutionListRowItem/SolutionListRowItem';
 import { getQueryParameterByName } from '../../../services/Query';
 import ConfirmModal from '../../formElements/modal/confirmModal/ConfirmModal';
 import SolutionCardItem from './solutionCardItem/SolutionCardItem';
-import { getDivisionsQueryValue, trackEvent, csvSeparator } from '../../../services/utils';
+import { getDivisionsQueryValue, trackEvent, csvSeparator, isSolutionFixedTagIncluded } from '../../../services/utils';
 import { getDataForCSV } from '../../../services/SolutionsCSV';
 import SolutionsFilter from '../filters/SolutionsFilter';
 import filterStyle from '../filters/Filter.scss';
@@ -49,7 +49,6 @@ import { getTranslatedLabel } from 'globals/i18n/TranslationsProvider';
 import LandingSummary from 'components/mbc/shared/landingSummary/LandingSummary';
 import headerImageURL from '../../../assets/images/Transparency-Landing.png';
 import TagSection from 'components/mbc/shared/landingSummary/tagSection/TagSection';
-import { getPath } from '../../../router/RouterUtils';
 
 const classNames = cn.bind(Styles);
 
@@ -60,7 +59,6 @@ export interface ISortField {
 }
 
 export interface IAllSolutionsState {
-  path: String;
   phases: IPhase[];
   divisions: IDivision[];
   subDivisions: ISubDivisionSolution[];
@@ -116,9 +114,7 @@ export default class AllSolutions extends React.Component<
   // protected isTouch = false;
   constructor(props: any) {
     super(props);
-    const path=getPath().split('/');
     this.state = {
-      path: path.length>3 ? path[3]?.split('?')[0] : path[1],
       phases: [],
       divisions: [],
       subDivisions: [],
@@ -311,6 +307,8 @@ export default class AllSolutions extends React.Component<
     const userInfo = this.props.user;
     const isAdmin = userInfo.roles.find((role: IRole) => role.id === USER_ROLE.ADMIN);
     const { openFilterPanel, enablePortfolioSolutionsView } = this.state;
+    const isGenAI =
+      this.state.queryParams?.tag?.length === 1 ? isSolutionFixedTagIncluded(this.state.queryParams.tag[0]) : false;
 
     const solutionData = this.state.solutions.map((solution) => {
       return (
@@ -428,7 +426,7 @@ export default class AllSolutions extends React.Component<
                               className={this.state.openFilters ? Styles.activeFilters : ''}
                               onClick={this.openCloseFilter}
                             >
-                              {this.state.allSolutionsFilterApplied && (<i className="active-status"/>)}
+                              {this.state.allSolutionsFilterApplied && <i className="active-status" />}
                               <i className="icon mbc-icon filter big" />
                             </span>
                           </div>
@@ -466,7 +464,12 @@ export default class AllSolutions extends React.Component<
                   {this.state.cardViewMode && (
                     <div className={classNames('cardSolutions', Styles.allsolutionCardviewContent)}>
                       {this.state.solutions.length > 0 ? (
-                        <div className={Styles.cardViewContainer} onClick={() => this.state.path === 'GenAI' ? history.push('/createnewgenaisolution') : history.push('/createnewsolution')}>
+                        <div
+                          className={Styles.cardViewContainer}
+                          onClick={() =>
+                            isGenAI ? history.push('/createnewgenaisolution') : history.push('/createnewsolution')
+                          }
+                        >
                           <div className={Styles.addicon}> &nbsp; </div>
                           <label className={Styles.addlabel}>Create new solution</label>
                         </div>
@@ -539,7 +542,7 @@ export default class AllSolutions extends React.Component<
                               </label>
                             </th>
                             {enablePortfolioSolutionsView ? (
-                                <th
+                              <th
                                 onClick={this.sortSolutions.bind(null, 'digitalValue', this.state.sortBy.nextSortType)}
                               >
                                 <label
@@ -552,7 +555,7 @@ export default class AllSolutions extends React.Component<
                                   Digital Value (€)
                                 </label>
                               </th>
-                              ) : (
+                            ) : (
                               <React.Fragment />
                             )}
                             <th onClick={this.sortSolutions.bind(null, 'locations', this.state.sortBy.nextSortType)}>
@@ -585,7 +588,9 @@ export default class AllSolutions extends React.Component<
                             <th
                               colSpan={enablePortfolioSolutionsView ? 8 : 7}
                               className={classNames(Styles.listViewContainer)}
-                              onClick={() => this.state.path === 'GenAI' ? history.push('/createnewgenaisolution') : history.push('/createnewsolution')}
+                              onClick={() =>
+                                isGenAI ? history.push('/createnewgenaisolution') : history.push('/createnewsolution')
+                              }
                             >
                               <div className={Styles.addicon}> &nbsp; </div>
                               <label className={Styles.addlabel}>Create new solution</label>
@@ -615,7 +620,9 @@ export default class AllSolutions extends React.Component<
                         <a
                           target="_blank"
                           className={Styles.linkStyle}
-                          onClick={() => this.state.path === 'GenAI' ? history.push('/createnewgenaisolution') : history.push('/createnewsolution')}
+                          onClick={() =>
+                            isGenAI ? history.push('/createnewgenaisolution') : history.push('/createnewsolution')
+                          }
                           rel="noreferrer"
                         >
                           here.
