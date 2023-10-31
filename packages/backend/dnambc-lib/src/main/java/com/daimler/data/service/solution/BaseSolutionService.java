@@ -40,6 +40,7 @@ import java.util.stream.Collectors;
 import javax.persistence.EntityNotFoundException;
 import javax.validation.Valid;
 
+import com.daimler.data.db.jsonb.UserInfo;
 import com.daimler.data.db.jsonb.solution.*;
 import com.daimler.data.dto.attachment.FileDetailsVO;
 import com.daimler.data.dto.solution.SolutionDataComplianceVO;
@@ -1137,6 +1138,68 @@ public class BaseSolutionService extends BaseCommonService<SolutionVO, SolutionN
 	@Override
 	public Integer getCountBasedPublishSolution(Boolean published) {
 		return customRepo.getCountBasedPublishSolution(published);
+	}
+
+	@Override
+	public GenericMessage reassignOwner(CreatedByVO currentUser, SolutionVO existingSolutionVO, TeamMemberVO newOwnerDeatils) {
+		GenericMessage responseVO = new GenericMessage();
+		List<MessageDescription> errors = new ArrayList<>();
+		List<MessageDescription> warnings = new ArrayList<>();
+		List<SolutionTeamMember> existingCollaborators = new ArrayList<>();
+		List<SolutionTeamMember> updatedCollaborators = new ArrayList<>();
+		GenericMessage responseMessage = new GenericMessage();
+		SolutionNsql entity = customRepo.findById(currentUser.getId(), existingSolutionVO.getId());
+		boolean isSolutionOwner = false;
+		String projectName = entity.getData().getProductName();
+		List<String> collabIds = new ArrayList<>();
+		if(Objects.nonNull(entity)) {
+			existingCollaborators = entity.getData().getTeamMembers();
+		}
+		updatedCollaborators.addAll(existingCollaborators);
+		String solutionOwnerId = entity.getData().getCreatedBy().getId();
+		if (solutionOwnerId.equalsIgnoreCase(currentUser.getId())) {
+			isSolutionOwner = true;
+		}
+
+		if (isSolutionOwner) {
+			CreatedBy currentOwnerAsCollab = entity.getData().getCreatedBy();
+			CreatedBy newOwner = new CreatedBy();
+			newOwner.setId(newOwnerDeatils.getShortId());
+			newOwner.setDepartment(newOwnerDeatils.getDepartment());
+			newOwner.setFirstName(newOwnerDeatils.getFirstName());
+			newOwner.setLastName(newOwnerDeatils.getLastName());
+			newOwner.setEmail(newOwnerDeatils.getEmail());
+			newOwner.setMobileNumber(newOwnerDeatils.getMobileNumber());
+			// To update project owner.
+			entity.getData().setCreatedBy(newOwner);
+			if (Objects.nonNull(existingCollaborators)) {
+
+				if ((collabIds.contains(currentOwnerAsCollab.getId()))) {
+					// To remove new owner from collaborator.
+					for (SolutionTeamMember  collab : existingCollaborators) {
+						if(collab.getShortId().equalsIgnoreCase(currentOwnerAsCollab.getId())) {
+								updatedCollaborators.remove(collab);
+								updatedCollaborators.add(collab);
+						}
+					}
+				}
+			}
+			entity.getData().setTeamMembers(updatedCollaborators);
+			try {
+				jpaRepo.save(entity);
+				LOGGER.info("Project owner and collaborator details updated successfully");
+				responseMessage.setSuccess("SUCCESS");
+				return responseMessage;
+			} catch (Exception e) {
+				LOGGER.error("Failed to add collaborator details as requested with Exception: {} ", e.getMessage());
+				MessageDescription msg = new MessageDescription("Failed to update project owner and collaborator details");
+				errors.add(msg);
+				responseMessage.setSuccess("FAILED");
+				responseMessage.setErrors(errors);
+				return responseMessage;
+			}
+		}
+		return responseMessage;
 	}
 
 }

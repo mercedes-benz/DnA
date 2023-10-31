@@ -471,6 +471,75 @@ public class SolutionController implements SolutionsApi, ChangelogsApi, Malwares
     }
 
     @Override
+    @ApiOperation(value = "Re assigining the owner from the list of collaborators.", nickname = "reAssignOwner", notes = "Re assigining the owner from the list of collaborators.", response = GenericMessage.class, tags={ "solutions", })
+    @ApiResponses(value = {
+            @ApiResponse(code = 201, message = "Returns message of success or failure", response = GenericMessage.class),
+            @ApiResponse(code = 204, message = "Fetch complete, no content found."),
+            @ApiResponse(code = 400, message = "Bad request."),
+            @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+            @ApiResponse(code = 403, message = "Request is not authorized."),
+            @ApiResponse(code = 405, message = "Method not allowed"),
+            @ApiResponse(code = 500, message = "Internal error") })
+    @RequestMapping(value = "/solutions/{id}/reAssignOwner/{userId}",
+            produces = { "application/json" },
+            consumes = { "application/json" },
+            method = RequestMethod.PATCH)
+    public ResponseEntity<GenericMessage> reAssignOwner(@ApiParam(value = "Solution ID to be fetched",required=true) @PathVariable("id") String id,@ApiParam(value = "shortID of the user to re-assign the solution ownership",required=true) @PathVariable("userId") String userId) {
+        CreatedByVO currentUser = this.userStore.getVO();
+        String currentUserId= currentUser != null ? currentUser.getId() : null;
+        SolutionVO existingSolutionVO = solutionService.getById(id);
+        GenericMessage responseMessage = new GenericMessage();
+        if(existingSolutionVO==null || existingSolutionVO.getId()==null) {
+            log.error("No solution with this id {} doesnt exists , failed to reassign owner", id);
+            MessageDescription invalidMsg = new MessageDescription("No solution doesnt exists with given id");
+            List<MessageDescription> errorMessage = new ArrayList<>();
+            responseMessage.setSuccess("FAILED");
+            errorMessage.add(invalidMsg);
+            responseMessage.setErrors(errorMessage);
+            return new ResponseEntity<>(responseMessage, HttpStatus.NOT_FOUND);
+        }
+        if (!(Objects.nonNull(existingSolutionVO) && Objects.nonNull(existingSolutionVO.getCreatedBy()) && existingSolutionVO.getCreatedBy().getId().equalsIgnoreCase(currentUserId))) {
+            MessageDescription notAuthorizedMsg = new MessageDescription();
+            notAuthorizedMsg.setMessage(
+                    "Not authorized to reassign bucket ownership. Provided user does not have privileges.");
+            GenericMessage errorMessage = new GenericMessage();
+            errorMessage.addErrors(notAuthorizedMsg);
+            LOGGER.info("Provided user {} cannot reassign bucket ownership, insufficient privileges. Solution name: {}", currentUserId, existingSolutionVO.getProductName());
+            return new ResponseEntity<>(errorMessage, HttpStatus.FORBIDDEN);
+        }
+        // To check is user is already a part of workspace.
+        boolean isCollabroratorAlreadyExits = false;
+        TeamMemberVO newOwnerDeatils = new TeamMemberVO();
+        if (existingSolutionVO.getTeam() != null) {
+            for(TeamMemberVO collab : existingSolutionVO.getTeam()) {
+                if (userId != null) {
+                    if (collab.getShortId().equalsIgnoreCase(userId)) {
+                        newOwnerDeatils = collab;
+                        isCollabroratorAlreadyExits = true;
+                    }
+                }
+            }
+        }
+
+        if (isCollabroratorAlreadyExits) {
+            responseMessage = solutionService.reassignOwner(currentUser, existingSolutionVO, newOwnerDeatils);
+        } else {
+            log.error("User is not part of a collaborator list");
+            GenericMessage emptyResponse = new GenericMessage();
+            List<MessageDescription> errors = new ArrayList<>();
+            MessageDescription msg = new MessageDescription();
+            msg.setMessage("User is not part of a collaborator list");
+            errors.add(msg);
+            emptyResponse.setSuccess("FAILED");
+            emptyResponse.setErrors(errors);
+            return new ResponseEntity<>(emptyResponse, HttpStatus.BAD_REQUEST);
+        }
+
+        return new ResponseEntity<>(responseMessage, HttpStatus.OK);
+
+    }
+
+    @Override
     @ApiOperation(value = "update existing solution.", nickname = "update", notes = "update existing solution.", response = SolutionResponseVO.class, tags = {
             "solutions",})
     @ApiResponses(value = {

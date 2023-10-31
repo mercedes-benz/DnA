@@ -404,6 +404,43 @@ paths:
           description: "Method not allowed"
         500:
           description: "Internal error"
+
+  /solutions/{id}/reAssignOwner/{userId}:
+    patch:
+      tags:
+        - "solutions"
+      summary: "Re assigining the owner from the list of collaborators."
+      description: "Re assigining the owner from the list of collaborators."
+      operationId: "reAssignOwner"
+      parameters:
+        - name: id
+          in: path
+          description: "Solution ID to be fetched"
+          required: true
+          type: string
+        - name: userId
+          in: path
+          description: "shortID of the user to re-assign the solution ownership"
+          required: true
+          type: string
+      responses:
+        201:
+          description: "Returns message of success or failure"
+          schema:
+            $ref: "#/definitions/GenericMessage"
+        204:
+          description: "Fetch complete, no content found."
+        400:
+          description: "Bad request."
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
+
 definitions:
   TransparencyVO:
     type: object
