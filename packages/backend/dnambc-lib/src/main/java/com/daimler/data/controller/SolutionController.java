@@ -484,13 +484,12 @@ public class SolutionController implements SolutionsApi, ChangelogsApi, Malwares
             @ApiResponse(code = 403, message = "Request is not authorized."),
             @ApiResponse(code = 405, message = "Method not allowed"),
             @ApiResponse(code = 500, message = "Internal error") })
-    @RequestMapping(value = "/solutions/{id}/reassignOwner/{userId}",
+    @RequestMapping(value = "/solutions/{id}/reassignOwner",
             produces = { "application/json" },
             consumes = { "application/json" },
             method = RequestMethod.PATCH)
     public ResponseEntity<GenericMessage> reassignOwner(@ApiParam(value = "Solution ID to be fetched",required=true) @PathVariable("id") String id,@ApiParam(value = "User to added as Owner" ,required=true )  @Valid @RequestBody CreatedByVO userDto) {
-
-    CreatedByVO currentUser = this.userStore.getVO();
+        CreatedByVO currentUser = this.userStore.getVO();
         String currentUserId= currentUser != null ? currentUser.getId() : null;
         SolutionVO existingSolutionVO = solutionService.getById(id);
         GenericMessage responseMessage = new GenericMessage();
@@ -523,6 +522,15 @@ public class SolutionController implements SolutionsApi, ChangelogsApi, Malwares
             responseMessage.setSuccess("FAILED");
             responseMessage.setErrors(errors);
             return new ResponseEntity<>(responseMessage, HttpStatus.BAD_REQUEST);
+        }
+        if (existingSolutionVO.getCreatedBy().getId().equalsIgnoreCase(userDto.getId())) {
+            MessageDescription notAuthorizedMsg = new MessageDescription();
+            notAuthorizedMsg.setMessage(
+                    "Owner cannot transfer ownership to himself");
+            GenericMessage errorMessage = new GenericMessage();
+            errorMessage.addErrors(notAuthorizedMsg);
+            LOGGER.info("Provided user {} cannot transfer ownership to himself. Solution name: {}", currentUserId, existingSolutionVO.getProductName());
+            return new ResponseEntity<>(errorMessage, HttpStatus.BAD_REQUEST);
         }
 
         try {
