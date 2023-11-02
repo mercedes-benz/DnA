@@ -150,13 +150,13 @@ export default class Analytics extends React.Component<IAnalyticsProps, IAnalyti
             <button className="btn btn-primary" type="button" onClick={this.onAnalyticsSubmit}>
               Save & Next
             </button>
-            <button
+            {this.props.isGenAI && <button
               className={'btn btn-tertiary ' + classNames(Styles.publishBtn)}
               type="button"
               onClick={this.onSolutionPublish}
             >
               Publish
-            </button>
+            </button>}
           </div>
         </div>
       </React.Fragment>
