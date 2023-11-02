@@ -667,19 +667,6 @@ export const TrainingsLandingPageElements = [
 
 export const GenAILandingPageElements = [
   {
-    name: 'GenAI Solutions',
-    description:
-      'GenAI Solutions are at the heart of our landscape and provide data and functions to business users to answer their questions and create their plannings or reports.',
-    tags: ['Self Service', 'FOSS'],
-    url: '/viewsolutions/tag/GenAI',
-    isExternalLink: false,
-    isTextAlignLeft: false,
-    isDisabled: false,
-    isSmallCard: false,
-    isMediumCard: false,
-    svgIconId: 'solutionoverview',
-  },
-  {
     name: 'Create GenAI Solution',
     description:
       'Create new GenAI solutions which answer business questions and create their plannings or reports.',
@@ -690,6 +677,19 @@ export const GenAILandingPageElements = [
     isDisabled: false,
     isSmallCard: false,
     isMediumCard: false,
-    svgIconId: 'add-member',
+    svgIconId: 'gen-ai',
+  },
+  {
+    name: 'GenAI Solutions',
+    description:
+      'GenAI Solutions are at the heart of our landscape and provide data and functions to business users to answer their questions and create their plannings or reports.',
+    tags: ['Self Service', 'FOSS'],
+    url: '/viewsolutions/tag/GenAI',
+    isExternalLink: false,
+    isTextAlignLeft: false,
+    isDisabled: false,
+    isSmallCard: false,
+    isMediumCard: false,
+    svgIconId: 'gen-ai',
   },
 ];
