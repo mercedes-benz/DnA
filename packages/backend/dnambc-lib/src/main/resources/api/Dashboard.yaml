@@ -517,6 +517,82 @@ paths:
        description: "Invalid id, record not found."
       500:
        description: "Internal error."          
+       
+# path to get Data Value details of Solutions
+#
+#  supported http methods GET 
+#
+# path example ../dashboard/datavalue
+
+ /dashboard/datavalue:
+   get:
+    tags:
+    - "dashboard"
+    summary: "Get Data values."
+    description:  "Get Data Value details of solution with given filter."
+    operationId: "getDataValueDetails" 
+    parameters:
+        - name: published
+          in: query
+          description: Filtering solutions based on publish state. Draft or published, values true or false
+          required: false
+          type: boolean
+        - name: location
+          in: query
+          description: List of IDs of locations of solutions, seperated by comma. Example 1,2,3
+          required: false
+          type: string
+        - name: division
+          in: query
+          description: List of IDs of divisions and subdivisions under each division of solutions. Example [{1,[2,3]},{2,[1]},{3,[4,5]}]
+          required: false
+          type: string
+        - name: phase
+          in: query
+          description: List of IDs of current phase of solutions, seperated by comma. Example 1,2,3
+          required: false
+          type: string
+        - name: dataVolume
+          in: query
+          description: List of IDs of dataVolume of dataSources for solutions, seperated by comma. Example 1,2,3
+          required: false
+          type: string
+        - name: projectstatus
+          in: query
+          description: ID of current project status of solutions, Example 1
+          required: false
+          type: string
+        - name: useCaseType
+          in: query
+          description: ID of useCaseType of solutions. 1.MyBookmarks or 2.MySolutions , Example 1
+          required: false
+          type: string
+          enum: [1, 2]
+        - name: searchTerm
+          in: query
+          description: searchTerm to filter solutions. SearchTerm is comma seperated search keywords which are used to search Tags and ProductName of solutions. Example "BAT, java"
+          required: false
+          type: string
+        - name: tags
+          in: query
+          description: tags to filter solutions. tags is comma seperated search keywords which are used to search Tags and ProductName of solutions. Example "BAT, java"
+          required: false
+          type: string       
+    responses:
+      200:
+       description: "Returns message of success or failure."
+       schema:
+         $ref: "#/definitions/SolDataValueWidgetResponseVO"
+      400:
+       description: "Bad request."
+      401:
+       description: "Request does not have sufficient credentials."
+      403:
+       description: "Request is not authorized."
+      404:
+       description: "Invalid id, record not found."
+      500:
+       description: "Internal error."                 
      
 # path to get Digital Value details year wise
 #
@@ -592,7 +668,83 @@ paths:
       404:
        description: "Invalid id, record not found."
       500:
-       description: "Internal error."     
+       description: "Internal error." 
+       
+# path to get Digital Value details year wise
+#
+#  supported http methods GET 
+#
+# path example ../dashboard/datavalueyearly
+
+ /dashboard/datavaluesummary:
+   get:
+    tags:
+    - "dashboard"
+    summary: "Get summary of Data values."
+    description:  "Get Data Value summary of solution with given filter."
+    operationId: "getDataValuesummary" 
+    parameters:
+        - name: published
+          in: query
+          description: Filtering solutions based on publish state. Draft or published, values true or false
+          required: false
+          type: boolean
+        - name: location
+          in: query
+          description: List of IDs of locations of solutions, seperated by comma. Example 1,2,3
+          required: false
+          type: string
+        - name: division
+          in: query
+          description: List of IDs of divisions and subdivisions under each division of solutions. Example [{1,[2,3]},{2,[1]},{3,[4,5]}]
+          required: false
+          type: string
+        - name: phase
+          in: query
+          description: List of IDs of current phase of solutions, seperated by comma. Example 1,2,3
+          required: false
+          type: string
+        - name: dataVolume
+          in: query
+          description: List of IDs of dataVolume of dataSources for solutions, seperated by comma. Example 1,2,3
+          required: false
+          type: string
+        - name: projectstatus
+          in: query
+          description: ID of current project status of solutions, Example 1
+          required: false
+          type: string
+        - name: useCaseType
+          in: query
+          description: ID of useCaseType of solutions. 1.MyBookmarks or 2.MySolutions , Example 1
+          required: false
+          type: string
+          enum: [1, 2]
+        - name: searchTerm
+          in: query
+          description: searchTerm to filter solutions. SearchTerm is comma seperated search keywords which are used to search Tags and ProductName of solutions. Example "BAT, java"
+          required: false
+          type: string
+        - name: tags
+          in: query
+          description: tags to filter solutions. tags is comma seperated search keywords which are used to search Tags and ProductName of solutions. Example "BAT, java"
+          required: false
+          type: string       
+    responses:
+      200:
+       description: "Returns message of success or failure."
+       schema:
+         $ref: "#/definitions/SolDataValueSummaryResponseVO"
+      400:
+       description: "Bad request."
+      401:
+       description: "Request does not have sufficient credentials."
+      403:
+       description: "Request is not authorized."
+      404:
+       description: "Invalid id, record not found."
+      500:
+       description: "Internal error."           
      
 definitions:
  SolCountWidgetResponseVO:
@@ -710,6 +862,28 @@ definitions:
         type: array
         items:
           $ref: "#/definitions/MessageDescription"
+          
+ SolDataValueWidgetResponseVO:
+   type: object
+   properties:
+#      digitalValues:
+#        type: array
+#        items:
+#          $ref: "#/definitions/DigitalValueWidgetVO"
+      totalDataValueSavings:
+        type: number
+        description: "Total data value for savings."
+      totalDataValueRevenue:
+        type: number
+        description: "Total data value for revenue."              
+      errors:
+        type: array
+        items:
+          $ref: "#/definitions/MessageDescription"
+      warnings:
+        type: array
+        items:
+          $ref: "#/definitions/MessageDescription"          
 
  DigitalValueWidgetVO:
     type: object
@@ -760,6 +934,49 @@ definitions:
     digitalValue:
       type: number
       description: "Digital value at 100%."
+      
+ SolDataValueSummaryResponseVO:
+   type: object
+   properties:
+      solDataValueSummary:
+        type: array
+        items:
+          $ref: "#/definitions/SolDataValueSummaryVO"
+      errors:
+        type: array
+        items:
+          $ref: "#/definitions/MessageDescription"
+      warnings:
+        type: array
+        items:
+          $ref: "#/definitions/MessageDescription"  
+      
+ SolDataValueSummaryVO:
+  type: object
+  properties:
+    year:
+      type: number
+      description: "Year."
+    dataValueVO:
+      type: array
+      items:
+        $ref: "#/definitions/DataValueVO"     
+      
+ DataValueVO:
+  type: object
+  properties:
+    solutionId:
+      type: string
+      description: "Solution Id."
+    productName:
+      type: string
+      description: "Product name"  
+    savings:
+      type: number
+      description: "Savings value for all the data value solutions"
+    revenue:
+      type: number
+      description: "Revenue value for all the data value solutions"     
 
  BindingResult:
   type: object
