@@ -162,16 +162,16 @@ const MainNavigation: React.FC<IMainNavigationProps> = (props) => {
           {
             allowedRoles: UserAndAdminRole,
             id:1,
-            route:`/viewsolutions/tag/GenAI`,
-            title:'GenAISolutions',
+            route:`/createnewgenaisolution`,
+            title:'CreateSolutions',
             enabled:true,
 
           },
           {
             allowedRoles: UserAndAdminRole,
-            id:3,
-            route:`/createnewgenaisolution`,
-            title:'CreateSolutions',
+            id:2,
+            route:`/viewsolutions/tag/GenAI`,
+            title:'GenAISolutions',
             enabled:true,
 
           },
