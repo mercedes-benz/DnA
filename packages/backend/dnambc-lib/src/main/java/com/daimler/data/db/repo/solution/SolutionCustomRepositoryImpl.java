@@ -47,16 +47,21 @@ import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
 import com.daimler.data.db.entities.SolutionNsql;
+import com.daimler.data.db.jsonb.solution.DataValueCalculator;
+import com.daimler.data.db.jsonb.solution.DataValueRampUpYear;
 import com.daimler.data.db.jsonb.solution.Solution;
 import com.daimler.data.db.repo.common.CommonDataRepositoryImpl;
+import com.daimler.data.dto.SolDataValueDTO;
 import com.daimler.data.dto.SolDigitalValueDTO;
 import com.daimler.data.dto.dashboard.DatasourceWidgetVO;
 import com.daimler.data.dto.dashboard.LocationWidgetVO;
 import com.daimler.data.dto.dashboard.MilestoneWidgetVO;
 import com.daimler.data.dto.solution.CalculatedDigitalValueVO;
+import com.daimler.data.dto.solution.DataValueCalculatorVO;
 import com.daimler.data.dto.solution.DataVolumeVO;
 import com.daimler.data.dto.solution.SolutionLocationVO;
 import com.daimler.data.dto.solution.SolutionPhaseVO;
+import com.daimler.data.dto.solution.ValueFactorSummaryVO;
 import com.daimler.data.util.ConstantsUtility;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -511,7 +516,7 @@ public class SolutionCustomRepositoryImpl extends CommonDataRepositoryImpl<Solut
 		String prefix = selectFieldsString != null && !"".equalsIgnoreCase(selectFieldsString) ? selectFieldsString
 				: "select cast(id as text), cast(data as text) ";
 		prefix = prefix + "from solution_nsql";
-		String basicpredicate = " where (id is not null)";
+		String basicpredicate = " where (id is not null) ";
 		String consolidatedPredicates = buildPredicateString(published, phases, dataVolumes, divisions, locations,
 				statuses, solutionType, userId, isAdmin, bookmarkedSolutions, searchTerms, tags, relatedProducts,
 				divisionsAdmin, hasDigitalValue, hasNotebook);
@@ -558,6 +563,65 @@ public class SolutionCustomRepositoryImpl extends CommonDataRepositoryImpl<Solut
 		return q;
 	}
 
+	public Query getDataValueNativeQueryWithFilters(String selectFieldsString, Boolean published, List<String> phases,
+			List<String> dataVolumes, String divisions, List<String> locations, List<String> statuses,
+			String solutionType, String userId, Boolean isAdmin, List<String> bookmarkedSolutions,
+			List<String> searchTerms, List<String> tags, List<String> relatedProducts, List<String> divisionsAdmin,
+			Boolean hasDigitalValue, Boolean hasNotebook, int offset, int limit, String sortBy, String sortOrder,
+			String additionalPredicatesString, String groupByString) {
+
+		String prefix = selectFieldsString != null && !"".equalsIgnoreCase(selectFieldsString) ? selectFieldsString
+				: "select cast(id as text), cast(data as text) ";
+		prefix = prefix + "from solution_nsql";
+		String basicpredicate = " where (id is not null) and jsonb_extract_path_text(data,'digitalValueDetails','dataValueCalculator','revenueValueFactorSummary','value') is not null and "
+				+ "jsonb_extract_path_text(data,'digitalValueDetails','dataValueCalculator','savingsValueFactorSummary','value') is not null ";
+		String consolidatedPredicates = buildPredicateString(published, phases, dataVolumes, divisions, locations,
+				statuses, solutionType, userId, isAdmin, bookmarkedSolutions, searchTerms, tags, relatedProducts,
+				divisionsAdmin, hasDigitalValue, hasNotebook);
+		String query = prefix + basicpredicate + consolidatedPredicates;
+		String sortQueryString = "";
+		if (sortBy != null && !"".equalsIgnoreCase(sortBy)) {
+			switch (sortBy) {
+			case "productName":
+				sortQueryString = " order by lower(jsonb_extract_path_text(data,'productName')) ";
+				break;
+			case "currentPhase":
+				sortQueryString = " order by lower(jsonb_extract_path_text(data,'currentPhase','name')) ";
+				break;
+			case "division":
+				sortQueryString = " order by lower(jsonb_extract_path_text(data,'division','name')) ";
+				break;
+			case "projectStatus":
+				sortQueryString = " order by lower(jsonb_extract_path_text(data,'projectStatus','name')) ";
+				break;
+			case "digitalValue":
+				sortQueryString = " order by (jsonb_extract_path(data,'digitalValueDetails','digitalValue')) ";
+				break;
+			default:
+				sortQueryString = "";
+				break;
+			}
+			if (StringUtils.hasText(sortQueryString)) {
+				if ("desc".equalsIgnoreCase(sortOrder))
+					sortQueryString = sortQueryString + " desc ";
+				else
+					sortQueryString = sortQueryString + " asc ";
+			}
+			query = query + sortQueryString;
+		}
+		if (additionalPredicatesString != null && !"".equalsIgnoreCase(additionalPredicatesString))
+			query = query + " " + additionalPredicatesString + " \n";
+		if (groupByString != null && !"".equalsIgnoreCase(groupByString))
+			query = query + " " + groupByString + " \n";
+		if (limit > 0 && !"locations".equalsIgnoreCase(sortBy))
+			query = query + " limit " + limit;
+		if (offset >= 0 && !"locations".equalsIgnoreCase(sortBy))
+			query = query + " offset " + offset;
+		Query q = em.createNativeQuery(query);
+		return q;
+	}
+
+	
 	@Override
 	public List<SolutionNsql> getAllWithFilters(Boolean published, List<String> phases, List<String> dataVolumes,
 			List<Map<String, List<String>>> divisions, List<String> locations, List<String> statuses,
@@ -899,11 +963,12 @@ public class SolutionCustomRepositoryImpl extends CommonDataRepositoryImpl<Solut
 			String solutionType, String userId, Boolean isAdmin, List<String> bookmarkedSolutions,
 			List<String> searchTerms, List<String> tags, List<String> divisionsAdmin) {
 		Query q = getNativeQueryWithFilters(
-				" select cast (id as text), cast (data->'productName'  as varchar), cast (data->'digitalValueDetails'->'valueCalculator'->'calculatedDigitalValue' as text) ",
-				published, phases, dataVolumes, divisions, locations, statuses, solutionType, userId, isAdmin,
-				bookmarkedSolutions, searchTerms, tags, new ArrayList<>(), divisionsAdmin, false, false, 0, 0, "", "",
-				"and jsonb_extract_path_text(data,'digitalValueDetails','valueCalculator','calculatedDigitalValue','year') is not null ",
-				"");
+					" select cast (id as text), cast (data->'productName'  as varchar), cast (data->'digitalValueDetails'->'valueCalculator'->'calculatedDigitalValue' as text) ",
+					published, phases, dataVolumes, divisions, locations, statuses, solutionType, userId, isAdmin,
+					bookmarkedSolutions, searchTerms, tags, new ArrayList<>(), divisionsAdmin, false, false, 0, 0, "", "",
+					"and jsonb_extract_path_text(data,'digitalValueDetails','valueCalculator','calculatedDigitalValue','year') is not null ",
+					"");
+		
 		ObjectMapper mapper = new ObjectMapper();
 		List<Object[]> results = q.getResultList();
 		List<SolDigitalValueDTO> convertedResults = results.stream().map(temp -> {
@@ -935,5 +1000,71 @@ public class SolutionCustomRepositoryImpl extends CommonDataRepositoryImpl<Solut
 	}
 
 
+	@Override
+	public List<BigDecimal> getDataValuesSum(Boolean published, List<String> phases, List<String> dataVolumes,
+			String divisions, List<String> locations, List<String> statuses, String solutionType, String userId,
+			Boolean isAdmin, List<String> bookmarkedSolutions, List<String> searchTerms, List<String> tags,
+			List<String> divisionsAdmin) {
+		Query q = getDataValueNativeQueryWithFilters(
+				" select  sum(cast (jsonb_extract_path_text(data,'digitalValueDetails','dataValueCalculator','revenueValueFactorSummary','value') as decimal) ) as revenueValueFactorSummary,"
+				+ "  sum(cast (jsonb_extract_path_text(data,'digitalValueDetails','dataValueCalculator','savingsValueFactorSummary','value') as decimal) ) as savingsValueFactorSummary ", published, phases,
+				dataVolumes, divisions, locations, statuses, solutionType, userId, isAdmin, bookmarkedSolutions,
+				searchTerms, tags, new ArrayList<>(), divisionsAdmin, false, false, 0, 0, "", "", "", "");
+		ObjectMapper mapper = new ObjectMapper();
+		List<Object[]> results = q.getResultList();	
+		List<BigDecimal> dataValueSum = new ArrayList<>();
+		if(!results.isEmpty() && results.size() > 0) {
+			Object[] result = results.get(0);
+			BigDecimal revenueResult = (BigDecimal) result[0];
+			BigDecimal savingsResult = (BigDecimal) result[1];
+			dataValueSum.add(revenueResult);
+			dataValueSum.add(savingsResult);
+		}			
+		return dataValueSum;
+	}
+
+	@Override
+	public List<SolDataValueDTO> getDataValueUsingNativeQuery(Boolean published, List<String> phases,
+			List<String> dataVolumes, String divisions, List<String> locations, List<String> statuses,
+			String solutionType, String userId, Boolean isAdmin, List<String> bookmarkedSolutions,
+			List<String> searchTerms, List<String> tags, List<String> divisionsAdmin) {
+
+		Query q = getDataValueNativeQueryWithFilters(
+				" select cast (id as text), cast (data->'productName'  as varchar), "
+				+ "cast(data->'digitalValueDetails'->'dataValueCalculator' as text) as dataValueCalculator ",
+				published, phases, dataVolumes, divisions, locations, statuses, solutionType, userId, isAdmin,
+				bookmarkedSolutions, searchTerms, tags, new ArrayList<>(), divisionsAdmin, false, false, 0, 0, "", "","","");
+
+		ObjectMapper mapper = new ObjectMapper();
+		List<Object[]> results = q.getResultList();
+		List<SolDataValueDTO> convertedResults = results.stream().map(temp -> {
+			SolDataValueDTO vo = new SolDataValueDTO();
+			try {
+				String id = temp[0] != null ? temp[0].toString() : "";
+				String productName = temp[1] != null ? temp[1].toString().replaceAll("^\"|\"$", "") : "";
+				vo.setId(id);
+				vo.setProductName(productName);
+				String dataValueCalculator = temp[2] != null ? temp[2].toString() : "";
+				if (StringUtils.hasText(dataValueCalculator)) {
+					DataValueCalculator value = mapper.readValue(dataValueCalculator, DataValueCalculator.class);
+					if(Objects.nonNull(value) && Objects.nonNull(value.getCalculatedDataValueRampUpYears()) &&
+						Objects.nonNull(value.getCalculatedDataValueRampUpYears().getRevenue())	) {
+						vo.setRevenue(value.getCalculatedDataValueRampUpYears().getRevenue());
+					}
+					if(Objects.nonNull(value) && Objects.nonNull(value.getCalculatedDataValueRampUpYears()) &&
+						Objects.nonNull(value.getCalculatedDataValueRampUpYears().getSavings())	) {
+						vo.setSavings(value.getCalculatedDataValueRampUpYears().getSavings());
+					}					
+				}
+				
+			} catch (Exception e) {
+				LOGGER.error("Failed while fetching revenue and savings value for data value solutions with error message {} ", e.getMessage());
+			}
+			return vo;
+		}).collect(Collectors.toList());
+		return convertedResults;
+
+	}
+	
 
 }

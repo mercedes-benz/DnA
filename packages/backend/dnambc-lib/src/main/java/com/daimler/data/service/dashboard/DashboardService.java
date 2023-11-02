@@ -33,6 +33,7 @@ import java.util.List;
 import com.daimler.data.dto.dashboard.DatasourceWidgetVO;
 import com.daimler.data.dto.dashboard.LocationWidgetVO;
 import com.daimler.data.dto.dashboard.MilestoneWidgetVO;
+import com.daimler.data.dto.dashboard.SolDataValueSummaryVO;
 import com.daimler.data.dto.dashboard.SolDigitalValuesummaryVO;
 
 public interface DashboardService {
@@ -172,6 +173,27 @@ public interface DashboardService {
 	BigDecimal getSolDigitalValue(Boolean published, List<String> phases, List<String> dataVolumes, String divisions,
 			List<String> locations, List<String> statuses, String solutionType, String userId, Boolean isAdmin,
 			List<String> bookmarkedSolutions, List<String> searchTerms, List<String> tags, List<String> divisionsAdmin);
+	
+	/**
+	 * 
+	 * @param published
+	 * @param phases
+	 * @param dataVolumes
+	 * @param divisions
+	 * @param locations
+	 * @param statuses
+	 * @param solutionType
+	 * @param userId
+	 * @param isAdmin
+	 * @param bookmarkedSolutions
+	 * @param searchTerms
+	 * @param tags
+	 * @param divisionsAdmin
+	 * @return totalDataValue (BigDecimal)
+	 */
+	List<BigDecimal> getSolDataValue(Boolean published, List<String> phases, List<String> dataVolumes, String divisions,
+			List<String> locations, List<String> statuses, String solutionType, String userId, Boolean isAdmin,
+			List<String> bookmarkedSolutions, List<String> searchTerms, List<String> tags, List<String> divisionsAdmin);
 
 	/**
 	 * To Fetch digital value summary for all the solutions
@@ -195,4 +217,26 @@ public interface DashboardService {
 			List<String> dataVolumes, String divisions, List<String> locations, List<String> statuses,
 			String solutionType, String userId, Boolean isAdmin, List<String> bookmarkedSolutions,
 			List<String> searchTerms, List<String> tags, List<String> divisionsAdmin);
+	
+	/**
+	 * 
+	 * @param published
+	 * @param phases
+	 * @param dataVolumes
+	 * @param divisions
+	 * @param locations
+	 * @param statuses
+	 * @param solutionType
+	 * @param userId
+	 * @param isAdmin
+	 * @param bookmarkedSolutions
+	 * @param searchTerms
+	 * @param tags
+	 * @param divisionsAdmin
+	 * @return
+	 */
+	List<SolDataValueSummaryVO> getSolDataValueSummary(Boolean published, List<String> phases, List<String> dataVolumes,
+			String divisions, List<String> locations, List<String> statuses, String solutionType, String userId,
+			Boolean isAdmin, List<String> bookmarkedSolutions, List<String> searchTerms, List<String> tags,
+			List<String> divisionsAdmin);
 }
