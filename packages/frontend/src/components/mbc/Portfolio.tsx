@@ -815,7 +815,7 @@ export default class Portfolio extends React.Component<IPortfolioProps, IPortfol
                   <div id="dataValueWidget" className={Styles.widgetWrapper}>
                     <header>
                       <h1 className={Styles.widgetTitle}>Data Value</h1>
-                      <span className="sub-title-text">at 100% in €</span>
+                      <span className="sub-title-text">in €</span>
                       <section>
                         {newDataValueChartData.length ? (
                           <StackedBarChartWidget
