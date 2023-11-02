@@ -56,6 +56,17 @@ public class UserStore {
 		this.userInfo = null;
 		LOGGER.debug("In UserStore.clear , clearing user");
 	}
+	
+	public CreatedByVO getVO() {
+		CreatedByVO vo = new CreatedByVO();
+		vo.setId(this.userInfo.getId());
+		vo.setFirstName(this.userInfo.getFirstName());
+		vo.setLastName(this.userInfo.getLastName());
+		vo.setDepartment(this.userInfo.getDepartment());
+		vo.setEmail(this.userInfo.getEmail());
+		vo.setMobileNumber(this.userInfo.getMobileNumber());
+		return vo;
+	}
 
 	@Data
 	@AllArgsConstructor

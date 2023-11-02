@@ -2,13 +2,50 @@ spring:
   mvc.pathmatch.matching-strategy: ant_path_matcher
   application:
     name: trinio-registry-service
-    version: 1.1.2
+    version: 1.2.0
 
+  flyway:
+    enabled: ${FLYWAY_ENABLED:false}
+    baseline-on-migrate: ${FLYWAY_BASELINE_ON_MIGRATE:false}
+    baselineVersion: ${FLYWAY_BASELINEVERSION:0}
+    schemas: ${FLYWAY_SCHEMA:public}   
+        
+  jpa:
+    database: POSTGRESQL
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        temp:
+          use_jdbc_metadata_defaults: false
+    hibernate:
+      ddl-auto: none
+
+  datasource:
+    hikari:
+      connection-timeout: 4000
+    platform: postgres
+    url: ${API_DB_URL:jdbc:postgresql://XXXXXX:XXXX/XXXX}
+    username: ${API_DB_USER:usernameXXXX}
+    password: ${API_DB_PASS:userpasswordXXXX}
+
+    driverClassName: org.postgresql.Driver
+
+  cloud:
+    stream:
+      default-binder: kafka
+      kafka:
+        binder:
+          brokers: ${NAAS_BROKER:XXXX:XXXX}
+    
 dna:
   uri: ${DNA_URI:XXXXXX}
   dnaAuthEnable: ${DNA_AUTH_ENABLE:false}
   
-
+kafka:
+  centralTopic:
+    name: dnaCentralEventTopic
+    
 server:
   port: 7575
 
@@ -24,8 +61,12 @@ minio:
   accessKey: ${MINIO_ACCESSKEY:XXXXX}
   secretKey: ${MINIO_SECRETKEY:XXXXX}
 
+storage.uri : ${STORAGE_API_BASE_URL:XXXXX}
+
 trino:
-  uri: ${TRINO_BASEURI:http://xxxxx}
+  userauth: ${TRINO_USERAUTH:XXXXX}
+  userid: ${TRINO_USERID:XXXXX}
+  uri: ${TRINO_BASEURI:XXXXX}
   user: ${TRINO_USER:XXXXX}
   password: ${TRINO_PASSWORD:XXXXX}
   ssl: ${TRINO_SSL:true}
