@@ -101,6 +101,26 @@
               margin-bottom: 1px;
             }
           }
+          .portTileDataVal {
+            h5 {
+              font-size: var(--font-size-sub-headline);
+              padding-bottom: 0px;
+              margin: 0;
+              color: #c0c8d0;
+            }
+            span {
+              font-size: var(--font-size-icon-big);
+              color: #00adef;
+              display: flex;
+              margin-bottom: 1px;
+            }
+            .dataValFieldName {
+              font-size: var(--font-size-icon-big);
+              color:#9a9ea4;
+              display: flex;
+              margin-bottom: 1px;
+            }   
+          }
           .portNavMore {
             display: flex;
             flex-direction: column;
