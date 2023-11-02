@@ -36,7 +36,7 @@ import java.math.BigDecimal;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class SolObjectDataValueDTO {
+public class SolDataValueSummaryDTO {
 	private String id;
 	private String productName;
 	private BigDecimal revenue;
