@@ -10,7 +10,7 @@ export interface IStackedBarChartWidgetProps {
   yAxisLabel: string;
   yAxisSubLabel?: string;
   tooltipContentComponent: React.StatelessComponent<any>;
-  onChartBarClick: (value: any) => void;
+  onChartBarClick?: (value: any) => void;
 }
 
 export interface IStackedBarChartWidgetState {

@@ -1037,19 +1037,19 @@ export interface IStackedBarChartDataItem {
   id: string;
   labelValue: string;
   firstBarValue: number;
-  firstSolution?: ISolutionDigitalValue;
+  firstSolution: ISolutionDigitalValue;
   firstBarFillColor: string;
   secondBarValue: number;
   secondBarFillColor: string;
   secondSolution?: ISolutionDigitalValue;
-  thirdBarValue: number;
-  thirdBarFillColor: string;
+  thirdBarValue?: number;
+  thirdBarFillColor?: string;
   thirdSolution?: ISolutionDigitalValue;
-  fourthBarValue: number;
-  fourthBarFillColor: string;
+  fourthBarValue?: number;
+  fourthBarFillColor?: string;
   fourthSolution?: ISolutionDigitalValue;
-  fifthBarValue: number;
-  fifthBarFillColor: string;
+  fifthBarValue?: number;
+  fifthBarFillColor?: string;
   fifthSolution?: ISolutionDigitalValue;
 }
 export interface ILocationsMapChartDataItem {
