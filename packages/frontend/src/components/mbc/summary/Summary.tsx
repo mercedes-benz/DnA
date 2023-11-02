@@ -1,4 +1,4 @@
-// import cn from 'classnames';
+import cn from 'classnames';
 import * as React from 'react';
 // @ts-ignore
 import Notification from '../../../assets/modules/uilab/js/src/notification';
@@ -9,8 +9,9 @@ import Tabs from '../../../assets/modules/uilab/js/src/tabs';
 import { getParams } from '../../../router/RouterUtils';
 
 import ConfirmModal from 'components/formElements/modal/confirmModal/ConfirmModal';
+import Modal from 'components/formElements/modal/Modal';
 import { USER_ROLE, SOLUTION_LOGO_IMAGE_TYPES, SOLUTION_VALUE_CALCULATION_TYPES } from 'globals/constants';
-import { IBookMarks, ICreateNewSolutionResult, IPhase, IRole, IUserInfo, INotebookInfo, IDataiku, IDepartment } from 'globals/types';
+import { IBookMarks, ICreateNewSolutionResult, IPhase, IRole, IUserInfo, INotebookInfo, IDataiku, IDepartment, ITeams } from 'globals/types';
 import { history } from '../../../router/History';
 import { ApiClient } from '../../../services/ApiClient';
 import { ICreateNewSolutionData } from '../createNewSolution/CreateNewSolution';
@@ -26,6 +27,9 @@ import Platform from './platform/PlatformSummary';
 
 import LogoImage from '../createNewSolution/description/logoManager/LogoImage/LogoImage';
 import MarketingSummary from './marketing/MarketingSummary';
+import AddUser from '../addUser/AddUser';
+
+const classNames = cn.bind(Styles);
 
 export interface ISummaryState {
   response?: ICreateNewSolutionResult;
@@ -38,6 +42,7 @@ export interface ISummaryState {
   canShowDigitalValue: boolean;
   showDeleteSolutionModal: boolean;
   solutionToBeDeleted: string;
+  solutionToBeTransfered: string;
   tabClassNames: Map<string, string>;
   currentTab: string;
   noteBookInfo: INotebookInfo;
@@ -47,6 +52,9 @@ export interface ISummaryState {
   notebookAndDataIkuNotEnabled: boolean;
   dataSources: any;
   departmentTags: IDepartment[];
+  showTransferOwnershipConsentModal: boolean;
+  showTransferOwnershipModal: boolean;
+  solutionCollaborators: ITeams[];
 }
 export interface IAllSolutionsListItem {
   id?: string;
@@ -200,6 +208,7 @@ export default class Summary extends React.Component<{ user: IUserInfo }, ISumma
       canShowMilestones: false,
       showDeleteSolutionModal: false,
       solutionToBeDeleted: null,
+      solutionToBeTransfered: null,
       tabClassNames: new Map<string, string>(),
       currentTab: 'description',
       noteBookInfo: null,
@@ -208,7 +217,10 @@ export default class Summary extends React.Component<{ user: IUserInfo }, ISumma
       dnaDataIkuProjectEnabled: false,
       notebookAndDataIkuNotEnabled: true,
       dataSources: '',
-      departmentTags: []
+      departmentTags: [],
+      showTransferOwnershipConsentModal: false,
+      showTransferOwnershipModal: false,
+      solutionCollaborators: []
     };
   }
 
@@ -230,6 +242,12 @@ export default class Summary extends React.Component<{ user: IUserInfo }, ISumma
       <div id="contentparentdiv" className={Styles.modalContentWrapper}>
         <div className={Styles.modalTitle}>Delete Solution</div>
         <div className={Styles.modalContent}>This solution will be deleted permanently.</div>
+      </div>
+    );
+    const transferOwnershipConsentContent: React.ReactNode = (
+      <div id="contentparentdiv" className={Styles.modalContentWrapper}>
+        <div className={Styles.modalTitle}>Transfer Ownership</div>
+        <div className={Styles.modalContent}>Are sure you want to transfer ownership? After that you will not be able to make any changes in solution.</div>
       </div>
     );
     const {
@@ -279,6 +297,85 @@ export default class Summary extends React.Component<{ user: IUserInfo }, ISumma
         notebookAndDataIkuNotEnabled={this.state.notebookAndDataIkuNotEnabled}
       />
     ) : null;
+
+    const getCollabarators = (collaborators: any) => {
+      const collabarationData = {
+        firstName: collaborators.firstName,
+        lastName: collaborators.lastName,
+        shortId: collaborators.shortId,
+        id: collaborators.shortId,
+        department: collaborators.department,
+        email: collaborators.email,
+        mobileNumber: collaborators.mobileNumber,
+        userType: 'internal'
+      };
+  
+      let duplicateMember = false;
+      duplicateMember = this.state?.solutionCollaborators?.filter((member) => member.shortId === collaborators.shortId)?.length
+        ? true
+        : false;
+      const isCreator = collaborators.shortId === this.state?.solution?.createdBy?.id;
+  
+      if (duplicateMember) {
+        Notification.show('Collaborator Already Exist.', 'warning');
+      } else if (isCreator) {
+        Notification.show(
+          `${collaborators.firstName} ${collaborators.lastName} is a creator. Creator can't be added as collaborator.`,
+          'warning',
+        );
+      } else {
+        // bucketCollaborators.push(collabarationData);
+        // setBucketCollaborators([...bucketCollaborators]);
+        const {solutionCollaborators} = this.state;
+        solutionCollaborators.push(collabarationData);
+        this.setState({solutionCollaborators})
+      }
+    };
+
+    const transferOwnershipContent = (
+      <div className={classNames('input-field-group include-error')}>
+              <div className={Styles.bucketColContent}>
+                <div className={Styles.bucketColContentList}>
+                  <div className={Styles.bucketColContentListAdd}>
+                    <AddUser getCollabarators={getCollabarators} dagId={''} isRequired={false} isUserprivilegeSearch={false} />
+                  </div>
+                  <div className={Styles.bucketColUsersList}>
+                    {this.state.solutionCollaborators?.length > 0 ? (
+                      <React.Fragment>
+                        <div className={Styles.collUserTitle}>
+                          <div className={Styles.collUserTitleCol}>User ID</div>
+                          <div className={Styles.collUserTitleCol}>Name</div>
+                          <div className={Styles.collUserTitleCol}></div>
+                        </div>
+                        <div className={classNames('mbc-scroll', Styles.collUserContent)}>
+                          {this.state.solutionCollaborators
+                            // ?.filter((item) => item.accesskey !== user.id && item.accesskey !== createdBy.id)
+                            ?.map((item: any, collIndex:any) => {
+                              return (
+                                <div key={'team-member-'+collIndex} className={Styles.collUserContentRow}>
+                                  <div className={Styles.collUserTitleCol}>{item.shortId}</div>
+                                  <div className={Styles.collUserTitleCol}>{item.firstName + ' ' + item.lastName}</div>
+                                  <div className={Styles.collUserTitleCol}>
+                                    <div className={Styles.deleteEntry} onClick={() => this.onTransferOwnership(item)}>
+                                      <i className="icon mbc-icon comparison" />
+                                      Transfer Ownership
+                                    </div>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                        </div>
+                      </React.Fragment>
+                    ) : (
+                      <div className={Styles.bucketColContentEmpty}>
+                        <h6> Collaborators Not Exist!</h6>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+    );
 
     return (
       <div className={Styles.summaryWrapper}>
@@ -361,6 +458,8 @@ export default class Summary extends React.Component<{ user: IUserInfo }, ISumma
                       updateBookmark={this.updateBookmark}
                       onExportToPDFDocument={pdfContent}
                       isPublished={this.state.solution.publish}
+                      canTransferOwnerShip={userInfo?.id === this.state.solution?.createdBy?.id}
+                      onTransferOwnershipSolutionConsent={this.onTransferOwnershipSolutionConsent}
                     />
 
                     {this.state.canShowPlatform && (
@@ -429,6 +528,27 @@ export default class Summary extends React.Component<{ user: IUserInfo }, ISumma
                 content={deleteModalContent}
                 onCancel={this.onCancellingDeleteChanges}
                 onAccept={this.onAcceptDeleteChanges}
+              />
+              <ConfirmModal
+                title="Transfer Ownership"
+                acceptButtonTitle="Proceed"
+                cancelButtonTitle="Cancel"
+                showAcceptButton={true}
+                showCancelButton={true}
+                show={this.state.showTransferOwnershipConsentModal}
+                content={transferOwnershipConsentContent}
+                onCancel={this.onCancellingTransferOwnershipConsentModal}
+                onAccept={this.onAcceptingTransferOwnershipConsentModal}
+              />
+              <Modal
+                title={"Transfer Ownership"}
+                showAcceptButton={false}
+                showCancelButton={false}
+                buttonAlignment="right"
+                show={this.state.showTransferOwnershipModal}
+                content={transferOwnershipContent}
+                scrollableContent={true}
+                onCancel={this.onCancellingTransferOwnershipModal}
               />
             </div>
           </div>
@@ -530,10 +650,17 @@ export default class Summary extends React.Component<{ user: IUserInfo }, ISumma
             solution.createdBy = res.createdBy;
             solution.createdDate = res.createdDate;
             solution.lastModifiedDate = res.lastModifiedDate;
+            const tempCollab = res.team.filter((item: any) => {
+              item.id = item.shortId
+              item.userType === 'internal'
+              return item;
+            }
+              )
             this.setState(
               {
                 response,
                 solution,
+                solutionCollaborators: JSON.parse(JSON.stringify(tempCollab)),
                 canShowDataSources:
                   (solution.dataSources &&
                     solution.dataSources.dataSources &&
@@ -684,6 +811,10 @@ export default class Summary extends React.Component<{ user: IUserInfo }, ISumma
     this.setState({ showDeleteSolutionModal: true, solutionToBeDeleted: solutionId });
   };
 
+  protected onTransferOwnershipSolutionConsent = (solutionId: string) => {
+    this.setState({ showTransferOwnershipConsentModal: true, solutionToBeTransfered: solutionId });
+  };
+
   protected updateBookmark = (solutionId: string, isRemove: boolean) => {
     const data: IBookMarks = {
       favoriteUsecases: [solutionId],
@@ -714,6 +845,39 @@ export default class Summary extends React.Component<{ user: IUserInfo }, ISumma
 
   protected onCancellingDeleteChanges = () => {
     this.setState({ showDeleteSolutionModal: false, solutionToBeDeleted: null });
+  };
+
+  protected onCancellingTransferOwnershipConsentModal = () => {
+    this.setState({ showTransferOwnershipConsentModal: false, solutionToBeTransfered: null });
+  };
+
+  protected onAcceptingTransferOwnershipConsentModal = () => {
+    this.setState({ showTransferOwnershipModal: true, showTransferOwnershipConsentModal: false });
+  };
+
+  protected onCancellingTransferOwnershipModal = () => {
+    this.setState({ showTransferOwnershipModal: false, solutionToBeTransfered: null });
+  };
+
+  protected onTransferOwnership = (userObj: ITeams) => {
+    // call api to change ownership
+    
+    ProgressIndicator.show();
+    ApiClient.transferSolutionOwner(userObj, this.state.solutionToBeTransfered)
+      .then((res) => {
+        if (res) {
+          Notification.show('Owner transferred successfully');
+          ProgressIndicator.hide();
+          this.setState({ showTransferOwnershipModal: false }, () => {
+            history.goBack();
+          });
+        }
+      })
+      .catch((error) => {
+        ProgressIndicator.hide();
+        this.showErrorNotification(error.message ? error.message : 'Some Error Occured');
+        this.setState({ showTransferOwnershipModal: false });
+      });
   };
 
   protected onAcceptDeleteChanges = () => {
@@ -758,4 +922,6 @@ export default class Summary extends React.Component<{ user: IUserInfo }, ISumma
       }
     }
   };
+
+  
 }

@@ -31,9 +31,12 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.SortedSet;
+import java.util.TreeSet;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,7 +45,10 @@ import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
 import com.daimler.data.dto.SolDigitalValueDTO;
+import com.daimler.data.dto.SolDataValueSummaryDTO;
+import com.daimler.data.dto.dashboard.DataValueVO;
 import com.daimler.data.dto.dashboard.DigitalValueVO;
+import com.daimler.data.dto.dashboard.SolDataValueSummaryVO;
 import com.daimler.data.dto.dashboard.SolDigitalValuesummaryVO;
 import com.daimler.data.util.ConstantsUtility;
 
@@ -137,5 +143,34 @@ public class DashboardAssembler {
 		}
 		return digitalValues;
 	}
+
+	public List<SolDataValueSummaryVO> toDataValueSummary(
+			Map<BigDecimal, Set<SolDataValueSummaryDTO>> dataValueSummaryTreeMap) {
+		List<SolDataValueSummaryVO> solDataValuesummary = new ArrayList<SolDataValueSummaryVO>();
+		SolDataValueSummaryVO solDataValueSummaryVO = null;
+		for(Map.Entry<BigDecimal, Set<SolDataValueSummaryDTO>> map : dataValueSummaryTreeMap.entrySet()) {
+			solDataValueSummaryVO = new SolDataValueSummaryVO();
+			solDataValueSummaryVO.setYear(map.getKey());
+			solDataValueSummaryVO.setDataValueVO(this.toDataValueVO(map.getValue()));
+			solDataValuesummary.add(solDataValueSummaryVO);
+		}
+		return solDataValuesummary;
+	}
+
+	private List<DataValueVO> toDataValueVO(Set<SolDataValueSummaryDTO> solDataValues) {
+		List<DataValueVO> dataValues = new ArrayList<DataValueVO>();
+		DataValueVO dataValueVO = null;
+		for(SolDataValueSummaryDTO vo : solDataValues) {
+			dataValueVO = new DataValueVO();
+			dataValueVO.setSolutionId(vo.getId());
+			dataValueVO.setProductName(vo.getProductName());
+			dataValueVO.setSavings(vo.getSavings());
+			dataValueVO.setRevenue(vo.getRevenue());
+			//dataValueVO.setSavings(vo.getSavings());
+			dataValues.add(dataValueVO);
+		}
+		return dataValues;
+	}
+
 
 }
