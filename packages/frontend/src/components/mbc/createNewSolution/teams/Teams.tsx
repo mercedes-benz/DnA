@@ -480,9 +480,15 @@ export default class Teams extends React.Component<ITeamProps, ITeamsState> {
       Array.from(selectedOptions).forEach((option) => {
         selectedValues.push(option.label);
       });
+      this.changeInRoleCount(selectedValues);
     }
-
-    this.changeInRoleCount(selectedValues);
+    else {
+      this.setState(
+        {
+          roleCountFieldList: [],
+          neededRoleValue: [],
+        })
+    }
   };
 
   protected showNeededRoleInfoModal = () => {

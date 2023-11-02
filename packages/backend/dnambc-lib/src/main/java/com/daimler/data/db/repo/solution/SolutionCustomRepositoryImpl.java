@@ -29,11 +29,7 @@ package com.daimler.data.db.repo.solution;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import javax.persistence.Query;
@@ -1003,6 +999,7 @@ public class SolutionCustomRepositoryImpl extends CommonDataRepositoryImpl<Solut
 		return results.intValue();
 	}
 
+
 	@Override
 	public List<BigDecimal> getDataValuesSum(Boolean published, List<String> phases, List<String> dataVolumes,
 			String divisions, List<String> locations, List<String> statuses, String solutionType, String userId,
@@ -1068,7 +1065,6 @@ public class SolutionCustomRepositoryImpl extends CommonDataRepositoryImpl<Solut
 		return convertedResults;
 
 	}
-	
 	
 
 }

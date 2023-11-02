@@ -537,8 +537,8 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 									String ownerEmail = entity.getData().getCreatedBy().getEmail();
 									memberEmails.add(ownerEmail);
 									String message ="";
-									message="Run " + run.getRunName() + " triggered by " + run.getTriggeredBy() +" for chronos-project "+ forecastName + " completed with ResultState " + newState.getResult_state() +". Please check forecast-results for more details";
-									String notificationEventName = "Chronos Forecast Run LifeCycleStatus update";
+									message="Run '" + run.getRunName() + "' triggered by " + run.getTriggeredBy() +" for Chronos project "+ forecastName + " completed with ResultState " + newState.getResult_state() +". Please check forecast results for more details";
+									String notificationEventName = "Chronos: " + newState.getResult_state() + " for run '" + run.getRunName() + "'" ;
 									notifyUsers(forecastId, memberIds, memberEmails,message,"",notificationEventName,null);
 								}
 								
@@ -1068,7 +1068,7 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 	@Override
 	@Transactional(isolation = Isolation.SERIALIZABLE)
 	public ForecastComparisonCreateResponseVO createComparison(String id, ForecastVO existingForecast, List<String> validRunsPath, String comparisionId, String comparisonName,
-			String actualsFilePath, String buisnessFilePath, String targetFolder, Date createdOn, String requestUser) {
+			String actualsFilePath, String businessFilePath, String targetFolder, Date createdOn, String requestUser) {
 		GenericMessage responseMessage = new GenericMessage();
 		ForecastComparisonVO forecastComparisonsVO = new ForecastComparisonVO();
 		ForecastComparisonCreateResponseVO responseWrapperVO = new ForecastComparisonCreateResponseVO();
@@ -1090,7 +1090,7 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 				existingComparisons = new ArrayList<>();
 			 comparisonDetails.setComparisonId(comparisionId);
 			 comparisonDetails.setActualsFile(actualsFilePath);
-			 comparisonDetails.setBuisnessFile(buisnessFilePath);
+			 comparisonDetails.setBusinessFile(businessFilePath);
 			 comparisonDetails.setComparisonName(comparisonName);
 			 comparisonDetails.setComparisonState(comparisonState);
 			 comparisonDetails.setIsDelete(false);
@@ -1102,7 +1102,7 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 
 			forecastComparisonsVO.setComparisonId(comparisionId);
 			forecastComparisonsVO.setActualsFile(actualsFilePath);
-			forecastComparisonsVO.setBuisnessFile(buisnessFilePath);
+			forecastComparisonsVO.setBusinessFile(businessFilePath);
 			forecastComparisonsVO.setComparisonName(comparisonName);
 			forecastComparisonsVO.setState(state);
 			forecastComparisonsVO.setIsDeleted(false);
@@ -1151,7 +1151,7 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 						ChronosComparisonRequestDto comparisonRequestDto = new ChronosComparisonRequestDto();
 						comparisonRequestDto.setRuns_list(tempComparison.getRunsList());
 						comparisonRequestDto.setActuals_file(tempComparison.getActualsFile());
-						comparisonRequestDto.setBuisness_file(tempComparison.getBuisnessFile());
+						comparisonRequestDto.setBusiness_file(tempComparison.getBusinessFile());
 						comparisonRequestDto.setTarget_folder(tempComparison.getTargetFolder());
 						log.info("calling Chronos Comparison API for comparison {} , triggeredBy {}  ", tempComparison.getComparisonName() ,tempComparison.getTriggeredBy());
 						CreateComparisonResponseWrapperDto createComparisonResponse = comparisonClient.createComparison(tempComparison.getComparisonName(),tempComparison.getTriggeredBy(),comparisonRequestDto);
@@ -1266,13 +1266,13 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 								Collections.sort(tempExistingComparisons, Collections.reverseOrder(comparatorActualsFile));
 							}
 							break;
-						case "buisnessFile":
-							Comparator<ComparisonDetails> comparatorBuisnessFile = (v1, v2) -> (v2.getBuisnessFile().compareTo(v1.getBuisnessFile()));
+						case "businessFile":
+							Comparator<ComparisonDetails> comparatorBusinessFile = (v1, v2) -> (v2.getBusinessFile().compareTo(v1.getBusinessFile()));
 							if(sortOrder != null && sortOrder.equalsIgnoreCase("desc")) {
-								Collections.sort(tempExistingComparisons, comparatorBuisnessFile);
+								Collections.sort(tempExistingComparisons, comparatorBusinessFile);
 							}
 							else if(sortOrder != null && sortOrder.equalsIgnoreCase("asc")){
-								Collections.sort(tempExistingComparisons, Collections.reverseOrder(comparatorBuisnessFile));
+								Collections.sort(tempExistingComparisons, Collections.reverseOrder(comparatorBusinessFile));
 							}
 							break;
 							default:

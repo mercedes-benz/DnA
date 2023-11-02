@@ -1,24 +1,24 @@
 import React from 'react';
-import Styles from './Carla.scss';
+import Styles from './GenAI.scss';
 import DNACard from 'components/card/Card';
 import LandingSummary from '../shared/landingSummary/LandingSummary';
 import headerImageURL from '../../../assets/images/CarLA-Landing.png';
 
-import { CarLALandingPageElements } from 'globals/landingPageElements';
+import { GenAILandingPageElements } from 'globals/landingPageElements';
 
-const Carla = () => {
-  const cards = CarLALandingPageElements;
+const GenAI = () => {
+  const cards = GenAILandingPageElements;
 
   return (
     <LandingSummary
-      title={'CarLA'}
+      title={'GenAI'}
       subTitle={
-        'CarLA (Cars analysis and reporting landscape) is the core element of the BI & Analytics landscape in Finance Controlling at MBC. It bundles all data & functions, which are used for analysis and reporting of business performance and planning.'
+        'GenAI is the core element of the BI & Analytics landscape in Finance Controlling at MBC. It bundles All the Tools and insight you need to start with Artificial Intelligence.'
       }
       headerImage={headerImageURL}
       isBackButton={true}
     >
-      <div className={Styles.carlaWrapper}>
+      <div className={Styles.genAIWrapper}>
         {cards.map((card, index) => {
           return (
             <DNACard
@@ -32,7 +32,7 @@ const Carla = () => {
               isSmallCard={card.isSmallCard}
               isMediumCard={card.isMediumCard}
               svgIcon={card.svgIconId}
-              className="carla"
+              className="genAI"
             />
           );
         })}
@@ -41,4 +41,4 @@ const Carla = () => {
   );
 };
 
-export default Carla;
+export default GenAI;
