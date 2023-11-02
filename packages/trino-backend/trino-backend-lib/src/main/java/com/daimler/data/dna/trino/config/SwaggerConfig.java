@@ -85,7 +85,9 @@ public class SwaggerConfig {
 		params.add(authParamBuilder);
 
 		return new Docket(DocumentationType.SWAGGER_2).select()
-				.apis(RequestHandlerSelectors.basePackage("com.daimler.data.controller")).paths(PathSelectors.any())
+				//.apis(RequestHandlerSelectors.basePackage("com.mb.dna.datalakehouse.controller"))
+				.apis(RequestHandlerSelectors.basePackage("com.daimler.data.controller").or(RequestHandlerSelectors.basePackage("com.mb.dna.datalakehouse.controller")))
+				.paths(PathSelectors.any())
 				.build().pathMapping("/").apiInfo(apiEndPointsInfo()).globalRequestParameters(params);
 	}
 
