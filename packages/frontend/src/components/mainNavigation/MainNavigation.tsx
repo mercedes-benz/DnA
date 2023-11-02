@@ -150,6 +150,7 @@ const MainNavigation: React.FC<IMainNavigationProps> = (props) => {
       id: 2,
       title: 'GenAI',
       icon: 'gen-ai',
+      route: `/genAI`,
       enabled: true,
       subNavItems: [
           {
