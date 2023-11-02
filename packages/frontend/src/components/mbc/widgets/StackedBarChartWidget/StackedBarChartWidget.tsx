@@ -37,7 +37,6 @@ export default class StackedBarChartWidget extends React.Component<
     const { data, xAxisLabel, xAxisSubLabel, yAxisLabel, yAxisSubLabel } = this.props;
     const { dataItemsPerView, totalNumberOfPages, currentPage } = this.state;
     const dataToShow = data.slice((currentPage - 1) * dataItemsPerView, dataItemsPerView * currentPage);
-    console.log(data);
     return (
       <div className="chart-wrapper">
         <div className="chart-label yaxis">
