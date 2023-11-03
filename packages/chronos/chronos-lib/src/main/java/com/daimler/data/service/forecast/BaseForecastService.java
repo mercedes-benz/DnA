@@ -135,7 +135,7 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 	@Transactional(isolation = Isolation.SERIALIZABLE)
 	public ForecastRunResponseVO createJobRun(MultipartFile file,String savedInputPath, Boolean saveRequestPart, String runName,
 			String configurationFile, String frequency, BigDecimal forecastHorizon, String hierarchy, String comment, Boolean runOnPowerfulMachines,
-			ForecastVO existingForecast,String triggeredBy, Date triggeredOn,String infotext) {
+			ForecastVO existingForecast,String triggeredBy, Date triggeredOn,String chronosVersion) {
 
 		String dataBricksJobidForRun = dataBricksJobId;
 		ForecastRunResponseVO responseWrapper = new ForecastRunResponseVO();
@@ -239,7 +239,7 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 		noteboookParams.setResults_folder(resultFolder);
 		noteboookParams.setX("");
 		noteboookParams.setX_pred("");
-		noteboookParams.setInfotext(infotext);
+		noteboookParams.setChronos_Version(chronosVersion);
 
 		noteboookParams.setUser_id(triggeredBy);
 
