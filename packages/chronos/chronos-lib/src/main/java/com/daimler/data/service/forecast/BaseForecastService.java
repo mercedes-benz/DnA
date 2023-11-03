@@ -239,7 +239,7 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 		noteboookParams.setResults_folder(resultFolder);
 		noteboookParams.setX("");
 		noteboookParams.setX_pred("");
-		noteboookParams.setChronos_Version(chronosVersion);
+		noteboookParams.setChronos_version(chronosVersion);
 
 		noteboookParams.setUser_id(triggeredBy);
 
