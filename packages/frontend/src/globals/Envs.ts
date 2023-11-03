@@ -188,7 +188,6 @@ export const Envs = {
   DATA_OASIS_TOOL_URL: getInjectedEnv('DATA_OASIS_TOOL_URL') || process.env.DATA_OASIS_TOOL_URL,
   DATAQ_TOOL_URL: getInjectedEnv('DATAQ_TOOL_URL') || process.env.DATAQ_TOOL_URL,
   DATASPHERE_TOOL_URL: getInjectedEnv('DATASPHERE_TOOL_URL') || process.env.DATASPHERE_TOOL_URL,
-  GPT4ALL_CHATBOT_TOOL_URL: getInjectedEnv('GPT4ALL_CHATBOT_TOOL_URL') || process.env.GPT4ALL_CHATBOT_TOOL_URL,
   EXTOLLO_TOOL_URL: getInjectedEnv('EXTOLLO_TOOL_URL') || process.env.EXTOLLO_TOOL_URL,
   POWER_BI_TOOL_URL: getInjectedEnv('POWER_BI_TOOL_URL') || process.env.POWER_BI_TOOL_URL,
   SAC_TOOL_URL: getInjectedEnv('SAC_TOOL_URL') || process.env.SAC_TOOL_URL,
@@ -207,4 +206,5 @@ export const Envs = {
   MATOMO_API_BASEURL: getInjectedEnv('MATOMO_API_BASEURL') || process.env.MATOMO_API_BASEURL,
   MATOMO_APP_URL: getInjectedEnv('MATOMO_APP_URL') || process.env.MATOMO_APP_URL,
   SPIRE_URL: getInjectedEnv('SPIRE_URL') || process.env.SPIRE_URL,
+  GENAI_DIRECT_CHAT_URL: getInjectedEnv('SPIRE_URL') || process.env.GENAI_DIRECT_CHAT_URL,
 };
