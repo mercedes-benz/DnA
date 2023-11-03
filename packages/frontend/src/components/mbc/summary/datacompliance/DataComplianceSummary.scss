@@ -4,10 +4,11 @@
   .wrapper {
     background: #252a33;
     padding: 25px 40px;
+    margin-bottom: 15px;
     flex: 1 auto;
 
     h3 {
-      font-size: var(--font-size-default);
+      font-size: var(--font-size-headline-medium);
       margin-bottom: 30px;
     }
 

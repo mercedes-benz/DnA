@@ -17,6 +17,8 @@ import { ApiClient } from '../../../services/ApiClient';
 import { ICreateNewSolutionData } from '../createNewSolution/CreateNewSolution';
 import DataComplianceSummary from './datacompliance/DataComplianceSummary';
 import DataSourcesSummary from './datasources/DataSourcesSummary';
+import AnalyticsSummary from './analytics/AnalyticsSummary';
+import SharingSummary from './sharing/SharingSummary';
 import DescriptionSummary from './description/DescriptionSummary';
 import DigitalValueSummary from './digitalvalue/DigitalValueSummary';
 import MilestonesSummary from './milestones/MilestonesSummary';
@@ -28,14 +30,18 @@ import Platform from './platform/PlatformSummary';
 import LogoImage from '../createNewSolution/description/logoManager/LogoImage/LogoImage';
 import MarketingSummary from './marketing/MarketingSummary';
 import AddUser from '../addUser/AddUser';
+import { isSolutionFixedTagIncludedInArray } from '../../../services/utils';
 
 const classNames = cn.bind(Styles);
 
 export interface ISummaryState {
+  isGenAI: boolean;
   response?: ICreateNewSolutionResult;
   solution: ICreateNewSolutionData;
   phases: IPhase[];
   canShowDataSources: boolean;
+  canShowAnalytics: boolean;
+  canShowSharing: boolean;
   canShowTeams: boolean;
   canShowPlatform: boolean;
   canShowMilestones: boolean;
@@ -73,6 +79,7 @@ export default class Summary extends React.Component<{ user: IUserInfo }, ISumma
   constructor(props: any) {
     super(props);
     this.state = {
+      isGenAI: false,
       response: {},
       phases: [],
       solution: {
@@ -202,6 +209,8 @@ export default class Summary extends React.Component<{ user: IUserInfo }, ISumma
         lastModifiedDate: '',
       },
       canShowDataSources: false,
+      canShowAnalytics: false,
+      canShowSharing: false,
       canShowDigitalValue: false,
       canShowTeams: false,
       canShowPlatform: false,
@@ -309,13 +318,13 @@ export default class Summary extends React.Component<{ user: IUserInfo }, ISumma
         mobileNumber: collaborators.mobileNumber,
         userType: 'internal'
       };
-  
+
       let duplicateMember = false;
       duplicateMember = this.state?.solutionCollaborators?.filter((member) => member.shortId === collaborators.shortId)?.length
         ? true
         : false;
       const isCreator = collaborators.shortId === this.state?.solution?.createdBy?.id;
-  
+
       if (duplicateMember) {
         Notification.show('Collaborator Already Exist.', 'warning');
       } else if (isCreator) {
@@ -326,55 +335,55 @@ export default class Summary extends React.Component<{ user: IUserInfo }, ISumma
       } else {
         // bucketCollaborators.push(collabarationData);
         // setBucketCollaborators([...bucketCollaborators]);
-        const {solutionCollaborators} = this.state;
+        const { solutionCollaborators } = this.state;
         solutionCollaborators.push(collabarationData);
-        this.setState({solutionCollaborators})
+        this.setState({ solutionCollaborators })
       }
     };
 
     const transferOwnershipContent = (
       <div className={classNames('input-field-group include-error')}>
-              <div className={Styles.bucketColContent}>
-                <div className={Styles.bucketColContentList}>
-                  <div className={Styles.bucketColContentListAdd}>
-                    <AddUser getCollabarators={getCollabarators} dagId={''} isRequired={false} isUserprivilegeSearch={false} />
-                  </div>
-                  <div className={Styles.bucketColUsersList}>
-                    {this.state.solutionCollaborators?.length > 0 ? (
-                      <React.Fragment>
-                        <div className={Styles.collUserTitle}>
-                          <div className={Styles.collUserTitleCol}>User ID</div>
-                          <div className={Styles.collUserTitleCol}>Name</div>
-                          <div className={Styles.collUserTitleCol}></div>
-                        </div>
-                        <div className={classNames('mbc-scroll', Styles.collUserContent)}>
-                          {this.state.solutionCollaborators
-                            // ?.filter((item) => item.accesskey !== user.id && item.accesskey !== createdBy.id)
-                            ?.map((item: any, collIndex:any) => {
-                              return (
-                                <div key={'team-member-'+collIndex} className={Styles.collUserContentRow}>
-                                  <div className={Styles.collUserTitleCol}>{item.shortId}</div>
-                                  <div className={Styles.collUserTitleCol}>{item.firstName + ' ' + item.lastName}</div>
-                                  <div className={Styles.collUserTitleCol}>
-                                    <div className={Styles.deleteEntry} onClick={() => this.onTransferOwnership(item)}>
-                                      <i className="icon mbc-icon comparison" />
-                                      Transfer Ownership
-                                    </div>
-                                  </div>
-                                </div>
-                              );
-                            })}
-                        </div>
-                      </React.Fragment>
-                    ) : (
-                      <div className={Styles.bucketColContentEmpty}>
-                        <h6> Collaborators Not Exist!</h6>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
+        <div className={Styles.bucketColContent}>
+          <div className={Styles.bucketColContentList}>
+            <div className={Styles.bucketColContentListAdd}>
+              <AddUser getCollabarators={getCollabarators} dagId={''} isRequired={false} isUserprivilegeSearch={false} />
             </div>
+            <div className={Styles.bucketColUsersList}>
+              {this.state.solutionCollaborators?.length > 0 ? (
+                <React.Fragment>
+                  <div className={Styles.collUserTitle}>
+                    <div className={Styles.collUserTitleCol}>User ID</div>
+                    <div className={Styles.collUserTitleCol}>Name</div>
+                    <div className={Styles.collUserTitleCol}></div>
+                  </div>
+                  <div className={classNames('mbc-scroll', Styles.collUserContent)}>
+                    {this.state.solutionCollaborators
+                      // ?.filter((item) => item.accesskey !== user.id && item.accesskey !== createdBy.id)
+                      ?.map((item: any, collIndex: any) => {
+                        return (
+                          <div key={'team-member-' + collIndex} className={Styles.collUserContentRow}>
+                            <div className={Styles.collUserTitleCol}>{item.shortId}</div>
+                            <div className={Styles.collUserTitleCol}>{item.firstName + ' ' + item.lastName}</div>
+                            <div className={Styles.collUserTitleCol}>
+                              <div className={Styles.deleteEntry} onClick={() => this.onTransferOwnership(item)}>
+                                <i className="icon mbc-icon comparison" />
+                                Transfer Ownership
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                  </div>
+                </React.Fragment>
+              ) : (
+                <div className={Styles.bucketColContentEmpty}>
+                  <h6> Collaborators Not Exist!</h6>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
     );
 
     return (
@@ -462,7 +471,7 @@ export default class Summary extends React.Component<{ user: IUserInfo }, ISumma
                       onTransferOwnershipSolutionConsent={this.onTransferOwnershipSolutionConsent}
                     />
 
-                    {this.state.canShowPlatform && (
+                    {this.state.canShowPlatform && !this.state.isGenAI && (
                       <Platform
                         portfolio={this.state.solution.portfolio}
                         noteBookInfo={this.state.noteBookInfo}
@@ -479,7 +488,8 @@ export default class Summary extends React.Component<{ user: IUserInfo }, ISumma
                     {this.state.canShowMilestones && (
                       <MilestonesSummary milestones={this.state.solution.milestones} phases={this.state.phases} />
                     )}
-                    {this.state.canShowDataSources && (
+
+                    {this.state.canShowDataSources && !this.state.isGenAI && (
                       <DataSourcesSummary
                         datasources={this.state.solution.dataSources}
                         portfolio={this.state.solution.portfolio}
@@ -488,6 +498,33 @@ export default class Summary extends React.Component<{ user: IUserInfo }, ISumma
                         dsList={this.state.dataSources}
                       />
                     )}
+                    {this.state.canShowAnalytics && <AnalyticsSummary
+                      isGenAI={this.state.isGenAI}
+                      analytics={this.state.solution.analytics}
+                    />
+                    }
+                    {this.state.canShowPlatform && this.state.isGenAI && (
+                      <Platform
+                        portfolio={this.state.solution.portfolio}
+                        noteBookInfo={this.state.noteBookInfo}
+                        dataIkuInfo={this.state.dataIkuInfo}
+                        dnaNotebookEnabled={this.state.dnaNotebookEnabled}
+                        dnaDataIkuProjectEnabled={this.state.dnaDataIkuProjectEnabled}
+                        notebookAndDataIkuNotEnabled={this.state.notebookAndDataIkuNotEnabled}
+                      />
+                    )}
+                    {this.state.canShowDataSources && this.state.isGenAI && (
+                      <DataSourcesSummary
+                        datasources={this.state.solution.dataSources}
+                        portfolio={this.state.solution.portfolio}
+                        analytics={this.state.solution.analytics}
+                        sharing={this.state.solution.sharing}
+                        dsList={this.state.dataSources}
+                      />
+                    )}
+                    {this.state.canShowSharing && <SharingSummary
+                      sharing={this.state.solution.sharing}
+                    />}
                     {canShowComplianceSummary ? (
                       <DataComplianceSummary dataCompliance={this.state.solution.datacompliance} />
                     ) : null}
@@ -623,6 +660,9 @@ export default class Summary extends React.Component<{ user: IUserInfo }, ISumma
             solution.description.relatedProducts = res.relatedProducts;
             solution.description.businessGoal = res.businessGoals;
             solution.description.tags = res.tags;
+            if (res.tags && isSolutionFixedTagIncludedInArray(res.tags)) {
+              this.setState({ isGenAI: true });
+            }
             solution.description.logoDetails = res.logoDetails;
             solution.description.attachments = res.attachments;
             solution.description.reasonForHoldOrClose = res.reasonForHoldOrClose;
@@ -655,7 +695,7 @@ export default class Summary extends React.Component<{ user: IUserInfo }, ISumma
               item.userType === 'internal'
               return item;
             }
-              )
+            )
             this.setState(
               {
                 response,
@@ -680,6 +720,17 @@ export default class Summary extends React.Component<{ user: IUserInfo }, ISumma
                         solution.sharing.result.name &&
                         solution.sharing.result.name !== 'Choose') ||
                       (solution.sharing.resultUrl && solution.sharing.resultUrl !== ''))),
+                canShowAnalytics:
+                  (solution.analytics && solution.analytics.algorithms && solution.analytics.algorithms.length > 0) ||
+                  (solution.analytics && solution.analytics.languages && solution.analytics.languages.length > 0) ||
+                  (solution.analytics && solution.analytics.analyticsSolution && solution.analytics.analyticsSolution.length > 0) ||
+                  (solution.analytics && solution.analytics.visualizations && solution.analytics.visualizations.length > 0),
+                canShowSharing: solution.sharing &&
+                  ((solution.sharing.gitUrl && solution.sharing.gitUrl !== '') ||
+                    (solution.sharing.result &&
+                      solution.sharing.result.name &&
+                      solution.sharing.result.name !== 'Choose') ||
+                    (solution.sharing.resultUrl && solution.sharing.resultUrl !== '')),
                 canShowTeams: solution.team && solution.team.team.length > 0,
                 canShowDigitalValue:
                   solution.digitalValue &&
@@ -861,7 +912,7 @@ export default class Summary extends React.Component<{ user: IUserInfo }, ISumma
 
   protected onTransferOwnership = (userObj: ITeams) => {
     // call api to change ownership
-    
+
     ProgressIndicator.show();
     ApiClient.transferSolutionOwner(userObj, this.state.solutionToBeTransfered)
       .then((res) => {
@@ -923,5 +974,5 @@ export default class Summary extends React.Component<{ user: IUserInfo }, ISumma
     }
   };
 
-  
+
 }
