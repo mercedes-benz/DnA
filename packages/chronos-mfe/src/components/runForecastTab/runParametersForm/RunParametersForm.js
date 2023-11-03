@@ -250,15 +250,15 @@ const RunParametersForm = () => {
           <div className={Styles.flexLayout}>
             <div className={Styles.hierarchyContainer}>
             <div className={classNames('input-field-group')}>
-              <label id="infotextLabel" htmlFor="infotextInput" className="input-label">
+              <label id="chronosVersionLabel" htmlFor="chronosVersionInput" className="input-label">
                 Chronos Version
                 <i className="icon mbc-icon info" tooltip-data={chronosVersionTooltipContent} />
               </label>
               <input
-                {...register('infotext')}
+                {...register('chronosVersion')}
                 type="text"
                 className="input-field"
-                id="infotextInput"
+                id="chronosVersionInput"
                 maxLength={55}
                 placeholder="Leave empty for default version"
                 autoComplete="off"
