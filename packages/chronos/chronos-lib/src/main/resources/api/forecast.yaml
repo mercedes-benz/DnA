@@ -601,7 +601,7 @@ paths:
           description: "If true, then run on Powerful Machines"
           required: false
         - in: formData
-          name: infotext
+          name: chronosVersion
           type: string
           description: Text field to denote Chronos Version
           required: false
