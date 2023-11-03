@@ -81,7 +81,8 @@ allowedCorsOriginPatternUrl: ${CORS_ORIGIN_URL:http://*}
 #NAAS Authentication with DNA Backend and fetch user notification preferences details
 dna:
   uri: ${DNA_URI:http://localhost:7171}
-  dnaAuthEnable: ${DNA_AUTH_ENABLE:false}  
+  ui.uri: ${DNA_UI_URI:XXXX}
+  dnaAuthEnable: ${DNA_AUTH_ENABLE:false}
 # token: ${DNA_AUTH_API_TOKEN:XXXX}
   user.notificationPreferences.get.api: ${DNA_USER_NOTIFICATION_PREF_GET_URI:/api/notification-preferences}
   user.info.get.api: ${DNA_USER_INFO_GET_URI:/api/users}
