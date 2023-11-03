@@ -32,10 +32,12 @@ export default function PlatformSummary(props: ITeamProps) {
   const usageOfDaimler = props.portfolio?.usesExistingInternalPlatforms ? <IconTick /> : 'NA';
   return (
     <React.Fragment>
-      <div className={classNames(Styles.mainPanel, 'mainPanelSection')}>
+      <div className={classNames(Styles.flexLayout, Styles.mainPanel, 'mainPanelSection')}>
         <div id="platformSummery" className={Styles.wrapper}>
-          <h3>Compute</h3>
           <div>
+            <h3>Compute</h3>
+          </div>
+          <div className={Styles.firstPanel}>
             <div className={classNames(Styles.flexLayout)}>
               <div id="solutionOnCloud" className={classNames(Styles.solutionSection)}>
                 <label className="input-label summary">Solution On Cloud</label>

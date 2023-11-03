@@ -4,12 +4,13 @@
 
   .wrapper {
     background: #252a33;
-    margin-bottom: 0px;
-    padding: 25px 25px;
+    margin-bottom: 15px;
+    padding: 25px 0;
     flex: 1 auto;
 
     h3 {
-      font-size: var(--font-size-default);
+      font-size: var(--font-size-headline-medium);
+      padding: 0 38px;
     }
   }
 }
