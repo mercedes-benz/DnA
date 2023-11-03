@@ -98,7 +98,7 @@ public class AttachmentServiceImpl implements AttachmentService {
 			if(fileSize == 0L) {
 				List<MessageDescription> errors = new ArrayList<MessageDescription>();
 				MessageDescription md = new MessageDescription();
-				md.setMessage("Failed to upload. File is empty");
+				md.setMessage("File has no content, please validate and re-upload.");
 				log.info("File {} is empty", multiPartFile.getOriginalFilename());
 				errors.add(md);
 				fileDetails.setErrors(errors);
