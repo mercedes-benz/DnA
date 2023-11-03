@@ -583,11 +583,11 @@ export default class CreateNewSolution extends React.Component<ICreateNewSolutio
       <React.Fragment>
         <div className={classNames(Styles.mainPanel)}>
           <Caption
-            title={this.state.solution.description.productName || `${getParams()?.id ? 'Edit' : 'Create'} Solution`}
+            title={this.state.solution.description.productName || `${getParams()?.id ? 'Edit' : 'Create'} ${this.state.isGenAI ? 'GenAI Solution' : 'Solution'}`}
           />
           <div id="create-solution-tabs" className="tabs-panel">
             <div className="tabs-wrapper">
-              <nav>
+              {this.state.isGenAI ? this.genAINavigationTabs() : <nav>
                 <ul className="tabs">
                   <li
                     className={
@@ -700,7 +700,7 @@ export default class CreateNewSolution extends React.Component<ICreateNewSolutio
                     </a>
                   </li>
                 </ul>
-              </nav>
+              </nav>}
             </div>
             <div className="tabs-content-wrapper">
               <div id="tab-content-1" className="tab-content">
@@ -864,8 +864,125 @@ export default class CreateNewSolution extends React.Component<ICreateNewSolutio
     );
   }
 
+  public genAINavigationTabs = (): any => {
+    return <nav>
+      <ul className="tabs">
+        <li
+          className={
+            this.state.tabClassNames.has('Description')
+              ? this.state.tabClassNames.get('Description')
+              : 'tab active'
+          }
+        >
+          <a href="#tab-content-1" id="description" onClick={this.setCurrentTab}>
+            Description<sup>*</sup>
+          </a>
+        </li>
+        <li
+          className={
+            this.state.tabClassNames.has('Teams') ? this.state.tabClassNames.get('Teams') : 'tab disabled'
+          }
+        >
+          <a href="#tab-content-3" id="teams" onClick={this.setCurrentTab}>
+            Members<sup>*</sup>
+          </a>
+        </li>
+        <li
+          className={
+            this.state.tabClassNames.has('Milestones')
+              ? this.state.tabClassNames.get('Milestones')
+              : 'tab disabled'
+          }
+        >
+          <a href="#tab-content-4" id="milestones" onClick={this.setCurrentTab}>
+            Milestones<sup>*</sup>
+          </a>
+        </li>
+        <li
+          className={
+            this.state.tabClassNames.has('Analytics')
+              ? this.state.tabClassNames.get('Analytics')
+              : 'tab disabled'
+          }
+        >
+          <a href="#tab-content-6" id="analytics" onClick={this.setCurrentTab}>
+            Technology <sup>*</sup>
+          </a>
+        </li>
+        <li
+          className={
+            this.state.tabClassNames.has('Platform')
+              ? this.state.tabClassNames.get('Platform')
+              : 'tab disabled'
+          }
+        >
+          <a href="#tab-content-2" id="platform" onClick={this.setCurrentTab}>
+            Compute
+          </a>
+        </li>
+        <li
+          className={
+            this.state.tabClassNames.has('DataSources')
+              ? this.state.tabClassNames.get('DataSources')
+              : 'tab disabled'
+          }
+        >
+          <a href="#tab-content-5" id="datasources" onClick={this.setCurrentTab}>
+            Data Sources
+          </a>
+        </li>
+        <li
+          className={
+            this.state.tabClassNames.has('Sharing') ? this.state.tabClassNames.get('Sharing') : 'tab disabled'
+          }
+        >
+          <a href="#tab-content-7" id="sharing" onClick={this.setCurrentTab}>
+            Sharing
+          </a>
+        </li>
+        {Envs.ENABLE_DATA_COMPLIANCE ? (
+          <li
+            className={
+              this.state.tabClassNames.has('DataCompliance')
+                ? this.state.tabClassNames.get('DataCompliance')
+                : 'tab disabled'
+            }
+          >
+            <a href="#tab-content-8" id="datacompliance" onClick={this.setCurrentTab}>
+              Data Compliance
+            </a>
+          </li>
+        ) : (
+          ''
+        )}
+        <li
+          className={
+            this.state.tabClassNames.has('Marketing')
+              ? this.state.tabClassNames.get('Marketing')
+              : 'tab disabled'
+          }
+        >
+          <a href="#tab-content-9" id="marketing" onClick={this.setCurrentTab}>
+            Marketing
+          </a>
+        </li>
+        <li
+          className={
+            this.state.tabClassNames.has('DigitalValue')
+              ? this.state.tabClassNames.get('DigitalValue')
+              : 'tab disabled'
+          }
+        >
+          <a href="#tab-content-10" id="digitalvalue" onClick={this.setCurrentTab}>
+            Value Calculation
+          </a>
+        </li>
+      </ul>
+    </nav>;
+  }
+
   public setOpenTabs = (openSegments: string[]) => {
-    if (!this.state.solution.publish) {
+    if (this.state.isGenAI || !this.state.solution.publish) {
       if (openSegments != null && openSegments.length > 0) {
         const tabClasses = new Map<string, string>();
         openSegments.forEach((openSegment) => {
@@ -1002,12 +1119,12 @@ export default class CreateNewSolution extends React.Component<ICreateNewSolutio
   protected saveDescription = () => {
     this.state.solution.openSegments.push('Description');
     this.setState({ publishFlag: false });
-    this.callApiToSave(this.state.solution.publish, 'platform');
+    this.callApiToSave(this.state.solution.publish, this.state.isGenAI ? 'teams' : 'platform');
   };
   protected savePlatform = () => {
     this.state.solution.openSegments.push('Platform');
     this.setState({ publishFlag: false });
-    this.callApiToSave(this.state.solution.publish, 'teams');
+    this.callApiToSave(this.state.solution.publish, this.state.isGenAI ? 'datasources' : 'teams');
   };
   protected saveTeam = () => {
     this.state.solution.openSegments.push('Teams');
@@ -1017,18 +1134,18 @@ export default class CreateNewSolution extends React.Component<ICreateNewSolutio
   protected saveMilestones = () => {
     this.state.solution.openSegments.push('Milestones');
     this.setState({ publishFlag: false });
-    this.callApiToSave(this.state.solution.publish, 'datasources');
+    this.callApiToSave(this.state.solution.publish, this.state.isGenAI ? 'analytics' : 'datasources');
   };
   protected saveDataSources = () => {
     this.state.solution.openSegments.push('DataSources');
     this.setState({ publishFlag: false });
-    this.callApiToSave(this.state.solution.publish, 'analytics');
+    this.callApiToSave(this.state.solution.publish, this.state.isGenAI ? 'sharing' : 'analytics');
   };
 
   protected saveAnalytics = () => {
     this.state.solution.openSegments.push('Analytics');
     this.setState({ publishFlag: false });
-    this.callApiToSave(this.state.solution.publish, 'sharing');
+    this.callApiToSave(this.state.solution.publish, this.state.isGenAI ? 'platform' : 'sharing');
   };
   protected saveSharing = () => {
     this.state.solution.openSegments.push('Sharing');

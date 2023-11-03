@@ -49,18 +49,23 @@ export interface IPortfolioState {
   totalSolutionCounts: number;
   solutionsDataKPI: string;
   digitalValueDataKPI: string;
+  dataValueDataSavingsKPI: string;
+  dataValueDataRevenueKPI: string;
   dnaNotebooksDataKPI: string;
   solutionsDataKPILoader: boolean;
   digitalValueDataKPILoader: boolean;
+  dataValueDataKPILoader: boolean;
   dnaNotebooksDataKPILoader: boolean;
   // digitalValueChartData: IScatterChartDataItem[];
   newDigitalValueChartData: IStackedBarChartDataItem[];
+  newDataValueChartData: IStackedBarChartDataItem[];
   milestonesChartData: IBarChartDataItem[];
   dataSourcesChartData: IBarChartDataItem[];
   locationsChartData: ILocationsMapChartDataItem[];
   portfolioFirstTimeDataLoaded: boolean;
   portfolioDataFilterApplied: boolean;
   showDigitalValueLoader: boolean;
+  showDataValueLoader: boolean;
   showMilestoneLoader: boolean;
   showDataSourceLoader: boolean;
   showLocationLoader: boolean;
@@ -117,7 +122,7 @@ export interface IPortfolioProps {
 // };
 
 const StackedBarChartTooltip = ({ active, payload }: any) => {
-  if (active) {
+if (active) {
     const itemObj = payload[0].payload;
     // tslint:disable-next-line: no-string-literal
     const firstSolution = itemObj['firstSolution'] as ISolutionDigitalValue;
@@ -170,6 +175,33 @@ const StackedBarChartTooltip = ({ active, payload }: any) => {
 
   return null;
 };
+const StackedBarChartTooltipDataValue = ({ active, payload }: any) => {
+  if (active) {
+    const itemObj = payload[0].payload;
+    const savings = DataFormater(
+      parseFloat((Math.round((itemObj['firstBarValue'] + Number.EPSILON) * 100) / 100).toString()),
+    );
+    const revenue = DataFormater(
+      parseFloat((Math.round((itemObj['secondBarValue'] + Number.EPSILON) * 100) / 100).toString()),
+    );
+    return (
+      <div className="chart-tooltip">
+        <span className="label">
+          <i className="icon legend" style={{ backgroundColor: itemObj['firstBarFillColor'] }} />
+          Savings: {savings}
+        </span>
+        <br />
+        <span className="label">
+          <i className="icon legend" style={{ backgroundColor: itemObj['secondBarFillColor'] }} />
+          Revenue: {revenue}
+        </span>
+      </div>
+    );
+  }
+
+  return null;
+};
+
 
 const BarChartTooltip = ({ active, payload, label }: any) => {
   if (active) {
@@ -205,18 +237,23 @@ export default class Portfolio extends React.Component<IPortfolioProps, IPortfol
       totalSolutionCounts: 0,
       solutionsDataKPI: '-',
       digitalValueDataKPI: '-',
+      dataValueDataSavingsKPI: '-',
+      dataValueDataRevenueKPI: '-',
       dnaNotebooksDataKPI: '-',
       solutionsDataKPILoader: false,
       digitalValueDataKPILoader: false,
+      dataValueDataKPILoader: false,
       dnaNotebooksDataKPILoader: false,
       // digitalValueChartData: [],
       newDigitalValueChartData: [],
+      newDataValueChartData: [],
       milestonesChartData: [],
       dataSourcesChartData: [],
       locationsChartData: [],
       portfolioFirstTimeDataLoaded: false,
       portfolioDataFilterApplied: false,
       showDigitalValueLoader: true,
+      showDataValueLoader: true,
       showMilestoneLoader: true,
       showDataSourceLoader: true,
       showLocationLoader: true,
@@ -240,16 +277,21 @@ export default class Portfolio extends React.Component<IPortfolioProps, IPortfol
     this.setState({
       solutionsDataKPI: '-',
       digitalValueDataKPI: '-',
+      dataValueDataSavingsKPI: '-',
+      dataValueDataRevenueKPI: '-',
       dnaNotebooksDataKPI: '-',
       solutionsDataKPILoader: true,
       digitalValueDataKPILoader: true,
+      dataValueDataKPILoader: true,
       dnaNotebooksDataKPILoader: true,
       dataSourcesChartData: [],
       showDataSourceLoader: true,
       milestonesChartData: [],
       showMilestoneLoader: true,
       newDigitalValueChartData: [],
+      newDataValueChartData: [],
       showDigitalValueLoader: true,
+      showDataValueLoader: true,
       locationsChartData: [],
       showLocationLoader: true,
     });
@@ -485,6 +527,63 @@ export default class Portfolio extends React.Component<IPortfolioProps, IPortfol
         this.showErrorNotification(error.message ? error.message : 'Some Error Occured');
         this.setState({ newDigitalValueChartData: [], showDigitalValueLoader: false });
       });
+    ApiClient.getDashboardData('datavalue', locations, phases, divisions, status, useCaseType, tagSearch)
+      .then((res: any) => {
+        const totalSavings = res.totalDataValueSavings;
+        const totalRevenue = res.totalDataValueRevenue;
+        this.setState({
+          dataValueDataSavingsKPI: (Math.round((totalSavings + Number.EPSILON) * 100) / 100).toString(),
+          dataValueDataRevenueKPI: (Math.round((totalRevenue + Number.EPSILON) * 100) / 100).toString(),
+        });
+      })
+      .catch((error) => {
+        this.showErrorNotification(error.message ? error.message : 'Some Error Occured');
+      });
+    ApiClient.getDashboardData('datavaluesummary', locations, phases, divisions, status, useCaseType, tagSearch)
+      .then((res: any) => {
+        if (res) {
+          const totalDataValue = res.solDataValueSummary;
+          const newDataValueChartData: IStackedBarChartDataItem[] = [];
+          const currentYear = new Date().getFullYear();
+          let startYear = currentYear;
+          const tenthYearFromNow = currentYear + 10;
+          do {
+            const tempObj: any = {};
+            tempObj.id = startYear.toString();
+
+            tempObj.labelValue = startYear.toString();
+            tempObj.firstBarValue = 0;
+            tempObj.firstBarFillColor = '#9DE1FC';
+            tempObj.secondBarValue = 0;
+            tempObj.secondBarFillColor = '#186BB8';
+
+            const filteredObjectWithYear = totalDataValue.filter((item: any) => {
+              if (item.year == startYear.toString()) {
+                return item;
+              }
+            })[0];
+            if (filteredObjectWithYear) {
+              const sortedSolutions = filteredObjectWithYear.dataValueVO;
+              let savings = 0;
+              let revenue = 0;
+              sortedSolutions.forEach((solution: any) => {
+                savings = savings + solution.savings;
+                revenue = revenue + solution.revenue;
+              });
+              tempObj.firstBarValue = savings;
+              tempObj.secondBarValue = revenue;
+            }
+            newDataValueChartData.push(tempObj);
+            startYear++;
+          } while (startYear <= tenthYearFromNow);
+          this.setState({ newDataValueChartData, showDataValueLoader: false });
+          this.setState({ showDataValueLoader: false });
+        }
+      })
+      .catch((error) => {
+        this.showErrorNotification(error.message ? error.message : 'Some Error Occured');
+        this.setState({ newDataValueChartData: [], showDataValueLoader: false });
+      });
   }
 
   protected openCloseFilter = () => {
@@ -507,17 +606,22 @@ export default class Portfolio extends React.Component<IPortfolioProps, IPortfol
     const {
       solutionsDataKPI,
       digitalValueDataKPI,
-      dnaNotebooksDataKPI,
+      dataValueDataSavingsKPI,
+      dataValueDataRevenueKPI,
+      // dnaNotebooksDataKPI,
       newDigitalValueChartData,
+      newDataValueChartData,
       milestonesChartData,
       dataSourcesChartData,
       showDigitalValueLoader,
+      showDataValueLoader,
       showDataSourceLoader,
       showLocationLoader,
       showMilestoneLoader,
       solutionsDataKPILoader,
       digitalValueDataKPILoader,
-      dnaNotebooksDataKPILoader,
+      dataValueDataKPILoader,
+      // dnaNotebooksDataKPILoader,
     } = this.state;
 
     return (
@@ -535,7 +639,7 @@ export default class Portfolio extends React.Component<IPortfolioProps, IPortfol
             <div className={Styles.allSolExport}>
               <div tooltip-data="Filters">
                 <span className={this.state.openFilters ? Styles.activeFilters : ''} onClick={this.openCloseFilter}>
-                  {this.state.portfolioDataFilterApplied && (<i className="active-status"/>)}
+                  {this.state.portfolioDataFilterApplied && <i className="active-status" />}
                   <i className="icon mbc-icon filter big" />
                 </span>
               </div>
@@ -554,7 +658,7 @@ export default class Portfolio extends React.Component<IPortfolioProps, IPortfol
             showSolutionsFilter={true}
             solutionsDataLoaded={this.state.portfolioFirstTimeDataLoaded}
             setSolutionsDataLoaded={(value: boolean) => this.setState({ portfolioFirstTimeDataLoaded: value })}
-            setSolutionsFilterApplied= {(value: boolean) => {
+            setSolutionsFilterApplied={(value: boolean) => {
               console.log(value);
               this.setState({ portfolioDataFilterApplied: value });
             }}
@@ -604,6 +708,43 @@ export default class Portfolio extends React.Component<IPortfolioProps, IPortfol
                 </div>
               </div>
               <div className={classNames(Styles.portTile)}>
+                <div className={classNames(Styles.portTileDataVal)}>
+                  <h5>Data Value (€)</h5>
+                  <div>
+                    {dataValueDataSavingsKPI !== '-' || dataValueDataRevenueKPI !== '-' ? (
+                      <div>
+                        <span>
+                          <span className={classNames(Styles.dataValFieldName)}>Savings:&nbsp;</span>
+                          {dataValueDataSavingsKPI !== '-' ? DataFormater(parseFloat(dataValueDataSavingsKPI)) : null}
+                        </span>
+                        <span>
+                          <span className={classNames(Styles.dataValFieldName)}>Revenue:&nbsp;</span>
+                          {dataValueDataRevenueKPI !== '-' ? DataFormater(parseFloat(dataValueDataRevenueKPI)) : null}
+                        </span>
+                      </div>
+                    ) : (
+                      <div>
+                        {dataValueDataKPILoader ? (
+                          <div className={classNames(Styles.KPILoader)}>
+                            <div className="progress infinite"></div>
+                          </div>
+                        ) : (
+                          <div className={Styles.noDataMessage}>-</div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </div>
+                {/* <div className={classNames(Styles.portNavMore)}>
+                  <label className="hidden">
+                    <i className="icon mbc-icon listItem context" />
+                  </label>
+                  <label className={classNames(Styles.portNav)}>
+                    <i className="icon mbc-icon arrow small right" />
+                  </label>
+                </div> */}
+              </div>
+              <div className={classNames(Styles.portTile)}>
                 <div className={classNames(Styles.portTileVal)}>
                   <h5> Solutions Count </h5>
                   <span>
@@ -627,34 +768,6 @@ export default class Portfolio extends React.Component<IPortfolioProps, IPortfol
                     <i className="icon mbc-icon listItem context" />
                   </label>
                   <label className={classNames(Styles.portNav)} onClick={this.onSummaryKpiBtnClick}>
-                    <i className="icon mbc-icon arrow small right" />
-                  </label>
-                </div>
-              </div>
-              <div className={classNames(Styles.portTile)}>
-                <div className={classNames(Styles.portTileVal)}>
-                  <h5>Solutions using DnA Notebook</h5>
-                  <span>
-                    {dnaNotebooksDataKPI !== '-' ? (
-                      new Intl.NumberFormat(navigator.language).format(Number(dnaNotebooksDataKPI))
-                    ) : (
-                      <div>
-                        {dnaNotebooksDataKPILoader ? (
-                          <div className={Styles.KPILoader}>
-                            <div className="progress infinite"></div>
-                          </div>
-                        ) : (
-                          <div className={Styles.noDataMessage}>-</div>
-                        )}
-                      </div>
-                    )}
-                  </span>
-                </div>
-                <div className={classNames(Styles.portNavMore)}>
-                  <label className="hidden">
-                    <i className="icon mbc-icon listItem context" />
-                  </label>
-                  <label className={classNames(Styles.portNav)} onClick={this.onSummaryNotebookBtnClick}>
                     <i className="icon mbc-icon arrow small right" />
                   </label>
                 </div>
@@ -699,6 +812,34 @@ export default class Portfolio extends React.Component<IPortfolioProps, IPortfol
                       )}
                     </section>
                   </div>
+                  <div id="dataValueWidget" className={Styles.widgetWrapper}>
+                    <header>
+                      <h1 className={Styles.widgetTitle}>Data Value</h1>
+                      <span className="sub-title-text">in €</span>
+                      <section>
+                        {newDataValueChartData.length ? (
+                          <StackedBarChartWidget
+                            data={newDataValueChartData}
+                            xAxisLabel="Year"
+                            yAxisLabel="Value"
+                            tooltipContentComponent={StackedBarChartTooltipDataValue}
+                          />
+                        ) : (
+                          <div>
+                            {showDataValueLoader ? (
+                              <div className={Styles.widgetLoader}>
+                                <div className="progress infinite"></div>
+                              </div>
+                            ) : (
+                              <div className={Styles.noDataMessage}>Data Not Available...</div>
+                            )}
+                          </div>
+                        )}
+                      </section>
+                    </header>
+                  </div>
+                </div>
+                <div className={classNames(Styles.widgetsConatinaer, Styles.divider)}>
                   <div id="milestonesWidget" className={Styles.widgetWrapper}>
                     <header>
                       <h1 className={Styles.widgetTitle}>Milestones</h1>
@@ -726,8 +867,6 @@ export default class Portfolio extends React.Component<IPortfolioProps, IPortfol
                       )}
                     </section>
                   </div>
-                </div>
-                <div className={classNames(Styles.widgetsConatinaer, Styles.divider)}>
                   <div id="dataSourcesWidget" className={Styles.widgetWrapper}>
                     <header>
                       <h1 className={Styles.widgetTitle}>Data Sources</h1>
@@ -755,6 +894,8 @@ export default class Portfolio extends React.Component<IPortfolioProps, IPortfol
                       )}
                     </section>
                   </div>
+                </div>
+                <div className={classNames(Styles.widgetsConatinaer, Styles.divider)}>
                   <div id="locationsWidget" className={Styles.widgetWrapper}>
                     <header>
                       <h1 className={Styles.widgetTitle}>Locations</h1>

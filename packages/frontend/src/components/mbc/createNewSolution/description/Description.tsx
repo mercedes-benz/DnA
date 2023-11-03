@@ -283,10 +283,12 @@ export default class Description extends React.Component<IDescriptionProps, IDes
     const description = this.props.description;
     description.expectedBenefits = expectedBenefits;
     // this.props.onStateChange();
-    if (expectedBenefits === '' || expectedBenefits === null) {
-      this.setState({ expectedBenefitsError: '*Missing Entry' });
-    } else {
-      this.setState({ expectedBenefitsError: '' });
+    if (!this.props.isGenAI) {
+      if (expectedBenefits === '' || expectedBenefits === null) {
+        this.setState({ expectedBenefitsError: '*Missing Entry' });
+      } else {
+        this.setState({ expectedBenefitsError: '' });
+      }
     }
     this.setState({
       expectedBenefits,
@@ -332,28 +334,28 @@ export default class Description extends React.Component<IDescriptionProps, IDes
       division.id = selectedOptions[0].value;
       division.name = selectedOptions[0].label;
 
-      if (division.id !== '0' && division.id !== this.state.divisionValue.id) {
-        ProgressIndicator.show();
-
-        ApiClient.getSubDivisions(division.id).then((subDivisions) => {
-          if (!subDivisions.length) {
-            subDivisions = [{ id: '0', name: 'None' }];
-          }
-          this.setState(
-            {
-              subDivisions,
-            },
-            () => {
-              ProgressIndicator.hide();
-              SelectBox.defaultSetup();
-            },
-          );
-        });
+      if (division.id !== this.state.divisionValue.id) {
+        if (division.id !== '0') {
+          ProgressIndicator.show();
+          ApiClient.getSubDivisions(division.id).then((subDivisions) => {
+            if (!subDivisions.length) {
+              subDivisions = [{ id: '0', name: 'None' }];
+            }
+            this.setState(
+              {
+                subDivisions,
+              },
+              () => {
+                ProgressIndicator.hide();
+                SelectBox.defaultSetup();
+              },
+            );
+          });
+        }
         description.division = division;
         this.setState({ divisionValue: division });
       }
     }
-
   };
 
   public onSubDivisionChange = (e: React.FormEvent<HTMLSelectElement>) => {
@@ -375,7 +377,7 @@ export default class Description extends React.Component<IDescriptionProps, IDes
     // this.props.onStateChange();
     if (selectedOptions.length) {
       Array.from(selectedOptions).forEach((option) => {
-        const location: ILocation = { id: null, name: null, };
+        const location: ILocation = { id: null, name: null };
         location.id = option.value;
         location.name = option.label;
         selectedValues.push(location);
@@ -517,8 +519,8 @@ export default class Description extends React.Component<IDescriptionProps, IDes
 
     const relatedProductValues = this.state.relatedProductValue
       ? this.state.relatedProductValue.map((relatedProduct: string) => {
-        return relatedProduct;
-      })
+          return relatedProduct;
+        })
       : [];
     const dataStrategyDomainValue = this.state.dataStrategyDomain;
     const businessGoalValue = this.state.businessGoal;
@@ -555,19 +557,19 @@ export default class Description extends React.Component<IDescriptionProps, IDes
           show={this.state.showGenAIWarningModal}
           content={
             <div id="contentparentdiv">
-              {this.props.id && this.props.id?.length > 0 ?
+              {this.props.id && this.props.id?.length > 0 ? (
                 <>
-                  Solution already created. Adding GenAI tags to this solution is not allowed.
-                  Press  &#187;Navigate to GenAI&#187; to create a new solution with GenAI tagging.
-                  (Please note: the current solution will also be retained. Delete it if it's no longer needed.)
+                  Solution already created. Adding GenAI tags to this solution is not allowed. Press &#187;Navigate to
+                  GenAI&#187; to create a new solution with GenAI tagging. (Please note: the current solution will also
+                  be retained. Delete it if it's no longer needed.)
                 </>
-                :
+              ) : (
                 <>
-                  Press  &#187;Navigate to GenAI &#187; to create a new solution with GenAI tagging.
+                  Press &#187;Navigate to GenAI &#187; to create a new solution with GenAI tagging.
                   <br />
                   Details entered here will be lost. Are you sure you want to proceed?
                 </>
-              }
+              )}
               <br />
               &#187;Cancel &#187; to remove the GenAI tag.
             </div>
@@ -846,7 +848,7 @@ export default class Description extends React.Component<IDescriptionProps, IDes
                           <div
                             id="relatedProductContainer"
                             className={classNames('input-field-group')}
-                          // className={classNames('input-field-group', relatedProductsError.length ? 'error' : '')}
+                            // className={classNames('input-field-group', relatedProductsError.length ? 'error' : '')}
                           >
                             <label id="relatedProductLable" className="input-label" htmlFor="relatedProductSelect">
                               Related Products
@@ -940,7 +942,7 @@ export default class Description extends React.Component<IDescriptionProps, IDes
                     rows={50}
                     value={this.state.expectedBenefits}
                     errorText={expectedBenefitsError}
-                    required={true}
+                    required={!this.props.isGenAI}
                     onChange={this.onBenefitChange}
                   />
                 </div>
@@ -964,7 +966,11 @@ export default class Description extends React.Component<IDescriptionProps, IDes
                         setTags={this.setTags}
                         isMandatory={false}
                         showMissingEntryError={this.state.showTagsMissingError}
-                        fixedChips={this.props.isGenAI ? [...SOLUTION_FIXED_TAGS, ...SOLUTION_FIXED_TAGS.map(tag => tag.toLowerCase())] : []}
+                        fixedChips={
+                          this.props.isGenAI
+                            ? [...SOLUTION_FIXED_TAGS, ...SOLUTION_FIXED_TAGS.map((tag) => tag.toLowerCase())]
+                            : []
+                        }
                         {...this.props}
                       />
                     </div>
@@ -1070,7 +1076,7 @@ export default class Description extends React.Component<IDescriptionProps, IDes
       formValid = false;
     }
 
-    if (!this.state.divisionValue || this.state.divisionValue.id === '0') {
+    if (!this.state.divisionValue || this.state.divisionValue.id === '0' || this.state.divisionValue.id === '') {
       this.setState({ divisionError: errorMissingEntry });
       formValid = false;
     }
@@ -1121,9 +1127,11 @@ export default class Description extends React.Component<IDescriptionProps, IDes
       formValid = false;
     }
 
-    if (!this.state.expectedBenefits || this.state.expectedBenefits === '') {
-      this.setState({ expectedBenefitsError: errorMissingEntry });
-      formValid = false;
+    if (!this.props.isGenAI) {
+      if (!this.state.expectedBenefits || this.state.expectedBenefits === '') {
+        this.setState({ expectedBenefitsError: errorMissingEntry });
+        formValid = false;
+      }
     }
     // if (!this.props.description.tags || !this.props.description.tags.length) {
     //   this.setState({ showTagsMissingError: true });
@@ -1148,7 +1156,7 @@ export default class Description extends React.Component<IDescriptionProps, IDes
     const description = this.props.description;
     if (!this.props.isGenAI && arr && isSolutionFixedTagIncludedInArray(arr)) {
       this.setState({ showGenAIWarningModal: true });
-      description.tags = arr.filter(tag => !isSolutionFixedTagIncluded(tag)) || [];
+      description.tags = arr.filter((tag) => !isSolutionFixedTagIncluded(tag)) || [];
     } else {
       description.tags = arr;
     }

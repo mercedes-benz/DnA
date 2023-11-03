@@ -404,6 +404,44 @@ paths:
           description: "Method not allowed"
         500:
           description: "Internal error"
+
+  /solutions/{id}/reassignOwner:
+    patch:
+      tags:
+        - "solutions"
+      summary: "Reassigining the owner from the list of collaborators."
+      description: "Reassigining the owner from the list of collaborators."
+      operationId: "reassignOwner"
+      parameters:
+        - name: id
+          in: path
+          description: "Solution ID to be fetched"
+          required: true
+          type: string
+        - name: "UserDto"
+          in: "body"
+          description: "User to added as Owner"
+          required: true
+          schema:
+            $ref: "#/definitions/CreatedByVO"
+      responses:
+        201:
+          description: "Returns message of success or failure"
+          schema:
+            $ref: "#/definitions/GenericMessage"
+        204:
+          description: "Fetch complete, no content found."
+        400:
+          description: "Bad request."
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
+
 definitions:
   TransparencyVO:
     type: object
@@ -455,7 +493,7 @@ definitions:
       expectedBenefits:
         type: string
         description: "Expected benefits from Solution"
-        minLength: 1
+        # minLength: 1
       #     pattern: '^[^\W_]+(?: [^\W_]+)*$'
       tags:
         type: array
@@ -548,7 +586,7 @@ definitions:
       - productName
       - description
       - businessNeed
-      - expectedBenefits
+      #- expectedBenefits
       #- tags
       - projectStatus
       - locations
@@ -1450,5 +1488,5 @@ definitions:
       requestedFTECount:
         type: number
         minimum: 0
-        description: "Number of FTE requested for the needed Role."     
+        description: "Number of FTE requested for the needed Role."
     

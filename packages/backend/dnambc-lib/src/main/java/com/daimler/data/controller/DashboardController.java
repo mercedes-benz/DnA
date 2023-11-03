@@ -31,6 +31,7 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import javax.validation.Valid;
@@ -54,6 +55,9 @@ import com.daimler.data.dto.dashboard.LocationWidgetVO;
 import com.daimler.data.dto.dashboard.MilestoneWidgetVO;
 import com.daimler.data.dto.dashboard.SolCountWidgetResponseVO;
 import com.daimler.data.dto.dashboard.SolDSWidgetResponseVO;
+import com.daimler.data.dto.dashboard.SolDataValueSummaryResponseVO;
+import com.daimler.data.dto.dashboard.SolDataValueSummaryVO;
+import com.daimler.data.dto.dashboard.SolDataValueWidgetResponseVO;
 import com.daimler.data.dto.dashboard.SolDigitalValueWidgetResponseVO;
 import com.daimler.data.dto.dashboard.SolDigitalValuesummaryResponseVO;
 import com.daimler.data.dto.dashboard.SolDigitalValuesummaryVO;
@@ -494,6 +498,127 @@ public class DashboardController implements DashboardApi {
 		} catch (Exception e) {
 			LOGGER.error("Internal server error occured::{}", e.getMessage());
 			SolDigitalValuesummaryResponseVO resVO = new SolDigitalValuesummaryResponseVO();
+			List<MessageDescription> errors = Arrays.asList(new MessageDescription(e.getMessage()));
+			resVO.setErrors(errors);
+			return new ResponseEntity<>(resVO, HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
+
+	@Override
+	@ApiOperation(value = "Get Data values.", nickname = "getDataValueDetails", notes = "Get Data Value details of solution with given filter.", response = SolDataValueWidgetResponseVO.class, tags={ "dashboard", })
+    @ApiResponses(value = { 
+        @ApiResponse(code = 200, message = "Returns message of success or failure.", response = SolDataValueWidgetResponseVO.class),
+        @ApiResponse(code = 400, message = "Bad request."),
+        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+        @ApiResponse(code = 403, message = "Request is not authorized."),
+        @ApiResponse(code = 404, message = "Invalid id, record not found."),
+        @ApiResponse(code = 500, message = "Internal error.") })
+    @RequestMapping(value = "/dashboard/datavalue",
+        method = RequestMethod.GET)
+	public ResponseEntity<SolDataValueWidgetResponseVO> getDataValueDetails(
+			@ApiParam(value = "Filtering solutions based on publish state. Draft or published, values true or false") @Valid @RequestParam(value = "published", required = false) Boolean published,
+			@ApiParam(value = "List of IDs of locations of solutions, seperated by comma. Example 1,2,3") @Valid @RequestParam(value = "location", required = false) String location,
+			@ApiParam(value = "List of IDs of divisions and subdivisions under each division of solutions. Example [{1,[2,3]},{2,[1]},{3,[4,5]}]") @Valid @RequestParam(value = "division", required = false) String division,
+			@ApiParam(value = "List of IDs of current phase of solutions, seperated by comma. Example 1,2,3") @Valid @RequestParam(value = "phase", required = false) String phase,
+			@ApiParam(value = "List of IDs of dataVolume of dataSources for solutions, seperated by comma. Example 1,2,3") @Valid @RequestParam(value = "dataVolume", required = false) String dataVolume,
+			@ApiParam(value = "ID of current project status of solutions, Example 1") @Valid @RequestParam(value = "projectstatus", required = false) String projectstatus,
+			@ApiParam(value = "ID of useCaseType of solutions. 1.MyBookmarks or 2.MySolutions , Example 1", allowableValues = "1, 2") @Valid @RequestParam(value = "useCaseType", required = false) String useCaseType,
+			@ApiParam(value = "searchTerm to filter solutions. SearchTerm is comma seperated search keywords which are used to search Tags and ProductName of solutions. Example \"BAT, java\"") @Valid @RequestParam(value = "searchTerm", required = false) String searchTerm,
+			@ApiParam(value = "tags to filter solutions. tags is comma seperated search keywords which are used to search Tags and ProductName of solutions. Example \"BAT, java\"") @Valid @RequestParam(value = "tags", required = false) String tags) 
+			{
+				try {
+					Boolean isAdmin = false;
+					CreatedByVO currentUser = this.userStore.getVO();
+					String userId = currentUser != null ? currentUser.getId() : null;
+					List<String> bookmarkedSolutions = new ArrayList<>();
+					List<String> divisionsAdmin = new ArrayList<>();
+					if (userId != null && !"".equalsIgnoreCase(userId)) {
+						UserInfoVO userInfoVO = userInfoService.getById(userId);
+						if (userInfoVO != null) {
+							List<UserRoleVO> userRoles = userInfoVO.getRoles();
+							if (userRoles != null && !userRoles.isEmpty()) {
+								isAdmin = userRoles.stream().anyMatch(role -> "admin".equalsIgnoreCase(role.getName()));
+								divisionsAdmin = userInfoVO.getDivisionAdmins();
+							}
+							List<UserFavoriteUseCaseVO> favSolutions = userInfoVO.getFavoriteUsecases();
+							if (favSolutions != null && !favSolutions.isEmpty())
+								bookmarkedSolutions = favSolutions.stream().map(n -> n.getUsecaseId())
+										.collect(Collectors.toList());
+						}
+					}
+					List<BigDecimal> totalDataValue = dashboardService.getSolDataValue(published, assembler.toList(phase),
+							assembler.toList(dataVolume), division, assembler.toList(location), assembler.toList(projectstatus),
+							useCaseType, userId, isAdmin, bookmarkedSolutions, assembler.toList(searchTerm),
+							assembler.toList(tags), divisionsAdmin);
+					SolDataValueWidgetResponseVO responseVO = new SolDataValueWidgetResponseVO();
+					if(Objects.nonNull(totalDataValue) && totalDataValue.size() > 0) {
+						responseVO.setTotalDataValueRevenue(totalDataValue.get(0));
+						responseVO.setTotalDataValueSavings(totalDataValue.get(1));
+					}					
+//					responseVO.setTotalDataValue(totalDataValue);
+					return new ResponseEntity<>(responseVO, HttpStatus.OK);
+				}
+				catch(Exception e) {
+					LOGGER.error("Internal server error occured while getting data value sum::{}", e.getMessage());
+					SolDataValueWidgetResponseVO responseVO = new SolDataValueWidgetResponseVO();
+					List<MessageDescription> errors = Arrays.asList(new MessageDescription(e.getMessage()));
+					responseVO.setErrors(errors);
+					return new ResponseEntity<>(responseVO, HttpStatus.INTERNAL_SERVER_ERROR);
+				}				
+			}
+
+	@Override
+	@ApiOperation(value = "Get summary of Data values.", nickname = "getDataValuesummary", notes = "Get Data Value summary of solution with given filter.", response = SolDataValueSummaryResponseVO.class, tags={ "dashboard", })
+    @ApiResponses(value = { 
+        @ApiResponse(code = 200, message = "Returns message of success or failure.", response = SolDataValueSummaryResponseVO.class),
+        @ApiResponse(code = 400, message = "Bad request."),
+        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+        @ApiResponse(code = 403, message = "Request is not authorized."),
+        @ApiResponse(code = 404, message = "Invalid id, record not found."),
+        @ApiResponse(code = 500, message = "Internal error.") })
+    @RequestMapping(value = "/dashboard/datavaluesummary",
+        method = RequestMethod.GET)
+	public ResponseEntity<SolDataValueSummaryResponseVO> getDataValuesummary(
+			@ApiParam(value = "Filtering solutions based on publish state. Draft or published, values true or false") @Valid @RequestParam(value = "published", required = false) Boolean published,
+			@ApiParam(value = "List of IDs of locations of solutions, seperated by comma. Example 1,2,3") @Valid @RequestParam(value = "location", required = false) String location,
+			@ApiParam(value = "List of IDs of divisions and subdivisions under each division of solutions. Example [{1,[2,3]},{2,[1]},{3,[4,5]}]") @Valid @RequestParam(value = "division", required = false) String division,
+			@ApiParam(value = "List of IDs of current phase of solutions, seperated by comma. Example 1,2,3") @Valid @RequestParam(value = "phase", required = false) String phase,
+			@ApiParam(value = "List of IDs of dataVolume of dataSources for solutions, seperated by comma. Example 1,2,3") @Valid @RequestParam(value = "dataVolume", required = false) String dataVolume,
+			@ApiParam(value = "ID of current project status of solutions, Example 1") @Valid @RequestParam(value = "projectstatus", required = false) String projectstatus,
+			@ApiParam(value = "ID of useCaseType of solutions. 1.MyBookmarks or 2.MySolutions , Example 1", allowableValues = "1, 2") @Valid @RequestParam(value = "useCaseType", required = false) String useCaseType,
+			@ApiParam(value = "searchTerm to filter solutions. SearchTerm is comma seperated search keywords which are used to search Tags and ProductName of solutions. Example \"BAT, java\"") @Valid @RequestParam(value = "searchTerm", required = false) String searchTerm,
+			@ApiParam(value = "tags to filter solutions. tags is comma seperated search keywords which are used to search Tags and ProductName of solutions. Example \"BAT, java\"") @Valid @RequestParam(value = "tags", required = false) String tags) {
+		try {
+			Boolean isAdmin = false;
+			CreatedByVO currentUser = this.userStore.getVO();
+			String userId = currentUser != null ? currentUser.getId() : null;
+			List<String> bookmarkedSolutions = new ArrayList<>();
+			List<String> divisionsAdmin = new ArrayList<>();
+			if (userId != null && !"".equalsIgnoreCase(userId)) {
+				UserInfoVO userInfoVO = userInfoService.getById(userId);
+				if (userInfoVO != null) {
+					List<UserRoleVO> userRoles = userInfoVO.getRoles();
+					if (userRoles != null && !userRoles.isEmpty()) {
+						isAdmin = userRoles.stream().anyMatch(role -> "admin".equalsIgnoreCase(role.getName()));
+						divisionsAdmin = userInfoVO.getDivisionAdmins();
+					}
+					List<UserFavoriteUseCaseVO> favSolutions = userInfoVO.getFavoriteUsecases();
+					if (favSolutions != null && !favSolutions.isEmpty())
+						bookmarkedSolutions = favSolutions.stream().map(n -> n.getUsecaseId())
+								.collect(Collectors.toList());
+				}
+			}
+
+			List<SolDataValueSummaryVO> solDataValuesummaryVO = dashboardService.getSolDataValueSummary(
+					published, assembler.toList(phase), assembler.toList(dataVolume), division,
+					assembler.toList(location), assembler.toList(projectstatus), useCaseType, userId, isAdmin,
+					bookmarkedSolutions, assembler.toList(searchTerm), assembler.toList(tags), divisionsAdmin);
+			SolDataValueSummaryResponseVO resVO = new SolDataValueSummaryResponseVO();
+			resVO.setSolDataValueSummary(solDataValuesummaryVO);
+			return new ResponseEntity<>(resVO, HttpStatus.OK);
+		} catch (Exception e) {
+			LOGGER.error("Internal server error occured while getting data value details::{}", e.getMessage());
+			SolDataValueSummaryResponseVO resVO = new SolDataValueSummaryResponseVO();
 			List<MessageDescription> errors = Arrays.asList(new MessageDescription(e.getMessage()));
 			resVO.setErrors(errors);
 			return new ResponseEntity<>(resVO, HttpStatus.INTERNAL_SERVER_ERROR);
