@@ -355,6 +355,8 @@ export const isValidGITRepoUrl = (str: string, isPublicRecipeChoosen: boolean) =
 export const recipesMaster = [
   { id: 'default', resource: '2Gi,1000Mi,500m,2000Mi,1000m', name: 'Plain or Empty (Debian 11 OS, 2GB RAM, 1CPU)', repodetails: '' },
   { id: 'springboot', resource: '2Gi,1000Mi,500m,2000Mi,1000m', name: 'Microservice using Spring Boot (Debian 11 OS, 2GB RAM, 1CPU)' },
+  { id: 'quarkus', resource: '2Gi,1000Mi,500m,2000Mi,1000m', name: 'Microservice using QUARKUS (Debian 11 OS, 2GB RAM, 1CPU)' },
+  { id: 'micronaut', resource: '2Gi,1000Mi,500m,2000Mi,1000m', name: 'Microservice using MICRONAUT (Debian 11 OS, 2GB RAM, 1CPU)' },
   { id: 'py-fastapi', resource: '2Gi,1000Mi,500m,2000Mi,1000m', name: 'Microservice using Python FastAPI (Debian 11 OS, 2GB RAM, 1CPU)' },
   { id: 'react', resource: '4Gi,2000Mi,500m,4000Mi,1000m', name: 'React SPA (Debian 11 OS, 2GB RAM, 1CPU)' },
   { id: 'angular', resource: '4Gi,2000Mi,500m,4000Mi,1000m', name: 'Angular SPA (Debian 11 OS, 2GB RAM, 1CPU)' },
