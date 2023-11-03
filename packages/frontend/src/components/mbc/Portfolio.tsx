@@ -735,14 +735,14 @@ export default class Portfolio extends React.Component<IPortfolioProps, IPortfol
                     )}
                   </div>
                 </div>
-                <div className={classNames(Styles.portNavMore)}>
+                {/* <div className={classNames(Styles.portNavMore)}>
                   <label className="hidden">
                     <i className="icon mbc-icon listItem context" />
                   </label>
                   <label className={classNames(Styles.portNav)}>
                     <i className="icon mbc-icon arrow small right" />
                   </label>
-                </div>
+                </div> */}
               </div>
               <div className={classNames(Styles.portTile)}>
                 <div className={classNames(Styles.portTileVal)}>
