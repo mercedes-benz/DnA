@@ -5,11 +5,12 @@
   .wrapper {
     background: #252a33;
     padding: 25px 0;
+    margin-bottom: 15px;
     flex: 1 auto;
 
     h3 {
       padding: 0 38px;
-      font-size: var(--font-size-default);
+      font-size: var(--font-size-headline-medium);
     }
   }
 
