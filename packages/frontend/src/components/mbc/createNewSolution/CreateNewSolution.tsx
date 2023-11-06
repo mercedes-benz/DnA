@@ -1068,7 +1068,12 @@ export default class CreateNewSolution extends React.Component<ICreateNewSolutio
   };
 
   protected onPublish = () => {
-    this.setState({ publishFlag: true }, () => {
+    this.setState({
+    publishFlag: true,
+    solution: {
+      ...this.state.solution,
+      publish: true
+    } }, () => {
       this.callApiToSave(true, null);
     });
   };
