@@ -1134,6 +1134,8 @@ export default class Milestones extends React.Component<IMilestonesProps, IMileS
 
         this.setState({
           milestones,
+        },()=>{
+          this.validateMilestones(milestones);
         });
       }
     };
@@ -1236,6 +1238,8 @@ export default class Milestones extends React.Component<IMilestonesProps, IMileS
 
         this.setState({
           milestones,
+        },()=>{
+          this.validateMilestones(milestones);
         });
       }
     };
