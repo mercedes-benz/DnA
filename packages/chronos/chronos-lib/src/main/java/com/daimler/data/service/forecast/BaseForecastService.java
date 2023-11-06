@@ -282,7 +282,7 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 				newRunState.setUser_cancelled_or_timedout(false);
 				currentRun.setRunState(newRunState);
 				currentRun.setResultFolderPath(resultFolder);
-				currentRun.setInfotext(infotext);
+				currentRun.setInfotext(chronosVersion);
 				runNowResponse.setResultFolderPath(resultFolder);;
 				existingRuns.add(currentRun);
 				entity.getData().setRuns(existingRuns);
