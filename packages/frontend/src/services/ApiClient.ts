@@ -512,7 +512,7 @@ export class ApiClient {
   }
 
   public static transferSolutionOwner(userObj: any, solutionId: string): Promise<any> {
-    return this.patch(`solutions/${solutionId}/reassignOwner/${userObj.shortId}`,userObj);
+    return this.patch(`solutions/${solutionId}/reassignOwner`,userObj);
   }
 
   public static getDRDUserInfo(adId: string): Promise<any> {
