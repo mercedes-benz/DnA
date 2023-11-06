@@ -679,7 +679,7 @@ export const GenAILandingPageElements = [
     svgIconId: 'gen-ai',
   },
   {
-    name: 'GenAI Direct Chat',
+    name: 'Mercedes-Benz Direct Chat',
     description:
       'Direct Chat - Your new AI assistant for more efficiency at work.',
     tags: ['Self Service', 'FOSS'],
