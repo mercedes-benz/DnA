@@ -76,11 +76,11 @@ public class DashboardClientImpl implements DashboardClient {
 	@Override
 	public String deleteDivisionFromEachReport(String id) {
 		String status = "";
-		String jwt = httpRequest.getHeader("Authorization");
+		String jwt = httpRequest.getHeader("dna-request-userdetails");
 		HttpHeaders headers = new HttpHeaders();
 		headers.set("Accept", "application/json");
 		headers.set("Content-Type", "application/json");
-		headers.set("Authorization", jwt);
+		headers.set("dna-request-userdetails", jwt);
 		String dashboardUri = dashboardBaseUri + DELETE_DIVISION + id;
 		HttpEntity entity = new HttpEntity<>(headers);
 		ResponseEntity<String> response = restTemplate.exchange(dashboardUri, HttpMethod.DELETE, entity, String.class);

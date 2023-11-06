@@ -779,6 +779,9 @@ definitions:
       mobileNumber:
         type: string
         description: "Mobile number of the user"
+      authToken:
+        type: string
+        description: "Authentication Token of the user"
 
   SolutionProjectStatusVO:
     type: object

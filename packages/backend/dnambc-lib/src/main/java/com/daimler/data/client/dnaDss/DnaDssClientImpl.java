@@ -61,11 +61,11 @@ public class DnaDssClientImpl implements DnaDssClient {
     @Override
     public GenericMessage provisionSolutionToDataikuProject(String projectName, String cloudProfile, String solutionId) {
         GenericMessage dataikuResponse = new GenericMessage();
-        String jwt = httpRequest.getHeader("Authorization");
+        String userinfo = httpRequest.getHeader("dna-request-userdetails");
         HttpHeaders headers = new HttpHeaders();
         headers.set("Accept", "application/json");
         headers.set("Content-Type", "application/json");
-        headers.set("Authorization", jwt);
+        headers.set("dna-request-userdetails", userinfo);
         JSONObject res = null;
 
         // Create a JSON object with the solutionId as a body.

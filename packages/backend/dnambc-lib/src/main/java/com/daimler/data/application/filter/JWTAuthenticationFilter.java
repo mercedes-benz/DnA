@@ -31,6 +31,9 @@ import com.daimler.data.application.auth.UserStore;
 import com.daimler.data.controller.LoginController;
 import com.daimler.data.service.userinfo.UserInfoService;
 import com.daimler.data.util.JWTGenerator;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import io.jsonwebtoken.Claims;
 
 import org.apache.http.HttpResponse;
@@ -52,6 +55,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 @Component
 public class JWTAuthenticationFilter implements Filter {
@@ -74,59 +78,32 @@ public class JWTAuthenticationFilter implements Filter {
 		injectSpringDependecies(servletRequest);
 		HttpServletRequest httpRequest = (HttpServletRequest) servletRequest;
 		String requestUri = httpRequest.getRequestURI();
-		log.debug("Intercepting Request to validate JWT:" + requestUri);
+		log.debug("Intercepting Request to store userinfo:" + requestUri);
 		if (!byPassUrl.contains(requestUri)) {
-			String jwt = httpRequest.getHeader("Authorization");
-			if (!StringUtils.hasText(jwt)) {
-				log.error("Request UnAuthorized,No JWT available");
+			String userinfo = httpRequest.getHeader("dna-request-userdetails");
+			if (!StringUtils.hasText(userinfo)) {
+				log.error("Request UnAuthorized,No userinfo available");
 				forbidResponse(servletResponse);
 				return;
 			} else {
-				Claims claims = JWTGenerator.decodeJWT(jwt);
-				String userId = "";
-				if (claims == null) {
-					log.error("Invalid  JWT!");
-					HttpServletResponse response = (HttpServletResponse) servletResponse;
-					response.reset();
-					response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+
+				try {
+					log.debug(
+							"Request validation successful, set request user details in the store for further access");
+					setUserDetailsToStore(userinfo);
+					servletRequest.setAttribute("userDetails", this.userStore.getUserInfo());
+					filterChain.doFilter(servletRequest, servletResponse);
+				} catch (Exception e) {
+					log.error("Error while storing userDetails {} ", e.getMessage());
+					forbidResponse(servletResponse);
+					this.userStore.clear();
 					return;
-				} else {
-					userId = (String) claims.get("id");
-					if (!oidcDisabled) {
-						if (!StringUtils.hasText(userId)) {
-							forbidResponse(servletResponse);
-							return;
-						} else {
-							try {
-								boolean tokenMappedToUser = userinfoService.validateUserToken(userId, jwt);
-								if (!tokenMappedToUser) {
-									forbidResponse(servletResponse);
-									this.userStore.clear();
-									return;
-								}
-							} catch (Exception e) {
-								log.error("OIDC disabled, failed while authentication {} ", e.getMessage());
-								forbidResponse(servletResponse);
-								this.userStore.clear();
-								return;
-							}
-
-						}
-
-					}
-					try {
-						log.debug(
-								"Request validation successful, set request user details in the store for further access");
-						setUserDetailsToStore(claims);
-						servletRequest.setAttribute("userDetails", this.userStore.getUserInfo());
-						filterChain.doFilter(servletRequest, servletResponse);
-					} finally {
-						// Otherwise when a previously used container thread is used, it will have the
-						// old user id set and
-						// if for some reason this filter is skipped, userStore will hold an unreliable
-						// value
-						this.userStore.clear();
-					}
+				} finally {
+					// Otherwise when a previously used container thread is used, it will have the
+					// old user id set and
+					// if for some reason this filter is skipped, userStore will hold an unreliable
+					// value
+					this.userStore.clear();
 				}
 			}
 		} else {
@@ -136,20 +113,11 @@ public class JWTAuthenticationFilter implements Filter {
 
 	}
 
-	private void setUserDetailsToStore(Claims claims) {
+	private void setUserDetailsToStore(String userinfo) throws JsonProcessingException {
 
-		LoginController.UserInfo user = LoginController.UserInfo.builder().id((String) claims.get("id"))
-				.firstName((String) claims.get("firstName")).lastName((String) claims.get("lastName"))
-				.email((String) claims.get("email")).department((String) claims.get("department"))
-				.mobileNumber((String) claims.get("mobileNumber")).build();
-		List<LinkedHashMap> claimedRoles = (ArrayList) claims.get("digiRole");
-		List<LoginController.UserRole> roles = new ArrayList<>();
-		claimedRoles.forEach(roleMapEntity -> {
-			roles.add(new LoginController.UserRole().builder().id((String) roleMapEntity.get("id"))
-					.name((String) roleMapEntity.get("name")).build());
-		});
-		user.setDigiRole(roles);
-		this.userStore.setUserInfo(user);
+		ObjectMapper objectMapper = new ObjectMapper();
+		LoginController.UserInfo userInfo = objectMapper.readValue(userinfo, new TypeReference<LoginController.UserInfo>() {});
+		this.userStore.setUserInfo(userInfo);
 
 	}
 
