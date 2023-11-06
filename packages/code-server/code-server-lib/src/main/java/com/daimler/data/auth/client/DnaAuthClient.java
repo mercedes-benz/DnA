@@ -31,7 +31,7 @@ import org.json.JSONObject;
 
 public interface DnaAuthClient {
 
-	public JSONObject verifyLogin(String jwt);
+	public JSONObject verifyLogin(String userinfo);
 	
 	public UserInfoVO onboardTechnicalUser(UserRequestVO userRequestVO);
 }
