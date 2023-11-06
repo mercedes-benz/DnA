@@ -49,7 +49,7 @@ public class BaseJMailer implements JMailer {
 	@Value("${dna.notification.senderEmail}")
 	private String senderEmailId;
 
-	@Value("${dna.uri}")
+	@Value("${dna.ui.uri}")
 	private String dnaBaseUri;
 	
 	public BaseJMailer() {
