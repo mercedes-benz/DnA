@@ -114,7 +114,7 @@ export default class AllSolutions extends React.Component<
   // protected isTouch = false;
   constructor(props: any) {
     super(props);
-    this.state = {
+      this.state = {
       phases: [],
       divisions: [],
       subDivisions: [],
@@ -309,7 +309,7 @@ export default class AllSolutions extends React.Component<
     const { openFilterPanel, enablePortfolioSolutionsView } = this.state;
     const isGenAI =
       this.state.queryParams?.tag?.length === 1 ? isSolutionFixedTagIncluded(this.state.queryParams.tag[0]) : false;
-
+      const isDigitalValueContributionEnabled = window.location.href.indexOf('digitalvaluecontribution') !== -1;
     const solutionData = this.state.solutions.map((solution) => {
       return (
         <SolutionListRowItem
@@ -541,7 +541,7 @@ export default class AllSolutions extends React.Component<
                                 Division
                               </label>
                             </th>
-                            {enablePortfolioSolutionsView ? (
+                            {enablePortfolioSolutionsView && isDigitalValueContributionEnabled ? (
                               <th
                                 onClick={this.sortSolutions.bind(null, 'digitalValue', this.state.sortBy.nextSortType)}
                               >
@@ -554,6 +554,10 @@ export default class AllSolutions extends React.Component<
                                   <i className="icon sort" />
                                   Digital Value (€)
                                 </label>
+                              </th>
+                            ) : enablePortfolioSolutionsView ? (
+                              <th>
+                                <label className={'sortable-column-header '}>Value Calculation (€)</label>
                               </th>
                             ) : (
                               <React.Fragment />
