@@ -633,8 +633,19 @@ export class ApiClient {
           name
         },
         digitalValue {
+          typeOfCalculation,
           digitalValue,
-          digitalEffort
+          digitalEffort,
+          dataValueCalculator {
+            savingsValueFactorSummaryVO{
+              year,
+              value
+            },
+            revenueValueFactorSummaryVO{
+              year,
+              value
+            }
+          }
         },
         publish,
         bookmarked,
