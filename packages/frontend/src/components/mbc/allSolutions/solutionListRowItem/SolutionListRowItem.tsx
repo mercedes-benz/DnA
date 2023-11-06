@@ -7,7 +7,7 @@ import LogoImage from 'components/mbc/createNewSolution/description/logoManager/
 import { SOLUTION_LOGO_IMAGE_TYPES } from 'globals/constants';
 import { DataFormater } from '../../../../services/utils';
 import { Envs } from 'globals/Envs';
-import {TOTAL_LOCATIONS_COUNT} from 'globals/constants';
+import { TOTAL_LOCATIONS_COUNT } from 'globals/constants';
 
 const classNames = cn.bind(Styles);
 
@@ -190,49 +190,74 @@ export default class SolutionListRowItem extends React.Component<ISolutionListRo
           <td>{solution.division?.name || 'N/A'}</td>
           {this.props.showDigitalValue ? (
             <td>
-              {solution.digitalValue && solution.digitalValue.digitalValue
-                ? `${DataFormater(solution.digitalValue.digitalValue)}`
-                : 'NA'}
+              {solution.digitalValue &&
+              solution.digitalValue.typeOfCalculation === 'DIGITAL_VALUE' &&
+              solution.digitalValue.digitalValue ? (
+                <span>
+                  <label>Digital Value</label><br/>
+                  {DataFormater(solution.digitalValue.digitalValue)}
+                </span>
+              ) : solution.digitalValue &&
+                solution.digitalValue.typeOfCalculation === 'DATA_VALUE' &&
+                solution.digitalValue.dataValueCalculator ? (
+                <>
+                  <label>Data Value</label>
+                  <br />
+                  <span>
+                    <label>Savings:</label>
+                    {DataFormater(solution.digitalValue.dataValueCalculator.savingsValueFactorSummaryVO.value)}
+                  </span>
+                  <br />
+                  <span>
+                    <label>Revenue:</label>
+                    {DataFormater(solution.digitalValue.dataValueCalculator.revenueValueFactorSummaryVO.value)}
+                  </span>
+                </>
+              ) : (
+                'NA'
+              )}
             </td>
           ) : null}
           <td>
             <div className={Styles.locationDataWrapper}>
-              {locations[0] ? locations.length === TOTAL_LOCATIONS_COUNT ? '' : locations[0] : ''}
-              {locations.length > 1 ? 
-                locations.length == TOTAL_LOCATIONS_COUNT ? 'All' : 
-              (
-                <div
-                  className={classNames(
-                    Styles.contextMenu,
-                    Styles.locations,
-                    this.state.showLocationsContextMenu ? Styles.open : '',
-                  )}
-                >
-                  <span
-                    onClick={this.toggleLocationsContextMenu}
-                    className={classNames('trigger', Styles.contextMenuTrigger)}
-                  >
-                    <i className="icon mbc-icon listItem context elipse" />
-                  </span>
+              {locations[0] ? (locations.length === TOTAL_LOCATIONS_COUNT ? '' : locations[0]) : ''}
+              {locations.length > 1 ? (
+                locations.length == TOTAL_LOCATIONS_COUNT ? (
+                  'All'
+                ) : (
                   <div
-                    style={{
-                      top: this.state.contextMenuOffsetTop + 'px',
-                      left: this.state.contextMenuOffsetRight + 'px',
-                      right: 'auto',
-                    }}
                     className={classNames(
-                      'contextMenuWrapper',
+                      Styles.contextMenu,
                       Styles.locations,
-                      this.state.showLocationsContextMenu ? '' : 'hide',
+                      this.state.showLocationsContextMenu ? Styles.open : '',
                     )}
                   >
-                    <ul className="contextList mbc-scroll sub">
-                      <li className="contextListItem">
-                        <p className="locationsText">{locations.length ? locations.join(', ') : ''}</p>
-                      </li>
-                    </ul>
+                    <span
+                      onClick={this.toggleLocationsContextMenu}
+                      className={classNames('trigger', Styles.contextMenuTrigger)}
+                    >
+                      <i className="icon mbc-icon listItem context elipse" />
+                    </span>
+                    <div
+                      style={{
+                        top: this.state.contextMenuOffsetTop + 'px',
+                        left: this.state.contextMenuOffsetRight + 'px',
+                        right: 'auto',
+                      }}
+                      className={classNames(
+                        'contextMenuWrapper',
+                        Styles.locations,
+                        this.state.showLocationsContextMenu ? '' : 'hide',
+                      )}
+                    >
+                      <ul className="contextList mbc-scroll sub">
+                        <li className="contextListItem">
+                          <p className="locationsText">{locations.length ? locations.join(', ') : ''}</p>
+                        </li>
+                      </ul>
+                    </div>
                   </div>
-                </div>
+                )
               ) : null}
             </div>
           </td>

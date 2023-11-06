@@ -64,8 +64,10 @@
     border-radius: 2px;
     margin-left: 15px;
   }
-  .digitalValue {
-    margin-left: 15px;
+  label{
+    color: #697582;
+    font-size: smaller;
+    margin-bottom: 0rem;
   }
   .solStatus {
     font-size: var(--font-size-default);
