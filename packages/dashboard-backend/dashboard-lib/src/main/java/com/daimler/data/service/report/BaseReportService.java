@@ -1205,6 +1205,17 @@ public class BaseReportService extends BaseCommonService<ReportVO, ReportNsql, S
 			String publishingUserId = "dna_system";
 			String publishingUserName = "";
 			String eventMessage = "";
+			String currentUserId = "dna_system";
+			String currentUserName = "";
+			CreatedByVO currentUser = this.userStore.getVO();
+			if(currentUser != null) {
+				currentUserId = currentUser != null ? currentUser.getId() : null;
+				currentUserName = currentUser.getFirstName() + " "
+						+ currentUser.getLastName();
+				if (currentUserName == null || "".equalsIgnoreCase(currentUserName))
+					currentUserName = currentUserId;
+			}
+			
 			if (vo.getCreatedBy() != null) {
 				publishingUserId = vo.getCreatedBy().getId();
 				publishingUserName = vo.getCreatedBy().getFirstName() + " "
@@ -1223,15 +1234,15 @@ public class BaseReportService extends BaseCommonService<ReportVO, ReportNsql, S
 						+ publishingUserName;
 				LOGGER.info("Published successfully event {} for report {} with message {}", eventType,
 						resourceID, eventMessage);
+				kafkaProducer.send(eventType, resourceID, "", publishingUserId, eventMessage, true,
+						teamMembersIds, teamMembersEmails, null);
 			}
 			if ("Dashboard-Report Delete".equalsIgnoreCase(eventType)) {
 				eventMessage = "Dashboard report " + reportName + " has been deleted by "
-						+ publishingUserName;
+						+ currentUserName;
 				LOGGER.info("Published successfully event {} for report {} with message {}", eventType,
 						resourceID, eventMessage);
-			}
-			if (eventType != null && eventType != "") {
-				kafkaProducer.send(eventType, resourceID, "", publishingUserId, eventMessage, true,
+				kafkaProducer.send(eventType, resourceID, "", currentUserId, eventMessage, true,
 						teamMembersIds, teamMembersEmails, null);
 			}
 		} catch (Exception e) {
