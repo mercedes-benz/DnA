@@ -33,7 +33,7 @@ import com.daimler.data.dto.userinfo.UsersCollection;
 
 public interface DnaAuthClient {
 
-	public JSONObject verifyLogin(String jwt);
+	public JSONObject verifyLogin(String userinfo);
 
 	public UsersCollection getAllUsers();
 }
