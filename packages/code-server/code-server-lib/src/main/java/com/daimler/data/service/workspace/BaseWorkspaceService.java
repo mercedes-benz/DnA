@@ -926,6 +926,8 @@ public class BaseWorkspaceService implements WorkspaceService {
 			String pythonRecipeId =  RecipeIdEnum.PY_FASTAPI.toString();
 			String reactRecipeId = RecipeIdEnum.REACT.toString();
 			String angularRecipeId =  RecipeIdEnum.ANGULAR.toString();
+			String quarkusRecipeId =  RecipeIdEnum.QUARKUS.toString();
+			String micronautRecipeId =  RecipeIdEnum.MICRONAUT.toString();
 			String publicDnABackendRecipeId = RecipeIdEnum.PUBLIC_DNA_BACKEND.toString();
 			String publicDnaFrontendRecipeId = RecipeIdEnum.PUBLIC_DNA_FRONTEND.toString();
 			String publicDnaAirflowBackendRecipeId = RecipeIdEnum.PUBLIC_DNA_AIRFLOW_BACKEND.toString();
@@ -1016,7 +1018,10 @@ public class BaseWorkspaceService implements WorkspaceService {
 				 }
 				 if(reactRecipeId.equalsIgnoreCase(projectRecipe) || angularRecipeId.equalsIgnoreCase(projectRecipe)) {
 					 deploymentUrl = codeServerBaseUri+"/"+projectOwnerWsId+"/"+ targetEnv + "/";
-				 }				 
+				 }
+				 if(quarkusRecipeId.equalsIgnoreCase(projectRecipe)) {
+					 deploymentUrl = codeServerBaseUri+"/"+projectOwnerWsId+"/"+ targetEnv +"/q/swagger-ui";
+				 }
 				 String environmentJsonbName = "intDeploymentDetails";
 				 CodeServerDeploymentDetails deploymentDetails = new CodeServerDeploymentDetails();
 				 if("int".equalsIgnoreCase(targetEnv)) {
