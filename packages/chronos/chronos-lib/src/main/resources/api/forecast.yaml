@@ -1615,7 +1615,7 @@ definitions:
       exogenData:
         type: boolean
         description: "flag to check if exogenous data is present"
-      chronosVersion:
+      infotext:
         type: string
         description: "Text field to denote Chronos Version"
       isDeleted:
