@@ -8,7 +8,7 @@ import { history } from '../../../..//router/History';
 import { attachEllipsis } from '../../../../services/utils';
 import { Envs } from 'globals/Envs';
 import { DataFormater } from '../../../../services/utils';
-import {TOTAL_LOCATIONS_COUNT} from 'globals/constants';
+import { TOTAL_LOCATIONS_COUNT } from 'globals/constants';
 
 const classNames = cn.bind(Styles);
 
@@ -156,42 +156,42 @@ const SolutionCardItem = (props: ISolutionCardItemProps) => {
           <div className={Styles.solTitle}>{solution.productName}</div>
         </div> */}
         <div className={Styles.solTitleDiv}>
-        <div className={Styles.solTitle}>{solution.productName}</div>
+          <div className={Styles.solTitle}>{solution.productName}</div>
         </div>
         <div className={classNames(Styles.contextMenu, showContextMenu ? Styles.open : '')}>
-            <span onClick={toggleContextMenu} className={classNames('trigger', Styles.contextMenuTrigger)}>
-              <i className="icon mbc-icon listItem context" />
-            </span>
-            <div
-              style={{
-                top: contextMenuOffsetTop + 'px',
-                left: contextMenuOffsetLeft + 'px',
-              }}
-              className={classNames('contextMenuWrapper', showContextMenu ? '' : 'hide')}
-            >
-              <ul className="contextList">
-                {props.bookmarked ? (
-                  <li className="contextListItem">
-                    <span onClick={removeFromBookmarks}>Remove from My Bookmarks</span>
-                  </li>
-                ) : (
-                  <li className="contextListItem">
-                    <span onClick={addToBookmarks}>Add to My Bookmarks</span>
-                  </li>
-                )}
-                {props.canEdit && (
-                  <li className="contextListItem">
-                    <span onClick={onEditSolution}>Edit Solution</span>
-                  </li>
-                )}
-                {props.canEdit && (
-                  <li className="contextListItem">
-                    <span onClick={onDeleteSolution}>Delete Solution</span>
-                  </li>
-                )}
-              </ul>
-            </div>
+          <span onClick={toggleContextMenu} className={classNames('trigger', Styles.contextMenuTrigger)}>
+            <i className="icon mbc-icon listItem context" />
+          </span>
+          <div
+            style={{
+              top: contextMenuOffsetTop + 'px',
+              left: contextMenuOffsetLeft + 'px',
+            }}
+            className={classNames('contextMenuWrapper', showContextMenu ? '' : 'hide')}
+          >
+            <ul className="contextList">
+              {props.bookmarked ? (
+                <li className="contextListItem">
+                  <span onClick={removeFromBookmarks}>Remove from My Bookmarks</span>
+                </li>
+              ) : (
+                <li className="contextListItem">
+                  <span onClick={addToBookmarks}>Add to My Bookmarks</span>
+                </li>
+              )}
+              {props.canEdit && (
+                <li className="contextListItem">
+                  <span onClick={onEditSolution}>Edit Solution</span>
+                </li>
+              )}
+              {props.canEdit && (
+                <li className="contextListItem">
+                  <span onClick={onDeleteSolution}>Delete Solution</span>
+                </li>
+              )}
+            </ul>
           </div>
+        </div>
       </div>
       <div className={Styles.solbodysection}>
         <div className={Styles.subsolHead}>
@@ -210,53 +210,81 @@ const SolutionCardItem = (props: ISolutionCardItemProps) => {
               {solution.projectStatus.name}
             </span>{' '}
             {!solution.publish && <span className={Styles.draftIndicator}>DRAFT</span>}{' '}
-            <span className={Styles.digitalValue}>
-              {solution.digitalValue && solution.digitalValue.digitalValue
-                ? `${DataFormater(solution.digitalValue.digitalValue)}`
-                : ''}
-            </span>
           </div>
-          
-
-
+        </div>
+        <div>
+          <span className={Styles.digitalValue}>
+            {solution.digitalValue &&
+            solution.digitalValue.typeOfCalculation === 'DIGITAL_VALUE' &&
+            solution.digitalValue.digitalValue ? (
+              <span>
+                <label>Digital Value - &nbsp; </label>
+                {DataFormater(solution.digitalValue.digitalValue)}
+              </span>
+            ) : solution.digitalValue &&
+              solution.digitalValue.typeOfCalculation === 'DATA_VALUE' &&
+              solution.digitalValue.dataValueCalculator ? (
+              <>
+                <label>Data Value - &nbsp; </label>
+                <span>
+                  <label>Savings:&nbsp;</label>
+                  {DataFormater(solution.digitalValue.dataValueCalculator.savingsValueFactorSummaryVO.value)}
+                </span>
+                <label>&nbsp;&nbsp;|&nbsp;</label>
+                <span>
+                  <label>Revenue:&nbsp;</label>
+                  {DataFormater(solution.digitalValue.dataValueCalculator.revenueValueFactorSummaryVO.value)}
+                </span>
+              </>
+            ) : (
+              ''
+            )}
+          </span>
         </div>
 
         <div className={Styles.solRegin}>
-          <span>{solution.division?.name && solution.division?.name !== 'Choose' ? solution.division?.name : 'N/A'}</span>
+          <span>
+            {solution.division?.name && solution.division?.name !== 'Choose' ? solution.division?.name : 'N/A'}
+          </span>
           <span className={Styles.locationDataWrapper}>
-            {locations[0] ? locations.length === TOTAL_LOCATIONS_COUNT ? '' : locations[0] : ''}
-            {locations.length > 1 ? 
-              locations.length === TOTAL_LOCATIONS_COUNT ? 'All' : 
-            (
-              <div
-                className={classNames(
-                  Styles.contextMenu,
-                  Styles.locations,
-                  showLocationsContextMenu ? Styles.open : '',
-                )}
-              >
-                <span onClick={toggleLocationsContextMenu} className={classNames('trigger', Styles.contextMenuTrigger)}>
-                  <i className="icon mbc-icon listItem context elipse" />
-                </span>
+            {locations[0] ? (locations.length === TOTAL_LOCATIONS_COUNT ? '' : locations[0]) : ''}
+            {locations.length > 1 ? (
+              locations.length === TOTAL_LOCATIONS_COUNT ? (
+                'All'
+              ) : (
                 <div
-                  style={{
-                    top: contextMenuOffsetTop + 'px',
-                    left: contextMenuOffsetLeft + 'px',
-                    right: 'auto',
-                  }}
                   className={classNames(
-                    'contextMenuWrapper locations',
+                    Styles.contextMenu,
                     Styles.locations,
-                    showLocationsContextMenu ? '' : 'hide',
+                    showLocationsContextMenu ? Styles.open : '',
                   )}
                 >
-                  <ul className="contextList mbc-scroll sub">
-                    <li className="contextListItem">
-                      <p className="locationsText">{locations.length ? locations.join(', ') : ''}</p>
-                    </li>
-                  </ul>
+                  <span
+                    onClick={toggleLocationsContextMenu}
+                    className={classNames('trigger', Styles.contextMenuTrigger)}
+                  >
+                    <i className="icon mbc-icon listItem context elipse" />
+                  </span>
+                  <div
+                    style={{
+                      top: contextMenuOffsetTop + 'px',
+                      left: contextMenuOffsetLeft + 'px',
+                      right: 'auto',
+                    }}
+                    className={classNames(
+                      'contextMenuWrapper locations',
+                      Styles.locations,
+                      showLocationsContextMenu ? '' : 'hide',
+                    )}
+                  >
+                    <ul className="contextList mbc-scroll sub">
+                      <li className="contextListItem">
+                        <p className="locationsText">{locations.length ? locations.join(', ') : ''}</p>
+                      </li>
+                    </ul>
+                  </div>
                 </div>
-              </div>
+              )
             ) : null}
           </span>{' '}
           <span>{solution.currentPhase ? solution.currentPhase.name : ''}</span>
