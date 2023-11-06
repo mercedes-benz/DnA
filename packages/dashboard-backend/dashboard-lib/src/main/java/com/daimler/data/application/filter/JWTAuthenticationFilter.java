@@ -52,10 +52,14 @@ import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.support.WebApplicationContextUtils;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import com.daimler.data.application.auth.UserStore;
 import com.daimler.data.application.auth.UserStore.UserRole;
 import com.daimler.data.auth.client.DnaAuthClient;
+
 
 import io.jsonwebtoken.Claims;
 
@@ -78,25 +82,15 @@ public class JWTAuthenticationFilter implements Filter {
 		injectSpringDependecies(servletRequest);
 		HttpServletRequest httpRequest = (HttpServletRequest) servletRequest;
 		String requestUri = httpRequest.getRequestURI();
-		log.debug("Intercepting Request to validate JWT:" + requestUri);
-		String jwt = httpRequest.getHeader("Authorization");
-		if (!StringUtils.hasText(jwt)) {
-			log.error("Request UnAuthorized,No JWT available");
+		log.debug("Intercepting Request to store userinfo:" + requestUri);
+		String userinfo = httpRequest.getHeader("dna-request-userdetails");
+		if (!StringUtils.hasText(userinfo)) {
+			log.error("Request UnAuthorized,No userinfo available");
 			forbidResponse(servletResponse);
 			return;
-		} else {
-			Claims claims = JWTGenerator.decodeJWT(jwt);
-			String userId = "";
-			if (claims == null) {
-				log.error("Invalid  JWT!");
-				HttpServletResponse response = (HttpServletResponse) servletResponse;
-				response.reset();
-				response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-				return;
-			} else {
-				userId = (String) claims.get("id");
+		} else if (StringUtils.hasText(userinfo)) {
 				if (dnaAuthEnable) {
-					JSONObject res = dnaAuthClient.verifyLogin(jwt);
+					JSONObject res = dnaAuthClient.verifyLogin(userinfo);
 					if (res != null) {
 						try {
 							setUserDetailsToStore(res);
@@ -110,7 +104,7 @@ public class JWTAuthenticationFilter implements Filter {
 						}
 
 					} else {
-						log.error("Request UnAuthorized,No JWT available");
+						log.error("Request UnAuthorized,No userinfo available");
 						forbidResponse(servletResponse);
 						return;
 					}
@@ -119,37 +113,53 @@ public class JWTAuthenticationFilter implements Filter {
 					try {
 						log.debug(
 								"Request validation successful, set request user details in the store for further access");
-						setUserDetailsToStore(claims);
+						setUserDetailsToStore(userinfo);
 						filterChain.doFilter(servletRequest, servletResponse);
-					} finally {
+					}  catch (Exception e) {
+						log.error("Error while storing userDetails {} ", e.getMessage());
+						forbidResponse(servletResponse);
+						this.userStore.clear();
+						return;
+					}finally {
 						// Otherwise when a previously used container thread is used, it will have the
 						// old user id set and
 						// if for some reason this filter is skipped, userStore will hold an unreliable
 						// value
 						this.userStore.clear();
 					}
-				}
+				
 
 			}
+		}else {
+			log.debug("Request is exempted from validation");
+			filterChain.doFilter(servletRequest, servletResponse);
 		}
 
 	}
 
-	private void setUserDetailsToStore(Claims claims) {
-		// To Set user details for local development
-		UserStore.UserInfo user = UserStore.UserInfo.builder().id((String) claims.get("id"))
-				.firstName((String) claims.get("firstName")).lastName((String) claims.get("lastName"))
-				.email((String) claims.get("email")).department((String) claims.get("department"))
-				.mobileNumber((String) claims.get("mobileNumber")).build();
-		// To Set user Roles for local development
-		List<LinkedHashMap> claimedRoles = (ArrayList) claims.get("digiRole");
-		List<UserRole> roles = new ArrayList<>();
-		claimedRoles.forEach(roleMapEntity -> {
-			roles.add(UserRole.builder().id((String) roleMapEntity.get("id")).name((String) roleMapEntity.get("name"))
-					.build());
+	// private void setUserDetailsToStore(Claims claims) {
+	// 	// To Set user details for local development
+	// 	UserStore.UserInfo user = UserStore.UserInfo.builder().id((String) claims.get("id"))
+	// 			.firstName((String) claims.get("firstName")).lastName((String) claims.get("lastName"))
+	// 			.email((String) claims.get("email")).department((String) claims.get("department"))
+	// 			.mobileNumber((String) claims.get("mobileNumber")).build();
+	// 	// To Set user Roles for local development
+	// 	List<LinkedHashMap> claimedRoles = (ArrayList) claims.get("digiRole");
+	// 	List<UserRole> roles = new ArrayList<>();
+	// 	claimedRoles.forEach(roleMapEntity -> {
+	// 		roles.add(UserRole.builder().id((String) roleMapEntity.get("id")).name((String) roleMapEntity.get("name"))
+	// 				.build());
+	// 	});
+	// 	user.setUserRole(roles);
+	// 	this.userStore.setUserInfo(user);
+	// }
+	private void setUserDetailsToStore(String userinfo) throws JsonProcessingException {
+
+		ObjectMapper objectMapper = new ObjectMapper();
+		UserStore.UserInfo userInfo = objectMapper.readValue(userinfo, new TypeReference<UserStore.UserInfo>() {
 		});
-		user.setUserRole(roles);
-		this.userStore.setUserInfo(user);
+		this.userStore.setUserInfo(userInfo);
+
 	}
 
 	/**

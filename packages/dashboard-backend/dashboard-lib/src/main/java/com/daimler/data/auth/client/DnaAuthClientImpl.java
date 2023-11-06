@@ -68,13 +68,13 @@ public class DnaAuthClientImpl implements DnaAuthClient {
 	HttpServletRequest httpRequest;
 
 	@Override
-	public JSONObject verifyLogin(String jwt) {
+	public JSONObject verifyLogin(String userinfo) {
 		JSONObject res = null;
 		try {
 			HttpHeaders headers = new HttpHeaders();
 			headers.set("Accept", "application/json");
 			headers.set("Content-Type", "application/json");
-			headers.set("Authorization", jwt);
+			headers.set("dna-request-userdetails", userinfo);
 
 			String dnaUri = dnaBaseUri + VERIFY_LOGIN;
 			HttpEntity entity = new HttpEntity<>(headers);
@@ -97,11 +97,11 @@ public class DnaAuthClientImpl implements DnaAuthClient {
 	public UserInfoVO userInfoById(String userId) {
 		UserInfoVO userInfoVO = null;
 		try {
-			String jwt = httpRequest.getHeader("Authorization");
+			String userinfo = httpRequest.getHeader("dna-request-userdetails");
 			HttpHeaders headers = new HttpHeaders();
 			headers.set("Accept", "application/json");
 			headers.set("Content-Type", "application/json");
-			headers.set("Authorization", jwt);
+			headers.set("dna-request-userdetails", userinfo);
 			String dnaUri = dnaBaseUri + GET_USERINFO + userId;
 			HttpEntity entity = new HttpEntity<>(headers);
 			ResponseEntity<UserInfoVO> response = restTemplate.exchange(dnaUri, HttpMethod.GET, entity,
@@ -138,11 +138,11 @@ public class DnaAuthClientImpl implements DnaAuthClient {
 	public UsersCollection getAll() {
 		UsersCollection collection = new UsersCollection();
 		try {
-			String jwt = httpRequest.getHeader("Authorization");
+			String userinfo = httpRequest.getHeader("dna-request-userdetails");
 			HttpHeaders headers = new HttpHeaders();
 			headers.set("Accept", "application/json");
 			headers.set("Content-Type", "application/json");
-			headers.set("Authorization", jwt);
+			headers.set("dna-request-userdetails", userinfo);
 
 			String getUsersUri = dnaBaseUri + GET_USERS;
 			HttpEntity entity = new HttpEntity<>(headers);
