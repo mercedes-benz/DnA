@@ -188,36 +188,35 @@ export default class SolutionListRowItem extends React.Component<ISolutionListRo
           </td>
           <td className="wrap-text">{solution.currentPhase ? solution.currentPhase.name : ''}</td>
           <td>{solution.division?.name || 'N/A'}</td>
-          {this.props.showDigitalValue ? (
-            <td>
-              {solution.digitalValue &&
-              solution.digitalValue.typeOfCalculation === 'DIGITAL_VALUE' &&
-              solution.digitalValue.digitalValue ? (
+          <td>
+            {solution.digitalValue &&
+            solution.digitalValue.typeOfCalculation === 'DIGITAL_VALUE' &&
+            solution.digitalValue.digitalValue ? (
+              <span>
+                <label>Digital Value</label>
+                <br />
+                {DataFormater(solution.digitalValue.digitalValue)}
+              </span>
+            ) : solution.digitalValue &&
+              solution.digitalValue.typeOfCalculation === 'DATA_VALUE' &&
+              solution.digitalValue.dataValueCalculator ? (
+              <>
+                <label>Data Value</label>
+                <br />
                 <span>
-                  <label>Digital Value</label><br/>
-                  {DataFormater(solution.digitalValue.digitalValue)}
+                  <label>Savings:</label>
+                  {DataFormater(solution.digitalValue.dataValueCalculator.savingsValueFactorSummaryVO.value)}
                 </span>
-              ) : solution.digitalValue &&
-                solution.digitalValue.typeOfCalculation === 'DATA_VALUE' &&
-                solution.digitalValue.dataValueCalculator ? (
-                <>
-                  <label>Data Value</label>
-                  <br />
-                  <span>
-                    <label>Savings:</label>
-                    {DataFormater(solution.digitalValue.dataValueCalculator.savingsValueFactorSummaryVO.value)}
-                  </span>
-                  <br />
-                  <span>
-                    <label>Revenue:</label>
-                    {DataFormater(solution.digitalValue.dataValueCalculator.revenueValueFactorSummaryVO.value)}
-                  </span>
-                </>
-              ) : (
-                'NA'
-              )}
-            </td>
-          ) : null}
+                <br />
+                <span>
+                  <label>Revenue:</label>
+                  {DataFormater(solution.digitalValue.dataValueCalculator.revenueValueFactorSummaryVO.value)}
+                </span>
+              </>
+            ) : (
+              'NA'
+            )}
+          </td>
           <td>
             <div className={Styles.locationDataWrapper}>
               {locations[0] ? (locations.length === TOTAL_LOCATIONS_COUNT ? '' : locations[0]) : ''}
