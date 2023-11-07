@@ -406,7 +406,7 @@ public class WorkspaceController  implements CodeServerApi{
 			String[] url = githubUrl.split(",");			
 			if(Objects.nonNull(url) && url.length == 1) {
 				log.info("Inside newUrl split block, adding default parameter to clone the project completely");
-				githubUrl = githubUrl + ",/*";
+				githubUrl = githubUrl + "/*";
 				log.info(githubUrl);
 				reqVO.getProjectDetails().getRecipeDetails().setRepodetails(githubUrl);
 			}			

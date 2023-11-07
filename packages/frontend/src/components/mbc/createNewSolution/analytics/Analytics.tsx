@@ -131,7 +131,7 @@ export default class Analytics extends React.Component<IAnalyticsProps, IAnalyti
                   </div>
                   {this.props.isGenAI && <div>
                     <Tags
-                      title={'Solutions'}
+                      title={'Solutions (e.g: LangChain, etc.)'}
                       max={100}
                       chips={solutionsChips}
                       setTags={this.setSolutions}
