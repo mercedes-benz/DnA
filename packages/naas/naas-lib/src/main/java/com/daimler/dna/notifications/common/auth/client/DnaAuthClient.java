@@ -25,11 +25,12 @@
  * LICENSE END 
  */
 
-package com.daimler.dna.notifications.common.auth.client;
+ package com.daimler.dna.notifications.common.auth.client;
 
-import org.json.JSONObject;
-
-public interface DnaAuthClient {
-
-	public JSONObject verifyLogin(String jwt);
-}
+ import org.json.JSONObject;
+ 
+ public interface DnaAuthClient {
+ 
+	 public JSONObject verifyLogin(String userinfo);
+ }
+ 
