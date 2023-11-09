@@ -261,7 +261,7 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
                   </button>
                 )}
                 {creationFailed && (
-                  <button className="btn btn-primary">
+                  <button className="btn btn-primary hidden">
                     <i className="icon mbc-icon refresh"></i> Retry
                   </button>
                 )}
