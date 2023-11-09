@@ -3,11 +3,14 @@
   
     .wrapper {
       background: #252a33;
-      margin: 15px 0;
+      margin-bottom: 15px;
       padding: 25px 0;
       position: relative;
   
-      h3,
+      h3 {
+        padding: 0 38px;
+        font-size: var(--font-size-headline-medium);
+      }
       span.description {
         padding: 0 38px;
       }

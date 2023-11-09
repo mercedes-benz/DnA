@@ -71,7 +71,7 @@ public class KafkaCoreCampaignService {
 	@Value("${kafka.centralTopic.name}")
 	private String dnaCentralTopicName;
 	
-	@Value("${dna.uri}")
+	@Value("${dna.ui.uri}")
 	private String dnaBaseUri;
 	
 	private static String SOLUTION_NOTIFICATION_KEY = "Solution";

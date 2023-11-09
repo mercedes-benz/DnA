@@ -33,9 +33,9 @@ const kpiWikiUrl = Envs.KPI_WIKI_URL;
 const corporateDataCatalogUrl = Envs.CORPORATE_DATA_CATALOG_URL;
 const sapConnectionBookUrl = Envs.SAP_CONNECTION_BOOK_URL;
 const smartDataGovernanceUrl = Envs.SMART_DATA_GOVERNANCE_URL;
-const chatbotUrl = Envs.GPT4ALL_CHATBOT_TOOL_URL;
 const spireUrl = Envs.SPIRE_URL;
 const enableDatalakeService = Envs.ENABLE_DATALAKE_SERVICE;
+const genAIDirectChatUrl = Envs.GENAI_DIRECT_CHAT_URL;
 
 export const DataLayerElements = [
   {
@@ -445,20 +445,6 @@ export const ToolsLandingPageElements = [
     isDnAInternalTool: true,
   },
   {
-    name: 'Chat GPT4All',
-    description: 'This is an earlybird release of a chatbot based on GPT4 LLM.',
-    tags: ['Data Engineering', 'No / Low Code', 'Cloud', 'Machine Learning', 'FOSS', 'Onprem'],
-    url: chatbotUrl,
-    isExternalLink: true,
-    isTextAlignLeft: true,
-    animation: true,
-    isDisabled: !chatbotUrl?.startsWith('http'),
-    isSmallCard: false,
-    isMediumCard: true,
-    svgIcon: 'tools-mini',
-    isDnAInternalTool: true,
-  },
-  {
     name: 'Spire',
     description: 'Spire is the standardized & compliant global cloud analytics platform for MBM – live and running, along with a team of experts leveraging cutting-edge technology and end2end services to create business value.',
     tags: ['Data Engineering','Cloud', 'Machine Learning'],
@@ -692,4 +678,17 @@ export const GenAILandingPageElements = [
     isMediumCard: false,
     svgIconId: 'gen-ai',
   },
+  {
+    name: 'Mercedes-Benz Direct Chat',
+    description:
+      'Direct Chat - Your new AI assistant for more efficiency at work.',
+    tags: ['Self Service', 'FOSS'],
+    url: genAIDirectChatUrl,
+    isExternalLink: true,
+    isTextAlignLeft: false,
+    isDisabled: true,
+    isSmallCard: false,
+    isMediumCard: false,
+    svgIconId: 'gen-ai',
+  }
 ];
