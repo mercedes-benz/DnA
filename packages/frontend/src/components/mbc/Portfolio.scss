@@ -18,6 +18,15 @@
         display: flex;
         align-items: center;
         position: relative;
+        .dividerLine {
+            height: 25px;
+            display: inline-block;
+            background-color: #252a33;
+            height: 25px;
+            margin: 0 10px 0 5px;
+            padding: 0;
+            width: 1px;
+          }
         .contextMenu {
           float: right;
           margin: 0 20px 0 0;
@@ -48,15 +57,6 @@
         .iconactive {
           opacity: 0.5;
           cursor: default;
-        }
-        .dividerLine {
-          height: 25px;
-          display: inline-block;
-          background-color: #252a33;
-          height: 25px;
-          margin: 0 10px 0 5px;
-          padding: 0;
-          width: 1px;
         }
         img {
           width: 27px;
