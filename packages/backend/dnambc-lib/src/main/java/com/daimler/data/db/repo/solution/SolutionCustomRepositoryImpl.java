@@ -562,8 +562,7 @@ public class SolutionCustomRepositoryImpl extends CommonDataRepositoryImpl<Solut
 		if (limit > 0 && !"locations".equalsIgnoreCase(sortBy))
 			query = query + " limit " + limit;
 		if (offset >= 0 && !"locations".equalsIgnoreCase(sortBy))
-			query = query + " offset " + offset;
-		LOGGER.info("Query is: {}",query);
+			query = query + " offset " + offset;		
 		Query q = em.createNativeQuery(query);
 		return q;
 	}
