@@ -6,6 +6,10 @@ import Button from '../../assets/modules/uilab/js/src/button';
 import Notification from '../../assets/modules/uilab/js/src/notification';
 // @ts-ignore
 
+import { CSVLink } from 'react-csv';
+import { Data } from 'react-csv/components/CommonPropTypes';
+import { getDataForCSV } from '../../services/SolutionsCSV';
+import { csvSeparator } from '../../services/utils';
 import ProgressIndicator from '../../assets/modules/uilab/js/src/progress-indicator';
 // @ts-ignore
 import Tooltip from '../../assets/modules/uilab/js/src/tooltip';
@@ -33,6 +37,7 @@ import WorldMapBubbleWidget from './widgets/WorldMapBubbleWidget/WorldMapBubbleW
 // import { SESSION_STORAGE_KEYS } from '../../globals/constants';
 
 import SolutionsFilter from './filters/SolutionsFilter';
+import filterStyle from './filters/Filter.scss';
 // import {getDropDownData} from '../../services/FetchMasterData';
 
 const classNames = cn.bind(Styles);
@@ -74,6 +79,8 @@ export interface IPortfolioState {
   tagFilterValues: ITag[];
   selectedTags: string[];
   selectedTagsToPass: string[];
+  csvData: any[];
+  csvHeader: any[];
 }
 
 export interface IPortfolioProps {
@@ -219,6 +226,7 @@ const BarChartTooltip = ({ active, payload, label }: any) => {
 
 export default class Portfolio extends React.Component<IPortfolioProps, IPortfolioState> {
   protected tagInput: HTMLInputElement;
+  protected csvLink: any = React.createRef();
   constructor(props: IPortfolioProps) {
     super(props);
     this.state = {
@@ -262,6 +270,8 @@ export default class Portfolio extends React.Component<IPortfolioProps, IPortfol
       tagFilterValues: [],
       selectedTags: [],
       selectedTagsToPass: [],
+      csvData: [],
+      csvHeader: [],
     };
   }
 
@@ -624,6 +634,15 @@ export default class Portfolio extends React.Component<IPortfolioProps, IPortfol
       // dnaNotebooksDataKPILoader,
     } = this.state;
 
+    const exportCSVIcon = () => {
+      const element = (
+        <span className={classNames(filterStyle.iconTrigger)} onClick={this.triggerDownloadCSVData} >
+          <i tooltip-data="Export to CSV" className="icon download" />
+        </span>
+      )
+      return element;
+    };
+
     return (
       <div className={Styles.pageWrapper}>
         <div className={classNames(Styles.mainPanel)}>
@@ -637,8 +656,18 @@ export default class Portfolio extends React.Component<IPortfolioProps, IPortfol
           <div className={Styles.caption}>
             <h3>My Portfolio</h3>
             <div className={Styles.allSolExport}>
+              <CSVLink
+                data={this.state.csvData}
+                headers={this.state.csvHeader}
+                ref={(r: any) => (this.csvLink = r)}
+                filename={`Portfolio-Export.csv`}
+                target="_blank"
+                separator={csvSeparator(navigator.language)}
+              />
               <div tooltip-data="Filters">
+                {exportCSVIcon()}
                 <span className={this.state.openFilters ? Styles.activeFilters : ''} onClick={this.openCloseFilter}>
+                  <span className={Styles.dividerLine}> &nbsp; </span>
                   {this.state.portfolioDataFilterApplied && <i className="active-status" />}
                   <i className="icon mbc-icon filter big" />
                 </span>
@@ -1084,5 +1113,42 @@ export default class Portfolio extends React.Component<IPortfolioProps, IPortfol
         Notification.show('No solutions available to view.', 'alert');
       }
     }
+  }
+
+  protected triggerDownloadCSVData = () => {
+    const pageTitle = 'Portfolio Solutions';
+    this.setState({ csvData: [], csvHeader: [] });
+    ProgressIndicator.show();
+    getDataForCSV(
+      this.state.queryParams,
+      -1,
+      -1,
+      -1,
+      -1,
+      'productName',
+      'asc',
+      true,
+      (csvData: Data, csvHeader: Data) => {
+        this.setState(
+          {
+            csvData,
+            csvHeader,
+          },
+          () => {
+            if (this.csvLink) {
+              setTimeout(() => {
+                trackEvent(
+                  pageTitle,
+                  'Download CSV',
+                  'Downloaded solutions list data as .csv exported file',
+                );
+                this.csvLink.link.click();
+              }, 0);
+            }
+            ProgressIndicator.hide();
+          },
+        );
+      },
+    );
   }
 }
