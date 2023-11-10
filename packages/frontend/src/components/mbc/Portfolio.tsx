@@ -1125,7 +1125,7 @@ export default class Portfolio extends React.Component<IPortfolioProps, IPortfol
       -1,
       -1,
       -1,
-      'Phases',
+      'productName',
       'asc',
       true,
       (csvData: Data, csvHeader: Data) => {
