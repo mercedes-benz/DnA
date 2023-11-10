@@ -345,7 +345,9 @@ public class SolutionCustomRepositoryImpl extends CommonDataRepositoryImpl<Solut
 	private String hasDigitalValue(Boolean hasDigitalValue) {
 		String hasDigitalValueQuery = "";
 		if (Boolean.TRUE.equals(hasDigitalValue)) {
-			hasDigitalValueQuery = " and (jsonb_extract_path_text(data,'digitalValueDetails','digitalValue') is not null and jsonb_extract_path_text(data,'digitalValueDetails','digitalValue') !='0') ";
+			hasDigitalValueQuery = " and (jsonb_extract_path_text(data,'digitalValueDetails','digitalValue') is not null and jsonb_extract_path_text(data,'digitalValueDetails','digitalValue') !='0')"
+					+ " and (jsonb_extract_path_text(data,'digitalValueDetails','typeOfCalculation') is null "
+					+ " OR jsonb_extract_path_text(data,'digitalValueDetails','typeOfCalculation') in ('DIGITAL_VALUE') ) ";
 		}
 		return hasDigitalValueQuery;
 	}
@@ -449,7 +451,9 @@ public class SolutionCustomRepositoryImpl extends CommonDataRepositoryImpl<Solut
 		Query q = getNativeQueryWithFilters(
 				" select sum(cast (data->'digitalValueDetails'->>'digitalValue' as decimal)) ", published, phases,
 				dataVolumes, divisions, locations, statuses, solutionType, userId, isAdmin, bookmarkedSolutions,
-				searchTerms, tags, new ArrayList<>(), divisionsAdmin, false, false, 0, 0, "", "", "", "");
+				searchTerms, tags, new ArrayList<>(), divisionsAdmin, false, false, 0, 0, "", "",
+				" and (jsonb_extract_path_text(data,'digitalValueDetails','typeOfCalculation') is null "
+				+ " OR jsonb_extract_path_text(data,'digitalValueDetails','typeOfCalculation') in ('DIGITAL_VALUE') )", "");
 		BigDecimal result = (BigDecimal) q.getSingleResult();
 		return result;
 	}
@@ -558,7 +562,7 @@ public class SolutionCustomRepositoryImpl extends CommonDataRepositoryImpl<Solut
 		if (limit > 0 && !"locations".equalsIgnoreCase(sortBy))
 			query = query + " limit " + limit;
 		if (offset >= 0 && !"locations".equalsIgnoreCase(sortBy))
-			query = query + " offset " + offset;
+			query = query + " offset " + offset;		
 		Query q = em.createNativeQuery(query);
 		return q;
 	}
@@ -966,7 +970,9 @@ public class SolutionCustomRepositoryImpl extends CommonDataRepositoryImpl<Solut
 					" select cast (id as text), cast (data->'productName'  as varchar), cast (data->'digitalValueDetails'->'valueCalculator'->'calculatedDigitalValue' as text) ",
 					published, phases, dataVolumes, divisions, locations, statuses, solutionType, userId, isAdmin,
 					bookmarkedSolutions, searchTerms, tags, new ArrayList<>(), divisionsAdmin, false, false, 0, 0, "", "",
-					"and jsonb_extract_path_text(data,'digitalValueDetails','valueCalculator','calculatedDigitalValue','year') is not null ",
+					"and jsonb_extract_path_text(data,'digitalValueDetails','valueCalculator','calculatedDigitalValue','year') is not null "
+					+ " and (jsonb_extract_path_text(data,'digitalValueDetails','typeOfCalculation') is null "
+					+ " OR jsonb_extract_path_text(data,'digitalValueDetails','typeOfCalculation') in ('DIGITAL_VALUE') )",
 					"");
 		
 		ObjectMapper mapper = new ObjectMapper();
