@@ -2,7 +2,7 @@ import React from 'react';
 import Styles from './GenAI.scss';
 import DNACard from 'components/card/Card';
 import LandingSummary from '../shared/landingSummary/LandingSummary';
-import headerImageURL from '../../../assets/images/CarLA-Landing.png';
+import headerImageURL from '../../../assets/images/Data-Landing.png';
 
 import { GenAILandingPageElements } from 'globals/landingPageElements';
 

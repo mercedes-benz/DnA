@@ -28,14 +28,12 @@ const datasphereUrl = Envs.DATASPHERE_TOOL_URL;
 const extolloUrl = Envs.EXTOLLO_TOOL_URL;
 const powerBIUrl = Envs.POWER_BI_TOOL_URL;
 const dataModelUrl = Envs.DATA_MODEL_URL;
-const kpiWikiUrl = Envs.KPI_WIKI_URL;
-// const carlaEconomicModelUrl = Envs.CARLA_ECONOMIC_MODEL_URL;
 const corporateDataCatalogUrl = Envs.CORPORATE_DATA_CATALOG_URL;
-const sapConnectionBookUrl = Envs.SAP_CONNECTION_BOOK_URL;
 const smartDataGovernanceUrl = Envs.SMART_DATA_GOVERNANCE_URL;
 const spireUrl = Envs.SPIRE_URL;
 const enableDatalakeService = Envs.ENABLE_DATALAKE_SERVICE;
 const genAIDirectChatUrl = Envs.GENAI_DIRECT_CHAT_URL;
+const bisoContactsLink = Envs.BISO_CONTACTS_URL;
 
 export const DataLayerElements = [
   {
@@ -52,32 +50,6 @@ export const DataLayerElements = [
     svgIcon: 'dataproduct',
   },
   {
-    name: 'KPI Wiki',
-    description:
-      'Find approved definitions of the most commonly used KPIs.',
-    tags: ['Self Service', 'FOSS'],
-    url: kpiWikiUrl,
-    isExternalLink: true,
-    isTextAlignLeft: false,
-    isDisabled: !kpiWikiUrl?.startsWith('http'),
-    isSmallCard: false,
-    isMediumCard: true,
-    svgIcon: 'dataproduct',
-  },
-  // {
-  //   name: 'CarLA Economic Model',
-  //   description:
-  //     'The CarLA Economic Model is the orientation guide for all functions of the CarLA. This CarLA-City-Map gives you a first overview about the functions of the CarLA, which are clustered in 5 focus areas.',
-  //   tags: ['Self Service', 'FOSS'],
-  //   url: carlaEconomicModelUrl,
-  //   isExternalLink: true,
-  //   isTextAlignLeft: false,
-  //   isDisabled: false,
-  //   isSmallCard: false,
-  //   isMediumCard: true,
-  //   svgIcon: 'dataproduct',
-  // },
-  {
     name: 'Corporate Data Catalogue',
     description:
       'Catalog of Mercedes-Benz data assets. If you never logged in the CDC before, a user will be generated for your this can take a while. CarLA systems can be found by searching for CarLA.',
@@ -86,19 +58,6 @@ export const DataLayerElements = [
     isExternalLink: true,
     isTextAlignLeft: false,
     isDisabled: !corporateDataCatalogUrl?.startsWith('http'),
-    isSmallCard: false,
-    isMediumCard: true,
-    svgIcon: 'dataproduct',
-  },
-  {
-    name: 'SAP Connection Book',
-    description:
-      'List of all source systems connected to the CarLA Core Datawarehouse and the names of the targets where the data from the source system is written to.',
-    tags: ['Self Service', 'FOSS'],
-    url: sapConnectionBookUrl,
-    isExternalLink: true,
-    isTextAlignLeft: false,
-    isDisabled: !sapConnectionBookUrl?.startsWith('http'),
     isSmallCard: false,
     isMediumCard: true,
     svgIcon: 'dataproduct',
@@ -137,7 +96,7 @@ export const DataGovernanceElements = [
     description:
       'Sharing Data? Fill out the required Usage Information (Policy A22) to let the receiving side know of any restriction when using the data.',
     tags: ['Self Service', 'FOSS'],
-    url: '/data/datasharing/create',
+    url: '/data/datasharing',
     isExternalLink: false,
     isTextAlignLeft: false,
     isDisabled: false,
@@ -154,6 +113,18 @@ export const DataGovernanceElements = [
     isExternalLink: false,
     isTextAlignLeft: false,
     isDisabled: false,
+    isSmallCard: false,
+    isMediumCard: true,
+  },
+  {
+    name: 'BISO Contacts',
+    description:
+      'The Business Information Security Officer helps you in the topic area of information security.',
+    tags: ['Self Service', 'FOSS'],
+    url: bisoContactsLink,
+    isExternalLink: true,
+    isTextAlignLeft: false,
+    isDisabled: !bisoContactsLink?.startsWith('http'),
     isSmallCard: false,
     isMediumCard: true,
   },
@@ -532,7 +503,7 @@ export const DataLandingPageElements = [
   {
     name: 'Data Layer',
     description:
-      'Official information and definitions of CarLA applications, key figures and FC data.',
+      'More information and definitions of applications, key figures and data.',
     tags: ['Self Service', 'FOSS'],
     url: '/data/datalayer',
     isExternalLink: false,
