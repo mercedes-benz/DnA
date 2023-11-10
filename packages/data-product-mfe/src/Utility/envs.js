@@ -38,4 +38,5 @@ export const Envs = {
   SAP_ANALYTICS_CLOUD_URL: getDNAInjectedEnv('SAP_ANALYTICS_CLOUD_URL') || process.env.SAP_ANALYTICS_CLOUD_URL,
   AFO_TOOL_URL: getDNAInjectedEnv('AFO_TOOL_URL') || process.env.AFO_TOOL_URL,
   POWER_BI_TOOL_URL: getDNAInjectedEnv('POWER_BI_TOOL_URL') || process.env.POWER_BI_TOOL_URL,
+  DDX_URL: getDNAInjectedEnv('DDX_URL') || process.env.DDX_URL,
 };

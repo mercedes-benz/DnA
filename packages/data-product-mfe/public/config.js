@@ -5,4 +5,5 @@ window['DATA_PRODUCT_INJECTED_ENVIRONMENT'] = {
   DATA_PRODUCT_TOU_HTML:
     '<div>On behalf of my aforementioned Information Owner/ Business Owner of Application, I confirm that the usage information for transferred data provided is correct and complete.</div>',
   INFORMATION_POLICY_LINK: 'YOUR_INFORMATION_POLICY_LINK',
+  DDX_URL: 'YOUR_DDX_URL',
 };
