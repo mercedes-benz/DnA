@@ -5,7 +5,7 @@ import Button from '../../assets/modules/uilab/js/src/button';
 // @ts-ignore
 import Notification from '../../assets/modules/uilab/js/src/notification';
 // @ts-ignore
-
+import { TOTAL_LOCATIONS_COUNT } from 'globals/constants';
 import { CSVLink } from 'react-csv';
 import { Data } from 'react-csv/components/CommonPropTypes';
 import { getDataForCSV } from '../../services/SolutionsCSV';
@@ -684,6 +684,13 @@ export default class Portfolio extends React.Component<IPortfolioProps, IPortfol
               useCaseType: string,
               tags: string,
             ) => this.getSolutions(locations, phases, divisions, status, useCaseType, tags)}
+            getFilterQueryParams={(queryParams: IFilterParams) =>
+             this.setState(
+              {
+                'queryParams' : queryParams,
+              }
+             )
+            }
             showSolutionsFilter={true}
             solutionsDataLoaded={this.state.portfolioFirstTimeDataLoaded}
             setSolutionsDataLoaded={(value: boolean) => this.setState({ portfolioFirstTimeDataLoaded: value })}
@@ -1121,7 +1128,7 @@ export default class Portfolio extends React.Component<IPortfolioProps, IPortfol
     ProgressIndicator.show();
     getDataForCSV(
       this.state.queryParams,
-      -1,
+      TOTAL_LOCATIONS_COUNT,
       -1,
       -1,
       -1,
