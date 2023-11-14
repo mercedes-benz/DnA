@@ -827,8 +827,9 @@ dependencies {
 	
 	//Matomo tracking 
 	// https://mvnrepository.com/artifact/org.piwik.java.tracking/matomo-java-tracker
-    implementation group: 'org.piwik.java.tracking', name: 'matomo-java-tracker', version: '1.6'
-	
+    implementation group: 'org.piwik.java.tracking', name: 'matomo-java-tracker-java11', version: '3.0.6'
+    implementation group: 'org.piwik.java.tracking', name: 'matomo-java-tracker-servlet-javax', version: '3.0.6'
+
 	
 
 	//2nd level caching dependency 

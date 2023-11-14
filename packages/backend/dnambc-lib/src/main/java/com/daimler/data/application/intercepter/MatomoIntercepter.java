@@ -27,6 +27,7 @@
 
 package com.daimler.data.application.intercepter;
 
+import java.net.URI;
 import java.net.URL;
 import java.util.Objects;
 
@@ -34,12 +35,14 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.tomcat.jni.Local;
-import org.piwik.java.tracking.CustomVariable;
-import org.piwik.java.tracking.PiwikLocale;
-import org.piwik.java.tracking.PiwikRequest;
-import org.piwik.java.tracking.PiwikTracker;
+import org.matomo.java.tracking.MatomoTracker;
+import org.matomo.java.tracking.MatomoRequest;
+import org.matomo.java.tracking.TrackerConfiguration;
+import org.matomo.java.tracking.servlet.JavaxHttpServletWrapper;
+import org.matomo.java.tracking.servlet.ServletMatomoRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -51,7 +54,7 @@ import com.daimler.data.application.auth.UserStore;
 import com.daimler.data.controller.LoginController.UserInfo;
 
 @Component
-public class MatomoIntercepter implements HandlerInterceptor {
+public class MatomoIntercepter implements HandlerInterceptor, InitializingBean {
 
 	private Logger log = LoggerFactory.getLogger(MatomoIntercepter.class);
 
@@ -64,25 +67,37 @@ public class MatomoIntercepter implements HandlerInterceptor {
 	@Value("${matomo.hostUrl}")
 	private String hostUrl;
 
+	private MatomoTracker tracker;
+
+	@Override
+	public void afterPropertiesSet() {
+		tracker = new MatomoTracker(TrackerConfiguration.builder()
+				.apiEndpoint(URI.create(hostUrl))
+				.defaultSiteId(siteId)
+				.build());
+	}
+
 	@Override
 	public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler,
-			Exception exception) throws Exception {
+			Exception exception) {
 		if (enableTracking) {
 			log.debug("Tracking is enabled!! Sending request to action tracker..");
 			String action = request.getHeader("action");
 			if (StringUtils.hasText(action)) {
+				MatomoRequest.MatomoRequestBuilder pr = ServletMatomoRequest
+						.fromServletRequest(JavaxHttpServletWrapper.fromHttpServletRequest(request))
+						.actionName(action)
+						.eventAction(action)
+				;
 				UserInfo userInfo = (UserInfo) request.getAttribute("userDetails");
-				URL actionUrl = new URL(request.getRequestURL().toString());
-				PiwikRequest pr = new PiwikRequest(siteId, actionUrl);
-				pr.setActionName(action);
-				pr.setEventAction(action);
 				if (Objects.nonNull(userInfo)) {
-					pr.setUserId(userInfo.getId());
+					pr.userId(userInfo.getId());
 				}
-				PiwikTracker tracker = new PiwikTracker(hostUrl);
-				tracker.sendRequestAsync(pr);
+				tracker.sendRequestAsync(pr.build());
 			}
 
 		}
 	}
+
+
 }
