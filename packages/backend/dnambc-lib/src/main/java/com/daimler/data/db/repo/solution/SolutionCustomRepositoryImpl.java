@@ -349,6 +349,13 @@ public class SolutionCustomRepositoryImpl extends CommonDataRepositoryImpl<Solut
 					+ " and (jsonb_extract_path_text(data,'digitalValueDetails','typeOfCalculation') is null "
 					+ " OR jsonb_extract_path_text(data,'digitalValueDetails','typeOfCalculation') in ('DIGITAL_VALUE') ) ";
 		}
+		if (Boolean.FALSE.equals(hasDigitalValue)) {
+			hasDigitalValueQuery = " and jsonb_extract_path_text(data,'digitalValueDetails','dataValueCalculator') is not null "
+					+ " and( (jsonb_extract_path_text(data,'digitalValueDetails','dataValueCalculator','revenueValueFactorSummary','value') is not null "
+					+ " and jsonb_extract_path_text(data,'digitalValueDetails','dataValueCalculator','revenueValueFactorSummary','value') != '0') "
+					+ " or (jsonb_extract_path_text(data,'digitalValueDetails','dataValueCalculator','savingsValueFactorSummary','value') is not null "
+					+ " and jsonb_extract_path_text(data,'digitalValueDetails','dataValueCalculator','savingsValueFactorSummary','value') != '0')) ";
+		}
 		return hasDigitalValueQuery;
 	}
 
