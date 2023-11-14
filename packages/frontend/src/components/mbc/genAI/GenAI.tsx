@@ -13,7 +13,7 @@ const GenAI = () => {
     <LandingSummary
       title={'GenAI'}
       subTitle={
-        'GenAI is the core element of the BI & Analytics landscape in Finance Controlling at MBC. It bundles All the Tools and insight you need to start with Artificial Intelligence.'
+        'We want to foster transparency and collaboration. Find all GenAI use cases at Mercedes-Benz.'
       }
       headerImage={headerImageURL}
       isBackButton={true}
