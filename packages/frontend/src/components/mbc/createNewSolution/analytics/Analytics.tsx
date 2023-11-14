@@ -228,7 +228,7 @@ export default class Analytics extends React.Component<IAnalyticsProps, IAnalyti
   protected onSolutionPublish = () => {
     if (this.validateAnalyticsForm()) {
       this.props.modifyAnalytics(this.state.analytics);
-      this.props.onSaveDraft('analytics');
+      // this.props.onSaveDraft('analytics');
       this.props.onPublish();
     }
   };
