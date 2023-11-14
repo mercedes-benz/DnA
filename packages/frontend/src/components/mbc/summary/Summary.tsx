@@ -550,6 +550,8 @@ export default class Summary extends React.Component<{ user: IUserInfo }, ISumma
                     onDelete={this.onDeleteSolution}
                     updateBookmark={this.updateBookmark}
                     onExportToPDFDocument={pdfContent}
+                    canTransferOwnerShip={userInfo?.id === this.state.solution?.createdBy?.id}
+                    onTransferOwnershipSolutionConsent={this.onTransferOwnershipSolutionConsent}
                   />
                 ) : (
                   ''
@@ -692,8 +694,7 @@ export default class Summary extends React.Component<{ user: IUserInfo }, ISumma
             solution.lastModifiedDate = res.lastModifiedDate;
             const tempCollab = res.team.filter((item: any) => {
               item.id = item.shortId
-              item.userType === 'internal'
-              return item;
+              return item.id !== userInfo.id && item.userType === 'internal';
             }
             )
             this.setState(
