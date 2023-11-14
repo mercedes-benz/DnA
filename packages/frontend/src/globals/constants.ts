@@ -32,6 +32,8 @@ export enum SESSION_STORAGE_KEYS {
   PAGINATION_MAX_ITEMS_PER_PAGE = 'paginationMaxItemsPerPage',
   APPREDIRECT_URL = 'appredirect_url',
   LISTVIEW_MODE_ENABLE = 'listViewModeEnable',
+  SOLUTION_SORT_VALUES = 'sortingInfo',
+  REPORT_SORT_VALUES = 'reportsSortingInfo',
 }
 
 export enum LOCAL_STORAGE_KEYS {

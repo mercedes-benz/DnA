@@ -207,6 +207,14 @@ export default class AllSolutions extends React.Component<
         listViewMode: true,
       });
     }
+
+    const sessionSortingInfo = sessionStorage.getItem(SESSION_STORAGE_KEYS.SOLUTION_SORT_VALUES);
+    if (sessionSortingInfo) {
+      const sortBy = JSON.parse(sessionSortingInfo);
+      this.setState(
+        { sortBy }
+      )
+    }
     ProgressIndicator.show();
     Tooltip.defaultSetup();
     const enablePortfolioSolutionsView = window.location.href.indexOf('viewsolutions') !== -1;
@@ -762,9 +770,10 @@ export default class AllSolutions extends React.Component<
     ProgressIndicator.show();
     this.setState(
       {
-        sortBy,
+         sortBy,
       },
       () => {
+        sessionStorage.setItem(SESSION_STORAGE_KEYS.SOLUTION_SORT_VALUES, JSON.stringify(sortBy));
         this.getSolutions(this.state.enablePortfolioSolutionsView);
       },
     );
