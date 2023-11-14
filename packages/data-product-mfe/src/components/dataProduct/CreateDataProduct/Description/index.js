@@ -123,7 +123,7 @@ const Description = ({
     .then((res) => {
       setAllAccessTypes(res?.data?.data);
       ProgressIndicator.hide();
-      SelectBox.defaultSetup();
+      SelectBox.defaultSetup(true);
     })
     .catch((e) => {
       console.log(e);
@@ -349,7 +349,7 @@ const Description = ({
   };
 
   useEffect(() => {
-    if (howToAccessText?.length) {
+        if (howToAccessText?.length) {
       // sanitize HTML
       const processor = async () =>
         await unified().use(rehypeParse).use(rehypeSanitize).use(rehypeStringify).process(watch('howToAccessText'));
@@ -902,10 +902,9 @@ const Description = ({
                 </label>
                 <div className={`custom-select`}>
                   <select id="accessTypeField" multiple={true} 
-                  // name="accessType" 
-                  {...register('accessType',{
-                  
-                  
+                  //name="accessType" 
+                  value = {accessType}
+                  {...register('accessType',{                   
                     onChange :(e)=>{
                       const options = e.target.selectedOptions;
                       const values = Array.from(options).map(({ value }) => value);
@@ -918,7 +917,7 @@ const Description = ({
                         setValue('liveAccessArray', []);
                         setValue('apiArray', []);
                         setValue('trinoArray', []);
-                      }                      
+                      }               
                       onChangeAccessType(values);
                     }
                   
@@ -941,7 +940,7 @@ const Description = ({
                   {errors.carLAFunction?.message}
                 </span> */}
               </div>
-
+                
               {(accessType?.length == 1 && accessType?.includes('Live (SAC/AFO)')) || accessType?.length == 0 ?
               <div></div>
                : 
