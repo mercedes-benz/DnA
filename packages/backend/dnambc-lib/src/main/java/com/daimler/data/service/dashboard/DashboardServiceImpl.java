@@ -230,15 +230,9 @@ public class DashboardServiceImpl implements DashboardService {
 						dataValueSummaryTreeMap.put(savings.getYear(), dataValueSortedSet);
 					} else {
 						Set<SolDataValueSummaryDTO> existingSet = dataValueSummaryTreeMap.get(savings.getYear());
-			            if (existingSet.contains(dto2)) {
-			                // Remove the existing object and add the new one
-			                existingSet.remove(dto2);
-			                existingSet.add(dto2);
-			            } else {
-			                // If its new object, add it
-			                existingSet.add(dto2);
-			            }
-						//dataValueSummaryTreeMap.get(savings.getYear()).add(dto2);
+						existingSet.add(dto2);
+						Set<SolDataValueSummaryDTO> copy = new HashSet<>(existingSet); 
+						dataValueSummaryTreeMap.put(savings.getYear(), copy);
 					}
 				}
 			}
@@ -255,15 +249,9 @@ public class DashboardServiceImpl implements DashboardService {
 						dataValueSummaryTreeMap.put(revenue.getYear(), dataValueSortedSet);
 					} else {
 						Set<SolDataValueSummaryDTO> existingSet = dataValueSummaryTreeMap.get(revenue.getYear());
-			            if (existingSet.contains(dto2)) {
-			                // Remove the existing object and add the new one
-			                existingSet.remove(dto2);
-			                existingSet.add(dto2);
-			            } else {
-			                // If its new object, add it
-			                existingSet.add(dto2);
-			            }
-//						dataValueSummaryTreeMap.put(revenue.getYear(),existingSet);
+						existingSet.add(dto2);
+						Set<SolDataValueSummaryDTO> copy = new HashSet<>(existingSet); 						
+						dataValueSummaryTreeMap.put(revenue.getYear(), copy);
 					}
 				}
 			}
