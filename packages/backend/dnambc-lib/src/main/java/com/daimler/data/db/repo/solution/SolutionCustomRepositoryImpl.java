@@ -974,7 +974,7 @@ public class SolutionCustomRepositoryImpl extends CommonDataRepositoryImpl<Solut
 		Query q = getNativeQueryWithFilters(
 					" select cast (id as text), cast (data->'productName'  as varchar), cast (data->'digitalValueDetails'->'valueCalculator'->'calculatedDigitalValue' as text) ",
 					published, phases, dataVolumes, divisions, locations, statuses, solutionType, userId, isAdmin,
-					bookmarkedSolutions, searchTerms, tags, new ArrayList<>(), divisionsAdmin, false, false, 0, 0, "", "",
+					bookmarkedSolutions, searchTerms, tags, new ArrayList<>(), divisionsAdmin, true, false, 0, 0, "", "",
 					"and jsonb_extract_path_text(data,'digitalValueDetails','valueCalculator','calculatedDigitalValue','year') is not null "
 					+ " and (jsonb_extract_path_text(data,'digitalValueDetails','typeOfCalculation') is null "
 					+ " OR jsonb_extract_path_text(data,'digitalValueDetails','typeOfCalculation') in ('DIGITAL_VALUE') )",
