@@ -366,7 +366,7 @@ public class SolutionCustomRepositoryImpl extends CommonDataRepositoryImpl<Solut
 			List<String> divisionsAdmin) {
 		Query q = getNativeQueryWithFilters(" select cast ( data->'currentPhase' as text), count(*)   ", published,
 				phases, dataVolumes, divisions, locations, statuses, solutionType, userId, isAdmin, bookmarkedSolutions,
-				searchTerms, tags, new ArrayList<>(), divisionsAdmin, false, false, 0, 0, "", "", "",
+				searchTerms, tags, new ArrayList<>(), divisionsAdmin, null, false, 0, 0, "", "", "",
 				" group by (data->'currentPhase') ");
 		ObjectMapper mapper = new ObjectMapper();
 		List<Object[]> results = q.getResultList();
@@ -395,7 +395,7 @@ public class SolutionCustomRepositoryImpl extends CommonDataRepositoryImpl<Solut
 		Query q = getNativeQueryWithFilters(
 				" select cast (jsonb_array_elements(data->'locations') as text) , count(*) ", published, phases,
 				dataVolumes, divisions, locations, statuses, solutionType, userId, isAdmin, bookmarkedSolutions,
-				searchTerms, tags, new ArrayList<>(), divisionsAdmin, false, false, 0, 0, "", "", "",
+				searchTerms, tags, new ArrayList<>(), divisionsAdmin, null, false, 0, 0, "", "", "",
 				" group by jsonb_array_elements(data->'locations') ");
 		ObjectMapper mapper = new ObjectMapper();
 		List<Object[]> results = q.getResultList();
@@ -428,7 +428,7 @@ public class SolutionCustomRepositoryImpl extends CommonDataRepositoryImpl<Solut
 			List<String> searchTerms, List<String> tags, List<String> divisionsAdmin) {
 		Query q = getNativeQueryWithFilters(" select cast (data->'totalDataVolume' as text) , count(*)  ", published,
 				phases, dataVolumes, divisions, locations, statuses, solutionType, userId, isAdmin, bookmarkedSolutions,
-				searchTerms, tags, new ArrayList<>(), divisionsAdmin, false, false, 0, 0, "", "", "",
+				searchTerms, tags, new ArrayList<>(), divisionsAdmin, null, false, 0, 0, "", "", "",
 				" group by (data->'totalDataVolume') ");
 
 		ObjectMapper mapper = new ObjectMapper();
