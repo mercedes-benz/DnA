@@ -184,7 +184,7 @@ public class KafkaCoreCampaignService {
 						}
 						if(!ObjectUtils.isEmpty(message.getResourceId()) && message.getEventType().contains(CHRONOS_NOTIFICATION_KEY)) {
 								
-								emailBody += "<p> Please use " + " <a href=\"" + forecastURL +"\">link</a> to access the chronos forecast project. <p/> <br/>";
+								emailBody += "<p> Please use the " + " <a href=\"" + forecastURL +"\">link</a> to access the Chronos forecast project. <p/> <br/>";
 								if(!user.equalsIgnoreCase(publishingUser)) {
 									emailBody +=  message.getMessageDetails() + "<br/>";
 								}
