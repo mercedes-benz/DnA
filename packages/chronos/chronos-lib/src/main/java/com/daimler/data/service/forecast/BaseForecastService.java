@@ -537,7 +537,7 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 									String ownerEmail = entity.getData().getCreatedBy().getEmail();
 									memberEmails.add(ownerEmail);
 									String message ="";
-									message="Run '" + run.getRunName() + "' triggered by " + run.getTriggeredBy() +" for Chronos project "+ forecastName + " completed with ResultState " + newState.getResult_state() +". Please check forecast results for more details";
+									message="Run '" + run.getRunName() + "' triggered by " + run.getTriggeredBy() +" for Chronos project '"+ forecastName + "' completed with ResultState " + newState.getResult_state() +". Please check forecast results for more details.";
 									String notificationEventName = "Chronos: " + newState.getResult_state() + " for run '" + run.getRunName() + "'" ;
 									notifyUsers(forecastId, memberIds, memberEmails,message,"",notificationEventName,null);
 								}
