@@ -75,7 +75,7 @@ public class BaseJMailer implements JMailer {
 	        helper.setText(""	        		
 	        		+ msgTxt
 					+ "<br/>-----<br/>"
-	        		+ "<p> You received this auto-generated email from DNA as per your notification setings. You can change them <a href=\"" + dnaBaseUri + "/#/usersettings" + "\">here</a> </p>", html);
+	        		+ "<p> You received this auto-generated email from DNA as per your notification settings. You can change them <a href=\"" + dnaBaseUri + "/#/usersettings" + "\">here</a>. </p>", html);
 	         
 	        javaMailSender.send(message);
 	        log.info("Mail sent successfully for eventRecord {} , please check notification by this id for more details", eventId);
