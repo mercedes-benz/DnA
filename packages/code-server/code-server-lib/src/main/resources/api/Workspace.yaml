@@ -461,6 +461,106 @@ paths:
         500:
           description: "Internal error"
 
+
+  /workspaces/{id}/config:        
+    patch:
+      tags:
+        - "code-server"
+      summary: "Save Codespace security configurations which include defining roles, entitlements, user-role mappings etc."
+      description: "Save Codespace security configurations"
+      operationId: "saveSecurityConfig"
+      parameters:
+        - name: "id"
+          in: "path"
+          description: "Workspace ID to be fetched"
+          required: true
+          type: "string"
+        - name: "configRequestDto"
+          in: "body"
+          description: "request body for saving security config details of the project"
+          required: true
+          schema:
+            $ref: "#/definitions/SecurityConfigRequestDto"
+      responses:
+        201:
+          description: "Returns message of success or failure"
+          schema:
+            $ref: "#/definitions/SecurityConfigResponseDto"
+        204:
+          description: "Fetch complete, no content found."
+        400:
+          description: "Bad request."
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
+        
+    get:
+      tags:
+        - "code-server"
+      summary: "Get Security config for the worksapce Id."
+      description: "Get Security config for the worksapce Id."
+      operationId: "getSecurityConfig"
+      parameters:
+        - name: "id"
+          in: "path"
+          description: "Workspace name to be fetched"
+          required: true
+          type: "string"
+      responses:
+        201:
+          description: "Returns message of success or failure"
+          schema:
+            $ref: "#/definitions/CodespaceSecurityConfigVO"
+        204:
+          description: "Fetch complete, no content found."
+        400:
+          description: "Bad request."
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
+
+
+  /workspaces/{id}/config/request:        
+    post:
+      tags:
+        - "code-server"
+      summary: "Request for the changes to be added in access management system"
+      description: "request Codespace security configurations to be published"
+      operationId: "requestSecurityConfig"
+      parameters:
+        - name: "id"
+          in: "path"
+          description: "Workspace ID to be fetched"
+          required: true
+          type: "string"
+      responses:
+        201:
+          description: "Returns message of success or failure"
+          schema:
+            $ref: "#/definitions/GenericMessage"
+        204:
+          description: "Fetch complete, no content found."
+        400:
+          description: "Bad request."
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
+                      
   # Fetch all valid userinfo or by intent
   #
   #  supported http methods GET, PUT
@@ -522,7 +622,87 @@ paths:
           description: "Method not allowed"
         500:
           description: "Internal error"
+          
+  /workspaces/{id}/config/entitlements:
+    get:
+      tags:
+        - "code-server"
+      summary: "Get all entitlements for the workspace Id."
+      description: "Get all entitlements for the workspace Id."
+      operationId: "getAllEntitlements"
+      parameters:
+        - name: "id"
+          in: "path"
+          description: "Workspace name to be fetched"
+          required: true
+          type: "string"
+      responses:
+        201:
+          description: "Returns message of success or failure"
+          schema:
+            $ref: "#/definitions/EntitlementCollectionVO"
+        204:
+          description: "Fetch complete, no content found."
+        400:
+          description: "Bad request."
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
+ 
+  /workspaces/{id}/config/roles:
+    get:
+      tags:
+        - "code-server"
+      summary: "Get all roles for the workspace Id."
+      description: "Get all roles for the workspace Id."
+      operationId: "getAllRoles"
+      parameters:
+        - name: "id"
+          in: "path"
+          description: "Workspace name to be fetched"
+          required: true
+          type: "string"
+      responses:
+        201:
+          description: "Returns message of success or failure"
+          schema:
+            $ref: "#/definitions/RoleCollectionVO"
+        204:
+          description: "Fetch complete, no content found."
+        400:
+          description: "Bad request."
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
+          
 definitions:
+
+  RoleCollectionVO:
+    type: object
+    properties:
+      data:
+        type: array
+        items:
+          type: string
+  
+  EntitlementCollectionVO:
+    type: object
+    properties:
+      data:
+        type: array
+        items:
+          type: string        
+          
   TransparencyVO:
     type: object
     properties:
@@ -620,6 +800,8 @@ definitions:
       projectCreatedOn:
         type: string
         format: date
+      securityConfig:
+        $ref: "#/definitions/CodespaceSecurityConfigVO"
       required:
         -projectName
         -recipeDetails
@@ -694,6 +876,75 @@ definitions:
         description: "Storage details of recipe"  
       required:
         -recipeId
+
+  SecurityConfigResponseDto: 
+    type: object
+    properties:
+     data:
+        $ref: "#/definitions/CodespaceSecurityConfigVO"
+     response:
+        $ref: "#/definitions/GenericMessage"
+        
+  SecurityConfigRequestDto: 
+    type: object
+    properties:
+     data:
+        $ref: "#/definitions/CodespaceSecurityConfigVO"
+  
+  CodespaceSecurityEntitlementVO: 
+    type: object
+    properties:
+     name:
+        type: string
+        description: "Status of security configurations"   
+     apiPattern:
+        type: string
+        description: "API Path or Pattern used to validate this entitlement" 
+     httpMethod:
+        type: string
+        enum: [POST,PUT,PATCH,GET,OPTIONS,HEAD,DELETE]
+        description: "Operating system required"          
+
+  CodespaceSecurityUserRoleMapVO: 
+    type: object
+    properties:
+     userId:
+        type: string
+        description: "User unique identification"   
+     roles:
+        type: array
+        items:
+         type: string
+        
+  CodespaceSecurityRoleVO: 
+    type: object
+    properties:
+     roleName:
+        type: string
+        description: "Role name"   
+     roleEntitlements:
+        type: array
+        items:
+         type: string
+                
+  CodespaceSecurityConfigVO: 
+    type: object
+    properties:
+     status:
+        type: string
+        description: "Status of security configurations"   
+     entitlements:
+        type: array
+        items:
+          $ref: "#/definitions/CodespaceSecurityEntitlementVO"
+     roles:
+        type: array
+        items:
+          $ref: "#/definitions/CodespaceSecurityRoleVO" 
+     userRoleMappings:
+        type: array
+        items:
+          $ref: "#/definitions/CodespaceSecurityUserRoleMapVO"
 
   UserIdVO:
     type: object

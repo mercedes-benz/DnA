@@ -1,0 +1,173 @@
+# LICENSE START
+# 
+# MIT License
+# 
+# Copyright (c) 2019 Daimler TSS GmbH
+# 
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+# 
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+# 
+# LICENSE END 
+#
+#-----------------------------------------------------------------------------------------------------
+#  **
+#  ** File Name  : WorkspaceAdmin.yaml
+#  **
+#  ** Module     : core
+#  ** 
+
+#  -------------------------------------------------------------------------------------------------------
+#
+#  CHANGE HISTORY
+#
+#  Created By         :  ***REMOVED***
+#
+#  Bug Number         :  
+#  Changed By         :  
+#  Change Description :  
+#  Change On          :  
+#  Search String      :  
+#  
+#  -------------------------------------------------------------------------------------------------------
+
+
+swagger: "2.0"
+info:
+  version: "1.0.0"
+  title: "Code-server Workspace Service"
+host: "localhost:7979"
+basePath: "/api/1.0"
+consumes:
+  - "application/json"
+produces:
+  - "application/json"
+tags:
+  - name: "code-server-admin"
+    description: "This service is used to maintain code-server workspaces information."
+
+schemes:
+  - "https"
+
+paths:
+
+  # Fetch all valid userinfo or by intent
+  #
+  #  supported http methods GET, POST
+  #
+  # path example ../workspaces
+
+
+  /workspaces/{id}/config/accept:        
+    post:
+      tags:
+        - "code-server-admin"
+      summary: "Accepting the changes to be added in access management , marking status as Accepted if success"
+      description: "Accepting the changes to be added in access management system"
+      operationId: "acceptSecurityConfig"
+      parameters:
+        - name: "id"
+          in: "path"
+          description: "Workspace ID to be fetched"
+          required: true
+          type: "string"
+      responses:
+        201:
+          description: "Returns message of success or failure"
+          schema:
+            $ref: "#/definitions/GenericMessage"
+        204:
+          description: "Fetch complete, no content found."
+        400:
+          description: "Bad request."
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
+          
+  /workspaces/{id}/config/publish:        
+    post:
+      tags:
+        - "code-server-admin"
+      summary: "Marking status after Publishing the changes added in access management system"
+      description: "Marking status after Publishing the changes added in access management system"
+      operationId: "publishSecurityConfig"
+      parameters:
+        - name: "id"
+          in: "path"
+          description: "Workspace ID to be fetched"
+          required: true
+          type: "string"
+      responses:
+        201:
+          description: "Returns message of success or failure"
+          schema:
+            $ref: "#/definitions/GenericMessage"
+        204:
+          description: "Fetch complete, no content found."
+        400:
+          description: "Bad request."
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
+
+  /workspaces/configs:
+    get:
+      tags:
+        - "code-server-admin"
+      summary: "Get all workspace security configurations which are in requested state, waiting for processing."
+      description: "Get all workspace security configurations which are in requested state, waiting for processing"
+      operationId: "getWorkspaceConfigs"
+      responses:
+        201:
+          description: "Returns message of success or failure"
+          schema:
+            $ref: "#/definitions/CodespaceSecurityConfigCollectionVO"
+        204:
+          description: "Fetch complete, no content found."
+        400:
+          description: "Bad request."
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
+          
+
+definitions:
+
+  CodespaceSecurityConfigCollectionVO: 
+    type: object
+    properties:
+     data:
+        type: array
+        items:
+          $ref: "#/definitions/CodespaceSecurityConfigVO"
+          
+
