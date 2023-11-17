@@ -105,6 +105,7 @@ server:
   port: 8989
 
 storage.uri : ${STORAGE_API_BASE_URL:XXXXXX}
+chronos.uri : ${CHRONOS_API_BASE_URL:XXXXXX}
 
 #Cors Filter origin Domains  
 allowedCorsOriginPatternUrl: ${CORS_ORIGIN_URL:http://*}
