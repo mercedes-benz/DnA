@@ -35,7 +35,6 @@ import java.util.stream.Collectors;
 import javax.persistence.EntityNotFoundException;
 import javax.validation.Valid;
 
-import com.daimler.data.dto.workspace.*;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -48,19 +47,37 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.daimler.data.api.workspace.CodeServerApi;
+import com.daimler.data.api.workspace.admin.CodeServerAdminApi;
 import com.daimler.data.application.auth.UserStore;
 import com.daimler.data.application.client.GitClient;
 import com.daimler.data.auth.client.DnaAuthClient;
 import com.daimler.data.auth.client.UserRequestVO;
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
-import com.daimler.data.db.entities.CodeServerWorkspaceNsql;
-import com.daimler.data.db.repo.workspace.WorkspaceCustomRepository;
+import com.daimler.data.dto.workspace.CodeServerDeploymentDetailsVO;
+import com.daimler.data.dto.workspace.CodeServerRecipeDetailsVO;
 import com.daimler.data.dto.workspace.CodeServerRecipeDetailsVO.CloudServiceProviderEnum;
 import com.daimler.data.dto.workspace.CodeServerRecipeDetailsVO.CpuCapacityEnum;
 import com.daimler.data.dto.workspace.CodeServerRecipeDetailsVO.EnvironmentEnum;
 import com.daimler.data.dto.workspace.CodeServerRecipeDetailsVO.OperatingSystemEnum;
 import com.daimler.data.dto.workspace.CodeServerRecipeDetailsVO.RamSizeEnum;
+import com.daimler.data.dto.workspace.CodeServerWorkspaceVO;
+import com.daimler.data.dto.workspace.CodeServerWorkspaceValidateVO;
+import com.daimler.data.dto.workspace.CodespaceSecurityConfigVO;
+import com.daimler.data.dto.workspace.CreatedByVO;
+import com.daimler.data.dto.workspace.EntitlementCollectionVO;
+import com.daimler.data.dto.workspace.InitializeCollabWorkspaceRequestVO;
+import com.daimler.data.dto.workspace.InitializeWorkspaceRequestVO;
+import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
+import com.daimler.data.dto.workspace.ManageDeployRequestDto;
+import com.daimler.data.dto.workspace.RoleCollectionVO;
+import com.daimler.data.dto.workspace.SecurityConfigRequestDto;
+import com.daimler.data.dto.workspace.SecurityConfigResponseDto;
+import com.daimler.data.dto.workspace.TransparencyVO;
+import com.daimler.data.dto.workspace.UserIdVO;
+import com.daimler.data.dto.workspace.UserInfoVO;
+import com.daimler.data.dto.workspace.WorkspaceCollectionVO;
+import com.daimler.data.dto.workspace.admin.CodespaceSecurityConfigCollectionVO;
 import com.daimler.data.service.workspace.WorkspaceService;
 import com.daimler.data.util.ConstantsUtility;
 
@@ -75,7 +92,7 @@ import lombok.extern.slf4j.Slf4j;
 @Api(value = "Workspace API", tags = { "code-server" })
 @RequestMapping("/api")
 @Slf4j
-public class WorkspaceController  implements CodeServerApi{
+public class WorkspaceController  implements CodeServerApi, CodeServerAdminApi{
 
 	@Autowired
 	private WorkspaceService service;
@@ -236,6 +253,73 @@ public class WorkspaceController  implements CodeServerApi{
 
 		return new ResponseEntity<>(responseMessage, HttpStatus.OK);
 	}
+	
+	@Override
+	 @ApiOperation(value = "Save Codespace security configurations which include defining roles, entitlements, user-role mappings etc.", nickname = "saveSecurityConfig", notes = "Save Codespace security configurations", response = SecurityConfigResponseDto.class, tags={ "code-server", })
+    @ApiResponses(value = { 
+        @ApiResponse(code = 201, message = "Returns message of success or failure", response = SecurityConfigResponseDto.class),
+        @ApiResponse(code = 204, message = "Fetch complete, no content found."),
+        @ApiResponse(code = 400, message = "Bad request."),
+        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+        @ApiResponse(code = 403, message = "Request is not authorized."),
+        @ApiResponse(code = 405, message = "Method not allowed"),
+        @ApiResponse(code = 500, message = "Internal error") })
+    @RequestMapping(value = "/workspaces/{id}/config",
+        produces = { "application/json" }, 
+        consumes = { "application/json" },
+        method = RequestMethod.PATCH)
+    public ResponseEntity<SecurityConfigResponseDto> saveSecurityConfig(@ApiParam(value = "Workspace ID to be fetched",required=true) @PathVariable("id") String id,@ApiParam(value = "request body for saving security config details of the project" ,required=true )  @Valid @RequestBody SecurityConfigRequestDto configRequestDto){
+		
+		SecurityConfigResponseDto saveConfigResponse = new SecurityConfigResponseDto();
+		CodespaceSecurityConfigVO data = configRequestDto.getData();
+		saveConfigResponse.setData(data);
+		CreatedByVO currentUser = this.userStore.getVO();
+		String userId = currentUser != null ? currentUser.getId() : null;
+		CodeServerWorkspaceVO vo = service.getById(userId, id);
+		GenericMessage responseMessage = new GenericMessage();
+
+		if (vo == null || vo.getWorkspaceId() == null) {
+			log.debug("No workspace found, returning empty");
+			GenericMessage emptyResponse = new GenericMessage();
+			List<MessageDescription> errorMessage = new ArrayList<>();
+			MessageDescription msg = new MessageDescription();
+			msg.setMessage("No workspace found for given id and the user");
+			errorMessage.add(msg);
+			emptyResponse.addErrors(msg);
+			emptyResponse.setSuccess("FAILED");
+			emptyResponse.setErrors(errorMessage);
+			saveConfigResponse.setData(null);
+			saveConfigResponse.setResponse(emptyResponse);
+			return new ResponseEntity<>(saveConfigResponse, HttpStatus.NOT_FOUND);
+		}
+
+		if (!(vo != null && vo.getWorkspaceOwner() != null && vo.getWorkspaceOwner().getId().equalsIgnoreCase(userId))) {
+			MessageDescription notAuthorizedMsg = new MessageDescription();
+			notAuthorizedMsg.setMessage(
+					"Only owners can edit security configurations for workspace. Denied, does not have privileges.");
+			GenericMessage errorMessage = new GenericMessage();
+			errorMessage.addErrors(notAuthorizedMsg);
+			log.info("User {} cannot update security configurations for workspace, insufficient privileges. Workspace name: {}", userId, vo.getWorkspaceId());
+			saveConfigResponse.setResponse(errorMessage);
+			return new ResponseEntity<>(saveConfigResponse, HttpStatus.FORBIDDEN);
+		}
+		
+		if (vo != null && vo.getWorkspaceOwner() != null && vo.getWorkspaceOwner().getId().equalsIgnoreCase(userId) && vo.getId().isBlank()) {
+			MessageDescription notAuthorizedMsg = new MessageDescription();
+			notAuthorizedMsg.setMessage(
+					"Security configurations are in REQUESTED state, cannot edit. Please wait for state change.");
+			GenericMessage errorMessage = new GenericMessage();
+			errorMessage.addErrors(notAuthorizedMsg);
+			log.info("Security configurations are in REQUESTED state, cannot edit. User {},  Workspace name: {}", userId, vo.getWorkspaceId());
+			saveConfigResponse.setResponse(errorMessage);
+			return new ResponseEntity<>(saveConfigResponse, HttpStatus.BAD_REQUEST);
+		}
+
+		//responseMessage = service.saveSecurityConfig();
+
+		return new ResponseEntity<>(saveConfigResponse, HttpStatus.OK);
+	}
+	
 
 	@Override
 	@ApiOperation(value = "Initialize Workbench for user.", nickname = "initializeWorkspace", notes = "Initialize workbench for collab user", response = InitializeWorkspaceResponseVO.class, tags={ "code-server", })
@@ -865,5 +949,55 @@ public class WorkspaceController  implements CodeServerApi{
 		CodeServerWorkspaceValidateVO validateVO = service.validateCodespace(id, userid);
 		return new ResponseEntity<>(validateVO, HttpStatus.OK);
 	}
+
+
+	@Override
+	public ResponseEntity<EntitlementCollectionVO> getAllEntitlements(String id) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+
+	@Override
+	public ResponseEntity<RoleCollectionVO> getAllRoles(String id) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+
+	@Override
+	public ResponseEntity<CodespaceSecurityConfigVO> getSecurityConfig(String id) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+
+	@Override
+	public ResponseEntity<GenericMessage> requestSecurityConfig(String id) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+
+	@Override
+	public ResponseEntity<GenericMessage> acceptSecurityConfig(String id) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+
+	@Override
+	public ResponseEntity<CodespaceSecurityConfigCollectionVO> getWorkspaceConfigs() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+
+	@Override
+	public ResponseEntity<GenericMessage> publishSecurityConfig(String id) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 
 }
