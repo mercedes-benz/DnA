@@ -4,7 +4,6 @@ import { IUserInfo } from 'globals/types';
 import Styles from './Home.scss';
 import { Envs } from 'globals/Envs';
 import DNACard from 'components/card/Card';
-import IconGenAI from 'components/icons/IconGenAI';
 
 export interface ILandingpageProps {
   user: IUserInfo;
@@ -53,7 +52,7 @@ const Home: React.FC<ILandingpageProps> = () => {
                   url={'/genAI'}
                   isTextAlignLeft={false}
                   isDisabled={false}
-                  svgIcon={<IconGenAI size="80"/>}
+                  svgIcon={'genai'}
                 />
               </div>
               <div className={Styles.dnaCol6}>
