@@ -503,6 +503,17 @@ public class WorkspaceController  implements CodeServerApi, CodeServerAdminApi{
 				return new ResponseEntity<>(responseMessage, HttpStatus.BAD_REQUEST);
 			}
 		}
+		if(reqVO.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("bat")){
+			String githubUrl = reqVO.getProjectDetails().getRecipeDetails().getRepodetails();			
+			if("".equals(githubUrl) || githubUrl == null) {
+				List<MessageDescription> errorMessage = new ArrayList<>();
+				MessageDescription msg = new MessageDescription();
+				msg.setMessage("No Repodetails found for given BAT recipe");
+				errorMessage.add(msg);
+				responseMessage.setErrors(errorMessage);
+				return new ResponseEntity<>(responseMessage, HttpStatus.BAD_REQUEST);
+			}
+		}
 		currentUserVO.setGitUserName(reqVO.getGitUserName());
 		reqVO.setWorkspaceOwner(currentUserVO);
 		reqVO.setId(null);
