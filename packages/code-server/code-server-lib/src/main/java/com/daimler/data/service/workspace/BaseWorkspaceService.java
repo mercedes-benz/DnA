@@ -577,8 +577,9 @@ public class BaseWorkspaceService implements WorkspaceService {
 		try {
 			CodeServerWorkspaceNsql entity =  workspaceCustomRepository.findById(userId,id);
 			if(entity.getData().getProjectDetails().getRecipeDetails().getRecipeId().toLowerCase().startsWith("public")
-					|| entity.getData().getProjectDetails().getRecipeDetails().getRecipeId().toLowerCase().startsWith("private")){
-				log.error("Cannot deploy workspace for this project with id {} of recipe type - Public/Private " + id);
+					|| entity.getData().getProjectDetails().getRecipeDetails().getRecipeId().toLowerCase().startsWith("private")
+					|| entity.getData().getProjectDetails().getRecipeDetails().getRecipeId().toLowerCase().startsWith("bat")){
+				log.error("Cannot deploy workspace for this project with id {} of recipe type - Public/Private/BAT " + id);
 				MessageDescription msg = new MessageDescription("Cannot deploy workspace for this project of recipe type {} " +entity.getData().getProjectDetails().getRecipeDetails());
 				errors.add(msg);
 			}
