@@ -46,6 +46,9 @@ const RunForecastTab = ({ onRunClick }) => {
     formData.append('frequency', data.frequency);
     formData.append('forecastHorizon', data.forecastHorizon);
     formData.append('hierarchy', data.hierarchy === undefined ? '' : data.hierarchy);
+    if(data.configurationFile.includes('OPTIMISATION_CONFIG')) {
+      formData.append('runOnPowerfulMachines', true);
+    }
     formData.append('runOnPowerfulMachines', data.runOnPowerfulMachines === undefined ? false : data.runOnPowerfulMachines);
     formData.append('chronosVersion', data.chronosVersion === undefined ? '' : data.chronosVersion);
     formData.append('comment', data.comment);
