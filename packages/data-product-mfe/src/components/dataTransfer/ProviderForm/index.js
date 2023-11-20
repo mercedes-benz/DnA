@@ -491,6 +491,7 @@ const ProviderForm = ({ user, history }) => {
     };
     reset(data, {
       keepDirty: false,
+      isDirty: false,
     });
     if (isCreatePage) {
       const { id } = provideDataTransfers.selectedDataTransfer;
@@ -654,12 +655,13 @@ const ProviderForm = ({ user, history }) => {
             </div>
             <div className="tabs-content-wrapper">
               <div id="tab-content-1" className="tab-content">
-                <ContactInformation
+                {currentTab === 'contact-info' && (
+                  <ContactInformation
                   onSave={(values) => onSave('contact-info', values)}
                   divisions={divisions}
                   setSubDivisions={setSubDivisions}
                   subDivisions={subDivisions}
-                />
+                />)}
               </div>
               <div id="tab-content-2" className="tab-content">
                 {currentTab === 'classification-confidentiality' && (
