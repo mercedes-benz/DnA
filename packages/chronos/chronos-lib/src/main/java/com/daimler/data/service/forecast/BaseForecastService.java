@@ -454,6 +454,21 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 							log.info("Able to fetch updated run details for forecast {} and correlation {} which was in {}", forecastId,correlationId,state.getLife_cycle_state());
 							RunDetails updatedRunDetail = new RunDetails();
 							BeanUtils.copyProperties(run, updatedRunDetail);
+
+							List<String> memberIds = new ArrayList<>();
+							List<String> memberEmails = new ArrayList<>();
+							if (entity.getData().getCollaborators() != null) {
+								memberIds = entity.getData().getCollaborators().stream()
+										.map(UserDetails::getId).collect(Collectors.toList());
+								memberEmails = entity.getData().getCollaborators().stream()
+										.map(UserDetails::getEmail).collect(Collectors.toList());
+							}
+
+							String ownerId = entity.getData().getCreatedBy().getId();
+							memberIds.add(ownerId);
+							String ownerEmail = entity.getData().getCreatedBy().getEmail();
+							memberEmails.add(ownerEmail);
+
 							updatedRunDetail.setCreatorUserName(updatedRunResponse.getCreatorUserName());
 							if(updatedRunResponse.getEndTime()!=null)
 								updatedRunDetail.setEndTime(updatedRunResponse.getEndTime().longValue());
@@ -489,12 +504,14 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 										if (bucketObjectDetailsForConfigRecommendation != null && bucketObjectDetailsForConfigRecommendation.size() > 0) {
 											Optional<String> objectName = bucketObjectDetailsForConfigRecommendation.stream().map(BucketObjectDetailsDto::getObjectName).findFirst();
 											String configFileName = objectName.get();
-											String filePath = configFileName.substring(0, configFileName.lastIndexOf('.'));
-											String fileName = filePath.substring(filePath.lastIndexOf('/') + 1);
+												String fileName = configFileName.substring(configFileName.lastIndexOf('/') + 1);
 											ResponseEntity<ByteArrayResource> configRecommendationFileDownloadResponse = storageClient.getDownloadFile(bucketName, configFileName);
 											log.info("successfully retrieved configRecommendationFile contents for forecast {} and correaltionid{} and runname{}",
 													bucketName, correlationId, run.getRunName());
 											ByteArrayResource byteArrayResource = configRecommendationFileDownloadResponse.getBody();
+											String message = "";
+											String notificationEventName = "Chronos:  Recommendation file generated" +  " for run '" + run.getRunName() + "'";
+
 											try {
 												ForecastConfigFileUploadResponseVO uploadResponse = new ForecastConfigFileUploadResponseVO();
 												HttpHeaders headers = new HttpHeaders();
@@ -512,12 +529,19 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 														requestEntity, ForecastConfigFileUploadResponseVO.class);
 												if (uploadConfigFileResponse.hasBody()) {
 													uploadResponse = uploadConfigFileResponse.getBody();
+													if (uploadResponse != null && "SUCCESS".equalsIgnoreCase(uploadResponse.getResponse().getSuccess())) {
+														message="New recommendation file generated based on" + run.getRunName()+" inputs, Successfully upload recommendation" +fileName +  "to project specific configs";
+														notifyUsers(forecastId, memberIds, memberEmails, message, "", notificationEventName, null);
+
+													}
+
 												}
 												log.info("upload config file response is {}", uploadResponse);
 											} catch (Exception e) {
 												log.error("Failed while uploading file {} to minio bucket {} with exception {}", fileName, bucketName, e.getMessage());
 												MessageDescription errMsg = new MessageDescription("Failed while uploading file with exception " + e.getMessage());
-
+												message="New recommendation file generated based on"+run.getRunName()+ "inputs, Failed to upload recommendation" +fileName +  "to project specific configs,  with exception"+e.getMessage();
+												notifyUsers(forecastId, memberIds, memberEmails, message, "", notificationEventName, null);
 											}
 
 										}
@@ -575,19 +599,7 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 										updatedStateMsg = errorMessage;
 									}
 									
-									List<String> memberIds = new ArrayList<>();
-									List<String> memberEmails = new ArrayList<>();
-									if (entity.getData().getCollaborators() != null) {
-										memberIds = entity.getData().getCollaborators().stream()
-												.map(UserDetails::getId).collect(Collectors.toList());
-										memberEmails = entity.getData().getCollaborators().stream()
-												.map(UserDetails::getEmail).collect(Collectors.toList());
-									}
 
-									String ownerId = entity.getData().getCreatedBy().getId();
-									memberIds.add(ownerId);
-									String ownerEmail = entity.getData().getCreatedBy().getEmail();
-									memberEmails.add(ownerEmail);
 									String message ="";
 									message="Run '" + run.getRunName() + "' triggered by " + run.getTriggeredBy() +" for Chronos project '"+ forecastName + "' completed with ResultState " + newState.getResult_state() +". Please check forecast results for more details.";
 									String notificationEventName = "Chronos: " + newState.getResult_state() + " for run '" + run.getRunName() + "'" ;
