@@ -123,7 +123,7 @@ const Description = ({
     .then((res) => {
       setAllAccessTypes(res?.data?.data);
       ProgressIndicator.hide();
-      SelectBox.defaultSetup();
+      SelectBox.defaultSetup(true);
     })
     .catch((e) => {
       console.log(e);
@@ -903,6 +903,7 @@ const Description = ({
                 <div className={`custom-select`}>
                   <select id="accessTypeField" multiple={true} 
                   // name="accessType" 
+                  value = {accessType}
                   {...register('accessType',{
                   
                   
