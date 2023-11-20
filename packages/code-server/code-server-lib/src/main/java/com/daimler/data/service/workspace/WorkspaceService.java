@@ -68,4 +68,6 @@ public interface WorkspaceService {
 
 	CodeServerWorkspaceValidateVO validateCodespace(String id, String userId);
 
+	GenericMessage saveSecurityConfig(CodeServerWorkspaceVO vo);
+
 }

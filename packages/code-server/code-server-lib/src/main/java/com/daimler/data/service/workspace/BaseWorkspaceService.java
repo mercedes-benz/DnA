@@ -1087,4 +1087,33 @@ public class BaseWorkspaceService implements WorkspaceService {
 	public CodeServerWorkspaceValidateVO validateCodespace(String id, String userId) {
 		return workspaceCustomRepository.validateCodespace(id, userId);
 	}
+
+	@Override
+	@Transactional
+	public GenericMessage saveSecurityConfig(CodeServerWorkspaceVO vo) {
+		GenericMessage responseMessage = new GenericMessage();
+		try{
+			CodeServerWorkspaceNsql entity = workspaceAssembler.toEntity(vo);
+			jpaRepo.save(entity);
+			MessageDescription msg = new MessageDescription();
+			List<MessageDescription> errorMessage = new ArrayList<>();
+			msg.setMessage("Sucessfully saved the security config");
+			errorMessage.add(msg);
+			responseMessage.addErrors(msg);
+			responseMessage.setSuccess("SUCCESS");    
+			responseMessage.setErrors(errorMessage); 
+			
+		}catch(Exception e){
+			log.error("caught exception while saving security config {}",e.getMessage());
+			MessageDescription msg = new MessageDescription();
+			List<MessageDescription> errorMessage = new ArrayList<>();
+			msg.setMessage("No workspace found for given id and the user");
+			errorMessage.add(msg);
+			responseMessage.addErrors(msg);
+			responseMessage.setSuccess("FAILED");    
+			responseMessage.setErrors(errorMessage); 
+		}
+		return responseMessage;
+
+	}
 }
