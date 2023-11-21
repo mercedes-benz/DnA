@@ -139,7 +139,7 @@ const DatalakeProjectForm = ({project, edit, onSave}) => {
       divisionName: datalakeDivision.includes('/') ? datalakeDivision.split('/')[1] : '',
       subdivisionId: datalakeSubDivision.includes('/') ? datalakeSubDivision.split('/')[0] : '',
       subdivisionName: datalakeSubDivision.includes('/') ? datalakeSubDivision.split('/')[1] : '',
-      department: departmentName,
+      department: departmentName[0],
       status: '',
       classificationType: dataClassification,
       hasPii: PII
@@ -167,7 +167,7 @@ const DatalakeProjectForm = ({project, edit, onSave}) => {
       divisionName: datalakeDivision.includes('/') ? datalakeDivision.split('/')[1] : '',
       subdivisionId: datalakeSubDivision.includes('/') ? datalakeSubDivision.split('/')[0] : '',
       subdivisionName: datalakeSubDivision.includes('/') ? datalakeSubDivision.split('/')[1] : '',
-      department: departmentName,
+      department: departmentName[0],
       status: '',
       classificationType: dataClassification,
       hasPii: PII
