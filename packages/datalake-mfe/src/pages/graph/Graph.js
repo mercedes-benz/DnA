@@ -7,10 +7,11 @@ import Styles from './graph.scss';
 import FullScreenModeIcon from 'dna-container/FullScreenModeIcon';
 import Modal from 'dna-container/Modal';
 import GraphTable from '../../components/GraphTable';
-import TableFormTemp from '../../components/tableFormTemp/TableFormTemp';
+import TableForm from '../../components/tableForm/TableForm';
 import SlidingModal from '../../components/slidingModal/SlidingModal';
 import { setBox, setTables } from '../../redux/graphSlice';
 import { getProjectDetails } from '../../redux/graph.services';
+import TableCollaborators from '../../components/tableCollaborators/TableCollaborators';
 
 const Graph = () => {
     const { id } = useParams();
@@ -68,7 +69,6 @@ const Graph = () => {
     const [offset, setOffset] = useState({ x: 0, y: 0 });
     const [movingTable, setMovingTable] = useState();
 
-    const [formChange, setFormChange] = useState(false);
     // const [editingLink, setEditingLink] = useState(null);
     const [tableSelectedId, setTableSelectId] = useState(null);
 
@@ -188,7 +188,18 @@ const Graph = () => {
                     </span>
                     <span className="label">SQL</span>
                 </label>
-                <div>&nbsp;</div>
+                <label className={classNames("checkbox", Styles.disabled)}>
+                    <span className="wrapper">
+                        <input type="checkbox" className="ff-only" />
+                    </span>
+                    <span className="label">DDX (Coming Soon)</span>
+                </label>
+                <label className={classNames("checkbox", Styles.disabled)}>
+                    <span className="wrapper">
+                        <input type="checkbox" className="ff-only" />
+                    </span>
+                    <span className="label">CDC (Coming Soon)</span>
+                </label>
             </div>
             <button
                 className={classNames('btn btn-primary')}
@@ -198,7 +209,15 @@ const Graph = () => {
                 Create Inference
             </button>
         </div>
-    </>;    
+    </>;   
+    
+  const [showCollabModal, setShowCollabModal] = useState(false);
+  const [collabs, setCollabs] = useState([]);
+
+  const handleCollab = (table) => {
+    setShowCollabModal(true);
+    setCollabs([...table.collabs]);
+  }
   
   return (
     <>
@@ -263,6 +282,7 @@ const Graph = () => {
                             onTableMouseDown={tableMouseDownHandler}
                             tableSelectedId={tableSelectedId}
                             setTableSelectId={setTableSelectId}
+                            onCollabClick={handleCollab}
                         />
                     </>
                 );
@@ -281,9 +301,7 @@ const Graph = () => {
             title={'Add Table'}
             toggle={toggleModal}
             setToggle={() => setToggleModal(!toggleModal)}
-            content={<TableFormTemp formChange={formChange} onFormChange={setFormChange} />} 
-            onCancel={console.log('oncancel')}
-            onSave={console.log('onsave')}
+            content={<TableForm setToggle={() => setToggleModal(!toggleModal)}  />}
         />
     }
 
@@ -301,6 +319,26 @@ const Graph = () => {
                 setShowInferenceModal(false);
             }}
         />
+    }
+    
+    {
+      showCollabModal && 
+      <Modal
+        title={'Table Collaborators'}
+        showAcceptButton={false}
+        showCancelButton={false}
+        modalWidth={'60%'}
+        buttonAlignment="right"
+        show={showCollabModal}
+        content={<TableCollaborators edit={false} collaborators={collabs} onSave={() => setShowCollabModal(false)} />}
+        scrollableContent={false}
+        onCancel={() => setShowCollabModal(false)}
+        modalStyle={{
+            padding: '50px 35px 35px 35px',
+            minWidth: 'unset',
+            width: '60%',
+        }}
+      />
     }
     </>
   );

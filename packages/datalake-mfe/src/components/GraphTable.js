@@ -4,13 +4,13 @@ import { tableWidth, titleHeight, commentHeight, fieldHeight } from '../data/set
 import { useSelector } from 'react-redux';
 
 /**
- * It renders a table with a title, a list of fields, and a button to edit the table
+ * It renders a table with a title, a list of columns, and a button to edit the table
  * @param props - {
  *            table,
  *            onTableMouseDown,
  *            onGripMouseDown,
  *        }
- * @returns A table component with a title and a list of fields.
+ * @returns A table component with a title and a list of columns.
  */
 const GraphTable = (props) => {
     // const dispatch = useDispatch();
@@ -25,7 +25,7 @@ const GraphTable = (props) => {
     };
 
     // 12: box-shadow
-    const height = table.fields.length * fieldHeight + titleHeight + commentHeight + 12;
+    const height = table.columns.length * fieldHeight + titleHeight + commentHeight + 12;
     return (
         <>
         <foreignObject
@@ -57,6 +57,11 @@ const GraphTable = (props) => {
                     {editable && (
                         <div className="table-settings">
                             <button 
+                              onClick={() => props.onCollabClick(table)}
+                            >
+                                <i className="icon mbc-icon profile"></i>
+                            </button>
+                            <button 
                             // onClick={() => dispatch(setEditingTable(table))}
                             >
                                 <i className="icon mbc-icon edit fill"></i>
@@ -67,8 +72,8 @@ const GraphTable = (props) => {
                         </div>
                     )}
                 </div>
-                {table.fields &&
-                    table.fields.map((field) => (
+                {table.columns &&
+                    table.columns.map((field) => (
                         <div
                             className="popover"
                             key={field.id}

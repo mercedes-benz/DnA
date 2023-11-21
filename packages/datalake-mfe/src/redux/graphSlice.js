@@ -9,6 +9,7 @@ const graphInitialState = {
     tables: []
   },
   errors: '',
+  editingTable: {},
 };
 
 export const graphSlice = createSlice({
