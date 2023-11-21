@@ -28,43 +28,6 @@ const DatalakeProjectForm = ({project, edit, onSave}) => {
     formState: { errors },
   } = methods;
 
-  const handleCreateProject = (values) => {
-    ProgressIndicator.show();
-    const data = {
-      projectName: values.projectName
-    }
-    datalakeApi.createDatalakeProject(data).then((res) => {
-      ProgressIndicator.hide();
-      history.push(`/graph/${res.data.data.id}`);
-      Notification.show('Data Lakehouse Project successfully created');
-      dispatch(getProjects());
-      onSave();
-    }).catch(error => {
-      ProgressIndicator.hide();
-      Notification.show(
-        error?.response?.data?.response?.errors?.[0]?.message || error?.response?.data?.response?.warnings?.[0]?.message || 'Error while creating data lakehouse project',
-        'alert',
-      );
-    });
-  };
-  const handleEditProject = () => {
-    const data = {
-      projectName: 'project name'
-    }
-    ProgressIndicator.show();
-    datalakeApi.updateDatalakeProject(data, project?.data?.id).then(() => {
-      ProgressIndicator.hide();
-      Notification.show('Data Lakehouse Project successfully updated');
-      onSave();
-    }).catch(error => {
-      ProgressIndicator.hide();
-      Notification.show(
-        error?.response?.data?.response?.errors?.[0]?.message || error?.response?.data?.response?.warnings?.[0]?.message || 'Error while updating data lakehouse project',
-        'alert',
-      );
-    });
-  };
-
   useEffect(() => {
     SelectBox.defaultSetup();
   }, []);
@@ -91,10 +54,11 @@ const DatalakeProjectForm = ({project, edit, onSave}) => {
     ProgressIndicator.show();
     datalakeApi.getLovData()
       .then((response) => {
+        ProgressIndicator.hide();
         setDataClassificationDropdown(response[0]?.data?.data || []);                
         setDivisions(response[1]?.data || []);
         setDepartments(response[2]?.data?.data || []);
-        SelectBox.defaultSetup();  
+        SelectBox.defaultSetup();
       })
       .catch((err) => {
           ProgressIndicator.hide();
@@ -151,9 +115,10 @@ const DatalakeProjectForm = ({project, edit, onSave}) => {
   // }];
 
   const handleDivision = (e) => {
-    const selectedOptions = e.currentTarget.selectedOptions;
-    const divId = selectedOptions[0].value
-    setDatalakeDivision(divId);
+    // const selectedOptions = e.currentTarget.selectedOptions;
+    // const divId = selectedOptions[0].value
+    // setDatalakeDivision(divId);
+    setDatalakeDivision(e.target.value);
   };
 
   const handleSubDivision = (e) => {
@@ -163,6 +128,63 @@ const DatalakeProjectForm = ({project, edit, onSave}) => {
   // const onChangeStatus = (e) => {
   //   setStatusValue(e.target.value);
   // }
+
+  const handleCreateProject = (values) => {
+    ProgressIndicator.show();
+    const data = {
+      projectName: values.projectName,
+      connectorType: connectorType,
+      description: values.description,
+      divisionId: datalakeDivision.includes('/') ? datalakeDivision.split('/')[0] : '',
+      divisionName: datalakeDivision.includes('/') ? datalakeDivision.split('/')[1] : '',
+      subdivisionId: datalakeSubDivision.includes('/') ? datalakeSubDivision.split('/')[0] : '',
+      subdivisionName: datalakeSubDivision.includes('/') ? datalakeSubDivision.split('/')[1] : '',
+      department: departmentName,
+      status: '',
+      classificationType: dataClassification,
+      hasPii: PII
+    }
+    datalakeApi.createDatalakeProject(data).then((res) => {
+      ProgressIndicator.hide();
+      history.push(`/graph/${res.data.data.id}`);
+      Notification.show('Data Lakehouse Project successfully created');
+      dispatch(getProjects());
+      onSave();
+    }).catch(error => {
+      ProgressIndicator.hide();
+      Notification.show(
+        error?.response?.data?.response?.errors?.[0]?.message || error?.response?.data?.response?.warnings?.[0]?.message || 'Error while creating data lakehouse project',
+        'alert',
+      );
+    });
+  };
+  const handleEditProject = (values) => {
+    const data = {
+      projectName: project?.data?.projectName,
+      connectorType: project?.data?.connectorType,
+      description: values.description,
+      divisionId: datalakeDivision.includes('/') ? datalakeDivision.split('/')[0] : '',
+      divisionName: datalakeDivision.includes('/') ? datalakeDivision.split('/')[1] : '',
+      subdivisionId: datalakeSubDivision.includes('/') ? datalakeSubDivision.split('/')[0] : '',
+      subdivisionName: datalakeSubDivision.includes('/') ? datalakeSubDivision.split('/')[1] : '',
+      department: departmentName,
+      status: '',
+      classificationType: dataClassification,
+      hasPii: PII
+    }
+    ProgressIndicator.show();
+    datalakeApi.updateDatalakeProject(data, project?.data?.id).then(() => {
+      ProgressIndicator.hide();
+      Notification.show('Data Lakehouse Project successfully updated');
+      onSave();
+    }).catch(error => {
+      ProgressIndicator.hide();
+      Notification.show(
+        error?.response?.data?.response?.errors?.[0]?.message || error?.response?.data?.response?.warnings?.[0]?.message || 'Error while updating data lakehouse project',
+        'alert',
+      );
+    });
+  };
 
   return (
     <>
@@ -288,7 +310,7 @@ const DatalakeProjectForm = ({project, edit, onSave}) => {
                         </option>
                         {divisions?.map((obj) => {
                           return (
-                          <option id={obj.name + obj.id} key={obj.id} value={obj.id}>
+                          <option id={obj.name + obj.id} key={obj.id} value={obj.id + '/' + obj.name}>
                             {obj.name}
                           </option>
                           )
@@ -326,7 +348,7 @@ const DatalakeProjectForm = ({project, edit, onSave}) => {
                               Choose
                             </option>
                             {subDivisions?.map((obj) => (
-                              <option id={obj.name + obj.id} key={obj.id} value={obj.id}>
+                              <option id={obj.name + obj.id} key={obj.id} value={obj.id + '/' + obj.name}>
                                 {obj.name}
                               </option>
                             ))}
@@ -369,16 +391,6 @@ const DatalakeProjectForm = ({project, edit, onSave}) => {
                     </div>
                     </div>
                     </div>
-                    <div id="isExistingSolution">
-                      <label className="input-label summary">Owner</label>
-                      <br />
-                      {project?.data?.owner?.firstName} {project?.data?.owner?.lastName}
-                  </div>
-                    <div id="isExistingSolution">
-                      <label className="input-label summary">Owner</label>
-                      <br />
-                      {project?.data?.owner?.firstName} {project?.data?.owner?.lastName}
-                </div>
                 {/* <div
                   className={classNames(
                     'input-field-group include-error',
