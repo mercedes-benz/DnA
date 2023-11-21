@@ -498,8 +498,15 @@ public class BaseStorageService implements StorageService {
 
 	@Override
 	public ResponseEntity<ByteArrayResource> getObjectContent(String bucketName, String prefix) {
+		LOGGER.debug("Fetching Current user.");
 		String currentUser = userStore.getUserInfo().getId();
 		HttpStatus httpStatus;
+		String chronosUserToken = httpRequest.getHeader("chronos-api-key");
+		boolean authFlag = chronosUserToken!=null && dataBricksAuth.equals(chronosUserToken);
+		if(chronosUserToken!=null && dataBricksAuth.equals(chronosUserToken)) {
+			currentUser = dataBricksUser;
+		}
+		LOGGER.debug("authflag {} currentUser {}",authFlag,currentUser);
 		LOGGER.debug("fetch object/file content through minio client");
 		MinioGenericResponse minioResponse = dnaMinioClient.getObjectContents(currentUser, bucketName, prefix);
 
@@ -560,6 +567,7 @@ public class BaseStorageService implements StorageService {
 		if(chronosUserToken!=null && dataBricksAuth.equals(chronosUserToken)) {
 			currentUser = dataBricksUser;
 		}
+		LOGGER.debug("currentUser {}",currentUser);
 		HttpStatus httpStatus = HttpStatus.BAD_REQUEST;
 		BucketResponseWrapperVO bucketResponseWrapperVO = new BucketResponseWrapperVO();
 		List<MessageDescription> errors = validateForUpload(uploadfile);
