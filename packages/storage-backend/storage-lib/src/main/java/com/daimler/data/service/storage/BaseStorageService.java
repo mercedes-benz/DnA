@@ -567,6 +567,7 @@ public class BaseStorageService implements StorageService {
 		if(chronosUserToken!=null && dataBricksAuth.equals(chronosUserToken)) {
 			currentUser = dataBricksUser;
 		}
+		LOGGER.debug("currentUser {}",currentUser);
 		HttpStatus httpStatus = HttpStatus.BAD_REQUEST;
 		BucketResponseWrapperVO bucketResponseWrapperVO = new BucketResponseWrapperVO();
 		List<MessageDescription> errors = validateForUpload(uploadfile);
