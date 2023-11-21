@@ -5,6 +5,7 @@ import { useSelector } from 'react-redux';
 import Styles from './run-parameters-form.scss';
 // Container components
 import SelectBox from 'dna-container/SelectBox';
+import Modal from 'dna-container/Modal';
 import Tooltip from '../../../common/modules/uilab/js/src/tooltip';
 import { Envs } from '../../../utilities/envs';
 
@@ -21,6 +22,7 @@ const RunParametersForm = () => {
   const [expertView, setExpertView] = useState(false);
 
   const {isLoading, configFiles} = useSelector(state => state.chronosForm);
+  const [showCustomConfigModal, setShowCustomConfigModal] = useState(false);
 
   useEffect(() => {
     SelectBox.defaultSetup();
@@ -43,6 +45,16 @@ const RunParametersForm = () => {
   useEffect(() => {
     SelectBox.defaultSetup();
   }, [isLoading]);
+
+  const customConfigFileContent = <div className={Styles.customConfigContainer}>
+    <p>The optimization finds a custom configuration file tailored to your data. <strong>Please read the following hints and restrictions carefully:</strong></p>
+    <p><strong>Single Target KPI only:</strong> Since the configuration is tailored to your target KPI, this feature only works with single-KPI data files. In case you have multiple target KPIs that you want to predict, please split them into different files. However, you can provide drivers data.</p>
+    <p><strong>Runtime:</strong> The feature will run hundreds of configurations to find the optimum one for you. This means that an optimization run takes a lot longer than a normal run (from an hour to a few).</p>
+    <p><strong>Forecast horizon:</strong> The feature will optimize your configuration based on your forecast horizon, meaning it will try to achieve the lowest error averaged over your forecast horizon setting. Make sure to select the forecast horizon that is important to you. You can still forecast more steps with the generated configuration.</p>
+    <p><strong>Evaluate results:</strong> Make sure to evaluate your results and check whether forecasts with the generated configuration meet your expectations. Feel free to contact the ADS team (<a href={`mailto:${Envs.ADS_EMAIL}`}>{Envs.ADS_EMAIL}</a>) for further needs or questions.</p>
+    <p>After the configuration optimization run finishes successfully, the proposed configuration file will be available in the project&apos;s configuration dropdown as &ldquo;CustomConfig&rdquo; with your Target KPI name and date of creation.</p>
+    <button className='btn btn-tertiary' onClick={() => setShowCustomConfigModal(false)}>Ok</button>
+  </div>;
   
   return (
     <div className={Styles.wrapper}>
@@ -100,6 +112,7 @@ const RunParametersForm = () => {
                   {...register('configurationFile', {
                     required: '*Missing entry',
                     validate: (value) => value !== '0' || '*Missing entry',
+                    onChange: (e) => { e.target.value.includes('OPTIMISATION_CONFIG') && setShowCustomConfigModal(true) }
                   })}
                 >
                   {
@@ -111,7 +124,7 @@ const RunParametersForm = () => {
                         <>
                           {configFiles.map((file) => (
                               <option key={file.objectName} value={file.objectName}>
-                                {file?.objectName?.includes('chronos-core') ? 'General > ' + file?.objectName?.split("/")[2] : 'Project > ' + file?.objectName?.split("/")[2]}
+                                {file?.objectName?.includes('OPTIMISATION_CONFIG') ? 'Generate custom configuration' : file?.objectName?.includes('chronos-core') ? 'General > ' + file?.objectName?.split("/")[2] : 'Project > ' + file?.objectName?.split("/")[2]}
                               </option>
                           ))}
                         </>
@@ -284,6 +297,28 @@ const RunParametersForm = () => {
         </div>
       </div>
     </div>
+
+    { showCustomConfigModal &&
+        <Modal
+          title={'Generate custom configuration'}
+          showAcceptButton={false}
+          showCancelButton={false}
+          modalWidth={'60%'}
+          buttonAlignment="right"
+          show={showCustomConfigModal}
+          content={customConfigFileContent}
+          scrollableContent={false}
+          onCancel={() => {
+            setShowCustomConfigModal(false)
+          }}
+          modalStyle={{
+            padding: '50px 35px 35px 35px',
+            minWidth: 'unset',
+            width: '60%',
+            maxWidth: '50vw'
+          }}
+        />
+      }
     </div>
   );
 }

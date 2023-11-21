@@ -129,7 +129,7 @@ export interface IPortfolioProps {
 // };
 
 const StackedBarChartTooltip = ({ active, payload }: any) => {
-if (active) {
+  if (active) {
     const itemObj = payload[0].payload;
     // tslint:disable-next-line: no-string-literal
     const firstSolution = itemObj['firstSolution'] as ISolutionDigitalValue;
@@ -208,7 +208,6 @@ const StackedBarChartTooltipDataValue = ({ active, payload }: any) => {
 
   return null;
 };
-
 
 const BarChartTooltip = ({ active, payload, label }: any) => {
   if (active) {
@@ -636,10 +635,10 @@ export default class Portfolio extends React.Component<IPortfolioProps, IPortfol
 
     const exportCSVIcon = () => {
       const element = (
-        <span className={classNames(filterStyle.iconTrigger)} onClick={this.triggerDownloadCSVData} >
+        <span className={classNames(filterStyle.iconTrigger)} onClick={this.triggerDownloadCSVData}>
           <i tooltip-data="Export to CSV" className="icon download" />
         </span>
-      )
+      );
       return element;
     };
 
@@ -685,11 +684,9 @@ export default class Portfolio extends React.Component<IPortfolioProps, IPortfol
               tags: string,
             ) => this.getSolutions(locations, phases, divisions, status, useCaseType, tags)}
             getFilterQueryParams={(queryParams: IFilterParams) =>
-             this.setState(
-              {
-                'queryParams' : queryParams,
-              }
-             )
+              this.setState({
+                queryParams: queryParams,
+              })
             }
             showSolutionsFilter={true}
             solutionsDataLoaded={this.state.portfolioFirstTimeDataLoaded}
@@ -771,14 +768,14 @@ export default class Portfolio extends React.Component<IPortfolioProps, IPortfol
                     )}
                   </div>
                 </div>
-                {/* <div className={classNames(Styles.portNavMore)}>
+                <div className={classNames(Styles.portNavMore)}>
                   <label className="hidden">
                     <i className="icon mbc-icon listItem context" />
                   </label>
-                  <label className={classNames(Styles.portNav)}>
+                  <label className={classNames(Styles.portNav)} onClick={this.onSummaryDataValueContributionBtnClick}>
                     <i className="icon mbc-icon arrow small right" />
                   </label>
-                </div> */}
+                </div>
               </div>
               <div className={classNames(Styles.portTile)}>
                 <div className={classNames(Styles.portTileVal)}>
@@ -1062,6 +1059,15 @@ export default class Portfolio extends React.Component<IPortfolioProps, IPortfol
     }
   };
 
+  protected onSummaryDataValueContributionBtnClick = () => {
+    if (parseFloat(this.state.dataValueDataSavingsKPI) > 0 || parseFloat(this.state.dataValueDataRevenueKPI) > 0) {
+      trackEvent('Portfolio', 'View Solutions', 'From Data Value KPI');
+      history.push('/viewsolutions/datavaluecontribution');
+    } else {
+      Notification.show('No solutions available to view.', 'alert');
+    }
+  };
+
   protected onSummaryNotebookBtnClick = () => {
     if (Number(this.state.dnaNotebooksDataKPI) > 0) {
       trackEvent('Portfolio', 'View Solutions', 'From Notebook KPI');
@@ -1144,11 +1150,7 @@ export default class Portfolio extends React.Component<IPortfolioProps, IPortfol
           () => {
             if (this.csvLink) {
               setTimeout(() => {
-                trackEvent(
-                  pageTitle,
-                  'Download CSV',
-                  'Downloaded solutions list data as .csv exported file',
-                );
+                trackEvent(pageTitle, 'Download CSV', 'Downloaded solutions list data as .csv exported file');
                 this.csvLink.link.click();
               }, 0);
             }
@@ -1157,5 +1159,5 @@ export default class Portfolio extends React.Component<IPortfolioProps, IPortfol
         );
       },
     );
-  }
+  };
 }

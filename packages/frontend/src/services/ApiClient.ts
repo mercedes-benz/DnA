@@ -594,7 +594,7 @@ export class ApiClient {
     if (published) {
       reqQuery += `,published:${published}`;
     }
-    reqQuery += `,hasDigitalValue:${digitalvaluecontribution ? digitalvaluecontribution : false}`;
+    reqQuery += `,hasDigitalValue:${digitalvaluecontribution }`;
     reqQuery += `,hasNotebook:${notebookavailable ? notebookavailable : false}`;
     const resQuery = `totalCount
       records {id,

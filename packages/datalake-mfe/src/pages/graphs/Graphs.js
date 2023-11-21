@@ -15,9 +15,6 @@ const Graphs = ({ user }) => {
     const graphs = useSelector(state => state.graphs.projects);
     const [createProject, setCreateProject] = useState(false);
 
-    console.log('graphs in graphs');
-    console.log(graphs);
-
     useEffect(() => {
         dispatch(getProjects());
     }, [dispatch]);

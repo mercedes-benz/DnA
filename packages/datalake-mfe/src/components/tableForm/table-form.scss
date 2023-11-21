@@ -1,0 +1,19 @@
+.flexLayout {
+  display: flex;
+  justify-content: space-between;
+  > div {
+    width: calc(50% - 10px);
+  }
+  > button {
+    width: calc(50% - 10px);
+    margin-top: 12px;
+  }
+}
+.columnContainer {
+  background-color: #212631;
+  padding: 10px 20px;
+  margin-bottom: 8px;
+}
+.btnActions {
+  padding: 0;
+}

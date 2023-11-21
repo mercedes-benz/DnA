@@ -56,7 +56,9 @@ export const chronosFormSlice = createSlice({
             return fa == first ? -1 : fb == first ? 1 : 0;
           });
         }
-        state.configFiles = [...bucketObjects];
+        const filteredBucketObjects = bucketObjects.filter(file => file.objectName !== 'chronos-core/configs/OPTIMISATION_CONFIG.yml'); 
+        filteredBucketObjects.push({ objectName: 'chronos-core/configs/OPTIMISATION_CONFIG.yml' });
+        state.configFiles = [...filteredBucketObjects];
         state.errors = '';
       }
     });
