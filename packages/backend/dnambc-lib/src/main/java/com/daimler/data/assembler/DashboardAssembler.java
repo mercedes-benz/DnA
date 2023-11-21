@@ -145,10 +145,10 @@ public class DashboardAssembler {
 	}
 
 	public List<SolDataValueSummaryVO> toDataValueSummary(
-			Map<BigDecimal, Set<SolDataValueSummaryDTO>> dataValueSummaryTreeMap) {
+			Map<BigDecimal, List<DataValueVO>> dataValueSummaryTreeMap) {
 		List<SolDataValueSummaryVO> solDataValuesummary = new ArrayList<SolDataValueSummaryVO>();
 		SolDataValueSummaryVO solDataValueSummaryVO = null;
-		for(Map.Entry<BigDecimal, Set<SolDataValueSummaryDTO>> map : dataValueSummaryTreeMap.entrySet()) {
+		for(Map.Entry<BigDecimal, List<DataValueVO>> map : dataValueSummaryTreeMap.entrySet()) {
 			solDataValueSummaryVO = new SolDataValueSummaryVO();
 			solDataValueSummaryVO.setYear(map.getKey());
 			solDataValueSummaryVO.setDataValueVO(this.toDataValueVO(map.getValue()));
@@ -157,16 +157,15 @@ public class DashboardAssembler {
 		return solDataValuesummary;
 	}
 
-	private List<DataValueVO> toDataValueVO(Set<SolDataValueSummaryDTO> solDataValues) {
+	private List<DataValueVO> toDataValueVO(List<DataValueVO> solDataValues) {
 		List<DataValueVO> dataValues = new ArrayList<DataValueVO>();
 		DataValueVO dataValueVO = null;
-		for(SolDataValueSummaryDTO vo : solDataValues) {
+		for(DataValueVO vo : solDataValues) {
 			dataValueVO = new DataValueVO();
-			dataValueVO.setSolutionId(vo.getId());
+			dataValueVO.setSolutionId(vo.getSolutionId());
 			dataValueVO.setProductName(vo.getProductName());
 			dataValueVO.setSavings(vo.getSavings());
 			dataValueVO.setRevenue(vo.getRevenue());
-			//dataValueVO.setSavings(vo.getSavings());
 			dataValues.add(dataValueVO);
 		}
 		return dataValues;
