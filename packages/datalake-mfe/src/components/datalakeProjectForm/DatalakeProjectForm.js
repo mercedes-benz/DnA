@@ -2,7 +2,6 @@ import classNames from 'classnames';
 import React, { useState, useEffect } from 'react';
 import { useForm, FormProvider } from 'react-hook-form';
 import { useHistory } from "react-router-dom";
-import { useDispatch } from 'react-redux';
 // styles
 import Styles from './datalake-project-form.scss';
 // import from DNA Container
@@ -14,12 +13,9 @@ import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indica
 // Api
 import { hostServer } from '../../server/api';
 import { datalakeApi } from '../../apis/datalake.api';
-import { getProjects } from '../../redux/projects.services';
 
 const DatalakeProjectForm = ({project, edit, onSave}) => {
   let history = useHistory();
-
-  const dispatch = useDispatch();
   
   const methods = useForm();
   const {
@@ -151,8 +147,6 @@ const DatalakeProjectForm = ({project, edit, onSave}) => {
       ProgressIndicator.hide();
       history.push(`/graph/${res.data.data.id}`);
       Notification.show('Data Lakehouse Project successfully created');
-      dispatch(getProjects());
-      onSave();
     }).catch(error => {
       ProgressIndicator.hide();
       Notification.show(
