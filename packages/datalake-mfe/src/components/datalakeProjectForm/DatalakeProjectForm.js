@@ -75,7 +75,7 @@ const DatalakeProjectForm = ({project, edit, onSave}) => {
   }, []);
 
   useEffect(() => {
-    const divId = datalakeDivision;
+    const divId = datalakeDivision.includes('/') ? datalakeDivision.split('/')[0] : '';
     if (divId > '0') {
       ProgressIndicator.show();
       hostServer.get('/subdivisions/' + divId)
