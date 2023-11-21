@@ -460,7 +460,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
         pat: githubToken
       };
 
-      if (isPublicRecipeChoosen || isUserDefinedGithubRecipe) {
+      if (isPublicRecipeChoosen || isUserDefinedGithubRecipe || recipe.repodetails) {
         // createCodeSpaceRequest.data.gitUserName = githubUserName;
         // createCodeSpaceRequest.data.projectDetails.recipeDetails.recipeId = 'public';
         createCodeSpaceRequest.data.projectDetails.recipeDetails['repodetails'] = isUserDefinedGithubRecipe ? (userDefinedGithubUrl.split('://')[1] + ',') : recipe.repodetails;
