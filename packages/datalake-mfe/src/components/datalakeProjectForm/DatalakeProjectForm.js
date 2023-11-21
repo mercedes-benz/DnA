@@ -88,6 +88,7 @@ const DatalakeProjectForm = ({project, edit, onSave}) => {
       });
     } else {
         setSubDivisions([]);
+        ProgressIndicator.hide();
     }
     //eslint-disable-next-line react-hooks/exhaustive-deps
   }, [datalakeDivision]);
