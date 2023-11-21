@@ -121,7 +121,7 @@ public class DashboardServiceImpl implements DashboardService {
 			List<String> bookmarkedSolutions, List<String> searchTerms, List<String> tags,
 			List<String> divisionsAdmin) {
 		return customRepo.getCountUsingNativeQuery(published, phases, dataVolumes, divisions, locations, statuses,
-				solutionType, userId, isAdmin, bookmarkedSolutions, searchTerms, tags, divisionsAdmin, false, false);
+				solutionType, userId, isAdmin, bookmarkedSolutions, searchTerms, tags, divisionsAdmin, null, false);
 	}
 
 	@Override
