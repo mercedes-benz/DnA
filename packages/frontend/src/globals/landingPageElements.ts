@@ -657,7 +657,7 @@ export const GenAILandingPageElements = [
     url: genAIDirectChatUrl,
     isExternalLink: true,
     isTextAlignLeft: false,
-    isDisabled: true,
+    isDisabled: false,
     isSmallCard: false,
     isMediumCard: false,
     svgIconId: 'genai-direct-chat',
