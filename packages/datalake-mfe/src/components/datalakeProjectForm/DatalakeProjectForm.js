@@ -1,7 +1,7 @@
 import classNames from 'classnames';
 import React, { useState, useEffect } from 'react';
 import { useForm, FormProvider } from 'react-hook-form';
-// import { useHistory } from "react-router-dom";
+import { useHistory } from "react-router-dom";
 import { useDispatch } from 'react-redux';
 // styles
 import Styles from './datalake-project-form.scss';
@@ -17,7 +17,7 @@ import { datalakeApi } from '../../apis/datalake.api';
 import { getProjects } from '../../redux/projects.services';
 
 const DatalakeProjectForm = ({project, edit, onSave}) => {
-  // let history = useHistory();
+  let history = useHistory();
 
   const dispatch = useDispatch();
   
@@ -83,10 +83,11 @@ const DatalakeProjectForm = ({project, edit, onSave}) => {
         setSubDivisions(res?.data || []);
         SelectBox.defaultSetup();  
         ProgressIndicator.hide();
+      }).catch(() => {
+        ProgressIndicator.hide();
       });
     } else {
         setSubDivisions([]);
-        ProgressIndicator.hide();
     }
     //eslint-disable-next-line react-hooks/exhaustive-deps
   }, [datalakeDivision]);
