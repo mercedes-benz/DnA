@@ -1,4 +1,4 @@
-import { SOLUTION_FIXED_TAGS } from 'globals/constants';
+import { PRIVATE_RECIPES, SOLUTION_FIXED_TAGS } from 'globals/constants';
 import { Envs } from '../globals/Envs';
 import { IFilterParams, IUserInfo } from '../globals/types';
 import { ComputeFixedTag } from 'globals/Enums';
@@ -386,6 +386,8 @@ export const recipesMaster = [
   { id: 'public-dna-matomo-mfe', resource: '4Gi,4000Mi,1000m,6000Mi,2000m', name: 'DnA Matomo Micro Frontend (Debian 11 OS, 6GB RAM, 2CPU)', repodetails: 'github.com/mercedes-benz/DnA.git,packages/matomo-mfe/*' },
   { id: 'public-dna-matomo-backend', resource: '2Gi,2000Mi,500m,4000Mi,1000m', name: 'DnA Matomo Backend (Debian 11 OS, 4GB RAM, 1CPU)', repodetails: 'github.com/mercedes-benz/DnA.git,packages/matomo-backend/*' },
   { id: 'public-dna-datalake-mfe', resource: '4Gi,4000Mi,1000m,6000Mi,2000m', name: 'DnA Data Lakehouse Micro Frontend (Debian 11 OS, 6GB RAM, 2CPU)', repodetails: 'github.com/mercedes-benz/DnA.git,packages/datalake-mfe/*' },
+
+  ...PRIVATE_RECIPES,
 
   { id: 'chronos', name: 'CHRONOS Workspace (Coming Soon)' },
   { id: 'mean', name: 'MEAN Stack (Coming Soon)' },
