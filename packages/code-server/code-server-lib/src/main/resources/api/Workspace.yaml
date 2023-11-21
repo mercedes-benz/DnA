@@ -693,16 +693,15 @@ definitions:
       data:
         type: array
         items:
-          type: string
+          $ref: "#/definitions/CodespaceSecurityRoleLOV"
   
   EntitlementCollectionVO:
     type: object
     properties:
       data:
         type: array
-        items:
-          type: string        
-          
+        items:    
+          $ref: "#/definitions/CodespaceSecurityEntitlementLOV"
   TransparencyVO:
     type: object
     properties:
@@ -788,7 +787,7 @@ definitions:
       projectCollaborators:
         type: array
         items:
-         $ref: "#/definitions/UserInfoVO" 
+          $ref: "#/definitions/UserInfoVO" 
       prodDeploymentDetails:
         $ref: "#/definitions/CodeServerDeploymentDetailsVO"
       intDeploymentDetails:
@@ -881,7 +880,7 @@ definitions:
     type: object
     properties:
      data:
-        $ref: "#/definitions/CodespaceSecurityConfigVO"
+        $ref: "#/definitions/CodespaceSecurityConfigResponseVO"
      response:
         $ref: "#/definitions/GenericMessage"
         
@@ -894,16 +893,16 @@ definitions:
   CodespaceSecurityEntitlementVO: 
     type: object
     properties:
-     name:
+      id:
         type: string
-        description: "Status of security configurations"   
-     apiPattern:
+        description: "Entitlement Id" 
+      name:
         type: string
-        description: "API Path or Pattern used to validate this entitlement" 
-     httpMethod:
-        type: string
-        enum: [POST,PUT,PATCH,GET,OPTIONS,HEAD,DELETE]
-        description: "Operating system required"          
+        description: "name  of Entitlement"   
+      entitlementDetails:
+        type:  array
+        items:
+          $ref: "#/definitions/entitlementDetailsLOV"
 
   CodespaceSecurityUserRoleMapVO: 
     type: object
@@ -911,22 +910,81 @@ definitions:
      userId:
         type: string
         description: "User unique identification"   
-     roles:
+     roleIds:
         type: array
-        items:
-         type: string
+        items:  
+          type: string
+
+  CodespaceSecurityUserRoleMapResponseVO: 
+    type: object
+    properties:
+      userId:
+        type: string
+        description: "User unique identification"   
+      roles:
+        type: array
+        items:  
+          $ref: "#/definitions/CodespaceSecurityRoleLOV"
         
   CodespaceSecurityRoleVO: 
     type: object
     properties:
-     roleName:
+      id:
+        type: string
+        description: "Role Id" 
+      name:
         type: string
         description: "Role name"   
-     roleEntitlements:
-        type: array
-        items:
-         type: string
-                
+      roleEntitlementIds:
+          type: array
+          items:
+            type: string
+          
+  CodespaceSecurityRoleResponseVO:
+    type: object
+    properties:
+      id:
+        type: string
+        description: "Role Id" 
+      name:
+        type: string
+        description: "Role name"   
+      roleEntitlements:
+          type: array
+          items:
+            $ref: "#/definitions/CodespaceSecurityEntitlementLOV"
+                  
+  CodespaceSecurityRoleLOV:
+    type: object
+    properties:
+      id:
+        type: string
+        description: "Role Id" 
+      name:
+        type: string
+        description: "Role name"  
+
+  CodespaceSecurityEntitlementLOV:
+    type: object
+    properties:
+      id:
+        type: string
+        description: "Entitlement Id" 
+      name:
+        type: string
+        description: "Entitlement name"  
+
+  entitlementDetailsLOV:
+    type: object
+    properties:
+      apiPattern:
+        type: string
+        description: "API Path or Pattern used to validate this entitlement" 
+      httpMethod:
+        type: string
+        enum: [POST,PUT,PATCH,GET,OPTIONS,HEAD,DELETE]
+        description: "Operating system required" 
+
   CodespaceSecurityConfigVO: 
     type: object
     properties:
@@ -945,6 +1003,25 @@ definitions:
         type: array
         items:
           $ref: "#/definitions/CodespaceSecurityUserRoleMapVO"
+
+  CodespaceSecurityConfigResponseVO:
+    type: object
+    properties:
+     status:
+        type: string
+        description: "Status of security configurations"   
+     entitlements:
+        type: array
+        items:
+          $ref: "#/definitions/CodespaceSecurityEntitlementVO"
+     roles:
+        type: array
+        items:
+          $ref: "#/definitions/CodespaceSecurityRoleResponseVO" 
+     userRoleMappings:
+        type: array
+        items:
+          $ref: "#/definitions/CodespaceSecurityUserRoleMapResponseVO"
 
   UserIdVO:
     type: object
