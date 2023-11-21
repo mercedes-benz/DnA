@@ -27,6 +27,7 @@ import classNames from 'classnames';
 // import { IAM_URL } from 'globals/constants';
 // import TextBox from '../shared/textBox/TextBox';
 import AddUser from '../addUser/AddUser';
+import { DEPLOYMENT_DISABLED_RECIPE_IDS } from 'globals/constants';
 // import { HTTP_METHOD } from '../../../globals/constants';
 
 export interface ICodeSpaceProps {
@@ -490,7 +491,7 @@ const CodeSpace = (props: ICodeSpaceProps) => {
     }
   };
 
-  const isPublicRecipeChoosen = codeSpaceData?.projectDetails?.recipeDetails?.recipeId.startsWith('public') || codeSpaceData?.projectDetails?.recipeDetails?.recipeId === 'private-user-defined';
+  const disableDeployment = codeSpaceData?.projectDetails?.recipeDetails?.recipeId.startsWith('public') || DEPLOYMENT_DISABLED_RECIPE_IDS.includes(codeSpaceData?.projectDetails?.recipeDetails?.recipeId);
   const securedWithIAMContent: React.ReactNode = (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -527,7 +528,7 @@ const CodeSpace = (props: ICodeSpaceProps) => {
             <div className={Styles.navigation}>
               {codeSpaceData.running && (
                 <div className={Styles.headerright}>
-                  {!isPublicRecipeChoosen && (
+                  {!disableDeployment && (
                     <>
                       {codeDeployed && (
                         <div className={Styles.urlLink} tooltip-data="API BASE URL - Staging">
