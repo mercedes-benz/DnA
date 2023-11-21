@@ -3,7 +3,60 @@ import { getProjectDetails } from './projectDetails.services';
 
 const initialState = {
   isLoading: false,
-  data: {},
+  data: {
+    id: '',
+    projectName: '',
+    connectorType: 'iceberg',
+    description: '',
+    divisionId: '',
+    divisionName: '',
+    subdivisionId: '',
+    subdivisionName: '',
+    department: '',
+    status: '',
+    classificationType: '',
+    hasPii: false,
+    createdOn: '',
+    createdBy: {
+      id: '',
+      firstName: '',
+      lastName: '',
+      mobileNumber: '',
+      email: '',
+      department: '',
+    },
+    tables: [
+      {
+        tableName: '',
+        dataFormat: '',
+        description: '',
+        externalLocation: '',
+        xcoOrdinate: '',
+        ycoOrdinate: '',
+        columns: [
+          {
+            columnName: '',
+            dataType: '',
+            comment: '',
+            notNullConstraintEnabled: true,
+          }
+        ],
+        collabs: [
+          {
+            collaborator: {
+              id: '',
+              firstName: '',
+              lastName: '',
+              department: '',
+              email: '',
+              mobileNumber: '',
+            },
+            hasWritePermission: true
+          }
+        ]
+      }
+    ]
+  },
   errors: '',
 };
 
