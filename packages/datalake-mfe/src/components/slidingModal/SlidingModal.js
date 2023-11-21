@@ -2,7 +2,7 @@ import classNames from 'classnames';
 import React from 'react';
 import Styles from './sliding-modal.scss';
 
-function SlidingModal({title, content, toggle, setToggle, onCancel, onSave}) {
+const SlidingModal = ({title, content, toggle, setToggle}) => {
   return (
     <div className={classNames('drawer-wrapper', toggle ? '' : 'modal-open')}>
       <div className="drawer-mask" onClick={setToggle}></div>
@@ -18,10 +18,10 @@ function SlidingModal({title, content, toggle, setToggle, onCancel, onSave}) {
             <div className="drawer-content">
                 {content}
             </div>
-            <div className="drawer-footer">
+            {/* <div className="drawer-footer">
               <button className="btn btn-primary" onClick={onCancel}>Cancel</button>
               <button className="btn btn-tertiary" onClick={onSave}>Commit</button>
-            </div>
+            </div> */}
           </div>
       </div>
       </div>
