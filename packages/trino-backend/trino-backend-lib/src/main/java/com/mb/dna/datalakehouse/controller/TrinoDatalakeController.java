@@ -143,13 +143,24 @@ public class TrinoDatalakeController {
 			"application/json" }, method = RequestMethod.POST)
 	public ResponseEntity<TrinoDataLakeProjectResponseVO> createDataLakeProject(
 			@ApiParam(value = "Request Body that contains data required for create Data Lake project for user", required = true) @Valid @RequestBody TrinoDataLakeProjectRequestVO requestVO) {
-		
+		TrinoDataLakeProjectResponseVO serviceCreateResponse = new TrinoDataLakeProjectResponseVO();
 		TrinoDataLakeProjectResponseVO responseVO = new TrinoDataLakeProjectResponseVO();
 		TrinoDataLakeProjectVO request = requestVO.getData();
 		String name = request.getProjectName();
 		String connectorType = request.getConnectorType();
 		String catalogName = connectorType!=null && connectorType.equalsIgnoreCase(ICEBERG_CONNECTOR) ? icebergCatalogName : deltaCatalogName;
 		String schemaName = SCHEMA_PREFIX+name;
+		TrinoDataLakeProjectVO existingProject = trinoDatalakeService.getByUniqueliteral("projectName", name);
+		if(existingProject!=null && existingProject.getId()!=null) {
+			log.error("Datalake project with this name {} already exists , failed to create datalake project", name);
+			MessageDescription invalidMsg = new MessageDescription("Datalake project already exists with given name");
+			GenericMessage errorMessage = new GenericMessage();
+			errorMessage.setSuccess(HttpStatus.CONFLICT.name());
+			errorMessage.addWarnings(invalidMsg);
+			responseVO.setData(request);
+			responseVO.setResponse(errorMessage);
+			return new ResponseEntity<>(responseVO, HttpStatus.CONFLICT);
+		}
 		List<String> existingSchemas = trinoDatalakeService.showSchemas(catalogName, schemaName);
 		if(existingSchemas!=null && !existingSchemas.isEmpty()) {
 			log.error("Datalake project with this name {} already exists , failed to create datalake project", name);
@@ -193,14 +204,11 @@ public class TrinoDatalakeController {
 		request.setCreatedOn(createdOn);
 		TrinoDataLakeProjectVO data = new TrinoDataLakeProjectVO();
 		try {
-			data = trinoDatalakeService.createDatalake(request);
+			serviceCreateResponse = trinoDatalakeService.createDatalake(request);
+			data = serviceCreateResponse.getData();
 			if(data!=null && data.getId()!=null) {
-				GenericMessage successResponse = new GenericMessage();
-				successResponse.setSuccess("SUCCESS");
-				successResponse.setErrors(null);
-				successResponse.setWarnings(null);
 				responseVO.setData(data);
-				responseVO.setResponse(successResponse);
+				responseVO.setResponse(serviceCreateResponse.getResponse());
 				log.info("Datalake {} created successfully", name);
 				return new ResponseEntity<>(responseVO, HttpStatus.CREATED);
 			}else {
