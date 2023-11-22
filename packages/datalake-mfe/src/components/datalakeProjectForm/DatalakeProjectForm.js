@@ -30,17 +30,17 @@ const DatalakeProjectForm = ({project, edit, onSave}) => {
   
   const [dataClassification, setDataClassification] = useState(edit && project?.data?.classificationType !== null ? project?.data?.classificationType : '');
   const [dataClassificationError] = useState('');
-  const [PII, setPII] = useState(edit && project?.data?.piiData !== null ? project?.data?.piiData : false);
+  const [PII, setPII] = useState(edit && project?.data?.hasPii !== null ? project?.data?.hasPii : false);
   const [connectorType, setConnectorType] = useState(edit && project?.data?.connectorType !== null ? project?.data?.connectorType : 'iceberg');
   
   const [divisions, setDivisions] = useState([]);
   const [subDivisions, setSubDivisions] = useState([]);
   const [departments, setDepartments] = useState([]);
-  const [departmentName, setDepartmentName] = useState('');
+  const [departmentName, setDepartmentName] = useState(edit && project?.data?.department !== null ? [project?.data?.department] : []);
   const [departmentError, setDepartmentError] = useState('');
-  const [datalakeDivision, setDatalakeDivision] = useState('');
+  const [datalakeDivision, setDatalakeDivision] = useState(edit && (project?.data?.divisionId !== null ? project?.data?.divisionId + '/' + project?.data?.divisionName : ''));
   const [datalakeDivisionError] = useState('');
-  const [datalakeSubDivision, setDatalakeSubDivision] = useState('');
+  const [datalakeSubDivision, setDatalakeSubDivision] = useState(edit && (project?.data?.subdivisionId !== null ? project?.data?.subdivisionId + '/' + project?.data?.subdivisionName : ''));
   // const [statusValue, setStatusValue] = useState('');
   // const [statusError] = useState('');
 
@@ -279,6 +279,7 @@ const DatalakeProjectForm = ({project, edit, onSave}) => {
                   type="text"
                   {...register('description', { required: '*Missing entry' })}
                   rows={50}
+                  defaultValue={edit ? project?.data?.description : ''}
                 />
                 <span className={classNames('error-message')}>{errors?.description?.message}</span>
               </div>
@@ -436,9 +437,9 @@ const DatalakeProjectForm = ({project, edit, onSave}) => {
                   </label>
                   <div className={classNames('custom-select')}>
                     <select id="classificationField" 
-                    onChange={handleDataClassification} 
-                    value={dataClassification}
-                    required={true}
+                      onChange={handleDataClassification} 
+                      value={dataClassification}
+                      required={true}
                     >
                       
                           <option id="classificationOption" value={0}>Choose</option>
