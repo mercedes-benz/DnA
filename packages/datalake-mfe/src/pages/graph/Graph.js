@@ -104,9 +104,9 @@ const Graph = () => {
         const { x: cursorX, y: cursorY } = getSVGCursor(e);
 
         setMovingTable({
-            id: table.id,
-            offsetX: cursorX - table.x,
-            offsetY: cursorY - table.y,
+            id: table.tableName,
+            offsetX: cursorX - table.xcoOrdinate,
+            offsetY: cursorY - table.ycoOrdinate,
         });
 
         setMode('moving');
@@ -148,7 +148,7 @@ const Graph = () => {
         if (mode === 'moving') {
             const { x: cursorX, y: cursorY } = getSVGCursor(e);
             const projectTables = project.tables.map(table =>
-                table.id === movingTable.id ? {...table, x: cursorX - movingTable.offsetX, y: cursorY - movingTable.offsetY} : table
+                table.tableName === movingTable.id ? {...table, xcoOrdinate: cursorX - movingTable.offsetX, ycoOrdinate: cursorY - movingTable.offsetY} : table
             );
             dispatch(setTables([...projectTables]));
         }
@@ -227,7 +227,7 @@ const Graph = () => {
               {/* <img src={Envs.DNA_BRAND_LOGO_URL} className={Styles.Logo} /> */}
               <div className={Styles.nbtitle}>
                 <button tooltip-data="Go Back" className="btn btn-text back arrow" onClick={() => { history.back() }}></button>
-                <h2>Datalake Project</h2>
+                <h2>Data Lakehouse Project</h2>
               </div>
             </div>
             <div className={Styles.navigation}>

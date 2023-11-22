@@ -14,14 +14,14 @@ const NoProjectScreen = ({ user, ...props }) => {
     <div className={classNames(Styles.content)}>
       <div className={classNames(Styles.header)}>
         <p className={Styles.loginTime}>Login on {regionalDateAndTimeConversionSolution(currentdate)}</p>
-        <p className={Styles.lead}>Hi <span>{user.firstName} {user.lastName}</span>, this is the first time you are using Datalake.</p>
+        <p className={Styles.lead}>Hi <span>{user.firstName} {user.lastName}</span>, this is the first time you are using Data Lakehouse.</p>
       </div>
       <div className={Styles.forecastContainer}>
         <div className={Styles.messageContainer}>
           <div className={Styles.iconContainer}>
             <i className={classNames('icon mbc-icon data', Styles.createProj)}></i>
           </div>
-          <h2>Create a new datalake project</h2>
+          <h2>Create a new data lakehouse project</h2>
           <p>Database design tool based on entity relation diagram</p>
         </div>
         <div className={Styles.btnContainer}>
