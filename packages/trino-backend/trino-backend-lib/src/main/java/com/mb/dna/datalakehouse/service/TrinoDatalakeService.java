@@ -4,6 +4,7 @@ import java.util.List;
 
 import com.daimler.data.service.common.CommonService;
 import com.mb.dna.datalakehouse.db.entities.TrinoDataLakeNsql;
+import com.mb.dna.datalakehouse.dto.TrinoDataLakeProjectResponseVO;
 import com.mb.dna.datalakehouse.dto.TrinoDataLakeProjectVO;
 
 public interface TrinoDatalakeService extends CommonService<TrinoDataLakeProjectVO, TrinoDataLakeNsql, String> 
@@ -11,7 +12,7 @@ public interface TrinoDatalakeService extends CommonService<TrinoDataLakeProject
 	
 	Boolean isBucketExists(String bucketName);
 
-	TrinoDataLakeProjectVO createDatalake(TrinoDataLakeProjectVO vo) throws Exception;
+	TrinoDataLakeProjectResponseVO createDatalake(TrinoDataLakeProjectVO vo) throws Exception;
 
 	List<String> showSchemas(String catalogName, String schemaName);
 
