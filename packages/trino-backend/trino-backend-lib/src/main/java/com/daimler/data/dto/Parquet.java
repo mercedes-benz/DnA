@@ -28,6 +28,7 @@
 
 package com.daimler.data.dto;
 
+import java.io.Serializable;
 import java.util.List;
 
 import org.apache.parquet.column.ColumnDescriptor;
@@ -44,8 +45,9 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class Parquet {
+public class Parquet implements Serializable{
 
+	private static final long serialVersionUID = 1L;
 	private List<SimpleGroup> data;
 	private List<Type> schema;
 	private List<ColumnDescriptor> columns;

@@ -64,7 +64,7 @@ public class TrinioServiceImpl implements TrinioService {
 	@Autowired
 	private TrinoClient trinoClient;
 	
-	@Value("${trino.catalog}")
+	@Value("${trino.catalog.default}")
 	private String trinoCatalog;
 	
 	@Autowired

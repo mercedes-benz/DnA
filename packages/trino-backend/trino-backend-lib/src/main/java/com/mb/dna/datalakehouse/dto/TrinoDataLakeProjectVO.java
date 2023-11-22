@@ -21,6 +21,7 @@ public class TrinoDataLakeProjectVO implements Serializable {
 	private String projectName;
 	private String connectorType;
 	private String schemaName;
+	private String catalogName;
 	private String bucketName;
 	private String bucketId;
 	private List<DatalakeTableVO> tables;
