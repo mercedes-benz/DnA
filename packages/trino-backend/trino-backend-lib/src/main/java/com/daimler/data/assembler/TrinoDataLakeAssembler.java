@@ -1,12 +1,22 @@
 package com.daimler.data.assembler;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Component;
 
+import com.daimler.data.dto.UserInfoVO;
 import com.mb.dna.datalakehouse.db.entities.TrinoDataLakeNsql;
+import com.mb.dna.datalakehouse.db.jsonb.DataLakeTableCollabDetails;
+import com.mb.dna.datalakehouse.db.jsonb.DataLakeTableColumnDetails;
+import com.mb.dna.datalakehouse.db.jsonb.DatalakeTable;
 import com.mb.dna.datalakehouse.db.jsonb.TrinoDataLakeProject;
+import com.mb.dna.datalakehouse.db.jsonb.UserInfo;
+import com.mb.dna.datalakehouse.dto.DataLakeTableCollabDetailsVO;
+import com.mb.dna.datalakehouse.dto.DataLakeTableColumnDetailsVO;
+import com.mb.dna.datalakehouse.dto.DatalakeTableVO;
 import com.mb.dna.datalakehouse.dto.TrinoDataLakeProjectVO;
 
 @Component
@@ -22,6 +32,38 @@ public class TrinoDataLakeAssembler  implements GenericAssembler<TrinoDataLakePr
 			TrinoDataLakeProject projectDetails = entity.getData();
 			if(projectDetails!=null) {
 				BeanUtils.copyProperties(projectDetails, datalakeProjectVO);
+				List<DatalakeTableVO> tablesVO = new ArrayList<>();
+				if(projectDetails.getTables()!=null && !projectDetails.getTables().isEmpty()) {
+					for(DatalakeTable table: projectDetails.getTables()) {
+						DatalakeTableVO tableVO = new DatalakeTableVO();
+						BeanUtils.copyProperties(table, tableVO);
+						List<DataLakeTableColumnDetailsVO> columnsVO = new ArrayList<>();
+						if(table.getColumns()!=null && !table.getColumns().isEmpty()) {
+							for(DataLakeTableColumnDetails columnDetails : table.getColumns()) {
+								DataLakeTableColumnDetailsVO columnVO = new DataLakeTableColumnDetailsVO();
+								BeanUtils.copyProperties(columnDetails, columnVO);
+								columnsVO.add(columnVO);
+							}
+						}
+						tableVO.setColumns(columnsVO);
+						List<DataLakeTableCollabDetailsVO> collabsVO = new ArrayList<>();
+						if(table.getCollabs()!=null && !table.getCollabs().isEmpty()) {
+							for(DataLakeTableCollabDetails collabDetails : table.getCollabs()) {
+								DataLakeTableCollabDetailsVO collabVO = new DataLakeTableCollabDetailsVO();
+								BeanUtils.copyProperties(collabDetails, collabVO);
+								UserInfoVO userinfoVO = new UserInfoVO();
+								if(collabDetails.getCollaborator()!=null) {
+										BeanUtils.copyProperties(collabDetails.getCollaborator(), userinfoVO);
+								}
+								collabVO.setCollaborator(userinfoVO);
+								collabsVO.add(collabVO);
+							}
+						}
+						tableVO.setCollabs(collabsVO);
+						tablesVO.add(tableVO);
+					}
+				}
+				datalakeProjectVO.setTables(tablesVO);
 			}
 		}
 		return datalakeProjectVO;
@@ -33,7 +75,41 @@ public class TrinoDataLakeAssembler  implements GenericAssembler<TrinoDataLakePr
 		if(vo!=null) {
 			entity = new TrinoDataLakeNsql();
 			TrinoDataLakeProject projectDetails = new TrinoDataLakeProject();
-			BeanUtils.copyProperties(vo,projectDetails);
+			if(vo!=null) {
+				BeanUtils.copyProperties(vo,projectDetails);
+				List<DatalakeTable> tables = new ArrayList<>();
+				if(vo.getTables()!=null && !vo.getTables().isEmpty()) {
+					for(DatalakeTableVO tableVO: vo.getTables()) {
+						DatalakeTable table = new DatalakeTable();
+						BeanUtils.copyProperties(tableVO, table);
+						List<DataLakeTableColumnDetails> columns = new ArrayList<>();
+						if(tableVO.getColumns()!=null && !tableVO.getColumns().isEmpty()) {
+							for(DataLakeTableColumnDetailsVO columnVO : tableVO.getColumns()) {
+								DataLakeTableColumnDetails columnDetails = new DataLakeTableColumnDetails();
+								BeanUtils.copyProperties(columnVO, columnDetails);
+								columns.add(columnDetails);
+							}
+						}
+						table.setColumns(columns);
+						List<DataLakeTableCollabDetails> collabs = new ArrayList<>();
+						if(tableVO.getCollabs()!=null && !tableVO.getCollabs().isEmpty()) {
+							for(DataLakeTableCollabDetailsVO collabVO : tableVO.getCollabs()) {
+								DataLakeTableCollabDetails collabDetails = new DataLakeTableCollabDetails();
+								BeanUtils.copyProperties(collabVO, collabDetails);
+								UserInfo userinfo = new UserInfo();
+								if(collabVO.getCollaborator()!=null) {
+										BeanUtils.copyProperties(collabVO.getCollaborator(), userinfo);
+								}
+								collabDetails.setCollaborator(userinfo);
+								collabs.add(collabDetails);
+							}
+						}
+						table.setCollabs(collabs);
+						tables.add(table);
+					}
+				}
+				projectDetails.setTables(tables);
+			}
 			entity.setId(vo.getId());
 			entity.setData(projectDetails);
 		}

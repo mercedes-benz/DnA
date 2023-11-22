@@ -6,13 +6,16 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.io.Serializable;
 import java.util.List;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class UpdateBucketResponseDataDto {
+public class UpdateBucketResponseDataDto  implements Serializable{
+
+	private static final long serialVersionUID = 1L;
 
 	private String id;
 	private String bucketName;

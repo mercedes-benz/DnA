@@ -1,4 +1,4 @@
-package com.daimler.data.dto.storage;
+package com.mb.dna.datalakehouse.db.jsonb;
 
 import java.io.Serializable;
 
@@ -12,10 +12,13 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class PermissionsDto  implements Serializable{
+public class UserInfo implements Serializable{
 
 	private static final long serialVersionUID = 1L;
-	private Boolean read;
-	private Boolean write;
-	
+	private String id;
+	private String firstName;
+	private String lastName;
+	private String department;
+	private String email;
+	private String mobileNumber;
 }
