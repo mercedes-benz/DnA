@@ -104,9 +104,9 @@ const Graph = () => {
         const { x: cursorX, y: cursorY } = getSVGCursor(e);
 
         setMovingTable({
-            id: table.id,
-            offsetX: cursorX - table.x,
-            offsetY: cursorY - table.y,
+            id: table.tableName,
+            offsetX: cursorX - table.xcoOrdinate,
+            offsetY: cursorY - table.ycoOrdinate,
         });
 
         setMode('moving');
@@ -148,7 +148,7 @@ const Graph = () => {
         if (mode === 'moving') {
             const { x: cursorX, y: cursorY } = getSVGCursor(e);
             const projectTables = project.tables.map(table =>
-                table.id === movingTable.id ? {...table, x: cursorX - movingTable.offsetX, y: cursorY - movingTable.offsetY} : table
+                table.tableName === movingTable.id ? {...table, xcoOrdinate: cursorX - movingTable.offsetX, ycoOrdinate: cursorY - movingTable.offsetY} : table
             );
             dispatch(setTables([...projectTables]));
         }
