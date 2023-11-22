@@ -28,7 +28,7 @@ const Graphs = ({ user }) => {
                 <div className={classNames(Styles.caption)}>
                   <div>
                     <button className="btn btn-text back arrow" type="submit" onClick={() => { history.back() }}>Back</button>
-                    <h3>My Datalake Projects</h3>
+                    <h3>My Data Lakehouse Projects</h3>
                   </div>
                   <div className={classNames(Styles.listHeader)}>
                     {graphs && graphs?.length ? (

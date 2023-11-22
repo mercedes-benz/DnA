@@ -227,7 +227,7 @@ const DatalakeProjectForm = ({project, edit, onSave}) => {
                         placeholder="Type here"
                         autoComplete="off"
                         maxLength={55}
-                        {...register('name', { required: '*Missing entry', pattern: /^[a-z0-9-.]+$/ })}
+                        {...register('projectName', { required: '*Missing entry', pattern: /^[a-z0-9-.]+$/ })}
                       />
                       <span className={classNames('error-message')}>{errors?.name?.message}{errors.name?.type === 'pattern' && 'Project names can consist only of lowercase letters, numbers, dots ( . ), and hyphens ( - ).'}</span>
                     </div>
