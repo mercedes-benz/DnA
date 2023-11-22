@@ -1,6 +1,7 @@
 package com.mb.dna.datalakehouse.dto;
 
 import java.io.Serializable;
+import java.util.List;
 
 import com.daimler.data.controller.exceptions.GenericMessage;
 
@@ -11,12 +12,9 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class GenerateTableStmtResponseVO implements Serializable {
+public class TablesCollectionResponseDto implements Serializable {
 
 	private static final long serialVersionUID = 1L;
-
-	private String tableStmt;
-	private DatalakeTableVO generatedTable;
-	private GenericMessage responseMsg;
-	
+	private List<DatalakeTableVO> tables;
+	private GenericMessage response;
 }
