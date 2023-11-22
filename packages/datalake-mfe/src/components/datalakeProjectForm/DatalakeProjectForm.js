@@ -1,8 +1,7 @@
 import classNames from 'classnames';
 import React, { useState, useEffect } from 'react';
 import { useForm, FormProvider } from 'react-hook-form';
-// import { useHistory } from "react-router-dom";
-import { useDispatch } from 'react-redux';
+import { useHistory } from "react-router-dom";
 // styles
 import Styles from './datalake-project-form.scss';
 // import from DNA Container
@@ -14,12 +13,9 @@ import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indica
 // Api
 import { hostServer } from '../../server/api';
 import { datalakeApi } from '../../apis/datalake.api';
-import { getProjects } from '../../redux/projects.services';
 
 const DatalakeProjectForm = ({project, edit, onSave}) => {
-  // let history = useHistory();
-
-  const dispatch = useDispatch();
+  let history = useHistory();
   
   const methods = useForm();
   const {
@@ -28,60 +24,23 @@ const DatalakeProjectForm = ({project, edit, onSave}) => {
     formState: { errors },
   } = methods;
 
-  const handleCreateProject = (values) => {
-    ProgressIndicator.show();
-    const data = {
-      projectName: values.projectName
-    }
-    datalakeApi.createDatalakeProject(data).then((res) => {
-      ProgressIndicator.hide();
-      history.push(`/graph/${res.data.data.id}`);
-      Notification.show('Data Lakehouse Project successfully created');
-      dispatch(getProjects());
-      onSave();
-    }).catch(error => {
-      ProgressIndicator.hide();
-      Notification.show(
-        error?.response?.data?.response?.errors?.[0]?.message || error?.response?.data?.response?.warnings?.[0]?.message || 'Error while creating data lakehouse project',
-        'alert',
-      );
-    });
-  };
-  const handleEditProject = () => {
-    const data = {
-      projectName: 'project name'
-    }
-    ProgressIndicator.show();
-    datalakeApi.updateDatalakeProject(data, project?.data?.id).then(() => {
-      ProgressIndicator.hide();
-      Notification.show('Data Lakehouse Project successfully updated');
-      onSave();
-    }).catch(error => {
-      ProgressIndicator.hide();
-      Notification.show(
-        error?.response?.data?.response?.errors?.[0]?.message || error?.response?.data?.response?.warnings?.[0]?.message || 'Error while updating data lakehouse project',
-        'alert',
-      );
-    });
-  };
-
   useEffect(() => {
     SelectBox.defaultSetup();
   }, []);
   
   const [dataClassification, setDataClassification] = useState(edit && project?.data?.classificationType !== null ? project?.data?.classificationType : '');
   const [dataClassificationError] = useState('');
-  const [PII, setPII] = useState(edit && project?.data?.piiData !== null ? project?.data?.piiData : false);
+  const [PII, setPII] = useState(edit && project?.data?.hasPii !== null ? project?.data?.hasPii : false);
   const [connectorType, setConnectorType] = useState(edit && project?.data?.connectorType !== null ? project?.data?.connectorType : 'iceberg');
   
   const [divisions, setDivisions] = useState([]);
   const [subDivisions, setSubDivisions] = useState([]);
   const [departments, setDepartments] = useState([]);
-  const [departmentName, setDepartmentName] = useState('');
+  const [departmentName, setDepartmentName] = useState(edit && project?.data?.department !== null ? [project?.data?.department] : []);
   const [departmentError, setDepartmentError] = useState('');
-  const [datalakeDivision, setDatalakeDivision] = useState('');
+  const [datalakeDivision, setDatalakeDivision] = useState(edit ? (project?.data?.divisionId !== null ? project?.data?.divisionId + '/' + project?.data?.divisionName : '') : '');
   const [datalakeDivisionError] = useState('');
-  const [datalakeSubDivision, setDatalakeSubDivision] = useState('');
+  const [datalakeSubDivision, setDatalakeSubDivision] = useState(edit ? (project?.data?.subdivisionId !== null ? project?.data?.subdivisionId + '/' + project?.data?.subdivisionName : '') : '');
   // const [statusValue, setStatusValue] = useState('');
   // const [statusError] = useState('');
 
@@ -91,10 +50,11 @@ const DatalakeProjectForm = ({project, edit, onSave}) => {
     ProgressIndicator.show();
     datalakeApi.getLovData()
       .then((response) => {
+        ProgressIndicator.hide();
         setDataClassificationDropdown(response[0]?.data?.data || []);                
         setDivisions(response[1]?.data || []);
         setDepartments(response[2]?.data?.data || []);
-        SelectBox.defaultSetup();  
+        SelectBox.defaultSetup();
       })
       .catch((err) => {
           ProgressIndicator.hide();
@@ -111,7 +71,7 @@ const DatalakeProjectForm = ({project, edit, onSave}) => {
   }, []);
 
   useEffect(() => {
-    const divId = datalakeDivision;
+    const divId = datalakeDivision.includes('/') ? datalakeDivision.split('/')[0] : '';
     if (divId > '0') {
       ProgressIndicator.show();
       hostServer.get('/subdivisions/' + divId)
@@ -119,9 +79,12 @@ const DatalakeProjectForm = ({project, edit, onSave}) => {
         setSubDivisions(res?.data || []);
         SelectBox.defaultSetup();  
         ProgressIndicator.hide();
+      }).catch(() => {
+        ProgressIndicator.hide();
       });
     } else {
         setSubDivisions([]);
+        ProgressIndicator.hide();
     }
     //eslint-disable-next-line react-hooks/exhaustive-deps
   }, [datalakeDivision]);
@@ -151,9 +114,10 @@ const DatalakeProjectForm = ({project, edit, onSave}) => {
   // }];
 
   const handleDivision = (e) => {
-    const selectedOptions = e.currentTarget.selectedOptions;
-    const divId = selectedOptions[0].value
-    setDatalakeDivision(divId);
+    // const selectedOptions = e.currentTarget.selectedOptions;
+    // const divId = selectedOptions[0].value
+    // setDatalakeDivision(divId);
+    setDatalakeDivision(e.target.value);
   };
 
   const handleSubDivision = (e) => {
@@ -163,6 +127,61 @@ const DatalakeProjectForm = ({project, edit, onSave}) => {
   // const onChangeStatus = (e) => {
   //   setStatusValue(e.target.value);
   // }
+
+  const handleCreateProject = (values) => {
+    ProgressIndicator.show();
+    const data = {
+      projectName: values.projectName,
+      connectorType: connectorType,
+      description: values.description,
+      divisionId: datalakeDivision.includes('/') ? datalakeDivision.split('/')[0] : '',
+      divisionName: datalakeDivision.includes('/') ? datalakeDivision.split('/')[1] : '',
+      subdivisionId: datalakeSubDivision.includes('/') ? datalakeSubDivision.split('/')[0] : '',
+      subdivisionName: datalakeSubDivision.includes('/') ? datalakeSubDivision.split('/')[1] : '',
+      department: departmentName[0],
+      status: '',
+      classificationType: dataClassification,
+      hasPii: PII
+    }
+    datalakeApi.createDatalakeProject(data).then((res) => {
+      ProgressIndicator.hide();
+      history.push(`/graph/${res.data.data.id}`);
+      Notification.show('Data Lakehouse Project successfully created');
+    }).catch(error => {
+      ProgressIndicator.hide();
+      Notification.show(
+        error?.response?.data?.response?.errors?.[0]?.message || error?.response?.data?.response?.warnings?.[0]?.message || 'Error while creating data lakehouse project',
+        'alert',
+      );
+    });
+  };
+  const handleEditProject = (values) => {
+    const data = {
+      projectName: project?.data?.projectName,
+      connectorType: project?.data?.connectorType,
+      description: values.description,
+      divisionId: datalakeDivision.includes('/') ? datalakeDivision.split('/')[0] : '',
+      divisionName: datalakeDivision.includes('/') ? datalakeDivision.split('/')[1] : '',
+      subdivisionId: datalakeSubDivision.includes('/') ? datalakeSubDivision.split('/')[0] : '',
+      subdivisionName: datalakeSubDivision.includes('/') ? datalakeSubDivision.split('/')[1] : '',
+      department: departmentName[0],
+      status: '',
+      classificationType: dataClassification,
+      hasPii: PII
+    }
+    ProgressIndicator.show();
+    datalakeApi.updateDatalakeProject(data, project?.data?.id).then(() => {
+      ProgressIndicator.hide();
+      Notification.show('Data Lakehouse Project successfully updated');
+      onSave();
+    }).catch(error => {
+      ProgressIndicator.hide();
+      Notification.show(
+        error?.response?.data?.response?.errors?.[0]?.message || error?.response?.data?.response?.warnings?.[0]?.message || 'Error while updating data lakehouse project',
+        'alert',
+      );
+    });
+  };
 
   return (
     <>
@@ -208,7 +227,7 @@ const DatalakeProjectForm = ({project, edit, onSave}) => {
                         placeholder="Type here"
                         autoComplete="off"
                         maxLength={55}
-                        {...register('name', { required: '*Missing entry', pattern: /^[a-z0-9-.]+$/ })}
+                        {...register('projectName', { required: '*Missing entry', pattern: /^[a-z0-9-.]+$/ })}
                       />
                       <span className={classNames('error-message')}>{errors?.name?.message}{errors.name?.type === 'pattern' && 'Project names can consist only of lowercase letters, numbers, dots ( . ), and hyphens ( - ).'}</span>
                     </div>
@@ -260,6 +279,7 @@ const DatalakeProjectForm = ({project, edit, onSave}) => {
                   type="text"
                   {...register('description', { required: '*Missing entry' })}
                   rows={50}
+                  defaultValue={edit ? project?.data?.description : ''}
                 />
                 <span className={classNames('error-message')}>{errors?.description?.message}</span>
               </div>
@@ -288,7 +308,7 @@ const DatalakeProjectForm = ({project, edit, onSave}) => {
                         </option>
                         {divisions?.map((obj) => {
                           return (
-                          <option id={obj.name + obj.id} key={obj.id} value={obj.id}>
+                          <option id={obj.name + obj.id} key={obj.id} value={obj.id + '/' + obj.name}>
                             {obj.name}
                           </option>
                           )
@@ -326,7 +346,7 @@ const DatalakeProjectForm = ({project, edit, onSave}) => {
                               Choose
                             </option>
                             {subDivisions?.map((obj) => (
-                              <option id={obj.name + obj.id} key={obj.id} value={obj.id}>
+                              <option id={obj.name + obj.id} key={obj.id} value={obj.id + '/' + obj.name}>
                                 {obj.name}
                               </option>
                             ))}
@@ -369,16 +389,6 @@ const DatalakeProjectForm = ({project, edit, onSave}) => {
                     </div>
                     </div>
                     </div>
-                    <div id="isExistingSolution">
-                      <label className="input-label summary">Owner</label>
-                      <br />
-                      {project?.data?.owner?.firstName} {project?.data?.owner?.lastName}
-                  </div>
-                    <div id="isExistingSolution">
-                      <label className="input-label summary">Owner</label>
-                      <br />
-                      {project?.data?.owner?.firstName} {project?.data?.owner?.lastName}
-                </div>
                 {/* <div
                   className={classNames(
                     'input-field-group include-error',
@@ -427,9 +437,9 @@ const DatalakeProjectForm = ({project, edit, onSave}) => {
                   </label>
                   <div className={classNames('custom-select')}>
                     <select id="classificationField" 
-                    onChange={handleDataClassification} 
-                    value={dataClassification}
-                    required={true}
+                      onChange={handleDataClassification} 
+                      value={dataClassification}
+                      required={true}
                     >
                       
                           <option id="classificationOption" value={0}>Choose</option>

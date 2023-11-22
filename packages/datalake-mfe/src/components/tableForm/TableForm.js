@@ -8,6 +8,11 @@ import { v4 as uuidv4 } from 'uuid';
 
 const TableFormItem = (props) => {
   const { register } = useFormContext();
+
+  useEffect(() => {
+    SelectBox.defaultSetup();
+  }, []);
+
   /**
    * If the index of the current field is greater than 0, then swap the current field with the field
    * above it
@@ -77,20 +82,18 @@ const TableFormItem = (props) => {
               <div className="custom-select">
                 <select id={`${index}.type`} {...register(`${index}.type`)}>
                   <option value={'BOOLEAN'}>BOOLEAN</option>
-                  <option value={'TINYINT'}>TINYINT</option>
-                  <option value={'SMALLINT'}>SMALLINT</option>
                   <option value={'INTEGER'}>INTEGER</option>
-                  <option value={'BIGINT'}>BIGINT</option>
-                  <option value={'REAL'}>REAL</option>
+                  <option value={'BYTE'}>BYTE</option>
+                  <option value={'SHORT'}>SHORT</option>
+                  <option value={'LONG'}>LONG</option>
+                  <option value={'FLOAT'}>FLOAT</option>
                   <option value={'DOUBLE'}>DOUBLE</option>
                   <option value={'DECIMAL'}>DECIMAL</option>
-                  <option value={'VARCHAR'}>VARCHAR</option>
-                  <option value={'CHAR'}>CHAR</option>
-                  <option value={'VARBINARY'}>VARBINARY</option>
-                  <option value={'JSON'}>JSON</option>
+                  <option value={'STRING'}>STRING</option>
+                  <option value={'BINARY'}>BINARY</option>
                   <option value={'DATE'}>DATE</option>
-                  <option value={'TIME'}>TIME</option>
                   <option value={'TIMESTAMP'}>TIMESTAMP</option>
+                  <option value={'TIMESTAMPNTZ'}>TIMESTAMPNTZ</option>
                 </select>
               </div>
             </div>
@@ -132,7 +135,7 @@ const TableFormItem = (props) => {
             <button className={classNames('btn btn-primary', Styles.btnActions)} onClick={moveDown}>↓ Move Down</button>
           </div>
           <div className={Styles.flexLayout}>
-            <button className={classNames('btn btn-primary', Styles.btnActions)} onClick={() => {props.removeItem(props.field.id);}}>Remove field</button>
+            <button className={classNames('btn btn-primary', Styles.btnActions)} onClick={() => {props.removeItem(props.field.columnName);}}>Remove field</button>
             <button className={classNames('btn btn-primary', Styles.btnActions)} onClick={() => props.addItem(props.index)}>Add field after</button>
           </div>
         </div>
@@ -237,7 +240,7 @@ const TableForm = ({setToggle}) => {
 
   const removeItem = id => {
       setFields(state => {
-          const columns = state.filter(item => item.id !== id);
+          const columns = state.filter(item => item.columnName !== id);
           return columns.length ? columns : [];
       });
   };
