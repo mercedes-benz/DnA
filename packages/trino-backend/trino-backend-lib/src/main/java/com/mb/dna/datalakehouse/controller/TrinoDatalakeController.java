@@ -193,7 +193,7 @@ public class TrinoDatalakeController {
 		request.setCreatedOn(createdOn);
 		TrinoDataLakeProjectVO data = new TrinoDataLakeProjectVO();
 		try {
-			data = trinoDatalakeService.create(request);
+			data = trinoDatalakeService.createDatalake(request);
 			if(data!=null && data.getId()!=null) {
 				GenericMessage successResponse = new GenericMessage();
 				successResponse.setSuccess("SUCCESS");
