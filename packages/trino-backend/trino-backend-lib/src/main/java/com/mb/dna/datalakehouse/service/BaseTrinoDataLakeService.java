@@ -77,7 +77,7 @@ public class BaseTrinoDataLakeService extends BaseCommonService<TrinoDataLakePro
 			vo.setBucketId(bucketCreationResponse.getData().getId());
 			log.info("Bucket {} has been successfully created for project {}");
 			
-			String externalLocation = "s3a://"+vo.getBucketName();
+			String externalLocation = "s3a://"+vo.getBucketName()+"/"+ vo.getSchemaName();
 			String createSchemaStatement = createSchema + vo.getCatalogName() + "." + vo.getSchemaName() + " WITH (location = '" + externalLocation + "')";
 			try {
 				trinoClient.executeStatments(createSchemaStatement);
