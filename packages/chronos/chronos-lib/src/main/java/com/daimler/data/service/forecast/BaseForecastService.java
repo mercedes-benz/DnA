@@ -530,6 +530,12 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 												if (uploadConfigFileResponse.hasBody()) {
 													uploadResponse = uploadConfigFileResponse.getBody();
 													if (uploadResponse != null && "SUCCESS".equalsIgnoreCase(uploadResponse.getResponse().getSuccess())) {
+														Object[]   getConfigsFilesResultsArr =this.getForecastConfigFiles(forecastId);
+											                         List<InputFileVO> records = (List<InputFileVO>) getConfigsFilesResultsArr[0];
+											                         if(records!=null && !records.isEmpty()) {
+											                         entity.getData().setConfigFiles(this.assembler.toFiles(records));
+											                         log.info("get configfiles" +entity.getData().getConfigFiles());
+											                         }
 														message="New recommendation file generated based on" + run.getRunName()+" inputs, Successfully upload recommendation" +fileName +  "to project specific configs";
 														notifyUsers(forecastId, memberIds, memberEmails, message, "", notificationEventName, null);
 
