@@ -31,7 +31,7 @@ const DatalakeProjectForm = ({project, edit, onSave}) => {
   const [dataClassification, setDataClassification] = useState(edit && project?.data?.classificationType !== null ? project?.data?.classificationType : '');
   const [dataClassificationError] = useState('');
   const [PII, setPII] = useState(edit && project?.data?.hasPii !== null ? project?.data?.hasPii : false);
-  const [connectorType, setConnectorType] = useState(edit && project?.data?.connectorType !== null ? project?.data?.connectorType : 'iceberg');
+  const [connectorType, setConnectorType] = useState(edit && project?.data?.connectorType !== null ? project?.data?.connectorType : 'Iceberg');
   
   const [divisions, setDivisions] = useState([]);
   const [subDivisions, setSubDivisions] = useState([]);
@@ -243,10 +243,10 @@ const DatalakeProjectForm = ({project, edit, onSave}) => {
                           <input
                             type="radio"
                             className="ff-only"
-                            value={'iceberg'}
+                            value={'Iceberg'}
                             name="connectorType"
                             onChange={handleConnectorType}
-                            checked={connectorType === 'iceberg'}
+                            checked={connectorType === 'Iceberg'}
                           />
                         </span>
                         <span className="label">Iceberg</span>
@@ -256,10 +256,10 @@ const DatalakeProjectForm = ({project, edit, onSave}) => {
                           <input
                             type="radio"
                             className="ff-only"
-                            value={'deltalake'}
+                            value={'Delta Lake'}
                             name="connectorType"
                             onChange={handleConnectorType}
-                            checked={connectorType === 'deltalake'}
+                            checked={connectorType === 'Delta Lake'}
                           />
                         </span>
                         <span className="label">Delta Lake</span>
