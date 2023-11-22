@@ -1,7 +1,6 @@
 package com.mb.dna.datalakehouse.db.jsonb;
 
 import java.io.Serializable;
-import java.util.List;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
