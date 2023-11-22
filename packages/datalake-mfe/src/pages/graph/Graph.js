@@ -227,7 +227,7 @@ const Graph = () => {
               {/* <img src={Envs.DNA_BRAND_LOGO_URL} className={Styles.Logo} /> */}
               <div className={Styles.nbtitle}>
                 <button tooltip-data="Go Back" className="btn btn-text back arrow" onClick={() => { history.back() }}></button>
-                <h2>Datalake Project</h2>
+                <h2>Data Lakehouse Project</h2>
               </div>
             </div>
             <div className={Styles.navigation}>
