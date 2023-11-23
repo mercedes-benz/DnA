@@ -1,8 +1,8 @@
 package com.daimler.data.db.json;
 
 import java.io.Serializable;
-import java.util.List;
 
+import com.daimler.data.dto.workspace.CodespaceSecurityentitlementDetailsVO.HttpMethodEnum;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import lombok.AllArgsConstructor;
@@ -13,10 +13,10 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class CodespaceSecurityUserRoleMap implements Serializable {
+public class CodespaceSecurityEntitlementDetails implements Serializable {
 
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	private String userId;
-	private List<String> roleIds;
+	private String apiPattern;
+	private String httpMethod;
 }

@@ -50,11 +50,14 @@ import com.daimler.data.api.workspace.CodeServerApi;
 import com.daimler.data.api.workspace.admin.CodeServerAdminApi;
 import com.daimler.data.application.auth.UserStore;
 import com.daimler.data.application.client.GitClient;
+import com.daimler.data.assembler.WorkspaceAssembler;
 import com.daimler.data.auth.client.DnaAuthClient;
 import com.daimler.data.auth.client.UserRequestVO;
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
+import com.daimler.data.db.json.CodespaceSecurityEntitlement;
 import com.daimler.data.dto.workspace.CodeServerDeploymentDetailsVO;
+import com.daimler.data.dto.workspace.CodeServerProjectDetailsVO;
 import com.daimler.data.dto.workspace.CodeServerRecipeDetailsVO;
 import com.daimler.data.dto.workspace.CodeServerRecipeDetailsVO.CloudServiceProviderEnum;
 import com.daimler.data.dto.workspace.CodeServerRecipeDetailsVO.CpuCapacityEnum;
@@ -63,7 +66,12 @@ import com.daimler.data.dto.workspace.CodeServerRecipeDetailsVO.OperatingSystemE
 import com.daimler.data.dto.workspace.CodeServerRecipeDetailsVO.RamSizeEnum;
 import com.daimler.data.dto.workspace.CodeServerWorkspaceVO;
 import com.daimler.data.dto.workspace.CodeServerWorkspaceValidateVO;
+import com.daimler.data.dto.workspace.CodespaceSecurityConfigResponseVO;
 import com.daimler.data.dto.workspace.CodespaceSecurityConfigVO;
+import com.daimler.data.dto.workspace.CodespaceSecurityEntitlementLOV;
+import com.daimler.data.dto.workspace.CodespaceSecurityEntitlementVO;
+import com.daimler.data.dto.workspace.CodespaceSecurityRoleLOV;
+import com.daimler.data.dto.workspace.CodespaceSecurityRoleVO;
 import com.daimler.data.dto.workspace.CreatedByVO;
 import com.daimler.data.dto.workspace.EntitlementCollectionVO;
 import com.daimler.data.dto.workspace.InitializeCollabWorkspaceRequestVO;
@@ -105,6 +113,9 @@ public class WorkspaceController  implements CodeServerApi, CodeServerAdminApi{
 	
 	@Autowired
 	private DnaAuthClient dnaAuthClient;
+
+	@Autowired
+	private WorkspaceAssembler workspaceAssembler;
 
 	@Override
 	@ApiOperation(value = "remove collaborator from workspace project for a given Id.", nickname = "removeCollab", notes = "remove collaborator from workspace project for a given identifier.", response = CodeServerWorkspaceVO.class, tags={ "code-server", })
@@ -271,8 +282,8 @@ public class WorkspaceController  implements CodeServerApi, CodeServerAdminApi{
     public ResponseEntity<SecurityConfigResponseDto> saveSecurityConfig(@ApiParam(value = "Workspace ID to be fetched",required=true) @PathVariable("id") String id,@ApiParam(value = "request body for saving security config details of the project" ,required=true )  @Valid @RequestBody SecurityConfigRequestDto configRequestDto){
 		
 		SecurityConfigResponseDto saveConfigResponse = new SecurityConfigResponseDto();
+		saveConfigResponse.setData(null);
 		CodespaceSecurityConfigVO data = configRequestDto.getData();
-		saveConfigResponse.setData(data);
 		CreatedByVO currentUser = this.userStore.getVO();
 		String userId = currentUser != null ? currentUser.getId() : null;
 		CodeServerWorkspaceVO vo = service.getById(userId, id);
@@ -288,12 +299,12 @@ public class WorkspaceController  implements CodeServerApi, CodeServerAdminApi{
 			emptyResponse.addErrors(msg);
 			emptyResponse.setSuccess("FAILED");
 			emptyResponse.setErrors(errorMessage);
-			saveConfigResponse.setData(null);
 			saveConfigResponse.setResponse(emptyResponse);
 			return new ResponseEntity<>(saveConfigResponse, HttpStatus.NOT_FOUND);
 		}
-
-		if (!(vo != null && vo.getWorkspaceOwner() != null && vo.getWorkspaceOwner().getId().equalsIgnoreCase(userId))) {
+		if (vo != null && vo.getStatus().equalsIgnoreCase("CREATED")) {
+			
+			if (!(vo != null && vo.getWorkspaceOwner() != null && vo.getWorkspaceOwner().getId().equalsIgnoreCase(userId))) {
 			MessageDescription notAuthorizedMsg = new MessageDescription();
 			notAuthorizedMsg.setMessage(
 					"Only owners can edit security configurations for workspace. Denied, does not have privileges.");
@@ -302,34 +313,54 @@ public class WorkspaceController  implements CodeServerApi, CodeServerAdminApi{
 			log.info("User {} cannot update security configurations for workspace, insufficient privileges. Workspace name: {}", userId, vo.getWorkspaceId());
 			saveConfigResponse.setResponse(errorMessage);
 			return new ResponseEntity<>(saveConfigResponse, HttpStatus.FORBIDDEN);
-		}
-
-		if(vo!=null && vo.getProjectDetails().getSecurityConfig()!=null)
-		{
-			if (vo.getProjectDetails().getSecurityConfig().getStatus()!= null && (vo.getProjectDetails().getSecurityConfig().getStatus().equalsIgnoreCase("REQUESTED") || vo.getProjectDetails().getSecurityConfig().getStatus().equalsIgnoreCase("ACCEPTED"))) {
-				MessageDescription notAuthorizedMsg = new MessageDescription();
-				notAuthorizedMsg.setMessage(
-						"Cannot edit seurity configurations for workspace when its in REQUESTED or ACCEPTED state. Denied, does not have privileges.");
-				GenericMessage errorMessage = new GenericMessage();
-				errorMessage.addErrors(notAuthorizedMsg);
-				saveConfigResponse.setResponse(errorMessage);
-				log.info(" cannot edit security configurations for workspace when its in {} state", vo.getProjectDetails().getSecurityConfig().getStatus());
-				return new ResponseEntity<>(saveConfigResponse, HttpStatus.FORBIDDEN);
 			}
-			if(vo.getProjectDetails().getSecurityConfig().getStatus()!= null && (vo.getProjectDetails().getSecurityConfig().getStatus().equalsIgnoreCase("DRAFT") || vo.getProjectDetails().getSecurityConfig().getStatus().equalsIgnoreCase("PUBLISHED"))){
-				vo.getProjectDetails().setSecurityConfig(data);
-				responseMessage = service.saveSecurityConfig(vo);
-				saveConfigResponse.setResponse(responseMessage);
-				saveConfigResponse.setData(data);
-				return new ResponseEntity<>(saveConfigResponse, HttpStatus.OK);
-			} 
-		}
+
+			if(vo!=null && vo.getProjectDetails().getSecurityConfig()!=null)
+			{
+				if (vo.getProjectDetails().getSecurityConfig().getStatus()!= null && (vo.getProjectDetails().getSecurityConfig().getStatus().equalsIgnoreCase("REQUESTED") || vo.getProjectDetails().getSecurityConfig().getStatus().equalsIgnoreCase("ACCEPTED"))) {
+					MessageDescription notAuthorizedMsg = new MessageDescription();
+					notAuthorizedMsg.setMessage(
+							"Cannot edit seurity configurations for workspace when its in REQUESTED or ACCEPTED state. Denied, does not have privileges.");
+					GenericMessage errorMessage = new GenericMessage();
+					errorMessage.addErrors(notAuthorizedMsg);
+					saveConfigResponse.setResponse(errorMessage);
+					log.info(" cannot edit security configurations for workspace when its in {} state", vo.getProjectDetails().getSecurityConfig().getStatus());
+					return new ResponseEntity<>(saveConfigResponse, HttpStatus.FORBIDDEN);
+				}
+				if(vo.getProjectDetails().getSecurityConfig().getStatus()!= null && (vo.getProjectDetails().getSecurityConfig().getStatus().equalsIgnoreCase("DRAFT") || vo.getProjectDetails().getSecurityConfig().getStatus().equalsIgnoreCase("PUBLISHED"))){
+					vo.getProjectDetails().setSecurityConfig(data);
+					responseMessage = service.saveSecurityConfig(vo);
+					saveConfigResponse.setResponse(responseMessage);
+					if(responseMessage.getSuccess().equalsIgnoreCase("SUCCESS"))
+					{
+						saveConfigResponse.setData(workspaceAssembler.toSaveConfigResponse(vo));
+					}
+					return new ResponseEntity<>(saveConfigResponse, HttpStatus.OK);
+				} 
+			}
 			vo.getProjectDetails().setSecurityConfig(data);
 			vo.getProjectDetails().getSecurityConfig().setStatus("DRAFT");
 			responseMessage = service.saveSecurityConfig(vo);
 			saveConfigResponse.setResponse(responseMessage);
-			saveConfigResponse.setData(data);
-		return new ResponseEntity<>(saveConfigResponse, HttpStatus.OK);
+			if(responseMessage.getSuccess().equalsIgnoreCase("SUCCESS"))
+			{
+				saveConfigResponse.setData(workspaceAssembler.toSaveConfigResponse(vo));
+			}
+			return new ResponseEntity<>(saveConfigResponse, HttpStatus.OK);
+		}else {
+			GenericMessage emptyResponse = new GenericMessage();
+			List<MessageDescription> errorMessage = new ArrayList<>();
+			MessageDescription msg = new MessageDescription();
+			msg.setMessage(" workspace not yet created for given id and the user");
+			errorMessage.add(msg);
+			emptyResponse.addErrors(msg);
+			emptyResponse.setSuccess("FAILED");
+			emptyResponse.setErrors(errorMessage);
+			saveConfigResponse.setData(null);
+			saveConfigResponse.setResponse(emptyResponse);
+		}
+		
+		return new ResponseEntity<>(saveConfigResponse, HttpStatus.FORBIDDEN);
 	}
 	
 
@@ -964,23 +995,104 @@ public class WorkspaceController  implements CodeServerApi, CodeServerAdminApi{
 
 
 	@Override
-	public ResponseEntity<EntitlementCollectionVO> getAllEntitlements(String id) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-
-	@Override
-	public ResponseEntity<RoleCollectionVO> getAllRoles(String id) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-
-	@Override
-	@ApiOperation(value = "Get Codespace security configurations which include defining roles, entitlements, user-role mappings etc. for given ID", nickname = "saveSecurityConfig", notes = "Get codespace security configurations for Id", response = SecurityConfigResponseDto.class, tags={ "code-server", })
+	@ApiOperation(value = "Get Codespace security configurations  entitlements for workspace.", nickname = "getAllEntitlements", notes = "Get Codespace security configuration Entitlements", response = EntitlementCollectionVO.class, tags={ "code-server", })
     @ApiResponses(value = { 
-        @ApiResponse(code = 201, message = "Returns message of success or failure", response = SecurityConfigResponseDto.class),
+        @ApiResponse(code = 201, message = "Returns message of success or failure", response = EntitlementCollectionVO.class),
+        @ApiResponse(code = 204, message = "Fetch complete, no content found."),
+        @ApiResponse(code = 400, message = "Bad request."),
+        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+        @ApiResponse(code = 403, message = "Request is not authorized."),
+        @ApiResponse(code = 405, message = "Method not allowed"),
+        @ApiResponse(code = 500, message = "Internal error") })
+    @RequestMapping(value = "/workspaces/{id}/config/entitlements",
+        produces = { "application/json" }, 
+        consumes = { "application/json" },
+        method = RequestMethod.GET)
+	public ResponseEntity<EntitlementCollectionVO> getAllEntitlements( @ApiParam(value = "Workspace ID for the project", required = true) @PathVariable("id")String id) {
+		EntitlementCollectionVO  entitlementCollectionVO = new EntitlementCollectionVO();
+		CreatedByVO currentUser = this.userStore.getVO();
+		String userId = currentUser != null ? currentUser.getId() : null;
+		CodeServerWorkspaceVO vo = service.getById(userId, id);
+
+		if (vo == null || vo.getWorkspaceId() == null) {
+			log.debug("No workspace found, returning empty");
+			return new ResponseEntity<>(null,HttpStatus.NOT_FOUND);
+		}
+
+		if (!(vo != null && vo.getWorkspaceOwner() != null && vo.getWorkspaceOwner().getId().equalsIgnoreCase(userId))) {
+			log.info("security configurations entitlements for workspace can be view only by Owners, insufficient privileges. Workspace name: {}", userId, vo.getWorkspaceId());
+			return new ResponseEntity<>(null,HttpStatus.FORBIDDEN);
+		}
+		if (vo != null && vo.getProjectDetails().getSecurityConfig() == null) {
+    	
+			log.info("No security configurations for workspace found");
+			return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
+		}
+		List<CodespaceSecurityEntitlementVO> entitlementsVO = vo.getProjectDetails().getSecurityConfig().getEntitlements();
+		List<CodespaceSecurityEntitlementLOV> entitlementsList = new ArrayList<>();
+		for(CodespaceSecurityEntitlementVO entitlementVO : entitlementsVO)
+		{
+			CodespaceSecurityEntitlementLOV entitlementLOV = new CodespaceSecurityEntitlementLOV();
+			entitlementLOV.setId(entitlementVO.getId());
+			entitlementLOV.setName(entitlementVO.getName());
+			entitlementsList.add(entitlementLOV);
+		}
+		entitlementCollectionVO.setData(entitlementsList);
+		return new ResponseEntity<>(entitlementCollectionVO, HttpStatus.OK);
+	}
+
+	@Override
+	@ApiOperation(value = "Get Codespace security configurations  roles for workspace.", nickname = "getAllRoles", notes = "Get Codespace security configuration roles", response = RoleCollectionVO.class, tags={ "code-server", })
+    @ApiResponses(value = { 
+        @ApiResponse(code = 201, message = "Returns message of success or failure", response = RoleCollectionVO.class),
+        @ApiResponse(code = 204, message = "Fetch complete, no content found."),
+        @ApiResponse(code = 400, message = "Bad request."),
+        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+        @ApiResponse(code = 403, message = "Request is not authorized."),
+        @ApiResponse(code = 405, message = "Method not allowed"),
+        @ApiResponse(code = 500, message = "Internal error") })
+    @RequestMapping(value = "/workspaces/{id}/config/roles",
+        produces = { "application/json" }, 
+        consumes = { "application/json" },
+        method = RequestMethod.GET)
+	public ResponseEntity<RoleCollectionVO> getAllRoles(String id) {
+		RoleCollectionVO  roleCollectionVO = new RoleCollectionVO();
+		CreatedByVO currentUser = this.userStore.getVO();
+		String userId = currentUser != null ? currentUser.getId() : null;
+		CodeServerWorkspaceVO vo = service.getById(userId, id);
+
+		if (vo == null || vo.getWorkspaceId() == null) {
+			log.debug("No workspace found, returning empty");
+			return new ResponseEntity<>(null,HttpStatus.NOT_FOUND);
+		}
+
+		if (!(vo != null && vo.getWorkspaceOwner() != null && vo.getWorkspaceOwner().getId().equalsIgnoreCase(userId))) {
+			log.info("security configurations entitlements for workspace can be view only by Owners, insufficient privileges. Workspace name: {}", userId, vo.getWorkspaceId());
+			return new ResponseEntity<>(null,HttpStatus.FORBIDDEN);
+		}
+		if (vo != null && vo.getProjectDetails().getSecurityConfig() == null) {
+    	
+			log.info("No security configurations for workspace found");
+			return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
+		}
+		List<CodespaceSecurityRoleVO> rolesVO = vo.getProjectDetails().getSecurityConfig().getRoles();
+		List<CodespaceSecurityRoleLOV> rolesList = new ArrayList<>();
+		for(CodespaceSecurityRoleVO roleVO : rolesVO)
+		{
+			CodespaceSecurityRoleLOV roleLOV = new CodespaceSecurityRoleLOV();
+			roleLOV.setId(roleVO.getId());
+			roleLOV.setName(roleVO.getName());
+			rolesList.add(roleLOV);
+		}
+		roleCollectionVO.setData(rolesList);
+		return new ResponseEntity<>(roleCollectionVO, HttpStatus.OK);
+	}
+
+
+	@Override
+	@ApiOperation(value = "Get Codespace security configurations which include defining roles, entitlements, user-role mappings etc. for given ID", nickname = "saveSecurityConfig", notes = "Get codespace security configurations for Id", response = CodespaceSecurityConfigResponseVO.class, tags={ "code-server", })
+    @ApiResponses(value = { 
+        @ApiResponse(code = 201, message = "Returns message of success or failure", response = CodespaceSecurityConfigResponseVO.class),
         @ApiResponse(code = 204, message = "Fetch complete, no content found."),
         @ApiResponse(code = 400, message = "Bad request."),
         @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
@@ -991,8 +1103,8 @@ public class WorkspaceController  implements CodeServerApi, CodeServerAdminApi{
         produces = { "application/json" }, 
         consumes = { "application/json" },
         method = RequestMethod.GET)
-	public ResponseEntity<CodespaceSecurityConfigVO> getSecurityConfig(@ApiParam(value = "Workspace ID for the project", required = true) @PathVariable("id") String id) {
-		CodespaceSecurityConfigVO getConfigResponse = new CodespaceSecurityConfigVO();
+	public ResponseEntity<CodespaceSecurityConfigResponseVO> getSecurityConfig(@ApiParam(value = "Workspace ID for the project", required = true) @PathVariable("id") String id) {
+		CodespaceSecurityConfigResponseVO getConfigResponse = new CodespaceSecurityConfigResponseVO();
 		CreatedByVO currentUser = this.userStore.getVO();
 		String userId = currentUser != null ? currentUser.getId() : null;
 		CodeServerWorkspaceVO vo = service.getById(userId, id);
@@ -1012,21 +1124,124 @@ public class WorkspaceController  implements CodeServerApi, CodeServerAdminApi{
 			log.info("No security configurations for workspace found");
 			return new ResponseEntity<>(null,HttpStatus.NOT_FOUND);
 		}
-		getConfigResponse = vo.getProjectDetails().getSecurityConfig();
+		getConfigResponse = workspaceAssembler.toSaveConfigResponse(vo);
 		return new ResponseEntity<>(getConfigResponse,HttpStatus.OK);
 	}
 
 	@Override
-	public ResponseEntity<GenericMessage> requestSecurityConfig(String id) {
-		// TODO Auto-generated method stub
-		return null;
+	@ApiOperation(value = " Change codespace security configurations to Requested state", nickname = "requestSecurityConfig", notes = "change state codespace security configurations to requested", response = GenericMessage.class, tags={ "code-server", })
+    @ApiResponses(value = { 
+        @ApiResponse(code = 201, message = "Returns message of success or failure", response = GenericMessage.class),
+        @ApiResponse(code = 204, message = "Fetch complete, no content found."),
+        @ApiResponse(code = 400, message = "Bad request."),
+        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+        @ApiResponse(code = 403, message = "Request is not authorized."),
+        @ApiResponse(code = 405, message = "Method not allowed"),
+        @ApiResponse(code = 500, message = "Internal error") })
+    @RequestMapping(value = "/workspaces/{id}/config/request",
+        produces = { "application/json" }, 
+        consumes = { "application/json" },
+        method = RequestMethod.POST)
+	public ResponseEntity<GenericMessage> requestSecurityConfig(@ApiParam(value = "Workspace ID for the project", required = true) @PathVariable("id") String id) {
+		CodespaceSecurityConfigVO getConfigResponse = new CodespaceSecurityConfigVO();
+		CreatedByVO currentUser = this.userStore.getVO();
+		String userId = currentUser != null ? currentUser.getId() : null;
+		CodeServerWorkspaceVO vo = service.getById(userId, id);
+		GenericMessage responseMessage = new GenericMessage();
+		List<MessageDescription> errorMessage = new ArrayList<>();
+		if (vo == null || vo.getWorkspaceId() == null) {
+			log.debug("No workspace found, returning empty");
+			MessageDescription msg = new MessageDescription();
+			msg.setMessage("No workspace found for given id and the user");
+			errorMessage.add(msg);
+			responseMessage.setErrors(errorMessage);
+			return new ResponseEntity<>(responseMessage,HttpStatus.NOT_FOUND);
+
+		}
+
+		if (!(vo != null && vo.getWorkspaceOwner() != null && vo.getWorkspaceOwner().getId().equalsIgnoreCase(userId))) {
+			log.info("security configurations for workspace can be view/edit only by Owners, insufficient privileges. Workspace name: {}", userId, vo.getWorkspaceId());
+			MessageDescription msg = new MessageDescription();
+			msg.setMessage("security configurations for workspace can be view/edit only by Owners");
+			errorMessage.add(msg);
+			responseMessage.setErrors(errorMessage);
+			return new ResponseEntity<>(responseMessage,HttpStatus.FORBIDDEN);
+		}
+		if(vo!=null && vo.getProjectDetails().getSecurityConfig()==null){
+
+			log.info("No security configurations for workspace found");
+			MessageDescription msg = new MessageDescription();
+			msg.setMessage("No security configurations for workspace found");
+			errorMessage.add(msg);
+			responseMessage.setErrors(errorMessage);
+			return new ResponseEntity<>(responseMessage,HttpStatus.NOT_FOUND);
+		}
+		if (vo.getProjectDetails().getSecurityConfig().getStatus()!= null && (vo.getProjectDetails().getSecurityConfig().getStatus().equalsIgnoreCase("ACCEPTED") || vo.getProjectDetails().getSecurityConfig().getStatus().equalsIgnoreCase("REQUESTED"))) {
+				MessageDescription notAuthorizedMsg = new MessageDescription();
+				notAuthorizedMsg.setMessage(
+						"Cannot edit seurity configurations for workspace when its in REQUESTED or ACCEPTED state. Denied, does not have privileges.");
+				responseMessage.addErrors(notAuthorizedMsg);
+				log.info(" cannot edit security configurations for workspace when its in {} state", vo.getProjectDetails().getSecurityConfig().getStatus());
+				return new ResponseEntity<>(responseMessage, HttpStatus.FORBIDDEN);
+			}
+			if(vo.getProjectDetails().getSecurityConfig().getStatus()!= null && (vo.getProjectDetails().getSecurityConfig().getStatus().equalsIgnoreCase("DRAFT") || vo.getProjectDetails().getSecurityConfig().getStatus().equalsIgnoreCase("PUBLISHED"))){
+				vo.getProjectDetails().getSecurityConfig().setStatus("REQUESTED");
+				responseMessage = service.saveSecurityConfig(vo);
+			} 
+		
+		return new ResponseEntity<>(responseMessage, HttpStatus.OK);
 	}
 
 
 	@Override
 	public ResponseEntity<GenericMessage> acceptSecurityConfig(String id) {
-		// TODO Auto-generated method stub
-		return null;
+		CodespaceSecurityConfigVO getConfigResponse = new CodespaceSecurityConfigVO();
+		CreatedByVO currentUser = this.userStore.getVO();
+		String userId = currentUser != null ? currentUser.getId() : null;
+		CodeServerWorkspaceVO vo = service.getById(userId, id);
+		GenericMessage responseMessage = new GenericMessage();
+		List<MessageDescription> errorMessage = new ArrayList<>();
+		if (vo == null || vo.getWorkspaceId() == null) {
+			log.debug("No workspace found, returning empty");
+			MessageDescription msg = new MessageDescription();
+			msg.setMessage("No workspace found for given id and the user");
+			errorMessage.add(msg);
+			responseMessage.setErrors(errorMessage);
+			return new ResponseEntity<>(responseMessage,HttpStatus.NOT_FOUND);
+
+		}
+
+		if (!(vo != null && vo.getWorkspaceOwner() != null && vo.getWorkspaceOwner().getId().equalsIgnoreCase(userId))) {
+			log.info("security configurations for workspace can be view/edit only by Owners, insufficient privileges. Workspace name: {}", userId, vo.getWorkspaceId());
+			MessageDescription msg = new MessageDescription();
+			msg.setMessage("security configurations for workspace can be view/edit only by Owners");
+			errorMessage.add(msg);
+			responseMessage.setErrors(errorMessage);
+			return new ResponseEntity<>(responseMessage,HttpStatus.FORBIDDEN);
+		}
+		if(vo!=null && vo.getProjectDetails().getSecurityConfig()==null){
+
+			log.info("No security configurations for workspace found");
+			MessageDescription msg = new MessageDescription();
+			msg.setMessage("No security configurations for workspace found");
+			errorMessage.add(msg);
+			responseMessage.setErrors(errorMessage);
+			return new ResponseEntity<>(responseMessage,HttpStatus.NOT_FOUND);
+		}
+		if (vo.getProjectDetails().getSecurityConfig().getStatus()!= null && (vo.getProjectDetails().getSecurityConfig().getStatus().equalsIgnoreCase("ACCEPTED") || vo.getProjectDetails().getSecurityConfig().getStatus().equalsIgnoreCase("REQUESTED"))) {
+				MessageDescription notAuthorizedMsg = new MessageDescription();
+				notAuthorizedMsg.setMessage(
+						"Cannot edit seurity configurations for workspace when its in REQUESTED or ACCEPTED state. Denied, does not have privileges.");
+				responseMessage.addErrors(notAuthorizedMsg);
+				log.info(" cannot edit security configurations for workspace when its in {} state", vo.getProjectDetails().getSecurityConfig().getStatus());
+				return new ResponseEntity<>(responseMessage, HttpStatus.FORBIDDEN);
+			}
+			if(vo.getProjectDetails().getSecurityConfig().getStatus()!= null && (vo.getProjectDetails().getSecurityConfig().getStatus().equalsIgnoreCase("DRAFT") || vo.getProjectDetails().getSecurityConfig().getStatus().equalsIgnoreCase("PUBLISHED"))){
+				vo.getProjectDetails().getSecurityConfig().setStatus("REQUESTED");
+				responseMessage = service.saveSecurityConfig(vo);
+			} 
+		
+		return new ResponseEntity<>(responseMessage, HttpStatus.OK);
 	}
 
 

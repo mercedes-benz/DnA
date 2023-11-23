@@ -515,7 +515,7 @@ paths:
         201:
           description: "Returns message of success or failure"
           schema:
-            $ref: "#/definitions/CodespaceSecurityConfigVO"
+            $ref: "#/definitions/CodespaceSecurityConfigResponseVO"
         204:
           description: "Fetch complete, no content found."
         400:
@@ -902,7 +902,7 @@ definitions:
       entitlementDetails:
         type:  array
         items:
-          $ref: "#/definitions/entitlementDetailsLOV"
+          $ref: "#/definitions/CodespaceSecurityentitlementDetailsVO"
 
   CodespaceSecurityUserRoleMapVO: 
     type: object
@@ -974,7 +974,7 @@ definitions:
         type: string
         description: "Entitlement name"  
 
-  entitlementDetailsLOV:
+  CodespaceSecurityentitlementDetailsVO:
     type: object
     properties:
       apiPattern:
@@ -982,46 +982,54 @@ definitions:
         description: "API Path or Pattern used to validate this entitlement" 
       httpMethod:
         type: string
-        enum: [POST,PUT,PATCH,GET,OPTIONS,HEAD,DELETE]
+        enum: ["POST","PUT","PATCH","GET","OPTIONS","HEAD","DELETE"]
         description: "Operating system required" 
 
   CodespaceSecurityConfigVO: 
     type: object
     properties:
-     status:
+      status:
         type: string
         description: "Status of security configurations"   
-     entitlements:
+      entitlements:
         type: array
         items:
           $ref: "#/definitions/CodespaceSecurityEntitlementVO"
-     roles:
+      roles:
         type: array
         items:
           $ref: "#/definitions/CodespaceSecurityRoleVO" 
-     userRoleMappings:
+      userRoleMappings:
         type: array
         items:
           $ref: "#/definitions/CodespaceSecurityUserRoleMapVO"
+      openSegments:
+        type: array
+        items:
+          type: string
 
   CodespaceSecurityConfigResponseVO:
     type: object
     properties:
-     status:
+      status:
         type: string
         description: "Status of security configurations"   
-     entitlements:
+      entitlements:
         type: array
         items:
           $ref: "#/definitions/CodespaceSecurityEntitlementVO"
-     roles:
+      roles:
         type: array
         items:
           $ref: "#/definitions/CodespaceSecurityRoleResponseVO" 
-     userRoleMappings:
+      userRoleMappings:
         type: array
         items:
           $ref: "#/definitions/CodespaceSecurityUserRoleMapResponseVO"
+      openSegments:
+        type: array
+        items:
+          type: string
 
   UserIdVO:
     type: object
