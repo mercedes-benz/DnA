@@ -206,6 +206,7 @@ const TableFormBase = () => {
 
 const TableForm = ({setToggle}) => {
   const methods = useForm();
+  const { handleSubmit } = methods;
   
   const { project } = useSelector(state => state.graph);
   const dispatch = useDispatch();
@@ -228,12 +229,10 @@ const TableForm = ({setToggle}) => {
   }, [editingTable]);
 
   const onSubmit = (data) => {
-    console.log('table form data');
-    console.log(data);
-    const { tableName, tableFormat, tableComment, ...tempData } = data;
+    const { tableName, tableFormat, tableComment, ...colData } = data;
     const cols = [];
-    for (const key in tempData) {
-      cols.push(tempData[key]);
+    for (const key in colData) {
+      cols.push(colData[key]);
     }
     const tableData = {
       tableName: tableName,
@@ -244,7 +243,7 @@ const TableForm = ({setToggle}) => {
       columns: [...cols],
     };
     const projectTemp = {...project};
-    projectTemp.tables.push(tableData);
+    projectTemp.tables = [...projectTemp.tables, tableData];
     dispatch(setTables(projectTemp.tables));
     setToggle();
   }
@@ -270,7 +269,7 @@ const TableForm = ({setToggle}) => {
 
   return (
     <FormProvider {...methods} >
-        <form onSubmit={methods.handleSubmit(onSubmit)} className={Styles.form}>
+        <div className={Styles.form}>
           <div className={Styles.formContent}>
             <TableFormBase />
             {columns.length > 0 && 
@@ -287,9 +286,9 @@ const TableForm = ({setToggle}) => {
           </div>
           <div className="drawer-footer">
             <button className="btn btn-primary" onClick={setToggle}>Cancel</button>
-            <button className="btn btn-tertiary" type="submit">Save</button>
+            <button className="btn btn-tertiary" onClick={handleSubmit((values) => onSubmit(values))}>Save</button>
           </div>
-        </form>
+        </div>
     </FormProvider>
   )
 }

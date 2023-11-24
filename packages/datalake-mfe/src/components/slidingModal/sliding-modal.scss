@@ -84,6 +84,19 @@
   box-sizing: border-box;
   position: relative;
   overflow: auto;
+  padding-right: 5px;
+
+  &::-webkit-scrollbar-thumb {
+    background: #00adef;
+    border-radius: 10px;
+  }
+  &::-webkit-scrollbar-track {
+    background: #293f55;
+  }
+  &::-webkit-scrollbar {
+    width: 5px;
+    height: 5px;
+  }
 }
 .drawer-footer {
   box-sizing: border-box;
