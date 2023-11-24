@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "code-server.fullname" . }}
+  namespace: {{ .Values.namespace }}
+data:
+{{ (.Files.Glob "files/*").AsConfig | indent 2 }}
