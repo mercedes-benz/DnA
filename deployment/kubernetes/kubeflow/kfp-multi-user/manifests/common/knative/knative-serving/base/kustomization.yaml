@@ -4,11 +4,11 @@ resources:
 - upstream/serving-core.yaml
 - upstream/net-istio.yaml
 - istio-authorization-policy.yaml
-- networking-policy.yaml
 patchesStrategicMerge:
 - patches/configmap-patch.yaml
 - patches/namespace-injection.yaml
 - patches/clusterrole-patch.yaml
+- patches/service-labels.yaml
 patches:
 - path: patches/sidecar-injection.yaml
   target:

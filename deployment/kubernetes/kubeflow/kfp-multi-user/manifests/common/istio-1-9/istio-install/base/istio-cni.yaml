@@ -1,8 +1,0 @@
-apiVersion: CNI_API
-kind: IstioCNI
-metadata:
-  name: default
-spec:
-  # One of: trace, debug, info, warn, error, critical, off.
-  logLevel: info
-  imageTag: 1.10.0
