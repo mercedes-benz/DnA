@@ -8,6 +8,7 @@ const classNames = cn.bind(Styles);
 export interface ICaptionProps {
   title: string;
   disableTitle?: boolean;
+  children?: React.ReactNode;
 }
 
 const Caption:React.FC<ICaptionProps> = ({ title, disableTitle, children }) => {

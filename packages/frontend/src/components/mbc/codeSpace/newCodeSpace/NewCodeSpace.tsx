@@ -19,6 +19,7 @@ import AddUser from '../../addUser/AddUser';
 import { Envs } from 'globals/Envs';
 import { recipesMaster } from '../../../../services/utils';
 import ConfirmModal from 'components/formElements/modal/confirmModal/ConfirmModal';
+import { DEPLOYMENT_DISABLED_RECIPE_IDS } from 'globals/constants';
 
 const classNames = cn.bind(Styles);
 
@@ -951,7 +952,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
               />
             </>
           )}
-          {!isPublicRecipeChoosen && !isUserDefinedGithubRecipe && (
+          {!isPublicRecipeChoosen && !isUserDefinedGithubRecipe && !DEPLOYMENT_DISABLED_RECIPE_IDS.includes(recipeValue) && (
             <div className={classNames('input-field-group include-error')}>
               <label htmlFor="userId" className="input-label">
                 Find and add the collaborators you want to work with your code (Optional)
