@@ -899,18 +899,29 @@ definitions:
       name:
         type: string
         description: "name  of Entitlement"   
-      entitlementDetails:
+      apiList:
         type:  array
         items:
-          $ref: "#/definitions/CodespaceSecurityentitlementDetailsVO"
+          $ref: "#/definitions/CodespaceSecurityApiListVO"
 
   CodespaceSecurityUserRoleMapVO: 
     type: object
     properties:
-     userId:
+      firstName:
         type: string
-        description: "User unique identification"   
-     roleIds:
+      lastName:
+        type: string
+      shortId:
+        type: string
+      id:
+        type: string
+      department:
+        type: string
+      email:
+        type: string
+      mobileNumber:
+        type: string  
+      roleIds:
         type: array
         items:  
           type: string
@@ -918,13 +929,25 @@ definitions:
   CodespaceSecurityUserRoleMapResponseVO: 
     type: object
     properties:
-      userId:
+      firstName:
         type: string
-        description: "User unique identification"   
+      lastName:
+        type: string
+      shortId:
+        type: string
+      id:
+        type: string
+      department:
+        type: string
+      email:
+        type: string
+      mobileNumber:
+        type: string     
       roles:
         type: array
         items:  
           $ref: "#/definitions/CodespaceSecurityRoleLOV"
+        default: []
         
   CodespaceSecurityRoleVO: 
     type: object
@@ -953,6 +976,7 @@ definitions:
           type: array
           items:
             $ref: "#/definitions/CodespaceSecurityEntitlementLOV"
+          default: []
                   
   CodespaceSecurityRoleLOV:
     type: object
@@ -974,7 +998,7 @@ definitions:
         type: string
         description: "Entitlement name"  
 
-  CodespaceSecurityentitlementDetailsVO:
+  CodespaceSecurityApiListVO:
     type: object
     properties:
       apiPattern:
@@ -1007,6 +1031,8 @@ definitions:
         type: array
         items:
           type: string
+      isProtectedByDna:
+        type: boolean
 
   CodespaceSecurityConfigResponseVO:
     type: object
@@ -1018,18 +1044,23 @@ definitions:
         type: array
         items:
           $ref: "#/definitions/CodespaceSecurityEntitlementVO"
+        default: []
       roles:
         type: array
         items:
           $ref: "#/definitions/CodespaceSecurityRoleResponseVO" 
+        default: []
       userRoleMappings:
         type: array
         items:
           $ref: "#/definitions/CodespaceSecurityUserRoleMapResponseVO"
+        default: []
       openSegments:
         type: array
         items:
           type: string
+      isProtectedByDna:
+        type: boolean
 
   UserIdVO:
     type: object

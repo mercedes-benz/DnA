@@ -17,6 +17,13 @@ public class CodespaceSecurityUserRoleMap implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 
-	private String userId;
+	private String firstName;
+	private String lastName;
+	private String shortId;
+	private String id;
+	private String department;
+	private String email;
+	private String mobileNumber;
+
 	private List<String> roleIds;
 }
