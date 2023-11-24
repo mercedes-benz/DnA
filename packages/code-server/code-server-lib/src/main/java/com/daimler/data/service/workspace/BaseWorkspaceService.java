@@ -374,7 +374,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 			}
 			
 			//initialize repo
-			if(!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("private") ) {
+			if(!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("private") && !vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("bat")) {
 			repoName = vo.getProjectDetails().getGitRepoName();
 			if(!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().equalsIgnoreCase("default") ) {
 				HttpStatus createRepoStatus = gitClient.createRepo(repoName);
