@@ -15,8 +15,6 @@ spec:
       annotations:
         cluster-autoscaler.kubernetes.io/safe-to-evict: "true"
     spec:
-      securityContext:
-        runAsUser: 1000
       volumes:
       - name: config-volume
         configMap:

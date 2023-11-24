@@ -15,16 +15,10 @@ spec:
       annotations:
         cluster-autoscaler.kubernetes.io/safe-to-evict: "true"
     spec:
-      securityContext:
-        fsGroup: 65534
-        runAsGroup: 65534
-        runAsUser: 65534    
       containers:
       - image: gcr.io/ml-pipeline/visualization-server:dummy
         imagePullPolicy: IfNotPresent
         name: ml-pipeline-visualizationserver
-        securityContext:
-          runAsUser: 1000
         ports:
         - name: http
           containerPort: 8888

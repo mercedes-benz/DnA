@@ -8,12 +8,8 @@ spec:
       annotations:
         sidecar.istio.io/inject: "false"
     spec:
-      securityContext:
-        fsGroup: 65534
-        runAsGroup: 65534
-        runAsUser: 65534
       containers:
-      - image: public.ecr.aws/j1r0q0g6/notebooks/admission-webhook
+      - image: docker.io/kubeflownotebookswg/poddefaults-webhook
         name: admission-webhook
         volumeMounts:
         - mountPath: /etc/webhook/certs

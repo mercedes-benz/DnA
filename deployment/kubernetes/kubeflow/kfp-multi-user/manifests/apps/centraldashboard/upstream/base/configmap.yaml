@@ -9,7 +9,37 @@ data:
       "menuLinks": [
         {
           "type": "item",
-          "text": "Experiments",
+          "link": "/jupyter/",
+          "text": "Notebooks",
+          "icon": "book"
+        },
+        {
+          "type": "item",
+          "link": "/tensorboards/",
+          "text": "Tensorboards",
+          "icon": "assessment"
+        },
+        {
+          "type": "item",
+          "link": "/volumes/",
+          "text": "Volumes",
+          "icon": "device:storage"
+        },
+        {
+          "type": "item",
+          "link": "/models/",
+          "text": "Endpoints",
+          "icon": "kubeflow:models"
+        },
+        {
+          "type": "item",
+          "link": "/katib/",
+          "text": "Experiments (AutoML)",
+          "icon": "kubeflow:katib"
+        },
+        {
+          "type": "item",
+          "text": "Experiments (KFP)",
           "link": "/pipeline/#/experiments",
           "icon": "done-all"
         },
@@ -42,12 +72,6 @@ data:
           "link": "/pipeline/#/executions",
           "text": "Executions",
           "icon": "av:play-arrow"
-        },
-        {
-          "type": "item",
-          "link": "/models/",
-          "text": "Models",
-          "icon": "kubeflow:models"
         }
       ],
       "externalLinks": [ ],
@@ -61,18 +85,48 @@ data:
             "text": "View all pipeline runs",
             "desc": "Pipelines",
             "link": "/pipeline/#/runs"
+          },
+          {
+            "text": "Create a new Notebook server",
+            "desc": "Notebook Servers",
+            "link": "/jupyter/new?namespace=kubeflow"
+          },
+          {
+            "text": "View Katib Experiments",
+            "desc": "Katib",
+            "link": "/katib/"
           }
         ],
         "documentationItems": [
           {
-            "text": "DnA",
-            "desc": "DnA platform is the best open-source platform!",
-            "link": "DNA_URL_HTTPS_DEV/"
-          },
-          {
             "text": "Getting Started with Kubeflow",
             "desc": "Get your machine-learning workflow up and running on Kubeflow",
-            "link": "https://www.kubeflow.org/docs/started/"
+            "link": "https://www.kubeflow.org/docs/started/getting-started/"
+          },
+          {
+            "text": "MiniKF",
+            "desc": "A fast and easy way to deploy Kubeflow locally",
+            "link": "https://www.kubeflow.org/docs/distributions/minikf/"
+          },
+          {
+            "text": "Microk8s for Kubeflow",
+            "desc": "Quickly get Kubeflow running locally on native hypervisors",
+            "link": "https://www.kubeflow.org/docs/distributions/microk8s/kubeflow-on-microk8s/"
+          },
+          {
+            "text": "Kubeflow on GCP",
+            "desc": "Running Kubeflow on Kubernetes Engine and Google Cloud Platform",
+            "link": "https://www.kubeflow.org/docs/gke/"
+          },
+          {
+            "text": "Kubeflow on AWS",
+            "desc": "Running Kubeflow on Elastic Container Service and Amazon Web Services",
+            "link": "https://www.kubeflow.org/docs/aws/"
+          },
+          {
+            "text": "Requirements for Kubeflow",
+            "desc": "Get more detailed information about using Kubeflow and its components",
+            "link": "https://www.kubeflow.org/docs/started/requirements/"
           }
         ]
     }

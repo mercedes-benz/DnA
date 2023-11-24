@@ -14,8 +14,6 @@ spec:
       labels:
         app: metadata-writer
     spec:
-      securityContext:
-        runAsUser: 1000
       containers:
       - name: main
         image: gcr.io/ml-pipeline/metadata-writer:dummy
