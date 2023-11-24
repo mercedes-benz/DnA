@@ -6,12 +6,14 @@ import Styles from './graph.scss';
 // dna-container
 import FullScreenModeIcon from 'dna-container/FullScreenModeIcon';
 import Modal from 'dna-container/Modal';
+import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indicator';
 import GraphTable from '../../components/GraphTable';
 import TableForm from '../../components/tableForm/TableForm';
 import SlidingModal from '../../components/slidingModal/SlidingModal';
 import { setBox, setTables } from '../../redux/graphSlice';
 import { getProjectDetails } from '../../redux/graph.services';
 import TableCollaborators from '../../components/tableCollaborators/TableCollaborators';
+import { datalakeApi } from '../../apis/datalake.api';
 
 const Graph = () => {
     const { id } = useParams();
@@ -218,6 +220,21 @@ const Graph = () => {
     setShowCollabModal(true);
     setCollabs([...table.collabs]);
   }
+
+  const handlePublish = () => {
+    const data = {...project}
+    ProgressIndicator.show();
+    datalakeApi.updateDatalakeProject(project?.id, data).then(() => {
+      ProgressIndicator.hide();
+      Notification.show('Table(s) published successfully');
+    }).catch(error => {
+      ProgressIndicator.hide();
+      Notification.show(
+        error?.response?.data?.response?.errors?.[0]?.message || error?.response?.data?.response?.warnings?.[0]?.message || 'Error while publishing table(s)',
+        'alert',
+      );
+    });
+  }
   
   return (
     <>
@@ -292,7 +309,7 @@ const Graph = () => {
         </div>
         
         <div style={{textAlign: 'right', marginTop: '20px'}}>
-                <button className={classNames('btn btn-tertiary')}>Publish</button>
+                <button className={classNames('btn btn-tertiary')} onClick={handlePublish}>Publish</button>
             </div>
       </div>
       
