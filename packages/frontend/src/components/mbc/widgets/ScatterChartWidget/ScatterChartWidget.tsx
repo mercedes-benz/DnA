@@ -8,7 +8,7 @@ export interface IScatterChartWidgetProps {
   xAxisSubLabel?: string;
   yAxisLabel: string;
   yAxisSubLabel?: string;
-  tooltipContentComponent: React.StatelessComponent<any>;
+  tooltipContentComponent: React.FunctionComponent<any>;
   onScatterChartBubbleClick: (value: any) => void;
 }
 
