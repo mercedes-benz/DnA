@@ -1,7 +1,7 @@
 import { server, hostServer, reportsServer, storageServer } from '../server/api';
 
-const getDatalakeProjectsList = () => {
-  return server.get(`/datalakes`, {
+const getDatalakeProjectsList = (limit, offset) => {
+  return server.get(`/datalakes?limit=${limit}&offset=${offset}`, {
     data: {},
   });
 };
