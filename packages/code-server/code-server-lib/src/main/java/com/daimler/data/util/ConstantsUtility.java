@@ -46,4 +46,6 @@ public class ConstantsUtility {
 	public static final String WORKSPACEPREFIX = "ws";
 	public static final String DEPLOYACTION = "deploy";
 	public static final String DELETEACTION = "delete";
+	public static final String BAT_FRONTEND = "bat-frontend";
+	public static final String BAT_BACKEND = "bat-backend";
 }
