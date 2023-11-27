@@ -20,6 +20,6 @@ spec:
             app.kubernetes.io/name: code-server-backend
         namespaceSelector:
           matchLabels:
-            name: code-server           
+            kubernetes.io/metadata.name: code-server          
   policyTypes:
     - Ingress
