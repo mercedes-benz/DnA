@@ -32,6 +32,7 @@ import java.util.List;
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.db.entities.CodeServerWorkspaceNsql;
 import com.daimler.data.db.json.CodeServerDeploymentDetails;
+import com.daimler.data.db.json.CodeServerLeanGovernceFeilds;
 import com.daimler.data.db.json.UserInfo;
 import com.daimler.data.db.repo.common.CommonDataRepository;
 import com.daimler.data.dto.workspace.CodeServerWorkspaceValidateVO;
@@ -68,5 +69,7 @@ public interface WorkspaceCustomRepository extends CommonDataRepository<CodeServ
 	CodeServerWorkspaceValidateVO validateCodespace(String id, String userId);
 	
 	CodeServerWorkspaceNsql findByWorkspaceId(String wsId);
+
+    GenericMessage updateGovernanceDetails(String projectName, CodeServerLeanGovernceFeilds newGovFeilds);
 
 }

@@ -32,6 +32,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 import javax.persistence.Query;
 import javax.persistence.TypedQuery;
@@ -42,12 +43,14 @@ import javax.persistence.criteria.Root;
 
 import com.daimler.data.db.json.UserInfo;
 import com.daimler.data.dto.workspace.CodeServerWorkspaceValidateVO;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.stereotype.Repository;
 
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
 import com.daimler.data.db.entities.CodeServerWorkspaceNsql;
 import com.daimler.data.db.json.CodeServerDeploymentDetails;
+import com.daimler.data.db.json.CodeServerLeanGovernceFeilds;
 import com.daimler.data.db.repo.common.CommonDataRepositoryImpl;
 
 import lombok.extern.slf4j.Slf4j;
@@ -433,8 +436,53 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 		if (entities != null && entities.size() > 0)
 			return entities.get(0);
 		else
-			return null;
-	
+			return null;	
+	}
+
+	@Override
+	public GenericMessage updateGovernanceDetails(String projectName, CodeServerLeanGovernceFeilds newGovFeilds){
+		GenericMessage updateResponse = new GenericMessage();
+		updateResponse.setSuccess("FAILED");
+		List<MessageDescription> errors = new ArrayList<>();
+		List<MessageDescription> warnings = new ArrayList<>();
+		//  String ArrayTagstoJsonb = "[" + String.join(",", newGovFeilds.getTags()) + "]";
+		List<String> tags = newGovFeilds.getTags();
+		String ArrayTagstoJsonb = "[" + tags.stream().map(tag -> "\"" + tag + "\"").collect(Collectors.joining(",")) + "]";
+
+		String updateQuery = "update workspace_nsql\n"
+				+ "set data = jsonb_set(data, '{projectDetails,dataGovernance}',\n"
+				+ " '{\"tags\": " + ArrayTagstoJsonb + ","
+				+ " \"piiData\": " + newGovFeilds.getPiiData() + ","
+				+ " \"archerId\": " + addQuotes(newGovFeilds.getArcherId()) + ","
+				+ " \"division\": " + addQuotes(newGovFeilds.getDivision()) + ","
+				+ " \"department\": " + addQuotes(newGovFeilds.getDepartment()) + ","
+				+ " \"permission\": " + addQuotes(newGovFeilds.getPermission()) + ","
+				+ " \"description\": " + addQuotes(newGovFeilds.getDescription()) + ","
+				+ " \"procedureID\": " + addQuotes(newGovFeilds.getProcedureID()) + ","
+				+ " \"subDivision\": " + addQuotes(newGovFeilds.getSubDivision()) + ","
+				+ " \"typeOfProject\": " + addQuotes(newGovFeilds.getTypeOfProject()) + ","
+				+ " \"classificationType\": " + addQuotes(newGovFeilds.getClassificationType()) + "}')\n"
+				+ "where data->'projectDetails'->>'projectName' = '" + projectName + "'";
+
+ 
+				
+		try
+		{
+			Query q = em.createNativeQuery(updateQuery);
+			q.executeUpdate();
+			updateResponse.setSuccess("SUCCESS");
+			updateResponse.setErrors(new ArrayList<>());
+			updateResponse.setWarnings(new ArrayList<>());
+			log.info("Governance details updated successfully for project {} ", projectName);
+		}
+		catch(Exception e)
+		{
+			MessageDescription errMsg = new MessageDescription("Failed while updating the governance details.");
+			errors.add(errMsg);
+			log.error("Governance details Failed while updating the governance with Exception {} ", e.getMessage());
+		}
+		return updateResponse;
+
 	}
 
 }
