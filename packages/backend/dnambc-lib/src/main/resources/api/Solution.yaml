@@ -1189,6 +1189,9 @@ definitions:
         type: array
         items:
           $ref: "#/definitions/TeamMemberVO"
+      AIRiskAssessmentType:
+        type: string
+        enum: ["NO_RISK", "BASIC_RISK", "HIGH_RISK"]    
   
   LinkVO:
     type: object

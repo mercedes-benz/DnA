@@ -90,6 +90,7 @@ import com.daimler.data.dto.solution.SolutionAnalyticsVO;
 import com.daimler.data.dto.solution.SolutionCollection;
 import com.daimler.data.dto.solution.SolutionCurrentPhase;
 import com.daimler.data.dto.solution.SolutionDataComplianceVO;
+import com.daimler.data.dto.solution.SolutionDataComplianceVO.AiRiskAssessmentTypeEnum;
 import com.daimler.data.dto.solution.SolutionDataSourceVO;
 import com.daimler.data.dto.solution.SolutionDigitalValueVO;
 import com.daimler.data.dto.solution.SolutionDigitalValueVO.TypeOfCalculationEnum;
@@ -782,6 +783,17 @@ public class SolutionAssembler implements GenericAssembler<SolutionVO, SolutionN
 				solutionDataComplianceVO.setComplianceOfficers(teamMemberVOList);
 
 			}
+			
+			//setting AI Risk assessment types
+			AiRiskAssessmentTypeEnum riskAssessmentType = AiRiskAssessmentTypeEnum.NO_RISK;
+			if(solutionDataCompliance.getAIRiskAssessmentType()!=null && "HIGH_RISK".equalsIgnoreCase(solutionDataCompliance.getAIRiskAssessmentType())) {
+				riskAssessmentType = AiRiskAssessmentTypeEnum.HIGH_RISK;
+			}
+			if(solutionDataCompliance.getAIRiskAssessmentType()!=null && "BASIC_RISK".equalsIgnoreCase(solutionDataCompliance.getAIRiskAssessmentType())) {
+				riskAssessmentType = AiRiskAssessmentTypeEnum.BASIC_RISK;
+			}
+			solutionDataComplianceVO.setAiRiskAssessmentType(riskAssessmentType);
+			
 			vo.setDataCompliance(solutionDataComplianceVO);
 
 			SolutionPortfolioVO solutionPortfolioVO = new SolutionPortfolioVO();
@@ -1481,6 +1493,15 @@ public class SolutionAssembler implements GenericAssembler<SolutionVO, SolutionN
 				dataComplianceDetails.setComplianceOfficers(solutionTeamMembers);
 
 			}
+			//setting AI Risk assessment types
+			String riskAssessmentType = "NO_RISK";
+			if(solutionDataComplianceVO.getAiRiskAssessmentType()!=null && "HIGH_RISK".equalsIgnoreCase(solutionDataComplianceVO.getAiRiskAssessmentType().name())) {
+				riskAssessmentType = "HIGH_RISK";
+			}
+			if(solutionDataComplianceVO.getAiRiskAssessmentType()!=null && "BASIC_RISK".equalsIgnoreCase(solutionDataComplianceVO.getAiRiskAssessmentType().name())) {
+				riskAssessmentType = "BASIC_RISK";
+			}			
+			dataComplianceDetails.setAIRiskAssessmentType(riskAssessmentType);
 			solution.setDataComplianceDetails(dataComplianceDetails);
 
 			SolutionPortfolioVO solutionPortfolioVO = vo.getPortfolio();
