@@ -4,9 +4,21 @@ metadata:
   name: {{ include "storage-be.fullname" . }}
   namespace: {{ .Values.namespace }}
 spec:
-  ingress:
-    - ports:
-        - port: {{ .Values.containerPort }}
   podSelector:
     matchLabels:
-      {{- include "storage-be.selectorLabels" . | nindent 8 }}
+      {{- include "storage-be.selectorLabels" . | nindent 8 }} 
+  ingress:      
+    - from:      
+      - podSelector:
+          matchLabels:
+            app.kubernetes.io/instance: chronos-backend
+            app.kubernetes.io/name: chronos-be
+        namespaceSelector:
+          matchLabels:
+            kubernetes.io/metadata.name: chronos
+      - ports:
+          - port: {{ .Values.containerPort }}           
+  
+  policyTypes:
+    - Ingress    
+---

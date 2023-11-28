@@ -8,17 +8,65 @@ spec:
     matchLabels:
       name: {{ .Chart.Name }}-backend
   ingress:
-    #- from: []
-    # - from:
-    #   - podSelector: 
-    #       matchLabels:
-    #         component: jupyter
-    - ports:
-      - port: 7272
+    - from:
+      - podSelector:
+          matchLabels:
+            app.kubernetes.io/instance: chronos-backend
+            app.kubernetes.io/name: chronos-be
+        namespaceSelector:
+          matchLabels:
+            kubernetes.io/metadata.name: chronos    
+      - podSelector:
+          matchLabels:      
+            name: airflow-backend
+        namespaceSelector:
+          matchLabels:
+            kubernetes.io/metadata.name: airflow    
+      - podSelector:
+          matchLabels:      
+            app.kubernetes.io/instance: code-server-be
+            app.kubernetes.io/name: code-server-backend
+        namespaceSelector:
+          matchLabels:
+            kubernetes.io/metadata.name: code-server    
+      - podSelector:
+          matchLabels:      
+            app.kubernetes.io/instance: data-product-be
+            app.kubernetes.io/name: data-product-be
+        namespaceSelector:
+          matchLabels:
+            kubernetes.io/metadata.name: data-product    
+      - podSelector:
+          matchLabels:      
+            app: dna-app-backend
+        namespaceSelector:
+          matchLabels:
+            kubernetes.io/metadata.name: dna    
+      - podSelector:
+          matchLabels:      
+            name: clamav-rest
+        namespaceSelector:
+          matchLabels:
+            kubernetes.io/metadata.name: clamav
+      - podSelector:
+          matchLabels:      
+            name: dashboard-backend
+        namespaceSelector:
+          matchLabels:
+            kubernetes.io/metadata.name: dashboard
+      - podSelector:
+          matchLabels:      
+            app.kubernetes.io/instance: dna-storage-be
+            app.kubernetes.io/name: storagebe
+        namespaceSelector:
+          matchLabels:
+            kubernetes.io/metadata.name: storage                        
+  - ports:
+    - port: 7272
     #   from: []
   #   - ports:
   #     - port: 8080
   #       protocol: TCP
-  # policyTypes:
-  # - Ingress
-
+policyTypes:
+  - Ingress
+---

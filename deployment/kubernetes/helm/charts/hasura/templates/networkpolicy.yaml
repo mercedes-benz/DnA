@@ -7,9 +7,19 @@ metadata:
     {{- include "hasura.labels" . | nindent 4 }}  
 spec:
   ingress:
-    - ports:
+   - from:
+      - podSelector:
+          matchLabels:
+            app.kubernetes.io/instance: 
+            app.kubernetes.io/name: 
+            app: dna-app-backend
+        namespaceSelector:
+          matchLabels:
+            kubernetes.io/metadata.name: dna     
+      - ports:
         - port: {{ .Values.service.port }}
           protocol: TCP
+
   podSelector:
     matchLabels:
       {{- include "hasura.selectorLabels" . | nindent 6 }}

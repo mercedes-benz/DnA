@@ -1,30 +1,108 @@
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
- name: app.db-app.db
- namespace: {{ .Values.namespace }}
+ name: dna-app-backend
+ namespace: dna
 spec:
  podSelector:
   matchLabels:
-    zone: db
+    app: dna-app-backend
  ingress:
   - from:
     - podSelector:
         matchLabels:
-         zone: db
+         app: dna-app-frontend-frontend
+    - podSelector:
+        matchLabels:
+          app.kubernetes.io/instance: chronos-backend
+          app.kubernetes.io/name: chronos-be
+      namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: chronos 
+    - podSelector:
+        matchLabels:         
+          name: airflow-backend
+      namespaceSelector:
+        matchLabels:          
+          kubernetes.io/metadata.name: airflow    
+    - podSelector:
+        matchLabels:      
+          name: clamav-rest
+      namespaceSelector:
+        matchLabels:          
+          kubernetes.io/metadata.name: clamav    
+    - podSelector:
+        matchLabels:      
+          app.kubernetes.io/instance: code-server-be
+          app.kubernetes.io/name: code-server-backend
+      namespaceSelector:
+        matchLabels:          
+          kubernetes.io/metadata.name: code-server    
+    - podSelector:
+        matchLabels:      
+          app.kubernetes.io/instance: data-product-be
+          app.kubernetes.io/name: data-product-be
+      namespaceSelector:
+        matchLabels:          
+          kubernetes.io/metadata.name: data-product    
+    - podSelector:
+        matchLabels:      
+          app.kubernetes.io/instance: dss-be
+          app.kubernetes.io/name: dss-be
+      namespaceSelector:
+        matchLabels:          
+          kubernetes.io/metadata.name: dss    
+    - podSelector:
+        matchLabels:      
+          app.kubernetes.io/instance: dna-model-registry
+          app.kubernetes.io/name: model-registry
+      namespaceSelector:
+        matchLabels:          
+          kubernetes.io/metadata.name: model-registry
+    - podSelector:
+        matchLabels:          
+          name: naas-backend
+      namespaceSelector:
+        matchLabels:          
+          kubernetes.io/metadata.name: naas
+    - podSelector:
+        matchLabels:          
+          name: dashboard-backend
+      namespaceSelector:
+        matchLabels:          
+          kubernetes.io/metadata.name: dashboard
+    - podSelector:
+          matchLabels:      
+            app.kubernetes.io/instance: dna-storage-be
+            app.kubernetes.io/name: storagebe
+        namespaceSelector:
+          matchLabels:
+            kubernetes.io/metadata.name: storage
+    - podSelector:
+        matchLabels:          
+          name: trino-backend
+      namespaceSelector:
+        matchLabels:          
+          kubernetes.io/metadata.name: trino                                  
+  - ports:
+    - port: 7171
+      protocol: TCP      
+ policyTypes:
+  - Ingress                      
 ---
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
-metadata:
-  name: app.app-app.db
-  namespace: {{ .Values.namespace }}
-spec:
-  podSelector:
-    matchLabels:
-      zone: db
-  ingress:
-    - ports:
-      - port: 64000
-        protocol: TCP
-  policyTypes:
-  - Ingress
+# apiVersion: networking.k8s.io/v1
+# kind: NetworkPolicy
+# metadata:
+#   name: app.app-app.db
+#   namespace: {{ .Values.namespace }}
+# spec:
+#   podSelector:
+#     matchLabels:
+#       zone: db
+#   ingress:
+#     - ports:
+#       - port: 64000
+#         protocol: TCP
+#   policyTypes:
+#   - Ingress
+# ---

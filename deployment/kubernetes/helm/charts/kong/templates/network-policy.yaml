@@ -9,6 +9,17 @@ spec:
     matchLabels:
       app.kubernetes.io/name: kong
   ingress:
-    - ports:
-      - port: 8000
-        protocol: TCP
+   - from:
+      - podSelector:
+          matchLabels:
+            app.kubernetes.io/instance: dna-model-registry
+            app.kubernetes.io/name: model-registry
+        namespaceSelector:
+          matchLabels:
+            kubernetes.io/metadata.name: model-registry 
+   - ports:
+     - port: 8000
+       protocol: TCP                    
+  policyTypes:
+    - Ingress
+---
