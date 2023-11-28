@@ -365,12 +365,16 @@ public class BaseWorkspaceService implements WorkspaceService {
 			List<UserInfoVO> collabs = new ArrayList<>();
 			if(!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public")) {
 			//validate user pat 
-			HttpStatus validateUserPatstatus = gitClient.validateGitPat(owner.getGitUserName(),pat);
-			if(!validateUserPatstatus.is2xxSuccessful()) {
-				MessageDescription errMsg = new MessageDescription("Invalid GitHub Personal Access Token provided. Please verify and retry.");
-				errors.add(errMsg);
-				responseVO.setErrors(errors);
-				return responseVO;
+			if (!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase()
+					.equalsIgnoreCase("default")) {
+				HttpStatus validateUserPatstatus = gitClient.validateGitPat(owner.getGitUserName(), pat);
+				if (!validateUserPatstatus.is2xxSuccessful()) {
+					MessageDescription errMsg = new MessageDescription(
+							"Invalid GitHub Personal Access Token provided. Please verify and retry.");
+					errors.add(errMsg);
+					responseVO.setErrors(errors);
+					return responseVO;
+				}
 			}
 			
 			//initialize repo
@@ -389,6 +393,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 			// create repo success, adding collabs
 			 
 			 gitUsers.add(owner.getGitUserName());
+			 if(!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().equalsIgnoreCase("default")) {
 			 collabs = vo.getProjectDetails().getProjectCollaborators();
 			 if(collabs!=null && !collabs.isEmpty()) {
 				 List<String> collabsGitUserNames = collabs.stream().map(n->n.getGitUserName()).collect(Collectors.toList());
@@ -417,7 +422,8 @@ public class BaseWorkspaceService implements WorkspaceService {
 					 	}
 					        */
 				 }
-			 }
+			   }
+			  }
 			} 
 		}else {
 //			repoName = vo.getProjectDetails().getRecipeDetails().getRepodetails();
@@ -494,7 +500,8 @@ public class BaseWorkspaceService implements WorkspaceService {
 			 ownerEntity.getData().setStatus(ConstantsUtility.CREATEREQUESTEDSTATE);
 			 ownerEntity.getData().setWorkspaceUrl("");//set url
 			 ownerEntity.getData().getProjectDetails().setProjectCreatedOn(now);
-			 if(vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public")) {
+			 if(vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public") ||
+				vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().equalsIgnoreCase("default")) {
 				 ownerEntity.getData().getProjectDetails().setProjectCollaborators(new ArrayList<>());
 				 collabs = new ArrayList<>();
 			 }
