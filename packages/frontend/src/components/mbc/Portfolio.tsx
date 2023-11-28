@@ -663,10 +663,10 @@ export default class Portfolio extends React.Component<IPortfolioProps, IPortfol
                 target="_blank"
                 separator={csvSeparator(navigator.language)}
               />
+              {exportCSVIcon()}
+              <span className={Styles.dividerLine}> &nbsp; </span>
               <div tooltip-data="Filters">
-                {exportCSVIcon()}
                 <span className={this.state.openFilters ? Styles.activeFilters : ''} onClick={this.openCloseFilter}>
-                  <span className={Styles.dividerLine}> &nbsp; </span>
                   {this.state.portfolioDataFilterApplied && <i className="active-status" />}
                   <i className="icon mbc-icon filter big" />
                 </span>
