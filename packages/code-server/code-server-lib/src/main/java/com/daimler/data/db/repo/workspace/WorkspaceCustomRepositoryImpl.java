@@ -41,13 +41,18 @@ import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 
 import com.daimler.data.db.json.UserInfo;
+import com.daimler.data.dto.CodespaceSecurityConfigDto;
 import com.daimler.data.dto.workspace.CodeServerWorkspaceValidateVO;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import org.springframework.stereotype.Repository;
 
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
 import com.daimler.data.db.entities.CodeServerWorkspaceNsql;
 import com.daimler.data.db.json.CodeServerDeploymentDetails;
+import com.daimler.data.db.json.CodeServerWorkspace;
+import com.daimler.data.db.json.CodespaceSecurityConfig;
 import com.daimler.data.db.repo.common.CommonDataRepositoryImpl;
 
 import lombok.extern.slf4j.Slf4j;
@@ -436,5 +441,51 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 			return null;
 	
 	}
+
+	/*@Override
+	public List<CodespaceSecurityConfigDto> getAllConfigData(){
+
+		List<CodespaceSecurityConfigDto> data = new ArrayList<>();
+		List<Object[]> results = new ArrayList<>();
+		String getQuery = "select cast(id as text), cast(jsonb_extract_path_text(data,'projectDetails','securityConfig') as text), cast(jsonb_extract_path_text(data,'projectDetails','projectOwner') as text) from workspace_nsql where lower(jsonb_extract_path_text(data,'projectDetails','securityConfig','status')) = 'requested'" ;
+		//String getQuery = "select data as jsonData from workspace_nsql where lower(jsonb_extract_path_text(data,'projectDetails','securityConfig','status')) = 'requested';" ;
+		try
+		{
+			Query q = em.createNativeQuery(getQuery);
+			System.out.println(getQuery);
+			
+			results = q.getResultList();
+			ObjectMapper mapper = new ObjectMapper();
+			for(Object[] rowData : results){
+				CodespaceSecurityConfigDto rowDetails = new CodespaceSecurityConfigDto();
+				if(rowData[0]!=null){
+					rowDetails.setId((String)rowData[0]);
+					try{
+						System.out.println(rowData[0] + " " + rowData[1]);
+						CodespaceSecurityConfig recordDetails = new CodespaceSecurityConfig();
+						mapper.readValue(rowData[1].toString(), CodespaceSecurityConfig.class);
+						rowDetails.setSecurityConfig(recordDetails);
+						UserInfo userDetails = new UserInfo();
+						mapper.readValue(rowData[2].toString(), UserInfo.class);
+						rowDetails.setProjectOwner(userDetails);
+					}catch(Exception e){
+						log.error("");
+						rowDetails.setSecurityConfig(null);
+					}
+					data.add(rowDetails);
+				}
+			}
+			
+			if (data != null && !data.isEmpty()) {
+				log.info("Found {} workspaces in project {} which are  in requested state", data.size());
+			}
+		}
+		catch (Exception e)
+		{
+			e.printStackTrace();
+			log.error("Failed to query workspaces under project {} , which are not in requested state");
+		}
+		return data;
+	}*/
 
 }

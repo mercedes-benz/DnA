@@ -52,15 +52,18 @@ import com.daimler.data.controller.exceptions.MessageDescription;
 import com.daimler.data.db.entities.CodeServerWorkspaceNsql;
 import com.daimler.data.db.json.CodeServerDeploymentDetails;
 import com.daimler.data.db.json.CodeServerWorkspace;
+import com.daimler.data.db.json.CodespaceSecurityConfig;
 import com.daimler.data.db.json.UserInfo;
 import com.daimler.data.db.repo.workspace.WorkspaceCustomRepository;
 import com.daimler.data.db.repo.workspace.WorkspaceRepository;
+import com.daimler.data.dto.CodespaceSecurityConfigDto;
 import com.daimler.data.dto.DeploymentManageDto;
 import com.daimler.data.dto.DeploymentManageInputDto;
 import com.daimler.data.dto.WorkbenchManageDto;
 import com.daimler.data.dto.WorkbenchManageInputDto;
 import com.daimler.data.dto.workspace.CodeServerRecipeDetailsVO.RecipeIdEnum;
 import com.daimler.data.util.ConstantsUtility;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -1116,4 +1119,22 @@ public class BaseWorkspaceService implements WorkspaceService {
 		return responseMessage;
 
 	}
+
+	/*@Override
+	public List<CodespaceSecurityConfigVO> getAllConfigs(){
+		List<CodespaceSecurityConfigDto> configValues = workspaceCustomRepository.getAllConfigData();
+		List<CodeServerWorkspaceVO> voCollection = configValues
+		List<CodespaceSecurityConfigVO> securityConfigCollection = new ArrayList<>();
+		for(CodeServerWorkspaceVO vo : voCollection) {
+			CodespaceSecurityConfigVO config = vo.getProjectDetails().getSecurityConfig();
+			securityConfigCollection.add(config);
+		}
+		if(securityConfigCollection.isEmpty()) {
+			return null;
+		}
+		else
+		{
+			return securityConfigCollection;
+		}
+	}*/
 }
