@@ -515,7 +515,7 @@ paths:
         201:
           description: "Returns message of success or failure"
           schema:
-            $ref: "#/definitions/CodespaceSecurityConfigResponseVO"
+            $ref: "#/definitions/CodespaceSecurityConfigVO"
         204:
           description: "Fetch complete, no content found."
         400:
@@ -693,7 +693,7 @@ definitions:
       data:
         type: array
         items:
-          $ref: "#/definitions/CodespaceSecurityRoleLOV"
+          $ref: "#/definitions/CodespaceSecurityConfigLOV"
   
   EntitlementCollectionVO:
     type: object
@@ -701,7 +701,7 @@ definitions:
       data:
         type: array
         items:    
-          $ref: "#/definitions/CodespaceSecurityEntitlementLOV"
+          $ref: "#/definitions/CodespaceSecurityConfigLOV"
   TransparencyVO:
     type: object
     properties:
@@ -880,7 +880,7 @@ definitions:
     type: object
     properties:
      data:
-        $ref: "#/definitions/CodespaceSecurityConfigResponseVO"
+        $ref: "#/definitions/CodespaceSecurityConfigVO"
      response:
         $ref: "#/definitions/GenericMessage"
         
@@ -921,10 +921,10 @@ definitions:
         type: string
       mobileNumber:
         type: string  
-      roleIds:
+      roles:
         type: array
         items:  
-          type: string
+            $ref: "#/definitions/CodespaceSecurityConfigLOV"
 
   CodespaceSecurityUserRoleMapResponseVO: 
     type: object
@@ -946,7 +946,7 @@ definitions:
       roles:
         type: array
         items:  
-          $ref: "#/definitions/CodespaceSecurityRoleLOV"
+          $ref: "#/definitions/CodespaceSecurityConfigLOV"
         default: []
         
   CodespaceSecurityRoleVO: 
@@ -958,45 +958,47 @@ definitions:
       name:
         type: string
         description: "Role name"   
-      roleEntitlementIds:
-          type: array
-          items:
-            type: string
-          
-  CodespaceSecurityRoleResponseVO:
-    type: object
-    properties:
-      id:
-        type: string
-        description: "Role Id" 
-      name:
-        type: string
-        description: "Role name"   
       roleEntitlements:
           type: array
           items:
-            $ref: "#/definitions/CodespaceSecurityEntitlementLOV"
-          default: []
-                  
-  CodespaceSecurityRoleLOV:
-    type: object
-    properties:
-      id:
-        type: string
-        description: "Role Id" 
-      name:
-        type: string
-        description: "Role name"  
+            $ref: "#/definitions/CodespaceSecurityConfigLOV"
 
-  CodespaceSecurityEntitlementLOV:
+          
+          
+  # CodespaceSecurityRoleResponseVO:
+    # type: object
+    # properties:
+    #   id:
+    #     type: string
+    #     description: "Role Id" 
+    #   name:
+    #     type: string
+    #     description: "Role name"   
+    #   roleEntitlements:
+    #       type: array
+    #       items:
+    #         $ref: "#/definitions/CodespaceSecurityEntitlementLOV"
+    #       default: []
+                  
+  CodespaceSecurityConfigLOV:
     type: object
     properties:
       id:
         type: string
-        description: "Entitlement Id" 
+        description: "Id" 
       name:
         type: string
-        description: "Entitlement name"  
+        description: "name"  
+
+  # CodespaceSecurityEntitlementLOV:
+  #   type: object
+  #   properties:
+  #     id:
+  #       type: string
+  #       description: "Entitlement Id" 
+  #     name:
+  #       type: string
+  #       description: "Entitlement name"  
 
   CodespaceSecurityApiListVO:
     type: object
@@ -1034,33 +1036,33 @@ definitions:
       isProtectedByDna:
         type: boolean
 
-  CodespaceSecurityConfigResponseVO:
-    type: object
-    properties:
-      status:
-        type: string
-        description: "Status of security configurations"   
-      entitlements:
-        type: array
-        items:
-          $ref: "#/definitions/CodespaceSecurityEntitlementVO"
-        default: []
-      roles:
-        type: array
-        items:
-          $ref: "#/definitions/CodespaceSecurityRoleResponseVO" 
-        default: []
-      userRoleMappings:
-        type: array
-        items:
-          $ref: "#/definitions/CodespaceSecurityUserRoleMapResponseVO"
-        default: []
-      openSegments:
-        type: array
-        items:
-          type: string
-      isProtectedByDna:
-        type: boolean
+  # CodespaceSecurityConfigResponseVO:
+  #   type: object
+  #   properties:
+  #     status:
+  #       type: string
+  #       description: "Status of security configurations"   
+  #     entitlements:
+  #       type: array
+  #       items:
+  #         $ref: "#/definitions/CodespaceSecurityEntitlementVO"
+  #       default: []
+  #     roles:
+  #       type: array
+  #       items:
+  #         $ref: "#/definitions/CodespaceSecurityRoleResponseVO" 
+  #       default: []
+  #     userRoleMappings:
+  #       type: array
+  #       items:
+  #         $ref: "#/definitions/CodespaceSecurityUserRoleMapResponseVO"
+  #       default: []
+  #     openSegments:
+  #       type: array
+  #       items:
+  #         type: string
+  #     isProtectedByDna:
+  #       type: boolean
 
   UserIdVO:
     type: object

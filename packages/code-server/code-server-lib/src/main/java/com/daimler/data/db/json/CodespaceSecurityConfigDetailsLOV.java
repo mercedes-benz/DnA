@@ -13,17 +13,9 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class CodespaceSecurityUserRoleMap implements Serializable {
+public class CodespaceSecurityConfigDetailsLOV implements Serializable {
 
 	private static final long serialVersionUID = 1L;
-
-	private String firstName;
-	private String lastName;
-	private String shortId;
 	private String id;
-	private String department;
-	private String email;
-	private String mobileNumber;
-
-	private List<CodespaceSecurityConfigDetailsLOV> roles;
+	private String name;
 }
