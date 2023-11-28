@@ -100,9 +100,6 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 	@Autowired
 	HttpServletRequest httpRequest;
 
-	@Value("${chronos.uri}")
-	private String chronosBaseUri;
-
 
 
 	private static String chronosComparisontopicName = "dnaChronosComparisonTopic";
@@ -504,7 +501,7 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 
 										//upload recommended config file to project is proposed_config folder is present
 
-										List<BucketObjectDetailsDto> bucketObjectDetailsForConfigRecommendation=storageClient.getFilesPresent(bucketName,configFileRecommendationPath);
+										List<BucketObjectDetailsDto> bucketObjectDetailsForConfigRecommendation = storageClient.getFilesPresent(bucketName, configFileRecommendationPath);
 										if (bucketObjectDetailsForConfigRecommendation != null && bucketObjectDetailsForConfigRecommendation.size() > 0) {
 											Optional<String> objectName = bucketObjectDetailsForConfigRecommendation.stream().map(BucketObjectDetailsDto::getObjectName).findFirst();
 											String configFileName = objectName.get();
@@ -513,11 +510,8 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 											log.info("successfully retrieved configRecommendationFile contents for forecast {} and correaltionid{} and runname{}",
 													bucketName, correlationId, run.getRunName());
 											ByteArrayResource byteArrayResource = configRecommendationFileDownloadResponse.getBody();
-											log.info("byteArrayResource " +byteArrayResource.getFilename() );
 											byte[] bytes = byteArrayResource.getByteArray();
-											log.info("bytes in array " +bytes );// Get the byte array from the resource
-											MultipartFile multipartFile = new MultipartFileConverter(bytes,byteArrayResource.getFilename(),"configFile","application/octet-stream");
-											log.info("multipart file "+multipartFile.getOriginalFilename());
+											MultipartFile multipartFile = new MultipartFileConverter(bytes, byteArrayResource.getFilename(), "configFile", "application/octet-stream");
 											Date createdOn = new Date();
 											SimpleDateFormat isoFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS+00:00");
 											try {
@@ -526,7 +520,7 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 												log.warn("Failed to format createdOn date to ISO format");
 											}
 											String message = "";
-											String notificationEventName = "Chronos:  Recommendation file generated" +  " for run '" + run.getRunName() + "'";
+											String notificationEventName = "Chronos:  Recommendation file generated" + " for run '" + run.getRunName() + "'";
 											// Use the multipartFile in your application
 											try {
 												String configFilePath = "";
@@ -539,14 +533,16 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 													if (fileNames.contains(multipartFile.getOriginalFilename())) {
 														log.error("File with name already exists in uploaded config files list. Project {} and file {}", forecastName, fileName);
 														MessageDescription invalidMsg = new MessageDescription("File with name already exists in uploaded config files list. Please rename and upload again");
-														duplicateFile= true;
+														duplicateFile = true;
 
 
 													}
+												} else {
+													configFiles = new ArrayList<>();
 												}
-												else {
+
 													if (!duplicateFile) {
-														configFiles = new ArrayList<>();
+
 														FileUploadResponseDto fileUploadResponse = storageClient.uploadFile("/configs/", multipartFile, bucketName);
 														if ("SUCCESS".equalsIgnoreCase(fileUploadResponse.getStatus())) {
 															List<InputFileVO> configFilesVOList = new ArrayList<>();
@@ -562,7 +558,6 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 															ForecastVO vo = this.assembler.toVo(entity);
 															vo.setConfigFiles(configFilesVOList);
 															configFilePath = bucketName + "/configs/" + multipartFile.getOriginalFilename();
-															log.info("after uploading config file to storage bucket");
 															ForecastConfigFileUploadResponseVO uploadConfigResponse = this.uploadConfigFile(vo, configFileIdId, ownerId, createdOn, configFilePath, multipartFile.getOriginalFilename());
 															if (uploadConfigResponse != null && "SUCCESS".equalsIgnoreCase(uploadConfigResponse.getResponse().getSuccess())
 																	&& uploadConfigResponse.getData().getId() != null) {
@@ -570,20 +565,20 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 																Object[] getConfigsFilesResultsArr = this.getForecastConfigFiles(forecastId);
 																List<InputFileVO> records = (List<InputFileVO>) getConfigsFilesResultsArr[0];
 																if (records != null && !records.isEmpty()) {
-																	entity.getData().setConfigFiles(this.assembler.toConfigFiles(records));
+																	entity.getData().setConfigFiles(this.assembler.toConfigFiles(vo.getConfigFiles()));
 																}
-																message="New recommendation file generated based on" + run.getRunName()+" inputs, Successfully upload recommendation" +fileName +  "to project specific configs";
+																message = "New recommendation file generated based on" + run.getRunName() + " inputs, Successfully upload recommendation" + fileName + "to project specific configs";
 																notifyUsers(forecastId, memberIds, memberEmails, message, "", notificationEventName, null);
 
 															}
 														}
 													}
-												}
+
 
 											} catch (Exception e) {
 												log.error("Failed while uploading file {} to minio bucket {} with exception {}", fileName, bucketName, e.getMessage());
 												MessageDescription errMsg = new MessageDescription("Failed while uploading file with exception " + e.getMessage());
-												message="New recommendation file generated based on"+run.getRunName()+ "inputs, Failed to upload recommendation" +fileName +  "to project specific configs,  with exception"+e.getMessage();
+												message = "New recommendation file generated based on" + run.getRunName() + "inputs, Failed to upload recommendation" + fileName + "to project specific configs,  with exception";
 												notifyUsers(forecastId, memberIds, memberEmails, message, "", notificationEventName, null);
 											}
 
@@ -1469,7 +1464,6 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 
 
 	@Override
-	@Transactional(isolation = Isolation.SERIALIZABLE)
 	public ForecastConfigFileUploadResponseVO uploadConfigFile(ForecastVO existingForecast, String configFileId, String requestUser, Date createdOn, String configFilePath, String configFileName) {
 		InputFileVO forecastConfigFileVO = new InputFileVO();
 		GenericMessage responseMessage = new GenericMessage();
