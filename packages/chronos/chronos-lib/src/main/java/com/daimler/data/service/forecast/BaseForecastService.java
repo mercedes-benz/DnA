@@ -342,6 +342,24 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 					entity.getData().getRuns()!=null && !entity.getData().getRuns().isEmpty()) {
 				List<RunDetails> existingRuns = entity.getData().getRuns();
 				if(existingRuns!=null && !existingRuns.isEmpty()) {
+				boolean isUploadConfigRecommendationSuccess =false;
+				boolean isUploadConfigRecommendationFail =false;
+					String uploadConfigMessage = "";
+					String uploadConfigNotificationEventName = "Chronos:  Recommendation file generated" + " for run";
+					String configFileName="";
+					List<String> memberIds = new ArrayList<>();
+					List<String> memberEmails = new ArrayList<>();
+					if (entity.getData().getCollaborators() != null) {
+						memberIds = entity.getData().getCollaborators().stream()
+								.map(UserDetails::getId).collect(Collectors.toList());
+						memberEmails = entity.getData().getCollaborators().stream()
+								.map(UserDetails::getEmail).collect(Collectors.toList());
+					}
+
+					String ownerId = entity.getData().getCreatedBy().getId();
+					memberIds.add(ownerId);
+					String ownerEmail = entity.getData().getCreatedBy().getEmail();
+					memberEmails.add(ownerEmail);
 				String bucketName = entity.getData().getBucketName();
 				String resultsPrefix = "results/";
 				List<RunDetails> newSubList =new ArrayList<>();
@@ -454,19 +472,7 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 							RunDetails updatedRunDetail = new RunDetails();
 							BeanUtils.copyProperties(run, updatedRunDetail);
 
-							List<String> memberIds = new ArrayList<>();
-							List<String> memberEmails = new ArrayList<>();
-							if (entity.getData().getCollaborators() != null) {
-								memberIds = entity.getData().getCollaborators().stream()
-										.map(UserDetails::getId).collect(Collectors.toList());
-								memberEmails = entity.getData().getCollaborators().stream()
-										.map(UserDetails::getEmail).collect(Collectors.toList());
-							}
 
-							String ownerId = entity.getData().getCreatedBy().getId();
-							memberIds.add(ownerId);
-							String ownerEmail = entity.getData().getCreatedBy().getEmail();
-							memberEmails.add(ownerEmail);
 
 							updatedRunDetail.setCreatorUserName(updatedRunResponse.getCreatorUserName());
 							if(updatedRunResponse.getEndTime()!=null)
@@ -504,7 +510,7 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 										List<BucketObjectDetailsDto> bucketObjectDetailsForConfigRecommendation = storageClient.getFilesPresent(bucketName, configFileRecommendationPath);
 										if (bucketObjectDetailsForConfigRecommendation != null && bucketObjectDetailsForConfigRecommendation.size() > 0) {
 											Optional<String> objectName = bucketObjectDetailsForConfigRecommendation.stream().map(BucketObjectDetailsDto::getObjectName).findFirst();
-											String configFileName = objectName.get();
+											configFileName = objectName.get();
 											String fileName = configFileName.substring(configFileName.lastIndexOf('/') + 1);
 											ResponseEntity<ByteArrayResource> configRecommendationFileDownloadResponse = storageClient.getDownloadFile(bucketName, configFileName);
 											log.info("successfully retrieved configRecommendationFile contents for forecast {} and correaltionid{} and runname{}",
@@ -519,69 +525,45 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 											} catch (Exception e) {
 												log.warn("Failed to format createdOn date to ISO format");
 											}
-											String message = "";
-											String notificationEventName = "Chronos:  Recommendation file generated" + " for run '" + run.getRunName() + "'";
+
 											// Use the multipartFile in your application
-											try {
-												String configFilePath = "";
-												boolean duplicateFile = false;
 
-												String configFileIdId = UUID.randomUUID().toString();
-												List<File> configFiles = entity.getData().getConfigFiles();
-												if (configFiles != null && !configFiles.isEmpty()) {
-													List<String> fileNames = configFiles.stream().map(File::getName).collect(Collectors.toList());
-													if (fileNames.contains(multipartFile.getOriginalFilename())) {
-														log.error("File with name already exists in uploaded config files list. Project {} and file {}", forecastName, fileName);
-														MessageDescription invalidMsg = new MessageDescription("File with name already exists in uploaded config files list. Please rename and upload again");
-														duplicateFile = true;
-
-
-													}
-												} else {
-													configFiles = new ArrayList<>();
+											boolean duplicateFile = false;
+											String configFileIdId = UUID.randomUUID().toString();
+											List<File> configFiles = entity.getData().getConfigFiles();
+											if (configFiles != null && !configFiles.isEmpty()) {
+												List<String> fileNames = configFiles.stream().map(File::getName).collect(Collectors.toList());
+												if (fileNames.contains(multipartFile.getOriginalFilename())) {
+													duplicateFile = true;
+													log.error("File with name already exists in uploaded config files list. Project {} and file {}", forecastName, fileName);
+													uploadConfigMessage = "New recommendation file generated based on " + run.getRunName() + " inputs, Failed to upload recommendation " + fileName + " to project specific configs, File with name already exists in uploaded config files list";
+													notifyUsers(forecastId, memberIds, memberEmails, uploadConfigMessage, "", uploadConfigNotificationEventName, null);
 												}
-
-													if (!duplicateFile) {
-
-														FileUploadResponseDto fileUploadResponse = storageClient.uploadFile("/configs/", multipartFile, bucketName);
-														if ("SUCCESS".equalsIgnoreCase(fileUploadResponse.getStatus())) {
-															List<InputFileVO> configFilesVOList = new ArrayList<>();
-															configFilesVOList = this.assembler.toFilesVO(configFiles);
-															log.info("Successfully to uploaded config file {} to storage bucket", fileName);
-															InputFileVO currentConfigInput = new InputFileVO();
-															currentConfigInput.setName(multipartFile.getOriginalFilename());
-															currentConfigInput.setPath(bucketName + "/configs/" + multipartFile.getOriginalFilename());
-															currentConfigInput.setId(configFileIdId);
-															currentConfigInput.setCreatedOn(createdOn);
-															currentConfigInput.setCreatedBy(ownerId);
-															configFilesVOList.add(currentConfigInput);
-															ForecastVO vo = this.assembler.toVo(entity);
-															vo.setConfigFiles(configFilesVOList);
-															configFilePath = bucketName + "/configs/" + multipartFile.getOriginalFilename();
-															ForecastConfigFileUploadResponseVO uploadConfigResponse = this.uploadConfigFile(vo, configFileIdId, ownerId, createdOn, configFilePath, multipartFile.getOriginalFilename());
-															if (uploadConfigResponse != null && "SUCCESS".equalsIgnoreCase(uploadConfigResponse.getResponse().getSuccess())
-																	&& uploadConfigResponse.getData().getId() != null) {
-																getForecastConfigFiles(forecastId);
-																Object[] getConfigsFilesResultsArr = this.getForecastConfigFiles(forecastId);
-																List<InputFileVO> records = (List<InputFileVO>) getConfigsFilesResultsArr[0];
-																if (records != null && !records.isEmpty()) {
-																	entity.getData().setConfigFiles(this.assembler.toConfigFiles(vo.getConfigFiles()));
-																}
-																message = "New recommendation file generated based on" + run.getRunName() + " inputs, Successfully upload recommendation" + fileName + "to project specific configs";
-																notifyUsers(forecastId, memberIds, memberEmails, message, "", notificationEventName, null);
-
-															}
-														}
-													}
-
-
-											} catch (Exception e) {
-												log.error("Failed while uploading file {} to minio bucket {} with exception {}", fileName, bucketName, e.getMessage());
-												MessageDescription errMsg = new MessageDescription("Failed while uploading file with exception " + e.getMessage());
-												message = "New recommendation file generated based on" + run.getRunName() + "inputs, Failed to upload recommendation" + fileName + "to project specific configs,  with exception";
-												notifyUsers(forecastId, memberIds, memberEmails, message, "", notificationEventName, null);
+											} else {
+												configFiles = new ArrayList<>();
 											}
 
+											if (!duplicateFile) {
+												FileUploadResponseDto fileUploadResponse = storageClient.uploadFile("/configs/", multipartFile, bucketName);
+												if (fileUploadResponse == null || (fileUploadResponse != null && (fileUploadResponse.getErrors() != null || !"SUCCESS".equalsIgnoreCase(fileUploadResponse.getStatus())))) {
+													log.error("Failed to upload config file {} to storage bucket", fileName);
+													isUploadConfigRecommendationFail=true;
+												} else if ("SUCCESS".equalsIgnoreCase(fileUploadResponse.getStatus())) {
+													isUploadConfigRecommendationSuccess=true;
+													List<InputFileVO> configFilesVOList = new ArrayList<>();
+													configFilesVOList = this.assembler.toFilesVO(configFiles);
+													log.info("Successfully to uploaded config file {} to storage bucket", fileName);
+													InputFileVO currentConfigInput = new InputFileVO();
+													configFileName=multipartFile.getOriginalFilename();
+													currentConfigInput.setName(multipartFile.getOriginalFilename());
+													currentConfigInput.setPath(bucketName + "/configs/" + multipartFile.getOriginalFilename());
+													currentConfigInput.setId(configFileIdId);
+													currentConfigInput.setCreatedOn(createdOn);
+													currentConfigInput.setCreatedBy(ownerId);
+													configFilesVOList.add(currentConfigInput);
+													entity.getData().setConfigFiles(this.assembler.toConfigFiles(configFilesVOList));
+												}
+											}
 										}
 
 										//check if exogenous data is present
@@ -717,6 +699,15 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 					}
 				entity.getData().setRuns(updatedDbRunRecords);
 				this.jpaRepo.save(entity);
+					if (isUploadConfigRecommendationSuccess) {
+						uploadConfigMessage = "New recommendation file generated based on" + forecastName + " , Successfully upload recommendation" + configFileName + "to project specific configs";
+						notifyUsers(forecastId, memberIds, memberEmails, uploadConfigMessage, "", uploadConfigNotificationEventName, null);
+
+					}
+					if (isUploadConfigRecommendationFail) {
+						uploadConfigMessage = "New recommendation file generated based for" + forecastName +",Failed to upload recommendation" + configFileName + "to project specific configs,  with exception";
+						notifyUsers(forecastId, memberIds, memberEmails, uploadConfigMessage, "", uploadConfigNotificationEventName, null);
+					}
 				updatedRunVOList = this.assembler.toRunsVO(updatedRuns);
 			}
 			}
@@ -1464,6 +1455,7 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 
 
 	@Override
+	@Transactional(isolation = Isolation.SERIALIZABLE)
 	public ForecastConfigFileUploadResponseVO uploadConfigFile(ForecastVO existingForecast, String configFileId, String requestUser, Date createdOn, String configFilePath, String configFileName) {
 		InputFileVO forecastConfigFileVO = new InputFileVO();
 		GenericMessage responseMessage = new GenericMessage();
