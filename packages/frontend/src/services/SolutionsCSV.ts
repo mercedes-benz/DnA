@@ -184,8 +184,14 @@ export const getDataForCSV = (
       console.log(error.message);
     });
 
-  const isDigitalValueContributionEnabled = window.location.href.indexOf('digitalvaluecontribution') !== -1;
-  const isNotificationEnabled = window.location.href.indexOf('notebook') !== -1;
+    let isDigitalValueContributionEnabled = null;
+    if(window.location.href.indexOf('digitalvaluecontribution') !== -1){
+      isDigitalValueContributionEnabled = true;
+    }
+    else if(window.location.href.indexOf('datavaluecontribution') !== -1){
+      isDigitalValueContributionEnabled = false;
+    }
+    const isNotificationEnabled = window.location.href.indexOf('notebook') !== -1;
   ApiClient.exportDatatoCSV(
     locationIds,
     phaseIds,
