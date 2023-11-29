@@ -442,32 +442,32 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 	
 	}
 
-	/*@Override
-	public List<CodespaceSecurityConfigDto> getAllConfigData(){
-
+	@Override
+	public List<CodespaceSecurityConfigDto> getAllSecurityConfigs(){
 		List<CodespaceSecurityConfigDto> data = new ArrayList<>();
 		List<Object[]> results = new ArrayList<>();
-		String getQuery = "select cast(id as text), cast(jsonb_extract_path_text(data,'projectDetails','securityConfig') as text), cast(jsonb_extract_path_text(data,'projectDetails','projectOwner') as text) from workspace_nsql where lower(jsonb_extract_path_text(data,'projectDetails','securityConfig','status')) = 'requested'" ;
-		//String getQuery = "select data as jsonData from workspace_nsql where lower(jsonb_extract_path_text(data,'projectDetails','securityConfig','status')) = 'requested';" ;
-		try
-		{
+		String getQuery = "SELECT cast(id as text) as COLUMN_ID, cast(jsonb_extract_path_text(data,'projectDetails','projectName') as text) as PROJECT_NAME, " +
+                  "cast(jsonb_extract_path_text(data,'projectDetails','projectOwner') as text) as PROJECT_OWNER, " +
+                  "cast(jsonb_extract_path_text(data,'projectDetails','securityConfig') as text) as SECURITY_CONFIG " +
+                  "FROM workspace_nsql WHERE lower(jsonb_extract_path_text(data,'projectDetails','securityConfig','status')) = 'requested'";
+
+		try {
 			Query q = em.createNativeQuery(getQuery);
-			System.out.println(getQuery);
-			
 			results = q.getResultList();
+
 			ObjectMapper mapper = new ObjectMapper();
 			for(Object[] rowData : results){
 				CodespaceSecurityConfigDto rowDetails = new CodespaceSecurityConfigDto();
 				if(rowData[0]!=null){
 					rowDetails.setId((String)rowData[0]);
 					try{
-						System.out.println(rowData[0] + " " + rowData[1]);
-						CodespaceSecurityConfig recordDetails = new CodespaceSecurityConfig();
-						mapper.readValue(rowData[1].toString(), CodespaceSecurityConfig.class);
-						rowDetails.setSecurityConfig(recordDetails);
-						UserInfo userDetails = new UserInfo();
-						mapper.readValue(rowData[2].toString(), UserInfo.class);
+						rowDetails.setProjectName((String)rowData[1]);
+						
+						UserInfo userDetails = mapper.readValue(rowData[2].toString(), UserInfo.class);
 						rowDetails.setProjectOwner(userDetails);
+
+						CodespaceSecurityConfig recordDetails = mapper.readValue(rowData[3].toString(), CodespaceSecurityConfig.class);
+						rowDetails.setSecurityConfig(recordDetails);
 					}catch(Exception e){
 						log.error("");
 						rowDetails.setSecurityConfig(null);
@@ -475,17 +475,16 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 					data.add(rowDetails);
 				}
 			}
-			
-			if (data != null && !data.isEmpty()) {
-				log.info("Found {} workspaces in project {} which are  in requested state", data.size());
+
+			if(data!=null && !data.isEmpty()) {
+				System.out.println("data----------------"+data);
+				log.info("Found {} workspaces in project {} which are in requested state", data.size());
 			}
-		}
-		catch (Exception e)
-		{
+		}catch(Exception e) {
 			e.printStackTrace();
 			log.error("Failed to query workspaces under project {} , which are not in requested state");
 		}
 		return data;
-	}*/
+	}
 
 }

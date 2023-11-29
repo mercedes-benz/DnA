@@ -87,6 +87,7 @@ import com.daimler.data.dto.workspace.UserIdVO;
 import com.daimler.data.dto.workspace.UserInfoVO;
 import com.daimler.data.dto.workspace.WorkspaceCollectionVO;
 import com.daimler.data.dto.workspace.admin.CodespaceSecurityConfigCollectionVO;
+import com.daimler.data.dto.workspace.admin.CodespaceSecurityConfigDetailsVO;
 import com.daimler.data.service.workspace.WorkspaceService;
 import com.daimler.data.util.ConstantsUtility;
 
@@ -1308,9 +1309,32 @@ public class WorkspaceController implements CodeServerApi, CodeServerAdminApi {
 	}
 
 	@Override
+	@ApiOperation(value = " get all codespace security configurations in requested state", nickname = "getAllSecurityConfig", notes = "get codespace security configurations in requested state.", response = CodespaceSecurityConfigCollectionVO.class, tags = {
+		"code-server", })
+	@ApiResponses(value = {
+			@ApiResponse(code = 201, message = "Returns message of success or failure", response = CodespaceSecurityConfigCollectionVO.class),
+			@ApiResponse(code = 204, message = "Fetch complete, no content found."),
+			@ApiResponse(code = 400, message = "Bad request."),
+			@ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+			@ApiResponse(code = 403, message = "Request is not authorized."),
+			@ApiResponse(code = 405, message = "Method not allowed"),
+			@ApiResponse(code = 500, message = "Internal error") })
+	@RequestMapping(value = "/workspaces/configs", produces = { "application/json" }, consumes = {
+			"application/json" }, method = RequestMethod.GET)
 	public ResponseEntity<CodespaceSecurityConfigCollectionVO> getWorkspaceConfigs() {
 		// TODO Auto-generated method stub
-		return null;
+		CodespaceSecurityConfigCollectionVO configCollectionVo = new CodespaceSecurityConfigCollectionVO();
+		final List<CodespaceSecurityConfigDetailsVO> configDetailsVo = service.getAllSecurityConfigs();
+		if(configDetailsVo != null && configDetailsVo.size() > 0)
+		{
+			configCollectionVo.setData(configDetailsVo);
+			configCollectionVo.setTotalCount(configDetailsVo.size());
+			return new ResponseEntity<>(configCollectionVo, HttpStatus.OK);
+		}
+		else
+		{
+			 return new ResponseEntity<>(configCollectionVo, HttpStatus.NO_CONTENT);
+		}
 	}
 
 	@Override

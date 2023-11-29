@@ -56,12 +56,14 @@ import com.daimler.data.db.json.CodespaceSecurityConfig;
 import com.daimler.data.db.json.UserInfo;
 import com.daimler.data.db.repo.workspace.WorkspaceCustomRepository;
 import com.daimler.data.db.repo.workspace.WorkspaceRepository;
+import com.daimler.data.dto.CodespaceSecurityConfigCollectionDto;
 import com.daimler.data.dto.CodespaceSecurityConfigDto;
 import com.daimler.data.dto.DeploymentManageDto;
 import com.daimler.data.dto.DeploymentManageInputDto;
 import com.daimler.data.dto.WorkbenchManageDto;
 import com.daimler.data.dto.WorkbenchManageInputDto;
 import com.daimler.data.dto.workspace.CodeServerRecipeDetailsVO.RecipeIdEnum;
+import com.daimler.data.dto.workspace.admin.CodespaceSecurityConfigDetailsVO;
 import com.daimler.data.util.ConstantsUtility;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -1120,21 +1122,12 @@ public class BaseWorkspaceService implements WorkspaceService {
 
 	}
 
-	/*@Override
-	public List<CodespaceSecurityConfigVO> getAllConfigs(){
-		List<CodespaceSecurityConfigDto> configValues = workspaceCustomRepository.getAllConfigData();
-		List<CodeServerWorkspaceVO> voCollection = configValues
-		List<CodespaceSecurityConfigVO> securityConfigCollection = new ArrayList<>();
-		for(CodeServerWorkspaceVO vo : voCollection) {
-			CodespaceSecurityConfigVO config = vo.getProjectDetails().getSecurityConfig();
-			securityConfigCollection.add(config);
-		}
-		if(securityConfigCollection.isEmpty()) {
-			return null;
-		}
-		else
-		{
-			return securityConfigCollection;
-		}
-	}*/
+	@Override
+	public List<CodespaceSecurityConfigDetailsVO> getAllSecurityConfigs() {
+		List<CodespaceSecurityConfigDto> collectionDtos = workspaceCustomRepository.getAllSecurityConfigs();
+		CodespaceSecurityConfigDetailsVO vo = new CodespaceSecurityConfigDetailsVO();
+		List<CodespaceSecurityConfigDetailsVO> finalConfigData = collectionDtos.stream()
+				.map(n -> workspaceAssembler.dtoToVo(n)).collect(Collectors.toList());
+		return finalConfigData;
+	}
 }

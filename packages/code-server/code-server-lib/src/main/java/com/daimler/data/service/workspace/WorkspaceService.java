@@ -31,6 +31,7 @@ import java.util.List;
 
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.dto.workspace.*;
+import com.daimler.data.dto.workspace.admin.CodespaceSecurityConfigDetailsVO;
 
 public interface WorkspaceService {
 
@@ -70,6 +71,6 @@ public interface WorkspaceService {
 
 	GenericMessage saveSecurityConfig(CodeServerWorkspaceVO vo);
 
-	//List<CodespaceSecurityConfigVO> getAllConfigs();
+    List<CodespaceSecurityConfigDetailsVO> getAllSecurityConfigs();
 
 }

@@ -51,6 +51,7 @@ import com.daimler.data.db.json.CodespaceSecurityApiList;
 import com.daimler.data.db.json.CodespaceSecurityRole;
 import com.daimler.data.db.json.CodespaceSecurityUserRoleMap;
 import com.daimler.data.db.json.UserInfo;
+import com.daimler.data.dto.CodespaceSecurityConfigDto;
 import com.daimler.data.dto.workspace.CodeServerDeploymentDetailsVO;
 import com.daimler.data.dto.workspace.CodeServerProjectDetailsVO;
 import com.daimler.data.dto.workspace.CodeServerRecipeDetailsVO;
@@ -61,6 +62,7 @@ import com.daimler.data.dto.workspace.CodeServerRecipeDetailsVO.OperatingSystemE
 import com.daimler.data.dto.workspace.CodeServerRecipeDetailsVO.RamSizeEnum;
 import com.daimler.data.dto.workspace.CodeServerRecipeDetailsVO.RecipeIdEnum;
 import com.daimler.data.dto.workspace.CodespaceSecurityApiListVO.HttpMethodEnum;
+import com.daimler.data.dto.workspace.admin.CodespaceSecurityConfigDetailsVO;
 import com.daimler.data.dto.workspace.CodeServerWorkspaceVO;
 import com.daimler.data.dto.workspace.CodespaceSecurityConfigResponseVO;
 import com.daimler.data.dto.workspace.CodespaceSecurityConfigVO;
@@ -448,6 +450,22 @@ public class WorkspaceAssembler implements GenericAssembler<CodeServerWorkspaceV
 			log.error("Failed in assembler while parsing date into iso format with exception {}", e.getMessage());
 		}
 		return responseVO;
+	}
+
+	
+	public CodespaceSecurityConfigDetailsVO dtoToVo(CodespaceSecurityConfigDto dto) {
+		CodespaceSecurityConfigDetailsVO vo = new CodespaceSecurityConfigDetailsVO();
+		try {
+			if (vo != null) {
+				vo.setId(dto.getId());
+				vo.setProjectName(dto.getProjectName());
+				vo.setProjectOwner(toUserInfoVO(dto.getProjectOwner()));
+				vo.setSecurityConfig(tosecurityConfigVO(dto.getSecurityConfig()));
+			}
+		} catch (Exception e) {
+			log.error("Failed in assembler", e.getMessage());
+		}
+		return vo;
 	}
 
 }
