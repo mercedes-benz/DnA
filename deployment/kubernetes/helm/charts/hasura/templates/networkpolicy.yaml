@@ -16,9 +16,9 @@ spec:
         namespaceSelector:
           matchLabels:
             kubernetes.io/metadata.name: dna     
-      - ports:
-        - port: {{ .Values.service.port }}
-          protocol: TCP
+   - ports:
+     - port: {{ .Values.service.port }}
+       protocol: TCP
 
   podSelector:
     matchLabels:

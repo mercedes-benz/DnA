@@ -61,12 +61,12 @@ spec:
         namespaceSelector:
           matchLabels:
             kubernetes.io/metadata.name: storage                        
-  - ports:
-    - port: 7272
-    #   from: []
-  #   - ports:
-  #     - port: 8080
-  #       protocol: TCP
+    - ports:
+      - port: 7272
+      #   from: []
+    #   - ports:
+    #     - port: 8080
+    #       protocol: TCP
 policyTypes:
   - Ingress
 ---
