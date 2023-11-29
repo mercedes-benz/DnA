@@ -229,8 +229,8 @@ const ProviderForm = ({ user, history }) => {
   const setTab = (e) => {
     const id = e.target.id;
     if (currentTab !== id) {
-      const isFieldsDirty =  Object.keys(formState.dirtyFields).length > 0;
-                  if (isFieldsDirty) {
+      const isFieldsDirty = Object.keys(formState.dirtyFields).length > 0;
+      if (isFieldsDirty) {
         setShowChangeAlert({ modal: true, switchingTab: id });
       } else {
         setCurrentTab(id);

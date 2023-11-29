@@ -300,8 +300,8 @@ const CreateDataProduct = ({ user, history }) => {
   const setTab = (e) => {
     const id = e.target.id;
     if (currentTab !== id) {
-    const isFieldsDirty =  Object.keys(formState.dirtyFields).length > 0;
-     // const isFieldsDirty = formState.isDirty;
+      const isFieldsDirty = Object.keys(formState.dirtyFields).length > 0;
+      // const isFieldsDirty = formState.isDirty;
       if (isFieldsDirty) {
         setShowChangeAlert({ modal: true, switchingTab: id });
       } else {
