@@ -344,7 +344,7 @@
 				 if (vo.getProjectDetails().getSecurityConfig().getStatus() != null
 						 && (vo.getProjectDetails().getSecurityConfig().getStatus().equalsIgnoreCase("DRAFT") || vo
 								 .getProjectDetails().getSecurityConfig().getStatus().equalsIgnoreCase("PUBLISHED"))) {
- 
+					 data = workspaceAssembler.assembleSecurityConfig(vo,data);
 					 vo.getProjectDetails().setSecurityConfig(data);
 					 responseMessage = service.saveSecurityConfig(vo);
 					 saveConfigResponse.setResponse(responseMessage);
@@ -361,7 +361,8 @@
 			//  if (responseMessage.getSuccess().equalsIgnoreCase("SUCCESS")) {
 				 //saveConfigResponse.setData(workspaceAssembler.toSaveConfigResponse(vo));
 			//  }
-			saveConfigResponse.setData(data);
+			vo = service.getById(userId, id);
+			saveConfigResponse.setData(vo.getProjectDetails().getSecurityConfig());
 			 return new ResponseEntity<>(saveConfigResponse, HttpStatus.OK);
 		 } else {
 			 GenericMessage emptyResponse = new GenericMessage();
