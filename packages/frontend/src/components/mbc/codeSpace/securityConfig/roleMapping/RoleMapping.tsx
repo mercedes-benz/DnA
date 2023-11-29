@@ -384,7 +384,7 @@ const RoleMapping = (props: any) => {
                                             </span>
                                         </div> <br /></> : ''
                                     }
-                                    <AddUser getCollabarators={getCollabarators} dagId={''} isRequired={false} isUserprivilegeSearch={false} disableInput={roleContributor?.length > 0} />
+                                    {roleContributor?.length === 0 && <AddUser getCollabarators={getCollabarators} dagId={''} isRequired={false} isUserprivilegeSearch={false} />}
                                 </div>
                                 <div className={Styles.bucketColUsersList}>
                                     {roleContributor?.length > 0 ? (

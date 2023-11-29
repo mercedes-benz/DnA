@@ -21,7 +21,6 @@ export interface IAddUserProps {
   /** if true then returns privilage search */
   isUserprivilegeSearch: boolean;
   title?: string;
-  disableInput?: boolean;
 }
 
 export interface IAddUserState {
@@ -79,7 +78,6 @@ export default class AddUser extends React.Component<IAddUserProps, IAddUserStat
         setSearchTerm={(value) => this.setState({ searchTerm: value })}
         showUserDetails={this.state.showUserDetails}
         setShowUserDetails={(value) => this.setState({ showUserDetails: value })}
-        disableInput={this.props.disableInput || false}
       />
     );
   }
