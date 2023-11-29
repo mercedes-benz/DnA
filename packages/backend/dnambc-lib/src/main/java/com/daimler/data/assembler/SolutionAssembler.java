@@ -785,7 +785,7 @@ public class SolutionAssembler implements GenericAssembler<SolutionVO, SolutionN
 			}
 			
 			//setting AI Risk assessment types
-			AiRiskAssessmentTypeEnum riskAssessmentType = AiRiskAssessmentTypeEnum.NO_RISK;
+			AiRiskAssessmentTypeEnum riskAssessmentType = AiRiskAssessmentTypeEnum.NOT_APPLICABLE;
 			if(solutionDataCompliance.getAIRiskAssessmentType()!=null && "HIGH_RISK".equalsIgnoreCase(solutionDataCompliance.getAIRiskAssessmentType())) {
 				riskAssessmentType = AiRiskAssessmentTypeEnum.HIGH_RISK;
 			}
@@ -1494,7 +1494,7 @@ public class SolutionAssembler implements GenericAssembler<SolutionVO, SolutionN
 
 			}
 			//setting AI Risk assessment types
-			String riskAssessmentType = "NO_RISK";
+			String riskAssessmentType = "NOT_APPLICABLE";
 			if(solutionDataComplianceVO.getAiRiskAssessmentType()!=null && "HIGH_RISK".equalsIgnoreCase(solutionDataComplianceVO.getAiRiskAssessmentType().name())) {
 				riskAssessmentType = "HIGH_RISK";
 			}

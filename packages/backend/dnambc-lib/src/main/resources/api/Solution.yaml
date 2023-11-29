@@ -1191,7 +1191,7 @@ definitions:
           $ref: "#/definitions/TeamMemberVO"
       AIRiskAssessmentType:
         type: string
-        enum: ["NO_RISK", "BASIC_RISK", "HIGH_RISK"]    
+        enum: ["NOT_APPLICABLE", "BASIC_RISK", "HIGH_RISK"]    
   
   LinkVO:
     type: object
