@@ -160,7 +160,7 @@ export const PRIVATE_RECIPES: any[] = [
   // { id: 'private-backend', resource: '4Gi,3000Mi,2000m,4000Mi,2000m', name: `Private Backend (Debian 11 OS, 2GB RAM, 2CPU)`, repodetails: 'YOUR PRIVATE REPO URL' }
 ];
 
-export const DEPLOYMENT_DISABLED_RECIPE_IDS: string[] = ['private-user-defined'];
+export const DEPLOYMENT_DISABLED_RECIPE_IDS: string[] = [ 'default', 'private-user-defined' ];
 
 export const HTTP_OPTIONS = [{
   id: 1,
