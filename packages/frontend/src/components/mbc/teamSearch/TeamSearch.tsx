@@ -26,6 +26,7 @@ export interface TeamSearchProps {
   fieldMode?: boolean;
   fieldValue?: string;
   setFieldValue?: (val: string) => void;
+  disableInput?: boolean;
 }
 
 const TeamSearch = (props: TeamSearchProps) => {
@@ -266,6 +267,7 @@ const TeamSearch = (props: TeamSearchProps) => {
                 onKeyDown={onSearchInputKeyDown}
                 maxLength={200}
                 autoComplete="off"
+                disabled={props.disableInput}
               />
               {fieldMode ? (
                 fieldValue?.length ? (
