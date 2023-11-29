@@ -85,7 +85,8 @@ export default class SecurityConfig extends React.Component<ICreateNewSecurityCo
                     entitlements: res.entitlements || [],
                     roles: res.roles || [],
                     userRoleMappings: res.userRoleMappings || [],
-                    openSegments: res.openSegments || []
+                    openSegments: res.openSegments || [],
+                    status: res.status || 'DRAFT'
                 }
                 this.setState({
                     config: response,
