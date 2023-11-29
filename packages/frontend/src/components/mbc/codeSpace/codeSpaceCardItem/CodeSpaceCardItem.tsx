@@ -12,6 +12,7 @@ import { trackEvent } from '../../../../services/utils';
 // @ts-ignore
 import Notification from '../../../../assets/modules/uilab/js/src/notification';
 import { IUserInfo } from 'globals/types';
+import { IconGear } from 'components/icons/IconGear';
 
 interface CodeSpaceCardItemProps {
   userInfo: IUserInfo;
@@ -102,6 +103,10 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
     } else {
       history.push(`codespace/${codeSpace.workspaceId}`);
     }
+  };
+
+  const onCodeSpaceSecurityConfigClick = (codeSpace: ICodeSpaceData) => {
+      history.push(`codespace/securityconfig/${codeSpace.id}`);
   };
 
   const onCodeSpaceDelete = () => {
@@ -250,6 +255,11 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
                 )}
               </div>
               <div className={Styles.btnGrp}>
+              {!isPublicRecipe && !createInProgress && !deployingInProgress && !creationFailed && isOwner && (
+                  <button className="btn btn-primary" onClick={() => onCodeSpaceSecurityConfigClick(codeSpace)}>
+                    <IconGear size={'18'} />
+                  </button>
+                )}
                 {!isPublicRecipe && !createInProgress && !deployingInProgress && !creationFailed && isOwner && (
                   <button className="btn btn-primary" onClick={() => props.onCodeSpaceEdit(codeSpace)}>
                     <i className="icon mbc-icon edit"></i>
