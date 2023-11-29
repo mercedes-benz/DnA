@@ -21,7 +21,7 @@ import { IUserInfo } from 'globals/types';
 import SelectBox from '../../../formElements/SelectBox/SelectBox';
 import Styles from './SecurityConfig.scss';
 import Entitlement from './entitlement/Entitlement';
-import Caption from '/Users/ajshiva/Documents/Code/UI/DnA/packages/frontend/src/components/mbc/shared/caption/Caption';
+import Caption from '../../shared/caption/Caption';
 import Roles from './roles/Roles';
 // @ts-ignore
 import RoleMapping from './roleMapping/RoleMapping';
