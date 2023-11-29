@@ -282,12 +282,16 @@ public class BaseWorkspaceService implements WorkspaceService {
 			CodeServerWorkspaceNsql entity = workspaceAssembler.toEntity(vo);
 			
 			//validate user pat 
-			HttpStatus validateUserPatstatus = gitClient.validateGitPat(entity.getData().getGitUserName(),pat);
-			if(!validateUserPatstatus.is2xxSuccessful()) {
-				MessageDescription errMsg = new MessageDescription("Invalid GitHub Personal Access Token provided. Please verify and retry.");
-				errors.add(errMsg);
-				responseVO.setErrors(errors);
-				return responseVO;
+			if (!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase()
+					.equalsIgnoreCase("default")) {
+				HttpStatus validateUserPatstatus = gitClient.validateGitPat(entity.getData().getGitUserName(), pat);
+				if (!validateUserPatstatus.is2xxSuccessful()) {
+					MessageDescription errMsg = new MessageDescription(
+							"Invalid GitHub Personal Access Token provided. Please verify and retry.");
+					errors.add(errMsg);
+					responseVO.setErrors(errors);
+					return responseVO;
+				}
 			}
 			
 			 WorkbenchManageDto ownerWorkbenchCreateDto = new WorkbenchManageDto();
