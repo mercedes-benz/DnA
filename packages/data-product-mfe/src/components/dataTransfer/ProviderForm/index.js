@@ -229,6 +229,7 @@ const ProviderForm = ({ user, history }) => {
   const setTab = (e) => {
     const id = e.target.id;
     if (currentTab !== id) {
+      setShowContactInformationTabError(false);
       const isFieldsDirty = Object.keys(formState.dirtyFields).length > 0;
       if (isFieldsDirty) {
         setShowChangeAlert({ modal: true, switchingTab: id });
@@ -516,25 +517,25 @@ const ProviderForm = ({ user, history }) => {
   const onSave = (currentAction, currentTab, values, callbackFn) => {
     setShowAllTabsError(false);
     if(currentAction === 'publish'){
-      // if(currentTab!='contact-info'){
-      //   setShowContactInformationTabError(true);
-      // } else{  
+      if(currentTab!='contact-info'){
+        setShowContactInformationTabError(true);
+      } else{  
         if(validatePublishRequest(values)){
           proceedToSave(currentTab, values, callbackFn)
         } else {
           setShowAllTabsError(true);
         }
-      // }  
+      }  
     } else {
-      // if(!values.id && values.id!='' && currentTab!='contact-info'){
-      //   setShowContactInformationTabError(true);
-      // } else{
+      if(!values.id && values.id!='' && currentTab!='contact-info'){
+        setShowContactInformationTabError(true);
+      } else{
         if(validateContactInformationTab(values)){
           proceedToSave(currentTab, values, callbackFn)
         } else {
           setShowAllTabsError(true);
         }  
-      // }           
+      }           
     }
   };
 
@@ -785,6 +786,7 @@ const ProviderForm = ({ user, history }) => {
                 getDataProductById();
               }else{
                 const data = tabs[currentTab];
+                data.name =userInfo;
                 reset(data);
               }  
               setCurrentTab(showChangeAlert.switchingTab);
