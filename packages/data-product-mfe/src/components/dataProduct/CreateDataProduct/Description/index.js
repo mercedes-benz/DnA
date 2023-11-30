@@ -905,7 +905,7 @@ const Description = ({
                   // name="accessType" 
                   value = {accessType}
                   {...register('accessType',{
-                  
+
                   
                     onChange :(e)=>{
                       const options = e.target.selectedOptions;
@@ -965,6 +965,7 @@ const Description = ({
                     }
                   })}>
                     {/* <option value="">Choose</option> */}
+                    <option value={''}>Choose</option>
                     <option id='Internal' key={'Internal'} value={'Internal'}>Internal</option>
                     <option id='Secret' key={'Secret'} value={'Secret'}>Secret</option>
                     <option id='Confidential' key={'Confidential'} value={'Confidential'}>Confidential</option>
