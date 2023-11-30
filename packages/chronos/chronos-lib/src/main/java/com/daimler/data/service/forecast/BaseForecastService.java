@@ -342,12 +342,7 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 					entity.getData().getRuns()!=null && !entity.getData().getRuns().isEmpty()) {
 				List<RunDetails> existingRuns = entity.getData().getRuns();
 				if(existingRuns!=null && !existingRuns.isEmpty()) {
-				boolean isUploadConfigRecommendationSuccess =false;
-				boolean isUploadConfigRecommendationFail =false;
 				List<NotificationDetails> notificationDetails = new ArrayList<>();
-
-
-
 
 					String configFileName="";
 					List<String> memberIds = new ArrayList<>();
@@ -556,14 +551,12 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 												FileUploadResponseDto fileUploadResponse = storageClient.uploadFile("/configs/", multipartFile, bucketName);
 												if (fileUploadResponse == null || (fileUploadResponse != null && (fileUploadResponse.getErrors() != null || !"SUCCESS".equalsIgnoreCase(fileUploadResponse.getStatus())))) {
 													log.error("Failed to upload config file {} to storage bucket", fileName);
-													isUploadConfigRecommendationFail=true;
 													uploadConfigMessage = "New recommendation file generated based on "+run.getRunName()+ " inputs, Failed to upload recommendation " +fileName +  " to project specific configs,  with exception";
 													configRecommendationNotification.setNotificationEventName(uploadConfigNotificationEventName);
 													configRecommendationNotification.setMessage(uploadConfigMessage);
 													notificationDetails.add(configRecommendationNotification);
 
 												} else if ("SUCCESS".equalsIgnoreCase(fileUploadResponse.getStatus())) {
-													isUploadConfigRecommendationSuccess=true;
 													List<InputFileVO> configFilesVOList = new ArrayList<>();
 													configFilesVOList = this.assembler.toFilesVO(configFiles);
 													log.info("Successfully to uploaded config file {} to storage bucket", fileName);
