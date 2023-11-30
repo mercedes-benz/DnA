@@ -152,4 +152,45 @@ export const TOTAL_LOCATIONS_COUNT = 162;
 
 export const OTHER_PLATFORMS = 'Other platforms (e.g. Azure,…)';
 
-export const SOLUTION_FIXED_TAGS = [ '#GenAI', 'GenAI' ];
+export const SOLUTION_FIXED_TAGS = ['#GenAI', 'GenAI'];
+
+export const PRIVATE_RECIPES: any[] = [
+  /* Uncomment and use bellow code to keep your private recipes until we make proper recipe management */
+  // { id: 'private-frontend', resource: '4Gi,2000Mi,2000m,4000Mi,2000m', name: `Private Frontend (Debian 11 OS, 2GB RAM, 2CPU)`, repodetails: 'YOUR PRIVATE REPO URL' },
+  // { id: 'private-backend', resource: '4Gi,3000Mi,2000m,4000Mi,2000m', name: `Private Backend (Debian 11 OS, 2GB RAM, 2CPU)`, repodetails: 'YOUR PRIVATE REPO URL' }
+];
+
+export const DEPLOYMENT_DISABLED_RECIPE_IDS: string[] = [ 'default', 'private-user-defined' ];
+
+export const HTTP_OPTIONS = [{
+  id: 1,
+  name: 'POST'
+}, {
+  id: 2,
+  name: 'GET'
+}, {
+  id: 3,
+  name: 'PUT'
+}, {
+  id: 4,
+  name: 'DELETE'
+}, {
+  id: 5,
+  name: 'PATCH'
+}, {
+  id: 6,
+  name: 'HEAD'
+}, {
+  id: 7,
+  name: 'OPTIONS'
+}, {
+  id: 8,
+  name: 'TRACE'
+}, {
+  id: 9,
+  name: 'CONNECT'
+}];
+
+export const CODE_SPACE_STATUS = ['DRAFT', 'PUBLISHED'];
+export const CODE_SPACE_DISABLE_DNA_PROTECT = ['PUBLISHED', 'ACCEPTED', 'REQUESTED'];
+export const CODE_SPACE_TITLE = 'Securtity Configuration';

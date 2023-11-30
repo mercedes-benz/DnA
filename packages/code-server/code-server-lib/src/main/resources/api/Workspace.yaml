@@ -702,6 +702,7 @@ definitions:
         type: array
         items:    
           $ref: "#/definitions/CodespaceSecurityConfigLOV"
+
   TransparencyVO:
     type: object
     properties:
@@ -846,7 +847,7 @@ definitions:
     properties:
       recipeId:
         type: string
-        enum: [default,springboot,py-fastapi,react,angular,gradle,quarkus,micronaut,private-user-defined,public-dna-backend,public-dna-frontend,public-dna-report-backend,public-dna-codespace-backend,public-dna-malware-scanner,public-dna-storage-mfe,public-dna-storage-backend,public-dna-chronos-mfe,public-dna-chronos-backend,public-dna-data-product-mfe,public-dna-data-product-backend,public-dna-dss-mfe,public-dna-dataiku-backend,public-dna-airflow-backend,public-dna-modal-registry-backend,public-dna-trino-backend,public-dna-nass,public-dna-authenticator-backend,public-dna-matomo-mfe,public-dna-matomo-backend,public-dna-datalake-mfe,public-user-defined]
+        enum: [default,springboot,py-fastapi,react,angular,gradle,quarkus,micronaut,private-user-defined,public-dna-backend,public-dna-frontend,public-dna-report-backend,public-dna-codespace-backend,public-dna-malware-scanner,public-dna-storage-mfe,public-dna-storage-backend,public-dna-chronos-mfe,public-dna-chronos-backend,public-dna-data-product-mfe,public-dna-data-product-backend,public-dna-dss-mfe,public-dna-dataiku-backend,public-dna-airflow-backend,public-dna-modal-registry-backend,public-dna-trino-backend,public-dna-nass,public-dna-authenticator-backend,public-dna-matomo-mfe,public-dna-matomo-backend,public-dna-datalake-mfe,public-user-defined,bat-frontend,bat-backend]
         description: "RecipeId of the workspace. Ex: Springboot Microservice"    
       environment:
         type: string
@@ -1008,6 +1009,7 @@ definitions:
           type: string
       isProtectedByDna:
         type: boolean
+        
   UserIdVO:
     type: object
     properties:

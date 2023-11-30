@@ -1400,9 +1400,6 @@
     &.carla-mini::before {
       content: "\e961";
     }
-    &.gen-ai::before{
-      content:"\e98c";
-    }
     &.malwarescan::before {
       content: "\e978";
     }
@@ -1456,6 +1453,18 @@
     }
     &.sbiss::before {
       content: "\e981";
+    }
+    &.genai::before {
+      content: "\e98c";
+    }
+    &.genai-create::before {
+      content: "\e98d";
+    }
+    &.genai-direct-chat::before {
+      content: "\e98e";
+    }
+    &.genai-solutions::before {
+      content: "\e98f";
     }
   }
 

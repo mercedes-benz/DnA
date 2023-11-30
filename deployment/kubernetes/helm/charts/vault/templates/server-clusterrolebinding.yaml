@@ -1,6 +1,10 @@
-{{ template "vault.mode" . }}
-{{- if .serverEnabled -}}
-{{- if and (ne .mode "") (eq (.Values.server.authDelegator.enabled | toString) "true") }}
+{{/*
+Copyright (c) HashiCorp, Inc.
+SPDX-License-Identifier: MPL-2.0
+*/}}
+
+{{ template "vault.serverAuthDelegator" . }}
+{{- if .serverAuthDelegator -}}
 {{- if .Capabilities.APIVersions.Has "rbac.authorization.k8s.io/v1" -}}
 apiVersion: rbac.authorization.k8s.io/v1
 {{- else }}
@@ -9,7 +13,6 @@ apiVersion: rbac.authorization.k8s.io/v1beta1
 kind: ClusterRoleBinding
 metadata:
   name: {{ template "vault.fullname" . }}-server-binding
-  namespace: {{ .Values.namespace }}
   labels:
     helm.sh/chart: {{ include "vault.chart" . }}
     app.kubernetes.io/name: {{ include "vault.name" . }}
@@ -22,6 +25,5 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: {{ template "vault.serviceAccount.name" . }}
-  namespace: {{ .Values.namespace }}
-{{ end }}
+  namespace: {{ include "vault.namespace" . }}
 {{ end }}

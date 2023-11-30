@@ -211,9 +211,7 @@ export default class AllSolutions extends React.Component<
     const sessionSortingInfo = sessionStorage.getItem(SESSION_STORAGE_KEYS.SOLUTION_SORT_VALUES);
     if (sessionSortingInfo) {
       const sortBy = JSON.parse(sessionSortingInfo);
-      this.setState(
-        { sortBy }
-      )
+      this.setState({ sortBy });
     }
     ProgressIndicator.show();
     Tooltip.defaultSetup();
@@ -318,6 +316,8 @@ export default class AllSolutions extends React.Component<
     const isGenAI =
       this.state.queryParams?.tag?.length === 1 ? isSolutionFixedTagIncluded(this.state.queryParams.tag[0]) : false;
     const isDigitalValueContributionEnabled = window.location.href.indexOf('digitalvaluecontribution') !== -1;
+    const isDataValueContributionEnabled = window.location.href.indexOf('datavaluecontribution') !== -1;
+
     const solutionData = this.state.solutions.map((solution) => {
       return (
         <SolutionListRowItem
@@ -549,7 +549,7 @@ export default class AllSolutions extends React.Component<
                                 Division
                               </label>
                             </th>
-                            {isDigitalValueContributionEnabled ? (
+                            {isDigitalValueContributionEnabled && (
                               <th
                                 onClick={this.sortSolutions.bind(null, 'digitalValue', this.state.sortBy.nextSortType)}
                               >
@@ -563,7 +563,15 @@ export default class AllSolutions extends React.Component<
                                   Digital Value (€)
                                 </label>
                               </th>
-                            ) : (
+                            )}
+                            {isDataValueContributionEnabled && (
+                              <th
+                                onClick={this.sortSolutions.bind(null, 'digitalValue', this.state.sortBy.nextSortType)}
+                              >
+                                <label className={'sortable-column-header '}>Data Value (€)</label>
+                              </th>
+                            )}
+                            {!isDigitalValueContributionEnabled && !isDataValueContributionEnabled && (
                               <th>
                                 <label className={'sortable-column-header '}>Value Calculation (€)</label>
                               </th>
@@ -770,7 +778,7 @@ export default class AllSolutions extends React.Component<
     ProgressIndicator.show();
     this.setState(
       {
-         sortBy,
+        sortBy,
       },
       () => {
         sessionStorage.setItem(SESSION_STORAGE_KEYS.SOLUTION_SORT_VALUES, JSON.stringify(sortBy));
@@ -958,7 +966,13 @@ export default class AllSolutions extends React.Component<
       : '';
     const tags = queryParams.tag.join(',');
 
-    const isDigitalValueContributionEnabled = window.location.href.indexOf('digitalvaluecontribution') !== -1;
+    let isDigitalValueContributionEnabled = null;
+    if(window.location.href.indexOf('digitalvaluecontribution') !== -1){
+      isDigitalValueContributionEnabled = true;
+    }
+    else if(window.location.href.indexOf('datavaluecontribution') !== -1){
+      isDigitalValueContributionEnabled = false;
+    }
     const isNotificationEnabled = window.location.href.indexOf('notebook') !== -1;
 
     ApiClient.getSolutionsByGraphQL(
@@ -974,7 +988,7 @@ export default class AllSolutions extends React.Component<
       this.state.sortBy.name,
       this.state.sortBy.currentSortType,
       getPublished,
-      isDigitalValueContributionEnabled,
+      this.state.enablePortfolioSolutionsView ? isDigitalValueContributionEnabled : null,
       isNotificationEnabled,
     )
       .then((res) => {

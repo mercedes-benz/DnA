@@ -19,6 +19,7 @@ public class TrinoDataLakeProject implements Serializable {
 
 	private String projectName;
 	private String schemaName;
+	private String catalogName;
 	private String connectorType;
 	private String bucketName;
 	private String bucketId;

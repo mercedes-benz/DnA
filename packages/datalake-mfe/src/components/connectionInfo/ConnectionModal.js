@@ -107,7 +107,7 @@ export const ConnectionModal = ({ onOkClick }) => {
         <div>
             <div className={Styles.accessDetails}>
                 <>
-                    <h5>Access Details for Bucket - bucketName</h5>
+                    <h5>Access Details for Data Lakehouse</h5>
                 </>
                 <table>
                     <tbody>
