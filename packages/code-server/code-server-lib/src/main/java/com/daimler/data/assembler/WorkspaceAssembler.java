@@ -371,7 +371,15 @@ public class WorkspaceAssembler implements GenericAssembler<CodeServerWorkspaceV
 								projectDetails.getProdDeploymentDetails());
 						projectDetailsVO.setIntDeploymentDetails(intDeployDetailsVO);
 						projectDetailsVO.setProdDeploymentDetails(prodDeployDetailsVO);
-
+						List<UserInfo> collabs = projectDetails.getProjectCollaborators();
+						if(collabs!=null && !collabs.isEmpty()) {
+							List<UserInfoVO> collabsVO = collabs.stream().map
+									(n -> { UserInfoVO user = new UserInfoVO();
+											BeanUtils.copyProperties(n,user);
+											return user;
+									}).collect(Collectors.toList());
+							projectDetailsVO.setProjectCollaborators(collabsVO);
+						}
 						UserInfoVO projectOwnerVO = this.toUserInfoVO(projectDetails.getProjectOwner());
 						projectDetailsVO.setProjectOwner(projectOwnerVO);
 						CodeServerRecipeDetails recipeDetails = projectDetails.getRecipeDetails();
