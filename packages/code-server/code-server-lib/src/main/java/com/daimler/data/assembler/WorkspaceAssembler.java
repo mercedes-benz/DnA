@@ -371,7 +371,15 @@ public class WorkspaceAssembler implements GenericAssembler<CodeServerWorkspaceV
 								projectDetails.getProdDeploymentDetails());
 						projectDetailsVO.setIntDeploymentDetails(intDeployDetailsVO);
 						projectDetailsVO.setProdDeploymentDetails(prodDeployDetailsVO);
-
+						List<UserInfo> collabs = projectDetails.getProjectCollaborators();
+						if(collabs!=null && !collabs.isEmpty()) {
+							List<UserInfoVO> collabsVO = collabs.stream().map
+									(n -> { UserInfoVO user = new UserInfoVO();
+											BeanUtils.copyProperties(n,user);
+											return user;
+									}).collect(Collectors.toList());
+							projectDetailsVO.setProjectCollaborators(collabsVO);
+							}
 						UserInfoVO projectOwnerVO = this.toUserInfoVO(projectDetails.getProjectOwner());
 						projectDetailsVO.setProjectOwner(projectOwnerVO);
 						CodeServerRecipeDetails recipeDetails = projectDetails.getRecipeDetails();
@@ -379,6 +387,8 @@ public class WorkspaceAssembler implements GenericAssembler<CodeServerWorkspaceV
 						projectDetailsVO.setRecipeDetails(recipeVO);
 						projectDetailsVO.setProjectName(projectDetails.getProjectName());
 						projectDetailsVO.setGitRepoName(projectDetails.getGitRepoName());
+						if(projectDetails.getProjectCreatedOn()!=null)
+							projectDetailsVO.setProjectCreatedOn(isoFormat.parse(isoFormat.format(projectDetails.getProjectCreatedOn())));
 						if (projectDetails.getSecurityConfig() != null) {
 							CodespaceSecurityConfigVO securityConfigVO = this
 									.tosecurityConfigVO(projectDetails.getSecurityConfig());
