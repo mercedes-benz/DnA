@@ -7,7 +7,7 @@ import SelectBox from 'components/formElements/SelectBox/SelectBox';
 
 // @ts-ignore
 import { Envs } from 'globals/Envs';
-import { ICodeCollaborator, IRole, IUserDetails, IUserInfo } from 'globals/types';
+import { ICodeCollaborator, IUserInfo } from 'globals/types';
 import { history } from '../../../router/History';
 import { recipesMaster, trackEvent } from '../../../services/utils';
 // import { ApiClient } from '../../../services/ApiClient';
@@ -24,10 +24,10 @@ import ProgressWithMessage from 'components/progressWithMessage/ProgressWithMess
 import { CodeSpaceApiClient } from '../../../services/CodeSpaceApiClient';
 import { getParams } from '../../../router/RouterUtils';
 import classNames from 'classnames';
-// import { IAM_URL } from 'globals/constants';
-// import TextBox from '../shared/textBox/TextBox';
-import AddUser from '../addUser/AddUser';
+import { CODE_SPACE_TITLE, IAM_URL } from 'globals/constants';
+import TextBox from '../shared/textBox/TextBox';
 import { DEPLOYMENT_DISABLED_RECIPE_IDS } from 'globals/constants';
+import { IconGear } from 'components/icons/IconGear';
 // import { HTTP_METHOD } from '../../../globals/constants';
 
 export interface ICodeSpaceProps {
@@ -72,8 +72,9 @@ export interface ICodeSpaceData {
   intiatedOn?: string,
   workspaceUrl?: string,
   status?: string;
+  configStatus?: string;
   workspaceOwner?: ICodeCollaborator,
-  projectDetails? : IProjectDetails;
+  projectDetails?: IProjectDetails;
 
   // name?: string;
   // recipe?: string;
@@ -127,53 +128,17 @@ const CodeSpace = (props: ICodeSpaceProps) => {
   const [prodCodeDeployedBranch, setProdCodeDeployedBranch] = useState<string>('main');
   const [secureWithIAMSelected, setSecureWithIAMSelected] = useState<boolean>(true);
   const [iamTechnicalUserID, setIAMTechnicalUserID] = useState<string>('');
-  // const [iamTechnicalUserIDError, setIAMTechnicalUserIDError] = useState<string>('');
+  const [iamTechnicalUserIDError, setIAMTechnicalUserIDError] = useState<string>('');
   const [acceptContinueCodingOnDeployment, setAcceptContinueCodingOnDeployment] = useState<boolean>(true);
   const [livelinessInterval, setLivelinessInterval] = useState<NodeJS.Timer>();
   const [branches, setBranches] = useState<IBranch[]>([]);
-  const [usersIAMAliceSecured, setUsersIAMAliceSecured] = useState([
-    {
-      firstName: 'Kameshwara',
-      lastName: 'Rao',
-      id: 'KAMERAO',
-      eMail: 'test@dna.com',
-      department: 'Test',
-      mobileNumber: '9876543210',
-      roles: [{ id: 'admin', name: 'Admin' }],
-    },
-    {
-      firstName: 'Sathishkumar',
-      lastName: 'Palani',
-      id: 'PALANSA',
-      eMail: 'test@dna.com',
-      department: 'Test',
-      mobileNumber: '9876543210',
-      roles: [{ id: 'reader', name: 'Reader' }],
-    },
-    {
-      firstName: 'Anna Agnel Praveen',
-      lastName: 'Maria Rathinam',
-      id: 'AMARIAR',
-      eMail: 'test@dna.com',
-      department: 'Test',
-      mobileNumber: '9876543210',
-      roles: [{ id: 'user', name: 'User' }],
-    },
-  ]);
-
 
   const livelinessIntervalRef = React.useRef<NodeJS.Timer>();
 
   const [branchValue, setBranchValue] = useState('main');
   const [deployEnvironment, setDeployEnvironment] = useState('staging');
   const recipes = recipesMaster;
-  // const requiredError = '*Missing entry';
-  // const rolesIAMAliceSupported = [
-  //   { id: 'reader', name: 'Reader' },
-  //   { id: 'user', name: 'User' },
-  //   { id: 'admin', name: 'Admin' },
-  // ];
-  
+  const requiredError = '*Missing entry';
 
   useEffect(() => {
     SelectBox.defaultSetup();
@@ -182,85 +147,85 @@ const CodeSpace = (props: ICodeSpaceProps) => {
 
   useEffect(() => {
     if (id) {
-    CodeSpaceApiClient.getCodeSpaceStatus(id)
-      .then((res: ICodeSpaceData) => {
+      CodeSpaceApiClient.getCodeSpaceStatus(id)
+        .then((res: ICodeSpaceData) => {
 
-        const loginWindow = window.open(
-          Envs.CODESPACE_OIDC_POPUP_URL + res.workspaceId + '/',
-          'codeSpaceSessionWindow',
-          'width=100,height=100,location=no,menubar=no,status=no,titlebar=no,toolbar=no',
-        );
+          const loginWindow = window.open(
+            Envs.CODESPACE_OIDC_POPUP_URL + res.workspaceId + '/',
+            'codeSpaceSessionWindow',
+            'width=100,height=100,location=no,menubar=no,status=no,titlebar=no,toolbar=no',
+          );
 
-        setTimeout(() => {
-          loginWindow?.close();
+          setTimeout(() => {
+            loginWindow?.close();
 
-          setLoading(false);
-          const status = res.status;
-          if (
-            status !== 'CREATE_REQUESTED' &&
-            status !== 'CREATE_FAILED' &&
-            status !== 'DELETE_REQUESTED' &&
-            status !== 'DELETED' &&
-            status !== 'DELETE_FAILED'
-          ) {
-            const intDeploymentDetails = res.projectDetails.intDeploymentDetails;
-            const prodDeploymentDetails = res.projectDetails.prodDeploymentDetails;
-            const intDeployedUrl = intDeploymentDetails?.deploymentUrl;
-            const prodDeployedUrl = prodDeploymentDetails?.deploymentUrl;
-            const intDeployed =
-              intDeploymentDetails.lastDeploymentStatus === 'DEPLOYED' ||
-              (intDeployedUrl !== null && intDeployedUrl !== 'null');
-            const prodDeployed =
-              prodDeploymentDetails.lastDeploymentStatus === 'DEPLOYED' ||
-              (prodDeployedUrl !== null && prodDeployedUrl !== 'null');
-            const deployingInProgress =
-              (intDeploymentDetails.lastDeploymentStatus === 'DEPLOY_REQUESTED' ||
-              prodDeploymentDetails.lastDeploymentStatus === 'DEPLOY_REQUESTED');
-            // const deployed =
-            //   intDeploymentDetails.lastDeploymentStatus === 'DEPLOYED' ||
-            //   prodDeploymentDetails.lastDeploymentStatus === 'DEPLOYED' ||
-            //   (intDeployedUrl !== null && intDeployedUrl !== 'null') ||
-            //   (prodDeployedUrl !== null && prodDeployedUrl !== 'null');
-            
-            setCodeSpaceData({
-              ...res,
-              running: !!res.intiatedOn,
-            });
-            setCodeDeployed(intDeployed);
-            setCodeDeployedUrl(intDeployedUrl);
-            setCodeDeployedBranch(intDeploymentDetails.lastDeployedBranch);
+            setLoading(false);
+            const status = res.status;
+            if (
+              status !== 'CREATE_REQUESTED' &&
+              status !== 'CREATE_FAILED' &&
+              status !== 'DELETE_REQUESTED' &&
+              status !== 'DELETED' &&
+              status !== 'DELETE_FAILED'
+            ) {
+              const intDeploymentDetails = res.projectDetails.intDeploymentDetails;
+              const prodDeploymentDetails = res.projectDetails.prodDeploymentDetails;
+              const intDeployedUrl = intDeploymentDetails?.deploymentUrl;
+              const prodDeployedUrl = prodDeploymentDetails?.deploymentUrl;
+              const intDeployed =
+                intDeploymentDetails.lastDeploymentStatus === 'DEPLOYED' ||
+                (intDeployedUrl !== null && intDeployedUrl !== 'null');
+              const prodDeployed =
+                prodDeploymentDetails.lastDeploymentStatus === 'DEPLOYED' ||
+                (prodDeployedUrl !== null && prodDeployedUrl !== 'null');
+              const deployingInProgress =
+                (intDeploymentDetails.lastDeploymentStatus === 'DEPLOY_REQUESTED' ||
+                  prodDeploymentDetails.lastDeploymentStatus === 'DEPLOY_REQUESTED');
+              // const deployed =
+              //   intDeploymentDetails.lastDeploymentStatus === 'DEPLOYED' ||
+              //   prodDeploymentDetails.lastDeploymentStatus === 'DEPLOYED' ||
+              //   (intDeployedUrl !== null && intDeployedUrl !== 'null') ||
+              //   (prodDeployedUrl !== null && prodDeployedUrl !== 'null');
 
-            setProdCodeDeployed(prodDeployed);
-            setProdCodeDeployedUrl(prodDeployedUrl);
-            setProdCodeDeployedBranch(prodDeploymentDetails.lastDeployedBranch);
+              setCodeSpaceData({
+                ...res,
+                running: !!res.intiatedOn,
+              });
+              setCodeDeployed(intDeployed);
+              setCodeDeployedUrl(intDeployedUrl);
+              setCodeDeployedBranch(intDeploymentDetails.lastDeployedBranch);
 
-            Tooltip.defaultSetup();
-            if (deployingInProgress) {
-              const deployingEnv = intDeploymentDetails.lastDeploymentStatus === 'DEPLOY_REQUESTED' ? 'staging' : 'production';
-              setDeployEnvironment(deployingEnv);
-              setCodeDeploying(true);
-              enableDeployLivelinessCheck(res.workspaceId, deployingEnv);
+              setProdCodeDeployed(prodDeployed);
+              setProdCodeDeployedUrl(prodDeployedUrl);
+              setProdCodeDeployedBranch(prodDeploymentDetails.lastDeployedBranch);
+
+              Tooltip.defaultSetup();
+              if (deployingInProgress) {
+                const deployingEnv = intDeploymentDetails.lastDeploymentStatus === 'DEPLOY_REQUESTED' ? 'staging' : 'production';
+                setDeployEnvironment(deployingEnv);
+                setCodeDeploying(true);
+                enableDeployLivelinessCheck(res.workspaceId, deployingEnv);
+              }
+            } else {
+              Notification.show(`Code space ${res.projectDetails.projectName} is getting created. Please try again later.`, 'warning');
             }
-          } else {
-            Notification.show(`Code space ${res.projectDetails.projectName} is getting created. Please try again later.`, 'warning');
-          }
-        }, Envs.CODESPACE_OIDC_POPUP_WAIT_TIME);
-      })
-      .catch((err: Error) => {
-        Notification.show('Error in loading codespace - Please contact support.' + err.message, 'alert');
-        history.replace('/codespaces');
-      });
-    // ApiClient.getCodeSpace().then((res: any) => {
-    //   setLoading(false);
-    //   const codeSpaceRunning = (res.success === 'true');
-    //   setCodeSpaceData({
-    //     ...codeSpaceData,
-    //     running: codeSpaceRunning
-    //   });
-    //   setShowNewCodeSpaceModal(!codeSpaceRunning);
-    // }).catch((err: Error) => {
-    //   Notification.show("Error in validating code space - " + err.message, 'alert');
-    // });
+          }, Envs.CODESPACE_OIDC_POPUP_WAIT_TIME);
+        })
+        .catch((err: Error) => {
+          Notification.show('Error in loading codespace - Please contact support.' + err.message, 'alert');
+          history.replace('/codespaces');
+        });
+      // ApiClient.getCodeSpace().then((res: any) => {
+      //   setLoading(false);
+      //   const codeSpaceRunning = (res.success === 'true');
+      //   setCodeSpaceData({
+      //     ...codeSpaceData,
+      //     running: codeSpaceRunning
+      //   });
+      //   setShowNewCodeSpaceModal(!codeSpaceRunning);
+      // }).catch((err: Error) => {
+      //   Notification.show("Error in validating code space - " + err.message, 'alert');
+      // });
     } else {
       Notification.show('Codespace id is missing. Please choose your codespace to open.', 'warning');
       history.replace('/codespaces');
@@ -312,8 +277,8 @@ const CodeSpace = (props: ICodeSpaceProps) => {
         ProgressIndicator.hide();
         setShowCodeDeployModal(true);
         setBranches(res);
-        // setIAMTechnicalUserID(codeSpaceData.projectDetails?.intDeploymentDetails?.technicalUserDetailsForIAMLogin || '');
-        // setSecureWithIAMSelected(codeSpaceData.projectDetails?.intDeploymentDetails?.secureWithIAMRequired || false);
+        setIAMTechnicalUserID(codeSpaceData.projectDetails?.intDeploymentDetails?.technicalUserDetailsForIAMLogin || '');
+        setSecureWithIAMSelected(codeSpaceData.projectDetails?.intDeploymentDetails?.secureWithIAMRequired || false);
         SelectBox.defaultSetup();
         Tooltip.defaultSetup();
       })
@@ -351,7 +316,7 @@ const CodeSpace = (props: ICodeSpaceProps) => {
                 setProdCodeDeployedUrl(prodDeploymentDetails?.deploymentUrl);
                 setProdCodeDeployedBranch(branchValue);
               }
-              
+
               Tooltip.defaultSetup();
               setShowCodeDeployModal(false);
               Notification.show(`Code from code space ${res.projectDetails?.projectName} succesfully deployed.`);
@@ -391,23 +356,22 @@ const CodeSpace = (props: ICodeSpaceProps) => {
   const onDeployEnvironmentChange = (evnt: React.FormEvent<HTMLInputElement>) => {
     const deployEnv = evnt.currentTarget.value.trim();
     setDeployEnvironment(deployEnv);
-    // if (deployEnv === 'staging') {
-    //   setSecureWithIAMSelected(codeSpaceData.projectDetails?.intDeploymentDetails?.secureWithIAMRequired || false);
-    //   setIAMTechnicalUserID(codeSpaceData.projectDetails?.intDeploymentDetails?.technicalUserDetailsForIAMLogin || '');
-    // } else {
-    //   setSecureWithIAMSelected(codeSpaceData.projectDetails?.prodDeploymentDetails?.secureWithIAMRequired || false);
-    //   setIAMTechnicalUserID(codeSpaceData.projectDetails?.prodDeploymentDetails?.technicalUserDetailsForIAMLogin || '');
-    // }
+    if (deployEnv === 'staging') {
+      setSecureWithIAMSelected(codeSpaceData.projectDetails?.intDeploymentDetails?.secureWithIAMRequired || false);
+      setIAMTechnicalUserID(codeSpaceData.projectDetails?.intDeploymentDetails?.technicalUserDetailsForIAMLogin || '');
+    } else {
+      setSecureWithIAMSelected(codeSpaceData.projectDetails?.prodDeploymentDetails?.secureWithIAMRequired || false);
+      setIAMTechnicalUserID(codeSpaceData.projectDetails?.prodDeploymentDetails?.technicalUserDetailsForIAMLogin || '');
+    }
   };
 
   const onAcceptCodeDeploy = () => {
-    const secureWithIAMSelected = false;
-    // if (secureWithIAMSelected && iamTechnicalUserID.trim() === '') {
-    //   setIAMTechnicalUserIDError(requiredError);
-    //   return;
-    // } else {
-    //   setIAMTechnicalUserIDError('');
-    // }
+    if (secureWithIAMSelected && iamTechnicalUserID.trim() === '') {
+      setIAMTechnicalUserIDError(requiredError);
+      return;
+    } else {
+      setIAMTechnicalUserIDError('');
+    }
     const deployRequest: IDeployRequest = {
       secureWithIAMRequired: secureWithIAMSelected,
       technicalUserDetailsForIAMLogin: secureWithIAMSelected ? iamTechnicalUserID : null,
@@ -456,39 +420,14 @@ const CodeSpace = (props: ICodeSpaceProps) => {
     setSecureWithIAMSelected(e.target.checked);
   };
 
-  // const onIAMTechnicalUserIDOnChange = (evnt: React.FormEvent<HTMLInputElement>) => {
-  //   const iamUserID = evnt.currentTarget.value.trim();
-  //   setIAMTechnicalUserID(iamUserID);
-  //   setIAMTechnicalUserIDError(iamUserID.length ? '' : requiredError);
-  // };
+  const onIAMTechnicalUserIDOnChange = (evnt: React.FormEvent<HTMLInputElement>) => {
+    const iamUserID = evnt.currentTarget.value.trim();
+    setIAMTechnicalUserID(iamUserID);
+    setIAMTechnicalUserIDError(iamUserID.length ? '' : requiredError);
+  };
 
   const onAcceptContinueCodingOnDeployment = (e: React.ChangeEvent<HTMLInputElement>) => {
     setAcceptContinueCodingOnDeployment(e.target.checked);
-  };
-
-  const getIAMAliceUsers = (user: IUserDetails) => {
-    const collabarationData = {
-      firstName: user.firstName,
-      lastName: user.lastName,
-      id: user.shortId,
-      department: user.department,
-      eMail: user.email,
-      email: user.email,
-      mobileNumber: user.mobileNumber,
-      roles: [{ id: 'reader', name: 'Reader' }], // Default role is Reader
-    };
-
-    let duplicateMember = false;
-    duplicateMember = usersIAMAliceSecured.filter((member: IUserInfo) => member.id === user.shortId)?.length
-      ? true
-      : false;
-
-    if (duplicateMember) {
-      Notification.show(`User ${user.firstName} ${user.lastName} already exist.`, 'warning');
-    } else {
-      usersIAMAliceSecured.push(collabarationData);
-      setUsersIAMAliceSecured([...usersIAMAliceSecured]);
-    }
   };
 
   const disableDeployment = codeSpaceData?.projectDetails?.recipeDetails?.recipeId.startsWith('public') || DEPLOYMENT_DISABLED_RECIPE_IDS.includes(codeSpaceData?.projectDetails?.recipeDetails?.recipeId);
@@ -506,6 +445,9 @@ const CodeSpace = (props: ICodeSpaceProps) => {
       <path d="M 15 2 C 11.145666 2 8 5.1456661 8 9 L 8 11 L 6 11 C 4.895 11 4 11.895 4 13 L 4 25 C 4 26.105 4.895 27 6 27 L 24 27 C 25.105 27 26 26.105 26 25 L 26 13 C 26 11.895 25.105 11 24 11 L 22 11 L 22 9 C 22 5.2715823 19.036581 2.2685653 15.355469 2.0722656 A 1.0001 1.0001 0 0 0 15 2 z M 15 4 C 17.773666 4 20 6.2263339 20 9 L 20 11 L 10 11 L 10 9 C 10 6.2263339 12.226334 4 15 4 z" />
     </svg>
   );
+
+  const isPublicRecipe = codeSpaceData?.projectDetails?.recipeDetails?.recipeId.startsWith('public');
+  const isOwner = codeSpaceData.projectDetails?.projectOwner?.id === props.user.id;
 
   return (
     <div className={fullScreenMode ? Styles.codeSpaceWrapperFSmode : '' + ' ' + Styles.codeSpaceWrapper}>
@@ -528,6 +470,16 @@ const CodeSpace = (props: ICodeSpaceProps) => {
             <div className={Styles.navigation}>
               {codeSpaceData.running && (
                 <div className={Styles.headerright}>
+                  {!isPublicRecipe && isOwner && (
+                    <div className={Styles.configLink}
+                      onClick={() => history.push(`/codespace/securityconfig/${codeSpaceData.id}`)}>
+                      <a href={codeDeployedUrl} target="_blank" rel="noreferrer">
+                        <IconGear size={'16'} /> {CODE_SPACE_TITLE} (
+                        {codeSpaceData?.configStatus})
+                      </a>
+                      &nbsp;
+                    </div>
+                  )}
                   {!disableDeployment && (
                     <>
                       {codeDeployed && (
@@ -640,7 +592,7 @@ const CodeSpace = (props: ICodeSpaceProps) => {
           cancelButtonTitle={'Cancel'}
           onAccept={onAcceptCodeDeploy}
           showCancelButton={true}
-          modalWidth="700px"
+          modalWidth="600px"
           buttonAlignment="center"
           show={showCodeDeployModal}
           content={
@@ -702,7 +654,7 @@ const CodeSpace = (props: ICodeSpaceProps) => {
               </div>
               {(!codeSpaceData.projectDetails.recipeDetails?.recipeId.match(/^(react|angular)$/)) &&
                 <>
-                  {/* {deployEnvironment === 'staging' && */}
+                  {deployEnvironment === 'staging' &&
                     <>
                       <div>
                         <label className="checkbox">
@@ -715,144 +667,35 @@ const CodeSpace = (props: ICodeSpaceProps) => {
                               disabled={codeSpaceData.projectDetails?.intDeploymentDetails?.secureWithIAMRequired}
                             />
                           </span>
-                          <span className="label">Secure with IAM + Alice Access</span>
+                          <span className="label">Secure with IAM</span>
                         </label>
                       </div>
                       {secureWithIAMSelected && (
-                        <div className={classNames('input-field-group include-error')}>
-                          <label htmlFor="userId" className="input-label">
-                            Find and add the users you want to access your API
-                          </label>
-                          <div className={Styles.iamUserSection}>
-                            <div className={Styles.iamUserSectionList}>
-                              <div className={Styles.iamUserSectionListAdd}>
-                                <AddUser
-                                  getCollabarators={getIAMAliceUsers}
-                                  dagId={''}
-                                  isRequired={secureWithIAMSelected}
-                                  isUserprivilegeSearch={false}
-                                  title='User'
-                                />
-                              </div>
-                              <div className={Styles.iamUserList}>
-                                {usersIAMAliceSecured?.length > 0 ? (
-                                  <React.Fragment>
-                                    <div className={Styles.iamUserTitle}>
-                                      <div className={Styles.iamUserTitleCol}>User ID</div>
-                                      <div className={Styles.iamUserTitleCol}>Name</div>
-                                      <div className={Styles.iamUserTitleCol}>Role</div>
-                                      <div className={Styles.iamUserTitleCol}></div>
-                                    </div>
-                                    <div className={classNames('mbc-scroll', Styles.iamUserContent)}>
-                                      {usersIAMAliceSecured?.map((item, collIndex) => {
-                                        const isAdmin = item.roles.filter((role: IRole) => role.id === 'admin').length ? true : false;
-                                        const isUser = item.roles.filter((role: IRole) => role.id === 'user').length ? true : false;
-                                        const isReader = item.roles.filter((role: IRole) => role.id === 'reader').length ? true : false;
-                                        
-                                        return (
-                                          <div key={collIndex} className={Styles.iamUserContentRow}>
-                                            <div className={Styles.iamUserTitleCol}>{item.id}</div>
-                                            <div className={Styles.iamUserTitleCol}>
-                                              {item.firstName + ' ' + item.lastName}
-                                            </div>
-                                            <div className={Styles.iamUserTitleCol}>
-                                              <div className={classNames('input-field-group include-error ' + Styles.inputGrp)}>
-                                                <label className={classNames('checkbox', Styles.checkBoxDisable)}>
-                                                  <span className="wrapper">
-                                                    <input
-                                                      type="checkbox"
-                                                      className="ff-only"
-                                                      value="reader"
-                                                      checked={isReader}
-                                                      readOnly
-                                                    />
-                                                  </span>
-                                                  <span className="label">Reader</span>
-                                                </label>
-                                              </div>
-                                              &nbsp;&nbsp;&nbsp;
-                                              <div className={classNames('input-field-group include-error ' + Styles.inputGrp)}>
-                                                <label className={'checkbox'}>
-                                                  <span className="wrapper">
-                                                    <input
-                                                      type="checkbox"
-                                                      className="ff-only"
-                                                      value="User"
-                                                      checked={isUser}
-                                                      readOnly
-                                                      // checked={item?.permission !== null ? item?.canDeploy : false}
-                                                      // onChange={(e) => onCollaboratorPermission(e, item.id)}
-                                                    />
-                                                  </span>
-                                                  <span className="label">User</span>
-                                                </label>
-                                              </div>
-                                              &nbsp;&nbsp;&nbsp;
-                                              <div className={classNames('input-field-group include-error ' + Styles.inputGrp)}>
-                                                <label className={'checkbox'}>
-                                                  <span className="wrapper">
-                                                    <input
-                                                      type="checkbox"
-                                                      className="ff-only"
-                                                      value="Admin"
-                                                      checked={isAdmin}
-                                                      readOnly
-                                                      // checked={item?.permission !== null ? item?.canDeploy : false}
-                                                      // onChange={(e) => onCollaboratorPermission(e, item.id)}
-                                                    />
-                                                  </span>
-                                                  <span className="label">Admin</span>
-                                                </label>
-                                              </div>
-                                            </div>
-                                            <div className={Styles.iamUserTitleCol}>
-                                              <span
-                                                tooltip-data={'Remove User'}
-                                                className={Styles.deleteEntry}
-                                                // onClick={onCollaboratorDelete(item.id)}
-                                              >
-                                                <i className="icon mbc-icon trash-outline" />
-                                              </span>
-                                            </div>
-                                          </div>
-                                        );
-                                      })}
-                                    </div>
-                                  </React.Fragment>
-                                ) : (
-                                  <div className={Styles.iamUserSectionEmpty}>
-                                    <h6> Collaborators Not Exist!</h6>
-                                  </div>
-                                )}
-                              </div>
-                            </div>
+                        <div className={classNames(Styles.flexLayout, codeSpaceData.projectDetails?.intDeploymentDetails?.secureWithIAMRequired && Styles.disabledDiv)}>
+                          <div>
+                            <TextBox
+                              type="text"
+                              controlId={'iamTechnicalUserID'}
+                              labelId={'iamTechnicalUserIDLabel'}
+                              label={'Technical User ID'}
+                              placeholder={'IAM Technical User Id'}
+                              value={iamTechnicalUserID}
+                              errorText={iamTechnicalUserIDError}
+                              required={true}
+                              maxLength={7}
+                              onChange={onIAMTechnicalUserIDOnChange}
+                            />
+                          </div>
+                          <div className={Styles.createTechUserWrapper}>
+                            <a href={IAM_URL} target="_blank" rel="noreferrer">
+                              Create a new technical user in IAM (Enabled only with Production IAM)
+                            </a>
                           </div>
                         </div>
-                        // <div className={classNames(Styles.flexLayout, codeSpaceData.projectDetails?.intDeploymentDetails?.secureWithIAMRequired && Styles.disabledDiv)}>
-                        //   <div>
-                        //     <TextBox
-                        //       type="text"
-                        //       controlId={'iamTechnicalUserID'}
-                        //       labelId={'iamTechnicalUserIDLabel'}
-                        //       label={'Technical User ID'}
-                        //       placeholder={'IAM Technical User Id'}
-                        //       value={iamTechnicalUserID}
-                        //       errorText={iamTechnicalUserIDError}
-                        //       required={true}
-                        //       maxLength={7}
-                        //       onChange={onIAMTechnicalUserIDOnChange}
-                        //     />
-                        //   </div>
-                        //   <div className={Styles.createTechUserWrapper}>
-                        //     <a href={IAM_URL} target="_blank" rel="noreferrer">
-                        //       Create a new technical user in IAM (Enabled only with Production IAM)
-                        //     </a>
-                        //   </div>
-                        // </div>
                       )}
                     </>
-                  {/* } */}
-                  {/* {deployEnvironment === 'production' &&
+                  }
+                  {deployEnvironment === 'production' &&
                     <>
                       <div>
                         <label className="checkbox">
@@ -892,7 +735,7 @@ const CodeSpace = (props: ICodeSpaceProps) => {
                         </div>
                       )}
                     </>
-                  } */}
+                  }
                 </>
               }
               <div>

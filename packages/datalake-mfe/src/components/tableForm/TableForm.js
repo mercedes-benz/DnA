@@ -3,8 +3,9 @@ import React, { useState, useEffect } from 'react';
 import { useForm, useFormContext, FormProvider } from "react-hook-form";
 import Styles from './table-form.scss';
 import SelectBox from 'dna-container/SelectBox';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import { v4 as uuidv4 } from 'uuid';
+import { setTables } from '../../redux/graphSlice';
 
 const TableFormItem = (props) => {
   const { register } = useFormContext();
@@ -65,12 +66,12 @@ const TableFormItem = (props) => {
               <input
                 type="text"
                 className={classNames('input-field')}
-                id={`${index}.name`}
-                {...register(`${index}.name`)}
+                id={`${index}.columnName`}
+                {...register(`${index}.columnName`)}
                 placeholder="Type here"
                 autoComplete="off"
                 maxLength={55}
-                defaultValue={field.name}
+                defaultValue={field.columnName}
               />
             </div>
           </div>
@@ -80,7 +81,7 @@ const TableFormItem = (props) => {
                 Type <sup>*</sup>
               </label>
               <div className="custom-select">
-                <select id={`${index}.type`} {...register(`${index}.type`)}>
+                <select id={`${index}.dataType`} {...register(`${index}.dataType`)}>
                   <option value={'BOOLEAN'}>BOOLEAN</option>
                   <option value={'INTEGER'}>INTEGER</option>
                   <option value={'BYTE'}>BYTE</option>
@@ -108,7 +109,8 @@ const TableFormItem = (props) => {
               <input
                 type="text"
                 className={classNames('input-field')}
-                id="projectName"
+                id={`${index}.comment`} 
+                {...register(`${index}.comment`)}
                 placeholder="Type here"
                 autoComplete="off"
                 maxLength={55}
@@ -122,7 +124,7 @@ const TableFormItem = (props) => {
             <div>
               <label className="checkbox">
                 <span className="wrapper">
-                  <input type="checkbox" className="ff-only" />
+                  <input type="checkbox" className="ff-only" id={`${index}.notNullConstraintEnabled`} {...register(`${index}.notNullConstraintEnabled`)} defaultChecked={true} />
                 </span>
                 <span className="label">Not Null</span>
               </label>
@@ -174,7 +176,7 @@ const TableFormBase = () => {
             </label>
             <div className="custom-select">
               <select id="tableFormat" {...register('tableFormat')}>
-                <option value={'PARQUET'}>PARQUET</option>
+                <option value={'Parquet'}>Parquet</option>
                 <option value={'ORC'}>ORC</option>
               </select>
             </div>
@@ -204,6 +206,10 @@ const TableFormBase = () => {
 
 const TableForm = ({setToggle}) => {
   const methods = useForm();
+  const { handleSubmit } = methods;
+  
+  const { project } = useSelector(state => state.graph);
+  const dispatch = useDispatch();
 
   useEffect(() => {
     SelectBox.defaultSetup();
@@ -223,17 +229,33 @@ const TableForm = ({setToggle}) => {
   }, [editingTable]);
 
   const onSubmit = (data) => {
-    console.log('table form data');
-    console.log(data);
+    const { tableName, tableFormat, tableComment, ...colData } = data;
+    const cols = [];
+    for (const key in colData) {
+      cols.push(colData[key]);
+    }
+    const tableData = {
+      tableName: tableName,
+      dataFormat: tableFormat,
+      description: tableComment,
+      xcoOrdinate: 10,
+      ycoOrdinate: 10,
+      columns: [...cols],
+    };
+    const projectTemp = {...project};
+    projectTemp.tables = [...projectTemp.tables, tableData];
+    dispatch(setTables(projectTemp.tables));
+    setToggle();
   }
 
   const addItem = index => {
     const newState = [...columns];
     newState.splice(index + 1, 0, {
         id: uuidv4(),
-        name: 'new item' + newState.length,
-        type: '',
-        unique: false,
+        columnName: 'new item' + newState.length,
+        comment: '',
+        dataType: '',
+        notNullConstraintEnabled: true,
     });
     setFields(newState);
   };
@@ -247,7 +269,7 @@ const TableForm = ({setToggle}) => {
 
   return (
     <FormProvider {...methods} >
-        <form onSubmit={methods.handleSubmit(onSubmit)} className={Styles.form}>
+        <div className={Styles.form}>
           <div className={Styles.formContent}>
             <TableFormBase />
             {columns.length > 0 && 
@@ -264,9 +286,9 @@ const TableForm = ({setToggle}) => {
           </div>
           <div className="drawer-footer">
             <button className="btn btn-primary" onClick={setToggle}>Cancel</button>
-            <button className="btn btn-tertiary" type="submit">Save</button>
+            <button className="btn btn-tertiary" onClick={handleSubmit((values) => onSubmit(values))}>Save</button>
           </div>
-        </form>
+        </div>
     </FormProvider>
   )
 }

@@ -8,7 +8,7 @@ export interface IBarChartWidgetProps {
   xAxisSubLabel?: string;
   yAxisLabel: string;
   yAxisSubLabel?: string;
-  tooltipContentComponent: React.StatelessComponent<any>;
+  tooltipContentComponent: React.FunctionComponent<any>;
   onChartBarClick: (value: any) => void;
 }
 
