@@ -344,8 +344,11 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 				if(existingRuns!=null && !existingRuns.isEmpty()) {
 				boolean isUploadConfigRecommendationSuccess =false;
 				boolean isUploadConfigRecommendationFail =false;
-					String uploadConfigMessage = "";
-					String uploadConfigNotificationEventName = "Chronos:  Recommendation file generated" + " for run";
+				List<NotificationDetails> notificationDetails = new ArrayList<>();
+
+
+
+
 					String configFileName="";
 					List<String> memberIds = new ArrayList<>();
 					List<String> memberEmails = new ArrayList<>();
@@ -529,6 +532,9 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 											// Use the multipartFile in your application
 
 											boolean duplicateFile = false;
+											NotificationDetails configRecommendationNotification = new NotificationDetails();
+											String uploadConfigMessage = "";
+											String uploadConfigNotificationEventName = "Chronos:  Recommendation file generated" +  " for run '" + run.getRunName() + "'";
 											String configFileIdId = UUID.randomUUID().toString();
 											List<File> configFiles = entity.getData().getConfigFiles();
 											if (configFiles != null && !configFiles.isEmpty()) {
@@ -537,7 +543,10 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 													duplicateFile = true;
 													log.error("File with name already exists in uploaded config files list. Project {} and file {}", forecastName, fileName);
 													uploadConfigMessage = "New recommendation file generated based on " + run.getRunName() + " inputs, Failed to upload recommendation " + fileName + " to project specific configs, File with name already exists in uploaded config files list";
-													notifyUsers(forecastId, memberIds, memberEmails, uploadConfigMessage, "", uploadConfigNotificationEventName, null);
+													configRecommendationNotification.setNotificationEventName(uploadConfigNotificationEventName);
+													configRecommendationNotification.setMessage(uploadConfigMessage);
+													notificationDetails.add(configRecommendationNotification);
+													/*notifyUsers(forecastId, memberIds, memberEmails, uploadConfigMessage, "", uploadConfigNotificationEventName, null);*/
 												}
 											} else {
 												configFiles = new ArrayList<>();
@@ -548,6 +557,11 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 												if (fileUploadResponse == null || (fileUploadResponse != null && (fileUploadResponse.getErrors() != null || !"SUCCESS".equalsIgnoreCase(fileUploadResponse.getStatus())))) {
 													log.error("Failed to upload config file {} to storage bucket", fileName);
 													isUploadConfigRecommendationFail=true;
+													uploadConfigMessage = "New recommendation file generated based on "+run.getRunName()+ " inputs, Failed to upload recommendation " +fileName +  " to project specific configs,  with exception";
+													configRecommendationNotification.setNotificationEventName(uploadConfigNotificationEventName);
+													configRecommendationNotification.setMessage(uploadConfigMessage);
+													notificationDetails.add(configRecommendationNotification);
+
 												} else if ("SUCCESS".equalsIgnoreCase(fileUploadResponse.getStatus())) {
 													isUploadConfigRecommendationSuccess=true;
 													List<InputFileVO> configFilesVOList = new ArrayList<>();
@@ -562,6 +576,10 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 													currentConfigInput.setCreatedBy(ownerId);
 													configFilesVOList.add(currentConfigInput);
 													entity.getData().setConfigFiles(this.assembler.toConfigFiles(configFilesVOList));
+													uploadConfigMessage = "New recommendation file generated based on" + run.getRunName() + " inputs, Successfully upload recommendation" + fileName + "to project specific configs";
+													configRecommendationNotification.setNotificationEventName(uploadConfigNotificationEventName);
+													configRecommendationNotification.setMessage(uploadConfigMessage);
+													notificationDetails.add(configRecommendationNotification);
 												}
 											}
 										}
@@ -621,9 +639,13 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 									
 
 									String message ="";
+									NotificationDetails runUpdateNotification = new NotificationDetails();
 									message="Run '" + run.getRunName() + "' triggered by " + run.getTriggeredBy() +" for Chronos project '"+ forecastName + "' completed with ResultState " + newState.getResult_state() +". Please check forecast results for more details.";
 									String notificationEventName = "Chronos: " + newState.getResult_state() + " for run '" + run.getRunName() + "'" ;
-									notifyUsers(forecastId, memberIds, memberEmails,message,"",notificationEventName,null);
+									runUpdateNotification.setMessage(message);
+									runUpdateNotification.setNotificationEventName(notificationEventName);
+									/*notifyUsers(forecastId, memberIds, memberEmails,message,"",notificationEventName,null);*/
+								    notificationDetails.add(runUpdateNotification);
 								}
 								
 								newState.setState_message(updatedStateMsg);
@@ -699,15 +721,10 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 					}
 				entity.getData().setRuns(updatedDbRunRecords);
 				this.jpaRepo.save(entity);
-					if (isUploadConfigRecommendationSuccess) {
-						uploadConfigMessage = "New recommendation file generated based on" + forecastName + " , Successfully upload recommendation" + configFileName + "to project specific configs";
-						notifyUsers(forecastId, memberIds, memberEmails, uploadConfigMessage, "", uploadConfigNotificationEventName, null);
+				for(NotificationDetails notification: notificationDetails){
 
-					}
-					if (isUploadConfigRecommendationFail) {
-						uploadConfigMessage = "New recommendation file generated based for" + forecastName +",Failed to upload recommendation" + configFileName + "to project specific configs,  with exception";
-						notifyUsers(forecastId, memberIds, memberEmails, uploadConfigMessage, "", uploadConfigNotificationEventName, null);
-					}
+					notifyUsers(forecastId, memberIds, memberEmails,notification.getMessage(),"",notification.getNotificationEventName(),null);
+				}
 				updatedRunVOList = this.assembler.toRunsVO(updatedRuns);
 			}
 			}
