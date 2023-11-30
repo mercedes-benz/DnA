@@ -371,7 +371,7 @@ enum TypeOfCalculationEnum{
 }
 
 enum AIRiskAssessmentTypeEnum{
-	NO_RISK, 
+	NOT_APPLICABLE, 
 	BASIC_RISK,
 	HIGH_RISK
 }
