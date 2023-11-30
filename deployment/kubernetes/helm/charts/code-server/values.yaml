@@ -215,3 +215,14 @@ extraPorts: []
   # - name: minecraft
   #   port: 25565
   #   protocol: tcp
+
+
+## Additional Configuration 
+githubToken: ""
+githuburl: ""
+minioEndpoint: ""
+minioKey: ""
+minioSecret: ""
+shortid: ""
+isCollaborator: "false"
+pathCheckout: "./"

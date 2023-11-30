@@ -594,7 +594,7 @@ export class ApiClient {
     if (published) {
       reqQuery += `,published:${published}`;
     }
-    reqQuery += `,hasDigitalValue:${digitalvaluecontribution ? digitalvaluecontribution : false}`;
+    reqQuery += `,hasDigitalValue:${digitalvaluecontribution }`;
     reqQuery += `,hasNotebook:${notebookavailable ? notebookavailable : false}`;
     const resQuery = `totalCount
       records {id,
@@ -904,7 +904,7 @@ export class ApiClient {
     sortOrder: string,
     published: boolean,
     searchKey: string,
-    digitalvaluecontribution = false,
+    digitalvaluecontribution?: boolean,
     notebookavailable = false,
   ): Promise<any> {
     let reqQuery = `location:"${locations}",phase:"${phases}",division:"${divisions}",projectStatus:"${status}",useCaseType:"${useCaseType}",dataVolume:"${dataVolumes}",tags:"${tags}",offset:0,limit:0,sortBy:"${sortBy}",sortOrder:"${sortOrder}"`;

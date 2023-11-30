@@ -3,13 +3,15 @@ import SvgIcon from '../svgIcon/SvgIcon';
 
 export interface IIconGearProps {
   className?: string;
+  fill?: string;
+  size?: string;
 }
 
 export const IconGear = (props: IIconGearProps): JSX.Element => {
   return (
-    <SvgIcon {...props} viewbox={'0 0 32 32'}>
-      <g id="Data@MBC-Solutions" stroke="none" strokeWidth="1" fill="none" fillRule="evenodd">
-        <g id="Data_MBC_App_Home" transform="translate(-70.000000, -907.000000)" fill="#252A33">
+    <SvgIcon {...props} viewbox={'0 0 32 32'} size={props.size || '25'}>
+      <g id="Data@MBC-Solutions" stroke="none" strokeWidth="1" fill="#99a5b3" fillRule="evenodd">
+        <g id="Data_MBC_App_Home" transform="translate(-70.000000, -907.000000)" fill="#99a5b3">
           <g id="Modules" transform="translate(12.000000, 148.000000)">
             <g id="Phase" transform="translate(0.000000, 516.000000)">
               <g id="Icons" transform="translate(0.000000, 69.000000)">
