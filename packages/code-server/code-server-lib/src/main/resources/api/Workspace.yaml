@@ -962,24 +962,7 @@ definitions:
           type: array
           items:
             $ref: "#/definitions/CodespaceSecurityConfigLOV"
-
-          
-          
-  # CodespaceSecurityRoleResponseVO:
-    # type: object
-    # properties:
-    #   id:
-    #     type: string
-    #     description: "Role Id" 
-    #   name:
-    #     type: string
-    #     description: "Role name"   
-    #   roleEntitlements:
-    #       type: array
-    #       items:
-    #         $ref: "#/definitions/CodespaceSecurityEntitlementLOV"
-    #       default: []
-                  
+                           
   CodespaceSecurityConfigLOV:
     type: object
     properties:
@@ -989,16 +972,6 @@ definitions:
       name:
         type: string
         description: "name"  
-
-  # CodespaceSecurityEntitlementLOV:
-  #   type: object
-  #   properties:
-  #     id:
-  #       type: string
-  #       description: "Entitlement Id" 
-  #     name:
-  #       type: string
-  #       description: "Entitlement name"  
 
   CodespaceSecurityApiListVO:
     type: object
@@ -1035,35 +1008,6 @@ definitions:
           type: string
       isProtectedByDna:
         type: boolean
-
-  # CodespaceSecurityConfigResponseVO:
-  #   type: object
-  #   properties:
-  #     status:
-  #       type: string
-  #       description: "Status of security configurations"   
-  #     entitlements:
-  #       type: array
-  #       items:
-  #         $ref: "#/definitions/CodespaceSecurityEntitlementVO"
-  #       default: []
-  #     roles:
-  #       type: array
-  #       items:
-  #         $ref: "#/definitions/CodespaceSecurityRoleResponseVO" 
-  #       default: []
-  #     userRoleMappings:
-  #       type: array
-  #       items:
-  #         $ref: "#/definitions/CodespaceSecurityUserRoleMapResponseVO"
-  #       default: []
-  #     openSegments:
-  #       type: array
-  #       items:
-  #         type: string
-  #     isProtectedByDna:
-  #       type: boolean
-
   UserIdVO:
     type: object
     properties:

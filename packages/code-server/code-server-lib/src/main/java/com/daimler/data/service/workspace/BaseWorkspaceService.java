@@ -1097,11 +1097,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 			jpaRepo.save(entity);
 			MessageDescription msg = new MessageDescription();
 			List<MessageDescription> errorMessage = new ArrayList<>();
-			msg.setMessage("Sucessfully saved the security config");
-			errorMessage.add(msg);
-			responseMessage.addErrors(msg);
-			responseMessage.setSuccess("SUCCESS");    
-			responseMessage.setErrors(errorMessage); 
+			responseMessage.setSuccess("SUCCESS");
 			
 		}catch(Exception e){
 			log.error("caught exception while saving security config {}",e.getMessage());

@@ -349,9 +349,6 @@
 					 vo.getProjectDetails().setSecurityConfig(data);
 					 responseMessage = service.saveSecurityConfig(vo);
 					 saveConfigResponse.setResponse(responseMessage);
-					//  if (responseMessage.getSuccess().equalsIgnoreCase("SUCCESS")) {
-						 //saveConfigResponse.setData(workspaceAssembler.toSaveConfigResponse(vo));
-					//  }
 					saveConfigResponse.setData(data);
 					 return new ResponseEntity<>(saveConfigResponse, HttpStatus.OK);
 				 }
@@ -360,9 +357,6 @@
 			 vo.getProjectDetails().setSecurityConfig(data);
 			 responseMessage = service.saveSecurityConfig(vo);
 			 saveConfigResponse.setResponse(responseMessage);
-			//  if (responseMessage.getSuccess().equalsIgnoreCase("SUCCESS")) {
-				 //saveConfigResponse.setData(workspaceAssembler.toSaveConfigResponse(vo));
-			//  }
 			vo = service.getById(userId, id);
 			saveConfigResponse.setData(vo.getProjectDetails().getSecurityConfig());
 			 return new ResponseEntity<>(saveConfigResponse, HttpStatus.OK);
@@ -1159,16 +1153,29 @@
 		 CodeServerWorkspaceVO vo = service.getById(userId, id);
  
 		 if (vo == null || vo.getWorkspaceId() == null) {
-			 log.debug("No workspace found, returning empty");
-			 return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
+			  log.debug("No workspace found, returning empty");
+			 GenericMessage emptyResponse = new GenericMessage();
+			 List<MessageDescription> errorMessage = new ArrayList<>();
+			 MessageDescription msg = new MessageDescription();
+			 msg.setMessage("No workspace found for given id and the user");
+			 errorMessage.add(msg);
+			 emptyResponse.addErrors(msg);
+			 emptyResponse.setSuccess("FAILED");
+			 emptyResponse.setErrors(errorMessage);
+			 return new ResponseEntity<>(emptyResponse, HttpStatus.NOT_FOUND);
  
 		 }
 		 if (!(vo != null && vo.getWorkspaceOwner() != null
 				 && vo.getWorkspaceOwner().getId().equalsIgnoreCase(userId))) {
+					MessageDescription notAuthorizedMsg = new MessageDescription();
+				 notAuthorizedMsg.setMessage(
+						 "security configurations for workspace can be view only by Owners. Denied, does not have privileges.");
+				 GenericMessage errorMessage = new GenericMessage();
+				 errorMessage.addErrors(notAuthorizedMsg);
 			 log.info(
 					 "security configurations for workspace can be view only by Owners, insufficient privileges. Workspace name: {}",
 					 userId, vo.getWorkspaceId());
-			 return new ResponseEntity<>(null, HttpStatus.FORBIDDEN);
+			 return new ResponseEntity<>(notAuthorizedMsg, HttpStatus.FORBIDDEN);
 		 }
 		 if (vo != null && vo.getProjectDetails().getSecurityConfig() == null) {
  
