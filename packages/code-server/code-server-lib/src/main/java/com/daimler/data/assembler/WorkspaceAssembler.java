@@ -36,6 +36,7 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import java.util.Objects;
+import java.util.UUID;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -454,105 +455,161 @@ public class WorkspaceAssembler implements GenericAssembler<CodeServerWorkspaceV
 
 	public CodespaceSecurityConfigVO assembleSecurityConfig(CodeServerWorkspaceVO vo, CodespaceSecurityConfigVO data) {
 		CodespaceSecurityConfigVO assembledSecurityConfig = new CodespaceSecurityConfigVO();
+		if (data != null) {
+			try {
 
-		try {
-			
-			assembledSecurityConfig.setStatus(data.getStatus());
+				assembledSecurityConfig.setStatus(data.getStatus());
+				if (data.getEntitlements() != null) {
+					assembledSecurityConfig.setEntitlements(data.getEntitlements());
+				} else {
+					assembledSecurityConfig.setEntitlements(new ArrayList<>());
+				}
+				if (data.getOpenSegments() != null) {
+					assembledSecurityConfig.setOpenSegments(data.getOpenSegments());
+				} else {
+					assembledSecurityConfig.setOpenSegments(new ArrayList<>());
+				}
+				if (data.isIsProtectedByDna() != null) {
+					assembledSecurityConfig.setIsProtectedByDna(data.isIsProtectedByDna());
+				}
+				List<CodespaceSecurityEntitlementVO> oldEntitlementList = new ArrayList<>();
+				if (vo.getProjectDetails().getSecurityConfig().getEntitlements() != null) {
+					oldEntitlementList = vo.getProjectDetails().getSecurityConfig()
+							.getEntitlements();
+				}
+				List<CodespaceSecurityRoleVO> oldRolesList = new ArrayList<>();
+				if (vo.getProjectDetails().getSecurityConfig().getRoles() != null) {
+					oldRolesList = vo.getProjectDetails().getSecurityConfig().getRoles();
+				}
+				List<CodespaceSecurityUserRoleMapVO> olduserRolesMapList = new ArrayList<>();
+				if (vo.getProjectDetails().getSecurityConfig()
+						.getUserRoleMappings() != null) {
+					olduserRolesMapList = vo.getProjectDetails().getSecurityConfig()
+							.getUserRoleMappings();
+				}
+				List<CodespaceSecurityRoleVO> newRoleList = new ArrayList<>();
+				List<CodespaceSecurityUserRoleMapVO> newUserRoleMapList = new ArrayList<>();
+
+				if (oldEntitlementList != null && data.getEntitlements() != null
+						&& oldEntitlementList.size() > data.getEntitlements().size()) {
+
+					List<CodespaceSecurityEntitlementVO> entitlementListToDelete = new ArrayList<>(oldEntitlementList);
+					entitlementListToDelete.removeAll(data.getEntitlements());
+					for (CodespaceSecurityRoleVO role : oldRolesList) {
+						List<CodespaceSecurityConfigLOV> oldRoleEntitlementList = role.getRoleEntitlements();
+						List<CodespaceSecurityConfigLOV> newRoleEntitlementList = new ArrayList<>();
+						for (CodespaceSecurityConfigLOV roleEntitlement : oldRoleEntitlementList) {
+							for (CodespaceSecurityEntitlementVO entitlementToDelete : entitlementListToDelete) {
+								if (!roleEntitlement.getId().equalsIgnoreCase(entitlementToDelete.getId())) {
+									newRoleEntitlementList.add(roleEntitlement);
+								}
+							}
+						}
+						role.getRoleEntitlements().clear();
+						role.setRoleEntitlements(newRoleEntitlementList);
+						newRoleList.add(role);
+					}
+					assembledSecurityConfig.setRoles(newRoleList);
+				} else {
+					if (data.getRoles() != null) {
+						assembledSecurityConfig.setRoles(data.getRoles());
+					} else {
+						assembledSecurityConfig.setRoles(new ArrayList<>());
+					}
+
+				}
+
+				if (oldRolesList != null && data.getRoles() != null && oldRolesList.size() > data.getRoles().size()) {
+					List<CodespaceSecurityRoleVO> roleListToDelete = new ArrayList<>(oldRolesList);
+					roleListToDelete.removeAll(data.getRoles());
+
+					for (CodespaceSecurityUserRoleMapVO userRoleMap : olduserRolesMapList) {
+						List<CodespaceSecurityConfigLOV> oldUserRoleList = userRoleMap.getRoles();
+						List<CodespaceSecurityConfigLOV> newUserRoleList = new ArrayList<>();
+						for (CodespaceSecurityConfigLOV userRole : oldUserRoleList) {
+							for (CodespaceSecurityRoleVO roleToDelete : roleListToDelete) {
+								if (!userRole.getId().equalsIgnoreCase(roleToDelete.getId())) {
+									newUserRoleList.add(userRole);
+								}
+							}
+						}
+						userRoleMap.getRoles().clear();
+						userRoleMap.setRoles(newUserRoleList);
+						if (!userRoleMap.getRoles().isEmpty()) {
+							newUserRoleMapList.add(userRoleMap);
+						}
+
+					}
+					assembledSecurityConfig.setUserRoleMappings(newUserRoleMapList);
+
+				} else {
+					if (data.getUserRoleMappings() != null) {
+						assembledSecurityConfig.setUserRoleMappings(data.getUserRoleMappings());
+					} else {
+						assembledSecurityConfig.setUserRoleMappings(new ArrayList<>());
+					}
+				}
+			} catch (Exception e) {
+				e.printStackTrace();
+				log.error("Failed in assembler while parsing date into iso format with exception {}", e.getMessage());
+			}
+		}
+		return assembledSecurityConfig;
+	}
+
+	public CodespaceSecurityConfigVO generateSecurityConfigIds(CodespaceSecurityConfigVO data) {
+		CodespaceSecurityConfigVO securityConfigWithIds = new CodespaceSecurityConfigVO();
+		if (data != null) {
+
+			securityConfigWithIds.setStatus(data.getStatus());
 			if (data.getEntitlements() != null) {
-				assembledSecurityConfig.setEntitlements(data.getEntitlements());
+				securityConfigWithIds.setEntitlements(data.getEntitlements());
 			} else {
-				assembledSecurityConfig.setEntitlements(new ArrayList<>());
+				securityConfigWithIds.setEntitlements(new ArrayList<>());
 			}
 			if (data.getOpenSegments() != null) {
-				assembledSecurityConfig.setOpenSegments(data.getOpenSegments());
+				securityConfigWithIds.setOpenSegments(data.getOpenSegments());
 			} else {
-				assembledSecurityConfig.setOpenSegments(new ArrayList<>());
+				securityConfigWithIds.setOpenSegments(new ArrayList<>());
 			}
 			if (data.isIsProtectedByDna() != null) {
-				assembledSecurityConfig.setIsProtectedByDna(data.isIsProtectedByDna());
-			}
-			List<CodespaceSecurityEntitlementVO> oldEntitlementList = new ArrayList<>();
-			if (vo.getProjectDetails().getSecurityConfig().getEntitlements() != null) {
-				oldEntitlementList = vo.getProjectDetails().getSecurityConfig()
-						.getEntitlements();
-			}
-			List<CodespaceSecurityRoleVO> oldRolesList = new ArrayList<>();
-			if (vo.getProjectDetails().getSecurityConfig().getRoles() != null) {
-				oldRolesList = vo.getProjectDetails().getSecurityConfig().getRoles();
-			}
-			List<CodespaceSecurityUserRoleMapVO> olduserRolesMapList = new ArrayList<>();
-			if (vo.getProjectDetails().getSecurityConfig()
-					.getUserRoleMappings() != null) {
-				olduserRolesMapList = vo.getProjectDetails().getSecurityConfig()
-						.getUserRoleMappings();
-			}
-			List<CodespaceSecurityRoleVO> newRoleList = new ArrayList<>();
-			List<CodespaceSecurityUserRoleMapVO> newUserRoleMapList = new ArrayList<>();
-
-			if (oldEntitlementList!=null && data.getEntitlements()!=null && oldEntitlementList.size() > data.getEntitlements().size()) {
-
-				List<CodespaceSecurityEntitlementVO> entitlementListToDelete = new ArrayList<>(oldEntitlementList);
-				entitlementListToDelete.removeAll(data.getEntitlements());
-				for (CodespaceSecurityRoleVO role : oldRolesList) {
-					List<CodespaceSecurityConfigLOV> oldRoleEntitlementList = role.getRoleEntitlements();
-					List<CodespaceSecurityConfigLOV> newRoleEntitlementList = new ArrayList<>();
-					for (CodespaceSecurityConfigLOV roleEntitlement : oldRoleEntitlementList) {
-						for (CodespaceSecurityEntitlementVO entitlementToDelete : entitlementListToDelete) {
-							if (!roleEntitlement.getId().equalsIgnoreCase(entitlementToDelete.getId())) {
-								newRoleEntitlementList.add(roleEntitlement);
-							}
-						}
-					}
-					role.getRoleEntitlements().clear();
-					role.setRoleEntitlements(newRoleEntitlementList);
-					newRoleList.add(role);
-				}
-				assembledSecurityConfig.setRoles(newRoleList);
-			} else {
-				if (data.getRoles() != null) {
-					assembledSecurityConfig.setRoles(data.getRoles());
-				} else {
-					assembledSecurityConfig.setRoles(new ArrayList<>());
-				}
-
+				securityConfigWithIds.setIsProtectedByDna(data.isIsProtectedByDna());
 			}
 
-			if (oldRolesList!=null && data.getRoles()!=null && oldRolesList.size() > data.getRoles().size()) {
-				List<CodespaceSecurityRoleVO> roleListToDelete = new ArrayList<>(oldRolesList);
-				roleListToDelete.removeAll(data.getRoles());
+			List<CodespaceSecurityEntitlementVO> entitlementList = new ArrayList<>();
+			if (data.getEntitlements() != null) {
+				entitlementList = data.getEntitlements();
+			}
+			List<CodespaceSecurityRoleVO> roleList = new ArrayList<>();
+			if (data.getRoles() != null) {
+				roleList = data.getRoles();
+			}
+			List<CodespaceSecurityUserRoleMapVO> roleMapList = new ArrayList<>();
+			if (data.getUserRoleMappings() != null) {
+				roleMapList = data.getUserRoleMappings();
+			}
 
-				for (CodespaceSecurityUserRoleMapVO userRoleMap : olduserRolesMapList) {
-					List<CodespaceSecurityConfigLOV> oldUserRoleList = userRoleMap.getRoles();
-					List<CodespaceSecurityConfigLOV> newUserRoleList = new ArrayList<>();
-					for (CodespaceSecurityConfigLOV userRole : oldUserRoleList) {
-						for (CodespaceSecurityRoleVO roleToDelete : roleListToDelete) {
-							if (!userRole.getId().equalsIgnoreCase(roleToDelete.getId())) {
-								newUserRoleList.add(userRole);
-							}
-						}
-					}
-					userRoleMap.getRoles().clear();
-					userRoleMap.setRoles(newUserRoleList);
-					if (!userRoleMap.getRoles().isEmpty()) {
-						newUserRoleMapList.add(userRoleMap);
-					}
-
-				}
-				assembledSecurityConfig.setUserRoleMappings(newUserRoleMapList);
-
-			} else {
-				if (data.getUserRoleMappings() != null) {
-					assembledSecurityConfig.setUserRoleMappings(data.getUserRoleMappings());
-				} else {
-					assembledSecurityConfig.setUserRoleMappings(new ArrayList<>());
+			for (CodespaceSecurityEntitlementVO entitlement : entitlementList) {
+				if(entitlement.getId()==null){
+					entitlement.setId(UUID.randomUUID().toString());
 				}
 			}
-		} catch (Exception e) {
-			e.printStackTrace();
-			log.error("Failed in assembler while parsing date into iso format with exception {}", e.getMessage());
+			securityConfigWithIds.setEntitlements(entitlementList);
+			for(CodespaceSecurityRoleVO role : roleList){
+				if(role.getId()==null){
+					role.setId(UUID.randomUUID().toString());
+				}
+			}
+			securityConfigWithIds.setRoles(roleList);
+			for(CodespaceSecurityUserRoleMapVO userRoleMap : roleMapList){
+				if(userRoleMap.getId()==null){
+					userRoleMap.setId(UUID.randomUUID().toString());
+				}
+			}
+			securityConfigWithIds.setUserRoleMappings(roleMapList);
+			
 		}
-
-		return assembledSecurityConfig;
+		return securityConfigWithIds;
 	}
 
 	// public CodespaceSecurityConfigResponseVO

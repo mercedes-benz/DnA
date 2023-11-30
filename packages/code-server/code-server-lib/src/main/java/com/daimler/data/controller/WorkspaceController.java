@@ -304,7 +304,7 @@
 			 saveConfigResponse.setResponse(emptyResponse);
 			 return new ResponseEntity<>(saveConfigResponse, HttpStatus.NOT_FOUND);
 		 }
-		 if (vo != null && vo.getStatus().equalsIgnoreCase("CREATED")) {
+		if (vo != null && vo.getStatus().equalsIgnoreCase("CREATED")) {
  
 			 if (!(vo != null && vo.getWorkspaceOwner() != null
 					 && vo.getWorkspaceOwner().getId().equalsIgnoreCase(userId))) {
@@ -344,6 +344,7 @@
 				 if (vo.getProjectDetails().getSecurityConfig().getStatus() != null
 						 && (vo.getProjectDetails().getSecurityConfig().getStatus().equalsIgnoreCase("DRAFT") || vo
 								 .getProjectDetails().getSecurityConfig().getStatus().equalsIgnoreCase("PUBLISHED"))) {
+					 data = workspaceAssembler.generateSecurityConfigIds(data);
 					 data = workspaceAssembler.assembleSecurityConfig(vo,data);
 					 vo.getProjectDetails().setSecurityConfig(data);
 					 responseMessage = service.saveSecurityConfig(vo);
@@ -355,6 +356,7 @@
 					 return new ResponseEntity<>(saveConfigResponse, HttpStatus.OK);
 				 }
 			 }
+			 data = workspaceAssembler.generateSecurityConfigIds(data);
 			 vo.getProjectDetails().setSecurityConfig(data);
 			 responseMessage = service.saveSecurityConfig(vo);
 			 saveConfigResponse.setResponse(responseMessage);
