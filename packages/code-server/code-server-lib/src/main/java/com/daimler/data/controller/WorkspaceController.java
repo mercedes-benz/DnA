@@ -1162,7 +1162,7 @@
 			 emptyResponse.addErrors(msg);
 			 emptyResponse.setSuccess("FAILED");
 			 emptyResponse.setErrors(errorMessage);
-			 return new ResponseEntity<>(emptyResponse, HttpStatus.NOT_FOUND);
+			 return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
  
 		 }
 		 if (!(vo != null && vo.getWorkspaceOwner() != null
@@ -1175,7 +1175,7 @@
 			 log.info(
 					 "security configurations for workspace can be view only by Owners, insufficient privileges. Workspace name: {}",
 					 userId, vo.getWorkspaceId());
-			 return new ResponseEntity<>(notAuthorizedMsg, HttpStatus.FORBIDDEN);
+			 return new ResponseEntity<>(null, HttpStatus.FORBIDDEN);
 		 }
 		 if (vo != null && vo.getProjectDetails().getSecurityConfig() == null) {
  
