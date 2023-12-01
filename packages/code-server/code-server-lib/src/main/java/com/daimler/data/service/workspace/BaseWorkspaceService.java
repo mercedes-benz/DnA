@@ -287,12 +287,16 @@ public class BaseWorkspaceService implements WorkspaceService {
 			CodeServerWorkspaceNsql entity = workspaceAssembler.toEntity(vo);
 			
 			//validate user pat 
-			HttpStatus validateUserPatstatus = gitClient.validateGitPat(entity.getData().getGitUserName(),pat);
-			if(!validateUserPatstatus.is2xxSuccessful()) {
-				MessageDescription errMsg = new MessageDescription("Invalid GitHub Personal Access Token provided. Please verify and retry.");
-				errors.add(errMsg);
-				responseVO.setErrors(errors);
-				return responseVO;
+			if (!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase()
+					.equalsIgnoreCase("default")) {
+				HttpStatus validateUserPatstatus = gitClient.validateGitPat(entity.getData().getGitUserName(), pat);
+				if (!validateUserPatstatus.is2xxSuccessful()) {
+					MessageDescription errMsg = new MessageDescription(
+							"Invalid GitHub Personal Access Token provided. Please verify and retry.");
+					errors.add(errMsg);
+					responseVO.setErrors(errors);
+					return responseVO;
+				}
 			}
 			
 			 WorkbenchManageDto ownerWorkbenchCreateDto = new WorkbenchManageDto();
@@ -370,18 +374,22 @@ public class BaseWorkspaceService implements WorkspaceService {
 			List<UserInfoVO> collabs = new ArrayList<>();
 			if(!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public")) {
 			//validate user pat 
-			HttpStatus validateUserPatstatus = gitClient.validateGitPat(owner.getGitUserName(),pat);
-			if(!validateUserPatstatus.is2xxSuccessful()) {
-				MessageDescription errMsg = new MessageDescription("Invalid GitHub Personal Access Token provided. Please verify and retry.");
-				errors.add(errMsg);
-				responseVO.setErrors(errors);
-				return responseVO;
+			if (!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase()
+					.equalsIgnoreCase("default")) {
+				HttpStatus validateUserPatstatus = gitClient.validateGitPat(owner.getGitUserName(), pat);
+				if (!validateUserPatstatus.is2xxSuccessful()) {
+					MessageDescription errMsg = new MessageDescription(
+							"Invalid GitHub Personal Access Token provided. Please verify and retry.");
+					errors.add(errMsg);
+					responseVO.setErrors(errors);
+					return responseVO;
+				}
 			}
 			
 			//initialize repo
-			if(!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("private") && !vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("bat")) {
+			if(!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("private")) {
 			repoName = vo.getProjectDetails().getGitRepoName();
-			if(!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().equalsIgnoreCase("default") ) {
+			if(!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().equalsIgnoreCase("default") && !vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("bat")) {
 				HttpStatus createRepoStatus = gitClient.createRepo(repoName);
 				if(!createRepoStatus.is2xxSuccessful()) {
 					MessageDescription errMsg = new MessageDescription("Failed while initializing git repository " +repoName + " for codespace  with status " + createRepoStatus.name()  + " . Please verify inputs/permissions/existing repositories and retry.");
@@ -394,6 +402,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 			// create repo success, adding collabs
 			 
 			 gitUsers.add(owner.getGitUserName());
+			 if(!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().equalsIgnoreCase("default")) {
 			 collabs = vo.getProjectDetails().getProjectCollaborators();
 			 if(collabs!=null && !collabs.isEmpty()) {
 				 List<String> collabsGitUserNames = collabs.stream().map(n->n.getGitUserName()).collect(Collectors.toList());
@@ -422,7 +431,8 @@ public class BaseWorkspaceService implements WorkspaceService {
 					 	}
 					        */
 				 }
-			 }
+			   }
+			  }
 			} 
 		}else {
 //			repoName = vo.getProjectDetails().getRecipeDetails().getRepodetails();
@@ -450,7 +460,8 @@ public class BaseWorkspaceService implements WorkspaceService {
 			 ownerWorkbenchCreateInputsDto.setIsCollaborator("false");
 			 ownerWorkbenchCreateInputsDto.setPat(pat);
 			 String repoNameWithOrg = "";
-			 if(!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public") && !vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("private")) {
+			 if(!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public") && !vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("private")
+			   && !vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("bat")) {
 				 repoNameWithOrg =  gitOrgUri + gitOrgName + "/" + repoName;
 			 }
 			 else {
@@ -499,7 +510,8 @@ public class BaseWorkspaceService implements WorkspaceService {
 			 ownerEntity.getData().setStatus(ConstantsUtility.CREATEREQUESTEDSTATE);
 			 ownerEntity.getData().setWorkspaceUrl("");//set url
 			 ownerEntity.getData().getProjectDetails().setProjectCreatedOn(now);
-			 if(vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public")) {
+			 if(vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public") ||
+				vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().equalsIgnoreCase("default")) {
 				 ownerEntity.getData().getProjectDetails().setProjectCollaborators(new ArrayList<>());
 				 collabs = new ArrayList<>();
 			 }

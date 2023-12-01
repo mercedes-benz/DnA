@@ -1,3 +1,8 @@
+{{/*
+Copyright (c) HashiCorp, Inc.
+SPDX-License-Identifier: MPL-2.0
+*/}}
+
 {{- template "vault.injectorEnabled" . -}}
 {{- if .injectorEnabled -}}
 {{- if .Capabilities.APIVersions.Has "admissionregistration.k8s.io/v1" }}
@@ -8,7 +13,6 @@ apiVersion: admissionregistration.k8s.io/v1beta1
 kind: MutatingWebhookConfiguration
 metadata:
   name: {{ template "vault.fullname" . }}-agent-injector-cfg
-  namespace: {{ .Values.namespace }}
   labels:
     app.kubernetes.io/name: {{ include "vault.name" . }}-agent-injector
     app.kubernetes.io/instance: {{ .Release.Name }}
@@ -24,7 +28,7 @@ webhooks:
     clientConfig:
       service:
         name: {{ template "vault.fullname" . }}-agent-injector-svc
-        namespace: {{ .Values.namespace }}
+        namespace: {{ include "vault.namespace" . }}
         path: "/mutate"
       caBundle: {{ .Values.injector.certs.caBundle | quote }}
     rules:
@@ -36,8 +40,5 @@ webhooks:
     namespaceSelector:
 {{ toYaml (((.Values.injector.webhook)).namespaceSelector | default .Values.injector.namespaceSelector) | indent 6}}
 {{ end }}
-{{- if or (((.Values.injector.webhook)).objectSelector) (.Values.injector.objectSelector) }}
-    objectSelector:
-{{ toYaml (((.Values.injector.webhook)).objectSelector | default .Values.injector.objectSelector) | indent 6}}
-{{ end }}
+{{- template "injector.objectSelector" . -}}
 {{ end }}

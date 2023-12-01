@@ -12,6 +12,8 @@ import { trackEvent } from '../../../../services/utils';
 // @ts-ignore
 import Notification from '../../../../assets/modules/uilab/js/src/notification';
 import { IUserInfo } from 'globals/types';
+import { IconGear } from 'components/icons/IconGear';
+import { DEPLOYMENT_DISABLED_RECIPE_IDS } from 'globals/constants';
 
 interface CodeSpaceCardItemProps {
   userInfo: IUserInfo;
@@ -34,6 +36,7 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
   const recipes = recipesMaster;
   const isOwner = codeSpace.projectDetails?.projectOwner?.id === props.userInfo.id;
   const hasCollaborators = codeSpace.projectDetails?.projectCollaborators?.length > 0;
+  const disableDeployment = codeSpace?.projectDetails?.recipeDetails?.recipeId.startsWith('public') || DEPLOYMENT_DISABLED_RECIPE_IDS.includes(codeSpace?.projectDetails?.recipeDetails?.recipeId);
 
   const deleteCodeSpaceContent = (
     <div>
@@ -102,6 +105,14 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
     } else {
       history.push(`codespace/${codeSpace.workspaceId}`);
     }
+  };
+
+  const onCodeSpaceSecurityConfigClick = (codeSpace: ICodeSpaceData) => {
+    if (codeSpace?.projectDetails?.publishSecurityConfig) {
+      history.push(`/codespace/publishedSecurityconfig/${codeSpace.id}?pub=true`);
+      return;
+    }
+    history.push(`codespace/securityconfig/${codeSpace.id}?pub=false`);
   };
 
   const onCodeSpaceDelete = () => {
@@ -250,6 +261,11 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
                 )}
               </div>
               <div className={Styles.btnGrp}>
+                {!disableDeployment && !isPublicRecipe && !createInProgress && !deployingInProgress && !creationFailed && isOwner && (
+                  <button className="btn btn-primary" onClick={() => onCodeSpaceSecurityConfigClick(codeSpace)}>
+                    <IconGear size={'18'} />
+                  </button>
+                )}
                 {!isPublicRecipe && !createInProgress && !deployingInProgress && !creationFailed && isOwner && (
                   <button className="btn btn-primary" onClick={() => props.onCodeSpaceEdit(codeSpace)}>
                     <i className="icon mbc-icon edit"></i>

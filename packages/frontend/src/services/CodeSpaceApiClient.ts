@@ -70,4 +70,33 @@ export class CodeSpaceApiClient {
   public static getWorkSpacesTransparency(): Promise<any> {
     return this.get('workspaces/transparency');
   }
+
+  public static createOrUpdateCodeSpaceConfig(id: string, data: any) {
+    return this.patch(`workspaces/${id}/config`, data);
+  }
+
+  public static getCodeSpaceConfig(id: string): Promise<any[]> {
+    return this.get(`/workspaces/${id}/config`)
+  };
+
+  public static getPublishedConfig(id: string): Promise<any[]> {
+    return this.get(`/workspaces/${id}/config/publish`)
+  };
+
+  public static getEntitlements(id: string): Promise<any[]> {
+    return this.get(`/workspaces/${id}/config/entitlements`)
+  };
+
+  public static getRoles(id: string): Promise<any[]> {
+    return this.get(`/workspaces/${id}/config/roles`)
+  };
+
+  public static getRolesMappings(id: string): Promise<any[]> {
+    return this.get(`/workspaces/${id}/config/mappings`)
+  };
+
+  public static addCodeSpaceRequest(id: string): Promise<any[]> {
+    return this.post(`/workspaces/${id}/config/request`)
+  };
+
 }
