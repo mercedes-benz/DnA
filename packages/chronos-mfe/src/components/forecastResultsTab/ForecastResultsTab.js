@@ -648,6 +648,8 @@ const ForecastResultsTab = ({ onRunClick }) => {
             }
             scrollableContent={false}
             onCancel={() => {
+              setActualsFile('');
+              setBusinessFile('');
               setShowCompareModal(false)
             }}
             modalStyle={{
