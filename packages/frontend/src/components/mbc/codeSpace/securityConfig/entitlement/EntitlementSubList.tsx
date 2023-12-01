@@ -23,6 +23,7 @@ export interface IEntitlementSublistProps {
   entitelmentListResponse: any;
   updatedFinalEntitlementList: any;
   status: string;
+  readOnlyMode: boolean;
 }
 
 const EntitlementSubList = (props: IEntitlementSublistProps) => {
@@ -261,7 +262,7 @@ const EntitlementSubList = (props: IEntitlementSublistProps) => {
                             <div className={Styles.actionBtnGrp}>
                               <button
                                 onClick={() => onEditEntitlement(item)}
-                                className={Styles.actionBtn + ' btn btn-primary'}
+                                className={Styles.actionBtn + ' btn btn-primary' + (props.readOnlyMode ? ' hidden' : '')}
                                 type="button"
                                 title={!CODE_SPACE_STATUS.includes(props?.status) ? 'Once the config is in published state, can edit Entitlement.' : ''}
                                 disabled={!CODE_SPACE_STATUS.includes(props?.status)}
@@ -272,7 +273,7 @@ const EntitlementSubList = (props: IEntitlementSublistProps) => {
                             <div className={Styles.actionBtnGrp}>
                               <button
                                 onClick={() => onDeleteEntitlement(item)}
-                                className={Styles.actionBtn + ' btn btn-primary'}
+                                className={Styles.actionBtn + ' btn btn-primary' + (props.readOnlyMode ? ' hidden' : '')}
                                 type="button"
                                 title={!CODE_SPACE_STATUS.includes(props?.status) ? 'Once the config is in published state, can delete Entitlement.' : ''}
                                 disabled={!CODE_SPACE_STATUS.includes(props?.status)}
@@ -324,7 +325,7 @@ const EntitlementSubList = (props: IEntitlementSublistProps) => {
                                         <React.Fragment>
                                           <button
                                             onClick={() => editPathMethod(item.name, apliItem.apiPattern, apliItem.httpMethod, apiPathMethodIndex)}
-                                            className={Styles.actionBtn + ' btn btn-primary'}
+                                            className={Styles.actionBtn + ' btn btn-primary' + (props.readOnlyMode ? ' hidden' : '')}
                                             type="button"
                                             title={!CODE_SPACE_STATUS.includes(props?.status) ? 'Once the config is in published state, can edit API Path/Pattern and Method.' : ''}
                                             disabled={!CODE_SPACE_STATUS.includes(props?.status)}
@@ -335,7 +336,7 @@ const EntitlementSubList = (props: IEntitlementSublistProps) => {
                                           &nbsp; &nbsp;
                                           <button
                                             onClick={() => deletePathMethod(item.name, apliItem.apiPattern, apliItem.httpMethod, apiPathMethodIndex)}
-                                            className={Styles.actionBtn + ' btn btn-primary'}
+                                            className={Styles.actionBtn + ' btn btn-primary' + (props.readOnlyMode ? ' hidden' : '')}
                                             type="button"
                                             title={!CODE_SPACE_STATUS.includes(props?.status) ? 'Once the config is in published state, can delete API Path/Pattern and Method.' : ''}
                                             disabled={!CODE_SPACE_STATUS.includes(props?.status)}
@@ -354,7 +355,7 @@ const EntitlementSubList = (props: IEntitlementSublistProps) => {
                             <div className={Styles.actionBtnGrp}>
                               <button
                                 onClick={() => onEditEntitlement(item)}
-                                className={Styles.actionBtn + ' btn btn-primary'}
+                                className={Styles.actionBtn + ' btn btn-primary' + (props.readOnlyMode ? ' hidden' : '')}
                                 style={{ backgroundColor: 'transparent' }}
                                 type="button"
                                 title={!CODE_SPACE_STATUS.includes(props?.status) ? 'Once the config is in published state, can edit Entitlement.' : ''}
@@ -367,7 +368,7 @@ const EntitlementSubList = (props: IEntitlementSublistProps) => {
                             <div className={Styles.actionBtnGrp}>
                               <button
                                 onClick={() => onDeleteEntitlement(item)}
-                                className={Styles.actionBtn + ' btn btn-primary'}
+                                className={Styles.actionBtn + ' btn btn-primary' + (props.readOnlyMode ? ' hidden' : '')}
                                 style={{ backgroundColor: 'transparent' }}
                                 type="button"
                                 title={!CODE_SPACE_STATUS.includes(props?.status) ? 'Once the config is in published state, can delete Entitlement.' : ''}
