@@ -11,7 +11,7 @@ import { Envs } from '../../utilities/envs';
 
 const ForecastingResults = () => {
   const printRef = React.useRef();
-
+  
   const history = useHistory();
   const { projectid: projectId, runid: runId } = useParams();
   const goback = () => {
@@ -810,7 +810,6 @@ const ForecastingResults = () => {
         <VisualContainer
           title="Forecast"
           forecastRun={forecastRun}
-          printRef={printRef}
           loading={loading}
           forecastData={forecastDataA}
           addTraces={addTraces}
@@ -824,7 +823,6 @@ const ForecastingResults = () => {
         <VisualContainer
           title="Decomposition"
           forecastRun={forecastRun}
-          printRef={printRef}
           loading={loading}
           forecastData={decompositionDataA}
           addTraces={addTracesDecomposition}
@@ -854,7 +852,6 @@ const ForecastingResults = () => {
         <VisualContainer
           title="Outlier"
           forecastRun={forecastRun}
-          printRef={printRef}
           loading={loading}
           forecastData={outlierDataA}
           addTraces={addTracesOutlier}
