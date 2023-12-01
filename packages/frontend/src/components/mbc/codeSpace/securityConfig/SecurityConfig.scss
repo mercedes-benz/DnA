@@ -114,3 +114,20 @@
     outline: none;
   }
 }
+
+.publishedConfig {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 20px;
+  background-color: transparent;
+}
+
+.editOrViewMode {
+  background-color: transparent;
+  border: none;
+  padding-right: 0;
+
+  &:hover {
+    background-color: transparent;
+  }
+}

@@ -233,12 +233,15 @@ const Roles = (props: any) => {
                         <div className={classNames(Styles.parentRole)}>
                             <div className={Styles.warningWrapper}>
                                 {!CODE_SPACE_STATUS.includes(config?.status) &&
-                                    <p style={{ color: 'var(--color-orange)' }}>
+                                    <p style={{ color: 'var(--color-orange)' }}
+                                        className={classNames((props.readOnlyMode ? ' hidden' : ''))}>
                                         <i className="icon mbc-icon alert circle">
                                         </i> Once the config is in published state, Can Add / Edit Roles</p>}
                             </div>
                             <div className={classNames(Styles.createEntitlementButton)}>
-                                {allentitelmentList?.length > 0 && <button className={classNames('btn add-dataiku-container btn-primary', Styles.createButton)} type="button"
+                                {allentitelmentList?.length > 0 && <button
+                                    className={classNames('btn add-dataiku-container btn-primary',
+                                        Styles.createButton + (props.readOnlyMode ? ' hidden' : ''))} type="button"
                                     onClick={() => {
                                         setEditRoleCol(false);
                                         setShowEditOrCreateModal(true);
@@ -291,7 +294,7 @@ const Roles = (props: any) => {
                                                 <td className={classNames("wrap-text", Styles.actionBtn)}>
                                                     <button
                                                         onClick={() => editRole(item)}
-                                                        className={Styles.actionBtn + ' btn btn-primary'}
+                                                        className={Styles.actionBtn + ' btn btn-primary' + (props.readOnlyMode ? ' hidden' : '')}
                                                         type="button"
                                                         title={!CODE_SPACE_STATUS.includes(props?.config?.status) ? 'Once the config is in published state, can edit Role.' : ''}
                                                         disabled={!CODE_SPACE_STATUS.includes(props?.config?.status)}
@@ -301,7 +304,7 @@ const Roles = (props: any) => {
                                                     &nbsp; &nbsp;
                                                     <button
                                                         onClick={() => deleteRole(item)}
-                                                        className={Styles.actionBtn + ' btn btn-primary'}
+                                                        className={Styles.actionBtn + ' btn btn-primary' + (props.readOnlyMode ? ' hidden' : '')}
                                                         type="button"
                                                         title={!CODE_SPACE_STATUS.includes(props?.config?.status) ? 'Once the config is in published state, can delete Role.' : ''}
                                                         disabled={!CODE_SPACE_STATUS.includes(props?.config?.status)}
@@ -328,7 +331,7 @@ const Roles = (props: any) => {
             </div>
             {<div className="btnConatiner">
                 <button className="btn btn-primary" type="button" onClick={roleSubmit}>
-                    {CODE_SPACE_STATUS.includes(config?.status) ? 'Save & Next' : 'Next'}
+                    {!CODE_SPACE_STATUS.includes(config?.status) || props.readOnlyMode ? 'Next' : 'Save & Next'}
                 </button>
             </div>}
             <Modal
