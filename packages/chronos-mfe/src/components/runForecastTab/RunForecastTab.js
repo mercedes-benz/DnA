@@ -46,7 +46,7 @@ const RunForecastTab = ({ onRunClick }) => {
     formData.append('frequency', data.frequency);
     formData.append('forecastHorizon', data.forecastHorizon);
     formData.append('hierarchy', data.hierarchy === undefined ? '' : data.hierarchy);
-    if(data.configurationFile.includes('OPTIMISATION_CONFIG')) {
+    if(data.runOnPowerfulMachines === undefined && data.configurationFile.includes('OPTIMISATION_CONFIG')) {
       formData.append('runOnPowerfulMachines', true);
     } else {
       formData.append('runOnPowerfulMachines', data.runOnPowerfulMachines === undefined ? false : data.runOnPowerfulMachines);
@@ -58,7 +58,7 @@ const RunForecastTab = ({ onRunClick }) => {
 
     ProgressIndicator.show();
     chronosApi.createForecastRun(formData, projectId).then(() => {
-        Notification.show('Forecast running...\n\nThis usually takes about 10 minutes.');
+        Notification.show('Forecast running...\n\nThis usually takes about 10 minutes, but it may take significantly longer based upon your settings.');
         document.body.scrollTop = 0;
         document.documentElement.scrollTop = 0;
         onRunClick();

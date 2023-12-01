@@ -23,6 +23,7 @@ const RunParametersForm = () => {
 
   const {isLoading, configFiles} = useSelector(state => state.chronosForm);
   const [showCustomConfigModal, setShowCustomConfigModal] = useState(false);
+  const [configRecommendation, setConfigRecommendation] = useState('');
 
   useEffect(() => {
     SelectBox.defaultSetup();
@@ -45,6 +46,10 @@ const RunParametersForm = () => {
   useEffect(() => {
     SelectBox.defaultSetup();
   }, [isLoading]);
+
+  useEffect(() => {
+    configRecommendation.includes('OPTIMISATION_CONFIG') && setShowCustomConfigModal(true)
+  }, [configRecommendation]);
 
   const customConfigFileContent = <div className={Styles.customConfigContainer}>
     <p>The optimization finds a custom configuration file tailored to your data. <strong>Please read the following hints and restrictions carefully:</strong></p>
@@ -112,7 +117,7 @@ const RunParametersForm = () => {
                   {...register('configurationFile', {
                     required: '*Missing entry',
                     validate: (value) => value !== '0' || '*Missing entry',
-                    onChange: (e) => { e.target.value.includes('OPTIMISATION_CONFIG') && setShowCustomConfigModal(true) }
+                    onChange: (e) => { setConfigRecommendation(e.target.value) }
                   })}
                 >
                   {
