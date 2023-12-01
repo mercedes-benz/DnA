@@ -33,7 +33,9 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
+import javax.validation.Valid;
 
 import com.daimler.data.dto.workspace.*;
 import org.springframework.beans.BeanUtils;
@@ -51,6 +53,8 @@ import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
 import com.daimler.data.db.entities.CodeServerWorkspaceNsql;
 import com.daimler.data.db.json.CodeServerDeploymentDetails;
+import com.daimler.data.db.json.CodeServerLeanGovernceFeilds;
+import com.daimler.data.db.json.CodeServerProjectDetails;
 import com.daimler.data.db.json.CodeServerWorkspace;
 import com.daimler.data.db.json.UserInfo;
 import com.daimler.data.db.repo.workspace.WorkspaceCustomRepository;
@@ -61,6 +65,7 @@ import com.daimler.data.dto.WorkbenchManageDto;
 import com.daimler.data.dto.WorkbenchManageInputDto;
 import com.daimler.data.dto.workspace.CodeServerRecipeDetailsVO.RecipeIdEnum;
 import com.daimler.data.util.ConstantsUtility;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -531,6 +536,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 					 entities.add(collabEntity);
 				 }
 			 }
+			 jpaRepo.save(ownerEntity);
 			 jpaRepo.saveAllAndFlush(entities);
 			 CodeServerWorkspaceNsql savedOwnerEntity = workspaceCustomRepository.findbyProjectName(projectOwnerId, projectName);
 			 CodeServerWorkspaceVO savedOwnerVO = workspaceAssembler.toVo(savedOwnerEntity);
@@ -1099,5 +1105,68 @@ public class BaseWorkspaceService implements WorkspaceService {
 	@Override
 	public CodeServerWorkspaceValidateVO validateCodespace(String id, String userId) {
 		return workspaceCustomRepository.validateCodespace(id, userId);
+	}
+
+	@Override
+	@Transactional
+	public GenericMessage updateGovernancenceValues(String userId, String id, DataGovernanceRequestInfo dataGovernanceInfo){
+		GenericMessage responseMessage = new GenericMessage();
+		List<MessageDescription> errors = new ArrayList<>();
+		List<MessageDescription> warnings = new ArrayList<>();
+		CodeServerWorkspaceNsql entity = workspaceCustomRepository.findById(userId, id);
+		boolean isProjectOwner = false;
+		
+		String projectOwnerId = entity.getData().getProjectDetails().getProjectOwner().getId();
+		String projectName = entity.getData().getProjectDetails().getProjectName();
+		if (projectOwnerId.equalsIgnoreCase(userId)) {
+			isProjectOwner = true;
+		}
+		if(isProjectOwner)
+		{
+			try
+			{
+				CodeServerLeanGovernceFeilds newGovFeilds = new CodeServerLeanGovernceFeilds();
+				BeanUtils.copyProperties(dataGovernanceInfo.getData(), newGovFeilds);
+				if(dataGovernanceInfo.getData().isPiiData() != null)
+				{
+					newGovFeilds.setPiiData(dataGovernanceInfo.getData().isPiiData());
+				}
+				GenericMessage updateLeanGovernanceFeilds = workspaceCustomRepository.updateGovernanceDetails(projectName,newGovFeilds);
+				if ("SUCCESS".equalsIgnoreCase(updateLeanGovernanceFeilds.getSuccess()))
+				{
+					responseMessage.setSuccess("SUCCESS");
+				}
+				else
+				{
+					log.error("Failed to update Lean Governance details");
+					MessageDescription msg = new MessageDescription("Failed to update lean governane details");
+					errors.add(msg);
+					responseMessage.setSuccess("FAILED");
+					responseMessage.setErrors(errors);
+					return responseMessage;
+				}
+			}
+			catch(Exception e)
+			{
+				log.error("Failed to update governance details as requested with Exception: {} ", e.getMessage());
+				MessageDescription msg = new MessageDescription("Failed to update governance details");
+				errors.add(msg);
+				responseMessage.setSuccess("FAILED");
+				responseMessage.setErrors(errors);
+				return responseMessage;
+			}
+
+		}
+		else
+		{
+			log.error("Failed to update governance details as requested user is not a project owner " + entity.getData().getWorkspaceId());
+			MessageDescription msg = new MessageDescription("Failed to update governance details as requested user is not a project owner");
+			errors.add(msg);
+			responseMessage.setSuccess("FAILED");
+			responseMessage.setErrors(errors);
+			return responseMessage;
+		}
+		return responseMessage;
+		
 	}
 }

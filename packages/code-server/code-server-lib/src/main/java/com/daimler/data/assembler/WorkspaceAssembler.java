@@ -39,11 +39,13 @@ import java.util.Objects;
 
 import com.daimler.data.db.entities.CodeServerWorkspaceNsql;
 import com.daimler.data.db.json.CodeServerDeploymentDetails;
+import com.daimler.data.db.json.CodeServerLeanGovernceFeilds;
 import com.daimler.data.db.json.CodeServerProjectDetails;
 import com.daimler.data.db.json.CodeServerRecipeDetails;
 import com.daimler.data.db.json.CodeServerWorkspace;
 import com.daimler.data.db.json.UserInfo;
 import com.daimler.data.dto.workspace.CodeServerDeploymentDetailsVO;
+import com.daimler.data.dto.workspace.CodeServerGovernanceVO;
 import com.daimler.data.dto.workspace.CodeServerProjectDetailsVO;
 import com.daimler.data.dto.workspace.CodeServerRecipeDetailsVO;
 import com.daimler.data.dto.workspace.CodeServerRecipeDetailsVO.CloudServiceProviderEnum;
@@ -52,6 +54,7 @@ import com.daimler.data.dto.workspace.CodeServerRecipeDetailsVO.EnvironmentEnum;
 import com.daimler.data.dto.workspace.CodeServerRecipeDetailsVO.OperatingSystemEnum;
 import com.daimler.data.dto.workspace.CodeServerRecipeDetailsVO.RamSizeEnum;
 import com.daimler.data.dto.workspace.CodeServerRecipeDetailsVO.RecipeIdEnum;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.daimler.data.dto.workspace.CodeServerWorkspaceVO;
 import com.daimler.data.dto.workspace.UserInfoVO;
 
@@ -155,6 +158,24 @@ public class WorkspaceAssembler implements GenericAssembler<CodeServerWorkspaceV
 					if(projectDetails!=null) {
 						CodeServerDeploymentDetailsVO intDeployDetailsVO = toDeploymentDetailsVO(projectDetails.getIntDeploymentDetails());
 						CodeServerDeploymentDetailsVO prodDeployDetailsVO = toDeploymentDetailsVO(projectDetails.getProdDeploymentDetails());
+						CodeServerGovernanceVO governanceVO = new CodeServerGovernanceVO();
+						CodeServerLeanGovernceFeilds governance = projectDetails.getDataGovernance();
+						if (governance != null) {
+							if (governance.getPiiData() != null) {
+								governanceVO.setPiiData(governance.getPiiData());
+							}
+							governanceVO.setClassificationType(governance.getClassificationType());
+							governanceVO.setDescription(governance.getDescription());
+							governanceVO.setDivision(governance.getDivision());
+							governanceVO.setSubDivision(governance.getSubDivision());
+							governanceVO.setDepartment(governance.getDepartment());
+							governanceVO.setArcherId(governance.getArcherId());
+							governanceVO.setProcedureID(governance.getProcedureID());
+							governanceVO.setPermission(governance.getPermission());
+							governanceVO.setTags(governance.getTags());
+							governanceVO.setTypeOfProject(governance.getTypeOfProject());
+							projectDetailsVO.setDataGovernance(governanceVO);
+						}
 						projectDetailsVO.setIntDeploymentDetails(intDeployDetailsVO);
 						projectDetailsVO.setProdDeploymentDetails(prodDeployDetailsVO);
 						List<UserInfo> collabs = projectDetails.getProjectCollaborators();
@@ -202,6 +223,25 @@ public class WorkspaceAssembler implements GenericAssembler<CodeServerWorkspaceV
 			CodeServerProjectDetailsVO projectDetailsVO = vo.getProjectDetails();
 			if(projectDetailsVO!=null) {
 				CodeServerProjectDetails projectDetails = new CodeServerProjectDetails();
+				CodeServerGovernanceVO governanceVO = projectDetailsVO.getDataGovernance();
+				if (governanceVO != null) {
+					CodeServerLeanGovernceFeilds governance = new CodeServerLeanGovernceFeilds();
+					System.out.println("governanceVo" + governanceVO.isPiiData());
+					if (governanceVO.isPiiData() != null) {
+						governance.setPiiData(governanceVO.isPiiData());
+					}
+					governance.setClassificationType(governanceVO.getClassificationType());
+					governance.setDescription(governanceVO.getDescription());
+					governance.setDivision(governanceVO.getDivision());
+					governance.setSubDivision(governanceVO.getSubDivision());
+					governance.setDepartment(governanceVO.getDepartment());
+					governance.setProcedureID(governanceVO.getProcedureID());
+					governance.setPermission(governanceVO.getPermission());
+					governance.setTags(governanceVO.getTags());
+					governance.setTypeOfProject(governanceVO.getTypeOfProject());
+					governance.setArcherId(governanceVO.getArcherId());
+					projectDetails.setDataGovernance(governance);
+				}
 				BeanUtils.copyProperties(projectDetailsVO,projectDetails);
 				UserInfoVO projectOwnerVO = projectDetailsVO.getProjectOwner();
 				if(projectOwnerVO!=null) {

@@ -29,6 +29,8 @@ package com.daimler.data.service.workspace;
 
 import java.util.List;
 
+import javax.validation.Valid;
+
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.dto.workspace.*;
 
@@ -67,5 +69,8 @@ public interface WorkspaceService {
 	List<String> getAllWorkspaceIds();
 
 	CodeServerWorkspaceValidateVO validateCodespace(String id, String userId);
+
+    GenericMessage updateGovernancenceValues(String userId, String id,
+            @Valid DataGovernanceRequestInfo dataGovernanceInfo);
 
 }
