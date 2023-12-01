@@ -784,10 +784,10 @@ public class SolutionAssembler implements GenericAssembler<SolutionVO, SolutionN
 				
 				//setting AI Risk assessment types
 				AiRiskAssessmentTypeEnum riskAssessmentType = AiRiskAssessmentTypeEnum.NOT_APPLICABLE;
-				if(solutionDataCompliance.getAIRiskAssessmentType()!=null && "HIGH_RISK".equalsIgnoreCase(solutionDataCompliance.getAIRiskAssessmentType())) {
+				if(solutionDataCompliance.getAiRiskAssessmentType()!=null && "HIGH_RISK".equalsIgnoreCase(solutionDataCompliance.getAiRiskAssessmentType())) {
 					riskAssessmentType = AiRiskAssessmentTypeEnum.HIGH_RISK;
 				}
-				if(solutionDataCompliance.getAIRiskAssessmentType()!=null && "BASIC_RISK".equalsIgnoreCase(solutionDataCompliance.getAIRiskAssessmentType())) {
+				if(solutionDataCompliance.getAiRiskAssessmentType()!=null && "BASIC_RISK".equalsIgnoreCase(solutionDataCompliance.getAiRiskAssessmentType())) {
 					riskAssessmentType = AiRiskAssessmentTypeEnum.BASIC_RISK;
 				}
 				solutionDataComplianceVO.setAiRiskAssessmentType(riskAssessmentType);
@@ -1500,7 +1500,7 @@ public class SolutionAssembler implements GenericAssembler<SolutionVO, SolutionN
 			if(solutionDataComplianceVO.getAiRiskAssessmentType()!=null && "BASIC_RISK".equalsIgnoreCase(solutionDataComplianceVO.getAiRiskAssessmentType().name())) {
 				riskAssessmentType = "BASIC_RISK";
 			}			
-			dataComplianceDetails.setAIRiskAssessmentType(riskAssessmentType);
+			dataComplianceDetails.setAiRiskAssessmentType(riskAssessmentType);
 			solution.setDataComplianceDetails(dataComplianceDetails);
 
 			SolutionPortfolioVO solutionPortfolioVO = vo.getPortfolio();
