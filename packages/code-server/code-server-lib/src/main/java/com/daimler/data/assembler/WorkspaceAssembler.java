@@ -320,6 +320,12 @@ public class WorkspaceAssembler implements GenericAssembler<CodeServerWorkspaceV
 									.tosecurityConfigVO(projectDetails.getSecurityConfig());
 							projectDetailsVO.setSecurityConfig(securityConfigVO);
 						}
+						if (projectDetails.getPublishedSecuirtyConfig() != null) {
+							CodespaceSecurityConfigVO publishedSecuirtyConfigVO = this
+									.tosecurityConfigVO(projectDetails.getPublishedSecuirtyConfig());
+							projectDetailsVO.setPublishedSecuirtyConfig(publishedSecuirtyConfigVO);
+
+						}
 						if (projectDetails.getProjectCreatedOn() != null)
 							projectDetailsVO.setProjectCreatedOn(
 									isoFormat.parse(isoFormat.format(projectDetails.getProjectCreatedOn())));
@@ -381,6 +387,11 @@ public class WorkspaceAssembler implements GenericAssembler<CodeServerWorkspaceV
 				if (codespaceSecurityConfigVO != null) {
 					CodespaceSecurityConfig securityConfig = this.toSecurityConfig(codespaceSecurityConfigVO);
 					projectDetails.setSecurityConfig(securityConfig);
+				}
+				CodespaceSecurityConfigVO codespacePublishSecurityConfigVo = projectDetailsVO
+						.getPublishedSecuirtyConfig();
+				if (codespacePublishSecurityConfigVo != null) {
+					projectDetails.setPublishedSecuirtyConfig(this.toSecurityConfig(codespacePublishSecurityConfigVo));
 				}
 				data.setProjectDetails(projectDetails);
 				entity.setData(data);

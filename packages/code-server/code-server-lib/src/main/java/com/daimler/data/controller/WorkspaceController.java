@@ -1261,6 +1261,8 @@ public class WorkspaceController implements CodeServerApi, CodeServerAdminApi {
 		CreatedByVO currentUser = this.userStore.getVO();
 		String userId = currentUser != null ? currentUser.getId() : null;
 		CodeServerWorkspaceVO vo = service.getById(userId, id);
+		CodespaceSecurityConfigVO securityConfigVO = vo.getProjectDetails().getPublishedSecuirtyConfig();
+		System.out.println(securityConfigVO);
 		GenericMessage responseMessage = new GenericMessage();
 		List<MessageDescription> errorMessage = new ArrayList<>();
 		MessageDescription msg = new MessageDescription();
@@ -1381,7 +1383,8 @@ public class WorkspaceController implements CodeServerApi, CodeServerAdminApi {
 			if (vo.getProjectDetails().getSecurityConfig().getStatus() != null
 					&& vo.getProjectDetails().getSecurityConfig().getStatus().equalsIgnoreCase("ACCEPTED")) {
 				vo.getProjectDetails().getSecurityConfig().setStatus("PUBLISHED");
-				responseMessage = service.saveSecurityConfig(vo);
+				vo.getProjectDetails().setPublishedSecuirtyConfig(vo.getProjectDetails().getSecurityConfig());
+				responseMessage = service.savePublishSecurityConfig(vo);
 				return new ResponseEntity<>(responseMessage, HttpStatus.OK);
 			} else {
 				MessageDescription notAuthorizedMsg = new MessageDescription();
@@ -1401,6 +1404,46 @@ public class WorkspaceController implements CodeServerApi, CodeServerAdminApi {
 		}
 		return new ResponseEntity<>(responseMessage, HttpStatus.FORBIDDEN);
 
+	}
+
+	@Override
+	@ApiOperation(value = "Get published config  details for a given Id.", nickname = "publishSecurityConfigDetails", notes = "Get published config details for a given Id.", response = CodespaceSecurityConfigVO.class, tags = {
+			"code-server", })
+	@ApiResponses(value = {
+			@ApiResponse(code = 200, message = "Returns message of success or failure", response = CodespaceSecurityConfigVO.class),
+			@ApiResponse(code = 204, message = "Fetch complete, no content found."),
+			@ApiResponse(code = 400, message = "Bad request."),
+			@ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+			@ApiResponse(code = 403, message = "Request is not authorized."),
+			@ApiResponse(code = 405, message = "Method not allowed"),
+			@ApiResponse(code = 500, message = "Internal error") })
+	@RequestMapping(value = "/workspaces/{id}/config/publish", produces = { "application/json" }, consumes = {
+			"application/json" }, method = RequestMethod.GET)
+	public ResponseEntity<CodespaceSecurityConfigVO> publishSecurityConfigDetails(
+			@ApiParam(value = "Workspace ID to be fetched", required = true) @PathVariable("id") String id) {
+		// TODO Auto-generated method stub
+		CodespaceSecurityConfigVO getPublishedConfigResp = new CodespaceSecurityConfigVO();
+		CreatedByVO currentUser = this.userStore.getVO();
+		String userId = currentUser != null ? currentUser.getId() : "";
+		CodeServerWorkspaceVO vo = service.getById(userId, id);
+		if (vo == null || vo.getWorkspaceId() == null) {
+			log.debug("No workspace found, returning empty");
+			return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
+		}
+		if (!(vo != null && vo.getWorkspaceOwner() != null
+				&& vo.getWorkspaceOwner().getId().equalsIgnoreCase(userId))) {
+			log.info(
+					"security configurations for workspace can be view only by Owners, insufficient privileges. Workspace name: {}",
+					userId, vo.getWorkspaceId());
+			return new ResponseEntity<>(null, HttpStatus.FORBIDDEN);
+		}
+		if (vo != null && vo.getProjectDetails().getPublishedSecuirtyConfig() == null) {
+
+			log.info("No published security configurations for workspace found");
+			return new ResponseEntity<>(null, HttpStatus.NO_CONTENT);
+		}
+		getPublishedConfigResp = vo.getProjectDetails().getPublishedSecuirtyConfig();
+		return new ResponseEntity<>(getPublishedConfigResp, HttpStatus.OK);
 	}
 
 }

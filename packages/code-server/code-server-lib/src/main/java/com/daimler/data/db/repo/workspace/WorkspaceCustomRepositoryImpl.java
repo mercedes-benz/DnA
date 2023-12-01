@@ -43,6 +43,7 @@ import javax.persistence.criteria.Root;
 import com.daimler.data.db.json.UserInfo;
 import com.daimler.data.dto.CodespaceSecurityConfigDto;
 import com.daimler.data.dto.workspace.CodeServerWorkspaceValidateVO;
+import com.daimler.data.dto.workspace.CodespaceSecurityConfigVO;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.springframework.stereotype.Repository;
@@ -477,7 +478,7 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 			}
 
 			if(data!=null && !data.isEmpty()) {
-				System.out.println("data----------------"+data);
+																
 				log.info("Found {} workspaces in project {} which are in requested state", data.size());
 			}
 		}catch(Exception e) {

@@ -37,6 +37,7 @@ import com.daimler.data.db.repo.common.CommonDataRepository;
 import com.daimler.data.dto.CodespaceSecurityConfigCollectionDto;
 import com.daimler.data.dto.CodespaceSecurityConfigDto;
 import com.daimler.data.dto.workspace.CodeServerWorkspaceValidateVO;
+import com.daimler.data.dto.workspace.CodespaceSecurityConfigVO;
 
 public interface WorkspaceCustomRepository extends CommonDataRepository<CodeServerWorkspaceNsql, String> {
 

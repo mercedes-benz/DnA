@@ -801,6 +801,8 @@ definitions:
         format: date
       securityConfig:
         $ref: "#/definitions/CodespaceSecurityConfigVO"
+      publishedSecuirtyConfig:
+        $ref: "#/definitions/CodespaceSecurityConfigVO"
       required:
         -projectName
         -recipeDetails
