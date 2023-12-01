@@ -1,9 +1,7 @@
 import cn from 'classnames';
 import * as React from 'react';
-import { getParams } from '../../../../router/RouterUtils';
+import { getParams, getPath, getQueryParam } from '../../../../router/RouterUtils';
 
-// @ts-ignore
-import Button from '../../../../assets/modules/uilab/js/src/button';
 // @ts-ignore
 import InputFields from '../../../../assets/modules/uilab/js/src/input-fields';
 // @ts-ignore
@@ -26,6 +24,7 @@ import Roles from './roles/Roles';
 // @ts-ignore
 import RoleMapping from './roleMapping/RoleMapping';
 import { CodeSpaceApiClient } from '../../../../../src/services/CodeSpaceApiClient';
+import { history } from '../../../../router/History';
 
 const classNames = cn.bind(Styles);
 export interface ICreateNewSecurityConfigState {
@@ -39,6 +38,9 @@ export interface ICreateNewSecurityConfigState {
     currentState: any;
     showAlertChangesModal: boolean;
     config: any;
+    readOnlyMode: boolean;
+    editModeNavigateModal: boolean;
+    isPublished: boolean;
 }
 
 export interface ICreateNewSecurityConfigProps {
@@ -63,18 +65,62 @@ export default class SecurityConfig extends React.Component<ICreateNewSecurityCo
                 roles: [],
                 userRoleMappings: [],
                 openSegments: []
-            }
+            },
+            readOnlyMode: false,
+            editModeNavigateModal: false,
+            isPublished: false
         };
     }
 
     public componentDidMount() {
         const params = getParams();
-        this.setState({ id: params?.id });
+        let id = params?.id;
+        if (id.includes('?pub=')) {
+            id = params?.id.split('?pub')[0];
+        }
+        const query = getQueryParam('pub');
+        if (query) {
+            this.setState({ isPublished: query === 'true' });
+        }
+        const path = getPath();
         SelectBox.defaultSetup();
         Tabs.defaultSetup();
         InputFields.defaultSetup();
-        this.getConfig(params?.id);
+        this.setState({ id: id });
+        if (path.includes('publishedSecurityconfig')) {
+            this.setState({
+                readOnlyMode: true
+            });
+            this.getPublishedConfig(id);
+        } else {
+            this.getConfig(id);
+        }
     }
+
+    public getPublishedConfig = (id: string) => {
+        ProgressIndicator.show();
+        CodeSpaceApiClient.getPublishedConfig(id)
+            .then((res: any) => {
+                const response = {
+                    ...res,
+                    entitlements: res.entitlements || [],
+                    roles: res.roles || [],
+                    userRoleMappings: res.userRoleMappings || [],
+                    openSegments: res.openSegments || [],
+                    status: res.status || 'DRAFT'
+                }
+                this.setState({
+                    config: response,
+                }, () => {
+                    this.setOpenTabs(this.state.config.openSegments);
+                })
+                ProgressIndicator.hide();
+            })
+            .catch((error) => {
+                this.showErrorNotification(error.message ? error.message : 'Some Error Occured');
+                ProgressIndicator.hide();
+            });
+    };
 
     public getConfig = (id: string) => {
         ProgressIndicator.show();
@@ -127,7 +173,7 @@ export default class SecurityConfig extends React.Component<ICreateNewSecurityCo
         });
     };
 
-    protected onSaveDraft = (tabToBeSaved: string, config: any) => {
+    protected onSaveDraft = (tabToBeSaved: string, config: any, previousTab?: string) => {
         if (config?.entitlements?.length === 0) {
             config.openSegments = [];
         };
@@ -135,14 +181,18 @@ export default class SecurityConfig extends React.Component<ICreateNewSecurityCo
             config: config,
         }, () => {
             if (this.state.config?.entitlements?.length === 0) {
-                this.callApiToSave(this.state.config.status, 'entitlement');
+                if (!this.state.readOnlyMode) {
+                    this.callApiToSave(this.state.config.status, 'entitlement');
+                }
                 Notification.show('Please add atleast one entitlement to go to next tab', 'warning');
                 return;
             }
 
             if (tabToBeSaved === 'roles') {
                 if (this.state.config?.roles?.length === 0) {
-                    this.callApiToSave(this.state.config.status, 'roles');
+                    if (!this.state.readOnlyMode) {
+                        this.callApiToSave(this.state.config.status, 'roles');
+                    }
                     Notification.show('Please add atleast one role to go to next tab', 'warning');
                     return;
                 }
@@ -152,11 +202,11 @@ export default class SecurityConfig extends React.Component<ICreateNewSecurityCo
             const currentTab = tabToBeSaved;
             this.setState({ saveActionType: 'btn' });
             if (currentTab === 'entitlement') {
-                this.saveEntitlement();
+                this.saveEntitlement(previousTab);
             } else if (currentTab === 'roles') {
-                this.saveRole();
+                this.saveRole(previousTab);
             } else if (currentTab === 'rolemapping') {
-                this.saveRoleMapping();
+                this.saveRoleMapping(previousTab);
             } else {
                 // If multiple clicks on save happens then the currenttab doesnt get updated in that case
                 // just save not moving to another tab.
@@ -213,31 +263,43 @@ export default class SecurityConfig extends React.Component<ICreateNewSecurityCo
         }
     };
 
-    protected saveEntitlement = () => {
+    protected saveEntitlement = (previousTab?: string) => {
+        const nextTab = previousTab ? previousTab : 'roles';
+        const { config, readOnlyMode } = this.state;
+
         this.state.config.openSegments.push('Entitlement');
-        if (CODE_SPACE_STATUS.includes(this.state.config?.status)) {
-            this.callApiToSave(this.state.config.status, 'roles');
-        } else {
-            this.goToNextPageWithoutSaving('roles');
-        }
 
-    };
-
-    protected saveRole = () => {
-        this.state.config.openSegments.push('Roles');
-        if (CODE_SPACE_STATUS.includes(this.state.config?.status)) {
-            this.callApiToSave(this.state.config.status, 'rolemapping');
+        if (readOnlyMode || !CODE_SPACE_STATUS.includes(config?.status)) {
+            this.goToNextPageWithoutSaving(nextTab);
         } else {
-            this.goToNextPageWithoutSaving('rolemapping');
+            this.callApiToSave(config.status, nextTab);
         }
     };
 
-    protected saveRoleMapping = () => {
-        this.state.config.openSegments.push('RoleMappings');
-        if (CODE_SPACE_STATUS.includes(this.state.config?.status)) {
-            this.callApiToSave(this.state.config.status, 'rolemapping');
+    protected saveRole = (previousTab?: string) => {
+        const nextTab = previousTab ? previousTab : 'rolemapping';
+        const { config, readOnlyMode } = this.state;
+
+        config.openSegments.push('Roles');
+
+        if (readOnlyMode || !CODE_SPACE_STATUS.includes(config?.status)) {
+            this.goToNextPageWithoutSaving(nextTab);
         } else {
-            this.goToNextPageWithoutSaving('rolemapping');
+            this.callApiToSave(config.status, nextTab);
+        }
+    };
+
+
+    protected saveRoleMapping = (previousTab?: string) => {
+        const nextTab = previousTab ? previousTab : 'rolemapping';
+        const { config, readOnlyMode } = this.state;
+
+        config.openSegments.push('RoleMappings');
+
+        if (readOnlyMode || !CODE_SPACE_STATUS.includes(config?.status)) {
+            this.goToNextPageWithoutSaving(nextTab);
+        } else {
+            this.callApiToSave(config.status, nextTab);
         }
     };
 
@@ -312,14 +374,39 @@ export default class SecurityConfig extends React.Component<ICreateNewSecurityCo
         Notification.show(message, 'alert');
     }
 
+    protected navigateEditOrReadOnlyMode = () => {
+        if (this.state.readOnlyMode) {
+            history.push(`/codespace/securityconfig/${this.state.id}?pub=true`);
+        } else {
+            this.setState({
+                editModeNavigateModal: true
+            })
+        }
+    }
+
     public render() {
         const currentTab = this.state.currentTab;
+        const { config, readOnlyMode } = this.state;
+        const projectName = config?.projectName ? `${config.projectName} - ` : '';
+        const publishedSuffix = readOnlyMode ? ' (Published)' : '';
+        const title = `${projectName}Security config${publishedSuffix}`; 
+       
         return (
             <React.Fragment>
                 <div className={classNames(Styles.mainPanel)}>
                     <Caption
-                        title={'Codespace access management'}
+                        title={title}
                     />
+                    <div className={classNames(Styles.publishedConfig)}>
+                        {this.state.isPublished && <button className={classNames('btn add-dataiku-container btn-primary', Styles.editOrViewMode)} type="button"
+                            onClick={this.navigateEditOrReadOnlyMode}
+                        >
+                            {this.state.readOnlyMode ? <><i className="icon mbc-icon edit" />
+                                <span>{" "}Edit security config</span></>
+                                : <><i className="icon mbc-icon visibility-show" />
+                                    <span>{" "}View published security config</span></>}
+                        </button>}
+                    </div>
                     <div id="create-security-tabs" className="tabs-panel">
                         <div className="tabs-wrapper">
                             <nav>
@@ -364,6 +451,7 @@ export default class SecurityConfig extends React.Component<ICreateNewSecurityCo
                                     onSaveDraft={this.onSaveDraft}
                                     id={this.state.id}
                                     config={this.state.config}
+                                    readOnlyMode={this.state.readOnlyMode}
                                 />
                             </div>
                             <div id="tab-content-2" className="tab-content">
@@ -373,6 +461,7 @@ export default class SecurityConfig extends React.Component<ICreateNewSecurityCo
                                         user={this.props.user}
                                         onSaveDraft={this.onSaveDraft}
                                         id={this.state.id}
+                                        readOnlyMode={this.state.readOnlyMode}
                                     />
                                 )}
                             </div>
@@ -383,6 +472,7 @@ export default class SecurityConfig extends React.Component<ICreateNewSecurityCo
                                         id={this.state.id}
                                         config={this.state.config}
                                         onPublish={this.onPublish}
+                                        readOnlyMode={this.state.readOnlyMode}
                                     />
                                 )}
                             </div>
@@ -404,6 +494,28 @@ export default class SecurityConfig extends React.Component<ICreateNewSecurityCo
                         }
                         onCancel={this.onCancellingUpdateChanges}
                         onAccept={this.onAcceptUpdateChanges}
+                    />
+
+                    <ConfirmModal
+                        title="Are you sure you want to Navigate ?"
+                        acceptButtonTitle="Navigate"
+                        cancelButtonTitle="Cancel"
+                        showAcceptButton={true}
+                        showCancelButton={true}
+                        show={this.state.editModeNavigateModal}
+                        content={
+                            <div id="contentparentdiv">
+                                Please save your changes before Navigating.
+                            </div>
+                        }
+                        onCancel={() => {
+                            this.setState({
+                                editModeNavigateModal: !this.state.editModeNavigateModal
+                            })
+                        }}
+                        onAccept={() => {
+                            history.push(`/codespace/publishedSecurityconfig/${this.state.id}?pub=true`);
+                        }}
                     />
                 </div>
                 <div className={Styles.mandatoryInfo}>* mandatory fields</div>

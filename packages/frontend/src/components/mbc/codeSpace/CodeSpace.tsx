@@ -52,6 +52,8 @@ export interface IProjectDetails {
   projectCollaborators?: ICodeCollaborator[];
   intDeploymentDetails?: IDeploymentDetails;
   prodDeploymentDetails?: IDeploymentDetails;
+  securityConfig?: any;
+  publishSecurityConfig?: any;
 }
 
 export interface IDeploymentDetails {
@@ -446,8 +448,14 @@ const CodeSpace = (props: ICodeSpaceProps) => {
     </svg>
   );
 
-  const isPublicRecipe = codeSpaceData?.projectDetails?.recipeDetails?.recipeId.startsWith('public');
   const isOwner = codeSpaceData.projectDetails?.projectOwner?.id === props.user.id;
+  const navigateSecurityConfig = () => {
+    if (codeSpaceData?.projectDetails?.publishSecurityConfig) {
+      history.push(`/codespace/publishedSecurityconfig/${codeSpaceData.id}?pub=true`);
+      return;
+    }
+    history.push(`/codespace/securityconfig/${codeSpaceData.id}?pub=false`);
+  }
 
   return (
     <div className={fullScreenMode ? Styles.codeSpaceWrapperFSmode : '' + ' ' + Styles.codeSpaceWrapper}>
@@ -470,18 +478,18 @@ const CodeSpace = (props: ICodeSpaceProps) => {
             <div className={Styles.navigation}>
               {codeSpaceData.running && (
                 <div className={Styles.headerright}>
-                  {!isPublicRecipe && isOwner && (
-                    <div className={Styles.configLink}
-                      onClick={() => history.push(`/codespace/securityconfig/${codeSpaceData.id}`)}>
-                      <a href={codeDeployedUrl} target="_blank" rel="noreferrer">
-                        <IconGear size={'16'} /> {CODE_SPACE_TITLE} (
-                        {codeSpaceData?.configStatus})
-                      </a>
-                      &nbsp;
-                    </div>
-                  )}
                   {!disableDeployment && (
                     <>
+                      {isOwner && (
+                        <div className={Styles.configLink}
+                          onClick={() => navigateSecurityConfig()}>
+                          <a target="_blank" rel="noreferrer">
+                            <IconGear size={'16'} /> {CODE_SPACE_TITLE} (
+                            {codeSpaceData?.projectDetails?.securityConfig?.status})
+                          </a>
+                          &nbsp;
+                        </div>
+                      )}
                       {codeDeployed && (
                         <div className={Styles.urlLink} tooltip-data="API BASE URL - Staging">
                           <a href={codeDeployedUrl} target="_blank" rel="noreferrer">

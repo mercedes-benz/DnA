@@ -123,6 +123,15 @@ const RoleMapping = (props: any) => {
         props.onSaveDraft('rolemapping', updatedConfig);
     };
 
+    const backPress = () => {
+        const updatedConfig = {
+            ...config,
+            userRoleMappings: allUserRoleMappingList
+        };
+        setConfig(updatedConfig);
+        props.onSaveDraft('rolemapping', updatedConfig, 'roles');
+    };
+
     const onPublish = () => {
         const updatedConfig = {
             ...config,
@@ -255,12 +264,14 @@ const RoleMapping = (props: any) => {
                         <div className={classNames(Styles.parentRoleMapping)}>
                             <div className={Styles.warningWrapper}>
                                 {!CODE_SPACE_STATUS.includes(config?.status) &&
-                                    <p style={{ color: 'var(--color-orange)' }}>
+                                    <p style={{ color: 'var(--color-orange)' }}
+                                        className={classNames((props.readOnlyMode ? ' hidden' : ''))}>
                                         <i className="icon mbc-icon alert circle">
                                         </i> Once the config is in published state, Can Add / Edit Role Mapping</p>}
                             </div>
                             <div className={classNames(Styles.createEntitlementButton)}>
-                                {props.config?.roles?.length > 0 && <button className={classNames('btn add-dataiku-container btn-primary', Styles.createButton)} type="button"
+                                {props.config?.roles?.length > 0 && <button className={classNames('btn add-dataiku-container btn-primary',
+                                    Styles.createButton + (props.readOnlyMode ? ' hidden' : ''))} type="button"
                                     onClick={() => {
                                         setEditRoleCol(false);
                                         setShowEditOrCreateModal(true);
@@ -312,7 +323,7 @@ const RoleMapping = (props: any) => {
                                             <td className={classNames("wrap-text", Styles.actionBtn)}>
                                                 <button
                                                     onClick={() => editRoleMapping(item)}
-                                                    className={Styles.actionBtn + ' btn btn-primary'}
+                                                    className={Styles.actionBtn + ' btn btn-primary' + (props.readOnlyMode ? ' hidden' : '')}
                                                     type="button"
                                                     title={!CODE_SPACE_STATUS.includes(config?.status) ? 'Once the config is in published state, can edit Role mapping.' : ''}
                                                     disabled={!CODE_SPACE_STATUS.includes(config?.status)}
@@ -322,7 +333,7 @@ const RoleMapping = (props: any) => {
                                                 &nbsp; &nbsp;
                                                 <button
                                                     onClick={() => deleteRoleMapping(item)}
-                                                    className={Styles.actionBtn + ' btn btn-primary'}
+                                                    className={Styles.actionBtn + ' btn btn-primary' + (props.readOnlyMode ? ' hidden' : '')}
                                                     type="button"
                                                     title={!CODE_SPACE_STATUS.includes(config?.status) ? 'Once the config is in published state, can delete Role mapping.' : ''}
                                                     disabled={!CODE_SPACE_STATUS.includes(config?.status)}
@@ -351,18 +362,23 @@ const RoleMapping = (props: any) => {
                 <div className="btn-set">
                     {
                         CODE_SPACE_STATUS.includes(config?.status) ?
-                            <button className="btn btn-primary" type="button" onClick={userRoleSubmit}>
+                            <button className={"btn btn-primary" + (props.readOnlyMode ? ' hidden' : '')} type="button" onClick={userRoleSubmit}>
                                 Save
                             </button> : ''
                     }
                     <button
-                        className={'btn btn-tertiary ' + classNames(Styles.publishBtn)}
+                        className={'btn btn-tertiary ' + classNames(Styles.publishBtn) + (props.readOnlyMode ? ' hidden' : '')}
                         type="button"
                         onClick={onPublish}
                         disabled={!CODE_SPACE_STATUS.includes(config?.status)}
                     >
                         {CODE_SPACE_STATUS.includes(config?.status) ? 'Request' : config?.status === 'REQUESTED' ? 'Publish' : 'Accept'}
                     </button>
+                    {props.readOnlyMode ?
+                        <button  className={'btn btn-primary ' + classNames(Styles.publishBtn)} type="button" onClick={backPress}>
+                            Back
+                        </button> : ''
+                    }
                 </div>
             </div>
             <Modal

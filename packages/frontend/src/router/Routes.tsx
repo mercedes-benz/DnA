@@ -340,6 +340,13 @@ const protectedRoutes = [
   },
   {
     allowedRoles: UserAndAdminRole,
+    component: CodeSpaceSecurityConfig,
+    exact: false,
+    path: '/codespace/publishedSecurityconfig/:id?',
+    title: 'Published Security Config',
+  },
+  {
+    allowedRoles: UserAndAdminRole,
     component: CodeSpace,
     exact: false,
     path: '/codespace/:id?',
