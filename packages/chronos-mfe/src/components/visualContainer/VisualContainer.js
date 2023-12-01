@@ -7,8 +7,10 @@ import ContextMenu from '../contextMenu/ContextMenu';
 import Spinner from '../spinner/Spinner';
 import Plot from 'react-plotly.js';
 
-const VisualContainer = ({title, forecastRun, printRef, loading, forecastData, addTraces, layout, isForecast, isDecomposition, handleDecompositionMethod, legend, decompositionMethods,
+const VisualContainer = ({title, forecastRun, loading, forecastData, addTraces, layout, isForecast, isDecomposition, handleDecompositionMethod, legend, decompositionMethods,
   isOutlier, handleOutlierMethod, outlierMethods}) => {
+    
+  const printRef = React.useRef();
   const exportToPdf = async () => {
     const element = printRef.current;
     const canvas = await html2canvas(element);
