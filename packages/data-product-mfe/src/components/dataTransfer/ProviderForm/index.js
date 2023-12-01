@@ -229,7 +229,6 @@ const ProviderForm = ({ user, history }) => {
   const setTab = (e) => {
     const id = e.target.id;
     if (currentTab !== id) {
-      setShowContactInformationTabError(false);
       const isFieldsDirty = Object.keys(formState.dirtyFields).length > 0;
       if (isFieldsDirty) {
         setShowChangeAlert({ modal: true, switchingTab: id });
@@ -771,22 +770,22 @@ const ProviderForm = ({ user, history }) => {
             title="Save Changes?"
             acceptButtonTitle="Close"
             cancelButtonTitle={
-              !(showContactInformationTabError &&
-              errorsInPublish?.contactInformationTabError?.length )> 0
+              !(errorsInPublish?.contactInformationTabError?.length && 
+              currentTab !== 'contact-info')> 0
                 ? "Cancel"
                 : "Ok"
             }
             showAcceptButton={
-              !(showContactInformationTabError &&
-              errorsInPublish?.contactInformationTabError?.length) > 0
+              !(errorsInPublish?.contactInformationTabError?.length &&  
+              currentTab !== 'contact-info') > 0
                 ? true
                 : false
             }
             showCancelButton={true}
             show={showChangeAlert?.modal}
             content={
-              !(showContactInformationTabError &&
-              errorsInPublish?.contactInformationTabError?.length > 0) ? (
+              !(errorsInPublish?.contactInformationTabError?.length > 0 &&  
+              currentTab !== 'contact-info') ? (
                 <div id="contentparentdiv">
                   Press &#187;Close&#171; to save your changes or press
                   <br />
