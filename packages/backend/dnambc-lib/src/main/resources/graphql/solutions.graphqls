@@ -242,7 +242,7 @@ type SolutionDataComplianceVO{
 	attachments: [FileDetailsVO],
 	links: [LinkVO],
 	complianceOfficers: [TeamMemberVO],
-	AIRiskAssessmentType: AIRiskAssessmentTypeEnum 
+	aiRiskAssessmentType: AIRiskAssessmentTypeEnum 
 	
 }
 

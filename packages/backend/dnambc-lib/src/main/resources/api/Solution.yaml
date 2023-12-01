@@ -1189,7 +1189,7 @@ definitions:
         type: array
         items:
           $ref: "#/definitions/TeamMemberVO"
-      AIRiskAssessmentType:
+      aiRiskAssessmentType:
         type: string
         enum: ["NOT_APPLICABLE", "BASIC_RISK", "HIGH_RISK"]    
   

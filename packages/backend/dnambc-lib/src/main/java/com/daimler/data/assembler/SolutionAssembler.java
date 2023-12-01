@@ -781,19 +781,18 @@ public class SolutionAssembler implements GenericAssembler<SolutionVO, SolutionN
 					teamMemberVOList = solutionTeamMembers.stream().map(n -> toTeamMemberVO(n))
 							.collect(Collectors.toList());
 				solutionDataComplianceVO.setComplianceOfficers(teamMemberVOList);
+				
+				//setting AI Risk assessment types
+				AiRiskAssessmentTypeEnum riskAssessmentType = AiRiskAssessmentTypeEnum.NOT_APPLICABLE;
+				if(solutionDataCompliance.getAIRiskAssessmentType()!=null && "HIGH_RISK".equalsIgnoreCase(solutionDataCompliance.getAIRiskAssessmentType())) {
+					riskAssessmentType = AiRiskAssessmentTypeEnum.HIGH_RISK;
+				}
+				if(solutionDataCompliance.getAIRiskAssessmentType()!=null && "BASIC_RISK".equalsIgnoreCase(solutionDataCompliance.getAIRiskAssessmentType())) {
+					riskAssessmentType = AiRiskAssessmentTypeEnum.BASIC_RISK;
+				}
+				solutionDataComplianceVO.setAiRiskAssessmentType(riskAssessmentType);
 
 			}
-			
-			//setting AI Risk assessment types
-			AiRiskAssessmentTypeEnum riskAssessmentType = AiRiskAssessmentTypeEnum.NOT_APPLICABLE;
-			if(solutionDataCompliance.getAIRiskAssessmentType()!=null && "HIGH_RISK".equalsIgnoreCase(solutionDataCompliance.getAIRiskAssessmentType())) {
-				riskAssessmentType = AiRiskAssessmentTypeEnum.HIGH_RISK;
-			}
-			if(solutionDataCompliance.getAIRiskAssessmentType()!=null && "BASIC_RISK".equalsIgnoreCase(solutionDataCompliance.getAIRiskAssessmentType())) {
-				riskAssessmentType = AiRiskAssessmentTypeEnum.BASIC_RISK;
-			}
-			solutionDataComplianceVO.setAiRiskAssessmentType(riskAssessmentType);
-			
 			vo.setDataCompliance(solutionDataComplianceVO);
 
 			SolutionPortfolioVO solutionPortfolioVO = new SolutionPortfolioVO();
