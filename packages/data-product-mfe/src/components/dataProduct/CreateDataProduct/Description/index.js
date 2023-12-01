@@ -964,7 +964,7 @@ const Description = ({
                       onChangeConfidentialityInDescription(e.target.value);
                     }
                   })}>
-                    {/* <option value="">Choose</option> */}
+                    <option value="">Choose</option>
                     <option id='Internal' key={'Internal'} value={'Internal'}>Internal</option>
                     <option id='Secret' key={'Secret'} value={'Secret'}>Secret</option>
                     <option id='Confidential' key={'Confidential'} value={'Confidential'}>Confidential</option>

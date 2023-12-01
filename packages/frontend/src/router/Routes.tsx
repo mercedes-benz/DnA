@@ -56,8 +56,9 @@ const UserAndAdminRole = [
   USER_ROLE.REPORTADMIN,
   USER_ROLE.DIVISIONADMIN,
   USER_ROLE.DATACOMPLIANCEADMIN,
+  USER_ROLE.CODESPACEADMIN,
 ];
-const AdminRole = [USER_ROLE.ADMIN, USER_ROLE.REPORTADMIN];
+const AdminRole = [USER_ROLE.ADMIN, USER_ROLE.REPORTADMIN, USER_ROLE.CODESPACEADMIN];
 
 const publicRoutes = [
   {
@@ -336,6 +337,13 @@ const protectedRoutes = [
     exact: false,
     path: '/codespace/securityconfig/:id?',
     title: 'Security Config',
+  },
+  {
+    allowedRoles: UserAndAdminRole,
+    component: CodeSpaceSecurityConfig,
+    exact: false,
+    path: '/codespace/publishedSecurityconfig/:id?',
+    title: 'Published Security Config',
   },
   {
     allowedRoles: UserAndAdminRole,

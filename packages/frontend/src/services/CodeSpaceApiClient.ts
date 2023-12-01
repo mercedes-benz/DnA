@@ -79,6 +79,10 @@ export class CodeSpaceApiClient {
     return this.get(`/workspaces/${id}/config`)
   };
 
+  public static getPublishedConfig(id: string): Promise<any[]> {
+    return this.get(`/workspaces/${id}/config/publish`)
+  };
+
   public static getEntitlements(id: string): Promise<any[]> {
     return this.get(`/workspaces/${id}/config/entitlements`)
   };

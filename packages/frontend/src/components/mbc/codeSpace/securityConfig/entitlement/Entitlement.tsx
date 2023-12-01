@@ -23,6 +23,7 @@ export interface IEntitlementProps {
     onSaveDraft: (tabToBeSaved: string, config: any) => void;
     id: string;
     config: any;
+    readOnlyMode: boolean;
 }
 
 export interface IEntitlementState {
@@ -330,16 +331,18 @@ export default class Entitlement extends React.Component<IEntitlementProps, IEnt
                                                     }
                                                     this.setState({ isProtectedByDna: checkboxValue });
                                                 }}
-                                                disabled={CODE_SPACE_DISABLE_DNA_PROTECT.includes(this.state.config?.status)}
+                                                disabled={this.props.readOnlyMode || CODE_SPACE_DISABLE_DNA_PROTECT.includes(this.state.config?.status)}
                                             />
                                         </span>
                                         <span className={classNames("label")}>Do you want to DnA platform to protect your API's</span>
                                     </label>
                                     {!CODE_SPACE_STATUS.includes(this.state.config?.status) &&
-                                        <p style={{ color: 'var(--color-orange)' }}><i className="icon mbc-icon alert circle"></i> Once the config is in published state, Can Add / Edit Entitlement</p>}
+                                        <p style={{ color: 'var(--color-orange)' }}
+                                            className={classNames((this.props.readOnlyMode ? ' hidden' : ''))}><i className="icon mbc-icon alert circle"></i> Once the config is in published state, Can Add / Edit Entitlement</p>}
                                 </div>
                                 <div className={classNames(Styles.createEntitlementButton)}>
-                                    <button className={classNames('btn add-dataiku-container btn-primary', Styles.createButton)} type="button"
+                                    <button className={classNames('btn add-dataiku-container btn-primary',
+                                        Styles.createButton + (this.props.readOnlyMode ? ' hidden' : ''))} type="button"
                                         onClick={() => {
                                             this.setState({
                                                 isCreateOrEditEntitlementModal: true,
@@ -357,6 +360,7 @@ export default class Entitlement extends React.Component<IEntitlementProps, IEnt
 
                                 <><div className={classNames(Styles.subList)}>
                                     <EntitlementSubList
+                                        readOnlyMode={this.props.readOnlyMode}
                                         entitelmentListResponse={this.state.entitelmentListResponse}
                                         isProtectedByDna={this.state.isProtectedByDna}
                                         listOfProject={this.state.entitelmentList}
@@ -462,7 +466,7 @@ export default class Entitlement extends React.Component<IEntitlementProps, IEnt
                 {
                     <div className="btnConatiner">
                         <button className="btn btn-primary" type="button" onClick={this.onEntitlementSubmit}>
-                            {CODE_SPACE_STATUS.includes(this.state.config?.status) ? 'Save & Next' : 'Next'}
+                            {!CODE_SPACE_STATUS.includes(this.state.config?.status) || this.props.readOnlyMode ? 'Next' : 'Save & Next'}
                         </button>
                     </div>
                 }

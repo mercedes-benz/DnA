@@ -1,0 +1,11 @@
+{{- if not .Values.secrets.existingSecret }}
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ dig "secrets" "name" "" (.Values | merge (dict)) }}
+type: Opaque
+stringData:
+  config.env: |-
+    export MINIO_ROOT_USER={{ .Values.secrets.accessKey | quote }}
+    export MINIO_ROOT_PASSWORD={{ .Values.secrets.secretKey | quote }}
+{{- end }}
