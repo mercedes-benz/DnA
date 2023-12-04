@@ -569,7 +569,7 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 													currentConfigInput.setCreatedBy(ownerId);
 													configFilesVOList.add(currentConfigInput);
 													entity.getData().setConfigFiles(this.assembler.toConfigFiles(configFilesVOList));
-													uploadConfigMessage = "New recommendation file generated based on" + run.getRunName() + " inputs, Successfully upload recommendation" + fileName + "to project specific configs";
+													uploadConfigMessage = "New recommendation file generated based on " + run.getRunName() + " inputs, Successfully upload recommendation " + fileName + " to project specific configs";
 													configRecommendationNotification.setNotificationEventName(uploadConfigNotificationEventName);
 													configRecommendationNotification.setMessage(uploadConfigMessage);
 													notificationDetails.add(configRecommendationNotification);
