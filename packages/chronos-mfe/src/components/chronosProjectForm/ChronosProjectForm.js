@@ -201,7 +201,7 @@ const ChronosProjectForm = ({project, edit, onSave}) => {
   return (
     <>
       <FormProvider {...methods}>
-        <div className={Styles.content}>
+        <div className={classNames(Styles.content, 'mbc-scroll')}>
           <div className={Styles.formGroup}>
             {
               !edit &&
