@@ -188,7 +188,7 @@ export default class SolutionListRowItem extends React.Component<ISolutionListRo
           <td className={Styles.draftIndicatorCol}>
             {!solution.publish ? <span className={Styles.draftIndicator}>DRAFT</span> : ''}
           </td>
-          <td className="wrap-text">{solution.currentPhase ? solution.currentPhase.name : ''}</td>
+          <td className="wrap-text" style={{width:"150px"}}>{solution.currentPhase ? solution.currentPhase.name : ''}</td>
           <td>{solution.division?.name || 'N/A'}</td>
           <td>
             {solution.digitalValue &&
