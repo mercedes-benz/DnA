@@ -163,12 +163,7 @@ const ChronosProjects = ({ user }) => {
           content={<ChronosProjectForm edit={false} onSave={() => {setCreateProject(false); handleRefresh()}} />}
           scrollableContent={false}
           onCancel={() => setCreateProject(false)}
-          modalStyle={{
-            padding: '50px 35px 35px 35px',
-            minWidth: 'unset',
-            width: '60%',
-            maxWidth: '50vw'
-          }}
+          modalStyle={Styles.modalStyle}
         />
       }
     </>
