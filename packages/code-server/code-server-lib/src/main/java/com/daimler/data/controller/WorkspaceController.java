@@ -67,7 +67,8 @@
  import com.daimler.data.dto.workspace.CodeServerRecipeDetailsVO.RamSizeEnum;
  import com.daimler.data.dto.workspace.CodeServerWorkspaceVO;
  import com.daimler.data.dto.workspace.CodeServerWorkspaceValidateVO;
- import com.daimler.data.dto.workspace.CodespaceSecurityConfigVO;
+import com.daimler.data.dto.workspace.CodespaceSecurityConfigDetailsVO;
+import com.daimler.data.dto.workspace.CodespaceSecurityConfigVO;
  import com.daimler.data.dto.workspace.CodespaceSecurityConfigLOV;
  import com.daimler.data.dto.workspace.CodespaceSecurityEntitlementVO;
  import com.daimler.data.dto.workspace.CodespaceSecurityRoleVO;
@@ -1133,10 +1134,10 @@
 	 }
  
 	 @Override
-	 @ApiOperation(value = "Get Codespace security configurations which include defining roles, entitlements, user-role mappings etc. for given ID", nickname = "saveSecurityConfig", notes = "Get codespace security configurations for Id", response = CodespaceSecurityConfigVO.class, tags = {
+	 @ApiOperation(value = "Get Codespace security configurations which include defining roles, entitlements, user-role mappings etc. for given ID", nickname = "saveSecurityConfig", notes = "Get codespace security configurations for Id", response = CodespaceSecurityConfigDetailsVO.class, tags = {
 			 "code-server", })
 	 @ApiResponses(value = {
-			 @ApiResponse(code = 201, message = "Returns message of success or failure", response = CodespaceSecurityConfigVO.class),
+			 @ApiResponse(code = 201, message = "Returns message of success or failure", response = CodespaceSecurityConfigDetailsVO.class),
 			 @ApiResponse(code = 204, message = "Fetch complete, no content found."),
 			 @ApiResponse(code = 400, message = "Bad request."),
 			 @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
@@ -1145,23 +1146,15 @@
 			 @ApiResponse(code = 500, message = "Internal error") })
 	 @RequestMapping(value = "/workspaces/{id}/config", produces = { "application/json" }, consumes = {
 			 "application/json" }, method = RequestMethod.GET)
-	 public ResponseEntity<CodespaceSecurityConfigVO> getSecurityConfig(
+	 public ResponseEntity<CodespaceSecurityConfigDetailsVO> getSecurityConfig(
 			 @ApiParam(value = "Workspace ID for the project", required = true) @PathVariable("id") String id) {
-				CodespaceSecurityConfigVO getConfigResponse = new CodespaceSecurityConfigVO();
+				CodespaceSecurityConfigDetailsVO getConfigResponse = new CodespaceSecurityConfigDetailsVO();
 		 CreatedByVO currentUser = this.userStore.getVO();
 		 String userId = currentUser != null ? currentUser.getId() : null;
 		 CodeServerWorkspaceVO vo = service.getById(userId, id);
  
 		 if (vo == null || vo.getWorkspaceId() == null) {
 			  log.debug("No workspace found, returning empty");
-			 GenericMessage emptyResponse = new GenericMessage();
-			 List<MessageDescription> errorMessage = new ArrayList<>();
-			 MessageDescription msg = new MessageDescription();
-			 msg.setMessage("No workspace found for given id and the user");
-			 errorMessage.add(msg);
-			 emptyResponse.addErrors(msg);
-			 emptyResponse.setSuccess("FAILED");
-			 emptyResponse.setErrors(errorMessage);
 			 return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
  
 		 }
@@ -1182,8 +1175,8 @@
 			 log.info("No security configurations for workspace found");
 			 return new ResponseEntity<>(null, HttpStatus.NO_CONTENT);
 		 }
-		 //getConfigResponse = workspaceAssembler.toSaveConfigResponse(vo);
-		 getConfigResponse=vo.getProjectDetails().getSecurityConfig();
+		 getConfigResponse.setProjectName(vo.getProjectDetails().getProjectName());
+		 getConfigResponse.setSecurityConfig(vo.getProjectDetails().getSecurityConfig());
 		 return new ResponseEntity<>(getConfigResponse, HttpStatus.OK);
 	 }
  
