@@ -44,6 +44,7 @@ import LiAvatar from '../../../../assets/images/li.png';
 import HenryAvatar from '../../../../assets/images/henry.png';
 import VictoriaAvatar from '../../../../assets/images/victoria.png';
 import TomAvatar from '../../../../assets/images/tom.png';
+import { AI_RISK_ASSESSMENT_TYPES } from 'globals/constants';
 
 import {
   IAttachment,
@@ -1257,6 +1258,13 @@ export const SummaryPdfDoc = (props: SummaryPdfDocProps) => (
               </Text>
               <View style={styles.flexLayout}>{dataComplianceProcessFlow(props.solution.datacompliance)}</View>
               <View style={[styles.seperatorLine, styles.setNegativeMarginTop]} />
+            </View>
+            <View wrap={false}>
+              <Text style={[styles.subTitle, styles.setMarginTop]}>Results of the AI Risk Self-Assessment</Text>
+              <View style={styles.flexLayout}>
+                <Text>{AI_RISK_ASSESSMENT_TYPES[props.solution.datacompliance.aiRiskAssessmentType]}</Text>
+              </View>
+              <View style={styles.seperatorLine} />
             </View>
             <View wrap={false}>
               <Text style={[styles.subTitle, styles.setMarginTop]}>Added Links</Text>

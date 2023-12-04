@@ -17,6 +17,8 @@ import TeamMemberListItem from '../team/teamMemberListItem/TeamMemberListItem';
 import AttachmentsListItem from './attachments/AttachmentsListItems';
 import Styles from './DataComplianceSummary.scss';
 import LinksListItems from './links/LinksListItems';
+import DataCompliance from 'components/mbc/createNewSolution/datacompliance/DataCompliance';
+import { AI_RISK_ASSESSMENT_TYPES } from 'globals/constants';
 
 const classNames = cn.bind(Styles);
 
@@ -38,6 +40,7 @@ export default class DataComplianceSummary extends React.Component<ITeamProps, a
 
     const attachmentsList = <AttachmentsListItem attachments={this.props.dataCompliance.attachments} />;
     const linksList = <LinksListItems links={this.props.dataCompliance.links} />;
+    const aiRiskAssessmentType = this.props.dataCompliance.aiRiskAssessmentType || DataCompliance.naRiskTypeKeyValue;
 
     const image =
       this.props.dataCompliance.quickCheck &&
@@ -70,6 +73,12 @@ export default class DataComplianceSummary extends React.Component<ITeamProps, a
           <div id="dataComplianceWrapper" className={Styles.wrapper}>
             <h3>Compliance Framework / Process Flow</h3>
             <div className={Styles.imageSection}>{image}</div>
+            <div id="aiRiskAssessmentType">
+              <h3>Results of the AI Risk Self-Assessment</h3>
+              {AI_RISK_ASSESSMENT_TYPES[aiRiskAssessmentType]}
+              <br />
+              <br />
+            </div>
             <div id="complianceLinks">
               <h3>Added Links</h3>
               {linksList}
