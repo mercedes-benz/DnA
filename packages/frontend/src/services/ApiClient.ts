@@ -1022,6 +1022,7 @@ export class ApiClient {
           readyForImplementation,
           quickCheck,
           useCaseDescAndEval,
+          aiRiskAssessmentType,
           attachments {
             id,
             fileName,
