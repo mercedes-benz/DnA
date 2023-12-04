@@ -133,35 +133,6 @@ paths:
           description: "Method not allowed"
         500:
           description: "Internal error"
-    get:
-      tags:
-        - "code-server-admin"
-      summary: "Getting values of publish security config for a workspace"
-      description: "Get published security config details in codeserver workspace"
-      operationId: "publishSecurityConfigDetails"
-      parameters:
-        - name: "id"
-          in: "path"
-          description: "Workspace ID to be fetched"
-          required: true
-          type: "string"
-      responses:
-        201:
-          description: "Returns message of success or failure"
-          schema:
-            $ref: "#/definitions/CodespaceSecurityConfigVO"
-        204:
-          description: "Fetch complete, no content found."
-        400:
-          description: "Bad request."
-        401:
-          description: "Request does not have sufficient credentials."
-        403:
-          description: "Request is not authorized."
-        405:
-          description: "Method not allowed"
-        500:
-          description: "Internal error"
 
   /workspaces/configs:
     get:

@@ -67,6 +67,7 @@ import com.daimler.data.dto.workspace.CodeServerRecipeDetailsVO.OperatingSystemE
 import com.daimler.data.dto.workspace.CodeServerRecipeDetailsVO.RamSizeEnum;
 import com.daimler.data.dto.workspace.CodeServerWorkspaceVO;
 import com.daimler.data.dto.workspace.CodeServerWorkspaceValidateVO;
+import com.daimler.data.dto.workspace.CodespaceSecurityConfigPublishedDetailsVO;
 import com.daimler.data.dto.workspace.CodespaceSecurityConfigResponseVO;
 import com.daimler.data.dto.workspace.CodespaceSecurityConfigVO;
 import com.daimler.data.dto.workspace.CodespaceSecurityEntitlementLOV;
@@ -1407,10 +1408,10 @@ public class WorkspaceController implements CodeServerApi, CodeServerAdminApi {
 	}
 
 	@Override
-	@ApiOperation(value = "Get published config  details for a given Id.", nickname = "publishSecurityConfigDetails", notes = "Get published config details for a given Id.", response = CodespaceSecurityConfigVO.class, tags = {
+	@ApiOperation(value = "Getting values of published security config for a workspace", nickname = "publishedSecurityConfigDetails", notes = "Get published security config details in codeserver workspace", response = CodespaceSecurityConfigPublishedDetailsVO.class, tags = {
 			"code-server", })
 	@ApiResponses(value = {
-			@ApiResponse(code = 200, message = "Returns message of success or failure", response = CodespaceSecurityConfigVO.class),
+			@ApiResponse(code = 201, message = "Returns message of success or failure", response = CodespaceSecurityConfigPublishedDetailsVO.class),
 			@ApiResponse(code = 204, message = "Fetch complete, no content found."),
 			@ApiResponse(code = 400, message = "Bad request."),
 			@ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
@@ -1419,12 +1420,11 @@ public class WorkspaceController implements CodeServerApi, CodeServerAdminApi {
 			@ApiResponse(code = 500, message = "Internal error") })
 	@RequestMapping(value = "/workspaces/{id}/config/publish", produces = { "application/json" }, consumes = {
 			"application/json" }, method = RequestMethod.GET)
-	public ResponseEntity<CodespaceSecurityConfigVO> publishSecurityConfigDetails(
-			@ApiParam(value = "Workspace ID to be fetched", required = true) @PathVariable("id") String id) {
+	public ResponseEntity<CodespaceSecurityConfigPublishedDetailsVO> publishedSecurityConfigDetails(String id) {
 		// TODO Auto-generated method stub
-		CodespaceSecurityConfigVO getPublishedConfigResp = new CodespaceSecurityConfigVO();
+		CodespaceSecurityConfigPublishedDetailsVO configPublishedDetailsVO = new CodespaceSecurityConfigPublishedDetailsVO();
 		CreatedByVO currentUser = this.userStore.getVO();
-		String userId = currentUser != null ? currentUser.getId() : "";
+		String userId = currentUser != null ? currentUser.getId() : null;
 		CodeServerWorkspaceVO vo = service.getById(userId, id);
 		if (vo == null || vo.getWorkspaceId() == null) {
 			log.debug("No workspace found, returning empty");
@@ -1437,13 +1437,13 @@ public class WorkspaceController implements CodeServerApi, CodeServerAdminApi {
 					userId, vo.getWorkspaceId());
 			return new ResponseEntity<>(null, HttpStatus.FORBIDDEN);
 		}
-		if (vo != null && vo.getProjectDetails().getPublishedSecuirtyConfig() == null) {
-
-			log.info("No published security configurations for workspace found");
+		if (vo.getProjectDetails().getPublishedSecuirtyConfig() == null) {
+			log.debug("No published security config found, returning empty");
 			return new ResponseEntity<>(null, HttpStatus.NO_CONTENT);
 		}
-		getPublishedConfigResp = vo.getProjectDetails().getPublishedSecuirtyConfig();
-		return new ResponseEntity<>(getPublishedConfigResp, HttpStatus.OK);
+		configPublishedDetailsVO.setProjectName(vo.getProjectDetails().getProjectName());
+		configPublishedDetailsVO.setPublishedSecurityConfig(vo.getProjectDetails().getPublishedSecuirtyConfig());
+		return new ResponseEntity<>(configPublishedDetailsVO, HttpStatus.OK);
 	}
 
 }
