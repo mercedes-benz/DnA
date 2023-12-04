@@ -28,6 +28,7 @@ const ForecastRunRow = (props) => {
     setShowContextMenu(value);
   }
   const onRowClick = () => {
+    Tooltip.clear();
     props.openDetails(item);
   };
 
@@ -165,7 +166,7 @@ const ForecastRunRow = (props) => {
           { item.comment !== '' && <span tooltip-data={item.comment}>{item.runName}</span> }
         </td>
         <td>
-          {item.state.result_state === 'SUCCESS' && <i className={classNames('icon mbc-icon check circle', Styles.checkCircle)} onClick={() => Tooltip.clear()} tooltip-data={item.state.result_state} />}
+          {item.state.result_state === 'SUCCESS' && <i className={classNames('icon mbc-icon check circle', Styles.checkCircle)} tooltip-data={item.state.result_state} />}
           {item.state.result_state === 'CANCELED' && <i className={classNames('icon mbc-icon close circle', Styles.closeCircle)}  onClick={(e) => handleStatusClick(e, item)} tooltip-data={'Click to View the Error'} />}
           {item.state.result_state === 'FAILED' && <i className={classNames('icon mbc-icon close circle', Styles.closeCircle)}  onClick={(e) => handleStatusClick(e, item)} tooltip-data={'Click to View the Error'} />}
           {item.state.result_state === 'TIMEDOUT' && <i className={classNames('icon mbc-icon close circle', Styles.closeCircle)}  onClick={(e) => handleStatusClick(e, item)} tooltip-data={'Click to View the Error'} />}

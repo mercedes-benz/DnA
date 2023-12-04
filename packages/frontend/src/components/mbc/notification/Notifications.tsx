@@ -313,9 +313,9 @@ const Notifications = (props: any) => {
                 </button> */}
               </div>
             </div>
-            <div>
+            {/* <div>
               <IconGear></IconGear>
-            </div>
+            </div> */}
             <div>
               <div className={Styles.removeBlock} onClick={openDeleteModal}>
                 {checkAll || selectedNotifications.length > 0 ? (
@@ -334,7 +334,8 @@ const Notifications = (props: any) => {
                 }}
               >
                 {/* <i className={classNames('icon mbc-icon search')} /> */}
-                Settings
+                <IconGear></IconGear>
+                <span>Settings</span>
               </div>
             </div>
           </div>
