@@ -141,25 +141,6 @@
     }
   }
 }
-.modalStyle {
-  padding: '50px 35px 35px 35px';
-  min-width: 'unset';
-  width: '60%';
-  max-width: '50vw';
-  overflow-y: auto;
-
-  &::-webkit-scrollbar-thumb {
-    background: #00adef;
-    border-radius: 10px;
-  }
-  &::-webkit-scrollbar-track {
-    background: #293f55;
-  }
-  &::-webkit-scrollbar {
-    width: 5px;
-    height: 5px;
-  }
-}
 
 :global {
   #pagination-container {
