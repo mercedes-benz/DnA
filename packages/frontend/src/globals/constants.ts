@@ -70,6 +70,12 @@ export enum DATA_COMPLIANCE_INFO_LINKS {
   MORE_INFO = 'https://your-data-compliance-more-info-url',
 }
 
+export enum AI_RISK_ASSESSMENT_TYPES {
+  NOT_APPLICABLE = 'AI Risk Self-Assessment does not apply',
+  BASIC_RISK = 'Basic Risk AI',
+  HIGH_RISK = 'High Risk AI'
+}
+
 export const MALWARE_SCAN_SERVICE_ONE_API_LINK = 'https://your-malware-scan-one-api-link/';
 
 export const SUPPORT_EMAIL_ID = 'support@your-domain.com';
