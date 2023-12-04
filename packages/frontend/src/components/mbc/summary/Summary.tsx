@@ -156,6 +156,7 @@ export default class Summary extends React.Component<{ user: IUserInfo }, ISumma
           attachments: [],
           links: [],
           complianceOfficers: [],
+          aiRiskAssessmentType: '',
         },
         digitalValue: {
           typeOfCalculation: Summary.digitalValueTypeKeyValue,
@@ -262,16 +263,17 @@ export default class Summary extends React.Component<{ user: IUserInfo }, ISumma
     const {
       canShowTeams,
       solution: {
-        datacompliance: { quickCheck, useCaseDescAndEval, attachments, links, complianceOfficers },
+        datacompliance: { quickCheck, useCaseDescAndEval, attachments, links, complianceOfficers, aiRiskAssessmentType },
       },
     } = this.state;
     const canShowComplianceSummary =
-      canShowTeams &&
+      canShowTeams && 
       (quickCheck ||
         useCaseDescAndEval ||
         (attachments && attachments.length) ||
         (links && links.length) ||
-        (complianceOfficers && complianceOfficers.length));
+        (complianceOfficers && complianceOfficers.length) ||
+        (aiRiskAssessmentType && aiRiskAssessmentType.length));
 
     const canShowDescription = this.state.solution.description.productName !== '';
     const canShowDigitalValue =

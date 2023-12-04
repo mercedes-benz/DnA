@@ -6,7 +6,7 @@ import { getDivisionsQueryValue,
   regionalDateAndTimeConversionSolution,
   regionalForMonthAndYear 
 } from './utils';
-import {TOTAL_LOCATIONS_COUNT} from 'globals/constants';
+import {TOTAL_LOCATIONS_COUNT, AI_RISK_ASSESSMENT_TYPES} from 'globals/constants';
 
 export const getDataForCSV = (
   queryParams: IFilterParams,
@@ -67,6 +67,7 @@ export const getDataForCSV = (
     { label: 'PersonalizationDescription', key: 'personalizationDescription'},
     { label: 'MarketingRoles', key: 'marketingRoles'},
     { label: 'IsPublished', key: 'publish' },
+    { label: 'DataComplianceAIRiskAssessmentType', key: 'dataComplianceAIRiskAssessmentType' },
     { label: 'DataComplianceAddedLinks', key: 'dataComplianceAddedLinks' },
     { label: 'DataComplianceAttachedFiles', key: 'dataComplianceAttachedFiles' },
     { label: 'DataComplianceLocalComplianceOfficers', key: 'dataComplianceLocalComplianceOfficers' },
@@ -214,6 +215,10 @@ export const getDataForCSV = (
       if (solutionsCSV.records) {
         solutionsCSV.records.forEach((solution) => {
           const dataComplianceOBJ = Envs.ENABLE_DATA_COMPLIANCE ? {
+            dataComplianceAIRiskAssessmentType: 
+              solution.dataCompliance && solution.dataCompliance.aiRiskAssessmentType && solution.dataCompliance.aiRiskAssessmentType.length >0
+                ? AI_RISK_ASSESSMENT_TYPES[solution.dataCompliance.aiRiskAssessmentType]
+                : AI_RISK_ASSESSMENT_TYPES['NOT_APPLICABLE'],
             dataComplianceAddedLinks:
               solution.dataCompliance && solution.dataCompliance.links && solution.dataCompliance.links.length > 0
                 ? sanitize(solution.dataCompliance.links.map((link) => link.link).join('|'))
