@@ -79,21 +79,7 @@
 
 .collabAvatar {
   padding: 0 25px 25px 0;
-  max-height: calc(90vh - 110px);
-  overflow-y: auto;
   overflow-x: hidden;
-
-  &::-webkit-scrollbar-thumb {
-    background: #00adef;
-    border-radius: 10px;
-  }
-  &::-webkit-scrollbar-track {
-    background: #293f55;
-  }
-  &::-webkit-scrollbar {
-    width: 5px;
-    height: 5px;
-  }
 }
 
 .projectWrapper {
