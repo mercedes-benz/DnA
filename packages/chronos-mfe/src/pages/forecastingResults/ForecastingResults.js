@@ -800,7 +800,7 @@ const ForecastingResults = () => {
         </div>
       </div>
 
-      { (forecastDataA.length > 0 && decompositionDataA.length > 0 && outlierDataA.length > 0) ? null : 
+      { (forecastDataA.length > 0 || decompositionDataA.length > 0 || outlierDataA.length > 0) ? null : 
         <div className={Styles.firstPanel}>
           <p>No visualization for the given data.</p>
         </div>
