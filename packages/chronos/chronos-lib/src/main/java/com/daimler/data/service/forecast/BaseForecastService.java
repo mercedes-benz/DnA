@@ -551,7 +551,7 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 												FileUploadResponseDto fileUploadResponse = storageClient.uploadFile("/configs/", multipartFile, bucketName);
 												if (fileUploadResponse == null || (fileUploadResponse != null && (fileUploadResponse.getErrors() != null || !"SUCCESS".equalsIgnoreCase(fileUploadResponse.getStatus())))) {
 													log.error("Failed to upload config file {} to storage bucket", fileName);
-													uploadConfigMessage = "New recommendation file generated based on "+run.getRunName()+ " inputs, Failed to upload recommendation " +fileName +  " to project specific configs,  with exception";
+													uploadConfigMessage = "New recommendation file generated based on "+run.getRunName()+ " inputs, Failed to upload recommendation " +fileName +  " to project specific configs with exception.";
 													configRecommendationNotification.setNotificationEventName(uploadConfigNotificationEventName);
 													configRecommendationNotification.setMessage(uploadConfigMessage);
 													notificationDetails.add(configRecommendationNotification);
@@ -569,7 +569,7 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 													currentConfigInput.setCreatedBy(ownerId);
 													configFilesVOList.add(currentConfigInput);
 													entity.getData().setConfigFiles(this.assembler.toConfigFiles(configFilesVOList));
-													uploadConfigMessage = "New recommendation file generated based on" + run.getRunName() + " inputs, Successfully upload recommendation" + fileName + "to project specific configs";
+													uploadConfigMessage = "New recommendation file generated based on " + run.getRunName() + " inputs, Successfully uploaded recommendation " + fileName + " to project specific configs.";
 													configRecommendationNotification.setNotificationEventName(uploadConfigNotificationEventName);
 													configRecommendationNotification.setMessage(uploadConfigMessage);
 													notificationDetails.add(configRecommendationNotification);
