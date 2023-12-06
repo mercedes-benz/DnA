@@ -18,6 +18,7 @@ const RunParametersForm = () => {
   const forecastHorizonTooltipContent = 'Select how many data points in the future the forecast should predict.\n Note that this number should not be more than 1/5th the length of your existing data, ideally less.\n Also, forecasting gets less precise over time, so try to not predict too many points in the future.';
   const chronosVersionTooltipContent = `This is an experimental feature used for testing or as a fallback option. To use an older Chronos version, type the version number, e.g. "2.3.0" (without the quotes).\nTo get a list of available Chronos versions, check this link [${Envs.CHRONOS_RELEASES_INFO_URL}].\nNote that we currently offer no support for this feature. Available versions differ between environments and versions might be discontinued without previous warning.`;
   const configurationFileTooltipContent = `You can upload your own Configuration\nFiles in the "Manage Project" Tab`;
+  const backtestingTooltipContent = `This will run Chronos the selected amount of times, while ignoring progressively more recent data. \nPlease be aware that job runtime effectively multiplies with your selected backtesting window. \nLearn more in the documentation under "Backtesting".`;
 
   const [expertView, setExpertView] = useState(false);
 
@@ -284,7 +285,39 @@ const RunParametersForm = () => {
             </div>
             </div>
             <div className={Styles.runOnPowerfulMachinesContainer}>
-              &nbsp;
+              <div
+                className={classNames(
+                  `input-field-group`,
+                  Styles.tooltipIcon
+                )}
+              >
+                <label id="backtestingLabel" htmlFor="backtestingField" className="input-label">
+                  Backtesting
+                  <i className="icon mbc-icon info" tooltip-data={backtestingTooltipContent} />
+                </label>
+                <div className="custom-select" 
+                  // onBlur={() => trigger('hierarchy')}
+                  >
+                  <select
+                    id="backtestingField"
+                    {...register('backtesting')}
+                  >
+                    <option value={''}>No Backtesting</option>
+                    <option value={'1'}>1</option>
+                    <option value={'2'}>2</option>
+                    <option value={'3'}>3</option>
+                    <option value={'4'}>4</option>
+                    <option value={'5'}>5</option>
+                    <option value={'6'}>6</option>
+                    <option value={'7'}>7</option>
+                    <option value={'8'}>8</option>
+                    <option value={'9'}>9</option>
+                    <option value={'10'}>10</option>
+                    <option value={'11'}>11</option>
+                    <option value={'12'}>12</option>
+                  </select>
+                </div>
+              </div>
             </div>
           </div>
           </>  : null
