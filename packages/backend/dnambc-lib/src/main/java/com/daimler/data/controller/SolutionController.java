@@ -358,7 +358,7 @@ public class SolutionController implements SolutionsApi, ChangelogsApi, Malwares
             if (solutionVOListVO != null && solutionVOListVO.size() > 0) {
                 solutionCollection = solutionAssembler.applyBookMarkflag(solutionVOListVO, bookmarkedSolutions, userId);
                 if (!isAdmin)
-                    solutionCollection = solutionAssembler.maskDigitalValues(solutionVOListVO, userId, true);
+                    solutionCollection = solutionAssembler.maskDigitalValues(solutionVOListVO, userId, true, divisionsAdmin);
                 solutionCollection.setTotalCount(count.intValue());
                 return new ResponseEntity<>(solutionCollection, HttpStatus.OK);
             } else {
@@ -438,7 +438,7 @@ public class SolutionController implements SolutionsApi, ChangelogsApi, Malwares
             isDivisionAdmin = isDivisionAdmin && !ObjectUtils.isEmpty(divisionAdmins)
                     && divisionAdmins.contains(solutionVO.getDivision().getName());
             if (Boolean.FALSE.equals(isAdmin) && Boolean.FALSE.equals(isDivisionAdmin)) {
-                solutionVO = solutionAssembler.maskDigitalValue(solutionVO, userId, false);
+                solutionVO = solutionAssembler.maskDigitalValue(solutionVO, userId, false, divisionAdmins);
             }
             LOGGER.debug("Solution {} fetched successfully", id);
             return new ResponseEntity<>(solutionVO, HttpStatus.OK);
