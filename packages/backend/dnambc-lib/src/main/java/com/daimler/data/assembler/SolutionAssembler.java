@@ -2139,13 +2139,14 @@ public class SolutionAssembler implements GenericAssembler<SolutionVO, SolutionN
 	 * 
 	 * @param solutionVOListVO
 	 * @param userId
+	 * @param divisionsAdmin 
 	 * @return SolutionCollection
 	 */
 	public SolutionCollection maskDigitalValues(List<SolutionVO> solutionVOListVO, String userId,
-			boolean portfolioView) {
+			boolean portfolioView, List<String> divisionsAdmin) {
 		SolutionCollection solutionCollection = new SolutionCollection();
 		List<SolutionVO> records = new ArrayList<>();
-		records = solutionVOListVO.stream().map(n -> this.maskDigitalValue(n, userId, portfolioView))
+		records = solutionVOListVO.stream().map(n -> this.maskDigitalValue(n, userId, portfolioView, divisionsAdmin))
 				.collect(Collectors.toList());
 		solutionCollection.setRecords(records);
 		return solutionCollection;
@@ -2165,10 +2166,11 @@ public class SolutionAssembler implements GenericAssembler<SolutionVO, SolutionN
 	 * 
 	 * @param vo
 	 * @param userId
+	 * @param divisionsAdmin 
 	 * @param isAdmin
 	 * @return SolutionVO
 	 */
-	public SolutionVO maskDigitalValue(SolutionVO vo, String userId, boolean portfolioView) {
+	public SolutionVO maskDigitalValue(SolutionVO vo, String userId, boolean portfolioView, List<String> divisionsAdmin) {
 		LOGGER.trace("Entering maskDigitalValue");
 		if (vo != null && vo.getDigitalValue() != null) {
 			LOGGER.debug("Checking if user is either team member or creator of the solution");
@@ -2182,6 +2184,9 @@ public class SolutionAssembler implements GenericAssembler<SolutionVO, SolutionN
 				userLinkedToSolution = true;
 			} else if (!ObjectUtils.isEmpty(vo.getCreatedBy()) && StringUtils.hasText(vo.getCreatedBy().getId())
 					&& vo.getCreatedBy().getId().equalsIgnoreCase(userId)) {
+				userLinkedToSolution = true;
+			}
+			else if (!ObjectUtils.isEmpty(divisionsAdmin) && divisionsAdmin.contains(vo.getDivision().getName())) {
 				userLinkedToSolution = true;
 			}
 			LOGGER.debug("Checking if user has permission to see digital value");
