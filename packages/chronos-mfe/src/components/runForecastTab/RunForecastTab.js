@@ -52,6 +52,7 @@ const RunForecastTab = ({ onRunClick }) => {
       formData.append('runOnPowerfulMachines', data.runOnPowerfulMachines === undefined ? false : data.runOnPowerfulMachines);
     }
     formData.append('chronosVersion', data.chronosVersion === undefined ? '' : data.chronosVersion);
+    formData.append('backtesting', data.backtesting === undefined ? '' : data.backtesting);
     formData.append('comment', data.comment);
     formData.append('saveRequestPart', data.saveRequestPart === undefined ? 'false' : data.saveRequestPart + '');
     formData.append('savedInputPath', data.savedInputPath === undefined ? null : data.savedInputPath);
