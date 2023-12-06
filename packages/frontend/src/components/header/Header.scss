@@ -81,6 +81,7 @@
 }
 
 .appLogo {
+  position: relative;
   > h6 {
     color: var(--header-text-color) !important;
     font-size: var(--font-size-sub-headline) !important;
@@ -94,6 +95,13 @@
     width: 33px;
     margin-right: 10px !important;
     margin-left: 0 !important;
+
+    &.santaHat {
+      position: absolute;
+      width: 20px;
+      left: 18px;
+      top: -5px;
+    }
   }
 }
 
