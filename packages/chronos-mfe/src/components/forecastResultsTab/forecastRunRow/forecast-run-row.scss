@@ -29,6 +29,27 @@
   color: #00adef;
   font-size: 16px;
 }
+.comparisonIcon {
+  width: 17px;
+  height: 17px;
+  border-radius: 100%;
+  background: #00adef;
+  font-size: 10px;
+  display: inline-block;
+  transform: translateY(-4px);
+
+  > i {
+    color: #252a33;
+    font-size: 9px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 17px;
+    height: 17px;
+    margin: 0;
+    line-height: 17px;
+  }
+}
 .modalContent {
   padding-top: 8px;
   .apiKey {
