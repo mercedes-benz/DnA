@@ -84,9 +84,11 @@ public class ForecastAssembler implements GenericAssembler<ForecastVO, ForecastN
 			}
 			governanceFeildVO.setDataClassification(entity.getDataClassification());
 			governanceFeildVO.setArcherId(entity.getArcherId());
-			governanceFeildVO.setProducerId(entity.getProducerId());
-			governanceFeildVO.setTermsOfUse(entity.getTermsOfUse());
-
+			governanceFeildVO.setProcedureId(entity.getProcedureId());
+			if(entity.getTermsOfUse()!=null)
+			{
+				governanceFeildVO.setTermsOfUse(entity.getTermsOfUse());
+			}
 		}
 		return governanceFeildVO;
 	}
@@ -305,9 +307,11 @@ public class ForecastAssembler implements GenericAssembler<ForecastVO, ForecastN
 				governanceFeilds.setPiiData(vo.isPiiData());
 			}
 			governanceFeilds.setArcherId(vo.getArcherId());
-			governanceFeilds.setProducerId(vo.getProducerId());
-			governanceFeilds.setTermsOfUse(vo.getTermsOfUse());
-
+			governanceFeilds.setProcedureId(vo.getProcedureId());
+			if(vo.isTermsOfUse()!=null)
+			{
+				governanceFeilds.setTermsOfUse(vo.isTermsOfUse());
+			}
 		}
 		return governanceFeilds;
 	}

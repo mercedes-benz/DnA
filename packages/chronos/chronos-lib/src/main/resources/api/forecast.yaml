@@ -1453,11 +1453,11 @@ definitions:
       archerId:
         type: string
         description: archerId of forecast
-      producerId:
+      procedureId:
         type: string
         description: producerId of forecast
       termsOfUse:
-        type: string
+        type: boolean
         description: termsAndUse of forecast
       required:
         -description

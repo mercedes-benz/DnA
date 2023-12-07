@@ -23,7 +23,7 @@ public class LeanGovernanceFeilds {
     private String dataClassification;
     private Boolean piiData;
     private String archerId;
-    private String producerId;
-    private String termsOfUse;
+    private String procedureId;
+    private Boolean termsOfUse;
 
 }
