@@ -59,6 +59,7 @@ import com.google.gson.JsonArray;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.validation.Valid;
 
 @Service
 @Slf4j
@@ -1564,6 +1565,38 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 
 		}
 		return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
+	}
+
+	@Override
+	@Transactional(isolation = Isolation.SERIALIZABLE)
+	public GenericMessage updateLeanGovernanceFeilds(String id, @Valid LeanGovernanceFeildVO leanGovernanceFeildVO,
+			@Valid LeanGovernanceFeildVO leanGovernanceFeilds) {
+
+		GenericMessage responseMessage = new GenericMessage();
+		List<MessageDescription> errors = new ArrayList<>();
+		List<MessageDescription> warnings = new ArrayList<>();
+		Optional<ForecastNsql> entityOptional = jpaRepo.findById(id);
+		if (entityOptional != null) {
+			try {
+				ForecastNsql entity = entityOptional.get();
+				LeanGovernanceFeilds governanceFeilds = entity.getData().getLeanGovernanceFeilds();
+				if (governanceFeilds != null) {
+					LeanGovernanceFeilds updatedValues = assembler.toGovernceEntity(leanGovernanceFeildVO);
+					entity.getData().setLeanGovernanceFeilds(updatedValues);
+				}
+				this.jpaRepo.save(entity);
+				responseMessage.setSuccess("SUCCESS");
+
+			} catch (Exception e) {
+				log.error("Failed while updating lean governance details.");
+				MessageDescription msg = new MessageDescription("Failed to save governance details.");
+				errors.add(msg);
+				responseMessage.setSuccess("FAILED");
+				responseMessage.setErrors(errors);
+				return responseMessage;
+			}
+		}
+		return responseMessage;
 	}
 
 }

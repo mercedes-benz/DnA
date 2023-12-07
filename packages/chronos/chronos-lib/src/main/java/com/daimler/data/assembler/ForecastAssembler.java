@@ -59,10 +59,36 @@ public class ForecastAssembler implements GenericAssembler<ForecastVO, ForecastN
 					List<InputFileVO> configFiles = toConfigFilesVO(data.getConfigFiles());
 					vo.setConfigFiles(configFiles);
 				}
+				if (data.getLeanGovernanceFeilds() != null) {
+					LeanGovernanceFeildVO governanceFeildVO = this.toGovernceVo(data.getLeanGovernanceFeilds());
+					vo.setLeanGovernanceFeilds(governanceFeildVO);
+
+				}
 				vo.setBucketId(entity.getData().getBucketId());
 			}
 		}
 		return vo;
+	}
+
+	public LeanGovernanceFeildVO toGovernceVo(LeanGovernanceFeilds entity) {
+		LeanGovernanceFeildVO governanceFeildVO = new LeanGovernanceFeildVO();
+		if (entity != null) {
+			governanceFeildVO.setTypeOfProject(entity.getTypeOfProject());
+			governanceFeildVO.setDecription(entity.getDecription());
+			governanceFeildVO.setDivision(entity.getDivision());
+			governanceFeildVO.setSubDivision(entity.getSubDivision());
+			governanceFeildVO.setDepartment(entity.getDepartment());
+			governanceFeildVO.setTags(entity.getTags());
+			if (entity.getPiiData() != null) {
+				governanceFeildVO.setPiiData(entity.getPiiData());
+			}
+			governanceFeildVO.setDataClassification(entity.getDataClassification());
+			governanceFeildVO.setArcherId(entity.getArcherId());
+			governanceFeildVO.setProducerId(entity.getProducerId());
+			governanceFeildVO.setTermsOfUse(entity.getTermsOfUse());
+
+		}
+		return governanceFeildVO;
 	}
 	
 	public List<RunVO> toRunsVO(List<RunDetails> runs){
@@ -255,10 +281,35 @@ public class ForecastAssembler implements GenericAssembler<ForecastVO, ForecastN
 				List<File> files = this.toConfigFiles(vo.getConfigFiles());
 				data.setConfigFiles(files);
 			}
+			if (vo.getLeanGovernanceFeilds() != null) {
+				LeanGovernanceFeilds governanceFeilds = this.toGovernceEntity(vo.getLeanGovernanceFeilds());
+				data.setLeanGovernanceFeilds(governanceFeilds);
+			}
 			data.setBucketId(vo.getBucketId());
 			entity.setData(data);
 		}
 		return entity;
+	}
+
+	public LeanGovernanceFeilds toGovernceEntity(LeanGovernanceFeildVO vo) {
+		LeanGovernanceFeilds governanceFeilds = new LeanGovernanceFeilds();
+		if (vo != null) {
+			governanceFeilds.setTypeOfProject(vo.getTypeOfProject());
+			governanceFeilds.setDecription(vo.getDecription());
+			governanceFeilds.setDivision(vo.getDivision());
+			governanceFeilds.setSubDivision(vo.getSubDivision());
+			governanceFeilds.setDepartment(vo.getDepartment());
+			governanceFeilds.setTags(vo.getTags());
+			governanceFeilds.setDataClassification(vo.getDataClassification());
+			if (vo.isPiiData() != null) {
+				governanceFeilds.setPiiData(vo.isPiiData());
+			}
+			governanceFeilds.setArcherId(vo.getArcherId());
+			governanceFeilds.setProducerId(vo.getProducerId());
+			governanceFeilds.setTermsOfUse(vo.getTermsOfUse());
+
+		}
+		return governanceFeilds;
 	}
 	
 	private String toFrequencyParam(String value) {

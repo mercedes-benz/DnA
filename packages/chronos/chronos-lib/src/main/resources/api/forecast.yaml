@@ -426,6 +426,43 @@ paths:
         500:
           description: "Internal error"
   
+  /forecasts/{id}/datagovernance:
+    patch:
+      tags:
+        - "forecast-projects"
+      summary: "adding lean governance to existing project for given Id for Forecast project."
+      description: "updating lean governance details."
+      operationId: "updateGovernanceValues"
+      parameters:
+        - name: "id"
+          in: "path"
+          description: "forecast project ID"
+          required: true
+          type: "string"
+        - name: "LeanGovernanceFeildVO"
+          in: "body"
+          description: "LeanGovernanceFeildVO to add forecast"
+          required: true
+          schema:
+           $ref: "#/definitions/LeanGovernanceFeildVO"
+      responses:
+        201:
+          description: "Returns message of success or failure "
+          schema:
+            $ref: "#/definitions/GenericMessage"
+        204:
+          description: "Fetch complete, no content found."
+        400:
+          description: "Bad Request"
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
+  
   /forecasts/{id}/inputs/{savedinputid}:
     delete:
       tags:
@@ -1249,6 +1286,9 @@ definitions:
         type: array
         items:
           $ref: "#/definitions/CollaboratorVO"
+      leanGovernanceFeilds:
+        $ref: "#/definitions/LeanGovernanceFeildVO"
+        description: lean governance details
       required:
         - name
   
@@ -1377,7 +1417,57 @@ definitions:
         type: array
         items:
           $ref: "#/definitions/InputFileVO"
+      leanGovernanceFeilds:
+        $ref: "#/definitions/LeanGovernanceFeildVO"
+        description: lean governance details
   
+  LeanGovernanceFeildVO:
+    type: object
+    properties:
+      typeOfProject:
+        type: string
+        description: type of forecast
+      decription:
+        type: string
+        description: decription of forecast
+      division:
+        type: string
+        description: division of forecast
+      subDivision:
+        type: string
+        description: subDivision of forecast
+      department:
+        type: string
+        description: department of forecast
+      tags:
+        type: array
+        items:
+          type: string
+        description: tags of forecast
+      dataClassification:
+        type: string
+        description: dataClassification of forecast
+      piiData:
+        type: boolean
+        description: pii of forecast
+      archerId:
+        type: string
+        description: archerId of forecast
+      producerId:
+        type: string
+        description: producerId of forecast
+      termsOfUse:
+        type: string
+        description: termsAndUse of forecast
+      required:
+        -description
+        -division
+        -subDivision
+        -department
+        -typeOfProject
+        -dataClassfication
+        -piiData
+        -termsOfUse
   
   ForecastRunRequestVO:
     type: object

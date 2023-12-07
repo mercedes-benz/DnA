@@ -4,6 +4,8 @@ import java.math.BigDecimal;
 import java.util.Date;
 import java.util.List;
 
+import javax.validation.Valid;
+
 import com.daimler.data.dto.forecast.*;
 import com.daimler.data.dto.storage.BucketObjectDetailsDto;
 import com.daimler.data.dto.storage.BucketObjectsCollectionWrapperDto;
@@ -69,6 +71,8 @@ public interface ForecastService extends CommonService<ForecastVO, ForecastNsql,
 
 	Integer getTotalCountOfForecastUsers();
 
+    GenericMessage updateLeanGovernanceFeilds(String id, @Valid LeanGovernanceFeildVO leanGovernanceFeildVO,
+			@Valid LeanGovernanceFeildVO leanGovernanceFeilds);
 
 
 
