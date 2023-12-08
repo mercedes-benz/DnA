@@ -71,9 +71,5 @@ public interface ForecastService extends CommonService<ForecastVO, ForecastNsql,
 
 	Integer getTotalCountOfForecastUsers();
 
-    GenericMessage updateLeanGovernanceFeilds(String id, @Valid LeanGovernanceFeildVO leanGovernanceFeildVO,
-			@Valid LeanGovernanceFeildVO leanGovernanceFeilds);
-
-
 
 }

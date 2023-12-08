@@ -575,16 +575,16 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 
 		// if both AddCollaborators and RemoveCollaborators are empty
 		// then return as Bad Request.
-		if (forecastUpdateRequestVO.getAddCollaborators().size() == 0
-				&& forecastUpdateRequestVO.getRemoveCollaborators().size() == 0) {
-			responseMessage.setSuccess("FAILED");
-			MessageDescription errMsg = new MessageDescription("Add and Remove Collaborators are list is empty!");
-			errors.add(errMsg);
-			responseMessage.setErrors(errors);
-			log.error("Add and Remove Collaborators are list is empty!");
-			responseVO.setResponse(responseMessage);
-			return new ResponseEntity<>(responseVO, HttpStatus.BAD_REQUEST);
-		}
+		// if (forecastUpdateRequestVO.getAddCollaborators().size() == 0
+		// 		&& forecastUpdateRequestVO.getRemoveCollaborators().size() == 0) {
+		// 	responseMessage.setSuccess("FAILED");
+		// 	MessageDescription errMsg = new MessageDescription("Add and Remove Collaborators are list is empty!");
+		// 	errors.add(errMsg);
+		// 	responseMessage.setErrors(errors);
+		// 	log.error("Add and Remove Collaborators are list is empty!");
+		// 	responseVO.setResponse(responseMessage);
+		// 	return new ResponseEntity<>(responseVO, HttpStatus.BAD_REQUEST);
+		// }
 
 		if (forecastUpdateRequestVO.getApiKey() != null) {
 			String apiKeyCheck = vaultAuthClient.getApiKeys(id);
@@ -2025,37 +2025,5 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 		}
 		ForecastConfigFileResultVO configFileData = service.getForecastConfigFileById(id,configFileId);
 		return new ResponseEntity<>(configFileData, HttpStatus.OK);
-	}
-
-	@ApiOperation(value = "adding lean governance to existing project for given Id for Forecast project.", nickname = "updateGovernanceValues", notes = "updating lean governance details.", response = GenericMessage.class, tags={ "forecast-projects", })
-    @ApiResponses(value = { 
-        @ApiResponse(code = 201, message = "Returns message of success or failure ", response = GenericMessage.class),
-        @ApiResponse(code = 204, message = "Fetch complete, no content found."),
-        @ApiResponse(code = 400, message = "Bad Request"),
-        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
-        @ApiResponse(code = 403, message = "Request is not authorized."),
-        @ApiResponse(code = 405, message = "Method not allowed"),
-        @ApiResponse(code = 500, message = "Internal error") })
-    @RequestMapping(value = "/forecasts/{id}/datagovernance",
-        produces = { "application/json" }, 
-        consumes = { "application/json" },
-        method = RequestMethod.PATCH)
-    public ResponseEntity<GenericMessage> updateGovernanceValues(@ApiParam(value = "forecast project ID",required=true) @PathVariable("id") String id,@ApiParam(value = "LeanGovernanceFeildVO to add forecast" ,required=true )  @Valid @RequestBody LeanGovernanceFeildVO leanGovernanceFeildVO){
-		ForecastVO existingForecast = service.getById(id);
-		GenericMessage responseMessage = new GenericMessage();
-		if (existingForecast == null) {
-			log.debug("No workspace found, returning empty");
-			GenericMessage emptyResponse = new GenericMessage();
-			List<MessageDescription> errorMessage = new ArrayList<>();
-			MessageDescription msg = new MessageDescription();
-			msg.setMessage("No workspace found for given id and the user");
-			errorMessage.add(msg);
-			emptyResponse.addErrors(msg);
-			emptyResponse.setSuccess("FAILED");
-			emptyResponse.setErrors(errorMessage);
-			return new ResponseEntity<>(emptyResponse, HttpStatus.NOT_FOUND);
-		}
-		responseMessage = service.updateLeanGovernanceFeilds(id, leanGovernanceFeildVO, existingForecast.getLeanGovernanceFeilds());
-		return null;
 	}
 }
