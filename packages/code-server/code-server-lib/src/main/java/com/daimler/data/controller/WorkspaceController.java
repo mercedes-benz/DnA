@@ -67,7 +67,6 @@
  import com.daimler.data.dto.workspace.CodeServerRecipeDetailsVO.RamSizeEnum;
  import com.daimler.data.dto.workspace.CodeServerWorkspaceVO;
  import com.daimler.data.dto.workspace.CodeServerWorkspaceValidateVO;
-import com.daimler.data.dto.workspace.CodespaceSecurityConfigDetailsVO;
 import com.daimler.data.dto.workspace.CodespaceSecurityConfigVO;
  import com.daimler.data.dto.workspace.CodespaceSecurityConfigLOV;
  import com.daimler.data.dto.workspace.CodespaceSecurityEntitlementVO;
@@ -1134,10 +1133,10 @@ import com.daimler.data.dto.workspace.CodespaceSecurityConfigVO;
 	 }
  
 	 @Override
-	 @ApiOperation(value = "Get Codespace security configurations which include defining roles, entitlements, user-role mappings etc. for given ID", nickname = "saveSecurityConfig", notes = "Get codespace security configurations for Id", response = CodespaceSecurityConfigDetailsVO.class, tags = {
+	 @ApiOperation(value = "Get Codespace security configurations which include defining roles, entitlements, user-role mappings etc. for given ID", nickname = "saveSecurityConfig", notes = "Get codespace security configurations for Id", response = CodespaceSecurityConfigVO.class, tags = {
 			 "code-server", })
 	 @ApiResponses(value = {
-			 @ApiResponse(code = 201, message = "Returns message of success or failure", response = CodespaceSecurityConfigDetailsVO.class),
+			 @ApiResponse(code = 201, message = "Returns message of success or failure", response = CodespaceSecurityConfigVO.class),
 			 @ApiResponse(code = 204, message = "Fetch complete, no content found."),
 			 @ApiResponse(code = 400, message = "Bad request."),
 			 @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
@@ -1146,9 +1145,9 @@ import com.daimler.data.dto.workspace.CodespaceSecurityConfigVO;
 			 @ApiResponse(code = 500, message = "Internal error") })
 	 @RequestMapping(value = "/workspaces/{id}/config", produces = { "application/json" }, consumes = {
 			 "application/json" }, method = RequestMethod.GET)
-	 public ResponseEntity<CodespaceSecurityConfigDetailsVO> getSecurityConfig(
+	 public ResponseEntity<CodespaceSecurityConfigVO> getSecurityConfig(
 			 @ApiParam(value = "Workspace ID for the project", required = true) @PathVariable("id") String id) {
-				CodespaceSecurityConfigDetailsVO getConfigResponse = new CodespaceSecurityConfigDetailsVO();
+				CodespaceSecurityConfigVO getConfigResponse = new CodespaceSecurityConfigVO();
 		 CreatedByVO currentUser = this.userStore.getVO();
 		 String userId = currentUser != null ? currentUser.getId() : null;
 		 CodeServerWorkspaceVO vo = service.getById(userId, id);
@@ -1175,8 +1174,8 @@ import com.daimler.data.dto.workspace.CodespaceSecurityConfigVO;
 			 log.info("No security configurations for workspace found");
 			 return new ResponseEntity<>(null, HttpStatus.NO_CONTENT);
 		 }
+		 getConfigResponse = vo.getProjectDetails().getSecurityConfig();
 		 getConfigResponse.setProjectName(vo.getProjectDetails().getProjectName());
-		 getConfigResponse.setSecurityConfig(vo.getProjectDetails().getSecurityConfig());
 		 return new ResponseEntity<>(getConfigResponse, HttpStatus.OK);
 	 }
  
