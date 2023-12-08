@@ -26,5 +26,6 @@ public class Forecast {
 	private List<RunDetails> runs;
 	private List<ComparisonDetails> comparisons;
 	private List<File> configFiles;
+	private LeanGovernanceFeilds leanGovernanceFeilds;
 	
 }

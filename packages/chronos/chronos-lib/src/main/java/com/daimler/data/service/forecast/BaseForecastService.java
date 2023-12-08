@@ -59,6 +59,7 @@ import com.google.gson.JsonArray;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.validation.Valid;
 
 @Service
 @Slf4j
@@ -893,7 +894,11 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 			try {
 				ForecastNsql entity = entityOptional.get();
 				List<UserDetails> exstingcollaborators = entity.getData().getCollaborators();
-
+				LeanGovernanceFeilds governanceFeilds = entity.getData().getLeanGovernanceFeilds();
+				if (governanceFeilds != null) {
+					LeanGovernanceFeilds updatedValues = assembler.toGovernceEntity(forecastUpdateRequestVO.getLeanGovernanceFeilds());
+					entity.getData().setLeanGovernanceFeilds(updatedValues);
+				}
 				List<UserDetails> addCollabrators = forecastUpdateRequestVO.getAddCollaborators().stream().map(n -> {
 					UserDetails collaborator = new UserDetails();
 					BeanUtils.copyProperties(n, collaborator);
