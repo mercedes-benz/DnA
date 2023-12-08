@@ -466,11 +466,6 @@ public class WorkspaceAssembler implements GenericAssembler<CodeServerWorkspaceV
 					CodespaceSecurityConfig securityConfig = this.toSecurityConfig(codespaceSecurityConfigVO);
 					projectDetails.setSecurityConfig(securityConfig);
 				}
-				 codespaceSecurityConfigVO = projectDetailsVO.getSecurityConfig();
-				if (codespaceSecurityConfigVO != null) {
-					CodespaceSecurityConfig securityConfig = this.toSecurityConfig(codespaceSecurityConfigVO);
-					projectDetails.setSecurityConfig(securityConfig);
-				}
 				CodespaceSecurityConfigVO codespacePublishSecurityConfigVo = projectDetailsVO
 						.getPublishedSecuirtyConfig();
 				if (codespacePublishSecurityConfigVo != null) {

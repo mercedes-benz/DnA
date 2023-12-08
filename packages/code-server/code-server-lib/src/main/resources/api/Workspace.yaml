@@ -516,7 +516,6 @@ paths:
           description: "Returns message of success or failure"
           schema:
             $ref: "#/definitions/CodespaceSecurityConfigVO"
-            $ref: "#/definitions/CodespaceSecurityConfigVO"
         204:
           description: "Fetch complete, no content found."
         400:
