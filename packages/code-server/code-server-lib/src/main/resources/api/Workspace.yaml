@@ -515,7 +515,7 @@ paths:
         201:
           description: "Returns message of success or failure"
           schema:
-            $ref: "#/definitions/CodespaceSecurityConfigVO"
+            $ref: "#/definitions/CodespaceSecurityConfigDetailsVO"
         204:
           description: "Fetch complete, no content found."
         400:
@@ -693,16 +693,16 @@ definitions:
       data:
         type: array
         items:
-          type: string
+          $ref: "#/definitions/CodespaceSecurityConfigLOV"
   
   EntitlementCollectionVO:
     type: object
     properties:
       data:
         type: array
-        items:
-          type: string        
-          
+        items:    
+          $ref: "#/definitions/CodespaceSecurityConfigLOV"
+
   TransparencyVO:
     type: object
     properties:
@@ -788,7 +788,7 @@ definitions:
       projectCollaborators:
         type: array
         items:
-         $ref: "#/definitions/UserInfoVO" 
+          $ref: "#/definitions/UserInfoVO" 
       prodDeploymentDetails:
         $ref: "#/definitions/CodeServerDeploymentDetailsVO"
       intDeploymentDetails:
@@ -877,6 +877,16 @@ definitions:
       required:
         -recipeId
 
+  CodespaceSecurityConfigDetailsVO:
+    type: object
+    properties:
+      projectName:
+        type: string
+        description: "Name of the Project"
+      securityConfig:
+        $ref: "#/definitions/CodespaceSecurityConfigVO"
+  
+
   SecurityConfigResponseDto: 
     type: object
     properties:
@@ -894,58 +904,122 @@ definitions:
   CodespaceSecurityEntitlementVO: 
     type: object
     properties:
-     name:
+      id:
         type: string
-        description: "Status of security configurations"   
-     apiPattern:
+        description: "Entitlement Id" 
+      name:
         type: string
-        description: "API Path or Pattern used to validate this entitlement" 
-     httpMethod:
-        type: string
-        enum: [POST,PUT,PATCH,GET,OPTIONS,HEAD,DELETE]
-        description: "Operating system required"          
+        description: "name  of Entitlement"   
+      apiList:
+        type:  array
+        items:
+          $ref: "#/definitions/CodespaceSecurityApiListVO"
 
   CodespaceSecurityUserRoleMapVO: 
     type: object
     properties:
-     userId:
+      firstName:
         type: string
-        description: "User unique identification"   
-     roles:
+      lastName:
+        type: string
+      shortId:
+        type: string
+      id:
+        type: string
+      department:
+        type: string
+      email:
+        type: string
+      mobileNumber:
+        type: string  
+      roles:
         type: array
-        items:
-         type: string
+        items:  
+            $ref: "#/definitions/CodespaceSecurityConfigLOV"
+
+  CodespaceSecurityUserRoleMapResponseVO: 
+    type: object
+    properties:
+      firstName:
+        type: string
+      lastName:
+        type: string
+      shortId:
+        type: string
+      id:
+        type: string
+      department:
+        type: string
+      email:
+        type: string
+      mobileNumber:
+        type: string     
+      roles:
+        type: array
+        items:  
+          $ref: "#/definitions/CodespaceSecurityConfigLOV"
+        default: []
         
   CodespaceSecurityRoleVO: 
     type: object
     properties:
-     roleName:
+      id:
+        type: string
+        description: "Role Id" 
+      name:
         type: string
         description: "Role name"   
-     roleEntitlements:
-        type: array
-        items:
-         type: string
-                
+      roleEntitlements:
+          type: array
+          items:
+            $ref: "#/definitions/CodespaceSecurityConfigLOV"
+                           
+  CodespaceSecurityConfigLOV:
+    type: object
+    properties:
+      id:
+        type: string
+        description: "Id" 
+      name:
+        type: string
+        description: "name"  
+
+  CodespaceSecurityApiListVO:
+    type: object
+    properties:
+      apiPattern:
+        type: string
+        description: "API Path or Pattern used to validate this entitlement" 
+      httpMethod:
+        type: string
+        enum: ["POST","PUT","PATCH","GET","OPTIONS","HEAD","DELETE"]
+        description: "Operating system required" 
+        
   CodespaceSecurityConfigVO: 
     type: object
     properties:
-     status:
+      status:
         type: string
         description: "Status of security configurations"   
-     entitlements:
+      entitlements:
         type: array
         items:
           $ref: "#/definitions/CodespaceSecurityEntitlementVO"
-     roles:
+      roles:
         type: array
         items:
           $ref: "#/definitions/CodespaceSecurityRoleVO" 
-     userRoleMappings:
+      userRoleMappings:
         type: array
         items:
           $ref: "#/definitions/CodespaceSecurityUserRoleMapVO"
-
+      openSegments:
+        type: array
+        items:
+          type: string
+      isProtectedByDna:
+        type: boolean
+        
   UserIdVO:
     type: object
     properties:
