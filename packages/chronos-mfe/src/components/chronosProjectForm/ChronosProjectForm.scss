@@ -18,7 +18,7 @@
       display: flex;
       justify-content: space-between;
       > div {
-        width: calc(50% - 30px);
+        width: calc(50% - 10px);
       }
     }
   }
@@ -71,7 +71,26 @@
       }
 
       &:hover span {
-        text-decoration: underline;
+        text-decoration: underline; 
+      }
+    }
+  }
+}
+.termsOfUseContainer {
+  display: flex;
+  flex-direction: column;
+  min-height: 56px;
+  .termsOfUseContent {
+    display: flex;
+    margin-left: -10px;
+    .termsOfUseText {
+      margin-top: auto;
+      margin-bottom: auto;
+      color: #c0c8d0;
+      sup {
+        float: right;
+        top: -12px;
+        right: -8px;
       }
     }
   }
