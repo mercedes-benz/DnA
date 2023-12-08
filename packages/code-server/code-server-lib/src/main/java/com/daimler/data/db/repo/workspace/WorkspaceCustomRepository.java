@@ -34,7 +34,10 @@ import com.daimler.data.db.entities.CodeServerWorkspaceNsql;
 import com.daimler.data.db.json.CodeServerDeploymentDetails;
 import com.daimler.data.db.json.UserInfo;
 import com.daimler.data.db.repo.common.CommonDataRepository;
+import com.daimler.data.dto.CodespaceSecurityConfigCollectionDto;
+import com.daimler.data.dto.CodespaceSecurityConfigDto;
 import com.daimler.data.dto.workspace.CodeServerWorkspaceValidateVO;
+import com.daimler.data.dto.workspace.CodespaceSecurityConfigVO;
 
 public interface WorkspaceCustomRepository extends CommonDataRepository<CodeServerWorkspaceNsql, String> {
 
@@ -68,5 +71,7 @@ public interface WorkspaceCustomRepository extends CommonDataRepository<CodeServ
 	CodeServerWorkspaceValidateVO validateCodespace(String id, String userId);
 	
 	CodeServerWorkspaceNsql findByWorkspaceId(String wsId);
+
+    List<CodespaceSecurityConfigDto> getAllSecurityConfigs();
 
 }

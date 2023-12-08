@@ -161,6 +161,20 @@ paths:
           
 
 definitions:
+  
+  CodespaceSecurityConfigDetailsVO:
+    type: object
+    properties:
+      id: 
+        type: string
+        description: "Unique technical ID of workspace"
+      projectName:
+        type: string
+        description: "Name of the Project"
+      projectOwner:
+        $ref: "#/definitions/UserInfoVO"
+      securityConfig:
+        $ref: "#/definitions/CodespaceSecurityConfigVO"
 
   CodespaceSecurityConfigCollectionVO: 
     type: object
@@ -168,6 +182,8 @@ definitions:
      data:
         type: array
         items:
-          $ref: "#/definitions/CodespaceSecurityConfigVO"
-          
+          $ref: "#/definitions/CodespaceSecurityConfigDetailsVO"
+     totalCount:
+        type: integer
+        description: "Total number of Codespace projects that requested for publishing security configurations"     
 
