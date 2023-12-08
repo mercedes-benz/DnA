@@ -10,6 +10,7 @@
 		"BindingResult": "org.springframework.validation.BindingResult",
 		"GenericMessage": "com.daimler.data.controller.exceptions.GenericMessage",
 		"MessageDescription": "com.daimler.data.controller.exceptions.MessageDescription",
-		"CodespaceSecurityConfigVO":"com.daimler.data.dto.workspace.CodespaceSecurityConfigVO"
+		"CodespaceSecurityConfigVO":"com.daimler.data.dto.workspace.CodespaceSecurityConfigVO",
+		"UserInfoVO":"com.daimler.data.dto.workspace.UserInfoVO"
 	}
 }

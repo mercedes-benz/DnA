@@ -1317,11 +1317,6 @@ import com.daimler.data.dto.workspace.CodespaceSecurityConfigVO;
  
 	 }
  
-	 @Override
-	 public ResponseEntity<CodespaceSecurityConfigCollectionVO> getWorkspaceConfigs() {
-		 // TODO Auto-generated method stub
-		 return null;
-	 }
  
 	 @Override
 	 @ApiOperation(value = " Change codespace security configurations to publish state", nickname = "publishSecurityConfig", notes = "change state codespace security configurations to publish", response = GenericMessage.class, tags = {
@@ -1386,7 +1381,75 @@ import com.daimler.data.dto.workspace.CodespaceSecurityConfigVO;
  
 		 }
 		 return new ResponseEntity<>(responseMessage, HttpStatus.FORBIDDEN);
- 
 	 }
+   
+   	@Override
+	@ApiOperation(value = "Getting values of published security config for a workspace", nickname = "publishedSecurityConfigDetails", notes = "Get published security config details in codeserver workspace", response = CodespaceSecurityConfigPublishedDetailsVO.class, tags = {
+			"code-server", })
+	@ApiResponses(value = {
+			@ApiResponse(code = 201, message = "Returns message of success or failure", response = CodespaceSecurityConfigPublishedDetailsVO.class),
+			@ApiResponse(code = 204, message = "Fetch complete, no content found."),
+			@ApiResponse(code = 400, message = "Bad request."),
+			@ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+			@ApiResponse(code = 403, message = "Request is not authorized."),
+			@ApiResponse(code = 405, message = "Method not allowed"),
+			@ApiResponse(code = 500, message = "Internal error") })
+	@RequestMapping(value = "/workspaces/{id}/config/publish", produces = { "application/json" }, consumes = {
+			"application/json" }, method = RequestMethod.GET)
+	public ResponseEntity<CodespaceSecurityConfigPublishedDetailsVO> publishedSecurityConfigDetails(String id) {
+		// TODO Auto-generated method stub
+		CodespaceSecurityConfigPublishedDetailsVO configPublishedDetailsVO = new CodespaceSecurityConfigPublishedDetailsVO();
+		CreatedByVO currentUser = this.userStore.getVO();
+		String userId = currentUser != null ? currentUser.getId() : null;
+		CodeServerWorkspaceVO vo = service.getById(userId, id);
+		if (vo == null || vo.getWorkspaceId() == null) {
+			log.debug("No workspace found, returning empty");
+			return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
+		}
+		if (!(vo != null && vo.getWorkspaceOwner() != null
+				&& vo.getWorkspaceOwner().getId().equalsIgnoreCase(userId))) {
+			log.info(
+					"security configurations for workspace can be view only by Owners, insufficient privileges. Workspace name: {}",
+					userId, vo.getWorkspaceId());
+			return new ResponseEntity<>(null, HttpStatus.FORBIDDEN);
+		}
+		if (vo.getProjectDetails().getPublishedSecuirtyConfig() == null) {
+			log.debug("No published security config found, returning empty");
+			return new ResponseEntity<>(null, HttpStatus.NO_CONTENT);
+		}
+		configPublishedDetailsVO.setProjectName(vo.getProjectDetails().getProjectName());
+		configPublishedDetailsVO.setPublishedSecurityConfig(vo.getProjectDetails().getPublishedSecuirtyConfig());
+		return new ResponseEntity<>(configPublishedDetailsVO, HttpStatus.OK);
+	}
+   
+   	@Override
+	@ApiOperation(value = " get all codespace security configurations in requested state", nickname = "getAllSecurityConfig", notes = "get codespace security configurations in requested state.", response = CodespaceSecurityConfigCollectionVO.class, tags = {
+		"code-server", })
+	@ApiResponses(value = {
+			@ApiResponse(code = 201, message = "Returns message of success or failure", response = CodespaceSecurityConfigCollectionVO.class),
+			@ApiResponse(code = 204, message = "Fetch complete, no content found."),
+			@ApiResponse(code = 400, message = "Bad request."),
+			@ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+			@ApiResponse(code = 403, message = "Request is not authorized."),
+			@ApiResponse(code = 405, message = "Method not allowed"),
+			@ApiResponse(code = 500, message = "Internal error") })
+	@RequestMapping(value = "/workspaces/configs", produces = { "application/json" }, consumes = {
+			"application/json" }, method = RequestMethod.GET)
+	public ResponseEntity<CodespaceSecurityConfigCollectionVO> getWorkspaceConfigs() {
+		// TODO Auto-generated method stub
+		CodespaceSecurityConfigCollectionVO configCollectionVo = new CodespaceSecurityConfigCollectionVO();
+		final List<CodespaceSecurityConfigDetailsVO> configDetailsVo = service.getAllSecurityConfigs();
+		if(configDetailsVo != null && configDetailsVo.size() > 0)
+		{
+			configCollectionVo.setData(configDetailsVo);
+			configCollectionVo.setTotalCount(configDetailsVo.size());
+			return new ResponseEntity<>(configCollectionVo, HttpStatus.OK);
+		}
+		else
+		{
+			 return new ResponseEntity<>(configCollectionVo, HttpStatus.NO_CONTENT);
+		}
+	}
+   
  
  }

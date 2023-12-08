@@ -53,6 +53,7 @@ import com.daimler.data.db.json.CodespaceSecurityApiList;
 import com.daimler.data.db.json.CodespaceSecurityRole;
 import com.daimler.data.db.json.CodespaceSecurityUserRoleMap;
 import com.daimler.data.db.json.UserInfo;
+import com.daimler.data.dto.CodespaceSecurityConfigDto;
 import com.daimler.data.dto.workspace.CodeServerDeploymentDetailsVO;
 import com.daimler.data.dto.workspace.CodeServerProjectDetailsVO;
 import com.daimler.data.dto.workspace.CodeServerRecipeDetailsVO;
@@ -371,6 +372,7 @@ public class WorkspaceAssembler implements GenericAssembler<CodeServerWorkspaceV
 								projectDetails.getProdDeploymentDetails());
 						projectDetailsVO.setIntDeploymentDetails(intDeployDetailsVO);
 						projectDetailsVO.setProdDeploymentDetails(prodDeployDetailsVO);
+
 						List<UserInfo> collabs = projectDetails.getProjectCollaborators();
 						if(collabs!=null && !collabs.isEmpty()) {
 							List<UserInfoVO> collabsVO = collabs.stream().map
@@ -387,6 +389,7 @@ public class WorkspaceAssembler implements GenericAssembler<CodeServerWorkspaceV
 						projectDetailsVO.setRecipeDetails(recipeVO);
 						projectDetailsVO.setProjectName(projectDetails.getProjectName());
 						projectDetailsVO.setGitRepoName(projectDetails.getGitRepoName());
+
 						if(projectDetails.getProjectCreatedOn()!=null)
 							projectDetailsVO.setProjectCreatedOn(isoFormat.parse(isoFormat.format(projectDetails.getProjectCreatedOn())));
 						if (projectDetails.getSecurityConfig() != null) {
@@ -456,6 +459,7 @@ public class WorkspaceAssembler implements GenericAssembler<CodeServerWorkspaceV
 					CodespaceSecurityConfig securityConfig = this.toSecurityConfig(codespaceSecurityConfigVO);
 					projectDetails.setSecurityConfig(securityConfig);
 				}
+
 				data.setProjectDetails(projectDetails);
 				entity.setData(data);
 			}
@@ -463,6 +467,83 @@ public class WorkspaceAssembler implements GenericAssembler<CodeServerWorkspaceV
 		return entity;
 	}
 
+	public CodespaceSecurityConfigResponseVO toSaveConfigResponse(CodeServerWorkspaceVO vo) {
+		CodespaceSecurityConfigResponseVO responseVO = new CodespaceSecurityConfigResponseVO();
+		try {
+			responseVO.setEntitlements(vo.getProjectDetails().getSecurityConfig().getEntitlements());
+			responseVO.setStatus(vo.getProjectDetails().getSecurityConfig().getStatus());
+			responseVO.setOpenSegments(vo.getProjectDetails().getSecurityConfig().getOpenSegments());
+			responseVO.setIsProtectedByDna(vo.getProjectDetails().getSecurityConfig().isIsProtectedByDna());
+			List<CodespaceSecurityEntitlementVO> entitlements = vo.getProjectDetails().getSecurityConfig()
+					.getEntitlements();
+			List<CodespaceSecurityRoleResponseVO> roles = new ArrayList();
+			List<CodespaceSecurityUserRoleMapVO> userRoleMapVO = vo.getProjectDetails().getSecurityConfig()
+					.getUserRoleMappings();
+			List<CodespaceSecurityUserRoleMapResponseVO> userRoleMap = new ArrayList();
+			List<CodespaceSecurityRoleVO> rolesVO = vo.getProjectDetails().getSecurityConfig().getRoles();
+			if (rolesVO != null) {
+				for (CodespaceSecurityRoleVO role : rolesVO) {
+					CodespaceSecurityRoleResponseVO roleResponseVO = new CodespaceSecurityRoleResponseVO();
+					List<CodespaceSecurityEntitlementLOV> entitlementsList = new ArrayList();
+					roleResponseVO.setId(role.getName());
+					roleResponseVO.setName(role.getName());
+					List<String> entitlementIds = role.getRoleEntitlementIds();
+					for (String id : entitlementIds) {
+						for (CodespaceSecurityEntitlementVO entitlement : entitlements) {
+							CodespaceSecurityEntitlementLOV CodespaceSecurityEntitlementLOV = new CodespaceSecurityEntitlementLOV();
+							if (entitlement.getId().equalsIgnoreCase(id)) {
+								CodespaceSecurityEntitlementLOV.setId(entitlement.getId());
+								CodespaceSecurityEntitlementLOV.setName(entitlement.getName());
+								entitlementsList.add(CodespaceSecurityEntitlementLOV);
+							}
+						}
+					}
+					roleResponseVO.setRoleEntitlements(entitlementsList);
+					roles.add(roleResponseVO);
+				}
+				responseVO.setRoles(roles);
+			}
+			if (userRoleMapVO != null) {
+				for (CodespaceSecurityUserRoleMapVO mapping : userRoleMapVO) {
+					CodespaceSecurityUserRoleMapResponseVO userRoleMapResponseVO = new CodespaceSecurityUserRoleMapResponseVO();
+					List<CodespaceSecurityRoleLOV> userRoleList = new ArrayList<>();
+					List<String> roleIds = mapping.getRoleIds();
+					BeanUtils.copyProperties(mapping, userRoleMapResponseVO);
+					for (String id : roleIds) {
+						for (CodespaceSecurityRoleVO userRole : rolesVO) {
+							CodespaceSecurityRoleLOV userRoleMappingsLOV = new CodespaceSecurityRoleLOV();
+							if (userRole.getId().equalsIgnoreCase(id)) {
+								userRoleMappingsLOV.setId(userRole.getId());
+								userRoleMappingsLOV.setName(userRole.getName());
+								userRoleList.add(userRoleMappingsLOV);
+							}
+						}
+					}
+					userRoleMapResponseVO.setRoles(userRoleList);
+					userRoleMap.add(userRoleMapResponseVO);
+				}
+				responseVO.setUserRoleMappings(userRoleMap);
+			}
+		} catch (Exception e) {
+			log.error("Failed in assembler while parsing date into iso format with exception {}", e.getMessage());
+		}
+		return responseVO;
+	}
+
+	
+	public CodespaceSecurityConfigDetailsVO dtoToVo(CodespaceSecurityConfigDto dto) {
+		CodespaceSecurityConfigDetailsVO vo = new CodespaceSecurityConfigDetailsVO();
+		try {
+			if (vo != null) {
+				vo.setId(dto.getId());
+				vo.setProjectName(dto.getProjectName());
+				vo.setProjectOwner(toUserInfoVO(dto.getProjectOwner()));
+				vo.setSecurityConfig(tosecurityConfigVO(dto.getSecurityConfig()));
+			}
+		} catch (Exception e) {
+			log.error("Failed in assembler", e.getMessage());
+		}
+		return vo;
 	public CodespaceSecurityConfigVO assembleSecurityConfig(CodeServerWorkspaceVO vo, CodespaceSecurityConfigVO data) {
 		CodespaceSecurityConfigVO assembledSecurityConfig = new CodespaceSecurityConfigVO();
 		if (data != null) {
