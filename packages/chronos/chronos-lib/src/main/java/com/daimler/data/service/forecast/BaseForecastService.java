@@ -146,7 +146,7 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 	@Transactional(isolation = Isolation.SERIALIZABLE)
 	public ForecastRunResponseVO createJobRun(MultipartFile file,String savedInputPath, Boolean saveRequestPart, String runName,
 			String configurationFile, String frequency, BigDecimal forecastHorizon, String hierarchy, String comment, Boolean runOnPowerfulMachines,
-			ForecastVO existingForecast,String triggeredBy, Date triggeredOn,String chronosVersion) {
+			ForecastVO existingForecast,String triggeredBy, Date triggeredOn,String chronosVersion, String backtesting) {
 
 		String dataBricksJobidForRun = dataBricksJobId;
 		ForecastRunResponseVO responseWrapper = new ForecastRunResponseVO();
@@ -254,6 +254,13 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 
 		noteboookParams.setUser_id(triggeredBy);
 
+		if(backtesting!=null && !backtesting.trim().isEmpty() ){
+			noteboookParams.setBacktesting(backtesting);
+		}
+
+
+		log.info("notebookParams for bactesting"+ noteboookParams);
+
 		RunNowResponseVO runNowResponse = dataBricksClient.runNow(correlationId, noteboookParams, runOnPowerfulMachines);
 		if(runNowResponse!=null) {
 			if(runNowResponse.getErrorCode()!=null || runNowResponse.getRunId()==null) 
@@ -294,6 +301,7 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 				currentRun.setRunState(newRunState);
 				currentRun.setResultFolderPath(resultFolder);
 				currentRun.setInfotext(chronosVersion);
+				currentRun.setBacktesting(backtesting);
 				runNowResponse.setResultFolderPath(resultFolder);;
 				existingRuns.add(currentRun);
 				entity.getData().setRuns(existingRuns);
