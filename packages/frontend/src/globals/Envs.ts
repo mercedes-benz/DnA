@@ -40,6 +40,7 @@ export const Envs = {
       : EnvParser.parseBool(process.env.OIDC_DISABLED, true),
 
   API_BASEURL: getInjectedEnv('API_BASEURL') || process.env.API_BASEURL,
+  APP_URL: getInjectedEnv('APP_URL') || process.env.APP_URL,
   LOGINREDIRECTURL: getInjectedEnv('LOGINREDIRECTURL') || process.env.LOGINREDIRECTURL,
   DATAIKU_API_BASEURL: getInjectedEnv('DATAIKU_API_BASEURL') || process.env.DATAIKU_API_BASEURL,
   DATA_PIPELINES_API_BASEURL: getInjectedEnv('DATA_PIPELINES_API_BASEURL') || process.env.DATA_PIPELINES_API_BASEURL,
@@ -64,7 +65,7 @@ export const Envs = {
   DNA_CONTACTUS_HTML: getInjectedEnv('DNA_CONTACTUS_HTML') || process.env.DNA_CONTACTUS_HTML,
   DNA_BRAND_LOGO_URL: getInjectedEnv('DNA_BRAND_LOGO_URL') || process.env.DNA_BRAND_LOGO_URL,
   DNA_APP_LOGO_URL: getInjectedEnv('DNA_APP_LOGO_URL') || process.env.DNA_APP_LOGO_URL,
-  ENABLE_INTERNAL_USER_INFO:
+    ENABLE_INTERNAL_USER_INFO:
     getInjectedEnv('ENABLE_INTERNAL_USER_INFO') !== undefined
       ? getInjectedEnv('ENABLE_INTERNAL_USER_INFO')
       : EnvParser.parseBool(process.env.ENABLE_INTERNAL_USER_INFO, true),
@@ -205,4 +206,5 @@ export const Envs = {
   MATOMO_APP_URL: getInjectedEnv('MATOMO_APP_URL') || process.env.MATOMO_APP_URL,
   SPIRE_URL: getInjectedEnv('SPIRE_URL') || process.env.SPIRE_URL,
   GENAI_DIRECT_CHAT_URL: getInjectedEnv('GENAI_DIRECT_CHAT_URL') || process.env.GENAI_DIRECT_CHAT_URL,
+  CLAMAV_IMAGE_URL:  getInjectedEnv('CLAMAV_IMAGE_URL') || process.env.CLAMAV_IMAGE_URL,
 };
