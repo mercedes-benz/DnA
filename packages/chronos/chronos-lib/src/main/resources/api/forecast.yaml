@@ -605,6 +605,11 @@ paths:
           type: string
           description: Text field to denote Chronos Version
           required: false
+        - in: formData
+          name: backtesting
+          type: string
+          description: Text field to denote Chronos Backtesting
+          required: false
         - name: "apiKey"
           in: "header"
           description: "Authorization header"
@@ -1242,7 +1247,7 @@ definitions:
     properties:
       name:
         type: string
-        description: name of the forecast project
+        description: name of the forecast project.
       permission:
         $ref: "#/definitions/ForecastPermissionVO"
       collaborators:
@@ -1618,6 +1623,9 @@ definitions:
       chronosVersion:
         type: string
         description: "Text field to denote Chronos Version"
+      backtesting:
+        type: string
+        description: "Text field to denote Chronos Backtesting"
       isDeleted:
         type: boolean
         description: "Field to identify if run is deleted. Deleted run records wont be shown, this is only for system to identify. Not for Users."

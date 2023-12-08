@@ -1073,7 +1073,8 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
     		@ApiParam(value = "Levels Of Hierarchy number between 2 to 20 Or null") @RequestParam(value="hierarchy", required=false)  String hierarchy,
     		@ApiParam(value = "Comments for the run") @RequestParam(value="comment", required=false)  String comment,
     		@ApiParam(value = "If true, then run on Powerful Machines") @RequestParam(value="runOnPowerfulMachines", required=false)  Boolean runOnPowerfulMachines,
-            @ApiParam(value = "Text field to denote Chronos Version") @RequestParam(value="chronosVersion", required=false)  String chronosVersion,@ApiParam(value = "Authorization header" ) @RequestHeader(value="apiKey", required=false) String apiKey){
+            @ApiParam(value = "Text field to denote Chronos Version") @RequestParam(value="chronosVersion", required=false)  String chronosVersion,
+			@ApiParam(value = "Text field to denote Chronos Backtesting") @RequestParam(value="backtesting", required=false)  String backtesting,@ApiParam(value = "Authorization header" ) @RequestHeader(value="apiKey", required=false) String apiKey){
 			ForecastRunResponseVO responseVO = new ForecastRunResponseVO();
 			GenericMessage responseMessage = new GenericMessage();
 			ForecastVO existingForecast = service.getById(id);
@@ -1113,6 +1114,34 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 					responseVO.setResponse(errorMessage);
 					return new ResponseEntity<>(responseVO, HttpStatus.FORBIDDEN);
 				}else {
+					if(backtesting!=null && !backtesting.trim().isEmpty() ) {
+						try{
+							int backtestingValue = Integer.parseInt(backtesting);
+							if(backtestingValue<0){
+								log.error("Backtesting value is not a positive number");
+								MessageDescription invalidMsg = new MessageDescription("Invalid backtesting value. Backtesting value is not a positive number");
+								GenericMessage errorMessage = new GenericMessage();
+								errorMessage.setSuccess("FAILED");
+								errorMessage.addErrors(invalidMsg);
+								responseVO.setData(null);
+								responseVO.setResponse(errorMessage);
+								return new ResponseEntity<>(responseVO, HttpStatus.BAD_REQUEST);
+
+							}
+						}catch (NumberFormatException e){
+                           log.error("Backtesting value is not a number");
+							MessageDescription invalidMsg = new MessageDescription("Invalid backtesting value. Backtesting value is not a number");
+							GenericMessage errorMessage = new GenericMessage();
+							errorMessage.setSuccess("FAILED");
+							errorMessage.addErrors(invalidMsg);
+							responseVO.setData(null);
+							responseVO.setResponse(errorMessage);
+							return new ResponseEntity<>(responseVO, HttpStatus.BAD_REQUEST);
+						}
+
+					}
+
+
 					if(file!=null) {
 						String fileName = file.getOriginalFilename();
 						if (!isValidAttachment(fileName)) {
@@ -1142,6 +1171,7 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 								}else
 									savedInputs = new ArrayList<>();
 							}
+
 							FileUploadResponseDto fileUploadResponse = storageClient.uploadFile(INPUT_FILE_PREFIX,file, existingForecast.getBucketName());
 							if(fileUploadResponse==null || (fileUploadResponse!=null && (fileUploadResponse.getErrors()!=null || !"SUCCESS".equalsIgnoreCase(fileUploadResponse.getStatus())))) {
 								GenericMessage errorMessage = new GenericMessage();
@@ -1174,7 +1204,7 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 					}
 					log.info("Passed all validations for create run in controller, calling service for project {} ", id);
 					ForecastRunResponseVO createRunResponse = service.createJobRun(file,savedInputPath, saveRequestPart, runName, configurationFile,
-							frequency, forecastHorizon, hierarchy, comment, runOnPowerfulMachines, existingForecast,requestUser.getId(),createdOn,chronosVersion);
+							frequency, forecastHorizon, hierarchy, comment, runOnPowerfulMachines, existingForecast,requestUser.getId(),createdOn,chronosVersion,backtesting);
 					if(createRunResponse!= null && "SUCCESS".equalsIgnoreCase(createRunResponse.getResponse().getSuccess())
 								&& createRunResponse.getData().getRunId()!=null) {
 						return new ResponseEntity<>(createRunResponse, HttpStatus.CREATED);
