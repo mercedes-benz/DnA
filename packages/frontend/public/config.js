@@ -1,6 +1,7 @@
 window['INJECTED_ENVIRONMENT'] = {
   OIDC_DISABLED: true,
   API_BASEURL: 'http://localhost:7171/api',
+  APP_URL:'https://localhost:9091/',
   LOGINREDIRECTURL: 'http://localhost:7171/login/redirect',
   DATA_PIPELINES_API_BASEURL: 'http://localhost:7172/airflow/api',
   MALWARESCAN_API_BASEURL: 'http://localhost:8181/api',
@@ -95,6 +96,7 @@ window['INJECTED_ENVIRONMENT'] = {
   SPIRE_URL: 'YOUR_SPIRE_URL',
   GENAI_DIRECT_CHAT_URL: 'YOUR_GENAI_DIRECT_CHAT_URL',
   BISO_CONTACTS_URL: 'YOUR_BISO_CONTACTS_URL',
+  CLAMAV_IMAGE_URL : 'YOUR_CLAMAV_IMAGE_URL',
 };
 
 window['STORAGE_INJECTED_ENVIRONMENT'] = {

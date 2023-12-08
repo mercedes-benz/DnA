@@ -39,7 +39,7 @@ const CodeSpace = React.lazy(() => import('components/mbc/codeSpace/CodeSpace'))
 const AllCodeSpaces = React.lazy(() => import('components/mbc/codeSpace/AllCodeSpaces'));
 const Trainings = React.lazy(() => import('components/mbc/trainings/Trainings'));
 const GenAI = React.lazy(() => import('components/mbc/genAI/GenAI'));
-
+const AzureBlobService = React.lazy(() => import('components/mbc/azureBlobService/AzureBlobService')) ;
 // Micro Front End Component
 const StorageComponent = React.lazy(() => import('storage-mfe/Bucket'));
 const DataProductComponent = React.lazy(() => import('data-product-mfe/DataProduct'));
@@ -132,6 +132,13 @@ const protectedRoutes = [
     exact: false,
     path: '/malwarescanservice',
     title: 'Malware Scan Service',
+  },
+  {
+    allowedRoles: UserAndAdminRole,
+    component: AzureBlobService,
+    exact: false,
+    path: '/azureBlobService',
+    title: 'Azure Blob Service',
   },
   {
     allowedRoles: UserAndAdminRole,
