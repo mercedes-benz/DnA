@@ -1,0 +1,33 @@
+.mainPanel {
+  padding: 32px 75px 30px 75px;
+
+  .wrapper {
+    width: 100%;
+    position: relative;
+    
+    .content {
+      background-color: #252a33;
+      padding: 40px 40px 40px 40px;
+      margin-top: 26px;
+
+      h3 {
+        font-size: 24px;
+        color: #dee3e8;
+        margin-top: 12px;
+        margin-bottom: 22px;
+        color: #dee3e8;
+      }
+
+      .info {
+        padding: 10px 40px 40px 40px;
+
+        code {
+          padding: 10px;
+          display: block;
+          background-color: #2a303a;
+          border-radius: 5px;
+        }
+      }
+    }
+  }
+}

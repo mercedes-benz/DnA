@@ -34,6 +34,7 @@ const spireUrl = Envs.SPIRE_URL;
 const enableDatalakeService = Envs.ENABLE_DATALAKE_SERVICE;
 const genAIDirectChatUrl = Envs.GENAI_DIRECT_CHAT_URL;
 const bisoContactsLink = Envs.BISO_CONTACTS_URL;
+const clamavImagwUrl = Envs.CLAMAV_IMAGE_URL;
 
 export const DataLayerElements = [
   {
@@ -252,6 +253,21 @@ export const ToolsLandingPageElements = [
     isDnAInternalTool: true,
   },
   {
+    name: 'Malware Azure Blob Scanner',
+    description:
+      'A docker instance that can be configured to connect to an Azure Blob instance and enables anti malware detection on any files added to the storage.',
+    tags: ['FOSS'],
+    url: '/azureBlobService',
+    isExternalLink: false,
+    isTextAlignLeft: true,
+    animation: true,
+    isDisabled: !clamavImagwUrl?.startsWith('reg'),
+    isSmallCard: false,
+    isMediumCard: true,
+    svgIcon: 'malwarescan',
+    isDnAInternalTool: true,
+   },
+  {
     name: 'Storage Bucket',
     description:
       'Storage Buckets provide data file storage that can be shared and connected to many tools. the storage buckets are based on a FOSS solution called minIO and provide a standard API for accessing file stores: S3.',
@@ -281,7 +297,7 @@ export const ToolsLandingPageElements = [
     svgIcon: 'codespace',
     isDnAInternalTool: true,
   },
-  {
+    {
     name: 'Data Oasis',
     description:
       'Digital Oasis is an intergrated data platform, which is to drive and support the FG Digital Transformation with 6 modules (Mall, Factory, Workflow, Logistics, Data Warehouse, College) for 6 transformation scenarios.',
