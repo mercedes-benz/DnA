@@ -684,6 +684,39 @@ paths:
           description: "Method not allowed"
         500:
           description: "Internal error"
+
+
+  /workspaces/{id}/config/publish:
+    get:
+      tags:
+        - "code-server"
+      summary: "Getting values of published security config for a workspace"
+      description: "Get published security config details in codeserver workspace"
+      operationId: "publishedSecurityConfigDetails"
+      parameters:
+        - name: "id"
+          in: "path"
+          description: "Workspace ID to be fetched"
+          required: true
+          type: "string"
+      responses:
+        201:
+          description: "Returns message of success or failure"
+          schema:
+            $ref: "#/definitions/CodespaceSecurityConfigPublishedDetailsVO"
+        204:
+          description: "Fetch complete, no content found."
+        400:
+          description: "Bad request."
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
+
           
 definitions:
 
@@ -802,6 +835,9 @@ definitions:
         format: date
       securityConfig:
         $ref: "#/definitions/CodespaceSecurityConfigVO"
+      publishedSecuirtyConfig:
+        $ref: "#/definitions/CodespaceSecurityConfigVO"
+
       required:
         -projectName
         -recipeDetails
@@ -876,6 +912,7 @@ definitions:
         description: "Storage details of recipe"  
       required:
         -recipeId
+
 
   # CodespaceSecurityConfigDetailsVO:
   #   type: object
@@ -995,6 +1032,7 @@ definitions:
         enum: ["POST","PUT","PATCH","GET","OPTIONS","HEAD","DELETE"]
         description: "Operating system required" 
         
+
   CodespaceSecurityConfigVO: 
     type: object
     properties:
@@ -1149,3 +1187,12 @@ definitions:
       mobileNumber:
         type: string
         description: "Mobile number of the user" 
+
+  CodespaceSecurityConfigPublishedDetailsVO:
+    type: object
+    properties:
+      projectName:
+        type: string
+        description: "Name of the Project"
+      PublishedSecurityConfig:
+        $ref: "#/definitions/CodespaceSecurityConfigVO"

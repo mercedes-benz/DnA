@@ -52,15 +52,20 @@ import com.daimler.data.controller.exceptions.MessageDescription;
 import com.daimler.data.db.entities.CodeServerWorkspaceNsql;
 import com.daimler.data.db.json.CodeServerDeploymentDetails;
 import com.daimler.data.db.json.CodeServerWorkspace;
+import com.daimler.data.db.json.CodespaceSecurityConfig;
 import com.daimler.data.db.json.UserInfo;
 import com.daimler.data.db.repo.workspace.WorkspaceCustomRepository;
 import com.daimler.data.db.repo.workspace.WorkspaceRepository;
+import com.daimler.data.dto.CodespaceSecurityConfigCollectionDto;
+import com.daimler.data.dto.CodespaceSecurityConfigDto;
 import com.daimler.data.dto.DeploymentManageDto;
 import com.daimler.data.dto.DeploymentManageInputDto;
 import com.daimler.data.dto.WorkbenchManageDto;
 import com.daimler.data.dto.WorkbenchManageInputDto;
 import com.daimler.data.dto.workspace.CodeServerRecipeDetailsVO.RecipeIdEnum;
+import com.daimler.data.dto.workspace.admin.CodespaceSecurityConfigDetailsVO;
 import com.daimler.data.util.ConstantsUtility;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -1110,6 +1115,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 			jpaRepo.save(entity);
 			MessageDescription msg = new MessageDescription();
 			List<MessageDescription> errorMessage = new ArrayList<>();
+
 			responseMessage.setSuccess("SUCCESS");
 			
 		}catch(Exception e){
@@ -1125,4 +1131,45 @@ public class BaseWorkspaceService implements WorkspaceService {
 		return responseMessage;
 
 	}
+
+
+	@Override
+	public List<CodespaceSecurityConfigDetailsVO> getAllSecurityConfigs() {
+		List<CodespaceSecurityConfigDto> collectionDtos = workspaceCustomRepository.getAllSecurityConfigs();
+		CodespaceSecurityConfigDetailsVO vo = new CodespaceSecurityConfigDetailsVO();
+		List<CodespaceSecurityConfigDetailsVO> finalConfigData = collectionDtos.stream()
+				.map(n -> workspaceAssembler.dtoToVo(n)).collect(Collectors.toList());
+		return finalConfigData;
+	}
+
+	
+	@Override
+	@Transactional
+	public GenericMessage savePublishSecurityConfig(CodeServerWorkspaceVO vo) {
+		GenericMessage responseMessage = new GenericMessage();
+		try {
+			CodeServerWorkspaceNsql entity = workspaceAssembler.toEntity(vo);
+			jpaRepo.save(entity);
+			MessageDescription msg = new MessageDescription();
+			List<MessageDescription> errorMessage = new ArrayList<>();
+			msg.setMessage("Sucessfully saved the security config");
+			errorMessage.add(msg);
+			responseMessage.addErrors(msg);
+			responseMessage.setSuccess("SUCCESS");
+			responseMessage.setErrors(errorMessage);
+
+		} catch (Exception e) {
+			log.error("caught exception while saving security config {}", e.getMessage());
+			MessageDescription msg = new MessageDescription();
+			List<MessageDescription> errorMessage = new ArrayList<>();
+			msg.setMessage("No workspace found for given id and the user");
+			errorMessage.add(msg);
+			responseMessage.addErrors(msg);
+			responseMessage.setSuccess("FAILED");
+			responseMessage.setErrors(errorMessage);
+		}
+		return responseMessage;
+
+	}
+
 }
