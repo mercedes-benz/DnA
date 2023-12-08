@@ -214,6 +214,10 @@
     margin-top: 12px;
   }
 }
+.disabled {
+  pointer-events: none;
+  opacity: 0.5;
+}
 
 
 

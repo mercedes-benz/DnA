@@ -135,6 +135,8 @@ export default class SolutionListRowItem extends React.Component<ISolutionListRo
     const solution = this.props.solution;
     const locations = solution.locations.map((item: ILocation) => item.name);
     const { showContextMenu, showLocationsContextMenu } = this.state;
+    const isDigitalValueContributionEnabled = window.location.href.indexOf('digitalvaluecontribution') !== -1;
+    const isDataValueContributionEnabled = window.location.href.indexOf('datavaluecontribution') !== -1;
     return (
       <React.Fragment>
         <tr
@@ -186,23 +188,31 @@ export default class SolutionListRowItem extends React.Component<ISolutionListRo
           <td className={Styles.draftIndicatorCol}>
             {!solution.publish ? <span className={Styles.draftIndicator}>DRAFT</span> : ''}
           </td>
-          <td className="wrap-text">{solution.currentPhase ? solution.currentPhase.name : ''}</td>
+          <td className="wrap-text" style={{width:"150px"}}>{solution.currentPhase ? solution.currentPhase.name : ''}</td>
           <td>{solution.division?.name || 'N/A'}</td>
           <td>
             {solution.digitalValue &&
             solution.digitalValue.typeOfCalculation === 'DIGITAL_VALUE' &&
             solution.digitalValue.digitalValue ? (
               <span>
-                <label>Digital Value</label>
-                <br />
+                {!isDigitalValueContributionEnabled && (
+                  <>
+                    <label>Digital Value</label>
+                    <br />
+                  </>
+                )}
                 {DataFormater(solution.digitalValue.digitalValue)}
               </span>
             ) : solution.digitalValue &&
               solution.digitalValue.typeOfCalculation === 'DATA_VALUE' &&
               solution.digitalValue.dataValueCalculator ? (
               <>
-                <label>Data Value</label>
-                <br />
+                {!isDataValueContributionEnabled && (
+                  <>
+                    <label>Data Value</label>
+                    <br />
+                  </>
+                )}
                 <span>
                   <label>Savings:</label>
                   {DataFormater(solution.digitalValue.dataValueCalculator.savingsValueFactorSummaryVO.value)}

@@ -181,6 +181,11 @@ const ForecastResultsTab = ({ onRunClick }) => {
     setSelectedRuns(selectedRuns.filter((item) => item !== tempNotifId));
   };
 
+  const runComparison = (id) => {
+    setSelectedRuns((prevArray) => [...prevArray, id]);
+    setShowCompareModal(true);
+  };
+
   const showDeleteConfirmModal = (run) => {
     setShowDeleteModal(true);
     setRunToBeDeleted(run);
@@ -419,6 +424,7 @@ const ForecastResultsTab = ({ onRunClick }) => {
                               deselectRun={deselectRun}
                               onOpenErrorModal={handleOpenErrorModal}
                               onCancelRun={handleCancelRun}
+                              runComparison={runComparison}
                             />
                           );
                         })}
@@ -648,6 +654,9 @@ const ForecastResultsTab = ({ onRunClick }) => {
             }
             scrollableContent={false}
             onCancel={() => {
+              setActualsFile('');
+              setBusinessFile('');
+              setSelectedRuns([]);
               setShowCompareModal(false)
             }}
             modalStyle={{

@@ -3,7 +3,7 @@ export const markdownParser = (markdownText: string) => {
     .replace(/\[(.*?)\]\((.*?)\)/gi, "<a href='$2' target='_blank' rel='noopener noreferrer'>$1</a>")
     .replace(/\*\*(.*)\*\*/gi, '<strong>$1</strong>')
     .replace(/__(.*)__/gi, '<strong>$1</strong>')
-    .replace(/_(.*)_/gi, '<em>$1</em>')
+    // .replace(/_(.*)_/gi, '<em>$1</em>')
     .replace(/\*(.*)\*/gi, '<em>$1</em>')
     .replace(/\n/gi, '<br />');
   return htmlText.trim();

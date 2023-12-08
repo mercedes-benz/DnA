@@ -28,6 +28,7 @@ const ForecastRunRow = (props) => {
     setShowContextMenu(value);
   }
   const onRowClick = () => {
+    Tooltip.clear();
     props.openDetails(item);
   };
 
@@ -172,6 +173,7 @@ const ForecastRunRow = (props) => {
           {item.state.result_state === 'WARNINGS' &&  item.warnings !== null && item.warnings.length > 0 && <i className={classNames('icon mbc-icon alert circle', Styles.alertCircle)}  onClick={(e) => handleStatusClick(e, item)} tooltip-data={'Click to View the Warning'} />}
           {item.warnings !== null && item.warnings.length === 0 && item.warningsInfo !== null && item.warningsInfo.length > 0 && <i className={classNames('icon mbc-icon info circle', Styles.infoCircle)}  onClick={(e) => handleStatusClick(e, item)} tooltip-data={'Click to View the Warning Info'} />}
           {item.state.result_state === null && <><div tooltip-data={'IN PROGRESS'} ><CircularProgressBar /></div> <button className={classNames('btn', Styles.cancelBtn)} onClick={(e) => handleRunCancel(e, item)}>Cancel</button></>}
+          {(item.state.result_state === 'SUCCESS' || item.state.result_state === 'WARNINGS') && item.backtesting !== undefined && item.backtesting !== null && item.backtesting !== '' && <span className={Styles.comparisonIcon}><i className={classNames('icon mbc-icon data-sharing')}  onClick={(e) => { e.stopPropagation(); props.runComparison(item.id); }} tooltip-data={'Click to Run Comparison'} /></span>}
         </td>
         <td>
           {regionalDateAndTimeConversionSolution(item.triggeredOn)}

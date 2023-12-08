@@ -2,6 +2,7 @@ package com.daimler.data.service.forecast;
 
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -11,19 +12,21 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import com.daimler.data.controller.ForecastController;
 import com.daimler.data.db.json.*;
 import com.daimler.data.dto.forecast.*;
+import com.daimler.data.util.MultipartFileConverter;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.core.io.ByteArrayResource;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.daimler.data.application.client.ChronosComparisonClient;
@@ -55,6 +58,8 @@ import com.google.gson.JsonArray;
 
 import lombok.extern.slf4j.Slf4j;
 
+import javax.servlet.http.HttpServletRequest;
+
 @Service
 @Slf4j
 public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastNsql, String> implements ForecastService{
@@ -83,14 +88,20 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 	
 	@Autowired
 	private ForecastAssembler assembler;
-
+	@Autowired
+	private RestTemplate restTemplate;
 	@Lazy
 	@Autowired
 	private VaultAuthClientImpl vaultAuthClient;
 	
 	@Autowired
 	private KafkaProducerService kafkaProducer;
-	
+
+	@Autowired
+	HttpServletRequest httpRequest;
+
+
+
 	private static String chronosComparisontopicName = "dnaChronosComparisonTopic";
 
 	@Autowired
@@ -135,7 +146,7 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 	@Transactional(isolation = Isolation.SERIALIZABLE)
 	public ForecastRunResponseVO createJobRun(MultipartFile file,String savedInputPath, Boolean saveRequestPart, String runName,
 			String configurationFile, String frequency, BigDecimal forecastHorizon, String hierarchy, String comment, Boolean runOnPowerfulMachines,
-			ForecastVO existingForecast,String triggeredBy, Date triggeredOn,String chronosVersion) {
+			ForecastVO existingForecast,String triggeredBy, Date triggeredOn,String chronosVersion, String backtesting) {
 
 		String dataBricksJobidForRun = dataBricksJobId;
 		ForecastRunResponseVO responseWrapper = new ForecastRunResponseVO();
@@ -243,6 +254,13 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 
 		noteboookParams.setUser_id(triggeredBy);
 
+		if(backtesting!=null && !backtesting.trim().isEmpty() ){
+			noteboookParams.setBacktesting(backtesting);
+		}
+
+
+		log.info("notebookParams for bactesting"+ noteboookParams);
+
 		RunNowResponseVO runNowResponse = dataBricksClient.runNow(correlationId, noteboookParams, runOnPowerfulMachines);
 		if(runNowResponse!=null) {
 			if(runNowResponse.getErrorCode()!=null || runNowResponse.getRunId()==null) 
@@ -283,6 +301,7 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 				currentRun.setRunState(newRunState);
 				currentRun.setResultFolderPath(resultFolder);
 				currentRun.setInfotext(chronosVersion);
+				currentRun.setBacktesting(backtesting);
 				runNowResponse.setResultFolderPath(resultFolder);;
 				existingRuns.add(currentRun);
 				entity.getData().setRuns(existingRuns);
@@ -331,6 +350,22 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 					entity.getData().getRuns()!=null && !entity.getData().getRuns().isEmpty()) {
 				List<RunDetails> existingRuns = entity.getData().getRuns();
 				if(existingRuns!=null && !existingRuns.isEmpty()) {
+				List<NotificationDetails> notificationDetails = new ArrayList<>();
+
+					String configFileName="";
+					List<String> memberIds = new ArrayList<>();
+					List<String> memberEmails = new ArrayList<>();
+					if (entity.getData().getCollaborators() != null) {
+						memberIds = entity.getData().getCollaborators().stream()
+								.map(UserDetails::getId).collect(Collectors.toList());
+						memberEmails = entity.getData().getCollaborators().stream()
+								.map(UserDetails::getEmail).collect(Collectors.toList());
+					}
+
+					String ownerId = entity.getData().getCreatedBy().getId();
+					memberIds.add(ownerId);
+					String ownerEmail = entity.getData().getCreatedBy().getEmail();
+					memberEmails.add(ownerEmail);
 				String bucketName = entity.getData().getBucketName();
 				String resultsPrefix = "results/";
 				List<RunDetails> newSubList =new ArrayList<>();
@@ -442,6 +477,9 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 							log.info("Able to fetch updated run details for forecast {} and correlation {} which was in {}", forecastId,correlationId,state.getLife_cycle_state());
 							RunDetails updatedRunDetail = new RunDetails();
 							BeanUtils.copyProperties(run, updatedRunDetail);
+
+
+
 							updatedRunDetail.setCreatorUserName(updatedRunResponse.getCreatorUserName());
 							if(updatedRunResponse.getEndTime()!=null)
 								updatedRunDetail.setEndTime(updatedRunResponse.getEndTime().longValue());
@@ -465,11 +503,88 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 									if("SUCCESS".equalsIgnoreCase(updatedState.getResultState().name())) {
 										//check if .SUCCESS file exists
 										String resultFolderPathForRun = resultsPrefix + updatedRunDetail.getId()+"-"+updatedRunDetail.getRunName()+"/";
+										String configFileRecommendationPath=resultFolderPathForRun+"proposed_config/";
 										List<BucketObjectDetailsDto> bucketObjectDetails=storageClient.getFilesPresent(bucketName,resultFolderPathForRun);
+
 										Boolean successFileFlag = storageClient.isFilePresent(resultFolderPathForRun+ "SUCCESS", bucketObjectDetails);
 										Boolean warningsFileFlag = storageClient.isFilePresent(resultFolderPathForRun+ "WARNINGS.txt", bucketObjectDetails);
 										Boolean warningsInfoFileFlag = storageClient.isFilePresent(resultFolderPathForRun+ "run_info.txt", bucketObjectDetails);
 										Boolean exogenousFileFlag = storageClient.isFilePresent(resultFolderPathForRun+ EXOGENOUS_FILE_NAME, bucketObjectDetails);
+
+										//upload recommended config file to project is proposed_config folder is present
+
+										List<BucketObjectDetailsDto> bucketObjectDetailsForConfigRecommendation = storageClient.getFilesPresent(bucketName, configFileRecommendationPath);
+										if (bucketObjectDetailsForConfigRecommendation != null && bucketObjectDetailsForConfigRecommendation.size() > 0) {
+											Optional<String> objectName = bucketObjectDetailsForConfigRecommendation.stream().map(BucketObjectDetailsDto::getObjectName).findFirst();
+											configFileName = objectName.get();
+											String fileName = configFileName.substring(configFileName.lastIndexOf('/') + 1);
+											ResponseEntity<ByteArrayResource> configRecommendationFileDownloadResponse = storageClient.getDownloadFile(bucketName, configFileName);
+											log.info("successfully retrieved configRecommendationFile contents for forecast {} and correaltionid{} and runname{}",
+													bucketName, correlationId, run.getRunName());
+											ByteArrayResource byteArrayResource = configRecommendationFileDownloadResponse.getBody();
+											byte[] bytes = byteArrayResource.getByteArray();
+											MultipartFile multipartFile = new MultipartFileConverter(bytes, byteArrayResource.getFilename(), "configFile", "application/octet-stream");
+											Date createdOn = new Date();
+											SimpleDateFormat isoFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS+00:00");
+											try {
+												createdOn = isoFormat.parse(isoFormat.format(createdOn));
+											} catch (Exception e) {
+												log.warn("Failed to format createdOn date to ISO format");
+											}
+
+											// Use the multipartFile in your application
+
+											boolean duplicateFile = false;
+											NotificationDetails configRecommendationNotification = new NotificationDetails();
+											String uploadConfigMessage = "";
+											String uploadConfigNotificationEventName = "Chronos:  Recommendation file generated" +  " for run '" + run.getRunName() + "'";
+											String configFileIdId = UUID.randomUUID().toString();
+											List<File> configFiles = entity.getData().getConfigFiles();
+											if (configFiles != null && !configFiles.isEmpty()) {
+												List<String> fileNames = configFiles.stream().map(File::getName).collect(Collectors.toList());
+												if (fileNames.contains(multipartFile.getOriginalFilename())) {
+													duplicateFile = true;
+													log.error("File with name already exists in uploaded config files list. Project {} and file {}", forecastName, fileName);
+													uploadConfigMessage = "New recommendation file generated based on " + run.getRunName() + " inputs, Failed to upload recommendation " + fileName + " to project specific configs, File with name already exists in uploaded config files list";
+													configRecommendationNotification.setNotificationEventName(uploadConfigNotificationEventName);
+													configRecommendationNotification.setMessage(uploadConfigMessage);
+													notificationDetails.add(configRecommendationNotification);
+													/*notifyUsers(forecastId, memberIds, memberEmails, uploadConfigMessage, "", uploadConfigNotificationEventName, null);*/
+												}
+											} else {
+												configFiles = new ArrayList<>();
+											}
+
+											if (!duplicateFile) {
+												FileUploadResponseDto fileUploadResponse = storageClient.uploadFile("/configs/", multipartFile, bucketName);
+												if (fileUploadResponse == null || (fileUploadResponse != null && (fileUploadResponse.getErrors() != null || !"SUCCESS".equalsIgnoreCase(fileUploadResponse.getStatus())))) {
+													log.error("Failed to upload config file {} to storage bucket", fileName);
+													uploadConfigMessage = "New recommendation file generated based on "+run.getRunName()+ " inputs, Failed to upload recommendation " +fileName +  " to project specific configs with exception.";
+													configRecommendationNotification.setNotificationEventName(uploadConfigNotificationEventName);
+													configRecommendationNotification.setMessage(uploadConfigMessage);
+													notificationDetails.add(configRecommendationNotification);
+
+												} else if ("SUCCESS".equalsIgnoreCase(fileUploadResponse.getStatus())) {
+													List<InputFileVO> configFilesVOList = new ArrayList<>();
+													configFilesVOList = this.assembler.toFilesVO(configFiles);
+													log.info("Successfully to uploaded config file {} to storage bucket", fileName);
+													InputFileVO currentConfigInput = new InputFileVO();
+													configFileName=multipartFile.getOriginalFilename();
+													currentConfigInput.setName(multipartFile.getOriginalFilename());
+													currentConfigInput.setPath(bucketName + "/configs/" + multipartFile.getOriginalFilename());
+													currentConfigInput.setId(configFileIdId);
+													currentConfigInput.setCreatedOn(createdOn);
+													currentConfigInput.setCreatedBy(ownerId);
+													configFilesVOList.add(currentConfigInput);
+													entity.getData().setConfigFiles(this.assembler.toConfigFiles(configFilesVOList));
+													uploadConfigMessage = "New recommendation file generated based on " + run.getRunName() + " inputs, Successfully uploaded recommendation " + fileName + " to project specific configs.";
+													configRecommendationNotification.setNotificationEventName(uploadConfigNotificationEventName);
+													configRecommendationNotification.setMessage(uploadConfigMessage);
+													notificationDetails.add(configRecommendationNotification);
+												}
+											}
+										}
+
 										//check if exogenous data is present
 										if(exogenousFileFlag){
 											run.setExogenData(true);
@@ -523,23 +638,15 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 										updatedStateMsg = errorMessage;
 									}
 									
-									List<String> memberIds = new ArrayList<>();
-									List<String> memberEmails = new ArrayList<>();
-									if (entity.getData().getCollaborators() != null) {
-										memberIds = entity.getData().getCollaborators().stream()
-												.map(UserDetails::getId).collect(Collectors.toList());
-										memberEmails = entity.getData().getCollaborators().stream()
-												.map(UserDetails::getEmail).collect(Collectors.toList());
-									}
 
-									String ownerId = entity.getData().getCreatedBy().getId();
-									memberIds.add(ownerId);
-									String ownerEmail = entity.getData().getCreatedBy().getEmail();
-									memberEmails.add(ownerEmail);
 									String message ="";
+									NotificationDetails runUpdateNotification = new NotificationDetails();
 									message="Run '" + run.getRunName() + "' triggered by " + run.getTriggeredBy() +" for Chronos project '"+ forecastName + "' completed with ResultState " + newState.getResult_state() +". Please check forecast results for more details.";
 									String notificationEventName = "Chronos: " + newState.getResult_state() + " for run '" + run.getRunName() + "'" ;
-									notifyUsers(forecastId, memberIds, memberEmails,message,"",notificationEventName,null);
+									runUpdateNotification.setMessage(message);
+									runUpdateNotification.setNotificationEventName(notificationEventName);
+									/*notifyUsers(forecastId, memberIds, memberEmails,message,"",notificationEventName,null);*/
+								    notificationDetails.add(runUpdateNotification);
 								}
 								
 								newState.setState_message(updatedStateMsg);
@@ -615,6 +722,10 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 					}
 				entity.getData().setRuns(updatedDbRunRecords);
 				this.jpaRepo.save(entity);
+				for(NotificationDetails notification: notificationDetails){
+
+					notifyUsers(forecastId, memberIds, memberEmails,notification.getMessage(),"",notification.getNotificationEventName(),null);
+				}
 				updatedRunVOList = this.assembler.toRunsVO(updatedRuns);
 			}
 			}
@@ -1378,6 +1489,7 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 			forecastConfigFileVO.setName(configFileName);
 			entity.getData().setConfigFiles(this.assembler.toConfigFiles(existingForecast.getConfigFiles()));
 			try {
+
 				jpaRepo.save(entity);
 				responseMessage.setSuccess("SUCCESS");
 

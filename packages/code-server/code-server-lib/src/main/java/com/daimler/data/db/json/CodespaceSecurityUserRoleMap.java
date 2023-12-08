@@ -25,5 +25,6 @@ public class CodespaceSecurityUserRoleMap implements Serializable {
 	private String email;
 	private String mobileNumber;
 
-	private List<String> roleIds;
+	private List<CodespaceSecurityConfigDetailsLOV> roles;
+
 }

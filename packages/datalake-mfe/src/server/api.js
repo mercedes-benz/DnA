@@ -25,6 +25,16 @@ export const hostServer = axios.create({
   headers,
 });
 
+export const reportsServer = axios.create({
+  baseURL: Envs.REPORTS_API_BASEURL ? Envs.REPORTS_API_BASEURL : `http://${window.location.hostname}:7173/api`,
+  headers,
+});
+
+export const storageServer = axios.create({
+  baseURL: Envs.STORAGE_API_BASEURL ? Envs.STORAGE_API_BASEURL: `http://${window.location.hostname}:7175/api`,
+  headers,
+});
+
 function createRefreshInterceptor(instance) {
   instance.interceptors.request.use((config) => {
     if (config.method === 'get') {
@@ -46,6 +56,8 @@ function createRefreshInterceptor(instance) {
         // Update the Authorization header in Axios instances.
         server.defaults.headers.Authorization = newJwt;
         hostServer.defaults.headers.Authorization = newJwt;
+        reportsServer.defaults.headers.Authorization = newJwt;
+        storageServer.defaults.headers.Authorization = newJwt;
 
         // Retry the original request with the new token.
         error.config.headers.Authorization = newJwt;
@@ -77,3 +89,9 @@ createRefreshInterceptor(server);
 
 // Apply interceptor to hostServer
 createRefreshInterceptor(hostServer);
+
+// Apply interceptor to reportsServer
+createRefreshInterceptor(reportsServer);
+
+// Apply interceptor to storageServer
+createRefreshInterceptor(storageServer);

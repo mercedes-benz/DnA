@@ -81,6 +81,8 @@ public class CodeServerClient {
 			case "public-dna-datalake-mfe" : deployType = ConstantsUtility.PUBLIC; break;
 			case "public-user-defined" : deployType = ConstantsUtility.PUBLIC; break;
 			case "private-user-defined" : deployType = ConstantsUtility.PUBLIC; break;
+			case "bat-frontend" : deployType = ConstantsUtility.BAT_FRONTEND; break;
+			case "bat-backend" : deployType = ConstantsUtility.BAT_BACKEND; break;
 			
 			default: deployType = ConstantsUtility.DEFAULT; break;
 		}

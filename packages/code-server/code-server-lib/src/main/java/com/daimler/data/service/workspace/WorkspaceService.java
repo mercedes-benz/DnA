@@ -75,4 +75,5 @@ public interface WorkspaceService {
 
     GenericMessage savePublishSecurityConfig(CodeServerWorkspaceVO vo);
 
+
 }

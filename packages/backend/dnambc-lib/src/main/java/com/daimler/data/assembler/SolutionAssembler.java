@@ -90,6 +90,7 @@ import com.daimler.data.dto.solution.SolutionAnalyticsVO;
 import com.daimler.data.dto.solution.SolutionCollection;
 import com.daimler.data.dto.solution.SolutionCurrentPhase;
 import com.daimler.data.dto.solution.SolutionDataComplianceVO;
+import com.daimler.data.dto.solution.SolutionDataComplianceVO.AiRiskAssessmentTypeEnum;
 import com.daimler.data.dto.solution.SolutionDataSourceVO;
 import com.daimler.data.dto.solution.SolutionDigitalValueVO;
 import com.daimler.data.dto.solution.SolutionDigitalValueVO.TypeOfCalculationEnum;
@@ -780,6 +781,16 @@ public class SolutionAssembler implements GenericAssembler<SolutionVO, SolutionN
 					teamMemberVOList = solutionTeamMembers.stream().map(n -> toTeamMemberVO(n))
 							.collect(Collectors.toList());
 				solutionDataComplianceVO.setComplianceOfficers(teamMemberVOList);
+				
+				//setting AI Risk assessment types
+				AiRiskAssessmentTypeEnum riskAssessmentType = AiRiskAssessmentTypeEnum.NOT_APPLICABLE;
+				if(solutionDataCompliance.getAiRiskAssessmentType()!=null && "HIGH_RISK".equalsIgnoreCase(solutionDataCompliance.getAiRiskAssessmentType())) {
+					riskAssessmentType = AiRiskAssessmentTypeEnum.HIGH_RISK;
+				}
+				if(solutionDataCompliance.getAiRiskAssessmentType()!=null && "BASIC_RISK".equalsIgnoreCase(solutionDataCompliance.getAiRiskAssessmentType())) {
+					riskAssessmentType = AiRiskAssessmentTypeEnum.BASIC_RISK;
+				}
+				solutionDataComplianceVO.setAiRiskAssessmentType(riskAssessmentType);
 
 			}
 			vo.setDataCompliance(solutionDataComplianceVO);
@@ -1479,7 +1490,16 @@ public class SolutionAssembler implements GenericAssembler<SolutionVO, SolutionN
 					solutionTeamMembers = teamMemberVOList.stream().map(n -> toTeamMemeberJson(n))
 							.collect(Collectors.toList());
 				dataComplianceDetails.setComplianceOfficers(solutionTeamMembers);
-
+				
+				//setting AI Risk assessment types
+				String riskAssessmentType = "NOT_APPLICABLE";
+				if(solutionDataComplianceVO.getAiRiskAssessmentType()!=null && "HIGH_RISK".equalsIgnoreCase(solutionDataComplianceVO.getAiRiskAssessmentType().name())) {
+					riskAssessmentType = "HIGH_RISK";
+				}
+				if(solutionDataComplianceVO.getAiRiskAssessmentType()!=null && "BASIC_RISK".equalsIgnoreCase(solutionDataComplianceVO.getAiRiskAssessmentType().name())) {
+					riskAssessmentType = "BASIC_RISK";
+				}			
+				dataComplianceDetails.setAiRiskAssessmentType(riskAssessmentType);
 			}
 			solution.setDataComplianceDetails(dataComplianceDetails);
 
@@ -2119,13 +2139,14 @@ public class SolutionAssembler implements GenericAssembler<SolutionVO, SolutionN
 	 * 
 	 * @param solutionVOListVO
 	 * @param userId
+	 * @param divisionsAdmin 
 	 * @return SolutionCollection
 	 */
 	public SolutionCollection maskDigitalValues(List<SolutionVO> solutionVOListVO, String userId,
-			boolean portfolioView) {
+			boolean portfolioView, List<String> divisionsAdmin) {
 		SolutionCollection solutionCollection = new SolutionCollection();
 		List<SolutionVO> records = new ArrayList<>();
-		records = solutionVOListVO.stream().map(n -> this.maskDigitalValue(n, userId, portfolioView))
+		records = solutionVOListVO.stream().map(n -> this.maskDigitalValue(n, userId, portfolioView, divisionsAdmin))
 				.collect(Collectors.toList());
 		solutionCollection.setRecords(records);
 		return solutionCollection;
@@ -2145,10 +2166,11 @@ public class SolutionAssembler implements GenericAssembler<SolutionVO, SolutionN
 	 * 
 	 * @param vo
 	 * @param userId
+	 * @param divisionsAdmin 
 	 * @param isAdmin
 	 * @return SolutionVO
 	 */
-	public SolutionVO maskDigitalValue(SolutionVO vo, String userId, boolean portfolioView) {
+	public SolutionVO maskDigitalValue(SolutionVO vo, String userId, boolean portfolioView, List<String> divisionsAdmin) {
 		LOGGER.trace("Entering maskDigitalValue");
 		if (vo != null && vo.getDigitalValue() != null) {
 			LOGGER.debug("Checking if user is either team member or creator of the solution");
@@ -2162,6 +2184,9 @@ public class SolutionAssembler implements GenericAssembler<SolutionVO, SolutionN
 				userLinkedToSolution = true;
 			} else if (!ObjectUtils.isEmpty(vo.getCreatedBy()) && StringUtils.hasText(vo.getCreatedBy().getId())
 					&& vo.getCreatedBy().getId().equalsIgnoreCase(userId)) {
+				userLinkedToSolution = true;
+			}
+			else if (!ObjectUtils.isEmpty(divisionsAdmin) && divisionsAdmin.contains(vo.getDivision().getName())) {
 				userLinkedToSolution = true;
 			}
 			LOGGER.debug("Checking if user has permission to see digital value");

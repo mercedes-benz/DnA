@@ -1,5 +1,6 @@
 package com.daimler.data.dto.storage;
 
+import java.io.Serializable;
 import java.util.List;
 
 import com.daimler.data.application.auth.CreatedByVO;
@@ -13,7 +14,9 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class CreateBucketRequestDto {
+public class CreateBucketRequestDto  implements Serializable{
+
+	private static final long serialVersionUID = 1L;
 
 	private String bucketName;
 	private List<CollaboratorsDto> collaborators;

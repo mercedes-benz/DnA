@@ -11,7 +11,6 @@ import ConfirmModal from 'dna-container/ConfirmModal';
 import { regionalDateAndTimeConversionSolution } from '../../utilities/utils';
 import Tooltip from '../../common/modules/uilab/js/src/tooltip';
 import Notification from '../../common/modules/uilab/js/src/notification';
-import Popper from 'popper.js';
 import DatalakeProjectForm from '../datalakeProjectForm/DatalakeProjectForm';
 import { deleteProject } from '../../redux/projectsSlice';
 import { getProjects } from '../../redux/projects.services';
@@ -24,8 +23,6 @@ const DatalakeProjectCard = ({graph}) => {
   const history = useHistory();
   const dispatch = useDispatch();
 
-  let popperObj, tooltipElem = null;
-
   useEffect(() => {
     Tooltip.defaultSetup();
   }, []);
@@ -33,26 +30,6 @@ const DatalakeProjectCard = ({graph}) => {
   const onConnectionModalClose = () => {
     setShowConnectionModel(false)
   }
-
-  const onCollabsIconMouseOver = (e) => {
-    const targetElem = e.target;
-    tooltipElem = targetElem.nextElementSibling;
-    if (tooltipElem) {
-      tooltipElem.classList.add('tooltip', 'show');
-      tooltipElem.classList.remove('hide');
-      popperObj = new Popper(targetElem, tooltipElem, {
-        placement: 'top',
-      });
-    }
-  };
-
-  const onCollabsIconMouseOut = () => {
-    if (tooltipElem) {
-      tooltipElem.classList.add('hide');
-      tooltipElem.classList.remove('tooltip', 'show');
-    }
-    popperObj?.destroy();
-  };
 
   // delete project
   const handleDeleteProject = () => {
@@ -97,43 +74,10 @@ const DatalakeProjectCard = ({graph}) => {
               <div>Classification</div>
               <div>{graph.classificationType || 'N/A'}</div>
             </div>
-            <div className={Styles.cardCollabSection}>
-              <div>Collaborators</div>
-              {graph.collaborators?.length > 0 ? (
-                <div>
-                  <i className="icon mbc-icon profile"/>
-                  <span className={Styles.cardCollabIcon} onMouseOver={onCollabsIconMouseOver} onMouseOut={onCollabsIconMouseOut}>
-                    {graph.collaborators?.length}
-                  </span>
-                  <div className={classNames(Styles.collabsList, 'hide')}>
-                    <ul>
-                      {graph.collaborators?.map((bucketItem, bucketIndex) => {
-                          // Check if lastName is more than 12 characters
-                          let lastName = bucketItem.lastName;
-                          if (lastName?.length > 12) {
-                            lastName = lastName.substring(0, 12) + " ...";
-                          }
-                        return (
-                          <li key={'collab' + bucketIndex}>
-                            <span>
-                              {`${bucketItem.firstName} ${lastName}`}
-                              {graph.createdBy?.id === bucketItem.accesskey ? ' (Owner)' : ''}
-                            </span>
-                          </li>
-                        );
-                      })}
-                    </ul>
-                  </div>
-                </div>
-              ) : <div>None</div>}
-            </div>
           </div>
         </div>
         <div className={Styles.cardFooter}>
-          <div style={{paddingLeft: '20px'}}>
-            <a href="#" target="_blank" rel="noreferrer noopener">REST</a>&nbsp;&nbsp;
-            <a href="#" target="_blank" rel="noreferrer noopener">GRAPHQL</a>
-          </div>
+          <div>&nbsp;</div>
           <div className={Styles.btnGrp}>
             <button className="btn btn-primary" onClick={() => setEditProject(true)}>
               <i className="icon mbc-icon edit fill"></i>

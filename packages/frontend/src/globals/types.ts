@@ -1274,6 +1274,7 @@ export interface IDataCompliance {
   attachments: IAttachment[];
   links: ILink[];
   complianceOfficers: ITeams[];
+  aiRiskAssessmentType: string;
 }
 
 export interface IDigitalValue {

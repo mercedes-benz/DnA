@@ -515,7 +515,7 @@ paths:
         201:
           description: "Returns message of success or failure"
           schema:
-            $ref: "#/definitions/CodespaceSecurityConfigResponseVO"
+            $ref: "#/definitions/CodespaceSecurityConfigVO"
         204:
           description: "Fetch complete, no content found."
         400:
@@ -685,6 +685,7 @@ paths:
         500:
           description: "Internal error"
 
+
   /workspaces/{id}/config/publish:
     get:
       tags:
@@ -725,7 +726,7 @@ definitions:
       data:
         type: array
         items:
-          $ref: "#/definitions/CodespaceSecurityRoleLOV"
+          $ref: "#/definitions/CodespaceSecurityConfigLOV"
   
   EntitlementCollectionVO:
     type: object
@@ -733,7 +734,8 @@ definitions:
       data:
         type: array
         items:    
-          $ref: "#/definitions/CodespaceSecurityEntitlementLOV"
+          $ref: "#/definitions/CodespaceSecurityConfigLOV"
+
   TransparencyVO:
     type: object
     properties:
@@ -835,6 +837,7 @@ definitions:
         $ref: "#/definitions/CodespaceSecurityConfigVO"
       publishedSecuirtyConfig:
         $ref: "#/definitions/CodespaceSecurityConfigVO"
+
       required:
         -projectName
         -recipeDetails
@@ -880,7 +883,7 @@ definitions:
     properties:
       recipeId:
         type: string
-        enum: [default,springboot,py-fastapi,react,angular,gradle,quarkus,micronaut,private-user-defined,public-dna-backend,public-dna-frontend,public-dna-report-backend,public-dna-codespace-backend,public-dna-malware-scanner,public-dna-storage-mfe,public-dna-storage-backend,public-dna-chronos-mfe,public-dna-chronos-backend,public-dna-data-product-mfe,public-dna-data-product-backend,public-dna-dss-mfe,public-dna-dataiku-backend,public-dna-airflow-backend,public-dna-modal-registry-backend,public-dna-trino-backend,public-dna-nass,public-dna-authenticator-backend,public-dna-matomo-mfe,public-dna-matomo-backend,public-dna-datalake-mfe,public-user-defined]
+        enum: [default,springboot,py-fastapi,react,angular,gradle,quarkus,micronaut,private-user-defined,public-dna-backend,public-dna-frontend,public-dna-report-backend,public-dna-codespace-backend,public-dna-malware-scanner,public-dna-storage-mfe,public-dna-storage-backend,public-dna-chronos-mfe,public-dna-chronos-backend,public-dna-data-product-mfe,public-dna-data-product-backend,public-dna-dss-mfe,public-dna-dataiku-backend,public-dna-airflow-backend,public-dna-modal-registry-backend,public-dna-trino-backend,public-dna-nass,public-dna-authenticator-backend,public-dna-matomo-mfe,public-dna-matomo-backend,public-dna-datalake-mfe,public-user-defined,bat-frontend,bat-backend]
         description: "RecipeId of the workspace. Ex: Springboot Microservice"    
       environment:
         type: string
@@ -910,11 +913,22 @@ definitions:
       required:
         -recipeId
 
+
+  # CodespaceSecurityConfigDetailsVO:
+  #   type: object
+  #   properties:
+  #     projectName:
+  #       type: string
+  #       description: "Name of the Project"
+  #     securityConfig:
+  #       $ref: "#/definitions/CodespaceSecurityConfigVO"
+  
+
   SecurityConfigResponseDto: 
     type: object
     properties:
      data:
-        $ref: "#/definitions/CodespaceSecurityConfigResponseVO"
+        $ref: "#/definitions/CodespaceSecurityConfigVO"
      response:
         $ref: "#/definitions/GenericMessage"
         
@@ -955,10 +969,10 @@ definitions:
         type: string
       mobileNumber:
         type: string  
-      roleIds:
+      roles:
         type: array
         items:  
-          type: string
+            $ref: "#/definitions/CodespaceSecurityConfigLOV"
 
   CodespaceSecurityUserRoleMapResponseVO: 
     type: object
@@ -980,7 +994,7 @@ definitions:
       roles:
         type: array
         items:  
-          $ref: "#/definitions/CodespaceSecurityRoleLOV"
+          $ref: "#/definitions/CodespaceSecurityConfigLOV"
         default: []
         
   CodespaceSecurityRoleVO: 
@@ -992,45 +1006,20 @@ definitions:
       name:
         type: string
         description: "Role name"   
-      roleEntitlementIds:
-          type: array
-          items:
-            type: string
-          
-  CodespaceSecurityRoleResponseVO:
-    type: object
-    properties:
-      id:
-        type: string
-        description: "Role Id" 
-      name:
-        type: string
-        description: "Role name"   
       roleEntitlements:
           type: array
           items:
-            $ref: "#/definitions/CodespaceSecurityEntitlementLOV"
-          default: []
-                  
-  CodespaceSecurityRoleLOV:
+            $ref: "#/definitions/CodespaceSecurityConfigLOV"
+                           
+  CodespaceSecurityConfigLOV:
     type: object
     properties:
       id:
         type: string
-        description: "Role Id" 
+        description: "Id" 
       name:
         type: string
-        description: "Role name"  
-
-  CodespaceSecurityEntitlementLOV:
-    type: object
-    properties:
-      id:
-        type: string
-        description: "Entitlement Id" 
-      name:
-        type: string
-        description: "Entitlement name"  
+        description: "name"  
 
   CodespaceSecurityApiListVO:
     type: object
@@ -1042,6 +1031,7 @@ definitions:
         type: string
         enum: ["POST","PUT","PATCH","GET","OPTIONS","HEAD","DELETE"]
         description: "Operating system required" 
+        
 
   CodespaceSecurityConfigVO: 
     type: object
@@ -1067,35 +1057,9 @@ definitions:
           type: string
       isProtectedByDna:
         type: boolean
-
-  CodespaceSecurityConfigResponseVO:
-    type: object
-    properties:
-      status:
+      projectName:
         type: string
-        description: "Status of security configurations"   
-      entitlements:
-        type: array
-        items:
-          $ref: "#/definitions/CodespaceSecurityEntitlementVO"
-        default: []
-      roles:
-        type: array
-        items:
-          $ref: "#/definitions/CodespaceSecurityRoleResponseVO" 
-        default: []
-      userRoleMappings:
-        type: array
-        items:
-          $ref: "#/definitions/CodespaceSecurityUserRoleMapResponseVO"
-        default: []
-      openSegments:
-        type: array
-        items:
-          type: string
-      isProtectedByDna:
-        type: boolean
-
+        
   UserIdVO:
     type: object
     properties:

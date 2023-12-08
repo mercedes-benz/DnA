@@ -1,4 +1,4 @@
-import { server, storageServer, storageServerX } from '../server/api';
+import { server, hostServer, storageServer, storageServerX, reportsServer } from '../server/api';
 import { formServer } from '../server/formApi';
 
 const getAllForecastProjects = () => {
@@ -153,6 +153,18 @@ const deleteProjectConfigFile = (id, configFileId) => {
   });
 };
 
+const getLovData = () => {
+  return Promise.all([
+    storageServer.get(`/classifications`, {
+      data: {},
+    }),
+    hostServer.get('/divisions'),
+    reportsServer.get('/departments', {
+      data: {},
+    }),
+  ]);
+}
+
 
 
 export const chronosApi = {
@@ -183,4 +195,5 @@ export const chronosApi = {
     uploadProjectConfigFile,
     deleteProjectConfigFile,
     cancelForecastRun,
+    getLovData,
 };

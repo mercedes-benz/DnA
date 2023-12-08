@@ -19,6 +19,7 @@ import AddUser from '../../addUser/AddUser';
 import { Envs } from 'globals/Envs';
 import { recipesMaster } from '../../../../services/utils';
 import ConfirmModal from 'components/formElements/modal/confirmModal/ConfirmModal';
+import { DEPLOYMENT_DISABLED_RECIPE_IDS } from 'globals/constants';
 
 const classNames = cn.bind(Styles);
 
@@ -351,7 +352,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
     } else {
       if (isValidGITRepoUrl(userDefinedGithubUrl, isPublicRecipeChoosen)) setUserDefinedGithubUrlError('');
     }
-    if (githubToken === '') {
+    if (githubToken === '' && recipeValue !== 'default') {
       setGithubTokenError(requiredError);
       formValid = false;
     }
@@ -460,7 +461,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
         pat: githubToken
       };
 
-      if (isPublicRecipeChoosen || isUserDefinedGithubRecipe) {
+      if (isPublicRecipeChoosen || isUserDefinedGithubRecipe || recipe.repodetails) {
         // createCodeSpaceRequest.data.gitUserName = githubUserName;
         // createCodeSpaceRequest.data.projectDetails.recipeDetails.recipeId = 'public';
         createCodeSpaceRequest.data.projectDetails.recipeDetails['repodetails'] = isUserDefinedGithubRecipe ? (userDefinedGithubUrl.split('://')[1] + ',') : recipe.repodetails;
@@ -873,23 +874,25 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
                   </div>
                 </div>
               )}
-              <div>
+              {recipeValue !== 'default' && (
                 <div>
-                  <TextBox
-                    type="password"
-                    controlId={'githubTokenInput'}
-                    labelId={'githubTokenLabel'}
-                    label={`Your Github(${githubUrlValue}) Personal Access Token`}
-                    infoTip="Not stored only used for Code Space initial setup"
-                    placeholder={'Type here'}
-                    value={githubToken}
-                    errorText={githubTokenError}
-                    required={true}
-                    maxLength={50}
-                    onChange={onGithubTokenOnChange}
-                  />
+                  <div>
+                    <TextBox
+                      type="password"
+                      controlId={'githubTokenInput'}
+                      labelId={'githubTokenLabel'}
+                      label={`Your Github(${githubUrlValue}) Personal Access Token`}
+                      infoTip="Not stored only used for Code Space initial setup"
+                      placeholder={'Type here'}
+                      value={githubToken}
+                      errorText={githubTokenError}
+                      required={true}
+                      maxLength={50}
+                      onChange={onGithubTokenOnChange}
+                    />
+                  </div>
                 </div>
-              </div>
+              )}
             </>
           ) : (
             <>
@@ -951,7 +954,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
               />
             </>
           )}
-          {!isPublicRecipeChoosen && !isUserDefinedGithubRecipe && (
+          {!isPublicRecipeChoosen && !isUserDefinedGithubRecipe && !DEPLOYMENT_DISABLED_RECIPE_IDS.includes(recipeValue) && (
             <div className={classNames('input-field-group include-error')}>
               <label htmlFor="userId" className="input-label">
                 Find and add the collaborators you want to work with your code (Optional)

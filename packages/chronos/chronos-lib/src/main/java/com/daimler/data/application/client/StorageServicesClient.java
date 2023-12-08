@@ -257,9 +257,9 @@ public class StorageServicesClient {
 		List<MessageDescription> errors = new ArrayList<>();
 		try {
 			HttpHeaders headers = new HttpHeaders();
-			String jwt = httpRequest.getHeader("Authorization");
+			//String jwt = httpRequest.getHeader("Authorization");
 			headers.set("Accept", "application/json");
-			headers.set("Authorization", jwt);
+			//headers.set("Authorization", jwt);
 			headers.set("chronos-api-key",dataBricksAuth);
 			headers.setContentType(MediaType.MULTIPART_FORM_DATA);
 			LinkedMultiValueMap<String, Object> multipartRequest = new LinkedMultiValueMap<>();
@@ -321,10 +321,10 @@ public class StorageServicesClient {
 		List<MessageDescription> errors = new ArrayList<>();
 		String errorMessage ="";
 		try {
-			String jwt = httpRequest.getHeader("Authorization");
+			//String jwt = httpRequest.getHeader("Authorization");
 			HttpHeaders headers = new HttpHeaders();
 			headers.set("Accept", "application/json");
-			headers.set("Authorization", jwt);
+			//headers.set("Authorization", jwt);
 			headers.setContentType(MediaType.APPLICATION_JSON);
 			headers.set("chronos-api-key",dataBricksAuth);
 			HttpEntity requestEntity = new HttpEntity<>(headers);

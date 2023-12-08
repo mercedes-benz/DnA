@@ -634,7 +634,7 @@ export const GenAILandingPageElements = [
     isDisabled: false,
     isSmallCard: false,
     isMediumCard: false,
-    svgIconId: 'gen-ai',
+    svgIconId: 'genai-create',
   },
   {
     name: 'GenAI Solutions',
@@ -647,7 +647,7 @@ export const GenAILandingPageElements = [
     isDisabled: false,
     isSmallCard: false,
     isMediumCard: false,
-    svgIconId: 'gen-ai',
+    svgIconId: 'genai-solutions',
   },
   {
     name: 'Mercedes-Benz Direct Chat',
@@ -657,9 +657,9 @@ export const GenAILandingPageElements = [
     url: genAIDirectChatUrl,
     isExternalLink: true,
     isTextAlignLeft: false,
-    isDisabled: true,
+    isDisabled: !genAIDirectChatUrl?.startsWith('http'),
     isSmallCard: false,
     isMediumCard: false,
-    svgIconId: 'gen-ai',
+    svgIconId: 'genai-direct-chat',
   }
 ];
