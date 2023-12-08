@@ -73,20 +73,10 @@ public class ForecastAssembler implements GenericAssembler<ForecastVO, ForecastN
 	public LeanGovernanceFeildVO toGovernceVo(LeanGovernanceFeilds entity) {
 		LeanGovernanceFeildVO governanceFeildVO = new LeanGovernanceFeildVO();
 		if (entity != null) {
-			governanceFeildVO.setTypeOfProject(entity.getTypeOfProject());
-			governanceFeildVO.setDecription(entity.getDecription());
-			governanceFeildVO.setDivision(entity.getDivision());
-			governanceFeildVO.setSubDivision(entity.getSubDivision());
-			governanceFeildVO.setDepartment(entity.getDepartment());
-			governanceFeildVO.setTags(entity.getTags());
-			if (entity.getPiiData() != null) {
-				governanceFeildVO.setPiiData(entity.getPiiData());
-			}
-			governanceFeildVO.setDataClassification(entity.getDataClassification());
-			governanceFeildVO.setArcherId(entity.getArcherId());
-			governanceFeildVO.setProcedureId(entity.getProcedureId());
-			if(entity.getTermsOfUse()!=null)
+			if(entity.getPiiData()!= null && entity.getTermsOfUse()!= null)
 			{
+				BeanUtils.copyProperties(entity, governanceFeildVO);
+				governanceFeildVO.setPiiData(entity.getPiiData());
 				governanceFeildVO.setTermsOfUse(entity.getTermsOfUse());
 			}
 		}
@@ -296,20 +286,10 @@ public class ForecastAssembler implements GenericAssembler<ForecastVO, ForecastN
 	public LeanGovernanceFeilds toGovernceEntity(LeanGovernanceFeildVO vo) {
 		LeanGovernanceFeilds governanceFeilds = new LeanGovernanceFeilds();
 		if (vo != null) {
-			governanceFeilds.setTypeOfProject(vo.getTypeOfProject());
-			governanceFeilds.setDecription(vo.getDecription());
-			governanceFeilds.setDivision(vo.getDivision());
-			governanceFeilds.setSubDivision(vo.getSubDivision());
-			governanceFeilds.setDepartment(vo.getDepartment());
-			governanceFeilds.setTags(vo.getTags());
-			governanceFeilds.setDataClassification(vo.getDataClassification());
-			if (vo.isPiiData() != null) {
-				governanceFeilds.setPiiData(vo.isPiiData());
-			}
-			governanceFeilds.setArcherId(vo.getArcherId());
-			governanceFeilds.setProcedureId(vo.getProcedureId());
-			if(vo.isTermsOfUse()!=null)
+			if(vo.isPiiData() != null && vo.isPiiData()!= null)
 			{
+				BeanUtils.copyProperties(vo, governanceFeilds);
+				governanceFeilds.setPiiData(vo.isPiiData());
 				governanceFeilds.setTermsOfUse(vo.isTermsOfUse());
 			}
 		}
