@@ -515,7 +515,7 @@ paths:
         201:
           description: "Returns message of success or failure"
           schema:
-            $ref: "#/definitions/CodespaceSecurityConfigDetailsVO"
+            $ref: "#/definitions/CodespaceSecurityConfigVO"
         204:
           description: "Fetch complete, no content found."
         400:
@@ -877,14 +877,14 @@ definitions:
       required:
         -recipeId
 
-  CodespaceSecurityConfigDetailsVO:
-    type: object
-    properties:
-      projectName:
-        type: string
-        description: "Name of the Project"
-      securityConfig:
-        $ref: "#/definitions/CodespaceSecurityConfigVO"
+  # CodespaceSecurityConfigDetailsVO:
+  #   type: object
+  #   properties:
+  #     projectName:
+  #       type: string
+  #       description: "Name of the Project"
+  #     securityConfig:
+  #       $ref: "#/definitions/CodespaceSecurityConfigVO"
   
 
   SecurityConfigResponseDto: 
@@ -1019,6 +1019,8 @@ definitions:
           type: string
       isProtectedByDna:
         type: boolean
+      projectName:
+        type: string
         
   UserIdVO:
     type: object
