@@ -409,6 +409,7 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 		forecastVO.setName(forecastProjectCreateVO.getName());
 		forecastVO.setRuns(null);
 		forecastVO.setSavedInputs(null);
+		forecastVO.setLeanGovernanceFeilds(forecastProjectCreateVO.getLeanGovernanceFeilds());
 		try {
 			ForecastVO createdVO = new ForecastVO();
 			createdVO = service.createForecast(forecastVO);
@@ -574,16 +575,16 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 
 		// if both AddCollaborators and RemoveCollaborators are empty
 		// then return as Bad Request.
-		if (forecastUpdateRequestVO.getAddCollaborators().size() == 0
-				&& forecastUpdateRequestVO.getRemoveCollaborators().size() == 0) {
-			responseMessage.setSuccess("FAILED");
-			MessageDescription errMsg = new MessageDescription("Add and Remove Collaborators are list is empty!");
-			errors.add(errMsg);
-			responseMessage.setErrors(errors);
-			log.error("Add and Remove Collaborators are list is empty!");
-			responseVO.setResponse(responseMessage);
-			return new ResponseEntity<>(responseVO, HttpStatus.BAD_REQUEST);
-		}
+		// if (forecastUpdateRequestVO.getAddCollaborators().size() == 0
+		// 		&& forecastUpdateRequestVO.getRemoveCollaborators().size() == 0) {
+		// 	responseMessage.setSuccess("FAILED");
+		// 	MessageDescription errMsg = new MessageDescription("Add and Remove Collaborators are list is empty!");
+		// 	errors.add(errMsg);
+		// 	responseMessage.setErrors(errors);
+		// 	log.error("Add and Remove Collaborators are list is empty!");
+		// 	responseVO.setResponse(responseMessage);
+		// 	return new ResponseEntity<>(responseVO, HttpStatus.BAD_REQUEST);
+		// }
 
 		if (forecastUpdateRequestVO.getApiKey() != null) {
 			String apiKeyCheck = vaultAuthClient.getApiKeys(id);
@@ -2055,5 +2056,4 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 		ForecastConfigFileResultVO configFileData = service.getForecastConfigFileById(id,configFileId);
 		return new ResponseEntity<>(configFileData, HttpStatus.OK);
 	}
-
 }
