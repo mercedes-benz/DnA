@@ -1,7 +1,6 @@
 package com.daimler.data.db.json;
 
 import java.io.Serializable;
-import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
@@ -13,13 +12,10 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class CodespaceSecurityRole implements Serializable {
+public class CodespaceSecurityApiList implements Serializable {
 
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	private String id;
-	private String name;
-	private List<CodespaceSecurityConfigDetailsLOV> roleEntitlements;
-
-	
+	private String apiPattern;
+	private String httpMethod;
 }
