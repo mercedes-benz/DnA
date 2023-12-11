@@ -2,12 +2,10 @@ import React from 'react';
 import Styles from './AzureBlobService.scss';
 import Caption from '../shared/caption/Caption';
 import { Envs } from 'globals/Envs';
-const Comingsoon = () => {
-  const dockerSrc = Envs.APP_URL + '/azure-blob-scan/docker/src.yaml';
-  const dockerDest = Envs.APP_URL + '/azure-blob-scan/docker/dest.yaml';
-  const kubernetesSrc = Envs.APP_URL + '/azure-blob-scan/kubernetes/src.yaml';
-  const kubernetesDest = Envs.APP_URL + '/azure-blob-scan/kubernetes/dest.yaml';
-  const kubernetesPvc = Envs.APP_URL + '/azure-blob-scan/kubernetes/pvc.yaml';
+const AzureBlobService = () => {
+  const src = Envs.APP_URL + '/azure-blob-scan/src.yaml';
+  const dest = Envs.APP_URL + '/azure-blob-scan/dest.yaml';
+  const pvc = Envs.APP_URL + '/azure-blob-scan/pvc.yaml';
 
   return (
     <div className={Styles.mainPanel}>
@@ -35,7 +33,7 @@ const Comingsoon = () => {
                 <ol type="i">
                   <li>
                     Source container configuration: Goto the file{' '}
-                    <a target="_blank" href={dockerSrc} rel="noreferrer" download="src.yaml">
+                    <a target="_blank" href={src} rel="noreferrer" download="src.yaml">
                       src.yaml
                     </a>{' '}
                     and replace &#171;&#171;namespace-name&#187;&#187; ,&#171;&#171;account-name&#187;&#187;
@@ -44,7 +42,7 @@ const Comingsoon = () => {
                   </li>
                   <li>
                     Destination container configuration: Goto the file{' '}
-                    <a target="_blank" href={dockerDest} rel="noreferrer" download="dest.yaml">
+                    <a target="_blank" href={dest} rel="noreferrer" download="dest.yaml">
                       dest.yaml
                     </a>{' '}
                     and replace &#171;&#171;namespace-name &#187;&#187;,&#171;&#171;account-name
@@ -72,7 +70,7 @@ const Comingsoon = () => {
             <ol>
               <li>
                 Create a storage. Goto the file{' '}
-                <a target="_blank" href={kubernetesPvc} rel="noreferrer" download="pvc.yaml">
+                <a target="_blank" href={pvc} rel="noreferrer" download="pvc.yaml">
                   pvc.yaml
                 </a>{' '}
                 and replace &#171;&#171;namespace-name&#187;&#187; with your namespace and create it
@@ -86,7 +84,7 @@ const Comingsoon = () => {
                 <ol type="i">
                   <li>
                     Source container configuration: Goto the file{' '}
-                    <a target="_blank" href={kubernetesSrc} rel="noreferrer" download="src.yaml">
+                    <a target="_blank" href={src} rel="noreferrer" download="src.yaml">
                       src.yaml
                     </a>{' '}
                     and replace &#171;&#171;namespace-name&#187;&#187; ,&#171;&#171;account-name&#187;&#187;
@@ -95,7 +93,7 @@ const Comingsoon = () => {
                   </li>
                   <li>
                     Destination container configuration: Goto the file{' '}
-                    <a target="_blank" href={kubernetesDest} rel="noreferrer" download="dest.yaml">
+                    <a target="_blank" href={dest} rel="noreferrer" download="dest.yaml">
                       dest.yaml
                     </a>{' '}
                     and replace &#171;&#171;namespace-name&#187;&#187;,
@@ -113,7 +111,7 @@ const Comingsoon = () => {
               </li>
               <li>
                 To deploy the clamav service. Goto the file
-                <a target="_blank" href={kubernetesDest} rel="noreferrer" download="dest.yaml">
+                <a target="_blank" href={dest} rel="noreferrer" download="dest.yaml">
                   {' '}
                   dest.yaml
                 </a>{' '}
@@ -161,4 +159,4 @@ const Comingsoon = () => {
   );
 };
 
-export default Comingsoon;
+export default AzureBlobService;
