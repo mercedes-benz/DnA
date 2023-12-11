@@ -73,7 +73,4 @@ public interface WorkspaceService {
 
     List<CodespaceSecurityConfigDetailsVO> getAllSecurityConfigs();
 
-    GenericMessage savePublishSecurityConfig(CodeServerWorkspaceVO vo);
-
-
 }
