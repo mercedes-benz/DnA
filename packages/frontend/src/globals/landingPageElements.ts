@@ -542,6 +542,18 @@ export const DataLandingPageElements = [
     isMediumCard: false,
     svgIcon: 'datagovernance',
   },
+  {
+    name: 'Data Catalog (OpenMetadata)',
+    description:
+      'Unlock the value of data assets with an end-to-end metadata management solution that includes data discovery, governance, data quality, observability, and people collaboration.',
+    tags: ['Self Service', 'FOSS'],
+    isExternalLink: false,
+    isTextAlignLeft: false,
+    isDisabled: true,
+    isSmallCard: false,
+    isMediumCard: false,
+    svgIcon: 'data-mini',
+  },
 ];
 
 export const TrainingsLandingPageElements = [
