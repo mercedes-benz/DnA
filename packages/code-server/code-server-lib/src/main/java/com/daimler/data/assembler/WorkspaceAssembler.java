@@ -69,12 +69,11 @@ import com.daimler.data.dto.workspace.CodeServerWorkspaceVO;
 import com.daimler.data.dto.workspace.CodespaceSecurityConfigVO;
 import com.daimler.data.dto.workspace.CodespaceSecurityEntitlementVO;
 import com.daimler.data.dto.workspace.CodespaceSecurityApiListVO;
+import com.daimler.data.dto.workspace.admin.CodespaceSecurityConfigDetailsVO;
 import com.daimler.data.dto.workspace.CodespaceSecurityRoleVO;
 import com.daimler.data.dto.workspace.CodespaceSecurityUserRoleMapResponseVO;
 import com.daimler.data.dto.workspace.CodespaceSecurityUserRoleMapVO;
 import com.daimler.data.dto.workspace.UserInfoVO;
-import com.daimler.data.dto.workspace.admin.CodespaceSecurityConfigDetailsVO;
-import com.daimler.data.dto.workspace.CodespaceSecurityConfigPublishedDetailsVO;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -373,7 +372,6 @@ public class WorkspaceAssembler implements GenericAssembler<CodeServerWorkspaceV
 								projectDetails.getProdDeploymentDetails());
 						projectDetailsVO.setIntDeploymentDetails(intDeployDetailsVO);
 						projectDetailsVO.setProdDeploymentDetails(prodDeployDetailsVO);
-
 						List<UserInfo> collabs = projectDetails.getProjectCollaborators();
 						if(collabs!=null && !collabs.isEmpty()) {
 							List<UserInfoVO> collabsVO = collabs.stream().map
@@ -390,7 +388,6 @@ public class WorkspaceAssembler implements GenericAssembler<CodeServerWorkspaceV
 						projectDetailsVO.setRecipeDetails(recipeVO);
 						projectDetailsVO.setProjectName(projectDetails.getProjectName());
 						projectDetailsVO.setGitRepoName(projectDetails.getGitRepoName());
-
 						if(projectDetails.getProjectCreatedOn()!=null)
 							projectDetailsVO.setProjectCreatedOn(isoFormat.parse(isoFormat.format(projectDetails.getProjectCreatedOn())));
 						if (projectDetails.getSecurityConfig() != null) {
@@ -477,22 +474,7 @@ public class WorkspaceAssembler implements GenericAssembler<CodeServerWorkspaceV
 		}
 		return entity;
 	}
-  
-	public CodespaceSecurityConfigDetailsVO dtoToVo(CodespaceSecurityConfigDto dto) {
-		CodespaceSecurityConfigDetailsVO vo = new CodespaceSecurityConfigDetailsVO();
-		try {
-			if (dto != null) {
-				vo.setId(dto.getId());
-				vo.setProjectName(dto.getProjectName());
-				vo.setProjectOwner(toUserInfoVO(dto.getProjectOwner()));
-				vo.setSecurityConfig(tosecurityConfigVO(dto.getSecurityConfig()));
-			}
-		} catch (Exception e) {
-			log.error("Failed in assembler", e.getMessage());
-		}
-		return vo;
-	}
-  
+
 	public CodespaceSecurityConfigVO assembleSecurityConfig(CodeServerWorkspaceVO vo, CodespaceSecurityConfigVO data) {
 		CodespaceSecurityConfigVO assembledSecurityConfig = new CodespaceSecurityConfigVO();
 		if (data != null) {
@@ -652,4 +634,18 @@ public class WorkspaceAssembler implements GenericAssembler<CodeServerWorkspaceV
 		return securityConfigWithIds;
 	}
 
+	public CodespaceSecurityConfigDetailsVO dtoToVo(CodespaceSecurityConfigDto dto) {
+		CodespaceSecurityConfigDetailsVO vo = new CodespaceSecurityConfigDetailsVO();
+		try {
+			if (dto != null) {
+				vo.setId(dto.getId());
+				vo.setProjectName(dto.getProjectName());
+				vo.setProjectOwner(toUserInfoVO(dto.getProjectOwner()));
+				vo.setSecurityConfig(tosecurityConfigVO(dto.getSecurityConfig()));
+			}
+		} catch (Exception e) {
+			log.error("Failed in assembler", e.getMessage());
+		}
+		return vo;
+	}
 }
