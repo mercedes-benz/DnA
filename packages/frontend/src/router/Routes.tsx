@@ -40,6 +40,7 @@ const CodeSpaceSecurityConfig = React.lazy(() => import('components/mbc/codeSpac
 const AllCodeSpaces = React.lazy(() => import('components/mbc/codeSpace/AllCodeSpaces'));
 const Trainings = React.lazy(() => import('components/mbc/trainings/Trainings'));
 const GenAI = React.lazy(() => import('components/mbc/genAI/GenAI'));
+const CodeSpaceRecipe = React.lazy(() => import('components/mbc/codeSpace/codeSpaceRecipe/CodeSpaceRecipe'));
 const AzureBlobService = React.lazy(() => import('components/mbc/azureBlobService/AzureBlobService')) ;
 // Micro Front End Component
 const StorageComponent = React.lazy(() => import('storage-mfe/Bucket'));
@@ -141,6 +142,7 @@ const protectedRoutes = [
     exact: false,
     path: '/azureBlobService',
     title: 'Azure Blob Service',
+
   },
   {
     allowedRoles: UserAndAdminRole,
@@ -365,6 +367,13 @@ const protectedRoutes = [
     exact: false,
     path: '/codespaces',
     title: 'Your Code Spaces',
+  },
+  {
+    allowedRoles: AdminRole,
+    component:CodeSpaceRecipe ,
+    exact: false,
+    path: '/codespaceRecipes',
+    title: 'Code Space recipes',
   },
   {
     allowedRoles: UserAndAdminRole,
