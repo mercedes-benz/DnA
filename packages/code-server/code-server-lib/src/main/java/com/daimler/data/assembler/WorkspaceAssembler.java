@@ -54,7 +54,6 @@ import com.daimler.data.db.json.CodespaceSecurityRole;
 import com.daimler.data.db.json.CodespaceSecurityUserRoleMap;
 import com.daimler.data.db.json.UserInfo;
 import com.daimler.data.dto.CodespaceSecurityConfigDto;
-import com.daimler.data.dto.CodespaceSecurityConfigDto;
 import com.daimler.data.dto.workspace.CodeServerDeploymentDetailsVO;
 import com.daimler.data.dto.workspace.CodeServerProjectDetailsVO;
 import com.daimler.data.dto.workspace.CodeServerRecipeDetailsVO;
@@ -478,7 +477,7 @@ public class WorkspaceAssembler implements GenericAssembler<CodeServerWorkspaceV
 		}
 		return entity;
 	}
-
+  
 	public CodespaceSecurityConfigDetailsVO dtoToVo(CodespaceSecurityConfigDto dto) {
 		CodespaceSecurityConfigDetailsVO vo = new CodespaceSecurityConfigDetailsVO();
 		try {
@@ -493,6 +492,7 @@ public class WorkspaceAssembler implements GenericAssembler<CodeServerWorkspaceV
 		}
 		return vo;
 	}
+  
 	public CodespaceSecurityConfigVO assembleSecurityConfig(CodeServerWorkspaceVO vo, CodespaceSecurityConfigVO data) {
 		CodespaceSecurityConfigVO assembledSecurityConfig = new CodespaceSecurityConfigVO();
 		if (data != null) {

@@ -1385,6 +1385,7 @@ public class WorkspaceController implements CodeServerApi, CodeServerAdminApi {
 	 }
    
    	@Override
+
 	@ApiOperation(value = "Getting values of published security config for a workspace", nickname = "publishedSecurityConfigDetails", notes = "Get published security config details in codeserver workspace", response = CodespaceSecurityConfigVO.class, tags = {
 			"code-server", })
 	@ApiResponses(value = {

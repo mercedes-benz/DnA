@@ -72,5 +72,4 @@ public interface WorkspaceService {
 	GenericMessage saveSecurityConfig(CodeServerWorkspaceVO vo);
 
     List<CodespaceSecurityConfigDetailsVO> getAllSecurityConfigs();
-
 }
