@@ -28,6 +28,7 @@ const datasphereUrl = Envs.DATASPHERE_TOOL_URL;
 const extolloUrl = Envs.EXTOLLO_TOOL_URL;
 const powerBIUrl = Envs.POWER_BI_TOOL_URL;
 const dataModelUrl = Envs.DATA_MODEL_URL;
+const dataCatalogUrl = Envs.DATA_CATALOG_URL;
 const corporateDataCatalogUrl = Envs.CORPORATE_DATA_CATALOG_URL;
 const smartDataGovernanceUrl = Envs.SMART_DATA_GOVERNANCE_URL;
 const spireUrl = Envs.SPIRE_URL;
@@ -541,6 +542,19 @@ export const DataLandingPageElements = [
     isSmallCard: false,
     isMediumCard: false,
     svgIcon: 'datagovernance',
+  },
+  {
+    name: 'Data Catalog (OpenMetadata)',
+    description:
+      'Unlock the value of data assets with an end-to-end metadata management solution that includes data discovery, governance, data quality, observability, and people collaboration.',
+    tags: ['Self Service', 'FOSS'],
+    url: dataCatalogUrl,
+    isExternalLink: true,
+    isTextAlignLeft: false,
+    isDisabled: !dataCatalogUrl?.startsWith('http'),
+    isSmallCard: false,
+    isMediumCard: false,
+    svgIcon: 'data-mini',
   },
 ];
 
