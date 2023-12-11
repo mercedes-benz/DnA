@@ -547,7 +547,7 @@ export const DataLandingPageElements = [
     description:
       'Unlock the value of data assets with an end-to-end metadata management solution that includes data discovery, governance, data quality, observability, and people collaboration.',
     tags: ['Self Service', 'FOSS'],
-    isExternalLink: false,
+    isExternalLink: true,
     isTextAlignLeft: false,
     isDisabled: true,
     isSmallCard: false,
