@@ -139,29 +139,21 @@ const ChronosProjectForm = ({project, edit, onSave}) => {
   });
 
   // lean governance fields
-  const [dataClassification, setDataClassification] = useState(edit && project?.data?.classificationType !== null ? project?.data?.classificationType : '');
-  const [dataClassificationError] = useState('');
-  const [PII, setPII] = useState(edit && project?.data?.hasPii !== null ? project?.data?.hasPii : false);
-  const [typeOfProject, setTypeOfProject] = useState(edit && project?.data?.typeOfProject !== null ? project?.data?.typeOfProject : 'Playground');
-  const [typeOfProjectError] = useState('');
+  const [nameOfProject, setNameOfProject] = useState(edit && chronosProject?.name !== null ? chronosProject?.name : '');
   
   const [divisions, setDivisions] = useState([]);
   const [subDivisions, setSubDivisions] = useState([]);
   const [departments, setDepartments] = useState([]);
-  const [departmentName, setDepartmentName] = useState(edit && project?.data?.department !== null ? [project?.data?.department] : []);
-  const [departmentError, setDepartmentError] = useState('');
-  const [division, setDivision] = useState(edit ? (project?.data?.division !== null ? project?.data?.division : '') : '');
-  const [divisionError] = useState('');
-  const [subDivision, setSubDivision] = useState(edit ? (project?.data?.subdivision !== null ? project?.data?.subdivision : '') : '');
-  const [tags] = useState([]);
-  const [tagName, setTagName] = useState('');
-  const [tagError, setTagError] = useState('');
-  const [termsOfUse, setTermsOfUse] = useState(false);
-  const [termsOfUseError, setTermsOfUseError] = useState(false);
-  // const [statusValue, setStatusValue] = useState('');
-  // const [statusError] = useState('');
-
   const [dataClassificationDropdown, setDataClassificationDropdown] = useState([]);
+  
+  const [division, setDivision] = useState(edit ? (chronosProject?.division !== null ? chronosProject?.division : '0') : '0');
+  const [subDivision, setSubDivision] = useState(edit ? (chronosProject?.subdivision !== null ? chronosProject?.subdivision : '0') : '0');
+  const [departmentName, setDepartmentName] = useState(edit && chronosProject?.department !== null ? [chronosProject?.department] : []);
+  const [typeOfProject, setTypeOfProject] = useState(edit && chronosProject?.typeOfProject !== null ? chronosProject?.typeOfProject : '0');
+  const [dataClassification, setDataClassification] = useState(edit && chronosProject?.classificationType !== null ? chronosProject?.classificationType : '');
+  const [PII, setPII] = useState(edit && chronosProject?.hasPii !== null ? chronosProject?.hasPii : false);
+  const [tags, setTags] = useState(edit && chronosProject?.tags !== null ? [chronosProject?.tags] : []);
+  const [termsOfUse, setTermsOfUse] = useState(edit && chronosProject?.termsOfUse !== null ? [chronosProject?.termsOfUse] : false);
 
   useEffect(() => {
     ProgressIndicator.show();
@@ -188,7 +180,7 @@ const ChronosProjectForm = ({project, edit, onSave}) => {
   }, []);
 
   useEffect(() => {
-    const divId = division.includes('/') ? division.split('/')[0] : '';
+    const divId = division;
     if (divId > '0') {
       ProgressIndicator.show();
       hostServer.get('/subdivisions/' + divId)
@@ -205,43 +197,6 @@ const ChronosProjectForm = ({project, edit, onSave}) => {
     //eslint-disable-next-line react-hooks/exhaustive-deps
   }, [division]);
 
-  
-  const handleDataClassification = (e) => {
-    setDataClassification(e.target.value);
-  };
-
-  const handlePII = (e) => {
-    setPII(e.target.value === 'true' ? true : false);
-  };
-
-  const handleTypeOfProject = (e) => {
-    setTypeOfProject(e.target.value);
-  };
-
-  // const statuses = [{
-  //   id: 1,
-  //   name: 'Active'
-  //   }, {
-  //       id: 2,
-  //       name: 'In development'
-  //   }, {
-  //       id: 3,
-  //       name: 'Sundowned'
-  // }];
-
-  const handleDivision = (e) => {
-    setDivision(e.target.value);
-  };
-
-  const handleSubDivision = (e) => {
-    setSubDivision(e.target.value);
-  };
-
-  // const onChangeStatus = (e) => {
-  //   setStatusValue(e.target.value);
-  // }
-
-
   const handleCreateProject = (values) => {
     ProgressIndicator.show();
     const data = {
@@ -253,16 +208,16 @@ const ChronosProjectForm = ({project, edit, onSave}) => {
         },
         leanGovernanceFeilds: {
           tags: tags,
-          piiData: PII,
+          piiData: values.pii,
           archerId: values.archerId,
-          division: division,
+          division: values.division,
           decription: values.description,
           department: departmentName[0],
           procedureId: values.procedureId,
-          termsOfUse: termsOfUse,
-          subDivision: subDivision,
-          typeOfProject: typeOfProject,
-          dataClassification: dataClassification
+          termsOfUse: values.termsOfUse,
+          subDivision: values.subDivision,
+          typeOfProject: values.typeOfProject,
+          dataClassification: values.dataClassification
         }
     };
     chronosApi.createForecastProject(data).then((res) => {
@@ -302,16 +257,16 @@ const ChronosProjectForm = ({project, edit, onSave}) => {
       removeCollaborators: removedCollaboratorsTemp,
       leanGovernanceFeilds: {
         tags: tags,
-        piiData: PII,
+        piiData: values.pii,
         archerId: values.archerId,
-        division: division,
+        division: values.division,
         decription: values.description,
         department: departmentName[0],
         procedureId: values.procedureId,
-        termsOfUse: termsOfUse,
-        subDivision: subDivision,
-        typeOfProject: typeOfProject,
-        dataClassification: dataClassification
+        termsOfUse: values.termsOfUse,
+        subDivision: values.subDivision,
+        typeOfProject: values.typeOfProject,
+        dataClassification: values.dataClassification
       }
     }
     ProgressIndicator.show();
@@ -340,13 +295,33 @@ const ChronosProjectForm = ({project, edit, onSave}) => {
         <div className={classNames(Styles.content, 'mbc-scroll')}>
           <div className={Styles.formGroup}>
             {
-              !edit &&
-              <>
+              edit &&
+              <div className={Styles.projectWrapper}>
+                <div className={classNames(Styles.flexLayout, Styles.threeColumn)}>
+                  <div id="productDescription">
+                    <label className="input-label summary">Project Name</label>
+                    <br />                    
+                    {chronosProject.name}
+                  </div>
+                  <div id="tags">
+                    <label className="input-label summary">Created on</label>
+                    <br />
+                    {chronosProject.createdOn !== undefined && regionalDateAndTimeConversionSolution(chronosProject.createdOn)}
+                  </div>
+                  <div id="isExistingSolution">
+                    <label className="input-label summary">Created by</label>
+                    <br />
+                    {chronosProject.createdBy?.firstName} {chronosProject.createdBy?.lastName}
+                  </div>
+                </div>
+              </div>
+            }
+            
                 <div className={Styles.flexLayout}>
                   <div
                     className={classNames(
                       'input-field-group include-error',
-                      // projectTypeError?.length ? 'error' : '',
+                      errors?.typeOfProject?.message ? 'error' : '',
                     )}
                   >
                     <label className={classNames(Styles.inputLabel, 'input-label')}>
@@ -354,9 +329,12 @@ const ChronosProjectForm = ({project, edit, onSave}) => {
                     </label>
                     <div className={classNames('custom-select')}>
                       <select id="reportStatusField"
-                        value={typeOfProject}
-                        required={true}
-                        onChange={handleTypeOfProject}
+                        defaultValue={typeOfProject}
+                        {...register('typeOfProject', {
+                          required: '*Missing entry',
+                          validate: (value) => value !== '0' || '*Missing entry',
+                          onChange: (e) => { setTypeOfProject(e.target.value) }
+                        })}
                       >
                         <option id="typeOfProjectOption" value={0}>
                           Choose
@@ -366,8 +344,8 @@ const ChronosProjectForm = ({project, edit, onSave}) => {
                         <option value={'Production'}>Production</option>
                       </select>
                     </div>
-                    <span className={classNames('error-message', typeOfProjectError?.length ? '' : 'hide')}>
-                      {typeOfProjectError}
+                    <span className={classNames('error-message', errors?.typeOfProject?.message ? '' : 'hide')}>
+                      {errors?.typeOfProject?.message}
                     </span>
                   </div>
                     <div className={classNames('input-field-group include-error', errors?.name ? 'error' : '')}>
@@ -382,13 +360,16 @@ const ChronosProjectForm = ({project, edit, onSave}) => {
                           placeholder="Type here"
                           autoComplete="off"
                           maxLength={55}
-                          {...register('name', { required: '*Missing entry', pattern: /^[a-z0-9-.]+$/ })}
+                          disabled={edit}
+                          defaultValue={nameOfProject}
+                          {...register('name', { required: '*Missing entry', pattern: /^[a-z0-9-.]+$/, onChange: (e) => { setNameOfProject(e.target.value) } })}
                         />
                         <span className={classNames('error-message')}>{errors?.name?.message}{errors.name?.type === 'pattern' && 'Project names can consist only of lowercase letters, numbers, dots ( . ), and hyphens ( - ).'}</span>
                       </div>
                     </div>
                 </div>
-
+                { typeOfProject !== 'Playground' && 
+                <div>
                 <div className={classNames('input-field-group include-error area', errors.description ? 'error' : '')}>
                   <label id="description" className="input-label" htmlFor="description">
                     Description <sup>*</sup>
@@ -409,7 +390,7 @@ const ChronosProjectForm = ({project, edit, onSave}) => {
                   <div
                     className={classNames(
                       'input-field-group include-error',
-                      divisionError?.length ? 'error' : '',
+                      errors?.division?.message ? 'error' : '',
                     )}
                   >
                     <label className={classNames(Styles.inputLabel, 'input-label')}>
@@ -417,11 +398,13 @@ const ChronosProjectForm = ({project, edit, onSave}) => {
                     </label>
                     <div className={classNames('custom-select')}>
                     <select
-                          id="divisionField"
-                          required={true}
-                          required-error={'*Missing entry'}
-                          onChange={handleDivision} 
-                          value={division}
+                        id="divisionField"
+                        defaultValue={division}
+                        {...register('division', {
+                          required: '*Missing entry',
+                          validate: (value) => value !== 0 || '*Missing entry',
+                          onChange: (e) => { setDivision(e.target.value) }
+                        })}
                       >
                           <option id="divisionOption" value={0}>
                             Choose
@@ -435,8 +418,8 @@ const ChronosProjectForm = ({project, edit, onSave}) => {
                           })}
                         </select>
                     </div>
-                    <span className={classNames('error-message', divisionError?.length ? '' : 'hide')}>
-                      {divisionError}
+                    <span className={classNames('error-message', errors?.division?.message ? '' : 'hide')}>
+                      {errors?.division?.message}
                     </span>
                   </div>
 
@@ -451,10 +434,12 @@ const ChronosProjectForm = ({project, edit, onSave}) => {
                     </label>
                     <div className={classNames('custom-select')}>
                       
-                      <select id="subDivisionField" 
-                      onChange={handleSubDivision} 
-                      value={subDivision}
-                      required={false}
+                      <select id="subDivisionField"
+                        defaultValue={subDivision}
+                        required={false}
+                        {...register('subDivision', {
+                          onChange: (e) => { setSubDivision(e.target.value) }
+                        })}
                       >
                           {subDivisions?.some((item) => item.id === '0' && item.name === 'None') ? (
                             <option id="subDivisionDefault" value={0}>
@@ -486,7 +471,7 @@ const ChronosProjectForm = ({project, edit, onSave}) => {
                     className={classNames(
                       Styles.bucketNameInputField,
                       'input-field-group include-error',
-                      departmentError?.length ? 'error' : '',
+                      errors?.department?.message ? 'error' : '',
                     )}
                   >
                     <div>
@@ -500,11 +485,11 @@ const ChronosProjectForm = ({project, edit, onSave}) => {
                             setTags={(selectedTags) => {
                             let dept = selectedTags?.map((item) => item.toUpperCase());
                               setDepartmentName(dept);
-                              setDepartmentError('');
                             }}
                             isMandatory={true}
-                            showMissingEntryError={departmentError}
-                            />
+                            showMissingEntryError={errors?.department?.message}
+                            // {...register('department', {required: '*Missing entry'})}
+                          />
                           
                       </div>
                       </div>
@@ -513,7 +498,7 @@ const ChronosProjectForm = ({project, edit, onSave}) => {
                   className={classNames(
                     Styles.bucketNameInputField,
                     'input-field-group include-error',
-                    departmentError?.length ? 'error' : '',
+                    errors?.tags?.message ? 'error' : '',
                   )}
                 >
                   <div>
@@ -521,15 +506,15 @@ const ChronosProjectForm = ({project, edit, onSave}) => {
                     
                         <Tags
                           title={'Tags'}
-                          chips={tagName}
+                          chips={tags}
                           tags={tags}
                           setTags={(selectedTags) => {
                             let tag = selectedTags?.map((item) => item.toUpperCase());
-                            setTagName(tag);
-                            setTagError('');
+                            setTags(tag);
                           }}
                           isMandatory={true}
-                          showMissingEntryError={tagError}
+                          showMissingEntryError={errors?.tags?.message}
+                          // {...register('tags', {required: '*Missing entry'})}
                         />
                          
                     </div>
@@ -541,17 +526,21 @@ const ChronosProjectForm = ({project, edit, onSave}) => {
                   <div
                     className={classNames(
                       'input-field-group include-error',
-                      dataClassificationError?.length ? 'error' : '',
+                      errors?.dataClassification?.message ? 'error' : '',
                     )}
                   >
                     <label className={classNames(Styles.inputLabel, 'input-label')}>
                       Data Classification <sup>*</sup>
                     </label>
                     <div className={classNames('custom-select')}>
-                      <select id="classificationField" 
-                        onChange={handleDataClassification} 
-                        value={dataClassification}
+                      <select id="classificationField"
                         required={true}
+                        defaultValue={dataClassification}
+                        {...register('dataClassification', {
+                          required: '*Missing entry',
+                          validate: (value) => value !== '0' || '*Missing entry',
+                          onChange: (e) => { setDataClassification(e.target.value) }
+                        })}
                       >
                         
                             <option id="classificationOption" value={0}>Choose</option>
@@ -567,8 +556,8 @@ const ChronosProjectForm = ({project, edit, onSave}) => {
         
                       </select>
                     </div>
-                    <span className={classNames('error-message', dataClassificationError?.length ? '' : 'hide')}>
-                      {dataClassificationError}
+                    <span className={classNames('error-message', errors?.dataClassification?.message ? '' : 'hide')}>
+                      {errors?.dataClassification?.message}
                     </span>
                   </div>
                   <div className={classNames('input-field-group include-error')}>
@@ -583,8 +572,11 @@ const ChronosProjectForm = ({project, edit, onSave}) => {
                             className="ff-only"
                             value={true}
                             name="pii"
-                            onChange={handlePII}
-                            checked={PII === true}
+                            defaultChecked={PII === true}
+                            {...register('pii', {
+                              required: '*Missing entry',
+                              onChange: (e) => { setPII(e.target.value) }
+                            })}
                           />
                         </span>
                         <span className="label">Yes</span>
@@ -596,8 +588,11 @@ const ChronosProjectForm = ({project, edit, onSave}) => {
                             className="ff-only"
                             value={false}
                             name="pii"
-                            onChange={handlePII}
-                            checked={PII === false}
+                            defaultChecked={PII === false}
+                            {...register('pii', {
+                              required: '*Missing entry',
+                              onChange: (e) => { setPII(e.target.value) }
+                            })}
                           />
                         </span>
                         <span className="label">No</span>
@@ -619,9 +614,9 @@ const ChronosProjectForm = ({project, edit, onSave}) => {
                         placeholder="Type here"
                         autoComplete="off"
                         maxLength={55}
-                        {...register('archerId', { pattern: /^[a-z0-9-.]+$/ })}
+                        {...register('archerId')}
                       />
-                      <span className={classNames('error-message')}>{errors.archerId?.type === 'pattern' && 'Project names can consist only of lowercase letters, numbers, dots ( . ), and hyphens ( - ).'}</span>
+                      {/* <span className={classNames('error-message')}>{errors.archerId?.type === 'pattern' && 'Project names can consist only of lowercase letters, numbers, dots ( . ), and hyphens ( - ).'}</span> */}
                     </div>
                   </div>
                   <div className={classNames('input-field-group include-error', errors?.  procedureId ? 'error' : '')}>
@@ -636,29 +631,30 @@ const ChronosProjectForm = ({project, edit, onSave}) => {
                         placeholder="Type here"
                         autoComplete="off"
                         maxLength={55}
-                        {...register('procedureId', { pattern: /^[a-z0-9-.]+$/ })}
+                        {...register('procedureId')}
                       />
-                      <span className={classNames('error-message')}>{errors.procedureId?.type === 'pattern' && 'Project names can consist only of lowercase letters, numbers, dots ( . ), and hyphens ( - ).'}</span>
+                      {/* <span className={classNames('error-message')}>{errors.procedureId?.type === 'pattern' && 'Project names can consist only of lowercase letters, numbers, dots ( . ), and hyphens ( - ).'}</span> */}
                     </div>
                   </div>
                 </div>
 
-                <div className={classNames(Styles.termsOfUseContainer, termsOfUseError?.length ? 'error' : '')}>
+                <div className={classNames(Styles.termsOfUseContainer, errors?.termsOfUse?.message ? 'error' : '')}>
                 <div className={Styles.termsOfUseContent}>
                   <div>
-                    <label className={classNames('checkbox', termsOfUseError?.length ? 'error' : '')}>
+                    <label className={classNames('checkbox', errors?.termsOfUse?.message ? 'error' : '')}>
                       <span className="wrapper">
                         <input
                           name="write"
                           type="checkbox"
                           className="ff-only"
-                          checked={termsOfUse}
-                          onChange={(e) => {
-                            setTermsOfUse(e.target.checked);
-                            e.target.checked
-                              ? setTermsOfUseError('')
-                              : setTermsOfUseError('Please agree to terms of use');
-                          }}
+                          defaultChecked={termsOfUse}
+                          {...register('termsOfUse', {
+                            required: 'Please agree to terms of use',
+                            validate: (value) => { 
+                              value || 'Please agree to terms of use';
+                             },
+                            onChange: (e) => { e.target.value === 'on' ? setTermsOfUse(true) : setTermsOfUse(false) }
+                          })}
                         />
                       </span>
                     </label>
@@ -666,7 +662,7 @@ const ChronosProjectForm = ({project, edit, onSave}) => {
                   <div
                     className={classNames(Styles.termsOfUseText)}
                     style={{
-                      ...(termsOfUseError?.length ? { color: '#e84d47' } : ''),
+                      ...(errors?.termsOfUse?.message ? { color: '#e84d47' } : ''),
                     }}
                   >
                     <div dangerouslySetInnerHTML={{ __html: Envs.TOU_HTML }}></div>
@@ -675,34 +671,12 @@ const ChronosProjectForm = ({project, edit, onSave}) => {
                 </div>
                 <span
                   style={{ marginTop: 0 }}
-                  className={classNames('error-message', termsOfUseError?.length ? '' : 'hide')}
+                  className={classNames('error-message', errors?.termsOfUse?.message ? '' : 'hide')}
                 >
-                  {termsOfUseError}
+                  {errors?.termsOfUse?.message}
                 </span>
               </div>
-              </>
-            }
-            {
-              edit &&
-              <div className={Styles.projectWrapper}>
-                <div className={classNames(Styles.flexLayout, Styles.threeColumn)}>
-                  <div id="productDescription">
-                    <label className="input-label summary">Project Name</label>
-                    <br />                    
-                    {chronosProject.name}
-                  </div>
-                  <div id="tags">
-                    <label className="input-label summary">Created on</label>
-                    <br />
-                    {chronosProject.createdOn !== undefined && regionalDateAndTimeConversionSolution(chronosProject.createdOn)}
-                  </div>
-                  <div id="isExistingSolution">
-                    <label className="input-label summary">Created by</label>
-                    <br />
-                    {chronosProject.createdBy?.firstName} {chronosProject.createdBy?.lastName}
-                  </div>
-                </div>
-              </div>
+            </div>
             }
             <div className={Styles.collabContainer}>
               <h3 className={Styles.modalSubTitle}>Add Collaborators</h3>
