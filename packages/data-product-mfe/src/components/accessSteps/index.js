@@ -9,8 +9,7 @@ import SelectBox from 'dna-container/SelectBox';
 import Modal from 'dna-container/Modal';
 import ConfirmModal from 'dna-container/Modal';
 import { markdownParser } from 'dna-container/MarkdownParser';
-import Notification from '/home/coder/app/packages/data-product-mfe/src/common/modules/uilab/js/src/notification.js';
-
+import Notification from '../../common/modules/uilab/js/src/notification';
 const AccessSteps = (
   { 
     value,
