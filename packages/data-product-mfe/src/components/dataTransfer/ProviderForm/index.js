@@ -515,16 +515,12 @@ const ProviderForm = ({ user, history }) => {
 
   const onSave = (currentAction, currentTab, values, callbackFn) => {
     setShowAllTabsError(false);
-    if(currentAction === 'publish'){
-      if(currentTab!='contact-info'){
-        setShowContactInformationTabError(true);
-      } else{  
+    if(currentAction === 'publish'){ 
         if(validatePublishRequest(values)){
           proceedToSave(currentTab, values, callbackFn)
         } else {
           setShowAllTabsError(true);
-        }
-      }  
+        } 
     } else {
       if(!values.id && values.id!='' && currentTab!='contact-info'){
         setShowContactInformationTabError(true);
