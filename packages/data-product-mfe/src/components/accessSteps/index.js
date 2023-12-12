@@ -9,6 +9,7 @@ import SelectBox from 'dna-container/SelectBox';
 import Modal from 'dna-container/Modal';
 import ConfirmModal from 'dna-container/Modal';
 import { markdownParser } from 'dna-container/MarkdownParser';
+import Notification from '/home/coder/app/packages/data-product-mfe/src/common/modules/uilab/js/src/notification.js';
 
 const AccessSteps = (
   { 
@@ -262,17 +263,22 @@ const AccessSteps = (
                                 if(!data?.stepNumber){
                                   updateNumberedStep(numberedStep+1);
                                   data1.stepNumber = numberedStep+1;
-                                } 
+                                }
                                 else{
                                   updateNumberedStep(data?.stepNumber);
                                   data1.stepNumber = data?.stepNumber;
                                 }
-                                
+
                               }
-                              // console.log(markdownParserText,'=-=-=-=-=-=-=-=-=-=-=-==')
-                              data1.stepText = htmlToMarkdownParser(markdownParserText);
-                              update(itemIndex, data1);
-                              setEnableEdit(false);
+                              if(markdownParserText !== "") {
+                                data1.stepText = htmlToMarkdownParser(markdownParserText);
+                                update(itemIndex, data1);
+                                setEnableEdit(false);
+                              } else {
+                                Notification.show(
+                                  "cannot save the empty step","alert"
+                                );
+                              }
                             })}
                             >Save entry</span>
                             
