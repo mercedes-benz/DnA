@@ -1115,6 +1115,7 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 					responseVO.setResponse(errorMessage);
 					return new ResponseEntity<>(responseVO, HttpStatus.FORBIDDEN);
 				}else {
+					InputFileVO savedInputToRemove = null;
 					if(backtesting!=null && !backtesting.trim().isEmpty() ) {
 						try{
 							int backtestingValue = Integer.parseInt(backtesting);
@@ -1158,16 +1159,15 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 							List<InputFileVO> savedInputs = existingForecast.getSavedInputs();
 							if(saveRequestPart) {
 								if(savedInputs!=null && !savedInputs.isEmpty()) {
-									List<String> fileNames = savedInputs.stream().map(InputFileVO::getName).collect(Collectors.toList());
-									if(fileNames.contains(file.getOriginalFilename())) {
-										log.error("File with name already exists in saved input files list. Project {} and file {}", existingForecast.getName(),fileName);
-										MessageDescription invalidMsg = new MessageDescription("File with name already exists in saved input files list. Please rename and upload again");
-										GenericMessage errorMessage = new GenericMessage();
-										errorMessage.setSuccess("FAILED");
-										errorMessage.addErrors(invalidMsg);
-										responseVO.setData(null);
-										responseVO.setResponse(errorMessage);
-										return new ResponseEntity<>(responseVO, HttpStatus.BAD_REQUEST);
+									for (InputFileVO savedInputDetails : savedInputs) {
+										if (savedInputDetails.getName().equals(file.getOriginalFilename())) {
+											log.info("File with name already exists in saved input files list. Project {} and file {}", existingForecast.getName(),fileName);
+											savedInputToRemove = savedInputDetails;
+											break;
+										}
+									}
+									if(savedInputToRemove != null) {
+										savedInputs.remove(savedInputToRemove);
 									}
 								}else
 									savedInputs = new ArrayList<>();
@@ -1205,7 +1205,7 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 					}
 					log.info("Passed all validations for create run in controller, calling service for project {} ", id);
 					ForecastRunResponseVO createRunResponse = service.createJobRun(file,savedInputPath, saveRequestPart, runName, configurationFile,
-							frequency, forecastHorizon, hierarchy, comment, runOnPowerfulMachines, existingForecast,requestUser.getId(),createdOn,chronosVersion,backtesting);
+							frequency, forecastHorizon, hierarchy, comment, runOnPowerfulMachines, existingForecast,requestUser.getId(),createdOn,chronosVersion,backtesting, savedInputToRemove);
 					if(createRunResponse!= null && "SUCCESS".equalsIgnoreCase(createRunResponse.getResponse().getSuccess())
 								&& createRunResponse.getData().getRunId()!=null) {
 						return new ResponseEntity<>(createRunResponse, HttpStatus.CREATED);
@@ -1775,6 +1775,7 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 			String fileName = configFile.getOriginalFilename();
 			String config_file_extension = FilenameUtils.getExtension(fileName);
 			String configs_filename = fileName + "." + config_file_extension;
+			InputFileVO configToRemove = null;
 			if (!isValidConfigFileAttachment(fileName)) {
 				log.error("Invalid file type {} attached for project name {} and id {} ", fileName, existingForecast.getName(), id);
 				MessageDescription invalidMsg = new MessageDescription("Invalid File type attached. Supported only yaml and yml extensions");
@@ -1788,17 +1789,16 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 				List<InputFileVO> configFiles = existingForecast.getConfigFiles();
 
 				if (configFiles != null && !configFiles.isEmpty()) {
-					List<String> fileNames = configFiles.stream().map(InputFileVO::getName).collect(Collectors.toList());
-					if (fileNames.contains(configFile.getOriginalFilename())) {
-						log.error("File with name already exists in uploaded config files list. Project {} and file {}", existingForecast.getName(), fileName);
-						MessageDescription invalidMsg = new MessageDescription("File with name already exists in uploaded config files list. Please rename and upload again");
-						GenericMessage errorMessage = new GenericMessage();
-						errorMessage.setSuccess("FAILED");
-						errorMessage.addErrors(invalidMsg);
-						responseVO.setData(null);
-						responseVO.setResponse(errorMessage);
-						return new ResponseEntity<>(responseVO, HttpStatus.BAD_REQUEST);
-					}
+						for (InputFileVO configFileDetails : configFiles) {
+							if (configFileDetails.getName().equals(configFile.getOriginalFilename())) {
+								log.info("File with name already exists in uploaded config files list. Project {} and file {}", existingForecast.getName(), fileName);
+								configToRemove = configFileDetails;
+								break;
+							}
+						}
+						if(configToRemove != null) {
+							configFiles.remove(configToRemove);
+						}
 				} else
 					configFiles = new ArrayList<>();
 				FileUploadResponseDto fileUploadResponse = storageClient.uploadFile(CONFIGS_FILE_PREFIX, configFile, existingForecast.getBucketName());
@@ -1824,7 +1824,7 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 					configFilePath = existingForecast.getBucketName() + "/configs/" + configFile.getOriginalFilename();
 				}
 			}
-			ForecastConfigFileUploadResponseVO uploadConfigResponse = service.uploadConfigFile(existingForecast,configFileIdId,requestUser.getId(),createdOn,configFilePath,configFile.getOriginalFilename());
+			ForecastConfigFileUploadResponseVO uploadConfigResponse = service.uploadConfigFile(existingForecast,configFileIdId,requestUser.getId(),createdOn,configFilePath,configFile.getOriginalFilename(), configToRemove);
 			if(uploadConfigResponse!= null && "SUCCESS".equalsIgnoreCase(uploadConfigResponse.getResponse().getSuccess())
 					&& uploadConfigResponse.getData().getId()!=null) {
 				return new ResponseEntity<>(uploadConfigResponse, HttpStatus.CREATED);
