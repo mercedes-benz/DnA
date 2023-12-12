@@ -276,7 +276,7 @@ const AccessSteps = (
                                 setEnableEdit(false);
                               } else {
                                 Notification.show(
-                                  "cannot save the empty step","alert"
+                                  "Please Enter Description Before Saving","alert"
                                 );
                               }
                             })}
