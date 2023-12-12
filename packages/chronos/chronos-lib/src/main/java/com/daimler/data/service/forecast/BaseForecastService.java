@@ -147,7 +147,7 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 	@Transactional(isolation = Isolation.SERIALIZABLE)
 	public ForecastRunResponseVO createJobRun(MultipartFile file,String savedInputPath, Boolean saveRequestPart, String runName,
 			String configurationFile, String frequency, BigDecimal forecastHorizon, String hierarchy, String comment, Boolean runOnPowerfulMachines,
-			ForecastVO existingForecast,String triggeredBy, Date triggeredOn,String chronosVersion, String backtesting) {
+			ForecastVO existingForecast,String triggeredBy, Date triggeredOn,String chronosVersion, String backtesting, InputFileVO savedInputToRemove) {
 
 		String dataBricksJobidForRun = dataBricksJobId;
 		ForecastRunResponseVO responseWrapper = new ForecastRunResponseVO();
@@ -309,7 +309,24 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 				entity.getData().setSavedInputs(this.assembler.toFiles(existingForecast.getSavedInputs()));
 				try {
 					this.jpaRepo.save(entity);
-				}catch(Exception e) {
+					if(savedInputToRemove!=null) {
+						List<String> memberIds = new ArrayList<>();
+						List<String> memberEmails = new ArrayList<>();
+						if (entity.getData().getCollaborators() != null) {
+							memberIds = entity.getData().getCollaborators().stream()
+									.map(UserDetails::getId).collect(Collectors.toList());
+							memberEmails = entity.getData().getCollaborators().stream()
+									.map(UserDetails::getEmail).collect(Collectors.toList());
+						}
+						String ownerId = entity.getData().getCreatedBy().getId();
+						memberIds.add(ownerId);
+						String ownerEmail = entity.getData().getCreatedBy().getEmail();
+						memberEmails.add(ownerEmail);
+						String message = "Input file " + savedInputToRemove.getName() + " uploaded by " + triggeredBy + " for chronos-project " + existingForecast.getName() + " overridden successfully";
+						String notificationEventName = "Chronos Upload Saved Input File Override";
+						notifyUsers(existingForecast.getId(), memberIds, memberEmails, message, "", notificationEventName, null);
+					}
+					}catch(Exception e) {
 					log.error("Failed while saving details of run {} and correaltionId {} to database for project {}",runNowResponse.getRunId(),correlationId
 							, existingForecast.getName());
 					MessageDescription msg = new MessageDescription("Failed to save run details to table after creating databricks job run with runid "+runNowResponse.getRunId());
@@ -542,21 +559,24 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 											String configFileIdId = UUID.randomUUID().toString();
 											List<File> configFiles = entity.getData().getConfigFiles();
 											if (configFiles != null && !configFiles.isEmpty()) {
-												List<String> fileNames = configFiles.stream().map(File::getName).collect(Collectors.toList());
-												if (fileNames.contains(multipartFile.getOriginalFilename())) {
-													duplicateFile = true;
-													log.error("File with name already exists in uploaded config files list. Project {} and file {}", forecastName, fileName);
-													uploadConfigMessage = "New recommendation file generated based on " + run.getRunName() + " inputs, Failed to upload recommendation " + fileName + " to project specific configs, File with name already exists in uploaded config files list";
-													configRecommendationNotification.setNotificationEventName(uploadConfigNotificationEventName);
-													configRecommendationNotification.setMessage(uploadConfigMessage);
-													notificationDetails.add(configRecommendationNotification);
-													/*notifyUsers(forecastId, memberIds, memberEmails, uploadConfigMessage, "", uploadConfigNotificationEventName, null);*/
+												log.error("File with name already exists in uploaded config files list. Project {} and file {}", forecastName, fileName);
+												File configToRemove = null;
+												for (File configFileDetails : configFiles) {
+													if (configFileDetails.getName().equals(multipartFile.getOriginalFilename())) {
+														duplicateFile = true;
+														configToRemove = configFileDetails;
+														break;
+													}
 												}
+												if (configToRemove != null) {
+													configFiles.remove(configToRemove);
+												}
+
 											} else {
 												configFiles = new ArrayList<>();
 											}
 
-											if (!duplicateFile) {
+
 												FileUploadResponseDto fileUploadResponse = storageClient.uploadFile("/configs/", multipartFile, bucketName);
 												if (fileUploadResponse == null || (fileUploadResponse != null && (fileUploadResponse.getErrors() != null || !"SUCCESS".equalsIgnoreCase(fileUploadResponse.getStatus())))) {
 													log.error("Failed to upload config file {} to storage bucket", fileName);
@@ -578,12 +598,17 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 													currentConfigInput.setCreatedBy(ownerId);
 													configFilesVOList.add(currentConfigInput);
 													entity.getData().setConfigFiles(this.assembler.toConfigFiles(configFilesVOList));
-													uploadConfigMessage = "New recommendation file generated based on " + run.getRunName() + " inputs, Successfully uploaded recommendation " + fileName + " to project specific configs.";
 													configRecommendationNotification.setNotificationEventName(uploadConfigNotificationEventName);
+													if(!duplicateFile) {
+														uploadConfigMessage = "New recommendation file generated based on " + run.getRunName() + " inputs, Successfully uploaded recommendation " + fileName + " to project specific configs.";
+													}
+													else if(duplicateFile) {
+														uploadConfigMessage = "Recommendation File with name " + fileName+ "already exists in uploaded config files list, hence overriden.";
+													}
 													configRecommendationNotification.setMessage(uploadConfigMessage);
 													notificationDetails.add(configRecommendationNotification);
 												}
-											}
+
 										}
 
 										//check if exogenous data is present
@@ -646,8 +671,7 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 									String notificationEventName = "Chronos: " + newState.getResult_state() + " for run '" + run.getRunName() + "'" ;
 									runUpdateNotification.setMessage(message);
 									runUpdateNotification.setNotificationEventName(notificationEventName);
-									/*notifyUsers(forecastId, memberIds, memberEmails,message,"",notificationEventName,null);*/
-								    notificationDetails.add(runUpdateNotification);
+									notificationDetails.add(runUpdateNotification);
 								}
 								
 								newState.setState_message(updatedStateMsg);
@@ -1479,7 +1503,7 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 
 	@Override
 	@Transactional(isolation = Isolation.SERIALIZABLE)
-	public ForecastConfigFileUploadResponseVO uploadConfigFile(ForecastVO existingForecast, String configFileId, String requestUser, Date createdOn, String configFilePath, String configFileName) {
+	public ForecastConfigFileUploadResponseVO uploadConfigFile(ForecastVO existingForecast, String configFileId, String requestUser, Date createdOn, String configFilePath, String configFileName, InputFileVO configToRemove) {
 		InputFileVO forecastConfigFileVO = new InputFileVO();
 		GenericMessage responseMessage = new GenericMessage();
 		ForecastConfigFileUploadResponseVO responseWrapperVO = new ForecastConfigFileUploadResponseVO();
@@ -1497,6 +1521,23 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 
 				jpaRepo.save(entity);
 				responseMessage.setSuccess("SUCCESS");
+				if(configToRemove!=null){
+					List<String> memberIds = new ArrayList<>();
+					List<String> memberEmails = new ArrayList<>();
+					if (entity.getData().getCollaborators() != null) {
+						memberIds = entity.getData().getCollaborators().stream()
+								.map(UserDetails::getId).collect(Collectors.toList());
+						memberEmails = entity.getData().getCollaborators().stream()
+								.map(UserDetails::getEmail).collect(Collectors.toList());
+					}
+					String ownerId = entity.getData().getCreatedBy().getId();
+					memberIds.add(ownerId);
+					String ownerEmail = entity.getData().getCreatedBy().getEmail();
+					memberEmails.add(ownerEmail);
+					String message="Config " +configFileName + " uploaded by " + requestUser +" for chronos-project "+ existingForecast.getName() + " overridden successfully";
+					String notificationEventName = "Chronos Upload Config File Override";
+					notifyUsers(existingForecast.getId(), memberIds, memberEmails,message,"",notificationEventName,null);
+				}
 
 			} catch (Exception e) {
 				log.error("Failed while uploading config file forecast project {}", existingForecast.getName());
