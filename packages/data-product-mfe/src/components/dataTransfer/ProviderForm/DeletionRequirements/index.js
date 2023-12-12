@@ -209,7 +209,8 @@ const DeletionRequirements = (
                 <label className={classNames('checkbox', errors?.tou ? 'error' : '')}>
                   <span className="wrapper">
                     <input {...register('tou', { required: '*Missing entry' })}
-                    defaultChecked={false} 
+                    defaultChecked={watch('isPublish') || watch('publish')} 
+                    value ={watch('isPublish') || watch('publish')} 
                     type="checkbox" className="ff-only" />
                   </span>
                   <div
