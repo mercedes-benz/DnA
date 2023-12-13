@@ -188,6 +188,7 @@ public class BaseTrinoDataLakeService extends BaseCommonService<TrinoDataLakePro
 										writeAccessRules.setTable(tableAccess.getTableName());
 										List<String> readCollabs = new ArrayList<>();
 										List<String> writeCollabs = new ArrayList<>();
+										writeCollabs.add(vo.getCreatedBy().getId());
 										if(tableAccess.getCollabs()!=null && !tableAccess.getCollabs().isEmpty()) {
 											for(DataLakeTableCollabDetailsVO tableAccessCollab : tableAccess.getCollabs()) {
 												if(tableAccessCollab.getHasWritePermission()) {
@@ -260,7 +261,7 @@ public class BaseTrinoDataLakeService extends BaseCommonService<TrinoDataLakePro
 		List<MessageDescription> warnings = new ArrayList<>();
 		List<String> dataTypes = this.connectorSpecificDataTypes(connectorType); 
 			for(DatalakeTableVO tableVO : createTablesVO) {
-				if(existingTables==null || (existingTables!=null && !existingTables.isEmpty() && !existingTables.contains(tableVO.getTableName()))) {
+				if(existingTables==null || (existingTables!=null && existingTables.isEmpty()) || (existingTables!=null && !existingTables.isEmpty() && !existingTables.contains(tableVO.getTableName()))) {
 				GenerateTableStmtResponseVO generateCreateStmtResponse = tableUtility.generateCreateTableStatement(dataTypes, catalog, schema, externalLocationForSchema, tableVO);
 				if(generateCreateStmtResponse!= null) {
 					if(generateCreateStmtResponse.getTableStmt()!=null && !"".equalsIgnoreCase(generateCreateStmtResponse.getTableStmt())) {
@@ -373,7 +374,7 @@ public class BaseTrinoDataLakeService extends BaseCommonService<TrinoDataLakePro
 										writeAccessRules.setTable(tableAccess.getTableName());
 										List<String> readCollabs = new ArrayList<>();
 										List<String> writeCollabs = new ArrayList<>();
-										
+										writeCollabs.add(existingVO.getCreatedBy().getId());
 										if(tableAccess.getCollabs()!=null && !tableAccess.getCollabs().isEmpty()) {
 											for(DataLakeTableCollabDetailsVO tableAccessCollab : tableAccess.getCollabs()) {
 												if(tableAccessCollab.getHasWritePermission()) {
@@ -398,6 +399,7 @@ public class BaseTrinoDataLakeService extends BaseCommonService<TrinoDataLakePro
 									}
 								}
 								
+								
 								//removing deleted tables
 								 existingTables = trinoClient.showTables(catalog, schema, "%%");
 								for(String trinoTable : existingTables) {
@@ -415,6 +417,7 @@ public class BaseTrinoDataLakeService extends BaseCommonService<TrinoDataLakePro
 								}
 								
 								List<String> schemaCollaborators = new ArrayList<>();
+								schemaCollaborators.add(existingVO.getCreatedBy().getId());
 								if(existingVO.getTables()!=null && !existingVO.getTables().isEmpty()) {
 									for(DatalakeTableVO availableTable : existingVO.getTables()) {
 										if(availableTable.getCollabs()!=null && !availableTable.getCollabs().isEmpty()) {
