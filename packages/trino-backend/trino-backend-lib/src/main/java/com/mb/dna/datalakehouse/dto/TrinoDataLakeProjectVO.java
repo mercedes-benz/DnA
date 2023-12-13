@@ -39,5 +39,5 @@ public class TrinoDataLakeProjectVO implements Serializable {
 	private Date createdOn;
 	private UserInfoVO createdBy;
 	
-	
+	private String techUserClientId;
 }
