@@ -154,7 +154,7 @@ public class StorageServicesClient {
 		return getBucketByNameResonse;
 	}
 
-	public UpdateBucketResponseWrapperDto updateBucket(String bucketName, String bucketId, CreatedByVO creator, List<UserInfoVO> collaborators) {
+	public UpdateBucketResponseWrapperDto updateBucket(String bucketName, String bucketId, List<UserInfoVO> collaborators) {
 		UpdateBucketResponseWrapperDto updateBucketResponse = new UpdateBucketResponseWrapperDto();
 		List<MessageDescription> errors = new ArrayList<>();
 		try {
@@ -192,8 +192,7 @@ public class StorageServicesClient {
 			}
 
 			CollaboratorsDto creatorAsCollab = new CollaboratorsDto();
-			BeanUtils.copyProperties(creator, creatorAsCollab);
-			creatorAsCollab.setAccesskey(creator.getId());
+			creatorAsCollab.setAccesskey(trinoUser);
 			creatorAsCollab.setPermission(permissions);
 			data.getCollaborators().add(creatorAsCollab);
 

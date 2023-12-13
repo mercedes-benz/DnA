@@ -30,14 +30,16 @@ package com.daimler.data.dna.trino.main;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.SpringApplication;
+import org.springframework.boot.actuate.autoconfigure.security.servlet.ManagementWebSecurityAutoConfiguration;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.web.WebApplicationInitializer;
 
-@SpringBootApplication
+@SpringBootApplication(exclude = { SecurityAutoConfiguration.class, ManagementWebSecurityAutoConfiguration.class })
 @EnableAspectJAutoProxy(proxyTargetClass = true)
 @ComponentScan({ "com.daimler.data.application.filter", "com.daimler.data.application.logging",
 		"com.daimler.data.auth.client", "com.daimler.data.dna.trino.config", "com.daimler.data.controller", "com.daimler.data.assembler"
