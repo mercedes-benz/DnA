@@ -12,13 +12,15 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@JsonInclude(Include.NON_NULL)
-public class TrinoCatalogRulesVO implements Serializable {
-	
+public class TrinoDataLakeDBUserDetails implements Serializable {
+
 	private static final long serialVersionUID = 1L;
 
-	private String allow;
-	private String catalog;
-	private String user;
-	
+	private String accesskey;
+	private String secretKey;
+	private String hostName;
+	private String port;
+	@JsonInclude(Include.NON_NULL)
+    private Boolean externalAuthentication;
+    
 }
