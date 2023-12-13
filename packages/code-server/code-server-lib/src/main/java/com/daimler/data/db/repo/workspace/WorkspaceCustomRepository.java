@@ -36,6 +36,7 @@ import com.daimler.data.db.json.UserInfo;
 import com.daimler.data.db.repo.common.CommonDataRepository;
 import com.daimler.data.dto.CodespaceSecurityConfigCollectionDto;
 import com.daimler.data.dto.CodespaceSecurityConfigDto;
+import com.daimler.data.dto.workspace.CodeServerWorkspaceVO;
 import com.daimler.data.dto.workspace.CodeServerWorkspaceValidateVO;
 import com.daimler.data.dto.workspace.CodespaceSecurityConfigVO;
 
@@ -64,6 +65,10 @@ public interface WorkspaceCustomRepository extends CommonDataRepository<CodeServ
 
 	void updateDeletedStatusForProject(String projectName);
 
+	List<String> getWorkspaceIdsByProjectName( String projectName);
+
+	GenericMessage updateSecurityConfigStatus(String projectName, String Status);
+
 	Integer getTotalCountOfWorkSpace();
 
 	List<String> getAllWorkspaceIds();
@@ -72,6 +77,8 @@ public interface WorkspaceCustomRepository extends CommonDataRepository<CodeServ
 	
 	CodeServerWorkspaceNsql findByWorkspaceId(String wsId);
 
-    List<CodespaceSecurityConfigDto> getAllSecurityConfigs();
+    List<CodespaceSecurityConfigDto> getAllSecurityConfigs(Integer offset, Integer limit);
+
+	CodeServerWorkspaceNsql findDataById(String id);
 
 }
