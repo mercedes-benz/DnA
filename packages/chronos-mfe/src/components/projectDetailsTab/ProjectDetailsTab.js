@@ -28,10 +28,10 @@ const ProjectDetailsTab = () => {
 
   const project = useSelector(state => state.projectDetails);
   const dispatch = useDispatch();
-  
+
   useEffect(() => {
-    if(!project?.isLoading && project?.data?.collaborators !== null) {
-      const members = project?.data?.collaborators.map(member => ({...member, shortId: member.id, userType: 'internal'}));
+    if (!project?.isLoading && project?.data?.collaborators !== null) {
+      const members = project?.data?.collaborators.map(member => ({ ...member, shortId: member.id, userType: 'internal' }));
       setTeamMembers(members);
     }
   }, [project]);
@@ -73,14 +73,14 @@ const ProjectDetailsTab = () => {
     setInputFileToBeDeleted('');
   };
   const onAcceptDelete = () => {
-    if(inputFileToBeDeleted?.length > 0) {
+    if (inputFileToBeDeleted?.length > 0) {
       ProgressIndicator.show();
       chronosApi.deleteSavedInputFile(projectId, inputFileToBeDeleted).then(() => {
         Notification.show('Saved input file deleted');
         dispatch(getProjectDetails(projectId));
         ProgressIndicator.hide();
         setInputFileToBeDeleted('');
-        SelectBox.defaultSetup();  
+        SelectBox.defaultSetup();
       }).catch(error => {
         Notification.show(
           error?.response?.data?.response?.errors[0]?.message || error?.response?.data?.response?.warnings[0]?.message || error?.response?.data?.errors[0]?.message || 'Error while deleting saved input file',
@@ -90,7 +90,7 @@ const ProjectDetailsTab = () => {
         setInputFileToBeDeleted('');
       });
     }
-    if(configFileToBeDeleted?.length > 0) {
+    if (configFileToBeDeleted?.length > 0) {
       ProgressIndicator.show();
       chronosApi.deleteProjectConfigFile(projectId, configFileToBeDeleted).then(() => {
         Notification.show('Config file deleted');
@@ -122,24 +122,89 @@ const ProjectDetailsTab = () => {
         <div className={Styles.firstPanel}>
           <div className={Styles.formWrapper}>
             {/* { loading && <Spinner /> } */}
-            { !project?.isLoading && 
-              <div className={classNames(Styles.flexLayout, Styles.threeColumn)}>
-                <div id="productDescription">
-                  <label className="input-label summary">Project Name</label>
-                  <br />                    
-                  {project?.data?.name}
+            {!project?.isLoading &&
+              <>
+                <div className={classNames(Styles.flexLayout, Styles.threeColumn)}>
+                  <div id="productDescription">
+                    <label className="input-label summary">Project Name</label>
+                    <br />
+                    {project?.data?.name}
+                  </div>
+                  <div id="tags">
+                    <label className="input-label summary">Created on</label>
+                    <br />
+                    {project?.data?.createdOn !== undefined && regionalDateAndTimeConversionSolution(project?.data?.createdOn)}
+                  </div>
+                  <div id="isExistingSolution">
+                    <label className="input-label summary">Created by</label>
+                    <br />
+                    {project?.data?.createdBy?.firstName} {project?.data?.createdBy?.lastName}
+                  </div>
                 </div>
-                <div id="tags">
-                  <label className="input-label summary">Created on</label>
-                  <br />
-                  {project?.data?.createdOn !== undefined && regionalDateAndTimeConversionSolution(project?.data?.createdOn)}
+
+                <div className={classNames(Styles.flexLayout, Styles.threeColumn)}>
+                  <div id="typeOfProjectOption">
+                    <label className="input-label summary">Type of Project</label>
+                    <br />
+                    {project?.data.leanGovernanceFeilds?.typeOfProject ? project?.data.leanGovernanceFeilds?.typeOfProject : 'N/A'}
+                  </div>
+                  <div id="description">
+                    <label className="input-label summary">Description</label>
+                    <br />
+                    {project?.data.leanGovernanceFeilds?.decription ? project?.data.leanGovernanceFeilds?.decription : 'N/A'}
+                  </div>
+                  <div id="divisionField">
+                    <label className="input-label summary">Division</label>
+                    <br />
+                    {project?.data.leanGovernanceFeilds?.division === '0' || !project?.data.leanGovernanceFeilds?.division ? 'N/A' : project?.data.leanGovernanceFeilds?.division}
+                  </div>
                 </div>
-                <div id="isExistingSolution">
-                  <label className="input-label summary">Created by</label>
-                  <br />
-                  {project?.data?.createdBy?.firstName} {project?.data?.createdBy?.lastName}
+
+                <div className={classNames(Styles.flexLayout, Styles.threeColumn)}>
+                  <div id="subDivisonField">
+                    <label className="input-label summary">Sub Division</label>
+                    <br />
+                    {project?.data.leanGovernanceFeilds?.subDivision === '0' || !project?.data.leanGovernanceFeilds?.subDivision ? 'N/A' : project?.data.leanGovernanceFeilds?.subDivision}
+                  </div>
+                  <div id="department">
+                    <label className="input-label summary">Department</label>
+                    <br />
+                    {project?.data.leanGovernanceFeilds?.department ? project?.data.leanGovernanceFeilds?.department : 'N/A'}
+                  </div>
+                  <div id="tags">
+                    <label className="input-label summary">Tags</label>
+                    <br />
+                    {project?.data.leanGovernanceFeilds?.tags ? project?.data.leanGovernanceFeilds?.tags : 'N/A'}
+                  </div>
                 </div>
-              </div>
+
+                <div className={classNames(Styles.flexLayout, Styles.threeColumn)}>
+                  <div id="dataClassificationField">
+                    <label className="input-label summary">Data Classification</label>
+                    <br />
+                    {project?.data.leanGovernanceFeilds?.dataClassification === '0' || !project?.data.leanGovernanceFeilds?.dataClassification ? 'N/A' : project?.data.leanGovernanceFeilds?.dataClassification}
+                  </div>
+                  <div id="PiiData">
+                    <label className="input-label summary">PII</label>
+                    <br />
+                    {project?.data.leanGovernanceFeilds?.piiData ? project?.data.leanGovernanceFeilds?.piiData : 'N/A'}
+                  </div>
+                  <div id="archerId">
+                    <label className="input-label summary">Archer ID</label>
+                    <br />
+                    {project?.data.leanGovernanceFeilds?.archerTd ? project?.data.leanGovernanceFeilds?.archerTd : 'N/A'}
+                  </div>
+                </div>
+
+                <div className={classNames(Styles.flexLayout, Styles.threeColumn)}>
+                  <div id="procedureId">
+                    <label className="input-label summary">Procedure ID</label>
+                    <br />
+                    {project?.data.leanGovernanceFeilds?.procedureId ? project?.data.leanGovernanceFeilds?.procedureId : 'N/A'}
+                  </div>
+                </div>
+
+              </>
             }
           </div>
         </div>
@@ -147,37 +212,37 @@ const ProjectDetailsTab = () => {
       <div className={Styles.content}>
         <h3 id="productName">Collaborators</h3>
         <div className={Styles.firstPanel}>
-        {/* { loading && <Spinner /> } */}
-        { !project?.isLoading && 
-          <div className={Styles.collabAvatar}>
-            <div className={Styles.teamListWrapper}>
-              {teamMembers.length === 0 ? <p className={Styles.noCollaborator}>No Collaborators</p> : null}
-              {teamMembers.length !== 0 ?
-                <div className={Styles.membersList}>
-                  {teamMembersList}
-                </div> : null
-              }
+          {/* { loading && <Spinner /> } */}
+          {!project?.isLoading &&
+            <div className={Styles.collabAvatar}>
+              <div className={Styles.teamListWrapper}>
+                {teamMembers.length === 0 ? <p className={Styles.noCollaborator}>No Collaborators</p> : null}
+                {teamMembers.length !== 0 ?
+                  <div className={Styles.membersList}>
+                    {teamMembersList}
+                  </div> : null
+                }
+              </div>
             </div>
-          </div>
-        }
+          }
         </div>
       </div>
       <div className={Styles.content}>
         <h3 id="productName">Input Files</h3>
         {/* { loading && <Spinner /> } */}
-        {!project.isLoading && <InputFiles inputFiles={project?.data?.savedInputs === null ? [] : project?.data?.savedInputs} showModal={showDeleteConfirmModal} /> }
+        {!project.isLoading && <InputFiles inputFiles={project?.data?.savedInputs === null ? [] : project?.data?.savedInputs} showModal={showDeleteConfirmModal} />}
       </div>
       <div className={Styles.content}>
         <h3 id="productName">Configuration Files</h3>
         {/* { loading && <Spinner /> } */}
-        {!project.isLoading && <InputFiles inputFiles={project?.data?.configFiles === null ? [] : project?.data?.configFiles} showModal={showDeleteConfigFileConfirmModal} addNew={true} /> }
+        {!project.isLoading && <InputFiles inputFiles={project?.data?.configFiles === null ? [] : project?.data?.configFiles} showModal={showDeleteConfigFileConfirmModal} addNew={true} />}
       </div>
       <div className={Styles.content}>
         <h3 id="productName">Access Details for Chronos Forecasting</h3>
         <p className={Styles.swagger}><a href={Envs.CHRONOS_SWAGGER_URL} target='_blank' rel="noreferrer">API swagger documentation</a></p>
-        <ChronosAccessDetails />  
+        <ChronosAccessDetails />
       </div>
-      { editProject &&
+      {editProject &&
         <Modal
           title={'Edit Forecasting Project'}
           showAcceptButton={false}
@@ -185,7 +250,7 @@ const ProjectDetailsTab = () => {
           modalWidth={'60%'}
           buttonAlignment="right"
           show={editProject}
-          content={<ChronosProjectForm edit={true} onSave={() => {setEditProject(false); dispatch(getProjectDetails(projectId)); }} />}
+          content={<ChronosProjectForm edit={true} onSave={() => { setEditProject(false); dispatch(getProjectDetails(projectId)); }} />}
           scrollableContent={false}
           onCancel={() => setEditProject(false)}
           modalStyle={{
