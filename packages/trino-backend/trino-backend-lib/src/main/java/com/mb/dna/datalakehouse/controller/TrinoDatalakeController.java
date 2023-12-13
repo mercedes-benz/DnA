@@ -108,7 +108,7 @@ public class TrinoDatalakeController {
 	public ResponseEntity<TrinoDataLakeProjectVO> getById(
 			@ApiParam(value = "Data Lake project ID to be fetched", required = true) @PathVariable("id") String id){
 		try {
-		TrinoDataLakeProjectVO existingProject = trinoDatalakeService.getById(id);
+		TrinoDataLakeProjectVO existingProject = trinoDatalakeService.getUpdatedById(id);
 		if(existingProject==null || !id.equalsIgnoreCase(existingProject.getId())) {
 			log.warn("No datalake project found with id {}, failed to fetch saved inputs for given id", id);
 			return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
@@ -258,8 +258,69 @@ public class TrinoDatalakeController {
 		List<MessageDescription> errors = new ArrayList<>();
 		GenericMessage responseMessage = new GenericMessage();
 		TrinoDataLakeProjectResponseVO responseVO = new TrinoDataLakeProjectResponseVO();
-
-		return new ResponseEntity<>(responseVO, HttpStatus.OK);
+		TrinoDataLakeProjectResponseVO serviceUpdateResponse = new TrinoDataLakeProjectResponseVO();
+		TrinoDataLakeProjectUpdateRequestVO request =datalakeUpdateRequestVO;
+		if(existingProject==null || existingProject.getId()==null) {
+			log.error("Datalake project with id {} is not found ", id);
+			MessageDescription invalidMsg = new MessageDescription("Datalake project does not exist with given name");
+			GenericMessage errorMessage = new GenericMessage();
+			errorMessage.setSuccess("FAILED");
+			errorMessage.addWarnings(invalidMsg);
+			responseVO.setData(new TrinoDataLakeProjectVO());
+			responseVO.setResponse(errorMessage);
+			return new ResponseEntity<>(responseVO, HttpStatus.NOT_FOUND);
+		}
+		//check if user is project owner
+		CreatedByVO requestUser = this.userStore.getVO();
+		String user = requestUser.getId();
+		if(!(existingProject.getCreatedBy()!=null && existingProject.getCreatedBy().getId()!=null && existingProject.getCreatedBy().getId().equalsIgnoreCase(user))){
+			log.error("Datalake project with id {} is not found ", id);
+			MessageDescription invalidMsg = new MessageDescription("Only Owner can edit project details. Access denied.");
+			GenericMessage errorMessage = new GenericMessage();
+			errorMessage.setSuccess("FAILED");
+			errorMessage.addWarnings(invalidMsg);
+			responseVO.setData(new TrinoDataLakeProjectVO());
+			responseVO.setResponse(errorMessage);
+			return new ResponseEntity<>(responseVO, HttpStatus.FORBIDDEN);
+		}
+		String name = existingProject.getProjectName();
+		TrinoDataLakeProjectVO data = new TrinoDataLakeProjectVO();
+		try {
+			serviceUpdateResponse = trinoDatalakeService.updateDatalake(existingProject, request);           
+			data = serviceUpdateResponse.getData();
+			if(data!=null && data.getId()!=null) {
+				responseVO.setData(data);
+				responseVO.setResponse(serviceUpdateResponse.getResponse());
+				log.info("Datalake {} updated successfully", name);
+				return new ResponseEntity<>(responseVO, HttpStatus.OK);
+			}else {
+				GenericMessage failedResponse = new GenericMessage();
+				List<MessageDescription> messages = new ArrayList<>();
+				MessageDescription message = new MessageDescription();
+				message.setMessage("Failed to save due to internal error");
+				messages.add(message);
+				failedResponse.addErrors(message);
+				failedResponse.setSuccess("FAILED");
+				responseVO.setData(existingProject);
+				responseVO.setResponse(failedResponse);
+				log.error("Datalake project {} , failed to update", name);
+				return new ResponseEntity<>(responseVO, HttpStatus.INTERNAL_SERVER_ERROR);
+			}
+		}
+		catch(Exception e) {
+			GenericMessage failedResponse = new GenericMessage();
+			List<MessageDescription> messages = new ArrayList<>();
+			MessageDescription message = new MessageDescription();
+			message.setMessage("Failed to save due to internal error");
+			messages.add(message);
+			failedResponse.addErrors(message);
+			failedResponse.setSuccess("FAILED");
+			responseVO.setData(existingProject);
+			responseVO.setResponse(failedResponse);
+			log.error("Exception occurred:{} while creating datalake project {} ", e.getMessage(), name);
+			return new ResponseEntity<>(responseVO, HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+		
 	}
 	
 	

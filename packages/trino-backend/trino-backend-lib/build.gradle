@@ -94,6 +94,10 @@ sourceSets {
 
 
 dependencies {
+
+	implementation group: 'org.springframework.boot', name: 'spring-boot-starter-security', version: '3.2.0'
+	
+	
 	implementation group: 'org.springframework.cloud', name: 'spring-cloud-stream', version: '3.2.4'
 	implementation group: 'org.springframework.cloud', name: 'spring-cloud-stream-binder-kafka', version: '3.2.4'
 	implementation group: 'org.springframework.kafka', name: 'spring-kafka', version: '2.8.6'
