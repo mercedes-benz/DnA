@@ -27,8 +27,8 @@ const Graphs = ({ user }) => {
     datalakeApi.getDatalakeProjectsList(currentPageOffset, maxItemsPerPage)
       .then((res) => {
         if(res.status !== 204) {
-          if (res.data.records) {
-            const results = [...res.data.records].sort((projectA, projectB) => {
+          if (res.data.data) {
+            const results = [...res.data.data].sort((projectA, projectB) => {
               return (projectA.projectName.toLowerCase() > projectB.projectName.toLowerCase()) ? 1 : (projectB.projectName.toLowerCase() > projectA.projectName.toLowerCase() ? -1 : 0);
             });
             setGraphs(results);
