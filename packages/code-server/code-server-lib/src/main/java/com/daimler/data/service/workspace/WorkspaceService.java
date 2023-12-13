@@ -69,7 +69,9 @@ public interface WorkspaceService {
 
 	CodeServerWorkspaceValidateVO validateCodespace(String id, String userId);
 
-	GenericMessage saveSecurityConfig(CodeServerWorkspaceVO vo);
+	GenericMessage saveSecurityConfig(CodeServerWorkspaceVO vo, Boolean isPublished);
 
-    List<CodespaceSecurityConfigDetailsVO> getAllSecurityConfigs();
+    List<CodespaceSecurityConfigDetailsVO> getAllSecurityConfigs(Integer offset, Integer limit);
+
+	GenericMessage updateSecurityConfigStatus(String projectName, String Status, String user, CodeServerWorkspaceVO vo);
 }

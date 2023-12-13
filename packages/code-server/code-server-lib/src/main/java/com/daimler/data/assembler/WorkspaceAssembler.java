@@ -288,7 +288,7 @@ public class WorkspaceAssembler implements GenericAssembler<CodeServerWorkspaceV
 		return codespaceSecurityConfigVO;
 	}
 
-	private CodespaceSecurityConfig toSecurityConfig(CodespaceSecurityConfigVO CodespaceSecurityConfigVO) {
+	public CodespaceSecurityConfig toSecurityConfig(CodespaceSecurityConfigVO CodespaceSecurityConfigVO) {
 		CodespaceSecurityConfig entity = new CodespaceSecurityConfig();
 
 		if (CodespaceSecurityConfigVO != null) {
@@ -316,6 +316,36 @@ public class WorkspaceAssembler implements GenericAssembler<CodeServerWorkspaceV
 		}
 		return entity;
 	}
+
+	public CodespaceSecurityConfig toPublishedSecurityConfig(CodespaceSecurityConfigVO CodespaceSecurityConfigVO) {
+		CodespaceSecurityConfig entity = new CodespaceSecurityConfig();
+
+		if (CodespaceSecurityConfigVO != null) {
+			BeanUtils.copyProperties(CodespaceSecurityConfigVO, entity);
+			if (CodespaceSecurityConfigVO.isIsProtectedByDna() != null) {
+				entity.setIsProtectedByDna(CodespaceSecurityConfigVO.isIsProtectedByDna());
+			}
+		}
+		List<CodespaceSecurityRoleVO> rolesVO = CodespaceSecurityConfigVO.getRoles();
+		if (rolesVO != null && !rolesVO.isEmpty()) {
+			List<CodespaceSecurityRole> roles = rolesVO.stream().map(n -> toRole(n)).collect(Collectors.toList());
+			entity.setRoles(roles);
+		}
+		List<CodespaceSecurityEntitlementVO> entitlementsVO = CodespaceSecurityConfigVO.getEntitlements();
+		if (entitlementsVO != null && !entitlementsVO.isEmpty()) {
+			List<CodespaceSecurityEntitlement> entitlements = entitlementsVO.stream().map(n -> toEntitlement(n))
+					.collect(Collectors.toList());
+			entity.setEntitlements(entitlements);
+		}
+		List<CodespaceSecurityUserRoleMapVO> userRoleMapVO = CodespaceSecurityConfigVO.getUserRoleMappings();
+		if (userRoleMapVO != null && !userRoleMapVO.isEmpty()) {
+			List<CodespaceSecurityUserRoleMap> userRoleMap = userRoleMapVO.stream().map(n -> toUserRoleMap(n))
+					.collect(Collectors.toList());
+			entity.setUserRoleMappings(userRoleMap);
+		}
+		return entity;
+	}
+
 
 	private CodeServerRecipeDetails toRecipeDetails(CodeServerRecipeDetailsVO vo) {
 		CodeServerRecipeDetails recipeDetails = new CodeServerRecipeDetails();
