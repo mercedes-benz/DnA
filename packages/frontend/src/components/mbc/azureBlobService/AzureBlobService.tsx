@@ -36,8 +36,8 @@ const AzureBlobService = () => {
                     <a target="_blank" href={src} rel="noreferrer" download="src.yaml">
                       src.yaml
                     </a>{' '}
-                    and replace &#171;&#171;namespace-name&#187;&#187; ,&#171;&#171;account-name&#187;&#187;
-                    ,&#171;&#171;account-key&#187;&#187;,&#171;&#171;container-name&#187;&#187;with your source account
+                    and replace <em>namespace-name, account-name,
+                    account-key, container-name</em> with your source account
                     configuration.
                   </li>
                   <li>
@@ -45,8 +45,8 @@ const AzureBlobService = () => {
                     <a target="_blank" href={dest} rel="noreferrer" download="dest.yaml">
                       dest.yaml
                     </a>{' '}
-                    and replace &#171;&#171;namespace-name &#187;&#187;,&#171;&#171;account-name
-                    &#187;&#187;,&#171;&#171;account-key &#187;&#187;,&#171; &#171;container-name &#187;&#187; with your
+                    and replace <em>namespace-name, account-name,
+                      account-key, container-name</em> with your
                     destination account configuration.
                   </li>
                 </ol>
@@ -57,11 +57,13 @@ const AzureBlobService = () => {
                   <code>
                     <span>docker run -v src.yaml:/az-secret/src.yaml \</span>
                     <br />
-                    <span>&emsp;&emsp;-v dest.yaml:/az-secret/dest.yaml \</span>
+                    <span>    -v dest.yaml:/az-secret/dest.yaml \</span>
                     <br />
-                    <span>&emsp;&emsp;-v dest.yaml:/az-secret/dest.yaml \</span>
+                    <span>    -p 8080:8080 \</span>
                     <br />
-                    <span>&emsp;&emsp;{Envs.CLAMAV_IMAGE_URL}</span>
+                    <span>    --cap-add SYS_ADMIN --device /dev/fuse \</span>
+                    <br/>
+                    <span>    {Envs.CLAMAV_IMAGE_URL}</span>
                   </code>
                 </pre>
               </li>
@@ -73,7 +75,7 @@ const AzureBlobService = () => {
                 <a target="_blank" href={pvc} rel="noreferrer" download="pvc.yaml">
                   pvc.yaml
                 </a>{' '}
-                and replace &#171;&#171;namespace-name&#187;&#187; with your namespace and create it
+                and replace <em>namespace-name</em> with your namespace and create it
                 <br />
                 <code>
                   <span>kubectl apply -f pvc.yaml</span>
@@ -87,8 +89,8 @@ const AzureBlobService = () => {
                     <a target="_blank" href={src} rel="noreferrer" download="src.yaml">
                       src.yaml
                     </a>{' '}
-                    and replace &#171;&#171;namespace-name&#187;&#187; ,&#171;&#171;account-name&#187;&#187;
-                    ,&#171;&#171;account-key&#187;&#187;,&#171;&#171;container-name&#187;&#187; with your source account
+                    and replace <em>namespace-name, account-name, 
+                      account-key, container-name </em> with your source account
                     configuration.
                   </li>
                   <li>
@@ -96,8 +98,8 @@ const AzureBlobService = () => {
                     <a target="_blank" href={dest} rel="noreferrer" download="dest.yaml">
                       dest.yaml
                     </a>{' '}
-                    and replace &#171;&#171;namespace-name&#187;&#187;,
-                    &#171;&#171;account-name&#187;&#187;,&#171;&#171;account-key&#187;&#187;,&#171;&#171;container-name&#187;&#187;
+                    and replace <em>namespace-name, 
+                    account-name, account-key, container-name </em>
                     with your destination account configuration. Create the secrets:
                     <code>
                       <span>kubectl create secret generic az-secret</span>
@@ -115,7 +117,7 @@ const AzureBlobService = () => {
                   {' '}
                   dest.yaml
                 </a>{' '}
-                and replace &#171;&#171;namespace-name&#187;&#187; with your namespace and create it
+                and replace <em>namespace-name</em> with your namespace and create it
                 <br />
                 <code>
                   <span>kubectl apply -f deployment.yaml</span>
@@ -132,7 +134,7 @@ const AzureBlobService = () => {
                 <code>
                   <span>
                     &ensp;curl --location 'http://localhost:8080/scan?filePath=/test-folder&filename=kubernetes.png'
-                    --header 'apiToken: &#171;&#171;api token key&#187;&#187;'
+                    --header 'apiToken: <em>api token key</em>'
                   </span>
                 </code>
                 <br />
@@ -145,7 +147,7 @@ const AzureBlobService = () => {
                 <code>
                   <span>
                     &ensp;curl --location 'http://localhost:8080/updateVirusDatabase' --header 'apiToken:
-                    &#171;&#171;api token key&#187;&#187;'
+                    <em>api token key</em>'
                   </span>
                 </code>
                 <br />
