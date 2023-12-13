@@ -1,17 +1,30 @@
 import classNames from 'classnames';
 import React, { useState } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
 import Styles from './tableCollaborators.scss';
 import TeamSearch from 'dna-container/TeamSearch';
+import { setTables } from '../../redux/graphSlice';
 
-const TableCollaborators = ({ collaborators }) => {
+const TableCollaborators = ({ table, onSave }) => {
+  const { project } = useSelector(state => state.graph);
+  const dispatch = useDispatch();
+
   const [searchTerm, setSearchTerm] = useState('');
   const [showUserDetails, setShowUserDetails] = useState(false);
   const [showUserAlreadyExistsError] = useState(false);
   const [editMode] = useState(false);
   const [teamMember] = useState();
-  
-  const addMemberFromTeamSearch = () => {
-    console.log('add team member from search');
+  const [collabs, setCollabs] = useState(table?.collabs?.length > 0 ? [...table.collabs] : []);
+
+  const addMemberFromTeamSearch = (member) => {
+    const memberObj = {
+      collaborator: {
+        ...member,
+        id: member.shortId
+      },
+      hasWritePermission: false
+    }
+    setCollabs([...collabs, memberObj]);
   }
 
   const resetUserAlreadyExists = () => {
@@ -19,21 +32,23 @@ const TableCollaborators = ({ collaborators }) => {
   }
 
   const onPermissionEdit = (index) => {
-    return () => {
-      if (collaborators[index].permissions.includes('can_edit')) {
-        collaborators[index].permissions.splice(
-          collaborators[index].permissions.indexOf('can_edit'),
-          1,
-        );
-      } else {
-        collaborators[index].permissions.push('can_edit');
-      }
-    };
+    console.log('permission edit', index);
   };
 
-  const onCollabaratorDelete = (index) => {
-    collaborators?.splice(index, 1);
+  const onCollabaratorDelete = (id) => {
+    const tempCollabs = collabs.filter(item => item.collaborator.id !== id);
+    setCollabs(tempCollabs);
   };
+
+  const handleSaveCollabs = () => {
+    const projectTemp = {...project};
+    const tempTables = projectTemp.tables.filter(item => item.tableName !== table.tableName);
+    const currentTable = {...table, collabs: {...collabs}};
+    const fullTables = [...tempTables, currentTable];
+    projectTemp.tables = [...fullTables];
+    dispatch(setTables(projectTemp.tables));
+    onSave();
+  }
 
   return (
     <div className={Styles.dagCollContent}>
@@ -54,7 +69,7 @@ const TableCollaborators = ({ collaborators }) => {
           />
         </div>
         <div className={Styles.dagCollUsersList}>
-          {collaborators?.length > 0 ? (
+          {collabs?.length > 0 ? (
             <React.Fragment>
               <div className={Styles.collUserTitle}>
                 <div className={Styles.collUserTitleCol}>User ID</div>
@@ -63,16 +78,16 @@ const TableCollaborators = ({ collaborators }) => {
                 <div className={Styles.collUserTitleCol}></div>
               </div>
               <div className={Styles.collUserContent}>
-                {collaborators.map(
+                {collabs.map(
                   (item, index) => {
                     return (
                       <div
                         key={index}
                         className={Styles.collUserContentRow}
                       >
-                        <div className={Styles.collUserTitleCol}>{item.username}</div>
+                        <div className={Styles.collUserTitleCol}>{item.collaborator.id}</div>
                         <div className={Styles.collUserTitleCol}>
-                          {item.firstName + ' ' + item.lastName}
+                          {item.collaborator.firstName + ' ' + item.collaborator.lastName}
                         </div>
                         <div className={Styles.collUserTitleCol}>
                           <div
@@ -105,8 +120,8 @@ const TableCollaborators = ({ collaborators }) => {
                                   className="ff-only"
                                   value="can_edit"
                                   checked={
-                                    item.permissions !== null
-                                      ? item.permissions.includes('can_edit')
+                                    item.hasWritePermission !== null
+                                      ? item.hasWritePermission
                                       : false
                                   }
                                   onClick={() => onPermissionEdit(index)}
@@ -119,7 +134,7 @@ const TableCollaborators = ({ collaborators }) => {
                         <div className={Styles.collUserTitleCol}>
                           <div
                             className={Styles.deleteEntry}
-                            onClick={() => onCollabaratorDelete(index)}
+                            onClick={() => onCollabaratorDelete(item.collaborator.id)}
                           >
                             <i className="icon mbc-icon trash-outline" />
                             Delete Entry
@@ -130,6 +145,7 @@ const TableCollaborators = ({ collaborators }) => {
                   },
                 )}
               </div>
+              <button className={'btn btn-tertiary'} onClick={handleSaveCollabs}>Save</button>
             </React.Fragment>
           ) : (
             <div className={Styles.dagCollContentEmpoty}>

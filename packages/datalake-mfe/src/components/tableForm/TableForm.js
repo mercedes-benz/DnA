@@ -4,11 +4,12 @@ import { useForm, useFormContext, FormProvider } from "react-hook-form";
 import Styles from './table-form.scss';
 import SelectBox from 'dna-container/SelectBox';
 import { useSelector, useDispatch } from 'react-redux';
-import { v4 as uuidv4 } from 'uuid';
 import { setTables } from '../../redux/graphSlice';
+import { datalakeApi } from '../../apis/datalake.api';
+
 
 const TableFormItem = (props) => {
-  const { register } = useFormContext();
+  const { register, formState: { errors } } = useFormContext();
 
   useEffect(() => {
     SelectBox.defaultSetup();
@@ -56,9 +57,9 @@ const TableFormItem = (props) => {
   return (
     <div className={Styles.columnsWrapper}>
       <div className={Styles.columnContainer}>
-        <input type="hidden" id={`${index}.id`} defaultValue={field.id} {...register(`${index}.id`)} />
+        <input type="hidden" id={`${index}.name`} defaultValue={field.name} {...register(`${index}.name`)} />
         <div className={Styles.flexLayout}>
-          <div className={classNames('input-field-group include-error')}>
+          <div className={classNames('input-field-group include-error', errors[`${index}`] !== undefined && errors[`${index}`].columnName.message ? 'error' : '')}>
             <label className={classNames(Styles.inputLabel, 'input-label')}>
               Name <sup>*</sup>
             </label>
@@ -67,12 +68,13 @@ const TableFormItem = (props) => {
                 type="text"
                 className={classNames('input-field')}
                 id={`${index}.columnName`}
-                {...register(`${index}.columnName`)}
+                {...register(`${index}.columnName`, { required: '*Missing entry' })}
                 placeholder="Type here"
                 autoComplete="off"
                 maxLength={55}
                 defaultValue={field.columnName}
               />
+              <span className={classNames('error-message')}>{errors[`${index}`] !== undefined && errors[`${index}`].columnName.message}</span>
             </div>
           </div>
           <div className={Styles.configurationContainer}>
@@ -101,9 +103,9 @@ const TableFormItem = (props) => {
           </div>
         </div>
         <div className={Styles.flexLayout}>
-          <div className={classNames('input-field-group include-error')}>
+          <div className={classNames('input-field-group')}>
             <label className={classNames(Styles.inputLabel, 'input-label')}>
-              Comment <sup>*</sup>
+              Comment
             </label>
             <div>
               <input
@@ -137,6 +139,7 @@ const TableFormItem = (props) => {
             <button className={classNames('btn btn-primary', Styles.btnActions)} onClick={moveDown}>↓ Move Down</button>
           </div>
           <div className={Styles.flexLayout}>
+            {console.log('columnname', props.field.columnName)}
             <button className={classNames('btn btn-primary', Styles.btnActions)} onClick={() => {props.removeItem(props.field.columnName);}}>Remove field</button>
             <button className={classNames('btn btn-primary', Styles.btnActions)} onClick={() => props.addItem(props.index)}>Add field after</button>
           </div>
@@ -147,12 +150,12 @@ const TableFormItem = (props) => {
 }
 
 const TableFormBase = () => {
-  const { register } = useFormContext();
+  const { register, formState: { errors } } = useFormContext();
   const { editingTable } = useSelector(state => state.graph);
   return (
     <>
       <div className={Styles.flexLayout}>
-        <div className={classNames('input-field-group include-error')}>
+        <div className={classNames('input-field-group include-error', errors?.tableName ? 'error' : '')}>
           <label className={classNames(Styles.inputLabel, 'input-label')}>
             Table Name <sup>*</sup>
           </label>
@@ -161,12 +164,13 @@ const TableFormBase = () => {
               type="text"
               className={classNames('input-field')}
               id="tableName"
-              {...register('tableName')}
+              {...register('tableName', { required: '*Missing entry' })}
               placeholder="Type here"
               autoComplete="off"
               maxLength={55}
               defaultValue={editingTable?.name}
             />
+            <span className={classNames('error-message')}>{errors?.tableName?.message}</span>
           </div>
         </div>
         <div className={Styles.configurationContainer}>
@@ -183,7 +187,7 @@ const TableFormBase = () => {
           </div>
         </div>
       </div>
-      <div className={classNames('input-field-group include-error')}>
+      <div className={classNames('input-field-group include-error', errors?.tableComment ? 'error' : '')}>
         <label className={classNames(Styles.inputLabel, 'input-label')}>
           Table Comment <sup>*</sup>
         </label>
@@ -192,12 +196,13 @@ const TableFormBase = () => {
             type="text"
             className={classNames('input-field')}
             id="tableComment"
-            {...register('tableComment')}
+            {...register('tableComment', { required: '*Missing entry' })}
             placeholder="Type here"
             autoComplete="off"
             maxLength={55}
             defaultValue={editingTable?.comment}
           />
+          <span className={classNames('error-message')}>{errors?.tableComment?.message}</span>
         </div>
       </div>
     </>
@@ -211,8 +216,26 @@ const TableForm = ({setToggle}) => {
   const { project } = useSelector(state => state.graph);
   const dispatch = useDispatch();
 
+  const [,setConnectors] = useState();
+  const [, setLoading] = useState(true);
+
   useEffect(() => {
     SelectBox.defaultSetup();
+  }, []);
+
+  useEffect(() => {
+    datalakeApi.getConnectors()
+      .then((res) => {
+        setConnectors(res.data);
+        setLoading(false);
+      })
+      .catch((err) => {
+        Notification.show(
+          err?.response?.data?.errors?.[0]?.message || 'Error while fetching connectors',
+          'alert',
+        );
+        setLoading(false);
+      });
   }, []);
 
   const [columns, setFields] = useState([]);
@@ -251,7 +274,6 @@ const TableForm = ({setToggle}) => {
   const addItem = index => {
     const newState = [...columns];
     newState.splice(index + 1, 0, {
-        id: uuidv4(),
         columnName: 'new item' + newState.length,
         comment: '',
         dataType: '',
@@ -276,7 +298,7 @@ const TableForm = ({setToggle}) => {
               columns.map((field, index) => (
                 <TableFormItem
                     field={field}
-                    key={field.id}
+                    key={field.name}
                     index={index}
                     addItem={addItem}
                     removeItem={removeItem}

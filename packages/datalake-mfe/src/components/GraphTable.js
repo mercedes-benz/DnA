@@ -14,7 +14,7 @@ import { useSelector } from 'react-redux';
  */
 const GraphTable = (props) => {
     // const dispatch = useDispatch();
-    const { table, onTableMouseDown, onGripMouseDown, tableSelectedId, setTableSelectId } = props;
+    const { table, onTableMouseDown, onGripMouseDown, tableSelectedId, setTableSelectId, onDeleteTable } = props;
     const { version } = useSelector(state => state.graph);
 
     const editable = version === 'currentVersion';
@@ -66,7 +66,7 @@ const GraphTable = (props) => {
                             >
                                 <i className="icon mbc-icon edit fill"></i>
                             </button>
-                            <button onClick={() => alert('delete')}>
+                            <button onClick={() => onDeleteTable(table.tableName)}>
                                 <i className="icon delete"></i>
                             </button>
                         </div>

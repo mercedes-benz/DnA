@@ -2,6 +2,7 @@ import classNames from 'classnames';
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
+import { useForm, FormProvider } from 'react-hook-form';
 import Styles from './graph.scss';
 // dna-container
 import FullScreenModeIcon from 'dna-container/FullScreenModeIcon';
@@ -23,6 +24,13 @@ const Graph = () => {
         version,
         project,
     } = useSelector(state => state.graph);
+
+    const methods = useForm();
+    const {
+      register,
+      handleSubmit,
+      formState: { errors },
+    } = methods;
 
     useEffect(() => {
         dispatch(getProjectDetails(id));
@@ -158,6 +166,7 @@ const Graph = () => {
 
     const [toggleModal, setToggleModal] = useState(false);
     const [showInferenceModal, setShowInferenceModal] = useState(false);
+    const [showTechnicalUserModal, setShowTechnicalUserModal] = useState(false);
 
     const inferenceContent = <>
         <p>Access data using any endpoints</p>
@@ -212,13 +221,91 @@ const Graph = () => {
             </button>
         </div>
     </>;   
+
+    const handleEditTechnicalUser = (values) => {
+      const data = {
+        clientId: values.clientId,
+        clientSecret: values.clientSecret
+      }
+      ProgressIndicator.show();
+      datalakeApi.updateTechnicalUser(data, project?.data?.id).then(() => {
+        ProgressIndicator.hide();
+        Notification.show('Techical user details updated successfully');
+        setShowTechnicalUserModal(false);
+      }).catch(error => {
+        ProgressIndicator.hide();
+        Notification.show(
+          error?.response?.data?.response?.errors?.[0]?.message || error?.response?.data?.response?.warnings?.[0]?.message || 'Error while updating technical user',
+          'alert',
+        );
+      });
+    }
+
+    const technicalUserContent = <>
+    <FormProvider {...methods}>
+      <div className={classNames('input-field-group include-error', errors?.clientId ? 'error' : '')}>
+        <label className={classNames(Styles.inputLabel, 'input-label')}>
+          Client ID <sup>*</sup>
+        </label>
+        <div>
+          <input
+            type="text"
+            className={classNames('input-field')}
+            id="clientId"
+            placeholder="Type here"
+            autoComplete="off"
+            maxLength={55}
+            // defaultValue={clientId}
+            {...register('clientId', { required: '*Missing entry'})}
+          />
+          <span className={classNames('error-message')}>{errors?.clientId?.message}</span>
+        </div>
+      </div>
+      <div className={classNames('input-field-group include-error', errors?.clientSecret ? 'error' : '')}>
+        <label className={classNames(Styles.inputLabel, 'input-label')}>
+          Client Secret <sup>*</sup>
+        </label>
+        <div>
+          <input
+            type="text"
+            className={classNames('input-field')}
+            id="clientSecret"
+            placeholder="Type here"
+            autoComplete="off"
+            maxLength={55}
+            // defaultValue={clientId}
+            {...register('clientSecret', { required: '*Missing entry'})}
+          />
+          <span className={classNames('error-message')}>{errors?.clientSecret?.message}</span>
+        </div>
+      </div>
+      <div className={Styles.btnContainer}>
+        <button
+          className="btn btn-tertiary"
+          type="button"
+          onClick={handleSubmit((values) => {
+            handleEditTechnicalUser(values)
+          })}
+        >
+          Save
+        </button>
+      </div>
+    </FormProvider>
+    </>; 
     
   const [showCollabModal, setShowCollabModal] = useState(false);
-  const [collabs, setCollabs] = useState([]);
+  const [table, setTable] = useState([]);
 
   const handleCollab = (table) => {
     setShowCollabModal(true);
-    setCollabs([...table.collabs]);
+    setTable({...table});
+  }
+
+  const handleDeleteTable = (tableName) => {
+    const projectTemp = {...project};
+    const tempTables = projectTemp.tables.filter(item => item.tableName !== tableName);
+    projectTemp.tables = [...tempTables];
+    dispatch(setTables(projectTemp.tables));
   }
 
   const handlePublish = () => {
@@ -249,6 +336,16 @@ const Graph = () => {
             </div>
             <div className={Styles.navigation}>
                 <div className={Styles.headerright}>
+                    <div>
+                        <button
+                            className={classNames('btn btn-primary', Styles.btnOutline)}
+                            type="button"
+                            onClick={() => { setShowTechnicalUserModal(true) }}
+                        >
+                            <i className="icon mbc-icon plus" />
+                            <span>Create Technical User</span>
+                        </button>
+                    </div>
                     <div>
                         <button
                             className={classNames('btn btn-primary', Styles.btnOutline)}
@@ -300,6 +397,7 @@ const Graph = () => {
                             tableSelectedId={tableSelectedId}
                             setTableSelectId={setTableSelectId}
                             onCollabClick={handleCollab}
+                            onDeleteTable={handleDeleteTable}
                         />
                     </>
                 );
@@ -337,6 +435,22 @@ const Graph = () => {
             }}
         />
     }
+
+    { showTechnicalUserModal &&
+        <Modal
+            title={'Edit Technical User'}
+            showAcceptButton={false}
+            showCancelButton={false}
+            modalWidth={'35%'}
+            buttonAlignment="right"
+            show={showTechnicalUserModal}
+            content={technicalUserContent}
+            scrollableContent={false}
+            onCancel={() => {
+                setShowTechnicalUserModal(false);
+            }}
+        />
+    }
     
     {
       showCollabModal && 
@@ -347,7 +461,7 @@ const Graph = () => {
         modalWidth={'60%'}
         buttonAlignment="right"
         show={showCollabModal}
-        content={<TableCollaborators edit={false} collaborators={collabs} onSave={() => setShowCollabModal(false)} />}
+        content={<TableCollaborators edit={false} table={table} onSave={() => setShowCollabModal(false)} />}
         scrollableContent={false}
         onCancel={() => setShowCollabModal(false)}
         modalStyle={{
