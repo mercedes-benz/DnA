@@ -38,8 +38,8 @@ const Comingsoon = () => {
                     <a target="_blank" href={dockerSrc} rel="noreferrer" download="src.yaml">
                       src.yaml
                     </a>{' '}
-                    and replace &#171;&#171;namespace-name&#187;&#187; ,&#171;&#171;account-name&#187;&#187;
-                    ,&#171;&#171;account-key&#187;&#187;,&#171;&#171;container-name&#187;&#187;with your source account
+                    and replace <em>namespace-name, account-name,
+                    account-key, container-name</em> with your source account
                     configuration.
                   </li>
                   <li>
@@ -47,8 +47,8 @@ const Comingsoon = () => {
                     <a target="_blank" href={dockerDest} rel="noreferrer" download="dest.yaml">
                       dest.yaml
                     </a>{' '}
-                    and replace &#171;&#171;namespace-name &#187;&#187;,&#171;&#171;account-name
-                    &#187;&#187;,&#171;&#171;account-key &#187;&#187;,&#171; &#171;container-name &#187;&#187; with your
+                    and replace <em>namespace-name, account-name,
+                      account-key, container-name</em> with your
                     destination account configuration.
                   </li>
                 </ol>
@@ -59,11 +59,13 @@ const Comingsoon = () => {
                   <code>
                     <span>docker run -v src.yaml:/az-secret/src.yaml \</span>
                     <br />
-                    <span>&emsp;&emsp;-v dest.yaml:/az-secret/dest.yaml \</span>
+                    <span>    -v dest.yaml:/az-secret/dest.yaml \</span>
                     <br />
-                    <span>&emsp;&emsp;-v dest.yaml:/az-secret/dest.yaml \</span>
+                    <span>    -p 8080:8080 \</span>
                     <br />
-                    <span>&emsp;&emsp;{Envs.CLAMAV_IMAGE_URL}</span>
+                    <span>    --cap-add SYS_ADMIN --device /dev/fuse \</span>
+                    <br/>
+                    <span>    {Envs.CLAMAV_IMAGE_URL}</span>
                   </code>
                 </pre>
               </li>
@@ -75,7 +77,7 @@ const Comingsoon = () => {
                 <a target="_blank" href={kubernetesPvc} rel="noreferrer" download="pvc.yaml">
                   pvc.yaml
                 </a>{' '}
-                and replace &#171;&#171;namespace-name&#187;&#187; with your namespace and create it
+                and replace <em>namespace-name</em> with your namespace and create it
                 <br />
                 <code>
                   <span>kubectl apply -f pvc.yaml</span>
@@ -89,8 +91,8 @@ const Comingsoon = () => {
                     <a target="_blank" href={kubernetesSrc} rel="noreferrer" download="src.yaml">
                       src.yaml
                     </a>{' '}
-                    and replace &#171;&#171;namespace-name&#187;&#187; ,&#171;&#171;account-name&#187;&#187;
-                    ,&#171;&#171;account-key&#187;&#187;,&#171;&#171;container-name&#187;&#187; with your source account
+                    and replace <em>namespace-name, account-name, 
+                      account-key, container-name </em> with your source account
                     configuration.
                   </li>
                   <li>
@@ -98,8 +100,8 @@ const Comingsoon = () => {
                     <a target="_blank" href={kubernetesDest} rel="noreferrer" download="dest.yaml">
                       dest.yaml
                     </a>{' '}
-                    and replace &#171;&#171;namespace-name&#187;&#187;,
-                    &#171;&#171;account-name&#187;&#187;,&#171;&#171;account-key&#187;&#187;,&#171;&#171;container-name&#187;&#187;
+                    and replace <em>namespace-name, 
+                    account-name, account-key, container-name </em>
                     with your destination account configuration. Create the secrets:
                     <code>
                       <span>kubectl create secret generic az-secret</span>
@@ -117,7 +119,7 @@ const Comingsoon = () => {
                   {' '}
                   dest.yaml
                 </a>{' '}
-                and replace &#171;&#171;namespace-name&#187;&#187; with your namespace and create it
+                and replace <em>namespace-name</em> with your namespace and create it
                 <br />
                 <code>
                   <span>kubectl apply -f deployment.yaml</span>
@@ -134,7 +136,7 @@ const Comingsoon = () => {
                 <code>
                   <span>
                     &ensp;curl --location 'http://localhost:8080/scan?filePath=/test-folder&filename=kubernetes.png'
-                    --header 'apiToken: &#171;&#171;api token key&#187;&#187;'
+                    --header 'apiToken: <em>api token key</em>'
                   </span>
                 </code>
                 <br />
@@ -147,7 +149,7 @@ const Comingsoon = () => {
                 <code>
                   <span>
                     &ensp;curl --location 'http://localhost:8080/updateVirusDatabase' --header 'apiToken:
-                    &#171;&#171;api token key&#187;&#187;'
+                    <em>api token key</em>'
                   </span>
                 </code>
                 <br />
