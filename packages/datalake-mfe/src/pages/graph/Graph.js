@@ -228,7 +228,7 @@ const Graph = () => {
         clientSecret: values.clientSecret
       }
       ProgressIndicator.show();
-      datalakeApi.updateTechnicalUser(data, project?.data?.id).then(() => {
+      datalakeApi.updateTechnicalUser(project?.data?.id, data).then(() => {
         ProgressIndicator.hide();
         Notification.show('Techical user details updated successfully');
         setShowTechnicalUserModal(false);
@@ -267,7 +267,7 @@ const Graph = () => {
         </label>
         <div>
           <input
-            type="text"
+            type="password"
             className={classNames('input-field')}
             id="clientSecret"
             placeholder="Type here"
