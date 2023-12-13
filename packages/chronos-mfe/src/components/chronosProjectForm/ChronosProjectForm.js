@@ -157,7 +157,7 @@ const ChronosProjectForm = ({project, edit, onSave}) => {
   const [archerId, setArcherID] = useState(edit && chronosProject?.leanGovernanceFeilds?.archerId !== null ? chronosProject?.leanGovernanceFeilds?.archerId : '');
   const [procedureId, setProcedureID] = useState(edit && chronosProject?.leanGovernanceFeilds?.procedureId !== null ? chronosProject?.leanGovernanceFeilds?.procedureId : '');
   const [termsOfUse, setTermsOfUse] = useState(edit && chronosProject?.leanGovernanceFeilds?.termsOfUse !== null ? [chronosProject?.leanGovernanceFeilds?.termsOfUse] : false);
-
+  
   useEffect(() => {
     ProgressIndicator.show();
     chronosApi.getLovData()
@@ -166,6 +166,7 @@ const ChronosProjectForm = ({project, edit, onSave}) => {
         setDataClassificationDropdown(response[0]?.data?.data || []);                
         setDivisions(response[1]?.data || []);
         setDepartments(response[2]?.data?.data || []);
+        edit && setDivision(chronosProject?.leanGovernanceFeilds?.division);
         SelectBox.defaultSetup();
       })
       .catch((err) => {
@@ -199,6 +200,10 @@ const ChronosProjectForm = ({project, edit, onSave}) => {
     }
     //eslint-disable-next-line react-hooks/exhaustive-deps
   }, [division]);
+
+  // useEffect(() => {
+  //   SelectBox.defaultSetup(true);
+  // }, [divisions, subDivisions, departments, dataClassificationDropdown]);
 
   const handleCreateProject = (values) => {
     ProgressIndicator.show();
@@ -618,7 +623,7 @@ const ChronosProjectForm = ({project, edit, onSave}) => {
                         autoComplete="off"
                         maxLength={55}
                         defaultValue={archerId}
-                        {...register('archerID', { onChange: (e) => { setArcherID(e.target.value) } })}
+                        {...register('archerId', { onChange: (e) => { setArcherID(e.target.value) } })}
                       />
                       {/* <span className={classNames('error-message')}>{errors.archerId?.type === 'pattern' && 'Project names can consist only of lowercase letters, numbers, dots ( . ), and hyphens ( - ).'}</span> */}
                     </div>
@@ -636,7 +641,7 @@ const ChronosProjectForm = ({project, edit, onSave}) => {
                         autoComplete="off"
                         maxLength={55}
                         defaultValue={procedureId}
-                        {...register('procedureID', { onChange: (e) => { setProcedureID(e.target.value) } })}
+                        {...register('procedureId', { onChange: (e) => { setProcedureID(e.target.value) } })}
                       />
                       {/* <span className={classNames('error-message')}>{errors.procedureId?.type === 'pattern' && 'Project names can consist only of lowercase letters, numbers, dots ( . ), and hyphens ( - ).'}</span> */}
                     </div>
