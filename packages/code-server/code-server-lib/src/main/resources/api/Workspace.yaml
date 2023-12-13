@@ -703,7 +703,7 @@ paths:
         201:
           description: "Returns message of success or failure"
           schema:
-            $ref: "#/definitions/CodespaceSecurityConfigPublishedDetailsVO"
+            $ref: "#/definitions/CodespaceSecurityConfigVO"
         204:
           description: "Fetch complete, no content found."
         400:
@@ -912,17 +912,6 @@ definitions:
         description: "Storage details of recipe"  
       required:
         -recipeId
-
-
-  # CodespaceSecurityConfigDetailsVO:
-  #   type: object
-  #   properties:
-  #     projectName:
-  #       type: string
-  #       description: "Name of the Project"
-  #     securityConfig:
-  #       $ref: "#/definitions/CodespaceSecurityConfigVO"
-  
 
   SecurityConfigResponseDto: 
     type: object
