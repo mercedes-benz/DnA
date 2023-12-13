@@ -187,7 +187,7 @@ const ProjectDetailsTab = () => {
                   <div id="PiiData">
                     <label className="input-label summary">PII</label>
                     <br />
-                    {project?.data.leanGovernanceFeilds?.piiData ? project?.data.leanGovernanceFeilds?.piiData : 'N/A'}
+                    {project?.data.leanGovernanceFeilds?.piiData === true ? 'Yes' : 'No'}
                   </div>
                   <div id="archerId">
                     <label className="input-label summary">Archer ID</label>
