@@ -19,9 +19,7 @@ const getDatalakeProject = (id) => {
 };
 
 const updateDatalakeProject = (id, data) => {
-  return server.put(`/datalakes/${id}`, {
-    data,
-  });
+  return server.put(`/datalakes/${id}`, data);
 };
 
 const updateTechnicalUser = (id, data) => {
