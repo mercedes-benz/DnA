@@ -146,14 +146,17 @@ const ChronosProjectForm = ({project, edit, onSave}) => {
   const [departments, setDepartments] = useState([]);
   const [dataClassificationDropdown, setDataClassificationDropdown] = useState([]);
   
-  const [division, setDivision] = useState(edit ? (chronosProject?.division !== null ? chronosProject?.division : '0') : '0');
-  const [subDivision, setSubDivision] = useState(edit ? (chronosProject?.subdivision !== null ? chronosProject?.subdivision : '0') : '0');
-  const [departmentName, setDepartmentName] = useState(edit && chronosProject?.department !== null ? [chronosProject?.department] : []);
-  const [typeOfProject, setTypeOfProject] = useState(edit && chronosProject?.typeOfProject !== null ? chronosProject?.typeOfProject : '0');
-  const [dataClassification, setDataClassification] = useState(edit && chronosProject?.classificationType !== null ? chronosProject?.classificationType : '');
-  const [PII, setPII] = useState(edit && chronosProject?.hasPii !== null ? chronosProject?.hasPii : false);
-  const [tags, setTags] = useState(edit && chronosProject?.tags !== null ? [chronosProject?.tags] : []);
-  const [termsOfUse, setTermsOfUse] = useState(edit && chronosProject?.termsOfUse !== null ? [chronosProject?.termsOfUse] : false);
+  const [division, setDivision] = useState(edit ? (chronosProject?.leanGovernanceFeilds?.division !== null ? chronosProject?.leanGovernanceFeilds?.division : '0') : '0');
+  const [subDivision, setSubDivision] = useState(edit ? (chronosProject?.leanGovernanceFeilds?.subDivision !== null ? chronosProject?.subdivision : '0') : '0');
+  const [description, setDescription] = useState(edit && chronosProject?.leanGovernanceFeilds?.decription !== null ? chronosProject?.leanGovernanceFeilds?.decription : '');
+  const [departmentName, setDepartmentName] = useState(edit && chronosProject?.leanGovernanceFeilds?.department !== null ? [chronosProject?.leanGovernanceFeilds?.department] : []);
+  const [typeOfProject, setTypeOfProject] = useState(edit && chronosProject?.leanGovernanceFeilds?.typeOfProject !== null ? chronosProject?.leanGovernanceFeilds?.typeOfProject : '0');
+  const [dataClassification, setDataClassification] = useState(edit && chronosProject?.leanGovernanceFeilds?.dataClassification !== null ? chronosProject?.leanGovernanceFeilds?.dataClassification : '0');
+  const [PII, setPII] = useState(edit && chronosProject?.leanGovernanceFeilds?.piiData !== null ? chronosProject?.leanGovernanceFeilds?.piiData : false);
+  const [tags, setTags] = useState(edit && chronosProject?.leanGovernanceFeilds?.tags !== null ? [chronosProject?.leanGovernanceFeilds?.tags] : []);
+  const [archerId, setArcherID] = useState(edit && chronosProject?.leanGovernanceFeilds?.archerId !== null ? chronosProject?.leanGovernanceFeilds?.archerId : '');
+  const [procedureId, setProcedureID] = useState(edit && chronosProject?.leanGovernanceFeilds?.procedureId !== null ? chronosProject?.leanGovernanceFeilds?.procedureId : '');
+  const [termsOfUse, setTermsOfUse] = useState(edit && chronosProject?.leanGovernanceFeilds?.termsOfUse !== null ? [chronosProject?.leanGovernanceFeilds?.termsOfUse] : false);
 
   useEffect(() => {
     ProgressIndicator.show();
@@ -360,7 +363,7 @@ const ChronosProjectForm = ({project, edit, onSave}) => {
                           placeholder="Type here"
                           autoComplete="off"
                           maxLength={55}
-                          disabled={edit}
+                          // disabled={edit}
                           defaultValue={nameOfProject}
                           {...register('name', { required: '*Missing entry', pattern: /^[a-z0-9-.]+$/, onChange: (e) => { setNameOfProject(e.target.value) } })}
                         />
@@ -378,9 +381,9 @@ const ChronosProjectForm = ({project, edit, onSave}) => {
                     id="description"
                     className="input-field-area"
                     type="text"
-                    {...register('description', { required: '*Missing entry' })}
+                    defaultValue={description}
+                    {...register('description', { required: '*Missing entry', onChange: (e) => { setDescription(e.target.value) } })}
                     rows={50}
-                    defaultValue={edit ? project?.data?.description : ''}
                   />
                   <span className={classNames('error-message')}>{errors?.description?.message}</span>
                 </div>
@@ -533,26 +536,26 @@ const ChronosProjectForm = ({project, edit, onSave}) => {
                       Data Classification <sup>*</sup>
                     </label>
                     <div className={classNames('custom-select')}>
-                      <select id="classificationField"
-                        required={true}
+                    <select
+                        id="classificationField"
                         defaultValue={dataClassification}
                         {...register('dataClassification', {
                           required: '*Missing entry',
-                          validate: (value) => value !== '0' || '*Missing entry',
+                          validate: (value) => value !== 0 || '*Missing entry',
                           onChange: (e) => { setDataClassification(e.target.value) }
                         })}
                       >
                         
-                            <option id="classificationOption" value={0}>Choose</option>
-                            {dataClassificationDropdown?.map((item) => (
-                              <option
-                                id={item.id}
-                                key={item.id}
-                                value={item.name}
-                              >
-                                {item.name}
-                              </option>
-                            ))}
+                        <option id="classificationOption" value={0}>Choose</option>
+                        {dataClassificationDropdown?.map((item) => (
+                          <option
+                            id={item.id}
+                              key={item.id}
+                              value={item.name}
+                          >
+                            {item.name}
+                          </option>
+                        ))}
         
                       </select>
                     </div>
@@ -614,7 +617,8 @@ const ChronosProjectForm = ({project, edit, onSave}) => {
                         placeholder="Type here"
                         autoComplete="off"
                         maxLength={55}
-                        {...register('archerId')}
+                        defaultValue={archerId}
+                        {...register('archerID', { onChange: (e) => { setArcherID(e.target.value) } })}
                       />
                       {/* <span className={classNames('error-message')}>{errors.archerId?.type === 'pattern' && 'Project names can consist only of lowercase letters, numbers, dots ( . ), and hyphens ( - ).'}</span> */}
                     </div>
@@ -631,7 +635,8 @@ const ChronosProjectForm = ({project, edit, onSave}) => {
                         placeholder="Type here"
                         autoComplete="off"
                         maxLength={55}
-                        {...register('procedureId')}
+                        defaultValue={procedureId}
+                        {...register('procedureID', { onChange: (e) => { setProcedureID(e.target.value) } })}
                       />
                       {/* <span className={classNames('error-message')}>{errors.procedureId?.type === 'pattern' && 'Project names can consist only of lowercase letters, numbers, dots ( . ), and hyphens ( - ).'}</span> */}
                     </div>
