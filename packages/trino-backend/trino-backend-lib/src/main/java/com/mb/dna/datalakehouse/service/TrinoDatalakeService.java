@@ -5,6 +5,7 @@ import java.util.List;
 import com.daimler.data.service.common.CommonService;
 import com.mb.dna.datalakehouse.db.entities.TrinoDataLakeNsql;
 import com.mb.dna.datalakehouse.dto.TrinoDataLakeProjectResponseVO;
+import com.mb.dna.datalakehouse.dto.TrinoDataLakeProjectUpdateRequestVO;
 import com.mb.dna.datalakehouse.dto.TrinoDataLakeProjectVO;
 
 public interface TrinoDatalakeService extends CommonService<TrinoDataLakeProjectVO, TrinoDataLakeNsql, String> 
@@ -21,5 +22,10 @@ public interface TrinoDatalakeService extends CommonService<TrinoDataLakeProject
 	Long getCount( String user);
 
 	Long getCountForUserAndProject( String user, String projectId);
+
+	TrinoDataLakeProjectResponseVO updateDatalake(TrinoDataLakeProjectVO existingVO,
+			TrinoDataLakeProjectUpdateRequestVO updateRequestVO) throws Exception;
+
+	TrinoDataLakeProjectVO getUpdatedById(String id);
 	
 }

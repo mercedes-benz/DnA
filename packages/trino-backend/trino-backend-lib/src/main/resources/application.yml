@@ -78,6 +78,9 @@ trino:
     iceberg: ${TRINO_ICEBERG_CATALOG:XXXX}
     delta: ${TRINO_ICEBERG_CATALOG:XXXX}
   hadoop.remoteUser: ${TRINO_UNIX_HADOOP_REMOTEUSER:spring}
+  kubernetes:
+    namespace: ${TRINO_KUBE_NAMESPACE:XXXX}
+    configmap: ${TRINO_KUBE_CONFIGMAP:XXXX}
    
 swagger.headers.authorization.token: ${SWAGGER_HEADER_AUTH:XXXXXX}
 management.endpoints.web.exposure.include: loggers,health

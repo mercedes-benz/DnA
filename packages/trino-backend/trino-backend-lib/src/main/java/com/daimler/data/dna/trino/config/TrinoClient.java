@@ -49,6 +49,7 @@ import org.springframework.web.client.RestTemplate;
 
 import com.daimler.data.dto.TrinoQueryResponse;
 import com.daimler.data.dto.TrinoResponse;
+import com.mb.dna.datalakehouse.dto.DataLakeTableColumnDetailsVO;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -136,6 +137,40 @@ public class TrinoClient {
 			log.error("Failed while executing statement using trino REST API with exception {}",e.getMessage());
 			throw e;
 		}
+	}
+	
+	public List<DataLakeTableColumnDetailsVO> showColumns(String catalogName, String schemaName, String tableName){
+		List<DataLakeTableColumnDetailsVO> columns = new ArrayList<>();
+		ResultSet results = null;
+		String url = "jdbc:trino://"+ trinoHost + ":" + trinoPort ;
+		Properties properties = new Properties();
+		properties.setProperty("user", trinoUser);
+		properties.setProperty("password", trinoPassword);
+		properties.setProperty("SSL", trinoSSL);
+		properties.setProperty("SSLVerification", trinoSSLVerification);
+		String sql = "";
+		try {
+			Connection connection = DriverManager.getConnection(url, properties);
+			Statement statement = connection.createStatement();
+			String statementString = "show columns from " + catalogName + "." + schemaName + "." + tableName ;
+		    sql = statementString; 
+		    results = statement.executeQuery(sql);
+		    log.info("Executed statement: {} successfully",sql);
+			if(results!=null) {
+				while(results.next()) {
+					String tempColumnName = results.getString("Column");
+					String tempColumnType = results.getString("Type");
+					DataLakeTableColumnDetailsVO tempColumn = new DataLakeTableColumnDetailsVO();
+					tempColumn.setColumnName(tempColumnName);
+					tempColumn.setDataType(tempColumnType);
+					columns.add(tempColumn);
+				}
+			}
+		    connection.close();
+		}catch(Exception e) {
+			log.error("Failed while executing show columns statement, {} using trino jdbc with exception {}",sql, e.getMessage());
+		}
+		return columns;
 	}
 	
 	public List<String> showSchemas(String catalogName, String schemaNamePattern){
