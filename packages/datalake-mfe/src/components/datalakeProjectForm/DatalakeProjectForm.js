@@ -28,8 +28,7 @@ const DatalakeProjectForm = ({project, edit, onSave}) => {
     SelectBox.defaultSetup();
   }, []);
   
-  const [dataClassification, setDataClassification] = useState(edit && project?.data?.classificationType !== null ? project?.data?.classificationType : '');
-  const [dataClassificationError] = useState('');
+  const [dataClassification, setDataClassification] = useState(edit && project?.data?.classificationType !== null ? project?.data?.classificationType : 0);
   const [PII, setPII] = useState(edit && project?.data?.hasPii !== null ? project?.data?.hasPii : false);
   const [connectorType, setConnectorType] = useState(edit && project?.data?.connectorType !== null ? project?.data?.connectorType : 'Iceberg');
   
@@ -38,9 +37,8 @@ const DatalakeProjectForm = ({project, edit, onSave}) => {
   const [departments, setDepartments] = useState([]);
   const [departmentName, setDepartmentName] = useState(edit && project?.data?.department !== null ? [project?.data?.department] : []);
   const [departmentError, setDepartmentError] = useState('');
-  const [datalakeDivision, setDatalakeDivision] = useState(edit ? (project?.data?.divisionId !== null ? project?.data?.divisionId + '/' + project?.data?.divisionName : '') : '');
-  const [datalakeDivisionError] = useState('');
-  const [datalakeSubDivision, setDatalakeSubDivision] = useState(edit ? (project?.data?.subdivisionId !== null ? project?.data?.subdivisionId + '/' + project?.data?.subdivisionName : '') : '');
+  const [datalakeDivision, setDatalakeDivision] = useState(edit ? (project?.data?.divisionId !== null ? project?.data?.divisionId + '/' + project?.data?.divisionName : 0) : '');
+  const [datalakeSubDivision, setDatalakeSubDivision] = useState(edit ? (project?.data?.subdivisionId !== null ? project?.data?.subdivisionId + '/' + project?.data?.subdivisionName : 0) : '');
   // const [statusValue, setStatusValue] = useState('');
   // const [statusError] = useState('');
 
@@ -89,15 +87,6 @@ const DatalakeProjectForm = ({project, edit, onSave}) => {
     //eslint-disable-next-line react-hooks/exhaustive-deps
   }, [datalakeDivision]);
 
-  
-  const handleDataClassification = (e) => {
-    setDataClassification(e.target.value);
-  };
-
-  const handlePII = (e) => {
-    setPII(e.target.value === 'true' ? true : false);
-  };
-
   const handleConnectorType = (e) => {
     setConnectorType(e.target.value);
   };
@@ -113,17 +102,6 @@ const DatalakeProjectForm = ({project, edit, onSave}) => {
   //       name: 'Sundowned'
   // }];
 
-  const handleDivision = (e) => {
-    // const selectedOptions = e.currentTarget.selectedOptions;
-    // const divId = selectedOptions[0].value
-    // setDatalakeDivision(divId);
-    setDatalakeDivision(e.target.value);
-  };
-
-  const handleSubDivision = (e) => {
-    setDatalakeSubDivision(e.target.value);
-  };
-
   // const onChangeStatus = (e) => {
   //   setStatusValue(e.target.value);
   // }
@@ -134,14 +112,14 @@ const DatalakeProjectForm = ({project, edit, onSave}) => {
       projectName: values.projectName,
       connectorType: connectorType,
       description: values.description,
-      divisionId: datalakeDivision.includes('/') ? datalakeDivision.split('/')[0] : '',
-      divisionName: datalakeDivision.includes('/') ? datalakeDivision.split('/')[1] : '',
-      subdivisionId: datalakeSubDivision.includes('/') ? datalakeSubDivision.split('/')[0] : '',
-      subdivisionName: datalakeSubDivision.includes('/') ? datalakeSubDivision.split('/')[1] : '',
+      divisionId: values.datalakeDivision.includes('/') ? values.datalakeDivision.split('/')[0] : '',
+      divisionName: values.datalakeDivision.includes('/') ? values.datalakeDivision.split('/')[1] : '',
+      subdivisionId: values.datalakeSubDivision.includes('/') ? values.datalakeSubDivision.split('/')[0] : '',
+      subdivisionName: values.datalakeSubDivision.includes('/') ? values.datalakeSubDivision.split('/')[1] : '',
       department: departmentName[0],
       status: '',
-      classificationType: dataClassification,
-      hasPii: PII
+      classificationType: values.dataClassification,
+      hasPii: values.pii
     }
     datalakeApi.createDatalakeProject(data).then((res) => {
       ProgressIndicator.hide();
@@ -160,14 +138,14 @@ const DatalakeProjectForm = ({project, edit, onSave}) => {
       projectName: project?.data?.projectName,
       connectorType: project?.data?.connectorType,
       description: values.description,
-      divisionId: datalakeDivision.includes('/') ? datalakeDivision.split('/')[0] : '',
-      divisionName: datalakeDivision.includes('/') ? datalakeDivision.split('/')[1] : '',
-      subdivisionId: datalakeSubDivision.includes('/') ? datalakeSubDivision.split('/')[0] : '',
-      subdivisionName: datalakeSubDivision.includes('/') ? datalakeSubDivision.split('/')[1] : '',
+      divisionId: values.datalakeDivision.includes('/') ? values.datalakeDivision.split('/')[0] : '',
+      divisionName: values.datalakeDivision.includes('/') ? values.datalakeDivision.split('/')[1] : '',
+      subdivisionId: values.datalakeSubDivision.includes('/') ? values.datalakeSubDivision.split('/')[0] : '',
+      subdivisionName: values.datalakeSubDivision.includes('/') ? values.datalakeSubDivision.split('/')[1] : '',
       department: departmentName[0],
       status: '',
-      classificationType: dataClassification,
-      hasPii: PII
+      classificationType: values.dataClassification,
+      hasPii: values.pii
     }
     ProgressIndicator.show();
     datalakeApi.updateDatalakeProject(data, project?.data?.id).then(() => {
@@ -215,7 +193,7 @@ const DatalakeProjectForm = ({project, edit, onSave}) => {
             <div>
               { !edit && 
                 <div className={Styles.flexLayout}>
-                  <div className={classNames('input-field-group include-error', errors?.name ? 'error' : '')}>
+                  <div className={classNames('input-field-group include-error', errors?.projectName ? 'error' : '')}>
                     <label className={classNames(Styles.inputLabel, 'input-label')}>
                       Name of Project <sup>*</sup>
                     </label>
@@ -229,7 +207,7 @@ const DatalakeProjectForm = ({project, edit, onSave}) => {
                         maxLength={55}
                         {...register('projectName', { required: '*Missing entry', pattern: /^[a-z0-9-.]+$/ })}
                       />
-                      <span className={classNames('error-message')}>{errors?.name?.message}{errors.name?.type === 'pattern' && 'Project names can consist only of lowercase letters, numbers, dots ( . ), and hyphens ( - ).'}</span>
+                      <span className={classNames('error-message')}>{errors?.projectName?.message}{errors.projectName?.type === 'pattern' && 'Project names can consist only of lowercase letters, numbers, dots ( . ), and hyphens ( - ).'}</span>
                     </div>
                   </div>
                   
@@ -289,7 +267,7 @@ const DatalakeProjectForm = ({project, edit, onSave}) => {
                 <div
                   className={classNames(
                     'input-field-group include-error',
-                    datalakeDivisionError?.length ? 'error' : '',
+                    errors?.datalakeDivision?.message ? 'error' : '',
                   )}
                 >
                   <label className={classNames(Styles.inputLabel, 'input-label')}>
@@ -298,10 +276,12 @@ const DatalakeProjectForm = ({project, edit, onSave}) => {
                   <div className={classNames('custom-select')}>
                   <select
                         id="divisionField"
-                        required={true}
-                        required-error={'*Missing entry'}
-                        onChange={handleDivision} 
-                        value={datalakeDivision}
+                        defaultValue={datalakeDivision}
+                        {...register('datalakeDivision', {
+                          required: '*Missing entry',
+                          validate: (value) => value !== 0 || '*Missing entry',
+                          onChange: (e) => { setDatalakeDivision(e.target.value) }
+                        })}
                     >
                         <option id="divisionOption" value={0}>
                           Choose
@@ -315,15 +295,14 @@ const DatalakeProjectForm = ({project, edit, onSave}) => {
                         })}
                       </select>
                   </div>
-                  <span className={classNames('error-message', datalakeDivisionError?.length ? '' : 'hide')}>
-                    {datalakeDivisionError}
+                  <span className={classNames('error-message', errors?.datalakeDivision?.message ? '' : 'hide')}>
+                    {errors?.datalakeDivision?.message}
                   </span>
                 </div>
 
                 <div
                   className={classNames(
                     'input-field-group include-error',
-                    // datalakeSubDivisionError?.length ? 'error' : '',
                   )}
                 >
                   <label className={classNames(Styles.inputLabel, 'input-label')}>
@@ -332,9 +311,10 @@ const DatalakeProjectForm = ({project, edit, onSave}) => {
                   <div className={classNames('custom-select')}>
                     
                     <select id="subDivisionField" 
-                    onChange={handleSubDivision} 
-                    value={datalakeSubDivision}
-                    required={false}
+                      defaultValue={datalakeSubDivision}
+                      {...register('datalakeSubDivision', {
+                        onChange: (e) => { setDatalakeSubDivision(e.target.value) }
+                      })}
                     >
                         {subDivisions?.some((item) => item.id === '0' && item.name === 'None') ? (
                           <option id="subDivisionDefault" value={0}>
@@ -387,6 +367,9 @@ const DatalakeProjectForm = ({project, edit, onSave}) => {
                           />
                         
                     </div>
+                    <span className={classNames('error-message', departmentError?.length ? '' : 'hide')}>
+                      {departmentError}
+                    </span>
                     </div>
                     </div>
                 {/* <div
@@ -429,17 +412,21 @@ const DatalakeProjectForm = ({project, edit, onSave}) => {
                 <div
                   className={classNames(
                     'input-field-group include-error',
-                    dataClassificationError?.length ? 'error' : '',
+                    errors?.dataClassification?.message ? 'error' : '',
                   )}
                 >
                   <label className={classNames(Styles.inputLabel, 'input-label')}>
                     Data Classification <sup>*</sup>
                   </label>
                   <div className={classNames('custom-select')}>
+                    { console.log('classificationError: ', errors)}
                     <select id="classificationField" 
-                      onChange={handleDataClassification} 
-                      value={dataClassification}
-                      required={true}
+                      defaultValue={dataClassification}
+                      {...register('dataClassification', {
+                        required: '*Missing entry',
+                        validate: (value) => value !== 0 || '*Missing entry',
+                        onChange: (e) => { setDataClassification(e.target.value) }
+                      })}
                     >
                       
                           <option id="classificationOption" value={0}>Choose</option>
@@ -455,8 +442,8 @@ const DatalakeProjectForm = ({project, edit, onSave}) => {
       
                     </select>
                   </div>
-                  <span className={classNames('error-message', dataClassificationError?.length ? '' : 'hide')}>
-                    {dataClassificationError}
+                  <span className={classNames('error-message', errors?.dataClassification?.message ? '' : 'hide')}>
+                    {errors?.dataClassification?.message}
                   </span>
                 </div>
                 <div className={classNames('input-field-group include-error')}>
@@ -471,8 +458,11 @@ const DatalakeProjectForm = ({project, edit, onSave}) => {
                           className="ff-only"
                           value={true}
                           name="pii"
-                          onChange={handlePII}
-                          checked={PII === true}
+                          defaultChecked={PII === true}
+                          {...register('pii', {
+                            required: '*Missing entry',
+                            onChange: (e) => { setPII(e.target.value === 'true' ? true : false) }
+                          })}
                         />
                       </span>
                       <span className="label">Yes</span>
@@ -484,8 +474,11 @@ const DatalakeProjectForm = ({project, edit, onSave}) => {
                           className="ff-only"
                           value={false}
                           name="pii"
-                          onChange={handlePII}
-                          checked={PII === false}
+                          defaultChecked={PII === false}
+                          {...register('pii', {
+                            required: '*Missing entry',
+                            onChange: (e) => { setPII(e.target.value === 'true' ? true : false) }
+                          })}
                         />
                       </span>
                       <span className="label">No</span>
