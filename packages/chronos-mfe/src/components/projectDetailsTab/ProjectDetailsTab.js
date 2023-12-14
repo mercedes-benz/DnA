@@ -110,6 +110,17 @@ const ProjectDetailsTab = () => {
     setShowDeleteModal(false);
   }
 
+  const chips =
+    project?.data.leanGovernanceFeilds?.tags && project?.data.leanGovernanceFeilds?.tags?.length
+        ? project?.data.leanGovernanceFeilds?.tags?.map((chip) => {
+            return (
+              <>
+                <label className="chips">{chip}</label>&nbsp;&nbsp;
+              </>
+            );
+          })
+        : 'N/A';
+
   return (
     <React.Fragment>
       <div className={Styles.content}>
@@ -174,7 +185,8 @@ const ProjectDetailsTab = () => {
                   <div id="tags">
                     <label className="input-label summary">Tags</label>
                     <br />
-                    {project?.data.leanGovernanceFeilds?.tags ? project?.data.leanGovernanceFeilds?.tags : 'N/A'}
+                    {/* {project?.data.leanGovernanceFeilds?.tags ? project?.data.leanGovernanceFeilds?.tags : 'N/A'} */}
+                    {chips}
                   </div>
                 </div>
 
