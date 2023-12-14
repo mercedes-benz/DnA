@@ -153,7 +153,7 @@ const ChronosProjectForm = ({project, edit, onSave}) => {
   const [typeOfProject, setTypeOfProject] = useState(edit && chronosProject?.leanGovernanceFeilds?.typeOfProject !== null ? chronosProject?.leanGovernanceFeilds?.typeOfProject : '0');
   const [dataClassification, setDataClassification] = useState(edit && chronosProject?.leanGovernanceFeilds?.dataClassification !== null ? chronosProject?.leanGovernanceFeilds?.dataClassification : '0');
   const [PII, setPII] = useState(edit && chronosProject?.leanGovernanceFeilds?.piiData !== null ? chronosProject?.leanGovernanceFeilds?.piiData : false);
-  const [tags, setTags] = useState(edit && chronosProject?.leanGovernanceFeilds?.tags !== null ? [chronosProject?.leanGovernanceFeilds?.tags] : []);
+  const [tags, setTags] = useState(edit && chronosProject?.leanGovernanceFeilds?.tags !== null ? [...chronosProject?.leanGovernanceFeilds?.tags || undefined] : []);
   const [archerId, setArcherID] = useState(edit && chronosProject?.leanGovernanceFeilds?.archerId !== null ? chronosProject?.leanGovernanceFeilds?.archerId : '');
   const [procedureId, setProcedureID] = useState(edit && chronosProject?.leanGovernanceFeilds?.procedureId !== null ? chronosProject?.leanGovernanceFeilds?.procedureId : '');
   const [termsOfUse, setTermsOfUse] = useState(edit && chronosProject?.leanGovernanceFeilds?.termsOfUse !== null ? [chronosProject?.leanGovernanceFeilds?.termsOfUse] : false);
@@ -166,7 +166,8 @@ const ChronosProjectForm = ({project, edit, onSave}) => {
         setDataClassificationDropdown(response[0]?.data?.data || []);                
         setDivisions(response[1]?.data || []);
         setDepartments(response[2]?.data?.data || []);
-        edit && setDivision(chronosProject?.leanGovernanceFeilds?.division);
+        edit && setDivision(chronosProject?.leanGovernanceFeilds?.division !== null ? chronosProject?.leanGovernanceFeilds?.division : '0');
+        edit && setSubDivisions(response[1]?.data.find((div) => div.id === division?.id).subDivisions);
         SelectBox.defaultSetup();
       })
       .catch((err) => {
@@ -408,6 +409,7 @@ const ChronosProjectForm = ({project, edit, onSave}) => {
                     <select
                         id="divisionField"
                         defaultValue={division}
+                        value={division}
                         {...register('division', {
                           required: '*Missing entry',
                           validate: (value) => value !== 0 || '*Missing entry',
@@ -419,7 +421,7 @@ const ChronosProjectForm = ({project, edit, onSave}) => {
                           </option>
                           {divisions?.map((obj) => {
                             return (
-                            <option id={obj.name + obj.id} key={obj.id} value={obj.name}>
+                            <option id={obj.name + obj.id} key={obj.id} value={obj.id}>
                               {obj.name}
                             </option>
                             )
@@ -444,6 +446,7 @@ const ChronosProjectForm = ({project, edit, onSave}) => {
                       
                       <select id="subDivisionField"
                         defaultValue={subDivision}
+                        value={chronosProject?.leanGovernanceFeilds?.subDivision}
                         required={false}
                         {...register('subDivision', {
                           onChange: (e) => { setSubDivision(e.target.value) }
@@ -459,7 +462,7 @@ const ChronosProjectForm = ({project, edit, onSave}) => {
                                 Choose
                               </option>
                               {subDivisions?.map((obj) => (
-                                <option id={obj.name + obj.id} key={obj.id} value={obj.name}>
+                                <option id={obj.name + obj.id} key={obj.id} value={obj.id}>
                                   {obj.name}
                                 </option>
                               ))}
@@ -544,6 +547,7 @@ const ChronosProjectForm = ({project, edit, onSave}) => {
                     <select
                         id="classificationField"
                         defaultValue={dataClassification}
+                        value={chronosProject?.leanGovernanceFeilds?.dataClassification}
                         {...register('dataClassification', {
                           required: '*Missing entry',
                           validate: (value) => value !== 0 || '*Missing entry',
@@ -619,13 +623,13 @@ const ChronosProjectForm = ({project, edit, onSave}) => {
                         type="text"
                         className={classNames('input-field', Styles.projectNameField)}
                         id="archerId"
-                        placeholder="Type here"
+                        placeholder="Type here eg.[INFO-XXXXX]"
                         autoComplete="off"
                         maxLength={55}
                         defaultValue={archerId}
-                        {...register('archerId', { onChange: (e) => { setArcherID(e.target.value) } })}
+                        {...register('archerId', { pattern: /^(INFO)-\d{5}$/ , onChange: (e) => { setArcherID(e.target.value) } })}
                       />
-                      {/* <span className={classNames('error-message')}>{errors.archerId?.type === 'pattern' && 'Project names can consist only of lowercase letters, numbers, dots ( . ), and hyphens ( - ).'}</span> */}
+                      <span className={classNames('error-message')}>{errors.archerId?.type === 'pattern' && 'Archer ID should be of type INFO-XXXXX'}</span>
                     </div>
                   </div>
                   <div className={classNames('input-field-group include-error', errors?.  procedureId ? 'error' : '')}>
@@ -637,13 +641,13 @@ const ChronosProjectForm = ({project, edit, onSave}) => {
                         type="text"
                         className={classNames('input-field', Styles.projectNameField)}
                         id="procedureId"
-                        placeholder="Type here"
+                        placeholder="Type here eg.[PO-XXXXX / ITPLC-XXXXX]"
                         autoComplete="off"
                         maxLength={55}
                         defaultValue={procedureId}
-                        {...register('procedureId', { onChange: (e) => { setProcedureID(e.target.value) } })}
+                        {...register('procedureId', {pattern: /^(PO|ITPLC)-\d{5}$/, onChange: (e) => { setProcedureID(e.target.value) } })}
                       />
-                      {/* <span className={classNames('error-message')}>{errors.procedureId?.type === 'pattern' && 'Project names can consist only of lowercase letters, numbers, dots ( . ), and hyphens ( - ).'}</span> */}
+                      <span className={classNames('error-message')}>{errors.procedureId?.type === 'pattern' && 'Procedure ID should be of type PO-XXXXX / ITPLC-XXXXX'}</span>
                     </div>
                   </div>
                 </div>
