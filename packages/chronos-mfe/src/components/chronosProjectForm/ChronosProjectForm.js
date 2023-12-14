@@ -21,14 +21,14 @@ import { Envs } from '../../utilities/envs';
 import { hostServer } from '../../server/api';
 import { chronosApi } from '../../apis/chronos.api';
 
-const ChronosProjectForm = ({project, edit, onSave}) => {
+const ChronosProjectForm = ({ project, edit, onSave }) => {
   let history = useHistory();
 
   const projectR = useSelector(state => state.projectDetails);
 
-  const [chronosProject] = useState(project !== undefined ? {...project} : {...projectR.data});
+  const [chronosProject] = useState(project !== undefined ? { ...project } : { ...projectR.data });
 
-  const collabs = chronosProject.collaborators !== null && chronosProject.collaborators?.map((collab) => { return {...collab, shortId: collab.id} });
+  const collabs = chronosProject.collaborators !== null && chronosProject.collaborators?.map((collab) => { return { ...collab, shortId: collab.id } });
 
   const [teamMembers, setTeamMembers] = useState(edit && chronosProject.collaborators !== null ? collabs : []);
   const [teamMembersOriginal, setTeamMembersOriginal] = useState(edit && chronosProject.collaborators !== null ? chronosProject.collaborators : []);
@@ -44,7 +44,7 @@ const ChronosProjectForm = ({project, edit, onSave}) => {
     handleSubmit,
     formState: { errors },
   } = methods;
-  
+
   const addTeamMemberModalRef = React.createRef();
   const [showAddTeamMemberModal, setShowAddTeamMemberModal] = useState(false);
   const showAddTeamMemberModalView = () => {
@@ -61,22 +61,22 @@ const ChronosProjectForm = ({project, edit, onSave}) => {
 
   const updateTeamMemberList = (teamMember) => {
     onAddTeamMemberModalCancel();
-    const teamMemberTemp = {...teamMember, id: teamMember.shortId, permissions: { 'read': true, 'write': true }};
+    const teamMemberTemp = { ...teamMember, id: teamMember.shortId, permissions: { 'read': true, 'write': true } };
     delete teamMemberTemp.teamMemberPosition;
     let teamMembersTemp = teamMembers !== null ? [...teamMembers] : [];
     let addedCollaboratorsTemp = addedCollaborators.length > 0 ? [...addedCollaborators] : [];
     let removedCollaboratorsTemp = removedCollaborators.length > 0 ? [...removedCollaborators] : [];
-    if(editTeamMember) {
+    if (editTeamMember) {
       const deletedMember = teamMembersTemp.splice(editTeamMemberIndex, 1);
       addedCollaboratorsTemp = checkMembers(addedCollaborators, deletedMember[0]);
       removedCollaboratorsTemp = checkMembers(removedCollaborators, teamMember);
-      removedCollaboratorsTemp.push({...deletedMember[0], id: deletedMember[0].shortId ? deletedMember[0].shortId : deletedMember[0].id, permissions: { 'read': true, 'write': true }});
+      removedCollaboratorsTemp.push({ ...deletedMember[0], id: deletedMember[0].shortId ? deletedMember[0].shortId : deletedMember[0].id, permissions: { 'read': true, 'write': true } });
       teamMembersTemp.splice(editTeamMemberIndex, 0, teamMemberTemp);
-      addedCollaboratorsTemp.push({...teamMember, id: teamMember.shortId ? teamMember.shortId : teamMember.id, permissions: { 'read': true, 'write': true }});
+      addedCollaboratorsTemp.push({ ...teamMember, id: teamMember.shortId ? teamMember.shortId : teamMember.id, permissions: { 'read': true, 'write': true } });
     } else {
       teamMembersTemp.push(teamMemberTemp);
       removedCollaboratorsTemp = checkMembers(removedCollaborators, teamMember);
-      addedCollaboratorsTemp.push({...teamMember, id: teamMember.shortId ? teamMember.shortId : teamMember.id, permissions: { 'read': true, 'write': true }});
+      addedCollaboratorsTemp.push({ ...teamMember, id: teamMember.shortId ? teamMember.shortId : teamMember.id, permissions: { 'read': true, 'write': true } });
     }
     setAddedCollaborators(addedCollaboratorsTemp);
     setRemovedCollaborators(removedCollaboratorsTemp);
@@ -86,7 +86,7 @@ const ChronosProjectForm = ({project, edit, onSave}) => {
   const checkMembers = (members, member) => {
     let membersTemp = members.length > 0 ? [...members] : [];
     const isCommon = members.filter((mber) => mber.shortId === member.shortId);
-    if(isCommon.length === 1) {
+    if (isCommon.length === 1) {
       membersTemp = members.filter((mber) => mber.shortId !== member.shortId);
       return membersTemp;
     } else {
@@ -116,7 +116,7 @@ const ChronosProjectForm = ({project, edit, onSave}) => {
     setAddedCollaborators(newCollabs);
 
     const removedCollaboratorsTemp = removedCollaborators.length > 0 ? [...removedCollaborators] : [];
-    removedCollaboratorsTemp.push({...deletedMember[0], id: deletedMember[0].shortId ? deletedMember[0].shortId : deletedMember[0].id, permissions: { 'read': true, 'write': true }});
+    removedCollaboratorsTemp.push({ ...deletedMember[0], id: deletedMember[0].shortId ? deletedMember[0].shortId : deletedMember[0].id, permissions: { 'read': true, 'write': true } });
     setRemovedCollaborators(removedCollaboratorsTemp);
 
     setTeamMembers(teamMembersTemp);
@@ -127,7 +127,7 @@ const ChronosProjectForm = ({project, edit, onSave}) => {
       <TeamMemberListItem
         key={index}
         itemIndex={index}
-        teamMember={{...member, shortId: member?.id, userType: 'internal'}}
+        teamMember={{ ...member, shortId: member?.id, userType: 'internal' }}
         hidePosition={true}
         showInfoStacked={true}
         showMoveUp={index !== 0}
@@ -140,12 +140,12 @@ const ChronosProjectForm = ({project, edit, onSave}) => {
 
   // lean governance fields
   const [nameOfProject, setNameOfProject] = useState(edit && chronosProject?.name !== null ? chronosProject?.name : '');
-  
+
   const [divisions, setDivisions] = useState([]);
   const [subDivisions, setSubDivisions] = useState([]);
   const [departments, setDepartments] = useState([]);
   const [dataClassificationDropdown, setDataClassificationDropdown] = useState([]);
-  
+
   const [division, setDivision] = useState(edit ? (chronosProject?.leanGovernanceFeilds?.division !== null ? chronosProject?.leanGovernanceFeilds?.division : '0') : '0');
   const [subDivision, setSubDivision] = useState(edit ? (chronosProject?.leanGovernanceFeilds?.subDivision !== null ? chronosProject?.subdivision : '0') : '0');
   const [description, setDescription] = useState(edit && chronosProject?.leanGovernanceFeilds?.decription !== null ? chronosProject?.leanGovernanceFeilds?.decription : '');
@@ -157,13 +157,13 @@ const ChronosProjectForm = ({project, edit, onSave}) => {
   const [archerId, setArcherID] = useState(edit && chronosProject?.leanGovernanceFeilds?.archerId !== null ? chronosProject?.leanGovernanceFeilds?.archerId : '');
   const [procedureId, setProcedureID] = useState(edit && chronosProject?.leanGovernanceFeilds?.procedureId !== null ? chronosProject?.leanGovernanceFeilds?.procedureId : '');
   const [termsOfUse, setTermsOfUse] = useState(edit && chronosProject?.leanGovernanceFeilds?.termsOfUse !== null ? [chronosProject?.leanGovernanceFeilds?.termsOfUse] : false);
-  
+
   useEffect(() => {
     ProgressIndicator.show();
     chronosApi.getLovData()
       .then((response) => {
         ProgressIndicator.hide();
-        setDataClassificationDropdown(response[0]?.data?.data || []);                
+        setDataClassificationDropdown(response[0]?.data?.data || []);
         setDivisions(response[1]?.data || []);
         setDepartments(response[2]?.data?.data || []);
         edit && setDivision(chronosProject?.leanGovernanceFeilds?.division !== null ? chronosProject?.leanGovernanceFeilds?.division : '0');
@@ -171,15 +171,15 @@ const ChronosProjectForm = ({project, edit, onSave}) => {
         SelectBox.defaultSetup();
       })
       .catch((err) => {
-          ProgressIndicator.hide();
-          SelectBox.defaultSetup();
-          if (err?.response?.data?.errors?.length > 0) {
-              err?.response?.data?.errors.forEach((err) => {
-                  Notification.show(err?.message || 'Something went wrong.', 'alert');
-              });
-          } else {
-              Notification.show(err?.message || 'Something went wrong.', 'alert');
-          }
+        ProgressIndicator.hide();
+        SelectBox.defaultSetup();
+        if (err?.response?.data?.errors?.length > 0) {
+          err?.response?.data?.errors.forEach((err) => {
+            Notification.show(err?.message || 'Something went wrong.', 'alert');
+          });
+        } else {
+          Notification.show(err?.message || 'Something went wrong.', 'alert');
+        }
       });
     //eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -189,15 +189,15 @@ const ChronosProjectForm = ({project, edit, onSave}) => {
     if (divId > '0') {
       ProgressIndicator.show();
       hostServer.get('/subdivisions/' + divId)
-      .then((res) => {
-        setSubDivisions(res?.data || []);
-        SelectBox.defaultSetup();  
-        ProgressIndicator.hide();
-      }).catch(() => {
-        ProgressIndicator.hide();
-      });
+        .then((res) => {
+          setSubDivisions(res?.data || []);
+          SelectBox.defaultSetup();
+          ProgressIndicator.hide();
+        }).catch(() => {
+          ProgressIndicator.hide();
+        });
     } else {
-        setSubDivisions([]);
+      setSubDivisions([]);
     }
     //eslint-disable-next-line react-hooks/exhaustive-deps
   }, [division]);
@@ -209,25 +209,25 @@ const ChronosProjectForm = ({project, edit, onSave}) => {
   const handleCreateProject = (values) => {
     ProgressIndicator.show();
     const data = {
-        collaborators: teamMembers,
-        name: values.name,
-        permission: {
-          read: true,
-          write: true
-        },
-        leanGovernanceFeilds: {
-          tags: tags,
-          piiData: values.pii,
-          archerId: values.archerId,
-          division: values.division,
-          decription: values.description,
-          department: departmentName[0],
-          procedureId: values.procedureId,
-          termsOfUse: values.termsOfUse,
-          subDivision: values.subDivision,
-          typeOfProject: values.typeOfProject,
-          dataClassification: values.dataClassification
-        }
+      collaborators: teamMembers,
+      name: values.name,
+      permission: {
+        read: true,
+        write: true
+      },
+      leanGovernanceFeilds: {
+        tags: tags,
+        piiData: values.pii,
+        archerId: values.archerId,
+        division: values.division,
+        decription: values.description,
+        department: departmentName[0],
+        procedureId: values.procedureId,
+        termsOfUse: values.termsOfUse,
+        subDivision: values.subDivision,
+        typeOfProject: values.typeOfProject,
+        dataClassification: values.dataClassification
+      }
     };
     chronosApi.createForecastProject(data).then((res) => {
       ProgressIndicator.hide();
@@ -243,10 +243,10 @@ const ChronosProjectForm = ({project, edit, onSave}) => {
   };
   const handleEditProject = (values) => {
     const addedCollaboratorsTemp = addedCollaborators.map((member) => {
-      if(member.id === null) {
-        return {...member, id: member.email}
+      if (member.id === null) {
+        return { ...member, id: member.email }
       } else {
-        return {...member}
+        return { ...member }
       }
     });
     let removedCollaboratorsTemp = teamMembersOriginal.filter((member) => {
@@ -255,10 +255,10 @@ const ChronosProjectForm = ({project, edit, onSave}) => {
       });
     });
     removedCollaboratorsTemp = removedCollaboratorsTemp.map((member) => {
-      if(member.id === null) {
-        return {...member, id: member.email}
+      if (member.id === null) {
+        return { ...member, id: member.email }
       } else {
-        return {...member}
+        return { ...member }
       }
     });
     const data = {
@@ -298,6 +298,15 @@ const ChronosProjectForm = ({project, edit, onSave}) => {
     });
   };
 
+  // const onReportStatusFieldChange = (e)=> {
+  //   console.log('eee', e)
+  //   e.preventDefault();
+  //   e.stopPropagation();
+  //   setTypeOfProject(e.target.value);
+  //   setTimeout(()=>{
+  //     SelectBox.defaultSetup();
+  //   }, 1000)
+  // }
   return (
     <>
       <FormProvider {...methods}>
@@ -309,7 +318,7 @@ const ChronosProjectForm = ({project, edit, onSave}) => {
                 <div className={classNames(Styles.flexLayout, Styles.threeColumn)}>
                   <div id="productDescription">
                     <label className="input-label summary">Project Name</label>
-                    <br />                    
+                    <br />
                     {chronosProject.name}
                   </div>
                   <div id="tags">
@@ -325,60 +334,60 @@ const ChronosProjectForm = ({project, edit, onSave}) => {
                 </div>
               </div>
             }
-            
-                <div className={Styles.flexLayout}>
-                  <div
-                    className={classNames(
-                      'input-field-group include-error',
-                      errors?.typeOfProject?.message ? 'error' : '',
-                    )}
+
+            <div className={Styles.flexLayout}>
+              <div
+                className={classNames(
+                  'input-field-group include-error',
+                  errors?.typeOfProject?.message ? 'error' : '',
+                )}
+              >
+                <label className={classNames(Styles.inputLabel, 'input-label')}>
+                  Type of Project <sup>*</sup>
+                </label>
+                <div className={classNames('custom-select')}>
+                  <select id="reportStatusField"
+                    defaultValue={typeOfProject}
+                    {...register('typeOfProject', {
+                      required: '*Missing entry',
+                      validate: (value) => value !== '0' || '*Missing entry',
+                      onChange: (e) => { setTypeOfProject(e.target.value) }
+                    })}
                   >
-                    <label className={classNames(Styles.inputLabel, 'input-label')}>
-                      Type of Project <sup>*</sup>
-                    </label>
-                    <div className={classNames('custom-select')}>
-                      <select id="reportStatusField"
-                        defaultValue={typeOfProject}
-                        {...register('typeOfProject', {
-                          required: '*Missing entry',
-                          validate: (value) => value !== '0' || '*Missing entry',
-                          onChange: (e) => { setTypeOfProject(e.target.value) }
-                        })}
-                      >
-                        <option id="typeOfProjectOption" value={0}>
-                          Choose
-                        </option>
-                        <option value={'Playground'}>Playground</option>
-                        <option value={'Proof of Concept'}>Proof of Concept</option>
-                        <option value={'Production'}>Production</option>
-                      </select>
-                    </div>
-                    <span className={classNames('error-message', errors?.typeOfProject?.message ? '' : 'hide')}>
-                      {errors?.typeOfProject?.message}
-                    </span>
-                  </div>
-                    <div className={classNames('input-field-group include-error', errors?.name ? 'error' : '')}>
-                      <label className={classNames(Styles.inputLabel, 'input-label')}>
-                        Name of Project <sup>*</sup>
-                      </label>
-                      <div>
-                        <input
-                          type="text"
-                          className={classNames('input-field', Styles.projectNameField)}
-                          id="projectName"
-                          placeholder="Type here"
-                          autoComplete="off"
-                          maxLength={55}
-                          // disabled={edit}
-                          defaultValue={nameOfProject}
-                          {...register('name', { required: '*Missing entry', pattern: /^[a-z0-9-.]+$/, onChange: (e) => { setNameOfProject(e.target.value) } })}
-                        />
-                        <span className={classNames('error-message')}>{errors?.name?.message}{errors.name?.type === 'pattern' && 'Project names can consist only of lowercase letters, numbers, dots ( . ), and hyphens ( - ).'}</span>
-                      </div>
-                    </div>
+                    <option id="typeOfProjectOption" value={0}>
+                      Choose
+                    </option>
+                    <option value={'Playground'}>Playground</option>
+                    <option value={'Proof of Concept'}>Proof of Concept</option>
+                    <option value={'Production'}>Production</option>
+                  </select>
                 </div>
-                { typeOfProject !== 'Playground' && 
+                <span className={classNames('error-message', errors?.typeOfProject?.message ? '' : 'hide')}>
+                  {errors?.typeOfProject?.message}
+                </span>
+              </div>
+              <div className={classNames('input-field-group include-error', errors?.name ? 'error' : '')}>
+                <label className={classNames(Styles.inputLabel, 'input-label')}>
+                  Name of Project <sup>*</sup>
+                </label>
                 <div>
+                  <input
+                    type="text"
+                    className={classNames('input-field', Styles.projectNameField)}
+                    id="projectName"
+                    placeholder="Type here"
+                    autoComplete="off"
+                    maxLength={55}
+                    // disabled={edit}
+                    defaultValue={nameOfProject}
+                    {...register('name', { required: '*Missing entry', pattern: /^[a-z0-9-.]+$/, onChange: (e) => { setNameOfProject(e.target.value) } })}
+                  />
+                  <span className={classNames('error-message')}>{errors?.name?.message}{errors.name?.type === 'pattern' && 'Project names can consist only of lowercase letters, numbers, dots ( . ), and hyphens ( - ).'}</span>
+                </div>
+              </div>
+            </div>
+            {typeOfProject !== 'Playground' &&
+              <div>
                 <div className={classNames('input-field-group include-error area', errors.description ? 'error' : '')}>
                   <label id="description" className="input-label" htmlFor="description">
                     Description <sup>*</sup>
@@ -406,7 +415,7 @@ const ChronosProjectForm = ({project, edit, onSave}) => {
                       Division <sup>*</sup>
                     </label>
                     <div className={classNames('custom-select')}>
-                    <select
+                      <select
                         id="divisionField"
                         defaultValue={division}
                         value={division}
@@ -416,17 +425,17 @@ const ChronosProjectForm = ({project, edit, onSave}) => {
                           onChange: (e) => { setDivision(e.target.value) }
                         })}
                       >
-                          <option id="divisionOption" value={0}>
-                            Choose
-                          </option>
-                          {divisions?.map((obj) => {
-                            return (
+                        <option id="divisionOption" value={0}>
+                          Choose
+                        </option>
+                        {divisions?.map((obj) => {
+                          return (
                             <option id={obj.name + obj.id} key={obj.id} value={obj.id}>
                               {obj.name}
                             </option>
-                            )
-                          })}
-                        </select>
+                          )
+                        })}
+                      </select>
                     </div>
                     <span className={classNames('error-message', errors?.division?.message ? '' : 'hide')}>
                       {errors?.division?.message}
@@ -440,10 +449,10 @@ const ChronosProjectForm = ({project, edit, onSave}) => {
                     )}
                   >
                     <label className={classNames(Styles.inputLabel, 'input-label')}>
-                      Sub Division 
+                      Sub Division
                     </label>
                     <div className={classNames('custom-select')}>
-                      
+
                       <select id="subDivisionField"
                         defaultValue={subDivision}
                         value={chronosProject?.leanGovernanceFeilds?.subDivision}
@@ -452,24 +461,24 @@ const ChronosProjectForm = ({project, edit, onSave}) => {
                           onChange: (e) => { setSubDivision(e.target.value) }
                         })}
                       >
-                          {subDivisions?.some((item) => item.id === '0' && item.name === 'None') ? (
+                        {subDivisions?.some((item) => item.id === '0' && item.name === 'None') ? (
+                          <option id="subDivisionDefault" value={0}>
+                            None
+                          </option>
+                        ) : (
+                          <>
                             <option id="subDivisionDefault" value={0}>
-                              None
+                              Choose
                             </option>
-                          ) : (
-                            <>
-                              <option id="subDivisionDefault" value={0}>
-                                Choose
+                            {subDivisions?.map((obj) => (
+                              <option id={obj.name + obj.id} key={obj.id} value={obj.id}>
+                                {obj.name}
                               </option>
-                              {subDivisions?.map((obj) => (
-                                <option id={obj.name + obj.id} key={obj.id} value={obj.id}>
-                                  {obj.name}
-                                </option>
-                              ))}
-                            </>
-                          )}
+                            ))}
+                          </>
+                        )}
                       </select>
-                      
+
                     </div>
                     {/* <span className={classNames('error-message', subDivisionError?.length ? '' : 'hide')}>
                       {subDivisionError}
@@ -487,172 +496,174 @@ const ChronosProjectForm = ({project, edit, onSave}) => {
                   >
                     <div>
                       <div className={Styles.departmentTags}>
-                      
-                          <Tags
-                            title={'Department'}
-                            max={1}
-                            chips={departmentName}
-                            tags={departments}
-                            setTags={(selectedTags) => {
+
+                        <Tags
+                          title={'Department'}
+                          max={1}
+                          chips={departmentName}
+                          tags={departments}
+                          setTags={(selectedTags) => {
                             let dept = selectedTags?.map((item) => item.toUpperCase());
-                              setDepartmentName(dept);
-                            }}
-                            isMandatory={true}
-                            showMissingEntryError={errors?.department?.message}
-                            // {...register('department', {required: '*Missing entry'})}
-                          />
-                          
+                            setDepartmentName(dept);
+                          }}
+                          isMandatory={true}
+                          showMissingEntryError={errors?.department?.message}
+                        // {...register('department', {required: '*Missing entry'})}
+                        />
+
                       </div>
-                      </div>
-                      </div>
-                      <div
-                  className={classNames(
-                    Styles.bucketNameInputField,
-                    'input-field-group include-error',
-                    errors?.tags?.message ? 'error' : '',
-                  )}
-                >
-                  <div>
-                    <div className={Styles.departmentTags}>
-                    
+                    </div>
+                  </div>
+                  <div
+                    className={classNames(
+                      Styles.bucketNameInputField,
+                      'input-field-group include-error',
+                      errors?.tags?.message ? 'error' : '',
+                    )}
+                  >
+                    <div>
+                      <div className={Styles.departmentTags}>
+
                         <Tags
                           title={'Tags'}
+                          max={100}
                           chips={tags}
-                          tags={tags}
+                          // tags={tags}
                           setTags={(selectedTags) => {
                             let tag = selectedTags?.map((item) => item.toUpperCase());
                             setTags(tag);
                           }}
                           isMandatory={true}
                           showMissingEntryError={errors?.tags?.message}
-                          // {...register('tags', {required: '*Missing entry'})}
+                        // {...register('tags', {required: '*Missing entry'})}
                         />
-                         
+
+                      </div>
                     </div>
                   </div>
                 </div>
-                </div>
-
-                <div className={Styles.flexLayout}>
-                  <div
-                    className={classNames(
-                      'input-field-group include-error',
-                      errors?.dataClassification?.message ? 'error' : '',
-                    )}
+              </div>}
+            <div className={Styles.flexLayout}>
+              <div
+                className={classNames(
+                  'input-field-group include-error',
+                  errors?.dataClassification?.message ? 'error' : '',
+                )}
+              >
+                <label className={classNames(Styles.inputLabel, 'input-label')}>
+                  Data Classification <sup>*</sup>
+                </label>
+                <div className={classNames('custom-select')}>
+                  <select
+                    id="classificationField"
+                    defaultValue={dataClassification}
+                    value={chronosProject?.leanGovernanceFeilds?.dataClassification}
+                    {...register('dataClassification', {
+                      required: '*Missing entry',
+                      validate: (value) => value !== 0 || '*Missing entry',
+                      onChange: (e) => { setDataClassification(e.target.value) }
+                    })}
                   >
-                    <label className={classNames(Styles.inputLabel, 'input-label')}>
-                      Data Classification <sup>*</sup>
-                    </label>
-                    <div className={classNames('custom-select')}>
-                    <select
-                        id="classificationField"
-                        defaultValue={dataClassification}
-                        value={chronosProject?.leanGovernanceFeilds?.dataClassification}
-                        {...register('dataClassification', {
-                          required: '*Missing entry',
-                          validate: (value) => value !== 0 || '*Missing entry',
-                          onChange: (e) => { setDataClassification(e.target.value) }
-                        })}
+
+                    <option id="classificationOption" value={0}>Choose</option>
+                    {dataClassificationDropdown?.map((item) => (
+                      <option
+                        id={item.id}
+                        key={item.id}
+                        value={item.name}
                       >
-                        
-                        <option id="classificationOption" value={0}>Choose</option>
-                        {dataClassificationDropdown?.map((item) => (
-                          <option
-                            id={item.id}
-                              key={item.id}
-                              value={item.name}
-                          >
-                            {item.name}
-                          </option>
-                        ))}
-        
-                      </select>
-                    </div>
-                    <span className={classNames('error-message', errors?.dataClassification?.message ? '' : 'hide')}>
-                      {errors?.dataClassification?.message}
+                        {item.name}
+                      </option>
+                    ))}
+
+                  </select>
+                </div>
+                <span className={classNames('error-message', errors?.dataClassification?.message ? '' : 'hide')}>
+                  {errors?.dataClassification?.message}
+                </span>
+              </div>
+              <div className={classNames('input-field-group include-error')}>
+                <label className={classNames(Styles.inputLabel, 'input-label')}>
+                  PII (Personally Identifiable Information) <sup>*</sup>
+                </label>
+                <div className={Styles.pIIField}>
+                  <label className={classNames('radio')}>
+                    <span className="wrapper">
+                      <input
+                        type="radio"
+                        className="ff-only"
+                        value={true}
+                        name="pii"
+                        defaultChecked={PII === true}
+                        {...register('pii', {
+                          required: '*Missing entry',
+                          onChange: (e) => { setPII(e.target.value) }
+                        })}
+                      />
                     </span>
-                  </div>
-                  <div className={classNames('input-field-group include-error')}>
-                    <label className={classNames(Styles.inputLabel, 'input-label')}>
-                      PII (Personally Identifiable Information) <sup>*</sup>
-                    </label>
-                    <div className={Styles.pIIField}>
-                      <label className={classNames('radio')}>
-                        <span className="wrapper">
-                          <input
-                            type="radio"
-                            className="ff-only"
-                            value={true}
-                            name="pii"
-                            defaultChecked={PII === true}
-                            {...register('pii', {
-                              required: '*Missing entry',
-                              onChange: (e) => { setPII(e.target.value) }
-                            })}
-                          />
-                        </span>
-                        <span className="label">Yes</span>
-                      </label>
-                      <label className={classNames('radio')}>
-                        <span className="wrapper">
-                          <input
-                            type="radio"
-                            className="ff-only"
-                            value={false}
-                            name="pii"
-                            defaultChecked={PII === false}
-                            {...register('pii', {
-                              required: '*Missing entry',
-                              onChange: (e) => { setPII(e.target.value) }
-                            })}
-                          />
-                        </span>
-                        <span className="label">No</span>
-                      </label>
-                    </div>
+                    <span className="label">Yes</span>
+                  </label>
+                  <label className={classNames('radio')}>
+                    <span className="wrapper">
+                      <input
+                        type="radio"
+                        className="ff-only"
+                        value={false}
+                        name="pii"
+                        defaultChecked={PII === false}
+                        {...register('pii', {
+                          required: '*Missing entry',
+                          onChange: (e) => { setPII(e.target.value) }
+                        })}
+                      />
+                    </span>
+                    <span className="label">No</span>
+                  </label>
+                </div>
+              </div>
+            </div>
+            {typeOfProject !== 'Playground' && <div>
+
+              <div className={Styles.flexLayout}>
+                <div className={classNames('input-field-group include-error', errors?.archerId ? 'error' : '')}>
+                  <label className={classNames(Styles.inputLabel, 'input-label')}>
+                    Archer ID
+                  </label>
+                  <div>
+                    <input
+                      type="text"
+                      className={classNames('input-field', Styles.projectNameField)}
+                      id="archerId"
+                      placeholder="Type here eg.[INFO-XXXXX]"
+                      autoComplete="off"
+                      maxLength={55}
+                      defaultValue={archerId}
+                      {...register('archerId', { pattern: /^(INFO)-\d{5}$/, onChange: (e) => { setArcherID(e.target.value) } })}
+                    />
+                    <span className={classNames('error-message')}>{errors.archerId?.type === 'pattern' && 'Archer ID should be of type INFO-XXXXX'}</span>
                   </div>
                 </div>
-
-                <div className={Styles.flexLayout}>
-                  <div className={classNames('input-field-group include-error', errors?.archerId ? 'error' : '')}>
-                    <label className={classNames(Styles.inputLabel, 'input-label')}>
-                      Archer ID
-                    </label>
-                    <div>
-                      <input
-                        type="text"
-                        className={classNames('input-field', Styles.projectNameField)}
-                        id="archerId"
-                        placeholder="Type here eg.[INFO-XXXXX]"
-                        autoComplete="off"
-                        maxLength={55}
-                        defaultValue={archerId}
-                        {...register('archerId', { pattern: /^(INFO)-\d{5}$/ , onChange: (e) => { setArcherID(e.target.value) } })}
-                      />
-                      <span className={classNames('error-message')}>{errors.archerId?.type === 'pattern' && 'Archer ID should be of type INFO-XXXXX'}</span>
-                    </div>
-                  </div>
-                  <div className={classNames('input-field-group include-error', errors?.  procedureId ? 'error' : '')}>
-                    <label className={classNames(Styles.inputLabel, 'input-label')}>
-                      Procedure ID
-                    </label>
-                    <div>
-                      <input
-                        type="text"
-                        className={classNames('input-field', Styles.projectNameField)}
-                        id="procedureId"
-                        placeholder="Type here eg.[PO-XXXXX / ITPLC-XXXXX]"
-                        autoComplete="off"
-                        maxLength={55}
-                        defaultValue={procedureId}
-                        {...register('procedureId', {pattern: /^(PO|ITPLC)-\d{5}$/, onChange: (e) => { setProcedureID(e.target.value) } })}
-                      />
-                      <span className={classNames('error-message')}>{errors.procedureId?.type === 'pattern' && 'Procedure ID should be of type PO-XXXXX / ITPLC-XXXXX'}</span>
-                    </div>
+                <div className={classNames('input-field-group include-error', errors?.procedureId ? 'error' : '')}>
+                  <label className={classNames(Styles.inputLabel, 'input-label')}>
+                    Procedure ID
+                  </label>
+                  <div>
+                    <input
+                      type="text"
+                      className={classNames('input-field', Styles.projectNameField)}
+                      id="procedureId"
+                      placeholder="Type here eg.[PO-XXXXX / ITPLC-XXXXX]"
+                      autoComplete="off"
+                      maxLength={55}
+                      defaultValue={procedureId}
+                      {...register('procedureId', { pattern: /^(PO|ITPLC)-\d{5}$/, onChange: (e) => { setProcedureID(e.target.value) } })}
+                    />
+                    <span className={classNames('error-message')}>{errors.procedureId?.type === 'pattern' && 'Procedure ID should be of type PO-XXXXX / ITPLC-XXXXX'}</span>
                   </div>
                 </div>
+              </div>
 
-                <div className={classNames(Styles.termsOfUseContainer, errors?.termsOfUse?.message ? 'error' : '')}>
+              <div className={classNames(Styles.termsOfUseContainer, errors?.termsOfUse?.message ? 'error' : '')}>
                 <div className={Styles.termsOfUseContent}>
                   <div>
                     <label className={classNames('checkbox', errors?.termsOfUse?.message ? 'error' : '')}>
@@ -664,9 +675,9 @@ const ChronosProjectForm = ({project, edit, onSave}) => {
                           defaultChecked={termsOfUse}
                           {...register('termsOfUse', {
                             required: 'Please agree to terms of use',
-                            validate: (value) => { 
+                            validate: (value) => {
                               value || 'Please agree to terms of use';
-                             },
+                            },
                             onChange: (e) => { e.target.value === 'on' ? setTermsOfUse(true) : setTermsOfUse(false) }
                           })}
                         />
@@ -698,18 +709,18 @@ const ChronosProjectForm = ({project, edit, onSave}) => {
                 <div className={Styles.teamListWrapper}>
                   <div className={Styles.addTeamMemberWrapper}>
                     <IconAvatarNew className={Styles.avatarIcon} />
-                    <button id="AddTeamMemberBtn" 
+                    <button id="AddTeamMemberBtn"
                       onClick={showAddTeamMemberModalView}
-                      >
+                    >
                       <i className="icon mbc-icon plus" />
                       <span>Add team member</span>
                     </button>
                   </div>
                   {
                     teamMembers?.length > 0 &&
-                      <div className={Styles.membersList}>
-                        {teamMembersList}
-                      </div>
+                    <div className={Styles.membersList}>
+                      {teamMembersList}
+                    </div>
                   }
                 </div>
               </div>
