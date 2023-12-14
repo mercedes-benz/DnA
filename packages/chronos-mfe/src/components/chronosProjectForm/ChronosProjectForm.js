@@ -357,7 +357,7 @@ const ChronosProjectForm = ({ project, edit, onSave }) => {
                     <option id="typeOfProjectOption" value={0}>
                       Choose
                     </option>
-                    <option value={'Playground'}>Playground</option>
+                    { (!edit || typeOfProject==='Playground') && <option value={'Playground'}>Playground</option>} 
                     <option value={'Proof of Concept'}>Proof of Concept</option>
                     <option value={'Production'}>Production</option>
                   </select>
