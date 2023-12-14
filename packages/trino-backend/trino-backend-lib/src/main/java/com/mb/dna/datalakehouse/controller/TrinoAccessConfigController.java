@@ -22,7 +22,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @RestController
 @Api(value = "Trino access control details API", tags = { "trino" })
-@RequestMapping("/api")
+@RequestMapping("/service")
 @Slf4j
 public class TrinoAccessConfigController {
 
