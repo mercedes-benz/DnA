@@ -448,8 +448,10 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 	@Override
 	public List<CodespaceSecurityConfigDto> getAllSecurityConfigs(Integer offset, Integer limit){
 		List<CodespaceSecurityConfigDto> data = new ArrayList<>();
+
 		List<Object[]> results = new ArrayList<>();
-		String getQuery = "SELECT distinct cast(jsonb_extract_path_text(data,'projectDetails','projectName') as text) as PROJECT_NAME, cast(id as text) as COLUMN_ID,  " +
+		String getQuery = "SELECT DISTINCT ON (jsonb_extract_path_text(data, 'projectDetails', 'projectName'))"+
+					"cast(jsonb_extract_path_text(data,'projectDetails','projectName') as text) as PROJECT_NAME, cast(id as text) as COLUMN_ID,  " +
                   "cast(jsonb_extract_path_text(data,'projectDetails','projectOwner') as text) as PROJECT_OWNER, " +
                   "cast(jsonb_extract_path_text(data,'projectDetails','securityConfig') as text) as SECURITY_CONFIG " +
                   "FROM workspace_nsql WHERE lower(jsonb_extract_path_text(data,'projectDetails','securityConfig','status')) in('requested','accepted') ";
@@ -459,6 +461,7 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 			  getQuery = getQuery + " offset " + offset;
 		try {
 			Query q = em.createNativeQuery(getQuery);
+			System.out.print(q);
 			results = q.getResultList();
 
 			ObjectMapper mapper = new ObjectMapper();
