@@ -362,6 +362,8 @@ const ChronosProjectForm = ({ project, edit, onSave }) => {
                     <option value={'Production'}>Production</option>
                   </select>
                 </div>
+                  <p style={{ color: 'var(--color-orange)' }}
+                  className={classNames((typeOfProject !== 'Playground' ? ' hide' : ''))}><i className="icon mbc-icon alert circle"></i> Playground projects are deleted after 2 months of not being used.</p>
                 <span className={classNames('error-message', errors?.typeOfProject?.message ? '' : 'hide')}>
                   {errors?.typeOfProject?.message}
                 </span>
@@ -386,8 +388,7 @@ const ChronosProjectForm = ({ project, edit, onSave }) => {
                 </div>
               </div>
             </div>
-            {typeOfProject !== 'Playground' &&
-              <div>
+              <div className={classNames((typeOfProject === 'Playground' ? ' hide' : ''))}>
                 <div className={classNames('input-field-group include-error area', errors.description ? 'error' : '')}>
                   <label id="description" className="input-label" htmlFor="description">
                     Description <sup>*</sup>
@@ -542,7 +543,7 @@ const ChronosProjectForm = ({ project, edit, onSave }) => {
                     </div>
                   </div>
                 </div>
-              </div>}
+              </div>
             <div className={Styles.flexLayout}>
               <div
                 className={classNames(
@@ -622,7 +623,7 @@ const ChronosProjectForm = ({ project, edit, onSave }) => {
                 </div>
               </div>
             </div>
-            {typeOfProject !== 'Playground' && <div>
+            <div className={classNames((typeOfProject === 'Playground' ? ' hide' : ''))}>
 
               <div className={Styles.flexLayout}>
                 <div className={classNames('input-field-group include-error', errors?.archerId ? 'error' : '')}>
@@ -702,7 +703,6 @@ const ChronosProjectForm = ({ project, edit, onSave }) => {
                 </span>
               </div>
             </div>
-            }
             <div className={Styles.collabContainer}>
               <h3 className={Styles.modalSubTitle}>Add Collaborators</h3>
               <div className={Styles.collabAvatar}>
