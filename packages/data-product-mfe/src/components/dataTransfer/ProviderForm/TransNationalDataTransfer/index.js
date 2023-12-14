@@ -21,9 +21,9 @@ const TransNationalDataTransfer = (
     getValues,
   } = useFormContext();
   const [showInfoModal, setShowInfoModal] = useState(false);
-
-  const validateNotWithinEU = (value) => {
-    return (
+  
+    const validateNotWithinEU = (value) => {
+      return (
       !watch('transnationalDataTransfer') ||
       watch('transnationalDataTransfer') === 'No' ||
       watch('transnationalDataTransferNotWithinEU') === 'null' ||
@@ -32,7 +32,26 @@ const TransNationalDataTransfer = (
     );
   };
 
+  const validateDataContactAware = (value) =>{
+    return(
+      !watch('transnationalDataTransfer') ||
+      watch('transnationalDataTransfer') === 'No' ||
+      watch('transnationalDataContactAwareTransfer') === 'null' ||
+      value?.length > 0 ||
+      '*Missing entry'
+    );
+  };
 
+  const validateDataTransferObjection = (value) => {
+    return watch("transnationalDataContactAwareTransfer") === "Yes"
+      ? !watch("transnationalDataTransfer") ||
+          watch("transnationalDataTransfer") === "No" ||
+          watch("transnationalDataObjectionsTransfer") === "null" ||
+          value?.length > 0 ||
+          "*Missing entry"
+      : null;
+  };
+  
   // const isLCOApproveOptionsDisabled =
   //   !watch('transnationalDataTransfer') ||
   //   watch('transnationalDataTransfer') === 'No' ||
@@ -131,22 +150,10 @@ const TransNationalDataTransfer = (
                       <input
                         {...register('transnationalDataTransferNotWithinEU', {
                           validate: validateNotWithinEU,
-                          // disabled: watch('transnationalDataTransfer') === '' || watch('transnationalDataTransfer') === 'No',
+                      // disabled: watch('transnationalDataTransfer') === '' || watch('transnationalDataTransfer') === 'No',
                           setValueAs: (value) => {
                             if (watch('transnationalDataTransfer') === 'No') return undefined;
                             return value;
-                          },
-                          onChange: () => {
-                            clearErrors([
-                              'transnationalDataContactAwareTransfer',
-                              'transnationalDataObjectionsTransfer',
-                              'transnationalDataTransferingNonetheless',
-                              'transnationalDataTransferingObjections',
-                            ]);
-                            setValue('transnationalDataContactAwareTransfer', '');
-                            setValue('transnationalDataObjectionsTransfer', '');
-                            setValue('transnationalDataTransferingNonetheless', '');
-                            setValue('transnationalDataTransferingObjections', '');
                           },
                         })}
                         disabled = {watch('transnationalDataTransfer') === '' || watch('transnationalDataTransfer') === 'No'}
@@ -163,7 +170,7 @@ const TransNationalDataTransfer = (
                       <input
                         {...register('transnationalDataTransferNotWithinEU', {
                           validate: validateNotWithinEU,
-                          // disabled: watch('transnationalDataTransfer') === '' || watch('transnationalDataTransfer') === 'No',
+                        // disabled: watch('transnationalDataTransfer') === '' || watch('transnationalDataTransfer') === 'No',
                         })}
                         disabled= {watch('transnationalDataTransfer') === '' || watch('transnationalDataTransfer') === 'No'}
                         type="radio"
@@ -190,24 +197,24 @@ const TransNationalDataTransfer = (
               style={{ minHeight: '50px' }}
             >
               <label className={classNames(Styles.inputLabel, 'input-label')}>
-                Is corresponding Compliance contact aware of this transfer? <sup>*</sup>
+                Is corresponding Compliance contact aware of this transfer? 
+                {getValues('transnationalDataTransfer') === 'Yes' ? <sup>*</sup> : null}
               </label>
               <div className={Styles.radioBtns}>
                 <label className={'radio'}>
                   <span className="wrapper">
                     <input
                       {...register('transnationalDataContactAwareTransfer', {
-                        required: !(watch('transnationalDataTransfer') === '' || watch('transnationalDataTransfer') === 'No'),
+                        //required: !(watch('transnationalDataTransfer') === '' || watch('transnationalDataTransfer') === 'No'),
                         // disabled: watch('transnationalDataTransfer') === '' || watch('transnationalDataTransfer') === 'No',
+                        validate: validateDataContactAware,
                         onChange: () => {
                           clearErrors([
                             'transnationalDataObjectionsTransfer',
                             'transnationalDataTransferingNonetheless',
                             'transnationalDataTransferingObjections',
                           ]);
-                          setValue('transnationalDataObjectionsTransfer', '');
-                          setValue('transnationalDataTransferingNonetheless', '');
-                          setValue('transnationalDataTransferingObjections', '');
+
                         },
                       })}
                       disabled= {watch('transnationalDataTransfer') === '' || watch('transnationalDataTransfer') === 'No'}
@@ -223,7 +230,8 @@ const TransNationalDataTransfer = (
                   <span className="wrapper">
                     <input
                       {...register('transnationalDataContactAwareTransfer', {
-                        required: !(watch('transnationalDataTransfer') === '' || watch('transnationalDataTransfer') === 'No'),
+                        //required: !(watch('transnationalDataTransfer') === '' || watch('transnationalDataTransfer') === 'No'),
+                        validate: validateDataContactAware
                         // disabled: watch('transnationalDataTransfer') === '' || watch('transnationalDataTransfer') === 'No',
                       })}
                       disabled= {watch('transnationalDataTransfer') === '' || watch('transnationalDataTransfer') === 'No'}
@@ -254,16 +262,16 @@ const TransNationalDataTransfer = (
                 <label className={'radio'}>
                   <span className="wrapper">
                     <input
-                      {...register('transnationalDataObjectionsTransfer', {
-                        required: !(watch('transnationalDataTransfer') === '' || watch('transnationalDataTransfer') === 'No'),
+                      {...register('transnationalDataObjectionsTransfer',
+                      {
+                        // required: 'transnationalDataContactAwareTransfer' === 'Yes' ,
+                        validate: validateDataTransferObjection ,
                         // disabled: watch('transnationalDataTransfer') === '' || watch('transnationalDataTransfer') === 'No',
                         onChange: () => {
                           clearErrors([
                             'transnationalDataTransferingNonetheless',
                             'transnationalDataTransferingObjections',
                           ]);
-                          setValue('transnationalDataTransferingNonetheless', '');
-                          setValue('transnationalDataTransferingObjections', '');
                         },
                       })}
                       disabled= {watch('transnationalDataTransfer') === '' || watch('transnationalDataTransfer') === 'No'}
@@ -279,8 +287,8 @@ const TransNationalDataTransfer = (
                   <span className="wrapper">
                     <input
                       {...register('transnationalDataObjectionsTransfer', {
-                        required: !(watch('transnationalDataTransfer') === '' || watch('transnationalDataTransfer') === 'No'),
-                        // disabled: watch('transnationalDataTransfer') === '' || watch('transnationalDataTransfer') === 'No',
+                       // required: !(watch('transnationalDataTransfer') === '' || watch('transnationalDataTransfer') === 'No'),
+                        validate: validateDataTransferObjection,
                       })}
                       disabled= {watch('transnationalDataTransfer') === '' || watch('transnationalDataTransfer') === 'No'}
                       type="radio"
@@ -298,7 +306,7 @@ const TransNationalDataTransfer = (
               id="transnationalDataTransferingNonetheless"
               className={classNames(
                 'input-field-group include-error area',
-                errors.transnationalDataTransferingNonetheless ? 'error' : '',
+                errors.transnationalDataTransferingNonetheless ? 'error' : '', 
                 !watch('transnationalDataTransfer')|| watch('transnationalDataTransfer') === 'No' ? 'disabled' : '',
               )}
             >
@@ -315,7 +323,7 @@ const TransNationalDataTransfer = (
                 type="text"
                 placeholder="Please state your reasoning for transfering nonetheless."
                 {...register('transnationalDataTransferingNonetheless', { 
-                  required: !(watch('transnationalDataTransfer') === '' || watch('transnationalDataTransfer') === 'No'), 
+                  required: watch('transnationalDataObjectionsTransfer') === 'Yes' ? "*Missing entry" : null, 
                 // disabled: watch('transnationalDataTransfer') === '' || watch('transnationalDataTransfer') === 'No' 
                 })}
                 disabled= {watch('transnationalDataTransfer') === '' || watch('transnationalDataTransfer') === 'No'}
@@ -345,7 +353,7 @@ const TransNationalDataTransfer = (
                 type="text"
                 placeholder="Please state your objections."
                 {...register('transnationalDataTransferingObjections', { 
-                  required: !(watch('transnationalDataTransfer') === '' || watch('transnationalDataTransfer') === 'No'), 
+                  required: watch('transnationalDataObjectionsTransfer') === 'Yes'? '*Missing entry' :null, 
                 // disabled: watch('transnationalDataTransfer') === '' || watch('transnationalDataTransfer') === 'No' 
                 })}
                 disabled= {watch('transnationalDataTransfer') === '' || watch('transnationalDataTransfer') === 'No'}
