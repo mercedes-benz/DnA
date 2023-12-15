@@ -53,7 +53,7 @@ export interface IProjectDetails {
   intDeploymentDetails?: IDeploymentDetails;
   prodDeploymentDetails?: IDeploymentDetails;
   securityConfig?: any;
-  publishSecurityConfig?: any;
+  publishedSecuirtyConfig?: any;
 }
 
 export interface IDeploymentDetails {
@@ -450,7 +450,7 @@ const CodeSpace = (props: ICodeSpaceProps) => {
 
   const isOwner = codeSpaceData.projectDetails?.projectOwner?.id === props.user.id;
   const navigateSecurityConfig = () => {
-    if (codeSpaceData?.projectDetails?.publishSecurityConfig) {
+    if (codeSpaceData?.projectDetails?.publishedSecuirtyConfig) {
       history.push(`/codespace/publishedSecurityconfig/${codeSpaceData.id}?pub=true`);
       return;
     }
