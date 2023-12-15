@@ -45,7 +45,7 @@ export interface IDigitalValueProps {
   benefitRelevancesList: IBenefitRelevance[];
   strategicRelevancesList: IStrategicRelevance[];
   onSaveDraft: (tabToBeSaved: string) => void;
-  onPublish: () => void;
+  onPublish: (segmentId: string) => void;
   modifyDigitalValue: (digitalValue: IDigitalValue) => void;
 }
 
@@ -1628,7 +1628,7 @@ export default class DigitalValue extends React.Component<IDigitalValueProps, ID
   protected onSolutionPublish = () => {
     // if (this.validateDigitalValueInputs()) {
     this.props.modifyDigitalValue(this.getDigitalValueObj());
-    this.props.onPublish();
+    this.props.onPublish('DigitalValue');
     // }
   };
 
