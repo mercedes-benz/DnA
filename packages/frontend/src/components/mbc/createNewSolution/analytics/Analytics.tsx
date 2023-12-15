@@ -14,7 +14,7 @@ export interface IAnalyticsProps {
   algorithms: ITag[];
   analyticsSolution: ITag[];
   isGenAI: boolean;
-  onPublish: () => void;
+  onPublish: (segmentId: string) => void;
 }
 
 export interface IAnalyticsState {
@@ -229,7 +229,7 @@ export default class Analytics extends React.Component<IAnalyticsProps, IAnalyti
     if (this.validateAnalyticsForm()) {
       this.props.modifyAnalytics(this.state.analytics);
       // this.props.onSaveDraft('analytics');
-      this.props.onPublish();
+      this.props.onPublish('Analytics');
     }
   };
 
