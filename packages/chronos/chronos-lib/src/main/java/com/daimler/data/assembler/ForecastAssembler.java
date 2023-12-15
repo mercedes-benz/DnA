@@ -75,18 +75,6 @@ public class ForecastAssembler implements GenericAssembler<ForecastVO, ForecastN
 		if(entity != null)
 		{
 			BeanUtils.copyProperties(entity, governanceFeildVO);
-			DivisionVO divisionVoValues = new DivisionVO();
-			Division divisionValues = entity.getDivision();
-			if (divisionValues != null) {
-				BeanUtils.copyProperties(divisionValues, divisionVoValues);
-				SubdivisionVO subVo = new SubdivisionVO();
-				Subdivision subValues = divisionValues.getSubdivision();
-				if (subValues != null) {
-					BeanUtils.copyProperties(subValues, subVo);
-					divisionVoValues.setSubdivision(subVo);
-				}
-				governanceFeildVO.setDivision(divisionVoValues);
-			}
 			if (entity.getPiiData() != null && entity.getTermsOfUse() != null) {
 				governanceFeildVO.setPiiData(entity.getPiiData());
 				governanceFeildVO.setTermsOfUse(entity.getTermsOfUse());
@@ -300,18 +288,6 @@ public class ForecastAssembler implements GenericAssembler<ForecastVO, ForecastN
 		if(vo != null)
 		{
 			BeanUtils.copyProperties(vo, governanceFeilds);
-			Division divisionValues = new Division();
-			DivisionVO voValues = vo.getDivision();
-			if (voValues != null) {
-				BeanUtils.copyProperties(voValues, divisionValues);
-				SubdivisionVO subValues = voValues.getSubdivision();
-				Subdivision values = new Subdivision();
-				if (subValues != null) {
-					BeanUtils.copyProperties(subValues, values);
-					divisionValues.setSubdivision(values);
-				}
-				governanceFeilds.setDivision(divisionValues);
-			}
 			if (vo.isPiiData() != null && vo.isTermsOfUse() != null) {
 				governanceFeilds.setPiiData(vo.isPiiData());
 				governanceFeilds.setTermsOfUse(vo.isTermsOfUse());
