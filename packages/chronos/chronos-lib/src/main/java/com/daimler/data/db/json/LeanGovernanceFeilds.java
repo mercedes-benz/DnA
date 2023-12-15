@@ -16,8 +16,7 @@ public class LeanGovernanceFeilds {
 
     private String typeOfProject;
     private String decription;
-    private String division;
-    private String subDivision;
+    private Division division;
     private String department;
     private List<String> tags;
     private String dataClassification;

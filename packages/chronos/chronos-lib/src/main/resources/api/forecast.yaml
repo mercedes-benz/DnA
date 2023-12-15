@@ -1402,11 +1402,8 @@ definitions:
         type: string
         description: decription of forecast
       division:
-        type: string
+        $ref: "#/definitions/DivisionVO"
         description: division of forecast
-      subDivision:
-        type: string
-        description: subDivision of forecast
       department:
         type: string
         description: department of forecast
@@ -1433,12 +1430,36 @@ definitions:
       required:
         -description
         -division
-        -subDivision
         -department
         -typeOfProject
         -dataClassfication
         -piiData
         -termsOfUse
+
+  DivisionVO:
+    type: object
+    properties:
+      id:
+        type: string
+        description: id of division
+      name:
+        type: string
+        description: name of division
+      subdivision:
+        $ref: "#/definitions/SubdivisionVO"
+    required:
+      - id
+      - name
+      
+  SubdivisionVO:
+    type: object
+    properties:
+      id:
+        type: string
+        description: id of subdivision
+      name:
+        type: string
+        description: name of subdivision
   
   ForecastRunRequestVO:
     type: object
