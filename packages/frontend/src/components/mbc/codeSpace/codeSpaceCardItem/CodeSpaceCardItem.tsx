@@ -108,7 +108,7 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
   };
 
   const onCodeSpaceSecurityConfigClick = (codeSpace: ICodeSpaceData) => {
-    if (codeSpace?.projectDetails?.publishSecurityConfig) {
+    if (codeSpace?.projectDetails?.publishedSecuirtyConfig) {
       history.push(`/codespace/publishedSecurityconfig/${codeSpace.id}?pub=true`);
       return;
     }
