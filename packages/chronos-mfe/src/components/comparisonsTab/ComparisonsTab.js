@@ -25,6 +25,7 @@ const ComparisonsTab = () => {
 
   useEffect(() => {
     Tooltip.defaultSetup();
+    document.querySelector('body').style.overflow = 'auto';
     return Tooltip.clear();
     //eslint-disable-next-line
   }, []);
