@@ -43,6 +43,7 @@ import java.util.stream.Collectors;
 import com.daimler.data.dto.workspace.RoleCollectionVO;
 import com.daimler.data.db.entities.CodeServerWorkspaceNsql;
 import com.daimler.data.db.json.CodeServerDeploymentDetails;
+import com.daimler.data.db.json.CodeServerLeanGovernanceFeilds;
 import com.daimler.data.db.json.CodeServerProjectDetails;
 import com.daimler.data.db.json.CodeServerRecipeDetails;
 import com.daimler.data.db.json.CodeServerWorkspace;
@@ -55,6 +56,7 @@ import com.daimler.data.db.json.CodespaceSecurityUserRoleMap;
 import com.daimler.data.db.json.UserInfo;
 import com.daimler.data.dto.CodespaceSecurityConfigDto;
 import com.daimler.data.dto.workspace.CodeServerDeploymentDetailsVO;
+import com.daimler.data.dto.workspace.CodeServerGovernanceVO;
 import com.daimler.data.dto.workspace.CodeServerProjectDetailsVO;
 import com.daimler.data.dto.workspace.CodeServerRecipeDetailsVO;
 import com.daimler.data.dto.workspace.CodespaceSecurityConfigLOV;
@@ -400,6 +402,11 @@ public class WorkspaceAssembler implements GenericAssembler<CodeServerWorkspaceV
 								projectDetails.getIntDeploymentDetails());
 						CodeServerDeploymentDetailsVO prodDeployDetailsVO = toDeploymentDetailsVO(
 								projectDetails.getProdDeploymentDetails());
+						CodeServerLeanGovernanceFeilds governance = projectDetails.getDataGovernance();
+						if (governance != null) {
+							CodeServerGovernanceVO governanceVO = this.toGovernanceVo(governance);
+							projectDetailsVO.setDataGovernance(governanceVO);
+						}
 						projectDetailsVO.setIntDeploymentDetails(intDeployDetailsVO);
 						projectDetailsVO.setProdDeploymentDetails(prodDeployDetailsVO);
 						List<UserInfo> collabs = projectDetails.getProjectCollaborators();
@@ -445,6 +452,17 @@ public class WorkspaceAssembler implements GenericAssembler<CodeServerWorkspaceV
 		return vo;
 	}
 
+	public CodeServerGovernanceVO toGovernanceVo(CodeServerLeanGovernanceFeilds governance) {
+		CodeServerGovernanceVO governanceVo = new CodeServerGovernanceVO();
+		if (governance != null) {
+			BeanUtils.copyProperties(governance, governanceVo);
+			if (governance.getPiiData() != null) {
+				governanceVo.setPiiData(governance.getPiiData());
+			}
+		}
+		return governanceVo;
+	}
+
 	@Override
 	public CodeServerWorkspaceNsql toEntity(CodeServerWorkspaceVO vo) {
 		CodeServerWorkspaceNsql entity = null;
@@ -461,6 +479,11 @@ public class WorkspaceAssembler implements GenericAssembler<CodeServerWorkspaceV
 			CodeServerProjectDetailsVO projectDetailsVO = vo.getProjectDetails();
 			if (projectDetailsVO != null) {
 				CodeServerProjectDetails projectDetails = new CodeServerProjectDetails();
+				CodeServerGovernanceVO governanceVO = projectDetailsVO.getDataGovernance();
+				if (governanceVO != null) {
+					CodeServerLeanGovernanceFeilds governance = this.toGovernanceEntity(governanceVO);
+					projectDetails.setDataGovernance(governance);
+				}
 				BeanUtils.copyProperties(projectDetailsVO, projectDetails);
 				UserInfoVO projectOwnerVO = projectDetailsVO.getProjectOwner();
 				if (projectOwnerVO != null) {
@@ -503,6 +526,17 @@ public class WorkspaceAssembler implements GenericAssembler<CodeServerWorkspaceV
 			}
 		}
 		return entity;
+	}
+
+	public CodeServerLeanGovernanceFeilds toGovernanceEntity(CodeServerGovernanceVO governanceVO) {
+		CodeServerLeanGovernanceFeilds governanceFeilds = new CodeServerLeanGovernanceFeilds();
+		if (governanceVO != null) {
+			BeanUtils.copyProperties(governanceVO, governanceFeilds);
+			if (governanceVO.isPiiData()) {
+				governanceFeilds.setPiiData(governanceVO.isPiiData());
+			}
+		}
+		return governanceFeilds;
 	}
 
 	public CodespaceSecurityConfigVO assembleSecurityConfig(CodeServerWorkspaceVO vo, CodespaceSecurityConfigVO data) {

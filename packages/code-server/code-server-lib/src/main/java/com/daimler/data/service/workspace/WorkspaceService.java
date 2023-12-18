@@ -29,6 +29,8 @@ package com.daimler.data.service.workspace;
 
 import java.util.List;
 
+import javax.validation.Valid;
+
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.dto.workspace.*;
 import com.daimler.data.dto.workspace.admin.CodespaceSecurityConfigDetailsVO;
@@ -74,4 +76,7 @@ public interface WorkspaceService {
     List<CodespaceSecurityConfigDetailsVO> getAllSecurityConfigs(Integer offset, Integer limit);
 
 	GenericMessage updateSecurityConfigStatus(String projectName, String Status, String user, CodeServerWorkspaceVO vo);
+
+	GenericMessage updateGovernancenceValues(String userId, String id,
+			@Valid DataGovernanceRequestInfo dataGovernanceInfo);
 }
