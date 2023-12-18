@@ -461,7 +461,6 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 			  getQuery = getQuery + " offset " + offset;
 		try {
 			Query q = em.createNativeQuery(getQuery);
-			System.out.print(q);
 			results = q.getResultList();
 
 			ObjectMapper mapper = new ObjectMapper();
@@ -487,11 +486,11 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 
 			if(data!=null && !data.isEmpty()) {
 																
-				log.info("Found {} workspaces in project {} which are in requested state", data.size());
+				log.info("Found {} workspaces which are in requested and accepted state", data.size());
 			}
 		}catch(Exception e) {
 			e.printStackTrace();
-			log.error("Failed to query workspaces under project {} , which are not in requested state");
+			log.error("Failed to query workspaces under project , which are in requested and accepted state");
 		}
 		return data;
 	}
