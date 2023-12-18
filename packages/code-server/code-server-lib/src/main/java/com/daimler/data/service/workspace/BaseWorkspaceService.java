@@ -1293,25 +1293,16 @@ public class BaseWorkspaceService implements WorkspaceService {
 					CodeServerWorkspaceNsql entity = workspaceCustomRepository.findByWorkspaceId(id);
 					CodespaceSecurityConfig config = workspaceAssembler.toSecurityConfig(vo.getProjectDetails().getSecurityConfig());
 					if(entity != null){
-						//if (entity != null && !isPublished) {
 						entity.getData().getProjectDetails().setSecurityConfig(config);
-							//jpaRepo.save(entity);
-							//entities.add(entity);
-						//}
+
 						if(isPublished){
-							//entity.getData().getProjectDetails().setSecurityConfig(
-								//	workspaceAssembler.toSecurityConfig(vo.getProjectDetails().getSecurityConfig()));
 							entity.getData().getProjectDetails().setPublishedSecuirtyConfig(config);
-							//jpaRepo.save(entity);
 						}
 						entities.add(entity);
 					}
-
 				}
 				jpaRepo.saveAllAndFlush(entities);
 			}
-			// CodeServerWorkspaceNsql entity = workspaceAssembler.toEntity(vo);
-			// jpaRepo.save(entity);
 			responseMessage.setSuccess("SUCCESS");
 
 		} catch (Exception e) {
