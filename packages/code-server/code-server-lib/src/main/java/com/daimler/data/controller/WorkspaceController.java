@@ -325,6 +325,9 @@ import com.daimler.data.dto.workspace.CodespaceSecurityConfigVO;
 				 saveConfigResponse.setResponse(errorMessage);
 				 return new ResponseEntity<>(saveConfigResponse, HttpStatus.FORBIDDEN);
 			 }
+			  if(data.isIsProtectedByDna()== null){
+					data.isProtectedByDna(false);
+			 }
 			 if(data.isIsProtectedByDna()!=null && ! data.isIsProtectedByDna())
 			 {
 				 List<CodespaceSecurityEntitlementVO> entitlemtVOs = data.getEntitlements();
