@@ -1401,9 +1401,15 @@ definitions:
       decription:
         type: string
         description: decription of forecast
+      divisionId:
+        type: string
+        description: divisionId of forecast
       division:
         type: string
         description: division of forecast
+      subDivisionId:
+        type: string
+        description: subDivisionId of forecast
       subDivision:
         type: string
         description: subDivision of forecast
