@@ -74,7 +74,8 @@ import com.daimler.data.dto.workspace.CodespaceSecurityConfigVO;
  import com.daimler.data.dto.workspace.CodespaceSecurityEntitlementVO;
  import com.daimler.data.dto.workspace.CodespaceSecurityRoleVO;
  import com.daimler.data.dto.workspace.CreatedByVO;
- import com.daimler.data.dto.workspace.EntitlementCollectionVO;
+import com.daimler.data.dto.workspace.DataGovernanceRequestInfo;
+import com.daimler.data.dto.workspace.EntitlementCollectionVO;
  import com.daimler.data.dto.workspace.InitializeCollabWorkspaceRequestVO;
  import com.daimler.data.dto.workspace.InitializeWorkspaceRequestVO;
  import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
@@ -1491,4 +1492,59 @@ import com.daimler.data.dto.workspace.CodespaceSecurityConfigVO;
 		 }
 		 return new ResponseEntity<>(configCollectionVo, HttpStatus.FORBIDDEN);
 	}
+
+	@ApiOperation(value = "update Governance feilds", nickname = "updateGovernance", notes = "Update Governane feilds in workspace for user", response = CodeServerWorkspaceVO.class, tags = {
+			"code-server", })
+	@ApiResponses(value = {
+			@ApiResponse(code = 200, message = "Returns message of success or failure", response = CodeServerWorkspaceVO.class),
+			@ApiResponse(code = 204, message = "Fetch complete, no content found."),
+			@ApiResponse(code = 400, message = "Bad request."),
+			@ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+			@ApiResponse(code = 403, message = "Request is not authorized."),
+			@ApiResponse(code = 405, message = "Method not allowed"),
+			@ApiResponse(code = 500, message = "Internal error") })
+	@RequestMapping(value = "/workspaces/{id}/datagoverance", produces = { "application/json" }, consumes = {
+			"application/json" }, method = RequestMethod.PATCH)
+	@Override
+	public ResponseEntity<GenericMessage> updateGovernance(
+			@ApiParam(value = "workspace ID for the project", required = true) @PathVariable("id") String id,
+			@ApiParam(value = "GovernanceData to update in project", required = true) @Valid @RequestBody DataGovernanceRequestInfo dataGovernanceInfo) {
+		// TODO Auto-generated method stub
+		CreatedByVO currentUser = this.userStore.getVO();
+		String userId = currentUser != null ? currentUser.getId() : null;
+		CodeServerWorkspaceVO vo = service.getById(userId, id);
+		GenericMessage responseMessage = new GenericMessage();
+
+		if (vo == null || vo.getWorkspaceId() == null) {
+			log.debug("No workspace found, returning empty");
+			GenericMessage emptyResponse = new GenericMessage();
+			List<MessageDescription> errorMessage = new ArrayList<>();
+			MessageDescription msg = new MessageDescription();
+			msg.setMessage("No workspace found for given id and the user");
+			errorMessage.add(msg);
+			emptyResponse.addErrors(msg);
+			emptyResponse.setSuccess("FAILED");
+			emptyResponse.setErrors(errorMessage);
+			return new ResponseEntity<>(emptyResponse, HttpStatus.NOT_FOUND);
+		}
+
+		if (!(vo != null && vo.getWorkspaceOwner() != null
+				&& vo.getWorkspaceOwner().getId().equalsIgnoreCase(userId))) {
+			MessageDescription notAuthorizedMsg = new MessageDescription();
+			notAuthorizedMsg.setMessage(
+					"Not authorized to update workspace. User does not have privileges.");
+			GenericMessage errorMessage = new GenericMessage();
+			errorMessage.addErrors(notAuthorizedMsg);
+			log.info("User {} cannot update workspace, insufficient privileges. Workspace name: {}", userId,
+					vo.getWorkspaceId());
+			return new ResponseEntity<>(errorMessage, HttpStatus.FORBIDDEN);
+		}
+
+		if (userId != null) {
+			responseMessage = service.updateGovernancenceValues(userId, id, dataGovernanceInfo);
+		}
+
+		return new ResponseEntity<>(responseMessage, HttpStatus.OK);
+	}
+
  }
