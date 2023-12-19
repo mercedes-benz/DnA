@@ -72,10 +72,10 @@ public class ForecastAssembler implements GenericAssembler<ForecastVO, ForecastN
 
 	public LeanGovernanceFeildVO toGovernceVo(LeanGovernanceFeilds entity) {
 		LeanGovernanceFeildVO governanceFeildVO = new LeanGovernanceFeildVO();
-		if (entity != null) {
-			if(entity.getPiiData()!= null && entity.getTermsOfUse()!= null)
-			{
-				BeanUtils.copyProperties(entity, governanceFeildVO);
+		if(entity != null)
+		{
+			BeanUtils.copyProperties(entity, governanceFeildVO);
+			if (entity.getPiiData() != null && entity.getTermsOfUse() != null) {
 				governanceFeildVO.setPiiData(entity.getPiiData());
 				governanceFeildVO.setTermsOfUse(entity.getTermsOfUse());
 			}
@@ -285,10 +285,10 @@ public class ForecastAssembler implements GenericAssembler<ForecastVO, ForecastN
 
 	public LeanGovernanceFeilds toGovernceEntity(LeanGovernanceFeildVO vo) {
 		LeanGovernanceFeilds governanceFeilds = new LeanGovernanceFeilds();
-		if (vo != null) {
-			if(vo.isPiiData() != null && vo.isPiiData()!= null)
-			{
-				BeanUtils.copyProperties(vo, governanceFeilds);
+		if(vo != null)
+		{
+			BeanUtils.copyProperties(vo, governanceFeilds);
+			if (vo.isPiiData() != null && vo.isTermsOfUse() != null) {
 				governanceFeilds.setPiiData(vo.isPiiData());
 				governanceFeilds.setTermsOfUse(vo.isTermsOfUse());
 			}
