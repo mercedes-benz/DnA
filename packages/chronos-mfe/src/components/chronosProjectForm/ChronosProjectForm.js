@@ -426,7 +426,7 @@ const ChronosProjectForm = ({ project, edit, onSave }) => {
                       value={division}
                       {...register('division', {
                         required: '*Missing entry',
-                        validate: (value) => value !== 0 || '*Missing entry',
+                        validate: (value) => value !== '0' || '*Missing entry',
                         onChange: (e) => { setDivision(e.target.value) }
                       })}
                     >
@@ -565,7 +565,7 @@ const ChronosProjectForm = ({ project, edit, onSave }) => {
                     value={chronosProject?.leanGovernanceFeilds?.dataClassification}
                     {...register('dataClassification', {
                       required: '*Missing entry',
-                      validate: (value) => value !== 0 || '*Missing entry',
+                      validate: (value) => value !== '0' || '*Missing entry',
                       onChange: (e) => { setDataClassification(e.target.value) }
                     })}
                   >
