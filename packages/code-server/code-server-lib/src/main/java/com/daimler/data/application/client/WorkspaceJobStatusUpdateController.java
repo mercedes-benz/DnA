@@ -22,6 +22,10 @@ import org.springframework.web.bind.annotation.RestController;
 import com.daimler.data.auth.client.AuthenticatorClient;
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
+import com.daimler.data.db.entities.CodeServerWorkspaceNsql;
+import com.daimler.data.db.json.CodeServerWorkspace;
+import com.daimler.data.db.repo.workspace.WorkspaceCustomRepository;
+import com.daimler.data.db.repo.workspace.WorkspaceRepository;
 import com.daimler.data.dto.workspace.CodeServerDeploymentDetailsVO;
 import com.daimler.data.dto.workspace.CodeServerProjectDetailsVO;
 import com.daimler.data.dto.workspace.CodeServerWorkspaceVO;
@@ -30,6 +34,7 @@ import com.daimler.data.dto.workspace.UserInfoVO;
 import com.daimler.data.dto.workspace.WorkspaceUpdateRequestVO;
 import com.daimler.data.service.common.BaseCommonService;
 import com.daimler.data.service.workspace.WorkspaceService;
+import com.daimler.data.util.ConstantsUtility;
 import com.daimler.dna.notifications.common.producer.KafkaProducerService;
 
 import io.swagger.annotations.Api;
@@ -61,7 +66,13 @@ public class WorkspaceJobStatusUpdateController  {
 	private boolean callKongApisFromBackend;
 	
 	@Autowired
-	private AuthenticatorClient authenticatorClient;		
+	private AuthenticatorClient authenticatorClient;
+	
+	@Autowired
+	private WorkspaceCustomRepository workspaceCustomRepository;
+	
+	@Autowired
+	private WorkspaceRepository jpaRepo;
 	
 	@ApiOperation(value = "Update workspace Project for a given Id.", nickname = "updateWorkspace", notes = "update workspace Project for a given identifier.", response = GenericMessage.class, tags={ "code-server", })
     @ApiResponses(value = { 
@@ -96,6 +107,29 @@ public class WorkspaceJobStatusUpdateController  {
 			log.info("existingStatus  is {}",existingStatus);
 			String latestStatus = updateRequestVO.getStatus().name();
 			log.info("latestStatus  is {}",latestStatus);
+			if(latestStatus.equalsIgnoreCase("CREATED")) {
+				log.info("workspace:{} is in created state", name);
+				List<CodeServerWorkspaceNsql> collabNsqls = new ArrayList<>();
+				List<UserInfoVO> projectCollaborators = existingVO.getProjectDetails().getProjectCollaborators();
+				if (projectCollaborators != null & !projectCollaborators.isEmpty()) {					
+					CodeServerWorkspace codeServerWorkspace = new CodeServerWorkspace();
+					CodeServerWorkspaceNsql updatedCollabNsql = new CodeServerWorkspaceNsql();
+					for (UserInfoVO collab : projectCollaborators) {
+						log.info("Collab id is:{}", collab.getId());
+						// Get codespace project which is not in created/deleted state
+						CodeServerWorkspaceNsql existingCollabNsql = workspaceCustomRepository
+								.findDataByProjectName(collab.getId(), existingVO.getProjectDetails().getProjectName());
+						if (Objects.nonNull(existingCollabNsql)) {
+							codeServerWorkspace = existingCollabNsql.getData();
+							codeServerWorkspace.setStatus(ConstantsUtility.COLLABREQUESTEDSTATE);
+							updatedCollabNsql.setData(codeServerWorkspace);
+							updatedCollabNsql.setId(existingCollabNsql.getId());							
+							collabNsqls.add(updatedCollabNsql);
+						}
+					}
+				}
+				jpaRepo.saveAllAndFlush(collabNsqls);
+			}
 			UserInfoVO ownerVO = existingVO.getWorkspaceOwner();
 			boolean unauthorized = false; 
 			String owner = ownerVO.getId();

@@ -415,7 +415,8 @@ import com.daimler.data.dto.workspace.EntitlementCollectionVO;
 		 if (collabUserVO != null && collabUserVO.getWorkspaceId() != null) {
 			 String status = collabUserVO.getStatus();
 			 if (status != null) {
-				 if (!ConstantsUtility.COLLABREQUESTEDSTATE.equalsIgnoreCase(status)) {
+				 if (!ConstantsUtility.COLLABREQUESTEDSTATE.equalsIgnoreCase(status)
+						 && !ConstantsUtility.CREATEFAILEDSTATE.equalsIgnoreCase(status)) {
 					 MessageDescription errMsg = new MessageDescription("Cannot reinitiate the workbench");
 					 errors.add(errMsg);
 					 responseMessage.setErrors(errors);

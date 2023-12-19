@@ -83,5 +83,7 @@ public interface WorkspaceCustomRepository extends CommonDataRepository<CodeServ
 	CodeServerWorkspaceNsql findDataById(String id);
 
     GenericMessage updateGovernanceDetails(String projectName, CodeServerLeanGovernanceFeilds newGovFeilds);
+    
+    CodeServerWorkspaceNsql findDataByProjectName(String userId, String projectName);
 
 }
