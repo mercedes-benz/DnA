@@ -616,7 +616,6 @@ public class BaseWorkspaceService implements WorkspaceService {
 					entities.add(collabEntity);
 				}
 			}
-			jpaRepo.saveAndFlush(ownerEntity);
 			jpaRepo.saveAllAndFlush(entities);
 			CodeServerWorkspaceNsql savedOwnerEntity = workspaceCustomRepository.findbyProjectName(projectOwnerId,
 					projectName);
