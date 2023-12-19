@@ -167,7 +167,7 @@ const ChronosProjectForm = ({ project, edit, onSave }) => {
         setDivisions(response[1]?.data || []);
         setDepartments(response[2]?.data?.data || []);
         edit && setDivision(chronosProject?.leanGovernanceFeilds?.division !== null ? chronosProject?.leanGovernanceFeilds?.division : '0');
-        edit && setSubDivisions(response[1]?.data.find((div) => div.id === division?.id).subDivisions);
+        edit && setSubDivisions(response[1]?.data.find((div) => div.id === division?.id)?.subDivisions);
         SelectBox.defaultSetup();
       })
       .catch((err) => {
@@ -357,12 +357,12 @@ const ChronosProjectForm = ({ project, edit, onSave }) => {
                     <option id="typeOfProjectOption" value={0}>
                       Choose
                     </option>
-                    { (!edit || typeOfProject==='Playground') && <option value={'Playground'}>Playground</option>} 
+                    {(!edit || chronosProject?.leanGovernanceFeilds?.typeOfProject === 'Playground') && <option value={'Playground'}>Playground</option>}
                     <option value={'Proof of Concept'}>Proof of Concept</option>
                     <option value={'Production'}>Production</option>
                   </select>
                 </div>
-                  <p style={{ color: 'var(--color-orange)' }}
+                <p style={{ color: 'var(--color-orange)' }}
                   className={classNames((typeOfProject !== 'Playground' ? ' hide' : ''))}><i className="icon mbc-icon alert circle"></i> Playground projects are deleted after 2 months of not being used.</p>
                 <span className={classNames('error-message', errors?.typeOfProject?.message ? '' : 'hide')}>
                   {errors?.typeOfProject?.message}
@@ -380,7 +380,7 @@ const ChronosProjectForm = ({ project, edit, onSave }) => {
                     placeholder="Type here"
                     autoComplete="off"
                     maxLength={55}
-                    // disabled={edit}
+                    readOnly={edit}
                     defaultValue={nameOfProject}
                     {...register('name', { required: '*Missing entry', pattern: /^[a-z0-9-.]+$/, onChange: (e) => { setNameOfProject(e.target.value) } })}
                   />
@@ -388,162 +388,162 @@ const ChronosProjectForm = ({ project, edit, onSave }) => {
                 </div>
               </div>
             </div>
-              <div className={classNames((typeOfProject === 'Playground' ? ' hide' : ''))}>
-                <div className={classNames('input-field-group include-error area', errors.description ? 'error' : '')}>
-                  <label id="description" className="input-label" htmlFor="description">
-                    Description <sup>*</sup>
+            {typeOfProject !== 'Playground' && <div className={classNames((typeOfProject === 'Playground' ? ' hide' : ''))}>
+              <div className={classNames('input-field-group include-error area', errors.description ? 'error' : '')}>
+                <label id="description" className="input-label" htmlFor="description">
+                  Description <sup>*</sup>
+                </label>
+                <textarea
+                  id="description"
+                  className="input-field-area"
+                  type="text"
+                  defaultValue={description}
+                  {...register('description', { required: '*Missing entry', onChange: (e) => { setDescription(e.target.value) } })}
+                  rows={50}
+                />
+                <span className={classNames('error-message')}>{errors?.description?.message}</span>
+              </div>
+
+
+              <div className={Styles.flexLayout}>
+                <div
+                  className={classNames(
+                    'input-field-group include-error',
+                    errors?.division?.message ? 'error' : '',
+                  )}
+                >
+                  <label className={classNames(Styles.inputLabel, 'input-label')}>
+                    Division <sup>*</sup>
                   </label>
-                  <textarea
-                    id="description"
-                    className="input-field-area"
-                    type="text"
-                    defaultValue={description}
-                    {...register('description', { required: '*Missing entry', onChange: (e) => { setDescription(e.target.value) } })}
-                    rows={50}
-                  />
-                  <span className={classNames('error-message')}>{errors?.description?.message}</span>
+                  <div className={classNames('custom-select')}>
+                    <select
+                      id="divisionField"
+                      defaultValue={division}
+                      value={division}
+                      {...register('division', {
+                        required: '*Missing entry',
+                        validate: (value) => value !== 0 || '*Missing entry',
+                        onChange: (e) => { setDivision(e.target.value) }
+                      })}
+                    >
+                      <option id="divisionOption" value={0}>
+                        Choose
+                      </option>
+                      {divisions?.map((obj) => {
+                        return (
+                          <option id={obj.name + obj.id} key={obj.id} value={obj.id}>
+                            {obj.name}
+                          </option>
+                        )
+                      })}
+                    </select>
+                  </div>
+                  <span className={classNames('error-message', errors?.division?.message ? '' : 'hide')}>
+                    {errors?.division?.message}
+                  </span>
                 </div>
 
+                <div
+                  className={classNames(
+                    'input-field-group include-error',
+                    // datalakeSubDivisionError?.length ? 'error' : '',
+                  )}
+                >
+                  <label className={classNames(Styles.inputLabel, 'input-label')}>
+                    Sub Division
+                  </label>
+                  <div className={classNames('custom-select')}>
 
-                <div className={Styles.flexLayout}>
-                  <div
-                    className={classNames(
-                      'input-field-group include-error',
-                      errors?.division?.message ? 'error' : '',
-                    )}
-                  >
-                    <label className={classNames(Styles.inputLabel, 'input-label')}>
-                      Division <sup>*</sup>
-                    </label>
-                    <div className={classNames('custom-select')}>
-                      <select
-                        id="divisionField"
-                        defaultValue={division}
-                        value={division}
-                        {...register('division', {
-                          required: '*Missing entry',
-                          validate: (value) => value !== 0 || '*Missing entry',
-                          onChange: (e) => { setDivision(e.target.value) }
-                        })}
-                      >
-                        <option id="divisionOption" value={0}>
-                          Choose
+                    <select id="subDivisionField"
+                      defaultValue={subDivision}
+                      value={chronosProject?.leanGovernanceFeilds?.subDivision}
+                      required={false}
+                      {...register('subDivision', {
+                        onChange: (e) => { setSubDivision(e.target.value) }
+                      })}
+                    >
+                      {subDivisions?.some((item) => item.id === '0' && item.name === 'None') ? (
+                        <option id="subDivisionDefault" value={0}>
+                          None
                         </option>
-                        {divisions?.map((obj) => {
-                          return (
+                      ) : (
+                        <>
+                          <option id="subDivisionDefault" value={0}>
+                            Choose
+                          </option>
+                          {subDivisions?.map((obj) => (
                             <option id={obj.name + obj.id} key={obj.id} value={obj.id}>
                               {obj.name}
                             </option>
-                          )
-                        })}
-                      </select>
-                    </div>
-                    <span className={classNames('error-message', errors?.division?.message ? '' : 'hide')}>
-                      {errors?.division?.message}
-                    </span>
+                          ))}
+                        </>
+                      )}
+                    </select>
+
                   </div>
-
-                  <div
-                    className={classNames(
-                      'input-field-group include-error',
-                      // datalakeSubDivisionError?.length ? 'error' : '',
-                    )}
-                  >
-                    <label className={classNames(Styles.inputLabel, 'input-label')}>
-                      Sub Division
-                    </label>
-                    <div className={classNames('custom-select')}>
-
-                      <select id="subDivisionField"
-                        defaultValue={subDivision}
-                        value={chronosProject?.leanGovernanceFeilds?.subDivision}
-                        required={false}
-                        {...register('subDivision', {
-                          onChange: (e) => { setSubDivision(e.target.value) }
-                        })}
-                      >
-                        {subDivisions?.some((item) => item.id === '0' && item.name === 'None') ? (
-                          <option id="subDivisionDefault" value={0}>
-                            None
-                          </option>
-                        ) : (
-                          <>
-                            <option id="subDivisionDefault" value={0}>
-                              Choose
-                            </option>
-                            {subDivisions?.map((obj) => (
-                              <option id={obj.name + obj.id} key={obj.id} value={obj.id}>
-                                {obj.name}
-                              </option>
-                            ))}
-                          </>
-                        )}
-                      </select>
-
-                    </div>
-                    {/* <span className={classNames('error-message', subDivisionError?.length ? '' : 'hide')}>
+                  {/* <span className={classNames('error-message', subDivisionError?.length ? '' : 'hide')}>
                       {subDivisionError}
                     </span> */}
-                  </div>
                 </div>
+              </div>
 
-                <div className={Styles.flexLayout}>
-                  <div
-                    className={classNames(
-                      Styles.bucketNameInputField,
-                      'input-field-group include-error',
-                      errors?.department?.message ? 'error' : '',
-                    )}
-                  >
-                    <div>
-                      <div className={Styles.departmentTags}>
+              <div className={Styles.flexLayout}>
+                <div
+                  className={classNames(
+                    Styles.bucketNameInputField,
+                    'input-field-group include-error',
+                    errors?.department?.message ? 'error' : '',
+                  )}
+                >
+                  <div>
+                    <div className={Styles.departmentTags}>
 
-                        <Tags
-                          title={'Department'}
-                          max={1}
-                          chips={departmentName}
-                          tags={departments}
-                          setTags={(selectedTags) => {
-                            let dept = selectedTags?.map((item) => item.toUpperCase());
-                            setDepartmentName(dept);
-                          }}
-                          isMandatory={true}
-                          showMissingEntryError={errors?.department?.message}
-                        // {...register('department', {required: '*Missing entry'})}
-                        />
+                      <Tags
+                        title={'Department'}
+                        max={1}
+                        chips={departmentName}
+                        tags={departments}
+                        setTags={(selectedTags) => {
+                          let dept = selectedTags?.map((item) => item.toUpperCase());
+                          setDepartmentName(dept);
+                        }}
+                        isMandatory={true}
+                        showMissingEntryError={errors?.department?.message}
+                      // {...register('department', {required: '*Missing entry'})}
+                      />
 
-                      </div>
                     </div>
                   </div>
-                  <div
-                    className={classNames(
-                      Styles.bucketNameInputField,
-                      'input-field-group include-error',
-                      errors?.tags?.message ? 'error' : '',
-                    )}
-                  >
-                    <div>
-                      <div className={Styles.departmentTags}>
+                </div>
+                <div
+                  className={classNames(
+                    Styles.bucketNameInputField,
+                    'input-field-group include-error',
+                    errors?.tags?.message ? 'error' : '',
+                  )}
+                >
+                  <div>
+                    <div className={Styles.departmentTags}>
 
-                        <Tags
-                          title={'Tags'}
-                          max={100}
-                          chips={tags}
-                          // tags={tags}
-                          setTags={(selectedTags) => {
-                            let tag = selectedTags?.map((item) => item.toUpperCase());
-                            setTags(tag);
-                          }}
-                          isMandatory={true}
-                          showMissingEntryError={errors?.tags?.message}
-                        // {...register('tags', {required: '*Missing entry'})}
-                        />
+                      <Tags
+                        title={'Tags'}
+                        max={100}
+                        chips={tags}
+                        // tags={tags}
+                        setTags={(selectedTags) => {
+                          let tag = selectedTags?.map((item) => item.toUpperCase());
+                          setTags(tag);
+                        }}
+                        isMandatory={true}
+                        showMissingEntryError={errors?.tags?.message}
+                      // {...register('tags', {required: '*Missing entry'})}
+                      />
 
-                      </div>
                     </div>
                   </div>
                 </div>
               </div>
+            </div>}
             <div className={Styles.flexLayout}>
               <div
                 className={classNames(
@@ -623,7 +623,7 @@ const ChronosProjectForm = ({ project, edit, onSave }) => {
                 </div>
               </div>
             </div>
-            <div className={classNames((typeOfProject === 'Playground' ? ' hide' : ''))}>
+            {typeOfProject !== 'Playground' && <div className={classNames((typeOfProject === 'Playground' ? ' hide' : ''))}>
 
               <div className={Styles.flexLayout}>
                 <div className={classNames('input-field-group include-error', errors?.archerId ? 'error' : '')}>
@@ -702,7 +702,7 @@ const ChronosProjectForm = ({ project, edit, onSave }) => {
                   {errors?.termsOfUse?.message}
                 </span>
               </div>
-            </div>
+            </div>}
             <div className={Styles.collabContainer}>
               <h3 className={Styles.modalSubTitle}>Add Collaborators</h3>
               <div className={Styles.collabAvatar}>
