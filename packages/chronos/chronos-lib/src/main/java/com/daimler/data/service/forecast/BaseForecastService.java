@@ -322,7 +322,7 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 						memberIds.add(ownerId);
 						String ownerEmail = entity.getData().getCreatedBy().getEmail();
 						memberEmails.add(ownerEmail);
-						String message = "Input file " + savedInputToRemove.getName() + " uploaded by " + triggeredBy + " for chronos-project " + existingForecast.getName() + " overridden successfully";
+						String message = "Input file " + savedInputToRemove.getName() + " uploaded by " + triggeredBy + " for chronos-project " + existingForecast.getName() + " overwritten successfully";
 						String notificationEventName = "Chronos Upload Saved Input File Override";
 						notifyUsers(existingForecast.getId(), memberIds, memberEmails, message, "", notificationEventName, null);
 					}
@@ -603,7 +603,7 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 														uploadConfigMessage = "New recommendation file generated based on " + run.getRunName() + " inputs, Successfully uploaded recommendation " + fileName + " to project specific configs.";
 													}
 													else if(duplicateFile) {
-														uploadConfigMessage = "Recommendation File with name " + fileName+ "already exists in uploaded config files list, hence overriden.";
+														uploadConfigMessage = "Recommendation File with name " + fileName+ "already exists in uploaded config files list, hence overwritten.";
 													}
 													configRecommendationNotification.setMessage(uploadConfigMessage);
 													notificationDetails.add(configRecommendationNotification);
@@ -1534,7 +1534,7 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 					memberIds.add(ownerId);
 					String ownerEmail = entity.getData().getCreatedBy().getEmail();
 					memberEmails.add(ownerEmail);
-					String message="Config " +configFileName + " uploaded by " + requestUser +" for chronos-project "+ existingForecast.getName() + " overridden successfully";
+					String message="Config " +configFileName + " uploaded by " + requestUser +" for chronos-project "+ existingForecast.getName() + " overwritten successfully";
 					String notificationEventName = "Chronos Upload Config File Override";
 					notifyUsers(existingForecast.getId(), memberIds, memberEmails,message,"",notificationEventName,null);
 				}
