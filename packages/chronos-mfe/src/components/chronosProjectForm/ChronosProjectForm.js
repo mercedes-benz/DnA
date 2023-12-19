@@ -146,8 +146,8 @@ const ChronosProjectForm = ({ project, edit, onSave }) => {
   const [departments, setDepartments] = useState([]);
   const [dataClassificationDropdown, setDataClassificationDropdown] = useState([]);
 
-  const [division, setDivision] = useState(edit ? (chronosProject?.leanGovernanceFeilds?.division !== null ? chronosProject?.leanGovernanceFeilds?.division : '0') : '0');
-  const [subDivision, setSubDivision] = useState(edit ? (chronosProject?.leanGovernanceFeilds?.subDivision !== null ? chronosProject?.subdivision : '0') : '0');
+  const [division, setDivision] = useState(edit ? (chronosProject?.leanGovernanceFeilds?.divisionId !== null ? chronosProject?.leanGovernanceFeilds?.divisionId + '@-@' + chronosProject?.leanGovernanceFeilds?.division : '0') : '');
+  const [subDivision, setSubDivision] = useState(edit ? (chronosProject?.leanGovernanceFeilds?.subDivisionId !== null ? chronosProject?.subDivisionId + '@-@' + chronosProject?.leanGovernanceFeilds?.subDivision : '0') : '');
   const [description, setDescription] = useState(edit && chronosProject?.leanGovernanceFeilds?.decription !== null ? chronosProject?.leanGovernanceFeilds?.decription : '');
   const [departmentName, setDepartmentName] = useState(edit && chronosProject?.leanGovernanceFeilds?.department !== null ? [chronosProject?.leanGovernanceFeilds?.department] : []);
   const [typeOfProject, setTypeOfProject] = useState(edit && chronosProject?.leanGovernanceFeilds?.typeOfProject !== null ? chronosProject?.leanGovernanceFeilds?.typeOfProject : '0');
@@ -166,8 +166,8 @@ const ChronosProjectForm = ({ project, edit, onSave }) => {
         setDataClassificationDropdown(response[0]?.data?.data || []);
         setDivisions(response[1]?.data || []);
         setDepartments(response[2]?.data?.data || []);
-        edit && setDivision(chronosProject?.leanGovernanceFeilds?.division !== null ? chronosProject?.leanGovernanceFeilds?.division : '0');
-        edit && setSubDivisions(response[1]?.data.find((div) => div.id === division?.id)?.subDivisions);
+        edit && setDivision(chronosProject?.leanGovernanceFeilds?.divisionId !== null ? chronosProject?.leanGovernanceFeilds?.divisionId + '@-@' + chronosProject?.leanGovernanceFeilds?.division : '0');
+        // edit && setSubDivisions(response[1]?.data.find((div) => div.id === division?.id)?.subDivisions);
         SelectBox.defaultSetup();
       })
       .catch((err) => {
@@ -185,7 +185,7 @@ const ChronosProjectForm = ({ project, edit, onSave }) => {
   }, []);
 
   useEffect(() => {
-    const divId = division;
+    const divId = division.includes('@-@') ? division.split('@-@')[0] : '';
     if (divId > '0') {
       ProgressIndicator.show();
       hostServer.get('/subdivisions/' + divId)
@@ -219,12 +219,14 @@ const ChronosProjectForm = ({ project, edit, onSave }) => {
         tags: tags,
         piiData: values.pii,
         archerId: values.archerId,
-        division: values.division,
+        divisionId: values.division.includes('@-@') ? values.division.split('@-@')[0] : '',
+        division: values.division.includes('@-@') ? values.division.split('@-@')[1] : '',
+        subDivisionId: values.subDivision.includes('@-@') ? values.subDivision.split('@-@')[0] : '',
+        subDivision: values.subDivision.includes('@-@') ? values.subDivision.split('@-@')[1] : '',
         decription: values.description,
         department: departmentName[0],
         procedureId: values.procedureId,
         termsOfUse: values.termsOfUse,
-        subDivision: values.subDivision,
         typeOfProject: values.typeOfProject,
         dataClassification: values.dataClassification
       }
@@ -268,12 +270,14 @@ const ChronosProjectForm = ({ project, edit, onSave }) => {
         tags: tags,
         piiData: values.pii,
         archerId: values.archerId,
-        division: values.division,
+        divisionId: values.division.includes('@-@') ? values.division.split('@-@')[0] : '',
+        division: values.division.includes('@-@') ? values.division.split('@-@')[1] : '',
+        subDivisionId: values.subDivision.includes('@-@') ? values.subDivision.split('@-@')[0] : '',
+        subDivision: values.subDivision.includes('@-@') ? values.subDivision.split('@-@')[1] : '',
         decription: values.description,
         department: departmentName[0],
         procedureId: values.procedureId,
         termsOfUse: values.termsOfUse,
-        subDivision: values.subDivision,
         typeOfProject: values.typeOfProject,
         dataClassification: values.dataClassification
       }
@@ -431,7 +435,7 @@ const ChronosProjectForm = ({ project, edit, onSave }) => {
                       </option>
                       {divisions?.map((obj) => {
                         return (
-                          <option id={obj.name + obj.id} key={obj.id} value={obj.id}>
+                          <option id={obj.name + obj.id} key={obj.id} value={obj.id + '@-@' + obj.name}>
                             {obj.name}
                           </option>
                         )
@@ -472,7 +476,7 @@ const ChronosProjectForm = ({ project, edit, onSave }) => {
                             Choose
                           </option>
                           {subDivisions?.map((obj) => (
-                            <option id={obj.name + obj.id} key={obj.id} value={obj.id}>
+                            <option id={obj.name + obj.id} key={obj.id} value={obj.id + '@-@' + obj.name}>
                               {obj.name}
                             </option>
                           ))}
