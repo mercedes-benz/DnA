@@ -16,7 +16,9 @@ public class LeanGovernanceFeilds {
 
     private String typeOfProject;
     private String decription;
+    private String divisionId;
     private String division;
+    private String subDivisionId;
     private String subDivision;
     private String department;
     private List<String> tags;
@@ -25,5 +27,5 @@ public class LeanGovernanceFeilds {
     private String archerId;
     private String procedureId;
     private Boolean termsOfUse;
-
+    
 }

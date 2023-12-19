@@ -204,7 +204,7 @@ const ProjectDetailsTab = () => {
                   <div id="archerId">
                     <label className="input-label summary">Archer ID</label>
                     <br />
-                    {project?.data.leanGovernanceFeilds?.archerTd ? project?.data.leanGovernanceFeilds?.archerTd : 'N/A'}
+                    {project?.data.leanGovernanceFeilds?.archerId ? project?.data.leanGovernanceFeilds?.archerId : 'N/A'}
                   </div>
                 </div>
 

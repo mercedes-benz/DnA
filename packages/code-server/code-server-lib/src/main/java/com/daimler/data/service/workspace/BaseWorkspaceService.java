@@ -1289,44 +1289,21 @@ public class BaseWorkspaceService implements WorkspaceService {
 			List<String> workspaceIds = workspaceCustomRepository
 					.getWorkspaceIdsByProjectName(vo.getProjectDetails().getProjectName());
 			if (!workspaceIds.isEmpty()) {
+				List<CodeServerWorkspaceNsql> entities = new ArrayList<>();
 				for (String id : workspaceIds) {
 					CodeServerWorkspaceNsql entity = workspaceCustomRepository.findByWorkspaceId(id);
-					// entity = workspaceAssembler.toEntity(vo);
 					CodespaceSecurityConfig config = workspaceAssembler.toSecurityConfig(vo.getProjectDetails().getSecurityConfig());
-					ObjectMapper mapper = new ObjectMapper();
-							try{
-							}
-							catch(Exception e){
-								e.printStackTrace();
-							}
-					if (entity != null && !isPublished) {
-						entity.getData().getProjectDetails().setSecurityConfig(
-								workspaceAssembler.toSecurityConfig(vo.getProjectDetails().getSecurityConfig()));
-						jpaRepo.save(entity);
-					}
-					if(entity != null && isPublished){
-					//	ObjectMapper mapper = new ObjectMapper();
-							try{
-							}
-							catch(Exception e){
-								e.printStackTrace();
-							}
-						entity.getData().getProjectDetails().setSecurityConfig(
-								workspaceAssembler.toSecurityConfig(vo.getProjectDetails().getSecurityConfig()));
-						entity.getData().getProjectDetails().setPublishedSecuirtyConfig(
-								workspaceAssembler.toPublishedSecurityConfig(vo.getProjectDetails().getSecurityConfig()));
-						jpaRepo.save(entity);
+					if(entity != null){
+						entity.getData().getProjectDetails().setSecurityConfig(config);
 
+						if(isPublished){
+							entity.getData().getProjectDetails().setPublishedSecuirtyConfig(config);
+						}
+						entities.add(entity);
 					}
-
 				}
-
+				jpaRepo.saveAllAndFlush(entities);
 			}
-			// CodeServerWorkspaceNsql entity = workspaceAssembler.toEntity(vo);
-			// jpaRepo.save(entity);
-			MessageDescription msg = new MessageDescription();
-			List<MessageDescription> errorMessage = new ArrayList<>();
-
 			responseMessage.setSuccess("SUCCESS");
 
 		} catch (Exception e) {
@@ -1334,7 +1311,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 			log.error("caught exception while saving security config {}", e.getMessage());
 			MessageDescription msg = new MessageDescription();
 			List<MessageDescription> errorMessage = new ArrayList<>();
-			msg.setMessage("No workspace found for given id and the user");
+			msg.setMessage("caught exception while saving security config");
 			errorMessage.add(msg);
 			responseMessage.addErrors(msg);
 			responseMessage.setSuccess("FAILED");
