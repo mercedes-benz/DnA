@@ -28,4 +28,5 @@ public class LeanGovernanceFeilds {
     private String procedureId;
     private Boolean termsOfUse;
 
+    
 }
