@@ -6,6 +6,8 @@ import SelectBox from 'dna-container/SelectBox';
 import { useSelector, useDispatch } from 'react-redux';
 import { setTables } from '../../redux/graphSlice';
 import { datalakeApi } from '../../apis/datalake.api';
+import Notification from '../../common/modules/uilab/js/src/notification';
+import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indicator';
 
 
 const TableFormItem = (props) => {
@@ -51,8 +53,12 @@ const TableFormItem = (props) => {
       });
   };
 
-  const { field } = props;
+  const { field, columnDatatypes } = props;
   const index = `A${props.index}`;
+
+  useEffect(() => {
+    SelectBox.defaultSetup();
+  }, [columnDatatypes]);
 
   return (
     <div className={Styles.columnsWrapper}>
@@ -84,19 +90,14 @@ const TableFormItem = (props) => {
               </label>
               <div className="custom-select">
                 <select id={`${index}.dataType`} {...register(`${index}.dataType`)}>
-                  <option value={'BOOLEAN'}>BOOLEAN</option>
-                  <option value={'INTEGER'}>INTEGER</option>
-                  <option value={'BYTE'}>BYTE</option>
-                  <option value={'SHORT'}>SHORT</option>
-                  <option value={'LONG'}>LONG</option>
-                  <option value={'FLOAT'}>FLOAT</option>
-                  <option value={'DOUBLE'}>DOUBLE</option>
-                  <option value={'DECIMAL'}>DECIMAL</option>
-                  <option value={'STRING'}>STRING</option>
-                  <option value={'BINARY'}>BINARY</option>
-                  <option value={'DATE'}>DATE</option>
-                  <option value={'TIMESTAMP'}>TIMESTAMP</option>
-                  <option value={'TIMESTAMPNTZ'}>TIMESTAMPNTZ</option>
+                  {columnDatatypes.length > 0 && 
+                    columnDatatypes?.map((datatype) => {
+                      return (
+                      <option id={datatype} key={datatype} value={datatype}>
+                        {datatype}
+                      </option>
+                      )
+                  })}
                 </select>
               </div>
             </div>
@@ -139,7 +140,6 @@ const TableFormItem = (props) => {
             <button className={classNames('btn btn-primary', Styles.btnActions)} onClick={moveDown}>↓ Move Down</button>
           </div>
           <div className={Styles.flexLayout}>
-            {console.log('columnname', props.field.columnName)}
             <button className={classNames('btn btn-primary', Styles.btnActions)} onClick={() => {props.removeItem(props.field.columnName);}}>Remove field</button>
             <button className={classNames('btn btn-primary', Styles.btnActions)} onClick={() => props.addItem(props.index)}>Add field after</button>
           </div>
@@ -149,7 +149,11 @@ const TableFormItem = (props) => {
   );
 }
 
-const TableFormBase = () => {
+const TableFormBase = ({formats}) => {
+  useEffect(() => {
+    SelectBox.defaultSetup();
+  }, [formats]);
+
   const { register, formState: { errors } } = useFormContext();
   const { editingTable } = useSelector(state => state.graph);
   return (
@@ -180,8 +184,14 @@ const TableFormBase = () => {
             </label>
             <div className="custom-select">
               <select id="tableFormat" {...register('tableFormat')}>
-                <option value={'Parquet'}>Parquet</option>
-                <option value={'ORC'}>ORC</option>
+                {formats.length > 0 && 
+                  formats?.map((format) => {
+                    return (
+                    <option id={format} key={format} value={format}>
+                      {format}
+                    </option>
+                    )
+                })}
               </select>
             </div>
           </div>
@@ -216,25 +226,42 @@ const TableForm = ({setToggle}) => {
   const { project } = useSelector(state => state.graph);
   const dispatch = useDispatch();
 
-  const [,setConnectors] = useState();
-  const [, setLoading] = useState(true);
+  const [connectors,setConnectors] = useState([]);
+  const [formats, setFormats] = useState([]);
+  const [dataTypes, setDataTypes] = useState([]);
 
   useEffect(() => {
     SelectBox.defaultSetup();
   }, []);
 
   useEffect(() => {
+    if(project.connectorType === 'Iceberg') {
+      const connector = connectors.filter(item => item.name === 'Iceberg');
+      setFormats(connector[0] !== undefined ? [...connector[0].formats] : []);
+      setDataTypes(connector[0] !== undefined ? [...connector[0].dataTypes] : []);
+    }
+    if(project.connectorType === 'Delta Lake') {
+      const connector = connectors.filter(item => item.name === 'Delta Lake');
+      setFormats(connector[0] !== undefined ? [...connector[0].formats] : []);
+      setDataTypes(connector[0] !== undefined ? [...connector[0].dataTypes] : []);
+    }
+  }, [connectors, project]);
+
+  useEffect(() => {
+    ProgressIndicator.show();
     datalakeApi.getConnectors()
       .then((res) => {
-        setConnectors(res.data);
-        setLoading(false);
+        setConnectors(res.data.connectors);
+        ProgressIndicator.hide();
+        SelectBox.defaultSetup();
       })
       .catch((err) => {
         Notification.show(
           err?.response?.data?.errors?.[0]?.message || 'Error while fetching connectors',
           'alert',
         );
-        setLoading(false);
+        ProgressIndicator.hide();
+        SelectBox.defaultSetup();
       });
   }, []);
 
@@ -269,6 +296,7 @@ const TableForm = ({setToggle}) => {
     projectTemp.tables = [...projectTemp.tables, tableData];
     dispatch(setTables(projectTemp.tables));
     setToggle();
+    Notification.show('Table added successfully');
   }
 
   const addItem = index => {
@@ -293,7 +321,7 @@ const TableForm = ({setToggle}) => {
     <FormProvider {...methods} >
         <div className={Styles.form}>
           <div className={Styles.formContent}>
-            <TableFormBase />
+            <TableFormBase formats={formats} />
             {columns.length > 0 && 
               columns.map((field, index) => (
                 <TableFormItem
@@ -303,6 +331,7 @@ const TableForm = ({setToggle}) => {
                     addItem={addItem}
                     removeItem={removeItem}
                     setFields={setFields}
+                    columnDatatypes={dataTypes}
                 />
             ))}
           </div>

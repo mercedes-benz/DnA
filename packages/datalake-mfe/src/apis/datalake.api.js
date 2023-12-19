@@ -46,6 +46,10 @@ const getConnectors = () => {
   });
 };
 
+const getConnectionInfo = (id) => {
+  return server.get(`/datalakes/${id}/connect`, { data: {} });
+};
+
 export const datalakeApi = {
   getDatalakeProjectsList,
   createDatalakeProject,
@@ -54,4 +58,5 @@ export const datalakeApi = {
   updateTechnicalUser,
   getLovData,
   getConnectors,
+  getConnectionInfo,
 };

@@ -152,7 +152,7 @@ const DatalakeProjectCard = ({graph}) => {
           title={'Connect'}
           modalCSS={Styles.header}
           show={showConnectionModel}
-          content={<ConnectionModal onOkClick={onConnectionModalClose} />}
+          content={<ConnectionModal projectId={graph?.id} onOkClick={onConnectionModalClose} />}
           hiddenTitle={true}
           onCancel={onConnectionModalClose}
         />
