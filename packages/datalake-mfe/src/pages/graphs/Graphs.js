@@ -8,6 +8,7 @@ import Pagination from 'dna-container/Pagination';
 import NoProjectScreen from '../../components/noProjectScreen/NoProjectScreen';
 import DatalakeProjectCard from '../../components/datalakeProjectCard/DatalakeProjectCard';
 import DatalakeProjectForm from '../../components/datalakeProjectForm/DatalakeProjectForm';
+import Spinner from '../../components/spinner/Spinner';
 import { getQueryParameterByName } from '../../utilities/utils';
 import { SESSION_STORAGE_KEYS } from '../../utilities/constants';
 import { datalakeApi } from '../../apis/datalake.api';
@@ -94,6 +95,8 @@ const Graphs = ({ user }) => {
       <>
         <div className={classNames(Styles.mainPanel)}>
           <div className={classNames(Styles.wrapper)}>
+            {loading ? <Spinner /> : null}
+            {(!loading && graphs.length === 0) ? <NoProjectScreen user={user} openCreateProjectModal={() => setCreateProject(true)} /> : null}
             {!loading && graphs.length > 0 ? 
               <>
                 <div className={classNames(Styles.caption)}>
@@ -140,7 +143,7 @@ const Graphs = ({ user }) => {
                     displayByPage={true}
                   /> : null
                 }
-              </> : <NoProjectScreen user={user} openCreateProjectModal={() => setCreateProject(true)} />
+              </> : null
             }
           </div>
         </div>
