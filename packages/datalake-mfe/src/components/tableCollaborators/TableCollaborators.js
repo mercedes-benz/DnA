@@ -4,6 +4,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import Styles from './tableCollaborators.scss';
 import TeamSearch from 'dna-container/TeamSearch';
 import { setTables } from '../../redux/graphSlice';
+import Notification from '../../common/modules/uilab/js/src/notification';
 
 const TableCollaborators = ({ table, onSave }) => {
   const { project } = useSelector(state => state.graph);
@@ -31,8 +32,19 @@ const TableCollaborators = ({ table, onSave }) => {
     console.log('reset user already exists');
   }
 
-  const onPermissionEdit = (index) => {
-    console.log('permission edit', index);
+  const onPermissionChange = (collab) => {
+    let collabIndex = -1;
+    const collabItem = collabs.find((item, itemIndex) => {
+      collabIndex = itemIndex;
+      return item.collaborator.id === collab.collaborator.id;
+    });
+    if (collabItem.hasWritePermission) {
+      collabItem.hasWritePermission = false;
+    } else {
+      collabItem.hasWritePermission = true;
+    }
+    collabs[collabIndex] = collabItem;
+    setCollabs([...collabs]);
   };
 
   const onCollabaratorDelete = (id) => {
@@ -43,11 +55,12 @@ const TableCollaborators = ({ table, onSave }) => {
   const handleSaveCollabs = () => {
     const projectTemp = {...project};
     const tempTables = projectTemp.tables.filter(item => item.tableName !== table.tableName);
-    const currentTable = {...table, collabs: {...collabs}};
+    const currentTable = {...table, collabs: [...collabs]};
     const fullTables = [...tempTables, currentTable];
     projectTemp.tables = [...fullTables];
     dispatch(setTables(projectTemp.tables));
     onSave();
+    Notification.show('Collaborator(s) added successfully to the table');
   }
 
   return (
@@ -118,13 +131,12 @@ const TableCollaborators = ({ table, onSave }) => {
                                 <input
                                   type="checkbox"
                                   className="ff-only"
-                                  value="can_edit"
-                                  checked={
+                                  defaultChecked={
                                     item.hasWritePermission !== null
                                       ? item.hasWritePermission
                                       : false
                                   }
-                                  onClick={() => onPermissionEdit(index)}
+                                  onChange={() => onPermissionChange(item)}
                                 />
                               </span>
                               <span className="label">Write</span>
