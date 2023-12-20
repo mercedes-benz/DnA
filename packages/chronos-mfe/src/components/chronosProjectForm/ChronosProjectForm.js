@@ -167,7 +167,8 @@ const ChronosProjectForm = ({ project, edit, onSave }) => {
         setDivisions(response[1]?.data || []);
         setDepartments(response[2]?.data?.data || []);
         edit && setDivision(chronosProject?.leanGovernanceFeilds?.divisionId !== null ? chronosProject?.leanGovernanceFeilds?.divisionId + '@-@' + chronosProject?.leanGovernanceFeilds?.division : '0');
-        // edit && setSubDivisions(response[1]?.data.find((div) => div.id === division?.id)?.subDivisions);
+        // edit && setSubDivision(chronosProject?.leanGovernanceFeilds?.subDivisionId !== null ? chronosProject?.leanGovernanceFeilds?.subDivisionId + '@-@' + chronosProject?.leanGovernanceFeilds?.subDivision : '0');
+        // edit && setSubDivisions(response[1]?.data.find((div) => div.id === division.split('@-@')[0])?.subDivisions);
         SelectBox.defaultSetup();
       })
       .catch((err) => {
@@ -205,6 +206,10 @@ const ChronosProjectForm = ({ project, edit, onSave }) => {
   useEffect(() => {
     SelectBox.defaultSetup(true);
   }, [typeOfProject]);
+
+  useEffect(() => {
+    edit && setSubDivision(chronosProject?.leanGovernanceFeilds?.subDivisionId !== null ? chronosProject?.leanGovernanceFeilds?.subDivisionId + '@-@' + chronosProject?.leanGovernanceFeilds?.subDivision : '0');
+  }, [subDivision]);
 
   // useEffect(() => {
   //   SelectBox.defaultSetup(true);
@@ -466,7 +471,7 @@ const ChronosProjectForm = ({ project, edit, onSave }) => {
 
                     <select id="subDivisionField"
                       defaultValue={subDivision}
-                      value={chronosProject?.leanGovernanceFeilds?.subDivision}
+                      value={subDivision}
                       required={false}
                       {...register('subDivision', {
                         onChange: (e) => { setSubDivision(e.target.value) }
