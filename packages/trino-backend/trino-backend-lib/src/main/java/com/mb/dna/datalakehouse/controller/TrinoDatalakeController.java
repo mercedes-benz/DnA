@@ -366,11 +366,8 @@ public class TrinoDatalakeController {
 		TrinoDataLakeProjectVO data = new TrinoDataLakeProjectVO();
 		try {
 			if(request.getData()!=null && request.getData().getClientId()!=null) {
-				existingProject.setTechUserClientId(request.getData().getClientId());
-				trinoDatalakeService.create(existingProject);
-				GenericMessage successMessage = new GenericMessage();
-				successMessage.setSuccess("SUCCESS");
-				return new ResponseEntity<>(successMessage, HttpStatus.OK);
+				GenericMessage serviceResponse = trinoDatalakeService.updateTechUserDetails(existingProject,request.getData().getClientId(),request.getData().getClientSecret());
+				return new ResponseEntity<>(serviceResponse, HttpStatus.OK);
 			}
 			GenericMessage errorMessage = new GenericMessage();
 			MessageDescription invalidMsg = new MessageDescription("Bad request, data should not be null.");

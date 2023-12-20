@@ -2,6 +2,7 @@ package com.mb.dna.datalakehouse.service;
 
 import java.util.List;
 
+import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.service.common.CommonService;
 import com.mb.dna.datalakehouse.db.entities.TrinoDataLakeNsql;
 import com.mb.dna.datalakehouse.dto.TrinoDataLakeProjectResponseVO;
@@ -27,5 +28,7 @@ public interface TrinoDatalakeService extends CommonService<TrinoDataLakeProject
 			TrinoDataLakeProjectUpdateRequestVO updateRequestVO) throws Exception;
 
 	TrinoDataLakeProjectVO getUpdatedById(String id);
+
+	GenericMessage updateTechUserDetails(TrinoDataLakeProjectVO existingProject, String clientId, String clientSecret);
 	
 }
