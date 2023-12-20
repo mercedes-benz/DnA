@@ -106,13 +106,13 @@ data:
 
   access-control.properties: |
     access-control.name=file
-    security.config-file={{ .Values.server.config.path }}/access-rules.json
+    security.config-file={{ .Values.access-rules.endpoint }}
     security.refresh-period=5s
-
+    security.json-pointer=/data
   {{- if .Values.immuta.enabled }}
   immuta-access-control.properties: |
     access-control.name={{ .Values.immuta.name }}
-    access-control.config-files={{ .Values.server.config.path }}/access-rules.json
+    access-control.config-files={{ .Values.access-rules.endpoint }}
     immuta.endpoint={{ .Values.immuta.endpoint }}
     immuta.apikey={{ .Values.immuta.apiKey }}
     immuta.allowed.non.immuta.datasource.operations={{ .Values.immuta.nonImmutaUserPermission }}
