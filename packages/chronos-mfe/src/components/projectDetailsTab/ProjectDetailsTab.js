@@ -182,12 +182,18 @@ const ProjectDetailsTab = () => {
                     <br />
                     {project?.data.leanGovernanceFeilds?.department ? project?.data.leanGovernanceFeilds?.department : 'N/A'}
                   </div>
-                  <div id="tags">
+                  <div id="tags" className={classNames((' hide'))}>
                     <label className="input-label summary">Tags</label>
                     <br />
                     {/* {project?.data.leanGovernanceFeilds?.tags ? project?.data.leanGovernanceFeilds?.tags : 'N/A'} */}
                     {chips}
                   </div>
+                  <div id="procedureId">
+                    <label className="input-label summary">Procedure ID</label>
+                    <br />
+                    {project?.data.leanGovernanceFeilds?.procedureId ? project?.data.leanGovernanceFeilds?.procedureId : 'N/A'}
+                  </div>
+                  {/* remove procedure ID from here once tags are enabled */}
                 </div>
 
                 <div className={classNames(Styles.flexLayout, Styles.threeColumn)}>
@@ -208,13 +214,14 @@ const ProjectDetailsTab = () => {
                   </div>
                 </div>
 
-                <div className={classNames(Styles.flexLayout, Styles.threeColumn)}>
+                {/* <div className={classNames(Styles.flexLayout, Styles.threeColumn)}>
                   <div id="procedureId">
                     <label className="input-label summary">Procedure ID</label>
                     <br />
                     {project?.data.leanGovernanceFeilds?.procedureId ? project?.data.leanGovernanceFeilds?.procedureId : 'N/A'}
                   </div>
-                </div>
+                </div> */} 
+                {/* // once tags are enabled move Procedure ID here */}
 
               </>
             }
