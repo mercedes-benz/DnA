@@ -188,7 +188,7 @@ const ChronosProjectForm = ({ project, edit, onSave }) => {
 
   useEffect(() => {
     const divId = division.includes('@-@') ? division.split('@-@')[0] : division;
-    if (divId) {
+    if (divId && divId!=='0' ) {
       ProgressIndicator.show();
       hostServer.get('/subdivisions/' + divId)
         .then((res) => {
