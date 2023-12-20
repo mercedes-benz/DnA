@@ -323,7 +323,7 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 						String ownerEmail = entity.getData().getCreatedBy().getEmail();
 						memberEmails.add(ownerEmail);
 						String message = "Input file " + savedInputToRemove.getName() + " uploaded by " + triggeredBy + " for chronos-project " + existingForecast.getName() + " overwritten successfully";
-						String notificationEventName = "Chronos Upload Saved Input File Override";
+						String notificationEventName = "Chronos Upload Saved Input File Overwrite";
 						notifyUsers(existingForecast.getId(), memberIds, memberEmails, message, "", notificationEventName, null);
 					}
 					}catch(Exception e) {
@@ -1535,7 +1535,7 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 					String ownerEmail = entity.getData().getCreatedBy().getEmail();
 					memberEmails.add(ownerEmail);
 					String message="Config " +configFileName + " uploaded by " + requestUser +" for chronos-project "+ existingForecast.getName() + " overwritten successfully";
-					String notificationEventName = "Chronos Upload Config File Override";
+					String notificationEventName = "Chronos Upload Config File Overwrite";
 					notifyUsers(existingForecast.getId(), memberIds, memberEmails,message,"",notificationEventName,null);
 				}
 
