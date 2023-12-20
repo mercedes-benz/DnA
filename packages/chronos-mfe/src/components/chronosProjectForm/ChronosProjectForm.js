@@ -153,7 +153,8 @@ const ChronosProjectForm = ({ project, edit, onSave }) => {
   const [typeOfProject, setTypeOfProject] = useState(edit && chronosProject?.leanGovernanceFeilds?.typeOfProject !== null ? chronosProject?.leanGovernanceFeilds?.typeOfProject : '0');
   const [dataClassification, setDataClassification] = useState(edit && chronosProject?.leanGovernanceFeilds?.dataClassification !== null ? chronosProject?.leanGovernanceFeilds?.dataClassification : '0');
   const [PII, setPII] = useState(edit && chronosProject?.leanGovernanceFeilds?.piiData !== null ? chronosProject?.leanGovernanceFeilds?.piiData : false);
-  const [tags, setTags] = useState(edit && chronosProject?.leanGovernanceFeilds?.tags !== null ? [...chronosProject?.leanGovernanceFeilds?.tags || undefined] : []);
+  // const [tags, setTags] = useState(edit && chronosProject?.leanGovernanceFeilds?.tags !== null ? [...chronosProject?.leanGovernanceFeilds?.tags || undefined] : []);
+  const [tags, setTags] = useState(null);
   const [archerId, setArcherID] = useState(edit && chronosProject?.leanGovernanceFeilds?.archerId !== null ? chronosProject?.leanGovernanceFeilds?.archerId : '');
   const [procedureId, setProcedureID] = useState(edit && chronosProject?.leanGovernanceFeilds?.procedureId !== null ? chronosProject?.leanGovernanceFeilds?.procedureId : '');
   const [termsOfUse, setTermsOfUse] = useState(edit && chronosProject?.leanGovernanceFeilds?.termsOfUse !== null ? [chronosProject?.leanGovernanceFeilds?.termsOfUse] : false);
@@ -227,18 +228,18 @@ const ChronosProjectForm = ({ project, edit, onSave }) => {
       leanGovernanceFeilds: {
         // tags: tags,
         tags: null,
-        piiData: values.pii,
-        archerId: values.archerId,
-        divisionId: values.division.includes('@-@') ? values.division.split('@-@')[0] : '',
-        division: values.division.includes('@-@') ? values.division.split('@-@')[1] : '',
-        subDivisionId: values.subDivision.includes('@-@') ? values.subDivision.split('@-@')[0] : '',
-        subDivision: values.subDivision.includes('@-@') ? values.subDivision.split('@-@')[1] : '',
-        decription: values.description,
+        piiData: values?.pii,
+        archerId: values?.archerId,
+        divisionId: values?.division?.includes('@-@') ? values?.division?.split('@-@')[0] : '',
+        division: values?.division?.includes('@-@') ? values?.division?.split('@-@')[1] : '',
+        subDivisionId: values?.subDivision?.includes('@-@') ? values?.subDivision?.split('@-@')[0] : '',
+        subDivision: values?.subDivision?.includes('@-@') ? values?.subDivision?.split('@-@')[1] : '',
+        decription: values?.description,
         department: departmentName[0],
-        procedureId: values.procedureId,
-        termsOfUse: values.termsOfUse,
-        typeOfProject: values.typeOfProject,
-        dataClassification: values.dataClassification
+        procedureId: values?.procedureId,
+        termsOfUse: values?.termsOfUse,
+        typeOfProject: values?.typeOfProject,
+        dataClassification: values?.dataClassification
       }
     };
     chronosApi.createForecastProject(data).then((res) => {
@@ -279,18 +280,18 @@ const ChronosProjectForm = ({ project, edit, onSave }) => {
       leanGovernanceFeilds: {
         // tags: tags,
         tags: null,
-        piiData: values.pii,
-        archerId: values.archerId,
-        divisionId: values.division.includes('@-@') ? values.division.split('@-@')[0] : '',
-        division: values.division.includes('@-@') ? values.division.split('@-@')[1] : '',
-        subDivisionId: values.subDivision.includes('@-@') ? values.subDivision.split('@-@')[0] : '',
-        subDivision: values.subDivision.includes('@-@') ? values.subDivision.split('@-@')[1] : '',
-        decription: values.description,
+        piiData: values?.pii,
+        archerId: values?.archerId,
+        divisionId: values?.division?.includes('@-@') ? values?.division?.split('@-@')[0] : '',
+        division: values?.division?.includes('@-@') ? values?.division?.split('@-@')[1] : '',
+        subDivisionId: values?.subDivision?.includes('@-@') ? values?.subDivision?.split('@-@')[0] : '',
+        subDivision: values?.subDivision?.includes('@-@') ? values?.subDivision?.split('@-@')[1] : '',
+        decription: values?.description,
         department: departmentName[0],
-        procedureId: values.procedureId,
-        termsOfUse: values.termsOfUse,
-        typeOfProject: values.typeOfProject,
-        dataClassification: values.dataClassification
+        procedureId: values?.procedureId,
+        termsOfUse: values?.termsOfUse,
+        typeOfProject: values?.typeOfProject,
+        dataClassification: values?.dataClassification
       }
     }
     ProgressIndicator.show();
@@ -403,7 +404,7 @@ const ChronosProjectForm = ({ project, edit, onSave }) => {
                 </div>
               </div>
             </div>
-            {typeOfProject !== 'Playground' && <div className={classNames((typeOfProject === 'Playground' ? ' hide' : ''))}>
+            {typeOfProject !== 'Playground' && <div>
               <div className={classNames('input-field-group include-error area', errors.description ? 'error' : '')}>
                 <label id="description" className="input-label" htmlFor="description">
                   Description <sup>*</sup>
@@ -640,7 +641,7 @@ const ChronosProjectForm = ({ project, edit, onSave }) => {
                 </div>
               </div>
             </div>
-            {typeOfProject !== 'Playground' && <div className={classNames((typeOfProject === 'Playground' ? ' hide' : ''))}>
+            {typeOfProject !== 'Playground' && <div>
 
               <div className={Styles.flexLayout}>
                 <div className={classNames('input-field-group include-error', errors?.archerId ? 'error' : '')}>
