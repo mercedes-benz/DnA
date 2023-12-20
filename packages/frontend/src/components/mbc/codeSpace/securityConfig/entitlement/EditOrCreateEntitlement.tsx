@@ -165,55 +165,59 @@ const EditOrCreateEntitlement = (props: any) => {
                                         {missingEntryEntitlName}
                                     </span>
                                 </div>
-                                {props.isProtectedByDna && <><div
-                                    className={classNames(
-                                        Styles.inputGrp + ' input-field-group include-error ',
-                                        missingEntryEntlPath.length ? 'error' : '',
-                                    )}
-                                >
-                                    <label id="descriptionLabel" htmlFor="descriptionLabel" className="input-label">
-                                        API Path/Pattern<sup>*</sup>
-                                    </label>
-                                    <input
-                                        type="text"
-                                        className="input-field"
-                                        required={true}
-                                        id="descriptionLabel"
-                                        maxLength={200}
-                                        placeholder="Type here"
-                                        autoComplete="off"
-                                        onChange={ontEntitlPatOnChange}
-                                        value={entitlPath}
-                                    />
-                                    <span className={classNames('error-message', missingEntryEntlPath?.length ? '' : 'hide')}>
-                                        {missingEntryEntlPath}
-                                    </span>
-                                </div>
-                                    <div
-                                        className={classNames('input-field-group include-error', missingEntryEntlMethod.length ? 'error' : '')}
+                                {props.isProtectedByDna && <>
+                                    <div className={classNames(Styles.fieldWrapper)}><div
+                                        className={classNames(
+                                            Styles.inputGrp + ' input-field-group include-error ',
+                                            missingEntryEntlPath.length ? 'error' : '',
+                                        )}
                                     >
-                                        <label id="reportHttpLabel" htmlFor="entitlementhttpInput" className={classNames("input-label")}>
-                                            Http Method  <sup>{props.isProtectedByDna ? '*' : ''}</sup>
+                                        <label id="descriptionLabel" htmlFor="descriptionLabel" className="input-label">
+                                            API Path/Pattern<sup>*</sup>
                                         </label>
+                                        <input
+                                            type="text"
+                                            className="input-field"
+                                            required={true}
+                                            id="descriptionLabel"
+                                            maxLength={200}
+                                            placeholder="Type here"
+                                            autoComplete="off"
+                                            onChange={ontEntitlPatOnChange}
+                                            value={entitlPath}
+                                        />
+                                        <span className={classNames('error-message', missingEntryEntlPath?.length ? '' : 'hide')}>
+                                            {missingEntryEntlPath}
+                                        </span>
+                                    </div>
+                                    </div>
+                                    <div className={classNames(Styles.fieldWrapper)}>
                                         <div
-                                            className="custom-select"
+                                            className={classNames('input-field-group include-error', missingEntryEntlMethod.length ? 'error' : '')}
                                         >
-                                            <select
-                                                id="entitlementhttpInput"
-                                                required={true}
-                                                required-error={'*Missing entry'}
-                                                onChange={onChangeHttp}
-                                                value={httpMethod}
+                                            <label id="reportHttpLabel" htmlFor="entitlementhttpInput" className={classNames("input-label")}>
+                                                Http Method  <sup>{props.isProtectedByDna ? '*' : ''}</sup>
+                                            </label>
+                                            <div
+                                                className="custom-select"
                                             >
-                                                <option id="entitlemenHttpOption" value={0}>
-                                                    Choose
-                                                </option>
-                                                {HTTP_OPTIONS?.map((obj: any, index: number) => (
-                                                    <option id={obj.name + obj.id} key={index} value={obj.name}>
-                                                        {obj.name}
+                                                <select
+                                                    id="entitlementhttpInput"
+                                                    required={true}
+                                                    required-error={'*Missing entry'}
+                                                    onChange={onChangeHttp}
+                                                    value={httpMethod}
+                                                >
+                                                    <option id="entitlemenHttpOption" value={0}>
+                                                        Choose
                                                     </option>
-                                                ))}
-                                            </select>
+                                                    {HTTP_OPTIONS?.map((obj: any, index: number) => (
+                                                        <option id={obj.name + obj.id} key={index} value={obj.name}>
+                                                            {obj.name}
+                                                        </option>
+                                                    ))}
+                                                </select>
+                                            </div>
                                         </div>
                                     </div>
                                     <div className={Styles.AddBtn}>
