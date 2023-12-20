@@ -481,7 +481,7 @@ const CodeSpace = (props: ICodeSpaceProps) => {
                   {!disableDeployment && (
                     <>
                       {isOwner && (
-                        <div className={Styles.configLink}
+                        <div className={classNames(Styles.configLink, Styles.pointer)}
                           onClick={() => navigateSecurityConfig()}>
                           <a target="_blank" rel="noreferrer">
                             <IconGear size={'16'} /> {CODE_SPACE_TITLE} (
