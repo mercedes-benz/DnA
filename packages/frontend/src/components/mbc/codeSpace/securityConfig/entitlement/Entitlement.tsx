@@ -129,11 +129,9 @@ export default class Entitlement extends React.Component<IEntitlementProps, IEnt
 
     protected onPersonalizationCheckBoxChange = (type: string) => {
         if (type === 'accept') {
-            // this.setState({ isProtectedByDna: !this.state.isProtectedByDna });
-        } else {
-            if (!this.state.isProtectedByDna) {
-                this.setState({ entitlemenPath: '', httpMethod: '', entitlementPathErrorMessage: '', entitlementHttpMethodErrorMessage: '' });
-            }
+            this.setState({ isProtectedByDna: false });
+        } else if (type === 'cancel') {
+            this.setState({ isProtectedByDna: true });
         }
         this.setState({ isDnAProtectModal: false });
     }
