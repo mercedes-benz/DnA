@@ -485,7 +485,7 @@ const CodeSpace = (props: ICodeSpaceProps) => {
                           onClick={() => navigateSecurityConfig()}>
                           <a target="_blank" rel="noreferrer">
                             <IconGear size={'16'} /> {CODE_SPACE_TITLE} (
-                            {codeSpaceData?.projectDetails?.securityConfig?.status})
+                            {codeSpaceData?.projectDetails?.publishedSecuirtyConfig?.status || codeSpaceData?.projectDetails?.securityConfig?.status})
                           </a>
                           &nbsp;
                         </div>
