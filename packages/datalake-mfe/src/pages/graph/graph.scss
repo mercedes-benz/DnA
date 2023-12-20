@@ -188,15 +188,18 @@
     border: none;
     color: #c0c8d0;
     height: auto;
-    margin: 0px;
+    margin: 0px 10px;
     outline: none;
     padding: 0 2px;
-    min-width: 140px;
 
     &:hover {
         color: #00adef;
         background: unset;
     }
+}
+.btnDisabled {
+  opacity: 0.5;
+  pointer-events: none;
 }
 
 .flexLayout {

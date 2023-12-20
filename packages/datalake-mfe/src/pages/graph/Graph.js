@@ -8,21 +8,24 @@ import Styles from './graph.scss';
 import FullScreenModeIcon from 'dna-container/FullScreenModeIcon';
 import Modal from 'dna-container/Modal';
 import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indicator';
+import Notification from '../../common/modules/uilab/js/src/notification';
 import GraphTable from '../../components/GraphTable';
 import TableForm from '../../components/tableForm/TableForm';
 import SlidingModal from '../../components/slidingModal/SlidingModal';
+import Spinner from '../../components/spinner/Spinner';
 import { setBox, setTables } from '../../redux/graphSlice';
 import { getProjectDetails } from '../../redux/graph.services';
 import TableCollaborators from '../../components/tableCollaborators/TableCollaborators';
 import { datalakeApi } from '../../apis/datalake.api';
 
-const Graph = () => {
+const Graph = ({user}) => {
     const { id } = useParams();
     const dispatch = useDispatch();
     const {
         box,
         version,
         project,
+        isLoading,
     } = useSelector(state => state.graph);
 
     const methods = useForm();
@@ -31,6 +34,8 @@ const Graph = () => {
       handleSubmit,
       formState: { errors },
     } = methods;
+
+    const isOwner = user.id === project?.createdBy?.id;
 
     useEffect(() => {
         dispatch(getProjectDetails(id));
@@ -228,7 +233,7 @@ const Graph = () => {
         clientSecret: values.clientSecret
       }
       ProgressIndicator.show();
-      datalakeApi.updateTechnicalUser(project?.data?.id, data).then(() => {
+      datalakeApi.updateTechnicalUser(project?.id, data).then(() => {
         ProgressIndicator.hide();
         Notification.show('Techical user details updated successfully');
         setShowTechnicalUserModal(false);
@@ -324,6 +329,7 @@ const Graph = () => {
   }
   
   return (
+    !isLoading ?
     <>
       <div className={classNames(Styles.mainPanel)}>
         <div className={Styles.nbheader}>
@@ -338,7 +344,7 @@ const Graph = () => {
                 <div className={Styles.headerright}>
                     <div>
                         <button
-                            className={classNames('btn btn-primary', Styles.btnOutline)}
+                            className={classNames('btn btn-primary', Styles.btnOutline, !isOwner && Styles.btnDisabled)}
                             type="button"
                             onClick={() => { setShowTechnicalUserModal(true) }}
                         >
@@ -348,7 +354,7 @@ const Graph = () => {
                     </div>
                     <div>
                         <button
-                            className={classNames('btn btn-primary', Styles.btnOutline)}
+                            className={classNames('btn btn-primary', Styles.btnOutline, !isOwner && Styles.btnDisabled)}
                             type="button"
                             onClick={() => { setShowInferenceModal(true) }}
                         >
@@ -358,7 +364,7 @@ const Graph = () => {
                     </div>
                     <div>
                         <button
-                            className={classNames('btn btn-primary', Styles.btnOutline)}
+                            className={classNames('btn btn-primary', Styles.btnOutline, !isOwner && Styles.btnDisabled)}
                             type="button"
                             onClick={() => { setToggleModal(!toggleModal)}}
                         >
@@ -471,7 +477,7 @@ const Graph = () => {
         }}
       />
     }
-    </>
+    </> : <Spinner />
   );
 }
 
