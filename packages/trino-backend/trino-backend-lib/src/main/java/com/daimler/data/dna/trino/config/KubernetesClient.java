@@ -42,7 +42,7 @@ public class KubernetesClient {
 	}
     
 	//operation values - add, replace, remove
-	public void operateRecordToConfigMap(String operation, String key, String value) throws ApiException {
+	public void operateRecordToConfigMap(String operation, String key, String value) throws Exception {
 		String jsonRequest = "[{ \"op\" : \"" + operation + "\", \"path\":\"/data/password.db/"+ key + "\", \"value\": \""+ value + "\"}]";
 		V1Patch body = new V1Patch(jsonRequest);
 		PatchUtils.patch(V1ConfigMap.class,

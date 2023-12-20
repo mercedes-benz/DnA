@@ -16,6 +16,7 @@ import com.daimler.data.assembler.TrinoDataLakeAssembler;
 import com.daimler.data.assembler.TrinoTableUtility;
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
+import com.daimler.data.dna.trino.config.KubernetesClient;
 import com.daimler.data.dna.trino.config.TrinoClient;
 import com.daimler.data.dto.UserInfoVO;
 import com.daimler.data.dto.storage.CreateBucketResponseWrapperDto;
@@ -70,6 +71,9 @@ public class BaseTrinoDataLakeService extends BaseCommonService<TrinoDataLakePro
 	@Autowired
 	private TrinoClient trinoClient;
 
+	@Autowired
+	private KubernetesClient kubeClient;
+	
 	@Autowired
 	private TrinoTableUtility tableUtility;
 	
@@ -174,7 +178,9 @@ public class BaseTrinoDataLakeService extends BaseCommonService<TrinoDataLakePro
 								schemaRules.setUser(String.join("|", schemaCollaborators));
 								updatedAccessRules.getSchemas().add(schemaRules);
 								for(DatalakeTableVO tableAccess : createdTablesResponse.getTables()) {
-									updatedAccessRules.getTables().removeIf(x->x.getTable()!=null && x.getTable().equalsIgnoreCase(tableAccess.getTableName()));
+									updatedAccessRules.getTables().removeIf(x-> x.getCatalog()!=null && x.getCatalog().equalsIgnoreCase(catalog)  
+																				&& x.getSchema()!=null && x.getSchema().equalsIgnoreCase(schema)
+																				&& x.getTable()!=null && x.getTable().equalsIgnoreCase(tableAccess.getTableName()));
 									if(tableAccess.getCollabs()!=null && !tableAccess.getCollabs().isEmpty()) {
 										TrinoTableRules readAccessRules = new TrinoTableRules();
 										readAccessRules.setCatalog(catalog);
@@ -360,7 +366,9 @@ public class BaseTrinoDataLakeService extends BaseCommonService<TrinoDataLakePro
 								
 								for(DatalakeTableVO tableAccess : createdTablesResponse.getTables()) {
 									existingTablesInDna.add(tableAccess.getTableName());
-									updatedAccessRules.getTables().removeIf(x->x.getTable()!=null && x.getTable().equalsIgnoreCase(tableAccess.getTableName()));
+									updatedAccessRules.getTables().removeIf(x-> x.getCatalog()!=null && x.getCatalog().equalsIgnoreCase(catalog)  
+											&& x.getSchema()!=null && x.getSchema().equalsIgnoreCase(schema)
+											&& x.getTable()!=null && x.getTable().equalsIgnoreCase(tableAccess.getTableName()));
 									if(tableAccess.getCollabs()!=null && !tableAccess.getCollabs().isEmpty()) {
 										TrinoTableRules readAccessRules = new TrinoTableRules();
 										readAccessRules.setCatalog(catalog);
@@ -406,8 +414,10 @@ public class BaseTrinoDataLakeService extends BaseCommonService<TrinoDataLakePro
 									if(!existingTablesInDna.contains(trinoTable)) {
 										try {
 											trinoClient.executeStatments("DROP TABLE IF EXISTS " + catalog + "." + schema + "." + trinoTable);
-											updatedAccessRules.getTables().removeIf(x->x.getTable()!=null && x.getTable().equalsIgnoreCase(trinoTable));
-											existingVO.getTables().removeIf(x -> x.getTableName().equalsIgnoreCase(trinoTable));
+											updatedAccessRules.getTables().removeIf(x-> x.getCatalog()!=null && x.getCatalog().equalsIgnoreCase(catalog)  
+													&& x.getSchema()!=null && x.getSchema().equalsIgnoreCase(schema)
+													&& x.getTable()!=null && x.getTable().equalsIgnoreCase(trinoTable));
+											existingVO.getTables().removeIf(x-> x.getTableName().equalsIgnoreCase(trinoTable));
 										}catch(Exception e) {
 											log.error("Failed while dropping table {} under schema {} . Caused due to Exception {}", trinoTable, schema, e.getMessage());
 											MessageDescription msg = new MessageDescription("Failed to drop table " + trinoTable + ", retry deleting");
@@ -418,6 +428,9 @@ public class BaseTrinoDataLakeService extends BaseCommonService<TrinoDataLakePro
 								
 								List<String> schemaCollaborators = new ArrayList<>();
 								schemaCollaborators.add(existingVO.getCreatedBy().getId());
+								if(existingVO.getTechUserClientId()!=null) {
+									schemaCollaborators.add(existingVO.getTechUserClientId());
+								}
 								if(existingVO.getTables()!=null && !existingVO.getTables().isEmpty()) {
 									for(DatalakeTableVO availableTable : existingVO.getTables()) {
 										if(availableTable.getCollabs()!=null && !availableTable.getCollabs().isEmpty()) {
@@ -432,7 +445,8 @@ public class BaseTrinoDataLakeService extends BaseCommonService<TrinoDataLakePro
 								schemaRules.setOwner(true);
 								schemaRules.setSchema(schema);
 								schemaRules.setUser(String.join("|", schemaCollaborators));
-								updatedAccessRules.getSchemas().removeIf(x->x.getSchema()!=null && x.getSchema().equalsIgnoreCase(schema));
+								updatedAccessRules.getSchemas().removeIf(x-> x.getCatalog()!=null && x.getCatalog().equalsIgnoreCase(catalog) 
+																			&& x.getSchema()!=null && x.getSchema().equalsIgnoreCase(schema));
 								updatedAccessRules.getSchemas().add(schemaRules);
 								accessNsql.setData(updatedAccessRules);
 								accessJpaRepo.save(accessNsql);
@@ -521,6 +535,88 @@ public class BaseTrinoDataLakeService extends BaseCommonService<TrinoDataLakePro
 		existingVO.setTables(existingTablesVO);
 		TrinoDataLakeProjectVO updatedVO = super.create(existingVO);
 		return updatedVO;
+	}
+
+	@Override
+	@Transactional
+	public GenericMessage updateTechUserDetails(TrinoDataLakeProjectVO existingProject, String clientId, String clientSecret) {
+		GenericMessage responseMsg = new GenericMessage();
+		responseMsg.setSuccess("FAILED");
+		List<MessageDescription> errors = new ArrayList<>();
+		List<MessageDescription> warnings = new ArrayList<>();
+		TrinoAccessNsql accessNsql = null;
+		TrinoAccess accessRules = null;
+		TrinoAccess updatedAccessRules = null;
+		String catalog = existingProject.getCatalogName();
+		String schema = existingProject.getSchemaName();
+		String existingSchemaUsers = "";
+		String updatedSchemaUsers = "";
+		boolean updateTechUser = false;
+		String existingClientId = "";
+		String operation = "add";
+		if(existingProject.getTechUserClientId()!=null && !"".equalsIgnoreCase(existingProject.getTechUserClientId())) {
+			updateTechUser = true;
+			existingClientId = existingProject.getTechUserClientId();
+		}
+		try{
+			List<TrinoAccessNsql> accessRecords = accessJpaRepo.findAll();
+			if(accessRecords!=null && !accessRecords.isEmpty() && accessRecords.get(0)!=null && accessRecords.get(0).getData()!=null) {
+				accessNsql = accessRecords.get(0);
+				accessRules = accessRecords.get(0).getData();
+				updatedAccessRules = accessRecords.get(0).getData();
+			}
+			if(updatedAccessRules!=null) {
+				TrinoSchemaRules schemaRules = new TrinoSchemaRules();
+				schemaRules.setCatalog(catalog);
+				schemaRules.setOwner(true);
+				schemaRules.setSchema(schema);
+				if(updateTechUser) {
+					updatedSchemaUsers = existingSchemaUsers + "|"+ clientId;
+				}else {
+					operation = "replace";
+					updatedSchemaUsers = existingSchemaUsers.replaceAll(existingClientId, clientId);
+					updatedAccessRules.getTables().removeIf(x->x.getCatalog()!=null && x.getCatalog().equalsIgnoreCase(catalog)  
+															&& x.getSchema()!=null && x.getSchema().equalsIgnoreCase(schema)
+															&& x.getUser()!=null 
+															&& x.getUser().equalsIgnoreCase(existingProject.getTechUserClientId()));
+				}
+				try {
+					kubeClient.operateRecordToConfigMap(operation, clientId, clientSecret);
+				}catch(Exception e) {
+					log.error("Failed at updating techUser access rules in kubernetes config. Exception {}", e.getMessage());
+					MessageDescription warning = new MessageDescription("Failed to update Tech User access rules, Internal Server error. Please retry after a while.");
+					warnings.add(warning);
+					responseMsg.setErrors(errors);
+					responseMsg.setWarnings(warnings);
+					return responseMsg;
+				}
+				schemaRules.setUser(updatedSchemaUsers);
+				updatedAccessRules.getSchemas().removeIf(x->x.getCatalog()!=null && x.getCatalog().equalsIgnoreCase(catalog)  
+															&& x.getSchema()!=null && x.getSchema().equalsIgnoreCase(schema));
+				updatedAccessRules.getSchemas().add(schemaRules);
+				TrinoTableRules techUserTableRule = new TrinoTableRules();
+				techUserTableRule.setCatalog(catalog);
+				techUserTableRule.setSchema(schema);
+				techUserTableRule.setUser(clientId);
+				techUserTableRule.setTable(null);
+				techUserTableRule.setPrivileges(writePrivileges);
+				updatedAccessRules.getTables().add(techUserTableRule);
+				accessNsql.setData(updatedAccessRules);
+				accessJpaRepo.save(accessNsql);
+				existingProject.setTechUserClientId(clientId);
+				this.create(existingProject);
+				responseMsg.setSuccess("SUCCESS");
+				responseMsg.setErrors(errors);
+				responseMsg.setWarnings(warnings);
+			}
+		}catch(Exception e) {
+			log.error("Failed at fetching accessrules from database for updating techUser access rules. Exception {}", e.getMessage());
+			MessageDescription warning = new MessageDescription("Failed to update Tech User access rules, unable to fetch current access rules record.");
+			warnings.add(warning);
+			responseMsg.setErrors(errors);
+			responseMsg.setWarnings(warnings);
+		}
+		return responseMsg;
 	}
 	
 	
