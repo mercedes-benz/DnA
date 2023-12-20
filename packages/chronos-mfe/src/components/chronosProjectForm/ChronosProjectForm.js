@@ -220,7 +220,8 @@ const ChronosProjectForm = ({ project, edit, onSave }) => {
         write: true
       },
       leanGovernanceFeilds: {
-        tags: tags,
+        // tags: tags,
+        tags: null,
         piiData: values.pii,
         archerId: values.archerId,
         divisionId: values.division.includes('@-@') ? values.division.split('@-@')[0] : '',
@@ -271,7 +272,8 @@ const ChronosProjectForm = ({ project, edit, onSave }) => {
       addCollaborators: addedCollaboratorsTemp,
       removeCollaborators: removedCollaboratorsTemp,
       leanGovernanceFeilds: {
-        tags: tags,
+        // tags: tags,
+        tags: null,
         piiData: values.pii,
         archerId: values.archerId,
         divisionId: values.division.includes('@-@') ? values.division.split('@-@')[0] : '',
