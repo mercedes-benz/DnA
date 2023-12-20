@@ -202,6 +202,10 @@ const ChronosProjectForm = ({ project, edit, onSave }) => {
     //eslint-disable-next-line react-hooks/exhaustive-deps
   }, [division]);
 
+  useEffect(() => {
+    SelectBox.defaultSetup(true);
+  }, [typeOfProject]);
+
   // useEffect(() => {
   //   SelectBox.defaultSetup(true);
   // }, [divisions, subDivisions, departments, dataClassificationDropdown]);
@@ -491,7 +495,7 @@ const ChronosProjectForm = ({ project, edit, onSave }) => {
                 </div>
               </div>
 
-              <div className={Styles.flexLayout}>
+              <div className={Styles.flexLayout} >
                 <div
                   className={classNames(
                     Styles.bucketNameInputField,
@@ -519,30 +523,32 @@ const ChronosProjectForm = ({ project, edit, onSave }) => {
                     </div>
                   </div>
                 </div>
-                <div
-                  className={classNames(
-                    Styles.bucketNameInputField,
-                    'input-field-group include-error',
-                    errors?.tags?.message ? 'error' : '',
-                  )}
-                >
-                  <div>
-                    <div className={Styles.departmentTags}>
+                <div className={classNames((' hide'))}>
+                  <div
+                    className={classNames(
+                      Styles.bucketNameInputField,
+                      'input-field-group include-error',
+                      errors?.tags?.message ? 'error' : '',
+                    )}
+                  >
+                    <div>
+                      <div className={Styles.departmentTags}>
 
-                      <Tags
-                        title={'Tags'}
-                        max={100}
-                        chips={tags}
-                        // tags={tags}
-                        setTags={(selectedTags) => {
-                          let tag = selectedTags?.map((item) => item.toUpperCase());
-                          setTags(tag);
-                        }}
-                        isMandatory={true}
-                        showMissingEntryError={errors?.tags?.message}
-                      // {...register('tags', {required: '*Missing entry'})}
-                      />
+                        <Tags
+                          title={'Tags'}
+                          max={100}
+                          chips={tags}
+                          // tags={tags}
+                          setTags={(selectedTags) => {
+                            let tag = selectedTags?.map((item) => item.toUpperCase());
+                            setTags(tag);
+                          }}
+                          isMandatory={false}
+                        //showMissingEntryError={errors?.tags?.message}
+                        // {...register('tags', {required: '*Missing entry'})}
+                        />
 
+                      </div>
                     </div>
                   </div>
                 </div>
