@@ -146,18 +146,18 @@ const ChronosProjectForm = ({ project, edit, onSave }) => {
   const [departments, setDepartments] = useState([]);
   const [dataClassificationDropdown, setDataClassificationDropdown] = useState([]);
 
-  const [division, setDivision] = useState(edit ? (chronosProject?.leanGovernanceFeilds?.divisionId !== null ? chronosProject?.leanGovernanceFeilds?.divisionId + '@-@' + chronosProject?.leanGovernanceFeilds?.division : '0') : '');
-  const [subDivision, setSubDivision] = useState(edit ? (chronosProject?.leanGovernanceFeilds?.subDivisionId !== null ? chronosProject?.subDivisionId + '@-@' + chronosProject?.leanGovernanceFeilds?.subDivision : '0') : '');
-  const [description, setDescription] = useState(edit && chronosProject?.leanGovernanceFeilds?.decription !== null ? chronosProject?.leanGovernanceFeilds?.decription : '');
-  const [departmentName, setDepartmentName] = useState(edit && chronosProject?.leanGovernanceFeilds?.department !== null ? [chronosProject?.leanGovernanceFeilds?.department] : []);
-  const [typeOfProject, setTypeOfProject] = useState(edit && chronosProject?.leanGovernanceFeilds?.typeOfProject !== null ? chronosProject?.leanGovernanceFeilds?.typeOfProject : '0');
-  const [dataClassification, setDataClassification] = useState(edit && chronosProject?.leanGovernanceFeilds?.dataClassification !== null ? chronosProject?.leanGovernanceFeilds?.dataClassification : '0');
-  const [PII, setPII] = useState(edit && chronosProject?.leanGovernanceFeilds?.piiData !== null ? chronosProject?.leanGovernanceFeilds?.piiData : false);
+  const [division, setDivision] = useState(edit ? (chronosProject?.leanGovernanceFeilds?.divisionId ? chronosProject?.leanGovernanceFeilds?.divisionId + '@-@' + chronosProject?.leanGovernanceFeilds?.division : '0') : '');
+  const [subDivision, setSubDivision] = useState(edit ? (chronosProject?.leanGovernanceFeilds?.subDivisionId ? chronosProject?.subDivisionId + '@-@' + chronosProject?.leanGovernanceFeilds?.subDivision : '0') : '');
+  const [description, setDescription] = useState(edit && chronosProject?.leanGovernanceFeilds?.decription ? chronosProject?.leanGovernanceFeilds?.decription : '');
+  const [departmentName, setDepartmentName] = useState(edit && chronosProject?.leanGovernanceFeilds?.department ? [chronosProject?.leanGovernanceFeilds?.department] : []);
+  const [typeOfProject, setTypeOfProject] = useState(edit && chronosProject?.leanGovernanceFeilds?.typeOfProject ? chronosProject?.leanGovernanceFeilds?.typeOfProject : '0');
+  const [dataClassification, setDataClassification] = useState(edit && chronosProject?.leanGovernanceFeilds?.dataClassification ? chronosProject?.leanGovernanceFeilds?.dataClassification : '0');
+  const [PII, setPII] = useState(edit && chronosProject?.leanGovernanceFeilds?.piiData ? chronosProject?.leanGovernanceFeilds?.piiData : false);
   // const [tags, setTags] = useState(edit && chronosProject?.leanGovernanceFeilds?.tags !== null ? [...chronosProject?.leanGovernanceFeilds?.tags || undefined] : []);
   const [tags, setTags] = useState(null);
-  const [archerId, setArcherID] = useState(edit && chronosProject?.leanGovernanceFeilds?.archerId !== null ? chronosProject?.leanGovernanceFeilds?.archerId : '');
-  const [procedureId, setProcedureID] = useState(edit && chronosProject?.leanGovernanceFeilds?.procedureId !== null ? chronosProject?.leanGovernanceFeilds?.procedureId : '');
-  const [termsOfUse, setTermsOfUse] = useState(edit && chronosProject?.leanGovernanceFeilds?.termsOfUse !== null ? [chronosProject?.leanGovernanceFeilds?.termsOfUse] : false);
+  const [archerId, setArcherID] = useState(edit && chronosProject?.leanGovernanceFeilds?.archerId ? chronosProject?.leanGovernanceFeilds?.archerId : '');
+  const [procedureId, setProcedureID] = useState(edit && chronosProject?.leanGovernanceFeilds?.procedureId ? chronosProject?.leanGovernanceFeilds?.procedureId : '');
+  const [termsOfUse, setTermsOfUse] = useState(edit && chronosProject?.leanGovernanceFeilds?.termsOfUse ? [chronosProject?.leanGovernanceFeilds?.termsOfUse] : false);
 
   useEffect(() => {
     ProgressIndicator.show();
@@ -187,8 +187,8 @@ const ChronosProjectForm = ({ project, edit, onSave }) => {
   }, []);
 
   useEffect(() => {
-    const divId = division.includes('@-@') ? division.split('@-@')[0] : '';
-    if (divId > '0') {
+    const divId = division.includes('@-@') ? division.split('@-@')[0] : division;
+    if (divId) {
       ProgressIndicator.show();
       hostServer.get('/subdivisions/' + divId)
         .then((res) => {
