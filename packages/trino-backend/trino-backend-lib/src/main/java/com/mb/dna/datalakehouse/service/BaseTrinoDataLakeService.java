@@ -82,6 +82,7 @@ public class BaseTrinoDataLakeService extends BaseCommonService<TrinoDataLakePro
 	
 	private static List<String> readPrivileges = Arrays.asList(new String[] {"SELECT"});
 	private static List<String> writePrivileges = Arrays.asList(new String[] {"SELECT","INSERT","DELETE","UPDATE"});
+	private static List<String> ownerShipPrivileges = Arrays.asList(new String[] {"SELECT","INSERT","DELETE","UPDATE","OWNERSHIP"});
 	
 	public BaseTrinoDataLakeService() {
 		super();
@@ -182,7 +183,7 @@ public class BaseTrinoDataLakeService extends BaseCommonService<TrinoDataLakePro
 									updatedAccessRules.getTables().removeIf(x-> x.getCatalog()!=null && x.getCatalog().equalsIgnoreCase(catalog)  
 																				&& x.getSchema()!=null && x.getSchema().equalsIgnoreCase(schema)
 																				&& x.getTable()!=null && x.getTable().equalsIgnoreCase(tableAccess.getTableName()));
-									if(tableAccess.getCollabs()!=null && !tableAccess.getCollabs().isEmpty()) {
+									
 										TrinoTableRules readAccessRules = new TrinoTableRules();
 										readAccessRules.setCatalog(catalog);
 										readAccessRules.setPrivileges(readPrivileges);
@@ -213,7 +214,7 @@ public class BaseTrinoDataLakeService extends BaseCommonService<TrinoDataLakePro
 											readAccessRules.setUser(String.join("|", readCollabs));
 											updatedAccessRules.getTables().add(readAccessRules);
 										}
-									}
+									
 								}
 								accessNsql.setData(updatedAccessRules);
 								accessJpaRepo.save(accessNsql);
@@ -370,7 +371,7 @@ public class BaseTrinoDataLakeService extends BaseCommonService<TrinoDataLakePro
 									updatedAccessRules.getTables().removeIf(x-> x.getCatalog()!=null && x.getCatalog().equalsIgnoreCase(catalog)  
 											&& x.getSchema()!=null && x.getSchema().equalsIgnoreCase(schema)
 											&& x.getTable()!=null && x.getTable().equalsIgnoreCase(tableAccess.getTableName()));
-									if(tableAccess.getCollabs()!=null && !tableAccess.getCollabs().isEmpty()) {
+									
 										TrinoTableRules readAccessRules = new TrinoTableRules();
 										readAccessRules.setCatalog(catalog);
 										readAccessRules.setPrivileges(readPrivileges);
@@ -395,17 +396,15 @@ public class BaseTrinoDataLakeService extends BaseCommonService<TrinoDataLakePro
 										}
 										if(writeCollabs!=null && !writeCollabs.isEmpty()) {
 											writeAccessRules.setUser(String.join("|", writeCollabs));
-										}else {
-											writeAccessRules.setUser(".*");
+											updatedAccessRules.getTables().add(writeAccessRules);
 										}
 										if(readCollabs!=null && !readCollabs.isEmpty()) {
 											readAccessRules.setUser(String.join("|", readCollabs));
-										}else {
-											readAccessRules.setUser(".*");
+											updatedAccessRules.getTables().add(readAccessRules);
 										}
 										updatedAccessRules.getTables().add(readAccessRules);
 										updatedAccessRules.getTables().add(writeAccessRules);
-									}
+									
 								}
 								
 								
@@ -541,11 +540,9 @@ public class BaseTrinoDataLakeService extends BaseCommonService<TrinoDataLakePro
 	@Override
 	@Transactional
 	public Boolean isKeyExists(String key,String projectName) throws ApiException {
-		Boolean isExists = false;
 		Long existingProjectsWithSameKey =  customRepo.getCountOfExistingProjectsWithSameKey(key,projectName);
 		if(existingProjectsWithSameKey>0) {
-			isExists = true;
-			return isExists;
+			return true;
 		}
 		return kubeClient.isKeyExists(key);
 	}
@@ -583,7 +580,7 @@ public class BaseTrinoDataLakeService extends BaseCommonService<TrinoDataLakePro
 				schemaRules.setCatalog(catalog);
 				schemaRules.setOwner(true);
 				schemaRules.setSchema(schema);
-				if(updateTechUser) {
+				if(!updateTechUser) {
 					updatedSchemaUsers = existingSchemaUsers + "|"+ clientId;
 				}else {
 					operation = "replace";
@@ -612,7 +609,7 @@ public class BaseTrinoDataLakeService extends BaseCommonService<TrinoDataLakePro
 				techUserTableRule.setSchema(schema);
 				techUserTableRule.setUser(clientId);
 				techUserTableRule.setTable(null);
-				techUserTableRule.setPrivileges(writePrivileges);
+				techUserTableRule.setPrivileges(ownerShipPrivileges);
 				updatedAccessRules.getTables().add(techUserTableRule);
 				accessNsql.setData(updatedAccessRules);
 				accessJpaRepo.save(accessNsql);
