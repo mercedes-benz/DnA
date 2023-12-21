@@ -42,6 +42,7 @@ import com.mb.dna.datalakehouse.dto.TrinoDataLakeProjectResponseVO;
 import com.mb.dna.datalakehouse.dto.TrinoDataLakeProjectUpdateRequestVO;
 import com.mb.dna.datalakehouse.dto.TrinoDataLakeProjectVO;
 
+import io.kubernetes.client.openapi.ApiException;
 import lombok.extern.slf4j.Slf4j;
 
 
@@ -539,6 +540,18 @@ public class BaseTrinoDataLakeService extends BaseCommonService<TrinoDataLakePro
 
 	@Override
 	@Transactional
+	public Boolean isKeyExists(String key,String projectName) throws ApiException {
+		Boolean isExists = false;
+		Long existingProjectsWithSameKey =  customRepo.getCountOfExistingProjectsWithSameKey(key,projectName);
+		if(existingProjectsWithSameKey>0) {
+			isExists = true;
+			return isExists;
+		}
+		return kubeClient.isKeyExists(key);
+	}
+	
+	@Override
+	@Transactional
 	public GenericMessage updateTechUserDetails(TrinoDataLakeProjectVO existingProject, String clientId, String clientSecret) {
 		GenericMessage responseMsg = new GenericMessage();
 		responseMsg.setSuccess("FAILED");
@@ -581,8 +594,8 @@ public class BaseTrinoDataLakeService extends BaseCommonService<TrinoDataLakePro
 															&& x.getUser().equalsIgnoreCase(existingProject.getTechUserClientId()));
 				}
 				try {
-					kubeClient.operateRecordToConfigMap(operation, clientId, clientSecret);
-				}catch(Exception e) {
+					kubeClient.operateRecordToConfigMap(operation,existingClientId, clientId, clientSecret);
+				}catch(ApiException e) {
 					log.error("Failed at updating techUser access rules in kubernetes config. Exception {}", e.getMessage());
 					MessageDescription warning = new MessageDescription("Failed to update Tech User access rules, Internal Server error. Please retry after a while.");
 					warnings.add(warning);
