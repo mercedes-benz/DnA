@@ -9,6 +9,8 @@ import com.mb.dna.datalakehouse.dto.TrinoDataLakeProjectResponseVO;
 import com.mb.dna.datalakehouse.dto.TrinoDataLakeProjectUpdateRequestVO;
 import com.mb.dna.datalakehouse.dto.TrinoDataLakeProjectVO;
 
+import io.kubernetes.client.openapi.ApiException;
+
 public interface TrinoDatalakeService extends CommonService<TrinoDataLakeProjectVO, TrinoDataLakeNsql, String> 
 {
 	
@@ -30,5 +32,7 @@ public interface TrinoDatalakeService extends CommonService<TrinoDataLakeProject
 	TrinoDataLakeProjectVO getUpdatedById(String id);
 
 	GenericMessage updateTechUserDetails(TrinoDataLakeProjectVO existingProject, String clientId, String clientSecret);
+
+	Boolean isKeyExists(String key, String projectName) throws ApiException;
 	
 }
