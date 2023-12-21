@@ -919,10 +919,10 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 				ForecastNsql entity = entityOptional.get();
 				List<UserDetails> exstingcollaborators = entity.getData().getCollaborators();
 				LeanGovernanceFeilds governanceFeilds = entity.getData().getLeanGovernanceFeilds();
-				if (governanceFeilds != null) {
+
 					LeanGovernanceFeilds updatedValues = assembler.toGovernceEntity(forecastUpdateRequestVO.getLeanGovernanceFeilds());
 					entity.getData().setLeanGovernanceFeilds(updatedValues);
-				}
+
 				List<UserDetails> addCollabrators = forecastUpdateRequestVO.getAddCollaborators().stream().map(n -> {
 					UserDetails collaborator = new UserDetails();
 					BeanUtils.copyProperties(n, collaborator);
