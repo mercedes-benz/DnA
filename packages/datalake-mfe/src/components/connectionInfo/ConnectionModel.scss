@@ -50,7 +50,6 @@
       margin-bottom: 15px !important;
       color: #d9dfe4 !important;
       text-align: left;
-      width: 38vw;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
@@ -105,6 +104,10 @@
     position: absolute;
     top: 50%;
     right: 50%;
+  }
+  .copyCodeIcon {
+    cursor: pointer;
+    float: right;
   }
 
   .showIcon {

@@ -95,13 +95,13 @@ export const ConnectionModal = ({ projectId, onOkClick }) => {
 
     const connectToOData = (
         <>
-            <div className={Styles.emptyDataikuProjectsList}>No project(s) to connect</div>
+            <div className={Styles.emptyDataikuProjectsList}>Coming Soon</div>
         </>
     );
 
     const connectToGraphQl = (
         <>
-            <div className={Styles.emptyDataikuProjectsList}>No project(s) to connect</div>
+            <div className={Styles.emptyDataikuProjectsList}>Coming Soon</div>
         </>
     );
 
@@ -109,7 +109,7 @@ export const ConnectionModal = ({ projectId, onOkClick }) => {
         <>
             <p>From DBeaver: Select the trino driver and enter the below details.</p> 
  
-            <p><strong>FOR TECHINIAL USER:</strong></p> 
+            <p><strong>For Technical User:</strong></p> 
             <ul>
                 <li>Host: {connectionInfo.howToConnect.trino.techUserVO.hostName}</li>
                 <li>Port: {connectionInfo.howToConnect.trino.techUserVO.port}</li>
@@ -143,7 +143,7 @@ export const ConnectionModal = ({ projectId, onOkClick }) => {
                     </span>
                 </li>
             </ul>
-            <p><strong>FOR OIDC user:</strong></p>
+            <p><strong>For OIDC User:</strong></p>
             <ul>
                 <li>Host: {connectionInfo.howToConnect.trino.userVO.hostName}</li>
                 <li>Port: {connectionInfo.howToConnect.trino.userVO.port}</li>
@@ -176,14 +176,83 @@ export const ConnectionModal = ({ projectId, onOkClick }) => {
                         <i className="icon mbc-icon copy" />
                     </span>
                 </li>
-                <li>External Authentication: {connectionInfo.howToConnect.trino.userVO.externalAuthentication}</li>
+                <li>External Authentication: {connectionInfo.howToConnect.trino.userVO.externalAuthentication ? 'Yes' : 'No'}</li>
             </ul>
         </>
     );
 
     const connectToParquet = (
         <>
-            <div className={Styles.emptyDataikuProjectsList}>No project(s) to connect</div>
+            <div className={Styles.emptyDataikuProjectsList}>Coming Soon</div>
+        </>
+    );
+
+    const connectToJupyterNotebook = (!loading &&
+        <>
+            <p>
+                <strong>For OIDC User:</strong>
+                <span
+                    className={Styles.copyCodeIcon}
+                    onClick={() => {
+                        const content = document.getElementById('jupyterusercode')?.innerText;
+                        copyToClipboard(content);
+                    }}
+                >
+                    <i className="icon mbc-icon copy" />
+                </span>
+            </p>
+            <code>
+<pre id="jupyterusercode">
+{`from trino.dbapi import connect
+from trino.auth import OAuth2Authentication
+conn = connect(
+    user="${connectionInfo.howToConnect.trino.userVO.accesskey}",
+    catalog="${connectionInfo.project.catalogName}",
+    auth=OAuth2Authentication(),
+    http_scheme="https",
+    verify=False,
+    host="${connectionInfo.howToConnect.trino.userVO.hostName}",
+    port=${connectionInfo.howToConnect.trino.userVO.port},
+    schema="${connectionInfo.project.schemaName}"
+)
+cur = conn.cursor()
+cur.execute("YOUR_STATEMENT_TO_EXECUTE")
+rows = cur.fetchall()
+print(rows)`}
+</pre>
+            </code>
+            <br/>
+            <p>
+                <strong>For Technical User:</strong>
+                <span
+                    className={Styles.copyCodeIcon}
+                    onClick={() => {
+                        const content = document.getElementById('jupytertechcode')?.innerText;
+                        copyToClipboard(content);
+                    }}
+                >
+                    <i className="icon mbc-icon copy" />
+                </span>
+            </p>
+            <code>
+<pre id="jupytertechcode">
+{`from trino.dbapi import connect
+from trino.auth import BasicAuthentication
+conn = connect(
+    host="${connectionInfo.howToConnect.trino.techUserVO.hostName}",
+    auth=BasicAuthentication("${connectionInfo.howToConnect.trino.techUserVO.accesskey}", "XXXXXXX"),
+    port=${connectionInfo.howToConnect.trino.techUserVO.port},
+    user="${connectionInfo.howToConnect.trino.techUserVO.accesskey}",
+    catalog="${connectionInfo.project.catalogName}",
+    schema="${connectionInfo.project.schemaName}",
+    verify=False
+)
+cur = conn.cursor()
+cur.execute('SELECT * FROM YOUR_CATALOG.YOUR_PROJECT_SCHEMA.YOUR_TABLE')
+rows = cur.fetchall()
+print(rows)`}
+</pre>
+            </code>
         </>
     );
 
@@ -271,6 +340,11 @@ export const ConnectionModal = ({ projectId, onOkClick }) => {
                                         <strong>Connect using Parequet</strong>
                                     </a>
                                 </li>
+                                <li className={'tab'}>
+                                    <a href="#tab-content-6" id="jupyterNotebook">
+                                        <strong>Connect using Jupyter Notebook</strong>
+                                    </a>
+                                </li>
                             </ul>
                         </nav>
                     </div>
@@ -334,6 +408,9 @@ export const ConnectionModal = ({ projectId, onOkClick }) => {
                                 <i className="icon mbc-icon copy" />
                             </span>
                             <div className={Styles.connectionCode}>{connectToParquet}</div>
+                        </div>
+                        <div id="tab-content-6" className={classNames('tab-content mbc-scroll', Styles.tabContentContainer)}>
+                            <div className={Styles.connectionCode}>{connectToJupyterNotebook}</div>
                         </div>
                     </div>
                 </div>
