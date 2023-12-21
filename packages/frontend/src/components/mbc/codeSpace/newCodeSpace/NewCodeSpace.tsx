@@ -20,7 +20,7 @@ import { Envs } from 'globals/Envs';
 import { recipesMaster } from '../../../../services/utils';
 import ConfirmModal from 'components/formElements/modal/confirmModal/ConfirmModal';
 import { DEPLOYMENT_DISABLED_RECIPE_IDS } from 'globals/constants';
- //import { Link } from 'react-router-dom';
+ import { Link } from 'react-router-dom';
 
 const classNames = cn.bind(Styles);
 
@@ -718,15 +718,15 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
                   </select>
                 </div>
                 <span className={classNames('error-message', recipeError.length ? '' : 'hide')}>{recipeError}</span>
-                {/* <Link to="/codespaceRecipes" target='_blank' > */}
+                <Link to="/codespaceRecipes" target='_blank' >
                 <div>
                   <button className={classNames(Styles.addNewItemButton)} >
                     <i className="icon mbc-icon plus" />
                     &nbsp;
-                    <span>Add new code space recipe (Coming Soon)</span>
+                    <span>Add new code space recipe</span>
                   </button>
                 </div>
-                {/* </Link> */}
+                </Link>
               </div>
               <div>
                 <TextBox
