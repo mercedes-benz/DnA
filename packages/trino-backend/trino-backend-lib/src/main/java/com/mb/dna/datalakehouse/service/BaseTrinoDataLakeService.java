@@ -527,7 +527,7 @@ public class BaseTrinoDataLakeService extends BaseCommonService<TrinoDataLakePro
 				newTable.setXCoOrdinate(new BigDecimal("0"));
 				newTable.setYCoOrdinate(new BigDecimal("0")); 
 				List<DataLakeTableColumnDetailsVO> columns = new ArrayList<>();
-				trinoClient.showColumns(existingVO.getCatalogName(), existingVO.getSchemaName(), table);
+				columns = trinoClient.showColumns(existingVO.getCatalogName(), existingVO.getSchemaName(), table);
 				newTable.setColumns(columns);
 				existingTablesVO.add(newTable);
 			}
