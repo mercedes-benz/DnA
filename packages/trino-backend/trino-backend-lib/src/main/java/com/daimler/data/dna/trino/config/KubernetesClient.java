@@ -1,9 +1,14 @@
 package com.daimler.data.dna.trino.config;
 
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder.BCryptVersion;
 import org.springframework.stereotype.Component;
 
-import io.kubernetes.client.custom.V1Patch;
 import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.Configuration;
@@ -11,7 +16,6 @@ import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.models.V1ConfigMap;
 import io.kubernetes.client.openapi.models.V1ConfigMapList;
 import io.kubernetes.client.util.Config;
-import io.kubernetes.client.util.PatchUtils;
 import io.kubernetes.client.util.generic.GenericKubernetesApi;
 import io.kubernetes.client.util.generic.KubernetesApiResponse;
 import lombok.extern.slf4j.Slf4j;
@@ -22,7 +26,7 @@ public class KubernetesClient {
 
 	private CoreV1Api api;
 	private ApiClient client;
-	
+	private BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder(BCryptVersion.$2Y,10);
 	@Value("${trino.kubernetes.namespace}")
 	private String trinoNamespace;
 	
@@ -41,14 +45,47 @@ public class KubernetesClient {
 		}
 	}
     
+	
+	public Boolean isKeyExists(String key) throws ApiException {
+		Boolean isExists = false;
+		V1ConfigMap configMap = api.readNamespacedConfigMap(trinoConfigMapName, trinoNamespace, "true");
+		String currentValue = configMap.getData().get("password.db");
+		if(currentValue==null) {
+			currentValue="";
+			Stream<String> lines = currentValue.lines();
+			if(lines!=null) {
+				isExists = lines.anyMatch(x-> x.contains(key+":"));
+			}
+		}
+		return isExists;
+	}
+	
 	//operation values - add, replace, remove
-	public void operateRecordToConfigMap(String operation, String key, String value) throws Exception {
+	public void operateRecordToConfigMap(String operation, String prevKey, String key, String value) throws ApiException {
 		String jsonRequest = "[{ \"op\" : \"" + operation + "\", \"path\":\"/data/password.db/"+ key + "\", \"value\": \""+ value + "\"}]";
-		V1Patch body = new V1Patch(jsonRequest);
-		PatchUtils.patch(V1ConfigMap.class,
-						() -> api.patchNamespacedConfigMapCall(trinoConfigMapName, trinoNamespace, body, null, null, null, null, null, null),
-						V1Patch.PATCH_FORMAT_JSON_PATCH,
-						api.getApiClient());
+		V1ConfigMap configMap = api.readNamespacedConfigMap(trinoConfigMapName, trinoNamespace, "true");
+		String currentValue = configMap.getData().get("password.db");
+		if(currentValue==null) {
+			currentValue="";
+		}
+		String updatedValue = "";
+		if("add".equalsIgnoreCase(operation)) {
+			updatedValue = currentValue + key + ":" + passwordEncoder.encode(value) + "\n";
+		}
+		if("replace".equalsIgnoreCase(operation)) {
+			Stream<String> lines = currentValue.lines();
+			List<String> linesAsList = lines.filter(x -> !x.contains(prevKey+":")).collect(Collectors.toList());
+			String updatedLines = String.join("\n",linesAsList);
+			updatedValue = updatedLines + "\n" + key + ":" + passwordEncoder.encode(value) + "\n";
+		}
+		if("remove".equalsIgnoreCase(operation)) {
+			Stream<String> lines = currentValue.lines();
+			List<String> linesAsList = lines.filter(x -> !x.contains(prevKey+":")).collect(Collectors.toList());
+			String updatedLines = String.join("\n",linesAsList);
+			updatedValue = updatedLines + "\n" ;
+		}
+		configMap.getData().put("password.db", updatedValue);
+		api.replaceNamespacedConfigMap(trinoConfigMapName, trinoNamespace, configMap, null, null, null, null);
 	}
 	
 	public void getConfigMaps() {

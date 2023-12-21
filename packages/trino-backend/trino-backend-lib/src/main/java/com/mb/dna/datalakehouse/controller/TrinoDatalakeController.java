@@ -241,7 +241,7 @@ public class TrinoDatalakeController {
 			MessageDescription invalidMsg = new MessageDescription("Datalake project already exists with given name");
 			GenericMessage errorMessage = new GenericMessage();
 			errorMessage.setSuccess(HttpStatus.CONFLICT.name());
-			errorMessage.addWarnings(invalidMsg);
+			errorMessage.addErrors(invalidMsg);
 			responseVO.setData(request);
 			responseVO.setResponse(errorMessage);
 			return new ResponseEntity<>(responseVO, HttpStatus.CONFLICT);
@@ -252,7 +252,7 @@ public class TrinoDatalakeController {
 			MessageDescription invalidMsg = new MessageDescription("Datalake project already exists with given name");
 			GenericMessage errorMessage = new GenericMessage();
 			errorMessage.setSuccess(HttpStatus.CONFLICT.name());
-			errorMessage.addWarnings(invalidMsg);
+			errorMessage.addErrors(invalidMsg);
 			responseVO.setData(request);
 			responseVO.setResponse(errorMessage);
 			return new ResponseEntity<>(responseVO, HttpStatus.CONFLICT);
@@ -264,7 +264,7 @@ public class TrinoDatalakeController {
 			MessageDescription invalidMsg = new MessageDescription("Datalake project already exists with given name");
 			GenericMessage errorMessage = new GenericMessage();
 			errorMessage.setSuccess(HttpStatus.CONFLICT.name());
-			errorMessage.addWarnings(invalidMsg);
+			errorMessage.addErrors(invalidMsg);
 			responseVO.setData(request);
 			responseVO.setResponse(errorMessage);
 			return new ResponseEntity<>(responseVO, HttpStatus.CONFLICT);
@@ -348,7 +348,7 @@ public class TrinoDatalakeController {
 			MessageDescription invalidMsg = new MessageDescription("Datalake project does not exist with given name");
 			GenericMessage errorMessage = new GenericMessage();
 			errorMessage.setSuccess("FAILED");
-			errorMessage.addWarnings(invalidMsg);
+			errorMessage.addErrors(invalidMsg);
 			return new ResponseEntity<>(errorMessage, HttpStatus.NOT_FOUND);
 		}
 		//check if user is project owner
@@ -359,8 +359,26 @@ public class TrinoDatalakeController {
 			MessageDescription invalidMsg = new MessageDescription("Only Owner can edit project details. Access denied.");
 			GenericMessage errorMessage = new GenericMessage();
 			errorMessage.setSuccess("FAILED");
-			errorMessage.addWarnings(invalidMsg);
+			errorMessage.addErrors(invalidMsg);
 			return new ResponseEntity<>(errorMessage, HttpStatus.FORBIDDEN);
+		}
+		try{
+				Boolean isExists = trinoDatalakeService.isKeyExists(request.getData().getClientId(), existingProject.getProjectName());
+				if(isExists) {
+					log.error("Given clientId already in use by another Datalake project, Please retry with different clientId. Update request for project {} failed",id);
+					MessageDescription invalidMsg = new MessageDescription("Given clientId already in use by another Datalake project, Please retry with different clientId.");
+					GenericMessage errorMessage = new GenericMessage();
+					errorMessage.setSuccess("FAILED");
+					errorMessage.addErrors(invalidMsg);
+					return new ResponseEntity<>(errorMessage, HttpStatus.BAD_REQUEST);
+				}
+		}catch(Exception e) {
+			log.error("Failed to check if clientId already exists with internal server exception {} . Update request for project {} failed",e.getMessage(),id);
+			MessageDescription invalidMsg = new MessageDescription("Failed to check if clientId already exists, Please retry after a while.");
+			GenericMessage errorMessage = new GenericMessage();
+			errorMessage.setSuccess("FAILED");
+			errorMessage.addErrors(invalidMsg);
+			return new ResponseEntity<>(errorMessage, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 		String name = existingProject.getProjectName();
 		TrinoDataLakeProjectVO data = new TrinoDataLakeProjectVO();
@@ -411,7 +429,7 @@ public class TrinoDatalakeController {
 			MessageDescription invalidMsg = new MessageDescription("Datalake project does not exist with given name");
 			GenericMessage errorMessage = new GenericMessage();
 			errorMessage.setSuccess("FAILED");
-			errorMessage.addWarnings(invalidMsg);
+			errorMessage.addErrors(invalidMsg);
 			responseVO.setData(new TrinoDataLakeProjectVO());
 			responseVO.setResponse(errorMessage);
 			return new ResponseEntity<>(responseVO, HttpStatus.NOT_FOUND);
@@ -424,7 +442,7 @@ public class TrinoDatalakeController {
 			MessageDescription invalidMsg = new MessageDescription("Only Owner can edit project details. Access denied.");
 			GenericMessage errorMessage = new GenericMessage();
 			errorMessage.setSuccess("FAILED");
-			errorMessage.addWarnings(invalidMsg);
+			errorMessage.addErrors(invalidMsg);
 			responseVO.setData(new TrinoDataLakeProjectVO());
 			responseVO.setResponse(errorMessage);
 			return new ResponseEntity<>(responseVO, HttpStatus.FORBIDDEN);

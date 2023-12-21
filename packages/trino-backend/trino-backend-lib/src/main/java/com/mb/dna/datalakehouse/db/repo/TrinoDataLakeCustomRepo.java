@@ -13,4 +13,6 @@ public interface TrinoDataLakeCustomRepo extends CommonDataRepository<TrinoDataL
 
 	Long getCountByUserAndProject(String userId, String id);
 
+	Long getCountOfExistingProjectsWithSameKey(String clientId, String projectName);
+
 }
