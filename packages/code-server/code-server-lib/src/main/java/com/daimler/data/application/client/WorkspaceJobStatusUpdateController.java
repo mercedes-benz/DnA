@@ -69,9 +69,6 @@ public class WorkspaceJobStatusUpdateController  {
 	private AuthenticatorClient authenticatorClient;
 	
 	@Autowired
-	private WorkspaceCustomRepository workspaceCustomRepository;
-	
-	@Autowired
 	private WorkspaceRepository jpaRepo;
 	
 	@ApiOperation(value = "Update workspace Project for a given Id.", nickname = "updateWorkspace", notes = "update workspace Project for a given identifier.", response = GenericMessage.class, tags={ "code-server", })
@@ -109,26 +106,7 @@ public class WorkspaceJobStatusUpdateController  {
 			log.info("latestStatus  is {}",latestStatus);
 			if(latestStatus.equalsIgnoreCase("CREATED")) {
 				log.info("workspace:{} is in created state", name);
-				List<CodeServerWorkspaceNsql> collabNsqls = new ArrayList<>();
-				List<UserInfoVO> projectCollaborators = existingVO.getProjectDetails().getProjectCollaborators();
-				if (projectCollaborators != null & !projectCollaborators.isEmpty()) {					
-					CodeServerWorkspace codeServerWorkspace = new CodeServerWorkspace();
-					CodeServerWorkspaceNsql updatedCollabNsql = new CodeServerWorkspaceNsql();
-					for (UserInfoVO collab : projectCollaborators) {
-						log.info("Collab id is:{}", collab.getId());
-						// Get codespace project which is not in created/deleted state
-						CodeServerWorkspaceNsql existingCollabNsql = workspaceCustomRepository
-								.findDataByProjectName(collab.getId(), existingVO.getProjectDetails().getProjectName());
-						if (Objects.nonNull(existingCollabNsql)) {
-							codeServerWorkspace = existingCollabNsql.getData();
-							codeServerWorkspace.setStatus(ConstantsUtility.COLLABREQUESTEDSTATE);
-							updatedCollabNsql.setData(codeServerWorkspace);
-							updatedCollabNsql.setId(existingCollabNsql.getId());							
-							collabNsqls.add(updatedCollabNsql);
-						}
-					}
-				}
-				jpaRepo.saveAllAndFlush(collabNsqls);
+				service.updateCollaboratorWorkspaceStatus(existingVO);
 			}
 			UserInfoVO ownerVO = existingVO.getWorkspaceOwner();
 			boolean unauthorized = false; 

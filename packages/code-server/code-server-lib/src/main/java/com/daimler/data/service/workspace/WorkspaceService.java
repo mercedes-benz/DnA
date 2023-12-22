@@ -79,4 +79,6 @@ public interface WorkspaceService {
 
 	GenericMessage updateGovernancenceValues(String userId, String id,
 			@Valid DataGovernanceRequestInfo dataGovernanceInfo);
+	
+	GenericMessage updateCollaboratorWorkspaceStatus(CodeServerWorkspaceVO existingVO);
 }

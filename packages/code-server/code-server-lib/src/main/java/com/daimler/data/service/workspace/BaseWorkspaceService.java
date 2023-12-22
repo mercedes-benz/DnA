@@ -1641,4 +1641,44 @@ public class BaseWorkspaceService implements WorkspaceService {
 
 	}
 
+	@Override
+	public GenericMessage updateCollaboratorWorkspaceStatus(CodeServerWorkspaceVO existingVO) {
+		GenericMessage responseMessage = new GenericMessage();
+		try {
+			List<CodeServerWorkspaceNsql> collabNsqls = new ArrayList<>();
+			List<UserInfoVO> projectCollaborators = existingVO.getProjectDetails().getProjectCollaborators();
+			if (projectCollaborators != null & !projectCollaborators.isEmpty()) {					
+				CodeServerWorkspace codeServerWorkspace = new CodeServerWorkspace();
+				CodeServerWorkspaceNsql updatedCollabNsql = new CodeServerWorkspaceNsql();
+				for (UserInfoVO collab : projectCollaborators) {
+					log.info("Collab id is:{}", collab.getId());
+					// Get codespace project which status is null
+					CodeServerWorkspaceNsql existingCollabNsql = workspaceCustomRepository
+							.findDataByProjectName(collab.getId(), existingVO.getProjectDetails().getProjectName());
+					if (Objects.nonNull(existingCollabNsql)) {
+						codeServerWorkspace = existingCollabNsql.getData();
+						codeServerWorkspace.setStatus(ConstantsUtility.COLLABREQUESTEDSTATE);
+						updatedCollabNsql.setData(codeServerWorkspace);
+						updatedCollabNsql.setId(existingCollabNsql.getId());							
+						collabNsqls.add(updatedCollabNsql);
+					}
+				}
+				jpaRepo.saveAllAndFlush(collabNsqls);
+			}
+			responseMessage.setSuccess("SUCCESS");
+			log.info("Successfully updated collaborator workspace statuses");
+		}
+		catch (Exception e) {
+			log.error("Exception while updating collaborator workspace status", e.getMessage());
+			MessageDescription msg = new MessageDescription();
+			List<MessageDescription> errorMessage = new ArrayList<>();
+			msg.setMessage("Exception while updating collaborator workspace status");
+			errorMessage.add(msg);
+			responseMessage.addErrors(msg);
+			responseMessage.setSuccess("FAILED");
+			responseMessage.setErrors(errorMessage);
+		}
+		return responseMessage;
+	}
+
 }
