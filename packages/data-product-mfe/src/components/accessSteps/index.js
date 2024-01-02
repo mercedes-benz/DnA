@@ -9,7 +9,7 @@ import SelectBox from 'dna-container/SelectBox';
 import Modal from 'dna-container/Modal';
 import ConfirmModal from 'dna-container/Modal';
 import { markdownParser } from 'dna-container/MarkdownParser';
-
+import Notification from '../../common/modules/uilab/js/src/notification';
 const AccessSteps = (
   { 
     value,
@@ -262,17 +262,22 @@ const AccessSteps = (
                                 if(!data?.stepNumber){
                                   updateNumberedStep(numberedStep+1);
                                   data1.stepNumber = numberedStep+1;
-                                } 
+                                }
                                 else{
                                   updateNumberedStep(data?.stepNumber);
                                   data1.stepNumber = data?.stepNumber;
                                 }
-                                
+
                               }
-                              // console.log(markdownParserText,'=-=-=-=-=-=-=-=-=-=-=-==')
-                              data1.stepText = htmlToMarkdownParser(markdownParserText);
-                              update(itemIndex, data1);
-                              setEnableEdit(false);
+                              if(markdownParserText !== "") {
+                                data1.stepText = htmlToMarkdownParser(markdownParserText);
+                                update(itemIndex, data1);
+                                setEnableEdit(false);
+                              } else {
+                                Notification.show(
+                                  "Please Enter Description Before Saving","alert"
+                                );
+                              }
                             })}
                             >Save entry</span>
                             
