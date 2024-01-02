@@ -322,7 +322,7 @@ export default class DataCompliance extends React.Component<IDataComplianceProps
                   id={DataCompliance.naRiskTypeKeyValue}
                   value={DataCompliance.naRiskTypeKeyValue}
                   onChange={this.onAIRiskTypeChange}
-                  checked={this.state.datacompliance.aiRiskAssessmentType === DataCompliance.naRiskTypeKeyValue}
+                  checked={this.state.datacompliance.aiRiskAssessmentType === DataCompliance.naRiskTypeKeyValue || !this.state.datacompliance.aiRiskAssessmentType }
                 />
               </span>
               <span className="label">{DataCompliance.naRiskTypeValue}</span>
