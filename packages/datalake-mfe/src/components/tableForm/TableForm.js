@@ -5,10 +5,7 @@ import Styles from './table-form.scss';
 import SelectBox from 'dna-container/SelectBox';
 import { useSelector, useDispatch } from 'react-redux';
 import { setTables } from '../../redux/graphSlice';
-import { datalakeApi } from '../../apis/datalake.api';
-import Notification from '../../common/modules/uilab/js/src/notification';
-import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indicator';
-
+// import { calcXY } from '../../utilities/utils';
 
 const TableFormItem = (props) => {
   const { register, formState: { errors } } = useFormContext();
@@ -219,50 +216,15 @@ const TableFormBase = ({formats}) => {
   )
 }
 
-const TableForm = ({setToggle}) => {
+const TableForm = ({setToggle, formats, dataTypes}) => {
   const methods = useForm();
   const { handleSubmit } = methods;
   
   const { project } = useSelector(state => state.graph);
   const dispatch = useDispatch();
 
-  const [connectors,setConnectors] = useState([]);
-  const [formats, setFormats] = useState([]);
-  const [dataTypes, setDataTypes] = useState([]);
-
   useEffect(() => {
     SelectBox.defaultSetup();
-  }, []);
-
-  useEffect(() => {
-    if(project.connectorType === 'Iceberg') {
-      const connector = connectors.filter(item => item.name === 'Iceberg');
-      setFormats(connector[0] !== undefined ? [...connector[0].formats] : []);
-      setDataTypes(connector[0] !== undefined ? [...connector[0].dataTypes] : []);
-    }
-    if(project.connectorType === 'Delta Lake') {
-      const connector = connectors.filter(item => item.name === 'Delta Lake');
-      setFormats(connector[0] !== undefined ? [...connector[0].formats] : []);
-      setDataTypes(connector[0] !== undefined ? [...connector[0].dataTypes] : []);
-    }
-  }, [connectors, project]);
-
-  useEffect(() => {
-    ProgressIndicator.show();
-    datalakeApi.getConnectors()
-      .then((res) => {
-        setConnectors(res.data.connectors);
-        ProgressIndicator.hide();
-        SelectBox.defaultSetup();
-      })
-      .catch((err) => {
-        Notification.show(
-          err?.response?.data?.errors?.[0]?.message || 'Error while fetching connectors',
-          'alert',
-        );
-        ProgressIndicator.hide();
-        SelectBox.defaultSetup();
-      });
   }, []);
 
   const [columns, setFields] = useState([]);
@@ -284,6 +246,7 @@ const TableForm = ({setToggle}) => {
     for (const key in colData) {
       cols.push(colData[key]);
     }
+    // const [x, y] = calcXY([...project.tables], box);
     const tableData = {
       tableName: tableName,
       dataFormat: tableFormat,
@@ -296,7 +259,6 @@ const TableForm = ({setToggle}) => {
     projectTemp.tables = [...projectTemp.tables, tableData];
     dispatch(setTables(projectTemp.tables));
     setToggle();
-    Notification.show('Table added successfully');
   }
 
   const addItem = index => {

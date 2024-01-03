@@ -1,3 +1,13 @@
+import {
+  tableWidth,
+  tableMarginLeft,
+  tableMarginTop,
+  tableRowNumbers,
+  fieldHeight,
+  titleHeight,
+  commentHeight,
+} from '../data/settings';
+
 export const regionalDateAndTimeConversionSolution = (dateString) => {
   const date = new Date(dateString);
   return new Intl.DateTimeFormat(navigator.language, {
@@ -26,3 +36,29 @@ export function getQueryParameterByName(name, url) {
   }
   return decodeURIComponent(results[2].replace(/\+/g, ' '));
 }
+
+export const calcXY = (tables, box) => {
+  const index = Math.max(1, tables.length);
+  let x, y;
+  if (!tables.length) {
+      x = box.x + 196 + 72;
+      y = box.y + 72;
+  } else {
+      if (index < tableRowNumbers) {
+          const lastTable = tables[index - 1];
+          x = lastTable.x + tableWidth + tableMarginLeft;
+          y = lastTable.y;
+      } else {
+          const lastTable = tables[index - tableRowNumbers];
+          const { fields } = lastTable;
+          x = lastTable.x;
+          y =
+              lastTable.y +
+              fields.length * fieldHeight +
+              titleHeight +
+              commentHeight +
+              tableMarginTop;
+      }
+  }
+  return [x, y];
+};

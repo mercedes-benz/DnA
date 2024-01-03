@@ -8,6 +8,8 @@ import Styles from './graph.scss';
 import FullScreenModeIcon from 'dna-container/FullScreenModeIcon';
 import Modal from 'dna-container/Modal';
 import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indicator';
+import SelectBox from '../../common/modules/uilab/js/src/select';
+import Tooltip from '../../common/modules/uilab/js/src/tooltip';
 import Notification from '../../common/modules/uilab/js/src/notification';
 import GraphTable from '../../components/GraphTable';
 import TableForm from '../../components/tableForm/TableForm';
@@ -17,6 +19,7 @@ import { setBox, setTables } from '../../redux/graphSlice';
 import { getProjectDetails } from '../../redux/graph.services';
 import TableCollaborators from '../../components/tableCollaborators/TableCollaborators';
 import { datalakeApi } from '../../apis/datalake.api';
+import ColumnForm from '../../components/columnForm/ColumnForm';
 
 const Graph = ({user}) => {
     const { id } = useParams();
@@ -40,6 +43,12 @@ const Graph = ({user}) => {
     useEffect(() => {
         dispatch(getProjectDetails(id));
     }, [id, dispatch]);
+
+    useEffect(() => {
+      Tooltip.defaultSetup();
+      return Tooltip.clear();
+      //eslint-disable-next-line
+    }, []);
 
     /* A callback function that is used to update the viewbox of the svg. */
     const resizeHandler = useCallback(() => {
@@ -313,6 +322,101 @@ const Graph = ({user}) => {
     dispatch(setTables(projectTemp.tables));
   }
 
+  const [connectors,setConnectors] = useState([]);
+  const [formats, setFormats] = useState([]);
+  const [dataTypes, setDataTypes] = useState([]);
+
+  useEffect(() => {
+    if(project.connectorType === 'Iceberg') {
+      const connector = connectors.filter(item => item.name === 'Iceberg');
+      setFormats(connector[0] !== undefined ? [...connector[0].formats] : []);
+      setDataTypes(connector[0] !== undefined ? [...connector[0].dataTypes] : []);
+    }
+    if(project.connectorType === 'Delta Lake') {
+      const connector = connectors.filter(item => item.name === 'Delta Lake');
+      setFormats(connector[0] !== undefined ? [...connector[0].formats] : []);
+      setDataTypes(connector[0] !== undefined ? [...connector[0].dataTypes] : []);
+    }
+  }, [connectors, project]);
+
+  useEffect(() => {
+    ProgressIndicator.show();
+    datalakeApi.getConnectors()
+      .then((res) => {
+        setConnectors(res.data.connectors);
+        ProgressIndicator.hide();
+        SelectBox.defaultSetup();
+      })
+      .catch((err) => {
+        Notification.show(
+          err?.response?.data?.errors?.[0]?.message || 'Error while fetching connectors',
+          'alert',
+        );
+        ProgressIndicator.hide();
+        SelectBox.defaultSetup();
+      });
+  }, []);
+
+  const [showColumnModal, setShowColumnModal] = useState(false);
+  const [selectedTable, setSelectedTable] = useState();
+  const [selectedColumn, setSelectedColumn] = useState();
+  const [selectedIndex, setSelectedIndex] = useState(-1);
+  const [columnEdit, setColumnEdit] = useState(false);
+
+  const handleAddColumn = (table) => {
+    setShowColumnModal(true);
+    setSelectedTable({...table});
+  }
+
+  const handleEditColumn = (column, table, index) => {
+    setShowColumnModal(true);
+    setColumnEdit(true);
+    setSelectedTable({...table});
+    setSelectedColumn({...column});
+    setSelectedIndex(index);
+  }
+
+  const addColumn = (values) => {
+    const tempTable = {...selectedTable};
+    const columns = [...tempTable.columns];
+    columns.push({
+      columnName: values.columnName,
+      comment: values.comment,
+      dataType: values.dataType,
+      notNullConstraintEnabled: values.notNullConstraintEnabled,
+    });
+    delete tempTable.columns;
+    tempTable.columns = [...columns];
+
+    const projectTemp = {...project};
+    const tempTables = projectTemp.tables.filter(item => item.tableName !== tempTable.tableName);
+    projectTemp.tables = [...tempTables, tempTable];
+    dispatch(setTables(projectTemp.tables));
+    setShowColumnModal(false);
+    Tooltip.defaultSetup();
+  }
+
+  const editColumn = (values) => {
+    const tempTable = {...selectedTable};
+    const columns = [...tempTable.columns];
+    columns.splice(selectedIndex, 1);
+    columns.push({
+      columnName: values.columnName,
+      comment: values.comment,
+      dataType: values.dataType,
+      notNullConstraintEnabled: values.notNullConstraintEnabled,
+    });
+    delete tempTable.columns;
+    tempTable.columns = [...columns];
+
+    const projectTemp = {...project};
+    const tempTables = projectTemp.tables.filter(item => item.tableName !== tempTable.tableName);
+    projectTemp.tables = [...tempTables, tempTable];
+    dispatch(setTables(projectTemp.tables));
+    setShowColumnModal(false);
+    Tooltip.defaultSetup();
+  }
+
   const handlePublish = () => {
     const data = {...project}
     ProgressIndicator.show();
@@ -327,10 +431,16 @@ const Graph = ({user}) => {
       );
     });
   }
+
+  const [fullScreenMode, setFullScreenMode] = useState(false);
+
+  const toggleFullScreenMode = () => {
+    setFullScreenMode(!fullScreenMode);
+  };
   
   return (
     !isLoading ?
-    <>
+    <div className={fullScreenMode ? Styles.datalakeWrapperFSmode : '' + ' ' + Styles.datalakeWrapper}>
       <div className={classNames(Styles.mainPanel)}>
         <div className={Styles.nbheader}>
             <div className={Styles.headerdetails}>
@@ -372,18 +482,14 @@ const Graph = ({user}) => {
                             <span>Add Table</span>
                         </button>
                     </div>
-                  <div tooltip-data="Open New Tab" className={Styles.OpenNewTab}>
-                    <i className="icon mbc-icon arrow small right" />
-                    <span> &nbsp; </span>
-                  </div>
-                  <div>
-                    <FullScreenModeIcon fsNeed={false} />
+                  <div onClick={toggleFullScreenMode}>
+                    <FullScreenModeIcon fsNeed={fullScreenMode} />
                   </div>
                 </div>
             </div>
         </div>
         <div className={classNames(Styles.content)}>
-          <div className="graph">
+          <div className={classNames('graph', fullScreenMode ? Styles.fullscreen : '')}>
             <svg
               className="main"
               viewBox={`${box.x} ${box.y} ${box.w} ${box.h}`}
@@ -404,6 +510,9 @@ const Graph = ({user}) => {
                             setTableSelectId={setTableSelectId}
                             onCollabClick={handleCollab}
                             onDeleteTable={handleDeleteTable}
+                            onAddColumn={handleAddColumn}
+                            onEditColumn={handleEditColumn}
+                            isOwner={isOwner}
                         />
                     </>
                 );
@@ -422,7 +531,7 @@ const Graph = ({user}) => {
             title={'Add Table'}
             toggle={toggleModal}
             setToggle={() => setToggleModal(!toggleModal)}
-            content={<TableForm setToggle={() => setToggleModal(!toggleModal)}  />}
+            content={<TableForm setToggle={() => setToggleModal(!toggleModal)} formats={formats} dataTypes={dataTypes} />}
         />
     }
 
@@ -477,7 +586,30 @@ const Graph = ({user}) => {
         }}
       />
     }
-    </> : <Spinner />
+
+    { showColumnModal &&
+      <Modal
+        title={columnEdit ? 'Edit Column' : 'Add Column'}
+        showAcceptButton={false}
+        showCancelButton={false}
+        modalWidth={'60%'}
+        buttonAlignment="right"
+        show={showColumnModal}
+        content={<ColumnForm setToggle={() => setToggleModal(!toggleModal)} dataTypes={dataTypes} edit={columnEdit} column={selectedColumn} onAddColumn={addColumn} onEditColumn={editColumn} />}
+        scrollableContent={false}
+        onCancel={() => {
+          setShowColumnModal(false); 
+          setSelectedColumn();
+        }}
+        modalStyle={{
+          padding: '50px 35px 35px 35px',
+          minWidth: 'unset',
+          width: '60%',
+          maxWidth: '50vw'
+        }}
+      />
+    }
+    </div> : <Spinner />
   );
 }
 
