@@ -52,6 +52,7 @@ const DatalakeProjectForm = ({project, edit, onSave}) => {
         setDataClassificationDropdown(response[0]?.data?.data || []);                
         setDivisions(response[1]?.data || []);
         setDepartments(response[2]?.data?.data || []);
+        edit && setDatalakeDivision(project?.data?.divisionId !== null ? project?.data?.divisionId + '/' + project?.data?.divisionName : 0);
         SelectBox.defaultSetup();
       })
       .catch((err) => {
@@ -67,6 +68,10 @@ const DatalakeProjectForm = ({project, edit, onSave}) => {
       });
     //eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    edit && setDatalakeSubDivision(project?.data?.subdivisionId !== null ? project?.data?.subdivisionId + '/' + project?.data?.subdivisionName : 0);
+  }, [datalakeSubDivision, edit, project]);
 
   useEffect(() => {
     const divId = datalakeDivision.includes('/') ? datalakeDivision.split('/')[0] : '';
@@ -124,7 +129,7 @@ const DatalakeProjectForm = ({project, edit, onSave}) => {
     datalakeApi.createDatalakeProject(data).then((res) => {
       ProgressIndicator.hide();
       history.push(`/graph/${res.data.data.id}`);
-      Notification.show('Data Lakehouse Project successfully created');
+      Notification.show(`Data Lakehouse Project - ${res.data.data.projectName} successfully created`);
     }).catch(error => {
       ProgressIndicator.hide();
       Notification.show(
