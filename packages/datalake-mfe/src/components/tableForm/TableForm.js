@@ -5,7 +5,7 @@ import Styles from './table-form.scss';
 import SelectBox from 'dna-container/SelectBox';
 import { useSelector, useDispatch } from 'react-redux';
 import { setTables } from '../../redux/graphSlice';
-// import { calcXY } from '../../utilities/utils';
+import { calcXY } from '../../utilities/utils';
 
 const TableFormItem = (props) => {
   const { register, formState: { errors } } = useFormContext();
@@ -220,7 +220,7 @@ const TableForm = ({setToggle, formats, dataTypes}) => {
   const methods = useForm();
   const { handleSubmit } = methods;
   
-  const { project } = useSelector(state => state.graph);
+  const { project, box, editingTable } = useSelector(state => state.graph);
   const dispatch = useDispatch();
 
   useEffect(() => {
@@ -228,7 +228,6 @@ const TableForm = ({setToggle, formats, dataTypes}) => {
   }, []);
 
   const [columns, setFields] = useState([]);
-  const { editingTable } = useSelector(state => state.graph);
 
   useEffect(() => {
       if (editingTable.columns) {
@@ -246,13 +245,13 @@ const TableForm = ({setToggle, formats, dataTypes}) => {
     for (const key in colData) {
       cols.push(colData[key]);
     }
-    // const [x, y] = calcXY([...project.tables], box);
+    const [x, y] = calcXY([...project.tables], box);
     const tableData = {
       tableName: tableName,
       dataFormat: tableFormat,
       description: tableComment,
-      xcoOrdinate: 10,
-      ycoOrdinate: 10,
+      xcoOrdinate: x,
+      ycoOrdinate: y,
       columns: [...cols],
     };
     const projectTemp = {...project};
@@ -288,7 +287,7 @@ const TableForm = ({setToggle, formats, dataTypes}) => {
               columns.map((field, index) => (
                 <TableFormItem
                     field={field}
-                    key={field.name}
+                    key={field.name + field.index}
                     index={index}
                     addItem={addItem}
                     removeItem={removeItem}

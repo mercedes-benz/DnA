@@ -46,15 +46,15 @@ export const calcXY = (tables, box) => {
   } else {
       if (index < tableRowNumbers) {
           const lastTable = tables[index - 1];
-          x = lastTable.x + tableWidth + tableMarginLeft;
-          y = lastTable.y;
+          x = lastTable.xcoOrdinate + tableWidth + tableMarginLeft;
+          y = lastTable.ycoOrdinate;
       } else {
           const lastTable = tables[index - tableRowNumbers];
-          const { fields } = lastTable;
-          x = lastTable.x;
+          const { columns } = lastTable;
+          x = lastTable.xcoOrdinate;
           y =
-              lastTable.y +
-              fields.length * fieldHeight +
+              lastTable.ycoOrdinate +
+              columns.length * fieldHeight +
               titleHeight +
               commentHeight +
               tableMarginTop;
