@@ -337,7 +337,7 @@ print(rows)`}
                                 </li>
                                 <li className={'tab'}>
                                     <a href="#tab-content-5" id="jupyterNotebook">
-                                        <strong>Connect using Parequet</strong>
+                                        <strong>Connect using Parquet</strong>
                                     </a>
                                 </li>
                                 <li className={'tab'}>
