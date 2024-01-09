@@ -27,13 +27,16 @@
 
  package com.daimler.data.controller;
 
- import java.util.ArrayList;
+ import java.text.SimpleDateFormat;
+import java.util.ArrayList;
  import java.util.List;
  import java.util.Objects;
  import java.util.stream.Collectors;
+ import java.util.Date;
  
  import javax.persistence.EntityNotFoundException;
- import javax.validation.Valid;
+import javax.print.attribute.standard.DateTimeAtCompleted;
+import javax.validation.Valid;
  
  import org.springframework.beans.BeanUtils;
  import org.springframework.beans.factory.annotation.Autowired;
@@ -1256,8 +1259,9 @@ import com.daimler.data.dto.workspace.EntitlementCollectionVO;
 				 && (vo.getProjectDetails().getSecurityConfig().getStatus().equalsIgnoreCase("DRAFT")
 						 || vo.getProjectDetails().getSecurityConfig().getStatus().equalsIgnoreCase("PUBLISHED"))) {
 			 vo.getProjectDetails().getSecurityConfig().setStatus("REQUESTED");
+			 SimpleDateFormat dateFormatter = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
+			 vo.getProjectDetails().getSecurityConfig().setRequestedDate(dateFormatter.format(new Date()));
 			 responseMessage = service.saveSecurityConfig(vo,false);
-			// responseMessage = service.updateSecurityConfigStatus(vo.getProjectDetails().getProjectName(),"REQUESTED", userId,vo);
 		 }
  
 		 return new ResponseEntity<>(responseMessage, HttpStatus.OK);
