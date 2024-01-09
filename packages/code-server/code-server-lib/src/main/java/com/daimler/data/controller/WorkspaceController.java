@@ -39,7 +39,8 @@
  import org.springframework.beans.factory.annotation.Autowired;
  import org.springframework.http.HttpStatus;
  import org.springframework.http.ResponseEntity;
- import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.util.ObjectUtils;
+import org.springframework.web.bind.annotation.PathVariable;
  import org.springframework.web.bind.annotation.RequestBody;
  import org.springframework.web.bind.annotation.RequestMapping;
  import org.springframework.web.bind.annotation.RequestMethod;
@@ -415,7 +416,8 @@ import com.daimler.data.dto.workspace.EntitlementCollectionVO;
 		 if (collabUserVO != null && collabUserVO.getWorkspaceId() != null) {
 			 String status = collabUserVO.getStatus();
 			 if (status != null) {
-				 if (!ConstantsUtility.COLLABREQUESTEDSTATE.equalsIgnoreCase(status)) {
+				 if (!ConstantsUtility.COLLABREQUESTEDSTATE.equalsIgnoreCase(status)
+					&& !ConstantsUtility.CREATEFAILEDSTATE.equalsIgnoreCase(status)) {
 					 MessageDescription errMsg = new MessageDescription("Cannot reinitiate the workbench");
 					 errors.add(errMsg);
 					 responseMessage.setErrors(errors);
@@ -430,7 +432,20 @@ import com.daimler.data.dto.workspace.EntitlementCollectionVO;
 			 return new ResponseEntity<>(responseMessage, HttpStatus.NOT_FOUND);
 		 }
 		 String pat = initializeCollabWSRequestVO.getPat();
- 
+		 
+		 if(!ObjectUtils.isEmpty(collabUserVO.getProjectDetails().getProjectCollaborators())) {
+			 String ownerUserId = collabUserVO.getProjectDetails().getProjectOwner().getId();
+			 String projectName = collabUserVO.getProjectDetails().getProjectName();
+			 CodeServerWorkspaceVO ownerCodespaceVO = service.getByProjectName(ownerUserId, projectName);
+			 if(!ownerCodespaceVO.getStatus().toUpperCase().equalsIgnoreCase(ConstantsUtility.CREATEDSTATE)) {
+				 MessageDescription errMsg = new MessageDescription("Cannot intialize collaborator workbench as owner's codespace is not created yet. ");
+				 errors.add(errMsg);
+				 responseMessage.setErrors(errors);
+				 return new ResponseEntity<>(responseMessage, HttpStatus.BAD_REQUEST);
+				 
+			 }
+		 }
+		 
 		 InitializeWorkspaceResponseVO responseData = service.initiateWorkspace(collabUserVO, pat);
 		 return new ResponseEntity<>(responseData, responseStatus);
 	 }
