@@ -1160,7 +1160,8 @@ import com.daimler.data.dto.workspace.EntitlementCollectionVO;
 				CodespaceSecurityConfigVO getConfigResponse = new CodespaceSecurityConfigVO();
 		 CreatedByVO currentUser = this.userStore.getVO();
 		 String userId = currentUser != null ? currentUser.getId() : null;
-		 CodeServerWorkspaceVO vo = service.getById(userId, id);
+		CodeServerWorkspaceNsql entity = workspaceCustomRepository.findDataById(id);
+		CodeServerWorkspaceVO vo = workspaceAssembler.toVo(entity);
  
 		 if (vo == null || vo.getWorkspaceId() == null) {
 			  log.debug("No workspace found, returning empty");
@@ -1168,15 +1169,15 @@ import com.daimler.data.dto.workspace.EntitlementCollectionVO;
  
 		 }
 		 if (!(vo != null && vo.getWorkspaceOwner() != null
-				 && vo.getWorkspaceOwner().getId().equalsIgnoreCase(userId))) {
+				 && vo.getWorkspaceOwner().getId().equalsIgnoreCase(userId)) && !(userStore.getUserInfo().hasCodespaceAdminAccess())) {
 					MessageDescription notAuthorizedMsg = new MessageDescription();
 				 notAuthorizedMsg.setMessage(
 						 "security configurations for workspace can be view only by Owners. Denied, does not have privileges.");
 				 GenericMessage errorMessage = new GenericMessage();
 				 errorMessage.addErrors(notAuthorizedMsg);
 			 log.info(
-					 "security configurations for workspace can be view only by Owners, insufficient privileges. Workspace name: {}",
-					 userId, vo.getWorkspaceId());
+					 "security configurations for workspace can be view only by Owners, insufficient privileges. Workspace name: {}"
+					,vo.getWorkspaceId());
 			 return new ResponseEntity<>(null, HttpStatus.FORBIDDEN);
 		 }
 		 if (vo != null && vo.getProjectDetails().getSecurityConfig() == null) {
