@@ -37,7 +37,7 @@ const ColumnForm = (props) => {
                       placeholder="Type here"
                       autoComplete="off"
                       maxLength={55}
-                      defaultValue={edit ? column.columnName : ''}
+                      defaultValue={edit ? column?.columnName : ''}
                   />
                   <span className={classNames('error-message')}>{errors?.columnName?.message}</span>
                   </div>
@@ -53,7 +53,7 @@ const ColumnForm = (props) => {
                       <select 
                         id={`dataType`} 
                         {...register('dataType')}
-                        defaultValue={edit ? column.dataType : 'BOOLEAN'}
+                        defaultValue={edit ? column?.dataType : 'BOOLEAN'}
                       >
                       {dataTypes.length > 0 && 
                           dataTypes?.map((datatype) => {
@@ -82,7 +82,7 @@ const ColumnForm = (props) => {
                       placeholder="Type here"
                       autoComplete="off"
                       maxLength={55}
-                      defaultValue={edit ? column.comment : ''}
+                      defaultValue={edit ? column?.comment : ''}
                   />
                   </div>
               </div>
@@ -96,7 +96,7 @@ const ColumnForm = (props) => {
                       <input type="checkbox" className="ff-only" 
                         id={`notNullConstraintEnabled`} 
                         {...register(`notNullConstraintEnabled`)}
-                        defaultChecked={edit ? column.notNullConstraintEnabled : true}
+                        defaultChecked={edit ? column?.notNullConstraintEnabled : true}
                       />
                       </span>
                       <span className="label">Not Null</span>

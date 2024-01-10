@@ -378,42 +378,40 @@ const Graph = ({user}) => {
 
   const addColumn = (values) => {
     const tempTable = {...selectedTable};
-    const columns = [...tempTable.columns];
-    columns.push({
+    const columnData = {
       columnName: values.columnName,
       comment: values.comment,
       dataType: values.dataType,
       notNullConstraintEnabled: values.notNullConstraintEnabled,
-    });
-    delete tempTable.columns;
-    tempTable.columns = [...columns];
+    };
 
     const projectTemp = {...project};
-    const tempTables = projectTemp.tables.filter(item => item.tableName !== tempTable.tableName);
-    projectTemp.tables = [...tempTables, tempTable];
-    dispatch(setTables(projectTemp.tables));
+    const tableIndex = projectTemp.tables.findIndex(item => item.tableName === tempTable.tableName);
+    let newTables = [...projectTemp.tables];
+    newTables[tableIndex] = {...newTables[tableIndex], columns: [...newTables[tableIndex].columns, columnData]};
+    dispatch(setTables(newTables));
     setShowColumnModal(false);
     Tooltip.defaultSetup();
   }
 
   const editColumn = (values) => {
     const tempTable = {...selectedTable};
-    const columns = [...tempTable.columns];
-    columns.splice(selectedIndex, 1);
-    columns.push({
+    const columnData = {
       columnName: values.columnName,
       comment: values.comment,
       dataType: values.dataType,
       notNullConstraintEnabled: values.notNullConstraintEnabled,
-    });
-    delete tempTable.columns;
-    tempTable.columns = [...columns];
+    };
 
     const projectTemp = {...project};
-    const tempTables = projectTemp.tables.filter(item => item.tableName !== tempTable.tableName);
-    projectTemp.tables = [...tempTables, tempTable];
-    dispatch(setTables(projectTemp.tables));
+    const tableIndex = projectTemp.tables.findIndex(item => item.tableName === tempTable.tableName);
+    let newTables = [...projectTemp.tables];
+    let newColumns = [...newTables[tableIndex].columns];
+    newColumns[selectedIndex] = {...columnData};
+    newTables[tableIndex] = {...newTables[tableIndex], columns: [...newColumns]};
+    dispatch(setTables(newTables));
     setShowColumnModal(false);
+    setColumnEdit(false);
     Tooltip.defaultSetup();
   }
 
@@ -576,7 +574,7 @@ const Graph = ({user}) => {
         modalWidth={'60%'}
         buttonAlignment="right"
         show={showCollabModal}
-        content={<TableCollaborators edit={false} table={table} onSave={() => setShowCollabModal(false)} />}
+        content={<TableCollaborators edit={false} table={table} onSave={() => setShowCollabModal(false)} user={user} />}
         scrollableContent={false}
         onCancel={() => setShowCollabModal(false)}
         modalStyle={{
@@ -600,6 +598,7 @@ const Graph = ({user}) => {
         onCancel={() => {
           setShowColumnModal(false); 
           setSelectedColumn();
+          setColumnEdit(false);
         }}
         modalStyle={{
           padding: '50px 35px 35px 35px',
