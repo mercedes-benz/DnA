@@ -532,7 +532,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 			String deleteServiceUri = authenticatorBaseUri + CREATE_SERVICE  +"/" + serviceName;
 			HttpHeaders headers = new HttpHeaders();
 			headers.set("Accept", "application/json");
-			headers.set("Content-Type", "application/x-www-form-urlencoded");
+			headers.set("Content-Type", "application/json");
 			HttpEntity entity = new HttpEntity<>(headers);
 			ResponseEntity<String> response = restTemplate.exchange(deleteServiceUri, HttpMethod.DELETE, entity, String.class);
 			if (response != null && response.hasBody()) {
@@ -554,14 +554,14 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 			message.setErrors(errors);
 			return message;
 			}
-			LOGGER.error("Exception occured while deleting service: {} details", serviceName);			
+			LOGGER.error("Exception: {} occured while deleting service: {} details",ex.getMessage(), serviceName);			
 			messageDescription.setMessage(ex.getMessage());
 			errors.add(messageDescription);
 			message.setErrors(errors);
 			return message;
 		}
 		catch(Exception e) {
-			LOGGER.error("Error while deleting service: {} details", serviceName);			
+			LOGGER.error("Error: {} while deleting service: {} details",e.getMessage(), serviceName);			
 			messageDescription.setMessage(e.getMessage());
 			errors.add(messageDescription);
 			errors.add(messageDescription);
@@ -582,7 +582,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 			String deleteRouteUri = authenticatorBaseUri + CREATE_SERVICE + "/" + serviceName + CREATE_ROUTE + "/" + routeName;
 			HttpHeaders headers = new HttpHeaders();
 			headers.set("Accept", "application/json");
-			headers.set("Content-Type", "application/x-www-form-urlencoded");
+			headers.set("Content-Type", "application/json");
 			HttpEntity entity = new HttpEntity<>(headers);
 			ResponseEntity<String> response = restTemplate.exchange(deleteRouteUri, HttpMethod.DELETE, entity, String.class);
 			if (response != null) {
@@ -604,14 +604,14 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 			message.setErrors(errors);
 			return message;
 			}
-			LOGGER.error("Exception occured while deleting route: {} details", routeName);			
+			LOGGER.error("Exception occured: {} while deleting route: {} details", ex.getMessage(),routeName);			
 			messageDescription.setMessage(ex.getMessage());
 			errors.add(messageDescription);
 			message.setErrors(errors);
 			return message;
 		}
 		catch(Exception e) {
-			LOGGER.error("Error while deleting route: {} details", routeName);			
+			LOGGER.error("Error occured: {} while deleting route: {} details", e.getMessage(),routeName);			
 			messageDescription.setMessage(e.getMessage());
 			errors.add(messageDescription);
 			errors.add(messageDescription);
