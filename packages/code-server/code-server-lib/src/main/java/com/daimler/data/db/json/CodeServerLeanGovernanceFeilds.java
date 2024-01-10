@@ -22,7 +22,7 @@ public class CodeServerLeanGovernanceFeilds implements Serializable {
 	private String division;
 	private String subDivisionId;
 	private String subDivision;
-	private String department;
+	private List<String> department;
 	private String archerId;
 	private String procedureID;
 	private List<String> tags;

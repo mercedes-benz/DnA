@@ -93,7 +93,6 @@ public class RecipeController implements CodeServerRecipeApi {
 		}
 
 		List<RecipeVO> allRecipes = service.getAllRecipes(offset, limit);
-		System.out.println("allRecipes : " + allRecipes);
 		if (Objects.nonNull(allRecipes)) {
 			for (RecipeVO recipe : allRecipes) {
 				recipeCollectionVO.addDataItem(recipe);

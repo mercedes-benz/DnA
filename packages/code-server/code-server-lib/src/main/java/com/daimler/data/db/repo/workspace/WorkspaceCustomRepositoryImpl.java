@@ -622,6 +622,9 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 		List<String> tags = newGovFeilds.getTags();
 		String ArrayTagstoJsonb = "[" + tags.stream().map(tag -> "\"" + tag + "\"").collect(Collectors.joining(","))
 				+ "]";
+		List<String> department = newGovFeilds.getDepartment();
+		String DepartmentToJsnob = "[" + department.stream().map(dep -> "\"" + dep + "\"").collect(Collectors.joining(","))
+				+ "]";
 
 		String updateQuery = "update workspace_nsql\n"
 				+ "set data = jsonb_set(data, '{projectDetails,dataGovernance}',\n"
@@ -629,7 +632,7 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 				+ " \"piiData\": " + newGovFeilds.getPiiData() + ","
 				+ " \"archerId\": " + addQuotes(newGovFeilds.getArcherId()) + ","
 				+ " \"division\": " + addQuotes(newGovFeilds.getDivision()) + ","
-				+ " \"department\": " + addQuotes(newGovFeilds.getDepartment()) + ","
+				+ " \"department\": " + DepartmentToJsnob + ","
 				+ " \"divisionId\": " + addQuotes(newGovFeilds.getDivisionId()) + ","
 				+ " \"division\": " + addQuotes(newGovFeilds.getDivision()) + ","
 				+ " \"description\": " + addQuotes(newGovFeilds.getDescription()) + ","

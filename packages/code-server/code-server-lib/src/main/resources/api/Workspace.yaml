@@ -1255,8 +1255,9 @@ definitions:
         type: string
         description: "sub division for the codespace"
       department:
-        type: string
-        description: "department for the codespace"
+        type: array
+        items:
+          type: string
       archerId:
         type: string
         description: "archerId for the codespace"
