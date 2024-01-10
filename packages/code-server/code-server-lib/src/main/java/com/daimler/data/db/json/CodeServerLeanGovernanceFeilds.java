@@ -18,12 +18,13 @@ public class CodeServerLeanGovernanceFeilds implements Serializable {
 	private static final long serialVersionUID = 1L;
 	private String description;
 	private String classificationType;
+	private String divisionId;
 	private String division;
+	private String subDivisionId;
 	private String subDivision;
 	private String department;
 	private String archerId;
 	private String procedureID;
-	private String permission;
 	private List<String> tags;
 	private String typeOfProject;
 	private Boolean piiData;

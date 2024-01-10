@@ -25,27 +25,38 @@
  * LICENSE END 
  */
 
-package com.daimler.data.util;
+package com.daimler.data.db.json;
 
-public class ConstantsUtility {
+import java.io.Serializable;
+import java.util.Date;
+import java.util.List;
 
-	public static final String CREATEACTION = "create";
-	public static final String SPRINGBOOT = "springboot";
-	public static final String PYFASTAPI = "py-fastapi";
-	public static final String REACT = "react";
-	public static final String ANGULAR = "angular";
-	public static final String PUBLIC = "generic";
-	public static final String GRADLE = "gradle";
-	public static final String QUARKUS = "quarkus";
-	public static final String MICRONAUT = "micronaut";
-	public static final String DEFAULT = "default";
-	public static final String COLLABREQUESTEDSTATE = "COLLABORATION_REQUESTED";
-	public static final String CREATEREQUESTEDSTATE = "CREATE_REQUESTED";
-	public static final String CREATEDSTATE = "CREATED";
-	public static final String CREATEFAILEDSTATE = "CREATE_FAILED";
-	public static final String WORKSPACEPREFIX = "ws";
-	public static final String DEPLOYACTION = "deploy";
-	public static final String DELETEACTION = "delete";
-	public static final String BAT_FRONTEND = "bat-frontend";
-	public static final String BAT_BACKEND = "bat-backend";
+import com.daimler.data.dto.userinfo.UserInfoVO;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@JsonIgnoreProperties(ignoreUnknown = true)
+public class CodeServerRecipe implements Serializable {
+
+    private static final long serialVersionUID = -1767843944100072529L;
+
+    private String recipeName;
+    private String recipeType;
+    private String repodetails;
+    private String diskSpace;
+    private String minCpu;
+    private String maxCpu;
+    private String minRam;
+    private String maxRam;
+    private String oSName;
+    private List<RecipeSoftware> software;
+    private Date createdOn;
+    private UserInfo createdBy;
+    private List<String> plugins;
 }
