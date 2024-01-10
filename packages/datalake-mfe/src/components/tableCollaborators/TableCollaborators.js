@@ -1,31 +1,39 @@
 import classNames from 'classnames';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import Styles from './tableCollaborators.scss';
 import TeamSearch from 'dna-container/TeamSearch';
 import { setTables } from '../../redux/graphSlice';
 import Notification from '../../common/modules/uilab/js/src/notification';
 
-const TableCollaborators = ({ table, onSave }) => {
+const TableCollaborators = ({ table, onSave, user }) => {
   const { project } = useSelector(state => state.graph);
   const dispatch = useDispatch();
 
   const [searchTerm, setSearchTerm] = useState('');
   const [showUserDetails, setShowUserDetails] = useState(false);
-  const [showUserAlreadyExistsError] = useState(false);
+  const [showUserAlreadyExistsError, setShowUserAlreadyExistsError] = useState(false);
   const [editMode] = useState(false);
   const [teamMember] = useState();
   const [collabs, setCollabs] = useState(table?.collabs?.length > 0 ? [...table.collabs] : []);
 
   const addMemberFromTeamSearch = (member) => {
-    const memberObj = {
-      collaborator: {
-        ...member,
-        id: member.shortId
-      },
-      hasWritePermission: false
+    const isMemberExists = collabs.filter(item => item.id === member.shortId);
+    if(user.id === member.shortId) {
+      Notification.show(`Owner can't be added as a collaborator`, 'alert');
+    } else if (isMemberExists.length > 0) {
+      setShowUserAlreadyExistsError(true);
+    } else {
+      const memberObj = {
+        collaborator: {
+          ...member,
+          id: member.shortId
+        },
+        hasWritePermission: false
+      }
+      setCollabs([...collabs, memberObj]);
     }
-    setCollabs([...collabs, memberObj]);
+    setShowUserAlreadyExistsError(false);
   }
 
   const resetUserAlreadyExists = () => {
@@ -52,16 +60,14 @@ const TableCollaborators = ({ table, onSave }) => {
     setCollabs(tempCollabs);
   };
 
-  const handleSaveCollabs = () => {
+  useEffect(() => {
     const projectTemp = {...project};
-    const tempTables = projectTemp.tables.filter(item => item.tableName !== table.tableName);
-    const currentTable = {...table, collabs: [...collabs]};
-    const fullTables = [...tempTables, currentTable];
-    projectTemp.tables = [...fullTables];
-    dispatch(setTables(projectTemp.tables));
-    onSave();
-    Notification.show('Collaborator(s) added successfully to the table');
-  }
+    const tableIndex = projectTemp.tables.findIndex(item => item.tableName === table.tableName);
+    let newTables = [...projectTemp.tables];
+    newTables[tableIndex] = {...newTables[tableIndex], collabs: [...collabs]};
+    dispatch(setTables(newTables));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [collabs]);
 
   return (
     <div className={Styles.dagCollContent}>
@@ -157,7 +163,9 @@ const TableCollaborators = ({ table, onSave }) => {
                   },
                 )}
               </div>
-              <button className={'btn btn-tertiary'} onClick={handleSaveCollabs}>Save</button>
+              <div className={Styles.btnRight}>
+                <button className={'btn btn-tertiary'} onClick={onSave}>Ok</button>
+              </div>
             </React.Fragment>
           ) : (
             <div className={Styles.dagCollContentEmpoty}>
