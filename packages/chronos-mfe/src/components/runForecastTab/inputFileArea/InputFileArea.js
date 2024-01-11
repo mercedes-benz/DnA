@@ -44,7 +44,10 @@ const InputFileArea = ({ showTutorial }) => {
       <div className={Styles.firstPanel}>
         <h3>Input File</h3>
         <div className={Styles.infoIcon}>
-          <i className="icon mbc-icon info" onClick={() => showTutorial(true)} />
+          <button className={classNames('btn', Styles.btnShowTutorial)} onClick={() => showTutorial(true)}>
+            <i className="icon mbc-icon info" /> 
+            <p>Show Chronos Tutorial</p>
+          </button>
         </div>
         <div className={Styles.formWrapper}>
           <div>

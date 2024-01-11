@@ -512,7 +512,7 @@ const ForecastResultsTab = ({ onRunClick }) => {
                     </div> 
                 </div>
               }
-              scrollableContent={false}
+              scrollableContent={true}
               onCancel={() => {
                 setShowErrorModal(false)
               }}
@@ -652,7 +652,7 @@ const ForecastResultsTab = ({ onRunClick }) => {
                 </form>
               </div>
             }
-            scrollableContent={false}
+            scrollableContent={true}
             onCancel={() => {
               setActualsFile('');
               setBusinessFile('');
