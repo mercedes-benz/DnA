@@ -48,11 +48,17 @@
 
   .listHeader {
     align-items: flex-start;
-    display: flex;
+    display: inline-block;
     justify-content: space-between;
     margin: 0px;
     position: relative;
     background-color: #0a0b0e;
+
+    .configIcon{
+      margin-left: 8px;
+      margin-bottom: 2.5px;
+      display: inline;
+    } 
 
     i {
       font-size: var(--font-size-icon-content);

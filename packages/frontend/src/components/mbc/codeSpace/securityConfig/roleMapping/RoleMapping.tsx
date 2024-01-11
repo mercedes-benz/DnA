@@ -132,7 +132,7 @@ const RoleMapping = (props: any) => {
         props.onSaveDraft('rolemapping', updatedConfig, 'roles');
     };
 
-    const onPublish = () => {
+    const onRequest = () => {
         const updatedConfig = {
             ...config,
             userRoleMappings: allUserRoleMappingList
@@ -142,7 +142,15 @@ const RoleMapping = (props: any) => {
             Notification.show('Please add atleast one role mapping', 'warning');
             return;
         }
-        props.onPublish(updatedConfig);
+        props.onRequest(updatedConfig);
+    }
+
+    const onAccept = () =>{
+        props.onAccept();
+    }
+    
+    const onPublish = ()=>{
+        props.onPublish();
     }
 
     const getCollabarators = (collaborators: any) => {
@@ -263,15 +271,14 @@ const RoleMapping = (props: any) => {
                         <h3 className={classNames(Styles.title)}>Role Mapping</h3>
                         <div className={classNames(Styles.parentRoleMapping)}>
                             <div className={Styles.warningWrapper}>
-                                {!CODE_SPACE_STATUS.includes(config?.status) &&
-                                    <p style={{ color: 'var(--color-orange)' }}
-                                        className={classNames((props.readOnlyMode ? ' hidden' : ''))}>
+                                {(!props.readOnlyMode &&!CODE_SPACE_STATUS.includes(config?.status)) &&
+                                    <p style={{ color: 'var(--color-orange)' }}>
                                         <i className="icon mbc-icon alert circle">
                                         </i> Once the config is in published state, Can Add / Edit Role Mapping</p>}
                             </div>
                             <div className={classNames(Styles.createEntitlementButton)}>
-                                {props.config?.roles?.length > 0 && <button className={classNames('btn add-dataiku-container btn-primary',
-                                    Styles.createButton + (props.readOnlyMode ? ' hidden' : ''))} type="button"
+                                {( !props.readOnlyMode && props.config?.roles?.length > 0) && <button className={classNames('btn add-dataiku-container btn-primary',
+                                    Styles.createButton )} type="button"
                                     onClick={() => {
                                         setEditRoleCol(false);
                                         setShowEditOrCreateModal(true);
@@ -297,20 +304,20 @@ const RoleMapping = (props: any) => {
                                                 Role
                                             </label>
                                         </th>
-                                        <th className="actionColumn">
+                                        <th className={"actionColumn" + (props.readOnlyMode ? ' hidden' : '')}>
                                             <label>Action</label>
                                         </th>
                                     </tr>
                                 </thead>
-                                <tbody>
+                                <tbody> 
                                     {userRoleMappingList?.map((item: any, index) => (
                                         <tr
                                             key={index}
-                                            className={classNames('data-row')}>
-                                            <td className="wrap-text">
+                                            className={classNames('data-row', Styles.configRow)}>
+                                            <td className={classNames('wrap-text', Styles.configColumn)}>
                                                 <span >{item.firstName} {item.lastName}</span>
                                             </td>
-                                            <td className="wrap-text">
+                                            <td className={classNames('wrap-text', Styles.configColumn)}>
                                                 <div className={Styles.tagColumn}>
                                                     {item.roles?.map((role: any, index: number) => (
                                                         <div className="chips read-only" key={index}>
@@ -320,7 +327,7 @@ const RoleMapping = (props: any) => {
 
                                                 </div>
                                             </td>
-                                            <td className={classNames("wrap-text", Styles.actionBtn)}>
+                                            <td  className={classNames("wrap-text",Styles.configColumn, Styles.actionBtn)}>
                                                 <button
                                                     onClick={() => editRoleMapping(item)}
                                                     className={Styles.actionBtn + ' btn btn-primary' + (props.readOnlyMode ? ' hidden' : '')}
@@ -369,15 +376,24 @@ const RoleMapping = (props: any) => {
                     <button
                         className={'btn btn-tertiary ' + classNames(Styles.publishBtn) + (props.readOnlyMode ? ' hidden' : '')}
                         type="button"
-                        onClick={onPublish}
+                        onClick={onRequest}
                         disabled={!CODE_SPACE_STATUS.includes(config?.status)}
                     >
-                        {CODE_SPACE_STATUS.includes(config?.status) ? 'Request' : config?.status === 'REQUESTED' ? 'Publish' : 'Accept'}
+                        {CODE_SPACE_STATUS.includes(config?.status) ? 'Request' : config?.status === 'REQUESTED' ? 'Requested' : 'Accepted'}
                     </button>
                     {props.readOnlyMode ?
                         <button  className={'btn btn-primary ' + classNames(Styles.publishBtn)} type="button" onClick={backPress}>
                             Back
                         </button> : ''
+                    }
+                    {props.isCodeSpaceAdminPage && config?.status === 'REQUESTED'?
+                        <button  className={'btn btn-primary ' + classNames(Styles.publishBtn)} type="button" onClick={onAccept}>
+                        Accept 
+                        </button>: ''
+                    }
+                    {config?.status === 'ACCEPTED'  && props.isCodeSpaceAdminPage ? <button  className={'btn btn-tertiary ' + classNames(Styles.publishBtn)} type="button" onClick={onPublish}>
+                        Publish
+                    </button>:''
                     }
                 </div>
             </div>

@@ -51,7 +51,7 @@
     position: relative;
     margin-top: 30px;
 
-    .data-row {
+    .configRow {
       &:hover {
         cursor: pointer;
         background-color: #1c2026;
@@ -61,7 +61,7 @@
         }
       }
 
-      td {
+      .configColumn  {
         color: #99a5b3;
 
         &:first-child {

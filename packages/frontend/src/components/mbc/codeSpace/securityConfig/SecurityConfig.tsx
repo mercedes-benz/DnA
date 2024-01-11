@@ -39,6 +39,7 @@ export interface ICreateNewSecurityConfigState {
     showAlertChangesModal: boolean;
     config: any;
     readOnlyMode: boolean;
+    isCodeSpaceAdminPage: boolean;
     editModeNavigateModal: boolean;
     isPublished: boolean;
 }
@@ -67,6 +68,7 @@ export default class SecurityConfig extends React.Component<ICreateNewSecurityCo
                 openSegments: []
             },
             readOnlyMode: false,
+            isCodeSpaceAdminPage: false,
             editModeNavigateModal: false,
             isPublished: false
         };
@@ -77,7 +79,7 @@ export default class SecurityConfig extends React.Component<ICreateNewSecurityCo
         let id = params?.id;
         if (id.includes('?pub=')) {
             id = params?.id.split('?pub')[0];
-        }
+         }
         const query = getQueryParam('pub');
         if (query) {
             this.setState({ isPublished: query === 'true' });
@@ -92,7 +94,15 @@ export default class SecurityConfig extends React.Component<ICreateNewSecurityCo
                 readOnlyMode: true
             });
             this.getPublishedConfig(id);
-        } else {
+        }
+        else if(path.includes('adminSecurityconfig')) {
+            this.setState({
+                readOnlyMode: true,
+                isCodeSpaceAdminPage: true
+            });
+            this.getConfig(id);
+        }
+         else {
             this.getConfig(id);
         }
     }
@@ -137,7 +147,7 @@ export default class SecurityConfig extends React.Component<ICreateNewSecurityCo
                 this.setState({
                     config: response,
                 }, () => {
-                    this.setOpenTabs(this.state.config.openSegments);
+                this.setOpenTabs(this.state.config.openSegments);
                 })
                 ProgressIndicator.hide();
             })
@@ -215,7 +225,7 @@ export default class SecurityConfig extends React.Component<ICreateNewSecurityCo
         });
     };
 
-    protected onPublish = (config: any) => {
+    protected onRequest = (config: any) => {
         this.setState({
             config: config,
         }, () => {
@@ -226,7 +236,7 @@ export default class SecurityConfig extends React.Component<ICreateNewSecurityCo
                 CodeSpaceApiClient.addCodeSpaceRequest(this.state.id)
                     .then((res: any) => {
                         this.getConfig(this.state.id);
-                        Notification.show('Published successfully.');
+                        Notification.show('Requested successfully.');
                         ProgressIndicator.hide();
                     })
                     .catch((error: any) => {
@@ -235,6 +245,36 @@ export default class SecurityConfig extends React.Component<ICreateNewSecurityCo
                     });
             }
         });
+    };
+
+    protected onPublish = (config: any) =>{
+        ProgressIndicator.show();
+        const id= this.state.id;
+        CodeSpaceApiClient.publishSecurityConfigRequest(id) 
+            .then((res: any) => {
+                ProgressIndicator.hide();
+                Notification.show('Published Successfully.');
+                history.push('/codespace/adminSecurityConfigs');
+            })
+            .catch((error: any) => {
+                ProgressIndicator.hide();
+                this.showErrorNotification(error.message ? error.message : 'Some Error Occured');
+        }); 
+    };
+
+    protected onAccept = (config: any) =>{
+        ProgressIndicator.show();
+        const id= this.state.id;
+        CodeSpaceApiClient.acceptSecurityConfigRequest(id) 
+         .then((res: any) => {
+            this.getConfig(this.state.id);
+            Notification.show('Request Accepted successfully.');
+            ProgressIndicator.hide();
+        })
+        .catch((error: any) => {
+            ProgressIndicator.hide();
+            this.showErrorNotification(error.message ? error.message : 'Some Error Occured');
+        }); 
     };
 
     protected setTabsAndClick = (nextTab: string) => {
@@ -350,7 +390,7 @@ export default class SecurityConfig extends React.Component<ICreateNewSecurityCo
                             .then((res: any) => {
                                 ProgressIndicator.hide();
                                 this.getConfig(this.state.id);
-                                Notification.show('Published successfully.');
+                                Notification.show('Requested successfully.');
                             })
                             .catch((error: any) => {
                                 ProgressIndicator.hide();
@@ -386,17 +426,17 @@ export default class SecurityConfig extends React.Component<ICreateNewSecurityCo
 
     public render() {
         const currentTab = this.state.currentTab;
-        const { config, readOnlyMode } = this.state;
+        const { config, readOnlyMode, isCodeSpaceAdminPage} = this.state;
         const projectName = config?.projectName ? `${config.projectName} - ` : '';
-        const publishedSuffix = readOnlyMode ? ' (Published)' : '';
+        const publishedSuffix = readOnlyMode && !isCodeSpaceAdminPage? ' (Published)' : '';
         const title = `${projectName}Security config${publishedSuffix}`; 
-       
         return (
             <React.Fragment>
                 <div className={classNames(Styles.mainPanel)}>
                     <Caption
                         title={title}
                     />
+                    {!isCodeSpaceAdminPage?
                     <div className={classNames(Styles.publishedConfig)}>
                         {this.state.isPublished && <button className={classNames('btn add-dataiku-container btn-primary', Styles.editOrViewMode)} type="button"
                             onClick={this.navigateEditOrReadOnlyMode}
@@ -407,6 +447,7 @@ export default class SecurityConfig extends React.Component<ICreateNewSecurityCo
                                     <span>{" "}View published security config</span></>}
                         </button>}
                     </div>
+                     :<></>}
                     <div id="create-security-tabs" className="tabs-panel">
                         <div className="tabs-wrapper">
                             <nav>
@@ -419,7 +460,7 @@ export default class SecurityConfig extends React.Component<ICreateNewSecurityCo
                                         }
                                     >
                                         <a href="#tab-content-1" id="entitlement" onClick={this.setCurrentTab}>
-                                            Entitlement<sup>*</sup>
+                                            Entitlement<sup>{!isCodeSpaceAdminPage? '*': ''}</sup>
                                         </a>
                                     </li>
                                     <li
@@ -430,7 +471,7 @@ export default class SecurityConfig extends React.Component<ICreateNewSecurityCo
                                         }
                                     >
                                         <a href="#tab-content-2" id="roles" onClick={this.setCurrentTab}>
-                                            Roles<sup>*</sup>
+                                            Roles<sup>{!isCodeSpaceAdminPage? '*': ''}</sup>
                                         </a>
                                     </li>
                                     <li
@@ -439,7 +480,7 @@ export default class SecurityConfig extends React.Component<ICreateNewSecurityCo
                                         }
                                     >
                                         <a href="#tab-content-3" id="rolemapping" onClick={this.setCurrentTab}>
-                                            User-Role Mappings<sup>*</sup>
+                                            User-Role Mappings<sup>{!isCodeSpaceAdminPage? '*': ''}</sup>
                                         </a>
                                     </li>
                                 </ul>
@@ -452,6 +493,7 @@ export default class SecurityConfig extends React.Component<ICreateNewSecurityCo
                                     id={this.state.id}
                                     config={this.state.config}
                                     readOnlyMode={this.state.readOnlyMode}
+                                    isCodeSpaceAdminPage = {isCodeSpaceAdminPage}
                                 />
                             </div>
                             <div id="tab-content-2" className="tab-content">
@@ -462,6 +504,7 @@ export default class SecurityConfig extends React.Component<ICreateNewSecurityCo
                                         onSaveDraft={this.onSaveDraft}
                                         id={this.state.id}
                                         readOnlyMode={this.state.readOnlyMode}
+                                        isCodeSpaceAdminPage = {isCodeSpaceAdminPage}
                                     />
                                 )}
                             </div>
@@ -471,8 +514,11 @@ export default class SecurityConfig extends React.Component<ICreateNewSecurityCo
                                         onSaveDraft={this.onSaveDraft}
                                         id={this.state.id}
                                         config={this.state.config}
+                                        onRequest={this.onRequest}
                                         onPublish={this.onPublish}
+                                        onAccept={this.onAccept}
                                         readOnlyMode={this.state.readOnlyMode}
+                                        isCodeSpaceAdminPage = {isCodeSpaceAdminPage}
                                     />
                                 )}
                             </div>
@@ -518,7 +564,7 @@ export default class SecurityConfig extends React.Component<ICreateNewSecurityCo
                         }}
                     />
                 </div>
-                <div className={Styles.mandatoryInfo}>* mandatory fields</div>
+                {!isCodeSpaceAdminPage?<div className={Styles.mandatoryInfo}>* mandatory fields</div>:<></>}              
             </React.Fragment>
         );
     }

@@ -245,7 +245,7 @@ const EntitlementSubList = (props: IEntitlementSublistProps) => {
                       Name
                     </label>
                   </div>
-                  <div className={Styles.dagTitleCol}>Action</div>
+                  <div className={Styles.dagTitleCol + (props.readOnlyMode ? ' hidden' : '')  }>Action</div>
                 </div>
               </div>
               {!props.isProtectedByDna && allEntitlementList?.map((item: any, index: number) => {

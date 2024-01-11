@@ -24,6 +24,7 @@ export interface IEntitlementProps {
     id: string;
     config: any;
     readOnlyMode: boolean;
+    isCodeSpaceAdminPage: boolean;
 }
 
 export interface IEntitlementState {
@@ -131,7 +132,7 @@ export default class Entitlement extends React.Component<IEntitlementProps, IEnt
         if (type === 'accept') {
             this.setState({ isProtectedByDna: false });
         } else if (type === 'cancel') {
-            this.setState({ isProtectedByDna: true });
+                this.setState({ isProtectedByDna: true });
         }
         this.setState({ isDnAProtectModal: false });
     }
@@ -334,13 +335,14 @@ export default class Entitlement extends React.Component<IEntitlementProps, IEnt
                                         </span>
                                         <span className={classNames("label")}>Do you want to DnA platform to protect your API's</span>
                                     </label>
-                                    {!CODE_SPACE_STATUS.includes(this.state.config?.status) &&
+                                    {(!CODE_SPACE_STATUS.includes(this.state.config?.status) && !this.props.isCodeSpaceAdminPage) &&
                                         <p style={{ color: 'var(--color-orange)' }}
-                                            className={classNames((this.props.readOnlyMode ? ' hidden' : ''))}><i className="icon mbc-icon alert circle"></i> Once the config is in published state, Can Add / Edit Entitlement</p>}
+                                            className={classNames((this.props.readOnlyMode ? ' hidden' : ''))}><i className="icon mbc-icon alert circle"></i> Once the config is in published state, Can Add / Edit Entitlement</p>
+                                    }
                                 </div>
-                                <div className={classNames(Styles.createEntitlementButton)}>
+                                {!this.props.readOnlyMode ?<div className={classNames(Styles.createEntitlementButton)}>
                                     <button className={classNames('btn add-dataiku-container btn-primary',
-                                        Styles.createButton + (this.props.readOnlyMode ? ' hidden' : ''))} type="button"
+                                        Styles.createButton )} type="button"
                                         onClick={() => {
                                             this.setState({
                                                 isCreateOrEditEntitlementModal: true,
@@ -352,7 +354,7 @@ export default class Entitlement extends React.Component<IEntitlementProps, IEnt
                                         <i className="icon mbc-icon plus" />
                                         <span>Create New Entitlement</span>
                                     </button>
-                                </div>
+                                </div>:''}
                             </div>
                             {this.state.entitelmentListResponse?.length > 0 ?
 
@@ -360,7 +362,7 @@ export default class Entitlement extends React.Component<IEntitlementProps, IEnt
                                     <EntitlementSubList
                                         readOnlyMode={this.props.readOnlyMode}
                                         entitelmentListResponse={this.state.entitelmentListResponse}
-                                        isProtectedByDna={this.state.isProtectedByDna}
+                                        isProtectedByDna={this.state?.isProtectedByDna}
                                         listOfProject={this.state.entitelmentList}
                                         status={this.state.config?.status}
                                         getRefreshedDagPermission={this.getRefreshedDagPermission}

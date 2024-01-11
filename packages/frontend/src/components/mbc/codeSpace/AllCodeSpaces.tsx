@@ -13,7 +13,8 @@ import Notification from '../../../assets/modules/uilab/js/src/notification';
 import { CodeSpaceApiClient } from '../../../services/CodeSpaceApiClient';
 // @ts-ignore
 import ProgressIndicator from '../../../assets/modules/uilab/js/src/progress-indicator';
-
+import { IconGear } from 'components/icons/IconGear';
+import {  USER_ROLE } from 'globals/constants';
 export interface IAllCodeSpacesProps {
   user: IUserInfo;
 }
@@ -31,7 +32,7 @@ const AllCodeSpaces = (props: IAllCodeSpacesProps) => {
     [isApiCallTakeTime, setIsApiCallTakeTime] = useState<boolean>(false),
     [onBoardCodeSpace, setOnBoardCodeSpace] = useState<ICodeSpaceData>(),
     [onEditCodeSpace, setOnEditCodeSpace] = useState<ICodeSpaceData>();
-
+    const isCodeSpaceAdmin = props.user.roles.some(role=>role.id === USER_ROLE.CODESPACEADMIN);
   const history = useHistory();
   const goback = () => {
     history.goBack();
@@ -91,6 +92,10 @@ const AllCodeSpaces = (props: IAllCodeSpacesProps) => {
 
   const onShowNewCodeSpaceModal = () => {
     setShowNewCodeSpaceModal(true);
+  };
+ 
+  const onShowSecurityConfigRequest = () => {
+    history.push('/codespace/adminSecurityConfigs');
   };
 
   const isCodeSpaceCreationSuccess = (status: boolean, codeSpaceData: ICodeSpaceData) => {
@@ -173,16 +178,21 @@ const AllCodeSpaces = (props: IAllCodeSpacesProps) => {
                 >
                   <i className="icon mbc-icon refresh" />
                 </button>
-                <button
-                  className={codeSpaces?.length === null ? Styles.btnHide : 'btn btn-primary hide'}
+              </>
+             ) : null} 
+            {isCodeSpaceAdmin?(
+              <>
+              <button
+                  className={ classNames('btn btn-primary',Styles.configIcon)}
                   type="button"
-                  onClick={onShowNewCodeSpaceModal}
+                  onClick={onShowSecurityConfigRequest}
                 >
-                  <i className="icon mbc-icon plus" />
-                  <span>Create new Code Space</span>
+                  <IconGear size={'14'} />
+                  <span>&nbsp;Manage Security Configs</span>
                 </button>
               </>
-            ) : null}
+            ):null
+            }
           </div>
         </div>
         {loading ? (

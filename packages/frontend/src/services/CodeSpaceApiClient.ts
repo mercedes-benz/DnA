@@ -99,4 +99,16 @@ export class CodeSpaceApiClient {
     return this.post(`/workspaces/${id}/config/request`)
   };
 
+  public static getWorkspaceConfigs(): Promise<any[]>{
+    return this.get(`/workspaces/configs`)
+  };
+
+  public static acceptSecurityConfigRequest (id:string): Promise<any[]>{
+    return this.post(`/workspaces/${id}/config/accept`)
+  };
+
+  public static publishSecurityConfigRequest (id:string): Promise<any[]>{
+    return this.post(`/workspaces/${id}/config/publish`)
+  };
+
 }

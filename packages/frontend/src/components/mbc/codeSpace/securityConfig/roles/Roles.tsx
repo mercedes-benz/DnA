@@ -232,16 +232,15 @@ const Roles = (props: any) => {
                         <h3 className={classNames(Styles.title)}>Roles</h3>
                         <div className={classNames(Styles.parentRole)}>
                             <div className={Styles.warningWrapper}>
-                                {!CODE_SPACE_STATUS.includes(config?.status) &&
-                                    <p style={{ color: 'var(--color-orange)' }}
-                                        className={classNames((props.readOnlyMode ? ' hidden' : ''))}>
+                                {(!props.readOnlyMode &&!CODE_SPACE_STATUS.includes(config?.status) )&&
+                                    <p style={{ color: 'var(--color-orange)' }}>
                                         <i className="icon mbc-icon alert circle">
                                         </i> Once the config is in published state, Can Add / Edit Roles</p>}
                             </div>
                             <div className={classNames(Styles.createEntitlementButton)}>
-                                {allentitelmentList?.length > 0 && <button
+                                {(!props.readOnlyMode && allentitelmentList?.length > 0) && <button
                                     className={classNames('btn add-dataiku-container btn-primary',
-                                        Styles.createButton + (props.readOnlyMode ? ' hidden' : ''))} type="button"
+                                        Styles.createButton )} type="button"
                                     onClick={() => {
                                         setEditRoleCol(false);
                                         setShowEditOrCreateModal(true);
@@ -258,7 +257,7 @@ const Roles = (props: any) => {
                             ? <div className={Styles.row}>
                                 <table className="ul-table users">
                                     <thead>
-                                        <tr className="header-row">
+                                        <tr className={classNames('header-row',Styles.configRow)}>
                                             <th>
                                                 <label>
                                                     Name
@@ -269,7 +268,7 @@ const Roles = (props: any) => {
                                                     Entitlements
                                                 </label>
                                             </th>
-                                            <th className="actionColumn">
+                                            <th className={"actionColumn" + (props.readOnlyMode ? ' hidden' : '')}>
                                                 <label>Action</label>
                                             </th>
                                         </tr>
@@ -278,11 +277,11 @@ const Roles = (props: any) => {
                                         {roleList?.map((item: any, index) => (
                                             <tr
                                                 key={index + item?.id}
-                                                className={classNames('data-row')}>
-                                                <td className="wrap-text">
+                                                className={classNames('data-row',Styles.configRow)}>
+                                                <td className={classNames('wrap-text',Styles.configColumn)}>
                                                     <span >{item.name}</span>
                                                 </td>
-                                                <td className="wrap-text">
+                                                <td id="config-column" className={classNames('wrap-text',Styles.configColumn)}>
                                                     <div className={Styles.tagColumn}>
                                                         {item.roleEntitlements?.map((entitlement: any, index: number) => (
                                                             <div className="chips read-only" key={index}>
@@ -291,7 +290,7 @@ const Roles = (props: any) => {
                                                         ))}
                                                     </div>
                                                 </td>
-                                                <td className={classNames("wrap-text", Styles.actionBtn)}>
+                                                <td id="config-column" className={classNames("wrap-text",Styles.configColumn, Styles.actionBtn)}>
                                                     <button
                                                         onClick={() => editRole(item)}
                                                         className={Styles.actionBtn + ' btn btn-primary' + (props.readOnlyMode ? ' hidden' : '')}
