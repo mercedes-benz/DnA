@@ -48,6 +48,9 @@ const ChronosProjectDetails = ({ user }) => {
       dispatch(getConfigFiles(projectId));
       SelectBox.defaultSetup();
     }
+    if(currentTab === 'projectDetails') {
+      dispatch(getProjectDetails(projectId));
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentTab]);
 
