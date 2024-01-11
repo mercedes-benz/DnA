@@ -18,7 +18,7 @@ import { setTables } from '../redux/graphSlice';
  */
 const GraphTable = (props) => {
     const dispatch = useDispatch();
-    const { table, onTableMouseDown, onGripMouseDown, tableSelectedId, setTableSelectId, onDeleteTable, onAddColumn, onEditColumn, isOwner } = props;
+    const { table, onTableMouseDown, onGripMouseDown, tableSelectedId, setTableSelectId, onDeleteTable, onAddColumn, onEditColumn, onEditTable, isOwner } = props;
     const { project } = useSelector(state => state.graph);
 
     useEffect(() => {
@@ -87,7 +87,7 @@ const GraphTable = (props) => {
                                 <i className="icon mbc-icon profile"></i>
                             </button>
                             <button 
-                            // onClick={() => dispatch(setEditingTable(table))}
+                                onClick={() => onEditTable(table)}
                                 tooltip-data={'Edit Table'}
                             >
                                 <i className="icon mbc-icon edit fill"></i>
