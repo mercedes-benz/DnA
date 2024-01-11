@@ -89,8 +89,8 @@
     "@types/node": "^15.12.2",
     "@types/prop-types": "^15.5.6",
     "@types/react": "^17.0.11",
-    "@types/react-csv": "^1.1.1",
-    "@types/react-dom": "^17.0.7",
+    "@types/react-csv": "1.1.1",
+    "@types/react-dom": "17.0.7",
     "@types/react-router-dom": "^5.1.7",
     "@types/react-simple-maps": "^1.0.3",
     "@types/react-test-renderer": "^17.0.1",
@@ -171,7 +171,7 @@
     "whatwg-fetch": "^3.0.0"
   },
   "resolutions": {
-    "@types/react": "17.0.11",
-    "@types/react-dom": "17.0.7"
+    "@types/react": "^18.0.9",
+    "@types/react-dom": "^18.0.4"
   }
 }
