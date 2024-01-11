@@ -14,14 +14,9 @@ import { SESSION_STORAGE_KEYS } from '../../utilities/constants';
 import { datalakeApi } from '../../apis/datalake.api';
 
 const Graphs = ({ user }) => {
-    const [createProject, setCreateProject] = useState(false);
-    const [graphs, setGraphs] = useState([]);
-    const [loading, setLoading] = useState(true);
-
-    useEffect(() => {
-      getDatalakeProjects();
-      // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+  const [createProject, setCreateProject] = useState(false);
+  const [graphs, setGraphs] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   // Fetch all datalake projects
   const getDatalakeProjects = () => {
@@ -29,10 +24,11 @@ const Graphs = ({ user }) => {
       .then((res) => {
         if(res.status !== 204) {
           if (res.data.data) {
-            // const results = [...res.data.data].sort((projectA, projectB) => {
-            //   return (projectA.projectName.toLowerCase() > projectB.projectName.toLowerCase()) ? 1 : (projectB.projectName.toLowerCase() > projectA.projectName.toLowerCase() ? -1 : 0);
-            // });
-            setGraphs(res.data.data);
+            const results = [...res.data.data].sort((projectA, projectB) => {
+              return (projectA.projectName.toLowerCase() > projectB.projectName.toLowerCase()) ? 1 : (projectB.projectName.toLowerCase() > projectA.projectName.toLowerCase() ? -1 : 0);
+            });
+            setGraphs(results);
+            // setGraphs(res.data.data);
             const totalNumberOfPagesTemp = Math.ceil(res.data.totalCount / maxItemsPerPage);
             setCurrentPageNumber(currentPageNumber > totalNumberOfPagesTemp ? 1 : currentPageNumber);
             setTotalNumberOfPages(totalNumberOfPagesTemp);
