@@ -32,6 +32,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 import javax.persistence.Query;
 import javax.persistence.TypedQuery;
@@ -42,6 +43,7 @@ import javax.persistence.criteria.Root;
 
 import com.daimler.data.db.json.UserInfo;
 import com.daimler.data.dto.CodespaceSecurityConfigDto;
+import com.daimler.data.dto.workspace.CodeServerWorkspaceVO;
 import com.daimler.data.dto.workspace.CodeServerWorkspaceValidateVO;
 import com.daimler.data.dto.workspace.CodespaceSecurityConfigVO;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -52,6 +54,7 @@ import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
 import com.daimler.data.db.entities.CodeServerWorkspaceNsql;
 import com.daimler.data.db.json.CodeServerDeploymentDetails;
+import com.daimler.data.db.json.CodeServerLeanGovernanceFeilds;
 import com.daimler.data.db.json.CodeServerWorkspace;
 import com.daimler.data.db.json.CodespaceSecurityConfig;
 import com.daimler.data.db.repo.common.CommonDataRepositoryImpl;
@@ -444,14 +447,19 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 	}
 
 	@Override
-	public List<CodespaceSecurityConfigDto> getAllSecurityConfigs(){
+	public List<CodespaceSecurityConfigDto> getAllSecurityConfigs(Integer offset, Integer limit){
 		List<CodespaceSecurityConfigDto> data = new ArrayList<>();
+
 		List<Object[]> results = new ArrayList<>();
-		String getQuery = "SELECT cast(id as text) as COLUMN_ID, cast(jsonb_extract_path_text(data,'projectDetails','projectName') as text) as PROJECT_NAME, " +
+		String getQuery = "SELECT DISTINCT ON (jsonb_extract_path_text(data, 'projectDetails', 'projectName'))"+
+					"cast(jsonb_extract_path_text(data,'projectDetails','projectName') as text) as PROJECT_NAME, cast(id as text) as COLUMN_ID,  " +
                   "cast(jsonb_extract_path_text(data,'projectDetails','projectOwner') as text) as PROJECT_OWNER, " +
                   "cast(jsonb_extract_path_text(data,'projectDetails','securityConfig') as text) as SECURITY_CONFIG " +
-                  "FROM workspace_nsql WHERE lower(jsonb_extract_path_text(data,'projectDetails','securityConfig','status')) = 'requested'";
-
+                  "FROM workspace_nsql WHERE lower(jsonb_extract_path_text(data,'projectDetails','securityConfig','status')) in('requested','accepted') ";
+		if (limit > 0)
+			  getQuery = getQuery + " limit " + limit;
+	  	if (offset >= 0)
+			  getQuery = getQuery + " offset " + offset;
 		try {
 			Query q = em.createNativeQuery(getQuery);
 			results = q.getResultList();
@@ -459,10 +467,10 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 			ObjectMapper mapper = new ObjectMapper();
 			for(Object[] rowData : results){
 				CodespaceSecurityConfigDto rowDetails = new CodespaceSecurityConfigDto();
-				if(rowData[0]!=null){
-					rowDetails.setId((String)rowData[0]);
+				if(rowData !=null){
+					rowDetails.setId((String)rowData[1]);
 					try{
-						rowDetails.setProjectName((String)rowData[1]);
+						rowDetails.setProjectName((String)rowData[0]);
 						
 						UserInfo userDetails = mapper.readValue(rowData[2].toString(), UserInfo.class);
 						rowDetails.setProjectOwner(userDetails);
@@ -479,13 +487,174 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 
 			if(data!=null && !data.isEmpty()) {
 																
-				log.info("Found {} workspaces in project {} which are in requested state", data.size());
+				log.info("Found {} workspaces which are in requested and accepted state", data.size());
 			}
 		}catch(Exception e) {
 			e.printStackTrace();
-			log.error("Failed to query workspaces under project {} , which are not in requested state");
+			log.error("Failed to query workspaces under project , which are in requested and accepted state");
 		}
 		return data;
 	}
 
+	@Override
+	public GenericMessage updateSecurityConfigStatus(String projectName, String status) {
+		GenericMessage updateResponse = new GenericMessage();
+		updateResponse.setSuccess("FAILED");
+		List<MessageDescription> errors = new ArrayList<>();
+		List<MessageDescription> warnings = new ArrayList<>();
+
+		String updateQuery = "update workspace_nsql\r\n"
+				+ "set data = jsonb_set(data, '{projectDetails,securityConfig}', \r\n"
+				+ " '{\"status\": " + addQuotes(status)
+				+ "}' )\n" + "\\:" + "\\:" + "jsonb \n"
+				+ "where data->'projectDetails'->>'projectName' = '" + projectName + "'" + " and lower(jsonb_extract_path_text(data,'status')) <> 'deleted'";
+		try {
+			Query q = em.createNativeQuery(updateQuery);
+			q.executeUpdate();
+			updateResponse.setSuccess("SUCCESS");
+			updateResponse.setErrors(new ArrayList<>());
+			updateResponse.setWarnings(new ArrayList<>());
+			log.info("security config status updated successfully for project {} ", projectName);
+		} catch (Exception e) {
+			e.printStackTrace();
+			MessageDescription errMsg = new MessageDescription("Failed while updating the security config status.");
+			errors.add(errMsg);
+			log.error("Failed while updating the security config status with Exception {} ", e.getMessage());
+		}
+		return updateResponse;
+	}
+
+
+	@Override
+	public List<String> getWorkspaceIdsByProjectName( String projectName) {
+		List<String> workspaceIds = new ArrayList<>();
+
+		String getQuery = "select jsonb_extract_path_text(data,'workspaceId') as workspaceId "
+				+ "from workspace_nsql "
+				+ "where lower(jsonb_extract_path_text(data,'projectDetails','projectName'))"
+				+ "in('" + projectName.toLowerCase() + "') and lower(jsonb_extract_path_text(data,'status')) <> 'deleted'";
+		
+		try {
+			Query q = em.createNativeQuery(getQuery);
+			workspaceIds = q.getResultList();
+			if (workspaceIds != null && !workspaceIds.isEmpty()) {
+				log.info("Found {} workspaces with project name {} which are not in deleted state", workspaceIds.size(), projectName);
+			}
+		} catch (Exception e) {
+			log.error("Failed to query workspaces under project name {} , which are not in deleted state", projectName);
+		}
+		return workspaceIds;
+		
+	}
+
+	@Override
+	public CodeServerWorkspaceNsql findDataById(String id) {
+
+		// String getQuery = "select data "
+		// 	+ "from workspace_nsql "
+		// 	+ "where id "
+		// 	+ "in('"+ id +"') and lower(jsonb_extract_path_text(data,'status')) <> 'deleted'";
+		// try {
+		// 	Query q = em.createNativeQuery(getQuery);
+		// 	List<CodeServerWorkspaceNsql> entities = q.getResultList();
+		// if (entities != null && entities.size() > 0){
+		// 	log.info("Found data for given id {} which are not in deleted state", id);
+		// 	return entities.get(0);
+			
+		// }else{
+		// 	return null;
+		// }
+		// }catch(Exception e){
+		// 	log.info("Caught Exception while getting  data for given id {} which are not in deleted state", id);
+		// }
+		// return null;
+		// String getAllStmt = "select cast(data as text) "
+		// 			+ "from workspace_nsql "
+		// 			+ "where id "
+		// 			+ "in('" + id + "') and lower(jsonb_extract_path_text(data,'status')) <> 'deleted'";
+																		
+		// Query q = em.createNativeQuery(getAllStmt);
+		// ObjectMapper mapper = new ObjectMapper();
+		// List<Object[]> results = q.getResultList();
+		// List<CodeServerWorkspaceNsql> convertedResults = results.stream().map(temp -> {
+		// 	CodeServerWorkspaceNsql entity = new CodeServerWorkspaceNsql();
+		// 	try {
+		// 		String jsonData = temp[0] != null ? temp[0].toString() : "";
+		// 		CodeServerWorkspace codespaceJson = mapper.readValue(jsonData, CodeServerWorkspace.class);
+		// 		entity.setData(codespaceJson);
+		// 	} catch (Exception e) {
+		// 		log.error("Failed while fetching the codespace project details using native query with exception {} ", e.getMessage());
+		// 	}			
+		// 	return entity;
+		// }).collect(Collectors.toList());
+		// return convertedResults.get(0);
+
+		CriteriaBuilder cb = em.getCriteriaBuilder();
+		CriteriaQuery<CodeServerWorkspaceNsql> cq = cb.createQuery(CodeServerWorkspaceNsql.class);
+		Root<CodeServerWorkspaceNsql> root = cq.from(entityClass);
+		CriteriaQuery<CodeServerWorkspaceNsql> byName = cq.select(root);
+		Predicate con1 = cb.equal(root.get("id"),id);		
+		Predicate con2 = cb.notEqual(cb.lower(
+				cb.function("jsonb_extract_path_text", String.class, root.get("data"), cb.literal("status"))),
+				"DELETED".toLowerCase());
+		Predicate pMain = cb.and(con1, con2);
+		cq.where(pMain);
+		cq.orderBy(cb.desc(cb.function("jsonb_extract_path_text", Date.class, root.get("data"), cb.literal("intiatedOn"))));
+		TypedQuery<CodeServerWorkspaceNsql> byNameQuery = em.createQuery(byName);
+		List<CodeServerWorkspaceNsql> entities = byNameQuery.getResultList();
+		if (entities != null && entities.size() > 0)
+			return entities.get(0);
+		else
+			return null;
+
+
+
+	}
+
+	@Override
+	public GenericMessage updateGovernanceDetails(String projectName, CodeServerLeanGovernanceFeilds newGovFeilds) {
+		GenericMessage updateResponse = new GenericMessage();
+		updateResponse.setSuccess("FAILED");
+		List<MessageDescription> errors = new ArrayList<>();
+		List<MessageDescription> warnings = new ArrayList<>();
+		// String ArrayTagstoJsonb = "[" + String.join(",", newGovFeilds.getTags()) +
+		// "]";
+		List<String> tags = newGovFeilds.getTags();
+		String ArrayTagstoJsonb = "[" + tags.stream().map(tag -> "\"" + tag + "\"").collect(Collectors.joining(","))
+				+ "]";
+
+		String updateQuery = "update workspace_nsql\n"
+				+ "set data = jsonb_set(data, '{projectDetails,dataGovernance}',\n"
+				+ " '{\"tags\": " + ArrayTagstoJsonb + ","
+				+ " \"piiData\": " + newGovFeilds.getPiiData() + ","
+				+ " \"archerId\": " + addQuotes(newGovFeilds.getArcherId()) + ","
+				+ " \"division\": " + addQuotes(newGovFeilds.getDivision()) + ","
+				+ " \"department\": " + addQuotes(newGovFeilds.getDepartment()) + ","
+				+ " \"divisionId\": " + addQuotes(newGovFeilds.getDivisionId()) + ","
+				+ " \"division\": " + addQuotes(newGovFeilds.getDivision()) + ","
+				+ " \"description\": " + addQuotes(newGovFeilds.getDescription()) + ","
+				+ " \"procedureID\": " + addQuotes(newGovFeilds.getProcedureID()) + ","
+				+ " \"subDivisionId\": " + addQuotes(newGovFeilds.getSubDivisionId()) + ","
+				+ " \"subDivision\": " + addQuotes(newGovFeilds.getSubDivision()) + ","
+				+ " \"typeOfProject\": " + addQuotes(newGovFeilds.getTypeOfProject()) + ","
+				+ " \"classificationType\": " + addQuotes(newGovFeilds.getClassificationType()) + "}')\n"
+				+ "where data->'projectDetails'->>'projectName' = '" + projectName + "'";
+
+		try {
+			Query q = em.createNativeQuery(updateQuery);
+			q.executeUpdate();
+			updateResponse.setSuccess("SUCCESS");
+			updateResponse.setErrors(new ArrayList<>());
+			updateResponse.setWarnings(new ArrayList<>());
+			log.info("Governance details updated successfully for project {} ", projectName);
+		} catch (Exception e) {
+			MessageDescription errMsg = new MessageDescription("Failed while updating the governance details.");
+			errors.add(errMsg);
+			log.error("Governance details Failed while updating the governance with Exception {} ", e.getMessage());
+		}
+		return updateResponse;
+
+	}
+
 }
+

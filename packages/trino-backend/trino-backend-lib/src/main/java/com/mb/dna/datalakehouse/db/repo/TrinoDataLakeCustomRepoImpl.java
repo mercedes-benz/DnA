@@ -22,7 +22,7 @@ public class TrinoDataLakeCustomRepoImpl extends CommonDataRepositoryImpl<TrinoD
 
 	@Override
 	public List<TrinoDataLakeNsql> getAll(String userId, int offset, int limit){
-		String getAllStmt = " select cast(id as text), cast(data as text) from trino_datalake_nsql where jsonb_extract_path_text(data,'createdBy','id') = ' " + userId + "' or jsonb_extract_path_text(data,'tables') ~* '" + userId + "'";
+		String getAllStmt = " select cast(id as text), cast(data as text) from trino_datalake_nsql where jsonb_extract_path_text(data,'createdBy','id') = '" + userId + "' or jsonb_extract_path_text(data,'tables') ~* '" + userId + "'";
 		if (limit > 0)
 			getAllStmt = getAllStmt + " limit " + limit;
 		if (offset >= 0)
@@ -45,10 +45,10 @@ public class TrinoDataLakeCustomRepoImpl extends CommonDataRepositoryImpl<TrinoD
 		}).collect(Collectors.toList());
 		return convertedResults;
 	}
-	
+		
 	@Override
 	public Long getCount(String userId) {
-		String query = "select count(*) from trino_datalake_nsql where jsonb_extract_path_text(data,'createdBy','id') = ' " + userId + "' or jsonb_extract_path_text(data,'tables') ~* '" + userId + "'";
+		String query = "select count(*) from trino_datalake_nsql where jsonb_extract_path_text(data,'createdBy','id') = '" + userId + "' or jsonb_extract_path_text(data,'tables') ~* '" + userId + "'";
 		Query q = em.createNativeQuery(query);
 		BigInteger results = (BigInteger) q.getSingleResult();
 		return results.longValue();
@@ -61,4 +61,13 @@ public class TrinoDataLakeCustomRepoImpl extends CommonDataRepositoryImpl<TrinoD
 		BigInteger results = (BigInteger) q.getSingleResult();
 		return results.longValue();
 	}
+	
+	@Override
+	public Long getCountOfExistingProjectsWithSameKey(String clientId, String projectName) {
+		String query = "select count(*) from trino_datalake_nsql where jsonb_extract_path_text(data,'techUserClientId') = '" + clientId + "' and jsonb_extract_path_text(data,'projectName') <> '" + projectName + "'";
+		Query q = em.createNativeQuery(query);
+		BigInteger results = (BigInteger) q.getSingleResult();
+		return results.longValue();
+	}
+	
 }

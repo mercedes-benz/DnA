@@ -53,7 +53,7 @@ export interface IProjectDetails {
   intDeploymentDetails?: IDeploymentDetails;
   prodDeploymentDetails?: IDeploymentDetails;
   securityConfig?: any;
-  publishSecurityConfig?: any;
+  publishedSecuirtyConfig?: any;
 }
 
 export interface IDeploymentDetails {
@@ -450,7 +450,7 @@ const CodeSpace = (props: ICodeSpaceProps) => {
 
   const isOwner = codeSpaceData.projectDetails?.projectOwner?.id === props.user.id;
   const navigateSecurityConfig = () => {
-    if (codeSpaceData?.projectDetails?.publishSecurityConfig) {
+    if (codeSpaceData?.projectDetails?.publishedSecuirtyConfig) {
       history.push(`/codespace/publishedSecurityconfig/${codeSpaceData.id}?pub=true`);
       return;
     }
@@ -481,11 +481,11 @@ const CodeSpace = (props: ICodeSpaceProps) => {
                   {!disableDeployment && (
                     <>
                       {isOwner && (
-                        <div className={Styles.configLink}
+                        <div className={classNames(Styles.configLink, Styles.pointer)}
                           onClick={() => navigateSecurityConfig()}>
                           <a target="_blank" rel="noreferrer">
                             <IconGear size={'16'} /> {CODE_SPACE_TITLE} (
-                            {codeSpaceData?.projectDetails?.securityConfig?.status})
+                            {codeSpaceData?.projectDetails?.publishedSecuirtyConfig?.status || codeSpaceData?.projectDetails?.securityConfig?.status})
                           </a>
                           &nbsp;
                         </div>

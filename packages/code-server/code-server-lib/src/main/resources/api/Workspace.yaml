@@ -315,6 +315,44 @@ paths:
         500:
           description: "Internal error"
 
+  /workspaces/{id}/datagoverance:        
+    patch:
+      tags:
+        - "code-server"
+      summary: "Add governance to existing workspace Project for a given Id."
+      description: "Add governance to existing workspace Project "
+      operationId: "updateGovernance"
+      parameters:
+        - name: "id"
+          in: "path"
+          description: "Workspace ID to be fetched"
+          required: true
+          type: "string"
+        - name: "dataGovernanceInfo"
+          in: "body"
+          description: "dataGovernanceInfo to add codespace"
+          required: true
+          schema:
+           $ref: "#/definitions/DataGovernanceRequestInfo"
+      responses:
+        201:
+          description: "Returns message of success or failure"
+          schema:
+            $ref: "#/definitions/GenericMessage"
+        204:
+          description: "Fetch complete, no content found."
+        400:
+          description: "Bad request."
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
+
+
   /workspaces/{id}/collaborator/{userid}:
     delete:
       tags:
@@ -703,7 +741,7 @@ paths:
         201:
           description: "Returns message of success or failure"
           schema:
-            $ref: "#/definitions/CodespaceSecurityConfigPublishedDetailsVO"
+            $ref: "#/definitions/CodespaceSecurityConfigVO"
         204:
           description: "Fetch complete, no content found."
         400:
@@ -837,7 +875,8 @@ definitions:
         $ref: "#/definitions/CodespaceSecurityConfigVO"
       publishedSecuirtyConfig:
         $ref: "#/definitions/CodespaceSecurityConfigVO"
-
+      dataGovernance:
+         $ref: "#/definitions/CodeServerGovernanceVO"
       required:
         -projectName
         -recipeDetails
@@ -912,17 +951,6 @@ definitions:
         description: "Storage details of recipe"  
       required:
         -recipeId
-
-
-  # CodespaceSecurityConfigDetailsVO:
-  #   type: object
-  #   properties:
-  #     projectName:
-  #       type: string
-  #       description: "Name of the Project"
-  #     securityConfig:
-  #       $ref: "#/definitions/CodespaceSecurityConfigVO"
-  
 
   SecurityConfigResponseDto: 
     type: object
@@ -1057,6 +1085,8 @@ definitions:
           type: string
       isProtectedByDna:
         type: boolean
+      requestedDate:
+        type: string
       projectName:
         type: string
         
@@ -1196,3 +1226,59 @@ definitions:
         description: "Name of the Project"
       PublishedSecurityConfig:
         $ref: "#/definitions/CodespaceSecurityConfigVO"
+
+  DataGovernanceRequestInfo:
+    type: object
+    properties:
+      data:
+        $ref: "#/definitions/CodeServerGovernanceVO"
+
+  CodeServerGovernanceVO :
+    type: object
+    properties:
+      description:
+        type: string
+        description: "description type for codespace"
+      classificationType:
+        type: string
+        description: "Classification type for codespace"
+      divisionId:
+        type: string
+        description: "division Id for the codespace"
+      division:
+        type: string
+        description: "division for the codespace"
+      subDivisionId:
+        type: string
+        description: "sub division Id for the codespace"
+      subDivision:
+        type: string
+        description: "sub division for the codespace"
+      department:
+        type: string
+        description: "department for the codespace"
+      archerId:
+        type: string
+        description: "archerId for the codespace"
+      procedureID:
+        type: string
+        description: "producerId for the codespace"
+      tags:
+        type: array
+        items:
+          type: string
+      typeOfProject:
+        type: string
+        description: "typeOfProject for the codespace"
+      piiData:
+        type: boolean
+        description: "If codespace contains personally identifiable information"
+      required:
+        -description
+        - division
+        -subDivision
+        - department
+        - classificationType
+        -typeOfProject
+        -producerId
+        -piiData

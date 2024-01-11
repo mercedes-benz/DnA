@@ -28,7 +28,7 @@ public interface ForecastService extends CommonService<ForecastVO, ForecastNsql,
 
 	ForecastRunResponseVO createJobRun(MultipartFile file, String savedInputPath, Boolean saveRequestPart, String runName,
 			String configurationFile, String frequency, BigDecimal forecastHorizon, String hierarchy, String comment,
-			Boolean runOnPowerfulMachines, ForecastVO existingForecast, String triggeredBy, Date triggeredOn, String chronosVersion, String backtesting);
+			Boolean runOnPowerfulMachines, ForecastVO existingForecast, String triggeredBy, Date triggeredOn, String chronosVersion, String backtesting, InputFileVO savedInputToRemove);
 
 
 	Object[] getAllRunsForProject( int limit,  int offset, String forecastId, String sortBy, String sortOrder);
@@ -62,7 +62,7 @@ public interface ForecastService extends CommonService<ForecastVO, ForecastNsql,
 	public ForecastComparisonResultVO  getForecastComparisonById(String id,String comparisonId);
 
 	public void processForecastComparision(String forecastId, String comparisonId);
-	public ForecastConfigFileUploadResponseVO uploadConfigFile(ForecastVO existingForecast, String configFileId,String requestUser,Date createdOn, String configFilePath, String configFileName);
+	public ForecastConfigFileUploadResponseVO uploadConfigFile(ForecastVO existingForecast, String configFileId,String requestUser,Date createdOn, String configFilePath, String configFileName,InputFileVO configToRemove);
 	public Object[]  getForecastConfigFiles(String id);
 	public ForecastConfigFileResultVO  getForecastConfigFileById(String id,String configFileId);
 	public ResponseEntity<ByteArrayResource> getRunResultsFile(String id, String correlationid, String file);

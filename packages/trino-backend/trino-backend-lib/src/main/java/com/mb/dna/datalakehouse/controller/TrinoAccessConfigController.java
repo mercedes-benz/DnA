@@ -1,7 +1,5 @@
 package com.mb.dna.datalakehouse.controller;
 
-import java.sql.ResultSet;
-import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,6 +11,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.daimler.data.dna.trino.config.TrinoClient;
 import com.mb.dna.datalakehouse.dto.TrinoAccessResponseVO;
+import com.mb.dna.datalakehouse.dto.TrinoAccessVO;
 import com.mb.dna.datalakehouse.service.TrinoAccessService;
 
 import io.swagger.annotations.Api;
@@ -23,7 +22,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @RestController
 @Api(value = "Trino access control details API", tags = { "trino" })
-@RequestMapping("/api")
+@RequestMapping("/service")
 @Slf4j
 public class TrinoAccessConfigController {
 
@@ -41,16 +40,11 @@ public class TrinoAccessConfigController {
 			@ApiResponse(code = 500, message = "Internal error") })
 	@RequestMapping(value = "/access", produces = { "application/json" }, method = RequestMethod.GET)
 	public ResponseEntity<TrinoAccessResponseVO> getAll() {
-//		final List<TrinoAccessVO> accessRulesRecords = service.getAll();
+		final List<TrinoAccessVO> accessRulesRecords = service.getAll();
 		TrinoAccessResponseVO accessDetails = new TrinoAccessResponseVO();
-//		log.debug("Sending all trino access details");
-//		if (accessRulesRecords != null && accessRulesRecords.size() > 0) {
-//			accessDetails.setData(accessRulesRecords.get(0));
-//		}
-		try {
-			ResultSet results = client.queryStatements("show schemas from hive like 'testing'");
-		} catch (Exception e) {
-			e.printStackTrace();
+		log.debug("Sending all trino access details");
+		if (accessRulesRecords != null && accessRulesRecords.size() > 0) {
+			accessDetails.setData(accessRulesRecords.get(0));
 		}
 		return new ResponseEntity<>(accessDetails, HttpStatus.OK);
 	}

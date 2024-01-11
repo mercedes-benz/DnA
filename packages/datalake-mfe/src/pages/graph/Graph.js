@@ -2,31 +2,54 @@ import classNames from 'classnames';
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
+import { useForm, FormProvider } from 'react-hook-form';
 import Styles from './graph.scss';
 // dna-container
 import FullScreenModeIcon from 'dna-container/FullScreenModeIcon';
 import Modal from 'dna-container/Modal';
 import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indicator';
+import SelectBox from '../../common/modules/uilab/js/src/select';
+import Tooltip from '../../common/modules/uilab/js/src/tooltip';
+import Notification from '../../common/modules/uilab/js/src/notification';
 import GraphTable from '../../components/GraphTable';
 import TableForm from '../../components/tableForm/TableForm';
 import SlidingModal from '../../components/slidingModal/SlidingModal';
+import Spinner from '../../components/spinner/Spinner';
 import { setBox, setTables } from '../../redux/graphSlice';
 import { getProjectDetails } from '../../redux/graph.services';
 import TableCollaborators from '../../components/tableCollaborators/TableCollaborators';
 import { datalakeApi } from '../../apis/datalake.api';
+import ColumnForm from '../../components/columnForm/ColumnForm';
+import EditTableForm from '../../components/editTableForm/EditTableForm';
 
-const Graph = () => {
+const Graph = ({user}) => {
     const { id } = useParams();
     const dispatch = useDispatch();
     const {
         box,
         version,
         project,
+        isLoading,
     } = useSelector(state => state.graph);
+
+    const methods = useForm();
+    const {
+      register,
+      handleSubmit,
+      formState: { errors },
+    } = methods;
+
+    const isOwner = user.id === project?.createdBy?.id;
 
     useEffect(() => {
         dispatch(getProjectDetails(id));
     }, [id, dispatch]);
+
+    useEffect(() => {
+      Tooltip.defaultSetup();
+      return Tooltip.clear();
+      //eslint-disable-next-line
+    }, []);
 
     /* A callback function that is used to update the viewbox of the svg. */
     const resizeHandler = useCallback(() => {
@@ -158,6 +181,7 @@ const Graph = () => {
 
     const [toggleModal, setToggleModal] = useState(false);
     const [showInferenceModal, setShowInferenceModal] = useState(false);
+    const [showTechnicalUserModal, setShowTechnicalUserModal] = useState(false);
 
     const inferenceContent = <>
         <p>Access data using any endpoints</p>
@@ -212,13 +236,206 @@ const Graph = () => {
             </button>
         </div>
     </>;   
+
+    const handleEditTechnicalUser = (values) => {
+      const data = {
+        clientId: values.clientId,
+        clientSecret: values.clientSecret
+      }
+      ProgressIndicator.show();
+      datalakeApi.updateTechnicalUser(project?.id, data).then(() => {
+        ProgressIndicator.hide();
+        Notification.show('Techical user details updated successfully');
+        setShowTechnicalUserModal(false);
+      }).catch(error => {
+        ProgressIndicator.hide();
+        Notification.show(
+          error?.response?.data?.response?.errors?.[0]?.message || error?.response?.data?.response?.warnings?.[0]?.message || 'Error while updating technical user',
+          'alert',
+        );
+      });
+    }
+
+    const technicalUserContent = <>
+    <FormProvider {...methods}>
+      <div className={classNames('input-field-group include-error', errors?.clientId ? 'error' : '')}>
+        <label className={classNames(Styles.inputLabel, 'input-label')}>
+          Client ID <sup>*</sup>
+        </label>
+        <div>
+          <input
+            type="text"
+            className={classNames('input-field')}
+            id="clientId"
+            placeholder="Type here"
+            autoComplete="off"
+            maxLength={55}
+            // defaultValue={clientId}
+            {...register('clientId', { required: '*Missing entry'})}
+          />
+          <span className={classNames('error-message')}>{errors?.clientId?.message}</span>
+        </div>
+      </div>
+      <div className={classNames('input-field-group include-error', errors?.clientSecret ? 'error' : '')}>
+        <label className={classNames(Styles.inputLabel, 'input-label')}>
+          Client Secret <sup>*</sup>
+        </label>
+        <div>
+          <input
+            type="password"
+            className={classNames('input-field')}
+            id="clientSecret"
+            placeholder="Type here"
+            autoComplete="off"
+            maxLength={55}
+            // defaultValue={clientId}
+            {...register('clientSecret', { required: '*Missing entry'})}
+          />
+          <span className={classNames('error-message')}>{errors?.clientSecret?.message}</span>
+        </div>
+      </div>
+      <div className={Styles.btnContainer}>
+        <button
+          className="btn btn-tertiary"
+          type="button"
+          onClick={handleSubmit((values) => {
+            handleEditTechnicalUser(values)
+          })}
+        >
+          Save
+        </button>
+      </div>
+    </FormProvider>
+    </>; 
     
   const [showCollabModal, setShowCollabModal] = useState(false);
-  const [collabs, setCollabs] = useState([]);
+  const [table, setTable] = useState([]);
 
   const handleCollab = (table) => {
     setShowCollabModal(true);
-    setCollabs([...table.collabs]);
+    setTable({...table});
+  }
+
+  const handleDeleteTable = (tableName) => {
+    const projectTemp = {...project};
+    const tempTables = projectTemp.tables.filter(item => item.tableName !== tableName);
+    projectTemp.tables = [...tempTables];
+    dispatch(setTables(projectTemp.tables));
+  }
+
+  const [connectors,setConnectors] = useState([]);
+  const [formats, setFormats] = useState([]);
+  const [dataTypes, setDataTypes] = useState([]);
+
+  useEffect(() => {
+    if(project.connectorType === 'Iceberg') {
+      const connector = connectors.filter(item => item.name === 'Iceberg');
+      setFormats(connector[0] !== undefined ? [...connector[0].formats] : []);
+      setDataTypes(connector[0] !== undefined ? [...connector[0].dataTypes] : []);
+    }
+    if(project.connectorType === 'Delta Lake') {
+      const connector = connectors.filter(item => item.name === 'Delta Lake');
+      setFormats(connector[0] !== undefined ? [...connector[0].formats] : []);
+      setDataTypes(connector[0] !== undefined ? [...connector[0].dataTypes] : []);
+    }
+  }, [connectors, project]);
+
+  useEffect(() => {
+    ProgressIndicator.show();
+    datalakeApi.getConnectors()
+      .then((res) => {
+        setConnectors(res.data.connectors);
+        ProgressIndicator.hide();
+        SelectBox.defaultSetup();
+      })
+      .catch((err) => {
+        Notification.show(
+          err?.response?.data?.errors?.[0]?.message || 'Error while fetching connectors',
+          'alert',
+        );
+        ProgressIndicator.hide();
+        SelectBox.defaultSetup();
+      });
+  }, []);
+
+  const [showColumnModal, setShowColumnModal] = useState(false);
+  const [showTableModal, setShowTableModal] = useState(false);
+  const [selectedTable, setSelectedTable] = useState();
+  const [selectedColumn, setSelectedColumn] = useState();
+  const [selectedIndex, setSelectedIndex] = useState(-1);
+  const [columnEdit, setColumnEdit] = useState(false);
+
+  const handleAddColumn = (table) => {
+    setShowColumnModal(true);
+    setSelectedTable({...table});
+  }
+
+  const handleEditColumn = (column, table, index) => {
+    setShowColumnModal(true);
+    setColumnEdit(true);
+    setSelectedTable({...table});
+    setSelectedColumn({...column});
+    setSelectedIndex(index);
+  }
+
+  const handleEditTable = (table) => {
+    setShowTableModal(true);
+    setSelectedTable({...table});
+  }
+
+  const addColumn = (values) => {
+    const tempTable = {...selectedTable};
+    const columnData = {
+      columnName: values.columnName,
+      comment: values.comment,
+      dataType: values.dataType,
+      notNullConstraintEnabled: values.notNullConstraintEnabled,
+    };
+
+    const projectTemp = {...project};
+    const tableIndex = projectTemp.tables.findIndex(item => item.tableName === tempTable.tableName);
+    let newTables = [...projectTemp.tables];
+    newTables[tableIndex] = {...newTables[tableIndex], columns: [...newTables[tableIndex].columns, columnData]};
+    dispatch(setTables(newTables));
+    setShowColumnModal(false);
+    Tooltip.defaultSetup();
+  }
+
+  const editColumn = (values) => {
+    const tempTable = {...selectedTable};
+    const columnData = {
+      columnName: values.columnName,
+      comment: values.comment,
+      dataType: values.dataType,
+      notNullConstraintEnabled: values.notNullConstraintEnabled,
+    };
+
+    const projectTemp = {...project};
+    const tableIndex = projectTemp.tables.findIndex(item => item.tableName === tempTable.tableName);
+    let newTables = [...projectTemp.tables];
+    let newColumns = [...newTables[tableIndex].columns];
+    newColumns[selectedIndex] = {...columnData};
+    newTables[tableIndex] = {...newTables[tableIndex], columns: [...newColumns]};
+    dispatch(setTables(newTables));
+    setShowColumnModal(false);
+    setColumnEdit(false);
+    Tooltip.defaultSetup();
+  }
+
+  const editTable = (values) => {
+    const tempTable = {...selectedTable};
+    const projectTemp = {...project};
+    const tableIndex = projectTemp.tables.findIndex(item => item.tableName === tempTable.tableName);
+    let newTables = [...projectTemp.tables];
+    newTables[tableIndex] = {
+                              ...newTables[tableIndex], 
+                              tableName: values.tableName, 
+                              description: values.description,
+                              dataFormat: values.dataFormat
+                            };
+    dispatch(setTables(newTables));
+    setShowTableModal(false);
+    Tooltip.defaultSetup();
   }
 
   const handlePublish = () => {
@@ -235,23 +452,40 @@ const Graph = () => {
       );
     });
   }
+
+  const [fullScreenMode, setFullScreenMode] = useState(false);
+
+  const toggleFullScreenMode = () => {
+    setFullScreenMode(!fullScreenMode);
+  };
   
   return (
-    <>
+    !isLoading ?
+    <div className={fullScreenMode ? Styles.datalakeWrapperFSmode : '' + ' ' + Styles.datalakeWrapper}>
       <div className={classNames(Styles.mainPanel)}>
         <div className={Styles.nbheader}>
             <div className={Styles.headerdetails}>
               {/* <img src={Envs.DNA_BRAND_LOGO_URL} className={Styles.Logo} /> */}
               <div className={Styles.nbtitle}>
                 <button tooltip-data="Go Back" className="btn btn-text back arrow" onClick={() => { history.back() }}></button>
-                <h2>Data Lakehouse Project</h2>
+                <h2>{project?.projectName}</h2>
               </div>
             </div>
             <div className={Styles.navigation}>
                 <div className={Styles.headerright}>
                     <div>
                         <button
-                            className={classNames('btn btn-primary', Styles.btnOutline)}
+                            className={classNames('btn btn-primary', Styles.btnOutline, !isOwner && Styles.btnDisabled)}
+                            type="button"
+                            onClick={() => { setShowTechnicalUserModal(true) }}
+                        >
+                            <i className="icon mbc-icon plus" />
+                            <span>Create Technical User</span>
+                        </button>
+                    </div>
+                    <div>
+                        <button
+                            className={classNames('btn btn-primary', Styles.btnOutline, !isOwner && Styles.btnDisabled)}
                             type="button"
                             onClick={() => { setShowInferenceModal(true) }}
                         >
@@ -261,7 +495,7 @@ const Graph = () => {
                     </div>
                     <div>
                         <button
-                            className={classNames('btn btn-primary', Styles.btnOutline)}
+                            className={classNames('btn btn-primary', Styles.btnOutline, !isOwner && Styles.btnDisabled)}
                             type="button"
                             onClick={() => { setToggleModal(!toggleModal)}}
                         >
@@ -269,18 +503,14 @@ const Graph = () => {
                             <span>Add Table</span>
                         </button>
                     </div>
-                  <div tooltip-data="Open New Tab" className={Styles.OpenNewTab}>
-                    <i className="icon mbc-icon arrow small right" />
-                    <span> &nbsp; </span>
-                  </div>
-                  <div>
-                    <FullScreenModeIcon fsNeed={false} />
+                  <div onClick={toggleFullScreenMode}>
+                    <FullScreenModeIcon fsNeed={fullScreenMode} />
                   </div>
                 </div>
             </div>
         </div>
         <div className={classNames(Styles.content)}>
-          <div className="graph">
+          <div className={classNames('graph', fullScreenMode ? Styles.fullscreen : '')}>
             <svg
               className="main"
               viewBox={`${box.x} ${box.y} ${box.w} ${box.h}`}
@@ -290,16 +520,21 @@ const Graph = () => {
               // onWheel={wheelHandler}
               ref={svg}
             >
-              {project?.tables?.length > 0 && project.tables.map(table => {
+              {project?.tables?.length > 0 && project.tables.map((table, index) => {
                 return (
                     <>
                         <GraphTable
-                            key={table.id}
+                            key={table.tableName + index}
                             table={table}
                             onTableMouseDown={tableMouseDownHandler}
                             tableSelectedId={tableSelectedId}
                             setTableSelectId={setTableSelectId}
                             onCollabClick={handleCollab}
+                            onDeleteTable={handleDeleteTable}
+                            onAddColumn={handleAddColumn}
+                            onEditColumn={handleEditColumn}
+                            onEditTable={handleEditTable}
+                            isOwner={isOwner}
                         />
                     </>
                 );
@@ -318,7 +553,7 @@ const Graph = () => {
             title={'Add Table'}
             toggle={toggleModal}
             setToggle={() => setToggleModal(!toggleModal)}
-            content={<TableForm setToggle={() => setToggleModal(!toggleModal)}  />}
+            content={<TableForm setToggle={() => setToggleModal(!toggleModal)} formats={formats} dataTypes={dataTypes} />}
         />
     }
 
@@ -337,6 +572,22 @@ const Graph = () => {
             }}
         />
     }
+
+    { showTechnicalUserModal &&
+        <Modal
+            title={'Edit Technical User'}
+            showAcceptButton={false}
+            showCancelButton={false}
+            modalWidth={'35%'}
+            buttonAlignment="right"
+            show={showTechnicalUserModal}
+            content={technicalUserContent}
+            scrollableContent={false}
+            onCancel={() => {
+                setShowTechnicalUserModal(false);
+            }}
+        />
+    }
     
     {
       showCollabModal && 
@@ -347,7 +598,7 @@ const Graph = () => {
         modalWidth={'60%'}
         buttonAlignment="right"
         show={showCollabModal}
-        content={<TableCollaborators edit={false} collaborators={collabs} onSave={() => setShowCollabModal(false)} />}
+        content={<TableCollaborators edit={false} table={table} onSave={() => setShowCollabModal(false)} user={user} />}
         scrollableContent={false}
         onCancel={() => setShowCollabModal(false)}
         modalStyle={{
@@ -357,7 +608,54 @@ const Graph = () => {
         }}
       />
     }
-    </>
+
+    { showColumnModal &&
+      <Modal
+        title={columnEdit ? 'Edit Column' : 'Add Column'}
+        showAcceptButton={false}
+        showCancelButton={false}
+        modalWidth={'60%'}
+        buttonAlignment="right"
+        show={showColumnModal}
+        content={<ColumnForm setToggle={() => setToggleModal(!toggleModal)} dataTypes={dataTypes} edit={columnEdit} column={selectedColumn} onAddColumn={addColumn} onEditColumn={editColumn} />}
+        scrollableContent={false}
+        onCancel={() => {
+          setShowColumnModal(false); 
+          setSelectedColumn();
+          setColumnEdit(false);
+        }}
+        modalStyle={{
+          padding: '50px 35px 35px 35px',
+          minWidth: 'unset',
+          width: '60%',
+          maxWidth: '50vw'
+        }}
+      />
+    }
+
+    { showTableModal &&
+      <Modal
+        title={'Edit Table'}
+        showAcceptButton={false}
+        showCancelButton={false}
+        modalWidth={'60%'}
+        buttonAlignment="right"
+        show={showTableModal}
+        content={<EditTableForm setToggle={() => setToggleModal(!toggleModal)} formats={formats} table={selectedTable} onEditTable={editTable} />}
+        scrollableContent={false}
+        onCancel={() => {
+          setShowTableModal(false); 
+          setSelectedTable();
+        }}
+        modalStyle={{
+          padding: '50px 35px 35px 35px',
+          minWidth: 'unset',
+          width: '60%',
+          maxWidth: '50vw'
+        }}
+      />
+    }
+    </div> : <Spinner />
   );
 }
 

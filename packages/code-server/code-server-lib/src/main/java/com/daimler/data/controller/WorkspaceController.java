@@ -27,19 +27,23 @@
 
  package com.daimler.data.controller;
 
- import java.util.ArrayList;
+ import java.text.SimpleDateFormat;
+import java.util.ArrayList;
  import java.util.List;
  import java.util.Objects;
  import java.util.stream.Collectors;
+ import java.util.Date;
  
  import javax.persistence.EntityNotFoundException;
- import javax.validation.Valid;
+import javax.print.attribute.standard.DateTimeAtCompleted;
+import javax.validation.Valid;
  
  import org.springframework.beans.BeanUtils;
  import org.springframework.beans.factory.annotation.Autowired;
  import org.springframework.http.HttpStatus;
  import org.springframework.http.ResponseEntity;
- import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.util.ObjectUtils;
+import org.springframework.web.bind.annotation.PathVariable;
  import org.springframework.web.bind.annotation.RequestBody;
  import org.springframework.web.bind.annotation.RequestMapping;
  import org.springframework.web.bind.annotation.RequestMethod;
@@ -56,8 +60,10 @@
  import com.daimler.data.auth.client.UserRequestVO;
  import com.daimler.data.controller.exceptions.GenericMessage;
  import com.daimler.data.controller.exceptions.MessageDescription;
- import com.daimler.data.db.json.CodespaceSecurityEntitlement;
- import com.daimler.data.dto.workspace.CodeServerDeploymentDetailsVO;
+import com.daimler.data.db.entities.CodeServerWorkspaceNsql;
+import com.daimler.data.db.json.CodespaceSecurityEntitlement;
+import com.daimler.data.db.repo.workspace.WorkspaceCustomRepository;
+import com.daimler.data.dto.workspace.CodeServerDeploymentDetailsVO;
  import com.daimler.data.dto.workspace.CodeServerProjectDetailsVO;
  import com.daimler.data.dto.workspace.CodeServerRecipeDetailsVO;
  import com.daimler.data.dto.workspace.CodeServerRecipeDetailsVO.CloudServiceProviderEnum;
@@ -72,7 +78,8 @@ import com.daimler.data.dto.workspace.CodespaceSecurityConfigVO;
  import com.daimler.data.dto.workspace.CodespaceSecurityEntitlementVO;
  import com.daimler.data.dto.workspace.CodespaceSecurityRoleVO;
  import com.daimler.data.dto.workspace.CreatedByVO;
- import com.daimler.data.dto.workspace.EntitlementCollectionVO;
+import com.daimler.data.dto.workspace.DataGovernanceRequestInfo;
+import com.daimler.data.dto.workspace.EntitlementCollectionVO;
  import com.daimler.data.dto.workspace.InitializeCollabWorkspaceRequestVO;
  import com.daimler.data.dto.workspace.InitializeWorkspaceRequestVO;
  import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
@@ -85,6 +92,7 @@ import com.daimler.data.dto.workspace.CodespaceSecurityConfigVO;
  import com.daimler.data.dto.workspace.UserInfoVO;
  import com.daimler.data.dto.workspace.WorkspaceCollectionVO;
  import com.daimler.data.dto.workspace.admin.CodespaceSecurityConfigCollectionVO;
+ import com.daimler.data.dto.workspace.admin.CodespaceSecurityConfigDetailsVO;
  import com.daimler.data.service.workspace.WorkspaceService;
  import com.daimler.data.util.ConstantsUtility;
  
@@ -115,6 +123,9 @@ import com.daimler.data.dto.workspace.CodespaceSecurityConfigVO;
  
 	 @Autowired
 	 private WorkspaceAssembler workspaceAssembler;
+
+	 @Autowired
+	private WorkspaceCustomRepository workspaceCustomRepository;
  
 	 @Override
 	 @ApiOperation(value = "remove collaborator from workspace project for a given Id.", nickname = "removeCollab", notes = "remove collaborator from workspace project for a given identifier.", response = CodeServerWorkspaceVO.class, tags = {
@@ -306,8 +317,8 @@ import com.daimler.data.dto.workspace.CodespaceSecurityConfigVO;
 		 }
 		if (vo != null && vo.getStatus().equalsIgnoreCase("CREATED")) {
  
-			 if (!(vo != null && vo.getWorkspaceOwner() != null
-					 && vo.getWorkspaceOwner().getId().equalsIgnoreCase(userId))) {
+			 if (!(vo != null && vo.getProjectDetails().getProjectOwner() != null
+					 && vo.getProjectDetails().getProjectOwner().getId().equalsIgnoreCase(userId))) {
 				 MessageDescription notAuthorizedMsg = new MessageDescription();
 				 notAuthorizedMsg.setMessage(
 						 "Only owners can edit security configurations for workspace. Denied, does not have privileges.");
@@ -318,6 +329,9 @@ import com.daimler.data.dto.workspace.CodespaceSecurityConfigVO;
 						 userId, vo.getWorkspaceId());
 				 saveConfigResponse.setResponse(errorMessage);
 				 return new ResponseEntity<>(saveConfigResponse, HttpStatus.FORBIDDEN);
+			 }
+			  if(data.isIsProtectedByDna()== null){
+					data.isProtectedByDna(false);
 			 }
 			 if(data.isIsProtectedByDna()!=null && ! data.isIsProtectedByDna())
 			 {
@@ -333,13 +347,13 @@ import com.daimler.data.dto.workspace.CodespaceSecurityConfigVO;
 								 .getProjectDetails().getSecurityConfig().getStatus().equalsIgnoreCase("ACCEPTED"))) {
 					 MessageDescription notAuthorizedMsg = new MessageDescription();
 					 notAuthorizedMsg.setMessage(
-							 "Cannot edit seurity configurations for workspace when its in REQUESTED or ACCEPTED state. Denied, does not have privileges.");
+							 "Cannot edit security configurations for workspace when its in REQUESTED or ACCEPTED state. Bad request.");
 					 GenericMessage errorMessage = new GenericMessage();
 					 errorMessage.addErrors(notAuthorizedMsg);
 					 saveConfigResponse.setResponse(errorMessage);
 					 log.info(" cannot edit security configurations for workspace when its in {} state",
 							 vo.getProjectDetails().getSecurityConfig().getStatus());
-					 return new ResponseEntity<>(saveConfigResponse, HttpStatus.FORBIDDEN);
+					 return new ResponseEntity<>(saveConfigResponse, HttpStatus.BAD_REQUEST);
 				 }
 				 if (vo.getProjectDetails().getSecurityConfig().getStatus() != null
 						 && (vo.getProjectDetails().getSecurityConfig().getStatus().equalsIgnoreCase("DRAFT") || vo
@@ -347,7 +361,7 @@ import com.daimler.data.dto.workspace.CodespaceSecurityConfigVO;
 					 data = workspaceAssembler.generateSecurityConfigIds(data);
 					 data = workspaceAssembler.assembleSecurityConfig(vo,data);
 					 vo.getProjectDetails().setSecurityConfig(data);
-					 responseMessage = service.saveSecurityConfig(vo);
+					 responseMessage = service.saveSecurityConfig(vo,false);
 					 saveConfigResponse.setResponse(responseMessage);
 					saveConfigResponse.setData(data);
 					 return new ResponseEntity<>(saveConfigResponse, HttpStatus.OK);
@@ -355,7 +369,7 @@ import com.daimler.data.dto.workspace.CodespaceSecurityConfigVO;
 			 }
 			 data = workspaceAssembler.generateSecurityConfigIds(data);
 			 vo.getProjectDetails().setSecurityConfig(data);
-			 responseMessage = service.saveSecurityConfig(vo);
+			 responseMessage = service.saveSecurityConfig(vo,false);
 			 saveConfigResponse.setResponse(responseMessage);
 			vo = service.getById(userId, id);
 			saveConfigResponse.setData(vo.getProjectDetails().getSecurityConfig());
@@ -405,7 +419,8 @@ import com.daimler.data.dto.workspace.CodespaceSecurityConfigVO;
 		 if (collabUserVO != null && collabUserVO.getWorkspaceId() != null) {
 			 String status = collabUserVO.getStatus();
 			 if (status != null) {
-				 if (!ConstantsUtility.COLLABREQUESTEDSTATE.equalsIgnoreCase(status)) {
+				 if (!ConstantsUtility.COLLABREQUESTEDSTATE.equalsIgnoreCase(status)
+					&& !ConstantsUtility.CREATEFAILEDSTATE.equalsIgnoreCase(status)) {
 					 MessageDescription errMsg = new MessageDescription("Cannot reinitiate the workbench");
 					 errors.add(errMsg);
 					 responseMessage.setErrors(errors);
@@ -420,7 +435,20 @@ import com.daimler.data.dto.workspace.CodespaceSecurityConfigVO;
 			 return new ResponseEntity<>(responseMessage, HttpStatus.NOT_FOUND);
 		 }
 		 String pat = initializeCollabWSRequestVO.getPat();
- 
+		 
+		 if(!ObjectUtils.isEmpty(collabUserVO.getProjectDetails().getProjectCollaborators())) {
+			 String ownerUserId = collabUserVO.getProjectDetails().getProjectOwner().getId();
+			 String projectName = collabUserVO.getProjectDetails().getProjectName();
+			 CodeServerWorkspaceVO ownerCodespaceVO = service.getByProjectName(ownerUserId, projectName);
+			 if(!ownerCodespaceVO.getStatus().toUpperCase().equalsIgnoreCase(ConstantsUtility.CREATEDSTATE)) {
+				 MessageDescription errMsg = new MessageDescription("Cannot intialize collaborator workbench as owner's codespace is not created yet. ");
+				 errors.add(errMsg);
+				 responseMessage.setErrors(errors);
+				 return new ResponseEntity<>(responseMessage, HttpStatus.BAD_REQUEST);
+				 
+			 }
+		 }
+		 
 		 InitializeWorkspaceResponseVO responseData = service.initiateWorkspace(collabUserVO, pat);
 		 return new ResponseEntity<>(responseData, responseStatus);
 	 }
@@ -1150,7 +1178,8 @@ import com.daimler.data.dto.workspace.CodespaceSecurityConfigVO;
 				CodespaceSecurityConfigVO getConfigResponse = new CodespaceSecurityConfigVO();
 		 CreatedByVO currentUser = this.userStore.getVO();
 		 String userId = currentUser != null ? currentUser.getId() : null;
-		 CodeServerWorkspaceVO vo = service.getById(userId, id);
+		CodeServerWorkspaceNsql entity = workspaceCustomRepository.findDataById(id);
+		CodeServerWorkspaceVO vo = workspaceAssembler.toVo(entity);
  
 		 if (vo == null || vo.getWorkspaceId() == null) {
 			  log.debug("No workspace found, returning empty");
@@ -1158,15 +1187,15 @@ import com.daimler.data.dto.workspace.CodespaceSecurityConfigVO;
  
 		 }
 		 if (!(vo != null && vo.getWorkspaceOwner() != null
-				 && vo.getWorkspaceOwner().getId().equalsIgnoreCase(userId))) {
+				 && vo.getWorkspaceOwner().getId().equalsIgnoreCase(userId)) && !(userStore.getUserInfo().hasCodespaceAdminAccess())) {
 					MessageDescription notAuthorizedMsg = new MessageDescription();
 				 notAuthorizedMsg.setMessage(
 						 "security configurations for workspace can be view only by Owners. Denied, does not have privileges.");
 				 GenericMessage errorMessage = new GenericMessage();
 				 errorMessage.addErrors(notAuthorizedMsg);
 			 log.info(
-					 "security configurations for workspace can be view only by Owners, insufficient privileges. Workspace name: {}",
-					 userId, vo.getWorkspaceId());
+					 "security configurations for workspace can be view only by Owners, insufficient privileges. Workspace name: {}"
+					,vo.getWorkspaceId());
 			 return new ResponseEntity<>(null, HttpStatus.FORBIDDEN);
 		 }
 		 if (vo != null && vo.getProjectDetails().getSecurityConfig() == null) {
@@ -1210,8 +1239,8 @@ import com.daimler.data.dto.workspace.CodespaceSecurityConfigVO;
  
 		 }
  
-		 if (!(vo != null && vo.getWorkspaceOwner() != null
-				 && vo.getWorkspaceOwner().getId().equalsIgnoreCase(userId))) {
+		 if (!(vo != null && vo.getProjectDetails().getProjectOwner() != null
+				 && vo.getProjectDetails().getProjectOwner().getId().equalsIgnoreCase(userId))) {
 			 log.info(
 					 "security configurations for workspace can be view/edit only by Owners, insufficient privileges. Workspace name: {}",
 					 userId, vo.getWorkspaceId());
@@ -1235,17 +1264,19 @@ import com.daimler.data.dto.workspace.CodespaceSecurityConfigVO;
 						 || vo.getProjectDetails().getSecurityConfig().getStatus().equalsIgnoreCase("REQUESTED"))) {
 			 MessageDescription notAuthorizedMsg = new MessageDescription();
 			 notAuthorizedMsg.setMessage(
-					 "Cannot edit seurity configurations for workspace when its in REQUESTED or ACCEPTED state. Denied, does not have privileges.");
+					 "Cannot edit security configurations for workspace when its in REQUESTED or ACCEPTED state. Bad request.");
 			 responseMessage.addErrors(notAuthorizedMsg);
 			 log.info(" cannot edit security configurations for workspace when its in {} state",
 					 vo.getProjectDetails().getSecurityConfig().getStatus());
-			 return new ResponseEntity<>(responseMessage, HttpStatus.FORBIDDEN);
+			 return new ResponseEntity<>(responseMessage, HttpStatus.BAD_REQUEST);
 		 }
 		 if (vo.getProjectDetails().getSecurityConfig().getStatus() != null
 				 && (vo.getProjectDetails().getSecurityConfig().getStatus().equalsIgnoreCase("DRAFT")
 						 || vo.getProjectDetails().getSecurityConfig().getStatus().equalsIgnoreCase("PUBLISHED"))) {
 			 vo.getProjectDetails().getSecurityConfig().setStatus("REQUESTED");
-			 responseMessage = service.saveSecurityConfig(vo);
+			 SimpleDateFormat dateFormatter = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
+			 vo.getProjectDetails().getSecurityConfig().setRequestedDate(dateFormatter.format(new Date()));
+			 responseMessage = service.saveSecurityConfig(vo,false);
 		 }
  
 		 return new ResponseEntity<>(responseMessage, HttpStatus.OK);
@@ -1266,19 +1297,22 @@ import com.daimler.data.dto.workspace.CodespaceSecurityConfigVO;
 			 "application/json" }, method = RequestMethod.POST)
 	 public ResponseEntity<GenericMessage> acceptSecurityConfig(
 			 @ApiParam(value = "Workspace ID for the project", required = true) @PathVariable("id") String id) {
-		 CodespaceSecurityConfigVO getConfigResponse = new CodespaceSecurityConfigVO();
-		 CreatedByVO currentUser = this.userStore.getVO();
-		 String userId = currentUser != null ? currentUser.getId() : null;
-		 CodeServerWorkspaceVO vo = service.getById(userId, id);
+		CodespaceSecurityConfigVO getConfigResponse = new CodespaceSecurityConfigVO();
+		CreatedByVO currentUser = this.userStore.getVO();
+		String userId = currentUser != null ? currentUser.getId() : null;
+		//  CodeServerWorkspaceVO vo = service.getById(userId, i);
+		CodeServerWorkspaceNsql entity = workspaceCustomRepository.findDataById(id);
+		CodeServerWorkspaceVO vo = workspaceAssembler.toVo(entity);
+		
 		 GenericMessage responseMessage = new GenericMessage();
 		 List<MessageDescription> errorMessage = new ArrayList<>();
 		 MessageDescription msg = new MessageDescription();
- 
+				
 		 if (userStore.getUserInfo().hasCodespaceAdminAccess()) {
  
 			 if (vo == null || vo.getWorkspaceId() == null) {
 				 log.debug("No workspace found, returning empty");
-				 msg.setMessage("No workspace found for given id and the user");
+				 msg.setMessage("No workspace found ");
 				 errorMessage.add(msg);
 				 responseMessage.setErrors(errorMessage);
 				 return new ResponseEntity<>(responseMessage, HttpStatus.NOT_FOUND);
@@ -1295,7 +1329,8 @@ import com.daimler.data.dto.workspace.CodespaceSecurityConfigVO;
 			 if (vo.getProjectDetails().getSecurityConfig().getStatus() != null
 					 && vo.getProjectDetails().getSecurityConfig().getStatus().equalsIgnoreCase("REQUESTED")) {
 				 vo.getProjectDetails().getSecurityConfig().setStatus("ACCEPTED");
-				 responseMessage = service.saveSecurityConfig(vo);
+				responseMessage = service.saveSecurityConfig(vo, false);
+					//responseMessage = service.updateSecurityConfigStatus(vo.getProjectDetails().getProjectName(),"ACCEPTED", userId,vo);
 				 return new ResponseEntity<>(responseMessage, HttpStatus.OK);
 			 } else {
 				 MessageDescription notAuthorizedMsg = new MessageDescription();
@@ -1316,8 +1351,7 @@ import com.daimler.data.dto.workspace.CodespaceSecurityConfigVO;
 		 return new ResponseEntity<>(responseMessage, HttpStatus.FORBIDDEN);
  
 	 }
- 
- 
+
 	 @Override
 	 @ApiOperation(value = " Change codespace security configurations to publish state", nickname = "publishSecurityConfig", notes = "change state codespace security configurations to publish", response = GenericMessage.class, tags = {
 			 "code-server", })
@@ -1336,7 +1370,11 @@ import com.daimler.data.dto.workspace.CodespaceSecurityConfigVO;
 		 CodespaceSecurityConfigVO getConfigResponse = new CodespaceSecurityConfigVO();
 		 CreatedByVO currentUser = this.userStore.getVO();
 		 String userId = currentUser != null ? currentUser.getId() : null;
-		 CodeServerWorkspaceVO vo = service.getById(userId, id);
+		// CodeServerWorkspaceVO vo = service.getById(userId, id);
+
+		CodeServerWorkspaceNsql entity = workspaceCustomRepository.findDataById(id);
+		CodeServerWorkspaceVO vo = workspaceAssembler.toVo(entity);
+
 		 GenericMessage responseMessage = new GenericMessage();
 		 List<MessageDescription> errorMessage = new ArrayList<>();
 		 MessageDescription msg = new MessageDescription();
@@ -1361,8 +1399,16 @@ import com.daimler.data.dto.workspace.CodespaceSecurityConfigVO;
 			 }
 			 if (vo.getProjectDetails().getSecurityConfig().getStatus() != null
 					 && vo.getProjectDetails().getSecurityConfig().getStatus().equalsIgnoreCase("ACCEPTED")) {
-				 vo.getProjectDetails().getSecurityConfig().setStatus("PUBLISHED");
-				 responseMessage = service.saveSecurityConfig(vo);
+				 //vo.getProjectDetails().getSecurityConfig().setStatus("PUBLISHED");
+
+				  GenericMessage securityConfigResponseMessage = new GenericMessage();
+				// securityConfigResponseMessage = service.updateSecurityConfigStatus(vo.getProjectDetails().getProjectName(),"PUBLISHED", userId,vo);
+				 //if(securityConfigResponseMessage.getSuccess().equalsIgnoreCase("SUCCESS")){
+					vo.getProjectDetails().getSecurityConfig().setStatus("PUBLISHED");
+					responseMessage = service.saveSecurityConfig(vo,true);
+				// }
+				 //vo.getProjectDetails().setPublishedSecuirtyConfig(vo.getProjectDetails().getSecurityConfig());
+				 //responseMessage = service.saveSecurityConfig(vo);
 				 return new ResponseEntity<>(responseMessage, HttpStatus.OK);
 			 } else {
 				 MessageDescription notAuthorizedMsg = new MessageDescription();
@@ -1381,13 +1427,14 @@ import com.daimler.data.dto.workspace.CodespaceSecurityConfigVO;
  
 		 }
 		 return new ResponseEntity<>(responseMessage, HttpStatus.FORBIDDEN);
+ 
 	 }
-   
-   	@Override
-	@ApiOperation(value = "Getting values of published security config for a workspace", nickname = "publishedSecurityConfigDetails", notes = "Get published security config details in codeserver workspace", response = CodespaceSecurityConfigPublishedDetailsVO.class, tags = {
+
+	 @Override
+	@ApiOperation(value = "Getting values of published security config for a workspace", nickname = "publishedSecurityConfigDetails", notes = "Get published security config details in codeserver workspace", response = CodespaceSecurityConfigVO.class, tags = {
 			"code-server", })
-	@ApiResponses(value = {
-			@ApiResponse(code = 201, message = "Returns message of success or failure", response = CodespaceSecurityConfigPublishedDetailsVO.class),
+    @ApiResponses(value = {
+            @ApiResponse(code = 201, message = "Returns message of success or failure", response = CodespaceSecurityConfigVO.class),
 			@ApiResponse(code = 204, message = "Fetch complete, no content found."),
 			@ApiResponse(code = 400, message = "Bad request."),
 			@ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
@@ -1396,9 +1443,8 @@ import com.daimler.data.dto.workspace.CodespaceSecurityConfigVO;
 			@ApiResponse(code = 500, message = "Internal error") })
 	@RequestMapping(value = "/workspaces/{id}/config/publish", produces = { "application/json" }, consumes = {
 			"application/json" }, method = RequestMethod.GET)
-	public ResponseEntity<CodespaceSecurityConfigPublishedDetailsVO> publishedSecurityConfigDetails(String id) {
-		// TODO Auto-generated method stub
-		CodespaceSecurityConfigPublishedDetailsVO configPublishedDetailsVO = new CodespaceSecurityConfigPublishedDetailsVO();
+	public ResponseEntity<CodespaceSecurityConfigVO> publishedSecurityConfigDetails(@ApiParam(value = "Workspace ID for the project", required = true) @PathVariable("id") String id) {
+		CodespaceSecurityConfigVO configPublishedDetailsVO = new CodespaceSecurityConfigVO();
 		CreatedByVO currentUser = this.userStore.getVO();
 		String userId = currentUser != null ? currentUser.getId() : null;
 		CodeServerWorkspaceVO vo = service.getById(userId, id);
@@ -1417,8 +1463,8 @@ import com.daimler.data.dto.workspace.CodespaceSecurityConfigVO;
 			log.debug("No published security config found, returning empty");
 			return new ResponseEntity<>(null, HttpStatus.NO_CONTENT);
 		}
+		configPublishedDetailsVO = vo.getProjectDetails().getPublishedSecuirtyConfig();
 		configPublishedDetailsVO.setProjectName(vo.getProjectDetails().getProjectName());
-		configPublishedDetailsVO.setPublishedSecurityConfig(vo.getProjectDetails().getPublishedSecuirtyConfig());
 		return new ResponseEntity<>(configPublishedDetailsVO, HttpStatus.OK);
 	}
    
@@ -1435,21 +1481,90 @@ import com.daimler.data.dto.workspace.CodespaceSecurityConfigVO;
 			@ApiResponse(code = 500, message = "Internal error") })
 	@RequestMapping(value = "/workspaces/configs", produces = { "application/json" }, consumes = {
 			"application/json" }, method = RequestMethod.GET)
-	public ResponseEntity<CodespaceSecurityConfigCollectionVO> getWorkspaceConfigs() {
-		// TODO Auto-generated method stub
+	public ResponseEntity<CodespaceSecurityConfigCollectionVO> getWorkspaceConfigs( @ApiParam(value = "page number from which listing of workspaces should start. Offset. Example 2") @Valid @RequestParam(value = "offset", required = false) Integer offset,
+			 @ApiParam(value = "page size to limit the number of workspaces, Example 15") @Valid @RequestParam(value = "limit", required = false) Integer limit) {
 		CodespaceSecurityConfigCollectionVO configCollectionVo = new CodespaceSecurityConfigCollectionVO();
-		final List<CodespaceSecurityConfigDetailsVO> configDetailsVo = service.getAllSecurityConfigs();
-		if(configDetailsVo != null && configDetailsVo.size() > 0)
-		{
-			configCollectionVo.setData(configDetailsVo);
-			configCollectionVo.setTotalCount(configDetailsVo.size());
-			return new ResponseEntity<>(configCollectionVo, HttpStatus.OK);
-		}
-		else
-		{
-			 return new ResponseEntity<>(configCollectionVo, HttpStatus.NO_CONTENT);
-		}
+		CreatedByVO currentUser = this.userStore.getVO();
+		String userId = currentUser != null ? currentUser.getId() : null;
+
+			int defaultLimit = 15;
+			if (offset == null || offset < 0)
+				offset = 0;
+			if (limit == null || limit < 0) {
+				limit = defaultLimit;
+			}
+
+		if (userStore.getUserInfo().hasCodespaceAdminAccess()) {
+			final List<CodespaceSecurityConfigDetailsVO> configDetailsVo = service.getAllSecurityConfigs(offset,limit);
+			if(configDetailsVo != null && configDetailsVo.size() > 0)
+			{
+				configCollectionVo.setData(configDetailsVo);
+				configCollectionVo.setTotalCount(configDetailsVo.size());
+				return new ResponseEntity<>(configCollectionVo, HttpStatus.OK);
+			}
+			else
+			{
+				return new ResponseEntity<>(configCollectionVo, HttpStatus.NO_CONTENT);
+			}
+		} else {
+
+			 log.info("Not authorized to view the security configs . User does not have privileges.", userId);
+		 }
+		 return new ResponseEntity<>(configCollectionVo, HttpStatus.FORBIDDEN);
 	}
-   
- 
+
+	@ApiOperation(value = "update Governance feilds", nickname = "updateGovernance", notes = "Update Governane feilds in workspace for user", response = CodeServerWorkspaceVO.class, tags = {
+			"code-server", })
+	@ApiResponses(value = {
+			@ApiResponse(code = 200, message = "Returns message of success or failure", response = CodeServerWorkspaceVO.class),
+			@ApiResponse(code = 204, message = "Fetch complete, no content found."),
+			@ApiResponse(code = 400, message = "Bad request."),
+			@ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+			@ApiResponse(code = 403, message = "Request is not authorized."),
+			@ApiResponse(code = 405, message = "Method not allowed"),
+			@ApiResponse(code = 500, message = "Internal error") })
+	@RequestMapping(value = "/workspaces/{id}/datagoverance", produces = { "application/json" }, consumes = {
+			"application/json" }, method = RequestMethod.PATCH)
+	@Override
+	public ResponseEntity<GenericMessage> updateGovernance(
+			@ApiParam(value = "workspace ID for the project", required = true) @PathVariable("id") String id,
+			@ApiParam(value = "GovernanceData to update in project", required = true) @Valid @RequestBody DataGovernanceRequestInfo dataGovernanceInfo) {
+		// TODO Auto-generated method stub
+		CreatedByVO currentUser = this.userStore.getVO();
+		String userId = currentUser != null ? currentUser.getId() : null;
+		CodeServerWorkspaceVO vo = service.getById(userId, id);
+		GenericMessage responseMessage = new GenericMessage();
+
+		if (vo == null || vo.getWorkspaceId() == null) {
+			log.debug("No workspace found, returning empty");
+			GenericMessage emptyResponse = new GenericMessage();
+			List<MessageDescription> errorMessage = new ArrayList<>();
+			MessageDescription msg = new MessageDescription();
+			msg.setMessage("No workspace found for given id and the user");
+			errorMessage.add(msg);
+			emptyResponse.addErrors(msg);
+			emptyResponse.setSuccess("FAILED");
+			emptyResponse.setErrors(errorMessage);
+			return new ResponseEntity<>(emptyResponse, HttpStatus.NOT_FOUND);
+		}
+
+		if (!(vo != null && vo.getWorkspaceOwner() != null
+				&& vo.getWorkspaceOwner().getId().equalsIgnoreCase(userId))) {
+			MessageDescription notAuthorizedMsg = new MessageDescription();
+			notAuthorizedMsg.setMessage(
+					"Not authorized to update workspace. User does not have privileges.");
+			GenericMessage errorMessage = new GenericMessage();
+			errorMessage.addErrors(notAuthorizedMsg);
+			log.info("User {} cannot update workspace, insufficient privileges. Workspace name: {}", userId,
+					vo.getWorkspaceId());
+			return new ResponseEntity<>(errorMessage, HttpStatus.FORBIDDEN);
+		}
+
+		if (userId != null) {
+			responseMessage = service.updateGovernancenceValues(userId, id, dataGovernanceInfo);
+		}
+
+		return new ResponseEntity<>(responseMessage, HttpStatus.OK);
+	}
+
  }

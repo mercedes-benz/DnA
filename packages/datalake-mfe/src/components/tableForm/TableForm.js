@@ -4,11 +4,11 @@ import { useForm, useFormContext, FormProvider } from "react-hook-form";
 import Styles from './table-form.scss';
 import SelectBox from 'dna-container/SelectBox';
 import { useSelector, useDispatch } from 'react-redux';
-import { v4 as uuidv4 } from 'uuid';
 import { setTables } from '../../redux/graphSlice';
+import { calcXY } from '../../utilities/utils';
 
 const TableFormItem = (props) => {
-  const { register } = useFormContext();
+  const { register, formState: { errors } } = useFormContext();
 
   useEffect(() => {
     SelectBox.defaultSetup();
@@ -50,15 +50,19 @@ const TableFormItem = (props) => {
       });
   };
 
-  const { field } = props;
+  const { field, columnDatatypes } = props;
   const index = `A${props.index}`;
+
+  useEffect(() => {
+    SelectBox.defaultSetup();
+  }, [columnDatatypes]);
 
   return (
     <div className={Styles.columnsWrapper}>
       <div className={Styles.columnContainer}>
-        <input type="hidden" id={`${index}.id`} defaultValue={field.id} {...register(`${index}.id`)} />
+        <input type="hidden" id={`${index}.name`} defaultValue={field.name} {...register(`${index}.name`)} />
         <div className={Styles.flexLayout}>
-          <div className={classNames('input-field-group include-error')}>
+          <div className={classNames('input-field-group include-error', errors[`${index}`] !== undefined && errors[`${index}`].columnName.message ? 'error' : '')}>
             <label className={classNames(Styles.inputLabel, 'input-label')}>
               Name <sup>*</sup>
             </label>
@@ -67,12 +71,13 @@ const TableFormItem = (props) => {
                 type="text"
                 className={classNames('input-field')}
                 id={`${index}.columnName`}
-                {...register(`${index}.columnName`)}
+                {...register(`${index}.columnName`, { required: '*Missing entry' })}
                 placeholder="Type here"
                 autoComplete="off"
                 maxLength={55}
                 defaultValue={field.columnName}
               />
+              <span className={classNames('error-message')}>{errors[`${index}`] !== undefined && errors[`${index}`].columnName.message}</span>
             </div>
           </div>
           <div className={Styles.configurationContainer}>
@@ -82,28 +87,23 @@ const TableFormItem = (props) => {
               </label>
               <div className="custom-select">
                 <select id={`${index}.dataType`} {...register(`${index}.dataType`)}>
-                  <option value={'BOOLEAN'}>BOOLEAN</option>
-                  <option value={'INTEGER'}>INTEGER</option>
-                  <option value={'BYTE'}>BYTE</option>
-                  <option value={'SHORT'}>SHORT</option>
-                  <option value={'LONG'}>LONG</option>
-                  <option value={'FLOAT'}>FLOAT</option>
-                  <option value={'DOUBLE'}>DOUBLE</option>
-                  <option value={'DECIMAL'}>DECIMAL</option>
-                  <option value={'STRING'}>STRING</option>
-                  <option value={'BINARY'}>BINARY</option>
-                  <option value={'DATE'}>DATE</option>
-                  <option value={'TIMESTAMP'}>TIMESTAMP</option>
-                  <option value={'TIMESTAMPNTZ'}>TIMESTAMPNTZ</option>
+                  {columnDatatypes.length > 0 && 
+                    columnDatatypes?.map((datatype) => {
+                      return (
+                      <option id={datatype} key={datatype} value={datatype}>
+                        {datatype}
+                      </option>
+                      )
+                  })}
                 </select>
               </div>
             </div>
           </div>
         </div>
         <div className={Styles.flexLayout}>
-          <div className={classNames('input-field-group include-error')}>
+          <div className={classNames('input-field-group')}>
             <label className={classNames(Styles.inputLabel, 'input-label')}>
-              Comment <sup>*</sup>
+              Comment
             </label>
             <div>
               <input
@@ -146,13 +146,17 @@ const TableFormItem = (props) => {
   );
 }
 
-const TableFormBase = () => {
-  const { register } = useFormContext();
+const TableFormBase = ({formats}) => {
+  useEffect(() => {
+    SelectBox.defaultSetup();
+  }, [formats]);
+
+  const { register, formState: { errors } } = useFormContext();
   const { editingTable } = useSelector(state => state.graph);
   return (
     <>
       <div className={Styles.flexLayout}>
-        <div className={classNames('input-field-group include-error')}>
+        <div className={classNames('input-field-group include-error', errors?.tableName ? 'error' : '')}>
           <label className={classNames(Styles.inputLabel, 'input-label')}>
             Table Name <sup>*</sup>
           </label>
@@ -161,12 +165,13 @@ const TableFormBase = () => {
               type="text"
               className={classNames('input-field')}
               id="tableName"
-              {...register('tableName')}
+              {...register('tableName', { required: '*Missing entry' })}
               placeholder="Type here"
               autoComplete="off"
               maxLength={55}
               defaultValue={editingTable?.name}
             />
+            <span className={classNames('error-message')}>{errors?.tableName?.message}</span>
           </div>
         </div>
         <div className={Styles.configurationContainer}>
@@ -176,14 +181,20 @@ const TableFormBase = () => {
             </label>
             <div className="custom-select">
               <select id="tableFormat" {...register('tableFormat')}>
-                <option value={'Parquet'}>Parquet</option>
-                <option value={'ORC'}>ORC</option>
+                {formats.length > 0 && 
+                  formats?.map((format) => {
+                    return (
+                    <option id={format} key={format} value={format}>
+                      {format}
+                    </option>
+                    )
+                })}
               </select>
             </div>
           </div>
         </div>
       </div>
-      <div className={classNames('input-field-group include-error')}>
+      <div className={classNames('input-field-group include-error', errors?.tableComment ? 'error' : '')}>
         <label className={classNames(Styles.inputLabel, 'input-label')}>
           Table Comment <sup>*</sup>
         </label>
@@ -192,23 +203,24 @@ const TableFormBase = () => {
             type="text"
             className={classNames('input-field')}
             id="tableComment"
-            {...register('tableComment')}
+            {...register('tableComment', { required: '*Missing entry' })}
             placeholder="Type here"
             autoComplete="off"
             maxLength={55}
             defaultValue={editingTable?.comment}
           />
+          <span className={classNames('error-message')}>{errors?.tableComment?.message}</span>
         </div>
       </div>
     </>
   )
 }
 
-const TableForm = ({setToggle}) => {
+const TableForm = ({setToggle, formats, dataTypes}) => {
   const methods = useForm();
   const { handleSubmit } = methods;
   
-  const { project } = useSelector(state => state.graph);
+  const { project, box, editingTable } = useSelector(state => state.graph);
   const dispatch = useDispatch();
 
   useEffect(() => {
@@ -216,7 +228,6 @@ const TableForm = ({setToggle}) => {
   }, []);
 
   const [columns, setFields] = useState([]);
-  const { editingTable } = useSelector(state => state.graph);
 
   useEffect(() => {
       if (editingTable.columns) {
@@ -234,12 +245,13 @@ const TableForm = ({setToggle}) => {
     for (const key in colData) {
       cols.push(colData[key]);
     }
+    const [x, y] = calcXY([...project.tables], box);
     const tableData = {
       tableName: tableName,
       dataFormat: tableFormat,
       description: tableComment,
-      xcoOrdinate: 10,
-      ycoOrdinate: 10,
+      xcoOrdinate: x,
+      ycoOrdinate: y,
       columns: [...cols],
     };
     const projectTemp = {...project};
@@ -251,7 +263,6 @@ const TableForm = ({setToggle}) => {
   const addItem = index => {
     const newState = [...columns];
     newState.splice(index + 1, 0, {
-        id: uuidv4(),
         columnName: 'new item' + newState.length,
         comment: '',
         dataType: '',
@@ -271,16 +282,17 @@ const TableForm = ({setToggle}) => {
     <FormProvider {...methods} >
         <div className={Styles.form}>
           <div className={Styles.formContent}>
-            <TableFormBase />
+            <TableFormBase formats={formats} />
             {columns.length > 0 && 
               columns.map((field, index) => (
                 <TableFormItem
                     field={field}
-                    key={field.id}
+                    key={field.name + field.index}
                     index={index}
                     addItem={addItem}
                     removeItem={removeItem}
                     setFields={setFields}
+                    columnDatatypes={dataTypes}
                 />
             ))}
           </div>
