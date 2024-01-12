@@ -4,7 +4,7 @@ COPY --chown=gradle:gradle . /home/gradle/src
 WORKDIR /home/gradle/src
 RUN gradle build --no-daemon
 #Step-2
-FROM openjdk:14-jdk
+FROM adoptopenjdk/openjdk14:debian
 ENV ARTIFACT_NAME=naas-lib-1.0.0.jar
 ENV APP_HOME=/usr/app/
 WORKDIR $APP_HOME
