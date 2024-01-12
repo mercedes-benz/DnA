@@ -142,7 +142,7 @@ const ChronosProjectDetails = ({ user }) => {
           </div>
           <div className="tabs-content-wrapper">
             <div id="tab-content-1" className="tab-content">
-              <RunForecastTab onRunClick={() => switchTabs(currentTab)} />
+              <RunForecastTab onRunClick={() => switchTabs(currentTab)} currentTab={currentTab} />
             </div>
             <div id="tab-content-2" className="tab-content">
               {currentTab === 'forecastResults' ? (

@@ -16,12 +16,16 @@ import { setInputFile } from '../../redux/chronosFormSlice';
 import { getProjectDetails } from '../../redux/projectDetails.services';
 import Tutorial from '../../components/tutorial/Tutorial';
 
-const RunForecastTab = ({ onRunClick }) => {
+const RunForecastTab = ({ onRunClick, currentTab }) => {
   const { id: projectId } = useParams();
   const methods = useForm();
   const dispatch = useDispatch();
 
-  const [showTutorial, setShowTutorial] = useState((localStorage.getItem('showTutorial') === null || localStorage.getItem('showTutorial') === 'true') ? true : false);
+  const [showTutorial, setShowTutorial] = useState(false);
+  useEffect(() => {
+    currentTab === 'runForecast' ? setShowTutorial((localStorage.getItem('showTutorial') === null || localStorage.getItem('showTutorial') === 'true') ? true : false) : 
+    setShowTutorial(false);
+  }, [currentTab]);
 
   useEffect(() => {
     SelectBox.defaultSetup();
@@ -48,8 +52,10 @@ const RunForecastTab = ({ onRunClick }) => {
     formData.append('hierarchy', data.hierarchy === undefined ? '' : data.hierarchy);
     if(data.runOnPowerfulMachines === undefined && data.configurationFile.includes('OPTIMISATION_CONFIG')) {
       formData.append('runOnPowerfulMachines', true);
+    } else if(data.runOnPowerfulMachines !== undefined && data.configurationFile.includes('OPTIMISATION_CONFIG')) {
+      formData.append('runOnPowerfulMachines', true);
     } else {
-      formData.append('runOnPowerfulMachines', data.runOnPowerfulMachines === undefined ? false : data.runOnPowerfulMachines);
+      formData.append('runOnPowerfulMachines', data.runOnPowerfulMachines);
     }
     formData.append('chronosVersion', data.chronosVersion === undefined ? '' : data.chronosVersion);
     formData.append('backtesting', data.backtesting === undefined ? '' : data.backtesting);
