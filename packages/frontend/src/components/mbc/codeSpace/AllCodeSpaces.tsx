@@ -8,13 +8,13 @@ import Modal from 'components/formElements/modal/Modal';
 import NewCodeSpace from './newCodeSpace/NewCodeSpace';
 import { IUserInfo } from 'globals/types';
 import ProgressWithMessage from 'components/progressWithMessage/ProgressWithMessage';
-import { useHistory } from "react-router-dom";
+import { useHistory } from 'react-router-dom';
 import Notification from '../../../assets/modules/uilab/js/src/notification';
 import { CodeSpaceApiClient } from '../../../services/CodeSpaceApiClient';
 // @ts-ignore
 import ProgressIndicator from '../../../assets/modules/uilab/js/src/progress-indicator';
 import { IconGear } from 'components/icons/IconGear';
-import {  USER_ROLE } from 'globals/constants';
+import { USER_ROLE } from 'globals/constants';
 export interface IAllCodeSpacesProps {
   user: IUserInfo;
 }
@@ -32,7 +32,7 @@ const AllCodeSpaces = (props: IAllCodeSpacesProps) => {
     [isApiCallTakeTime, setIsApiCallTakeTime] = useState<boolean>(false),
     [onBoardCodeSpace, setOnBoardCodeSpace] = useState<ICodeSpaceData>(),
     [onEditCodeSpace, setOnEditCodeSpace] = useState<ICodeSpaceData>();
-    const isCodeSpaceAdmin = props.user.roles.some(role=>role.id === USER_ROLE.CODESPACEADMIN);
+  const isCodeSpaceAdmin = props.user.roles.some((role) => role.id === USER_ROLE.CODESPACEADMIN);
   const history = useHistory();
   const goback = () => {
     history.goBack();
@@ -43,7 +43,7 @@ const AllCodeSpaces = (props: IAllCodeSpacesProps) => {
     CodeSpaceApiClient.getCodeSpacesList()
       .then((res: any) => {
         setLoading(false);
-        setCodeSpaces(Array.isArray(res) ? res : res.records as ICodeSpaceData[]);
+        setCodeSpaces(Array.isArray(res) ? res : (res.records as ICodeSpaceData[]));
         // setLastCreatedId(Array.isArray(res) ? 0 : res.totalCount);
       })
       .catch((err: Error) => {
@@ -93,7 +93,7 @@ const AllCodeSpaces = (props: IAllCodeSpacesProps) => {
   const onShowNewCodeSpaceModal = () => {
     setShowNewCodeSpaceModal(true);
   };
- 
+
   const onShowSecurityConfigRequest = () => {
     history.push('/codespace/adminSecurityConfigs');
   };
@@ -179,11 +179,11 @@ const AllCodeSpaces = (props: IAllCodeSpacesProps) => {
                   <i className="icon mbc-icon refresh" />
                 </button>
               </>
-             ) : null} 
-            {isCodeSpaceAdmin?(
+            ) : null}
+            {isCodeSpaceAdmin ? (
               <>
-              <button
-                  className={ classNames('btn btn-primary',Styles.configIcon)}
+                <button
+                  className={classNames('btn btn-primary', Styles.configIcon)}
                   type="button"
                   onClick={onShowSecurityConfigRequest}
                 >
@@ -191,8 +191,7 @@ const AllCodeSpaces = (props: IAllCodeSpacesProps) => {
                   <span>&nbsp;Manage Security Configs</span>
                 </button>
               </>
-            ):null
-            }
+            ) : null}
           </div>
         </div>
         {loading ? (

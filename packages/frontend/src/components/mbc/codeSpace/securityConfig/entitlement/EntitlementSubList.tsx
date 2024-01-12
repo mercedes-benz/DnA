@@ -43,7 +43,6 @@ const EntitlementSubList = (props: IEntitlementSublistProps) => {
   const [originalHttpMethod, setOriginalHttpMethod] = useState('');
   const [entitelmentListResponse, setEntitelmentListResponse] = useState([]);
 
-
   const onEditEntitlement = (entitlement: any) => {
     setCollEditEntitlementModel(true);
     setEditEntitlementList(entitlement);
@@ -52,12 +51,14 @@ const EntitlementSubList = (props: IEntitlementSublistProps) => {
   const onDeleteEntitlement = (entitlement: any) => {
     // Remove the entitlement from the list of allEntitlementList
     const updatedList = allEntitlementList.filter((item: any) => item.name !== entitlement.name);
-    const updatedEntitelmentListResponse = entitelmentListResponse.filter((item: any) => item.name !== entitlement.name);
+    const updatedEntitelmentListResponse = entitelmentListResponse.filter(
+      (item: any) => item.name !== entitlement.name,
+    );
     setAllEntitlementList([...updatedList]);
     setEntitelmentListResponse([...updatedEntitelmentListResponse]);
     props.updatedFinalEntitlementList([...updatedEntitelmentListResponse]);
     props.getProjectSorted(updatedList);
-  }
+  };
 
   const editPathMethod = (name: any, apiPattern: any, httpMethod: any, index: any) => {
     setEditPathMethodModal(true);
@@ -85,8 +86,9 @@ const EntitlementSubList = (props: IEntitlementSublistProps) => {
     const updatedList = allEntitlementList.map((entitlement: any, entitlementIndex: any) => {
       if (entitlement.name === name) {
         // Filter out the api item that matches apiPattern and httpMethod
-        const updatedApiList = entitlement.apiList.filter((apiItem: any) =>
-          !(apiItem.apiPattern === apiPattern && apiItem.httpMethod === httpMethod));
+        const updatedApiList = entitlement.apiList.filter(
+          (apiItem: any) => !(apiItem.apiPattern === apiPattern && apiItem.httpMethod === httpMethod),
+        );
 
         // Return the updated entitlement with the modified apiList
         return { ...entitlement, apiList: updatedApiList };
@@ -94,12 +96,12 @@ const EntitlementSubList = (props: IEntitlementSublistProps) => {
       return entitlement;
     });
 
-
     const updatedEntitelmentListResponse = entitelmentListResponse.map((entitlement: any, entitlementIndex: any) => {
       if (entitlement.name === name) {
         // Filter out the api item that matches apiPattern and httpMethod
-        const updatedApiList = entitlement.apiList.filter((apiItem: any) =>
-          !(apiItem.apiPattern === apiPattern && apiItem.httpMethod === httpMethod));
+        const updatedApiList = entitlement.apiList.filter(
+          (apiItem: any) => !(apiItem.apiPattern === apiPattern && apiItem.httpMethod === httpMethod),
+        );
 
         // Return the updated entitlement with the modified apiList
         return { ...entitlement, apiList: updatedApiList };
@@ -127,14 +129,20 @@ const EntitlementSubList = (props: IEntitlementSublistProps) => {
   const updateEntitlement = (editedEntitlement: any) => {
     collPermissionModelClose();
     const updatedList = allEntitlementList.map((entitlement: any) => {
-      if (entitlement.name === editedEntitlement.name || entitlement.name === editedEntitlement?.beforeUpdateEntitlName) {
+      if (
+        entitlement.name === editedEntitlement.name ||
+        entitlement.name === editedEntitlement?.beforeUpdateEntitlName
+      ) {
         return editedEntitlement;
       }
       return entitlement;
     });
 
     const updatedEntitelmentListResponse = entitelmentListResponse.map((entitlement: any) => {
-      if (entitlement.name === editedEntitlement.name || entitlement.name === editedEntitlement?.beforeUpdateEntitlName) {
+      if (
+        entitlement.name === editedEntitlement.name ||
+        entitlement.name === editedEntitlement?.beforeUpdateEntitlName
+      ) {
         return editedEntitlement;
       }
       return entitlement;
@@ -148,7 +156,9 @@ const EntitlementSubList = (props: IEntitlementSublistProps) => {
   const updatePathHttpMethod = () => {
     if (!entitlemenPath || !httpMethod || httpMethod === 'Choose' || httpMethod === '0') {
       setEntitlementPathErrorMessage(!entitlemenPath ? 'Please enter a valid API Path/Pattern' : '');
-      setEntitlementHttpMethodErrorMessage(!httpMethod || httpMethod === 'Choose' || httpMethod === '0' ? 'Please select an HTTP Method' : '');
+      setEntitlementHttpMethodErrorMessage(
+        !httpMethod || httpMethod === 'Choose' || httpMethod === '0' ? 'Please select an HTTP Method' : '',
+      );
       return;
     }
 
@@ -228,168 +238,227 @@ const EntitlementSubList = (props: IEntitlementSublistProps) => {
 
   return (
     <React.Fragment>
-      {entitelmentListResponse.length > 0 ? <div className={classNames('expanstion-table', Styles.airflowSubscriptionList)}>
-        <div className={Styles.entGrp}>
-          <div className={Styles.entGrpList}>
-            <div className={Styles.entGrpListItem}>
-              <div className={Styles.entCaption}>
-                <div className={Styles.entTile}>
-                  <div className={Styles.dagTitleCol}>
-                    <label
-                      className={
-                        'sortable-column-header ' + (currentColumnToSort === 'name' ? currentSortOrder : '')
-                      }
-                      onClick={sortByColumn('name', nextSortOrder)}
-                    >
-                      <i className="icon sort" />
-                      Name
-                    </label>
-                  </div>
-                  <div className={Styles.dagTitleCol + (props.readOnlyMode ? ' hidden' : '')  }>Action</div>
-                </div>
-              </div>
-              {!props.isProtectedByDna && allEntitlementList?.map((item: any, index: number) => {
-                return (
-                  <div
-                    key={index}
-                    className={'expansion-panel-group airflowexpansionPanel ' + Styles.dagGrpListItemPanel}
-                  >
-                    <div className={classNames('expansion-panel')}>
-                      <div className={classNames(Styles.entTile)}>
-                        <div className={Styles.dagTitleCol}>{item.name}</div>
-                        <div className={Styles.dagTitleCol}>
-                          <div className={Styles.prjListAction}>
-                            <div className={Styles.actionBtnGrp}>
-                              <button
-                                onClick={() => onEditEntitlement(item)}
-                                className={Styles.actionBtn + ' btn btn-primary' + (props.readOnlyMode ? ' hidden' : '')}
-                                type="button"
-                                title={!CODE_SPACE_STATUS.includes(props?.status) ? 'Once the config is in published state, can edit Entitlement.' : ''}
-                                disabled={!CODE_SPACE_STATUS.includes(props?.status)}
-                              >
-                                <i className="icon mbc-icon edit" />
-                              </button>{' '}
-                            </div>
-                            <div className={Styles.actionBtnGrp}>
-                              <button
-                                onClick={() => onDeleteEntitlement(item)}
-                                className={Styles.actionBtn + ' btn btn-primary' + (props.readOnlyMode ? ' hidden' : '')}
-                                type="button"
-                                title={!CODE_SPACE_STATUS.includes(props?.status) ? 'Once the config is in published state, can delete Entitlement.' : ''}
-                                disabled={!CODE_SPACE_STATUS.includes(props?.status)}
-                              >
-                                <i className="icon mbc-icon trash-outline" />
-                              </button>{' '}
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })
-              }
-              {props.isProtectedByDna && allEntitlementList?.map((item: any, index: number) => {
-                return (
-                  <div
-                    key={index + item.id}
-                    className={'expansion-panel-group airflowexpansionPanel ' + Styles.dagGrpListItemPanel}
-                  >
-                    <div className={classNames('expansion-panel', index === 0 ? 'open' : '')}>
-                      <span className="animation-wrapper"></span>
-                      <input type="checkbox" className="ff-only" id={index + '1'} defaultChecked={index === 0} />
-                      <label className={Styles.expansionLabel + ' expansion-panel-label '} htmlFor={index + '1'}>
-                        <div className={classNames(Styles.entTile)}>
-                          <div className={Styles.dagTitleCol}>{item.name}</div>
-                          <div className={Styles.dagTitleCol}>
-                          </div>
-                        </div>
-                        <i tooltip-data="Expand" className="icon down-up-flip"></i>
+      {entitelmentListResponse.length > 0 ? (
+        <div className={classNames('expanstion-table', Styles.airflowSubscriptionList)}>
+          <div className={Styles.entGrp}>
+            <div className={Styles.entGrpList}>
+              <div className={Styles.entGrpListItem}>
+                <div className={Styles.entCaption}>
+                  <div className={Styles.entTile}>
+                    <div className={Styles.dagTitleCol}>
+                      <label
+                        className={'sortable-column-header ' + (currentColumnToSort === 'name' ? currentSortOrder : '')}
+                        onClick={sortByColumn('name', nextSortOrder)}
+                      >
+                        <i className="icon sort" />
+                        Name
                       </label>
-                      <div className="expansion-panel-content">
-                        <div className={Styles.dagCollContent}>
-                          <div className={Styles.projectList}>
-                            <div className={Styles.entTile + ' ' + Styles.entTileCption}>
-                              <div className={Styles.dagTitleCol}>API Path/Pattern</div>
-                              <div className={Styles.dagTitleCol}>Http Method</div>
-                              <div className={Styles.dagTitleCol}>Action</div>
-                            </div>
-                            <div className={Styles.projectDagList}>
-                              {item.apiList && item.apiList.length > 0 ? item.apiList?.map((apliItem: any, apiPathMethodIndex: number) => {
-                                return (
-                                  <div key={apiPathMethodIndex} className={Styles.entTile}>
-                                    <div className={Styles.dagTitleCol}>{apliItem.apiPattern}</div>
-                                    <div className={Styles.dagTitleCol}>{apliItem.httpMethod}</div>
-                                    <div className={Styles.dagTitleCol}>
-                                      <div className={Styles.actionBtnGrp}>
-                                        <React.Fragment>
-                                          <button
-                                            onClick={() => editPathMethod(item.name, apliItem.apiPattern, apliItem.httpMethod, apiPathMethodIndex)}
-                                            className={Styles.actionBtn + ' btn btn-primary' + (props.readOnlyMode ? ' hidden' : '')}
-                                            type="button"
-                                            title={!CODE_SPACE_STATUS.includes(props?.status) ? 'Once the config is in published state, can edit API Path/Pattern and Method.' : ''}
-                                            disabled={!CODE_SPACE_STATUS.includes(props?.status)}
-                                          >
-                                            <i className="icon mbc-icon edit" />
-                                            <span>Edit API Path/Pattern and Method </span>
-                                          </button>
-                                          &nbsp; &nbsp;
-                                          <button
-                                            onClick={() => deletePathMethod(item.name, apliItem.apiPattern, apliItem.httpMethod, apiPathMethodIndex)}
-                                            className={Styles.actionBtn + ' btn btn-primary' + (props.readOnlyMode ? ' hidden' : '')}
-                                            type="button"
-                                            title={!CODE_SPACE_STATUS.includes(props?.status) ? 'Once the config is in published state, can delete API Path/Pattern and Method.' : ''}
-                                            disabled={!CODE_SPACE_STATUS.includes(props?.status)}
-                                          >
-                                            <i className="icon mbc-icon trash-outline" />
-                                          </button>
-                                        </React.Fragment>
-                                      </div>
-                                    </div>
-                                  </div>
-                                );
-                              }) : <div className={Styles.centeredText}>No records found</div>}
-                            </div>
-                          </div>
-                          <div className={Styles.prjListAction}>
-                            <div className={Styles.actionBtnGrp}>
-                              <button
-                                onClick={() => onEditEntitlement(item)}
-                                className={Styles.actionBtn + ' btn btn-primary' + (props.readOnlyMode ? ' hidden' : '')}
-                                style={{ backgroundColor: 'transparent' }}
-                                type="button"
-                                title={!CODE_SPACE_STATUS.includes(props?.status) ? 'Once the config is in published state, can edit Entitlement.' : ''}
-                                disabled={!CODE_SPACE_STATUS.includes(props?.status)}
-                              >
-                                <i className="icon mbc-icon edit" />
-                                <span>Edit Entitlement</span>
-                              </button>{' '}
-                            </div>
-                            <div className={Styles.actionBtnGrp}>
-                              <button
-                                onClick={() => onDeleteEntitlement(item)}
-                                className={Styles.actionBtn + ' btn btn-primary' + (props.readOnlyMode ? ' hidden' : '')}
-                                style={{ backgroundColor: 'transparent' }}
-                                type="button"
-                                title={!CODE_SPACE_STATUS.includes(props?.status) ? 'Once the config is in published state, can delete Entitlement.' : ''}
-                                disabled={!CODE_SPACE_STATUS.includes(props?.status)}
-                              >
-                                <i className="icon mbc-icon trash-outline" />
-                                <span>Delete Entitlement</span>
-                              </button>{' '}
+                    </div>
+                    <div className={Styles.dagTitleCol + (props.readOnlyMode ? ' hidden' : '')}>Action</div>
+                  </div>
+                </div>
+                {!props.isProtectedByDna &&
+                  allEntitlementList?.map((item: any, index: number) => {
+                    return (
+                      <div
+                        key={index}
+                        className={'expansion-panel-group airflowexpansionPanel ' + Styles.dagGrpListItemPanel}
+                      >
+                        <div className={classNames('expansion-panel')}>
+                          <div className={classNames(Styles.entTile)}>
+                            <div className={Styles.dagTitleCol}>{item.name}</div>
+                            <div className={Styles.dagTitleCol}>
+                              <div className={Styles.prjListAction}>
+                                <div className={Styles.actionBtnGrp}>
+                                  <button
+                                    onClick={() => onEditEntitlement(item)}
+                                    className={
+                                      Styles.actionBtn + ' btn btn-primary' + (props.readOnlyMode ? ' hidden' : '')
+                                    }
+                                    type="button"
+                                    title={
+                                      !CODE_SPACE_STATUS.includes(props?.status)
+                                        ? 'Once the config is in published state, can edit Entitlement.'
+                                        : ''
+                                    }
+                                    disabled={!CODE_SPACE_STATUS.includes(props?.status)}
+                                  >
+                                    <i className="icon mbc-icon edit" />
+                                  </button>{' '}
+                                </div>
+                                <div className={Styles.actionBtnGrp}>
+                                  <button
+                                    onClick={() => onDeleteEntitlement(item)}
+                                    className={
+                                      Styles.actionBtn + ' btn btn-primary' + (props.readOnlyMode ? ' hidden' : '')
+                                    }
+                                    type="button"
+                                    title={
+                                      !CODE_SPACE_STATUS.includes(props?.status)
+                                        ? 'Once the config is in published state, can delete Entitlement.'
+                                        : ''
+                                    }
+                                    disabled={!CODE_SPACE_STATUS.includes(props?.status)}
+                                  >
+                                    <i className="icon mbc-icon trash-outline" />
+                                  </button>{' '}
+                                </div>
+                              </div>
                             </div>
                           </div>
                         </div>
                       </div>
-                    </div>
-                  </div>
-                );
-              })}
+                    );
+                  })}
+                {props.isProtectedByDna &&
+                  allEntitlementList?.map((item: any, index: number) => {
+                    return (
+                      <div
+                        key={index + item.id}
+                        className={'expansion-panel-group airflowexpansionPanel ' + Styles.dagGrpListItemPanel}
+                      >
+                        <div className={classNames('expansion-panel', index === 0 ? 'open' : '')}>
+                          <span className="animation-wrapper"></span>
+                          <input type="checkbox" className="ff-only" id={index + '1'} defaultChecked={index === 0} />
+                          <label className={Styles.expansionLabel + ' expansion-panel-label '} htmlFor={index + '1'}>
+                            <div className={classNames(Styles.entTile)}>
+                              <div className={Styles.dagTitleCol}>{item.name}</div>
+                              <div className={Styles.dagTitleCol}></div>
+                            </div>
+                            <i tooltip-data="Expand" className="icon down-up-flip"></i>
+                          </label>
+                          <div className="expansion-panel-content">
+                            <div className={Styles.dagCollContent}>
+                              <div className={Styles.projectList}>
+                                <div className={Styles.entTile + ' ' + Styles.entTileCption}>
+                                  <div className={Styles.dagTitleCol}>API Path/Pattern</div>
+                                  <div className={Styles.dagTitleCol}>Http Method</div>
+                                  <div className={Styles.dagTitleCol}>Action</div>
+                                </div>
+                                <div className={Styles.projectDagList}>
+                                  {item.apiList && item.apiList.length > 0 ? (
+                                    item.apiList?.map((apliItem: any, apiPathMethodIndex: number) => {
+                                      return (
+                                        <div key={apiPathMethodIndex} className={Styles.entTile}>
+                                          <div className={Styles.dagTitleCol}>{apliItem.apiPattern}</div>
+                                          <div className={Styles.dagTitleCol}>{apliItem.httpMethod}</div>
+                                          <div className={Styles.dagTitleCol}>
+                                            <div className={Styles.actionBtnGrp}>
+                                              <React.Fragment>
+                                                <button
+                                                  onClick={() =>
+                                                    editPathMethod(
+                                                      item.name,
+                                                      apliItem.apiPattern,
+                                                      apliItem.httpMethod,
+                                                      apiPathMethodIndex,
+                                                    )
+                                                  }
+                                                  className={
+                                                    Styles.actionBtn +
+                                                    ' btn btn-primary' +
+                                                    (props.readOnlyMode ? ' hidden' : '')
+                                                  }
+                                                  type="button"
+                                                  title={
+                                                    !CODE_SPACE_STATUS.includes(props?.status)
+                                                      ? 'Once the config is in published state, can edit API Path/Pattern and Method.'
+                                                      : ''
+                                                  }
+                                                  disabled={!CODE_SPACE_STATUS.includes(props?.status)}
+                                                >
+                                                  <i className="icon mbc-icon edit" />
+                                                  <span>Edit API Path/Pattern and Method </span>
+                                                </button>
+                                                &nbsp; &nbsp;
+                                                <button
+                                                  onClick={() =>
+                                                    deletePathMethod(
+                                                      item.name,
+                                                      apliItem.apiPattern,
+                                                      apliItem.httpMethod,
+                                                      apiPathMethodIndex,
+                                                    )
+                                                  }
+                                                  className={
+                                                    Styles.actionBtn +
+                                                    ' btn btn-primary' +
+                                                    (props.readOnlyMode ? ' hidden' : '')
+                                                  }
+                                                  type="button"
+                                                  title={
+                                                    !CODE_SPACE_STATUS.includes(props?.status)
+                                                      ? 'Once the config is in published state, can delete API Path/Pattern and Method.'
+                                                      : ''
+                                                  }
+                                                  disabled={!CODE_SPACE_STATUS.includes(props?.status)}
+                                                >
+                                                  <i className="icon mbc-icon trash-outline" />
+                                                </button>
+                                              </React.Fragment>
+                                            </div>
+                                          </div>
+                                        </div>
+                                      );
+                                    })
+                                  ) : (
+                                    <div className={Styles.centeredText}>No records found</div>
+                                  )}
+                                </div>
+                              </div>
+                              <div className={Styles.prjListAction}>
+                                <div className={Styles.actionBtnGrp}>
+                                  <button
+                                    onClick={() => onEditEntitlement(item)}
+                                    className={
+                                      Styles.actionBtn + ' btn btn-primary' + (props.readOnlyMode ? ' hidden' : '')
+                                    }
+                                    style={{ backgroundColor: 'transparent' }}
+                                    type="button"
+                                    title={
+                                      !CODE_SPACE_STATUS.includes(props?.status)
+                                        ? 'Once the config is in published state, can edit Entitlement.'
+                                        : ''
+                                    }
+                                    disabled={!CODE_SPACE_STATUS.includes(props?.status)}
+                                  >
+                                    <i className="icon mbc-icon edit" />
+                                    <span>Edit Entitlement</span>
+                                  </button>{' '}
+                                </div>
+                                <div className={Styles.actionBtnGrp}>
+                                  <button
+                                    onClick={() => onDeleteEntitlement(item)}
+                                    className={
+                                      Styles.actionBtn + ' btn btn-primary' + (props.readOnlyMode ? ' hidden' : '')
+                                    }
+                                    style={{ backgroundColor: 'transparent' }}
+                                    type="button"
+                                    title={
+                                      !CODE_SPACE_STATUS.includes(props?.status)
+                                        ? 'Once the config is in published state, can delete Entitlement.'
+                                        : ''
+                                    }
+                                    disabled={!CODE_SPACE_STATUS.includes(props?.status)}
+                                  >
+                                    <i className="icon mbc-icon trash-outline" />
+                                    <span>Delete Entitlement</span>
+                                  </button>{' '}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+              </div>
             </div>
           </div>
         </div>
-      </div>
-        : <div className={Styles.centeredText}>No Entitlements found.</div>}
+      ) : (
+        <div className={Styles.centeredText}>No Entitlements found.</div>
+      )}
       {collEditEntitlementModel && (
         <Modal
           title={'Edit Entitlement'}
@@ -404,7 +473,8 @@ const EntitlementSubList = (props: IEntitlementSublistProps) => {
               editEntitlementList={editEntitlementList}
               isProtectedByDna={props.isProtectedByDna}
               submitEntitlement={updateEntitlement}
-            />}
+            />
+          }
           scrollableContent={true}
           onCancel={collPermissionModelClose}
         />
@@ -421,7 +491,12 @@ const EntitlementSubList = (props: IEntitlementSublistProps) => {
           content={
             <div className={Styles.createEntitlementWrapper}>
               <div>
-                <div className={classNames('input-field-group include-error', entitlementPathErrorMessage.length ? 'error' : '')}>
+                <div
+                  className={classNames(
+                    'input-field-group include-error',
+                    entitlementPathErrorMessage.length ? 'error' : '',
+                  )}
+                >
                   <label id="entitlementPathLabel" htmlFor="entitlementPathInput" className="input-label">
                     API Path/Pattern <sup>*</sup>
                   </label>
@@ -441,10 +516,13 @@ const EntitlementSubList = (props: IEntitlementSublistProps) => {
 
               <div>
                 <div
-                  className={classNames('input-field-group include-error', entitlementHttpMethodErrorMessage.length ? 'error' : '')}
+                  className={classNames(
+                    'input-field-group include-error',
+                    entitlementHttpMethodErrorMessage.length ? 'error' : '',
+                  )}
                 >
-                  <label id="reportHttpLabel" htmlFor="entitlementhttpInput" className={classNames("input-label")}>
-                    Http Method  <sup>*</sup>
+                  <label id="reportHttpLabel" htmlFor="entitlementhttpInput" className={classNames('input-label')}>
+                    Http Method <sup>*</sup>
                   </label>
                   <div className="custom-select">
                     <select
@@ -471,11 +549,7 @@ const EntitlementSubList = (props: IEntitlementSublistProps) => {
               </div>
 
               <div className={Styles.submitButtton}>
-                <button
-                  className={classNames('btn btn-tertiary')}
-                  type="button"
-                  onClick={updatePathHttpMethod}
-                >
+                <button className={classNames('btn btn-tertiary')} type="button" onClick={updatePathHttpMethod}>
                   Update
                 </button>
               </div>
@@ -490,4 +564,3 @@ const EntitlementSubList = (props: IEntitlementSublistProps) => {
 };
 
 export default EntitlementSubList;
-
