@@ -30,6 +30,8 @@ const ForecastingResults = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const [showValues, setShowValues] = useState(false);
+
   const colOneSelect = useRef("");
   const colTwoSelect = useRef("");
   const [forecastDataA, setForecastDataA] = useState([]);
@@ -142,14 +144,20 @@ const ForecastingResults = () => {
         outlierColOneArray.push({date: key, [colOneSelect.current.value]: value});
       }
       for (let [key, value] of Object.entries(myData[colOneSelect.current.value].anomalies[outMethods[0]])) {
-        outlierColOneArray.push({date: key, outlier: value});
+        outlierColOneArray.push({date: key, proposal: value});
+      }
+      for (let [key] of Object.entries(myData[colOneSelect.current.value].anomalies[outMethods[0]])) {
+        outlierColOneArray.push({date: key, outlier: myData[colOneSelect.current.value].data.actual[key]});
       }
       if(colTwoSelect.current.value !== '0') {
         for (let [key, value] of Object.entries(myData[colTwoSelect.current.value].data.actual)) {
           outlierColTwoArray.push({date: key, [colTwoSelect.current.value]: value});
         }
         for (let [key, value] of Object.entries(myData[colTwoSelect.current.value].anomalies[outMethods[0]])) {
-          outlierColTwoArray.push({date: key, outlier2: value});
+          outlierColTwoArray.push({date: key, proposal2: value});
+        }
+        for (let [key] of Object.entries(myData[colTwoSelect.current.value].anomalies[outMethods[0]])) {
+          outlierColOneArray.push({date: key, outlier2: myData[colTwoSelect.current.value].data.actual[key]});
         }
       }
       for(let i=0; i<outlierColOneArray.length; i++) {
@@ -211,14 +219,20 @@ const ForecastingResults = () => {
       outlierColOneArray.push({date: key, [colOneSelect.current.value]: value});
     }
     for (let [key, value] of Object.entries(myData[colOneSelect.current.value].anomalies[e.target.value])) {
-      outlierColOneArray.push({date: key, outlier: value});
+      outlierColOneArray.push({date: key, proposal: value});
+    }
+    for (let [key] of Object.entries(myData[colOneSelect.current.value].anomalies[e.target.value])) {
+      outlierColOneArray.push({date: key, outlier: myData[colOneSelect.current.value].data.actual[key]});
     }
     if(colTwoSelect.current.value !== '0') {
       for (let [key, value] of Object.entries(myData[colTwoSelect.current.value].data.actual)) {
         outlierColTwoArray.push({date: key, [colTwoSelect.current.value]: value});
       }
       for (let [key, value] of Object.entries(myData[colTwoSelect.current.value].anomalies[e.target.value])) {
-        outlierColTwoArray.push({date: key, outlier2: value});
+        outlierColTwoArray.push({date: key, proposal2: value});
+      }
+      for (let [key] of Object.entries(myData[colTwoSelect.current.value].anomalies[e.target.value])) {
+        outlierColOneArray.push({date: key, outlier2: myData[colTwoSelect.current.value].data.actual[key]});
       }
     }
     // for(let i=0; i<outlierColOneArray.length; i++) {
@@ -351,14 +365,18 @@ const ForecastingResults = () => {
         lines[column].y.push(each[column]);
       });
     });
+
+    let graphMode = showValues ? 'lines+text' : 'lines';
     
     for(const [key, value] of Object.entries(lines)) {
       if(key === cols[0]) {
         traces.push({
           type: 'scatter',
-          mode: 'lines',
+          mode: graphMode,
           x: dates,
           y: value.y,
+          text: value.y,
+          textposition: 'top center',
           name: key
         });
       }
@@ -366,9 +384,11 @@ const ForecastingResults = () => {
         if(key === cols[1]) {
           traces.push({
             type: 'scatter',
-            mode: 'lines',
+            mode: graphMode,
             x: dates,
             y: value.y,
+            text: value.y,
+            textposition: 'top center',
             yaxis: 'y2',
             name: key,
             line: {
@@ -618,8 +638,8 @@ const ForecastingResults = () => {
     let dates = [];
     let lines = {};
 
-    const cols = [colOneSelect.current.value, 'outlier']
-    if(colTwoSelect.current.value !== '0') cols.push(colTwoSelect.current.value, 'outlier2');
+    const cols = [colOneSelect.current.value, 'proposal', 'outlier']
+    if(colTwoSelect.current.value !== '0') cols.push(colTwoSelect.current.value, 'proposal2', 'outlier2');
 
     cols.forEach(column => {
       lines[column] = {'y': []};
@@ -642,14 +662,28 @@ const ForecastingResults = () => {
           name: key
         });
       }
+      if(key === 'proposal') {
+        traces.push({
+          mode: 'markers',
+          x: dates,
+          y: value.y,
+          // name: 'Correction Proposal -' + colOneSelect.current.value,
+          name: 'Correction Proposal',
+          marker: {
+            color: '#00ADF0',
+          },
+        });
+      }
       if(key === 'outlier') {
         traces.push({
           mode: 'markers',
           x: dates,
           y: value.y,
-          name: 'outlier-' + colOneSelect.current.value,
+          // name: 'Correction Proposal -' + colOneSelect.current.value,
+          name: 'Outlier',
           marker: {
-            color: '#00ADF0',
+            color: '#E0144C',
+            symbol: 'x',
           },
         });
       }
@@ -668,15 +702,29 @@ const ForecastingResults = () => {
           });
         }
 
+        if(key === 'proposal2') {
+          traces.push({
+            mode: 'markers',
+            x: dates,
+            y: value.y,
+            // name: 'Correction Proposal -' + colTwoSelect.current.value,
+            name: 'Correction Proposal',
+            marker: {
+              dash: 'dot',
+              color: '#979797',
+            },
+          });
+        }
         if(key === 'outlier2') {
           traces.push({
             mode: 'markers',
             x: dates,
             y: value.y,
-            name: 'outlier-' + colTwoSelect.current.value,
+            // name: 'Correction Proposal -' + colOneSelect.current.value,
+            name: 'Outlier',
             marker: {
-              dash: 'dot',
-              color: '#979797',
+              color: '#FF5722',
+              symbol: 'x',
             },
           });
         }
@@ -816,6 +864,8 @@ const ForecastingResults = () => {
           layout={layout}
           bucketName={bucketName}
           isForecast={true}
+          onShowValues = {() => setShowValues(!showValues)}
+          showValues={showValues}
         />
       }
 
@@ -850,7 +900,7 @@ const ForecastingResults = () => {
 
       { outlierDataA.length > 0 &&
         <VisualContainer
-          title="Outlier"
+          title="Outlier detection and correction"
           forecastRun={forecastRun}
           loading={loading}
           forecastData={outlierDataA}
