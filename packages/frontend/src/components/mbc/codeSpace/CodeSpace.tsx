@@ -3,13 +3,15 @@ import * as React from 'react';
 import Notification from '../../../assets/modules/uilab/js/src/notification';
 // @ts-ignore
 import ProgressIndicator from '../../../assets/modules/uilab/js/src/progress-indicator';
+// @ts-ignore
+import Tabs from '../../../assets/modules/uilab/js/src/tabs';
 import SelectBox from 'components/formElements/SelectBox/SelectBox';
 
 // @ts-ignore
 import { Envs } from 'globals/Envs';
 import { ICodeCollaborator, IUserInfo } from 'globals/types';
 import { history } from '../../../router/History';
-import { recipesMaster, trackEvent } from '../../../services/utils';
+import { buildLogViewURL, recipesMaster, trackEvent } from '../../../services/utils';
 // import { ApiClient } from '../../../services/ApiClient';
 import Modal from 'components/formElements/modal/Modal';
 import Styles from './CodeSpace.scss';
@@ -139,6 +141,8 @@ const CodeSpace = (props: ICodeSpaceProps) => {
 
   const [branchValue, setBranchValue] = useState('main');
   const [deployEnvironment, setDeployEnvironment] = useState('staging');
+  const [showLogsView, setShowLogsView] = useState(false);
+
   const recipes = recipesMaster;
   const requiredError = '*Missing entry';
 
@@ -193,15 +197,17 @@ const CodeSpace = (props: ICodeSpaceProps) => {
                 ...res,
                 running: !!res.intiatedOn,
               });
-              setCodeDeployed(intDeployed);
+              
               setCodeDeployedUrl(intDeployedUrl);
               setCodeDeployedBranch(intDeploymentDetails.lastDeployedBranch);
+              setCodeDeployed(intDeployed);
 
-              setProdCodeDeployed(prodDeployed);
               setProdCodeDeployedUrl(prodDeployedUrl);
               setProdCodeDeployedBranch(prodDeploymentDetails.lastDeployedBranch);
+              setProdCodeDeployed(prodDeployed);
 
               Tooltip.defaultSetup();
+              Tabs.defaultSetup();
               if (deployingInProgress) {
                 const deployingEnv = intDeploymentDetails.lastDeploymentStatus === 'DEPLOY_REQUESTED' ? 'staging' : 'production';
                 setDeployEnvironment(deployingEnv);
@@ -241,6 +247,10 @@ const CodeSpace = (props: ICodeSpaceProps) => {
     };
   }, [livelinessInterval]);
 
+  useEffect(() => {
+    showLogsView && Tabs.defaultSetup();
+  }, [showLogsView]);
+
   const toggleFullScreenMode = () => {
     setFullScreenMode(!fullScreenMode);
     trackEvent(
@@ -253,6 +263,10 @@ const CodeSpace = (props: ICodeSpaceProps) => {
   const openInNewtab = () => {
     window.open(codeSpaceData.workspaceUrl, '_blank');
     trackEvent('DnA Code Space', 'Code Space Open', 'Open in New Tab');
+  };
+
+  const toggleLogView = () => {
+    setShowLogsView(!showLogsView);
   };
 
   const isCodeSpaceCreationSuccess = (status: boolean, codeSpaceData: ICodeSpaceData) => {
@@ -310,15 +324,15 @@ const CodeSpace = (props: ICodeSpaceProps) => {
               clearInterval(livelinessIntervalRef.current);
               setCodeDeploying(false);
               if (deployEnvironmentValue === 'staging') {
-                setCodeDeployed(true);
                 setCodeDeployedUrl(intDeploymentDetails?.deploymentUrl);
                 setCodeDeployedBranch(branchValue);
+                setCodeDeployed(true);
               } else if (deployEnvironmentValue === 'production') {
-                setProdCodeDeployed(true);
                 setProdCodeDeployedUrl(prodDeploymentDetails?.deploymentUrl);
                 setProdCodeDeployedBranch(branchValue);
+                setProdCodeDeployed(true);
               }
-
+              Tabs.defaultSetup();
               Tooltip.defaultSetup();
               setShowCodeDeployModal(false);
               Notification.show(`Code from code space ${res.projectDetails?.projectName} succesfully deployed.`);
@@ -498,6 +512,7 @@ const CodeSpace = (props: ICodeSpaceProps) => {
                             {codeSpaceData.projectDetails.intDeploymentDetails?.secureWithIAMRequired && securedWithIAMContent}
                           </a>
                           &nbsp;
+                          <a target='_blank' href={buildLogViewURL(codeDeployedUrl, true)} rel="noreferrer"><i tooltip-data="Show Staging App logs in new tab" className="icon mbc-icon workspace small right" /></a>
                         </div>
                       )}
                       {prodCodeDeployed && (
@@ -508,6 +523,7 @@ const CodeSpace = (props: ICodeSpaceProps) => {
                             {codeSpaceData.projectDetails.prodDeploymentDetails?.secureWithIAMRequired && securedWithIAMContent}
                           </a>
                           &nbsp;
+                          <a target='_blank' href={buildLogViewURL(prodCodeDeployedUrl)} rel="noreferrer"><i tooltip-data="Show Production App logs in new tab" className="icon mbc-icon workspace small right" /></a>
                         </div>
                       )}
                       <div>
@@ -517,6 +533,9 @@ const CodeSpace = (props: ICodeSpaceProps) => {
                         >
                           {(codeDeployed || prodCodeDeployed) && '(Re)'}Deploy{codeDeploying && 'ing...'}
                         </button>
+                      </div>
+                      <div tooltip-data="Show/Hide App Logs Panel" className={classNames(Styles.showLogs, showLogsView && Styles.active)} onClick={toggleLogView}>
+                        <i className="icon mbc-icon workspace small right"></i>
                       </div>
                     </>
                   )}
@@ -532,43 +551,80 @@ const CodeSpace = (props: ICodeSpaceProps) => {
             </div>
           </div>
           <div className={Styles.codeSpaceContent}>
-            {
-              <div className={Styles.codeSpace}>
-                {loading ? (
-                  <div className={'progress-block-wrapper ' + Styles.preloaderCutomnize}>
-                    <div className="progress infinite" />
-                  </div>
-                ) : (
-                  codeSpaceData.running && (
-                    <div className={Styles.codespaceframe}>
-                      <iframe
-                        className={fullScreenMode ? Styles.fullscreen : ''}
-                        src={codeSpaceData.workspaceUrl}
-                        title="Code Space"
-                        allow="clipboard-read; clipboard-write"
-                      />
-                      <div className={Styles.textRight}>
-                        <small>
-                          Made with{' '}
-                          <svg
-                            stroke="#e84d47"
-                            fill="#e84d47"
-                            strokeWidth="0"
-                            viewBox="0 0 512 512"
-                            height="1em"
-                            width="1em"
-                            xmlns="http://www.w3.org/2000/svg"
-                          >
-                            <path d="M462.3 62.6C407.5 15.9 326 24.3 275.7 76.2L256 96.5l-19.7-20.3C186.1 24.3 104.5 15.9 49.7 62.6c-62.8 53.6-66.1 149.8-9.9 207.9l193.5 199.8c12.5 12.9 32.8 12.9 45.3 0l193.5-199.8c56.3-58.1 53-154.3-9.8-207.9z"></path>
-                          </svg>{' '}
-                          by Developers for Developers
-                        </small>
+            <div className={Styles.codeSpace}>
+              {loading ? (
+                <div className={'progress-block-wrapper ' + Styles.preloaderCutomnize}>
+                  <div className="progress infinite" />
+                </div>
+              ) : (
+                codeSpaceData.running && (
+                  <div className={Styles.codespaceframe}>
+                    <iframe
+                      className={fullScreenMode ? Styles.fullscreen : ''}
+                      src={codeSpaceData.workspaceUrl}
+                      title="Code Space"
+                      allow="clipboard-read; clipboard-write"
+                    />
+                    {((codeDeployed || prodCodeDeployed) && showLogsView) &&
+                      <div className={classNames(Styles.logViewWrapper, showLogsView && Styles.show)}>
+                        <button className={classNames('link-btn', Styles.closeButton)} onClick={() => setShowLogsView(false)}><i className="icon mbc-icon close thin"></i></button>
+                        <div className="tabs-panel">
+                          <div className="tabs-wrapper">
+                            <ul className="tabs">
+                              {codeDeployed &&
+                                <li
+                                  className={'tab active'}
+                                >
+                                  <a href="#tab-staginglogpanel" id="staginglogpanel">
+                                    Staging App Logs
+                                  </a>
+                                </li>
+                              }
+                              {prodCodeDeployed && <li
+                                  className={classNames('tab', !codeDeployed && 'active')}
+                                >
+                                  <a href="#tab-productionlogpanel" id="productionlogpanel">
+                                    Production App Logs
+                                  </a>
+                                </li>
+                              }
+                            </ul>
+                          </div>
+                          <div className={classNames(Styles.logsTabContentWrapper, 'tabs-content-wrapper')}>
+                            {codeDeployed &&
+                              <div id="tab-staginglogpanel" className="tab-content">
+                                <iframe src={buildLogViewURL(codeDeployedUrl, true)} height="100%" width="100%" />
+                              </div>
+                            }
+                            {prodCodeDeployed &&
+                              <div id="tab-productionlogpanel" className="tab-content">
+                                <iframe src={buildLogViewURL(prodCodeDeployedUrl)} height="100%" width="100%" />
+                              </div>
+                            }
+                          </div>
+                        </div>
                       </div>
+                    }
+                    <div className={Styles.textRight}>
+                      <small>
+                        Made with{' '}
+                        <svg
+                          stroke="#e84d47"
+                          fill="#e84d47"
+                          strokeWidth="0"
+                          viewBox="0 0 512 512"
+                          height="1em"
+                          width="1em"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path d="M462.3 62.6C407.5 15.9 326 24.3 275.7 76.2L256 96.5l-19.7-20.3C186.1 24.3 104.5 15.9 49.7 62.6c-62.8 53.6-66.1 149.8-9.9 207.9l193.5 199.8c12.5 12.9 32.8 12.9 45.3 0l193.5-199.8c56.3-58.1 53-154.3-9.8-207.9z"></path>
+                        </svg>{' '}
+                        by Developers for Developers
+                      </small>
                     </div>
-                  )
-                )}
-              </div>
-            }
+                  </div>  
+                ))}
+              </div>    
           </div>
         </React.Fragment>
       )}
