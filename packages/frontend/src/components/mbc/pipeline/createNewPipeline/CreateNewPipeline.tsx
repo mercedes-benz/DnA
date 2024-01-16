@@ -80,7 +80,7 @@ const CreateNewPipeline = (props: ICreateNewPipelineProps) => {
   const [isFsEnable, setIsFsEnable] = useState<boolean>(false);
   const [activeDagLength, setActiveDagLength] = useState<number>();
   const [isApiCallTakeTime, setIsApiCallTakeTime] = useState<boolean>(false);
-  const [livelinessInterval, setLivelinessInterval] = useState<NodeJS.Timer>();
+  const [livelinessInterval, setLivelinessInterval] = useState<number>();
   const [enableBackButton, setBackButton] = useState<boolean>(false);
   const createAndUpdateStatus = ['CREATE_REQUESTED', 'UPDATE_REQUESTED'];
   const createAndUpdate = ['CREATED', 'UPDATED'];
@@ -447,7 +447,7 @@ const CreateNewPipeline = (props: ICreateNewPipelineProps) => {
     // Clear the existing interval using the state value
     clearInterval(livelinessInterval);
 
-    const intervalId: NodeJS.Timer = setInterval(() => {
+    const intervalId = window.setInterval(() => {
       PipelineApiClient.getPiplineStatus(id)
         .then((res) => {
           try {
