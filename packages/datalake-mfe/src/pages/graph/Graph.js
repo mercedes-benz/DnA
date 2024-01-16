@@ -20,6 +20,7 @@ import { getProjectDetails } from '../../redux/graph.services';
 import TableCollaborators from '../../components/tableCollaborators/TableCollaborators';
 import { datalakeApi } from '../../apis/datalake.api';
 import ColumnForm from '../../components/columnForm/ColumnForm';
+import EditTableForm from '../../components/editTableForm/EditTableForm';
 
 const Graph = ({user}) => {
     const { id } = useParams();
@@ -358,6 +359,7 @@ const Graph = ({user}) => {
   }, []);
 
   const [showColumnModal, setShowColumnModal] = useState(false);
+  const [showTableModal, setShowTableModal] = useState(false);
   const [selectedTable, setSelectedTable] = useState();
   const [selectedColumn, setSelectedColumn] = useState();
   const [selectedIndex, setSelectedIndex] = useState(-1);
@@ -374,6 +376,11 @@ const Graph = ({user}) => {
     setSelectedTable({...table});
     setSelectedColumn({...column});
     setSelectedIndex(index);
+  }
+
+  const handleEditTable = (table) => {
+    setShowTableModal(true);
+    setSelectedTable({...table});
   }
 
   const addColumn = (values) => {
@@ -412,6 +419,22 @@ const Graph = ({user}) => {
     dispatch(setTables(newTables));
     setShowColumnModal(false);
     setColumnEdit(false);
+    Tooltip.defaultSetup();
+  }
+
+  const editTable = (values) => {
+    const tempTable = {...selectedTable};
+    const projectTemp = {...project};
+    const tableIndex = projectTemp.tables.findIndex(item => item.tableName === tempTable.tableName);
+    let newTables = [...projectTemp.tables];
+    newTables[tableIndex] = {
+                              ...newTables[tableIndex], 
+                              tableName: values.tableName, 
+                              description: values.description,
+                              dataFormat: values.dataFormat
+                            };
+    dispatch(setTables(newTables));
+    setShowTableModal(false);
     Tooltip.defaultSetup();
   }
 
@@ -497,11 +520,11 @@ const Graph = ({user}) => {
               // onWheel={wheelHandler}
               ref={svg}
             >
-              {project?.tables?.length > 0 && project.tables.map(table => {
+              {project?.tables?.length > 0 && project.tables.map((table, index) => {
                 return (
                     <>
                         <GraphTable
-                            key={table.id}
+                            key={table.tableName + index}
                             table={table}
                             onTableMouseDown={tableMouseDownHandler}
                             tableSelectedId={tableSelectedId}
@@ -510,6 +533,7 @@ const Graph = ({user}) => {
                             onDeleteTable={handleDeleteTable}
                             onAddColumn={handleAddColumn}
                             onEditColumn={handleEditColumn}
+                            onEditTable={handleEditTable}
                             isOwner={isOwner}
                         />
                     </>
@@ -599,6 +623,29 @@ const Graph = ({user}) => {
           setShowColumnModal(false); 
           setSelectedColumn();
           setColumnEdit(false);
+        }}
+        modalStyle={{
+          padding: '50px 35px 35px 35px',
+          minWidth: 'unset',
+          width: '60%',
+          maxWidth: '50vw'
+        }}
+      />
+    }
+
+    { showTableModal &&
+      <Modal
+        title={'Edit Table'}
+        showAcceptButton={false}
+        showCancelButton={false}
+        modalWidth={'60%'}
+        buttonAlignment="right"
+        show={showTableModal}
+        content={<EditTableForm setToggle={() => setToggleModal(!toggleModal)} formats={formats} table={selectedTable} onEditTable={editTable} />}
+        scrollableContent={false}
+        onCancel={() => {
+          setShowTableModal(false); 
+          setSelectedTable();
         }}
         modalStyle={{
           padding: '50px 35px 35px 35px',

@@ -13,6 +13,8 @@ import Notification from '../../../assets/modules/uilab/js/src/notification';
 import { CodeSpaceApiClient } from '../../../services/CodeSpaceApiClient';
 // @ts-ignore
 import ProgressIndicator from '../../../assets/modules/uilab/js/src/progress-indicator';
+// @ts-ignore
+import Tooltip from '../../../assets/modules/uilab/js/src/tooltip';
 
 export interface IAllCodeSpacesProps {
   user: IUserInfo;
@@ -55,6 +57,10 @@ const AllCodeSpaces = (props: IAllCodeSpacesProps) => {
   useEffect(() => {
     getCodeSpacesData();
   }, []);
+
+  useEffect(() => {
+    Tooltip.defaultSetup();
+  }, [codeSpaces]);
 
   // const onPaginationPreviousClick = () => {
   //   const currentPageNumberTemp = pagination.currentPageNumber - 1;
