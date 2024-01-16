@@ -383,7 +383,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
 
   const enableLivelinessCheck = (id: string) => {
     clearInterval(livelinessInterval);
-    const intervalId = setInterval(() => {
+    const intervalId:NodeJS.Timer = setInterval(() => {
       CodeSpaceApiClient.getCodeSpaceStatus(id)
         .then((res: ICodeSpaceData) => {
           try {

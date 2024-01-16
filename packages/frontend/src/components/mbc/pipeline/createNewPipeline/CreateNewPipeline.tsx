@@ -447,7 +447,7 @@ const CreateNewPipeline = (props: ICreateNewPipelineProps) => {
     // Clear the existing interval using the state value
     clearInterval(livelinessInterval);
 
-    const intervalId = setInterval(() => {
+    const intervalId: NodeJS.Timer = setInterval(() => {
       PipelineApiClient.getPiplineStatus(id)
         .then((res) => {
           try {
