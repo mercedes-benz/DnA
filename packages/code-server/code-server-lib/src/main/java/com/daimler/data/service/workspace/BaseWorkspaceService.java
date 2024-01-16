@@ -839,7 +839,8 @@ public class BaseWorkspaceService implements WorkspaceService {
 					return responseMessage;
 				}
 				String workspaceOwnerWsId = entity.getData().getWorkspaceId();
-				deployJobInputDto.setWsid(workspaceOwnerWsId);
+				String projectOwnerWsId = ownerEntity.getData().getWorkspaceId();
+				deployJobInputDto.setWsid(projectOwnerWsId);
 				deploymentJobDto.setInputs(deployJobInputDto);
 				deploymentJobDto.setRef(codeServerEnvRef);
 				GenericMessage jobResponse = client.manageDeployment(deploymentJobDto);
@@ -1355,7 +1356,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 							"updated deployment details successfully for projectName {} , branch {} , targetEnv {} and status {}",
 							projectName, branch, targetEnv, latestStatus);
 					boolean apiRecipe = false;
-					String serviceName = name + "-api";
+					String serviceName = projectOwnerWsId + "-api";
 					if (projectRecipe.equalsIgnoreCase(reactRecipeId)
 							|| projectRecipe.equalsIgnoreCase(angularRecipeId)) {
 						log.info("projectRecipe: {} and service name is : {}", projectRecipe, serviceName);
