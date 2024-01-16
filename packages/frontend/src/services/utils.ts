@@ -345,12 +345,16 @@ export const csvSeparator = (region: string) => {
     return  ";";  
 };
 
+export const buildLogViewURL = (deployedUrl: string, isStagging?: boolean) => {
+  return Envs.CODESPACE_OPENSEARCH_LOGS_URL.replaceAll('$INSTANCE_ID$', new URL(deployedUrl).pathname.split("/")[1] + (isStagging ? '-int' : ''));
+};
+
 export const isValidGITRepoUrl = (str: string, isPublicRecipeChoosen: boolean) => {
   const privateHost = new URL(Envs.CODE_SPACE_GIT_PAT_APP_URL).host;
   const regex = new RegExp('((http|http(s)|\\/?))(:(\\/\\/' + (isPublicRecipeChoosen ? 'github.com'  : privateHost) + '\\/))([\\w.@:/\\-~]+)(\\.git)(\\/)?');
 
   return (str == null) ? false : regex.test(str);
-}
+};
 
 export const recipesMaster = [
   { id: 'default', resource: '2Gi,1000Mi,500m,2000Mi,1000m', name: 'Plain or Empty (Debian 11 OS, 2GB RAM, 1CPU)', repodetails: '' },
