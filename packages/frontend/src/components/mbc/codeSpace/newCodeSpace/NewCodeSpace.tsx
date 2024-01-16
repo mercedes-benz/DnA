@@ -241,6 +241,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
   }
 
   const onCollaboratorDelete = (userId: string) => {
+    Tooltip.clear();
     return () => {
       if (onEditingMode) {
         setCollaboratorToDelete(codeSpaceCollaborators.find((collab: ICodeCollaborator) => collab.id === userId));
