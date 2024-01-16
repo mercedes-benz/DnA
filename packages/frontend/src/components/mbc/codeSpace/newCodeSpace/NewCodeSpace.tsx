@@ -64,7 +64,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
   // const [codeSpaceCollaboratorsError, setCodeSpaceCollaboratorsError] = useState('');
 
 
-  const [livelinessInterval, setLivelinessInterval] = useState<NodeJS.Timer>();
+  const [livelinessInterval, setLivelinessInterval] = useState<number>();
 
   // const [createdCodeSpaceName, setCreatedCodeSpaceName] = useState('');
 
@@ -73,7 +73,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
   const [collaboratorToTransferOwnership, setCollaboratorToTransferOwnership] =  useState<ICodeCollaborator>();
 
   const requiredError = '*Missing entry';
-  const livelinessIntervalRef = React.useRef<NodeJS.Timer>();
+  const livelinessIntervalRef = React.useRef<number>();
   // let livelinessInterval: any = undefined;
 
   useEffect(() => {
@@ -383,7 +383,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
 
   const enableLivelinessCheck = (id: string) => {
     clearInterval(livelinessInterval);
-    const intervalId = setInterval(() => {
+    const intervalId = window.setInterval(() => {
       CodeSpaceApiClient.getCodeSpaceStatus(id)
         .then((res: ICodeSpaceData) => {
           try {

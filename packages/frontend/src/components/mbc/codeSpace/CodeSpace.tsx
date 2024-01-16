@@ -134,10 +134,10 @@ const CodeSpace = (props: ICodeSpaceProps) => {
   const [iamTechnicalUserID, setIAMTechnicalUserID] = useState<string>('');
   const [iamTechnicalUserIDError, setIAMTechnicalUserIDError] = useState<string>('');
   const [acceptContinueCodingOnDeployment, setAcceptContinueCodingOnDeployment] = useState<boolean>(true);
-  const [livelinessInterval, setLivelinessInterval] = useState<NodeJS.Timer>();
+  const [livelinessInterval, setLivelinessInterval] = useState<number>();
   const [branches, setBranches] = useState<IBranch[]>([]);
 
-  const livelinessIntervalRef = React.useRef<NodeJS.Timer>();
+  const livelinessIntervalRef = React.useRef<number>();
 
   const [branchValue, setBranchValue] = useState('main');
   const [deployEnvironment, setDeployEnvironment] = useState('staging');
@@ -310,7 +310,7 @@ const CodeSpace = (props: ICodeSpaceProps) => {
 
   const enableDeployLivelinessCheck = (id: string, deployEnvironmentValue: string) => {
     clearInterval(livelinessInterval);
-    const intervalId = setInterval(() => {
+    const intervalId = window.setInterval(() => {
       CodeSpaceApiClient.getCodeSpaceStatus(id)
         .then((res: ICodeSpaceData) => {
           try {
