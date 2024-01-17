@@ -357,17 +357,19 @@ export const isValidGITRepoUrl = (str: string, isPublicRecipeChoosen: boolean) =
 };
 
 export const recipesMaster = [
+
   { id: 'default', resource: '2Gi,1000Mi,500m,2000Mi,1000m', name: 'Plain or Empty (Debian 11 OS, 2GB RAM, 1CPU)', repodetails: '' },
+
+  { id: 'private-user-defined', resource: '4Gi,4000Mi,1000m,6000Mi,2000m', name: `Recipe from Private Github(${Envs.CODE_SPACE_GIT_PAT_APP_URL}) (Debian 11 OS, 6GB RAM, 2CPU)`, repodetails: '' },
+
+  { id: 'public-user-defined', resource: '4Gi,4000Mi,1000m,6000Mi,2000m', name: 'Recipe from Public Github(https://github.com/) (Debian 11 OS, 6GB RAM, 2CPU)', repodetails: '' },
+  
   { id: 'springboot', resource: '2Gi,1000Mi,500m,2000Mi,1000m', name: 'Microservice using Spring Boot (Debian 11 OS, 2GB RAM, 1CPU)' },
   { id: 'quarkus', resource: '2Gi,1000Mi,500m,2000Mi,1000m', name: 'Microservice using QUARKUS (Debian 11 OS, 2GB RAM, 1CPU)' },
   { id: 'micronaut', resource: '2Gi,1000Mi,500m,2000Mi,1000m', name: 'Microservice using MICRONAUT (Debian 11 OS, 2GB RAM, 1CPU)' },
   { id: 'py-fastapi', resource: '2Gi,1000Mi,500m,2000Mi,1000m', name: 'Microservice using Python FastAPI (Debian 11 OS, 2GB RAM, 1CPU)' },
   { id: 'react', resource: '4Gi,2000Mi,500m,4000Mi,1000m', name: 'React SPA (Debian 11 OS, 2GB RAM, 1CPU)' },
   { id: 'angular', resource: '4Gi,2000Mi,500m,4000Mi,1000m', name: 'Angular SPA (Debian 11 OS, 2GB RAM, 1CPU)' },
-
-  { id: 'private-user-defined', resource: '4Gi,4000Mi,1000m,6000Mi,2000m', name: `Recipe from Private Github(${Envs.CODE_SPACE_GIT_PAT_APP_URL}) (Debian 11 OS, 6GB RAM, 2CPU)`, repodetails: '' },
-
-  { id: 'public-user-defined', resource: '4Gi,4000Mi,1000m,6000Mi,2000m', name: 'Recipe from Public Github(https://github.com/) (Debian 11 OS, 6GB RAM, 2CPU)', repodetails: '' },
 
   { id: 'public-dna-frontend', resource: '4Gi,4000Mi,1000m,6000Mi,2000m', name: 'DnA Frontend (Debian 11 OS, 6GB RAM, 2CPU)', repodetails: 'github.com/mercedes-benz/DnA.git,packages/frontend/*' },
   { id: 'public-dna-backend', resource: '4Gi,3000Mi,1500m,5000Mi,2000m', name: 'DnA Backend (Debian 11 OS, 4GB RAM, 1CPU)', repodetails: 'github.com/mercedes-benz/DnA.git,packages/backend/*' },
