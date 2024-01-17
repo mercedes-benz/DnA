@@ -131,7 +131,6 @@ paths:
           description: Filtering solutions based on digital value, values true or false
           required: false
           type: boolean
-          default: false
         - name: hasNotebook
           in: query
           description: Filtering solutions based on notebook value, values true or false
