@@ -231,3 +231,14 @@ definitions:
       version:
         type: string
         description: "version of software"
+        
+  RecipeCollectionVO:
+    type: object
+    properties:
+      data:
+        type: array
+        items:
+          $ref: "#/definitions/RecipeVO"
+      count:
+        type: integer
+        description: "total number of records"
