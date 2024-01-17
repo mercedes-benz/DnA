@@ -198,7 +198,7 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
                       Staging({intDeploymentDetails.lastDeployedBranch}):
                       <br />
                       {regionalDateAndTimeConversionSolution(intLastDeployedOn)}
-                      <a target='_blank' href={buildLogViewURL(intDeployedUrl, true)} rel="noreferrer"><i tooltip-data="Show Staging App logs in new tab" className="icon mbc-icon workspace small right" /></a>
+                      {!enableOnboard && <a target='_blank' href={buildLogViewURL(intDeployedUrl, true)} rel="noreferrer"><i tooltip-data="Show Staging App logs in new tab" className="icon mbc-icon workspace small right" /></a>}
                     </>
                   )}
                   <br />
@@ -207,7 +207,7 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
                       Production({prodDeploymentDetails.lastDeployedBranch}):
                       <br />
                       {regionalDateAndTimeConversionSolution(prodLastDeployedOn)}
-                      <a target='_blank' href={buildLogViewURL(prodDeployedUrl)} rel="noreferrer"><i tooltip-data="Show Production App logs in new tab" className="icon mbc-icon workspace small right" /></a>
+                      {!enableOnboard && <a target='_blank' href={buildLogViewURL(prodDeployedUrl)} rel="noreferrer"><i tooltip-data="Show Production App logs in new tab" className="icon mbc-icon workspace small right" /></a>}
                     </>
                   )}
                 </div>
