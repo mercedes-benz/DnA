@@ -21,7 +21,7 @@
         align-items: center;
         justify-content: center;
         max-height: 700px;
-        min-height: 600px;
+        min-height: 650px;
         .btnPrimary {
           cursor: pointer;
         }
@@ -185,8 +185,12 @@
       &.show {
         z-index: auto;
       }
+      .tabsHeightFix {
+        height: 100%;
+      }
       .logsTabContentWrapper {
-        margin-top: 25px;
+        margin: 25px 0 0;
+        height: calc(100% - 65px);
       }
       .closeButton {
         font-size: var(--font-size-icon-small);
