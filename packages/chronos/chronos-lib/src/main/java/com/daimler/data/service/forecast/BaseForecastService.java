@@ -347,7 +347,7 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 		case "Weekly" : return "W";
 		case "Monthly" : return "M";
 		case "Yearly" : return "Y";
-		default: return "";
+		default: return value;
 		}
 	}
 
