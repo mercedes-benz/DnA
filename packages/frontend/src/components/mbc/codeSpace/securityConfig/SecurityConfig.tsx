@@ -390,6 +390,7 @@ export default class SecurityConfig extends React.Component<ICreateNewSecurityCo
         const projectName = config?.projectName ? `${config.projectName} - ` : '';
         const publishedSuffix = readOnlyMode ? ' (Published)' : '';
         const title = `${projectName}Security config${publishedSuffix}`; 
+        console.log(this.props.user);
        
         return (
             <React.Fragment>

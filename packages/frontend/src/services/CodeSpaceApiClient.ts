@@ -99,4 +99,8 @@ export class CodeSpaceApiClient {
     return this.post(`/workspaces/${id}/config/request`)
   };
 
+  public static createCodeSpaceRecipe(data: any) {
+    return this.post('recipeDetails', data);
+  }
+
 }

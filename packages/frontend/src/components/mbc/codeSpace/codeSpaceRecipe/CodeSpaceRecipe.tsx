@@ -6,11 +6,39 @@ import TextBox from 'components/mbc/shared/textBox/TextBox';
 import Modal from 'components/formElements/modal/Modal';
 import ConfirmModal from 'components/formElements/modal/confirmModal/ConfirmModal';
 import { Envs } from 'globals/Envs';
+import { IUserInfo } from 'globals/types';
+import ProgressIndicator from '../../../../assets/modules/uilab/js/src/progress-indicator';
+import { CodeSpaceApiClient } from '../../../../services/CodeSpaceApiClient';
+import { Notification } from '../../../../assets/modules/uilab/bundle/js/uilab.bundle';
 import { isValidGITRepoUrl } from '../../../../services/utils';
+import { useHistory } from "react-router-dom";
 const classNames = cn.bind(Styles);
-const CodeSpaceRecipe = () => {
+export interface ICreateRecipe {
+  createdBy: IUserInfo;
+  recipeName: string;
+  recipeType: string;
+  gitUrl: string;
+  diskSpace: string;
+  minCpu: string;
+  maxCpu: string;
+  minRam: string;
+  maxRam: string;
+  software: Isoftware[];
+  plugins: string[];
+}
+export interface Isoftware {
+  softwareName: string;
+  softwareVersion: string;
+}
+
+export interface IUserInfoProps {
+  user: IUserInfo;
+}
+
+const CodeSpaceRecipe = (props: IUserInfoProps) => {
   const requiredError = '*Missing entry';
   const softwareError = '*Please enter software name and version to save';
+  const history = useHistory();
   const [recipeName, setRecipeName] = useState('');
   const [recipeType, setRecipeType] = useState('');
   const [gitUrl, setGitUrl] = useState('');
@@ -39,21 +67,40 @@ const CodeSpaceRecipe = () => {
     maxRam: '',
   });
   const isPublicRecipeChoosen = recipeType.startsWith('public');
-  console.log(isPublicRecipeChoosen);
   const githubUrlValue = isPublicRecipeChoosen ? 'https://github.com/' : Envs.CODE_SPACE_GIT_PAT_APP_URL;
   useEffect(() => {
     SelectBox.defaultSetup(true);
+    console.log(props.user);
   }, []);
 
   const onRecipeNameChange = (e: React.FormEvent<HTMLInputElement>) => {
     const value = e.currentTarget.value;
     setRecipeName(value);
+    console.log(recipeType);
+    if(!recipeType.startsWith("From")){
+      validateGitUrl(value);
+    }
+  };
+
+  const validateGitUrl = (value : any) =>{
+    let errorMessage = '';
+    if (value === '') {
+      errorMessage = requiredError;
+    }
+    setErrorObj((prevState) => ({
+      ...prevState,
+      recipeName: errorMessage,
+    }));
+
   };
 
   const onRecipeTypeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const selectedOption = e.currentTarget.value;
     setRecipeType(selectedOption);
-    console.log(recipeType);
+    console.log(selectedOption);
+    if(gitUrl !== '' && !selectedOption.startsWith("From")){
+      validateGitUrl(gitUrl);
+    }
   };
 
   const onGitUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -152,12 +199,15 @@ const CodeSpaceRecipe = () => {
       }
       setsoftwareName('');
       setSoftwareVersion('');
+      setCustomSoftwareName('');
+      setCustomSoftwareVersion('');
       setShowAddSoftwareModel(false);
       setSoftwareErrorText(false);
     } else {
       setSoftwareErrorText(true);
     }
   };
+
 
   const onDeleteSoftware = (index: any) => {
     setShowDeletePopUp(false);
@@ -169,9 +219,91 @@ const CodeSpaceRecipe = () => {
 
   const onSave = () => {
     if (validateForm()) {
-      console.log(errorObj);
+      // setData((prevState) => ({
+      //   ...prevState,
+      //   createdBy: props.user,
+      //   recipeName: recipeName,
+      //   recipiType:recipeType,
+      //   gitUrl:gitUrl,
+      //   minCpu:minCpu,
+      //   maxCpu: maxCpu,
+      //   minRam: minRam,
+      //   maxRam: maxRam,
+      //   software: softwareList,
+      // }));
+      // console.log(data);
+
+      const CreateNewRecipe = {
+        createdBy: {
+          department: props.user.department,
+          email: props.user.email,
+          firstName: props.user.firstName,
+          gitUserName: 'shalini-peeka',
+          id: props.user.id,
+          lastName: props.user.lastName,
+          mobileNumber: props.user.mobileNumber,
+        },
+        diskSpace: diskSpace,
+        maxCpu: maxCpu,
+        minCpu: minCpu,
+        minRam: minRam,
+        maxRam: maxRam,
+        oSName: "Debian-OS-11",
+        osname: "Debian-OS-11",
+        plugins: [
+               "string"
+             ],
+        recipeName: recipeName,
+        recipeType: recipeType,
+        repodetails: gitUrl,
+        software: softwareList,
+      };
+      ProgressIndicator.show();
+      CodeSpaceApiClient.createCodeSpaceRecipe(CreateNewRecipe)
+        .then((res) => {
+          console.log(res);
+          ProgressIndicator.hide();
+          history.push('/codespaces');
+          Notification.show('New Recipe Created successfully');
+        })
+        .catch((err: Error) => {
+          ProgressIndicator.hide();
+          Notification.show("alert",err);
+        });
+      // {
+      //   "createdBy": {
+      //     "department": "string",
+      //     "email": "string",
+      //     "firstName": "string",
+      //     "gitUserName": "string",
+      //     "id": "string",
+      //     "lastName": "string",
+      //     "mobileNumber": "string"
+      //   },
+      //   "createdOn": "2024-01-11T08:13:23.884Z",
+      //   "diskSpace": "string",
+      //   "maxCpu": "string",
+      //   "maxRam": "string",
+      //   "minCpu": "string",
+      //   "minRam": "string",
+      //   "oSName": "Debian-OS-11",
+      //   "osname": "Debian-OS-11",
+      //   "plugins": [
+      //     "string"
+      //   ],
+      //   "recipeName": "string",
+      //   "recipeType": "string",
+      //   "repodetails": "string",
+      //   "software": [
+      //     {
+      //       "name": "string",
+      //       "version": "string"
+      //     }
+      //   ]
+      // }
+      
     } else {
-      console.log(errorObj);
+      console.log('error');
     }
   };
   const validateForm = () => {
@@ -269,7 +401,7 @@ const CodeSpaceRecipe = () => {
                         value={recipeType}
                         onChange={onRecipeTypeChange}
                       >
-                        <option value=''>Choose</option>
+                        <option value="">Choose</option>
                         <option value="public GitHub">Public GitHub</option>
                         <option value="private GitHub">Private GitHub</option>
                         <option value="from Storage">From Storage</option>
@@ -281,7 +413,7 @@ const CodeSpaceRecipe = () => {
                   </div>
                 </div>
                 <div className={classNames(Styles.flexLayout)}>
-                  <div className={classNames(!recipeType || recipeType === '' ? Styles.disabledDiv : '')}>
+                  <div>
                     <TextBox
                       type="text"
                       controlId={'gitUrlInput'}
