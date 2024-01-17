@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
@@ -90,7 +92,19 @@ public class WorkspaceJobStatusUpdateController  {
 			log.info("Authentication failed to use API. ");
 			return new ResponseEntity<>(errorMessage, HttpStatus.UNAUTHORIZED);
 		}
-		CodeServerWorkspaceVO existingVO = service.getByUniqueliteral(userId,"workspaceId", name);
+		CodeServerWorkspaceVO existingVO = new CodeServerWorkspaceVO();
+		//pattern to match wsid
+		String REGEX = "[w][s]\\d+";
+		Pattern pattern = Pattern.compile(REGEX);
+		Matcher matcher = pattern.matcher(name);
+		boolean matches = matcher.matches();
+		if(matches) {
+			existingVO = service.getByUniqueliteral(userId,"workspaceId", name);
+		}
+		else {
+			existingVO = service.getByProjectName(userId, name);
+		}
+				
 		if (existingVO != null && existingVO.getWorkspaceId() != null) {
 			String existingStatus = existingVO.getStatus();
 			log.info("existingStatus  is {}",existingStatus);
@@ -213,7 +227,7 @@ public class WorkspaceJobStatusUpdateController  {
 			log.info("Message details after update action {} and userid is {} and resourceID is {}",message,userId,resourceID);
 			if(callKongApisFromBackend) {
 				log.info("Calling Kong API's from backend and flag is {}", callKongApisFromBackend);
-				authenticatorClient.callingKongApis(name,null,false);
+				authenticatorClient.callingKongApis(null,name,null,false);
 			}			
 			kafkaProducer.send(eventType, resourceID, "", userId, message, true, teamMembers, teamMembersEmails, null);
 			return new ResponseEntity<>(responseMessage, HttpStatus.OK);
