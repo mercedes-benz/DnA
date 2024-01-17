@@ -33,6 +33,8 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import com.daimler.data.dto.workspace.*;
@@ -840,7 +842,9 @@ public class BaseWorkspaceService implements WorkspaceService {
 				}
 				String workspaceOwnerWsId = entity.getData().getWorkspaceId();
 				String projectOwnerWsId = ownerEntity.getData().getWorkspaceId();
-				deployJobInputDto.setWsid(projectOwnerWsId);
+				//deployJobInputDto.setWsid(workspaceOwnerWsId);
+				//setting project name instead of wsid to maintain same name in pod as well as kong
+				deployJobInputDto.setWsid(projectName);
 				deploymentJobDto.setInputs(deployJobInputDto);
 				deploymentJobDto.setRef(codeServerEnvRef);
 				GenericMessage jobResponse = client.manageDeployment(deploymentJobDto);
@@ -1179,7 +1183,18 @@ public class BaseWorkspaceService implements WorkspaceService {
 		try {
 			String[] createDeleteStatuses = { "CREATED", "CREATE_FAILED", "DELETED", "DELETE_REQUESTED" };
 			boolean isCreateDeleteStatuses = Arrays.stream(createDeleteStatuses).anyMatch(latestStatus::equals);
-			CodeServerWorkspaceNsql entity = workspaceCustomRepository.findbyUniqueLiteral(userId, "workspaceId", name);
+			CodeServerWorkspaceNsql entity = new CodeServerWorkspaceNsql();
+			String REGEX = "[w][s]\\d+";
+			Pattern pattern = Pattern.compile(REGEX);
+			Matcher matcher = pattern.matcher(name);
+			boolean matches = matcher.matches();
+			if(matches) {
+				entity = workspaceCustomRepository.findbyUniqueLiteral(userId, "workspaceId", name);
+			}
+			else {
+				entity = workspaceCustomRepository.findbyProjectName(userId, projectName);
+			}
+			
 			String workspaceOwner = entity.getData().getWorkspaceOwner().getId();
 			String workspaceName = entity.getData().getWorkspaceId();
 			String defaultRecipeId = RecipeIdEnum.DEFAULT.toString();
@@ -1319,18 +1334,18 @@ public class BaseWorkspaceService implements WorkspaceService {
 				}
 				String projectOwnerWsId = ownerEntity.getData().getWorkspaceId();
 				String deploymentUrl = "";
-				deploymentUrl = codeServerBaseUri + "/" + projectOwnerWsId + "/" + targetEnv + "/api/swagger-ui.html";
+				deploymentUrl = codeServerBaseUri + "/" + projectName + "/" + targetEnv + "/api/swagger-ui.html";
 				if (pythonRecipeId.equalsIgnoreCase(projectRecipe)) {
-					deploymentUrl = codeServerBaseUri + "/" + projectOwnerWsId + "/" + targetEnv + "/api/docs";
+					deploymentUrl = codeServerBaseUri + "/" + projectName + "/" + targetEnv + "/api/docs";
 				}
 				if (reactRecipeId.equalsIgnoreCase(projectRecipe) || angularRecipeId.equalsIgnoreCase(projectRecipe)) {
-					deploymentUrl = codeServerBaseUri + "/" + projectOwnerWsId + "/" + targetEnv + "/";
+					deploymentUrl = codeServerBaseUri + "/" + projectName + "/" + targetEnv + "/";
 				}
 				if (quarkusRecipeId.equalsIgnoreCase(projectRecipe)) {
-					deploymentUrl = codeServerBaseUri + "/" + projectOwnerWsId + "/" + targetEnv + "/q/swagger-ui";
+					deploymentUrl = codeServerBaseUri + "/" + projectName + "/" + targetEnv + "/q/swagger-ui";
 				}
 				if(micronautRecipeId.equalsIgnoreCase(projectRecipe)) {
-					 deploymentUrl = codeServerBaseUri+"/"+projectOwnerWsId+"/"+ targetEnv +"/swagger-ui/index.html";
+					 deploymentUrl = codeServerBaseUri+"/"+projectName+"/"+ targetEnv +"/swagger-ui/index.html";
 				}
 				String environmentJsonbName = "intDeploymentDetails";
 				CodeServerDeploymentDetails deploymentDetails = new CodeServerDeploymentDetails();
@@ -1356,15 +1371,19 @@ public class BaseWorkspaceService implements WorkspaceService {
 							"updated deployment details successfully for projectName {} , branch {} , targetEnv {} and status {}",
 							projectName, branch, targetEnv, latestStatus);
 					boolean apiRecipe = false;
-					String serviceName = projectOwnerWsId + "-api";
+					String serviceName = "";
+					if(!matches) {
+						serviceName = projectName;
+					}
+					
 					if (projectRecipe.equalsIgnoreCase(reactRecipeId)
 							|| projectRecipe.equalsIgnoreCase(angularRecipeId)) {
 						log.info("projectRecipe: {} and service name is : {}", projectRecipe, serviceName);
-						authenticatorClient.callingKongApis(serviceName, targetEnv, apiRecipe);
+						authenticatorClient.callingKongApis(userId, serviceName, targetEnv, apiRecipe);
 					} else {
 						apiRecipe = true;
 						log.info("projectRecipe: {} and service name is : {}", projectRecipe, serviceName);
-						authenticatorClient.callingKongApis(serviceName, targetEnv, apiRecipe);
+						authenticatorClient.callingKongApis(userId, serviceName, targetEnv, apiRecipe);
 					}
 				} else if ("UNDEPLOYED".equalsIgnoreCase(latestStatus)) {
 					deploymentDetails.setDeploymentUrl(null);
