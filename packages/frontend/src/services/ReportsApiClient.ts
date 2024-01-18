@@ -191,53 +191,57 @@ export class ReportsApiClient {
 
   public static exportJSON(): Promise<any> {
     const resQuery = `totalCount
-    records {id,
-      productName,
-      description { division { id, name, subdivision { id, name } }, department, status, productDescription, tags, agileReleaseTrain, integratedPortal, frontendTechnologies, reportLink, reportType  },
-      customer {
-        internalCustomers {
-          name { firstName, lastName, department, shortId },
-          customerRelation,
-          comment,
-          department,
-          level,
-          legalEntity,
-          division {
-            id,
-            name,
-            subdivision {
+      records {id,
+        productName,
+        description { division { id, name, subdivision { id, name } }, department, status, productDescription, tags, agileReleaseTrain, integratedPortal, frontendTechnologies, reportLink, reportType, procedureId  },
+        customer {
+          internalCustomers {            
+            customerRelation,
+            comment,
+            department,
+            level,
+            legalEntity,
+            division {
               id,
-              name
-            }
+              name,
+              subdivision {
+                id,
+                name
+              }
+            },
+            accessToSensibleData,
+            processOwner { firstName, lastName, department, shortId }
           },
-          accessToSensibleData,
-          processOwner { firstName, lastName, department, shortId }
+          externalCustomers {
+            companyName,
+            customerRelation,
+            comment
+          }
         },
-        externalCustomers {
-          name { firstName, lastName, department, shortId },
-          companyName,
-          customerRelation,
-          comment
+        kpis { name{kpiName, kpiClassification}, reportingCause, description, kpiLink },
+        dataAndFunctions { 
+          dataWarehouseInUse { dataWarehouse, connectionType, dataClassification } , 
+          singleDataSources { 
+            dataSources{
+              dataSource,
+              weightage
+            }, 
+            connectionType, 
+            dataClassification } 
         }
-      },
-      kpis { name, reportingCause, description, kpiLink },
-      dataAndFunctions { 
-        dataWarehouseInUse { dataWarehouse, connectionType, dataClassification } , 
-        singleDataSources { 
-          dataSources{
-            dataSource,
-            weightage
-          }, 
-          connectionType, 
-          dataClassification } 
-      }
-      members {
-        reportAdmins { firstName, lastName, department, shortId }
-      },
-      publish,
-      createdDate,
-      lastModifiedDate
-    }`;
+        members {
+          reportAdmins { firstName, lastName, department, shortId }
+        },
+        publish,
+        createdDate,
+        lastModifiedDate,
+        closeDate,
+        createdBy {
+          id,
+          email
+        },
+        reportId
+      }`;
     const apiQuery = {
       query: `query {
         reports {

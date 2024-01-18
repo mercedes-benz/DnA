@@ -126,7 +126,7 @@ sourceSets {
         java { srcDirs = srcDirs }
 		java { srcDirs += "${swaggerSources.workspace.code.outputDir}/src/main/java" }
 		java { srcDirs += "${swaggerSources.workspaceAdmin.code.outputDir}/src/main/java" }
-	        java { srcDirs += "${swaggerSources.workspaceRecipe.code.outputDir}/src/main/java" }
+	    java { srcDirs += "${swaggerSources.workspaceRecipe.code.outputDir}/src/main/java" }
     }
 }
 
