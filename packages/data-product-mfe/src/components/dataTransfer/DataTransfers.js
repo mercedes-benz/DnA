@@ -78,8 +78,8 @@ const DataProducts = ({ user, history, hostHistory }) => {
   };
 
   const onDataFilterChange =() =>{
-    setIsProviderCreatorFilter(!isProviderCreatorFilter);
     localStorage.setItem(LOCAL_STORAGE_KEYS.MY_DATATRANSFER_FILTER,!isProviderCreatorFilter);
+    setIsProviderCreatorFilter(!isProviderCreatorFilter);
   }
 
   return (
