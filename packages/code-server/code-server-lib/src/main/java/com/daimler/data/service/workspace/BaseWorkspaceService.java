@@ -130,9 +130,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 	@Transactional
 	public GenericMessage deleteById(String userId, String id) {
 		// 1. undeploy if deployed and id is project owner id
-		// 2. delete repo
-		// 3. for all workspaces under this project, trigger delete job
-		// 4. update all workspaces under this project, mark as deleted
+		// 4. update all workspaces under this project
 		GenericMessage responseMessage = new GenericMessage();
 		List<MessageDescription> errors = new ArrayList<>();
 		List<MessageDescription> warnings = new ArrayList<>();
@@ -148,6 +146,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 		if (isProjectOwner) {
 			log.info("Delete requested by project owner {} ", userId);
 			// undeploy int if present
+			// dont do this undeploy step for public, bat, private, default 
 			if (entity.getData().getProjectDetails().getIntDeploymentDetails().getDeploymentUrl() != null
 					&& entity.getData().getProjectDetails().getIntDeploymentDetails().getLastDeployedBranch() != null
 					&& entity.getData().getProjectDetails().getIntDeploymentDetails()
@@ -316,8 +315,8 @@ public class BaseWorkspaceService implements WorkspaceService {
 				}
 			}
 		}
-		workspaceCustomRepository.updateCollaboratorDetails(projectName, removeUser, true);
 		jpaRepo.save(entity);
+		workspaceCustomRepository.updateCollaboratorDetails(projectName, removeUser, true);
 		// }
 		// Deleting Kong route
 		GenericMessage deleteRouteResponse = authenticatorClient.deleteRoute(entity.getData().getWorkspaceId(),
@@ -342,34 +341,34 @@ public class BaseWorkspaceService implements WorkspaceService {
 			}
 		}
 		// deleting kong route and service if codespace is deployed to staging/production
-		if (isCodespaceDeployed) {
-			String serviceName = entity.getData().getWorkspaceId() + "-api";
-			// Deleting Kong route
-			GenericMessage deployDeleteRouteResponse = authenticatorClient.deleteRoute(serviceName, serviceName);
-			if (deployDeleteRouteResponse != null && deployDeleteRouteResponse.getSuccess().equalsIgnoreCase("Success"))
-				log.info("Kong route: {} deleted successfully", serviceName);
-			else {
-				if (deployDeleteRouteResponse.getErrors() != null
-						&& deployDeleteRouteResponse.getErrors().get(0) != null) {
-					log.info("Failed to delete the Kong route: {} with exception : {}", serviceName,
-							deployDeleteRouteResponse.getErrors().get(0).getMessage());
-				}
-			}
-
-			// Deleting Kong service
-			GenericMessage deployDeleteServiceResponse = authenticatorClient.deleteService(serviceName);
-			if (deployDeleteServiceResponse != null
-					&& deployDeleteServiceResponse.getSuccess().equalsIgnoreCase("Success"))
-				log.info("Kong service: {} deleted successfully", serviceName);
-			else {
-				if (deployDeleteServiceResponse.getErrors() != null
-						&& deployDeleteServiceResponse.getErrors().get(0) != null) {
-					log.info("Failed to delete the Kong service: {} with exception : {}", serviceName,
-							deployDeleteServiceResponse.getErrors().get(0).getMessage());
-				}
-			}
-
-		}
+//		if (isCodespaceDeployed) {
+//			String serviceName = entity.getData().getWorkspaceId() + "-api";
+//			// Deleting Kong route
+//			GenericMessage deployDeleteRouteResponse = authenticatorClient.deleteRoute(serviceName, serviceName);
+//			if (deployDeleteRouteResponse != null && deployDeleteRouteResponse.getSuccess().equalsIgnoreCase("Success"))
+//				log.info("Kong route: {} deleted successfully", serviceName);
+//			else {
+//				if (deployDeleteRouteResponse.getErrors() != null
+//						&& deployDeleteRouteResponse.getErrors().get(0) != null) {
+//					log.info("Failed to delete the Kong route: {} with exception : {}", serviceName,
+//							deployDeleteRouteResponse.getErrors().get(0).getMessage());
+//				}
+//			}
+//
+//			// Deleting Kong service
+//			GenericMessage deployDeleteServiceResponse = authenticatorClient.deleteService(serviceName);
+//			if (deployDeleteServiceResponse != null
+//					&& deployDeleteServiceResponse.getSuccess().equalsIgnoreCase("Success"))
+//				log.info("Kong service: {} deleted successfully", serviceName);
+//			else {
+//				if (deployDeleteServiceResponse.getErrors() != null
+//						&& deployDeleteServiceResponse.getErrors().get(0) != null) {
+//					log.info("Failed to delete the Kong service: {} with exception : {}", serviceName,
+//							deployDeleteServiceResponse.getErrors().get(0).getMessage());
+//				}
+//			}
+//
+//		}
 		responseMessage.setSuccess("SUCCESS");
 		responseMessage.setErrors(errors);
 		responseMessage.setWarnings(warnings);
@@ -412,19 +411,21 @@ public class BaseWorkspaceService implements WorkspaceService {
 				HttpStatus validateUserPatstatus = gitClient.validateGitPat(entity.getData().getGitUserName(), pat);
 				if (!validateUserPatstatus.is2xxSuccessful()) {
 					MessageDescription errMsg = new MessageDescription(
-							"Invalid GitHub Personal Access Token provided. Please verify and retry.");
+							"Invalid Git Personal Access Token provided. Please verify and retry.");
 					errors.add(errMsg);
 					responseVO.setErrors(errors);
 					return responseVO;
 				}
 			}
 			else {
-				HttpStatus publicGitPatStatus = gitClient.validatePublicGitPat(entity.getData().getGitUserName(), pat, repoName);
-				if(!publicGitPatStatus.is2xxSuccessful()) {
-					MessageDescription errMsg = new MessageDescription("Invalid Personal Access Token. Please verify and retry");
-					errors.add(errMsg);
-					responseVO.setErrors(errors);
-					return responseVO;
+				if(!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().equalsIgnoreCase("default")) {
+					HttpStatus publicGitPatStatus = gitClient.validatePublicGitPat(entity.getData().getGitUserName(), pat, repoName);
+					if(!publicGitPatStatus.is2xxSuccessful()) {
+						MessageDescription errMsg = new MessageDescription("Invalid GitHub Personal Access Token. Please verify and retry");
+						errors.add(errMsg);
+						responseVO.setErrors(errors);
+						return responseVO;
+					}
 				}
 			}
 
@@ -473,41 +474,6 @@ public class BaseWorkspaceService implements WorkspaceService {
 			SimpleDateFormat isoFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS+00:00");
 			entity.getData().setIntiatedOn(isoFormat.parse(isoFormat.format(new Date())));
 			entity.getData().setStatus(ConstantsUtility.CREATEREQUESTEDSTATE);
-			entity.getData().setWorkspaceUrl("");//set url
-			entity.getData().getProjectDetails().setProjectCreatedOn(isoFormat.parse(isoFormat.format(new Date())));
-			if (isOwner) {
-				if (vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public")
-						|| vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().equalsIgnoreCase("default")
-						|| vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("bat")) {
-					entity.getData().getProjectDetails().setProjectCollaborators(new ArrayList<>());
-					collabs = new ArrayList<>();
-				}
-			entities.add(entity);
-			if (collabs != null && !collabs.isEmpty()) {
-				for (UserInfoVO collaborator : collabs) {
-					CodeServerWorkspaceNsql collabEntity = new CodeServerWorkspaceNsql();
-					CodeServerWorkspace collabData = new CodeServerWorkspace();
-					collabData.setDescription(entity.getData().getDescription());
-					collabData.setGitUserName(collaborator.getGitUserName());
-					collabData.setIntiatedOn(null);
-					collabData.setProjectDetails(entity.getData().getProjectDetails());
-					collabData.setStatus(ConstantsUtility.COLLABREQUESTEDSTATE);
-					Long collabWsSeqId = jpaRepo.getNextWorkspaceSeqId();
-					String collabWsId = ConstantsUtility.WORKSPACEPREFIX + String.valueOf(collabWsSeqId);
-					collabData.setWorkspaceId(collabWsId);
-					UserInfo collabUser = workspaceAssembler.toUserInfo(collaborator);
-					collabData.setWorkspaceOwner(collabUser);
-					collabData.setWorkspaceUrl("");
-					collabEntity.setId(null);
-					collabEntity.setData(collabData);
-					entities.add(collabEntity);
-				}
-			}
-			jpaRepo.saveAllAndFlush(entities);
-			CodeServerWorkspaceNsql savedOwnerEntity = workspaceCustomRepository.findbyProjectName(projectOwnerId, projectName);
-			CodeServerWorkspaceVO savedOwnerVO = workspaceAssembler.toVo(savedOwnerEntity);			
-			responseVO.setData(savedOwnerVO);
-		}
 			jpaRepo.save(entity);
 			responseVO.setData(workspaceAssembler.toVo(entity));
 			responseVO.setErrors(new ArrayList<>());
@@ -561,12 +527,16 @@ public class BaseWorkspaceService implements WorkspaceService {
 
 				// initialize repo
 				if (!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase()
-						.startsWith("private")) {
+						.startsWith("private") &&
+						!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase()
+						.equalsIgnoreCase("default")
+						&& !vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase()
+								.startsWith("bat")) {
 					repoName = vo.getProjectDetails().getGitRepoName();
-					if (!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase()
-							.equalsIgnoreCase("default")
-							&& !vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase()
-									.startsWith("bat")) {
+//					if (!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase()
+//							.equalsIgnoreCase("default")
+//							&& !vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase()
+//									.startsWith("bat")) {
 						HttpStatus createRepoStatus = gitClient.createRepo(repoName);
 						if (!createRepoStatus.is2xxSuccessful()) {
 							MessageDescription errMsg = new MessageDescription(
@@ -577,13 +547,15 @@ public class BaseWorkspaceService implements WorkspaceService {
 							responseVO.setErrors(errors);
 							return responseVO;
 						}
-					}
+//					}
 
 					// create repo success, adding collabs
 
 					gitUsers.add(owner.getGitUserName());
-					if (!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase()
-							.equalsIgnoreCase("default")) {
+//					if (!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase()
+//							.equalsIgnoreCase("default")
+//							&& !vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase()
+//							.startsWith("bat")) {
 						collabs = vo.getProjectDetails().getProjectCollaborators();
 						if (collabs != null && !collabs.isEmpty()) {
 							List<String> collabsGitUserNames = collabs.stream().map(n -> n.getGitUserName())
@@ -625,7 +597,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 								 */
 							}
 						}
-					}
+//					}
 				}
 			} else {
 				// repoName = vo.getProjectDetails().getRecipeDetails().getRepodetails();
@@ -679,29 +651,41 @@ public class BaseWorkspaceService implements WorkspaceService {
 						(createOwnerWSResponse.getErrors() != null && !createOwnerWSResponse.getErrors().isEmpty()) ||
 						(createOwnerWSResponse.getWarnings() != null
 								&& !createOwnerWSResponse.getWarnings().isEmpty())) {
-					if (!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase()
-							.startsWith("public")) {
-						HttpStatus deleteRepoStatus = gitClient.deleteRepo(repoName);
-						if (!deleteRepoStatus.is2xxSuccessful()) {
-							MessageDescription errMsg = new MessageDescription("Created git repository " + repoName
-									+ " successfully and added collaborator(s). Failed to initialize workbench. Deleted repository successfully, please retry");
-							errors.add(errMsg);
-							errors.addAll(createOwnerWSResponse.getErrors());
-							warnings.addAll(createOwnerWSResponse.getWarnings());
-							responseVO.setErrors(errors);
-							responseVO.setWarnings(warnings);
-							return responseVO;
-						} else {
-							MessageDescription errMsg = new MessageDescription("Created git repository " + repoName
-									+ " successfully and added collaborator(s). Failed to initialize workbench. Unable to delete repository, please delete repository manually and retry");
-							errors.add(errMsg);
-							errors.addAll(createOwnerWSResponse.getErrors());
-							warnings.addAll(createOwnerWSResponse.getWarnings());
-							responseVO.setErrors(errors);
-							responseVO.setWarnings(warnings);
-							return responseVO;
-						}
-					}
+//					if (!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase()
+//							.startsWith("public")
+//							&& !vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase()
+//							.startsWith("private")
+//							&& !vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase()
+//							.startsWith("bat")) {
+//						HttpStatus deleteRepoStatus = gitClient.deleteRepo(repoName);
+//						if (!deleteRepoStatus.is2xxSuccessful()) {
+//							MessageDescription errMsg = new MessageDescription("Created git repository " + repoName
+//									+ " successfully and added collaborator(s). Failed to initialize workbench, Unable to delete repository, please delete repository manually and retry");
+//							errors.add(errMsg);
+//							errors.addAll(createOwnerWSResponse.getErrors());
+//							warnings.addAll(createOwnerWSResponse.getWarnings());
+//							responseVO.setErrors(errors);
+//							responseVO.setWarnings(warnings);
+//							return responseVO;
+//						} else {
+//							MessageDescription errMsg = new MessageDescription("Created git repository " + repoName
+//									+ " successfully and added collaborator(s). Failed to initialize workbench. Deleted repository, please retry creating codespace again");
+//							errors.add(errMsg);
+//							errors.addAll(createOwnerWSResponse.getErrors());
+//							warnings.addAll(createOwnerWSResponse.getWarnings());
+//							responseVO.setErrors(errors);
+//							responseVO.setWarnings(warnings);
+//							return responseVO;
+//						}
+//					}
+					
+					MessageDescription errMsg = new MessageDescription("Failed to initialize workbench. Please retry creating codespace again");
+					errors.add(errMsg);
+					errors.addAll(createOwnerWSResponse.getErrors());
+					warnings.addAll(createOwnerWSResponse.getWarnings());
+					responseVO.setErrors(errors);
+					responseVO.setWarnings(warnings);
+					return responseVO;
 				}
 			}
 
@@ -710,9 +694,10 @@ public class BaseWorkspaceService implements WorkspaceService {
 			String projectName = ownerEntity.getData().getProjectDetails().getProjectName();
 			ownerEntity.getData().setIntiatedOn(now);
 			ownerEntity.getData().setStatus(ConstantsUtility.CREATEREQUESTEDSTATE);
-			ownerEntity.getData().setWorkspaceUrl("");// set url
+			ownerEntity.getData().setWorkspaceUrl("");
 			ownerEntity.getData().getProjectDetails().setProjectCreatedOn(now);
 			if (vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public") ||
+					vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("private") ||
 					vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().equalsIgnoreCase("default")
 					|| vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("bat")) {
 				ownerEntity.getData().getProjectDetails().setProjectCollaborators(new ArrayList<>());
@@ -978,7 +963,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 		if (isProjectOwner) {
 			String projectName = entity.getData().getProjectDetails().getProjectName();
 			String technincalId = workspaceCustomRepository.getWorkspaceTechnicalId(removeUserId, projectName);
-			if (technincalId.isEmpty() || technincalId == null) {
+			if (technincalId=="" || technincalId.isEmpty() || technincalId == null) {
 				log.error("No collaborator details found.");
 				MessageDescription msg = new MessageDescription("No collaborator details found.");
 				errors.add(msg);
@@ -1010,11 +995,14 @@ public class BaseWorkspaceService implements WorkspaceService {
 		CodeServerWorkspaceNsql entity = workspaceCustomRepository.findById(userId, vo.getId());
 		boolean isProjectOwner = false;
 
-		if (vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public")) {
-			log.error("Cannot add collaborator for this project {} of recipe type - Public "
-					+ entity.getData().getWorkspaceId());
+		if (vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public")
+				|| vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("private") 
+				|| vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().equalsIgnoreCase("default")
+				|| vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("bat")) {
+			log.error("Cannot add collaborator for this project {} of recipe type - {} "
+					+ entity.getData().getWorkspaceId(), vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase());
 			MessageDescription msg = new MessageDescription(
-					"Cannot add collaborator for projects of recipe type - Public.");
+					"Cannot add collaborator for projects of recipe type -" + vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase() + " .");
 			errors.add(msg);
 			responseMessage.setErrors(errors);
 			return responseMessage;
@@ -1027,15 +1015,28 @@ public class BaseWorkspaceService implements WorkspaceService {
 		if (isProjectOwner) {
 			try {
 				String repoName = entity.getData().getProjectDetails().getGitRepoName();
-				// CodeServerWorkspaceNsql ownerEntity = workspaceAssembler.toEntity(vo);
 				String projectName = entity.getData().getProjectDetails().getProjectName();
 
 				UserInfo collaborator = new UserInfo();
 				BeanUtils.copyProperties(userRequestDto, collaborator);
 
 				String gitUser = userRequestDto.getGitUserName();
-				HttpStatus addGitUser = gitClient.addUserToRepo(gitUser, repoName);
-				if (addGitUser.is2xxSuccessful()) {
+				if(! (vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public")
+						|| vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("private") 
+						|| vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().equalsIgnoreCase("default")
+						|| vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("bat"))) {
+					HttpStatus addGitUser = gitClient.addUserToRepo(gitUser, repoName);
+					if (!addGitUser.is2xxSuccessful()) {
+						log.info("Failed while adding {} as collaborator with status {}", repoName,
+								userRequestDto.getGitUserName(), addGitUser.name());
+						MessageDescription errMsg = new MessageDescription(
+								"Failed while adding " + userRequestDto.getGitUserName() + " as collaborator . Please make "
+										+ userRequestDto.getGitUserName()
+										+ " is valid git user and add this user manually in the git repo.");
+						warnings.add(errMsg);
+					}
+				}
+					responseMessage.setWarnings(warnings);
 					CodeServerWorkspaceNsql collabEntity = new CodeServerWorkspaceNsql();
 					CodeServerWorkspace collabData = new CodeServerWorkspace();
 					collabData.setDescription(entity.getData().getDescription());
@@ -1055,18 +1056,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 					jpaRepo.save(collabEntity);
 					workspaceCustomRepository.updateCollaboratorDetails(projectName, collaborator, false);
 					responseMessage.setSuccess("SUCCESS");
-				} else {
-					log.info("Failed while adding {} as collaborator with status {}", repoName,
-							userRequestDto.getGitUserName(), addGitUser.name());
-					MessageDescription errMsg = new MessageDescription(
-							"Failed while adding " + userRequestDto.getGitUserName() + " as collaborator . Please make "
-									+ userRequestDto.getGitUserName()
-									+ " is valid git user. Unable to delete repository because of "
-									+ ", please delete repository manually and retry");
-					errors.add(errMsg);
-					responseVO.setErrors(errors);
-					return responseVO;
-				}
+				
 			} catch (Exception e) {
 				log.error("Failed to add collaborator details as requested with Exception: {} ", e.getMessage());
 				MessageDescription msg = new MessageDescription("Failed to add collaborator details");
@@ -1171,6 +1161,14 @@ public class BaseWorkspaceService implements WorkspaceService {
 		CodeServerWorkspaceNsql entity = workspaceCustomRepository.findbyProjectName(userId, projectName);
 		return workspaceAssembler.toVo(entity);
 	}
+	
+	@Override
+	public CodeServerWorkspaceVO getByProjectName(String projectName) {
+		CodeServerWorkspaceNsql entity = workspaceCustomRepository.findbyProjectName(projectName);
+		return workspaceAssembler.toVo(entity);
+	}
+	
+	
 
 	@Override
 	@Transactional
