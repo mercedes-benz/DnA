@@ -79,4 +79,6 @@ public interface WorkspaceService {
 
 	GenericMessage updateGovernancenceValues(String userId, String id,
 			@Valid DataGovernanceRequestInfo dataGovernanceInfo);
+
+	CodeServerWorkspaceVO getByProjectName(String projectName);
 }

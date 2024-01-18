@@ -29,79 +29,75 @@
 
  import java.text.SimpleDateFormat;
 import java.util.ArrayList;
- import java.util.List;
- import java.util.Objects;
- import java.util.stream.Collectors;
- import java.util.Date;
- 
- import javax.persistence.EntityNotFoundException;
-import javax.print.attribute.standard.DateTimeAtCompleted;
+import java.util.Date;
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
+
+import javax.persistence.EntityNotFoundException;
 import javax.validation.Valid;
- 
- import org.springframework.beans.BeanUtils;
- import org.springframework.beans.factory.annotation.Autowired;
- import org.springframework.http.HttpStatus;
- import org.springframework.http.ResponseEntity;
+
+import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.util.ObjectUtils;
 import org.springframework.web.bind.annotation.PathVariable;
- import org.springframework.web.bind.annotation.RequestBody;
- import org.springframework.web.bind.annotation.RequestMapping;
- import org.springframework.web.bind.annotation.RequestMethod;
- import org.springframework.web.bind.annotation.RequestParam;
- import org.springframework.web.bind.annotation.RestController;
- 
- import com.daimler.data.api.workspace.CodeServerApi;
- import com.daimler.data.api.workspace.admin.CodeServerAdminApi;
- import com.daimler.data.application.auth.UserStore;
- import com.daimler.data.application.auth.UserStore.UserRole;
- import com.daimler.data.application.client.GitClient;
- import com.daimler.data.assembler.WorkspaceAssembler;
- import com.daimler.data.auth.client.DnaAuthClient;
- import com.daimler.data.auth.client.UserRequestVO;
- import com.daimler.data.controller.exceptions.GenericMessage;
- import com.daimler.data.controller.exceptions.MessageDescription;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.daimler.data.api.workspace.CodeServerApi;
+import com.daimler.data.api.workspace.admin.CodeServerAdminApi;
+import com.daimler.data.application.auth.UserStore;
+import com.daimler.data.application.client.GitClient;
+import com.daimler.data.assembler.WorkspaceAssembler;
+import com.daimler.data.auth.client.DnaAuthClient;
+import com.daimler.data.auth.client.UserRequestVO;
+import com.daimler.data.controller.exceptions.GenericMessage;
+import com.daimler.data.controller.exceptions.MessageDescription;
 import com.daimler.data.db.entities.CodeServerWorkspaceNsql;
-import com.daimler.data.db.json.CodespaceSecurityEntitlement;
 import com.daimler.data.db.repo.workspace.WorkspaceCustomRepository;
 import com.daimler.data.dto.workspace.CodeServerDeploymentDetailsVO;
- import com.daimler.data.dto.workspace.CodeServerProjectDetailsVO;
- import com.daimler.data.dto.workspace.CodeServerRecipeDetailsVO;
- import com.daimler.data.dto.workspace.CodeServerRecipeDetailsVO.CloudServiceProviderEnum;
- import com.daimler.data.dto.workspace.CodeServerRecipeDetailsVO.CpuCapacityEnum;
- import com.daimler.data.dto.workspace.CodeServerRecipeDetailsVO.EnvironmentEnum;
- import com.daimler.data.dto.workspace.CodeServerRecipeDetailsVO.OperatingSystemEnum;
- import com.daimler.data.dto.workspace.CodeServerRecipeDetailsVO.RamSizeEnum;
- import com.daimler.data.dto.workspace.CodeServerWorkspaceVO;
- import com.daimler.data.dto.workspace.CodeServerWorkspaceValidateVO;
+import com.daimler.data.dto.workspace.CodeServerRecipeDetailsVO;
+import com.daimler.data.dto.workspace.CodeServerRecipeDetailsVO.CloudServiceProviderEnum;
+import com.daimler.data.dto.workspace.CodeServerRecipeDetailsVO.CpuCapacityEnum;
+import com.daimler.data.dto.workspace.CodeServerRecipeDetailsVO.EnvironmentEnum;
+import com.daimler.data.dto.workspace.CodeServerRecipeDetailsVO.OperatingSystemEnum;
+import com.daimler.data.dto.workspace.CodeServerRecipeDetailsVO.RamSizeEnum;
+import com.daimler.data.dto.workspace.CodeServerWorkspaceVO;
+import com.daimler.data.dto.workspace.CodeServerWorkspaceValidateVO;
+import com.daimler.data.dto.workspace.CodespaceSecurityConfigLOV;
 import com.daimler.data.dto.workspace.CodespaceSecurityConfigVO;
- import com.daimler.data.dto.workspace.CodespaceSecurityConfigLOV;
- import com.daimler.data.dto.workspace.CodespaceSecurityEntitlementVO;
- import com.daimler.data.dto.workspace.CodespaceSecurityRoleVO;
- import com.daimler.data.dto.workspace.CreatedByVO;
+import com.daimler.data.dto.workspace.CodespaceSecurityEntitlementVO;
+import com.daimler.data.dto.workspace.CodespaceSecurityRoleVO;
+import com.daimler.data.dto.workspace.CreatedByVO;
 import com.daimler.data.dto.workspace.DataGovernanceRequestInfo;
 import com.daimler.data.dto.workspace.EntitlementCollectionVO;
- import com.daimler.data.dto.workspace.InitializeCollabWorkspaceRequestVO;
- import com.daimler.data.dto.workspace.InitializeWorkspaceRequestVO;
- import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
- import com.daimler.data.dto.workspace.ManageDeployRequestDto;
- import com.daimler.data.dto.workspace.RoleCollectionVO;
- import com.daimler.data.dto.workspace.SecurityConfigRequestDto;
- import com.daimler.data.dto.workspace.SecurityConfigResponseDto;
- import com.daimler.data.dto.workspace.TransparencyVO;
- import com.daimler.data.dto.workspace.UserIdVO;
- import com.daimler.data.dto.workspace.UserInfoVO;
- import com.daimler.data.dto.workspace.WorkspaceCollectionVO;
- import com.daimler.data.dto.workspace.admin.CodespaceSecurityConfigCollectionVO;
- import com.daimler.data.dto.workspace.admin.CodespaceSecurityConfigDetailsVO;
- import com.daimler.data.service.workspace.WorkspaceService;
- import com.daimler.data.util.ConstantsUtility;
- 
- import io.swagger.annotations.Api;
- import io.swagger.annotations.ApiOperation;
- import io.swagger.annotations.ApiParam;
- import io.swagger.annotations.ApiResponse;
- import io.swagger.annotations.ApiResponses;
- import lombok.extern.slf4j.Slf4j;
+import com.daimler.data.dto.workspace.InitializeCollabWorkspaceRequestVO;
+import com.daimler.data.dto.workspace.InitializeWorkspaceRequestVO;
+import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
+import com.daimler.data.dto.workspace.ManageDeployRequestDto;
+import com.daimler.data.dto.workspace.RoleCollectionVO;
+import com.daimler.data.dto.workspace.SecurityConfigRequestDto;
+import com.daimler.data.dto.workspace.SecurityConfigResponseDto;
+import com.daimler.data.dto.workspace.TransparencyVO;
+import com.daimler.data.dto.workspace.UserIdVO;
+import com.daimler.data.dto.workspace.UserInfoVO;
+import com.daimler.data.dto.workspace.WorkspaceCollectionVO;
+import com.daimler.data.dto.workspace.admin.CodespaceSecurityConfigCollectionVO;
+import com.daimler.data.dto.workspace.admin.CodespaceSecurityConfigDetailsVO;
+import com.daimler.data.service.workspace.WorkspaceService;
+import com.daimler.data.util.ConstantsUtility;
+
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
+import lombok.extern.slf4j.Slf4j;
  
  @RestController
  @Api(value = "Workspace API", tags = { "code-server" })
@@ -161,8 +157,7 @@ import com.daimler.data.dto.workspace.EntitlementCollectionVO;
 			 return new ResponseEntity<>(emptyResponse, HttpStatus.NOT_FOUND);
 		 }
  
-		 if (!(vo != null && vo.getWorkspaceOwner() != null
-				 && vo.getWorkspaceOwner().getId().equalsIgnoreCase(currentUserUserId))) {
+		 if (!vo.getProjectDetails().getProjectOwner().getId().equalsIgnoreCase(currentUserUserId)) {
 			 MessageDescription notAuthorizedMsg = new MessageDescription();
 			 notAuthorizedMsg.setMessage(
 					 "Not authorized to update workspace. User does not have privileges.");
@@ -188,7 +183,7 @@ import com.daimler.data.dto.workspace.EntitlementCollectionVO;
 		 if (isCollabroratorAlreadyExits) {
 			 responseMessage = service.removeCollabById(currentUserUserId, vo, userid);
 		 } else {
-			 log.error("User is not part of a collaborator list");
+			 log.error("Invalid user {} for project {} removal, user not part of collaborators or user is owner. ",userid, vo.getProjectDetails().getProjectName() );
 			 GenericMessage emptyResponse = new GenericMessage();
 			 List<MessageDescription> errors = new ArrayList<>();
 			 MessageDescription msg = new MessageDescription();
@@ -236,8 +231,7 @@ import com.daimler.data.dto.workspace.EntitlementCollectionVO;
 			 return new ResponseEntity<>(emptyResponse, HttpStatus.NOT_FOUND);
 		 }
  
-		 if (!(vo != null && vo.getWorkspaceOwner() != null
-				 && vo.getWorkspaceOwner().getId().equalsIgnoreCase(userId))) {
+		 if (!vo.getProjectDetails().getProjectOwner().getId().equalsIgnoreCase(userId)) {
 			 MessageDescription notAuthorizedMsg = new MessageDescription();
 			 notAuthorizedMsg.setMessage(
 					 "Not authorized to update workspace. User does not have privileges.");
@@ -260,12 +254,12 @@ import com.daimler.data.dto.workspace.EntitlementCollectionVO;
 			 }
 		 }
  
-		 if (isCollabroratorAlreadyExits || userRequestDto.getId() == null) {
+		 if (isCollabroratorAlreadyExits || userRequestDto.getId() == null || userId.equalsIgnoreCase(userRequestDto.getId())) {
 			 log.error("User is already part of a collaborator");
 			 GenericMessage emptyResponse = new GenericMessage();
 			 List<MessageDescription> errors = new ArrayList<>();
 			 MessageDescription msg = new MessageDescription();
-			 msg.setMessage("User is already part of a collaborator");
+			 msg.setMessage("Invalid User, Please make sure that User is not empty and is not already part of project. Bad request");
 			 errors.add(msg);
 			 emptyResponse.setErrors(errors);
 			 emptyResponse.setSuccess("FAILED");
@@ -440,7 +434,7 @@ import com.daimler.data.dto.workspace.EntitlementCollectionVO;
 			 String ownerUserId = collabUserVO.getProjectDetails().getProjectOwner().getId();
 			 String projectName = collabUserVO.getProjectDetails().getProjectName();
 			 CodeServerWorkspaceVO ownerCodespaceVO = service.getByProjectName(ownerUserId, projectName);
-			 if(!ownerCodespaceVO.getStatus().toUpperCase().equalsIgnoreCase(ConstantsUtility.CREATEDSTATE)) {
+			 if(ownerCodespaceVO!= null && (!ownerCodespaceVO.getStatus().toUpperCase().equalsIgnoreCase(ConstantsUtility.CREATEDSTATE) && !ownerCodespaceVO.getWorkspaceId().equalsIgnoreCase(collabUserVO.getWorkspaceId()))) {
 				 MessageDescription errMsg = new MessageDescription("Cannot intialize collaborator workbench as owner's codespace is not created yet. ");
 				 errors.add(errMsg);
 				 responseMessage.setErrors(errors);
@@ -563,7 +557,7 @@ import com.daimler.data.dto.workspace.EntitlementCollectionVO;
 		 String userId = currentUser != null ? currentUser.getId() : null;
 		 CodeServerWorkspaceVO reqVO = codeServerRequestVO.getData();
 		 String pat = codeServerRequestVO.getPat();
-		 CodeServerWorkspaceVO existingVO = service.getByProjectName(userId, reqVO.getProjectDetails().getProjectName());
+		 CodeServerWorkspaceVO existingVO = service.getByProjectName(reqVO.getProjectDetails().getProjectName());
 		 if (existingVO != null && existingVO.getWorkspaceId() != null) {
 			 responseMessage.setData(existingVO);
 			 responseMessage.setSuccess("EXISTING");
@@ -573,15 +567,15 @@ import com.daimler.data.dto.workspace.EntitlementCollectionVO;
 		 if (reqVO.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public")
 				 || reqVO.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase()
 						 .startsWith("private")) {
-			 String githubUrl = reqVO.getProjectDetails().getRecipeDetails().getRepodetails();
-			 String[] url = githubUrl.split(",");
+			 String gitUrl = reqVO.getProjectDetails().getRecipeDetails().getRepodetails();
+			 String[] url = gitUrl.split(",");
 			 if (Objects.nonNull(url) && url.length == 1) {
 				 log.info("Inside newUrl split block, adding default parameter to clone the project completely");
-				 githubUrl = githubUrl + "/*";
-				 log.info(githubUrl);
-				 reqVO.getProjectDetails().getRecipeDetails().setRepodetails(githubUrl);
+				 gitUrl = gitUrl + "/*";
+				 log.info(gitUrl);
+				 reqVO.getProjectDetails().getRecipeDetails().setRepodetails(gitUrl);
 			 }
-			 if ("".equals(githubUrl) || githubUrl == null) {
+			 if ("".equals(gitUrl) || gitUrl == null) {
 				 List<MessageDescription> errorMessage = new ArrayList<>();
 				 MessageDescription msg = new MessageDescription();
 				 msg.setMessage("No Repodetails found for given public/private recipe");
@@ -600,6 +594,7 @@ import com.daimler.data.dto.workspace.EntitlementCollectionVO;
 		 reqVO.getProjectDetails().setIntDeploymentDetails(new CodeServerDeploymentDetailsVO());
 		 reqVO.getProjectDetails().setProjectOwner(currentUserVO);
 		 reqVO.getProjectDetails().setProdDeploymentDetails(new CodeServerDeploymentDetailsVO());
+		 reqVO.getProjectDetails().setSecurityConfig(new CodespaceSecurityConfigVO());
 		 CodeServerRecipeDetailsVO newRecipeVO = reqVO.getProjectDetails().getRecipeDetails();
 		 newRecipeVO.setCloudServiceProvider(CloudServiceProviderEnum.DHC_CAAS);
 		 newRecipeVO.setCpuCapacity(CpuCapacityEnum._1);
@@ -667,6 +662,15 @@ import com.daimler.data.dto.workspace.EntitlementCollectionVO;
 				 errorMessage.addWarnings(notAuthorizedMsg);
 				 log.info("User {} already requested delete workspace {}", userId, vo.getWorkspaceId());
 				 return new ResponseEntity<>(errorMessage, HttpStatus.OK);
+			 }
+			 if (("CREATE_REQUESTED".equalsIgnoreCase(vo.getStatus())) || ("COLLABORATION_REQUESTED".equalsIgnoreCase(vo.getStatus()))){
+				 MessageDescription notAuthorizedMsg = new MessageDescription();
+				 notAuthorizedMsg.setMessage(
+						 "Cannot delete codespace as its not created yet. Bad Request");
+				 GenericMessage errorMessage = new GenericMessage();
+				 errorMessage.addWarnings(notAuthorizedMsg);
+				 log.info("Cannot delete workspace {} as its not created yet. Bad Request", vo.getWorkspaceId());
+				 return new ResponseEntity<>(errorMessage, HttpStatus.BAD_REQUEST);
 			 }
 			 if (vo != null && vo.getProjectDetails().getProjectOwner() != null
 					 && vo.getProjectDetails().getProjectOwner().getId().equalsIgnoreCase(userId)
@@ -1548,8 +1552,7 @@ import com.daimler.data.dto.workspace.EntitlementCollectionVO;
 			return new ResponseEntity<>(emptyResponse, HttpStatus.NOT_FOUND);
 		}
 
-		if (!(vo != null && vo.getWorkspaceOwner() != null
-				&& vo.getWorkspaceOwner().getId().equalsIgnoreCase(userId))) {
+		if (!vo.getProjectDetails().getProjectOwner().getId().equalsIgnoreCase(userId)) {
 			MessageDescription notAuthorizedMsg = new MessageDescription();
 			notAuthorizedMsg.setMessage(
 					"Not authorized to update workspace. User does not have privileges.");
