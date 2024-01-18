@@ -21,9 +21,9 @@ const DataProducts = ({ user, history, hostHistory }) => {
 
   const [cardViewMode, setCardViewMode] = useState(true);
   const [listViewMode, setListViewMode] = useState(false);
-  const [isProviderCreatorFilter, 
-    setIsProviderCreatorFilter
-  ] = useState(localStorage.getItem(LOCAL_STORAGE_KEYS.MY_DATATRANSFER_FILTER));
+  const [isProviderCreatorFilter, setIsProviderCreatorFilter] = useState(
+    localStorage.getItem(LOCAL_STORAGE_KEYS.MY_DATATRANSFER_FILTER)
+  );
 
   useEffect(() => {
     dispatch(GetDataTransfers(isProviderCreatorFilter));
