@@ -1,10 +1,10 @@
 import classNames from 'classnames';
 import React, { useEffect } from 'react';
 import { useForm, FormProvider } from "react-hook-form";
-import Styles from './column-form.scss';
+import Styles from './edit-table-form.scss';
 import SelectBox from 'dna-container/SelectBox';
 
-const ColumnForm = (props) => {
+const EditTableForm = (props) => {
   const methods = useForm();
   const {
     register,
@@ -12,11 +12,11 @@ const ColumnForm = (props) => {
     formState: { errors },
   } = methods;
   
-  const { dataTypes, onAddColumn, onEditColumn, edit, column } = props;
+  const { formats, onEditTable, table } = props;
 
   useEffect(() => {
     SelectBox.defaultSetup();
-  }, [dataTypes]);
+  }, [formats]);
 
   return (
     <FormProvider {...methods} >
@@ -26,40 +26,40 @@ const ColumnForm = (props) => {
               <div className={Styles.flexLayout}>
               <div className={classNames('input-field-group include-error')}>
                   <label className={classNames(Styles.inputLabel, 'input-label')}>
-                  Name <sup>*</sup>
+                  Table Name <sup>*</sup>
                   </label>
                   <div>
                   <input
                       type="text"
                       className={classNames('input-field')}
-                      id={`columnName`}
-                      {...register(`columnName`, { required: '*Missing entry' })}
+                      id={`tableName`}
+                      {...register(`tableName`, { required: '*Missing entry' })}
                       placeholder="Type here"
                       autoComplete="off"
                       maxLength={55}
-                      defaultValue={edit ? column?.columnName : ''}
+                      defaultValue={table?.tableName}
                   />
-                  <span className={classNames('error-message')}>{errors?.columnName?.message}</span>
+                  <span className={classNames('error-message')}>{errors?.tableName?.message}</span>
                   </div>
               </div>
               <div className={Styles.configurationContainer}>
                   <div className={classNames('input-field-group include-error')}>
                   <label id="typeLabel" 
-                  htmlFor={`dataType`} 
+                  htmlFor={`dataFormat`} 
                   className="input-label">
-                      Type <sup>*</sup>
+                      Format <sup>*</sup>
                   </label>
                   <div className="custom-select">
                       <select 
-                        id={`dataType`} 
-                        {...register('dataType')}
-                        defaultValue={edit ? column?.dataType : 'BOOLEAN'}
+                        id={`dataFormat`} 
+                        {...register('dataFormat')}
+                        defaultValue={table?.dataFormat}
                       >
-                      {dataTypes.length > 0 && 
-                          dataTypes?.map((datatype) => {
+                      {formats.length > 0 && 
+                          formats?.map((format) => {
                           return (
-                          <option id={datatype} key={datatype} value={datatype}>
-                              {datatype}
+                          <option id={format} key={format} value={format}>
+                              {format}
                           </option>
                           )
                       })}
@@ -68,51 +68,33 @@ const ColumnForm = (props) => {
                   </div>
               </div>
               </div>
-              <div className={Styles.flexLayout}>
               <div className={classNames('input-field-group')}>
                   <label className={classNames(Styles.inputLabel, 'input-label')}>
-                  Comment
+                  Table Comment <sup>*</sup>
                   </label>
                   <div>
                   <input
                       type="text"
                       className={classNames('input-field')}
-                      id={`comment`} 
-                      {...register(`comment`)}
+                      id={`description`} 
+                      {...register(`description`, { required: '*Missing entry' })}
                       placeholder="Type here"
                       autoComplete="off"
                       maxLength={55}
-                      defaultValue={edit ? column?.comment : ''}
+                      defaultValue={table?.description}
                   />
                   </div>
-              </div>
-              <div className={classNames('input-field-group')}>
-                  <label className={classNames(Styles.inputLabel, 'input-label')}>
-                  Constraint
-                  </label>
-                  <div>
-                  <label className="checkbox">
-                      <span className="wrapper">
-                      <input type="checkbox" className="ff-only" 
-                        id={`notNullConstraintEnabled`} 
-                        {...register(`notNullConstraintEnabled`)}
-                        defaultChecked={edit ? column?.notNullConstraintEnabled : true}
-                      />
-                      </span>
-                      <span className="label">Not Null</span>
-                  </label>
-                  </div>
-              </div>
+                  <span className={classNames('error-message')}>{errors?.description?.message}</span>
               </div>
               <div className={Styles.btnContainer}>
                 <button
                   className="btn btn-tertiary"
                   type="button"
                   onClick={handleSubmit((values) => {
-                    edit ? onEditColumn(values) : onAddColumn(values);
+                    onEditTable(values);
                   })}
                 >
-                  {edit ? 'Update Column' : 'Add Column'}
+                  Update Table
                 </button>
               </div>
           </div>
@@ -121,4 +103,4 @@ const ColumnForm = (props) => {
   );
 }
 
-export default ColumnForm;
+export default EditTableForm;

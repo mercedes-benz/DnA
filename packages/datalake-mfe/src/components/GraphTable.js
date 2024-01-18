@@ -18,7 +18,7 @@ import { setTables } from '../redux/graphSlice';
  */
 const GraphTable = (props) => {
     const dispatch = useDispatch();
-    const { table, onTableMouseDown, onGripMouseDown, tableSelectedId, setTableSelectId, onDeleteTable, onAddColumn, onEditColumn, isOwner } = props;
+    const { table, onTableMouseDown, onGripMouseDown, tableSelectedId, setTableSelectId, onDeleteTable, onAddColumn, onEditColumn, onEditTable, isOwner } = props;
     const { project } = useSelector(state => state.graph);
 
     useEffect(() => {
@@ -38,13 +38,13 @@ const GraphTable = (props) => {
         const tempTable = {...table};
         const columns = [...tempTable.columns];
         columns.splice(index, 1);
-        delete tempTable.columns;
         tempTable.columns = [...columns];
 
         const projectTemp = {...project};
-        const tempTables = projectTemp.tables.filter(item => item.tableName !== tempTable.tableName);
-        projectTemp.tables = [...tempTables, tempTable];
-        dispatch(setTables(projectTemp.tables));
+        const tableIndex = projectTemp.tables.findIndex(item => item.tableName === tempTable.tableName);
+        let newTables = [...projectTemp.tables];
+        newTables[tableIndex] = {...newTables[tableIndex], columns: [...columns]};
+        dispatch(setTables(newTables));
     }
 
     // 12: box-shadow
@@ -87,7 +87,7 @@ const GraphTable = (props) => {
                                 <i className="icon mbc-icon profile"></i>
                             </button>
                             <button 
-                            // onClick={() => dispatch(setEditingTable(table))}
+                                onClick={() => onEditTable(table)}
                                 tooltip-data={'Edit Table'}
                             >
                                 <i className="icon mbc-icon edit fill"></i>

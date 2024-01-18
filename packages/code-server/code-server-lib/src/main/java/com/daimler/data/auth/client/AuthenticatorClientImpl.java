@@ -3,6 +3,8 @@ package com.daimler.data.auth.client;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -262,24 +264,30 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 		return response;
 	}
 	
-	public void callingKongApis(String serviceName, String env, boolean apiRecipe) {
+	public void callingKongApis(String userId,String serviceName, String env, boolean apiRecipe) {
 		boolean kongApiForDeploymentURL = false;
-		String deploymentServiceName = "";
+		//String deploymentServiceName = "";
+		//String projectName = "";
 		CodeServerWorkspaceNsql workspaceNsql = null;
-		if(serviceName.contains(WORKSPACE_API) && Objects.nonNull(env)) {
+		String REGEX = "[w][s]\\d+";
+		Pattern pattern = Pattern.compile(REGEX);
+		Matcher matcher = pattern.matcher(serviceName);
+		boolean matches = matcher.matches();
+		if(!matches && Objects.nonNull(env) && Objects.nonNull(userId)) {
 			LOGGER.info("service is : {}",serviceName);	
 			LOGGER.info("env is : {}",env);
 			kongApiForDeploymentURL = true;
 			LOGGER.info("kongApiForDeploymentURL is :{}",kongApiForDeploymentURL);
-			String[] wsid = serviceName.split("-");
-			deploymentServiceName = wsid[0];
-			workspaceNsql = customRepository.findByWorkspaceId(deploymentServiceName);
+//			String[] wsid = serviceName.split("-");
+//			deploymentServiceName = wsid[0];
+			workspaceNsql = customRepository.findbyProjectName(userId, serviceName);
 		}
 		else {
 			workspaceNsql = customRepository.findByWorkspaceId(serviceName);
 		}
 		CodeServerDeploymentDetails intDeploymentDetails = workspaceNsql.getData().getProjectDetails().getIntDeploymentDetails();
 		CodeServerDeploymentDetails prodDeploymentDetails = workspaceNsql.getData().getProjectDetails().getProdDeploymentDetails();
+		//projectName = workspaceNsql.getData().getProjectDetails().getProjectName();
 		Boolean intSecureIAM = null;
 		Boolean prodSecureIAM = null;
 		if(Objects.nonNull(prodDeploymentDetails)) {
@@ -296,7 +304,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 		CreateServiceRequestVO createServiceRequestVO = new CreateServiceRequestVO();
 		CreateServiceVO createServiceVO = new CreateServiceVO();
 		if(kongApiForDeploymentURL) {					    		    
-			url = "http://" + deploymentServiceName + "-" + env + ".codespaces-apps:80";
+			url = "http://" + serviceName + "-" + env + ".codespaces-apps:80";
 		}
 		else {
 			url = "http://" + serviceName + ".code-server:8080";
@@ -309,15 +317,15 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 		List<String> hosts = new ArrayList();
 		List<String> paths = new ArrayList();
 		List<String> protocols = new ArrayList();
-		String currentPath = "/" + deploymentServiceName + "/" + env + "/api";
+		String currentPath = "/" + serviceName + "/" + env + "/api";
 		CreateRouteRequestVO createRouteRequestVO = new CreateRouteRequestVO();
 		CreateRouteVO createRouteVO = new CreateRouteVO();
 		if(kongApiForDeploymentURL) {
 			if(Objects.nonNull(intSecureIAM) && intSecureIAM) {
-				paths.add("/" + deploymentServiceName + "/" + "int" + "/api");
+				paths.add("/" + serviceName + "/" + "int" + "/api");
 			}
 			if(Objects.nonNull(prodSecureIAM) && prodSecureIAM) {
-				paths.add("/" + deploymentServiceName + "/" + "prod" + "/api");
+				paths.add("/" + serviceName + "/" + "prod" + "/api");
 			}
 			if(!(paths.contains(currentPath))) {
 				paths.add(currentPath);
@@ -336,6 +344,10 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 		createRouteVO.setPaths(paths);
 		createRouteVO.setProtocols(protocols);
 		createRouteVO.setStripPath(true);
+		for(String path:paths) {
+			System.out.println("paths are");
+			System.out.println(path);
+		}
 		createRouteRequestVO.setData(createRouteVO);
 		
 		//request for attaching plugin to service
@@ -532,7 +544,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 			String deleteServiceUri = authenticatorBaseUri + CREATE_SERVICE  +"/" + serviceName;
 			HttpHeaders headers = new HttpHeaders();
 			headers.set("Accept", "application/json");
-			headers.set("Content-Type", "application/x-www-form-urlencoded");
+			headers.set("Content-Type", "application/json");
 			HttpEntity entity = new HttpEntity<>(headers);
 			ResponseEntity<String> response = restTemplate.exchange(deleteServiceUri, HttpMethod.DELETE, entity, String.class);
 			if (response != null && response.hasBody()) {
@@ -554,14 +566,14 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 			message.setErrors(errors);
 			return message;
 			}
-			LOGGER.error("Exception occured while deleting service: {} details", serviceName);			
+			LOGGER.error("Exception: {} occured while deleting service: {} details",ex.getMessage(), serviceName);			
 			messageDescription.setMessage(ex.getMessage());
 			errors.add(messageDescription);
 			message.setErrors(errors);
 			return message;
 		}
 		catch(Exception e) {
-			LOGGER.error("Error while deleting service: {} details", serviceName);			
+			LOGGER.error("Error: {} while deleting service: {} details",e.getMessage(), serviceName);			
 			messageDescription.setMessage(e.getMessage());
 			errors.add(messageDescription);
 			errors.add(messageDescription);
@@ -582,7 +594,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 			String deleteRouteUri = authenticatorBaseUri + CREATE_SERVICE + "/" + serviceName + CREATE_ROUTE + "/" + routeName;
 			HttpHeaders headers = new HttpHeaders();
 			headers.set("Accept", "application/json");
-			headers.set("Content-Type", "application/x-www-form-urlencoded");
+			headers.set("Content-Type", "application/json");
 			HttpEntity entity = new HttpEntity<>(headers);
 			ResponseEntity<String> response = restTemplate.exchange(deleteRouteUri, HttpMethod.DELETE, entity, String.class);
 			if (response != null) {
@@ -604,14 +616,14 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 			message.setErrors(errors);
 			return message;
 			}
-			LOGGER.error("Exception occured while deleting route: {} details", routeName);			
+			LOGGER.error("Exception occured: {} while deleting route: {} details", ex.getMessage(),routeName);			
 			messageDescription.setMessage(ex.getMessage());
 			errors.add(messageDescription);
 			message.setErrors(errors);
 			return message;
 		}
 		catch(Exception e) {
-			LOGGER.error("Error while deleting route: {} details", routeName);			
+			LOGGER.error("Error occured: {} while deleting route: {} details", e.getMessage(),routeName);			
 			messageDescription.setMessage(e.getMessage());
 			errors.add(messageDescription);
 			errors.add(messageDescription);

@@ -15,6 +15,8 @@ import { CodeSpaceApiClient } from '../../../services/CodeSpaceApiClient';
 import ProgressIndicator from '../../../assets/modules/uilab/js/src/progress-indicator';
 import { IconGear } from 'components/icons/IconGear';
 import { USER_ROLE } from 'globals/constants';
+// @ts-ignore
+import Tooltip from '../../../assets/modules/uilab/js/src/tooltip';
 export interface IAllCodeSpacesProps {
   user: IUserInfo;
 }
@@ -56,6 +58,10 @@ const AllCodeSpaces = (props: IAllCodeSpacesProps) => {
   useEffect(() => {
     getCodeSpacesData();
   }, []);
+
+  useEffect(() => {
+    Tooltip.defaultSetup();
+  }, [codeSpaces]);
 
   // const onPaginationPreviousClick = () => {
   //   const currentPageNumberTemp = pagination.currentPageNumber - 1;

@@ -33,6 +33,8 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import com.daimler.data.dto.workspace.*;
@@ -137,6 +139,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 		CodeServerWorkspaceNsql entity = workspaceCustomRepository.findById(userId, id);
 
 		boolean isProjectOwner = false;
+		boolean isCodespaceDeployed = false;
 		String projectOwnerId = entity.getData().getProjectDetails().getProjectOwner().getId();
 		if (projectOwnerId.equalsIgnoreCase(userId)) {
 			isProjectOwner = true;
@@ -149,6 +152,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 					&& entity.getData().getProjectDetails().getIntDeploymentDetails().getLastDeployedBranch() != null
 					&& entity.getData().getProjectDetails().getIntDeploymentDetails()
 							.getLastDeploymentStatus() != null) {
+				isCodespaceDeployed = true;
 				String branch = entity.getData().getProjectDetails().getIntDeploymentDetails().getLastDeployedBranch();
 				DeploymentManageDto deploymentJobDto = new DeploymentManageDto();
 				DeploymentManageInputDto deployJobInputDto = new DeploymentManageInputDto();
@@ -190,6 +194,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 					&& entity.getData().getProjectDetails().getProdDeploymentDetails().getLastDeployedBranch() != null
 					&& entity.getData().getProjectDetails().getProdDeploymentDetails()
 							.getLastDeploymentStatus() != null) {
+				isCodespaceDeployed = true;
 				String branch = entity.getData().getProjectDetails().getProdDeploymentDetails().getLastDeployedBranch();
 				DeploymentManageDto deploymentJobDto = new DeploymentManageDto();
 				DeploymentManageInputDto deployJobInputDto = new DeploymentManageInputDto();
@@ -314,6 +319,57 @@ public class BaseWorkspaceService implements WorkspaceService {
 		workspaceCustomRepository.updateCollaboratorDetails(projectName, removeUser, true);
 		jpaRepo.save(entity);
 		// }
+		// Deleting Kong route
+		GenericMessage deleteRouteResponse = authenticatorClient.deleteRoute(entity.getData().getWorkspaceId(),
+				entity.getData().getWorkspaceId());
+		if (deleteRouteResponse != null && deleteRouteResponse.getSuccess().equalsIgnoreCase("Success"))
+			log.info("Kong route: {} deleted successfully", entity.getData().getWorkspaceId());
+		else {
+			if (deleteRouteResponse.getErrors() != null && deleteRouteResponse.getErrors().get(0) != null) {
+				log.info("Failed to delete the Kong route: {} with exception : {}", entity.getData().getWorkspaceId(),
+						deleteRouteResponse.getErrors().get(0).getMessage());
+			}
+		}
+
+		// Deleting Kong service
+		GenericMessage deleteServiceResponse = authenticatorClient.deleteService(entity.getData().getWorkspaceId());
+		if (deleteServiceResponse != null && deleteServiceResponse.getSuccess().equalsIgnoreCase("Success"))
+			log.info("Kong service: {} deleted successfully", entity.getData().getWorkspaceId());
+		else {
+			if (deleteServiceResponse.getErrors() != null && deleteServiceResponse.getErrors().get(0) != null) {
+				log.info("Failed to delete the Kong service: {} with exception : {}", entity.getData().getWorkspaceId(),
+						deleteServiceResponse.getErrors().get(0).getMessage());
+			}
+		}
+		// deleting kong route and service if codespace is deployed to staging/production
+		if (isCodespaceDeployed) {
+			String serviceName = entity.getData().getWorkspaceId() + "-api";
+			// Deleting Kong route
+			GenericMessage deployDeleteRouteResponse = authenticatorClient.deleteRoute(serviceName, serviceName);
+			if (deployDeleteRouteResponse != null && deployDeleteRouteResponse.getSuccess().equalsIgnoreCase("Success"))
+				log.info("Kong route: {} deleted successfully", serviceName);
+			else {
+				if (deployDeleteRouteResponse.getErrors() != null
+						&& deployDeleteRouteResponse.getErrors().get(0) != null) {
+					log.info("Failed to delete the Kong route: {} with exception : {}", serviceName,
+							deployDeleteRouteResponse.getErrors().get(0).getMessage());
+				}
+			}
+
+			// Deleting Kong service
+			GenericMessage deployDeleteServiceResponse = authenticatorClient.deleteService(serviceName);
+			if (deployDeleteServiceResponse != null
+					&& deployDeleteServiceResponse.getSuccess().equalsIgnoreCase("Success"))
+				log.info("Kong service: {} deleted successfully", serviceName);
+			else {
+				if (deployDeleteServiceResponse.getErrors() != null
+						&& deployDeleteServiceResponse.getErrors().get(0) != null) {
+					log.info("Failed to delete the Kong service: {} with exception : {}", serviceName,
+							deployDeleteServiceResponse.getErrors().get(0).getMessage());
+				}
+			}
+
+		}
 		responseMessage.setSuccess("SUCCESS");
 		responseMessage.setErrors(errors);
 		responseMessage.setWarnings(warnings);
@@ -331,14 +387,41 @@ public class BaseWorkspaceService implements WorkspaceService {
 		try {
 
 			CodeServerWorkspaceNsql entity = workspaceAssembler.toEntity(vo);
-
+			
+			String repoName = "";
+			String repoNameWithOrg = "";
+			List<UserInfoVO> collabs = vo.getProjectDetails().getProjectCollaborators();
+			boolean isOwner = false;
+			List<CodeServerWorkspaceNsql> entities = new ArrayList<>();
+			String projectName = vo.getProjectDetails().getProjectName();
+			if(vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public") || vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("private")
+					|| vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("bat")) {
+				repoName = vo.getProjectDetails().getRecipeDetails().getRepodetails();
+				repoNameWithOrg =  vo.getProjectDetails().getRecipeDetails().getRepodetails();
+			}
+			else {
+				repoName = vo.getProjectDetails().getGitRepoName();
+				repoNameWithOrg =  gitOrgUri + gitOrgName + "/" + repoName;
+			}
+			UserInfoVO projectOwner = vo.getProjectDetails().getProjectOwner();
+			UserInfoVO workspaceOwner = vo.getWorkspaceOwner();
+			String projectOwnerId = "";
 			// validate user pat
-			if (!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase()
-					.equalsIgnoreCase("default")) {
+			if (!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().equalsIgnoreCase("default") && 
+				!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public")) {
 				HttpStatus validateUserPatstatus = gitClient.validateGitPat(entity.getData().getGitUserName(), pat);
 				if (!validateUserPatstatus.is2xxSuccessful()) {
 					MessageDescription errMsg = new MessageDescription(
 							"Invalid GitHub Personal Access Token provided. Please verify and retry.");
+					errors.add(errMsg);
+					responseVO.setErrors(errors);
+					return responseVO;
+				}
+			}
+			else {
+				HttpStatus publicGitPatStatus = gitClient.validatePublicGitPat(entity.getData().getGitUserName(), pat, repoName);
+				if(!publicGitPatStatus.is2xxSuccessful()) {
+					MessageDescription errMsg = new MessageDescription("Invalid Personal Access Token. Please verify and retry");
 					errors.add(errMsg);
 					responseVO.setErrors(errors);
 					return responseVO;
@@ -351,10 +434,15 @@ public class BaseWorkspaceService implements WorkspaceService {
 			ownerWorkbenchCreateInputsDto.setAction(ConstantsUtility.CREATEACTION);
 			ownerWorkbenchCreateInputsDto
 					.setEnvironment(entity.getData().getProjectDetails().getRecipeDetails().getEnvironment());
-			ownerWorkbenchCreateInputsDto.setIsCollaborator("true");
+			if(Objects.nonNull(projectOwner) && Objects.nonNull(workspaceOwner) && projectOwner.getId().equalsIgnoreCase(workspaceOwner.getId())) {
+				 ownerWorkbenchCreateInputsDto.setIsCollaborator("false");
+				 isOwner = true;
+				 projectOwnerId = projectOwner.getId();
+			 }
+			 else {
+				 ownerWorkbenchCreateInputsDto.setIsCollaborator("true");
+			 }
 			ownerWorkbenchCreateInputsDto.setPat(pat);
-			String repoName = entity.getData().getProjectDetails().getGitRepoName();
-			String repoNameWithOrg = gitOrgUri + gitOrgName + "/" + repoName;
 			ownerWorkbenchCreateInputsDto.setRepo(repoNameWithOrg);
 			ownerWorkbenchCreateInputsDto.setShortid(entity.getData().getWorkspaceOwner().getId());
 			ownerWorkbenchCreateInputsDto.setType(
@@ -371,7 +459,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 								&& !createOwnerWSResponse.getWarnings().isEmpty())) {
 
 					MessageDescription errMsg = new MessageDescription(
-							"Failed to initialize collaborator workbench while creating individual codespaces, please retry.");
+							"Failed to initialize workbench while creating individual codespaces, please retry.");
 					errors.add(errMsg);
 					errors.addAll(createOwnerWSResponse.getErrors());
 					warnings.addAll(createOwnerWSResponse.getWarnings());
@@ -385,6 +473,41 @@ public class BaseWorkspaceService implements WorkspaceService {
 			SimpleDateFormat isoFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS+00:00");
 			entity.getData().setIntiatedOn(isoFormat.parse(isoFormat.format(new Date())));
 			entity.getData().setStatus(ConstantsUtility.CREATEREQUESTEDSTATE);
+			entity.getData().setWorkspaceUrl("");//set url
+			entity.getData().getProjectDetails().setProjectCreatedOn(isoFormat.parse(isoFormat.format(new Date())));
+			if (isOwner) {
+				if (vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public")
+						|| vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().equalsIgnoreCase("default")
+						|| vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("bat")) {
+					entity.getData().getProjectDetails().setProjectCollaborators(new ArrayList<>());
+					collabs = new ArrayList<>();
+				}
+			entities.add(entity);
+			if (collabs != null && !collabs.isEmpty()) {
+				for (UserInfoVO collaborator : collabs) {
+					CodeServerWorkspaceNsql collabEntity = new CodeServerWorkspaceNsql();
+					CodeServerWorkspace collabData = new CodeServerWorkspace();
+					collabData.setDescription(entity.getData().getDescription());
+					collabData.setGitUserName(collaborator.getGitUserName());
+					collabData.setIntiatedOn(null);
+					collabData.setProjectDetails(entity.getData().getProjectDetails());
+					collabData.setStatus(ConstantsUtility.COLLABREQUESTEDSTATE);
+					Long collabWsSeqId = jpaRepo.getNextWorkspaceSeqId();
+					String collabWsId = ConstantsUtility.WORKSPACEPREFIX + String.valueOf(collabWsSeqId);
+					collabData.setWorkspaceId(collabWsId);
+					UserInfo collabUser = workspaceAssembler.toUserInfo(collaborator);
+					collabData.setWorkspaceOwner(collabUser);
+					collabData.setWorkspaceUrl("");
+					collabEntity.setId(null);
+					collabEntity.setData(collabData);
+					entities.add(collabEntity);
+				}
+			}
+			jpaRepo.saveAllAndFlush(entities);
+			CodeServerWorkspaceNsql savedOwnerEntity = workspaceCustomRepository.findbyProjectName(projectOwnerId, projectName);
+			CodeServerWorkspaceVO savedOwnerVO = workspaceAssembler.toVo(savedOwnerEntity);			
+			responseVO.setData(savedOwnerVO);
+		}
 			jpaRepo.save(entity);
 			responseVO.setData(workspaceAssembler.toVo(entity));
 			responseVO.setErrors(new ArrayList<>());
@@ -590,8 +713,8 @@ public class BaseWorkspaceService implements WorkspaceService {
 			ownerEntity.getData().setWorkspaceUrl("");// set url
 			ownerEntity.getData().getProjectDetails().setProjectCreatedOn(now);
 			if (vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public") ||
-					vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase()
-							.equalsIgnoreCase("default")) {
+					vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().equalsIgnoreCase("default")
+					|| vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("bat")) {
 				ownerEntity.getData().getProjectDetails().setProjectCollaborators(new ArrayList<>());
 				collabs = new ArrayList<>();
 			}
@@ -718,7 +841,10 @@ public class BaseWorkspaceService implements WorkspaceService {
 					return responseMessage;
 				}
 				String workspaceOwnerWsId = entity.getData().getWorkspaceId();
-				deployJobInputDto.setWsid(workspaceOwnerWsId);
+				String projectOwnerWsId = ownerEntity.getData().getWorkspaceId();
+				//deployJobInputDto.setWsid(workspaceOwnerWsId);
+				//setting project name instead of wsid to maintain same name in pod as well as kong
+				deployJobInputDto.setWsid(projectName);
 				deploymentJobDto.setInputs(deployJobInputDto);
 				deploymentJobDto.setRef(codeServerEnvRef);
 				GenericMessage jobResponse = client.manageDeployment(deploymentJobDto);
@@ -1057,7 +1183,18 @@ public class BaseWorkspaceService implements WorkspaceService {
 		try {
 			String[] createDeleteStatuses = { "CREATED", "CREATE_FAILED", "DELETED", "DELETE_REQUESTED" };
 			boolean isCreateDeleteStatuses = Arrays.stream(createDeleteStatuses).anyMatch(latestStatus::equals);
-			CodeServerWorkspaceNsql entity = workspaceCustomRepository.findbyUniqueLiteral(userId, "workspaceId", name);
+			CodeServerWorkspaceNsql entity = new CodeServerWorkspaceNsql();
+			String REGEX = "[w][s]\\d+";
+			Pattern pattern = Pattern.compile(REGEX);
+			Matcher matcher = pattern.matcher(name);
+			boolean matches = matcher.matches();
+			if(matches) {
+				entity = workspaceCustomRepository.findbyUniqueLiteral(userId, "workspaceId", name);
+			}
+			else {
+				entity = workspaceCustomRepository.findbyProjectName(userId, projectName);
+			}
+			
 			String workspaceOwner = entity.getData().getWorkspaceOwner().getId();
 			String workspaceName = entity.getData().getWorkspaceId();
 			String defaultRecipeId = RecipeIdEnum.DEFAULT.toString();
@@ -1197,15 +1334,18 @@ public class BaseWorkspaceService implements WorkspaceService {
 				}
 				String projectOwnerWsId = ownerEntity.getData().getWorkspaceId();
 				String deploymentUrl = "";
-				deploymentUrl = codeServerBaseUri + "/" + projectOwnerWsId + "/" + targetEnv + "/api/swagger-ui.html";
+				deploymentUrl = codeServerBaseUri + "/" + projectName + "/" + targetEnv + "/api/swagger-ui.html";
 				if (pythonRecipeId.equalsIgnoreCase(projectRecipe)) {
-					deploymentUrl = codeServerBaseUri + "/" + projectOwnerWsId + "/" + targetEnv + "/api/docs";
+					deploymentUrl = codeServerBaseUri + "/" + projectName + "/" + targetEnv + "/api/docs";
 				}
 				if (reactRecipeId.equalsIgnoreCase(projectRecipe) || angularRecipeId.equalsIgnoreCase(projectRecipe)) {
-					deploymentUrl = codeServerBaseUri + "/" + projectOwnerWsId + "/" + targetEnv + "/";
+					deploymentUrl = codeServerBaseUri + "/" + projectName + "/" + targetEnv + "/";
 				}
 				if (quarkusRecipeId.equalsIgnoreCase(projectRecipe)) {
-					deploymentUrl = codeServerBaseUri + "/" + projectOwnerWsId + "/" + targetEnv + "/q/swagger-ui";
+					deploymentUrl = codeServerBaseUri + "/" + projectName + "/" + targetEnv + "/q/swagger-ui";
+				}
+				if(micronautRecipeId.equalsIgnoreCase(projectRecipe)) {
+					 deploymentUrl = codeServerBaseUri+"/"+projectName+"/"+ targetEnv +"/swagger-ui/index.html";
 				}
 				String environmentJsonbName = "intDeploymentDetails";
 				CodeServerDeploymentDetails deploymentDetails = new CodeServerDeploymentDetails();
@@ -1231,15 +1371,19 @@ public class BaseWorkspaceService implements WorkspaceService {
 							"updated deployment details successfully for projectName {} , branch {} , targetEnv {} and status {}",
 							projectName, branch, targetEnv, latestStatus);
 					boolean apiRecipe = false;
-					String serviceName = name + "-api";
+					String serviceName = "";
+					if(!matches) {
+						serviceName = projectName;
+					}
+					
 					if (projectRecipe.equalsIgnoreCase(reactRecipeId)
 							|| projectRecipe.equalsIgnoreCase(angularRecipeId)) {
 						log.info("projectRecipe: {} and service name is : {}", projectRecipe, serviceName);
-						authenticatorClient.callingKongApis(serviceName, targetEnv, apiRecipe);
+						authenticatorClient.callingKongApis(userId, serviceName, targetEnv, apiRecipe);
 					} else {
 						apiRecipe = true;
 						log.info("projectRecipe: {} and service name is : {}", projectRecipe, serviceName);
-						authenticatorClient.callingKongApis(serviceName, targetEnv, apiRecipe);
+						authenticatorClient.callingKongApis(userId, serviceName, targetEnv, apiRecipe);
 					}
 				} else if ("UNDEPLOYED".equalsIgnoreCase(latestStatus)) {
 					deploymentDetails.setDeploymentUrl(null);

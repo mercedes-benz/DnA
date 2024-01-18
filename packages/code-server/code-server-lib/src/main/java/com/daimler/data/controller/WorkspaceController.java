@@ -27,19 +27,23 @@
 
  package com.daimler.data.controller;
 
- import java.util.ArrayList;
+ import java.text.SimpleDateFormat;
+import java.util.ArrayList;
  import java.util.List;
  import java.util.Objects;
  import java.util.stream.Collectors;
+ import java.util.Date;
  
  import javax.persistence.EntityNotFoundException;
- import javax.validation.Valid;
+import javax.print.attribute.standard.DateTimeAtCompleted;
+import javax.validation.Valid;
  
  import org.springframework.beans.BeanUtils;
  import org.springframework.beans.factory.annotation.Autowired;
  import org.springframework.http.HttpStatus;
  import org.springframework.http.ResponseEntity;
- import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.util.ObjectUtils;
+import org.springframework.web.bind.annotation.PathVariable;
  import org.springframework.web.bind.annotation.RequestBody;
  import org.springframework.web.bind.annotation.RequestMapping;
  import org.springframework.web.bind.annotation.RequestMethod;
@@ -415,7 +419,8 @@ import com.daimler.data.dto.workspace.EntitlementCollectionVO;
 		 if (collabUserVO != null && collabUserVO.getWorkspaceId() != null) {
 			 String status = collabUserVO.getStatus();
 			 if (status != null) {
-				 if (!ConstantsUtility.COLLABREQUESTEDSTATE.equalsIgnoreCase(status)) {
+				 if (!ConstantsUtility.COLLABREQUESTEDSTATE.equalsIgnoreCase(status)
+					&& !ConstantsUtility.CREATEFAILEDSTATE.equalsIgnoreCase(status)) {
 					 MessageDescription errMsg = new MessageDescription("Cannot reinitiate the workbench");
 					 errors.add(errMsg);
 					 responseMessage.setErrors(errors);
@@ -430,7 +435,20 @@ import com.daimler.data.dto.workspace.EntitlementCollectionVO;
 			 return new ResponseEntity<>(responseMessage, HttpStatus.NOT_FOUND);
 		 }
 		 String pat = initializeCollabWSRequestVO.getPat();
- 
+		 
+		 if(!ObjectUtils.isEmpty(collabUserVO.getProjectDetails().getProjectCollaborators())) {
+			 String ownerUserId = collabUserVO.getProjectDetails().getProjectOwner().getId();
+			 String projectName = collabUserVO.getProjectDetails().getProjectName();
+			 CodeServerWorkspaceVO ownerCodespaceVO = service.getByProjectName(ownerUserId, projectName);
+			 if(!ownerCodespaceVO.getStatus().toUpperCase().equalsIgnoreCase(ConstantsUtility.CREATEDSTATE)) {
+				 MessageDescription errMsg = new MessageDescription("Cannot intialize collaborator workbench as owner's codespace is not created yet. ");
+				 errors.add(errMsg);
+				 responseMessage.setErrors(errors);
+				 return new ResponseEntity<>(responseMessage, HttpStatus.BAD_REQUEST);
+				 
+			 }
+		 }
+		 
 		 InitializeWorkspaceResponseVO responseData = service.initiateWorkspace(collabUserVO, pat);
 		 return new ResponseEntity<>(responseData, responseStatus);
 	 }
@@ -1160,7 +1178,8 @@ import com.daimler.data.dto.workspace.EntitlementCollectionVO;
 				CodespaceSecurityConfigVO getConfigResponse = new CodespaceSecurityConfigVO();
 		 CreatedByVO currentUser = this.userStore.getVO();
 		 String userId = currentUser != null ? currentUser.getId() : null;
-		 CodeServerWorkspaceVO vo = service.getById(userId, id);
+		CodeServerWorkspaceNsql entity = workspaceCustomRepository.findDataById(id);
+		CodeServerWorkspaceVO vo = workspaceAssembler.toVo(entity);
  
 		 if (vo == null || vo.getWorkspaceId() == null) {
 			  log.debug("No workspace found, returning empty");
@@ -1168,15 +1187,15 @@ import com.daimler.data.dto.workspace.EntitlementCollectionVO;
  
 		 }
 		 if (!(vo != null && vo.getWorkspaceOwner() != null
-				 && vo.getWorkspaceOwner().getId().equalsIgnoreCase(userId))) {
+				 && vo.getWorkspaceOwner().getId().equalsIgnoreCase(userId)) && !(userStore.getUserInfo().hasCodespaceAdminAccess())) {
 					MessageDescription notAuthorizedMsg = new MessageDescription();
 				 notAuthorizedMsg.setMessage(
 						 "security configurations for workspace can be view only by Owners. Denied, does not have privileges.");
 				 GenericMessage errorMessage = new GenericMessage();
 				 errorMessage.addErrors(notAuthorizedMsg);
 			 log.info(
-					 "security configurations for workspace can be view only by Owners, insufficient privileges. Workspace name: {}",
-					 userId, vo.getWorkspaceId());
+					 "security configurations for workspace can be view only by Owners, insufficient privileges. Workspace name: {}"
+					,vo.getWorkspaceId());
 			 return new ResponseEntity<>(null, HttpStatus.FORBIDDEN);
 		 }
 		 if (vo != null && vo.getProjectDetails().getSecurityConfig() == null) {
@@ -1255,8 +1274,9 @@ import com.daimler.data.dto.workspace.EntitlementCollectionVO;
 				 && (vo.getProjectDetails().getSecurityConfig().getStatus().equalsIgnoreCase("DRAFT")
 						 || vo.getProjectDetails().getSecurityConfig().getStatus().equalsIgnoreCase("PUBLISHED"))) {
 			 vo.getProjectDetails().getSecurityConfig().setStatus("REQUESTED");
+			 SimpleDateFormat dateFormatter = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
+			 vo.getProjectDetails().getSecurityConfig().setRequestedDate(dateFormatter.format(new Date()));
 			 responseMessage = service.saveSecurityConfig(vo,false);
-			// responseMessage = service.updateSecurityConfigStatus(vo.getProjectDetails().getProjectName(),"REQUESTED", userId,vo);
 		 }
  
 		 return new ResponseEntity<>(responseMessage, HttpStatus.OK);

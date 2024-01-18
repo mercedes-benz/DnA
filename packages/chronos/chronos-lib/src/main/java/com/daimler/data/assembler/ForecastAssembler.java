@@ -302,7 +302,7 @@ public class ForecastAssembler implements GenericAssembler<ForecastVO, ForecastN
 		case "WEEKLY" : return "Weekly";
 		case "MONTHLY" : return "Monthly";
 		case "YEARLY" : return "Yearly";
-		default: return "";
+		default: return value;
 		}
 	}
 	

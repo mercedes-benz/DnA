@@ -1085,6 +1085,8 @@ definitions:
           type: string
       isProtectedByDna:
         type: boolean
+      requestedDate:
+        type: string
       projectName:
         type: string
         
@@ -1240,9 +1242,15 @@ definitions:
       classificationType:
         type: string
         description: "Classification type for codespace"
+      divisionId:
+        type: string
+        description: "division Id for the codespace"
       division:
         type: string
         description: "division for the codespace"
+      subDivisionId:
+        type: string
+        description: "sub division Id for the codespace"
       subDivision:
         type: string
         description: "sub division for the codespace"
@@ -1255,9 +1263,6 @@ definitions:
       procedureID:
         type: string
         description: "producerId for the codespace"
-      permission:
-        type: string
-        description: "Read write admin permissions"
       tags:
         type: array
         items:
