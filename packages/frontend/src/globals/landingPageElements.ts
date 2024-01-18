@@ -20,6 +20,7 @@ const powerbiTrainingUrl = Envs.POWERBI_TRAINING_URL;
 const sacTrainingUrl = Envs.SAC_TRAINING_URL;
 const databricksTrainingUrl = Envs.DATABRICKS_TRAINING_URL;
 const digitalCaseProgramUrl = Envs.DIGITAL_CASE_PROGRAM_URL;
+const datasphereTrainingUrl = Envs.DATASPHERE_TRAINING_URL;
 const afoUrl= Envs.AFO_TOOL_URL;
 const btpUrl = Envs.BPT_TOOL_URL;
 const dataOasisUrl = Envs.DATA_OASIS_TOOL_URL;
@@ -621,7 +622,7 @@ export const TrainingsLandingPageElements = [
     isTextAlignLeft: false,
     isDisabled: !sacTrainingUrl?.startsWith('http'),
     isSmallCard: false,
-    isMediumCard: true,
+    isMediumCard: false,
     svgIconId: 'sac',
   },
   {
@@ -634,7 +635,7 @@ export const TrainingsLandingPageElements = [
     isTextAlignLeft: false,
     isDisabled: !databricksTrainingUrl?.startsWith('http'),
     isSmallCard: false,
-    isMediumCard: true,
+    isMediumCard: false,
     svgIconId: 'tools-mini',
   },
   {
@@ -647,7 +648,20 @@ export const TrainingsLandingPageElements = [
     isTextAlignLeft: false,
     isDisabled: !digitalCaseProgramUrl?.startsWith('http'),
     isSmallCard: false,
-    isMediumCard: true,
+    isMediumCard: false,
+    svgIconId: 'tools-mini',
+  },
+  {
+    name: 'SAP Datasphere',
+    description:
+      'Here you can find all relevant Information on available SAP Datasphere Trainings. So get started or advance your skills!',
+    tags: ['Self Service', 'FOSS'],
+    url: datasphereTrainingUrl,
+    isExternalLink: true,
+    isTextAlignLeft: false,
+    isDisabled: !datasphereTrainingUrl?.startsWith('http'),
+    isSmallCard: false,
+    isMediumCard: false,
     svgIconId: 'tools-mini',
   },
 ];

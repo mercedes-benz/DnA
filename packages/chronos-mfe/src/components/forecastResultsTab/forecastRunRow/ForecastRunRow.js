@@ -27,9 +27,13 @@ const ForecastRunRow = (props) => {
   const handleShowContextMenu = (value) => {
     setShowContextMenu(value);
   }
-  const onRowClick = () => {
-    Tooltip.clear();
-    props.openDetails(item);
+  const onRowClick = (e) => {
+    if(item.state.result_state === 'CANCELED' || item.state.result_state === 'FAILED' || item.state.result_state === 'TIMEDOUT') {
+      handleStatusClick(e, item)
+    } else {
+      Tooltip.clear();
+      props.openDetails(item);
+    }
   };
 
   const onItemDelete = () => {
@@ -137,7 +141,7 @@ const ForecastRunRow = (props) => {
     <React.Fragment>
       <tr
         key={item.id}
-        onClick={showContextMenu ? undefined : onRowClick}
+        onClick={(e) => showContextMenu ? undefined : onRowClick(e)}
         className={classNames('data-row', Styles.dataRow)}
       >
         <td>

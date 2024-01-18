@@ -3,21 +3,25 @@
 
   .wrapper {
     width: 100%;
+
     .caption {
       display: flex;
       justify-content: space-between;
       align-items: center;
       padding: 10px 0px;
       margin-bottom: 10px;
+
       h3 {
-          color: #dee3e8;
+        color: #dee3e8;
       }
     }
   }
+
   .content {
     background-color: #252a33;
     padding: 0 0 0px 0px;
     min-width: 518px;
+
     .listContent {
       min-height: 435px;
       display: flex;
@@ -26,6 +30,7 @@
       padding: 25px 31px 25px 38px;
       align-items: flex-start;
     }
+
     .emptyCodeSpaces {
       text-align: center;
       margin-left: auto;
@@ -33,6 +38,7 @@
       margin-top: 20px;
       margin-bottom: 20px;
     }
+
     .subscriptionListEmpty {
       display: flex;
       align-items: center;
@@ -48,16 +54,23 @@
 
   .listHeader {
     align-items: flex-start;
-    display: flex;
+    display: inline-block;
     justify-content: space-between;
     margin: 0px;
     position: relative;
     background-color: #0a0b0e;
 
+    .configIcon {
+      margin-left: 8px;
+      margin-bottom: 2.5px;
+      display: inline;
+    }
+
     i {
       font-size: var(--font-size-icon-content);
       color: #00adef;
     }
+
     button {
       background: none;
       border: none;
@@ -66,18 +79,22 @@
       margin: 0px;
       outline: none;
       padding: 0 2px;
+
       i {
         margin-top: 2px;
       }
+
       a {
         color: #c0c8d0;
       }
+
       &:hover {
         color: #00adef;
       }
     }
   }
 }
+
 .allCodeSpacesContent {
   margin-bottom: 15px;
   flex: 1 auto;
@@ -107,6 +124,7 @@
         display: flex;
         align-items: center;
         margin: 0 auto;
+
         &:after {
           content: '';
           position: absolute;
@@ -116,6 +134,7 @@
           left: 25%;
           transform: rotate(90deg);
         }
+
         &:before {
           content: '';
           position: absolute;
@@ -128,6 +147,7 @@
           top: 49%;
         }
       }
+
       .addlabel {
         font-size: var(--font-size-headline);
         line-height: 23px;

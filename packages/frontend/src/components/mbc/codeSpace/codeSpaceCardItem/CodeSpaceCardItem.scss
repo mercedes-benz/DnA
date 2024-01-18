@@ -71,6 +71,10 @@
         }
         > div:last-child {
           flex: 1;
+          > a {
+            text-decoration: none;
+            margin-left: 10px;
+          }
         }
       }
       ul {
