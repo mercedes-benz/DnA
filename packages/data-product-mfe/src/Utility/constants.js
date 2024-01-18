@@ -7,7 +7,7 @@ export const SESSION_STORAGE_KEYS = {
 
 export const LOCAL_STORAGE_KEYS = {
   TOUR_GUIDE_STATUS: 'dataProductTourGuide',
-  MY_DATATRANSFER_FILTER: 'false'
+  MY_DATATRANSFER_FILTER: false
 };
 
 export const USER_ROLE = {
