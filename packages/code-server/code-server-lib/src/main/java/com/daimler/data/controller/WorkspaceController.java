@@ -492,8 +492,7 @@ import lombok.extern.slf4j.Slf4j;
 			 return new ResponseEntity<>(emptyResponse, HttpStatus.NOT_FOUND);
 		 }
  
-		 if (!(vo != null && vo.getWorkspaceOwner() != null
-				 && vo.getWorkspaceOwner().getId().equalsIgnoreCase(userId))) {
+		 if (!vo.getProjectDetails().getProjectOwner().getId().equalsIgnoreCase(userId)) {
 			 MessageDescription notAuthorizedMsg = new MessageDescription();
 			 notAuthorizedMsg.setMessage(
 					 "Not authorized to reassign owner of workspace. User does not have privileges.");
@@ -517,7 +516,23 @@ import lombok.extern.slf4j.Slf4j;
 				 }
 			 }
 		 }
- 
+
+		 if(vo.getProjectDetails().getRecipeDetails().getRecipeId().toString().toLowerCase().startsWith("public") 
+				|| vo.getProjectDetails().getRecipeDetails().getRecipeId().toString().toLowerCase().startsWith("private")
+				|| vo.getProjectDetails().getRecipeDetails().getRecipeId().toString().toLowerCase().startsWith("bat")
+				|| vo.getProjectDetails().getRecipeDetails().getRecipeId().toString().equalsIgnoreCase("default") ) {
+			 log.error("Invalid recipe type {} for Reassign action. for project {} ", vo.getProjectDetails().getRecipeDetails().getRecipeId().toString().toLowerCase()
+					 , vo.getProjectDetails().getProjectName());
+			 GenericMessage emptyResponse = new GenericMessage();
+			 List<MessageDescription> errors = new ArrayList<>();
+			 MessageDescription msg = new MessageDescription();
+			 msg.setMessage("Invalid recipe type for reassign action. Bad request.");
+			 errors.add(msg);
+			 emptyResponse.setSuccess("FAILED");
+			 emptyResponse.setErrors(errors);
+			 return new ResponseEntity<>(emptyResponse, HttpStatus.BAD_REQUEST);
+		 }
+		 
 		 if (isCollabroratorAlreadyExits) {
 			 responseMessage = service.reassignOwner(currentUser, vo, newOwnerDeatils);
 		 } else {
@@ -525,7 +540,7 @@ import lombok.extern.slf4j.Slf4j;
 			 GenericMessage emptyResponse = new GenericMessage();
 			 List<MessageDescription> errors = new ArrayList<>();
 			 MessageDescription msg = new MessageDescription();
-			 msg.setMessage("User is not part of a collaborator list");
+			 msg.setMessage("User is not part of a collaborator list, can reassign only to existing team members.");
 			 errors.add(msg);
 			 emptyResponse.setSuccess("FAILED");
 			 emptyResponse.setErrors(errors);
@@ -753,7 +768,10 @@ import lombok.extern.slf4j.Slf4j;
 						 vo.getWorkspaceId());
 				 return new ResponseEntity<>(errorMessage, HttpStatus.FORBIDDEN);
 			 }
-			 if ("default".equalsIgnoreCase(vo.getProjectDetails().getRecipeDetails().getRecipeId().name())) {
+			 if (vo.getProjectDetails().getRecipeDetails().getRecipeId().toString().toLowerCase().startsWith("public") 
+						|| vo.getProjectDetails().getRecipeDetails().getRecipeId().toString().toLowerCase().startsWith("private")
+						|| vo.getProjectDetails().getRecipeDetails().getRecipeId().toString().toLowerCase().startsWith("bat")
+						|| vo.getProjectDetails().getRecipeDetails().getRecipeId().toString().equalsIgnoreCase("default")) {
 				 MessageDescription invalidTypeMsg = new MessageDescription();
 				 invalidTypeMsg.setMessage(
 						 "Invalid type, cannot deploy this type of recipe");
@@ -794,10 +812,10 @@ import lombok.extern.slf4j.Slf4j;
 			 GenericMessage responseMsg = service.deployWorkspace(userId, id, environment, branch,
 					 deployRequestDto.isSecureWithIAMRequired(),
 					 deployRequestDto.getTechnicalUserDetailsForIAMLogin());
-			 if (!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public")) {
+//			 if (!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public")) {
 				 log.info("User {} deployed workspace {} project {}", userId, vo.getWorkspaceId(),
 						 vo.getProjectDetails().getRecipeDetails().getRecipeId().name());
-			 }
+//			 }
 			 return new ResponseEntity<>(responseMsg, HttpStatus.OK);
 		 } catch (EntityNotFoundException e) {
 			 log.error(e.getLocalizedMessage());
@@ -848,12 +866,12 @@ import lombok.extern.slf4j.Slf4j;
 				 String owner = vo.getProjectDetails().getProjectOwner().getId();
 				 authorizedUsers.add(owner);
 			 }
-			 if (vo.getProjectDetails().getProjectCollaborators() != null
-					 && !vo.getProjectDetails().getProjectCollaborators().isEmpty()) {
-				 List<String> collabUsers = vo.getProjectDetails().getProjectCollaborators().stream().map(n -> n.getId())
-						 .collect(Collectors.toList());
-				 authorizedUsers.addAll(collabUsers);
-			 }
+//			 if (vo.getProjectDetails().getProjectCollaborators() != null
+//					 && !vo.getProjectDetails().getProjectCollaborators().isEmpty()) {
+//				 List<String> collabUsers = vo.getProjectDetails().getProjectCollaborators().stream().map(n -> n.getId())
+//						 .collect(Collectors.toList());
+//				 authorizedUsers.addAll(collabUsers);
+//			 }
 			 if (!authorizedUsers.contains(userId)) {
 				 MessageDescription notAuthorizedMsg = new MessageDescription();
 				 notAuthorizedMsg.setMessage(
@@ -864,7 +882,10 @@ import lombok.extern.slf4j.Slf4j;
 						 vo.getWorkspaceId());
 				 return new ResponseEntity<>(errorMessage, HttpStatus.FORBIDDEN);
 			 }
-			 if ("default".equalsIgnoreCase(vo.getProjectDetails().getRecipeDetails().getRecipeId().name())) {
+			 if (vo.getProjectDetails().getRecipeDetails().getRecipeId().toString().toLowerCase().startsWith("public") 
+						|| vo.getProjectDetails().getRecipeDetails().getRecipeId().toString().toLowerCase().startsWith("private")
+						|| vo.getProjectDetails().getRecipeDetails().getRecipeId().toString().toLowerCase().startsWith("bat")
+						|| vo.getProjectDetails().getRecipeDetails().getRecipeId().toString().equalsIgnoreCase("default")) {
 				 MessageDescription invalidTypeMsg = new MessageDescription();
 				 invalidTypeMsg.setMessage(
 						 "Invalid type, cannot undeploy this type of recipe");
@@ -883,10 +904,10 @@ import lombok.extern.slf4j.Slf4j;
 				 branch = deployRequestDto.getBranch();
 			 }
 			 GenericMessage responseMsg = service.undeployWorkspace(userId, id, environment, branch);
-			 if (!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public")) {
+//			 if (!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public")) {
 				 log.info("User {} undeployed workspace {} project {}", userId, vo.getWorkspaceId(),
 						 vo.getProjectDetails().getRecipeDetails().getRecipeId().name());
-			 }
+//			 }
 			 return new ResponseEntity<>(responseMsg, HttpStatus.OK);
 		 } catch (EntityNotFoundException e) {
 			 log.error(e.getLocalizedMessage());
