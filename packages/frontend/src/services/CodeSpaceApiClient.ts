@@ -117,6 +117,17 @@ export class CodeSpaceApiClient {
       ApiClient.get('divisions'),
       ReportsApiClient.get('departments'),
     ]);
-  }
+  };
+  
+  public static getWorkspaceConfigs(): Promise<any[]>{
+    return this.get(`/workspaces/configs`)
+  };
 
+  public static acceptSecurityConfigRequest (id:string): Promise<any[]>{
+    return this.post(`/workspaces/${id}/config/accept`)
+  };
+
+  public static publishSecurityConfigRequest (id:string): Promise<any[]>{
+    return this.post(`/workspaces/${id}/config/publish`)
+  };
 }

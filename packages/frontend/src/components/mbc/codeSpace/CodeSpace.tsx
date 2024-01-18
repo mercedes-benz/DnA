@@ -516,7 +516,7 @@ const CodeSpace = (props: ICodeSpaceProps) => {
                           onClick={() => navigateSecurityConfig()}>
                           <a target="_blank" rel="noreferrer">
                             <IconGear size={'16'} /> {CODE_SPACE_TITLE} (
-                            {codeSpaceData?.projectDetails?.publishedSecuirtyConfig?.status || codeSpaceData?.projectDetails?.securityConfig?.status})
+                            {codeSpaceData?.projectDetails?.publishedSecuirtyConfig?.status || codeSpaceData?.projectDetails?.securityConfig?.status || 'New'})
                           </a>
                           &nbsp;
                         </div>
@@ -551,9 +551,11 @@ const CodeSpace = (props: ICodeSpaceProps) => {
                           {(codeDeployed || prodCodeDeployed) && '(Re)'}Deploy{codeDeploying && 'ing...'}
                         </button>
                       </div>
-                      <div tooltip-data="Show/Hide App Logs Panel" className={classNames(Styles.showLogs, showLogsView && Styles.active)} onClick={toggleLogView}>
-                        <i className="icon mbc-icon workspace small right"></i>
-                      </div>
+                      {(codeDeployed || prodCodeDeployed) && (
+                        <div tooltip-data="Show/Hide App Logs Panel" className={classNames(Styles.showLogs, showLogsView && Styles.active)} onClick={toggleLogView}>
+                          <i className="icon mbc-icon workspace small right"></i>
+                        </div>
+                      )}
                     </>
                   )}
                   <div tooltip-data="Open New Tab" className={Styles.OpenNewTab} onClick={openInNewtab}>
@@ -585,7 +587,7 @@ const CodeSpace = (props: ICodeSpaceProps) => {
                     {((codeDeployed || prodCodeDeployed) && showLogsView) &&
                       <div className={classNames(Styles.logViewWrapper, showLogsView && Styles.show)}>
                         <button className={classNames('link-btn', Styles.closeButton)} onClick={() => setShowLogsView(false)}><i className="icon mbc-icon close thin"></i></button>
-                        <div className="tabs-panel">
+                        <div className={classNames('tabs-panel', Styles.tabsHeightFix)}>
                           <div className="tabs-wrapper">
                             <ul className="tabs">
                               {codeDeployed &&
@@ -609,12 +611,12 @@ const CodeSpace = (props: ICodeSpaceProps) => {
                           </div>
                           <div className={classNames(Styles.logsTabContentWrapper, 'tabs-content-wrapper')}>
                             {codeDeployed &&
-                              <div id="tab-staginglogpanel" className="tab-content">
+                              <div id="tab-staginglogpanel" className={classNames(Styles.tabsHeightFix, 'tab-content')}>
                                 <iframe src={buildLogViewURL(codeDeployedUrl, true)} height="100%" width="100%" />
                               </div>
                             }
                             {prodCodeDeployed &&
-                              <div id="tab-productionlogpanel" className="tab-content">
+                              <div id="tab-productionlogpanel" className={classNames(Styles.tabsHeightFix, 'tab-content')}>
                                 <iframe src={buildLogViewURL(prodCodeDeployedUrl)} height="100%" width="100%" />
                               </div>
                             }
