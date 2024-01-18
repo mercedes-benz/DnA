@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react';
 import Styles from './DataTransfers.style.scss';
 import { Link, withRouter } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
+import { LOCAL_STORAGE_KEYS } from '../../Utility/constants.js';
 
 // import from DNA Container
 import Pagination from 'dna-container/Pagination';
@@ -20,15 +21,15 @@ const DataProducts = ({ user, history, hostHistory }) => {
 
   const [cardViewMode, setCardViewMode] = useState(true);
   const [listViewMode, setListViewMode] = useState(false);
-  const [isProviderCreatorFilter, 
-    setIsProviderCreatorFilter
-  ] = useState(false);
+  const [isProviderCreatorFilter, setIsProviderCreatorFilter] = useState(
+    localStorage.getItem(LOCAL_STORAGE_KEYS.MY_DATATRANSFER_FILTER)
+  );
 
   useEffect(() => {
     dispatch(GetDataTransfers(isProviderCreatorFilter));
   }, [dispatch, isProviderCreatorFilter]);
 
-  useEffect(() => {
+  useEffect(() => { 
     if (sessionStorage.getItem('listViewModeEnable') == null) {
       setCardViewModeFn()
     } else {
@@ -76,6 +77,11 @@ const DataProducts = ({ user, history, hostHistory }) => {
     sessionStorage.setItem('listViewModeEnable',true)
   };
 
+  const onDataFilterChange =() =>{
+    localStorage.setItem(LOCAL_STORAGE_KEYS.MY_DATATRANSFER_FILTER,!isProviderCreatorFilter);
+    setIsProviderCreatorFilter(!isProviderCreatorFilter);
+  }
+
   return (
     <>
       <button
@@ -116,7 +122,7 @@ const DataProducts = ({ user, history, hostHistory }) => {
           <div>
             <button className={classNames(Styles.tagItem, 
             isProviderCreatorFilter ? Styles.selectedItem : '')} 
-            onClick={() => {setIsProviderCreatorFilter(!isProviderCreatorFilter)}}>
+            onClick={() => {onDataFilterChange()}}>
             My Data Transfers</button>
           </div>
           <p className={'text-center'}>Click on <i className="icon mbc-icon copy-new"></i> to Create Copy</p>
