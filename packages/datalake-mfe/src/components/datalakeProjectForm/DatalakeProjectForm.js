@@ -424,7 +424,6 @@ const DatalakeProjectForm = ({project, edit, onSave}) => {
                     Data Classification <sup>*</sup>
                   </label>
                   <div className={classNames('custom-select')}>
-                    { console.log('classificationError: ', errors)}
                     <select id="classificationField" 
                       defaultValue={dataClassification}
                       {...register('dataClassification', {
