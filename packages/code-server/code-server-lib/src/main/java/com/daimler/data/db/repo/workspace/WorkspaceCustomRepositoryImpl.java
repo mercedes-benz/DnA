@@ -347,6 +347,7 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 						+ " \"secureWithIAMRequired\": "+ deploymentDetails.getSecureWithIAMRequired() +","
 						+ " \"technicalUserDetailsForIAMLogin\": "+ addQuotes(deploymentDetails.getTechnicalUserDetailsForIAMLogin()) +","
 						+ " \"lastDeployedBranch\": "+ addQuotes(deploymentDetails.getLastDeployedBranch()) +","
+						+ " \"gitjobRunID\": "+ addQuotes(deploymentDetails.getGitjobRunID()) +","
 						+ " \"lastDeploymentStatus\": "+ addQuotes(deploymentDetails.getLastDeploymentStatus()) +"}')\r\n"
 				+ "where data->'projectDetails'->>'projectName' = '"+projectName+"'";
 		try {
