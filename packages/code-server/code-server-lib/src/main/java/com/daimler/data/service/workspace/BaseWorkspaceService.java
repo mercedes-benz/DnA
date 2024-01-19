@@ -46,6 +46,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.interceptor.TransactionAspectSupport;
 import org.springframework.util.ObjectUtils;
 
 import com.daimler.data.application.auth.UserStore;
@@ -780,20 +781,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 		List<MessageDescription> errors = new ArrayList<>();
 		try {
 			CodeServerWorkspaceNsql entity = workspaceCustomRepository.findById(userId, id);
-			if (entity.getData().getProjectDetails().getRecipeDetails().getRecipeId().toLowerCase().startsWith("public")
-					|| entity.getData().getProjectDetails().getRecipeDetails().getRecipeId().toLowerCase()
-							.startsWith("private")
-					|| entity.getData().getProjectDetails().getRecipeDetails().getRecipeId().toLowerCase()
-							.startsWith("bat")) {
-				log.error("Cannot deploy workspace for this project with id {} of recipe type - Public/Private/BAT "
-						+ id);
-				MessageDescription msg = new MessageDescription(
-						"Cannot deploy workspace for this project of recipe type {} "
-								+ entity.getData().getProjectDetails().getRecipeDetails());
-				errors.add(msg);
-			}
-			if (entity != null && !entity.getData().getProjectDetails().getRecipeDetails().getRecipeId().toLowerCase()
-					.startsWith("public")) {
+			if (entity != null ) {
 				DeploymentManageDto deploymentJobDto = new DeploymentManageDto();
 				DeploymentManageInputDto deployJobInputDto = new DeploymentManageInputDto();
 				deployJobInputDto.setAction("deploy");
@@ -827,8 +815,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 				}
 				String workspaceOwnerWsId = entity.getData().getWorkspaceId();
 				String projectOwnerWsId = ownerEntity.getData().getWorkspaceId();
-				//deployJobInputDto.setWsid(workspaceOwnerWsId);
-				//setting project name instead of wsid to maintain same name in pod as well as kong
+				//deployJobInputDto.setWsid(projectOwnerWsId);
 				deployJobInputDto.setWsid(projectName);
 				deploymentJobDto.setInputs(deployJobInputDto);
 				deploymentJobDto.setRef(codeServerEnvRef);
@@ -880,8 +867,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 			isProjectOwner = true;
 		}
 
-		if (isProjectOwner && !entity.getData().getProjectDetails().getRecipeDetails().getRecipeId().toLowerCase()
-				.startsWith("public")) {
+		
 			UserInfo currentOwnerAsCollab = entity.getData().getProjectDetails().getProjectOwner();
 			UserInfo newOwner = new UserInfo();
 			BeanUtils.copyProperties(newOwnerDeatils, newOwner);
@@ -902,6 +888,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 				if ("FAILED".equalsIgnoreCase(updateProjectOwnerDetails.getSuccess())
 						|| "FAILED".equalsIgnoreCase(updateCollaboratorAsOwner.getSuccess())
 						|| "FAILED".equalsIgnoreCase(removeNewOwnerFromCollab.getSuccess())) {
+//					TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
 					log.error("Failed to update project owner details");
 					MessageDescription msg = new MessageDescription("Failed to update project owner details");
 					errors.add(msg);
@@ -918,25 +905,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 				responseMessage.setErrors(errors);
 				return responseMessage;
 			}
-		} else {
-			MessageDescription msg = null;
-			if (entity.getData().getProjectDetails().getRecipeDetails().getRecipeId().toLowerCase()
-					.startsWith("public")) {
-				log.error("Cannot reassign owners for this project {} of recipe type - Public " + projectName);
-				msg = new MessageDescription("Cannot reassign owners for this project of recipe type - Public");
-
-			} else {
-				log.error("Failed to remove collaborator details as requested user is not a project owner "
-						+ entity.getData().getWorkspaceId());
-				msg = new MessageDescription(
-						"Failed to remove collaborator details as requested user is not a project owner");
-			}
-			errors.add(msg);
-			responseMessage.setSuccess("FAILED");
-			responseMessage.setErrors(errors);
-			return responseMessage;
-		}
-
+		
 		return responseMessage;
 	}
 
@@ -1088,16 +1057,6 @@ public class BaseWorkspaceService implements WorkspaceService {
 		List<MessageDescription> errors = new ArrayList<>();
 		try {
 			CodeServerWorkspaceNsql entity = workspaceCustomRepository.findById(userId, id);
-			if (entity.getData().getProjectDetails().getRecipeDetails().getRecipeId().toLowerCase()
-					.startsWith("public")) {
-				log.error("Cannot undeploy workspace for this project {} of recipe type - Public "
-						+ entity.getData().getWorkspaceId());
-				MessageDescription msg = new MessageDescription(
-						"Cannot undeploy workspace for projects of recipe type - Public.");
-				errors.add(msg);
-				responseMessage.setErrors(errors);
-				return responseMessage;
-			}
 			if (entity != null) {
 				DeploymentManageDto deploymentJobDto = new DeploymentManageDto();
 				DeploymentManageInputDto deployJobInputDto = new DeploymentManageInputDto();
@@ -1124,7 +1083,8 @@ public class BaseWorkspaceService implements WorkspaceService {
 					return responseMessage;
 				}
 				String projectOwnerWsId = ownerEntity.getData().getWorkspaceId();
-				deployJobInputDto.setWsid(projectOwnerWsId);
+//				deployJobInputDto.setWsid(projectOwnerWsId);
+				deployJobInputDto.setWsid(projectName);
 				deploymentJobDto.setInputs(deployJobInputDto);
 				deploymentJobDto.setRef(codeServerEnvRef);
 				GenericMessage jobResponse = client.manageDeployment(deploymentJobDto);
