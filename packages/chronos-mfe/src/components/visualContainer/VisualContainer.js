@@ -8,7 +8,7 @@ import Spinner from '../spinner/Spinner';
 import Plot from 'react-plotly.js';
 
 const VisualContainer = ({title, forecastRun, loading, forecastData, addTraces, layout, isForecast, isDecomposition, handleDecompositionMethod, legend, decompositionMethods,
-  isOutlier, handleOutlierMethod, outlierMethods, onShowValues, showValues}) => {
+  isOutlier, handleOutlierMethod, outlierMethods, onShowValues, showValues, onShowMarkers, showMarkers}) => {
     
   const printRef = React.useRef();
   const exportToPdf = async () => {
@@ -58,6 +58,11 @@ const VisualContainer = ({title, forecastRun, loading, forecastData, addTraces, 
   showValues !== undefined && contextMenuItems.push ({
     title: showValues ? 'Hide values' : 'Display values',
     onClickFn: onShowValues
+  });
+
+  showMarkers !== undefined && contextMenuItems.push ({
+    title: showMarkers ? 'Hide markers' : 'Show markers',
+    onClickFn: onShowMarkers
   });
 
   return (
