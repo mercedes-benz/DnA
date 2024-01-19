@@ -806,6 +806,8 @@ definitions:
         type: string
       branch:
         type: string
+      gitjobRunID:
+        type: string
       required:
           -status
   CodeServerWorkspaceValidateVO:

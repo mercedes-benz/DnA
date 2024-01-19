@@ -22,5 +22,6 @@ public class CodeServerDeploymentDetails implements Serializable {
 	private String lastDeploymentStatus;
 	private Boolean secureWithIAMRequired;
 	private String technicalUserDetailsForIAMLogin;
+	private String gitjobRunID;
 	
 }
