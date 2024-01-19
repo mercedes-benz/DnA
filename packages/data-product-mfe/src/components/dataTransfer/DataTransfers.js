@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import Styles from './DataTransfers.style.scss';
 import { Link, withRouter } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { LOCAL_STORAGE_KEYS } from '../../Utility/constants.js';
+import { SESSION_STORAGE_KEYS } from '../../Utility/constants.js';
 
 // import from DNA Container
 import Pagination from 'dna-container/Pagination';
@@ -22,7 +22,9 @@ const DataProducts = ({ user, history, hostHistory }) => {
   const [cardViewMode, setCardViewMode] = useState(true);
   const [listViewMode, setListViewMode] = useState(false);
   const [isProviderCreatorFilter, setIsProviderCreatorFilter] = useState(
-    localStorage.getItem(LOCAL_STORAGE_KEYS.MY_DATATRANSFER_FILTER)
+    sessionStorage.getItem(
+      JSON.parse(SESSION_STORAGE_KEYS.MY_DATATRANSFER_FILTER)
+    ) || false
   );
 
   useEffect(() => {
@@ -78,7 +80,10 @@ const DataProducts = ({ user, history, hostHistory }) => {
   };
 
   const onDataFilterChange =() =>{
-    localStorage.setItem(LOCAL_STORAGE_KEYS.MY_DATATRANSFER_FILTER,!isProviderCreatorFilter);
+    sessionStorage.setItem(
+      SESSION_STORAGE_KEYS.MY_DATATRANSFER_FILTER,
+      JSON.stringify(!isProviderCreatorFilter)
+    );
     setIsProviderCreatorFilter(!isProviderCreatorFilter);
   }
 
