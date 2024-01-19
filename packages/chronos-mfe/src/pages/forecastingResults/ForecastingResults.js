@@ -31,6 +31,7 @@ const ForecastingResults = () => {
   }, []);
 
   const [showValues, setShowValues] = useState(false);
+  const [showMarkers, setShowMarkers] = useState(false);
 
   const colOneSelect = useRef("");
   const colTwoSelect = useRef("");
@@ -366,7 +367,9 @@ const ForecastingResults = () => {
       });
     });
 
-    let graphMode = showValues ? 'lines+text' : 'lines';
+    let graphMode = 'lines';
+    graphMode = showMarkers ? graphMode + '+markers' : graphMode;
+    graphMode = showValues ? graphMode + '+text' : graphMode;
     
     for(const [key, value] of Object.entries(lines)) {
       if(key === cols[0]) {
@@ -722,8 +725,9 @@ const ForecastingResults = () => {
             y: value.y,
             // name: 'Correction Proposal -' + colOneSelect.current.value,
             name: 'Outlier',
+            showlegend: false,
             marker: {
-              color: '#FF5722',
+              color: '#E0144C',
               symbol: 'x',
             },
           });
@@ -866,6 +870,8 @@ const ForecastingResults = () => {
           isForecast={true}
           onShowValues = {() => setShowValues(!showValues)}
           showValues={showValues}
+          onShowMarkers = {() => setShowMarkers(!showMarkers)}
+          showMarkers={showMarkers}
         />
       }
 
