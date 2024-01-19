@@ -18,7 +18,7 @@ import { setTables } from '../redux/graphSlice';
  */
 const GraphTable = (props) => {
     const dispatch = useDispatch();
-    const { table, onTableMouseDown, onGripMouseDown, tableSelectedId, setTableSelectId, onDeleteTable, onAddColumn, onEditColumn, onEditTable, isOwner } = props;
+    const { table, onTableMouseDown, onGripMouseDown, tableSelectedId, setTableSelectId, onDeleteTable, onAddColumn, onEditColumn, isOwner } = props;
     const { project } = useSelector(state => state.graph);
 
     useEffect(() => {
@@ -86,12 +86,12 @@ const GraphTable = (props) => {
                             >
                                 <i className="icon mbc-icon profile"></i>
                             </button>
-                            <button 
+                            {/* <button 
                                 onClick={() => onEditTable(table)}
                                 tooltip-data={'Edit Table'}
                             >
                                 <i className="icon mbc-icon edit fill"></i>
-                            </button>
+                            </button> */}
                             <button tooltip-data={'Delete Table'} className={Styles.btnDelete} onClick={() => onDeleteTable(table.tableName)}>
                                 <i className="icon delete"></i>
                             </button>

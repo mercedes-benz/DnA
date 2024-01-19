@@ -6,6 +6,7 @@ import SelectBox from 'dna-container/SelectBox';
 import { useSelector, useDispatch } from 'react-redux';
 import { setTables } from '../../redux/graphSlice';
 import { calcXY } from '../../utilities/utils';
+import Notification from '../../common/modules/uilab/js/src/notification';
 
 const TableFormItem = (props) => {
   const { register, formState: { errors } } = useFormContext();
@@ -13,42 +14,6 @@ const TableFormItem = (props) => {
   useEffect(() => {
     SelectBox.defaultSetup();
   }, []);
-
-  /**
-   * If the index of the current field is greater than 0, then swap the current field with the field
-   * above it
-   */
-    const moveUp = () => {
-      props.setFields(columns => {
-          if (props.index > 0) {
-              const _columns = [...columns];
-              [_columns[props.index], _columns[props.index - 1]] = [
-                  _columns[props.index - 1],
-                  _columns[props.index],
-              ];
-              return _columns;
-          }
-          return columns;
-      });
-  };
-
-  /**
-   * It takes the current columns array, checks if the current index is less than the length of the
-   * array, and if so, swaps the current index with the next index
-   */
-  const moveDown = () => {
-      props.setFields(columns => {
-          if (props.index < columns.length - 1) {
-              const _columns = [...columns];
-              [_columns[props.index], _columns[props.index + 1]] = [
-                  _columns[props.index + 1],
-                  _columns[props.index],
-              ];
-              return _columns;
-          }
-          return columns;
-      });
-  };
 
   const { field, columnDatatypes } = props;
   const index = `A${props.index}`;
@@ -71,13 +36,16 @@ const TableFormItem = (props) => {
                 type="text"
                 className={classNames('input-field')}
                 id={`${index}.columnName`}
-                {...register(`${index}.columnName`, { required: '*Missing entry' })}
+                {...register(`${index}.columnName`, { required: '*Missing entry', pattern: /^[a-z0-9_]+$/ })}
                 placeholder="Type here"
                 autoComplete="off"
                 maxLength={55}
                 defaultValue={field.columnName}
               />
-              <span className={classNames('error-message')}>{errors[`${index}`] !== undefined && errors[`${index}`].columnName.message}</span>
+              <span className={classNames('error-message')}>
+                {errors[`${index}`] !== undefined && errors[`${index}`].columnName.message}
+                {errors[`${index}`] !== undefined && errors[`${index}`].columnName?.type === 'pattern' && 'Column names can consist only of lowercase letters, numbers, and underscores ( _ ).'}
+              </span>
             </div>
           </div>
           <div className={Styles.configurationContainer}>
@@ -132,14 +100,8 @@ const TableFormItem = (props) => {
           </div>
         </div>
         <div className={Styles.flexLayout}>
-          <div className={Styles.flexLayout}>
-            <button className={classNames('btn btn-primary', Styles.btnActions)} onClick={moveUp}>↑ Move Up</button>
-            <button className={classNames('btn btn-primary', Styles.btnActions)} onClick={moveDown}>↓ Move Down</button>
-          </div>
-          <div className={Styles.flexLayout}>
-            <button className={classNames('btn btn-primary', Styles.btnActions)} onClick={() => {props.removeItem(props.field.columnName);}}>Remove field</button>
-            <button className={classNames('btn btn-primary', Styles.btnActions)} onClick={() => props.addItem(props.index)}>Add field after</button>
-          </div>
+          <button className={classNames('btn btn-primary', Styles.btnActions)} onClick={() => {props.removeItem(props.field.columnName);}}>Remove field</button>
+          <button className={classNames('btn btn-primary', Styles.btnActions)} onClick={() => props.addItem(props.index)}>Add field after</button>
         </div>
       </div>
     </div>
@@ -165,13 +127,13 @@ const TableFormBase = ({formats}) => {
               type="text"
               className={classNames('input-field')}
               id="tableName"
-              {...register('tableName', { required: '*Missing entry' })}
+              {...register('tableName', { required: '*Missing entry', pattern: /^[a-z0-9_]+$/ })}
               placeholder="Type here"
               autoComplete="off"
               maxLength={55}
               defaultValue={editingTable?.name}
             />
-            <span className={classNames('error-message')}>{errors?.tableName?.message}</span>
+            <span className={classNames('error-message')}>{errors?.tableName?.message}{errors.tableName?.type === 'pattern' && 'Table names can consist only of lowercase letters, numbers, and underscores ( _ ).'}</span>
           </div>
         </div>
         <div className={Styles.configurationContainer}>
@@ -255,15 +217,19 @@ const TableForm = ({setToggle, formats, dataTypes}) => {
       columns: [...cols],
     };
     const projectTemp = {...project};
-    projectTemp.tables = [...projectTemp.tables, tableData];
-    dispatch(setTables(projectTemp.tables));
-    setToggle();
+    if(projectTemp.tables.filter(table => table.tableName === tableName).length > 0) {
+      Notification.show(`Table with the name ${tableName} already exists.`, 'alert');
+    } else {
+      projectTemp.tables = [...projectTemp.tables, tableData];
+      dispatch(setTables(projectTemp.tables));
+      setToggle();
+    }
   }
 
   const addItem = index => {
     const newState = [...columns];
     newState.splice(index + 1, 0, {
-        columnName: 'new item' + newState.length,
+        columnName: 'new_column' + newState.length,
         comment: '',
         dataType: '',
         notNullConstraintEnabled: true,
