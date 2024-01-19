@@ -183,6 +183,24 @@ const Graph = ({user}) => {
     const [showInferenceModal, setShowInferenceModal] = useState(false);
     const [showTechnicalUserModal, setShowTechnicalUserModal] = useState(false);
 
+    const [graphState] = useState('unchanged');
+
+    useEffect(() => {
+      const handler = event => {
+        event.preventDefault();
+        event.returnValue = '';
+      };
+      if (graphState !== 'unchanged') {
+        window.addEventListener('beforeunload', handler);
+        // clean it up, if the dirty state changes
+        return () => {
+          window.removeEventListener('beforeunload', handler);
+        };
+      }
+      // since this is not dirty, don't do anything
+      return () => {};
+    }, [graphState]);
+
     const inferenceContent = <>
         <p>Access data using any endpoints</p>
         <div className={classNames('input-field-group')}>
