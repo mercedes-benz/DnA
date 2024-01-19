@@ -53,7 +53,7 @@ public interface WorkspaceService {
 
 	CodeServerWorkspaceVO getByProjectName(String userId, String projectName);
 
-	GenericMessage update(String userId, String name, String projectName, String existingStatus, String latestStatus, String targetEnv, String branch);
+	GenericMessage update(String userId, String name, String projectName, String existingStatus, String latestStatus, String targetEnv, String branch, String gitJobRunId);
 
 	GenericMessage deployWorkspace(String userId, String id, String environment, String branch, boolean isSecureWithIAMRequired, String technicalUserDetailsForIAMLogin);
 

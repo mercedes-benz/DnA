@@ -4,8 +4,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
@@ -14,7 +12,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -24,13 +21,9 @@ import org.springframework.web.bind.annotation.RestController;
 import com.daimler.data.auth.client.AuthenticatorClient;
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
-import com.daimler.data.dto.workspace.CodeServerDeploymentDetailsVO;
-import com.daimler.data.dto.workspace.CodeServerProjectDetailsVO;
 import com.daimler.data.dto.workspace.CodeServerWorkspaceVO;
-import com.daimler.data.dto.workspace.CreatedByVO;
 import com.daimler.data.dto.workspace.UserInfoVO;
 import com.daimler.data.dto.workspace.WorkspaceUpdateRequestVO;
-import com.daimler.data.service.common.BaseCommonService;
 import com.daimler.data.service.workspace.WorkspaceService;
 import com.daimler.dna.notifications.common.producer.KafkaProducerService;
 
@@ -92,19 +85,7 @@ public class WorkspaceJobStatusUpdateController  {
 			log.info("Authentication failed to use API. ");
 			return new ResponseEntity<>(errorMessage, HttpStatus.UNAUTHORIZED);
 		}
-		CodeServerWorkspaceVO existingVO = new CodeServerWorkspaceVO();
-		//pattern to match wsid
-		String REGEX = "[w][s]\\d+";
-		Pattern pattern = Pattern.compile(REGEX);
-		Matcher matcher = pattern.matcher(name);
-		boolean matches = matcher.matches();
-		if(matches) {
-			existingVO = service.getByUniqueliteral(userId,"workspaceId", name);
-		}
-		else {
-			existingVO = service.getByProjectName(userId, name);
-		}
-				
+		CodeServerWorkspaceVO existingVO = service.getByUniqueliteral(userId,"workspaceId", name);	
 		if (existingVO != null && existingVO.getWorkspaceId() != null) {
 			String existingStatus = existingVO.getStatus();
 			log.info("existingStatus  is {}",existingStatus);
@@ -189,11 +170,17 @@ public class WorkspaceJobStatusUpdateController  {
 					break;
 			  
 			}
+			if(invalidStatus) {
+				log.info("workspace {} is in status {} , cannot be changed to invalid status {} ",name, existingStatus, latestStatus);
+				MessageDescription invalidMsg = new MessageDescription("Cannot change workspace status from " + existingStatus + " to " + latestStatus + ". Invalid status.");
+				GenericMessage errorMessage = new GenericMessage();
+				errorMessage.addErrors(invalidMsg);
+				return new ResponseEntity<>(errorMessage, HttpStatus.BAD_REQUEST);
+			}
 			String environment = "Staging";
 			if(targetEnv.equalsIgnoreCase("prod")) {
 				environment = "Production";
 			}
-			
 			if(existingStatus.equals("CREATED")) {
 				if(latestStatus.equalsIgnoreCase("DEPLOYED")) {
 					eventType = "Codespace-Deploy";
@@ -216,18 +203,12 @@ public class WorkspaceJobStatusUpdateController  {
 					message = "Failed to undeploy Codespace " + projectName + " with branch " + branch +" on " + environment + " triggered by " +userId;
 				}
 			}
-			if(invalidStatus) {
-				log.info("workspace {} is in status {} , cannot be changed to invalid status {} ",name, existingStatus, latestStatus);
-				MessageDescription invalidMsg = new MessageDescription("Cannot change workspace status from " + existingStatus + " to " + latestStatus + ". Invalid status.");
-				GenericMessage errorMessage = new GenericMessage();
-				errorMessage.addErrors(invalidMsg);
-				return new ResponseEntity<>(errorMessage, HttpStatus.BAD_REQUEST);
-			}
-			GenericMessage responseMessage = service.update(userId,name,projectName,existingStatus,latestStatus,targetEnv,branch);
+			String gitJobRunId = updateRequestVO.getGitjobRunID();
+			GenericMessage responseMessage = service.update(userId,name,projectName,existingStatus,latestStatus,targetEnv,branch,gitJobRunId);
 			log.info("Message details after update action {} and userid is {} and resourceID is {}",message,userId,resourceID);
 			if(callKongApisFromBackend) {
 				log.info("Calling Kong API's from backend and flag is {}", callKongApisFromBackend);
-				authenticatorClient.callingKongApis(null,name,null,false);
+				authenticatorClient.callingKongApis(name,name,null,false);
 			}			
 			kafkaProducer.send(eventType, resourceID, "", userId, message, true, teamMembers, teamMembersEmails, null);
 			return new ResponseEntity<>(responseMessage, HttpStatus.OK);

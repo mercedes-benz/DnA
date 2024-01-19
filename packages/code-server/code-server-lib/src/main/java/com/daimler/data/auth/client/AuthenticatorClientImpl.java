@@ -3,8 +3,6 @@ package com.daimler.data.auth.client;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,9 +22,6 @@ import com.daimler.data.controller.exceptions.MessageDescription;
 import com.daimler.data.db.entities.CodeServerWorkspaceNsql;
 import com.daimler.data.db.json.CodeServerDeploymentDetails;
 import com.daimler.data.db.repo.workspace.WorkspaceCustomRepository;
-import com.daimler.data.dto.WorkbenchManageDto;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 @Component
 public class AuthenticatorClientImpl  implements AuthenticatorClient{
@@ -264,37 +259,18 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 		return response;
 	}
 	
-	public void callingKongApis(String userId,String serviceName, String env, boolean apiRecipe) {
-		boolean kongApiForDeploymentURL = false;
-		//String deploymentServiceName = "";
-		//String projectName = "";
-		CodeServerWorkspaceNsql workspaceNsql = null;
-		String REGEX = "[w][s]\\d+";
-		Pattern pattern = Pattern.compile(REGEX);
-		Matcher matcher = pattern.matcher(serviceName);
-		boolean matches = matcher.matches();
-		if(!matches && Objects.nonNull(env) && Objects.nonNull(userId)) {
-			LOGGER.info("service is : {}",serviceName);	
-			LOGGER.info("env is : {}",env);
-			kongApiForDeploymentURL = true;
-			LOGGER.info("kongApiForDeploymentURL is :{}",kongApiForDeploymentURL);
-//			String[] wsid = serviceName.split("-");
-//			deploymentServiceName = wsid[0];
-			workspaceNsql = customRepository.findbyProjectName(userId, serviceName);
-		}
-		else {
-			workspaceNsql = customRepository.findByWorkspaceId(serviceName);
-		}
+	public void callingKongApis(String wsid,String serviceName, String env, boolean apiRecipe) {
+		boolean kongApiForDeploymentURL = !wsid.equalsIgnoreCase(serviceName) && Objects.nonNull(env);
+		CodeServerWorkspaceNsql workspaceNsql = customRepository.findByWorkspaceId(serviceName);
 		CodeServerDeploymentDetails intDeploymentDetails = workspaceNsql.getData().getProjectDetails().getIntDeploymentDetails();
 		CodeServerDeploymentDetails prodDeploymentDetails = workspaceNsql.getData().getProjectDetails().getProdDeploymentDetails();
-		//projectName = workspaceNsql.getData().getProjectDetails().getProjectName();
-		Boolean intSecureIAM = null;
-		Boolean prodSecureIAM = null;
+		Boolean intSecureIAM = false;
+		Boolean prodSecureIAM = false;
 		if(Objects.nonNull(prodDeploymentDetails)) {
-			prodSecureIAM = prodDeploymentDetails.getSecureWithIAMRequired(); //false
+			prodSecureIAM = prodDeploymentDetails.getSecureWithIAMRequired(); 
 		}
 		if(Objects.nonNull(intDeploymentDetails)) {
-			intSecureIAM = intDeploymentDetails.getSecureWithIAMRequired(); //true
+			intSecureIAM = intDeploymentDetails.getSecureWithIAMRequired(); 
 		}
 		LOGGER.info("Codespace deployed to production with enabling secureIAM is :{}",prodSecureIAM);
 		LOGGER.info("Codespace deployed to staging with enabling secureIAM is :{}",intSecureIAM);
@@ -321,21 +297,19 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 		CreateRouteRequestVO createRouteRequestVO = new CreateRouteRequestVO();
 		CreateRouteVO createRouteVO = new CreateRouteVO();
 		if(kongApiForDeploymentURL) {
-			if(Objects.nonNull(intSecureIAM) && intSecureIAM) {
+//			if(Objects.nonNull(intSecureIAM) && intSecureIAM) {
 				paths.add("/" + serviceName + "/" + "int" + "/api");
-			}
-			if(Objects.nonNull(prodSecureIAM) && prodSecureIAM) {
+//			}
+//			if(Objects.nonNull(prodSecureIAM) && prodSecureIAM) {
 				paths.add("/" + serviceName + "/" + "prod" + "/api");
-			}
+//			}
 			if(!(paths.contains(currentPath))) {
 				paths.add(currentPath);
 			}			
 		}
 		else {
 			paths.add("/" + serviceName);
-			//paths.add("/");			
 		}
-				
 		protocols.add("http");
 		protocols.add("https");
 		hosts.add(codeServerEnvUrl);
@@ -344,10 +318,6 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 		createRouteVO.setPaths(paths);
 		createRouteVO.setProtocols(protocols);
 		createRouteVO.setStripPath(true);
-		for(String path:paths) {
-			System.out.println("paths are");
-			System.out.println(path);
-		}
 		createRouteRequestVO.setData(createRouteVO);
 		
 		//request for attaching plugin to service
@@ -451,8 +421,12 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 						attachPluginResponse = attachPluginToService(attachPluginRequestVO,serviceName);
 					}
 					else {
-						LOGGER.info("kongApiForDeploymentURL is {} and apiRecipe is {} and uiRecipesToUseOidc is : {}, calling jwtissuer plugin ",kongApiForDeploymentURL, apiRecipe, uiRecipesToUseOidc );
-						attachJwtPluginResponse = attachJwtPluginToService(attachJwtPluginRequestVO,serviceName);
+						if(intSecureIAM || prodSecureIAM) {
+							attachJwtPluginResponse = attachJwtPluginToService(attachJwtPluginRequestVO,serviceName);
+							LOGGER.info("kongApiForDeploymentURL is {} and apiRecipe is {} and uiRecipesToUseOidc is : {}, calling jwtissuer plugin ",kongApiForDeploymentURL, apiRecipe, uiRecipesToUseOidc );
+						}else {
+							LOGGER.info("Secure with IAM false, hence didnt add jwt plugin to service. kongApiForDeploymentURL is {} and apiRecipe is {} and uiRecipesToUseOidc is : {}, calling jwtissuer plugin ",kongApiForDeploymentURL, apiRecipe, uiRecipesToUseOidc );
+						}
 					}
 				}
 			}
@@ -479,8 +453,10 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 
 		}
 		else {
+			String errors = createServiceResponse.getErrors()!= null && !createServiceResponse.getErrors().isEmpty() ? createServiceResponse.getErrors().get(0).getMessage() : "";
+			String warnings =  createServiceResponse.getWarnings()!= null && !createServiceResponse.getWarnings().isEmpty() ? createServiceResponse.getWarnings().get(0).getMessage() : "";
 			LOGGER.info("kong create service status is: {} and errors if any: {}, warnings if any:", createServiceResponse.getSuccess(),
-					createServiceResponse.getErrors(), createServiceResponse.getWarnings());
+					errors, warnings);
 			LOGGER.info("kong create route status is: {} and errors if any: {}, warnings if any:", createRouteResponse.getSuccess(), 
 					createRouteResponse.getErrors(), createRouteResponse.getWarnings());
 			LOGGER.info("kong attach plugin to service status is: {} and errors if any: {}, warnings if any:", attachPluginResponse.getSuccess(),
