@@ -37,9 +37,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import com.daimler.data.dto.workspace.*;
-import com.daimler.data.dto.workspace.CodeServerRecipeDetailsVO.RecipeIdEnum;
-
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -64,7 +61,6 @@ import com.daimler.data.db.json.CodespaceSecurityConfig;
 import com.daimler.data.db.json.UserInfo;
 import com.daimler.data.db.repo.workspace.WorkspaceCustomRepository;
 import com.daimler.data.db.repo.workspace.WorkspaceRepository;
-import com.daimler.data.dto.CodespaceSecurityConfigCollectionDto;
 import com.daimler.data.dto.CodespaceSecurityConfigDto;
 import com.daimler.data.dto.DeploymentManageDto;
 import com.daimler.data.dto.DeploymentManageInputDto;
@@ -73,10 +69,15 @@ import com.daimler.data.dto.WorkbenchManageInputDto;
 import com.daimler.data.dto.solution.ChangeLogVO;
 import com.daimler.data.dto.userinfo.UsersCollection;
 import com.daimler.data.dto.workspace.CodeServerRecipeDetailsVO.RecipeIdEnum;
+import com.daimler.data.dto.workspace.CodeServerWorkspaceVO;
+import com.daimler.data.dto.workspace.CodeServerWorkspaceValidateVO;
+import com.daimler.data.dto.workspace.CreatedByVO;
+import com.daimler.data.dto.workspace.DataGovernanceRequestInfo;
+import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
+import com.daimler.data.dto.workspace.UserInfoVO;
 import com.daimler.data.dto.workspace.admin.CodespaceSecurityConfigDetailsVO;
 import com.daimler.data.util.ConstantsUtility;
 import com.daimler.dna.notifications.common.producer.KafkaProducerService;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -164,12 +165,13 @@ public class BaseWorkspaceService implements WorkspaceService {
 				String projectOwner = entity.getData().getProjectDetails().getProjectOwner().getId();
 				deployJobInputDto.setShortid(projectOwner);
 				deployJobInputDto.setTarget_env("int");
-				deployJobInputDto.setSecure_iam("false");
+//				deployJobInputDto.setSecure_iam("false");
 				deployJobInputDto.setType(client.toDeployType(
 						entity.getData().getProjectDetails().getRecipeDetails().getRecipeId().toLowerCase()));
 				String projectName = entity.getData().getProjectDetails().getProjectName();
 				String projectOwnerWsId = entity.getData().getWorkspaceId();
 				deployJobInputDto.setWsid(projectOwnerWsId);
+				deployJobInputDto.setProjectName(projectName);
 				deploymentJobDto.setInputs(deployJobInputDto);
 				deploymentJobDto.setRef(codeServerEnvRef);
 				GenericMessage jobResponse = client.manageDeployment(deploymentJobDto);
@@ -206,12 +208,14 @@ public class BaseWorkspaceService implements WorkspaceService {
 				String projectOwner = entity.getData().getProjectDetails().getProjectOwner().getId();
 				deployJobInputDto.setShortid(projectOwner);
 				deployJobInputDto.setTarget_env("prod");
-				deployJobInputDto.setSecure_iam("false");
+//				deployJobInputDto.setSecure_iam("false");
+				deployJobInputDto.setProjectName(projectOwnerId);
 				deployJobInputDto.setType(client.toDeployType(
 						entity.getData().getProjectDetails().getRecipeDetails().getRecipeId().toLowerCase()));
 				String projectName = entity.getData().getProjectDetails().getProjectName();
 				String projectOwnerWsId = entity.getData().getWorkspaceId();
 				deployJobInputDto.setWsid(projectOwnerWsId);
+				deployJobInputDto.setProjectName(projectName);
 				deploymentJobDto.setInputs(deployJobInputDto);
 				deploymentJobDto.setRef(codeServerEnvRef);
 				GenericMessage jobResponse = client.manageDeployment(deploymentJobDto);
@@ -780,20 +784,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 		List<MessageDescription> errors = new ArrayList<>();
 		try {
 			CodeServerWorkspaceNsql entity = workspaceCustomRepository.findById(userId, id);
-			if (entity.getData().getProjectDetails().getRecipeDetails().getRecipeId().toLowerCase().startsWith("public")
-					|| entity.getData().getProjectDetails().getRecipeDetails().getRecipeId().toLowerCase()
-							.startsWith("private")
-					|| entity.getData().getProjectDetails().getRecipeDetails().getRecipeId().toLowerCase()
-							.startsWith("bat")) {
-				log.error("Cannot deploy workspace for this project with id {} of recipe type - Public/Private/BAT "
-						+ id);
-				MessageDescription msg = new MessageDescription(
-						"Cannot deploy workspace for this project of recipe type {} "
-								+ entity.getData().getProjectDetails().getRecipeDetails());
-				errors.add(msg);
-			}
-			if (entity != null && !entity.getData().getProjectDetails().getRecipeDetails().getRecipeId().toLowerCase()
-					.startsWith("public")) {
+			if (entity != null ) {
 				DeploymentManageDto deploymentJobDto = new DeploymentManageDto();
 				DeploymentManageInputDto deployJobInputDto = new DeploymentManageInputDto();
 				deployJobInputDto.setAction("deploy");
@@ -805,12 +796,12 @@ public class BaseWorkspaceService implements WorkspaceService {
 				String projectOwner = entity.getData().getProjectDetails().getProjectOwner().getId();
 				deployJobInputDto.setShortid(workspaceOwner);
 				deployJobInputDto.setTarget_env(environment);
-				if (Objects.nonNull(isSecureWithIAMRequired) && isSecureWithIAMRequired
-						&& Objects.nonNull(technicalUserDetailsForIAMLogin)) {
-					deployJobInputDto.setSecure_iam("true");
-				} else {
-					deployJobInputDto.setSecure_iam("false");
-				}
+//				if (Objects.nonNull(isSecureWithIAMRequired) && isSecureWithIAMRequired
+//						&& Objects.nonNull(technicalUserDetailsForIAMLogin)) {
+//					deployJobInputDto.setSecure_iam("true");
+//				} else {
+//					deployJobInputDto.setSecure_iam("false");
+//				}
 				deployJobInputDto.setType(client.toDeployType(
 						entity.getData().getProjectDetails().getRecipeDetails().getRecipeId().toLowerCase()));
 				String projectName = entity.getData().getProjectDetails().getProjectName();
@@ -826,10 +817,9 @@ public class BaseWorkspaceService implements WorkspaceService {
 					return responseMessage;
 				}
 				String workspaceOwnerWsId = entity.getData().getWorkspaceId();
-				String projectOwnerWsId = ownerEntity.getData().getWorkspaceId();
-				//deployJobInputDto.setWsid(workspaceOwnerWsId);
-				//setting project name instead of wsid to maintain same name in pod as well as kong
-				deployJobInputDto.setWsid(projectName);
+				//String projectOwnerWsId = ownerEntity.getData().getWorkspaceId();
+				deployJobInputDto.setWsid(workspaceOwnerWsId);
+				deployJobInputDto.setProjectName(projectName.toLowerCase());
 				deploymentJobDto.setInputs(deployJobInputDto);
 				deploymentJobDto.setRef(codeServerEnvRef);
 				GenericMessage jobResponse = client.manageDeployment(deploymentJobDto);
@@ -880,8 +870,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 			isProjectOwner = true;
 		}
 
-		if (isProjectOwner && !entity.getData().getProjectDetails().getRecipeDetails().getRecipeId().toLowerCase()
-				.startsWith("public")) {
+		
 			UserInfo currentOwnerAsCollab = entity.getData().getProjectDetails().getProjectOwner();
 			UserInfo newOwner = new UserInfo();
 			BeanUtils.copyProperties(newOwnerDeatils, newOwner);
@@ -902,6 +891,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 				if ("FAILED".equalsIgnoreCase(updateProjectOwnerDetails.getSuccess())
 						|| "FAILED".equalsIgnoreCase(updateCollaboratorAsOwner.getSuccess())
 						|| "FAILED".equalsIgnoreCase(removeNewOwnerFromCollab.getSuccess())) {
+//					TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
 					log.error("Failed to update project owner details");
 					MessageDescription msg = new MessageDescription("Failed to update project owner details");
 					errors.add(msg);
@@ -918,25 +908,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 				responseMessage.setErrors(errors);
 				return responseMessage;
 			}
-		} else {
-			MessageDescription msg = null;
-			if (entity.getData().getProjectDetails().getRecipeDetails().getRecipeId().toLowerCase()
-					.startsWith("public")) {
-				log.error("Cannot reassign owners for this project {} of recipe type - Public " + projectName);
-				msg = new MessageDescription("Cannot reassign owners for this project of recipe type - Public");
-
-			} else {
-				log.error("Failed to remove collaborator details as requested user is not a project owner "
-						+ entity.getData().getWorkspaceId());
-				msg = new MessageDescription(
-						"Failed to remove collaborator details as requested user is not a project owner");
-			}
-			errors.add(msg);
-			responseMessage.setSuccess("FAILED");
-			responseMessage.setErrors(errors);
-			return responseMessage;
-		}
-
+		
 		return responseMessage;
 	}
 
@@ -1088,16 +1060,6 @@ public class BaseWorkspaceService implements WorkspaceService {
 		List<MessageDescription> errors = new ArrayList<>();
 		try {
 			CodeServerWorkspaceNsql entity = workspaceCustomRepository.findById(userId, id);
-			if (entity.getData().getProjectDetails().getRecipeDetails().getRecipeId().toLowerCase()
-					.startsWith("public")) {
-				log.error("Cannot undeploy workspace for this project {} of recipe type - Public "
-						+ entity.getData().getWorkspaceId());
-				MessageDescription msg = new MessageDescription(
-						"Cannot undeploy workspace for projects of recipe type - Public.");
-				errors.add(msg);
-				responseMessage.setErrors(errors);
-				return responseMessage;
-			}
 			if (entity != null) {
 				DeploymentManageDto deploymentJobDto = new DeploymentManageDto();
 				DeploymentManageInputDto deployJobInputDto = new DeploymentManageInputDto();
@@ -1124,7 +1086,8 @@ public class BaseWorkspaceService implements WorkspaceService {
 					return responseMessage;
 				}
 				String projectOwnerWsId = ownerEntity.getData().getWorkspaceId();
-				deployJobInputDto.setWsid(projectOwnerWsId);
+//				deployJobInputDto.setWsid(projectOwnerWsId);
+				deployJobInputDto.setWsid(projectName);
 				deploymentJobDto.setInputs(deployJobInputDto);
 				deploymentJobDto.setRef(codeServerEnvRef);
 				GenericMessage jobResponse = client.manageDeployment(deploymentJobDto);
@@ -1173,7 +1136,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 	@Override
 	@Transactional
 	public GenericMessage update(String userId, String name, String projectName, String existingStatus,
-			String latestStatus, String targetEnv, String branch) {
+			String latestStatus, String targetEnv, String branch, String gitJobRunId) {
 		GenericMessage responseMessage = new GenericMessage();
 		String status = "FAILED";
 		List<MessageDescription> warnings = new ArrayList<>();
@@ -1181,18 +1144,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 		try {
 			String[] createDeleteStatuses = { "CREATED", "CREATE_FAILED", "DELETED", "DELETE_REQUESTED" };
 			boolean isCreateDeleteStatuses = Arrays.stream(createDeleteStatuses).anyMatch(latestStatus::equals);
-			CodeServerWorkspaceNsql entity = new CodeServerWorkspaceNsql();
-			String REGEX = "[w][s]\\d+";
-			Pattern pattern = Pattern.compile(REGEX);
-			Matcher matcher = pattern.matcher(name);
-			boolean matches = matcher.matches();
-			if(matches) {
-				entity = workspaceCustomRepository.findbyUniqueLiteral(userId, "workspaceId", name);
-			}
-			else {
-				entity = workspaceCustomRepository.findbyProjectName(userId, projectName);
-			}
-			
+			CodeServerWorkspaceNsql entity = workspaceCustomRepository.findbyUniqueLiteral(userId, "workspaceId", name);
 			String workspaceOwner = entity.getData().getWorkspaceOwner().getId();
 			String workspaceName = entity.getData().getWorkspaceId();
 			String defaultRecipeId = RecipeIdEnum.DEFAULT.toString();
@@ -1201,24 +1153,24 @@ public class BaseWorkspaceService implements WorkspaceService {
 			String angularRecipeId = RecipeIdEnum.ANGULAR.toString();
 			String quarkusRecipeId = RecipeIdEnum.QUARKUS.toString();
 			String micronautRecipeId = RecipeIdEnum.MICRONAUT.toString();
-			String publicDnABackendRecipeId = RecipeIdEnum.PUBLIC_DNA_BACKEND.toString();
-			String publicDnaFrontendRecipeId = RecipeIdEnum.PUBLIC_DNA_FRONTEND.toString();
-			String publicDnaAirflowBackendRecipeId = RecipeIdEnum.PUBLIC_DNA_AIRFLOW_BACKEND.toString();
-			String publicDnaAuthenticatorBackendRecipeId = RecipeIdEnum.PUBLIC_DNA_AUTHENTICATOR_BACKEND.toString();
-			String publicDnaChronosBackendRecipeId = RecipeIdEnum.PUBLIC_DNA_CHRONOS_BACKEND.toString();
-			String publicDnaChronosMfeRecipeId = RecipeIdEnum.PUBLIC_DNA_CHRONOS_MFE.toString();
-			String publicDnaCodespaceBackendRecipeId = RecipeIdEnum.PUBLIC_DNA_CODESPACE_BACKEND.toString();
-			String publicDnaDataProductBackendRecipeId = RecipeIdEnum.PUBLIC_DNA_DATA_PRODUCT_BACKEND.toString();
-			String publicDnaDnaDataProductMfeRecipeId = RecipeIdEnum.PUBLIC_DNA_DATA_PRODUCT_MFE.toString();
-			String publicDnaDataikuBackendRecipeId = RecipeIdEnum.PUBLIC_DNA_DATAIKU_BACKEND.toString();
-			String publicDnaDssMfeRecipeId = RecipeIdEnum.PUBLIC_DNA_DSS_MFE.toString();
-			String publicDnaMalwareScannerRecipeId = RecipeIdEnum.PUBLIC_DNA_MALWARE_SCANNER.toString();
-			String publicDnaModalRegistryBackendRecipeId = RecipeIdEnum.PUBLIC_DNA_MODAL_REGISTRY_BACKEND.toString();
-			String publicDnaNassRecipeId = RecipeIdEnum.PUBLIC_DNA_NASS.toString();
-			String publicDnaReportBackendRecipeId = RecipeIdEnum.PUBLIC_DNA_REPORT_BACKEND.toString();
-			String publicDnaStorageBackendRecipeId = RecipeIdEnum.PUBLIC_DNA_STORAGE_BACKEND.toString();
-			String publicDnaStorageMfeRecipeId = RecipeIdEnum.PUBLIC_DNA_STORAGE_MFE.toString();
-			String publicDnaTrinoBackendRecipeId = RecipeIdEnum.PUBLIC_DNA_TRINO_BACKEND.toString();
+//			String publicDnABackendRecipeId = RecipeIdEnum.PUBLIC_DNA_BACKEND.toString();
+//			String publicDnaFrontendRecipeId = RecipeIdEnum.PUBLIC_DNA_FRONTEND.toString();
+//			String publicDnaAirflowBackendRecipeId = RecipeIdEnum.PUBLIC_DNA_AIRFLOW_BACKEND.toString();
+//			String publicDnaAuthenticatorBackendRecipeId = RecipeIdEnum.PUBLIC_DNA_AUTHENTICATOR_BACKEND.toString();
+//			String publicDnaChronosBackendRecipeId = RecipeIdEnum.PUBLIC_DNA_CHRONOS_BACKEND.toString();
+//			String publicDnaChronosMfeRecipeId = RecipeIdEnum.PUBLIC_DNA_CHRONOS_MFE.toString();
+//			String publicDnaCodespaceBackendRecipeId = RecipeIdEnum.PUBLIC_DNA_CODESPACE_BACKEND.toString();
+//			String publicDnaDataProductBackendRecipeId = RecipeIdEnum.PUBLIC_DNA_DATA_PRODUCT_BACKEND.toString();
+//			String publicDnaDnaDataProductMfeRecipeId = RecipeIdEnum.PUBLIC_DNA_DATA_PRODUCT_MFE.toString();
+//			String publicDnaDataikuBackendRecipeId = RecipeIdEnum.PUBLIC_DNA_DATAIKU_BACKEND.toString();
+//			String publicDnaDssMfeRecipeId = RecipeIdEnum.PUBLIC_DNA_DSS_MFE.toString();
+//			String publicDnaMalwareScannerRecipeId = RecipeIdEnum.PUBLIC_DNA_MALWARE_SCANNER.toString();
+//			String publicDnaModalRegistryBackendRecipeId = RecipeIdEnum.PUBLIC_DNA_MODAL_REGISTRY_BACKEND.toString();
+//			String publicDnaNassRecipeId = RecipeIdEnum.PUBLIC_DNA_NASS.toString();
+//			String publicDnaReportBackendRecipeId = RecipeIdEnum.PUBLIC_DNA_REPORT_BACKEND.toString();
+//			String publicDnaStorageBackendRecipeId = RecipeIdEnum.PUBLIC_DNA_STORAGE_BACKEND.toString();
+//			String publicDnaStorageMfeRecipeId = RecipeIdEnum.PUBLIC_DNA_STORAGE_MFE.toString();
+//			String publicDnaTrinoBackendRecipeId = RecipeIdEnum.PUBLIC_DNA_TRINO_BACKEND.toString();
 
 			String projectRecipe = entity.getData().getProjectDetails().getRecipeDetails().getRecipeId();
 			String projectOwner = entity.getData().getProjectDetails().getProjectOwner().getId();
@@ -1309,7 +1261,9 @@ public class BaseWorkspaceService implements WorkspaceService {
 				return responseMessage;
 			} else {
 				if (projectRecipe.toLowerCase().startsWith("public")
-						|| projectRecipe.toLowerCase().startsWith("private")) {
+						|| projectRecipe.toLowerCase().startsWith("private")
+						|| projectRecipe.toLowerCase().startsWith("bat")
+						|| projectRecipe.equalsIgnoreCase("default")) {
 					log.error("Cannot update public/private recipe types, deploy n undeploy is disabled");
 					MessageDescription msg = new MessageDescription(
 							"Cannot update public/private recipe types, deploy n undeploy is disabled.");
@@ -1319,18 +1273,18 @@ public class BaseWorkspaceService implements WorkspaceService {
 				}
 				SimpleDateFormat isoFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS+00:00");
 				Date now = isoFormat.parse(isoFormat.format(new Date()));
-				CodeServerWorkspaceNsql ownerEntity = workspaceCustomRepository.findbyProjectName(projectOwner,
-						projectName);
-				if (ownerEntity == null || ownerEntity.getData() == null
-						|| ownerEntity.getData().getWorkspaceId() == null) {
-					MessageDescription error = new MessageDescription();
-					error.setMessage(
-							"Failed while deploying codeserver workspace project, couldnt fetch project owner details");
-					errors.add(error);
-					responseMessage.setErrors(errors);
-					return responseMessage;
-				}
-				String projectOwnerWsId = ownerEntity.getData().getWorkspaceId();
+//				CodeServerWorkspaceNsql ownerEntity = workspaceCustomRepository.findbyProjectName(projectOwner,
+//						projectName);
+//				if (ownerEntity == null || ownerEntity.getData() == null
+//						|| ownerEntity.getData().getWorkspaceId() == null) {
+//					MessageDescription error = new MessageDescription();
+//					error.setMessage(
+//							"Failed while deploying codeserver workspace project, couldnt fetch project owner details");
+//					errors.add(error);
+//					responseMessage.setErrors(errors);
+//					return responseMessage;
+//				}
+//				String projectOwnerWsId = ownerEntity.getData().getWorkspaceId();
 				String deploymentUrl = "";
 				deploymentUrl = codeServerBaseUri + "/" + projectName + "/" + targetEnv + "/api/swagger-ui.html";
 				if (pythonRecipeId.equalsIgnoreCase(projectRecipe)) {
@@ -1355,33 +1309,30 @@ public class BaseWorkspaceService implements WorkspaceService {
 				}
 				if ("DEPLOYED".equalsIgnoreCase(latestStatus)) {
 					String existingDeploymentUrl = deploymentDetails.getDeploymentUrl();
-					if (existingDeploymentUrl == null || "".equalsIgnoreCase(existingDeploymentUrl)
-							|| "null".equalsIgnoreCase(existingDeploymentUrl)) {
+//					if (existingDeploymentUrl == null || "".equalsIgnoreCase(existingDeploymentUrl)
+//							|| "null".equalsIgnoreCase(existingDeploymentUrl)) {
 						deploymentDetails.setDeploymentUrl(deploymentUrl);
-					}
+//					}
 					deploymentDetails.setLastDeployedBranch(branch);
 					deploymentDetails.setLastDeployedBy(entity.getData().getWorkspaceOwner());
 					deploymentDetails.setLastDeployedOn(now);
 					deploymentDetails.setLastDeploymentStatus(latestStatus);
+					deploymentDetails.setGitjobRunID(gitJobRunId);
 					workspaceCustomRepository.updateDeploymentDetails(projectName, environmentJsonbName,
 							deploymentDetails);
 					log.info(
 							"updated deployment details successfully for projectName {} , branch {} , targetEnv {} and status {}",
 							projectName, branch, targetEnv, latestStatus);
 					boolean apiRecipe = false;
-					String serviceName = "";
-					if(!matches) {
-						serviceName = projectName;
-					}
-					
+					String serviceName = projectName;
 					if (projectRecipe.equalsIgnoreCase(reactRecipeId)
 							|| projectRecipe.equalsIgnoreCase(angularRecipeId)) {
 						log.info("projectRecipe: {} and service name is : {}", projectRecipe, serviceName);
-						authenticatorClient.callingKongApis(userId, serviceName, targetEnv, apiRecipe);
+						authenticatorClient.callingKongApis(name, serviceName, targetEnv, apiRecipe);
 					} else {
 						apiRecipe = true;
 						log.info("projectRecipe: {} and service name is : {}", projectRecipe, serviceName);
-						authenticatorClient.callingKongApis(userId, serviceName, targetEnv, apiRecipe);
+						authenticatorClient.callingKongApis(name, serviceName, targetEnv, apiRecipe);
 					}
 				} else if ("UNDEPLOYED".equalsIgnoreCase(latestStatus)) {
 					deploymentDetails.setDeploymentUrl(null);
