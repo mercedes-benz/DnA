@@ -1548,7 +1548,7 @@ import lombok.extern.slf4j.Slf4j;
 			@ApiResponse(code = 403, message = "Request is not authorized."),
 			@ApiResponse(code = 405, message = "Method not allowed"),
 			@ApiResponse(code = 500, message = "Internal error") })
-	@RequestMapping(value = "/workspaces/{id}/datagoverance", produces = { "application/json" }, consumes = {
+	@RequestMapping(value = "/workspaces/{id}/datagovernance", produces = { "application/json" }, consumes = {
 			"application/json" }, method = RequestMethod.PATCH)
 	@Override
 	public ResponseEntity<GenericMessage> updateGovernance(
