@@ -309,13 +309,12 @@ import lombok.extern.slf4j.Slf4j;
 			 saveConfigResponse.setResponse(emptyResponse);
 			 return new ResponseEntity<>(saveConfigResponse, HttpStatus.NOT_FOUND);
 		 }
-		if (vo != null && vo.getStatus().equalsIgnoreCase("CREATED")) {
+		if (vo.getStatus().equalsIgnoreCase("CREATED")) {
  
-			 if (!(vo != null && vo.getProjectDetails().getProjectOwner() != null
-					 && vo.getProjectDetails().getProjectOwner().getId().equalsIgnoreCase(userId))) {
+			 if (!vo.getProjectDetails().getProjectOwner().getId().equalsIgnoreCase(userId)) {
 				 MessageDescription notAuthorizedMsg = new MessageDescription();
 				 notAuthorizedMsg.setMessage(
-						 "Only owners can edit security configurations for workspace. Denied, does not have privileges.");
+						 "Only owners can edit security configurations for workspace. Access Denied, user does not have privileges.");
 				 GenericMessage errorMessage = new GenericMessage();
 				 errorMessage.addErrors(notAuthorizedMsg);
 				 log.info(
@@ -335,7 +334,7 @@ import lombok.extern.slf4j.Slf4j;
 					 entitlement.setApiList(new ArrayList<>());
 				 }
 			 }
-			 if (vo != null && vo.getProjectDetails().getSecurityConfig() != null) {
+			 if (vo.getProjectDetails().getSecurityConfig() != null) {
 				 if (vo.getProjectDetails().getSecurityConfig().getStatus() != null
 						 && (vo.getProjectDetails().getSecurityConfig().getStatus().equalsIgnoreCase("REQUESTED") || vo
 								 .getProjectDetails().getSecurityConfig().getStatus().equalsIgnoreCase("ACCEPTED"))) {
@@ -363,6 +362,8 @@ import lombok.extern.slf4j.Slf4j;
 			 }
 			 data = workspaceAssembler.generateSecurityConfigIds(data);
 			 vo.getProjectDetails().setSecurityConfig(data);
+			 //defaulting the security config status as DRAFT for the first time
+			 vo.getProjectDetails().getSecurityConfig().setStatus("DRAFT");
 			 responseMessage = service.saveSecurityConfig(vo,false);
 			 saveConfigResponse.setResponse(responseMessage);
 			vo = service.getById(userId, id);
@@ -1109,11 +1110,12 @@ import lombok.extern.slf4j.Slf4j;
 		 if (!(vo != null && vo.getWorkspaceOwner() != null
 				 && vo.getWorkspaceOwner().getId().equalsIgnoreCase(userId))) {
 			 log.info(
-					 "security configurations entitlements for workspace can be view only by Owners, insufficient privileges. Workspace name: {}",
+					 "security configurations entitlements for workspace can be view only by owners and collaborators, insufficient privileges. Workspace name: {}",
 					 userId, vo.getWorkspaceId());
 			 return new ResponseEntity<>(null, HttpStatus.FORBIDDEN);
 		 }
-		 if (vo != null && vo.getProjectDetails().getSecurityConfig() == null) {
+		 if ((vo != null && vo.getProjectDetails().getSecurityConfig() != null && vo.getProjectDetails().getSecurityConfig().getStatus() == null)
+				 || vo.getProjectDetails().getSecurityConfig() == null) {
  
 			 log.info("No security configurations for workspace found");
 			 return new ResponseEntity<>(null, HttpStatus.NO_CONTENT);
@@ -1215,15 +1217,16 @@ import lombok.extern.slf4j.Slf4j;
 				 && vo.getWorkspaceOwner().getId().equalsIgnoreCase(userId)) && !(userStore.getUserInfo().hasCodespaceAdminAccess())) {
 					MessageDescription notAuthorizedMsg = new MessageDescription();
 				 notAuthorizedMsg.setMessage(
-						 "security configurations for workspace can be view only by Owners. Denied, does not have privileges.");
+						 "security configurations for workspace can be view only by workspace owners and Codespace admins. Access Denied, user does not have privileges.");
 				 GenericMessage errorMessage = new GenericMessage();
 				 errorMessage.addErrors(notAuthorizedMsg);
 			 log.info(
-					 "security configurations for workspace can be view only by Owners, insufficient privileges. Workspace name: {}"
+					 "security configurations for workspace can be view only by workspace owners and Codespace admins, insufficient privileges. Workspace name: {}"
 					,vo.getWorkspaceId());
 			 return new ResponseEntity<>(null, HttpStatus.FORBIDDEN);
 		 }
-		 if (vo != null && vo.getProjectDetails().getSecurityConfig() == null) {
+		 if ((vo != null && vo.getProjectDetails().getSecurityConfig() != null && vo.getProjectDetails().getSecurityConfig().getStatus() == null)
+				 || vo.getProjectDetails().getSecurityConfig() == null) {
  
 			 log.info("No security configurations for workspace found");
 			 return new ResponseEntity<>(null, HttpStatus.NO_CONTENT);
@@ -1468,7 +1471,7 @@ import lombok.extern.slf4j.Slf4j;
 			@ApiResponse(code = 500, message = "Internal error") })
 	@RequestMapping(value = "/workspaces/{id}/config/publish", produces = { "application/json" }, consumes = {
 			"application/json" }, method = RequestMethod.GET)
-	public ResponseEntity<CodespaceSecurityConfigVO> publishedSecurityConfigDetails(@ApiParam(value = "Workspace ID for the project", required = true) @PathVariable("id") String id) {
+	public ResponseEntity<CodespaceSecurityConfigVO> getPublishedSecurityConfigDetails(@ApiParam(value = "Workspace ID for the project", required = true) @PathVariable("id") String id) {
 		CodespaceSecurityConfigVO configPublishedDetailsVO = new CodespaceSecurityConfigVO();
 		CreatedByVO currentUser = this.userStore.getVO();
 		String userId = currentUser != null ? currentUser.getId() : null;
@@ -1484,7 +1487,8 @@ import lombok.extern.slf4j.Slf4j;
 					userId, vo.getWorkspaceId());
 			return new ResponseEntity<>(null, HttpStatus.FORBIDDEN);
 		}
-		if (vo.getProjectDetails().getPublishedSecuirtyConfig() == null) {
+		if ((vo != null && vo.getProjectDetails().getSecurityConfig() != null && vo.getProjectDetails().getSecurityConfig().getStatus() == null)
+				 || vo.getProjectDetails().getSecurityConfig() == null) {
 			log.debug("No published security config found, returning empty");
 			return new ResponseEntity<>(null, HttpStatus.NO_CONTENT);
 		}
@@ -1494,7 +1498,7 @@ import lombok.extern.slf4j.Slf4j;
 	}
    
    	@Override
-	@ApiOperation(value = " get all codespace security configurations in requested state", nickname = "getAllSecurityConfig", notes = "get codespace security configurations in requested state.", response = CodespaceSecurityConfigCollectionVO.class, tags = {
+	@ApiOperation(value = "Get all workspace security configurations which are in requested and accepted state, waiting for processing.", nickname = "getAllSecurityConfig", notes = "get codespace security configurations in requested state.", response = CodespaceSecurityConfigCollectionVO.class, tags = {
 		"code-server", })
 	@ApiResponses(value = {
 			@ApiResponse(code = 201, message = "Returns message of success or failure", response = CodespaceSecurityConfigCollectionVO.class),

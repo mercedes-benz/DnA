@@ -1390,7 +1390,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 						entity.getData().getProjectDetails().setSecurityConfig(config);
 
 						if(isPublished){
-							entity.getData().getProjectDetails().setPublishedSecuirtyConfig(config);
+							entity.getData().getProjectDetails().setPublishedSecurityConfig(config);
 						}
 						entities.add(entity);
 					}
@@ -1400,7 +1400,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 			responseMessage.setSuccess("SUCCESS");
 
 		} catch (Exception e) {
-			e.printStackTrace();
+			//e.printStackTrace();
 			log.error("caught exception while saving security config {}", e.getMessage());
 			MessageDescription msg = new MessageDescription();
 			List<MessageDescription> errorMessage = new ArrayList<>();
