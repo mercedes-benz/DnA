@@ -532,14 +532,14 @@ public class KongClientImpl implements KongClient {
 			message.setErrors(errors);
 			return message;
 			}
-			LOGGER.error("Exception: {} occured while deleting service: {} details", serviceName);			
+			LOGGER.error("Exception: {} occured while deleting service: {} details", ex.getMessage(), serviceName);			
 			messageDescription.setMessage(ex.getMessage());
 			errors.add(messageDescription);
 			message.setErrors(errors);
 			return message;
 		}
 		catch(Exception e) {
-			LOGGER.error("Error: {} while deleting service: {} details", serviceName);			
+			LOGGER.error("Error: {} while deleting service: {} details", e.getMessage(), serviceName);			
 			messageDescription.setMessage(e.getMessage());
 			errors.add(messageDescription);
 			errors.add(messageDescription);
