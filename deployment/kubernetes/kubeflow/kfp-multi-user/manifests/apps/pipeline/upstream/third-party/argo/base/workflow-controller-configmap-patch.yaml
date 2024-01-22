@@ -4,12 +4,12 @@ metadata:
   name: workflow-controller-configmap
 data:
   # References:
-  # * https://github.com/argoproj/argo-workflows/blob/v3.1.6/config/config.go
-  # * https://github.com/argoproj/argo-workflows/blob/v3.1.6/docs/workflow-controller-configmap.md
-  # * https://github.com/argoproj/argo-workflows/blob/v3.1.6/docs/workflow-controller-configmap.yaml
+  # * https://github.com/argoproj/argo-workflows/blob/v3.3.10/config/config.go
+  # * https://github.com/argoproj/argo-workflows/blob/v3.3.10/docs/workflow-controller-configmap.md
+  # * https://github.com/argoproj/argo-workflows/blob/v3.3.10/docs/workflow-controller-configmap.yaml
 
   # emissary executor is a more portable default, see https://github.com/kubeflow/pipelines/issues/1654.
-  containerRuntimeExecutor: docker
+  containerRuntimeExecutor: emissary
 
   # In artifactRepository.s3.endpoint, $(kfp-namespace) is needed, because in multi-user mode, pipelines may run in other namespaces.
   artifactRepository: |
@@ -28,8 +28,7 @@ data:
       # The following format looks like:
       # artifacts/my-workflow-abc123/2018/08/23/my-workflow-abc123-1234567890
       # Adding date into the path greatly reduces the chance of {{pod.name}} collision.
-      keyFormat: "artifacts/{{workflow.name}}/{{pod.name}}"
-      # keyFormat: "artifacts/{{workflow.name}}/{{workflow.creationTimestamp.Y}}/{{workflow.creationTimestamp.m}}/{{workflow.creationTimestamp.d}}/{{pod.name}}"
+      keyFormat: "artifacts/{{workflow.name}}/{{workflow.creationTimestamp.Y}}/{{workflow.creationTimestamp.m}}/{{workflow.creationTimestamp.d}}/{{pod.name}}"
       # insecure will disable TLS. Primarily used for minio installs not configured with TLS
       insecure: true
       accessKeySecret:
@@ -40,10 +39,3 @@ data:
         key: secretkey
   executor: |
     imagePullPolicy: IfNotPresent
-    resources:
-      requests:
-        cpu: 0.01
-        memory: 32Mi
-      limits:
-        cpu: 0.5
-        memory: 512Mi

@@ -15,8 +15,6 @@ spec:
       annotations:
         cluster-autoscaler.kubernetes.io/safe-to-evict: "true"
     spec:
-      securityContext:
-        runAsUser: 1000
       containers:
       - env:
         - name: AUTO_UPDATE_PIPELINE_DEFAULT_VERSION
@@ -35,6 +33,7 @@ spec:
             configMapKeyRef:
               name: pipeline-install-config
               key: bucketName
+        # relic variables
         - name: DBCONFIG_USER
           valueFrom:
             secretKeyRef:
@@ -60,11 +59,44 @@ spec:
             configMapKeyRef:
               name: pipeline-install-config
               key: dbPort
-        - name: DBCONFIG_CONMAXLIFETIMESEC
+        # end of relic variables
+        - name: DBCONFIG_CONMAXLIFETIME
           valueFrom:
             configMapKeyRef:
               name: pipeline-install-config
-              key: ConMaxLifeTimeSec
+              key: ConMaxLifeTime
+        - name: DB_DRIVER_NAME
+          valueFrom:
+            configMapKeyRef:
+              name: pipeline-install-config
+              key: dbType
+        # MySQL Config
+        - name: DBCONFIG_MYSQLCONFIG_USER
+          valueFrom:
+            secretKeyRef:
+              name: mysql-secret
+              key: username
+        - name: DBCONFIG_MYSQLCONFIG_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: mysql-secret
+              key: password
+        - name: DBCONFIG_MYSQLCONFIG_DBNAME
+          valueFrom:
+            configMapKeyRef:
+              name: pipeline-install-config
+              key: pipelineDb
+        - name: DBCONFIG_MYSQLCONFIG_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: pipeline-install-config
+              key: mysqlHost
+        - name: DBCONFIG_MYSQLCONFIG_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: pipeline-install-config
+              key: mysqlPort
+        # end of MySQL Config
         - name: OBJECTSTORECONFIG_ACCESSKEY
           valueFrom:
             secretKeyRef:
@@ -105,6 +137,21 @@ spec:
               - "-" # Redirect output to stdout
               - http://localhost:8888/apis/v1beta1/healthz
           initialDelaySeconds: 3
+          periodSeconds: 5
+          timeoutSeconds: 2
+        # This startup probe provides up to a 60 second grace window before the
+        # liveness probe takes over to accomodate the occasional database
+        # migration.
+        startupProbe:
+          exec:
+            command:
+              - wget
+              - -q # quiet
+              - -S # show server response
+              - -O
+              - "-" # Redirect output to stdout
+              - http://localhost:8888/apis/v1beta1/healthz
+          failureThreshold: 12
           periodSeconds: 5
           timeoutSeconds: 2
         resources:

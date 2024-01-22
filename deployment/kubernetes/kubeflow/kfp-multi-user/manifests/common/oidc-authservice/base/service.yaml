@@ -7,7 +7,7 @@ spec:
   selector:
     app: authservice
   ports:
-  - port: 8080
-    name: http-authservice
-    targetPort: http-api
+    - port: 8080
+      name: http-authservice
+      targetPort: http-api
   publishNotReadyAddresses: true

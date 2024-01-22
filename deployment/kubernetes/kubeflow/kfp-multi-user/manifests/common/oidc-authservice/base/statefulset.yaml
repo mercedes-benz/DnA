@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: authservice
+  name: oidc-authservice
 spec:
   replicas: 1
   selector:
@@ -15,9 +15,10 @@ spec:
       labels:
         app: authservice
     spec:
+      serviceAccountName: authservice
       containers:
       - name: authservice
-        image: gcr.io/arrikto/kubeflow/oidc-authservice:6ac9400
+        image: gcr.io/arrikto/kubeflow/oidc-authservice:e236439
         imagePullPolicy: Always
         ports:
         - name: http-api
@@ -35,8 +36,6 @@ spec:
               path: /
               port: 8081
       securityContext:
-        runAsUser: 111
-        runAsGroup: 111
         fsGroup: 111
       volumes:
         - name: data

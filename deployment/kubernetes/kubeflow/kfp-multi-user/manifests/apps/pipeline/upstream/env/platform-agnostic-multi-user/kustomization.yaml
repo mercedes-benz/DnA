@@ -2,17 +2,15 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
 bases:
+  - ../../third-party/metacontroller/base
   - ../../base/installs/multi-user
   - ../../base/metadata/base
   - ../../base/metadata/options/istio
   - ../../third-party/argo/installs/cluster
-  # Disabled due to migration to the Bitnami MySQL
-  # - ../../third-party/mysql/base 
+  - ../../third-party/mysql/base
   - ../../third-party/mysql/options/istio
   - ../../third-party/minio/base
   - ../../third-party/minio/options/istio
-  - ../../third-party/metacontroller/base
-  - ../../networking-policy #This is for Pod2pod communication
 
 # Identifier for application manager to apply ownerReference.
 # The ownerReference ensures the resources get garbage collected
