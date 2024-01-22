@@ -20,7 +20,7 @@ interface CodeSpaceCardItemProps {
   codeSpace: ICodeSpaceData;
   onDeleteSuccess?: () => void;
   toggleProgressMessage?: (show: boolean) => void;
-  onShowCodeSpaceOnBoard: (codeSpace: ICodeSpaceData) => void;
+  onShowCodeSpaceOnBoard: (codeSpace: ICodeSpaceData, isRetryRequest?: boolean) => void;
   onCodeSpaceEdit: (codeSpace: ICodeSpaceData) => void;
 }
 
@@ -107,6 +107,10 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
     }
   };
 
+  const onRetryCreateClick = () => {
+    props.onShowCodeSpaceOnBoard(codeSpace, true);
+  };
+
   const onCodeSpaceSecurityConfigClick = (codeSpace: ICodeSpaceData) => {
     if (codeSpace?.projectDetails?.publishedSecuirtyConfig) {
       history.push(`/codespace/publishedSecurityconfig/${codeSpace.id}?pub=true`);
@@ -131,14 +135,14 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
   const prodDeployedUrl = prodDeploymentDetails?.deploymentUrl;
   const prodLastDeployedOn = prodDeploymentDetails?.lastDeployedOn;
   const deployingInProgress =
-    intDeploymentDetails.lastDeploymentStatus === 'DEPLOY_REQUESTED' ||
-    prodDeploymentDetails.lastDeploymentStatus === 'DEPLOY_REQUESTED';
+    intDeploymentDetails?.lastDeploymentStatus === 'DEPLOY_REQUESTED' ||
+    prodDeploymentDetails?.lastDeploymentStatus === 'DEPLOY_REQUESTED';
   const intDeployed =
-    intDeploymentDetails.lastDeploymentStatus === 'DEPLOYED' ||
-    (intDeployedUrl !== null && intDeployedUrl !== 'null');
+    intDeploymentDetails?.lastDeploymentStatus === 'DEPLOYED' ||
+    (intDeployedUrl !== null && intDeployedUrl !== 'null') || false;
   const prodDeployed =
-    prodDeploymentDetails.lastDeploymentStatus === 'DEPLOYED' ||
-    (prodDeployedUrl !== null && prodDeployedUrl !== 'null');
+    prodDeploymentDetails?.lastDeploymentStatus === 'DEPLOYED' ||
+    (prodDeployedUrl !== null && prodDeployedUrl !== 'null') || false;
 
   const deployed = intDeployed || prodDeployed;
   const allowDelete = isOwner ? !hasCollaborators : true;
@@ -195,28 +199,24 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
                 <div>
                   {intDeployed && (
                     <>
-                      Staging({intDeploymentDetails.lastDeployedBranch}):
+                      Staging({intDeploymentDetails?.lastDeployedBranch}):
                       <br />
                       {regionalDateAndTimeConversionSolution(intLastDeployedOn)}
-                      {!enableOnboard && <a target='_blank' href={buildLogViewURL(intDeployedUrl, true)} rel="noreferrer"><i tooltip-data="Show Staging App logs in new tab" className="icon mbc-icon workspace small right" /></a>}
+                      {!creationFailed && !enableOnboard && <a target='_blank' href={buildLogViewURL(intDeployedUrl, true)} rel="noreferrer"><i tooltip-data="Show Staging App logs in new tab" className="icon mbc-icon workspace small right" /></a>}
                     </>
                   )}
                   <br />
                   {prodDeployed && (
                     <>
-                      Production({prodDeploymentDetails.lastDeployedBranch}):
+                      Production({prodDeploymentDetails?.lastDeployedBranch}):
                       <br />
                       {regionalDateAndTimeConversionSolution(prodLastDeployedOn)}
-                      {!enableOnboard && <a target='_blank' href={buildLogViewURL(prodDeployedUrl)} rel="noreferrer"><i tooltip-data="Show Production App logs in new tab" className="icon mbc-icon workspace small right" /></a>}
+                      {!creationFailed && !enableOnboard && <a target='_blank' href={buildLogViewURL(prodDeployedUrl)} rel="noreferrer"><i tooltip-data="Show Production App logs in new tab" className="icon mbc-icon workspace small right" /></a>}
                     </>
                   )}
                 </div>
               </div>
             )}
-            {/* <div>
-              <div>Code Space ID</div>
-              <div>{codeSpace.name}</div>
-            </div> */}
           </div>
         </div>
         <div className={Styles.cardFooter}>
@@ -233,22 +233,22 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
                   <span className={classNames(Styles.statusIndicator, Styles.creating)}>Creating...</span>
                 ) : (
                   <>
-                    {deployingInProgress && (
+                    {!creationFailed && deployingInProgress && (
                       <span className={classNames(Styles.statusIndicator, Styles.deploying)}>Deploying...</span>
                     )}
-                    {deployed && (
+                    {!creationFailed && deployed && (
                       <>
                         {!deployingInProgress && <span className={Styles.statusIndicator}>Deployed</span>}
                         {intDeployed && (
                           <a href={intDeployedUrl} target="_blank" rel="noreferrer" className={Styles.deployedLink}>
                             <i className="icon mbc-icon link" /> Staging{' '}
-                            {projectDetails.intDeploymentDetails.secureWithIAMRequired && (securedWithIAMContent)}
+                            {projectDetails?.intDeploymentDetails?.secureWithIAMRequired && (securedWithIAMContent)}
                           </a>
                         )}
                         {prodDeployed && (
                           <a href={prodDeployedUrl} target="_blank" rel="noreferrer" className={Styles.deployedLink}>
                             <i className="icon mbc-icon link" /> Production{' '}
-                            {projectDetails.prodDeploymentDetails.secureWithIAMRequired && (securedWithIAMContent)}
+                            {projectDetails?.prodDeploymentDetails?.secureWithIAMRequired && (securedWithIAMContent)}
                           </a>
                         )}
                       </>
@@ -279,7 +279,7 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
                   </button>
                 )}
                 {creationFailed && (
-                  <button className="btn btn-primary hidden">
+                  <button className="btn btn-primary" onClick={onRetryCreateClick}>
                     <i className="icon mbc-icon refresh"></i> Retry
                   </button>
                 )}
