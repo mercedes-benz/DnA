@@ -101,6 +101,8 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
 
   const [PII, setPII] = useState(projectDetails?.dataGovernance?.piiData ? true : false);
 
+  const tags : string[] = [];
+
   const [archerId, setArcherId] = useState(projectDetails?.dataGovernance?.archerId ? projectDetails?.dataGovernance?.archerId : '');
   const [archerIdError, setArcherIdError] = useState('');
 
@@ -615,21 +617,18 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
     if (validateEditCodeSpaceForm()){
       const editCodeSpaceRequest = {
         data: {
-          projectDetails: {
-            dataGovernance: {
-              typeOfProject: typeOfProject,
-              description: description,
-              divisionId: division.split('@-@')[0],
-              division: division.split('@-@')[1],
-              subDivisionId: subDivision.split('@-@')[0],
-              subDivision: subDivision.split('@-@')[1],
-              department: department[0],
-              classificationType: classificationType,
-              piiData: PII,
-              archerId: archerId,
-              procedureID: procedureID,
-            },
-          },
+          typeOfProject: typeOfProject,
+          description: description,
+          divisionId: division.split('@-@')[0],
+          division: division.split('@-@')[1],
+          subDivisionId: subDivision.split('@-@')[0],
+          subDivision: subDivision.split('@-@')[1],
+          department: department[0],
+          classificationType: classificationType,
+          piiData: PII,
+          tags: tags,
+          archerId: archerId,
+          procedureID: procedureID,
         },
       };
 
