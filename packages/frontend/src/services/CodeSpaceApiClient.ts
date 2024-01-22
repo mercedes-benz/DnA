@@ -48,7 +48,7 @@ export class CodeSpaceApiClient {
     return this.post('workspaces', data);
   }
   public static editCodeSpace(id: string, data: any){
-    return this.put(`workspaces/${id}`, data);
+    return this.patch(`workspaces/${id}/datagoverance`, data);
   }
   public static getCodeSpaceStatus(id: string) {
     return this.get(`workspaces/status/${id}`);
