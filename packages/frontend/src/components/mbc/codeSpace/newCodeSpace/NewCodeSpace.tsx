@@ -29,6 +29,7 @@ export interface ICodeSpaceProps {
   user: IUserInfo;
   onBoardingCodeSpace?: ICodeSpaceData;
   onEditingCodeSpace?: ICodeSpaceData;
+  isRetryRequest?: boolean;
   isCodeSpaceCreationSuccess?: (status: boolean, codeSpaceData: ICodeSpaceData) => void;
   toggleProgressMessage?: (show: boolean) => void;
   onUpdateCodeSpaceComplete?: () => void;
@@ -111,26 +112,28 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
   // let livelinessInterval: any = undefined;
 
   useEffect(() => {
-    ProgressIndicator.show();
-    CodeSpaceApiClient.getLovData()
-      .then((response) => {
-        ProgressIndicator.hide();
-        setDataClassificationDropdown(response[0].data || []);
-        setDivisions(response[1] || []);
-        setDepartments(response[2]?.data || []);
-        SelectBox.defaultSetup();
-      })
-      .catch((err) => {
-        ProgressIndicator.hide();
-        SelectBox.defaultSetup();
-        if (err?.response?.data?.errors?.length > 0) {
-          err?.response?.data?.errors.forEach((err: any) => {
+    if (!onBoadingMode) {
+      ProgressIndicator.show();
+      CodeSpaceApiClient.getLovData()
+        .then((response) => {
+          ProgressIndicator.hide();
+          setDataClassificationDropdown(response[0].data || []);
+          setDivisions(response[1] || []);
+          setDepartments(response[2]?.data || []);
+          SelectBox.defaultSetup();
+        })
+        .catch((err) => {
+          ProgressIndicator.hide();
+          SelectBox.defaultSetup();
+          if (err?.response?.data?.errors?.length > 0) {
+            err?.response?.data?.errors.forEach((err: any) => {
+              Notification.show(err?.message || 'Something went wrong.', 'alert');
+            });
+          } else {
             Notification.show(err?.message || 'Something went wrong.', 'alert');
-          });
-        } else {
-          Notification.show(err?.message || 'Something went wrong.', 'alert');
-        }
-      });
+          }
+        });
+    }  
   }, []);
 
   useEffect(() => {
@@ -806,9 +809,8 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
         <div className={Styles.newCodeSpacePanel}>
           <div className={Styles.addicon}> &nbsp; </div>
           <h3>
-            Hello {namePrefix}, On-board to Code Space - {projectDetails.projectName}
+            Hello {namePrefix}, {props.isRetryRequest ? 'Retry creation of' : 'On-board to'} Code Space
           </h3>
-          <p>Enter the information to start creating!</p>
           <div className={Styles.codeSpaceDetails}>
             <div className={Styles.flexLayout}>
               <div>
@@ -821,12 +823,10 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
               <div>{projectDetails?.dataGovernance?.typeOfProject ? projectDetails?.dataGovernance?.typeOfProject : 'N/A'}</div>
             </div>
             <div className={Styles.flexLayout}>
-              <div>
+              <div style={{ width: '25%' }}>
                 <label>Description</label>
               </div>
-              <div>{projectDetails?.dataGovernance?.description ? projectDetails?.dataGovernance?.description : 'N/A'}</div>
-              <div></div>
-              <div></div>
+              <div style={{ width: '75%' }}>{projectDetails?.dataGovernance?.description ? projectDetails?.dataGovernance?.description : 'N/A'}</div>
             </div>
             {projectDetails?.dataGovernance?.typeOfProject !== 'Playground' && <div className={Styles.flexLayout}>
               <div>
@@ -866,10 +866,13 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
               </div>
               <div>{projectDetails?.dataGovernance?.procedureID ? projectDetails?.dataGovernance?.procedureID : 'N/A'}</div>
             </div>
-            <div>
-              <label>Recipe</label>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; 
-              &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;
-              {recipes.find((item: any) => item.id === projectDetails.recipeDetails.recipeId).name}  
+            <div className={Styles.flexLayout}>
+              <div style={{ width: '25%' }}>
+                <label>Recipe</label>
+              </div>
+              <div style={{ width: '75%' }}>
+                {recipes.find((item: any) => item.id === projectDetails.recipeDetails.recipeId).name}
+              </div>
             </div>
             <div className={Styles.flexLayout}>
               <div>
@@ -933,6 +936,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
               </div>
             </div>
           )} */}
+          <p>Enter the information to start creating!</p>
           <div>
             <div>
               <TextBox
@@ -952,7 +956,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
           </div>
           <div className={Styles.newCodeSpaceBtn}>
             <button className={' btn btn-tertiary '} onClick={onBoardToCodeSpace}>
-              On-board to Code Space
+              {props.isRetryRequest ? 'Create' : 'On-board to'} Code Space
             </button>
           </div>
         </div>
