@@ -11,7 +11,7 @@ import SelectBox from 'components/formElements/SelectBox/SelectBox';
 import { Envs } from 'globals/Envs';
 import { ICodeCollaborator, IUserInfo } from 'globals/types';
 import { history } from '../../../router/History';
-import { builGitJobLogViewURL, buildLogViewURL, recipesMaster, regionalDateAndTimeConversionSolution, trackEvent } from '../../../services/utils';
+import { buildGitJobLogViewURL, buildLogViewURL, recipesMaster, regionalDateAndTimeConversionSolution, trackEvent } from '../../../services/utils';
 // import { ApiClient } from '../../../services/ApiClient';
 import Modal from 'components/formElements/modal/Modal';
 import Styles from './CodeSpace.scss';
@@ -549,7 +549,7 @@ const CodeSpace = (props: ICodeSpaceProps) => {
                             ({intDeploymentDetails?.gitjobRunID ? (
                               <a
                                 target="_blank"
-                                href={builGitJobLogViewURL(intDeploymentDetails?.gitjobRunID)}
+                                href={buildGitJobLogViewURL(intDeploymentDetails?.gitjobRunID)}
                                 tooltip-data="Show staging build & deploy logs in new tab"
                                 rel="noreferrer"
                               >
@@ -580,7 +580,7 @@ const CodeSpace = (props: ICodeSpaceProps) => {
                             ({prodDeploymentDetails?.gitjobRunID ? (
                               <a
                                 target="_blank"
-                                href={builGitJobLogViewURL(prodDeploymentDetails?.gitjobRunID)}
+                                href={buildGitJobLogViewURL(prodDeploymentDetails?.gitjobRunID)}
                                 tooltip-data="Show production build & deploy logs in new tab"
                                 rel="noreferrer"
                               >

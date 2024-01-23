@@ -1,7 +1,7 @@
 import classNames from 'classnames';
 import React, { useState } from 'react';
 import Styles from './CodeSpaceCardItem.scss';
-import { recipesMaster, regionalDateAndTimeConversionSolution, buildLogViewURL, builGitJobLogViewURL } from '../../../../services/utils';
+import { recipesMaster, regionalDateAndTimeConversionSolution, buildLogViewURL, buildGitJobLogViewURL } from '../../../../services/utils';
 import ConfirmModal from 'components/formElements/modal/confirmModal/ConfirmModal';
 import { history } from '../../../../router/History';
 // @ts-ignore
@@ -204,7 +204,7 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
                       {!creationFailed && !enableOnboard && intDeploymentDetails.gitjobRunID ? (
                         <a
                           target="_blank"
-                          href={builGitJobLogViewURL(intDeploymentDetails.gitjobRunID)}
+                          href={buildGitJobLogViewURL(intDeploymentDetails.gitjobRunID)}
                           tooltip-data="Show staging build & deploy logs in new tab"
                           rel="noreferrer"
                         >
@@ -231,7 +231,7 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
                       {!creationFailed && !enableOnboard && prodDeploymentDetails.gitjobRunID ? (
                         <a
                           target="_blank"
-                          href={builGitJobLogViewURL(prodDeploymentDetails.gitjobRunID)}
+                          href={buildGitJobLogViewURL(prodDeploymentDetails.gitjobRunID)}
                           tooltip-data="Show production build & deploy logs in new tab"
                           rel="noreferrer"
                         >

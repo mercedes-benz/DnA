@@ -356,7 +356,7 @@ export const buildLogViewURL = (deployedUrl: string, isStagging?: boolean) => {
   }
 };
 
-export const builGitJobLogViewURL = (gitJobRunId: string) => {
+export const buildGitJobLogViewURL = (gitJobRunId: string) => {
   try {
     return Envs.CODESPACE_OPENSEARCH_BUILD_LOGS_URL.replaceAll('$INSTANCE_ID$', gitJobRunId);
   } catch {
