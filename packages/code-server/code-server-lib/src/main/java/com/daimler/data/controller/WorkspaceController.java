@@ -1302,7 +1302,7 @@ import lombok.extern.slf4j.Slf4j;
 				 && (vo.getProjectDetails().getSecurityConfig().getStatus().equalsIgnoreCase("DRAFT")
 						 || vo.getProjectDetails().getSecurityConfig().getStatus().equalsIgnoreCase("PUBLISHED"))) {
 			 vo.getProjectDetails().getSecurityConfig().setStatus("REQUESTED");
-			 SimpleDateFormat dateFormatter = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
+			 SimpleDateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS+00:00");
 			 vo.getProjectDetails().getSecurityConfig().setRequestedDate(dateFormatter.format(new Date()));
 			 responseMessage = service.saveSecurityConfig(vo,false);
 		 }
