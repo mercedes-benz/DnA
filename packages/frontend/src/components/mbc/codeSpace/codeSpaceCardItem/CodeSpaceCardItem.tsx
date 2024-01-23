@@ -1,7 +1,7 @@
 import classNames from 'classnames';
 import React, { useState } from 'react';
 import Styles from './CodeSpaceCardItem.scss';
-import { recipesMaster, regionalDateAndTimeConversionSolution, buildLogViewURL } from '../../../../services/utils';
+import { recipesMaster, regionalDateAndTimeConversionSolution, buildLogViewURL, builGitJobLogViewURL } from '../../../../services/utils';
 import ConfirmModal from 'components/formElements/modal/confirmModal/ConfirmModal';
 import { history } from '../../../../router/History';
 // @ts-ignore
@@ -201,8 +201,26 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
                     <>
                       Staging({intDeploymentDetails?.lastDeployedBranch}):
                       <br />
-                      {regionalDateAndTimeConversionSolution(intLastDeployedOn)}
-                      {!creationFailed && !enableOnboard && <a target='_blank' href={buildLogViewURL(intDeployedUrl, true)} rel="noreferrer"><i tooltip-data="Show Staging App logs in new tab" className="icon mbc-icon workspace small right" /></a>}
+                      {!creationFailed && !enableOnboard && intDeploymentDetails.gitjobRunID ? (
+                        <a
+                          target="_blank"
+                          href={builGitJobLogViewURL(intDeploymentDetails.gitjobRunID)}
+                          tooltip-data="Show staging build & deploy logs in new tab"
+                          rel="noreferrer"
+                        >
+                          {regionalDateAndTimeConversionSolution(intLastDeployedOn)}
+                        </a>
+                      ) : (
+                        <>{regionalDateAndTimeConversionSolution(intLastDeployedOn)}</>
+                      )}
+                      {!creationFailed && !enableOnboard && (
+                        <a target="_blank" href={buildLogViewURL(intDeployedUrl, true)} rel="noreferrer">
+                          <i
+                            tooltip-data="Show Staging App logs in new tab"
+                            className="icon mbc-icon workspace small right"
+                          />
+                        </a>
+                      )}
                     </>
                   )}
                   <br />
@@ -210,8 +228,26 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
                     <>
                       Production({prodDeploymentDetails?.lastDeployedBranch}):
                       <br />
-                      {regionalDateAndTimeConversionSolution(prodLastDeployedOn)}
-                      {!creationFailed && !enableOnboard && <a target='_blank' href={buildLogViewURL(prodDeployedUrl)} rel="noreferrer"><i tooltip-data="Show Production App logs in new tab" className="icon mbc-icon workspace small right" /></a>}
+                      {!creationFailed && !enableOnboard && prodDeploymentDetails.gitjobRunID ? (
+                        <a
+                          target="_blank"
+                          href={builGitJobLogViewURL(prodDeploymentDetails.gitjobRunID)}
+                          tooltip-data="Show production build & deploy logs in new tab"
+                          rel="noreferrer"
+                        >
+                          {regionalDateAndTimeConversionSolution(intLastDeployedOn)}
+                        </a>
+                      ) : (
+                        <>{regionalDateAndTimeConversionSolution(prodLastDeployedOn)}</>
+                      )}
+                      {!creationFailed && !enableOnboard && (
+                        <a target="_blank" href={buildLogViewURL(prodDeployedUrl)} rel="noreferrer">
+                          <i
+                            tooltip-data="Show Production App logs in new tab"
+                            className="icon mbc-icon workspace small right"
+                          />
+                        </a>
+                      )}
                     </>
                   )}
                 </div>
@@ -242,13 +278,13 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
                         {intDeployed && (
                           <a href={intDeployedUrl} target="_blank" rel="noreferrer" className={Styles.deployedLink}>
                             <i className="icon mbc-icon link" /> Staging{' '}
-                            {projectDetails?.intDeploymentDetails?.secureWithIAMRequired && (securedWithIAMContent)}
+                            {projectDetails?.intDeploymentDetails?.secureWithIAMRequired && securedWithIAMContent}
                           </a>
                         )}
                         {prodDeployed && (
                           <a href={prodDeployedUrl} target="_blank" rel="noreferrer" className={Styles.deployedLink}>
                             <i className="icon mbc-icon link" /> Production{' '}
-                            {projectDetails?.prodDeploymentDetails?.secureWithIAMRequired && (securedWithIAMContent)}
+                            {projectDetails?.prodDeploymentDetails?.secureWithIAMRequired && securedWithIAMContent}
                           </a>
                         )}
                       </>
@@ -263,11 +299,16 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
                 )}
               </div>
               <div className={Styles.btnGrp}>
-                {!disableDeployment && !isPublicRecipe && !createInProgress && !deployingInProgress && !creationFailed && isOwner && (
-                  <button className="btn btn-primary" onClick={() => onCodeSpaceSecurityConfigClick(codeSpace)}>
-                    <IconGear size={'18'} />
-                  </button>
-                )}
+                {!disableDeployment &&
+                  !isPublicRecipe &&
+                  !createInProgress &&
+                  !deployingInProgress &&
+                  !creationFailed &&
+                  isOwner && (
+                    <button className="btn btn-primary" onClick={() => onCodeSpaceSecurityConfigClick(codeSpace)}>
+                      <IconGear size={'18'} />
+                    </button>
+                  )}
                 {!isPublicRecipe && !createInProgress && !deployingInProgress && !creationFailed && isOwner && (
                   <button className="btn btn-primary" onClick={() => props.onCodeSpaceEdit(codeSpace)}>
                     <i className="icon mbc-icon edit"></i>

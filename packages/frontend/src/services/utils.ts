@@ -352,7 +352,15 @@ export const buildLogViewURL = (deployedUrl: string, isStagging?: boolean) => {
   try {
     return Envs.CODESPACE_OPENSEARCH_LOGS_URL.replaceAll('$INSTANCE_ID$', new URL(deployedUrl).pathname.split("/")[1] + (isStagging ? '-int' : ''));
   } catch {
-    return "Error in building log Url. Please check the deployment Url."
+    return "Error in building log view Url. Please check the deployment Url."
+  }
+};
+
+export const builGitJobLogViewURL = (gitJobRunId: string) => {
+  try {
+    return Envs.CODESPACE_OPENSEARCH_BUILD_LOGS_URL.replaceAll('$INSTANCE_ID$', gitJobRunId);
+  } catch {
+    return "Error in building git job log view Url. Please check the git job run id."
   }
 };
 

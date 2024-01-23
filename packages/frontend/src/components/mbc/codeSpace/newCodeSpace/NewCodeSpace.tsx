@@ -57,7 +57,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
   const [projectName, setProjectName] = useState('');
   const [projectNameError, setProjectNameError] = useState('');
   const [environment, setEnvironment] = useState('DHC-CaaS');
-  const [recipeValue, setRecipeValue] = useState('0');
+  const [recipeValue, setRecipeValue] = useState(onBoadingMode ? projectDetails.recipeDetails?.recipeId : '0');
   const recipes = recipesMaster;
 
   const [recipeError, setRecipeError] = useState('');
@@ -552,7 +552,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
     // } else {
     //   setGithubUserNameError('');
     // }
-    if (githubToken === '') {
+    if (githubToken === '' && recipeValue !== 'default') {
       setGithubTokenError(requiredError);
       formValid = false;
     }
@@ -941,24 +941,26 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
               </div>
             </div>
           )} */}
-          <p>Enter the information to start creating!</p>
-          <div>
+          {recipeValue !== 'default' && <>
+            <p>Enter the information to start creating!</p>
             <div>
-              <TextBox
-                type="password"
-                controlId={'githubTokenInput'}
-                labelId={'githubTokenLabel'}
-                label={`Your Github(${githubUrlValue}) Personal Access Token`}
-                infoTip="Not stored only used for Code Space initial setup"
-                placeholder={'Type here'}
-                value={githubToken}
-                errorText={githubTokenError}
-                required={true}
-                maxLength={50}
-                onChange={onGithubTokenOnChange}
-              />
+              <div>
+                <TextBox
+                  type="password"
+                  controlId={'githubTokenInput'}
+                  labelId={'githubTokenLabel'}
+                  label={`Your Github(${githubUrlValue}) Personal Access Token`}
+                  infoTip="Not stored only used for Code Space initial setup"
+                  placeholder={'Type here'}
+                  value={githubToken}
+                  errorText={githubTokenError}
+                  required={true}
+                  maxLength={50}
+                  onChange={onGithubTokenOnChange}
+                />
+              </div>
             </div>
-          </div>
+          </>}
           <div className={Styles.newCodeSpaceBtn}>
             <button className={' btn btn-tertiary '} onClick={onBoardToCodeSpace}>
               {props.isRetryRequest ? 'Create' : 'On-board to'} Code Space
