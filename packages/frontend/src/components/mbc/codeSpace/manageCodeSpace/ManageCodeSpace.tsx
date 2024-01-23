@@ -165,7 +165,6 @@ const ManageCodeSpace = () => {
       currentSortType: sortOrder,
       nextSortType: newSortType,
     };
-    console.log(isConfigTab);
     if (isConfigTab) {
       let data = workSpaceConfigs;
       if (propName === 'projectName') {
@@ -212,9 +211,7 @@ const ManageCodeSpace = () => {
       }
     } else {
       let data = newRecipes;
-      console.log('yes');
       if (propName === 'recipeName') {
-        console.log('in');
         data = data.sort((a, b) => {
           if (sortOrder === 'asc') {
             return a.recipeName.toLowerCase().localeCompare(b.recipeName.toLowerCase());
@@ -230,8 +227,6 @@ const ManageCodeSpace = () => {
             return b.createdBy.firstName.toLowerCase().localeCompare(a.createdBy.firstName.toLowerCase());
           }
         });
-      } else if (propName === 'createdDate') {
-        console.log('created');
       }
       setNewRecipes(data);
     }
@@ -402,7 +397,8 @@ const ManageCodeSpace = () => {
                                   Recipe Name
                                 </label>
                               </th>
-                              <th onClick={() => sortByColumn('createdBy', sortBy.nextSortType)}>
+                              {/* <th onClick={() => sortByColumn('createdBy', sortBy.nextSortType)}> */}
+                              <th>
                                 <label
                                   className={
                                     'sortable-column-header ' +
