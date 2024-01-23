@@ -325,7 +325,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 		// Deleting Kong route
 		GenericMessage deleteRouteResponse = authenticatorClient.deleteRoute(entity.getData().getWorkspaceId(),
 				entity.getData().getWorkspaceId());
-		if (deleteRouteResponse != null && deleteRouteResponse.getSuccess().equalsIgnoreCase("Success"))
+		if (deleteRouteResponse != null && deleteRouteResponse.getSuccess()!= null && deleteRouteResponse.getSuccess().equalsIgnoreCase("Success"))
 			log.info("Kong route: {} deleted successfully", entity.getData().getWorkspaceId());
 		else {
 			if (deleteRouteResponse.getErrors() != null && deleteRouteResponse.getErrors().get(0) != null) {
@@ -336,7 +336,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 
 		// Deleting Kong service
 		GenericMessage deleteServiceResponse = authenticatorClient.deleteService(entity.getData().getWorkspaceId());
-		if (deleteServiceResponse != null && deleteServiceResponse.getSuccess().equalsIgnoreCase("Success"))
+		if (deleteServiceResponse != null && deleteServiceResponse.getSuccess() != null && deleteServiceResponse.getSuccess().equalsIgnoreCase("Success"))
 			log.info("Kong service: {} deleted successfully", entity.getData().getWorkspaceId());
 		else {
 			if (deleteServiceResponse.getErrors() != null && deleteServiceResponse.getErrors().get(0) != null) {

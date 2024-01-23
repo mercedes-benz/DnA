@@ -261,7 +261,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 	
 	public void callingKongApis(String wsid,String serviceName, String env, boolean apiRecipe) {
 		boolean kongApiForDeploymentURL = !wsid.equalsIgnoreCase(serviceName) && Objects.nonNull(env);
-		CodeServerWorkspaceNsql workspaceNsql = customRepository.findByWorkspaceId(serviceName);
+		CodeServerWorkspaceNsql workspaceNsql = customRepository.findByWorkspaceId(wsid);
 		CodeServerDeploymentDetails intDeploymentDetails = workspaceNsql.getData().getProjectDetails().getIntDeploymentDetails();
 		CodeServerDeploymentDetails prodDeploymentDetails = workspaceNsql.getData().getProjectDetails().getProdDeploymentDetails();
 		Boolean intSecureIAM = false;
@@ -525,7 +525,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 			ResponseEntity<String> response = restTemplate.exchange(deleteServiceUri, HttpMethod.DELETE, entity, String.class);
 			if (response != null && response.hasBody()) {
 				HttpStatus statusCode = response.getStatusCode();
-				if (statusCode == HttpStatus.OK || statusCode == HttpStatus.NO_CONTENT) {
+				if (statusCode.is2xxSuccessful()) {
 					message.setSuccess("Success");		
 					message.setErrors(errors);
 					message.setWarnings(warnings);
@@ -575,7 +575,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 			ResponseEntity<String> response = restTemplate.exchange(deleteRouteUri, HttpMethod.DELETE, entity, String.class);
 			if (response != null) {
 				HttpStatus statusCode = response.getStatusCode();
-				if (statusCode == HttpStatus.OK || statusCode == HttpStatus.NO_CONTENT) {
+				if (statusCode.is2xxSuccessful()) {
 					message.setSuccess("Success");		
 					message.setErrors(errors);
 					message.setWarnings(warnings);
