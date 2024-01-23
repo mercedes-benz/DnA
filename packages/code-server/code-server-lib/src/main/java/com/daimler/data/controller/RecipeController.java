@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import com.daimler.data.api.workspace.recipe.CodeServerRecipeApi;
+import com.daimler.data.application.auth.UserStore;
 import com.daimler.data.dto.workspace.recipe.RecipeVO;
 import com.daimler.data.service.workspace.RecipeService;
 import com.daimler.data.service.workspace.WorkspaceService;
@@ -37,6 +38,9 @@ public class RecipeController implements CodeServerRecipeApi {
      @Autowired
 	 private RecipeService service;
 
+	 @Autowired
+	 private UserStore userStore;
+
 	@Override
 	@ApiOperation(value = "Initialize/Create recipe for user in code-server-recipe.", nickname = "createRecipe", notes = "Create recipe for user in code-server with given password", response = RecipeVO.class, tags = {
 			"code-server-recipe", })
@@ -53,8 +57,9 @@ public class RecipeController implements CodeServerRecipeApi {
 			@ApiParam(value = "Request Body that contains data required for intialize code server workbench for user", required = true) @Valid @RequestBody RecipeVO recipeRequestVO) {
 				
 		String recipeName = recipeRequestVO.getRecipeName() != null ? recipeRequestVO.getRecipeName() : null;
-		RecipeVO vo = service.getByRecipeName(recipeName);
-		if (vo == null) {
+		//RecipeVO vo = service.getByRecipeName(recipeName);
+		String name = service.getByRecipeName(recipeName).getRecipeName();
+		if (name == null) {
 			RecipeVO recipeVO = service.createRecipe(recipeRequestVO);
 			if (Objects.nonNull(recipeVO)) {
 				return new ResponseEntity<>(recipeVO, HttpStatus.CREATED);
@@ -91,16 +96,21 @@ public class RecipeController implements CodeServerRecipeApi {
 		if (limit == null) {
 			limit = 0;
 		}
-
-		List<RecipeVO> allRecipes = service.getAllRecipes(offset, limit);
-		if (Objects.nonNull(allRecipes)) {
-			for (RecipeVO recipe : allRecipes) {
-				recipeCollectionVO.addDataItem(recipe);
+		if (userStore.getUserInfo().hasCodespaceAdminAccess()) {
+			List<RecipeVO> allRecipes = service.getAllRecipes(offset, limit);
+			if (Objects.nonNull(allRecipes)) {
+				for (RecipeVO recipe : allRecipes) {
+					recipeCollectionVO.addDataItem(recipe);
+				}
+				recipeCollectionVO.setCount(allRecipes.size());
+				return new ResponseEntity<>(recipeCollectionVO, HttpStatus.OK);
+			} else {
+				return new ResponseEntity<>(recipeCollectionVO, HttpStatus.NO_CONTENT);
 			}
-			recipeCollectionVO.setCount(allRecipes.size());
-			return new ResponseEntity<>(recipeCollectionVO, HttpStatus.OK);
+
 		} else {
-			return new ResponseEntity<>(recipeCollectionVO, HttpStatus.NO_CONTENT);
+			log.info(" user is unauthorized to access codespace" + userStore.getUserInfo().getId());
+			return new ResponseEntity<>(null, HttpStatus.UNAUTHORIZED);
 		}
 	}
 
@@ -119,13 +129,18 @@ public class RecipeController implements CodeServerRecipeApi {
 			"application/json" }, method = RequestMethod.GET)
 	public ResponseEntity<RecipeVO> getByRecipeName(
 			@ApiParam(value = "Workspace ID to be fetched", required = true) @PathVariable("recipeName") String recipeName) {
-		RecipeVO recipeVO = service.getByRecipeName(recipeName);
-		GenericMessage responseMessage = new GenericMessage();
-		if (Objects.nonNull(recipeVO) && Objects.nonNull(recipeVO.getRecipeName())) {
-			return new ResponseEntity<>(recipeVO, HttpStatus.OK);
+		if (userStore.getUserInfo().hasCodespaceAdminAccess()) {
+			RecipeVO recipeVO = service.getByRecipeName(recipeName);
+			if (Objects.nonNull(recipeVO) && Objects.nonNull(recipeVO.getRecipeName())) {
+				return new ResponseEntity<>(recipeVO, HttpStatus.OK);
+			} else {
+				log.info("No recipe found for given recipeName: {} ", recipeName);
+				return new ResponseEntity<>(recipeVO, HttpStatus.NOT_FOUND);
+			}
 		} else {
-			log.info("No recipe found for given recipeName: {} ", recipeName);
-			return new ResponseEntity<>(recipeVO, HttpStatus.NOT_FOUND);
+			log.info(" user is unauthorized to access codespace" + userStore.getUserInfo().getId());
+			return new ResponseEntity<>(null, HttpStatus.UNAUTHORIZED);
+
 		}
 	}
     
