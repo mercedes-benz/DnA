@@ -730,7 +730,7 @@ paths:
         - "code-server"
       summary: "Getting values of published security config for a workspace"
       description: "Get published security config details in codeserver workspace"
-      operationId: "publishedSecurityConfigDetails"
+      operationId: "getPublishedSecurityConfigDetails"
       parameters:
         - name: "id"
           in: "path"
