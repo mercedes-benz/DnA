@@ -5,6 +5,7 @@ import { ICodeCollaborator } from 'globals/types';
 import { history } from '../../../../router/History';
 import { CodeSpaceApiClient } from '../../../../services/CodeSpaceApiClient';
 import { Notification, ProgressIndicator } from '../../../../assets/modules/uilab/bundle/js/uilab.bundle';
+import { regionalDateAndTimeConversionSolution } from '../../../../services/utils';
 import ViewRecipe from '../codeSpaceRecipe/viewRecipe';
 import Modal from 'components/formElements/modal/Modal';
 
@@ -71,12 +72,12 @@ const codeSpaceList = (props: ICodeSpaceList) => {
   };
 
 
-  const formatDate = (date: string) => {
-    const [datePart] = date.split('T');
-    const [year, month, day] = datePart.split('-');
-    const formattedDate = `${day}-${month}-${year}`;
-    return formattedDate;
-  };
+  // const formatDate = (date: string) => {
+  //   const [datePart] = date.split('T');
+  //   const [year, month, day] = datePart.split('-');
+  //   const formattedDate = `${day}-${month}-${year}`;
+  //   return formattedDate;
+  // };
   return (
     <React.Fragment>
       <tr
@@ -103,9 +104,7 @@ const codeSpaceList = (props: ICodeSpaceList) => {
         <td className={'wrap-text' + Styles.securityConfigCol}>
           <span>
             {props.requestedDate !== null
-              ? props.isConfigList
-                ? props?.requestedDate.split(' ')[0]
-                : formatDate(props.requestedDate)
+              ? regionalDateAndTimeConversionSolution(props.requestedDate)
               : ''}
           </span>
         </td>

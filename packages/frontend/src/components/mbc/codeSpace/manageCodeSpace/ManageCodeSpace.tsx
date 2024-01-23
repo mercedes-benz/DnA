@@ -11,7 +11,7 @@ import Caption from '../../shared/caption/Caption';
 import { Notification } from '../../../../assets/modules/uilab/bundle/js/uilab.bundle';
 import { ProgressIndicator } from '../../../../assets/modules/uilab/bundle/js/uilab.bundle';
 import Tabs from '../../../../assets/modules/uilab/js/src/tabs';
-
+import { regionalDateAndTimeConversionSolution } from '../../../../services/utils';
 export interface IWorkSpaceConfigs {
   id?: string;
   projectName?: string;
@@ -165,6 +165,13 @@ const ManageCodeSpace = () => {
       currentSortType: sortOrder,
       nextSortType: newSortType,
     };
+    const convertToDateObj = (date: any) => {
+      console.log(date);
+      const parts = date.split(', ');
+      const dateParts = parts[0].split('/');
+      const timeParts = parts[1].split(':');
+      return new Date(dateParts[2], dateParts[1] - 1, dateParts[0], timeParts[0], timeParts[1], timeParts[2]);
+    };
     if (isConfigTab) {
       let data = workSpaceConfigs;
       if (propName === 'projectName') {
@@ -192,15 +199,9 @@ const ManageCodeSpace = () => {
           }
         });
       } else if (propName === 'requestedDate') {
-        const convertToDateObj = (date: any) => {
-          const parts = date.split(' ');
-          const dateParts = parts[0].split('-');
-          const timeParts = parts[1].split(':');
-          return new Date(dateParts[2], dateParts[1] - 1, dateParts[0], timeParts[0], timeParts[1], timeParts[2]);
-        };
         data = data.sort((a, b) => {
-          const dateA = convertToDateObj(a.securityConfig.requestedDate).getTime();
-          const dateB = convertToDateObj(b.securityConfig.requestedDate).getTime();
+          const dateA = convertToDateObj(regionalDateAndTimeConversionSolution(a.securityConfig.requestedDate)).getTime();
+          const dateB = convertToDateObj(regionalDateAndTimeConversionSolution(b.securityConfig.requestedDate)).getTime();
           if (sortOrder === 'asc') {
             return dateA - dateB;
           } else {
@@ -225,6 +226,17 @@ const ManageCodeSpace = () => {
             return a.createdBy.firstName.toLowerCase().localeCompare(b.createdBy.firstName.toLowerCase());
           } else {
             return b.createdBy.firstName.toLowerCase().localeCompare(a.createdBy.firstName.toLowerCase());
+          }
+        });
+      }else if(propName === 'createdOn'){
+        console.log(data);
+        data = data.sort((a, b) => {
+          const dateA = convertToDateObj(regionalDateAndTimeConversionSolution(a.createdOn)).getTime();
+          const dateB = convertToDateObj(regionalDateAndTimeConversionSolution(b.createdOn)).getTime();
+          if (sortOrder === 'asc') {
+            return dateA - dateB;
+          } else {
+            return dateB - dateA;
           }
         });
       }
@@ -397,8 +409,7 @@ const ManageCodeSpace = () => {
                                   Recipe Name
                                 </label>
                               </th>
-                              {/* <th onClick={() => sortByColumn('createdBy', sortBy.nextSortType)}> */}
-                              <th>
+                              <th onClick={() => sortByColumn('createdBy', sortBy.nextSortType)}>
                                 <label
                                   className={
                                     'sortable-column-header ' +
@@ -409,11 +420,11 @@ const ManageCodeSpace = () => {
                                   Created By
                                 </label>
                               </th>
-                              <th onClick={() => sortByColumn('createdDate', sortBy.nextSortType)}>
+                              <th onClick={() => sortByColumn('createdOn', sortBy.nextSortType)}>
                                 <label
                                   className={
                                     'sortable-column-header ' +
-                                    (sortBy.name === 'createdDate' ? sortBy.currentSortType : '')
+                                    (sortBy.name === 'createdOn' ? sortBy.currentSortType : '')
                                   }
                                 >
                                   <i className={'icon sort'} />
