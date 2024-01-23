@@ -459,6 +459,10 @@ public class WorkspaceAssembler implements GenericAssembler<CodeServerWorkspaceV
 			if (governance.getPiiData() != null) {
 				governanceVo.setPiiData(governance.getPiiData());
 			}
+			else
+			{
+				governanceVo.setPiiData(false);
+			}
 		}
 		return governanceVo;
 	}
@@ -534,6 +538,10 @@ public class WorkspaceAssembler implements GenericAssembler<CodeServerWorkspaceV
 			BeanUtils.copyProperties(governanceVO, governanceFeilds);
 			if (governanceVO.isPiiData()) {
 				governanceFeilds.setPiiData(governanceVO.isPiiData());
+			}
+			else
+			{
+				governanceFeilds.setPiiData(false);
 			}
 		}
 		return governanceFeilds;
