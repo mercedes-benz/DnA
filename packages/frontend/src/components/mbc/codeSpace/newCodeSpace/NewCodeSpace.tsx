@@ -30,6 +30,7 @@ export interface ICodeSpaceProps {
   user: IUserInfo;
   onBoardingCodeSpace?: ICodeSpaceData;
   onEditingCodeSpace?: ICodeSpaceData;
+  isRetryRequest?: boolean;
   isCodeSpaceCreationSuccess?: (status: boolean, codeSpaceData: ICodeSpaceData) => void;
   toggleProgressMessage?: (show: boolean) => void;
   onUpdateCodeSpaceComplete?: () => void;
@@ -85,7 +86,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
   const [typeOfProject, setTypeOfProject] = useState('0');
   const [typeOfProjectError, setTypeOfProjectError] = useState('');
 
-  const [description, setDescription] = useState('');
+  const [description, setDescription] = useState(projectDetails?.dataGovernance?.description ? projectDetails?.dataGovernance?.description : '');
   const [descriptionError, setDescriptionError] = useState('');
 
   const [division, setDivision] = useState('0');
@@ -96,15 +97,17 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
   const [department, setDepartment] = useState(onEditingMode ? [projectDetails?.dataGovernance?.department] : []);
   const [departmentError, setDepartmentError] = useState(false);
 
-  const [classificationType, setClassificationType] = useState('0');
+  const [classificationType, setClassificationType] = useState(projectDetails?.dataGovernance?.classificationType? projectDetails?.dataGovernance?.classificationType : '0');
   const [classificationTypeError, setClassificationTypeError] = useState('');
 
   const [PII, setPII] = useState(projectDetails?.dataGovernance?.piiData ? true : false);
 
-  const [archerId, setArcherId] = useState('');
+  const tags : string[] = [];
+
+  const [archerId, setArcherId] = useState(projectDetails?.dataGovernance?.archerId ? projectDetails?.dataGovernance?.archerId : '');
   const [archerIdError, setArcherIdError] = useState('');
 
-  const [procedureID, setProcedureID] = useState('');
+  const [procedureID, setProcedureID] = useState(projectDetails?.dataGovernance?.procedureID ? projectDetails?.dataGovernance?.procedureID : '');
   const [procedureIDError, setProcedureIDError] = useState('');
 
   const requiredError = '*Missing entry';
@@ -112,6 +115,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
   // let livelinessInterval: any = undefined;
 
   useEffect(() => {
+  if (!onBoadingMode) {
     ProgressIndicator.show();
     CodeSpaceApiClient.getLovData()
       .then((response) => {
@@ -134,6 +138,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
           Notification.show(err?.message || 'Something went wrong.', 'alert');
         }
       });
+    }  
   }, []);
 
   useEffect(() => {
@@ -620,21 +625,18 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
     if (validateEditCodeSpaceForm()){
       const editCodeSpaceRequest = {
         data: {
-          projectDetails: {
-            dataGovernance: {
-              typeOfProject: typeOfProject,
-              description: description,
-              divisionId: division.split('@-@')[0],
-              division: division.split('@-@')[1],
-              subDivisionId: subDivision.split('@-@')[0],
-              subDivision: subDivision.split('@-@')[1],
-              department: department[0],
-              classificationType: classificationType,
-              piiData: PII,
-              archerId: archerId,
-              procedureID: procedureID,
-            },
-          },
+          typeOfProject: typeOfProject,
+          description: description,
+          divisionId: division.split('@-@')[0],
+          division: division.split('@-@')[1],
+          subDivisionId: subDivision.split('@-@')[0],
+          subDivision: subDivision.split('@-@')[1],
+          department: department[0],
+          classificationType: classificationType,
+          piiData: PII,
+          tags: tags,
+          archerId: archerId,
+          procedureID: procedureID,
         },
       };
 
@@ -814,9 +816,8 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
         <div className={Styles.newCodeSpacePanel}>
           <div className={Styles.addicon}> &nbsp; </div>
           <h3>
-            Hello {namePrefix}, On-board to Code Space - {projectDetails.projectName}
+            Hello {namePrefix}, {props.isRetryRequest ? 'Retry creation of' : 'On-board to'} Code Space
           </h3>
-          <p>Enter the information to start creating!</p>
           <div className={Styles.codeSpaceDetails}>
             <div className={Styles.flexLayout}>
               <div>
@@ -829,13 +830,11 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
               <div>{projectDetails?.dataGovernance?.typeOfProject ? projectDetails?.dataGovernance?.typeOfProject : 'N/A'}</div>
             </div>
             <div className={Styles.flexLayout}>
-              <div>
+              <div style={{ width: '25%' }}>
                 <label>Description</label>
               </div>
-              <div>{projectDetails?.dataGovernance?.description ? projectDetails?.dataGovernance?.description : 'N/A'}</div>
-              <div></div>
-              <div></div>
-            </div>
+              <div style={{ width: '75%' }}>{projectDetails?.dataGovernance?.description ? projectDetails?.dataGovernance?.description : 'N/A'}</div>
+                          </div>
             {projectDetails?.dataGovernance?.typeOfProject !== 'Playground' && <div className={Styles.flexLayout}>
               <div>
                 <label>Division</label>
@@ -874,10 +873,13 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
               </div>
               <div>{projectDetails?.dataGovernance?.procedureID ? projectDetails?.dataGovernance?.procedureID : 'N/A'}</div>
             </div>
-            <div>
-              <label>Recipe</label>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; 
-              &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;
-              {recipes.find((item: any) => item.id === projectDetails.recipeDetails.recipeId).name}  
+            <div className={Styles.flexLayout}>
+              <div style={{ width: '25%' }}>
+              <label>Recipe</label>
+              </div>
+              <div style={{ width: '75%' }}>
+                {recipes.find((item: any) => item.id === projectDetails.recipeDetails.recipeId).name}  
+              </div>
             </div>
             <div className={Styles.flexLayout}>
               <div>
@@ -941,6 +943,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
               </div>
             </div>
           )} */}
+          <p>Enter the information to start creating!</p>
           <div>
             <div>
               <TextBox
@@ -960,7 +963,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
           </div>
           <div className={Styles.newCodeSpaceBtn}>
             <button className={' btn btn-tertiary '} onClick={onBoardToCodeSpace}>
-              On-board to Code Space
+              {props.isRetryRequest ? 'Create' : 'On-board to'} Code Space
             </button>
           </div>
         </div>
@@ -1548,7 +1551,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
                       id="description"
                       className="input-field-area"
                       defaultValue={description}
-                      value={projectDetails?.dataGovernance?.description}
+                      value={description}
                       required={true}
                       required-error={requiredError}
                       onChange={onDescriptionChange}
@@ -1645,7 +1648,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
                         required={true}
                         required-error={requiredError}
                         onChange={onClassificationChange}
-                        value={projectDetails?.dataGovernance?.classificationType}
+                        value={classificationType}
                       >
                         <option id="classificationOption" value={0}>
                           Choose
@@ -1709,7 +1712,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
                       autoComplete="off"
                       maxLength={55}
                       defaultValue={archerId}
-                      value={projectDetails?.dataGovernance?.archerId}
+                      value={archerId}
                       onChange={onArcherIdChange}
                     />
                     <span className={classNames('error-message', archerIdError.length ? '' : 'hide')}>
@@ -1728,7 +1731,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
                       autoComplete="off"
                       maxLength={55}
                       defaultValue={procedureID}
-                      value={projectDetails?.dataGovernance?.procedureID}
+                      value={procedureID}
                       onChange={onProcedureIDChange}
                     />
                     <span className={classNames('error-message', procedureIDError.length ? '' : 'hide')}>
