@@ -102,7 +102,7 @@ const AllCodeSpaces = (props: IAllCodeSpacesProps) => {
   };
 
   const onShowSecurityConfigRequest = () => {
-    history.push('/codespace/adminSecurityConfigs');
+    history.push('/codespace/manageCodespace');
   };
 
   const isCodeSpaceCreationSuccess = (status: boolean, codeSpaceData: ICodeSpaceData) => {
@@ -198,7 +198,7 @@ const AllCodeSpaces = (props: IAllCodeSpacesProps) => {
                   onClick={onShowSecurityConfigRequest}
                 >
                   <IconGear size={'14'} />
-                  <span>&nbsp;Manage Security Configs</span>
+                  <span>&nbsp;Manage Code Spaces</span>
                 </button>
               </>
             ) : null}

@@ -138,8 +138,8 @@ paths:
     get:
       tags:
         - "code-server-admin"
-      summary: "Get all workspace security configurations which are in requested state, waiting for processing."
-      description: "Get all workspace security configurations which are in requested state, waiting for processing"
+      summary: "Get all workspace security configurations which are in requested and accepted state, waiting for processing."
+      description: "Get all workspace security configurations which are in requested and accepted state, waiting for processing"
       operationId: "getWorkspaceConfigs"
       parameters:
           - name: offset

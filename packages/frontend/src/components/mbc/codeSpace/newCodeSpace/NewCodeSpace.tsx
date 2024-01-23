@@ -21,6 +21,7 @@ import { Envs } from 'globals/Envs';
 import { recipesMaster } from '../../../../services/utils';
 import ConfirmModal from 'components/formElements/modal/confirmModal/ConfirmModal';
 import { DEPLOYMENT_DISABLED_RECIPE_IDS } from 'globals/constants';
+import { Link } from 'react-router-dom';
 import Tags from 'components/formElements/tags/Tags';
 
 const classNames = cn.bind(Styles);
@@ -123,6 +124,8 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
         setDataClassificationDropdown(response[0].data || []);
         setDivisions(response[1] || []);
         setDepartments(response[2]?.data || []);
+        onEditingMode && setDivision(projectDetails?.dataGovernance?.division ? projectDetails?.dataGovernance?.divisionId+'@-@'+projectDetails?.dataGovernance?.division : '0');
+        onEditingMode && setClassificationType(projectDetails?.dataGovernance?.classificationType? projectDetails?.dataGovernance?.classificationType : '0');
         SelectBox.defaultSetup();
       })
       .catch((err) => {
@@ -146,6 +149,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
       ApiClient.get('/subdivisions/' + divId)
         .then((res) => {
           setSubDivisions(res || []);
+          onEditingMode && setSubDivision(projectDetails?.dataGovernance?.subDivision ? projectDetails?.dataGovernance?.subDivisionId+'@-@'+projectDetails?.dataGovernance?.subDivision : '0');
           SelectBox.defaultSetup();
           ProgressIndicator.hide();
         }).catch(() => {
@@ -1278,13 +1282,15 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
                   </select>
                 </div>
                 <span className={classNames('error-message', recipeError.length ? '' : 'hide')}>{recipeError}</span>
+                <Link to="/codespaceRecipes" target='_blank'>
                 <div>
-                  <button className={classNames(Styles.addNewItemButton)}>
+                  <button className={classNames(Styles.addNewItemButton)} >
                     <i className="icon mbc-icon plus" />
                     &nbsp;
-                    <span>Add new code space recipe (Coming Soon)</span>
+                    <span>Add new code space recipe</span>
                   </button>
                 </div>
+                </Link>
               </div>
               <div>
                 <div id="environmentContainer" className={classNames('input-field-group include-error')}>
