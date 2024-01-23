@@ -21,7 +21,7 @@ import { Envs } from 'globals/Envs';
 import { recipesMaster } from '../../../../services/utils';
 import ConfirmModal from 'components/formElements/modal/confirmModal/ConfirmModal';
 import { DEPLOYMENT_DISABLED_RECIPE_IDS } from 'globals/constants';
- import { Link } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import Tags from 'components/formElements/tags/Tags';
 
 const classNames = cn.bind(Styles);
@@ -90,10 +90,10 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
   const [description, setDescription] = useState(projectDetails?.dataGovernance?.description ? projectDetails?.dataGovernance?.description : '');
   const [descriptionError, setDescriptionError] = useState('');
 
-  const [division, setDivision] = useState('0');
+  const [division, setDivision] = useState(projectDetails?.dataGovernance?.division ? projectDetails?.dataGovernance?.divisionId+'@-@'+projectDetails?.dataGovernance?.division : '0');
   const [divisionError, setDivisionError] = useState('');
 
-  const [subDivision, setSubDivision] = useState('0');
+  const [subDivision, setSubDivision] = useState(projectDetails?.dataGovernance?.subDivision ? projectDetails?.dataGovernance?.subDivisionId+'@-@'+projectDetails?.dataGovernance?.subDivision : '0');
   
   const [department, setDepartment] = useState(onEditingMode ? [projectDetails?.dataGovernance?.department] : []);
   const [departmentError, setDepartmentError] = useState(false);
@@ -163,11 +163,6 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
   useEffect(() => {
     SelectBox.defaultSetup(true);
   }, [typeOfProject]);
-
-  // useEffect(() => {
-  //   onEditingMode && setSubDivision(projectDetails?.dataGovernance?.subDivisionId !== null ? projectDetails?.dataGovernance?.subDivisionId + '@-@' + projectDetails?.dataGovernance?.subDivision : '0');
-  //   // onEditingMode && setSubDivision(subDivision !== null ? subDivision : '0');
-  // }, [subDivision]);
 
   useEffect(() => {
     if (onEditingMode && props.onEditingCodeSpace.projectDetails?.projectCollaborators) {
@@ -392,7 +387,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
       }
     };
   };
-  
+
   const updateCollaborator = (userId: string) => {
     const currentCollList = codeSpaceCollaborators.filter((item: ICodeCollaborator) => {
       return item.id !== userId;
@@ -1583,7 +1578,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
                         required={true}
                         required-error={requiredError}
                         onChange={onDivisionChange}
-                        value={projectDetails?.dataGovernance?.divisionId+'@-@'+projectDetails?.dataGovernance?.division}
+                        value={division}
                       >
                         <option id="divisionOption" value={0}>
                           Choose
@@ -1607,7 +1602,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
                       <select
                         id="subDivisionField"
                         defaultValue={subDivision}
-                        value={projectDetails?.dataGovernance?.subDivisionId+'@-@'+projectDetails?.dataGovernance?.subDivision}
+                        value={subDivision}
                         required={false}
                         onChange={onSubDivisionChange}
                       >
