@@ -114,6 +114,18 @@ export class CodeSpaceApiClient {
     return this.post(`/workspaces/${id}/config/request`)
   };
 
+  public static createCodeSpaceRecipe(data: any) {
+    return this.post('recipeDetails', data);
+  }
+  
+  public static getCodeSpaceRecipeRequests() {
+    return this.get('recipeDetails')
+  }
+
+  public static getCodeSpaceRecipe(id: string){
+    return this.get(`recipeDetails/${id}`);
+  }
+
   public static getLovData(): Promise<any[]>{
     return Promise.all([
       this.getStorage(`lov/dataclassifications`),

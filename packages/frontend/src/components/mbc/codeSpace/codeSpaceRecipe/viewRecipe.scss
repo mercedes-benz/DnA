@@ -1,0 +1,27 @@
+.flexLayout {
+    display: flex;
+    justify-content: space-between;
+
+    > div {
+      width: calc(50% - 7px);
+    }
+    &.fourColumn {
+      > div {
+        width: calc(25% - 7px);
+      }
+    }
+  }
+  .recipePre{
+    white-space: pre-wrap;
+    font-family: "Roboto-Medium";  
+  }
+  .recipeLable{
+    color:#a9adb6 ;
+    font-weight: 70px;
+  }
+  .titleWrapper{
+    margin-bottom: 20px;
+  .title{
+    font-size: var( --font-size-headline-medium);
+  }
+}
