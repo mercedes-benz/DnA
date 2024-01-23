@@ -84,7 +84,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
 
   const [typeOfProject, setTypeOfProject] = useState(projectDetails?.dataGovernance?.typeOfProject ? projectDetails?.dataGovernance?.typeOfProject : '0');
   const [typeOfProjectError, setTypeOfProjectError] = useState('');
-  const isPlayground = typeOfProject==='Playground' ? true : false;
+  const isPlayground = typeOfProject === 'Playground';
 
   const [description, setDescription] = useState(projectDetails?.dataGovernance?.description ? projectDetails?.dataGovernance?.description : '');
   const [descriptionError, setDescriptionError] = useState('');
