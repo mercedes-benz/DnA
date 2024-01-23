@@ -84,6 +84,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
 
   const [typeOfProject, setTypeOfProject] = useState(projectDetails?.dataGovernance?.typeOfProject ? projectDetails?.dataGovernance?.typeOfProject : '0');
   const [typeOfProjectError, setTypeOfProjectError] = useState('');
+  const isPlayground = typeOfProject==='Playground' ? true : false;
 
   const [description, setDescription] = useState(projectDetails?.dataGovernance?.description ? projectDetails?.dataGovernance?.description : '');
   const [descriptionError, setDescriptionError] = useState('');
@@ -471,7 +472,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
       setDescriptionError(requiredError);
       formValid = false;
     }
-    if(typeOfProject!=='Playground' && division === '0'){
+    if(!isPlayground && division === '0'){
       setDivisionError(requiredError);
       formValid = false;
     }
@@ -479,7 +480,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
       setDepartmentError(true);
       formValid = false;
     }
-    if (typeOfProject!=='Playground' && classificationType === '0') {
+    if (!isPlayground && classificationType === '0') {
       setClassificationTypeError(requiredError);
       formValid = false;
     }
@@ -504,7 +505,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
       setDescriptionError(requiredError);
       formValid = false;
     }
-    if(typeOfProject!== 'Playground' && division === '0'){
+    if(!isPlayground && division === '0'){
       setDivisionError(requiredError);
       formValid = false;
     }
@@ -512,7 +513,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
       setDepartmentError(true);
       formValid = false;
     }
-    if (typeOfProject!== 'Playground' && classificationType === '0') {
+    if (!isPlayground && classificationType === '0') {
       setClassificationTypeError(requiredError);
       formValid = false;
     }
@@ -1040,7 +1041,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
                 </span>
               </div>
 
-              {typeOfProject !== 'Playground' && <div>
+              {!isPlayground && <div>
               <div className={Styles.flexLayout}>
                 <div
                   className={classNames('input-field-group include-error', 
@@ -1140,7 +1141,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
                 
               </div>
             
-              {typeOfProject !== 'Playground' && <div>
+              {!isPlayground && <div>
               <div className={Styles.flexLayout}>
                 <div
                   className={classNames(
@@ -1554,7 +1555,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
                   </div>
                 </div>
               
-              {typeOfProject !== 'Playground' && <div>
+              {!isPlayground && <div>
                 <div className={Styles.flexLayout}>
                   <div
                     className={classNames('input-field-group include-error', 
@@ -1621,7 +1622,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
                 </div>
               </div>}
 
-              {typeOfProject !== 'Playground' && <div>
+              {!isPlayground && <div>
                 <div className={Styles.flexLayout}>
                   <div
                     className={classNames(
