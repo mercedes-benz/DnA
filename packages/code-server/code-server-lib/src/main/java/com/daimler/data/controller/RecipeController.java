@@ -60,7 +60,7 @@ public class RecipeController implements CodeServerRecipeApi {
 		String recipeName = recipeRequestVO.getRecipeName() != null ? recipeRequestVO.getRecipeName() : null;
 		//RecipeVO vo = service.getByRecipeName(recipeName);
 		InitializeRecipeVo responseMessage = new InitializeRecipeVo();
-		String name = service.getByRecipeName(recipeName).getRecipeName();
+		String name = service.getByRecipeName(recipeName)!= null ? service.getByRecipeName(recipeName).getRecipeName() : null;
 		if (name == null) {
 			RecipeVO recipeVO = service.createRecipe(recipeRequestVO);
 			if (Objects.nonNull(recipeVO)) {
@@ -157,15 +157,15 @@ public class RecipeController implements CodeServerRecipeApi {
 				return new ResponseEntity<>(responseMessage, HttpStatus.OK);
 			} else {
 				responseMessage.setSuccess("FAILED");
-				responseMessage.setData("null");
+				responseMessage.setData(null);
 				log.info("No recipe found for given recipeName: {} ", recipeName);
 				return new ResponseEntity<>(responseMessage, HttpStatus.NOT_FOUND);
 			}
 		} else {
 
 			responseMessage.setData(null);
-			responseMessage.setSuccess("CONFLICT");
-			log.info(" user is unauthorized to access codespace" + userStore.getUserInfo().getId());
+			responseMessage.setSuccess("UNAUTHORIZED");
+			log.info(" user {} is unauthorized to access codespace" + userStore.getUserInfo().getId());
 			return new ResponseEntity<>(responseMessage, HttpStatus.UNAUTHORIZED);
 
 		}
