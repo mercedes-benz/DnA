@@ -110,6 +110,7 @@
 
           > div {
             text-align: center;
+            font-size: var(--font-size-small);
             a {
               margin: 0;
               font-size: var(--font-size-small);
@@ -248,7 +249,7 @@
         .urlLink {
           padding-right: 15px;
           text-align: right;
-          display: flex;
+          display: block;
           align-items: center;
           line-height: 18px;
           i {
@@ -264,6 +265,7 @@
           }
           > div {
             text-align: center;
+            font-size: var(--font-size-small);
             a {
               margin: 0;
               font-size: var(--font-size-small);
