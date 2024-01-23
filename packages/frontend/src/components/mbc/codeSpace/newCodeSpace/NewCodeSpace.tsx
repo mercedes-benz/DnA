@@ -123,6 +123,8 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
         setDataClassificationDropdown(response[0].data || []);
         setDivisions(response[1] || []);
         setDepartments(response[2]?.data || []);
+        onEditingMode && setDivision(projectDetails?.dataGovernance?.division ? projectDetails?.dataGovernance?.divisionId+'@-@'+projectDetails?.dataGovernance?.division : '0');
+        onEditingMode && setClassificationType(projectDetails?.dataGovernance?.classificationType? projectDetails?.dataGovernance?.classificationType : '0');
         SelectBox.defaultSetup();
       })
       .catch((err) => {
@@ -146,6 +148,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
       ApiClient.get('/subdivisions/' + divId)
         .then((res) => {
           setSubDivisions(res || []);
+          onEditingMode && setSubDivision(projectDetails?.dataGovernance?.subDivision ? projectDetails?.dataGovernance?.subDivisionId+'@-@'+projectDetails?.dataGovernance?.subDivision : '0');
           SelectBox.defaultSetup();
           ProgressIndicator.hide();
         }).catch(() => {
