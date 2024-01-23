@@ -1,5 +1,7 @@
 package com.daimler.data.service.workspace;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -38,8 +40,16 @@ public class BaseRecipeService implements RecipeService{
 
 	@Override
 	public RecipeVO createRecipe(RecipeVO recipeRequestVO) {
+		SimpleDateFormat isoFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS+00:00");
 		CodeServerRecipeNsql entity = recipeAssembler.toEntity(recipeRequestVO);
-		CodeServerRecipeNsql savedEntity = recipeJpaRepo.save(entity);
+		CodeServerRecipeNsql savedEntity = new CodeServerRecipeNsql();
+		try {
+			Date now = isoFormat.parse(isoFormat.format(new Date()));
+			entity.getData().setCreatedOn(now);
+			savedEntity = recipeJpaRepo.save(entity);
+		} catch (Exception e) {
+			log.error("Failed in assembler while parsing date into iso format with exception {}", e.getMessage());
+		}
 		return recipeAssembler.toVo(savedEntity);
 	}
 
