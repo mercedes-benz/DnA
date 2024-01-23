@@ -37,7 +37,7 @@ const ReportSummary = React.lazy(() => import('components/mbc/reportSummary/Repo
 const UserSettings = React.lazy(() => import('components/mbc/userSettings/userSettings'));
 const CodeSpace = React.lazy(() => import('components/mbc/codeSpace/CodeSpace'));
 const CodeSpaceSecurityConfig = React.lazy(() => import('components/mbc/codeSpace/securityConfig/SecurityConfig'));
-const AdminSecurityConfig = React.lazy(() => import('components/mbc/codeSpace/adminSecurityConfig/AdminSecurityConfig'));
+const ManageCodeSpaces = React.lazy(() => import('components/mbc/codeSpace/manageCodeSpace/ManageCodeSpace'));
 const AllCodeSpaces = React.lazy(() => import('components/mbc/codeSpace/AllCodeSpaces'));
 const Trainings = React.lazy(() => import('components/mbc/trainings/Trainings'));
 const GenAI = React.lazy(() => import('components/mbc/genAI/GenAI'));
@@ -343,10 +343,10 @@ const protectedRoutes = [
   },
   {
     allowedRoles: AdminRole ,
-    component: AdminSecurityConfig,
+    component: ManageCodeSpaces,
     exact: false,
-    path: '/codespace/adminSecurityConfigs',
-    title: 'Admin Security Config'
+    path: '/codespace/manageCodespace',
+    title: 'Manage codeSpace'
   },
   {
     allowedRoles: UserAndAdminRole,

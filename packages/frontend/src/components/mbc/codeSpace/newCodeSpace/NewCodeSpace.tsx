@@ -88,10 +88,10 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
   const [description, setDescription] = useState('');
   const [descriptionError, setDescriptionError] = useState('');
 
-  const [division, setDivision] = useState(projectDetails?.dataGovernance?.division ? projectDetails?.dataGovernance?.divisionId+'@-@'+projectDetails?.dataGovernance?.division : '0');
+  const [division, setDivision] = useState('0');
   const [divisionError, setDivisionError] = useState('');
 
-  const [subDivision, setSubDivision] = useState(projectDetails?.dataGovernance?.subDivision ? projectDetails?.dataGovernance?.subDivisionId+'@-@'+projectDetails?.dataGovernance?.subDivision : '0');
+  const [subDivision, setSubDivision] = useState('0');
   
   const [department, setDepartment] = useState(onEditingMode ? [projectDetails?.dataGovernance?.department] : []);
   const [departmentError, setDepartmentError] = useState(false);
@@ -119,6 +119,8 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
         setDataClassificationDropdown(response[0].data || []);
         setDivisions(response[1] || []);
         setDepartments(response[2]?.data || []);
+        // onEditingMode && setDivision(projectDetails?.dataGovernance?.divisionId !== null ? projectDetails?.dataGovernance?.divisionId + '@-@' + projectDetails?.dataGovernance?.division : '0');
+        // onEditingMode && setDivision(division !== null ? division : '0');
         SelectBox.defaultSetup();
       })
       .catch((err) => {
@@ -154,6 +156,11 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
   useEffect(() => {
     SelectBox.defaultSetup(true);
   }, [typeOfProject]);
+
+  // useEffect(() => {
+  //   onEditingMode && setSubDivision(projectDetails?.dataGovernance?.subDivisionId !== null ? projectDetails?.dataGovernance?.subDivisionId + '@-@' + projectDetails?.dataGovernance?.subDivision : '0');
+  //   // onEditingMode && setSubDivision(subDivision !== null ? subDivision : '0');
+  // }, [subDivision]);
 
   useEffect(() => {
     if (onEditingMode && props.onEditingCodeSpace.projectDetails?.projectCollaborators) {
@@ -1274,7 +1281,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
                   </select>
                 </div>
                 <span className={classNames('error-message', recipeError.length ? '' : 'hide')}>{recipeError}</span>
-                <Link to="/codespaceRecipes" target='_blank' >
+                <Link to="/codespaceRecipes" target='_blank'>
                 <div>
                   <button className={classNames(Styles.addNewItemButton)} >
                     <i className="icon mbc-icon plus" />
@@ -1282,6 +1289,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
                     <span>Add new code space recipe</span>
                   </button>
                 </div>
+                </Link>
               </div>
               <div>
                 <div id="environmentContainer" className={classNames('input-field-group include-error')}>
@@ -1569,7 +1577,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
                         required={true}
                         required-error={requiredError}
                         onChange={onDivisionChange}
-                        value={division}
+                        value={projectDetails?.dataGovernance?.divisionId+'@-@'+projectDetails?.dataGovernance?.division}
                       >
                         <option id="divisionOption" value={0}>
                           Choose
@@ -1593,7 +1601,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
                       <select
                         id="subDivisionField"
                         defaultValue={subDivision}
-                        value={subDivision}
+                        value={projectDetails?.dataGovernance?.subDivisionId+'@-@'+projectDetails?.dataGovernance?.subDivision}
                         required={false}
                         onChange={onSubDivisionChange}
                       >

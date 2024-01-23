@@ -1,6 +1,6 @@
 import cn from 'classnames';
 import React, { useState, useEffect } from 'react';
-import Styles from './CodeSpaceRecipie.scss';
+import Styles from './CodeSpaceRecipe.scss';
 import SelectBox from 'components/formElements/SelectBox/SelectBox';
 import TextBox from 'components/mbc/shared/textBox/TextBox';
 import Modal from 'components/formElements/modal/Modal';
@@ -27,8 +27,8 @@ export interface ICreateRecipe {
   plugins: string[];
 }
 export interface Isoftware {
-  softwareName: string;
-  softwareVersion: string;
+  name: string;
+  version: string;
 }
 
 export interface IUserInfoProps {
@@ -37,7 +37,7 @@ export interface IUserInfoProps {
 
 const CodeSpaceRecipe = (props: IUserInfoProps) => {
   const requiredError = '*Missing entry';
-  const softwareError = '*Please enter software name and version to save';
+  const softwareError = '*Please enter software name and version to request';
   const history = useHistory();
   const [recipeName, setRecipeName] = useState('');
   const [recipeType, setRecipeType] = useState('');
@@ -58,7 +58,7 @@ const CodeSpaceRecipe = (props: IUserInfoProps) => {
   const [ItemIndexToDelete, setItemIndexToDelete] = useState(0);
   const [errorObj, setErrorObj] = useState({
     recipeName: '',
-    recipieType: '',
+    recipeType: '',
     gitUrl: '',
     discSpace: '',
     minCpu: '',
@@ -70,51 +70,39 @@ const CodeSpaceRecipe = (props: IUserInfoProps) => {
   const githubUrlValue = isPublicRecipeChoosen ? 'https://github.com/' : Envs.CODE_SPACE_GIT_PAT_APP_URL;
   useEffect(() => {
     SelectBox.defaultSetup(true);
-    console.log(props.user);
   }, []);
 
   const onRecipeNameChange = (e: React.FormEvent<HTMLInputElement>) => {
     const value = e.currentTarget.value;
     setRecipeName(value);
-    console.log(recipeType);
-    if(!recipeType.startsWith("From")){
-      validateGitUrl(value);
-    }
   };
 
-  const validateGitUrl = (value : any) =>{
-    let errorMessage = '';
-    if (value === '') {
-      errorMessage = requiredError;
-    }
-    setErrorObj((prevState) => ({
-      ...prevState,
-      recipeName: errorMessage,
-    }));
+  const validateGitUrl = (githubUrlVal : string) =>{
+    const errorText = githubUrlVal.length
+    ? isValidGITRepoUrl(githubUrlVal, isPublicRecipeChoosen)
+      ? ''
+      : `provide valid ${isPublicRecipeChoosen ? 'https://github.com/' : Envs.CODE_SPACE_GIT_PAT_APP_URL} git url.`
+    : requiredError;
+  setErrorObj((prevState) => ({
+    ...prevState,
+    gitUrl: errorText,
+  }));
 
   };
 
   const onRecipeTypeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const selectedOption = e.currentTarget.value;
     setRecipeType(selectedOption);
-    console.log(selectedOption);
-    if(gitUrl !== '' && !selectedOption.startsWith("From")){
+    if(gitUrl){
       validateGitUrl(gitUrl);
     }
+    
   };
 
   const onGitUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const githubUrlVal = e.currentTarget.value.trim();
     setGitUrl(githubUrlVal);
-    const errorText = githubUrlVal.length
-      ? isValidGITRepoUrl(githubUrlVal, isPublicRecipeChoosen)
-        ? ''
-        : `provide valid ${isPublicRecipeChoosen ? 'https://github.com/' : Envs.CODE_SPACE_GIT_PAT_APP_URL} git url.`
-      : requiredError;
-    setErrorObj((prevState) => ({
-      ...prevState,
-      gitUrl: errorText,
-    }));
+    validateGitUrl(githubUrlVal);
   };
 
   const onDiskSpaceChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -182,15 +170,15 @@ const CodeSpaceRecipe = (props: IUserInfoProps) => {
     if (softwareName !== '') {
       if (softwareName !== 'others') {
         const software = {
-          softwareName: softwareName,
-          softwareVersion: softwareVersion,
+          name: softwareName,
+          version: softwareVersion,
         };
         setSoftwareList((preList) => [...preList, software]);
       } else {
         if (customSoftwareName !== '' && customSoftwareVersion !== '') {
           const software = {
-            softwareName: customSoftwareName,
-            softwareVersion: customSoftwareVersion,
+            name: customSoftwareName,
+            version: customSoftwareVersion,
           };
           setSoftwareList((preList) => [...preList, software]);
         } else {
@@ -217,22 +205,8 @@ const CodeSpaceRecipe = (props: IUserInfoProps) => {
     });
   };
 
-  const onSave = () => {
+  const onRequest = () => {
     if (validateForm()) {
-      // setData((prevState) => ({
-      //   ...prevState,
-      //   createdBy: props.user,
-      //   recipeName: recipeName,
-      //   recipiType:recipeType,
-      //   gitUrl:gitUrl,
-      //   minCpu:minCpu,
-      //   maxCpu: maxCpu,
-      //   minRam: minRam,
-      //   maxRam: maxRam,
-      //   software: softwareList,
-      // }));
-      // console.log(data);
-
       const CreateNewRecipe = {
         createdBy: {
           department: props.user.department,
@@ -261,51 +235,18 @@ const CodeSpaceRecipe = (props: IUserInfoProps) => {
       ProgressIndicator.show();
       CodeSpaceApiClient.createCodeSpaceRecipe(CreateNewRecipe)
         .then((res) => {
-          console.log(res);
           ProgressIndicator.hide();
           history.push('/codespaces');
           Notification.show('New Recipe Created successfully');
         })
         .catch((err: Error) => {
           ProgressIndicator.hide();
-          Notification.show("alert",err);
-        });
-      // {
-      //   "createdBy": {
-      //     "department": "string",
-      //     "email": "string",
-      //     "firstName": "string",
-      //     "gitUserName": "string",
-      //     "id": "string",
-      //     "lastName": "string",
-      //     "mobileNumber": "string"
-      //   },
-      //   "createdOn": "2024-01-11T08:13:23.884Z",
-      //   "diskSpace": "string",
-      //   "maxCpu": "string",
-      //   "maxRam": "string",
-      //   "minCpu": "string",
-      //   "minRam": "string",
-      //   "oSName": "Debian-OS-11",
-      //   "osname": "Debian-OS-11",
-      //   "plugins": [
-      //     "string"
-      //   ],
-      //   "recipeName": "string",
-      //   "recipeType": "string",
-      //   "repodetails": "string",
-      //   "software": [
-      //     {
-      //       "name": "string",
-      //       "version": "string"
-      //     }
-      //   ]
-      // }
-      
-    } else {
-      console.log('error');
-    }
+          Notification.show(err.message, 'alert');
+        }); 
+    } 
   };
+
+
   const validateForm = () => {
     let isValid = true;
     if (recipeName === '') {
@@ -319,7 +260,7 @@ const CodeSpaceRecipe = (props: IUserInfoProps) => {
       isValid = false;
       setErrorObj((prevState) => ({
         ...prevState,
-        recipieType: requiredError,
+        recipeType: requiredError,
       }));
     }
     if (gitUrl === '') {
@@ -380,8 +321,8 @@ const CodeSpaceRecipe = (props: IUserInfoProps) => {
                   <TextBox
                     type="text"
                     controlId={'recipeNameInput'}
-                    labelId={'recipieNameLabel'}
-                    label={'Recipie Name'}
+                    labelId={'recipeNameLabel'}
+                    label={'Recipe Name'}
                     placeholder={'Type here'}
                     value={recipeName}
                     errorText={errorObj.recipeName}
@@ -389,7 +330,7 @@ const CodeSpaceRecipe = (props: IUserInfoProps) => {
                     maxLength={200}
                     onChange={onRecipeNameChange}
                   />
-                  <div className={classNames('input-field-group include-error', errorObj.recipieType ? 'error' : '')}>
+                  <div className={classNames('input-field-group include-error', errorObj.recipeType ? 'error' : '')}>
                     <label id="recipeLabel" className="input-label" htmlFor="recipeSelect">
                       Code Recipe Type<sup>*</sup>
                     </label>
@@ -397,18 +338,18 @@ const CodeSpaceRecipe = (props: IUserInfoProps) => {
                       <select
                         id="recipeTypeField"
                         required={true}
-                        required-error={errorObj.recipieType}
+                        required-error={errorObj.recipeType}
                         value={recipeType}
                         onChange={onRecipeTypeChange}
                       >
                         <option value="">Choose</option>
                         <option value="public GitHub">Public GitHub</option>
                         <option value="private GitHub">Private GitHub</option>
-                        <option value="from Storage">From Storage</option>
+                        {/* <option value="from Storage">From Storage</option> */}
                       </select>
                     </div>
-                    <span className={classNames('error-message', errorObj.recipieType.length ? '' : 'hide')}>
-                      {errorObj.recipieType}
+                    <span className={classNames('error-message', errorObj.recipeType.length ? '' : 'hide')}>
+                      {errorObj.recipeType}
                     </span>
                   </div>
                 </div>
@@ -617,12 +558,12 @@ const CodeSpaceRecipe = (props: IUserInfoProps) => {
                               softwareName === 'others' ? 'disabled' : '',
                             )}
                           >
-                            <label id="softwareVersionLable" className="input-label" htmlFor="softwareVersionSelect">
+                            <label id="softwareVersionLable" className={classNames("input-label", softwareName === 'others' ? 'hide' : '')} htmlFor="softwareVersionSelect">
                               Software Version
                             </label>
                             <div
                               id="selectBox"
-                              className={classNames('custom-select', softwareName === 'others' ? 'disabled' : '')}
+                              className={classNames('custom-select', softwareName === 'others' ? 'hide' : '')}
                             >
                               <select
                                 id="softwareVersionField"
@@ -669,11 +610,6 @@ const CodeSpaceRecipe = (props: IUserInfoProps) => {
                           ) : null}
                         </div>
                         <span className="error-message">{softwareErrorText ? softwareError : ''}</span>
-                        {/* <div className={Styles.btnConatiner}>
-                          <button className="btn btn-primary" type="button" onClick={onSoftwareSave}>
-                            Save
-                          </button>
-                        </div> */}
                       </div>
                     }
                     scrollableContent={false}
@@ -706,8 +642,8 @@ const CodeSpaceRecipe = (props: IUserInfoProps) => {
                             softwareList.map((software, index) => {
                               return (
                                 <tr className="data-row" key={index}>
-                                  <td>{software.softwareName}</td>
-                                  <td>{software.softwareVersion}</td>
+                                  <td>{software.name}</td>
+                                  <td>{software.version}</td>
                                   <td className="text-center">
                                     <i
                                       onClick={() => {
@@ -734,8 +670,8 @@ const CodeSpaceRecipe = (props: IUserInfoProps) => {
           </div>
         </div>
         <div className={Styles.btnConatiner}>
-          <button className="btn btn-primary" type="button" onClick={onSave}>
-            Save
+          <button className="btn btn-tertiary" type="button" onClick={onRequest}>
+            Request
           </button>
         </div>
         {showDeletePopUp && (
