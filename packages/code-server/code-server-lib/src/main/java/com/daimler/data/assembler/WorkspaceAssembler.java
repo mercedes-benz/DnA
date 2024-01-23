@@ -432,9 +432,9 @@ public class WorkspaceAssembler implements GenericAssembler<CodeServerWorkspaceV
 									.tosecurityConfigVO(projectDetails.getSecurityConfig());
 							projectDetailsVO.setSecurityConfig(securityConfigVO);
 						}
-						if (projectDetails.getPublishedSecuirtyConfig() != null) {
+						if (projectDetails.getPublishedSecurityConfig() != null) {
 							CodespaceSecurityConfigVO publishedSecuirtyConfigVO = this
-									.tosecurityConfigVO(projectDetails.getPublishedSecuirtyConfig());
+									.tosecurityConfigVO(projectDetails.getPublishedSecurityConfig());
 							projectDetailsVO.setPublishedSecuirtyConfig(publishedSecuirtyConfigVO);
 
 						}
@@ -519,7 +519,7 @@ public class WorkspaceAssembler implements GenericAssembler<CodeServerWorkspaceV
 				CodespaceSecurityConfigVO codespacePublishSecurityConfigVo = projectDetailsVO
 						.getPublishedSecuirtyConfig();
 				if (codespacePublishSecurityConfigVo != null) {
-					projectDetails.setPublishedSecuirtyConfig(this.toSecurityConfig(codespacePublishSecurityConfigVo));
+					projectDetails.setPublishedSecurityConfig(this.toSecurityConfig(codespacePublishSecurityConfigVo));
 				}
 				data.setProjectDetails(projectDetails);
 				entity.setData(data);
@@ -637,7 +637,7 @@ public class WorkspaceAssembler implements GenericAssembler<CodeServerWorkspaceV
 				}
 			} catch (Exception e) {
 				e.printStackTrace();
-				log.error("Failed in assembler while parsing date into iso format with exception {}", e.getMessage());
+				log.error("Failed in assembler while parsing entitlements/roles with exception {}", e.getMessage());
 			}
 		}
 		return assembledSecurityConfig;
@@ -687,11 +687,11 @@ public class WorkspaceAssembler implements GenericAssembler<CodeServerWorkspaceV
 				}
 			}
 			securityConfigWithIds.setRoles(roleList);
-			for(CodespaceSecurityUserRoleMapVO userRoleMap : roleMapList){
-				if(userRoleMap.getId()==null){
-					userRoleMap.setId(UUID.randomUUID().toString());
-				}
-			}
+//			for(CodespaceSecurityUserRoleMapVO userRoleMap : roleMapList){
+//				if(userRoleMap.getId()==null){
+//					userRoleMap.setId(UUID.randomUUID().toString());
+//				}
+//			}
 			securityConfigWithIds.setUserRoleMappings(roleMapList);
 			
 		}
