@@ -122,7 +122,7 @@ paths:
         201:
           description: "Returns message of success or failure "
           schema:
-            $ref: "#/definitions/RecipeVO"
+            $ref: "#/definitions/InitializeRecipeVo"
         400:
           description: "Bad Request"
           schema:
@@ -159,7 +159,7 @@ paths:
         200:
           description: "Returns message of success or failure"
           schema:
-            $ref: "#/definitions/RecipeVO"
+            $ref: "#/definitions/InitializeRecipeVo"
         204:
           description: "Fetch complete, no content found."
         400:
@@ -242,3 +242,31 @@ definitions:
       count:
         type: integer
         description: "total number of records"
+      success:
+        type: string
+      errors:
+        type: array
+        items:
+          $ref: "#/definitions/MessageDescription"
+      warnings:
+        type: array
+        items:
+          $ref: "#/definitions/MessageDescription"  
+
+  InitializeRecipeVo:
+    type: object
+    properties:
+      data:
+        type: object
+        items:
+          $ref: "#/definitions/RecipeVO"
+      success:
+        type: string
+      errors:
+        type: array
+        items:
+          $ref: "#/definitions/MessageDescription"
+      warnings:
+        type: array
+        items:
+          $ref: "#/definitions/MessageDescription"  
