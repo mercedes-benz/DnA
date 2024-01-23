@@ -37,10 +37,11 @@ const ReportSummary = React.lazy(() => import('components/mbc/reportSummary/Repo
 const UserSettings = React.lazy(() => import('components/mbc/userSettings/userSettings'));
 const CodeSpace = React.lazy(() => import('components/mbc/codeSpace/CodeSpace'));
 const CodeSpaceSecurityConfig = React.lazy(() => import('components/mbc/codeSpace/securityConfig/SecurityConfig'));
-const AdminSecurityConfig = React.lazy(() => import('components/mbc/codeSpace/adminSecurityConfig/AdminSecurityConfig'));
+const ManageCodeSpaces = React.lazy(() => import('components/mbc/codeSpace/manageCodeSpace/ManageCodeSpace'));
 const AllCodeSpaces = React.lazy(() => import('components/mbc/codeSpace/AllCodeSpaces'));
 const Trainings = React.lazy(() => import('components/mbc/trainings/Trainings'));
 const GenAI = React.lazy(() => import('components/mbc/genAI/GenAI'));
+const CodeSpaceRecipe = React.lazy(() => import('components/mbc/codeSpace/codeSpaceRecipe/CodeSpaceRecipe'));
 const AzureBlobService = React.lazy(() => import('components/mbc/azureBlobService/AzureBlobService')) ;
 // Micro Front End Component
 const StorageComponent = React.lazy(() => import('storage-mfe/Bucket'));
@@ -142,6 +143,7 @@ const protectedRoutes = [
     exact: false,
     path: '/azureBlobService',
     title: 'Azure Blob Service',
+
   },
   {
     allowedRoles: UserAndAdminRole,
@@ -341,10 +343,10 @@ const protectedRoutes = [
   },
   {
     allowedRoles: AdminRole ,
-    component: AdminSecurityConfig,
+    component: ManageCodeSpaces,
     exact: false,
-    path: '/codespace/adminSecurityConfigs',
-    title: 'Admin Security Config'
+    path: '/codespace/manageCodespace',
+    title: 'Manage codeSpace'
   },
   {
     allowedRoles: UserAndAdminRole,
@@ -380,6 +382,13 @@ const protectedRoutes = [
     exact: false,
     path: '/codespaces',
     title: 'Your Code Spaces',
+  },
+  {
+    allowedRoles: AdminRole,
+    component:CodeSpaceRecipe ,
+    exact: false,
+    path: '/codespaceRecipes',
+    title: 'Code Space recipes',
   },
   {
     allowedRoles: UserAndAdminRole,
