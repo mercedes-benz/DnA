@@ -11,7 +11,7 @@ import SelectBox from 'components/formElements/SelectBox/SelectBox';
 import { Envs } from 'globals/Envs';
 import { ICodeCollaborator, IUserInfo } from 'globals/types';
 import { history } from '../../../router/History';
-import { buildLogViewURL, recipesMaster, trackEvent } from '../../../services/utils';
+import { builGitJobLogViewURL, buildLogViewURL, recipesMaster, regionalDateAndTimeConversionSolution, trackEvent } from '../../../services/utils';
 // import { ApiClient } from '../../../services/ApiClient';
 import Modal from 'components/formElements/modal/Modal';
 import Styles from './CodeSpace.scss';
@@ -83,6 +83,7 @@ export interface IDeploymentDetails {
   lastDeployedBranch?: string;
   lastDeploymentStatus?: string;
   lastDeployedBy?: ICodeCollaborator;
+  gitjobRunID?: string;
 }
 
 export interface ICodeSpaceData {
@@ -305,13 +306,13 @@ const CodeSpace = (props: ICodeSpaceProps) => {
 
   const onShowCodeDeployModal = () => {
     ProgressIndicator.show();
-    CodeSpaceApiClient.getCodeSpacesGitBranchList(codeSpaceData.projectDetails?.gitRepoName)
+    CodeSpaceApiClient.getCodeSpacesGitBranchList(projectDetails?.gitRepoName)
       .then((res: any) => {
         ProgressIndicator.hide();
         setShowCodeDeployModal(true);
         setBranches(res);
-        setIAMTechnicalUserID(codeSpaceData.projectDetails?.intDeploymentDetails?.technicalUserDetailsForIAMLogin || '');
-        setSecureWithIAMSelected(codeSpaceData.projectDetails?.intDeploymentDetails?.secureWithIAMRequired || false);
+        setIAMTechnicalUserID(projectDetails?.intDeploymentDetails?.technicalUserDetailsForIAMLogin || '');
+        setSecureWithIAMSelected(projectDetails?.intDeploymentDetails?.secureWithIAMRequired || false);
         SelectBox.defaultSetup();
         Tooltip.defaultSetup();
       })
@@ -390,11 +391,11 @@ const CodeSpace = (props: ICodeSpaceProps) => {
     const deployEnv = evnt.currentTarget.value.trim();
     setDeployEnvironment(deployEnv);
     if (deployEnv === 'staging') {
-      setSecureWithIAMSelected(codeSpaceData.projectDetails?.intDeploymentDetails?.secureWithIAMRequired || false);
-      setIAMTechnicalUserID(codeSpaceData.projectDetails?.intDeploymentDetails?.technicalUserDetailsForIAMLogin || '');
+      setSecureWithIAMSelected(projectDetails?.intDeploymentDetails?.secureWithIAMRequired || false);
+      setIAMTechnicalUserID(projectDetails?.intDeploymentDetails?.technicalUserDetailsForIAMLogin || '');
     } else {
-      setSecureWithIAMSelected(codeSpaceData.projectDetails?.prodDeploymentDetails?.secureWithIAMRequired || false);
-      setIAMTechnicalUserID(codeSpaceData.projectDetails?.prodDeploymentDetails?.technicalUserDetailsForIAMLogin || '');
+      setSecureWithIAMSelected(projectDetails?.prodDeploymentDetails?.secureWithIAMRequired || false);
+      setIAMTechnicalUserID(projectDetails?.prodDeploymentDetails?.technicalUserDetailsForIAMLogin || '');
     }
   };
 
@@ -421,7 +422,7 @@ const CodeSpace = (props: ICodeSpaceProps) => {
           if (acceptContinueCodingOnDeployment) {
             ProgressIndicator.hide();
             Notification.show(
-              `Code space '${codeSpaceData.projectDetails.projectName}' deployment successfully started. Please check the status later.`,
+              `Code space '${projectDetails.projectName}' deployment successfully started. Please check the status later.`,
             );
             setShowCodeDeployModal(false);
           } else {
@@ -463,7 +464,8 @@ const CodeSpace = (props: ICodeSpaceProps) => {
     setAcceptContinueCodingOnDeployment(e.target.checked);
   };
 
-  const disableDeployment = codeSpaceData?.projectDetails?.recipeDetails?.recipeId.startsWith('public') || DEPLOYMENT_DISABLED_RECIPE_IDS.includes(codeSpaceData?.projectDetails?.recipeDetails?.recipeId);
+  const projectDetails = codeSpaceData?.projectDetails;
+  const disableDeployment = projectDetails?.recipeDetails?.recipeId.startsWith('public') || DEPLOYMENT_DISABLED_RECIPE_IDS.includes(projectDetails?.recipeDetails?.recipeId);
   const securedWithIAMContent: React.ReactNode = (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -479,14 +481,17 @@ const CodeSpace = (props: ICodeSpaceProps) => {
     </svg>
   );
 
-  const isOwner = codeSpaceData.projectDetails?.projectOwner?.id === props.user.id;
+  const isOwner = projectDetails?.projectOwner?.id === props.user.id;
   const navigateSecurityConfig = () => {
-    if (codeSpaceData?.projectDetails?.publishedSecuirtyConfig) {
+    if (projectDetails?.publishedSecuirtyConfig) {
       history.push(`/codespace/publishedSecurityconfig/${codeSpaceData.id}?pub=true`);
       return;
     }
     history.push(`/codespace/securityconfig/${codeSpaceData.id}?pub=false`);
   }
+
+  const intDeploymentDetails = projectDetails?.intDeploymentDetails;
+  const prodDeploymentDetails = projectDetails?.prodDeploymentDetails;
 
   return (
     <div className={fullScreenMode ? Styles.codeSpaceWrapperFSmode : '' + ' ' + Styles.codeSpaceWrapper}>
@@ -499,10 +504,10 @@ const CodeSpace = (props: ICodeSpaceProps) => {
                 <button tooltip-data="Go Back" className="btn btn-text back arrow" onClick={goBack}></button>
                 <h2
                   tooltip-data={
-                    recipes.find((item: any) => item.id === codeSpaceData.projectDetails.recipeDetails.recipeId).name
+                    recipes.find((item: any) => item.id === projectDetails.recipeDetails.recipeId).name
                   }
                 >
-                  {codeSpaceData.projectDetails.projectName}
+                  {projectDetails.projectName}
                 </h2>
               </div>
             </div>
@@ -512,11 +517,16 @@ const CodeSpace = (props: ICodeSpaceProps) => {
                   {!disableDeployment && (
                     <>
                       {isOwner && (
-                        <div className={classNames(Styles.configLink, Styles.pointer)}
-                          onClick={() => navigateSecurityConfig()}>
+                        <div
+                          className={classNames(Styles.configLink, Styles.pointer)}
+                          onClick={() => navigateSecurityConfig()}
+                        >
                           <a target="_blank" rel="noreferrer">
                             <IconGear size={'16'} /> {CODE_SPACE_TITLE} (
-                            {codeSpaceData?.projectDetails?.publishedSecuirtyConfig?.status || codeSpaceData?.projectDetails?.securityConfig?.status || 'New'})
+                            {projectDetails?.publishedSecuirtyConfig?.status ||
+                              projectDetails?.securityConfig?.status ||
+                              'New'}
+                            )
                           </a>
                           &nbsp;
                         </div>
@@ -526,10 +536,29 @@ const CodeSpace = (props: ICodeSpaceProps) => {
                           <a href={codeDeployedUrl} target="_blank" rel="noreferrer">
                             <i className="icon mbc-icon link" /> Staging (
                             <i className="icon mbc-icon transactionaldata" /> {codeDeployedBranch})
-                            {codeSpaceData.projectDetails.intDeploymentDetails?.secureWithIAMRequired && securedWithIAMContent}
+                            {intDeploymentDetails?.secureWithIAMRequired && securedWithIAMContent}
                           </a>
                           &nbsp;
-                          <a target='_blank' href={buildLogViewURL(codeDeployedUrl, true)} rel="noreferrer"><i tooltip-data="Show Staging App logs in new tab" className="icon mbc-icon workspace small right" /></a>
+                          <a target="_blank" href={buildLogViewURL(codeDeployedUrl, true)} rel="noreferrer">
+                            <i
+                              tooltip-data="Show Staging App logs in new tab"
+                              className="icon mbc-icon workspace small right"
+                            />
+                          </a>
+                          <div>
+                            ({intDeploymentDetails?.gitjobRunID ? (
+                              <a
+                                target="_blank"
+                                href={builGitJobLogViewURL(intDeploymentDetails?.gitjobRunID)}
+                                tooltip-data="Show staging build & deploy logs in new tab"
+                                rel="noreferrer"
+                              >
+                                {regionalDateAndTimeConversionSolution(intDeploymentDetails?.lastDeployedOn)}
+                              </a>
+                            ) : (
+                              <>{regionalDateAndTimeConversionSolution(intDeploymentDetails?.lastDeployedOn)}</>
+                            )})
+                          </div>
                         </div>
                       )}
                       {prodCodeDeployed && (
@@ -537,10 +566,30 @@ const CodeSpace = (props: ICodeSpaceProps) => {
                           <a href={prodCodeDeployedUrl} target="_blank" rel="noreferrer">
                             <i className="icon mbc-icon link" /> Production (
                             <i className="icon mbc-icon transactionaldata" /> {prodCodeDeployedBranch})
-                            {codeSpaceData.projectDetails.prodDeploymentDetails?.secureWithIAMRequired && securedWithIAMContent}
+                            {prodDeploymentDetails?.secureWithIAMRequired &&
+                              securedWithIAMContent}
                           </a>
                           &nbsp;
-                          <a target='_blank' href={buildLogViewURL(prodCodeDeployedUrl)} rel="noreferrer"><i tooltip-data="Show Production App logs in new tab" className="icon mbc-icon workspace small right" /></a>
+                          <a target="_blank" href={buildLogViewURL(prodCodeDeployedUrl)} rel="noreferrer">
+                            <i
+                              tooltip-data="Show Production App logs in new tab"
+                              className="icon mbc-icon workspace small right"
+                            />
+                          </a>
+                          <div>
+                            ({prodDeploymentDetails?.gitjobRunID ? (
+                              <a
+                                target="_blank"
+                                href={builGitJobLogViewURL(prodDeploymentDetails?.gitjobRunID)}
+                                tooltip-data="Show production build & deploy logs in new tab"
+                                rel="noreferrer"
+                              >
+                                {regionalDateAndTimeConversionSolution(prodDeploymentDetails?.lastDeployedOn)}
+                              </a>
+                            ) : (
+                              <>{regionalDateAndTimeConversionSolution(prodDeploymentDetails?.lastDeployedOn)}</>
+                            )})
+                          </div>
                         </div>
                       )}
                       <div>
@@ -552,7 +601,11 @@ const CodeSpace = (props: ICodeSpaceProps) => {
                         </button>
                       </div>
                       {(codeDeployed || prodCodeDeployed) && (
-                        <div tooltip-data="Show/Hide App Logs Panel" className={classNames(Styles.showLogs, showLogsView && Styles.active)} onClick={toggleLogView}>
+                        <div
+                          tooltip-data="Show/Hide App Logs Panel"
+                          className={classNames(Styles.showLogs, showLogsView && Styles.active)}
+                          onClick={toggleLogView}
+                        >
                           <i className="icon mbc-icon workspace small right"></i>
                         </div>
                       )}
@@ -571,79 +624,85 @@ const CodeSpace = (props: ICodeSpaceProps) => {
           </div>
           <div className={Styles.codeSpaceContent}>
             <div className={Styles.codeSpace}>
-                {loading ? (
-                  <div className={'progress-block-wrapper ' + Styles.preloaderCutomnize}>
-                    <div className="progress infinite" />
-                  </div>
-                ) : (
-                  codeSpaceData.running && (
-                    <div className={Styles.codespaceframe}>
-                      <iframe
-                        className={fullScreenMode ? Styles.fullscreen : ''}
-                        src={codeSpaceData.workspaceUrl}
-                        title="Code Space"
-                        allow="clipboard-read; clipboard-write"
-                      />
-                    {((codeDeployed || prodCodeDeployed) && showLogsView) &&
+              {loading ? (
+                <div className={'progress-block-wrapper ' + Styles.preloaderCutomnize}>
+                  <div className="progress infinite" />
+                </div>
+              ) : (
+                codeSpaceData.running && (
+                  <div className={Styles.codespaceframe}>
+                    <iframe
+                      className={fullScreenMode ? Styles.fullscreen : ''}
+                      src={codeSpaceData.workspaceUrl}
+                      title="Code Space"
+                      allow="clipboard-read; clipboard-write"
+                    />
+                    {(codeDeployed || prodCodeDeployed) && showLogsView && (
                       <div className={classNames(Styles.logViewWrapper, showLogsView && Styles.show)}>
-                        <button className={classNames('link-btn', Styles.closeButton)} onClick={() => setShowLogsView(false)}><i className="icon mbc-icon close thin"></i></button>
+                        <button
+                          className={classNames('link-btn', Styles.closeButton)}
+                          onClick={() => setShowLogsView(false)}
+                        >
+                          <i className="icon mbc-icon close thin"></i>
+                        </button>
                         <div className={classNames('tabs-panel', Styles.tabsHeightFix)}>
                           <div className="tabs-wrapper">
                             <ul className="tabs">
-                              {codeDeployed &&
-                                <li
-                                  className={'tab active'}
-                                >
+                              {codeDeployed && (
+                                <li className={'tab active'}>
                                   <a href="#tab-staginglogpanel" id="staginglogpanel">
                                     Staging App Logs
                                   </a>
                                 </li>
-                              }
-                              {prodCodeDeployed && <li
-                                  className={classNames('tab', !codeDeployed && 'active')}
-                                >
+                              )}
+                              {prodCodeDeployed && (
+                                <li className={classNames('tab', !codeDeployed && 'active')}>
                                   <a href="#tab-productionlogpanel" id="productionlogpanel">
                                     Production App Logs
                                   </a>
                                 </li>
-                              }
+                              )}
                             </ul>
                           </div>
                           <div className={classNames(Styles.logsTabContentWrapper, 'tabs-content-wrapper')}>
-                            {codeDeployed &&
+                            {codeDeployed && (
                               <div id="tab-staginglogpanel" className={classNames(Styles.tabsHeightFix, 'tab-content')}>
                                 <iframe src={buildLogViewURL(codeDeployedUrl, true)} height="100%" width="100%" />
                               </div>
-                            }
-                            {prodCodeDeployed &&
-                              <div id="tab-productionlogpanel" className={classNames(Styles.tabsHeightFix, 'tab-content')}>
+                            )}
+                            {prodCodeDeployed && (
+                              <div
+                                id="tab-productionlogpanel"
+                                className={classNames(Styles.tabsHeightFix, 'tab-content')}
+                              >
                                 <iframe src={buildLogViewURL(prodCodeDeployedUrl)} height="100%" width="100%" />
                               </div>
-                            }
+                            )}
                           </div>
                         </div>
                       </div>
-                    }
-                      <div className={Styles.textRight}>
-                        <small>
-                          Made with{' '}
-                          <svg
-                            stroke="#e84d47"
-                            fill="#e84d47"
-                            strokeWidth="0"
-                            viewBox="0 0 512 512"
-                            height="1em"
-                            width="1em"
-                            xmlns="http://www.w3.org/2000/svg"
-                          >
-                            <path d="M462.3 62.6C407.5 15.9 326 24.3 275.7 76.2L256 96.5l-19.7-20.3C186.1 24.3 104.5 15.9 49.7 62.6c-62.8 53.6-66.1 149.8-9.9 207.9l193.5 199.8c12.5 12.9 32.8 12.9 45.3 0l193.5-199.8c56.3-58.1 53-154.3-9.8-207.9z"></path>
-                          </svg>{' '}
-                          by Developers for Developers
-                        </small>
-                      </div>
+                    )}
+                    <div className={Styles.textRight}>
+                      <small>
+                        Made with{' '}
+                        <svg
+                          stroke="#e84d47"
+                          fill="#e84d47"
+                          strokeWidth="0"
+                          viewBox="0 0 512 512"
+                          height="1em"
+                          width="1em"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path d="M462.3 62.6C407.5 15.9 326 24.3 275.7 76.2L256 96.5l-19.7-20.3C186.1 24.3 104.5 15.9 49.7 62.6c-62.8 53.6-66.1 149.8-9.9 207.9l193.5 199.8c12.5 12.9 32.8 12.9 45.3 0l193.5-199.8c56.3-58.1 53-154.3-9.8-207.9z"></path>
+                        </svg>{' '}
+                        by Developers for Developers
+                      </small>
                     </div>
-                  ))}
-              </div>
+                  </div>
+                )
+              )}
+            </div>
           </div>
         </React.Fragment>
       )}
@@ -735,9 +794,9 @@ const CodeSpace = (props: ICodeSpaceProps) => {
                   </div>
                 </div>
               </div>
-              {(!codeSpaceData.projectDetails.recipeDetails?.recipeId.match(/^(react|angular)$/)) &&
+              {!projectDetails.recipeDetails?.recipeId.match(/^(react|angular)$/) && (
                 <>
-                  {deployEnvironment === 'staging' &&
+                  {deployEnvironment === 'staging' && (
                     <>
                       <div>
                         <label className="checkbox">
@@ -747,14 +806,20 @@ const CodeSpace = (props: ICodeSpaceProps) => {
                               className="ff-only"
                               checked={secureWithIAMSelected}
                               onChange={onChangeSecureWithIAM}
-                              disabled={codeSpaceData.projectDetails?.intDeploymentDetails?.secureWithIAMRequired}
+                              disabled={projectDetails?.intDeploymentDetails?.secureWithIAMRequired}
                             />
                           </span>
                           <span className="label">Secure with IAM</span>
                         </label>
                       </div>
                       {secureWithIAMSelected && (
-                        <div className={classNames(Styles.flexLayout, codeSpaceData.projectDetails?.intDeploymentDetails?.secureWithIAMRequired && Styles.disabledDiv)}>
+                        <div
+                          className={classNames(
+                            Styles.flexLayout,
+                            projectDetails?.intDeploymentDetails?.secureWithIAMRequired &&
+                              Styles.disabledDiv,
+                          )}
+                        >
                           <div>
                             <TextBox
                               type="text"
@@ -777,8 +842,8 @@ const CodeSpace = (props: ICodeSpaceProps) => {
                         </div>
                       )}
                     </>
-                  }
-                  {deployEnvironment === 'production' &&
+                  )}
+                  {deployEnvironment === 'production' && (
                     <>
                       <div>
                         <label className="checkbox">
@@ -788,14 +853,20 @@ const CodeSpace = (props: ICodeSpaceProps) => {
                               className="ff-only"
                               checked={secureWithIAMSelected}
                               onChange={onChangeSecureWithIAM}
-                              disabled={codeSpaceData.projectDetails?.prodDeploymentDetails?.secureWithIAMRequired}
+                              disabled={projectDetails?.prodDeploymentDetails?.secureWithIAMRequired}
                             />
                           </span>
                           <span className="label">Secure with IAM</span>
                         </label>
                       </div>
                       {secureWithIAMSelected && (
-                        <div className={classNames(Styles.flexLayout, codeSpaceData.projectDetails?.prodDeploymentDetails?.secureWithIAMRequired && Styles.disabledDiv)}>
+                        <div
+                          className={classNames(
+                            Styles.flexLayout,
+                            projectDetails?.prodDeploymentDetails?.secureWithIAMRequired &&
+                              Styles.disabledDiv,
+                          )}
+                        >
                           <div>
                             <TextBox
                               type="text"
@@ -818,9 +889,9 @@ const CodeSpace = (props: ICodeSpaceProps) => {
                         </div>
                       )}
                     </>
-                  }
+                  )}
                 </>
-              }
+              )}
               <div>
                 <label className="checkbox">
                   <span className="wrapper">

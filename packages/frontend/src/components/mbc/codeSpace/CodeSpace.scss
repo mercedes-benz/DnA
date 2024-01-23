@@ -107,6 +107,14 @@
             font-size: var(--font-size-icon-medium);
             vertical-align: middle;
           }
+
+          > div {
+            text-align: center;
+            a {
+              margin: 0;
+              font-size: var(--font-size-small);
+            }
+          }
         }
 
         div > a:hover {
@@ -253,6 +261,13 @@
           }
           > a:hover {
             text-decoration: none;
+          }
+          > div {
+            text-align: center;
+            a {
+              margin: 0;
+              font-size: var(--font-size-small);
+            }
           }
         } 
 
