@@ -414,11 +414,11 @@ public class BaseStorageService implements StorageService {
 
 	@Override
 	public ResponseEntity<BucketCollectionVO> getAllBuckets(int limit, String sortBy, String sortOrder, int offset) {
-		LOGGER.debug("Fetching Current user.");
+		LOGGER.info("Fetching Current user.");
 		String currentUser = userStore.getUserInfo().getId();
 		HttpStatus httpStatus;
 		BucketCollectionVO bucketCollectionVO = new BucketCollectionVO();
-		LOGGER.debug("list buckets for user:{}", currentUser);
+		LOGGER.info("list buckets for user:{}", currentUser);
 		MinioGenericResponse minioResponse = dnaMinioClient.getAllBuckets(currentUser, false);
 		if (minioResponse != null && minioResponse.getStatus().equals(ConstantsUtility.SUCCESS)) {
 			LOGGER.info("Success from list buckets minio client");
@@ -442,7 +442,7 @@ public class BaseStorageService implements StorageService {
 							s.setBucketName(bucket.name());
 							s.setCreatedDate(Date.from(bucket.creationDate().toInstant()));
 							s.setCollaborators(dnaMinioClient.getBucketCollaborators(bucket.name(), currentUser));
-							LOGGER.debug("Setting collaborators for bucket:{}", bucket.name());
+							LOGGER.info("Setting collaborators for bucket:{}", bucket.name());
 						}
 					}
 				}
