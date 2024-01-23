@@ -83,8 +83,9 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
   const [collaboratorToTransferOwnership, setCollaboratorToTransferOwnership] =  useState<ICodeCollaborator>();
 
 
-  const [typeOfProject, setTypeOfProject] = useState('0');
+  const [typeOfProject, setTypeOfProject] = useState(projectDetails?.dataGovernance?.typeOfProject ? projectDetails?.dataGovernance?.typeOfProject : '0');
   const [typeOfProjectError, setTypeOfProjectError] = useState('');
+  const isPlayground = typeOfProject === 'Playground';
 
   const [description, setDescription] = useState(projectDetails?.dataGovernance?.description ? projectDetails?.dataGovernance?.description : '');
   const [descriptionError, setDescriptionError] = useState('');
@@ -475,11 +476,11 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
       setTypeOfProjectError(requiredError);
       formValid = false;
     }
-    if (!description.length && !projectDetails.dataGovernance.description.length) {
+    if (!description.length ) {
       setDescriptionError(requiredError);
       formValid = false;
     }
-    if(division === '0'){
+    if(!isPlayground && division === '0'){
       setDivisionError(requiredError);
       formValid = false;
     }
@@ -487,7 +488,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
       setDepartmentError(true);
       formValid = false;
     }
-    if (classificationType === '0') {
+    if (!isPlayground && classificationType === '0') {
       setClassificationTypeError(requiredError);
       formValid = false;
     }
@@ -512,7 +513,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
       setDescriptionError(requiredError);
       formValid = false;
     }
-    if(division === '0'){
+    if(!isPlayground && division === '0'){
       setDivisionError(requiredError);
       formValid = false;
     }
@@ -520,7 +521,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
       setDepartmentError(true);
       formValid = false;
     }
-    if (classificationType === '0') {
+    if (!isPlayground && classificationType === '0') {
       setClassificationTypeError(requiredError);
       formValid = false;
     }
@@ -644,6 +645,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
       CodeSpaceApiClient.editCodeSpace(props.onEditingCodeSpace.id, editCodeSpaceRequest)
       .then((res) => {
         Notification.show('Code space updated successfully');
+        ProgressIndicator.hide();
         props.onUpdateCodeSpaceComplete();
         
       })
@@ -1047,7 +1049,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
                 </span>
               </div>
 
-              {typeOfProject !== 'Playground' && <div>
+              {!isPlayground && <div>
               <div className={Styles.flexLayout}>
                 <div
                   className={classNames('input-field-group include-error', 
@@ -1147,7 +1149,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
                 
               </div>
             
-              {typeOfProject !== 'Playground' && <div>
+              {!isPlayground && <div>
               <div className={Styles.flexLayout}>
                 <div
                   className={classNames(
@@ -1490,7 +1492,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
                       required={true}
                       required-error={requiredError}
                       onChange={onTypeOfProjectChange}
-                      value={projectDetails?.dataGovernance?.typeOfProject}
+                      value={typeOfProject}
                     >
                       <option id="typeOfProjectOption" value={0}>
                         Choose
@@ -1563,7 +1565,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
                   </div>
                 </div>
               
-              {typeOfProject !== 'Playground' && <div>
+              {!isPlayground && <div>
                 <div className={Styles.flexLayout}>
                   <div
                     className={classNames('input-field-group include-error', 
@@ -1630,7 +1632,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
                 </div>
               </div>}
 
-              {typeOfProject !== 'Playground' && <div>
+              {!isPlayground && <div>
                 <div className={Styles.flexLayout}>
                   <div
                     className={classNames(
