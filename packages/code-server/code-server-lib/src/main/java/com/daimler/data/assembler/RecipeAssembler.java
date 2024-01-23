@@ -57,6 +57,7 @@ public class RecipeAssembler implements GenericAssembler<RecipeVO, CodeServerRec
 				if (recipe.getPlugins() != null) {
 					recipeVo.setPlugins(recipe.getPlugins());
 				}
+			}
 		return recipeVo;
 	}
 
