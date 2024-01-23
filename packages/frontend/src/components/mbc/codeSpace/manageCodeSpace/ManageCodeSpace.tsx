@@ -200,8 +200,12 @@ const ManageCodeSpace = () => {
         });
       } else if (propName === 'requestedDate') {
         data = data.sort((a, b) => {
-          const dateA = convertToDateObj(regionalDateAndTimeConversionSolution(a.securityConfig.requestedDate)).getTime();
-          const dateB = convertToDateObj(regionalDateAndTimeConversionSolution(b.securityConfig.requestedDate)).getTime();
+          const dateA = convertToDateObj(
+            regionalDateAndTimeConversionSolution(a.securityConfig.requestedDate),
+          ).getTime();
+          const dateB = convertToDateObj(
+            regionalDateAndTimeConversionSolution(b.securityConfig.requestedDate),
+          ).getTime();
           if (sortOrder === 'asc') {
             return dateA - dateB;
           } else {
@@ -228,7 +232,7 @@ const ManageCodeSpace = () => {
             return b.createdBy.firstName.toLowerCase().localeCompare(a.createdBy.firstName.toLowerCase());
           }
         });
-      }else if(propName === 'createdOn'){
+      } else if (propName === 'createdOn') {
         console.log(data);
         data = data.sort((a, b) => {
           const dateA = convertToDateObj(regionalDateAndTimeConversionSolution(a.createdOn)).getTime();
@@ -246,7 +250,7 @@ const ManageCodeSpace = () => {
     setSortBy(newSortField);
   };
 
-  const configData = workSpaceConfigs.map((config) => {
+  const configData = workSpaceConfigs?.map((config) => {
     return (
       <CodeSpaceList
         key={config.id}
@@ -261,7 +265,7 @@ const ManageCodeSpace = () => {
     );
   });
 
-  const recipeData = newRecipes.map((recipe) => {
+  const recipeData = newRecipes?.map((recipe) => {
     return (
       <CodeSpaceList
         key={recipe.recipeName}
@@ -362,23 +366,19 @@ const ManageCodeSpace = () => {
                           <tbody>{configData}</tbody>
                         </table>
                       </div>
+                        <Pagination
+                          totalPages={totalNumberOfPages}
+                          pageNumber={currentPageNumber}
+                          onPreviousClick={onPaginationPreviousClick}
+                          onNextClick={onPaginationNextClick}
+                          onViewByNumbers={onViewByPageNum}
+                          displayByPage={true}
+                        />
                     </div>
                   ) : (
                     <div className={Styles.noRequests}>
                       <h5>No Requests Found</h5>
                     </div>
-                  )}
-                  {workSpaceConfigs.length ? (
-                    <Pagination
-                      totalPages={totalNumberOfPages}
-                      pageNumber={currentPageNumber}
-                      onPreviousClick={onPaginationPreviousClick}
-                      onNextClick={onPaginationNextClick}
-                      onViewByNumbers={onViewByPageNum}
-                      displayByPage={true}
-                    />
-                  ) : (
-                    ''
                   )}
                 </div>
               ) : (
@@ -392,7 +392,7 @@ const ManageCodeSpace = () => {
                     <div className={'progress-block-wrapper ' + Styles.preloaderCutomnize}>
                       <div className="progress infinite" />
                     </div>
-                  ) : newRecipes.length > 0 ? (
+                  ) : newRecipes !== null ? (
                     <div className={Styles.allCodeSpace}>
                       <div className={Styles.allcodeSpaceListviewContent}>
                         <table className={classNames('ul-table solutions', Styles.codeSpaceMargininone)}>
@@ -437,23 +437,19 @@ const ManageCodeSpace = () => {
                           <tbody>{recipeData}</tbody>
                         </table>
                       </div>
+                        <Pagination
+                          totalPages={totalNumberOfPages}
+                          pageNumber={currentPageNumber}
+                          onPreviousClick={onPaginationPreviousClick}
+                          onNextClick={onPaginationNextClick}
+                          onViewByNumbers={onViewByPageNum}
+                          displayByPage={true}
+                        />
                     </div>
                   ) : (
                     <div className={Styles.noRequests}>
                       <h5>No Requests Found</h5>
                     </div>
-                  )}
-                  {newRecipes.length ? (
-                    <Pagination
-                      totalPages={totalNumberOfPages}
-                      pageNumber={currentPageNumber}
-                      onPreviousClick={onPaginationPreviousClick}
-                      onNextClick={onPaginationNextClick}
-                      onViewByNumbers={onViewByPageNum}
-                      displayByPage={true}
-                    />
-                  ) : (
-                    ''
                   )}
                 </div>
               ) : (
