@@ -895,7 +895,7 @@ definitions:
         type: array
         items:
           $ref: "#/definitions/BucketVo"
-      count:
+      totalCount:
         type: integer
         description: "total number of records"
       warnings:
