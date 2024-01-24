@@ -267,7 +267,7 @@ export default class SecurityConfig extends React.Component<
       .then((res: any) => {
         ProgressIndicator.hide();
         Notification.show('Published Successfully.');
-        history.push('/codespace//manageCodespace');
+        history.push('/codespace/manageCodespace');
       })
       .catch((error: any) => {
         ProgressIndicator.hide();
