@@ -87,6 +87,7 @@ storage:
   mc.commandkeyword: ${MC_CMD_KEY:sh}
   mc.timeout.alias: ${MC_ALIAS_TIMEOUT:10}
   mc.timeout.listpolicies: ${MC_LISTPOLICIES_TIMEOUT:10}
+  mc.timeout.listbuckets: ${MC_LISTBUCKETS_TIMEOUT:1}
       
  
 minio:
