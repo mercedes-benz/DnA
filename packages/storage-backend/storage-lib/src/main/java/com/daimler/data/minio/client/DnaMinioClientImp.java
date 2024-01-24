@@ -272,11 +272,11 @@ public class DnaMinioClientImp implements DnaMinioClient {
 				userId = minioAdminAccessKey;
 				userSecretKey = minioAdminSecretKey;
 			}else {
-				LOGGER.debug("Fetching secrets from vault for user:{}", userId);
+				LOGGER.info("Fetching secrets from vault for user:{}", userId);
 				userSecretKey = vaultConfig.validateUserInVault(userId);
 			}
 			if (StringUtils.hasText(userSecretKey)) {
-				LOGGER.debug("Fetch secret from vault successfull for user:{}", userId);
+				LOGGER.info("Fetch secret from vault successfull for user:{}", userId);
 				boolean isWindows = System.getProperty("os.name").toLowerCase().startsWith("windows");
 				ObjectMapper mapper = new ObjectMapper();
 				ProcessBuilder firstBuilder = new ProcessBuilder();
@@ -298,22 +298,25 @@ public class DnaMinioClientImp implements DnaMinioClient {
 					secondBuilder = new ProcessBuilder(storageMCcommandKey, "-c", secondCommand);
 				}
 	
-				firstBuilder.redirectErrorStream(true);
-				Process p2 = firstBuilder.start();
-				BufferedReader r2 = new BufferedReader(new InputStreamReader(p2.getInputStream()));
-				
-				LOGGER.info("minio mc client alias command output is {}",r2.readLine());
-	
-				if(!p2.waitFor(Integer.parseInt(storageMCAliasCmdTimeout), TimeUnit.SECONDS)) {
-				    p2.destroy();
-				}
+//				firstBuilder.redirectErrorStream(true);
+//				Process p2 = firstBuilder.start();
+//				BufferedReader r2 = new BufferedReader(new InputStreamReader(p2.getInputStream()));
+//				
+//				LOGGER.info("minio mc client alias command output is {}",r2.readLine());
+//	
+//				if(!p2.waitFor(Integer.parseInt(storageMCAliasCmdTimeout), TimeUnit.SECONDS)) {
+//				    p2.destroy();
+//				}
 				
 				Process p = secondBuilder.start();
+				LOGGER.info("Started mc command to list buckets");
 				BufferedReader r = new BufferedReader(new InputStreamReader(p.getInputStream()));
 	
 				if(!p.waitFor(Integer.parseInt(storageMCListBucketsCmdTimeout), TimeUnit.SECONDS)) {
 				    p.destroy();
 				}
+				
+				LOGGER.info("mc command to list buckets executed, started reading response");
 				
 				String line;
 				String prefix = "{\"data\":[";
@@ -325,9 +328,10 @@ public class DnaMinioClientImp implements DnaMinioClient {
 						break;
 					} else {
 						data = data.concat(line).concat(",");
-//						System.out.println(line);
 					}
 				}
+				
+				LOGGER.info("finished reading response from mc list buckets");
 				
 				data = prefix.concat(data.substring(0, data.length() - 1)).concat(suffix);
 				LOGGER.info("Policies data from minio to update cache is {} ", data);
