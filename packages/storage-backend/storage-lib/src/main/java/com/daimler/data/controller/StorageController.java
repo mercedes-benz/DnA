@@ -144,8 +144,8 @@ public class StorageController implements StorageApi {
             if (sortOrder == null) {
                 sortOrder = "asc";
             }
-		return storageService.getAllBuckets(limit, sortBy, sortOrder, offset);
-			}
+		return storageService.getAllBucketsUsingMC(limit, sortBy, sortOrder, offset);
+	}
 
 
 	@Override
