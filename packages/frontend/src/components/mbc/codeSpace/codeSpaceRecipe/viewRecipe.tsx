@@ -42,7 +42,7 @@ const viewRecipe = (props: IViewRecipeProps) => {
     CodeSpaceApiClient.getCodeSpaceRecipe(recipeName)
       .then((res: any) => {
         ProgressIndicator.hide();
-        setRecipeField(res);
+        setRecipeField(res.data);
       })
       .catch((error) => {
         Notification.show(error.message, 'alert');
