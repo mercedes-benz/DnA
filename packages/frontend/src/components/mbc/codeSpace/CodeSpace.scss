@@ -107,6 +107,15 @@
             font-size: var(--font-size-icon-medium);
             vertical-align: middle;
           }
+
+          > div {
+            text-align: center;
+            font-size: var(--font-size-small);
+            a {
+              margin: 0;
+              font-size: var(--font-size-small);
+            }
+          }
         }
 
         div > a:hover {
@@ -240,7 +249,7 @@
         .urlLink {
           padding-right: 15px;
           text-align: right;
-          display: flex;
+          display: block;
           align-items: center;
           line-height: 18px;
           i {
@@ -253,6 +262,14 @@
           }
           > a:hover {
             text-decoration: none;
+          }
+          > div {
+            text-align: center;
+            font-size: var(--font-size-small);
+            a {
+              margin: 0;
+              font-size: var(--font-size-small);
+            }
           }
         } 
 

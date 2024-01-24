@@ -48,7 +48,7 @@ export class CodeSpaceApiClient {
     return this.post('workspaces', data);
   }
   public static editCodeSpace(id: string, data: any){
-    return this.put(`workspaces/${id}`, data);
+    return this.patch(`workspaces/${id}/datagovernance`, data);
   }
   public static getCodeSpaceStatus(id: string) {
     return this.get(`workspaces/status/${id}`);
@@ -113,6 +113,18 @@ export class CodeSpaceApiClient {
   public static addCodeSpaceRequest(id: string): Promise<any[]> {
     return this.post(`/workspaces/${id}/config/request`)
   };
+
+  public static createCodeSpaceRecipe(data: any) {
+    return this.post('recipeDetails', data);
+  }
+  
+  public static getCodeSpaceRecipeRequests() {
+    return this.get('recipeDetails')
+  }
+
+  public static getCodeSpaceRecipe(id: string){
+    return this.get(`recipeDetails/${id}`);
+  }
 
   public static getLovData(): Promise<any[]>{
     return Promise.all([

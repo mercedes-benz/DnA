@@ -315,7 +315,7 @@ paths:
         500:
           description: "Internal error"
 
-  /workspaces/{id}/datagoverance:        
+  /workspaces/{id}/datagovernance:        
     patch:
       tags:
         - "code-server"
@@ -730,7 +730,7 @@ paths:
         - "code-server"
       summary: "Getting values of published security config for a workspace"
       description: "Get published security config details in codeserver workspace"
-      operationId: "publishedSecurityConfigDetails"
+      operationId: "getPublishedSecurityConfigDetails"
       parameters:
         - name: "id"
           in: "path"
@@ -805,6 +805,8 @@ definitions:
       targetEnvironment:
         type: string
       branch:
+        type: string
+      gitjobRunID:
         type: string
       required:
           -status

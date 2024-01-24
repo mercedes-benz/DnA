@@ -31,6 +31,7 @@ const AllCodeSpaces = (props: IAllCodeSpacesProps) => {
     //   maxItemsPerPage: 15,
     // }),
     [showNewCodeSpaceModal, setShowNewCodeSpaceModal] = useState<boolean>(false),
+    [isRetryRequest, setIsRetryRequest] = useState<boolean>(false),
     [isApiCallTakeTime, setIsApiCallTakeTime] = useState<boolean>(false),
     [onBoardCodeSpace, setOnBoardCodeSpace] = useState<ICodeSpaceData>(),
     [onEditCodeSpace, setOnEditCodeSpace] = useState<ICodeSpaceData>();
@@ -101,7 +102,7 @@ const AllCodeSpaces = (props: IAllCodeSpacesProps) => {
   };
 
   const onShowSecurityConfigRequest = () => {
-    history.push('/codespace/adminSecurityConfigs');
+    history.push('/codespace/manageCodespace');
   };
 
   const isCodeSpaceCreationSuccess = (status: boolean, codeSpaceData: ICodeSpaceData) => {
@@ -123,6 +124,7 @@ const AllCodeSpaces = (props: IAllCodeSpacesProps) => {
     }
     setShowNewCodeSpaceModal(false);
     setOnBoardCodeSpace(undefined);
+    setIsRetryRequest(false);
     setOnEditCodeSpace(undefined);
   };
 
@@ -130,8 +132,9 @@ const AllCodeSpaces = (props: IAllCodeSpacesProps) => {
     getCodeSpacesData();
   };
 
-  const onShowCodeSpaceOnBoard = (codeSpace: ICodeSpaceData) => {
+  const onShowCodeSpaceOnBoard = (codeSpace: ICodeSpaceData, isRetryRequest?: boolean) => {
     setOnBoardCodeSpace(codeSpace);
+    isRetryRequest && setIsRetryRequest(true);
     setShowNewCodeSpaceModal(true);
   };
 
@@ -143,6 +146,7 @@ const AllCodeSpaces = (props: IAllCodeSpacesProps) => {
   const switchBackToCodeSpace = () => {
     setOnEditCodeSpace(undefined);
     setOnBoardCodeSpace(undefined);
+    setIsRetryRequest(false);
     setShowNewCodeSpaceModal(false);
     setIsApiCallTakeTime(false);
     ProgressIndicator.hide();
@@ -194,7 +198,7 @@ const AllCodeSpaces = (props: IAllCodeSpacesProps) => {
                   onClick={onShowSecurityConfigRequest}
                 >
                   <IconGear size={'14'} />
-                  <span>&nbsp;Manage Security Configs</span>
+                  <span>&nbsp;Manage Code Spaces</span>
                 </button>
               </>
             ) : null}
@@ -277,11 +281,13 @@ const AllCodeSpaces = (props: IAllCodeSpacesProps) => {
               user={props.user}
               onBoardingCodeSpace={onBoardCodeSpace}
               onEditingCodeSpace={onEditCodeSpace}
+              isRetryRequest={isRetryRequest}
               isCodeSpaceCreationSuccess={isCodeSpaceCreationSuccess}
               toggleProgressMessage={toggleProgressMessage}
               onUpdateCodeSpaceComplete={() => {
                 setOnEditCodeSpace(undefined);
                 setOnBoardCodeSpace(undefined);
+                setIsRetryRequest(false);
                 setShowNewCodeSpaceModal(false);
                 getCodeSpacesData();
               }}

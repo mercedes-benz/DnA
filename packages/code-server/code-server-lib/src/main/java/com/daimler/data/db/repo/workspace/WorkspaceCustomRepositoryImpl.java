@@ -31,7 +31,6 @@ import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
 import javax.persistence.Query;
@@ -41,13 +40,6 @@ import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 
-import com.daimler.data.db.json.UserInfo;
-import com.daimler.data.dto.CodespaceSecurityConfigDto;
-import com.daimler.data.dto.workspace.CodeServerWorkspaceVO;
-import com.daimler.data.dto.workspace.CodeServerWorkspaceValidateVO;
-import com.daimler.data.dto.workspace.CodespaceSecurityConfigVO;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import org.springframework.stereotype.Repository;
 
 import com.daimler.data.controller.exceptions.GenericMessage;
@@ -55,9 +47,12 @@ import com.daimler.data.controller.exceptions.MessageDescription;
 import com.daimler.data.db.entities.CodeServerWorkspaceNsql;
 import com.daimler.data.db.json.CodeServerDeploymentDetails;
 import com.daimler.data.db.json.CodeServerLeanGovernanceFeilds;
-import com.daimler.data.db.json.CodeServerWorkspace;
 import com.daimler.data.db.json.CodespaceSecurityConfig;
+import com.daimler.data.db.json.UserInfo;
 import com.daimler.data.db.repo.common.CommonDataRepositoryImpl;
+import com.daimler.data.dto.CodespaceSecurityConfigDto;
+import com.daimler.data.dto.workspace.CodeServerWorkspaceValidateVO;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -197,7 +192,7 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 				"DELETED".toLowerCase());
 		Predicate pMain = cb.and(con1, con2, con3);
 		cq.where(pMain);
-		cq.orderBy(cb.desc(cb.function("jsonb_extract_path_text", Date.class, root.get("data"), cb.literal("intiatedOn"))));
+		//cq.orderBy(cb.desc(cb.function("jsonb_extract_path_text", Date.class, root.get("data"), cb.literal("intiatedOn"))));
 		TypedQuery<CodeServerWorkspaceNsql> byNameQuery = em.createQuery(byName);
 		List<CodeServerWorkspaceNsql> entities = byNameQuery.getResultList();
 		if (entities != null && entities.size() > 0)
@@ -352,6 +347,7 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 						+ " \"secureWithIAMRequired\": "+ deploymentDetails.getSecureWithIAMRequired() +","
 						+ " \"technicalUserDetailsForIAMLogin\": "+ addQuotes(deploymentDetails.getTechnicalUserDetailsForIAMLogin()) +","
 						+ " \"lastDeployedBranch\": "+ addQuotes(deploymentDetails.getLastDeployedBranch()) +","
+						+ " \"gitjobRunID\": "+ addQuotes(deploymentDetails.getGitjobRunID()) +","
 						+ " \"lastDeploymentStatus\": "+ addQuotes(deploymentDetails.getLastDeploymentStatus()) +"}')\r\n"
 				+ "where data->'projectDetails'->>'projectName' = '"+projectName+"'";
 		try {
@@ -423,7 +419,7 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 				"FROM workspace_nsql " +
 				"WHERE jsonb_extract_path_text(data, 'workspaceId') = (:id) " +
 				"AND LOWER(jsonb_extract_path_text(data, 'gitUserName')) = LOWER(:userId) " +
-				"AND LOWER(jsonb_extract_path_text(data, 'status')) NOT IN ('create_requested', 'deleted', 'collaboration_requested')";
+				"AND LOWER(jsonb_extract_path_text(data, 'status')) NOT IN ('create_requested', 'deleted', 'collaboration_requested', 'create_failed')";
 
 		try {
 			Query q = em.createNativeQuery(getQuery);
@@ -478,7 +474,7 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 					"cast(jsonb_extract_path_text(data,'projectDetails','projectName') as text) as PROJECT_NAME, cast(id as text) as COLUMN_ID,  " +
                   "cast(jsonb_extract_path_text(data,'projectDetails','projectOwner') as text) as PROJECT_OWNER, " +
                   "cast(jsonb_extract_path_text(data,'projectDetails','securityConfig') as text) as SECURITY_CONFIG " +
-                  "FROM workspace_nsql WHERE lower(jsonb_extract_path_text(data,'projectDetails','securityConfig','status')) in('requested','accepted') ";
+                  "FROM workspace_nsql WHERE lower(jsonb_extract_path_text(data,'projectDetails','securityConfig','status')) in('requested','accepted') AND lower(jsonb_extract_path_text(data,'status')) in('created') ";
 		if (limit > 0)
 			  getQuery = getQuery + " limit " + limit;
 	  	if (offset >= 0)

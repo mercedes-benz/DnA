@@ -267,7 +267,7 @@ export default class SecurityConfig extends React.Component<
       .then((res: any) => {
         ProgressIndicator.hide();
         Notification.show('Published Successfully.');
-        history.push('/codespace/adminSecurityConfigs');
+        history.push('/codespace/manageCodespace');
       })
       .catch((error: any) => {
         ProgressIndicator.hide();
@@ -306,7 +306,7 @@ export default class SecurityConfig extends React.Component<
     const newState = this.state.config;
     const saveActionType = this.state.saveActionType;
     const currentState = this.state.currentState;
-
+     
     if (!currentState || saveActionType === 'btn' || _.isEqual(newState, currentState)) {
       this.setState({ currentTab: target.id, saveActionType: '' });
     } else {
@@ -441,6 +441,7 @@ export default class SecurityConfig extends React.Component<
     const projectName = config?.projectName ? `${config.projectName} - ` : '';
     const publishedSuffix = readOnlyMode && !isCodeSpaceAdminPage ? ' (Published)' : '';
     const title = `${projectName}Security config${publishedSuffix}`;
+        console.log(this.props.user);
     return (
       <React.Fragment>
         <div className={classNames(Styles.mainPanel)}>
