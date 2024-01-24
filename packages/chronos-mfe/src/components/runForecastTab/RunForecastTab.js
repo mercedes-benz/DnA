@@ -55,7 +55,7 @@ const RunForecastTab = ({ onRunClick, currentTab }) => {
     } else if(data.runOnPowerfulMachines !== undefined && data.configurationFile.includes('OPTIMISATION_CONFIG')) {
       formData.append('runOnPowerfulMachines', true);
     } else {
-      formData.append('runOnPowerfulMachines', data.runOnPowerfulMachines === undefined ? '' : data.runOnPowerfulMachines);
+      formData.append('runOnPowerfulMachines', data.runOnPowerfulMachines === undefined ? false : data.runOnPowerfulMachines);
     }
     formData.append('chronosVersion', data.chronosVersion === undefined ? '' : data.chronosVersion);
     formData.append('backtesting', data.backtesting === undefined ? '' : data.backtesting);
