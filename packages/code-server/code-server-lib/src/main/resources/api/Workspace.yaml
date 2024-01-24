@@ -918,6 +918,9 @@ definitions:
       lastDeploymentStatus:
         type: string
         description: Status of last deployement
+      gitjobRunID:
+        type: string
+        description: "git job run Id of project deployed"
          
   CodeServerRecipeDetailsVO:
     type: object
