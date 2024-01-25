@@ -80,14 +80,14 @@ public class VaultConfig {
 	public String validateUserInVault(String userId) {
 		String userSecretKey = "";
 
-		LOGGER.info("Validating user:{} in Vault.", userId);
+		LOGGER.debug("Validating user:{} in Vault.", userId);
 		VaultTemplate vaultTemplate = new VaultTemplate(this.getVaultEndpoint(), new TokenAuthentication(vaultToken));
 
 		LOGGER.debug("Fetching details for user:{} from vault.",userId);
 		VaultResponse vaultResponse = vaultTemplate.opsForKeyValue(mountPath, KeyValueBackend.KV_2)
 				.get(vaultPathUtility(userId));
 		if (vaultResponse != null && vaultResponse.getData().get(userId) != null) {
-			LOGGER.info("Got credential for user:{} from vault",userId);
+			LOGGER.debug("Got credential for user:{} from vault",userId);
 			userSecretKey = vaultResponse.getData().get(userId).toString();
 		}
 		return userSecretKey;
