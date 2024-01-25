@@ -312,9 +312,9 @@ public class DnaMinioClientImp implements DnaMinioClient {
 				LOGGER.info("Started mc command to list buckets");
 				BufferedReader r = new BufferedReader(new InputStreamReader(p.getInputStream()));
 	
-				if(!p.waitFor(Integer.parseInt(storageMCListBucketsCmdTimeout), TimeUnit.SECONDS)) {
-				    p.destroy();
-				}
+//				if(!p.waitFor(Integer.parseInt(storageMCListBucketsCmdTimeout), TimeUnit.SECONDS)) {
+//				    p.destroy();
+//				}
 				
 				LOGGER.info("mc command to list buckets executed, started reading response");
 				
@@ -341,6 +341,8 @@ public class DnaMinioClientImp implements DnaMinioClient {
 				getBucketResponse.setStatus(ConstantsUtility.SUCCESS);
 				getBucketResponse.setHttpStatus(HttpStatus.OK);
 				
+				r.close();
+				p.destroy();
 			} else {
 					LOGGER.info("User:{} not available in vault.", userId);
 					getBucketResponse.setErrors(Arrays.asList(new ErrorDTO(null, "User:" + userId + " not available.")));
