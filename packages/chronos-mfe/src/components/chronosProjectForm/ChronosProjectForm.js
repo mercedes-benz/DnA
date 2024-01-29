@@ -681,46 +681,46 @@ const ChronosProjectForm = ({ project, edit, onSave }) => {
                   </div>
                 </div>
               </div>
-
-              <div className={classNames(Styles.termsOfUseContainer, errors?.termsOfUse?.message ? 'error' : '')}>
-                <div className={Styles.termsOfUseContent}>
-                  <div>
-                    <label className={classNames('checkbox', errors?.termsOfUse?.message ? 'error' : '')}>
-                      <span className="wrapper">
-                        <input
-                          name="write"
-                          type="checkbox"
-                          className="ff-only"
-                          defaultChecked={termsOfUse}
-                          {...register('termsOfUse', {
-                            required: 'Please agree to terms of use',
-                            validate: (value) => {
-                              value || 'Please agree to terms of use';
-                            },
-                            onChange: (e) => { e.target.value === 'on' ? setTermsOfUse(true) : setTermsOfUse(false) }
-                          })}
-                        />
-                      </span>
-                    </label>
-                  </div>
-                  <div
-                    className={classNames(Styles.termsOfUseText)}
-                    style={{
-                      ...(errors?.termsOfUse?.message ? { color: '#e84d47' } : ''),
-                    }}
-                  >
-                    <div dangerouslySetInnerHTML={{ __html: Envs.TOU_HTML }}></div>
-                    <sup>*</sup>
-                  </div>
-                </div>
-                <span
-                  style={{ marginTop: 0 }}
-                  className={classNames('error-message', errors?.termsOfUse?.message ? '' : 'hide')}
-                >
-                  {errors?.termsOfUse?.message}
-                </span>
-              </div>
             </div>}
+            <div className={classNames(Styles.termsOfUseContainer, errors?.termsOfUse?.message ? 'error' : '')}>
+              <div className={Styles.termsOfUseContent}>
+                <div>
+                  <label className={classNames('checkbox', errors?.termsOfUse?.message ? 'error' : '')}>
+                    <span className="wrapper">
+                      <input
+                        name="write"
+                        type="checkbox"
+                        className="ff-only"
+                        defaultChecked={termsOfUse}
+                        {...register('termsOfUse', {
+                          required: 'Please agree to terms of use',
+                          validate: (value) => {
+                            value || 'Please agree to terms of use';
+                          },
+                          onChange: (e) => { e.target.value === 'on' ? setTermsOfUse(true) : setTermsOfUse(false) }
+                        })}
+                      />
+                    </span>
+                  </label>
+                </div>
+                <div
+                  className={classNames(Styles.termsOfUseText)}
+                  style={{
+                     ...(errors?.termsOfUse?.message ? { color: '#e84d47' } : ''),
+                  }}
+                >
+                  <div dangerouslySetInnerHTML={{ __html: Envs.TOU_HTML }}></div>
+                  <sup>*</sup>
+                </div>
+              </div>
+              <span
+                style={{ marginTop: 0 }}
+                className={classNames('error-message', errors?.termsOfUse?.message ? '' : 'hide')}
+              >
+                {errors?.termsOfUse?.message}
+              </span>
+            </div>
+            
             <div className={Styles.collabContainer}>
               <h3 className={Styles.modalSubTitle}>Add Collaborators</h3>
               <div className={Styles.collabAvatar}>
