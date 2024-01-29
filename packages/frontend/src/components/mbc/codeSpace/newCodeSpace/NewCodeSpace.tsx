@@ -21,6 +21,7 @@ import { Envs } from 'globals/Envs';
 import { recipesMaster } from '../../../../services/utils';
 import ConfirmModal from 'components/formElements/modal/confirmModal/ConfirmModal';
 import { DEPLOYMENT_DISABLED_RECIPE_IDS } from 'globals/constants';
+import { Link } from 'react-router-dom';
 import Tags from 'components/formElements/tags/Tags';
 
 const classNames = cn.bind(Styles);
@@ -29,6 +30,7 @@ export interface ICodeSpaceProps {
   user: IUserInfo;
   onBoardingCodeSpace?: ICodeSpaceData;
   onEditingCodeSpace?: ICodeSpaceData;
+  isRetryRequest?: boolean;
   isCodeSpaceCreationSuccess?: (status: boolean, codeSpaceData: ICodeSpaceData) => void;
   toggleProgressMessage?: (show: boolean) => void;
   onUpdateCodeSpaceComplete?: () => void;
@@ -55,7 +57,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
   const [projectName, setProjectName] = useState('');
   const [projectNameError, setProjectNameError] = useState('');
   const [environment, setEnvironment] = useState('DHC-CaaS');
-  const [recipeValue, setRecipeValue] = useState('0');
+  const [recipeValue, setRecipeValue] = useState(onBoadingMode ? projectDetails.recipeDetails?.recipeId : '0');
   const recipes = recipesMaster;
 
   const [recipeError, setRecipeError] = useState('');
@@ -81,10 +83,11 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
   const [collaboratorToTransferOwnership, setCollaboratorToTransferOwnership] =  useState<ICodeCollaborator>();
 
 
-  const [typeOfProject, setTypeOfProject] = useState('0');
+  const [typeOfProject, setTypeOfProject] = useState(projectDetails?.dataGovernance?.typeOfProject ? projectDetails?.dataGovernance?.typeOfProject : '0');
   const [typeOfProjectError, setTypeOfProjectError] = useState('');
+  const isPlayground = typeOfProject === 'Playground';
 
-  const [description, setDescription] = useState('');
+  const [description, setDescription] = useState(projectDetails?.dataGovernance?.description ? projectDetails?.dataGovernance?.description : '');
   const [descriptionError, setDescriptionError] = useState('');
 
   const [division, setDivision] = useState(projectDetails?.dataGovernance?.division ? projectDetails?.dataGovernance?.divisionId+'@-@'+projectDetails?.dataGovernance?.division : '0');
@@ -95,15 +98,17 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
   const [department, setDepartment] = useState(onEditingMode ? [projectDetails?.dataGovernance?.department] : []);
   const [departmentError, setDepartmentError] = useState(false);
 
-  const [classificationType, setClassificationType] = useState('0');
+  const [classificationType, setClassificationType] = useState(projectDetails?.dataGovernance?.classificationType? projectDetails?.dataGovernance?.classificationType : '0');
   const [classificationTypeError, setClassificationTypeError] = useState('');
 
   const [PII, setPII] = useState(projectDetails?.dataGovernance?.piiData ? true : false);
 
-  const [archerId, setArcherId] = useState('');
+  const tags : string[] = [];
+
+  const [archerId, setArcherId] = useState(projectDetails?.dataGovernance?.archerId ? projectDetails?.dataGovernance?.archerId : '');
   const [archerIdError, setArcherIdError] = useState('');
 
-  const [procedureID, setProcedureID] = useState('');
+  const [procedureID, setProcedureID] = useState(projectDetails?.dataGovernance?.procedureID ? projectDetails?.dataGovernance?.procedureID : '');
   const [procedureIDError, setProcedureIDError] = useState('');
 
   const requiredError = '*Missing entry';
@@ -111,6 +116,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
   // let livelinessInterval: any = undefined;
 
   useEffect(() => {
+  if (!onBoadingMode) {
     ProgressIndicator.show();
     CodeSpaceApiClient.getLovData()
       .then((response) => {
@@ -118,6 +124,8 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
         setDataClassificationDropdown(response[0].data || []);
         setDivisions(response[1] || []);
         setDepartments(response[2]?.data || []);
+        onEditingMode && setDivision(projectDetails?.dataGovernance?.division ? projectDetails?.dataGovernance?.divisionId+'@-@'+projectDetails?.dataGovernance?.division : '0');
+        onEditingMode && setClassificationType(projectDetails?.dataGovernance?.classificationType? projectDetails?.dataGovernance?.classificationType : '0');
         SelectBox.defaultSetup();
       })
       .catch((err) => {
@@ -131,6 +139,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
           Notification.show(err?.message || 'Something went wrong.', 'alert');
         }
       });
+    }  
   }, []);
 
   useEffect(() => {
@@ -140,6 +149,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
       ApiClient.get('/subdivisions/' + divId)
         .then((res) => {
           setSubDivisions(res || []);
+          onEditingMode && setSubDivision(projectDetails?.dataGovernance?.subDivision ? projectDetails?.dataGovernance?.subDivisionId+'@-@'+projectDetails?.dataGovernance?.subDivision : '0');
           SelectBox.defaultSetup();
           ProgressIndicator.hide();
         }).catch(() => {
@@ -462,11 +472,11 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
       setTypeOfProjectError(requiredError);
       formValid = false;
     }
-    if (!description.length && !projectDetails.dataGovernance.description.length) {
+    if (!description.length ) {
       setDescriptionError(requiredError);
       formValid = false;
     }
-    if(division === '0'){
+    if(!isPlayground && division === '0'){
       setDivisionError(requiredError);
       formValid = false;
     }
@@ -474,7 +484,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
       setDepartmentError(true);
       formValid = false;
     }
-    if (classificationType === '0') {
+    if (!isPlayground && classificationType === '0') {
       setClassificationTypeError(requiredError);
       formValid = false;
     }
@@ -499,7 +509,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
       setDescriptionError(requiredError);
       formValid = false;
     }
-    if(division === '0'){
+    if(!isPlayground && division === '0'){
       setDivisionError(requiredError);
       formValid = false;
     }
@@ -507,7 +517,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
       setDepartmentError(true);
       formValid = false;
     }
-    if (classificationType === '0') {
+    if (!isPlayground && classificationType === '0') {
       setClassificationTypeError(requiredError);
       formValid = false;
     }
@@ -542,7 +552,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
     // } else {
     //   setGithubUserNameError('');
     // }
-    if (githubToken === '') {
+    if (githubToken === '' && recipeValue !== 'default') {
       setGithubTokenError(requiredError);
       formValid = false;
     }
@@ -612,21 +622,18 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
     if (validateEditCodeSpaceForm()){
       const editCodeSpaceRequest = {
         data: {
-          projectDetails: {
-            dataGovernance: {
-              typeOfProject: typeOfProject,
-              description: description,
-              divisionId: division.split('@-@')[0],
-              division: division.split('@-@')[1],
-              subDivisionId: subDivision.split('@-@')[0],
-              subDivision: subDivision.split('@-@')[1],
-              department: department[0],
-              classificationType: classificationType,
-              piiData: PII,
-              archerId: archerId,
-              procedureID: procedureID,
-            },
-          },
+          typeOfProject: typeOfProject,
+          description: description,
+          divisionId: division.split('@-@')[0],
+          division: division.split('@-@')[1],
+          subDivisionId: subDivision.split('@-@')[0],
+          subDivision: subDivision.split('@-@')[1],
+          department: department[0],
+          classificationType: classificationType,
+          piiData: PII,
+          tags: tags,
+          archerId: archerId,
+          procedureID: procedureID,
         },
       };
 
@@ -634,6 +641,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
       CodeSpaceApiClient.editCodeSpace(props.onEditingCodeSpace.id, editCodeSpaceRequest)
       .then((res) => {
         Notification.show('Code space updated successfully');
+        ProgressIndicator.hide();
         props.onUpdateCodeSpaceComplete();
         
       })
@@ -806,9 +814,8 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
         <div className={Styles.newCodeSpacePanel}>
           <div className={Styles.addicon}> &nbsp; </div>
           <h3>
-            Hello {namePrefix}, On-board to Code Space - {projectDetails.projectName}
+            Hello {namePrefix}, {props.isRetryRequest ? 'Retry creation of' : 'On-board to'} Code Space
           </h3>
-          <p>Enter the information to start creating!</p>
           <div className={Styles.codeSpaceDetails}>
             <div className={Styles.flexLayout}>
               <div>
@@ -821,13 +828,11 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
               <div>{projectDetails?.dataGovernance?.typeOfProject ? projectDetails?.dataGovernance?.typeOfProject : 'N/A'}</div>
             </div>
             <div className={Styles.flexLayout}>
-              <div>
+              <div style={{ width: '25%' }}>
                 <label>Description</label>
               </div>
-              <div>{projectDetails?.dataGovernance?.description ? projectDetails?.dataGovernance?.description : 'N/A'}</div>
-              <div></div>
-              <div></div>
-            </div>
+              <div style={{ width: '75%' }}>{projectDetails?.dataGovernance?.description ? projectDetails?.dataGovernance?.description : 'N/A'}</div>
+                          </div>
             {projectDetails?.dataGovernance?.typeOfProject !== 'Playground' && <div className={Styles.flexLayout}>
               <div>
                 <label>Division</label>
@@ -866,10 +871,13 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
               </div>
               <div>{projectDetails?.dataGovernance?.procedureID ? projectDetails?.dataGovernance?.procedureID : 'N/A'}</div>
             </div>
-            <div>
-              <label>Recipe</label>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; 
-              &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;
-              {recipes.find((item: any) => item.id === projectDetails.recipeDetails.recipeId).name}  
+            <div className={Styles.flexLayout}>
+              <div style={{ width: '25%' }}>
+              <label>Recipe</label>
+              </div>
+              <div style={{ width: '75%' }}>
+                {recipes.find((item: any) => item.id === projectDetails.recipeDetails.recipeId).name}  
+              </div>
             </div>
             <div className={Styles.flexLayout}>
               <div>
@@ -933,26 +941,29 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
               </div>
             </div>
           )} */}
-          <div>
+          {recipeValue !== 'default' && <>
+            <p>Enter the information to start creating!</p>
             <div>
-              <TextBox
-                type="password"
-                controlId={'githubTokenInput'}
-                labelId={'githubTokenLabel'}
-                label={`Your Github(${githubUrlValue}) Personal Access Token`}
-                infoTip="Not stored only used for Code Space initial setup"
-                placeholder={'Type here'}
-                value={githubToken}
-                errorText={githubTokenError}
-                required={true}
-                maxLength={50}
-                onChange={onGithubTokenOnChange}
-              />
+              <div>
+                <TextBox
+                  type="password"
+                  controlId={'githubTokenInput'}
+                  labelId={'githubTokenLabel'}
+                  label={`Your Github(${githubUrlValue}) Personal Access Token`}
+                  infoTip="Not stored only used for Code Space initial setup"
+                  placeholder={'Type here'}
+                  value={githubToken}
+                  errorText={githubTokenError}
+                  required={true}
+                  maxLength={50}
+                  onChange={onGithubTokenOnChange}
+                />
+              </div>
             </div>
-          </div>
+          </>}
           <div className={Styles.newCodeSpaceBtn}>
             <button className={' btn btn-tertiary '} onClick={onBoardToCodeSpace}>
-              On-board to Code Space
+              {props.isRetryRequest ? 'Create' : 'On-board to'} Code Space
             </button>
           </div>
         </div>
@@ -1036,7 +1047,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
                 </span>
               </div>
 
-              {typeOfProject !== 'Playground' && <div>
+              {!isPlayground && <div>
               <div className={Styles.flexLayout}>
                 <div
                   className={classNames('input-field-group include-error', 
@@ -1136,7 +1147,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
                 
               </div>
             
-              {typeOfProject !== 'Playground' && <div>
+              {!isPlayground && <div>
               <div className={Styles.flexLayout}>
                 <div
                   className={classNames(
@@ -1273,13 +1284,15 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
                   </select>
                 </div>
                 <span className={classNames('error-message', recipeError.length ? '' : 'hide')}>{recipeError}</span>
+                <Link to="/codespaceRecipes" target='_blank'>
                 <div>
-                  <button className={classNames(Styles.addNewItemButton)}>
+                  <button className={classNames(Styles.addNewItemButton)} >
                     <i className="icon mbc-icon plus" />
                     &nbsp;
-                    <span>Add new code space recipe (Coming Soon)</span>
+                    <span>Add new code space recipe</span>
                   </button>
                 </div>
+                </Link>
               </div>
               <div>
                 <div id="environmentContainer" className={classNames('input-field-group include-error')}>
@@ -1477,7 +1490,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
                       required={true}
                       required-error={requiredError}
                       onChange={onTypeOfProjectChange}
-                      value={projectDetails?.dataGovernance?.typeOfProject}
+                      value={typeOfProject}
                     >
                       <option id="typeOfProjectOption" value={0}>
                         Choose
@@ -1538,7 +1551,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
                       id="description"
                       className="input-field-area"
                       defaultValue={description}
-                      value={projectDetails?.dataGovernance?.description}
+                      value={description}
                       required={true}
                       required-error={requiredError}
                       onChange={onDescriptionChange}
@@ -1550,7 +1563,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
                   </div>
                 </div>
               
-              {typeOfProject !== 'Playground' && <div>
+              {!isPlayground && <div>
                 <div className={Styles.flexLayout}>
                   <div
                     className={classNames('input-field-group include-error', 
@@ -1617,7 +1630,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
                 </div>
               </div>}
 
-              {typeOfProject !== 'Playground' && <div>
+              {!isPlayground && <div>
                 <div className={Styles.flexLayout}>
                   <div
                     className={classNames(
@@ -1635,7 +1648,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
                         required={true}
                         required-error={requiredError}
                         onChange={onClassificationChange}
-                        value={projectDetails?.dataGovernance?.classificationType}
+                        value={classificationType}
                       >
                         <option id="classificationOption" value={0}>
                           Choose
@@ -1699,7 +1712,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
                       autoComplete="off"
                       maxLength={55}
                       defaultValue={archerId}
-                      value={projectDetails?.dataGovernance?.archerId}
+                      value={archerId}
                       onChange={onArcherIdChange}
                     />
                     <span className={classNames('error-message', archerIdError.length ? '' : 'hide')}>
@@ -1718,7 +1731,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
                       autoComplete="off"
                       maxLength={55}
                       defaultValue={procedureID}
-                      value={projectDetails?.dataGovernance?.procedureID}
+                      value={procedureID}
                       onChange={onProcedureIDChange}
                     />
                     <span className={classNames('error-message', procedureIDError.length ? '' : 'hide')}>

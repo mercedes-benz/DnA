@@ -27,6 +27,8 @@
 
 package com.daimler.data.service.storage;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -43,7 +45,6 @@ import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
 
-import com.daimler.data.dto.storage.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
@@ -79,13 +80,27 @@ import com.daimler.data.dto.DataikuPermission;
 import com.daimler.data.dto.DataikuReadabilityDTO;
 import com.daimler.data.dto.ErrorDTO;
 import com.daimler.data.dto.FileScanDetailsVO;
+import com.daimler.data.dto.McListBucketCollectionDto;
+import com.daimler.data.dto.McListBucketDto;
 import com.daimler.data.dto.MinioGenericResponse;
 import com.daimler.data.dto.Permission;
 import com.daimler.data.dto.UserInfoVO;
 import com.daimler.data.dto.solution.ChangeLogVO;
+import com.daimler.data.dto.storage.BucketCollectionVO;
+import com.daimler.data.dto.storage.BucketObjectResponseVO;
+import com.daimler.data.dto.storage.BucketObjectResponseWrapperVO;
+import com.daimler.data.dto.storage.BucketResponseWrapperVO;
+import com.daimler.data.dto.storage.BucketVo;
+import com.daimler.data.dto.storage.ConnectionResponseVO;
+import com.daimler.data.dto.storage.ConnectionResponseWrapperVO;
+import com.daimler.data.dto.storage.ConnectionVO;
+import com.daimler.data.dto.storage.CreatedByVO;
+import com.daimler.data.dto.storage.PermissionVO;
+import com.daimler.data.dto.storage.UserRefreshWrapperVO;
+import com.daimler.data.dto.storage.UserVO;
 import com.daimler.data.minio.client.DnaMinioClient;
-import com.daimler.data.util.RedisCacheUtil;
 import com.daimler.data.util.ConstantsUtility;
+import com.daimler.data.util.RedisCacheUtil;
 import com.daimler.data.util.StorageUtility;
 import com.daimler.dna.notifications.common.producer.KafkaProducerService;
 
@@ -106,7 +121,7 @@ public class BaseStorageService implements StorageService {
 	@Value("${storage.connect.host}")
 	private String storageConnectHost;
 
-    	@Autowired
+    @Autowired
 	HttpServletRequest httpRequest;
 
 	@Value("${databricks.userid}")
@@ -156,6 +171,8 @@ public class BaseStorageService implements StorageService {
 
 	@Autowired
 	private DataikuClient dataikuClient;
+	
+	private SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm.sss'Z'");
 
 	public BaseStorageService() {
 		super();
@@ -414,11 +431,11 @@ public class BaseStorageService implements StorageService {
 
 	@Override
 	public ResponseEntity<BucketCollectionVO> getAllBuckets(int limit, String sortBy, String sortOrder, int offset) {
-		LOGGER.debug("Fetching Current user.");
+		LOGGER.info("Fetching Current user.");
 		String currentUser = userStore.getUserInfo().getId();
 		HttpStatus httpStatus;
 		BucketCollectionVO bucketCollectionVO = new BucketCollectionVO();
-		LOGGER.debug("list buckets for user:{}", currentUser);
+		LOGGER.info("list buckets for user:{}", currentUser);
 		MinioGenericResponse minioResponse = dnaMinioClient.getAllBuckets(currentUser, false);
 		if (minioResponse != null && minioResponse.getStatus().equals(ConstantsUtility.SUCCESS)) {
 			LOGGER.info("Success from list buckets minio client");
@@ -442,11 +459,60 @@ public class BaseStorageService implements StorageService {
 							s.setBucketName(bucket.name());
 							s.setCreatedDate(Date.from(bucket.creationDate().toInstant()));
 							s.setCollaborators(dnaMinioClient.getBucketCollaborators(bucket.name(), currentUser));
-							LOGGER.debug("Setting collaborators for bucket:{}", bucket.name());
+							LOGGER.info("Setting collaborators for bucket:{}", bucket.name());
 						}
 					}
 				}
 				bucketCollectionVO.setData(bucketsVO);
+			}
+		} else {
+			LOGGER.info("Failure from list buckets minio client");
+			httpStatus = minioResponse != null ? minioResponse.getHttpStatus() : HttpStatus.INTERNAL_SERVER_ERROR;
+			bucketCollectionVO.setErrors(getMessages(minioResponse != null ? minioResponse.getErrors() : null));
+		}
+		return new ResponseEntity<>(bucketCollectionVO, httpStatus);
+	}
+	
+	@Override
+	public ResponseEntity<BucketCollectionVO> getAllBucketsUsingMC(int limit, String sortBy, String sortOrder, int offset) {
+		LOGGER.debug("Fetching Current user.");
+		String currentUser = userStore.getUserInfo().getId();
+		HttpStatus httpStatus;
+		BucketCollectionVO bucketCollectionVO = new BucketCollectionVO();
+		LOGGER.debug("list buckets for user:{}", currentUser);
+		McListBucketCollectionDto minioResponse = dnaMinioClient.getAllBucketsUsingMC(currentUser, true);
+		if (minioResponse != null && minioResponse.getStatus().equals(ConstantsUtility.SUCCESS)) {
+			LOGGER.info("Success from list buckets minio client");
+			httpStatus = minioResponse.getHttpStatus();
+			if (!ObjectUtils.isEmpty(minioResponse.getData())) {
+				// Fetching data from database for specified users
+				LOGGER.info("Fetching records from database.");
+				List<StorageNsql> storageEntities = customRepo.getAllWithFilters(currentUser,  limit, sortBy, sortOrder, offset);
+				List<BucketVo> bucketsVO = new ArrayList<>();
+				// converting the storageEntities to bucketVO objects and adding it to bucketsVO
+				bucketsVO = storageEntities.stream().map(n-> storageAssembler.toBucketVo(n)).collect(Collectors.toList());
+				for (McListBucketDto bucket : minioResponse.getData()) {
+					BucketVo bucketVo = storageAssembler.toBucketVo(storageEntities, bucket.getKey());
+					for (BucketVo s: bucketsVO) {
+						if (s.getBucketName().equals(bucket.getKey())) {
+							if (Objects.isNull(bucketVo.getPermission())) {
+								// Setting current user details
+								s.setPermission(dnaMinioClient.getBucketPermission(bucket.getKey(), currentUser));
+							}
+							s = new BucketVo();
+							s.setBucketName(bucket.getKey());
+							try {
+								s.setCreatedDate(sdf.parse(bucket.getLastModified()));
+							} catch (ParseException e) {
+								LOGGER.error("Failed to parse date of bucket {}", bucket.getKey());
+							}
+							s.setCollaborators(dnaMinioClient.getBucketCollaborators(bucket.getKey(), currentUser));
+							LOGGER.debug("Setting collaborators for bucket:{}", bucket.getKey());
+						}
+					}
+				}
+				bucketCollectionVO.setData(bucketsVO);
+				bucketCollectionVO.setTotalCount(bucketsVO.size());
 			}
 		} else {
 			LOGGER.info("Failure from list buckets minio client");

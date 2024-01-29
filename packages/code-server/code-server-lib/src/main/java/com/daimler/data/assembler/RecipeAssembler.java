@@ -32,7 +32,6 @@ public class RecipeAssembler implements GenericAssembler<RecipeVO, CodeServerRec
 		// TODO Auto-generated method stub
 		SimpleDateFormat isoFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS+00:00");
 		RecipeVO recipeVo = new RecipeVO();
-		try {
 			if (Objects.nonNull(entity) && Objects.nonNull(entity.getData())) {
 				CodeServerRecipe recipe = entity.getData();
 				BeanUtils.copyProperties(recipe, recipeVo);
@@ -58,17 +57,7 @@ public class RecipeAssembler implements GenericAssembler<RecipeVO, CodeServerRec
 				if (recipe.getPlugins() != null) {
 					recipeVo.setPlugins(recipe.getPlugins());
 				}
-				if (recipe.getCreatedOn() != null) {
-					recipe.setCreatedOn(isoFormat.parse(isoFormat.format(recipe.getCreatedOn())));
-				}
-
-			} else {
-				log.error("Failed in assembler while parsing date into iso format");
-				return null;
 			}
-		} catch (Exception e) {
-			log.error("Failed in assembler while parsing date into iso format with exception {}", e.getMessage());
-		}
 		return recipeVo;
 	}
 
