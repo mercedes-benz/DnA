@@ -634,6 +634,7 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 											}
 											if(warningsInfoFileFlag && (warningsInfoTextDownloadResponse!= null && warningsInfoTextDownloadResponse.getData()!=null && (warningsInfoTextDownloadResponse.getErrors()==null || warningsInfoTextDownloadResponse.getErrors().isEmpty()))) {
 												warningsInfoResult = new String(warningsInfoTextDownloadResponse.getData().getByteArray());
+												
 												log.info("successfully retrieved run_info.txt file contents for forecast {} and correaltionid{} and runname{}",
 														bucketName, correlationId, run.getRunName());
 											}
