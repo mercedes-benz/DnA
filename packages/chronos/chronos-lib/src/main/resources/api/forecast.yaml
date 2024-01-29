@@ -480,8 +480,11 @@ paths:
     get:
       tags:
         - "forecast-runs"
-      summary: "Get all forecast projects for the user."
-      description:  "Get all forecasts projects for the user."
+      summary: "Get all runs for the selected project."
+      description:  |
+        This will return details of all runs for the selected project. Make
+        sure to filter the results by status if you only want to see finished
+        runs. You can also use this to check status of a run.
       operationId: "getAllRunsForProject"
       parameters:
         - in: "path"
