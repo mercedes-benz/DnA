@@ -1194,6 +1194,7 @@ definitions:
       workersCouncilApproval:
         description: "Checks if workers council is approved or not its a boolean value it can be true/false "
         type: boolean
+        default: false
   
   LinkVO:
     type: object
