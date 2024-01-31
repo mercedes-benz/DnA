@@ -7,6 +7,7 @@ export const bucketInitialState = {
     bucketListResponse: [],
     totalNumberOfPages: 1,
     currentPageNumber: 1,
+    currentPageOffset: 0,
     maxItemsPerPage: parseInt(sessionStorage.getItem(SESSION_STORAGE_KEYS.PAGINATION_MAX_ITEMS_PER_PAGE), 10) || 15,
   },
   error: '',
