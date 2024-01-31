@@ -244,6 +244,7 @@ type SolutionDataComplianceVO{
 	complianceOfficers: [TeamMemberVO],
 	aiRiskAssessmentType: AIRiskAssessmentTypeEnum 
     workersCouncilApproval: Boolean
+    
 	
 }
 
