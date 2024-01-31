@@ -8,12 +8,15 @@ import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indica
 import Notification from '../../common/modules/uilab/js/src/notification';
 import { chronosApi } from '../../apis/chronos.api';
 import Modal from 'dna-container/Modal';
+import { refreshToken } from 'dna-container/RefreshToken';
 import AceEditor from 'react-ace';
 //import theme
 import 'ace-builds/src-noconflict/theme-solarized_dark';
 import 'ace-builds/src-noconflict/mode-yaml';
 import { getProjectDetails } from '../../redux/projectDetails.services';
 import { getConfigFiles } from '../../redux/chronosForm.services';
+import { SESSION_STORAGE_KEYS } from '../../utilities/constants';
+import { Envs } from '../../utilities/envs';
 
 const InputFiles = ({inputFiles, showModal, addNew}) => {
   const { id: projectId } = useParams();
@@ -26,11 +29,32 @@ const InputFiles = ({inputFiles, showModal, addNew}) => {
   const project = useSelector(state => state.projectDetails);
   const dispatch = useDispatch();
 
-  const handleUploadFile = (file) => {
+  const beforeUpload = () => {
+    return new Promise((resolve, reject) => {
+      if (!Envs.OIDC_DISABLED) {
+        const jwt = sessionStorage.getItem(SESSION_STORAGE_KEYS.JWT);
+        refreshToken(jwt)
+          .then(() => {
+            // continue as usual
+            resolve();
+          })
+          .catch((err) => {
+            // prevent upload
+            reject(err);
+          });
+      } else {
+        // continue as usual if not in production
+        resolve();
+      }
+    });
+  };
+
+  const handleUploadFile = async (file) => {
     const formData = new FormData();
     formData.append('configFile', file);
     ProgressIndicator.show();
-    chronosApi.uploadProjectConfigFile(project?.data?.id, formData).then(() => {
+    if(await beforeUpload()) {
+      chronosApi.uploadProjectConfigFile(project?.data?.id, formData).then(() => {
         Notification.show('File uploaded successfully');
         dispatch(getProjectDetails(projectId));
         dispatch(getConfigFiles(projectId)); 
@@ -42,6 +66,9 @@ const InputFiles = ({inputFiles, showModal, addNew}) => {
           'alert',
         );
       });
+    } else {
+      Notification.show('Error while uploading file', 'alert');
+    }
   }
 
   const handlePreviewFile = (file) => {

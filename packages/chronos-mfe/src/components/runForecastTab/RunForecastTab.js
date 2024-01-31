@@ -16,16 +16,15 @@ import { setInputFile } from '../../redux/chronosFormSlice';
 import { getProjectDetails } from '../../redux/projectDetails.services';
 import Tutorial from '../../components/tutorial/Tutorial';
 
-const RunForecastTab = ({ onRunClick, currentTab }) => {
+const RunForecastTab = ({ onRunClick }) => {
   const { id: projectId } = useParams();
   const methods = useForm();
   const dispatch = useDispatch();
 
   const [showTutorial, setShowTutorial] = useState(false);
   useEffect(() => {
-    currentTab === 'runForecast' ? setShowTutorial((localStorage.getItem('showTutorial') === null || localStorage.getItem('showTutorial') === 'true') ? true : false) : 
-    setShowTutorial(false);
-  }, [currentTab]);
+    setShowTutorial((localStorage.getItem('showTutorial') === null || localStorage.getItem('showTutorial') === 'true') ? true : false);
+  }, []);
 
   useEffect(() => {
     SelectBox.defaultSetup();
