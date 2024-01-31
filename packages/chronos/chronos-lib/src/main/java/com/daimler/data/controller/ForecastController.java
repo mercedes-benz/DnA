@@ -74,6 +74,9 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 
 	@Value("${databricks.defaultConfigYml}")
 	private String defaultConfigFolderPath;
+
+	@Value("${technicalUser}")
+	private String technicalUser;
 	@Value("${databricks.runsDefaultPageSize}")
 	private String runsDefaultPageSize;
 	private static final String BUCKETS_PREFIX = "chronos-";
@@ -714,9 +717,16 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 			if (limit == null || limit < 0) {
 				limit = defaultLimit;
 			}
-			CreatedByVO requestUser = this.userStore.getVO();
+		List<ForecastVO> records =  new ArrayList<>();
+		CreatedByVO requestUser = this.userStore.getVO();
 			String user = requestUser.getId();
-			List<ForecastVO> records = service.getAll(limit, offset, user);
+			if(user.equalsIgnoreCase(technicalUser)){
+				 records =service.getAll();
+			}
+			else {
+
+				records = service.getAll(limit, offset, user);
+			}
 			Long count = service.getCount(user);
 			HttpStatus responseCode = HttpStatus.NO_CONTENT;
 			if(records!=null && !records.isEmpty()) {
