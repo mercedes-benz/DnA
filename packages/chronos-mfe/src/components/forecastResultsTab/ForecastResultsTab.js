@@ -16,7 +16,7 @@ import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indica
 import { getQueryParameterByName } from '../../utilities/utils';
 import ForecastRunRow from './forecastRunRow/ForecastRunRow';
 import { SESSION_STORAGE_KEYS } from '../../utilities/constants';
-import Spinner from '../spinner/Spinner';
+// import Spinner from '../spinner/Spinner';
 import { Envs } from '../../utilities/envs';
 
 const ForecastResultsTab = ({ onRunClick }) => {
@@ -293,7 +293,7 @@ const ForecastResultsTab = ({ onRunClick }) => {
         <div className={Styles.content}>
           <div className={Styles.forecastResultListWrapper}>
             <div className={Styles.listContent}>
-              {loading && <Spinner />}
+              {/* {loading && <Spinner />} */}
               {!loading && (
                 forecastRuns?.length === 0 &&
                   <div className={Styles.forecastResultListEmpty}>Forecast Runs are not available</div>
