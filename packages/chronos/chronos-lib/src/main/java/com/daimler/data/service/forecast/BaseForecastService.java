@@ -634,6 +634,7 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 											}
 											if(warningsInfoFileFlag && (warningsInfoTextDownloadResponse!= null && warningsInfoTextDownloadResponse.getData()!=null && (warningsInfoTextDownloadResponse.getErrors()==null || warningsInfoTextDownloadResponse.getErrors().isEmpty()))) {
 												warningsInfoResult = new String(warningsInfoTextDownloadResponse.getData().getByteArray());
+												newState.setResult_state(ResultStateEnum.INFO.name());
 												log.info("successfully retrieved run_info.txt file contents for forecast {} and correaltionid{} and runname{}",
 														bucketName, correlationId, run.getRunName());
 											}
@@ -1618,6 +1619,126 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 
 		}
 		return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
+	}
+
+	@Override
+	@Transactional(isolation = Isolation.SERIALIZABLE)
+	public Object[] getAllRuns(int limit, int offset, String forecastId, String sortBy, String sortOrder) {
+		Object[] runCollectionWrapper = new Object[2];
+
+		log.error(" method called from controller/ UI ");
+
+		List<RunDetails> updatedRuns = new ArrayList<>();
+		List<RunVO> updatedRunVOList = new ArrayList<>();
+		List<RunDetails> newSubList = new ArrayList<>();
+		Optional<ForecastNsql> entityOptional = jpaRepo.findById(forecastId);
+		long totalCount = 0L;
+		if (entityOptional != null) {
+			ForecastNsql entity = entityOptional.get();
+			String forecastName = entity.getData().getName();
+			if (entity != null && entity.getData() != null &&
+					entity.getData().getRuns() != null && !entity.getData().getRuns().isEmpty()) {
+				List<RunDetails> existingRuns = entity.getData().getRuns();
+				if (existingRuns != null && !existingRuns.isEmpty()) {
+					
+					// logic to remove all deleted runs from list
+					List<RunDetails> tempExistingRuns = new ArrayList<>(existingRuns);
+					for (int i = 0; i < existingRuns.size(); i++) {
+						RunDetails details = existingRuns.get(i);
+						if (details.getIsDelete() != null) {
+							boolean isDelete = details.getIsDelete();
+							if (isDelete) {
+								tempExistingRuns.remove(details);
+							}
+						}
+
+					}
+
+					log.info("sorting runs by sortOrder as {} , order by {}", sortBy, sortOrder);
+					switch (sortBy) {
+						case "createdOn":
+							Comparator<RunDetails> runCreatedOn = (v1,
+									v2) -> (v2.getTriggeredOn().compareTo(v1.getTriggeredOn()));
+							if (sortOrder != null && sortOrder.equalsIgnoreCase("desc")) {
+								Collections.sort(tempExistingRuns, runCreatedOn);
+							} else if (sortOrder != null && sortOrder.equalsIgnoreCase("asc")) {
+								Collections.sort(tempExistingRuns, Collections.reverseOrder(runCreatedOn));
+							}
+							break;
+						case "runName":
+							Comparator<RunDetails> runName = (v1, v2) -> (v2.getRunName().compareTo(v1.getRunName()));
+							if (sortOrder != null && sortOrder.equalsIgnoreCase("desc")) {
+								Collections.sort(tempExistingRuns, runName);
+							} else if (sortOrder != null && sortOrder.equalsIgnoreCase("asc")) {
+								Collections.sort(tempExistingRuns, Collections.reverseOrder(runName));
+							}
+							break;
+						case "status":
+							Comparator<RunDetails> runStatus = (v1, v2) -> (v2.getRunState().getResult_state()
+									.compareTo(v1.getRunState().getResult_state()));
+							if (sortOrder != null && sortOrder.equalsIgnoreCase("desc")) {
+								Collections.sort(tempExistingRuns, runStatus);
+							} else if (sortOrder != null && sortOrder.equalsIgnoreCase("asc")) {
+								Collections.sort(tempExistingRuns, Collections.reverseOrder(runStatus));
+							}
+							break;
+						case "createdBy":
+							Comparator<RunDetails> runCreatedBy = (v1,
+									v2) -> (v2.getTriggeredBy().compareTo(v1.getTriggeredBy()));
+							if (sortOrder != null && sortOrder.equalsIgnoreCase("desc")) {
+								Collections.sort(tempExistingRuns, runCreatedBy);
+							} else if (sortOrder != null && sortOrder.equalsIgnoreCase("asc")) {
+								Collections.sort(tempExistingRuns, Collections.reverseOrder(runCreatedBy));
+							}
+							break;
+						case "inputFile":
+							Comparator<RunDetails> inputFile = (v1,
+									v2) -> (v2.getInputFile().compareTo(v1.getInputFile()));
+							if (sortOrder != null && sortOrder.equalsIgnoreCase("desc")) {
+								Collections.sort(tempExistingRuns, inputFile);
+							} else if (sortOrder != null && sortOrder.equalsIgnoreCase("asc")) {
+								Collections.sort(tempExistingRuns, Collections.reverseOrder(inputFile));
+							}
+							break;
+						case "forecastHorizon":
+							Comparator<RunDetails> forecastHorizon = (v1,
+									v2) -> Integer.parseInt(v2.getForecastHorizon())
+											- Integer.parseInt(v1.getForecastHorizon());
+							if (sortOrder != null && sortOrder.equalsIgnoreCase("desc")) {
+								Collections.sort(tempExistingRuns, forecastHorizon);
+							} else if (sortOrder != null && sortOrder.equalsIgnoreCase("asc")) {
+								Collections.sort(tempExistingRuns, Collections.reverseOrder(forecastHorizon));
+							}
+							break;
+						case "exogenData":
+							Comparator<RunDetails> exogenData = (v1,
+									v2) -> (v2.getExogenData().compareTo(v1.getExogenData()));
+							if (sortOrder != null && sortOrder.equalsIgnoreCase("desc")) {
+								Collections.sort(tempExistingRuns, exogenData);
+							} else if (sortOrder != null && sortOrder.equalsIgnoreCase("asc")) {
+								Collections.sort(tempExistingRuns, Collections.reverseOrder(exogenData));
+							}
+							break;
+						default:
+							log.info("Case not found");
+							break;
+					}
+					log.info("runs sorted successfully");
+					int endLimit = offset + limit;
+					if (endLimit > tempExistingRuns.size()) {
+						endLimit = tempExistingRuns.size();
+					}
+					newSubList = tempExistingRuns.subList(offset, endLimit);
+					if (limit == 0){
+						newSubList = tempExistingRuns.subList(offset,tempExistingRuns.size());
+					}
+					totalCount = newSubList.size();
+				}
+			}
+		}
+		runCollectionWrapper[0] = newSubList;
+		runCollectionWrapper[1] = totalCount;
+		return runCollectionWrapper;
 	}
 
 }
