@@ -494,12 +494,17 @@ paths:
           type: "string"
         - name: offset
           in: query
-          description: page number from which listing of forecasts should start. Offset. Example 2
+          description: |
+            Page number from which listing of forecasts should start. Optional - defaults to 0,
+            which is the first page.
           required: false
           type: integer
         - name: limit
           in: query
-          description: page size to limit the number of forecasts, Example 15
+          description: |
+            Page size to limit the number of forecasts displayed. Optional - by default, all
+            runs are returned. In case the API call takes too long or times out, put a lower
+            number here.
           required: false
           type: integer
         - name: sortBy
