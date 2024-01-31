@@ -1733,10 +1733,11 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 						newSubList = tempExistingRuns.subList(offset,tempExistingRuns.size());
 					}
 					totalCount = newSubList.size();
+					updatedRunVOList = this.assembler.toRunsVO(newSubList);
 				}
 			}
 		}
-		runCollectionWrapper[0] = newSubList;
+		runCollectionWrapper[0] = updatedRunVOList;
 		runCollectionWrapper[1] = totalCount;
 		return runCollectionWrapper;
 	}
