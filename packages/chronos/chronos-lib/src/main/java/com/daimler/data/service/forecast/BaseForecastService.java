@@ -1627,7 +1627,7 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 		Object[] runCollectionWrapper = new Object[2];
 
 		log.error(" method called from controller/ UI ");
-		
+
 		List<RunDetails> updatedRuns = new ArrayList<>();
 		List<RunVO> updatedRunVOList = new ArrayList<>();
 		List<RunDetails> newSubList = new ArrayList<>();
@@ -1640,26 +1640,7 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 					entity.getData().getRuns() != null && !entity.getData().getRuns().isEmpty()) {
 				List<RunDetails> existingRuns = entity.getData().getRuns();
 				if (existingRuns != null && !existingRuns.isEmpty()) {
-					List<NotificationDetails> notificationDetails = new ArrayList<>();
-
-					String configFileName = "";
-					List<String> memberIds = new ArrayList<>();
-					List<String> memberEmails = new ArrayList<>();
-					if (entity.getData().getCollaborators() != null) {
-						memberIds = entity.getData().getCollaborators().stream()
-								.map(UserDetails::getId).collect(Collectors.toList());
-						memberEmails = entity.getData().getCollaborators().stream()
-								.map(UserDetails::getEmail).collect(Collectors.toList());
-					}
-
-					String ownerId = entity.getData().getCreatedBy().getId();
-					memberIds.add(ownerId);
-					String ownerEmail = entity.getData().getCreatedBy().getEmail();
-					memberEmails.add(ownerEmail);
-					String bucketName = entity.getData().getBucketName();
-					String resultsPrefix = "results/";
 					
-
 					// logic to remove all deleted runs from list
 					List<RunDetails> tempExistingRuns = new ArrayList<>(existingRuns);
 					for (int i = 0; i < existingRuns.size(); i++) {
