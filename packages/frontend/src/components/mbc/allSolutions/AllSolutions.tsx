@@ -426,7 +426,7 @@ export default class AllSolutions extends React.Component<
                       </div>
                       {!hideFilterView ? <span className={Styles.dividerLine}> &nbsp; </span> : ''}
                       {exportCSVIcon()}
-                      {!hideFilterView ? (
+                      {!hideFilterView || isGenAI ? (
                         <>
                           <span className={Styles.dividerLine}> &nbsp; </span>
                           <div tooltip-data="Filters">
