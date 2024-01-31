@@ -16,6 +16,7 @@ import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indica
 import { getQueryParameterByName } from '../../utilities/utils';
 import ComparisonRow from './comparisonRow/ComparisonRow';
 import { SESSION_STORAGE_KEYS } from '../../utilities/constants';
+import { Envs } from '../../utilities/envs';
 
 const ComparisonsTab = () => {
   const { id: projectId } = useParams();
@@ -339,10 +340,14 @@ const ComparisonsTab = () => {
                       <i className={classNames('icon mbc-icon alert circle', Styles.alertCircle)} />
                       <span>{errorItem.state.stateMessage}</span>
                     </div> :
-                    <div className={Styles.errorDiv}>
-                      <i className={classNames('icon mbc-icon close circle', Styles.closeCircle)} />
-                      <span>{errorItem.state.stateMessage}</span>
-                    </div>
+                    <>
+                      <div className={Styles.errorDiv}>
+                        <i className={classNames('icon mbc-icon close circle', Styles.closeCircle)} />
+                        <span>{errorItem.state.stateMessage}</span>
+                      </div>
+                      <br />
+                      <p>If you want to learn more, visit the Chronos documentation <a href={Envs.CHRONOS_DOCUMENTATION_URL} target='_blank' rel='noopener noreferrer'>here</a>. Feel free to also contact the Chronos team via <a href={`mailto:${Envs.ADS_EMAIL}`}>{Envs.ADS_EMAIL}</a>.</p>
+                    </>
                   }
                 </div>
               }
