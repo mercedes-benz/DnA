@@ -33,6 +33,8 @@ public interface ForecastService extends CommonService<ForecastVO, ForecastNsql,
 
 	Object[] getAllRunsForProject( int limit,  int offset, String forecastId, String sortBy, String sortOrder);
 
+	Object[] getAllRuns( int limit,  int offset, String forecastId, String sortBy, String sortOrder);
+
 	GenericMessage deletRunByUUID(String id, String rid);
 
 	CancelRunResponseVO cancelRunById(ForecastVO existingForecast, String correlationId);
