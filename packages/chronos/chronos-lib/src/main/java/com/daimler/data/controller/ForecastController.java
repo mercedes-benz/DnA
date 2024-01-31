@@ -1096,6 +1096,12 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 			}catch(Exception e) {
 				log.warn("Failed to format createdOn date to ISO format");
 			}
+			if(saveRequestPart==null){
+				saveRequestPart = false;
+			}
+			if(runOnPowerfulMachines==null){
+				runOnPowerfulMachines = false;
+			}
 			if(existingForecast==null || existingForecast.getId()==null) {
 				log.error("Forecast project with this id {} doesnt exists , failed to create run", id);
 				MessageDescription invalidMsg = new MessageDescription("Forecast project doesnt exists with given id");
