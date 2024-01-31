@@ -1,5 +1,6 @@
 package com.daimler.data.db.repo.storage;
 
+import java.math.BigInteger;
 import java.util.List;
 
 import javax.persistence.EntityManager;
@@ -20,7 +21,10 @@ import com.daimler.data.db.entities.StorageNsql;
 import com.daimler.data.db.jsonb.Storage;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import lombok.extern.slf4j.Slf4j;
+
 @Repository
+@Slf4j
 public class StorageRepositoryImpl implements StorageRepository {
 
 	private static Logger logger = LoggerFactory.getLogger(StorageRepositoryImpl.class);
@@ -119,6 +123,26 @@ public class StorageRepositoryImpl implements StorageRepository {
 			consolidatedQuery = " and " + isCreator + " or " + isCollaborator;
 		}
 		return consolidatedQuery;
+	}
+
+	public Integer totalNumberOfBuckets(String userId)
+	{
+		String prefix = "select count(*) ";
+		prefix = prefix + "from " + STORAGE_NSQL;
+		String basicpredicate = " where (id is not null)";
+		String consolidatedPredicates = buildPredicateString(userId);
+		String query = prefix + basicpredicate + consolidatedPredicates;
+		try
+		{
+			Query q = em.createNativeQuery(query);
+			BigInteger results = (BigInteger) q.getSingleResult();
+			return results.intValue();
+		}
+		catch(Exception e)
+		{
+			log.error("Failed to fetch all buckets");
+		}
+		return 0;
 	}
 
 }
