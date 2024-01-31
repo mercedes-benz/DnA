@@ -563,6 +563,7 @@ paths:
           type: boolean
           description: flag whether to save file in request part to storage bucket for further runs
           required: false
+          default: false
         - in: formData
           name: runName
           type: string

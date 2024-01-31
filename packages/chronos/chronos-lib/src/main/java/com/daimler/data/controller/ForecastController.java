@@ -1079,7 +1079,7 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
     		@ApiParam(value = "Any number greater than 1", required=true) @RequestParam(value="forecastHorizon", required=true)  BigDecimal forecastHorizon,
     		@ApiParam(value = "The file to upload.") @Valid @RequestPart(value="file", required=false) MultipartFile file,
     		@ApiParam(value = "path of file in minio system, if not giving file in request part") @RequestParam(value="savedInputPath", required=false)  String savedInputPath,
-    		@ApiParam(value = "flag whether to save file in request part to storage bucket for further runs") @RequestParam(value="saveRequestPart", required=false)  Boolean saveRequestPart,
+			@ApiParam(value = "flag whether to save file in request part to storage bucket for further runs", defaultValue="false") @RequestParam(value="saveRequestPart", required=false)  Boolean saveRequestPart,
     		@ApiParam(value = "name of the run sample. Example YYYY-MM-DD_run_topic") @RequestParam(value="runName", required=false)  String runName,
     		@ApiParam(value = "Levels Of Hierarchy number between 2 to 20 Or null") @RequestParam(value="hierarchy", required=false)  String hierarchy,
     		@ApiParam(value = "Comments for the run") @RequestParam(value="comment", required=false)  String comment,
@@ -1106,7 +1106,11 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 				responseVO.setResponse(errorMessage);
 				return new ResponseEntity<>(responseVO, HttpStatus.NOT_FOUND);
 			}
+			// Defaulting to Empty String 
 
+			if(hierarchy == null){
+				hierarchy="";
+			}
 			// validating runName 		
 			if(runName!=null && !runName.matches("^[a-z0-9.-]{1,55}$")){
 				log.error("Invalid run name {} for project name {} and id {} ", runName, existingForecast.getName(), id);
