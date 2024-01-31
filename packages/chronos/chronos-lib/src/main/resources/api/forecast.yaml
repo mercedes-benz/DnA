@@ -615,6 +615,21 @@ paths:
           description: "Authorization header"
           required: false
           type: "string"
+        # - in: formData
+        #   name: drivers
+        #   type: file
+        #   description: The drivers file to upload.
+        #   required: false
+        # - in: formData
+        #   name: planning_data
+        #   type: file
+        #   description: The planning_data file to upload.
+        #   required: false
+        # - in: formData
+        #   name: mapping
+        #   type: file
+        #   description: The mapping file to upload.
+        #   required: false
       responses:
         201:
           description: "Returns message of success or failure "
@@ -1530,7 +1545,7 @@ definitions:
         enum: [PENDING,RUNNING,TERMINATING,TERMINATED,INTERNAL_ERROR,SKIPPED]
       result_state:
         type: string
-        enum: [SUCCESS,FAILED,TIMEDOUT,CANCELED,WARNINGS]
+        enum: [SUCCESS,FAILED,TIMEDOUT,CANCELED,WARNINGS,INFO]
       state_message:
         type: string
       user_cancelled_or_timedout:
