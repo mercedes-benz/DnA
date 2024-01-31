@@ -342,7 +342,8 @@ const ForecastingResults = () => {
         opacity: 0.5,
         line: {
             width: 0
-        }
+        },
+        layer: 'below',
       },
     ],
   };

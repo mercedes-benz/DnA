@@ -29,8 +29,13 @@ const ComparisonRow = (props) => {
     //eslint-disable-next-line
   }, []);
 
-  const onRowClick = () => {
-    props.openDetails(item);
+  const onRowClick = (e) => {
+    if(item.state.lifeCycleState === 'FAILED') {
+      handleStatusClick(e, item)
+    } else {
+      Tooltip.clear();
+      props.openDetails(item);
+    }
   };
 
   // const onItemDelete = () => {
@@ -50,7 +55,7 @@ const ComparisonRow = (props) => {
     <React.Fragment>
       <tr
         key={item.id}
-        onClick={onRowClick}
+        onClick={(e) => onRowClick(e)}
         className={classNames('data-row', Styles.dataRow)}
       >
         <td>
