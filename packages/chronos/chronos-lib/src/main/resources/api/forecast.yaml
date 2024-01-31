@@ -1355,8 +1355,8 @@ definitions:
       leanGovernanceFeilds:
         $ref: "#/definitions/LeanGovernanceFeildVO"
         description: lean governance details
-      # required:
-# TEMP        - name
+      required:
+        - name
   
   ForecastProjectUpdateRequestVO:
     type: object
@@ -1412,12 +1412,12 @@ definitions:
         type: string
         description: "Mobile number of the user"
       
-      # required:
-      #   - id
-      #   - firstName
-      #   - lastName
-      #   - department
-      #   - email
+      required:
+        - id
+        - firstName
+        - lastName
+        - department
+        - email
   
   ApiKeyResponseVO:
     type: object
@@ -1534,15 +1534,15 @@ definitions:
       termsOfUse:
         type: boolean
         description: termsAndUse of forecast
-      # required:
-        # -description
-        # -division
-        # -subDivision
-        # -department
-        # -typeOfProject
-        # -dataClassfication
-        # -piiData
-        # -termsOfUse
+      required:
+        -description
+        -division
+        -subDivision
+        -department
+        -typeOfProject
+        -dataClassfication
+        -piiData
+        -termsOfUse
   
   ForecastRunRequestVO:
     type: object
@@ -1581,11 +1581,11 @@ definitions:
         type: boolean
         description: "If true, then run on Powerful Machines"
         default: false
-      # required:
-        # -inputfile
-        # -configurationFile
-        # -frequency
-        # -forecastHorizon
+      required:
+        -inputfile
+        -configurationFile
+        -frequency
+        -forecastHorizon
   
   
   DataBricksErrorResponseVO:
@@ -1710,10 +1710,10 @@ definitions:
         description: unique id for the run, used as correlation id
       jobId:
         type: string
-        description: Test
+        description:
       runId:
         type: string
-        description: Test
+        description:
       inputFile:
         type: string
         description: path of file in minio system
