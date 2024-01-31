@@ -512,7 +512,17 @@ public class BaseStorageService implements StorageService {
 					}
 				}
 				bucketCollectionVO.setData(bucketsVO);
-				bucketCollectionVO.setTotalCount(bucketsVO.size());
+				int totalBuckets = 0;
+				try
+				{
+					totalBuckets = customRepo.totalNumberOfBuckets(currentUser);
+					bucketCollectionVO.setTotalCount(totalBuckets);
+				}
+				catch(Exception e)
+				{
+					LOGGER.info("Failed to get total bucket count"+e.getMessage());
+				}
+				bucketCollectionVO.setTotalCount(totalBuckets);
 			}
 		} else {
 			LOGGER.info("Failure from list buckets minio client");
