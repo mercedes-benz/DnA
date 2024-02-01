@@ -480,8 +480,11 @@ paths:
     get:
       tags:
         - "forecast-runs"
-      summary: "Get all forecast projects for the user."
-      description:  "Get all forecasts projects for the user."
+      summary: "Get all runs for the selected project."
+      description:  |
+        This will return details of all runs for the selected project. Make
+        sure to filter the results by status if you only want to see finished
+        runs. You can also use this to check status of a run.
       operationId: "getAllRunsForProject"
       parameters:
         - in: "path"
@@ -491,12 +494,17 @@ paths:
           type: "string"
         - name: offset
           in: query
-          description: page number from which listing of forecasts should start. Offset. Example 2
+          description: |
+            Page number from which listing of forecasts should start. Optional - defaults to 0,
+            which is the first page.
           required: false
           type: integer
         - name: limit
           in: query
-          description: page size to limit the number of forecasts, Example 15
+          description: |
+            Page size to limit the number of forecasts displayed. Optional - by default, all
+            runs are returned. In case the API call takes too long or times out, put a lower
+            number here.
           required: false
           type: integer
         - name: sortBy
@@ -507,7 +515,7 @@ paths:
           enum: [ runName,createdOn,status,createdBy,inputFile ]
         - name: sortOrder
           in: query
-          description: Sort runs based on the given order, example asc,desc
+          description: "Sort runs based on the given order, example: asc, desc"
           required: false
           type: string
           enum: [ asc,desc ]
@@ -537,82 +545,162 @@ paths:
     post:
       tags:
         - "forecast-runs"
-      summary: "Create new run for forecast project."
-      description: "Create run for forecast project"
+      summary: "Start a new run for the forecast project."
+      description: |
+        This is the command to start a new Chronos forecast run in an already
+        existing project. The run will be started asynchronously and the
+        response will contain the correlation ID of the run. This correlation
+        ID can be used to query the status of the run via the `GET
+        /api/forecasts/{id}/runs` endpoint.
+
+        For more information on how to use this endpoint, please refer to the
+        Chronos Documentation.
       operationId: "createForecastRun"
       consumes:
         - multipart/form-data
       parameters:
         - in: "path"
           name: "id"
-          description: "forecast project ID "
+          description: |
+            Project ID (UUID) of the project for which the run should be
+            started. You can find this ID as `Api Id` in the project details
+            page in the Chronos UI Application. You will also find it in the
+            URL if you open your project in the browser.
           required: true
           type: "string"
         - in: formData
           name: file
           type: file
-          description: The file to upload.
+          description: |
+            The Chronos Input file (*.xlsx or *.csv) containing the data to be
+            forecast. To learn more about the input file format, please refer
+            to the Chronos Documentation.
+
+            If you do not set this, you need to instead provide the path to a
+            file in your MinIO storage bucket via the `savedInputPath`.
           required: false
         - in: formData
           name: savedInputPath
           type: string
-          description: path of file in minio system, if not giving file in request part
+          description: |
+            Normally, you probably don't want to use this setting.
+
+            If you want to provide a file you have already stored in MinIO, you
+            can provide the path to the file here. 
           required: false
         - in: formData
           name: saveRequestPart
           type: boolean
-          description: flag whether to save file in request part to storage bucket for further runs
+          description: |
+            Set this to true if you want to store the provided input file for
+            future runs. Only set this to true if you later on want to do a
+            forecast with the exact same file, but a different configuration.
+            Files saved this way can be re-used via the `savedInputPath` field.
           required: false
         - in: formData
           name: runName
           type: string
-          description: name of the run sample. Example YYYY-MM-DD_run_topic
+          description: |
+            A name for the run. This name will be displayed in the Chronos UI
+            Application. If you do not provide a name, the run name will be set
+            to the current date and time.
           required: false
         - in: formData
           name: configurationFile
           type: string
-          description: "Chronos default config yml/yaml from chronos-core bucket"
+          description: |
+            The Chronos configuration file you want to use.
+
+            The default configuration file resides under
+            `chronos-core/configs/default_config.yml`, this is what you need to
+            provide here to use the default configuration.
+
+            If you want to use a custom configuration file, you need to upload
+            it first (easiest done via the Chronos UI Application) and then
+            provide the path to the file here. The file path will be
+            `chronos-<project_name>/configs/<config_filename.yml>`, where
+            project_name is the actual name of your project (not the UUID)
           required: true
         - in: formData
           name: frequency
           type: string
           enum: [Daily,Weekly,Monthly,Yearly,No_Frequency]
-          description: "frequency parameter."
+          description: |
+            The frequency of your data.
+
+            You can find a list of all supported frequencies here:
+            `https://pandas.pydata.org/pandas-docs/stable/user_guide/timeseries.html#offset-aliases`
+
+            Note that Chronos is mostly tested on monthly data, so you should
+            carefully evaluate forecast quality when using other frequencies.
           required: true
         - in: formData
           name: forecastHorizon
           type: number
           minimum: 1
-          description: "Any number greater than 1"
+          description: |
+            Number of time steps to forecast. Must be 1 or larger.
           required: true
         - in: formData
           name: hierarchy
           type: string
-          description: "Levels Of Hierarchy number between 2 to 20 Or null"
+          description: |
+            Set this parameter only if your data is hierarchical. 
+            
+            Set to the number of hierarchy levels in your data. This is equal
+            to the number of rows containing headers. To learn more about
+            hierarchical forecasting, search for *hierarchical forecasting* in
+            the Chronos Documentation.
           required: false
         - in: formData
           name: comment
           type: string
-          description: "Comments for the run"
+          description: |
+            Here you can add a comment to your run.
           required: false
         - in: formData
           name: runOnPowerfulMachines
           type: boolean
-          description: "If true, then run on Powerful Machines"
+          description: |
+            With this setting, Chronos will run on a dedicated machine instead
+            of the shared cluster. This ensures consistent runtime, but comes
+            with additional startup time and creates additional costs - best
+            used for productive use cases.
           required: false
         - in: formData
           name: chronosVersion
           type: string
-          description: Text field to denote Chronos Version
+          description: |
+            The version of Chronos you want to use. If you do not provide a
+            version, the latest version will be used. This is an advanced
+            setting that you should only use if a new version of Chronos is not
+            compatible with your data. You can find Chronos version in the
+            Chronos repository.
           required: false
         - in: formData
           name: backtesting
           type: string
-          description: Text field to denote Chronos Backtesting
+          description: |
+            This feature allows running Chronos multiple times to simulate past
+            runs on the same data. Set to a positive number `n` to run
+            backtesting. Chronos will run your data `n` times, each time
+            simulating the past by removing the last `n` time steps from your
+            data. This is useful to evaluate the quality of your forecast.
+
+            Learn more about this feature in the Chronos Documentation.
+
+            Please be aware that this effectively multiplies the runtime of
+            Chronos by `n`.
           required: false
         - name: "apiKey"
           in: "header"
-          description: "Authorization header"
+          description: |
+            Authorization header. You can find or generate your API key in the
+            Chronos UI Application.
+
+            This key is project-specific and should be used if using the REST
+            API directly. Do not specify an Authorization header if using this
+            key.
           required: false
           type: "string"
         # - in: formData
