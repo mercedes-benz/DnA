@@ -36,7 +36,7 @@ const InputFiles = ({inputFiles, showModal, addNew}) => {
         refreshToken(jwt)
           .then(() => {
             // continue as usual
-            resolve();
+            resolve(true);
           })
           .catch((err) => {
             // prevent upload
@@ -44,31 +44,37 @@ const InputFiles = ({inputFiles, showModal, addNew}) => {
           });
       } else {
         // continue as usual if not in production
-        resolve();
+        resolve(true);
       }
     });
   };
 
-  const handleUploadFile = async (file) => {
+  const handleUploadFile = (file) => {
     const formData = new FormData();
     formData.append('configFile', file);
     ProgressIndicator.show();
-    if(await beforeUpload()) {
-      chronosApi.uploadProjectConfigFile(project?.data?.id, formData).then(() => {
-        Notification.show('File uploaded successfully');
-        dispatch(getProjectDetails(projectId));
-        dispatch(getConfigFiles(projectId)); 
+    beforeUpload().then(beforeUpload => {
+      if(beforeUpload) {
+        chronosApi.uploadProjectConfigFile(project?.data?.id, formData).then(() => {
+          Notification.show('File uploaded successfully');
+          dispatch(getProjectDetails(projectId));
+          dispatch(getConfigFiles(projectId)); 
+          ProgressIndicator.hide();
+        }).catch(error => {
+          ProgressIndicator.hide();
+          Notification.show(
+            error?.response?.data?.errors?.[0]?.message || error?.response?.data?.response?.errors?.[0]?.message || error?.response?.data?.response?.warnings?.[0]?.message || 'Error while uploading config file',
+            'alert',
+          );
+        });
+      } else {
         ProgressIndicator.hide();
-      }).catch(error => {
-        ProgressIndicator.hide();
-        Notification.show(
-          error?.response?.data?.errors?.[0]?.message || error?.response?.data?.response?.errors?.[0]?.message || error?.response?.data?.response?.warnings?.[0]?.message || 'Error while uploading config file',
-          'alert',
-        );
-      });
-    } else {
-      Notification.show('Error while uploading file', 'alert');
-    }
+        Notification.show('Error while uploading file', 'alert');
+      }
+    }).catch(() => {
+      ProgressIndicator.hide();
+      Notification.show('Error while uploading config file', 'alert');
+    })
   }
 
   const handlePreviewFile = (file) => {
