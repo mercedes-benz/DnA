@@ -1106,10 +1106,15 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 				responseVO.setResponse(errorMessage);
 				return new ResponseEntity<>(responseVO, HttpStatus.NOT_FOUND);
 			}
-			// Defaulting to Empty String 
-
+			// Defaulting values 
 			if(hierarchy == null){
 				hierarchy="";
+			}
+			if(saveRequestPart==null){
+				saveRequestPart = false;
+			}
+			if(runOnPowerfulMachines==null){
+				runOnPowerfulMachines = false;
 			}
 			// validating runName 		
 			if(runName!=null && !runName.matches("^[a-z0-9.-]{1,55}$")){
