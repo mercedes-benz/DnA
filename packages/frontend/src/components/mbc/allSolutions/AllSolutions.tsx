@@ -447,6 +447,7 @@ export default class AllSolutions extends React.Component<
                 </div>
 
                 <SolutionsFilter
+                  isGenAI={isGenAI}
                   userId={this.props.user.id}
                   getFilterQueryParams={(queryParams: IFilterParams) =>
                     this.getFilteredSolutions(queryParams, this.state.showSolutionsFilter ? false : true)
