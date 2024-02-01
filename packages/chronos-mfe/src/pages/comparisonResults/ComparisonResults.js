@@ -4,7 +4,7 @@ import { useHistory, useParams } from 'react-router-dom';
 import Styles from './comparison-results.scss';
 import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indicator';
 import { chronosApi } from '../../apis/chronos.api';
-import Spinner from '../../components/spinner/Spinner';
+// import Spinner from '../../components/spinner/Spinner';
 // import SelectBox from 'dna-container/SelectBox';
 
 const ComparisonResults = () => {
@@ -57,7 +57,7 @@ const ComparisonResults = () => {
 
       <div className={Styles.content}>
         <div className={Styles.firstPanel} ref={printRef}>
-          { loading && <Spinner /> }
+          {/* { loading && <Spinner /> } */}
           { !loading && html?.length === 0 && <p>No visualization for the given data.</p> }
           { !loading && html?.length > 0 &&
               <div className={Styles.chartContainer}>
