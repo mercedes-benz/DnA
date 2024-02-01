@@ -1158,17 +1158,19 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 			if(runOnPowerfulMachines==null){
 				runOnPowerfulMachines = false;
 			}
-			// validating runName 		
-			// if(runName != null && !runName.matches("^[a-z0-9.-]$")){
-			// 	log.error("Invalid run name {} for project name {} and id {} ", runName, existingForecast.getName(), id);
-			// 	MessageDescription invalidMsg = new MessageDescription("Invalid run name. Only lowercase, numbers, dot and hyphen allowed");
-			// 	GenericMessage errorMessage = new GenericMessage();
-			// 	errorMessage.setSuccess("FAILED");
-			// 	errorMessage.addErrors(invalidMsg);
-			// 	responseVO.setData(null);
-			// 	responseVO.setResponse(errorMessage);
-			// 	return new ResponseEntity<>(responseVO, HttpStatus.BAD_REQUEST);
-			// }
+			// validating runName 	
+			if(runName!=null) {
+				if (!runName.trim().isEmpty() && !runName.matches("^[a-z0-9.-]*$")) {
+				   log.error("Invalid run name {} for project name {} and id {} ", runName, existingForecast.getName(), id);
+				   MessageDescription invalidMsg = new MessageDescription("Invalid run name. Only lowercase, numbers, dot, hyphen and only 55 characters allowed");
+				   GenericMessage errorMessage = new GenericMessage();
+				   errorMessage.setSuccess("FAILED");
+				   errorMessage.addErrors(invalidMsg);
+				   responseVO.setData(null);
+				   responseVO.setResponse(errorMessage);
+				   return new ResponseEntity<>(responseVO, HttpStatus.BAD_REQUEST);
+				}
+			 }
 
 			CreatedByVO requestUser = this.userStore.getVO();
 			List<String> forecastProjectUsers = new ArrayList<>();
