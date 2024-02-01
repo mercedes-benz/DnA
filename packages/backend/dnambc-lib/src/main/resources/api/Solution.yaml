@@ -1190,7 +1190,11 @@ definitions:
           $ref: "#/definitions/TeamMemberVO"
       aiRiskAssessmentType:
         type: string
-        enum: ["NOT_APPLICABLE", "BASIC_RISK", "HIGH_RISK"]    
+        enum: ["NOT_APPLICABLE", "BASIC_RISK", "HIGH_RISK"] 
+      workersCouncilApproval:
+        description: "Checks if workers council is approved or not its a boolean value it can be true/false "
+        type: boolean
+        default: false
   
   LinkVO:
     type: object
