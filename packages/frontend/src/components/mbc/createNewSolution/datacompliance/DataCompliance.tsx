@@ -313,11 +313,11 @@ export default class DataCompliance extends React.Component<IDataComplianceProps
             </div>
           </div>
         </div>
-        <div className={classNames(Styles.radioWrapper)}>
+        <div className={classNames(Styles.sectionWrapper)}>
           <div className={Styles.flexLayout}>
             <h3>Results of the AI Risk Self-Assessment</h3>
           </div>
-          <div className={classNames(Styles.radioLayout)}>
+          <div className={classNames(Styles.sectionLayout)}>
             <label className={classNames('radio')}>
               <span className="wrapper">
                 <input
@@ -359,17 +359,16 @@ export default class DataCompliance extends React.Component<IDataComplianceProps
             </label>
           </div>
         </div>
-        <div className={classNames(Styles.radioWrapper)}>
+        <div className={classNames(Styles.sectionWrapper)}>
           <div className={Styles.flexLayout}>
             <h3>Workers Council Approval</h3>
           </div>
-          <div className={classNames(Styles.radioLayout)}>
+          <div className={classNames(Styles.sectionLayout)}>
             <label className={classNames('radio')}>
               <span className="wrapper">
                 <input
                   name="workersCouncilApproval"
                   type="radio"
-                  id='No'
                   value= {'No'}
                   onChange={this.onworkersCouncilApprovalChange}
                   checked={ !this.state.datacompliance.workersCouncilApproval }
@@ -382,7 +381,6 @@ export default class DataCompliance extends React.Component<IDataComplianceProps
                 <input
                   name="workersCouncilApproval"
                   type="radio"
-                  id='Yes'
                   value= {'Yes'}
                   onChange={this.onworkersCouncilApprovalChange}
                   checked={this.state.datacompliance.workersCouncilApproval === true}
@@ -485,7 +483,7 @@ export default class DataCompliance extends React.Component<IDataComplianceProps
   protected onworkersCouncilApprovalChange = (e:React.ChangeEvent<HTMLInputElement>) => {
     const { datacompliance } = this.state;
     const value = e.currentTarget.value;
-    datacompliance.workersCouncilApproval = value === 'Yes' ? true: false ;
+    datacompliance.workersCouncilApproval = value === 'Yes';
     this.setState({datacompliance});
     this.props.modifyDataCompliance(datacompliance);
   };
