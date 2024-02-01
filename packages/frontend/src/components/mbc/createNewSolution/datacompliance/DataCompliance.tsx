@@ -41,6 +41,7 @@ export default class DataCompliance extends React.Component<IDataComplianceProps
         links: [],
         complianceOfficers: [],
         aiRiskAssessmentType: '',
+        workersCouncilApproval:false,
       };
       const dataComplianceVal = props.datacompliance;
       datacompliance.quickCheck = dataComplianceVal.quickCheck ? true : false;
@@ -56,6 +57,7 @@ export default class DataCompliance extends React.Component<IDataComplianceProps
       datacompliance.links = dataComplianceVal.links;
       datacompliance.complianceOfficers = dataComplianceVal.complianceOfficers;
       datacompliance.aiRiskAssessmentType = dataComplianceVal.aiRiskAssessmentType;
+      datacompliance.workersCouncilApproval = dataComplianceVal.workersCouncilApproval;
       return { datacompliance };
     }
     return null;
@@ -73,6 +75,7 @@ export default class DataCompliance extends React.Component<IDataComplianceProps
         links: [],
         complianceOfficers: [],
         aiRiskAssessmentType: '',
+        workersCouncilApproval: false,
       },
       addTeamMemberInController: true,
       showAddTeamMemberModal: false,
@@ -106,6 +109,7 @@ export default class DataCompliance extends React.Component<IDataComplianceProps
       datacompliance.links = this.props.datacompliance.links;
       datacompliance.complianceOfficers = this.props.datacompliance.complianceOfficers;
       datacompliance.aiRiskAssessmentType = this.props.datacompliance.aiRiskAssessmentType || DataCompliance.naRiskTypeKeyValue;
+      datacompliance.workersCouncilApproval = this.props.datacompliance.workersCouncilApproval ;
     }
   };
 
@@ -309,7 +313,7 @@ export default class DataCompliance extends React.Component<IDataComplianceProps
             </div>
           </div>
         </div>
-        <div className={classNames(Styles.riskWrapper)}>
+        <div className={classNames(Styles.radioWrapper)}>
           <div className={Styles.flexLayout}>
             <h3>Results of the AI Risk Self-Assessment</h3>
           </div>
@@ -327,7 +331,6 @@ export default class DataCompliance extends React.Component<IDataComplianceProps
               </span>
               <span className="label">{DataCompliance.naRiskTypeValue}</span>
             </label>
-            <br />
             <label className={classNames('radio')}>
               <span className="wrapper">
                 <input
@@ -341,7 +344,6 @@ export default class DataCompliance extends React.Component<IDataComplianceProps
               </span>
               <span className="label">{DataCompliance.basicRiskTypeValue}</span>
             </label>
-            <br />
             <label className={classNames('radio')}>
               <span className="wrapper">
                 <input
@@ -355,7 +357,40 @@ export default class DataCompliance extends React.Component<IDataComplianceProps
               </span>
               <span className="label">{DataCompliance.highRiskTypeValue}</span>
             </label>
-            <br />
+          </div>
+        </div>
+        <div className={classNames(Styles.radioWrapper)}>
+          <div className={Styles.flexLayout}>
+            <h3>Workers Council Approval</h3>
+          </div>
+          <div className={classNames(Styles.radioLayout)}>
+            <label className={classNames('radio')}>
+              <span className="wrapper">
+                <input
+                  name="workersCouncilApproval"
+                  type="radio"
+                  id='No'
+                  value= {'No'}
+                  onChange={this.onworkersCouncilApprovalChange}
+                  checked={ !this.state.datacompliance.workersCouncilApproval }
+                />
+              </span>
+              <span className="label"> No </span>
+            </label>
+            <label className={classNames('radio')}>
+              <span className="wrapper">
+                <input
+                  name="workersCouncilApproval"
+                  type="radio"
+                  id='Yes'
+                  value= {'Yes'}
+                  onChange={this.onworkersCouncilApprovalChange}
+                  checked={this.state.datacompliance.workersCouncilApproval === true}
+                />
+              </span>
+              <span className="label"> Yes </span>
+            </label>
+            <br/>
           </div>
         </div>
         <AttachmentUploader
@@ -444,6 +479,14 @@ export default class DataCompliance extends React.Component<IDataComplianceProps
     const { datacompliance } = this.state;
     datacompliance.aiRiskAssessmentType = e.currentTarget.value;
     this.setState({datacompliance });
+    this.props.modifyDataCompliance(datacompliance);
+  };
+
+  protected onworkersCouncilApprovalChange = (e:React.ChangeEvent<HTMLInputElement>) => {
+    const { datacompliance } = this.state;
+    const value = e.currentTarget.value;
+    datacompliance.workersCouncilApproval = value === 'Yes' ? true: false ;
+    this.setState({datacompliance});
     this.props.modifyDataCompliance(datacompliance);
   };
 
