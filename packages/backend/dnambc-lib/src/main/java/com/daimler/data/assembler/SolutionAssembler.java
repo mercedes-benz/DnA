@@ -790,6 +790,10 @@ public class SolutionAssembler implements GenericAssembler<SolutionVO, SolutionN
 				if(solutionDataCompliance.getAiRiskAssessmentType()!=null && "BASIC_RISK".equalsIgnoreCase(solutionDataCompliance.getAiRiskAssessmentType())) {
 					riskAssessmentType = AiRiskAssessmentTypeEnum.BASIC_RISK;
 				}
+				if(solutionDataCompliance.getWorkersCouncilApproval()!= null)
+				{
+					solutionDataComplianceVO.setWorkersCouncilApproval(solutionDataCompliance.getWorkersCouncilApproval());
+				}
 				solutionDataComplianceVO.setAiRiskAssessmentType(riskAssessmentType);
 
 			}
@@ -1498,6 +1502,10 @@ public class SolutionAssembler implements GenericAssembler<SolutionVO, SolutionN
 				}
 				if(solutionDataComplianceVO.getAiRiskAssessmentType()!=null && "BASIC_RISK".equalsIgnoreCase(solutionDataComplianceVO.getAiRiskAssessmentType().name())) {
 					riskAssessmentType = "BASIC_RISK";
+				}
+				if(solutionDataComplianceVO.isWorkersCouncilApproval()!= null)
+				{
+					dataComplianceDetails.setWorkersCouncilApproval(solutionDataComplianceVO.isWorkersCouncilApproval());
 				}			
 				dataComplianceDetails.setAiRiskAssessmentType(riskAssessmentType);
 			}
