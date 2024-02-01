@@ -82,7 +82,7 @@ public class SwaggerConfig {
 				.build();
 
 		RequestParameter authParamBuilder = new RequestParameterBuilder().name("Authorization")
-				.description("Authorization header").query(q -> q.defaultValue(""))
+				.description("Authorization header").query(q -> q.defaultValue(defaultAuthToken))
 				.query(q -> q.model(m -> m.scalarModel(ScalarType.STRING))).in(ParameterType.HEADER).required(false)
 				.build();
 
