@@ -6,7 +6,7 @@ import Styles from './chronos-project-details.scss';
 import SelectBox from 'dna-container/SelectBox';
 // App components
 import Tabs from '../../common/modules/uilab/js/src/tabs';
-import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indicator';
+// import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indicator';
 import RunForecastTab from '../../components/runForecastTab/RunForecastTab';
 import ForecastResultsTab from '../../components/forecastResultsTab/ForecastResultsTab';
 import ProjectDetailsTab from '../../components/projectDetailsTab/ProjectDetailsTab';
@@ -38,9 +38,9 @@ const ChronosProjectDetails = ({ user }) => {
     SelectBox.defaultSetup();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  useEffect(() => {
-    projectDetails.isLoading ? ProgressIndicator.show() : ProgressIndicator.hide();
-  }, [projectDetails]);
+  // useEffect(() => {
+  //   projectDetails.isLoading ? ProgressIndicator.show() : ProgressIndicator.hide();
+  // }, [projectDetails]);
 
   useEffect(() => {
     if(currentTab === 'runForecast') {
@@ -142,7 +142,9 @@ const ChronosProjectDetails = ({ user }) => {
           </div>
           <div className="tabs-content-wrapper">
             <div id="tab-content-1" className="tab-content">
-              <RunForecastTab onRunClick={() => switchTabs(currentTab)} currentTab={currentTab} />
+              {currentTab === 'runForecast' ? (
+                <RunForecastTab onRunClick={() => switchTabs(currentTab)} />
+              ): null}
             </div>
             <div id="tab-content-2" className="tab-content">
               {currentTab === 'forecastResults' ? (
