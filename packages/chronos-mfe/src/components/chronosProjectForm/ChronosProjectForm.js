@@ -209,12 +209,20 @@ const ChronosProjectForm = ({ project, edit, onSave }) => {
   }, [typeOfProject]);
 
   useEffect(() => {
-    edit && setSubDivision(chronosProject?.leanGovernanceFeilds?.subDivisionId !== null ? chronosProject?.leanGovernanceFeilds?.subDivisionId + '@-@' + chronosProject?.leanGovernanceFeilds?.subDivision : '0');
-  }, [subDivision]);
+    divisions.length > 0 && 
+    edit && setDivision(chronosProject?.leanGovernanceFeilds?.divisionId !== null ? chronosProject?.leanGovernanceFeilds?.divisionId + '@-@' + chronosProject?.leanGovernanceFeilds?.division : '0');
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [divisions]);
 
-  // useEffect(() => {
-  //   SelectBox.defaultSetup(true);
-  // }, [divisions, subDivisions, departments, dataClassificationDropdown]);
+  useEffect(() => {
+    subDivisions.length > 0 &&
+    edit && setSubDivision(chronosProject?.leanGovernanceFeilds?.subDivisionId !== null ? chronosProject?.leanGovernanceFeilds?.subDivisionId + '@-@' + chronosProject?.leanGovernanceFeilds?.subDivision : '0');
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [subDivisions]);
+
+  useEffect(() => {
+    SelectBox.defaultSetup();
+  }, [division, subDivision]);
 
   const handleCreateProject = (values) => {
     ProgressIndicator.show();

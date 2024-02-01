@@ -74,6 +74,9 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 
 	@Value("${databricks.defaultConfigYml}")
 	private String defaultConfigFolderPath;
+
+	@Value("${technicalUser}")
+	private String technicalUser;
 	@Value("${databricks.runsDefaultPageSize}")
 	private String runsDefaultPageSize;
 	private static final String BUCKETS_PREFIX = "chronos-";
@@ -714,9 +717,16 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 			if (limit == null || limit < 0) {
 				limit = defaultLimit;
 			}
-			CreatedByVO requestUser = this.userStore.getVO();
+		List<ForecastVO> records =  new ArrayList<>();
+		CreatedByVO requestUser = this.userStore.getVO();
 			String user = requestUser.getId();
-			List<ForecastVO> records = service.getAll(limit, offset, user);
+			if(user.equalsIgnoreCase(technicalUser)){
+				 records =service.getAll();
+			}
+			else {
+
+				records = service.getAll(limit, offset, user);
+			}
 			Long count = service.getCount(user);
 			HttpStatus responseCode = HttpStatus.NO_CONTENT;
 			if(records!=null && !records.isEmpty()) {
@@ -960,7 +970,7 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 				log.error("User not part of forecast project with id {} and name {}, Not authorized to user other project inputs",id,existingForecast.getName());
 				return new ResponseEntity<>(collection, HttpStatus.FORBIDDEN);
 			}else {
-				Object[] runCollectionWrapper = service.getAllRunsForProject(limit, offset, existingForecast.getId(),sortBy,sortOrder);
+				Object[] runCollectionWrapper = service.getAllRuns(limit, offset, existingForecast.getId(),sortBy,sortOrder);
 				List<RunVO> records = (List<RunVO>) runCollectionWrapper[0];
 				Long count = (Long) runCollectionWrapper[1];
 				HttpStatus responseCode = HttpStatus.NO_CONTENT;
@@ -1069,7 +1079,7 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
     		@ApiParam(value = "Any number greater than 1", required=true) @RequestParam(value="forecastHorizon", required=true)  BigDecimal forecastHorizon,
     		@ApiParam(value = "The file to upload.") @Valid @RequestPart(value="file", required=false) MultipartFile file,
     		@ApiParam(value = "path of file in minio system, if not giving file in request part") @RequestParam(value="savedInputPath", required=false)  String savedInputPath,
-    		@ApiParam(value = "flag whether to save file in request part to storage bucket for further runs") @RequestParam(value="saveRequestPart", required=false)  Boolean saveRequestPart,
+			@ApiParam(value = "flag whether to save file in request part to storage bucket for further runs", defaultValue="false") @RequestParam(value="saveRequestPart", required=false)  Boolean saveRequestPart,
     		@ApiParam(value = "name of the run sample. Example YYYY-MM-DD_run_topic") @RequestParam(value="runName", required=false)  String runName,
     		@ApiParam(value = "Levels Of Hierarchy number between 2 to 20 Or null") @RequestParam(value="hierarchy", required=false)  String hierarchy,
     		@ApiParam(value = "Comments for the run") @RequestParam(value="comment", required=false)  String comment,
@@ -1096,6 +1106,27 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 				responseVO.setResponse(errorMessage);
 				return new ResponseEntity<>(responseVO, HttpStatus.NOT_FOUND);
 			}
+			// Defaulting values 
+			if(hierarchy == null){
+				hierarchy="";
+			}
+			if(saveRequestPart==null){
+				saveRequestPart = false;
+			}
+			if(runOnPowerfulMachines==null){
+				runOnPowerfulMachines = false;
+			}
+			// validating runName 		
+			// if(runName != null && !runName.matches("^[a-z0-9.-]$")){
+			// 	log.error("Invalid run name {} for project name {} and id {} ", runName, existingForecast.getName(), id);
+			// 	MessageDescription invalidMsg = new MessageDescription("Invalid run name. Only lowercase, numbers, dot and hyphen allowed");
+			// 	GenericMessage errorMessage = new GenericMessage();
+			// 	errorMessage.setSuccess("FAILED");
+			// 	errorMessage.addErrors(invalidMsg);
+			// 	responseVO.setData(null);
+			// 	responseVO.setResponse(errorMessage);
+			// 	return new ResponseEntity<>(responseVO, HttpStatus.BAD_REQUEST);
+			// }
 
 			CreatedByVO requestUser = this.userStore.getVO();
 			List<String> forecastProjectUsers = new ArrayList<>();
@@ -1156,6 +1187,16 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 							responseVO.setResponse(errorMessage);
 							return new ResponseEntity<>(responseVO, HttpStatus.BAD_REQUEST);
 						}else {
+							// if(!FilenameUtils.getExtension(fileName).equalsIgnoreCase("csv") && (planning_data != null || mapping!= null || drivers != null)){
+							// 	log.error("Invalid file type {} attached for project name {} and id {} ", fileName, existingForecast.getName(), id);
+							// 	MessageDescription invalidMsg = new MessageDescription("You attempted to provide additional data via a separate .csv file, but are using an Excel file. Please provide your additional data either inside the Excel, or provide the training data as a .csv file as well.");
+							// 	GenericMessage errorMessage = new GenericMessage();
+							// 	errorMessage.setSuccess("FAILED");
+							// 	errorMessage.addErrors(invalidMsg);
+							// 	responseVO.setData(null);
+							// 	responseVO.setResponse(errorMessage);
+							// 	return new ResponseEntity<>(responseVO, HttpStatus.BAD_REQUEST);
+							// }
 							List<InputFileVO> savedInputs = existingForecast.getSavedInputs();
 							if(saveRequestPart) {
 								if(savedInputs!=null && !savedInputs.isEmpty()) {
