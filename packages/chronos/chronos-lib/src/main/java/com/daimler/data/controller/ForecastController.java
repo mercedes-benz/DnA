@@ -925,7 +925,7 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 	}
 
 	@Override
-	@ApiOperation(value = "Get all forecast projects for the user.", nickname = "getAllRunsForProject", notes = "Get all forecasts projects for the user.", response = ForecastRunCollectionVO.class, tags = {
+	@ApiOperation(value = "Get all runs for the selected project.", nickname = "getAllRunsForProject", notes = "This will return details of all runs for the selected project. Make sure to filter the results by status if you only want to see finished runs. You can also use this to check status of a run.", response = ForecastRunCollectionVO.class, tags = {
 			"forecast-runs", })
 	@ApiResponses(value = {
 			@ApiResponse(code = 201, message = "Returns message of success or failure", response = ForecastRunCollectionVO.class),
@@ -939,10 +939,10 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 			"application/json" }, method = RequestMethod.GET)
 	public ResponseEntity<ForecastRunCollectionVO> getAllRunsForProject(
 			@ApiParam(value = "forecast project ID ", required = true) @PathVariable("id") String id,
-			@ApiParam(value = "page number from which listing of forecasts should start. Offset. Example 2") @Valid @RequestParam(value = "offset", required = false) Integer offset,
-			@ApiParam(value = "page size to limit the number of forecasts, Example 15") @Valid @RequestParam(value = "limit", required = false) Integer limit,
+			@ApiParam(value = "Page number from which listing of forecasts should start. Optional - defaults to 0, which is the first page.") @Valid @RequestParam(value = "offset", required = false) Integer offset,
+			@ApiParam(value = "Page size to limit the number of forecasts displayed. Optional - by default, all runs are returned. In case the API call takes too long or times out, put a lower number here.") @Valid @RequestParam(value = "limit", required = false) Integer limit,
 			@ApiParam(value = "Sort runs by a given variable like runName, createdby, createdon, or status", allowableValues = "runName,createdOn,status,createdBy,inputFile") @Valid @RequestParam(value = "sortBy", required = false) String sortBy,
-			@ApiParam(value = "Sort runs based on the given order, example asc,desc", allowableValues = "asc, desc") @Valid @RequestParam(value = "sortOrder", required = false) String sortOrder,@ApiParam(value = "Authorization header" ) @RequestHeader(value="apiKey", required=false) String apiKey) {
+			@ApiParam(value = "Sort runs based on the given order, example: asc, desc", allowableValues = "asc, desc") @Valid @RequestParam(value = "sortOrder", required = false) String sortOrder,@ApiParam(value = "Authorization header" ) @RequestHeader(value="apiKey", required=false) String apiKey) {
 		ForecastRunCollectionVO collection = new ForecastRunCollectionVO();
 		int defaultLimit = Integer.parseInt(runsDefaultPageSize);
 		if (offset == null || offset < 0)
@@ -1061,7 +1061,13 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 
 
 	@Override
-	@ApiOperation(value = "Create new run for forecast project.", nickname = "createForecastRun", notes = "Create run for forecast project", response = ForecastRunResponseVO.class, tags={ "forecast-runs", })
+	@ApiOperation(value = "Start a new run for the forecast project", nickname = "createForecastRun", notes = "This is the command to start a new Chronos forecast run in an already\r\n" + //
+			"        existing project. The run will be started asynchronously and the\r\n" + //
+			"        response will contain the correlation ID of the run. This correlation\r\n" + //
+			"        ID can be used to query the status of the run via the `GET\r\n" + //
+			"        /api/forecasts/{id}/runs` endpoint.\r\n" + //
+			"        For more information on how to use this endpoint, please refer to the\r\n" + //
+			"        Chronos Documentation.", response = ForecastRunResponseVO.class, tags={ "forecast-runs", })
     @ApiResponses(value = {
         @ApiResponse(code = 201, message = "Returns message of success or failure ", response = ForecastRunResponseVO.class),
         @ApiResponse(code = 400, message = "Bad Request", response = GenericMessage.class),
@@ -1073,19 +1079,55 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
         produces = { "application/json" },
         consumes = { "multipart/form-data" },
         method = RequestMethod.POST)
-    public ResponseEntity<ForecastRunResponseVO> createForecastRun(@ApiParam(value = "forecast project ID ",required=true) @PathVariable("id") String id,
-    		@ApiParam(value = "Chronos default config yml", required=true, allowableValues="Default-Settings") @RequestParam(value="configurationFile", required=true)  String configurationFile,
-    		@ApiParam(value = "frequency parameter.", required=true, allowableValues="Daily, Weekly, Monthly, Yearly, No_Frequency") @RequestParam(value="frequency", required=true)  String frequency,
-    		@ApiParam(value = "Any number greater than 1", required=true) @RequestParam(value="forecastHorizon", required=true)  BigDecimal forecastHorizon,
-    		@ApiParam(value = "The file to upload.") @Valid @RequestPart(value="file", required=false) MultipartFile file,
-    		@ApiParam(value = "path of file in minio system, if not giving file in request part") @RequestParam(value="savedInputPath", required=false)  String savedInputPath,
-			@ApiParam(value = "flag whether to save file in request part to storage bucket for further runs", defaultValue="false") @RequestParam(value="saveRequestPart", required=false)  Boolean saveRequestPart,
-    		@ApiParam(value = "name of the run sample. Example YYYY-MM-DD_run_topic") @RequestParam(value="runName", required=false)  String runName,
-    		@ApiParam(value = "Levels Of Hierarchy number between 2 to 20 Or null") @RequestParam(value="hierarchy", required=false)  String hierarchy,
-    		@ApiParam(value = "Comments for the run") @RequestParam(value="comment", required=false)  String comment,
-    		@ApiParam(value = "If true, then run on Powerful Machines") @RequestParam(value="runOnPowerfulMachines", required=false)  Boolean runOnPowerfulMachines,
-            @ApiParam(value = "Text field to denote Chronos Version") @RequestParam(value="chronosVersion", required=false)  String chronosVersion,
-			@ApiParam(value = "Text field to denote Chronos Backtesting") @RequestParam(value="backtesting", required=false)  String backtesting,@ApiParam(value = "Authorization header" ) @RequestHeader(value="apiKey", required=false) String apiKey){
+    public ResponseEntity<ForecastRunResponseVO> createForecastRun(@ApiParam(value = "Project ID (UUID) of the project for which the run should be started. You can find this ID as `Api Id` in the project details page in the Chronos UI Application. You will also find it in the URL if you open your project in the browser.",required=true) @PathVariable("id") String id,
+    		@ApiParam(value = "The Chronos configuration file you want to use.\r\n" + //
+    				"            The default configuration file resides under\r\n" + //
+    				"            `chronos-core/configs/default_config.yml`, this is what you need to\r\n" + //
+    				"            provide here to use the default configuration.\r\n" + //
+    				"            If you want to use a custom configuration file, you need to upload\r\n" + //
+    				"            it first (easiest done via the Chronos UI Application) and then\r\n" + //
+    				"            provide the path to the file here. The file path will be\r\n" + //
+    				"            `chronos-<project_name>/configs/<config_filename.yml>`, where\r\n" + //
+    				"            project_name is the actual name of your project (not the UUID)") @RequestParam(value="configurationFile", required=true)  String configurationFile,
+    		@ApiParam(value = "The frequency of your data.\r\n" + //
+    				"            You can find a list of all supported frequencies here:\r\n" + //
+    				"            `https://pandas.pydata.org/pandas-docs/stable/user_guide/timeseries.html#offset-aliases`\r\n" + //
+    				"            Note that Chronos is mostly tested on monthly data, so you should\r\n" + //
+    				"            carefully evaluate forecast quality when using other frequencies.", required=true, allowableValues="Daily, Weekly, Monthly, Yearly, No_Frequency") @RequestParam(value="frequency", required=true)  String frequency,
+    		@ApiParam(value = " Number of time steps to forecast. Must be 1 or larger.", required=true) @RequestParam(value="forecastHorizon", required=true)  BigDecimal forecastHorizon,
+    		@ApiParam(value = " The Chronos Input file (*.xlsx or *.csv) containing the data to be forecast. To learn more about the input file format, please refer to the Chronos Documentation. If you do not set this, you need to instead provide the path to a file in your MinIO storage bucket via the `savedInputPath`.") @Valid @RequestPart(value="file", required=false) MultipartFile file,
+    		@ApiParam(value = "Normally, you probably don't want to use this setting. If you want to provide a file you have already stored in MinIO, you can provide the path to the file here.") @RequestParam(value="savedInputPath", required=false)  String savedInputPath,
+			@ApiParam(value = "Set this to true if you want to store the provided input file for future runs. Only set this to true if you later on want to do a forecast with the exact same file, but a different configuration.Files saved this way can be re-used via the `savedInputPath` field.", defaultValue="false") @RequestParam(value="saveRequestPart", required=false)  Boolean saveRequestPart,
+    		@ApiParam(value = " A name for the run. This name will be displayed in the Chronos UI Application. If you do not provide a name, the run name will be set to the current date and time.") @RequestParam(value="runName", required=false)  String runName,
+    		@ApiParam(value = " Set this parameter only if your data is hierarchical. \r\n" + //
+    				"            \r\n" + //
+    				"            Set to the number of hierarchy levels in your data. This is equal\r\n" + //
+    				"            to the number of rows containing headers. To learn more about\r\n" + //
+    				"            hierarchical forecasting, search for *hierarchical forecasting* in\r\n" + //
+    				"            the Chronos Documentation.") @RequestParam(value="hierarchy", required=false)  String hierarchy,
+    		@ApiParam(value = " Here you can add a comment to your run.") @RequestParam(value="comment", required=false)  String comment,
+    		@ApiParam(value = "With this setting, Chronos will run on a dedicated machine instead\r\n" + //
+    				"            of the shared cluster. This ensures consistent runtime, but comes\r\n" + //
+    				"            with additional startup time and creates additional costs - best\r\n" + //
+    				"            used for productive use cases.") @RequestParam(value="runOnPowerfulMachines", required=false)  Boolean runOnPowerfulMachines,
+            @ApiParam(value = "The version of Chronos you want to use. If you do not provide a\r\n" + //
+            		"            version, the latest version will be used. This is an advanced\r\n" + //
+            		"            setting that you should only use if a new version of Chronos is not\r\n" + //
+            		"            compatible with your data. You can find Chronos version in the\r\n" + //
+            		"            Chronos repository.") @RequestParam(value="chronosVersion", required=false)  String chronosVersion,
+			@ApiParam(value = " This feature allows running Chronos multiple times to simulate past\r\n" + //
+					"            runs on the same data. Set to a positive number `n` to run\r\n" + //
+					"            backtesting. Chronos will run your data `n` times, each time\r\n" + //
+					"            simulating the past by removing the last `n` time steps from your\r\n" + //
+					"            data. This is useful to evaluate the quality of your forecast.\r\n" + //
+					"            Learn more about this feature in the Chronos Documentation.\r\n" + //
+					"            Please be aware that this effectively multiplies the runtime of\r\n" + //
+					"            Chronos by `n`.") @RequestParam(value="backtesting", required=false)  String backtesting,
+			@ApiParam(value = "Authorization header. You can find or generate your API key in the\r\n" + //
+					"            Chronos UI Application.\r\n" + //
+					"            This key is project-specific and should be used if using the REST\r\n" + //
+					"            API directly. Do not specify an Authorization header if using this\r\n" + //
+					"            key." ) @RequestHeader(value="apiKey", required=false) String apiKey){
 			ForecastRunResponseVO responseVO = new ForecastRunResponseVO();
 			GenericMessage responseMessage = new GenericMessage();
 			ForecastVO existingForecast = service.getById(id);
@@ -1116,17 +1158,19 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 			if(runOnPowerfulMachines==null){
 				runOnPowerfulMachines = false;
 			}
-			// validating runName 		
-			// if(runName != null && !runName.matches("^[a-z0-9.-]$")){
-			// 	log.error("Invalid run name {} for project name {} and id {} ", runName, existingForecast.getName(), id);
-			// 	MessageDescription invalidMsg = new MessageDescription("Invalid run name. Only lowercase, numbers, dot and hyphen allowed");
-			// 	GenericMessage errorMessage = new GenericMessage();
-			// 	errorMessage.setSuccess("FAILED");
-			// 	errorMessage.addErrors(invalidMsg);
-			// 	responseVO.setData(null);
-			// 	responseVO.setResponse(errorMessage);
-			// 	return new ResponseEntity<>(responseVO, HttpStatus.BAD_REQUEST);
-			// }
+			// validating runName 	
+			if(runName!=null) {
+				if (!runName.trim().isEmpty() && !runName.matches("^[a-z0-9.-]*$")) {
+				   log.error("Invalid run name {} for project name {} and id {} ", runName, existingForecast.getName(), id);
+				   MessageDescription invalidMsg = new MessageDescription("Invalid run name. Only lowercase, numbers, dot, hyphen and only 55 characters allowed");
+				   GenericMessage errorMessage = new GenericMessage();
+				   errorMessage.setSuccess("FAILED");
+				   errorMessage.addErrors(invalidMsg);
+				   responseVO.setData(null);
+				   responseVO.setResponse(errorMessage);
+				   return new ResponseEntity<>(responseVO, HttpStatus.BAD_REQUEST);
+				}
+			 }
 
 			CreatedByVO requestUser = this.userStore.getVO();
 			List<String> forecastProjectUsers = new ArrayList<>();
