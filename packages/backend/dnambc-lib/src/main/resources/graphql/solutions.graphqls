@@ -243,6 +243,7 @@ type SolutionDataComplianceVO{
 	links: [LinkVO],
 	complianceOfficers: [TeamMemberVO],
 	aiRiskAssessmentType: AIRiskAssessmentTypeEnum 
+    workersCouncilApproval: Boolean
 	
 }
 
