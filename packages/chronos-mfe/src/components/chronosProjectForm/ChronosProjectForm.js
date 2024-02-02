@@ -172,16 +172,14 @@ const ChronosProjectForm = ({ project, edit, onSave }) => {
         // edit && setSubDivisions(response[1]?.data.find((div) => div.id === division.split('@-@')[0])?.subDivisions);
         SelectBox.defaultSetup();
       })
-      .catch(() => {
+      .catch((err) => {
         ProgressIndicator.hide();
-        // SelectBox.defaultSetup();
-        // if (err?.response?.data?.errors?.length > 0) {
-        //   err?.response?.data?.errors.forEach((err) => {
-        //     Notification.show(err?.message || 'Something went wrong.', 'alert');
-        //   });
-        // } else {
-        //   Notification.show(err?.message || 'Something went wrong.', 'alert');
-        // }
+        SelectBox.defaultSetup();
+        if (err?.response?.data?.errors?.length > 0) {
+          err?.response?.data?.errors.forEach((err) => {
+            Notification.show(err?.message || 'Something went wrong.', 'alert');
+          });
+        }
       });
     //eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
