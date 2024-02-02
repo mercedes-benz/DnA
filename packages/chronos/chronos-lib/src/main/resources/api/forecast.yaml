@@ -1634,7 +1634,7 @@ definitions:
         enum: [PENDING,RUNNING,TERMINATING,TERMINATED,INTERNAL_ERROR,SKIPPED]
       result_state:
         type: string
-        enum: [SUCCESS,FAILED,TIMEDOUT,CANCELED,WARNINGS,INFO]
+        enum: [SUCCESS,FAILED,TIMEDOUT,CANCELED,WARNINGS]
       state_message:
         type: string
       user_cancelled_or_timedout:
