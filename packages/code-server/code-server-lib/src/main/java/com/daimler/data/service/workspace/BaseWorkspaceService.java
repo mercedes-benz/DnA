@@ -58,6 +58,7 @@ import com.daimler.data.db.json.CodeServerDeploymentDetails;
 import com.daimler.data.db.json.CodeServerLeanGovernanceFeilds;
 import com.daimler.data.db.json.CodeServerWorkspace;
 import com.daimler.data.db.json.CodespaceSecurityConfig;
+import com.daimler.data.db.json.DeploymentAudit;
 import com.daimler.data.db.json.UserInfo;
 import com.daimler.data.db.repo.workspace.WorkspaceCustomRepository;
 import com.daimler.data.db.repo.workspace.WorkspaceRepository;
@@ -835,6 +836,20 @@ public class BaseWorkspaceService implements WorkspaceService {
 					;
 					deploymentDetails.setSecureWithIAMRequired(isSecureWithIAMRequired);
 					deploymentDetails.setTechnicalUserDetailsForIAMLogin(technicalUserDetailsForIAMLogin);
+					List<DeploymentAudit> auditLogs = deploymentDetails.getDeploymentAuditLogs();
+					if (auditLogs == null) {
+						auditLogs = new ArrayList<>();
+					}
+					SimpleDateFormat isoFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS+00:00");
+					Date now = isoFormat.parse(isoFormat.format(new Date()));
+					DeploymentAudit auditLog = new DeploymentAudit();
+					auditLog.setTriggeredOn(now);
+					auditLog.setTriggeredBy(entity.getData().getWorkspaceOwner().getGitUserName());
+					auditLog.setBranch(branch);
+					auditLog.setDeployedOn(null);
+					auditLog.setDeploymentStatus("DEPLOY_REQUESTED");
+					auditLogs.add(auditLog);
+					deploymentDetails.setDeploymentAuditLogs(auditLogs);
 					workspaceCustomRepository.updateDeploymentDetails(projectName, environmentJsonbName,
 							deploymentDetails);
 					status = "SUCCESS";
@@ -1318,6 +1333,15 @@ public class BaseWorkspaceService implements WorkspaceService {
 					deploymentDetails.setLastDeployedOn(now);
 					deploymentDetails.setLastDeploymentStatus(latestStatus);
 					deploymentDetails.setGitjobRunID(gitJobRunId);
+					//setting audit log details
+					List<DeploymentAudit> auditLogs = deploymentDetails.getDeploymentAuditLogs();
+					DeploymentAudit auditDetails = new DeploymentAudit();
+					auditDetails.setTriggeredBy(entity.getData().getWorkspaceOwner().getGitUserName());
+					auditDetails.setDeployedOn(now);
+					auditDetails.setDeploymentStatus(latestStatus);
+					auditDetails.setBranch(branch);
+					auditLogs.add(auditDetails);
+					deploymentDetails.setDeploymentAuditLogs(auditLogs);
 					workspaceCustomRepository.updateDeploymentDetails(projectName, environmentJsonbName,
 							deploymentDetails);
 					log.info(
@@ -1337,6 +1361,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 				} else if ("UNDEPLOYED".equalsIgnoreCase(latestStatus)) {
 					deploymentDetails.setDeploymentUrl(null);
 					deploymentDetails.setLastDeploymentStatus(latestStatus);
+
 					workspaceCustomRepository.updateDeploymentDetails(projectName, environmentJsonbName,
 							deploymentDetails);
 					log.info(

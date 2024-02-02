@@ -53,6 +53,7 @@ import com.daimler.data.db.json.CodespaceSecurityEntitlement;
 import com.daimler.data.db.json.CodespaceSecurityApiList;
 import com.daimler.data.db.json.CodespaceSecurityRole;
 import com.daimler.data.db.json.CodespaceSecurityUserRoleMap;
+import com.daimler.data.db.json.DeploymentAudit;
 import com.daimler.data.db.json.UserInfo;
 import com.daimler.data.dto.CodespaceSecurityConfigDto;
 import com.daimler.data.dto.workspace.CodeServerDeploymentDetailsVO;
@@ -76,7 +77,7 @@ import com.daimler.data.dto.workspace.CodespaceSecurityRoleVO;
 import com.daimler.data.dto.workspace.CodespaceSecurityUserRoleMapResponseVO;
 import com.daimler.data.dto.workspace.CodespaceSecurityUserRoleMapVO;
 import com.daimler.data.dto.workspace.UserInfoVO;
-
+import com.daimler.data.dto.workspace.DeploymentAuditVO;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -237,8 +238,31 @@ public class WorkspaceAssembler implements GenericAssembler<CodeServerWorkspaceV
 		if (vo != null) {
 			BeanUtils.copyProperties(vo, deploymentDetails);
 			deploymentDetails.setLastDeployedBy(toUserInfo(vo.getLastDeployedBy()));
+			List<DeploymentAudit> auditDetails = this.toDeploymentAuditDetails(vo.getDeploymentAuditLogs());
+			deploymentDetails.setDeploymentAuditLogs(auditDetails);
+
 		}
 		return deploymentDetails;
+	}
+
+	private List<DeploymentAudit> toDeploymentAuditDetails(List<DeploymentAuditVO> auditdetails)
+	{
+		List<DeploymentAudit> deployedAuditLogDetails = new ArrayList<>();
+		if(auditdetails != null && !auditdetails.isEmpty())
+		{
+			//deployedAuditLogDetails = auditdetails.stream().map(n -> toDeploymentAudit(n)).collect(Collectors.toList());
+			for(DeploymentAudit audit: deployedAuditLogDetails)
+			{
+				DeploymentAudit auditDetails = new DeploymentAudit();
+				auditDetails.setDeploymentStatus(audit.getDeploymentStatus());
+				auditDetails.setDeployedOn(audit.getDeployedOn());
+				auditDetails.setTriggeredBy(audit.getTriggeredBy());
+				auditDetails.setTriggeredOn(audit.getTriggeredOn());
+				auditDetails.setBranch(audit.getBranch());
+				deployedAuditLogDetails.add(auditDetails);
+			}
+		}
+		return deployedAuditLogDetails;
 	}
 
 	private CodeServerDeploymentDetailsVO toDeploymentDetailsVO(CodeServerDeploymentDetails deploymentDetails)
@@ -251,11 +275,43 @@ public class WorkspaceAssembler implements GenericAssembler<CodeServerWorkspaceV
 			if (Objects.isNull(deploymentDetails.getSecureWithIAMRequired())) {
 				deploymentDetailsVO.setSecureWithIAMRequired(false);
 			}
-			if (deploymentDetails.getLastDeployedOn() != null)
+			if (deploymentDetails.getLastDeployedOn() != null){
 				deploymentDetailsVO
 						.setLastDeployedOn(isoFormat.parse(isoFormat.format(deploymentDetails.getLastDeployedOn())));
+			}
+			if(deploymentDetails.getDeploymentAuditLogs()!=null && !deploymentDetails.getDeploymentAuditLogs().isEmpty())
+			{
+				List<DeploymentAuditVO> auditDetails = this.toDeploymentAuditDetailsVO(deploymentDetails.getDeploymentAuditLogs());
+				deploymentDetailsVO.setDeploymentAuditLogs(auditDetails);
+			}
 		}
 		return deploymentDetailsVO;
+	}
+
+	private List<DeploymentAuditVO> toDeploymentAuditDetailsVO(List<DeploymentAudit> deploymentAuditLogs) {
+		SimpleDateFormat isoFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS+00:00");
+		List<DeploymentAuditVO> auditDetailsVO = new ArrayList<>();
+		if(deploymentAuditLogs!=null && !deploymentAuditLogs.isEmpty())
+		{
+			for(DeploymentAudit audit: deploymentAuditLogs)
+			{
+				try
+				{
+					DeploymentAuditVO auditDetails = new DeploymentAuditVO();
+					auditDetails.setDeploymentStatus(audit.getDeploymentStatus());
+					auditDetails.setDeployedOn(isoFormat.parse(isoFormat.format(audit.getDeployedOn())));
+					auditDetails.setTriggeredBy(audit.getTriggeredBy());
+					auditDetails.setTriggeredOn(isoFormat.parse(isoFormat.format(audit.getTriggeredOn())));
+					auditDetails.setBranch(audit.getBranch());
+					auditDetailsVO.add(auditDetails);
+				}
+				catch(ParseException e)
+				{
+					log.error("Failed in assembler while parsing date into iso format with exception {}", e.getMessage());
+				}
+			}
+		}
+		return auditDetailsVO;
 	}
 
 	private CodespaceSecurityConfigVO tosecurityConfigVO(CodespaceSecurityConfig CodespaceSecurityConfig) {
@@ -449,6 +505,7 @@ public class WorkspaceAssembler implements GenericAssembler<CodeServerWorkspaceV
 		} catch (Exception e) {
 			log.error("Failed in assembler while parsing date into iso format with exception {}", e.getMessage());
 		}
+		System.out.println(vo+"----------------");
 		return vo;
 	}
 

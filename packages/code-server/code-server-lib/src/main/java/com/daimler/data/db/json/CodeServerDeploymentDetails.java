@@ -2,6 +2,7 @@ package com.daimler.data.db.json;
 
 import java.io.Serializable;
 import java.util.Date;
+import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
@@ -23,5 +24,7 @@ public class CodeServerDeploymentDetails implements Serializable {
 	private Boolean secureWithIAMRequired;
 	private String technicalUserDetailsForIAMLogin;
 	private String gitjobRunID;
+	private List<DeploymentAudit> deploymentAuditLogs;
+	
 	
 }
