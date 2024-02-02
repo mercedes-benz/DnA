@@ -845,13 +845,19 @@ public class BaseWorkspaceService implements WorkspaceService {
 					DeploymentAudit auditLog = new DeploymentAudit();
 					auditLog.setTriggeredOn(now);
 					auditLog.setTriggeredBy(entity.getData().getWorkspaceOwner().getGitUserName());
-					auditLog.setBranch(branch);
-					auditLog.setDeployedOn(null);
+					auditLog.setBranch(branch);					
 					auditLog.setDeploymentStatus("DEPLOY_REQUESTED");
 					auditLogs.add(auditLog);
 					deploymentDetails.setDeploymentAuditLogs(auditLogs);
-					workspaceCustomRepository.updateDeploymentDetails(projectName, environmentJsonbName,
-							deploymentDetails);
+					if (!"int".equalsIgnoreCase(environment)) {
+						entity.getData().getProjectDetails().setProdDeploymentDetails(deploymentDetails);
+					}
+					else {
+						entity.getData().getProjectDetails().setIntDeploymentDetails(deploymentDetails);
+					}
+					jpaRepo.save(entity);
+//					workspaceCustomRepository.updateDeploymentDetails(projectName, environmentJsonbName,
+//							deploymentDetails);
 					status = "SUCCESS";
 				} else {
 					status = "FAILED";
@@ -1335,15 +1341,27 @@ public class BaseWorkspaceService implements WorkspaceService {
 					deploymentDetails.setGitjobRunID(gitJobRunId);
 					//setting audit log details
 					List<DeploymentAudit> auditLogs = deploymentDetails.getDeploymentAuditLogs();
+					if(Objects.isNull(auditLogs)) {
+						auditLogs =  new ArrayList<>();
+					}	
 					DeploymentAudit auditDetails = new DeploymentAudit();
-					auditDetails.setTriggeredBy(entity.getData().getWorkspaceOwner().getGitUserName());
-					auditDetails.setDeployedOn(now);
+					//auditDetails.setTriggeredBy(userId);
 					auditDetails.setDeploymentStatus(latestStatus);
-					auditDetails.setBranch(branch);
-					auditLogs.add(auditDetails);
+					auditDetails.setDeployedOn(now);
+					//auditDetails.setTriggeredOn(now);
+					//auditDetails.setBranch(branch);
+					auditLogs.add(auditDetails);								
 					deploymentDetails.setDeploymentAuditLogs(auditLogs);
-					workspaceCustomRepository.updateDeploymentDetails(projectName, environmentJsonbName,
-							deploymentDetails);
+					
+//					workspaceCustomRepository.updateDeploymentDetails(projectName, environmentJsonbName,
+//							deploymentDetails);
+					if (!"int".equalsIgnoreCase(targetEnv)) {
+						entity.getData().getProjectDetails().setProdDeploymentDetails(deploymentDetails);
+					}
+					else {
+						entity.getData().getProjectDetails().setIntDeploymentDetails(deploymentDetails);
+					}
+					jpaRepo.save(entity);
 					log.info(
 							"updated deployment details successfully for projectName {} , branch {} , targetEnv {} and status {}",
 							projectName, branch, targetEnv, latestStatus);
