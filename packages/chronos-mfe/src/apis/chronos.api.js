@@ -1,8 +1,8 @@
 import { server, hostServer, storageServer, storageServerX, reportsServer } from '../server/api';
 import { formServer } from '../server/formApi';
 
-const getAllForecastProjects = () => {
-  return server.get('/forecasts?limit=0&offset=0', {
+const getAllForecastProjects = (offset, limit) => {
+  return server.get(`/forecasts?limit=${limit}&offset=${offset}`, {
     data: {},
   });
 };
@@ -103,6 +103,12 @@ const getFile = (projectName, resultFolderName, fileName) => {
   });
 };
 
+const getConfigFile = (projectName, fileName) => {
+  return storageServer.get(`/buckets/${projectName}/objects/metadata?prefix=configs%2F${fileName}`, {
+    data: {},
+  });
+};
+
 const getExcelFile = (projectName, resultFolderName, fileName) => {
   return storageServerX.get(`/buckets/${projectName}/objects/metadata?prefix=results%2F${resultFolderName}%2F${fileName}`, {
     data: {},
@@ -185,6 +191,7 @@ export const chronosApi = {
     getApiKeyById,
     getHTML,
     getFile,
+    getConfigFile,
     getExcelFile,
     createForecastComparison,
     getForecastComparisons,
