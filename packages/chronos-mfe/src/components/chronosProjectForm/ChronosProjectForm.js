@@ -179,8 +179,6 @@ const ChronosProjectForm = ({ project, edit, onSave }) => {
           err?.response?.data?.errors.forEach((err) => {
             Notification.show(err?.message || 'Something went wrong.', 'alert');
           });
-        } else {
-          Notification.show(err?.message || 'Something went wrong.', 'alert');
         }
       });
     //eslint-disable-next-line react-hooks/exhaustive-deps
