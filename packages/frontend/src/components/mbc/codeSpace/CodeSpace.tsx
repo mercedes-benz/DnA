@@ -611,7 +611,7 @@ const CodeSpace = (props: ICodeSpaceProps) => {
                       )}
                     </>
                   )}
-                  <div tooltip-data="Open New Tab" className={Styles.OpenNewTab} onClick={openInNewtab}>
+                  <div tooltip-data="Open in new tab" className={Styles.OpenNewTab} onClick={openInNewtab}>
                     <i className="icon mbc-icon arrow small right" />
                     <span> &nbsp; </span>
                   </div>

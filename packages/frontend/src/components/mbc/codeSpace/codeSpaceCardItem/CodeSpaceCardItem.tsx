@@ -175,6 +175,12 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
           >
             <div className={classNames('btn btn-text forward arrow', Styles.cardHeadTitle)} onClick={onCardNameClick}>
               {projectDetails.projectName}
+              <a target='_blank' href={`/codespace/${codeSpace.workspaceId}`} className={Styles.OpenNewTab} tooltip-data="Open workspace in new tab" onClick={(e) => { 
+                e.stopPropagation();
+               }} rel="noreferrer">
+                <i className="icon mbc-icon arrow small right" />
+                <span> &nbsp; </span>
+              </a>      
             </div>
           </div>
         </div>
