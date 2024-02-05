@@ -426,7 +426,7 @@ export default class AllSolutions extends React.Component<
                       </div>
                       {!hideFilterView ? <span className={Styles.dividerLine}> &nbsp; </span> : ''}
                       {exportCSVIcon()}
-                      {!hideFilterView ? (
+                      {!hideFilterView || isGenAI ? (
                         <>
                           <span className={Styles.dividerLine}> &nbsp; </span>
                           <div tooltip-data="Filters">
@@ -447,6 +447,7 @@ export default class AllSolutions extends React.Component<
                 </div>
 
                 <SolutionsFilter
+                  isGenAI={isGenAI}
                   userId={this.props.user.id}
                   getFilterQueryParams={(queryParams: IFilterParams) =>
                     this.getFilteredSolutions(queryParams, this.state.showSolutionsFilter ? false : true)

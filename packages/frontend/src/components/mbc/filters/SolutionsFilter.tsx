@@ -35,6 +35,7 @@ import FilterWrapper from './FilterWrapper';
 const classNames = cn.bind(Styles);
 
 type SolutionsFilterType = {
+  isGenAI?: boolean;
   userId: string;
   getSolutions?: Function;
   getFilterQueryParams?: Function;
@@ -61,6 +62,7 @@ type SolutionsFilterType = {
  */
 
 const SolutionsFilter = ({
+  isGenAI,
   userId,
   getSolutions,
   getFilterQueryParams,
@@ -765,7 +767,7 @@ const SolutionsFilter = ({
   }
 
   const subDivisionsOfSelectedDivision: ISubDivisionSolution[] = getSubDivisionsOfSelectedDivision();
-
+  
   return (
     <FilterWrapper openFilters={openFilters}>
       <div>
@@ -893,9 +895,9 @@ const SolutionsFilter = ({
           </div>
       </div>
       <div className={classNames(Styles.actionWrapper, dataFilterApplied ? '' : 'hidden')}>
-          <button className={classNames('btn btn-primary', Styles.saveSettingsBtn)} onClick={saveFilterPreference}>
+          { !isGenAI && <button className={classNames('btn btn-primary', Styles.saveSettingsBtn)} onClick={saveFilterPreference}>
               Save settings
-          </button>
+          </button>}
           <div className="icon-tile">
               <button className="btn btn-icon-circle" tooltip-data="Reset Filters" onClick={resetDataFilters}>
               <i className="icon mbc-icon refresh" />
