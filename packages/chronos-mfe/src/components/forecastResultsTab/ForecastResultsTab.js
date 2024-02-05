@@ -500,7 +500,7 @@ const ForecastResultsTab = ({ onRunClick }) => {
                           <pre>{errorItem.warnings}</pre>
                         </>
                       }
-                      {(errorItem.warnings !== null && errorItem.warnings.length === 0 && errorItem.warningsInfo !== null && errorItem.warningsInfo.length > 0) &&
+                      {(errorItem.warnings !== null && errorItem.warnings.length === 0 && errorItem.warningsInfo !== null && errorItem.warningsInfo.length > 0) || (errorItem.state.result_state === 'INFO') &&
                         <>
                           <i className={classNames('icon mbc-icon info circle', Styles.infoCircle)} />
                           <pre>{errorItem.warningsInfo}</pre>
