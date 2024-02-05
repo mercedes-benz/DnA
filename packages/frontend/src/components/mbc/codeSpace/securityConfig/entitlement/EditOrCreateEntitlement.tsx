@@ -24,19 +24,16 @@ const EditOrCreateEntitlement = (props: any) => {
         setmissingEntryEntitlName('');
     };
     
-    const validateEntitlementName = (value : any) =>{
-        console.log("validate");
-        const pattern = /^[a-zA-Z0-9][a-zA-Z0-9_-]*$/;
-        const isValid = pattern.test(value);
-        if(!isValid){
-            if(value.startsWith('-') || value.startsWith('_')){
-                setmissingEntryEntitlName('Entitlement name cannot start with special characters')
-            }else{
-                setmissingEntryEntitlName('Entitlement name cannot have special characters other than - and _')
-            }     
+    const validateEntitlementName = (value: any) => {
+      const pattern = /^[a-zA-Z0-9][a-zA-Z0-9_-]*$/;
+      const isValid = pattern.test(value);
+      if (!isValid) {
+        if (value.startsWith('-') || value.startsWith('_')) {
+          setmissingEntryEntitlName('Entitlement name cannot start with special character');
+        } else {
+          setmissingEntryEntitlName('Entitlement name cannot have special characters other than - and _');
         }
-
-
+      }
     };
 
     const validateForm = () => {
