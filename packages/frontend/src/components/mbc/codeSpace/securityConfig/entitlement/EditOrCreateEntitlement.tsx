@@ -18,8 +18,22 @@ const EditOrCreateEntitlement = (props: any) => {
     const [currentEntitlement, setCurrentEntitlement] = useState<any>({ apiList: [] });
 
     const onEntitlementNameOnChange = (e: React.FormEvent<HTMLInputElement>) => {
-        setEntitlName(e.currentTarget.value);
+        const value = e.currentTarget.value;
+        validateEntitlementName(value);
+        setEntitlName(value);
         setmissingEntryEntitlName('');
+    };
+    
+    const validateEntitlementName = (value: any) => {
+      const pattern = /^[a-zA-Z0-9][a-zA-Z0-9_-]*$/;
+      const isValid = pattern.test(value);
+      if (!isValid) {
+        if (value.startsWith('-') || value.startsWith('_')) {
+          setmissingEntryEntitlName('Entitlement name cannot start with special character');
+        } else {
+          setmissingEntryEntitlName('Entitlement name cannot have special characters other than - and _');
+        }
+      }
     };
 
     const validateForm = () => {
@@ -47,7 +61,7 @@ const EditOrCreateEntitlement = (props: any) => {
     const onEntitlementSubmit = () => {
         let formValid = true;
         const errorMissingEntry = '*Missing entry';
-        if (props.isProtectedByDna && (currentEntitlement?.apiList?.length === 0 || !currentEntitlement)) {
+        if (props.isProtectedByDna && (currentEntitlement?.apiList?.length === 0 || !currentEntitlement) || (entitlPath.length > 0 || httpMethod !== '0')) {
             formValid = validateForm();
             if ((httpMethod !== '0' || httpMethod?.trim()?.length > 0) && entitlPath?.length !== 0) {
                 setMissingAddMesage(" <- Click on Add to add API Path/Pattern and Http Method.");
