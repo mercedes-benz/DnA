@@ -249,7 +249,7 @@ export const BucketList = (props) => {
                   <>
                     <div></div>
                     <div className={Styles.btnGrp}>
-                      {hasWriteAccess && (
+                      {(hasWriteAccess || isOwner) && (
                         <>
                           <button
                             className={'btn btn-primary'}
@@ -262,7 +262,7 @@ export const BucketList = (props) => {
                             <i className="icon mbc-icon edit"></i>
                             <span>Edit</span>
                           </button>
-                          {isOwner && hasWriteAccess ? (
+                          {isOwner || hasWriteAccess ? (
                             <button
                               className={'btn btn-primary'}
                               type="button"
@@ -276,7 +276,7 @@ export const BucketList = (props) => {
                             </button>
                           ) : null}
                         </>
-                      )}
+                      ) }
                       <button
                         className={'btn btn-primary'}
                         type="button"
