@@ -119,7 +119,7 @@ export default class Entitlement extends React.Component<IEntitlementProps, IEnt
   }
 
   protected editCreateEditEntitlementModal = () => {
-    this.setState({ editEntitlementModal: false, isCreateOrEditEntitlementModal: false });
+    this.setState({ editEntitlementModal: false, isCreateOrEditEntitlementModal: false , entitlementNameErrorMessage: ''});
   };
 
   protected onChangeHttp = (e: any) => {
