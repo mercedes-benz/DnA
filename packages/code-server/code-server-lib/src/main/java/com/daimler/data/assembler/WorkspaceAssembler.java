@@ -252,12 +252,17 @@ public class WorkspaceAssembler implements GenericAssembler<CodeServerWorkspaceV
 		{
 			//deployedAuditLogDetails = auditdetails.stream().map(n -> toDeploymentAudit(n)).collect(Collectors.toList());
 			for(DeploymentAudit audit: deployedAuditLogDetails)
-			{
+			{ 
 				DeploymentAudit auditDetails = new DeploymentAudit();
+				auditDetails.setId(audit.getId());
 				auditDetails.setDeploymentStatus(audit.getDeploymentStatus());
-				auditDetails.setDeployedOn(audit.getDeployedOn());
+				if(Objects.nonNull(audit.getDeployedOn())){
+					auditDetails.setDeployedOn(audit.getDeployedOn());
+				}
 				auditDetails.setTriggeredBy(audit.getTriggeredBy());
-				auditDetails.setTriggeredOn(audit.getTriggeredOn());
+				if(Objects.nonNull(audit.getTriggeredOn())){
+					auditDetails.setTriggeredOn(audit.getTriggeredOn());
+				}
 				auditDetails.setBranch(audit.getBranch());
 				deployedAuditLogDetails.add(auditDetails);
 			}
@@ -298,10 +303,13 @@ public class WorkspaceAssembler implements GenericAssembler<CodeServerWorkspaceV
 				try
 				{
 					DeploymentAuditVO auditDetails = new DeploymentAuditVO();
+					auditDetails.setId(audit.getId());
 					auditDetails.setDeploymentStatus(audit.getDeploymentStatus());
-					auditDetails.setDeployedOn(isoFormat.parse(isoFormat.format(audit.getDeployedOn())));
+					if(Objects.nonNull(audit.getDeployedOn()))
+						auditDetails.setDeployedOn(isoFormat.parse(isoFormat.format(audit.getDeployedOn())));
 					auditDetails.setTriggeredBy(audit.getTriggeredBy());
-					auditDetails.setTriggeredOn(isoFormat.parse(isoFormat.format(audit.getTriggeredOn())));
+					if(Objects.nonNull(audit.getTriggeredOn()))
+						auditDetails.setTriggeredOn(isoFormat.parse(isoFormat.format(audit.getTriggeredOn())));
 					auditDetails.setBranch(audit.getBranch());
 					auditDetailsVO.add(auditDetails);
 				}
@@ -505,7 +513,6 @@ public class WorkspaceAssembler implements GenericAssembler<CodeServerWorkspaceV
 		} catch (Exception e) {
 			log.error("Failed in assembler while parsing date into iso format with exception {}", e.getMessage());
 		}
-		System.out.println(vo+"----------------");
 		return vo;
 	}
 

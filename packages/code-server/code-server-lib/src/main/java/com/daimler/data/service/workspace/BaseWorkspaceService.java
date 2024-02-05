@@ -33,6 +33,7 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
+import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -843,8 +844,10 @@ public class BaseWorkspaceService implements WorkspaceService {
 					SimpleDateFormat isoFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS+00:00");
 					Date now = isoFormat.parse(isoFormat.format(new Date()));
 					DeploymentAudit auditLog = new DeploymentAudit();
+					auditLog.setId(UUID.randomUUID().toString());
 					auditLog.setTriggeredOn(now);
 					auditLog.setTriggeredBy(entity.getData().getWorkspaceOwner().getGitUserName());
+					// auditLog.setDeployedOn(null);
 					auditLog.setBranch(branch);					
 					auditLog.setDeploymentStatus("DEPLOY_REQUESTED");
 					auditLogs.add(auditLog);
