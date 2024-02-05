@@ -47,7 +47,7 @@ const Roles = (props: any) => {
   }, [props.config, maxItemsPerPage]);
 
   useEffect(() => {
-    if (props?.id && config) {
+    if (props?.id && config && !props.isCodeSpaceAdminPage) {
       ProgressIndicator.show();
       CodeSpaceApiClient.getEntitlements(props.id)
         .then((response: any) => {
