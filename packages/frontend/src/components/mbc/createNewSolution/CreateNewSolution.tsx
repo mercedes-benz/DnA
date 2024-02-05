@@ -295,6 +295,7 @@ export default class CreateNewSolution extends React.Component<ICreateNewSolutio
           links: [],
           complianceOfficers: [],
           aiRiskAssessmentType: '',
+          workersCouncilApproval: false,
         },
         digitalValue: {
           typeOfCalculation: DigitalValue.digitalValueTypeKeyValue,
