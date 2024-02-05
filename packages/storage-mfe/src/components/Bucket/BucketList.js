@@ -193,7 +193,7 @@ export const BucketList = (props) => {
                   <div>
                     <div>
                       <div>Created on</div>
-                      <div>{regionalDateAndTimeConversionSolution(item.createdDate)}</div>
+                      <div>{item.createdDate ? regionalDateAndTimeConversionSolution(item.createdDate) : 'N/A'}</div>
                     </div>
                     <div>
                       <div>Last modified</div>
