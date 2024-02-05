@@ -1266,6 +1266,15 @@ export const SummaryPdfDoc = (props: SummaryPdfDocProps) => (
               </View>
               <View style={styles.seperatorLine} />
             </View>
+             <View wrap={false}>
+              <Text style={[styles.subTitle, styles.setMarginTop]}>Workers Council Approval</Text>
+              <View style={styles.flexLayout}>
+                <Text>
+                  {!props.solution.datacompliance.workersCouncilApproval ? 'No' : 'Yes'}
+                </Text>
+              </View>
+              <View style={styles.seperatorLine} />
+            </View>
             <View wrap={false}>
               <Text style={[styles.subTitle, styles.setMarginTop]}>Added Links</Text>
               <View style={styles.flexLayout}>

@@ -1023,6 +1023,7 @@ export class ApiClient {
           quickCheck,
           useCaseDescAndEval,
           aiRiskAssessmentType,
+          workersCouncilApproval,
           attachments {
             id,
             fileName,

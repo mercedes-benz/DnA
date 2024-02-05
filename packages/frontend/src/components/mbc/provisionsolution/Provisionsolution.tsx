@@ -240,6 +240,7 @@ export default class Provisionsolution extends React.Component<IProvisionSolutio
           links: [],
           complianceOfficers: [],
           aiRiskAssessmentType: '',
+          workersCouncilApproval: false,
         },
         digitalValue: {
           maturityLevel: '',
