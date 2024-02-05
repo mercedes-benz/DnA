@@ -41,6 +41,7 @@ export default class DataComplianceSummary extends React.Component<ITeamProps, a
     const attachmentsList = <AttachmentsListItem attachments={this.props.dataCompliance.attachments} />;
     const linksList = <LinksListItems links={this.props.dataCompliance.links} />;
     const aiRiskAssessmentType = this.props.dataCompliance.aiRiskAssessmentType || DataCompliance.naRiskTypeKeyValue;
+    const workersCouncilApproval = !this.props.dataCompliance.workersCouncilApproval ? 'No' : 'Yes' ;
 
     const image =
       this.props.dataCompliance.quickCheck &&
@@ -76,6 +77,12 @@ export default class DataComplianceSummary extends React.Component<ITeamProps, a
             <div id="aiRiskAssessmentType">
               <h3>Results of the AI Risk Self-Assessment</h3>
               {AI_RISK_ASSESSMENT_TYPES[aiRiskAssessmentType]}
+              <br />
+              <br />
+            </div>
+            <div id="workersCouncilApproval">
+              <h3>Workers Council Approval</h3>
+              {workersCouncilApproval}
               <br />
               <br />
             </div>
