@@ -16,7 +16,7 @@ const getBucketList = (offset, limit) => {
     bucketsApi
       .getAllBuckets(offset, limit)
       .then((res) => {
-        const totalNumberOfPages = Math.ceil(res?.data?.data?.length / pagination.maxItemsPerPage);
+        const totalNumberOfPages = Math.ceil(res?.data?.totalCount / pagination.maxItemsPerPage);
         // const modifiedData = res?.data ? res.data.data.slice(0, pagination.maxItemsPerPage) : [];
         dispatch({
           type: 'SET_PAGINATION',
