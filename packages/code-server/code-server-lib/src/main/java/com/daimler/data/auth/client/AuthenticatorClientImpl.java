@@ -297,11 +297,19 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 		CreateRouteRequestVO createRouteRequestVO = new CreateRouteRequestVO();
 		CreateRouteVO createRouteVO = new CreateRouteVO();
 		if(kongApiForDeploymentURL) {
-//			if(Objects.nonNull(intSecureIAM) && intSecureIAM) {
+			if(apiRecipe) {
 				paths.add("/" + serviceName + "/" + "int" + "/api");
+				paths.add("/" + serviceName + "/" + "prod" + "/api");
+			}
+			else {
+				paths.add("/" + serviceName + "/" + "int/");
+				paths.add("/" + serviceName + "/" + "prod/");
+			}
+//			if(Objects.nonNull(intSecureIAM) && intSecureIAM) {
+//				paths.add("/" + serviceName + "/" + "int" + "/api");
 //			}
 //			if(Objects.nonNull(prodSecureIAM) && prodSecureIAM) {
-				paths.add("/" + serviceName + "/" + "prod" + "/api");
+//				paths.add("/" + serviceName + "/" + "prod" + "/api");
 //			}
 			if(!(paths.contains(currentPath))) {
 				paths.add(currentPath);
