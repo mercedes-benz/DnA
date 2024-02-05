@@ -441,7 +441,6 @@ export default class SecurityConfig extends React.Component<
     const projectName = config?.projectName ? `${config.projectName} - ` : '';
     const publishedSuffix = readOnlyMode && !isCodeSpaceAdminPage ? ' (Published)' : '';
     const title = `${projectName}Security config${publishedSuffix}`;
-        console.log(this.props.user);
     return (
       <React.Fragment>
         <div className={classNames(Styles.mainPanel)}>
