@@ -145,4 +145,14 @@
       cursor: not-allowed;
     }
   }
+
+  .dbHighlight {
+    font-size: 14px;
+  }
+  .trinoConnectDiv {
+    display: flex;
+    > div {
+      min-width: 50%;
+    }
+  }
   
