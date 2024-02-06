@@ -491,25 +491,21 @@ public class BaseStorageService implements StorageService {
 				List<BucketVo> bucketsVO = new ArrayList<>();
 				// converting the storageEntities to bucketVO objects and adding it to bucketsVO
 				bucketsVO = storageEntities.stream().map(n-> storageAssembler.toBucketVo(n)).collect(Collectors.toList());
-				for (McListBucketDto bucket : minioResponse.getData()) {
-					BucketVo bucketVo = storageAssembler.toBucketVo(storageEntities, bucket.getKey());
-					for (BucketVo s: bucketsVO) {
-						if (s.getBucketName().equals(bucket.getKey())) {
-							if (Objects.isNull(bucketVo.getPermission())) {
-								// Setting current user details
-								s.setPermission(dnaMinioClient.getBucketPermission(bucket.getKey(), currentUser));
+				
+				for(BucketVo tempBucket : bucketsVO) {
+					
+						if(tempBucket.getCollaborators() != null && !tempBucket.getCollaborators().isEmpty()) {
+							Optional<UserVO> currentUserRecord = tempBucket.getCollaborators().stream().filter(n->currentUser.equalsIgnoreCase(n.getAccesskey())).findFirst();
+							if(currentUserRecord!=null && currentUserRecord.get()!=null && currentUserRecord.get().getPermission()!=null) {
+								tempBucket.setPermission(currentUserRecord.get().getPermission());
 							}
-							s = new BucketVo();
-							s.setBucketName(bucket.getKey());
-							try {
-								s.setCreatedDate(sdf.parse(bucket.getLastModified()));
-							} catch (ParseException e) {
-								LOGGER.error("Failed to parse date of bucket {}", bucket.getKey());
-							}
-							s.setCollaborators(dnaMinioClient.getBucketCollaborators(bucket.getKey(), currentUser));
-							LOGGER.debug("Setting collaborators for bucket:{}", bucket.getKey());
 						}
-					}
+//						try {
+//							if(bucket.getLastModified())
+//								tempBucket.setLastModifiedDate(bucket.getLastModified());
+//						} catch (ParseException e) {
+//							LOGGER.error("Failed to parse date of bucket {}", bucketKey);
+//						}
 				}
 				bucketCollectionVO.setData(bucketsVO);
 				int totalBuckets = 0;
