@@ -1,12 +1,20 @@
 import { Envs } from '../globals/Envs';
 import { HTTP_METHOD } from '../globals/constants';
 import { ApiClient } from './ApiClient';
+import { ReportsApiClient } from './ReportsApiClient';
 
 const baseUrl = Envs.CODE_SPACE_API_BASEURL
   ? Envs.CODE_SPACE_API_BASEURL
   : `http://${window.location.hostname}:7979/api`;
 const getUrl = (endpoint: string) => {
   return `${baseUrl}/${endpoint}`;
+};
+
+const baseUrlStorage = Envs.DASHBOARD_API_BASEURL
+  ? Envs.DASHBOARD_API_BASEURL
+  : `http://${window.location.hostname}:7175/api`;
+const getUrlStorage = (endpoint: string) => {
+  return `${baseUrlStorage}/${endpoint}`;
 };
 
 export class CodeSpaceApiClient {
@@ -29,11 +37,18 @@ export class CodeSpaceApiClient {
     return ApiClient.fetch(getUrl(endpoint), HTTP_METHOD.DELETE, body);
   }
 
+  public static getStorage(endpoint: string) {
+    return ApiClient.fetch(getUrlStorage(endpoint), HTTP_METHOD.GET);
+  }
+
   public static getCodeSpacesList() {
     return this.get('workspaces');
   }
   public static createCodeSpace(data: any) {
     return this.post('workspaces', data);
+  }
+  public static editCodeSpace(id: string, data: any){
+    return this.patch(`workspaces/${id}/datagovernance`, data);
   }
   public static getCodeSpaceStatus(id: string) {
     return this.get(`workspaces/status/${id}`);
@@ -70,4 +85,64 @@ export class CodeSpaceApiClient {
   public static getWorkSpacesTransparency(): Promise<any> {
     return this.get('workspaces/transparency');
   }
+
+  public static createOrUpdateCodeSpaceConfig(id: string, data: any) {
+    return this.patch(`workspaces/${id}/config`, data);
+  }
+
+  public static getCodeSpaceConfig(id: string): Promise<any[]> {
+    return this.get(`/workspaces/${id}/config`)
+  };
+
+  public static getPublishedConfig(id: string): Promise<any[]> {
+    return this.get(`/workspaces/${id}/config/publish`)
+  };
+
+  public static getEntitlements(id: string): Promise<any[]> {
+    return this.get(`/workspaces/${id}/config/entitlements`)
+  };
+
+  public static getRoles(id: string): Promise<any[]> {
+    return this.get(`/workspaces/${id}/config/roles`)
+  };
+
+  public static getRolesMappings(id: string): Promise<any[]> {
+    return this.get(`/workspaces/${id}/config/mappings`)
+  };
+
+  public static addCodeSpaceRequest(id: string): Promise<any[]> {
+    return this.post(`/workspaces/${id}/config/request`)
+  };
+
+  public static createCodeSpaceRecipe(data: any) {
+    return this.post('recipeDetails', data);
+  }
+  
+  public static getCodeSpaceRecipeRequests() {
+    return this.get('recipeDetails')
+  }
+
+  public static getCodeSpaceRecipe(id: string){
+    return this.get(`recipeDetails/${id}`);
+  }
+
+  public static getLovData(): Promise<any[]>{
+    return Promise.all([
+      this.getStorage(`lov/dataclassifications`),
+      ApiClient.get('divisions'),
+      ReportsApiClient.get('departments'),
+    ]);
+  };
+  
+  public static getWorkspaceConfigs(): Promise<any[]>{
+    return this.get(`/workspaces/configs`)
+  };
+
+  public static acceptSecurityConfigRequest (id:string): Promise<any[]>{
+    return this.post(`/workspaces/${id}/config/accept`)
+  };
+
+  public static publishSecurityConfigRequest (id:string): Promise<any[]>{
+    return this.post(`/workspaces/${id}/config/publish`)
+  };
 }

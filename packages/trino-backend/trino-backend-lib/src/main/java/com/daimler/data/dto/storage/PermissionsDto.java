@@ -1,5 +1,7 @@
 package com.daimler.data.dto.storage;
 
+import java.io.Serializable;
+
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import lombok.AllArgsConstructor;
@@ -10,8 +12,9 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class PermissionsDto {
+public class PermissionsDto  implements Serializable{
 
+	private static final long serialVersionUID = 1L;
 	private Boolean read;
 	private Boolean write;
 	

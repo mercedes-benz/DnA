@@ -59,10 +59,28 @@ public class ForecastAssembler implements GenericAssembler<ForecastVO, ForecastN
 					List<InputFileVO> configFiles = toConfigFilesVO(data.getConfigFiles());
 					vo.setConfigFiles(configFiles);
 				}
+				if (data.getLeanGovernanceFeilds() != null) {
+					LeanGovernanceFeildVO governanceFeildVO = this.toGovernceVo(data.getLeanGovernanceFeilds());
+					vo.setLeanGovernanceFeilds(governanceFeildVO);
+
+				}
 				vo.setBucketId(entity.getData().getBucketId());
 			}
 		}
 		return vo;
+	}
+
+	public LeanGovernanceFeildVO toGovernceVo(LeanGovernanceFeilds entity) {
+		LeanGovernanceFeildVO governanceFeildVO = new LeanGovernanceFeildVO();
+		if(entity != null)
+		{
+			BeanUtils.copyProperties(entity, governanceFeildVO);
+			if (entity.getPiiData() != null && entity.getTermsOfUse() != null) {
+				governanceFeildVO.setPiiData(entity.getPiiData());
+				governanceFeildVO.setTermsOfUse(entity.getTermsOfUse());
+			}
+		}
+		return governanceFeildVO;
 	}
 	
 	public List<RunVO> toRunsVO(List<RunDetails> runs){
@@ -255,10 +273,27 @@ public class ForecastAssembler implements GenericAssembler<ForecastVO, ForecastN
 				List<File> files = this.toConfigFiles(vo.getConfigFiles());
 				data.setConfigFiles(files);
 			}
+			if (vo.getLeanGovernanceFeilds() != null) {
+				LeanGovernanceFeilds governanceFeilds = this.toGovernceEntity(vo.getLeanGovernanceFeilds());
+				data.setLeanGovernanceFeilds(governanceFeilds);
+			}
 			data.setBucketId(vo.getBucketId());
 			entity.setData(data);
 		}
 		return entity;
+	}
+
+	public LeanGovernanceFeilds toGovernceEntity(LeanGovernanceFeildVO vo) {
+		LeanGovernanceFeilds governanceFeilds = new LeanGovernanceFeilds();
+		if(vo != null)
+		{
+			BeanUtils.copyProperties(vo, governanceFeilds);
+			if (vo.isPiiData() != null && vo.isTermsOfUse() != null) {
+				governanceFeilds.setPiiData(vo.isPiiData());
+				governanceFeilds.setTermsOfUse(vo.isTermsOfUse());
+			}
+		}
+		return governanceFeilds;
 	}
 	
 	private String toFrequencyParam(String value) {
@@ -267,7 +302,7 @@ public class ForecastAssembler implements GenericAssembler<ForecastVO, ForecastN
 		case "WEEKLY" : return "Weekly";
 		case "MONTHLY" : return "Monthly";
 		case "YEARLY" : return "Yearly";
-		default: return "";
+		default: return value;
 		}
 	}
 	

@@ -297,9 +297,11 @@ const Description = (description: IDescriptionRequest) => (
       <View style={[styles.flexCol2]}>
         <Text style={styles.sectionTitle}>Report Link</Text>
         <Text>
+          {!description.reportLink? 'NA':
           <Link src={description.reportLink}>
-            <Text>{description.reportLink}</Text>
+            <Text>description.reportLink</Text>
           </Link>
+          }
         </Text>
       </View>
     </View>
@@ -308,7 +310,7 @@ const Description = (description: IDescriptionRequest) => (
       <View style={[styles.flexCol2, styles.firstCol]}>
         <Text style={styles.sectionTitle}>Division</Text>
         <Text>
-          {description.division?.name || description.division?.name === 'Choose' ? 'NA' : description.division?.name}
+        {description.division?.name  && description.division?.name === 'Choose' || !description.division?.name ? 'NA' : description.division?.name }
         </Text>
       </View>
       <View style={styles.flexCol2}>

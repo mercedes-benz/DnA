@@ -2,7 +2,7 @@ spring:
   mvc.pathmatch.matching-strategy: ant_path_matcher
   application:
     name: trinio-registry-service
-    version: 1.2.0
+    version: 1.2.2
 
   flyway:
     enabled: ${FLYWAY_ENABLED:false}
@@ -67,12 +67,20 @@ trino:
   userauth: ${TRINO_USERAUTH:XXXXX}
   userid: ${TRINO_USERID:XXXXX}
   uri: ${TRINO_BASEURI:XXXXX}
+  host: ${TRINO_HOST:XXXXX}
+  port: ${TRINO_PORT:XXXX}
   user: ${TRINO_USER:XXXXX}
   password: ${TRINO_PASSWORD:XXXXX}
   ssl: ${TRINO_SSL:true}
   sslverification: ${TRINO_SSLVERIFICATION:NONE}
-  catalog: ${TRINO_CATALOG:XXXXX}
+  catalog:
+    default: ${TRINO_CATALOG:XXXX}
+    iceberg: ${TRINO_ICEBERG_CATALOG:XXXX}
+    delta: ${TRINO_DELTA_CATALOG:XXXX}
   hadoop.remoteUser: ${TRINO_UNIX_HADOOP_REMOTEUSER:spring}
+  kubernetes:
+    namespace: ${TRINO_KUBE_NAMESPACE:XXXX}
+    configmap: ${TRINO_KUBE_CONFIGMAP:XXXX}
    
 swagger.headers.authorization.token: ${SWAGGER_HEADER_AUTH:XXXXXX}
 management.endpoints.web.exposure.include: loggers,health

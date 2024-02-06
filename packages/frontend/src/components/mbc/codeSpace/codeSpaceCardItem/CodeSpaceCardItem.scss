@@ -15,12 +15,10 @@
     margin-bottom: 5px;
     align-items: center;
     position: relative;
-    overflow: hidden;
-    height: 75px;
 
     .cardHeadInfo {
       width: 100%;
-      padding: 15px 20px;
+      padding: 0 20px;
       cursor: pointer;
       margin-top: 35px;
       .cardHeadTitle {
@@ -71,6 +69,10 @@
         }
         > div:last-child {
           flex: 1;
+          > a {
+            text-decoration: none;
+            margin-left: 10px;
+          }
         }
       }
       ul {
@@ -145,6 +147,55 @@
     &:hover {
       background-color: transparent;
     }
+  }
+}
+
+.OpenNewTab {
+  display: inline-block;
+  height: 25px;
+  position: relative;
+  width: 25px;
+  border: 1px solid grey;
+  vertical-align: middle;
+  margin-left: 10px;
+  text-decoration: none;
+  &:hover i {
+    animation: OpenNewTab 1s infinite;
+  }
+  i {
+    color: #c0c8d0 !important;
+    font-size: var(--font-size-default) !important;
+    margin: 0 !important;
+    transform: rotate(315deg);
+    top: -2px;
+    left: 5px;
+    position: absolute;
+    text-decoration: none;
+  }
+  span {
+    width: 16px;
+    height: 1px;
+    background-color: #c0c8d0;
+    position: absolute;
+    transform: rotate(314deg);
+    top: 14px;
+    left: 1px;
+    text-decoration: none;
+  }
+}
+
+@keyframes OpenNewTab {
+  0% {
+    left: 5px;
+    top: -2px;
+  }
+  50% {
+    left: 6px;
+    top: -3px;
+  }
+  100% {
+    left: 5px;
+    top: -2px;
   }
 }
   

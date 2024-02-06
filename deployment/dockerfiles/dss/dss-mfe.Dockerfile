@@ -1,4 +1,4 @@
-FROM node:16.14.2 as base
+FROM node:18.19.0 as base
 
 # Building the frontend
 WORKDIR /usr/src/packages/dss-mfe

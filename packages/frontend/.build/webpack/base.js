@@ -36,8 +36,10 @@ const base = {
     path: path.resolve(__dirname, '../../dist/app'),
     filename: `${packageName}_${version}_[name].[fullhash].js`,
     chunkFilename: `${packageName}_${version}_[name].[fullhash].bundle.js`,
+    pathinfo: false,
   },
   devServer: {
+    compress: true,
     headers: {
       'Access-Control-Allow-Origin': '*',
     },
@@ -224,7 +226,7 @@ const base = {
       module: 'empty',
       dgram: 'empty',
       dns: 'mock',
-      fs: 'empty',
+      fs: false,
       http2: 'empty',
       net: 'empty',
       tls: 'empty',

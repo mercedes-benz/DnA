@@ -131,7 +131,6 @@ paths:
           description: Filtering solutions based on digital value, values true or false
           required: false
           type: boolean
-          default: false
         - name: hasNotebook
           in: query
           description: Filtering solutions based on notebook value, values true or false
@@ -1192,6 +1191,13 @@ definitions:
         type: array
         items:
           $ref: "#/definitions/TeamMemberVO"
+      aiRiskAssessmentType:
+        type: string
+        enum: ["NOT_APPLICABLE", "BASIC_RISK", "HIGH_RISK"] 
+      workersCouncilApproval:
+        description: "Checks if workers council is approved or not its a boolean value it can be true/false "
+        type: boolean
+        default: false
   
   LinkVO:
     type: object

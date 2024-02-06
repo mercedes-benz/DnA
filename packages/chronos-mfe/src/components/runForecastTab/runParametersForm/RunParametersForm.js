@@ -5,6 +5,7 @@ import { useSelector } from 'react-redux';
 import Styles from './run-parameters-form.scss';
 // Container components
 import SelectBox from 'dna-container/SelectBox';
+import Modal from 'dna-container/Modal';
 import Tooltip from '../../../common/modules/uilab/js/src/tooltip';
 import { Envs } from '../../../utilities/envs';
 
@@ -17,10 +18,13 @@ const RunParametersForm = () => {
   const forecastHorizonTooltipContent = 'Select how many data points in the future the forecast should predict.\n Note that this number should not be more than 1/5th the length of your existing data, ideally less.\n Also, forecasting gets less precise over time, so try to not predict too many points in the future.';
   const chronosVersionTooltipContent = `This is an experimental feature used for testing or as a fallback option. To use an older Chronos version, type the version number, e.g. "2.3.0" (without the quotes).\nTo get a list of available Chronos versions, check this link [${Envs.CHRONOS_RELEASES_INFO_URL}].\nNote that we currently offer no support for this feature. Available versions differ between environments and versions might be discontinued without previous warning.`;
   const configurationFileTooltipContent = `You can upload your own Configuration\nFiles in the "Manage Project" Tab`;
+  const backtestingTooltipContent = `This will run Chronos the selected amount of times, while ignoring progressively more recent data. \nPlease be aware that job runtime effectively multiplies with your selected backtesting window. \nLearn more in the documentation under "Backtesting".`;
 
   const [expertView, setExpertView] = useState(false);
 
   const {isLoading, configFiles} = useSelector(state => state.chronosForm);
+  const [showCustomConfigModal, setShowCustomConfigModal] = useState(false);
+  const [configRecommendation, setConfigRecommendation] = useState('');
 
   useEffect(() => {
     SelectBox.defaultSetup();
@@ -43,6 +47,20 @@ const RunParametersForm = () => {
   useEffect(() => {
     SelectBox.defaultSetup();
   }, [isLoading]);
+
+  useEffect(() => {
+    configRecommendation.includes('OPTIMISATION_CONFIG') && setShowCustomConfigModal(true)
+  }, [configRecommendation]);
+
+  const customConfigFileContent = <div className={Styles.customConfigContainer}>
+    <p>The optimization finds a custom configuration file tailored to your data. <strong>Please read the following hints and restrictions carefully:</strong></p>
+    <p><strong>Single Target KPI only:</strong> Since the configuration is tailored to your target KPI, this feature only works with single-KPI data files. In case you have multiple target KPIs that you want to predict, please split them into different files. However, you can provide drivers data.</p>
+    <p><strong>Runtime:</strong> The feature will run hundreds of configurations to find the optimum one for you. This means that an optimization run takes a lot longer than a normal run (from an hour to a few).</p>
+    <p><strong>Forecast horizon:</strong> The feature will optimize your configuration based on your forecast horizon, meaning it will try to achieve the lowest error averaged over your forecast horizon setting. Make sure to select the forecast horizon that is important to you. You can still forecast more steps with the generated configuration.</p>
+    <p><strong>Evaluate results:</strong> Make sure to evaluate your results and check whether forecasts with the generated configuration meet your expectations. Feel free to contact the ADS team (<a href={`mailto:${Envs.ADS_EMAIL}`}>{Envs.ADS_EMAIL}</a>) for further needs or questions.</p>
+    <p>After the configuration optimization run finishes successfully, the proposed configuration file will be available in the project&apos;s configuration dropdown as &ldquo;CustomConfig&rdquo; with your Target KPI name and date of creation.</p>
+    <button className='btn btn-tertiary' onClick={() => setShowCustomConfigModal(false)}>Ok</button>
+  </div>;
   
   return (
     <div className={Styles.wrapper}>
@@ -100,6 +118,7 @@ const RunParametersForm = () => {
                   {...register('configurationFile', {
                     required: '*Missing entry',
                     validate: (value) => value !== '0' || '*Missing entry',
+                    onChange: (e) => { setConfigRecommendation(e.target.value) }
                   })}
                 >
                   {
@@ -111,7 +130,7 @@ const RunParametersForm = () => {
                         <>
                           {configFiles.map((file) => (
                               <option key={file.objectName} value={file.objectName}>
-                                {file?.objectName?.includes('chronos-core') ? 'General > ' + file?.objectName?.split("/")[2] : 'Project > ' + file?.objectName?.split("/")[2]}
+                                {file?.objectName?.includes('OPTIMISATION_CONFIG') ? 'Generate custom configuration' : file?.objectName?.includes('chronos-core') ? 'General > ' + file?.objectName?.split("/")[2] : 'Project > ' + file?.objectName?.split("/")[2]}
                               </option>
                           ))}
                         </>
@@ -266,7 +285,39 @@ const RunParametersForm = () => {
             </div>
             </div>
             <div className={Styles.runOnPowerfulMachinesContainer}>
-              &nbsp;
+              <div
+                className={classNames(
+                  `input-field-group`,
+                  Styles.tooltipIcon
+                )}
+              >
+                <label id="backtestingLabel" htmlFor="backtestingField" className="input-label">
+                  Backtesting
+                  <i className="icon mbc-icon info" tooltip-data={backtestingTooltipContent} />
+                </label>
+                <div className="custom-select" 
+                  // onBlur={() => trigger('hierarchy')}
+                  >
+                  <select
+                    id="backtestingField"
+                    {...register('backtesting')}
+                  >
+                    <option value={''}>No Backtesting</option>
+                    <option value={'1'}>1</option>
+                    <option value={'2'}>2</option>
+                    <option value={'3'}>3</option>
+                    <option value={'4'}>4</option>
+                    <option value={'5'}>5</option>
+                    <option value={'6'}>6</option>
+                    <option value={'7'}>7</option>
+                    <option value={'8'}>8</option>
+                    <option value={'9'}>9</option>
+                    <option value={'10'}>10</option>
+                    <option value={'11'}>11</option>
+                    <option value={'12'}>12</option>
+                  </select>
+                </div>
+              </div>
             </div>
           </div>
           </>  : null
@@ -284,6 +335,28 @@ const RunParametersForm = () => {
         </div>
       </div>
     </div>
+
+    { showCustomConfigModal &&
+        <Modal
+          title={'Generate custom configuration'}
+          showAcceptButton={false}
+          showCancelButton={false}
+          modalWidth={'60%'}
+          buttonAlignment="right"
+          show={showCustomConfigModal}
+          content={customConfigFileContent}
+          scrollableContent={false}
+          onCancel={() => {
+            setShowCustomConfigModal(false)
+          }}
+          modalStyle={{
+            padding: '50px 35px 35px 35px',
+            minWidth: 'unset',
+            width: '60%',
+            maxWidth: '50vw'
+          }}
+        />
+      }
     </div>
   );
 }

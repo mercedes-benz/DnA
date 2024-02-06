@@ -7,8 +7,10 @@ import ContextMenu from '../contextMenu/ContextMenu';
 import Spinner from '../spinner/Spinner';
 import Plot from 'react-plotly.js';
 
-const VisualContainer = ({title, forecastRun, printRef, loading, forecastData, addTraces, layout, isForecast, isDecomposition, handleDecompositionMethod, legend, decompositionMethods,
-  isOutlier, handleOutlierMethod, outlierMethods}) => {
+const VisualContainer = ({title, forecastRun, loading, forecastData, addTraces, layout, isForecast, isDecomposition, handleDecompositionMethod, legend, decompositionMethods,
+  isOutlier, handleOutlierMethod, outlierMethods, onShowValues, showValues, onShowMarkers, showMarkers}) => {
+    
+  const printRef = React.useRef();
   const exportToPdf = async () => {
     const element = printRef.current;
     const canvas = await html2canvas(element);
@@ -52,6 +54,16 @@ const VisualContainer = ({title, forecastRun, printRef, loading, forecastData, a
       onClickFn: exportToPng
     },
   ];
+
+  showValues !== undefined && contextMenuItems.push ({
+    title: showValues ? 'Hide values' : 'Display values',
+    onClickFn: onShowValues
+  });
+
+  showMarkers !== undefined && contextMenuItems.push ({
+    title: showMarkers ? 'Hide markers' : 'Show markers',
+    onClickFn: onShowMarkers
+  });
 
   return (
     <div className={Styles.content}>

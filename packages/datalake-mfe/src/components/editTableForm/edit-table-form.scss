@@ -1,0 +1,17 @@
+.flexLayout {
+  display: flex;
+  justify-content: space-between;
+  > div {
+    width: calc(50% - 10px);
+  }
+  > button {
+    width: calc(50% - 10px);
+    margin-top: 12px;
+  }
+}
+.columnContainer {
+  margin-top: 20px;
+}
+.btnContainer {
+  text-align: right;
+}

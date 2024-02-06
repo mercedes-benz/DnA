@@ -29,8 +29,11 @@ package com.daimler.data.service.workspace;
 
 import java.util.List;
 
+import javax.validation.Valid;
+
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.dto.workspace.*;
+import com.daimler.data.dto.workspace.admin.CodespaceSecurityConfigDetailsVO;
 
 public interface WorkspaceService {
 
@@ -50,7 +53,7 @@ public interface WorkspaceService {
 
 	CodeServerWorkspaceVO getByProjectName(String userId, String projectName);
 
-	GenericMessage update(String userId, String name, String projectName, String existingStatus, String latestStatus, String targetEnv, String branch);
+	GenericMessage update(String userId, String name, String projectName, String existingStatus, String latestStatus, String targetEnv, String branch, String gitJobRunId);
 
 	GenericMessage deployWorkspace(String userId, String id, String environment, String branch, boolean isSecureWithIAMRequired, String technicalUserDetailsForIAMLogin);
 
@@ -68,4 +71,14 @@ public interface WorkspaceService {
 
 	CodeServerWorkspaceValidateVO validateCodespace(String id, String userId);
 
+	GenericMessage saveSecurityConfig(CodeServerWorkspaceVO vo, Boolean isPublished);
+
+    List<CodespaceSecurityConfigDetailsVO> getAllSecurityConfigs(Integer offset, Integer limit);
+
+	GenericMessage updateSecurityConfigStatus(String projectName, String Status, String user, CodeServerWorkspaceVO vo);
+
+	GenericMessage updateGovernancenceValues(String userId, String id,
+			@Valid DataGovernanceRequestInfo dataGovernanceInfo);
+
+	CodeServerWorkspaceVO getByProjectName(String projectName);
 }
