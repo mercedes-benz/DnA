@@ -51,6 +51,27 @@ const Graph = ({user}) => {
       //eslint-disable-next-line
     }, []);
 
+    const [loading, setLoading] = useState(true);
+    const [connectionInfo, setConnectionInfo] = useState();
+
+    useEffect(() => {
+      ProgressIndicator.show();
+        datalakeApi.getConnectionInfo(id)
+        .then((res) => {
+            setConnectionInfo(res.data.data);
+            ProgressIndicator.hide();
+            setLoading(false);
+        })
+        .catch((err) => {
+            Notification.show(
+            err?.response?.data?.errors?.[0]?.message || 'Error while fetching connection information',
+            'alert',
+            );
+            ProgressIndicator.hide();
+            setLoading(false);
+        });
+    }, [id]);
+
     /* A callback function that is used to update the viewbox of the svg. */
     const resizeHandler = useCallback(() => {
         dispatch(setBox({
@@ -208,29 +229,29 @@ const Graph = ({user}) => {
                 Inference by
             </label>
             <div className={Styles.flexLayout}>
-                <label className="checkbox">
+                <label className={classNames("checkbox", Styles.disabled)}>
                     <span className="wrapper">
                         <input type="checkbox" className="ff-only" />
                     </span>
-                    <span className="label">REST</span>
+                    <span className="label">REST API (Coming Soon)</span>
                 </label>
-                <label className="checkbox">
+                <label className={classNames("checkbox", Styles.disabled)}>
                     <span className="wrapper">
                         <input type="checkbox" className="ff-only" />
                     </span>
-                    <span className="label">GRAPHQL</span>
+                    <span className="label">GRAPHQL (Coming Soon)</span>
                 </label>
-                <label className="checkbox">
+                <label className={classNames("checkbox", Styles.disabled)}>
                     <span className="wrapper">
                         <input type="checkbox" className="ff-only" />
                     </span>
-                    <span className="label">ODATA</span>
+                    <span className="label">ODATA (Coming Soon)</span>
                 </label>
-                <label className="checkbox">
+                <label className={classNames("checkbox", Styles.disabled)}>
                     <span className="wrapper">
                         <input type="checkbox" className="ff-only" />
                     </span>
-                    <span className="label">SQL</span>
+                    <span className="label">SQL (Coming Soon)</span>
                 </label>
                 <label className={classNames("checkbox", Styles.disabled)}>
                     <span className="wrapper">
@@ -276,6 +297,7 @@ const Graph = ({user}) => {
 
     const technicalUserContent = <>
     <FormProvider {...methods}>
+      <p>Create a Technical User to connect your publised tables to Trino REST and in Dataiku.</p>
       <div className={classNames('input-field-group include-error', errors?.clientId ? 'error' : '')}>
         <label className={classNames(Styles.inputLabel, 'input-label')}>
           Client ID <sup>*</sup>
@@ -288,7 +310,7 @@ const Graph = ({user}) => {
             placeholder="Type here"
             autoComplete="off"
             maxLength={55}
-            // defaultValue={clientId}
+            defaultValue={!loading && (connectionInfo?.howToConnect?.trino?.techUserVO?.accesskey ? connectionInfo?.howToConnect?.trino?.techUserVO?.accesskey : '')}
             {...register('clientId', { required: '*Missing entry'})}
           />
           <span className={classNames('error-message')}>{errors?.clientId?.message}</span>
@@ -312,6 +334,7 @@ const Graph = ({user}) => {
           <span className={classNames('error-message')}>{errors?.clientSecret?.message}</span>
         </div>
       </div>
+      <p>Keep your Client Secret safe. We do not store this information.</p>
       <div className={Styles.btnContainer}>
         <button
           className="btn btn-tertiary"
@@ -325,6 +348,57 @@ const Graph = ({user}) => {
       </div>
     </FormProvider>
     </>; 
+
+  const [showDataProductModal, setShowDataProductModal] = useState(false);
+
+  const handleCreateDataProduct = () => {
+    setShowDataProductModal(false);
+  }
+
+  const dataProductContent = <>
+  <FormProvider {...methods}>
+    <div className={classNames('input-field-group include-error', errors?.name ? 'error' : '')}>
+      <label className={classNames(Styles.inputLabel, 'input-label')}>
+        Name <sup>*</sup>
+      </label>
+      <div>
+        <input
+          type="text"
+          className={classNames('input-field')}
+          id="name"
+          placeholder="Type here"
+          autoComplete="off"
+          maxLength={55}
+          defaultValue={project?.projectName}
+          {...register('name', { required: '*Missing entry'})}
+        />
+        <span className={classNames('error-message')}>{errors?.name?.message}</span>
+      </div>
+    </div>
+    <div className={classNames('input-field-group include-error area', errors.description ? 'error' : '')}>
+      <label id="description" className="input-label" htmlFor="description">
+        Description <sup>*</sup>
+      </label>
+      <textarea
+        id="description"
+        className="input-field-area"
+        type="text"
+        {...register('description', { required: '*Missing entry' })}
+        rows={50}
+      />
+      <span className={classNames('error-message')}>{errors?.description?.message}</span>
+    </div>
+    <div className={Styles.btnContainer}>
+      <button
+        className="btn btn-tertiary"
+        type="button"
+        onClick={handleCreateDataProduct}
+      >
+        Create Data Product
+      </button>
+    </div>
+  </FormProvider>
+  </>; 
     
   const [showCollabModal, setShowCollabModal] = useState(false);
   const [table, setTable] = useState([]);
@@ -486,11 +560,21 @@ const Graph = ({user}) => {
               {/* <img src={Envs.DNA_BRAND_LOGO_URL} className={Styles.Logo} /> */}
               <div className={Styles.nbtitle}>
                 <button tooltip-data="Go Back" className="btn btn-text back arrow" onClick={() => { history.back() }}></button>
-                <h2>{project?.projectName}</h2>
+                <h2>{project?.projectName} <span>({project?.connectorType})</span></h2>
               </div>
             </div>
             <div className={Styles.navigation}>
                 <div className={Styles.headerright}>
+                    <div>
+                        <button
+                            className={classNames('btn btn-primary', Styles.btnOutline, !isOwner && Styles.btnDisabled)}
+                            type="button"
+                            onClick={() => { setShowDataProductModal(true) }}
+                        >
+                            <i className="icon mbc-icon dataproductoverview" />
+                            <span>Provision as a Data Product</span>
+                        </button>
+                    </div>
                     <div>
                         <button
                             className={classNames('btn btn-primary', Styles.btnOutline, !isOwner && Styles.btnDisabled)}
@@ -587,6 +671,22 @@ const Graph = ({user}) => {
             scrollableContent={false}
             onCancel={() => {
                 setShowInferenceModal(false);
+            }}
+        />
+    }
+
+    { showDataProductModal &&
+        <Modal
+            title={'Provision as a Data Product'}
+            showAcceptButton={false}
+            showCancelButton={false}
+            modalWidth={'35%'}
+            buttonAlignment="right"
+            show={showDataProductModal}
+            content={dataProductContent}
+            scrollableContent={false}
+            onCancel={() => {
+                setShowDataProductModal(false);
             }}
         />
     }
