@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import Styles from './CodeSpaceCardItem.scss';
 import { recipesMaster, regionalDateAndTimeConversionSolution, buildLogViewURL, buildGitJobLogViewURL } from '../../../../services/utils';
 import ConfirmModal from 'components/formElements/modal/confirmModal/ConfirmModal';
+import Modal from 'components/formElements/modal/Modal';
 import { history } from '../../../../router/History';
 // @ts-ignore
 import ProgressIndicator from '../../../../assets/modules/uilab/js/src/progress-indicator';
@@ -14,6 +15,7 @@ import Notification from '../../../../assets/modules/uilab/js/src/notification';
 import { IUserInfo } from 'globals/types';
 import { IconGear } from 'components/icons/IconGear';
 import { DEPLOYMENT_DISABLED_RECIPE_IDS } from 'globals/constants';
+import DoraMetrics from '../doraMetrics/DoraMetrics';
 
 interface CodeSpaceCardItemProps {
   userInfo: IUserInfo;
@@ -37,6 +39,7 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
   const isOwner = codeSpace.projectDetails?.projectOwner?.id === props.userInfo.id;
   const hasCollaborators = codeSpace.projectDetails?.projectCollaborators?.length > 0;
   const disableDeployment = codeSpace?.projectDetails?.recipeDetails?.recipeId.startsWith('public') || DEPLOYMENT_DISABLED_RECIPE_IDS.includes(codeSpace?.projectDetails?.recipeDetails?.recipeId);
+  const [showDoraMetricsModal, setShowDoraMetricsModal] = useState(false);
 
   const deleteCodeSpaceContent = (
     <div>
@@ -127,6 +130,10 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
     }
   };
 
+  const handleOpenDoraMetrics = () => {
+    setShowDoraMetricsModal(true);
+  }
+
   const projectDetails = codeSpace?.projectDetails;
   const intDeploymentDetails = projectDetails.intDeploymentDetails;
   const prodDeploymentDetails = projectDetails.prodDeploymentDetails;
@@ -212,7 +219,7 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
                     <div>
                       {intDeployed && (
                         <>
-                          <strong>Staging:</strong> (<span className={Styles.metricsTrigger}>DORA Metrics</span>)
+                          <strong>Staging:</strong> (<span className={Styles.metricsTrigger} onClick={handleOpenDoraMetrics}>DORA Metrics</span>)
                           <br />
                           Branch '{intDeploymentDetails?.lastDeployedBranch}' deployed on
                           <br />
@@ -244,7 +251,7 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
                     <div>
                       {prodDeployed && (
                         <>
-                          <strong>Production:</strong> (<span className={Styles.metricsTrigger}>DORA Metrics</span>)
+                          <strong>Production:</strong> (<span className={Styles.metricsTrigger} onClick={handleOpenDoraMetrics}>DORA Metrics</span>)
                           <br />
                           Branch '{prodDeploymentDetails?.lastDeployedBranch}' deployed on
                           <br />
@@ -421,6 +428,28 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
         onCancel={deleteCodeSpaceClose}
         onAccept={deleteCodeSpaceAccept}
       />
+
+      {
+        showDoraMetricsModal && 
+        <Modal
+          title={`DORA Metrics for ` + projectDetails.projectName}
+          showAcceptButton={true}
+          showCancelButton={false}
+          modalWidth={'60%'}
+          buttonAlignment="right"
+          acceptButtonTitle="Ok"
+          show={showDoraMetricsModal}
+          content={<DoraMetrics />}
+          scrollableContent={false}
+          onCancel={() => setShowDoraMetricsModal(false)}
+          onAccept={() => setShowDoraMetricsModal(false)}
+          modalStyle={{
+              padding: '50px 35px 35px 35px',
+              minWidth: 'unset',
+              width: '60%',
+          }}
+        />
+      }
     </>
   );
 };
