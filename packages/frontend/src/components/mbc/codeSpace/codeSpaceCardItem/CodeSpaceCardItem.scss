@@ -84,6 +84,37 @@
       }
     }
   }
+  .deploymentInfo {
+    display: flex;
+    flex: 1 auto;
+    border: 1px solid #383F49;
+    border-radius: 2px;
+
+    .metricsTrigger {
+      color: #00adef;
+      font-size: var(--font-size-small);
+      cursor: pointer;
+      &:hover {
+        text-decoration: underline;
+      }
+    }
+
+    > div {
+      padding: 5px;
+      > a {
+        text-decoration: none;
+        margin-left: 0 !important;
+        margin-right: 10px;
+      }
+    }
+
+     > div:first-child {
+      font-size: inherit !important;
+      font-weight: inherit !important;
+      color: inherit !important;
+      border-right: 1px solid #383F49;
+     }
+  }
   .statusIndicator {
     padding: 2px 8px;
     border: 1px solid #0AE6AB;
