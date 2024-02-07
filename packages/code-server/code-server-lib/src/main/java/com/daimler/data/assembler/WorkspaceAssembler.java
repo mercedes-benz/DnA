@@ -254,7 +254,6 @@ public class WorkspaceAssembler implements GenericAssembler<CodeServerWorkspaceV
 			for(DeploymentAudit audit: deployedAuditLogDetails)
 			{ 
 				DeploymentAudit auditDetails = new DeploymentAudit();
-				auditDetails.setId(audit.getId());
 				auditDetails.setDeploymentStatus(audit.getDeploymentStatus());
 				if(Objects.nonNull(audit.getDeployedOn())){
 					auditDetails.setDeployedOn(audit.getDeployedOn());
@@ -303,7 +302,6 @@ public class WorkspaceAssembler implements GenericAssembler<CodeServerWorkspaceV
 				try
 				{
 					DeploymentAuditVO auditDetails = new DeploymentAuditVO();
-					auditDetails.setId(audit.getId());
 					auditDetails.setDeploymentStatus(audit.getDeploymentStatus());
 					if(Objects.nonNull(audit.getDeployedOn()))
 						auditDetails.setDeployedOn(isoFormat.parse(isoFormat.format(audit.getDeployedOn())));

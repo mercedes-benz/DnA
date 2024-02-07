@@ -15,7 +15,6 @@ import lombok.NoArgsConstructor;
 @JsonIgnoreProperties(ignoreUnknown = true) 
 public class DeploymentAudit implements Serializable{
 
-    private String id;
     private String triggeredBy;
     private Date triggeredOn;
     private String deploymentStatus;

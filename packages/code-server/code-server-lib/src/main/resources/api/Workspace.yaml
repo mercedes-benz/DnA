@@ -1295,9 +1295,6 @@ definitions:
   DeploymentAuditVO:
     type: object
     properties:
-      id:
-        type: string
-        description: "deployment audit Id"
       triggeredBy:
         type: string
         description: "User who triggered deployment of codespace"
