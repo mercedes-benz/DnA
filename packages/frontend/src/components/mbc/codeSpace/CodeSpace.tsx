@@ -532,7 +532,7 @@ const CodeSpace = (props: ICodeSpaceProps) => {
                         </div>
                       )}
                       {codeDeployed && (
-                        <div className={Styles.urlLink} tooltip-data="API BASE URL - Staging">
+                        <div className={Styles.urlLink} tooltip-data="APP BASE URL - Staging">
                           <a href={codeDeployedUrl} target="_blank" rel="noreferrer">
                             <i className="icon mbc-icon link" /> Staging (
                             <i className="icon mbc-icon transactionaldata" /> {codeDeployedBranch})
@@ -562,7 +562,7 @@ const CodeSpace = (props: ICodeSpaceProps) => {
                         </div>
                       )}
                       {prodCodeDeployed && (
-                        <div className={Styles.urlLink} tooltip-data="API BASE URL - Production">
+                        <div className={Styles.urlLink} tooltip-data="APP BASE URL - Production">
                           <a href={prodCodeDeployedUrl} target="_blank" rel="noreferrer">
                             <i className="icon mbc-icon link" /> Production (
                             <i className="icon mbc-icon transactionaldata" /> {prodCodeDeployedBranch})
