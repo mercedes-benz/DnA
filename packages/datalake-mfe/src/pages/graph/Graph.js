@@ -21,6 +21,7 @@ import TableCollaborators from '../../components/tableCollaborators/TableCollabo
 import { datalakeApi } from '../../apis/datalake.api';
 import ColumnForm from '../../components/columnForm/ColumnForm';
 import EditTableForm from '../../components/editTableForm/EditTableForm';
+import DataProductForm from '../../components/dataProductForm/DataProductForm';
 
 const Graph = ({user}) => {
     const { id } = useParams();
@@ -354,51 +355,6 @@ const Graph = ({user}) => {
   const handleCreateDataProduct = () => {
     setShowDataProductModal(false);
   }
-
-  const dataProductContent = <>
-  <FormProvider {...methods}>
-    <div className={classNames('input-field-group include-error', errors?.name ? 'error' : '')}>
-      <label className={classNames(Styles.inputLabel, 'input-label')}>
-        Name <sup>*</sup>
-      </label>
-      <div>
-        <input
-          type="text"
-          className={classNames('input-field')}
-          id="name"
-          placeholder="Type here"
-          autoComplete="off"
-          maxLength={55}
-          defaultValue={project?.projectName}
-          {...register('name', { required: '*Missing entry'})}
-        />
-        <span className={classNames('error-message')}>{errors?.name?.message}</span>
-      </div>
-    </div>
-    <div className={classNames('input-field-group include-error area', errors.description ? 'error' : '')}>
-      <label id="description" className="input-label" htmlFor="description">
-        Description <sup>*</sup>
-      </label>
-      <textarea
-        id="description"
-        className="input-field-area"
-        type="text"
-        {...register('description', { required: '*Missing entry' })}
-        rows={50}
-      />
-      <span className={classNames('error-message')}>{errors?.description?.message}</span>
-    </div>
-    <div className={Styles.btnContainer}>
-      <button
-        className="btn btn-tertiary"
-        type="button"
-        onClick={handleCreateDataProduct}
-      >
-        Create Data Product
-      </button>
-    </div>
-  </FormProvider>
-  </>; 
     
   const [showCollabModal, setShowCollabModal] = useState(false);
   const [table, setTable] = useState([]);
@@ -683,10 +639,15 @@ const Graph = ({user}) => {
             modalWidth={'35%'}
             buttonAlignment="right"
             show={showDataProductModal}
-            content={dataProductContent}
+            content={<DataProductForm project={{...project}} onCreate={handleCreateDataProduct} />}
             scrollableContent={false}
             onCancel={() => {
                 setShowDataProductModal(false);
+            }}
+            modalStyle={{
+                padding: '50px 35px 35px 35px',
+                minWidth: 'unset',
+                width: '35%',
             }}
         />
     }
