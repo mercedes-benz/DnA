@@ -116,6 +116,7 @@ public class StorageServicesClient {
 						requestEntity, CreateBucketResponseWrapperDto.class);
 				if (response.hasBody()) {
 					createBucketResponse = response.getBody();
+					log.info("Bucket {} creation status is {}", bucketName, createBucketResponse.getStatus());
 				}
 				}catch(Exception e) {
 					log.error("Failed while creating bucket {} with exception {}",  bucketName,e.getMessage());
@@ -205,6 +206,7 @@ public class StorageServicesClient {
 			ResponseEntity<UpdateBucketResponseWrapperDto> response = restTemplate.exchange(uploadFileUrl, HttpMethod.PUT, requestEntity, UpdateBucketResponseWrapperDto.class);
 			if (response.hasBody()) {
 				updateBucketResponse = response.getBody();
+				log.info("Bucket {} updation status is {}", bucketName, updateBucketResponse.getStatus());
 			}
 		} catch (Exception e) {
 			log.error("Failed while updating the bucket {} with exception {}", bucketName, e.getMessage());
@@ -507,6 +509,7 @@ public class StorageServicesClient {
 					isBucketPresent = Boolean.valueOf(response.getBody().getIsBucketPresent());
 				}
 			}
+			log.info("Bucket {} isBucketExists value is {}", bucketName, isBucketPresent);
 		} catch(Exception e) {
 			log.error("Failed to check isBucketExists {}  with exception {}", bucketName + e.getMessage());
 		}
