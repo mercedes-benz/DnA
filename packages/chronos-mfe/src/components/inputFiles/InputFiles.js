@@ -143,41 +143,29 @@ const InputFiles = ({inputFiles, showModal, addNew}) => {
     const blob = new Blob([configEditorContent], {type : 'application/octet-stream'});
     formData.append('configFile', blob, selectedConfigFile.name);
     ProgressIndicator.show();
-    chronosApi.uploadProjectConfigFile(project?.data?.id, formData).then(() => {
-      Notification.show('File uploaded successfully');
-      dispatch(getProjectDetails(projectId));
-      dispatch(getConfigFiles(projectId)); 
-      setConfigEditorContent('');
+    beforeUpload().then(beforeUpload => {
+      if(beforeUpload) {
+        chronosApi.uploadProjectConfigFile(project?.data?.id, formData).then(() => {
+          Notification.show('File uploaded successfully');
+          dispatch(getProjectDetails(projectId));
+          dispatch(getConfigFiles(projectId)); 
+          setConfigEditorContent('');
+          ProgressIndicator.hide();
+        }).catch(error => {
+          ProgressIndicator.hide();
+          Notification.show(
+            error?.response?.data?.errors?.[0]?.message || error?.response?.data?.response?.errors?.[0]?.message || error?.response?.data?.response?.warnings?.[0]?.message || 'Error while uploading config file',
+            'alert',
+          );
+        });
+      } else {
+        ProgressIndicator.hide();
+        Notification.show('Error while uploading file', 'alert');
+      }
+    }).catch(() => {
       ProgressIndicator.hide();
-    }).catch(error => {
-      ProgressIndicator.hide();
-      Notification.show(
-        error?.response?.data?.errors?.[0]?.message || error?.response?.data?.response?.errors?.[0]?.message || error?.response?.data?.response?.warnings?.[0]?.message || 'Error while uploading config file',
-        'alert',
-      );
+      Notification.show('Error while uploading config file', 'alert');
     });
-    // beforeUpload().then(beforeUpload => {
-    //   if(beforeUpload) {
-    //     chronosApi.uploadProjectConfigFile(project?.data?.id, formData).then(() => {
-    //       Notification.show('File uploaded successfully');
-    //       dispatch(getProjectDetails(projectId));
-    //       dispatch(getConfigFiles(projectId)); 
-    //       ProgressIndicator.hide();
-    //     }).catch(error => {
-    //       ProgressIndicator.hide();
-    //       Notification.show(
-    //         error?.response?.data?.errors?.[0]?.message || error?.response?.data?.response?.errors?.[0]?.message || error?.response?.data?.response?.warnings?.[0]?.message || 'Error while uploading config file',
-    //         'alert',
-    //       );
-    //     });
-    //   } else {
-    //     ProgressIndicator.hide();
-    //     Notification.show('Error while uploading file', 'alert');
-    //   }
-    // }).catch(() => {
-    //   ProgressIndicator.hide();
-    //   Notification.show('Error while uploading config file', 'alert');
-    // });
   }
   
   return (
@@ -284,7 +272,7 @@ const InputFiles = ({inputFiles, showModal, addNew}) => {
             <AceEditor
               width="100%"
               placeholder="Type here"
-              name="storagePreview"
+              name="configFilePreview"
               mode={'yaml'}
               theme="solarized_dark"
               fontSize={16}
