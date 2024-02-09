@@ -1346,11 +1346,11 @@ public class BaseWorkspaceService implements WorkspaceService {
 						auditLogs =  new ArrayList<>();
 					}	
 					DeploymentAudit auditDetails = new DeploymentAudit();
-					//auditDetails.setTriggeredBy(userId);
+					auditDetails.setTriggeredBy(userId);
 					auditDetails.setDeploymentStatus(latestStatus);
 					auditDetails.setDeployedOn(now);
-					//auditDetails.setTriggeredOn(now);
-					//auditDetails.setBranch(branch);
+					auditDetails.setTriggeredOn(now);
+					auditDetails.setBranch(branch);
 					auditLogs.add(auditDetails);								
 					deploymentDetails.setDeploymentAuditLogs(auditLogs);
 					
