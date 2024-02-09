@@ -147,7 +147,8 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 	@Transactional(isolation = Isolation.SERIALIZABLE)
 	public ForecastRunResponseVO createJobRun(MultipartFile file,String savedInputPath, Boolean saveRequestPart, String runName,
 			String configurationFile, String frequency, BigDecimal forecastHorizon, String hierarchy, String comment, Boolean runOnPowerfulMachines,
-			ForecastVO existingForecast,String triggeredBy, Date triggeredOn,String chronosVersion, String backtesting, InputFileVO savedInputToRemove) {
+			ForecastVO existingForecast,String triggeredBy, Date triggeredOn,String chronosVersion, String backtesting, InputFileVO savedInputToRemove,
+			MultipartFile drivers,MultipartFile mapping,MultipartFile planning_data) {
 
 		String dataBricksJobidForRun = dataBricksJobId;
 		ForecastRunResponseVO responseWrapper = new ForecastRunResponseVO();
@@ -231,6 +232,48 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 		return responseWrapper;
 
 		}
+		if(drivers!=null) {
+			fileUploadResponse = storageClient.uploadFile(inputOrginalFolder, drivers,existingForecast.getBucketName());
+			if(fileUploadResponse==null || (fileUploadResponse!=null && (fileUploadResponse.getErrors()!=null || !"SUCCESS".equalsIgnoreCase(fileUploadResponse.getStatus())))) {
+				log.error("Error in uploading file to {} for forecast project {}",inputOrginalFolder,existingForecast.getName() );
+				MessageDescription msg = new MessageDescription("Failed to  upload file to " + inputOrginalFolder + "for" + existingForecast.getName() );
+				List<MessageDescription> errors = new ArrayList<>();
+				errors.add(msg);
+				responseMessage.setErrors(errors);
+				responseWrapper.setData(null);
+				responseWrapper.setResponse(responseMessage);
+	
+			return responseWrapper;
+			}
+		}
+		if(mapping!=null) {
+			fileUploadResponse = storageClient.uploadFile(inputOrginalFolder, mapping,existingForecast.getBucketName());
+			if(fileUploadResponse==null || (fileUploadResponse!=null && (fileUploadResponse.getErrors()!=null || !"SUCCESS".equalsIgnoreCase(fileUploadResponse.getStatus())))) {
+				log.error("Error in uploading file to {} for forecast project {}",inputOrginalFolder,existingForecast.getName() );
+				MessageDescription msg = new MessageDescription("Failed to  upload file to " + inputOrginalFolder + "for" + existingForecast.getName() );
+				List<MessageDescription> errors = new ArrayList<>();
+				errors.add(msg);
+				responseMessage.setErrors(errors);
+				responseWrapper.setData(null);
+				responseWrapper.setResponse(responseMessage);
+	
+			return responseWrapper;
+			}
+		}
+		if(planning_data!=null) {
+			fileUploadResponse = storageClient.uploadFile(inputOrginalFolder, planning_data,existingForecast.getBucketName());
+			if(fileUploadResponse==null || (fileUploadResponse!=null && (fileUploadResponse.getErrors()!=null || !"SUCCESS".equalsIgnoreCase(fileUploadResponse.getStatus())))) {
+				log.error("Error in uploading file to {} for forecast project {}",inputOrginalFolder,existingForecast.getName() );
+				MessageDescription msg = new MessageDescription("Failed to  upload file to " + inputOrginalFolder + "for" + existingForecast.getName() );
+				List<MessageDescription> errors = new ArrayList<>();
+				errors.add(msg);
+				responseMessage.setErrors(errors);
+				responseWrapper.setData(null);
+				responseWrapper.setResponse(responseMessage);
+	
+			return responseWrapper;
+			}
+		}
 		noteboookParams.setConfig(configurationFile);
 		noteboookParams.setCorrelationId(correlationId);
 		if(savedInputPath!=null) {
@@ -249,8 +292,24 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 		noteboookParams.setFreq(this.toFrequencyParam(frequency));
 
 		noteboookParams.setResults_folder(resultFolder);
-		noteboookParams.setX("");
-		noteboookParams.setX_pred("");
+		if(drivers==null){
+			noteboookParams.setX("");
+		}else{
+			noteboookParams.setX(existingForecast.getBucketName() + "/inputs/"
+			+ drivers.getOriginalFilename());
+		}
+		if(mapping==null){
+			noteboookParams.setMapping("");
+		}else{
+			noteboookParams.setMapping(existingForecast.getBucketName() + "/inputs/"
+			+ mapping.getOriginalFilename());
+		}
+		if(planning_data==null){
+			noteboookParams.setPlanning_data("");
+		}else{
+			noteboookParams.setPlanning_data(existingForecast.getBucketName() + "/inputs/"
+			+ planning_data.getOriginalFilename());
+		}
 		noteboookParams.setChronos_version(chronosVersion);
 
 		noteboookParams.setUser_id(triggeredBy);
