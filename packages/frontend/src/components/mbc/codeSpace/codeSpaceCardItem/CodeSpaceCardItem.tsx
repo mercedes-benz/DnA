@@ -182,19 +182,20 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
           >
             <div className={classNames('btn btn-text forward arrow', Styles.cardHeadTitle)} onClick={onCardNameClick}>
               {projectDetails.projectName}
-              <a
-                target="_blank"
-                href={`/codespace/${codeSpace.workspaceId}`}
-                className={Styles.OpenNewTab}
-                tooltip-data="Open workspace in new tab"
-                onClick={(e) => {
-                  e.stopPropagation();
-                }}
-                rel="noreferrer"
-              >
-                <i className="icon mbc-icon arrow small right" />
-                <span> &nbsp; </span>
-              </a>
+              {!enableOnboard && !creationFailed && (
+                <a
+                  className={Styles.OpenNewTab}
+                  tooltip-data="Open workspace in new tab"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    window.open(codeSpace?.workspaceUrl, '_blank');
+                    trackEvent('DnA Code Space', 'Code Space Open', 'Open in New Tab');
+                  }}
+                >
+                  <i className="icon mbc-icon arrow small right" />
+                  <span> &nbsp; </span>
+                </a>
+              )}
             </div>
           </div>
         </div>
@@ -213,7 +214,7 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
               <div>Created on</div>
               <div>{regionalDateAndTimeConversionSolution(codeSpace?.projectDetails.projectCreatedOn)}</div>
             </div>
-            {deployed && (
+            {!enableOnboard && !creationFailed && deployed && (
               <>
                 <div className={Styles.deploymentInfo}>
                     <div>
@@ -364,13 +365,25 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
                       <>
                         {!deployingInProgress && <span className={Styles.statusIndicator}>Deployed</span>}
                         {intDeployed && (
-                          <a href={intDeployedUrl} target="_blank" rel="noreferrer" className={Styles.deployedLink} tooltip-data="APP BASE URL - Staging">
+                          <a
+                            href={intDeployedUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                            className={Styles.deployedLink}
+                            tooltip-data="APP BASE URL - Staging"
+                          >
                             <i className="icon mbc-icon link" /> Staging{' '}
                             {projectDetails?.intDeploymentDetails?.secureWithIAMRequired && securedWithIAMContent}
                           </a>
                         )}
                         {prodDeployed && (
-                          <a href={prodDeployedUrl} target="_blank" rel="noreferrer" className={Styles.deployedLink} tooltip-data="APP BASE URL - Production">
+                          <a
+                            href={prodDeployedUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                            className={Styles.deployedLink}
+                            tooltip-data="APP BASE URL - Production"
+                          >
                             <i className="icon mbc-icon link" /> Production{' '}
                             {projectDetails?.prodDeploymentDetails?.secureWithIAMRequired && securedWithIAMContent}
                           </a>
