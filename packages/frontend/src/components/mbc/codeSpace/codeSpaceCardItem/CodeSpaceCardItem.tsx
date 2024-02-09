@@ -116,10 +116,10 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
 
   const onCodeSpaceSecurityConfigClick = (codeSpace: ICodeSpaceData) => {
     if (codeSpace?.projectDetails?.publishedSecuirtyConfig) {
-      history.push(`/codespace/publishedSecurityconfig/${codeSpace.id}?pub=true`);
+      history.push(`/codespace/publishedSecurityconfig/${codeSpace.id}?pub=true&name=${codeSpace.projectDetails.projectName}`);
       return;
     }
-    history.push(`codespace/securityconfig/${codeSpace.id}?pub=false`);
+    history.push(`codespace/securityconfig/${codeSpace.id}?pub=false&name=${codeSpace.projectDetails.projectName}`);
   };
 
   const onCodeSpaceDelete = () => {

@@ -112,6 +112,7 @@ window['STORAGE_INJECTED_ENVIRONMENT'] = {
   TRINO_API_BASEURL: 'http://localhost:7575/api',
   DATAIKU_API_BASEURL: 'http://localhost:7777/api',
   ENABLE_TRINO_PUBLISH: false,
+  ALICE_APP_NAME : 'YOUR_APP_NAME'
 };
 
 window['DATA_PRODUCT_INJECTED_ENVIRONMENT'] = {
