@@ -106,12 +106,12 @@
     dest: "{{dss_install_directory}}"
     creates: "{{dss_home_directory}}"
     remote_src: yes
-  tags: [ dss-upgrade-production, dss-upgrade-training, dss-upgrade-automation, lc-upgrade-prod ]
+  tags: [ dss-upgrade-production, dss-upgrade-training, dss-upgrade-automation, lc-upgrade-prod, lc-upgrade-dev ]
 
 - name: Run DSS upgrade
   become_user: "{{dss_system_user}}"
   shell: yes Y | {{dss_home_directory}}/installer.sh -d {{dss_data_directory}} -u
-  tags: [ dss-upgrade-production, dss-upgrade-training, lc-upgrade-prod ]
+  tags: [ dss-upgrade-production, dss-upgrade-training, lc-upgrade-prod, lc-upgrade-dev ]
 
 - name: Run DSS upgrade automation
   become_user: "{{dss_system_user}}"
@@ -123,12 +123,12 @@
 - name: Run R installer (it takes a while to compile dependencies)
   become_user: "{{dss_system_user}}"
   command: "{{dss_data_directory}}/bin/dssadmin install-R-integration"
-  tags: [ dss-upgrade-production, dss-upgrade-training, dss-upgrade-automation, lc-upgrade-prod ]
+  tags: [ dss-upgrade-production, dss-upgrade-training, dss-upgrade-automation, lc-upgrade-prod, lc-upgrade-dev ]
 
 #Install User Isolation Framework
 - name: Install User Isolation Framework
   shell: "{{dss_data_directory}}/bin/dssadmin install-impersonation {{dss_system_user}}"
-  tags: [dss-upgrade-production, dss-upgrade-automation, lc-upgrade-prod]
+  tags: [dss-upgrade-production, dss-upgrade-automation, lc-upgrade-prod, lc-upgrade-dev]
 
 # Start DSS
 - name: Stop / Start Dataiku after installation to pull config changes properly
@@ -136,7 +136,7 @@
   shell:
     cmd: |
       /etc/init.d/dataiku start
-  tags: [ dss-upgrade-production, dss-upgrade-training, dss-upgrade-automation, lc-upgrade-prod ]
+  tags: [ dss-upgrade-production, dss-upgrade-training, dss-upgrade-automation, lc-upgrade-prod, lc-upgrade-dev ]
 
 #Cleanup
 - name: Remove backup file from local storage
