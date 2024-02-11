@@ -36,12 +36,12 @@
 - name: "Ensure AZURE_STORAGE_CONNECTION_STRING is set before Upgrade"
   fail: msg='AZURE_STORAGE_CONNECTION_STRING environment variable is not set'
   when: azure_storage_conn_string == ""
-  tags: [ dss-upgrade-production, dss-upgrade-training, dss-upgrade-automation, lc-upgrade-prod ]
+  tags: [ dss-upgrade-production, dss-upgrade-training, dss-upgrade-automation ]
   
 - name: "Ensure AZURE_STORAGE_CONTAINER is set before Upgrade"
   fail: msg='AZURE_STORAGE_CONTAINER environment variable is not set'
   when: azure_storage_container == ""
-  tags: [ dss-upgrade-production, dss-upgrade-training, dss-upgrade-automation, lc-upgrade-prod ]
+  tags: [ dss-upgrade-production, dss-upgrade-training, dss-upgrade-automation ]
 
 #Pre Upgrade task
 - name: Stop / Start Dataiku after installation to pull config changes properly
@@ -64,17 +64,17 @@
   shell: tar --use-compress-program="pigz -k --fast" -cf {{dss_backup_directory}}/dataiku_backup_{{date_now}}_{{ansible_eth0.ipv4.address}}.tar.gz {{dss_data_directory}}
   tags: [ dss-upgrade-production, dss-upgrade-training, dss-upgrade-automation ]
 
-- name: Backup on-premise Dataiku Directory
-  shell: tar --use-compress-program="pigz -k --fast" -cf {{dss_backup_directory}}/dataiku_backup_{{date_now}}_{{ansible_default_ipv4.address}}.tar.gz {{dss_data_directory}}
-  tags: [ lc-upgrade-prod ]
+# - name: Backup on-premise Dataiku Directory
+#   shell: tar --use-compress-program="pigz -k --fast" -cf {{dss_backup_directory}}/dataiku_backup_{{date_now}}_{{ansible_default_ipv4.address}}.tar.gz {{dss_data_directory}}
+#   tags: [ lc-upgrade-prod ]
 
 - name: Upload backup file into Azure Storage container
   shell: "az storage blob upload -c {{azure_storage_container}} -f {{dss_backup_directory}}/dataiku_backup_{{date_now}}_{{ansible_eth0.ipv4.address}}.tar.gz -n dataiku_backup_{{date_now}}_{{ansible_eth0.ipv4.address}}.tar.gz --connection-string '{{azure_storage_conn_string}}'"
   tags: [ dss-upgrade-production, dss-upgrade-training, dss-upgrade-automation]
 
-- name: Upload on-premise backup file into Azure Storage container
-  shell: "az storage blob upload -c {{azure_storage_container}} -f {{dss_backup_directory}}/dataiku_backup_{{date_now}}_{{ansible_default_ipv4.address}}.tar.gz -n dataiku_backup_{{date_now}}_{{ansible_default_ipv4.address}}.tar.gz --connection-string '{{azure_storage_conn_string}}'"
-  tags: [ lc-upgrade-prod ]
+# - name: Upload on-premise backup file into Azure Storage container
+#   shell: "az storage blob upload -c {{azure_storage_container}} -f {{dss_backup_directory}}/dataiku_backup_{{date_now}}_{{ansible_default_ipv4.address}}.tar.gz -n dataiku_backup_{{date_now}}_{{ansible_default_ipv4.address}}.tar.gz --connection-string '{{azure_storage_conn_string}}'"
+#   tags: [ lc-upgrade-prod ]
 
 #Upgrading Dataiku 
 - name: Create install directory
