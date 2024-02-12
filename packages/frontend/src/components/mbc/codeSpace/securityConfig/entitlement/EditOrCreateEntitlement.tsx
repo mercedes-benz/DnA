@@ -61,7 +61,7 @@ const EditOrCreateEntitlement = (props: any) => {
       setmissingEntryEntlPath(errorMissingEntry);
       formValid = false;
     }
-    if(props.isProtectedByDna && (!entitlPath.includes('/api/') || entitlPath === '/api/')){
+    if(props.isProtectedByDna && (entitlPath.length < 4||!entitlPath.includes('/api/') || entitlPath === '/api/')){
       setmissingEntryEntlPath("enter valid API path/pattern eg:/api/books or /api/books/{id} or /api/books?bookName={value}}");
       formValid = false;
     }
