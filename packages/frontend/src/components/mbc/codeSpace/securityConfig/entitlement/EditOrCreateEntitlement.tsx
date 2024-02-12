@@ -8,7 +8,7 @@ const classNames = cn.bind(Styles);
 
 const EditOrCreateEntitlement = (props: any) => {
   const [EntitlId, setEntitlId] = useState<string>('');
-  const [EntitlName, setEntitleName] = useState<string>(Envs.ALICE_APP_NAME + '.' + props.projectName )
+  const [EntitlName, setEntitleName] = useState<string>(Envs.ALICE_APP_NAME + '.' + props.projectName);
   const [beforeUpdateEntitlName, setbeforeUpdateEntitlName] = useState<string>('');
   const [missingEntryEntitlName, setmissingEntryEntitlName] = useState<string>('');
   const [entitlPath, setEntitlPath] = useState<string>('');
@@ -22,7 +22,7 @@ const EditOrCreateEntitlement = (props: any) => {
     const value = e.currentTarget.value;
     validateEntitlementName(value);
     setEntitlId(value);
-    setEntitleName(Envs.ALICE_APP_NAME+'.'+props.projectName + '_'+value)
+    setEntitleName(Envs.ALICE_APP_NAME + '.' + props.projectName + '_' + value);
     setmissingEntryEntitlName('');
   };
 
@@ -36,11 +36,11 @@ const EditOrCreateEntitlement = (props: any) => {
           setmissingEntryEntitlName('Entitlement Id cannot start with special character');
         } else if (value.includes(' ')) {
           setmissingEntryEntitlName('Entitlement Id cannot have whitespaces');
-        }else if(spclCharValidation.test(value)) {
+        } else if (spclCharValidation.test(value)) {
           setmissingEntryEntitlName('Entitlement Id cannot have special characters other than - and _');
         }
       });
-    }else{
+    } else {
       setmissingEntryEntitlName('');
     }
   };
@@ -51,17 +51,19 @@ const EditOrCreateEntitlement = (props: any) => {
     if (EntitlId.length === 0) {
       setmissingEntryEntitlName(errorMissingEntry);
       formValid = false;
-    } 
+    }
     if (EntitlId.endsWith('_') || EntitlId.endsWith('-')) {
       setmissingEntryEntitlName('Entitlement Id cannot end with _ or -');
       formValid = false;
-    } 
+    }
     if (props.isProtectedByDna && entitlPath.length === 0) {
       setmissingEntryEntlPath(errorMissingEntry);
       formValid = false;
     }
-    if(props.isProtectedByDna && (entitlPath.length < 4||!entitlPath.includes('/api/') || entitlPath === '/api/')){
-      setmissingEntryEntlPath("enter valid API path/pattern eg:/api/books or /api/books/{id} or /api/books?bookName={value}}");
+    if (props.isProtectedByDna && (entitlPath.length < 4 || !entitlPath.includes('/api/') || entitlPath === '/api/')) {
+      setmissingEntryEntlPath(
+        'enter valid API path/pattern eg:/api/books or /api/books/{id} or /api/books?bookName={value}}',
+      );
       formValid = false;
     }
     if (props.isProtectedByDna && (httpMethod === '0' || httpMethod?.trim()?.length === 0)) {
@@ -98,7 +100,7 @@ const EditOrCreateEntitlement = (props: any) => {
       props.submitEntitlement({
         ...currentEntitlement,
         beforeUpdateEntitlName: beforeUpdateEntitlName,
-        name: props.projectName + '_' +EntitlId,
+        name: props.projectName + '_' + EntitlId,
       });
     }
   };
@@ -109,22 +111,26 @@ const EditOrCreateEntitlement = (props: any) => {
       if (currentEntitlementList?.apiList?.length === 0) {
         currentEntitlementList = {
           name: EntitlId,
-          apiList: [{
+          apiList: [
+            {
               apiPattern: entitlPath,
-              httpMethod: httpMethod
-            }]
-        }
+              httpMethod: httpMethod,
+            },
+          ],
+        };
       } else {
         if (currentEntitlementList.apiList) {
           currentEntitlementList.apiList.push({
             apiPattern: entitlPath,
-            httpMethod: httpMethod
+            httpMethod: httpMethod,
           });
         } else {
-          currentEntitlementList.apiList = [{
+          currentEntitlementList.apiList = [
+            {
               apiPattern: entitlPath,
-              httpMethod: httpMethod
-            }];
+              httpMethod: httpMethod,
+            },
+          ];
         }
       }
 
@@ -143,24 +149,26 @@ const EditOrCreateEntitlement = (props: any) => {
     setmissingEntryEntlPath('');
   };
 
-  const validateEntitlPath = (value: any) =>{
+  const validateEntitlPath = (value: any) => {
     const length = value.length;
     setTimeout(() => {
-    if(length >= 4 && !value.includes('/api')){
-      setmissingEntryEntlPath('API Path Should Start With /api');
-    }else if((value[length-2] === '=') && !(value[value.length-1] === '{') ){
-      setmissingEntryEntlPath('query params value should be enclosed in {}, eg: /api/books?bookName={value}}');
-    }else if(value.includes('{') && !value.includes('}')){
-      setmissingEntryEntlPath('query params value should be enclosed in {}, eg: /api/books?bookName={value}');
-    }
-  },10)
-  }
+      if (length >= 4 && !value.includes('/api')) {
+        setmissingEntryEntlPath('API Path Should Start With /api');
+      } else if (value[length - 2] === '=' && !(value[value.length - 1] === '{')) {
+        setmissingEntryEntlPath('query params value should be enclosed in {}, eg: /api/books?bookName={value}');
+      } else if (value.includes('{') && !value.includes('}')) {
+        setmissingEntryEntlPath('query params value should be enclosed in {}, eg: /api/books?bookName={value}');
+      }
+    }, 10);
+  };
 
   const deleteApiElement = (apiPattern: string, httpMethod: string) => {
     const updatedEntitlementList = currentEntitlement;
     updatedEntitlementList?.apiList?.splice(
-      currentEntitlement?.apiList?.findIndex((item: any) => item.apiPattern === apiPattern && item.httpMethod === httpMethod),
-      1
+      currentEntitlement?.apiList?.findIndex(
+        (item: any) => item.apiPattern === apiPattern && item.httpMethod === httpMethod,
+      ),
+      1,
     );
     setCurrentEntitlement({ ...updatedEntitlementList });
   };
@@ -168,7 +176,7 @@ const EditOrCreateEntitlement = (props: any) => {
   const onChangeHttp = (e: any) => {
     setHttpMethod(e.currentTarget.value);
     setmissingEntryEntlMethod('');
-  }
+  };
 
   useEffect(() => {
     if (props?.editEntitlementModal) {
@@ -211,28 +219,20 @@ const EditOrCreateEntitlement = (props: any) => {
                       maxLength={64}
                       placeholder="Type here"
                       autoComplete="off"
-                      onChange={(e)=>onEntitlementNameOnChange(e)}
+                      onChange={(e) => onEntitlementNameOnChange(e)}
                       value={EntitlId}
                     />
                     <span className={classNames('error-message', missingEntryEntitlName?.length ? '' : 'hide')}>
                       {missingEntryEntitlName}
                     </span>
                   </div>
-                  <div  className={classNames(
-                      ' input-field-group disabled '
-                    )}>
-                  <label id="PrjName" htmlFor="PrjName" className="input-label">
+                  <div className={classNames(' input-field-group disabled ')}>
+                    <label id="PrjName" htmlFor="PrjName" className="input-label">
                       Entitlement Name
                     </label>
-                    <input
-                      type="text"
-                      className="input-field"
-                      disabled={true}
-                      id="PrjName"
-                      value={EntitlName}
-                    />
+                    <input type="text" className="input-field" disabled={true} id="PrjName" value={EntitlName} />
                   </div>
-                  <span className={classNames('error-message', missingEntryEntitlName?.length ? '' : 'hide')}>{' '}</span>
+                  <span className={classNames('error-message', missingEntryEntitlName?.length ? '' : 'hide')}> </span>
                 </div>
                 {props.isProtectedByDna && (
                   <>
@@ -264,14 +264,19 @@ const EditOrCreateEntitlement = (props: any) => {
                     </div>
                     <div className={classNames(Styles.fieldWrapper)}>
                       <div
-                        className={classNames('input-field-group include-error', missingEntryEntlMethod.length ? 'error' : '')}
+                        className={classNames(
+                          'input-field-group include-error',
+                          missingEntryEntlMethod.length ? 'error' : '',
+                        )}
                       >
-                        <label id="reportHttpLabel" htmlFor="entitlementhttpInput" className={classNames("input-label")}>
-                          Http Method  <sup>{props.isProtectedByDna ? '*' : ''}</sup>
-                        </label>
-                        <div
-                           className="custom-select"
+                        <label
+                          id="reportHttpLabel"
+                          htmlFor="entitlementhttpInput"
+                          className={classNames('input-label')}
                         >
+                          Http Method <sup>{props.isProtectedByDna ? '*' : ''}</sup>
+                        </label>
+                        <div className="custom-select">
                           <select
                             id="entitlementhttpInput"
                             required={true}
@@ -338,16 +343,12 @@ const EditOrCreateEntitlement = (props: any) => {
           </div>
         </div>
         <div className={Styles.createBtn}>
-          <button
-            className={'btn btn-tertiary'}
-            type="button"
-            onClick={onEntitlementSubmit}
-          >
+          <button className={'btn btn-tertiary'} type="button" onClick={onEntitlementSubmit}>
             <span>{'Submit Changes'}</span>
           </button>
         </div>
       </div>
     </React.Fragment>
   );
-}
+};
 export default EditOrCreateEntitlement;
