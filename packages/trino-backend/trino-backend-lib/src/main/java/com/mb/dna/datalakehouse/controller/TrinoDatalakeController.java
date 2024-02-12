@@ -232,8 +232,19 @@ public class TrinoDatalakeController {
 		TrinoDataLakeProjectResponseVO responseVO = new TrinoDataLakeProjectResponseVO();
 		TrinoDataLakeProjectVO request = requestVO.getData();
 		String name = request.getProjectName();
+		
+		if(name ==null && "".equalsIgnoreCase(name)) {
+			log.error("Datalake project request has no name, bad request. Failed to create datalake project");
+			MessageDescription invalidMsg = new MessageDescription("Datalake project request does not contain valid name, failed to create.");
+			GenericMessage errorMessage = new GenericMessage();
+			errorMessage.setSuccess(HttpStatus.BAD_REQUEST.name());
+			errorMessage.addErrors(invalidMsg);
+			responseVO.setData(request);
+			responseVO.setResponse(errorMessage);
+			return new ResponseEntity<>(responseVO, HttpStatus.BAD_REQUEST);
+		}
 		String connectorType = request.getConnectorType();
-		String catalogName = connectorType!=null && connectorType.equalsIgnoreCase(ICEBERG_CONNECTOR) ? icebergCatalogName : deltaCatalogName;
+		String catalogName = connectorType!=null && connectorType.equalsIgnoreCase(DELTALAKE_CONNECTOR) ? deltaCatalogName : icebergCatalogName ;
 		String schemaName = SCHEMA_PREFIX+name;
 		TrinoDataLakeProjectVO existingProject = trinoDatalakeService.getByUniqueliteral("projectName", name);
 		if(existingProject!=null && existingProject.getId()!=null) {
