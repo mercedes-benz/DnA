@@ -294,6 +294,8 @@ export default class CreateNewSolution extends React.Component<ICreateNewSolutio
           attachments: [],
           links: [],
           complianceOfficers: [],
+          aiRiskAssessmentType: '',
+          workersCouncilApproval: false,
         },
         digitalValue: {
           typeOfCalculation: DigitalValue.digitalValueTypeKeyValue,
@@ -1067,8 +1069,14 @@ export default class CreateNewSolution extends React.Component<ICreateNewSolutio
     }
   };
 
-  protected onPublish = () => {
-    this.setState({ publishFlag: true }, () => {
+  protected onPublish = (segmentId: string) => {
+    this.state.solution.openSegments.push(segmentId);
+    this.setState({
+    publishFlag: true,
+    solution: {
+      ...this.state.solution,
+      publish: true
+    } }, () => {
       this.callApiToSave(true, null);
     });
   };

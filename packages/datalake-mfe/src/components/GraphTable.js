@@ -1,48 +1,72 @@
 /* eslint-disable react/no-unknown-property */ 
-import React from 'react';
+import classNames from 'classnames';
+import React, { useEffect } from 'react';
+import Styles from './graph-table.scss';
 import { tableWidth, titleHeight, commentHeight, fieldHeight } from '../data/settings';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
+import Tooltip from '../common/modules/uilab/js/src/tooltip';
+import { setTables } from '../redux/graphSlice';
 
 /**
- * It renders a table with a title, a list of fields, and a button to edit the table
+ * It renders a table with a title, a list of columns, and a button to edit the table
  * @param props - {
  *            table,
  *            onTableMouseDown,
  *            onGripMouseDown,
  *        }
- * @returns A table component with a title and a list of fields.
+ * @returns A table component with a title and a list of columns.
  */
 const GraphTable = (props) => {
-    // const dispatch = useDispatch();
-    const { table, onTableMouseDown, onGripMouseDown, tableSelectedId, setTableSelectId } = props;
-    const { version } = useSelector(state => state.graph);
+    const dispatch = useDispatch();
+    const { table, onTableMouseDown, onGripMouseDown, tableSelectedId, setTableSelectId, onDeleteTable, onAddColumn, onEditColumn, isOwner } = props;
+    const { project } = useSelector(state => state.graph);
 
-    const editable = version === 'currentVersion';
+    useEffect(() => {
+        Tooltip.defaultSetup();
+        return Tooltip.clear();
+        //eslint-disable-next-line
+    }, []);
+
+    const editable = isOwner;
 
     const handlerContextMenu = e => {
         e.preventDefault();
         e.stopPropagation();
     };
 
+    const removeColumn = (table, index) => {
+        const tempTable = {...table};
+        const columns = [...tempTable.columns];
+        columns.splice(index, 1);
+        tempTable.columns = [...columns];
+
+        const projectTemp = {...project};
+        const tableIndex = projectTemp.tables.findIndex(item => item.tableName === tempTable.tableName);
+        let newTables = [...projectTemp.tables];
+        newTables[tableIndex] = {...newTables[tableIndex], columns: [...columns]};
+        dispatch(setTables(newTables));
+    }
+
     // 12: box-shadow
-    const height = table.fields.length * fieldHeight + titleHeight + commentHeight + 12;
+    const height = table.columns.length * fieldHeight + titleHeight + commentHeight + 12;
+
     return (
         <>
         <foreignObject
-            x={table.x}
-            y={table.y}
+            x={table.xcoOrdinate}
+            y={table.ycoOrdinate}
             width={tableWidth}
             height={height}
-            key={table.id}
+            key={table.tableName}
             onMouseDown={e => onTableMouseDown(e, table)}
             // onMouseUp={(e) => onTableMouseUp(e, table)}
             onContextMenu={handlerContextMenu}
         >
             <div
                 className={`table ${editable ? 'editable' : ''} ${
-                    tableSelectedId === table.id ? 'table-selected' : ''
+                    tableSelectedId === table.tableName ? 'table-selected' : ''
                 }`}
-                onMouseOver={() => setTableSelectId(table.id)}
+                onMouseOver={() => setTableSelectId(table.tableName)}
                 onMouseOut={() => setTableSelectId(null)}
             >
                 <div
@@ -52,33 +76,47 @@ const GraphTable = (props) => {
                         lineHeight: `${titleHeight}px`,
                     }}
                 >
-                    <span className="table-name">{table.name}</span>
+                    <span className="table-name">{table.tableName}</span>
 
                     {editable && (
                         <div className="table-settings">
                             <button 
-                            // onClick={() => dispatch(setEditingTable(table))}
+                                tooltip-data={'View Collaborators'}
+                                onClick={() => props.onCollabClick(table)}
+                            >
+                                <i className="icon mbc-icon profile"></i>
+                            </button>
+                            {/* <button 
+                                onClick={() => onEditTable(table)}
+                                tooltip-data={'Edit Table'}
                             >
                                 <i className="icon mbc-icon edit fill"></i>
-                            </button>
-                            <button onClick={() => alert('delete')}>
+                            </button> */}
+                            <button tooltip-data={'Delete Table'} className={Styles.btnDelete} onClick={() => onDeleteTable(table.tableName)}>
                                 <i className="icon delete"></i>
                             </button>
                         </div>
                     )}
+
+                    <div className="table-format">
+                        <p>{table.dataFormat}</p>
+                    </div>
                 </div>
-                {table.fields &&
-                    table.fields.map((field) => (
+                <p className={Styles.tableComment}>
+                    {table.description}
+                </p>
+                {table.columns &&
+                    table.columns.map((field, index) => (
                         <div
                             className="popover"
-                            key={field.id}
+                            key={field.columnName}
                             // content={<RenderTableTips field={field} />}
                         >
                             <div
                                 className={`row ${editable ? 'editable' : ''}`}
-                                key={field.id}
-                                tableid={table.id}
-                                fieldid={field.id}
+                                key={field.columnName}
+                                tableid={table.tableName}
+                                fieldid={field.columnName}
                                 style={{ height: fieldHeight, lineHeight: `${fieldHeight}px` }}
                             >
                                 <div
@@ -86,46 +124,27 @@ const GraphTable = (props) => {
                                     onMouseDown={onGripMouseDown}
                                 ></div>
                                 <div className="field-content">
-                                    <div>
-                                        {field.name}
-                                        {field.pk && (
-                                            <img
-                                                alt="pk"
-                                                style={{
-                                                    width: 10,
-                                                    height: 10,
-                                                    marginLeft: 4,
-                                                }}
-                                                src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAB30lEQVR4AYySg44eURxHm75MbdvmCzQso0a1bdsKatu2MTNre3fMT6c3t1gjyS+6Oef+1QpoMgVXR+4X4W/2131vEZwIs2UakjQPe5+JKo4Ttx8DKSnJuTD8aJOCmnBYso2o8tS/3wHIOdWPt/v6PWlCIMuWcFC4nLBsr8hDpOTicFIJnayD3aWkUYEoWcIyRaukJG49xEnfgpc1jmT4jPSdXWm8guCXqGATQlBDtBpbGYP5ua9o7zLK0nYNwq1F9pe/nCuAlVjfBuFlTMPPmYOjTsX41JO4sQ5lRTvur++p1d/39VGUv5pPTL8ofusn4Eni9xnYnwdivOsuYXVVBx5s7PUTwdUUiOFYxK0H+IVLML+3xfvZBz93DQXnBpNwToqyz6Gu7sCTLb2+/ONqXhpR+QUcbTLGuw44yiCCvM2839xdv7umR6ayrB3auo482977Q82W//5sipKv4moj0N+2xVWHEeRv4sOW7lXXN/Y909CgawrsmPEA61s/9Fdt8TMnC3gd77d0129t6XekUbhmBXH3NZYyAi9jLF7eat5u7Gbe2dbvYHOwFORdHP4pqHiJn7eCoPgE7zZ3N+7v7L+rJfDvgQ04Ndeu+uI0s6dnJhi/Bvn50FTrdpAEsRgA3aj/RFymC/IAAAAASUVORK5CYII="
-                                            />
-                                        )}
-                                        {(field.unique || field.index) && (
-                                            <img
-                                                alt="index"
-                                                style={{
-                                                    width: 10,
-                                                    height: 10,
-                                                    marginLeft: 4,
-                                                }}
-                                                src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAQAAAC1+jfqAAAA7UlEQVR4AW2Qg26GURQEb/rWtW3bts2otm27jdpouv39YTeeuTjH2FNdUo1a4gBB/KVaFQt+Zp9bkFJe5Yo3OKBahUJSZ60CX8KLbHMhoZIfsq1Kta5eVJel3LDIEA+kYxHeWBPwSn20ckkMQRxWXTLEEh1MMMsgzWwSS9Rh4Hs1jHJKJ0PM0U6jcDzRu4HLf7lmgUYJi5RzzLlw3EbI5o51aT3drJDwHnEaSyIJKyGnz+ijll7hxLfIRvt6vq9op4ZhlnU6ptK5Xh7oYZBF4j5jy4wzFWv6HrskfMTnG7dkRWbcJb8kvqWkGtf8ARG87I1KSSe4AAAAAElFTkSuQmCC"
-                                            />
-                                        )}
+                                    <div className={Styles.columnName} tooltip-data={`${field.columnName}\n${field.comment}`}>
+                                        {field.columnName}
                                     </div>
-                                    <div className="field-type">{field.type}</div>
+                                    <div  className={classNames('field-type', Styles.columnType)}>
+                                        <span>{field.dataType}</span>
+                                        {field.notNullConstraintEnabled && <span className={Styles.notNull}>Not Null</span>}
+                                    </div>
                                 </div>
                                 <div className="grip-setting">
-                                    <button className="grip-setting-btn" 
-                                    // onClick={() => dispatch(setEditingField({ field, table }))}
+                                    <button className={classNames('grip-setting-btn')} 
+                                        onClick={() => onEditColumn(field, table, index)}
                                     >
                                         <i className="icon mbc-icon edit fill"></i>
                                     </button>
-                                    <button className="grip-setting-btn" 
-                                    // onClick={() => dispatch(addField(table, index))}
+                                    <button className={classNames('grip-setting-btn', Styles.btnAdd)}  
+                                        onClick={() => onAddColumn(table)}
                                     >
                                         <i className="icon mbc-icon plus"></i>
                                     </button>
-                                    <button className="grip-setting-btn" 
-                                    // onClick={() => dispatch(removeField(table, index))}
+                                    <button className={classNames('grip-setting-btn', Styles.btnDelete)} 
+                                        onClick={() => removeColumn(table, index)}
                                     >
                                         <i className="icon delete"></i>
                                     </button>

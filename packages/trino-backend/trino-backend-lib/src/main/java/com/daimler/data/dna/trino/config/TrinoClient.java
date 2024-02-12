@@ -30,6 +30,7 @@ package com.daimler.data.dna.trino.config;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.ResultSet;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -48,6 +49,7 @@ import org.springframework.web.client.RestTemplate;
 
 import com.daimler.data.dto.TrinoQueryResponse;
 import com.daimler.data.dto.TrinoResponse;
+import com.mb.dna.datalakehouse.dto.DataLakeTableColumnDetailsVO;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -60,6 +62,12 @@ public class TrinoClient {
 	
 	@Value("${trino.user}")
 	private String trinoUser;
+	
+	@Value("${trino.host}")
+	private String trinoHost;
+	
+	@Value("${trino.port}")
+	private String trinoPort;
 	
 	@Value("${trino.password}")
 	private String trinoPassword;
@@ -131,9 +139,136 @@ public class TrinoClient {
 		}
 	}
 	
+	public List<DataLakeTableColumnDetailsVO> showColumns(String catalogName, String schemaName, String tableName){
+		List<DataLakeTableColumnDetailsVO> columns = new ArrayList<>();
+		ResultSet results = null;
+		String url = "jdbc:trino://"+ trinoHost + ":" + trinoPort ;
+		Properties properties = new Properties();
+		properties.setProperty("user", trinoUser);
+		properties.setProperty("password", trinoPassword);
+		properties.setProperty("SSL", trinoSSL);
+		properties.setProperty("SSLVerification", trinoSSLVerification);
+		String sql = "";
+		try {
+			Connection connection = DriverManager.getConnection(url, properties);
+			Statement statement = connection.createStatement();
+			String statementString = "show columns from " + catalogName + "." + schemaName + "." + tableName ;
+		    sql = statementString; 
+		    results = statement.executeQuery(sql);
+		    log.info("Executed statement: {} successfully",sql);
+			if(results!=null) {
+				while(results.next()) {
+					String tempColumnName = results.getString("Column");
+					String tempColumnType = results.getString("Type");
+					DataLakeTableColumnDetailsVO tempColumn = new DataLakeTableColumnDetailsVO();
+					tempColumn.setColumnName(tempColumnName);
+					tempColumn.setDataType(tempColumnType);
+					columns.add(tempColumn);
+				}
+			}
+		    connection.close();
+		}catch(Exception e) {
+			log.error("Failed while executing show columns statement, {} using trino jdbc with exception {}",sql, e.getMessage());
+		}
+		return columns;
+	}
+	
+	public List<String> showSchemas(String catalogName, String schemaNamePattern){
+		List<String> schemas = new ArrayList<>();
+		ResultSet results = null;
+		String url = "jdbc:trino://"+ trinoHost + ":" + trinoPort ;
+		Properties properties = new Properties();
+		properties.setProperty("user", trinoUser);
+		properties.setProperty("password", trinoPassword);
+		properties.setProperty("SSL", trinoSSL);
+		properties.setProperty("SSLVerification", trinoSSLVerification);
+		String sql = "";
+		try {
+			Connection connection = DriverManager.getConnection(url, properties);
+			Statement statement = connection.createStatement();
+			String statementString = "show schemas from " + catalogName + " like '" + schemaNamePattern + "'";
+		    sql = statementString; 
+		    results = statement.executeQuery(sql);
+		    log.info("Executed statement: {} successfully",sql);
+			if(results!=null) {
+				while(results.next()) {
+					String tempSchemaName = results.getString("Schema");
+					schemas.add(tempSchemaName);
+				}
+			}
+		    connection.close();
+		}catch(Exception e) {
+			log.error("Failed while executing statement {} using trino jdbc with exception {}",sql, e.getMessage());
+		}
+		return schemas;
+	}
+	
+	public List<String> showTables(String catalogName, String schemaName, String tableNamePattern){
+		List<String> schemas = new ArrayList<>();
+		ResultSet results = null;
+		String url = "jdbc:trino://"+ trinoHost + ":" + trinoPort ;
+		Properties properties = new Properties();
+		properties.setProperty("user", trinoUser);
+		properties.setProperty("password", trinoPassword);
+		properties.setProperty("SSL", trinoSSL);
+		properties.setProperty("SSLVerification", trinoSSLVerification);
+		String sql = "";
+		try {
+			Connection connection = DriverManager.getConnection(url, properties);
+			Statement statement = connection.createStatement();
+			String statementString = "show tables from " + catalogName + "." + schemaName + " like '" + tableNamePattern + "'";
+		    sql = statementString; 
+		    results = statement.executeQuery(sql);
+		    log.info("Executed statement: {} successfully",sql);
+			if(results!=null) {
+				while(results.next()) {
+					String tempSchemaName = results.getString("Table");
+					schemas.add(tempSchemaName);
+				}
+			}
+		    connection.close();
+		}catch(Exception e) {
+			log.error("Failed while executing statement {} using trino jdbc with exception {}",sql, e.getMessage());
+		}
+		return schemas;
+	}
+	
+	public ResultSet queryStatements(String statementString) throws Exception{
+		
+		ResultSet results = null;
+		String url = "jdbc:trino://"+ trinoHost + ":" + trinoPort ;
+		Properties properties = new Properties();
+		properties.setProperty("user", trinoUser);
+		properties.setProperty("password", trinoPassword);
+		properties.setProperty("SSL", trinoSSL);
+		properties.setProperty("SSLVerification", trinoSSLVerification);
+		String sql = "";
+		try {
+			Connection connection = DriverManager.getConnection(url, properties);
+			Statement statement = connection.createStatement();
+		    sql = statementString; 
+		    results = statement.executeQuery(sql);
+		    log.info("Executed statement: {} successfully",sql);
+		    List<String> schemas = new ArrayList<>();
+			if(results!=null) {
+				
+				while(results.next()) {
+					String tempSchemaName = results.getString("Schema");
+					schemas.add(tempSchemaName);
+				}
+			}
+			System.out.println(schemas.toString());
+		    connection.close();
+		}catch(Exception e) {
+			log.error("Failed while executing statement {} using trino jdbc with exception {}",sql, e.getMessage());
+			throw e;
+		}
+		return results;
+		
+	}
 	
 	public void executeStatments(String statementString) throws Exception{
-		String url = "jdbc:trino://"+ trinoBaseUri.split("//")[1] + ":443";
+		String url = "jdbc:trino://"+ trinoHost + ":" + trinoPort ;
 		Properties properties = new Properties();
 		properties.setProperty("user", trinoUser);
 		properties.setProperty("password", trinoPassword);
@@ -146,6 +281,7 @@ public class TrinoClient {
 		    sql = statementString; 
 		    statement.executeUpdate(sql);
 		    log.info("Executed statement: {} successfully",sql);
+		    connection.close();
 		}catch(Exception e) {
 			log.error("Failed while executing statement {} using trino jdbc with exception {}",sql, e.getMessage());
 			throw e;

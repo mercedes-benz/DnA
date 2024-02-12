@@ -34,6 +34,7 @@ import javax.annotation.Nonnull;
 
 import org.springframework.web.multipart.MultipartFile;
 
+import com.daimler.data.dto.McListBucketCollectionDto;
 import com.daimler.data.dto.MinioGenericResponse;
 import com.daimler.data.dto.storage.PermissionVO;
 import com.daimler.data.dto.storage.UserVO;
@@ -210,5 +211,7 @@ public interface DnaMinioClient {
 	 * @param userId
 	 */
 	public void deleteUser(String userId);
+
+	McListBucketCollectionDto getAllBucketsUsingMC(String userId, boolean isAdmin);
 	
 }

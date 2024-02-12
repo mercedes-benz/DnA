@@ -95,6 +95,15 @@ public class AttachmentServiceImpl implements AttachmentService {
 			fileDetails.setFileName(fileName);
 			long fileSize = multiPartFile.getSize();
 			fileDetails.setFileSize(formatedSize(fileSize));
+			if(fileSize == 0L) {
+				List<MessageDescription> errors = new ArrayList<MessageDescription>();
+				MessageDescription md = new MessageDescription();
+				md.setMessage("File has no content, please validate and re-upload.");
+				log.info("File {} is empty", multiPartFile.getOriginalFilename());
+				errors.add(md);
+				fileDetails.setErrors(errors);
+			}
+			else {
 			if (isValidAttachment(fileName)) {
 				if (attachmentMalwareScan) {
 					log.debug("Scanning for malware for file {}", multiPartFile.getName());
@@ -121,6 +130,7 @@ public class AttachmentServiceImpl implements AttachmentService {
 				errors.add(md);
 				fileDetails.setErrors(errors);
 			}
+		  }	
 		} catch (Exception e) {
 			log.error("Failed while uploading file {} with exception {} ", multiPartFile.getName(), e.getMessage());
 			throw e;

@@ -211,6 +211,7 @@ public class BaseSolutionService extends BaseCommonService<SolutionVO, SolutionN
 	public SolutionVO create(SolutionVO vo) {
 
 		boolean isUpdate = vo != null && vo.getId() != null ? true : false;
+		boolean isOwnershipChanged = false;
 		boolean noteBookAttachedAlready = false;
 		String notebookEvent = "provisioned";
 		SolutionVO prevVo = new SolutionVO();
@@ -382,22 +383,36 @@ public class BaseSolutionService extends BaseCommonService<SolutionVO, SolutionN
 		List<ChangeLogVO> changeLogs = new ArrayList<>();
 		CreatedByVO currentUser = this.userStore.getVO();
 		boolean isPublishedOrCreated = false;
-		if (isUpdate) {
-			eventType = "Solution_update";
-			changeLogs = solutionAssembler.jsonObjectCompare(vo, prevVo, currentUser);
-			if (vo.isPublish())
-				isPublishedOrCreated = true;
-		} else {
-			eventType = "Solution_create";
-			isPublishedOrCreated = true;
-		}
-
 		List<String> teamMembers = new ArrayList<>();
 		List<String> teamMembersEmails = new ArrayList<>();
 		for (TeamMemberVO user : responseSolutionVO.getTeam()) {
 			teamMembers.add(user.getShortId());
 			teamMembersEmails.add(user.getEmail());
 		}
+		if (isUpdate) {
+			if(!vo.getCreatedBy().getId().equalsIgnoreCase(prevVo.getCreatedBy().getId())) {
+				isOwnershipChanged = true;
+			}
+			if(isOwnershipChanged){
+				eventType = "Solution_reassignOwner";
+				changeLogs = solutionAssembler.jsonObjectCompare(vo, prevVo, currentUser);
+				teamMembers.add(vo.getCreatedBy().getId());
+				teamMembersEmails.add(vo.getCreatedBy().getEmail());
+				isPublishedOrCreated = true;
+
+			}
+			else{
+				eventType = "Solution_update";
+				changeLogs = solutionAssembler.jsonObjectCompare(vo, prevVo, currentUser);
+				if (vo.isPublish())
+					isPublishedOrCreated = true;
+			}
+		} else {
+			eventType = "Solution_create";
+			isPublishedOrCreated = true;
+		}
+
+
 		if (isPublishedOrCreated) {
 			LOGGER.debug("Publishing message on solution event for solution {} ", solutionName);
 			if (StringUtils.hasText(eventType)) {
@@ -1058,6 +1073,7 @@ public class BaseSolutionService extends BaseCommonService<SolutionVO, SolutionN
 			CreatedByVO currentUser = this.userStore.getVO();
 			String userId = currentUser != null ? currentUser.getId() : "dna_system";
 			String userName = super.currentUserName(currentUser);
+			String newOwnerFullName= "";
 
 			/*
 			 * if(subscribedUsers!=null && !subscribedUsers.isEmpty() &&
@@ -1081,6 +1097,18 @@ public class BaseSolutionService extends BaseCommonService<SolutionVO, SolutionN
 				message = "Added as team member to Solution " + solutionName + " by user " + userName;
 				LOGGER.info("Publishing message on solution create for solution {} by userId {}", solutionName, userId);
 			}
+			if ("Solution_reassignOwner".equalsIgnoreCase(eventType)) {
+				if(changeLogs!=null && changeLogs.size()>0 ){
+					String newOwnerFirstName= changeLogs.get(0).getNewValue();
+					String newOwnerLastName= changeLogs.get(1).getNewValue();
+					newOwnerFullName = newOwnerFirstName + " " + newOwnerLastName;
+
+				}
+				eventType = "Solution Reassign Owner ";
+				message = "Solution Update. Owner for solution  " + solutionName  + " changed from " + userName +" to " + newOwnerFullName;
+				LOGGER.info("Publishing message on solution transfer ownership for solution {} by userId {}", solutionName, userId);
+			}
+
 			if (eventType != null && eventType != "") {
 				kafkaProducer.send(eventType, solutionId, "", userId, message, mailRequired, subscribedUsers,
 						subscribedUsersEmail, changeLogs);

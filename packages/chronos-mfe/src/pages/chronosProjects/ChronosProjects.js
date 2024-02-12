@@ -29,7 +29,7 @@ const ChronosProjects = ({ user }) => {
 
   // Fetch all chronos projects
   const getChronosProjects = () => {
-    chronosApi.getAllForecastProjects()
+    chronosApi.getAllForecastProjects(currentPageOffset, maxItemsPerPage)
       .then((res) => {
         if(res.status !== 204) {
           if (res.data.records) {
@@ -161,7 +161,7 @@ const ChronosProjects = ({ user }) => {
           buttonAlignment="right"
           show={createProject}
           content={<ChronosProjectForm edit={false} onSave={() => {setCreateProject(false); handleRefresh()}} />}
-          scrollableContent={false}
+          scrollableContent={true}
           onCancel={() => setCreateProject(false)}
           modalStyle={{
             padding: '50px 35px 35px 35px',

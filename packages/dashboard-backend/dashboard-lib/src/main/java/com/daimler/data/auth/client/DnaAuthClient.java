@@ -34,7 +34,7 @@ import com.daimler.data.dto.solution.UserInfoVO;
 
 public interface DnaAuthClient {
 
-	public JSONObject verifyLogin(String jwt);
+	public JSONObject verifyLogin(String userinfo);
 
 	/**
 	 * To get user information by calling dna-backend

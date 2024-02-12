@@ -25,146 +25,158 @@
  * LICENSE END 
  */
 
-package com.daimler.dna.notifications.common.filter;
+ package com.daimler.dna.notifications.common.filter;
 
-import io.jsonwebtoken.Claims;
-
-import org.json.JSONObject;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
-import org.springframework.web.context.WebApplicationContext;
-import org.springframework.web.context.support.WebApplicationContextUtils;
-
-import com.daimler.dna.notifications.common.auth.client.DnaAuthClient;
-import com.daimler.dna.notifications.common.user.UserStore;
-
-import javax.servlet.*;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-
-@Component
-public class JWTAuthenticationFilter implements Filter {
-
-	@Value("${dna.dnaAuthEnable}")
-	private boolean dnaAuthEnable;
-
-	private UserStore userStore;
-
-	@Autowired
-	private DnaAuthClient dnaAuthClient;
-
-	private Logger log = LoggerFactory.getLogger(JWTAuthenticationFilter.class);
-
-	@Override
-	public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain)
-			throws IOException, ServletException {
-		injectSpringDependecies(servletRequest);
-		HttpServletRequest httpRequest = (HttpServletRequest) servletRequest;
-		String requestUri = httpRequest.getRequestURI();
-		log.debug("Intercepting Request to validate JWT:" + requestUri);
-		String jwt = httpRequest.getHeader("Authorization");
-		if (!StringUtils.hasText(jwt)) {
-			log.error("Request UnAuthorized,No JWT available");
-			forbidResponse(servletResponse);
-			return;
-		} else {
-			Claims claims = JWTGenerator.decodeJWT(jwt);
-			String userId = "";
-			if (claims == null) {
-				log.error("Invalid  JWT!");
-				HttpServletResponse response = (HttpServletResponse) servletResponse;
-				response.reset();
-				response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-				return;
-			} else {
-				 userId = (String) claims.get("id");
-				if (dnaAuthEnable) {
-					JSONObject res = null;
-					try {
-						res = dnaAuthClient.verifyLogin(jwt);
-					} catch (Exception e) {
-						forbidResponse(servletResponse);
-						return;
-					}
-
-					if (res != null) {
-						try {
-							setUserDetailsToStore(res);
-							filterChain.doFilter(servletRequest, servletResponse);
-						} finally {
-							// Otherwise when a previously used container thread is used, it will have the
-							// old user id set and
-							// if for some reason this filter is skipped, userStore will hold an unreliable
-							// value
-							this.userStore.clear();
-						}
-
-					} else {
-						log.error("Request UnAuthorized,No JWT available");
-						forbidResponse(servletResponse);
-						return;
-					}
-
-				} else {
-					try {
-						log.debug(
-								"Request validation successful, set request user details in the store for further access");
-						setUserDetailsToStore(claims);
-						filterChain.doFilter(servletRequest, servletResponse);
-					} finally {
-						// Otherwise when a previously used container thread is used, it will have the
-						// old user id set and
-						// if for some reason this filter is skipped, userStore will hold an unreliable
-						// value
-						this.userStore.clear();
-					}
-				}
-
-			}
-		}
-
-	}
-
-	private void setUserDetailsToStore(Claims claims) {
-
-		UserStore.UserInfo user = UserStore.UserInfo.builder().id((String) claims.get("id"))
-				.firstName((String) claims.get("firstName")).lastName((String) claims.get("lastName"))
-				.email((String) claims.get("email")).department((String) claims.get("department"))
-				.mobileNumber((String) claims.get("mobileNumber")).build();
-
-		this.userStore.setUserInfo(user);
-
-	}
-
-	/**
-	 * method to set user info from dnabmc client
-	 * 
-	 * @param claims
-	 */
-	private void setUserDetailsToStore(JSONObject claims) {
-		UserStore.UserInfo user = UserStore.UserInfo.builder().id((String) claims.get("id"))
-				.firstName((String) claims.get("firstName")).lastName((String) claims.get("lastName"))
-				.email((String) claims.get("eMail")).department((String) claims.get("department"))
-				.mobileNumber((String) claims.get("mobileNumber")).build();
-		this.userStore.setUserInfo(user);
-
-	}
-
-	private void forbidResponse(ServletResponse servletResponse) {
-		HttpServletResponse response = (HttpServletResponse) servletResponse;
-		response.reset();
-		response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-	}
-
-	private void injectSpringDependecies(ServletRequest servletRequest) {
-		ServletContext servletContext = servletRequest.getServletContext();
-		WebApplicationContext webApplicationContext = WebApplicationContextUtils
-				.getWebApplicationContext(servletContext);
-		userStore = webApplicationContext.getBean(UserStore.class);
-	}
-}
+ import io.jsonwebtoken.Claims;
+ 
+ import org.json.JSONObject;
+ import org.slf4j.Logger;
+ import org.slf4j.LoggerFactory;
+ import org.springframework.beans.factory.annotation.Autowired;
+ import org.springframework.beans.factory.annotation.Value;
+ import org.springframework.stereotype.Component;
+ import org.springframework.util.StringUtils;
+ import org.springframework.web.context.WebApplicationContext;
+ import org.springframework.web.context.support.WebApplicationContextUtils;
+ 
+ import com.daimler.dna.notifications.common.auth.client.DnaAuthClient;
+ import com.daimler.dna.notifications.common.user.UserStore;
+ import com.fasterxml.jackson.core.JsonProcessingException;
+ import com.fasterxml.jackson.databind.ObjectMapper;
+ import com.fasterxml.jackson.core.type.TypeReference;
+ 
+ import javax.servlet.*;
+ import javax.servlet.http.HttpServletRequest;
+ import javax.servlet.http.HttpServletResponse;
+ import java.io.IOException;
+ 
+ @Component
+ public class JWTAuthenticationFilter implements Filter {
+ 
+	 @Value("${dna.dnaAuthEnable}")
+	 private boolean dnaAuthEnable;
+ 
+	 private UserStore userStore;
+ 
+	 @Autowired
+	 private DnaAuthClient dnaAuthClient;
+ 
+	 private Logger log = LoggerFactory.getLogger(JWTAuthenticationFilter.class);
+ 
+	 @Override
+	 public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain)
+			 throws IOException, ServletException {
+		 injectSpringDependecies(servletRequest);
+		 HttpServletRequest httpRequest = (HttpServletRequest) servletRequest;
+		 String requestUri = httpRequest.getRequestURI();
+		 log.debug("Intercepting Request to validate userinfo:" + requestUri);
+		 String userinfo = httpRequest.getHeader("dna-request-userdetails");
+		 if (!StringUtils.hasText(userinfo)) {
+			 log.error("Request UnAuthorized,No userinfo available");
+			 forbidResponse(servletResponse);
+			 return;
+		 } else if (StringUtils.hasText(userinfo)) {
+			 if (dnaAuthEnable) {
+				 JSONObject res = null;
+				 try {
+					 res = dnaAuthClient.verifyLogin(userinfo);
+				 } catch (Exception e) {
+					 forbidResponse(servletResponse);
+					 return;
+				 }
+ 
+				 if (res != null) {
+					 try {
+						 setUserDetailsToStore(res);
+						 filterChain.doFilter(servletRequest, servletResponse);
+					 } finally {
+						 // Otherwise when a previously used container thread is used, it will have the
+						 // old user id set and
+						 // if for some reason this filter is skipped, userStore will hold an unreliable
+						 // value
+						 this.userStore.clear();
+					 }
+ 
+				 } else {
+					 log.error("Request UnAuthorized,No userinfo available");
+					 forbidResponse(servletResponse);
+					 return;
+				 }
+ 
+			 } else {
+				 try {
+					 log.debug(
+							 "Request validation successful, set request user details in the store for further access");
+					 setUserDetailsToStore(userinfo);
+					 filterChain.doFilter(servletRequest, servletResponse);
+				 } catch (Exception e) {
+					 log.error("Error while storing userDetails {} ", e.getMessage());
+					 forbidResponse(servletResponse);
+					 this.userStore.clear();
+					 return;
+				 } finally {
+					 // Otherwise when a previously used container thread is used, it will have the
+					 // old user id set and
+					 // if for some reason this filter is skipped, userStore will hold an unreliable
+					 // value
+					 this.userStore.clear();
+				 }
+			 }
+ 
+		 } else {
+			 log.debug("Request is exempted from validation");
+			 filterChain.doFilter(servletRequest, servletResponse);
+		 }
+ 
+	 }
+ 
+	 // private void setUserDetailsToStore(Claims claims) {
+ 
+	 // UserStore.UserInfo user = UserStore.UserInfo.builder().id((String)
+	 // claims.get("id"))
+	 // .firstName((String) claims.get("firstName")).lastName((String)
+	 // claims.get("lastName"))
+	 // .email((String) claims.get("email")).department((String)
+	 // claims.get("department"))
+	 // .mobileNumber((String) claims.get("mobileNumber")).build();
+ 
+	 // this.userStore.setUserInfo(user);
+ 
+	 // }
+	 private void setUserDetailsToStore(String userinfo) throws JsonProcessingException {
+ 
+		 ObjectMapper objectMapper = new ObjectMapper();
+		 UserStore.UserInfo userInfo = objectMapper.readValue(userinfo, new TypeReference<UserStore.UserInfo>() {
+		 });
+		 this.userStore.setUserInfo(userInfo);
+ 
+	 }
+ 
+	 /**
+	  * method to set user info from dnabmc client
+	  * 
+	  * @param claims
+	  */
+	 private void setUserDetailsToStore(JSONObject claims) {
+		 UserStore.UserInfo user = UserStore.UserInfo.builder().id((String) claims.get("id"))
+				 .firstName((String) claims.get("firstName")).lastName((String) claims.get("lastName"))
+				 .email((String) claims.get("eMail")).department((String) claims.get("department"))
+				 .mobileNumber((String) claims.get("mobileNumber")).build();
+		 this.userStore.setUserInfo(user);
+ 
+	 }
+ 
+	 private void forbidResponse(ServletResponse servletResponse) {
+		 HttpServletResponse response = (HttpServletResponse) servletResponse;
+		 response.reset();
+		 response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+	 }
+ 
+	 private void injectSpringDependecies(ServletRequest servletRequest) {
+		 ServletContext servletContext = servletRequest.getServletContext();
+		 WebApplicationContext webApplicationContext = WebApplicationContextUtils
+				 .getWebApplicationContext(servletContext);
+		 userStore = webApplicationContext.getBean(UserStore.class);
+	 }
+ }
+ 

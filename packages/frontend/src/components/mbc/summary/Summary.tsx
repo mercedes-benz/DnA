@@ -156,6 +156,8 @@ export default class Summary extends React.Component<{ user: IUserInfo }, ISumma
           attachments: [],
           links: [],
           complianceOfficers: [],
+          aiRiskAssessmentType: '',
+          workersCouncilApproval: false
         },
         digitalValue: {
           typeOfCalculation: Summary.digitalValueTypeKeyValue,
@@ -262,16 +264,17 @@ export default class Summary extends React.Component<{ user: IUserInfo }, ISumma
     const {
       canShowTeams,
       solution: {
-        datacompliance: { quickCheck, useCaseDescAndEval, attachments, links, complianceOfficers },
+        datacompliance: { quickCheck, useCaseDescAndEval, attachments, links, complianceOfficers, aiRiskAssessmentType },
       },
     } = this.state;
     const canShowComplianceSummary =
-      canShowTeams &&
+      canShowTeams && 
       (quickCheck ||
         useCaseDescAndEval ||
         (attachments && attachments.length) ||
         (links && links.length) ||
-        (complianceOfficers && complianceOfficers.length));
+        (complianceOfficers && complianceOfficers.length) ||
+        (aiRiskAssessmentType && aiRiskAssessmentType.length));
 
     const canShowDescription = this.state.solution.description.productName !== '';
     const canShowDigitalValue =
@@ -550,6 +553,8 @@ export default class Summary extends React.Component<{ user: IUserInfo }, ISumma
                     onDelete={this.onDeleteSolution}
                     updateBookmark={this.updateBookmark}
                     onExportToPDFDocument={pdfContent}
+                    canTransferOwnerShip={userInfo?.id === this.state.solution?.createdBy?.id}
+                    onTransferOwnershipSolutionConsent={this.onTransferOwnershipSolutionConsent}
                   />
                 ) : (
                   ''
@@ -692,8 +697,7 @@ export default class Summary extends React.Component<{ user: IUserInfo }, ISumma
             solution.lastModifiedDate = res.lastModifiedDate;
             const tempCollab = res.team.filter((item: any) => {
               item.id = item.shortId
-              item.userType === 'internal'
-              return item;
+              return item.id !== userInfo.id && item.userType === 'internal';
             }
             )
             this.setState(

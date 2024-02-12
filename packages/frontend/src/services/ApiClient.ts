@@ -512,7 +512,7 @@ export class ApiClient {
   }
 
   public static transferSolutionOwner(userObj: any, solutionId: string): Promise<any> {
-    return this.patch(`solutions/${solutionId}/reassignOwner/${userObj.shortId}`,userObj);
+    return this.patch(`solutions/${solutionId}/reassignOwner`,userObj);
   }
 
   public static getDRDUserInfo(adId: string): Promise<any> {
@@ -594,7 +594,7 @@ export class ApiClient {
     if (published) {
       reqQuery += `,published:${published}`;
     }
-    reqQuery += `,hasDigitalValue:${digitalvaluecontribution ? digitalvaluecontribution : false}`;
+    reqQuery += `,hasDigitalValue:${digitalvaluecontribution }`;
     reqQuery += `,hasNotebook:${notebookavailable ? notebookavailable : false}`;
     const resQuery = `totalCount
       records {id,
@@ -904,7 +904,7 @@ export class ApiClient {
     sortOrder: string,
     published: boolean,
     searchKey: string,
-    digitalvaluecontribution = false,
+    digitalvaluecontribution?: boolean,
     notebookavailable = false,
   ): Promise<any> {
     let reqQuery = `location:"${locations}",phase:"${phases}",division:"${divisions}",projectStatus:"${status}",useCaseType:"${useCaseType}",dataVolume:"${dataVolumes}",tags:"${tags}",offset:0,limit:0,sortBy:"${sortBy}",sortOrder:"${sortOrder}"`;
@@ -1022,6 +1022,8 @@ export class ApiClient {
           readyForImplementation,
           quickCheck,
           useCaseDescAndEval,
+          aiRiskAssessmentType,
+          workersCouncilApproval,
           attachments {
             id,
             fileName,

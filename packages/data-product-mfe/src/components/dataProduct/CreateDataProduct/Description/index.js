@@ -123,7 +123,7 @@ const Description = ({
     .then((res) => {
       setAllAccessTypes(res?.data?.data);
       ProgressIndicator.hide();
-      SelectBox.defaultSetup();
+      SelectBox.defaultSetup(true);
     })
     .catch((e) => {
       console.log(e);
@@ -903,6 +903,7 @@ const Description = ({
                 <div className={`custom-select`}>
                   <select id="accessTypeField" multiple={true} 
                   // name="accessType" 
+                  value = {accessType}
                   {...register('accessType',{
                   
                   
@@ -963,7 +964,7 @@ const Description = ({
                       onChangeConfidentialityInDescription(e.target.value);
                     }
                   })}>
-                    {/* <option value="">Choose</option> */}
+                    <option value="">Choose</option>
                     <option id='Internal' key={'Internal'} value={'Internal'}>Internal</option>
                     <option id='Secret' key={'Secret'} value={'Secret'}>Secret</option>
                     <option id='Confidential' key={'Confidential'} value={'Confidential'}>Confidential</option>

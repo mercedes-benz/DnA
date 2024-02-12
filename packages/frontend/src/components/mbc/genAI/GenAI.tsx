@@ -2,7 +2,7 @@ import React from 'react';
 import Styles from './GenAI.scss';
 import DNACard from 'components/card/Card';
 import LandingSummary from '../shared/landingSummary/LandingSummary';
-import headerImageURL from '../../../assets/images/CarLA-Landing.png';
+import headerImageURL from '../../../assets/images/GenAI-Landing.png';
 
 import { GenAILandingPageElements } from 'globals/landingPageElements';
 
@@ -13,7 +13,7 @@ const GenAI = () => {
     <LandingSummary
       title={'GenAI'}
       subTitle={
-        'GenAI is the core element of the BI & Analytics landscape in Finance Controlling at MBC. It bundles All the Tools and insight you need to start with Artificial Intelligence.'
+        'We want to foster transparency and collaboration. Find all GenAI use cases at Mercedes-Benz.'
       }
       headerImage={headerImageURL}
       isBackButton={true}

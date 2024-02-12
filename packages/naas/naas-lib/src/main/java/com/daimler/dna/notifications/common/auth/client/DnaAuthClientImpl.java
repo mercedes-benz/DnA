@@ -25,59 +25,60 @@
  * LICENSE END 
  */
 
-package com.daimler.dna.notifications.common.auth.client;
+ package com.daimler.dna.notifications.common.auth.client;
 
-import org.json.JSONException;
-import org.json.JSONObject;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Component;
-import org.springframework.web.client.RestTemplate;
-
-@Component
-public class DnaAuthClientImpl implements DnaAuthClient {
-
-	private Logger LOGGER = LoggerFactory.getLogger(DnaAuthClientImpl.class);
-
-	@Value("${dna.uri}")
-	private String dnaBaseUri;
-
-	private static final String VERIFY_LOGIN = "/api/verifyLogin";
-
-	@Autowired
-	RestTemplate restTemplate;
-
-	@Override
-	public JSONObject verifyLogin(String jwt) {
-		JSONObject res = null;
-		try {
-			HttpHeaders headers = new HttpHeaders();
-			headers.set("Accept", "application/json");
-			headers.set("Content-Type", "application/json");
-			headers.set("Authorization", jwt);
-
-			String dnaUri = dnaBaseUri + VERIFY_LOGIN;
-			HttpEntity entity = new HttpEntity<>(headers);
-			ResponseEntity<String> response = restTemplate.exchange(dnaUri, HttpMethod.POST, entity, String.class);
-			if (response != null && response.hasBody()) {
-				LOGGER.debug("Success from dna verify login {}");
-				res = (JSONObject) new JSONObject(response.getBody()).get("data");
-			}
-		} catch (JSONException e) {
-			LOGGER.error("Error occured while parsing jsonObject for DnA verifyLogin:{}", e.getMessage());
-			throw e;
-		} catch (Exception e) {
-			LOGGER.error("Error occured while calling DnA verifyLogin:{} for given jwt {}", e.getMessage(), jwt);
-			throw e;
-		}
-
-		return res;
-	}
-
-}
+ import org.json.JSONException;
+ import org.json.JSONObject;
+ import org.slf4j.Logger;
+ import org.slf4j.LoggerFactory;
+ import org.springframework.beans.factory.annotation.Autowired;
+ import org.springframework.beans.factory.annotation.Value;
+ import org.springframework.http.HttpEntity;
+ import org.springframework.http.HttpHeaders;
+ import org.springframework.http.HttpMethod;
+ import org.springframework.http.ResponseEntity;
+ import org.springframework.stereotype.Component;
+ import org.springframework.web.client.RestTemplate;
+ 
+ @Component
+ public class DnaAuthClientImpl implements DnaAuthClient {
+ 
+	 private Logger LOGGER = LoggerFactory.getLogger(DnaAuthClientImpl.class);
+ 
+	 @Value("${dna.uri}")
+	 private String dnaBaseUri;
+ 
+	 private static final String VERIFY_LOGIN = "/api/verifyLogin";
+ 
+	 @Autowired
+	 RestTemplate restTemplate;
+ 
+	 @Override
+	 public JSONObject verifyLogin(String userinfo) {
+		 JSONObject res = null;
+		 try {
+			 HttpHeaders headers = new HttpHeaders();
+			 headers.set("Accept", "application/json");
+			 headers.set("Content-Type", "application/json");
+			 headers.set("dna-request-userdetails", userinfo);
+ 
+			 String dnaUri = dnaBaseUri + VERIFY_LOGIN;
+			 HttpEntity entity = new HttpEntity<>(headers);
+			 ResponseEntity<String> response = restTemplate.exchange(dnaUri, HttpMethod.POST, entity, String.class);
+			 if (response != null && response.hasBody()) {
+				 LOGGER.debug("Success from dna verify login {}");
+				 res = (JSONObject) new JSONObject(response.getBody()).get("data");
+			 }
+		 } catch (JSONException e) {
+			 LOGGER.error("Error occured while parsing jsonObject for DnA verifyLogin:{}", e.getMessage());
+			 throw e;
+		 } catch (Exception e) {
+			 LOGGER.error("Error occured while calling DnA verifyLogin:{} for given userinfo", e.getMessage());
+			 throw e;
+		 }
+ 
+		 return res;
+	 }
+ 
+ }
+ 

@@ -114,7 +114,7 @@ export default class AllSolutions extends React.Component<
   // protected isTouch = false;
   constructor(props: any) {
     super(props);
-      this.state = {
+    this.state = {
       phases: [],
       divisions: [],
       subDivisions: [],
@@ -206,6 +206,12 @@ export default class AllSolutions extends React.Component<
         cardViewMode: false,
         listViewMode: true,
       });
+    }
+
+    const sessionSortingInfo = sessionStorage.getItem(SESSION_STORAGE_KEYS.SOLUTION_SORT_VALUES);
+    if (sessionSortingInfo) {
+      const sortBy = JSON.parse(sessionSortingInfo);
+      this.setState({ sortBy });
     }
     ProgressIndicator.show();
     Tooltip.defaultSetup();
@@ -309,7 +315,9 @@ export default class AllSolutions extends React.Component<
     const { openFilterPanel, enablePortfolioSolutionsView } = this.state;
     const isGenAI =
       this.state.queryParams?.tag?.length === 1 ? isSolutionFixedTagIncluded(this.state.queryParams.tag[0]) : false;
-      const isDigitalValueContributionEnabled = window.location.href.indexOf('digitalvaluecontribution') !== -1;
+    const isDigitalValueContributionEnabled = window.location.href.indexOf('digitalvaluecontribution') !== -1;
+    const isDataValueContributionEnabled = window.location.href.indexOf('datavaluecontribution') !== -1;
+
     const solutionData = this.state.solutions.map((solution) => {
       return (
         <SolutionListRowItem
@@ -418,7 +426,7 @@ export default class AllSolutions extends React.Component<
                       </div>
                       {!hideFilterView ? <span className={Styles.dividerLine}> &nbsp; </span> : ''}
                       {exportCSVIcon()}
-                      {!hideFilterView ? (
+                      {!hideFilterView || isGenAI ? (
                         <>
                           <span className={Styles.dividerLine}> &nbsp; </span>
                           <div tooltip-data="Filters">
@@ -439,6 +447,7 @@ export default class AllSolutions extends React.Component<
                 </div>
 
                 <SolutionsFilter
+                  isGenAI={isGenAI}
                   userId={this.props.user.id}
                   getFilterQueryParams={(queryParams: IFilterParams) =>
                     this.getFilteredSolutions(queryParams, this.state.showSolutionsFilter ? false : true)
@@ -541,7 +550,7 @@ export default class AllSolutions extends React.Component<
                                 Division
                               </label>
                             </th>
-                            {enablePortfolioSolutionsView && isDigitalValueContributionEnabled ? (
+                            {isDigitalValueContributionEnabled && (
                               <th
                                 onClick={this.sortSolutions.bind(null, 'digitalValue', this.state.sortBy.nextSortType)}
                               >
@@ -555,12 +564,18 @@ export default class AllSolutions extends React.Component<
                                   Digital Value (€)
                                 </label>
                               </th>
-                            ) : enablePortfolioSolutionsView ? (
+                            )}
+                            {isDataValueContributionEnabled && (
+                              <th
+                                onClick={this.sortSolutions.bind(null, 'digitalValue', this.state.sortBy.nextSortType)}
+                              >
+                                <label className={'sortable-column-header '}>Data Value (€)</label>
+                              </th>
+                            )}
+                            {!isDigitalValueContributionEnabled && !isDataValueContributionEnabled && (
                               <th>
                                 <label className={'sortable-column-header '}>Value Calculation (€)</label>
                               </th>
-                            ) : (
-                              <React.Fragment />
                             )}
                             <th onClick={this.sortSolutions.bind(null, 'locations', this.state.sortBy.nextSortType)}>
                               <label
@@ -767,6 +782,7 @@ export default class AllSolutions extends React.Component<
         sortBy,
       },
       () => {
+        sessionStorage.setItem(SESSION_STORAGE_KEYS.SOLUTION_SORT_VALUES, JSON.stringify(sortBy));
         this.getSolutions(this.state.enablePortfolioSolutionsView);
       },
     );
@@ -951,7 +967,13 @@ export default class AllSolutions extends React.Component<
       : '';
     const tags = queryParams.tag.join(',');
 
-    const isDigitalValueContributionEnabled = window.location.href.indexOf('digitalvaluecontribution') !== -1;
+    let isDigitalValueContributionEnabled = null;
+    if(window.location.href.indexOf('digitalvaluecontribution') !== -1){
+      isDigitalValueContributionEnabled = true;
+    }
+    else if(window.location.href.indexOf('datavaluecontribution') !== -1){
+      isDigitalValueContributionEnabled = false;
+    }
     const isNotificationEnabled = window.location.href.indexOf('notebook') !== -1;
 
     ApiClient.getSolutionsByGraphQL(
@@ -967,7 +989,7 @@ export default class AllSolutions extends React.Component<
       this.state.sortBy.name,
       this.state.sortBy.currentSortType,
       getPublished,
-      isDigitalValueContributionEnabled,
+      this.state.enablePortfolioSolutionsView ? isDigitalValueContributionEnabled : null,
       isNotificationEnabled,
     )
       .then((res) => {

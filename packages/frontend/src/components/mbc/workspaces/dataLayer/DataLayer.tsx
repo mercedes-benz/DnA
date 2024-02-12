@@ -15,7 +15,7 @@ const DataLayer = () => {
     <LandingSummary
       title={'Data Layer'}
       subTitle={
-        'Official information and definitions of CarLA applications, key figures and FC data.'
+        'More information and definitions of applications, key figures and data.'
       }
       headerImage={headerImageURL}
       isBackButton={true}

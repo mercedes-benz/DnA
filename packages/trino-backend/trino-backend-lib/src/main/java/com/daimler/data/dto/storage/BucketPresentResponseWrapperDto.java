@@ -6,14 +6,16 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.io.Serializable;
 import java.util.List;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class BucketPresentResponseWrapperDto {
-    private static final long serialVersionUID = 1L;
+public class BucketPresentResponseWrapperDto  implements Serializable{
+
+	private static final long serialVersionUID = 1L;
     private BucketPresentRequestDto data;
     private String isBucketPresent;
     private List<MessageDescription> success;
