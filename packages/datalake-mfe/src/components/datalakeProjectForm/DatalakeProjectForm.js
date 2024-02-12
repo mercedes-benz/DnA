@@ -1,41 +1,22 @@
 import classNames from 'classnames';
 import React, { useState, useEffect } from 'react';
 import { useForm, FormProvider } from 'react-hook-form';
-import { v4 as uuidv4 } from 'uuid';
-// import { useHistory } from "react-router-dom";
-import { useDispatch } from 'react-redux';
+import { useHistory } from "react-router-dom";
 // styles
 import Styles from './datalake-project-form.scss';
 // import from DNA Container
-import AddTeamMemberModal from 'dna-container/AddTeamMemberModal';
-import TeamMemberListItem from 'dna-container/TeamMemberListItem';
 import SelectBox from 'dna-container/SelectBox';
+import Tags from 'dna-container/Tags';
 // App components
 import Notification from '../../common/modules/uilab/js/src/notification';
 import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indicator';
-import { IconAvatarNew } from '../icons/iconAvatarNew/IconAvatarNew';
-// Utils
-import { regionalDateAndTimeConversionSolution } from '../../utilities/utils';
 // Api
+import { hostServer } from '../../server/api';
 import { datalakeApi } from '../../apis/datalake.api';
-import { addProject } from '../../redux/projectsSlice';
-import { getProjects } from '../../redux/projects.services';
 
 const DatalakeProjectForm = ({project, edit, onSave}) => {
-  // let history = useHistory();
-
-  const dispatch = useDispatch();
-  console.log('datalake-project');
-  console.log(project);
-
-  const [teamMembers, setTeamMembers] = useState(edit && project?.data?.collaborators !== null ? project?.data?.collaborators : []);
-  const [teamMembersOriginal, setTeamMembersOriginal] = useState(edit && project?.data?.collaborators !== null ? project?.data?.collaborators : []);
-  const [editTeamMember, setEditTeamMember] = useState(false);
-  const [selectedTeamMember, setSelectedTeamMember] = useState();
-  const [editTeamMemberIndex, setEditTeamMemberIndex] = useState(0);
-  const [addedCollaborators, setAddedCollaborators] = useState([]);
-  const [removedCollaborators, setRemovedCollaborators] = useState([]);
-
+  let history = useHistory();
+  
   const methods = useForm();
   const {
     register,
@@ -43,299 +24,153 @@ const DatalakeProjectForm = ({project, edit, onSave}) => {
     formState: { errors },
   } = methods;
 
-  const handleCreateProject = (values) => {
-    // ProgressIndicator.show();
-    const data = {
-        id: uuidv4(),
-        projectName: values.name,
-        description: values.description,
-        classificationType: dataClassification,
-        piiData: PII,
-        collaborators: teamMembers,
-        createdOn: '2023-04-05T11:12:52.991+00:00',
-        owner: {
-          id: 'KHARTAA',
-          firstName: 'Aniruddha',
-          lastName: 'Khartade',
-          mobile: '8975847136',
-          email: 'aniruddha@gmail.com'
-        },
-        tables: []
-    };
-    dispatch(addProject(data));
-    dispatch(getProjects());
-    onSave();
-    // datalakeApi.createForecastProject(data).then((res) => {
-    //   ProgressIndicator.hide();
-    //   history.push(`/project/${res.data.data.id}`);
-    //   Notification.show('Forecasting Project successfully created');
-    // }).catch(error => {
-    //   ProgressIndicator.hide();
-    //   Notification.show(
-    //     error?.response?.data?.response?.errors?.[0]?.message || error?.response?.data?.response?.warnings?.[0]?.message || 'Error while creating forecast project',
-    //     'alert',
-    //   );
-    // });
-  };
-  const handleEditProject = () => {
-    const addedCollaboratorsTemp = addedCollaborators.map((member) => {
-      if(member.id === null) {
-        return {...member, id: member.email}
-      } else {
-        return {...member}
-      }
-    });
-    let removedCollaboratorsTemp = teamMembersOriginal.filter((member) => {
-      return removedCollaborators.some((collab) => {
-        return member.id == collab.id;
-      });
-    });
-    removedCollaboratorsTemp = removedCollaboratorsTemp.map((member) => {
-      if(member.id === null) {
-        return {...member, id: member.email}
-      } else {
-        return {...member}
-      }
-    });
-    const data = {
-      addCollaborators: addedCollaboratorsTemp,
-      removeCollaborators: removedCollaboratorsTemp
-    }
-    ProgressIndicator.show();
-    datalakeApi.updateForecastProjectCollaborators(data, project?.data?.id).then(() => {
-      ProgressIndicator.hide();
-      setTeamMembers([]);
-      setTeamMembersOriginal([]);
-      setAddedCollaborators([]);
-      setRemovedCollaborators([]);
-      setEditTeamMember(false);
-      setEditTeamMemberIndex(0);
-      Notification.show('Forecasting Project successfully updated');
-      onSave();
-    }).catch(error => {
-      ProgressIndicator.hide();
-      Notification.show(
-        error?.response?.data?.response?.errors?.[0]?.message || error?.response?.data?.response?.warnings?.[0]?.message || 'Error while updating forecast project',
-        'alert',
-      );
-    });
-  };
-  
-  const addTeamMemberModalRef = React.createRef();
-  const [showAddTeamMemberModal, setShowAddTeamMemberModal] = useState(false);
-  const showAddTeamMemberModalView = () => {
-    setShowAddTeamMemberModal(true);
-    setEditTeamMember(false);
-    setEditTeamMemberIndex(0);
-  }
-
-  const onAddTeamMemberModalCancel = () => {
-    setShowAddTeamMemberModal(false);
-    setEditTeamMember(false);
-    setEditTeamMemberIndex(0);
-  }
-
-  const updateTeamMemberList = (teamMember) => {
-    onAddTeamMemberModalCancel();
-    const teamMemberTemp = {...teamMember, id: teamMember.shortId, permissions: { 'read': true, 'write': true }};
-    delete teamMemberTemp.teamMemberPosition;
-    let teamMembersTemp = teamMembers !== null ? [...teamMembers] : [];
-    let addedCollaboratorsTemp = addedCollaborators.length > 0 ? [...addedCollaborators] : [];
-    let removedCollaboratorsTemp = removedCollaborators.length > 0 ? [...removedCollaborators] : [];
-    if(editTeamMember) {
-      const deletedMember = teamMembersTemp.splice(editTeamMemberIndex, 1);
-      addedCollaboratorsTemp = checkMembers(addedCollaborators, deletedMember[0]);
-      removedCollaboratorsTemp = checkMembers(removedCollaborators, teamMember);
-      removedCollaboratorsTemp.push({...deletedMember[0], id: deletedMember[0].shortId ? deletedMember[0].shortId : deletedMember[0].id, permissions: { 'read': true, 'write': true }});
-      teamMembersTemp.splice(editTeamMemberIndex, 0, teamMemberTemp);
-      addedCollaboratorsTemp.push({...teamMember, id: teamMember.shortId ? teamMember.shortId : teamMember.id, permissions: { 'read': true, 'write': true }});
-    } else {
-      teamMembersTemp.push(teamMemberTemp);
-      removedCollaboratorsTemp = checkMembers(removedCollaborators, teamMember);
-      addedCollaboratorsTemp.push({...teamMember, id: teamMember.shortId ? teamMember.shortId : teamMember.id, permissions: { 'read': true, 'write': true }});
-    }
-    setAddedCollaborators(addedCollaboratorsTemp);
-    setRemovedCollaborators(removedCollaboratorsTemp);
-    setTeamMembers(teamMembersTemp);
-  }
-
-  const checkMembers = (members, member) => {
-    let membersTemp = members.length > 0 ? [...members] : [];
-    const isCommon = members.filter((mber) => mber.shortId === member.shortId);
-    if(isCommon.length === 1) {
-      membersTemp = members.filter((mber) => mber.shortId !== member.shortId);
-      return membersTemp;
-    } else {
-      return members;
-    }
-  }
-
-  const validateMembersList = (teamMemberObj) => {
-    let duplicateMember = false;
-    duplicateMember = teamMembers?.filter((member) => member.shortId === teamMemberObj.shortId)?.length ? true : false;
-    return duplicateMember;
-  };
-
-  const onTeamMemberEdit = (index) => {
-    setEditTeamMember(true);
-    setShowAddTeamMemberModal(true);
-    const teamMemberTemp = teamMembers[index];
-    setSelectedTeamMember(teamMemberTemp);
-    setEditTeamMemberIndex(index);
-  };
-
-  const onTeamMemberDelete = (index) => {
-    const teamMembersTemp = [...teamMembers];
-    const deletedMember = teamMembersTemp.splice(index, 1);
-
-    const newCollabs = checkMembers(addedCollaborators, deletedMember[0]);
-    setAddedCollaborators(newCollabs);
-
-    const removedCollaboratorsTemp = removedCollaborators.length > 0 ? [...removedCollaborators] : [];
-    removedCollaboratorsTemp.push({...deletedMember[0], id: deletedMember[0].shortId ? deletedMember[0].shortId : deletedMember[0].id, permissions: { 'read': true, 'write': true }});
-    setRemovedCollaborators(removedCollaboratorsTemp);
-
-    setTeamMembers(teamMembersTemp);
-  };
-
-  const teamMembersList = teamMembers?.map((member, index) => {
-    return (
-      <TeamMemberListItem
-        key={index}
-        itemIndex={index}
-        teamMember={{...member, shortId: member?.id, userType: 'internal'}}
-        hidePosition={true}
-        showInfoStacked={true}
-        showMoveUp={index !== 0}
-        showMoveDown={index + 1 !== teamMembers?.length}
-        onEdit={onTeamMemberEdit}
-        onDelete={onTeamMemberDelete}
-      />
-    );
-  });
-
   useEffect(() => {
     SelectBox.defaultSetup();
   }, []);
   
-  const [dataClassification, setDataClassification] = useState(edit && project?.data?.classificationType !== null ? project?.data?.classificationType : '');
-  const [dataClassificationError] = useState('');
-  const [PII, setPII] = useState(edit && project?.data?.piiData !== null ? project?.data?.piiData : false);
+  const [dataClassification, setDataClassification] = useState(edit && project?.data?.classificationType !== null ? project?.data?.classificationType : 0);
+  const [PII, setPII] = useState(edit && project?.data?.hasPii !== null ? project?.data?.hasPii : false);
+  const [connectorType, setConnectorType] = useState(edit && project?.data?.connectorType !== null ? project?.data?.connectorType : 'Iceberg');
+  
+  const [divisions, setDivisions] = useState([]);
+  const [subDivisions, setSubDivisions] = useState([]);
+  const [departments, setDepartments] = useState([]);
+  const [departmentName, setDepartmentName] = useState(edit && project?.data?.department !== null ? [project?.data?.department] : []);
+  const [departmentError, setDepartmentError] = useState('');
+  const [datalakeDivision, setDatalakeDivision] = useState(edit ? (project?.data?.divisionId !== null ? project?.data?.divisionId + '/' + project?.data?.divisionName : 0) : '');
+  const [datalakeSubDivision, setDatalakeSubDivision] = useState(edit ? (project?.data?.subdivisionId !== null ? project?.data?.subdivisionId + '/' + project?.data?.subdivisionName : 0) : '');
+  // const [statusValue, setStatusValue] = useState('');
+  // const [statusError] = useState('');
 
-  const handleDataClassification = (e) => {
-    setDataClassification(e.target.value);
+  const [dataClassificationDropdown, setDataClassificationDropdown] = useState([]);
+
+  useEffect(() => {
+    ProgressIndicator.show();
+    datalakeApi.getLovData()
+      .then((response) => {
+        ProgressIndicator.hide();
+        setDataClassificationDropdown(response[0]?.data?.data || []);                
+        setDivisions(response[1]?.data || []);
+        setDepartments(response[2]?.data?.data || []);
+        edit && setDatalakeDivision(project?.data?.divisionId !== null ? project?.data?.divisionId + '/' + project?.data?.divisionName : 0);
+        SelectBox.defaultSetup();
+      })
+      .catch((err) => {
+          ProgressIndicator.hide();
+          SelectBox.defaultSetup();
+          if (err?.response?.data?.errors?.length > 0) {
+              err?.response?.data?.errors.forEach((err) => {
+                  Notification.show(err?.message || 'Something went wrong.', 'alert');
+              });
+          } else {
+              Notification.show(err?.message || 'Something went wrong.', 'alert');
+          }
+      });
+    //eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    edit && setDatalakeSubDivision(project?.data?.subdivisionId !== null ? project?.data?.subdivisionId + '/' + project?.data?.subdivisionName : 0);
+  }, [datalakeSubDivision, edit, project]);
+
+  useEffect(() => {
+    const divId = datalakeDivision.includes('/') ? datalakeDivision.split('/')[0] : '';
+    if (divId > '0') {
+      ProgressIndicator.show();
+      hostServer.get('/subdivisions/' + divId)
+      .then((res) => {
+        setSubDivisions(res?.data || []);
+        SelectBox.defaultSetup();  
+        ProgressIndicator.hide();
+      }).catch(() => {
+        ProgressIndicator.hide();
+      });
+    } else {
+        setSubDivisions([]);
+        ProgressIndicator.hide();
+    }
+    //eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [datalakeDivision]);
+
+  const handleConnectorType = (e) => {
+    setConnectorType(e.target.value);
   };
 
-  const handlePII = (e) => {
-    setPII(e.target.value === 'true' ? true : false);
+  // const statuses = [{
+  //   id: 1,
+  //   name: 'Active'
+  //   }, {
+  //       id: 2,
+  //       name: 'In development'
+  //   }, {
+  //       id: 3,
+  //       name: 'Sundowned'
+  // }];
+
+  // const onChangeStatus = (e) => {
+  //   setStatusValue(e.target.value);
+  // }
+
+  const handleCreateProject = (values) => {
+    ProgressIndicator.show();
+    const data = {
+      projectName: values.projectName,
+      connectorType: connectorType,
+      description: values.description,
+      divisionId: values.datalakeDivision.includes('/') ? values.datalakeDivision.split('/')[0] : '',
+      divisionName: values.datalakeDivision.includes('/') ? values.datalakeDivision.split('/')[1] : '',
+      subdivisionId: values.datalakeSubDivision.includes('/') ? values.datalakeSubDivision.split('/')[0] : '',
+      subdivisionName: values.datalakeSubDivision.includes('/') ? values.datalakeSubDivision.split('/')[1] : '',
+      department: departmentName[0],
+      status: '',
+      classificationType: values.dataClassification,
+      hasPii: values.pii
+    }
+    datalakeApi.createDatalakeProject(data).then((res) => {
+      ProgressIndicator.hide();
+      history.push(`/graph/${res.data.data.id}`);
+      Notification.show(`Data Lakehouse Project - ${res.data.data.projectName} successfully created`);
+    }).catch(error => {
+      ProgressIndicator.hide();
+      Notification.show(
+        error?.response?.data?.response?.errors?.[0]?.message || error?.response?.data?.response?.warnings?.[0]?.message || 'Error while creating data lakehouse project',
+        'alert',
+      );
+    });
+  };
+  const handleEditProject = (values) => {
+    const data = {
+      projectName: project?.data?.projectName,
+      connectorType: project?.data?.connectorType,
+      description: values.description,
+      divisionId: values.datalakeDivision.includes('/') ? values.datalakeDivision.split('/')[0] : '',
+      divisionName: values.datalakeDivision.includes('/') ? values.datalakeDivision.split('/')[1] : '',
+      subdivisionId: values.datalakeSubDivision.includes('/') ? values.datalakeSubDivision.split('/')[0] : '',
+      subdivisionName: values.datalakeSubDivision.includes('/') ? values.datalakeSubDivision.split('/')[1] : '',
+      department: departmentName[0],
+      status: '',
+      classificationType: values.dataClassification,
+      hasPii: values.pii
+    }
+    ProgressIndicator.show();
+    datalakeApi.updateDatalakeProject(data, project?.data?.id).then(() => {
+      ProgressIndicator.hide();
+      Notification.show('Data Lakehouse Project successfully updated');
+      onSave();
+    }).catch(error => {
+      ProgressIndicator.hide();
+      Notification.show(
+        error?.response?.data?.response?.errors?.[0]?.message || error?.response?.data?.response?.warnings?.[0]?.message || 'Error while updating data lakehouse project',
+        'alert',
+      );
+    });
   };
 
   return (
     <>
       <FormProvider {...methods}>
-        <div className={Styles.content}>
+        <div className={classNames('mbc-scroll', Styles.content)}>
           <div className={Styles.formGroup}>
-            {
-              !edit &&
-              <div className={Styles.flexLayout}>
-                <div>
-                  <div className={classNames('input-field-group include-error', errors?.name ? 'error' : '')}>
-                    <label className={classNames(Styles.inputLabel, 'input-label')}>
-                      Name of Project <sup>*</sup>
-                    </label>
-                    <div>
-                      <input
-                        type="text"
-                        className={classNames('input-field', Styles.projectNameField)}
-                        id="projectName"
-                        placeholder="Type here"
-                        autoComplete="off"
-                        maxLength={55}
-                        {...register('name', { required: '*Missing entry', pattern: /^[a-z0-9-.]+$/ })}
-                      />
-                      <span className={classNames('error-message')}>{errors?.name?.message}{errors.name?.type === 'pattern' && 'Project names can consist only of lowercase letters, numbers, dots ( . ), and hyphens ( - ).'}</span>
-                    </div>
-                  </div>
-                  
-                  <div className={classNames('input-field-group include-error area', errors.description ? 'error' : '')}>
-                    <label id="description" className="input-label" htmlFor="description">
-                      Description <sup>*</sup>
-                    </label>
-                    <textarea
-                      id="description"
-                      className="input-field-area"
-                      type="text"
-                      {...register('description', { required: '*Missing entry' })}
-                      rows={50}
-                    />
-                    <span className={classNames('error-message')}>{errors?.description?.message}</span>
-                  </div>
-                </div>
-                <div>
-                  <div
-                    className={classNames(
-                      'input-field-group include-error',
-                      dataClassificationError?.length ? 'error' : '',
-                    )}
-                  >
-                    <label className={classNames(Styles.inputLabel, 'input-label')}>
-                      Data Classification <sup>*</sup>
-                    </label>
-                    <div className={classNames('custom-select')}>
-                      <select id="classificationField" 
-                      onChange={handleDataClassification} 
-                      value={dataClassification}
-                      required={true}
-                      >
-                        
-                            <option id="classificationOption" value={0}>Choose</option>
-                            <option value={'Confidential'}>Confidential</option>
-                            <option value={'Internal'}>Internal</option>
-                            <option value={'Public'}>Public</option>
-                            <option value={'Secret'}>Secret</option>
-        
-                      </select>
-                    </div>
-                    <span className={classNames('error-message', dataClassificationError?.length ? '' : 'hide')}>
-                      {dataClassificationError}
-                    </span>
-                  </div>
-                  <div className={classNames('input-field-group include-error')}>
-                    <label className={classNames(Styles.inputLabel, 'input-label')}>
-                      PII (Personally Identifiable Information) <sup>*</sup>
-                    </label>
-                    <div className={Styles.pIIField}>
-                      <label className={classNames('radio')}>
-                        <span className="wrapper">
-                          <input
-                            type="radio"
-                            className="ff-only"
-                            value={true}
-                            name="pii"
-                            onChange={handlePII}
-                            checked={PII === true}
-                          />
-                        </span>
-                        <span className="label">Yes</span>
-                      </label>
-                      <label className={classNames('radio')}>
-                        <span className="wrapper">
-                          <input
-                            type="radio"
-                            className="ff-only"
-                            value={false}
-                            name="pii"
-                            onChange={handlePII}
-                            checked={PII === false}
-                          />
-                        </span>
-                        <span className="label">No</span>
-                      </label>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            }
             {
               edit &&
               <>
@@ -347,49 +182,43 @@ const DatalakeProjectForm = ({project, edit, onSave}) => {
                       {project?.data?.projectName}
                     </div>
                     <div id="tags">
-                      <label className="input-label summary">Created on</label>
+                      <label className="input-label summary">Connector Type</label>
                       <br />
-                      {project?.data?.createdOn !== undefined && regionalDateAndTimeConversionSolution(project?.data?.createdOn)}
+                      {project?.data?.connectorType}
                     </div>
                     <div id="isExistingSolution">
-                      <label className="input-label summary">Owner</label>
+                      <label className="input-label summary">Created By</label>
                       <br />
-                      {project?.data?.owner?.firstName} {project?.data?.owner?.lastName}
+                      {project?.data?.createdBy?.firstName} {project?.data?.createdBy?.lastName}
                     </div>
                   </div>
                 </div>
+              </>
+            }
+            <div>
+              { !edit && 
                 <div className={Styles.flexLayout}>
-                  <div
-                    className={classNames(
-                      'input-field-group include-error',
-                      dataClassificationError?.length ? 'error' : '',
-                    )}
-                  >
+                  <div className={classNames('input-field-group include-error', errors?.projectName ? 'error' : '')}>
                     <label className={classNames(Styles.inputLabel, 'input-label')}>
-                      Data Classification <sup>*</sup>
+                      Name of Project <sup>*</sup>
                     </label>
-                    <div className={classNames('custom-select')}>
-                      <select id="classificationField" 
-                      onChange={handleDataClassification} 
-                      value={dataClassification}
-                      required={true}
-                      >
-                        
-                            <option id="classificationOption" value={0}>Choose</option>
-                            <option value={'Confidential'}>Confidential</option>
-                            <option value={'Internal'}>Internal</option>
-                            <option value={'Public'}>Public</option>
-                            <option value={'Secret'}>Secret</option>
-        
-                      </select>
+                    <div>
+                      <input
+                        type="text"
+                        className={classNames('input-field', Styles.projectNameField)}
+                        id="projectName"
+                        placeholder="Type here"
+                        autoComplete="off"
+                        maxLength={55}
+                        {...register('projectName', { required: '*Missing entry', pattern: /^[a-z0-9-.]+$/ })}
+                      />
+                      <span className={classNames('error-message')}>{errors?.projectName?.message}{errors.projectName?.type === 'pattern' && 'Project names can consist only of lowercase letters, numbers, dots ( . ), and hyphens ( - ).'}</span>
                     </div>
-                    <span className={classNames('error-message', dataClassificationError?.length ? '' : 'hide')}>
-                      {dataClassificationError}
-                    </span>
                   </div>
+                  
                   <div className={classNames('input-field-group include-error')}>
                     <label className={classNames(Styles.inputLabel, 'input-label')}>
-                      PII (Personally Identifiable Information) <sup>*</sup>
+                      Connector Type <sup>*</sup>
                     </label>
                     <div className={Styles.pIIField}>
                       <label className={classNames('radio')}>
@@ -397,51 +226,268 @@ const DatalakeProjectForm = ({project, edit, onSave}) => {
                           <input
                             type="radio"
                             className="ff-only"
-                            value={true}
-                            name="pii"
-                            onChange={handlePII}
-                            checked={PII === true}
+                            value={'Iceberg'}
+                            name="connectorType"
+                            onChange={handleConnectorType}
+                            checked={connectorType === 'Iceberg'}
                           />
                         </span>
-                        <span className="label">Yes</span>
+                        <span className="label">Iceberg</span>
                       </label>
                       <label className={classNames('radio')}>
                         <span className="wrapper">
                           <input
                             type="radio"
                             className="ff-only"
-                            value={false}
-                            name="pii"
-                            onChange={handlePII}
-                            checked={PII === false}
+                            value={'Delta Lake'}
+                            name="connectorType"
+                            onChange={handleConnectorType}
+                            checked={connectorType === 'Delta Lake'}
                           />
                         </span>
-                        <span className="label">No</span>
+                        <span className="label">Delta Lake</span>
                       </label>
                     </div>
                   </div>
                 </div>
-              </>
-            }
-            <div className={Styles.collabContainer}>
-              <h3 className={Styles.modalSubTitle}>Add Collaborators</h3>
-              <div className={Styles.collabAvatar}>
-                <div className={Styles.teamListWrapper}>
-                  <div className={Styles.addTeamMemberWrapper}>
-                    <IconAvatarNew className={Styles.avatarIcon} />
-                    <button id="AddTeamMemberBtn" 
-                      onClick={showAddTeamMemberModalView}
-                      >
-                      <i className="icon mbc-icon plus" />
-                      <span>Add team member</span>
-                    </button>
+              }
+
+              <div className={classNames('input-field-group include-error area', errors.description ? 'error' : '')}>
+                <label id="description" className="input-label" htmlFor="description">
+                  Description <sup>*</sup>
+                </label>
+                <textarea
+                  id="description"
+                  className="input-field-area"
+                  type="text"
+                  {...register('description', { required: '*Missing entry' })}
+                  rows={50}
+                  defaultValue={edit ? project?.data?.description : ''}
+                />
+                <span className={classNames('error-message')}>{errors?.description?.message}</span>
+              </div>
+
+
+              <div className={Styles.flexLayout}>
+                <div
+                  className={classNames(
+                    'input-field-group include-error',
+                    errors?.datalakeDivision?.message ? 'error' : '',
+                  )}
+                >
+                  <label className={classNames(Styles.inputLabel, 'input-label')}>
+                    Division <sup>*</sup>
+                  </label>
+                  <div className={classNames('custom-select')}>
+                  <select
+                        id="divisionField"
+                        defaultValue={datalakeDivision}
+                        {...register('datalakeDivision', {
+                          required: '*Missing entry',
+                          validate: (value) => value !== 0 || '*Missing entry',
+                          onChange: (e) => { setDatalakeDivision(e.target.value) }
+                        })}
+                    >
+                        <option id="divisionOption" value={0}>
+                          Choose
+                        </option>
+                        {divisions?.map((obj) => {
+                          return (
+                          <option id={obj.name + obj.id} key={obj.id} value={obj.id + '/' + obj.name}>
+                            {obj.name}
+                          </option>
+                          )
+                        })}
+                      </select>
                   </div>
-                  {
-                    teamMembers?.length > 0 &&
-                      <div className={Styles.membersList}>
-                        {teamMembersList}
-                      </div>
-                  }
+                  <span className={classNames('error-message', errors?.datalakeDivision?.message ? '' : 'hide')}>
+                    {errors?.datalakeDivision?.message}
+                  </span>
+                </div>
+
+                <div
+                  className={classNames(
+                    'input-field-group include-error',
+                  )}
+                >
+                  <label className={classNames(Styles.inputLabel, 'input-label')}>
+                    Sub Division 
+                  </label>
+                  <div className={classNames('custom-select')}>
+                    
+                    <select id="subDivisionField" 
+                      defaultValue={datalakeSubDivision}
+                      {...register('datalakeSubDivision', {
+                        onChange: (e) => { setDatalakeSubDivision(e.target.value) }
+                      })}
+                    >
+                        {subDivisions?.some((item) => item.id === '0' && item.name === 'None') ? (
+                          <option id="subDivisionDefault" value={0}>
+                            None
+                          </option>
+                        ) : (
+                          <>
+                            <option id="subDivisionDefault" value={0}>
+                              Choose
+                            </option>
+                            {subDivisions?.map((obj) => (
+                              <option id={obj.name + obj.id} key={obj.id} value={obj.id + '/' + obj.name}>
+                                {obj.name}
+                              </option>
+                            ))}
+                          </>
+                        )}
+                    </select>
+                    
+                  </div>
+                  {/* <span className={classNames('error-message', datalakeSubDivisionError?.length ? '' : 'hide')}>
+                    {datalakeSubDivisionError}
+                  </span> */}
+                </div>
+              </div>
+
+              <div className={Styles.flexLayout}>
+                <div
+                  className={classNames(
+                    Styles.bucketNameInputField,
+                    'input-field-group include-error',
+                    departmentError?.length ? 'error' : '',
+                  )}
+                >
+                  <div>
+                    <div className={Styles.departmentTags}>
+                    
+                        <Tags
+                          title={'E2-Department'}
+                          max={1}
+                          chips={departmentName}
+                          tags={departments}
+                          setTags={(selectedTags) => {
+                          let dept = selectedTags?.map((item) => item.toUpperCase());
+                            setDepartmentName(dept);
+                            setDepartmentError('');
+                          }}
+                          isMandatory={true}
+                          showMissingEntryError={departmentError}
+                          />
+                        
+                    </div>
+                    <span className={classNames('error-message', departmentError?.length ? '' : 'hide')}>
+                      {departmentError}
+                    </span>
+                    </div>
+                    </div>
+                {/* <div
+                  className={classNames(
+                    'input-field-group include-error',
+                    statusError?.length ? 'error' : '',
+                  )}
+                >
+                  <label className={classNames(Styles.inputLabel, 'input-label')}>
+                    Status <sup>*</sup>
+                  </label>
+                  <div className={classNames('custom-select')}>
+                    <select id="reportStatusField" 
+                    onChange={onChangeStatus} 
+                    value={statusValue}
+                    required={true}
+                    >
+                      {statuses?.length
+                      ?           
+                      <>
+                        <option id="reportStatusOption" value={0}>
+                            Choose
+                        </option>
+                        {statuses?.map((obj) => (
+                            <option id={obj.name + obj.id} key={obj.id} value={obj.name}>
+                                {obj.name}
+                            </option>
+                        ))}
+                      </>
+                        : null}
+                    </select>
+                  </div>
+                  <span className={classNames('error-message', statusError?.length ? '' : 'hide')}>
+                    {statusError}
+                  </span>
+                </div> */}
+              </div>
+
+              <div className={Styles.flexLayout}>
+                <div
+                  className={classNames(
+                    'input-field-group include-error',
+                    errors?.dataClassification?.message ? 'error' : '',
+                  )}
+                >
+                  <label className={classNames(Styles.inputLabel, 'input-label')}>
+                    Data Classification <sup>*</sup>
+                  </label>
+                  <div className={classNames('custom-select')}>
+                    <select id="classificationField" 
+                      defaultValue={dataClassification}
+                      {...register('dataClassification', {
+                        required: '*Missing entry',
+                        validate: (value) => value !== 0 || '*Missing entry',
+                        onChange: (e) => { setDataClassification(e.target.value) }
+                      })}
+                    >
+                      
+                          <option id="classificationOption" value={0}>Choose</option>
+                          {dataClassificationDropdown?.map((item) => (
+                            <option
+                              id={item.id}
+                              key={item.id}
+                              value={item.name}
+                            >
+                              {item.name}
+                            </option>
+                          ))}
+      
+                    </select>
+                  </div>
+                  <span className={classNames('error-message', errors?.dataClassification?.message ? '' : 'hide')}>
+                    {errors?.dataClassification?.message}
+                  </span>
+                </div>
+                <div className={classNames('input-field-group include-error')}>
+                  <label className={classNames(Styles.inputLabel, 'input-label')}>
+                    PII (Personally Identifiable Information) <sup>*</sup>
+                  </label>
+                  <div className={Styles.pIIField}>
+                    <label className={classNames('radio')}>
+                      <span className="wrapper">
+                        <input
+                          type="radio"
+                          className="ff-only"
+                          value={true}
+                          name="pii"
+                          defaultChecked={PII === true}
+                          {...register('pii', {
+                            required: '*Missing entry',
+                            onChange: (e) => { setPII(e.target.value === 'true' ? true : false) }
+                          })}
+                        />
+                      </span>
+                      <span className="label">Yes</span>
+                    </label>
+                    <label className={classNames('radio')}>
+                      <span className="wrapper">
+                        <input
+                          type="radio"
+                          className="ff-only"
+                          value={false}
+                          name="pii"
+                          defaultChecked={PII === false}
+                          {...register('pii', {
+                            required: '*Missing entry',
+                            onChange: (e) => { setPII(e.target.value === 'true' ? true : false) }
+                          })}
+                        />
+                      </span>
+                      <span className="label">No</span>
+                    </label>
+                  </div>
                 </div>
               </div>
             </div>
@@ -459,20 +505,6 @@ const DatalakeProjectForm = ({project, edit, onSave}) => {
           </div>
         </div>
       </FormProvider>
-      {showAddTeamMemberModal && (
-        <AddTeamMemberModal
-          ref={addTeamMemberModalRef}
-          modalTitleText={'Collaborator'}
-          showOnlyInteral={true}
-          hideTeamPosition={true}
-          editMode={editTeamMember}
-          showAddTeamMemberModal={showAddTeamMemberModal}
-          teamMember={selectedTeamMember}
-          onUpdateTeamMemberList={updateTeamMemberList}
-          onAddTeamMemberModalCancel={onAddTeamMemberModalCancel}
-          validateMemebersList={validateMembersList}
-        />
-      )}
     </>
   );
 }

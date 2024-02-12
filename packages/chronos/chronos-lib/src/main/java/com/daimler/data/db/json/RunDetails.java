@@ -47,6 +47,7 @@ public class RunDetails {
 	private String warningsInfo;
 	private Boolean  exogenData;
 	private String infotext;
+	private String backtesting;
 	 
 	 
 }

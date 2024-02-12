@@ -2,29 +2,26 @@ import classNames from 'classnames';
 import React, { useState, useEffect } from 'react';
 import Styles from './datalake-project-card.scss';
 import { useHistory } from 'react-router-dom';
-import { useDispatch } from 'react-redux';
+// import { useDispatch } from 'react-redux';
 // Container Components
 import Modal from 'dna-container/Modal';
 import InfoModal from 'dna-container/InfoModal';
-import ConfirmModal from 'dna-container/ConfirmModal';
+// import ConfirmModal from 'dna-container/ConfirmModal';
 // utils
 import { regionalDateAndTimeConversionSolution } from '../../utilities/utils';
 import Tooltip from '../../common/modules/uilab/js/src/tooltip';
-import Notification from '../../common/modules/uilab/js/src/notification';
-import Popper from 'popper.js';
+// import Notification from '../../common/modules/uilab/js/src/notification';
 import DatalakeProjectForm from '../datalakeProjectForm/DatalakeProjectForm';
-import { deleteProject } from '../../redux/projectsSlice';
-import { getProjects } from '../../redux/projects.services';
+// import { deleteProject } from '../../redux/projectsSlice';
+// import { getProjects } from '../../redux/projects.services';
 import { ConnectionModal } from '../connectionInfo/ConnectionModal';
 
 const DatalakeProjectCard = ({graph}) => {
   const [showConnectionModel, setShowConnectionModel] = useState(false);
   const [editProject, setEditProject] = useState(false);
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  // const [showDeleteModal, setShowDeleteModal] = useState(false);
   const history = useHistory();
-  const dispatch = useDispatch();
-
-  let popperObj, tooltipElem = null;
+  // const dispatch = useDispatch();
 
   useEffect(() => {
     Tooltip.defaultSetup();
@@ -34,33 +31,13 @@ const DatalakeProjectCard = ({graph}) => {
     setShowConnectionModel(false)
   }
 
-  const onCollabsIconMouseOver = (e) => {
-    const targetElem = e.target;
-    tooltipElem = targetElem.nextElementSibling;
-    if (tooltipElem) {
-      tooltipElem.classList.add('tooltip', 'show');
-      tooltipElem.classList.remove('hide');
-      popperObj = new Popper(targetElem, tooltipElem, {
-        placement: 'top',
-      });
-    }
-  };
-
-  const onCollabsIconMouseOut = () => {
-    if (tooltipElem) {
-      tooltipElem.classList.add('hide');
-      tooltipElem.classList.remove('tooltip', 'show');
-    }
-    popperObj?.destroy();
-  };
-
   // delete project
-  const handleDeleteProject = () => {
-    setShowDeleteModal(false);
-    dispatch(deleteProject(graph?.id));
-    dispatch(getProjects());
-    Notification.show('Project successfully deleted');
-  }
+  // const handleDeleteProject = () => {
+  //   setShowDeleteModal(false);
+  //   dispatch(deleteProject(graph?.id));
+  //   dispatch(getProjects());
+  //   Notification.show('Project successfully deleted');
+  // }
 
   const onhandleClickConnection = () => {
     setShowConnectionModel(true);
@@ -97,51 +74,22 @@ const DatalakeProjectCard = ({graph}) => {
               <div>Classification</div>
               <div>{graph.classificationType || 'N/A'}</div>
             </div>
-            <div className={Styles.cardCollabSection}>
-              <div>Collaborators</div>
-              {graph.collaborators?.length > 0 ? (
-                <div>
-                  <i className="icon mbc-icon profile"/>
-                  <span className={Styles.cardCollabIcon} onMouseOver={onCollabsIconMouseOver} onMouseOut={onCollabsIconMouseOut}>
-                    {graph.collaborators?.length}
-                  </span>
-                  <div className={classNames(Styles.collabsList, 'hide')}>
-                    <ul>
-                      {graph.collaborators?.map((bucketItem, bucketIndex) => {
-                          // Check if lastName is more than 12 characters
-                          let lastName = bucketItem.lastName;
-                          if (lastName?.length > 12) {
-                            lastName = lastName.substring(0, 12) + " ...";
-                          }
-                        return (
-                          <li key={'collab' + bucketIndex}>
-                            <span>
-                              {`${bucketItem.firstName} ${lastName}`}
-                              {graph.createdBy?.id === bucketItem.accesskey ? ' (Owner)' : ''}
-                            </span>
-                          </li>
-                        );
-                      })}
-                    </ul>
-                  </div>
-                </div>
-              ) : <div>None</div>}
+            <div>
+              <div>Connector Type</div>
+              <div>{graph.connectorType || 'N/A'}</div>
             </div>
           </div>
         </div>
         <div className={Styles.cardFooter}>
-          <div style={{paddingLeft: '20px'}}>
-            <a href="#" target="_blank" rel="noreferrer noopener">REST</a>&nbsp;&nbsp;
-            <a href="#" target="_blank" rel="noreferrer noopener">GRAPHQL</a>
-          </div>
+          <div>&nbsp;</div>
           <div className={Styles.btnGrp}>
             <button className="btn btn-primary" onClick={() => setEditProject(true)}>
               <i className="icon mbc-icon edit fill"></i>
               <span>Edit</span>
             </button>
-            <button className="btn btn-primary" onClick={() => setShowDeleteModal(true)}>
+            <button className={classNames("btn btn-primary", Styles.btnDisabled)}>
               <i className="icon delete"></i>
-              <span>Delete</span>
+              <span tooltip-data={'Coming Soon'}>Delete</span>
             </button>
             <button className={'btn btn-primary'} type="button" onClick={() => onhandleClickConnection()} >
               <i className="icon mbc-icon comparison"></i>
@@ -169,7 +117,7 @@ const DatalakeProjectCard = ({graph}) => {
           }}
         />
       }
-      {
+      {/* {
         showDeleteModal && (
           <ConfirmModal
             title={'Delete'}
@@ -202,13 +150,13 @@ const DatalakeProjectCard = ({graph}) => {
             onCancel={() => setShowDeleteModal(false)}
           />
         )
-      }
+      } */}
       {showConnectionModel &&
         <InfoModal
           title={'Connect'}
           modalCSS={Styles.header}
           show={showConnectionModel}
-          content={<ConnectionModal onOkClick={onConnectionModalClose} />}
+          content={<ConnectionModal projectId={graph?.id} onOkClick={onConnectionModalClose} />}
           hiddenTitle={true}
           onCancel={onConnectionModalClose}
         />

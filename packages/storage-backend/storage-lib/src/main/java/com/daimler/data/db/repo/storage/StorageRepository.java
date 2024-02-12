@@ -48,4 +48,6 @@ public interface StorageRepository {
 	 * @return records {@code List<StorageNsql>}
 	 */
 	List<StorageNsql> getAllWithFilters(String userId, int limit, String sortBy, String sortOrder, int offset);
+
+	Integer totalNumberOfBuckets(String userId);
 }

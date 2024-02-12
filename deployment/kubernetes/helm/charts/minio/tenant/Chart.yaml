@@ -1,0 +1,17 @@
+apiVersion: v2
+appVersion: v5.0.6
+description: A Helm chart for MinIO Operator
+home: https://min.io
+icon: https://min.io/resources/img/logo/MINIO_wordmark.png
+keywords:
+- storage
+- object-storage
+- S3
+maintainers:
+- email: dev@minio.io
+  name: MinIO, Inc
+name: tenant
+sources:
+- https://github.com/minio/operator
+type: application
+version: 5.0.6

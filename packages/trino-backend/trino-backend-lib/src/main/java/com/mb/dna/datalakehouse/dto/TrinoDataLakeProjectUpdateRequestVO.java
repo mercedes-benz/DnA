@@ -14,6 +14,8 @@ public class TrinoDataLakeProjectUpdateRequestVO implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 	
+	private String description;
+	
 	private List<DatalakeTableVO> tables;
 	
 	private String classificationType;

@@ -50,7 +50,6 @@
       margin-bottom: 15px !important;
       color: #d9dfe4 !important;
       text-align: left;
-      width: 38vw;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
@@ -106,6 +105,15 @@
     top: 50%;
     right: 50%;
   }
+  .copyCodeIcon {
+    cursor: pointer;
+    float: right;
+  }
+
+  .showIcon {
+    margin-left:20px!important;
+    margin-right:10px!important;
+  }
   
   .emptyDataikuProjectsList {
     text-align: center;
@@ -135,6 +143,16 @@
       color: #99a5b3;
       border-color: #697582;
       cursor: not-allowed;
+    }
+  }
+
+  .dbHighlight {
+    font-size: 14px;
+  }
+  .trinoConnectDiv {
+    display: flex;
+    > div {
+      min-width: 50%;
     }
   }
   

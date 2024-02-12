@@ -36,10 +36,13 @@ const CreateNewReport = React.lazy(() => import('components/mbc/createNewReport/
 const ReportSummary = React.lazy(() => import('components/mbc/reportSummary/ReportSummary'));
 const UserSettings = React.lazy(() => import('components/mbc/userSettings/userSettings'));
 const CodeSpace = React.lazy(() => import('components/mbc/codeSpace/CodeSpace'));
+const CodeSpaceSecurityConfig = React.lazy(() => import('components/mbc/codeSpace/securityConfig/SecurityConfig'));
+const ManageCodeSpaces = React.lazy(() => import('components/mbc/codeSpace/manageCodeSpace/ManageCodeSpace'));
 const AllCodeSpaces = React.lazy(() => import('components/mbc/codeSpace/AllCodeSpaces'));
 const Trainings = React.lazy(() => import('components/mbc/trainings/Trainings'));
 const GenAI = React.lazy(() => import('components/mbc/genAI/GenAI'));
-
+const CodeSpaceRecipe = React.lazy(() => import('components/mbc/codeSpace/codeSpaceRecipe/CodeSpaceRecipe'));
+const AzureBlobService = React.lazy(() => import('components/mbc/azureBlobService/AzureBlobService')) ;
 // Micro Front End Component
 const StorageComponent = React.lazy(() => import('storage-mfe/Bucket'));
 const DataProductComponent = React.lazy(() => import('data-product-mfe/DataProduct'));
@@ -55,8 +58,9 @@ const UserAndAdminRole = [
   USER_ROLE.REPORTADMIN,
   USER_ROLE.DIVISIONADMIN,
   USER_ROLE.DATACOMPLIANCEADMIN,
+  USER_ROLE.CODESPACEADMIN,
 ];
-const AdminRole = [USER_ROLE.ADMIN, USER_ROLE.REPORTADMIN];
+const AdminRole = [USER_ROLE.ADMIN, USER_ROLE.REPORTADMIN, USER_ROLE.CODESPACEADMIN];
 
 const publicRoutes = [
   {
@@ -132,6 +136,14 @@ const protectedRoutes = [
     exact: false,
     path: '/malwarescanservice',
     title: 'Malware Scan Service',
+  },
+  {
+    allowedRoles: UserAndAdminRole,
+    component: AzureBlobService,
+    exact: false,
+    path: '/azureBlobService',
+    title: 'Azure Blob Service',
+
   },
   {
     allowedRoles: UserAndAdminRole,
@@ -330,6 +342,34 @@ const protectedRoutes = [
     title: 'Data',
   },
   {
+    allowedRoles: AdminRole ,
+    component: ManageCodeSpaces,
+    exact: false,
+    path: '/codespace/manageCodespace',
+    title: 'Manage codeSpace'
+  },
+  {
+    allowedRoles: UserAndAdminRole,
+    component: CodeSpaceSecurityConfig,
+    exact: false,
+    path: '/codespace/securityconfig/:id?',
+    title: 'Security Config',
+  },
+  {
+    allowedRoles: UserAndAdminRole,
+    component: CodeSpaceSecurityConfig,
+    exact: false,
+    path: '/codespace/publishedSecurityconfig/:id?',
+    title: 'Published Security Config',
+  },
+  {
+    allowedRoles: AdminRole,
+    component: CodeSpaceSecurityConfig,
+    exact: false,
+    path: '/codespace/adminSecurityconfig/:id?',
+    title: 'View Security Config',
+  },
+  {
     allowedRoles: UserAndAdminRole,
     component: CodeSpace,
     exact: false,
@@ -342,6 +382,13 @@ const protectedRoutes = [
     exact: false,
     path: '/codespaces',
     title: 'Your Code Spaces',
+  },
+  {
+    allowedRoles: AdminRole,
+    component:CodeSpaceRecipe ,
+    exact: false,
+    path: '/codespaceRecipes',
+    title: 'Code Space recipes',
   },
   {
     allowedRoles: UserAndAdminRole,

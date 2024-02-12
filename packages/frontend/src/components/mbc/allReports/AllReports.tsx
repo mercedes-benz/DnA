@@ -199,6 +199,13 @@ export default class AllReports extends React.Component<
         listViewMode: true,
       });
     }
+    const sessionSortingInfo = sessionStorage.getItem(SESSION_STORAGE_KEYS.REPORT_SORT_VALUES);
+    if (sessionSortingInfo) {
+      const sortBy = JSON.parse(sessionSortingInfo);
+      this.setState(
+        { sortBy }
+      )
+    }
     ProgressIndicator.show();
     Tooltip.defaultSetup();
 
@@ -627,6 +634,7 @@ export default class AllReports extends React.Component<
         sortBy,
       },
       () => {
+        sessionStorage.setItem(SESSION_STORAGE_KEYS.REPORT_SORT_VALUES, JSON.stringify(sortBy));
         this.getReports();
       },
     );

@@ -319,7 +319,7 @@ public class KongGatewayController implements KongApi{
 			}
 			if(Objects.nonNull(response) && Objects.nonNull(response.getSuccess()) && response.getSuccess().equalsIgnoreCase("Success")) {
 				LOGGER.info("Kong route {} deleted successfully", routeName);
-				return new ResponseEntity<>(response, HttpStatus.CREATED);
+				return new ResponseEntity<>(response, HttpStatus.OK);
 			}
 			else {
 				LOGGER.info("Kong route {} deletion failed", routeName);
@@ -355,7 +355,7 @@ public class KongGatewayController implements KongApi{
 			}
 			if(Objects.nonNull(response) && Objects.nonNull(response.getSuccess()) && response.getSuccess().equalsIgnoreCase("Success")) {
 				LOGGER.info("Kong service {} deleted successfully", serviceName);
-				return new ResponseEntity<>(response, HttpStatus.CREATED);
+				return new ResponseEntity<>(response, HttpStatus.OK);
 			}
 			else {
 				LOGGER.info("Kong service {} deletion failed", serviceName);

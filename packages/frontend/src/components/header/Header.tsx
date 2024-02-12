@@ -17,6 +17,7 @@ import Modal from 'components/formElements/modal/Modal';
 import { ApiClient } from '../../services/ApiClient';
 import Notification from '../../assets/modules/uilab/js/src/notification';
 import IconToU from 'components/icons/IconToU';
+import SantaHat from '../../assets/images/santa-hat.png';
 
 export interface IHeaderProps {
   user: IUserInfo;
@@ -228,6 +229,7 @@ const Header:React.FC<IHeaderProps> = (props) => {
         </a>
 
         <div className={classNames(Styles.appLogo, 'app-info')}>
+          {new Date().getMonth() === 11 && <img className={Styles.santaHat} src={SantaHat} />} {/* Santa hat comes on to DnA logo on December */}
           <img className="app-logo" src={Envs.DNA_APP_LOGO_URL} />
           <h6 className="app-name">{Envs.DNA_APPNAME_HEADER}</h6>
         </div>

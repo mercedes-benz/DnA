@@ -3,6 +3,8 @@
 # Declare variables to be passed into your templates.
 appName: trino
 namespace: trino
+accessRules:
+  endpoint: trino-backend.trino/service/access
 cert:
   certManager: ""
 image:

@@ -51,7 +51,6 @@ dna:
   
 jwt:
   secret:
-    key: ${JWT_SECRET_KEY:XXXX}
     byPassUrl: ${JWT_BYPASS_URIS:/api/login;/api/itsmmgame;/api/task-data;/api/warmup-data;/api/subscription/validate}
 
 git:

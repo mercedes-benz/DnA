@@ -210,6 +210,7 @@ const DeletionRequirements = (
                   <span className="wrapper">
                     <input {...register('tou', { required: '*Missing entry' })}
                     defaultChecked={watch('isPublish') || watch('publish')} 
+                    value ={watch('isPublish') || watch('publish')} 
                     type="checkbox" className="ff-only" />
                   </span>
                   <div

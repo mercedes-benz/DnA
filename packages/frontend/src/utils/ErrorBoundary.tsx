@@ -10,7 +10,7 @@ interface IErrorState {
   errorInfo: any;
 }
 
-export default class ErrorBoundary extends React.Component<{}, IErrorState> {
+export default class ErrorBoundary extends React.Component<{ children: React.ReactNode }, IErrorState> {
   constructor(props: any) {
     super(props);
     this.state = { hasError: false, error: false, errorInfo: null };

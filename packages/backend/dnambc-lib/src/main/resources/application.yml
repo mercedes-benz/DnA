@@ -1,7 +1,7 @@
 spring:
   application:
     name: dna-backend-service
-    version: 3.3.8
+    version: 3.4.1
   flyway:
     enabled: ${FLYWAY_ENABLED:true}
     baseline-on-migrate: ${FLYWAY_BASELINE_ON_MIGRATE:true}
@@ -123,7 +123,6 @@ oidc:
 
 jwt:
   secret:
-    key: ${JWT_SECRET_KEY:xxxxxx}
     byPassUrl: ${BYPASS_JWT_AUTHENTICATION:/api/login;/api/verifyLogin;/api/itsmmgame;/api/task-data;/api/warmup-data;/api/subscription/validate;/api/notification-preferences;/api/datasources/bulk}
     tokenExpiry: ${JWT_TOKEN_EXPIRY_TIME_IN_MIN:90}
 

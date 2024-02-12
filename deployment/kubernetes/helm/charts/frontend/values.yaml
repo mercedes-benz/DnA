@@ -139,9 +139,12 @@ configJs: |
       ENABLE_CHRONOS_ONEAPI: false, 
       CHRONOS_ONEAPI_URL: "YOUR_CHRONOS_ONEAPI_URL",
       STORAGE_API_BASEURL: 'http://localhost:7175/api',
+      REPORTS_API_BASEURL: 'http://localhost:7173/api',
       CHRONOS_RELEASES_INFO_URL: 'YOUR_CHRONOS_RELEASES_INFO_URL',
       ADS_EMAIL: 'YOUR_ADS_EMAIL',
       CHRONOS_DOCUMENTATION_URL: 'YOUR_CHRONOS_DOCUMENTATION_URL',
+      CHRONOS_SWAGGER_URL:'YOUR_CHRONOS_SWAGGER_DOCUMENTATION_URL',
+      TOU_HTML: '<div>I agree to <a href="#" target="_blank" rel="noopener noreferrer">terms of use</a></div>',
     };
 
     window['MATOMO_INJECTED_ENVIRONMENT'] = {
