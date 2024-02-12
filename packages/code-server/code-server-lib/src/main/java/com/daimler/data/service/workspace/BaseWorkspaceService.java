@@ -78,7 +78,7 @@ import com.daimler.data.dto.workspace.UserInfoVO;
 import com.daimler.data.dto.workspace.admin.CodespaceSecurityConfigDetailsVO;
 import com.daimler.data.util.ConstantsUtility;
 import com.daimler.dna.notifications.common.producer.KafkaProducerService;
-
+import com.daimler.data.db.json.DeploymentAudit;
 import lombok.extern.slf4j.Slf4j;
 
 @Service
@@ -835,6 +835,20 @@ public class BaseWorkspaceService implements WorkspaceService {
 					;
 					deploymentDetails.setSecureWithIAMRequired(isSecureWithIAMRequired);
 					deploymentDetails.setTechnicalUserDetailsForIAMLogin(technicalUserDetailsForIAMLogin);
+					List<DeploymentAudit> auditLogs = deploymentDetails.getDeploymentAuditLogs();
+					if (auditLogs == null) {
+						auditLogs = new ArrayList<>();
+					}
+					SimpleDateFormat isoFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS+00:00");
+					Date now = isoFormat.parse(isoFormat.format(new Date()));
+					DeploymentAudit auditLog = new DeploymentAudit();
+					auditLog.setTriggeredOn(now);
+					auditLog.setTriggeredBy(entity.getData().getWorkspaceOwner().getGitUserName());
+					// auditLog.setDeployedOn(null);
+					auditLog.setBranch(branch);					
+					auditLog.setDeploymentStatus("DEPLOY_REQUESTED");
+					auditLogs.add(auditLog);
+					deploymentDetails.setDeploymentAuditLogs(auditLogs);
 					workspaceCustomRepository.updateDeploymentDetails(projectName, environmentJsonbName,
 							deploymentDetails);
 					status = "SUCCESS";
@@ -1318,6 +1332,19 @@ public class BaseWorkspaceService implements WorkspaceService {
 					deploymentDetails.setLastDeployedOn(now);
 					deploymentDetails.setLastDeploymentStatus(latestStatus);
 					deploymentDetails.setGitjobRunID(gitJobRunId);
+					//setting audit log details
+					List<DeploymentAudit> auditLogs = deploymentDetails.getDeploymentAuditLogs();
+					if(Objects.isNull(auditLogs)) {
+						auditLogs =  new ArrayList<>();
+					}	
+					DeploymentAudit auditDetails = new DeploymentAudit();
+					auditDetails.setTriggeredBy(userId);
+					auditDetails.setDeploymentStatus(latestStatus);
+					auditDetails.setDeployedOn(now);
+					auditDetails.setTriggeredOn(now);
+					auditDetails.setBranch(branch);
+					auditLogs.add(auditDetails);								
+					deploymentDetails.setDeploymentAuditLogs(auditLogs);
 					workspaceCustomRepository.updateDeploymentDetails(projectName, environmentJsonbName,
 							deploymentDetails);
 					log.info(
@@ -1344,6 +1371,21 @@ public class BaseWorkspaceService implements WorkspaceService {
 							projectName, branch, targetEnv, latestStatus);
 				} else {
 					deploymentDetails.setLastDeploymentStatus(latestStatus);
+					deploymentDetails.setGitjobRunID(gitJobRunId);
+					if(latestStatus.equalsIgnoreCase("DEPLOYMENT_FAILED"))
+					{
+						List<DeploymentAudit> auditLogs = deploymentDetails.getDeploymentAuditLogs();
+						if(Objects.isNull(auditLogs)) {
+							auditLogs =  new ArrayList<>();
+						}	
+						DeploymentAudit auditDetails = new DeploymentAudit();
+						auditDetails.setTriggeredBy(userId);
+						auditDetails.setDeploymentStatus(latestStatus);
+						auditDetails.setTriggeredOn(now);
+						auditDetails.setBranch(branch);
+						auditLogs.add(auditDetails);								
+						deploymentDetails.setDeploymentAuditLogs(auditLogs);
+					}
 					workspaceCustomRepository.updateDeploymentDetails(projectName, environmentJsonbName,
 							deploymentDetails);
 					log.info(
