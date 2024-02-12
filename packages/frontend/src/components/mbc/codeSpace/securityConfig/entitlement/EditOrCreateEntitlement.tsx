@@ -30,7 +30,6 @@ const EditOrCreateEntitlement = (props: any) => {
     const pattern = /^[a-zA-Z0-9][a-zA-Z0-9_-]*$/;
     const isValid = pattern.test(value);
     const spclCharValidation = /[^a-zA-Z0-9_-]/;
-    console.log(isValid);
     if (!isValid) {
       setTimeout(() => {
         if (value.startsWith('-') || value.startsWith('_')) {
