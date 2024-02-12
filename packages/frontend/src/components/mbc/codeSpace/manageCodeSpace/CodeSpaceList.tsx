@@ -23,7 +23,7 @@ const codeSpaceList = (props: ICodeSpaceList) => {
   const [viewInfoModel, setviewInfoModel] = useState(false);
   const classNames = cn.bind(Styles);
   const onSecrityConfigClick = () => {
-    history.push(`/codespace/adminSecurityconfig/${props.id}?pub=true`);
+    history.push(`/codespace/adminSecurityconfig/${props.id}?pub=true&name=${props.projectName}`);
   };
   const showErrorNotification = (message: string) => {
     ProgressIndicator.hide();
