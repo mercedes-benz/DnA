@@ -51,10 +51,6 @@ server:
 
 #Cors Filter origin Domains  
 allowedCorsOriginPatternUrl: ${CORS_ORIGIN_URL:http://*}
-  
-jwt:
-  secret:
-    key: ${JWT_SECRET_KEY:XXXXXX}
       
 minio:
   baseUri: ${MINIO_BASEURI:http://xxxxx}
