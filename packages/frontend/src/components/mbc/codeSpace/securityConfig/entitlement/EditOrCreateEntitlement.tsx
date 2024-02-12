@@ -8,7 +8,7 @@ const classNames = cn.bind(Styles);
 
 const EditOrCreateEntitlement = (props: any) => {
   const [EntitlId, setEntitlId] = useState<string>('');
-  const [EntitlName, setEntitleName] = useState<string>(Envs.ALICE_APP_NAME + '.' + props.projectName);
+  const [EntitlName, setEntitleName] = useState<string>(Envs.CODESPACE_SECURITY_APP_ID + '.' + props.projectName);
   const [beforeUpdateEntitlName, setbeforeUpdateEntitlName] = useState<string>('');
   const [missingEntryEntitlName, setmissingEntryEntitlName] = useState<string>('');
   const [entitlPath, setEntitlPath] = useState<string>('');
@@ -22,7 +22,7 @@ const EditOrCreateEntitlement = (props: any) => {
     const value = e.currentTarget.value;
     validateEntitlementName(value);
     setEntitlId(value);
-    setEntitleName(Envs.ALICE_APP_NAME + '.' + props.projectName + '_' + value);
+    setEntitleName(Envs.CODESPACE_SECURITY_APP_ID + '.' + props.projectName + '_' + value);
     setmissingEntryEntitlName('');
   };
 

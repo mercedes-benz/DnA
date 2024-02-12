@@ -311,7 +311,7 @@ const Roles = (props: any) => {
                             {item.roleEntitlements?.map((entitlement: any, index: number) => (
                               <div className="chips read-only" key={index}>
                                 <label className="name">
-                                  {!props.isCodeSpaceAdminPage ? Envs.ALICE_APP_NAME + '.' + entitlement.name : entitlement.name }
+                                  {!props.isCodeSpaceAdminPage ? Envs.CODESPACE_SECURITY_APP_ID + '.' + entitlement.name : entitlement.name }
                                 </label>
                               </div>
                             ))}
@@ -445,7 +445,7 @@ const Roles = (props: any) => {
                 >
                   {allentitelmentList?.map((obj: any) => (
                     <option id={obj.name + obj.id} key={obj.id} value={obj.id}>
-                      {Envs.ALICE_APP_NAME + '.' + obj.name}
+                      {Envs.CODESPACE_SECURITY_APP_ID + '.' + obj.name}
                     </option>
                   ))}
                 </select>

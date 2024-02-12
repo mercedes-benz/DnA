@@ -269,7 +269,7 @@ const EntitlementSubList = (props: IEntitlementSublistProps) => {
                       >
                         <div className={classNames('expansion-panel')}>
                           <div className={classNames(Styles.entTile)}>
-                            <div className={Styles.dagTitleCol}>{!props.isCodeSpaceAdminPage? Envs.ALICE_APP_NAME+'.'+item.name : item.name}</div>
+                            <div className={Styles.dagTitleCol}>{!props.isCodeSpaceAdminPage? Envs.CODESPACE_SECURITY_APP_ID +'.'+item.name : item.name}</div>
                             <div className={Styles.dagTitleCol}>
                               <div className={Styles.prjListAction}>
                                 <div className={Styles.actionBtnGrp}>
@@ -325,7 +325,7 @@ const EntitlementSubList = (props: IEntitlementSublistProps) => {
                           <input type="checkbox" className="ff-only" id={index + '1'} defaultChecked={index === 0} />
                           <label className={Styles.expansionLabel + ' expansion-panel-label '} htmlFor={index + '1'}>
                             <div className={classNames(Styles.entTile)}>
-                              <div className={Styles.dagTitleCol}>{!props.isCodeSpaceAdminPage?( Envs.ALICE_APP_NAME+'.'+ item.name ): item.name}</div>
+                              <div className={Styles.dagTitleCol}>{!props.isCodeSpaceAdminPage?( Envs.CODESPACE_SECURITY_APP_ID+'.'+ item.name ): item.name}</div>
                               <div className={Styles.dagTitleCol}></div>
                             </div>
                             <i tooltip-data="Expand" className="icon down-up-flip"></i>

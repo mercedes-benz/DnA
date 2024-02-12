@@ -211,5 +211,5 @@ export const Envs = {
   SPIRE_URL: getInjectedEnv('SPIRE_URL') || process.env.SPIRE_URL,
   GENAI_DIRECT_CHAT_URL: getInjectedEnv('GENAI_DIRECT_CHAT_URL') || process.env.GENAI_DIRECT_CHAT_URL,
   CLAMAV_IMAGE_URL:  getInjectedEnv('CLAMAV_IMAGE_URL') || process.env.CLAMAV_IMAGE_URL,
-  ALICE_APP_NAME: getInjectedEnv('ALICE_APP_NAME' || process.env.ALICE_APP_NAME)
+  CODESPACE_SECURITY_APP_ID: getInjectedEnv('CODESPACE_SECURITY_APP_ID' || process.env.CODESPACE_SECURITY_APP_ID)
 };
