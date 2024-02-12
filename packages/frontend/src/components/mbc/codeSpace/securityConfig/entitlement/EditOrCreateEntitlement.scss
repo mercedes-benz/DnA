@@ -64,6 +64,13 @@
           textarea {
             min-height: 100px;
           }
+          .inlineTextField{
+            display: flex;
+            justify-content: space-between;
+            >div {
+              width: calc(50% - 7px);
+            }
+          }
 
           .inputGrpChild {
             min-height: auto;
@@ -71,7 +78,7 @@
             display: flex;
             flex-direction: column;
             align-content: center;
-            margin-top: 10px;
+            margin-top: 0px;
 
             &:first-child {
               margin-top: 0px;

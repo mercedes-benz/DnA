@@ -14,6 +14,7 @@ import classNames from 'classnames';
 import EditOrCreateEntitlement from './EditOrCreateEntitlement';
 import { CODE_SPACE_STATUS, HTTP_OPTIONS } from 'globals/constants';
 import SelectBox from 'components/formElements/SelectBox/SelectBox';
+import { Envs } from 'globals/Envs';
 
 export interface IEntitlementSublistProps {
   listOfProject: any[];
@@ -24,6 +25,8 @@ export interface IEntitlementSublistProps {
   updatedFinalEntitlementList: any;
   status: string;
   readOnlyMode: boolean;
+  isCodeSpaceAdminPage: boolean;
+  projectName?: string;
 }
 
 const EntitlementSubList = (props: IEntitlementSublistProps) => {
@@ -266,7 +269,7 @@ const EntitlementSubList = (props: IEntitlementSublistProps) => {
                       >
                         <div className={classNames('expansion-panel')}>
                           <div className={classNames(Styles.entTile)}>
-                            <div className={Styles.dagTitleCol}>{item.name}</div>
+                            <div className={Styles.dagTitleCol}>{!props.isCodeSpaceAdminPage? Envs.CODESPACE_SECURITY_APP_ID +'.'+item.name : item.name}</div>
                             <div className={Styles.dagTitleCol}>
                               <div className={Styles.prjListAction}>
                                 <div className={Styles.actionBtnGrp}>
@@ -322,7 +325,7 @@ const EntitlementSubList = (props: IEntitlementSublistProps) => {
                           <input type="checkbox" className="ff-only" id={index + '1'} defaultChecked={index === 0} />
                           <label className={Styles.expansionLabel + ' expansion-panel-label '} htmlFor={index + '1'}>
                             <div className={classNames(Styles.entTile)}>
-                              <div className={Styles.dagTitleCol}>{item.name}</div>
+                              <div className={Styles.dagTitleCol}>{!props.isCodeSpaceAdminPage?( Envs.CODESPACE_SECURITY_APP_ID+'.'+ item.name ): item.name}</div>
                               <div className={Styles.dagTitleCol}></div>
                             </div>
                             <i tooltip-data="Expand" className="icon down-up-flip"></i>
@@ -472,6 +475,7 @@ const EntitlementSubList = (props: IEntitlementSublistProps) => {
               editEntitlementModal={true}
               editEntitlementList={editEntitlementList}
               isProtectedByDna={props.isProtectedByDna}
+              projectName={props.projectName}
               submitEntitlement={updateEntitlement}
             />
           }

@@ -484,10 +484,10 @@ const CodeSpace = (props: ICodeSpaceProps) => {
   const isOwner = projectDetails?.projectOwner?.id === props.user.id;
   const navigateSecurityConfig = () => {
     if (projectDetails?.publishedSecuirtyConfig) {
-      history.push(`/codespace/publishedSecurityconfig/${codeSpaceData.id}?pub=true`);
+      history.push(`/codespace/publishedSecurityconfig/${codeSpaceData.id}?pub=true&name=${projectDetails.projectName}`);
       return;
     }
-    history.push(`/codespace/securityconfig/${codeSpaceData.id}?pub=false`);
+    history.push(`/codespace/securityconfig/${codeSpaceData.id}?pub=false&name=${projectDetails.projectName}`);
   }
 
   const intDeploymentDetails = projectDetails?.intDeploymentDetails;
