@@ -538,7 +538,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
       setGithubTokenError(requiredError);
       formValid = false;
     }
-    if (projectNameError !== '' || recipeError !== '' || githubTokenError !== '' || (isPublicRecipeChoosen && isUserDefinedGithubRecipe && userDefinedGithubUrlError !== '')) {
+    if (projectNameError !== '' || recipeValue === '0' || githubTokenError !== '' || (isPublicRecipeChoosen && isUserDefinedGithubRecipe && userDefinedGithubUrlError !== '')) {
       formValid = false;
     }
     return formValid;
