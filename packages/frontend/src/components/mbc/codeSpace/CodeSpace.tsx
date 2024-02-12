@@ -487,7 +487,7 @@ const CodeSpace = (props: ICodeSpaceProps) => {
       history.push(`/codespace/publishedSecurityconfig/${codeSpaceData.id}?pub=true&name=${projectDetails.projectName}`);
       return;
     }
-    history.push(`/codespace/securityconfig/${codeSpaceData.id}?pub=true&name=${projectDetails.projectName}`);
+    history.push(`/codespace/securityconfig/${codeSpaceData.id}?pub=false&name=${projectDetails.projectName}`);
   }
 
   const intDeploymentDetails = projectDetails?.intDeploymentDetails;
