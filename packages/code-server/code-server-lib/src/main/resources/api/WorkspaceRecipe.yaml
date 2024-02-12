@@ -1,0 +1,272 @@
+# LICENSE START
+#
+# MIT License
+#
+# Copyright (c) 2019 Daimler TSS GmbH
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+#
+# LICENSE END
+#
+#-----------------------------------------------------------------------------------------------------
+#  **
+#  ** File Name  : WorkspaceRecipe.yaml
+#  **
+#  ** Module     : core
+#  **
+
+#  -------------------------------------------------------------------------------------------------------
+#
+#  CHANGE HISTORY
+#
+#  Created By         :  BEALURI
+#
+#  Bug Number         :
+#  Changed By         :
+#  Change Description :
+#  Change On          :
+#  Search String      :
+#
+#  -------------------------------------------------------------------------------------------------------
+
+swagger: "2.0"
+info:
+  version: "1.0.0"
+  title: "Code-server Workspace Service"
+host: "localhost:7979"
+basePath: "/api/1.0"
+consumes:
+  - "application/json"
+produces:
+  - "application/json"
+tags:
+  - name: "code-server-recipe"
+    description: "This service is used to maintain code-server workspaces information."
+
+schemes:
+  - "https"
+
+paths:
+  # Fetch all valid userinfo or by intent
+  #
+  #  supported http methods GET, POST
+  #
+  # path example ../recipeDetails
+
+  /recipeDetails:
+    get:
+      tags:
+        - "code-server-recipe"
+      summary: "Get all recipe managment workspaces for the user."
+      description: "Get all codeServer recipe managment workspaces for the user."
+      operationId: "getAllRecipes"
+      parameters:
+        - name: offset
+          in: query
+          description: page number from which listing of workspaces should start. Offset. Example 2
+          required: false
+          type: integer
+        - name: limit
+          in: query
+          description: page size to limit the number of workspaces, Example 15
+          required: false
+          type: integer
+      responses:
+        201:
+          description: "Returns message of success or failure"
+          schema:
+            $ref: "#/definitions/RecipeCollectionVO"
+        204:
+          description: "Fetch complete, no content found."
+        400:
+          description: "Bad request."
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
+
+    post:
+      tags:
+        - "code-server-recipe"
+      summary: "Initialize/Create recipe for user in code-server-recipe."
+      description: "Create recipe for user in code-server with given password"
+      operationId: "createRecipe"
+      parameters:
+        - name: "recipeRequestVO"
+          in: "body"
+          description: "Request Body that contains data required for intialize code server workbench for user"
+          required: true
+          schema:
+            $ref: "#/definitions/RecipeVO"
+      responses:
+        201:
+          description: "Returns message of success or failure "
+          schema:
+            $ref: "#/definitions/InitializeRecipeVo"
+        400:
+          description: "Bad Request"
+          schema:
+            $ref: "#/definitions/GenericMessage"
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
+
+  # Fetch all valid userinfo or by intent
+  #
+  #  supported http methods GET, POST and DELETE
+  #
+  # path example ../workspaces/{id}
+
+  /recipeDetails/{recipeName}:
+    get:
+      tags:
+        - "code-server-recipe"
+      summary: "Get workspace recipe details for a given Id."
+      description: "Get workspace recipe details for a given Id."
+      operationId: "getByRecipeName"
+      parameters:
+        - name: "recipeName"
+          in: "path"
+          description: "Workspace ID to be fetched"
+          required: true
+          type: "string"
+      responses:
+        200:
+          description: "Returns message of success or failure"
+          schema:
+            $ref: "#/definitions/InitializeRecipeVo"
+        204:
+          description: "Fetch complete, no content found."
+        400:
+          description: "Bad request."
+          schema:
+            $ref: "#/definitions/GenericMessage"
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
+
+definitions:
+  RecipeVO:
+    type: object
+    properties:
+      recipeName:
+        type: string
+        description: "recipeName  for recipe managment"
+      recipeType:
+        type: string
+        description: "recipe type for codespace managment"
+      repodetails:
+        type: string
+        description: "Git URL"
+      diskSpace:
+        type: string
+        description: "disk size GB"
+      minCpu:
+        type: string
+        description: "min CPU capacity required"
+      maxCpu:
+        type: string
+        description: "max CPU capacity required"
+      maxRam:
+        type: string
+        description: "min RAM capacity required"
+      minRam:
+        type: string
+        description: "min RAM capacity required"
+      oSName:
+        type: string
+        enum: [Debian-OS-11]
+        description: "Operating system required"
+      software:
+        type: array
+        items:
+          $ref: "#/definitions/RecipeSoftwareVO"
+      createdOn:
+        type: string
+        format: date
+        description: "created date for recipe managment"
+      createdBy:
+        $ref: "#/definitions/UserInfoVO"
+      plugins:
+        type: array
+        items:
+          type: string
+
+  RecipeSoftwareVO:
+    type: object
+    properties:
+      name:
+        type: string
+        description: "Operating system required"
+      version:
+        type: string
+        description: "version of software"
+        
+  RecipeCollectionVO:
+    type: object
+    properties:
+      data:
+        type: array
+        items:
+          $ref: "#/definitions/RecipeVO"
+      count:
+        type: integer
+        description: "total number of records"
+      success:
+        type: string
+      errors:
+        type: array
+        items:
+          $ref: "#/definitions/MessageDescription"
+      warnings:
+        type: array
+        items:
+          $ref: "#/definitions/MessageDescription"  
+
+  InitializeRecipeVo:
+    type: object
+    properties:
+      data:
+        type: object
+        items:
+          $ref: "#/definitions/RecipeVO"
+      success:
+        type: string
+      errors:
+        type: array
+        items:
+          $ref: "#/definitions/MessageDescription"
+      warnings:
+        type: array
+        items:
+          $ref: "#/definitions/MessageDescription"  

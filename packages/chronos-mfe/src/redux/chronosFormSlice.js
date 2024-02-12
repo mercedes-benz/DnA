@@ -47,16 +47,16 @@ export const chronosFormSlice = createSlice({
           }
           return 0;
         });
-        const filteredConfigFiles = bucketObjects.filter(file => file.objectName === 'chronos-core/configs/default_config.yml');
-        if(filteredConfigFiles.length === 1) {
-          bucketObjects.sort((a, b) => {
-            let fa = a.objectName.toLowerCase(),
-                fb = b.objectName.toLowerCase();
-            const first = 'chronos-core/configs/default_config.yml';
-            return fa == first ? -1 : fb == first ? 1 : 0;
-          });
-        }
-        state.configFiles = [...bucketObjects];
+
+        const coreConfigs = bucketObjects.filter(file => file.objectName.includes('chronos-core'));
+        const projectConfigs = bucketObjects.filter(file => !(file.objectName.includes('chronos-core')));
+
+        const coreConfigsSorted = coreConfigs.filter(file => file.objectName !== 'chronos-core/configs/OPTIMISATION_CONFIG.yml');
+        const coreConfigsDefault = coreConfigsSorted.filter(file => file.objectName !== 'chronos-core/configs/default_config.yml');
+        coreConfigsDefault.push({ objectName: 'chronos-core/configs/OPTIMISATION_CONFIG.yml' });
+        const sortedConfigs = [{ objectName: 'chronos-core/configs/default_config.yml' }, ...projectConfigs, ...coreConfigsDefault];
+
+        state.configFiles = [...sortedConfigs];
         state.errors = '';
       }
     });

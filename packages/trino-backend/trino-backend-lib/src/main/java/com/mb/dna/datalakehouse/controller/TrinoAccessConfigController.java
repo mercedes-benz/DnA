@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.daimler.data.dna.trino.config.TrinoClient;
 import com.mb.dna.datalakehouse.dto.TrinoAccessResponseVO;
 import com.mb.dna.datalakehouse.dto.TrinoAccessVO;
 import com.mb.dna.datalakehouse.service.TrinoAccessService;
@@ -21,12 +22,15 @@ import lombok.extern.slf4j.Slf4j;
 
 @RestController
 @Api(value = "Trino access control details API", tags = { "trino" })
-@RequestMapping("/api")
+@RequestMapping("/service")
 @Slf4j
 public class TrinoAccessConfigController {
 
 	@Autowired
 	private TrinoAccessService service;
+	
+	@Autowired
+	private TrinoClient client;
 	
 	@ApiOperation(value = "Get all trino access configuration details.", nickname = "getAll", notes = "Get all ttrino access configuration details. This endpoints will be used to get trino access configuration details like catalog rules, schema rules and table rules", response = TrinoAccessResponseVO.class, tags = {
 			"trino", })

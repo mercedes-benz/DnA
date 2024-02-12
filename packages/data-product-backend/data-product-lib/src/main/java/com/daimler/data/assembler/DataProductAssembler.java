@@ -153,7 +153,7 @@ public class DataProductAssembler implements GenericAssembler<DataProductVO, Dat
 				if(Objects.nonNull(dataProduct.getAccess())) {
 					List<String> accesstypes = dataProduct.getAccess().getAccessType();
 					if(accesstypes != null && accesstypes.size()>0 ) {
-						if(accesstypes.contains("Kafka") || accesstypes.contains("API")) {
+						if(accesstypes.contains("Kafka") || accesstypes.contains("API") || accesstypes.contains("SQL endpoint (Trino)")) {
 							if(Objects.nonNull(dataProduct.getAccess().getConfidentiality()) && dataProduct.getAccess().getConfidentiality().equals("Internal")) {								
 								if((Objects.nonNull(dataProduct.getAccess().isPersonalRelatedData()) && dataProduct.getAccess().isPersonalRelatedData()) || (Objects.nonNull(dataProduct.getAccess().isDeletionRequirements()) && dataProduct.getAccess().isDeletionRequirements()) || (Objects.nonNull(dataProduct.getAccess().isRestrictDataAccess()) && dataProduct.getAccess().isRestrictDataAccess())) {
 									dataProduct.getAccess().setMinimumInformationCheck(true);	
@@ -163,7 +163,7 @@ public class DataProductAssembler implements GenericAssembler<DataProductVO, Dat
 								}								
 							}
 							else {
-								dataProduct.getAccess().setMinimumInformationCheck(false);													
+								dataProduct.getAccess().setMinimumInformationCheck(true);													
 							}
 						}
 						else {
@@ -370,7 +370,7 @@ public class DataProductAssembler implements GenericAssembler<DataProductVO, Dat
 				if(Objects.nonNull(vo.getAccess())) {
 					List<String> accesstypes = vo.getAccess().getAccessType();
 					if(accesstypes != null && accesstypes.size()>0 ) {
-						if(accesstypes.contains("Kafka") || accesstypes.contains("API")) {
+						if(accesstypes.contains("Kafka") || accesstypes.contains("API") || accesstypes.contains("SQL endpoint (Trino)")) {
 							if(Objects.nonNull(vo.getAccess().getConfidentiality()) && vo.getAccess().getConfidentiality().equals("Internal")) {								
 								if((Objects.nonNull(vo.getAccess().isPersonalRelatedData()) && vo.getAccess().isPersonalRelatedData()) || (Objects.nonNull(vo.getAccess().isDeletionRequirements()) && vo.getAccess().isDeletionRequirements()) || (Objects.nonNull(vo.getAccess().isRestrictDataAccess()) && vo.getAccess().isRestrictDataAccess())) {	 		
 									vo.getAccess().setMinimumInformationCheck(true);	
@@ -380,7 +380,7 @@ public class DataProductAssembler implements GenericAssembler<DataProductVO, Dat
 								}								
 							}
 							else {
-								vo.getAccess().setMinimumInformationCheck(false);
+								vo.getAccess().setMinimumInformationCheck(true);
 							}
 						}
 						else {

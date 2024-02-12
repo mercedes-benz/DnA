@@ -116,7 +116,11 @@ public class UserStore {
 			return this.getUserRole().stream().anyMatch(
 					n -> "Admin".equalsIgnoreCase(n.getName()));
 		}
-
+		public boolean hasCodespaceAdminAccess(){
+			return this.getUserRole().stream().anyMatch(
+				n -> "CodespaceAdmin".equalsIgnoreCase(n.getName())
+			);
+		}
 	}
 
 	@Data

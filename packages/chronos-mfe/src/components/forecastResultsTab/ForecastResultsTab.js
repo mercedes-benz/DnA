@@ -16,6 +16,8 @@ import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indica
 import { getQueryParameterByName } from '../../utilities/utils';
 import ForecastRunRow from './forecastRunRow/ForecastRunRow';
 import { SESSION_STORAGE_KEYS } from '../../utilities/constants';
+// import Spinner from '../spinner/Spinner';
+import { Envs } from '../../utilities/envs';
 
 const ForecastResultsTab = ({ onRunClick }) => {
   const { id: projectId } = useParams();
@@ -181,6 +183,11 @@ const ForecastResultsTab = ({ onRunClick }) => {
     setSelectedRuns(selectedRuns.filter((item) => item !== tempNotifId));
   };
 
+  const runComparison = (id) => {
+    setSelectedRuns((prevArray) => [...prevArray, id]);
+    setShowCompareModal(true);
+  };
+
   const showDeleteConfirmModal = (run) => {
     setShowDeleteModal(true);
     setRunToBeDeleted(run);
@@ -286,6 +293,7 @@ const ForecastResultsTab = ({ onRunClick }) => {
         <div className={Styles.content}>
           <div className={Styles.forecastResultListWrapper}>
             <div className={Styles.listContent}>
+              {/* {loading && <Spinner />} */}
               {!loading && (
                 forecastRuns?.length === 0 &&
                   <div className={Styles.forecastResultListEmpty}>Forecast Runs are not available</div>
@@ -419,6 +427,7 @@ const ForecastResultsTab = ({ onRunClick }) => {
                               deselectRun={deselectRun}
                               onOpenErrorModal={handleOpenErrorModal}
                               onCancelRun={handleCancelRun}
+                              runComparison={runComparison}
                             />
                           );
                         })}
@@ -491,7 +500,7 @@ const ForecastResultsTab = ({ onRunClick }) => {
                           <pre>{errorItem.warnings}</pre>
                         </>
                       }
-                      {(errorItem.warnings !== null && errorItem.warnings.length === 0 && errorItem.warningsInfo !== null && errorItem.warningsInfo.length > 0) &&
+                      {((errorItem.state.result_state === 'INFO') || (errorItem.warnings !== null && errorItem.warnings.length === 0 && errorItem.warningsInfo !== null && errorItem.warningsInfo.length > 0)) &&
                         <>
                           <i className={classNames('icon mbc-icon info circle', Styles.infoCircle)} />
                           <pre>{errorItem.warningsInfo}</pre>
@@ -504,6 +513,10 @@ const ForecastResultsTab = ({ onRunClick }) => {
                         </>
                       }
                     </div> 
+                    <br />
+                    {(errorItem.state.result_state === 'CANCELED' || errorItem.state.result_state === 'FAILED' || errorItem.state.result_state === 'TIMEDOUT') &&
+                      <p>If you want to learn more, visit the Chronos documentation <a href={Envs.CHRONOS_DOCUMENTATION_URL} target='_blank' rel='noopener noreferrer'>here</a>. Feel free to also contact the Chronos team via <a href={`mailto:${Envs.ADS_EMAIL}`}>{Envs.ADS_EMAIL}</a>.</p>
+                    }
                 </div>
               }
               scrollableContent={false}
@@ -646,8 +659,11 @@ const ForecastResultsTab = ({ onRunClick }) => {
                 </form>
               </div>
             }
-            scrollableContent={false}
+            scrollableContent={true}
             onCancel={() => {
+              setActualsFile('');
+              setBusinessFile('');
+              setSelectedRuns([]);
               setShowCompareModal(false)
             }}
             modalStyle={{

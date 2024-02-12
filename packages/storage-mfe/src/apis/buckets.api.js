@@ -1,7 +1,7 @@
 import { hostServer, server, dataikuServer } from '../server/api';
 
-const getAllBuckets = () => {
-  return server.get('/buckets', {
+const getAllBuckets = (offset, limit) => {
+  return server.get(`/buckets?offset=${offset}&limit=${limit}`, {
     data: {},
   });
 };

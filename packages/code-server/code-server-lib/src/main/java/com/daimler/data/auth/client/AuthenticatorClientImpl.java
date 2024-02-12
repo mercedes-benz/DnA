@@ -22,9 +22,6 @@ import com.daimler.data.controller.exceptions.MessageDescription;
 import com.daimler.data.db.entities.CodeServerWorkspaceNsql;
 import com.daimler.data.db.json.CodeServerDeploymentDetails;
 import com.daimler.data.db.repo.workspace.WorkspaceCustomRepository;
-import com.daimler.data.dto.WorkbenchManageDto;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 @Component
 public class AuthenticatorClientImpl  implements AuthenticatorClient{
@@ -262,31 +259,18 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 		return response;
 	}
 	
-	public void callingKongApis(String serviceName, String env, boolean apiRecipe) {
-		boolean kongApiForDeploymentURL = false;
-		String deploymentServiceName = "";
-		CodeServerWorkspaceNsql workspaceNsql = null;
-		if(serviceName.contains(WORKSPACE_API) && Objects.nonNull(env)) {
-			LOGGER.info("service is : {}",serviceName);	
-			LOGGER.info("env is : {}",env);
-			kongApiForDeploymentURL = true;
-			LOGGER.info("kongApiForDeploymentURL is :{}",kongApiForDeploymentURL);
-			String[] wsid = serviceName.split("-");
-			deploymentServiceName = wsid[0];
-			workspaceNsql = customRepository.findByWorkspaceId(deploymentServiceName);
-		}
-		else {
-			workspaceNsql = customRepository.findByWorkspaceId(serviceName);
-		}
+	public void callingKongApis(String wsid,String serviceName, String env, boolean apiRecipe) {
+		boolean kongApiForDeploymentURL = !wsid.equalsIgnoreCase(serviceName) && Objects.nonNull(env);
+		CodeServerWorkspaceNsql workspaceNsql = customRepository.findByWorkspaceId(wsid);
 		CodeServerDeploymentDetails intDeploymentDetails = workspaceNsql.getData().getProjectDetails().getIntDeploymentDetails();
 		CodeServerDeploymentDetails prodDeploymentDetails = workspaceNsql.getData().getProjectDetails().getProdDeploymentDetails();
-		Boolean intSecureIAM = null;
-		Boolean prodSecureIAM = null;
+		Boolean intSecureIAM = false;
+		Boolean prodSecureIAM = false;
 		if(Objects.nonNull(prodDeploymentDetails)) {
-			prodSecureIAM = prodDeploymentDetails.getSecureWithIAMRequired(); //false
+			prodSecureIAM = prodDeploymentDetails.getSecureWithIAMRequired(); 
 		}
 		if(Objects.nonNull(intDeploymentDetails)) {
-			intSecureIAM = intDeploymentDetails.getSecureWithIAMRequired(); //true
+			intSecureIAM = intDeploymentDetails.getSecureWithIAMRequired(); 
 		}
 		LOGGER.info("Codespace deployed to production with enabling secureIAM is :{}",prodSecureIAM);
 		LOGGER.info("Codespace deployed to staging with enabling secureIAM is :{}",intSecureIAM);
@@ -296,7 +280,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 		CreateServiceRequestVO createServiceRequestVO = new CreateServiceRequestVO();
 		CreateServiceVO createServiceVO = new CreateServiceVO();
 		if(kongApiForDeploymentURL) {					    		    
-			url = "http://" + deploymentServiceName + "-" + env + ".codespaces-apps:80";
+			url = "http://" + serviceName + "-" + env + ".codespaces-apps:80";
 		}
 		else {
 			url = "http://" + serviceName + ".code-server:8080";
@@ -309,25 +293,35 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 		List<String> hosts = new ArrayList();
 		List<String> paths = new ArrayList();
 		List<String> protocols = new ArrayList();
-		String currentPath = "/" + deploymentServiceName + "/" + env + "/api";
+		String currentPath = "/" + serviceName + "/" + env + "/api";
 		CreateRouteRequestVO createRouteRequestVO = new CreateRouteRequestVO();
 		CreateRouteVO createRouteVO = new CreateRouteVO();
 		if(kongApiForDeploymentURL) {
-			if(Objects.nonNull(intSecureIAM) && intSecureIAM) {
-				paths.add("/" + deploymentServiceName + "/" + "int" + "/api");
+			if(apiRecipe) {
+				if(env.equalsIgnoreCase("int"))
+					paths.add("/" + serviceName + "/" + "int" + "/api");
+				if(env.equalsIgnoreCase("prod"))
+					paths.add("/" + serviceName + "/" + "prod" + "/api");
 			}
-			if(Objects.nonNull(prodSecureIAM) && prodSecureIAM) {
-				paths.add("/" + deploymentServiceName + "/" + "prod" + "/api");
+			else {
+				if(env.equalsIgnoreCase("int"))
+					paths.add("/" + serviceName + "/" + "int/");
+				if(env.equalsIgnoreCase("prod"))
+					paths.add("/" + serviceName + "/" + "prod/");
 			}
+//			if(Objects.nonNull(intSecureIAM) && intSecureIAM) {
+//				paths.add("/" + serviceName + "/" + "int" + "/api");
+//			}
+//			if(Objects.nonNull(prodSecureIAM) && prodSecureIAM) {
+//				paths.add("/" + serviceName + "/" + "prod" + "/api");
+//			}
 			if(!(paths.contains(currentPath))) {
 				paths.add(currentPath);
 			}			
 		}
 		else {
 			paths.add("/" + serviceName);
-			//paths.add("/");			
 		}
-				
 		protocols.add("http");
 		protocols.add("https");
 		hosts.add(codeServerEnvUrl);
@@ -439,8 +433,12 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 						attachPluginResponse = attachPluginToService(attachPluginRequestVO,serviceName);
 					}
 					else {
-						LOGGER.info("kongApiForDeploymentURL is {} and apiRecipe is {} and uiRecipesToUseOidc is : {}, calling jwtissuer plugin ",kongApiForDeploymentURL, apiRecipe, uiRecipesToUseOidc );
-						attachJwtPluginResponse = attachJwtPluginToService(attachJwtPluginRequestVO,serviceName);
+						if(intSecureIAM || prodSecureIAM) {
+							attachJwtPluginResponse = attachJwtPluginToService(attachJwtPluginRequestVO,serviceName);
+							LOGGER.info("kongApiForDeploymentURL is {} and apiRecipe is {} and uiRecipesToUseOidc is : {}, calling jwtissuer plugin ",kongApiForDeploymentURL, apiRecipe, uiRecipesToUseOidc );
+						}else {
+							LOGGER.info("Secure with IAM false, hence didnt add jwt plugin to service. kongApiForDeploymentURL is {} and apiRecipe is {} and uiRecipesToUseOidc is : {}, calling jwtissuer plugin ",kongApiForDeploymentURL, apiRecipe, uiRecipesToUseOidc );
+						}
 					}
 				}
 			}
@@ -467,8 +465,10 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 
 		}
 		else {
+			String errors = createServiceResponse.getErrors()!= null && !createServiceResponse.getErrors().isEmpty() ? createServiceResponse.getErrors().get(0).getMessage() : "";
+			String warnings =  createServiceResponse.getWarnings()!= null && !createServiceResponse.getWarnings().isEmpty() ? createServiceResponse.getWarnings().get(0).getMessage() : "";
 			LOGGER.info("kong create service status is: {} and errors if any: {}, warnings if any:", createServiceResponse.getSuccess(),
-					createServiceResponse.getErrors(), createServiceResponse.getWarnings());
+					errors, warnings);
 			LOGGER.info("kong create route status is: {} and errors if any: {}, warnings if any:", createRouteResponse.getSuccess(), 
 					createRouteResponse.getErrors(), createRouteResponse.getWarnings());
 			LOGGER.info("kong attach plugin to service status is: {} and errors if any: {}, warnings if any:", attachPluginResponse.getSuccess(),
@@ -532,12 +532,12 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 			String deleteServiceUri = authenticatorBaseUri + CREATE_SERVICE  +"/" + serviceName;
 			HttpHeaders headers = new HttpHeaders();
 			headers.set("Accept", "application/json");
-			headers.set("Content-Type", "application/x-www-form-urlencoded");
+			headers.set("Content-Type", "application/json");
 			HttpEntity entity = new HttpEntity<>(headers);
 			ResponseEntity<String> response = restTemplate.exchange(deleteServiceUri, HttpMethod.DELETE, entity, String.class);
 			if (response != null && response.hasBody()) {
 				HttpStatus statusCode = response.getStatusCode();
-				if (statusCode == HttpStatus.OK || statusCode == HttpStatus.NO_CONTENT) {
+				if (statusCode.is2xxSuccessful()) {
 					message.setSuccess("Success");		
 					message.setErrors(errors);
 					message.setWarnings(warnings);
@@ -554,14 +554,14 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 			message.setErrors(errors);
 			return message;
 			}
-			LOGGER.error("Exception occured while deleting service: {} details", serviceName);			
+			LOGGER.error("Exception: {} occured while deleting service: {} details",ex.getMessage(), serviceName);			
 			messageDescription.setMessage(ex.getMessage());
 			errors.add(messageDescription);
 			message.setErrors(errors);
 			return message;
 		}
 		catch(Exception e) {
-			LOGGER.error("Error while deleting service: {} details", serviceName);			
+			LOGGER.error("Error: {} while deleting service: {} details",e.getMessage(), serviceName);			
 			messageDescription.setMessage(e.getMessage());
 			errors.add(messageDescription);
 			errors.add(messageDescription);
@@ -582,12 +582,12 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 			String deleteRouteUri = authenticatorBaseUri + CREATE_SERVICE + "/" + serviceName + CREATE_ROUTE + "/" + routeName;
 			HttpHeaders headers = new HttpHeaders();
 			headers.set("Accept", "application/json");
-			headers.set("Content-Type", "application/x-www-form-urlencoded");
+			headers.set("Content-Type", "application/json");
 			HttpEntity entity = new HttpEntity<>(headers);
 			ResponseEntity<String> response = restTemplate.exchange(deleteRouteUri, HttpMethod.DELETE, entity, String.class);
 			if (response != null) {
 				HttpStatus statusCode = response.getStatusCode();
-				if (statusCode == HttpStatus.OK || statusCode == HttpStatus.NO_CONTENT) {
+				if (statusCode.is2xxSuccessful()) {
 					message.setSuccess("Success");		
 					message.setErrors(errors);
 					message.setWarnings(warnings);
@@ -604,14 +604,14 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 			message.setErrors(errors);
 			return message;
 			}
-			LOGGER.error("Exception occured while deleting route: {} details", routeName);			
+			LOGGER.error("Exception occured: {} while deleting route: {} details", ex.getMessage(),routeName);			
 			messageDescription.setMessage(ex.getMessage());
 			errors.add(messageDescription);
 			message.setErrors(errors);
 			return message;
 		}
 		catch(Exception e) {
-			LOGGER.error("Error while deleting route: {} details", routeName);			
+			LOGGER.error("Error occured: {} while deleting route: {} details", e.getMessage(),routeName);			
 			messageDescription.setMessage(e.getMessage());
 			errors.add(messageDescription);
 			errors.add(messageDescription);

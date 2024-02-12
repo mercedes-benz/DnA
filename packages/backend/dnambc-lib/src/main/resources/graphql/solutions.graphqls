@@ -241,7 +241,9 @@ type SolutionDataComplianceVO{
 	useCaseDescAndEval: Boolean,
 	attachments: [FileDetailsVO],
 	links: [LinkVO],
-	complianceOfficers: [TeamMemberVO] 
+	complianceOfficers: [TeamMemberVO],
+	aiRiskAssessmentType: AIRiskAssessmentTypeEnum 
+    workersCouncilApproval: Boolean
 	
 }
 
@@ -367,4 +369,10 @@ enum UserTypeEnum{
 enum TypeOfCalculationEnum{
     DIGITAL_VALUE,
     DATA_VALUE
+}
+
+enum AIRiskAssessmentTypeEnum{
+	NOT_APPLICABLE, 
+	BASIC_RISK,
+	HIGH_RISK
 }
