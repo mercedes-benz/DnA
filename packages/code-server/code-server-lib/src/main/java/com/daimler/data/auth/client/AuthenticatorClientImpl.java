@@ -293,17 +293,19 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 		List<String> hosts = new ArrayList();
 		List<String> paths = new ArrayList();
 		List<String> protocols = new ArrayList();
-		String currentPath = "/" + serviceName + "/" + env + "/api";
+		String currentPath = "";
 		CreateRouteRequestVO createRouteRequestVO = new CreateRouteRequestVO();
 		CreateRouteVO createRouteVO = new CreateRouteVO();
 		if(kongApiForDeploymentURL) {
 			if(apiRecipe) {
+				currentPath = "/" + serviceName + "/" + env + "/api";
 				if(env.equalsIgnoreCase("int"))
 					paths.add("/" + serviceName + "/" + "int" + "/api");
 				if(env.equalsIgnoreCase("prod"))
 					paths.add("/" + serviceName + "/" + "prod" + "/api");
 			}
 			else {
+				currentPath = "/" + serviceName + "/" + env + "/";
 				if(env.equalsIgnoreCase("int"))
 					paths.add("/" + serviceName + "/" + "int/");
 				if(env.equalsIgnoreCase("prod"))
