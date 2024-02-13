@@ -116,10 +116,10 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
 
   const onCodeSpaceSecurityConfigClick = (codeSpace: ICodeSpaceData) => {
     if (codeSpace?.projectDetails?.publishedSecuirtyConfig) {
-      history.push(`/codespace/publishedSecurityconfig/${codeSpace.id}?pub=true`);
+      history.push(`/codespace/publishedSecurityconfig/${codeSpace.id}?pub=true&name=${codeSpace.projectDetails.projectName}`);
       return;
     }
-    history.push(`codespace/securityconfig/${codeSpace.id}?pub=false`);
+    history.push(`codespace/securityconfig/${codeSpace.id}?pub=false&name=${codeSpace.projectDetails.projectName}`);
   };
 
   const onCodeSpaceDelete = () => {
@@ -220,7 +220,7 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
                     <div>
                       {intDeployed && (
                         <>
-                          <strong>Staging:</strong> (<span className={Styles.metricsTrigger} onClick={handleOpenDoraMetrics}>DORA Metrics</span>)
+                          <strong>Staging:</strong> <span className={classNames(Styles.metricsTrigger, 'hide')} onClick={handleOpenDoraMetrics}>(DORA Metrics)</span>
                           <br />
                           Branch '{intDeploymentDetails?.lastDeployedBranch}' deployed on
                           <br />
@@ -234,7 +234,7 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
                               {regionalDateAndTimeConversionSolution(intLastDeployedOn)}
                             </a>
                           ) : (
-                            <>{regionalDateAndTimeConversionSolution(intLastDeployedOn)}</>
+                            <>{regionalDateAndTimeConversionSolution(intLastDeployedOn)}&nbsp;</>
                           )}
                           {!creationFailed && !enableOnboard && (
                             <a target="_blank" href={buildLogViewURL(intDeployedUrl, true)} rel="noreferrer">
@@ -252,7 +252,7 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
                     <div>
                       {prodDeployed && (
                         <>
-                          <strong>Production:</strong> (<span className={Styles.metricsTrigger} onClick={handleOpenDoraMetrics}>DORA Metrics</span>)
+                          <strong>Production:</strong> <span className={classNames(Styles.metricsTrigger, 'hide')} onClick={handleOpenDoraMetrics}>(DORA Metrics)</span>
                           <br />
                           Branch '{prodDeploymentDetails?.lastDeployedBranch}' deployed on
                           <br />
@@ -266,7 +266,7 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
                               {regionalDateAndTimeConversionSolution(intLastDeployedOn)}
                             </a>
                           ) : (
-                            <>{regionalDateAndTimeConversionSolution(prodLastDeployedOn)}</>
+                            <>{regionalDateAndTimeConversionSolution(prodLastDeployedOn)}&nbsp;</>
                           )}
                           {!creationFailed && !enableOnboard && (
                             <a target="_blank" href={buildLogViewURL(prodDeployedUrl)} rel="noreferrer">
