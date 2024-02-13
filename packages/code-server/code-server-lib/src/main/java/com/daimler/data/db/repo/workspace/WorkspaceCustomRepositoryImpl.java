@@ -477,11 +477,9 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
                   "FROM workspace_nsql "; 
 				  if(projectName == null||"".equalsIgnoreCase(projectName)){
 					getQuery+="WHERE lower(jsonb_extract_path_text(data,'projectDetails','securityConfig','status')) in('requested','accepted') AND lower(jsonb_extract_path_text(data,'status')) in('created') ";
-					System.out.println("_____________________________"+getQuery);
 				  }
 				  else{
 					getQuery+="WHERE lower(jsonb_extract_path_text(data,'projectDetails','projectName'))="+" '"+projectName +"'"+" AND lower(jsonb_extract_path_text(data,'projectDetails','securityConfig','status')) in('published') AND lower(jsonb_extract_path_text(data,'status')) in('created') ";
-					System.out.println("_____________________________"+getQuery);
 				  }
 		if (limit > 0)
 			  getQuery = getQuery + " limit " + limit;
