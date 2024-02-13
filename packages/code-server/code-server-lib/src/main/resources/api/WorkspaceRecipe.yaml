@@ -267,7 +267,7 @@ definitions:
       software:
         type: array
         items:
-          $ref: "#/definitions/RecipeSoftwareVO"
+          type: string
       createdOn:
         type: string
         format: date
@@ -414,11 +414,11 @@ definitions:
     type: object
     properties: 
       id:
-      type: string
-      description: "ID of recipe"
+        type: string
+        description: "ID of recipe"
       recipeName:
-      type: string
-      description: "name of the recipe"
+        type: string
+        description: "name of the recipe"
 
   SoftwareCollection:
     type: object

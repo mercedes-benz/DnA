@@ -15,6 +15,6 @@ import lombok.NoArgsConstructor;
 public class RecipeSoftware implements Serializable {
 
     private String name;
-    private String version;
+    // private String version;
 
 }

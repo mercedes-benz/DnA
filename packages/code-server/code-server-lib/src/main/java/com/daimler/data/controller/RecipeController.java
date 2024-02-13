@@ -30,6 +30,8 @@ import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import lombok.extern.slf4j.Slf4j;
 import com.daimler.data.dto.workspace.recipe.InitializeRecipeLovVo;
+import com.daimler.data.dto.workspace.recipe.RecipeLovVO;
+import com.daimler.data.dto.workspace.CreatedByVO;
 
 @RestController
 @Api(value = "Recipe API", tags = { "code-server-recipe" })
@@ -217,7 +219,21 @@ public class RecipeController implements CodeServerRecipeApi {
         method = RequestMethod.GET)
     public ResponseEntity<InitializeRecipeLovVo> getAllrecipeLov()
 	{
-		return null;
+		CreatedByVO currentUser = this.userStore.getVO();
+		String id = currentUser.getId();
+		InitializeRecipeLovVo lov = new InitializeRecipeLovVo();
+		List<RecipeLovVO> recipeDetails = service.getAllRecipeLov(id);
+		if(Objects.nonNull(recipeDetails))
+		{
+			lov.setData(recipeDetails);
+			lov.setSuccess("SUCCESS");
+			return new ResponseEntity<>(lov, HttpStatus.OK);
+		} else {
+				lov.setData(null);
+				lov.setSuccess("FAILED");
+				log.info("Failed to fetch all software deatils ");
+				return new ResponseEntity<>(lov, HttpStatus.NO_CONTENT);
+		}
 	}
     
 }

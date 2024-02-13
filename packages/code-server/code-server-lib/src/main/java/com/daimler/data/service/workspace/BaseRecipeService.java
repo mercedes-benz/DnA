@@ -20,6 +20,12 @@ import com.daimler.data.assembler.SoftwareAssembler;
 import java.util.stream.Collectors;
 import com.daimler.data.db.entities.CodeServerSoftwareNsql;
 import java.util.UUID;
+import com.daimler.data.dto.workspace.recipe.RecipeLovVO;
+import com.daimler.data.db.json.CodeServerRecipeLov;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+
+
 
 @Service
 @Slf4j
@@ -88,19 +94,25 @@ public class BaseRecipeService implements RecipeService{
 
 	}
 
-	// @Override
-	// public List<SoftwareLovVO> getAllSoftwares()
-	// {
-	// 	List<CodeServerSoftwareNsql> resultData = workspaceCustomSoftwarerepo.findAllSoftwareDetails();
-		// if(!resultData.isEmpty() || resultData.size()>0)
-		// {
-		// 	return resultData.stream().map(n-> softwareAssembler.toVo(n)).collect(Collectors.toList());
-		// }
-		// else
-		// {
-		// 	log.info("there are no records of software ");
-		// }
-		// return null;
-	// }
-    
+	@Override
+	public List<RecipeLovVO> getAllRecipeLov(String id)
+	{
+		List<CodeServerRecipeLov> publiclovDeatils = workspaceCustomRecipeRepo.getAllPublicRecipeLov();
+		List<CodeServerRecipeLov> privatelovDetails =  workspaceCustomRecipeRepo.getAllPrivateRecipeLov(id);
+		if(privatelovDetails!=null)
+		{
+			publiclovDeatils.addAll(privatelovDetails);
+		}
+		if(publiclovDeatils!=null)
+		{
+			return publiclovDeatils.stream().map(n-> recipeAssembler.toRecipeLovVO(n)).collect(Collectors.toList());
+		}
+		else
+		{
+			log.info("there are no recipe lov details ");
+		}
+		return null;
+
+	}
+
 }

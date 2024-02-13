@@ -20,7 +20,8 @@ import com.daimler.data.db.json.RecipeSoftware;
 import com.daimler.data.db.json.UserInfo;
 import com.daimler.data.dto.workspace.recipe.RecipeVO;
 import com.daimler.data.dto.workspace.recipe.RecipeSoftwareVO;
-
+import com.daimler.data.db.json.CodeServerRecipeLov;
+import com.daimler.data.dto.workspace.recipe.RecipeLovVO;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -36,16 +37,19 @@ public class RecipeAssembler implements GenericAssembler<RecipeVO, CodeServerRec
 				CodeServerRecipe recipe = entity.getData();
 				BeanUtils.copyProperties(recipe, recipeVo);
 				recipeVo.setId(entity.getId());
-				List<RecipeSoftware> softwares = recipe.getSoftware();
-				List<RecipeSoftwareVO> softwareVos = new ArrayList<>();
-				if (Objects.nonNull(softwares)) {
-					for (RecipeSoftware software : softwares) {
-						RecipeSoftwareVO softwareVo = new RecipeSoftwareVO();
-						BeanUtils.copyProperties(software, softwareVo);
-						softwareVos.add(softwareVo);
-					}
-					recipeVo.setSoftware(softwareVos);
+				if (recipe.getSoftware() != null) {
+					recipeVo.setSoftware(recipe.getSoftware());
 				}
+				// List<RecipeSoftware> softwares = recipe.getSoftware();
+				// List<RecipeSoftwareVO> softwareVos = new ArrayList<>();
+				// if (Objects.nonNull(softwares)) {
+				// 	for (RecipeSoftware software : softwares) {
+				// 		RecipeSoftwareVO softwareVo = new RecipeSoftwareVO();
+				// 		BeanUtils.copyProperties(software, softwareVo);
+				// 		softwareVos.add(softwareVo);
+				// 	}
+				// 	recipeVo.setSoftware(softwareVos);
+				// }
 				UserInfoVO userInfoVo = new UserInfoVO();
 				UserInfo userInfo = recipe.getCreatedBy();
 				if (Objects.nonNull(userInfo)) {
@@ -98,15 +102,18 @@ public class RecipeAssembler implements GenericAssembler<RecipeVO, CodeServerRec
 		if (Objects.nonNull(vo)) {
 			BeanUtils.copyProperties(vo, recipeData);
 			recipeData.setId(vo.getId());
-			List<RecipeSoftwareVO> softwares = vo.getSoftware();
-			List<RecipeSoftware> softwareData = new ArrayList<>();
-			if (Objects.nonNull(softwares)) {
-				for (RecipeSoftwareVO software : softwares) {
-					RecipeSoftware softwareVo = new RecipeSoftware();
-					BeanUtils.copyProperties(software, softwareVo);
-					softwareData.add(softwareVo);
-				}
-				recipeData.setSoftware(softwareData);
+			// List<RecipeSoftwareVO> softwares = vo.getSoftware();
+			// List<RecipeSoftware> softwareData = new ArrayList<>();
+			// if (Objects.nonNull(softwares)) {
+			// 	for (RecipeSoftwareVO software : softwares) {
+			// 		RecipeSoftware softwareVo = new RecipeSoftware();
+			// 		BeanUtils.copyProperties(software, softwareVo);
+			// 		softwareData.add(softwareVo);
+			// 	}
+			// 	recipeData.setSoftware(softwareData);
+			// }
+			if (vo.getSoftware() != null) {
+				recipeData.setSoftware(vo.getSoftware());
 			}
 			UserInfo userInfo = new UserInfo();
 			UserInfoVO userInfoVo = vo.getCreatedBy();
@@ -127,13 +134,11 @@ public class RecipeAssembler implements GenericAssembler<RecipeVO, CodeServerRec
 			}
 			List<UserInfo> users = new ArrayList<>();
 			List<UserInfoVO> userDetails = vo.getUsers();
-			if(vo.isIsPublic())
-			{
-					users= new ArrayList<>();
-			}
-			else
-			{
-					users = userDetails.stream().map(n->this.toUserInfo(n)).collect(Collectors.toList());
+			if (vo.isIsPublic() == true) {
+				users = new ArrayList<>();
+			} else {
+				
+				users = userDetails.stream().map(n -> this.toUserInfo(n)).collect(Collectors.toList());
 			}
 			// if(userDetails.size()>0)
 			// {
@@ -162,6 +167,32 @@ public class RecipeAssembler implements GenericAssembler<RecipeVO, CodeServerRec
 		UserInfo entity = new UserInfo();
 		if (userInfo != null) {
 			BeanUtils.copyProperties(userInfo, entity);
+		}
+		return entity;
+	}
+
+	
+	public RecipeLovVO toRecipeLovVO(CodeServerRecipeLov entity)
+	{
+		RecipeLovVO vo = new RecipeLovVO();
+		if(entity!=null || Objects.nonNull(entity))
+		{
+			// BeanUtils.copyProperties(vo,entity);
+			vo.setId(entity.getId());
+			vo.setRecipeName(entity.getRecipeName());
+		}
+		return vo;
+	}
+
+	
+	public CodeServerRecipeLov toRecipeLovEntity(RecipeLovVO vo)
+	{
+		CodeServerRecipeLov entity = new CodeServerRecipeLov();
+		if(vo!=null || Objects.nonNull(vo))
+		{
+			// BeanUtils.copyProperties(entity,vo);
+			entity.setId(vo.getId());
+			entity.setRecipeName(vo.getRecipeName());
 		}
 		return entity;
 	}
