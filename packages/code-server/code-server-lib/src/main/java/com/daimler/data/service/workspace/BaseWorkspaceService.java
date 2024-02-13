@@ -1334,17 +1334,26 @@ public class BaseWorkspaceService implements WorkspaceService {
 					deploymentDetails.setGitjobRunID(gitJobRunId);
 					//setting audit log details
 					List<DeploymentAudit> auditLogs = deploymentDetails.getDeploymentAuditLogs();
-					if(Objects.isNull(auditLogs)) {
-						auditLogs =  new ArrayList<>();
-					}	
-					DeploymentAudit auditDetails = new DeploymentAudit();
-					auditDetails.setTriggeredBy(userId);
-					auditDetails.setDeploymentStatus(latestStatus);
-					auditDetails.setDeployedOn(now);
-					auditDetails.setTriggeredOn(now);
-					auditDetails.setBranch(branch);
-					auditLogs.add(auditDetails);								
-					deploymentDetails.setDeploymentAuditLogs(auditLogs);
+					if (auditLogs != null && !auditLogs.isEmpty()) {
+						int lastIndex = auditLogs.size() - 1;
+						DeploymentAudit lastAudit = auditLogs.get(lastIndex);
+						// Update the deployedOn field of the last record
+						lastAudit.setDeploymentStatus(latestStatus);
+						lastAudit.setDeployedOn(now);
+					}
+					// if(Objects.isNull(auditLogs)) {
+					// 	auditLogs =  new ArrayList<>();
+					// }
+					// int n = auditLogs.size();
+					// DeploymentAudit oldDetails = auditLogs[n-1];
+					// DeploymentAudit auditDetails = new DeploymentAudit();
+					// auditDetails.setTriggeredBy(userId);
+					// auditDetails.setDeploymentStatus(latestStatus);
+					// auditDetails.setDeployedOn(now);
+					// auditDetails.setTriggeredOn(now);
+					// auditDetails.setBranch(branch);
+					// auditLogs.add(auditDetails);								
+					// deploymentDetails.setDeploymentAuditLogs(auditLogs);
 					workspaceCustomRepository.updateDeploymentDetails(projectName, environmentJsonbName,
 							deploymentDetails);
 					log.info(
@@ -1364,6 +1373,13 @@ public class BaseWorkspaceService implements WorkspaceService {
 				} else if ("UNDEPLOYED".equalsIgnoreCase(latestStatus)) {
 					deploymentDetails.setDeploymentUrl(null);
 					deploymentDetails.setLastDeploymentStatus(latestStatus);
+					List<DeploymentAudit> auditLogs = deploymentDetails.getDeploymentAuditLogs();
+					if (auditLogs != null && !auditLogs.isEmpty()) {
+						int lastIndex = auditLogs.size() - 1;
+						DeploymentAudit lastAudit = auditLogs.get(lastIndex);
+						// Update the deployedOn field of the last record
+						lastAudit.setDeploymentStatus(latestStatus);
+					}
 					workspaceCustomRepository.updateDeploymentDetails(projectName, environmentJsonbName,
 							deploymentDetails);
 					log.info(
@@ -1371,21 +1387,24 @@ public class BaseWorkspaceService implements WorkspaceService {
 							projectName, branch, targetEnv, latestStatus);
 				} else {
 					deploymentDetails.setLastDeploymentStatus(latestStatus);
-					deploymentDetails.setGitjobRunID(gitJobRunId);
-					if(latestStatus.equalsIgnoreCase("DEPLOYMENT_FAILED"))
-					{
-						List<DeploymentAudit> auditLogs = deploymentDetails.getDeploymentAuditLogs();
-						if(Objects.isNull(auditLogs)) {
-							auditLogs =  new ArrayList<>();
-						}	
-						DeploymentAudit auditDetails = new DeploymentAudit();
-						auditDetails.setTriggeredBy(userId);
-						auditDetails.setDeploymentStatus(latestStatus);
-						auditDetails.setTriggeredOn(now);
-						auditDetails.setBranch(branch);
-						auditLogs.add(auditDetails);								
-						deploymentDetails.setDeploymentAuditLogs(auditLogs);
+					List<DeploymentAudit> auditLogs = deploymentDetails.getDeploymentAuditLogs();
+					if (auditLogs != null && !auditLogs.isEmpty()) {
+						int lastIndex = auditLogs.size() - 1;
+						DeploymentAudit lastAudit = auditLogs.get(lastIndex);
+						// Update the deployedOn field of the last record
+						lastAudit.setDeploymentStatus(latestStatus);
 					}
+						// List<DeploymentAudit> auditLogs = deploymentDetails.getDeploymentAuditLogs();
+						// if(Objects.isNull(auditLogs)) {
+						// 	auditLogs =  new ArrayList<>();
+						// }	
+						// DeploymentAudit auditDetails = new DeploymentAudit();
+						// auditDetails.setTriggeredBy(userId);
+						// auditDetails.setDeploymentStatus(latestStatus);
+						// auditDetails.setTriggeredOn(now);
+						// auditDetails.setBranch(branch);
+						// auditLogs.add(auditDetails);								
+						// deploymentDetails.setDeploymentAuditLogs(auditLogs);
 					workspaceCustomRepository.updateDeploymentDetails(projectName, environmentJsonbName,
 							deploymentDetails);
 					log.info(
