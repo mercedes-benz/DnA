@@ -319,7 +319,7 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 		}
 
 
-		log.info("notebookParams for backtesting"+ noteboookParams);
+		log.info("notebookParams for bactesting"+ noteboookParams);
 
 		RunNowResponseVO runNowResponse = dataBricksClient.runNow(correlationId, noteboookParams, runOnPowerfulMachines);
 		if(runNowResponse!=null) {
@@ -1791,7 +1791,7 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 					if (limit == 0){
 						newSubList = tempExistingRuns.subList(offset,tempExistingRuns.size());
 					}
-					totalCount = tempExistingRuns.size();
+					totalCount = newSubList.size();
 					updatedRunVOList = this.assembler.toRunsVO(newSubList);
 				}
 			}
