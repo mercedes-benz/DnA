@@ -334,7 +334,7 @@ public class DnaMinioClientImp implements DnaMinioClient {
 				LOGGER.info("finished reading response from mc list buckets");
 				
 				data = prefix.concat(data.substring(0, data.length() - 1)).concat(suffix);
-				LOGGER.info("Policies data from minio to update cache is {} ", data);
+				LOGGER.debug("Policies data from minio to update cache is {} ", data);
 				McListBucketCollectionDto listBucketCollectionDto = mapper.readValue(data, McListBucketCollectionDto.class);
 				LOGGER.info("Success from minio list bucket for user:{}", userId);
 				getBucketResponse.setData(listBucketCollectionDto.getData());
