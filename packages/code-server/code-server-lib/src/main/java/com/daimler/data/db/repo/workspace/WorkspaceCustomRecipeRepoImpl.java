@@ -62,4 +62,20 @@ public class WorkspaceCustomRecipeRepoImpl extends CommonDataRepositoryImpl<Code
         else
             return null;
     }
+
+    // @Override
+    // public List<CodeServerSoftwareNsql> findAllSoftwareDetails()
+    // {
+    //     CriteriaBuilder cb = em.getCriteriaBuilder();
+    //     CriteriaQuery<CodeServerSoftwareNsql> cq = cb.createQuery(CodeServerSoftwareNsql.class);
+    //     Root<CodeServerSoftwareNsql> root = cq.from(entityClass);
+    //     CriteriaQuery<CodeServerSoftwareNsql> getAll = cq.select(root);
+    //     TypedQuery<CodeServerSoftwareNsql> getAllQuery = em.createQuery(getAll);
+    //     // if (offset >= 0)
+    //     //     getAllQuery.setFirstResult(offset);
+    //     // if (limit > 0)
+    //     //     getAllQuery.setMaxResults(limit);
+    //     return getAllQuery.getResultList();
+
+    // }
 }

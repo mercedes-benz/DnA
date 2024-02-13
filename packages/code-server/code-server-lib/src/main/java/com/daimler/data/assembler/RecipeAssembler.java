@@ -10,7 +10,7 @@ import org.apache.catalina.User;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Component;
 import java.text.SimpleDateFormat;
-
+import java.util.stream.Collectors;
 import com.daimler.data.dto.workspace.recipe.RecipeVO.OSNameEnum;
 import com.daimler.data.dto.workspace.CodeServerRecipeDetailsVO.RecipeIdEnum;
 import com.daimler.data.dto.workspace.UserInfoVO;
@@ -35,6 +35,7 @@ public class RecipeAssembler implements GenericAssembler<RecipeVO, CodeServerRec
 			if (Objects.nonNull(entity) && Objects.nonNull(entity.getData())) {
 				CodeServerRecipe recipe = entity.getData();
 				BeanUtils.copyProperties(recipe, recipeVo);
+				recipeVo.setId(entity.getId());
 				List<RecipeSoftware> softwares = recipe.getSoftware();
 				List<RecipeSoftwareVO> softwareVos = new ArrayList<>();
 				if (Objects.nonNull(softwares)) {
@@ -51,12 +52,39 @@ public class RecipeAssembler implements GenericAssembler<RecipeVO, CodeServerRec
 					BeanUtils.copyProperties(userInfo, userInfoVo);
 					recipeVo.setCreatedBy(userInfoVo);
 				}
+				if(recipe.getIsPublic()!= null)
+				{
+					recipeVo.setIsPublic(recipe.getIsPublic());
+				}
+				else
+				{
+					recipeVo.setIsPublic(true);
+				}
 				if (recipe.getOSName() != null) {
 					recipeVo.setOSName(OSNameEnum.fromValue(recipe.getOSName()));
 				}
 				if (recipe.getPlugins() != null) {
 					recipeVo.setPlugins(recipe.getPlugins());
 				}
+				List<UserInfoVO> users = new ArrayList<>();
+				List<UserInfo> userDetails = recipe.getUsers();
+				if(recipe.getIsPublic())
+				{
+					users= new ArrayList<UserInfoVO>();
+				}
+				else
+				{
+					users = userDetails.stream().map(n->this.toUserInfoVO(n)).collect(Collectors.toList());
+				}
+				// if(userDetails.size()>0)
+				// {
+				// 	users = userDetails.stream().map(n->this.toUserInfoVO(n)).collect(Collectors.toList());
+				// }
+				// else
+				// {
+				// 	users= new ArrayList<UserInfoVO>();
+				// }
+				recipeVo.setUsers(users);
 			}
 		return recipeVo;
 	}
@@ -69,6 +97,7 @@ public class RecipeAssembler implements GenericAssembler<RecipeVO, CodeServerRec
 		CodeServerRecipe recipeData = new CodeServerRecipe();
 		if (Objects.nonNull(vo)) {
 			BeanUtils.copyProperties(vo, recipeData);
+			recipeData.setId(vo.getId());
 			List<RecipeSoftwareVO> softwares = vo.getSoftware();
 			List<RecipeSoftware> softwareData = new ArrayList<>();
 			if (Objects.nonNull(softwares)) {
@@ -85,12 +114,56 @@ public class RecipeAssembler implements GenericAssembler<RecipeVO, CodeServerRec
 				BeanUtils.copyProperties(userInfoVo, userInfo);
 				recipeData.setCreatedBy(userInfo);
 			}
+			if(vo.isIsPublic()!=null)
+			{
+				recipeData.setIsPublic(vo.isIsPublic());
+			}
+			else
+			{
+				recipeData.setIsPublic(true);
+			}
 			if (vo.getPlugins() != null) {
 				recipeData.setPlugins(vo.getPlugins());
 			}
+			List<UserInfo> users = new ArrayList<>();
+			List<UserInfoVO> userDetails = vo.getUsers();
+			if(vo.isIsPublic())
+			{
+					users= new ArrayList<>();
+			}
+			else
+			{
+					users = userDetails.stream().map(n->this.toUserInfo(n)).collect(Collectors.toList());
+			}
+			// if(userDetails.size()>0)
+			// {
+			// 	users = userDetails.stream().map(n->this.toUserInfo(n)).collect(Collectors.toList());
+			// }
+			// else
+			// {
+			// 	users= new ArrayList<UserInfo>();
+			// }
+			recipeData.setUsers(users);
 			recipeData.setOSName(vo.getOSName().toString());
 			entity.setData(recipeData);
 		}
 		return entity;
 	}
+
+	private UserInfoVO toUserInfoVO(UserInfo userInfo) {
+		UserInfoVO vo = new UserInfoVO();
+		if (userInfo != null) {
+			BeanUtils.copyProperties(userInfo, vo);
+		}
+		return vo;
+	}
+
+	public UserInfo toUserInfo(UserInfoVO userInfo) {
+		UserInfo entity = new UserInfo();
+		if (userInfo != null) {
+			BeanUtils.copyProperties(userInfo, entity);
+		}
+		return entity;
+	}
+
 }

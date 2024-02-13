@@ -2,6 +2,7 @@ package com.daimler.data.service.workspace;
 
 import java.util.List;
 import com.daimler.data.dto.workspace.recipe.RecipeVO;
+import com.daimler.data.dto.workspace.recipe.SoftwareCollection;
 
 public interface RecipeService {
     
@@ -10,4 +11,6 @@ public interface RecipeService {
 	RecipeVO createRecipe(RecipeVO recipeRequestVO);
 
 	RecipeVO getByRecipeName(String recipeName);
+	
+	List<SoftwareCollection> getAllsoftwareLov();
 }

@@ -175,10 +175,67 @@ paths:
         500:
           description: "Internal error"
 
+  /recipeDetails/softwareLov:
+    get:
+      tags:
+        - "code-server-recipe"
+      summary: "Get all software details in recipe"
+      description: "Get all softwares details for recipe in codespace"
+      operationId: "getAllsoftwareLov"
+      responses:
+        200:
+          description: "Returns message of success or failure"
+          schema:
+            $ref: "#/definitions/InitializeSoftwareLovVo"
+        204:
+          description: "Fetch complete, no content found."
+        400:
+          description: "Bad request."
+          schema:
+            $ref: "#/definitions/GenericMessage"
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
+
+  /recipeDetails/recipeLov:
+    get:
+      tags:
+        - "code-server-recipe"
+      summary: "Get all lov of recipes "
+      description: "Get all recipes in codespace"
+      operationId: "getAllrecipeLov"
+      responses:
+        200:
+          description: "Returns message of success or failure"
+          schema:
+            $ref: "#/definitions/InitializeRecipeLovVo"
+        204:
+          description: "Fetch complete, no content found."
+        400:
+          description: "Bad request."
+          schema:
+            $ref: "#/definitions/GenericMessage"
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
+
 definitions:
   RecipeVO:
     type: object
     properties:
+      id:
+        type: string
+        description: "id of the recipe"
       recipeName:
         type: string
         description: "recipeName  for recipe managment"
@@ -221,6 +278,13 @@ definitions:
         type: array
         items:
           type: string
+      isPublic:
+        type: boolean
+        default: true
+      users:
+        type: array
+        items:
+          $ref: "#/definitions/UserInfoVO" 
 
   RecipeSoftwareVO:
     type: object
@@ -270,3 +334,95 @@ definitions:
         type: array
         items:
           $ref: "#/definitions/MessageDescription"  
+
+  # SoftwareLovVO:
+  #   type: object
+  #   properties:
+  #     name:
+  #       type: string
+  #       description: "Operating system required"
+  #     versions:
+  #       type: array
+  #       items:
+  #         type: string
+  #       description: "version of software"
+
+  InitializeSoftwareLovVo:
+    type: object
+    properties:
+      data:
+        type: array
+        items:
+          $ref: "#/definitions/SoftwareCollection"
+      success:
+        type: string
+      errors:
+        type: array
+        items:
+          $ref: "#/definitions/MessageDescription"
+      warnings:
+        type: array
+        items:
+          $ref: "#/definitions/MessageDescription" 
+
+  InitializeRecipeLovVo:
+    type: object
+    properties:
+      data:
+        type: array
+        items:
+          $ref: "#/definitions/RecipeLovVO"
+      success:
+        type: string
+      errors:
+        type: array
+        items:
+          $ref: "#/definitions/MessageDescription"
+      warnings:
+        type: array
+        items:
+          $ref: "#/definitions/MessageDescription" 
+
+  # SoftwareVO:
+  #   type: object
+  #   properties: 
+  #     id:
+  #     type: string
+  #     description: "ID of software"
+  #     name:
+  #     type: string
+  #     description: "Name of the softwarre"
+  #     minLength: 1
+  #     subdivisions:
+  #     type: array
+  #     items: 
+  #       $ref: "#/definitions/versionVO"
+  #   required:
+  #     - name 
+
+  # versionVO:
+  #   type: object
+  #   properties: 
+  #     id:
+  #     type: string
+  #     description: "ID of version"
+  #     version:
+  #     type: string
+  #     description: "version of the software"  
+
+  RecipeLovVO:
+    type: object
+    properties: 
+      id:
+      type: string
+      description: "ID of recipe"
+      recipeName:
+      type: string
+      description: "name of the recipe"
+
+  SoftwareCollection:
+    type: object
+    properties: 
+      softwareName:
+        type: string
+        description: "version of the software"
