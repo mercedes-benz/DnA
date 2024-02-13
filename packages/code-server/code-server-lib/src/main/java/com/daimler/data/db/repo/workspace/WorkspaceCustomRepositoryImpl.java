@@ -466,7 +466,7 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 	}
 
 	@Override
-	public List<CodespaceSecurityConfigDto> getAllSecurityConfigs(Integer offset, Integer limit){
+	public List<CodespaceSecurityConfigDto> getAllSecurityConfigs(Integer offset, Integer limit,String projectName){
 		List<CodespaceSecurityConfigDto> data = new ArrayList<>();
 
 		List<Object[]> results = new ArrayList<>();
@@ -474,7 +474,15 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 					"cast(jsonb_extract_path_text(data,'projectDetails','projectName') as text) as PROJECT_NAME, cast(id as text) as COLUMN_ID,  " +
                   "cast(jsonb_extract_path_text(data,'projectDetails','projectOwner') as text) as PROJECT_OWNER, " +
                   "cast(jsonb_extract_path_text(data,'projectDetails','securityConfig') as text) as SECURITY_CONFIG " +
-                  "FROM workspace_nsql WHERE lower(jsonb_extract_path_text(data,'projectDetails','securityConfig','status')) in('requested','accepted') AND lower(jsonb_extract_path_text(data,'status')) in('created') ";
+                  "FROM workspace_nsql "; 
+				  if(projectName == null||"".equalsIgnoreCase(projectName)){
+					getQuery+="WHERE lower(jsonb_extract_path_text(data,'projectDetails','securityConfig','status')) in('requested','accepted') AND lower(jsonb_extract_path_text(data,'status')) in('created') ";
+					System.out.println("_____________________________"+getQuery);
+				  }
+				  else{
+					getQuery+="WHERE lower(jsonb_extract_path_text(data,'projectDetails','projectName'))="+" '"+projectName +"'"+" AND lower(jsonb_extract_path_text(data,'projectDetails','securityConfig','status')) in('published') AND lower(jsonb_extract_path_text(data,'status')) in('created') ";
+					System.out.println("_____________________________"+getQuery);
+				  }
 		if (limit > 0)
 			  getQuery = getQuery + " limit " + limit;
 	  	if (offset >= 0)

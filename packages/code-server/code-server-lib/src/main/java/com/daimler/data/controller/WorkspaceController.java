@@ -30,8 +30,10 @@
  import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import javax.persistence.EntityNotFoundException;
@@ -59,6 +61,7 @@ import com.daimler.data.auth.client.UserRequestVO;
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
 import com.daimler.data.db.entities.CodeServerWorkspaceNsql;
+import com.daimler.data.db.json.CodespaceSecurityRole;
 import com.daimler.data.db.repo.workspace.WorkspaceCustomRepository;
 import com.daimler.data.dto.workspace.CodeServerDeploymentDetailsVO;
 import com.daimler.data.dto.workspace.CodeServerRecipeDetailsVO;
@@ -322,9 +325,9 @@ import lombok.extern.slf4j.Slf4j;
 						 userId, vo.getWorkspaceId());
 				 saveConfigResponse.setResponse(errorMessage);
 				 return new ResponseEntity<>(saveConfigResponse, HttpStatus.FORBIDDEN);
-			 }
-			  if(data.isIsProtectedByDna()== null){
-					data.isProtectedByDna(false);
+			}
+			if(data.isIsProtectedByDna()== null){
+				data.isProtectedByDna(false);
 			 }
 			 if(data.isIsProtectedByDna()!=null && ! data.isIsProtectedByDna())
 			 {
@@ -351,7 +354,7 @@ import lombok.extern.slf4j.Slf4j;
 				 if (vo.getProjectDetails().getSecurityConfig().getStatus() != null
 						 && (vo.getProjectDetails().getSecurityConfig().getStatus().equalsIgnoreCase("DRAFT") || vo
 								 .getProjectDetails().getSecurityConfig().getStatus().equalsIgnoreCase("PUBLISHED"))) {
-					 data = workspaceAssembler.generateSecurityConfigIds(data);
+					 data = workspaceAssembler.generateSecurityConfigIds(data,vo.getProjectDetails().getProjectName());
 					 data = workspaceAssembler.assembleSecurityConfig(vo,data);
 					 vo.getProjectDetails().setSecurityConfig(data);
 					 responseMessage = service.saveSecurityConfig(vo,false);
@@ -360,7 +363,7 @@ import lombok.extern.slf4j.Slf4j;
 					 return new ResponseEntity<>(saveConfigResponse, HttpStatus.OK);
 				 }
 			 }
-			 data = workspaceAssembler.generateSecurityConfigIds(data);
+			 data = workspaceAssembler.generateSecurityConfigIds(data,vo.getProjectDetails().getProjectName());
 			 vo.getProjectDetails().setSecurityConfig(data);
 			 //defaulting the security config status as DRAFT for the first time
 			 vo.getProjectDetails().getSecurityConfig().setStatus("DRAFT");
@@ -1511,7 +1514,8 @@ import lombok.extern.slf4j.Slf4j;
 	@RequestMapping(value = "/workspaces/configs", produces = { "application/json" }, consumes = {
 			"application/json" }, method = RequestMethod.GET)
 	public ResponseEntity<CodespaceSecurityConfigCollectionVO> getWorkspaceConfigs( @ApiParam(value = "page number from which listing of workspaces should start. Offset. Example 2") @Valid @RequestParam(value = "offset", required = false) Integer offset,
-			 @ApiParam(value = "page size to limit the number of workspaces, Example 15") @Valid @RequestParam(value = "limit", required = false) Integer limit) {
+			 @ApiParam(value = "page size to limit the number of workspaces, Example 15") @Valid @RequestParam(value = "limit", required = false) Integer limit,
+			 @ApiParam(value = "project name to get SecurityConfig.") @Valid @RequestParam(value = "projectName", required = false) String projectName) {
 		CodespaceSecurityConfigCollectionVO configCollectionVo = new CodespaceSecurityConfigCollectionVO();
 		CreatedByVO currentUser = this.userStore.getVO();
 		String userId = currentUser != null ? currentUser.getId() : null;
@@ -1522,9 +1526,11 @@ import lombok.extern.slf4j.Slf4j;
 			if (limit == null || limit < 0) {
 				limit = defaultLimit;
 			}
-
+			if(projectName == null ||"".equalsIgnoreCase(projectName)){
+				projectName = null;
+			}
 		if (userStore.getUserInfo().hasCodespaceAdminAccess()) {
-			final List<CodespaceSecurityConfigDetailsVO> configDetailsVo = service.getAllSecurityConfigs(offset,limit);
+			final List<CodespaceSecurityConfigDetailsVO> configDetailsVo = service.getAllSecurityConfigs(offset,limit,projectName);
 			if(configDetailsVo != null && configDetailsVo.size() > 0)
 			{
 				configCollectionVo.setData(configDetailsVo);

@@ -1511,9 +1511,9 @@ public class BaseWorkspaceService implements WorkspaceService {
 	}
 
 	@Override
-	public List<CodespaceSecurityConfigDetailsVO> getAllSecurityConfigs(Integer offset, Integer limit) {
+	public List<CodespaceSecurityConfigDetailsVO> getAllSecurityConfigs(Integer offset, Integer limit, String projectName) {
 
-		List<CodespaceSecurityConfigDto> collectionDtos = workspaceCustomRepository.getAllSecurityConfigs(offset,limit);
+		List<CodespaceSecurityConfigDto> collectionDtos = workspaceCustomRepository.getAllSecurityConfigs(offset,limit,projectName);
 		CodespaceSecurityConfigDetailsVO vo = new CodespaceSecurityConfigDetailsVO();
 		List<CodespaceSecurityConfigDetailsVO> finalConfigData = collectionDtos.stream()
 				.map(n -> workspaceAssembler.dtoToVo(n)).collect(Collectors.toList());
