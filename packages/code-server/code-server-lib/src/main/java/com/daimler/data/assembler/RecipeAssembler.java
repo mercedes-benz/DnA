@@ -72,13 +72,15 @@ public class RecipeAssembler implements GenericAssembler<RecipeVO, CodeServerRec
 				}
 				List<UserInfoVO> users = new ArrayList<>();
 				List<UserInfo> userDetails = recipe.getUsers();
-				if(recipe.getIsPublic())
-				{
-					users= new ArrayList<UserInfoVO>();
-				}
-				else
-				{
-					users = userDetails.stream().map(n->this.toUserInfoVO(n)).collect(Collectors.toList());
+				if(recipe.getIsPublic()!=null){
+					if(recipe.getIsPublic())
+					{
+						users= new ArrayList<UserInfoVO>();
+					}
+					else
+					{
+						users = userDetails.stream().map(n->this.toUserInfoVO(n)).collect(Collectors.toList());
+					}
 				}
 				// if(userDetails.size()>0)
 				// {

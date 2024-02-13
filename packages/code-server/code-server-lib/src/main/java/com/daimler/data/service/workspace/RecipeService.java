@@ -16,4 +16,6 @@ public interface RecipeService {
 	List<SoftwareCollection> getAllsoftwareLov();
 
 	List<RecipeLovVO> getAllRecipeLov(String Id);
+
+	List<RecipeVO> getAllRecipesWhichAreInRequestedAndAcceptedState(int offset, int limit);
 }

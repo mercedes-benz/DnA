@@ -65,6 +65,7 @@ public class RecipeController implements CodeServerRecipeApi {
 		InitializeRecipeVo responseMessage = new InitializeRecipeVo();
 		String name = service.getByRecipeName(recipeName)!= null ? service.getByRecipeName(recipeName).getRecipeName() : null;
 		if (name == null) {
+			recipeRequestVO.setStatus("REQUESTED");
 			RecipeVO recipeVO = service.createRecipe(recipeRequestVO);
 			if (Objects.nonNull(recipeVO)) {
 				responseMessage.setData(recipeVO);
@@ -235,5 +236,54 @@ public class RecipeController implements CodeServerRecipeApi {
 				return new ResponseEntity<>(lov, HttpStatus.NO_CONTENT);
 		}
 	}
+
+	@Override
+    @ApiOperation(value = "Get all recipes which are in requested and accepted state, waiting for processing.", nickname = "getAllRecipesWhichAreInRequestedAndAcceptedState", notes = "Get all recipes which are in requested and accepted state, waiting for processing", response = RecipeCollectionVO.class, tags={ "code-server-recipe", })
+    @ApiResponses(value = {
+        @ApiResponse(code = 201, message = "Returns message of success or failure", response = RecipeCollectionVO.class),
+        @ApiResponse(code = 204, message = "Fetch complete, no content found."),
+        @ApiResponse(code = 400, message = "Bad request."),
+        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+        @ApiResponse(code = 403, message = "Request is not authorized."),
+        @ApiResponse(code = 405, message = "Method not allowed"),
+        @ApiResponse(code = 500, message = "Internal error") })
+    @RequestMapping(value = "/recipeDetails/recipesByStatus",
+        produces = { "application/json" },
+        consumes = { "application/json" },
+        method = RequestMethod.GET)
+    public ResponseEntity<RecipeCollectionVO> getAllRecipesWhichAreInRequestedAndAcceptedState(@ApiParam(value = "page number from which listing of SecurityConfigs should start. Offset. Example 2") @Valid @RequestParam(value = "offset", required = false) Integer offset,
+    @ApiParam(value = "page size to limit the number of SecurityConfigs, Example 15") @Valid @RequestParam(value = "limit", required = false) Integer limit){
+        RecipeCollectionVO recipeCollectionVO = new RecipeCollectionVO();
+        if (offset == null) {
+            offset = 0;
+        }
+        if (limit == null) {
+            limit = 0;
+        }
+        if (userStore.getUserInfo().hasCodespaceAdminAccess()) {
+            List<RecipeVO> allRecipes = service.getAllRecipesWhichAreInRequestedAndAcceptedState(offset, limit);
+            if (Objects.nonNull(allRecipes)) {
+                recipeCollectionVO.data(allRecipes);
+                recipeCollectionVO.setCount(allRecipes.size());
+                recipeCollectionVO.setSuccess("SUCCESS");
+                return new ResponseEntity<>(recipeCollectionVO, HttpStatus.OK);
+            } else {
+                recipeCollectionVO.setData(null);
+                recipeCollectionVO.setCount(null);
+                recipeCollectionVO.setSuccess("FAILED");
+                log.info("Failed to fetch all the recipe details for user "+userStore.getUserInfo().getId());
+                return new ResponseEntity<>(recipeCollectionVO, HttpStatus.NO_CONTENT);
+            }
+ 
+        } else {
+            recipeCollectionVO.setData(null);
+            recipeCollectionVO.setCount(null);
+            recipeCollectionVO.setSuccess("FAILED");
+            log.info(" user is unauthorized to access codespace" + userStore.getUserInfo().getId());
+            return new ResponseEntity<>(recipeCollectionVO, HttpStatus.UNAUTHORIZED);
+        }
+ 
+       
+    }
     
 }

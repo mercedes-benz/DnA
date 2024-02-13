@@ -150,4 +150,25 @@ public class WorkspaceCustomRecipeRepoImpl extends CommonDataRepositoryImpl<Code
 
     }
 
+    public List<CodeServerRecipeNsql> findAllRecipesWithRequestedAndAcceptedState(int offset, int limit) {
+        CriteriaBuilder cb = em.getCriteriaBuilder();
+        CriteriaQuery<CodeServerRecipeNsql> cq = cb.createQuery(CodeServerRecipeNsql.class);
+        Root<CodeServerRecipeNsql> root = cq.from(entityClass);
+        CriteriaQuery<CodeServerRecipeNsql> getAll = cq.select(root);
+        Predicate con = cb.equal(cb.lower(
+                cb.function("jsonb_extract_path_text", String.class, root.get("data"), cb.literal("status"))),
+                "requested");
+        Predicate con1 = cb.equal(cb.lower(
+                cb.function("jsonb_extract_path_text", String.class, root.get("data"), cb.literal("status"))),
+                "accepted");
+        Predicate pMain = cb.or(con, con1);
+        cq.where(pMain);
+        TypedQuery<CodeServerRecipeNsql> getAllQuery = em.createQuery(getAll);
+        if (offset >= 0)
+            getAllQuery.setFirstResult(offset);
+        if (limit > 0)
+            getAllQuery.setMaxResults(limit);
+        return getAllQuery.getResultList();
+ 
+    }
 }

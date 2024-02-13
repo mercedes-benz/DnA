@@ -115,4 +115,17 @@ public class BaseRecipeService implements RecipeService{
 
 	}
 
+	@Override
+	public List<RecipeVO> getAllRecipesWhichAreInRequestedAndAcceptedState(int offset, int limit){
+        List<CodeServerRecipeNsql> entities = workspaceCustomRecipeRepo.findAllRecipesWithRequestedAndAcceptedState(offset, limit);
+		ObjectMapper mapper = new ObjectMapper();
+        try{
+            System.out.println(mapper.writeValueAsString(entities));
+        }
+        catch(Exception e){
+            e.printStackTrace();
+        }
+        return entities.stream().map(n -> recipeAssembler.toVo(n)).collect(Collectors.toList());
+    }
+
 }
