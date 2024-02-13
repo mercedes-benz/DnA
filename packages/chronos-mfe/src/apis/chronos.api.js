@@ -104,7 +104,7 @@ const getFile = (projectName, resultFolderName, fileName) => {
 };
 
 const getConfigFile = (projectName, fileName) => {
-  return storageServer.get(`/buckets/${projectName}/objects/metadata?prefix=configs%2F${fileName}`, {
+  return storageServerX.get(`/buckets/${projectName}/objects/metadata?prefix=configs%2F${fileName}`, {
     data: {},
   });
 };
