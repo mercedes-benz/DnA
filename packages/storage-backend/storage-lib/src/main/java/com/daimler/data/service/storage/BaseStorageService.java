@@ -496,7 +496,7 @@ public class BaseStorageService implements StorageService {
 					
 						if(tempBucket.getCollaborators() != null && !tempBucket.getCollaborators().isEmpty()) {
 							Optional<UserVO> currentUserRecord = tempBucket.getCollaborators().stream().filter(n->currentUser.equalsIgnoreCase(n.getAccesskey())).findFirst();
-							if(currentUserRecord!=null && currentUserRecord.get()!=null && currentUserRecord.get().getPermission()!=null) {
+							if(currentUserRecord.isPresent() && !currentUserRecord.isEmpty() && currentUserRecord.get()!=null && currentUserRecord.get().getPermission()!=null) {
 								tempBucket.setPermission(currentUserRecord.get().getPermission());
 							}
 						}
