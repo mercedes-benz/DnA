@@ -29,7 +29,7 @@ const ChronosProjects = ({ user }) => {
 
   // Fetch all chronos projects
   const getChronosProjects = () => {
-    chronosApi.getAllForecastProjects()
+    chronosApi.getAllForecastProjects(currentPageOffset, maxItemsPerPage)
       .then((res) => {
         if(res.status !== 204) {
           if (res.data.records) {

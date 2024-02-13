@@ -484,10 +484,10 @@ const CodeSpace = (props: ICodeSpaceProps) => {
   const isOwner = projectDetails?.projectOwner?.id === props.user.id;
   const navigateSecurityConfig = () => {
     if (projectDetails?.publishedSecuirtyConfig) {
-      history.push(`/codespace/publishedSecurityconfig/${codeSpaceData.id}?pub=true`);
+      history.push(`/codespace/publishedSecurityconfig/${codeSpaceData.id}?pub=true&name=${projectDetails.projectName}`);
       return;
     }
-    history.push(`/codespace/securityconfig/${codeSpaceData.id}?pub=false`);
+    history.push(`/codespace/securityconfig/${codeSpaceData.id}?pub=false&name=${projectDetails.projectName}`);
   }
 
   const intDeploymentDetails = projectDetails?.intDeploymentDetails;
@@ -532,7 +532,7 @@ const CodeSpace = (props: ICodeSpaceProps) => {
                         </div>
                       )}
                       {codeDeployed && (
-                        <div className={Styles.urlLink} tooltip-data="API BASE URL - Staging">
+                        <div className={Styles.urlLink} tooltip-data="APP BASE URL - Staging">
                           <a href={codeDeployedUrl} target="_blank" rel="noreferrer">
                             <i className="icon mbc-icon link" /> Staging (
                             <i className="icon mbc-icon transactionaldata" /> {codeDeployedBranch})
@@ -562,7 +562,7 @@ const CodeSpace = (props: ICodeSpaceProps) => {
                         </div>
                       )}
                       {prodCodeDeployed && (
-                        <div className={Styles.urlLink} tooltip-data="API BASE URL - Production">
+                        <div className={Styles.urlLink} tooltip-data="APP BASE URL - Production">
                           <a href={prodCodeDeployedUrl} target="_blank" rel="noreferrer">
                             <i className="icon mbc-icon link" /> Production (
                             <i className="icon mbc-icon transactionaldata" /> {prodCodeDeployedBranch})
@@ -611,7 +611,7 @@ const CodeSpace = (props: ICodeSpaceProps) => {
                       )}
                     </>
                   )}
-                  <div tooltip-data="Open New Tab" className={Styles.OpenNewTab} onClick={openInNewtab}>
+                  <div tooltip-data="Open in new tab" className={Styles.OpenNewTab} onClick={openInNewtab}>
                     <i className="icon mbc-icon arrow small right" />
                     <span> &nbsp; </span>
                   </div>

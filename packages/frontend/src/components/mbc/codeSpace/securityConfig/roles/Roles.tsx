@@ -7,6 +7,7 @@ import Pagination from 'components/mbc/pagination/Pagination';
 import Modal from 'components/formElements/modal/Modal';
 import SelectBox from 'components/formElements/SelectBox/SelectBox';
 import { CodeSpaceApiClient } from '../../../../../../src/services/CodeSpaceApiClient';
+import { Envs } from 'globals/Envs';
 
 const classNames = cn.bind(Styles);
 
@@ -23,6 +24,7 @@ const Roles = (props: any) => {
   const [editRoleCol, setEditRoleCol] = useState(false);
   const [entitlementErr, setEntitlementErr] = useState('');
   const [roleName, setRoleName] = useState('');
+  const [roleFullName, setRoleFullName] = useState(props.projectName);
   const [tempRoleName, setTempRoleName] = useState('');
   const [roleId, setRoleId] = useState('');
   const [entitelmentList, setEntitelmentList] = useState([]);
@@ -47,7 +49,7 @@ const Roles = (props: any) => {
   }, [props.config, maxItemsPerPage]);
 
   useEffect(() => {
-    if (props?.id && config) {
+    if (props?.id && config && !props.isCodeSpaceAdminPage) {
       ProgressIndicator.show();
       CodeSpaceApiClient.getEntitlements(props.id)
         .then((response: any) => {
@@ -122,23 +124,44 @@ const Roles = (props: any) => {
       Array.from(selectedOptions).forEach((option: any) => {
         const entitlement: any = { id: null, name: null };
         entitlement.id = option.value;
-        entitlement.name = option.label;
+        entitlement.name = option.label.split('.')[1];
         selectedValues.push(entitlement);
       });
     }
     setEntitelmentList(selectedValues);
   };
 
-  const onEntitlementNameOnChange = (e: any) => {
-    setMissingRoleName('');
+  const onRoleNameOnChange = (e: any) => {
     setRoleName(e.target.value);
+    setRoleFullName(props.projectName+'_' + e.target.value);
+    validateRole(e.target.value);
   };
+
+  const validateRole = (value: any) => {
+    const pattern = /^[a-zA-Z0-9][a-zA-Z0-9_-]*$/;
+    const isValid = pattern.test(value);
+    const spclCharValidation = /[^a-zA-Z0-9_-]/;
+    if (!isValid) {
+      setTimeout(()=>{
+        if (value.startsWith('-') || value.startsWith('_')) {
+          setMissingRoleName('Role Id cannot start with special character');
+        } else if (value.includes(' ')) {
+          setMissingRoleName('Role Id cannot have whitespaces');
+        }else if(spclCharValidation.test(value)) {
+          setMissingRoleName('Role Id cannot have special characters other than - and _');
+        }
+      })
+    }else{
+      setMissingRoleName('');
+    }
+  }
 
   const cancelEditOrCreateModal = () => {
     setEditRoleCol(false);
     setShowEditOrCreateModal(false);
     setRoleName('');
     setTempRoleName('');
+    setRoleFullName(props.projectName);
     setRoleId('');
     setEntitelmentList([]);
     setTimeout(() => {
@@ -158,7 +181,11 @@ const Roles = (props: any) => {
   const isFormValid = () => {
     let isFormValid = true;
     if (!roleName) {
-      setMissingRoleName('Missing Role Name');
+      setMissingRoleName('Missing Role Id');
+      isFormValid = false;
+    }
+    if(roleName.endsWith('-') || roleName.endsWith('_')){
+      setMissingRoleName('Role Name cannot end with - or _');
       isFormValid = false;
     }
     if (!entitelmentList.length) {
@@ -167,7 +194,7 @@ const Roles = (props: any) => {
     }
     const isRoleNameExist = allRoleList?.find((role: any) => role.name === roleName);
     if (isRoleNameExist && tempRoleName !== roleName) {
-      setMissingRoleName('Role Name already exist');
+      setMissingRoleName('Role already exist');
       isFormValid = false;
     }
     return isFormValid;
@@ -179,8 +206,8 @@ const Roles = (props: any) => {
     }
     if (!editRoleCol) {
       const updatedRoleList = roleList || [];
-      const newRole = {
-        name: roleName,
+        const newRole = {
+        name: roleFullName,
         roleEntitlements: entitelmentList,
       };
       updatedRoleList.push(newRole);
@@ -191,7 +218,7 @@ const Roles = (props: any) => {
         if (role.id === roleId) {
           return {
             ...role,
-            name: roleName,
+            name: roleFullName,
             roleEntitlements: entitelmentList,
           };
         }
@@ -201,7 +228,7 @@ const Roles = (props: any) => {
         if (role.id === roleId) {
           return {
             ...role,
-            name: roleName,
+            name: roleFullName,
             roleEntitlements: entitelmentList,
           };
         }
@@ -283,7 +310,9 @@ const Roles = (props: any) => {
                           <div className={Styles.tagColumn}>
                             {item.roleEntitlements?.map((entitlement: any, index: number) => (
                               <div className="chips read-only" key={index}>
-                                <label className="name">{entitlement.name}</label>
+                                <label className="name">
+                                  {!props.isCodeSpaceAdminPage ? Envs.CODESPACE_SECURITY_APP_ID + '.' + entitlement.name : entitlement.name }
+                                </label>
                               </div>
                             ))}
                           </div>
@@ -350,34 +379,53 @@ const Roles = (props: any) => {
         title={editRoleCol ? 'Edit Role' : 'Create a New Role'}
         showAcceptButton={false}
         showCancelButton={false}
-        modalWidth={'40%'}
+        modalWidth={'50%'}
         buttonAlignment="right"
         show={showEditOrCreateModal}
         content={
           <div className={classNames(Styles.editCreateModal)}>
+            <div className={classNames(Styles.inlineTextField)}>
             <div
               className={classNames(
-                Styles.inputGrpChild + ' input-field-group include-error ',
+              ' input-field-group include-error ',
                 missingRoleName?.length ? 'error' : '',
               )}
             >
-              <label id="RolName" htmlFor="RolName" className="input-label">
-                Role Name<sup>*</sup>
+              <label id="RolId" htmlFor="RolId" className="input-label">
+                Role Id<sup>*</sup>
               </label>
               <input
                 type="text"
                 className="input-field"
                 required={true}
-                id="RolName"
+                id="RolId"
                 maxLength={64}
                 placeholder="Type here"
                 autoComplete="off"
-                onChange={onEntitlementNameOnChange}
+                onChange={(e)=>onRoleNameOnChange(e)}
                 value={roleName}
               />
               <span className={classNames('error-message', missingRoleName?.length ? '' : 'hide')}>
                 {missingRoleName}
               </span>
+            </div>
+            <div
+              className={classNames(
+                Styles.textField, ' input-field-group disabled'
+              )}
+            >
+              <label id="RolName" htmlFor="RolName" className="input-label">
+                Role Name
+              </label>
+              <input
+                type="text"
+                className="input-field"
+                id="RolName"
+                disabled ={true}
+                onChange={onRoleNameOnChange}
+                value={roleFullName}
+              />
+            </div>
             </div>
             <div
               id="entitelmentListContainer"
@@ -397,7 +445,7 @@ const Roles = (props: any) => {
                 >
                   {allentitelmentList?.map((obj: any) => (
                     <option id={obj.name + obj.id} key={obj.id} value={obj.id}>
-                      {obj.name}
+                      {Envs.CODESPACE_SECURITY_APP_ID + '.' + obj.name}
                     </option>
                   ))}
                 </select>
@@ -412,7 +460,11 @@ const Roles = (props: any) => {
           </div>
         }
         scrollableContent={true}
-        onCancel={() => cancelEditOrCreateModal()}
+        onCancel={() => {
+          cancelEditOrCreateModal();
+          setEntitlementErr('');
+          setMissingRoleName('');
+        }}
       />
     </React.Fragment>
   );

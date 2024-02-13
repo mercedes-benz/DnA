@@ -170,7 +170,7 @@ const ChronosProjectForm = ({ project, edit, onSave }) => {
         edit && setDivision(chronosProject?.leanGovernanceFeilds?.divisionId !== null ? chronosProject?.leanGovernanceFeilds?.divisionId + '@-@' + chronosProject?.leanGovernanceFeilds?.division : '0');
         // edit && setSubDivision(chronosProject?.leanGovernanceFeilds?.subDivisionId !== null ? chronosProject?.leanGovernanceFeilds?.subDivisionId + '@-@' + chronosProject?.leanGovernanceFeilds?.subDivision : '0');
         // edit && setSubDivisions(response[1]?.data.find((div) => div.id === division.split('@-@')[0])?.subDivisions);
-        SelectBox.defaultSetup();
+        !edit && SelectBox.defaultSetup();
       })
       .catch((err) => {
         ProgressIndicator.hide();

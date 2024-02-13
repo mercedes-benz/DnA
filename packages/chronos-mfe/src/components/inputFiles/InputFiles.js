@@ -1,11 +1,12 @@
 import classNames from 'classnames';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import Styles from './input-files.scss';
 import { regionalDateAndTimeConversionSolution } from '../../utilities/utils';
 import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indicator';
 import Notification from '../../common/modules/uilab/js/src/notification';
+import Tooltip from '../../common/modules/uilab/js/src/tooltip';
 import { chronosApi } from '../../apis/chronos.api';
 import Modal from 'dna-container/Modal';
 import { refreshToken } from 'dna-container/RefreshToken';
@@ -26,8 +27,17 @@ const InputFiles = ({inputFiles, showModal, addNew}) => {
   const [blobURL, setBlobUrl] = useState();
   const [selectedConfigFile, setSelectedConfigFile] = useState();
 
+  const [showEdit, setShowEdit] = useState(false);
+  const [configEditorContent, setConfigEditorContent] = useState('');
+
   const project = useSelector(state => state.projectDetails);
   const dispatch = useDispatch();
+
+  useEffect(() => {
+    Tooltip.defaultSetup();
+    return Tooltip.clear();
+    //eslint-disable-next-line
+  }, []);
 
   const beforeUpload = () => {
     return new Promise((resolve, reject) => {
@@ -74,7 +84,7 @@ const InputFiles = ({inputFiles, showModal, addNew}) => {
     }).catch(() => {
       ProgressIndicator.hide();
       Notification.show('Error while uploading config file', 'alert');
-    })
+    });
   }
 
   const handlePreviewFile = (file) => {
@@ -94,6 +104,76 @@ const InputFiles = ({inputFiles, showModal, addNew}) => {
         });
     }
   }
+
+  const downloadConfigFile = (file) => {
+    ProgressIndicator.show();
+    chronosApi.getConfigFile(`${project?.data?.bucketName}`, `${file.name}`).then((res) => {
+      var ymlBlob = new Blob([res.data]);     
+      var url = window.URL.createObjectURL(ymlBlob);
+      
+      let link = document.createElement("a");
+      link.setAttribute("href", url);
+      link.setAttribute("download", `${file.name}`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      ProgressIndicator.hide();
+    }).catch(() => {
+      ProgressIndicator.hide();
+    });
+  }
+
+  const editConfigFile = (file) => {
+    if(addNew) {
+      setSelectedConfigFile(file);
+      ProgressIndicator.show();
+      chronosApi.getProjectConfigFileById(project?.data?.id, file.id).then((res) => {
+          setConfigEditorContent(res.data.configFileData);
+          setShowEdit(true);
+          ProgressIndicator.hide();
+        }).catch(error => {
+          ProgressIndicator.hide();
+          Notification.show(
+            error?.response?.data?.errors?.[0]?.message || error?.response?.data?.response?.errors?.[0]?.message || error?.response?.data?.response?.warnings?.[0]?.message || 'Error while fetching preview file data',
+            'alert',
+          );
+        });
+    }
+  }
+
+  const onConfigCodeChange = (newValue) => {
+    setConfigEditorContent(newValue);
+  };
+
+  const handleUpdateConfig = () => {
+    const formData = new FormData();
+    const blob = new Blob([configEditorContent], {type : 'application/octet-stream'});
+    formData.append('configFile', blob, selectedConfigFile.name);
+    ProgressIndicator.show();
+    beforeUpload().then(beforeUpload => {
+      if(beforeUpload) {
+        chronosApi.uploadProjectConfigFile(project?.data?.id, formData).then(() => {
+          Notification.show('File uploaded successfully');
+          dispatch(getProjectDetails(projectId));
+          dispatch(getConfigFiles(projectId)); 
+          setConfigEditorContent('');
+          ProgressIndicator.hide();
+        }).catch(error => {
+          ProgressIndicator.hide();
+          Notification.show(
+            error?.response?.data?.errors?.[0]?.message || error?.response?.data?.response?.errors?.[0]?.message || error?.response?.data?.response?.warnings?.[0]?.message || 'Error while uploading config file',
+            'alert',
+          );
+        });
+      } else {
+        ProgressIndicator.hide();
+        Notification.show('Error while uploading file', 'alert');
+      }
+    }).catch(() => {
+      ProgressIndicator.hide();
+      Notification.show('Error while uploading config file', 'alert');
+    });
+  }
   
   return (
     <>
@@ -111,11 +191,21 @@ const InputFiles = ({inputFiles, showModal, addNew}) => {
           </thead>
           <tbody>
             { inputFiles.map(inputFile =>
-                <tr className={classNames('data-row', Styles.dataRow)} key={inputFile?.id} onClick={() => handlePreviewFile(inputFile) }>
-                  <td>{inputFile?.name}</td>
+                <tr className={classNames('data-row', Styles.dataRow)} key={inputFile?.id} onClick={() => handlePreviewFile(inputFile)}>
+                  <td className={Styles.name}>{inputFile?.name}</td>
                   <td>{inputFile?.createdBy}</td>
                   <td>{regionalDateAndTimeConversionSolution(inputFile?.createdOn)}</td>
-                  <td><i onClick={(e) => { e.stopPropagation(); showModal(inputFile?.id) }} className={classNames('icon delete', Styles.deleteIcon)} /></td>
+                  <td>
+                    <div className={Styles.actions}>
+                      { addNew && 
+                        <>
+                          <i onClick={(e) => { e.stopPropagation(); downloadConfigFile(inputFile) }} className={classNames('icon mbc-icon document', Styles.deleteIcon)} tooltip-data={'Download File'} />
+                          <i onClick={(e) => { e.stopPropagation(); editConfigFile(inputFile) }} className={classNames('icon mbc-icon edit', Styles.deleteIcon)} tooltip-data={'Edit File'} />
+                        </>
+                      }
+                      <i onClick={(e) => { e.stopPropagation(); showModal(inputFile?.id) }} className={classNames('icon delete', Styles.deleteIcon)} tooltip-data={'Delete File'} />
+                    </div>
+                  </td>
                 </tr>
               )
             }
@@ -172,6 +262,48 @@ const InputFiles = ({inputFiles, showModal, addNew}) => {
               tabSize: 2,
             }}
           />
+        }
+      />
+    )}
+    {showEdit && (
+      <Modal
+        title={`Preview - ${selectedConfigFile.name}`}
+        onCancel={() => {
+          setShowEdit(false); 
+          setConfigEditorContent('') 
+        }}
+        modalWidth={'80vw'}
+        showAcceptButton={false}
+        showCancelButton={false}
+        show={showEdit}
+        content={
+          <>
+            <AceEditor
+              width="100%"
+              placeholder="Type here"
+              name="configFilePreview"
+              mode={'yaml'}
+              theme="solarized_dark"
+              fontSize={16}
+              showPrintMargin={false}
+              showGutter={false}
+              highlightActiveLine={true}
+              value={configEditorContent}
+              onChange={onConfigCodeChange}
+              style={{
+                height: '65vh',
+              }}
+              setOptions={{
+                useWorker: false,
+                enableBasicAutocompletion: true,
+                enableLiveAutocompletion: false,
+                enableSnippets: false,
+                showLineNumbers: true,
+                tabSize: 2,
+              }}
+            />
+            <button className={classNames('btn btn-tertiary')} onClick={handleUpdateConfig}>Update Config</button>
+          </>
         }
       />
     )}

@@ -68,6 +68,7 @@ export const getDataForCSV = (
     { label: 'MarketingRoles', key: 'marketingRoles'},
     { label: 'IsPublished', key: 'publish' },
     { label: 'DataComplianceAIRiskAssessmentType', key: 'dataComplianceAIRiskAssessmentType' },
+    { label: 'DataComplianceWorkersCouncilApproval', key: 'dataComplianceWorkersCouncilApproval' },
     { label: 'DataComplianceAddedLinks', key: 'dataComplianceAddedLinks' },
     { label: 'DataComplianceAttachedFiles', key: 'dataComplianceAttachedFiles' },
     { label: 'DataComplianceLocalComplianceOfficers', key: 'dataComplianceLocalComplianceOfficers' },
@@ -219,6 +220,8 @@ export const getDataForCSV = (
               solution.dataCompliance && solution.dataCompliance.aiRiskAssessmentType && solution.dataCompliance.aiRiskAssessmentType.length >0
                 ? AI_RISK_ASSESSMENT_TYPES[solution.dataCompliance.aiRiskAssessmentType]
                 : AI_RISK_ASSESSMENT_TYPES['NOT_APPLICABLE'],
+            dataComplianceWorkersCouncilApproval:
+              !solution.dataCompliance.workersCouncilApproval ?'No' : 'Yes',
             dataComplianceAddedLinks:
               solution.dataCompliance && solution.dataCompliance.links && solution.dataCompliance.links.length > 0
                 ? sanitize(solution.dataCompliance.links.map((link) => link.link).join('|'))

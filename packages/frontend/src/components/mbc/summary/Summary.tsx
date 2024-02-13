@@ -157,6 +157,7 @@ export default class Summary extends React.Component<{ user: IUserInfo }, ISumma
           links: [],
           complianceOfficers: [],
           aiRiskAssessmentType: '',
+          workersCouncilApproval: false
         },
         digitalValue: {
           typeOfCalculation: Summary.digitalValueTypeKeyValue,
