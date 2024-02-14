@@ -1153,6 +1153,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 			String angularRecipeId = RecipeIdEnum.ANGULAR.toString();
 			String quarkusRecipeId = RecipeIdEnum.QUARKUS.toString();
 			String micronautRecipeId = RecipeIdEnum.MICRONAUT.toString();
+			String vueRecipeId = RecipeIdEnum.VUE.toString();
 //			String publicDnABackendRecipeId = RecipeIdEnum.PUBLIC_DNA_BACKEND.toString();
 //			String publicDnaFrontendRecipeId = RecipeIdEnum.PUBLIC_DNA_FRONTEND.toString();
 //			String publicDnaAirflowBackendRecipeId = RecipeIdEnum.PUBLIC_DNA_AIRFLOW_BACKEND.toString();
@@ -1290,7 +1291,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 				if (pythonRecipeId.equalsIgnoreCase(projectRecipe)) {
 					deploymentUrl = codeServerBaseUri + "/" + projectName + "/" + targetEnv + "/api/docs";
 				}
-				if (reactRecipeId.equalsIgnoreCase(projectRecipe) || angularRecipeId.equalsIgnoreCase(projectRecipe)) {
+				if (reactRecipeId.equalsIgnoreCase(projectRecipe) || angularRecipeId.equalsIgnoreCase(projectRecipe) || vueRecipeId.equalsIgnoreCase(projectRecipe)) {
 					deploymentUrl = codeServerBaseUri + "/" + projectName + "/" + targetEnv + "/";
 				}
 				if (quarkusRecipeId.equalsIgnoreCase(projectRecipe)) {
