@@ -30,8 +30,7 @@ package com.daimler.data.db.json;
 import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
-
-import com.daimler.data.dto.userinfo.UserInfoVO;
+import com.daimler.data.db.json.CodeServerSoftware;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import lombok.AllArgsConstructor;
@@ -42,25 +41,9 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class CodeServerRecipe implements Serializable {
-
-    private static final long serialVersionUID = -1767843944100072529L;
+public class CodeServerRecipeLov implements Serializable {
 
     private String id;
-    private String recipeName;
-    private String recipeType;
-    private String repodetails;
-    private String diskSpace;
-    private String minCpu;
-    private String maxCpu;
-    private String minRam;
-    private String maxRam;
-    private String oSName;
-    private List<String> software;
-    private Date createdOn;
-    private UserInfo createdBy;
-    private List<String> plugins;
-    private Boolean isPublic;
-    private List<UserInfo> users;
-    private String status;
+	private String recipeName;
+    
 }
