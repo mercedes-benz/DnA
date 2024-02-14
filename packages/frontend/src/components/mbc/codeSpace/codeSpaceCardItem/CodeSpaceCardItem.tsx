@@ -263,7 +263,7 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
                               tooltip-data="Show production build & deploy logs in new tab"
                               rel="noreferrer"
                             >
-                              {regionalDateAndTimeConversionSolution(intLastDeployedOn)}
+                              {regionalDateAndTimeConversionSolution(prodLastDeployedOn)}
                             </a>
                           ) : (
                             <>{regionalDateAndTimeConversionSolution(prodLastDeployedOn)}&nbsp;</>
