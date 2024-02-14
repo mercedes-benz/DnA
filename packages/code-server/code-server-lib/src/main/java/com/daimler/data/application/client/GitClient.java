@@ -49,7 +49,7 @@ public class GitClient {
 			headers.set("Content-Type", "application/json");
 			headers.set("Authorization", "token "+ personalAccessToken);
 			String url = gitBaseUri+"/orgs/"+gitOrgName+"/repos";
-			String requestJsonString = "{\"name\":\"" + repoName + "\",\"description\":\"Repository creation from DnA codespaces\",\"private\":true,\"has_issues\":true,\"has_projects\":true,\"has_wiki\":true, \"auto_init\": true}";
+			String requestJsonString = "{\"name\":\"" + repoName + "\",\"description\":\"Repository creation from DnA codespaces\",\"private\":true,\"visibility\":\"private\",\"has_issues\":true,\"has_projects\":true,\"has_wiki\":true, \"auto_init\": true}";
 			HttpEntity<String> entity = new HttpEntity<String>(requestJsonString,headers);
 			ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.POST, entity, String.class);
 			if (response != null && response.getStatusCode()!=null) {
