@@ -345,11 +345,11 @@ import lombok.extern.slf4j.Slf4j;
 			 {
 				String name = entitlement.getName();
 				if (!entitlementSet.add(name)) {
-					MessageDescription notAuthorizedMsg = new MessageDescription();
-					notAuthorizedMsg.setMessage(
+					MessageDescription badRequestMsg = new MessageDescription();
+					badRequestMsg.setMessage(
 							"Entitlement names should be unique. Bad request.");
 					GenericMessage errorMessage = new GenericMessage();
-					errorMessage.addErrors(notAuthorizedMsg);
+					errorMessage.addErrors(badRequestMsg);
 					saveConfigResponse.setResponse(errorMessage);
 					log.info("Entitlement names should be unique. Bad request.");
 					return new ResponseEntity<>(saveConfigResponse, HttpStatus.BAD_REQUEST);
@@ -361,11 +361,11 @@ import lombok.extern.slf4j.Slf4j;
 			 {
 				String name = role.getName();
 				if (!roleSet.add(name)) {
-					MessageDescription notAuthorizedMsg = new MessageDescription();
-					notAuthorizedMsg.setMessage(
+					MessageDescription badRequestMsg = new MessageDescription();
+					badRequestMsg.setMessage(
 							"Role names should be unique. Bad request.");
 					GenericMessage errorMessage = new GenericMessage();
-					errorMessage.addErrors(notAuthorizedMsg);
+					errorMessage.addErrors(badRequestMsg);
 					saveConfigResponse.setResponse(errorMessage);
 					log.info("Role names should be unique. Bad request.");
 					return new ResponseEntity<>(saveConfigResponse, HttpStatus.BAD_REQUEST);
@@ -374,11 +374,11 @@ import lombok.extern.slf4j.Slf4j;
 				for(CodespaceSecurityConfigLOV roleEntitlement : role.getRoleEntitlements()){
 					String roleEntitlementName = roleEntitlement.getName();
 					if (!roleEntitlementSet.add(roleEntitlementName)) {
-						MessageDescription notAuthorizedMsg = new MessageDescription();
-						notAuthorizedMsg.setMessage(
+						MessageDescription badRequestMsg = new MessageDescription();
+						badRequestMsg.setMessage(
 								"Role Entitlements  should be unique. Bad request.");
 						GenericMessage errorMessage = new GenericMessage();
-						errorMessage.addErrors(notAuthorizedMsg);
+						errorMessage.addErrors(badRequestMsg);
 						saveConfigResponse.setResponse(errorMessage);
 						log.info("Role Entitlements should be unique. Bad request.");
 						return new ResponseEntity<>(saveConfigResponse, HttpStatus.BAD_REQUEST);
@@ -391,11 +391,11 @@ import lombok.extern.slf4j.Slf4j;
 			 {
 				String shortId = userRole.getShortId();
 				if (!userRoleSet.add(shortId)) {
-					MessageDescription notAuthorizedMsg = new MessageDescription();
-					notAuthorizedMsg.setMessage(
+					MessageDescription badRequestMsg = new MessageDescription();
+					badRequestMsg.setMessage(
 							"Users should be unique. Bad request.");
 					GenericMessage errorMessage = new GenericMessage();
-					errorMessage.addErrors(notAuthorizedMsg);
+					errorMessage.addErrors(badRequestMsg);
 					saveConfigResponse.setResponse(errorMessage);
 					log.info("Users should be unique. Bad request.");
 					return new ResponseEntity<>(saveConfigResponse, HttpStatus.BAD_REQUEST);
@@ -404,11 +404,11 @@ import lombok.extern.slf4j.Slf4j;
 				for(CodespaceSecurityConfigLOV role : userRole.getRoles()){
 					String roleName = role.getName();
 					if (!uniqueRoles.add(roleName)) {
-						MessageDescription notAuthorizedMsg = new MessageDescription();
-						notAuthorizedMsg.setMessage(
+						MessageDescription badRequestMsg = new MessageDescription();
+						badRequestMsg.setMessage(
 								"User roles  should be unique. Bad request.");
 						GenericMessage errorMessage = new GenericMessage();
-						errorMessage.addErrors(notAuthorizedMsg);
+						errorMessage.addErrors(badRequestMsg);
 						saveConfigResponse.setResponse(errorMessage);
 						log.info("User roles should be unique. Bad request.");
 						return new ResponseEntity<>(saveConfigResponse, HttpStatus.BAD_REQUEST);
