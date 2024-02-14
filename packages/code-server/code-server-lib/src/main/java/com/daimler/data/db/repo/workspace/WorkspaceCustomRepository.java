@@ -78,7 +78,7 @@ public interface WorkspaceCustomRepository extends CommonDataRepository<CodeServ
 	
 	CodeServerWorkspaceNsql findByWorkspaceId(String wsId);
 
-    List<CodespaceSecurityConfigDto> getAllSecurityConfigs(Integer offset, Integer limit);
+    List<CodespaceSecurityConfigDto> getAllSecurityConfigs(Integer offset, Integer limit, String projectName);
 
 	CodeServerWorkspaceNsql findDataById(String id);
 
