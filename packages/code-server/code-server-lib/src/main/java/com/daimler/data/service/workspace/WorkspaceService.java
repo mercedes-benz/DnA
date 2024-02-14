@@ -73,7 +73,7 @@ public interface WorkspaceService {
 
 	GenericMessage saveSecurityConfig(CodeServerWorkspaceVO vo, Boolean isPublished);
 
-    List<CodespaceSecurityConfigDetailsVO> getAllSecurityConfigs(Integer offset, Integer limit);
+    List<CodespaceSecurityConfigDetailsVO> getAllSecurityConfigs(Integer offset, Integer limit, String projectName);
 
 	GenericMessage updateSecurityConfigStatus(String projectName, String Status, String user, CodeServerWorkspaceVO vo);
 
