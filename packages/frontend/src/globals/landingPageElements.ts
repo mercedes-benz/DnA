@@ -415,7 +415,7 @@ export const ToolsLandingPageElements = [
     isDisabled: !datasphereUrl?.startsWith('http'),
     isSmallCard: false,
     isMediumCard: true,
-    svgIcon: 'tools-mini',
+    svgIcon: 'sac',
     isDnAInternalTool: false,
   },
   {
@@ -662,7 +662,7 @@ export const TrainingsLandingPageElements = [
     isDisabled: !datasphereTrainingUrl?.startsWith('http'),
     isSmallCard: false,
     isMediumCard: false,
-    svgIconId: 'tools-mini',
+    svgIconId: 'sac',
   },
 ];
 
