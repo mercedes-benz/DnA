@@ -1515,9 +1515,13 @@ public class BaseWorkspaceService implements WorkspaceService {
 
 		List<CodespaceSecurityConfigDto> collectionDtos = workspaceCustomRepository.getAllSecurityConfigs(offset,limit,projectName);
 		CodespaceSecurityConfigDetailsVO vo = new CodespaceSecurityConfigDetailsVO();
-		List<CodespaceSecurityConfigDetailsVO> finalConfigData = collectionDtos.stream()
-				.map(n -> workspaceAssembler.dtoToVo(n)).collect(Collectors.toList());
-		return finalConfigData;
+		if(collectionDtos != null){
+			List<CodespaceSecurityConfigDetailsVO> finalConfigData = collectionDtos.stream()
+					.map(n -> workspaceAssembler.dtoToVo(n)).collect(Collectors.toList());
+			return finalConfigData;
+		}else{
+			return new ArrayList<>();
+		}
 	}
 
 	public void notifyAllCodespaceAdminUsers(String eventType, String resourceId, String message, String triggeringUser,
