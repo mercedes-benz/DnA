@@ -33,12 +33,10 @@ public class SoftwareAssembler implements GenericAssembler<SoftwareCollection, C
         SoftwareCollection vo = new SoftwareCollection();
 		// TODO Auto-generated method stub
         CodeServerSoftware data = entity.getData();
-        System.out.println(data);
         if(Objects.nonNull(data))
         {
             vo.setSoftwareName(entity.getData().getSoftwareName());
         }
-        System.out.println(vo);
 		return vo;
 	}
 

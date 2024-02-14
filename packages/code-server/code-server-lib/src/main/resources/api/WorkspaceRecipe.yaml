@@ -63,11 +63,6 @@ schemes:
   - "https"
 
 paths:
-  # Fetch all valid userinfo or by intent
-  #
-  #  supported http methods GET, POST
-  #
-  # path example ../recipeDetails
 
   /recipeDetails:
     get:
@@ -135,12 +130,6 @@ paths:
           description: "Method not allowed"
         500:
           description: "Internal error"
-
-  # Fetch all valid userinfo or by intent
-  #
-  #  supported http methods GET, POST and DELETE
-  #
-  # path example ../workspaces/{id}
 
   /recipeDetails/{recipeName}:
     get:
@@ -374,18 +363,6 @@ definitions:
         items:
           $ref: "#/definitions/MessageDescription"  
 
-  # SoftwareLovVO:
-  #   type: object
-  #   properties:
-  #     name:
-  #       type: string
-  #       description: "Operating system required"
-  #     versions:
-  #       type: array
-  #       items:
-  #         type: string
-  #       description: "version of software"
-
   InitializeSoftwareLovVo:
     type: object
     properties:
@@ -421,33 +398,6 @@ definitions:
         type: array
         items:
           $ref: "#/definitions/MessageDescription" 
-
-  # SoftwareVO:
-  #   type: object
-  #   properties: 
-  #     id:
-  #     type: string
-  #     description: "ID of software"
-  #     name:
-  #     type: string
-  #     description: "Name of the softwarre"
-  #     minLength: 1
-  #     subdivisions:
-  #     type: array
-  #     items: 
-  #       $ref: "#/definitions/versionVO"
-  #   required:
-  #     - name 
-
-  # versionVO:
-  #   type: object
-  #   properties: 
-  #     id:
-  #     type: string
-  #     description: "ID of version"
-  #     version:
-  #     type: string
-  #     description: "version of the software"  
 
   RecipeLovVO:
     type: object

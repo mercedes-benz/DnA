@@ -40,16 +40,6 @@ public class RecipeAssembler implements GenericAssembler<RecipeVO, CodeServerRec
 				if (recipe.getSoftware() != null) {
 					recipeVo.setSoftware(recipe.getSoftware());
 				}
-				// List<RecipeSoftware> softwares = recipe.getSoftware();
-				// List<RecipeSoftwareVO> softwareVos = new ArrayList<>();
-				// if (Objects.nonNull(softwares)) {
-				// 	for (RecipeSoftware software : softwares) {
-				// 		RecipeSoftwareVO softwareVo = new RecipeSoftwareVO();
-				// 		BeanUtils.copyProperties(software, softwareVo);
-				// 		softwareVos.add(softwareVo);
-				// 	}
-				// 	recipeVo.setSoftware(softwareVos);
-				// }
 				UserInfoVO userInfoVo = new UserInfoVO();
 				UserInfo userInfo = recipe.getCreatedBy();
 				if (Objects.nonNull(userInfo)) {
@@ -82,14 +72,6 @@ public class RecipeAssembler implements GenericAssembler<RecipeVO, CodeServerRec
 						users = userDetails.stream().map(n->this.toUserInfoVO(n)).collect(Collectors.toList());
 					}
 				}
-				// if(userDetails.size()>0)
-				// {
-				// 	users = userDetails.stream().map(n->this.toUserInfoVO(n)).collect(Collectors.toList());
-				// }
-				// else
-				// {
-				// 	users= new ArrayList<UserInfoVO>();
-				// }
 				recipeVo.setUsers(users);
 			}
 		return recipeVo;
@@ -142,14 +124,6 @@ public class RecipeAssembler implements GenericAssembler<RecipeVO, CodeServerRec
 				
 				users = userDetails.stream().map(n -> this.toUserInfo(n)).collect(Collectors.toList());
 			}
-			// if(userDetails.size()>0)
-			// {
-			// 	users = userDetails.stream().map(n->this.toUserInfo(n)).collect(Collectors.toList());
-			// }
-			// else
-			// {
-			// 	users= new ArrayList<UserInfo>();
-			// }
 			recipeData.setUsers(users);
 			recipeData.setOSName(vo.getOSName().toString());
 			entity.setData(recipeData);
@@ -179,24 +153,10 @@ public class RecipeAssembler implements GenericAssembler<RecipeVO, CodeServerRec
 		RecipeLovVO vo = new RecipeLovVO();
 		if(entity!=null || Objects.nonNull(entity))
 		{
-			// BeanUtils.copyProperties(vo,entity);
 			vo.setId(entity.getId());
 			vo.setRecipeName(entity.getRecipeName());
 		}
 		return vo;
-	}
-
-	
-	public CodeServerRecipeLov toRecipeLovEntity(RecipeLovVO vo)
-	{
-		CodeServerRecipeLov entity = new CodeServerRecipeLov();
-		if(vo!=null || Objects.nonNull(vo))
-		{
-			// BeanUtils.copyProperties(entity,vo);
-			entity.setId(vo.getId());
-			entity.setRecipeName(vo.getRecipeName());
-		}
-		return entity;
 	}
 
 }

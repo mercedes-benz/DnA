@@ -32,7 +32,4 @@ import com.daimler.data.db.entities.CodeServerSoftwareNsql;
 
 public interface WorkspaceSoftwareRepository extends JpaRepository<CodeServerSoftwareNsql, String> {
 
-    // @Query(value = "SELECT nextval('workspaceid_seq')", nativeQuery = true)
-    // Long getNextWorkspaceSeqId();
-
 }

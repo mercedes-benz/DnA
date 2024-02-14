@@ -3,7 +3,6 @@ package com.daimler.data.db.repo.workspace;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import javax.persistence.Query;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
@@ -32,13 +31,6 @@ public class WorkspaceCustomSoftwareRepoImpl extends CommonDataRepositoryImpl<Co
         Root<CodeServerSoftwareNsql> root = cq.from(entityClass);
         CriteriaQuery<CodeServerSoftwareNsql> getAll = cq.select(root);
         TypedQuery<CodeServerSoftwareNsql> getAllQuery = em.createQuery(getAll);
-        ObjectMapper mapper = new ObjectMapper();
-        try{
-            System.out.println(mapper.writeValueAsString(getAllQuery.getResultList()));
-        }
-        catch(Exception e){
-            e.printStackTrace();
-        }
         return getAllQuery.getResultList();
 
     }

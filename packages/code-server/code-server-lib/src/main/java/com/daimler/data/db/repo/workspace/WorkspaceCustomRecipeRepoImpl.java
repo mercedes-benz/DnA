@@ -70,14 +70,6 @@ public class WorkspaceCustomRecipeRepoImpl extends CommonDataRepositoryImpl<Code
     {
         List<CodeServerRecipeLov> lov = new ArrayList<>();
         List<Object[]> results = new ArrayList<>();
-        // String getQuery = "SELECT DISTINCT ON (jsonb_extract_path_text(data, 'projectDetails', 'projectName'))"+
-		// 			"cast(jsonb_extract_path_text(data,'id',) as text) as RECIPE_ID,  " +
-        //           "cast(jsonb_extract_path_text(data,'recipeName') as text) as RECIPE_NAME, " +
-        //           "FROM recipe_nsql";
-                //    "FROM recipe_nsql WHERE lower(jsonb_extract_path_text(data,'status')) in('published') ";
-        // String getQuery = "SELECT cast(jsonb_extract_path_text(data,'id') as text) as RECIPE_ID," + 
-        //           "cast(jsonb_extract_path_text(data,'recipeName') as text) as RECIPE_NAME " +
-        //           "FROM public.recipe_nsql WHERE lower(jsonb_extract_path_text(data,'status')) in('requested') and lower(jsonb_extract_path_text(data,'isPublic')::boolean=true";
         String getQuery = "SELECT cast(jsonb_extract_path_text(data, 'id') as text) as RECIPE_ID, " +
                         "cast(jsonb_extract_path_text(data, 'recipeName') as text) as RECIPE_NAME " +
                         "FROM public.recipe_nsql " +
@@ -109,13 +101,7 @@ public class WorkspaceCustomRecipeRepoImpl extends CommonDataRepositoryImpl<Code
     {
          List<CodeServerRecipeLov> lov = new ArrayList<>();
         List<Object[]> results = new ArrayList<>();
-        // String getQuery = "SELECT cast(jsonb_extract_path_text(data, 'id') as text) as RECIPE_ID, " +
-        //                 "cast(jsonb_extract_path_text(data, 'recipeName') as text) as RECIPE_NAME " +
-        //                 "FROM public.recipe_nsql " +
-        //                 "WHERE lower(jsonb_extract_path_text(data, 'status')) IN ('published') " +
-        //                "AND jsonb_extract_path_text(data, 'isPublic') = 'false'"+
-        //                 "AND jsonb_extract_path_text(data,'users','gitUserName') IN "+"'"+id+"'";
-    String getQuery = "SELECT " +
+        String getQuery = "SELECT " +
                         "cast(jsonb_extract_path_text(data, 'id') as text) as RECIPE_ID, " +
                         "cast(jsonb_extract_path_text(data, 'recipeName') as text) as RECIPE_NAME " +
                     "FROM " +

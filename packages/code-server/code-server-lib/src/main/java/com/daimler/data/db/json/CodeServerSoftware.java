@@ -43,7 +43,6 @@ import lombok.NoArgsConstructor;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class CodeServerSoftware implements Serializable {
 
-	// private static final long serialVersionUID = 1L;
 
 	private String softwareName;
     
