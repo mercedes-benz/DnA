@@ -30,8 +30,10 @@
  import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import javax.persistence.EntityNotFoundException;
@@ -60,6 +62,7 @@ import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
 import com.daimler.data.db.entities.CodeServerWorkspaceNsql;
 import com.daimler.data.db.json.CodespaceSecurityRole;
+import com.daimler.data.db.json.CodespaceSecurityUserRoleMap;
 import com.daimler.data.db.repo.workspace.WorkspaceCustomRepository;
 import com.daimler.data.dto.workspace.CodeServerDeploymentDetailsVO;
 import com.daimler.data.dto.workspace.CodeServerRecipeDetailsVO;
@@ -74,6 +77,7 @@ import com.daimler.data.dto.workspace.CodespaceSecurityConfigLOV;
 import com.daimler.data.dto.workspace.CodespaceSecurityConfigVO;
 import com.daimler.data.dto.workspace.CodespaceSecurityEntitlementVO;
 import com.daimler.data.dto.workspace.CodespaceSecurityRoleVO;
+import com.daimler.data.dto.workspace.CodespaceSecurityUserRoleMapVO;
 import com.daimler.data.dto.workspace.CreatedByVO;
 import com.daimler.data.dto.workspace.DataGovernanceRequestInfo;
 import com.daimler.data.dto.workspace.EntitlementCollectionVO;
@@ -335,6 +339,83 @@ import lombok.extern.slf4j.Slf4j;
 					 entitlement.setApiList(new ArrayList<>());
 				 }
 			 }
+			 List<CodespaceSecurityEntitlementVO> entitlementVo = data.getEntitlements();
+			 Set<String> entitlementSet = new HashSet<>();
+			 for(CodespaceSecurityEntitlementVO entitlement:entitlementVo )
+			 {
+				String name = entitlement.getName();
+				if (!entitlementSet.add(name)) {
+					MessageDescription notAuthorizedMsg = new MessageDescription();
+					notAuthorizedMsg.setMessage(
+							"Entitlement names should be unique. Bad request.");
+					GenericMessage errorMessage = new GenericMessage();
+					errorMessage.addErrors(notAuthorizedMsg);
+					saveConfigResponse.setResponse(errorMessage);
+					log.info("Entitlement names should be unique. Bad request.");
+					return new ResponseEntity<>(saveConfigResponse, HttpStatus.BAD_REQUEST);
+				}
+			 }
+			 List<CodespaceSecurityRoleVO> roleVo = data.getRoles();
+			 Set<String> roleSet = new HashSet<>();
+			 for(CodespaceSecurityRoleVO role:roleVo)
+			 {
+				String name = role.getName();
+				if (!roleSet.add(name)) {
+					MessageDescription notAuthorizedMsg = new MessageDescription();
+					notAuthorizedMsg.setMessage(
+							"Role names should be unique. Bad request.");
+					GenericMessage errorMessage = new GenericMessage();
+					errorMessage.addErrors(notAuthorizedMsg);
+					saveConfigResponse.setResponse(errorMessage);
+					log.info("Role names should be unique. Bad request.");
+					return new ResponseEntity<>(saveConfigResponse, HttpStatus.BAD_REQUEST);
+				}
+				Set<String> roleEntitlementSet = new HashSet<>();
+				for(CodespaceSecurityConfigLOV roleEntitlement : role.getRoleEntitlements()){
+					String roleEntitlementName = roleEntitlement.getName();
+					if (!roleEntitlementSet.add(roleEntitlementName)) {
+						MessageDescription notAuthorizedMsg = new MessageDescription();
+						notAuthorizedMsg.setMessage(
+								"Role Entitlements  should be unique. Bad request.");
+						GenericMessage errorMessage = new GenericMessage();
+						errorMessage.addErrors(notAuthorizedMsg);
+						saveConfigResponse.setResponse(errorMessage);
+						log.info("Role Entitlements should be unique. Bad request.");
+						return new ResponseEntity<>(saveConfigResponse, HttpStatus.BAD_REQUEST);
+					}
+				}
+			 }
+			 List<CodespaceSecurityUserRoleMapVO> userRoleVo = data.getUserRoleMappings();
+			 Set<String> userRoleSet = new HashSet<>();
+			 for(CodespaceSecurityUserRoleMapVO userRole:userRoleVo)
+			 {
+				String shortId = userRole.getShortId();
+				if (!userRoleSet.add(shortId)) {
+					MessageDescription notAuthorizedMsg = new MessageDescription();
+					notAuthorizedMsg.setMessage(
+							"Users should be unique. Bad request.");
+					GenericMessage errorMessage = new GenericMessage();
+					errorMessage.addErrors(notAuthorizedMsg);
+					saveConfigResponse.setResponse(errorMessage);
+					log.info("Users should be unique. Bad request.");
+					return new ResponseEntity<>(saveConfigResponse, HttpStatus.BAD_REQUEST);
+				}
+				Set<String> uniqueRoles = new HashSet<>();
+				for(CodespaceSecurityConfigLOV role : userRole.getRoles()){
+					String roleName = role.getName();
+					if (!uniqueRoles.add(roleName)) {
+						MessageDescription notAuthorizedMsg = new MessageDescription();
+						notAuthorizedMsg.setMessage(
+								"User roles  should be unique. Bad request.");
+						GenericMessage errorMessage = new GenericMessage();
+						errorMessage.addErrors(notAuthorizedMsg);
+						saveConfigResponse.setResponse(errorMessage);
+						log.info("User roles should be unique. Bad request.");
+						return new ResponseEntity<>(saveConfigResponse, HttpStatus.BAD_REQUEST);
+					}
+				}
+			 }
+			
 			 if (vo.getProjectDetails().getSecurityConfig() != null) {
 				 if (vo.getProjectDetails().getSecurityConfig().getStatus() != null
 						 && (vo.getProjectDetails().getSecurityConfig().getStatus().equalsIgnoreCase("REQUESTED") || vo

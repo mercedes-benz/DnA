@@ -686,22 +686,22 @@ public class WorkspaceAssembler implements GenericAssembler<CodeServerWorkspaceV
 				if(entitlement.getId()==null){
 					entitlement.setId(UUID.randomUUID().toString());
 				}
-				if(projectName!=null){
-					if(!entitlement.getName().startsWith(projectName)){
-						entitlement.setName(projectName+"_"+entitlement.getName());
-					}
-				}
+				// if(projectName!=null){
+				// 	if(!entitlement.getName().startsWith(projectName)){
+				// 		entitlement.setName(projectName+"_"+entitlement.getName());
+				// 	}
+				// }
 			}
 			securityConfigWithIds.setEntitlements(entitlementList);
 			for(CodespaceSecurityRoleVO role : roleList){
 				if(role.getId()==null){
 					role.setId(UUID.randomUUID().toString());
 				}
-				if(projectName!=null){
-					if(!role.getName().startsWith(projectName)){
-						role.setName(projectName+"_"+role.getName());
-					}
-				}
+				// if(projectName!=null){
+				// 	if(!role.getName().startsWith(projectName)){
+				// 		role.setName(projectName+"_"+role.getName());
+				// 	}
+				// }
 			}
 			securityConfigWithIds.setRoles(roleList);
 //			for(CodespaceSecurityUserRoleMapVO userRoleMap : roleMapList){
