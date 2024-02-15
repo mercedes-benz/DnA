@@ -7,6 +7,7 @@ import Styles from './graph.scss';
 // dna-container
 import FullScreenModeIcon from 'dna-container/FullScreenModeIcon';
 import Modal from 'dna-container/Modal';
+import InfoModal from 'dna-container/InfoModal';
 import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indicator';
 import SelectBox from '../../common/modules/uilab/js/src/select';
 import Tooltip from '../../common/modules/uilab/js/src/tooltip';
@@ -22,6 +23,7 @@ import { datalakeApi } from '../../apis/datalake.api';
 import ColumnForm from '../../components/columnForm/ColumnForm';
 import EditTableForm from '../../components/editTableForm/EditTableForm';
 import DataProductForm from '../../components/dataProductForm/DataProductForm';
+import { ConnectionModal } from '../../components/connectionInfo/ConnectionModal';
 
 const Graph = ({user}) => {
     const { id } = useParams();
@@ -506,6 +508,8 @@ const Graph = ({user}) => {
   const toggleFullScreenMode = () => {
     setFullScreenMode(!fullScreenMode);
   };
+
+  const [showConnectionModal, setShowConnectionModal] = useState(false);
   
   return (
     !isLoading ?
@@ -545,10 +549,20 @@ const Graph = ({user}) => {
                         <button
                             className={classNames('btn btn-primary', Styles.btnOutline, !isOwner && Styles.btnDisabled)}
                             type="button"
-                            onClick={() => { setShowInferenceModal(true) }}
+                            onClick={() => { setShowConnectionModal(true) }}
                         >
                             <i className="icon mbc-icon plus" />
-                            <span>Add Inference</span>
+                            <span>Upload File</span>
+                        </button>
+                    </div>
+                    <div>
+                        <button
+                            className={classNames('btn btn-primary', Styles.btnOutline)}
+                            type="button"
+                            onClick={() => { setShowConnectionModal(true) }}
+                        >
+                            <i className="icon mbc-icon comparison" />
+                            <span>How to Connect</span>
                         </button>
                     </div>
                     <div>
@@ -734,6 +748,18 @@ const Graph = ({user}) => {
         }}
       />
     }
+
+    {showConnectionModal &&
+        <InfoModal
+          title={'Connect'}
+          modalCSS={Styles.header}
+          show={showConnectionModal}
+          content={<ConnectionModal projectId={id} onOkClick={() => setShowCollabModal(false)} />}
+          hiddenTitle={true}
+          onCancel={() => setShowConnectionModal(false)}
+        />
+
+      }
     </div> : <Spinner />
   );
 }
