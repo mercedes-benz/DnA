@@ -200,6 +200,10 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
           : requiredError
         : '',
     );
+    const startsOrEndswith = /^-|-$|(--)/i.test(projectNameVal);
+    if(startsOrEndswith) {
+      setProjectNameError('Invalid name - Starts or Ends with - or contains continuous -');
+    }
   };
 
   // const onGithubUserNameOnChange = (evnt: React.FormEvent<HTMLInputElement>) => {
