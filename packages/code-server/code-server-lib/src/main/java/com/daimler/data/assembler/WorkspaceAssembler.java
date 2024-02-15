@@ -53,7 +53,6 @@ import com.daimler.data.db.json.CodespaceSecurityEntitlement;
 import com.daimler.data.db.json.CodespaceSecurityApiList;
 import com.daimler.data.db.json.CodespaceSecurityRole;
 import com.daimler.data.db.json.CodespaceSecurityUserRoleMap;
-import com.daimler.data.db.json.DeploymentAudit;
 import com.daimler.data.db.json.UserInfo;
 import com.daimler.data.dto.CodespaceSecurityConfigDto;
 import com.daimler.data.dto.workspace.CodeServerDeploymentDetailsVO;
@@ -248,23 +247,29 @@ public class WorkspaceAssembler implements GenericAssembler<CodeServerWorkspaceV
 	private List<DeploymentAudit> toDeploymentAuditDetails(List<DeploymentAuditVO> auditdetails)
 	{
 		List<DeploymentAudit> deployedAuditLogDetails = new ArrayList<>();
-		if(auditdetails != null && !auditdetails.isEmpty())
+		try
 		{
-			//deployedAuditLogDetails = auditdetails.stream().map(n -> toDeploymentAudit(n)).collect(Collectors.toList());
-			for(DeploymentAudit audit: deployedAuditLogDetails)
-			{ 
-				DeploymentAudit auditDetails = new DeploymentAudit();
-				auditDetails.setDeploymentStatus(audit.getDeploymentStatus());
-				if(Objects.nonNull(audit.getDeployedOn())){
-					auditDetails.setDeployedOn(audit.getDeployedOn());
+			if(auditdetails != null && !auditdetails.isEmpty())
+			{
+				for(DeploymentAudit audit: deployedAuditLogDetails)
+				{ 
+					DeploymentAudit auditDetails = new DeploymentAudit();
+					auditDetails.setDeploymentStatus(audit.getDeploymentStatus());
+					if(Objects.nonNull(audit.getDeployedOn())){
+						auditDetails.setDeployedOn(audit.getDeployedOn());
+					}
+					auditDetails.setTriggeredBy(audit.getTriggeredBy());
+					if(Objects.nonNull(audit.getTriggeredOn())){
+						auditDetails.setTriggeredOn(audit.getTriggeredOn());
+					}
+					auditDetails.setBranch(audit.getBranch());
+					deployedAuditLogDetails.add(auditDetails);
 				}
-				auditDetails.setTriggeredBy(audit.getTriggeredBy());
-				if(Objects.nonNull(audit.getTriggeredOn())){
-					auditDetails.setTriggeredOn(audit.getTriggeredOn());
-				}
-				auditDetails.setBranch(audit.getBranch());
-				deployedAuditLogDetails.add(auditDetails);
 			}
+		}
+		catch(Exception e)
+		{
+			log.error("Failed while parsing in assembler");
 		}
 		return deployedAuditLogDetails;
 	}
@@ -295,31 +300,30 @@ public class WorkspaceAssembler implements GenericAssembler<CodeServerWorkspaceV
 	private List<DeploymentAuditVO> toDeploymentAuditDetailsVO(List<DeploymentAudit> deploymentAuditLogs) {
 		SimpleDateFormat isoFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS+00:00");
 		List<DeploymentAuditVO> auditDetailsVO = new ArrayList<>();
-		if(deploymentAuditLogs!=null && !deploymentAuditLogs.isEmpty())
+		try
 		{
-			for(DeploymentAudit audit: deploymentAuditLogs)
+			if(deploymentAuditLogs!=null && !deploymentAuditLogs.isEmpty())
 			{
-				try
+				for(DeploymentAudit audit: deploymentAuditLogs)
 				{
-					DeploymentAuditVO auditDetails = new DeploymentAuditVO();
-					auditDetails.setDeploymentStatus(audit.getDeploymentStatus());
-					if(Objects.nonNull(audit.getDeployedOn()))
-						auditDetails.setDeployedOn(isoFormat.parse(isoFormat.format(audit.getDeployedOn())));
-					auditDetails.setTriggeredBy(audit.getTriggeredBy());
-					if(Objects.nonNull(audit.getTriggeredOn()))
-						auditDetails.setTriggeredOn(isoFormat.parse(isoFormat.format(audit.getTriggeredOn())));
-					auditDetails.setBranch(audit.getBranch());
-					auditDetailsVO.add(auditDetails);
-				}
-				catch(ParseException e)
-				{
-					log.error("Failed in assembler while parsing date into iso format with exception {}", e.getMessage());
+						DeploymentAuditVO auditDetails = new DeploymentAuditVO();
+						auditDetails.setDeploymentStatus(audit.getDeploymentStatus());
+						if(Objects.nonNull(audit.getDeployedOn()))
+							auditDetails.setDeployedOn(isoFormat.parse(isoFormat.format(audit.getDeployedOn())));
+						auditDetails.setTriggeredBy(audit.getTriggeredBy());
+						if(Objects.nonNull(audit.getTriggeredOn()))
+							auditDetails.setTriggeredOn(isoFormat.parse(isoFormat.format(audit.getTriggeredOn())));
+						auditDetails.setBranch(audit.getBranch());
+						auditDetailsVO.add(auditDetails);
 				}
 			}
 		}
+		catch(ParseException e)
+		{
+			log.error("Failed in assembler  while parsing date into iso format with exception {} in auditDeatils");
+		}
 		return auditDetailsVO;
 	}
-
 
 	private CodespaceSecurityConfigVO tosecurityConfigVO(CodespaceSecurityConfig CodespaceSecurityConfig) {
 		CodespaceSecurityConfigVO codespaceSecurityConfigVO = new CodespaceSecurityConfigVO();
