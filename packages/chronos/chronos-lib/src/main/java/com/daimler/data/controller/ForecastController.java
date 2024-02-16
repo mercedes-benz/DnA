@@ -1253,7 +1253,7 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 							if(drivers!=null){
 								String driverFileName = drivers.getOriginalFilename();
 								if (!FilenameUtils.getExtension(driverFileName).equalsIgnoreCase("csv")) {
-								log.error("Invalid file type {} attached for project name {} and id {} ", fileName,
+								log.error("Invalid file type {} attached for project name {} and id {} ", driverFileName,
 										existingForecast.getName(), id);
 								MessageDescription invalidMsg = new MessageDescription(
 										"Invalid File type attached for planning/mapping/drivers files. Supported only csv extension");
@@ -1268,7 +1268,7 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 							if(mapping!=null){
 								String mappingFileName = mapping.getOriginalFilename();
 								if (!FilenameUtils.getExtension(mappingFileName).equalsIgnoreCase("csv")) {
-									log.error("Invalid file type {} attached for project name {} and id {} ", fileName,
+									log.error("Invalid file type {} attached for project name {} and id {} ", mappingFileName,
 											existingForecast.getName(), id);
 									MessageDescription invalidMsg = new MessageDescription(
 											"Invalid File type attached for planning/mapping/drivers files. Supported only csv extension");
@@ -1284,7 +1284,7 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 							if(planning_data!=null){
 								String planninngFileName = planning_data.getOriginalFilename();
 								if (!FilenameUtils.getExtension(planninngFileName).equalsIgnoreCase("csv")) {
-									log.error("Invalid file type {} attached for project name {} and id {} ", fileName,
+									log.error("Invalid file type {} attached for project name {} and id {} ", planninngFileName,
 											existingForecast.getName(), id);
 									MessageDescription invalidMsg = new MessageDescription(
 											"Invalid File type attached for planning/mapping/drivers files. Supported only csv extension");
