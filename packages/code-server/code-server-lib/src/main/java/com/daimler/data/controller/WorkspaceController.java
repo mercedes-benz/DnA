@@ -881,7 +881,10 @@ import lombok.extern.slf4j.Slf4j;
 			 {
 				status = vo.getProjectDetails().getProdDeploymentDetails().getLastDeploymentStatus();
 			 }
-			 if (status.equalsIgnoreCase("DEPLOY_REQUESTED")) {
+
+			if(status!= null)
+			{
+				 if (status.equalsIgnoreCase("DEPLOY_REQUESTED")) {
 				 MessageDescription invalidTypeMsg = new MessageDescription();
 				 invalidTypeMsg.setMessage(
 						 "cannot deploy workspace since it is already in DEPLOY_REQUESTED state");
@@ -891,6 +894,7 @@ import lombok.extern.slf4j.Slf4j;
 						 vo.getProjectDetails().getRecipeDetails().getRecipeId().name(), vo.getWorkspaceId());
 				 return new ResponseEntity<>(errorMessage, HttpStatus.BAD_REQUEST);
 			 }
+			}
 			 if ((Objects.nonNull(deployRequestDto.isSecureWithIAMRequired())
 					 && deployRequestDto.isSecureWithIAMRequired())
 					 && (Objects.nonNull(deployRequestDto.getTechnicalUserDetailsForIAMLogin()))) {
@@ -1005,15 +1009,25 @@ import lombok.extern.slf4j.Slf4j;
 			 if (deployRequestDto != null && deployRequestDto.getBranch() != null) {
 				 branch = deployRequestDto.getBranch();
 			 }
-			 String status = "";
-			 if(environment.equalsIgnoreCase("int"))
-			 {
-				status = vo.getProjectDetails().getIntDeploymentDetails().getLastDeploymentStatus();
-			 }
-			 else
-			 {
-				status = vo.getProjectDetails().getProdDeploymentDetails().getLastDeploymentStatus();
-			 }
+			 //String status = "";
+			//  if(environment.equalsIgnoreCase("int"))
+			//  {
+			// 	status = vo.getProjectDetails().getIntDeploymentDetails().getLastDeploymentStatus();
+			//  }
+			//  else
+			//  {
+			// 	status = vo.getProjectDetails().getProdDeploymentDetails().getLastDeploymentStatus();
+			//  }
+			String status = "";
+			if ("int".equalsIgnoreCase(environment)) {
+				if (vo.getProjectDetails() != null && vo.getProjectDetails().getIntDeploymentDetails() != null) {
+					status = vo.getProjectDetails().getIntDeploymentDetails().getLastDeploymentStatus();
+				}
+			} else {
+				if (vo.getProjectDetails() != null && vo.getProjectDetails().getProdDeploymentDetails() != null) {
+					status = vo.getProjectDetails().getProdDeploymentDetails().getLastDeploymentStatus();
+				}
+			}
 			 if (status.equalsIgnoreCase("UNDEPLOY_REQUESTED")) {
 				 MessageDescription invalidTypeMsg = new MessageDescription();
 				 invalidTypeMsg.setMessage(
