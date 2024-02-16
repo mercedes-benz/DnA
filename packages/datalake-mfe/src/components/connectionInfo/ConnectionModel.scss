@@ -52,7 +52,6 @@
       text-align: left;
       display: flex;
       flex-direction: column;
-      justify-content: space-between;
       min-height: 250px;
   
       .dataikuConnectionBtn {
@@ -143,6 +142,16 @@
       color: #99a5b3;
       border-color: #697582;
       cursor: not-allowed;
+    }
+  }
+
+  .dbHighlight {
+    font-size: 14px;
+  }
+  .trinoConnectDiv {
+    display: flex;
+    > div {
+      min-width: 50%;
     }
   }
   

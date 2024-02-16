@@ -141,8 +141,8 @@ public class BaseTrinoDataLakeService extends BaseCommonService<TrinoDataLakePro
 			String catalog = vo.getCatalogName();
 			String connectorType = vo.getConnectorType();
 			String externalLocation = "s3a://"+vo.getBucketName()+"/"+ schema;
-			String createSchemaStatement = createSchema + catalog + "." + schema ;
-					//+ " WITH (location = '" + externalLocation + "')";
+			String createSchemaStatement = createSchema + catalog + "." + schema 
+					+ " WITH (location = '" + externalLocation + "')";
 			try {
 				try {
 					trinoClient.executeStatments(createSchemaStatement);
@@ -300,6 +300,7 @@ public class BaseTrinoDataLakeService extends BaseCommonService<TrinoDataLakePro
 		TrinoDataLakeProjectResponseVO responseVO = new TrinoDataLakeProjectResponseVO();
 		TrinoDataLakeProjectVO datalakeProjectVO  =  existingVO;
 		
+		existingVO.setDescription(updateRequestVO.getDescription());
 		existingVO.setClassificationType(updateRequestVO.getClassificationType());
 		existingVO.setHasPii(updateRequestVO.getHasPii());
 		existingVO.setDivisionId(updateRequestVO.getDivisionId());
@@ -402,8 +403,8 @@ public class BaseTrinoDataLakeService extends BaseCommonService<TrinoDataLakePro
 											readAccessRules.setUser(String.join("|", readCollabs));
 											updatedAccessRules.getTables().add(readAccessRules);
 										}
-										updatedAccessRules.getTables().add(readAccessRules);
-										updatedAccessRules.getTables().add(writeAccessRules);
+										//updatedAccessRules.getTables().add(readAccessRules);
+										//updatedAccessRules.getTables().add(writeAccessRules);
 									
 								}
 								
@@ -592,6 +593,7 @@ public class BaseTrinoDataLakeService extends BaseCommonService<TrinoDataLakePro
 				}
 				try {
 					kubeClient.operateRecordToConfigMap(operation,existingClientId, clientId, clientSecret);
+					log.info("Details of technical user is updated successfully at kubernetes passwords file for project {} ",existingProject.getProjectName());
 				}catch(ApiException e) {
 					log.error("Failed at updating techUser access rules in kubernetes config. Exception {}", e.getMessage());
 					MessageDescription warning = new MessageDescription("Failed to update Tech User access rules, Internal Server error. Please retry after a while.");

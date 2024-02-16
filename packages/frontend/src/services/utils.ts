@@ -350,7 +350,7 @@ export const csvSeparator = (region: string) => {
 
 export const buildLogViewURL = (deployedUrl: string, isStagging?: boolean) => {
   try {
-    return Envs.CODESPACE_OPENSEARCH_LOGS_URL.replaceAll('$INSTANCE_ID$', new URL(deployedUrl).pathname.split("/")[1] + (isStagging ? '-int' : ''));
+    return Envs.CODESPACE_OPENSEARCH_LOGS_URL.replaceAll('$INSTANCE_ID$', new URL(deployedUrl).pathname.split("/")[1] + (isStagging ? '-int' : '-prod'));
   } catch {
     return "Error in building log view Url. Please check the deployment Url."
   }

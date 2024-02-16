@@ -7,6 +7,7 @@ import Styles from './graph.scss';
 // dna-container
 import FullScreenModeIcon from 'dna-container/FullScreenModeIcon';
 import Modal from 'dna-container/Modal';
+import InfoModal from 'dna-container/InfoModal';
 import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indicator';
 import SelectBox from '../../common/modules/uilab/js/src/select';
 import Tooltip from '../../common/modules/uilab/js/src/tooltip';
@@ -21,6 +22,8 @@ import TableCollaborators from '../../components/tableCollaborators/TableCollabo
 import { datalakeApi } from '../../apis/datalake.api';
 import ColumnForm from '../../components/columnForm/ColumnForm';
 import EditTableForm from '../../components/editTableForm/EditTableForm';
+import DataProductForm from '../../components/dataProductForm/DataProductForm';
+import { ConnectionModal } from '../../components/connectionInfo/ConnectionModal';
 
 const Graph = ({user}) => {
     const { id } = useParams();
@@ -50,6 +53,27 @@ const Graph = ({user}) => {
       return Tooltip.clear();
       //eslint-disable-next-line
     }, []);
+
+    const [loading, setLoading] = useState(true);
+    const [connectionInfo, setConnectionInfo] = useState();
+
+    useEffect(() => {
+      ProgressIndicator.show();
+        datalakeApi.getConnectionInfo(id)
+        .then((res) => {
+            setConnectionInfo(res.data.data);
+            ProgressIndicator.hide();
+            setLoading(false);
+        })
+        .catch((err) => {
+            Notification.show(
+            err?.response?.data?.errors?.[0]?.message || 'Error while fetching connection information',
+            'alert',
+            );
+            ProgressIndicator.hide();
+            setLoading(false);
+        });
+    }, [id]);
 
     /* A callback function that is used to update the viewbox of the svg. */
     const resizeHandler = useCallback(() => {
@@ -208,29 +232,29 @@ const Graph = ({user}) => {
                 Inference by
             </label>
             <div className={Styles.flexLayout}>
-                <label className="checkbox">
+                <label className={classNames("checkbox", Styles.disabled)}>
                     <span className="wrapper">
                         <input type="checkbox" className="ff-only" />
                     </span>
-                    <span className="label">REST</span>
+                    <span className="label">REST API (Coming Soon)</span>
                 </label>
-                <label className="checkbox">
+                <label className={classNames("checkbox", Styles.disabled)}>
                     <span className="wrapper">
                         <input type="checkbox" className="ff-only" />
                     </span>
-                    <span className="label">GRAPHQL</span>
+                    <span className="label">GRAPHQL (Coming Soon)</span>
                 </label>
-                <label className="checkbox">
+                <label className={classNames("checkbox", Styles.disabled)}>
                     <span className="wrapper">
                         <input type="checkbox" className="ff-only" />
                     </span>
-                    <span className="label">ODATA</span>
+                    <span className="label">ODATA (Coming Soon)</span>
                 </label>
-                <label className="checkbox">
+                <label className={classNames("checkbox", Styles.disabled)}>
                     <span className="wrapper">
                         <input type="checkbox" className="ff-only" />
                     </span>
-                    <span className="label">SQL</span>
+                    <span className="label">SQL (Coming Soon)</span>
                 </label>
                 <label className={classNames("checkbox", Styles.disabled)}>
                     <span className="wrapper">
@@ -276,6 +300,7 @@ const Graph = ({user}) => {
 
     const technicalUserContent = <>
     <FormProvider {...methods}>
+      <p>Create a Technical User to connect your publised tables to Trino REST and in Dataiku.</p>
       <div className={classNames('input-field-group include-error', errors?.clientId ? 'error' : '')}>
         <label className={classNames(Styles.inputLabel, 'input-label')}>
           Client ID <sup>*</sup>
@@ -288,7 +313,7 @@ const Graph = ({user}) => {
             placeholder="Type here"
             autoComplete="off"
             maxLength={55}
-            // defaultValue={clientId}
+            defaultValue={!loading && (connectionInfo?.howToConnect?.trino?.techUserVO?.accesskey ? connectionInfo?.howToConnect?.trino?.techUserVO?.accesskey : '')}
             {...register('clientId', { required: '*Missing entry'})}
           />
           <span className={classNames('error-message')}>{errors?.clientId?.message}</span>
@@ -312,6 +337,7 @@ const Graph = ({user}) => {
           <span className={classNames('error-message')}>{errors?.clientSecret?.message}</span>
         </div>
       </div>
+      <p>Keep your Client Secret safe. We do not store this information.</p>
       <div className={Styles.btnContainer}>
         <button
           className="btn btn-tertiary"
@@ -325,6 +351,12 @@ const Graph = ({user}) => {
       </div>
     </FormProvider>
     </>; 
+
+  const [showDataProductModal, setShowDataProductModal] = useState(false);
+
+  const handleCreateDataProduct = () => {
+    setShowDataProductModal(false);
+  }
     
   const [showCollabModal, setShowCollabModal] = useState(false);
   const [table, setTable] = useState([]);
@@ -476,6 +508,8 @@ const Graph = ({user}) => {
   const toggleFullScreenMode = () => {
     setFullScreenMode(!fullScreenMode);
   };
+
+  const [showConnectionModal, setShowConnectionModal] = useState(false);
   
   return (
     !isLoading ?
@@ -486,11 +520,21 @@ const Graph = ({user}) => {
               {/* <img src={Envs.DNA_BRAND_LOGO_URL} className={Styles.Logo} /> */}
               <div className={Styles.nbtitle}>
                 <button tooltip-data="Go Back" className="btn btn-text back arrow" onClick={() => { history.back() }}></button>
-                <h2>{project?.projectName}</h2>
+                <h2>{project?.projectName} <span>({project?.connectorType})</span></h2>
               </div>
             </div>
             <div className={Styles.navigation}>
                 <div className={Styles.headerright}>
+                    <div>
+                        <button
+                            className={classNames('btn btn-primary', Styles.btnOutline, !isOwner && Styles.btnDisabled)}
+                            type="button"
+                            onClick={() => { setShowDataProductModal(true) }}
+                        >
+                            <i className="icon mbc-icon dataproductoverview" />
+                            <span>Provision as a Data Product</span>
+                        </button>
+                    </div>
                     <div>
                         <button
                             className={classNames('btn btn-primary', Styles.btnOutline, !isOwner && Styles.btnDisabled)}
@@ -505,10 +549,20 @@ const Graph = ({user}) => {
                         <button
                             className={classNames('btn btn-primary', Styles.btnOutline, !isOwner && Styles.btnDisabled)}
                             type="button"
-                            onClick={() => { setShowInferenceModal(true) }}
+                            onClick={() => { setShowConnectionModal(true) }}
                         >
                             <i className="icon mbc-icon plus" />
-                            <span>Add Inference</span>
+                            <span>Upload File</span>
+                        </button>
+                    </div>
+                    <div>
+                        <button
+                            className={classNames('btn btn-primary', Styles.btnOutline)}
+                            type="button"
+                            onClick={() => { setShowConnectionModal(true) }}
+                        >
+                            <i className="icon mbc-icon comparison" />
+                            <span>How to Connect</span>
                         </button>
                     </div>
                     <div>
@@ -587,6 +641,27 @@ const Graph = ({user}) => {
             scrollableContent={false}
             onCancel={() => {
                 setShowInferenceModal(false);
+            }}
+        />
+    }
+
+    { showDataProductModal &&
+        <Modal
+            title={'Provision as a Data Product'}
+            showAcceptButton={false}
+            showCancelButton={false}
+            modalWidth={'35%'}
+            buttonAlignment="right"
+            show={showDataProductModal}
+            content={<DataProductForm project={{...project}} onCreate={handleCreateDataProduct} />}
+            scrollableContent={false}
+            onCancel={() => {
+                setShowDataProductModal(false);
+            }}
+            modalStyle={{
+                padding: '50px 35px 35px 35px',
+                minWidth: 'unset',
+                width: '35%',
             }}
         />
     }
@@ -673,6 +748,18 @@ const Graph = ({user}) => {
         }}
       />
     }
+
+    {showConnectionModal &&
+        <InfoModal
+          title={'Connect'}
+          modalCSS={Styles.header}
+          show={showConnectionModal}
+          content={<ConnectionModal projectId={id} onOkClick={() => setShowCollabModal(false)} />}
+          hiddenTitle={true}
+          onCancel={() => setShowConnectionModal(false)}
+        />
+
+      }
     </div> : <Spinner />
   );
 }

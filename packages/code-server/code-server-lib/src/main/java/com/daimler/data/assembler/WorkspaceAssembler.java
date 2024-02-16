@@ -651,7 +651,7 @@ public class WorkspaceAssembler implements GenericAssembler<CodeServerWorkspaceV
 		return assembledSecurityConfig;
 	}
 
-	public CodespaceSecurityConfigVO generateSecurityConfigIds(CodespaceSecurityConfigVO data) {
+	public CodespaceSecurityConfigVO generateSecurityConfigIds(CodespaceSecurityConfigVO data, String projectName) {
 		CodespaceSecurityConfigVO securityConfigWithIds = new CodespaceSecurityConfigVO();
 		if (data != null) {
 
@@ -682,17 +682,26 @@ public class WorkspaceAssembler implements GenericAssembler<CodeServerWorkspaceV
 			if (data.getUserRoleMappings() != null) {
 				roleMapList = data.getUserRoleMappings();
 			}
-
 			for (CodespaceSecurityEntitlementVO entitlement : entitlementList) {
 				if(entitlement.getId()==null){
 					entitlement.setId(UUID.randomUUID().toString());
 				}
+				// if(projectName!=null){
+				// 	if(!entitlement.getName().startsWith(projectName)){
+				// 		entitlement.setName(projectName+"_"+entitlement.getName());
+				// 	}
+				// }
 			}
 			securityConfigWithIds.setEntitlements(entitlementList);
 			for(CodespaceSecurityRoleVO role : roleList){
 				if(role.getId()==null){
 					role.setId(UUID.randomUUID().toString());
 				}
+				// if(projectName!=null){
+				// 	if(!role.getName().startsWith(projectName)){
+				// 		role.setName(projectName+"_"+role.getName());
+				// 	}
+				// }
 			}
 			securityConfigWithIds.setRoles(roleList);
 //			for(CodespaceSecurityUserRoleMapVO userRoleMap : roleMapList){
