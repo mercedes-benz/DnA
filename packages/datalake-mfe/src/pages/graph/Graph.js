@@ -727,7 +727,7 @@ const Graph = ({user}) => {
           title={'Connect'}
           modalCSS={Styles.header}
           show={showConnectionModal}
-          content={<ConnectionModal projectId={id} onOkClick={() => setShowCollabModal(false)} />}
+          content={<ConnectionModal projectId={id} onOkClick={() => setShowConnectionModal(false)} />}
           hiddenTitle={true}
           onCancel={() => setShowConnectionModal(false)}
         />

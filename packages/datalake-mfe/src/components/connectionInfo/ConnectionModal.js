@@ -8,6 +8,7 @@ import Notification from '../../common/modules/uilab/js/src/notification';
 import Tabs from '../../common/modules/uilab/js/src/tabs';
 import ProgressIndicator from "../../common/modules/uilab/js/src/progress-indicator";
 import { datalakeApi } from "../../apis/datalake.api";
+import { Envs } from "../../utilities/envs";
 
 export const ConnectionModal = ({ projectId, onOkClick }) => {
     const [showSecretKey, setShowSecretKey] = useState(false);
@@ -43,8 +44,39 @@ export const ConnectionModal = ({ projectId, onOkClick }) => {
 
     const connectUsingRESTAPI = (
         <div>
-            <p className={Styles.dbHighlight}><a href={`${connectionInfo?.howToConnect?.trino?.techUserVO?.hostName}/swagger-ui.html#/`} target="_blank" rel="noreferrer noopener">Swagger URL</a></p>
-            <p className={Styles.dbHighlight}>Documentation: <a href="https://trino.io/docs/current/develop/client-protocol.html" target="_blank" rel="noreferrer noopener">Trino Client REST API Docs</a></p>
+            <p>We developed few in-house APIs which you can use to create, edit data lakehouse projects and tables.</p>
+            <p>API Swagger Link: <a href={`https://${connectionInfo?.howToConnect?.trino?.techUserVO?.hostName}/swagger-ui.html#/`} target="_blank" rel="noreferrer noopener">Swagger URL</a></p>
+            <p>You can authenticate these APIS with your SSO USER JWT token.</p>
+            <p>For system to system integration we are also supporting client credentials grant flow. So you can create a techinical user in GAS OIDC and use that technical user to generate a JWT token.</p>
+            <p>Example code</p>
+            <hr />
+<code>
+    <pre>
+{`import warnings
+warnings.filterwarnings('ignore')
+import requests  # import requests library for getting the data from API
+import json
+jwt_token = 'paste here your JWT Token you got from the browser session explained above'
+`}
+</pre>
+</code>
+<br />
+<p>Example code</p>
+<hr />
+<code>
+    <pre>
+{`#Lets now create a request and fire it:
+
+response = requests.get(url="${Envs.DATALAKE_API_BASEURL}/datalakes",
+                        headers={"Content-Type": "application/json", "Authorization": jwt_token},
+                        verify=False)
+myjson=response.json()
+`}
+    </pre>
+</code>
+
+            <br />
+            <p>Documentation Link: <a href="https://trino.io/docs/current/develop/client-protocol.html" target="_blank" rel="noreferrer noopener">Trino Client REST API Docs</a></p>
             <p>Example code</p>
             <hr />
             <code>
@@ -138,14 +170,16 @@ export const ConnectionModal = ({ projectId, onOkClick }) => {
         </>
     );
 
+    const [dataikuProjects, setDataikuProjects] = useState([]);
+
     const connectToDataiku = (
-    <>
+    <div className={Styles.dataikuSection}>
         <Tags
             title={'Please select the Dataiku project(s).'}
             max={100}
-            // chips={filterDataikuProjectList(connect?.dataikuProjects)}
-            // tags={dataikuProjectList?.filter((item) => item.name)}
-            // setTags={(selectedTags) => {}}
+            chips={dataikuProjects}
+            tags={[]}
+            setTags={(selectedTags) => { setDataikuProjects(selectedTags)}}
             suggestionRender={(item) => (
                 <div className={Styles.optionContainer}>
                 <span className={Styles.optionTitle}>{item?.name}</span>
@@ -158,11 +192,11 @@ export const ConnectionModal = ({ projectId, onOkClick }) => {
             suggestionPopupHeight={120}
         />
         <div className={Styles.dataikuConnectionBtn}>
-            <button className="btn btn-tertiary" disabled={true}>
+            <button className="btn btn-tertiary">
                 Make Connection
             </button>
         </div>
-    </>
+    </div>
     );
 
     const connectToJupyterNotebook = (!loading &&
@@ -306,30 +340,12 @@ print(rows)`}
                             <div className={Styles.connectionCode}>{connectUsingRESTAPI}</div>
                         </div>
                         <div id="tab-content-3" className={classNames('tab-content mbc-scroll', Styles.tabContentContainer)}>
-                            <span
-                                className={Styles.copyIcon}
-                                onClick={() => {
-                                    const content = document.getElementById('tab-content-3')?.innerText;
-                                    copyToClipboard(content);
-                                }}
-                            >
-                                <i className="icon mbc-icon copy" />
-                            </span>
                             <div className={classNames(Styles.connectionCode, Styles.restAPIContent)}>{connectToJupyterNotebook}</div>
                         </div>
                         <div id="tab-content-4" className={classNames('tab-content mbc-scroll', Styles.tabContentContainer)}>
                             <div className={classNames(Styles.connectionCode, Styles.restAPIContent)}>{connectToDataiku}</div>
                         </div>
                         <div id="tab-content-5" className={classNames('tab-content mbc-scroll', Styles.tabContentContainer)}>
-                            <span
-                                className={Styles.copyIcon}
-                                onClick={() => {
-                                    const content = document.getElementById('tab-content-3')?.innerText;
-                                    copyToClipboard(content);
-                                }}
-                            >
-                                <i className="icon mbc-icon copy" />
-                            </span>
                             <div className={classNames(Styles.connectionCode, Styles.restAPIContent)}>{connectToJupyterNotebook}</div>
                         </div>
                         <div id="tab-content-6" className={classNames('tab-content mbc-scroll', Styles.tabContentContainer)}>
