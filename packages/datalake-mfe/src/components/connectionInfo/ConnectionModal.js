@@ -43,6 +43,7 @@ export const ConnectionModal = ({ projectId, onOkClick }) => {
 
     const connectUsingRESTAPI = (
         <div>
+            <p className={Styles.dbHighlight}><a href={`${connectionInfo?.howToConnect?.trino?.techUserVO?.hostName}/swagger-ui.html#/`} target="_blank" rel="noreferrer noopener">Swagger URL</a></p>
             <p className={Styles.dbHighlight}>Documentation: <a href="https://trino.io/docs/current/develop/client-protocol.html" target="_blank" rel="noreferrer noopener">Trino Client REST API Docs</a></p>
             <p>Example code</p>
             <hr />
@@ -50,7 +51,7 @@ export const ConnectionModal = ({ projectId, onOkClick }) => {
 <pre id="jupyterusercode">
 {`import requests
  
- url = ${connectionInfo?.howToConnect?.trino?.techUserVO?.hostName} + '/v1/statement/'
+ url = "${connectionInfo?.howToConnect?.trino?.techUserVO?.hostName}/v1/statement/"
   
  payload = "<QUERY>"
  headers = {

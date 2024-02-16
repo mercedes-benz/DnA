@@ -204,7 +204,6 @@ const Graph = ({user}) => {
     };
 
     const [toggleModal, setToggleModal] = useState(false);
-    const [showInferenceModal, setShowInferenceModal] = useState(false);
     const [showTechnicalUserModal, setShowTechnicalUserModal] = useState(false);
 
     const [graphState] = useState('unchanged');
@@ -223,61 +222,7 @@ const Graph = ({user}) => {
       }
       // since this is not dirty, don't do anything
       return () => {};
-    }, [graphState]);
-
-    const inferenceContent = <>
-        <p>Access data using any endpoints</p>
-        <div className={classNames('input-field-group')}>
-            <label className={classNames(Styles.inputLabel, 'input-label')}>
-                Inference by
-            </label>
-            <div className={Styles.flexLayout}>
-                <label className={classNames("checkbox", Styles.disabled)}>
-                    <span className="wrapper">
-                        <input type="checkbox" className="ff-only" />
-                    </span>
-                    <span className="label">REST API (Coming Soon)</span>
-                </label>
-                <label className={classNames("checkbox", Styles.disabled)}>
-                    <span className="wrapper">
-                        <input type="checkbox" className="ff-only" />
-                    </span>
-                    <span className="label">GRAPHQL (Coming Soon)</span>
-                </label>
-                <label className={classNames("checkbox", Styles.disabled)}>
-                    <span className="wrapper">
-                        <input type="checkbox" className="ff-only" />
-                    </span>
-                    <span className="label">ODATA (Coming Soon)</span>
-                </label>
-                <label className={classNames("checkbox", Styles.disabled)}>
-                    <span className="wrapper">
-                        <input type="checkbox" className="ff-only" />
-                    </span>
-                    <span className="label">SQL (Coming Soon)</span>
-                </label>
-                <label className={classNames("checkbox", Styles.disabled)}>
-                    <span className="wrapper">
-                        <input type="checkbox" className="ff-only" />
-                    </span>
-                    <span className="label">DDX (Coming Soon)</span>
-                </label>
-                <label className={classNames("checkbox", Styles.disabled)}>
-                    <span className="wrapper">
-                        <input type="checkbox" className="ff-only" />
-                    </span>
-                    <span className="label">CDC (Coming Soon)</span>
-                </label>
-            </div>
-            <button
-                className={classNames('btn btn-primary')}
-                type="button"
-                onClick={() => { setShowInferenceModal(false) }}
-            >
-                Create Inference
-            </button>
-        </div>
-    </>;   
+    }, [graphState]); 
 
     const handleEditTechnicalUser = (values) => {
       const data = {
@@ -511,6 +456,18 @@ const Graph = ({user}) => {
 
   const [showConnectionModal, setShowConnectionModal] = useState(false);
   
+  const isValidFile = (file) => ['csv', 'parquet', 'json'].includes(file?.name?.split('.')[1]);
+  const [uploadFile, setUploadFile] = useState({});
+  const [showUploadModal, setShowUploadModal] = useState(false);
+  const uploadContent = <>
+    <div>
+      <p>File to Upload: {uploadFile.length > 0 && uploadFile[0]?.name}</p>
+      <div className={Styles.btnContainer}>
+        <button className="btn" disabled={true}>Publish</button>
+      </div>
+    </div>
+  </>
+  
   return (
     !isLoading ?
     <div className={fullScreenMode ? Styles.datalakeWrapperFSmode : '' + ' ' + Styles.datalakeWrapper}>
@@ -545,14 +502,29 @@ const Graph = ({user}) => {
                             <span>Create Technical User</span>
                         </button>
                     </div>
-                    <div>
+                    <div className={Styles.uploadFile}>
+                        <input 
+                          type="file" 
+                          id="uploadFile" 
+                          name="uploadFile"
+                          className={Styles.fileInput} 
+                          onChange={(e) => {
+                            const isValid = isValidFile(e.target.files[0]);
+                            if (!isValid) {
+                              Notification.show('File is not valid. Only .csv, .parquet or .json files allowed.', 'alert');
+                            } else {
+                              setUploadFile(e.target.files);
+                              setShowUploadModal(true);
+                            }}}
+                          onClick={(e) => { e.target.value = '' }}
+                          accept=".csv, .parquet, .json"
+                        />
                         <button
                             className={classNames('btn btn-primary', Styles.btnOutline, !isOwner && Styles.btnDisabled)}
                             type="button"
-                            onClick={() => { setShowConnectionModal(true) }}
                         >
-                            <i className="icon mbc-icon plus" />
-                            <span>Upload File</span>
+                            <i className="icon mbc-icon upload" />
+                            <label htmlFor="uploadFile" tooltip-data="Only .csv, .parquet, and .json files are allowed">Upload File</label>
                         </button>
                     </div>
                     <div>
@@ -629,18 +601,19 @@ const Graph = ({user}) => {
         />
     }
 
-    { showInferenceModal &&
+    { showUploadModal &&
         <Modal
-            title={'Add Inference'}
+            title={'Publish File'}
             showAcceptButton={false}
             showCancelButton={false}
             modalWidth={'35%'}
             buttonAlignment="right"
-            show={showInferenceModal}
-            content={inferenceContent}
+            show={showUploadModal}
+            content={uploadContent}
             scrollableContent={false}
             onCancel={() => {
-                setShowInferenceModal(false);
+                setShowUploadModal(false);
+                setUploadFile({});
             }}
         />
     }
