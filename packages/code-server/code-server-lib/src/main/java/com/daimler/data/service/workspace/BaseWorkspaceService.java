@@ -1153,6 +1153,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 			String angularRecipeId = RecipeIdEnum.ANGULAR.toString();
 			String quarkusRecipeId = RecipeIdEnum.QUARKUS.toString();
 			String micronautRecipeId = RecipeIdEnum.MICRONAUT.toString();
+			String vueRecipeId = RecipeIdEnum.VUE.toString();
 //			String publicDnABackendRecipeId = RecipeIdEnum.PUBLIC_DNA_BACKEND.toString();
 //			String publicDnaFrontendRecipeId = RecipeIdEnum.PUBLIC_DNA_FRONTEND.toString();
 //			String publicDnaAirflowBackendRecipeId = RecipeIdEnum.PUBLIC_DNA_AIRFLOW_BACKEND.toString();
@@ -1290,7 +1291,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 				if (pythonRecipeId.equalsIgnoreCase(projectRecipe)) {
 					deploymentUrl = codeServerBaseUri + "/" + projectName + "/" + targetEnv + "/api/docs";
 				}
-				if (reactRecipeId.equalsIgnoreCase(projectRecipe) || angularRecipeId.equalsIgnoreCase(projectRecipe)) {
+				if (reactRecipeId.equalsIgnoreCase(projectRecipe) || angularRecipeId.equalsIgnoreCase(projectRecipe) || vueRecipeId.equalsIgnoreCase(projectRecipe)) {
 					deploymentUrl = codeServerBaseUri + "/" + projectName + "/" + targetEnv + "/";
 				}
 				if (quarkusRecipeId.equalsIgnoreCase(projectRecipe)) {
@@ -1511,13 +1512,17 @@ public class BaseWorkspaceService implements WorkspaceService {
 	}
 
 	@Override
-	public List<CodespaceSecurityConfigDetailsVO> getAllSecurityConfigs(Integer offset, Integer limit) {
+	public List<CodespaceSecurityConfigDetailsVO> getAllSecurityConfigs(Integer offset, Integer limit, String projectName) {
 
-		List<CodespaceSecurityConfigDto> collectionDtos = workspaceCustomRepository.getAllSecurityConfigs(offset,limit);
+		List<CodespaceSecurityConfigDto> collectionDtos = workspaceCustomRepository.getAllSecurityConfigs(offset,limit,projectName);
 		CodespaceSecurityConfigDetailsVO vo = new CodespaceSecurityConfigDetailsVO();
-		List<CodespaceSecurityConfigDetailsVO> finalConfigData = collectionDtos.stream()
-				.map(n -> workspaceAssembler.dtoToVo(n)).collect(Collectors.toList());
-		return finalConfigData;
+		if(collectionDtos != null){
+			List<CodespaceSecurityConfigDetailsVO> finalConfigData = collectionDtos.stream()
+					.map(n -> workspaceAssembler.dtoToVo(n)).collect(Collectors.toList());
+			return finalConfigData;
+		}else{
+			return new ArrayList<>();
+		}
 	}
 
 	public void notifyAllCodespaceAdminUsers(String eventType, String resourceId, String message, String triggeringUser,

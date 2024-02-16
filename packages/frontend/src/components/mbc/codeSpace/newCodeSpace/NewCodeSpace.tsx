@@ -200,6 +200,10 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
           : requiredError
         : '',
     );
+    const startsOrEndswith = /^-|-$|(--)/i.test(projectNameVal);
+    if(startsOrEndswith) {
+      setProjectNameError('Invalid name - Starts or Ends with - or contains continuous -');
+    }
   };
 
   // const onGithubUserNameOnChange = (evnt: React.FormEvent<HTMLInputElement>) => {
@@ -538,7 +542,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
       setGithubTokenError(requiredError);
       formValid = false;
     }
-    if (projectNameError !== '' || recipeError !== '' || githubTokenError !== '' || (isPublicRecipeChoosen && isUserDefinedGithubRecipe && userDefinedGithubUrlError !== '')) {
+    if (projectNameError !== '' || recipeValue === '0' || githubTokenError !== '' || (isPublicRecipeChoosen && isUserDefinedGithubRecipe && userDefinedGithubUrlError !== '')) {
       formValid = false;
     }
     return formValid;

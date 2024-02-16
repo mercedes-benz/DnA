@@ -4,7 +4,7 @@ import java.util.List;
 import java.util.Objects;
 
 import javax.validation.Valid;
-
+import com.daimler.data.dto.workspace.recipe.InitializeSoftwareLovVo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -22,13 +22,16 @@ import com.daimler.data.service.workspace.WorkspaceService;
 import com.daimler.data.dto.workspace.recipe.InitializeRecipeVo;
 import com.daimler.data.dto.workspace.recipe.RecipeCollectionVO;
 import com.daimler.data.controller.exceptions.GenericMessage;
-
+import com.daimler.data.dto.workspace.recipe.SoftwareCollection;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import lombok.extern.slf4j.Slf4j;
+import com.daimler.data.dto.workspace.recipe.InitializeRecipeLovVo;
+import com.daimler.data.dto.workspace.recipe.RecipeLovVO;
+import com.daimler.data.dto.workspace.CreatedByVO;
 
 @RestController
 @Api(value = "Recipe API", tags = { "code-server-recipe" })
@@ -62,6 +65,7 @@ public class RecipeController implements CodeServerRecipeApi {
 		InitializeRecipeVo responseMessage = new InitializeRecipeVo();
 		String name = service.getByRecipeName(recipeName)!= null ? service.getByRecipeName(recipeName).getRecipeName() : null;
 		if (name == null) {
+			recipeRequestVO.setStatus("REQUESTED");
 			RecipeVO recipeVO = service.createRecipe(recipeRequestVO);
 			if (Objects.nonNull(recipeVO)) {
 				responseMessage.setData(recipeVO);
@@ -170,5 +174,116 @@ public class RecipeController implements CodeServerRecipeApi {
 
 		}
 	}
+
+	 @ApiOperation(value = "Get all software details in recipe", nickname = "getAllsoftwareLov", notes = "Get all softwares details for recipe in codespace", response = InitializeSoftwareLovVo.class, tags={ "code-server-recipe", })
+    @ApiResponses(value = { 
+        @ApiResponse(code = 200, message = "Returns message of success or failure", response = InitializeSoftwareLovVo.class),
+        @ApiResponse(code = 204, message = "Fetch complete, no content found."),
+        @ApiResponse(code = 400, message = "Bad request.", response = GenericMessage.class),
+        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+        @ApiResponse(code = 403, message = "Request is not authorized."),
+        @ApiResponse(code = 405, message = "Method not allowed"),
+        @ApiResponse(code = 500, message = "Internal error") })
+    @RequestMapping(value = "/recipeDetails/softwareLov",
+        produces = { "application/json" }, 
+        consumes = { "application/json" },
+        method = RequestMethod.GET)
+	public ResponseEntity<InitializeSoftwareLovVo> getAllsoftwareLov()
+	{
+		InitializeSoftwareLovVo vo = new InitializeSoftwareLovVo();
+		List<SoftwareCollection> allSoftwares = service.getAllsoftwareLov();
+		if(Objects.nonNull(allSoftwares))
+		{
+			vo.setData(allSoftwares);
+			vo.setSuccess("SUCCESS");
+			return new ResponseEntity<>(vo, HttpStatus.OK);
+		} else {
+				vo.setData(null);
+				vo.setSuccess("FAILED");
+				log.info("Failed to fetch all software deatils ");
+				return new ResponseEntity<>(vo, HttpStatus.NO_CONTENT);
+		}
+	}
+
+	@ApiOperation(value = "Get all lov of recipes ", nickname = "getAllrecipeLov", notes = "Get all recipes in codespace", response = InitializeRecipeLovVo.class, tags={ "code-server-recipe", })
+    @ApiResponses(value = { 
+        @ApiResponse(code = 200, message = "Returns message of success or failure", response = InitializeRecipeLovVo.class),
+        @ApiResponse(code = 204, message = "Fetch complete, no content found."),
+        @ApiResponse(code = 400, message = "Bad request.", response = GenericMessage.class),
+        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+        @ApiResponse(code = 403, message = "Request is not authorized."),
+        @ApiResponse(code = 405, message = "Method not allowed"),
+        @ApiResponse(code = 500, message = "Internal error") })
+    @RequestMapping(value = "/recipeDetails/recipeLov",
+        produces = { "application/json" }, 
+        consumes = { "application/json" },
+        method = RequestMethod.GET)
+    public ResponseEntity<InitializeRecipeLovVo> getAllrecipeLov()
+	{
+		CreatedByVO currentUser = this.userStore.getVO();
+		String id = currentUser.getId();
+		InitializeRecipeLovVo lov = new InitializeRecipeLovVo();
+		List<RecipeLovVO> recipeDetails = service.getAllRecipeLov(id);
+		if(Objects.nonNull(recipeDetails))
+		{
+			lov.setData(recipeDetails);
+			lov.setSuccess("SUCCESS");
+			return new ResponseEntity<>(lov, HttpStatus.OK);
+		} else {
+				lov.setData(null);
+				lov.setSuccess("FAILED");
+				log.info("Failed to fetch all software deatils ");
+				return new ResponseEntity<>(lov, HttpStatus.NO_CONTENT);
+		}
+	}
+
+	@Override
+    @ApiOperation(value = "Get all recipes which are in requested and accepted state, waiting for processing.", nickname = "getAllRecipesWhichAreInRequestedAndAcceptedState", notes = "Get all recipes which are in requested and accepted state, waiting for processing", response = RecipeCollectionVO.class, tags={ "code-server-recipe", })
+    @ApiResponses(value = {
+        @ApiResponse(code = 201, message = "Returns message of success or failure", response = RecipeCollectionVO.class),
+        @ApiResponse(code = 204, message = "Fetch complete, no content found."),
+        @ApiResponse(code = 400, message = "Bad request."),
+        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+        @ApiResponse(code = 403, message = "Request is not authorized."),
+        @ApiResponse(code = 405, message = "Method not allowed"),
+        @ApiResponse(code = 500, message = "Internal error") })
+    @RequestMapping(value = "/recipeDetails/recipesByStatus",
+        produces = { "application/json" },
+        consumes = { "application/json" },
+        method = RequestMethod.GET)
+    public ResponseEntity<RecipeCollectionVO> getAllRecipesWhichAreInRequestedAndAcceptedState(@ApiParam(value = "page number from which listing of SecurityConfigs should start. Offset. Example 2") @Valid @RequestParam(value = "offset", required = false) Integer offset,
+    @ApiParam(value = "page size to limit the number of SecurityConfigs, Example 15") @Valid @RequestParam(value = "limit", required = false) Integer limit){
+        RecipeCollectionVO recipeCollectionVO = new RecipeCollectionVO();
+        if (offset == null) {
+            offset = 0;
+        }
+        if (limit == null) {
+            limit = 0;
+        }
+        if (userStore.getUserInfo().hasCodespaceAdminAccess()) {
+            List<RecipeVO> allRecipes = service.getAllRecipesWhichAreInRequestedAndAcceptedState(offset, limit);
+            if (Objects.nonNull(allRecipes)) {
+                recipeCollectionVO.data(allRecipes);
+                recipeCollectionVO.setCount(allRecipes.size());
+                recipeCollectionVO.setSuccess("SUCCESS");
+                return new ResponseEntity<>(recipeCollectionVO, HttpStatus.OK);
+            } else {
+                recipeCollectionVO.setData(null);
+                recipeCollectionVO.setCount(null);
+                recipeCollectionVO.setSuccess("FAILED");
+                log.info("Failed to fetch all the recipe details for user "+userStore.getUserInfo().getId());
+                return new ResponseEntity<>(recipeCollectionVO, HttpStatus.NO_CONTENT);
+            }
+ 
+        } else {
+            recipeCollectionVO.setData(null);
+            recipeCollectionVO.setCount(null);
+            recipeCollectionVO.setSuccess("FAILED");
+            log.info(" user is unauthorized to access codespace" + userStore.getUserInfo().getId());
+            return new ResponseEntity<>(recipeCollectionVO, HttpStatus.UNAUTHORIZED);
+        }
+ 
+       
+    }
     
 }

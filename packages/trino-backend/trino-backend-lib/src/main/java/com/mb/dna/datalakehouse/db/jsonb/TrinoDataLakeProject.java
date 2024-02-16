@@ -20,6 +20,7 @@ public class TrinoDataLakeProject implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	private String projectName;
+	private String description;
 	private String schemaName;
 	private String catalogName;
 	private String connectorType;

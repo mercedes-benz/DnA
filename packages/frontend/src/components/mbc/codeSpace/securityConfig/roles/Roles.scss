@@ -580,6 +580,13 @@
 
 .editCreateModal {
   margin: 25px;
+  .inlineTextField{
+    display: flex !important;
+    justify-content: space-between !important;
+    >div {
+      width: calc(50% - 7px) !important;
+    }  
+  }
 }
 
 .AddorUpdatebtn {
