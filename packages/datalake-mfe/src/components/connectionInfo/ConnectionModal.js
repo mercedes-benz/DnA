@@ -44,12 +44,11 @@ export const ConnectionModal = ({ projectId, onOkClick }) => {
 
     const connectUsingRESTAPI = (
         <div>
-            <p>We developed few in-house APIs which you can use to create, edit data lakehouse projects and tables.</p>
+            <p>Please find the documentation below for the APIs which you can use to create and manage DnA Data Lakehouse projects and tables.</p>
             <p>API Swagger Link: <a href={`https://${connectionInfo?.howToConnect?.trino?.techUserVO?.hostName}/swagger-ui.html#/`} target="_blank" rel="noreferrer noopener">Swagger URL</a></p>
             <p>You can authenticate these APIS with your SSO USER JWT token.</p>
             <p>For system to system integration we are also supporting client credentials grant flow. So you can create a techinical user in GAS OIDC and use that technical user to generate a JWT token.</p>
-            <p>Example code</p>
-            <hr />
+            <p className={Styles.underLine}>Example code</p>
 <code>
     <pre>
 {`import warnings
@@ -57,16 +56,10 @@ warnings.filterwarnings('ignore')
 import requests  # import requests library for getting the data from API
 import json
 jwt_token = 'paste here your JWT Token you got from the browser session explained above'
-`}
-</pre>
-</code>
-<br />
-<p>Example code</p>
-<hr />
-<code>
-    <pre>
-{`#Lets now create a request and fire it:
 
+#Lets now create a request and fire it:
+
+#
 response = requests.get(url="${Envs.DATALAKE_API_BASEURL}/datalakes",
                         headers={"Content-Type": "application/json", "Authorization": jwt_token},
                         verify=False)
@@ -76,9 +69,10 @@ myjson=response.json()
 </code>
 
             <br />
-            <p>Documentation Link: <a href="https://trino.io/docs/current/develop/client-protocol.html" target="_blank" rel="noreferrer noopener">Trino Client REST API Docs</a></p>
-            <p>Example code</p>
             <hr />
+            <br />
+            <p>Documentation Link: <a href="https://trino.io/docs/current/develop/client-protocol.html" target="_blank" rel="noreferrer noopener">Trino Client REST API Docs</a></p>
+            <p className={Styles.underLine}>Example code</p>
             <code>
 <pre id="jupyterusercode">
 {`import requests
