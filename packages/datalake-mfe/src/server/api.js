@@ -35,6 +35,11 @@ export const storageServer = axios.create({
   headers,
 });
 
+export const dataProductServer = axios.create({
+  baseURL: Envs.DATAPRODUCT_API_BASEURL? Envs.STORAGE_API_BASEURL: `http://${window.location.hostname}:7184/api`,
+  headers,
+});
+
 function createRefreshInterceptor(instance) {
   instance.interceptors.request.use((config) => {
     if (config.method === 'get') {
@@ -58,6 +63,8 @@ function createRefreshInterceptor(instance) {
         hostServer.defaults.headers.Authorization = newJwt;
         reportsServer.defaults.headers.Authorization = newJwt;
         storageServer.defaults.headers.Authorization = newJwt;
+        dataProductServer.defaults.headers.Authorization = newJwt;
+
 
         // Retry the original request with the new token.
         error.config.headers.Authorization = newJwt;
@@ -95,3 +102,5 @@ createRefreshInterceptor(reportsServer);
 
 // Apply interceptor to storageServer
 createRefreshInterceptor(storageServer);
+
+createRefreshInterceptor(dataProductServer);
