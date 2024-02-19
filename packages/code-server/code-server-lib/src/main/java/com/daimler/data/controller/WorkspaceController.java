@@ -790,6 +790,28 @@ import lombok.extern.slf4j.Slf4j;
 			 if (deployRequestDto != null && deployRequestDto.getBranch() != null) {
 				 branch = deployRequestDto.getBranch();
 			 }
+			 String status = "";
+			 if(environment.equalsIgnoreCase("int"))
+			 {
+				status = vo.getProjectDetails().getIntDeploymentDetails().getLastDeploymentStatus();
+			 }
+			 else
+			 {
+				status = vo.getProjectDetails().getProdDeploymentDetails().getLastDeploymentStatus();
+			 }
+			 if(status != null)
+			 {
+				if (status.equalsIgnoreCase("DEPLOY_REQUESTED")) {
+					MessageDescription invalidTypeMsg = new MessageDescription();
+					invalidTypeMsg.setMessage(
+							"cannot deploy workspace since it is already in DEPLOY_REQUESTED state");
+					GenericMessage errorMessage = new GenericMessage();
+					errorMessage.addErrors(invalidTypeMsg);
+					log.info("User {} cannot deploy project of recipe {} for workspace {}, since it is alredy in DEPLOY_REQUESTED state.", userId,
+							vo.getProjectDetails().getRecipeDetails().getRecipeId().name(), vo.getWorkspaceId());
+					return new ResponseEntity<>(errorMessage, HttpStatus.BAD_REQUEST);
+				}
+			 }
 			 if ((Objects.nonNull(deployRequestDto.isSecureWithIAMRequired())
 					 && deployRequestDto.isSecureWithIAMRequired())
 					 && (Objects.nonNull(deployRequestDto.getTechnicalUserDetailsForIAMLogin()))) {

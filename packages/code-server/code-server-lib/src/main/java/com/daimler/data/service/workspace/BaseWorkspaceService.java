@@ -1113,6 +1113,19 @@ public class BaseWorkspaceService implements WorkspaceService {
 						deploymentDetails = entity.getData().getProjectDetails().getProdDeploymentDetails();
 					}
 					deploymentDetails.setLastDeploymentStatus("UNDEPLOY_REQUESTED");
+					List<DeploymentAudit> auditLogs = deploymentDetails.getDeploymentAuditLogs();
+					if (auditLogs == null) {
+						auditLogs = new ArrayList<>();
+					}
+					SimpleDateFormat isoFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS+00:00");
+					Date now = isoFormat.parse(isoFormat.format(new Date()));
+					DeploymentAudit auditLog = new DeploymentAudit();
+					auditLog.setTriggeredOn(now);
+					auditLog.setTriggeredBy(entity.getData().getWorkspaceOwner().getGitUserName());
+					auditLog.setBranch(branch);					
+					auditLog.setDeploymentStatus("UNDEPLOY_REQUESTED");
+					auditLogs.add(auditLog);
+					deploymentDetails.setDeploymentAuditLogs(auditLogs);
 					workspaceCustomRepository.updateDeploymentDetails(projectName, environmentJsonbName,
 							deploymentDetails);
 					status = "SUCCESS";
