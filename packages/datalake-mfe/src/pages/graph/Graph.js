@@ -64,9 +64,7 @@ const Graph = ({user, hostHistory}) => {
       setHasTable(project.tables.length > 0 );
     },[project.tables])
 
-    useEffect (()=>{
-      console.log('hasDataProduct',hasDataProduct);
-    },[hasDataProduct])
+
     
 
     useEffect(() => {
