@@ -54,18 +54,12 @@ const Graph = ({user, hostHistory}) => {
       return Tooltip.clear();
       //eslint-disable-next-line
     }, []);
-
+  
     const [loading, setLoading] = useState(true);
     const [connectionInfo, setConnectionInfo] = useState();
-    const [hasDataProduct,setHasDataProduct] =useState(sessionStorage.getItem(SESSION_STORAGE_KEYS.DATAPRODUCT_ID)?.split(':')[0] === project.id);
+    const [hasDataProduct,setHasDataProduct] =useState(false);
     const [hasTable, setHasTable] = useState(project.tables.length > 0 );
-
-    useEffect (()=>{
-      setHasTable(project.tables.length > 0 );
-    },[project.tables])
-
-
-    
+   
 
     useEffect(() => {
       ProgressIndicator.show();
@@ -84,6 +78,11 @@ const Graph = ({user, hostHistory}) => {
             setLoading(false);
         });
     }, [id]);
+    
+    useEffect (()=>{
+      setHasTable(project.tables.length > 0 );
+      setHasDataProduct(sessionStorage.getItem(SESSION_STORAGE_KEYS.DATAPRODUCT_ID)?.split(':')[0] == project.id);
+    },[project])
 
     /* A callback function that is used to update the viewbox of the svg. */
     const resizeHandler = useCallback(() => {
