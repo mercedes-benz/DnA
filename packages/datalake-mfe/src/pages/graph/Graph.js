@@ -57,7 +57,7 @@ const Graph = ({user, hostHistory}) => {
 
     const [loading, setLoading] = useState(true);
     const [connectionInfo, setConnectionInfo] = useState();
-    const [hasDataProduct,setHasDataProduct] =useState(sessionStorage.getItem(SESSION_STORAGE_KEYS.DATAPRODUCT_ID).split(':')[0] === project.id);
+    const [hasDataProduct,setHasDataProduct] =useState(sessionStorage.getItem(SESSION_STORAGE_KEYS.DATAPRODUCT_ID)?.split(':')[0] === project.id);
     const [hasTable, setHasTable] = useState(project.tables.length > 0 );
 
     useEffect (()=>{
@@ -336,15 +336,17 @@ const Graph = ({user, hostHistory}) => {
     });
     setShowDataProductModal(false);
   }
-  const onDataProductClick = () => {
-    if (hasDataProduct) {
-      const id = sessionStorage.getItem(SESSION_STORAGE_KEYS.DATAPRODUCT_ID).split(":")[1];
+   const onDataProductClick = () => {
+
+    if(hasDataProduct){
+      const id = sessionStorage.getItem(SESSION_STORAGE_KEYS.DATAPRODUCT_ID)?.split(":")[1];
       hostHistory.push(`/data/dataproduct/summary/${id}`)
-    } else {
+
+    }else{
       setShowDataProductModal(true);
     }
 
-  }
+   }
     
   const [showCollabModal, setShowCollabModal] = useState(false);
   const [table, setTable] = useState([]);
@@ -482,7 +484,7 @@ const Graph = ({user, hostHistory}) => {
     datalakeApi.updateDatalakeProject(project?.id, data).then(() => {
       ProgressIndicator.hide();
       Notification.show('Table(s) published successfully');
-          }).catch(error => {
+      }).catch(error => {
       ProgressIndicator.hide();
       Notification.show(
         error?.response?.data?.response?.errors?.[0]?.message || error?.response?.data?.response?.warnings?.[0]?.message || 'Error while publishing table(s)',
@@ -525,7 +527,7 @@ const Graph = ({user, hostHistory}) => {
             </div>
             <div className={Styles.navigation}>
                 <div className={Styles.headerright}>
-                   { hasTable &&(                   
+                   { hasTable &&( 
                       <div>
                         <button
                             className={classNames('btn btn-primary', Styles.btnOutline, !isOwner && Styles.btnDisabled)}
