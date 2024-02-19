@@ -1,4 +1,4 @@
-import { server, hostServer, reportsServer, storageServer } from '../server/api';
+import { server, hostServer, reportsServer, storageServer ,dataProductServer} from '../server/api';
 
 const getDatalakeProjectsList = (offset, limit) => {
   return server.get(`/datalakes?limit=${limit}&offset=${offset}`, {
@@ -50,6 +50,12 @@ const getConnectionInfo = (id) => {
   return server.get(`/datalakes/${id}/connect`, { data: {} });
 };
 
+const createDataProduct = (data) => {
+  return dataProductServer.post('/dataproducts', {
+    data,
+  });
+};
+
 export const datalakeApi = {
   getDatalakeProjectsList,
   createDatalakeProject,
@@ -59,4 +65,5 @@ export const datalakeApi = {
   getLovData,
   getConnectors,
   getConnectionInfo,
+  createDataProduct,
 };
