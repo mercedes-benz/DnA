@@ -34,9 +34,8 @@ export const storageServer = axios.create({
   baseURL: Envs.STORAGE_API_BASEURL ? Envs.STORAGE_API_BASEURL: `http://${window.location.hostname}:7175/api`,
   headers,
 });
-
 export const dataProductServer = axios.create({
-  baseURL: Envs.DATAPRODUCT_API_BASEURL? Envs.STORAGE_API_BASEURL: `http://${window.location.hostname}:7184/api`,
+  baseURL: Envs.DATAPRODUCT_API_BASEURL ? Envs.DATAPRODUCT_API_BASEURL: `http://${window.location.hostname}:7184/api`,
   headers,
 });
 
