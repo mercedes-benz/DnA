@@ -24,8 +24,9 @@ import ColumnForm from '../../components/columnForm/ColumnForm';
 import EditTableForm from '../../components/editTableForm/EditTableForm';
 import DataProductForm from '../../components/dataProductForm/DataProductForm';
 import { ConnectionModal } from '../../components/connectionInfo/ConnectionModal';
+import { SESSION_STORAGE_KEYS } from '../../utilities/constants';
 
-const Graph = ({user}) => {
+const Graph = ({user, hostHistory}) => {
     const { id } = useParams();
     const dispatch = useDispatch();
     const {
@@ -56,6 +57,15 @@ const Graph = ({user}) => {
 
     const [loading, setLoading] = useState(true);
     const [connectionInfo, setConnectionInfo] = useState();
+    const [hasDataProduct,setHasDataProduct] =useState(sessionStorage.getItem(SESSION_STORAGE_KEYS.DATAPRODUCT_ID)?.split(':')[0] === project.id);
+    const [hasTable, setHasTable] = useState(project.tables.length > 0 );
+
+    useEffect (()=>{
+      setHasTable(project.tables.length > 0 );
+    },[project.tables])
+
+
+    
 
     useEffect(() => {
       ProgressIndicator.show();
@@ -222,7 +232,7 @@ const Graph = ({user}) => {
       }
       // since this is not dirty, don't do anything
       return () => {};
-    }, [graphState]); 
+    }, [graphState]);
 
     const handleEditTechnicalUser = (values) => {
       const data = {
@@ -299,9 +309,44 @@ const Graph = ({user}) => {
 
   const [showDataProductModal, setShowDataProductModal] = useState(false);
 
-  const handleCreateDataProduct = () => {
+  const handleCreateDataProduct = (values) => {
+    ProgressIndicator.show();
+    const dataProductData = {
+      dataProductName: values?.name,
+      description: values?.description,
+      isPublish: false,
+      createdBy: project?.createdBy,
+      access: {
+        personalRelatedData: project?.hasPii,
+        confidentiality: project?.classificationType,
+      }
+    };
+    datalakeApi.createDataProduct(dataProductData).then((res) => {
+      ProgressIndicator.hide();
+      const id = project.id + ":" + res.data.data.dataProductId;
+      setHasDataProduct(true);
+      sessionStorage.setItem(SESSION_STORAGE_KEYS.DATAPRODUCT_ID, id);
+      Notification.show('Data Product Created successfully');
+    }).catch((error) => {
+      ProgressIndicator.hide();
+      Notification.show(
+        error?.response?.data?.response?.errors?.[0]?.message || error?.response?.data?.response?.warnings?.[0]?.message || 'Error while creating dataProduct',
+        'alert',
+      );
+    });
     setShowDataProductModal(false);
   }
+   const onDataProductClick = () => {
+
+    if(hasDataProduct){
+      const id = sessionStorage.getItem(SESSION_STORAGE_KEYS.DATAPRODUCT_ID)?.split(":")[1];
+      hostHistory.push(`/data/dataproduct/summary/${id}`)
+
+    }else{
+      setShowDataProductModal(true);
+    }
+
+   }
     
   const [showCollabModal, setShowCollabModal] = useState(false);
   const [table, setTable] = useState([]);
@@ -439,7 +484,7 @@ const Graph = ({user}) => {
     datalakeApi.updateDatalakeProject(project?.id, data).then(() => {
       ProgressIndicator.hide();
       Notification.show('Table(s) published successfully');
-    }).catch(error => {
+      }).catch(error => {
       ProgressIndicator.hide();
       Notification.show(
         error?.response?.data?.response?.errors?.[0]?.message || error?.response?.data?.response?.warnings?.[0]?.message || 'Error while publishing table(s)',
@@ -449,7 +494,7 @@ const Graph = ({user}) => {
   }
 
   const [fullScreenMode, setFullScreenMode] = useState(false);
-
+  
   const toggleFullScreenMode = () => {
     setFullScreenMode(!fullScreenMode);
   };
@@ -467,7 +512,7 @@ const Graph = ({user}) => {
       </div>
     </div>
   </>
-  
+     
   return (
     !isLoading ?
     <div className={fullScreenMode ? Styles.datalakeWrapperFSmode : '' + ' ' + Styles.datalakeWrapper}>
@@ -482,26 +527,30 @@ const Graph = ({user}) => {
             </div>
             <div className={Styles.navigation}>
                 <div className={Styles.headerright}>
-                    <div>
+                   { hasTable &&( 
+                      <div>
                         <button
                             className={classNames('btn btn-primary', Styles.btnOutline, !isOwner && Styles.btnDisabled)}
                             type="button"
-                            onClick={() => { setShowDataProductModal(true) }}
+                            onClick={() => onDataProductClick()}
                         >
                             <i className="icon mbc-icon dataproductoverview" />
-                            <span>Provision as a Data Product</span>
+                            <span>{!hasDataProduct ? "Provision as a Data Product" : "View Data Product"}</span>
                         </button>
-                    </div>
+                    </div>)}
+                    { hasTable &&( 
                     <div>
                         <button
-                            className={classNames('btn btn-primary', Styles.btnOutline, !isOwner && Styles.btnDisabled)}
+                            className={classNames('btn btn-primary', Styles.btnOutline)}
                             type="button"
-                            onClick={() => { setShowTechnicalUserModal(true) }}
+                            onClick={() => { setShowConnectionModal(true) }}
                         >
-                            <i className="icon mbc-icon plus" />
-                            <span>Create Technical User</span>
+                            <i className="icon mbc-icon comparison" />
+                            <span>How to Connect</span>
                         </button>
                     </div>
+                    )}
+                    {hasTable && ( 
                     <div className={Styles.uploadFile}>
                         <input 
                           type="file" 
@@ -515,28 +564,32 @@ const Graph = ({user}) => {
                             } else {
                               setUploadFile(e.target.files);
                               setShowUploadModal(true);
-                            }}}
+                            }
+                          }}
                           onClick={(e) => { e.target.value = '' }}
                           accept=".csv, .parquet, .json"
                         />
                         <button
                             className={classNames('btn btn-primary', Styles.btnOutline, !isOwner && Styles.btnDisabled)}
                             type="button"
-                        >
+                            >
                             <i className="icon mbc-icon upload" />
                             <label htmlFor="uploadFile" tooltip-data="Only .csv, .parquet, and .json files are allowed">Upload File</label>
                         </button>
                     </div>
+                    )}
+                    {hasTable && ( 
                     <div>
                         <button
-                            className={classNames('btn btn-primary', Styles.btnOutline)}
+                            className={classNames('btn btn-primary', Styles.btnOutline, !isOwner && Styles.btnDisabled)}
                             type="button"
-                            onClick={() => { setShowConnectionModal(true) }}
+                            onClick={() => { setShowTechnicalUserModal(true) }}
                         >
-                            <i className="icon mbc-icon comparison" />
-                            <span>How to Connect</span>
+                            <i className="icon mbc-icon plus" />
+                            <span>Create Technical User</span>
                         </button>
                     </div>
+                   )}
                     <div>
                         <button
                             className={classNames('btn btn-primary', Styles.btnOutline, !isOwner && Styles.btnDisabled)}
@@ -588,7 +641,7 @@ const Graph = ({user}) => {
         </div>
         
         <div style={{textAlign: 'right', marginTop: '20px'}}>
-                <button className={classNames('btn btn-tertiary')} onClick={handlePublish}>Publish</button>
+                <button className={classNames('btn btn-tertiary')} onClick={handlePublish}>Save & Publish</button>
             </div>
       </div>
       
@@ -613,7 +666,7 @@ const Graph = ({user}) => {
             scrollableContent={false}
             onCancel={() => {
                 setShowUploadModal(false);
-                setUploadFile({});
+setUploadFile({});
             }}
         />
     }
@@ -720,7 +773,7 @@ const Graph = ({user}) => {
           maxWidth: '50vw'
         }}
       />
-    }
+}
 
     {showConnectionModal &&
         <InfoModal
@@ -732,7 +785,7 @@ const Graph = ({user}) => {
           onCancel={() => setShowConnectionModal(false)}
         />
 
-      }
+    }
     </div> : <Spinner />
   );
 }
