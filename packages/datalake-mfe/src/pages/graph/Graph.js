@@ -323,9 +323,6 @@ const Graph = ({user, hostHistory}) => {
     };
     datalakeApi.createDataProduct(dataProductData).then((res) => {
       ProgressIndicator.hide();
-      console.log(res.data);
-      console.log(res.data.data.id);
-      console.log(project.id);
       const id = project.id + ":" + res.data.data.dataProductId;
       setHasDataProduct(true);
       sessionStorage.setItem(SESSION_STORAGE_KEYS.DATAPRODUCT_ID, id);
