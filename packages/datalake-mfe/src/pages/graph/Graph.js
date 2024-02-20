@@ -7,6 +7,7 @@ import Styles from './graph.scss';
 // dna-container
 import FullScreenModeIcon from 'dna-container/FullScreenModeIcon';
 import Modal from 'dna-container/Modal';
+import InfoModal from 'dna-container/InfoModal';
 import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indicator';
 import SelectBox from '../../common/modules/uilab/js/src/select';
 import Tooltip from '../../common/modules/uilab/js/src/tooltip';
@@ -22,8 +23,10 @@ import { datalakeApi } from '../../apis/datalake.api';
 import ColumnForm from '../../components/columnForm/ColumnForm';
 import EditTableForm from '../../components/editTableForm/EditTableForm';
 import DataProductForm from '../../components/dataProductForm/DataProductForm';
+import { ConnectionModal } from '../../components/connectionInfo/ConnectionModal';
+import { SESSION_STORAGE_KEYS } from '../../utilities/constants';
 
-const Graph = ({user}) => {
+const Graph = ({user, hostHistory}) => {
     const { id } = useParams();
     const dispatch = useDispatch();
     const {
@@ -51,9 +54,12 @@ const Graph = ({user}) => {
       return Tooltip.clear();
       //eslint-disable-next-line
     }, []);
-
+  
     const [loading, setLoading] = useState(true);
     const [connectionInfo, setConnectionInfo] = useState();
+    const [hasDataProduct,setHasDataProduct] =useState(false);
+    const [hasTable, setHasTable] = useState(project.tables.length > 0 );
+   
 
     useEffect(() => {
       ProgressIndicator.show();
@@ -72,6 +78,11 @@ const Graph = ({user}) => {
             setLoading(false);
         });
     }, [id]);
+    
+    useEffect (()=>{
+      setHasTable(project.tables.length > 0 );
+      setHasDataProduct(sessionStorage.getItem(SESSION_STORAGE_KEYS.DATAPRODUCT_ID)?.split(':')[0] == project.id);
+    },[project])
 
     /* A callback function that is used to update the viewbox of the svg. */
     const resizeHandler = useCallback(() => {
@@ -202,7 +213,6 @@ const Graph = ({user}) => {
     };
 
     const [toggleModal, setToggleModal] = useState(false);
-    const [showInferenceModal, setShowInferenceModal] = useState(false);
     const [showTechnicalUserModal, setShowTechnicalUserModal] = useState(false);
 
     const [graphState] = useState('unchanged');
@@ -222,60 +232,6 @@ const Graph = ({user}) => {
       // since this is not dirty, don't do anything
       return () => {};
     }, [graphState]);
-
-    const inferenceContent = <>
-        <p>Access data using any endpoints</p>
-        <div className={classNames('input-field-group')}>
-            <label className={classNames(Styles.inputLabel, 'input-label')}>
-                Inference by
-            </label>
-            <div className={Styles.flexLayout}>
-                <label className={classNames("checkbox", Styles.disabled)}>
-                    <span className="wrapper">
-                        <input type="checkbox" className="ff-only" />
-                    </span>
-                    <span className="label">REST API (Coming Soon)</span>
-                </label>
-                <label className={classNames("checkbox", Styles.disabled)}>
-                    <span className="wrapper">
-                        <input type="checkbox" className="ff-only" />
-                    </span>
-                    <span className="label">GRAPHQL (Coming Soon)</span>
-                </label>
-                <label className={classNames("checkbox", Styles.disabled)}>
-                    <span className="wrapper">
-                        <input type="checkbox" className="ff-only" />
-                    </span>
-                    <span className="label">ODATA (Coming Soon)</span>
-                </label>
-                <label className={classNames("checkbox", Styles.disabled)}>
-                    <span className="wrapper">
-                        <input type="checkbox" className="ff-only" />
-                    </span>
-                    <span className="label">SQL (Coming Soon)</span>
-                </label>
-                <label className={classNames("checkbox", Styles.disabled)}>
-                    <span className="wrapper">
-                        <input type="checkbox" className="ff-only" />
-                    </span>
-                    <span className="label">DDX (Coming Soon)</span>
-                </label>
-                <label className={classNames("checkbox", Styles.disabled)}>
-                    <span className="wrapper">
-                        <input type="checkbox" className="ff-only" />
-                    </span>
-                    <span className="label">CDC (Coming Soon)</span>
-                </label>
-            </div>
-            <button
-                className={classNames('btn btn-primary')}
-                type="button"
-                onClick={() => { setShowInferenceModal(false) }}
-            >
-                Create Inference
-            </button>
-        </div>
-    </>;   
 
     const handleEditTechnicalUser = (values) => {
       const data = {
@@ -352,9 +308,44 @@ const Graph = ({user}) => {
 
   const [showDataProductModal, setShowDataProductModal] = useState(false);
 
-  const handleCreateDataProduct = () => {
+  const handleCreateDataProduct = (values) => {
+    ProgressIndicator.show();
+    const dataProductData = {
+      dataProductName: values?.name,
+      description: values?.description,
+      isPublish: false,
+      createdBy: project?.createdBy,
+      access: {
+        personalRelatedData: project?.hasPii,
+        confidentiality: project?.classificationType,
+      }
+    };
+    datalakeApi.createDataProduct(dataProductData).then((res) => {
+      ProgressIndicator.hide();
+      const id = project.id + ":" + res.data.data.dataProductId;
+      setHasDataProduct(true);
+      sessionStorage.setItem(SESSION_STORAGE_KEYS.DATAPRODUCT_ID, id);
+      Notification.show('Data Product Created successfully');
+    }).catch((error) => {
+      ProgressIndicator.hide();
+      Notification.show(
+        error?.response?.data?.response?.errors?.[0]?.message || error?.response?.data?.response?.warnings?.[0]?.message || 'Error while creating dataProduct',
+        'alert',
+      );
+    });
     setShowDataProductModal(false);
   }
+   const onDataProductClick = () => {
+
+    if(hasDataProduct){
+      const id = sessionStorage.getItem(SESSION_STORAGE_KEYS.DATAPRODUCT_ID)?.split(":")[1];
+      hostHistory.push(`/data/dataproduct/summary/${id}`)
+
+    }else{
+      setShowDataProductModal(true);
+    }
+
+   }
     
   const [showCollabModal, setShowCollabModal] = useState(false);
   const [table, setTable] = useState([]);
@@ -492,7 +483,7 @@ const Graph = ({user}) => {
     datalakeApi.updateDatalakeProject(project?.id, data).then(() => {
       ProgressIndicator.hide();
       Notification.show('Table(s) published successfully');
-    }).catch(error => {
+      }).catch(error => {
       ProgressIndicator.hide();
       Notification.show(
         error?.response?.data?.response?.errors?.[0]?.message || error?.response?.data?.response?.warnings?.[0]?.message || 'Error while publishing table(s)',
@@ -502,11 +493,25 @@ const Graph = ({user}) => {
   }
 
   const [fullScreenMode, setFullScreenMode] = useState(false);
-
+  
   const toggleFullScreenMode = () => {
     setFullScreenMode(!fullScreenMode);
   };
+
+  const [showConnectionModal, setShowConnectionModal] = useState(false);
   
+  const isValidFile = (file) => ['csv', 'parquet', 'json'].includes(file?.name?.split('.')[1]);
+  const [uploadFile, setUploadFile] = useState({});
+  const [showUploadModal, setShowUploadModal] = useState(false);
+  const uploadContent = <>
+    <div>
+      <p>File to Upload: {uploadFile.length > 0 && uploadFile[0]?.name}</p>
+      <div className={Styles.btnContainer}>
+        <button className="btn" disabled={true}>Publish</button>
+      </div>
+    </div>
+  </>
+     
   return (
     !isLoading ?
     <div className={fullScreenMode ? Styles.datalakeWrapperFSmode : '' + ' ' + Styles.datalakeWrapper}>
@@ -521,16 +526,58 @@ const Graph = ({user}) => {
             </div>
             <div className={Styles.navigation}>
                 <div className={Styles.headerright}>
-                    <div>
+                   { hasTable &&( 
+                      <div>
                         <button
                             className={classNames('btn btn-primary', Styles.btnOutline, !isOwner && Styles.btnDisabled)}
                             type="button"
-                            onClick={() => { setShowDataProductModal(true) }}
+                            onClick={() => onDataProductClick()}
                         >
                             <i className="icon mbc-icon dataproductoverview" />
-                            <span>Provision as a Data Product</span>
+                            <span>{!hasDataProduct ? "Provision as a Data Product" : "View Data Product"}</span>
+                        </button>
+                    </div>)}
+                    { hasTable &&( 
+                    <div>
+                        <button
+                            className={classNames('btn btn-primary', Styles.btnOutline)}
+                            type="button"
+                            onClick={() => { setShowConnectionModal(true) }}
+                        >
+                            <i className="icon mbc-icon comparison" />
+                            <span>How to Connect</span>
                         </button>
                     </div>
+                    )}
+                    {hasTable && ( 
+                    <div className={Styles.uploadFile}>
+                        <input 
+                          type="file" 
+                          id="uploadFile" 
+                          name="uploadFile"
+                          className={Styles.fileInput} 
+                          onChange={(e) => {
+                            const isValid = isValidFile(e.target.files[0]);
+                            if (!isValid) {
+                              Notification.show('File is not valid. Only .csv, .parquet or .json files allowed.', 'alert');
+                            } else {
+                              setUploadFile(e.target.files);
+                              setShowUploadModal(true);
+                            }
+                          }}
+                          onClick={(e) => { e.target.value = '' }}
+                          accept=".csv, .parquet, .json"
+                        />
+                        <button
+                            className={classNames('btn btn-primary', Styles.btnOutline, !isOwner && Styles.btnDisabled)}
+                            type="button"
+                            >
+                            <i className="icon mbc-icon upload" />
+                            <label htmlFor="uploadFile" tooltip-data="Only .csv, .parquet, and .json files are allowed">Upload File</label>
+                        </button>
+                    </div>
+                    )}
+                    {hasTable && ( 
                     <div>
                         <button
                             className={classNames('btn btn-primary', Styles.btnOutline, !isOwner && Styles.btnDisabled)}
@@ -541,16 +588,7 @@ const Graph = ({user}) => {
                             <span>Create Technical User</span>
                         </button>
                     </div>
-                    <div>
-                        <button
-                            className={classNames('btn btn-primary', Styles.btnOutline, !isOwner && Styles.btnDisabled)}
-                            type="button"
-                            onClick={() => { setShowInferenceModal(true) }}
-                        >
-                            <i className="icon mbc-icon plus" />
-                            <span>Add Inference</span>
-                        </button>
-                    </div>
+                   )}
                     <div>
                         <button
                             className={classNames('btn btn-primary', Styles.btnOutline, !isOwner && Styles.btnDisabled)}
@@ -602,7 +640,7 @@ const Graph = ({user}) => {
         </div>
         
         <div style={{textAlign: 'right', marginTop: '20px'}}>
-                <button className={classNames('btn btn-tertiary')} onClick={handlePublish}>Publish</button>
+                <button className={classNames('btn btn-tertiary')} onClick={handlePublish}>Save & Publish</button>
             </div>
       </div>
       
@@ -615,18 +653,19 @@ const Graph = ({user}) => {
         />
     }
 
-    { showInferenceModal &&
+    { showUploadModal &&
         <Modal
-            title={'Add Inference'}
+            title={'Publish File'}
             showAcceptButton={false}
             showCancelButton={false}
             modalWidth={'35%'}
             buttonAlignment="right"
-            show={showInferenceModal}
-            content={inferenceContent}
+            show={showUploadModal}
+            content={uploadContent}
             scrollableContent={false}
             onCancel={() => {
-                setShowInferenceModal(false);
+                setShowUploadModal(false);
+setUploadFile({});
             }}
         />
     }
@@ -733,6 +772,18 @@ const Graph = ({user}) => {
           maxWidth: '50vw'
         }}
       />
+}
+
+    {showConnectionModal &&
+        <InfoModal
+          title={'Connect'}
+          modalCSS={Styles.header}
+          show={showConnectionModal}
+          content={<ConnectionModal projectId={id} onOkClick={() => setShowConnectionModal(false)} />}
+          hiddenTitle={true}
+          onCancel={() => setShowConnectionModal(false)}
+        />
+
     }
     </div> : <Spinner />
   );
