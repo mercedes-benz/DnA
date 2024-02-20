@@ -280,10 +280,10 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 		CreateServiceRequestVO createServiceRequestVO = new CreateServiceRequestVO();
 		CreateServiceVO createServiceVO = new CreateServiceVO();
 		if(kongApiForDeploymentURL) {					    		    
-			url = "http://" + serviceName + "-" + env + ".codespaces-apps:80";
+			url = "http://" + serviceName.toLowerCase() + "-" + env + ".codespaces-apps:80";
 		}
 		else {
-			url = "http://" + serviceName + ".code-server:8080";
+			url = "http://" + serviceName.toLowerCase() + ".code-server:8080";
 		}		
 		createServiceVO.setName(serviceName);
 		createServiceVO.setUrl(url);
@@ -298,18 +298,18 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 		CreateRouteVO createRouteVO = new CreateRouteVO();
 		if(kongApiForDeploymentURL) {
 			if(apiRecipe) {
-				currentPath = "/" + serviceName + "/" + env + "/api";
+				currentPath = "/" + serviceName.toLowerCase() + "/" + env + "/api";
 				if(env.equalsIgnoreCase("int"))
-					paths.add("/" + serviceName + "/" + "int" + "/api");
+					paths.add("/" + serviceName.toLowerCase() + "/" + "int" + "/api");
 				if(env.equalsIgnoreCase("prod"))
-					paths.add("/" + serviceName + "/" + "prod" + "/api");
+					paths.add("/" + serviceName.toLowerCase() + "/" + "prod" + "/api");
 			}
 			else {
-				currentPath = "/" + serviceName + "/" + env + "/";
+				currentPath = "/" + serviceName.toLowerCase() + "/" + env + "/";
 				if(env.equalsIgnoreCase("int"))
-					paths.add("/" + serviceName + "/" + "int/");
+					paths.add("/" + serviceName.toLowerCase() + "/" + "int/");
 				if(env.equalsIgnoreCase("prod"))
-					paths.add("/" + serviceName + "/" + "prod/");
+					paths.add("/" + serviceName.toLowerCase() + "/" + "prod/");
 			}
 //			if(Objects.nonNull(intSecureIAM) && intSecureIAM) {
 //				paths.add("/" + serviceName + "/" + "int" + "/api");
