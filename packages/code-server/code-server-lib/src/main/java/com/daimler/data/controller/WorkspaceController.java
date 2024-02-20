@@ -881,15 +881,18 @@ import lombok.extern.slf4j.Slf4j;
 			 {
 				status = vo.getProjectDetails().getProdDeploymentDetails().getLastDeploymentStatus();
 			 }
-			 if (status.equalsIgnoreCase("DEPLOY_REQUESTED")) {
-				 MessageDescription invalidTypeMsg = new MessageDescription();
-				 invalidTypeMsg.setMessage(
-						 "cannot deploy workspace since it is already in DEPLOY_REQUESTED state");
-				 GenericMessage errorMessage = new GenericMessage();
-				 errorMessage.addErrors(invalidTypeMsg);
-				 log.info("User {} cannot deploy project of recipe {} for workspace {}, since it is alredy in DEPLOY_REQUESTED state.", userId,
-						 vo.getProjectDetails().getRecipeDetails().getRecipeId().name(), vo.getWorkspaceId());
-				 return new ResponseEntity<>(errorMessage, HttpStatus.BAD_REQUEST);
+			 if(status != null)
+			 {
+				if (status.equalsIgnoreCase("DEPLOY_REQUESTED")) {
+					MessageDescription invalidTypeMsg = new MessageDescription();
+					invalidTypeMsg.setMessage(
+							"cannot deploy workspace since it is already in DEPLOY_REQUESTED state");
+					GenericMessage errorMessage = new GenericMessage();
+					errorMessage.addErrors(invalidTypeMsg);
+					log.info("User {} cannot deploy project of recipe {} for workspace {}, since it is alredy in DEPLOY_REQUESTED state.", userId,
+							vo.getProjectDetails().getRecipeDetails().getRecipeId().name(), vo.getWorkspaceId());
+					return new ResponseEntity<>(errorMessage, HttpStatus.BAD_REQUEST);
+				}
 			 }
 			 if ((Objects.nonNull(deployRequestDto.isSecureWithIAMRequired())
 					 && deployRequestDto.isSecureWithIAMRequired())
@@ -1014,7 +1017,19 @@ import lombok.extern.slf4j.Slf4j;
 			 {
 				status = vo.getProjectDetails().getProdDeploymentDetails().getLastDeploymentStatus();
 			 }
-			 if (status.equalsIgnoreCase("UNDEPLOY_REQUESTED")) {
+			if(status!=null)
+			{
+				 if (status.equalsIgnoreCase("DEPLOY_REQUESTED")) {
+					MessageDescription invalidTypeMsg = new MessageDescription();
+					invalidTypeMsg.setMessage(
+							"cannot deploy workspace since it is already in DEPLOY_REQUESTED state wait until it deploy");
+					GenericMessage errorMessage = new GenericMessage();
+					errorMessage.addErrors(invalidTypeMsg);
+					log.info("User {} cannot undeploy project of recipe {} for workspace {}, since it is alredy in DEPLOY_REQUESTED state wait until its deployed.", userId,
+							vo.getProjectDetails().getRecipeDetails().getRecipeId().name(), vo.getWorkspaceId());
+					return new ResponseEntity<>(errorMessage, HttpStatus.BAD_REQUEST);
+				}
+				if(status.equalsIgnoreCase("UNDEPLOY_REQUESTED")) {
 				 MessageDescription invalidTypeMsg = new MessageDescription();
 				 invalidTypeMsg.setMessage(
 						 "cannot deploy workspace since it is already in UNDEPLOY_REQUESTED state");
@@ -1024,6 +1039,7 @@ import lombok.extern.slf4j.Slf4j;
 						 vo.getProjectDetails().getRecipeDetails().getRecipeId().name(), vo.getWorkspaceId());
 				 return new ResponseEntity<>(errorMessage, HttpStatus.BAD_REQUEST);
 			 }
+			}
 			 GenericMessage responseMsg = service.undeployWorkspace(userId, id, environment, branch);
 //			 if (!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public")) {
 				 log.info("User {} undeployed workspace {} project {}", userId, vo.getWorkspaceId(),
