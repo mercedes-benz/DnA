@@ -1287,18 +1287,18 @@ public class BaseWorkspaceService implements WorkspaceService {
 //				}
 //				String projectOwnerWsId = ownerEntity.getData().getWorkspaceId();
 				String deploymentUrl = "";
-				deploymentUrl = codeServerBaseUri + "/" + projectName + "/" + targetEnv + "/api/swagger-ui.html";
+				deploymentUrl = codeServerBaseUri + "/" + projectName.toLowerCase() + "/" + targetEnv + "/api/swagger-ui.html";
 				if (pythonRecipeId.equalsIgnoreCase(projectRecipe)) {
-					deploymentUrl = codeServerBaseUri + "/" + projectName + "/" + targetEnv + "/api/docs";
+					deploymentUrl = codeServerBaseUri + "/" + projectName.toLowerCase() + "/" + targetEnv + "/api/docs";
 				}
 				if (reactRecipeId.equalsIgnoreCase(projectRecipe) || angularRecipeId.equalsIgnoreCase(projectRecipe) || vueRecipeId.equalsIgnoreCase(projectRecipe)) {
-					deploymentUrl = codeServerBaseUri + "/" + projectName + "/" + targetEnv + "/";
+					deploymentUrl = codeServerBaseUri + "/" + projectName.toLowerCase() + "/" + targetEnv + "/";
 				}
 				if (quarkusRecipeId.equalsIgnoreCase(projectRecipe)) {
-					deploymentUrl = codeServerBaseUri + "/" + projectName + "/" + targetEnv + "/q/swagger-ui";
+					deploymentUrl = codeServerBaseUri + "/" + projectName.toLowerCase() + "/" + targetEnv + "/q/swagger-ui";
 				}
 				if(micronautRecipeId.equalsIgnoreCase(projectRecipe)) {
-					 deploymentUrl = codeServerBaseUri+"/"+projectName +"/"+ targetEnv +"/swagger-ui/index.html";
+					 deploymentUrl = codeServerBaseUri+"/"+projectName.toLowerCase() +"/"+ targetEnv +"/swagger-ui/index.html";
 				}
 				String environmentJsonbName = "intDeploymentDetails";
 				CodeServerDeploymentDetails deploymentDetails = new CodeServerDeploymentDetails();
