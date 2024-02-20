@@ -1345,6 +1345,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 							projectName, branch, targetEnv, latestStatus);
 				} else {
 					deploymentDetails.setLastDeploymentStatus(latestStatus);
+					deploymentDetails.setGitjobRunID(gitJobRunId);
 					workspaceCustomRepository.updateDeploymentDetails(projectName, environmentJsonbName,
 							deploymentDetails);
 					log.info(
