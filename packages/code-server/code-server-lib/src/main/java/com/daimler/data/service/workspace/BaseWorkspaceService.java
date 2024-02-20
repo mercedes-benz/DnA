@@ -1298,7 +1298,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 					deploymentUrl = codeServerBaseUri + "/" + projectName.toLowerCase() + "/" + targetEnv + "/q/swagger-ui";
 				}
 				if(micronautRecipeId.equalsIgnoreCase(projectRecipe)) {
-					 deploymentUrl = codeServerBaseUri+"/"+projectName.toLowerCase()+"/"+ targetEnv +"/swagger-ui/index.html";
+					 deploymentUrl = codeServerBaseUri+"/"+projectName.toLowerCase() +"/"+ targetEnv +"/swagger-ui/index.html";
 				}
 				String environmentJsonbName = "intDeploymentDetails";
 				CodeServerDeploymentDetails deploymentDetails = new CodeServerDeploymentDetails();
