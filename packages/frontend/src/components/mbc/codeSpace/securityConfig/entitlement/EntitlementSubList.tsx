@@ -94,7 +94,7 @@ const EntitlementSubList = (props: IEntitlementSublistProps) => {
       } else if (value.includes('{') && !value.includes('}')) {
         setEntitlementPathErrorMessage('query params value should be enclosed in {}, eg: /api/books?bookName={value}');
       }
-    }, 10);
+    });
   };
 
   const deletePathMethod = (name: any, apiPattern: any, httpMethod: any, index: any) => {
