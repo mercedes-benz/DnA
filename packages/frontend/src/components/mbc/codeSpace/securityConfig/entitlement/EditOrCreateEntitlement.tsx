@@ -17,7 +17,7 @@ const EditOrCreateEntitlement = (props: any) => {
   const [missingAddMesage, setMissingAddMesage] = useState<string>('');
   const [httpMethod, setHttpMethod] = useState<string>('');
   const [currentEntitlement, setCurrentEntitlement] = useState<any>({ apiList: [] });
-
+  
   const onEntitlementNameOnChange = (e: React.FormEvent<HTMLInputElement>) => {
     const value = e.currentTarget.value;
     validateEntitlementName(value);
@@ -181,6 +181,7 @@ const EditOrCreateEntitlement = (props: any) => {
   useEffect(() => {
     if (props?.editEntitlementModal) {
       setEntitlId(props.editEntitlementList.name);
+      setEntitleName(Envs.CODESPACE_SECURITY_APP_ID + '.' + props.editEntitlementList.name)
       setbeforeUpdateEntitlName(props.editEntitlementList.name);
     }
     setCurrentEntitlement(props.editEntitlementList);

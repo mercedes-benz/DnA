@@ -508,7 +508,7 @@ const EntitlementSubList = (props: IEntitlementSublistProps) => {
                     type="text"
                     className="input-field"
                     id="EntitlementpathInput"
-                    maxLength={22}
+                    maxLength={200}
                     placeholder="Type here"
                     autoComplete="off"
                     value={entitlemenPath}
