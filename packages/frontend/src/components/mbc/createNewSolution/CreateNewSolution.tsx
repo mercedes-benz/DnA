@@ -908,7 +908,7 @@ export default class CreateNewSolution extends React.Component<ICreateNewSolutio
           }
         >
           <a href="#tab-content-6" id="analytics" onClick={this.setCurrentTab}>
-            Technology <sup>*</sup>
+            Technology 
           </a>
         </li>
         <li
