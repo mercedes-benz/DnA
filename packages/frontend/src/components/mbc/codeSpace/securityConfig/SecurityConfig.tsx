@@ -87,7 +87,7 @@ export default class SecurityConfig extends React.Component<
     }
     const query = getQueryParam('pub');
     const name = getQueryParam('name');
-    this.setState({projectName: name});
+    this.setState({ projectName: name });
     if (query) {
       this.setState({ isPublished: query === 'true' });
     }
@@ -102,14 +102,16 @@ export default class SecurityConfig extends React.Component<
       Tabs.defaultSetup();
       this.getPublishedConfig(id);
     } else if (path.includes('adminSecurityconfig')) {
-     this.setState({
-        readOnlyMode: true,
-        isCodeSpaceAdminPage: true,
-        currentTab: 'roles',
-        nextTab:'rolemapping',
-      },()=>{
-        Tabs.defaultSetup();
-      }
+      this.setState(
+        {
+          readOnlyMode: true,
+          isCodeSpaceAdminPage: true,
+          currentTab: 'roles',
+          nextTab: 'rolemapping',
+        },
+        () => {
+          Tabs.defaultSetup();
+        },
       );
       this.getConfig(id);
     } else {
@@ -117,7 +119,7 @@ export default class SecurityConfig extends React.Component<
       Tabs.defaultSetup();
     }
   }
-  
+
   public getPublishedConfig = (id: string) => {
     ProgressIndicator.show();
     CodeSpaceApiClient.getPublishedConfig(id)
@@ -157,14 +159,14 @@ export default class SecurityConfig extends React.Component<
           userRoleMappings: res.userRoleMappings || [],
           openSegments: res.openSegments || [],
           status: res.status || 'DRAFT',
-          };
+        };
         this.setState(
           {
             config: response,
           },
           () => {
             this.setOpenTabs(this.state.config.openSegments);
-        },
+          },
         );
         ProgressIndicator.hide();
       })
@@ -178,8 +180,8 @@ export default class SecurityConfig extends React.Component<
     if (openSegments != null && openSegments.length > 0) {
       const tabClasses = new Map<string, string>();
       openSegments.forEach((openSegment) => {
-      tabClasses.set(openSegment, 'tab valid');
-       });
+        tabClasses.set(openSegment, 'tab valid');
+      });
       this.setState({ tabClassNames: tabClasses });
     } else {
       const tabClasses = new Map<string, string>();
@@ -316,7 +318,7 @@ export default class SecurityConfig extends React.Component<
     const newState = this.state.config;
     const saveActionType = this.state.saveActionType;
     const currentState = this.state.currentState;
-    
+
     if (!currentState || saveActionType === 'btn' || _.isEqual(newState, currentState)) {
       this.setState({ currentTab: target.id, saveActionType: '' });
     } else {
@@ -447,7 +449,7 @@ export default class SecurityConfig extends React.Component<
 
   public render() {
     const currentTab = this.state.currentTab;
-    const { readOnlyMode, isCodeSpaceAdminPage,projectName} = this.state;
+    const { readOnlyMode, isCodeSpaceAdminPage, projectName } = this.state;
     const publishedSuffix = readOnlyMode && !isCodeSpaceAdminPage ? ' (Published)' : '';
     const title = `${projectName} - Security config${publishedSuffix}`;
     return (
@@ -483,20 +485,26 @@ export default class SecurityConfig extends React.Component<
             <div className="tabs-wrapper">
               <nav>
                 <ul className="tabs">
-                 {!isCodeSpaceAdminPage && <li
-                    className={
-                      this.state.tabClassNames.has('Entitlement')
-                        ? this.state.tabClassNames.get('Entitlement')
-                        : 'tab active'
-                    }
-                  >
-                    <a href="#tab-content-1" id="entitlement" onClick={this.setCurrentTab}>
-                      Entitlement<sup>{!isCodeSpaceAdminPage ? '*' : ''}</sup>
-                    </a>
-                  </li>}
+                  {!isCodeSpaceAdminPage && (
+                    <li
+                      className={
+                        this.state.tabClassNames.has('Entitlement')
+                          ? this.state.tabClassNames.get('Entitlement')
+                          : 'tab active'
+                      }
+                    >
+                      <a href="#tab-content-1" id="entitlement" onClick={this.setCurrentTab}>
+                        Entitlement<sup>{!isCodeSpaceAdminPage ? '*' : ''}</sup>
+                      </a>
+                    </li>
+                  )}
                   <li
                     className={
-                      this.state.tabClassNames.has('Roles') ? this.state.tabClassNames.get('Roles') :  (isCodeSpaceAdminPage? 'tab active' :'tab disabled' )
+                      this.state.tabClassNames.has('Roles')
+                        ? this.state.tabClassNames.get('Roles')
+                        : isCodeSpaceAdminPage
+                        ? 'tab active'
+                        : 'tab disabled'
                     }
                   >
                     <a href="#tab-content-2" id="roles" onClick={this.setCurrentTab}>
@@ -518,17 +526,18 @@ export default class SecurityConfig extends React.Component<
               </nav>
             </div>
             <div className="tabs-content-wrapper">
-            {!isCodeSpaceAdminPage &&(
-            <div id="tab-content-1" className="tab-content">
-               <Entitlement
-                  onSaveDraft={this.onSaveDraft}
-                  id={this.state.id}
-                  config={this.state.config}
-                  readOnlyMode={this.state.readOnlyMode}
-                  projectName={projectName}
-                  isCodeSpaceAdminPage={isCodeSpaceAdminPage}
-                />
-              </div>)}
+              {!isCodeSpaceAdminPage && (
+                <div id="tab-content-1" className="tab-content">
+                  <Entitlement
+                    onSaveDraft={this.onSaveDraft}
+                    id={this.state.id}
+                    config={this.state.config}
+                    readOnlyMode={this.state.readOnlyMode}
+                    projectName={projectName}
+                    isCodeSpaceAdminPage={isCodeSpaceAdminPage}
+                  />
+                </div>
+              )}
               <div id="tab-content-2" className="tab-content">
                 {currentTab === 'roles' && (
                   <Roles
@@ -540,7 +549,7 @@ export default class SecurityConfig extends React.Component<
                     isCodeSpaceAdminPage={isCodeSpaceAdminPage}
                     projectName={projectName}
                   />
-              )}
+                )}
               </div>
               <div id="tab-content-3" className="tab-content">
                 {currentTab === 'rolemapping' && (
@@ -590,7 +599,9 @@ export default class SecurityConfig extends React.Component<
               });
             }}
             onAccept={() => {
-              history.push(`/codespace/publishedSecurityconfig/${this.state.id}?pub=true&name=${this.state.projectName}`);
+              history.push(
+                `/codespace/publishedSecurityconfig/${this.state.id}?pub=true&name=${this.state.projectName}`,
+              );
             }}
           />
         </div>
