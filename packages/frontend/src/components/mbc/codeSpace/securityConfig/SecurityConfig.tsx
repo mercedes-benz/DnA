@@ -93,22 +93,28 @@ export default class SecurityConfig extends React.Component<
     }
     const path = getPath();
     SelectBox.defaultSetup();
-    Tabs.defaultSetup();
     InputFields.defaultSetup();
     this.setState({ id: id });
     if (path.includes('publishedSecurityconfig')) {
       this.setState({
         readOnlyMode: true,
       });
+      Tabs.defaultSetup();
       this.getPublishedConfig(id);
     } else if (path.includes('adminSecurityconfig')) {
-      this.setState({
+     this.setState({
         readOnlyMode: true,
         isCodeSpaceAdminPage: true,
-        });
+        currentTab: 'roles',
+        nextTab:'rolemapping',
+      },()=>{
+        Tabs.defaultSetup();
+      }
+      );
       this.getConfig(id);
     } else {
       this.getConfig(id);
+      Tabs.defaultSetup();
     }
   }
   
@@ -123,7 +129,7 @@ export default class SecurityConfig extends React.Component<
           userRoleMappings: res.userRoleMappings || [],
           openSegments: res.openSegments || [],
           status: res.status || 'DRAFT',
-          };
+        };
         this.setState(
           {
             config: response,
@@ -158,7 +164,7 @@ export default class SecurityConfig extends React.Component<
           },
           () => {
             this.setOpenTabs(this.state.config.openSegments);
-          },
+        },
         );
         ProgressIndicator.hide();
       })
@@ -173,8 +179,8 @@ export default class SecurityConfig extends React.Component<
       const tabClasses = new Map<string, string>();
       openSegments.forEach((openSegment) => {
       tabClasses.set(openSegment, 'tab valid');
-      });
-            this.setState({ tabClassNames: tabClasses });
+       });
+      this.setState({ tabClassNames: tabClasses });
     } else {
       const tabClasses = new Map<string, string>();
       tabClasses.set('Roles', 'tab disabled');
@@ -477,7 +483,7 @@ export default class SecurityConfig extends React.Component<
             <div className="tabs-wrapper">
               <nav>
                 <ul className="tabs">
-                 <li
+                 {!isCodeSpaceAdminPage && <li
                     className={
                       this.state.tabClassNames.has('Entitlement')
                         ? this.state.tabClassNames.get('Entitlement')
@@ -487,10 +493,10 @@ export default class SecurityConfig extends React.Component<
                     <a href="#tab-content-1" id="entitlement" onClick={this.setCurrentTab}>
                       Entitlement<sup>{!isCodeSpaceAdminPage ? '*' : ''}</sup>
                     </a>
-                  </li>
+                  </li>}
                   <li
                     className={
-                      this.state.tabClassNames.has('Roles') ? this.state.tabClassNames.get('Roles') : 'tab disabled'
+                      this.state.tabClassNames.has('Roles') ? this.state.tabClassNames.get('Roles') :  (isCodeSpaceAdminPage? 'tab active' :'tab disabled' )
                     }
                   >
                     <a href="#tab-content-2" id="roles" onClick={this.setCurrentTab}>
@@ -512,8 +518,9 @@ export default class SecurityConfig extends React.Component<
               </nav>
             </div>
             <div className="tabs-content-wrapper">
-              <div id="tab-content-1" className="tab-content">
-                <Entitlement
+            {!isCodeSpaceAdminPage &&(
+            <div id="tab-content-1" className="tab-content">
+               <Entitlement
                   onSaveDraft={this.onSaveDraft}
                   id={this.state.id}
                   config={this.state.config}
@@ -521,9 +528,9 @@ export default class SecurityConfig extends React.Component<
                   projectName={projectName}
                   isCodeSpaceAdminPage={isCodeSpaceAdminPage}
                 />
-              </div>
+              </div>)}
               <div id="tab-content-2" className="tab-content">
-                    {currentTab === 'roles' && (
+                {currentTab === 'roles' && (
                   <Roles
                     config={this.state.config}
                     user={this.props.user}
