@@ -133,12 +133,14 @@ const AllCodeSpaces = (props: IAllCodeSpacesProps) => {
   };
 
   const onShowCodeSpaceOnBoard = (codeSpace: ICodeSpaceData, isRetryRequest?: boolean) => {
+    setOnEditCodeSpace(undefined);
     setOnBoardCodeSpace(codeSpace);
     isRetryRequest && setIsRetryRequest(true);
     setShowNewCodeSpaceModal(true);
   };
 
   const onCodeSpaceEdit = (codeSpace: ICodeSpaceData) => {
+    setOnBoardCodeSpace(undefined);
     setOnEditCodeSpace(codeSpace);
     setShowNewCodeSpaceModal(true);
   };
