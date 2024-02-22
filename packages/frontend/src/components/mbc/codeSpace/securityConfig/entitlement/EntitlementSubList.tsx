@@ -81,12 +81,10 @@ const EntitlementSubList = (props: IEntitlementSublistProps) => {
 
   const ontEntitlPatOnChange = (e: any) => {
     setEntitlemenPath(e.currentTarget.value);
-    validateEntitlPath(e.currentTarget.value);
     setEntitlementPathErrorMessage('');
   };
   const validateEntitlPath = (value: any) => {
     const length = value.length;
-    setTimeout(() => {
       if (length >= 4 && !value.includes('/api')) {
         setEntitlementPathErrorMessage('API Path Should Start With /api');
       } else if (value[length - 2] === '=' && !(value[value.length - 1] === '{')) {
@@ -94,8 +92,10 @@ const EntitlementSubList = (props: IEntitlementSublistProps) => {
       } else if (value.includes('{') && !value.includes('}')) {
         setEntitlementPathErrorMessage('query params value should be enclosed in {}, eg: /api/books?bookName={value}');
       }
-    });
   };
+  useEffect(()=>{
+    validateEntitlPath(entitlemenPath);
+  },[entitlemenPath])
 
   const deletePathMethod = (name: any, apiPattern: any, httpMethod: any, index: any) => {
     // Iterate through allEntitlementList and update the apiList for the matched entitlement
