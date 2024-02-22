@@ -914,9 +914,24 @@ import lombok.extern.slf4j.Slf4j;
 					 return new ResponseEntity<>(errorMessage, HttpStatus.INTERNAL_SERVER_ERROR);
 				 }
 			 }
+			 if(deployRequestDto.isValutInjectorEnable()!=null)
+			 {              
+				if(vo.getProjectDetails().getRecipeDetails().getRecipeId().toString().equalsIgnoreCase("springboot") || vo.getProjectDetails().getRecipeDetails().getRecipeId().toString().equalsIgnoreCase("py-fastapi"))
+				{
+					deployRequestDto.setValutInjectorEnable(deployRequestDto.isValutInjectorEnable());
+				}
+				else
+				{
+					deployRequestDto.setValutInjectorEnable(false);
+				}
+			 }
+			 else
+			 {
+				deployRequestDto.setValutInjectorEnable(false);
+			 }
 			 GenericMessage responseMsg = service.deployWorkspace(userId, id, environment, branch,
 					 deployRequestDto.isSecureWithIAMRequired(),
-					 deployRequestDto.getTechnicalUserDetailsForIAMLogin());
+					 deployRequestDto.getTechnicalUserDetailsForIAMLogin(), deployRequestDto. isValutInjectorEnable());
 //			 if (!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public")) {
 				 log.info("User {} deployed workspace {} project {}", userId, vo.getWorkspaceId(),
 						 vo.getProjectDetails().getRecipeDetails().getRecipeId().name());
