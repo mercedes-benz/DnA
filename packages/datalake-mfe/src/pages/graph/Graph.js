@@ -58,13 +58,7 @@ const Graph = ({user, hostHistory}) => {
     const [loading, setLoading] = useState(true);
     const [connectionInfo, setConnectionInfo] = useState();
     const [hasDataProduct,setHasDataProduct] =useState(false);
-     
     const [hasTable, setHasTable] = useState(project.tables.length > 0 );
-
-    useEffect (()=>{
-      setHasTable(project.tables.length > 0 );
-      setHasDataProduct(sessionStorage.getItem(SESSION_STORAGE_KEYS.DATAPRODUCT_ID)?.split(':')[0] == project.id);
-    },[project])
    
 
     useEffect(() => {
