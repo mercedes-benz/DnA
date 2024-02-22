@@ -18,9 +18,10 @@ public class RunNowNotebookParamsDto  implements Serializable{
 	private static final long serialVersionUID = 1L;
 	
 	private String y;
-	private String X;
-	private String X_pred;
-
+	private String x;
+	private String mapping;
+	private String planning_data;
+	
 	@JsonInclude(JsonInclude.Include.NON_NULL)
 	private String backtesting;
 	private String Config;
