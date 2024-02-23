@@ -777,7 +777,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 	@Override
 	@Transactional
 	public GenericMessage deployWorkspace(String userId, String id, String environment, String branch,
-			boolean isSecureWithIAMRequired, String technicalUserDetailsForIAMLogin) {
+			boolean isSecureWithIAMRequired, String technicalUserDetailsForIAMLogin,boolean valutInjectorEnable ) {
 		GenericMessage responseMessage = new GenericMessage();
 		String status = "FAILED";
 		List<MessageDescription> warnings = new ArrayList<>();
@@ -820,6 +820,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 				//String projectOwnerWsId = ownerEntity.getData().getWorkspaceId();
 				deployJobInputDto.setWsid(workspaceOwnerWsId);
 				deployJobInputDto.setProjectName(projectName.toLowerCase());
+				deployJobInputDto.setValutInjectorEnable(valutInjectorEnable);
 				deploymentJobDto.setInputs(deployJobInputDto);
 				deploymentJobDto.setRef(codeServerEnvRef);
 				GenericMessage jobResponse = client.manageDeployment(deploymentJobDto);
