@@ -931,7 +931,7 @@ import lombok.extern.slf4j.Slf4j;
 			 }
 			 GenericMessage responseMsg = service.deployWorkspace(userId, id, environment, branch,
 					 deployRequestDto.isSecureWithIAMRequired(),
-					 deployRequestDto.getTechnicalUserDetailsForIAMLogin(), deployRequestDto. isValutInjectorEnable());
+					 deployRequestDto.getTechnicalUserDetailsForIAMLogin(), deployRequestDto.isValutInjectorEnable());
 //			 if (!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public")) {
 				 log.info("User {} deployed workspace {} project {}", userId, vo.getWorkspaceId(),
 						 vo.getProjectDetails().getRecipeDetails().getRecipeId().name());
