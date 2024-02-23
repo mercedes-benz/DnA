@@ -11,7 +11,7 @@ export interface ITextBoxProps {
   labelId?: string;
   label: string;
   required: boolean;
-  maxLength: number;
+  maxLength?: number;
   placeholder: string;
   onChange: (e: React.FormEvent<HTMLInputElement>) => void;
   onBlur?: (e: React.FormEvent<HTMLInputElement>) => void;
