@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import Styles from './CodeSpaceCardItem.scss';
 import { recipesMaster, regionalDateAndTimeConversionSolution, buildLogViewURL, buildGitJobLogViewURL } from '../../../../services/utils';
 import ConfirmModal from 'components/formElements/modal/confirmModal/ConfirmModal';
+import Modal from 'components/formElements/modal/Modal';
 import { history } from '../../../../router/History';
 // @ts-ignore
 import ProgressIndicator from '../../../../assets/modules/uilab/js/src/progress-indicator';
@@ -14,6 +15,7 @@ import Notification from '../../../../assets/modules/uilab/js/src/notification';
 import { IUserInfo } from 'globals/types';
 import { IconGear } from 'components/icons/IconGear';
 import { DEPLOYMENT_DISABLED_RECIPE_IDS } from 'globals/constants';
+import DoraMetrics from '../doraMetrics/DoraMetrics';
 
 interface CodeSpaceCardItemProps {
   userInfo: IUserInfo;
@@ -37,6 +39,7 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
   const isOwner = codeSpace.projectDetails?.projectOwner?.id === props.userInfo.id;
   const hasCollaborators = codeSpace.projectDetails?.projectCollaborators?.length > 0;
   const disableDeployment = codeSpace?.projectDetails?.recipeDetails?.recipeId.startsWith('public') || DEPLOYMENT_DISABLED_RECIPE_IDS.includes(codeSpace?.projectDetails?.recipeDetails?.recipeId);
+  const [showDoraMetricsModal, setShowDoraMetricsModal] = useState(false);
 
   const deleteCodeSpaceContent = (
     <div>
@@ -113,10 +116,10 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
 
   const onCodeSpaceSecurityConfigClick = (codeSpace: ICodeSpaceData) => {
     if (codeSpace?.projectDetails?.publishedSecuirtyConfig) {
-      history.push(`/codespace/publishedSecurityconfig/${codeSpace.id}?pub=true`);
+      history.push(`/codespace/publishedSecurityconfig/${codeSpace.id}?pub=true&name=${codeSpace.projectDetails.projectName}`);
       return;
     }
-    history.push(`codespace/securityconfig/${codeSpace.id}?pub=false`);
+    history.push(`codespace/securityconfig/${codeSpace.id}?pub=false&name=${codeSpace.projectDetails.projectName}`);
   };
 
   const onCodeSpaceDelete = () => {
@@ -126,6 +129,10 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
       setShowDeleteModal(true);
     }
   };
+
+  const handleOpenDoraMetrics = () => {
+    setShowDoraMetricsModal(true);
+  }
 
   const projectDetails = codeSpace?.projectDetails;
   const intDeploymentDetails = projectDetails.intDeploymentDetails;
@@ -175,12 +182,20 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
           >
             <div className={classNames('btn btn-text forward arrow', Styles.cardHeadTitle)} onClick={onCardNameClick}>
               {projectDetails.projectName}
-              <a target='_blank' href={`/codespace/${codeSpace.workspaceId}`} className={Styles.OpenNewTab} tooltip-data="Open workspace in new tab" onClick={(e) => { 
-                e.stopPropagation();
-               }} rel="noreferrer">
-                <i className="icon mbc-icon arrow small right" />
-                <span> &nbsp; </span>
-              </a>      
+              {!enableOnboard && !creationFailed && (
+                <a
+                  className={Styles.OpenNewTab}
+                  tooltip-data="Open workspace in new tab"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    window.open(codeSpace?.workspaceUrl, '_blank');
+                    trackEvent('DnA Code Space', 'Code Space Open', 'Open in New Tab');
+                  }}
+                >
+                  <i className="icon mbc-icon arrow small right" />
+                  <span> &nbsp; </span>
+                </a>
+              )}
             </div>
           </div>
         </div>
@@ -199,65 +214,133 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
               <div>Created on</div>
               <div>{regionalDateAndTimeConversionSolution(codeSpace?.projectDetails.projectCreatedOn)}</div>
             </div>
-            {deployed && (
-              <div>
-                <div>Last Deployed on</div>
-                <div>
-                  {intDeployed && (
-                    <>
-                      Staging({intDeploymentDetails?.lastDeployedBranch}):
-                      <br />
-                      {!creationFailed && !enableOnboard && intDeploymentDetails.gitjobRunID ? (
-                        <a
-                          target="_blank"
-                          href={buildGitJobLogViewURL(intDeploymentDetails.gitjobRunID)}
-                          tooltip-data="Show staging build & deploy logs in new tab"
-                          rel="noreferrer"
-                        >
-                          {regionalDateAndTimeConversionSolution(intLastDeployedOn)}
-                        </a>
-                      ) : (
-                        <>{regionalDateAndTimeConversionSolution(intLastDeployedOn)}</>
+            {!enableOnboard && !creationFailed && deployed && (
+              <>
+                <div className={Styles.deploymentInfo}>
+                    <div>
+                      {intDeployed && (
+                        <>
+                          <strong>Staging:</strong> (<span className={Styles.metricsTrigger} onClick={handleOpenDoraMetrics}>DORA Metrics</span>)
+                          <br />
+                          Branch '{intDeploymentDetails?.lastDeployedBranch}' deployed on
+                          <br />
+                          {!creationFailed && !enableOnboard && intDeploymentDetails.gitjobRunID ? (
+                            <a
+                              target="_blank"
+                              href={buildGitJobLogViewURL(intDeploymentDetails.gitjobRunID)}
+                              tooltip-data="Show staging build & deploy logs in new tab"
+                              rel="noreferrer"
+                            >
+                              {regionalDateAndTimeConversionSolution(intLastDeployedOn)}
+                            </a>
+                          ) : (
+                            <>{regionalDateAndTimeConversionSolution(intLastDeployedOn)}</>
+                          )}
+                          {!creationFailed && !enableOnboard && (
+                            <a target="_blank" href={buildLogViewURL(intDeployedUrl, true)} rel="noreferrer">
+                              <i
+                                tooltip-data="Show Staging App logs in new tab"
+                                className="icon mbc-icon workspace small right"
+                              />
+                            </a>
+                          )}
+                          <br />
+                          by {intDeploymentDetails?.lastDeployedBy?.firstName}
+                        </>
                       )}
-                      {!creationFailed && !enableOnboard && (
-                        <a target="_blank" href={buildLogViewURL(intDeployedUrl, true)} rel="noreferrer">
-                          <i
-                            tooltip-data="Show Staging App logs in new tab"
-                            className="icon mbc-icon workspace small right"
-                          />
-                        </a>
+                    </div>
+                    <div>
+                      {prodDeployed && (
+                        <>
+                          <strong>Production:</strong> (<span className={Styles.metricsTrigger} onClick={handleOpenDoraMetrics}>DORA Metrics</span>)
+                          <br />
+                          Branch '{prodDeploymentDetails?.lastDeployedBranch}' deployed on
+                          <br />
+                          {!creationFailed && !enableOnboard && prodDeploymentDetails.gitjobRunID ? (
+                            <a
+                              target="_blank"
+                              href={buildGitJobLogViewURL(prodDeploymentDetails.gitjobRunID)}
+                              tooltip-data="Show production build & deploy logs in new tab"
+                              rel="noreferrer"
+                            >
+                              {regionalDateAndTimeConversionSolution(intLastDeployedOn)}
+                            </a>
+                          ) : (
+                            <>{regionalDateAndTimeConversionSolution(prodLastDeployedOn)}</>
+                          )}
+                          {!creationFailed && !enableOnboard && (
+                            <a target="_blank" href={buildLogViewURL(prodDeployedUrl)} rel="noreferrer">
+                              <i
+                                tooltip-data="Show Production App logs in new tab"
+                                className="icon mbc-icon workspace small right"
+                              />
+                            </a>
+                          )}
+                          <br />
+                          by {intDeploymentDetails?.lastDeployedBy?.firstName}
+                        </>
                       )}
-                    </>
-                  )}
-                  <br />
-                  {prodDeployed && (
-                    <>
-                      Production({prodDeploymentDetails?.lastDeployedBranch}):
-                      <br />
-                      {!creationFailed && !enableOnboard && prodDeploymentDetails.gitjobRunID ? (
-                        <a
-                          target="_blank"
-                          href={buildGitJobLogViewURL(prodDeploymentDetails.gitjobRunID)}
-                          tooltip-data="Show production build & deploy logs in new tab"
-                          rel="noreferrer"
-                        >
-                          {regionalDateAndTimeConversionSolution(intLastDeployedOn)}
-                        </a>
-                      ) : (
-                        <>{regionalDateAndTimeConversionSolution(prodLastDeployedOn)}</>
-                      )}
-                      {!creationFailed && !enableOnboard && (
-                        <a target="_blank" href={buildLogViewURL(prodDeployedUrl)} rel="noreferrer">
-                          <i
-                            tooltip-data="Show Production App logs in new tab"
-                            className="icon mbc-icon workspace small right"
-                          />
-                        </a>
-                      )}
-                    </>
-                  )}
+                    </div>
                 </div>
-              </div>
+                {/* <div>
+                  <div>Last Deployed on</div>
+                  <div>
+                    {intDeployed && (
+                      <>
+                        Staging({intDeploymentDetails?.lastDeployedBranch}):
+                        <br />
+                        {!creationFailed && !enableOnboard && intDeploymentDetails.gitjobRunID ? (
+                          <a
+                            target="_blank"
+                            href={buildGitJobLogViewURL(intDeploymentDetails.gitjobRunID)}
+                            tooltip-data="Show staging build & deploy logs in new tab"
+                            rel="noreferrer"
+                          >
+                            {regionalDateAndTimeConversionSolution(intLastDeployedOn)}
+                          </a>
+                        ) : (
+                          <>{regionalDateAndTimeConversionSolution(intLastDeployedOn)}</>
+                        )}
+                        {!creationFailed && !enableOnboard && (
+                          <a target="_blank" href={buildLogViewURL(intDeployedUrl, true)} rel="noreferrer">
+                            <i
+                              tooltip-data="Show Staging App logs in new tab"
+                              className="icon mbc-icon workspace small right"
+                            />
+                          </a>
+                        )}
+                      </>
+                    )}
+                    <br />
+                    {prodDeployed && (
+                      <>
+                        Production({prodDeploymentDetails?.lastDeployedBranch}):
+                        <br />
+                        {!creationFailed && !enableOnboard && prodDeploymentDetails.gitjobRunID ? (
+                          <a
+                            target="_blank"
+                            href={buildGitJobLogViewURL(prodDeploymentDetails.gitjobRunID)}
+                            tooltip-data="Show production build & deploy logs in new tab"
+                            rel="noreferrer"
+                          >
+                            {regionalDateAndTimeConversionSolution(intLastDeployedOn)}
+                          </a>
+                        ) : (
+                          <>{regionalDateAndTimeConversionSolution(prodLastDeployedOn)}</>
+                        )}
+                        {!creationFailed && !enableOnboard && (
+                          <a target="_blank" href={buildLogViewURL(prodDeployedUrl)} rel="noreferrer">
+                            <i
+                              tooltip-data="Show Production App logs in new tab"
+                              className="icon mbc-icon workspace small right"
+                            />
+                          </a>
+                        )}
+                      </>
+                    )}
+                  </div>
+                </div> */}
+              </>
             )}
           </div>
         </div>
@@ -282,13 +365,25 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
                       <>
                         {!deployingInProgress && <span className={Styles.statusIndicator}>Deployed</span>}
                         {intDeployed && (
-                          <a href={intDeployedUrl} target="_blank" rel="noreferrer" className={Styles.deployedLink}>
+                          <a
+                            href={intDeployedUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                            className={Styles.deployedLink}
+                            tooltip-data="APP BASE URL - Staging"
+                          >
                             <i className="icon mbc-icon link" /> Staging{' '}
                             {projectDetails?.intDeploymentDetails?.secureWithIAMRequired && securedWithIAMContent}
                           </a>
                         )}
                         {prodDeployed && (
-                          <a href={prodDeployedUrl} target="_blank" rel="noreferrer" className={Styles.deployedLink}>
+                          <a
+                            href={prodDeployedUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                            className={Styles.deployedLink}
+                            tooltip-data="APP BASE URL - Production"
+                          >
                             <i className="icon mbc-icon link" /> Production{' '}
                             {projectDetails?.prodDeploymentDetails?.secureWithIAMRequired && securedWithIAMContent}
                           </a>
@@ -346,6 +441,28 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
         onCancel={deleteCodeSpaceClose}
         onAccept={deleteCodeSpaceAccept}
       />
+
+      {
+        showDoraMetricsModal && 
+        <Modal
+          title={`DORA Metrics for ` + projectDetails.projectName}
+          showAcceptButton={true}
+          showCancelButton={false}
+          modalWidth={'60%'}
+          buttonAlignment="right"
+          acceptButtonTitle="Ok"
+          show={showDoraMetricsModal}
+          content={<DoraMetrics />}
+          scrollableContent={false}
+          onCancel={() => setShowDoraMetricsModal(false)}
+          onAccept={() => setShowDoraMetricsModal(false)}
+          modalStyle={{
+              padding: '50px 35px 35px 35px',
+              minWidth: 'unset',
+              width: '60%',
+          }}
+        />
+      }
     </>
   );
 };

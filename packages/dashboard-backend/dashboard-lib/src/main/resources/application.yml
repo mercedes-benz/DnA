@@ -44,11 +44,7 @@ dna:
      bulkCreate:
         api:
            accessToken: ${DATASOURCE_BULKCREATE_API_ACCESS_TOKEN:XXXXX}          
-      
-jwt:
-  secret:
-    key: ${JWT_SECRET_KEY:XXXX}
-      
+             
 graphql:
   servlet:
     mapping: /api/minified

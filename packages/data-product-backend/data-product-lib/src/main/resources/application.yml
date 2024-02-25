@@ -68,10 +68,6 @@ server:
 #Cors Filter origin Domains  
 allowedCorsOriginPatternUrl: ${CORS_ORIGIN_URL:http://*}
   
-jwt:
-  secret:
-    key: ${JWT_SECRET_KEY:xxxxxx}
-
 graphql:
   servlet:
     mapping: /api/minified

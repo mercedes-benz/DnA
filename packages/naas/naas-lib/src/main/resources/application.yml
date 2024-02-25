@@ -88,10 +88,6 @@ dna:
   user.info.get.api: ${DNA_USER_INFO_GET_URI:/api/users}
   notification.senderEmail: ${DNA_NOTIFICATION_SENDER_EMAIL:system@dna-naas}
   
-jwt:
-  secret:
-    key: ${JWT_SECRET_KEY:XXXXX}
-
 #NAAS Authentication ends
 management.endpoints.web.exposure.include: loggers,health
 management.endpoint.loggers.enabled: true

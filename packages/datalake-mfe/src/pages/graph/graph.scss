@@ -76,6 +76,11 @@
         margin-left: 15px;
         position: relative;
         top:3px;
+
+        span {
+          font-size: 12px;
+          opacity: 0.75;
+        }
       }
 
       button {

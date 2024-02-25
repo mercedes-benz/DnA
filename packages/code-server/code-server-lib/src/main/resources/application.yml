@@ -50,10 +50,6 @@ authenticator:
 kafka:
   centralTopic:
     name: dnaCentralEventTopic  
-  
-jwt:
-  secret:
-    key: ${JWT_SECRET_KEY:XXXXXX}
 
 server:
   port: 7979

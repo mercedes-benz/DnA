@@ -23,6 +23,7 @@ export interface IEntitlementProps {
   id: string;
   config: any;
   readOnlyMode: boolean;
+  projectName?: string;
   isCodeSpaceAdminPage: boolean;
 }
 
@@ -395,6 +396,8 @@ export default class Entitlement extends React.Component<IEntitlementProps, IEnt
                       getRefreshedDagPermission={this.getRefreshedDagPermission}
                       updatedFinalEntitlementList={this.updatedFinalEntitlementList}
                       getProjectSorted={this.getProjectSorted}
+                      isCodeSpaceAdminPage ={this.props.isCodeSpaceAdminPage}
+                      projectName ={this.props.projectName}
                     />
                   </div>
                   <Pagination
@@ -482,6 +485,7 @@ export default class Entitlement extends React.Component<IEntitlementProps, IEnt
                 submitEntitlement={(entitlementData: any) => this.updateEntitlement(entitlementData)}
                 editEntitlementModal={this.state.editEntitlementModal}
                 entitlementNameErrorMessage={this.state.entitlementNameErrorMessage}
+                projectName= {this.props.projectName}
               />
             }
             scrollableContent={true}

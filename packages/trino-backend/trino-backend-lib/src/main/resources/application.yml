@@ -2,7 +2,7 @@ spring:
   mvc.pathmatch.matching-strategy: ant_path_matcher
   application:
     name: trinio-registry-service
-    version: 1.2.2
+    version: 1.2.3
 
   flyway:
     enabled: ${FLYWAY_ENABLED:false}
@@ -51,10 +51,6 @@ server:
 
 #Cors Filter origin Domains  
 allowedCorsOriginPatternUrl: ${CORS_ORIGIN_URL:http://*}
-  
-jwt:
-  secret:
-    key: ${JWT_SECRET_KEY:XXXXXX}
       
 minio:
   baseUri: ${MINIO_BASEURI:http://xxxxx}
