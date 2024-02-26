@@ -1,11 +1,12 @@
 import classNames from 'classnames';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import Styles from './input-files.scss';
 import { regionalDateAndTimeConversionSolution } from '../../utilities/utils';
 import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indicator';
 import Notification from '../../common/modules/uilab/js/src/notification';
+import Tooltip from '../../common/modules/uilab/js/src/tooltip';
 import { chronosApi } from '../../apis/chronos.api';
 import Modal from 'dna-container/Modal';
 import { refreshToken } from 'dna-container/RefreshToken';
@@ -31,6 +32,12 @@ const InputFiles = ({inputFiles, showModal, addNew}) => {
 
   const project = useSelector(state => state.projectDetails);
   const dispatch = useDispatch();
+
+  useEffect(() => {
+    Tooltip.defaultSetup();
+    return Tooltip.clear();
+    //eslint-disable-next-line
+  }, []);
 
   const beforeUpload = () => {
     return new Promise((resolve, reject) => {
@@ -86,7 +93,6 @@ const InputFiles = ({inputFiles, showModal, addNew}) => {
       ProgressIndicator.show();
       chronosApi.getProjectConfigFileById(project?.data?.id, file.id).then((res) => {
           setBlobUrl(res.data.configFileData);
-          setConfigEditorContent(res.data.configFileData);
           setShowPreview(true);
           ProgressIndicator.hide();
         }).catch(error => {
@@ -102,10 +108,11 @@ const InputFiles = ({inputFiles, showModal, addNew}) => {
   const downloadConfigFile = (file) => {
     ProgressIndicator.show();
     chronosApi.getConfigFile(`${project?.data?.bucketName}`, `${file.name}`).then((res) => {
-      let ymlContent = "data:application/octet-stream;charset=utf-8," + res.data;
-      let encodedUri = encodeURI(ymlContent);
+      var ymlBlob = new Blob([res.data]);     
+      var url = window.URL.createObjectURL(ymlBlob);
+      
       let link = document.createElement("a");
-      link.setAttribute("href", encodedUri);
+      link.setAttribute("href", url);
       link.setAttribute("download", `${file.name}`);
       document.body.appendChild(link);
       link.click();
@@ -121,7 +128,7 @@ const InputFiles = ({inputFiles, showModal, addNew}) => {
       setSelectedConfigFile(file);
       ProgressIndicator.show();
       chronosApi.getProjectConfigFileById(project?.data?.id, file.id).then((res) => {
-          setBlobUrl(res.data.configFileData);
+          setConfigEditorContent(res.data.configFileData);
           setShowEdit(true);
           ProgressIndicator.hide();
         }).catch(error => {
@@ -184,18 +191,20 @@ const InputFiles = ({inputFiles, showModal, addNew}) => {
           </thead>
           <tbody>
             { inputFiles.map(inputFile =>
-                <tr className={classNames('data-row', Styles.dataRow)} key={inputFile?.id} onClick={() => handlePreviewFile(inputFile) }>
-                  <td>{inputFile?.name}</td>
+                <tr className={classNames('data-row', Styles.dataRow)} key={inputFile?.id} onClick={() => handlePreviewFile(inputFile)}>
+                  <td className={Styles.name}>{inputFile?.name}</td>
                   <td>{inputFile?.createdBy}</td>
                   <td>{regionalDateAndTimeConversionSolution(inputFile?.createdOn)}</td>
                   <td>
-                    { addNew && 
-                      <>
-                        <i onClick={(e) => { e.stopPropagation(); downloadConfigFile(inputFile) }} className={classNames('icon mbc-icon download', Styles.deleteIcon)} />
-                        <i onClick={(e) => { e.stopPropagation(); editConfigFile(inputFile) }} className={classNames('icon mbc-icon edit', Styles.deleteIcon)} />
-                      </>
-                    }
-                    <i onClick={(e) => { e.stopPropagation(); showModal(inputFile?.id) }} className={classNames('icon delete', Styles.deleteIcon)} />
+                    <div className={Styles.actions}>
+                      { addNew && 
+                        <>
+                          <i onClick={(e) => { e.stopPropagation(); downloadConfigFile(inputFile) }} className={classNames('icon mbc-icon document', Styles.deleteIcon)} tooltip-data={'Download File'} />
+                          <i onClick={(e) => { e.stopPropagation(); editConfigFile(inputFile) }} className={classNames('icon mbc-icon edit', Styles.deleteIcon)} tooltip-data={'Edit File'} />
+                        </>
+                      }
+                      <i onClick={(e) => { e.stopPropagation(); showModal(inputFile?.id) }} className={classNames('icon delete', Styles.deleteIcon)} tooltip-data={'Delete File'} />
+                    </div>
                   </td>
                 </tr>
               )

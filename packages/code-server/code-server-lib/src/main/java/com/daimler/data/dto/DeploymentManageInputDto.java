@@ -21,6 +21,7 @@ public class DeploymentManageInputDto {
 	private String repo;
 	private String branch;
 	private String target_env;
+	private Boolean valutInjectorEnable;
 	//private String secure_iam;
 	
 }

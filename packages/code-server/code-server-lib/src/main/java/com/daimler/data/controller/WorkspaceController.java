@@ -30,8 +30,10 @@
  import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import javax.persistence.EntityNotFoundException;
@@ -59,6 +61,8 @@ import com.daimler.data.auth.client.UserRequestVO;
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
 import com.daimler.data.db.entities.CodeServerWorkspaceNsql;
+import com.daimler.data.db.json.CodespaceSecurityRole;
+import com.daimler.data.db.json.CodespaceSecurityUserRoleMap;
 import com.daimler.data.db.repo.workspace.WorkspaceCustomRepository;
 import com.daimler.data.dto.workspace.CodeServerDeploymentDetailsVO;
 import com.daimler.data.dto.workspace.CodeServerRecipeDetailsVO;
@@ -73,6 +77,7 @@ import com.daimler.data.dto.workspace.CodespaceSecurityConfigLOV;
 import com.daimler.data.dto.workspace.CodespaceSecurityConfigVO;
 import com.daimler.data.dto.workspace.CodespaceSecurityEntitlementVO;
 import com.daimler.data.dto.workspace.CodespaceSecurityRoleVO;
+import com.daimler.data.dto.workspace.CodespaceSecurityUserRoleMapVO;
 import com.daimler.data.dto.workspace.CreatedByVO;
 import com.daimler.data.dto.workspace.DataGovernanceRequestInfo;
 import com.daimler.data.dto.workspace.EntitlementCollectionVO;
@@ -322,9 +327,9 @@ import lombok.extern.slf4j.Slf4j;
 						 userId, vo.getWorkspaceId());
 				 saveConfigResponse.setResponse(errorMessage);
 				 return new ResponseEntity<>(saveConfigResponse, HttpStatus.FORBIDDEN);
-			 }
-			  if(data.isIsProtectedByDna()== null){
-					data.isProtectedByDna(false);
+			}
+			if(data.isIsProtectedByDna()== null){
+				data.isProtectedByDna(false);
 			 }
 			 if(data.isIsProtectedByDna()!=null && ! data.isIsProtectedByDna())
 			 {
@@ -334,6 +339,83 @@ import lombok.extern.slf4j.Slf4j;
 					 entitlement.setApiList(new ArrayList<>());
 				 }
 			 }
+			 List<CodespaceSecurityEntitlementVO> entitlementVo = data.getEntitlements();
+			 Set<String> entitlementSet = new HashSet<>();
+			 for(CodespaceSecurityEntitlementVO entitlement:entitlementVo )
+			 {
+				String name = entitlement.getName();
+				if (!entitlementSet.add(name)) {
+					MessageDescription badRequestMsg = new MessageDescription();
+					badRequestMsg.setMessage(
+							"Entitlement names should be unique. Bad request.");
+					GenericMessage errorMessage = new GenericMessage();
+					errorMessage.addErrors(badRequestMsg);
+					saveConfigResponse.setResponse(errorMessage);
+					log.info("Entitlement names should be unique. Bad request.");
+					return new ResponseEntity<>(saveConfigResponse, HttpStatus.BAD_REQUEST);
+				}
+			 }
+			 List<CodespaceSecurityRoleVO> roleVo = data.getRoles();
+			 Set<String> roleSet = new HashSet<>();
+			 for(CodespaceSecurityRoleVO role:roleVo)
+			 {
+				String name = role.getName();
+				if (!roleSet.add(name)) {
+					MessageDescription badRequestMsg = new MessageDescription();
+					badRequestMsg.setMessage(
+							"Role names should be unique. Bad request.");
+					GenericMessage errorMessage = new GenericMessage();
+					errorMessage.addErrors(badRequestMsg);
+					saveConfigResponse.setResponse(errorMessage);
+					log.info("Role names should be unique. Bad request.");
+					return new ResponseEntity<>(saveConfigResponse, HttpStatus.BAD_REQUEST);
+				}
+				Set<String> roleEntitlementSet = new HashSet<>();
+				for(CodespaceSecurityConfigLOV roleEntitlement : role.getRoleEntitlements()){
+					String roleEntitlementName = roleEntitlement.getName();
+					if (!roleEntitlementSet.add(roleEntitlementName)) {
+						MessageDescription badRequestMsg = new MessageDescription();
+						badRequestMsg.setMessage(
+								"Role Entitlements  should be unique. Bad request.");
+						GenericMessage errorMessage = new GenericMessage();
+						errorMessage.addErrors(badRequestMsg);
+						saveConfigResponse.setResponse(errorMessage);
+						log.info("Role Entitlements should be unique. Bad request.");
+						return new ResponseEntity<>(saveConfigResponse, HttpStatus.BAD_REQUEST);
+					}
+				}
+			 }
+			 List<CodespaceSecurityUserRoleMapVO> userRoleVo = data.getUserRoleMappings();
+			 Set<String> userRoleSet = new HashSet<>();
+			 for(CodespaceSecurityUserRoleMapVO userRole:userRoleVo)
+			 {
+				String shortId = userRole.getShortId();
+				if (!userRoleSet.add(shortId)) {
+					MessageDescription badRequestMsg = new MessageDescription();
+					badRequestMsg.setMessage(
+							"Users should be unique. Bad request.");
+					GenericMessage errorMessage = new GenericMessage();
+					errorMessage.addErrors(badRequestMsg);
+					saveConfigResponse.setResponse(errorMessage);
+					log.info("Users should be unique. Bad request.");
+					return new ResponseEntity<>(saveConfigResponse, HttpStatus.BAD_REQUEST);
+				}
+				Set<String> uniqueRoles = new HashSet<>();
+				for(CodespaceSecurityConfigLOV role : userRole.getRoles()){
+					String roleName = role.getName();
+					if (!uniqueRoles.add(roleName)) {
+						MessageDescription badRequestMsg = new MessageDescription();
+						badRequestMsg.setMessage(
+								"User roles  should be unique. Bad request.");
+						GenericMessage errorMessage = new GenericMessage();
+						errorMessage.addErrors(badRequestMsg);
+						saveConfigResponse.setResponse(errorMessage);
+						log.info("User roles should be unique. Bad request.");
+						return new ResponseEntity<>(saveConfigResponse, HttpStatus.BAD_REQUEST);
+					}
+				}
+			 }
+			
 			 if (vo.getProjectDetails().getSecurityConfig() != null) {
 				 if (vo.getProjectDetails().getSecurityConfig().getStatus() != null
 						 && (vo.getProjectDetails().getSecurityConfig().getStatus().equalsIgnoreCase("REQUESTED") || vo
@@ -351,7 +433,7 @@ import lombok.extern.slf4j.Slf4j;
 				 if (vo.getProjectDetails().getSecurityConfig().getStatus() != null
 						 && (vo.getProjectDetails().getSecurityConfig().getStatus().equalsIgnoreCase("DRAFT") || vo
 								 .getProjectDetails().getSecurityConfig().getStatus().equalsIgnoreCase("PUBLISHED"))) {
-					 data = workspaceAssembler.generateSecurityConfigIds(data);
+					 data = workspaceAssembler.generateSecurityConfigIds(data,vo.getProjectDetails().getProjectName());
 					 data = workspaceAssembler.assembleSecurityConfig(vo,data);
 					 vo.getProjectDetails().setSecurityConfig(data);
 					 responseMessage = service.saveSecurityConfig(vo,false);
@@ -360,7 +442,7 @@ import lombok.extern.slf4j.Slf4j;
 					 return new ResponseEntity<>(saveConfigResponse, HttpStatus.OK);
 				 }
 			 }
-			 data = workspaceAssembler.generateSecurityConfigIds(data);
+			 data = workspaceAssembler.generateSecurityConfigIds(data,vo.getProjectDetails().getProjectName());
 			 vo.getProjectDetails().setSecurityConfig(data);
 			 //defaulting the security config status as DRAFT for the first time
 			 vo.getProjectDetails().getSecurityConfig().setStatus("DRAFT");
@@ -790,6 +872,28 @@ import lombok.extern.slf4j.Slf4j;
 			 if (deployRequestDto != null && deployRequestDto.getBranch() != null) {
 				 branch = deployRequestDto.getBranch();
 			 }
+			 String status = "";
+			 if(environment.equalsIgnoreCase("int"))
+			 {
+				status = vo.getProjectDetails().getIntDeploymentDetails().getLastDeploymentStatus();
+			 }
+			 else
+			 {
+				status = vo.getProjectDetails().getProdDeploymentDetails().getLastDeploymentStatus();
+			 }
+			 if(status != null)
+			 {
+				if (status.equalsIgnoreCase("DEPLOY_REQUESTED")) {
+					MessageDescription invalidTypeMsg = new MessageDescription();
+					invalidTypeMsg.setMessage(
+							"cannot deploy workspace since it is already in DEPLOY_REQUESTED state");
+					GenericMessage errorMessage = new GenericMessage();
+					errorMessage.addErrors(invalidTypeMsg);
+					log.info("User {} cannot deploy project of recipe {} for workspace {}, since it is alredy in DEPLOY_REQUESTED state.", userId,
+							vo.getProjectDetails().getRecipeDetails().getRecipeId().name(), vo.getWorkspaceId());
+					return new ResponseEntity<>(errorMessage, HttpStatus.BAD_REQUEST);
+				}
+			 }
 			 if ((Objects.nonNull(deployRequestDto.isSecureWithIAMRequired())
 					 && deployRequestDto.isSecureWithIAMRequired())
 					 && (Objects.nonNull(deployRequestDto.getTechnicalUserDetailsForIAMLogin()))) {
@@ -810,9 +914,24 @@ import lombok.extern.slf4j.Slf4j;
 					 return new ResponseEntity<>(errorMessage, HttpStatus.INTERNAL_SERVER_ERROR);
 				 }
 			 }
+			 if(deployRequestDto.isValutInjectorEnable()!=null)
+			 {              
+				if(vo.getProjectDetails().getRecipeDetails().getRecipeId().toString().equalsIgnoreCase("springboot") || vo.getProjectDetails().getRecipeDetails().getRecipeId().toString().equalsIgnoreCase("py-fastapi"))
+				{
+					deployRequestDto.setValutInjectorEnable(deployRequestDto.isValutInjectorEnable());
+				}
+				else
+				{
+					deployRequestDto.setValutInjectorEnable(false);
+				}
+			 }
+			 else
+			 {
+				deployRequestDto.setValutInjectorEnable(false);
+			 }
 			 GenericMessage responseMsg = service.deployWorkspace(userId, id, environment, branch,
 					 deployRequestDto.isSecureWithIAMRequired(),
-					 deployRequestDto.getTechnicalUserDetailsForIAMLogin());
+					 deployRequestDto.getTechnicalUserDetailsForIAMLogin(), deployRequestDto.isValutInjectorEnable());
 //			 if (!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public")) {
 				 log.info("User {} deployed workspace {} project {}", userId, vo.getWorkspaceId(),
 						 vo.getProjectDetails().getRecipeDetails().getRecipeId().name());
@@ -904,6 +1023,38 @@ import lombok.extern.slf4j.Slf4j;
 			 if (deployRequestDto != null && deployRequestDto.getBranch() != null) {
 				 branch = deployRequestDto.getBranch();
 			 }
+			 String status = "";
+			 if(environment.equalsIgnoreCase("int"))
+			 {
+				status = vo.getProjectDetails().getIntDeploymentDetails().getLastDeploymentStatus();
+			 }
+			 else
+			 {
+				status = vo.getProjectDetails().getProdDeploymentDetails().getLastDeploymentStatus();
+			 }
+			if(status!=null)
+			{
+				 if (status.equalsIgnoreCase("DEPLOY_REQUESTED")) {
+					MessageDescription invalidTypeMsg = new MessageDescription();
+					invalidTypeMsg.setMessage(
+							"cannot deploy workspace since it is already in DEPLOY_REQUESTED state wait until it deploy");
+					GenericMessage errorMessage = new GenericMessage();
+					errorMessage.addErrors(invalidTypeMsg);
+					log.info("User {} cannot undeploy project of recipe {} for workspace {}, since it is alredy in DEPLOY_REQUESTED state wait until its deployed.", userId,
+							vo.getProjectDetails().getRecipeDetails().getRecipeId().name(), vo.getWorkspaceId());
+					return new ResponseEntity<>(errorMessage, HttpStatus.BAD_REQUEST);
+				}
+				if(status.equalsIgnoreCase("UNDEPLOY_REQUESTED")) {
+				 MessageDescription invalidTypeMsg = new MessageDescription();
+				 invalidTypeMsg.setMessage(
+						 "cannot deploy workspace since it is already in UNDEPLOY_REQUESTED state");
+				 GenericMessage errorMessage = new GenericMessage();
+				 errorMessage.addErrors(invalidTypeMsg);
+				 log.info("User {} cannot deploy project of recipe {} for workspace {}, since it is alredy in UNDEPLOY_REQUESTED state.", userId,
+						 vo.getProjectDetails().getRecipeDetails().getRecipeId().name(), vo.getWorkspaceId());
+				 return new ResponseEntity<>(errorMessage, HttpStatus.BAD_REQUEST);
+			 }
+			}
 			 GenericMessage responseMsg = service.undeployWorkspace(userId, id, environment, branch);
 //			 if (!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public")) {
 				 log.info("User {} undeployed workspace {} project {}", userId, vo.getWorkspaceId(),
@@ -1511,7 +1662,8 @@ import lombok.extern.slf4j.Slf4j;
 	@RequestMapping(value = "/workspaces/configs", produces = { "application/json" }, consumes = {
 			"application/json" }, method = RequestMethod.GET)
 	public ResponseEntity<CodespaceSecurityConfigCollectionVO> getWorkspaceConfigs( @ApiParam(value = "page number from which listing of workspaces should start. Offset. Example 2") @Valid @RequestParam(value = "offset", required = false) Integer offset,
-			 @ApiParam(value = "page size to limit the number of workspaces, Example 15") @Valid @RequestParam(value = "limit", required = false) Integer limit) {
+			 @ApiParam(value = "page size to limit the number of workspaces, Example 15") @Valid @RequestParam(value = "limit", required = false) Integer limit,
+			 @ApiParam(value = "project name to get SecurityConfig.") @Valid @RequestParam(value = "projectName", required = false) String projectName) {
 		CodespaceSecurityConfigCollectionVO configCollectionVo = new CodespaceSecurityConfigCollectionVO();
 		CreatedByVO currentUser = this.userStore.getVO();
 		String userId = currentUser != null ? currentUser.getId() : null;
@@ -1522,9 +1674,11 @@ import lombok.extern.slf4j.Slf4j;
 			if (limit == null || limit < 0) {
 				limit = defaultLimit;
 			}
-
+			if(projectName == null ||"".equalsIgnoreCase(projectName)){
+				projectName = null;
+			}
 		if (userStore.getUserInfo().hasCodespaceAdminAccess()) {
-			final List<CodespaceSecurityConfigDetailsVO> configDetailsVo = service.getAllSecurityConfigs(offset,limit);
+			final List<CodespaceSecurityConfigDetailsVO> configDetailsVo = service.getAllSecurityConfigs(offset,limit,projectName);
 			if(configDetailsVo != null && configDetailsVo.size() > 0)
 			{
 				configCollectionVo.setData(configDetailsVo);

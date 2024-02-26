@@ -4,7 +4,7 @@ import java.io.Serializable;
 import java.util.Date;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-
+import java.util.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -23,5 +23,6 @@ public class CodeServerDeploymentDetails implements Serializable {
 	private Boolean secureWithIAMRequired;
 	private String technicalUserDetailsForIAMLogin;
 	private String gitjobRunID;
+	private List<DeploymentAudit> deploymentAuditLogs;
 	
 }

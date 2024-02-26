@@ -16,6 +16,7 @@ import { IUserInfo } from 'globals/types';
 import { IconGear } from 'components/icons/IconGear';
 import { DEPLOYMENT_DISABLED_RECIPE_IDS } from 'globals/constants';
 import DoraMetrics from '../doraMetrics/DoraMetrics';
+import VaultManagement from '../vaultManagement/VaultManagement';
 
 interface CodeSpaceCardItemProps {
   userInfo: IUserInfo;
@@ -35,11 +36,13 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
   const createInProgress = codeSpace.status === 'CREATE_REQUESTED';
   const creationFailed = codeSpace.status === 'CREATE_FAILED';
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showVaultManagementModal, setShowVaultManagementModal] = useState(false);
   const recipes = recipesMaster;
   const isOwner = codeSpace.projectDetails?.projectOwner?.id === props.userInfo.id;
   const hasCollaborators = codeSpace.projectDetails?.projectCollaborators?.length > 0;
   const disableDeployment = codeSpace?.projectDetails?.recipeDetails?.recipeId.startsWith('public') || DEPLOYMENT_DISABLED_RECIPE_IDS.includes(codeSpace?.projectDetails?.recipeDetails?.recipeId);
   const [showDoraMetricsModal, setShowDoraMetricsModal] = useState(false);
+  const [isStaging, setIsStaging] = useState(false) ;
 
   const deleteCodeSpaceContent = (
     <div>
@@ -220,7 +223,7 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
                     <div>
                       {intDeployed && (
                         <>
-                          <strong>Staging:</strong> (<span className={Styles.metricsTrigger} onClick={handleOpenDoraMetrics}>DORA Metrics</span>)
+                          <strong>Staging:</strong> <span className={classNames(Styles.metricsTrigger, 'hide')} onClick={handleOpenDoraMetrics}>(DORA Metrics)</span>
                           <br />
                           Branch '{intDeploymentDetails?.lastDeployedBranch}' deployed on
                           <br />
@@ -234,7 +237,7 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
                               {regionalDateAndTimeConversionSolution(intLastDeployedOn)}
                             </a>
                           ) : (
-                            <>{regionalDateAndTimeConversionSolution(intLastDeployedOn)}</>
+                            <>{regionalDateAndTimeConversionSolution(intLastDeployedOn)}&nbsp;</>
                           )}
                           {!creationFailed && !enableOnboard && (
                             <a target="_blank" href={buildLogViewURL(intDeployedUrl, true)} rel="noreferrer">
@@ -244,6 +247,13 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
                               />
                             </a>
                           )}
+                          <span className={Styles.metricsTrigger}>
+                            <i  
+                              onClick={()=>{setShowVaultManagementModal(true); setIsStaging(true);}}
+                              tooltip-data="Staging Environment variables configuration"
+                              className="icon mbc-icon document small right"
+                            />
+                          </span>
                           <br />
                           by {intDeploymentDetails?.lastDeployedBy?.firstName}
                         </>
@@ -252,7 +262,7 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
                     <div>
                       {prodDeployed && (
                         <>
-                          <strong>Production:</strong> (<span className={Styles.metricsTrigger} onClick={handleOpenDoraMetrics}>DORA Metrics</span>)
+                          <strong>Production:</strong> <span className={classNames(Styles.metricsTrigger, 'hide')} onClick={handleOpenDoraMetrics}>(DORA Metrics)</span>
                           <br />
                           Branch '{prodDeploymentDetails?.lastDeployedBranch}' deployed on
                           <br />
@@ -263,10 +273,10 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
                               tooltip-data="Show production build & deploy logs in new tab"
                               rel="noreferrer"
                             >
-                              {regionalDateAndTimeConversionSolution(intLastDeployedOn)}
+                              {regionalDateAndTimeConversionSolution(prodLastDeployedOn)}
                             </a>
                           ) : (
-                            <>{regionalDateAndTimeConversionSolution(prodLastDeployedOn)}</>
+                            <>{regionalDateAndTimeConversionSolution(prodLastDeployedOn)}&nbsp;</>
                           )}
                           {!creationFailed && !enableOnboard && (
                             <a target="_blank" href={buildLogViewURL(prodDeployedUrl)} rel="noreferrer">
@@ -276,6 +286,14 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
                               />
                             </a>
                           )}
+                          <span className={Styles.metricsTrigger}>
+                            <i
+                              onClick={()=>{setShowVaultManagementModal(true); setIsStaging(false);}}
+                              tooltip-data="Production Environment variables configuration"
+                              className="icon mbc-icon document small right"
+                            />
+                            
+                          </span>
                           <br />
                           by {intDeploymentDetails?.lastDeployedBy?.firstName}
                         </>
@@ -430,6 +448,23 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
           )}
         </div>
       </div>
+      {showVaultManagementModal &&
+        (<Modal
+          title={isStaging ? 'Secret Management - Staging':'Secret Management - Production'}
+          hiddenTitle={false}
+          showAcceptButton={false}
+          showCancelButton={false}
+          acceptButtonTitle="Save"
+          onAccept={()=>console.log('save')}
+          modalWidth={'70%'}
+          modalStyle={{ minHeight: '86%' }}
+          buttonAlignment="center"
+          show={showVaultManagementModal}
+          content={<VaultManagement projectName={projectDetails.projectName} isStaging={isStaging} />}
+          scrollableContent={true}
+          onCancel={() => setShowVaultManagementModal(false)}
+        />)
+      }
       <ConfirmModal
         title={''}
         acceptButtonTitle="Yes"

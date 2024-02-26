@@ -39,7 +39,7 @@ import java.util.Objects;
 import java.util.UUID;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-
+import com.daimler.data.db.json.DeploymentAudit;
 import com.daimler.data.dto.workspace.RoleCollectionVO;
 import com.daimler.data.db.entities.CodeServerWorkspaceNsql;
 import com.daimler.data.db.json.CodeServerDeploymentDetails;
@@ -75,8 +75,9 @@ import com.daimler.data.dto.workspace.admin.CodespaceSecurityConfigDetailsVO;
 import com.daimler.data.dto.workspace.CodespaceSecurityRoleVO;
 import com.daimler.data.dto.workspace.CodespaceSecurityUserRoleMapResponseVO;
 import com.daimler.data.dto.workspace.CodespaceSecurityUserRoleMapVO;
+import com.daimler.data.dto.workspace.DeploymentAuditVO;
 import com.daimler.data.dto.workspace.UserInfoVO;
-
+import com.daimler.data.dto.workspace.DeploymentAuditVO;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -237,8 +238,40 @@ public class WorkspaceAssembler implements GenericAssembler<CodeServerWorkspaceV
 		if (vo != null) {
 			BeanUtils.copyProperties(vo, deploymentDetails);
 			deploymentDetails.setLastDeployedBy(toUserInfo(vo.getLastDeployedBy()));
+			List<DeploymentAudit> auditDetails = this.toDeploymentAuditDetails(vo.getDeploymentAuditLogs());
+			deploymentDetails.setDeploymentAuditLogs(auditDetails);
 		}
 		return deploymentDetails;
+	}
+
+	private List<DeploymentAudit> toDeploymentAuditDetails(List<DeploymentAuditVO> auditdetails)
+	{
+		List<DeploymentAudit> deployedAuditLogDetails = new ArrayList<>();
+		try
+		{
+			if(auditdetails != null && !auditdetails.isEmpty())
+			{
+				for(DeploymentAudit audit: deployedAuditLogDetails)
+				{ 
+					DeploymentAudit auditDetails = new DeploymentAudit();
+					auditDetails.setDeploymentStatus(audit.getDeploymentStatus());
+					if(Objects.nonNull(audit.getDeployedOn())){
+						auditDetails.setDeployedOn(audit.getDeployedOn());
+					}
+					auditDetails.setTriggeredBy(audit.getTriggeredBy());
+					if(Objects.nonNull(audit.getTriggeredOn())){
+						auditDetails.setTriggeredOn(audit.getTriggeredOn());
+					}
+					auditDetails.setBranch(audit.getBranch());
+					deployedAuditLogDetails.add(auditDetails);
+				}
+			}
+		}
+		catch(Exception e)
+		{
+			log.error("Failed while parsing in assembler");
+		}
+		return deployedAuditLogDetails;
 	}
 
 	private CodeServerDeploymentDetailsVO toDeploymentDetailsVO(CodeServerDeploymentDetails deploymentDetails)
@@ -251,11 +284,45 @@ public class WorkspaceAssembler implements GenericAssembler<CodeServerWorkspaceV
 			if (Objects.isNull(deploymentDetails.getSecureWithIAMRequired())) {
 				deploymentDetailsVO.setSecureWithIAMRequired(false);
 			}
-			if (deploymentDetails.getLastDeployedOn() != null)
+			if (deploymentDetails.getLastDeployedOn() != null){
 				deploymentDetailsVO
 						.setLastDeployedOn(isoFormat.parse(isoFormat.format(deploymentDetails.getLastDeployedOn())));
+			}
+			if(deploymentDetails.getDeploymentAuditLogs()!=null && !deploymentDetails.getDeploymentAuditLogs().isEmpty())
+			{
+				List<DeploymentAuditVO> auditDetails = this.toDeploymentAuditDetailsVO(deploymentDetails.getDeploymentAuditLogs());
+				deploymentDetailsVO.setDeploymentAuditLogs(auditDetails);
+			}
 		}
 		return deploymentDetailsVO;
+	}
+
+	private List<DeploymentAuditVO> toDeploymentAuditDetailsVO(List<DeploymentAudit> deploymentAuditLogs) {
+		SimpleDateFormat isoFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS+00:00");
+		List<DeploymentAuditVO> auditDetailsVO = new ArrayList<>();
+		try
+		{
+			if(deploymentAuditLogs!=null && !deploymentAuditLogs.isEmpty())
+			{
+				for(DeploymentAudit audit: deploymentAuditLogs)
+				{
+						DeploymentAuditVO auditDetails = new DeploymentAuditVO();
+						auditDetails.setDeploymentStatus(audit.getDeploymentStatus());
+						if(Objects.nonNull(audit.getDeployedOn()))
+							auditDetails.setDeployedOn(isoFormat.parse(isoFormat.format(audit.getDeployedOn())));
+						auditDetails.setTriggeredBy(audit.getTriggeredBy());
+						if(Objects.nonNull(audit.getTriggeredOn()))
+							auditDetails.setTriggeredOn(isoFormat.parse(isoFormat.format(audit.getTriggeredOn())));
+						auditDetails.setBranch(audit.getBranch());
+						auditDetailsVO.add(auditDetails);
+				}
+			}
+		}
+		catch(ParseException e)
+		{
+			log.error("Failed in assembler  while parsing date into iso format with exception {} in auditDeatils");
+		}
+		return auditDetailsVO;
 	}
 
 	private CodespaceSecurityConfigVO tosecurityConfigVO(CodespaceSecurityConfig CodespaceSecurityConfig) {
@@ -651,7 +718,7 @@ public class WorkspaceAssembler implements GenericAssembler<CodeServerWorkspaceV
 		return assembledSecurityConfig;
 	}
 
-	public CodespaceSecurityConfigVO generateSecurityConfigIds(CodespaceSecurityConfigVO data) {
+	public CodespaceSecurityConfigVO generateSecurityConfigIds(CodespaceSecurityConfigVO data, String projectName) {
 		CodespaceSecurityConfigVO securityConfigWithIds = new CodespaceSecurityConfigVO();
 		if (data != null) {
 
@@ -682,17 +749,26 @@ public class WorkspaceAssembler implements GenericAssembler<CodeServerWorkspaceV
 			if (data.getUserRoleMappings() != null) {
 				roleMapList = data.getUserRoleMappings();
 			}
-
 			for (CodespaceSecurityEntitlementVO entitlement : entitlementList) {
 				if(entitlement.getId()==null){
 					entitlement.setId(UUID.randomUUID().toString());
 				}
+				// if(projectName!=null){
+				// 	if(!entitlement.getName().startsWith(projectName)){
+				// 		entitlement.setName(projectName+"_"+entitlement.getName());
+				// 	}
+				// }
 			}
 			securityConfigWithIds.setEntitlements(entitlementList);
 			for(CodespaceSecurityRoleVO role : roleList){
 				if(role.getId()==null){
 					role.setId(UUID.randomUUID().toString());
 				}
+				// if(projectName!=null){
+				// 	if(!role.getName().startsWith(projectName)){
+				// 		role.setName(projectName+"_"+role.getName());
+				// 	}
+				// }
 			}
 			securityConfigWithIds.setRoles(roleList);
 //			for(CodespaceSecurityUserRoleMapVO userRoleMap : roleMapList){

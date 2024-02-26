@@ -125,6 +125,7 @@ const Graphs = ({ user }) => {
                       <DatalakeProjectCard
                         key={graph.id}
                         graph={graph}
+                        user={user}
                       />
                     );
                   })}

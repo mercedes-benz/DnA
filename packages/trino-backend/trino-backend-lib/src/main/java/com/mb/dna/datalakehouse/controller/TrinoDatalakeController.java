@@ -58,7 +58,7 @@ public class TrinoDatalakeController {
 	private static final String BUCKETS_PREFIX = "dna-datalake-";
 	private static final String SCHEMA_PREFIX = "dna_datalake_";
 	private static final String ICEBERG_CONNECTOR = "Iceberg";
-	private static final String DELTALAKE_CONNECTOR = "Delta";
+	private static final String DELTALAKE_CONNECTOR = "Delta Lake";
 	
 	@Value("${trino.catalog.iceberg}")
 	private String icebergCatalogName;
