@@ -141,6 +141,14 @@ export class CodeSpaceApiClient {
     return this.get(`recipeDetails/${id}`);
   }
 
+  // public static getRecipeLov(){
+  //  return this.get('recipeDetails/recipeLov');
+  // }
+
+  public static getSoftwareLov(){
+    return this.get('recipeDetails/softwareLov');
+  }
+
   public static getLovData(): Promise<any[]>{
     return Promise.all([
       this.getStorage(`lov/dataclassifications`),
