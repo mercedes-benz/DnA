@@ -42,10 +42,13 @@ const TableCollaborators = ({ table, onSave, user }) => {
 
   const onPermissionChange = (collab) => {
     let collabIndex = -1;
-    const collabItem = collabs.find((item, itemIndex) => {
-      collabIndex = itemIndex;
-      return item.collaborator.id === collab.collaborator.id;
-    });
+    const collabItem = Object.assign(
+      [],
+      collabs.find((item, itemIndex) => {
+        collabIndex = itemIndex;
+        return item.collaborator.id === collab.collaborator.id;
+      })
+    );
     if (collabItem.hasWritePermission) {
       collabItem.hasWritePermission = false;
     } else {
