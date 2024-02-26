@@ -16,7 +16,7 @@ import DatalakeProjectForm from '../datalakeProjectForm/DatalakeProjectForm';
 // import { getProjects } from '../../redux/projects.services';
 import { ConnectionModal } from '../connectionInfo/ConnectionModal';
 
-const DatalakeProjectCard = ({graph}) => {
+const DatalakeProjectCard = ({user,graph}) => {
   const [showConnectionModel, setShowConnectionModel] = useState(false);
   const [editProject, setEditProject] = useState(false);
   // const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -42,7 +42,7 @@ const DatalakeProjectCard = ({graph}) => {
   const onhandleClickConnection = () => {
     setShowConnectionModel(true);
   }
-
+  
   return (
     <>
       <div className={Styles.projectCard}>
@@ -83,7 +83,7 @@ const DatalakeProjectCard = ({graph}) => {
         <div className={Styles.cardFooter}>
           <div>&nbsp;</div>
           <div className={Styles.btnGrp}>
-            <button className="btn btn-primary" onClick={() => setEditProject(true)}>
+            <button className={classNames("btn btn-primary",graph.createdBy.id === user.id ? "" :"hide")} onClick={() => setEditProject(true)}>
               <i className="icon mbc-icon edit fill"></i>
               <span>Edit</span>
             </button>
