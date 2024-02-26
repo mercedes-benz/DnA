@@ -3,7 +3,7 @@ import Styles from '../connectionInfo/ConnectionModel.scss';
 import { useState, useEffect } from "react";
 import classNames from "classnames";
 //import {useNavigate} from 'react-router-dom';
-import Tags from 'dna-container/Tags';
+//import Tags from 'dna-container/Tags';
 import Notification from '../../common/modules/uilab/js/src/notification';
 import Tabs from '../../common/modules/uilab/js/src/tabs';
 import ProgressIndicator from "../../common/modules/uilab/js/src/progress-indicator";
@@ -164,33 +164,36 @@ myjson=response.json()
         </>
     );
 
-    const [dataikuProjects, setDataikuProjects] = useState([]);
+    //const [dataikuProjects, setDataikuProjects] = useState([]);
 
     const connectToDataiku = (
-    <div className={Styles.dataikuSection}>
-        <Tags
-            title={'Please select the Dataiku project(s).'}
-            max={100}
-            chips={dataikuProjects}
-            tags={[]}
-            setTags={(selectedTags) => { setDataikuProjects(selectedTags)}}
-            suggestionRender={(item) => (
-                <div className={Styles.optionContainer}>
-                <span className={Styles.optionTitle}>{item?.name}</span>
-                <span className={Styles.optionText}>{item?.shortDesc}</span>
-                </div>
-            )}
-            isMandatory={false}
-            showMissingEntryError={false}
-            disableOnBlurAdd={true}
-            suggestionPopupHeight={120}
-        />
-        <div className={Styles.dataikuConnectionBtn}>
-            <button className="btn btn-tertiary">
-                Make Connection
-            </button>
-        </div>
-    </div>
+      // <div className={Styles.dataikuSection}>
+      //     <Tags
+      //         title={'Please select the Dataiku project(s).'}
+      //         max={100}
+      //         chips={dataikuProjects}
+      //         tags={[]}
+      //         setTags={(selectedTags) => { setDataikuProjects(selectedTags)}}
+      //         suggestionRender={(item) => (
+      //             <div className={Styles.optionContainer}>
+      //             <span className={Styles.optionTitle}>{item?.name}</span>
+      //             <span className={Styles.optionText}>{item?.shortDesc}</span>
+      //             </div>
+      //         )}
+      //         isMandatory={false}
+      //         showMissingEntryError={false}
+      //         disableOnBlurAdd={true}
+      //         suggestionPopupHeight={120}
+      //     />
+      //     <div className={Styles.dataikuConnectionBtn}>
+      //         <button className="btn btn-tertiary">
+      //             Make Connection
+      //         </button>
+      //     </div>
+      // </div>
+      <>
+        <div className={Styles.emptyDataikuProjectsList}>Coming Soon</div>
+      </>
     );
 
     const connectToJupyterNotebook = (!loading &&
