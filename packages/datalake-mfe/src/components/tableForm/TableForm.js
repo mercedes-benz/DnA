@@ -202,7 +202,6 @@ const TableForm = ({setToggle, formats, dataTypes}) => {
   }, [editingTable]);
 
   const onSubmit = (data) => {
-    console.log(data);
     const { tableName, tableFormat, tableComment, ...colData } = data;
     const cols = [];
     for (const key in colData) {
@@ -242,9 +241,7 @@ const TableForm = ({setToggle, formats, dataTypes}) => {
       const newt = columns.filter(item => item.columnName !== id);
       columns.length ? setFields(newt) : setFields([]);
   };
-  useEffect (()=>{
-    console.log(columns);
-  },[columns])
+
 
   return (
     <FormProvider {...methods} >

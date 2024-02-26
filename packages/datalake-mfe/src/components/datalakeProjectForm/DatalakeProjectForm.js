@@ -38,7 +38,7 @@ const DatalakeProjectForm = ({project, edit, onSave}) => {
   const [departmentName, setDepartmentName] = useState(edit && project?.data?.department !== null ? [project?.data?.department] : []);
   const [departmentError, setDepartmentError] = useState('');
   const [datalakeDivision, setDatalakeDivision] = useState(edit ? (project?.data?.divisionId !== null ? project?.data?.divisionId + '/' + project?.data?.divisionName : 0) : '');
-    const [datalakeSubDivision, setDatalakeSubDivision] = useState(edit ? (project?.data?.subdivisionId !== null ? project?.data?.subdivisionId + '/' + project?.data?.subdivisionName : 0) : '');
+  const [datalakeSubDivision, setDatalakeSubDivision] = useState(edit ? (project?.data?.subdivisionId !== null ? project?.data?.subdivisionId + '/' + project?.data?.subdivisionName : 0) : '');
   // const [statusValue, setStatusValue] = useState('');
   // const [statusError] = useState('');
 
