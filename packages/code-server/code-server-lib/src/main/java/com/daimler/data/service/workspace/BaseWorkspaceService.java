@@ -1387,6 +1387,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 							projectName, branch, targetEnv, latestStatus);
 				} else {
 					deploymentDetails.setLastDeploymentStatus(latestStatus);
+					deploymentDetails.setGitjobRunID(gitJobRunId);
 					List<DeploymentAudit> auditLogs = deploymentDetails.getDeploymentAuditLogs();
 					if (auditLogs != null && !auditLogs.isEmpty()) {
 						int lastIndex = auditLogs.size() - 1;
