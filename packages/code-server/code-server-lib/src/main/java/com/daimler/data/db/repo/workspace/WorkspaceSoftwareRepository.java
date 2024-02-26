@@ -25,42 +25,11 @@
  * LICENSE END 
  */
 
-package com.daimler.data.db.json;
+package com.daimler.data.db.repo.workspace;
 
-import java.io.Serializable;
-import java.util.Date;
-import java.util.List;
+import org.springframework.data.jpa.repository.JpaRepository;
+import com.daimler.data.db.entities.CodeServerSoftwareNsql;
 
-import com.daimler.data.dto.userinfo.UserInfoVO;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+public interface WorkspaceSoftwareRepository extends JpaRepository<CodeServerSoftwareNsql, String> {
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-@JsonIgnoreProperties(ignoreUnknown = true)
-public class CodeServerRecipe implements Serializable {
-
-    private static final long serialVersionUID = -1767843944100072529L;
-
-    private String id;
-    private String recipeName;
-    private String recipeType;
-    private String repodetails;
-    private String diskSpace;
-    private String minCpu;
-    private String maxCpu;
-    private String minRam;
-    private String maxRam;
-    private String oSName;
-    private List<String> software;
-    private Date createdOn;
-    private UserInfo createdBy;
-    private List<String> plugins;
-    private Boolean isPublic;
-    private List<UserInfo> users;
-    private String status;
 }

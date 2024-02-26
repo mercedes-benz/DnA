@@ -10,6 +10,13 @@ const getUrl = (endpoint: string) => {
   return `${baseUrl}/${endpoint}`;
 };
 
+const baseUrlVault = Envs.VAULT_API_BASEURL
+  ? Envs.VAULT_API_BASEURL
+  : `http://${window.location.hostname}:8000`;
+const getUrlVault = (endpoint: string) => {
+  return `${baseUrlVault}/${endpoint}`;
+};
+
 const baseUrlStorage = Envs.DASHBOARD_API_BASEURL
   ? Envs.DASHBOARD_API_BASEURL
   : `http://${window.location.hostname}:7175/api`;
@@ -39,6 +46,14 @@ export class CodeSpaceApiClient {
 
   public static getStorage(endpoint: string) {
     return ApiClient.fetch(getUrlStorage(endpoint), HTTP_METHOD.GET);
+  }
+
+  public static getVault(endpoint: string) {
+    return ApiClient.fetch(getUrlVault(endpoint), HTTP_METHOD.GET);
+  }
+
+  public static putVault(endpoint: string, body?: any) {
+    return ApiClient.fetch(getUrlVault(endpoint), HTTP_METHOD.PUT, body);
   }
 
   public static getCodeSpacesList() {
@@ -126,6 +141,14 @@ export class CodeSpaceApiClient {
     return this.get(`recipeDetails/${id}`);
   }
 
+  // public static getRecipeLov(){
+  //  return this.get('recipeDetails/recipeLov');
+  // }
+
+  public static getSoftwareLov(){
+    return this.get('recipeDetails/softwareLov');
+  }
+
   public static getLovData(): Promise<any[]>{
     return Promise.all([
       this.getStorage(`lov/dataclassifications`),
@@ -144,5 +167,13 @@ export class CodeSpaceApiClient {
 
   public static publishSecurityConfigRequest (id:string): Promise<any[]>{
     return this.post(`/workspaces/${id}/config/publish`)
+  };
+
+  public static read_secret(codeSpaceName: string, env: string){
+    return this.getVault(`/secret/${codeSpaceName}/${env}`)
+  };
+
+  public static update_secret(path: string, secret_value: any, env: string): Promise<any[]>{
+    return this.putVault(`/secret/${path}/${env}`,secret_value)
   };
 }

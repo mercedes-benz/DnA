@@ -25,42 +25,28 @@
  * LICENSE END 
  */
 
-package com.daimler.data.db.json;
+package com.daimler.data.db.entities;
 
 import java.io.Serializable;
-import java.util.Date;
-import java.util.List;
+import com.daimler.data.db.json.CodeServerSoftware;
+import javax.persistence.Entity;
+import javax.persistence.Table;
 
-import com.daimler.data.dto.userinfo.UserInfoVO;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.daimler.data.db.json.CodeServerRecipe;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+@Entity
+@Table(name = "software_nsql")
+public class CodeServerSoftwareNsql extends BaseEntity<CodeServerSoftware> implements Serializable {
 
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-@JsonIgnoreProperties(ignoreUnknown = true)
-public class CodeServerRecipe implements Serializable {
+	private static final long serialVersionUID = 4857908075537600169L;
 
-    private static final long serialVersionUID = -1767843944100072529L;
+	public CodeServerSoftwareNsql() {
+		super();
+	}
 
-    private String id;
-    private String recipeName;
-    private String recipeType;
-    private String repodetails;
-    private String diskSpace;
-    private String minCpu;
-    private String maxCpu;
-    private String minRam;
-    private String maxRam;
-    private String oSName;
-    private List<String> software;
-    private Date createdOn;
-    private UserInfo createdBy;
-    private List<String> plugins;
-    private Boolean isPublic;
-    private List<UserInfo> users;
-    private String status;
+	public CodeServerSoftwareNsql(String id, CodeServerSoftware data) {
+		this.setId(id);
+		this.setData(data);
+	}
+
 }
