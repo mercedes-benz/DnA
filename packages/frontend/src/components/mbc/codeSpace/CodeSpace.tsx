@@ -75,6 +75,15 @@ export interface IDataGovernance{
 
 }
 
+export interface IDeploymentAuditLogs{
+  
+  branch?: string;
+  deployedOn?: string;
+  triggeredBy?: string;
+  triggeredOn?: string;
+  deploymentStatus?: string;
+}
+
 export interface IDeploymentDetails {
   secureWithIAMRequired?: boolean,
   technicalUserDetailsForIAMLogin?: string,
@@ -83,6 +92,7 @@ export interface IDeploymentDetails {
   lastDeployedBranch?: string;
   lastDeploymentStatus?: string;
   lastDeployedBy?: ICodeCollaborator;
+  deploymentAuditLogs?: IDeploymentAuditLogs[];
   gitjobRunID?: string;
 }
 
