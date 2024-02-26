@@ -25,6 +25,7 @@ import EditTableForm from '../../components/editTableForm/EditTableForm';
 import DataProductForm from '../../components/dataProductForm/DataProductForm';
 import { ConnectionModal } from '../../components/connectionInfo/ConnectionModal';
 import { SESSION_STORAGE_KEYS } from '../../utilities/constants';
+import { Envs } from '../../utilities/envs';
 
 const Graph = ({user, hostHistory}) => {
     const { id } = useParams();
@@ -78,7 +79,6 @@ const Graph = ({user, hostHistory}) => {
             setLoading(false);
         });
     }, [id]);
-    
     useEffect (()=>{
       setHasTable(project.tables.length > 0 );
       setHasDataProduct(sessionStorage.getItem(SESSION_STORAGE_KEYS.DATAPRODUCT_ID)?.split(':')[0] == project.id);
@@ -529,12 +529,14 @@ const Graph = ({user, hostHistory}) => {
                    { hasTable &&( 
                       <div>
                         <button
-                            className={classNames('btn btn-primary', Styles.btnOutline, !isOwner && Styles.btnDisabled)}
+                            //className={classNames('btn btn-primary', Styles.btnOutline, !isOwner && Styles.btnDisabled)}
+                            className={classNames('btn btn-primary', Styles.btnOutline, Styles.btnDisabled)}
                             type="button"
                             onClick={() => onDataProductClick()}
                         >
                             <i className="icon mbc-icon dataproductoverview" />
-                            <span>{!hasDataProduct ? "Provision as a Data Product" : "View Data Product"}</span>
+                            {/* <span>{!hasDataProduct ? "Provision as a Data Product" : "View Data Product"}</span> */}
+                            <span>Provision as a Data Product (comming soon)</span>
                         </button>
                     </div>)}
                     { hasTable &&( 
@@ -569,7 +571,7 @@ const Graph = ({user, hostHistory}) => {
                           accept=".csv, .parquet, .json"
                         />
                         <button
-                            className={classNames('btn btn-primary', Styles.btnOutline, !isOwner && Styles.btnDisabled)}
+                            className={classNames('btn btn-primary', Styles.btnOutline, !isOwner && Styles.btnDisabled,Envs.ENABLE_PROVISION_AND_UPLOAD ? '' : 'hide')}
                             type="button"
                             >
                             <i className="icon mbc-icon upload" />

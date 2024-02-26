@@ -31,7 +31,7 @@ const DatalakeProjectForm = ({project, edit, onSave}) => {
   const [dataClassification, setDataClassification] = useState(edit && project?.data?.classificationType !== null ? project?.data?.classificationType : 0);
   const [PII, setPII] = useState(edit && project?.data?.hasPii !== null ? project?.data?.hasPii : false);
   const [connectorType, setConnectorType] = useState(edit && project?.data?.connectorType !== null ? project?.data?.connectorType : 'Iceberg');
-  
+
   const [divisions, setDivisions] = useState([]);
   const [subDivisions, setSubDivisions] = useState([]);
   const [departments, setDepartments] = useState([]);
@@ -43,7 +43,7 @@ const DatalakeProjectForm = ({project, edit, onSave}) => {
   // const [statusError] = useState('');
 
   const [dataClassificationDropdown, setDataClassificationDropdown] = useState([]);
-
+  
   useEffect(() => {
     ProgressIndicator.show();
     datalakeApi.getLovData()
@@ -89,7 +89,7 @@ const DatalakeProjectForm = ({project, edit, onSave}) => {
         setSubDivisions([]);
         ProgressIndicator.hide();
     }
-    //eslint-disable-next-line react-hooks/exhaustive-deps
+      //eslint-disable-next-line react-hooks/exhaustive-deps
   }, [datalakeDivision]);
 
   const handleConnectorType = (e) => {
@@ -153,7 +153,7 @@ const DatalakeProjectForm = ({project, edit, onSave}) => {
       hasPii: values.pii
     }
     ProgressIndicator.show();
-    datalakeApi.updateDatalakeProject(data, project?.data?.id).then(() => {
+    datalakeApi.updateDatalakeProject(project?.data?.id, data).then(() => {
       ProgressIndicator.hide();
       Notification.show('Data Lakehouse Project successfully updated');
       onSave();
@@ -282,6 +282,7 @@ const DatalakeProjectForm = ({project, edit, onSave}) => {
                   <select
                         id="divisionField"
                         defaultValue={datalakeDivision}
+                        value={datalakeDivision}
                         {...register('datalakeDivision', {
                           required: '*Missing entry',
                           validate: (value) => value !== 0 || '*Missing entry',
@@ -317,6 +318,7 @@ const DatalakeProjectForm = ({project, edit, onSave}) => {
                     
                     <select id="subDivisionField" 
                       defaultValue={datalakeSubDivision}
+                      value={datalakeSubDivision}
                       {...register('datalakeSubDivision', {
                         onChange: (e) => { setDatalakeSubDivision(e.target.value) }
                       })}
@@ -426,6 +428,7 @@ const DatalakeProjectForm = ({project, edit, onSave}) => {
                   <div className={classNames('custom-select')}>
                     <select id="classificationField" 
                       defaultValue={dataClassification}
+                      value={project?.data?.classificationType !== null ? project?.data?.classificationType : 0}
                       {...register('dataClassification', {
                         required: '*Missing entry',
                         validate: (value) => value !== 0 || '*Missing entry',
@@ -496,7 +499,7 @@ const DatalakeProjectForm = ({project, edit, onSave}) => {
                 className="btn btn-tertiary"
                 type="button"
                 onClick={handleSubmit((values) => {
-                  edit ? handleEditProject() : handleCreateProject(values);
+                  edit ? handleEditProject(values) : handleCreateProject(values);
                 })}
               >
                 {edit ? 'Save Project' : 'Create Project'}
