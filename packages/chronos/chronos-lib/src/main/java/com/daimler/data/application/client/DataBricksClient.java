@@ -161,7 +161,14 @@ public class DataBricksClient {
 				getSingleRunResponse = response.getBody();
 			}
 		}catch(Exception e) {
-			log.error("Failed to invoke databricks get run  {} with {} ", runId,e.getMessage());
+			String errorMessageForGetRun = "";
+			errorMessageForGetRun = e.getMessage();
+			log.error("Failed to invoke databricks get run  {} with {} ", runId,errorMessageForGetRun);
+			if(errorMessageForGetRun!=null && errorMessageForGetRun.contains("does not exist")) {
+				getSingleRunResponse = new RunDetailsVO();
+				getSingleRunResponse.setRunId(runId);
+				getSingleRunResponse.setTasks(null);
+			}
 		}
 		return getSingleRunResponse;
 	}
