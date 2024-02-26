@@ -1,7 +1,6 @@
 package com.daimler.data.service.forecast;
 
 import java.math.BigDecimal;
-import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -12,20 +11,18 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import com.daimler.data.controller.ForecastController;
-import com.daimler.data.db.json.*;
-import com.daimler.data.dto.forecast.*;
-import com.daimler.data.util.MultipartFileConverter;
+import javax.servlet.http.HttpServletRequest;
+
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.core.io.ByteArrayResource;
-import org.springframework.http.*;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -37,13 +34,41 @@ import com.daimler.data.auth.vault.VaultAuthClientImpl;
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
 import com.daimler.data.db.entities.ForecastNsql;
+import com.daimler.data.db.json.ComparisonDetails;
+import com.daimler.data.db.json.ComparisonState;
+import com.daimler.data.db.json.File;
+import com.daimler.data.db.json.Forecast;
+import com.daimler.data.db.json.LeanGovernanceFeilds;
+import com.daimler.data.db.json.NotificationDetails;
+import com.daimler.data.db.json.RunDetails;
+import com.daimler.data.db.json.RunState;
+import com.daimler.data.db.json.UserDetails;
 import com.daimler.data.db.repo.forecast.ForecastCustomRepository;
 import com.daimler.data.db.repo.forecast.ForecastRepository;
 import com.daimler.data.dto.comparison.ChronosComparisonRequestDto;
 import com.daimler.data.dto.comparison.CreateComparisonResponseWrapperDto;
 import com.daimler.data.dto.databricks.DataBricksJobRunOutputResponseWrapperDto;
 import com.daimler.data.dto.databricks.RunNowNotebookParamsDto;
+import com.daimler.data.dto.forecast.ApiKeyVO;
+import com.daimler.data.dto.forecast.CancelRunResponseVO;
+import com.daimler.data.dto.forecast.CollaboratorVO;
+import com.daimler.data.dto.forecast.ComparisonStateVO;
+import com.daimler.data.dto.forecast.DataBricksErrorResponseVO;
+import com.daimler.data.dto.forecast.ForecastComparisonCreateResponseVO;
+import com.daimler.data.dto.forecast.ForecastComparisonResultVO;
+import com.daimler.data.dto.forecast.ForecastComparisonVO;
+import com.daimler.data.dto.forecast.ForecastConfigFileResultVO;
+import com.daimler.data.dto.forecast.ForecastConfigFileUploadResponseVO;
+import com.daimler.data.dto.forecast.ForecastProjectUpdateRequestVO;
+import com.daimler.data.dto.forecast.ForecastRunResponseVO;
+import com.daimler.data.dto.forecast.ForecastVO;
+import com.daimler.data.dto.forecast.InputFileVO;
+import com.daimler.data.dto.forecast.RunDetailsVO;
+import com.daimler.data.dto.forecast.RunNowResponseVO;
+import com.daimler.data.dto.forecast.RunStateVO;
 import com.daimler.data.dto.forecast.RunStateVO.ResultStateEnum;
+import com.daimler.data.dto.forecast.RunVO;
+import com.daimler.data.dto.forecast.RunVisualizationVO;
 import com.daimler.data.dto.storage.BucketObjectDetailsDto;
 import com.daimler.data.dto.storage.BucketObjectsCollectionWrapperDto;
 import com.daimler.data.dto.storage.CreateBucketResponseWrapperDto;
@@ -53,13 +78,11 @@ import com.daimler.data.dto.storage.FileUploadResponseDto;
 import com.daimler.data.dto.storage.GetBucketByNameResponseWrapperDto;
 import com.daimler.data.dto.storage.UpdateBucketResponseWrapperDto;
 import com.daimler.data.service.common.BaseCommonService;
+import com.daimler.data.util.MultipartFileConverter;
 import com.daimler.dna.notifications.common.producer.KafkaProducerService;
 import com.google.gson.JsonArray;
 
 import lombok.extern.slf4j.Slf4j;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.validation.Valid;
 
 @Service
 @Slf4j
@@ -420,7 +443,7 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 		
 		Optional<ForecastNsql> entityOptional = jpaRepo.findById(forecastId);
 		long totalCount = 0L;
-		if(entityOptional!=null) {
+		if(entityOptional.isPresent()) {
 			ForecastNsql entity = entityOptional.get();
 			String forecastName = entity.getData().getName();
 			if(entity!=null && entity.getData()!=null && 	
@@ -543,8 +566,8 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 					String runId = run.getRunId();
 					String correlationId= run.getId();
 					String existingLifecycleState = run.getRunState().getLife_cycle_state();  
-					if(run.getExogenData()==null)
-						run.setExogenData(false);
+//					if(run.getExogenData()==null)
+//						run.setExogenData(false);
 					if(runId!=null && (run.getIsDelete() == null || !run.getIsDelete()) &&
 							(state==null || state.getResult_state()==null || state.getLife_cycle_state()==null ||
 									"PENDING".equalsIgnoreCase(state.getLife_cycle_state()) ||
@@ -717,8 +740,15 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 											}
 										}
 									}else {
-										String taskRunId=updatedRunResponse.getTasks().get(0).getRunId();
-										String errorMessage=processErrorMessages(taskRunId);
+										//add error message if run fails
+										String taskRunId= "";
+										String errorMessage="";
+										if(updatedRunResponse.getTasks()!=null && updatedRunResponse.getTasks().size()>1 && updatedRunResponse.getTasks().get(0)!=null && updatedRunResponse.getTasks().get(0).getRunId()!=null) {
+										 taskRunId=updatedRunResponse.getTasks().get(0).getRunId();
+										 errorMessage=processErrorMessages(taskRunId);
+										}else {
+											errorMessage="Run does not exist.";
+										}
 										updatedRunDetail.setError(errorMessage);
 										updatedRunDetail.setTaskRunId(taskRunId);
 										updatedStateMsg = errorMessage;
@@ -770,8 +800,14 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 							if(updatedRunResponse!=null && runId.equals(updatedRunResponse.getRunId())) {
 								log.info(" Updating error msg for failed old run {} of forecast project {} after getting errorMessage from output", run.getRunName(), bucketName);
 								BeanUtils.copyProperties(run, updatedRunDetail);
-								String taskRunId=updatedRunResponse.getTasks().get(0).getRunId();
-								String errorMessage=processErrorMessages(taskRunId);
+								String taskRunId="";
+								String errorMessage="";
+								if(updatedRunResponse.getTasks()!=null && updatedRunResponse.getTasks().size()>1 && updatedRunResponse.getTasks().get(0)!=null && updatedRunResponse.getTasks().get(0).getRunId()!=null) {
+									taskRunId = updatedRunResponse.getTasks().get(0).getRunId();
+									errorMessage=processErrorMessages(taskRunId);
+								}else {
+									errorMessage="Run does not exist.";
+								}
 								updatedRunDetail.setError(errorMessage);
 								updatedRunDetail.setTaskRunId(taskRunId);
 								updatedRunDetail.getRunState().setState_message(errorMessage);
@@ -783,14 +819,21 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 							}
 						} else {
 							//check if exogenous data is present
-							String resultFolderPathForRun = resultsPrefix + run.getId()+"-"+run.getRunName()+"/";
-							List<BucketObjectDetailsDto> bucketObjectDetails=storageClient.getFilesPresent(bucketName,resultFolderPathForRun);
-							Boolean exogenousFilePresent = storageClient.isFilePresent(resultFolderPathForRun+ EXOGENOUS_FILE_NAME, bucketObjectDetails);
-							if(exogenousFilePresent){
-								run.setExogenData(true);
+							if("SUCCESS".equalsIgnoreCase(state.getResult_state()) && run.getExogenData()==null) {
+								String resultFolderPathForRun = resultsPrefix + run.getId()+"-"+run.getRunName()+"/";
+								List<BucketObjectDetailsDto> bucketObjectDetails=storageClient.getFilesPresent(bucketName,resultFolderPathForRun);
+								Boolean exogenousFilePresent = storageClient.isFilePresent(resultFolderPathForRun+ EXOGENOUS_FILE_NAME, bucketObjectDetails);
+								if(exogenousFilePresent){
+									run.setExogenData(true);
+									log.info("Adding old success run {} of project {} with exogenous data to true ", run.getRunName(), forecastName);
+								}else {
+									run.setExogenData(false);
+									log.info("Adding old success run {} of project {} with exogenous data to false ", run.getRunName(), forecastName);
+								}
+							}else {
+								log.info("Adding old success run {} of project {} without update ", run.getRunName(), forecastName);
 							}
-							log.debug("Adding old success run {} of project {} without update ", run.getRunName(), forecastName);
-							updatedRuns.add(run);
+								updatedRuns.add(run);
 						}
 					}
 				}
@@ -1685,14 +1728,14 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 	public Object[] getAllRuns(int limit, int offset, String forecastId, String sortBy, String sortOrder) {
 		Object[] runCollectionWrapper = new Object[2];
 
-		log.error(" method called from controller/ UI ");
+		log.info(" method called from controller/ UI ");
 
 		List<RunDetails> updatedRuns = new ArrayList<>();
 		List<RunVO> updatedRunVOList = new ArrayList<>();
 		List<RunDetails> newSubList = new ArrayList<>();
 		Optional<ForecastNsql> entityOptional = jpaRepo.findById(forecastId);
 		long totalCount = 0L;
-		if (entityOptional != null) {
+		if (entityOptional.isPresent()) {
 			ForecastNsql entity = entityOptional.get();
 			String forecastName = entity.getData().getName();
 			if (entity != null && entity.getData() != null &&
