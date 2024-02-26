@@ -888,13 +888,17 @@ definitions:
     properties:
       targetEnvironment:
         type: string
-        enum: [int,prod]
+        enum: [int, prod]
       branch:
         type: string
       secureWithIAMRequired:
         type: boolean
       technicalUserDetailsForIAMLogin:
-        type: string     
+        type: string
+      valutInjectorEnable:  # Corrected property name
+        type: boolean
+        default: false  # This should now work as expected
+
            
   CodeServerDeploymentDetailsVO:
     type: object
