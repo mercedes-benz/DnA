@@ -349,24 +349,31 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 				" \"technicalUserDetailsForIAMLogin\": " + addQuotes(deploymentDetails.getTechnicalUserDetailsForIAMLogin()) + "," +
 				" \"lastDeployedBranch\": " + addQuotes(deploymentDetails.getLastDeployedBranch()) + "," +
 				" \"gitjobRunID\": " + addQuotes(deploymentDetails.getGitjobRunID()) + "," +
-				" \"lastDeploymentStatus\": " + addQuotes(deploymentDetails.getLastDeploymentStatus()) + "," +
-				" \"deploymentAuditLogs\": COALESCE(data->'projectDetails'->>'deploymentAuditLogs', '[]'::jsonb)";
+				" \"lastDeploymentStatus\": " + addQuotes(deploymentDetails.getLastDeploymentStatus()) ;
 
 			List<DeploymentAudit> deploymentAuditLogs = deploymentDetails.getDeploymentAuditLogs();
+			updateQuery += ", \"deploymentAuditLogs\" : ";
 			if (deploymentAuditLogs != null && !deploymentAuditLogs.isEmpty()) {
 				// Iterate over each DeploymentAudit object and add it to the JSON array
-				for (DeploymentAudit auditLog : deploymentAuditLogs) {
-					updateQuery += " || '[{" +
+				updateQuery += "[";
+				for (int i = 0; i < deploymentAuditLogs.size(); i++) {
+					DeploymentAudit auditLog = deploymentAuditLogs.get(i);
+					updateQuery += "{" +
 						" \"triggeredBy\": " + addQuotes(auditLog.getTriggeredBy()) + "," +
 						" \"triggeredOn\": " + addQuotes(String.valueOf(auditLog.getTriggeredOn().getTime())) + "," +
 						" \"deploymentStatus\": " + addQuotes(auditLog.getDeploymentStatus()) + "," +
 						" \"deployedOn\": " + (auditLog.getDeployedOn() != null ? addQuotes(String.valueOf(auditLog.getDeployedOn().getTime())) : "null") + "," +
-						" \"branch\": " + addQuotes(auditLog.getBranch()) + "}]'";
+						" \"branch\": " + addQuotes(auditLog.getBranch()) + "}";
+					if(i+1 < deploymentAuditLogs.size()) {
+						updateQuery += ",";
+					}
 				}
+				updateQuery += "]";
+			}else {
+				updateQuery +=  " []";
 			}
-
-			updateQuery += ") " +
-				"where data->'projectDetails'->>'projectName' = '" + projectName + "'";
+			updateQuery += "}')\r\n";
+			updateQuery += "where data->'projectDetails'->>'projectName' = '" + projectName + "'";
 
 		try {
 			Query q = em.createNativeQuery(updateQuery);
@@ -378,7 +385,7 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 		}catch(Exception e) {
 			MessageDescription errMsg = new MessageDescription("Failed while updating deployment details.");
 			errors.add(errMsg);
-			log.error("deployment details updated successfully for project {} and environment {} , branch {} ", projectName,environment,deploymentDetails.getLastDeployedBranch());
+			log.error("failed to update deployment details for project {} and environment {} , branch {} ", projectName,environment,deploymentDetails.getLastDeployedBranch());
 		}
 		return updateResponse;
 	}
