@@ -252,15 +252,17 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
                         ) : (
                           <>{regionalDateAndTimeConversionSolution(intLastDeployedOn)}&nbsp;</>
                         )}
+                        <br />
                         {!creationFailed && !enableOnboard && (
                           <>
-                            <a target="_blank" href={buildLogViewURL(intDeployedUrl, true)} rel="noreferrer">
-                              <i
-                                tooltip-data="Show Staging App logs in new tab"
-                                className="icon mbc-icon workspace small right"
-                              />
-                            </a>
-
+                            <span className={Styles.metricsTrigger}>
+                              <a target="_blank" href={buildLogViewURL(intDeployedUrl, true)} rel="noreferrer">
+                                <i
+                                  tooltip-data="Show Staging App logs in new tab"
+                                  className="icon mbc-icon workspace small right"
+                                />
+                              </a>
+                            </span>
                             <span className={Styles.metricsTrigger}>
                               <i
                                 onClick={() => {
@@ -313,15 +315,17 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
                         ) : (
                           <>{regionalDateAndTimeConversionSolution(prodLastDeployedOn)}&nbsp;</>
                         )}
+                        <br />
                         {!creationFailed && !enableOnboard && (
                           <>
-                            <a target="_blank" href={buildLogViewURL(prodDeployedUrl)} rel="noreferrer">
-                              <i
-                                tooltip-data="Show Production App logs in new tab"
-                                className="icon mbc-icon workspace small right"
-                              />
-                            </a>
-
+                            <span className={Styles.metricsTrigger}>
+                              <a target="_blank" href={buildLogViewURL(prodDeployedUrl)} rel="noreferrer">
+                                <i
+                                  tooltip-data="Show Production App logs in new tab"
+                                  className="icon mbc-icon workspace small right"
+                                />
+                              </a>
+                            </span>
                             <span className={Styles.metricsTrigger}>
                               <i
                                 onClick={() => {
