@@ -1376,7 +1376,7 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 								}
 							}
 							if(mapping!=null){
-								FileUploadResponseDto mappingFileUploadResponse = storageClient.uploadFile(INPUT_FILE_PREFIX, drivers,
+								FileUploadResponseDto mappingFileUploadResponse = storageClient.uploadFile(INPUT_FILE_PREFIX, mapping,
 									existingForecast.getBucketName());
 								if (mappingFileUploadResponse == null
 										|| (mappingFileUploadResponse != null && (mappingFileUploadResponse.getErrors() != null
