@@ -773,7 +773,7 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 							updatedRuns.add(updatedRunDetail);
 
 						}else {
-							log.info("Adding pending run {} of project {} without update, since getrun response is failed or null ", run.getRunName(), forecastName);
+							log.debug("Adding pending run {} of project {} without update, since getrun response is failed or null ", run.getRunName(), forecastName);
 							updatedRuns.add(run);
 						}
 					}
@@ -831,7 +831,7 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 									log.info("Adding old success run {} of project {} with exogenous data to false ", run.getRunName(), forecastName);
 								}
 							}else {
-								log.info("Adding old success run {} of project {} without update ", run.getRunName(), forecastName);
+								log.debug("Adding old success run {} of project {} without update ", run.getRunName(), forecastName);
 							}
 								updatedRuns.add(run);
 						}
@@ -1422,7 +1422,7 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 			}
 			data.setComparisons(updatedComparisons);
 			entity.setData(data);
-			log.info("Aync job saving updated comparisons with new state ");
+			log.debug("Aync job saving updated comparisons with new state ");
 			this.jpaRepo.save(entity);
 		}
 	}
