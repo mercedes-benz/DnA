@@ -743,7 +743,7 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 										//add error message if run fails
 										String taskRunId= "";
 										String errorMessage="";
-										if(updatedRunResponse.getTasks()!=null && updatedRunResponse.getTasks().size()>1 && updatedRunResponse.getTasks().get(0)!=null && updatedRunResponse.getTasks().get(0).getRunId()!=null) {
+										if(updatedRunResponse.getTasks()!=null && updatedRunResponse.getTasks().size()>=1  && updatedRunResponse.getTasks().get(0)!=null && updatedRunResponse.getTasks().get(0).getRunId()!=null) {
 										 taskRunId=updatedRunResponse.getTasks().get(0).getRunId();
 										 errorMessage=processErrorMessages(taskRunId);
 										}else {
@@ -802,7 +802,7 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 								BeanUtils.copyProperties(run, updatedRunDetail);
 								String taskRunId="";
 								String errorMessage="";
-								if(updatedRunResponse.getTasks()!=null && updatedRunResponse.getTasks().size()>1 && updatedRunResponse.getTasks().get(0)!=null && updatedRunResponse.getTasks().get(0).getRunId()!=null) {
+								if(updatedRunResponse.getTasks()!=null && updatedRunResponse.getTasks().size()>=1 && updatedRunResponse.getTasks().get(0)!=null && updatedRunResponse.getTasks().get(0).getRunId()!=null) {
 									taskRunId = updatedRunResponse.getTasks().get(0).getRunId();
 									errorMessage=processErrorMessages(taskRunId);
 								}else {
