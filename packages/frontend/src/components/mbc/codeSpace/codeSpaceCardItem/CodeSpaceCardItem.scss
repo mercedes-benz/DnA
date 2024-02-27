@@ -69,10 +69,6 @@
         }
         > div:last-child {
           flex: 1;
-          > a {
-            text-decoration: none;
-            margin-left: 10px;
-          }
         }
       }
       ul {
@@ -101,19 +97,27 @@
 
     > div {
       padding: 5px;
-      > a {
-        text-decoration: none;
-        margin-left: 0 !important;
+      > span {
+        color: #00adef;
         margin-right: 10px;
+
+        > a {
+          text-decoration: none;
+          margin-left: 0 !important;
+        }
+      }
+
+      a.error {
+        color: #e84d47;
       }
     }
 
-     > div:first-child {
+    > div:first-child {
       font-size: inherit !important;
       font-weight: inherit !important;
       color: inherit !important;
       border-right: 1px solid #383F49;
-     }
+    }
   }
   .statusIndicator {
     padding: 2px 8px;
