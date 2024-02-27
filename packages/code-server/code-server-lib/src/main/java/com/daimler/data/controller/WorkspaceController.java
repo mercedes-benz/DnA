@@ -73,6 +73,7 @@ import com.daimler.data.dto.workspace.CodeServerRecipeDetailsVO.OperatingSystemE
 import com.daimler.data.dto.workspace.CodeServerRecipeDetailsVO.RamSizeEnum;
 import com.daimler.data.dto.workspace.CodeServerWorkspaceVO;
 import com.daimler.data.dto.workspace.CodeServerWorkspaceValidateVO;
+import com.daimler.data.dto.workspace.CodespaceSecurityApiListVO;
 import com.daimler.data.dto.workspace.CodespaceSecurityConfigLOV;
 import com.daimler.data.dto.workspace.CodespaceSecurityConfigVO;
 import com.daimler.data.dto.workspace.CodespaceSecurityEntitlementVO;
@@ -334,9 +335,12 @@ import lombok.extern.slf4j.Slf4j;
 			 if(data.isIsProtectedByDna()!=null && ! data.isIsProtectedByDna())
 			 {
 				 List<CodespaceSecurityEntitlementVO> entitlemtVOs = data.getEntitlements();
-				 for(CodespaceSecurityEntitlementVO entitlement : entitlemtVOs)
+				 if(entitlemtVOs != null)
 				 {
-					 entitlement.setApiList(new ArrayList<>());
+					for(CodespaceSecurityEntitlementVO entitlement : entitlemtVOs)
+					{
+						entitlement.setApiList(new ArrayList<>());
+					}
 				 }
 			 }
 			 List<CodespaceSecurityEntitlementVO> entitlementVo = data.getEntitlements();
@@ -353,6 +357,32 @@ import lombok.extern.slf4j.Slf4j;
 					saveConfigResponse.setResponse(errorMessage);
 					log.info("Entitlement names should be unique. Bad request.");
 					return new ResponseEntity<>(saveConfigResponse, HttpStatus.BAD_REQUEST);
+				}
+				if (!entitlementVo.isEmpty() && data.isIsProtectedByDna()) {
+					// Set<String> seenApis = new HashSet<>();
+				
+					for (CodespaceSecurityEntitlementVO entitlements : entitlementVo) {
+						Set<String> seenApis = new HashSet<>();
+						List<CodespaceSecurityApiListVO> list = entitlements.getApiList();
+						for (CodespaceSecurityApiListVO apiListVO : list) {
+							String apiPattern = apiListVO.getApiPattern();
+							String httpMethod = apiListVO.getHttpMethod().toString();
+							String combinedKey = apiPattern + ":" + httpMethod;
+				
+							if (seenApis.contains(combinedKey)) {
+								// Duplicate API pattern and HTTP method found
+								MessageDescription badRequestMsg = new MessageDescription();
+								badRequestMsg.setMessage("Path names should be unique. Bad request.");
+								GenericMessage errorMessage = new GenericMessage();
+								errorMessage.addErrors(badRequestMsg);
+								saveConfigResponse.setResponse(errorMessage);
+								log.info("Path names should be unique. Bad request.");
+								return new ResponseEntity<>(saveConfigResponse, HttpStatus.BAD_REQUEST);
+							} else {
+								seenApis.add(combinedKey);
+							}
+						}
+					}
 				}
 			 }
 			 List<CodespaceSecurityRoleVO> roleVo = data.getRoles();
