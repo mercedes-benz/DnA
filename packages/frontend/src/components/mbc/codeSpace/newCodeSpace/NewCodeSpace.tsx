@@ -196,13 +196,14 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
     setProjectNameError(
       !noSpaceNoSpecialChars
         ? projectNameVal.length
-          ? 'Invalid name - Space and Special Chars not allowed'
+          ? 'Invalid name: Space and Special Chars not allowed.'
           : requiredError
         : '',
     );
-    const startsOrEndswith = /^-|-$|(--)/i.test(projectNameVal);
+    
+    const startsOrEndswith = /^-|-$|(--)|^\d+$/i.test(projectNameVal);
     if(startsOrEndswith) {
-      setProjectNameError('Invalid name - Starts or Ends with - or contains continuous -');
+      setProjectNameError('Invalid name: Should not start or end with "-" or name contains only numbers.');
     }
   };
 
