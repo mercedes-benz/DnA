@@ -1728,7 +1728,6 @@ definitions:
         description: name of the run sample. Example YYYY-MM-DD_run_topic
       configurationFile:
         type: string
-        enum: [Default-Settings]
         description: "Chronos default config yml"
       frequency:
         type: string
