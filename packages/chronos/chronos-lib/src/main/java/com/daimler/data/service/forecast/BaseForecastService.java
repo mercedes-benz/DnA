@@ -695,9 +695,9 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 
 										//check if exogenous data is present
 										if(exogenousFileFlag){
-											run.setExogenData(true);
+											updatedRunDetail.setExogenData(true);
 										}else{
-											run.setExogenData(false);
+											updatedRunDetail.setExogenData(false);
 										}
 										log.info("Run state is success from databricks and successFileFlag value is {} and warningsFileFlag is {} , for bucket {} and prefix {} ", successFileFlag, warningsFileFlag, bucketName, resultFolderPathForRun);
 										if(warningsFileFlag || warningsInfoFileFlag){
