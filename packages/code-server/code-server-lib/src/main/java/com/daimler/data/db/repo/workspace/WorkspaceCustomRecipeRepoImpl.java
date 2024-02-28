@@ -13,12 +13,15 @@ import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 
 import org.springframework.stereotype.Repository;
-import com.daimler.data.db.json.CodeServerRecipeLov;
 import com.daimler.data.db.repo.common.CommonDataRepositoryImpl;
+import com.daimler.data.controller.exceptions.GenericMessage;
+import com.daimler.data.controller.exceptions.MessageDescription;
 import com.daimler.data.db.entities.CodeServerRecipeNsql;
 import com.daimler.data.db.entities.CodeServerWorkspaceNsql;
+import com.daimler.data.dto.CodeServerRecipeDto;
 import com.daimler.data.dto.workspace.recipe.RecipeVO;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.daimler.data.dto.CodeServerRecipeDto;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -66,11 +69,11 @@ public class WorkspaceCustomRecipeRepoImpl extends CommonDataRepositoryImpl<Code
     }
 
     @Override
-    public List<CodeServerRecipeLov> getAllPublicRecipeLov()
+    public List<CodeServerRecipeDto> getAllPublicRecipeLov()
     {
-        List<CodeServerRecipeLov> lov = new ArrayList<>();
+        List<CodeServerRecipeDto> lov = new ArrayList<>();
         List<Object[]> results = new ArrayList<>();
-        String getQuery = "SELECT cast(jsonb_extract_path_text(data, 'id') as text) as RECIPE_ID, " +
+        String getQuery = "SELECT id as RECIPE_ID, " +
                         "cast(jsonb_extract_path_text(data, 'recipeName') as text) as RECIPE_NAME " +
                         "FROM public.recipe_nsql " +
                         "WHERE lower(jsonb_extract_path_text(data, 'status')) IN ('published') " +
@@ -80,7 +83,7 @@ public class WorkspaceCustomRecipeRepoImpl extends CommonDataRepositoryImpl<Code
 			results = q.getResultList();
 			ObjectMapper mapper = new ObjectMapper();
 			for(Object[] rowData : results){
-				CodeServerRecipeLov rowDetails = new CodeServerRecipeLov();
+				CodeServerRecipeDto rowDetails = new CodeServerRecipeDto();
 				if(rowData !=null){
 					rowDetails.setId((String)rowData[0]);
 					rowDetails.setRecipeName((String)rowData[1]);
@@ -97,12 +100,12 @@ public class WorkspaceCustomRecipeRepoImpl extends CommonDataRepositoryImpl<Code
     }
 
     @Override
-    public  List<CodeServerRecipeLov> getAllPrivateRecipeLov(String id)
+    public  List<CodeServerRecipeDto> getAllPrivateRecipeLov(String id)
     {
-         List<CodeServerRecipeLov> lov = new ArrayList<>();
+         List<CodeServerRecipeDto> lov = new ArrayList<>();
         List<Object[]> results = new ArrayList<>();
         String getQuery = "SELECT " +
-                        "cast(jsonb_extract_path_text(data, 'id') as text) as RECIPE_ID, " +
+                        "id as RECIPE_ID, " +
                         "cast(jsonb_extract_path_text(data, 'recipeName') as text) as RECIPE_NAME " +
                     "FROM " +
                         "public.recipe_nsql " +
@@ -119,7 +122,7 @@ public class WorkspaceCustomRecipeRepoImpl extends CommonDataRepositoryImpl<Code
 			results = q.getResultList();
 			ObjectMapper mapper = new ObjectMapper();
 			for(Object[] rowData : results){
-				CodeServerRecipeLov rowDetails = new CodeServerRecipeLov();
+				CodeServerRecipeDto rowDetails = new CodeServerRecipeDto();
 				if(rowData !=null){
 					rowDetails.setId((String)rowData[0]);
 					rowDetails.setRecipeName((String)rowData[1]);
@@ -136,6 +139,7 @@ public class WorkspaceCustomRecipeRepoImpl extends CommonDataRepositoryImpl<Code
 
     }
 
+    @Override
     public List<CodeServerRecipeNsql> findAllRecipesWithRequestedAndAcceptedState(int offset, int limit) {
         CriteriaBuilder cb = em.getCriteriaBuilder();
         CriteriaQuery<CodeServerRecipeNsql> cq = cb.createQuery(CodeServerRecipeNsql.class);
@@ -156,5 +160,40 @@ public class WorkspaceCustomRecipeRepoImpl extends CommonDataRepositoryImpl<Code
             getAllQuery.setMaxResults(limit);
         return getAllQuery.getResultList();
  
+    }
+
+    @Override
+    public GenericMessage updateRecipeInfo(String name,String status)
+    {
+        GenericMessage updateResponse = new GenericMessage();
+		updateResponse.setSuccess("FAILED");
+		List<MessageDescription> errors = new ArrayList<>();
+		List<MessageDescription> warnings = new ArrayList<>();
+        String updateQuery = "UPDATE recipe_nsql SET data = jsonb_set(data, '{status}', '\""+ status +"\"') "
+        + " WHERE lower(jsonb_extract_path_text(data,'recipeName')) = '" + name.toLowerCase() + "'";
+
+		try {
+			Query q = em.createNativeQuery(updateQuery);
+            ObjectMapper mapper = new ObjectMapper();
+            try
+            {
+                System.out.println(mapper.writeValueAsString(q));
+            }
+            catch(Exception e)
+            {
+                System.out.println(e.getMessage());
+            }
+			q.executeUpdate();
+			updateResponse.setSuccess("SUCCESS");
+			updateResponse.setErrors(new ArrayList<>());
+			updateResponse.setWarnings(new ArrayList<>());
+			log.info("updated status of recipe {} to ACCPETED state", name);
+		}catch(Exception e) {
+			e.printStackTrace();
+			MessageDescription errMsg = new MessageDescription("Failed while updating the recipe  status.");
+			errors.add(errMsg);
+			log.error("Failed to update status of recipe  {} to ACCPETED state with exception {}", name, e.getMessage());
+		}
+        return updateResponse;
     }
 }

@@ -12,6 +12,9 @@ import org.springframework.stereotype.Component;
 import java.text.SimpleDateFormat;
 import java.util.stream.Collectors;
 import com.daimler.data.dto.workspace.recipe.RecipeVO.OSNameEnum;
+import com.daimler.data.dto.workspace.recipe.RecipeVO.RecipeTypeEnum;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.daimler.data.dto.CodeServerRecipeDto;
 import com.daimler.data.dto.workspace.CodeServerRecipeDetailsVO.RecipeIdEnum;
 import com.daimler.data.dto.workspace.UserInfoVO;
 import com.daimler.data.db.entities.CodeServerRecipeNsql;
@@ -20,7 +23,6 @@ import com.daimler.data.db.json.RecipeSoftware;
 import com.daimler.data.db.json.UserInfo;
 import com.daimler.data.dto.workspace.recipe.RecipeVO;
 import com.daimler.data.dto.workspace.recipe.RecipeSoftwareVO;
-import com.daimler.data.db.json.CodeServerRecipeLov;
 import com.daimler.data.dto.workspace.recipe.RecipeLovVO;
 import lombok.extern.slf4j.Slf4j;
 
@@ -36,7 +38,6 @@ public class RecipeAssembler implements GenericAssembler<RecipeVO, CodeServerRec
 			if (Objects.nonNull(entity) && Objects.nonNull(entity.getData())) {
 				CodeServerRecipe recipe = entity.getData();
 				BeanUtils.copyProperties(recipe, recipeVo);
-				recipeVo.setId(entity.getId());
 				if (recipe.getSoftware() != null) {
 					recipeVo.setSoftware(recipe.getSoftware());
 				}
@@ -56,6 +57,10 @@ public class RecipeAssembler implements GenericAssembler<RecipeVO, CodeServerRec
 				}
 				if (recipe.getOSName() != null) {
 					recipeVo.setOSName(OSNameEnum.fromValue(recipe.getOSName()));
+				}
+				if(recipe.getRecipeType()!=null)
+				{
+					recipeVo.setRecipeType(RecipeTypeEnum.fromValue(recipe.getRecipeType()));
 				}
 				if (recipe.getPlugins() != null) {
 					recipeVo.setPlugins(recipe.getPlugins());
@@ -85,17 +90,6 @@ public class RecipeAssembler implements GenericAssembler<RecipeVO, CodeServerRec
 		CodeServerRecipe recipeData = new CodeServerRecipe();
 		if (Objects.nonNull(vo)) {
 			BeanUtils.copyProperties(vo, recipeData);
-			recipeData.setId(vo.getId());
-			// List<RecipeSoftwareVO> softwares = vo.getSoftware();
-			// List<RecipeSoftware> softwareData = new ArrayList<>();
-			// if (Objects.nonNull(softwares)) {
-			// 	for (RecipeSoftwareVO software : softwares) {
-			// 		RecipeSoftware softwareVo = new RecipeSoftware();
-			// 		BeanUtils.copyProperties(software, softwareVo);
-			// 		softwareData.add(softwareVo);
-			// 	}
-			// 	recipeData.setSoftware(softwareData);
-			// }
 			if (vo.getSoftware() != null) {
 				recipeData.setSoftware(vo.getSoftware());
 			}
@@ -125,6 +119,7 @@ public class RecipeAssembler implements GenericAssembler<RecipeVO, CodeServerRec
 				users = userDetails.stream().map(n -> this.toUserInfo(n)).collect(Collectors.toList());
 			}
 			recipeData.setUsers(users);
+			recipeData.setRecipeType(vo.getRecipeType().toString());
 			recipeData.setOSName(vo.getOSName().toString());
 			entity.setData(recipeData);
 		}
@@ -148,7 +143,7 @@ public class RecipeAssembler implements GenericAssembler<RecipeVO, CodeServerRec
 	}
 
 	
-	public RecipeLovVO toRecipeLovVO(CodeServerRecipeLov entity)
+	public RecipeLovVO toRecipeLovVO(CodeServerRecipeDto entity)
 	{
 		RecipeLovVO vo = new RecipeLovVO();
 		if(entity!=null || Objects.nonNull(entity))
