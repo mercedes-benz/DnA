@@ -345,46 +345,42 @@ import lombok.extern.slf4j.Slf4j;
 			 }
 			 List<CodespaceSecurityEntitlementVO> entitlementVo = data.getEntitlements();
 			 Set<String> entitlementSet = new HashSet<>();
-			 for(CodespaceSecurityEntitlementVO entitlement:entitlementVo )
-			 {
+
+			for (CodespaceSecurityEntitlementVO entitlement : entitlementVo) {
 				String name = entitlement.getName();
 				if (!entitlementSet.add(name)) {
+					// Duplicate entitlement name found
 					MessageDescription badRequestMsg = new MessageDescription();
-					badRequestMsg.setMessage(
-							"Entitlement names should be unique. Bad request.");
+					badRequestMsg.setMessage("Entitlement names should be unique. Bad request.");
 					GenericMessage errorMessage = new GenericMessage();
 					errorMessage.addErrors(badRequestMsg);
 					saveConfigResponse.setResponse(errorMessage);
 					log.info("Entitlement names should be unique. Bad request.");
 					return new ResponseEntity<>(saveConfigResponse, HttpStatus.BAD_REQUEST);
 				}
-				if (!entitlementVo.isEmpty() && data.isIsProtectedByDna()) {
-					// Set<String> seenApis = new HashSet<>();
-				
-					for (CodespaceSecurityEntitlementVO entitlements : entitlementVo) {
-						Set<String> seenApis = new HashSet<>();
-						List<CodespaceSecurityApiListVO> list = entitlements.getApiList();
-						for (CodespaceSecurityApiListVO apiListVO : list) {
-							String apiPattern = apiListVO.getApiPattern();
-							String httpMethod = apiListVO.getHttpMethod().toString();
-							String combinedKey = apiPattern + ":" + httpMethod;
-				
-							if (seenApis.contains(combinedKey)) {
-								// Duplicate API pattern and HTTP method found
-								MessageDescription badRequestMsg = new MessageDescription();
-								badRequestMsg.setMessage("Path names should be unique. Bad request.");
-								GenericMessage errorMessage = new GenericMessage();
-								errorMessage.addErrors(badRequestMsg);
-								saveConfigResponse.setResponse(errorMessage);
-								log.info("Path names should be unique. Bad request.");
-								return new ResponseEntity<>(saveConfigResponse, HttpStatus.BAD_REQUEST);
-							} else {
-								seenApis.add(combinedKey);
-							}
-						}
+
+				List<CodespaceSecurityApiListVO> list = entitlement.getApiList();
+				Set<String> seenApis = new HashSet<>();
+				for (CodespaceSecurityApiListVO apiListVO : list) {
+					String apiPattern = apiListVO.getApiPattern();
+					String httpMethod = apiListVO.getHttpMethod().toString();
+					String combinedKey = apiPattern + ":" + httpMethod;
+
+					if (seenApis.contains(combinedKey)) {
+						// Duplicate API pattern and HTTP method found
+						MessageDescription badRequestMsg = new MessageDescription();
+						badRequestMsg.setMessage("Path names should be unique. Bad request.");
+						GenericMessage errorMessage = new GenericMessage();
+						errorMessage.addErrors(badRequestMsg);
+						saveConfigResponse.setResponse(errorMessage);
+						log.info("Path names should be unique. Bad request.");
+						return new ResponseEntity<>(saveConfigResponse, HttpStatus.BAD_REQUEST);
+					} else {
+						seenApis.add(combinedKey);
 					}
 				}
-			 }
+				entitlementSet.add(name);
+			}
 			 List<CodespaceSecurityRoleVO> roleVo = data.getRoles();
 			 Set<String> roleSet = new HashSet<>();
 			 for(CodespaceSecurityRoleVO role:roleVo)
