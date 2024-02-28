@@ -695,9 +695,9 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 
 										//check if exogenous data is present
 										if(exogenousFileFlag){
-											run.setExogenData(true);
+											updatedRunDetail.setExogenData(true);
 										}else{
-											run.setExogenData(false);
+											updatedRunDetail.setExogenData(false);
 										}
 										log.info("Run state is success from databricks and successFileFlag value is {} and warningsFileFlag is {} , for bucket {} and prefix {} ", successFileFlag, warningsFileFlag, bucketName, resultFolderPathForRun);
 										if(warningsFileFlag || warningsInfoFileFlag){
@@ -794,7 +794,7 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 								("TERMINATED".equalsIgnoreCase(state.getLife_cycle_state()) ||
 								"INTERNAL_ERROR".equalsIgnoreCase(state.getLife_cycle_state()) ||
 								"SKIPPED".equalsIgnoreCase(state.getLife_cycle_state()))) &&
-								!"SUCCESS".equalsIgnoreCase(state.getResult_state()) && !"CANCELED".equalsIgnoreCase(state.getResult_state()) && (run.getError() == null || "".equalsIgnoreCase(run.getError())
+								!"SUCCESS".equalsIgnoreCase(state.getResult_state()) && !"INFO".equalsIgnoreCase(state.getResult_state()) && !"WARNINGS".equalsIgnoreCase(state.getResult_state()) && !"CANCELED".equalsIgnoreCase(state.getResult_state()) && (run.getError() == null || "".equalsIgnoreCase(run.getError())
 								|| run.getRunState().getState_message() == null || "".equalsIgnoreCase(run.getRunState().getState_message())
 								|| ". ".equalsIgnoreCase(run.getRunState().getState_message()))
 						){
@@ -821,7 +821,7 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 							}
 						} else {
 							//check if exogenous data is present
-							if("SUCCESS".equalsIgnoreCase(state.getResult_state()) && run.getExogenData()==null) {
+							if(("SUCCESS".equalsIgnoreCase(state.getResult_state()) || "INFO".equalsIgnoreCase(state.getResult_state()) || "WARNINGS".equalsIgnoreCase(state.getResult_state())) && run.getExogenData()==null) {
 								String resultFolderPathForRun = resultsPrefix + run.getId()+"-"+run.getRunName()+"/";
 								List<BucketObjectDetailsDto> bucketObjectDetails=storageClient.getFilesPresent(bucketName,resultFolderPathForRun);
 								Boolean exogenousFilePresent = storageClient.isFilePresent(resultFolderPathForRun+ EXOGENOUS_FILE_NAME, bucketObjectDetails);
