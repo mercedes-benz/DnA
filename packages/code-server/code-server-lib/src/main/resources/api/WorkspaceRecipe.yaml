@@ -254,18 +254,78 @@ paths:
           500:
             description: "Internal error"
 
+  /recipeDetails/{name}/accept:        
+    post:
+      tags:
+        - "code-server-recipe"
+      summary: "Accepting the changes to be added in access management , marking status as Accepted if success"
+      description: "Accepting the changes to be added in access management system"
+      operationId: "acceptRecipeInfo"
+      parameters:
+        - name: "name"
+          in: "path"
+          description: "Recipe name to be fetched"
+          required: true
+          type: "string"
+      responses:
+        201:
+          description: "Returns message of success or failure"
+          schema:
+            $ref: "#/definitions/GenericMessage"
+        204:
+          description: "Fetch complete, no content found."
+        400:
+          description: "Bad request."
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
+          
+  /recipeDetails/{name}/publish:        
+    post:
+      tags:
+        - "code-server-recipe"
+      summary: "Marking status after Publishing the changes added in access management system"
+      description: "Marking status after Publishing the changes added in access management system"
+      operationId: "publishRecipeInfo"
+      parameters:
+        - name: "name"
+          in: "path"
+          description: "recipe name to be fetched"
+          required: true
+          type: "string"
+      responses:
+        201:
+          description: "Returns message of success or failure"
+          schema:
+            $ref: "#/definitions/GenericMessage"
+        204:
+          description: "Fetch complete, no content found."
+        400:
+          description: "Bad request."
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
+
 definitions:
   RecipeVO:
     type: object
     properties:
-      id:
-        type: string
-        description: "id of the recipe"
       recipeName:
         type: string
         description: "recipeName  for recipe managment"
       recipeType:
         type: string
+        enum: [public,private]
         description: "recipe type for codespace managment"
       repodetails:
         type: string
