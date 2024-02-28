@@ -216,7 +216,7 @@ const InputFiles = ({inputFiles, showModal, addNew}) => {
                   <td>{regionalDateAndTimeConversionSolution(inputFile?.createdOn)}</td>
                   <td>
                     <div className={Styles.actions}>
-                    <i onClick={(e) => { e.stopPropagation(); addNew ? downloadConfigFile(inputFile) : downloadInputFile(inputFile) }} className={classNames('icon mbc-icon document', Styles.deleteIcon)} tooltip-data={'Download File'} />
+                      <i onClick={(e) => { e.stopPropagation(); addNew ? downloadConfigFile(inputFile) : downloadInputFile(inputFile) }} className={classNames('icon mbc-icon document', Styles.deleteIcon)} tooltip-data={'Download File'} />
                       { addNew && 
                         <>
                           <i onClick={(e) => { e.stopPropagation(); editConfigFile(inputFile) }} className={classNames('icon mbc-icon edit', Styles.deleteIcon)} tooltip-data={'Edit File'} />
