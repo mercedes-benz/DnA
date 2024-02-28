@@ -110,6 +110,24 @@ const InputFiles = ({inputFiles, showModal, addNew}) => {
     chronosApi.getConfigFile(`${project?.data?.bucketName}`, `${file.name}`).then((res) => {
       var ymlBlob = new Blob([res.data]);     
       var url = window.URL.createObjectURL(ymlBlob);
+
+      let link = document.createElement("a");
+      link.setAttribute("href", url);
+      link.setAttribute("download", `${file.name}`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      ProgressIndicator.hide();
+    }).catch(() => {
+      ProgressIndicator.hide();
+    });
+  }
+
+  const downloadInputFile = (file)=>{
+    ProgressIndicator.show();
+    chronosApi.getInputFile(`${project?.data?.bucketName}`, `${file.name}`).then((res) => {
+      var ymlBlob = new Blob([res.data]);     
+      var url = window.URL.createObjectURL(ymlBlob);
       
       let link = document.createElement("a");
       link.setAttribute("href", url);
@@ -121,6 +139,7 @@ const InputFiles = ({inputFiles, showModal, addNew}) => {
     }).catch(() => {
       ProgressIndicator.hide();
     });
+
   }
 
   const editConfigFile = (file) => {
@@ -197,7 +216,7 @@ const InputFiles = ({inputFiles, showModal, addNew}) => {
                   <td>{regionalDateAndTimeConversionSolution(inputFile?.createdOn)}</td>
                   <td>
                     <div className={Styles.actions}>
-                    <i onClick={(e) => { e.stopPropagation(); downloadConfigFile(inputFile) }} className={classNames('icon mbc-icon document', Styles.deleteIcon)} tooltip-data={'Download File'} />
+                      <i onClick={(e) => { e.stopPropagation(); addNew ? downloadConfigFile(inputFile) : downloadInputFile(inputFile) }} className={classNames('icon mbc-icon document', Styles.deleteIcon)} tooltip-data={'Download File'} />
                       { addNew && 
                         <>
                           <i onClick={(e) => { e.stopPropagation(); editConfigFile(inputFile) }} className={classNames('icon mbc-icon edit', Styles.deleteIcon)} tooltip-data={'Edit File'} />
