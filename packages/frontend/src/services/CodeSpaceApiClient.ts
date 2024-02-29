@@ -141,6 +141,18 @@ export class CodeSpaceApiClient {
     return this.get(`recipeDetails/${id}`);
   }
 
+  public static getCodeSpaceRecipesStatus() {
+    return this.get(`recipeDetails/recipesByStatus`);
+  }
+
+  public static acceptCodeSpaceRecipeRequest (name:string): Promise<any[]>{
+    return this.post(`recipeDetails/${name}/accept`);
+  };
+
+  public static publishCodeSpaceRecipeRequest (name:string): Promise<any[]>{
+    return this.post(`recipeDetails/${name}/publish`);
+  };
+
   // public static getRecipeLov(){
   //  return this.get('recipeDetails/recipeLov');
   // }

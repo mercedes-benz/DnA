@@ -45,6 +45,7 @@ export interface InewRecipeField {
   minRam: string;
   oSName: string;
   recipeName: string;
+  status: string;
   recipeType: string;
   repodetails: string;
   software: [
@@ -131,7 +132,7 @@ const ManageCodeSpace = () => {
 
   const getRequestedNewCodeSpaces = () => {
     setLoading(true);
-    CodeSpaceApiClient.getCodeSpaceRecipeRequests()
+    CodeSpaceApiClient.getCodeSpaceRecipesStatus()
       .then((res: any) => {
         setLoading(false);
         ProgressIndicator.hide();
@@ -273,6 +274,7 @@ const ManageCodeSpace = () => {
         projectName={recipe.recipeName}
         projectOwner={recipe.createdBy}
         requestedDate={recipe.createdOn}
+        projectStatus={recipe.status}
         onDataChanged={handleDataChange}
         isConfigList={isConfigTab}
       />
@@ -418,6 +420,17 @@ const ManageCodeSpace = () => {
                                 >
                                   <i className="icon sort" />
                                   Created By
+                                </label>
+                              </th>
+                              <th onClick={() => sortByColumn('projectStatus', sortBy.nextSortType)}>
+                                <label
+                                  className={
+                                    'sortable-column-header ' +
+                                    (sortBy.name === 'projectStatus' ? sortBy.currentSortType : '')
+                                  }
+                                >
+                                  <i className="icon sort" />
+                                  Status
                                 </label>
                               </th>
                               <th onClick={() => sortByColumn('createdOn', sortBy.nextSortType)}>
