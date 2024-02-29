@@ -35,6 +35,7 @@ export interface IUserInfoProps {
 
 const CodeSpaceRecipe = (props: IUserInfoProps) => {
   const requiredError = '*Missing entry';
+  const repeatedError = '*Recipe name already exists';
   const history = useHistory();
 
   const [softwares, setSoftwares] = useState([]);
@@ -91,6 +92,10 @@ const CodeSpaceRecipe = (props: IUserInfoProps) => {
   const onRecipeNameChange = (e: React.FormEvent<HTMLInputElement>) => {
     const value = e.currentTarget.value;
     setRecipeName(value);
+    setErrorObj((prevState) => ({
+      ...prevState,
+      recipeName: '',
+    }));
   };
 
   const validateGitUrl = (githubUrlVal: string) => {
@@ -192,6 +197,12 @@ const CodeSpaceRecipe = (props: IUserInfoProps) => {
         .catch((err: Error) => {
           ProgressIndicator.hide();
           Notification.show(err.message, 'alert');
+          if (err.message === 'Value or Item already exist!') {
+            setErrorObj((prevState) => ({
+              ...prevState,
+              recipeName: repeatedError,
+            }));
+          }
         });
     }
   };
@@ -294,8 +305,8 @@ const CodeSpaceRecipe = (props: IUserInfoProps) => {
                         onChange={onRecipeTypeChange}
                       >
                         <option value="">Choose</option>
-                        <option value="public GitHub">Public GitHub</option>
-                        <option value="private GitHub">Private GitHub</option>
+                        <option value="public">Public GitHub</option>
+                        <option value="private">Private GitHub</option>
                       </select>
                     </div>
                     <span className={classNames('error-message', errorObj.recipeType.length ? '' : 'hide')}>
