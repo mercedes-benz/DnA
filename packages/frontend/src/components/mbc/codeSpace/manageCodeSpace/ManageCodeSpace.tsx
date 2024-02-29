@@ -233,6 +233,14 @@ const ManageCodeSpace = () => {
             return b.createdBy.firstName.toLowerCase().localeCompare(a.createdBy.firstName.toLowerCase());
           }
         });
+      } else if (propName === 'projectStatus') {
+        data = data.sort((a, b) => {
+          if (sortOrder === 'asc') {
+            return a.status.toLowerCase().localeCompare(b.status.toLowerCase());
+          } else {
+            return b.status.toLowerCase().localeCompare(a.status.toLowerCase());
+          }
+        });
       } else if (propName === 'createdOn') {
         console.log(data);
         data = data.sort((a, b) => {
