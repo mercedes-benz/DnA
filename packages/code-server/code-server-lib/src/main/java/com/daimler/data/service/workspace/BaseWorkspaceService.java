@@ -168,7 +168,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 //				deployJobInputDto.setSecure_iam("false");
 				deployJobInputDto.setType(client.toDeployType(
 						entity.getData().getProjectDetails().getRecipeDetails().getRecipeId().toLowerCase()));
-				String projectName = entity.getData().getProjectDetails().getProjectName();
+				String projectName = entity.getData().getProjectDetails().getProjectName().toLowerCase();
 				String projectOwnerWsId = entity.getData().getWorkspaceId();
 				deployJobInputDto.setWsid(projectOwnerWsId);
 				deployJobInputDto.setProjectName(projectName);
@@ -212,7 +212,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 				deployJobInputDto.setProjectName(projectOwnerId);
 				deployJobInputDto.setType(client.toDeployType(
 						entity.getData().getProjectDetails().getRecipeDetails().getRecipeId().toLowerCase()));
-				String projectName = entity.getData().getProjectDetails().getProjectName();
+				String projectName = entity.getData().getProjectDetails().getProjectName().toLowerCase();
 				String projectOwnerWsId = entity.getData().getWorkspaceId();
 				deployJobInputDto.setWsid(projectOwnerWsId);
 				deployJobInputDto.setProjectName(projectName);
@@ -344,35 +344,77 @@ public class BaseWorkspaceService implements WorkspaceService {
 						deleteServiceResponse.getErrors().get(0).getMessage());
 			}
 		}
-		// deleting kong route and service if codespace is deployed to staging/production
-//		if (isCodespaceDeployed) {
-//			String serviceName = entity.getData().getWorkspaceId() + "-api";
-//			// Deleting Kong route
-//			GenericMessage deployDeleteRouteResponse = authenticatorClient.deleteRoute(serviceName, serviceName);
-//			if (deployDeleteRouteResponse != null && deployDeleteRouteResponse.getSuccess().equalsIgnoreCase("Success"))
-//				log.info("Kong route: {} deleted successfully", serviceName);
-//			else {
-//				if (deployDeleteRouteResponse.getErrors() != null
-//						&& deployDeleteRouteResponse.getErrors().get(0) != null) {
-//					log.info("Failed to delete the Kong route: {} with exception : {}", serviceName,
-//							deployDeleteRouteResponse.getErrors().get(0).getMessage());
-//				}
-//			}
-//
-//			// Deleting Kong service
-//			GenericMessage deployDeleteServiceResponse = authenticatorClient.deleteService(serviceName);
-//			if (deployDeleteServiceResponse != null
-//					&& deployDeleteServiceResponse.getSuccess().equalsIgnoreCase("Success"))
-//				log.info("Kong service: {} deleted successfully", serviceName);
-//			else {
-//				if (deployDeleteServiceResponse.getErrors() != null
-//						&& deployDeleteServiceResponse.getErrors().get(0) != null) {
-//					log.info("Failed to delete the Kong service: {} with exception : {}", serviceName,
-//							deployDeleteServiceResponse.getErrors().get(0).getMessage());
-//				}
-//			}
-//
-//		}
+		// deleting kong route and service if codespace is deployed to
+		// staging/production
+		// deleting int route and service
+		if (isCodespaceDeployed) {
+			if (entity.getData().getProjectDetails().getProdDeploymentDetails().getDeploymentUrl() != null
+					&& entity.getData().getProjectDetails().getProdDeploymentDetails().getLastDeployedBranch() != null
+					&& entity.getData().getProjectDetails().getProdDeploymentDetails()
+							.getLastDeploymentStatus() != null) {
+
+				String serviceName = projectName.toLowerCase() + "-int";
+				// Deleting Kong route
+				GenericMessage deployDeleteRouteResponse = authenticatorClient.deleteRoute(serviceName, serviceName);
+				if (deployDeleteRouteResponse != null
+						&& deployDeleteRouteResponse.getSuccess().equalsIgnoreCase("Success"))
+					log.info("Kong route: {} deleted successfully", serviceName);
+				else {
+					if (deployDeleteRouteResponse.getErrors() != null
+							&& deployDeleteRouteResponse.getErrors().get(0) != null) {
+						log.info("Failed to delete the Kong route: {} with exception : {}", serviceName,
+								deployDeleteRouteResponse.getErrors().get(0).getMessage());
+					}
+				}
+
+				// Deleting Kong service
+				GenericMessage deployDeleteServiceResponse = authenticatorClient.deleteService(serviceName);
+				if (deployDeleteServiceResponse != null
+						&& deployDeleteServiceResponse.getSuccess().equalsIgnoreCase("Success"))
+					log.info("Kong service: {} deleted successfully", serviceName);
+				else {
+					if (deployDeleteServiceResponse.getErrors() != null
+							&& deployDeleteServiceResponse.getErrors().get(0) != null) {
+						log.info("Failed to delete the Kong service: {} with exception : {}", serviceName,
+								deployDeleteServiceResponse.getErrors().get(0).getMessage());
+					}
+				}
+				// deleting prod route and service
+			}
+			if (entity.getData().getProjectDetails().getProdDeploymentDetails().getDeploymentUrl() != null
+					&& entity.getData().getProjectDetails().getProdDeploymentDetails().getLastDeployedBranch() != null
+					&& entity.getData().getProjectDetails().getProdDeploymentDetails()
+							.getLastDeploymentStatus() != null) {
+
+				String serviceName = projectName + "-prod";
+				// Deleting Kong route
+				GenericMessage deployDeleteRouteResponse = authenticatorClient.deleteRoute(serviceName, serviceName);
+				if (deployDeleteRouteResponse != null
+						&& deployDeleteRouteResponse.getSuccess().equalsIgnoreCase("Success"))
+					log.info("Kong route: {} deleted successfully", serviceName);
+				else {
+					if (deployDeleteRouteResponse.getErrors() != null
+							&& deployDeleteRouteResponse.getErrors().get(0) != null) {
+						log.info("Failed to delete the Kong route: {} with exception : {}", serviceName,
+								deployDeleteRouteResponse.getErrors().get(0).getMessage());
+					}
+				}
+
+				// Deleting Kong service
+				GenericMessage deployDeleteServiceResponse = authenticatorClient.deleteService(serviceName);
+				if (deployDeleteServiceResponse != null
+						&& deployDeleteServiceResponse.getSuccess().equalsIgnoreCase("Success"))
+					log.info("Kong service: {} deleted successfully", serviceName);
+				else {
+					if (deployDeleteServiceResponse.getErrors() != null
+							&& deployDeleteServiceResponse.getErrors().get(0) != null) {
+						log.info("Failed to delete the Kong service: {} with exception : {}", serviceName,
+								deployDeleteServiceResponse.getErrors().get(0).getMessage());
+					}
+				}
+			}
+
+		}
 		responseMessage.setSuccess("SUCCESS");
 		responseMessage.setErrors(errors);
 		responseMessage.setWarnings(warnings);
@@ -833,7 +875,6 @@ public class BaseWorkspaceService implements WorkspaceService {
 						deploymentDetails = entity.getData().getProjectDetails().getProdDeploymentDetails();
 					}
 					deploymentDetails.setLastDeploymentStatus("DEPLOY_REQUESTED");
-					;
 					deploymentDetails.setSecureWithIAMRequired(isSecureWithIAMRequired);
 					deploymentDetails.setTechnicalUserDetailsForIAMLogin(technicalUserDetailsForIAMLogin);
 					List<DeploymentAudit> auditLogs = deploymentDetails.getDeploymentAuditLogs();
@@ -1102,7 +1143,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 				String projectOwnerWsId = ownerEntity.getData().getWorkspaceId();
 //				deployJobInputDto.setWsid(projectOwnerWsId);
 				deployJobInputDto.setWsid(projectName);
-				deployJobInputDto.setProjectName(projectName);
+				deployJobInputDto.setProjectName(projectName.toLowerCase());
 				deploymentJobDto.setInputs(deployJobInputDto);
 				deploymentJobDto.setRef(codeServerEnvRef);
 				GenericMessage jobResponse = client.manageDeployment(deploymentJobDto);
