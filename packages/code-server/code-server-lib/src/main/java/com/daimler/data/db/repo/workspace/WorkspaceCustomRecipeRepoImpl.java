@@ -174,15 +174,6 @@ public class WorkspaceCustomRecipeRepoImpl extends CommonDataRepositoryImpl<Code
 
 		try {
 			Query q = em.createNativeQuery(updateQuery);
-            ObjectMapper mapper = new ObjectMapper();
-            try
-            {
-                System.out.println(mapper.writeValueAsString(q));
-            }
-            catch(Exception e)
-            {
-                System.out.println(e.getMessage());
-            }
 			q.executeUpdate();
 			updateResponse.setSuccess("SUCCESS");
 			updateResponse.setErrors(new ArrayList<>());

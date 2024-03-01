@@ -251,7 +251,7 @@ public class WorkspaceAssembler implements GenericAssembler<CodeServerWorkspaceV
 		{
 			if(auditdetails != null && !auditdetails.isEmpty())
 			{
-				for(DeploymentAudit audit: deployedAuditLogDetails)
+				for(DeploymentAuditVO audit: auditdetails)
 				{ 
 					DeploymentAudit auditDetails = new DeploymentAudit();
 					auditDetails.setDeploymentStatus(audit.getDeploymentStatus());

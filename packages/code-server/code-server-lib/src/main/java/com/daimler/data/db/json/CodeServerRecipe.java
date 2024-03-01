@@ -46,7 +46,6 @@ public class CodeServerRecipe implements Serializable {
 
     private static final long serialVersionUID = -1767843944100072529L;
 
-    private String id;
     private String recipeName;
     private String recipeType;
     private String repodetails;
