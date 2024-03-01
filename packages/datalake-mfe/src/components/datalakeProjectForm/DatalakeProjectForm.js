@@ -139,7 +139,7 @@ const DatalakeProjectForm = ({project, edit, onSave}) => {
     });
   };
   const handleEditProject = (values) => {
-    const data = {
+      const data = {
       projectName: project?.data?.projectName,
       connectorType: project?.data?.connectorType,
       description: values.description,
@@ -210,9 +210,9 @@ const DatalakeProjectForm = ({project, edit, onSave}) => {
                         placeholder="Type here"
                         autoComplete="off"
                         maxLength={55}
-                        {...register('projectName', { required: '*Missing entry', pattern: /^[a-z0-9-.]+$/ })}
+                        {...register('projectName', { required: '*Missing entry', pattern: /^[a-zA-Z0-9_]*$/ })}
                       />
-                      <span className={classNames('error-message')}>{errors?.projectName?.message}{errors.projectName?.type === 'pattern' && 'Project names can consist only of lowercase letters, numbers, dots ( . ), and hyphens ( - ).'}</span>
+                      <span className={classNames('error-message')}>{errors?.projectName?.message}{errors.projectName?.type === 'pattern' && 'Project names can consist only of lowercase letters, numbers, and underscores ( _ ) '}</span>
                     </div>
                   </div>
                   

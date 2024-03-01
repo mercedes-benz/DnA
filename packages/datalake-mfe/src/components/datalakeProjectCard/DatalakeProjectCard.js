@@ -16,7 +16,7 @@ import DatalakeProjectForm from '../datalakeProjectForm/DatalakeProjectForm';
 // import { getProjects } from '../../redux/projects.services';
 import { ConnectionModal } from '../connectionInfo/ConnectionModal';
 
-const DatalakeProjectCard = ({user,graph}) => {
+const DatalakeProjectCard = ({user,graph,onRefresh}) => {
   const [showConnectionModel, setShowConnectionModel] = useState(false);
   const [editProject, setEditProject] = useState(false);
   // const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -106,7 +106,7 @@ const DatalakeProjectCard = ({user,graph}) => {
           modalWidth={'60%'}
           buttonAlignment="right"
           show={editProject}
-          content={<DatalakeProjectForm edit={true} project={{ data: graph }} onSave={() => setEditProject(false)} />}
+          content={<DatalakeProjectForm edit={true} project={{ data: graph }} onSave={() => {setEditProject(false); onRefresh()}} />}
           scrollableContent={false}
           onCancel={() => setEditProject(false)}
           modalStyle={{

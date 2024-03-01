@@ -127,7 +127,7 @@ const TableFormBase = ({formats}) => {
               type="text"
               className={classNames('input-field')}
               id="tableName"
-              {...register('tableName', { required: '*Missing entry', pattern: /^[a-zA-Z][a-zA-Z0-9]*$/ })}
+              {...register('tableName', { required: '*Missing entry', pattern: /^[a-zA-Z][a-zA-Z0-9_]*$/ })}
               placeholder="Type here"
               autoComplete="off"
               maxLength={55}
@@ -202,10 +202,10 @@ const TableForm = ({setToggle, formats, dataTypes}) => {
   }, [editingTable]);
 
   const onSubmit = (data) => {
-    const { tableName, tableFormat, tableComment, ...colData } = data;
+    const { tableName, tableFormat, tableComment} = data;
     const cols = [];
-    for (const key in colData) {
-      cols.push(colData[key]);
+    for (const key in columns) {
+      cols.push(columns[key]);
     }
     const [x, y] = calcXY([...project.tables], box);
     const tableData = {
@@ -238,10 +238,10 @@ const TableForm = ({setToggle, formats, dataTypes}) => {
   };
 
   const removeItem = id => {
-      const newt = columns.filter(item => item.columnName !== id);
+    const newt = columns.filter(item => item.columnName !== id);
       columns.length ? setFields(newt) : setFields([]);
   };
-
+  
 
   return (
     <FormProvider {...methods} >
@@ -252,7 +252,7 @@ const TableForm = ({setToggle, formats, dataTypes}) => {
               columns.map((field, index) => (
                 <TableFormItem
                     field={field}
-                    key={field.name + field.index}
+                    key={index.columnName}
                     index={index}
                     addItem={addItem}
                     removeItem={removeItem}
