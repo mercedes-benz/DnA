@@ -316,7 +316,6 @@ public class RecipeController implements CodeServerRecipeApi {
 			return new ResponseEntity<>(responseMessage, HttpStatus.FORBIDDEN);
 		}
 		RecipeVO recipeVO = service.getByRecipeName(name);
-		System.out.println(recipeVO);
 		if (Objects.nonNull(recipeVO) && Objects.nonNull(recipeVO.getRecipeName())) {
 			recipeVO.setStatus("ACCEPTED");
 			responseMessage = service.saveRecipeInfo(name);
