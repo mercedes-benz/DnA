@@ -114,28 +114,28 @@ const DatalakeProjectForm = ({project, edit, onSave}) => {
   const handleCreateProject = (values) => {
     ProgressIndicator.show();
     const data = {
-      projectName: values.projectName,
-      connectorType: connectorType,
-      description: values.description,
-      divisionId: values.datalakeDivision.includes('/') ? values.datalakeDivision.split('/')[0] : '',
-      divisionName: values.datalakeDivision.includes('/') ? values.datalakeDivision.split('/')[1] : '',
-      subdivisionId: values.datalakeSubDivision.includes('/') ? values.datalakeSubDivision.split('/')[0] : '',
-      subdivisionName: values.datalakeSubDivision.includes('/') ? values.datalakeSubDivision.split('/')[1] : '',
-      department: departmentName[0],
-      status: '',
-      classificationType: values.dataClassification,
-      hasPii: values.pii
+    projectName: values.projectName,
+    connectorType: connectorType,
+    description: values.description,
+    divisionId: values.datalakeDivision.includes('/') ? values.datalakeDivision.split('/')[0] : '',
+    divisionName: values.datalakeDivision.includes('/') ? values.datalakeDivision.split('/')[1] : '',
+    subdivisionId: values.datalakeSubDivision.includes('/') ? values.datalakeSubDivision.split('/')[0] : '',
+    subdivisionName: values.datalakeSubDivision.includes('/') ? values.datalakeSubDivision.split('/')[1] : '',
+    department: departmentName[0],
+    status: '',
+    classificationType: values.dataClassification,
+    hasPii: values.pii
     }
     datalakeApi.createDatalakeProject(data).then((res) => {
-      ProgressIndicator.hide();
-      history.push(`/graph/${res.data.data.id}`);
-      Notification.show(`Data Lakehouse Project - ${res.data.data.projectName} successfully created`);
+    ProgressIndicator.hide();
+    history.push(`/graph/${res.data.data.id}`);
+    Notification.show(`Data Lakehouse Project - ${res.data.data.projectName} successfully created`);
     }).catch(error => {
-      ProgressIndicator.hide();
-      Notification.show(
-        error?.response?.data?.response?.errors?.[0]?.message || error?.response?.data?.response?.warnings?.[0]?.message || 'Error while creating data lakehouse project',
-        'alert',
-      );
+    ProgressIndicator.hide();
+    Notification.show(
+    error?.response?.data?.response?.errors?.[0]?.message || error?.response?.data?.response?.warnings?.[0]?.message || 'Error while creating data lakehouse project',
+    'alert',
+    );
     });
   };
   const handleEditProject = (values) => {
@@ -165,7 +165,7 @@ const DatalakeProjectForm = ({project, edit, onSave}) => {
       );
     });
   };
-
+  
   return (
     <>
       <FormProvider {...methods}>
@@ -283,10 +283,10 @@ const DatalakeProjectForm = ({project, edit, onSave}) => {
                         id="divisionField"
                         defaultValue={datalakeDivision}
                         value={datalakeDivision}
+                        required-error={'*Missing entry'}
                         {...register('datalakeDivision', {
-                          required: '*Missing entry',
-                          validate: (value) => value !== 0 || '*Missing entry',
-                          onChange: (e) => { setDatalakeDivision(e.target.value) }
+                          validate: (value) => value !== '0' || '*Missing entry',
+                          onChange: (e) => { setDatalakeDivision(e.target.value)}
                         })}
                     >
                         <option id="divisionOption" value={0}>
@@ -429,13 +429,12 @@ const DatalakeProjectForm = ({project, edit, onSave}) => {
                     <select id="classificationField" 
                       defaultValue={dataClassification}
                       value={project?.data?.classificationType !== null ? project?.data?.classificationType : 0}
+                      required-error={'*Missing entry'}
                       {...register('dataClassification', {
-                        required: '*Missing entry',
-                        validate: (value) => value !== 0 || '*Missing entry',
-                        onChange: (e) => { setDataClassification(e.target.value) }
+                        validate: (value) => value !== '0' || '*Missing entry',
+                        onChange: (e) => { setDataClassification(e.target.value)}
                       })}
-                    >
-                      
+                    >     
                           <option id="classificationOption" value={0}>Choose</option>
                           {dataClassificationDropdown?.map((item) => (
                             <option

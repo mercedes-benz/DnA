@@ -75,6 +75,15 @@ export interface IDataGovernance{
 
 }
 
+export interface IDeploymentAuditLogs{
+  
+  branch?: string;
+  deployedOn?: string;
+  triggeredBy?: string;
+  triggeredOn?: string;
+  deploymentStatus?: string;
+}
+
 export interface IDeploymentDetails {
   secureWithIAMRequired?: boolean,
   technicalUserDetailsForIAMLogin?: string,
@@ -83,6 +92,7 @@ export interface IDeploymentDetails {
   lastDeployedBranch?: string;
   lastDeploymentStatus?: string;
   lastDeployedBy?: ICodeCollaborator;
+  deploymentAuditLogs?: IDeploymentAuditLogs[];
   gitjobRunID?: string;
 }
 
@@ -145,9 +155,11 @@ const CodeSpace = (props: ICodeSpaceProps) => {
   const [codeDeployed, setCodeDeployed] = useState<boolean>(false);
   const [codeDeployedUrl, setCodeDeployedUrl] = useState<string>();
   const [codeDeployedBranch, setCodeDeployedBranch] = useState<string>('main');
+  const [intCodeDeployFailed, setIntCodeDeployFailed] = useState<boolean>(false);
   const [prodCodeDeployed, setProdCodeDeployed] = useState<boolean>(false);
   const [prodCodeDeployedUrl, setProdCodeDeployedUrl] = useState<string>();
   const [prodCodeDeployedBranch, setProdCodeDeployedBranch] = useState<string>('main');
+  const [prodCodeDeployFailed, setProdCodeDeployFailed] = useState<boolean>(false);
   const [secureWithIAMSelected, setSecureWithIAMSelected] = useState<boolean>(true);
   const [iamTechnicalUserID, setIAMTechnicalUserID] = useState<string>('');
   const [iamTechnicalUserIDError, setIAMTechnicalUserIDError] = useState<string>('');
@@ -199,9 +211,11 @@ const CodeSpace = (props: ICodeSpaceProps) => {
               const intDeployed =
                 intDeploymentDetails.lastDeploymentStatus === 'DEPLOYED' ||
                 (intDeployedUrl !== null && intDeployedUrl !== 'null');
+              const intDeployFailed = intDeploymentDetails.lastDeploymentStatus === 'DEPLOYMENT_FAILED';  
               const prodDeployed =
                 prodDeploymentDetails.lastDeploymentStatus === 'DEPLOYED' ||
                 (prodDeployedUrl !== null && prodDeployedUrl !== 'null');
+              const prodDeployFailed = prodDeploymentDetails.lastDeploymentStatus === 'DEPLOYMENT_FAILED';    
               const deployingInProgress =
                 (intDeploymentDetails.lastDeploymentStatus === 'DEPLOY_REQUESTED' ||
                   prodDeploymentDetails.lastDeploymentStatus === 'DEPLOY_REQUESTED');
@@ -219,10 +233,12 @@ const CodeSpace = (props: ICodeSpaceProps) => {
               setCodeDeployedUrl(intDeployedUrl);
               setCodeDeployedBranch(intDeploymentDetails.lastDeployedBranch);
               setCodeDeployed(intDeployed);
+              setIntCodeDeployFailed(intDeployFailed);
 
               setProdCodeDeployedUrl(prodDeployedUrl);
               setProdCodeDeployedBranch(prodDeploymentDetails.lastDeployedBranch);
               setProdCodeDeployed(prodDeployed);
+              setProdCodeDeployFailed(prodDeployFailed);
 
               Tooltip.defaultSetup();
               Tabs.defaultSetup();
@@ -561,6 +577,15 @@ const CodeSpace = (props: ICodeSpaceProps) => {
                           </div>
                         </div>
                       )}
+                      {intCodeDeployFailed && (
+                        <div tooltip-data="Last deployement failed on Staging - Click to view logs">
+                          <a target="_blank" className={classNames(Styles.error)} href={buildGitJobLogViewURL(intDeploymentDetails?.gitjobRunID)} rel="noreferrer">
+                            <i
+                              className="icon mbc-icon alert circle small right"
+                            />
+                          </a>
+                        </div>
+                      )}
                       {prodCodeDeployed && (
                         <div className={Styles.urlLink} tooltip-data="APP BASE URL - Production">
                           <a href={prodCodeDeployedUrl} target="_blank" rel="noreferrer">
@@ -590,6 +615,15 @@ const CodeSpace = (props: ICodeSpaceProps) => {
                               <>{regionalDateAndTimeConversionSolution(prodDeploymentDetails?.lastDeployedOn)}</>
                             )})
                           </div>
+                        </div>
+                      )}
+                      {prodCodeDeployFailed && (
+                        <div tooltip-data="Last deployement failed on Production - Click to view logs">
+                          <a target="_blank" className={classNames(Styles.error)} href={buildGitJobLogViewURL(prodDeploymentDetails?.gitjobRunID)} rel="noreferrer">
+                            <i
+                              className="icon mbc-icon alert circle small right"
+                            />
+                          </a>
                         </div>
                       )}
                       <div>

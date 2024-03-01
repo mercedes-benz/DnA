@@ -21,10 +21,10 @@ public class ChronosNotificationTask {
 	@Autowired
 	private ForecastService forecastService;
 
-	//cron expression for every 2 minutes
+	//cron expression for every 3 minutes
 	@Scheduled(cron = "0 0/3 * * * *")
-	public void notificationsCron() {		
-		log.info("Chronos Notification triggered");
+	public void updateRunsCron() {		
+		log.info("Chronos update runs cron job started");
 		List<String> forecastIds = forecastCustomRepository.getAllForecastIds();		
 		
 		// calling for each forecast project
@@ -34,6 +34,17 @@ public class ChronosNotificationTask {
 			} catch (Exception e) {
 				log.error("Error while fetching forecast runs for project: " + forecastId, e);
 			}
+		}
+	}
+	
+	//cron expression for every 2 minutes
+	@Scheduled(cron = "0 0/2 * * * *")
+	public void triggerComparisions() {		
+		log.info("Chronos trigger comparisions job started");
+		List<String> forecastIds = forecastCustomRepository.getAllForecastIds();		
+		
+		// calling for each forecast project
+		for (String forecastId : forecastIds) {
 			try {
 				forecastService.processForecastComparision(forecastId, null);
 			} catch (Exception e) {

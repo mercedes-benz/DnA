@@ -379,7 +379,6 @@ const ForecastingResults = () => {
           mode: graphMode,
           x: dates,
           y: value.y,
-          text: value.y,
           textposition: 'top center',
           name: key
         });
@@ -391,7 +390,6 @@ const ForecastingResults = () => {
             mode: graphMode,
             x: dates,
             y: value.y,
-            text: value.y,
             textposition: 'top center',
             yaxis: 'y2',
             name: key,
