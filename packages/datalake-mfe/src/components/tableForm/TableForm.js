@@ -202,9 +202,9 @@ const TableForm = ({setToggle, formats, dataTypes}) => {
   }, [editingTable]);
 
   const onSubmit = (data) => {
-    const { tableName, tableFormat, tableComment} = data;
+    const { tableName, tableFormat, tableComment, ...colData }  = data;
     const cols = [];
-    for (const key in columns) {
+    for (const key in colData) {
       cols.push(columns[key]);
     }
     const [x, y] = calcXY([...project.tables], box);
