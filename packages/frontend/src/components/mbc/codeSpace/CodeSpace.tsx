@@ -178,6 +178,25 @@ const CodeSpace = (props: ICodeSpaceProps) => {
   const recipes = recipesMaster;
   const requiredError = '*Missing entry';
 
+  const setVault = () =>{
+    ProgressIndicator.show();
+    CodeSpaceApiClient.read_secret(projectDetails?.projectName, deployEnvironment === 'staging' ? 'int' : 'prod')
+      .then((response) => {
+        ProgressIndicator.hide();
+        Object.keys(response).length !== 0 ? setVaultEnabled(true) : setVaultEnabled(false);
+      })
+      .catch((err) => {
+        ProgressIndicator.hide();
+        if (err?.response?.data?.errors?.length > 0) {
+          err?.response?.data?.errors.forEach((err: any) => {
+            Notification.show(err?.message || 'Something went wrong.', 'alert');
+          });
+        } else {
+          Notification.show(err?.message || 'Something went wrong.', 'alert');
+        }
+      });
+  }
+
   useEffect(() => {
     SelectBox.defaultSetup();
     setIAMTechnicalUserID('');
@@ -277,22 +296,7 @@ const CodeSpace = (props: ICodeSpaceProps) => {
   }, []);
 
   useEffect(() => {
-    ProgressIndicator.show();
-    CodeSpaceApiClient.read_secret(projectDetails?.projectName, deployEnvironment === 'staging' ? 'int' : 'prod')
-      .then((response) => {
-        ProgressIndicator.hide();
-        Object.keys(response).length !== 0 ? setVaultEnabled(true) : setVaultEnabled(false);
-      })
-      .catch((err) => {
-        ProgressIndicator.hide();
-        if (err?.response?.data?.errors?.length > 0) {
-          err?.response?.data?.errors.forEach((err: any) => {
-            Notification.show(err?.message || 'Something went wrong.', 'alert');
-          });
-        } else {
-          Notification.show(err?.message || 'Something went wrong.', 'alert');
-        }
-      });
+    setVault();
   }, [deployEnvironment]);
 
   useEffect(() => {
@@ -357,22 +361,7 @@ const CodeSpace = (props: ICodeSpaceProps) => {
         ProgressIndicator.hide();
         Notification.show('Error in getting code space branch list - ' + err.message, 'alert');
       });
-      ProgressIndicator.show();
-      CodeSpaceApiClient.read_secret(projectDetails?.projectName, deployEnvironment === 'staging' ? 'int' : 'prod')
-        .then((response) => {
-          ProgressIndicator.hide();
-          Object.keys(response).length !== 0 ? setVaultEnabled(true) : setVaultEnabled(false);
-        })
-        .catch((err) => {
-          ProgressIndicator.hide();
-          if (err?.response?.data?.errors?.length > 0) {
-            err?.response?.data?.errors.forEach((err: any) => {
-              Notification.show(err?.message || 'Something went wrong.', 'alert');
-            });
-          } else {
-            Notification.show(err?.message || 'Something went wrong.', 'alert');
-          }
-        });
+    setVault();
   };
 
   const onCodeDeployModalCancel = () => {
