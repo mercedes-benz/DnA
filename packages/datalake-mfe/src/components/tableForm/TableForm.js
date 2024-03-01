@@ -203,9 +203,9 @@ const TableForm = ({setToggle, formats, dataTypes}) => {
 
   const onSubmit = (data) => {
     const { tableName, tableFormat, tableComment, ...colData }  = data;
-    const cols = [];
+        const cols = [];
     for (const key in colData) {
-      cols.push(columns[key]);
+      cols.push(colData[key]);
     }
     const [x, y] = calcXY([...project.tables], box);
     const tableData = {
@@ -238,10 +238,10 @@ const TableForm = ({setToggle, formats, dataTypes}) => {
   };
 
   const removeItem = id => {
-    const newt = columns.filter(item => item.columnName !== id);
+      const newt = columns.filter(item => item.columnName !== id);
       columns.length ? setFields(newt) : setFields([]);
   };
-  
+
 
   return (
     <FormProvider {...methods} >
@@ -252,7 +252,7 @@ const TableForm = ({setToggle, formats, dataTypes}) => {
               columns.map((field, index) => (
                 <TableFormItem
                     field={field}
-                    key={index.columnName}
+                    key={field.columnName}
                     index={index}
                     addItem={addItem}
                     removeItem={removeItem}
