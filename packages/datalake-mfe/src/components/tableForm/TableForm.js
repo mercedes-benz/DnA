@@ -127,7 +127,7 @@ const TableFormBase = ({formats}) => {
               type="text"
               className={classNames('input-field')}
               id="tableName"
-              {...register('tableName', { required: '*Missing entry', pattern: /^[a-zA-Z][a-zA-Z0-9]*$/ })}
+              {...register('tableName', { required: '*Missing entry', pattern: /^[a-zA-Z][a-zA-Z0-9_]*$/ })}
               placeholder="Type here"
               autoComplete="off"
               maxLength={55}
@@ -202,8 +202,8 @@ const TableForm = ({setToggle, formats, dataTypes}) => {
   }, [editingTable]);
 
   const onSubmit = (data) => {
-    const { tableName, tableFormat, tableComment, ...colData } = data;
-    const cols = [];
+    const { tableName, tableFormat, tableComment, ...colData }  = data;
+        const cols = [];
     for (const key in colData) {
       cols.push(colData[key]);
     }
@@ -252,7 +252,7 @@ const TableForm = ({setToggle, formats, dataTypes}) => {
               columns.map((field, index) => (
                 <TableFormItem
                     field={field}
-                    key={field.name + field.index}
+                    key={field.columnName}
                     index={index}
                     addItem={addItem}
                     removeItem={removeItem}
