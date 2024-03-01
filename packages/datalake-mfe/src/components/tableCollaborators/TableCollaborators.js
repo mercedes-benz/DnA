@@ -41,21 +41,17 @@ const TableCollaborators = ({ table, onSave, user }) => {
   }
 
   const onPermissionChange = (collab) => {
-    let collabIndex = -1;
-    const collabItem = Object.assign(
-      [],
-      collabs.find((item, itemIndex) => {
-        collabIndex = itemIndex;
-        return item.collaborator.id === collab.collaborator.id;
-      })
-    );
-    if (collabItem.hasWritePermission) {
-      collabItem.hasWritePermission = false;
-    } else {
-      collabItem.hasWritePermission = true;
-    }
-    collabs[collabIndex] = collabItem;
-    setCollabs([...collabs]);
+    const collabItem = collabs.map((item) => {
+      if (item.collaborator.id === collab.collaborator.id) {
+        return {
+          ...item,
+          hasWritePermission: !item.hasWritePermission,
+        };
+      }
+      return item;
+    });
+
+    setCollabs(collabItem);
   };
 
   const onCollabaratorDelete = (id) => {
