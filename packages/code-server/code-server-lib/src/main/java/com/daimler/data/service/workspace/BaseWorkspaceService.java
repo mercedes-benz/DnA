@@ -1415,6 +1415,35 @@ public class BaseWorkspaceService implements WorkspaceService {
 				} else if ("UNDEPLOYED".equalsIgnoreCase(latestStatus)) {
 					deploymentDetails.setDeploymentUrl(null);
 					deploymentDetails.setLastDeploymentStatus(latestStatus);
+					// deleting kong route after undeploy
+					String serviceName = projectName.toLowerCase();
+					GenericMessage deleteRouteResponse = authenticatorClient.deleteRoute(
+							serviceName + "-" + targetEnv,
+							serviceName + "-" + targetEnv);
+					if (deleteRouteResponse != null && deleteRouteResponse.getSuccess() != null
+							&& deleteRouteResponse.getSuccess().equalsIgnoreCase("Success"))
+						log.info("Kong route: {} deleted successfully", entity.getData().getWorkspaceId());
+					else {
+						if (deleteRouteResponse.getErrors() != null && deleteRouteResponse.getErrors().get(0) != null) {
+							log.info("Failed to delete the Kong route: {} with exception : {}",
+									entity.getData().getWorkspaceId(),
+									deleteRouteResponse.getErrors().get(0).getMessage());
+						}
+					}
+					// deleting kong service after undeploy
+					GenericMessage deleteServiceResponse = authenticatorClient
+							.deleteService(serviceName+"-"+targetEnv);
+					if (deleteServiceResponse != null && deleteServiceResponse.getSuccess() != null
+							&& deleteServiceResponse.getSuccess().equalsIgnoreCase("Success"))
+						log.info("Kong service: {} deleted successfully", entity.getData().getWorkspaceId());
+					else {
+						if (deleteServiceResponse.getErrors() != null
+								&& deleteServiceResponse.getErrors().get(0) != null) {
+							log.info("Failed to delete the Kong service: {} with exception : {}",
+									entity.getData().getWorkspaceId(),
+									deleteServiceResponse.getErrors().get(0).getMessage());
+						}
+					}
 					List<DeploymentAudit> auditLogs = deploymentDetails.getDeploymentAuditLogs();
 					if (auditLogs != null && !auditLogs.isEmpty()) {
 						int lastIndex = auditLogs.size() - 1;
