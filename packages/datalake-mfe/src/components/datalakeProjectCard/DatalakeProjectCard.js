@@ -42,7 +42,7 @@ const DatalakeProjectCard = ({user,graph,onRefresh}) => {
   const onhandleClickConnection = () => {
     setShowConnectionModel(true);
   }
-  
+
   return (
     <>
       <div className={Styles.projectCard}>
@@ -67,8 +67,8 @@ const DatalakeProjectCard = ({user,graph,onRefresh}) => {
               <div>{regionalDateAndTimeConversionSolution(graph.createdOn)}</div>
             </div>
             <div>
-              <div>Last modified</div>
-              <div>{regionalDateAndTimeConversionSolution(graph.createdOn)}</div>
+              <div>schema</div>
+              <div>{graph.schemaName}</div>
             </div>
             <div>
               <div>Classification</div>
