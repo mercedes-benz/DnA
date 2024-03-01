@@ -278,7 +278,7 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
                                 />
                               </a>
                             </span>
-                            <span>
+                            {(props.codeSpace.projectDetails.recipeDetails.recipeId === 'springboot' || props.codeSpace.projectDetails.recipeDetails.recipeId === 'py-fastapi' ) && <span>
                               <i
                                 onClick={() => {
                                   setShowVaultManagementModal(true);
@@ -287,7 +287,7 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
                                 tooltip-data="Staging Environment variables configuration"
                                 className="icon mbc-icon document small right"
                               />
-                            </span>
+                            </span>}
                             {props?.codeSpace?.projectDetails?.intDeploymentDetails?.deploymentAuditLogs && (
                               <span>
                                 <i
@@ -354,7 +354,7 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
                                 />
                               </a>
                             </span>
-                            <span>
+                            {(props.codeSpace.projectDetails.recipeDetails.recipeId === 'springboot' || props.codeSpace.projectDetails.recipeDetails.recipeId === 'py-fastapi' ) && <span>
                               <i
                                 onClick={() => {
                                   setShowVaultManagementModal(true);
@@ -363,7 +363,7 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
                                 tooltip-data="Production Environment variables configuration"
                                 className="icon mbc-icon document small right"
                               />
-                            </span>
+                            </span>}
                             {props?.codeSpace?.projectDetails?.prodDeploymentDetails?.deploymentAuditLogs && (
                               <span>
                                 <i
