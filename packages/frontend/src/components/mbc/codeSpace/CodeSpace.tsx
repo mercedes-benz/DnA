@@ -134,6 +134,7 @@ export interface IDeployRequest {
   branch: string;
   secureWithIAMRequired?: boolean,
   technicalUserDetailsForIAMLogin?: string,
+  valutInjectorEnable?: boolean,
 }
 
 const CodeSpace = (props: ICodeSpaceProps) => {
@@ -166,6 +167,7 @@ const CodeSpace = (props: ICodeSpaceProps) => {
   const [acceptContinueCodingOnDeployment, setAcceptContinueCodingOnDeployment] = useState<boolean>(true);
   const [livelinessInterval, setLivelinessInterval] = useState<number>();
   const [branches, setBranches] = useState<IBranch[]>([]);
+  const [vaultEnabled, setVaultEnabled] = useState(false);
 
   const livelinessIntervalRef = React.useRef<number>();
 
@@ -275,6 +277,25 @@ const CodeSpace = (props: ICodeSpaceProps) => {
   }, []);
 
   useEffect(() => {
+    ProgressIndicator.show();
+    CodeSpaceApiClient.read_secret(projectDetails?.projectName, deployEnvironment === 'staging' ? 'int' : 'prod')
+      .then((response) => {
+        ProgressIndicator.hide();
+        Object.keys(response).length !== 0 ? setVaultEnabled(true) : setVaultEnabled(false);
+      })
+      .catch((err) => {
+        ProgressIndicator.hide();
+        if (err?.response?.data?.errors?.length > 0) {
+          err?.response?.data?.errors.forEach((err: any) => {
+            Notification.show(err?.message || 'Something went wrong.', 'alert');
+          });
+        } else {
+          Notification.show(err?.message || 'Something went wrong.', 'alert');
+        }
+      });
+  }, [deployEnvironment]);
+
+  useEffect(() => {
     livelinessIntervalRef.current = livelinessInterval;
     return () => {
       livelinessIntervalRef.current && clearInterval(livelinessIntervalRef.current);
@@ -336,6 +357,22 @@ const CodeSpace = (props: ICodeSpaceProps) => {
         ProgressIndicator.hide();
         Notification.show('Error in getting code space branch list - ' + err.message, 'alert');
       });
+      ProgressIndicator.show();
+      CodeSpaceApiClient.read_secret(projectDetails?.projectName, deployEnvironment === 'staging' ? 'int' : 'prod')
+        .then((response) => {
+          ProgressIndicator.hide();
+          Object.keys(response).length !== 0 ? setVaultEnabled(true) : setVaultEnabled(false);
+        })
+        .catch((err) => {
+          ProgressIndicator.hide();
+          if (err?.response?.data?.errors?.length > 0) {
+            err?.response?.data?.errors.forEach((err: any) => {
+              Notification.show(err?.message || 'Something went wrong.', 'alert');
+            });
+          } else {
+            Notification.show(err?.message || 'Something went wrong.', 'alert');
+          }
+        });
   };
 
   const onCodeDeployModalCancel = () => {
@@ -426,7 +463,9 @@ const CodeSpace = (props: ICodeSpaceProps) => {
       secureWithIAMRequired: secureWithIAMSelected,
       technicalUserDetailsForIAMLogin: secureWithIAMSelected ? iamTechnicalUserID : null,
       targetEnvironment: deployEnvironment === 'staging' ? 'int' : 'prod', // int or prod
-      branch: branchValue
+      branch: branchValue,
+      valutInjectorEnable: vaultEnabled,
+
     };
     ProgressIndicator.show();
     CodeSpaceApiClient.deployCodeSpace(codeSpaceData.id, deployRequest)
