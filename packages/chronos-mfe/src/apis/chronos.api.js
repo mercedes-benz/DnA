@@ -109,6 +109,12 @@ const getConfigFile = (projectName, fileName) => {
   });
 };
 
+const getInputFile = (projectName,fileName) =>{
+  return storageServerX.get(`/buckets/${projectName}/objects/metadata?prefix=inputs%2F${fileName}`, {
+    data: {},
+  });
+}
+
 const getExcelFile = (projectName, resultFolderName, fileName) => {
   return storageServerX.get(`/buckets/${projectName}/objects/metadata?prefix=results%2F${resultFolderName}%2F${fileName}`, {
     data: {},
@@ -192,6 +198,7 @@ export const chronosApi = {
     getHTML,
     getFile,
     getConfigFile,
+    getInputFile,
     getExcelFile,
     createForecastComparison,
     getForecastComparisons,

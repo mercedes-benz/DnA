@@ -37,38 +37,63 @@ const codeSpaceList = (props: ICodeSpaceList) => {
   const onPublish = (e: React.FormEvent<HTMLSpanElement>) => {
     e.stopPropagation();
     ProgressIndicator.show();
-    const id = props.id;
-    CodeSpaceApiClient.publishSecurityConfigRequest(id)
-      .then((res: any) => {
-        Notification.show('Published successfully.');
-        ProgressIndicator.hide();
-        props.onDataChanged();
-      })
-      .catch((error: any) => {
-        ProgressIndicator.hide();
-        showErrorNotification(error.message ? error.message : 'Some Error Occured');
-      });
+    if (props.isConfigList) {
+      const id = props.id;
+      CodeSpaceApiClient.publishSecurityConfigRequest(id)
+        .then((res: any) => {
+          Notification.show('Published successfully.');
+          ProgressIndicator.hide();
+          props.onDataChanged();
+        })
+        .catch((error: any) => {
+          ProgressIndicator.hide();
+          showErrorNotification(error.message ? error.message : 'Some Error Occured');
+        });
+    } else {
+      const name = props.projectName;
+      CodeSpaceApiClient.publishCodeSpaceRecipeRequest(name)
+        .then((res: any) => {
+          Notification.show('Published successfully.');
+          ProgressIndicator.hide();
+          props.onDataChanged();
+        })
+        .catch((error: any) => {
+          ProgressIndicator.hide();
+          showErrorNotification(error.message ? error.message : 'Some Error Occured');
+        });
+    }
+    ProgressIndicator.hide();
   };
 
   const onAccept = (e: React.FormEvent<HTMLSpanElement>) => {
     e.stopPropagation();
     ProgressIndicator.show();
-    if(props.isConfigList){
-    const id = props.id;
-    CodeSpaceApiClient.acceptSecurityConfigRequest(id)
-      .then((res: any) => {
-        Notification.show('Request Accepted.');
-        ProgressIndicator.hide();
-        props.onDataChanged();
-      })
-      .catch((error: any) => {
-        ProgressIndicator.hide();
-        showErrorNotification(error.message ? error.message : 'Some Error Occured');
-      });
-    }else{
-      ProgressIndicator.hide();
-      setviewInfoModel(false);
+    if (props.isConfigList) {
+      const id = props.id;
+      CodeSpaceApiClient.acceptSecurityConfigRequest(id)
+        .then((res: any) => {
+          Notification.show('Request Accepted.');
+          ProgressIndicator.hide();
+          props.onDataChanged();
+        })
+        .catch((error: any) => {
+          ProgressIndicator.hide();
+          showErrorNotification(error.message ? error.message : 'Some Error Occured');
+        });
+    } else {
+      const name = props.projectName;
+      CodeSpaceApiClient.acceptCodeSpaceRecipeRequest(name)
+        .then((res: any) => {
+          Notification.show('Request Accepted.');
+          ProgressIndicator.hide();
+          props.onDataChanged();
+        })
+        .catch((error: any) => {
+          ProgressIndicator.hide();
+          showErrorNotification(error.message ? error.message : 'Some Error Occured');
+        });
     }
+    ProgressIndicator.hide();
   };
 
 
@@ -94,47 +119,31 @@ const codeSpaceList = (props: ICodeSpaceList) => {
             {props.projectOwner?.firstName + ' ' + props.projectOwner.lastName}
           </span>
         </td>
-        {props.isConfigList ? (
-          <td className={'wrap-text' + Styles.securityConfigCol}>
-            <span>{props.projectStatus}</span>
-          </td>
-        ) : (
-          ''
-        )}
+
         <td className={'wrap-text' + Styles.securityConfigCol}>
-          <span>
-            {props.requestedDate !== null
-              ? regionalDateAndTimeConversionSolution(props.requestedDate)
-              : ''}
-          </span>
+          <span>{props.projectStatus}</span>
         </td>
-        {props.isConfigList ? (
-          <td className={'wrap-text' + Styles.securityConfigCol}>
-            <button
-              className={
-                props.projectStatus === 'REQUESTED' ? 'btn btn-primary ' : 'btn btn-tertiary ' + Styles.actionBtn
-              }
-              type="button"
-              onClick={props.projectStatus === 'REQUESTED' ? onAccept : onPublish}
-            >
-              {props.projectStatus === 'REQUESTED' ? 'Accept' : props.projectStatus === 'ACCEPTED' ? 'Publish' : ''}
-            </button>
-          </td>
-        ) : (
-          <td className={'wrap-text' + Styles.securityConfigCol}>
-            <button className={'btn btn-primary ' + Styles.actionBtn} type="button" onClick={onAccept}>
-              Accept
-            </button>
-          </td>
-        )}
+
+        <td className={'wrap-text' + Styles.securityConfigCol}>
+          <span>{props.requestedDate !== null ? regionalDateAndTimeConversionSolution(props.requestedDate) : ''}</span>
+        </td>
+        <td className={'wrap-text' + Styles.securityConfigCol}>
+          <button
+            className={
+              props.projectStatus === 'REQUESTED' ? 'btn btn-primary ' : 'btn btn-tertiary ' + Styles.actionBtn
+            }
+            type="button"
+            onClick={props.projectStatus === 'REQUESTED' ? onAccept : onPublish}
+          >
+            {props.projectStatus === 'REQUESTED' ? 'Accept' : props.projectStatus === 'ACCEPTED' ? 'Publish' : ''}
+          </button>
+        </td>
       </tr>
       {viewInfoModel&&(<Modal
         title={''}
         hiddenTitle={true}
-        showAcceptButton={true}
+        showAcceptButton={false}
         showCancelButton={false}
-        acceptButtonTitle="Accept"
-        onAccept={() => onAccept}
         modalWidth="60vw"
         buttonAlignment="right"
         show={viewInfoModel}

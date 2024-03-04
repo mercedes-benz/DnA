@@ -1,5 +1,6 @@
 package com.daimler.data.controller;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -22,6 +23,7 @@ import com.daimler.data.service.workspace.WorkspaceService;
 import com.daimler.data.dto.workspace.recipe.InitializeRecipeVo;
 import com.daimler.data.dto.workspace.recipe.RecipeCollectionVO;
 import com.daimler.data.controller.exceptions.GenericMessage;
+import com.daimler.data.controller.exceptions.MessageDescription;
 import com.daimler.data.dto.workspace.recipe.SoftwareCollection;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -285,5 +287,97 @@ public class RecipeController implements CodeServerRecipeApi {
  
        
     }
+
+	@ApiOperation(value = "Accepting the changes to be added in access management , marking status as Accepted if success", nickname = "acceptRecipeInfo", notes = "Accepting the changes to be added in access management system", response = GenericMessage.class, tags={ "code-server-recipe", })
+    @ApiResponses(value = { 
+        @ApiResponse(code = 201, message = "Returns message of success or failure", response = GenericMessage.class),
+        @ApiResponse(code = 204, message = "Fetch complete, no content found."),
+        @ApiResponse(code = 400, message = "Bad request."),
+        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+        @ApiResponse(code = 403, message = "Request is not authorized."),
+        @ApiResponse(code = 405, message = "Method not allowed"),
+        @ApiResponse(code = 500, message = "Internal error") })
+    @RequestMapping(value = "/recipeDetails/{name}/accept",
+        produces = { "application/json" }, 
+        consumes = { "application/json" },
+        method = RequestMethod.POST)
+    public ResponseEntity<GenericMessage> acceptRecipeInfo(@ApiParam(value = "Recipe name to be fetched",required=true) @PathVariable("name") String name)
+	{
+		GenericMessage responseMessage = new GenericMessage();
+		List<MessageDescription> errorMessage = new ArrayList<>();
+		if(!userStore.getUserInfo().hasCodespaceAdminAccess()) 
+		{
+			log.info(
+					"recipe details for workspace can be view/edit only by Owners, insufficient privileges.");
+			MessageDescription msg = new MessageDescription();
+			msg.setMessage("recipe details for workspace can be view/edit only by Owners");
+			errorMessage.add(msg);
+			responseMessage.setErrors(errorMessage);
+			return new ResponseEntity<>(responseMessage, HttpStatus.FORBIDDEN);
+		}
+		RecipeVO recipeVO = service.getByRecipeName(name);
+		if (Objects.nonNull(recipeVO) && Objects.nonNull(recipeVO.getRecipeName())) {
+			recipeVO.setStatus("ACCEPTED");
+			responseMessage = service.saveRecipeInfo(name);
+		}
+		else
+		{
+			log.info(
+					"recipe details for workspace can be view/edit only by Owners, insufficient privileges.");
+			MessageDescription msg = new MessageDescription();
+			msg.setMessage("recipe details for workspace can be view/edit only by Owners");
+			errorMessage.add(msg);
+			responseMessage.setErrors(errorMessage);
+			return new ResponseEntity<>(responseMessage, HttpStatus.FORBIDDEN);
+
+		}
+		return new ResponseEntity<>(responseMessage, HttpStatus.OK);
+	}
+
+	@ApiOperation(value = "Marking status after Publishing the changes added in access management system", nickname = "publishRecipeInfo", notes = "Marking status after Publishing the changes added in access management system", response = GenericMessage.class, tags={ "code-server-recipe", })
+    @ApiResponses(value = { 
+        @ApiResponse(code = 201, message = "Returns message of success or failure", response = GenericMessage.class),
+        @ApiResponse(code = 204, message = "Fetch complete, no content found."),
+        @ApiResponse(code = 400, message = "Bad request."),
+        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+        @ApiResponse(code = 403, message = "Request is not authorized."),
+        @ApiResponse(code = 405, message = "Method not allowed"),
+        @ApiResponse(code = 500, message = "Internal error") })
+    @RequestMapping(value = "/recipeDetails/{name}/publish",
+        produces = { "application/json" }, 
+        consumes = { "application/json" },
+        method = RequestMethod.POST)
+    public ResponseEntity<GenericMessage> publishRecipeInfo(@ApiParam(value = "recipe name to be fetched",required=true) @PathVariable("name") String name)
+	{
+		GenericMessage responseMessage = new GenericMessage();
+		List<MessageDescription> errorMessage = new ArrayList<>();
+		if(!userStore.getUserInfo().hasCodespaceAdminAccess()) 
+		{
+			log.info(
+					"recipe details for workspace can be view/edit only by Owners, insufficient privileges.");
+			MessageDescription msg = new MessageDescription();
+			msg.setMessage("recipe details for workspace can be view/edit only by Owners");
+			errorMessage.add(msg);
+			responseMessage.setErrors(errorMessage);
+			return new ResponseEntity<>(responseMessage, HttpStatus.FORBIDDEN);
+		}
+		RecipeVO recipeVO = service.getByRecipeName(name);
+		if (Objects.nonNull(recipeVO) && Objects.nonNull(recipeVO.getRecipeName())) {
+			recipeVO.setStatus("PUBLISHED");
+			responseMessage = service.publishRecipeInfo(name);
+		}
+		else
+		{
+			log.info(
+					"recipe details for workspace can be view/edit only by Owners, insufficient privileges.");
+			MessageDescription msg = new MessageDescription();
+			msg.setMessage("recipe details for workspace can be view/edit only by Owners");
+			errorMessage.add(msg);
+			responseMessage.setErrors(errorMessage);
+			return new ResponseEntity<>(responseMessage, HttpStatus.FORBIDDEN);
+
+		}
+		return new ResponseEntity<>(responseMessage, HttpStatus.OK);
+	}
     
 }
