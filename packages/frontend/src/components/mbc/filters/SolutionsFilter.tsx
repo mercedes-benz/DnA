@@ -29,6 +29,7 @@ import { SESSION_STORAGE_KEYS } from 'globals/constants';
 import Tags from 'components/formElements/tags/Tags';
 import { getDivisionsQueryValue, trackEvent, isSolutionFilterApplied } from '../../../services/utils';
 import { useLocation } from 'react-router-dom';
+import { getPath } from '../../../router/RouterUtils';
 
 import Styles from './Filter.scss';
 import FilterWrapper from './FilterWrapper';
@@ -126,6 +127,8 @@ const SolutionsFilter = ({
   const isPortfolioPage = pathname === '/portfolio';
   const isAllSolutionsPage = pathname === '/allsolutions';
 
+  const [genAIPage, setGenAIPage] = useState(false);
+
   useEffect(()=>{
     onsetTags(setSelectedTags);
   },[setSelectedTags]);
@@ -135,6 +138,8 @@ const SolutionsFilter = ({
   }, [divisionFilterValues]);
 
   useEffect(() => {
+    const path = getPath().split('?')[0].split('/')[3] || getPath().split('/')[1];
+    setGenAIPage(path==='GenAI' ? true : false);
     ProgressIndicator.show();
     ApiClient.getFiltersMasterData()
       .then((response) => {
@@ -885,8 +890,8 @@ const SolutionsFilter = ({
           <div>
               <Tags
               title={'Tags'}
-              max={100}
-              chips={queryParams?.tag}
+              max={genAIPage ? 1 : 100}
+              chips={genAIPage ? ['#GENAI'] : queryParams?.tag}
               setTags={onsetTags}
               tags={tagValues}
               isMandatory={false}
