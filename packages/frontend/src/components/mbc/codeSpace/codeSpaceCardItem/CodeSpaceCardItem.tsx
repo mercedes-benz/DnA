@@ -589,9 +589,9 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
                         logsList.map((items, index) => (
                           <tr className={classNames('data-row')} key={index}>
                             <td>{items.branch}</td>
-                            <td>{items.deployedOn}</td>
+                            <td>{regionalDateAndTimeConversionSolution(items.deployedOn)}</td>
                             <td>{items.triggeredBy}</td>
-                            <td>{items.triggeredOn}</td>
+                            <td>{regionalDateAndTimeConversionSolution(items.triggeredOn)}</td>
                             <td>{items.deploymentStatus}</td>
                           </tr>
                         ))}
