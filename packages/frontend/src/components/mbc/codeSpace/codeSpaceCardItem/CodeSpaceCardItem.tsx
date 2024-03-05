@@ -278,7 +278,7 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
                                 />
                               </a>
                             </span>
-                            <span>
+                            {(props.codeSpace.projectDetails.recipeDetails.recipeId === 'springboot' || props.codeSpace.projectDetails.recipeDetails.recipeId === 'py-fastapi' ) && <span>
                               <i
                                 onClick={() => {
                                   setShowVaultManagementModal(true);
@@ -287,7 +287,7 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
                                 tooltip-data="Staging Environment variables configuration"
                                 className="icon mbc-icon document small right"
                               />
-                            </span>
+                            </span>}
                             {props?.codeSpace?.projectDetails?.intDeploymentDetails?.deploymentAuditLogs && (
                               <span>
                                 <i
@@ -354,7 +354,7 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
                                 />
                               </a>
                             </span>
-                            <span>
+                            {(props.codeSpace.projectDetails.recipeDetails.recipeId === 'springboot' || props.codeSpace.projectDetails.recipeDetails.recipeId === 'py-fastapi' ) && <span>
                               <i
                                 onClick={() => {
                                   setShowVaultManagementModal(true);
@@ -363,7 +363,7 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
                                 tooltip-data="Production Environment variables configuration"
                                 className="icon mbc-icon document small right"
                               />
-                            </span>
+                            </span>}
                             {props?.codeSpace?.projectDetails?.prodDeploymentDetails?.deploymentAuditLogs && (
                               <span>
                                 <i
@@ -589,9 +589,9 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
                         logsList.map((items, index) => (
                           <tr className={classNames('data-row')} key={index}>
                             <td>{items.branch}</td>
-                            <td>{items.deployedOn}</td>
+                            <td>{regionalDateAndTimeConversionSolution(items.deployedOn)}</td>
                             <td>{items.triggeredBy}</td>
-                            <td>{items.triggeredOn}</td>
+                            <td>{regionalDateAndTimeConversionSolution(items.triggeredOn)}</td>
                             <td>{items.deploymentStatus}</td>
                           </tr>
                         ))}

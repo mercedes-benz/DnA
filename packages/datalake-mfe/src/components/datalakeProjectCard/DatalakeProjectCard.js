@@ -16,7 +16,7 @@ import DatalakeProjectForm from '../datalakeProjectForm/DatalakeProjectForm';
 // import { getProjects } from '../../redux/projects.services';
 import { ConnectionModal } from '../connectionInfo/ConnectionModal';
 
-const DatalakeProjectCard = ({user,graph}) => {
+const DatalakeProjectCard = ({user,graph,onRefresh}) => {
   const [showConnectionModel, setShowConnectionModel] = useState(false);
   const [editProject, setEditProject] = useState(false);
   // const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -42,7 +42,7 @@ const DatalakeProjectCard = ({user,graph}) => {
   const onhandleClickConnection = () => {
     setShowConnectionModel(true);
   }
-  
+
   return (
     <>
       <div className={Styles.projectCard}>
@@ -67,8 +67,8 @@ const DatalakeProjectCard = ({user,graph}) => {
               <div>{regionalDateAndTimeConversionSolution(graph.createdOn)}</div>
             </div>
             <div>
-              <div>Last modified</div>
-              <div>{regionalDateAndTimeConversionSolution(graph.createdOn)}</div>
+              <div>schema</div>
+              <div>{graph.schemaName}</div>
             </div>
             <div>
               <div>Classification</div>
@@ -106,7 +106,7 @@ const DatalakeProjectCard = ({user,graph}) => {
           modalWidth={'60%'}
           buttonAlignment="right"
           show={editProject}
-          content={<DatalakeProjectForm edit={true} project={{ data: graph }} onSave={() => setEditProject(false)} />}
+          content={<DatalakeProjectForm edit={true} project={{ data: graph }} onSave={() => {setEditProject(false); onRefresh()}} />}
           scrollableContent={false}
           onCancel={() => setEditProject(false)}
           modalStyle={{
