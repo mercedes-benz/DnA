@@ -5,7 +5,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-
+import com.daimler.data.db.json.Users;
 import org.apache.catalina.User;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Component;
@@ -17,6 +17,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.daimler.data.dto.CodeServerRecipeDto;
 import com.daimler.data.dto.workspace.CodeServerRecipeDetailsVO.RecipeIdEnum;
 import com.daimler.data.dto.workspace.UserInfoVO;
+import com.daimler.data.dto.workspace.recipe.UsersVO;
 import com.daimler.data.db.entities.CodeServerRecipeNsql;
 import com.daimler.data.db.json.CodeServerRecipe;
 import com.daimler.data.db.json.RecipeSoftware;
@@ -65,16 +66,16 @@ public class RecipeAssembler implements GenericAssembler<RecipeVO, CodeServerRec
 				if (recipe.getPlugins() != null) {
 					recipeVo.setPlugins(recipe.getPlugins());
 				}
-				List<UserInfoVO> users = new ArrayList<>();
-				List<UserInfo> userDetails = recipe.getUsers();
+				List<UsersVO> users = new ArrayList<>();
+				List<Users> userDetails = recipe.getUsers();
 				if(recipe.getIsPublic()!=null){
 					if(recipe.getIsPublic())
 					{
-						users= new ArrayList<UserInfoVO>();
+						users= new ArrayList<UsersVO>();
 					}
 					else
 					{
-						users = userDetails.stream().map(n->this.toUserInfoVO(n)).collect(Collectors.toList());
+						users = userDetails.stream().map(n -> this.toUsersVO(n)).collect(Collectors.toList());
 					}
 				}
 				recipeVo.setUsers(users);
@@ -110,13 +111,13 @@ public class RecipeAssembler implements GenericAssembler<RecipeVO, CodeServerRec
 			if (vo.getPlugins() != null) {
 				recipeData.setPlugins(vo.getPlugins());
 			}
-			List<UserInfo> users = new ArrayList<>();
-			List<UserInfoVO> userDetails = vo.getUsers();
+			List<Users> users = new ArrayList<>();
+			List<UsersVO> userDetails = vo.getUsers();
 			if (vo.isIsPublic() == true) {
 				users = new ArrayList<>();
 			} else {
 				
-				users = userDetails.stream().map(n -> this.toUserInfo(n)).collect(Collectors.toList());
+				users = userDetails.stream().map(n -> this.toUsers(n)).collect(Collectors.toList());
 			}
 			recipeData.setUsers(users);
 			recipeData.setRecipeType(vo.getRecipeType().toString());
@@ -136,6 +137,22 @@ public class RecipeAssembler implements GenericAssembler<RecipeVO, CodeServerRec
 
 	public UserInfo toUserInfo(UserInfoVO userInfo) {
 		UserInfo entity = new UserInfo();
+		if (userInfo != null) {
+			BeanUtils.copyProperties(userInfo, entity);
+		}
+		return entity;
+	}
+
+	private UsersVO toUsersVO(Users userInfo) {
+		UsersVO vo = new UsersVO();
+		if (userInfo != null) {
+			BeanUtils.copyProperties(userInfo, vo);
+		}
+		return vo;
+	}
+
+	public Users toUsers(UsersVO userInfo) {
+		Users entity = new Users();
 		if (userInfo != null) {
 			BeanUtils.copyProperties(userInfo, entity);
 		}

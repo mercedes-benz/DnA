@@ -369,7 +369,7 @@ definitions:
       users:
         type: array
         items:
-          $ref: "#/definitions/UserInfoVO" 
+          $ref: "#/definitions/UsersVO" 
       status:
         type: string
         description: "status of the recipe"
@@ -475,3 +475,26 @@ definitions:
       softwareName:
         type: string
         description: "version of the software"
+  
+  UsersVO:
+    type: object
+    properties:
+      id:
+        type: string
+        description: "ID of user"
+      firstName:
+        type: string
+        description: "First Name of the user"
+      lastName:
+        type: string
+        description: "Last Name of the user"
+      department:
+        type: string
+        description: "Department of the user"
+      email:
+        type: string
+        description: "E-Mail of the user"
+      mobileNumber:
+        type: string
+        description: "Mobile number of the user" 
+

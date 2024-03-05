@@ -30,8 +30,7 @@ package com.daimler.data.db.json;
 import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
-
-import com.daimler.data.dto.userinfo.UserInfoVO;
+import com.daimler.data.db.json.Users;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import lombok.AllArgsConstructor;
@@ -60,6 +59,6 @@ public class CodeServerRecipe implements Serializable {
     private UserInfo createdBy;
     private List<String> plugins;
     private Boolean isPublic;
-    private List<UserInfo> users;
+    private List<Users> users;
     private String status;
 }
