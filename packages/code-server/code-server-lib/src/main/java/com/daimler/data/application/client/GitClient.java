@@ -165,8 +165,8 @@ public class GitClient {
 			headers.set("Content-Type", "application/json");
 			headers.set("Authorization", "token "+ pat);
 			String userRepoName = "";
-			String[] publicUrlArray = publicGitUrl.split(",");
-			String url = "https://api.github.com/users/" + DnARecipe;
+			// String[] publicUrlArray = publicGitUrl.split(",");
+			String url = "https://api.github.com/users/issues";
 			HttpEntity entity = new HttpEntity<>(headers);
 			ResponseEntity<String> response = proxyRestTemplate.exchange(url, HttpMethod.GET, entity, String.class);
 			if (response != null && response.getStatusCode() != null) {
