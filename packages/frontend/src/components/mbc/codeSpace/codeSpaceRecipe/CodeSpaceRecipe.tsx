@@ -3,8 +3,11 @@ import React, { useState, useEffect } from 'react';
 import Styles from './CodeSpaceRecipe.scss';
 import SelectBox from 'components/formElements/SelectBox/SelectBox';
 import TextBox from 'components/mbc/shared/textBox/TextBox';
+import AddTeamMemberModal from 'components/mbc/addTeamMember/addTeamMemberModal/AddTeamMemberModal';
+import TeamMemberListItem from 'components/mbc/addTeamMember/teamMemberListItem/TeamMemberListItem';
+import IconAvatarNew from 'components/icons/IconAvatarNew';
 import { Envs } from 'globals/Envs';
-import { IUserInfo } from 'globals/types';
+import { ICodeCollaborator, IUserInfo } from 'globals/types';
 import ProgressIndicator from '../../../../assets/modules/uilab/js/src/progress-indicator';
 import { CodeSpaceApiClient } from '../../../../services/CodeSpaceApiClient';
 import { Notification } from '../../../../assets/modules/uilab/bundle/js/uilab.bundle';
@@ -20,9 +23,11 @@ export interface ICreateRecipe {
   maxCpu: string;
   minRam: string;
   maxRam: string;
-  // isPublic: boolean;
+  isPublic: boolean;
+  users: ICodeCollaborator[];
   software: string[];
   plugins: string[];
+  
 }
 export interface Isoftware {
   name: string;
@@ -49,6 +54,112 @@ const CodeSpaceRecipe = (props: IUserInfoProps) => {
   const [minRam, setMinRam] = useState('');
   const [maxRam, setMaxRam] = useState('');
   const [software, setSoftware] = useState([]);
+  const [isPublic, setIsPublic] = useState(true);
+  
+
+  const [teamMembers, setTeamMembers] = useState([]);
+  // const [teamMembersOriginal, setTeamMembersOriginal] = useState([]);
+  const [editTeamMember, setEditTeamMember] = useState(false);
+  const [selectedTeamMember, setSelectedTeamMember] = useState();
+  const [editTeamMemberIndex, setEditTeamMemberIndex] = useState(0);
+  const [addedCollaborators, setAddedCollaborators] = useState([]);
+  const [removedCollaborators, setRemovedCollaborators] = useState([]);
+
+  const addTeamMemberModalRef : any = React.createRef();
+  const [showAddTeamMemberModal, setShowAddTeamMemberModal] = useState(false);
+  const showAddTeamMemberModalView = () => {
+    setShowAddTeamMemberModal(true);
+    setEditTeamMember(false);
+    setEditTeamMemberIndex(0);
+  }
+
+  const onAddTeamMemberModalCancel = () => {
+    setShowAddTeamMemberModal(false);
+    setEditTeamMember(false);
+    setEditTeamMemberIndex(0);
+  }
+
+  const updateTeamMemberList = (teamMember : any) => {
+    onAddTeamMemberModalCancel();
+    console.log(teamMember);
+    const teamMemberTemp = { ...teamMember, id: teamMember.shortId, email: teamMember.email, lastName: teamMember.lastName, firstName: teamMember.firstName, department: teamMember.department, mobileNumber: teamMember.mobileNumber };
+    delete teamMemberTemp.teamMemberPosition;
+    const teamMembersTemp = teamMembers !== null ? [...teamMembers] : [];
+    let addedCollaboratorsTemp = addedCollaborators.length > 0 ? [...addedCollaborators] : [];
+    let removedCollaboratorsTemp = removedCollaborators.length > 0 ? [...removedCollaborators] : [];
+    if (editTeamMember) {
+      const deletedMember = teamMembersTemp.splice(editTeamMemberIndex, 1);
+      addedCollaboratorsTemp = checkMembers(addedCollaborators, deletedMember[0]);
+      removedCollaboratorsTemp = checkMembers(removedCollaborators, teamMember);
+      removedCollaboratorsTemp.push({ ...deletedMember[0], id: deletedMember[0].shortId ? deletedMember[0].shortId : deletedMember[0].id, email: deletedMember[0].email, lastName: deletedMember[0].lastName, firstName: deletedMember[0].firstName, department: deletedMember[0].department, mobileNumber: deletedMember[0].mobileNumber });
+      teamMembersTemp.splice(editTeamMemberIndex, 0, teamMemberTemp);
+      addedCollaboratorsTemp.push({ ...teamMember, id: teamMember.shortId ? teamMember.shortId : teamMember.id, email: teamMember.email, lastName: teamMember.lastName, firstName: teamMember.firstName, department: teamMember.department, mobileNumber: teamMember.mobileNumber });
+    } else {
+      teamMembersTemp.push(teamMemberTemp);
+      removedCollaboratorsTemp = checkMembers(removedCollaborators, teamMember);
+      addedCollaboratorsTemp.push({ ...teamMember, id: teamMember.shortId ? teamMember.shortId : teamMember.id, email: teamMember.email, lastName: teamMember.lastName, firstName: teamMember.firstName, department: teamMember.department, mobileNumber: teamMember.mobileNumber });
+    }
+    setAddedCollaborators(addedCollaboratorsTemp);
+    setRemovedCollaborators(removedCollaboratorsTemp);
+    setTeamMembers(teamMembersTemp);
+  }
+
+  const checkMembers = (members : any, member : any) => {
+    let membersTemp = members.length > 0 ? [...members] : [];
+    const isCommon = members.filter((mber : any) => mber.shortId === member.shortId);
+    if (isCommon.length === 1) {
+      membersTemp = members.filter((mber : any) => mber.shortId !== member.shortId);
+      return membersTemp;
+    } else {
+      return members;
+    }
+  }
+
+  const validateMembersList = (teamMemberObj : any) => {
+    let duplicateMember = false;
+    duplicateMember = teamMembers?.filter((member) => member.shortId === teamMemberObj.shortId)?.length ? true : false;
+    return duplicateMember;
+  };
+
+  const onTeamMemberEdit = (index : any) => {
+    setEditTeamMember(true);
+    setShowAddTeamMemberModal(true);
+    const teamMemberTemp = teamMembers[index];
+    setSelectedTeamMember(teamMemberTemp);
+    setEditTeamMemberIndex(index);
+  };
+
+  const onTeamMemberDelete = (index : any) => {
+    const teamMembersTemp = [...teamMembers];
+    const deletedMember = teamMembersTemp.splice(index, 1);
+
+    const newCollabs = checkMembers(addedCollaborators, deletedMember[0]);
+    setAddedCollaborators(newCollabs);
+
+    const removedCollaboratorsTemp = removedCollaborators.length > 0 ? [...removedCollaborators] : [];
+    removedCollaboratorsTemp.push({ ...deletedMember[0], id: deletedMember[0].shortId ? deletedMember[0].shortId : deletedMember[0].id, email: deletedMember[0].email, lastName: deletedMember[0].lastName, firstName: deletedMember[0].firstName, department: deletedMember[0].department, mobileNumber: deletedMember[0].mobileNumber });
+    setRemovedCollaborators(removedCollaboratorsTemp);
+
+    setTeamMembers(teamMembersTemp);
+  };
+
+  const teamMembersList = teamMembers?.map((member, index) => {
+    return (
+      <TeamMemberListItem
+        key={index}
+        itemIndex={index}
+        teamMember={{ ...member, shortId: member?.id, userType: 'internal' }}
+        hidePosition={true}
+        showInfoStacked={true}
+        showMoveUp={false}
+        showMoveDown={false}
+        onMoveUp={() => {}}
+        onMoveDown={() => {}}
+        onEdit={onTeamMemberEdit}
+        onDelete={onTeamMemberDelete}
+      />
+    );
+  });
 
   const [errorObj, setErrorObj] = useState({
     recipeName: '',
@@ -161,6 +272,15 @@ const CodeSpaceRecipe = (props: IUserInfoProps) => {
     setSoftware(selectedValues);
   };
 
+  const onIsPublicChange = (e: React.FormEvent<HTMLInputElement>) => {
+    const currentValue = e.currentTarget.value;
+    if (currentValue === 'true') {
+      setIsPublic(true);
+    } else {
+      setIsPublic(false);
+    }
+  };
+  
   const onRequest = () => {
     console.log(software);
     if (validateForm()) {
@@ -186,6 +306,8 @@ const CodeSpaceRecipe = (props: IUserInfoProps) => {
         recipeType: recipeType,
         repodetails: gitUrl,
         software: software,
+        isPublic: isPublic,
+        users: teamMembers
       };
       ProgressIndicator.show();
       CodeSpaceApiClient.createCodeSpaceRecipe(CreateNewRecipe)
@@ -290,6 +412,39 @@ const CodeSpaceRecipe = (props: IUserInfoProps) => {
                     maxLength={200}
                     onChange={onRecipeNameChange}
                   />
+                  <div className={classNames('input-field-group include-error')}>
+                    <label className={classNames(Styles.inputLabel, 'input-label')}>
+                      Publicly Available <sup>*</sup>
+                    </label>
+                    <div className={Styles.pIIField}>
+                      <label className={classNames('radio')}>
+                        <span className="wrapper">
+                          <input
+                            type="radio"
+                            className="ff-only"
+                            value="true"
+                            name="isPublic"
+                            defaultChecked={isPublic === true}
+                            onChange={onIsPublicChange}
+                          />
+                        </span>
+                        <span className="label">Yes</span>
+                      </label>
+                      <label className={classNames('radio')}>
+                        <span className="wrapper">
+                          <input
+                            type="radio"
+                            className="ff-only"
+                            value="false"
+                            name="isPublic"
+                            defaultChecked={isPublic === false}
+                            onChange={onIsPublicChange}
+                          />
+                        </span>
+                        <span className="label">No</span>
+                      </label>
+                    </div>
+                  </div>
                 </div>
                 <div className={classNames(Styles.flexLayout)}>
                   <div className={classNames('input-field-group include-error', errorObj.recipeType ? 'error' : '')}>
@@ -334,6 +489,30 @@ const CodeSpaceRecipe = (props: IUserInfoProps) => {
                 </div>
               </div>
             </div>
+            {!isPublic && (
+              <div className={classNames(Styles.firstPanel, 'addRecipe')}>
+                <h3>Collaborator Details</h3>
+                <div className={classNames(Styles.formWrapper)}>
+                  <div className={classNames('input-field-group include-error')}>
+                    <div className={Styles.collabContainer}>
+                      {/* <h3 className={Styles.modalSubTitle}>Add Users (Optional)</h3> */}
+                      <div className={Styles.collabAvatar}>
+                        <div className={Styles.teamListWrapper}>
+                          <div className={Styles.addTeamMemberWrapper}>
+                            <IconAvatarNew className={Styles.avatarIcon} />
+                            <button id="AddTeamMemberBtn" onClick={showAddTeamMemberModalView}>
+                              <i className="icon mbc-icon plus" />
+                              <span>Add user</span>
+                            </button>
+                          </div>
+                          {teamMembers?.length > 0 && <div className={Styles.membersList}>{teamMembersList}</div>}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
             <div className={classNames(Styles.firstPanel, 'addRecipe')}>
               <h3>Hardware Configurations</h3>
               <div className={classNames(Styles.formWrapper)}>
@@ -507,6 +686,20 @@ const CodeSpaceRecipe = (props: IUserInfoProps) => {
             </button>
           </div>
         </div>
+        {showAddTeamMemberModal && (
+          <AddTeamMemberModal
+            ref={addTeamMemberModalRef}
+            modalTitleText={'Collaborator'}
+            showOnlyInteral={true}
+            hideTeamPosition={true}
+            editMode={editTeamMember}
+            showAddTeamMemberModal={showAddTeamMemberModal}
+            teamMember={selectedTeamMember}
+            onUpdateTeamMemberList={updateTeamMemberList}
+            onAddTeamMemberModalCancel={onAddTeamMemberModalCancel}
+            validateMemebersList={validateMembersList}
+          />
+        )}
       </div>
     </div>
   );
