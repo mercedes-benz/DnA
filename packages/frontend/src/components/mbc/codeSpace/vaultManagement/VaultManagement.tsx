@@ -1,5 +1,5 @@
 import classNames from 'classnames';
-import React, { useState, useEffect} from 'react';
+import React, { useState, useEffect } from 'react';
 import Styles from './VaultManagement.scss';
 import TextBox from 'components/mbc/shared/textBox/TextBox';
 import { CodeSpaceApiClient } from '../../../../services/CodeSpaceApiClient';
@@ -14,9 +14,7 @@ export interface IVaultManagement {
 
 const deleteCodeSpaceContent = (
   <div>
-    <h3>
-      Are you sure you want to delete this vault value.
-    </h3>
+    <h3>Are you sure you want to delete this vault value.</h3>
   </div>
 );
 
@@ -30,6 +28,8 @@ const VaultManagement = (props: IVaultManagement) => {
   const [originalKey, setOriginalKey] = useState('');
   const [originalValue, setOriginalValue] = useState('');
   const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [deleteKey, setDeleteKey] = useState('');
+  const [deleteValue, setDeleteValue] = useState('');
   //const [deleteConfirm, setDeleteConfirm] = useState(false);
   let formValid = true;
   const env = props.isStaging ? 'int' : 'prod';
@@ -40,8 +40,10 @@ const VaultManagement = (props: IVaultManagement) => {
       .then((response) => {
         ProgressIndicator.hide();
         const datalist = keyValue;
-        Object.keys(response).forEach((item) => datalist.keyValueList.push({ key: item, value: response[item], visible: false}))
-        setKeyvalue({...datalist});
+        Object.keys(response).forEach((item) =>
+          datalist.keyValueList.push({ key: item, value: response[item], visible: false }),
+        );
+        setKeyvalue({ ...datalist });
       })
       .catch((err) => {
         ProgressIndicator.hide();
@@ -70,56 +72,58 @@ const VaultManagement = (props: IVaultManagement) => {
   };
 
   const onAdd = () => {
-    let currentList = keyValue ;
+    let currentList = keyValue;
     const dataList = {};
-    if(key.length === 0){
+    if (key.length === 0) {
       setKeyError('Missing entry');
       formValid = false;
     }
-    if(value.length === 0){
+    if (value.length === 0) {
       setValueError('Missing entry');
       formValid = false;
     }
     keyValue.keyValueList.map((item: any) => {
-      if(item.key === key){
+      if (item.key === key) {
         setKeyError('Duplicate key');
         formValid = false;
       }
-    })
-    if(formValid){
-    if (currentList.keyValueList?.length === 0) {
-      currentList = {
-        keyValueList: [
-          {
-            key: key,
-            value: value,
-            visible: false,
-          },
-        ],
-      };
-    } else {
-      if (currentList.keyValueList) {
-        currentList.keyValueList.push({
-          key: key,
-          value: value,
-          visible: false,
-        });
+    });
+    if (formValid) {
+      if (currentList.keyValueList?.length === 0) {
+        currentList = {
+          keyValueList: [
+            {
+              key: key,
+              value: value,
+              visible: false,
+            },
+          ],
+        };
       } else {
-        currentList.keyValueList = [
-          {
+        if (currentList.keyValueList) {
+          currentList.keyValueList.push({
             key: key,
             value: value,
             visible: false,
-          },
-        ];
+          });
+        } else {
+          currentList.keyValueList = [
+            {
+              key: key,
+              value: value,
+              visible: false,
+            },
+          ];
+        }
       }
+      setKeyvalue({ ...currentList });
+      currentList.keyValueList.forEach((item) => {
+        dataList[item.key] = item.value;
+      });
+      CodeSpaceApiClient.update_secret(props.projectName, dataList, env);
+      setKey('');
+      setValue('');
     }
-    setKeyvalue({ ...currentList });
-    currentList.keyValueList.forEach((item) => {dataList[item.key] = item.value;});
-    CodeSpaceApiClient.update_secret(props.projectName, dataList , env);
-    setKey('');
-    setValue('');
-  }
   };
 
   const onEdit = (key: string, value: string) => {
@@ -132,36 +136,38 @@ const VaultManagement = (props: IVaultManagement) => {
 
   const onUpdate = () => {
     const dataList = {};
-    if(key.length === 0){
+    if (key.length === 0) {
       setKeyError('Missing entry');
       formValid = false;
     }
-    if(value.length === 0){
+    if (value.length === 0) {
       setValueError('Missing entry');
       formValid = false;
     }
     keyValue.keyValueList.map((item: any) => {
-      if(item.key === key && item.key!== originalKey){
+      if (item.key === key && item.key !== originalKey) {
         setKeyError('Duplicate key');
         formValid = false;
       }
-    })
-    if(formValid){
-    const newList = keyValue.keyValueList.map((item: any) => {
-      if (item.key === originalKey && item.value === originalValue) {
-        return { ...item, key: key, value: value };
-      }
-      return item;
     });
-    setKeyvalue({ keyValueList: newList });
-    newList.forEach((item) => {dataList[item.key] = item.value;});
-    CodeSpaceApiClient.update_secret(props.projectName, dataList , env);
-    setOriginalKey('');
-    setOriginalValue('');
-    setKey('');
-    setValue('');
-    setEditingMode(false);
-  }
+    if (formValid) {
+      const newList = keyValue.keyValueList.map((item: any) => {
+        if (item.key === originalKey && item.value === originalValue) {
+          return { ...item, key: key, value: value };
+        }
+        return item;
+      });
+      setKeyvalue({ keyValueList: newList });
+      newList.forEach((item) => {
+        dataList[item.key] = item.value;
+      });
+      CodeSpaceApiClient.update_secret(props.projectName, dataList, env);
+      setOriginalKey('');
+      setOriginalValue('');
+      setKey('');
+      setValue('');
+      setEditingMode(false);
+    }
   };
 
   const onDelete = (key: string, value: string) => {
@@ -172,8 +178,10 @@ const VaultManagement = (props: IVaultManagement) => {
       1,
     );
     setKeyvalue({ ...updatedList });
-    updatedList.keyValueList.forEach((item) => {dataList[item.key] = item.value;});
-    CodeSpaceApiClient.update_secret(props.projectName, dataList , env);
+    updatedList.keyValueList.forEach((item) => {
+      dataList[item.key] = item.value;
+    });
+    CodeSpaceApiClient.update_secret(props.projectName, dataList, env);
   };
 
   const onMagnify = (key: string, value: string) => {
@@ -276,23 +284,16 @@ const VaultManagement = (props: IVaultManagement) => {
                           <i className="icon mbc-icon edit" />
                         </button>
                         <button
-                          onClick={() =>setShowConfirmModal(true)}
+                          onClick={() => {
+                            setDeleteKey(item.key);
+                            setDeleteValue(item.value);
+                            setShowConfirmModal(true);
+                          }}
                           className={Styles.actionBtn + ' btn btn-primary'}
                           type="button"
                         >
                           <i className="icon mbc-icon trash-outline" />
                         </button>
-                        <ConfirmModal
-                          title={''}
-                          acceptButtonTitle="Yes"
-                          cancelButtonTitle="Cancel"
-                          showAcceptButton={true}
-                          showCancelButton={true}
-                          show={showConfirmModal}
-                          content={deleteCodeSpaceContent}
-                          onCancel={()=>setShowConfirmModal(false)}
-                          onAccept={()=> {onDelete(item.key, item.value); setShowConfirmModal(false);}}
-                        />
                       </td>
                     </tr>
                   ))}
@@ -302,7 +303,24 @@ const VaultManagement = (props: IVaultManagement) => {
           </div>
         )}
       </div>
-      
+      <ConfirmModal
+        title={''}
+        acceptButtonTitle="Yes"
+        cancelButtonTitle="Cancel"
+        showAcceptButton={true}
+        showCancelButton={true}
+        show={showConfirmModal}
+        content={deleteCodeSpaceContent}
+        onCancel={() => {
+          setDeleteKey('');
+          setDeleteValue('');
+          setShowConfirmModal(false);
+        }}
+        onAccept={() => {
+          onDelete(deleteKey, deleteValue);
+          setShowConfirmModal(false);
+        }}
+      />
     </React.Fragment>
   );
 };
