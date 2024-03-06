@@ -11,6 +11,7 @@ import ProgressIndicator from '../../../assets/modules/uilab/js/src/progress-ind
 import Tooltip from '../../../assets/modules/uilab/js/src/tooltip';
 import SelectBox from 'components/formElements/SelectBox/SelectBox';
 import { SESSION_STORAGE_KEYS, USER_ROLE } from 'globals/constants';
+import { getPath } from '../../../router/RouterUtils';
 
 import {
   IAllSolutionsListItem,
@@ -315,6 +316,7 @@ export default class AllSolutions extends React.Component<
     const { openFilterPanel, enablePortfolioSolutionsView } = this.state;
     const isGenAI =
       this.state.queryParams?.tag?.length === 1 ? isSolutionFixedTagIncluded(this.state.queryParams.tag[0]) : false;
+    const path = getPath().split('?')[0].split('/')[3] || getPath().split('/')[1]; 
     const isDigitalValueContributionEnabled = window.location.href.indexOf('digitalvaluecontribution') !== -1;
     const isDataValueContributionEnabled = window.location.href.indexOf('datavaluecontribution') !== -1;
 
@@ -476,7 +478,7 @@ export default class AllSolutions extends React.Component<
                         <div
                           className={Styles.cardViewContainer}
                           onClick={() =>
-                            isGenAI ? history.push('/createnewgenaisolution') : history.push('/createnewsolution')
+                            path === 'GenAI' ? history.push('/createnewgenaisolution') : history.push('/createnewsolution')
                           }
                         >
                           <div className={Styles.addicon}> &nbsp; </div>
@@ -608,7 +610,7 @@ export default class AllSolutions extends React.Component<
                               colSpan={enablePortfolioSolutionsView ? 8 : 7}
                               className={classNames(Styles.listViewContainer)}
                               onClick={() =>
-                                isGenAI ? history.push('/createnewgenaisolution') : history.push('/createnewsolution')
+                                path === 'GenAI' ? history.push('/createnewgenaisolution') : history.push('/createnewsolution')
                               }
                             >
                               <div className={Styles.addicon}> &nbsp; </div>
@@ -640,7 +642,7 @@ export default class AllSolutions extends React.Component<
                           target="_blank"
                           className={Styles.linkStyle}
                           onClick={() =>
-                            isGenAI ? history.push('/createnewgenaisolution') : history.push('/createnewsolution')
+                            path==='GenAI' ? history.push('/createnewgenaisolution') : history.push('/createnewsolution')
                           }
                           rel="noreferrer"
                         >
