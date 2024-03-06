@@ -38,7 +38,7 @@ const TableFormItem = (props) => {
   const handleRemoveField = (index) => {
     unregister(`items[${index}]`);
     remove(index);
-    props.removeItem(props.field.columnName);
+    props.removeItem(props.index);
   };
 
   return (
@@ -358,10 +358,11 @@ const TableForm = ({ setToggle, formats, dataTypes }) => {
     setFields(newState);
   };
 
-  const removeItem = (id) => {
+  const removeItem = (index) => {
     if (columns.length > 1) {
-      const newt = columns.filter((item) => item.columnName !== id);
-      columns.length ? setFields([...newt]) : setFields([]);
+      const cols = [...columns];
+      cols.splice(index,1);
+      setFields(cols);
     } else {
       Notification.show("Table should contain atleast one column", "alert");
     }
@@ -385,7 +386,7 @@ const TableForm = ({ setToggle, formats, dataTypes }) => {
             columns.map((field, index) => (
               <TableFormItem
                 field={field}
-                key={field.columnName}
+                key={field.columnName + index}
                 index={index}
                 addItem={addItem}
                 removeItem={removeItem}
