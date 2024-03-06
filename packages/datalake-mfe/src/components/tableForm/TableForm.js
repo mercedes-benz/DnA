@@ -265,16 +265,16 @@ const TableForm = ({setToggle, formats, dataTypes}) => {
     }
   }
 
-  const addItem = index => {  
+  const addItem = (index) => {
     const newState = [...columns];
-    newState.splice(index + 1, 0, {      
-   columnName: 'new_column' + newState.length,
-   comment: '',     
-   dataType: '', 
-   notNullConstraintEnabled: true,  
-    });  
-      setFields(newState); 
-   };
+    newState.splice(index + 1, 0, {
+      columnName: "new_column" + newState.length,
+      comment: "",
+      dataType: "",
+      notNullConstraintEnabled: true,
+    });
+    setFields(newState);
+  };
 
   const removeItem = (id) => {
   
