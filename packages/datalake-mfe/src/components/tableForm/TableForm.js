@@ -1,5 +1,3 @@
-Table Form
-
 import classNames from 'classnames';
 import React, { useState, useEffect } from 'react';
 import { useForm, useFormContext, FormProvider } from "react-hook-form";
