@@ -29,7 +29,7 @@ const TableFormItem = (props) => {
   const  handleRemoveField = (index)=>{
     unregister(`items[${index}]`);
     remove(index);
-    props.removeItem(props.key);
+    props.removeItem(props.field.columnName);
   }
 
   return (
