@@ -14,7 +14,7 @@ export interface IAnalyticsProps {
   algorithms: ITag[];
   analyticsSolution: ITag[];
   isGenAI: boolean;
-  onPublish: () => void;
+  onPublish: (segmentId: string) => void;
 }
 
 export interface IAnalyticsState {
@@ -124,8 +124,8 @@ export default class Analytics extends React.Component<IAnalyticsProps, IAnalyti
                       chips={algoChips}
                       setTags={this.setAlgos}
                       tags={this.props.algorithms}
-                      showMissingEntryError={this.props.isGenAI ? this.state.showAlogMissingError : false}
-                      isMandatory={this.props.isGenAI ? true : false}
+                      showMissingEntryError={false}
+                      isMandatory={false}
                       {...this.props}
                     />
                   </div>
@@ -209,28 +209,28 @@ export default class Analytics extends React.Component<IAnalyticsProps, IAnalyti
     }
   };
   protected onAnalyticsSubmit = () => {
-    if (this.validateAnalyticsForm()) {
+    //if (this.validateAnalyticsForm()) {
       this.props.modifyAnalytics(this.state.analytics);
       this.props.onSaveDraft('analytics');
-    }
+    //}
   };
 
-  protected validateAnalyticsForm = () => {
-    let formValid = true;
+  // protected validateAnalyticsForm = () => {
+  //   let formValid = true;
 
-    if (this.props.isGenAI && !this.state.analytics.algorithms?.length) {
-      this.setState({ showAlogMissingError: true });
-      formValid = false;
-    }
-    return formValid;
-  };
+  //   if (this.props.isGenAI && !this.state.analytics.algorithms?.length) {
+  //     this.setState({ showAlogMissingError: true });
+  //     formValid = false;
+  //   }
+  //   return formValid;
+  // };
 
   protected onSolutionPublish = () => {
-    if (this.validateAnalyticsForm()) {
+    //if (this.validateAnalyticsForm()) {
       this.props.modifyAnalytics(this.state.analytics);
       // this.props.onSaveDraft('analytics');
-      this.props.onPublish();
-    }
+      this.props.onPublish('Analytics');
+    //}
   };
 
   protected setLanguages = (arr: string[]) => {

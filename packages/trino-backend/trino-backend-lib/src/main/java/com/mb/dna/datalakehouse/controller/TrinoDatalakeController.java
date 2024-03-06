@@ -25,11 +25,18 @@ import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
 import com.daimler.data.dto.UserInfoVO;
 import com.mb.dna.datalakehouse.dto.TrinoConnectorsCollectionVO;
+import com.mb.dna.datalakehouse.dto.TrinoDataLakeConnectDetails;
+import com.mb.dna.datalakehouse.dto.TrinoDataLakeConnectVO;
+import com.mb.dna.datalakehouse.dto.TrinoDataLakeConnectWrapperVO;
+import com.mb.dna.datalakehouse.dto.TrinoDataLakeDBConnectDetails;
+import com.mb.dna.datalakehouse.dto.TrinoDataLakeDBUserDetails;
 import com.mb.dna.datalakehouse.dto.TrinoDataLakeProjectCollectionVO;
+import com.mb.dna.datalakehouse.dto.TrinoDataLakeProjectDetails;
 import com.mb.dna.datalakehouse.dto.TrinoDataLakeProjectRequestVO;
 import com.mb.dna.datalakehouse.dto.TrinoDataLakeProjectResponseVO;
 import com.mb.dna.datalakehouse.dto.TrinoDataLakeProjectUpdateRequestVO;
 import com.mb.dna.datalakehouse.dto.TrinoDataLakeProjectVO;
+import com.mb.dna.datalakehouse.dto.TrinoDataLakeTechUserWrapperDto;
 import com.mb.dna.datalakehouse.service.TrinoDatalakeService;
 
 import io.swagger.annotations.Api;
@@ -51,13 +58,19 @@ public class TrinoDatalakeController {
 	private static final String BUCKETS_PREFIX = "dna-datalake-";
 	private static final String SCHEMA_PREFIX = "dna_datalake_";
 	private static final String ICEBERG_CONNECTOR = "Iceberg";
-	private static final String DELTALAKE_CONNECTOR = "Delta";
+	private static final String DELTALAKE_CONNECTOR = "Delta Lake";
 	
 	@Value("${trino.catalog.iceberg}")
 	private String icebergCatalogName;
 	
 	@Value("${trino.catalog.delta}")
 	private String deltaCatalogName;
+	
+	@Value("${trino.host}")
+	private String trinoHost;
+	
+	@Value("${trino.port}")
+	private String trinoPort;
 	
 	@Autowired
 	private TrinoDatalakeService trinoDatalakeService;
@@ -108,7 +121,7 @@ public class TrinoDatalakeController {
 	public ResponseEntity<TrinoDataLakeProjectVO> getById(
 			@ApiParam(value = "Data Lake project ID to be fetched", required = true) @PathVariable("id") String id){
 		try {
-		TrinoDataLakeProjectVO existingProject = trinoDatalakeService.getById(id);
+		TrinoDataLakeProjectVO existingProject = trinoDatalakeService.getUpdatedById(id);
 		if(existingProject==null || !id.equalsIgnoreCase(existingProject.getId())) {
 			log.warn("No datalake project found with id {}, failed to fetch saved inputs for given id", id);
 			return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
@@ -126,6 +139,78 @@ public class TrinoDatalakeController {
 		}catch(Exception e) {
 			e.printStackTrace();
 			return null;
+		}
+	}
+	
+	@ApiOperation(value = "Get datalake project connect details for a given Id.", nickname = "getConnectDetailsById", notes = "Get datalake project how-to-connect details for a given Id.", response = TrinoDataLakeConnectWrapperVO.class, tags = {
+			"datalakes", })
+	@ApiResponses(value = {
+			@ApiResponse(code = 200, message = "Returns message of success or failure", response = TrinoDataLakeConnectWrapperVO.class),
+			@ApiResponse(code = 204, message = "Fetch complete, no content found."),
+			@ApiResponse(code = 400, message = "Bad request."),
+			@ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+			@ApiResponse(code = 403, message = "Request is not authorized."),
+			@ApiResponse(code = 405, message = "Method not allowed"),
+			@ApiResponse(code = 500, message = "Internal error") })
+	@RequestMapping(value = "/datalakes/{id}/connect", produces = { "application/json" }, consumes = {
+			"application/json" }, method = RequestMethod.GET)
+	public ResponseEntity<TrinoDataLakeConnectWrapperVO> getConnectDetailsById(
+			@ApiParam(value = "Data Lake project ID to be fetched", required = true) @PathVariable("id") String id){
+		TrinoDataLakeConnectWrapperVO response = new TrinoDataLakeConnectWrapperVO();
+		CreatedByVO requestUser = this.userStore.getVO();
+		String user = requestUser.getId();
+		try {
+			TrinoDataLakeProjectVO existingProject = trinoDatalakeService.getById(id);
+			if(existingProject==null || !id.equalsIgnoreCase(existingProject.getId())) {
+				log.warn("No datalake project found with id {}, failed to fetch saved inputs for given id", id);
+				response.setStatus("FAILED");
+				response.setData(null);
+				return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+			}else {
+				Long count = trinoDatalakeService.getCountForUserAndProject(user,id);
+				if(count<=0) {
+					log.warn("User {} , not part of datalake project with id {}, access denied",user, id);
+					response.setStatus("FAILED");
+					response.setData(null);
+					return new ResponseEntity<>(response, HttpStatus.FORBIDDEN);
+				}
+			}
+			response.setStatus("SUCCESS");
+			//set connect data
+			TrinoDataLakeConnectVO data = new TrinoDataLakeConnectVO();
+			TrinoDataLakeProjectDetails project = new TrinoDataLakeProjectDetails();
+			TrinoDataLakeConnectDetails howToConnect = new TrinoDataLakeConnectDetails();
+			project.setCatalogName(existingProject.getCatalogName());
+			project.setProjectName(existingProject.getProjectName());
+			project.setSchemaName(existingProject.getSchemaName());
+			TrinoDataLakeDBConnectDetails trinoDetails = new TrinoDataLakeDBConnectDetails();
+			TrinoDataLakeDBUserDetails userVO = new TrinoDataLakeDBUserDetails();
+			TrinoDataLakeDBUserDetails techUserVO = new TrinoDataLakeDBUserDetails();
+			
+			techUserVO.setAccesskey(existingProject.getTechUserClientId()!=null ? existingProject.getTechUserClientId() : "YOUR_TECHUSER_CLIENTID");
+			techUserVO.setExternalAuthentication(null);
+			techUserVO.setHostName(trinoHost);
+			techUserVO.setPort(trinoPort);
+			techUserVO.setSecretKey("YOUR_CLIENT_SECRET");
+			trinoDetails.setTechUserVO(techUserVO);
+			
+			userVO.setAccesskey(user);
+			userVO.setExternalAuthentication(true);
+			userVO.setHostName(trinoHost);
+			userVO.setPort(trinoPort);
+			userVO.setSecretKey(id);
+			trinoDetails.setUserVO(userVO);
+			
+			howToConnect.setTrino(trinoDetails);
+			data.setHowToConnect(howToConnect);
+			data.setProject(project);
+			response.setData(data);
+			return new ResponseEntity<>(response, HttpStatus.OK);
+		}catch(Exception e) {
+			log.error("Failed to fetch datalake project with id {}", id);
+			response.setStatus("FAILED");
+			response.setData(null);
+			return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 	
@@ -147,8 +232,19 @@ public class TrinoDatalakeController {
 		TrinoDataLakeProjectResponseVO responseVO = new TrinoDataLakeProjectResponseVO();
 		TrinoDataLakeProjectVO request = requestVO.getData();
 		String name = request.getProjectName();
+		
+		if(name ==null && "".equalsIgnoreCase(name)) {
+			log.error("Datalake project request has no name, bad request. Failed to create datalake project");
+			MessageDescription invalidMsg = new MessageDescription("Datalake project request does not contain valid name, failed to create.");
+			GenericMessage errorMessage = new GenericMessage();
+			errorMessage.setSuccess(HttpStatus.BAD_REQUEST.name());
+			errorMessage.addErrors(invalidMsg);
+			responseVO.setData(request);
+			responseVO.setResponse(errorMessage);
+			return new ResponseEntity<>(responseVO, HttpStatus.BAD_REQUEST);
+		}
 		String connectorType = request.getConnectorType();
-		String catalogName = connectorType!=null && connectorType.equalsIgnoreCase(ICEBERG_CONNECTOR) ? icebergCatalogName : deltaCatalogName;
+		String catalogName = connectorType!=null && connectorType.equalsIgnoreCase(DELTALAKE_CONNECTOR) ? deltaCatalogName : icebergCatalogName ;
 		String schemaName = SCHEMA_PREFIX+name;
 		TrinoDataLakeProjectVO existingProject = trinoDatalakeService.getByUniqueliteral("projectName", name);
 		if(existingProject!=null && existingProject.getId()!=null) {
@@ -156,7 +252,7 @@ public class TrinoDatalakeController {
 			MessageDescription invalidMsg = new MessageDescription("Datalake project already exists with given name");
 			GenericMessage errorMessage = new GenericMessage();
 			errorMessage.setSuccess(HttpStatus.CONFLICT.name());
-			errorMessage.addWarnings(invalidMsg);
+			errorMessage.addErrors(invalidMsg);
 			responseVO.setData(request);
 			responseVO.setResponse(errorMessage);
 			return new ResponseEntity<>(responseVO, HttpStatus.CONFLICT);
@@ -167,7 +263,7 @@ public class TrinoDatalakeController {
 			MessageDescription invalidMsg = new MessageDescription("Datalake project already exists with given name");
 			GenericMessage errorMessage = new GenericMessage();
 			errorMessage.setSuccess(HttpStatus.CONFLICT.name());
-			errorMessage.addWarnings(invalidMsg);
+			errorMessage.addErrors(invalidMsg);
 			responseVO.setData(request);
 			responseVO.setResponse(errorMessage);
 			return new ResponseEntity<>(responseVO, HttpStatus.CONFLICT);
@@ -179,7 +275,7 @@ public class TrinoDatalakeController {
 			MessageDescription invalidMsg = new MessageDescription("Datalake project already exists with given name");
 			GenericMessage errorMessage = new GenericMessage();
 			errorMessage.setSuccess(HttpStatus.CONFLICT.name());
-			errorMessage.addWarnings(invalidMsg);
+			errorMessage.addErrors(invalidMsg);
 			responseVO.setData(request);
 			responseVO.setResponse(errorMessage);
 			return new ResponseEntity<>(responseVO, HttpStatus.CONFLICT);
@@ -239,6 +335,85 @@ public class TrinoDatalakeController {
 		}
 	}
 	
+	@ApiOperation(value = "update datalake project details for a given Id.", nickname = "updateTechUserDetails", notes = "update datalake project tech user details for a given Id.", response = TrinoDataLakeTechUserWrapperDto.class, tags = {
+			"datalakes", })
+	@ApiResponses(value = {
+			@ApiResponse(code = 200, message = "Returns message of success or failure", response = TrinoDataLakeTechUserWrapperDto.class),
+			@ApiResponse(code = 204, message = "Fetch complete, no content found."),
+			@ApiResponse(code = 400, message = "Bad request."),
+			@ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+			@ApiResponse(code = 403, message = "Request is not authorized."),
+			@ApiResponse(code = 405, message = "Method not allowed"),
+			@ApiResponse(code = 500, message = "Internal error") })
+	@RequestMapping(value = "/datalakes/{id}/techuser", produces = { "application/json" }, consumes = {
+			"application/json" }, method = RequestMethod.PATCH)
+	public ResponseEntity<GenericMessage> updateTechUserDetails(
+			@ApiParam(value = "Data Lake project ID to be updated", required = true) @PathVariable("id") String id,
+			@ApiParam(value = "Request Body that contains data required for updating of datalake project details of tech user", required = true) @Valid @RequestBody TrinoDataLakeTechUserWrapperDto datalakeTechUserUpdateRequestVO) {
+		TrinoDataLakeProjectVO existingProject = trinoDatalakeService.getById(id);
+		List<MessageDescription> errors = new ArrayList<>();
+		GenericMessage responseMessage = new GenericMessage();
+		TrinoDataLakeTechUserWrapperDto request = datalakeTechUserUpdateRequestVO;
+		if(existingProject==null || existingProject.getId()==null) {
+			log.error("Datalake project with id {} is not found ", id);
+			MessageDescription invalidMsg = new MessageDescription("Datalake project does not exist with given name");
+			GenericMessage errorMessage = new GenericMessage();
+			errorMessage.setSuccess("FAILED");
+			errorMessage.addErrors(invalidMsg);
+			return new ResponseEntity<>(errorMessage, HttpStatus.NOT_FOUND);
+		}
+		//check if user is project owner
+		CreatedByVO requestUser = this.userStore.getVO();
+		String user = requestUser.getId();
+		if(!(existingProject.getCreatedBy()!=null && existingProject.getCreatedBy().getId()!=null && existingProject.getCreatedBy().getId().equalsIgnoreCase(user))){
+			log.error("Datalake project with id {} is not found ", id);
+			MessageDescription invalidMsg = new MessageDescription("Only Owner can edit project details. Access denied.");
+			GenericMessage errorMessage = new GenericMessage();
+			errorMessage.setSuccess("FAILED");
+			errorMessage.addErrors(invalidMsg);
+			return new ResponseEntity<>(errorMessage, HttpStatus.FORBIDDEN);
+		}
+		try{
+				Boolean isExists = trinoDatalakeService.isKeyExists(request.getData().getClientId(), existingProject.getProjectName());
+				if(isExists) {
+					log.error("Given clientId already in use by another Datalake project, Please retry with different clientId. Update request for project {} failed",id);
+					MessageDescription invalidMsg = new MessageDescription("Given clientId already in use by another Datalake project, Please retry with different clientId.");
+					GenericMessage errorMessage = new GenericMessage();
+					errorMessage.setSuccess("FAILED");
+					errorMessage.addErrors(invalidMsg);
+					return new ResponseEntity<>(errorMessage, HttpStatus.BAD_REQUEST);
+				}
+		}catch(Exception e) {
+			log.error("Failed to check if clientId already exists with internal server exception {} . Update request for project {} failed",e.getMessage(),id);
+			MessageDescription invalidMsg = new MessageDescription("Failed to check if clientId already exists, Please retry after a while.");
+			GenericMessage errorMessage = new GenericMessage();
+			errorMessage.setSuccess("FAILED");
+			errorMessage.addErrors(invalidMsg);
+			return new ResponseEntity<>(errorMessage, HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+		String name = existingProject.getProjectName();
+		TrinoDataLakeProjectVO data = new TrinoDataLakeProjectVO();
+		try {
+			if(request.getData()!=null && request.getData().getClientId()!=null) {
+				GenericMessage serviceResponse = trinoDatalakeService.updateTechUserDetails(existingProject,request.getData().getClientId(),request.getData().getClientSecret());
+				return new ResponseEntity<>(serviceResponse, HttpStatus.OK);
+			}
+			GenericMessage errorMessage = new GenericMessage();
+			MessageDescription invalidMsg = new MessageDescription("Bad request, data should not be null.");
+			errorMessage.setSuccess("FAILED");
+			errorMessage.addErrors(invalidMsg);
+			return new ResponseEntity<>(errorMessage, HttpStatus.BAD_REQUEST);
+		}catch(Exception e) {
+			log.error("Failed with exception {} while updating tech user details for Datalake project {}",e.getMessage(),id );
+			GenericMessage errorMessage = new GenericMessage();
+			MessageDescription invalidMsg = new MessageDescription("Failed with internal server error, while updating tech user details for Datalake project.");
+			errorMessage.setSuccess("FAILED");
+			errorMessage.addErrors(invalidMsg);
+			return new ResponseEntity<>(errorMessage, HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
+		
+	
 	@ApiOperation(value = "update datalake project details for a given Id.", nickname = "updateById", notes = "update datalake project details for a given Id.", response = TrinoDataLakeProjectResponseVO.class, tags = {
 			"datalakes", })
 	@ApiResponses(value = {
@@ -258,8 +433,69 @@ public class TrinoDatalakeController {
 		List<MessageDescription> errors = new ArrayList<>();
 		GenericMessage responseMessage = new GenericMessage();
 		TrinoDataLakeProjectResponseVO responseVO = new TrinoDataLakeProjectResponseVO();
-
-		return new ResponseEntity<>(responseVO, HttpStatus.OK);
+		TrinoDataLakeProjectResponseVO serviceUpdateResponse = new TrinoDataLakeProjectResponseVO();
+		TrinoDataLakeProjectUpdateRequestVO request =datalakeUpdateRequestVO;
+		if(existingProject==null || existingProject.getId()==null) {
+			log.error("Datalake project with id {} is not found ", id);
+			MessageDescription invalidMsg = new MessageDescription("Datalake project does not exist with given name");
+			GenericMessage errorMessage = new GenericMessage();
+			errorMessage.setSuccess("FAILED");
+			errorMessage.addErrors(invalidMsg);
+			responseVO.setData(new TrinoDataLakeProjectVO());
+			responseVO.setResponse(errorMessage);
+			return new ResponseEntity<>(responseVO, HttpStatus.NOT_FOUND);
+		}
+		//check if user is project owner
+		CreatedByVO requestUser = this.userStore.getVO();
+		String user = requestUser.getId();
+		if(!(existingProject.getCreatedBy()!=null && existingProject.getCreatedBy().getId()!=null && existingProject.getCreatedBy().getId().equalsIgnoreCase(user))){
+			log.error("Datalake project with id {} is not found ", id);
+			MessageDescription invalidMsg = new MessageDescription("Only Owner can edit project details. Access denied.");
+			GenericMessage errorMessage = new GenericMessage();
+			errorMessage.setSuccess("FAILED");
+			errorMessage.addErrors(invalidMsg);
+			responseVO.setData(new TrinoDataLakeProjectVO());
+			responseVO.setResponse(errorMessage);
+			return new ResponseEntity<>(responseVO, HttpStatus.FORBIDDEN);
+		}
+		String name = existingProject.getProjectName();
+		TrinoDataLakeProjectVO data = new TrinoDataLakeProjectVO();
+		try {
+			serviceUpdateResponse = trinoDatalakeService.updateDatalake(existingProject, request);           
+			data = serviceUpdateResponse.getData();
+			if(data!=null && data.getId()!=null) {
+				responseVO.setData(data);
+				responseVO.setResponse(serviceUpdateResponse.getResponse());
+				log.info("Datalake {} updated successfully", name);
+				return new ResponseEntity<>(responseVO, HttpStatus.OK);
+			}else {
+				GenericMessage failedResponse = new GenericMessage();
+				List<MessageDescription> messages = new ArrayList<>();
+				MessageDescription message = new MessageDescription();
+				message.setMessage("Failed to save due to internal error");
+				messages.add(message);
+				failedResponse.addErrors(message);
+				failedResponse.setSuccess("FAILED");
+				responseVO.setData(existingProject);
+				responseVO.setResponse(failedResponse);
+				log.error("Datalake project {} , failed to update", name);
+				return new ResponseEntity<>(responseVO, HttpStatus.INTERNAL_SERVER_ERROR);
+			}
+		}
+		catch(Exception e) {
+			GenericMessage failedResponse = new GenericMessage();
+			List<MessageDescription> messages = new ArrayList<>();
+			MessageDescription message = new MessageDescription();
+			message.setMessage("Failed to save due to internal error");
+			messages.add(message);
+			failedResponse.addErrors(message);
+			failedResponse.setSuccess("FAILED");
+			responseVO.setData(existingProject);
+			responseVO.setResponse(failedResponse);
+			log.error("Exception occurred:{} while creating datalake project {} ", e.getMessage(), name);
+			return new ResponseEntity<>(responseVO, HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+		
 	}
 	
 	

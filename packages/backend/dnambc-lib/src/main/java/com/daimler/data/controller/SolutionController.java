@@ -221,7 +221,7 @@ public class SolutionController implements SolutionsApi, ChangelogsApi, Malwares
             @ApiParam(value = "ID of useCaseType of solutions. 1.MyBookmarks or 2.MySolutions , Example 1", allowableValues = "1, 2") @Valid @RequestParam(value = "useCaseType", required = false) String useCaseType,
             @ApiParam(value = "searchTerm to filter solutions. SearchTerm is comma seperated search keywords which are used to search Tags and ProductName of solutions. Example \"BAT, java\"") @Valid @RequestParam(value = "searchTerm", required = false) String searchTerm,
             @ApiParam(value = "searchTerm to filter solutions. Example Java,R") @Valid @RequestParam(value = "tags", required = false) String tags,
-            @ApiParam(value = "Filtering solutions based on digital value, values true or false", defaultValue = "false") @Valid @RequestParam(value = "hasDigitalValue", required = false, defaultValue = "false") Boolean hasDigitalValue,
+            @ApiParam(value = "Filtering solutions based on digital value, values true or false") @Valid @RequestParam(value = "hasDigitalValue", required = false) Boolean hasDigitalValue,
             @ApiParam(value = "Filtering solutions based on notebook value, values true or false", defaultValue = "false") @Valid @RequestParam(value = "hasNotebook", required = false, defaultValue = "false") Boolean hasNotebook,
             @ApiParam(value = "page number from which listing of solutions should start. Offset. Example 2") @Valid @RequestParam(value = "offset", required = false) Integer offset,
             @ApiParam(value = "page size to limit the number of solutions, Example 15") @Valid @RequestParam(value = "limit", required = false) Integer limit,
@@ -358,7 +358,7 @@ public class SolutionController implements SolutionsApi, ChangelogsApi, Malwares
             if (solutionVOListVO != null && solutionVOListVO.size() > 0) {
                 solutionCollection = solutionAssembler.applyBookMarkflag(solutionVOListVO, bookmarkedSolutions, userId);
                 if (!isAdmin)
-                    solutionCollection = solutionAssembler.maskDigitalValues(solutionVOListVO, userId, true);
+                    solutionCollection = solutionAssembler.maskDigitalValues(solutionVOListVO, userId, true, divisionsAdmin);
                 solutionCollection.setTotalCount(count.intValue());
                 return new ResponseEntity<>(solutionCollection, HttpStatus.OK);
             } else {
@@ -438,7 +438,7 @@ public class SolutionController implements SolutionsApi, ChangelogsApi, Malwares
             isDivisionAdmin = isDivisionAdmin && !ObjectUtils.isEmpty(divisionAdmins)
                     && divisionAdmins.contains(solutionVO.getDivision().getName());
             if (Boolean.FALSE.equals(isAdmin) && Boolean.FALSE.equals(isDivisionAdmin)) {
-                solutionVO = solutionAssembler.maskDigitalValue(solutionVO, userId, false);
+                solutionVO = solutionAssembler.maskDigitalValue(solutionVO, userId, false, divisionAdmins);
             }
             LOGGER.debug("Solution {} fetched successfully", id);
             return new ResponseEntity<>(solutionVO, HttpStatus.OK);

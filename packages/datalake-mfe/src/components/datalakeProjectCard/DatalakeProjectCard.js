@@ -2,26 +2,26 @@ import classNames from 'classnames';
 import React, { useState, useEffect } from 'react';
 import Styles from './datalake-project-card.scss';
 import { useHistory } from 'react-router-dom';
-import { useDispatch } from 'react-redux';
+// import { useDispatch } from 'react-redux';
 // Container Components
 import Modal from 'dna-container/Modal';
 import InfoModal from 'dna-container/InfoModal';
-import ConfirmModal from 'dna-container/ConfirmModal';
+// import ConfirmModal from 'dna-container/ConfirmModal';
 // utils
 import { regionalDateAndTimeConversionSolution } from '../../utilities/utils';
 import Tooltip from '../../common/modules/uilab/js/src/tooltip';
-import Notification from '../../common/modules/uilab/js/src/notification';
+// import Notification from '../../common/modules/uilab/js/src/notification';
 import DatalakeProjectForm from '../datalakeProjectForm/DatalakeProjectForm';
-import { deleteProject } from '../../redux/projectsSlice';
-import { getProjects } from '../../redux/projects.services';
+// import { deleteProject } from '../../redux/projectsSlice';
+// import { getProjects } from '../../redux/projects.services';
 import { ConnectionModal } from '../connectionInfo/ConnectionModal';
 
-const DatalakeProjectCard = ({graph}) => {
+const DatalakeProjectCard = ({user,graph,onRefresh}) => {
   const [showConnectionModel, setShowConnectionModel] = useState(false);
   const [editProject, setEditProject] = useState(false);
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  // const [showDeleteModal, setShowDeleteModal] = useState(false);
   const history = useHistory();
-  const dispatch = useDispatch();
+  // const dispatch = useDispatch();
 
   useEffect(() => {
     Tooltip.defaultSetup();
@@ -32,12 +32,12 @@ const DatalakeProjectCard = ({graph}) => {
   }
 
   // delete project
-  const handleDeleteProject = () => {
-    setShowDeleteModal(false);
-    dispatch(deleteProject(graph?.id));
-    dispatch(getProjects());
-    Notification.show('Project successfully deleted');
-  }
+  // const handleDeleteProject = () => {
+  //   setShowDeleteModal(false);
+  //   dispatch(deleteProject(graph?.id));
+  //   dispatch(getProjects());
+  //   Notification.show('Project successfully deleted');
+  // }
 
   const onhandleClickConnection = () => {
     setShowConnectionModel(true);
@@ -67,25 +67,29 @@ const DatalakeProjectCard = ({graph}) => {
               <div>{regionalDateAndTimeConversionSolution(graph.createdOn)}</div>
             </div>
             <div>
-              <div>Last modified</div>
-              <div>{regionalDateAndTimeConversionSolution(graph.createdOn)}</div>
+              <div>schema</div>
+              <div>{graph.schemaName}</div>
             </div>
             <div>
               <div>Classification</div>
               <div>{graph.classificationType || 'N/A'}</div>
+            </div>
+            <div>
+              <div>Connector Type</div>
+              <div>{graph.connectorType || 'N/A'}</div>
             </div>
           </div>
         </div>
         <div className={Styles.cardFooter}>
           <div>&nbsp;</div>
           <div className={Styles.btnGrp}>
-            <button className="btn btn-primary" onClick={() => setEditProject(true)}>
+            <button className={classNames("btn btn-primary",graph.createdBy.id === user.id ? "" :"hide")} onClick={() => setEditProject(true)}>
               <i className="icon mbc-icon edit fill"></i>
               <span>Edit</span>
             </button>
-            <button className="btn btn-primary" onClick={() => setShowDeleteModal(true)}>
+            <button className={classNames("btn btn-primary", Styles.btnDisabled)}>
               <i className="icon delete"></i>
-              <span>Delete</span>
+              <span tooltip-data={'Coming Soon'}>Delete</span>
             </button>
             <button className={'btn btn-primary'} type="button" onClick={() => onhandleClickConnection()} >
               <i className="icon mbc-icon comparison"></i>
@@ -102,7 +106,7 @@ const DatalakeProjectCard = ({graph}) => {
           modalWidth={'60%'}
           buttonAlignment="right"
           show={editProject}
-          content={<DatalakeProjectForm edit={true} project={{ data: graph }} onSave={() => setEditProject(false)} />}
+          content={<DatalakeProjectForm edit={true} project={{ data: graph }} onSave={() => {setEditProject(false); onRefresh()}} />}
           scrollableContent={false}
           onCancel={() => setEditProject(false)}
           modalStyle={{
@@ -113,7 +117,7 @@ const DatalakeProjectCard = ({graph}) => {
           }}
         />
       }
-      {
+      {/* {
         showDeleteModal && (
           <ConfirmModal
             title={'Delete'}
@@ -146,13 +150,13 @@ const DatalakeProjectCard = ({graph}) => {
             onCancel={() => setShowDeleteModal(false)}
           />
         )
-      }
+      } */}
       {showConnectionModel &&
         <InfoModal
           title={'Connect'}
           modalCSS={Styles.header}
           show={showConnectionModel}
-          content={<ConnectionModal onOkClick={onConnectionModalClose} />}
+          content={<ConnectionModal projectId={graph?.id} onOkClick={onConnectionModalClose} />}
           hiddenTitle={true}
           onCancel={onConnectionModalClose}
         />

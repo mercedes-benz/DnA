@@ -138,9 +138,25 @@ paths:
     get:
       tags:
         - "code-server-admin"
-      summary: "Get all workspace security configurations which are in requested state, waiting for processing."
-      description: "Get all workspace security configurations which are in requested state, waiting for processing"
+      summary: "Get all workspace security configurations which are in requested and accepted state, waiting for processing."
+      description: "Get all workspace security configurations which are in requested and accepted state, waiting for processing"
       operationId: "getWorkspaceConfigs"
+      parameters:
+          - name: offset
+            in: query
+            description: page number from which listing of SecurityConfigs should start. Offset. Example 2
+            required: false
+            type: integer
+          - name: limit
+            in: query
+            description: page size to limit the number of SecurityConfigs, Example 15
+            required: false
+            type: integer
+          - name: projectName
+            in: query
+            description: project name to get SecurityConfig.
+            required: false
+            type: string
       responses:
         201:
           description: "Returns message of success or failure"
@@ -161,6 +177,20 @@ paths:
           
 
 definitions:
+  
+  CodespaceSecurityConfigDetailsVO:
+    type: object
+    properties:
+      id: 
+        type: string
+        description: "Unique technical ID of workspace"
+      projectName:
+        type: string
+        description: "Name of the Project"
+      projectOwner:
+        $ref: "#/definitions/UserInfoVO"
+      securityConfig:
+        $ref: "#/definitions/CodespaceSecurityConfigVO"
 
   CodespaceSecurityConfigCollectionVO: 
     type: object
@@ -168,6 +198,8 @@ definitions:
      data:
         type: array
         items:
-          $ref: "#/definitions/CodespaceSecurityConfigVO"
-          
+          $ref: "#/definitions/CodespaceSecurityConfigDetailsVO"
+     totalCount:
+        type: integer
+        description: "Total number of Codespace projects that requested for publishing security configurations"     
 

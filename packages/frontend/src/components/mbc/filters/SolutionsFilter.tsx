@@ -29,12 +29,14 @@ import { SESSION_STORAGE_KEYS } from 'globals/constants';
 import Tags from 'components/formElements/tags/Tags';
 import { getDivisionsQueryValue, trackEvent, isSolutionFilterApplied } from '../../../services/utils';
 import { useLocation } from 'react-router-dom';
+import { getPath } from '../../../router/RouterUtils';
 
 import Styles from './Filter.scss';
 import FilterWrapper from './FilterWrapper';
 const classNames = cn.bind(Styles);
 
 type SolutionsFilterType = {
+  isGenAI?: boolean;
   userId: string;
   getSolutions?: Function;
   getFilterQueryParams?: Function;
@@ -61,6 +63,7 @@ type SolutionsFilterType = {
  */
 
 const SolutionsFilter = ({
+  isGenAI,
   userId,
   getSolutions,
   getFilterQueryParams,
@@ -71,12 +74,12 @@ const SolutionsFilter = ({
   showSolutionsFilter,
   openFilters,
   getAllTags,
-  setSelectedTags
+  setSelectedTags,
 }: SolutionsFilterType) => {
   const { pathname } = useLocation();
-//   const [openFilterPanel, 
-//     // setFilterPanel
-// ] = useState(false);
+  //   const [openFilterPanel,
+  //     // setFilterPanel
+  // ] = useState(false);
 
   // dropdown values
   const [phases, setPhases] = useState<IPhase[]>([]);
@@ -124,15 +127,19 @@ const SolutionsFilter = ({
   const isPortfolioPage = pathname === '/portfolio';
   const isAllSolutionsPage = pathname === '/allsolutions';
 
-  useEffect(()=>{
+  const [genAIPage, setGenAIPage] = useState(false);
+
+  useEffect(() => {
     onsetTags(setSelectedTags);
-  },[setSelectedTags]);
+  }, [setSelectedTags]);
 
   useEffect(() => {
     SelectBox.refresh('subDivisionSelect'); // Refresh the sub division select box
   }, [divisionFilterValues]);
 
   useEffect(() => {
+    const path = getPath().split('?')[0].split('/')[3] || getPath().split('/')[1];
+    setGenAIPage(path === 'GenAI' ? true : false);
     ProgressIndicator.show();
     ApiClient.getFiltersMasterData()
       .then((response) => {
@@ -359,7 +366,6 @@ const SolutionsFilter = ({
   //   }
   // }, [divisionFilterValues.length]);
 
-
   const setPortfolioFilterValuesInSession = (queryParams: IFilterParams) => {
     sessionStorage.setItem(SESSION_STORAGE_KEYS.PORTFOLIO_FILTER_VALUES, JSON.stringify(queryParams));
   };
@@ -391,11 +397,13 @@ const SolutionsFilter = ({
             hasNoneValue = subDivisions.some((subDiv: ISubDivisionSolution) => subDiv.name === 'None');
           }
           if (subDivisions.length) {
-            const subDivVals = subDivisions.map((subDivision: ISubDivisionSolution) => subDivision.id.indexOf('@-@') !== -1 ? subDivision.id : `${subDivision.id}@-@${divisionId}` as string) as string[];
+            const subDivVals = subDivisions.map((subDivision: ISubDivisionSolution) =>
+              subDivision.id.indexOf('@-@') !== -1 ? subDivision.id : (`${subDivision.id}@-@${divisionId}` as string),
+            ) as string[];
             subDivisionValues = subDivisionValues.concat(subDivVals);
           }
         });
-        if(!hasNoneValue && values.length) {
+        if (!hasNoneValue && values.length) {
           subDivisionValues.unshift(`EMPTY@-@${values[values.length - 1]}`);
         }
         queryParams['subDivision'] = subDivisionValues;
@@ -488,7 +496,7 @@ const SolutionsFilter = ({
 
     if (selectedOptions.length) {
       Array.from(selectedOptions).forEach((option) => {
-        const location: ILocation = { id: null, name: null};
+        const location: ILocation = { id: null, name: null };
         location.id = option.value;
         location.name = option.label;
         selectedValues.push(location);
@@ -555,7 +563,9 @@ const SolutionsFilter = ({
       divisionFilterValues.forEach((item) => {
         const tempSubdiv = queryParams.subDivision.map((value: string) => {
           const tempSubDivId = value.split('@-@')[1];
-          const subDivObject = subDivisionsOfSelectedDivision.find((subDiv: ISubDivisionSolution) => subDiv.id === value);
+          const subDivObject = subDivisionsOfSelectedDivision.find(
+            (subDiv: ISubDivisionSolution) => subDiv.id === value,
+          );
           if (item.id === tempSubDivId && subDivObject) {
             const tempSubDivObj: IDivision = { id: '', name: '' };
             tempSubDivObj.id = value.split('@-@')[0];
@@ -567,7 +577,10 @@ const SolutionsFilter = ({
         tempObj.id = item.id;
         tempObj.name = item.name;
         tempObj.subdivisions = tempSubdiv.filter((div) => div);
-        if(!tempObj.subdivisions.some((tempSubDiv: any) => tempSubDiv.name === 'None') && queryParams.subDivision.some((subDivId: string) => subDivId === `EMPTY@-@${item.id}`)) {
+        if (
+          !tempObj.subdivisions.some((tempSubDiv: any) => tempSubDiv.name === 'None') &&
+          queryParams.subDivision.some((subDivId: string) => subDivId === `EMPTY@-@${item.id}`)
+        ) {
           tempObj.subdivisions.unshift({
             id: 'EMPTY',
             name: 'None',
@@ -660,7 +673,16 @@ const SolutionsFilter = ({
 
     typeof getSolutions === 'function' && getSolutions(locationIds, phaseIds, divisionIds, status, useCaseType, tags);
 
-    setSolutionsFilterApplied(isSolutionFilterApplied(queryParams, divisions.length, subDivisions.length, phases.length, locations.length, tagValues.length));
+    setSolutionsFilterApplied(
+      isSolutionFilterApplied(
+        queryParams,
+        divisions.length,
+        subDivisions.length,
+        phases.length,
+        locations.length,
+        tagValues.length,
+      ),
+    );
   };
 
   const resetDataFilters = () => {
@@ -731,9 +753,12 @@ const SolutionsFilter = ({
   const getSubDivisionsOfSelectedDivision = () => {
     let subDivisionsOfSelectedDivision: ISubDivisionSolution[] = divisionFilterValues.length ? [] : subDivisions;
     divisionFilterValues.forEach((div: IDivision) => {
-      const subDivisionsFromDivision = divisions.find((masterDiv: IDivisionFilterPreference) => masterDiv.id === div.id)?.subdivisions;
+      const subDivisionsFromDivision = divisions.find(
+        (masterDiv: IDivisionFilterPreference) => masterDiv.id === div.id,
+      )?.subdivisions;
       subDivisionsFromDivision?.forEach((subdivision: ISubDivisionSolution) => {
-        if (subdivision.id.indexOf('@-@') === -1) { // Making sure if divisiona and subdivision mappping already performed donot do again
+        if (subdivision.id.indexOf('@-@') === -1) {
+          // Making sure if divisiona and subdivision mappping already performed donot do again
           subdivision.id = subdivision.id + '@-@' + div.id;
           subdivision.division = div.id;
         }
@@ -743,11 +768,18 @@ const SolutionsFilter = ({
       // subDivisionsOfSelectedDivision = subDivisionsOfSelectedDivision.concat(subDivisions.filter((subDiv: ISubDivisionSolution) => subDiv.division === div.id) as ISubDivisionSolution[]);
     });
 
-    if(subDivisionsOfSelectedDivision.length && !subDivisionsOfSelectedDivision.some((item: ISubDivisionSolution) => item.name === 'None')) {
+    if (
+      subDivisionsOfSelectedDivision.length &&
+      !subDivisionsOfSelectedDivision.some((item: ISubDivisionSolution) => item.name === 'None')
+    ) {
       const lastDivisionId = divisionFilterValues[divisionFilterValues.length - 1].id;
-      subDivisionsOfSelectedDivision.unshift({ id: `EMPTY@-@${lastDivisionId}`, name: 'None', division: lastDivisionId } as ISubDivisionSolution);
+      subDivisionsOfSelectedDivision.unshift({
+        id: `EMPTY@-@${lastDivisionId}`,
+        name: 'None',
+        division: lastDivisionId,
+      } as ISubDivisionSolution);
     } else {
-      subDivisionsOfSelectedDivision.sort((item) => item.name === 'None'? -1 : 0);
+      subDivisionsOfSelectedDivision.sort((item) => (item.name === 'None' ? -1 : 0));
     }
 
     return subDivisionsOfSelectedDivision;
@@ -769,141 +801,142 @@ const SolutionsFilter = ({
   return (
     <FilterWrapper openFilters={openFilters}>
       <div>
-          <div id="phaseContainer" className="input-field-group" onFocus={(e) => onHandleFocus(e, 'phase')}>
-              <label id="phaseLabel" className="input-label" htmlFor="phaseSelect">
-              Phase
-              </label>
-              <div className=" custom-select">
-              <select id="phaseSelect" multiple={true} onChange={onPhaseChange} value={queryParams?.phase}>
-                  {phases.map((obj: IPhase) => (
-                  <option id={obj.name + obj.id} key={obj.id} value={obj.id}>
-                      {obj.name}
-                  </option>
-                  ))}
-              </select>
-              </div>
+        <div id="phaseContainer" className="input-field-group" onFocus={(e) => onHandleFocus(e, 'phase')}>
+          <label id="phaseLabel" className="input-label" htmlFor="phaseSelect">
+            Phase
+          </label>
+          <div className=" custom-select">
+            <select id="phaseSelect" multiple={true} onChange={onPhaseChange} value={queryParams?.phase}>
+              {phases.map((obj: IPhase) => (
+                <option id={obj.name + obj.id} key={obj.id} value={obj.id}>
+                  {obj.name}
+                </option>
+              ))}
+            </select>
           </div>
+        </div>
       </div>
       <div>
-          <div id="divisionContainer" className="input-field-group" onFocus={(e) => onHandleFocus(e, 'division')}>
-              <label id="divisionLabel" className="input-label" htmlFor="divisionSelect">
-              Division
-              </label>
-              <div className=" custom-select">
-              <select id="divisionSelect" multiple={true} onChange={onDivisionChange} value={queryParams?.division}>
-                  {divisions.map((obj: IDivisionFilterPreference) => (
-                  <option id={obj.name + obj.id} key={obj.id} value={obj.id}>
-                      {obj.name}
-                  </option>
-                  ))}
-              </select>
-              </div>
+        <div id="divisionContainer" className="input-field-group" onFocus={(e) => onHandleFocus(e, 'division')}>
+          <label id="divisionLabel" className="input-label" htmlFor="divisionSelect">
+            Division
+          </label>
+          <div className=" custom-select">
+            <select id="divisionSelect" multiple={true} onChange={onDivisionChange} value={queryParams?.division}>
+              {divisions.map((obj: IDivisionFilterPreference) => (
+                <option id={obj.name + obj.id} key={obj.id} value={obj.id}>
+                  {obj.name}
+                </option>
+              ))}
+            </select>
           </div>
+        </div>
       </div>
       <div>
-          <div
-              id="subDivisionContainer"
-              className={`input-field-group ${divisionFilterValues.length ? '' : 'disabled'}`}
-              onFocus={(e) => onHandleFocus(e, 'subDivision')}
-          >
-              <label id="subDivisionLabel" className="input-label" htmlFor="subDivisionSelect">
-              Sub Division
-              </label>
-              <div className={`custom-select ${divisionFilterValues.length ? '' : 'disabled'}`}>
-              <select
-                  id="subDivisionSelect"
-                  multiple={true}
-                  onChange={onSubDivisionChange}
-                  value={queryParams?.subDivision}
-              >
-                  {subDivisionsOfSelectedDivision.map((obj: ISubDivisionSolution) => (
-                  <option id={obj.name + obj.id} key={obj.id} value={obj.id}>
-                      {obj.name}
-                  </option>
-                  ))}
-              </select>
-              </div>
+        <div
+          id="subDivisionContainer"
+          className={`input-field-group ${divisionFilterValues.length ? '' : 'disabled'}`}
+          onFocus={(e) => onHandleFocus(e, 'subDivision')}
+        >
+          <label id="subDivisionLabel" className="input-label" htmlFor="subDivisionSelect">
+            Sub Division
+          </label>
+          <div className={`custom-select ${divisionFilterValues.length ? '' : 'disabled'}`}>
+            <select
+              id="subDivisionSelect"
+              multiple={true}
+              onChange={onSubDivisionChange}
+              value={queryParams?.subDivision}
+            >
+              {subDivisionsOfSelectedDivision.map((obj: ISubDivisionSolution) => (
+                <option id={obj.name + obj.id} key={obj.id} value={obj.id}>
+                  {obj.name}
+                </option>
+              ))}
+            </select>
           </div>
+        </div>
       </div>
       <div>
-          <div id="locationContainer" className="input-field-group" onFocus={(e) => onHandleFocus(e, 'location')}>
-              <label id="locationLabel" className="input-label" htmlFor="locationSelect">
-              Location
-              </label>
-              <div id="location" className=" custom-select">
-              <select id="locationSelect" multiple={true} onChange={onLocationChange} value={queryParams?.location}>
-                  {locations.map((obj: ILocation) => (
-                  <option id={obj.name + obj.id} key={obj.id} value={obj.id}>
-                      {obj.name}
-                  </option>
-                  ))}
-              </select>
-              </div>
+        <div id="locationContainer" className="input-field-group" onFocus={(e) => onHandleFocus(e, 'location')}>
+          <label id="locationLabel" className="input-label" htmlFor="locationSelect">
+            Location
+          </label>
+          <div id="location" className=" custom-select">
+            <select id="locationSelect" multiple={true} onChange={onLocationChange} value={queryParams?.location}>
+              {locations.map((obj: ILocation) => (
+                <option id={obj.name + obj.id} key={obj.id} value={obj.id}>
+                  {obj.name}
+                </option>
+              ))}
+            </select>
           </div>
+        </div>
       </div>
       <div>
-          <div id="statusContainer" className="input-field-group" onFocus={(e) => onHandleFocus(e, 'status')}>
-              <label id="statusLabel" className="input-label" htmlFor="statusSelect">
-              Status
-              </label>
-              <div className=" custom-select">
-              <select id="statusSelect" onChange={onStatusChange} value={queryParams?.status.join('')}>
-                  <option id="defaultStatus" value={0}>
-                  Choose
-                  </option>
-                  {projectStatuses.map((obj: IProjectStatus) => (
-                  <option id={obj.name + obj.id} key={obj.id} value={obj.id}>
-                      {obj.name}
-                  </option>
-                  ))}
-              </select>
-              </div>
+        <div id="statusContainer" className="input-field-group" onFocus={(e) => onHandleFocus(e, 'status')}>
+          <label id="statusLabel" className="input-label" htmlFor="statusSelect">
+            Status
+          </label>
+          <div className=" custom-select">
+            <select id="statusSelect" onChange={onStatusChange} value={queryParams?.status.join('')}>
+              <option id="defaultStatus" value={0}>
+                Choose
+              </option>
+              {projectStatuses.map((obj: IProjectStatus) => (
+                <option id={obj.name + obj.id} key={obj.id} value={obj.id}>
+                  {obj.name}
+                </option>
+              ))}
+            </select>
           </div>
+        </div>
       </div>
       <div>
-          <div id="typeContainer" className="input-field-group" onFocus={(e) => onHandleFocus(e, 'useCaseType')}>
-              <label id="typeLabel" className="input-label" htmlFor="typeSelect">
-              Type
-              </label>
-              <div className=" custom-select">
-              <select id="typeSelect" onChange={onTypeChange} value={queryParams?.useCaseType.join('')}>
-                  <option id="defaultType" value={0}>
-                  Choose
-                  </option>
-                  {projectTypes.map((obj: IProjectType) => (
-                  <option id={obj.name + obj.id} key={obj.id} value={obj.id}>
-                      {obj.name}
-                  </option>
-                  ))}
-              </select>
-              </div>
+        <div id="typeContainer" className="input-field-group" onFocus={(e) => onHandleFocus(e, 'useCaseType')}>
+          <label id="typeLabel" className="input-label" htmlFor="typeSelect">
+            Type
+          </label>
+          <div className=" custom-select">
+            <select id="typeSelect" onChange={onTypeChange} value={queryParams?.useCaseType.join('')}>
+              <option id="defaultType" value={0}>
+                Choose
+              </option>
+              {projectTypes.map((obj: IProjectType) => (
+                <option id={obj.name + obj.id} key={obj.id} value={obj.id}>
+                  {obj.name}
+                </option>
+              ))}
+            </select>
           </div>
+        </div>
       </div>
       <div>
-          <div>
-              <Tags
-              title={'Tags'}
-              max={100}
-              chips={queryParams?.tag}
-              setTags={onsetTags}
-              tags={tagValues}
-              isMandatory={false}
-              showMissingEntryError={false}
-              />
-          </div>
+        <div>
+          <Tags
+            title={'Tags'}
+            max={genAIPage ? 1 : 100}
+            chips={genAIPage ? ['#GENAI'] : queryParams?.tag}
+            setTags={onsetTags}
+            tags={tagValues}
+            isMandatory={false}
+            showMissingEntryError={false}
+          />
+        </div>
       </div>
       <div className={classNames(Styles.actionWrapper, dataFilterApplied ? '' : 'hidden')}>
+        {!isGenAI && (
           <button className={classNames('btn btn-primary', Styles.saveSettingsBtn)} onClick={saveFilterPreference}>
-              Save settings
+            Save settings
           </button>
-          <div className="icon-tile">
-              <button className="btn btn-icon-circle" tooltip-data="Reset Filters" onClick={resetDataFilters}>
-              <i className="icon mbc-icon refresh" />
-              </button>
-          </div>
-      </div> 
+        )}
+        <div className="icon-tile">
+          <button className="btn btn-icon-circle" tooltip-data="Reset Filters" onClick={resetDataFilters}>
+            <i className="icon mbc-icon refresh" />
+          </button>
+        </div>
+      </div>
     </FilterWrapper>
-    
   );
 };
 

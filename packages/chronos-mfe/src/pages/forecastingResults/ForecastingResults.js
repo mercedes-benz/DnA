@@ -11,7 +11,7 @@ import { Envs } from '../../utilities/envs';
 
 const ForecastingResults = () => {
   const printRef = React.useRef();
-
+  
   const history = useHistory();
   const { projectid: projectId, runid: runId } = useParams();
   const goback = () => {
@@ -29,6 +29,9 @@ const ForecastingResults = () => {
     getForecastRun();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  const [showValues, setShowValues] = useState(false);
+  const [showMarkers, setShowMarkers] = useState(false);
 
   const colOneSelect = useRef("");
   const colTwoSelect = useRef("");
@@ -142,14 +145,20 @@ const ForecastingResults = () => {
         outlierColOneArray.push({date: key, [colOneSelect.current.value]: value});
       }
       for (let [key, value] of Object.entries(myData[colOneSelect.current.value].anomalies[outMethods[0]])) {
-        outlierColOneArray.push({date: key, outlier: value});
+        outlierColOneArray.push({date: key, proposal: value});
+      }
+      for (let [key] of Object.entries(myData[colOneSelect.current.value].anomalies[outMethods[0]])) {
+        outlierColOneArray.push({date: key, outlier: myData[colOneSelect.current.value].data.actual[key]});
       }
       if(colTwoSelect.current.value !== '0') {
         for (let [key, value] of Object.entries(myData[colTwoSelect.current.value].data.actual)) {
           outlierColTwoArray.push({date: key, [colTwoSelect.current.value]: value});
         }
         for (let [key, value] of Object.entries(myData[colTwoSelect.current.value].anomalies[outMethods[0]])) {
-          outlierColTwoArray.push({date: key, outlier2: value});
+          outlierColTwoArray.push({date: key, proposal2: value});
+        }
+        for (let [key] of Object.entries(myData[colTwoSelect.current.value].anomalies[outMethods[0]])) {
+          outlierColOneArray.push({date: key, outlier2: myData[colTwoSelect.current.value].data.actual[key]});
         }
       }
       for(let i=0; i<outlierColOneArray.length; i++) {
@@ -211,14 +220,20 @@ const ForecastingResults = () => {
       outlierColOneArray.push({date: key, [colOneSelect.current.value]: value});
     }
     for (let [key, value] of Object.entries(myData[colOneSelect.current.value].anomalies[e.target.value])) {
-      outlierColOneArray.push({date: key, outlier: value});
+      outlierColOneArray.push({date: key, proposal: value});
+    }
+    for (let [key] of Object.entries(myData[colOneSelect.current.value].anomalies[e.target.value])) {
+      outlierColOneArray.push({date: key, outlier: myData[colOneSelect.current.value].data.actual[key]});
     }
     if(colTwoSelect.current.value !== '0') {
       for (let [key, value] of Object.entries(myData[colTwoSelect.current.value].data.actual)) {
         outlierColTwoArray.push({date: key, [colTwoSelect.current.value]: value});
       }
       for (let [key, value] of Object.entries(myData[colTwoSelect.current.value].anomalies[e.target.value])) {
-        outlierColTwoArray.push({date: key, outlier2: value});
+        outlierColTwoArray.push({date: key, proposal2: value});
+      }
+      for (let [key] of Object.entries(myData[colTwoSelect.current.value].anomalies[e.target.value])) {
+        outlierColOneArray.push({date: key, outlier2: myData[colTwoSelect.current.value].data.actual[key]});
       }
     }
     // for(let i=0; i<outlierColOneArray.length; i++) {
@@ -327,7 +342,8 @@ const ForecastingResults = () => {
         opacity: 0.5,
         line: {
             width: 0
-        }
+        },
+        layer: 'below',
       },
     ],
   };
@@ -351,14 +367,19 @@ const ForecastingResults = () => {
         lines[column].y.push(each[column]);
       });
     });
+
+    let graphMode = 'lines';
+    graphMode = showMarkers ? graphMode + '+markers' : graphMode;
+    graphMode = showValues ? graphMode + '+text' : graphMode;
     
     for(const [key, value] of Object.entries(lines)) {
       if(key === cols[0]) {
         traces.push({
           type: 'scatter',
-          mode: 'lines',
+          mode: graphMode,
           x: dates,
           y: value.y,
+          textposition: 'top center',
           name: key
         });
       }
@@ -366,9 +387,10 @@ const ForecastingResults = () => {
         if(key === cols[1]) {
           traces.push({
             type: 'scatter',
-            mode: 'lines',
+            mode: graphMode,
             x: dates,
             y: value.y,
+            textposition: 'top center',
             yaxis: 'y2',
             name: key,
             line: {
@@ -618,8 +640,8 @@ const ForecastingResults = () => {
     let dates = [];
     let lines = {};
 
-    const cols = [colOneSelect.current.value, 'outlier']
-    if(colTwoSelect.current.value !== '0') cols.push(colTwoSelect.current.value, 'outlier2');
+    const cols = [colOneSelect.current.value, 'proposal', 'outlier']
+    if(colTwoSelect.current.value !== '0') cols.push(colTwoSelect.current.value, 'proposal2', 'outlier2');
 
     cols.forEach(column => {
       lines[column] = {'y': []};
@@ -642,14 +664,28 @@ const ForecastingResults = () => {
           name: key
         });
       }
+      if(key === 'proposal') {
+        traces.push({
+          mode: 'markers',
+          x: dates,
+          y: value.y,
+          // name: 'Correction Proposal -' + colOneSelect.current.value,
+          name: 'Correction Proposal',
+          marker: {
+            color: '#00ADF0',
+          },
+        });
+      }
       if(key === 'outlier') {
         traces.push({
           mode: 'markers',
           x: dates,
           y: value.y,
-          name: 'outlier-' + colOneSelect.current.value,
+          // name: 'Correction Proposal -' + colOneSelect.current.value,
+          name: 'Outlier',
           marker: {
-            color: '#00ADF0',
+            color: '#E0144C',
+            symbol: 'x',
           },
         });
       }
@@ -668,15 +704,30 @@ const ForecastingResults = () => {
           });
         }
 
+        if(key === 'proposal2') {
+          traces.push({
+            mode: 'markers',
+            x: dates,
+            y: value.y,
+            // name: 'Correction Proposal -' + colTwoSelect.current.value,
+            name: 'Correction Proposal',
+            marker: {
+              dash: 'dot',
+              color: '#979797',
+            },
+          });
+        }
         if(key === 'outlier2') {
           traces.push({
             mode: 'markers',
             x: dates,
             y: value.y,
-            name: 'outlier-' + colTwoSelect.current.value,
+            // name: 'Correction Proposal -' + colOneSelect.current.value,
+            name: 'Outlier',
+            showlegend: false,
             marker: {
-              dash: 'dot',
-              color: '#979797',
+              color: '#E0144C',
+              symbol: 'x',
             },
           });
         }
@@ -800,7 +851,7 @@ const ForecastingResults = () => {
         </div>
       </div>
 
-      { (forecastDataA.length > 0 && decompositionDataA.length > 0 && outlierDataA.length > 0) ? null : 
+      { (forecastDataA.length > 0 || decompositionDataA.length > 0 || outlierDataA.length > 0) ? null : 
         <div className={Styles.firstPanel}>
           <p>No visualization for the given data.</p>
         </div>
@@ -810,13 +861,16 @@ const ForecastingResults = () => {
         <VisualContainer
           title="Forecast"
           forecastRun={forecastRun}
-          printRef={printRef}
           loading={loading}
           forecastData={forecastDataA}
           addTraces={addTraces}
           layout={layout}
           bucketName={bucketName}
           isForecast={true}
+          onShowValues = {() => setShowValues(!showValues)}
+          showValues={showValues}
+          onShowMarkers = {() => setShowMarkers(!showMarkers)}
+          showMarkers={showMarkers}
         />
       }
 
@@ -824,7 +878,6 @@ const ForecastingResults = () => {
         <VisualContainer
           title="Decomposition"
           forecastRun={forecastRun}
-          printRef={printRef}
           loading={loading}
           forecastData={decompositionDataA}
           addTraces={addTracesDecomposition}
@@ -852,9 +905,8 @@ const ForecastingResults = () => {
 
       { outlierDataA.length > 0 &&
         <VisualContainer
-          title="Outlier"
+          title="Outlier detection and correction"
           forecastRun={forecastRun}
-          printRef={printRef}
           loading={loading}
           forecastData={outlierDataA}
           addTraces={addTracesOutlier}

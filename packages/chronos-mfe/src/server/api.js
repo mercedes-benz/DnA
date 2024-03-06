@@ -36,6 +36,11 @@ export const storageServerX = axios.create({
   responseType: "arraybuffer",
 });
 
+export const reportsServer = axios.create({
+  baseURL: Envs.REPORTS_API_BASEURL ? Envs.REPORTS_API_BASEURL : `http://${window.location.hostname}:7173/api`,
+  headers,
+});
+
 function arrayBufferToJson(arrayBuffer) {
   const text = new TextDecoder().decode(arrayBuffer);
   try {
@@ -66,6 +71,7 @@ function createRefreshInterceptor(instance) {
         hostServer.defaults.headers.Authorization = newJwt;
         storageServer.defaults.headers.Authorization = newJwt;
         storageServerX.defaults.headers.Authorization = newJwt;
+        reportsServer.defaults.headers.Authorization = newJwt;
 
         // Retry the original request with the new token.
         error.config.headers.Authorization = newJwt;
@@ -103,3 +109,6 @@ createRefreshInterceptor(storageServer);
 
 // Apply interceptor to storageServerX
 createRefreshInterceptor(storageServerX);
+
+// Apply interceptor to reportsServer
+createRefreshInterceptor(reportsServer);

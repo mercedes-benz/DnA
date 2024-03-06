@@ -317,6 +317,13 @@ i {
   position: absolute;
   top: 27px;
   right: 38px;
+  span {
+    margin-left: 10px;
+  }
+  i {
+    width: 18px!important;
+    height: 18px!important;
+  }
   &:hover {
     cursor: pointer;
     i {

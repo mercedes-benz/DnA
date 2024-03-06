@@ -1,5 +1,6 @@
 .content {
   padding-top: 8px;
+  padding-right: 5px;
   .formGroup {
     .permissionField {
       display: flex;
@@ -17,29 +18,13 @@
       display: flex;
       justify-content: space-between;
       > div {
-        width: calc(50% - 30px);
+        width: calc(50% - 10px);
       }
     }
   }
 }
 .membersList {
   padding: 0 15px 0 0;
-  max-height: 225px;
-  min-height: 225px;
-  overflow-y: auto;
-  overflow-x: hidden;
-
-  &::-webkit-scrollbar-thumb {
-    background: #00adef;
-    border-radius: 10px;
-  }
-  &::-webkit-scrollbar-track {
-    background: #293f55;
-  }
-  &::-webkit-scrollbar {
-    width: 5px;
-    height: 5px;
-  }
 }
 .noMembers p {
   margin: 0;
@@ -86,7 +71,26 @@
       }
 
       &:hover span {
-        text-decoration: underline;
+        text-decoration: underline; 
+      }
+    }
+  }
+}
+.termsOfUseContainer {
+  display: flex;
+  flex-direction: column;
+  min-height: 56px;
+  .termsOfUseContent {
+    display: flex;
+    margin-left: -10px;
+    .termsOfUseText {
+      margin-top: auto;
+      margin-bottom: auto;
+      color: #c0c8d0;
+      sup {
+        float: right;
+        top: -12px;
+        right: -8px;
       }
     }
   }
@@ -94,21 +98,7 @@
 
 .collabAvatar {
   padding: 0 25px 25px 0;
-  max-height: calc(90vh - 110px);
-  overflow-y: auto;
   overflow-x: hidden;
-
-  &::-webkit-scrollbar-thumb {
-    background: #00adef;
-    border-radius: 10px;
-  }
-  &::-webkit-scrollbar-track {
-    background: #293f55;
-  }
-  &::-webkit-scrollbar {
-    width: 5px;
-    height: 5px;
-  }
 }
 
 .projectWrapper {

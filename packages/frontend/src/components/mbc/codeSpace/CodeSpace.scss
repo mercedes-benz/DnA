@@ -21,7 +21,7 @@
         align-items: center;
         justify-content: center;
         max-height: 700px;
-        min-height: 600px;
+        min-height: 650px;
         .btnPrimary {
           cursor: pointer;
         }
@@ -107,89 +107,70 @@
             font-size: var(--font-size-icon-medium);
             vertical-align: middle;
           }
+
+          > div {
+            text-align: center;
+            font-size: var(--font-size-small);
+            a {
+              margin: 0;
+              font-size: var(--font-size-small);
+            }
+          }
+        }
+
+        a.error {
+          color: #e84d47;
         }
 
         div > a:hover {
           text-decoration: none;
         }
       }
-      .stopNbbtn {
-        width: 40px;
-        height: 40px;
-        color: #acb8c4;
-        border: 2px solid #3e444e;
-        margin-left: 12px;
-        position: relative;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-        &:hover span {
-          animation: stopNb 1s infinite;
-        }
-        span {
-          display: inline-block;
-          width: 14px;
-          height: 14px;
-          margin: 0px 2px;
-          background-color: #9fa3a7;
-          margin-top: 2px;
-        }
-      }
-      .toggleNotebook {
-        width: 40px;
-        height: 40px;
-        color: #acb8c4;
-        border: 2px solid #3e444e;
-        margin-left: 12px;
-        position: relative;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-        i {
-          font-size: var(--font-size-icon-medium);
-          margin-top: -4px !important;
-        }
-      }
-      .active {
-        .toggleNotebook {
-          cursor: pointer;
-        }
-      }
-      .OpenNewTab {
-        width: 40px;
-        height: 40px;
-        color: #acb8c4;
-        border: 2px solid #383f49;
-        margin-left: 12px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-        position: relative;
-        &:hover i {
-          animation: OpenNewTab 1s infinite;
-        }
-        i {
-          color: #c0c8d0 !important;
-          font-size: var(--font-size-default) !important;
-          margin: 0 !important;
-          transform: rotate(315deg);
-          top: 7px;
-          left: 12.9px;
-          position: absolute;
-        }
-        span {
-          width: 16px;
-          height: 1px;
-          background-color: #c0c8d0;
-          position: absolute;
-          transform: rotate(314deg);
-          top: 19px;
-          left: 10px;
-        }
-      }
+    }
+  }
+
+  .OpenNewTab {
+    &:hover i {
+      animation: OpenNewTab 1s infinite;
+    }
+    i {
+      color: #c0c8d0 !important;
+      font-size: var(--font-size-default) !important;
+      margin: 0 !important;
+      transform: rotate(315deg);
+      top: 9px;
+      left: 12.9px;
+      position: absolute;
+    }
+    span {
+      width: 16px;
+      height: 1px;
+      background-color: #c0c8d0;
+      position: absolute;
+      transform: rotate(314deg);
+      top: 19px;
+      left: 10px;
+    }
+  }
+
+  .showLogs, .OpenNewTab {
+    width: 40px;
+    height: 40px;
+    color: #acb8c4;
+    border: 2px solid #383f49;
+    margin-left: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    position: relative;
+    i {
+      font-size: var(--font-size-icon-highlight)!important;
+      margin: -6px 0 0!important;
+    }
+    &.active {
+      border: 2px solid #00ADEF;
+      color: #00ADEF;
     }
   }
   .codespaceframe {
@@ -203,6 +184,36 @@
       border: none;
       &.fullscreen {
         height: calc(100% - 60px);
+      }
+    }
+    .logViewWrapper {
+      position: absolute;
+      width: 50%;
+      top: 0;
+      right: 0;
+      background: #000;
+      height: 100%;
+      padding: 15px 0 0 15px;
+      z-index: -1;
+      &.show {
+        z-index: auto;
+      }
+      .tabsHeightFix {
+        height: 100%;
+      }
+      .logsTabContentWrapper {
+        margin: 25px 0 0;
+        height: calc(100% - 65px);
+      }
+      .closeButton {
+        font-size: var(--font-size-icon-small);
+        border: none;
+        background: none;
+        padding: 0;
+        position: absolute;
+        right: 0;
+        top: 0;
+        outline: none;
       }
     }
     .textRight {
@@ -242,7 +253,7 @@
         .urlLink {
           padding-right: 15px;
           text-align: right;
-          display: flex;
+          display: block;
           align-items: center;
           line-height: 18px;
           i {
@@ -256,16 +267,34 @@
           > a:hover {
             text-decoration: none;
           }
+          > div {
+            text-align: center;
+            font-size: var(--font-size-small);
+            a {
+              margin: 0;
+              font-size: var(--font-size-small);
+            }
+          }
         } 
-  
-        .OpenNewTab {
-          display: none;
-        }
-        .stopNbbtn {
-          display: none;
-        }
-        .toggleNotebook {
-          display: none;
+
+        .configLink {
+          cursor: pointer;
+          padding-right: 15px;
+          text-align: right;
+          display: flex;
+          align-items: center;
+          line-height: 10px;
+          i {
+            font-size: var(--font-size-icon-medium);
+            vertical-align: middle;
+            &:nth-child(2) {
+              font-size: var(--font-size-default) !important;
+              vertical-align: top !important;
+            }
+          }
+          > a:hover {
+            text-decoration: none;
+          }
         }
       }
       .Logo {
@@ -527,30 +556,30 @@
   @keyframes OpenNewTab {
     0% {
       left: 12.9px;
-      top: 7px;
+      top: 9px;
     }
     50% {
       left: 15.9px;
-      top: 4px;
+      top: 5px;
     }
     100% {
       left: 12.9px;
-      top: 7px;
+      top: 9px;
     }
   }
   
   @-webkit-keyframes OpenNewTab {
     0% {
       left: 12.9px;
-      top: 7px;
+      top: 9px;
     }
     50% {
       left: 15.9px;
-      top: 4px;
+      top: 5px;
     }
     100% {
       left: 12.9px;
-      top: 7px;
+      top: 9px;
     }
   }
   
@@ -611,3 +640,6 @@
     top: -6px !important;
   }
   
+  .pointer {
+    cursor: pointer;
+  }

@@ -8,30 +8,27 @@ import Pagination from 'dna-container/Pagination';
 import NoProjectScreen from '../../components/noProjectScreen/NoProjectScreen';
 import DatalakeProjectCard from '../../components/datalakeProjectCard/DatalakeProjectCard';
 import DatalakeProjectForm from '../../components/datalakeProjectForm/DatalakeProjectForm';
+import Spinner from '../../components/spinner/Spinner';
 import { getQueryParameterByName } from '../../utilities/utils';
 import { SESSION_STORAGE_KEYS } from '../../utilities/constants';
 import { datalakeApi } from '../../apis/datalake.api';
 
 const Graphs = ({ user }) => {
-    const [createProject, setCreateProject] = useState(false);
-    const [graphs, setGraphs] = useState([]);
-    const [loading, setLoading] = useState(true);
-
-    useEffect(() => {
-      getDatalakeProjects();
-      // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+  const [createProject, setCreateProject] = useState(false);
+  const [graphs, setGraphs] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   // Fetch all datalake projects
   const getDatalakeProjects = () => {
-    datalakeApi.getDatalakeProjectsList(currentPageOffset, maxItemsPerPage)
+     datalakeApi.getDatalakeProjectsList(currentPageOffset, maxItemsPerPage)
       .then((res) => {
         if(res.status !== 204) {
-          if (res.data.records) {
-            const results = [...res.data.records].sort((projectA, projectB) => {
+          if (res.data.data) {
+            const results = [...res.data.data].sort((projectA, projectB) => {
               return (projectA.projectName.toLowerCase() > projectB.projectName.toLowerCase()) ? 1 : (projectB.projectName.toLowerCase() > projectA.projectName.toLowerCase() ? -1 : 0);
             });
             setGraphs(results);
+            // setGraphs(res.data.data);
             const totalNumberOfPagesTemp = Math.ceil(res.data.totalCount / maxItemsPerPage);
             setCurrentPageNumber(currentPageNumber > totalNumberOfPagesTemp ? 1 : currentPageNumber);
             setTotalNumberOfPages(totalNumberOfPagesTemp);
@@ -90,10 +87,16 @@ const Graphs = ({ user }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [maxItemsPerPage, currentPageNumber, currentPageOffset]);
 
+  const handleRefresh = ()=>{
+    getDatalakeProjects();
+  };
+
     return (
       <>
         <div className={classNames(Styles.mainPanel)}>
           <div className={classNames(Styles.wrapper)}>
+            {loading ? <Spinner /> : null}
+            {(!loading && graphs.length === 0) ? <NoProjectScreen user={user} openCreateProjectModal={() => setCreateProject(true)} /> : null}
             {!loading && graphs.length > 0 ? 
               <>
                 <div className={classNames(Styles.caption)}>
@@ -126,6 +129,8 @@ const Graphs = ({ user }) => {
                       <DatalakeProjectCard
                         key={graph.id}
                         graph={graph}
+                        user={user}
+                        onRefresh = {handleRefresh}
                       />
                     );
                   })}
@@ -140,7 +145,7 @@ const Graphs = ({ user }) => {
                     displayByPage={true}
                   /> : null
                 }
-              </> : <NoProjectScreen user={user} openCreateProjectModal={() => setCreateProject(true)} />
+              </> : null
             }
           </div>
         </div>

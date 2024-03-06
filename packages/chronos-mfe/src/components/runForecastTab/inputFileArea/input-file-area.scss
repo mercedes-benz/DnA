@@ -9,19 +9,33 @@
     p {
         color: #c0c8d0;
         margin: 0;
+        font-size: 16px;
     }
     .infoIcon {
         text-align: right;
-        font-size: var(--font-size-icon-medium);
-        margin-right: -23px;
         margin-top: -44px;
         float: right;
-        i {
+
+
+        .btnShowTutorial {
             cursor: pointer;
             color: #697582;
-  
+            background: unset;
+            border: unset;
+            display: flex;
+            align-items: center;
+            padding: 0;
+            line-height: unset;
+
             &:hover {
                 color: #00adef;
+            }
+            i {
+                font-size: var(--font-size-icon-medium);
+                height: unset;
+            }
+            p {
+                margin-bottom: 0;
             }
         }
     }

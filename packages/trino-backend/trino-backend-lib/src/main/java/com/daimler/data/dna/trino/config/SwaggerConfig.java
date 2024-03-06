@@ -87,7 +87,7 @@ public class SwaggerConfig {
 		return new Docket(DocumentationType.SWAGGER_2).select()
 				//.apis(RequestHandlerSelectors.basePackage("com.mb.dna.datalakehouse.controller"))
 				.apis(RequestHandlerSelectors.basePackage("com.daimler.data.controller").or(RequestHandlerSelectors.basePackage("com.mb.dna.datalakehouse.controller")))
-				.paths(PathSelectors.any())
+				.paths(PathSelectors.regex("/api.*"))
 				.build().pathMapping("/").apiInfo(apiEndPointsInfo()).globalRequestParameters(params);
 	}
 

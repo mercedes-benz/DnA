@@ -5,6 +5,7 @@ import java.util.Date;
 import java.util.List;
 
 import com.daimler.data.dto.UserInfoVO;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -13,12 +14,14 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class TrinoDataLakeProjectVO implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 
 	private String id;
 	private String projectName;
+	private String description;
 	private String connectorType;
 	private String schemaName;
 	private String catalogName;
@@ -39,5 +42,5 @@ public class TrinoDataLakeProjectVO implements Serializable {
 	private Date createdOn;
 	private UserInfoVO createdBy;
 	
-	
+	private String techUserClientId;
 }

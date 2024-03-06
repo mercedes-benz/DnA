@@ -1,0 +1,167 @@
+.mainPanel {
+  padding: 32px 75px 30px 75px;
+ 
+}
+  h3 {
+    font-size: 24px;
+    color: #dee3e8;
+    margin-top: 12px;
+    margin-bottom: 22px;
+    margin-left: 20px
+  }
+  .btnConatiner{
+    margin-left: 90.5%;
+  }
+  .actionWrapper {
+    text-align: center;
+    margin: 30px 0;
+  }
+  .disabledDiv {
+    opacity: 0.6;
+    pointer-events: none;
+  }
+  .saveSoftwareBtn {
+    display: flex;
+    justify-content: center;
+    width: 90px;
+  }
+
+  .firstPanel {
+    background: #252a33;
+    margin-bottom: 15px;
+    padding-top: 20px;
+    padding-left: 20px;
+    padding-bottom: 20px;
+    .textDesc {
+      color: #697582;
+    }
+
+    .rowLine {
+      display: inline-block;
+    }
+
+    .flexLayout {
+      display: flex;
+      justify-content: space-between;
+
+      >div {
+        width: calc(50% - 7px);
+      }
+
+    }
+    .SelectBoxWrapper {
+      display: flex;
+      justify-content: space-between;
+
+      >div {
+        width: calc(20% - 9px);
+      }
+
+    }
+
+    .MultiSelectBoxWrapper {
+      display: flex;
+      justify-content: space-between;
+
+      >div {
+        width: calc(30% - 9px);
+      }
+
+    }
+
+    .formWrapper {
+      margin: 60px 70px 0;
+    }
+
+    .wrapper {
+      background: #252a33 !important;
+      margin-top: 15px !important;
+      padding: 25px 38px;
+
+      .softwareListWrapper {
+        margin: 60px -38px;
+
+        .addsoftwareWrapper {
+          min-height: 110px;
+          padding-left: 40px;
+        }
+
+        h4 {
+          color: #c3c6cc;
+        }
+
+      }
+    }
+    button {
+      padding: 0;
+      margin: 0 0 0 30px;
+      background: none;
+      border: none;
+      outline: none;
+      color: #c0c8d0;
+      vertical-align: middle;
+
+      i {
+        vertical-align: top;
+        margin-right: 10px;
+        color: #00adef;
+      }
+
+      &:hover span {
+        text-decoration: underline;
+      }
+    }
+  }
+
+.softwareList{
+  margin-top: 10px;
+  margin-right: 75px;
+  margin-left: 30px;
+  .deleteIcon{
+    font-size: var(--font-size-icon-medium);
+    &:hover {
+      color: #00adef;
+      cursor: pointer;
+    }
+  }
+}
+
+.teamListWrapper {
+  margin: 8px -25px 0 -35px;
+
+  .avatarIcon {
+    width: 55px;
+    height: 55px;
+  }
+
+  .addTeamMemberWrapper {
+    min-height: 68px;
+    padding-left: 40px;
+
+    button {
+      padding: 0;
+      margin: 0 0 0 30px;
+      background: none;
+      border: none;
+      outline: none;
+      color: #c0c8d0;
+      vertical-align: middle;
+
+      i {
+        vertical-align: top;
+        margin-right: 10px;
+        color: #00adef;
+      }
+
+      &:hover span {
+        text-decoration: underline; 
+      }
+    }
+  }
+}
+
+.collabAvatar {
+  padding: 0 25px 25px 0;
+  overflow-x: hidden;
+}
+

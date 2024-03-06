@@ -21,7 +21,10 @@ const RunForecastTab = ({ onRunClick }) => {
   const methods = useForm();
   const dispatch = useDispatch();
 
-  const [showTutorial, setShowTutorial] = useState((localStorage.getItem('showTutorial') === null || localStorage.getItem('showTutorial') === 'true') ? true : false);
+  const [showTutorial, setShowTutorial] = useState(false);
+  useEffect(() => {
+    setShowTutorial((localStorage.getItem('showTutorial') === null || localStorage.getItem('showTutorial') === 'true') ? true : false);
+  }, []);
 
   useEffect(() => {
     SelectBox.defaultSetup();
@@ -46,19 +49,22 @@ const RunForecastTab = ({ onRunClick }) => {
     formData.append('frequency', data.frequency);
     formData.append('forecastHorizon', data.forecastHorizon);
     formData.append('hierarchy', data.hierarchy === undefined ? '' : data.hierarchy);
-    if(data.configurationFile.includes('OPTIMISATION_CONFIG')) {
+    if(data.runOnPowerfulMachines === undefined && data.configurationFile.includes('OPTIMISATION_CONFIG')) {
+      formData.append('runOnPowerfulMachines', true);
+    } else if(data.runOnPowerfulMachines !== undefined && data.configurationFile.includes('OPTIMISATION_CONFIG')) {
       formData.append('runOnPowerfulMachines', true);
     } else {
       formData.append('runOnPowerfulMachines', data.runOnPowerfulMachines === undefined ? false : data.runOnPowerfulMachines);
     }
     formData.append('chronosVersion', data.chronosVersion === undefined ? '' : data.chronosVersion);
+    formData.append('backtesting', data.backtesting === undefined ? '' : data.backtesting);
     formData.append('comment', data.comment);
     formData.append('saveRequestPart', data.saveRequestPart === undefined ? 'false' : data.saveRequestPart + '');
     formData.append('savedInputPath', data.savedInputPath === undefined ? null : data.savedInputPath);
 
     ProgressIndicator.show();
     chronosApi.createForecastRun(formData, projectId).then(() => {
-        Notification.show('Forecast running...\n\nThis usually takes about 10 minutes.');
+        Notification.show('Forecast running...\n\nThis usually takes about 10 minutes, but it may take significantly longer based upon your settings.');
         document.body.scrollTop = 0;
         document.documentElement.scrollTop = 0;
         onRunClick();

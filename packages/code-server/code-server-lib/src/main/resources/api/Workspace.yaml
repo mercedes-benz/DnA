@@ -315,6 +315,44 @@ paths:
         500:
           description: "Internal error"
 
+  /workspaces/{id}/datagovernance:        
+    patch:
+      tags:
+        - "code-server"
+      summary: "Add governance to existing workspace Project for a given Id."
+      description: "Add governance to existing workspace Project "
+      operationId: "updateGovernance"
+      parameters:
+        - name: "id"
+          in: "path"
+          description: "Workspace ID to be fetched"
+          required: true
+          type: "string"
+        - name: "dataGovernanceInfo"
+          in: "body"
+          description: "dataGovernanceInfo to add codespace"
+          required: true
+          schema:
+           $ref: "#/definitions/DataGovernanceRequestInfo"
+      responses:
+        201:
+          description: "Returns message of success or failure"
+          schema:
+            $ref: "#/definitions/GenericMessage"
+        204:
+          description: "Fetch complete, no content found."
+        400:
+          description: "Bad request."
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
+
+
   /workspaces/{id}/collaborator/{userid}:
     delete:
       tags:
@@ -684,6 +722,39 @@ paths:
           description: "Method not allowed"
         500:
           description: "Internal error"
+
+
+  /workspaces/{id}/config/publish:
+    get:
+      tags:
+        - "code-server"
+      summary: "Getting values of published security config for a workspace"
+      description: "Get published security config details in codeserver workspace"
+      operationId: "getPublishedSecurityConfigDetails"
+      parameters:
+        - name: "id"
+          in: "path"
+          description: "Workspace ID to be fetched"
+          required: true
+          type: "string"
+      responses:
+        201:
+          description: "Returns message of success or failure"
+          schema:
+            $ref: "#/definitions/CodespaceSecurityConfigVO"
+        204:
+          description: "Fetch complete, no content found."
+        400:
+          description: "Bad request."
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
+
           
 definitions:
 
@@ -693,16 +764,16 @@ definitions:
       data:
         type: array
         items:
-          type: string
+          $ref: "#/definitions/CodespaceSecurityConfigLOV"
   
   EntitlementCollectionVO:
     type: object
     properties:
       data:
         type: array
-        items:
-          type: string        
-          
+        items:    
+          $ref: "#/definitions/CodespaceSecurityConfigLOV"
+
   TransparencyVO:
     type: object
     properties:
@@ -734,6 +805,8 @@ definitions:
       targetEnvironment:
         type: string
       branch:
+        type: string
+      gitjobRunID:
         type: string
       required:
           -status
@@ -788,7 +861,7 @@ definitions:
       projectCollaborators:
         type: array
         items:
-         $ref: "#/definitions/UserInfoVO" 
+          $ref: "#/definitions/UserInfoVO" 
       prodDeploymentDetails:
         $ref: "#/definitions/CodeServerDeploymentDetailsVO"
       intDeploymentDetails:
@@ -802,6 +875,10 @@ definitions:
         format: date
       securityConfig:
         $ref: "#/definitions/CodespaceSecurityConfigVO"
+      publishedSecuirtyConfig:
+        $ref: "#/definitions/CodespaceSecurityConfigVO"
+      dataGovernance:
+         $ref: "#/definitions/CodeServerGovernanceVO"
       required:
         -projectName
         -recipeDetails
@@ -811,13 +888,17 @@ definitions:
     properties:
       targetEnvironment:
         type: string
-        enum: [int,prod]
+        enum: [int, prod]
       branch:
         type: string
       secureWithIAMRequired:
         type: boolean
       technicalUserDetailsForIAMLogin:
-        type: string     
+        type: string
+      valutInjectorEnable:  # Corrected property name
+        type: boolean
+        default: false  # This should now work as expected
+
            
   CodeServerDeploymentDetailsVO:
     type: object
@@ -841,13 +922,20 @@ definitions:
       lastDeploymentStatus:
         type: string
         description: Status of last deployement
+      gitjobRunID:
+        type: string
+        description: "git job run Id of project deployed"
+      deploymentAuditLogs:
+        type: array
+        items:
+          $ref: "#/definitions/DeploymentAuditVO"
          
   CodeServerRecipeDetailsVO:
     type: object
     properties:
       recipeId:
         type: string
-        enum: [default,springboot,py-fastapi,react,angular,gradle,quarkus,micronaut,private-user-defined,public-dna-backend,public-dna-frontend,public-dna-report-backend,public-dna-codespace-backend,public-dna-malware-scanner,public-dna-storage-mfe,public-dna-storage-backend,public-dna-chronos-mfe,public-dna-chronos-backend,public-dna-data-product-mfe,public-dna-data-product-backend,public-dna-dss-mfe,public-dna-dataiku-backend,public-dna-airflow-backend,public-dna-modal-registry-backend,public-dna-trino-backend,public-dna-nass,public-dna-authenticator-backend,public-dna-matomo-mfe,public-dna-matomo-backend,public-dna-datalake-mfe,public-user-defined,bat-frontend,bat-backend]
+        enum: [default,springboot,vue,py-fastapi,react,angular,gradle,quarkus,micronaut,private-user-defined,public-dna-backend,public-dna-frontend,public-dna-report-backend,public-dna-codespace-backend,public-dna-malware-scanner,public-dna-storage-mfe,public-dna-storage-backend,public-dna-chronos-mfe,public-dna-chronos-backend,public-dna-data-product-mfe,public-dna-data-product-backend,public-dna-dss-mfe,public-dna-dataiku-backend,public-dna-airflow-backend,public-dna-modal-registry-backend,public-dna-trino-backend,public-dna-nass,public-dna-authenticator-backend,public-dna-matomo-mfe,public-dna-matomo-backend,public-dna-datalake-mfe,public-user-defined,bat-frontend,bat-backend]
         description: "RecipeId of the workspace. Ex: Springboot Microservice"    
       environment:
         type: string
@@ -894,58 +982,127 @@ definitions:
   CodespaceSecurityEntitlementVO: 
     type: object
     properties:
-     name:
+      id:
         type: string
-        description: "Status of security configurations"   
-     apiPattern:
+        description: "Entitlement Id" 
+      name:
         type: string
-        description: "API Path or Pattern used to validate this entitlement" 
-     httpMethod:
-        type: string
-        enum: [POST,PUT,PATCH,GET,OPTIONS,HEAD,DELETE]
-        description: "Operating system required"          
+        description: "name  of Entitlement"   
+      apiList:
+        type:  array
+        items:
+          $ref: "#/definitions/CodespaceSecurityApiListVO"
 
   CodespaceSecurityUserRoleMapVO: 
     type: object
     properties:
-     userId:
+      firstName:
         type: string
-        description: "User unique identification"   
-     roles:
+      lastName:
+        type: string
+      shortId:
+        type: string
+      id:
+        type: string
+      department:
+        type: string
+      email:
+        type: string
+      mobileNumber:
+        type: string  
+      roles:
         type: array
-        items:
-         type: string
+        items:  
+            $ref: "#/definitions/CodespaceSecurityConfigLOV"
+
+  CodespaceSecurityUserRoleMapResponseVO: 
+    type: object
+    properties:
+      firstName:
+        type: string
+      lastName:
+        type: string
+      shortId:
+        type: string
+      id:
+        type: string
+      department:
+        type: string
+      email:
+        type: string
+      mobileNumber:
+        type: string     
+      roles:
+        type: array
+        items:  
+          $ref: "#/definitions/CodespaceSecurityConfigLOV"
+        default: []
         
   CodespaceSecurityRoleVO: 
     type: object
     properties:
-     roleName:
+      id:
+        type: string
+        description: "Role Id" 
+      name:
         type: string
         description: "Role name"   
-     roleEntitlements:
-        type: array
-        items:
-         type: string
-                
+      roleEntitlements:
+          type: array
+          items:
+            $ref: "#/definitions/CodespaceSecurityConfigLOV"
+                           
+  CodespaceSecurityConfigLOV:
+    type: object
+    properties:
+      id:
+        type: string
+        description: "Id" 
+      name:
+        type: string
+        description: "name"  
+
+  CodespaceSecurityApiListVO:
+    type: object
+    properties:
+      apiPattern:
+        type: string
+        description: "API Path or Pattern used to validate this entitlement" 
+      httpMethod:
+        type: string
+        enum: ["POST","PUT","PATCH","GET","OPTIONS","HEAD","DELETE"]
+        description: "Operating system required" 
+        
+
   CodespaceSecurityConfigVO: 
     type: object
     properties:
-     status:
+      status:
         type: string
         description: "Status of security configurations"   
-     entitlements:
+      entitlements:
         type: array
         items:
           $ref: "#/definitions/CodespaceSecurityEntitlementVO"
-     roles:
+      roles:
         type: array
         items:
           $ref: "#/definitions/CodespaceSecurityRoleVO" 
-     userRoleMappings:
+      userRoleMappings:
         type: array
         items:
           $ref: "#/definitions/CodespaceSecurityUserRoleMapVO"
-
+      openSegments:
+        type: array
+        items:
+          type: string
+      isProtectedByDna:
+        type: boolean
+      requestedDate:
+        type: string
+      projectName:
+        type: string
+        
   UserIdVO:
     type: object
     properties:
@@ -1073,3 +1230,89 @@ definitions:
       mobileNumber:
         type: string
         description: "Mobile number of the user" 
+
+  CodespaceSecurityConfigPublishedDetailsVO:
+    type: object
+    properties:
+      projectName:
+        type: string
+        description: "Name of the Project"
+      PublishedSecurityConfig:
+        $ref: "#/definitions/CodespaceSecurityConfigVO"
+
+  DataGovernanceRequestInfo:
+    type: object
+    properties:
+      data:
+        $ref: "#/definitions/CodeServerGovernanceVO"
+
+  CodeServerGovernanceVO :
+    type: object
+    properties:
+      description:
+        type: string
+        description: "description type for codespace"
+      classificationType:
+        type: string
+        description: "Classification type for codespace"
+      divisionId:
+        type: string
+        description: "division Id for the codespace"
+      division:
+        type: string
+        description: "division for the codespace"
+      subDivisionId:
+        type: string
+        description: "sub division Id for the codespace"
+      subDivision:
+        type: string
+        description: "sub division for the codespace"
+      department:
+        type: string
+        description: "department for the codespace"
+      archerId:
+        type: string
+        description: "archerId for the codespace"
+      procedureID:
+        type: string
+        description: "producerId for the codespace"
+      tags:
+        type: array
+        items:
+          type: string
+      typeOfProject:
+        type: string
+        description: "typeOfProject for the codespace"
+      piiData:
+        type: boolean
+        description: "If codespace contains personally identifiable information"
+      required:
+        -description
+        - division
+        -subDivision
+        - department
+        - classificationType
+        -typeOfProject
+        -producerId
+        -piiData
+
+  DeploymentAuditVO:
+    type: object
+    properties:
+      triggeredBy:
+        type: string
+        description: "User who triggered deployment of codespace"
+      triggeredOn:
+        type: string
+        format: date
+        description: "date on which codespace is deployed triggred"
+      deploymentStatus:
+        type: string
+        description: "status of codespace - DEPLOY_REQUESTED,DEPLOYED,DEPLOYMENT_FAILED."
+      deployedOn:
+        type: string
+        format: date
+        description: "date on which codespace deployed"
+      branch:
+        type: string
+        description: "branch one which codespace is deployed"

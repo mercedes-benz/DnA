@@ -2,7 +2,7 @@ spring:
   mvc.pathmatch.matching-strategy: ant_path_matcher
   application:
     name: dna-chronos-service
-    version: 1.3.9
+    version: 1.4.4
 
   cloud:
     vault:
@@ -105,7 +105,7 @@ server:
   port: 8989
 
 storage.uri : ${STORAGE_API_BASE_URL:XXXXXX}
-chronos.uri : ${CHRONOS_API_BASE_URL:XXXXXX}
+technicalUser: ${TECH_USER:XXXXXX}
 
 #Cors Filter origin Domains  
 allowedCorsOriginPatternUrl: ${CORS_ORIGIN_URL:http://*}

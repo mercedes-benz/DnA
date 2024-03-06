@@ -92,7 +92,7 @@ public class JWTAuthenticationFilter implements Filter {
 		String chronosUserToken = httpRequest.getHeader("chronos-api-key");
 		if (!StringUtils.hasText(jwt)) {
 			boolean authFlag = chronosUserToken!=null && dataBricksAuth.equals(chronosUserToken);
-			log.info("authflag {} currentUser {}",authFlag);
+			log.debug("authflag {} currentUser {}",authFlag);
 			if (chronosUserToken!=null && dataBricksAuth.equals(chronosUserToken)) {
 				JSONObject userdetails = new JSONObject();
 				userdetails.put("id", dataBricksUser);

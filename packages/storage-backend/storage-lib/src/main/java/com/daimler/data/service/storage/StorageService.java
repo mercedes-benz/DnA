@@ -183,5 +183,7 @@ public interface StorageService {
 	public ResponseEntity<GenericMessage> createDataikuConnection(ConnectionVO connectionVO, Boolean live);
 
 	public GenericMessage reassignOwner(CreatedByVO currentUser, BucketVo bucketVo, UserVO newOwnerVo);
+
+	ResponseEntity<BucketCollectionVO> getAllBucketsUsingMC(int limit, String sortBy, String sortOrder, int offset);
 	
 }

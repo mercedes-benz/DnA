@@ -904,7 +904,7 @@ export class ApiClient {
     sortOrder: string,
     published: boolean,
     searchKey: string,
-    digitalvaluecontribution = false,
+    digitalvaluecontribution?: boolean,
     notebookavailable = false,
   ): Promise<any> {
     let reqQuery = `location:"${locations}",phase:"${phases}",division:"${divisions}",projectStatus:"${status}",useCaseType:"${useCaseType}",dataVolume:"${dataVolumes}",tags:"${tags}",offset:0,limit:0,sortBy:"${sortBy}",sortOrder:"${sortOrder}"`;
@@ -1022,6 +1022,8 @@ export class ApiClient {
           readyForImplementation,
           quickCheck,
           useCaseDescAndEval,
+          aiRiskAssessmentType,
+          workersCouncilApproval,
           attachments {
             id,
             fileName,

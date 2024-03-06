@@ -20,6 +20,7 @@ const powerbiTrainingUrl = Envs.POWERBI_TRAINING_URL;
 const sacTrainingUrl = Envs.SAC_TRAINING_URL;
 const databricksTrainingUrl = Envs.DATABRICKS_TRAINING_URL;
 const digitalCaseProgramUrl = Envs.DIGITAL_CASE_PROGRAM_URL;
+const datasphereTrainingUrl = Envs.DATASPHERE_TRAINING_URL;
 const afoUrl= Envs.AFO_TOOL_URL;
 const btpUrl = Envs.BPT_TOOL_URL;
 const dataOasisUrl = Envs.DATA_OASIS_TOOL_URL;
@@ -28,12 +29,14 @@ const datasphereUrl = Envs.DATASPHERE_TOOL_URL;
 const extolloUrl = Envs.EXTOLLO_TOOL_URL;
 const powerBIUrl = Envs.POWER_BI_TOOL_URL;
 const dataModelUrl = Envs.DATA_MODEL_URL;
+const dataCatalogUrl = Envs.DATA_CATALOG_URL;
 const corporateDataCatalogUrl = Envs.CORPORATE_DATA_CATALOG_URL;
 const smartDataGovernanceUrl = Envs.SMART_DATA_GOVERNANCE_URL;
 const spireUrl = Envs.SPIRE_URL;
 const enableDatalakeService = Envs.ENABLE_DATALAKE_SERVICE;
 const genAIDirectChatUrl = Envs.GENAI_DIRECT_CHAT_URL;
 const bisoContactsLink = Envs.BISO_CONTACTS_URL;
+const clamavImagwUrl = Envs.CLAMAV_IMAGE_URL;
 
 export const DataLayerElements = [
   {
@@ -252,6 +255,21 @@ export const ToolsLandingPageElements = [
     isDnAInternalTool: true,
   },
   {
+    name: 'Malware Azure Blob Scanner',
+    description:
+      'A docker instance that can be configured to connect to an Azure Blob instance and enables anti malware detection on any files added to the storage.',
+    tags: ['FOSS'],
+    url: '/azureBlobService',
+    isExternalLink: false,
+    isTextAlignLeft: true,
+    animation: true,
+    isDisabled: !clamavImagwUrl?.startsWith('reg'),
+    isSmallCard: false,
+    isMediumCard: true,
+    svgIcon: 'malwarescan',
+    isDnAInternalTool: true,
+   },
+  {
     name: 'Storage Bucket',
     description:
       'Storage Buckets provide data file storage that can be shared and connected to many tools. the storage buckets are based on a FOSS solution called minIO and provide a standard API for accessing file stores: S3.',
@@ -281,7 +299,7 @@ export const ToolsLandingPageElements = [
     svgIcon: 'codespace',
     isDnAInternalTool: true,
   },
-  {
+    {
     name: 'Data Oasis',
     description:
       'Digital Oasis is an intergrated data platform, which is to drive and support the FG Digital Transformation with 6 modules (Mall, Factory, Workflow, Logistics, Data Warehouse, College) for 6 transformation scenarios.',
@@ -397,7 +415,7 @@ export const ToolsLandingPageElements = [
     isDisabled: !datasphereUrl?.startsWith('http'),
     isSmallCard: false,
     isMediumCard: true,
-    svgIcon: 'tools-mini',
+    svgIcon: 'sac',
     isDnAInternalTool: false,
   },
   {
@@ -526,6 +544,19 @@ export const DataLandingPageElements = [
     isMediumCard: false,
     svgIcon: 'datagovernance',
   },
+  {
+    name: 'Data Catalog (OpenMetadata)',
+    description:
+      'Unlock the value of data assets with an end-to-end metadata management solution that includes data discovery, governance, data quality, observability, and people collaboration.',
+    tags: ['Self Service', 'FOSS'],
+    url: dataCatalogUrl,
+    isExternalLink: true,
+    isTextAlignLeft: false,
+    isDisabled: !dataCatalogUrl?.startsWith('http'),
+    isSmallCard: false,
+    isMediumCard: false,
+    svgIcon: 'data-mini',
+  },
 ];
 
 export const TrainingsLandingPageElements = [
@@ -591,7 +622,7 @@ export const TrainingsLandingPageElements = [
     isTextAlignLeft: false,
     isDisabled: !sacTrainingUrl?.startsWith('http'),
     isSmallCard: false,
-    isMediumCard: true,
+    isMediumCard: false,
     svgIconId: 'sac',
   },
   {
@@ -604,7 +635,7 @@ export const TrainingsLandingPageElements = [
     isTextAlignLeft: false,
     isDisabled: !databricksTrainingUrl?.startsWith('http'),
     isSmallCard: false,
-    isMediumCard: true,
+    isMediumCard: false,
     svgIconId: 'tools-mini',
   },
   {
@@ -617,8 +648,21 @@ export const TrainingsLandingPageElements = [
     isTextAlignLeft: false,
     isDisabled: !digitalCaseProgramUrl?.startsWith('http'),
     isSmallCard: false,
-    isMediumCard: true,
+    isMediumCard: false,
     svgIconId: 'tools-mini',
+  },
+  {
+    name: 'SAP Datasphere',
+    description:
+      'Here you can find all relevant Information on available SAP Datasphere Trainings. So get started or advance your skills!',
+    tags: ['Self Service', 'FOSS'],
+    url: datasphereTrainingUrl,
+    isExternalLink: true,
+    isTextAlignLeft: false,
+    isDisabled: !datasphereTrainingUrl?.startsWith('http'),
+    isSmallCard: false,
+    isMediumCard: false,
+    svgIconId: 'sac',
   },
 ];
 

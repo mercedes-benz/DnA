@@ -1,39 +1,72 @@
 import classNames from 'classnames';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
 import Styles from './tableCollaborators.scss';
 import TeamSearch from 'dna-container/TeamSearch';
+import { setTables } from '../../redux/graphSlice';
+import Notification from '../../common/modules/uilab/js/src/notification';
 
-const TableCollaborators = ({ collaborators }) => {
+const TableCollaborators = ({ table, onSave, user }) => {
+  const { project } = useSelector(state => state.graph);
+  const dispatch = useDispatch();
+
   const [searchTerm, setSearchTerm] = useState('');
   const [showUserDetails, setShowUserDetails] = useState(false);
-  const [showUserAlreadyExistsError] = useState(false);
+  const [showUserAlreadyExistsError, setShowUserAlreadyExistsError] = useState(false);
   const [editMode] = useState(false);
   const [teamMember] = useState();
-  
-  const addMemberFromTeamSearch = () => {
-    console.log('add team member from search');
+  const [collabs, setCollabs] = useState(table?.collabs?.length > 0 ? [...table.collabs] : []);
+
+  const addMemberFromTeamSearch = (member) => {
+    const isMemberExists = collabs.filter(item => item.id === member.shortId);
+    if(user.id === member.shortId) {
+      Notification.show(`Owner can't be added as a collaborator`, 'alert');
+    } else if (isMemberExists.length > 0) {
+      setShowUserAlreadyExistsError(true);
+    } else {
+      const memberObj = {
+        collaborator: {
+          ...member,
+          id: member.shortId
+        },
+        hasWritePermission: false
+      }
+      setCollabs([...collabs, memberObj]);
+    }
+    setShowUserAlreadyExistsError(false);
   }
 
   const resetUserAlreadyExists = () => {
     console.log('reset user already exists');
   }
 
-  const onPermissionEdit = (index) => {
-    return () => {
-      if (collaborators[index].permissions.includes('can_edit')) {
-        collaborators[index].permissions.splice(
-          collaborators[index].permissions.indexOf('can_edit'),
-          1,
-        );
-      } else {
-        collaborators[index].permissions.push('can_edit');
+  const onPermissionChange = (collab) => {
+    const collabItem = collabs.map((item) => {
+      if (item.collaborator.id === collab.collaborator.id) {
+        return {
+          ...item,
+          hasWritePermission: !item.hasWritePermission,
+        };
       }
-    };
+      return item;
+    });
+
+    setCollabs(collabItem);
   };
 
-  const onCollabaratorDelete = (index) => {
-    collaborators?.splice(index, 1);
+  const onCollabaratorDelete = (id) => {
+    const tempCollabs = collabs.filter(item => item.collaborator.id !== id);
+    setCollabs(tempCollabs);
   };
+
+  useEffect(() => {
+    const projectTemp = {...project};
+    const tableIndex = projectTemp.tables.findIndex(item => item.tableName === table.tableName);
+    let newTables = [...projectTemp.tables];
+    newTables[tableIndex] = {...newTables[tableIndex], collabs: [...collabs]};
+    dispatch(setTables(newTables));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [collabs]);
 
   return (
     <div className={Styles.dagCollContent}>
@@ -54,7 +87,7 @@ const TableCollaborators = ({ collaborators }) => {
           />
         </div>
         <div className={Styles.dagCollUsersList}>
-          {collaborators?.length > 0 ? (
+          {collabs?.length > 0 ? (
             <React.Fragment>
               <div className={Styles.collUserTitle}>
                 <div className={Styles.collUserTitleCol}>User ID</div>
@@ -63,16 +96,16 @@ const TableCollaborators = ({ collaborators }) => {
                 <div className={Styles.collUserTitleCol}></div>
               </div>
               <div className={Styles.collUserContent}>
-                {collaborators.map(
+                {collabs.map(
                   (item, index) => {
                     return (
                       <div
                         key={index}
                         className={Styles.collUserContentRow}
                       >
-                        <div className={Styles.collUserTitleCol}>{item.username}</div>
+                        <div className={Styles.collUserTitleCol}>{item.collaborator.id}</div>
                         <div className={Styles.collUserTitleCol}>
-                          {item.firstName + ' ' + item.lastName}
+                          {item.collaborator.firstName + ' ' + item.collaborator.lastName}
                         </div>
                         <div className={Styles.collUserTitleCol}>
                           <div
@@ -103,13 +136,12 @@ const TableCollaborators = ({ collaborators }) => {
                                 <input
                                   type="checkbox"
                                   className="ff-only"
-                                  value="can_edit"
-                                  checked={
-                                    item.permissions !== null
-                                      ? item.permissions.includes('can_edit')
+                                  defaultChecked={
+                                    item.hasWritePermission !== null
+                                      ? item.hasWritePermission
                                       : false
                                   }
-                                  onClick={() => onPermissionEdit(index)}
+                                  onChange={() => onPermissionChange(item)}
                                 />
                               </span>
                               <span className="label">Write</span>
@@ -119,7 +151,7 @@ const TableCollaborators = ({ collaborators }) => {
                         <div className={Styles.collUserTitleCol}>
                           <div
                             className={Styles.deleteEntry}
-                            onClick={() => onCollabaratorDelete(index)}
+                            onClick={() => onCollabaratorDelete(item.collaborator.id)}
                           >
                             <i className="icon mbc-icon trash-outline" />
                             Delete Entry
@@ -129,6 +161,9 @@ const TableCollaborators = ({ collaborators }) => {
                     );
                   },
                 )}
+              </div>
+              <div className={Styles.btnRight}>
+                <button className={'btn btn-tertiary'} onClick={onSave}>Ok</button>
               </div>
             </React.Fragment>
           ) : (

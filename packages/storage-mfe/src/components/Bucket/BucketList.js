@@ -31,6 +31,8 @@ export const BucketList = (props) => {
   const [nextSortOrder, setNextSortOrder] = useState('desc');
   const [currentColumnToSort, setCurrentColumnToSort] = useState('bucketName');
 
+  const {pagination: { maxItemsPerPage, currentPageOffset }} = useSelector((state) => state.bucket);
+
   const isDataikuEnabled = Envs.ENABLE_DATAIKU;
   const isCardView = props.isCardView;
 
@@ -113,7 +115,7 @@ export const BucketList = (props) => {
     bucketsApi
       .deleteBucket(selectedItem.bucketName)
       .then(() => {
-        dispatch(bucketActions.getBucketList());
+        dispatch(bucketActions.getBucketList(currentPageOffset, maxItemsPerPage));
         Notification.show(`Bucket ${selectedItem.bucketName} deleted successfully.`);
       })
       .catch((e) => {
@@ -193,7 +195,7 @@ export const BucketList = (props) => {
                   <div>
                     <div>
                       <div>Created on</div>
-                      <div>{regionalDateAndTimeConversionSolution(item.createdDate)}</div>
+                      <div>{item.createdDate ? regionalDateAndTimeConversionSolution(item.createdDate) : 'N/A'}</div>
                     </div>
                     <div>
                       <div>Last modified</div>
@@ -276,7 +278,7 @@ export const BucketList = (props) => {
                             </button>
                           ) : null}
                         </>
-                      )}
+                      ) }
                       <button
                         className={'btn btn-primary'}
                         type="button"

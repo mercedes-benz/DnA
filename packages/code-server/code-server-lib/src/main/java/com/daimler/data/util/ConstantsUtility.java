@@ -31,6 +31,7 @@ public class ConstantsUtility {
 
 	public static final String CREATEACTION = "create";
 	public static final String SPRINGBOOT = "springboot";
+	public static final String VUE = "vue";
 	public static final String PYFASTAPI = "py-fastapi";
 	public static final String REACT = "react";
 	public static final String ANGULAR = "angular";
@@ -42,7 +43,7 @@ public class ConstantsUtility {
 	public static final String COLLABREQUESTEDSTATE = "COLLABORATION_REQUESTED";
 	public static final String CREATEREQUESTEDSTATE = "CREATE_REQUESTED";
 	public static final String CREATEDSTATE = "CREATED";
-	public static final String CREATEFAILEDSTATE = "CREATED_FAILED";
+	public static final String CREATEFAILEDSTATE = "CREATE_FAILED";
 	public static final String WORKSPACEPREFIX = "ws";
 	public static final String DEPLOYACTION = "deploy";
 	public static final String DELETEACTION = "delete";

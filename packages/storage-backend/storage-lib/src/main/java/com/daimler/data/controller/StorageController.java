@@ -138,13 +138,13 @@ public class StorageController implements StorageApi {
             if (limit == null || limit < 0) {
                 limit = defaultLimit;
             }
-            if (sortOrder != null && !sortOrder.equals("asc") && !sortOrder.equals("desc")) {
+            if (sortOrder != null && !sortOrder.equalsIgnoreCase("asc") && !sortOrder.equalsIgnoreCase("desc")) {
                 return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
             }
             if (sortOrder == null) {
                 sortOrder = "asc";
             }
-		return storageService.getAllBuckets(limit, sortBy, sortOrder, offset);
+		return storageService.getAllBucketsUsingMC(limit, sortBy, sortOrder, offset);
 	}
 
 
