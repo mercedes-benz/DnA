@@ -95,7 +95,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
 
   const [subDivision, setSubDivision] = useState(projectDetails?.dataGovernance?.subDivision ? projectDetails?.dataGovernance?.subDivisionId+'@-@'+projectDetails?.dataGovernance?.subDivision : '0');
   
-  const [department, setDepartment] = useState(onEditingMode ? [projectDetails?.dataGovernance?.department] : []);
+  const [department, setDepartment] = useState(onEditingMode && projectDetails?.dataGovernance?.department ? [projectDetails?.dataGovernance?.department] : []);
   const [departmentError, setDepartmentError] = useState(false);
 
   const [classificationType, setClassificationType] = useState(projectDetails?.dataGovernance?.classificationType? projectDetails?.dataGovernance?.classificationType : '0');
