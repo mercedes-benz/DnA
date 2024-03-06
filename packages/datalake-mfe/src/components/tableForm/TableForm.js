@@ -73,7 +73,7 @@ const TableFormItem = (props) => {
                   pattern: /^[a-z][a-z0-9_]*$/,
                   onChange: (e) => {
                     const val = e.target.value;
-                    props.setColumnValues(props.index, val, "columnName"); // Update local state
+                    props.setColumnValues(props.index, val, "columnName");
                   },
                 })}
                 placeholder="Type here"
@@ -333,9 +333,17 @@ const TableForm = ({ setToggle, formats, dataTypes }) => {
         "alert"
       );
     } else {
-      projectTemp.tables = [...projectTemp.tables, tableData];
-      dispatch(setTables(projectTemp.tables));
-      setToggle();
+      const columnNames = columns.map((column) => column.columnName);
+      if (new Set(columnNames).size !== columnNames.length) {
+        Notification.show(
+          "Column names must be unique within a table.",
+          "alert"
+        );
+      } else {
+        projectTemp.tables = [...projectTemp.tables, tableData];
+        dispatch(setTables(projectTemp.tables));
+        setToggle();
+      }
     }
   };
 
