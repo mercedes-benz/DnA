@@ -5,8 +5,15 @@ metadata:
   namespace: {{ .Values.namespace }}
 spec:
   ingress:
-    - ports:
-        - port: {{ .Values.containerPort }}
+    - from:
+      - podSelector:
+          matchLabels:
+            app.kubernetes.io/name: traefikv2
+        namespaceSelector:
+          matchLabels:
+            kubernetes.io/metadata.name: ingress
+        ports:
+         - port: {{ .Values.containerPort }}
   podSelector:
     matchLabels:
       {{- include "matomo-mfe.selectorLabels" . | nindent 8 }}

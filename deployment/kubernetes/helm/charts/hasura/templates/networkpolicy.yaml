@@ -15,7 +15,13 @@ spec:
             app: dna-app-backend
         namespaceSelector:
           matchLabels:
-            kubernetes.io/metadata.name: dna     
+            kubernetes.io/metadata.name: dna  
+      - podSelector:
+          matchLabels:
+            app: dna-kong-gw-kong
+        namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kong          
    - ports:
      - port: {{ .Values.service.port }}
        protocol: TCP

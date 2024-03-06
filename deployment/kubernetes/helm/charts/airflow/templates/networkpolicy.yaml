@@ -9,8 +9,17 @@ spec:
       name: {{ include "airflow-service.name" . }}
   ingress:
     - from:
-      - podSelector: 
+      # - podSelector: 
+      #     matchLabels:
+      #         name: {{ include "airflow-service.name" . }}
+      - podSelector:
+        matchLabels:
+           app.kubernetes.io/name: traefikv2
+        namespaceSelector:
           matchLabels:
-              name: {{ include "airflow-service.name" . }}
-    - ports:
-      - port: {{ .Values.service.port }}
+            kubernetes.io/metadata.name: ingress
+        ports:
+        - protocol: TCP
+          port: {{ .Values.service.port }}    
+    # - ports:
+    #   - port: {{ .Values.service.port }}

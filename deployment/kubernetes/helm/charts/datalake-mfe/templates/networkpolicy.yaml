@@ -5,11 +5,18 @@ metadata:
   namespace: {{ .Values.namespace }}
 spec:
   ingress:
-    - ports:
-        - port: 3000
-          protocol: TCP
-        - port: 7175
-          protocol: TCP
+    - from:
+      - podSelector:
+         matchLabels:
+           app.kubernetes.io/name: traefikv2
+        namespaceSelector:
+          matchLabels:
+            kubernetes.io/metadata.name: ingress
+        ports:
+         - port: 3000
+           protocol: TCP
+         - port: 7175
+           protocol: TCP
   podSelector:
     matchLabels:
       {{- include "datalake-mfe.selectorLabels" . | nindent 8 }}

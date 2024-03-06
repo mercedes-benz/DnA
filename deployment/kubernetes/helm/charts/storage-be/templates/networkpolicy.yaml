@@ -16,8 +16,9 @@ spec:
         namespaceSelector:
           matchLabels:
             kubernetes.io/metadata.name: chronos
-      - ports:
-          - port: {{ .Values.containerPort }}           
+      ports:
+        - protocol: TCP
+          port: {{ .Values.containerPort }}           
   
   policyTypes:
     - Ingress    

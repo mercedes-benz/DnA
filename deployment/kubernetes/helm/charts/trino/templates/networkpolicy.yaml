@@ -12,6 +12,15 @@ metadata:
 spec:
   podSelector: {}
   ingress:
-  - {}
+    - from:
+      - podSelector:
+          matchLabels:
+            app.kubernetes.io/name: traefikv2
+        namespaceSelector:
+          matchLabels:
+            kubernetes.io/metadata.name: ingress
+        ports:
+         - protocol: TCP
+           port: {{ .Values.containerPort }}       
   policyTypes:
   - Ingress

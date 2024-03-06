@@ -4,9 +4,22 @@ metadata:
   name: {{ include "code-server-backend.fullname" . }}
   namespace: {{ .Values.namespace }}
 spec:
+  # ingress:
+  #   - ports:
+  #       - port: 7979
   ingress:
-    - ports:
-        - port: 7979
+    - from:
+      - podSelector:
+         matchLabels:
+           app: dna-kong-gw-kong
+        namespaceSelector:
+          matchLabels:
+            kubernetes.io/metadata.name: kong
+        ports:
+         - protocol: TCP
+           port: {{ .Values.containerPort }}                 
+  policyTypes:
+    - Ingress
   podSelector:
     matchLabels:
       {{- include "code-server-backend.selectorLabels" . | nindent 8 }}

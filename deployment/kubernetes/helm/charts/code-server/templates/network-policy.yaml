@@ -8,5 +8,15 @@ spec:
     matchLabels:
       app.kubernetes.io/name: {{ include "code-server.name" . }}
   ingress:
-    - ports:
-      - port: 8080
+    - from:
+      - podSelector:
+         matchLabels:
+           app: dna-kong-gw-kong
+        namespaceSelector:
+          matchLabels:
+            kubernetes.io/metadata.name: kong
+        ports:
+         - protocol: TCP
+           port: {{ .Values.containerPort }}                 
+  policyTypes:
+    - Ingress

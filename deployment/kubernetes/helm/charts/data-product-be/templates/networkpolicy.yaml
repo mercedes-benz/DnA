@@ -4,9 +4,22 @@ metadata:
   name: {{ include "data-product-be.fullname" . }}
   namespace: {{ .Values.namespace }}
 spec:
+  # ingress:
+  #   - ports:
+  #       - port: {{ .Values.containerPort }}
   ingress:
-    - ports:
-        - port: {{ .Values.containerPort }}
+    - from:
+      - podSelector:
+         matchLabels:
+           app: dna-kong-gw-kong
+        namespaceSelector:
+          matchLabels:
+            kubernetes.io/metadata.name: kong
+        ports:
+         - protocol: TCP
+           port: {{ .Values.containerPort }}                 
+  policyTypes:
+    - Ingress
   podSelector:
     matchLabels:
       {{- include "data-product-be.selectorLabels" . | nindent 8 }}
