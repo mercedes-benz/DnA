@@ -1,3 +1,5 @@
+Table Form
+
 import classNames from 'classnames';
 import React, { useState, useEffect } from 'react';
 import { useForm, useFormContext, FormProvider } from "react-hook-form";
@@ -32,15 +34,23 @@ const TableFormItem = (props) => {
               Name <sup>*</sup>
             </label>
             <div>
-              <input
+            <input
                 type="text"
-                className={classNames('input-field')}
+                className={classNames("input-field")}
                 id={`${index}.columnName`}
-                {...register(`${index}.columnName`, { required: '*Missing entry', pattern: /^[a-z0-9_]+$/ })}
+                {...register(`${index}.columnName`, {
+                  required: "*Missing entry",
+                  pattern: /^[a-z0-9_]+$/,
+                  onChange: (e) => {
+                    const val = e.target.value;
+                    props.setColumnValues(props.index,val,'columnName' ); // Update local state
+                  },
+                })}
                 placeholder="Type here"
                 autoComplete="off"
                 maxLength={55}
-                defaultValue={field.columnName}
+                autoFocus={true}
+                value={field.columnName} 
               />
               <span className={classNames('error-message')}>
                 {errors[`${index}`] !== undefined && errors[`${index}`].columnName.message}
@@ -54,15 +64,24 @@ const TableFormItem = (props) => {
                 Type <sup>*</sup>
               </label>
               <div className="custom-select">
-                <select id={`${index}.dataType`} {...register(`${index}.dataType`)}>
-                  {columnDatatypes.length > 0 && 
+                <select
+                  id={`${index}.dataType`}
+                  {...register(`${index}.dataType`,{
+                    onChange:(e) => {
+                      const val = e.target.value;
+                      props.setColumnValues(props.index, val,'dataType'); 
+                    },
+                  })}
+
+                >
+                  {columnDatatypes.length > 0 &&
                     columnDatatypes?.map((datatype) => {
                       return (
-                      <option id={datatype} key={datatype} value={datatype}>
-                        {datatype}
-                      </option>
+                        <option id={datatype} key={datatype} value={datatype}>
+                          {datatype}
+                        </option>
                       )
-                  })}
+                    })}
                 </select>
               </div>
             </div>
@@ -77,8 +96,13 @@ const TableFormItem = (props) => {
               <input
                 type="text"
                 className={classNames('input-field')}
-                id={`${index}.comment`} 
-                {...register(`${index}.comment`)}
+                id={`${index}.comment`}
+                {...register(`${index}.comment`,{
+                  onChange:(e) => {
+                    const val = e.target.value;
+                    props.setColumnValues(props.index, val,'comment'); 
+                  },
+                })}
                 placeholder="Type here"
                 autoComplete="off"
                 maxLength={55}
@@ -92,7 +116,18 @@ const TableFormItem = (props) => {
             <div>
               <label className="checkbox">
                 <span className="wrapper">
-                  <input type="checkbox" className="ff-only" id={`${index}.notNullConstraintEnabled`} {...register(`${index}.notNullConstraintEnabled`)} defaultChecked={true} />
+                  <input
+                    type="checkbox"
+                    className="ff-only"
+                    id={`${index}.notNullConstraintEnabled`}
+                    {...register(`${index}.notNullConstraintEnabled`,{
+                      onChange:(e) => {
+                        const val = e.target.checked;
+                        props.setColumnValues(props.index, val,'notNullConstraintEnabled'); 
+                      },
+                    })}
+                    defaultChecked={true}
+                  />
                 </span>
                 <span className="label">Not Null</span>
               </label>
@@ -202,11 +237,7 @@ const TableForm = ({setToggle, formats, dataTypes}) => {
   }, [editingTable]);
 
   const onSubmit = (data) => {
-    const { tableName, tableFormat, tableComment, ...colData }  = data;
-        const cols = [];
-    for (const key in colData) {
-      cols.push(colData[key]);
-    }
+    const { tableName, tableFormat, tableComment}  = data;
     const [x, y] = calcXY([...project.tables], box);
     const tableData = {
       tableName: tableName,
@@ -214,7 +245,7 @@ const TableForm = ({setToggle, formats, dataTypes}) => {
       description: tableComment,
       xcoOrdinate: x,
       ycoOrdinate: y,
-      columns: [...cols],
+      columns: [...columns],
     };
     const projectTemp = {...project};
     if(projectTemp.tables.filter(table => table.tableName === tableName).length > 0) {
@@ -226,21 +257,31 @@ const TableForm = ({setToggle, formats, dataTypes}) => {
     }
   }
 
-  const addItem = index => {
+  const addItem = index => {  
     const newState = [...columns];
-    newState.splice(index + 1, 0, {
-        columnName: 'new_column' + newState.length,
-        comment: '',
-        dataType: '',
-        notNullConstraintEnabled: true,
-    });
-    setFields(newState);
-  };
+    newState.splice(index + 1, 0, {      
+   columnName: 'new_column' + newState.length,
+   comment: '',     
+   dataType: '', 
+   notNullConstraintEnabled: true,  
+    });  
+      setFields(newState); 
+   };
 
   const removeItem = id => {
       const newt = columns.filter(item => item.columnName !== id);
-      columns.length ? setFields(newt) : setFields([]);
+      columns.length ? setFields([...newt]) : setFields([]);
   };
+
+  const onColumnValueChange = (index,value,field) => {
+    const cols = [...columns];
+    cols[index] = {
+      ...cols[index],
+      [field]: value,
+    };
+    setFields(cols);
+  };
+
 
 
   return (
@@ -258,6 +299,7 @@ const TableForm = ({setToggle, formats, dataTypes}) => {
                     removeItem={removeItem}
                     setFields={setFields}
                     columnDatatypes={dataTypes}
+                    setColumnValues = {onColumnValueChange}
                 />
             ))}
           </div>
