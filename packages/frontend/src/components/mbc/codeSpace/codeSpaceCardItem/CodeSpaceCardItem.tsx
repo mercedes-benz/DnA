@@ -342,7 +342,7 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
                           <>{regionalDateAndTimeConversionSolution(prodLastDeployedOn)}&nbsp;</>
                         )}
                         <br />
-                        by {intDeploymentDetails?.lastDeployedBy?.firstName}
+                        by {prodDeploymentDetails?.lastDeployedBy?.firstName}
                         <br />
                         {!creationFailed && !enableOnboard && (
                           <>
