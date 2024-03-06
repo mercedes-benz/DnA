@@ -1127,7 +1127,10 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 					"            Chronos UI Application.\r\n" + //
 					"            This key is project-specific and should be used if using the REST\r\n" + //
 					"            API directly. Do not specify an Authorization header if using this\r\n" + //
-					"            key." ) @RequestHeader(value="apiKey", required=false) String apiKey){
+					"            key." ) @RequestHeader(value="apiKey", required=false) String apiKey,
+			@ApiParam(value = "The drivers file to upload.") @Valid @RequestPart(value="drivers", required=false) MultipartFile drivers,
+			@ApiParam(value = "The planning_data file to upload.") @Valid @RequestPart(value="planning_data", required=false) MultipartFile planning_data,
+			@ApiParam(value = "The mapping file to upload.") @Valid @RequestPart(value="mapping", required=false) MultipartFile mapping){
 			ForecastRunResponseVO responseVO = new ForecastRunResponseVO();
 			GenericMessage responseMessage = new GenericMessage();
 			ForecastVO existingForecast = service.getById(id);
@@ -1219,47 +1222,110 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 					}
 
 
-					if(file!=null) {
+					if (file != null) {
 						String fileName = file.getOriginalFilename();
 						if (!isValidAttachment(fileName)) {
-							log.error("Invalid file type {} attached for project name {} and id {} ", fileName, existingForecast.getName(), id);
-							MessageDescription invalidMsg = new MessageDescription("Invalid File type attached. Supported only xlxs and csv extensions");
+							log.error("Invalid file type {} attached for project name {} and id {} ", fileName,
+									existingForecast.getName(), id);
+							MessageDescription invalidMsg = new MessageDescription(
+									"Invalid File type attached. Supported only xlxs and csv extensions");
 							GenericMessage errorMessage = new GenericMessage();
 							errorMessage.setSuccess("FAILED");
 							errorMessage.addErrors(invalidMsg);
 							responseVO.setData(null);
 							responseVO.setResponse(errorMessage);
 							return new ResponseEntity<>(responseVO, HttpStatus.BAD_REQUEST);
-						}else {
-							// if(!FilenameUtils.getExtension(fileName).equalsIgnoreCase("csv") && (planning_data != null || mapping!= null || drivers != null)){
-							// 	log.error("Invalid file type {} attached for project name {} and id {} ", fileName, existingForecast.getName(), id);
-							// 	MessageDescription invalidMsg = new MessageDescription("You attempted to provide additional data via a separate .csv file, but are using an Excel file. Please provide your additional data either inside the Excel, or provide the training data as a .csv file as well.");
-							// 	GenericMessage errorMessage = new GenericMessage();
-							// 	errorMessage.setSuccess("FAILED");
-							// 	errorMessage.addErrors(invalidMsg);
-							// 	responseVO.setData(null);
-							// 	responseVO.setResponse(errorMessage);
-							// 	return new ResponseEntity<>(responseVO, HttpStatus.BAD_REQUEST);
-							// }
+						} else {
+
+							if (!FilenameUtils.getExtension(fileName).equalsIgnoreCase("csv")
+									&& (planning_data != null || mapping != null || drivers != null)) {
+								log.error("Invalid file type {} attached for project name {} and id {} ", fileName,
+										existingForecast.getName(), id);
+								MessageDescription invalidMsg = new MessageDescription(
+										"You attempted to provide additional data via a separate .csv file, but are using an Excel file. Please provide your additional data either inside the Excel, or provide the training data as a .csv file as well.");
+								GenericMessage errorMessage = new GenericMessage();
+								errorMessage.setSuccess("FAILED");
+								errorMessage.addErrors(invalidMsg);
+								responseVO.setData(null);
+								responseVO.setResponse(errorMessage);
+								return new ResponseEntity<>(responseVO, HttpStatus.BAD_REQUEST);
+							}
+							if(drivers!=null){
+								String driverFileName = drivers.getOriginalFilename();
+								if (!FilenameUtils.getExtension(driverFileName).equalsIgnoreCase("csv")) {
+								log.error("Invalid file type {} attached for project name {} and id {} ", driverFileName,
+										existingForecast.getName(), id);
+								MessageDescription invalidMsg = new MessageDescription(
+										"Invalid File type attached for planning/mapping/drivers files. Supported only csv extension");
+								GenericMessage errorMessage = new GenericMessage();
+								errorMessage.setSuccess("FAILED");
+								errorMessage.addErrors(invalidMsg);
+								responseVO.setData(null);
+								responseVO.setResponse(errorMessage);
+								return new ResponseEntity<>(responseVO, HttpStatus.BAD_REQUEST);
+								}
+							}
+							if(mapping!=null){
+								String mappingFileName = mapping.getOriginalFilename();
+								if (!FilenameUtils.getExtension(mappingFileName).equalsIgnoreCase("csv")) {
+									log.error("Invalid file type {} attached for project name {} and id {} ", mappingFileName,
+											existingForecast.getName(), id);
+									MessageDescription invalidMsg = new MessageDescription(
+											"Invalid File type attached for planning/mapping/drivers files. Supported only csv extension");
+									GenericMessage errorMessage = new GenericMessage();
+									errorMessage.setSuccess("FAILED");
+									errorMessage.addErrors(invalidMsg);
+									responseVO.setData(null);
+									responseVO.setResponse(errorMessage);
+									return new ResponseEntity<>(responseVO, HttpStatus.BAD_REQUEST);
+
+								}
+							}
+							if(planning_data!=null){
+								String planninngFileName = planning_data.getOriginalFilename();
+								if (!FilenameUtils.getExtension(planninngFileName).equalsIgnoreCase("csv")) {
+									log.error("Invalid file type {} attached for project name {} and id {} ", planninngFileName,
+											existingForecast.getName(), id);
+									MessageDescription invalidMsg = new MessageDescription(
+											"Invalid File type attached for planning/mapping/drivers files. Supported only csv extension");
+									GenericMessage errorMessage = new GenericMessage();
+									errorMessage.setSuccess("FAILED");
+									errorMessage.addErrors(invalidMsg);
+									responseVO.setData(null);
+									responseVO.setResponse(errorMessage);
+									return new ResponseEntity<>(responseVO, HttpStatus.BAD_REQUEST);
+								}
+							}
 							List<InputFileVO> savedInputs = existingForecast.getSavedInputs();
-							if(saveRequestPart) {
-								if(savedInputs!=null && !savedInputs.isEmpty()) {
+							if (saveRequestPart) {
+								if (savedInputs != null && !savedInputs.isEmpty()) {
 									for (InputFileVO savedInputDetails : savedInputs) {
-										if (savedInputDetails.getName().equals(file.getOriginalFilename())) {
-											log.info("File with name already exists in saved input files list. Project {} and file {}", existingForecast.getName(),fileName);
+										if (savedInputDetails.getName().equals(file.getOriginalFilename())
+												|| (drivers != null && savedInputDetails.getName()
+														.equals(drivers.getOriginalFilename()))
+												|| (mapping != null && savedInputDetails.getName()
+														.equals(mapping.getOriginalFilename()))
+												|| (planning_data != null && savedInputDetails.getName()
+														.equals(planning_data.getOriginalFilename()))) {
+											log.info(
+													"File with name already exists in saved input files list. Project {} and file {}",
+													existingForecast.getName(), savedInputDetails.getName());
 											savedInputToRemove = savedInputDetails;
 											break;
 										}
 									}
-									if(savedInputToRemove != null) {
+									if (savedInputToRemove != null) {
 										savedInputs.remove(savedInputToRemove);
 									}
-								}else
+								} else
 									savedInputs = new ArrayList<>();
 							}
 
-							FileUploadResponseDto fileUploadResponse = storageClient.uploadFile(INPUT_FILE_PREFIX,file, existingForecast.getBucketName());
-							if(fileUploadResponse==null || (fileUploadResponse!=null && (fileUploadResponse.getErrors()!=null || !"SUCCESS".equalsIgnoreCase(fileUploadResponse.getStatus())))) {
+							FileUploadResponseDto fileUploadResponse = storageClient.uploadFile(INPUT_FILE_PREFIX, file,
+									existingForecast.getBucketName());
+							if (fileUploadResponse == null
+									|| (fileUploadResponse != null && (fileUploadResponse.getErrors() != null
+											|| !"SUCCESS".equalsIgnoreCase(fileUploadResponse.getStatus())))) {
 								GenericMessage errorMessage = new GenericMessage();
 								errorMessage.setSuccess("FAILED");
 								errorMessage.setErrors(fileUploadResponse.getErrors());
@@ -1267,21 +1333,106 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 								responseVO.setData(null);
 								responseVO.setResponse(errorMessage);
 								return new ResponseEntity<>(responseVO, HttpStatus.INTERNAL_SERVER_ERROR);
-							}else if("SUCCESS".equalsIgnoreCase(fileUploadResponse.getStatus())){
-									if(saveRequestPart) {
+							} else if ("SUCCESS".equalsIgnoreCase(fileUploadResponse.getStatus())) {
+								if (saveRequestPart) {
+									InputFileVO currentInput = new InputFileVO();
+									currentInput.setName(file.getOriginalFilename());
+									currentInput.setPath(
+											existingForecast.getBucketName() + "/inputs/" + file.getOriginalFilename());
+									currentInput.setId(UUID.randomUUID().toString());
+									currentInput.setCreatedOn(createdOn);
+									currentInput.setCreatedBy(requestUser.getId());
+									savedInputs.add(currentInput);
+									existingForecast.setSavedInputs(savedInputs);
+								}
+								savedInputPath = existingForecast.getBucketName() + "/inputs/"
+										+ file.getOriginalFilename();
+							}
+							if(drivers!=null){
+								FileUploadResponseDto driverFileUploadResponse = storageClient.uploadFile(INPUT_FILE_PREFIX, drivers,
+									existingForecast.getBucketName());
+								if (driverFileUploadResponse == null
+										|| (driverFileUploadResponse != null && (driverFileUploadResponse.getErrors() != null
+												|| !"SUCCESS".equalsIgnoreCase(driverFileUploadResponse.getStatus())))) {
+									GenericMessage errorMessage = new GenericMessage();
+									errorMessage.setSuccess("FAILED");
+									errorMessage.setErrors(driverFileUploadResponse.getErrors());
+									errorMessage.setWarnings(driverFileUploadResponse.getWarnings());
+									responseVO.setData(null);
+									responseVO.setResponse(errorMessage);
+									return new ResponseEntity<>(responseVO, HttpStatus.INTERNAL_SERVER_ERROR);
+								} else if ("SUCCESS".equalsIgnoreCase(driverFileUploadResponse.getStatus())) {
+									if (saveRequestPart) {
 										InputFileVO currentInput = new InputFileVO();
-										currentInput.setName(file.getOriginalFilename());
-										currentInput.setPath(existingForecast.getBucketName()+"/inputs/"+file.getOriginalFilename());
+										currentInput.setName(drivers.getOriginalFilename());
+										currentInput.setPath(
+												existingForecast.getBucketName() + "/inputs/" + drivers.getOriginalFilename());
 										currentInput.setId(UUID.randomUUID().toString());
 										currentInput.setCreatedOn(createdOn);
 										currentInput.setCreatedBy(requestUser.getId());
 										savedInputs.add(currentInput);
 										existingForecast.setSavedInputs(savedInputs);
 									}
-								savedInputPath = existingForecast.getBucketName() + "/inputs/"+ file.getOriginalFilename();
+								}
 							}
+							if(mapping!=null){
+								FileUploadResponseDto mappingFileUploadResponse = storageClient.uploadFile(INPUT_FILE_PREFIX, mapping,
+									existingForecast.getBucketName());
+								if (mappingFileUploadResponse == null
+										|| (mappingFileUploadResponse != null && (mappingFileUploadResponse.getErrors() != null
+												|| !"SUCCESS".equalsIgnoreCase(mappingFileUploadResponse.getStatus())))) {
+									GenericMessage errorMessage = new GenericMessage();
+									errorMessage.setSuccess("FAILED");
+									errorMessage.setErrors(mappingFileUploadResponse.getErrors());
+									errorMessage.setWarnings(mappingFileUploadResponse.getWarnings());
+									responseVO.setData(null);
+									responseVO.setResponse(errorMessage);
+									return new ResponseEntity<>(responseVO, HttpStatus.INTERNAL_SERVER_ERROR);
+								} else if ("SUCCESS".equalsIgnoreCase(mappingFileUploadResponse.getStatus())) {
+									if (saveRequestPart) {
+										InputFileVO currentInput = new InputFileVO();
+										currentInput.setName(mapping.getOriginalFilename());
+										currentInput.setPath(
+												existingForecast.getBucketName() + "/inputs/" + mapping.getOriginalFilename());
+										currentInput.setId(UUID.randomUUID().toString());
+										currentInput.setCreatedOn(createdOn);
+										currentInput.setCreatedBy(requestUser.getId());
+										savedInputs.add(currentInput);
+										existingForecast.setSavedInputs(savedInputs);
+									}
+								}
+							}
+							if(planning_data!=null){
+								FileUploadResponseDto planningFileUploadResponse = storageClient.uploadFile(INPUT_FILE_PREFIX, planning_data,
+									existingForecast.getBucketName());
+								if (planningFileUploadResponse == null
+										|| (planningFileUploadResponse != null && (planningFileUploadResponse.getErrors() != null
+												|| !"SUCCESS".equalsIgnoreCase(planningFileUploadResponse.getStatus())))) {
+									GenericMessage errorMessage = new GenericMessage();
+									errorMessage.setSuccess("FAILED");
+									errorMessage.setErrors(planningFileUploadResponse.getErrors());
+									errorMessage.setWarnings(planningFileUploadResponse.getWarnings());
+									responseVO.setData(null);
+									responseVO.setResponse(errorMessage);
+									return new ResponseEntity<>(responseVO, HttpStatus.INTERNAL_SERVER_ERROR);
+								} else if ("SUCCESS".equalsIgnoreCase(planningFileUploadResponse.getStatus())) {
+									if (saveRequestPart) {
+										InputFileVO currentInput = new InputFileVO();
+										currentInput.setName(planning_data.getOriginalFilename());
+										currentInput.setPath(
+												existingForecast.getBucketName() + "/inputs/" + planning_data.getOriginalFilename());
+										currentInput.setId(UUID.randomUUID().toString());
+										currentInput.setCreatedOn(createdOn);
+										currentInput.setCreatedBy(requestUser.getId());
+										savedInputs.add(currentInput);
+										existingForecast.setSavedInputs(savedInputs);
+									}
+								}
+							}
+
+							
 						}
-				}
+					}
 
 					if (runName == null || runName.trim().isEmpty()) {
 						SimpleDateFormat runNameDate = new SimpleDateFormat("yyyy.MM.dd-HH.mm.ss");
@@ -1290,7 +1441,7 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 					}
 					log.info("Passed all validations for create run in controller, calling service for project {} ", id);
 					ForecastRunResponseVO createRunResponse = service.createJobRun(file,savedInputPath, saveRequestPart, runName, configurationFile,
-							frequency, forecastHorizon, hierarchy, comment, runOnPowerfulMachines, existingForecast,requestUser.getId(),createdOn,chronosVersion,backtesting, savedInputToRemove);
+							frequency, forecastHorizon, hierarchy, comment, runOnPowerfulMachines, existingForecast,requestUser.getId(),createdOn,chronosVersion,backtesting, savedInputToRemove,drivers,mapping,planning_data);
 					if(createRunResponse!= null && "SUCCESS".equalsIgnoreCase(createRunResponse.getResponse().getSuccess())
 								&& createRunResponse.getData().getRunId()!=null) {
 						return new ResponseEntity<>(createRunResponse, HttpStatus.CREATED);

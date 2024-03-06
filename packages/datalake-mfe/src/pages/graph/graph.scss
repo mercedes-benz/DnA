@@ -228,6 +228,18 @@
   pointer-events: none;
   opacity: 0.5;
 }
+.fileInput {
+  display: none;
+}
+.uploadFile {
+  label {
+    margin-bottom: 0;
+    cursor: pointer;
+  }
+  i {
+    transform: rotate(180deg) translateY(-8px) scale(1.05);
+  }
+}
 
 
 
@@ -539,4 +551,7 @@
 }
 .fullscreen {
   height: calc(100% - 60px);
+}
+.btnContainer {
+  text-align: right;
 }

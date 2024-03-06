@@ -54,7 +54,17 @@
       justify-content: space-between;
 
       >div {
-        width: calc(25% - 9px);
+        width: calc(20% - 9px);
+      }
+
+    }
+
+    .MultiSelectBoxWrapper {
+      display: flex;
+      justify-content: space-between;
+
+      >div {
+        width: calc(30% - 9px);
       }
 
     }
@@ -115,4 +125,5 @@
     }
   }
 }
+
 

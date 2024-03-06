@@ -1,4 +1,4 @@
-package com.daimler.data.db.json;
+package com.daimler.data.dto;
 
 import java.io.Serializable;
 
@@ -11,9 +11,10 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@JsonIgnoreProperties(ignoreUnknown = true)
-public class RecipeSoftware implements Serializable {
-
-    private String name;
-
+@JsonIgnoreProperties
+public class CodeServerRecipeDto implements Serializable{
+    
+    private String id;
+	private String recipeName;
+    
 }

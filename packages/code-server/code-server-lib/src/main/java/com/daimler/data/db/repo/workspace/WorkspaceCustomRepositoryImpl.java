@@ -48,6 +48,7 @@ import com.daimler.data.db.entities.CodeServerWorkspaceNsql;
 import com.daimler.data.db.json.CodeServerDeploymentDetails;
 import com.daimler.data.db.json.CodeServerLeanGovernanceFeilds;
 import com.daimler.data.db.json.CodespaceSecurityConfig;
+import com.daimler.data.db.json.DeploymentAudit;
 import com.daimler.data.db.json.UserInfo;
 import com.daimler.data.db.repo.common.CommonDataRepositoryImpl;
 import com.daimler.data.dto.CodespaceSecurityConfigDto;
@@ -333,23 +334,47 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 		String longdate = null;
 		if(deployedOn!=null)
 			longdate = String.valueOf(deployedOn.getTime()) ;
-		String updateQuery = "update workspace_nsql\r\n"
-				+ "set data = jsonb_set(data,'{projectDetails,"+ environment  +"}', \r\n"
-						+ "'{\"deploymentUrl\": "+ addQuotes(deploymentDetails.getDeploymentUrl()) +","
-						+ " \"lastDeployedBy\": {\"id\": "+ addQuotes(deploymentDetails.getLastDeployedBy().getId())  + ","
-								+ " \"email\": " + addQuotes(deploymentDetails.getLastDeployedBy().getEmail())  + ","
-								+ " \"lastName\": "+ addQuotes(deploymentDetails.getLastDeployedBy().getLastName()) + ","
-								+ " \"firstName\": "+ addQuotes(deploymentDetails.getLastDeployedBy().getFirstName())  + ","
-								+ " \"department\": "+ addQuotes(deploymentDetails.getLastDeployedBy().getDepartment())  + ","
-								+ " \"gitUserName\": "+ addQuotes(deploymentDetails.getLastDeployedBy().getGitUserName())  + ","
-								+ " \"mobileNumber\": "+ addQuotes(deploymentDetails.getLastDeployedBy().getMobileNumber())  + "},"
-						+ " \"lastDeployedOn\":" +   longdate + ","
-						+ " \"secureWithIAMRequired\": "+ deploymentDetails.getSecureWithIAMRequired() +","
-						+ " \"technicalUserDetailsForIAMLogin\": "+ addQuotes(deploymentDetails.getTechnicalUserDetailsForIAMLogin()) +","
-						+ " \"lastDeployedBranch\": "+ addQuotes(deploymentDetails.getLastDeployedBranch()) +","
-						+ " \"gitjobRunID\": "+ addQuotes(deploymentDetails.getGitjobRunID()) +","
-						+ " \"lastDeploymentStatus\": "+ addQuotes(deploymentDetails.getLastDeploymentStatus()) +"}')\r\n"
-				+ "where data->'projectDetails'->>'projectName' = '"+projectName+"'";
+			String updateQuery = "update workspace_nsql " +
+				"set data = jsonb_set(data,'{projectDetails," + environment + "}', " +
+				"'{\"deploymentUrl\": " + addQuotes(deploymentDetails.getDeploymentUrl()) + "," +
+				" \"lastDeployedBy\": {\"id\": " + addQuotes(deploymentDetails.getLastDeployedBy().getId()) + "," +
+				" \"email\": " + addQuotes(deploymentDetails.getLastDeployedBy().getEmail()) + "," +
+				" \"lastName\": " + addQuotes(deploymentDetails.getLastDeployedBy().getLastName()) + "," +
+				" \"firstName\": " + addQuotes(deploymentDetails.getLastDeployedBy().getFirstName()) + "," +
+				" \"department\": " + addQuotes(deploymentDetails.getLastDeployedBy().getDepartment()) + "," +
+				" \"gitUserName\": " + addQuotes(deploymentDetails.getLastDeployedBy().getGitUserName()) + "," +
+				" \"mobileNumber\": " + addQuotes(deploymentDetails.getLastDeployedBy().getMobileNumber()) + "}," +
+				" \"lastDeployedOn\":" + longdate + "," +
+				" \"secureWithIAMRequired\": " + deploymentDetails.getSecureWithIAMRequired() + "," +
+				" \"technicalUserDetailsForIAMLogin\": " + addQuotes(deploymentDetails.getTechnicalUserDetailsForIAMLogin()) + "," +
+				" \"lastDeployedBranch\": " + addQuotes(deploymentDetails.getLastDeployedBranch()) + "," +
+				" \"gitjobRunID\": " + addQuotes(deploymentDetails.getGitjobRunID()) + "," +
+				" \"lastDeploymentStatus\": " + addQuotes(deploymentDetails.getLastDeploymentStatus()) ;
+
+			List<DeploymentAudit> deploymentAuditLogs = deploymentDetails.getDeploymentAuditLogs();
+			updateQuery += ", \"deploymentAuditLogs\" : ";
+			if (deploymentAuditLogs != null && !deploymentAuditLogs.isEmpty()) {
+				// Iterate over each DeploymentAudit object and add it to the JSON array
+				updateQuery += "[";
+				for (int i = 0; i < deploymentAuditLogs.size(); i++) {
+					DeploymentAudit auditLog = deploymentAuditLogs.get(i);
+					updateQuery += "{" +
+						" \"triggeredBy\": " + addQuotes(auditLog.getTriggeredBy()) + "," +
+						" \"triggeredOn\": " + addQuotes(String.valueOf(auditLog.getTriggeredOn().getTime())) + "," +
+						" \"deploymentStatus\": " + addQuotes(auditLog.getDeploymentStatus()) + "," +
+						" \"deployedOn\": " + (auditLog.getDeployedOn() != null ? addQuotes(String.valueOf(auditLog.getDeployedOn().getTime())) : "null") + "," +
+						" \"branch\": " + addQuotes(auditLog.getBranch()) + "}";
+					if(i+1 < deploymentAuditLogs.size()) {
+						updateQuery += ",";
+					}
+				}
+				updateQuery += "]";
+			}else {
+				updateQuery +=  " []";
+			}
+			updateQuery += "}')\r\n";
+			updateQuery += "where data->'projectDetails'->>'projectName' = '" + projectName + "'";
+
 		try {
 			Query q = em.createNativeQuery(updateQuery);
 			q.executeUpdate();
@@ -360,7 +385,7 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 		}catch(Exception e) {
 			MessageDescription errMsg = new MessageDescription("Failed while updating deployment details.");
 			errors.add(errMsg);
-			log.error("deployment details updated successfully for project {} and environment {} , branch {} ", projectName,environment,deploymentDetails.getLastDeployedBranch());
+			log.error("failed to update deployment details for project {} and environment {} , branch {} ", projectName,environment,deploymentDetails.getLastDeployedBranch());
 		}
 		return updateResponse;
 	}
@@ -466,15 +491,25 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 	}
 
 	@Override
-	public List<CodespaceSecurityConfigDto> getAllSecurityConfigs(Integer offset, Integer limit){
+	public List<CodespaceSecurityConfigDto> getAllSecurityConfigs(Integer offset, Integer limit,String projectName){
 		List<CodespaceSecurityConfigDto> data = new ArrayList<>();
 
 		List<Object[]> results = new ArrayList<>();
-		String getQuery = "SELECT DISTINCT ON (jsonb_extract_path_text(data, 'projectDetails', 'projectName'))"+
+		String getQuery;
+				  if(projectName == null||"".equalsIgnoreCase(projectName)){
+					getQuery = "SELECT DISTINCT ON (jsonb_extract_path_text(data, 'projectDetails', 'projectName'))"+
 					"cast(jsonb_extract_path_text(data,'projectDetails','projectName') as text) as PROJECT_NAME, cast(id as text) as COLUMN_ID,  " +
                   "cast(jsonb_extract_path_text(data,'projectDetails','projectOwner') as text) as PROJECT_OWNER, " +
                   "cast(jsonb_extract_path_text(data,'projectDetails','securityConfig') as text) as SECURITY_CONFIG " +
                   "FROM workspace_nsql WHERE lower(jsonb_extract_path_text(data,'projectDetails','securityConfig','status')) in('requested','accepted') AND lower(jsonb_extract_path_text(data,'status')) in('created') ";
+				  }
+				  else{
+					getQuery = "SELECT DISTINCT ON (jsonb_extract_path_text(data, 'projectDetails', 'projectName'))"+
+					"cast(jsonb_extract_path_text(data,'projectDetails','projectName') as text) as PROJECT_NAME, cast(id as text) as COLUMN_ID,  " +
+                  "cast(jsonb_extract_path_text(data,'projectDetails','projectOwner') as text) as PROJECT_OWNER, " +
+                  "cast(jsonb_extract_path_text(data,'projectDetails','publishedSecurityConfig') as text) as SECURITY_CONFIG " +
+                  "FROM workspace_nsql WHERE lower(jsonb_extract_path_text(data,'projectDetails','projectName'))="+" '"+projectName +"'"+" AND lower(jsonb_extract_path_text(data,'status')) in('created') ";
+				  }
 		if (limit > 0)
 			  getQuery = getQuery + " limit " + limit;
 	  	if (offset >= 0)

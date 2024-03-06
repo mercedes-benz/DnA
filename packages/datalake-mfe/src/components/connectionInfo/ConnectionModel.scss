@@ -52,11 +52,10 @@
       text-align: left;
       display: flex;
       flex-direction: column;
-      justify-content: space-between;
       min-height: 250px;
   
       .dataikuConnectionBtn {
-        align-self: flex-end;
+        text-align: right;
         button:disabled {
           background-color: #697582;
           border-color: transparent;
@@ -81,9 +80,9 @@
       overflow: auto;
     }
     .restAPIContent {
-      label {
-        font-size: var(--font-size-sub-headline);
-      }
+      // label {
+      //   font-size: var(--font-size-sub-headline);
+      // }
       ul > li> ul {
         margin-bottom: 10px;
       }
@@ -154,5 +153,13 @@
     > div {
       min-width: 50%;
     }
+  }
+  .dataikuSection {
+    max-width: 50%;
+  }
+  .underLine {
+    width: 35%;
+    border-bottom: 1px solid #52575f;
+    padding-bottom: 10px;
   }
   
