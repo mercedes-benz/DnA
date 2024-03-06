@@ -60,38 +60,19 @@ public class JWTAuthenticationFilter implements HttpServerFilter {
 			userinfo = request.getHeaders().get("dna-request-userdetails");
 		}
 
-		String dnaAuthEnableString = dnaClientConfig.getDnaAuthEnable();
-		boolean dnaAuthEnable = Boolean.valueOf(dnaAuthEnableString);
 		if (userinfo == null || userinfo.isBlank() || userinfo.isEmpty()) {
 			log.error("Request UnAuthorized,No userinfo available");
 			Optional<MutableHttpResponse<?>> response = Optional.of(HttpResponse.status(HttpStatus.FORBIDDEN));
 			return Publishers.just(response.get());
 		} else if (StringUtils.hasText(userinfo)) {
-			if (dnaAuthEnable) {
-				UserInfo res = dnaHttpClient.verifyLogin(userinfo);
-				if (res != null) {
-					try {
-						setUserDetailsToStore(res);
-					} catch (Exception e) {
-						log.error("Failed to set UserInfo to Threadlocal UserStore with exception {}", e.getMessage());
-						this.userStore.clear();
-					}
-
-				} else {
-					log.error("Request UnAuthorized,No userinfo available");
-					Optional<MutableHttpResponse<?>> response = Optional.of(HttpResponse.status(HttpStatus.FORBIDDEN));
-					return Publishers.just(response.get());
-				}
-
-			} else {
-				try {
-					log.info(
-							"Request validation successful, set request user details in the store for further access");
-					setUserDetailsToStore(userinfo);
-				} catch (Exception e) {
-					log.error("Failed to set UserInfo to Threadlocal UserStore with exception {}", e.getMessage());
-					this.userStore.clear();
-				}
+	
+			try {
+				log.info(
+						"Request validation successful, set request user details in the store for further access");
+				setUserDetailsToStore(userinfo);
+			} catch (Exception e) {
+				log.error("Failed to set UserInfo to Threadlocal UserStore with exception {}", e.getMessage());
+				this.userStore.clear();
 			}
 
 		}

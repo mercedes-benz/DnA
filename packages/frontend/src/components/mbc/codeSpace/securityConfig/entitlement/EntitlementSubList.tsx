@@ -83,6 +83,19 @@ const EntitlementSubList = (props: IEntitlementSublistProps) => {
     setEntitlemenPath(e.currentTarget.value);
     setEntitlementPathErrorMessage('');
   };
+  const validateEntitlPath = (value: any) => {
+    const length = value.length;
+      if (length >= 4 && !value.includes('/api')) {
+        setEntitlementPathErrorMessage('API Path Should Start With /api');
+      } else if (value[length - 2] === '=' && !(value[value.length - 1] === '{')) {
+        setEntitlementPathErrorMessage('query params value should be enclosed in {}, eg: /api/books?bookName={value}');
+      } else if (value.includes('{') && !value.includes('}')) {
+        setEntitlementPathErrorMessage('query params value should be enclosed in {}, eg: /api/books?bookName={value}');
+      }
+  };
+  useEffect(()=>{
+    validateEntitlPath(entitlemenPath);
+  },[entitlemenPath])
 
   const deletePathMethod = (name: any, apiPattern: any, httpMethod: any, index: any) => {
     // Iterate through allEntitlementList and update the apiList for the matched entitlement
@@ -127,6 +140,7 @@ const EntitlementSubList = (props: IEntitlementSublistProps) => {
 
   const editPathModelClose = () => {
     setEditPathMethodModal(false);
+    setEntitlementPathErrorMessage('');
   };
 
   const updateEntitlement = (editedEntitlement: any) => {
@@ -161,6 +175,12 @@ const EntitlementSubList = (props: IEntitlementSublistProps) => {
       setEntitlementPathErrorMessage(!entitlemenPath ? 'Please enter a valid API Path/Pattern' : '');
       setEntitlementHttpMethodErrorMessage(
         !httpMethod || httpMethod === 'Choose' || httpMethod === '0' ? 'Please select an HTTP Method' : '',
+      );
+      return;
+    }
+    if (props.isProtectedByDna && (entitlemenPath.length < 4 || !entitlemenPath.includes('/api/') || entitlemenPath === '/api/')) {
+      setEntitlementPathErrorMessage(
+        'enter valid API path/pattern eg:/api/books or /api/books/{id} or /api/books?bookName={value}',
       );
       return;
     }
@@ -508,7 +528,7 @@ const EntitlementSubList = (props: IEntitlementSublistProps) => {
                     type="text"
                     className="input-field"
                     id="EntitlementpathInput"
-                    maxLength={22}
+                    maxLength={200}
                     placeholder="Type here"
                     autoComplete="off"
                     value={entitlemenPath}

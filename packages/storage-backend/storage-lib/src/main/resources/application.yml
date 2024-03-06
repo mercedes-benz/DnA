@@ -63,7 +63,6 @@ kafka:
     name: dnaCentralEventTopic      
 dna:
   uri: ${DNA_URI:XXXXXX}
-  dnaAuthEnable: ${DNA_AUTH_ENABLE:false}
   feature:
      attachmentMalwareScan: ${ATTACHMENT_MALWARE_SCAN:false}
   malwareScan:
@@ -71,9 +70,6 @@ dna:
      apiKey: ${MALWARE_SCANNER_API_KEY:xxxxx}
      uri: ${MALWARE_SCANNER_URI:XXXXXX}
       
-jwt:
-  secret:
-    key: ${JWT_SECRET_KEY:XXXXXX}
 server:
   port: 7175
 

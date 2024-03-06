@@ -55,8 +55,11 @@ public class CodeServerRecipe implements Serializable {
     private String minRam;
     private String maxRam;
     private String oSName;
-    private List<RecipeSoftware> software;
+    private List<String> software;
     private Date createdOn;
     private UserInfo createdBy;
     private List<String> plugins;
+    private Boolean isPublic;
+    private List<UserInfo> users;
+    private String status;
 }

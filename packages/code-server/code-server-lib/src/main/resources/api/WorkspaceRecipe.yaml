@@ -63,11 +63,6 @@ schemes:
   - "https"
 
 paths:
-  # Fetch all valid userinfo or by intent
-  #
-  #  supported http methods GET, POST
-  #
-  # path example ../recipeDetails
 
   /recipeDetails:
     get:
@@ -136,12 +131,6 @@ paths:
         500:
           description: "Internal error"
 
-  # Fetch all valid userinfo or by intent
-  #
-  #  supported http methods GET, POST and DELETE
-  #
-  # path example ../workspaces/{id}
-
   /recipeDetails/{recipeName}:
     get:
       tags:
@@ -175,6 +164,158 @@ paths:
         500:
           description: "Internal error"
 
+  /recipeDetails/softwareLov:
+    get:
+      tags:
+        - "code-server-recipe"
+      summary: "Get all software details in recipe"
+      description: "Get all softwares details for recipe in codespace"
+      operationId: "getAllsoftwareLov"
+      responses:
+        200:
+          description: "Returns message of success or failure"
+          schema:
+            $ref: "#/definitions/InitializeSoftwareLovVo"
+        204:
+          description: "Fetch complete, no content found."
+        400:
+          description: "Bad request."
+          schema:
+            $ref: "#/definitions/GenericMessage"
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
+
+  /recipeDetails/recipeLov:
+    get:
+      tags:
+        - "code-server-recipe"
+      summary: "Get all lov of recipes "
+      description: "Get all recipes in codespace"
+      operationId: "getAllrecipeLov"
+      responses:
+        200:
+          description: "Returns message of success or failure"
+          schema:
+            $ref: "#/definitions/InitializeRecipeLovVo"
+        204:
+          description: "Fetch complete, no content found."
+        400:
+          description: "Bad request."
+          schema:
+            $ref: "#/definitions/GenericMessage"
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
+
+  /recipeDetails/recipesByStatus:
+      get:
+        tags:
+          - "code-server-recipe"
+        summary: "Get all recipes which are in requested and accepted state, waiting for processing."
+        description: "Get all recipes which are in requested and accepted state, waiting for processing"
+        operationId: "getAllRecipesWhichAreInRequestedAndAcceptedState"
+        parameters:
+            - name: offset
+              in: query
+              description: page number from which listing of SecurityConfigs should start. Offset. Example 2
+              required: false
+              type: integer
+            - name: limit
+              in: query
+              description: page size to limit the number of SecurityConfigs, Example 15
+              required: false
+              type: integer
+        responses:
+          201:
+            description: "Returns message of success or failure"
+            schema:
+              $ref: "#/definitions/RecipeCollectionVO"
+          204:
+            description: "Fetch complete, no content found."
+          400:
+            description: "Bad request."
+          401:
+            description: "Request does not have sufficient credentials."
+          403:
+            description: "Request is not authorized."
+          405:
+            description: "Method not allowed"
+          500:
+            description: "Internal error"
+
+  /recipeDetails/{name}/accept:        
+    post:
+      tags:
+        - "code-server-recipe"
+      summary: "Accepting the changes to be added in access management , marking status as Accepted if success"
+      description: "Accepting the changes to be added in access management system"
+      operationId: "acceptRecipeInfo"
+      parameters:
+        - name: "name"
+          in: "path"
+          description: "Recipe name to be fetched"
+          required: true
+          type: "string"
+      responses:
+        201:
+          description: "Returns message of success or failure"
+          schema:
+            $ref: "#/definitions/GenericMessage"
+        204:
+          description: "Fetch complete, no content found."
+        400:
+          description: "Bad request."
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
+          
+  /recipeDetails/{name}/publish:        
+    post:
+      tags:
+        - "code-server-recipe"
+      summary: "Marking status after Publishing the changes added in access management system"
+      description: "Marking status after Publishing the changes added in access management system"
+      operationId: "publishRecipeInfo"
+      parameters:
+        - name: "name"
+          in: "path"
+          description: "recipe name to be fetched"
+          required: true
+          type: "string"
+      responses:
+        201:
+          description: "Returns message of success or failure"
+          schema:
+            $ref: "#/definitions/GenericMessage"
+        204:
+          description: "Fetch complete, no content found."
+        400:
+          description: "Bad request."
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
+
 definitions:
   RecipeVO:
     type: object
@@ -184,6 +325,7 @@ definitions:
         description: "recipeName  for recipe managment"
       recipeType:
         type: string
+        enum: [public,private]
         description: "recipe type for codespace managment"
       repodetails:
         type: string
@@ -210,7 +352,7 @@ definitions:
       software:
         type: array
         items:
-          $ref: "#/definitions/RecipeSoftwareVO"
+          type: string
       createdOn:
         type: string
         format: date
@@ -221,6 +363,16 @@ definitions:
         type: array
         items:
           type: string
+      isPublic:
+        type: boolean
+        default: true
+      users:
+        type: array
+        items:
+          $ref: "#/definitions/UserInfoVO" 
+      status:
+        type: string
+        description: "status of the recipe"
 
   RecipeSoftwareVO:
     type: object
@@ -270,3 +422,56 @@ definitions:
         type: array
         items:
           $ref: "#/definitions/MessageDescription"  
+
+  InitializeSoftwareLovVo:
+    type: object
+    properties:
+      data:
+        type: array
+        items:
+          $ref: "#/definitions/SoftwareCollection"
+      success:
+        type: string
+      errors:
+        type: array
+        items:
+          $ref: "#/definitions/MessageDescription"
+      warnings:
+        type: array
+        items:
+          $ref: "#/definitions/MessageDescription" 
+
+  InitializeRecipeLovVo:
+    type: object
+    properties:
+      data:
+        type: array
+        items:
+          $ref: "#/definitions/RecipeLovVO"
+      success:
+        type: string
+      errors:
+        type: array
+        items:
+          $ref: "#/definitions/MessageDescription"
+      warnings:
+        type: array
+        items:
+          $ref: "#/definitions/MessageDescription" 
+
+  RecipeLovVO:
+    type: object
+    properties: 
+      id:
+        type: string
+        description: "ID of recipe"
+      recipeName:
+        type: string
+        description: "name of the recipe"
+
+  SoftwareCollection:
+    type: object
+    properties: 
+      softwareName:
+        type: string
+        description: "version of the software"

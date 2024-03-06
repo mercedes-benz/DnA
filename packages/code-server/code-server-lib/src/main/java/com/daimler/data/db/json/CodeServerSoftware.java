@@ -25,41 +25,25 @@
  * LICENSE END 
  */
 
-package com.daimler.dna.notifications.common.filter;
+package com.daimler.data.db.json;
 
-import io.jsonwebtoken.*;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
+import java.io.Serializable;
+import java.util.Date;
+import java.util.List;
+import com.daimler.data.db.json.CodeServerSoftware;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
-import javax.xml.bind.DatatypeConverter;
-import java.util.HashMap;
-import java.util.Map;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-@Component
-@Slf4j
-public class JWTGenerator {
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@JsonIgnoreProperties(ignoreUnknown = true)
+public class CodeServerSoftware implements Serializable {
 
-	private static String SECRET_KEY;
 
-	@Value("${jwt.secret.key}")
-	public void setSecretKey(String secretKey) {
-		SECRET_KEY = secretKey;
-	}
-
-	public static Claims decodeJWT(String jwt) {
-		try {
-			// This line will throw an exception if it is not a signed JWS (as expected)
-			Claims claims = Jwts.parser().setSigningKey(SECRET_KEY.getBytes())
-					.parseClaimsJws(jwt).getBody();
-			return claims;
-		} catch (ExpiredJwtException e) {
-            log.error("Expired JWT. Error parsing JWT:{}", e.getMessage());
-            return e.getClaims();
-        } catch (MalformedJwtException | SignatureException | UnsupportedJwtException
-                 | IllegalArgumentException e) {
-            log.error("Error parsing JWT:{}", e.getMessage());
-            return null;
-        }
-	}
+	private String softwareName;
+    
 }

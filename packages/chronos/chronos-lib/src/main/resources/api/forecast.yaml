@@ -704,21 +704,21 @@ paths:
             key.
           required: false
           type: "string"
-        # - in: formData
-        #   name: drivers
-        #   type: file
-        #   description: The drivers file to upload.
-        #   required: false
-        # - in: formData
-        #   name: planning_data
-        #   type: file
-        #   description: The planning_data file to upload.
-        #   required: false
-        # - in: formData
-        #   name: mapping
-        #   type: file
-        #   description: The mapping file to upload.
-        #   required: false
+        - in: formData
+          name: drivers
+          type: file
+          description: The drivers file to upload.
+          required: false
+        - in: formData
+          name: planning_data
+          type: file
+          description: The planning_data file to upload.
+          required: false
+        - in: formData
+          name: mapping
+          type: file
+          description: The mapping file to upload.
+          required: false
       responses:
         201:
           description: "Returns message of success or failure "
@@ -1728,7 +1728,6 @@ definitions:
         description: name of the run sample. Example YYYY-MM-DD_run_topic
       configurationFile:
         type: string
-        enum: [Default-Settings]
         description: "Chronos default config yml"
       frequency:
         type: string

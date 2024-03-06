@@ -16,7 +16,7 @@ import DatalakeProjectForm from '../datalakeProjectForm/DatalakeProjectForm';
 // import { getProjects } from '../../redux/projects.services';
 import { ConnectionModal } from '../connectionInfo/ConnectionModal';
 
-const DatalakeProjectCard = ({graph}) => {
+const DatalakeProjectCard = ({user,graph,onRefresh}) => {
   const [showConnectionModel, setShowConnectionModel] = useState(false);
   const [editProject, setEditProject] = useState(false);
   // const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -67,8 +67,8 @@ const DatalakeProjectCard = ({graph}) => {
               <div>{regionalDateAndTimeConversionSolution(graph.createdOn)}</div>
             </div>
             <div>
-              <div>Last modified</div>
-              <div>{regionalDateAndTimeConversionSolution(graph.createdOn)}</div>
+              <div>schema</div>
+              <div>{graph.schemaName}</div>
             </div>
             <div>
               <div>Classification</div>
@@ -83,7 +83,7 @@ const DatalakeProjectCard = ({graph}) => {
         <div className={Styles.cardFooter}>
           <div>&nbsp;</div>
           <div className={Styles.btnGrp}>
-            <button className="btn btn-primary" onClick={() => setEditProject(true)}>
+            <button className={classNames("btn btn-primary",graph.createdBy.id === user.id ? "" :"hide")} onClick={() => setEditProject(true)}>
               <i className="icon mbc-icon edit fill"></i>
               <span>Edit</span>
             </button>
@@ -106,7 +106,7 @@ const DatalakeProjectCard = ({graph}) => {
           modalWidth={'60%'}
           buttonAlignment="right"
           show={editProject}
-          content={<DatalakeProjectForm edit={true} project={{ data: graph }} onSave={() => setEditProject(false)} />}
+          content={<DatalakeProjectForm edit={true} project={{ data: graph }} onSave={() => {setEditProject(false); onRefresh()}} />}
           scrollableContent={false}
           onCancel={() => setEditProject(false)}
           modalStyle={{

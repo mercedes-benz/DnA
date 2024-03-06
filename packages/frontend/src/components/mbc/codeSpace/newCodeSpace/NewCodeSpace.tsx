@@ -196,10 +196,15 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
     setProjectNameError(
       !noSpaceNoSpecialChars
         ? projectNameVal.length
-          ? 'Invalid name - Space and Special Chars not allowed'
+          ? 'Invalid name: Space and Special Chars not allowed.'
           : requiredError
         : '',
     );
+    
+    const startsOrEndswith = /^-|-$|(--)|^\d+$/i.test(projectNameVal);
+    if(startsOrEndswith) {
+      setProjectNameError('Invalid name: Should not start or end with "-" or name contains only numbers.');
+    }
   };
 
   // const onGithubUserNameOnChange = (evnt: React.FormEvent<HTMLInputElement>) => {
@@ -538,7 +543,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
       setGithubTokenError(requiredError);
       formValid = false;
     }
-    if (projectNameError !== '' || recipeError !== '' || githubTokenError !== '' || (isPublicRecipeChoosen && isUserDefinedGithubRecipe && userDefinedGithubUrlError !== '')) {
+    if (projectNameError !== '' || recipeValue === '0' || githubTokenError !== '' || (isPublicRecipeChoosen && isUserDefinedGithubRecipe && userDefinedGithubUrlError !== '')) {
       formValid = false;
     }
     return formValid;

@@ -25,39 +25,11 @@
  * LICENSE END 
  */
 
-package com.daimler.data.application.filter;
+package com.daimler.data.db.repo.workspace;
 
-import io.jsonwebtoken.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
+import org.springframework.data.jpa.repository.JpaRepository;
+import com.daimler.data.db.entities.CodeServerSoftwareNsql;
 
-@Component
-public class JWTGenerator {
+public interface WorkspaceSoftwareRepository extends JpaRepository<CodeServerSoftwareNsql, String> {
 
-	private static Logger log = LoggerFactory.getLogger(JWTGenerator.class);
-
-	private static String SECRET_KEY;
-
-	@Value("${jwt.secret.key}")
-	public void setSecretKey(String secretKey) {
-		SECRET_KEY = secretKey;
-	}
-
-	public static Claims decodeJWT(String jwt) {
-		try {
-			// This line will throw an exception if it is not a signed JWS (as expected)
-			Claims claims = Jwts.parser().setSigningKey(SECRET_KEY.getBytes())
-					.parseClaimsJws(jwt).getBody();
-			return claims;
-		}  catch (ExpiredJwtException e) {
-            log.error("Expired JWT. Error parsing JWT:{}", e.getMessage());
-            return e.getClaims();
-        } catch (MalformedJwtException | SignatureException | UnsupportedJwtException
-                 | IllegalArgumentException e) {
-            log.error("Error parsing JWT:{}", e.getMessage());
-            return null;
-        }
-	}
 }

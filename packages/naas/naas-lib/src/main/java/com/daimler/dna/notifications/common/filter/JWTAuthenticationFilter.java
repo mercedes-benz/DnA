@@ -53,9 +53,6 @@
  @Component
  public class JWTAuthenticationFilter implements Filter {
  
-	 @Value("${dna.dnaAuthEnable}")
-	 private boolean dnaAuthEnable;
- 
 	 private UserStore userStore;
  
 	 @Autowired
@@ -76,52 +73,23 @@
 			 forbidResponse(servletResponse);
 			 return;
 		 } else if (StringUtils.hasText(userinfo)) {
-			 if (dnaAuthEnable) {
-				 JSONObject res = null;
-				 try {
-					 res = dnaAuthClient.verifyLogin(userinfo);
-				 } catch (Exception e) {
-					 forbidResponse(servletResponse);
-					 return;
-				 }
- 
-				 if (res != null) {
-					 try {
-						 setUserDetailsToStore(res);
-						 filterChain.doFilter(servletRequest, servletResponse);
-					 } finally {
-						 // Otherwise when a previously used container thread is used, it will have the
-						 // old user id set and
-						 // if for some reason this filter is skipped, userStore will hold an unreliable
-						 // value
-						 this.userStore.clear();
-					 }
- 
-				 } else {
-					 log.error("Request UnAuthorized,No userinfo available");
-					 forbidResponse(servletResponse);
-					 return;
-				 }
- 
-			 } else {
-				 try {
-					 log.debug(
-							 "Request validation successful, set request user details in the store for further access");
-					 setUserDetailsToStore(userinfo);
-					 filterChain.doFilter(servletRequest, servletResponse);
-				 } catch (Exception e) {
-					 log.error("Error while storing userDetails {} ", e.getMessage());
-					 forbidResponse(servletResponse);
-					 this.userStore.clear();
-					 return;
-				 } finally {
-					 // Otherwise when a previously used container thread is used, it will have the
-					 // old user id set and
-					 // if for some reason this filter is skipped, userStore will hold an unreliable
-					 // value
-					 this.userStore.clear();
-				 }
-			 }
+			try {
+				log.debug(
+						"Request validation successful, set request user details in the store for further access");
+				setUserDetailsToStore(userinfo);
+				filterChain.doFilter(servletRequest, servletResponse);
+			} catch (Exception e) {
+				log.error("Error while storing userDetails {} ", e.getMessage());
+				forbidResponse(servletResponse);
+				this.userStore.clear();
+				return;
+			} finally {
+				// Otherwise when a previously used container thread is used, it will have the
+				// old user id set and
+				// if for some reason this filter is skipped, userStore will hold an unreliable
+				// value
+				this.userStore.clear();
+			}
  
 		 } else {
 			 log.debug("Request is exempted from validation");

@@ -75,6 +75,15 @@ export interface IDataGovernance{
 
 }
 
+export interface IDeploymentAuditLogs{
+  
+  branch?: string;
+  deployedOn?: string;
+  triggeredBy?: string;
+  triggeredOn?: string;
+  deploymentStatus?: string;
+}
+
 export interface IDeploymentDetails {
   secureWithIAMRequired?: boolean,
   technicalUserDetailsForIAMLogin?: string,
@@ -83,6 +92,7 @@ export interface IDeploymentDetails {
   lastDeployedBranch?: string;
   lastDeploymentStatus?: string;
   lastDeployedBy?: ICodeCollaborator;
+  deploymentAuditLogs?: IDeploymentAuditLogs[];
   gitjobRunID?: string;
 }
 
@@ -124,6 +134,7 @@ export interface IDeployRequest {
   branch: string;
   secureWithIAMRequired?: boolean,
   technicalUserDetailsForIAMLogin?: string,
+  valutInjectorEnable?: boolean,
 }
 
 const CodeSpace = (props: ICodeSpaceProps) => {
@@ -145,15 +156,18 @@ const CodeSpace = (props: ICodeSpaceProps) => {
   const [codeDeployed, setCodeDeployed] = useState<boolean>(false);
   const [codeDeployedUrl, setCodeDeployedUrl] = useState<string>();
   const [codeDeployedBranch, setCodeDeployedBranch] = useState<string>('main');
+  const [intCodeDeployFailed, setIntCodeDeployFailed] = useState<boolean>(false);
   const [prodCodeDeployed, setProdCodeDeployed] = useState<boolean>(false);
   const [prodCodeDeployedUrl, setProdCodeDeployedUrl] = useState<string>();
   const [prodCodeDeployedBranch, setProdCodeDeployedBranch] = useState<string>('main');
+  const [prodCodeDeployFailed, setProdCodeDeployFailed] = useState<boolean>(false);
   const [secureWithIAMSelected, setSecureWithIAMSelected] = useState<boolean>(true);
   const [iamTechnicalUserID, setIAMTechnicalUserID] = useState<string>('');
   const [iamTechnicalUserIDError, setIAMTechnicalUserIDError] = useState<string>('');
   const [acceptContinueCodingOnDeployment, setAcceptContinueCodingOnDeployment] = useState<boolean>(true);
   const [livelinessInterval, setLivelinessInterval] = useState<number>();
   const [branches, setBranches] = useState<IBranch[]>([]);
+  const [vaultEnabled, setVaultEnabled] = useState(false);
 
   const livelinessIntervalRef = React.useRef<number>();
 
@@ -163,6 +177,25 @@ const CodeSpace = (props: ICodeSpaceProps) => {
 
   const recipes = recipesMaster;
   const requiredError = '*Missing entry';
+
+  const setVault = () =>{
+    ProgressIndicator.show();
+    CodeSpaceApiClient.read_secret(projectDetails?.projectName, deployEnvironment === 'staging' ? 'int' : 'prod')
+      .then((response) => {
+        ProgressIndicator.hide();
+        Object.keys(response).length !== 0 ? setVaultEnabled(true) : setVaultEnabled(false);
+      })
+      .catch((err) => {
+        ProgressIndicator.hide();
+        if (err?.response?.data?.errors?.length > 0) {
+          err?.response?.data?.errors.forEach((err: any) => {
+            Notification.show(err?.message || 'Something went wrong.', 'alert');
+          });
+        } else {
+          Notification.show(err?.message || 'Something went wrong.', 'alert');
+        }
+      });
+  }
 
   useEffect(() => {
     SelectBox.defaultSetup();
@@ -199,9 +232,11 @@ const CodeSpace = (props: ICodeSpaceProps) => {
               const intDeployed =
                 intDeploymentDetails.lastDeploymentStatus === 'DEPLOYED' ||
                 (intDeployedUrl !== null && intDeployedUrl !== 'null');
+              const intDeployFailed = intDeploymentDetails.lastDeploymentStatus === 'DEPLOYMENT_FAILED';  
               const prodDeployed =
                 prodDeploymentDetails.lastDeploymentStatus === 'DEPLOYED' ||
                 (prodDeployedUrl !== null && prodDeployedUrl !== 'null');
+              const prodDeployFailed = prodDeploymentDetails.lastDeploymentStatus === 'DEPLOYMENT_FAILED';    
               const deployingInProgress =
                 (intDeploymentDetails.lastDeploymentStatus === 'DEPLOY_REQUESTED' ||
                   prodDeploymentDetails.lastDeploymentStatus === 'DEPLOY_REQUESTED');
@@ -219,10 +254,12 @@ const CodeSpace = (props: ICodeSpaceProps) => {
               setCodeDeployedUrl(intDeployedUrl);
               setCodeDeployedBranch(intDeploymentDetails.lastDeployedBranch);
               setCodeDeployed(intDeployed);
+              setIntCodeDeployFailed(intDeployFailed);
 
               setProdCodeDeployedUrl(prodDeployedUrl);
               setProdCodeDeployedBranch(prodDeploymentDetails.lastDeployedBranch);
               setProdCodeDeployed(prodDeployed);
+              setProdCodeDeployFailed(prodDeployFailed);
 
               Tooltip.defaultSetup();
               Tabs.defaultSetup();
@@ -257,6 +294,10 @@ const CodeSpace = (props: ICodeSpaceProps) => {
       history.replace('/codespaces');
     }
   }, []);
+
+  useEffect(() => {
+    setVault();
+  }, [deployEnvironment]);
 
   useEffect(() => {
     livelinessIntervalRef.current = livelinessInterval;
@@ -320,6 +361,7 @@ const CodeSpace = (props: ICodeSpaceProps) => {
         ProgressIndicator.hide();
         Notification.show('Error in getting code space branch list - ' + err.message, 'alert');
       });
+    setVault();
   };
 
   const onCodeDeployModalCancel = () => {
@@ -410,7 +452,9 @@ const CodeSpace = (props: ICodeSpaceProps) => {
       secureWithIAMRequired: secureWithIAMSelected,
       technicalUserDetailsForIAMLogin: secureWithIAMSelected ? iamTechnicalUserID : null,
       targetEnvironment: deployEnvironment === 'staging' ? 'int' : 'prod', // int or prod
-      branch: branchValue
+      branch: branchValue,
+      valutInjectorEnable: vaultEnabled,
+
     };
     ProgressIndicator.show();
     CodeSpaceApiClient.deployCodeSpace(codeSpaceData.id, deployRequest)
@@ -561,6 +605,15 @@ const CodeSpace = (props: ICodeSpaceProps) => {
                           </div>
                         </div>
                       )}
+                      {intCodeDeployFailed && (
+                        <div tooltip-data="Last deployement failed on Staging - Click to view logs">
+                          <a target="_blank" className={classNames(Styles.error)} href={buildGitJobLogViewURL(intDeploymentDetails?.gitjobRunID)} rel="noreferrer">
+                            <i
+                              className="icon mbc-icon alert circle small right"
+                            />
+                          </a>
+                        </div>
+                      )}
                       {prodCodeDeployed && (
                         <div className={Styles.urlLink} tooltip-data="APP BASE URL - Production">
                           <a href={prodCodeDeployedUrl} target="_blank" rel="noreferrer">
@@ -590,6 +643,15 @@ const CodeSpace = (props: ICodeSpaceProps) => {
                               <>{regionalDateAndTimeConversionSolution(prodDeploymentDetails?.lastDeployedOn)}</>
                             )})
                           </div>
+                        </div>
+                      )}
+                      {prodCodeDeployFailed && (
+                        <div tooltip-data="Last deployement failed on Production - Click to view logs">
+                          <a target="_blank" className={classNames(Styles.error)} href={buildGitJobLogViewURL(prodDeploymentDetails?.gitjobRunID)} rel="noreferrer">
+                            <i
+                              className="icon mbc-icon alert circle small right"
+                            />
+                          </a>
                         </div>
                       )}
                       <div>

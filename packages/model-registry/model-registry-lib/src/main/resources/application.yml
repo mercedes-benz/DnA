@@ -18,7 +18,6 @@ spring:
 
 dna:
   uri: ${DNA_URI:XXXXXX}
-  dnaAuthEnable: ${DNA_AUTH_ENABLE:false}
   
 kong:
   uri: ${KONG_URI:XXXXXX}
@@ -35,6 +34,7 @@ allowedCorsOriginPatternUrl: ${CORS_ORIGIN_URL:http://*}
   
 jwt:
   secret:
+    key: ${JWT_SECRET_KEY:XXXXXX}
     tokenExpiry: ${JWT_TOKEN_EXPIRY_TIME_IN_MIN:90}
     byPassUrl: ${BYPASS_JWT_AUTHENTICATION:/models/jwt}
     kid: ${JWT_SECRET_KID:XXXXX}

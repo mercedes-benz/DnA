@@ -31,7 +31,7 @@ const DatalakeProjectForm = ({project, edit, onSave}) => {
   const [dataClassification, setDataClassification] = useState(edit && project?.data?.classificationType !== null ? project?.data?.classificationType : 0);
   const [PII, setPII] = useState(edit && project?.data?.hasPii !== null ? project?.data?.hasPii : false);
   const [connectorType, setConnectorType] = useState(edit && project?.data?.connectorType !== null ? project?.data?.connectorType : 'Iceberg');
-  
+
   const [divisions, setDivisions] = useState([]);
   const [subDivisions, setSubDivisions] = useState([]);
   const [departments, setDepartments] = useState([]);
@@ -43,7 +43,7 @@ const DatalakeProjectForm = ({project, edit, onSave}) => {
   // const [statusError] = useState('');
 
   const [dataClassificationDropdown, setDataClassificationDropdown] = useState([]);
-
+  
   useEffect(() => {
     ProgressIndicator.show();
     datalakeApi.getLovData()
@@ -89,7 +89,7 @@ const DatalakeProjectForm = ({project, edit, onSave}) => {
         setSubDivisions([]);
         ProgressIndicator.hide();
     }
-    //eslint-disable-next-line react-hooks/exhaustive-deps
+      //eslint-disable-next-line react-hooks/exhaustive-deps
   }, [datalakeDivision]);
 
   const handleConnectorType = (e) => {
@@ -114,32 +114,32 @@ const DatalakeProjectForm = ({project, edit, onSave}) => {
   const handleCreateProject = (values) => {
     ProgressIndicator.show();
     const data = {
-      projectName: values.projectName,
-      connectorType: connectorType,
-      description: values.description,
-      divisionId: values.datalakeDivision.includes('/') ? values.datalakeDivision.split('/')[0] : '',
-      divisionName: values.datalakeDivision.includes('/') ? values.datalakeDivision.split('/')[1] : '',
-      subdivisionId: values.datalakeSubDivision.includes('/') ? values.datalakeSubDivision.split('/')[0] : '',
-      subdivisionName: values.datalakeSubDivision.includes('/') ? values.datalakeSubDivision.split('/')[1] : '',
-      department: departmentName[0],
-      status: '',
-      classificationType: values.dataClassification,
-      hasPii: values.pii
+    projectName: values.projectName,
+    connectorType: connectorType,
+    description: values.description,
+    divisionId: values.datalakeDivision.includes('/') ? values.datalakeDivision.split('/')[0] : '',
+    divisionName: values.datalakeDivision.includes('/') ? values.datalakeDivision.split('/')[1] : '',
+    subdivisionId: values.datalakeSubDivision.includes('/') ? values.datalakeSubDivision.split('/')[0] : '',
+    subdivisionName: values.datalakeSubDivision.includes('/') ? values.datalakeSubDivision.split('/')[1] : '',
+    department: departmentName[0],
+    status: '',
+    classificationType: values.dataClassification,
+    hasPii: values.pii
     }
     datalakeApi.createDatalakeProject(data).then((res) => {
-      ProgressIndicator.hide();
-      history.push(`/graph/${res.data.data.id}`);
-      Notification.show(`Data Lakehouse Project - ${res.data.data.projectName} successfully created`);
+    ProgressIndicator.hide();
+    history.push(`/graph/${res.data.data.id}`);
+    Notification.show(`Data Lakehouse Project - ${res.data.data.projectName} successfully created`);
     }).catch(error => {
-      ProgressIndicator.hide();
-      Notification.show(
-        error?.response?.data?.response?.errors?.[0]?.message || error?.response?.data?.response?.warnings?.[0]?.message || 'Error while creating data lakehouse project',
-        'alert',
-      );
+    ProgressIndicator.hide();
+    Notification.show(
+    error?.response?.data?.response?.errors?.[0]?.message || error?.response?.data?.response?.warnings?.[0]?.message || 'Error while creating data lakehouse project',
+    'alert',
+    );
     });
   };
   const handleEditProject = (values) => {
-    const data = {
+      const data = {
       projectName: project?.data?.projectName,
       connectorType: project?.data?.connectorType,
       description: values.description,
@@ -153,7 +153,7 @@ const DatalakeProjectForm = ({project, edit, onSave}) => {
       hasPii: values.pii
     }
     ProgressIndicator.show();
-    datalakeApi.updateDatalakeProject(data, project?.data?.id).then(() => {
+    datalakeApi.updateDatalakeProject(project?.data?.id, data).then(() => {
       ProgressIndicator.hide();
       Notification.show('Data Lakehouse Project successfully updated');
       onSave();
@@ -165,7 +165,7 @@ const DatalakeProjectForm = ({project, edit, onSave}) => {
       );
     });
   };
-
+  
   return (
     <>
       <FormProvider {...methods}>
@@ -210,9 +210,9 @@ const DatalakeProjectForm = ({project, edit, onSave}) => {
                         placeholder="Type here"
                         autoComplete="off"
                         maxLength={55}
-                        {...register('projectName', { required: '*Missing entry', pattern: /^[a-z0-9-.]+$/ })}
+                        {...register('projectName', { required: '*Missing entry', pattern: /^[a-z0-9]+$/ })}
                       />
-                      <span className={classNames('error-message')}>{errors?.projectName?.message}{errors.projectName?.type === 'pattern' && 'Project names can consist only of lowercase letters, numbers, dots ( . ), and hyphens ( - ).'}</span>
+                      <span className={classNames('error-message')}>{errors?.projectName?.message}{errors.projectName?.type === 'pattern' && 'Project names can consist only of lowercase letters, numbers'}</span>
                     </div>
                   </div>
                   
@@ -282,10 +282,11 @@ const DatalakeProjectForm = ({project, edit, onSave}) => {
                   <select
                         id="divisionField"
                         defaultValue={datalakeDivision}
+                        value={datalakeDivision}
+                        required-error={'*Missing entry'}
                         {...register('datalakeDivision', {
-                          required: '*Missing entry',
-                          validate: (value) => value !== 0 || '*Missing entry',
-                          onChange: (e) => { setDatalakeDivision(e.target.value) }
+                          validate: (value) => value !== '0' || '*Missing entry',
+                          onChange: (e) => { setDatalakeDivision(e.target.value)}
                         })}
                     >
                         <option id="divisionOption" value={0}>
@@ -317,6 +318,7 @@ const DatalakeProjectForm = ({project, edit, onSave}) => {
                     
                     <select id="subDivisionField" 
                       defaultValue={datalakeSubDivision}
+                      value={datalakeSubDivision}
                       {...register('datalakeSubDivision', {
                         onChange: (e) => { setDatalakeSubDivision(e.target.value) }
                       })}
@@ -426,13 +428,13 @@ const DatalakeProjectForm = ({project, edit, onSave}) => {
                   <div className={classNames('custom-select')}>
                     <select id="classificationField" 
                       defaultValue={dataClassification}
+                      value={project?.data?.classificationType !== null ? project?.data?.classificationType : 0}
+                      required-error={'*Missing entry'}
                       {...register('dataClassification', {
-                        required: '*Missing entry',
-                        validate: (value) => value !== 0 || '*Missing entry',
-                        onChange: (e) => { setDataClassification(e.target.value) }
+                        validate: (value) => value !== '0' || '*Missing entry',
+                        onChange: (e) => { setDataClassification(e.target.value)}
                       })}
-                    >
-                      
+                    >     
                           <option id="classificationOption" value={0}>Choose</option>
                           {dataClassificationDropdown?.map((item) => (
                             <option
@@ -496,7 +498,7 @@ const DatalakeProjectForm = ({project, edit, onSave}) => {
                 className="btn btn-tertiary"
                 type="button"
                 onClick={handleSubmit((values) => {
-                  edit ? handleEditProject() : handleCreateProject(values);
+                  edit ? handleEditProject(values) : handleCreateProject(values);
                 })}
               >
                 {edit ? 'Save Project' : 'Create Project'}

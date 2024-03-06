@@ -82,7 +82,6 @@ allowedCorsOriginPatternUrl: ${CORS_ORIGIN_URL:http://*}
 dna:
   uri: ${DNA_URI:http://localhost:7171}
   ui.uri: ${DNA_UI_URI:XXXX}
-  dnaAuthEnable: ${DNA_AUTH_ENABLE:false}
 # token: ${DNA_AUTH_API_TOKEN:XXXX}
   user.notificationPreferences.get.api: ${DNA_USER_NOTIFICATION_PREF_GET_URI:/api/notification-preferences}
   user.info.get.api: ${DNA_USER_INFO_GET_URI:/api/users}

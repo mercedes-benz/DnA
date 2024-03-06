@@ -127,13 +127,13 @@ const TableFormBase = ({formats}) => {
               type="text"
               className={classNames('input-field')}
               id="tableName"
-              {...register('tableName', { required: '*Missing entry', pattern: /^[a-z0-9_]+$/ })}
+              {...register('tableName', { required: '*Missing entry', pattern: /^[a-zA-Z][a-zA-Z0-9_]*$/ })}
               placeholder="Type here"
               autoComplete="off"
               maxLength={55}
               defaultValue={editingTable?.name}
             />
-            <span className={classNames('error-message')}>{errors?.tableName?.message}{errors.tableName?.type === 'pattern' && 'Table names can consist only of lowercase letters, numbers, and underscores ( _ ).'}</span>
+            <span className={classNames('error-message')}>{errors?.tableName?.message}{errors.tableName?.type === 'pattern' && 'Table names can consist only of lowercase letters, numbers, and underscores ( _ ) and cannot start with numbers.'}</span>
           </div>
         </div>
         <div className={Styles.configurationContainer}>
@@ -202,8 +202,8 @@ const TableForm = ({setToggle, formats, dataTypes}) => {
   }, [editingTable]);
 
   const onSubmit = (data) => {
-    const { tableName, tableFormat, tableComment, ...colData } = data;
-    const cols = [];
+    const { tableName, tableFormat, tableComment, ...colData }  = data;
+        const cols = [];
     for (const key in colData) {
       cols.push(colData[key]);
     }
@@ -238,11 +238,10 @@ const TableForm = ({setToggle, formats, dataTypes}) => {
   };
 
   const removeItem = id => {
-      setFields(state => {
-          const columns = state.filter(item => item.columnName !== id);
-          return columns.length ? columns : [];
-      });
+      const newt = columns.filter(item => item.columnName !== id);
+      columns.length ? setFields(newt) : setFields([]);
   };
+
 
   return (
     <FormProvider {...methods} >
@@ -253,7 +252,7 @@ const TableForm = ({setToggle, formats, dataTypes}) => {
               columns.map((field, index) => (
                 <TableFormItem
                     field={field}
-                    key={field.name + field.index}
+                    key={field.columnName}
                     index={index}
                     addItem={addItem}
                     removeItem={removeItem}

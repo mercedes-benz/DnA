@@ -20,7 +20,7 @@ const Graphs = ({ user }) => {
 
   // Fetch all datalake projects
   const getDatalakeProjects = () => {
-    datalakeApi.getDatalakeProjectsList(currentPageOffset, maxItemsPerPage)
+     datalakeApi.getDatalakeProjectsList(currentPageOffset, maxItemsPerPage)
       .then((res) => {
         if(res.status !== 204) {
           if (res.data.data) {
@@ -87,6 +87,10 @@ const Graphs = ({ user }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [maxItemsPerPage, currentPageNumber, currentPageOffset]);
 
+  const handleRefresh = ()=>{
+    getDatalakeProjects();
+  };
+
     return (
       <>
         <div className={classNames(Styles.mainPanel)}>
@@ -125,6 +129,8 @@ const Graphs = ({ user }) => {
                       <DatalakeProjectCard
                         key={graph.id}
                         graph={graph}
+                        user={user}
+                        onRefresh = {handleRefresh}
                       />
                     );
                   })}

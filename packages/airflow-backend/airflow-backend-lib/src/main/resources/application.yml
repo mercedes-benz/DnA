@@ -46,8 +46,7 @@ server:
 allowedCorsOriginPatternUrl: ${CORS_ORIGIN_URL:http://*}    
 
 dna:
-  uri: ${DNA_URI:XXXX}
-  dnaAuthEnable: ${DNA_AUTH_ENABLE:false}  
+  uri: ${DNA_URI:XXXX} 
   
 jwt:
   secret:

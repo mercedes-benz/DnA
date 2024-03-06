@@ -152,6 +152,11 @@ paths:
             description: page size to limit the number of SecurityConfigs, Example 15
             required: false
             type: integer
+          - name: projectName
+            in: query
+            description: project name to get SecurityConfig.
+            required: false
+            type: string
       responses:
         201:
           description: "Returns message of success or failure"

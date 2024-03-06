@@ -280,12 +280,12 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 		CreateServiceRequestVO createServiceRequestVO = new CreateServiceRequestVO();
 		CreateServiceVO createServiceVO = new CreateServiceVO();
 		if(kongApiForDeploymentURL) {					    		    
-			url = "http://" + serviceName + "-" + env + ".codespaces-apps:80";
+			url = "http://" + serviceName.toLowerCase() + "-" + env + ".codespaces-apps:80";
 		}
 		else {
-			url = "http://" + serviceName + ".code-server:8080";
+			url = "http://" + serviceName.toLowerCase() + ".code-server:8080";
 		}		
-		createServiceVO.setName(serviceName);
+		createServiceVO.setName(env!=null?serviceName.toLowerCase()+"-"+env:serviceName.toLowerCase());
 		createServiceVO.setUrl(url);
 		createServiceRequestVO.setData(createServiceVO);
 		
@@ -293,21 +293,23 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 		List<String> hosts = new ArrayList();
 		List<String> paths = new ArrayList();
 		List<String> protocols = new ArrayList();
-		String currentPath = "/" + serviceName + "/" + env + "/api";
+		String currentPath = "";
 		CreateRouteRequestVO createRouteRequestVO = new CreateRouteRequestVO();
 		CreateRouteVO createRouteVO = new CreateRouteVO();
 		if(kongApiForDeploymentURL) {
 			if(apiRecipe) {
+				currentPath = "/" + serviceName.toLowerCase() + "/" + env + "/api";
 				if(env.equalsIgnoreCase("int"))
-					paths.add("/" + serviceName + "/" + "int" + "/api");
+					paths.add("/" + serviceName.toLowerCase() + "/" + "int" + "/api");
 				if(env.equalsIgnoreCase("prod"))
-					paths.add("/" + serviceName + "/" + "prod" + "/api");
+					paths.add("/" + serviceName.toLowerCase() + "/" + "prod" + "/api");
 			}
 			else {
+				currentPath = "/" + serviceName.toLowerCase() + "/" + env + "/";
 				if(env.equalsIgnoreCase("int"))
-					paths.add("/" + serviceName + "/" + "int/");
+					paths.add("/" + serviceName.toLowerCase() + "/" + "int/");
 				if(env.equalsIgnoreCase("prod"))
-					paths.add("/" + serviceName + "/" + "prod/");
+					paths.add("/" + serviceName.toLowerCase() + "/" + "prod/");
 			}
 //			if(Objects.nonNull(intSecureIAM) && intSecureIAM) {
 //				paths.add("/" + serviceName + "/" + "int" + "/api");
@@ -320,12 +322,12 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 			}			
 		}
 		else {
-			paths.add("/" + serviceName);
+			paths.add("/" + serviceName.toLowerCase());
 		}
 		protocols.add("http");
 		protocols.add("https");
 		hosts.add(codeServerEnvUrl);
-		createRouteVO.setName(serviceName);
+		createRouteVO.setName(env!=null?serviceName.toLowerCase()+"-"+env:serviceName.toLowerCase());
 		createRouteVO.setHosts(hosts);		
 		createRouteVO.setPaths(paths);
 		createRouteVO.setProtocols(protocols);
@@ -339,8 +341,8 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 
 		attachPluginVO.setName(OIDC_PLUGIN);
 
-		String recovery_page_path = "https://" + codeServerEnvUrl + "/" + serviceName + "/";	
-		String redirectUri = "/" + serviceName;
+		String recovery_page_path = "https://" + codeServerEnvUrl + "/" + serviceName.toLowerCase() + "/";	
+		String redirectUri = "/" + serviceName.toLowerCase();
 
 		attachPluginConfigVO.setBearer_only(bearerOnly);
 		attachPluginConfigVO.setClient_id(clientId);
@@ -407,7 +409,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 				}
 			}
 			if(createServiceResponse.getSuccess().equalsIgnoreCase("success") || isServiceAlreadyCreated ) {
-				createRouteResponse = createRoute(createRouteRequestVO, serviceName);
+				createRouteResponse = createRoute(createRouteRequestVO, env!=null ? serviceName.toLowerCase()+"-"+env:serviceName);
 				if(Objects.nonNull(createRouteResponse) && Objects.nonNull(createRouteResponse.getErrors())) {
 					List<MessageDescription> responseErrors = createRouteResponse.getErrors();
 					for(MessageDescription error : responseErrors) {
@@ -424,17 +426,17 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 			if((createServiceResponse.getSuccess().equalsIgnoreCase("success")  || isServiceAlreadyCreated )&& (createRouteResponse.getSuccess().equalsIgnoreCase("success") || isRouteAlreadyCreated)) {
 				if(!kongApiForDeploymentURL) {
 					LOGGER.info("kongApiForDeploymentURL is false, calling oidc and appauthoriser plugin " );
-					attachPluginResponse = attachPluginToService(attachPluginRequestVO,serviceName);
+					attachPluginResponse = attachPluginToService(attachPluginRequestVO,env!=null?serviceName.toLowerCase()+"-"+env:serviceName);
 					attachAppAuthoriserPluginResponse = attachAppAuthoriserPluginToService(appAuthoriserPluginRequestVO, serviceName);
 				}
 				else {
 					if(!apiRecipe && uiRecipesToUseOidc) {
 						LOGGER.info("kongApiForDeploymentURL is {} and apiRecipe is {} and uiRecipesToUseOidc is : {}, calling oidc plugin ",kongApiForDeploymentURL, apiRecipe, uiRecipesToUseOidc );
-						attachPluginResponse = attachPluginToService(attachPluginRequestVO,serviceName);
+						attachPluginResponse = attachPluginToService(attachPluginRequestVO,env!=null?serviceName.toLowerCase()+"-"+env:serviceName);
 					}
 					else {
 						if(intSecureIAM || prodSecureIAM) {
-							attachJwtPluginResponse = attachJwtPluginToService(attachJwtPluginRequestVO,serviceName);
+							attachJwtPluginResponse = attachJwtPluginToService(attachJwtPluginRequestVO,env!=null?serviceName.toLowerCase()+"-"+env:serviceName);
 							LOGGER.info("kongApiForDeploymentURL is {} and apiRecipe is {} and uiRecipesToUseOidc is : {}, calling jwtissuer plugin ",kongApiForDeploymentURL, apiRecipe, uiRecipesToUseOidc );
 						}else {
 							LOGGER.info("Secure with IAM false, hence didnt add jwt plugin to service. kongApiForDeploymentURL is {} and apiRecipe is {} and uiRecipesToUseOidc is : {}, calling jwtissuer plugin ",kongApiForDeploymentURL, apiRecipe, uiRecipesToUseOidc );
