@@ -40,7 +40,6 @@ spring:
     
 dna:
   uri: ${DNA_URI:XXXXXX}
-  dnaAuthEnable: ${DNA_AUTH_ENABLE:false}
   
 kafka:
   centralTopic:

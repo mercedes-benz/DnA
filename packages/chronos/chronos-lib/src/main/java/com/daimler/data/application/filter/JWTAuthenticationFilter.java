@@ -73,8 +73,6 @@ public class JWTAuthenticationFilter implements Filter {
 
 	private Logger log = LoggerFactory.getLogger(JWTAuthenticationFilter.class);
 
-	@Value("${dna.dnaAuthEnable}")
-	private boolean dnaAuthEnable;
 
 	private UserStore userStore;
 
