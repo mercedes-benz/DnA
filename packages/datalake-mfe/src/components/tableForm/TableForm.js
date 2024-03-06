@@ -1,6 +1,6 @@
 import classNames from 'classnames';
 import React, { useState, useEffect } from 'react';
-import { useForm, useFormContext, FormProvider } from "react-hook-form";
+import { useForm, useFormContext, FormProvider,useFieldArray } from "react-hook-form";
 import Styles from './table-form.scss';
 import SelectBox from 'dna-container/SelectBox';
 import { useSelector, useDispatch } from 'react-redux';
@@ -9,8 +9,11 @@ import { calcXY } from '../../utilities/utils';
 import Notification from '../../common/modules/uilab/js/src/notification';
 
 const TableFormItem = (props) => {
-  const { register, formState: { errors } } = useFormContext();
-
+  const { register, unregister, control,  formState: { errors } } = useForm();
+  const {  remove } = useFieldArray({
+    control,
+    name: 'items',
+  });
   useEffect(() => {
     SelectBox.defaultSetup();
   }, []);
@@ -18,9 +21,16 @@ const TableFormItem = (props) => {
   const { field, columnDatatypes } = props;
   const index = `A${props.index}`;
 
+
   useEffect(() => {
     SelectBox.defaultSetup();
   }, [columnDatatypes]);
+
+  const  handleRemoveField = (index)=>{
+    unregister(`items[${index}]`);
+    remove(index);
+    props.removeItem(props.key);
+  }
 
   return (
     <div className={Styles.columnsWrapper}>
@@ -38,7 +48,7 @@ const TableFormItem = (props) => {
                 id={`${index}.columnName`}
                 {...register(`${index}.columnName`, {
                   required: "*Missing entry",
-                  pattern: /^[a-z0-9_]+$/,
+                  pattern: /^[a-z][a-z0-9_]*$/ ,
                   onChange: (e) => {
                     const val = e.target.value;
                     props.setColumnValues(props.index,val,'columnName' ); // Update local state
@@ -52,7 +62,7 @@ const TableFormItem = (props) => {
               />
               <span className={classNames('error-message')}>
                 {errors[`${index}`] !== undefined && errors[`${index}`].columnName.message}
-                {errors[`${index}`] !== undefined && errors[`${index}`].columnName?.type === 'pattern' && 'Column names can consist only of lowercase letters, numbers, and underscores ( _ ).'}
+                {errors[`${index}`] !== undefined && errors[`${index}`].columnName?.type === 'pattern' && 'column names can only consist of lowercase letters, numbers, and underscores ( _ ) and cannot start with numbers.'}
               </span>
             </div>
           </div>
@@ -133,7 +143,7 @@ const TableFormItem = (props) => {
           </div>
         </div>
         <div className={Styles.flexLayout}>
-          <button className={classNames('btn btn-primary', Styles.btnActions)} onClick={() => {props.removeItem(props.field.columnName);}}>Remove field</button>
+          <button className={classNames('btn btn-primary', Styles.btnActions)} onClick={() => handleRemoveField(index)}>Remove field</button>
           <button className={classNames('btn btn-primary', Styles.btnActions)} onClick={() => props.addItem(props.index)}>Add field after</button>
         </div>
       </div>
@@ -160,13 +170,13 @@ const TableFormBase = ({formats}) => {
               type="text"
               className={classNames('input-field')}
               id="tableName"
-              {...register('tableName', { required: '*Missing entry', pattern: /^[a-zA-Z][a-zA-Z0-9_]*$/ })}
+              {...register('tableName', { required: '*Missing entry', pattern: /^[a-z][a-z0-9_]*$/ })}
               placeholder="Type here"
               autoComplete="off"
               maxLength={55}
               defaultValue={editingTable?.name}
             />
-            <span className={classNames('error-message')}>{errors?.tableName?.message}{errors.tableName?.type === 'pattern' && 'Table names can consist only of lowercase letters, numbers, and underscores ( _ ) and cannot start with numbers.'}</span>
+            <span className={classNames('error-message')}>{errors?.tableName?.message}{errors.tableName?.type === 'pattern' && 'Table names can only consist of lowercase letters, numbers, and underscores ( _ ) and cannot start with numbers.'}</span>
           </div>
         </div>
         <div className={Styles.configurationContainer}>
@@ -266,9 +276,14 @@ const TableForm = ({setToggle, formats, dataTypes}) => {
       setFields(newState); 
    };
 
-  const removeItem = id => {
+  const removeItem = (id) => {
+  
+    if(columns.length > 1){
       const newt = columns.filter(item => item.columnName !== id);
       columns.length ? setFields([...newt]) : setFields([]);
+    }else{
+      Notification.show('Table should contain atleast one column', 'alert');
+    }
   };
 
   const onColumnValueChange = (index,value,field) => {
