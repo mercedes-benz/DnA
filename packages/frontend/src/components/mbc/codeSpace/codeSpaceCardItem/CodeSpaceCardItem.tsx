@@ -545,7 +545,7 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
           modalStyle={{ minHeight: '86%' }}
           buttonAlignment="center"
           show={showVaultManagementModal}
-          content={<VaultManagement projectName={projectDetails.projectName} isStaging={isStaging} />}
+          content={<VaultManagement projectName={projectDetails.projectName.toLowerCase()} isStaging={isStaging} />}
           scrollableContent={true}
           onCancel={() => setShowVaultManagementModal(false)}
         />
