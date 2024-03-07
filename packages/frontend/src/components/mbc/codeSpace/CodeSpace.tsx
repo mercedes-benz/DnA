@@ -180,7 +180,7 @@ const CodeSpace = (props: ICodeSpaceProps) => {
 
   const setVault = () =>{
     ProgressIndicator.show();
-    CodeSpaceApiClient.read_secret(projectDetails?.projectName, deployEnvironment === 'staging' ? 'int' : 'prod')
+    CodeSpaceApiClient.read_secret(projectDetails?.projectName.toLowerCase(), deployEnvironment === 'staging' ? 'int' : 'prod')
       .then((response) => {
         ProgressIndicator.hide();
         Object.keys(response).length !== 0 ? setVaultEnabled(true) : setVaultEnabled(false);
