@@ -288,7 +288,7 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
             </div>
             {!enableOnboard && !creationFailed && !createInProgress && !disableDeployment && (
               <div>
-                <span onClick={toggleContextMenu} className={Styles.trigger}>
+                <span onClick={toggleContextMenu} className={classNames(Styles.trigger, showContextMenu ? Styles.open : '')}>
                   <i className="icon mbc-icon listItem context" />
                 </span>
                 <div
@@ -301,7 +301,10 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
                 >
                   <ul>
                     <li>
-                      <strong>Staging:</strong> [Branch - {intDeploymentDetails?.lastDeployedBranch}]{' '}
+                      <strong>Staging:</strong>{' '}
+                      {intDeploymentDetails?.lastDeployedBranch
+                        ? `[Branch - ${intDeploymentDetails?.lastDeployedBranch}]`
+                        : 'No Deployment'}
                       <span className={classNames(Styles.metricsTrigger, 'hide')} onClick={handleOpenDoraMetrics}>
                         (DORA Metrics)
                       </span>
@@ -335,7 +338,8 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
                       <>
                         <li>
                           <a href={intDeployedUrl} target="_blank" rel="noreferrer">
-                            Deployed App URL {intDeploymentDetails?.secureWithIAMRequired && securedWithIAMContent}<i className="icon mbc-icon new-tab" />
+                            Deployed App URL {intDeploymentDetails?.secureWithIAMRequired && securedWithIAMContent}
+                            <i className="icon mbc-icon new-tab" />
                           </a>
                         </li>
                         <li>
@@ -362,7 +366,10 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
                       <hr />
                     </li>
                     <li>
-                      <strong>Production:</strong> [Branch - {prodDeploymentDetails?.lastDeployedBranch}]{' '}
+                      <strong>Production:</strong> {' '}
+                      {prodDeploymentDetails?.lastDeployedBranch
+                        ? `[Branch - ${prodDeploymentDetails?.lastDeployedBranch}]`
+                        : 'No Deployment'}
                       <span className={classNames(Styles.metricsTrigger, 'hide')} onClick={handleOpenDoraMetrics}>
                         (DORA Metrics)
                       </span>
@@ -396,7 +403,8 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
                       <>
                         <li>
                           <a href={prodDeployedUrl} target="_blank" rel="noreferrer">
-                            Deployed App URL {prodDeploymentDetails?.secureWithIAMRequired && securedWithIAMContent}<i className="icon mbc-icon new-tab" />
+                            Deployed App URL {prodDeploymentDetails?.secureWithIAMRequired && securedWithIAMContent}
+                            <i className="icon mbc-icon new-tab" />
                           </a>
                         </li>
                         <li>
