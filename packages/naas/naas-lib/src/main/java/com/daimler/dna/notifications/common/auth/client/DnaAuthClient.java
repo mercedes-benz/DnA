@@ -31,6 +31,6 @@
  
  public interface DnaAuthClient {
  
-	 public JSONObject verifyLogin(String userinfo);
+	 public JSONObject verifyLogin(String jwt);
  }
  

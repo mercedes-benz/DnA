@@ -39,7 +39,7 @@ public interface DnaAuthClient {
 	 * @param token 
 	 * @return response {@code JSONObject}
 	 */
-	public JSONObject verifyLogin(String userinfo);
+	public JSONObject verifyLogin(String jwt);
 	
 	/**
 	 * To get user information by calling dna-backend

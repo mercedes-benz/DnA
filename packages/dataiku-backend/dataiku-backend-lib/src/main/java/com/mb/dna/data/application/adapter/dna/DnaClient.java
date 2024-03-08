@@ -15,6 +15,6 @@ public interface DnaClient {
 	
 	@Header(name = "dna-request-userdetails", value = "{userinfo}")
 	@Post("${dna.verifyLoginUri}")
-	JSONObject verifyLogin(String userinfo);
+	JSONObject verifyLogin(String jwt);
 
 }

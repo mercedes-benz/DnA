@@ -64,13 +64,13 @@ public class DnaAuthClientImpl implements DnaAuthClient {
 	HttpServletRequest httpRequest;
 
 	@Override
-	public JSONObject verifyLogin(String userinfo) {
+	public JSONObject verifyLogin(String jwt) {
 		JSONObject res = null;
 		try {
 			HttpHeaders headers = new HttpHeaders();
 			headers.set("Accept", "application/json");
 			headers.set("Content-Type", "application/json");
-			headers.set("dna-request-userdetails", userinfo);
+			headers.set("Authorization", jwt);
 
 			String dnaUri = dnaBaseUri + VERIFY_LOGIN;
 			HttpEntity entity = new HttpEntity<>(headers);

@@ -17,7 +17,7 @@ public class DnaHttpClient {
 	@Inject
 	DnaClientConfig dnaClientConfig;
 	
-	public UserInfo verifyLogin(String userinfo) {
+	public UserInfo verifyLogin(String jwt) {
 		UserInfo userInfo = null;
 		VerifyLoginResponseDto responseBody = null;
 		String url =  dnaClientConfig.getUri() + dnaClientConfig.getVerifyLoginUri();
@@ -25,7 +25,7 @@ public class DnaHttpClient {
 		try {
 			HttpRequest<?> req = HttpRequest.POST(url, null).header("Accept", "application/json")
 			.header("Content-Type", "application/json")
-			.header("dna-request-userdetails", userinfo);
+			.header("Authorization", jwt);
 			HttpResponse<VerifyLoginResponseDto> response = client.toBlocking().exchange(req,VerifyLoginResponseDto.class);
 			if(response!=null && response.getBody()!=null) {
 				responseBody = response.getBody().get();
