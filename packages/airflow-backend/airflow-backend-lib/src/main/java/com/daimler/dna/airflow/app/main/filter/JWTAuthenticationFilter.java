@@ -174,4 +174,8 @@ public class JWTAuthenticationFilter implements Filter {
 			// Boolean.class);
 		}
 	}
+	@Override
+	public void init(FilterConfig filterConfig) throws ServletException {
+		Filter.super.init(filterConfig);
+	}
 }
